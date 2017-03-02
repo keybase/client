@@ -12,6 +12,8 @@ export type Props = {
   onEditLastMessage: () => void,
   onSelectAttachment: (input: AttachmentInput) => void,
   selectedConversation: ?ConversationIDKey,
+  focusInputCounter: number,
+  onUnmountText: (text: string) => void,
 }
 
 export default class Input extends Component<void, Props, void> { }

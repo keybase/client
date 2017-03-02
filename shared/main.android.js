@@ -84,7 +84,7 @@ export default connect(
   }),
   dispatch => ({
     setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
-    navigateUp: () => { dispatch(navigateUp()) },
+    navigateUp: () => { dispatch(navigateUp(true)) },
     bootstrap: () => dispatch(bootstrap()),
     listenForNotifications: () => dispatch(listenForNotifications()),
   })

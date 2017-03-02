@@ -12,6 +12,7 @@ const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
   devStoreChangingFunctions: false,
+  dumbChatOnly: false,
   dumbSheetOnly: false,
   enableActionLogging: true,
   enableStoreLogging: false,
@@ -32,9 +33,10 @@ let config: {[key: string]: any} = {
 
 if (__DEV__ && true) {
   config.devStoreChangingFunctions = true
+  config.dumbChatOnly = false
   config.dumbSheetOnly = false
   config.enableActionLogging = false
-  config.enableStoreLogging = true
+  config.enableStoreLogging = false
   config.forwardLogs = true
   config.overrideLoggedInTab = Tabs.settingsTab
   config.printOutstandingRPCs = true
@@ -48,6 +50,7 @@ if (__DEV__ && true) {
 export const {
   actionStatFrequency,
   devStoreChangingFunctions,
+  dumbChatOnly,
   dumbSheetOnly,
   enableActionLogging,
   enableStoreLogging,

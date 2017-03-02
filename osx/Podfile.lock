@@ -49,7 +49,7 @@ PODS:
     - GHODictionary
   - ObjectiveSugar (1.1.0)
   - Slash (0.1.4)
-  - Tikppa (0.2.3):
+  - Tikppa (0.2.4):
     - AFNetworking
     - CocoaLumberjack
     - GHKit
@@ -82,7 +82,7 @@ SPEC CHECKSUMS:
   MPMessagePack: 078f8c3aed25079bac89003391fdb71f44bcf37a
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: 7184f2a98e13ad62303037db3a706c88e98b197e
-  Tikppa: 61e77778349e8b9bc2668105711c57706337184d
+  Tikppa: 77ac88aa89814a5ae9d18a773b4436ebef2235b7
   YOLayout: 6728d890bab9b9e4962efd554cba16d677b30b0f
 
 PODFILE CHECKSUM: 254d09634e37270f76c88d82cab3a560a72b79ed

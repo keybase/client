@@ -16,7 +16,7 @@ import {pick} from 'lodash'
 
 import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
-import type {ConversationIDKey, Message, AttachmentInput, AttachmentMessage, OpenAttachmentPopup, OutboxIDKey} from '../../constants/chat'
+import type {ConversationIDKey, Message, AttachmentInput, AttachmentMessage, OpenAttachmentPopup, OutboxIDKey, ServerMessage} from '../../constants/chat'
 import type {Props} from '.'
 
 const {nothingSelected, getBrokenUsers, pendingConversationIDKeyToTlfName, isPendingConversationIDKey} = ChatConstants
@@ -159,11 +159,17 @@ export default connect(
   (dispatch: Dispatch, {setRouteState}) => ({
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
     onAttach: (selectedConversation, inputs: Array<AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
-    onBack: () => dispatch(navigateUp()),
+    onBack: () => dispatch(navigateUp(true)),
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
     onEditMessage: (message: Message, body: string) => { dispatch(editMessage(message, new HiddenString(body))) },
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, false, downloadFilePath(filename))),
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
+    onMessageAction: (message: ServerMessage) => dispatch(navigateAppend([{
+      props: {
+        message,
+      },
+      selected: 'messageAction',
+    }])),
     onMuteConversation: (conversationIDKey: ConversationIDKey, muted: boolean) => { dispatch(muteConversation(conversationIDKey, muted)) },
     onOpenFolder: () => dispatch(openFolder()),
     onOpenConversation: (conversationIDKey: ConversationIDKey) => {

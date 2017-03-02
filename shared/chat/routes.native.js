@@ -4,7 +4,7 @@ import ConversationList from './conversations-list/container'
 import Conversation from './conversation/container'
 import AttachmentPopup from './conversation/attachment-popup/container'
 import AttachmentInputPopup from './conversation/attachment-input/container'
-import {nothingSelected} from '../constants/chat'
+import MessagePopup from './conversation/messages/popup.native'
 
 const conversationRoute = new RouteDefNode({
   component: Conversation,
@@ -19,17 +19,16 @@ const conversationRoute = new RouteDefNode({
       tags: {layerOnTop: true},
       children: {},
     },
+    messageAction: {
+      component: MessagePopup,
+      tags: {layerOnTop: true},
+    },
   },
 })
 
 const routeTree = new RouteDefNode({
-  defaultSelected: nothingSelected,
-  children: (name) => {
-    if (name === nothingSelected) {
-      return new RouteDefNode({component: ConversationList})
-    }
-    return conversationRoute
-  },
+  component: ConversationList,
+  children: () => conversationRoute,
 })
 
 export default routeTree
