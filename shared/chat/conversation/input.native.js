@@ -33,6 +33,10 @@ class ConversationInput extends Component<void, Props, State> {
     }
   }
 
+  componentWillUnmount () {
+    this.props.onUnmountText && this.props.onUnmountText(this.getValue())
+  }
+
   focusInput = () => {
     this._input && this._input.focus()
   }

@@ -30,7 +30,7 @@ export type OutboxIDKey = string
 
 export type MessageID = RPCMessageID
 
-export type ClientMessage = TimestampMessage | SupersedesMessage
+export type ClientMessage = TimestampMessage | SupersedesMessage | LoadingMoreMessage | ChatSecuredHeaderMessage
 export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage | UpdatingAttachment | InvisibleErrorMessage
 
 export type Message = ClientMessage | ServerMessage
@@ -120,6 +120,16 @@ export type AttachmentMessage = {
 export type TimestampMessage = {
   type: 'Timestamp',
   timestamp: number,
+  key: MessageKey,
+}
+
+export type LoadingMoreMessage = {
+  type: 'LoadingMore',
+  key: MessageKey,
+}
+
+export type ChatSecuredHeaderMessage = {
+  type: 'ChatSecuredHeader',
   key: MessageKey,
 }
 

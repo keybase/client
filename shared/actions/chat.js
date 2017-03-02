@@ -1245,14 +1245,34 @@ function _threadToPagination (thread) {
   }
 }
 
-function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
-  if (prevMessage == null || prevMessage.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type)) {
+type TimestampableMessage = {
+  timestamp: number,
+  messageID: MessageID,
+  type: any,
+}
+
+function _filterTimestampableMessage (message: Message): ?TimestampableMessage {
+  if (message.messageID === 1) {
+    // $FlowIssue with casting todo(mm) can we fix this?
+    return message
+  }
+
+  if (message === null || message.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type)) {
     return null
   }
 
-  if (!message.timestamp || !prevMessage.timestamp) {
+  if (!message.timestamp) {
     return null
   }
+
+  // $FlowIssue with casting todo(mm) can we fix this?
+  return message
+}
+
+function _maybeAddTimestamp (_message: Message, _prevMessage: Message): MaybeTimestamp {
+  const prevMessage = _filterTimestampableMessage(_prevMessage)
+  const message = _filterTimestampableMessage(_message)
+  if (!message || !prevMessage) return null
 
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
   // the first message, as well as between any two messages with long duration.

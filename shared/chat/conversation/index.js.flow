@@ -8,6 +8,7 @@ import type {AttachmentInput, AttachmentType, AttachmentMessage, ConversationIDK
 export type Props = {
   bannerMessage: ?BannerMessage,
   emojiPickerOpen: boolean,
+  finalizeInfo: ?FinalizeInfo,
   firstNewMessageID: ?MessageID,
   followingMap: FollowingMap,
   inputText: string,
@@ -19,6 +20,7 @@ export type Props = {
   muted: boolean,
   onAddParticipant: () => void,
   onAttach: (inputs: Array<AttachmentInput>) => void,
+  onBack: () => void,
   onDeleteMessage: (message: Message) => void,
   onEditMessage: (message: Message, body: string) => void,
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
@@ -29,6 +31,7 @@ export type Props = {
   onOpenFolder: () => void,
   onOpenInFileUI: (filename: string) => void,
   onOpenInPopup: (message: AttachmentMessage) => void,
+  onOpenNewerConversation: () => void,
   onPostMessage: (text: string) => void,
   onRetryAttachment: (message: AttachmentMessage) => void,
   onRetryMessage: (outboxID: string) => void,
@@ -38,19 +41,19 @@ export type Props = {
   onToggleSidePanel: () => void,
   participants: List<string>,
   rekeyInfo: ?RekeyInfo,
+  restartConversation: () => void,
   selectedConversation: ?ConversationIDKey,
   setInputText: (text: string) => void,
-  restartConversation: () => void,
   sidePanelOpen: boolean,
+  supersededBy: ?SupersedeInfo,
+  supersedes: ?SupersedeInfo,
   triggerListScrollDown: () => void,
   validated: boolean,
   you: string,
-  supersedes: ?SupersedeInfo,
-  supersededBy: ?SupersedeInfo,
-  finalizeInfo: ?FinalizeInfo,
   // TODO: better types will remove these
   inputProps: any,
   listProps: any,
+  headerProps: any,
 }
 
 export default class Conversation extends Component<void, Props, void> { }

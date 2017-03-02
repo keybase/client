@@ -1,8 +1,9 @@
 // @flow
 /* eslint-env jest */
 
+import * as I from 'immutable'
 import routeTreeReducer, {State} from '../route-tree'
-import {RouteDefNode, routeSetProps, routeNavigate} from '../../route-tree'
+import {RouteDefNode, RouteStateNode, routeSetProps, routeNavigate} from '../../route-tree'
 import {
   navigateAppend,
   navigateUp,
@@ -48,6 +49,29 @@ describe('routeTree reducer', () => {
       const newState = routeTreeReducer(new State({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
       expect(newState.routeState).toEqual(routeSetProps(routeDef, null, (['foo']: Array<string>)))
+    })
+
+    it('persists state correctly', () => {
+      const routeDef = demoRouteDef
+      const routeState = routeSetProps(routeDef, null, (['foo', 'bar']: PropsPath<*>))
+
+      const action = navigateUp(true)
+      const newState = routeTreeReducer(new State({routeDef, routeState}), action)
+      expect(newState.routeDef).toBe(routeDef)
+      expect(newState.routeState).toEqual(new RouteStateNode({
+        selected: 'foo',
+        children: I.Map({
+          foo: new RouteStateNode({
+            selected: null,
+            children: I.Map({
+              bar: new RouteStateNode({
+                selected: null,
+                props: I.Map({}),
+              }),
+            }),
+          }),
+        }),
+      }))
     })
   })
 
