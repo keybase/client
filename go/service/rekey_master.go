@@ -465,9 +465,7 @@ func (r *rekeyMaster) changeNotification(newProblems keybase1.ProblemSet) {
 	}
 
 	if len(cids) > 0 {
-		// notify clients that inbox is stale and which threads are stale
-		r.G().Log.Debug("rekeyMaster: sending ChatInboxStale notification")
-		r.G().NotifyRouter.HandleChatInboxStale(context.Background(), r.G().Env.GetUID())
+		// notify clients about stale conversation threads
 		r.G().Log.Debug("rekeyMaster: sending ChatThreadsStale notification %v", cids)
 		r.G().NotifyRouter.HandleChatThreadsStale(context.Background(), r.G().Env.GetUID(), cids)
 	}
