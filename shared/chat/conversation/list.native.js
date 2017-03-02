@@ -13,6 +13,8 @@ import type {ServerMessage} from '../../constants/chat'
 type State = {
   dataSource: NativeListView.DataSource,
   isLockedToBottom: boolean,
+  scrollViewHeight: ?number,
+  contentHeight: ?number,
 }
 
 const lockedToBottomSlop = 20
@@ -27,6 +29,8 @@ class ConversationList extends Component <void, Props, State> {
     this.state = {
       dataSource: ds.cloneWithRows(this._allMessages(props).toArray()),
       isLockedToBottom: true,
+      scrollViewHeight: null,
+      contentHeight: null,
     }
   }
 
@@ -37,6 +41,13 @@ class ConversationList extends Component <void, Props, State> {
   }
 
   shouldComponentUpdate (nextProps: Props, nextState: State) {
+    const {contentHeight, scrollViewHeight} = this.state
+    const {contentHeight: nextContentHeight, scrollViewHeight: nextScrollViewHeight} = nextState
+
+    if (contentHeight !== nextContentHeight || scrollViewHeight !== nextScrollViewHeight) {
+      return true
+    }
+
     return !shallowEqual(this.props, nextProps) || this.state.dataSource !== nextState.dataSource
   }
 
@@ -47,12 +58,14 @@ class ConversationList extends Component <void, Props, State> {
   }
 
   _scrollToBottom (animated?: boolean = true) {
-    // setTimeout is necessary here. Something is racey with when the list finishes
-    setTimeout(() => this._listRef && this._listRef.scrollToEnd({animated}), 0)
-  }
+    const {contentHeight, scrollViewHeight} = this.state
+    if (!contentHeight || !scrollViewHeight) {
+      return
+    }
 
-  componentDidMount () {
-    this._scrollToBottom()
+    if (contentHeight > scrollViewHeight && this._listRef) {
+      this._listRef.scrollToEnd({animated})
+    }
   }
 
   componentWillReceiveProps (nextProps: Props) {
@@ -64,9 +77,20 @@ class ConversationList extends Component <void, Props, State> {
   }
 
   componentDidUpdate (prevProps: Props, prevState: State) {
-    if (this.state.dataSource.getRowCount() !== prevState.dataSource.getRowCount()) {
+    const {contentHeight: prevContentHeight, scrollViewHeight: prevScrollViewHeight} = prevState
+    const {contentHeight, scrollViewHeight} = this.state
+    if (contentHeight && scrollViewHeight && (contentHeight !== prevContentHeight || scrollViewHeight !== prevScrollViewHeight)) {
       this.state.isLockedToBottom && this._scrollToBottom()
+      return
     }
+  }
+
+  _onLayout = ({nativeEvent: {layout: {height: scrollViewHeight}}}) => {
+    this.setState({scrollViewHeight: Math.floor(scrollViewHeight)})
+  }
+
+  _onContentSizeChange = (contentWidth, contentHeight) => {
+    this.setState({contentHeight: Math.floor(contentHeight)})
   }
 
   _onScroll = (scrollEvent) => {
@@ -128,6 +152,8 @@ class ConversationList extends Component <void, Props, State> {
         ref={r => { this._listRef = r; window._listRef = r }}
         dataSource={this.state.dataSource}
         renderRow={this._renderRow}
+        onLayout={this._onLayout}
+        onContentSizeChange={this._onContentSizeChange}
         onScroll={this._onScroll}
         initialListSize={this._allMessages(this.props).count()}
       />
