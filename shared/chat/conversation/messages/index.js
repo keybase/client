@@ -7,7 +7,7 @@ import LoadingMore from './loading-more'
 import ProfileResetNotice from '../notices/profile-reset-notice'
 import {Box, Text, Icon} from '../../../common-adapters'
 import {formatTimeForMessages} from '../../../util/timestamp'
-import {globalStyles, globalMargins, globalColors} from '../../../styles'
+import {globalStyles, globalColors} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
 import type {Options} from './index'

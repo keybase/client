@@ -50,15 +50,15 @@ const mockListProps = (messages, metaDataMap, you, authorSeeds, moreToLoad) => (
   you,
   followingMap: mockFollowingMap(authorSeeds, () => true),
   moreToLoad,
-  onDeleteMessage: (message: Message) => console.log('on delete message'),
-  onEditMessage: (message: Message, body: string) => console.log('on edit message'),
+  onDeleteMessage: (message: ChatConstants.Message) => console.log('on delete message'),
+  onEditMessage: (message: ChatConstants.Message, body: string) => console.log('on edit message'),
   onFocusInput: () => console.log('on focus input'),
-  onLoadAttachment: (messageID: MessageID, filename: string) => console.log('on load attachment'),
+  onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => console.log('on load attachment'),
   onLoadMoreMessages: () => console.log('on load more message'),
-  onOpenConversation: (conversationIDKey: ConversationIDKey) => console.log('on open conv'),
+  onOpenConversation: (conversationIDKey: ChatConstants.ConversationIDKey) => console.log('on open conv'),
   onOpenInFileUI: (filename: string) => console.log('on open in file ui'),
-  onOpenInPopup: (message: AttachmentMessage) => console.log('on open in popup'),
-  onRetryAttachment: (message: AttachmentMessage) => console.log('on retry attachment'),
+  onOpenInPopup: (message: ChatConstants.AttachmentMessage) => console.log('on open in popup'),
+  onRetryAttachment: (message: ChatConstants.AttachmentMessage) => console.log('on retry attachment'),
   onRetryMessage: (outboxID: string) => console.log('on retry message'),
   selectedConversation: null,
   validated: true,
@@ -68,6 +68,7 @@ const mockListProps = (messages, metaDataMap, you, authorSeeds, moreToLoad) => (
 
 const you = nameGen(0)
 class Main extends React.Component {
+  state: any;
   constructor () {
     super()
     this.state = {
@@ -92,7 +93,7 @@ class Main extends React.Component {
   }
 
   render () {
-    const props = mockListProps(
+    const props: any = mockListProps(
       this.state.messages,
       mockMetaData([0, 1]),
       you,
