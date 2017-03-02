@@ -25,7 +25,7 @@ func NewCmdSimpleFSMove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	return cli.Command{
 		Name:         "mv",
 		ArgumentHelp: "<source> [source] <dest>",
-		Usage:        "copy one or more directory elements to dest",
+		Usage:        "move one or more directory elements to dest",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSMove{Contextified: libkb.NewContextified(g)}, "mv", c)
 		},
