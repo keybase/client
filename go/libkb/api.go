@@ -226,7 +226,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	var jsonBytes int
 	var status string
 	defer func() {
-		api.G().Log.CDebugf(ctx, "- API %s %s: err=%s, status=%s, jsonBytes=%d", req.Method, req.URL,
+		api.G().Log.CDebugf(ctx, "- API %s %s: err=%s, status=%q, jsonBytes=%d", req.Method, req.URL,
 			ErrToOk(err), status, jsonBytes)
 	}()
 
