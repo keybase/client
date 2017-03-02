@@ -437,7 +437,8 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	}
 
 	// Open header and verify against HeaderVerificationKey
-	headerPacked, err := b.signEncryptOpen(boxed.HeaderSealed, encryptionKey, boxed.HeaderVerificationKey)
+	headerPacked, err := b.signEncryptOpen(boxed.HeaderSealed, encryptionKey,
+		boxed.HeaderVerificationKey, libkb.SignaturePrefixChatMBv2)
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
 	}
@@ -865,7 +866,7 @@ func (b *Boxer) boxV1(messagePlaintext chat1.MessagePlaintext, key *keybase1.Cry
 	}
 
 	// sign the header and insert the signature
-	sig, err := b.signMarshal(header, signingKeyPair, libkb.SignaturePrefixChat)
+	sig, err := b.signMarshal(header, signingKeyPair, libkb.SignaturePrefixChatMBv1)
 	if err != nil {
 		return nil, err
 	}
@@ -920,7 +921,8 @@ func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, encryptionKey *ke
 	})
 
 	// signencrypt the header
-	headerSealed, err := b.signEncryptMarshal(headerVersioned, encryptionKey, signingKeyPair)
+	headerSealed, err := b.signEncryptMarshal(headerVersioned, encryptionKey,
+		signingKeyPair, libkb.SignaturePrefixChatMBv2)
 	if err != nil {
 		return nil, err
 	}
@@ -995,13 +997,14 @@ func (b *Boxer) signMarshal(data interface{}, kp libkb.NaclSigningKeyPair, prefi
 
 // signEncryptMarshal signencrypts data given an encryption and signing key, returning a chat1.SignEncryptedData.
 // It marshals data before signing.
-func (b *Boxer) signEncryptMarshal(data interface{}, encryptionKey *keybase1.CryptKey, signingKeyPair libkb.NaclSigningKeyPair) (chat1.SignEncryptedData, error) {
+func (b *Boxer) signEncryptMarshal(data interface{}, encryptionKey *keybase1.CryptKey,
+	signingKeyPair libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignEncryptedData, error) {
 	encoded, err := b.marshal(data)
 	if err != nil {
 		return chat1.SignEncryptedData{}, err
 	}
 
-	return b.signEncrypt(encoded, encryptionKey, signingKeyPair)
+	return b.signEncrypt(encoded, encryptionKey, signingKeyPair, prefix)
 }
 
 // sign signs msg with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
@@ -1025,7 +1028,8 @@ func (b *Boxer) sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.Signa
 }
 
 // signEncrypt signencrypts msg.
-func (b *Boxer) signEncrypt(msg []byte, encryptionKey *keybase1.CryptKey, signingKeyPair libkb.NaclSigningKeyPair) (chat1.SignEncryptedData, error) {
+func (b *Boxer) signEncrypt(msg []byte, encryptionKey *keybase1.CryptKey,
+	signingKeyPair libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignEncryptedData, error) {
 	if signingKeyPair.Private == nil {
 		return chat1.SignEncryptedData{}, libkb.NoSecretKeyError{}
 	}
@@ -1039,7 +1043,7 @@ func (b *Boxer) signEncrypt(msg []byte, encryptionKey *keybase1.CryptKey, signin
 	var signKey [ed25519.PrivateKeySize]byte = *signingKeyPair.Private
 
 	signEncryptedBytes := signencrypt.SealWhole(
-		msg, &encKey, &signKey, libkb.SignaturePrefixChat, &nonce)
+		msg, &encKey, &signKey, prefix, &nonce)
 	signEncryptedInfo := chat1.SignEncryptedData{
 		V: 1,
 		B: signEncryptedBytes,
@@ -1055,7 +1059,8 @@ func (b *Boxer) signEncrypt(msg []byte, encryptionKey *keybase1.CryptKey, signin
 }
 
 // signEncryptOpen opens and verifies chat1.SignEncryptedData.
-func (b *Boxer) signEncryptOpen(data chat1.SignEncryptedData, encryptionKey *keybase1.CryptKey, verifyKID []byte) ([]byte, error) {
+func (b *Boxer) signEncryptOpen(data chat1.SignEncryptedData, encryptionKey *keybase1.CryptKey,
+	verifyKID []byte, prefix libkb.SignaturePrefix) ([]byte, error) {
 	var encKey [signencrypt.SecretboxKeySize]byte = encryptionKey.Key
 
 	verifyKey := libkb.KIDToNaclSigningKeyPublic(verifyKID)
@@ -1069,7 +1074,7 @@ func (b *Boxer) signEncryptOpen(data chat1.SignEncryptedData, encryptionKey *key
 		return nil, libkb.DecryptBadNonceError{}
 	}
 
-	plain, err := signencrypt.OpenWhole(data.B, &encKey, &verKey, libkb.SignaturePrefixChat, &nonce)
+	plain, err := signencrypt.OpenWhole(data.B, &encKey, &verKey, prefix, &nonce)
 	if err != nil {
 		return nil, err
 	}
@@ -1127,7 +1132,7 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 	if err != nil {
 		return verifyMessageRes{}, NewPermanentUnboxingError(err)
 	}
-	if !b.verify(hpack, *header.HeaderSignature, libkb.SignaturePrefixChat) {
+	if !b.verify(hpack, *header.HeaderSignature, libkb.SignaturePrefixChatMBv1) {
 		return verifyMessageRes{}, NewPermanentUnboxingError(libkb.BadSigError{E: "header signature invalid"})
 	}
 
