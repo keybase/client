@@ -5,5 +5,6 @@ import {NativeImage} from '../../../common-adapters/native-wrappers.native'
 import type {ImageRenderProps} from './attachment.render'
 
 export function ImageRender ({style, src}: ImageRenderProps) {
-  return <NativeImage source={src} style={style} />
+  const source = typeof src === 'string' ? {uri: 'file://' + src} : src
+  return <NativeImage source={source} style={style} />
 }
