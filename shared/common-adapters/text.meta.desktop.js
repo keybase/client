@@ -219,7 +219,7 @@ const metaData: {[key: TextType]: MetaType} = {
   // Terminal
   'Terminal': {
     colorForBackgroundMode: {
-      'Normal': globalColors.darkBlue,
+      'Normal': globalColors.blue3,
       'Terminal': globalColors.blue3,
     },
     fontSize: 13,
