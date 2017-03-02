@@ -119,7 +119,16 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 	netCtx = libkb.WithLogTag(netCtx, "LUPK")
 	h.G().Log.CDebugf(netCtx, "+ UserHandler#LoadUserPlusKeys(%+v)", arg)
 	ret, err := libkb.LoadUserPlusKeys(netCtx, h.G(), arg.Uid, arg.PollForKID)
-	h.G().Log.CDebugf(netCtx, "- UserHandler#LoadUserPlusKeys(%+v) -> (%+v,%s)", arg, ret, libkb.ErrToOk(err))
+
+	// for debugging purposes, output the returned KIDs (since this can be racy)
+	var kids []keybase1.KID
+	for _, key := range ret.DeviceKeys {
+		if !key.IsSibkey && key.PGPFingerprint == "" {
+			kids = append(kids, key.KID)
+		}
+	}
+
+	h.G().Log.CDebugf(netCtx, "- UserHandler#LoadUserPlusKeys(%+v) -> (UVV=%+v, KIDs=%v, err=%s)", arg, ret.Uvv, kids, libkb.ErrToOk(err))
 	return ret, err
 }
 
