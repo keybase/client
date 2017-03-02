@@ -92,13 +92,14 @@ func (e *LoginProvisionedDevice) run(ctx *Context) error {
 		PublicKeyOptional: true,
 		ForceReload:       true,
 	}
+	var nu libkb.NormalizedUsername
 	if len(e.username) == 0 {
 		e.G().Log.Debug("| using current username")
 		config, err = e.G().Env.GetConfig().GetUserConfig()
 		loadUserArg.Self = true
 	} else {
 		e.G().Log.Debug("| using new username %s", e.username)
-		nu := libkb.NewNormalizedUsername(e.username)
+		nu = libkb.NewNormalizedUsername(e.username)
 		config, err = e.G().Env.GetConfig().GetUserConfigForUsername(nu)
 		loadUserArg.Name = e.username
 	}
@@ -124,6 +125,15 @@ func (e *LoginProvisionedDevice) run(ctx *Context) error {
 	}
 	if !me.HasDeviceInCurrentInstall(deviceID) {
 		e.G().Log.Debug("current device is not valid")
+
+		// If our config file is showing that we have a bogus
+		// deviceID (maybe from our account before an account reset),
+		// then we'll delete it from the config file here, so later parts
+		// of provisioning aren't confused by this device ID.
+		err := e.G().Env.GetConfigWriter().NukeUser(nu)
+		if err != nil {
+			e.G().Log.Warning("Error clearing user config: %s", err)
+		}
 		return errNoDevice
 	}
 

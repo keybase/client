@@ -254,14 +254,21 @@ func (f *JSONConfigFile) SwitchUser(nu NormalizedUsername) error {
 	return err
 }
 
+// NukeUser deletes the given user from the config file, or if
+// the given user is empty, deletes the current user from the
+// config file.
 func (f *JSONConfigFile) NukeUser(nu NormalizedUsername) error {
 	f.userConfigWrapper.Lock()
 	defer f.userConfigWrapper.Unlock()
 
-	if cu := f.getCurrentUser(); cu.Eq(nu) {
+	if cu := f.getCurrentUser(); nu.IsNil() || cu.Eq(nu) {
 		err := f.jw.DeleteValueAtPath("current_user")
+		f.userConfigWrapper.userConfig = nil
 		if err != nil {
 			return err
+		}
+		if nu.IsNil() {
+			nu = cu
 		}
 	}
 
