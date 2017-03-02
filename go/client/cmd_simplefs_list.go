@@ -5,6 +5,8 @@ package client
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -39,8 +41,57 @@ func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	}
 }
 
+// CheckTLFRequest - See if this is either /keybase/public or /keybase/private,
+// and request favorites accordingly.
+func (c *CmdSimpleFSList) CheckTLFRequest() (bool, error) {
+	private := false
+	pathType, err := c.path.PathType()
+	if err != nil {
+		return false, err
+	}
+	if pathType != keybase1.PathType_KBFS {
+		return false, nil
+	}
+	acc := filepath.Clean(strings.ToLower(c.path.Kbfs()))
+	acc = filepath.ToSlash(acc)
+	c.G().Log.Debug("fs ls CheckTLFRequest: %s -> %s", c.path.Kbfs(), acc)
+	if acc == "/private" {
+		private = true
+	} else if acc != "/public" {
+		return false, nil
+	}
+
+	arg := keybase1.GetFavoritesArg{}
+	tlfs, err := list(arg)
+	if err != nil {
+		return true, err
+	}
+
+	result := keybase1.SimpleFSListResult{}
+
+	// copy the list result into a SimpleFS result
+	// to use the same output function
+	for _, f := range tlfs.FavoriteFolders {
+		if f.Private == private {
+			result.Entries = append(result.Entries, keybase1.Dirent{
+				Name:       f.Name,
+				DirentType: keybase1.DirentType_DIR,
+			})
+		}
+
+	}
+	c.output(result)
+
+	return true, nil
+}
+
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSList) Run() error {
+
+	if isTLFRequest, err := c.CheckTLFRequest(); isTLFRequest == true {
+		return err
+	}
+
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {
 		return err
