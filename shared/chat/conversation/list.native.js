@@ -23,7 +23,11 @@ class ConversationList extends Component <void, Props, State> {
 
   constructor (props: Props) {
     super(props)
-    const ds = new NativeListView.DataSource({rowHasChanged: (r1, r2) => r1.key !== r2.key})
+    const ds = new NativeListView.DataSource({
+      rowHasChanged: (r1, r2) => {
+        return r1 !== r2 || r1 === this.props.editingMessage || r2 === this.props.editingMessage
+      },
+    })
     this.state = {
       dataSource: ds.cloneWithRows(this._allMessages(props).toArray()),
       isLockedToBottom: true,
@@ -40,7 +44,7 @@ class ConversationList extends Component <void, Props, State> {
     return !shallowEqual(this.props, nextProps) || this.state.dataSource !== nextState.dataSource
   }
 
-  componentWillUpdate (nextProps: Props, nextState) {
+  componentWillUpdate (nextProps: Props, nextState: State) {
     if (!shallowEqual(this.props, nextProps)) {
       this._updateDataSource(nextProps)
     }
@@ -104,7 +108,7 @@ class ConversationList extends Component <void, Props, State> {
     const prevMessage = messages.get(rowID - 1)
     const isSelected = false
     const isScrolling = false
-    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, message.key || `other-${rowID}`, {}, this._onAction)
+    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, message.key || `other-${rowID}`, {}, this._onAction, this.props.editingMessage === message)
 
     return messageFactory(options)
   }

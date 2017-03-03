@@ -64,6 +64,7 @@ const baseMock = {
   onAction: () => console.log('onAction'),
   isFirstNewMessage: false,
   isSelected: false,
+  isEditing: false,
   style: {},
 }
 

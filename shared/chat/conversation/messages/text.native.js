@@ -7,14 +7,26 @@ import MessageWrapper from './wrapper'
 import type {Props} from './text'
 
 const MessageText = (props: Props) => {
-  const {message} = props
+  const {message, isEditing} = props
   const {messageState} = message
-  const textStyle = messageState === 'failed' || messageState === 'pending' ? pendingFailStyle : {}
+  const textStyle = {
+    ...(messageState === 'failed' || messageState === 'pending' ? pendingFailStyle : {}),
+    ...(isEditing ? editingStyle : null),
+  }
+
   return (
     <MessageWrapper {...props}>
       <Markdown style={textStyle}>{message.message.stringValue()}</Markdown>
     </MessageWrapper>
   )
+}
+
+const editingStyle = {
+  borderColor: globalColors.blue,
+  borderRadius: 8,
+  borderWidth: 1,
+  margin: 2,
+  padding: 2,
 }
 
 const pendingFailStyle = {

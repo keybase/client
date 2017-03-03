@@ -33,6 +33,15 @@ class ConversationInput extends Component<void, Props, State> {
     }
   }
 
+  componentWillReceiveProps (nextProps: Props) {
+    if (this.props.editingMessage !== nextProps.editingMessage) {
+      if (nextProps.editingMessage && nextProps.editingMessage.type === 'Text') {
+        this.setState({text: nextProps.editingMessage.message.stringValue()})
+        this.focusInput()
+      }
+    }
+  }
+
   componentWillUnmount () {
     this.props.onUnmountText && this.props.onUnmountText(this.getValue())
   }
@@ -45,9 +54,20 @@ class ConversationInput extends Component<void, Props, State> {
     return this._input ? this._input.getValue() : ''
   }
 
+  _onBlur = () => {
+    if (this.props.editingMessage) {
+      this.props.onShowEditor(null)
+      this.setState({text: ''})
+    }
+  }
+
   _onSubmit = () => {
     if (this.state.text) {
-      this.props.onPostMessage(this.state.text)
+      if (this.props.editingMessage) {
+        this.props.onEditMessage(this.props.editingMessage, this.state.text)
+      } else {
+        this.props.onPostMessage(this.state.text)
+      }
       this.setState({text: ''})
     }
   }
@@ -87,6 +107,7 @@ class ConversationInput extends Component<void, Props, State> {
             hintText='Write a message'
             hideUnderline={true}
             onChangeText={this._onChangeText}
+            onBlur={this._onBlur}
             value={this.state.text}
             multiline={true}
             {...multilineOpts}

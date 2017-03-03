@@ -285,6 +285,7 @@ export const StateRecord = Record({
   alwaysShow: Set(),
   pendingConversations: Map(),
   nowOverride: null,
+  editingMessage: null,
 })
 
 export type State = Record<{
@@ -301,6 +302,7 @@ export type State = Record<{
   alwaysShow: Set<ConversationIDKey>,
   pendingConversations: Map<ConversationIDKey, Participants>,
   nowOverride: ?Date,
+  editingMessage: ?Message,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -316,6 +318,7 @@ export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversati
 export type ConversationSetStatus = NoErrorTypedAction<'chat:conversationSetStatus', {conversationIDKey: ConversationIDKey, muted: boolean}>
 export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {failureDescription: string, outboxID: OutboxIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
+export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
@@ -405,6 +408,7 @@ export type Actions = AddPendingConversation
   | AppendMessages
   | DeleteMessage
   | EditMessage
+  | ShowEditor
   | LoadInbox
   | LoadMoreMessages
   | LoadedInbox

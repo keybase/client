@@ -43,6 +43,7 @@ import type {
   CreatePendingFailure,
   DeleteMessage,
   EditMessage,
+  ShowEditor,
   FinalizedState,
   InboxState,
   IncomingMessage,
@@ -251,6 +252,10 @@ function loadInbox (): LoadInbox {
 
 function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean): LoadMoreMessages {
   return {type: 'chat:loadMoreMessages', payload: {conversationIDKey, onlyIfUnloaded}}
+}
+
+function showEditor (message: Message): ShowEditor {
+  return {type: 'chat:showEditor', payload: {message}}
 }
 
 function editMessage (message: Message, text: HiddenString): EditMessage {
@@ -2089,4 +2094,5 @@ export {
   selectConversation,
   setupChatHandlers,
   startConversation,
+  showEditor,
 }

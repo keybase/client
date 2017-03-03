@@ -114,6 +114,7 @@ class Input extends Component<void, Props, State> {
 
   _onBlur = () => {
     this.setState({focused: false})
+    this.props.onBlur && this.props.onBlur()
   }
 
   _underlineColor () {
