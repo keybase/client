@@ -171,9 +171,22 @@ func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.Use
 
 	uid := obj.Base.Uid
 	u.G().Log.CDebugf(ctx, "| Caching UPAK for %s", uid)
+
+	stale := false
 	u.Lock()
-	u.m[uid.String()] = obj
+	existing := u.m[uid.String()]
+	if existing != nil && obj.IsOlderThan(*existing) {
+		stale = true
+	} else {
+		u.m[uid.String()] = obj
+	}
 	u.Unlock()
+
+	if stale {
+		u.G().Log.CDebugf(ctx, "| CachedUpakLoader#putUPAKToCache: Refusing to overwrite with stale object")
+		return errors.New("stale object rejected")
+	}
+
 	err := u.G().LocalDb.PutObj(culDBKey(uid), nil, *obj)
 	if err != nil {
 		u.G().Log.CWarningf(ctx, "Error in writing UPAK for %s: %s", uid, err)
@@ -185,7 +198,6 @@ func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error
 
 	lock := u.locktab.AcquireOnName(ctx, u.G(), user.GetUID().String())
 	defer lock.Release(ctx)
-
 	upak := user.ExportToUserPlusAllKeys(keybase1.Time(0))
 	upak.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
 	err := u.putUPAKToCache(ctx, &upak)
