@@ -182,6 +182,10 @@ func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.Use
 }
 
 func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error {
+
+	lock := u.locktab.AcquireOnName(ctx, u.G(), user.GetUID().String())
+	defer lock.Release(ctx)
+
 	upak := user.ExportToUserPlusAllKeys(keybase1.Time(0))
 	upak.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
 	err := u.putUPAKToCache(ctx, &upak)
@@ -248,16 +252,13 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		}
 
 		var sigHints *SigHints
-		sigHints, err = LoadSigHints(ctx, arg.UID, g)
+		var leaf *MerkleUserLeaf
+
+		sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(ctx, u.G(), arg.UID, true)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		var leaf *MerkleUserLeaf
-		leaf, err = lookupMerkleLeaf(ctx, g, arg.UID, true, sigHints)
-		if err != nil {
-			return nil, nil, err
-		}
 		if info != nil {
 			info.LoadedLeaf = true
 		}
@@ -300,6 +301,12 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	ret = &tmp
 	ret.Base.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
 	err = u.putUPAKToCache(ctx, ret)
+
+	if fs := u.G().GetFullSelfer(); fs != nil {
+		// Update the full-self cacher after the lock is released, to avoid
+		// any circular locking.
+		defer fs.Update(ctx, user)
+	}
 
 	return returnUPAK(ret, false)
 }

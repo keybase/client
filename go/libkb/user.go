@@ -103,6 +103,21 @@ func (u *User) GetSigChainLastKnownSeqno() Seqno {
 	return u.sigChain().GetLastKnownSeqno()
 }
 
+func (u *User) IsNewerThan(v *User) (bool, error) {
+	var idvU, idvV int64
+	var err error
+	idvU, err = u.GetIDVersion()
+	if err != nil {
+		return false, err
+	}
+	idvV, err = v.GetIDVersion()
+	if err != nil {
+		return false, err
+	}
+	return ((idvU > idvV && u.GetSigChainLastKnownSeqno() >= v.GetSigChainLastKnownSeqno()) ||
+		(idvU >= idvV && u.GetSigChainLastKnownSeqno() > v.GetSigChainLastKnownSeqno())), nil
+}
+
 func (u *User) GetKeyFamily() *KeyFamily {
 	return u.keyFamily
 }
