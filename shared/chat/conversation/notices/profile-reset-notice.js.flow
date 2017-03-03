@@ -1,9 +1,0 @@
-// @flow
-import {Component} from 'react'
-
-export type Props = {
-  username: string,
-  onOpenOlderConversation: () => void,
-}
-
-export default class ProfileResetNotice extends Component<void, Props, void> {}
