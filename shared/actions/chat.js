@@ -230,8 +230,8 @@ function openTlfInChat (tlf: string): OpenTlfInChat {
   return {type: 'chat:openTlfInChat', payload: tlf}
 }
 
-function startConversation (users: Array<string>, forceImmediate: ?boolean = false): StartConversation {
-  return {type: 'chat:startConversation', payload: {forceImmediate: !!forceImmediate, users}}
+function startConversation (users: Array<string>, forceImmediate?: boolean = false): StartConversation {
+  return {type: 'chat:startConversation', payload: {forceImmediate, users}}
 }
 
 function newChat (existingParticipants: Array<string>): NewChat {
