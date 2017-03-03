@@ -268,7 +268,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 
 	// After the CachedUserTimeout, the FullSelfer ought to repoll.
 	// Check that the sigchain is updated after the repoll, which reflects
-	// the new dvice having been added.
+	// the new device having been added.
 	fakeClock.Advance(libkb.CachedUserTimeout + time.Second)
 	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
 		require.NotNil(t, u)
