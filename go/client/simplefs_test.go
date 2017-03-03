@@ -42,7 +42,7 @@ func TestSimpleFSPathRemote(t *testing.T) {
 	pathType, err = testPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
-	assert.Equal(tc.T, "/private/", testPath.Kbfs())
+	assert.Equal(tc.T, "/private", testPath.Kbfs())
 
 }
 
