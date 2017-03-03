@@ -41,9 +41,9 @@ func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	}
 }
 
-// CheckTLFRequest - See if this is either /keybase/public or /keybase/private,
+// HandleTopLevelKeybaseList - See if this is either /keybase/public or /keybase/private,
 // and request favorites accordingly.
-func (c *CmdSimpleFSList) CheckTLFRequest() (bool, error) {
+func (c *CmdSimpleFSList) HandleTopLevelKeybaseList() (bool, error) {
 	private := false
 	pathType, err := c.path.PathType()
 	if err != nil {
@@ -54,7 +54,7 @@ func (c *CmdSimpleFSList) CheckTLFRequest() (bool, error) {
 	}
 	acc := filepath.Clean(strings.ToLower(c.path.Kbfs()))
 	acc = filepath.ToSlash(acc)
-	c.G().Log.Debug("fs ls CheckTLFRequest: %s -> %s", c.path.Kbfs(), acc)
+	c.G().Log.Debug("fs ls HandleTopLevelKeybaseList: %s -> %s", c.path.Kbfs(), acc)
 	if acc == "/private" {
 		private = true
 	} else if acc != "/public" {
@@ -88,7 +88,7 @@ func (c *CmdSimpleFSList) CheckTLFRequest() (bool, error) {
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSList) Run() error {
 
-	if isTLFRequest, err := c.CheckTLFRequest(); isTLFRequest == true {
+	if isTLFRequest, err := c.HandleTopLevelKeybaseList(); isTLFRequest == true {
 		return err
 	}
 
