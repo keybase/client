@@ -640,7 +640,7 @@ func wrapStat(ei EntryInfo, err error) (keybase1.Dirent, error) {
 }
 
 func setStat(de *keybase1.Dirent, ei *EntryInfo) {
-	de.Time = keybase1.Time(ei.Mtime)
+	de.Time = keybase1.Time(ei.Mtime / 1000000)
 	de.Size = int(ei.Size) // TODO: FIX protocol
 	de.DirentType = deTy2Ty(ei)
 }
