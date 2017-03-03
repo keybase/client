@@ -193,6 +193,9 @@ func (m *CachedFullSelf) cacheMe(u *User) {
 	m.cachedAt = m.G().Clock().Now()
 }
 
+// Update updates the CachedFullSelf with a User loaded from somplace else -- let's
+// say the UPAK loader. We throw away objects for other users or that aren't newer than
+// the one we have.
 func (m *CachedFullSelf) Update(ctx context.Context, u *User) (err error) {
 	if !u.GetUID().Equal(m.G().GetMyUID()) {
 		return

@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 func TestLoadDeviceKeyNew(t *testing.T) {
@@ -59,6 +60,12 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	require.Equal(t, device1.ID, deviceKey.DeviceID, "deviceID must match")
 	require.Equal(t, *device1.Description, deviceKey.DeviceDescription, "device name must match")
 	require.Nil(t, revoked, "device not revoked")
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		dev, err := u.GetDevice(device1.ID)
+		require.NoError(t, err)
+		require.NotNil(t, dev)
+		return nil
+	})
 
 	Logout(tc)
 
@@ -109,6 +116,12 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	require.Equal(t, device2.ID, deviceKey.DeviceID, "deviceID must match")
 	require.Equal(t, *device2.Description, deviceKey.DeviceDescription, "device name must match")
 	require.Nil(t, revoked, "device not revoked")
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		dev, err := u.GetDevice(deviceKey.DeviceID)
+		require.NoError(t, err)
+		require.NotNil(t, dev)
+		return nil
+	})
 }
 
 func TestLoadDeviceKeyRevoked(t *testing.T) {
@@ -150,4 +163,35 @@ func TestLoadDeviceKeyRevoked(t *testing.T) {
 	require.Equal(t, thisDevice.ID, deviceKey.DeviceID, "deviceID must match")
 	require.Equal(t, *thisDevice.Description, deviceKey.DeviceDescription, "device name must match")
 	require.NotNil(t, revoked, "device should be revoked")
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		dev, err := u.GetDevice(deviceKey.DeviceID)
+		require.NoError(t, err)
+		require.NotNil(t, dev)
+		require.False(t, dev.IsActive())
+		dev, err = u.GetDevice(thisDevice.ID)
+		require.NoError(t, err)
+		require.NotNil(t, dev)
+		return nil
+	})
+}
+
+func TestFullSelfCacherFlush(t *testing.T) {
+	tc := SetupEngineTest(t, "fsc")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "fsc")
+
+	var scv libkb.Seqno
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		require.NotNil(t, u)
+		scv = u.GetSigChainLastKnownSeqno()
+		return nil
+	})
+	trackAlice(tc, fu)
+	defer untrackAlice(tc, fu)
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		require.NotNil(t, u)
+		require.True(t, u.GetSigChainLastKnownSeqno() > scv)
+		return nil
+	})
 }
