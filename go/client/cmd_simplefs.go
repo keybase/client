@@ -50,8 +50,8 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
 	mountDir := "/keybase"
 
-	// remove trailing separator while preserving platform specificity
-	if strings.HasSuffix(path, "\\") || strings.HasSuffix(path, "/") {
+	path = filepath.ToSlash(path)
+	if strings.HasSuffix(path, "/") {
 		path = path[:len(path)-1]
 	}
 
