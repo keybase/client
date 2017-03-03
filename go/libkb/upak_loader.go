@@ -349,8 +349,8 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 	forcePollValues := []bool{false, true}
 
 	for _, fp := range forcePollValues {
-		// We need to force a reload to make KBFS tests pass
-		arg.ForcePoll = fp || (u.G().Env.GetRunMode() == DevelRunMode)
+
+		arg.ForcePoll = fp
 
 		upak, _, err := u.Load(arg)
 		if err != nil {
@@ -370,7 +370,7 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 
 func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {
 
-	u.G().Log.Debug("CachedUPAKLoader#Invalidate(%s)", uid)
+	u.G().Log.Debug("| CachedUPAKLoader#Invalidate(%s)", uid)
 
 	if u.noCache {
 		return
