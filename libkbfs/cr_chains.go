@@ -41,6 +41,7 @@ func (cc *crChain) collapse(createdOriginals map[BlockPointer]bool,
 	indicesToRemove := make(map[int]bool)
 	var wr []WriteRange
 	lastSyncOp := -1
+	var syncRefs []BlockPointer
 	for i, op := range cc.ops {
 		switch realOp := op.(type) {
 		case *createOp:
@@ -82,9 +83,12 @@ func (cc *crChain) collapse(createdOriginals map[BlockPointer]bool,
 			wr = realOp.collapseWriteRange(wr)
 			indicesToRemove[i] = true
 			lastSyncOp = i
+			// The last op will have its refs listed twice in the
+			// collapsed op, but that's harmless.
+			syncRefs = append(syncRefs, op.Refs()...)
 			// The last op will have its unrefs listed twice, once in
-			// the op itself and once in the resolutionOp, but that's
-			// harmless.
+			// the collapsed op and once in the resolutionOp, but
+			// that's harmless.
 			toUnrefs = append(toUnrefs, op.Unrefs()...)
 		default:
 			// ignore other op types
@@ -101,6 +105,9 @@ func (cc *crChain) collapse(createdOriginals map[BlockPointer]bool,
 						"Op %s at index %d should have been a syncOp", op, i))
 				}
 				so.Writes = wr
+				for _, ref := range syncRefs {
+					op.AddRefBlock(ref)
+				}
 				ops = append(ops, op)
 			} else if !indicesToRemove[i] {
 				ops = append(ops, op)
