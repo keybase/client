@@ -1,13 +1,14 @@
 // @flow
-
-import React from 'react'
 import Header from './header.native'
-import List from './list.native'
 import Input from './input.native'
-import {Box, Text} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import List from './list.native'
+import ParticipantRekey from './participant-rekey'
+import React from 'react'
+import YouRekey from './you-rekey'
 import hoc from './index-hoc'
-
+import {Box, Text} from '../../common-adapters'
+import {branch, renderComponent} from 'recompose'
+import {globalStyles} from '../../styles'
 import type {Props} from './index'
 
 const Conversation = (props: Props) => (
@@ -20,4 +21,11 @@ const Conversation = (props: Props) => (
   </Box>
 )
 
-export default hoc(Conversation)
+export default branch(
+  (props: Props) => !!props.rekeyInfo,
+  branch(
+    (props: Props) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
+    renderComponent(ParticipantRekey),
+    renderComponent(YouRekey)
+  )
+)(hoc(Conversation))
