@@ -98,11 +98,8 @@ class ConversationList extends Component <void, Props, State> {
     return props.headerMessages.concat(props.messages)
   }
 
-  _showEditor = (message: ServerMessage) => {
-  }
-
   _onAction = (message: ServerMessage, event: any) => {
-    this.props.onMessageAction(message, {onShowEditor: () => this._showEditor(message)})
+    this.props.onMessageAction(message)
   }
 
   _renderRow = (message, sectionID, rowID) => {

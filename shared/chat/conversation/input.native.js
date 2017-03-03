@@ -35,7 +35,6 @@ class ConversationInput extends Component<void, Props, State> {
 
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.editingMessage !== nextProps.editingMessage) {
-      console.log('ccc', nextProps.editingMessage)
       if (nextProps.editingMessage && nextProps.editingMessage.type === 'Text') {
         this.setState({text: nextProps.editingMessage.message.stringValue()})
         this.focusInput()
