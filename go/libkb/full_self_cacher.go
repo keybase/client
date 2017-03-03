@@ -216,6 +216,8 @@ func (m *CachedFullSelf) Update(ctx context.Context, u *User) (err error) {
 		if newer {
 			m.G().Log.CDebugf(ctx, "Updating user, since we got a newer copy")
 			m.cacheMe(u)
+		} else {
+			m.G().Log.CDebugf(ctx, "CachedFullSelf#Update called with older user")
 		}
 	}
 	return nil
