@@ -898,7 +898,7 @@ type orderedMDServer struct {
 	MDServer
 	lock      *sync.Mutex
 	puts      *[]interface{}
-	onceOnPut func()
+	onceOnPut func() error
 }
 
 func (s *orderedMDServer) Put(
@@ -907,8 +907,11 @@ func (s *orderedMDServer) Put(
 	defer s.lock.Unlock()
 	*s.puts = append(*s.puts, rmds.MD.RevisionNumber())
 	if s.onceOnPut != nil {
-		s.onceOnPut()
+		err := s.onceOnPut()
 		s.onceOnPut = nil
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -966,7 +969,7 @@ func testTLFJournalFlushOrdering(t *testing.T, ver MetadataVer) {
 		require.NoError(t, err)
 	}
 
-	mdserver.onceOnPut = func() {
+	mdserver.onceOnPut = func() error {
 		// bid3 is-put-before MetadataRevision(12).
 		err := tlfJournal.putBlockData(
 			ctx, bid3, bCtx3, []byte{3}, serverHalf3)
@@ -974,6 +977,7 @@ func testTLFJournalFlushOrdering(t *testing.T, ver MetadataVer) {
 		md3 := config.makeMD(MetadataRevision(12), prevRoot)
 		prevRoot, err = tlfJournal.putMD(ctx, md3)
 		require.NoError(t, err)
+		return nil
 	}
 
 	err = tlfJournal.flush(ctx)
@@ -998,6 +1002,142 @@ func testTLFJournalFlushOrdering(t *testing.T, ver MetadataVer) {
 		reflect.DeepEqual(puts, expectedPuts2),
 		"Expected %v or %v, got %v", expectedPuts1,
 		expectedPuts2, puts)
+}
+
+// testTLFJournalFlushOrderingAfterSquashAndCR tests that after a
+// branch is squashed multiple times, and then hits a conflict, the
+// blocks are flushed completely before the conflict-resolving MD.
+func testTLFJournalFlushOrderingAfterSquashAndCR(
+	t *testing.T, ver MetadataVer) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate :=
+		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		tempdir, config, ctx, cancel, tlfJournal, delegate)
+	tlfJournal.forcedSquashByBytes = 20
+
+	firstRev := MetadataRevision(10)
+	firstPrevRoot := fakeMdID(1)
+	md1 := config.makeMD(firstRev, firstPrevRoot)
+
+	var lock sync.Mutex
+	var puts []interface{}
+
+	bserver := orderedBlockServer{
+		lock: &lock,
+		puts: &puts,
+	}
+
+	tlfJournal.delegateBlockServer.Shutdown(ctx)
+	tlfJournal.delegateBlockServer = &bserver
+
+	var mdserverShim shimMDServer
+	mdserver := orderedMDServer{
+		MDServer: &mdserverShim,
+		lock:     &lock,
+		puts:     &puts,
+	}
+
+	config.mdserver = &mdserver
+
+	// Put almost a full batch worth of block before revs 10 and 11.
+	blockEnd := uint64(maxJournalBlockFlushBatchSize - 1)
+	for i := uint64(0); i < blockEnd; i++ {
+		data := []byte{byte(i)}
+		bid, bCtx, serverHalf := config.makeBlock(data)
+		err := tlfJournal.putBlockData(ctx, bid, bCtx, data, serverHalf)
+		require.NoError(t, err)
+	}
+	prevRoot, err := tlfJournal.putMD(ctx, md1)
+	require.NoError(t, err)
+	md2 := config.makeMD(firstRev+1, prevRoot)
+	require.NoError(t, err)
+	prevRoot, err = tlfJournal.putMD(ctx, md2)
+	require.NoError(t, err)
+
+	// Squash revs 10 and 11.  No blocks should actually be flushed
+	// yet.
+	err = tlfJournal.flush(ctx)
+	require.NoError(t, err)
+	require.Equal(
+		t, PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
+	requireJournalEntryCounts(t, tlfJournal, blockEnd+2, 2)
+
+	squashMD := config.makeMD(firstRev, firstPrevRoot)
+	prevRoot, err = tlfJournal.resolveBranch(ctx,
+		PendingLocalSquashBranchID, []kbfsblock.ID{}, squashMD, nil)
+	require.NoError(t, err)
+	requireJournalEntryCounts(t, tlfJournal, blockEnd+3, 1)
+
+	// Another revision 11, with a squashable number of blocks to
+	// complete the initial batch.
+	for i := blockEnd; i < blockEnd+20; i++ {
+		data := []byte{byte(i)}
+		bid, bCtx, serverHalf := config.makeBlock(data)
+		err := tlfJournal.putBlockData(ctx, bid, bCtx, data, serverHalf)
+		require.NoError(t, err)
+	}
+	blockEnd += 20
+	md2 = config.makeMD(firstRev+1, prevRoot)
+	require.NoError(t, err)
+	prevRoot, err = tlfJournal.putMD(ctx, md2)
+	require.NoError(t, err)
+
+	// Let it squash (avoiding a branch this time since there's only one MD).
+	err = tlfJournal.flush(ctx)
+	require.NoError(t, err)
+	require.Equal(t, NullBranchID, tlfJournal.mdJournal.getBranchID())
+	requireJournalEntryCounts(t, tlfJournal, blockEnd+4, 2)
+
+	// Simulate an MD conflict and try to flush again.  This will
+	// flush a full batch of blocks before hitting the conflict, as
+	// well as the marker for rev 10.
+	mdserver.onceOnPut = func() error {
+		return MDServerErrorConflictRevision{}
+	}
+	mergedBare := config.makeMD(md2.Revision(), firstPrevRoot).bareMd
+	mergedBare.SetSerializedPrivateMetadata([]byte{1})
+	rmds, err := SignBareRootMetadata(
+		ctx, config.Codec(), config.Crypto(), config.Crypto(),
+		mergedBare, time.Now())
+	require.NoError(t, err)
+	mdserverShim.nextGetRange = []*RootMetadataSigned{rmds}
+	err = tlfJournal.flush(ctx)
+	require.NoError(t, err)
+	branchID := tlfJournal.mdJournal.getBranchID()
+	require.NotEqual(t, PendingLocalSquashBranchID, branchID)
+	require.NotEqual(t, NullBranchID, branchID)
+	// Blocks: All the unflushed blocks, plus two unflushed rev markers.
+	requireJournalEntryCounts(
+		t, tlfJournal, blockEnd-maxJournalBlockFlushBatchSize+2, 2)
+
+	// More blocks that are part of the resolution.
+	blockEnd2 := blockEnd + maxJournalBlockFlushBatchSize + 2
+	for i := blockEnd; i < blockEnd2; i++ {
+		data := []byte{byte(i)}
+		bid, bCtx, serverHalf := config.makeBlock(data)
+		err := tlfJournal.putBlockData(ctx, bid, bCtx, data, serverHalf)
+		require.NoError(t, err)
+	}
+
+	// Use revision 11 (as if two revisions had been merged by another
+	// device).
+	resolveMD := config.makeMD(md2.Revision(), firstPrevRoot)
+	_, err = tlfJournal.resolveBranch(ctx,
+		branchID, []kbfsblock.ID{}, resolveMD, nil)
+	require.NoError(t, err)
+	// Blocks: the ones from the last check, plus the new blocks, plus
+	// the resolve rev marker.
+	requireJournalEntryCounts(
+		t, tlfJournal, blockEnd2-maxJournalBlockFlushBatchSize+3, 1)
+
+	// Flush everything remaining.  All blocks should be flushed after
+	// `resolveMD`.
+	err = tlfJournal.flush(ctx)
+	require.NoError(t, err)
+	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	testMDJournalGCd(t, tlfJournal.mdJournal)
+
+	require.Equal(t, resolveMD.Revision(), puts[len(puts)-1])
 }
 
 // testTLFJournalFlushInterleaving tests that we interleave block and
@@ -1419,6 +1559,7 @@ func TestTLFJournal(t *testing.T) {
 		testTLFJournalFlushMDBasic,
 		testTLFJournalFlushMDConflict,
 		testTLFJournalFlushOrdering,
+		testTLFJournalFlushOrderingAfterSquashAndCR,
 		testTLFJournalFlushInterleaving,
 		testTLFJournalConvertWhileFlushing,
 		testTLFJournalSquashWhileFlushing,
