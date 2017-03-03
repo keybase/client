@@ -22,7 +22,7 @@ type UPAKLoader interface {
 	LookupUsername(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
 	LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error)
 	ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error)
-	PutUserToCache(user *User) error
+	PutUserToCache(ctx context.Context, user *User) error
 }
 
 // CachedUPAKLoader is a UPAKLoader implementation that can cache results both
@@ -181,10 +181,10 @@ func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.Use
 	return err
 }
 
-func (u *CachedUPAKLoader) PutUserToCache(user *User) error {
+func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error {
 	upak := user.ExportToUserPlusAllKeys(keybase1.Time(0))
 	upak.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
-	err := u.putUPAKToCache(nil, &upak)
+	err := u.putUPAKToCache(ctx, &upak)
 	return err
 }
 

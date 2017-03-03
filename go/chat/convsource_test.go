@@ -284,7 +284,7 @@ func (f failingUpak) ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error) 
 	require.Fail(f.t, "ListFollowedUIDs call")
 	return nil, nil
 }
-func (f failingUpak) PutUserToCache(user *libkb.User) error {
+func (f failingUpak) PutUserToCache(ctx context.Context, user *libkb.User) error {
 	require.Fail(f.t, "PutUserToCache call")
 	return nil
 }

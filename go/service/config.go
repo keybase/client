@@ -121,7 +121,7 @@ func (h ConfigHandler) ClearValue(_ context.Context, path string) error {
 	return nil
 }
 
-func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res keybase1.ExtendedStatus, err error) {
+func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (res keybase1.ExtendedStatus, err error) {
 	defer h.G().Trace("ConfigHandler::GetExtendedStatus", func() error { return err })()
 
 	res.Standalone = h.G().Env.GetStandalone()
@@ -132,7 +132,7 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 		res.Clients = h.G().ConnectionManager.ListAllLabeledConnections()
 	}
 
-	err = h.G().GetFullSelfer().WithSelf(func(me *libkb.User) error {
+	err = h.G().GetFullSelfer().WithSelf(ctx, func(me *libkb.User) error {
 		device, err := me.GetComputedKeyFamily().GetCurrentDevice(h.G())
 		if err != nil {
 			h.G().Log.Debug("| GetCurrentDevice failed: %s", err)

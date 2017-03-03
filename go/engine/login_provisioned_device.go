@@ -70,7 +70,7 @@ func (e *LoginProvisionedDevice) run(ctx *Context) error {
 		if len(e.username) == 0 || e.G().Env.GetUsername() == libkb.NewNormalizedUsername(e.username) {
 			// already logged in, make sure to unlock device keys
 			var partialCopy *libkb.User
-			err = e.G().GetFullSelfer().WithSelf(func(user *libkb.User) error {
+			err = e.G().GetFullSelfer().WithSelf(ctx.NetContext, func(user *libkb.User) error {
 
 				// We don't want to hold onto the full cached user during
 				// the whole `unlockDeviceKey` run below, which touches

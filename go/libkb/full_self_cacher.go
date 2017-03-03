@@ -2,11 +2,12 @@ package libkb
 
 import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 	"sync"
 )
 
 type FullSelfer interface {
-	WithSelf(f func(u *User) error) error
+	WithSelf(ctx context.Context, f func(u *User) error) error
 	WithUser(arg LoadUserArg, f func(u *User) error) (err error)
 	HandleUserChanged(u keybase1.UID) error
 	OnLogout() error
@@ -19,12 +20,14 @@ type UncachedFullSelf struct {
 
 var _ FullSelfer = (*UncachedFullSelf)(nil)
 
-func (n *UncachedFullSelf) WithSelf(f func(u *User) error) error {
+func (n *UncachedFullSelf) WithSelf(ctx context.Context, f func(u *User) error) error {
 	arg := LoadUserArg{
 		Contextified:      NewContextified(n.G()),
 		PublicKeyOptional: true,
 		Self:              true,
+		NetContext:        ctx,
 	}
+
 	return n.WithUser(arg, f)
 }
 
@@ -80,11 +83,12 @@ func (m *CachedFullSelf) isSelfLoad(arg LoadUserArg) bool {
 // It takes a closure, in which the user object is locked and accessible,
 // but we should be sure the user never escapes this closure. If the user
 // is fresh-loaded, then it is stored in memory.
-func (m *CachedFullSelf) WithSelf(f func(u *User) error) error {
+func (m *CachedFullSelf) WithSelf(ctx context.Context, f func(u *User) error) error {
 	arg := LoadUserArg{
 		Contextified:      NewContextified(m.G()),
 		PublicKeyOptional: true,
 		Self:              true,
+		NetContext:        ctx,
 	}
 	return m.WithUser(arg, f)
 }
@@ -94,13 +98,18 @@ func (m *CachedFullSelf) WithSelf(f func(u *User) error) error {
 // WithUser supports other so that code doesn't need to change if we're doing the
 // operation for the user or someone else.
 func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err error) {
-	id, _ := RandString("", 10)
 
-	m.G().Log.Debug("+ CachedFullSelf#WithUser[%s]: %+v", id, arg)
+	ctx := arg.NetContext
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	ctx = WithLogTag(ctx, "SELF")
+
+	m.G().Log.CDebugf(ctx, "+ CachedFullSelf#WithUser(%+v)", arg)
 	m.Lock()
 
 	defer func() {
-		m.G().Log.Debug("- CachedFullSelf#WithUser[%s]", id)
+		m.G().Log.CDebugf(ctx, "- CachedFullSelf#WithUser")
 		m.Unlock()
 	}()
 
@@ -115,17 +124,17 @@ func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err e
 		// within the Account/LoginState inner loop. Because m.G().GetMyUID() calls
 		// back into Account, it will deadlock.
 		if arg.Self || u.GetUID().Equal(m.G().GetMyUID()) {
-			m.G().Log.Debug("| CachedFullSelf#WithUser[%s]: cache populate", id)
+			m.G().Log.CDebugf(ctx, "| CachedFullSelf#WithUser: cache populate")
 			m.me = u
+			if ldr := m.G().GetUPAKLoader(); ldr != nil {
+				ldr.PutUserToCache(ctx, u)
+			}
 		} else {
-			m.G().Log.Debug("| CachedFullSelf#WithUser[%s]: other user", id)
+			m.G().Log.CDebugf(ctx, "| CachedFullSelf#WithUser: other user")
 		}
 	} else {
-		m.G().Log.Debug("| CachedFullSelf#WithUser[%s]: cache hit", id)
+		m.G().Log.CDebugf(ctx, "| CachedFullSelf#WithUser: cache hit")
 		u = m.me
-		if ldr := m.G().GetUPAKLoader(); ldr != nil {
-			ldr.PutUserToCache(u)
-		}
 	}
 	return f(u)
 }

@@ -99,7 +99,7 @@ func (i *Inbox) dbKey() libkb.DbKey {
 
 func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 	var ibox inboxDiskData
-	found, err := i.readDiskBox(i.dbKey(), &ibox)
+	found, err := i.readDiskBox(ctx, i.dbKey(), &ibox)
 	if err != nil {
 		return ibox, NewInternalError(ctx, i.DebugLabeler,
 			"failed to read inbox: uid: %d err: %s", i.uid, err.Error())
@@ -120,7 +120,7 @@ func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 
 func (i *Inbox) writeDiskInbox(ctx context.Context, ibox inboxDiskData) Error {
 	ibox.Version = inboxVersion
-	if ierr := i.writeDiskBox(i.dbKey(), ibox); ierr != nil {
+	if ierr := i.writeDiskBox(ctx, i.dbKey(), ibox); ierr != nil {
 		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s",
 			i.uid, ierr.Error())
 	}
