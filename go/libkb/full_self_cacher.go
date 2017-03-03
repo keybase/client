@@ -4,12 +4,14 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 	"sync"
+	"time"
 )
 
 type FullSelfer interface {
 	WithSelf(ctx context.Context, f func(u *User) error) error
 	WithUser(arg LoadUserArg, f func(u *User) error) (err error)
 	HandleUserChanged(u keybase1.UID) error
+	Update(ctx context.Context, u *User) error
 	OnLogout() error
 	OnLogin() error
 }
@@ -39,9 +41,10 @@ func (n *UncachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) erro
 	return f(u)
 }
 
-func (n *UncachedFullSelf) HandleUserChanged(u keybase1.UID) error { return nil }
-func (n *UncachedFullSelf) OnLogout() error                        { return nil }
-func (n *UncachedFullSelf) OnLogin() error                         { return nil }
+func (n *UncachedFullSelf) HandleUserChanged(u keybase1.UID) error    { return nil }
+func (n *UncachedFullSelf) OnLogout() error                           { return nil }
+func (n *UncachedFullSelf) OnLogin() error                            { return nil }
+func (n *UncachedFullSelf) Update(ctx context.Context, u *User) error { return nil }
 
 func NewUncachedFullSelf(g *GlobalContext) *UncachedFullSelf {
 	return &UncachedFullSelf{NewContextified(g)}
@@ -54,7 +57,8 @@ func NewUncachedFullSelf(g *GlobalContext) *UncachedFullSelf {
 type CachedFullSelf struct {
 	Contextified
 	sync.Mutex
-	me *User
+	me       *User
+	cachedAt time.Time
 }
 
 var _ FullSelfer = (*CachedFullSelf)(nil)
@@ -93,6 +97,47 @@ func (m *CachedFullSelf) WithSelf(ctx context.Context, f func(u *User) error) er
 	return m.WithUser(arg, f)
 }
 
+func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) (err error) {
+	defer m.G().CTrace(ctx, "CachedFullSelf#maybeClearCache", func() error { return err })()
+
+	now := m.G().Clock().Now()
+	diff := now.Sub(m.cachedAt)
+
+	if diff < CachedUserTimeout {
+		m.G().Log.Debug("| was fresh, last loaded %s ago", diff)
+		return nil
+	}
+
+	var sigHints *SigHints
+	var leaf *MerkleUserLeaf
+
+	sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(ctx, m.G(), arg.UID, true)
+	if err != nil {
+		m.me = nil
+		return err
+	}
+
+	arg.SigHints = sigHints
+	arg.MerkleLeaf = leaf
+
+	var idVersion int64
+
+	if idVersion, err = m.me.GetIDVersion(); err != nil {
+		m.me = nil
+		return err
+	}
+
+	if leaf.public != nil && leaf.public.Seqno == m.me.GetSigChainLastKnownSeqno() && leaf.idVersion == idVersion {
+		m.G().Log.Debug("| CachedFullSelf still fresh at seqno=%d, idVersion=%d", leaf.public.Seqno, leaf.idVersion)
+		return nil
+	}
+
+	m.G().Log.Debug("| CachedFullSelf was out of date")
+	m.me = nil
+
+	return nil
+}
+
 // WithUser loads any old user. If it happens to be the self user, then it behaves
 // as in WithSelf. Otherwise, it will just load the user, and throw it out when done.
 // WithUser supports other so that code doesn't need to change if we're doing the
@@ -115,6 +160,10 @@ func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err e
 
 	var u *User
 
+	if m.me != nil && m.isSelfLoad(arg) {
+		m.maybeClearCache(ctx, &arg)
+	}
+
 	if m.me == nil || !m.isSelfLoad(arg) {
 		u, err = LoadUser(arg)
 		if err != nil {
@@ -125,7 +174,7 @@ func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err e
 		// back into Account, it will deadlock.
 		if arg.Self || u.GetUID().Equal(m.G().GetMyUID()) {
 			m.G().Log.CDebugf(ctx, "| CachedFullSelf#WithUser: cache populate")
-			m.me = u
+			m.cacheMe(u)
 			if ldr := m.G().GetUPAKLoader(); ldr != nil {
 				ldr.PutUserToCache(ctx, u)
 			}
@@ -137,6 +186,41 @@ func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err e
 		u = m.me
 	}
 	return f(u)
+}
+
+func (m *CachedFullSelf) cacheMe(u *User) {
+	m.me = u
+	m.cachedAt = m.G().Clock().Now()
+}
+
+// Update updates the CachedFullSelf with a User loaded from someplace else -- let's
+// say the UPAK loader. We throw away objects for other users or that aren't newer than
+// the one we have.
+func (m *CachedFullSelf) Update(ctx context.Context, u *User) (err error) {
+	if !u.GetUID().Equal(m.G().GetMyUID()) {
+		return
+	}
+	defer m.G().CTrace(ctx, "CachedFullSelf#Update", func() error { return err })()
+	m.Lock()
+	defer m.Unlock()
+
+	if m.me == nil {
+		m.G().Log.CDebugf(ctx, "Updating user, since our copy was null")
+		m.cacheMe(u)
+	} else {
+		var newer bool
+		newer, err = u.IsNewerThan(m.me)
+		if err != nil {
+			return err
+		}
+		if newer {
+			m.G().Log.CDebugf(ctx, "Updating user, since we got a newer copy")
+			m.cacheMe(u)
+		} else {
+			m.G().Log.CDebugf(ctx, "CachedFullSelf#Update called with older user")
+		}
+	}
+	return nil
 }
 
 // HandleUserChanged clears the cached self user if it's the UID of the self user.

@@ -7,14 +7,18 @@ package engine
 
 import (
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 func TestLoadDeviceKeyNew(t *testing.T) {
 	tc := SetupEngineTest(t, "clu")
 	defer tc.Cleanup()
+
 	t.Logf("create new user")
 	fu := NewFakeUserOrBust(t, "paper")
 	arg := MakeTestSignupEngineRunArg(fu)
@@ -59,6 +63,12 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	require.Equal(t, device1.ID, deviceKey.DeviceID, "deviceID must match")
 	require.Equal(t, *device1.Description, deviceKey.DeviceDescription, "device name must match")
 	require.Nil(t, revoked, "device not revoked")
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		dev, err := u.GetDevice(device1.ID)
+		require.NoError(t, err)
+		require.NotNil(t, dev)
+		return nil
+	})
 
 	Logout(tc)
 
@@ -109,6 +119,12 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	require.Equal(t, device2.ID, deviceKey.DeviceID, "deviceID must match")
 	require.Equal(t, *device2.Description, deviceKey.DeviceDescription, "device name must match")
 	require.Nil(t, revoked, "device not revoked")
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		dev, err := u.GetDevice(deviceKey.DeviceID)
+		require.NoError(t, err)
+		require.NotNil(t, dev)
+		return nil
+	})
 }
 
 func TestLoadDeviceKeyRevoked(t *testing.T) {
@@ -150,4 +166,113 @@ func TestLoadDeviceKeyRevoked(t *testing.T) {
 	require.Equal(t, thisDevice.ID, deviceKey.DeviceID, "deviceID must match")
 	require.Equal(t, *thisDevice.Description, deviceKey.DeviceDescription, "device name must match")
 	require.NotNil(t, revoked, "device should be revoked")
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		dev, err := u.GetDevice(deviceKey.DeviceID)
+		require.NoError(t, err)
+		require.NotNil(t, dev)
+		require.False(t, dev.IsActive())
+		dev, err = u.GetDevice(thisDevice.ID)
+		require.NoError(t, err)
+		require.NotNil(t, dev)
+		return nil
+	})
+}
+
+func TestFullSelfCacherFlushSingleMachine(t *testing.T) {
+	tc := SetupEngineTest(t, "fsc")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "fsc")
+
+	var scv libkb.Seqno
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		require.NotNil(t, u)
+		scv = u.GetSigChainLastKnownSeqno()
+		return nil
+	})
+	trackAlice(tc, fu)
+	defer untrackAlice(tc, fu)
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		require.NotNil(t, u)
+		require.True(t, u.GetSigChainLastKnownSeqno() > scv)
+		return nil
+	})
+}
+
+func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
+	tc := SetupEngineTest(t, "fsc")
+	defer tc.Cleanup()
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
+	tc.G.SetClock(fakeClock)
+	tc.G.ResetLoginState()
+
+	t.Logf("create new user")
+	fu := NewFakeUserOrBust(t, "paper")
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipPaper = false
+	loginUI := &paperLoginUI{Username: fu.Username}
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  loginUI,
+	}
+	s := NewSignupEngine(&arg, tc.G)
+	err := RunEngine(s, ctx)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	t.Logf("using username:%+v", fu.Username)
+
+	var scv libkb.Seqno
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		require.NotNil(t, u)
+		scv = u.GetSigChainLastKnownSeqno()
+		return nil
+	})
+
+	if len(loginUI.PaperPhrase) == 0 {
+		t.Fatal("login ui has no paper key phrase")
+	}
+
+	t.Logf("create new device")
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	secUI := fu.NewSecretUI()
+	provUI := newTestProvisionUIPaper()
+	provLoginUI := &libkb.TestLoginUI{Username: fu.Username}
+	ctx = &Context{
+		ProvisionUI: provUI,
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    secUI,
+		LoginUI:     provLoginUI,
+		GPGUI:       &gpgtestui{},
+	}
+
+	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("d2 provisioned (1)")
+
+	// Without pubsub (not available on engine tests), we don't get any
+	// invalidation of the user on the the first machine (tc). So this
+	// user's sigchain should stay the same.
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		require.NotNil(t, u)
+		require.True(t, u.GetSigChainLastKnownSeqno() == scv)
+		return nil
+	})
+
+	// After the CachedUserTimeout, the FullSelfer ought to repoll.
+	// Check that the sigchain is updated after the repoll, which reflects
+	// the new device having been added.
+	fakeClock.Advance(libkb.CachedUserTimeout + time.Second)
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		require.NotNil(t, u)
+		require.True(t, u.GetSigChainLastKnownSeqno() > scv)
+		return nil
+	})
 }
