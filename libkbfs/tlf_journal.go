@@ -880,7 +880,7 @@ func (j *tlfJournal) flushBlockEntries(
 	defer func() {
 		if !cleared {
 			clearErr := j.clearFlushingBlockIDs(entries)
-			if err != nil {
+			if err == nil {
 				err = clearErr
 			}
 		}
