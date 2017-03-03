@@ -50,6 +50,7 @@ func makeFakeBlockJournalEntryFuture(t *testing.T) blockJournalEntryFuture {
 			MetadataRevisionInitial,
 			false,
 			false,
+			false,
 			codec.UnknownFieldSetHandler{},
 		},
 		kbfscodec.MakeExtraOrBust("blockJournalEntry", t),

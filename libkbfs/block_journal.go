@@ -122,10 +122,13 @@ type blockJournalEntry struct {
 	Revision MetadataRevision `codec:",omitempty"`
 	// Ignore this entry while flushing if this is true.
 	Ignore bool `codec:",omitempty"`
-	// Do not ever mark this as ignorable.  If this is true, Ignore
-	// should never be true.  TODO: combine this with Ignore using a
-	// more generic flags or state field, once we can change the
-	// journal format.
+	// This is an MD rev marker that represents a local squash.  TODO:
+	// combine this with Ignore using a more generic flags or state
+	// field, once we can change the journal format.
+	IsLocalSquash bool `codec:",omitempty"`
+	// This is legacy and only present for backwards compatibility.
+	// It can be removed as soon as we are sure there are no more
+	// journal entries in the wild with this set.
 	Unignorable bool `codec:",omitempty"`
 
 	codec.UnknownFieldSetHandler
@@ -530,7 +533,7 @@ func (j *blockJournal) markMDRevision(ctx context.Context,
 		// If this MD represents a pending local squash, it should
 		// never be ignored since the revision it refers to can't be
 		// squashed again.
-		Unignorable: isPendingLocalSquash,
+		IsLocalSquash: isPendingLocalSquash,
 	})
 	if err != nil {
 		return err
@@ -560,7 +563,7 @@ func (be blockEntriesToFlush) flushNeeded() bool {
 func (be blockEntriesToFlush) revIsLocalSquash(rev MetadataRevision) bool {
 	for _, entry := range be.other {
 		if !entry.Ignore && entry.Op == mdRevMarkerOp && entry.Revision == rev {
-			return entry.Unignorable
+			return entry.IsLocalSquash || entry.Unignorable
 		}
 	}
 	return false
@@ -903,11 +906,6 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkersInJournal(ctx context.Context,
 			}
 			ignored++
 
-			if e.Unignorable {
-				return fmt.Errorf("Block op %s (op %s) is marked as "+
-					"unignorable, which isn't allowed", id, e.Op)
-			}
-
 			e.Ignore = true
 			err = dj.writeJournalEntry(i, e)
 			if err != nil {
@@ -929,7 +927,7 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkersInJournal(ctx context.Context,
 			}
 
 		case mdRevMarkerOp:
-			if e.Unignorable {
+			if ignoredRev {
 				continue
 			}
 
@@ -1151,7 +1149,7 @@ func (j *blockJournal) getAllRefsForTest() (map[kbfsblock.ID]blockRefMap, error)
 	return refs, nil
 }
 
-func (j *blockJournal) markLatestRevMarkerAsUnignorable() error {
+func (j *blockJournal) markLatestRevMarkerAsLocalSquash() error {
 	first, err := j.j.readEarliestOrdinal()
 	if ioutil.IsNotExist(err) {
 		return nil
@@ -1174,7 +1172,7 @@ func (j *blockJournal) markLatestRevMarkerAsUnignorable() error {
 			continue
 		}
 
-		e.Unignorable = true
+		e.IsLocalSquash = true
 		return j.j.writeJournalEntry(i, e)
 	}
 
