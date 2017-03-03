@@ -2,7 +2,7 @@
 import React from 'react'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../../actions/route-tree'
-import {showEditor} from '../../../actions/chat'
+import {deleteMessage, showEditor} from '../../../actions/chat'
 import {NativeClipboard, PopupMenu} from '../../../common-adapters/index.native'
 import MessagePopupHeader from './popup-header'
 
@@ -11,7 +11,7 @@ import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
 import type {ServerMessage, TextMessage} from '../../../constants/chat'
 
-function MessagePopup ({message, onShowEditor, onHidden}: TextProps) {
+function MessagePopup ({message, onDeleteMessage, onHidden, onShowEditor}: TextProps) {
   if (message.type !== 'Text' && message.type !== 'Attachment') return null
 
   const items = []
@@ -34,6 +34,15 @@ function MessagePopup ({message, onShowEditor, onHidden}: TextProps) {
       title: 'Copy Text',
     })
   }
+
+  items.push({
+    danger: true,
+    onClick: () => {
+      onDeleteMessage(message)
+      onHidden()
+    },
+    title: 'Delete',
+  })
 
   const menuProps = {
     header: {
@@ -63,6 +72,7 @@ export default connect(
     }
   },
   (dispatch: Dispatch, {routeProps}: OwnProps) => ({
+    onDeleteMessage: (message: ServerMessage) => { dispatch(deleteMessage(message)) },
     onHidden: () => dispatch(navigateUp()),
     onShowEditor: () => dispatch(showEditor(routeProps.message)),
   })
