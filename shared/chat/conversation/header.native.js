@@ -7,10 +7,8 @@ import type {Props} from './header'
 
 const Header = ({muted, onBack, onOpenFolder, onShowProfile, onToggleSidePanel, sidePanelOpen, users}: Props) => (
   <Box style={containerStyle}>
-    <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'flex-start'}}>
-      <BackButton title={null} onClick={onBack} iconStyle={{color: globalColors.blue}} textStyle={{color: globalColors.blue}} />
-    </Box>
-    <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
+    <BackButton title={null} onClick={onBack} iconStyle={{color: globalColors.blue}} textStyle={{color: globalColors.blue}} style={{flexShrink: 0}} />
+    <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center', flex: 1, marginTop: 2}}>
       <Usernames
         colorFollowing={true}
         inline={false}
@@ -21,16 +19,14 @@ const Header = ({muted, onBack, onOpenFolder, onShowProfile, onToggleSidePanel, 
         onUsernameClicked={onShowProfile} />
       {muted && <Icon type='iconfont-shh' style={{...styleCenter, ...styleLeft}} />}
     </Box>
-    <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'flex-end'}}>
-      <Icon type={sidePanelOpen ? 'iconfont-close' : 'iconfont-info'} style={styleLeft} onClick={onToggleSidePanel} />
-    </Box>
+    <Icon type={sidePanelOpen ? 'iconfont-close' : 'iconfont-info'} style={{...styleLeft, flexShrink: 0, marginTop: 4}} onClick={onToggleSidePanel} />
   </Box>
 )
 
 const containerStyle = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  justifyContent: 'center',
+  alignItems: 'flex-start',
+  justifyContent: 'flex-start',
   minHeight: 32,
   padding: globalMargins.tiny,
 }
