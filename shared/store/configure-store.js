@@ -42,6 +42,9 @@ if (enableStoreLogging) {
     duration: true,
     logger: {
       error: () => {},
+      group: () => {},
+      groupCollapsed: () => {},
+      groupEnd: () => {},
       log: () => {},
       warn: () => {},
     },

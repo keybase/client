@@ -156,6 +156,6 @@ const editLastMessageHoc = compose(
   withProps(({setEditLastMessageCounter}) => ({onEditLastMessage: () => setEditLastMessageCounter(n => n + 1)}))
 )
 
-const hoc = compose(focusInputHoc, editLastMessageHoc, propsHoc, decoratedMesssagesHoc)
+const hoc = compose(focusInputHoc, editLastMessageHoc, decoratedMesssagesHoc, propsHoc)
 
 export default hoc

@@ -423,6 +423,16 @@ function reducer (state: State = initialState, action: Actions) {
       }
       break
     }
+    case 'chat:replaceConversation': {
+      const {oldKey} = action.payload
+      const oldInbox = state.get('inbox')
+      const idx = oldInbox.findIndex(i => i.get('conversationIDKey') === oldKey)
+      if (idx !== -1) {
+        return state.set('inbox', oldInbox.delete(idx))
+      }
+      console.warn("couldn't find conversation to upgrade", oldKey)
+      break
+    }
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
     case 'chat:updateFinalizedState': {

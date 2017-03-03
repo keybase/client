@@ -63,6 +63,7 @@ import type {
   OutboxIDKey,
   PendingToRealConversation,
   PostMessage,
+  ReplaceConversation,
   RemoveOutboxMessage,
   RemovePendingFailure,
   RetryMessage,
@@ -206,6 +207,10 @@ function _pendingToRealConversation (oldKey: ConversationIDKey, newKey: Conversa
   return {payload: {newKey, oldKey}, type: 'chat:pendingToRealConversation'}
 }
 
+function _replaceConversation (oldKey: ConversationIDKey, newKey: ConversationIDKey): ReplaceConversation {
+  return {payload: {newKey, oldKey}, type: 'chat:replaceConversation'}
+}
+
 function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
   return {type: 'chat:updateBadging', payload: {conversationIDKey}}
 }
@@ -226,8 +231,8 @@ function openTlfInChat (tlf: string): OpenTlfInChat {
   return {type: 'chat:openTlfInChat', payload: tlf}
 }
 
-function startConversation (users: Array<string>): StartConversation {
-  return {type: 'chat:startConversation', payload: {users}}
+function startConversation (users: Array<string>, forceImmediate?: boolean = false): StartConversation {
+  return {type: 'chat:startConversation', payload: {forceImmediate, users}}
 }
 
 function newChat (existingParticipants: Array<string>): NewChat {
@@ -541,40 +546,54 @@ function * _editMessage (action: EditMessage): SagaGenerator<any, any> {
   })
 }
 
-// Actually start a new conversation
-function * _startNewConversation (conversationIDKey: ConversationIDKey) {
-  const oldConversationIDKey = conversationIDKey
+// Actually start a new conversation. conversationIDKey can be a pending one or a replacement
+function * _startNewConversation (oldConversationIDKey: ConversationIDKey) {
   // Find the participants
-  const tlfName = pendingConversationIDKeyToTlfName(conversationIDKey)
-  if (tlfName) {
-    const users = tlfName.split(',')
-    const result = yield call(localNewConversationLocalRpcPromise, {
-      param: {
-        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-        tlfName: users.join(','),
-        tlfVisibility: CommonTLFVisibility.private,
-        topicType: CommonTopicType.chat,
-      }})
-    const newConversationIDKey = result ? conversationIDToKey(result.conv.info.id) : null
-    if (!newConversationIDKey) {
-      console.warn('No convoid from newConvoRPC')
-      return null
-    }
-
-    // Remove the pending conversation
-    yield put(_pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
-    // Select the new version if the old one was selected
-    const selectedConversation = yield select(getSelectedConversation)
-    if (selectedConversation === oldConversationIDKey) {
-      yield put(selectConversation(newConversationIDKey, false))
-    }
-    // Load the inbox so we can post, we wait till this is done
-    yield call(_getInboxAndUnbox, {payload: {conversationIDKey: newConversationIDKey}, type: 'chat:getInboxAndUnbox'})
-    return newConversationIDKey
+  const pendingTlfName = pendingConversationIDKeyToTlfName(oldConversationIDKey)
+  let tlfName
+  if (pendingTlfName) {
+    tlfName = pendingTlfName
   } else {
-    console.warn('No tlf name off of ', conversationIDKey)
-    return null // should never happen
+    const existing = yield select(_selectedInboxSelector, oldConversationIDKey)
+    if (existing) {
+      tlfName = existing.get('participants').join(',')
+    }
   }
+
+  if (!tlfName) {
+    console.warn("Shouldn't happen in practice")
+    return null
+  }
+
+  const result = yield call(localNewConversationLocalRpcPromise, {
+    param: {
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      tlfName,
+      tlfVisibility: CommonTLFVisibility.private,
+      topicType: CommonTopicType.chat,
+    }})
+
+  const newConversationIDKey = result ? conversationIDToKey(result.conv.info.id) : null
+  if (!newConversationIDKey) {
+    console.warn('No convoid from newConvoRPC')
+    return null
+  }
+
+  // Replace any existing convo
+  if (pendingTlfName) {
+    yield put(_pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
+  } else {
+    yield put(_replaceConversation(oldConversationIDKey, newConversationIDKey))
+  }
+
+  // Select the new version if the old one was selected
+  const selectedConversation = yield select(getSelectedConversation)
+  if (selectedConversation === oldConversationIDKey) {
+    yield put(selectConversation(newConversationIDKey, false))
+  }
+  // Load the inbox so we can post, we wait till this is done
+  yield call(_getInboxAndUnbox, {payload: {conversationIDKey: newConversationIDKey}, type: 'chat:getInboxAndUnbox'})
+  return newConversationIDKey
 }
 
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
@@ -735,9 +754,15 @@ function * _updateInbox (conv: ?ConversationLocal) {
   const supersededByState: Constants.SupersededByState = _inboxConversationLocalToSupersededByState(conv)
   const finalizedState: Constants.FinalizedState = _conversationLocalToFinalized(conv)
 
-  yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
-  yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
-  yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+  if (supersedesState.count()) {
+    yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
+  }
+  if (supersededByState.count()) {
+    yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
+  }
+  if (finalizedState.count()) {
+    yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+  }
 
   if (inboxState) {
     yield put(({
@@ -1049,7 +1074,9 @@ function * _loadInbox (): SagaGenerator<any, any> {
   const finalizedState: FinalizedState = _inboxToFinalized(inbox)
 
   yield put(({type: 'chat:loadedInbox', payload: {inbox: conversations}, logTransformer: loadedInboxActionTransformer}: Constants.LoadedInbox))
-  yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+  if (finalizedState.count()) {
+    yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+  }
 
   chatInboxUnverified.response.result()
 
@@ -1076,9 +1103,15 @@ function * _loadInbox (): SagaGenerator<any, any> {
       const supersededByState: Constants.SupersededByState = _inboxConversationLocalToSupersededByState(conv)
       const finalizedState: Constants.FinalizedState = _conversationLocalToFinalized(conv)
 
-      yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
-      yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
-      yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+      if (supersedesState.count()) {
+        yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
+      }
+      if (supersededByState.count()) {
+        yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
+      }
+      if (finalizedState.count()) {
+        yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+      }
 
       if (conversation) {
         yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
@@ -1520,7 +1553,7 @@ function * _openTlfInChat (action: OpenTlfInChat): SagaGenerator<any, any> {
 }
 
 function * _startConversation (action: StartConversation): SagaGenerator<any, any> {
-  const {users} = action.payload
+  const {users, forceImmediate} = action.payload
 
   const inboxSelector = (state: TypedState, tlfName: string) => {
     return state.chat.get('inbox').find(convo => convo.get('participants').sort().join(',') === tlfName)
@@ -1528,8 +1561,9 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
   const tlfName = users.sort().join(',')
   const existing = yield select(inboxSelector, tlfName)
 
-  // Select existing conversations
-  if (existing) {
+  if (forceImmediate && existing) {
+    yield call(_startNewConversation, existing.get('conversationIDKey'))
+  } else if (existing) { // Select existing conversations
     yield put(selectConversation(existing.get('conversationIDKey'), false))
     yield put(switchTo([chatTab]))
   } else {
