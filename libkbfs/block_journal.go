@@ -37,7 +37,7 @@ import (
 // dir/blocks/...
 // dir/gc_block_journal/EARLIEST
 // dir/gc_block_journal/LATEST
-// dir/gc_journal/...
+// dir/gc_block_journal/...
 //
 // block_aggregate_info holds aggregate info about the block journal;
 // currently it just holds the count of stored and unflushed bytes.
@@ -865,6 +865,10 @@ func (j *blockJournal) removeFlushedEntries(ctx context.Context,
 			SyncedBytes: flushedBytes,
 		})
 	}
+
+	// TODO: If the block journal is now empty, nuke all block
+	// journal dirs.
+
 	return nil
 }
 

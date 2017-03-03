@@ -952,6 +952,9 @@ func (j *tlfJournal) flushBlockEntries(
 		return 0, MetadataRevisionUninitialized, false, err
 	}
 
+	// TODO: If both the block and MD journals are empty, nuke the
+	// entire TLF journal directory.
+
 	// If a conversion happened, the original `maxMDRevToFlush` only
 	// applies for sure if its mdRevMarker entry was already for a
 	// local squash.  TODO: conversion might not have actually

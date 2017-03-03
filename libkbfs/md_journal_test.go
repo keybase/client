@@ -563,6 +563,53 @@ func flushAllMDs(
 	testMDJournalGCd(t, j)
 }
 
+func listDir(t *testing.T, dir string) []string {
+	fileInfos, err := ioutil.ReadDir(dir)
+	require.NoError(t, err)
+	var names []string
+	for _, fileInfo := range fileInfos {
+		names = append(names, fileInfo.Name())
+	}
+	return names
+}
+
+func getMDJournalNames(ver MetadataVer) []string {
+	var expectedNames []string
+	if ver < SegregatedKeyBundlesVer {
+		expectedNames = []string{"md_journal", "mds"}
+	} else {
+		expectedNames = []string{
+			"md_journal", "mds", "rkbv3", "wkbv3",
+		}
+	}
+	return expectedNames
+}
+
+func testMDJournalFlushAll(t *testing.T, ver MetadataVer) {
+	_, _, id, signer, ekg, bsplit, tempdir, j := setupMDJournalTest(t, ver)
+	defer teardownMDJournalTest(t, tempdir)
+
+	firstRevision := MetadataRevision(10)
+	firstPrevRoot := fakeMdID(1)
+	mdCount := 10
+	putMDRange(t, ver, id, signer, ekg, bsplit,
+		firstRevision, firstPrevRoot, mdCount, j)
+
+	ctx := context.Background()
+
+	names := listDir(t, j.dir)
+	require.Equal(t, getMDJournalNames(ver), names)
+
+	err := ioutil.WriteFile(filepath.Join(j.dir, "extra_file"), nil, 0600)
+	require.NoError(t, err)
+
+	flushAllMDs(t, ctx, signer, j)
+
+	// The flush shouldn't remove the entire directory.
+	names = listDir(t, j.dir)
+	require.Equal(t, []string{"extra_file"}, names)
+}
+
 func testMDJournalBranchConversion(t *testing.T, ver MetadataVer) {
 	codec, crypto, id, signer, ekg, bsplit, tempdir, j :=
 		setupMDJournalTest(t, ver)
@@ -594,21 +641,8 @@ func testMDJournalBranchConversion(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 
 	// Branch conversion shouldn't leave old folders behind.
-	fileInfos, err := ioutil.ReadDir(j.dir)
-	require.NoError(t, err)
-	var names []string
-	for _, fileInfo := range fileInfos {
-		names = append(names, fileInfo.Name())
-	}
-	var expectedNames []string
-	if ver < SegregatedKeyBundlesVer {
-		expectedNames = []string{"md_journal", "mds"}
-	} else {
-		expectedNames = []string{
-			"md_journal", "mds", "rkbv3", "wkbv3",
-		}
-	}
-	require.Equal(t, expectedNames, names)
+	names := listDir(t, j.dir)
+	require.Equal(t, getMDJournalNames(ver), names)
 
 	ibrmds, err := j.getRange(
 		bid, 1, firstRevision+MetadataRevision(2*mdCount))
@@ -1037,6 +1071,7 @@ func TestMDJournal(t *testing.T) {
 		testMDJournalPutCase3NonEmptyReplace,
 		testMDJournalPutCase3EmptyAppend,
 		testMDJournalPutCase4,
+		testMDJournalFlushAll,
 		testMDJournalBranchConversion,
 		testMDJournalResolveAndClearRemoteBranch,
 		testMDJournalResolveAndClearLocalSquash,

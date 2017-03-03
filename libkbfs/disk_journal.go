@@ -173,6 +173,9 @@ func (j diskJournal) clear() error {
 	return ioutil.RemoveAll(j.dir)
 }
 
+// removeEarliest removes the earliest entry in the journal. If that
+// entry was the last one, clear() is also called, and true is
+// returned.
 func (j diskJournal) removeEarliest() (empty bool, err error) {
 	earliestOrdinal, err := j.readEarliestOrdinal()
 	if err != nil {

@@ -211,12 +211,16 @@ func makeMDJournalWithIDJournal(
 	return &journal, nil
 }
 
+func mdJournalPath(dir string) string {
+	return filepath.Join(dir, "md_journal")
+}
+
 func makeMDJournal(
 	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 	codec kbfscodec.Codec, crypto cryptoPure, clock Clock, tlfID tlf.ID,
 	mdVer MetadataVer, dir string,
 	log logger.Logger) (*mdJournal, error) {
-	journalDir := filepath.Join(dir, "md_journal")
+	journalDir := mdJournalPath(dir)
 	return makeMDJournalWithIDJournal(
 		ctx, uid, key, codec, crypto, clock, tlfID, mdVer, dir,
 		makeMdIDJournal(codec, journalDir), log)
@@ -226,6 +230,14 @@ func makeMDJournal(
 
 func (j mdJournal) mdsPath() string {
 	return filepath.Join(j.dir, "mds")
+}
+
+func (j mdJournal) writerKeyBundlesV3Path() string {
+	return filepath.Join(j.dir, "wkbv3")
+}
+
+func (j mdJournal) readerKeyBundlesV3Path() string {
+	return filepath.Join(j.dir, "rkbv3")
 }
 
 // The final components of the paths below are truncated to 34
@@ -239,12 +251,19 @@ func (j mdJournal) mdsPath() string {
 
 func (j mdJournal) writerKeyBundleV3Path(id TLFWriterKeyBundleID) string {
 	idStr := id.String()
-	return filepath.Join(j.dir, "wkbv3", idStr[:34])
+	return filepath.Join(j.writerKeyBundlesV3Path(), idStr[:34])
 }
 
 func (j mdJournal) readerKeyBundleV3Path(id TLFReaderKeyBundleID) string {
 	idStr := id.String()
-	return filepath.Join(j.dir, "rkbv3", idStr[:34])
+	return filepath.Join(j.readerKeyBundlesV3Path(), idStr[:34])
+}
+
+func (j mdJournal) mdJournalDirs() []string {
+	return []string{
+		mdJournalPath(j.dir), j.mdsPath(),
+		j.writerKeyBundlesV3Path(), j.readerKeyBundlesV3Path(),
+	}
 }
 
 func (j mdJournal) mdPath(id MdID) string {
@@ -825,18 +844,36 @@ func (j *mdJournal) removeFlushedEntry(
 		return err
 	}
 
-	// Since the journal is now empty, set lastMdID.
+	// Since the journal is now empty, set lastMdID and nuke all
+	// MD-related directories.
 	if empty {
 		j.log.CDebugf(ctx,
 			"Journal is now empty; saving last MdID=%s", mdID)
 		j.lastMdID = mdID
 
-		// TODO: Nuke directory here.
+		// The disk journal has already been cleared, so we
+		// can nuke the directories without having to worry
+		// about putting the journal in a weird state if we
+		// crash in the middle. The various directories will
+		// be recreated as needed.
+		for _, dir := range j.mdJournalDirs() {
+			j.log.CDebugf(ctx, "Removing all files in %s", dir)
+			err := ioutil.RemoveAll(dir)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		// Garbage-collect the old entry. If we crash here and
+		// leave behind an entry, it'll be cleaned up the next
+		// time the journal is completely drained.
+		err := j.removeMD(mdID)
+		if err != nil {
+			return err
+		}
 	}
 
-	// Garbage-collect the old entry.  TODO: we'll eventually need a
-	// sweeper to clean up entries left behind if we crash here.
-	return j.removeMD(mdID)
+	return nil
 }
 
 func getMdID(ctx context.Context, mdserver MDServer, crypto cryptoPure,
@@ -1398,6 +1435,10 @@ func (j *mdJournal) resolveAndClear(
 	if err != nil {
 		return MdID{}, err
 	}
+
+	// TODO: If we crash without removing the temp dir, it should
+	// be cleaned up whenever the entire journal goes empty.
+
 	j.log.CDebugf(ctx, "Using temp dir %s for new IDs", idJournalTempDir)
 	otherIDJournal := makeMdIDJournal(j.codec, idJournalTempDir)
 	defer func() {
