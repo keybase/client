@@ -206,7 +206,7 @@ func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gr
 	s.Debug(ctx, "Merge: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
 
 	// Fetch secret key
-	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
+	key, ierr := getSecretBoxKey(ctx, s.G(), s.getSecretUI)
 	if ierr != nil {
 		return MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
@@ -304,7 +304,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// Fetch secret key
-	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
+	key, ierr := getSecretBoxKey(ctx, s.G(), s.getSecretUI)
 	if ierr != nil {
 		return chat1.ThreadView{},
 			MiscError{Msg: "unable to get secret key: " + ierr.Error()}
@@ -407,7 +407,7 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	uid gregor1.UID, msgIDs []chat1.MessageID) ([]*chat1.MessageUnboxed, error) {
 
 	// Fetch secret key
-	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
+	key, ierr := getSecretBoxKey(ctx, s.G(), s.getSecretUI)
 	if ierr != nil {
 		return nil, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}

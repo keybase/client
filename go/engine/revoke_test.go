@@ -4,10 +4,10 @@
 package engine
 
 import (
-	"testing"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
+	"testing"
 )
 
 func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
@@ -221,7 +221,7 @@ func TestSignAfterRevoke(t *testing.T) {
 	}
 	// Test signing with (revoked) device key on tc1, which works...
 	msg := []byte("test message")
-	ret, err := SignED25519(tc1.G, f, keybase1.SignED25519Arg{
+	ret, err := SignED25519(context.TODO(), tc1.G, f, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err != nil {
@@ -240,7 +240,7 @@ func TestSignAfterRevoke(t *testing.T) {
 	AssertLoggedOut(tc1)
 
 	// And now this should fail.
-	ret, err = SignED25519(tc1.G, f, keybase1.SignED25519Arg{
+	ret, err = SignED25519(context.TODO(), tc1.G, f, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err == nil {
@@ -271,7 +271,7 @@ func TestLogoutIfRevokedNoop(t *testing.T) {
 	}
 
 	msg := []byte("test message")
-	ret, err := SignED25519(tc.G, f, keybase1.SignED25519Arg{
+	ret, err := SignED25519(context.TODO(), tc.G, f, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err != nil {

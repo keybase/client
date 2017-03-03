@@ -293,7 +293,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	}
 
 	// encrypt the message
-	skp, err := s.getSigningKeyPair()
+	skp, err := s.getSigningKeyPair(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -308,9 +308,9 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	return boxed, pendingAssetDeletes, nil
 }
 
-func (s *BlockingSender) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err error) {
+func (s *BlockingSender) getSigningKeyPair(ctx context.Context) (kp libkb.NaclSigningKeyPair, err error) {
 	// get device signing key for this user
-	signingKey, err := engine.GetMySecretKey(s.G(), s.getSecretUI, libkb.DeviceSigningKeyType, "sign chat message")
+	signingKey, err := engine.GetMySecretKey(ctx, s.G(), s.getSecretUI, libkb.DeviceSigningKeyType, "sign chat message")
 	if err != nil {
 		return libkb.NaclSigningKeyPair{}, err
 	}
