@@ -1287,7 +1287,7 @@ func (b *Boxer) compareHeadersV1(ctx context.Context, hServer chat1.MessageClien
 		return NewPermanentUnboxingError(NewHeaderMismatchError("SenderDevice"))
 	}
 
-	// CORE-4540: _Don't_ enable this check! There are V1 messages in the wild with
+	// CORE-4540: _Don't_ enable checking of MerkleRoot matching! There are V1 messages in the wild with
 	//            hServer.MerkleRoot set but nothing signed.
 
 	// OutboxID, OutboxInfo: Left unchecked as I'm not sure whether these hold in V1 messages.

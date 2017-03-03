@@ -364,9 +364,6 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 			Ctime: gregor1.ToTime(time.Now()),
 		}
 
-		// put original signing fn back
-		boxer.testingSignatureMangle = nil
-
 		_, ierr := boxer.unbox(context.TODO(), *boxed, key)
 		require.NotNil(t, ierr, "must have unbox error")
 		switch mbVersion {
