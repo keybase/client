@@ -424,6 +424,8 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 
 	// Validate verification key against unverified sender id.
 	// Later it is asserted that the claimed and signing sender are the same.
+	// ValidSenderKey uses the server-given ctime, but emits senderDeviceRevokedAt as a workaround.
+	// See ValidSenderKey for details.
 	senderKeyFound, senderKeyValidAtCtime, senderDeviceRevokedAt, ierr := b.ValidSenderKey(
 		ctx, boxed.ClientHeader.Sender, boxed.HeaderVerificationKey, boxed.ServerHeader.Ctime)
 	if ierr != nil {
@@ -1114,6 +1116,8 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 	}
 
 	// check key validity
+	// ValidSenderKey uses the server-given ctime, but emits senderDeviceRevokedAt as a workaround.
+	// See ValidSenderKey for details.
 	found, validAtCtime, revoked, ierr := b.ValidSenderKey(ctx, header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
 	if ierr != nil {
 		return verifyMessageRes{}, ierr
@@ -1155,7 +1159,8 @@ func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.Signatu
 }
 
 // ValidSenderKey checks that the key was active for sender at ctime.
-// This trusts the server for ctime, so a colluding server could use a revoked key and this check wouldn't notice.
+// This trusts the server for ctime, so a colluding server could use a revoked key and this check erroneously pass.
+// But (revoked != nil) if the key was ever revoked, so that is irrespective of ctime.
 // Returns (validAtCtime, revoked, err)
 func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxErr UnboxingError) {
 	if b.testingValidSenderKey != nil {
