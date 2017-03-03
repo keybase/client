@@ -300,7 +300,6 @@ func TestSimpleFSLocalExists(t *testing.T) {
 	pathType, err := testPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_LOCAL, pathType, "Expected local path, got remote")
-	assert.Equal(tc.T, filepath.ToSlash(tempdir), testPath.Local())
 
 	// check directory
 	err = checkElementExists(context.TODO(), SimpleFSTestStat{}, testPath)
