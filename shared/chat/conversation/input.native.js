@@ -81,12 +81,13 @@ class ConversationInput extends Component<void, Props, State> {
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
       const conversationIDKey = this.props.selectedConversation
       if (conversationIDKey) {
-        this.props.onSelectAttachment(({
+        const input: AttachmentInput = {
           conversationIDKey,
           filename,
           title: response.fileName,
           type: 'Image',
-        }: AttachmentInput))
+        }
+        this.props.onAttach([input])
       }
     })
   }
