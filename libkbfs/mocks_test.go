@@ -2988,6 +2988,17 @@ func (_mr *_MockBlockOpsRecorder) Get(arg0, arg1, arg2, arg3, arg4 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2, arg3, arg4)
 }
 
+func (_m *MockBlockOps) GetEncodedSize(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer) (uint32, error) {
+	ret := _m.ctrl.Call(_m, "GetEncodedSize", ctx, kmd, blockPtr)
+	ret0, _ := ret[0].(uint32)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockBlockOpsRecorder) GetEncodedSize(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetEncodedSize", arg0, arg1, arg2)
+}
+
 func (_m *MockBlockOps) Ready(ctx context.Context, kmd KeyMetadata, block Block) (kbfsblock.ID, int, ReadyBlockData, error) {
 	ret := _m.ctrl.Call(_m, "Ready", ctx, kmd, block)
 	ret0, _ := ret[0].(kbfsblock.ID)

@@ -1611,6 +1611,23 @@ func (j *tlfJournal) getBlockData(id kbfsblock.ID) (
 	return j.blockJournal.getData(id)
 }
 
+func (j *tlfJournal) getBlockSize(id kbfsblock.ID) (uint32, error) {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+	if err := j.checkEnabledLocked(); err != nil {
+		return 0, err
+	}
+
+	size, err := j.blockJournal.getDataSize(id)
+	if err != nil {
+		return 0, err
+	}
+	// Block sizes are restricted, but `size` is an int64 because
+	// that's what the OS gives us.  Convert it to a uint32. TODO:
+	// check this is safe?
+	return uint32(size), nil
+}
+
 // ErrDiskLimitTimeout is returned when putBlockData exceeds
 // diskLimitTimeout when trying to acquire bytes to put.
 type ErrDiskLimitTimeout struct {

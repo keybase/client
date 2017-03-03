@@ -45,6 +45,30 @@ func (j journalBlockServer) getBlockFromJournal(
 	}
 }
 
+func (j journalBlockServer) getBlockSizeFromJournal(
+	tlfID tlf.ID, id kbfsblock.ID) (
+	size uint32, found bool, err error) {
+	tlfJournal, ok := j.jServer.getTLFJournal(tlfID)
+	if !ok {
+		return 0, false, nil
+	}
+
+	defer func() {
+		err = translateToBlockServerError(err)
+	}()
+	size, err = tlfJournal.getBlockSize(id)
+	switch errors.Cause(err).(type) {
+	case nil:
+		return size, true, nil
+	case blockNonExistentError:
+		return 0, false, nil
+	case errTLFJournalDisabled:
+		return 0, false, nil
+	default:
+		return 0, false, err
+	}
+}
+
 func (j journalBlockServer) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context) (
 	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {

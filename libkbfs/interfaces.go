@@ -1081,6 +1081,12 @@ type BlockOps interface {
 	Get(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer,
 		block Block, cacheLifetime BlockCacheLifetime) error
 
+	// GetEncodedSize gets the encoded size of the block associated
+	// with the given block pointer (which belongs to the TLF with the
+	// given key metadata).
+	GetEncodedSize(ctx context.Context, kmd KeyMetadata,
+		blockPtr BlockPointer) (uint32, error)
+
 	// Ready turns the given block (which belongs to the TLF with
 	// the given key metadata) into encoded (and encrypted) data,
 	// and calculates its ID and size, so that we can do a bunch

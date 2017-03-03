@@ -355,6 +355,10 @@ func (j *blockJournal) getData(id kbfsblock.ID) (
 	return j.s.getData(id)
 }
 
+func (j *blockJournal) getDataSize(id kbfsblock.ID) (int64, error) {
+	return j.s.getDataSize(id)
+}
+
 func (j *blockJournal) getStoredBytes() int64 {
 	return j.aggregateInfo.StoredBytes
 }
