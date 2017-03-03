@@ -239,7 +239,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 	}
 
 	for i := 0; i < 3; i++ {
-		h.G().Log.Debug("NewConversationLocal attempt: %v", i)
+		h.Debug(ctx, "NewConversationLocal: attempt: %v", i)
 		triple.TopicID, err = utils.NewChatTopicID()
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating topic ID: %s", err)
@@ -263,7 +263,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 			switch cerr := reserr.(type) {
 			case libkb.ChatConvExistsError:
 				// This triple already exists.
-				h.G().Log.Debug("NewConversationLocal conv exists: %v", cerr.ConvID)
+				h.Debug(ctx, "NewConversationLocal: conv exists: %v", cerr.ConvID)
 
 				if triple.TopicType != chat1.TopicType_CHAT {
 					// Not a chat conversation. Multiples are fine. Just retry with a
@@ -275,14 +275,14 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 				convID = cerr.ConvID
 			case libkb.ChatCollisionError:
 				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
-				h.G().Log.Debug("NewConversationLocal collision: %v", reserr)
+				h.Debug(ctx, "NewConversationLocal: collision: %v", reserr)
 				continue
 			default:
 				return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating conversation: %s", reserr)
 			}
 		}
 
-		h.G().Log.Debug("NewConversationLocal established conv: %v", convID)
+		h.Debug(ctx, "NewConversationLocal: established conv: %v", convID)
 
 		// create succeeded; grabbing the conversation and returning
 		uid := h.G().Env.GetUID()
@@ -302,6 +302,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("newly created conversation fetch error: found %d conversations", len(ib.Convs))
 		}
 		res.Conv = ib.Convs[0]
+		h.Debug(ctx, "NewConversationLocal: fetched conv: %v", res.Conv.GetConvID())
 
 		// Update inbox cache
 		updateConv := ib.ConvsUnverified[0]
@@ -820,7 +821,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		return chat1.PostLocalRes{}, err
 	}
 	if pre.Preview != nil {
-		h.G().Log.Debug("created preview in preprocess")
+		h.Debug(ctx, "created preview in preprocess")
 		arg.Preview = pre.Preview
 	}
 
@@ -841,7 +842,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
 		chatUI.ChatAttachmentUploadDone(ctx)
 		if err != nil {
-			h.G().Log.Debug("error uploading primary asset to s3: %s", err)
+			h.Debug(ctx, "error uploading primary asset to s3: %s", err)
 		}
 		return err
 	})
@@ -860,7 +861,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 			if err == nil {
 				preview = &prev
 			} else {
-				h.G().Log.Debug("error uploading preview asset to s3: %s", err)
+				h.Debug(ctx, "error uploading preview asset to s3: %s", err)
 			}
 			return err
 		})
@@ -905,19 +906,19 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	postArg.Msg.ClientHeader.TlfName = arg.ClientHeader.TlfName
 	postArg.Msg.ClientHeader.TlfPublic = arg.ClientHeader.TlfPublic
 
-	h.G().Log.Debug("attachment assets uploaded, posting attachment message")
+	h.Debug(ctx, "attachment assets uploaded, posting attachment message")
 	plres, err := h.PostLocal(ctx, postArg)
 	if err != nil {
-		h.G().Log.Debug("error posting attachment message: %s", err)
+		h.Debug(ctx, "error posting attachment message: %s", err)
 	} else {
-		h.G().Log.Debug("posted attachment message successfully")
+		h.Debug(ctx, "posted attachment message successfully")
 	}
 
 	return plres, err
 }
 
 func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg postAttachmentArg) (res chat1.PostLocalRes, err error) {
-	h.G().Log.Info("using postAttachmentLocalInOrder flow to upload attachment")
+	h.Debug(ctx, "using postAttachmentLocalInOrder flow to upload attachment")
 	if os.Getenv("CHAT_S3_FAKE") == "1" {
 		ctx = s3.NewFakeS3Context(ctx)
 	}
@@ -938,7 +939,7 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 	if err != nil {
 		return placeholder, err
 	}
-	h.G().Log.Debug("placeholder message id: %v", placeholder.MessageID)
+	h.Debug(ctx, "placeholder message id: %v", placeholder.MessageID)
 
 	// if there are any errors going forward, delete the placeholder message
 	defer func() {
@@ -946,7 +947,7 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 			return
 		}
 
-		h.G().Log.Debug("postAttachmentLocal error after placeholder message sent, deleting placeholder message")
+		h.Debug(ctx, "postAttachmentLocal error after placeholder message sent, deleting placeholder message")
 		deleteArg := chat1.PostDeleteNonblockArg{
 			ConversationID:   arg.ConversationID,
 			IdentifyBehavior: arg.IdentifyBehavior,
@@ -957,7 +958,7 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 		}
 		_, derr := h.PostDeleteNonblock(ctx, deleteArg)
 		if derr != nil {
-			h.G().Log.Debug("error deleting placeholder message: %s", derr)
+			h.Debug(ctx, "error deleting placeholder message: %s", derr)
 		}
 	}()
 
@@ -967,7 +968,7 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 		return chat1.PostLocalRes{}, err
 	}
 	if pre.Preview != nil {
-		h.G().Log.Debug("created preview in preprocess")
+		h.Debug(ctx, "created preview in preprocess")
 		arg.Preview = pre.Preview
 	}
 
@@ -988,7 +989,7 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
 		chatUI.ChatAttachmentUploadDone(ctx)
 		if err != nil {
-			h.G().Log.Debug("error uploading primary asset to s3: %s", err)
+			h.Debug(ctx, "error uploading primary asset to s3: %s", err)
 		}
 		return err
 	})
@@ -1007,7 +1008,7 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 			if err == nil {
 				preview = &prev
 			} else {
-				h.G().Log.Debug("error uploading preview asset to s3: %s", err)
+				h.Debug(ctx, "error uploading preview asset to s3: %s", err)
 			}
 			return err
 		})
@@ -1052,12 +1053,12 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 	postArg.Msg.ClientHeader.TlfName = arg.ClientHeader.TlfName
 	postArg.Msg.ClientHeader.TlfPublic = arg.ClientHeader.TlfPublic
 
-	h.G().Log.Debug("attachment assets uploaded, posting attachment message")
+	h.Debug(ctx, "attachment assets uploaded, posting attachment message")
 	plres, err := h.PostLocal(ctx, postArg)
 	if err != nil {
-		h.G().Log.Debug("error posting attachment message: %s", err)
+		h.Debug(ctx, "error posting attachment message: %s", err)
 	} else {
-		h.G().Log.Debug("posted attachment message successfully")
+		h.Debug(ctx, "posted attachment message successfully")
 	}
 
 	return plres, err
@@ -1140,7 +1141,7 @@ func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg down
 		} else {
 			return chat1.DownloadAttachmentLocalRes{}, errors.New("no preview in attachment")
 		}
-		h.G().Log.Debug("downloading preview attachment asset")
+		h.Debug(ctx, "downloading preview attachment asset")
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
 	if err := h.store.DownloadAsset(ctx, params, obj, arg.Sink, h, progress); err != nil {
@@ -1199,10 +1200,10 @@ func (h *chatLocalHandler) RetryPost(ctx context.Context, outboxID chat1.OutboxI
 func (h *chatLocalHandler) getSecretUI() libkb.SecretUI {
 	ui, err := h.G().UIRouter.GetSecretUI(0)
 	if err == nil && ui != nil {
-		h.G().Log.Debug("chatLocalHandler: using delegated SecretUI")
+		h.Debug(context.Background(), "chatLocalHandler: using delegated SecretUI")
 		return ui
 	}
-	h.G().Log.Debug("chatLocalHandler: using local SecretUI")
+	h.Debug(context.Background(), "chatLocalHandler: using local SecretUI")
 	return h.BaseHandler.getSecretUI(0, h.G())
 }
 
@@ -1251,12 +1252,12 @@ func (h *chatLocalHandler) postAttachmentPlaceholder(ctx context.Context, arg po
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
 
-	h.G().Log.Debug("posting attachment placeholder message")
+	h.Debug(ctx, "posting attachment placeholder message")
 	res, err := h.PostLocal(ctx, postArg)
 	if err != nil {
-		h.G().Log.Debug("error posting attachment placeholder message: %s", err)
+		h.Debug(ctx, "error posting attachment placeholder message: %s", err)
 	} else {
-		h.G().Log.Debug("posted attachment placeholder message successfully")
+		h.Debug(ctx, "posted attachment placeholder message successfully")
 	}
 
 	return res, err
@@ -1332,18 +1333,18 @@ func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, a
 		ContentType: http.DetectContentType(head),
 	}
 
-	h.G().Log.Debug("detected attachment content type %s", p.ContentType)
+	h.Debug(ctx, "detected attachment content type %s", p.ContentType)
 
 	if preview == nil {
-		h.G().Log.Debug("no attachment preview included by client, seeing if possible to generate")
+		h.Debug(ctx, "no attachment preview included by client, seeing if possible to generate")
 		src.Reset()
 		previewRes, err := chat.Preview(ctx, h.G().Log, src, p.ContentType, attachment.Basename(), attachment.FileSize())
 		if err != nil {
-			h.G().Log.Debug("error making preview: %s", err)
+			h.Debug(ctx, "error making preview: %s", err)
 			return nil, err
 		}
 		if previewRes != nil {
-			h.G().Log.Debug("made preview for attachment asset")
+			h.Debug(ctx, "made preview for attachment asset")
 			p.Preview = previewRes.Source
 			p.PreviewContentType = previewRes.ContentType
 			if previewRes.BaseWidth > 0 || previewRes.BaseHeight > 0 {
@@ -1438,12 +1439,12 @@ func (h *chatLocalHandler) deleteAssets(ctx context.Context, conversationID chat
 	// get s3 params from server
 	params, err := h.remoteClient().GetS3Params(ctx, conversationID)
 	if err != nil {
-		h.G().Log.Debug("error getting s3 params: %s", err)
+		h.Debug(ctx, "error getting s3 params: %s", err)
 		return
 	}
 
 	if err := h.store.DeleteAssets(ctx, params, h, assets); err != nil {
-		h.G().Log.Debug("error deleting assets: %s", err)
+		h.Debug(ctx, "error deleting assets: %s", err)
 
 		// there's no way to get asset information after this point.
 		// any assets not deleted will be stranded on s3.
@@ -1451,7 +1452,7 @@ func (h *chatLocalHandler) deleteAssets(ctx context.Context, conversationID chat
 		return
 	}
 
-	h.G().Log.Debug("deleted %d assets", len(assets))
+	h.Debug(ctx, "deleted %d assets", len(assets))
 }
 
 func (h *chatLocalHandler) FindConversationsLocal(ctx context.Context,
