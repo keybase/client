@@ -90,12 +90,12 @@ func (b *BlockOpsStandard) GetEncodedSize(ctx context.Context, kmd KeyMetadata,
 	// to verify the BlockID.
 	block := NewCommonBlock()
 	errCh := b.queue.Request(ctx, defaultOnDemandRequestPriority, kmd,
-		blockPtr, block, TransientEntry)
+		blockPtr, block, NoCacheEntry)
 	err := <-errCh
 	if err != nil {
 		return 0, err
 	}
-	return block.(*CommonBlock).cachedEncodedSize, nil
+	return block.GetEncodedSize(), nil
 }
 
 // Ready implements the BlockOps interface for BlockOpsStandard.

@@ -246,6 +246,63 @@ func (fbo *folderBlockOps) GetState(lState *lockState) overallBlockState {
 	return dirtyState
 }
 
+// getCleanEncodedBlockHelperLocked retrieves the encoded size of the
+// clean block pointed to by ptr, which must be valid, either from the
+// cache or from the server.  If `rtype` is `blockReadParallel`, it's
+// assumed that some coordinating goroutine is holding the correct
+// locks, and in that case `lState` must be `nil`.
+func (fbo *folderBlockOps) getCleanEncodedBlockSizeLocked(ctx context.Context,
+	lState *lockState, kmd KeyMetadata, ptr BlockPointer, branch BranchName,
+	rtype blockReqType) (uint32, error) {
+	if rtype != blockReadParallel {
+		if rtype == blockWrite {
+			panic("Cannot get the size of a block for writing")
+		}
+		fbo.blockLock.AssertAnyLocked(lState)
+	} else if lState != nil {
+		panic("Non-nil lState passed to getCleanEncodedBlockSizeLocked " +
+			"with blockReadParallel")
+	}
+
+	if !ptr.IsValid() {
+		return 0, InvalidBlockRefError{ptr.Ref()}
+	}
+
+	if block, err := fbo.config.BlockCache().Get(ptr); err == nil {
+		return block.GetEncodedSize(), nil
+	}
+
+	if err := checkDataVersion(fbo.config, path{}, ptr); err != nil {
+		return 0, err
+	}
+
+	// Unlock the blockLock while we wait for the network, only if
+	// it's locked for reading by a single goroutine.  If it's locked
+	// for writing, that indicates we are performing an atomic write
+	// operation, and we need to ensure that nothing else comes in and
+	// modifies the blocks, so don't unlock.
+	//
+	// If there may be multiple goroutines fetching blocks under the
+	// same lState, we can't safely unlock since some of the other
+	// goroutines may be operating on the data assuming they have the
+	// lock.
+	bops := fbo.config.BlockOps()
+	var size uint32
+	var err error
+	if rtype != blockReadParallel && rtype != blockLookup {
+		fbo.blockLock.DoRUnlockedIfPossible(lState, func(*lockState) {
+			size, err = bops.GetEncodedSize(ctx, kmd, ptr)
+		})
+	} else {
+		size, err = bops.GetEncodedSize(ctx, kmd, ptr)
+	}
+	if err != nil {
+		return 0, err
+	}
+
+	return size, nil
+}
+
 // getBlockHelperLocked retrieves the block pointed to by ptr, which
 // must be valid, either from the cache or from the server. If
 // notifyPath is valid and the block isn't cached, trigger a read
@@ -435,6 +492,65 @@ func (fbo *folderBlockOps) GetBlocksForReading(ctx context.Context,
 		}
 	}
 	return blocks, nil
+}
+
+// GetCleanEncodedBlocksSizeSum retrieves the sum of the encoded sizes
+// of the blocks pointed to by ptrs, all of which must be valid,
+// either from the cache or from the server.
+//
+// The caller can specify a set of pointers using
+// `ignoreRecoverableForRemovalErrors` for which "recoverable" fetch
+// errors are tolerated.  In that case, the returned sum will not
+// include the size for any pointers in the
+// `ignoreRecoverableForRemovalErrors` set that hit such an error.
+//
+// This should be called for "internal" operations, like conflict
+// resolution and state checking, which don't know what kind of block
+// the pointers refer to.  Any downloaded blocks will not be cached,
+// if they weren't in the cache already.
+func (fbo *folderBlockOps) GetCleanEncodedBlocksSizeSum(ctx context.Context,
+	lState *lockState, kmd KeyMetadata, ptrs []BlockPointer,
+	ignoreRecoverableForRemovalErrors map[BlockPointer]bool,
+	branch BranchName) (uint64, error) {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+
+	sumCh := make(chan uint32, len(ptrs))
+	eg, groupCtx := errgroup.WithContext(ctx)
+	for _, ptr := range ptrs {
+		ptr := ptr // capture range variable
+		eg.Go(func() error {
+			size, err := fbo.getCleanEncodedBlockSizeLocked(groupCtx, nil,
+				kmd, ptr, branch, blockReadParallel)
+			// TODO: we might be able to recover the size of the
+			// top-most block of a removed file using the merged
+			// directory entry, the same way we do in
+			// `folderBranchOps.unrefEntry`.
+			if isRecoverableBlockErrorForRemoval(err) &&
+				ignoreRecoverableForRemovalErrors[ptr] {
+				fbo.log.CDebugf(groupCtx, "Hit an ignorable, recoverable "+
+					"error for block %v: %v", ptr, err)
+				return nil
+			}
+
+			if err != nil {
+				return err
+			}
+			sumCh <- size
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		return 0, err
+	}
+	close(sumCh)
+
+	var sum uint64
+	for size := range sumCh {
+		sum += uint64(size)
+	}
+	return sum, nil
 }
 
 // getDirBlockHelperLocked retrieves the block pointed to by ptr, which
