@@ -656,17 +656,17 @@ func (b *Boxer) compareHeadersV2(ctx context.Context, hServer chat1.MessageClien
 	//            This check is disabled because MerkleRoot is not yet signed.
 	//            Simultaneously with enabling boxing MBV2, it will be added to the signed header.
 	//            And will match from then on.
-	// if hServer.MerkleRoot != hSigned.MerkleRoot {
+	// if hServer.MerkleRoot.Eq(hSigned.MerkleRoot) {
 	// 	return NewPermanentUnboxingError(NewHeaderMismatchError("MerkleRoot"))
 	// }
 
 	// OutboxID
-	if hServer.OutboxID != hSigned.OutboxID {
+	if !hServer.OutboxID.Eq(hSigned.OutboxID) {
 		return NewPermanentUnboxingError(NewHeaderMismatchError("OutboxID"))
 	}
 
 	// OutboxInfo
-	if hServer.OutboxInfo != hSigned.OutboxInfo {
+	if !hServer.OutboxInfo.Eq(hSigned.OutboxInfo) {
 		return NewPermanentUnboxingError(NewHeaderMismatchError("OutboxInfo"))
 	}
 

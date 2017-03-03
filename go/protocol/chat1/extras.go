@@ -204,12 +204,22 @@ func (t ConversationIDTriple) Derivable(cid ConversationID) bool {
 	return bytes.Equal(h[2:], []byte(cid[2:]))
 }
 
-func (o OutboxID) Eq(r OutboxID) bool {
-	return bytes.Equal(o, r)
+func (o *OutboxID) Eq(r *OutboxID) bool {
+	if o != nil && r != nil {
+		return bytes.Equal(*o, *r)
+	}
+	return (o == nil) && (r == nil)
 }
 
 func (o OutboxID) String() string {
 	return hex.EncodeToString(o)
+}
+
+func (o *OutboxInfo) Eq(r *OutboxInfo) bool {
+	if o != nil && r != nil {
+		return *o == *r
+	}
+	return (o == nil) && (r == nil)
 }
 
 func (p MessagePreviousPointer) Eq(other MessagePreviousPointer) bool {
@@ -383,6 +393,13 @@ func ConvertMessageBodyV1ToV2(v1 MessageBodyV1) (MessageBody, error) {
 	return MessageBody{}, fmt.Errorf("ConvertMessageBodyV1ToV2: unhandled message type %v", t)
 }
 */
+
+func (a *MerkleRoot) Eq(b *MerkleRoot) bool {
+	if a != nil && b != nil {
+		return (a.Seqno == b.Seqno) && bytes.Equal(a.Hash, b.Hash)
+	}
+	return (a == nil) && (b == nil)
+}
 
 func NewConversationErrorLocal(
 	message string,
