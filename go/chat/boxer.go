@@ -581,7 +581,10 @@ func (b *Boxer) unversionBody(ctx context.Context, bodyVersioned chat1.BodyPlain
 }
 
 func (b *Boxer) verifyBodyHash(ctx context.Context, bodyEncrypted chat1.EncryptedData, bodyHashSigned []byte) UnboxingError {
-	bodyHashObserved := b.hashV1(bodyEncrypted.E)
+	bodyHashObserved, err := b.makeBodyHash(bodyEncrypted)
+	if err != nil {
+		return err
+	}
 
 	if len(bodyHashSigned) == 0 {
 		return NewPermanentUnboxingError(BodyHashInvalid{})
@@ -681,6 +684,23 @@ func (b *Boxer) makeHeaderHash(ctx context.Context, headerSealed chat1.SignEncry
 		return nil, NewPermanentUnboxingError(err)
 	}
 	_, err = buf.Write(headerSealed.B)
+	if err != nil {
+		return nil, NewPermanentUnboxingError(err)
+	}
+	return b.hashV1(buf.Bytes()), nil
+}
+
+func (b *Boxer) makeBodyHash(bodyCiphertext chat1.EncryptedData) (chat1.Hash, UnboxingError) {
+	buf := bytes.Buffer{}
+	err := binary.Write(&buf, binary.BigEndian, int32(bodyCiphertext.V))
+	if err != nil {
+		return nil, NewPermanentUnboxingError(err)
+	}
+	_, err = buf.Write(bodyCiphertext.N)
+	if err != nil {
+		return nil, NewPermanentUnboxingError(err)
+	}
+	_, err = buf.Write(bodyCiphertext.E)
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
 	}
@@ -903,7 +923,10 @@ func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, encryptionKey *ke
 		return nil, err
 	}
 
-	bodyHash := b.hashV1(bodyEncrypted.E)
+	bodyHash, err := b.makeBodyHash(*bodyEncrypted)
+	if err != nil {
+		return nil, err
+	}
 
 	// create the v1 header, adding hash
 	headerVersioned := chat1.NewHeaderPlaintextWithV1(chat1.HeaderPlaintextV1{
@@ -915,7 +938,7 @@ func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, encryptionKey *ke
 		Sender:       messagePlaintext.ClientHeader.Sender,
 		SenderDevice: messagePlaintext.ClientHeader.SenderDevice,
 		// CORE-4540: Add MerkleRoot to signed header.
-		BodyHash:   bodyHash[:],
+		BodyHash:   bodyHash,
 		OutboxInfo: messagePlaintext.ClientHeader.OutboxInfo,
 		OutboxID:   messagePlaintext.ClientHeader.OutboxID,
 		// In MessageBoxed.V2 HeaderSignature is nil.
