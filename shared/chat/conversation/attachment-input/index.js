@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, Button, Icon, Input, PopupDialog, Text} from '../../../common-adapters/index'
-import {globalColors, globalStyles} from '../../../styles'
+import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 import type {Props} from './'
 
@@ -48,7 +48,7 @@ class RenderAttachmentInput extends Component<void, Props, State> {
           <Input style={{marginTop: 70, width: 460}} autoFocus={true} floatingHintTextOverride='Title' value={this.state.title} onEnterKeyDown={this._onSelect} onChangeText={this._updateTitle} />
           <Box style={{...globalStyles.flexBoxRow, marginTop: 100}}>
             <Button type='Secondary' onClick={this.props.onClose} label='Cancel' />
-            <Button type='Primary' onClick={this._onSelect} label='Send' />
+            <Button type='Primary' style={{marginLeft: globalMargins.tiny}} onClick={this._onSelect} label='Send' />
           </Box>
         </Box>
       </PopupDialog>
