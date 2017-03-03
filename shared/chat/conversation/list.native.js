@@ -24,7 +24,11 @@ class ConversationList extends Component <void, Props, State> {
 
   constructor (props: Props) {
     super(props)
-    const ds = new NativeListView.DataSource({rowHasChanged: (r1, r2) => r1.key !== r2.key})
+    const ds = new NativeListView.DataSource({
+      rowHasChanged: (r1, r2) => {
+        return r1 !== r2 || r1 === this.state.editing || r2 === this.state.editing
+      },
+    })
     this.state = {
       dataSource: ds.cloneWithRows(this._allMessages(props).toArray()),
       editing: null,
@@ -44,7 +48,6 @@ class ConversationList extends Component <void, Props, State> {
   }
 
   componentWillUpdate (nextProps: Props, nextState: State) {
-
     console.log('aaa comopnewillupdate', nextProps, nextState)
     if (!shallowEqual(this.props, nextProps) || this.state.editing !== nextState.editing) {
       this._updateDataSource(nextProps)
@@ -108,7 +111,6 @@ class ConversationList extends Component <void, Props, State> {
   }
 
   _renderRow = (message, sectionID, rowID) => {
-    console.log('aaaa render row', rowID,this.state.editing)
     const messages = this._allMessages(this.props)
     const isFirstMessage = rowID === 0
     const prevMessage = messages.get(rowID - 1)
