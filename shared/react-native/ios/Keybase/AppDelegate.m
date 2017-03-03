@@ -24,12 +24,9 @@
 
 - (BOOL)addSkipBackupAttributeToItemAtPath:(NSString *) filePathString
 {
-  NSURL* URL= [NSURL fileURLWithPath: filePathString];
-  assert([[NSFileManager defaultManager] fileExistsAtPath: [URL path]]);
-
-  NSError *error = nil;
-  BOOL success = [URL setResourceValue: [NSNumber numberWithBool: YES]
-                                forKey: NSURLIsExcludedFromBackupKey error: &error];
+  NSURL * URL = [NSURL fileURLWithPath: filePathString];
+  NSError * error = nil;
+  BOOL success = [URL setResourceValue: @YES forKey: NSURLIsExcludedFromBackupKey error: &error];
   if(!success){
     NSLog(@"Error excluding %@ from backup %@", [URL lastPathComponent], error);
   }
@@ -50,10 +47,8 @@
 
 #if TESTING
 #else
-  NSString * library = [home stringByAppendingPathComponent:@"Library"];
-  NSString * appSupport = [library stringByAppendingPathComponent:@"Application Support"];
-  NSString * keybasePath = [appSupport stringByAppendingPathComponent:@"Keybase"];
-  NSString * logFile = [keybasePath stringByAppendingPathComponent:@"ios.log"];
+  NSString * keybasePath = [@"~/Library/ Application Support/Keybase" stringByExpandingTildeInPath];
+  NSString * logFile = [@"~/Library/Caches/ios.log" stringByExpandingTildeInPath];
 
   // Make keybasePath if it doesn't exist
   [[NSFileManager defaultManager] createDirectoryAtPath:keybasePath
