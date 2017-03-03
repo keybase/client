@@ -51,7 +51,7 @@ function MessagePopup ({message, onShowEditor, onHidden}: TextProps) {
 
 type MessagePopupRouteProps = RouteProps<{
   message: ServerMessage,
-  onShowEditor: (message: Message) => void,
+  onShowEditor: (message: TextMessage) => void,
 }, {}>
 type OwnProps = MessagePopupRouteProps & {}
 
