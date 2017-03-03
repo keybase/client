@@ -113,14 +113,14 @@ func MakeRandomIDInRange(start, end uint64) (ID, error) {
 		return ID{}, errors.New("Invalid range for random ID")
 	}
 	rangeSize := float64(end - start)
-	randBuf := make([]byte, 8)
-	err := kbfscrypto.RandRead(randBuf)
+	randBuf := [8]byte{}
+	err := kbfscrypto.RandRead(randBuf[:])
 	if err != nil {
 		return ID{}, err
 	}
 	// Generate a random unsigned int. Endianness doesn't matter here because
 	// the bytes are random.
-	randUint := binary.BigEndian.Uint64(randBuf)
+	randUint := binary.BigEndian.Uint64(randBuf[:])
 	randFloat := float64(randUint) / float64(math.MaxUint64)
 	// This forms the start. We fill in the rest with zeroes.
 	scaledRandomUint := uint64(rangeSize*randFloat) + start

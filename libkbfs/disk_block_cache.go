@@ -249,6 +249,7 @@ func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
 	numBlocks := 0
 	totalSize := uint64(0)
 	iter := cache.metaDb.NewIterator(nil, nil)
+	defer iter.Release()
 	for iter.Next() {
 		metadata := diskBlockCacheMetadata{}
 		err := cache.config.Codec().Decode(iter.Value(), &metadata)
@@ -287,9 +288,9 @@ func (*DiskBlockCacheStandard) tlfKey(tlfID tlf.ID, blockKey []byte) []byte {
 func (cache *DiskBlockCacheStandard) updateMetadataLocked(ctx context.Context,
 	tlfID tlf.ID, blockKey []byte, encodeLen int) error {
 	metadata := diskBlockCacheMetadata{
-		tlfID,
-		cache.config.Clock().Now(),
-		uint32(encodeLen),
+		TlfID:     tlfID,
+		LRUTime:   cache.config.Clock().Now(),
+		BlockSize: uint32(encodeLen),
 	}
 	encodedMetadata, err := cache.config.Codec().Encode(&metadata)
 	if err != nil {

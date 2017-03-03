@@ -832,7 +832,7 @@ type DiskBlockCache interface {
 	// Put puts a block to the disk cache.
 	Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
 		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
-	// Delete deletes some blocks from the disk cache.
+	// DeleteByTLF deletes some blocks from the disk cache.
 	DeleteByTLF(ctx context.Context, tlfID tlf.ID, blockIDs []kbfsblock.ID) error
 	// Shutdown cleanly shuts down the disk block cache.
 	Shutdown(ctx context.Context)
