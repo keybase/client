@@ -15,6 +15,7 @@ const propsHoc = withProps(
   (props) => {
     const {
       editLastMessageCounter,
+      editingMessage,
       emojiPickerOpen,
       firstNewMessageID,
       focusInputCounter,
@@ -48,6 +49,7 @@ const propsHoc = withProps(
       participants,
       onSelectAttachment,
       selectedConversation,
+      onShowEditor,
       sidePanelOpen,
       validated,
       you,
@@ -60,6 +62,7 @@ const propsHoc = withProps(
       : props.restartConversation
 
     const listProps: $Shape<ListProps> = {
+      editingMessage,
       editLastMessageCounter,
       firstNewMessageID,
       followingMap,
@@ -86,10 +89,12 @@ const propsHoc = withProps(
     }
 
     const inputProps: InputProps = {
+      editingMessage,
       defaultText: inputText,
       emojiPickerOpen,
       isLoading,
       onAttach,
+      onShowEditor,
       onEditMessage,
       onEditLastMessage,
       onUnmountText: onStoreInputText,

@@ -12,7 +12,6 @@ import type {ServerMessage} from '../../constants/chat'
 
 type State = {
   dataSource: NativeListView.DataSource,
-  editing: ?ServerMessage,
   isLockedToBottom: boolean,
 }
 
@@ -26,18 +25,16 @@ class ConversationList extends Component <void, Props, State> {
     super(props)
     const ds = new NativeListView.DataSource({
       rowHasChanged: (r1, r2) => {
-        return r1 !== r2 || r1 === this.state.editing || r2 === this.state.editing
+        return r1 !== r2 || r1 === this.props.editingMessage || r2 === this.props.editingMessage
       },
     })
     this.state = {
       dataSource: ds.cloneWithRows(this._allMessages(props).toArray()),
-      editing: null,
       isLockedToBottom: true,
     }
   }
 
   _updateDataSource (nextProps) {
-    console.log('aaa updatedatasource')
     this.setState({
       dataSource: this.state.dataSource.cloneWithRows(this._allMessages(nextProps).toArray()),
     })
@@ -48,8 +45,7 @@ class ConversationList extends Component <void, Props, State> {
   }
 
   componentWillUpdate (nextProps: Props, nextState: State) {
-    console.log('aaa comopnewillupdate', nextProps, nextState)
-    if (!shallowEqual(this.props, nextProps) || this.state.editing !== nextState.editing) {
+    if (!shallowEqual(this.props, nextProps)) {
       this._updateDataSource(nextProps)
     }
   }
@@ -103,7 +99,6 @@ class ConversationList extends Component <void, Props, State> {
   }
 
   _showEditor = (message: ServerMessage) => {
-    this.setState({editing: message})
   }
 
   _onAction = (message: ServerMessage, event: any) => {
@@ -116,8 +111,7 @@ class ConversationList extends Component <void, Props, State> {
     const prevMessage = messages.get(rowID - 1)
     const isSelected = false
     const isScrolling = false
-    console.log('aaa', rowID, this.state.editing === message)
-    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, message.key || `other-${rowID}`, {}, this._onAction, this.state.editing === message)
+    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, message.key || `other-${rowID}`, {}, this._onAction, this.props.editingMessage === message)
 
     return messageFactory(options)
   }

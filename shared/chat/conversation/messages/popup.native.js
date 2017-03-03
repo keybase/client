@@ -2,6 +2,7 @@
 import React from 'react'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../../actions/route-tree'
+import {showEditor} from '../../../actions/chat'
 import {NativeClipboard, PopupMenu} from '../../../common-adapters/index.native'
 import MessagePopupHeader from './popup-header'
 
@@ -50,19 +51,19 @@ function MessagePopup ({message, onShowEditor, onHidden}: TextProps) {
 
 type MessagePopupRouteProps = RouteProps<{
   message: ServerMessage,
-  onShowEditor: () => void,
+  onShowEditor: (message: Message) => void,
 }, {}>
 type OwnProps = MessagePopupRouteProps & {}
 
 export default connect(
   (state: TypedState, {routeProps}: OwnProps) => {
-    const {message, onShowEditor} = routeProps
+    const {message} = routeProps
     return {
       message,
-      onShowEditor,
     }
   },
-  (dispatch: Dispatch) => ({
+  (dispatch: Dispatch, {routeProps}: OwnProps) => ({
     onHidden: () => dispatch(navigateUp()),
+    onShowEditor: () => dispatch(showEditor(routeProps.message)),
   })
 )(MessagePopup)

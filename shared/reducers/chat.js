@@ -437,6 +437,9 @@ function reducer (state: State = initialState, action: Actions) {
       // $FlowIssue doesn't recognize updates
       return state.update('supersededByState', supersededByState => supersededByState.merge(action.payload.supersededByState))
     }
+    case 'chat:showEditor': {
+      return state.set('editingMessage', action.payload.message)
+    }
   }
 
   return state
