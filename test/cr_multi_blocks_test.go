@@ -38,6 +38,37 @@ func TestCrUnmergedWriteMultiblockFile(t *testing.T) {
 	)
 }
 
+// bob writes a multi-block file with sequential writes while
+// unmerged, no conflicts
+func TestCrUnmergedWriteSequentialMultiblockFile(t *testing.T) {
+	test(t,
+		blockSize(20), blockChangeSize(20*1024), users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			write("a/foo", "hello"),
+		),
+		as(bob, noSync(),
+			write("a/b", ntimesString(5, "0123456789")),
+			pwriteBS("a/b", []byte(ntimesString(5, "0123456789")), 50),
+			pwriteBS("a/b", []byte(ntimesString(5, "0123456789")), 100),
+			reenableUpdates(),
+			lsdir("a/", m{"b": "FILE", "foo": "FILE"}),
+			read("a/b", ntimesString(15, "0123456789")),
+			read("a/foo", "hello"),
+		),
+		as(alice,
+			lsdir("a/", m{"b": "FILE", "foo": "FILE"}),
+			read("a/b", ntimesString(15, "0123456789")),
+			read("a/foo", "hello"),
+		),
+	)
+}
+
 // bob writes a multi-block file that conflicts with a file created by alice
 func TestCrConflictUnmergedWriteMultiblockFile(t *testing.T) {
 	test(t,
