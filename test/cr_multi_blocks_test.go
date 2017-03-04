@@ -72,7 +72,7 @@ func TestCrUnmergedWriteSequentialMultiblockFile(t *testing.T) {
 // bob writes a multi-block file that conflicts with a file created by alice
 func TestCrConflictUnmergedWriteMultiblockFile(t *testing.T) {
 	test(t,
-		blockSize(20), users("alice", "bob"),
+		blockSize(20), blockChangeSize(20*1024), users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 		),
@@ -129,7 +129,7 @@ func TestCrConflictMergedWriteMultiblockFile(t *testing.T) {
 // bob resurrects a file that was removed by alice
 func TestCrConflictWriteToRemovedMultiblockFile(t *testing.T) {
 	test(t,
-		blockSize(20), blockChangeSize(20*1024), users("alice", "bob"),
+		blockSize(20), blockChangeSize(100*1024), users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			write("a/b", ntimesString(15, "0123456789")),
