@@ -1545,6 +1545,8 @@ func TestTLFJournal(t *testing.T) {
 		testTLFJournalBasic,
 		testTLFJournalPauseResume,
 		testTLFJournalPauseShutdown,
+		testTLFJournalBlockOpBasic,
+		testTLFJournalBlockOpBusyPause,
 		testTLFJournalBlockOpBusyShutdown,
 		testTLFJournalSecondBlockOpWhileBusy,
 		testTLFJournalMDServerBusyPause,
