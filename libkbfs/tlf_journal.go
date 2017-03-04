@@ -1170,6 +1170,12 @@ func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,
 func (j *tlfJournal) flushOneMDOp(
 	ctx context.Context, end MetadataRevision,
 	maxMDRevToFlush MetadataRevision) (flushed bool, err error) {
+	if maxMDRevToFlush == MetadataRevisionUninitialized {
+		// Short-cut `getNextMDEntryToFlush`, which would otherwise read
+		// an MD from disk and sign it unnecessarily.
+		return false, nil
+	}
+
 	j.log.CDebugf(ctx, "Flushing one MD to server")
 	defer func() {
 		if err != nil {
