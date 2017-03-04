@@ -65,7 +65,7 @@ type blockJournal struct {
 	deferLog logger.Logger
 
 	// j is the main journal.
-	j diskJournal
+	j *diskJournal
 
 	// saveUntilMDFlush, when non-nil, prevents garbage collection
 	// of blocks. When removed, all the referenced blocks are
@@ -73,7 +73,7 @@ type blockJournal struct {
 	//
 	// TODO: We only really need to save a list of IDs, and not a
 	// full journal.
-	deferredGC diskJournal
+	deferredGC *diskJournal
 
 	// s stores all the block data. s should always reflect the
 	// state you get by replaying all the entries in j.
@@ -170,11 +170,18 @@ func makeBlockJournal(
 	log logger.Logger) (*blockJournal, error) {
 	journalPath := filepath.Join(dir, "block_journal")
 	deferLog := log.CloneWithAddedDepth(1)
-	j := makeDiskJournal(
+	j, err := makeDiskJournal(
 		codec, journalPath, reflect.TypeOf(blockJournalEntry{}))
+	if err != nil {
+		return nil, err
+	}
+
 	gcJournalPath := deferredGCBlockJournalDir(dir)
-	gcj := makeDiskJournal(
+	gcj, err := makeDiskJournal(
 		codec, gcJournalPath, reflect.TypeOf(blockJournalEntry{}))
+	if err != nil {
+		return nil, err
+	}
 
 	storeDir := filepath.Join(dir, "blocks")
 	s := makeBlockDiskStore(codec, storeDir)
@@ -189,7 +196,7 @@ func makeBlockJournal(
 	}
 
 	// Get initial aggregate info.
-	err := kbfscodec.DeserializeFromFile(
+	err = kbfscodec.DeserializeFromFile(
 		codec, aggregateInfoPath(dir), &journal.aggregateInfo)
 	if !ioutil.IsNotExist(err) && err != nil {
 		return nil, err
@@ -299,8 +306,18 @@ func (j *blockJournal) appendJournalEntry(
 	return ordinal, nil
 }
 
-func (j *blockJournal) length() (uint64, error) {
+func (j *blockJournal) length() uint64 {
 	return j.j.length()
+}
+
+func (j *blockJournal) next() (journalOrdinal, error) {
+	last, err := j.j.readLatestOrdinal()
+	if ioutil.IsNotExist(err) {
+		return firstValidJournalOrdinal, nil
+	} else if err != nil {
+		return 0, err
+	}
+	return last + 1, nil
 }
 
 func (j *blockJournal) end() (journalOrdinal, error) {
@@ -387,7 +404,7 @@ func (j *blockJournal) putData(
 		}
 	}()
 
-	next, err := j.end()
+	next, err := j.next()
 	if err != nil {
 		return false, err
 	}
@@ -429,7 +446,7 @@ func (j *blockJournal) addReference(
 		}
 	}()
 
-	next, err := j.end()
+	next, err := j.next()
 	if err != nil {
 		return err
 	}
@@ -460,7 +477,7 @@ func (j *blockJournal) archiveReferences(
 		}
 	}()
 
-	next, err := j.end()
+	next, err := j.next()
 	if err != nil {
 		return err
 	}
@@ -874,7 +891,7 @@ func (j *blockJournal) removeFlushedEntries(ctx context.Context,
 
 func (j *blockJournal) ignoreBlocksAndMDRevMarkersInJournal(ctx context.Context,
 	idsToIgnore map[kbfsblock.ID]bool, rev MetadataRevision,
-	dj diskJournal) error {
+	dj *diskJournal) error {
 	first, err := dj.readEarliestOrdinal()
 	if ioutil.IsNotExist(err) {
 		return nil

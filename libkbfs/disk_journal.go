@@ -17,6 +17,29 @@ import (
 	"github.com/pkg/errors"
 )
 
+// journalOrdinal is the ordinal used for naming journal entries.
+type journalOrdinal uint64
+
+// TODO: Define the zero journalOrdinal as invalid, once no existing
+// journals use them.
+
+const firstValidJournalOrdinal journalOrdinal = 1
+
+func makeJournalOrdinal(s string) (journalOrdinal, error) {
+	if len(s) != 16 {
+		return 0, errors.Errorf("invalid journal ordinal %q", s)
+	}
+	u, err := strconv.ParseUint(s, 16, 64)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to parse %q", s)
+	}
+	return journalOrdinal(u), nil
+}
+
+func (o journalOrdinal) String() string {
+	return fmt.Sprintf("%016x", uint64(o))
+}
+
 // diskJournal stores an ordered list of entries in a directory, which
 // is assumed to not be used by anything else.
 //
@@ -39,40 +62,52 @@ import (
 // level.
 //
 // TODO: Make IO ops cancellable.
-//
-// TODO: Read ordinals into memory on startup.
 type diskJournal struct {
 	codec     kbfscodec.Codec
 	dir       string
 	entryType reflect.Type
+
+	// The journal must be considered empty when either
+	// earliestValid or latestValid is false.
+
+	earliestValid bool
+	earliest      journalOrdinal
+
+	latestValid bool
+	latest      journalOrdinal
 }
 
 // makeDiskJournal returns a new diskJournal for the given directory.
 func makeDiskJournal(
-	codec kbfscodec.Codec, dir string, entryType reflect.Type) diskJournal {
-	return diskJournal{
+	codec kbfscodec.Codec, dir string, entryType reflect.Type) (
+	*diskJournal, error) {
+	j := &diskJournal{
 		codec:     codec,
 		dir:       dir,
 		entryType: entryType,
 	}
-}
 
-// journalOrdinal is the ordinal used for naming journal entries.
-type journalOrdinal uint64
-
-func makeJournalOrdinal(s string) (journalOrdinal, error) {
-	if len(s) != 16 {
-		return 0, errors.Errorf("invalid journal ordinal %q", s)
+	earliest, err := j.readEarliestOrdinalFromDisk()
+	if ioutil.IsNotExist(err) {
+		// Continue with j.earliestValid = false.
+	} else if err != nil {
+		return nil, err
+	} else {
+		j.earliestValid = true
+		j.earliest = earliest
 	}
-	u, err := strconv.ParseUint(s, 16, 64)
-	if err != nil {
-		return 0, errors.Wrapf(err, "failed to parse %q", s)
-	}
-	return journalOrdinal(u), nil
-}
 
-func (o journalOrdinal) String() string {
-	return fmt.Sprintf("%016x", uint64(o))
+	latest, err := j.readLatestOrdinalFromDisk()
+	if ioutil.IsNotExist(err) {
+		// Continue with j.latestValid = false.
+	} else if err != nil {
+		return nil, err
+	} else {
+		j.latestValid = true
+		j.latest = latest
+	}
+
+	return j, nil
 }
 
 // The functions below are for building various paths for the journal.
@@ -93,7 +128,7 @@ func (j diskJournal) journalEntryPath(o journalOrdinal) string {
 // latest ordinals. The read functions may return an error for which
 // ioutil.IsNotExist() returns true.
 
-func (j diskJournal) readOrdinal(path string) (journalOrdinal, error) {
+func (j diskJournal) readOrdinalFromDisk(path string) (journalOrdinal, error) {
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
 		return 0, err
@@ -101,8 +136,7 @@ func (j diskJournal) readOrdinal(path string) (journalOrdinal, error) {
 	return makeJournalOrdinal(string(buf))
 }
 
-func (j diskJournal) writeOrdinal(
-	path string, o journalOrdinal) error {
+func (j *diskJournal) writeOrdinalToDisk(path string, o journalOrdinal) error {
 	// Don't use ioutil.WriteFile because it truncates the file first,
 	// and if there's a crash it will leave the journal in an unknown
 	// state.  TODO: it's technically possible a partial write could
@@ -132,40 +166,79 @@ func (j diskJournal) writeOrdinal(
 	return nil
 }
 
-func (j diskJournal) readEarliestOrdinal() (
-	journalOrdinal, error) {
-	return j.readOrdinal(j.earliestPath())
+func (j diskJournal) readEarliestOrdinalFromDisk() (journalOrdinal, error) {
+	return j.readOrdinalFromDisk(j.earliestPath())
 }
 
-func (j diskJournal) writeEarliestOrdinal(o journalOrdinal) error {
-	return j.writeOrdinal(j.earliestPath(), o)
+func (j diskJournal) readLatestOrdinalFromDisk() (journalOrdinal, error) {
+	return j.readOrdinalFromDisk(j.latestPath())
+}
+
+func (j diskJournal) empty() bool {
+	return !j.earliestValid || !j.latestValid
+}
+
+// TODO: Change {read,write}{Earliest,Latest}Ordinal() to
+// {get,set}{Earliest,Latest}Ordinal(), and have the getters return an
+// isValid bool, or an invalid journalOrdinal instead of an error.
+
+func (j diskJournal) readEarliestOrdinal() (journalOrdinal, error) {
+	if j.empty() {
+		return journalOrdinal(0), errors.WithStack(os.ErrNotExist)
+	}
+	return j.earliest, nil
+}
+
+func (j *diskJournal) writeEarliestOrdinal(o journalOrdinal) error {
+	err := j.writeOrdinalToDisk(j.earliestPath(), o)
+	if err != nil {
+		return err
+	}
+	j.earliestValid = true
+	j.earliest = o
+	return nil
 }
 
 func (j diskJournal) readLatestOrdinal() (journalOrdinal, error) {
-	return j.readOrdinal(j.latestPath())
+	if j.empty() {
+		return journalOrdinal(0), errors.WithStack(os.ErrNotExist)
+	}
+	return j.latest, nil
 }
 
-func (j diskJournal) writeLatestOrdinal(o journalOrdinal) error {
-	return j.writeOrdinal(j.latestPath(), o)
+func (j *diskJournal) writeLatestOrdinal(o journalOrdinal) error {
+	err := j.writeOrdinalToDisk(j.latestPath(), o)
+	if err != nil {
+		return err
+	}
+	j.latestValid = true
+	j.latest = o
+	return nil
 }
 
 // clear completely removes the journal directory.
-func (j diskJournal) clear() error {
-	// Clear ordinals first to reduce the chances of leaving the
-	// journal in a weird state if we crash in the middle of
-	// removing the files.
-	//
-	// TODO: When we read ordinals into memory on startup, treat
-	// the absence of either ordinal as the journal being empty,
-	// so as to make clearing atomic.
+func (j *diskJournal) clear() error {
+	// Clear ordinals first to not leave the journal in a weird
+	// state if we crash in the middle of removing the files,
+	// assuming that file removal is atomic.
 	err := ioutil.Remove(j.earliestPath())
 	if err != nil {
 		return err
 	}
+
+	// If we crash here, on the next startup the journal will
+	// still be considered empty.
+
+	j.earliestValid = false
+	j.earliest = journalOrdinal(0)
+
 	err = ioutil.Remove(j.latestPath())
 	if err != nil {
 		return err
 	}
+
+	j.latestValid = false
+	j.latest = journalOrdinal(0)
 
 	// j.dir will be recreated on the next call to
 	// writeJournalEntry (via kbfscodec.SerializeToFile), which
@@ -176,18 +249,13 @@ func (j diskJournal) clear() error {
 // removeEarliest removes the earliest entry in the journal. If that
 // entry was the last one, clear() is also called, and true is
 // returned.
-func (j diskJournal) removeEarliest() (empty bool, err error) {
-	earliestOrdinal, err := j.readEarliestOrdinal()
-	if err != nil {
-		return false, err
+func (j *diskJournal) removeEarliest() (empty bool, err error) {
+	if j.empty() {
+		// TODO: Return a more meaningful error.
+		return false, errors.WithStack(os.ErrNotExist)
 	}
 
-	latestOrdinal, err := j.readLatestOrdinal()
-	if err != nil {
-		return false, err
-	}
-
-	if earliestOrdinal == latestOrdinal {
+	if j.earliest == j.latest {
 		err := j.clear()
 		if err != nil {
 			return false, err
@@ -195,7 +263,9 @@ func (j diskJournal) removeEarliest() (empty bool, err error) {
 		return true, nil
 	}
 
-	err = j.writeEarliestOrdinal(earliestOrdinal + 1)
+	oldEarliest := j.earliest
+
+	err = j.writeEarliestOrdinal(oldEarliest + 1)
 	if err != nil {
 		return false, err
 	}
@@ -203,7 +273,7 @@ func (j diskJournal) removeEarliest() (empty bool, err error) {
 	// Garbage-collect the old entry. If we crash here and leave
 	// behind an entry, it'll be cleaned up the next time clear()
 	// is called.
-	p := j.journalEntryPath(earliestOrdinal)
+	p := j.journalEntryPath(oldEarliest)
 	err = ioutil.Remove(p)
 	if err != nil {
 		return false, err
@@ -225,7 +295,7 @@ func (j diskJournal) readJournalEntry(o journalOrdinal) (interface{}, error) {
 	return entry.Elem().Interface(), nil
 }
 
-func (j diskJournal) writeJournalEntry(
+func (j *diskJournal) writeJournalEntry(
 	o journalOrdinal, entry interface{}) error {
 	entryType := reflect.TypeOf(entry)
 	if entryType != j.entryType {
@@ -244,22 +314,17 @@ func (j diskJournal) writeJournalEntry(
 // an error if *o is not the successor of the latest ordinal. If
 // successful, appendJournalEntry returns the ordinal of the
 // just-appended entry.
-func (j diskJournal) appendJournalEntry(
+func (j *diskJournal) appendJournalEntry(
 	o *journalOrdinal, entry interface{}) (journalOrdinal, error) {
-	// TODO: Consider caching the latest ordinal in memory instead
-	// of reading it from disk every time.
 	var next journalOrdinal
-	lo, err := j.readLatestOrdinal()
-	if ioutil.IsNotExist(err) {
+	if j.empty() {
 		if o != nil {
 			next = *o
 		} else {
-			next = 0
+			next = firstValidJournalOrdinal
 		}
-	} else if err != nil {
-		return 0, err
 	} else {
-		next = lo + 1
+		next = j.latest + 1
 		if next == 0 {
 			// Rollover is almost certainly a bug.
 			return 0, errors.Errorf(
@@ -268,23 +333,20 @@ func (j diskJournal) appendJournalEntry(
 		if o != nil && next != *o {
 			return 0, errors.Errorf(
 				"%v unexpectedly does not follow %v for %+v",
-				*o, lo, entry)
+				*o, j.latest, entry)
 		}
 	}
 
-	err = j.writeJournalEntry(next, entry)
+	err := j.writeJournalEntry(next, entry)
 	if err != nil {
 		return 0, err
 	}
 
-	_, err = j.readEarliestOrdinal()
-	if ioutil.IsNotExist(err) {
+	if j.empty() {
 		err := j.writeEarliestOrdinal(next)
 		if err != nil {
 			return 0, err
 		}
-	} else if err != nil {
-		return 0, err
 	}
 	err = j.writeLatestOrdinal(next)
 	if err != nil {
@@ -305,16 +367,9 @@ func (j *diskJournal) move(newDir string) (oldDir string, err error) {
 	return oldDir, nil
 }
 
-func (j diskJournal) length() (uint64, error) {
-	first, err := j.readEarliestOrdinal()
-	if ioutil.IsNotExist(err) {
-		return 0, nil
-	} else if err != nil {
-		return 0, err
+func (j diskJournal) length() uint64 {
+	if j.empty() {
+		return 0
 	}
-	last, err := j.readLatestOrdinal()
-	if err != nil {
-		return 0, err
-	}
-	return uint64(last - first + 1), nil
+	return uint64(j.latest - j.earliest + 1)
 }

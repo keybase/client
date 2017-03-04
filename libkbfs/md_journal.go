@@ -221,9 +221,13 @@ func makeMDJournal(
 	mdVer MetadataVer, dir string,
 	log logger.Logger) (*mdJournal, error) {
 	journalDir := mdJournalPath(dir)
+	idJournal, err := makeMdIDJournal(codec, journalDir)
+	if err != nil {
+		return nil, err
+	}
 	return makeMDJournalWithIDJournal(
 		ctx, uid, key, codec, crypto, clock, tlfID, mdVer, dir,
-		makeMdIDJournal(codec, journalDir), log)
+		idJournal, log)
 }
 
 // The functions below are for building various paths.
@@ -654,7 +658,10 @@ func (j *mdJournal) convertToBranch(
 		}
 	}()
 
-	tempJournal := makeMdIDJournal(j.codec, journalTempDir)
+	tempJournal, err := makeMdIDJournal(j.codec, journalTempDir)
+	if err != nil {
+		return err
+	}
 
 	var prevID MdID
 
@@ -985,16 +992,13 @@ func (j mdJournal) readLatestRevision() (MetadataRevision, error) {
 	return j.j.readLatestRevision()
 }
 
-func (j mdJournal) length() (uint64, error) {
+func (j mdJournal) length() uint64 {
 	return j.j.length()
 }
 
 func (j mdJournal) atLeastNNonLocalSquashes(
 	numNonLocalSquashes uint64) (bool, error) {
-	size, err := j.length()
-	if err != nil {
-		return false, err
-	}
+	size := j.length()
 	if size < numNonLocalSquashes {
 		return false, nil
 	}
@@ -1440,7 +1444,10 @@ func (j *mdJournal) resolveAndClear(
 	// be cleaned up whenever the entire journal goes empty.
 
 	j.log.CDebugf(ctx, "Using temp dir %s for new IDs", idJournalTempDir)
-	otherIDJournal := makeMdIDJournal(j.codec, idJournalTempDir)
+	otherIDJournal, err := makeMdIDJournal(j.codec, idJournalTempDir)
+	if err != nil {
+		return MdID{}, err
+	}
 	defer func() {
 		j.log.CDebugf(ctx, "Removing temp dir %s", idJournalTempDir)
 		removeErr := ioutil.RemoveAll(idJournalTempDir)

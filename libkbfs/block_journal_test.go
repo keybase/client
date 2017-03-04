@@ -90,12 +90,6 @@ func TestSaturateAdd(t *testing.T) {
 	require.Equal(t, int64(0), x)
 }
 
-func getBlockJournalLength(t *testing.T, j *blockJournal) int {
-	len, err := j.length()
-	require.NoError(t, err)
-	return int(len)
-}
-
 func setupBlockJournalTest(t *testing.T) (
 	ctx context.Context, cancel context.CancelFunc, tempdir string,
 	log logger.Logger, j *blockJournal) {
@@ -126,7 +120,7 @@ func setupBlockJournalTest(t *testing.T) (
 
 	j, err = makeBlockJournal(ctx, codec, tempdir, log)
 	require.NoError(t, err)
-	require.Equal(t, 0, getBlockJournalLength(t, j))
+	require.Equal(t, uint64(0), j.length())
 
 	setupSucceeded = true
 	return ctx, cancel, tempdir, log, j
@@ -146,7 +140,7 @@ func teardownBlockJournalTest(t *testing.T, ctx context.Context,
 func putBlockData(
 	ctx context.Context, t *testing.T, j *blockJournal, data []byte) (
 	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf) {
-	oldLength := getBlockJournalLength(t, j)
+	oldLength := j.length()
 
 	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
@@ -160,7 +154,7 @@ func putBlockData(
 	require.NoError(t, err)
 	require.True(t, putData)
 
-	require.Equal(t, oldLength+1, getBlockJournalLength(t, j))
+	require.Equal(t, oldLength+1, j.length())
 
 	return bID, bCtx, serverHalf
 }
@@ -168,7 +162,7 @@ func putBlockData(
 func addBlockRef(
 	ctx context.Context, t *testing.T, j *blockJournal,
 	bID kbfsblock.ID) kbfsblock.Context {
-	oldLength := getBlockJournalLength(t, j)
+	oldLength := j.length()
 
 	nonce, err := kbfsblock.MakeRefNonce()
 	require.NoError(t, err)
@@ -178,7 +172,7 @@ func addBlockRef(
 	bCtx2 := kbfsblock.MakeContext(uid1, uid2, nonce, keybase1.BlockType_DATA)
 	err = j.addReference(ctx, bID, bCtx2)
 	require.NoError(t, err)
-	require.Equal(t, oldLength+1, getBlockJournalLength(t, j))
+	require.Equal(t, oldLength+1, j.length())
 	return bCtx2
 }
 
@@ -214,7 +208,7 @@ func TestBlockJournalBasic(t *testing.T) {
 	j, err = makeBlockJournal(ctx, j.codec, tempdir, j.log)
 	require.NoError(t, err)
 
-	require.Equal(t, 2, getBlockJournalLength(t, j))
+	require.Equal(t, uint64(2), j.length())
 
 	// Make sure we get the same block for both refs.
 
@@ -228,7 +222,7 @@ func TestBlockJournalDuplicatePut(t *testing.T) {
 
 	data := []byte{1, 2, 3, 4}
 
-	oldLength := getBlockJournalLength(t, j)
+	oldLength := j.length()
 
 	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
@@ -251,7 +245,7 @@ func TestBlockJournalDuplicatePut(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, putData)
 
-	require.Equal(t, oldLength+2, getBlockJournalLength(t, j))
+	require.Equal(t, oldLength+2, j.length())
 
 	// Shouldn't count the block twice.
 	require.Equal(t, int64(len(data)), j.getStoredBytes())
@@ -290,7 +284,7 @@ func TestBlockJournalArchiveReferences(t *testing.T) {
 	err := j.archiveReferences(
 		ctx, kbfsblock.ContextMap{bID: {bCtx, bCtx2}})
 	require.NoError(t, err)
-	require.Equal(t, 3, getBlockJournalLength(t, j))
+	require.Equal(t, uint64(3), j.length())
 
 	// Get block should still succeed.
 	getAndCheckBlockData(ctx, t, j, bID, bCtx, data, serverHalf)
@@ -330,7 +324,7 @@ func TestBlockJournalRemoveReferences(t *testing.T) {
 		ctx, kbfsblock.ContextMap{bID: {bCtx, bCtx2}})
 	require.NoError(t, err)
 	require.Equal(t, map[kbfsblock.ID]int{bID: 0}, liveCounts)
-	require.Equal(t, 3, getBlockJournalLength(t, j))
+	require.Equal(t, uint64(3), j.length())
 
 	// Make sure the block data is inaccessible.
 	_, _, err = j.getDataWithContext(bID, bCtx)
@@ -456,7 +450,7 @@ func TestBlockJournalFlush(t *testing.T) {
 		// Test that the end parameter is respected.
 		var partialEntries blockEntriesToFlush
 		var rev MetadataRevision
-		if end > 1 {
+		if end > firstValidJournalOrdinal+1 {
 			partialEntries, rev, err = j.getNextEntriesToFlush(ctx, end-1,
 				maxJournalBlockFlushBatchSize)
 			require.NoError(t, err)
@@ -524,9 +518,8 @@ func TestBlockJournalFlush(t *testing.T) {
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
 	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 
-	length, err := j.length()
-	require.NoError(t, err)
-	require.Zero(t, length)
+	length := j.length()
+	require.Equal(t, uint64(0), length)
 
 	// Make sure the ordinals and blocks are flushed.
 	testBlockJournalGCd(t, j)

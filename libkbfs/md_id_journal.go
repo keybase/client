@@ -24,7 +24,7 @@ import (
 // TODO: Write unit tests for this. For now, we're relying on
 // md_journal.go's unit tests.
 type mdIDJournal struct {
-	j diskJournal
+	j *diskJournal
 }
 
 // An mdIDJournalEntry is an MdID and a boolean describing whether
@@ -51,9 +51,13 @@ type mdIDJournalEntry struct {
 	codec.UnknownFieldSetHandler
 }
 
-func makeMdIDJournal(codec kbfscodec.Codec, dir string) mdIDJournal {
-	j := makeDiskJournal(codec, dir, reflect.TypeOf(mdIDJournalEntry{}))
-	return mdIDJournal{j}
+func makeMdIDJournal(codec kbfscodec.Codec, dir string) (mdIDJournal, error) {
+	j, err :=
+		makeDiskJournal(codec, dir, reflect.TypeOf(mdIDJournalEntry{}))
+	if err != nil {
+		return mdIDJournal{}, err
+	}
+	return mdIDJournal{j}, nil
 }
 
 func ordinalToRevision(o journalOrdinal) (MetadataRevision, error) {
@@ -128,7 +132,7 @@ func (j mdIDJournal) readJournalEntry(r MetadataRevision) (
 
 // All functions below are public functions.
 
-func (j mdIDJournal) length() (uint64, error) {
+func (j mdIDJournal) length() uint64 {
 	return j.j.length()
 }
 
