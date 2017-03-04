@@ -1,8 +1,9 @@
 // @flow
 import * as PushNotifications from 'react-native-push-notification'
-import {PushNotificationIOS} from 'react-native'
+import {PushNotificationIOS, CameraRoll, ActionSheetIOS} from 'react-native'
 import * as PushConstants from '../constants/push'
 import {eventChannel} from 'redux-saga'
+import {isIOS} from '../constants/platform'
 
 function requestPushPermissions (): Promise<*> {
   return PushNotifications.requestPermissions()
@@ -12,6 +13,24 @@ function showMainWindow () {
   return () => {
     // nothing
   }
+}
+
+function showShareActionSheet (options: {url?: ?any, message?: ?any}): Promise<{completed: boolean, method: string}> {
+  if (isIOS) {
+    return new Promise((resolve, reject) => ActionSheetIOS.showShareActionSheetWithOptions(
+      options,
+      reject,
+      resolve,
+    ))
+  } else {
+    console.warn('Sharing action not implemented in android')
+    return Promise.resolve({completed: false})
+  }
+}
+
+type NextURI = string
+function saveAttachment (filePath: string): Promise<NextURI> {
+  return CameraRoll.saveToCameraRoll(filePath)
 }
 
 function configurePush () {
@@ -95,4 +114,6 @@ export {
   requestPushPermissions,
   showMainWindow,
   configurePush,
+  saveAttachment,
+  showShareActionSheet,
 }

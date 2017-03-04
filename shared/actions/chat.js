@@ -17,11 +17,11 @@ import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {safeTakeEvery, safeTakeLatest, safeTakeSerially, singleFixedChannelConfig, cancelWhen, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
-import {tmpFile, copy, exists} from '../util/file'
+import {tmpFile, downloadFilePath, copy, exists} from '../util/file'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {toDeviceType, unsafeUnwrap} from '../constants/types/more'
-import {showMainWindow} from './platform.specific'
+import {showMainWindow, saveAttachment, showShareActionSheet} from './platform.specific'
 import {requestIdleCallback} from '../util/idle-callback'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
@@ -2075,6 +2075,38 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
   }
 }
 
+function * _shareAttachment ({payload: {message}}: Constants.SaveAttachment) {
+  const {filename, messageID, conversationIDKey} = message
+  const path = downloadFilePath(filename)
+  yield call(_loadAttachment, ({
+    type: 'chat:loadAttachment',
+    payload: {
+      conversationIDKey,
+      messageID,
+      loadPreview: false,
+      isHdPreview: false,
+      filename: path,
+    },
+  }: Constants.Load))
+  yield call(showShareActionSheet, {url: path})
+}
+
+function * _saveAttachmentNative ({payload: {message}}: Constants.SaveAttachment) {
+  const {filename, messageID, conversationIDKey} = message
+  const path = downloadFilePath(filename)
+  yield call(_loadAttachment, ({
+    type: 'chat:loadAttachment',
+    payload: {
+      conversationIDKey,
+      messageID,
+      loadPreview: false,
+      isHdPreview: false,
+      filename: path,
+    },
+  }: Constants.Load))
+  yield call(saveAttachment, path)
+}
+
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
     safeTakeSerially('chat:loadInbox', _loadInboxOnce),
@@ -2105,6 +2137,8 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery('chat:openTlfInChat', _openTlfInChat),
     safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true),
     safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat),
+    safeTakeEvery('chat:saveAttachmentNative', _saveAttachmentNative),
+    safeTakeEvery('chat:shareAttachment', _shareAttachment),
   ]
 }
 
