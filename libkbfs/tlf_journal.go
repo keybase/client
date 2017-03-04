@@ -1185,6 +1185,9 @@ func (j *tlfJournal) flushOneMDOp(
 
 	mdServer := j.config.MDServer()
 
+	// TODO: Do we need `end` at all, or can we just pass
+	// `maxMDRevToFlush+1` here?  The only argument for `end` is that
+	// it might help if the block and MD journals are out of sync.
 	mdID, rmds, extra, err := j.getNextMDEntryToFlush(ctx, end)
 	if err != nil {
 		return false, err
