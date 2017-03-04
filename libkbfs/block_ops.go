@@ -86,7 +86,7 @@ func (b *BlockOpsStandard) GetEncodedSize(ctx context.Context, kmd KeyMetadata,
 	}
 
 	// Otherwise fetch the entire block from the server, since we
-	// can't trust the journal to report the size without being able
+	// can't trust the server to report the size without being able
 	// to verify the BlockID.
 	block := NewCommonBlock()
 	errCh := b.queue.Request(ctx, defaultOnDemandRequestPriority, kmd,
