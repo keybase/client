@@ -100,11 +100,6 @@
 			"revisionTime": "2015-06-20T10:58:49+02:00"
 		},
 		{
-			"path": "github.com/cenkalti/backoff",
-			"revision": "32cd0c5b3aef12c76ed64aaf678f6c79736be7dc",
-			"revisionTime": "2015-08-27T15:34:15+03:00"
-		},
-		{
 			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "346938d642f2ec3594ed81d874461961cd0faa76",
@@ -161,6 +156,12 @@
 			"path": "github.com/kballard/go-shellquote",
 			"revision": "e5c918b80c17694cbc49aab32a759f9a40067f5d",
 			"revisionTime": "2014-07-18T00:10:36-05:00"
+		},
+		{
+			"checksumSHA1": "tBFISVudi8RzOoFhK2+p0PRicfw=",
+			"path": "github.com/keybase/backoff",
+			"revision": "726b63b835ec48ae1fac42bcba4e8c7b742fa97d",
+			"revisionTime": "2016-05-17T06:10:00Z"
 		},
 		{
 			"path": "github.com/keybase/cli",
@@ -247,10 +248,10 @@
 			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
-			"checksumSHA1": "dL7Tcu8TAzoc40pk74eWfKZzdoY=",
+			"checksumSHA1": "IXitcIrP3o9YzQ+OjvNWWVX3QX0=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "8ef73e843df090005cb21ab5cc66c7acc8446fdc",
-			"revisionTime": "2017-01-11T17:52:48Z"
+			"revision": "6df28f7bb1acfb3ab689a143c3e4d369c7f2df50",
+			"revisionTime": "2017-03-06T22:50:13Z"
 		},
 		{
 			"path": "github.com/keybase/go-jsonw",

@@ -1,6 +1,10 @@
 package backoff
 
-import "time"
+import (
+	"time"
+
+	"golang.org/x/net/context"
+)
 
 // An Operation is executing by Retry() or RetryNotify().
 // The operation will be retried using a backoff policy if it returns an error.
@@ -24,6 +28,25 @@ func Retry(o Operation, b BackOff) error { return RetryNotify(o, b, nil) }
 // RetryNotify calls notify function with the error and wait duration
 // for each failed attempt before sleep.
 func RetryNotify(operation Operation, b BackOff, notify Notify) error {
+	return RetryNotifyWithContext(nil, operation, b, notify)
+}
+
+// RetryNotifyWithContext calls notify function with the error and
+// wait duration for each failed attempt before sleep. If ctx is
+// non-nil, it will return early from a sleep when it's Done channel
+// is closed, and it will also not call the operation if the context
+// is already canceled.
+func RetryNotifyWithContext(ctx context.Context, operation Operation,
+	b BackOff, notify Notify) error {
+	// If context is already canceled, return immediately.
+	if ctx != nil {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+	}
+
 	var err error
 	var next time.Duration
 
@@ -41,6 +64,14 @@ func RetryNotify(operation Operation, b BackOff, notify Notify) error {
 			notify(err, next)
 		}
 
-		time.Sleep(next)
+		if ctx != nil {
+			select {
+			case <-time.After(next):
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		} else {
+			time.Sleep(next)
+		}
 	}
 }

@@ -97,20 +97,20 @@ return nil
 
 ```bash
 # install
-$ go get github.com/cenkalti/backoff
+$ go get github.com/cenk/backoff
 
 # test
-$ cd $GOPATH/src/github.com/cenkalti/backoff
+$ cd $GOPATH/src/github.com/cenk/backoff
 $ go get -t ./...
 $ go test -v -cover
 ```
 
-[godoc]: https://godoc.org/github.com/cenkalti/backoff
-[godoc image]: https://godoc.org/github.com/cenkalti/backoff?status.png
-[travis]: https://travis-ci.org/cenkalti/backoff
-[travis image]: https://travis-ci.org/cenkalti/backoff.png
+[godoc]: https://godoc.org/github.com/cenk/backoff
+[godoc image]: https://godoc.org/github.com/cenk/backoff?status.png
+[travis]: https://travis-ci.org/cenk/backoff
+[travis image]: https://travis-ci.org/cenk/backoff.png
 
 [google-http-java-client]: https://github.com/google/google-http-java-client
 [exponential backoff wiki]: http://en.wikipedia.org/wiki/Exponential_backoff
 
-[advanced example]: https://godoc.org/github.com/cenkalti/backoff#example_
+[advanced example]: https://godoc.org/github.com/cenk/backoff#example_
