@@ -153,7 +153,7 @@ var buffer = make([]byte, bufferSize)
 func ReadB64() (string, error) {
 	n, err := conn.Read(buffer)
 	if n > 0 && err == nil {
-		str := base64.StdEncoding.EncodeToString(data[0:n])
+		str := base64.StdEncoding.EncodeToString(buffer[0:n])
 		return str, nil
 	}
 
