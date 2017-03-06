@@ -8,6 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
+	_ "net/http/pprof"
 	"sync"
 
 	"github.com/keybase/client/go/externals"
@@ -39,6 +41,11 @@ func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOver
 func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool) error {
 	fmt.Println("Go: Initializing")
 	fmt.Printf("Go: Using log: %s\n", logFile)
+
+	go func() {
+		fmt.Println(http.ListenAndServe(":6060", nil))
+	}()
+
 	kbCtx = libkb.G
 	kbCtx.Init()
 	kbCtx.SetServices(externals.GetServices())
@@ -138,11 +145,13 @@ const targetBufferSize = 50 * 1024
 // size.
 const bufferSize = targetBufferSize - (targetBufferSize % 3)
 
-// ReadB64 is a blocking read for base64 encoded msgpack rpc data.
-func ReadB64() (string, error) {
-	data := make([]byte, bufferSize)
+// buffer for the conn.Read
+var buffer = make([]byte, bufferSize)
 
-	n, err := conn.Read(data)
+// ReadB64 is a blocking read for base64 encoded msgpack rpc data.
+// It is called serially by the mobile run loops.
+func ReadB64() (string, error) {
+	n, err := conn.Read(buffer)
 	if n > 0 && err == nil {
 		str := base64.StdEncoding.EncodeToString(data[0:n])
 		return str, nil
