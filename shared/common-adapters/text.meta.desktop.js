@@ -225,7 +225,7 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 13,
     styleOverride: {
       ...globalStyles.fontTerminal,
-      lineHeight: '17px',
+      lineHeight: '20px',
     },
   },
   'TerminalComment': {
@@ -236,7 +236,7 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 13,
     styleOverride: {
       ...globalStyles.fontTerminal,
-      lineHeight: '17px',
+      lineHeight: '20px',
     },
   },
   'TerminalEmpty': {
@@ -247,8 +247,8 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 13,
     styleOverride: {
       ...globalStyles.fontTerminal,
-      height: 17,
-      lineHeight: '17px',
+      height: 20,
+      lineHeight: '20px',
     },
   },
   'TerminalInline': {
