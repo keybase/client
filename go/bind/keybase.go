@@ -8,8 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"net/http"
-	_ "net/http/pprof"
 	"sync"
 
 	"github.com/keybase/client/go/externals"
@@ -41,10 +39,6 @@ func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOver
 func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool) error {
 	fmt.Println("Go: Initializing")
 	fmt.Printf("Go: Using log: %s\n", logFile)
-
-	go func() {
-		fmt.Println(http.ListenAndServe(":6060", nil))
-	}()
 
 	kbCtx = libkb.G
 	kbCtx.Init()
