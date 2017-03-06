@@ -1,6 +1,5 @@
 // @flow
 import React from 'react'
-import {ActionSheetIOS} from 'react-native'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../../actions/route-tree'
 import {deleteMessage, showEditor} from '../../../actions/chat'
@@ -75,7 +74,7 @@ function MessagePopup (props: TextProps | AttachmentProps) {
   items.push({
     danger: true,
     onClick: () => {
-      // onDeleteMessage(message)
+      onDeleteMessage(message)
       onHidden()
     },
     title: 'Delete',

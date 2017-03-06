@@ -2077,7 +2077,7 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
 
 function * _shareAttachment ({payload: {message}}: Constants.ShareAttachment) {
   const {filename, messageID, conversationIDKey} = message
-  if (!filename || ! messageID) {
+  if (!filename || !messageID) {
     return
   }
 
@@ -2097,7 +2097,7 @@ function * _shareAttachment ({payload: {message}}: Constants.ShareAttachment) {
 
 function * _saveAttachmentNative ({payload: {message}}: Constants.SaveAttachment) {
   const {filename, messageID, conversationIDKey} = message
-  if (!filename || ! messageID) {
+  if (!filename || !messageID) {
     return
   }
 
