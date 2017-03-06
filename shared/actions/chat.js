@@ -2,7 +2,7 @@
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import engine from '../engine'
-import _ from 'lodash'
+import {some, uniq} from 'lodash'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
@@ -232,7 +232,7 @@ function openTlfInChat (tlf: string): OpenTlfInChat {
 }
 
 function startConversation (users: Array<string>, forceImmediate?: boolean = false): StartConversation {
-  return {type: 'chat:startConversation', payload: {forceImmediate, users}}
+  return {type: 'chat:startConversation', payload: {forceImmediate, users: uniq(users)}}
 }
 
 function newChat (existingParticipants: Array<string>): NewChat {
@@ -1545,7 +1545,7 @@ function * _openTlfInChat (action: OpenTlfInChat): SagaGenerator<any, any> {
   const me = yield select(usernameSelector)
   const userlist = parseFolderNameToUsers(me, tlf)
   const users = userlist.map(u => u.username)
-  if (_.some(userlist, 'readOnly')) {
+  if (some(userlist, 'readOnly')) {
     console.warn('Bug: openTlfToChat should never be called on a convo with readOnly members.')
     return
   }

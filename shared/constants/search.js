@@ -72,7 +72,7 @@ export function fullName (extraInfo: ExtraInfo): string {
 
 export function searchResultToAssertion (r: SearchResult): string {
   if (r.service === 'external') {
-    return `${r.username}@${r.serviceName}`
+    return `${r.username}@${r.serviceName.toLowerCase()}`
   }
 
   return r.username

@@ -42,7 +42,7 @@ func TestSimpleFSPathRemote(t *testing.T) {
 	pathType, err = testPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
-	assert.Equal(tc.T, "/private/", testPath.Kbfs())
+	assert.Equal(tc.T, "/private", testPath.Kbfs())
 
 }
 
@@ -283,4 +283,30 @@ func TestSimpleFSRemoteSrcDir(t *testing.T) {
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_LOCAL, pathType, "Expected remote path, got local")
 
+}
+
+func TestSimpleFSLocalExists(t *testing.T) {
+	tc := libkb.SetupTest(t, "simplefs_path", 0)
+
+	// make a temp local dest directory + files we will clean up later
+	tempdir, err := ioutil.TempDir("", "simpleFstest")
+	defer os.RemoveAll(tempdir)
+	require.NoError(t, err)
+	tempFile := filepath.Join(tempdir, "test1.txt")
+	err = ioutil.WriteFile(tempFile, []byte("foo"), 0644)
+	require.NoError(t, err)
+
+	testPath := makeSimpleFSPath(tc.G, tempdir)
+	pathType, err := testPath.PathType()
+	require.NoError(tc.T, err, "bad path type")
+	assert.Equal(tc.T, keybase1.PathType_LOCAL, pathType, "Expected local path, got remote")
+
+	// check directory
+	err = checkElementExists(context.TODO(), SimpleFSTestStat{}, testPath)
+	require.Error(tc.T, err, "Should get an element exists error")
+
+	// check file
+	testPath = makeSimpleFSPath(tc.G, tempFile)
+	err = checkElementExists(context.TODO(), SimpleFSTestStat{}, testPath)
+	require.Error(tc.T, err, "Should get an element exists error")
 }

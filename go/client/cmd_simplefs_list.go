@@ -99,6 +99,8 @@ func (c *CmdSimpleFSList) Run() error {
 
 	ctx := context.TODO()
 
+	c.G().Log.Debug("SimpleFSList %s", pathToString(c.path))
+
 	opid, err := cli.SimpleFSMakeOpid(ctx)
 	if err != nil {
 		return err

@@ -2,13 +2,15 @@
 import Header from './header.native'
 import Input from './input.native'
 import List from './list.native'
+import OldProfileResetNotice from './notices/old-profile-reset-notice'
 import ParticipantRekey from './participant-rekey'
 import React from 'react'
 import YouRekey from './you-rekey'
 import hoc from './index-hoc'
-import {Box, Text} from '../../common-adapters'
+import {Box} from '../../common-adapters'
 import {branch, renderComponent} from 'recompose'
 import {globalStyles} from '../../styles'
+
 import type {Props} from './index'
 
 const Conversation = (props: Props) => (
@@ -16,7 +18,9 @@ const Conversation = (props: Props) => (
     <Header {...props.headerProps} />
     <List {...props.listProps} />
     {props.finalizeInfo
-      ? <Text type='Body'>Old Profile Reset Notice</Text>
+      ? <OldProfileResetNotice
+        onOpenNewerConversation={props.onOpenNewerConversation}
+        username={props.finalizeInfo.resetUser} />
       : <Input {...props.inputProps} /> }
   </Box>
 )
