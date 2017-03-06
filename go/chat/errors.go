@@ -204,12 +204,12 @@ type HeaderMismatchError struct {
 
 var _ error = (*HeaderMismatchError)(nil)
 
-func (e *HeaderMismatchError) Error() string {
+func (e HeaderMismatchError) Error() string {
 	return fmt.Sprintf("chat header mismatch on %q", e.Field)
 }
 
-func NewHeaderMismatchError(field string) *HeaderMismatchError {
-	return &HeaderMismatchError{Field: field}
+func NewHeaderMismatchError(field string) HeaderMismatchError {
+	return HeaderMismatchError{Field: field}
 }
 
 //=============================================================================

@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 )
 
 func cryptKey(t *testing.T) *keybase1.CryptKey {
@@ -145,12 +146,17 @@ func TestChatMessageUnbox(t *testing.T) {
 			t.Fatal(err)
 		}
 		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+		outboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
+		msg.ClientHeader.OutboxID = &outboxID
 
 		signKP := getSigningKeyPairForTest(t, tc, u)
 
 		boxed, err := boxer.box(msg, key, signKP, mbVersion)
-		if err != nil {
-			t.Fatal(err)
+		require.NoError(t, err)
+		boxed = remarshalBoxed(t, *boxed)
+
+		if boxed.ClientHeader.OutboxID == msg.ClientHeader.OutboxID {
+			t.Fatalf("defective test: %+v   ==   %+v", boxed.ClientHeader.OutboxID, msg.ClientHeader.OutboxID)
 		}
 
 		// need to give it a server header...
@@ -172,6 +178,48 @@ func TestChatMessageUnbox(t *testing.T) {
 		require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
 		require.NotNil(t, unboxed.BodyHash)
 	})
+}
+
+func TestChatMessageMissingOutboxID(t *testing.T) {
+	// Test with an outbox ID missing.
+	mbVersion := chat1.MessageBoxedVersion_V2
+	key := cryptKey(t)
+	text := "hi"
+	tc, boxer := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	// need a real user
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+	outboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
+	msg.ClientHeader.OutboxID = &outboxID
+
+	signKP := getSigningKeyPairForTest(t, tc, u)
+
+	boxed, err := boxer.box(msg, key, signKP, mbVersion)
+	require.NoError(t, err)
+	boxed = remarshalBoxed(t, *boxed)
+
+	if boxed.ClientHeader.OutboxID == msg.ClientHeader.OutboxID {
+		t.Fatalf("defective test: %+v   ==   %+v", boxed.ClientHeader.OutboxID, msg.ClientHeader.OutboxID)
+	}
+
+	// omit outbox id
+	boxed.ClientHeader.OutboxID = nil
+
+	// need to give it a server header...
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(time.Now()),
+	}
+
+	_, uberr := boxer.unbox(context.TODO(), *boxed, key)
+	require.Error(t, uberr)
+	ierr, ok := uberr.Inner().(HeaderMismatchError)
+	require.True(t, ok, "unexpected error: %T -> %T -> %v", uberr, uberr.Inner(), uberr)
+	require.Equal(t, "OutboxID", ierr.Field)
 }
 
 func TestChatMessageInvalidBodyHash(t *testing.T) {
@@ -1272,4 +1320,45 @@ func NewKeyFinderMock(cryptKeys []keybase1.CryptKey) KeyFinder {
 
 func (k *KeyFinderMock) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
 	return keybase1.GetTLFCryptKeysRes{CryptKeys: k.cryptKeys}, nil
+}
+
+func remarshalBoxed(t *testing.T, v chat1.MessageBoxed) *chat1.MessageBoxed {
+	// encode
+	mh := codec.MsgpackHandle{WriteExt: true}
+	var data []byte
+	enc := codec.NewEncoderBytes(&data, &mh)
+	err := enc.Encode(v)
+	require.NoError(t, err)
+
+	// decode
+	var v2 chat1.MessageBoxed
+	mh = codec.MsgpackHandle{WriteExt: true}
+	dec := codec.NewDecoderBytes(data, &mh)
+	err = dec.Decode(&v2)
+	require.NoError(t, err)
+	return &v2
+}
+
+func TestRemarshalBoxed(t *testing.T) {
+	outboxID1 := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
+	boxed1 := chat1.MessageBoxed{
+		ClientHeader: chat1.MessageClientHeader{
+			OutboxID: &outboxID1,
+		},
+	}
+
+	var boxed2 chat1.MessageBoxed
+	boxed2 = *remarshalBoxed(t, boxed1)
+
+	require.NotEqual(t, chat1.MessageBoxed{}, boxed2, "second shouldn't be zeroed")
+	require.Equal(t, boxed1.ClientHeader.OutboxID == nil, boxed2.ClientHeader.OutboxID == nil, "obids should have same nility")
+
+	if boxed1.ClientHeader.OutboxID == boxed2.ClientHeader.OutboxID {
+		t.Fatalf("obids should not have same address")
+	}
+
+	require.NotNil(t, boxed1.ClientHeader.OutboxID, "obid1 should not be nil")
+	require.NotNil(t, boxed2.ClientHeader.OutboxID, "obid2 should not be nil")
+
+	require.Equal(t, boxed1.ClientHeader.OutboxID, boxed2.ClientHeader.OutboxID, "obids should have same value")
 }
