@@ -34,9 +34,10 @@ type Client struct {
 	config *ClientConfig
 }
 
+var hostRE = regexp.MustCompile("^([^:]+)(:([0-9]+))?$")
+
 func SplitHost(joined string) (host string, port int, err error) {
-	re := regexp.MustCompile("^([^:]+)(:([0-9]+))?$")
-	match := re.FindStringSubmatch(joined)
+	match := hostRE.FindStringSubmatch(joined)
 	if match == nil {
 		err = fmt.Errorf("Invalid host/port found: %s", joined)
 	} else {

@@ -17,12 +17,13 @@ type Identity struct {
 	Email    string
 }
 
+var idRE = regexp.MustCompile("" +
+	`^"?([^(<]*?)"?` + // The beginning name of the user (no comment or key)
+	`(?:\s*\((.*?)\)"?)?` + // The optional comment
+	`(?:\s*<(.*?)>)?$`) // The optional email address
+
 func ParseIdentity(s string) (*Identity, error) {
-	rxx := regexp.MustCompile("" +
-		`^"?([^(<]*?)"?` + // The beginning name of the user (no comment or key)
-		`(?:\s*\((.*?)\)"?)?` + // The optional comment
-		`(?:\s*<(.*?)>)?$`) // The optional email address
-	v := rxx.FindStringSubmatch(s)
+	v := idRE.FindStringSubmatch(s)
 	if v == nil {
 		return nil, fmt.Errorf("Bad PGP-style identity: %s", s)
 	}

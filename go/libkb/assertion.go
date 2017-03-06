@@ -322,10 +322,11 @@ func (a AssertionFingerprint) ToLookup() (key, value string, err error) {
 	return
 }
 
+var pairRE = regexp.MustCompile(`^[0-9a-zA-Z@:/_-]`)
+
 func parseToKVPair(s string) (key string, value string, err error) {
 
-	re := regexp.MustCompile(`^[0-9a-zA-Z@:/_-]`)
-	if !re.MatchString(s) {
+	if !pairRE.MatchString(s) {
 		err = fmt.Errorf("Invalid key-value identity: %s", s)
 		return
 	}
