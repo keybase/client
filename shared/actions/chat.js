@@ -2075,8 +2075,12 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
   }
 }
 
-function * _shareAttachment ({payload: {message}}: Constants.SaveAttachment) {
+function * _shareAttachment ({payload: {message}}: Constants.ShareAttachment) {
   const {filename, messageID, conversationIDKey} = message
+  if (!filename || ! messageID) {
+    return
+  }
+
   const path = downloadFilePath(filename)
   yield call(_loadAttachment, ({
     type: 'chat:loadAttachment',
@@ -2087,12 +2091,16 @@ function * _shareAttachment ({payload: {message}}: Constants.SaveAttachment) {
       isHdPreview: false,
       filename: path,
     },
-  }: Constants.Load))
+  }: Constants.LoadAttachment))
   yield call(showShareActionSheet, {url: path})
 }
 
 function * _saveAttachmentNative ({payload: {message}}: Constants.SaveAttachment) {
   const {filename, messageID, conversationIDKey} = message
+  if (!filename || ! messageID) {
+    return
+  }
+
   const path = downloadFilePath(filename)
   yield call(_loadAttachment, ({
     type: 'chat:loadAttachment',
@@ -2103,7 +2111,7 @@ function * _saveAttachmentNative ({payload: {message}}: Constants.SaveAttachment
       isHdPreview: false,
       filename: path,
     },
-  }: Constants.Load))
+  }: Constants.LoadAttachment))
   yield call(saveAttachment, path)
 }
 

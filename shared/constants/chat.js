@@ -406,11 +406,11 @@ export type MarkSeenMessage = NoErrorTypedAction<'chat:markSeenMessage', {
 }>
 
 export type SaveAttachment = NoErrorTypedAction<'chat:saveAttachmentNative', {
-  messaage: AttachmentMessage,
+  message: AttachmentMessage,
 }>
 
 export type ShareAttachment = NoErrorTypedAction<'chat:shareAttachment', {
-  messaage: AttachmentMessage,
+  message: AttachmentMessage,
 }>
 
 export type Actions = AddPendingConversation

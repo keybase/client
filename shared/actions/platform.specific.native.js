@@ -24,7 +24,7 @@ function showShareActionSheet (options: {url?: ?any, message?: ?any}): Promise<{
     ))
   } else {
     console.warn('Sharing action not implemented in android')
-    return Promise.resolve({completed: false})
+    return Promise.resolve({completed: false, method: ''})
   }
 }
 

@@ -6,23 +6,24 @@ import type {AttachmentMessage, TextMessage} from '../../../constants/chat'
 type BaseProps = {
   onHidden: () => void,
   style?: Object,
+  onDeleteMessage: (message: TextMessage | AttachmentMessage) => void,
 }
 
-export type TextProps = BaseProps & {
+export type TextProps = {
   message: TextMessage,
   you: string,
-  onDeleteMessage: (message: TextMessage) => void,
   onShowEditor: (message: TextMessage) => void,
-}
+} & BaseProps
 
 export class TextPopupMenu extends Component<void, TextProps, void> { }
 
-export type AttachmentProps = BaseProps & {
+export type AttachmentProps = {
   message: AttachmentMessage,
   you: string,
-  onDeleteMessage: (message: AttachmentMessage) => void,
   onDownloadAttachment: () => void,
   onOpenInFileUI: () => void,
-}
+  onShareAttachment?: () => void,
+  onSaveAttachment?: () => void,
+} & BaseProps
 
 export class AttachmentPopupMenu extends Component<void, AttachmentProps, void> { }
