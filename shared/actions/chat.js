@@ -251,8 +251,8 @@ function retryMessage (conversationIDKey: ConversationIDKey, outboxIDKey: string
   return {type: 'chat:retryMessage', payload: {conversationIDKey, outboxIDKey}, logTransformer: retryMessageActionTransformer}
 }
 
-function loadInbox (): LoadInbox {
-  return {payload: undefined, type: 'chat:loadInbox'}
+function loadInbox (force?: boolean = false): LoadInbox {
+  return {payload: {force}, type: 'chat:loadInbox'}
 }
 
 function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean): LoadMoreMessages {
@@ -1031,8 +1031,8 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
 const followingSelector = (state: TypedState) => state.config.following
 
 let _loadedInboxOnce = false
-function * _loadInboxOnce (): SagaGenerator<any, any> {
-  if (!_loadedInboxOnce) {
+function * _loadInboxMaybeOnce (action: LoadInbox): SagaGenerator<any, any> {
+  if (!_loadedInboxOnce || action.force) {
     _loadedInboxOnce = true
     yield call(_loadInbox)
   }
@@ -2077,7 +2077,7 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
 
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
-    safeTakeSerially('chat:loadInbox', _loadInboxOnce),
+    safeTakeSerially('chat:loadInbox', _loadInboxMaybeOnce),
     safeTakeLatest('chat:inboxStale', _loadInbox),
     safeTakeEvery('chat:loadMoreMessages', cancelWhen(_threadIsCleared, _loadMoreMessages)),
     safeTakeLatest('chat:selectConversation', _selectConversation),

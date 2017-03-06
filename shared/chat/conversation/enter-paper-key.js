@@ -17,7 +17,7 @@ export default compose(
       onBack: () => dispatch(navigateUp()),
       onEnterPaperkey: (key: string) => {
         dispatch(checkPaperKey(new HiddenString(key)))
-        dispatch(loadInbox())
+        dispatch(loadInbox(true))
         dispatch(navigateUp())
       },
     })),
