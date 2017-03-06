@@ -5,6 +5,7 @@ import List from './list.native'
 import OldProfileResetNotice from './notices/old-profile-reset-notice'
 import ParticipantRekey from './participant-rekey'
 import React from 'react'
+import SidePanel from './side-panel'
 import YouRekey from './you-rekey'
 import hoc from './index-hoc'
 import {Box} from '../../common-adapters'
@@ -22,6 +23,15 @@ const Conversation = (props: Props) => (
         onOpenNewerConversation={props.onOpenNewerConversation}
         username={props.finalizeInfo.resetUser} />
       : <Input {...props.inputProps} /> }
+     {props.sidePanelOpen && <SidePanel
+       you={props.you}
+       metaDataMap={props.metaDataMap}
+       followingMap={props.followingMap}
+       muted={props.muted}
+       onAddParticipant={props.onAddParticipant}
+       onMuteConversation={props.onMuteConversation}
+       onShowProfile={props.onShowProfile}
+       participants={props.participants} /> }
   </Box>
 )
 
