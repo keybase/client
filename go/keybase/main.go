@@ -5,11 +5,9 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"runtime"
-	"runtime/pprof"
 	"syscall"
 	"time"
 
@@ -41,13 +39,6 @@ type Stopper interface {
 
 func main() {
 	err := libkb.SaferDLLLoading()
-
-	f, err := os.Create("/tmp/service.profile")
-	if err != nil {
-		log.Fatal(err)
-	}
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
 
 	g := G
 	g.Init()
