@@ -88,10 +88,11 @@ func NewMDServerRemote(config Config, srvAddr string,
 	mdServer.authToken = kbfscrypto.NewAuthToken(config.Crypto(),
 		MdServerTokenServer, MdServerTokenExpireIn,
 		"libkbfs_mdserver_remote", VersionString(), mdServer)
+	constBackoff := backoff.NewConstantBackOff(RPCReconnectInterval)
 	opts := rpc.ConnectionOpts{
 		WrapErrorFunc:    libkb.WrapError,
 		TagsFunc:         LogTagsFromContext,
-		ReconnectBackoff: backoff.NewConstantBackOff(RPCReconnectInterval),
+		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
 	}
 	conn := rpc.NewTLSConnection(srvAddr, kbfscrypto.GetRootCerts(srvAddr),
 		MDServerErrorUnwrapper{}, mdServer, rpcLogFactory, config.MakeLogger(""), opts)

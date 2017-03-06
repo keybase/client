@@ -8,7 +8,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -172,6 +172,7 @@ func NewBlockServerRemote(codec kbfscodec.Codec, signer kbfscrypto.Signer,
 		"libkbfs_bserver_remote", VersionString(), getClientHandler)
 	getClientHandler.authToken = bs.getAuthToken
 
+	constBackoff := backoff.NewConstantBackOff(RPCReconnectInterval)
 	opts := rpc.ConnectionOpts{
 		DontConnectNow: true, // connect only on-demand
 		WrapErrorFunc:  libkb.WrapError,
@@ -179,7 +180,7 @@ func NewBlockServerRemote(codec kbfscodec.Codec, signer kbfscrypto.Signer,
 		// This constant backoff is safe to share between multiple connections,
 		// because it has no internal state. But beware: an exponential backoff
 		// shouldn't be shared.
-		ReconnectBackoff: backoff.NewConstantBackOff(RPCReconnectInterval),
+		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
 	}
 	putConn := rpc.NewTLSConnection(blkSrvAddr,
 		kbfscrypto.GetRootCerts(blkSrvAddr),
