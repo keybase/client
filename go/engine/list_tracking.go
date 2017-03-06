@@ -69,6 +69,9 @@ func (e *ListTrackingEngine) Run(ctx *Context) (err error) {
 	}
 
 	err = e.G().GetFullSelfer().WithUser(arg, func(user *libkb.User) error {
+		if user == nil {
+			return libkb.UserNotFoundError{}
+		}
 
 		var trackList TrackList
 		var err error

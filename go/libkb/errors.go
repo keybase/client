@@ -213,7 +213,11 @@ func (u UserNotFoundError) Error() string {
 	if !u.UID.IsNil() {
 		uid = " " + string(u.UID)
 	}
-	return fmt.Sprintf("User%s wasn't found (%s)", uid, u.Msg)
+	msg := ""
+	if u.Msg != "" {
+		msg = " (" + u.Msg + ")"
+	}
+	return fmt.Sprintf("User%s wasn't found%s", uid, msg)
 }
 
 //=============================================================================

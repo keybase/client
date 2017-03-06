@@ -110,8 +110,9 @@ func (t BaseServiceType) BaseCheckProofTextFull(text string, id keybase1.SigID, 
 	return
 }
 
+var urlRxx = regexp.MustCompile(`https://(\S+)`)
+
 func (t BaseServiceType) BaseCheckProofForURL(text string, id keybase1.SigID) (err error) {
-	urlRxx := regexp.MustCompile(`https://(\S+)`)
 	target := id.ToMediumID()
 	urls := urlRxx.FindAllString(text, -1)
 	G.Log.Debug("Found urls %v", urls)

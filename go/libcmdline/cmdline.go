@@ -6,7 +6,6 @@ package libcmdline
 import (
 	"fmt"
 	"io"
-	"regexp"
 	"strings"
 	"time"
 
@@ -206,7 +205,7 @@ func (p CommandLine) GetGpgOptions() []string {
 	var ret []string
 	s := p.GetGString("gpg-options")
 	if len(s) > 0 {
-		ret = regexp.MustCompile(`\s+`).Split(s, -1)
+		ret = strings.Fields(s)
 	}
 	return ret
 }

@@ -161,9 +161,10 @@ type Win32 struct {
 	Base
 }
 
+var win32SplitRE = regexp.MustCompile(`[/\\]`)
+
 func (w Win32) Split(s string) []string {
-	rxx := regexp.MustCompile(`[/\\]`)
-	return rxx.Split(s, -1)
+	return win32SplitRE.Split(s, -1)
 }
 
 func (w Win32) Normalize(s string) string {
