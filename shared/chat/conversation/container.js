@@ -191,6 +191,7 @@ export default connect(
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
     onRekey: () => dispatch(openRekeyDialog()),
+    onEnterPaperkey: () => dispatch(navigateAppend(['enterPaperkey'])),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     let bannerMessage

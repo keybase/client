@@ -2,6 +2,7 @@
 import {RouteDefNode} from '../route-tree'
 import ConversationList from './conversations-list/container'
 import Conversation from './conversation/container'
+import EnterPaperkey from './conversation/enter-paper-key'
 import AttachmentPopup from './conversation/attachment-popup/container'
 import AttachmentInputPopup from './conversation/attachment-input/container'
 import MessagePopup from './conversation/messages/popup.native'
@@ -22,6 +23,9 @@ const conversationRoute = new RouteDefNode({
     messageAction: {
       component: MessagePopup,
       tags: {layerOnTop: true},
+    },
+    enterPaperkey: {
+      component: EnterPaperkey,
     },
   },
 })
