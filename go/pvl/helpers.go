@@ -29,11 +29,12 @@ func substituteExact(template string, state scriptState) (string, libkb.ProofErr
 	return substituteInner(template, state, false)
 }
 
+var nameRE = regexp.MustCompile(`%\{[\w]*\}`)
+
 func substituteInner(template string, state scriptState, regexEscape bool) (string, libkb.ProofError) {
 	var outerr libkb.ProofError
 	// Regex to find %{name} occurrences.
 	// Match broadly here so that even %{} is sent to the default case and reported as invalid.
-	re := regexp.MustCompile(`%\{[\w]*\}`)
 	substituteOne := func(vartag string) string {
 		// Strip off the %, {, and }
 		varname := vartag[2 : len(vartag)-1]
@@ -48,7 +49,7 @@ func substituteInner(template string, state scriptState, regexEscape bool) (stri
 		}
 		return value
 	}
-	res := re.ReplaceAllStringFunc(template, substituteOne)
+	res := nameRE.ReplaceAllStringFunc(template, substituteOne)
 	if outerr != nil {
 		return template, outerr
 	}
@@ -191,6 +192,8 @@ func stringsContains(xs []string, x string) bool {
 	return false
 }
 
+var hasalpha = regexp.MustCompile(`\D`)
+
 // Check that a url is valid and has only a domain and is not an ip.
 // No port, path, protocol, user, query, or any other junk is allowed.
 func validateDomain(s string) bool {
@@ -205,7 +208,6 @@ func validateDomain(s string) bool {
 	// To disallow the likes of "8.8.8.8."
 	dotsplit := strings.Split(strings.TrimSuffix(u.Host, "."), ".")
 	if len(dotsplit) > 0 {
-		hasalpha := regexp.MustCompile(`\D`)
 		group := dotsplit[len(dotsplit)-1]
 		if !hasalpha.MatchString(group) {
 			return false
