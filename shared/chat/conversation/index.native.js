@@ -31,6 +31,7 @@ const Conversation = (props: Props) => (
        onAddParticipant={props.onAddParticipant}
        onMuteConversation={props.onMuteConversation}
        onShowProfile={props.onShowProfile}
+       onToggleSidePanel={props.onToggleSidePanel}
        participants={props.participants} /> }
   </Box>
 )

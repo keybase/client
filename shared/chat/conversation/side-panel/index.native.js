@@ -1,27 +1,31 @@
 // @flow
 import React from 'react'
-import {Box, Checkbox, Divider, Icon} from '../../../common-adapters'
+import {Box, Checkbox, Divider, Icon, PopupDialog, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import Participants from './participants'
 
 import type {Props} from '.'
 
-const border = `1px solid ${globalColors.black_05}`
 const SidePanel = (props: Props) => (
-  <Box style={{flex: 1, borderLeft: border, borderRight: border, backgroundColor: globalColors.white, marginTop: -1, overflowY: 'auto'}}>
-    <Participants {...props} />
-
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
-
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', borderLeft: border, borderRight: border}}>
-      <Box style={{...globalStyles.flexBoxRow}}>
-        <Checkbox checked={props.muted} onCheck={checked => props.onMuteConversation(checked)} label='Mute notifications' />
-        <Icon type='icon-shh-active-16' style={{marginLeft: globalMargins.tiny}} />
-      </Box>
+  <PopupDialog onClose={props.onToggleSidePanel} styleContainer={{...globalStyles.flexBoxCenter, flex: 0, padding: 10}}>
+    <Divider style={{marginTop: 20}} />
+    <Box style={{...globalStyles.flexBoxRow}}>
+      <Participants {...props} />
     </Box>
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
-  </Box>
+    <Box style={{...globalStyles.flexBoxRow}}>
+      <Divider style={{marginBottom: 20, marginTop: 20}} />
+    </Box>
+
+    <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
+      <Checkbox checked={props.muted} onCheck={checked => props.onMuteConversation(checked)} label='Mute notifications' />
+      <Icon type='icon-shh-active-16' style={{marginLeft: globalMargins.tiny}} />
+    </Box>
+
+    <Box style={{...globalStyles.flexBoxRow}}>
+      <Divider style={{marginBottom: 20, marginTop: 20}} />
+    </Box>
+  </PopupDialog>
 )
 
 export default SidePanel
