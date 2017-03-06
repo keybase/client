@@ -47,8 +47,8 @@
 
 #if TESTING
 #else
-  NSString * keybasePath = [@"~/Library/ Application Support/Keybase" stringByExpandingTildeInPath];
-  NSString * logFile = [@"~/Library/Caches/ios.log" stringByExpandingTildeInPath];
+  NSString * keybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
+  NSString * logFile = [@"~/Library/Caches/Keybase/ios.log" stringByExpandingTildeInPath];
 
   // Make keybasePath if it doesn't exist
   [[NSFileManager defaultManager] createDirectoryAtPath:keybasePath
