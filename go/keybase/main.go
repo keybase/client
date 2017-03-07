@@ -37,8 +37,21 @@ type Stopper interface {
 	Stop(exitcode keybase1.ExitCode)
 }
 
+func handleQuickVersion() bool {
+	if len(os.Args) == 3 && os.Args[1] == "version" && os.Args[2] == "-S" {
+		fmt.Printf("%s\n", libkb.VersionString())
+		return true
+	}
+	return false
+}
+
 func main() {
 	err := libkb.SaferDLLLoading()
+
+	// handle a Quick version query
+	if handleQuickVersion() {
+		return
+	}
 
 	g := G
 	g.Init()
