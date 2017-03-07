@@ -57,8 +57,9 @@ func NewUncachedFullSelf(g *GlobalContext) *UncachedFullSelf {
 type CachedFullSelf struct {
 	Contextified
 	sync.Mutex
-	me       *User
-	cachedAt time.Time
+	me             *User
+	cachedAt       time.Time
+	TestDeadlocker func()
 }
 
 var _ FullSelfer = (*CachedFullSelf)(nil)
@@ -165,7 +166,13 @@ func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err e
 	}
 
 	if m.me == nil || !m.isSelfLoad(arg) {
+
+		if m.TestDeadlocker != nil {
+			m.TestDeadlocker()
+		}
+
 		u, err = LoadUser(arg)
+
 		if err != nil {
 			return err
 		}

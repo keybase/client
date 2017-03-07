@@ -6,13 +6,13 @@
 package engine
 
 import (
-	"testing"
-	"time"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
+	"sync"
+	"testing"
+	"time"
 )
 
 func TestLoadDeviceKeyNew(t *testing.T) {
@@ -275,4 +275,57 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 		require.True(t, u.GetSigChainLastKnownSeqno() > scv)
 		return nil
 	})
+}
+
+func TestUPAKDeadlock(t *testing.T) {
+	tc := SetupEngineTest(t, "upak")
+	defer tc.Cleanup()
+	fu := CreateAndSignupFakeUserPaper(tc, "upak")
+
+	// First clear the cache
+	tc.G.KeyfamilyChanged(fu.UID())
+
+	var wg sync.WaitGroup
+
+	ch := make(chan struct{})
+
+	tc.G.GetFullSelfer().(*libkb.CachedFullSelf).TestDeadlocker = func() {
+		<-ch
+	}
+
+	tc.G.GetUPAKLoader().(*libkb.CachedUPAKLoader).TestDeadlocker = func() {
+		ch <- struct{}{}
+	}
+
+	wg.Add(1)
+	go func() {
+		tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+			require.Equal(t, u.GetUID(), fu.UID(), "right UID")
+			return nil
+		})
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		un, err := tc.G.GetUPAKLoader().LookupUsername(context.TODO(), fu.UID())
+		require.NoError(t, err)
+		if un.String() != fu.Username {
+			t.Errorf("username mismatch: %s != %s", un, fu.Username)
+		}
+		wg.Done()
+	}()
+
+	doneCh := make(chan struct{})
+	go func() {
+		wg.Wait()
+		doneCh <- struct{}{}
+	}()
+
+	select {
+	case <-doneCh:
+		break
+	case <-time.After(20 * time.Second):
+		t.Fatal("deadlocked!")
+	}
 }
