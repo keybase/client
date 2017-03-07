@@ -1,13 +1,14 @@
 // @flow
 import React from 'react'
-import {Box, Checkbox, Divider, Icon, PopupDialog, Text} from '../../../common-adapters'
+import {Box, Checkbox, Divider, Icon, NativeScrollView, PopupDialog, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import Participants from './participants'
 
 import type {Props} from '.'
 
 const SidePanel = (props: Props) => (
-  <PopupDialog onClose={props.onToggleSidePanel} styleContainer={{...globalStyles.flexBoxCenter, flex: 0, padding: 10}}>
+  <PopupDialog onClose={props.onToggleSidePanel} styleContainer={{...globalStyles.flexBoxCenter, padding: 10}}>
+   <NativeScrollView>
     <Divider style={{marginTop: 20}} />
     <Box style={{...globalStyles.flexBoxRow}}>
       <Participants {...props} />
@@ -25,6 +26,7 @@ const SidePanel = (props: Props) => (
     <Box style={{...globalStyles.flexBoxRow}}>
       <Divider style={{marginBottom: 20, marginTop: 20}} />
     </Box>
+   </NativeScrollView>
   </PopupDialog>
 )
 
