@@ -991,7 +991,7 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({convIDs}) => {
-      dispatch({type: 'chat:markThreadsStale', payload: {convIDKeys: convIDs.map(conversationIDToKey)}})
+      dispatch({type: 'chat:markThreadsStale', payload: {convIDs: convIDs.map(conversationIDToKey)}})
     })
   })
 }
@@ -2012,6 +2012,13 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
 }
 
 function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any> {
+  // Load inbox items of any stale items so we get update on rekeyInfos, etc
+  const {convIDs} = action.payload
+  yield convIDs.map(conversationIDKey => {
+    return function * () { yield call(_getInboxAndUnbox, {payload: {conversationIDKey}, type: 'chat:getInboxAndUnbox'}) }
+  })
+
+  // Selected is stale?
   const selectedConversation = yield select(getSelectedConversation)
   if (!selectedConversation) {
     return

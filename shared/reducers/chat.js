@@ -316,7 +316,7 @@ function reducer (state: State = initialState, action: Actions) {
       ))
     }
     case 'chat:markThreadsStale': {
-      const {convIDKeys} = action.payload
+      const {convIDs} = action.payload
       // $FlowIssue
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
