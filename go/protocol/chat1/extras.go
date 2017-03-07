@@ -401,6 +401,38 @@ func (a *MerkleRoot) Eq(b *MerkleRoot) bool {
 	return (a == nil) && (b == nil)
 }
 
+func (d *SealedData) AsEncrypted() EncryptedData {
+	return EncryptedData{
+		V: d.V,
+		E: d.E,
+		N: d.N,
+	}
+}
+
+func (d *SealedData) AsSignEncrypted() SignEncryptedData {
+	return SignEncryptedData{
+		V: d.V,
+		E: d.E,
+		N: d.N,
+	}
+}
+
+func (d *EncryptedData) AsSealed() SealedData {
+	return SealedData{
+		V: d.V,
+		E: d.E,
+		N: d.N,
+	}
+}
+
+func (d *SignEncryptedData) AsSealed() SealedData {
+	return SealedData{
+		V: d.V,
+		E: d.E,
+		N: d.N,
+	}
+}
+
 func NewConversationErrorLocal(
 	message string,
 	remoteConv Conversation,

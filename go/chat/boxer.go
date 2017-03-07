@@ -280,12 +280,8 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 		return nil, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
 	}
 
-	if len(boxed.HeaderSealed.B) != 0 {
-		return nil, NewPermanentUnboxingError(errors.New("populated HeaderSealed in MBV1"))
-	}
-
-	if len(boxed.HeaderVerificationKey) != 0 {
-		return nil, NewPermanentUnboxingError(errors.New("populated HeaderVerificationKey in MBV1"))
+	if len(boxed.VerifyKey) != 0 {
+		return nil, NewPermanentUnboxingError(errors.New("populated VerifyKey in MBV1"))
 	}
 
 	// compute the header hash
@@ -313,7 +309,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	}
 
 	// decrypt header
-	packedHeader, err := b.open(boxed.HeaderCiphertext, encryptionKey)
+	packedHeader, err := b.open(boxed.HeaderCiphertext.AsEncrypted(), encryptionKey)
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
 	}
@@ -417,17 +413,12 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 		return nil, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
 	}
 
-	// Check that V1-only fields are empty.
-	if len(boxed.HeaderCiphertext.E) != 0 {
-		return nil, NewPermanentUnboxingError(errors.New("populated HeaderSealed in MBV2"))
-	}
-
 	// Validate verification key against unverified sender id.
 	// Later it is asserted that the claimed and signing sender are the same.
 	// ValidSenderKey uses the server-given ctime, but emits senderDeviceRevokedAt as a workaround.
 	// See ValidSenderKey for details.
 	senderKeyFound, senderKeyValidAtCtime, senderDeviceRevokedAt, ierr := b.ValidSenderKey(
-		ctx, boxed.ClientHeader.Sender, boxed.HeaderVerificationKey, boxed.ServerHeader.Ctime)
+		ctx, boxed.ClientHeader.Sender, boxed.VerifyKey, boxed.ServerHeader.Ctime)
 	if ierr != nil {
 		return nil, ierr
 	}
@@ -438,9 +429,9 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 		return nil, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
 	}
 
-	// Open header and verify against HeaderVerificationKey
-	headerPacked, err := b.signEncryptOpen(boxed.HeaderSealed, encryptionKey,
-		boxed.HeaderVerificationKey, libkb.SignaturePrefixChatMBv2)
+	// Open header and verify against VerifyKey
+	headerPacked, err := b.signEncryptOpen(boxed.HeaderCiphertext.AsSignEncrypted(), encryptionKey,
+		boxed.VerifyKey, libkb.SignaturePrefixChatMBv2)
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
 	}
@@ -504,7 +495,7 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	}
 
 	// Compute the header hash
-	headerHash, ierr := b.makeHeaderHash(ctx, boxed.HeaderSealed)
+	headerHash, ierr := b.makeHeaderHash(ctx, boxed.HeaderCiphertext.AsSignEncrypted())
 	if ierr != nil {
 		return nil, ierr
 	}
@@ -525,7 +516,7 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 		BodyHash:              bodyHashSigned,
 		HeaderHash:            headerHash,
 		HeaderSignature:       nil,
-		VerificationKey:       &boxed.HeaderVerificationKey,
+		VerificationKey:       &boxed.VerifyKey,
 		SenderDeviceRevokedAt: senderDeviceRevokedAt,
 	}, nil
 }
@@ -683,7 +674,7 @@ func (b *Boxer) makeHeaderHash(ctx context.Context, headerSealed chat1.SignEncry
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
 	}
-	_, err = buf.Write(headerSealed.B)
+	_, err = buf.Write(headerSealed.E)
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
 	}
@@ -905,7 +896,7 @@ func (b *Boxer) boxV1(messagePlaintext chat1.MessagePlaintext, key *keybase1.Cry
 		Version:          chat1.MessageBoxedVersion_V1,
 		ClientHeader:     messagePlaintext.ClientHeader,
 		BodyCiphertext:   *encryptedBody,
-		HeaderCiphertext: *encryptedHeader,
+		HeaderCiphertext: encryptedHeader.AsSealed(),
 		KeyGeneration:    key.KeyGeneration,
 	}
 
@@ -956,17 +947,13 @@ func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, encryptionKey *ke
 	verifyKey := signingKeyPair.GetBinaryKID()
 
 	boxed := &chat1.MessageBoxed{
-		Version:      chat1.MessageBoxedVersion_V2,
-		ServerHeader: nil,
-		ClientHeader: messagePlaintext.ClientHeader,
-
-		// HeaderCiphertext not used in MessageBoxed.V2
-		HeaderCiphertext: chat1.EncryptedData{},
-
-		HeaderSealed:          headerSealed,
-		BodyCiphertext:        *bodyEncrypted,
-		HeaderVerificationKey: verifyKey,
-		KeyGeneration:         encryptionKey.KeyGeneration,
+		Version:          chat1.MessageBoxedVersion_V2,
+		ServerHeader:     nil,
+		ClientHeader:     messagePlaintext.ClientHeader,
+		HeaderCiphertext: headerSealed.AsSealed(),
+		BodyCiphertext:   *bodyEncrypted,
+		VerifyKey:        verifyKey,
+		KeyGeneration:    encryptionKey.KeyGeneration,
 	}
 
 	return boxed, nil
@@ -1071,13 +1058,13 @@ func (b *Boxer) signEncrypt(msg []byte, encryptionKey *keybase1.CryptKey,
 		msg, &encKey, &signKey, prefix, &nonce)
 	signEncryptedInfo := chat1.SignEncryptedData{
 		V: 1,
-		B: signEncryptedBytes,
+		E: signEncryptedBytes,
 		N: nonce[:],
 	}
 
 	if b.testingSignatureMangle != nil {
 		b.assertInTest()
-		signEncryptedInfo.B = b.testingSignatureMangle(signEncryptedInfo.B)
+		signEncryptedInfo.E = b.testingSignatureMangle(signEncryptedInfo.E)
 	}
 
 	return signEncryptedInfo, nil
@@ -1099,7 +1086,7 @@ func (b *Boxer) signEncryptOpen(data chat1.SignEncryptedData, encryptionKey *key
 		return nil, libkb.DecryptBadNonceError{}
 	}
 
-	plain, err := signencrypt.OpenWhole(data.B, &encKey, &verKey, prefix, &nonce)
+	plain, err := signencrypt.OpenWhole(data.E, &encKey, &verKey, prefix, &nonce)
 	if err != nil {
 		return nil, err
 	}
