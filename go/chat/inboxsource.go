@@ -826,8 +826,6 @@ func (n nullUsernameSource) LookupUsername(ctx context.Context, uid keybase1.UID
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
 
-	s.Debug(ctx, "localizing %d msgs", len(conversationRemote.MaxMsgs))
-
 	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
 
 	conversationLocal.Info = chat1.ConversationInfoLocal{
