@@ -60,6 +60,11 @@ func setupJournalMDOpsTest(t *testing.T) (
 	jServer.onMDFlush = nil
 	require.NoError(t, err)
 
+	// Tests need to explicitly enable journaling, to avoid races
+	// where journals are enabled before they can be paused.
+	err = jServer.DisableAuto(ctx)
+	require.NoError(t, err)
+
 	setupSucceeded = true
 	return tempdir, ctx, cancel, config, oldMDOps, jServer
 }
