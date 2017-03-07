@@ -311,7 +311,7 @@ func TestReadDelayedWrite(t *testing.T) {
 	c2.SetReadDeadline(time.Now().Add(wait))
 	text := "hello friend"
 	go func() {
-		time.Sleep(wait / 4)
+		time.Sleep(wait / 32)
 		c1.Write([]byte(text))
 	}()
 	buf := make([]byte, 100)

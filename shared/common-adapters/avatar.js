@@ -6,6 +6,8 @@ import Render from './avatar.render'
 import _ from 'lodash'
 import {iconTypeToImgSet, urlsToImgSet} from './icon'
 import {isTesting} from '../local-debug'
+import shallowEqual from 'shallowequal'
+import {requestIdleCallback} from '../util/idle-callback'
 
 import type {Props, AvatarLookup, AvatarLoad, URLMap, URLType} from './avatar'
 import type {IconType} from './icon'
@@ -59,7 +61,15 @@ const followSizeToStyle = {
 
 class Avatar extends Component<void, Props, State> {
   state: State
-  _onURLLoaded: ?(username: string, urlMap: ?{[key: string]: string}) => void
+  _mounted: boolean = false
+  _onURLLoaded = (username: string, urlMap: ?URLMap) => {
+    // Mounted and still looking at the same username?
+    requestIdleCallback(() => {
+      if (this._mounted && this.props.username === username) {
+        this.setState({url: this._urlMapsToUrl(urlMap)})
+      }
+    }, {timeout: 300})
+  }
 
   constructor (props: Props) {
     super(props)
@@ -90,17 +100,11 @@ class Avatar extends Component<void, Props, State> {
   }
 
   componentDidMount () {
-    this._onURLLoaded = (username: string, urlMap: ?URLMap) => {
-      // Still looking at the same username?
-      if (this.props.username === username) {
-        this.setState({url: this._urlMapsToUrl(urlMap) || this._noAvatar()})
-      }
-    }
+    this._mounted = true
   }
 
   componentWillUnmount () {
-    // Don't let the callback do anything if we've unmounted
-    this._onURLLoaded = null
+    this._mounted = false
   }
 
   _noAvatar () {
@@ -108,8 +112,8 @@ class Avatar extends Component<void, Props, State> {
   }
 
   _urlMapsToUrl (urlMap: ?URLMap) {
-    if (!urlMap) {
-      return null
+    if (!urlMap || !Object.keys(urlMap).length) {
+      return this._noAvatar()
     }
 
     return urlsToImgSet(_.pickBy(urlMap, value => value), this.props.size)
@@ -122,7 +126,7 @@ class Avatar extends Component<void, Props, State> {
 
     if (!urlMap && _loadAvatarToURL) { // Have to load it
       _loadAvatarToURL(username, (username: string, urlMap: ?URLMap) => {
-        this._onURLLoaded && this._onURLLoaded(username, urlMap)
+        this._onURLLoaded(username, urlMap)
       })
     }
   }
@@ -149,6 +153,16 @@ class Avatar extends Component<void, Props, State> {
 
   _followIconType () {
     return followStateToType.getIn([String(this.props.size), `they${this.props.followsYou ? 'Yes' : 'No'}`, `you${this.props.following ? 'Yes' : 'No'}`])
+  }
+
+  shouldComponentUpdate (nextProps: Props, nextState: any): boolean {
+    return (this.state.url !== nextState.url) ||
+      !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+        if (key === 'style') {
+          return shallowEqual(obj, oth)
+        }
+        return undefined
+      })
   }
 
   render () {

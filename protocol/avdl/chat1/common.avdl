@@ -158,7 +158,12 @@ protocol common {
     gregor1.Time composeTime;
   }
 
+  // The Boxer's compareClientHeaders function checks each of these fields. If
+  // we add a field here, it needs to be updated.
   record MessageClientHeader {
+    // This type is attached to MessageBoxed.
+    // When on a received message these fields are server-set and have not been verified.
+
     ConversationIDTriple conv;
     string tlfName;
     boolean tlfPublic;
@@ -170,6 +175,22 @@ protocol common {
     gregor1.DeviceID senderDevice;
     // Latest merkle root when sent. Can be nil.
     union { null, MerkleRoot } merkleRoot;
+    union { null, OutboxID } outboxID;
+    union { null, OutboxInfo } outboxInfo;
+  }
+
+  record MessageClientHeaderVerified {
+    // This type is the result of unboxing.
+    // And to be used locally to the client only.
+    // All fields have been verified signed by the sender.
+
+    ConversationIDTriple conv;
+    string tlfName;
+    boolean tlfPublic;
+    MessageType messageType;
+    array<MessagePreviousPointer> prev;
+    gregor1.UID sender;
+    gregor1.DeviceID senderDevice;
     union { null, OutboxID } outboxID;
     union { null, OutboxInfo } outboxInfo;
   }

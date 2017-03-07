@@ -107,6 +107,7 @@ class FriendshipsRender extends Component<void, Props, State> {
               <Box style={tabItemContainerUsers}>
                 {this.props.currentTab === tab && !!this.state.dataSource &&
                 <NativeListView
+                  enableEmptySections={true}
                   dataSource={this.state.dataSource}
                   renderRow={this._renderRow}
                 />}

@@ -18,15 +18,20 @@ func TestGetThreadSupersedes(t *testing.T) {
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
 	trip := newConvTriple(t, tlf, u.Username)
-	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: trip,
-		TLFMessage: chat1.MessageBoxed{
-			ClientHeader: chat1.MessageClientHeader{
-				TlfName:   u.Username,
-				TlfPublic: false,
-			},
-			KeyGeneration: 1,
+	firstMessagePlaintext := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_TLFNAME,
 		},
+		MessageBody: chat1.MessageBody{},
+	}
+	firstMessageBoxed, _, err := sender.Prepare(context.TODO(), firstMessagePlaintext, nil)
+	require.NoError(t, err)
+	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
+		IdTriple:   trip,
+		TLFMessage: *firstMessageBoxed,
 	})
 	require.NoError(t, err)
 
@@ -279,7 +284,7 @@ func (f failingUpak) ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error) 
 	require.Fail(f.t, "ListFollowedUIDs call")
 	return nil, nil
 }
-func (f failingUpak) PutUserToCache(user *libkb.User) error {
+func (f failingUpak) PutUserToCache(ctx context.Context, user *libkb.User) error {
 	require.Fail(f.t, "PutUserToCache call")
 	return nil
 }
@@ -291,15 +296,20 @@ func TestGetThreadCaching(t *testing.T) {
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
 	trip := newConvTriple(t, tlf, u.Username)
-	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: trip,
-		TLFMessage: chat1.MessageBoxed{
-			ClientHeader: chat1.MessageClientHeader{
-				TlfName:   u.Username,
-				TlfPublic: false,
-			},
-			KeyGeneration: 1,
+	firstMessagePlaintext := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_TLFNAME,
 		},
+		MessageBody: chat1.MessageBody{},
+	}
+	firstMessageBoxed, _, err := sender.Prepare(context.TODO(), firstMessagePlaintext, nil)
+	require.NoError(t, err)
+	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
+		IdTriple:   trip,
+		TLFMessage: *firstMessageBoxed,
 	})
 	require.NoError(t, err)
 

@@ -212,6 +212,40 @@ describe('routeNavigate', () => {
       }),
     }))
   })
+
+  it('persist the state of the children if passed persistState = true', () => {
+    const startRouteState = routeNavigate(demoRouteDef, null, (['foo', {selected: 'bar', props: {hello: 'world'}}]: PropsPath<*>))
+    expect(startRouteState).toEqual(new RouteStateNode({
+      selected: 'foo',
+      children: I.Map({
+        foo: new RouteStateNode({
+          selected: 'bar',
+          children: I.Map({
+            bar: new RouteStateNode({
+              selected: null,
+              props: I.Map({hello: 'world'}),
+            }),
+          }),
+        }),
+      }),
+    }))
+
+    const newRouteState = routeNavigate(demoRouteDef, startRouteState, (['foo']: Array<string>), null, true)
+    expect(newRouteState).toEqual(new RouteStateNode({
+      selected: 'foo',
+      children: I.Map({
+        foo: new RouteStateNode({
+          selected: null,
+          children: I.Map({
+            bar: new RouteStateNode({
+              selected: null,
+              props: I.Map({hello: 'world'}),
+            }),
+          }),
+        }),
+      }),
+    }))
+  })
 })
 
 describe('routeSetState', () => {

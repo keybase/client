@@ -22,11 +22,7 @@ func (k DbKey) ToBytes(table string) []byte {
 	return []byte(k.ToString(table))
 }
 
-var fieldExp *regexp.Regexp
-
-func init() {
-	fieldExp = regexp.MustCompile(`[a-f0-9]{2}`)
-}
+var fieldExp = regexp.MustCompile(`[a-f0-9]{2}`)
 
 func DbKeyParse(s string) (string, *DbKey, error) {
 	v := strings.Split(s, ":")
@@ -191,6 +187,7 @@ const (
 	DBChatInbox               = 0xf9
 	DBIdentify                = 0xfa
 	DBResolveUsernameToUID    = 0xfb
+	DBChatBodyHashIndex       = 0xfc
 )
 
 const (

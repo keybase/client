@@ -115,8 +115,21 @@ func (h *UserHandler) LoadUserByName(_ context.Context, arg keybase1.LoadUserByN
 	return
 }
 
-func (h *UserHandler) LoadUserPlusKeys(ctx context.Context, arg keybase1.LoadUserPlusKeysArg) (keybase1.UserPlusKeys, error) {
-	return libkb.LoadUserPlusKeys(ctx, h.G(), arg.Uid, arg.PollForKID)
+func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.LoadUserPlusKeysArg) (keybase1.UserPlusKeys, error) {
+	netCtx = libkb.WithLogTag(netCtx, "LUPK")
+	h.G().Log.CDebugf(netCtx, "+ UserHandler#LoadUserPlusKeys(%+v)", arg)
+	ret, err := libkb.LoadUserPlusKeys(netCtx, h.G(), arg.Uid, arg.PollForKID)
+
+	// for debugging purposes, output the returned KIDs (since this can be racy)
+	var kids []keybase1.KID
+	for _, key := range ret.DeviceKeys {
+		if !key.IsSibkey && key.PGPFingerprint == "" {
+			kids = append(kids, key.KID)
+		}
+	}
+
+	h.G().Log.CDebugf(netCtx, "- UserHandler#LoadUserPlusKeys(%+v) -> (UVV=%+v, KIDs=%v, err=%s)", arg, ret.Uvv, kids, libkb.ErrToOk(err))
+	return ret, err
 }
 
 func (h *UserHandler) Search(_ context.Context, arg keybase1.SearchArg) (results []keybase1.SearchResult, err error) {

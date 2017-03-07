@@ -6,6 +6,7 @@ import type {TextMessage, ServerMessage, FollowingMap, MetaDataMap, OutboxIDKey}
 export type Props = {
   message: TextMessage,
   includeHeader: boolean,
+  isEditing: boolean,
   isFirstNewMessage: boolean,
   onRetry: (outboxID: OutboxIDKey) => void,
   onAction: (message: ServerMessage, event: any) => void,

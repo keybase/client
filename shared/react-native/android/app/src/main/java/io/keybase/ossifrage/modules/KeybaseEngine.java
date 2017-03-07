@@ -22,6 +22,7 @@ import static go.keybase.Keybase.version;
 
 public class KeybaseEngine extends ReactContextBaseJavaModule implements KillableModule {
 
+    private final ReactApplicationContext reactContext;
     private static final String NAME = "KeybaseEngine";
     private static final String RPC_EVENT_NAME = "RPC";
     private final ExecutorService executor;
@@ -55,6 +56,8 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     public KeybaseEngine(final ReactApplicationContext reactContext) {
         super(reactContext);
+
+        this.reactContext = reactContext;
 
         executor = Executors.newSingleThreadExecutor();
         executor.execute(new ReadFromKBLib(reactContext));
@@ -94,6 +97,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         final Map<String, Object> constants = new HashMap<>();
         constants.put("eventName", RPC_EVENT_NAME);
         constants.put("version", version());
+        constants.put("tmpDir", this.reactContext.getCacheDir().getPath());
         return constants;
     }
 

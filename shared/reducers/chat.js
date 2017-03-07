@@ -376,8 +376,12 @@ function reducer (state: State = initialState, action: Actions) {
       const toFind = convo.get('conversationIDKey')
       const oldInbox = state.get('inbox')
       const existing = oldInbox.findEntry(i => i.get('conversationIDKey') === toFind)
-      const updatedInbox = existing ? oldInbox.set(existing[0], convo) : oldInbox.push(convo)
-      return state.set('inbox', sortInbox(updatedInbox))
+      let updatedInbox = existing ? oldInbox.set(existing[0], convo) : oldInbox.push(convo)
+      // time changed so we need to sort
+      if (!existing || existing[1].time !== convo.get('time')) {
+        updatedInbox = sortInbox(updatedInbox)
+      }
+      return state.set('inbox', updatedInbox)
     case 'chat:updateBrokenTracker':
       const userToBroken = action.payload.userToBroken
       let metaData = state.get('metaData')
@@ -419,6 +423,16 @@ function reducer (state: State = initialState, action: Actions) {
       }
       break
     }
+    case 'chat:replaceConversation': {
+      const {oldKey} = action.payload
+      const oldInbox = state.get('inbox')
+      const idx = oldInbox.findIndex(i => i.get('conversationIDKey') === oldKey)
+      if (idx !== -1) {
+        return state.set('inbox', oldInbox.delete(idx))
+      }
+      console.warn("couldn't find conversation to upgrade", oldKey)
+      break
+    }
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
     case 'chat:updateFinalizedState': {
@@ -432,6 +446,9 @@ function reducer (state: State = initialState, action: Actions) {
     case 'chat:updateSupersededByState': {
       // $FlowIssue doesn't recognize updates
       return state.update('supersededByState', supersededByState => supersededByState.merge(action.payload.supersededByState))
+    }
+    case 'chat:showEditor': {
+      return state.set('editingMessage', action.payload.message)
     }
   }
 

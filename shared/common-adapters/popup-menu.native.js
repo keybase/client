@@ -15,8 +15,8 @@ type MenuItemProps = MenuItem & {
 }
 
 const MenuRow = (props: MenuItemProps) => (
-  <TouchableOpacity activeOpacity={0.8} disabled={!props.onClick} onPress={props.onClick} style={{...styleRow(props), ...props.style}}>
-    {props.view || <Text type={props.isHeader ? 'BodySmall' : 'Body'} style={styleRowText(props)}>{props.title}</Text>}
+  <TouchableOpacity disabled={!props.onClick} onPress={props.onClick} style={{...styleRow(props), ...props.style}}>
+    {props.view || <Text type={'BodyBig'} style={styleRowText(props)}>{props.title}</Text>}
   </TouchableOpacity>
 )
 
@@ -25,25 +25,19 @@ const styleRow = ({isHeader, danger, index, numItems}: {isHeader?: boolean, dang
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
     justifyContent: 'center',
-    ...(index === 0 ? {borderTopLeftRadius: 12, borderTopRightRadius: 12} : {}),
-    ...(index === numItems - 1 ? {borderBottomLeftRadius: 12, borderBottomRightRadius: 12} : {}),
   }
   if (isHeader) {
     return {
       ...sharedStyle,
       padding: globalMargins.medium,
-      backgroundColor: danger ? globalColors.red : globalColors.blue,
+      backgroundColor: danger ? globalColors.red : globalColors.white,
     }
   }
   return {
-    ...sharedStyle,
-    padding: globalMargins.small,
-    backgroundColor: globalColors.white_90,
-    ...(index === 0 ? {borderTopWidth: 1} : {}),
-    borderBottomWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
+    ...styleButtonAlert,
+    backgroundColor: globalColors.white,
     borderColor: '#d7d7d7',
+    ...(index === 1 ? {borderTopWidth: 1} : {}),
   }
 }
 
@@ -72,7 +66,7 @@ class PopupMenu extends Component<void, Props, void> {
             <Box style={styleMenuGroup}>
               {menuItemsWithHeader.map((mi, idx) => <MenuRow key={mi.title} {...mi} index={idx} numItems={menuItemsWithHeader.length} />)}
             </Box>
-            <Box style={styleMenuGroup}>
+            <Box style={{...styleMenuGroup, borderColor: '#d7d7d7', borderTopWidth: 1}}>
               <MenuRow title='Cancel' onClick={this.props.onHidden} index={0} numItems={1} />
             </Box>
           </Box>
@@ -106,15 +100,22 @@ const styleMenu = {
   ...globalStyles.flexBoxColumn,
   justifyContent: 'flex-end',
   alignItems: 'stretch',
-  paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
+  backgroundColor: globalColors.white,
 }
 
 const styleMenuGroup = {
   ...globalStyles.flexBoxColumn,
   justifyContent: 'flex-end',
   alignItems: 'stretch',
-  marginBottom: globalMargins.tiny,
+}
+
+const styleButtonAlert = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  height: 56,
+  justifyContent: 'center',
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
 }
 
 export {PopupHeaderText}

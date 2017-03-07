@@ -458,6 +458,21 @@ func lookupMerkleLeaf(ctx context.Context, g *GlobalContext, uid keybase1.UID, l
 	return
 }
 
+func lookupSigHintsAndMerkleLeaf(ctx context.Context, g *GlobalContext, uid keybase1.UID, localExists bool) (sigHints *SigHints, leaf *MerkleUserLeaf, err error) {
+	defer g.CTrace(ctx, "lookupSigHintsAndMerkleLeaf", func() error { return err })()
+	sigHints, err = LoadSigHints(ctx, uid, g)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	leaf, err = lookupMerkleLeaf(ctx, g, uid, true, sigHints)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return sigHints, leaf, nil
+}
+
 // LoadUserPlusKeys loads user and keys for the given UID.  If `pollForKID` is provided, we'll request
 // this user potentially twice: the first time can hit the cache for the UID, but will force a repoll
 // unless the pollForKID is found for the user.  If pollForKID is empty, then just access the cache as

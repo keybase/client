@@ -1,12 +1,15 @@
 // @flow
+import {NativeModules} from 'react-native'
+
+const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
 
 // TODO
 function tmpFile (suffix: string): string {
-  throw new Error('Unimplemented')
+  return `${nativeBridge.tmpDir}${suffix}`
 }
 
 function downloadFilePath (suffix: string): string {
-  throw new Error('Unimplemented')
+  return `${nativeBridge.tmpDir}${suffix}`
 }
 
 function copy (from: string, to: string) {
@@ -14,7 +17,7 @@ function copy (from: string, to: string) {
 }
 
 function exists (from: string, to: string): boolean {
-  // TODO implement
+  // FIXME implement
   return false
 }
 

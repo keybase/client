@@ -2,13 +2,13 @@ package storage
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
 )
@@ -23,13 +23,13 @@ type resultCollector interface {
 }
 
 type Storage struct {
-	sync.Mutex
 	libkb.Contextified
 	utils.DebugLabeler
 
-	getSecretUI func() libkb.SecretUI
-	engine      storageEngine
-	idtracker   *msgIDTracker
+	getSecretUI  func() libkb.SecretUI
+	engine       storageEngine
+	idtracker    *msgIDTracker
+	breakTracker *breakTracker
 }
 
 type storageEngine interface {
@@ -47,6 +47,7 @@ func New(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *Storage {
 		getSecretUI:  getSecretUI,
 		engine:       newBlockEngine(g),
 		idtracker:    newMsgIDTracker(g),
+		breakTracker: newBreakTracker(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "Storage", false),
 	}
 }
@@ -185,8 +186,8 @@ func (s *Storage) MaybeNuke(force bool, err Error, convID chat1.ConversationID, 
 }
 
 func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (chat1.MessageID, error) {
-	s.Lock()
-	defer s.Unlock()
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
 
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
@@ -198,14 +199,14 @@ func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, 
 func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) Error {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
-	s.Lock()
-	defer s.Unlock()
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
 
 	var err Error
 	s.Debug(ctx, "Merge: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
 
 	// Fetch secret key
-	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
+	key, ierr := getSecretBoxKey(ctx, s.G(), s.getSecretUI)
 	if ierr != nil {
 		return MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
@@ -303,7 +304,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// Fetch secret key
-	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
+	key, ierr := getSecretBoxKey(ctx, s.G(), s.getSecretUI)
 	if ierr != nil {
 		return chat1.ThreadView{},
 			MiscError{Msg: "unable to get secret key: " + ierr.Error()}
@@ -367,7 +368,8 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 		pmsgs = append(pmsgs, m)
 	}
 	if tres.Pagination, ierr = pager.NewThreadPager().MakePage(pmsgs, num); ierr != nil {
-		return chat1.ThreadView{}, NewInternalError(s.DebugLabeler, "Fetch: failed to encode pager: %s", ierr.Error())
+		return chat1.ThreadView{},
+			NewInternalError(ctx, s.DebugLabeler, "Fetch: failed to encode pager: %s", ierr.Error())
 	}
 	tres.Messages = res
 
@@ -379,8 +381,8 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.Conve
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
-	s.Lock()
-	defer s.Unlock()
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
 
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
@@ -395,8 +397,8 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
-	s.Lock()
-	defer s.Unlock()
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
 
 	return s.fetchUpToMsgIDLocked(ctx, conv.Metadata.ConversationID, uid, conv.ReaderInfo.MaxMsgid, query, pagination)
 }
@@ -405,7 +407,7 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	uid gregor1.UID, msgIDs []chat1.MessageID) ([]*chat1.MessageUnboxed, error) {
 
 	// Fetch secret key
-	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
+	key, ierr := getSecretBoxKey(ctx, s.G(), s.getSecretUI)
 	if ierr != nil {
 		return nil, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
@@ -435,4 +437,18 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	}
 
 	return res, nil
+}
+
+func (s *Storage) UpdateTLFIdentifyBreak(ctx context.Context, tlfID chat1.TLFID,
+	breaks []keybase1.TLFIdentifyFailure) error {
+	return s.breakTracker.UpdateTLF(ctx, tlfID, breaks)
+}
+
+func (s *Storage) IsTLFIdentifyBroken(ctx context.Context, tlfID chat1.TLFID) bool {
+	idBroken, err := s.breakTracker.IsTLFBroken(ctx, tlfID)
+	if err != nil {
+		s.Debug(ctx, "IsTLFIdentifyBroken: got error, so returning broken: %s", err.Error())
+		return true
+	}
+	return idBroken
 }

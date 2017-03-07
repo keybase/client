@@ -5,17 +5,18 @@ import React, {Component} from 'react'
 import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
-import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, startConversation, loadAttachment, retryAttachment} from '../../actions/chat'
+import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, selectAttachment, startConversation, loadAttachment, retryAttachment, showEditor} from '../../actions/chat'
 import * as ChatConstants from '../../constants/chat'
 import {downloadFilePath} from '../../util/file'
 import {getProfile} from '../../actions/tracker'
 import {navigateAppend, navigateUp} from '../../actions/route-tree'
 import {onUserClick} from '../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
+import {pick} from 'lodash'
 
 import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
-import type {ConversationIDKey, Message, AttachmentInput, AttachmentMessage, OpenAttachmentPopup, OutboxIDKey} from '../../constants/chat'
+import type {ConversationIDKey, Message, AttachmentInput, AttachmentMessage, OpenAttachmentPopup, OutboxIDKey, ServerMessage} from '../../constants/chat'
 import type {Props} from '.'
 
 const {nothingSelected, getBrokenUsers, pendingConversationIDKeyToTlfName, isPendingConversationIDKey} = ChatConstants
@@ -87,11 +88,11 @@ export default connect(
         return {
           bannerMessage: null,
           emojiPickerOpen: false,
-          followingMap,
+          followingMap: pick(followingMap, participants.toArray()),
           inputText: routeState.inputText,
           isLoading: false,
           messages: List(),
-          metaDataMap,
+          metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
           moreToLoad: false,
           muted: false,
           participants,
@@ -120,11 +121,11 @@ export default connect(
           bannerMessage: null,
           emojiPickerOpen: false,
           firstNewMessageID: conversationState.firstNewMessageID,
-          followingMap,
+          followingMap: pick(followingMap, participants.toArray()),
           inputText: routeState.inputText,
           isLoading: conversationState.isLoading,
           messages: conversationState.messages,
-          metaDataMap,
+          metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
           moreToLoad: conversationState.moreToLoad,
           muted,
           participants,
@@ -135,6 +136,7 @@ export default connect(
           supersedes,
           supersededBy,
           finalizeInfo,
+          editingMessage: state.chat.get('editingMessage'),
         }
       }
     }
@@ -158,11 +160,18 @@ export default connect(
   (dispatch: Dispatch, {setRouteState}) => ({
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
     onAttach: (selectedConversation, inputs: Array<AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
-    onBack: () => dispatch(navigateUp()),
+    onBack: () => dispatch(navigateUp(true)),
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
     onEditMessage: (message: Message, body: string) => { dispatch(editMessage(message, new HiddenString(body))) },
+    onShowEditor: (message: Message) => { dispatch(showEditor(message)) },
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, false, downloadFilePath(filename))),
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
+    onMessageAction: (message: ServerMessage) => dispatch(navigateAppend([{
+      props: {
+        message,
+      },
+      selected: 'messageAction',
+    }])),
     onMuteConversation: (conversationIDKey: ConversationIDKey, muted: boolean) => { dispatch(muteConversation(conversationIDKey, muted)) },
     onOpenFolder: () => dispatch(openFolder()),
     onOpenConversation: (conversationIDKey: ConversationIDKey) => {
@@ -176,7 +185,8 @@ export default connect(
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
     onRetryAttachment: (message: AttachmentMessage) => dispatch(retryAttachment(message)),
     onRetryMessage: (conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => dispatch(retryMessage(conversationIDKey, outboxID)),
-    startConversation: (users: Array<string>) => dispatch(startConversation(users)),
+    onSelectAttachment: (conversationIDKey: ConversationIDKey, input: AttachmentInput) => dispatch(selectAttachment(input)),
+    startConversation: (users: Array<string>) => dispatch(startConversation(users, true)),
     onStoreInputText: (inputText: string) => setRouteState({inputText}),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
@@ -216,6 +226,7 @@ export default connect(
       onMuteConversation: (muted: boolean) => dispatchProps.onMuteConversation(stateProps.selectedConversation, muted),
       onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
       onRetryMessage: (outboxID: OutboxIDKey) => dispatchProps.onRetryMessage(stateProps.selectedConversation, outboxID),
+      onSelectAttachment: (input) => dispatchProps.onSelectAttachment(stateProps.selectedConversation, input),
       restartConversation: () => dispatchProps.startConversation(stateProps.participants.toArray()),
     }
   },

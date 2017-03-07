@@ -7,6 +7,7 @@ export type Options = {
   message: Message,
   includeHeader: boolean,
   key: string,
+  isEditing: boolean,
   isFirstNewMessage: boolean,
   style: Object,
   isScrolling: boolean,
@@ -21,6 +22,7 @@ export type Options = {
   you: string,
   metaDataMap: MetaDataMap,
   followingMap: FollowingMap,
+  moreToLoad: boolean,
 }
 
 declare var factory: (options: Options) => React$Element<*>

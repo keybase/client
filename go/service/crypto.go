@@ -70,22 +70,22 @@ func (c *CryptoHandler) secretUIMaker(sessionID int, reason string) func() libkb
 	return f
 }
 
-func (c *CryptoHandler) SignED25519(_ context.Context, arg keybase1.SignED25519Arg) (keybase1.ED25519SignatureInfo, error) {
-	return engine.SignED25519(c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
+func (c *CryptoHandler) SignED25519(ctx context.Context, arg keybase1.SignED25519Arg) (keybase1.ED25519SignatureInfo, error) {
+	return engine.SignED25519(ctx, c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
 }
 
-func (c *CryptoHandler) SignED25519ForKBFS(_ context.Context, arg keybase1.SignED25519ForKBFSArg) (keybase1.ED25519SignatureInfo, error) {
-	return engine.SignED25519ForKBFS(c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
+func (c *CryptoHandler) SignED25519ForKBFS(ctx context.Context, arg keybase1.SignED25519ForKBFSArg) (keybase1.ED25519SignatureInfo, error) {
+	return engine.SignED25519ForKBFS(ctx, c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
 }
 
-func (c *CryptoHandler) SignToString(_ context.Context, arg keybase1.SignToStringArg) (string, error) {
-	return engine.SignToString(c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
+func (c *CryptoHandler) SignToString(ctx context.Context, arg keybase1.SignToStringArg) (string, error) {
+	return engine.SignToString(ctx, c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
 }
 
-func (c *CryptoHandler) UnboxBytes32(_ context.Context, arg keybase1.UnboxBytes32Arg) (keybase1.Bytes32, error) {
-	return engine.UnboxBytes32(c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
+func (c *CryptoHandler) UnboxBytes32(ctx context.Context, arg keybase1.UnboxBytes32Arg) (keybase1.Bytes32, error) {
+	return engine.UnboxBytes32(ctx, c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
 }
 
-func (c *CryptoHandler) UnboxBytes32Any(_ context.Context, arg keybase1.UnboxBytes32AnyArg) (keybase1.UnboxAnyRes, error) {
-	return engine.UnboxBytes32Any(c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
+func (c *CryptoHandler) UnboxBytes32Any(ctx context.Context, arg keybase1.UnboxBytes32AnyArg) (keybase1.UnboxAnyRes, error) {
+	return engine.UnboxBytes32Any(ctx, c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
 }

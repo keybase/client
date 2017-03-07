@@ -137,14 +137,11 @@ func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client) {
 func (api *BaseAPIEngine) PrepareGet(url1 url.URL, arg APIArg) (*http.Request, error) {
 	url1.RawQuery = arg.getHTTPArgs().Encode()
 	ruri := url1.String()
-	api.G().Log.CDebugf(arg.NetContext, "+ API GET request to %s", ruri)
 	return http.NewRequest("GET", ruri, nil)
 }
 
 func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg, sendJSON bool) (*http.Request, error) {
 	ruri := url1.String()
-	api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("+ API Post request to %s", ruri))
-
 	var body io.Reader
 
 	if sendJSON {
@@ -179,6 +176,25 @@ func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg, sendJSON bool) (
 //
 //============================================================================
 
+type countingReader struct {
+	r io.Reader
+	n int
+}
+
+func newCountingReader(r io.Reader) *countingReader {
+	return &countingReader{r: r}
+}
+
+func (c *countingReader) Read(p []byte) (n int, err error) {
+	n, err = c.r.Read(p)
+	c.n += n
+	return n, err
+}
+
+func (c *countingReader) numRead() int {
+	return c.n
+}
+
 //============================================================================
 // Shared code
 //
@@ -192,10 +208,6 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		return
 	}
 
-	dbg := func(s string) {
-		api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| doRequestShared(%s) for %s", s, arg.Endpoint))
-	}
-
 	api.fixHeaders(arg, req)
 	cli := api.getCli(arg.NeedSession)
 
@@ -204,18 +216,28 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	if api.isExternal() {
 		timerType = TimerXAPI
 	}
+	ctx := arg.NetContext
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	ctx = WithLogTag(ctx, "API")
+	api.G().Log.CDebugf(ctx, "+ API %s %s", req.Method, req.URL)
+
+	var jsonBytes int
+	var status string
+	defer func() {
+		api.G().Log.CDebugf(ctx, "- API %s %s: err=%s, status=%q, jsonBytes=%d", req.Method, req.URL,
+			ErrToOk(err), status, jsonBytes)
+	}()
 
 	if api.G().Env.GetAPIDump() {
 		jpStr, _ := json.MarshalIndent(arg.JSONPayload, "", "  ")
 		argStr, _ := json.MarshalIndent(arg.getHTTPArgs(), "", "  ")
-		api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| full request: json:%s querystring:%s", jpStr, argStr))
+		api.G().Log.CDebugf(ctx, "| full request: json:%s querystring:%s", jpStr, argStr)
 	}
 
 	timer := api.G().Timers.Start(timerType)
-
-	dbg("Do")
 	internalResp, err := doRetry(api, arg, cli, req)
-	dbg("Done")
 
 	defer func() {
 		if internalResp != nil && err != nil {
@@ -228,7 +250,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	if err != nil {
 		return nil, nil, APINetError{err: err}
 	}
-	api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| Result is: %s", internalResp.Status))
+	status = internalResp.Status
 
 	// The server sends "client version out of date" messages through the API
 	// headers. If the client is *really* out of date, the request status will
@@ -246,10 +268,12 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 
 	if wantJSONRes {
-		decoder := json.NewDecoder(internalResp.Body)
+		reader := newCountingReader(internalResp.Body)
+		decoder := json.NewDecoder(reader)
 		var obj interface{}
 		decoder.UseNumber()
 		err = decoder.Decode(&obj)
+		jsonBytes = reader.numRead()
 		if err != nil {
 			err = fmt.Errorf("Error in parsing JSON reply from server: %s", err)
 			return nil, nil, err
@@ -258,7 +282,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		jw = jsonw.NewWrapper(obj)
 		if api.G().Env.GetAPIDump() {
 			b, _ := json.MarshalIndent(obj, "", "  ")
-			api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| full reply: %s", b))
+			api.G().Log.CDebugf(ctx, "| full reply: %s", b)
 		}
 	}
 

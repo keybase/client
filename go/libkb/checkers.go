@@ -10,18 +10,21 @@ import (
 	"unicode"
 )
 
+var emailRE = regexp.MustCompile(`^\S+@\S+\.\S+$`)
+var usernameRE = regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9_]?)+$`)
+var deviceRE = regexp.MustCompile(`^[a-zA-Z0-9][ _'a-zA-Z0-9+-]*$`)
+var badDeviceRE = regexp.MustCompile(`  |[ '+_-]$|['+_-][ ]?['+_-]`)
+
 var CheckEmail = Checker{
 	F: func(s string) bool {
-		re := regexp.MustCompile(`^\S+@\S+\.\S+$`)
-		return len(s) > 3 && re.MatchString(s)
+		return len(s) > 3 && emailRE.MatchString(s)
 	},
 	Hint: "must be a valid email address",
 }
 
 var CheckUsername = Checker{
 	F: func(s string) bool {
-		re := regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9_]?)+$`)
-		return len(s) >= 2 && len(s) <= 16 && re.MatchString(s)
+		return len(s) >= 2 && len(s) <= 16 && usernameRE.MatchString(s)
 	},
 	Hint: "between 2 and 16 characters long",
 }
@@ -61,9 +64,7 @@ var CheckInviteCode = Checker{
 
 var CheckDeviceName = Checker{
 	F: func(s string) bool {
-		re := regexp.MustCompile(`^[a-zA-Z0-9][ _'a-zA-Z0-9+-]*$`)
-		bad := regexp.MustCompile(`  |[ '+_-]$|['+_-][ ]?['+_-]`)
-		return len(s) >= 3 && len(s) <= 64 && re.MatchString(s) && !bad.MatchString(s)
+		return len(s) >= 3 && len(s) <= 64 && deviceRE.MatchString(s) && !badDeviceRE.MatchString(s)
 	},
 	Hint: "between 3 and 64 characters long; use a-Z, 0-9, space, plus, underscore, dash and apostrophe",
 }

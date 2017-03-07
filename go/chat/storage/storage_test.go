@@ -37,9 +37,8 @@ func makeEdit(id chat1.MessageID, supersedes chat1.MessageID) chat1.MessageUnbox
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 		},
-		ClientHeader: chat1.MessageClientHeader{
+		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_EDIT,
-			Supersedes:  supersedes,
 		},
 		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
 			MessageID: supersedes,
@@ -54,9 +53,8 @@ func makeDelete(id chat1.MessageID, originalMessage chat1.MessageID, allEdits []
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 		},
-		ClientHeader: chat1.MessageClientHeader{
+		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_DELETE,
-			Supersedes:  originalMessage,
 		},
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
 			MessageIDs: append([]chat1.MessageID{originalMessage}, allEdits...),
@@ -70,7 +68,7 @@ func makeText(id chat1.MessageID, text string) chat1.MessageUnboxed {
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 		},
-		ClientHeader: chat1.MessageClientHeader{
+		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_TEXT,
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -80,14 +78,13 @@ func makeText(id chat1.MessageID, text string) chat1.MessageUnboxed {
 	return chat1.NewMessageUnboxedWithValid(msg)
 }
 
-func makeMsgWithType(id chat1.MessageID, supersedes chat1.MessageID, typ chat1.MessageType) chat1.MessageUnboxed {
+func makeMsgWithType(id chat1.MessageID, typ chat1.MessageType) chat1.MessageUnboxed {
 	msg := chat1.MessageUnboxedValid{
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 		},
-		ClientHeader: chat1.MessageClientHeader{
+		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: typ,
-			Supersedes:  supersedes,
 		},
 	}
 	return chat1.NewMessageUnboxedWithValid(msg)
@@ -401,11 +398,11 @@ func TestStorageTypeFilter(t *testing.T) {
 	_, storage, uid := setupStorageTest(t, "basic")
 
 	textmsgs := makeMsgRange(300)
-	msgs := append(mkarray(makeMsgWithType(chat1.MessageID(301), 0, chat1.MessageType_EDIT)), textmsgs...)
-	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(302), 0, chat1.MessageType_TLFNAME)), msgs...)
-	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(303), 0, chat1.MessageType_ATTACHMENT)), msgs...)
-	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(304), 0, chat1.MessageType_TEXT)), msgs...)
-	textmsgs = append(mkarray(makeMsgWithType(chat1.MessageID(304), 0, chat1.MessageType_TEXT)), textmsgs...)
+	msgs := append(mkarray(makeMsgWithType(chat1.MessageID(301), chat1.MessageType_EDIT)), textmsgs...)
+	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(302), chat1.MessageType_TLFNAME)), msgs...)
+	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(303), chat1.MessageType_ATTACHMENT)), msgs...)
+	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(304), chat1.MessageType_TEXT)), msgs...)
+	textmsgs = append(mkarray(makeMsgWithType(chat1.MessageID(304), chat1.MessageType_TEXT)), textmsgs...)
 	conv := makeConversation(msgs[0].GetMessageID())
 
 	query := chat1.GetThreadQuery{
@@ -416,7 +413,7 @@ func TestStorageTypeFilter(t *testing.T) {
 	res, err := storage.Fetch(context.TODO(), conv, uid, &query, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
-	restexts := utils.FilterByType(res.Messages, &query)
+	restexts := utils.FilterByType(res.Messages, &query, true)
 	require.Equal(t, len(textmsgs), len(restexts), "wrong amount of text messages")
 	for i := 0; i < len(restexts); i++ {
 		require.Equal(t, textmsgs[i].GetMessageID(), restexts[i].GetMessageID(), "msg mismatch")
@@ -467,4 +464,43 @@ func TestStorageFetchMessages(t *testing.T) {
 		}
 	}
 	require.Equal(t, 1, nils, "wrong number of nils")
+}
+
+func TestStorageDetectBodyHashReplay(t *testing.T) {
+	tc, _, _ := setupStorageTest(t, "fetchMessages")
+
+	// The first time we encounter a body hash it's stored.
+	err := CheckAndRecordBodyHash(tc.G, chat1.Hash("foo"), 1, chat1.ConversationID("bar"))
+	require.NoError(t, err)
+
+	// Seeing the same body hash again in the same message is fine. That just
+	// means we uboxed it twice.
+	err = CheckAndRecordBodyHash(tc.G, chat1.Hash("foo"), 1, chat1.ConversationID("bar"))
+	require.NoError(t, err)
+
+	// But seeing the hash again with a different convID/msgID is a replay, and
+	// it must trigger an error.
+	err = CheckAndRecordBodyHash(tc.G, chat1.Hash("foo"), 1, chat1.ConversationID("bar2"))
+	require.Error(t, err)
+	err = CheckAndRecordBodyHash(tc.G, chat1.Hash("foo"), 2, chat1.ConversationID("bar"))
+	require.Error(t, err)
+}
+
+func TestStorageDetectPrevPtrInconsistency(t *testing.T) {
+	tc, _, _ := setupStorageTest(t, "fetchMessages")
+
+	// The first time we encounter a message ID (either in unboxing or in
+	// another message's prev pointer) its header hash is stored.
+	err := CheckAndRecordPrevPointer(tc.G, 1, chat1.ConversationID("bar"), chat1.Hash("foo"))
+	require.NoError(t, err)
+
+	// Seeing the same header hash again in the same message is fine. That just
+	// means we uboxed it twice.
+	err = CheckAndRecordPrevPointer(tc.G, 1, chat1.ConversationID("bar"), chat1.Hash("foo"))
+	require.NoError(t, err)
+
+	// But seeing the same convID/msgID with a different header hash is a
+	// consistency violation, and it must trigger an error.
+	err = CheckAndRecordPrevPointer(tc.G, 1, chat1.ConversationID("bar"), chat1.Hash("foo2"))
+	require.Error(t, err)
 }

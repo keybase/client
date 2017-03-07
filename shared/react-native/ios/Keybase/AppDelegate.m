@@ -22,6 +22,17 @@
 
 @implementation AppDelegate
 
+- (BOOL)addSkipBackupAttributeToItemAtPath:(NSString *) filePathString
+{
+  NSURL * URL = [NSURL fileURLWithPath: filePathString];
+  NSError * error = nil;
+  BOOL success = [URL setResourceValue: @YES forKey: NSURLIsExcludedFromBackupKey error: &error];
+  if(!success){
+    NSLog(@"Error excluding %@ from backup %@", [URL lastPathComponent], error);
+  }
+  return success;
+}
+
 - (void) setupGo
 {
 
@@ -36,7 +47,16 @@
 
 #if TESTING
 #else
-  NSString * logFile = [home stringByAppendingPathComponent:@"ios.log"];
+  NSString * keybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
+  NSString * logFile = [@"~/Library/Caches/Keybase/ios.log" stringByExpandingTildeInPath];
+
+  // Make keybasePath if it doesn't exist
+  [[NSFileManager defaultManager] createDirectoryAtPath:keybasePath
+                            withIntermediateDirectories:YES
+                                             attributes:nil
+                                                  error:nil];
+  [self addSkipBackupAttributeToItemAtPath:keybasePath];
+
 
   NSError * err;
   self.engine = [[Engine alloc] initWithSettings:@{

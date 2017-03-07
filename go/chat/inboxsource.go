@@ -608,11 +608,13 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	return res, rl, err
 }
 
-func (s *HybridInboxSource) handleInboxError(err storage.Error, uid gregor1.UID) error {
+func (s *HybridInboxSource) handleInboxError(ctx context.Context, err storage.Error, uid gregor1.UID) error {
 	if _, ok := err.(storage.MissError); ok {
 		return nil
 	}
-	if _, ok := err.(storage.VersionMismatchError); ok {
+	if verr, ok := err.(storage.VersionMismatchError); ok {
+		s.Debug(ctx, "handleInboxError: version mismatch, sending stale notifications: %s",
+			verr.Error())
 		s.syncer.SendChatStaleNotifications(uid)
 		return nil
 	}
@@ -623,7 +625,7 @@ func (s *HybridInboxSource) NewConversation(ctx context.Context, uid gregor1.UID
 	conv chat1.Conversation) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "NewConversation")()
 	if cerr := storage.NewInbox(s.G(), uid, s.getSecretUI).NewConversation(ctx, vers, conv); cerr != nil {
-		err = s.handleInboxError(cerr, uid)
+		err = s.handleInboxError(ctx, cerr, uid)
 		return err
 	}
 
@@ -652,7 +654,7 @@ func (s *HybridInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, ver
 	convID chat1.ConversationID, msg chat1.MessageBoxed) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "NewMessage")()
 	if cerr := storage.NewInbox(s.G(), uid, s.getSecretUI).NewMessage(ctx, vers, convID, msg); cerr != nil {
-		err = s.handleInboxError(cerr, uid)
+		err = s.handleInboxError(ctx, cerr, uid)
 		return nil, err
 	}
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
@@ -666,7 +668,7 @@ func (s *HybridInboxSource) ReadMessage(ctx context.Context, uid gregor1.UID, ve
 	convID chat1.ConversationID, msgID chat1.MessageID) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "ReadMessage")()
 	if cerr := storage.NewInbox(s.G(), uid, s.getSecretUI).ReadMessage(ctx, vers, convID, msgID); cerr != nil {
-		err = s.handleInboxError(cerr, uid)
+		err = s.handleInboxError(ctx, cerr, uid)
 		return nil, err
 	}
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
@@ -681,7 +683,7 @@ func (s *HybridInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers
 	convID chat1.ConversationID, status chat1.ConversationStatus) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "SetStatus")()
 	if cerr := storage.NewInbox(s.G(), uid, s.getSecretUI).SetStatus(ctx, vers, convID, status); cerr != nil {
-		err = s.handleInboxError(cerr, uid)
+		err = s.handleInboxError(ctx, cerr, uid)
 		return nil, err
 	}
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
@@ -696,7 +698,7 @@ func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 	defer s.Trace(ctx, func() error { return err }, "TlfFinalize")()
 
 	if cerr := storage.NewInbox(s.G(), uid, s.getSecretUI).TlfFinalize(ctx, vers, convIDs, finalizeInfo); cerr != nil {
-		err = s.handleInboxError(cerr, uid)
+		err = s.handleInboxError(ctx, cerr, uid)
 		return convs, err
 	}
 	for _, convID := range convIDs {
@@ -823,8 +825,6 @@ func (n nullUsernameSource) LookupUsername(ctx context.Context, uid keybase1.UID
 
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
-
-	s.Debug(ctx, "localizing %d msgs", len(conversationRemote.MaxMsgs))
 
 	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
 

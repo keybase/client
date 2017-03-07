@@ -45,11 +45,13 @@ func makePad(l int) []byte {
 	return ret
 }
 
+var spaceRE = regexp.MustCompile(`[[:space:]]+`)
+
 // spacify replaces arbitrary strings of whitespace with
 // a single ' ' character. Also strips off leading and trailing
 // whitespace.
 func spacify(s string) string {
-	v := regexp.MustCompile(`[[:space:]]+`).Split(s, -1)
+	v := spaceRE.Split(s, -1)
 	if len(v) > 0 && v[0] == "" {
 		v = v[1:]
 	}

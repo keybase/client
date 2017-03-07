@@ -22,7 +22,7 @@ type UPAKLoader interface {
 	LookupUsername(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
 	LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error)
 	ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error)
-	PutUserToCache(user *User) error
+	PutUserToCache(ctx context.Context, user *User) error
 }
 
 // CachedUPAKLoader is a UPAKLoader implementation that can cache results both
@@ -30,10 +30,11 @@ type UPAKLoader interface {
 type CachedUPAKLoader struct {
 	sync.Mutex
 	Contextified
-	m         map[string]*keybase1.UserPlusAllKeys
-	locktab   LockTable
-	Freshness time.Duration
-	noCache   bool
+	m              map[string]*keybase1.UserPlusAllKeys
+	locktab        LockTable
+	Freshness      time.Duration
+	noCache        bool
+	TestDeadlocker func()
 }
 
 // NewCachedUPAKLoader constructs a new CachedUPAKLoader
@@ -171,9 +172,22 @@ func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.Use
 
 	uid := obj.Base.Uid
 	u.G().Log.CDebugf(ctx, "| Caching UPAK for %s", uid)
+
+	stale := false
 	u.Lock()
-	u.m[uid.String()] = obj
+	existing := u.m[uid.String()]
+	if existing != nil && obj.IsOlderThan(*existing) {
+		stale = true
+	} else {
+		u.m[uid.String()] = obj
+	}
 	u.Unlock()
+
+	if stale {
+		u.G().Log.CDebugf(ctx, "| CachedUpakLoader#putUPAKToCache: Refusing to overwrite with stale object")
+		return errors.New("stale object rejected")
+	}
+
 	err := u.G().LocalDb.PutObj(culDBKey(uid), nil, *obj)
 	if err != nil {
 		u.G().Log.CWarningf(ctx, "Error in writing UPAK for %s: %s", uid, err)
@@ -181,10 +195,13 @@ func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.Use
 	return err
 }
 
-func (u *CachedUPAKLoader) PutUserToCache(user *User) error {
+func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error {
+
+	lock := u.locktab.AcquireOnName(ctx, u.G(), user.GetUID().String())
+	defer lock.Release(ctx)
 	upak := user.ExportToUserPlusAllKeys(keybase1.Time(0))
 	upak.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
-	err := u.putUPAKToCache(nil, &upak)
+	err := u.putUPAKToCache(ctx, &upak)
 	return err
 }
 
@@ -195,7 +212,7 @@ func (u *CachedUPAKLoader) PutUserToCache(user *User) error {
 // In some cases, that deep copy can be expensive, so as for users who have lots of
 // followees. So if you provide accessor, the UPAK won't be deep-copied, but you'll
 // be able to access it from inside the accessor with exclusion.
-func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInfo, accessor func(k *keybase1.UserPlusAllKeys) error) (ret *keybase1.UserPlusAllKeys, user *User, err error) {
+func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInfo, accessor func(k *keybase1.UserPlusAllKeys) error, shouldReturnFullUser bool) (ret *keybase1.UserPlusAllKeys, user *User, err error) {
 
 	// Shorthand
 	g := u.G()
@@ -211,7 +228,21 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	}
 
 	lock := u.locktab.AcquireOnName(ctx, g, arg.UID.String())
-	defer lock.Release(ctx)
+
+	defer func() {
+		lock.Release(ctx)
+
+		if !shouldReturnFullUser {
+			user = nil
+		}
+		if user != nil && err == nil {
+			// Update the full-self cacher after the lock is released, to avoid
+			// any circular locking.
+			if fs := u.G().GetFullSelfer(); fs != nil {
+				fs.Update(ctx, user)
+			}
+		}
+	}()
 
 	returnUPAK := func(upak *keybase1.UserPlusAllKeys, needCopy bool) (*keybase1.UserPlusAllKeys, *User, error) {
 		if accessor != nil {
@@ -248,16 +279,13 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		}
 
 		var sigHints *SigHints
-		sigHints, err = LoadSigHints(ctx, arg.UID, g)
+		var leaf *MerkleUserLeaf
+
+		sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(ctx, u.G(), arg.UID, true)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		var leaf *MerkleUserLeaf
-		leaf, err = lookupMerkleLeaf(ctx, g, arg.UID, true, sigHints)
-		if err != nil {
-			return nil, nil, err
-		}
 		if info != nil {
 			info.LoadedLeaf = true
 		}
@@ -301,6 +329,10 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	ret.Base.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
 	err = u.putUPAKToCache(ctx, ret)
 
+	if u.TestDeadlocker != nil {
+		u.TestDeadlocker()
+	}
+
 	return returnUPAK(ret, false)
 }
 
@@ -309,7 +341,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 // but never both non-nil, nor never both nil. If we had to do a full LoadUser as part of the
 // request, it's returned too.
 func (u *CachedUPAKLoader) Load(arg LoadUserArg) (ret *keybase1.UserPlusAllKeys, user *User, err error) {
-	return u.loadWithInfo(arg, nil, nil)
+	return u.loadWithInfo(arg, nil, nil, true)
 }
 
 func (u *CachedUPAKLoader) CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error) {
@@ -317,7 +349,7 @@ func (u *CachedUPAKLoader) CheckKIDForUID(ctx context.Context, uid keybase1.UID,
 	var info CachedUserLoadInfo
 	larg := NewLoadUserByUIDArg(ctx, u.G(), uid)
 	larg.PublicKeyOptional = true
-	upak, _, err := u.loadWithInfo(larg, &info, nil)
+	upak, _, err := u.loadWithInfo(larg, &info, nil, false)
 
 	if err != nil {
 		return false, nil, false, err
@@ -327,7 +359,7 @@ func (u *CachedUPAKLoader) CheckKIDForUID(ctx context.Context, uid keybase1.UID,
 		return found, revokedAt, deleted, nil
 	}
 	larg.ForceReload = true
-	upak, _, err = u.loadWithInfo(larg, nil, nil)
+	upak, _, err = u.loadWithInfo(larg, nil, nil, false)
 	if err != nil {
 		return false, nil, false, err
 	}
@@ -349,8 +381,8 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 	forcePollValues := []bool{false, true}
 
 	for _, fp := range forcePollValues {
-		// We need to force a reload to make KBFS tests pass
-		arg.ForcePoll = fp || (u.G().Env.GetRunMode() == DevelRunMode)
+
+		arg.ForcePoll = fp
 
 		upak, _, err := u.Load(arg)
 		if err != nil {
@@ -370,7 +402,7 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 
 func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {
 
-	u.G().Log.Debug("CachedUPAKLoader#Invalidate(%s)", uid)
+	u.G().Log.Debug("| CachedUPAKLoader#Invalidate(%s)", uid)
 
 	if u.noCache {
 		return
@@ -394,7 +426,7 @@ func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {
 func (u *CachedUPAKLoader) LoadDeviceKey(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (upak *keybase1.UserPlusAllKeys, deviceKey *keybase1.PublicKey, revoked *keybase1.RevokedKey, err error) {
 	var info CachedUserLoadInfo
 	larg := NewLoadUserByUIDArg(ctx, u.G(), uid)
-	upak, _, err = u.loadWithInfo(larg, &info, nil)
+	upak, _, err = u.loadWithInfo(larg, &info, nil, false)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -407,7 +439,7 @@ func (u *CachedUPAKLoader) LoadDeviceKey(ctx context.Context, uid keybase1.UID, 
 
 	// Try again with a forced load in case the device is very new.
 	larg.ForcePoll = true
-	upak, _, err = u.loadWithInfo(larg, nil, nil)
+	upak, _, err = u.loadWithInfo(larg, nil, nil, false)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -427,7 +459,7 @@ func (u *CachedUPAKLoader) LookupUsername(ctx context.Context, uid keybase1.UID)
 		}
 		ret = NewNormalizedUsername(upak.Base.Username)
 		return nil
-	})
+	}, false)
 	return ret, err
 }
 
@@ -453,7 +485,7 @@ func (u *CachedUPAKLoader) lookupUsernameAndDeviceWithInfo(ctx context.Context, 
 				found = true
 			}
 			return nil
-		})
+		}, false)
 		if found {
 			return username, deviceName, deviceType, nil
 		}

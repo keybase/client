@@ -54,6 +54,7 @@ const (
 	PromptDescriptorEnterChatTLFName
 	PromptDescriptorEnterChatMessage
 	PromptDescriptorDeviceRevoke
+	PromptDescriptorFSOverwrite
 )
 
 const (

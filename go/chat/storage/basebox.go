@@ -5,6 +5,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/nacl/secretbox"
+	"golang.org/x/net/context"
 )
 
 type boxedData struct {
@@ -26,7 +27,7 @@ func newBaseBox(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *base
 	}
 }
 
-func (i *baseBox) readDiskBox(key libkb.DbKey, res interface{}) (bool, error) {
+func (i *baseBox) readDiskBox(ctx context.Context, key libkb.DbKey, res interface{}) (bool, error) {
 	var err error
 	b, found, err := i.G().LocalChatDb.GetRaw(key)
 	if err != nil {
@@ -45,7 +46,7 @@ func (i *baseBox) readDiskBox(key libkb.DbKey, res interface{}) (bool, error) {
 		return true, fmt.Errorf("bad crypto version: %d current: %d", boxed.V,
 			cryptoVersion)
 	}
-	enckey, err := getSecretBoxKey(i.G(), i.getSecretUI)
+	enckey, err := getSecretBoxKey(ctx, i.G(), i.getSecretUI)
 	if err != nil {
 		return true, err
 	}
@@ -60,7 +61,7 @@ func (i *baseBox) readDiskBox(key libkb.DbKey, res interface{}) (bool, error) {
 	return true, nil
 }
 
-func (i *baseBox) writeDiskBox(key libkb.DbKey, data interface{}) error {
+func (i *baseBox) writeDiskBox(ctx context.Context, key libkb.DbKey, data interface{}) error {
 
 	// Encode outbox
 	dat, err := encode(data)
@@ -69,7 +70,7 @@ func (i *baseBox) writeDiskBox(key libkb.DbKey, data interface{}) error {
 	}
 
 	// Encrypt outbox
-	enckey, err := getSecretBoxKey(i.G(), i.getSecretUI)
+	enckey, err := getSecretBoxKey(ctx, i.G(), i.getSecretUI)
 	if err != nil {
 		return err
 	}

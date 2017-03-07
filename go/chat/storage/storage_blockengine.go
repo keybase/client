@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const blockIndexVersion = 3
+const blockIndexVersion = 4
 const blockSize = 100
 
 type blockEngine struct {
@@ -78,15 +78,15 @@ func (be *blockEngine) createBlockIndex(ctx context.Context, key libkb.DbKey,
 	be.Debug(ctx, "createBlockIndex: creating new block index: convID: %d uid: %s", convID, uid)
 	_, err := be.createBlock(ctx, &bi, 0)
 	if err != nil {
-		return bi, NewInternalError(be.DebugLabeler, "createBlockIndex: failed to create block: %s", err.Message())
+		return bi, NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to create block: %s", err.Message())
 	}
 
 	dat, rerr := encode(bi)
 	if rerr != nil {
-		return bi, NewInternalError(be.DebugLabeler, "createBlockIndex: failed to encode %s", err.Error())
+		return bi, NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to encode %s", err.Error())
 	}
 	if rerr = be.G().LocalChatDb.PutRaw(key, dat); rerr != nil {
-		return bi, NewInternalError(be.DebugLabeler, "createBlockIndex: failed to write: %s", rerr.Error())
+		return bi, NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to write: %s", rerr.Error())
 	}
 	return bi, nil
 }
@@ -95,7 +95,7 @@ func (be *blockEngine) readBlockIndex(ctx context.Context, convID chat1.Conversa
 	key := makeBlockIndexKey(convID, uid)
 	raw, found, err := be.G().LocalChatDb.GetRaw(key)
 	if err != nil {
-		return blockIndex{}, NewInternalError(be.DebugLabeler, "readBlockIndex: failed to read index block: %s", err.Error())
+		return blockIndex{}, NewInternalError(ctx, be.DebugLabeler, "readBlockIndex: failed to read index block: %s", err.Error())
 	}
 	if !found {
 		// If not found, create a new one and return it
@@ -106,7 +106,7 @@ func (be *blockEngine) readBlockIndex(ctx context.Context, convID chat1.Conversa
 	// Decode and return
 	var bi blockIndex
 	if err = decode(raw, &bi); err != nil {
-		return bi, NewInternalError(be.DebugLabeler, "readBlockIndex: failed to decode: %s", err.Error())
+		return bi, NewInternalError(ctx, be.DebugLabeler, "readBlockIndex: failed to decode: %s", err.Error())
 	}
 	if bi.Version != blockIndexVersion {
 		be.Debug(ctx, "readBlockInbox: version mismatch, creating new index")
@@ -163,7 +163,7 @@ func (be *blockEngine) createBlockSingle(ctx context.Context, bi blockIndex, blo
 	// Write out new block
 	b := block{BlockID: blockID}
 	if cerr := be.writeBlock(ctx, bi, b); cerr != nil {
-		return block{}, NewInternalError(be.DebugLabeler, "createBlockSingle: failed to write block: %s", cerr.Message())
+		return block{}, NewInternalError(ctx, be.DebugLabeler, "createBlockSingle: failed to write block: %s", cerr.Message())
 	}
 	return b, nil
 }
@@ -183,11 +183,11 @@ func (be *blockEngine) createBlock(ctx context.Context, bi *blockIndex, blockID 
 	bi.MaxBlock = blockID
 	dat, err := encode(bi)
 	if err != nil {
-		return block{}, NewInternalError(be.DebugLabeler, "createBlock: failed to encode block: %s", err.Error())
+		return block{}, NewInternalError(ctx, be.DebugLabeler, "createBlock: failed to encode block: %s", err.Error())
 	}
 	err = be.G().LocalChatDb.PutRaw(makeBlockIndexKey(bi.ConvID, bi.UID), dat)
 	if err != nil {
-		return block{}, NewInternalError(be.DebugLabeler, "createBlock: failed to write index: %s", err.Error())
+		return block{}, NewInternalError(ctx, be.DebugLabeler, "createBlock: failed to write index: %s", err.Error())
 	}
 
 	return b, nil
@@ -195,7 +195,7 @@ func (be *blockEngine) createBlock(ctx context.Context, bi *blockIndex, blockID 
 
 func (be *blockEngine) getBlock(ctx context.Context, bi blockIndex, id chat1.MessageID) (block, Error) {
 	if id == 0 {
-		return block{}, NewInternalError(be.DebugLabeler, "getBlock: invalid block id: %d", id)
+		return block{}, NewInternalError(ctx, be.DebugLabeler, "getBlock: invalid block id: %d", id)
 	}
 	bn := be.getBlockNumber(id)
 	if bn > bi.MaxBlock {
@@ -211,20 +211,20 @@ func (be *blockEngine) readBlock(ctx context.Context, bi blockIndex, id int) (bl
 	key := be.makeBlockKey(bi.ConvID, bi.UID, id)
 	raw, found, err := be.G().LocalChatDb.GetRaw(key)
 	if err != nil {
-		return block{}, NewInternalError(be.DebugLabeler, "readBlock: failed to read raw: %s", err.Error())
+		return block{}, NewInternalError(ctx, be.DebugLabeler, "readBlock: failed to read raw: %s", err.Error())
 	}
 	if !found {
 		// Didn't find it for some reason
-		return block{}, NewInternalError(be.DebugLabeler, "readBlock: block not found: id: %d", id)
+		return block{}, NewInternalError(ctx, be.DebugLabeler, "readBlock: block not found: id: %d", id)
 	}
 
 	// Decode boxed block
 	var b boxedBlock
 	if err = decode(raw, &b); err != nil {
-		return block{}, NewInternalError(be.DebugLabeler, "readBlock: failed to decode: %s", err.Error())
+		return block{}, NewInternalError(ctx, be.DebugLabeler, "readBlock: failed to decode: %s", err.Error())
 	}
 	if b.V > cryptoVersion {
-		return block{}, NewInternalError(be.DebugLabeler, "readBlock: bad crypto version: %d current: %d id: %d", b.V, cryptoVersion, id)
+		return block{}, NewInternalError(ctx, be.DebugLabeler, "readBlock: bad crypto version: %d current: %d id: %d", b.V, cryptoVersion, id)
 	}
 
 	// Decrypt block
@@ -234,13 +234,13 @@ func (be *blockEngine) readBlock(ctx context.Context, bi blockIndex, id int) (bl
 	}
 	pt, ok := secretbox.Open(nil, b.E, &b.N, &fkey)
 	if !ok {
-		return block{}, NewInternalError(be.DebugLabeler, "readBlock: failed to decrypt block: %d", id)
+		return block{}, NewInternalError(ctx, be.DebugLabeler, "readBlock: failed to decrypt block: %d", id)
 	}
 
 	// Decode payload
 	var res block
 	if err = decode(pt, &res); err != nil {
-		return block{}, NewInternalError(be.DebugLabeler, "readBlock: failed to decode: %s", err.Error())
+		return block{}, NewInternalError(ctx, be.DebugLabeler, "readBlock: failed to decode: %s", err.Error())
 	}
 
 	return res, nil
@@ -252,7 +252,7 @@ func (be *blockEngine) writeBlock(ctx context.Context, bi blockIndex, b block) E
 	// Encode block
 	dat, err := encode(b)
 	if err != nil {
-		return NewInternalError(be.DebugLabeler, "writeBlock: failed to encode: %s", err.Error())
+		return NewInternalError(ctx, be.DebugLabeler, "writeBlock: failed to encode: %s", err.Error())
 	}
 
 	// Encrypt block
@@ -277,12 +277,12 @@ func (be *blockEngine) writeBlock(ctx context.Context, bi blockIndex, b block) E
 	}
 	bpayload, err := encode(payload)
 	if err != nil {
-		return NewInternalError(be.DebugLabeler, "writeBlock: failed to encode: %s", err.Error())
+		return NewInternalError(ctx, be.DebugLabeler, "writeBlock: failed to encode: %s", err.Error())
 	}
 
 	// Write out encrypted block
 	if err = be.G().LocalChatDb.PutRaw(be.makeBlockKey(bi.ConvID, bi.UID, b.BlockID), bpayload); err != nil {
-		return NewInternalError(be.DebugLabeler, "writeBlock: failed to write: %s", err.Error())
+		return NewInternalError(ctx, be.DebugLabeler, "writeBlock: failed to write: %s", err.Error())
 	}
 	return nil
 }
@@ -320,10 +320,10 @@ func (be *blockEngine) writeMessages(ctx context.Context, convID chat1.Conversat
 		newBlockID := be.getBlockNumber(maxID)
 		be.Debug(ctx, "writeMessages: block not found (creating): maxID: %d id: %d", maxID, newBlockID)
 		if _, err = be.createBlock(ctx, &bi, newBlockID); err != nil {
-			return NewInternalError(be.DebugLabeler, "writeMessages: failed to create block: %s", err.Message())
+			return NewInternalError(ctx, be.DebugLabeler, "writeMessages: failed to create block: %s", err.Message())
 		}
 		if maxB, err = be.getBlock(ctx, bi, maxID); err != nil {
-			return NewInternalError(be.DebugLabeler, "writeMessages: failed to read newly created block: %s", err.Message())
+			return NewInternalError(ctx, be.DebugLabeler, "writeMessages: failed to read newly created block: %s", err.Message())
 		}
 	}
 
@@ -341,7 +341,7 @@ func (be *blockEngine) writeMessages(ctx context.Context, convID chat1.Conversat
 
 	// Write the block
 	if err = be.writeBlock(ctx, bi, newBlock); err != nil {
-		return NewInternalError(be.DebugLabeler, "writeMessages: failed to write block: %s", err.Message())
+		return NewInternalError(ctx, be.DebugLabeler, "writeMessages: failed to write block: %s", err.Message())
 	}
 
 	// We didn't write everything out in this block, move to another one
@@ -394,7 +394,7 @@ func (be *blockEngine) readMessages(ctx context.Context, res resultCollector,
 
 		// Sanity check
 		if bMsgID != be.getMsgID(b.BlockID, index) {
-			return NewInternalError(be.DebugLabeler, "chat entry corruption: bMsgID: %d != %d (block: %d pos: %d)", bMsgID, be.getMsgID(b.BlockID, index), b.BlockID, index)
+			return NewInternalError(ctx, be.DebugLabeler, "chat entry corruption: bMsgID: %d != %d (block: %d pos: %d)", bMsgID, be.getMsgID(b.BlockID, index), b.BlockID, index)
 		}
 
 		be.Debug(ctx, "readMessages: adding msg_id: %d (blockid: %d pos: %d)",

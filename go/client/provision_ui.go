@@ -276,7 +276,11 @@ func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.Promp
 		for _, existing := range arg.ExistingDevices {
 			if libkb.NameCmp(name, existing) {
 				match = true
-				p.parent.Printf("Device name %q already in use.  Please try again.\n", name)
+				p.parent.Printf("You used device name %q already.\n\n", name)
+				p.parent.Printf("You can't reuse device names, even ones you've revoked, for security reasons.\n")
+				p.parent.Printf("Otherwise, someone who stole one of your devices could cause a lot of\n")
+				p.parent.Printf("confusion.\n\n")
+				p.parent.Printf("Please enter a new, unique device name for this device.\n\n")
 				break
 			}
 		}

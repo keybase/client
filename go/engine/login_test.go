@@ -1994,6 +1994,74 @@ func TestResetAccountKexProvision(t *testing.T) {
 
 // Try to replicate @nistur sigchain.
 // github issue: https://github.com/keybase/client/issues/2356
+func TestResetThenPGPOnlyThenProvision(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	// user with synced pgp key
+	u := createFakeUserWithPGPOnly(t, tc)
+	Logout(tc)
+	tc.Cleanup()
+
+	// provision a device with that key
+	tc = SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: u.Username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    u.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// since this user didn't have any device keys, login should have fixed that:
+	testUserHasDeviceKey(tc)
+
+	// now reset account
+	ResetAccount(tc, u)
+
+	// Now login again so we can post a PGP key
+	err := tc.G.LoginState().LoginWithPassphrase(u.Username, u.Passphrase, false, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Generate a new test PGP key for the user, and specify the PushSecret
+	// flag so that their triplesec'ed key is pushed to the server.
+	gen := libkb.PGPGenArg{
+		PrimaryBits: 1024,
+		SubkeyBits:  1024,
+	}
+	gen.AddDefaultUID()
+	peng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
+		Gen:        &gen,
+		PushSecret: true,
+		NoSave:     true,
+	})
+
+	if err := RunEngine(peng, ctx); err != nil {
+		tc.T.Fatal(err)
+	}
+
+	Logout(tc)
+
+	// Now finally try a login
+	eng = NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// since this user didn't have any device keys, login should have fixed that:
+	testUserHasDeviceKey(tc)
+}
+
+// Try to replicate @nistur sigchain.
+// github issue: https://github.com/keybase/client/issues/2356
 func TestResetAccountLikeNistur(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()

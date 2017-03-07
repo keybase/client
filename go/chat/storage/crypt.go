@@ -3,6 +3,7 @@ package storage
 import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/net/context"
 )
 
 // ***
@@ -10,9 +11,9 @@ import (
 // ***
 const cryptoVersion = 1
 
-func getSecretBoxKey(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) (fkey [32]byte, err error) {
+func getSecretBoxKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) (fkey [32]byte, err error) {
 	// Get secret device key
-	encKey, err := engine.GetMySecretKey(g, getSecretUI, libkb.DeviceEncryptionKeyType,
+	encKey, err := engine.GetMySecretKey(ctx, g, getSecretUI, libkb.DeviceEncryptionKeyType,
 		"encrypt chat message")
 	if err != nil {
 		return fkey, err

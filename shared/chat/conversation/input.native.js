@@ -4,7 +4,9 @@ import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 import {isIOS} from '../../constants/platform'
+import ImagePicker from 'react-native-image-picker'
 
+import type {AttachmentInput} from '../../constants/chat'
 import type {Props} from './input'
 
 type State = {
@@ -31,6 +33,19 @@ class ConversationInput extends Component<void, Props, State> {
     }
   }
 
+  componentWillReceiveProps (nextProps: Props) {
+    if (this.props.editingMessage !== nextProps.editingMessage) {
+      if (nextProps.editingMessage && nextProps.editingMessage.type === 'Text') {
+        this.setState({text: nextProps.editingMessage.message.stringValue()})
+        this.focusInput()
+      }
+    }
+  }
+
+  componentWillUnmount () {
+    this.props.onUnmountText && this.props.onUnmountText(this.getValue())
+  }
+
   focusInput = () => {
     this._input && this._input.focus()
   }
@@ -39,9 +54,20 @@ class ConversationInput extends Component<void, Props, State> {
     return this._input ? this._input.getValue() : ''
   }
 
+  _onBlur = () => {
+    if (this.props.editingMessage) {
+      this.props.onShowEditor(null)
+      this.setState({text: ''})
+    }
+  }
+
   _onSubmit = () => {
     if (this.state.text) {
-      this.props.onPostMessage(this.state.text)
+      if (this.props.editingMessage) {
+        this.props.onEditMessage(this.props.editingMessage, this.state.text)
+      } else {
+        this.props.onPostMessage(this.state.text)
+      }
       this.setState({text: ''})
     }
   }
@@ -51,7 +77,19 @@ class ConversationInput extends Component<void, Props, State> {
   }
 
   _openFilePicker = () => {
-    console.log('openFilePicker')
+    ImagePicker.showImagePicker({}, (response) => {
+      const filename = isIOS ? response.uri.replace('file://', '') : response.path
+      const conversationIDKey = this.props.selectedConversation
+      if (!response.didCancel && conversationIDKey) {
+        const input: AttachmentInput = {
+          conversationIDKey,
+          filename,
+          title: response.fileName,
+          type: 'Image',
+        }
+        this.props.onAttach([input])
+      }
+    })
   }
 
   render () {
@@ -62,6 +100,7 @@ class ConversationInput extends Component<void, Props, State> {
       <Box style={{...globalStyles.flexBoxColumn}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
           <Input
+            autoCorrect={true}
             autoFocus={true}
             small={true}
             style={styleInput}
@@ -69,6 +108,7 @@ class ConversationInput extends Component<void, Props, State> {
             hintText='Write a message'
             hideUnderline={true}
             onChangeText={this._onChangeText}
+            onBlur={this._onBlur}
             value={this.state.text}
             multiline={true}
             {...multilineOpts}

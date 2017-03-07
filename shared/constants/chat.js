@@ -2,13 +2,16 @@
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
-
 import {clamp} from 'lodash'
 import * as ChatTypes from './types/flow-types-chat'
+import {getPath} from '../route-tree'
+import {chatTab} from './tabs'
+
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
 import type {AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFinalizeInfo, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
+import type {TypedState} from './reducer'
 
 export type MessageType = 'Text'
 export type FollowingMap = {[key: string]: boolean}
@@ -27,7 +30,7 @@ export type OutboxIDKey = string
 
 export type MessageID = RPCMessageID
 
-export type ClientMessage = TimestampMessage | SupersedesMessage
+export type ClientMessage = TimestampMessage | SupersedesMessage | LoadingMoreMessage | ChatSecuredHeaderMessage
 export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage | UpdatingAttachment | InvisibleErrorMessage
 
 export type Message = ClientMessage | ServerMessage
@@ -43,6 +46,7 @@ export type TextMessage = {
   messageID?: MessageID,
   you: string,
   messageState: MessageState,
+  failureDescription: ?string,
   outboxID?: ?OutboxIDKey,
   senderDeviceRevokedAt: ?number,
   key: MessageKey,
@@ -110,11 +114,22 @@ export type AttachmentMessage = {
   messageState: AttachmentMessageState,
   senderDeviceRevokedAt: ?number,
   key: MessageKey,
+  failureDescription?: ?string,
 }
 
 export type TimestampMessage = {
   type: 'Timestamp',
   timestamp: number,
+  key: MessageKey,
+}
+
+export type LoadingMoreMessage = {
+  type: 'LoadingMore',
+  key: MessageKey,
+}
+
+export type ChatSecuredHeaderMessage = {
+  type: 'ChatSecuredHeader',
   key: MessageKey,
 }
 
@@ -269,6 +284,8 @@ export const StateRecord = Record({
   rekeyInfos: Map(),
   alwaysShow: Set(),
   pendingConversations: Map(),
+  nowOverride: null,
+  editingMessage: null,
 })
 
 export type State = Record<{
@@ -284,6 +301,8 @@ export type State = Record<{
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
   alwaysShow: Set<ConversationIDKey>,
   pendingConversations: Map<ConversationIDKey, Participants>,
+  nowOverride: ?Date,
+  editingMessage: ?Message,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -297,8 +316,9 @@ export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversa
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeState>>
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type ConversationSetStatus = NoErrorTypedAction<'chat:conversationSetStatus', {conversationIDKey: ConversationIDKey, muted: boolean}>
-export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {outboxID: OutboxIDKey}>
+export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {failureDescription: string, outboxID: OutboxIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
+export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
@@ -307,6 +327,7 @@ export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conv
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type AddPendingConversation = NoErrorTypedAction<'chat:addPendingConversation', {participants: Array<string>}>
 export type PendingToRealConversation = NoErrorTypedAction<'chat:pendingToRealConversation', {oldKey: ConversationIDKey, newKey: ConversationIDKey}>
+export type ReplaceConversation = NoErrorTypedAction<'chat:replaceConversation', {oldKey: ConversationIDKey, newKey: ConversationIDKey}>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
 export type UpdatePaginationNext = NoErrorTypedAction<'chat:updatePaginationNext', {conversationIDKey: ConversationIDKey, paginationNext: Buffer}>
 export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
@@ -324,7 +345,7 @@ export type OpenConversation = NoErrorTypedAction<'chat:openConversation', {conv
 export type GetInboxAndUnbox = NoErrorTypedAction<'chat:getInboxAndUnbox', {conversationIDKey: ConversationIDKey}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ?ConversationIDKey, fromUser: boolean}>
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
-export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>}>
+export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>, forceImmediate: boolean}>
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
 export type UpdateConversationUnreadCounts = NoErrorTypedAction<'chat:updateConversationUnreadCounts', Map<ConversationIDKey, number>>
 export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: InboxState}>
@@ -384,10 +405,19 @@ export type MarkSeenMessage = NoErrorTypedAction<'chat:markSeenMessage', {
   messageID: MessageID,
 }>
 
+export type SaveAttachment = NoErrorTypedAction<'chat:saveAttachmentNative', {
+  message: AttachmentMessage,
+}>
+
+export type ShareAttachment = NoErrorTypedAction<'chat:shareAttachment', {
+  message: AttachmentMessage,
+}>
+
 export type Actions = AddPendingConversation
   | AppendMessages
   | DeleteMessage
   | EditMessage
+  | ShowEditor
   | LoadInbox
   | LoadMoreMessages
   | LoadedInbox
@@ -529,13 +559,25 @@ function convSupersededByInfo (conversationID: ConversationIDKey, chat: State): 
   return chat.get('supersededByState').get(conversationID)
 }
 
-function newestConversationIDKey (conversationIDKey: ConversationIDKey, chat: State): ConversationIDKey {
+function newestConversationIDKey (conversationIDKey: ?ConversationIDKey, chat: State): ?ConversationIDKey {
   const supersededBy = chat.get('supersededByState').get(conversationIDKey)
   if (!supersededBy) {
     return conversationIDKey
   }
 
   return newestConversationIDKey(supersededBy.conversationIDKey, chat)
+}
+
+const getSelectedConversation = (state: TypedState) => {
+  const chatPath = getPath(state.routeTree.routeState, [chatTab])
+  if (chatPath.get(0) !== chatTab) {
+    return null
+  }
+  const selected = chatPath.get(1)
+  if (selected === nothingSelected) {
+    return null
+  }
+  return selected
 }
 
 type MessageKey = string
@@ -546,6 +588,7 @@ function messageKey (kind: MessageKeyKind, value: string | number): MessageKey {
 
 export {
   getBrokenUsers,
+  getSelectedConversation,
   conversationIDToKey,
   convSupersedesInfo,
   convSupersededByInfo,

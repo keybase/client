@@ -143,7 +143,6 @@ func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedA
 }
 
 func (c *ChatUI) getUnverifiedConvo(ctx context.Context, conv chat1.Conversation) (chat1.ConversationLocal, error) {
-
 	if len(conv.MaxMsgs) == 0 {
 		return chat1.ConversationLocal{}, fmt.Errorf("no max messages")
 	}
@@ -169,6 +168,8 @@ func (c *ChatUI) getUnverifiedConvo(ctx context.Context, conv chat1.Conversation
 	convLocal := chat1.ConversationLocal{
 		ReaderInfo: *conv.ReaderInfo,
 		MaxMessages: []chat1.MessageUnboxed{
+			// This is a fake unboxing, only used for `keybase chat ls --async`
+			// The contents have not been verified at all. Don't be fooled.
 			chat1.MessageUnboxed{
 				State__: chat1.MessageUnboxedState_VALID,
 				Valid__: &chat1.MessageUnboxedValid{
@@ -178,7 +179,14 @@ func (c *ChatUI) getUnverifiedConvo(ctx context.Context, conv chat1.Conversation
 							Body: "<pending>",
 						},
 					},
-					ClientHeader:   txtMsg.ClientHeader,
+					ClientHeader: chat1.MessageClientHeaderVerified{
+						Conv:         txtMsg.ClientHeader.Conv,
+						TlfName:      txtMsg.ClientHeader.TlfName,
+						TlfPublic:    txtMsg.ClientHeader.TlfPublic,
+						MessageType:  chat1.MessageType_TEXT,
+						Sender:       txtMsg.ClientHeader.Sender,
+						SenderDevice: txtMsg.ClientHeader.SenderDevice,
+					},
 					ServerHeader:   *txtMsg.ServerHeader,
 					SenderUsername: "???",
 				},

@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/keybase/backoff"
 	"golang.org/x/net/context"
 )
 
@@ -228,8 +228,8 @@ type Connection struct {
 	handler          ConnectionHandler
 	transport        ConnectionTransport
 	errorUnwrapper   ErrorUnwrapper
-	reconnectBackoff backoff.BackOff
-	doCommandBackoff backoff.BackOff
+	reconnectBackoff func() backoff.BackOff
+	doCommandBackoff func() backoff.BackOff
 	wef              WrapErrorFunc
 	tagsFunc         LogTagsFromContext
 	log              connectionLog
@@ -248,13 +248,18 @@ type Connection struct {
 // This struct contains all the connection parameters that are optional. The
 // mandatory parameters are given as positional arguments to the different
 // wrapper functions, along with this struct.
+//
+// The backoffs are functions that created backoff.BackOffs, rather
+// than backoff instances, since some backoffs can be stateful and not
+// goroutine-safe (e.g., backoff.Exponential).  Connection will call
+// these functions once for each command call and reconnect attempt.
 type ConnectionOpts struct {
 	TagsFunc         LogTagsFromContext
 	Protocols        []Protocol
 	DontConnectNow   bool
 	WrapErrorFunc    WrapErrorFunc
-	ReconnectBackoff backoff.BackOff
-	CommandBackoff   backoff.BackOff
+	ReconnectBackoff func() backoff.BackOff
+	CommandBackoff   func() backoff.BackOff
 }
 
 // NewTLSConnection returns a connection that tries to connect to the
@@ -275,14 +280,6 @@ func NewTLSConnection(
 		wef:        opts.WrapErrorFunc,
 	}
 	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
-}
-
-func copyTLSConfig(c *tls.Config) *tls.Config {
-	if c == nil {
-		return nil
-	}
-	tmp := *c
-	return &tmp
 }
 
 // NewTLSConnectionWithTLSConfig allows you to specify a RootCA pool and also
@@ -329,11 +326,11 @@ func newConnectionWithTransportAndProtocols(handler ConnectionHandler,
 	}
 	reconnectBackoff := opts.ReconnectBackoff
 	if reconnectBackoff == nil {
-		reconnectBackoff = defaultBackoff()
+		reconnectBackoff = defaultBackoff
 	}
 	commandBackoff := opts.CommandBackoff
 	if commandBackoff == nil {
-		commandBackoff = defaultBackoff()
+		commandBackoff = defaultBackoff
 	}
 	randBytes := make([]byte, 4)
 	rand.Read(randBytes)
@@ -427,7 +424,7 @@ func (c *Connection) DoCommand(ctx context.Context, name string,
 			}
 			rpcErr = throttleErr
 			return nil
-		}, c.doCommandBackoff, c.handler.OnDoCommandError)
+		}, c.doCommandBackoff(), c.handler.OnDoCommandError)
 
 		// RetryNotify gave up.
 		if throttleErr != nil {
@@ -530,7 +527,7 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 			return nil
 		}
 		return err
-	}, c.reconnectBackoff,
+	}, c.reconnectBackoff(),
 		// give the caller a chance to log any other error or adjust state
 		c.handler.OnConnectError)
 

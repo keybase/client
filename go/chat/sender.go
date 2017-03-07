@@ -293,7 +293,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	}
 
 	// encrypt the message
-	skp, err := s.getSigningKeyPair()
+	skp, err := s.getSigningKeyPair(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -308,9 +308,9 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	return boxed, pendingAssetDeletes, nil
 }
 
-func (s *BlockingSender) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err error) {
+func (s *BlockingSender) getSigningKeyPair(ctx context.Context) (kp libkb.NaclSigningKeyPair, err error) {
 	// get device signing key for this user
-	signingKey, err := engine.GetMySecretKey(s.G(), s.getSecretUI, libkb.DeviceSigningKeyType, "sign chat message")
+	signingKey, err := engine.GetMySecretKey(ctx, s.G(), s.getSecretUI, libkb.DeviceSigningKeyType, "sign chat message")
 	if err != nil {
 		return libkb.NaclSigningKeyPair{}, err
 	}
@@ -426,7 +426,6 @@ type Deliverer struct {
 
 	sender        Sender
 	outbox        *storage.Outbox
-	storage       *storage.Storage
 	identNotifier *IdentifyNotifier
 	shutdownCh    chan chan struct{}
 	msgSentCh     chan struct{}
@@ -444,7 +443,6 @@ func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 		msgSentCh:     make(chan struct{}, 100),
 		reconnectCh:   make(chan struct{}, 100),
 		sender:        sender,
-		storage:       storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
 		identNotifier: NewIdentifyNotifier(g),
 		clock:         clockwork.NewRealClock(),
 	}
@@ -568,6 +566,8 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 			s.outbox.GetUID(), err.Error())
 		return err
 	}
+
+	obr.State = chat1.NewOutboxStateWithError(oserr)
 	act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
 		OutboxRecords: []chat1.OutboxRecord{obr},
 	})

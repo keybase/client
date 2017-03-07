@@ -98,9 +98,8 @@ func (e *PaperKeyGen) Run(ctx *Context) error {
 	if e.arg.SkipPush {
 		return nil
 	}
-	e.G().NotifyRouter.HandleKeyfamilyChanged(e.arg.Me.GetUID())
-	// Remove this after kbfs notification change complete
-	e.G().UserChanged(e.arg.Me.GetUID())
+
+	e.G().KeyfamilyChanged(e.arg.Me.GetUID())
 
 	return nil
 }
