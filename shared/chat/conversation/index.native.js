@@ -24,15 +24,15 @@ const Conversation = (props: Props) => (
         username={props.finalizeInfo.resetUser} />
       : <Input {...props.inputProps} /> }
     {props.sidePanelOpen && <SidePanel
-       you={props.you}
-       metaDataMap={props.metaDataMap}
-       followingMap={props.followingMap}
-       muted={props.muted}
-       onAddParticipant={props.onAddParticipant}
-       onMuteConversation={props.onMuteConversation}
-       onShowProfile={props.onShowProfile}
-       onToggleSidePanel={props.onToggleSidePanel}
-       participants={props.participants} /> }
+      you={props.you}
+      metaDataMap={props.metaDataMap}
+      followingMap={props.followingMap}
+      muted={props.muted}
+      onAddParticipant={props.onAddParticipant}
+      onMuteConversation={props.onMuteConversation}
+      onShowProfile={props.onShowProfile}
+      onToggleSidePanel={props.onToggleSidePanel}
+      participants={props.participants} /> }
   </Box>
 )
 
