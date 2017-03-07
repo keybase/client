@@ -19,6 +19,7 @@ let config: {[key: string]: any} = {
   featureFlagsOverride: null,
   forceImmediateLogging: false,
   forwardLogs: true,
+  isDevApplePushToken: false,
   isTesting: nativeBridge.test === '1',
   immediateStateLogging: false,
   logStatFrequency: 0,
@@ -32,6 +33,7 @@ let config: {[key: string]: any} = {
 }
 
 if (__DEV__ && true) {
+  config.isDevApplePushToken = true
   config.devStoreChangingFunctions = true
   config.dumbChatOnly = false
   config.dumbSheetOnly = false
@@ -57,6 +59,7 @@ export const {
   featureFlagsOverride,
   forceImmediateLogging,
   forwardLogs,
+  isDevApplePushToken,
   isTesting,
   immediateStateLogging,
   logStatFrequency,
