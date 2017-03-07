@@ -206,16 +206,25 @@ protocol common {
     bytes n;  // nonce
   }
 
+  record SignEncryptedData {
+    int   v; // version = 1
+    bytes e; // signEncryptedData (output of signencrypt.SealWhole)
+    bytes n; // nonce
+  }
+
+  // Encrypted or SignEncrypted. Must know which from context.
+  record SealedData {
+    int   v;  // version = 1
+    // Encrypted: output of secret box
+    // SignEncrypted: output of signencrypt.SealWhole
+    bytes e;
+    bytes n;  // nonce
+  }
+
   record SignatureInfo {
     int   v; // version = 1
     bytes s; // signature; output of EdDSA
     bytes k; // Verifying key
-  }
-
-  record SignEncryptedData {
-    int   v; // version = 1
-    bytes b; // signEncryptedData (output of signencrypt.SealWhole)
-    bytes n; // nonce
   }
 
   record MerkleRoot {

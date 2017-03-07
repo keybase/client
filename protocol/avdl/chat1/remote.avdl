@@ -16,12 +16,8 @@ protocol remote {
     MessageClientHeader clientHeader;
 
     // V1: Encrypted HeaderPlaintext
-    // V2: Empty
-    EncryptedData headerCiphertext;
-
-    // V1: Missing
     // V2: SignEncrypted HeaderPlaintext
-    SignEncryptedData headerSealed;
+    SealedData headerCiphertext;
 
     // [V1, V2]: Encrypted BodyPlaintext
     EncryptedData bodyCiphertext;
@@ -30,7 +26,7 @@ protocol remote {
     // V2: KID of the signing key used on headerSealed.
     //     Used to open and verify headerSealed.
     //     Must be asserted to belong to the sender when unboxing.
-    bytes headerVerificationKey;
+    bytes verifyKey;
 
     // [V1, V2]: Key generation of the encryption key
     int keyGeneration;
