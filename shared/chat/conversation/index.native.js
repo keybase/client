@@ -23,7 +23,7 @@ const Conversation = (props: Props) => (
         onOpenNewerConversation={props.onOpenNewerConversation}
         username={props.finalizeInfo.resetUser} />
       : <Input {...props.inputProps} /> }
-     {props.sidePanelOpen && <SidePanel
+    {props.sidePanelOpen && <SidePanel
        you={props.you}
        metaDataMap={props.metaDataMap}
        followingMap={props.followingMap}
