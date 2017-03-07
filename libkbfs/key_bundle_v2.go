@@ -212,8 +212,8 @@ type TLFWriterKeyBundleV2 struct {
 }
 
 // IsWriter returns true if the given user device is in the writer set.
-func (wkb TLFWriterKeyBundleV2) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
-	_, ok := wkb.WKeys[user][deviceKID]
+func (wkb TLFWriterKeyBundleV2) IsWriter(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey) bool {
+	_, ok := wkb.WKeys[user][deviceKey.KID()]
 	return ok
 }
 
@@ -228,12 +228,12 @@ func (wkg TLFWriterKeyGenerationsV2) LatestKeyGeneration() KeyGen {
 
 // IsWriter returns whether or not the user+device is an authorized writer
 // for the latest generation.
-func (wkg TLFWriterKeyGenerationsV2) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
+func (wkg TLFWriterKeyGenerationsV2) IsWriter(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey) bool {
 	keyGen := wkg.LatestKeyGeneration()
 	if keyGen < 1 {
 		return false
 	}
-	return wkg[keyGen-1].IsWriter(user, deviceKID)
+	return wkg[keyGen-1].IsWriter(user, deviceKey)
 }
 
 // ToTLFWriterKeyBundleV3 converts a TLFWriterKeyGenerationsV2 to a TLFWriterKeyBundleV3.
@@ -306,8 +306,8 @@ type TLFReaderKeyBundleV2 struct {
 }
 
 // IsReader returns true if the given user device is in the reader set.
-func (trb TLFReaderKeyBundleV2) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
-	_, ok := trb.RKeys[user][deviceKID]
+func (trb TLFReaderKeyBundleV2) IsReader(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey) bool {
+	_, ok := trb.RKeys[user][deviceKey.KID()]
 	return ok
 }
 
@@ -322,12 +322,12 @@ func (rkg TLFReaderKeyGenerationsV2) LatestKeyGeneration() KeyGen {
 
 // IsReader returns whether or not the user+device is an authorized reader
 // for the latest generation.
-func (rkg TLFReaderKeyGenerationsV2) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
+func (rkg TLFReaderKeyGenerationsV2) IsReader(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey) bool {
 	keyGen := rkg.LatestKeyGeneration()
 	if keyGen < 1 {
 		return false
 	}
-	return rkg[keyGen-1].IsReader(user, deviceKID)
+	return rkg[keyGen-1].IsReader(user, deviceKey)
 }
 
 // ToTLFReaderKeyBundleV3 converts a TLFReaderKeyGenerationsV2 to a TLFReaderkeyBundleV3.

@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 )
 
@@ -581,15 +582,14 @@ func (e MDWriteNeededInRequest) Error() string {
 	return "This request needs MD write access, but doesn't have it."
 }
 
-// KeyNotFoundError indicates that a key matching the given KID
-// couldn't be found.
-type KeyNotFoundError struct {
-	kid keybase1.KID
+// VerifyingKeyNotFoundError indicates that a verifying key matching
+// the given one couldn't be found.
+type VerifyingKeyNotFoundError struct {
+	key kbfscrypto.VerifyingKey
 }
 
-// Error implements the error interface for KeyNotFoundError.
-func (e KeyNotFoundError) Error() string {
-	return fmt.Sprintf("Could not find key with kid=%s", e.kid)
+func (e VerifyingKeyNotFoundError) Error() string {
+	return fmt.Sprintf("Could not find verifyin key %s", e.key)
 }
 
 // UnverifiableTlfUpdateError indicates that a MD update could not be

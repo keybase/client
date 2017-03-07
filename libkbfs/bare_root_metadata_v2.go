@@ -307,7 +307,7 @@ func (md *BareRootMetadataV2) IsFinal() bool {
 
 // IsWriter implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) IsWriter(
-	user keybase1.UID, deviceKID keybase1.KID, _ ExtraMetadata) bool {
+	user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, _ ExtraMetadata) bool {
 	if md.ID.IsPublic() {
 		for _, w := range md.Writers {
 			if w == user {
@@ -316,16 +316,16 @@ func (md *BareRootMetadataV2) IsWriter(
 		}
 		return false
 	}
-	return md.WKeys.IsWriter(user, deviceKID)
+	return md.WKeys.IsWriter(user, deviceKey)
 }
 
 // IsReader implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) IsReader(
-	user keybase1.UID, deviceKID keybase1.KID, _ ExtraMetadata) bool {
+	user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, _ ExtraMetadata) bool {
 	if md.ID.IsPublic() {
 		return true
 	}
-	return md.RKeys.IsReader(user, deviceKID)
+	return md.RKeys.IsReader(user, deviceKey)
 }
 
 func (md *BareRootMetadataV2) deepCopy(

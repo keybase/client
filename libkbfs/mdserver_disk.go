@@ -30,7 +30,7 @@ type mdServerDiskShared struct {
 	lock sync.RWMutex
 	// Bare TLF handle -> TLF ID
 	handleDb *leveldb.DB
-	// (TLF ID, device KID) -> branch ID
+	// (TLF ID, device crypt public key) -> branch ID
 	branchDb   *leveldb.DB
 	tlfStorage map[tlf.ID]*mdServerTlfStorage
 	// Always use memory for the lock storage, so it gets wiped
@@ -234,7 +234,7 @@ func (md *MDServerDisk) getBranchKey(ctx context.Context, id tlf.ID) ([]byte, er
 	if err != nil {
 		return nil, err
 	}
-	// add device KID
+	// add device key
 	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
 		return nil, err
@@ -505,7 +505,7 @@ func (md *MDServerDisk) TruncateLock(ctx context.Context, id tlf.ID) (
 		return false, err
 	}
 
-	return md.truncateLockManager.truncateLock(session.CryptPublicKey.KID(), id)
+	return md.truncateLockManager.truncateLock(session.CryptPublicKey, id)
 }
 
 // TruncateUnlock implements the MDServer interface for MDServerDisk.
@@ -527,7 +527,7 @@ func (md *MDServerDisk) TruncateUnlock(ctx context.Context, id tlf.ID) (
 		return false, err
 	}
 
-	return md.truncateLockManager.truncateUnlock(session.CryptPublicKey.KID(), id)
+	return md.truncateLockManager.truncateUnlock(session.CryptPublicKey, id)
 }
 
 // Shutdown implements the MDServer interface for MDServerDisk.

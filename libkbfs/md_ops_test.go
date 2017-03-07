@@ -371,7 +371,7 @@ func testMDOpsGetForHandlePublicFailFindKey(t *testing.T, ver MetadataVer) {
 	rmds, _ := newRMDS(t, config, h)
 
 	// Do this before setting tlfHandle to nil.
-	verifyMDForPublic(config, rmds, KeyNotFoundError{})
+	verifyMDForPublic(config, rmds, VerifyingKeyNotFoundError{})
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(tlf.NullID, rmds, nil)
 

@@ -113,7 +113,7 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 	}
 
 	err = ks.config.Crypto().VerifyTLFCryptKeyServerHalfID(
-		serverHalfID, session.UID, key.KID(), serverHalf)
+		serverHalfID, session.UID, key, serverHalf)
 	if err != nil {
 		ks.log.CDebugf(ctx, "error verifying server half ID: %+v", err)
 		return kbfscrypto.TLFCryptKeyServerHalf{}, MDServerErrorUnauthorized{
@@ -139,12 +139,12 @@ func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
 	batch := &leveldb.Batch{}
 	crypto := ks.config.Crypto()
 	for uid, deviceMap := range keyServerHalves {
-		for deviceKID, serverHalf := range deviceMap {
+		for deviceKey, serverHalf := range deviceMap {
 			buf, err := ks.config.Codec().Encode(serverHalf)
 			if err != nil {
 				return err
 			}
-			id, err := crypto.GetTLFCryptKeyServerHalfID(uid, deviceKID, serverHalf)
+			id, err := crypto.GetTLFCryptKeyServerHalfID(uid, deviceKey, serverHalf)
 			if err != nil {
 				return err
 			}
@@ -157,7 +157,7 @@ func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
 // DeleteTLFCryptKeyServerHalf implements the KeyOps interface for
 // KeyServerLocal.
 func (ks *KeyServerLocal) DeleteTLFCryptKeyServerHalf(ctx context.Context,
-	_ keybase1.UID, _ keybase1.KID,
+	_ keybase1.UID, _ kbfscrypto.CryptPublicKey,
 	serverHalfID TLFCryptKeyServerHalfID) error {
 	if err := checkContext(ctx); err != nil {
 		return err

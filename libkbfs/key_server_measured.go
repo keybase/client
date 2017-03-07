@@ -60,11 +60,11 @@ func (b KeyServerMeasured) PutTLFCryptKeyServerHalves(ctx context.Context,
 // DeleteTLFCryptKeyServerHalf implements the KeyServer interface for
 // KeyServerMeasured.
 func (b KeyServerMeasured) DeleteTLFCryptKeyServerHalf(ctx context.Context,
-	uid keybase1.UID, kid keybase1.KID,
+	uid keybase1.UID, key kbfscrypto.CryptPublicKey,
 	serverHalfID TLFCryptKeyServerHalfID) (err error) {
 	b.deleteTimer.Time(func() {
 		err = b.delegate.DeleteTLFCryptKeyServerHalf(
-			ctx, uid, kid, serverHalfID)
+			ctx, uid, key, serverHalfID)
 	})
 	return err
 }

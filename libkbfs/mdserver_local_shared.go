@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 )
@@ -54,25 +55,25 @@ func isWriterOrValidRekey(codec kbfscodec.Codec, currentUID keybase1.UID,
 // mdServerLocalTruncateLockManager manages the truncate locks for a
 // set of TLFs. Note that it is not goroutine-safe.
 type mdServerLocalTruncateLockManager struct {
-	// TLF ID -> device KID.
-	locksDb map[tlf.ID]keybase1.KID
+	// TLF ID -> device crypt public key.
+	locksDb map[tlf.ID]kbfscrypto.CryptPublicKey
 }
 
 func newMDServerLocalTruncatedLockManager() mdServerLocalTruncateLockManager {
 	return mdServerLocalTruncateLockManager{
-		locksDb: make(map[tlf.ID]keybase1.KID),
+		locksDb: make(map[tlf.ID]kbfscrypto.CryptPublicKey),
 	}
 }
 
 func (m mdServerLocalTruncateLockManager) truncateLock(
-	deviceKID keybase1.KID, id tlf.ID) (bool, error) {
-	lockKID, ok := m.locksDb[id]
+	deviceKey kbfscrypto.CryptPublicKey, id tlf.ID) (bool, error) {
+	lockKey, ok := m.locksDb[id]
 	if !ok {
-		m.locksDb[id] = deviceKID
+		m.locksDb[id] = deviceKey
 		return true, nil
 	}
 
-	if lockKID == deviceKID {
+	if lockKey == deviceKey {
 		// idempotent
 		return true, nil
 	}
@@ -82,14 +83,14 @@ func (m mdServerLocalTruncateLockManager) truncateLock(
 }
 
 func (m mdServerLocalTruncateLockManager) truncateUnlock(
-	deviceKID keybase1.KID, id tlf.ID) (bool, error) {
-	lockKID, ok := m.locksDb[id]
+	deviceKey kbfscrypto.CryptPublicKey, id tlf.ID) (bool, error) {
+	lockKey, ok := m.locksDb[id]
 	if !ok {
 		// Already unlocked.
 		return true, nil
 	}
 
-	if lockKID == deviceKID {
+	if lockKey == deviceKey {
 		delete(m.locksDb, id)
 		return true, nil
 	}

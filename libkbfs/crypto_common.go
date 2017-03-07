@@ -417,13 +417,13 @@ func (c CryptoCommon) GetTLFCryptKeyServerHalfID(
 // VerifyTLFCryptKeyServerHalfID implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) VerifyTLFCryptKeyServerHalfID(
 	serverHalfID TLFCryptKeyServerHalfID,
-	user keybase1.UID, deviceKID keybase1.KID,
+	user keybase1.UID, devicePubKey kbfscrypto.CryptPublicKey,
 	serverHalf kbfscrypto.TLFCryptKeyServerHalf) error {
 	key, err := serverHalf.MarshalBinary()
 	if err != nil {
 		return err
 	}
-	data := append(user.ToBytes(), deviceKID.ToBytes()...)
+	data := append(user.ToBytes(), devicePubKey.KID().ToBytes()...)
 	return serverHalfID.ID.Verify(key, data)
 }
 

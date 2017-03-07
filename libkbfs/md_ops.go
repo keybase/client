@@ -37,7 +37,7 @@ func NewMDOpsStandard(config Config) *MDOpsStandard {
 // signed by a key that is no longer associated with the last writer.
 func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 	rmds *RootMetadataSigned, handle *TlfHandle, err error) error {
-	if _, ok := err.(KeyNotFoundError); !ok {
+	if _, ok := err.(VerifyingKeyNotFoundError); !ok {
 		return err
 	}
 

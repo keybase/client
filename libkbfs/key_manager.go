@@ -784,7 +784,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 					len(serverHalfIDs), key, uid)
 				for _, serverHalfID := range serverHalfIDs {
 					err := kops.DeleteTLFCryptKeyServerHalf(
-						ctx, uid, key.KID(), serverHalfID)
+						ctx, uid, key, serverHalfID)
 					if err != nil {
 						return false, nil, err
 					}

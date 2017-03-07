@@ -256,7 +256,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 		keyServer = mdServer.(*MDServerRemote)
 	} else {
 		// copy the existing mdServer but update the config
-		// this way the current device KID is paired with
+		// this way the current device key is paired with
 		// the proper user yet the DB state is all shared.
 		mdServerToCopy := config.MDServer().(mdServerLocal)
 		mdServer = mdServerToCopy.copy(mdServerLocalConfigAdapter{c})

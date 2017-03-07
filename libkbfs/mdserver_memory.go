@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -27,7 +28,7 @@ type mdBlockKey struct {
 
 type mdBranchKey struct {
 	tlfID     tlf.ID
-	deviceKID keybase1.KID
+	deviceKey kbfscrypto.CryptPublicKey
 }
 
 type mdExtraWriterKey struct {
@@ -67,7 +68,7 @@ type mdServerMemShared struct {
 	writerKeyBundleDb map[mdExtraWriterKey]TLFWriterKeyBundleV3
 	// Reader key bundle ID -> reader key bundles
 	readerKeyBundleDb map[mdExtraReaderKey]TLFReaderKeyBundleV3
-	// (TLF ID, device KID) -> branch ID
+	// (TLF ID, crypt public key) -> branch ID
 	branchDb            map[mdBranchKey]BranchID
 	truncateLockManager *mdServerLocalTruncateLockManager
 
@@ -292,20 +293,21 @@ func (md *MDServerMemory) getMDKey(
 
 func (md *MDServerMemory) getBranchKey(ctx context.Context, id tlf.ID) (
 	mdBranchKey, error) {
-	// add device KID
-	deviceKID, err := md.getCurrentDeviceKID(ctx)
+	// add device key
+	deviceKey, err := md.getCurrentDeviceKey(ctx)
 	if err != nil {
 		return mdBranchKey{}, err
 	}
-	return mdBranchKey{id, deviceKID}, nil
+	return mdBranchKey{id, deviceKey}, nil
 }
 
-func (md *MDServerMemory) getCurrentDeviceKID(ctx context.Context) (keybase1.KID, error) {
+func (md *MDServerMemory) getCurrentDeviceKey(ctx context.Context) (
+	kbfscrypto.CryptPublicKey, error) {
 	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
-		return keybase1.KID(""), err
+		return kbfscrypto.CryptPublicKey{}, err
 	}
-	return session.CryptPublicKey.KID(), nil
+	return session.CryptPublicKey, nil
 }
 
 // GetRange implements the MDServer interface for MDServerMemory.
@@ -608,14 +610,14 @@ func (md *MDServerMemory) CancelRegistration(_ context.Context, id tlf.ID) {
 	md.updateManager.cancel(id, md)
 }
 
-func (md *MDServerMemory) getCurrentDeviceKIDBytes(ctx context.Context) (
+func (md *MDServerMemory) getCurrentDeviceKeyBytes(ctx context.Context) (
 	[]byte, error) {
 	buf := &bytes.Buffer{}
-	deviceKID, err := md.getCurrentDeviceKID(ctx)
+	deviceKey, err := md.getCurrentDeviceKey(ctx)
 	if err != nil {
 		return []byte{}, err
 	}
-	_, err = buf.Write(deviceKID.ToBytes())
+	_, err = buf.Write(deviceKey.KID().ToBytes())
 	if err != nil {
 		return []byte{}, err
 	}
@@ -636,12 +638,12 @@ func (md *MDServerMemory) TruncateLock(ctx context.Context, id tlf.ID) (
 		return false, err
 	}
 
-	myKID, err := md.getCurrentDeviceKID(ctx)
+	myKey, err := md.getCurrentDeviceKey(ctx)
 	if err != nil {
 		return false, err
 	}
 
-	return md.truncateLockManager.truncateLock(myKID, id)
+	return md.truncateLockManager.truncateLock(myKey, id)
 }
 
 // TruncateUnlock implements the MDServer interface for MDServerMemory.
@@ -658,12 +660,12 @@ func (md *MDServerMemory) TruncateUnlock(ctx context.Context, id tlf.ID) (
 		return false, err
 	}
 
-	myKID, err := md.getCurrentDeviceKID(ctx)
+	myKey, err := md.getCurrentDeviceKey(ctx)
 	if err != nil {
 		return false, err
 	}
 
-	return md.truncateLockManager.truncateUnlock(myKID, id)
+	return md.truncateLockManager.truncateUnlock(myKey, id)
 }
 
 // Shutdown implements the MDServer interface for MDServerMemory.

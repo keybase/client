@@ -365,7 +365,7 @@ func (md *BareRootMetadataV3) getTLFKeyBundles(extra ExtraMetadata) (
 
 // IsWriter implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) IsWriter(
-	user keybase1.UID, deviceKID keybase1.KID, extra ExtraMetadata) bool {
+	user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool {
 	if md.TlfID().IsPublic() {
 		err := md.checkPublicExtra(extra)
 		if err != nil {
@@ -383,12 +383,12 @@ func (md *BareRootMetadataV3) IsWriter(
 	if err != nil {
 		panic(err)
 	}
-	return wkb.IsWriter(user, deviceKID)
+	return wkb.IsWriter(user, deviceKey)
 }
 
 // IsReader implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) IsReader(
-	user keybase1.UID, deviceKID keybase1.KID, extra ExtraMetadata) bool {
+	user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool {
 	if md.TlfID().IsPublic() {
 		err := md.checkPublicExtra(extra)
 		if err != nil {
@@ -400,7 +400,7 @@ func (md *BareRootMetadataV3) IsReader(
 	if err != nil {
 		panic(err)
 	}
-	return rkb.IsReader(user, deviceKID)
+	return rkb.IsReader(user, deviceKey)
 }
 
 // DeepCopy implements the BareRootMetadata interface for BareRootMetadataV3.

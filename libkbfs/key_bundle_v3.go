@@ -215,8 +215,8 @@ func DeserializeTLFWriterKeyBundleV3(codec kbfscodec.Codec, path string) (
 }
 
 // IsWriter returns true if the given user device is in the device set.
-func (wkb TLFWriterKeyBundleV3) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
-	_, ok := wkb.Keys[user][kbfscrypto.MakeCryptPublicKey(deviceKID)]
+func (wkb TLFWriterKeyBundleV3) IsWriter(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey) bool {
+	_, ok := wkb.Keys[user][deviceKey]
 	return ok
 }
 
@@ -327,8 +327,8 @@ func DeserializeTLFReaderKeyBundleV3(codec kbfscodec.Codec, path string) (
 }
 
 // IsReader returns true if the given user device is in the reader set.
-func (rkb TLFReaderKeyBundleV3) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
-	_, ok := rkb.Keys[user][kbfscrypto.MakeCryptPublicKey(deviceKID)]
+func (rkb TLFReaderKeyBundleV3) IsReader(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey) bool {
+	_, ok := rkb.Keys[user][deviceKey]
 	return ok
 }
 
