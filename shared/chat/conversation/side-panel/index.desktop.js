@@ -2,7 +2,7 @@
 import React from 'react'
 import {Box, Checkbox, Divider, Icon} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
-import Participants from './participants.desktop'
+import Participants from './participants'
 
 import type {Props} from '.'
 
