@@ -1,7 +1,8 @@
 // @flow
 import React from 'react'
-import {Box, Checkbox, Divider, Icon, NativeScrollView, PopupDialog, Text} from '../../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../../styles'
+import {Box, Checkbox, Divider, Icon, PopupDialog} from '../../../common-adapters'
+import {NativeScrollView} from '../../../common-adapters/index.native'
+import {globalMargins, globalStyles} from '../../../styles'
 import Participants from './participants'
 
 import type {Props} from '.'
