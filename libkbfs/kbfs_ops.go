@@ -179,7 +179,7 @@ func (fs *KBFSOpsStandard) RefreshCachedFavorites(ctx context.Context) {
 func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
 	fav Favorite) error {
 	kbpki := fs.config.KBPKI()
-	_, _, err := kbpki.GetCurrentUserInfo(ctx)
+	_, err := kbpki.GetCurrentSession(ctx)
 	isLoggedIn := err == nil
 
 	if isLoggedIn {
@@ -197,7 +197,7 @@ func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
 func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
 	fav Favorite) error {
 	kbpki := fs.config.KBPKI()
-	_, _, err := kbpki.GetCurrentUserInfo(ctx)
+	_, err := kbpki.GetCurrentSession(ctx)
 	isLoggedIn := err == nil
 
 	// Let this ops remove itself, if we have one available.
@@ -651,7 +651,7 @@ func (fs *KBFSOpsStandard) FolderStatus(
 // Status implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	KBFSStatus, <-chan StatusUpdate, error) {
-	username, _, err := fs.config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := fs.config.KBPKI().GetCurrentSession(ctx)
 	var usageBytes int64 = -1
 	var limitBytes int64 = -1
 	// Don't request the quota info until we're sure we've
@@ -681,7 +681,7 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	}
 
 	return KBFSStatus{
-		CurrentUser:     username.String(),
+		CurrentUser:     session.Name.String(),
 		IsConnected:     fs.config.MDServer().IsConnected(),
 		UsageBytes:      usageBytes,
 		LimitBytes:      limitBytes,

@@ -694,11 +694,12 @@ func (fbo *folderBlockOps) DeepCopyFile(
 	// so only a read lock is needed.
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
-	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		return BlockPointer{}, nil, err
 	}
-	fd := fbo.newFileDataWithCache(lState, file, uid, kmd, dirtyBcache)
+	fd := fbo.newFileDataWithCache(
+		lState, file, session.UID, kmd, dirtyBcache)
 	return fd.deepCopy(ctx, dataVer)
 }
 
@@ -707,11 +708,12 @@ func (fbo *folderBlockOps) UndupChildrenInCopy(ctx context.Context,
 	dirtyBcache DirtyBlockCache, topBlock *FileBlock) ([]BlockInfo, error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
-	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	fd := fbo.newFileDataWithCache(lState, file, uid, kmd, dirtyBcache)
+	fd := fbo.newFileDataWithCache(
+		lState, file, session.UID, kmd, dirtyBcache)
 	return fd.undupChildrenInCopy(ctx, fbo.config.BlockCache(),
 		fbo.config.BlockOps(), bps, topBlock)
 }
@@ -721,11 +723,12 @@ func (fbo *folderBlockOps) ReadyNonLeafBlocksInCopy(ctx context.Context,
 	dirtyBcache DirtyBlockCache, topBlock *FileBlock) ([]BlockInfo, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
-	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	fd := fbo.newFileDataWithCache(lState, file, uid, kmd, dirtyBcache)
+	fd := fbo.newFileDataWithCache(
+		lState, file, session.UID, kmd, dirtyBcache)
 	return fd.readyNonLeafBlocksInCopy(ctx, fbo.config.BlockCache(),
 		fbo.config.BlockOps(), bps, topBlock)
 }
@@ -1074,12 +1077,12 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 		return
 	}
 
-	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't find uid during recovery: %v", err)
 		return
 	}
-	fd := fbo.newFileData(lState, file, uid, kmd)
+	fd := fbo.newFileData(lState, file, session.UID, kmd)
 
 	// If a copy of the top indirect block was made, we need to
 	// redirty all the sync'd blocks under their new IDs, so that
@@ -1328,18 +1331,19 @@ func (fbo *folderBlockOps) writeGetFileLocked(
 	file path) (*FileBlock, keybase1.UID, error) {
 	fbo.blockLock.AssertLocked(lState)
 
-	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		return nil, "", err
 	}
-	if !kmd.GetTlfHandle().IsWriter(uid) {
-		return nil, "", NewWriteAccessError(kmd.GetTlfHandle(), username, file.String())
+	if !kmd.GetTlfHandle().IsWriter(session.UID) {
+		return nil, "", NewWriteAccessError(kmd.GetTlfHandle(),
+			session.Name, file.String())
 	}
 	fblock, err := fbo.getFileLocked(ctx, lState, kmd, file, blockWrite)
 	if err != nil {
 		return nil, "", err
 	}
-	return fblock, uid, nil
+	return fblock, session.UID, nil
 }
 
 // Returns the set of blocks dirtied during this write that might need

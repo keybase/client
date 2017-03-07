@@ -173,16 +173,16 @@ func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
 		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""), err
 	}
 
-	username, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""), err
 	}
 
 	// Make sure we're a writer before doing anything else.
-	if !handle.IsWriter(uid) {
+	if !handle.IsWriter(session.UID) {
 		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""),
 			libkbfs.NewWriteAccessError(
-				handle, username, handle.GetCanonicalPath())
+				handle, session.Name, handle.GetCanonicalPath())
 	}
 
 	fmt.Printf("Looking for unmerged branch...\n")
@@ -211,5 +211,5 @@ func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
 		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""), nil
 	}
 
-	return irmd, uid, nil
+	return irmd, session.UID, nil
 }

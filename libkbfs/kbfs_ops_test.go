@@ -190,13 +190,13 @@ func kbfsOpsInitNoMocks(t *testing.T, users ...libkb.NormalizedUsername) (
 		t.Fatal(err)
 	}
 
-	_, currentUID, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	initSuccess = true
-	return config, currentUID, ctx, cancel
+	return config, session.UID, ctx, cancel
 }
 
 func kbfsTestShutdownNoMocks(t *testing.T, config *ConfigLocal,
@@ -314,7 +314,7 @@ func createNewRMD(t *testing.T, config Config, name string, public bool) (
 
 func makeImmutableRMDForTest(t *testing.T, config Config, rmd *RootMetadata,
 	mdID MdID) ImmutableRootMetadata {
-	key, err := config.KBPKI().GetCurrentVerifyingKey(context.Background())
+	session, err := config.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
 	// We have to fake out the signature here because most tests
 	// in this file modify the returned value, invalidating any
@@ -322,14 +322,14 @@ func makeImmutableRMDForTest(t *testing.T, config Config, rmd *RootMetadata,
 	// not do so, and then just use MakeImmutableRootMetadata.
 	if brmdv2, ok := rmd.bareMd.(*BareRootMetadataV2); ok {
 		vk := brmdv2.WriterMetadataSigInfo.VerifyingKey
-		require.True(t, vk == (kbfscrypto.VerifyingKey{}) || vk == key,
+		require.True(t, vk == (kbfscrypto.VerifyingKey{}) || vk == session.VerifyingKey,
 			"Writer signature %s with unexpected non-nil verifying key != %s",
-			brmdv2.WriterMetadataSigInfo, key)
+			brmdv2.WriterMetadataSigInfo, session.VerifyingKey)
 		brmdv2.WriterMetadataSigInfo = kbfscrypto.SignatureInfo{
-			VerifyingKey: key,
+			VerifyingKey: session.VerifyingKey,
 		}
 	}
-	return MakeImmutableRootMetadata(rmd, key, mdID, time.Now())
+	return MakeImmutableRootMetadata(rmd, session.VerifyingKey, mdID, time.Now())
 }
 
 // injectNewRMD creates a new RMD and makes sure the existing ops for
@@ -761,13 +761,13 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 
-	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rootID := kbfsblock.FakeID(42)
-	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	node := pathNode{makeBP(rootID, rmd, config, session.UID), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 
 	// won't even try getting the block if the user isn't a reader
@@ -1072,11 +1072,11 @@ func (s shimMDOps) Put(ctx context.Context, rmd *RootMetadata) (MdID, error) {
 		return MdID{}, MDServerErrorConflictRevision{}
 	}
 	rmd.SetSerializedPrivateMetadata([]byte{0x1})
-	username, _, err := s.kbpki.GetCurrentUserInfo(ctx)
+	session, err := s.kbpki.GetCurrentSession(ctx)
 	if err != nil {
 		return MdID{}, err
 	}
-	signingKey := MakeLocalUserSigningKeyOrBust(username)
+	signingKey := MakeLocalUserSigningKeyOrBust(session.Name)
 	err = rmd.bareMd.SignWriterMetadataInternally(
 		ctx, s.codec, kbfscrypto.SigningKeySigner{Key: signingKey})
 	if err != nil {
@@ -1090,11 +1090,11 @@ func (s shimMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (MdID, er
 		panic("Unexpected PutUnmerged call")
 	}
 	rmd.SetSerializedPrivateMetadata([]byte{0x2})
-	username, _, err := s.kbpki.GetCurrentUserInfo(ctx)
+	session, err := s.kbpki.GetCurrentSession(ctx)
 	if err != nil {
 		return MdID{}, err
 	}
-	signingKey := MakeLocalUserSigningKeyOrBust(username)
+	signingKey := MakeLocalUserSigningKeyOrBust(session.Name)
 	err = rmd.bareMd.SignWriterMetadataInternally(
 		ctx, s.codec, kbfscrypto.SigningKeySigner{Key: signingKey})
 	if err != nil {

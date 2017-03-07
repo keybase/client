@@ -121,13 +121,14 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 
 	// Get the encrypted version of this secret key for this device
 	kbpki := km.config.KBPKI()
-	username, uid, err := kbpki.GetCurrentUserInfo(ctx)
+	session, err := kbpki.GetCurrentSession(ctx)
 	if err != nil {
 		return kbfscrypto.TLFCryptKey{}, err
 	}
 
 	clientHalf, serverHalfID, cryptPublicKey, err :=
-		km.getTLFCryptKeyParams(ctx, kmd, keyGen, uid, username, flags)
+		km.getTLFCryptKeyParams(ctx, kmd, keyGen, session.UID,
+			session.Name, flags)
 
 	var notPerDeviceEncrypted bool
 	if _, notPerDeviceEncrypted = err.(TLFCryptKeyNotPerDeviceEncrypted); notPerDeviceEncrypted {
@@ -141,7 +142,8 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		case KeyCacheMissError:
 			// not cached, look up the params
 			clientHalf, serverHalfID, cryptPublicKey, err2 :=
-				km.getTLFCryptKeyParams(ctx, kmd, currKeyGen, uid, username, flags)
+				km.getTLFCryptKeyParams(ctx, kmd, currKeyGen,
+					session.UID, session.Name, flags)
 			if err2 != nil {
 				return kbfscrypto.TLFCryptKey{}, err2
 			}
@@ -256,12 +258,13 @@ func (km *KeyManagerStandard) getTLFCryptKeyParams(
 		serverHalfID = serverHalfIDs[index]
 		cryptPublicKey = publicKeys[publicKeyLookup[index]]
 	} else {
-		cryptPublicKey, err = kbpki.GetCurrentCryptPublicKey(ctx)
+		session, err := kbpki.GetCurrentSession(ctx)
 		if err != nil {
 			return kbfscrypto.TLFCryptKeyClientHalf{},
 				TLFCryptKeyServerHalfID{},
 				kbfscrypto.CryptPublicKey{}, err
 		}
+		cryptPublicKey = session.CryptPublicKey
 
 		ePublicKey, encryptedClientHalf, foundServerHalfID, found, err :=
 			kmd.GetTLFCryptKeyParams(keyGen, uid, cryptPublicKey)
@@ -463,7 +466,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 	handle := md.GetTlfHandle()
 
-	username, uid, err := km.config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := km.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		return false, nil, err
 	}
@@ -473,17 +476,17 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		return false, nil, err
 	}
 
-	isWriter := resolvedHandle.IsWriter(uid)
+	isWriter := resolvedHandle.IsWriter(session.UID)
 	if !md.TlfID().IsPublic() && !isWriter {
 		// If I was already a reader, there's nothing more to do
-		if handle.IsReader(uid) {
+		if handle.IsReader(session.UID) {
 			resolvedHandle = handle
 			km.log.CDebugf(ctx, "Local user is not a writer, and was "+
 				"already a reader; reverting back to the original handle")
 		} else {
 			// Only allow yourself to change
 			resolvedHandle, err =
-				handle.ResolveAgainForUser(ctx, km.config.KBPKI(), uid)
+				handle.ResolveAgainForUser(ctx, km.config.KBPKI(), session.UID)
 			if err != nil {
 				return false, nil, err
 			}
@@ -532,7 +535,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 	if !isWriter && incKeyGen {
 		// Readers cannot create the first key generation
-		return false, nil, NewReadAccessError(resolvedHandle, username, resolvedHandle.GetCanonicalPath())
+		return false, nil, NewReadAccessError(resolvedHandle, session.Name, resolvedHandle.GetCanonicalPath())
 	}
 
 	// All writer keys in the desired keyset
@@ -582,7 +585,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 		// Before we add the removed devices, check if we are adding a
 		// new reader device for ourselves.
-		_, addNewReaderDeviceForSelf = newReaderUsers[uid]
+		_, addNewReaderDeviceForSelf = newReaderUsers[session.UID]
 
 		for u := range rRemoved {
 			// FIXME (potential): this could cause a reader to attempt to rekey
@@ -625,13 +628,13 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 				"promoted readers unexpectedly non-empty")
 		}
 
-		if _, userHasNewKeys := newReaderUsers[uid]; userHasNewKeys {
+		if _, userHasNewKeys := newReaderUsers[session.UID]; userHasNewKeys {
 			// Only rekey the logged-in reader.
 			updatedWriterKeys = nil
 			updatedReaderKeys = UserDevicePublicKeys{
-				uid: updatedReaderKeys[uid],
+				session.UID: updatedReaderKeys[session.UID],
 			}
-			delete(newReaderUsers, uid)
+			delete(newReaderUsers, session.UID)
 		} else {
 			// No new reader device for our user, so the reader can't do
 			// anything
@@ -693,7 +696,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		pmd, err := decryptMDPrivateData(
 			ctx, km.config.Codec(), km.config.Crypto(),
 			km.config.BlockCache(), km.config.BlockOps(),
-			km, uid, md.GetSerializedPrivateMetadata(), md, md, km.log)
+			km, session.UID, md.GetSerializedPrivateMetadata(), md, md, km.log)
 		if err != nil {
 			return false, nil, err
 		}

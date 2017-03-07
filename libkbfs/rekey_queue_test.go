@@ -19,21 +19,22 @@ func TestRekeyQueueBasic(t *testing.T) {
 
 	config2 := ConfigAsUser(config1, u2)
 	defer config2.Shutdown(ctx)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	session2, err := config2.KBPKI().GetCurrentSession(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
+	uid2 := session2.UID
 
 	config3 := ConfigAsUser(config1, u3)
 	defer config3.Shutdown(ctx)
-	_, _, err = config3.KBPKI().GetCurrentUserInfo(context.Background())
+	_, err = config3.KBPKI().GetCurrentSession(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	config4 := ConfigAsUser(config1, u4)
 	defer config4.Shutdown(ctx)
-	_, _, err = config4.KBPKI().GetCurrentUserInfo(context.Background())
+	_, err = config4.KBPKI().GetCurrentSession(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

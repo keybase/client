@@ -57,8 +57,9 @@ func TestMDServerBasics(t *testing.T) {
 	defer config.Shutdown(ctx)
 	mdServer := config.MDServer()
 
-	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
+	uid := session.UID
 
 	// (1) get metadata -- allocates an ID
 	h, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
@@ -169,8 +170,9 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 	defer config.Shutdown(ctx)
 	mdServer := config.MDServer()
 
-	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
+	uid := session.UID
 
 	// Create first TLF.
 	h1, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)

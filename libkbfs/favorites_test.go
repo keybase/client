@@ -18,9 +18,11 @@ func favTestInit(t *testing.T) (mockCtrl *gomock.Controller,
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
-	config.mockKbpki.EXPECT().GetCurrentUserInfo(gomock.Any()).AnyTimes().
-		Return(libkb.NormalizedUsername("tester"),
-			keybase1.MakeTestUID(16), nil)
+	config.mockKbpki.EXPECT().GetCurrentSession(gomock.Any()).AnyTimes().
+		Return(SessionInfo{
+			Name: libkb.NormalizedUsername("tester"),
+			UID:  keybase1.MakeTestUID(16),
+		}, nil)
 
 	return mockCtrl, config, context.Background()
 }

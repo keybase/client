@@ -65,11 +65,11 @@ func (e *fsEngine) Name() string {
 func (e *fsEngine) GetUID(user User) keybase1.UID {
 	u := user.(*fsUser)
 	ctx := context.Background()
-	_, uid, err := u.config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := u.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
-		e.tb.Fatalf("GetUID: GetCurrentUserInfo failed with %v", err)
+		e.tb.Fatalf("GetUID: GetCurrentSession failed with %v", err)
 	}
-	return uid
+	return session.UID
 }
 
 func buildRootPath(u *fsUser, isPublic bool) string {
@@ -413,12 +413,12 @@ func (e *fsEngine) Shutdown(user User) error {
 	// Get the user name before shutting everything down.
 	var userName libkb.NormalizedUsername
 	if e.journalDir != "" {
-		var err error
-		userName, _, err =
-			u.config.KBPKI().GetCurrentUserInfo(context.Background())
+		session, err :=
+			u.config.KBPKI().GetCurrentSession(context.Background())
 		if err != nil {
 			return err
 		}
+		userName = session.Name
 	}
 
 	ctx := context.Background()
@@ -577,9 +577,9 @@ func (e *fsEngine) InitTest(ver libkbfs.MetadataVer,
 }
 
 func nameToUID(t testing.TB, config libkbfs.Config) keybase1.UID {
-	_, uid, err := config.KBPKI().GetCurrentUserInfo(context.Background())
+	session, err := config.KBPKI().GetCurrentSession(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
-	return uid
+	return session.UID
 }

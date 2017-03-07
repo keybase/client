@@ -13,7 +13,7 @@ import (
 type mdServerLocalConfig interface {
 	Clock() Clock
 	Codec() kbfscodec.Codec
-	currentInfoGetter() currentInfoGetter
+	currentSessionGetter() currentSessionGetter
 	MetadataVersion() MetadataVer
 	logMaker
 	cryptoPureGetter
@@ -25,6 +25,6 @@ type mdServerLocalConfigAdapter struct {
 	Config
 }
 
-func (ca mdServerLocalConfigAdapter) currentInfoGetter() currentInfoGetter {
+func (ca mdServerLocalConfigAdapter) currentSessionGetter() currentSessionGetter {
 	return ca.Config.KBPKI()
 }

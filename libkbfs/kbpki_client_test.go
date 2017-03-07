@@ -170,22 +170,22 @@ func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
 		t.Fatalf("Expected 1 crypt public key, got %d", len(cryptPublicKeys))
 	}
 
-	kid := cryptPublicKeys[0].KID()
-	expectedKID := localUsers[0].CryptPublicKeys[0].KID()
-	if kid != expectedKID {
-		t.Errorf("Expected %s, got %s", expectedKID, kid)
+	key := cryptPublicKeys[0]
+	expectedKey := localUsers[0].CryptPublicKeys[0]
+	if key != expectedKey {
+		t.Errorf("Expected %s, got %s", expectedKey, key)
 	}
 }
 
 func TestKBPKIClientGetCurrentCryptPublicKey(t *testing.T) {
 	c, _, localUsers := makeTestKBPKIClient(t)
 
-	currPublicKey, err := c.GetCurrentCryptPublicKey(context.Background())
+	session, err := c.GetCurrentSession(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	kid := currPublicKey.KID()
+	kid := session.CryptPublicKey.KID()
 	expectedKID := localUsers[0].GetCurrentCryptPublicKey().KID()
 	if kid != expectedKID {
 		t.Errorf("Expected %s, got %s", expectedKID, kid)

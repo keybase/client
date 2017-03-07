@@ -939,13 +939,13 @@ func (c *ConfigLocal) EnableJournaling(
 	enableErr := func() error {
 		// If this fails, then existing journals will be
 		// enabled when we receive the login notification.
-		uid, key, err :=
-			getCurrentUIDAndVerifyingKey(ctx, c.KBPKI())
+		session, err := c.KBPKI().GetCurrentSession(ctx)
 		if err != nil {
 			return err
 		}
 
-		err = jServer.EnableExistingJournals(ctx, uid, key, bws)
+		err = jServer.EnableExistingJournals(
+			ctx, session.UID, session.VerifyingKey, bws)
 		if err != nil {
 			return err
 		}

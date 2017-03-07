@@ -120,11 +120,10 @@ func TestJournalServerRestart(t *testing.T) {
 		jServer.delegateDirtyBlockCache,
 		jServer.delegateBlockServer, jServer.delegateMDOps, nil, nil,
 		jServer.diskLimiter)
-	uid, verifyingKey, err :=
-		getCurrentUIDAndVerifyingKey(ctx, config.KBPKI())
+	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 	err = jServer.EnableExistingJournals(
-		ctx, uid, verifyingKey, TLFJournalBackgroundWorkPaused)
+		ctx, session.UID, session.VerifyingKey, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 	config.SetBlockCache(jServer.blockCache())
 	config.SetBlockServer(jServer.blockServer())
@@ -443,11 +442,10 @@ func TestJournalServerEnableAuto(t *testing.T) {
 		jServer.delegateDirtyBlockCache,
 		jServer.delegateBlockServer, jServer.delegateMDOps, nil, nil,
 		jServer.diskLimiter)
-	uid, verifyingKey, err :=
-		getCurrentUIDAndVerifyingKey(ctx, config.KBPKI())
+	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 	err = jServer.EnableExistingJournals(
-		ctx, uid, verifyingKey, TLFJournalBackgroundWorkPaused)
+		ctx, session.UID, session.VerifyingKey, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 	status, tlfIDs = jServer.Status(ctx)
 	require.True(t, status.EnableAuto)

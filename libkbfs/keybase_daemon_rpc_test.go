@@ -72,7 +72,6 @@ func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}
 		*res.(*keybase1.Session) = keybase1.Session{
 			Uid:             c.session.UID,
 			Username:        "fake username",
-			Token:           c.session.Token,
 			DeviceSubkeyKid: c.session.CryptPublicKey.KID(),
 			DeviceSibkeyKid: c.session.VerifyingKey.KID(),
 		}
@@ -166,7 +165,6 @@ func TestKeybaseDaemonSessionCache(t *testing.T) {
 	session := SessionInfo{
 		Name:           name,
 		UID:            keybase1.UID("fake uid"),
-		Token:          "fake token",
 		CryptPublicKey: k,
 		VerifyingKey:   v,
 	}
@@ -404,10 +402,12 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
 
-	_, uid1, err := config1.KBPKI().GetCurrentUserInfo(context.Background())
+	session1, err := config1.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	uid1 := session1.UID
+	session2, err := config2.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
+	uid2 := session2.UID
 
 	// We should see 1 create edit for each user.
 	expectedEdits := []keybase1.FSNotification{

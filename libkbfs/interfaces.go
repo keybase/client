@@ -445,26 +445,14 @@ type normalizedUsernameGetter interface {
 	GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error)
 }
 
-type currentInfoGetter interface {
-	// GetCurrentToken gets the current keybase session token.
-	GetCurrentToken(ctx context.Context) (string, error)
-	// GetCurrentUserInfo gets the name and UID of the current
-	// logged-in user.
-	GetCurrentUserInfo(ctx context.Context) (
-		libkb.NormalizedUsername, keybase1.UID, error)
-	// GetCurrentCryptPublicKey gets the crypt public key for the
-	// currently-active device.
-	GetCurrentCryptPublicKey(ctx context.Context) (
-		kbfscrypto.CryptPublicKey, error)
-	// GetCurrentVerifyingKey gets the public key used for signing for the
-	// currently-active device.
-	GetCurrentVerifyingKey(ctx context.Context) (
-		kbfscrypto.VerifyingKey, error)
+type currentSessionGetter interface {
+	// GetCurrentSession gets the current session info.
+	GetCurrentSession(ctx context.Context) (SessionInfo, error)
 }
 
 // KBPKI interacts with the Keybase daemon to fetch user info.
 type KBPKI interface {
-	currentInfoGetter
+	currentSessionGetter
 	resolver
 	identifier
 	normalizedUsernameGetter

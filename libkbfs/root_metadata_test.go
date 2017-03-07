@@ -521,13 +521,13 @@ func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 	require.NoError(t, err)
 
 	// verify last modifier
-	vk, err := config.KBPKI().GetCurrentVerifyingKey(context.Background())
+	session, err := config.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
-	vk2, err := config2.KBPKI().GetCurrentVerifyingKey(context.Background())
+	session2, err := config2.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
 
-	err = rmds.IsLastModifiedBy(uid, vk)
-	require.EqualError(t, err, fmt.Sprintf("Last writer verifying key %s != %s", vk2.String(), vk.String()))
+	err = rmds.IsLastModifiedBy(uid, session.VerifyingKey)
+	require.EqualError(t, err, fmt.Sprintf("Last writer verifying key %s != %s", session2.VerifyingKey, session.VerifyingKey))
 }
 
 // Test that a reader can't upconvert a private folder from v2 to v3.

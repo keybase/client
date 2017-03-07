@@ -194,11 +194,11 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, err
 	}
 
-	cname, _, err := libkbfs.GetCurrentUserInfoIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
+	session, err := libkbfs.GetCurrentSessionIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
 	if err != nil {
 		return nil, err
 	}
-	child := newTLF(fl, h, h.GetPreferredFormat(cname))
+	child := newTLF(fl, h, h.GetPreferredFormat(session.Name))
 	fl.folders[req.Name] = child
 	return child, nil
 }
@@ -223,7 +223,7 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 	defer func() {
 		fl.fs.reportErr(ctx, libkbfs.ReadMode, err)
 	}()
-	cuser, _, err := fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := fl.fs.config.KBPKI().GetCurrentSession(ctx)
 	isLoggedIn := err == nil
 
 	var favs []libkbfs.Favorite
@@ -239,8 +239,8 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 		if fav.Public != fl.public {
 			continue
 		}
-		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(cuser,
-			libkbfs.CanonicalTlfName(fav.Name))
+		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(
+			session.Name, libkbfs.CanonicalTlfName(fav.Name))
 		if err != nil {
 			fl.fs.log.Errorf("FavoriteNameToPreferredTLFNameFormatAs: %q %v", fav.Name, err)
 			continue

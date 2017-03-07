@@ -279,7 +279,6 @@ func (k *KeybaseDaemonLocal) CurrentSession(ctx context.Context, sessionID int) 
 	return SessionInfo{
 		Name:           u.Name,
 		UID:            u.UID,
-		Token:          "keybase_daemon_local_token",
 		CryptPublicKey: u.GetCurrentCryptPublicKey(),
 		VerifyingKey:   u.GetCurrentVerifyingKey(),
 	}, nil

@@ -51,7 +51,7 @@ func createUserDokan(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 
 	ctx := context.Background()
 
-	username, _, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		tb.Fatal(err)
 	}
@@ -61,7 +61,7 @@ func createUserDokan(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 		CtxUserKey: CtxOpUser,
 	}
 	ctx = logger.NewContextWithLogTags(ctx, logTags)
-	ctx = context.WithValue(ctx, CtxUserKey, username)
+	ctx = context.WithValue(ctx, CtxUserKey, session.Name)
 
 	fs, err := libdokan.NewFS(ctx, config, logger.NewTestLogger(tb))
 	if err != nil {
@@ -84,7 +84,7 @@ func createUserDokan(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 	createSuccess = true
 	return &fsUser{
 		mntDir:   mnt.Dir,
-		username: username,
+		username: session.Name,
 		config:   config,
 		cancel:   cancelFn,
 		close: func() {

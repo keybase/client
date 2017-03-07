@@ -162,9 +162,9 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 	// Handle in the background because we shouldn't lock during
 	// the notification
 	f.fs.queueNotification(func() {
-		cuser, _, err := libkbfs.GetCurrentUserInfoIfPossible(ctx, f.fs.config.KBPKI(), f.list.public)
+		session, err := libkbfs.GetCurrentSessionIfPossible(ctx, f.fs.config.KBPKI(), f.list.public)
 		// Here we get an error, but there is little that can be done.
-		// cuser will be empty in the error case in which case we will default to the
+		// session will be empty in the error case in which case we will default to the
 		// canonical format.
 		if err != nil {
 			f.fs.log.CDebugf(ctx,
@@ -177,7 +177,7 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 			if newHandle != nil {
 				f.h = newHandle
 			}
-			f.hPreferredName = f.h.GetPreferredFormat(cuser)
+			f.hPreferredName = f.h.GetPreferredFormat(session.Name)
 			return oldName, f.hPreferredName
 		}()
 

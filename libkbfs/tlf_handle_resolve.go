@@ -493,13 +493,13 @@ func parseTlfHandleLoose(
 	}
 
 	if !public {
-		currentUsername, currentUID, err := kbpki.GetCurrentUserInfo(ctx)
+		session, err := kbpki.GetCurrentSession(ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		if !h.IsReader(currentUID) {
-			return nil, NewReadAccessError(h, currentUsername, h.GetCanonicalPath())
+		if !h.IsReader(session.UID) {
+			return nil, NewReadAccessError(h, session.Name, h.GetCanonicalPath())
 		}
 	}
 
@@ -581,11 +581,11 @@ func ParseTlfHandlePreferred(
 	if err != nil && (h == nil || !isTlfNameNotCanonical(err)) {
 		return nil, err
 	}
-	uname, _, err := GetCurrentUserInfoIfPossible(ctx, kbpki, h.IsPublic())
+	session, err := GetCurrentSessionIfPossible(ctx, kbpki, h.IsPublic())
 	if err != nil {
 		return nil, err
 	}
-	pref := h.GetPreferredFormat(uname)
+	pref := h.GetPreferredFormat(session.Name)
 	if string(pref) != name {
 		return nil, TlfNameNotCanonical{name, string(pref)}
 	}

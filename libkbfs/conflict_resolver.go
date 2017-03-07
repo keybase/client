@@ -1104,18 +1104,13 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 
 	// Mark the recreate ops as being authored by the current user.
 	kbpki := cr.config.KBPKI()
-	_, uid, err := kbpki.GetCurrentUserInfo(ctx)
+	session, err := kbpki.GetCurrentSession(ctx)
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, nil, err
 	}
 
-	key, err := kbpki.GetCurrentVerifyingKey(ctx)
-	if err != nil {
-		return nil, nil, nil, nil, nil, nil, nil, err
-	}
-
-	currUnmergedWriterInfo := newWriterInfo(
-		uid, key, unmerged[len(unmerged)-1].Revision())
+	currUnmergedWriterInfo := newWriterInfo(session.UID,
+		session.VerifyingKey, unmerged[len(unmerged)-1].Revision())
 
 	// Find the corresponding path in the merged branch for each of
 	// these unmerged paths, and the set of any createOps needed to
@@ -2722,7 +2717,7 @@ func (cr *ConflictResolver) makePostResolutionPaths(ctx context.Context,
 		return nil, err
 	}
 
-	key, err := cr.config.KBPKI().GetCurrentVerifyingKey(ctx)
+	session, err := cr.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -2732,7 +2727,7 @@ func (cr *ConflictResolver) makePostResolutionPaths(ctx context.Context,
 	resolvedChains, err := newCRChains(
 		ctx, cr.config.Codec(),
 		[]chainMetadata{rootMetadataWithKeyAndTimestamp{md,
-			key, cr.config.Clock().Now()}},
+			session.VerifyingKey, cr.config.Clock().Now()}},
 		&cr.fbo.blocks, false)
 	if err != nil {
 		return nil, err
@@ -3263,7 +3258,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 
 	updates = make(map[BlockPointer]BlockPointer)
 
-	_, uid, err := cr.config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := cr.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -3297,7 +3292,8 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		root := cr.makeSyncTree(ctx, resolvedPaths, lbc, newFileBlocks)
 
 		if root != nil {
-			bps, err = cr.syncTree(ctx, lState, unmergedChains, md, uid, root,
+			bps, err = cr.syncTree(ctx, lState, unmergedChains,
+				md, session.UID, root,
 				BlockPointer{}, lbc, newFileBlocks, dirtyBcache)
 			if err != nil {
 				return nil, nil, nil, err
@@ -3550,7 +3546,8 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 			md.data.Changes.Ops = append(md.data.Changes.Ops, newResolutionOp())
 		}
 
-		err = cr.fbo.unembedBlockChanges(ctx, bps, md, &md.data.Changes, uid)
+		err = cr.fbo.unembedBlockChanges(ctx, bps, md,
+			&md.data.Changes, session.UID)
 		if err != nil {
 			return nil, nil, nil, err
 		}

@@ -66,21 +66,21 @@ func (r *Root) platformLookup(ctx context.Context, req *fuse.LookupRequest, resp
 
 	if r.private.fs.platformParams.UseLocal {
 		if mountRootSpecialPaths[req.Name] {
-			cuser, _, err := libkbfs.GetCurrentUserInfoIfPossible(ctx, r.private.fs.config.KBPKI(), false)
+			session, err := libkbfs.GetCurrentSessionIfPossible(ctx, r.private.fs.config.KBPKI(), false)
 			if err != nil {
 				return nil, err
 			}
-			return &Alias{realPath: fmt.Sprintf("private/%s/.darwin/%s", cuser, req.Name)}, nil
+			return &Alias{realPath: fmt.Sprintf("private/%s/.darwin/%s", session.Name, req.Name)}, nil
 		}
 
 		if req.Name == TrashDirName {
-			cuser, _, err := libkbfs.GetCurrentUserInfoIfPossible(ctx, r.private.fs.config.KBPKI(), false)
+			session, err := libkbfs.GetCurrentSessionIfPossible(ctx, r.private.fs.config.KBPKI(), false)
 			if err != nil {
 				return nil, err
 			}
 			return &Trash{
 				fs:         r.private.fs,
-				kbusername: cuser,
+				kbusername: session.Name,
 			}, nil
 		}
 	}

@@ -113,11 +113,11 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		for _, folder := range folders {
 			f.cache[*NewFavoriteFromFolder(folder)] = true
 		}
-		username, _, err := f.config.KBPKI().GetCurrentUserInfo(req.ctx)
+		session, err := f.config.KBPKI().GetCurrentSession(req.ctx)
 		if err == nil {
 			// Add favorites for the current user, that cannot be deleted.
-			f.cache[Favorite{string(username), true}] = true
-			f.cache[Favorite{string(username), false}] = true
+			f.cache[Favorite{string(session.Name), true}] = true
+			f.cache[Favorite{string(session.Name), false}] = true
 		}
 	}
 

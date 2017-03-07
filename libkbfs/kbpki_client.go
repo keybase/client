@@ -36,47 +36,11 @@ func NewKBPKIClient(
 	return &KBPKIClient{serviceOwner, log}
 }
 
-// GetCurrentToken implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetCurrentToken(ctx context.Context) (string, error) {
-	s, err := k.session(ctx)
-	if err != nil {
-		// XXX shouldn't ignore this...
-		k.log.CWarningf(ctx, "error getting session: %q", err)
-		return "", err
-	}
-	return s.Token, nil
-}
-
-// GetCurrentUserInfo implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetCurrentUserInfo(ctx context.Context) (
-	libkb.NormalizedUsername, keybase1.UID, error) {
-	s, err := k.session(ctx)
-	if err != nil {
-		// TODO: something more intelligent; maybe just shut down
-		// unless we want anonymous browsing of public data
-		return libkb.NormalizedUsername(""), keybase1.UID(""), err
-	}
-	return s.Name, s.UID, nil
-}
-
-// GetCurrentCryptPublicKey implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetCurrentCryptPublicKey(ctx context.Context) (
-	kbfscrypto.CryptPublicKey, error) {
-	s, err := k.session(ctx)
-	if err != nil {
-		return kbfscrypto.CryptPublicKey{}, err
-	}
-	return s.CryptPublicKey, nil
-}
-
-// GetCurrentVerifyingKey implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetCurrentVerifyingKey(ctx context.Context) (
-	kbfscrypto.VerifyingKey, error) {
-	s, err := k.session(ctx)
-	if err != nil {
-		return kbfscrypto.VerifyingKey{}, err
-	}
-	return s.VerifyingKey, nil
+// GetCurrentSession implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) GetCurrentSession(ctx context.Context) (
+	SessionInfo, error) {
+	const sessionID = 0
+	return k.serviceOwner.KeybaseService().CurrentSession(ctx, sessionID)
 }
 
 // Resolve implements the KBPKI interface for KBPKIClient.
@@ -221,11 +185,6 @@ func (k *KBPKIClient) loadUserPlusKeys(ctx context.Context,
 	return k.serviceOwner.KeybaseService().LoadUserPlusKeys(ctx, uid, pollForKID)
 }
 
-func (k *KBPKIClient) session(ctx context.Context) (SessionInfo, error) {
-	const sessionID = 0
-	return k.serviceOwner.KeybaseService().CurrentSession(ctx, sessionID)
-}
-
 // FavoriteAdd implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
 	return k.serviceOwner.KeybaseService().FavoriteAdd(ctx, folder)
@@ -252,25 +211,25 @@ func (k *KBPKIClient) loadUnverifiedKeys(ctx context.Context, uid keybase1.UID) 
 	return k.serviceOwner.KeybaseService().LoadUnverifiedKeys(ctx, uid)
 }
 
-// GetCurrentUserInfoIfPossible returns the current username and UID from
-// kbpki.GetCurrentUserInfo.
+// GetCurrentSessionIfPossible returns the current username and UID from
+// kbpki.GetCurrentSession.
 // If isPublic is true NoCurrentSessionError is ignored and empty username
 // and uid will be returned. If it is false all errors are returned.
-func GetCurrentUserInfoIfPossible(ctx context.Context, kbpki KBPKI, isPublic bool) (libkb.NormalizedUsername, keybase1.UID, error) {
-	name, uid, err := kbpki.GetCurrentUserInfo(ctx)
+func GetCurrentSessionIfPossible(ctx context.Context, kbpki KBPKI, isPublic bool) (SessionInfo, error) {
+	session, err := kbpki.GetCurrentSession(ctx)
 	if err == nil {
-		return name, uid, nil
+		return session, nil
 	}
 	// Return all error for private folders.
 	if !isPublic {
-		return "", "", err
+		return SessionInfo{}, err
 	}
 
-	// If not logged in, return empty username.
+	// If not logged in, return empty session.
 	if _, notLoggedIn := err.(NoCurrentSessionError); notLoggedIn {
-		return "", "", nil
+		return SessionInfo{}, nil
 	}
 
 	// Otherwise, just return the error.
-	return "", "", err
+	return SessionInfo{}, err
 }

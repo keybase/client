@@ -73,46 +73,27 @@ func keyManagerShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 var serverHalf = kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x2})
 
 func expectUncachedGetTLFCryptKey(t *testing.T, config *ConfigMock, tlfID tlf.ID, keyGen, currKeyGen KeyGen,
-	uid keybase1.UID, subkey kbfscrypto.CryptPublicKey,
 	storesHistoric bool, tlfCryptKey, currTLFCryptKey kbfscrypto.TLFCryptKey) {
 	if keyGen == currKeyGen {
 		require.Equal(t, tlfCryptKey, currTLFCryptKey)
 	}
+	var keyToUse kbfscrypto.TLFCryptKey
 	if storesHistoric {
-		if keyGen < currKeyGen {
-			config.mockKbpki.EXPECT().GetCurrentCryptPublicKey(
-				gomock.Any()).Return(subkey, nil)
-		}
-
-		clientHalf := kbfscrypto.MaskTLFCryptKey(
-			serverHalf, currTLFCryptKey)
-
-		// get the xor'd key out of the metadata
-		config.mockKbpki.EXPECT().GetCurrentCryptPublicKey(
-			gomock.Any()).Return(subkey, nil)
-		config.mockCrypto.EXPECT().DecryptTLFCryptKeyClientHalf(
-			gomock.Any(), kbfscrypto.TLFEphemeralPublicKey{},
-			gomock.Any()).Return(clientHalf, nil)
-
-		// get the server-side half and retrieve the real
-		// current secret key
-		config.mockKops.EXPECT().GetTLFCryptKeyServerHalf(gomock.Any(),
-			gomock.Any(), gomock.Any()).Return(serverHalf, nil)
+		keyToUse = currTLFCryptKey
 	} else {
-		clientHalf := kbfscrypto.MaskTLFCryptKey(
-			serverHalf, tlfCryptKey)
-
-		// get the xor'd key out of the metadata
-		config.mockKbpki.EXPECT().GetCurrentCryptPublicKey(
-			gomock.Any()).Return(subkey, nil)
-		config.mockCrypto.EXPECT().DecryptTLFCryptKeyClientHalf(
-			gomock.Any(), kbfscrypto.TLFEphemeralPublicKey{},
-			gomock.Any()).Return(clientHalf, nil)
-
-		// get the server-side half and retrieve the real secret key
-		config.mockKops.EXPECT().GetTLFCryptKeyServerHalf(gomock.Any(),
-			gomock.Any(), gomock.Any()).Return(serverHalf, nil)
+		keyToUse = tlfCryptKey
 	}
+	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, keyToUse)
+
+	// get the xor'd key out of the metadata
+	config.mockCrypto.EXPECT().DecryptTLFCryptKeyClientHalf(
+		gomock.Any(), kbfscrypto.TLFEphemeralPublicKey{},
+		gomock.Any()).Return(clientHalf, nil)
+
+	// get the server-side half and retrieve the real
+	// current secret key
+	config.mockKops.EXPECT().GetTLFCryptKeyServerHalf(gomock.Any(),
+		gomock.Any(), gomock.Any()).Return(serverHalf, nil)
 }
 
 func expectUncachedGetTLFCryptKeyAnyDevice(
@@ -325,12 +306,14 @@ func testKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T, ver Metad
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 
-	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
 	storedTLFCryptKey := kbfscrypto.MakeTLFCryptKey([32]byte{0x1})
 
 	crypto := MakeCryptoCommon(config.Codec())
 	_, err = rmd.AddKeyGeneration(config.Codec(), crypto,
-		makeDirWKeyInfoMap(uid, subkey), UserDevicePublicKeys{},
+		makeDirWKeyInfoMap(uid, session.CryptPublicKey),
+		UserDevicePublicKeys{},
 		kbfscrypto.TLFEphemeralPublicKey{},
 		kbfscrypto.TLFEphemeralPrivateKey{},
 		kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},
@@ -339,11 +322,10 @@ func testKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T, ver Metad
 
 	storesHistoric := rmd.StoresHistoricTLFCryptKeys()
 	expectUncachedGetTLFCryptKey(t, config, rmd.TlfID(),
-		rmd.LatestKeyGeneration(), rmd.LatestKeyGeneration(), uid,
-		subkey, storesHistoric, storedTLFCryptKey, storedTLFCryptKey)
+		rmd.LatestKeyGeneration(), rmd.LatestKeyGeneration(),
+		storesHistoric, storedTLFCryptKey, storedTLFCryptKey)
 
-	tlfCryptKey, err := config.KeyManager().
-		GetTLFCryptKeyForEncryption(ctx, rmd)
+	tlfCryptKey, err := config.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
 	require.NoError(t, err)
 	require.Equal(t, storedTLFCryptKey, tlfCryptKey)
 }
@@ -390,13 +372,14 @@ func testKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver 
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 
-	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
 	storedTLFCryptKey1 := kbfscrypto.MakeTLFCryptKey([32]byte{0x1})
 	storedTLFCryptKey2 := kbfscrypto.MakeTLFCryptKey([32]byte{0x2})
 
 	crypto := MakeCryptoCommon(config.Codec())
 	_, err = rmd.AddKeyGeneration(config.Codec(), crypto,
-		makeDirWKeyInfoMap(uid, subkey), UserDevicePublicKeys{},
+		makeDirWKeyInfoMap(uid, session.CryptPublicKey), UserDevicePublicKeys{},
 		kbfscrypto.TLFEphemeralPublicKey{},
 		kbfscrypto.TLFEphemeralPrivateKey{},
 		kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},
@@ -408,7 +391,7 @@ func testKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver 
 		currCryptKey = storedTLFCryptKey1
 	}
 	_, err = rmd.AddKeyGeneration(config.Codec(), crypto,
-		makeDirWKeyInfoMap(uid, subkey), UserDevicePublicKeys{},
+		makeDirWKeyInfoMap(uid, session.CryptPublicKey), UserDevicePublicKeys{},
 		kbfscrypto.TLFEphemeralPublicKey{},
 		kbfscrypto.TLFEphemeralPrivateKey{},
 		kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},
@@ -417,9 +400,9 @@ func testKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver 
 
 	keyGen := rmd.LatestKeyGeneration() - 1
 	storesHistoric := rmd.StoresHistoricTLFCryptKeys()
-	expectUncachedGetTLFCryptKey(t, config, rmd.TlfID(),
-		keyGen, rmd.LatestKeyGeneration(), uid, subkey,
-		storesHistoric, storedTLFCryptKey1, storedTLFCryptKey2)
+	expectUncachedGetTLFCryptKey(t, config, rmd.TlfID(), keyGen,
+		rmd.LatestKeyGeneration(), storesHistoric, storedTLFCryptKey1,
+		storedTLFCryptKey2)
 
 	tlfCryptKey, err := config.KeyManager().GetTLFCryptKeyForBlockDecryption(
 		ctx, rmd, BlockPointer{KeyGen: 1})
@@ -911,10 +894,11 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
+	session2, err := config2.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	uid2 := session2.UID
 
 	// Create a shared folder
 	name := u1.String() + "," + u2.String()
@@ -1142,10 +1126,11 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver MetadataVer) 
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
+	session2, err := config2.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	uid2 := session2.UID
 
 	// Create a shared folder
 	name := u1.String() + "," + u2.String() + ReaderSep + u3.String()
@@ -1229,10 +1214,11 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver MetadataVer) {
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
+	session2, err := config2.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	uid2 := session2.UID
 
 	t.Log("Create a shared folder")
 	name := u1.String() + "," + u2.String()
@@ -1307,16 +1293,17 @@ func testKeyManagerReaderRekey(t *testing.T, ver MetadataVer) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
-	_, uid1, err := config1.KBPKI().GetCurrentUserInfo(ctx)
+	session1, err := config1.KBPKI().GetCurrentSession(ctx)
 
 	config1.SetMetadataVersion(ver)
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
+	session2, err := config2.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	uid2 := session2.UID
 
 	t.Log("Create a shared folder")
 	name := u1.String() + ReaderSep + u2.String()
@@ -1334,8 +1321,8 @@ func testKeyManagerReaderRekey(t *testing.T, ver MetadataVer) {
 	t.Log("User 1 adds a device")
 	// The configs don't share a Keybase Daemon so we have to do it in all
 	// places.
-	AddDeviceForLocalUserOrBust(t, config1, uid1)
-	devIndex := AddDeviceForLocalUserOrBust(t, config2, uid1)
+	AddDeviceForLocalUserOrBust(t, config1, session1.UID)
+	devIndex := AddDeviceForLocalUserOrBust(t, config2, session1.UID)
 
 	config1Dev2 := ConfigAsUser(config2, u1)
 	defer CheckConfigAndShutdown(ctx, t, config1Dev2)
@@ -1397,10 +1384,12 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver MetadataVer) {
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
+	session2, err := config2.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	uid2 := session2.UID
+
 	// The reader has a second device at the start.
 	AddDeviceForLocalUserOrBust(t, config1, uid2)
 	devIndex := AddDeviceForLocalUserOrBust(t, config2, uid2)
@@ -1492,18 +1481,22 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
+	session2, err := config2.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	uid2 := session2.UID
+
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
 	config3 := ConfigAsUser(config1, u3)
 	defer CheckConfigAndShutdown(ctx, t, config3)
-	_, uid3, err := config3.KBPKI().GetCurrentUserInfo(ctx)
+	session3, err := config3.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	uid3 := session3.UID
+
 	config3.MDServer().DisableRekeyUpdatesForTesting()
 
 	// 2 writers 1 reader
@@ -1661,10 +1654,11 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver Metadat
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
+	session2, err := config2.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	uid2 := session2.UID
 
 	// create a shared folder
 	name := u1.String() + "," + u2.String()
@@ -1803,10 +1797,11 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
+	session2, err := config2.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	uid2 := session2.UID
 
 	// Create a shared folder
 	name := u1.String() + "," + u2.String()
@@ -1921,10 +1916,11 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
+	session2, err := config2.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	uid2 := session2.UID
 
 	// Create a shared folder
 	name := u1.String() + "," + u2.String()
@@ -2043,10 +2039,11 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
+	session2, err := config2.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+	uid2 := session2.UID
 
 	// Create a shared folder
 	name := u1.String() + "," + u2.String()

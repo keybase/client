@@ -66,13 +66,14 @@ func isReadableOrError(
 	}
 	// this should only be the case if we're a new device not yet
 	// added to the set of reader/writer keys.
-	username, uid, err := kbpki.GetCurrentUserInfo(ctx)
+	session, err := kbpki.GetCurrentSession(ctx)
 	if err != nil {
 		return err
 	}
 	err = errors.Errorf("%s is not readable by %s (uid:%s)", md.TlfID(),
-		username, uid)
-	return makeRekeyReadError(ctx, err, kbpki, md, uid, username)
+		session.Name, session.UID)
+	return makeRekeyReadError(ctx, err, kbpki, md,
+		session.UID, session.Name)
 }
 
 func getMDRange(ctx context.Context, config Config, id tlf.ID, bid BranchID,
@@ -226,10 +227,11 @@ func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 			latestRmd := mergedRmds[len(mergedRmds)-1]
 
 			if uid == keybase1.UID("") {
-				_, uid, err = config.KBPKI().GetCurrentUserInfo(ctx)
+				session, err := config.KBPKI().GetCurrentSession(ctx)
 				if err != nil {
 					return nil, err
 				}
+				uid = session.UID
 			}
 
 			pmd, err := decryptMDPrivateData(

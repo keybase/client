@@ -61,7 +61,7 @@ func createUserFuse(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 
 	ctx := context.Background()
 
-	username, _, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		tb.Fatal(err)
 	}
@@ -73,14 +73,14 @@ func createUserFuse(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 		CtxUserKey: CtxOpUser,
 	}
 	ctx = logger.NewContextWithLogTags(ctx, logTags)
-	ctx = context.WithValue(ctx, CtxUserKey, username)
+	ctx = context.WithValue(ctx, CtxUserKey, session.Name)
 
 	// the fsUser.cancel will cancel notification processing; the FUSE
 	// serve loop is terminated by unmounting the filesystem
 	filesys.LaunchNotificationProcessor(ctx)
 	return &fsUser{
 		mntDir:   mnt.Dir,
-		username: username,
+		username: session.Name,
 		config:   config,
 		cancel:   cancelFn,
 		close:    mnt.Close,

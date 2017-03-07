@@ -162,11 +162,11 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		fl.fs.log.CDebugf(ctx, "FL Lookup adding new child")
-		cuser, _, err := libkbfs.GetCurrentUserInfoIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
+		session, err := libkbfs.GetCurrentSessionIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
 		if err != nil {
 			return nil, false, err
 		}
-		child = newTLF(fl, h, h.GetPreferredFormat(cuser))
+		child = newTLF(fl, h, h.GetPreferredFormat(session.Name))
 		fl.lockedAddChild(name, child)
 		return child.open(ctx, oc, path[1:])
 	}
@@ -184,7 +184,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 	fl.fs.logEnter(ctx, "FL FindFiles")
 	defer func() { fl.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
 
-	cuser, _, err := fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := fl.fs.config.KBPKI().GetCurrentSession(ctx)
 	isLoggedIn := err == nil
 
 	var favs []libkbfs.Favorite
@@ -201,7 +201,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 		if fav.Public != fl.public {
 			continue
 		}
-		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(cuser,
+		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(session.Name,
 			libkbfs.CanonicalTlfName(fav.Name))
 		if err != nil {
 			fl.fs.log.Errorf("FavoriteNameToPreferredTLFNameFormatAs: %q %v", fav.Name, err)

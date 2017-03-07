@@ -822,7 +822,7 @@ func TestCRDouble(t *testing.T) {
 
 	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, _, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	_, err := config2.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
@@ -940,7 +940,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 
 	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	session2, err := config2.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
@@ -973,9 +973,9 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 
 	// Now give u2 a new device.  The configs don't share a Keybase
 	// Daemon so we have to do it in all places.
-	AddDeviceForLocalUserOrBust(t, config1, uid2)
-	AddDeviceForLocalUserOrBust(t, config2, uid2)
-	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
+	AddDeviceForLocalUserOrBust(t, config1, session2.UID)
+	AddDeviceForLocalUserOrBust(t, config2, session2.UID)
+	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, session2.UID)
 	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
 
 	// user2 device 2 should be unable to read the data now since its device
@@ -1076,7 +1076,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 
 	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	session2, err := config2.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
@@ -1106,9 +1106,9 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 
 	// Now give u2 a new device.  The configs don't share a Keybase
 	// Daemon so we have to do it in all places.
-	AddDeviceForLocalUserOrBust(t, config1, uid2)
-	AddDeviceForLocalUserOrBust(t, config2, uid2)
-	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
+	AddDeviceForLocalUserOrBust(t, config1, session2.UID)
+	AddDeviceForLocalUserOrBust(t, config2, session2.UID)
+	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, session2.UID)
 	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
 
 	// user2 device 2 should be unable to read the data now since its device
@@ -1203,7 +1203,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 
 	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, _, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	_, err := config2.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
@@ -1327,7 +1327,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 
 	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, _, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	_, err := config2.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
@@ -1575,7 +1575,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 
 	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, _, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	_, err := config2.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 

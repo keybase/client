@@ -706,10 +706,10 @@ func validatePutPublicRMDS(
 	// TODO: Handle private RMDS, too.
 
 	// Verify LastModifying* fields.
-	_, me, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
-	require.Equal(t, me, rmds.MD.LastModifyingWriter())
-	require.Equal(t, me, rmds.MD.GetLastModifyingUser())
+	require.Equal(t, session.UID, rmds.MD.LastModifyingWriter())
+	require.Equal(t, session.UID, rmds.MD.GetLastModifyingUser())
 
 	// Verify signature of WriterMetadata.
 	buf, err := rmds.MD.GetSerializedWriterMetadata(config.Codec())

@@ -464,10 +464,11 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	session2, err := config2.KBPKI().GetCurrentSession(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
+	uid2 := session2.UID
 
 	// Create a shared folder.
 	name := u1.String() + "," + u2.String()

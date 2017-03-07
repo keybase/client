@@ -183,11 +183,11 @@ func (md *MDServerDisk) getHandleID(ctx context.Context, handle tlf.Handle,
 	}
 
 	// Non-readers shouldn't be able to create the dir.
-	_, uid, err := md.config.currentInfoGetter().GetCurrentUserInfo(ctx)
+	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
 		return tlf.NullID, false, MDServerError{err}
 	}
-	if !handle.IsReader(uid) {
+	if !handle.IsReader(session.UID) {
 		return tlf.NullID, false, MDServerErrorUnauthorized{}
 	}
 
@@ -235,11 +235,11 @@ func (md *MDServerDisk) getBranchKey(ctx context.Context, id tlf.ID) ([]byte, er
 		return nil, err
 	}
 	// add device KID
-	key, err := md.config.currentInfoGetter().GetCurrentCryptPublicKey(ctx)
+	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	_, err = buf.Write(key.KID().ToBytes())
+	_, err = buf.Write(session.CryptPublicKey.KID().ToBytes())
 	if err != nil {
 		return nil, err
 	}
@@ -337,7 +337,7 @@ func (md *MDServerDisk) GetForTLF(ctx context.Context, id tlf.ID,
 		}
 	}
 
-	_, currentUID, err := md.config.currentInfoGetter().GetCurrentUserInfo(ctx)
+	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
 		return nil, MDServerError{err}
 	}
@@ -347,7 +347,7 @@ func (md *MDServerDisk) GetForTLF(ctx context.Context, id tlf.ID,
 		return nil, err
 	}
 
-	return tlfStorage.getForTLF(currentUID, bid)
+	return tlfStorage.getForTLF(session.UID, bid)
 }
 
 // GetRange implements the MDServer interface for MDServerDisk.
@@ -372,7 +372,7 @@ func (md *MDServerDisk) GetRange(ctx context.Context, id tlf.ID,
 		}
 	}
 
-	_, currentUID, err := md.config.currentInfoGetter().GetCurrentUserInfo(ctx)
+	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
 		return nil, MDServerError{err}
 	}
@@ -382,7 +382,7 @@ func (md *MDServerDisk) GetRange(ctx context.Context, id tlf.ID,
 		return nil, err
 	}
 
-	return tlfStorage.getRange(currentUID, bid, start, stop)
+	return tlfStorage.getRange(session.UID, bid, start, stop)
 }
 
 // Put implements the MDServer interface for MDServerDisk.
@@ -392,8 +392,7 @@ func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned,
 		return err
 	}
 
-	currentUID, currentVerifyingKey, err :=
-		getCurrentUIDAndVerifyingKey(ctx, md.config.currentInfoGetter())
+	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
 		return MDServerError{err}
 	}
@@ -404,7 +403,7 @@ func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned,
 	}
 
 	recordBranchID, err := tlfStorage.put(
-		currentUID, currentVerifyingKey, rmds, extra)
+		session.UID, session.VerifyingKey, rmds, extra)
 	if err != nil {
 		return err
 	}
@@ -494,7 +493,7 @@ func (md *MDServerDisk) TruncateLock(ctx context.Context, id tlf.ID) (
 		return false, err
 	}
 
-	key, err := md.config.currentInfoGetter().GetCurrentCryptPublicKey(ctx)
+	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
 		return false, MDServerError{err}
 	}
@@ -506,7 +505,7 @@ func (md *MDServerDisk) TruncateLock(ctx context.Context, id tlf.ID) (
 		return false, err
 	}
 
-	return md.truncateLockManager.truncateLock(key.KID(), id)
+	return md.truncateLockManager.truncateLock(session.CryptPublicKey.KID(), id)
 }
 
 // TruncateUnlock implements the MDServer interface for MDServerDisk.
@@ -516,7 +515,7 @@ func (md *MDServerDisk) TruncateUnlock(ctx context.Context, id tlf.ID) (
 		return false, err
 	}
 
-	key, err := md.config.currentInfoGetter().GetCurrentCryptPublicKey(ctx)
+	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
 		return false, MDServerError{err}
 	}
@@ -528,7 +527,7 @@ func (md *MDServerDisk) TruncateUnlock(ctx context.Context, id tlf.ID) (
 		return false, err
 	}
 
-	return md.truncateLockManager.truncateUnlock(key.KID(), id)
+	return md.truncateLockManager.truncateUnlock(session.CryptPublicKey.KID(), id)
 }
 
 // Shutdown implements the MDServer interface for MDServerDisk.

@@ -9,7 +9,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/kbfscrypto"
-	"golang.org/x/net/context"
 )
 
 // Test that Put/Get works for TLF crypt key server halves.
@@ -19,21 +18,20 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
+	session1, err := config1.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	publicKey1 := session1.CryptPublicKey
+
 	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	session2, err := config2.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	publicKey1, err := config1.KBPKI().GetCurrentCryptPublicKey(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	publicKey2, err := config2.KBPKI().GetCurrentCryptPublicKey(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	uid2 := session2.UID
+	publicKey2 := session2.CryptPublicKey
 
 	serverHalf1 := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{1})
 	serverHalf2 := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{2})

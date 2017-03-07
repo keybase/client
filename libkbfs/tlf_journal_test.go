@@ -215,10 +215,12 @@ func setupTLFJournalTest(
 	verifyingKey := signingKey.GetVerifyingKey()
 	ekg := singleEncryptionKeyGetter{kbfscrypto.MakeTLFCryptKey([32]byte{0x1})}
 
-	cig := singleCurrentInfoGetter{
-		name:         "fake_user",
-		uid:          uid,
-		verifyingKey: verifyingKey,
+	cig := singleCurrentSessionGetter{
+		SessionInfo{
+			Name:         "fake_user",
+			UID:          uid,
+			VerifyingKey: verifyingKey,
+		},
 	}
 	log := logger.NewTestLogger(t)
 	mdserver, err := NewMDServerMemory(newTestMDServerLocalConfig(log, cig))

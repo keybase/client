@@ -64,10 +64,12 @@ func TestBasicTlfEditHistory(t *testing.T) {
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
 
-	_, uid1, err := config1.KBPKI().GetCurrentUserInfo(context.Background())
+	session1, err := config1.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	uid1 := session1.UID
+	session2, err := config2.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
+	uid2 := session2.UID
 
 	// Each user should see 1 create edit for each user
 	expectedEdits := make(TlfWriterEdits)
@@ -183,10 +185,12 @@ func TestLongTlfEditHistory(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	_, uid1, err := config1.KBPKI().GetCurrentUserInfo(context.Background())
+	session1, err := config1.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	uid1 := session1.UID
+	session2, err := config2.KBPKI().GetCurrentSession(context.Background())
 	require.NoError(t, err)
+	uid2 := session2.UID
 	createRemainders := map[keybase1.UID]int{
 		uid1: 0,
 		uid2: 1,

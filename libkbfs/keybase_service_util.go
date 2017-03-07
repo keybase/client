@@ -35,7 +35,7 @@ func serviceLoggedIn(ctx context.Context, config Config, name string,
 	config.KBFSOps().PushStatusChange()
 }
 
-// serviceLoggedIn should be called when the current user logs out.
+// serviceLoggedOut should be called when the current user logs out.
 func serviceLoggedOut(ctx context.Context, config Config) {
 	if jServer, err := GetJournalServer(config); err == nil {
 		jServer.shutdownExistingJournals(ctx)

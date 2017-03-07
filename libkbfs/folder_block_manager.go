@@ -967,12 +967,12 @@ func (fbm *folderBlockManager) isQRNecessary(
 		return false
 	}
 
-	key, err := fbm.config.KBPKI().GetCurrentVerifyingKey(ctx)
+	session, err := fbm.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
-		fbm.log.CWarningf(ctx, "Couldn't get the device key: %+v", err)
+		fbm.log.CWarningf(ctx, "Couldn't get the current session: %+v", err)
 		return false
 	}
-	selfWroteHead := key == head.LastModifyingWriterVerifyingKey()
+	selfWroteHead := session.VerifyingKey == head.LastModifyingWriterVerifyingKey()
 
 	// Don't do reclamation if the head isn't old enough and it wasn't
 	// written by this device.  We want to avoid fighting with other
@@ -1034,12 +1034,13 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	}
 
 	// Make sure we're a writer
-	username, uid, err := fbm.config.KBPKI().GetCurrentUserInfo(ctx)
+	session, err := fbm.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		return err
 	}
-	if !head.GetTlfHandle().IsWriter(uid) {
-		return NewWriteAccessError(head.GetTlfHandle(), username, head.GetTlfHandle().GetCanonicalPath())
+	if !head.GetTlfHandle().IsWriter(session.UID) {
+		return NewWriteAccessError(head.GetTlfHandle(), session.Name,
+			head.GetTlfHandle().GetCanonicalPath())
 	}
 
 	if !fbm.isQRNecessary(ctx, head) {

@@ -66,7 +66,7 @@ func newConfigForTest(loggerFn func(module string) logger.Logger) *ConfigLocal {
 // MakeTestBlockServerOrBust makes a block server from the given
 // arguments and environment variables.
 func MakeTestBlockServerOrBust(t logger.TestLogBackend, codec kbfscodec.Codec,
-	signer kbfscrypto.Signer, cig currentInfoGetter,
+	signer kbfscrypto.Signer, csg currentSessionGetter,
 	rpcLogFactory *libkb.RPCLogFactory, log logger.Logger) BlockServer {
 	// see if a local remote server is specified
 	bserverAddr := os.Getenv(EnvTestBServerAddr)
@@ -80,7 +80,7 @@ func MakeTestBlockServerOrBust(t logger.TestLogBackend, codec kbfscodec.Codec,
 		return blockServer
 
 	case len(bserverAddr) != 0:
-		return NewBlockServerRemote(codec, signer, cig,
+		return NewBlockServerRemote(codec, signer, csg,
 			log, bserverAddr, rpcLogFactory)
 
 	default:
@@ -347,7 +347,7 @@ func RevokeDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 
 // SwitchDeviceForLocalUserOrBust switches the current user's current device
 func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, index int) {
-	name, uid, err := config.KBPKI().GetCurrentUserInfo(context.Background())
+	session, err := config.KBPKI().GetCurrentSession(context.Background())
 	if err != nil {
 		t.Fatalf("Couldn't get UID: %+v", err)
 	}
@@ -357,7 +357,7 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 		t.Fatal("Bad keybase daemon")
 	}
 
-	if err := kbd.switchDeviceForTesting(uid, index); err != nil {
+	if err := kbd.switchDeviceForTesting(session.UID, index); err != nil {
 		t.Fatal(err.Error())
 	}
 
@@ -365,7 +365,7 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 		t.Fatal("Bad crypto")
 	}
 
-	keySalt := keySaltForUserDevice(name, index)
+	keySalt := keySaltForUserDevice(session.Name, index)
 	signingKey := MakeLocalUserSigningKeyOrBust(keySalt)
 	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(keySalt)
 	config.SetCrypto(

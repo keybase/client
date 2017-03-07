@@ -51,7 +51,6 @@ type UserInfo struct {
 type SessionInfo struct {
 	Name           libkb.NormalizedUsername
 	UID            keybase1.UID
-	Token          string
 	CryptPublicKey kbfscrypto.CryptPublicKey
 	VerifyingKey   kbfscrypto.VerifyingKey
 }
@@ -698,7 +697,6 @@ func SessionInfoFromProtocol(session keybase1.Session) (SessionInfo, error) {
 	return SessionInfo{
 		Name:           libkb.NewNormalizedUsername(session.Username),
 		UID:            keybase1.UID(session.Uid),
-		Token:          session.Token,
 		CryptPublicKey: cryptPublicKey,
 		VerifyingKey:   verifyingKey,
 	}, nil
