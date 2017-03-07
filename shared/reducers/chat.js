@@ -320,7 +320,7 @@ function reducer (state: State = initialState, action: Actions) {
       // $FlowIssue
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
-          if (convIDKeys.length === 0 || convIDKeys.includes(conversationIDKey)) {
+          if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
             return conversationState.set('isStale', true)
           }
           return conversationState
