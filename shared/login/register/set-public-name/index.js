@@ -19,7 +19,7 @@ class SetPublicName extends Component<void, Props, State> {
   render () {
     const nameTaken = !!(this.props.existingDevices && this.state.deviceName && this.props.existingDevices.indexOf(this.state.deviceName) !== -1)
     const submitEnabled = !!(this.state.deviceName && this.state.deviceName.length && !nameTaken)
-    const nameTakenError = nameTaken ? `The device name: ${this.state.deviceName || ''} is already taken` : null
+    const nameTakenError = nameTaken ? `The device name: '${this.state.deviceName || ''}' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.` : null
 
     return (
       <RenderSetPublicName
