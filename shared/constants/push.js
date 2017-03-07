@@ -6,7 +6,12 @@ export const tokenTypeApple: TokenType = 'apple'
 export const tokenTypeAndroidPlay: TokenType = 'androidplay'
 
 export type PushNotification = {
-  message: string,
+  payload?: {
+    userInteraction: boolean,
+    data?: {
+      convID?: string,
+    },
+  },
 }
 
 export const androidSenderID = '9603251415'
