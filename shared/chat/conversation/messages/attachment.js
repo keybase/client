@@ -19,12 +19,14 @@ function _showPreviewProgress (messageState, progress) {
 }
 
 function AttachmentTitle ({messageState, title}: {messageState: Constants.AttachmentMessageState, title: ?string}) {
-  let style = {}
+  let style = {
+    backgroundColor: globalColors.white,
+  }
   switch (messageState) {
     case 'uploading':
     case 'pending':
     case 'failed':
-      style = {color: globalColors.black_40}
+      style = {backgroundColor: globalColors.white, color: globalColors.black_40}
       break
   }
   return <Text type='BodySemibold' style={style}>{title}</Text>
@@ -102,6 +104,7 @@ function ProgressBar ({text, progress, style}: ProgressBarProps) {
 function ImageIcon ({type, style}: ImageIconProps) {
   const iconStyle = {
     ...globalStyles.flexBoxColumn,
+    backgroundColor: globalColors.white,
     color: type === 'Downloading' ? globalColors.blue : globalColors.green,
   }
 
@@ -161,7 +164,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
 
 function AttachmentIcon ({messageState}: {messageState: Constants.AttachmentMessageState}) {
   let iconType = 'icon-file-24'
-  let style = {marginTop: 8, marginBottom: 8, height: 24}
+  let style = {backgroundColor: globalColors.white, height: 24, marginBottom: 8, marginTop: 8}
   switch (messageState) {
     case 'downloading':
       iconType = 'icon-file-downloading-24'
