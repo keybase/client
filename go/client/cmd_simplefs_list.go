@@ -88,10 +88,6 @@ func (c *CmdSimpleFSList) HandleTopLevelKeybaseList() (bool, error) {
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSList) Run() error {
 
-	if isTLFRequest, err := c.HandleTopLevelKeybaseList(); isTLFRequest == true {
-		return err
-	}
-
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {
 		return err
@@ -99,7 +95,18 @@ func (c *CmdSimpleFSList) Run() error {
 
 	ctx := context.TODO()
 
-	c.G().Log.Debug("SimpleFSList %s", pathToString(c.path))
+	// TODO: listing an individual file does not work yet
+	paths, err := doSimpleFSPlatformGlob(c.G(), ctx, c.paths)
+	if err != nil {
+		return err
+	}
+
+	for _, path := range paths {
+		if isTLFRequest, err := c.HandleTopLevelKeybaseList(path); isTLFRequest == true {
+			return err
+		}
+
+		c.G().Log.Debug("SimpleFSList %s", pathToString(path))
 
 	opid, err := cli.SimpleFSMakeOpid(ctx)
 	if err != nil {
