@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/chat'
 import MessageWrapper from './wrapper'
 import moment from 'moment'
 import React, {PureComponent} from 'react'
-import {Box, Icon, ProgressIndicator, Text} from '../../../common-adapters'
+import {Box, Icon, ProgressIndicator, Text, ClickableBox} from '../../../common-adapters'
 import {isMobile, fileUIName} from '../../../constants/platform'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {ImageRender} from './attachment.render'
@@ -49,26 +49,28 @@ function PreviewImage ({message: {attachmentDurationMs, previewDurationMs, previ
     }
 
     return (
-      <Box style={style} onClick={onOpenInPopup}>
-        <Box style={{...imgStyle, backgroundColor: globalColors.black_05}}>
-          {previewPath && <ImageRender style={imgStyle} src={previewPath} />}
-        </Box>
-        {!isMobile && (messageState === 'downloading' || messageState === 'downloaded') &&
-          <ImageIcon
-            style={{position: 'relative', right: 19, top: 3}}
-            type={messageState === 'downloading' ? 'Downloading' : 'Downloaded'} />}
-        {attachmentDurationMs && !previewDurationMs &&
-          <Box style={{...globalStyles.flexBoxCenter, position: 'absolute', top: 0, left: 0, bottom: 0, right: 0}}>
-            <Icon type='icon-play-64' />
+      <ClickableBox style={style} onClick={onOpenInPopup}>
+        <Box>
+          <Box style={{...imgStyle, backgroundColor: globalColors.black_05}}>
+            {previewPath && <ImageRender style={imgStyle} src={previewPath} />}
           </Box>
-        }
-        {attachmentDurationMs && previewType === 'Video' &&
-          <Text
-            type='BodySemibold'
-            style={{position: 'absolute', backgroundColor: globalColors.transparent, color: 'white', fontSize: 12, right: globalMargins.tiny, bottom: globalMargins.xtiny}}
-          >{moment.utc(attachmentDurationMs).format('m:ss')}</Text>
-        }
-      </Box>
+          {!isMobile && (messageState === 'downloading' || messageState === 'downloaded') &&
+            <ImageIcon
+              style={{position: 'relative', right: 19, top: 3}}
+              type={messageState === 'downloading' ? 'Downloading' : 'Downloaded'} />}
+          {attachmentDurationMs && !previewDurationMs &&
+            <Box style={{...globalStyles.flexBoxCenter, position: 'absolute', top: 0, left: 0, bottom: 0, right: 0}}>
+              <Icon type='icon-play-64' />
+            </Box>
+          }
+          {attachmentDurationMs && previewType === 'Video' &&
+            <Text
+              type='BodySemibold'
+              style={{position: 'absolute', backgroundColor: globalColors.transparent, color: 'white', fontSize: 12, right: globalMargins.tiny, bottom: globalMargins.xtiny}}
+            >{moment.utc(attachmentDurationMs).format('m:ss')}</Text>
+          }
+        </Box>
+      </ClickableBox>
     )
   }
 

@@ -11,7 +11,7 @@ import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
 import type {ServerMessage, TextMessage} from '../../../constants/chat'
 
-function MessagePopup ({message, onDeleteMessage, onHidden, onShowEditor}: TextProps) {
+export function MessagePopup ({message, onDeleteMessage, onHidden, onShowEditor}: TextProps) {
   if (message.type !== 'Text' && message.type !== 'Attachment') return null
 
   const items = []
