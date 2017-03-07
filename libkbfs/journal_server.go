@@ -18,6 +18,29 @@ import (
 	"golang.org/x/net/context"
 )
 
+// TODO: Add a server endpoint to get this data.
+var adminFeatureList = map[keybase1.UID]bool{
+	"23260c2ce19420f97b58d7d95b68ca00": true, // Chris Coyne "chris"
+	"dbb165b7879fe7b1174df73bed0b9500": true, // Max Krohn, "max"
+	"ef2e49961eddaa77094b45ed635cfc00": true, // Jeremy Stribling, "strib"
+	"41b1f75fb55046d370608425a3208100": true, // Jack O'Connor, "oconnor663"
+	"9403ede05906b942fd7361f40a679500": true, // Jinyang Li, "jinyang"
+	"b7c2eaddcced7727bcb229751d91e800": true, // Gabriel Handford, "gabrielh"
+	"1563ec26dc20fd162a4f783551141200": true, // Patrick Crosby, "patrick"
+	"ebbe1d99410ab70123262cf8dfc87900": true, // Fred Akalin, "akalin"
+	"8bc0fd2f5fefd30d3ec04452600f4300": true, // Andy Alness, "alness"
+	"e0b4166c9c839275cf5633ff65c3e819": true, // Chris Nojima, "chrisnojima"
+	"d95f137b3b4a3600bc9e39350adba819": true, // Cécile Boucheron, "cecileb"
+	"4c230ae8d2f922dc2ccc1d2f94890700": true, // Marco Polo, "marcopolo"
+	"237e85db5d939fbd4b84999331638200": true, // Chris Ball, "cjb"
+	"69da56f622a2ac750b8e590c3658a700": true, // John Zila, "jzila"
+	"673a740cd20fb4bd348738b16d228219": true, // Steve Sanders, "zanderz"
+	"95e88f2087e480cae28f08d81554bc00": true, // Mike Maxim, "mikem"
+	"5c2ef2d4eddd2381daa681ac1a901519": true, // Max Goodman, "chromakode"
+	"08abe80bd2da8984534b2d8f7b12c700": true, // Song Gao, "songgao"
+	"eb08cb06e608ea41bd893946445d7919": true, // Miles Steele, "mlsteele"
+}
+
 type journalServerConfig struct {
 	// EnableAuto, if true, means the user has explicitly set its
 	// value. If false, then either the user turned it on and then
@@ -86,51 +109,6 @@ type branchChangeListener interface {
 // avoid deadlocks.
 type mdFlushListener interface {
 	onMDFlush(tlf.ID, BranchID, MetadataRevision)
-}
-
-// diskLimiter is an interface for limiting disk usage.
-type diskLimiter interface {
-	// onJournalEnable is called when initializing a TLF journal
-	// with that journal's current disk usage. Both journalBytes
-	// and journalFiles must be >= 0. The updated available byte
-	// and file count must be returned.
-	onJournalEnable(
-		ctx context.Context, journalBytes, journalFiles int64) (
-		availableBytes, availableFiles int64)
-
-	// onJournalDisable is called when shutting down a TLF journal
-	// with that journal's current disk usage. Both journalBytes
-	// and journalFiles must be >= 0.
-	onJournalDisable(ctx context.Context, journalBytes, journalFiles int64)
-
-	// beforeBlockPut is called before putting a block of the
-	// given byte and file count, both of which must be > 0. It
-	// may block, but must return immediately with a
-	// (possibly-wrapped) ctx.Err() if ctx is cancelled. The
-	// updated available byte and file count must be returned,
-	// even if err is non-nil.
-	beforeBlockPut(ctx context.Context,
-		blockBytes, blockFiles int64) (
-		availableBytes, availableFiles int64, err error)
-
-	// afterBlockPut is called after putting a block of the given
-	// byte and file count, which must match the corresponding call to
-	// beforeBlockPut. putData reflects whether or not the data
-	// was actually put; if it's false, it's either because of an
-	// error or because the block already existed.
-	afterBlockPut(ctx context.Context,
-		blockBytes, blockFiles int64, putData bool)
-
-	// onBlocksDelete is called after deleting one or more blocks
-	// of the given total byte and file count, both of which must
-	// be >= 0. (Deleting a block with either zero byte or zero
-	// file count shouldn't happen, but may as well let it go
-	// through.)
-	onBlocksDelete(ctx context.Context, blockBytes, blockFiles int64)
-
-	// getStatus returns an object that's marshallable into JSON
-	// for use in displaying status.
-	getStatus() interface{}
 }
 
 // TODO: JournalServer isn't really a server, although it can create

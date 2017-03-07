@@ -469,6 +469,30 @@ func (bdl *backpressureDiskLimiter) onBlocksDelete(
 	bdl.fileTracker.onBlocksDelete(blockFiles)
 }
 
+func (bdl *backpressureDiskLimiter) onDiskBlockCacheDelete(
+	ctx context.Context, blockBytes int64) {
+	if blockBytes == 0 {
+		return
+	}
+	bdl.lock.Lock()
+	defer bdl.lock.Unlock()
+	bdl.byteTracker.onBlockDelete(blockBytes)
+}
+
+func (bdl *backpressureDiskLimiter) beforeDiskBlockCachePut(
+	ctx context.Context, blockBytes int64) (availableBytes int64, err error) {
+	if blockBytes == 0 {
+		// Better to return an error than to panic in Acquire.
+		return bdl.byteTracker.semaphore.Count(),
+			errors.New("backpressureDiskLimiter.beforeDiskBlockCachePut" +
+				" called with 0 blockBytes")
+	}
+	bdl.lock.Lock()
+	defer bdl.lock.Unlock()
+	// TODO: finish
+	return 0, nil
+}
+
 type backpressureDiskLimiterStatus struct {
 	Type string
 
