@@ -212,7 +212,7 @@ func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error
 // In some cases, that deep copy can be expensive, so as for users who have lots of
 // followees. So if you provide accessor, the UPAK won't be deep-copied, but you'll
 // be able to access it from inside the accessor with exclusion.
-func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInfo, accessor func(k *keybase1.UserPlusAllKeys) error, canUseFullUser bool) (ret *keybase1.UserPlusAllKeys, user *User, err error) {
+func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInfo, accessor func(k *keybase1.UserPlusAllKeys) error, shouldReturnFullUser bool) (ret *keybase1.UserPlusAllKeys, user *User, err error) {
 
 	// Shorthand
 	g := u.G()
@@ -231,7 +231,11 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 	defer func() {
 		lock.Release(ctx)
-		if user != nil && err == nil && !canUseFullUser {
+
+		if !shouldReturnFullUser {
+			user = nil
+		}
+		if user != nil && err == nil {
 			// Update the full-self cacher after the lock is released, to avoid
 			// any circular locking.
 			if fs := u.G().GetFullSelfer(); fs != nil {
