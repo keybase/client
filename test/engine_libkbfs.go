@@ -78,10 +78,19 @@ func (k *LibKBFS) InitTest(ver libkbfs.MetadataVer,
 		k.journalDir = jdir
 		k.tb.Logf("Journal directory: %s", k.journalDir)
 		for name, c := range userMap {
-			c.(*libkbfs.ConfigLocal).EnableJournaling(
+			config := c.(*libkbfs.ConfigLocal)
+			config.EnableJournaling(
 				context.Background(),
 				filepath.Join(jdir, name.String()),
 				libkbfs.TLFJournalBackgroundWorkEnabled)
+			jServer, err := libkbfs.GetJournalServer(config)
+			if err != nil {
+				panic(fmt.Sprintf("No journal server for %s: %+v", name, err))
+			}
+			err = jServer.DisableAuto(context.Background())
+			if err != nil {
+				panic(fmt.Sprintf("Couldn't disable journaling: %+v", err))
+			}
 		}
 	}
 
