@@ -278,7 +278,7 @@ protocol local {
 
     // MessageBoxed.V1: Null
     // MessageBoxed.V2: The verification key used to unbox.
-    //                  See MessageBoxed.headerVerificationKey
+    //                  See MessageBoxed.verifyKey
     union {null, bytes} verificationKey;
 
     // Whether the message was sent by a device that is now revoked.

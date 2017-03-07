@@ -417,6 +417,9 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	// Later it is asserted that the claimed and signing sender are the same.
 	// ValidSenderKey uses the server-given ctime, but emits senderDeviceRevokedAt as a workaround.
 	// See ValidSenderKey for details.
+	if boxed.VerifyKey == nil {
+		return nil, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "sender key missing"})
+	}
 	senderKeyFound, senderKeyValidAtCtime, senderDeviceRevokedAt, ierr := b.ValidSenderKey(
 		ctx, boxed.ClientHeader.Sender, boxed.VerifyKey, boxed.ServerHeader.Ctime)
 	if ierr != nil {
