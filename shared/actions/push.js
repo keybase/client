@@ -59,7 +59,7 @@ function * permissionsRequestSaga (): SagaGenerator<any, any> {
 function * pushNotificationSaga (notification: PushNotification): SagaGenerator<any, any> {
   console.warn('Push notification:', notification)
   if (notification.payload && notification.payload.userInteraction) {
-    if (!notification.payload.data || !notification.payload.data.convID) {
+    if (!notification.payload.data) {
       console.warn('Push notification missing data', notification)
       return
     }
