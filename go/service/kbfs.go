@@ -61,7 +61,8 @@ func (h *KBFSHandler) checkConversationRekey(arg keybase1.FSNotification) {
 	if arg.NotificationType != keybase1.FSNotificationType_REKEYING {
 		return
 	}
-	if arg.StatusCode == keybase1.FSStatusCode_FINISH {
+	h.G().Log.Debug("received rekey notification for %s, code: %v", arg.Filename, arg.StatusCode)
+	if arg.StatusCode != keybase1.FSStatusCode_FINISH {
 		return
 	}
 
