@@ -551,6 +551,42 @@
     },
     {
       "type": "record",
+      "name": "SignEncryptedData",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "bytes",
+          "name": "n"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SealedData",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "bytes",
+          "name": "n"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SignatureInfo",
       "fields": [
         {
@@ -564,24 +600,6 @@
         {
           "type": "bytes",
           "name": "k"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "SignEncryptedData",
-      "fields": [
-        {
-          "type": "int",
-          "name": "v"
-        },
-        {
-          "type": "bytes",
-          "name": "b"
-        },
-        {
-          "type": "bytes",
-          "name": "n"
         }
       ]
     },
