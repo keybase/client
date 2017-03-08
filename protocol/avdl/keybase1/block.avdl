@@ -27,6 +27,12 @@ protocol block {
     BlockReference failed;
   }
 
+  record BlockPingResponse {
+    // In the future, we might want to respond with timestamps or
+    // ping intervals.
+  }
+
+
   ChallengeInfo getSessionChallenge();
   void authenticateSession(string signature);
 
@@ -41,5 +47,6 @@ protocol block {
   DowngradeReferenceRes archiveReferenceWithCount(string folder, array<BlockReference> refs);
 
   bytes getUserQuotaInfo();
- 
+
+  BlockPingResponse blockPing();
 }

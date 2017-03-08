@@ -972,6 +972,18 @@ export function blockAuthenticateSessionRpcPromise (request: $Exact<requestCommo
   return new Promise((resolve, reject) => { blockAuthenticateSessionRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function blockBlockPingRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: blockBlockPingResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.block.blockPing'})
+}
+
+export function blockBlockPingRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockBlockPingResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => blockBlockPingRpc({...request, incomingCallMap, callback}))
+}
+
+export function blockBlockPingRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockBlockPingResult) => void}>): Promise<blockBlockPingResult> {
+  return new Promise((resolve, reject) => { blockBlockPingRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function blockDelReferenceRpc (request: Exact<requestCommon & requestErrorCallback & {param: blockDelReferenceRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.block.delReference'})
 }
@@ -3112,6 +3124,8 @@ export type BlockIdCombo = {
   chargedTo: UID,
   blockType: BlockType,
 }
+
+export type BlockPingResponse = {}
 
 export type BlockRefNonce = any
 
@@ -5773,6 +5787,8 @@ type blockArchiveReferenceResult = ?Array<BlockReference>
 
 type blockArchiveReferenceWithCountResult = DowngradeReferenceRes
 
+type blockBlockPingResult = BlockPingResponse
+
 type blockDelReferenceWithCountResult = DowngradeReferenceRes
 
 type blockGetBlockResult = GetBlockRes
@@ -6046,6 +6062,7 @@ export type rpc =
   | blockArchiveReferenceRpc
   | blockArchiveReferenceWithCountRpc
   | blockAuthenticateSessionRpc
+  | blockBlockPingRpc
   | blockDelReferenceRpc
   | blockDelReferenceWithCountRpc
   | blockGetBlockRpc
