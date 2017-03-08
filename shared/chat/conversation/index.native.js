@@ -19,7 +19,7 @@ const Conversation = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
     <Header {...props.headerProps} />
     <List {...props.listProps} />
-    {props.bannerMessage && <Banner {...props.bannerMessage} />}
+    {props.bannerMessage && <Banner message={props.bannerMessage} />}
     {props.finalizeInfo
       ? <OldProfileResetNotice
         onOpenNewerConversation={props.onOpenNewerConversation}

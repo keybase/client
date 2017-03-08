@@ -78,18 +78,18 @@ const InviteBanner = (props: InviteVariant) => {
   )
 }
 
-const Banner = (props: Props) => {
-  if (props.type === 'Error') {
-    return <ErrorBanner {...props} />
-  } else if (props.type === 'Invite') {
-    return <InviteBanner {...props} />
-  } else if (props.type === 'BrokenTracker') {
-    return <BrokenTrackerBanner {...props} />
+const Banner = ({message}: Props) => {
+  if (message.type === 'Error') {
+    return <ErrorBanner {...message} />
+  } else if (message.type === 'Invite') {
+    return <InviteBanner {...message} />
+  } else if (message.type === 'BrokenTracker') {
+    return <BrokenTrackerBanner {...message} />
   }
 
   return (
     <Header style={{backgroundColor: globalColors.blue}}>
-      <BannerText>{props.text}</BannerText>
+      <BannerText>{message.text}</BannerText>
     </Header>
   )
 }
