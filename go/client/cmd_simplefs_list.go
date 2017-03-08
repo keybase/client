@@ -4,7 +4,7 @@
 package client
 
 import (
-	"errors"
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -19,7 +19,7 @@ import (
 // CmdSimpleFSList is the 'fs ls' command.
 type CmdSimpleFSList struct {
 	libkb.Contextified
-	paths   []keybase1.Path
+	path    keybase1.Path
 	recurse bool
 }
 
@@ -61,39 +61,39 @@ func (c *CmdSimpleFSList) Run() error {
 
 		c.G().Log.Debug("SimpleFSList %s", pathToString(path))
 
-		opid, err := cli.SimpleFSMakeOpid(ctx)
-		if err != nil {
-			return err
-		}
-		defer cli.SimpleFSClose(ctx, opid)
-		if c.recurse {
-			err = cli.SimpleFSListRecursive(ctx, keybase1.SimpleFSListRecursiveArg{
-				OpID: opid,
-				Path: path,
-			})
-		} else {
-			err = cli.SimpleFSList(ctx, keybase1.SimpleFSListArg{
-				OpID: opid,
-				Path: path,
-			})
-		}
-		if err != nil {
-			return err
-		}
-
-		err = cli.SimpleFSWait(ctx, opid)
-		if err != nil {
-			return err
-		}
-
-		for {
-			listResult, err := cli.SimpleFSReadList(ctx, opid)
-			if err != nil {
-				break
-			}
-			c.output(listResult)
-		}
+	opid, err := cli.SimpleFSMakeOpid(ctx)
+	if err != nil {
+		return err
 	}
+	defer cli.SimpleFSClose(ctx, opid)
+	if c.recurse {
+		err = cli.SimpleFSListRecursive(ctx, keybase1.SimpleFSListRecursiveArg{
+			OpID: opid,
+			Path: c.path,
+		})
+	} else {
+		err = cli.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+			OpID: opid,
+			Path: c.path,
+		})
+	}
+	if err != nil {
+		return err
+	}
+
+	err = cli.SimpleFSWait(ctx, opid)
+	if err != nil {
+		return err
+	}
+
+	for {
+		listResult, err := cli.SimpleFSReadList(ctx, opid)
+		if err != nil {
+			break
+		}
+		c.output(listResult)
+	}
+
 	return err
 }
 
@@ -117,20 +117,10 @@ func (c *CmdSimpleFSList) ParseArgv(ctx *cli.Context) error {
 
 	c.recurse = ctx.Bool("recurse")
 
-	if nargs < 1 {
-		return errors.New("ls requires at least one KBFS path argument")
-	}
-
-	for _, src := range ctx.Args() {
-		argPath := makeSimpleFSPath(c.G(), src)
-		pathType, err := argPath.PathType()
-		if err != nil {
-			return err
-		}
-		if pathType != keybase1.PathType_KBFS {
-			return errors.New("ls requires KBFS path arguments")
-		}
-		c.paths = append(c.paths, argPath)
+	if nargs == 1 {
+		c.path = makeSimpleFSPath(c.G(), ctx.Args()[0])
+	} else {
+		err = fmt.Errorf("ls requires a path argument")
 	}
 
 	return err

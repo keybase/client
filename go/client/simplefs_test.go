@@ -45,7 +45,7 @@ func TestSimpleFSPathRemote(t *testing.T) {
 	pathType, err = testPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
-	assert.Equal(tc.T, "/private", testPath.Kbfs())
+	assert.Equal(tc.T, "/private/", testPath.Kbfs())
 
 }
 
@@ -342,11 +342,56 @@ func TestSimpleFSLocalExists(t *testing.T) {
 	assert.Equal(tc.T, keybase1.PathType_LOCAL, pathType, "Expected local path, got remote")
 
 	// check directory
-	err = checkElementExists(context.TODO(), SimpleFSMock{}, testPath)
+	err = checkElementExists(context.TODO(), SimpleFSTestStat{}, testPath)
 	require.Error(tc.T, err, "Should get an element exists error")
 
 	// check file
 	testPath = makeSimpleFSPath(tc.G, tempFile)
-	err = checkElementExists(context.TODO(), SimpleFSMock{}, testPath)
+	err = checkElementExists(context.TODO(), SimpleFSTestStat{}, testPath)
 	require.Error(tc.T, err, "Should get an element exists error")
+}
+
+func TestSimpleFSPlatformGlob(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		return
+	}
+	tc := libkb.SetupTest(t, "simplefs_path", 0)
+
+	// make a temp local dest directory + files we will clean up later
+	tempdir, err := ioutil.TempDir("", "simpleFstest")
+	defer os.RemoveAll(tempdir)
+	require.NoError(t, err)
+	err = ioutil.WriteFile(filepath.Join(tempdir, "test1.txt"), []byte("foo"), 0644)
+	require.NoError(t, err)
+	err = ioutil.WriteFile(filepath.Join(tempdir, "test2.txt"), []byte("foo"), 0644)
+	require.NoError(t, err)
+	err = ioutil.WriteFile(filepath.Join(tempdir, "test3.txt"), []byte("foo"), 0644)
+	require.NoError(t, err)
+	path1 := keybase1.NewPathWithLocal(filepath.Join(tempdir, "*.txt"))
+
+	paths, err := doSimpleFSPlatformGlob(tc.G, context.TODO(), SimpleFSMock{}, []keybase1.Path{path1})
+	require.NoError(t, err)
+	assert.Equal(tc.T, filepath.Join(tempdir, "test1.txt"), paths[0].Local())
+	assert.Equal(tc.T, filepath.Join(tempdir, "test2.txt"), paths[1].Local())
+	assert.Equal(tc.T, filepath.Join(tempdir, "test3.txt"), paths[2].Local())
+
+	// mock some remote files
+	mockResults := keybase1.SimpleFSListResult{
+		Entries: []keybase1.Dirent{
+			{Name: "test1.txt"},
+			{Name: "test2.txt"},
+			{Name: "test3.txt"},
+		},
+	}
+	clientMock := SimpleFSMock{
+		ListResult: &mockResults,
+	}
+	path1 = keybase1.NewPathWithKbfs("/private/foobar/temp/*.txt")
+
+	paths, err = doSimpleFSPlatformGlob(tc.G, context.TODO(), clientMock, []keybase1.Path{path1})
+	require.NoError(t, err)
+	assert.Equal(tc.T, "/private/foobar/temp/test1.txt", paths[0].Kbfs())
+	assert.Equal(tc.T, "/private/foobar/temp/test2.txt", paths[1].Kbfs())
+	assert.Equal(tc.T, "/private/foobar/temp/test3.txt", paths[2].Kbfs())
+
 }
