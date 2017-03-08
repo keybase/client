@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	stdpath "path"
 	"strings"
 	"sync"
 
@@ -60,12 +61,28 @@ func (k *SimpleFS) SimpleFSList(_ context.Context, arg keybase1.SimpleFSListArg)
 		keybase1.ListArgs{
 			OpID: arg.OpID, Path: arg.Path,
 		}), func(ctx context.Context) (err error) {
+		var children map[string]EntryInfo
 
-		node, err := k.getRemoteNode(ctx, arg.Path)
-		if err != nil {
-			return err
+		rawPath := arg.Path.Kbfs()
+		wantPublic := false
+		switch {
+		case rawPath == `/public`:
+			wantPublic = true
+			fallthrough
+		case rawPath == `/private`:
+			children, err = k.favoriteList(ctx, arg.Path, wantPublic)
+		default:
+			node, ei, err := k.getRemoteNode(ctx, arg.Path)
+			if err != nil {
+				return err
+			}
+			switch ei.Type {
+			case Dir:
+				children, err = k.config.KBFSOps().GetDirChildren(ctx, node)
+			default:
+				children = map[string]EntryInfo{stdpath.Base(arg.Path.Kbfs()): ei}
+			}
 		}
-		children, err := k.config.KBFSOps().GetDirChildren(ctx, node)
 		if err != nil {
 			return err
 		}
@@ -80,6 +97,34 @@ func (k *SimpleFS) SimpleFSList(_ context.Context, arg keybase1.SimpleFSListArg)
 		k.setResult(arg.OpID, keybase1.SimpleFSListResult{Entries: des})
 		return nil
 	})
+}
+
+func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, wantPublic bool) (map[string]EntryInfo, error) {
+	session, err := k.config.KBPKI().GetCurrentSession(ctx)
+	// Return empty directory listing if we are not logged in.
+	if err != nil {
+		return nil, nil
+	}
+
+	favs, err := k.config.KBFSOps().GetFavorites(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]EntryInfo, len(favs))
+	for _, fav := range favs {
+		if fav.Public != wantPublic {
+			continue
+		}
+		pname, err := FavoriteNameToPreferredTLFNameFormatAs(
+			session.Name, CanonicalTlfName(fav.Name))
+		if err != nil {
+			k.log.Errorf("FavoriteNameToPreferredTLFNameFormatAs: %q %v", fav.Name, err)
+			continue
+		}
+		res[string(pname)] = EntryInfo{Type: Dir}
+	}
+	return res, nil
 }
 
 // SimpleFSListRecursive - Begin recursive list of items in directory at path
@@ -97,7 +142,7 @@ func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.Simpl
 			// Take last element and shorten
 			path := paths[len(paths)-1]
 			paths = paths[:len(paths)-1]
-			node, err := k.getRemoteNode(ctx, path)
+			node, _, err := k.getRemoteNode(ctx, path)
 			if err != nil {
 				return err
 			}
@@ -317,7 +362,7 @@ func (k *SimpleFS) SimpleFSSetStat(ctx context.Context, arg keybase1.SimpleFSSet
 	}
 	defer func() { k.doneSyncOp(ctx, err) }()
 
-	node, err := k.getRemoteNode(ctx, arg.Dest)
+	node, _, err := k.getRemoteNode(ctx, arg.Dest)
 	if err != nil {
 		return err
 	}
@@ -433,11 +478,8 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, path keybase1.Path) (_ keyb
 	}
 	defer func() { k.doneSyncOp(ctx, err) }()
 
-	node, err := k.getRemoteNode(ctx, path)
-	if err != nil {
-		return keybase1.Dirent{}, err
-	}
-	return wrapStat(k.config.KBFSOps().Stat(ctx, node))
+	_, ei, err := k.getRemoteNode(ctx, path)
+	return wrapStat(ei, err)
 }
 
 // SimpleFSMakeOpid - Convenience helper for generating new random value
@@ -570,50 +612,54 @@ func (k *SimpleFS) open(ctx context.Context, dest keybase1.Path, f keybase1.Open
 
 // getRemoteRootNode
 func (k *SimpleFS) getRemoteRootNode(ctx context.Context, path keybase1.Path) (
-	Node, []string, error) {
+	Node, EntryInfo, []string, error) {
 	ps, public, err := remotePath(path)
 	if err != nil {
-		return nil, nil, err
+		return nil, EntryInfo{}, nil, err
 	}
 	tlf, err := ParseTlfHandlePreferred(
 		ctx, k.config.KBPKI(), ps[0], public)
 	if err != nil {
-		return nil, nil, err
+		return nil, EntryInfo{}, nil, err
 	}
-	node, _, err := k.config.KBFSOps().GetOrCreateRootNode(
+	node, ei, err := k.config.KBFSOps().GetOrCreateRootNode(
 		ctx, tlf, MasterBranch)
 	if err != nil {
-		return nil, nil, err
+		return nil, EntryInfo{}, nil, err
 	}
-	return node, ps[1:], nil
+	return node, ei, ps[1:], nil
 }
 
 // getRemoteNode
 func (k *SimpleFS) getRemoteNode(ctx context.Context, path keybase1.Path) (
-	Node, error) {
-	node, ps, err := k.getRemoteRootNode(ctx, path)
+	Node, EntryInfo, error) {
+	node, ei, ps, err := k.getRemoteRootNode(ctx, path)
 	if err != nil {
-		return nil, err
+		return nil, EntryInfo{}, err
 	}
 
 	// TODO: should we walk symlinks here?
 	// Some callers like List* don't want that.
 	for _, name := range ps {
-		node, _, err = k.config.KBFSOps().Lookup(ctx, node, name)
+		node, ei, err = k.config.KBFSOps().Lookup(ctx, node, name)
 		if err != nil {
-			return nil, err
+			return nil, EntryInfo{}, err
 		}
 	}
 
-	return node, nil
+	return node, ei, nil
 }
 
 // getRemoteNodeParent
 func (k *SimpleFS) getRemoteNodeParent(ctx context.Context, path keybase1.Path) (
 	Node, string, error) {
-	node, ps, err := k.getRemoteRootNode(ctx, path)
+	node, _, ps, err := k.getRemoteRootNode(ctx, path)
 	if err != nil {
 		return nil, "", err
+	}
+
+	if len(ps) == 0 {
+		return node, "", nil
 	}
 
 	leaf := ps[len(ps)-1]
