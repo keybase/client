@@ -250,7 +250,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 
 func (d *Service) createMessageDeliverer() {
 	tlf := newTlfHandler(nil, d.G())
-	ri := func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: d.gregor.cli} }
+	ri := d.chatRemoteClient
 	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
 	ti := func() keybase1.TlfInterface { return tlf }
 
@@ -267,7 +267,7 @@ func (d *Service) startMessageDeliverer() {
 
 func (d *Service) createChatSources() {
 	tlf := newTlfHandler(nil, d.G())
-	ri := func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: d.gregor.cli} }
+	ri := d.chatRemoteClient
 	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
 	ti := func() keybase1.TlfInterface { return tlf }
 
@@ -283,6 +283,14 @@ func (d *Service) createChatSources() {
 	d.G().AddUserChangedHandler(chat.NewIdentifyChangedHandler(d.G(), func() keybase1.TlfInterface {
 		return tlf
 	}))
+}
+
+func (d *Service) chatRemoteClient() chat1.RemoteInterface {
+	if d.gregor.cli == nil {
+		d.G().Log.Debug("service not connected to gregor, using errorClient for chat1.RemoteClient")
+		return chat1.RemoteClient{Cli: errorClient{}}
+	}
+	return chat1.RemoteClient{Cli: d.gregor.cli}
 }
 
 func (d *Service) configureRekey(uir *UIRouter) {
