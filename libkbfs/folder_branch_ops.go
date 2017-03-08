@@ -4146,7 +4146,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 		}
 		diskCache := fbo.config.DiskBlockCache()
 		if diskCache != nil {
-			go diskCache.Delete(ctx, md.TlfID(), idsToDelete)
+			go diskCache.DeleteByTLF(ctx, md.TlfID(), idsToDelete)
 		}
 	case *resolutionOp:
 		// If there are any unrefs of blocks that have a node, this is an
