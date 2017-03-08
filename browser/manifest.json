@@ -3,7 +3,7 @@
   "version": "1.0",
   "description": "Keybase from the comfort of your browser.",
   "icons": {
-    "48": "icon-keybase-logo-48.png",
+    "48": "images/icon-keybase-logo-48.png",
     "128": "images/icon-keybase-logo-128.png"
   },
   "permissions": [
@@ -11,6 +11,23 @@
     "https://reddit.com/*",
     "http://*.reddit.com/*",
     "https://*.reddit.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://reddit.com/*",
+        "https://reddit.com/*",
+        "http://*.reddit.com/*",
+        "https://*.reddit.com/*"
+      ],
+      "js": [
+        "js/content.js"
+      ],
+      "css": [
+        "css/style.css"
+      ],
+      "run_at": "document_end"
+    }
   ],
   "manifest_version": 2
 }
