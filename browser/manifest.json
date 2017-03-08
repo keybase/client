@@ -1,0 +1,16 @@
+{
+  "name": "Keybase",
+  "version": "1.0",
+  "description": "Keybase from the comfort of your browser.",
+  "icons": {
+    "48": "icon-keybase-logo-48.png",
+    "128": "images/icon-keybase-logo-128.png"
+  },
+  "permissions": [
+    "http://reddit.com/*",
+    "https://reddit.com/*",
+    "http://*.reddit.com/*",
+    "https://*.reddit.com/*"
+  ],
+  "manifest_version": 2
+}
