@@ -20,7 +20,6 @@ function _processMessages (seenMessages: Set<any>, messages: List<ServerMessage>
   const updatedMessages = messages.map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m)
   // We have to check for m.messageID being falsey and set.has(undefined) is true!. We shouldn't ever have a zero messageID
   let nextMessages: List<ServerMessage> = filteredPrepend.concat(updatedMessages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
-  const nextSeenMessages = Set(nextMessages.map(m => m.key))
 
   filteredAppendGroups.get('Edit', List()).forEach(edit => {
     if (edit.type !== 'Edit') {
@@ -47,6 +46,7 @@ function _processMessages (seenMessages: Set<any>, messages: List<ServerMessage>
     }
   })
 
+  const nextSeenMessages = Set(nextMessages.map(m => m.key))
   return {
     nextMessages,
     nextSeenMessages,
@@ -190,6 +190,16 @@ function reducer (state: State = initialState, action: Actions) {
 
       return state
         .set('conversationStates', newConversationStates)
+    }
+    case 'chat:deleteTempMessage': {
+      const {conversationIDKey, outboxID} = action.payload
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates => updateConversation(
+        conversationStates,
+        conversationIDKey,
+        // $FlowIssue
+        conv => conv.update('messages', messages => messages.filter(m => m.outboxID !== outboxID))
+      ))
     }
     case 'chat:updateTempMessage': {
       if (action.error) {

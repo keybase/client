@@ -400,6 +400,11 @@ export type UpdateTempMessage = TypedAction<'chat:updateTempMessage', {
   error: Error,
 }>
 
+export type DeleteTempMessage = NoErrorTypedAction<'chat:deleteTempMessage', {
+  conversationIDKey: ConversationIDKey,
+  outboxID: OutboxIDKey,
+}>
+
 export type MarkSeenMessage = NoErrorTypedAction<'chat:markSeenMessage', {
   conversationIDKey: ConversationIDKey,
   messageID: MessageID,
