@@ -141,11 +141,18 @@ func getExtendedIdentify(ctx context.Context) (ei *extendedIdentify) {
 	}
 }
 
-func identifyUID(ctx context.Context, nug normalizedUsernameGetter, identifier identifier, uid keybase1.UID, isPublic bool) error {
+func identifyUID(ctx context.Context, nug normalizedUsernameGetter,
+	identifier identifier, uid keybase1.UID, isPublic bool) error {
 	username, err := nug.GetNormalizedUsername(ctx, uid)
 	if err != nil {
 		return err
 	}
+	return identifyUser(ctx, nug, identifier, username, uid, isPublic)
+}
+
+func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
+	identifier identifier, username libkb.NormalizedUsername,
+	uid keybase1.UID, isPublic bool) error {
 	var reason string
 	if isPublic {
 		reason = "You accessed a public folder."
@@ -170,6 +177,34 @@ func identifyUID(ctx context.Context, nug normalizedUsernameGetter, identifier i
 	return nil
 }
 
+// identifyUserToChan calls identifyUID and plugs the result into the error channnel.
+func identifyUserToChan(ctx context.Context, nug normalizedUsernameGetter,
+	identifier identifier, name libkb.NormalizedUsername, uid keybase1.UID,
+	isPublic bool, errChan chan error) {
+	errChan <- identifyUser(ctx, nug, identifier, name, uid, isPublic)
+}
+
+// identifyUsers identifies the users in the given maps.
+func identifyUsers(ctx context.Context, nug normalizedUsernameGetter,
+	identifier identifier, writers, readers map[keybase1.UID]libkb.NormalizedUsername,
+	public bool) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	nitems := len(writers) + len(readers)
+	errChan := make(chan error, nitems)
+	// TODO: limit the number of concurrent identifies? Otherwise we can use
+	// errgroup.Group here.
+	for uid, name := range writers {
+		go identifyUserToChan(ctx, nug, identifier, name, uid, public, errChan)
+	}
+	for uid, name := range readers {
+		go identifyUserToChan(ctx, nug, identifier, name, uid, public, errChan)
+	}
+
+	return readUpToNErrors(nitems, errChan)
+}
+
 // identifyUserList identifies the users in the given list.
 func identifyUserList(ctx context.Context, nug normalizedUsernameGetter, identifier identifier, uids []keybase1.UID, public bool) error {
 	ctx, cancel := context.WithCancel(ctx)
@@ -185,26 +220,35 @@ func identifyUserList(ctx context.Context, nug normalizedUsernameGetter, identif
 		}(uid)
 	}
 
-	for i := 0; i < len(uids); i++ {
+	return readUpToNErrors(len(uids), errChan)
+}
+
+// readUpToNErrors reads up to n errors from an error channel and returns
+// the first non-nil error encountered or nil after reading n nils from
+// the channel.
+func readUpToNErrors(n int, errChan chan error) error {
+	for i := 0; i < n; i++ {
 		err := <-errChan
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
-func identifyUserListForTLF(ctx context.Context, nug normalizedUsernameGetter, identifier identifier, uids []keybase1.UID, public bool) error {
+// identifyUsersForTLF is a helper for identifyHandle for easier testing.
+func identifyUsersForTLF(ctx context.Context, nug normalizedUsernameGetter,
+	identifier identifier, writers, readers map[keybase1.UID]libkb.NormalizedUsername,
+	public bool) error {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	eg.Go(func() error {
 		ei := getExtendedIdentify(ctx)
-		return ei.makeTlfBreaksIfNeeded(ctx, len(uids))
+		return ei.makeTlfBreaksIfNeeded(ctx, len(writers)+len(readers))
 	})
 
 	eg.Go(func() error {
-		return identifyUserList(ctx, nug, identifier, uids, public)
+		return identifyUsers(ctx, nug, identifier, writers, readers, public)
 	})
 
 	return eg.Wait()
@@ -212,6 +256,6 @@ func identifyUserListForTLF(ctx context.Context, nug normalizedUsernameGetter, i
 
 // identifyHandle identifies the canonical names in the given handle.
 func identifyHandle(ctx context.Context, nug normalizedUsernameGetter, identifier identifier, h *TlfHandle) error {
-	uids := append(h.ResolvedWriters(), h.ResolvedReaders()...)
-	return identifyUserListForTLF(ctx, nug, identifier, uids, h.IsPublic())
+	return identifyUsersForTLF(ctx, nug, identifier,
+		h.ResolvedWritersMap(), h.ResolvedReadersMap(), h.IsPublic())
 }
