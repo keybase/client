@@ -10,8 +10,10 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/base64"
-	"github.com/keybase/go-crypto/openpgp/errors"
 	"io"
+	"strings"
+
+	"github.com/keybase/go-crypto/openpgp/errors"
 )
 
 // A Block represents an OpenPGP armored structure.
@@ -99,9 +101,14 @@ func (l *lineReader) Read(p []byte) (n int, err error) {
 			uint32(expectedBytes[1])<<8 |
 			uint32(expectedBytes[2])
 
-		line, _, err = l.in.ReadLine()
-		if err != nil && err != io.EOF {
-			return
+		for {
+			line, _, err = l.in.ReadLine()
+			if err != nil && err != io.EOF {
+				return
+			}
+			if len(strings.TrimSpace(string(line))) > 0 {
+				break
+			}
 		}
 		if !bytes.HasPrefix(line, armorEnd) {
 			return 0, ArmorCorrupt
