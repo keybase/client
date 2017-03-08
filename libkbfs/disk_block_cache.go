@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"path/filepath"
 	"sort"
@@ -514,10 +513,7 @@ func (*DiskBlockCacheStandard) getRandomBlockID(numElements,
 		return kbfsblock.ID{}, nil
 	}
 	// Generate a random block ID to start the range.
-	pivot := uint64(
-		float64(math.MaxUint64) *
-			(1.0 -
-				(float64(numElements) / float64(totalElements))))
+	pivot := (1.0 - (float64(numElements) / float64(totalElements)))
 	return kbfsblock.MakeRandomIDInRange(0, pivot)
 }
 
