@@ -70,8 +70,7 @@
           "type": "int"
         }
       ],
-      "response": null,
-      "oneway": true
+      "response": null
     },
     "chatAttachmentDownloadStart": {
       "request": [

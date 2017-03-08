@@ -886,6 +886,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	attachment := chat1.MessageAttachment{
 		Object:   object,
 		Metadata: arg.Metadata,
+		Uploaded: true,
 	}
 	if preview != nil {
 		preview.Title = arg.Title
@@ -894,7 +895,6 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		preview.Tag = chat1.AssetTag_PRIMARY
 		attachment.Previews = []chat1.Asset{*preview}
 		attachment.Preview = preview
-		attachment.Uploaded = true
 	}
 
 	// edit the placeholder  attachment message with the asset information

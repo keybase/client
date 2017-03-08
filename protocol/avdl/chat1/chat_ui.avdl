@@ -6,7 +6,7 @@ protocol chatUi {
   void chatAttachmentUploadDone(int sessionID) oneway;	
 
   void chatAttachmentPreviewUploadStart(int sessionID, AssetMetadata metadata) oneway;	
-  void chatAttachmentPreviewUploadDone(int sessionID) oneway;	
+  void chatAttachmentPreviewUploadDone(int sessionID);	
 
   void chatAttachmentDownloadStart(int sessionID) oneway;	
   void chatAttachmentDownloadProgress(int sessionID, int bytesComplete, int bytesTotal) oneway;     

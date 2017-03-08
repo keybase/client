@@ -159,7 +159,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					err = i.ChatAttachmentPreviewUploadDone(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
-				MethodType: rpc.MethodNotify,
+				MethodType: rpc.MethodCall,
 			},
 			"chatAttachmentDownloadStart": {
 				MakeArg: func() interface{} {
@@ -288,7 +288,7 @@ func (c ChatUiClient) ChatAttachmentPreviewUploadStart(ctx context.Context, __ar
 
 func (c ChatUiClient) ChatAttachmentPreviewUploadDone(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatAttachmentPreviewUploadDoneArg{SessionID: sessionID}
-	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatAttachmentPreviewUploadDone", []interface{}{__arg})
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentPreviewUploadDone", []interface{}{__arg}, nil)
 	return
 }
 
