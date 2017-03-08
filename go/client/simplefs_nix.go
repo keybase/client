@@ -11,6 +11,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func doSimpleFSPlatformGlob(g *libkb.GlobalContext, ctx *cli.Context, cli keybase1.SimpleFSInterface, paths []keybase1.path) ([]keybase1.Path, error) {
+func doSimpleFSPlatformGlob(g *libkb.GlobalContext, ctx *cli.Context, cli SimpleFSInterface, paths []keybase1.path) ([]keybase1.Path, error) {
 	return paths, nil
 }
