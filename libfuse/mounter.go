@@ -7,6 +7,7 @@ package libfuse
 import (
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"path"
 	"runtime"
@@ -114,6 +115,13 @@ func (m ForceMounter) Dir() string {
 }
 
 func fuseMountDir(dir string, platformParams PlatformParams) (*fuse.Conn, error) {
+	fi, err := os.Stat(dir)
+	if err != nil {
+		return nil, err
+	}
+	if !fi.IsDir() {
+		return nil, errors.New("mount point is not a directory")
+	}
 	options, err := getPlatformSpecificMountOptions(dir, platformParams)
 	if err != nil {
 		return nil, err
