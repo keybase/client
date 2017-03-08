@@ -443,13 +443,18 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 	// We always want this on for fetches to fill the local inbox, otherwise we never get the
 	// full list for the conversations that come back
 	var rquery chat1.GetInboxQuery
+	rtype := chat1.InboxResType_MINIMAL
 	if query == nil {
 		rquery = chat1.GetInboxQuery{
 			ComputeActiveList: true,
+			InboxView:         &rtype,
 		}
 	} else {
 		rquery = *query
 		rquery.ComputeActiveList = true
+		if rquery.InboxView == nil {
+			rquery.InboxView = &rtype
+		}
 	}
 
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
@@ -461,9 +466,9 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 	}
 
 	return chat1.Inbox{
-		Version:         ib.Inbox.Full().Vers,
-		ConvsUnverified: ib.Inbox.Full().Conversations,
-		Pagination:      ib.Inbox.Full().Pagination,
+		Version:         ib.Inbox.Minimal().Vers,
+		ConvsUnverified: ib.Inbox.Minimal().Conversations,
+		Pagination:      ib.Inbox.Minimal().Pagination,
 	}, ib.RateLimit, nil
 }
 
@@ -669,7 +674,7 @@ func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 }
 
 func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, uid gregor1.UID,
-	convs []chat1.Conversation, localizeCb *chan NonblockInboxResult) ([]chat1.ConversationLocal, error) {
+	convs []chat1.ConversationMinimal, localizeCb *chan NonblockInboxResult) ([]chat1.ConversationLocal, error) {
 
 	// Fetch conversation local information in parallel
 	type jobRes struct {

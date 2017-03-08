@@ -219,6 +219,13 @@
         {
           "type": "boolean",
           "name": "computeActiveList"
+        },
+        {
+          "type": [
+            null,
+            "InboxResType"
+          ],
+          "name": "inboxView"
         }
       ]
     },
@@ -362,6 +369,44 @@
             "items": "MessageBoxed"
           },
           "name": "maxMsgs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageIDTyped",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "msgID"
+        },
+        {
+          "type": "MessageType",
+          "name": "messageType"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationMinimal",
+      "fields": [
+        {
+          "type": "ConversationMetadata",
+          "name": "metadata"
+        },
+        {
+          "type": [
+            null,
+            "ConversationReaderInfo"
+          ],
+          "name": "readerInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MessageIDTyped"
+          },
+          "name": "maxMsgIDs"
         }
       ]
     },
@@ -622,7 +667,8 @@
       "name": "InboxResType",
       "symbols": [
         "VERSIONHIT_0",
-        "FULL_1"
+        "FULL_1",
+        "MINIMAL_2"
       ]
     },
     {
@@ -637,6 +683,30 @@
           "type": {
             "type": "array",
             "items": "Conversation"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InboxViewMinimal",
+      "fields": [
+        {
+          "type": "InboxVers",
+          "name": "vers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMinimal"
           },
           "name": "conversations"
         },
@@ -670,6 +740,13 @@
             "def": false
           },
           "body": "InboxViewFull"
+        },
+        {
+          "label": {
+            "name": "MINIMAL",
+            "def": false
+          },
+          "body": "InboxViewMinimal"
         }
       ]
     }

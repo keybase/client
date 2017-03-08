@@ -63,6 +63,7 @@ export const CommonConversationStatus = {
 export const CommonInboxResType = {
   versionhit: 0,
   full: 1,
+  minimal: 2,
 }
 
 export const CommonMessageType = {
@@ -808,6 +809,12 @@ export type ConversationMetadata = {
   activeList?: ?Array<gregor1.UID>,
 }
 
+export type ConversationMinimal = {
+  metadata: ConversationMetadata,
+  readerInfo?: ?ConversationReaderInfo,
+  maxMsgIDs?: ?Array<MessageIDTyped>,
+}
+
 export type ConversationReaderInfo = {
   mtime: gregor1.Time,
   readMsgid: MessageID,
@@ -925,6 +932,7 @@ export type GetInboxQuery = {
   unreadOnly: boolean,
   readOnly: boolean,
   computeActiveList: boolean,
+  inboxView?: ?InboxResType,
 }
 
 export type GetInboxRemoteRes = {
@@ -1036,7 +1044,7 @@ export type HeaderPlaintextVersion =
 
 export type Inbox = {
   version: InboxVers,
-  convsUnverified?: ?Array<Conversation>,
+  convsUnverified?: ?Array<ConversationMinimal>,
   convs?: ?Array<ConversationLocal>,
   pagination?: ?Pagination,
 }
@@ -1044,16 +1052,24 @@ export type Inbox = {
 export type InboxResType =
     0 // VERSIONHIT_0
   | 1 // FULL_1
+  | 2 // MINIMAL_2
 
 export type InboxVers = uint64
 
 export type InboxView =
     { rtype: 0 }
   | { rtype: 1, full: ?InboxViewFull }
+  | { rtype: 2, minimal: ?InboxViewMinimal }
 
 export type InboxViewFull = {
   vers: InboxVers,
   conversations?: ?Array<Conversation>,
+  pagination?: ?Pagination,
+}
+
+export type InboxViewMinimal = {
+  vers: InboxVers,
+  conversations?: ?Array<ConversationMinimal>,
   pagination?: ?Pagination,
 }
 
@@ -1167,6 +1183,11 @@ export type MessageHeadline = {
 }
 
 export type MessageID = uint
+
+export type MessageIDTyped = {
+  msgID: MessageID,
+  messageType: MessageType,
+}
 
 export type MessagePlaintext = {
   clientHeader: MessageClientHeader,

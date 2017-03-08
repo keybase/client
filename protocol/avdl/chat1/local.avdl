@@ -136,7 +136,7 @@ protocol local {
 
   record Inbox {
     InboxVers version;
-    array<Conversation> convsUnverified;
+    array<ConversationMinimal> convsUnverified;
     array<ConversationLocal> convs;
     union { null, Pagination } pagination;
   }

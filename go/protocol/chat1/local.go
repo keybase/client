@@ -491,10 +491,10 @@ type OutboxRecord struct {
 }
 
 type Inbox struct {
-	Version         InboxVers           `codec:"version" json:"version"`
-	ConvsUnverified []Conversation      `codec:"convsUnverified" json:"convsUnverified"`
-	Convs           []ConversationLocal `codec:"convs" json:"convs"`
-	Pagination      *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Version         InboxVers             `codec:"version" json:"version"`
+	ConvsUnverified []ConversationMinimal `codec:"convsUnverified" json:"convsUnverified"`
+	Convs           []ConversationLocal   `codec:"convs" json:"convs"`
+	Pagination      *Pagination           `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 type HeaderPlaintextVersion int
