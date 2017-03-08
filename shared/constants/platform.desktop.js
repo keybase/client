@@ -56,10 +56,12 @@ function win32SocketDialPath (): string {
 }
 
 function linuxSocketDialPath (): string {
-  if (runMode === 'prod') {
-    return path.join(`${getenv('XDG_RUNTIME_DIR', '')}/keybase/`, socketName)
-  }
-  return path.join(`${getenv('XDG_RUNTIME_DIR', '')}/keybase.${runMode}/`, socketName)
+  // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
+  const homeCacheDir = path.join(getenv('HOME', ''), '.config')
+  const cacheDir = getenv('XDG_RUNTIME_DIR', homeCacheDir)
+  const suffix = runMode === 'prod' ? '' : `.${runMode}/`
+
+  return path.join(`${cacheDir}/keybase/${suffix}/`, socketName)
 }
 
 const darwinCacheRoot = `${getenv('HOME', '')}/Library/Caches/${envedPathOSX[runMode]}/`
