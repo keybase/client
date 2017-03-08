@@ -19,6 +19,7 @@ export default compose(
         dispatch(checkPaperKey(new HiddenString(key)))
         dispatch(loadInbox(true))
         dispatch(navigateUp())
+        dispatch(navigateUp())
       },
     })),
   withState('paperKey', 'onChangePaperKey'),

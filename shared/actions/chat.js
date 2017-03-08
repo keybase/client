@@ -2014,9 +2014,7 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
 function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any> {
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
   const {convIDs} = action.payload
-  yield convIDs.map(conversationIDKey => {
-    return function * () { yield call(_getInboxAndUnbox, {payload: {conversationIDKey}, type: 'chat:getInboxAndUnbox'}) }
-  })
+  yield convIDs.map(conversationIDKey => call(_getInboxAndUnbox, {payload: {conversationIDKey}, type: 'chat:getInboxAndUnbox'}))
 
   // Selected is stale?
   const selectedConversation = yield select(getSelectedConversation)
