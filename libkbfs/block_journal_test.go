@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"math"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/keybase/client/go/logger"
@@ -360,7 +359,7 @@ func TestBlockJournalDuplicateRemove(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, dataLen, removedBytes)
 	require.Equal(t, int64(filesPerBlockMax), removedFiles)
-	j.unstoreBlock(removedBytes, removedFiles)
+	j.unstoreBlocks(removedBytes, removedFiles)
 
 	// This violates the invariant that UnflushedBytes <=
 	// StoredBytes, but that's because we're manually removing the
@@ -383,18 +382,11 @@ func TestBlockJournalDuplicateRemove(t *testing.T) {
 }
 
 func testBlockJournalGCd(t *testing.T, j *blockJournal) {
-	err := filepath.Walk(j.dir,
-		func(path string, info os.FileInfo, _ error) error {
-			// We should only find the blocks directories and
-			// aggregate info file here.
-			if path != j.dir && path != j.s.dir && path != j.j.dir &&
-				path != aggregateInfoPath(j.dir) &&
-				path != deferredGCBlockJournalDir(j.dir) {
-				t.Errorf("Found unexpected block path: %s", path)
-			}
-			return nil
-		})
-	require.NoError(t, err)
+	// None of these dirs should exist.
+	for _, file := range j.blockJournalFiles() {
+		_, err := ioutil.Stat(file)
+		require.True(t, ioutil.IsNotExist(err))
+	}
 }
 
 func goGCForTest(t *testing.T, ctx context.Context, j *blockJournal) (
@@ -406,7 +398,8 @@ func goGCForTest(t *testing.T, ctx context.Context, j *blockJournal) (
 	}
 	removedBytes, removedFiles, err := j.doGC(ctx, earliest, latest)
 	require.NoError(t, err)
-	err = j.clearDeferredGCRange(earliest, latest)
+	_, _, err = j.clearDeferredGCRange(
+		ctx, removedBytes, removedFiles, earliest, latest)
 	require.NoError(t, err)
 	return removedBytes, removedFiles
 }
@@ -543,7 +536,6 @@ func flushBlockJournalOne(ctx context.Context, t *testing.T,
 	require.NoError(t, err)
 	removedBytes, removedFiles = goGCForTest(t, ctx, j)
 	require.NoError(t, err)
-	j.unstoreBlock(removedBytes, removedFiles)
 
 	err = j.checkInSyncForTest()
 	require.NoError(t, err)
@@ -985,7 +977,7 @@ func TestBlockJournalByteCounters(t *testing.T) {
 		require.Equal(t, int64(expectedBytes), j.getStoredBytes())
 		require.Equal(t, int64(expectedBytes), j.getUnflushedBytes())
 		require.Equal(t, int64(expectedFiles), j.getStoredFiles())
-		var info aggregateInfo
+		var info blockAggregateInfo
 		err := kbfscodec.DeserializeFromFile(
 			j.codec, aggregateInfoPath(j.dir), &info)
 		if !ioutil.IsNotExist(err) {

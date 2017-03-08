@@ -79,7 +79,7 @@ type blockJournal struct {
 	// state you get by replaying all the entries in j.
 	s *blockDiskStore
 
-	aggregateInfo aggregateInfo
+	aggregateInfo blockAggregateInfo
 }
 
 type blockOpType int
@@ -159,6 +159,14 @@ func (e blockJournalEntry) getSingleContext() (
 		"getSingleContext() erroneously called on op %s", e.Op)
 }
 
+func blockJournalDir(dir string) string {
+	return filepath.Join(dir, "block_journal")
+}
+
+func blockJournalStoreDir(dir string) string {
+	return filepath.Join(dir, "blocks")
+}
+
 func deferredGCBlockJournalDir(dir string) string {
 	return filepath.Join(dir, "gc_block_journal")
 }
@@ -168,7 +176,7 @@ func deferredGCBlockJournalDir(dir string) string {
 func makeBlockJournal(
 	ctx context.Context, codec kbfscodec.Codec, dir string,
 	log logger.Logger) (*blockJournal, error) {
-	journalPath := filepath.Join(dir, "block_journal")
+	journalPath := blockJournalDir(dir)
 	deferLog := log.CloneWithAddedDepth(1)
 	j, err := makeDiskJournal(
 		codec, journalPath, reflect.TypeOf(blockJournalEntry{}))
@@ -183,7 +191,7 @@ func makeBlockJournal(
 		return nil, err
 	}
 
-	storeDir := filepath.Join(dir, "blocks")
+	storeDir := blockJournalStoreDir(dir)
 	s := makeBlockDiskStore(codec, storeDir)
 	journal := &blockJournal{
 		codec:      codec,
@@ -205,11 +213,18 @@ func makeBlockJournal(
 	return journal, nil
 }
 
+func (j *blockJournal) blockJournalFiles() []string {
+	return []string{
+		blockJournalDir(j.dir), deferredGCBlockJournalDir(j.dir),
+		blockJournalStoreDir(j.dir), aggregateInfoPath(j.dir),
+	}
+}
+
 // The functions below are for reading and writing aggregate info.
 
 // Ideally, this would be a JSON file, but we'd need a JSON
 // encoder/decoder that supports unknown fields.
-type aggregateInfo struct {
+type blockAggregateInfo struct {
 	// StoredBytes counts the number of bytes of block data stored
 	// on disk.
 	StoredBytes int64
@@ -273,7 +288,7 @@ func (j *blockJournal) flushBlock(bytes int64) error {
 	return j.changeCounts(0, 0, -bytes)
 }
 
-func (j *blockJournal) unstoreBlock(bytes, files int64) error {
+func (j *blockJournal) unstoreBlocks(bytes, files int64) error {
 	if bytes < 0 {
 		panic("bytes unexpectedly negative")
 	}
@@ -345,8 +360,6 @@ func (j *blockJournal) remove(ctx context.Context, id kbfsblock.ID) (
 		return 0, 0, err
 	}
 
-	// TODO: we'll eventually need a sweeper to clean up entries
-	// left behind if we crash here.
 	err = j.s.remove(id)
 	if err != nil {
 		return 0, 0, err
@@ -883,8 +896,9 @@ func (j *blockJournal) removeFlushedEntries(ctx context.Context,
 		})
 	}
 
-	// TODO: If the block journal is now empty, nuke all block
-	// journal dirs.
+	// The block journal might be empty, but deferredGC might
+	// still be non-empty, so we have to wait for that to be empty
+	// before nuking the whole journal (see clearDeferredGCRange).
 
 	return nil
 }
@@ -1072,16 +1086,50 @@ func (j *blockJournal) doGC(ctx context.Context,
 	return removedBytes, removedFiles, nil
 }
 
-// clearDeferredGCRange removes the given range from the deferred journal.
+// clearDeferredGCRange removes the given range from the deferred
+// journal. If the journal goes completely empty, it then nukes the
+// journal directories.
 func (j *blockJournal) clearDeferredGCRange(
-	earliest, latest journalOrdinal) error {
+	ctx context.Context, removedBytes, removedFiles int64,
+	earliest, latest journalOrdinal) (
+	clearedJournal bool, aggregateInfo blockAggregateInfo,
+	err error) {
 	for i := earliest; i <= latest; i++ {
 		_, err := j.deferredGC.removeEarliest()
 		if err != nil {
-			return err
+			return false, blockAggregateInfo{}, err
 		}
 	}
-	return nil
+
+	// If we crash before calling this, the journal bytes/files
+	// counts will be inaccurate. But this will be resolved when
+	// the journal goes empty in the clause above.
+	j.unstoreBlocks(removedBytes, removedFiles)
+
+	aggregateInfo = j.aggregateInfo
+
+	if j.j.empty() && j.deferredGC.empty() {
+		j.log.CDebugf(ctx, "Block journal is now empty")
+
+		j.aggregateInfo = blockAggregateInfo{}
+
+		err = j.s.clear()
+		if err != nil {
+			return false, blockAggregateInfo{}, err
+		}
+
+		for _, dir := range j.blockJournalFiles() {
+			j.log.CDebugf(ctx, "Removing all files in %s", dir)
+			err := ioutil.RemoveAll(dir)
+			if err != nil {
+				return false, blockAggregateInfo{}, err
+			}
+		}
+
+		clearedJournal = true
+	}
+
+	return clearedJournal, aggregateInfo, nil
 }
 
 func (j *blockJournal) getAllRefsForTest() (map[kbfsblock.ID]blockRefMap, error) {

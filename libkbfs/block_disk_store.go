@@ -540,3 +540,7 @@ func (s *blockDiskStore) remove(id kbfsblock.ID) error {
 	}
 	return err
 }
+
+func (s blockDiskStore) clear() error {
+	return ioutil.RemoveAll(s.dir)
+}

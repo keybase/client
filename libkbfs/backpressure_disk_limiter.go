@@ -174,7 +174,7 @@ func (bt *backpressureTracker) afterBlockPut(
 	}
 }
 
-func (bt *backpressureTracker) onBlockDelete(blockResources int64) {
+func (bt *backpressureTracker) onBlocksDelete(blockResources int64) {
 	if blockResources == 0 {
 		return
 	}
@@ -462,12 +462,12 @@ func (bdl *backpressureDiskLimiter) afterBlockPut(
 	bdl.fileTracker.afterBlockPut(blockFiles, putData)
 }
 
-func (bdl *backpressureDiskLimiter) onBlockDelete(
+func (bdl *backpressureDiskLimiter) onBlocksDelete(
 	ctx context.Context, blockBytes, blockFiles int64) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	bdl.byteTracker.onBlockDelete(blockBytes)
-	bdl.fileTracker.onBlockDelete(blockFiles)
+	bdl.byteTracker.onBlocksDelete(blockBytes)
+	bdl.fileTracker.onBlocksDelete(blockFiles)
 }
 
 type backpressureDiskLimiterStatus struct {

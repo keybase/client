@@ -527,19 +527,11 @@ func testMDJournalPutCase4(t *testing.T, ver MetadataVer) {
 }
 
 func testMDJournalGCd(t *testing.T, j *mdJournal) {
-	err := filepath.Walk(j.j.j.dir, func(path string, _ os.FileInfo, _ error) error {
-		// We should only find the root directory here.
-		require.Equal(t, path, j.j.j.dir)
-		return nil
-	})
-	require.NoError(t, err)
-	err = filepath.Walk(j.mdsPath(),
-		func(path string, info os.FileInfo, _ error) error {
-			// We should only find the MD directory here.
-			require.Equal(t, path, j.mdsPath())
-			return nil
-		})
-	require.NoError(t, err)
+	// None of these dirs should exist.
+	for _, dir := range j.mdJournalDirs() {
+		_, err := ioutil.Stat(dir)
+		require.True(t, ioutil.IsNotExist(err))
+	}
 }
 
 func flushAllMDs(

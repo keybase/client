@@ -93,7 +93,7 @@ func (sdl semaphoreDiskLimiter) afterBlockPut(
 	}
 }
 
-func (sdl semaphoreDiskLimiter) onBlockDelete(
+func (sdl semaphoreDiskLimiter) onBlocksDelete(
 	ctx context.Context, blockBytes, blockFiles int64) {
 	if blockBytes != 0 {
 		sdl.byteSemaphore.Release(blockBytes)

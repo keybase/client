@@ -126,7 +126,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 
 	// Finally, delete a block.
 
-	bt.onBlockDelete(11)
+	bt.onBlocksDelete(11)
 
 	require.Equal(t, int64(0), bt.used)
 	require.Equal(t, int64(400), bt.free)
@@ -134,7 +134,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 	require.Equal(t, int64(100), bt.semaphore.Count())
 
 	// This should be a no-op.
-	bt.onBlockDelete(0)
+	bt.onBlocksDelete(0)
 
 	require.Equal(t, int64(0), bt.used)
 	require.Equal(t, int64(400), bt.free)
