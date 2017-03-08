@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
@@ -19,6 +20,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 )
 
 func cryptKey(t *testing.T) *keybase1.CryptKey {
@@ -111,8 +113,7 @@ func doRevokeDevice(tc libkb.TestContext, u *kbtest.FakeUser, id keybase1.Device
 
 func doWithMBVersions(f func(chat1.MessageBoxedVersion)) {
 	f(chat1.MessageBoxedVersion_V1)
-	// TODO uncomment after implementing V2
-	// f(chat1.MessageBoxedVersion_V2)
+	f(chat1.MessageBoxedVersion_V2)
 }
 
 func TestChatMessageBox(t *testing.T) {
@@ -125,6 +126,7 @@ func TestChatMessageBox(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		require.Equal(t, mbVersion, boxed.Version)
 		if len(boxed.BodyCiphertext.E) == 0 {
 			t.Error("after boxMessage, BodyCipherText.E is empty")
 		}
@@ -144,12 +146,17 @@ func TestChatMessageUnbox(t *testing.T) {
 			t.Fatal(err)
 		}
 		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+		outboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
+		msg.ClientHeader.OutboxID = &outboxID
 
 		signKP := getSigningKeyPairForTest(t, tc, u)
 
 		boxed, err := boxer.box(msg, key, signKP, mbVersion)
-		if err != nil {
-			t.Fatal(err)
+		require.NoError(t, err)
+		boxed = remarshalBoxed(t, *boxed)
+
+		if boxed.ClientHeader.OutboxID == msg.ClientHeader.OutboxID {
+			t.Fatalf("defective test: %+v   ==   %+v", boxed.ClientHeader.OutboxID, msg.ClientHeader.OutboxID)
 		}
 
 		// need to give it a server header...
@@ -169,7 +176,50 @@ func TestChatMessageUnbox(t *testing.T) {
 			t.Errorf("body text: %q, expected %q", body.Text().Body, text)
 		}
 		require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
+		require.NotNil(t, unboxed.BodyHash)
 	})
+}
+
+func TestChatMessageMissingOutboxID(t *testing.T) {
+	// Test with an outbox ID missing.
+	mbVersion := chat1.MessageBoxedVersion_V2
+	key := cryptKey(t)
+	text := "hi"
+	tc, boxer := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	// need a real user
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+	outboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
+	msg.ClientHeader.OutboxID = &outboxID
+
+	signKP := getSigningKeyPairForTest(t, tc, u)
+
+	boxed, err := boxer.box(msg, key, signKP, mbVersion)
+	require.NoError(t, err)
+	boxed = remarshalBoxed(t, *boxed)
+
+	if boxed.ClientHeader.OutboxID == msg.ClientHeader.OutboxID {
+		t.Fatalf("defective test: %+v   ==   %+v", boxed.ClientHeader.OutboxID, msg.ClientHeader.OutboxID)
+	}
+
+	// omit outbox id
+	boxed.ClientHeader.OutboxID = nil
+
+	// need to give it a server header...
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(time.Now()),
+	}
+
+	_, uberr := boxer.unbox(context.TODO(), *boxed, key)
+	require.Error(t, uberr)
+	ierr, ok := uberr.Inner().(HeaderMismatchError)
+	require.True(t, ok, "unexpected error: %T -> %T -> %v", uberr, uberr.Inner(), uberr)
+	require.Equal(t, "OutboxID", ierr.Field)
 }
 
 func TestChatMessageInvalidBodyHash(t *testing.T) {
@@ -247,6 +297,7 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 		}
 
 		ctx := context.Background()
+		boxer.boxWithVersion = mbVersion
 		boxed, err := boxer.BoxMessage(ctx, msg, signKP)
 		if err != nil {
 			t.Fatal(err)
@@ -299,6 +350,7 @@ func TestChatMessageUnboxNoCryptKey(t *testing.T) {
 		signKP := getSigningKeyPairForTest(t, tc, u)
 
 		ctx := context.Background()
+		boxer.boxWithVersion = mbVersion
 		boxed, err := boxer.BoxMessage(ctx, msg, signKP)
 		if err != nil {
 			t.Fatal(err)
@@ -340,20 +392,12 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 
 		signKP := getSigningKeyPairForTest(t, tc, u)
 
-		origSign := boxer.sign
-		boxer.sign = func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
-			sig, err := kp.SignV2(msg, prefix)
-			if err != nil {
-				return chat1.SignatureInfo{}, err
-			}
-			sigInfo := chat1.SignatureInfo{
-				V: sig.Version,
-				S: sig.Sig[:],
-				K: sig.Kid,
-			}
-			// flip bits
-			sigInfo.S[4] ^= 0x10
-			return sigInfo, nil
+		// flip a bit in the sig
+		called := false
+		boxer.testingSignatureMangle = func(sig []byte) []byte {
+			called = true
+			sig[4] ^= 0x10
+			return sig
 		}
 
 		boxed, err := boxer.box(msg, key, signKP, mbVersion)
@@ -361,17 +405,26 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		require.True(t, called, "mangle must be called")
+
 		// need to give it a server header...
 		boxed.ServerHeader = &chat1.MessageServerHeader{
 			Ctime: gregor1.ToTime(time.Now()),
 		}
 
-		// put original signing fn back
-		boxer.sign = origSign
-
 		_, ierr := boxer.unbox(context.TODO(), *boxed, key)
-		if _, ok := ierr.Inner().(libkb.BadSigError); !ok {
-			t.Fatalf("unexpected error for invalid header signature: %s", ierr)
+		require.NotNil(t, ierr, "must have unbox error")
+		switch mbVersion {
+		case chat1.MessageBoxedVersion_V1:
+			if _, ok := ierr.Inner().(libkb.BadSigError); !ok {
+				t.Fatalf("unexpected error for invalid header signature: [%T] %s", ierr.Inner(), ierr)
+			}
+		case chat1.MessageBoxedVersion_V2:
+			if _, ok := ierr.Inner().(signencrypt.Error); !ok {
+				t.Fatalf("unexpected error for invalid header signature: [%T] %s", ierr.Inner(), ierr)
+			}
+		default:
+			t.Fatalf("unexpected version: %v", mbVersion)
 		}
 	})
 }
@@ -570,6 +623,7 @@ func TestChatMessagePublic(t *testing.T) {
 
 		ctx := context.Background()
 
+		boxer.boxWithVersion = mbVersion
 		boxed, err := boxer.BoxMessage(ctx, msg, signKP)
 		if err != nil {
 			t.Fatal(err)
@@ -639,6 +693,48 @@ func TestChatMessageSenderMismatch(t *testing.T) {
 	})
 }
 
+// Test a message that deletes
+func TestChatMessageDeletes(t *testing.T) {
+	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
+		key := cryptKey(t)
+		text := "hi"
+		tc, boxer := setupChatTest(t, "unbox")
+		defer tc.Cleanup()
+
+		// need a real user
+		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+		if err != nil {
+			t.Fatal(err)
+		}
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+		deleteIDs := []chat1.MessageID{5, 6, 7}
+		msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: deleteIDs})
+		msg.ClientHeader.Supersedes = deleteIDs[0]
+		msg.ClientHeader.Deletes = deleteIDs
+
+		signKP := getSigningKeyPairForTest(t, tc, u)
+
+		boxed, err := boxer.box(msg, key, signKP, mbVersion)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// need to give it a server header...
+		boxed.ServerHeader = &chat1.MessageServerHeader{
+			Ctime:        gregor1.ToTime(time.Now()),
+			SupersededBy: 4,
+		}
+
+		unboxed, err := boxer.unbox(context.TODO(), *boxed, key)
+		require.NoError(t, err, "deleted message should still unbox")
+		body := unboxed.MessageBody
+		typ, err := body.MessageType()
+		require.NoError(t, err)
+		require.Equal(t, typ, chat1.MessageType_DELETE)
+		require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
+	})
+}
+
 // Test a message with a deleted body
 func TestChatMessageDeleted(t *testing.T) {
 	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
@@ -668,7 +764,7 @@ func TestChatMessageDeleted(t *testing.T) {
 		}
 
 		// Delete the body
-		boxed.BodyCiphertext.E = []byte{}
+		boxed.BodyCiphertext = chat1.EncryptedData{}
 
 		unboxed, err := boxer.unbox(context.TODO(), *boxed, key)
 		require.NoError(t, err, "deleted message should still unbox")
@@ -749,6 +845,7 @@ func TestV1Message1(t *testing.T) {
 	require.Nil(t, unboxed.ClientHeader.Prev)
 	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
 	require.Equal(t, canned.SenderDeviceID(t), unboxed.ClientHeader.SenderDevice)
+	// CORE-4540: Uncomment this assertion when MerkleRoot is added to MessageClientHeaderVerified
 	// require.Nil(t, unboxed.ClientHeader.MerkleRoot)
 	require.Nil(t, unboxed.ClientHeader.OutboxID)
 	require.Nil(t, unboxed.ClientHeader.OutboxInfo)
@@ -805,6 +902,7 @@ func TestV1Message2(t *testing.T) {
 	require.Equal(t, expectedPrevs, unboxed.ClientHeader.Prev)
 	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
 	require.Equal(t, canned.SenderDeviceID(t), unboxed.ClientHeader.SenderDevice)
+	// CORE-4540: Uncomment this assertion when MerkleRoot is added to MessageClientHeaderVerified
 	// require.Nil(t, unboxed.ClientHeader.MerkleRoot)
 	require.Nil(t, unboxed.ClientHeader.OutboxID)
 	require.Nil(t, unboxed.ClientHeader.OutboxInfo)
@@ -861,6 +959,7 @@ func TestV1Message3(t *testing.T) {
 	require.Equal(t, expectedPrevs, unboxed.ClientHeader.Prev)
 	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
 	require.Equal(t, canned.SenderDeviceID(t), unboxed.ClientHeader.SenderDevice)
+	// CORE-4540: Uncomment this assertion when MerkleRoot is added to MessageClientHeaderVerified
 	// require.Nil(t, unboxed.ClientHeader.MerkleRoot)
 	require.Nil(t, unboxed.ClientHeader.OutboxID)
 	require.Nil(t, unboxed.ClientHeader.OutboxInfo)
@@ -918,6 +1017,7 @@ func TestV1Message4(t *testing.T) {
 	require.Equal(t, expectedPrevs, unboxed.ClientHeader.Prev)
 	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
 	require.Equal(t, canned.SenderDeviceID(t), unboxed.ClientHeader.SenderDevice)
+	// CORE-4540: Uncomment this assertion when MerkleRoot is added to MessageClientHeaderVerified
 	// require.Nil(t, unboxed.ClientHeader.MerkleRoot)
 	expectedOutboxID := chat1.OutboxID{0x8e, 0xcc, 0x94, 0xb7, 0xff, 0x50, 0x5c, 0x4}
 	require.Equal(t, &expectedOutboxID, unboxed.ClientHeader.OutboxID)
@@ -979,6 +1079,7 @@ func TestV1Message5(t *testing.T) {
 	require.Equal(t, expectedPrevs, unboxed.ClientHeader.Prev)
 	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
 	require.Equal(t, canned.SenderDeviceID(t), unboxed.ClientHeader.SenderDevice)
+	// CORE-4540: Uncomment this assertion when MerkleRoot is added to MessageClientHeaderVerified
 	// require.Nil(t, unboxed.ClientHeader.MerkleRoot)
 	expectedOutboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
 	require.Equal(t, &expectedOutboxID, unboxed.ClientHeader.OutboxID)
@@ -1219,4 +1320,45 @@ func NewKeyFinderMock(cryptKeys []keybase1.CryptKey) KeyFinder {
 
 func (k *KeyFinderMock) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
 	return keybase1.GetTLFCryptKeysRes{CryptKeys: k.cryptKeys}, nil
+}
+
+func remarshalBoxed(t *testing.T, v chat1.MessageBoxed) *chat1.MessageBoxed {
+	// encode
+	mh := codec.MsgpackHandle{WriteExt: true}
+	var data []byte
+	enc := codec.NewEncoderBytes(&data, &mh)
+	err := enc.Encode(v)
+	require.NoError(t, err)
+
+	// decode
+	var v2 chat1.MessageBoxed
+	mh = codec.MsgpackHandle{WriteExt: true}
+	dec := codec.NewDecoderBytes(data, &mh)
+	err = dec.Decode(&v2)
+	require.NoError(t, err)
+	return &v2
+}
+
+func TestRemarshalBoxed(t *testing.T) {
+	outboxID1 := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
+	boxed1 := chat1.MessageBoxed{
+		ClientHeader: chat1.MessageClientHeader{
+			OutboxID: &outboxID1,
+		},
+	}
+
+	var boxed2 chat1.MessageBoxed
+	boxed2 = *remarshalBoxed(t, boxed1)
+
+	require.NotEqual(t, chat1.MessageBoxed{}, boxed2, "second shouldn't be zeroed")
+	require.Equal(t, boxed1.ClientHeader.OutboxID == nil, boxed2.ClientHeader.OutboxID == nil, "obids should have same nility")
+
+	if boxed1.ClientHeader.OutboxID == boxed2.ClientHeader.OutboxID {
+		t.Fatalf("obids should not have same address")
+	}
+
+	require.NotNil(t, boxed1.ClientHeader.OutboxID, "obid1 should not be nil")
+	require.NotNil(t, boxed2.ClientHeader.OutboxID, "obid2 should not be nil")
+
+	require.Equal(t, boxed1.ClientHeader.OutboxID, boxed2.ClientHeader.OutboxID, "obids should have same value")
 }

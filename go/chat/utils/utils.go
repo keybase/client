@@ -320,10 +320,11 @@ func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}
 
 func (d DebugLabeler) Trace(ctx context.Context, f func() error, msg string) func() {
 	if d.showLog() {
+		start := time.Now()
 		d.G().Log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
 		return func() {
-			d.G().Log.CDebugf(ctx, "++Chat: - %s: %s -> %s", d.label, msg,
-				libkb.ErrToOk(f()))
+			d.G().Log.CDebugf(ctx, "++Chat: - %s: %s -> %s (%v)", d.label, msg,
+				libkb.ErrToOk(f()), time.Since(start))
 		}
 	}
 	return func() {}

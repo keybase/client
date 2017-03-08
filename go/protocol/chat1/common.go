@@ -252,16 +252,22 @@ type EncryptedData struct {
 	N []byte `codec:"n" json:"n"`
 }
 
+type SignEncryptedData struct {
+	V int    `codec:"v" json:"v"`
+	E []byte `codec:"e" json:"e"`
+	N []byte `codec:"n" json:"n"`
+}
+
+type SealedData struct {
+	V int    `codec:"v" json:"v"`
+	E []byte `codec:"e" json:"e"`
+	N []byte `codec:"n" json:"n"`
+}
+
 type SignatureInfo struct {
 	V int    `codec:"v" json:"v"`
 	S []byte `codec:"s" json:"s"`
 	K []byte `codec:"k" json:"k"`
-}
-
-type SignEncryptedData struct {
-	V int    `codec:"v" json:"v"`
-	B []byte `codec:"b" json:"b"`
-	N []byte `codec:"n" json:"n"`
 }
 
 type MerkleRoot struct {

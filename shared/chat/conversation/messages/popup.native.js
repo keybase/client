@@ -4,35 +4,71 @@ import {connect} from 'react-redux'
 import {navigateUp} from '../../../actions/route-tree'
 import {deleteMessage, showEditor} from '../../../actions/chat'
 import {NativeClipboard, PopupMenu} from '../../../common-adapters/index.native'
+import * as ChatConstants from '../../../constants/chat'
 import MessagePopupHeader from './popup-header'
+import {isIOS} from '../../../constants/platform'
 
-import type {TextProps} from './popup'
+import type {TextProps, AttachmentProps} from './popup'
 import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
 import type {ServerMessage, TextMessage} from '../../../constants/chat'
 
-function MessagePopup ({message, onDeleteMessage, onHidden, onShowEditor}: TextProps) {
+function _textMessagePopupHelper ({message, type, onDeleteMessage, onHidden, onShowEditor}: TextProps) {
+  return [{
+    onClick: () => {
+      onShowEditor(message)
+      onHidden()
+    },
+    title: 'Edit',
+  }, {
+    onClick: () => {
+      NativeClipboard.setString(message.message.stringValue())
+      onHidden()
+    },
+    title: 'Copy Text',
+  }]
+}
+
+function _attachmentMessagePopupHelper ({message, onSaveAttachment, onShareAttachment, onHidden}: AttachmentProps) {
+  const attachment: ChatConstants.AttachmentMessage = message
+  const items = []
+  items.push({
+    onClick: () => {
+      onSaveAttachment && onSaveAttachment(attachment)
+      onHidden()
+    },
+    title: 'Save Image',
+  })
+
+  if (isIOS && onShareAttachment) {
+    items.push({
+      onClick: () => {
+        onShareAttachment && onShareAttachment(attachment)
+        onHidden()
+      },
+      title: 'Share Image',
+    })
+  }
+
+  return items
+}
+
+function MessagePopup (props: TextProps | AttachmentProps) {
+  const {message, onDeleteMessage, onHidden} = props
   if (message.type !== 'Text' && message.type !== 'Attachment') return null
 
-  const items = []
+  let items = []
 
   if (message.type === 'Text') {
-    const textMessage: TextMessage = message
+    // $FlowIssue can't figure out variants from variant in the .message field
+    const tProps: TextProps = props
+    items = items.concat(_textMessagePopupHelper(tProps))
+  }
 
-    items.push({
-      onClick: () => {
-        onShowEditor(message)
-        onHidden()
-      },
-      title: 'Edit',
-    })
-    items.push({
-      onClick: () => {
-        NativeClipboard.setString(textMessage.message.stringValue())
-        onHidden()
-      },
-      title: 'Copy Text',
-    })
+  if (message.type === 'Attachment') {
+    // $FlowIssue can't figure out variants from variant in the .message field
+    const aProps: AttachmentProps = props
+    items = items.concat(_attachmentMessagePopupHelper(aProps))
   }
 
   items.push({
@@ -75,5 +111,7 @@ export default connect(
     onDeleteMessage: (message: ServerMessage) => { dispatch(deleteMessage(message)) },
     onHidden: () => dispatch(navigateUp()),
     onShowEditor: () => dispatch(showEditor(routeProps.message)),
+    onSaveAttachment: (message) => dispatch(({type: 'chat:saveAttachmentNative', payload: {message}}: ChatConstants.SaveAttachment)),
+    onShareAttachment: (message) => dispatch(({type: 'chat:shareAttachment', payload: {message}}: ChatConstants.ShareAttachment)),
   })
 )(MessagePopup)

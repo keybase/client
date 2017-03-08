@@ -78,6 +78,7 @@ class Conversation extends Component<void, Props, State> {
       onAddParticipant,
       onMuteConversation,
       onShowProfile,
+      onToggleSidePanel,
       muted,
       participants,
       sidePanelOpen,
@@ -112,6 +113,7 @@ class Conversation extends Component<void, Props, State> {
             onAddParticipant={onAddParticipant}
             onMuteConversation={onMuteConversation}
             onShowProfile={onShowProfile}
+            onToggleSidePanel={onToggleSidePanel}
             participants={participants} />
         </div>}
         {dropOverlay}

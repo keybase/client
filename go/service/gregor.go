@@ -10,7 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/cenkalti/backoff"
+	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/utils"
@@ -1084,10 +1084,11 @@ func (g *gregorHandler) connectTLS() error {
 	}
 	g.Debug(ctx, "Using CA for gregor: %s", libkb.ShortCA(rawCA))
 
+	constBackoff := backoff.NewConstantBackOff(GregorConnectionRetryInterval)
 	opts := rpc.ConnectionOpts{
 		TagsFunc:         logger.LogTagsFromContextRPC,
 		WrapErrorFunc:    libkb.WrapError,
-		ReconnectBackoff: backoff.NewConstantBackOff(GregorConnectionRetryInterval),
+		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
 	}
 	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{}, g, libkb.NewRPCLogFactory(g.G()), g.G().Log, opts)
 
@@ -1120,10 +1121,11 @@ func (g *gregorHandler) connectNoTLS() error {
 	t := newConnTransport(g.G(), uri.HostPort)
 	g.transportForTesting = t
 
+	constBackoff := backoff.NewConstantBackOff(GregorConnectionRetryInterval)
 	opts := rpc.ConnectionOpts{
 		TagsFunc:         logger.LogTagsFromContextRPC,
 		WrapErrorFunc:    libkb.WrapError,
-		ReconnectBackoff: backoff.NewConstantBackOff(GregorConnectionRetryInterval),
+		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
 	}
 	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, g.G().Log, opts)
 
@@ -1321,4 +1323,16 @@ func (t *timeoutClient) Notify(ctx context.Context, method string, arg interface
 		return t.timeoutErr
 	}
 	return err
+}
+
+type errorClient struct{}
+
+var _ rpc.GenericClient = errorClient{}
+
+func (e errorClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
+	return fmt.Errorf("errorClient: Call %s", method)
+}
+
+func (e errorClient) Notify(ctx context.Context, method string, arg interface{}) error {
+	return fmt.Errorf("errorClient: Notify %s", method)
 }

@@ -9,7 +9,7 @@ function tmpFile (suffix: string): string {
 }
 
 function downloadFilePath (suffix: string): string {
-  throw new Error('Unimplemented')
+  return `${nativeBridge.tmpDir}${suffix}`
 }
 
 function copy (from: string, to: string) {

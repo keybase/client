@@ -1,5 +1,6 @@
 // @flow
 import React, {Component} from 'react'
+import {Box} from '../common-adapters/index'
 import type {Props} from './divider'
 import {globalColors} from '../styles'
 
@@ -10,7 +11,7 @@ class Divider extends Component<void, Props, void> {
       : {maxHeight: 1, minHeight: 1}
 
     return (
-      <div style={{...styles.divider, ...orientationStyle, ...this.props.style}} />
+      <Box style={{...styles.divider, ...orientationStyle, ...this.props.style}} />
     )
   }
 }
