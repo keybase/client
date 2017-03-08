@@ -396,9 +396,6 @@ func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevi
 
 	r.G().Log.Debug("| rekeyMaster#computeProblems: queried API server for rekey info")
 
-	// send notifications if problems changed since last iteration
-	// r.changeNotification(problems)
-
 	if len(problems.Tlfs) == 0 {
 		r.G().Log.Debug("| no problem TLFs found")
 
