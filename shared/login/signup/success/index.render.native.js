@@ -94,7 +94,7 @@ const paperkeyStyle = {
 
 const paperCornerStyle = {
   position: 'absolute',
-  right: 0,
+  right: -4,
   top: -4,
 }
 

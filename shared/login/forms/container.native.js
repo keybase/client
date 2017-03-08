@@ -7,10 +7,10 @@ import {globalStyles} from '../../styles'
 const Container = ({children, onBack, style, outerStyle}: Props) => {
   return (
     <Box style={{...styles.container, ...outerStyle}}>
+      {onBack && <BackButton style={styles.button} onClick={onBack} />}
       <Box style={{...styles.innerContainer, ...style}}>
         {children}
       </Box>
-      {onBack && <BackButton style={styles.button} onClick={onBack} />}
     </Box>
   )
 }
@@ -26,9 +26,8 @@ const styles = {
     flexGrow: 1,
   },
   button: {
-    position: 'absolute',
-    top: 22,
-    left: 22,
+    paddingTop: 22,
+    paddingLeft: 22,
   },
 }
 

@@ -44,6 +44,9 @@ const routeTree = new RouteDefNode({
                     signupError,
                     success: {
                       component: Success,
+                      children: {
+                        signupError,
+                      },
                     },
                   },
                 },
