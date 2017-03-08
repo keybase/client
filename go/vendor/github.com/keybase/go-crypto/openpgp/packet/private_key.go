@@ -10,12 +10,14 @@ import (
 	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/sha1"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"math/big"
 	"strconv"
 	"time"
 
+	"github.com/keybase/go-crypto/ed25519"
 	"github.com/keybase/go-crypto/openpgp/ecdh"
 	"github.com/keybase/go-crypto/openpgp/elgamal"
 	"github.com/keybase/go-crypto/openpgp/errors"
@@ -37,7 +39,19 @@ type PrivateKey struct {
 }
 
 type EdDSAPrivateKey struct {
+	PrivateKey
 	seed parsedMPI
+}
+
+func (e *EdDSAPrivateKey) Sign(digest []byte) (R, S []byte, err error) {
+	secret := make([]byte, ed25519.PrivateKeySize)
+	copy(secret[:32], e.seed.bytes)
+	copy(secret[32:], e.PublicKey.edk.p.bytes[1:]) // [1:] because [0] is 0x40 mpi header
+
+	sig := ed25519.Sign(secret, digest)
+
+	sigLen := ed25519.SignatureSize / 2
+	return sig[:sigLen], sig[sigLen:], nil
 }
 
 func NewRSAPrivateKey(currentTime time.Time, priv *rsa.PrivateKey) *PrivateKey {
@@ -426,11 +440,16 @@ func (pk *PrivateKey) parseECDSAPrivateKey(data []byte) (err error) {
 
 func (pk *PrivateKey) parseEdDSAPrivateKey(data []byte) (err error) {
 	eddsaPriv := new(EdDSAPrivateKey)
+	eddsaPriv.PublicKey = pk.PublicKey
 
 	buf := bytes.NewBuffer(data)
 	eddsaPriv.seed.bytes, eddsaPriv.seed.bitLength, err = readMPI(buf)
 	if err != nil {
-		return
+		return err
+	}
+
+	if bLen := len(eddsaPriv.seed.bytes); bLen != 32 { // 32 bytes private part of ed25519 key.
+		return errors.UnsupportedError(fmt.Sprintf("Unexpected EdDSA private key length: %d", bLen))
 	}
 
 	pk.PrivateKey = eddsaPriv

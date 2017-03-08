@@ -95,6 +95,7 @@ func TestSimpleFSLocalSrcFile(t *testing.T) {
 	require.False(tc.T, isSrcDir)
 	require.Equal(tc.T, path1.Local(), srcPathString)
 
+	// Destination file not given
 	destPath := makeSimpleFSPath(tc.G, "/keybase/public/foobar")
 
 	isDestDir, destPathString, err := checkPathIsDir(context.TODO(), SimpleFSTestStat{remoteExists: true}, destPath)
@@ -117,6 +118,24 @@ func TestSimpleFSLocalSrcFile(t *testing.T) {
 	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
 
 	assert.Equal(tc.T, "/public/foobar/test1.txt", destPath.Kbfs())
+
+	// Destination file given
+	destPath, err = makeDestPath(tc.G,
+		context.TODO(),
+		SimpleFSTestStat{},
+		path1,
+		destPath,
+		true,
+		"/public/foobar")
+	assert.Equal(tc.T, "/public/foobar/test1.txt", destPath.Kbfs())
+	require.NoError(tc.T, err, "bad path type")
+
+	pathType, err = destPath.PathType()
+	require.NoError(tc.T, err, "bad path type")
+	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
+
+	assert.Equal(tc.T, "/public/foobar/test1.txt", destPath.Kbfs())
+
 }
 
 func TestSimpleFSRemoteSrcFile(t *testing.T) {
@@ -132,6 +151,7 @@ func TestSimpleFSRemoteSrcFile(t *testing.T) {
 	destPath := makeSimpleFSPath(tc.G, tempdir)
 	srcPath := makeSimpleFSPath(tc.G, "/keybase/public/foobar/test1.txt")
 
+	// Destination file not included in path
 	destPath, err = makeDestPath(tc.G,
 		context.TODO(),
 		SimpleFSTestStat{remoteExists: true},
@@ -151,6 +171,23 @@ func TestSimpleFSRemoteSrcFile(t *testing.T) {
 	require.Equal(tc.T, "test1.txt", filepath.Base(srcPathString))
 
 	pathType, err := destPath.PathType()
+	require.NoError(tc.T, err, "bad path type")
+	assert.Equal(tc.T, keybase1.PathType_LOCAL, pathType, "Expected local path, got remote")
+
+	assert.Equal(tc.T, filepath.ToSlash(filepath.Join(tempdir, "test1.txt")), destPath.Local())
+
+	// Dest file included in path
+	destPath, err = makeDestPath(tc.G,
+		context.TODO(),
+		SimpleFSTestStat{remoteExists: true},
+		srcPath,
+		destPath,
+		true,
+		tempdir)
+
+	require.NoError(tc.T, err, "makeDestPath returns %s", pathToString(destPath))
+
+	pathType, err = destPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_LOCAL, pathType, "Expected local path, got remote")
 

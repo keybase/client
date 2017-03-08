@@ -9,19 +9,38 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-type supersedesTransform struct {
+type supersedesTransform interface {
+	Run(ctx context.Context,
+		convID chat1.ConversationID, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed,
+		finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
+}
+
+type nullSupersedesTransform struct {
+}
+
+func (t nullSupersedesTransform) Run(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed,
+	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+	return originalMsgs, nil
+}
+
+func newNullSupersedesTransform() nullSupersedesTransform {
+	return nullSupersedesTransform{}
+}
+
+type basicSupersedesTransform struct {
 	libkb.Contextified
 	utils.DebugLabeler
 }
 
-func newSupersedesTransform(g *libkb.GlobalContext) *supersedesTransform {
-	return &supersedesTransform{
+func newBasicSupersedesTransform(g *libkb.GlobalContext) *basicSupersedesTransform {
+	return &basicSupersedesTransform{
 		Contextified: libkb.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "supersedesTransform", false),
 	}
 }
 
-func (t *supersedesTransform) transformEdit(msg chat1.MessageUnboxed, superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
+func (t *basicSupersedesTransform) transformEdit(msg chat1.MessageUnboxed, superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
 	clientHeader := msg.Valid().ClientHeader
 	clientHeader.MessageType = chat1.MessageType_TEXT
 	newMsg := chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
@@ -40,7 +59,7 @@ func (t *supersedesTransform) transformEdit(msg chat1.MessageUnboxed, superMsg c
 	return &newMsg
 }
 
-func (t *supersedesTransform) transformAttachment(msg chat1.MessageUnboxed, superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
+func (t *basicSupersedesTransform) transformAttachment(msg chat1.MessageUnboxed, superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
 	clientHeader := msg.Valid().ClientHeader
 	clientHeader.MessageType = chat1.MessageType_ATTACHMENT
 	uploaded := superMsg.Valid().MessageBody.Attachmentuploaded()
@@ -67,7 +86,7 @@ func (t *supersedesTransform) transformAttachment(msg chat1.MessageUnboxed, supe
 	return &newMsg
 }
 
-func (t *supersedesTransform) transform(ctx context.Context, msg chat1.MessageUnboxed,
+func (t *basicSupersedesTransform) transform(ctx context.Context, msg chat1.MessageUnboxed,
 	superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
 
 	switch superMsg.GetMessageType() {
@@ -82,7 +101,7 @@ func (t *supersedesTransform) transform(ctx context.Context, msg chat1.MessageUn
 	return &msg
 }
 
-func (t *supersedesTransform) run(ctx context.Context,
+func (t *basicSupersedesTransform) Run(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed,
 	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
 

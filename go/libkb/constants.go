@@ -353,6 +353,7 @@ const (
 	KIDPGPDsa              = 0x11
 	KIDPGPEcdh             = 0x12
 	KIDPGPEcdsa            = 0x13
+	KIDPGPEddsa            = 0x16
 	KIDNaclEddsa           = 0x20
 	KIDNaclDH              = 0x21
 )
@@ -468,10 +469,12 @@ const (
 
 const (
 	SignaturePrefixKBFS           SignaturePrefix = "Keybase-KBFS-1"
-	SignaturePrefixChat           SignaturePrefix = "Keybase-Chat-1"
 	SignaturePrefixSigchain       SignaturePrefix = "Keybase-Sigchain-1"
 	SignaturePrefixChatAttachment SignaturePrefix = "Keybase-Chat-Attachment-1"
 	SignaturePrefixTesting        SignaturePrefix = "Keybase-Testing-1"
+	// Chat prefixes for each MessageBoxedVersion.
+	SignaturePrefixChatMBv1 SignaturePrefix = "Keybase-Chat-1"
+	SignaturePrefixChatMBv2 SignaturePrefix = "Keybase-Chat-2"
 )
 
 const (

@@ -21,7 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const inboxVersion = 6
+const inboxVersion = 7
 
 type queryHash []byte
 
@@ -107,7 +107,7 @@ func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 	if !found {
 		return ibox, MissError{}
 	}
-	if ibox.Version > inboxVersion {
+	if ibox.Version != inboxVersion {
 		i.Debug(ctx, "on disk version not equal to program version, clearing: disk :%d program: %d",
 			ibox.Version, inboxVersion)
 		if cerr := i.clear(ctx); cerr != nil {

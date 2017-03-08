@@ -25,9 +25,11 @@ const getIcon = (invertColors) => {
     platform = 'windows-'
   }
 
+  const size = isWindows ? 16 : 22
+
   color = invertColors ? ({black: 'white', white: 'black'})[color] : color
 
-  return resolveImage('menubarIcon', `icon-${platform}keybase-menubar-${iconType}-${color}-22${devMode}@2x.png`)
+  return resolveImage('menubarIcon', `icon-${platform}keybase-menubar-${iconType}-${color}-${size}${devMode}@2x.png`)
 }
 
 export default function () {

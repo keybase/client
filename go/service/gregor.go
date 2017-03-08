@@ -1324,3 +1324,15 @@ func (t *timeoutClient) Notify(ctx context.Context, method string, arg interface
 	}
 	return err
 }
+
+type errorClient struct{}
+
+var _ rpc.GenericClient = errorClient{}
+
+func (e errorClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
+	return fmt.Errorf("errorClient: Call %s", method)
+}
+
+func (e errorClient) Notify(ctx context.Context, method string, arg interface{}) error {
+	return fmt.Errorf("errorClient: Notify %s", method)
+}

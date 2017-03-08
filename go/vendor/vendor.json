@@ -179,73 +179,94 @@
 			"revisionTime": "2016-04-04T17:08:33-07:00"
 		},
 		{
+			"checksumSHA1": "VJk3rOWfxEV9Ilig5lgzH1qg8Ss=",
 			"path": "github.com/keybase/go-crypto/brainpool",
-			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
-			"revisionTime": "2016-03-19T10:18:54-07:00"
+			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
+			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
+			"checksumSHA1": "rnRjEJs5luF+DIXp2J6LFcQk8Gg=",
 			"path": "github.com/keybase/go-crypto/cast5",
-			"revision": "15e69f9c18a2e63cf7fc25a2d2ff643330616d2b",
-			"revisionTime": "2016-04-25T17:22:39-04:00"
+			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
+			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
 			"checksumSHA1": "F5++ZQS5Vt7hd6lxPCKTffvph1A=",
 			"path": "github.com/keybase/go-crypto/curve25519",
-			"revision": "e721397a850bd2d1433ecf6fbbb5dcfcd58131de",
-			"revisionTime": "2017-02-06T19:27:00Z"
+			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
+			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
-			"checksumSHA1": "xwvuGCY6HbedEtk9BFpkSDmvTl0=",
+			"checksumSHA1": "IvrDXwIixB5yPPbo6tq1/1cSn78=",
+			"path": "github.com/keybase/go-crypto/ed25519",
+			"revision": "9a8c377169f632b40aff7df06e9405003cf5dcec",
+			"revisionTime": "2017-03-08T13:33:35Z"
+		},
+		{
+			"checksumSHA1": "4+fslB6pCbplNq4viy6CrOkkY6Y=",
+			"path": "github.com/keybase/go-crypto/ed25519/internal/edwards25519",
+			"revision": "9a8c377169f632b40aff7df06e9405003cf5dcec",
+			"revisionTime": "2017-03-08T13:33:35Z"
+		},
+		{
+			"checksumSHA1": "tU/72BMqzPlbK6qMeq7cklYwLWY=",
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "95833b1d77cdcc574fa3f0c85fd216598f289ab5",
-			"revisionTime": "2017-02-24T12:24:59Z"
+			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
+			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
+			"checksumSHA1": "y61I7+hCekP1Rk0qxgUQ+iozXak=",
 			"path": "github.com/keybase/go-crypto/openpgp/armor",
-			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
-			"revisionTime": "2016-03-19T10:18:54-07:00"
+			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
+			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
+			"checksumSHA1": "cTboJNAg/so2wzlf6HscarfPlDE=",
 			"path": "github.com/keybase/go-crypto/openpgp/clearsign",
-			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
-			"revisionTime": "2016-03-19T10:18:54-07:00"
+			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
+			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
 			"checksumSHA1": "nWhmwjBJqPSvkCWqaap2Z9EiS1k=",
 			"path": "github.com/keybase/go-crypto/openpgp/ecdh",
-			"revision": "e721397a850bd2d1433ecf6fbbb5dcfcd58131de",
-			"revisionTime": "2017-02-06T19:27:00Z"
+			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
+			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
+			"checksumSHA1": "uxXG9IC/XF8jwwvZUbW65+x8/+M=",
 			"path": "github.com/keybase/go-crypto/openpgp/elgamal",
-			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
-			"revisionTime": "2016-03-19T10:18:54-07:00"
+			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
+			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
+			"checksumSHA1": "EyUf82Yknzc75m8RcA21CNQINw0=",
 			"path": "github.com/keybase/go-crypto/openpgp/errors",
-			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
-			"revisionTime": "2016-03-19T10:18:54-07:00"
+			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
+			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
-			"checksumSHA1": "esp0WrWFo5Ohk/bXhjC5NrzWnS0=",
+			"checksumSHA1": "llmz8tksauJF10kIBqtB8RX601I=",
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "e721397a850bd2d1433ecf6fbbb5dcfcd58131de",
-			"revisionTime": "2017-02-06T19:27:00Z"
+			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
+			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
+			"checksumSHA1": "BGDxg1Xtsz0DSPzdQGJLLQqfYc8=",
 			"path": "github.com/keybase/go-crypto/openpgp/s2k",
-			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
-			"revisionTime": "2016-03-19T10:18:54-07:00"
+			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
+			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
+			"checksumSHA1": "rE3pp7b3gfcmBregzpIvN5IdFhY=",
 			"path": "github.com/keybase/go-crypto/rsa",
-			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
-			"revisionTime": "2016-03-19T10:18:54-07:00"
+			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
+			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
+			"checksumSHA1": "orAH0wZ270S0Xef2B3DMnQFC+MI=",
 			"path": "github.com/keybase/go-crypto/ssh/terminal",
-			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
-			"revisionTime": "2016-03-19T10:18:54-07:00"
+			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
+			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
 			"checksumSHA1": "IXitcIrP3o9YzQ+OjvNWWVX3QX0=",

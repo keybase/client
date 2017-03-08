@@ -28,12 +28,8 @@
           "name": "clientHeader"
         },
         {
-          "type": "EncryptedData",
+          "type": "SealedData",
           "name": "headerCiphertext"
-        },
-        {
-          "type": "SignEncryptedData",
-          "name": "headerSealed"
         },
         {
           "type": "EncryptedData",
@@ -41,7 +37,7 @@
         },
         {
           "type": "bytes",
-          "name": "headerVerificationKey"
+          "name": "verifyKey"
         },
         {
           "type": "int",
