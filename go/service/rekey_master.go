@@ -10,6 +10,7 @@ import (
 
 	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -38,6 +39,10 @@ type rekeyMaster struct {
 	// TLF rekey events. We should only be running if there are (since we want to respect
 	// the 3-minute delay on rekey harassment after a new key is added).
 	gregor *gregorHandler
+
+	// keep track of the previous problem set to see if any rekeys have occurred in
+	// an iteration
+	prevProblems keybase1.ProblemSet
 }
 
 type RekeyInterrupt int
@@ -391,8 +396,13 @@ func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevi
 
 	r.G().Log.Debug("| rekeyMaster#computeProblems: queried API server for rekey info")
 
+	// send notifications if problems changed since last iteration
+	r.changeNotification(problems)
+
 	if len(problems.Tlfs) == 0 {
 		r.G().Log.Debug("| no problem TLFs found")
+
+		r.prevProblems = keybase1.ProblemSet{}
 
 		nextWait = rekeyTimeoutBackground
 		return nextWait, nil, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_NO_PROBLEMS}, err
@@ -426,8 +436,68 @@ func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevi
 
 	r.G().Log.Debug("| rekeyMaster#computeProblems: made problem set devices")
 
+	r.prevProblems = problems
+
 	nextWait = rekeyTimeoutActive
 	return nextWait, &tmp, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_HARASS}, err
+}
+
+func (r *rekeyMaster) changeNotification(newProblems keybase1.ProblemSet) {
+	newTLFIDs := make(map[keybase1.TLFID]bool)
+	for _, p := range newProblems.Tlfs {
+		newTLFIDs[p.Tlf.Id] = true
+	}
+
+	var cids []chat1.ConversationID
+	for _, p := range r.prevProblems.Tlfs {
+		if newTLFIDs[p.Tlf.Id] {
+			continue
+		}
+
+		// p.Tlf is no longer a problem, add its conversation id to the notification list.
+		ids, err := r.conversationIDs(p.Tlf)
+		if err != nil {
+			r.G().Log.Debug("changeNotification: error getting conversation id: %s", err)
+			continue
+		}
+		r.G().Log.Debug("rekeyMaster: will send notification for convs %v, tlf %s", ids, p.Tlf.Name)
+		cids = append(cids, ids...)
+	}
+
+	if len(cids) > 0 {
+		// notify clients about stale conversation threads
+		r.G().Log.Debug("rekeyMaster: sending ChatThreadsStale notification %v", cids)
+		r.G().NotifyRouter.HandleChatThreadsStale(context.Background(), r.G().Env.GetUID(), cids)
+	}
+
+	// to make sure we don't notify more than once, change prevProblems here
+	r.prevProblems = newProblems
+}
+
+func (r *rekeyMaster) conversationIDs(tlf keybase1.TLF) ([]chat1.ConversationID, error) {
+	uid := r.G().Env.GetUID()
+	if uid.IsNil() {
+		return nil, libkb.LoginRequiredError{}
+	}
+	vis := chat1.TLFVisibility_PUBLIC
+	if tlf.IsPrivate {
+		vis = chat1.TLFVisibility_PRIVATE
+	}
+	toptype := chat1.TopicType_CHAT
+	query := chat1.GetInboxLocalQuery{
+		TlfName:       &tlf.Name,
+		TlfVisibility: &vis,
+		TopicType:     &toptype,
+	}
+	ib, _, err := r.G().InboxSource.Read(context.Background(), uid.ToBytes(), nil, true, &query, nil)
+	if err != nil {
+		return nil, err
+	}
+	ids := make([]chat1.ConversationID, len(ib.Convs))
+	for i, c := range ib.Convs {
+		ids[i] = c.Info.Id
+	}
+	return ids, nil
 }
 
 // currentDeviceSolvesProblemSet returns true if the current device can fix all
