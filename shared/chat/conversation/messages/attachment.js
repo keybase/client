@@ -237,7 +237,7 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
         attachment = <AttachmentMessagePreviewImage message={message} onOpenInPopup={this._onOpenInPopup} onOpenInFileUI={this._onOpenInFileUI} />
         break
       default:
-        attachment = <AttachmentMessageGeneric message={message} onOpenInFileUI={this._onOpenInFileUI} onLoadAttachment={this._onLoadAttachment} onOpenInPopup={this._onOpenInPopup} />
+        attachment = <AttachmentMessageGeneric message={message} onOpenInFileUI={this._onOpenInFileUI} onLoadAttachment={this._onLoadAttachment} onOpenInPopup={isMobile ? this._onOpenInPopup : null} />
     }
 
     return (
