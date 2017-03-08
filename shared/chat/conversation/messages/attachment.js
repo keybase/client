@@ -52,7 +52,11 @@ function PreviewImage ({message: {attachmentDurationMs, previewDurationMs, previ
 
     return (
       <ClickableBox style={style} onClick={onOpenInPopup}>
-        <Box>
+        <Box style={{
+          ...globalStyles.flexBoxRow,
+          position: 'relative',
+          alignItems: 'flex-end',
+        }}>
           <Box style={{...imgStyle, backgroundColor: globalColors.black_05}}>
             {previewPath && <ImageRender style={imgStyle} src={previewPath} />}
           </Box>
