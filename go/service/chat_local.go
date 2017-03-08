@@ -100,6 +100,8 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 		if lres.InboxRes == nil {
 			return res, fmt.Errorf("invalid conversation localize callback received")
 		}
+		h.Debug(ctx, "GetInboxNonblockLocal: unverified inbox sent: %d convs",
+			len(lres.InboxRes.ConvsUnverified))
 		chatUI.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
 			SessionID: arg.SessionID,
 			Inbox: chat1.GetInboxLocalRes{
@@ -121,12 +123,16 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 		wg.Add(1)
 		go func(convRes chat.NonblockInboxResult) {
 			if convRes.Err != nil {
+				h.Debug(ctx, "GetInboxNonblockLocal: *** error conv: id: %s err: %s",
+					convRes.ConvID, convRes.Err.Message)
 				chatUI.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
 					SessionID: arg.SessionID,
 					ConvID:    convRes.ConvID,
 					Error:     *convRes.Err,
 				})
 			} else if convRes.ConvRes != nil {
+				h.Debug(ctx, "GetInboxNonblockLocal: verified conv: id: %s tlf: %s",
+					convRes.ConvID, convRes.ConvRes.Info.TLFNameExpanded())
 				chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
 					SessionID: arg.SessionID,
 					Conv:      *convRes.ConvRes,

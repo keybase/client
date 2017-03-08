@@ -93,6 +93,7 @@ func (b *NonblockingLocalizer) SetOffline() {
 }
 
 func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.Inbox, uid gregor1.UID) chat1.Inbox {
+	defer b.Trace(ctx, func() error { return nil }, "filterInboxRes")()
 
 	localizer := newLocalizerPipeline(b.G(), b.pipeline.getTlfInterface)
 	localizer.offline = true // Set this guy offline, so we are guaranteed to not do anything slow
@@ -137,7 +138,8 @@ func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.I
 	}
 }
 
-func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) ([]chat1.ConversationLocal, error) {
+func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) (res []chat1.ConversationLocal, err error) {
+	defer b.Trace(ctx, func() error { return err }, "Localize")()
 
 	// Run some easy filters for empty messages and known errors to optimize UI drawing behavior
 	filteredInbox := b.filterInboxRes(ctx, inbox, uid)
