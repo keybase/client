@@ -46,8 +46,7 @@
           "type": "int"
         }
       ],
-      "response": null,
-      "oneway": true
+      "response": null
     },
     "chatAttachmentPreviewUploadStart": {
       "request": [
