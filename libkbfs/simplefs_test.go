@@ -72,6 +72,27 @@ func TestList(t *testing.T) {
 	// Verify error on double wait
 	err = sfs.SimpleFSWait(ctx, opid)
 	require.Error(t, err)
+
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+
+	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID: opid,
+		Path: pathAppend(path1, `test1.txt`),
+	})
+	require.NoError(t, err)
+
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+
+	listResult, err = sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+
+	assert.Len(t, listResult.Entries, 1, "Expected 2 directory entries in listing")
+
+	// Assume we've exhausted the list now, so expect error
+	_, err = sfs.SimpleFSReadList(ctx, opid)
+	require.Error(t, err)
 }
 
 func TestCopyToLocal(t *testing.T) {
