@@ -24,6 +24,11 @@ func doSimpleFSRemoteGlob(g *libkb.GlobalContext, ctx context.Context, cli keyba
 	// We know the filename has wildcards at this point.
 	// kbfs list only works on directories, so build a glob from a list result.
 
+	cli, err := GetSimpleFSClient(g)
+	if err != nil {
+		return nil, err
+	}
+
 	g.Log.Debug("doSimpleFSRemoteGlob %s", path.Kbfs())
 
 	if strings.ContainsAny(directory, "?*[]") == true {
