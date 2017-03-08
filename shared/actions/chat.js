@@ -1865,14 +1865,24 @@ function * _selectAttachment ({payload: {input}}: Constants.SelectAttachment): S
 
   if (!finished.error) {
     const {params: {messageID}} = finished
-    yield put(({
-      type: 'chat:updateTempMessage',
-      payload: {
+    const existingMessage = yield select(_messageSelector, conversationIDKey, messageID)
+    // We already received a message for this attachment
+    if (existingMessage) {
+      yield put(({
         conversationIDKey,
         outboxID,
-        message: {type: 'Attachment', messageState: 'sent', messageID, key: Constants.messageKey('messageID', messageID)},
-      },
-    }: Constants.UpdateTempMessage))
+      }: Constants.DeleteTempMessage))
+    } else {
+      yield put(({
+        type: 'chat:updateTempMessage',
+        payload: {
+          conversationIDKey,
+          outboxID,
+          message: {type: 'Attachment', messageState: 'sent', messageID, key: Constants.messageKey('messageID', messageID)},
+        },
+      }: Constants.UpdateTempMessage))
+    }
+
     yield put(({
       type: 'chat:markSeenMessage',
       payload: {
