@@ -174,7 +174,7 @@ class Profile extends Component<void, Props, State> {
               loadingComponent={this._makeUserBio(true)}
               doneLoadingComponent={this._makeUserBio(false)} />
           </Box>
-          {!this.props.loading &&
+          {!this.props.isYou && !this.props.loading &&
             <UserActions
               style={styleActions}
               trackerState={this.props.trackerState}
