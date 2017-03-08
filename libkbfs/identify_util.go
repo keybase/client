@@ -177,7 +177,7 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 	return nil
 }
 
-// identifyUserToChan calls identifyUID and plugs the result into the error channnel.
+// identifyUserToChan calls identifyUser and plugs the result into the error channnel.
 func identifyUserToChan(ctx context.Context, nug normalizedUsernameGetter,
 	identifier identifier, name libkb.NormalizedUsername, uid keybase1.UID,
 	isPublic bool, errChan chan error) {
