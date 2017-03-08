@@ -432,16 +432,26 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 	switch typ {
 	case chat1.MessageUnboxedState_VALID:
 		m := message.Valid()
-		if m.HeaderSignature == nil {
-			// Skip revocation check for messages cached before the sig was part of the cache.
+
+		var verificationKey []byte
+
+		if m.HeaderSignature != nil {
+			verificationKey = m.HeaderSignature.K
+		}
+
+		if m.VerificationKey != nil {
+			verificationKey = *m.VerificationKey
+		}
+
+		if verificationKey == nil {
+			// Skip revocation check for messages cached before the sig/key was part of the cache.
 			s.Debug(ctx, "updateMessage skipping message (%v) with no cached HeaderSignature", m.ServerHeader.MessageID)
 			return message, nil
 		}
 
 		sender := m.ClientHeader.Sender
-		key := m.HeaderSignature.K
 		ctime := m.ServerHeader.Ctime
-		found, validAtCtime, revoked, err := s.boxer.ValidSenderKey(ctx, sender, key, ctime)
+		found, validAtCtime, revoked, err := s.boxer.ValidSenderKey(ctx, sender, verificationKey, ctime)
 		if err != nil {
 			return chat1.MessageUnboxed{}, err
 		}

@@ -8,6 +8,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -153,11 +154,7 @@ var ErrDecryption = errors.New("decryption failed")
 // randomness
 var ErrNotEnoughRandomness = errors.New("not enough random data")
 
-// ErrBadPacketSequence indicates that packets arrived out of order from the
-// server (which they shouldn't).
-var ErrBadPacketSequence = errors.New("packets arrived out-of-order")
-
-// ErrWrongSession indicatest that the given session didn't match the
+// ErrWrongSession indicates that the given session didn't match the
 // clients expectations
 var ErrWrongSession = errors.New("got message for wrong Session ID")
 
@@ -176,6 +173,19 @@ var ErrBadSecret = errors.New("bad secret")
 // protocol timed out.  Most likely due to an incorrect
 // secret phrase from the user.
 var ErrHelloTimeout = errors.New("hello timeout")
+
+// ErrBadPacketSequence indicates that packets arrived out of order from the
+// server (which they shouldn't).
+type ErrBadPacketSequence struct {
+	SessionID     SessionID
+	SenderID      DeviceID
+	ReceivedSeqno Seqno
+	PrevSeqno     Seqno
+}
+
+func (e ErrBadPacketSequence) Error() string {
+	return fmt.Sprintf("Unexpected out-of-order packet arrival (%+v)", e)
+}
 
 func (c *Conn) setReadError(e error) error {
 	c.errMutex.Lock()
@@ -290,7 +300,7 @@ func (c *Conn) decryptIncomingMessage(msg []byte) (int, error) {
 	}
 
 	if im.Seqno != c.readSeqno+1 {
-		return 0, ErrBadPacketSequence
+		return 0, ErrBadPacketSequence{im.SessionID, im.SenderID, im.Seqno, c.readSeqno}
 	}
 	c.readSeqno = im.Seqno
 

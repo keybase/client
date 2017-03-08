@@ -80,7 +80,7 @@ class ConversationInput extends Component<void, Props, State> {
     ImagePicker.showImagePicker({}, (response) => {
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
       const conversationIDKey = this.props.selectedConversation
-      if (conversationIDKey) {
+      if (!response.didCancel && conversationIDKey) {
         const input: AttachmentInput = {
           conversationIDKey,
           filename,

@@ -213,7 +213,7 @@ func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRec
 	var recs []chat1.OutboxRecord
 	added := false
 	for _, obr := range obox.Records {
-		if obr.OutboxID.Eq(oldObr.OutboxID) {
+		if obr.OutboxID.Eq(&oldObr.OutboxID) {
 			state, err := obr.State.State()
 			if err != nil {
 				return err
@@ -263,7 +263,7 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 	var recs []chat1.OutboxRecord
 	added := false
 	for _, iobr := range obox.Records {
-		if iobr.OutboxID.Eq(obr.OutboxID) {
+		if iobr.OutboxID.Eq(&obr.OutboxID) {
 			iobr.State = chat1.NewOutboxStateWithError(errRec)
 			added = true
 		}
@@ -298,7 +298,7 @@ func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID) error {
 	// Loop through and find record
 	var recs []chat1.OutboxRecord
 	for _, obr := range obox.Records {
-		if obr.OutboxID.Eq(obid) {
+		if obr.OutboxID.Eq(&obid) {
 			obr.State = chat1.NewOutboxStateWithSending(0)
 		}
 		recs = append(recs, obr)
@@ -327,7 +327,7 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) error {
 	// Scan to find the message and don't include it
 	var recs []chat1.OutboxRecord
 	for _, obr := range obox.Records {
-		if !obr.OutboxID.Eq(obid) {
+		if !obr.OutboxID.Eq(&obid) {
 			recs = append(recs, obr)
 		}
 	}

@@ -1,6 +1,6 @@
 Recent changes:
 ---------------
-- Performance! Chats should load faster now.
+- Performance! Chats should load faster now, and writes to KBFS should be much faster, avoiding operating system timeouts in most cases.
 
 - Keybase has a new icon. We thank our departing ferret-dog mascot for his years of loyalty.
 

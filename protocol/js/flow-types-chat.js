@@ -1111,10 +1111,9 @@ export type MessageBoxed = {
   version: MessageBoxedVersion,
   serverHeader?: ?MessageServerHeader,
   clientHeader: MessageClientHeader,
-  headerCiphertext: EncryptedData,
-  headerSealed: SignEncryptedData,
+  headerCiphertext: SealedData,
   bodyCiphertext: EncryptedData,
-  headerVerificationKey: bytes,
+  verifyKey: bytes,
   keyGeneration: int,
 }
 
@@ -1389,6 +1388,12 @@ export type S3Params = {
   regionBucketEndpoint: string,
 }
 
+export type SealedData = {
+  v: int,
+  e: bytes,
+  n: bytes,
+}
+
 export type SetConversationStatusLocalRes = {
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
@@ -1414,7 +1419,7 @@ export type SetStatusPayload = {
 
 export type SignEncryptedData = {
   v: int,
-  b: bytes,
+  e: bytes,
   n: bytes,
 }
 
