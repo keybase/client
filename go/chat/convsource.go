@@ -72,8 +72,8 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 
 	// Resolve supersedes
 	if q == nil || !q.DisableResolveSupersedes {
-		transform := newSupersedesTransform(s.G())
-		if thread.Messages, err = transform.run(ctx, convID, uid, thread.Messages, finalizeInfo); err != nil {
+		transform := newBasicSupersedesTransform(s.G())
+		if thread.Messages, err = transform.Run(ctx, convID, uid, thread.Messages, finalizeInfo); err != nil {
 			return err
 		}
 	}
@@ -93,8 +93,8 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 }
 
 func (s *baseConversationSource) TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
-	transform := newSupersedesTransform(s.G())
-	return transform.run(ctx, convID, uid, msgs, finalizeInfo)
+	transform := newBasicSupersedesTransform(s.G())
+	return transform.Run(ctx, convID, uid, msgs, finalizeInfo)
 }
 
 type RemoteConversationSource struct {

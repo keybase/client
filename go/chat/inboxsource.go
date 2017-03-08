@@ -23,13 +23,16 @@ type localizerPipeline struct {
 
 	offline         bool
 	getTlfInterface func() keybase1.TlfInterface
+	superXform      supersedesTransform
 }
 
-func newLocalizerPipeline(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface) *localizerPipeline {
+func newLocalizerPipeline(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface,
+	superXform supersedesTransform) *localizerPipeline {
 	return &localizerPipeline{
 		Contextified:    libkb.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g, "localizerPipeline", false),
 		getTlfInterface: getTlfInterface,
+		superXform:      superXform,
 	}
 }
 
@@ -41,7 +44,7 @@ type BlockingLocalizer struct {
 func NewBlockingLocalizer(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface) *BlockingLocalizer {
 	return &BlockingLocalizer{
 		Contextified: libkb.NewContextified(g),
-		pipeline:     newLocalizerPipeline(g, getTlfInterface),
+		pipeline:     newLocalizerPipeline(g, getTlfInterface, newBasicSupersedesTransform(g)),
 	}
 }
 
@@ -83,7 +86,7 @@ func NewNonblockingLocalizer(g *libkb.GlobalContext, localizeCb chan NonblockInb
 	return &NonblockingLocalizer{
 		Contextified: libkb.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "NonblockingLocalizer", false),
-		pipeline:     newLocalizerPipeline(g, getTlfInterface),
+		pipeline:     newLocalizerPipeline(g, getTlfInterface, newBasicSupersedesTransform(g)),
 		localizeCb:   localizeCb,
 	}
 }
@@ -95,7 +98,7 @@ func (b *NonblockingLocalizer) SetOffline() {
 func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.Inbox, uid gregor1.UID) chat1.Inbox {
 	defer b.Trace(ctx, func() error { return nil }, "filterInboxRes")()
 
-	localizer := newLocalizerPipeline(b.G(), b.pipeline.getTlfInterface)
+	localizer := newLocalizerPipeline(b.G(), b.pipeline.getTlfInterface, newNullSupersedesTransform())
 	localizer.offline = true // Set this guy offline, so we are guaranteed to not do anything slow
 
 	convs, err := localizer.localizeConversationsPipeline(ctx, uid, inbox.ConvsUnverified, nil)
@@ -152,6 +155,8 @@ func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 	// Spawn off localization into its own goroutine and use cb to communicate with outside world
 	bctx := BackgroundContext(ctx)
 	go func() {
+		b.Debug(bctx, "Localize: starting background localization: convs: %d",
+			len(inbox.ConvsUnverified))
 		b.pipeline.localizeConversationsPipeline(bctx, uid, inbox.ConvsUnverified,
 			&b.localizeCb)
 
@@ -879,8 +884,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 
 	var maxValidID chat1.MessageID
-	superXform := newSupersedesTransform(s.G())
-
 	var newMaxMsgs []chat1.MessageUnboxed
 	for _, mm := range conversationLocal.MaxMessages {
 		if mm.IsValid() {
@@ -904,7 +907,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 
 			// Resolve edits/deletes
 			var newMsg []chat1.MessageUnboxed
-			if newMsg, err = superXform.run(ctx, conversationLocal.GetConvID(), uid,
+			if newMsg, err = s.superXform.Run(ctx, conversationLocal.GetConvID(), uid,
 				[]chat1.MessageUnboxed{mm}, conversationRemote.Metadata.FinalizeInfo); err != nil {
 				s.Debug(ctx, "failed to transform message: id: %d err: %s", mm.GetMessageID(),
 					err.Error())
