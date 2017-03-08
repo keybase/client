@@ -10,6 +10,7 @@ const MessageText = (props: Props) => {
   const {message, isEditing} = props
   const {messageState} = message
   const textStyle = {
+    backgroundColor: globalColors.white,
     ...(messageState === 'failed' || messageState === 'pending' ? pendingFailStyle : {}),
     ...(isEditing ? editingStyle : null),
   }
