@@ -58,13 +58,10 @@ function * permissionsRequestSaga (): SagaGenerator<any, any> {
 
 function * pushNotificationSaga (notification: PushNotification): SagaGenerator<any, any> {
   console.warn('Push notification:', notification)
-  if (notification.payload && notification.payload.userInteraction) {
-    if (!notification.payload.data) {
-      console.warn('Push notification missing data', notification)
-      return
-    }
+  const payload = notification.payload
+  if (payload && payload.userInteraction) {
+    const convID = payload.data ? payload.data.convID : payload.convID
 
-    const {convID} = notification.payload.data
     if (!convID) {
       console.error('Push notification payload missing conversation ID')
       return
