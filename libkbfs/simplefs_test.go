@@ -88,7 +88,7 @@ func TestList(t *testing.T) {
 	listResult, err = sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
 
-	assert.Len(t, listResult.Entries, 1, "Expected 2 directory entries in listing")
+	assert.Len(t, listResult.Entries, 1, "Expected 1 directory entries in listing")
 
 	// Assume we've exhausted the list now, so expect error
 	_, err = sfs.SimpleFSReadList(ctx, opid)
