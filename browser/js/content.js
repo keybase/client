@@ -26,9 +26,18 @@ function InjectProfile() {
 const checkThread = /^\/r\/\w+\/comments\/\w+\//;
 function InjectThread() {
   // /r/<subreddit>/comments/<id>/<slug>
-  // TODO: ...
   console.log("keybase: On thread.");
+
+  for (let c of document.getElementsByClassName("comment")) {
+    const author = c.getAttribute("data-author");
+    const buttons = c.getElementsByClassName("buttons")[0];
+
+    const li = document.createElement("li");
+    li.className = "keybase-reply";
+    li.innerHTML = "<a href=\"keybase://"+ author +"@reddit/\">keybase chat reply</a>";
+    buttons.appendChild(li);
+  }
 }
 
 
-init();
+window.addEventListener('load', init);
