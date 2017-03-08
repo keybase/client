@@ -157,6 +157,7 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _invalidateChangedMessages (props: Props) {
+    const headerMessagesCount = props.headerMessages.count()
     this.state.messages.forEach((item, index) => {
       const oldMessage = props.messages.get(index, {})
 
@@ -164,11 +165,11 @@ class ConversationList extends Component<void, Props, State> {
         (item.messageState !== oldMessage.messageState ||
         item.editedCount !== oldMessage.editedCount)
       ) {
-        this._toRemeasure.push(index)
+        this._toRemeasure.push(index + headerMessagesCount)
       } else if (item.type === 'Attachment' && oldMessage.type === 'Attachment' &&
                  (item.previewPath !== oldMessage.previewPath ||
                   !shallowEqual(item.previewSize, oldMessage.previewSize))) {
-        this._toRemeasure.push(index)
+        this._toRemeasure.push(index + headerMessagesCount)
       } else if (!shallowEqual(item, oldMessage)) {
         this._shouldForceUpdateGrid = true
       }
