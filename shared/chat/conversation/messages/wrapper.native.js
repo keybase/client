@@ -16,15 +16,15 @@ class MessageWrapper extends PureComponent<void, MessageProps, void> {
     const {children, message, style, includeHeader, isFirstNewMessage, onAction, onRetry, isSelected, you, followingMap, metaDataMap} = this.props
     return (
       <NativeTouchableHighlight onLongPress={(event) => onAction(message, event)} underlayColor={globalColors.black_10}>
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null), ...style}}>
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : _stylesUnselected), ...style}}>
           <Box style={_marginContainerStyle}>
             <Box style={{alignSelf: 'stretch', backgroundColor: marginColor(message.author, you, followingMap, metaDataMap), marginRight: globalMargins.tiny, width: 3}} />
-            <Box style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
+            <Box style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0), backgroundColor: globalColors.white}}>
               {includeHeader
                 ? <Avatar size={32} username={message.author} style={_avatarStyle} />
                 : <Box style={_noHeaderStyle} />}
               <Box style={_bodyContainerStyle}>
-                {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.author, you, followingMap, metaDataMap), ...(message.author === you ? globalStyles.italic : null), marginBottom: 2}}>{message.author}</Text>}
+                {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.author, you, followingMap, metaDataMap), ...(message.author === you ? globalStyles.italic : null), marginBottom: 2, backgroundColor: globalColors.white}}>{message.author}</Text>}
                 <Box style={_textContainerStyle}>
                   <Box style={_childrenWrapStyle}>
                     {children}
@@ -55,7 +55,11 @@ const _stylesFirstNewMessage = {
 }
 
 const _stylesSelected = {
-  backgroundColor: `${globalColors.black_05}`,
+  backgroundColor: globalColors.black_05,
+}
+
+const _stylesUnselected = {
+  backgroundColor: globalColors.white,
 }
 
 const _exclamationStyle = {
@@ -71,6 +75,7 @@ const _textContainerStyle = {
 
 const _marginContainerStyle = {
   ...globalStyles.flexBoxRow,
+  backgroundColor: globalColors.white,
   flex: 1,
 }
 
@@ -85,6 +90,7 @@ const _noHeaderStyle = {
 
 const _avatarStyle = {
   marginRight: globalMargins.tiny,
+  backgroundColor: globalColors.white,
 }
 
 const _editedStyle = {
