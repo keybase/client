@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/chat'
 import MessageWrapper from './wrapper'
 import moment from 'moment'
 import React, {PureComponent} from 'react'
-import {Box, Icon, ProgressIndicator, Text} from '../../../common-adapters'
+import {Box, Icon, ProgressIndicator, Text, ClickableBox} from '../../../common-adapters'
 import {isMobile, fileUIName} from '../../../constants/platform'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {ImageRender} from './attachment.render'
@@ -18,16 +18,18 @@ function _showPreviewProgress (messageState, progress) {
   return !!progress && (messageState === 'downloading-preview')
 }
 
-function AttachmentTitle ({messageState, title}: {messageState: Constants.AttachmentMessageState, title: ?string}) {
-  let style = {}
+function AttachmentTitle ({messageState, title, onOpenInPopup}: {messageState: Constants.AttachmentMessageState, title: ?string, onOpenInPopup: ?() => void}) {
+  let style = {
+    backgroundColor: globalColors.white,
+  }
   switch (messageState) {
     case 'uploading':
     case 'pending':
     case 'failed':
-      style = {color: globalColors.black_40}
+      style = {backgroundColor: globalColors.white, color: globalColors.black_40}
       break
   }
-  return <Text type='BodySemibold' style={style}>{title}</Text>
+  return <Text type='BodySemibold' style={style} onClick={onOpenInPopup}>{title}</Text>
 }
 
 function PreviewImage ({message: {attachmentDurationMs, previewDurationMs, previewPath, previewType, previewSize, messageState}, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInPopup: ?() => void}) {
@@ -49,26 +51,32 @@ function PreviewImage ({message: {attachmentDurationMs, previewDurationMs, previ
     }
 
     return (
-      <Box style={style} onClick={onOpenInPopup}>
-        <Box style={{...imgStyle, backgroundColor: globalColors.black_05}}>
-          {previewPath && <ImageRender style={imgStyle} src={previewPath} />}
-        </Box>
-        {!isMobile && (messageState === 'downloading' || messageState === 'downloaded') &&
-          <ImageIcon
-            style={{position: 'relative', right: 19, top: 3}}
-            type={messageState === 'downloading' ? 'Downloading' : 'Downloaded'} />}
-        {attachmentDurationMs && !previewDurationMs &&
-          <Box style={{...globalStyles.flexBoxCenter, position: 'absolute', top: 0, left: 0, bottom: 0, right: 0}}>
-            <Icon type='icon-play-64' />
+      <ClickableBox style={style} onClick={onOpenInPopup}>
+        <Box style={{
+          ...globalStyles.flexBoxRow,
+          position: 'relative',
+          alignItems: 'flex-end',
+        }}>
+          <Box style={{...imgStyle, backgroundColor: globalColors.black_05}}>
+            {previewPath && <ImageRender style={imgStyle} src={previewPath} />}
           </Box>
-        }
-        {attachmentDurationMs && previewType === 'Video' &&
-          <Text
-            type='BodySemibold'
-            style={{position: 'absolute', backgroundColor: globalColors.transparent, color: 'white', fontSize: 12, right: globalMargins.tiny, bottom: globalMargins.xtiny}}
-          >{moment.utc(attachmentDurationMs).format('m:ss')}</Text>
-        }
-      </Box>
+          {!isMobile && (messageState === 'downloading' || messageState === 'downloaded') &&
+            <ImageIcon
+              style={{position: 'relative', right: 19, top: 3}}
+              type={messageState === 'downloading' ? 'Downloading' : 'Downloaded'} />}
+          {attachmentDurationMs && !previewDurationMs &&
+            <Box style={{...globalStyles.flexBoxCenter, position: 'absolute', top: 0, left: 0, bottom: 0, right: 0}}>
+              <Icon type='icon-play-64' />
+            </Box>
+          }
+          {attachmentDurationMs && previewType === 'Video' &&
+            <Text
+              type='BodySemibold'
+              style={{position: 'absolute', backgroundColor: globalColors.transparent, color: 'white', fontSize: 12, right: globalMargins.tiny, bottom: globalMargins.xtiny}}
+            >{moment.utc(attachmentDurationMs).format('m:ss')}</Text>
+          }
+        </Box>
+      </ClickableBox>
     )
   }
 
@@ -100,6 +108,7 @@ function ProgressBar ({text, progress, style}: ProgressBarProps) {
 function ImageIcon ({type, style}: ImageIconProps) {
   const iconStyle = {
     ...globalStyles.flexBoxColumn,
+    backgroundColor: globalColors.white,
     color: type === 'Downloading' ? globalColors.blue : globalColors.green,
   }
 
@@ -159,7 +168,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
 
 function AttachmentIcon ({messageState}: {messageState: Constants.AttachmentMessageState}) {
   let iconType = 'icon-file-24'
-  let style = {marginTop: 8, marginBottom: 8, height: 24}
+  let style = {backgroundColor: globalColors.white, height: 24, marginBottom: 8, marginTop: 8}
   switch (messageState) {
     case 'downloading':
       iconType = 'icon-file-downloading-24'
@@ -175,13 +184,14 @@ function AttachmentIcon ({messageState}: {messageState: Constants.AttachmentMess
   return <Icon type={iconType} style={style} />
 }
 
-function AttachmentMessageGeneric ({message, onOpenInFileUI, onLoadAttachment}: {message: Constants.AttachmentMessage, onOpenInFileUI: () => void, onLoadAttachment: () => void}) {
+function AttachmentMessageGeneric ({message, onOpenInFileUI, onLoadAttachment, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: () => void, onLoadAttachment: () => void, onOpenInPopup: ?() => void}) {
   const {downloadedPath, messageState, progress} = message
+  const canOpen = messageState !== 'uploading'
   return (
     <Box style={{...globalStyles.flexBoxRow, ...(!message.downloadedPath ? globalStyles.clickable : {}), alignItems: 'center'}} onClick={!message.downloadedPath ? onLoadAttachment : undefined}>
       <AttachmentIcon messageState={messageState} />
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.xtiny}}>
-        <AttachmentTitle {...message} />
+        <AttachmentTitle {...message} onOpenInPopup={canOpen ? onOpenInPopup : null} />
 
         {!isMobile && (_showProgressBar(messageState, progress) || downloadedPath) &&
           <Box style={{height: 14}}>
@@ -196,11 +206,11 @@ function AttachmentMessageGeneric ({message, onOpenInFileUI, onLoadAttachment}: 
   )
 }
 
-function AttachmentMessagePreviewImage ({message, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: () => void, onOpenInPopup: () => void}) {
+function AttachmentMessagePreviewImage ({message, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: () => void, onOpenInPopup: ?() => void}) {
   const canOpen = message.messageState !== 'uploading'
   return (
     <Box style={{...globalStyles.flexBoxColumn, ...(canOpen ? globalStyles.clickable : {}), flex: 1}}>
-      <AttachmentTitle {...message} />
+      <AttachmentTitle {...message} onOpenInPopup={canOpen ? onOpenInPopup : null} />
       <PreviewImageWithInfo message={message} onOpenInFileUI={onOpenInFileUI} onOpenInPopup={canOpen ? onOpenInPopup : null} />
     </Box>
   )
@@ -231,7 +241,7 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
         attachment = <AttachmentMessagePreviewImage message={message} onOpenInPopup={this._onOpenInPopup} onOpenInFileUI={this._onOpenInFileUI} />
         break
       default:
-        attachment = <AttachmentMessageGeneric message={message} onOpenInFileUI={this._onOpenInFileUI} onLoadAttachment={this._onLoadAttachment} />
+        attachment = <AttachmentMessageGeneric message={message} onOpenInFileUI={this._onOpenInFileUI} onLoadAttachment={this._onLoadAttachment} onOpenInPopup={isMobile ? this._onOpenInPopup : null} />
     }
 
     return (
