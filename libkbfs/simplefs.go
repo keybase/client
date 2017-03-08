@@ -61,17 +61,27 @@ func (k *SimpleFS) SimpleFSList(_ context.Context, arg keybase1.SimpleFSListArg)
 		keybase1.ListArgs{
 			OpID: arg.OpID, Path: arg.Path,
 		}), func(ctx context.Context) (err error) {
-
-		node, ei, err := k.getRemoteNode(ctx, arg.Path)
-		if err != nil {
-			return err
-		}
 		var children map[string]EntryInfo
-		switch ei.Type {
-		case Dir:
-			children, err = k.config.KBFSOps().GetDirChildren(ctx, node)
+
+		rawPath := arg.Path.Kbfs()
+		wantPublic := false
+		switch {
+		case rawPath == `/public`:
+			wantPublic = true
+			fallthrough
+		case rawPath == `/private`:
+			children, err = k.favoriteList(ctx, arg.Path, wantPublic)
 		default:
-			children = map[string]EntryInfo{stdpath.Base(arg.Path.Kbfs()): ei}
+			node, ei, err := k.getRemoteNode(ctx, arg.Path)
+			if err != nil {
+				return err
+			}
+			switch ei.Type {
+			case Dir:
+				children, err = k.config.KBFSOps().GetDirChildren(ctx, node)
+			default:
+				children = map[string]EntryInfo{stdpath.Base(arg.Path.Kbfs()): ei}
+			}
 		}
 		if err != nil {
 			return err
@@ -87,6 +97,34 @@ func (k *SimpleFS) SimpleFSList(_ context.Context, arg keybase1.SimpleFSListArg)
 		k.setResult(arg.OpID, keybase1.SimpleFSListResult{Entries: des})
 		return nil
 	})
+}
+
+func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, wantPublic bool) (map[string]EntryInfo, error) {
+	session, err := k.config.KBPKI().GetCurrentSession(ctx)
+	// Return empty directory listing if we are not logged in.
+	if err != nil {
+		return nil, nil
+	}
+
+	favs, err := k.config.KBFSOps().GetFavorites(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]EntryInfo, len(favs))
+	for _, fav := range favs {
+		if fav.Public != wantPublic {
+			continue
+		}
+		pname, err := FavoriteNameToPreferredTLFNameFormatAs(
+			session.Name, CanonicalTlfName(fav.Name))
+		if err != nil {
+			k.log.Errorf("FavoriteNameToPreferredTLFNameFormatAs: %q %v", fav.Name, err)
+			continue
+		}
+		res[string(pname)] = EntryInfo{Type: Dir}
+	}
+	return res, nil
 }
 
 // SimpleFSListRecursive - Begin recursive list of items in directory at path
