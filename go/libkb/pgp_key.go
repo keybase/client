@@ -608,6 +608,20 @@ func unlockPrivateKey(k *packet.PrivateKey, pw string) error {
 	return err
 }
 
+func (k *PGPKeyBundle) isAnyKeyEncrypted() bool {
+	if k.PrivateKey.Encrypted {
+		return true
+	}
+
+	for _, subkey := range k.Subkeys {
+		if subkey.PrivateKey.Encrypted {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (k *PGPKeyBundle) unlockAllPrivateKeys(pw string) error {
 	if err := unlockPrivateKey(k.PrivateKey, pw); err != nil {
 		return err
@@ -621,6 +635,10 @@ func (k *PGPKeyBundle) unlockAllPrivateKeys(pw string) error {
 }
 
 func (k *PGPKeyBundle) Unlock(g *GlobalContext, reason string, secretUI SecretUI) error {
+	if !k.isAnyKeyEncrypted() {
+		g.Log.Debug("Key is not encrypted, skipping Unlock.")
+		return nil
+	}
 
 	unlocker := func(pw string, _ bool) (ret GenericKey, err error) {
 		if err = k.unlockAllPrivateKeys(pw); err != nil {
