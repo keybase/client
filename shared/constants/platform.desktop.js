@@ -57,11 +57,18 @@ function win32SocketDialPath (): string {
 
 function linuxSocketDialPath (): string {
   // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
-  const homeCacheDir = path.join(getenv('HOME', ''), '.config')
-  const cacheDir = getenv('XDG_RUNTIME_DIR', homeCacheDir)
-  const suffix = runMode === 'prod' ? '/' : `.${runMode}/`
+  const homeDir = getenv('HOME', '')
+  const homeCacheDir = path.join(homeDir, '.config')
+  const runtimeDir = getenv('XDG_RUNTIME_DIR', '')
 
-  return path.join(`${cacheDir}/keybase${suffix}`, socketName)
+  const cacheDir = runtimeDir || homeCacheDir
+  const suffix = runMode === 'prod' ? '' : `.${runMode}`
+
+  if (!runtimeDir && !homeDir) {
+    console.warn("You don't have $HOME or $XDG_RUNTIME_DIR defined, so we can't find the Keybase service path.")
+  }
+
+  return path.join(cacheDir, 'keybase', suffix, socketName)
 }
 
 const darwinCacheRoot = `${getenv('HOME', '')}/Library/Caches/${envedPathOSX[runMode]}/`
