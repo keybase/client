@@ -175,7 +175,7 @@ func TestSimpleFSPathRemote(t *testing.T) {
 	pathType, err = testPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
-	assert.Equal(tc.T, "/private/", testPath.Kbfs())
+	assert.Equal(tc.T, "/private", testPath.Kbfs())
 
 }
 
@@ -448,15 +448,14 @@ func TestSimpleFSLocalExists(t *testing.T) {
 	assert.Equal(tc.T, keybase1.PathType_LOCAL, pathType, "Expected local path, got remote")
 
 	// check directory
-	err = checkElementExists(context.TODO(), SimpleFSTestStat{}, testPath)
+	err = checkElementExists(context.TODO(), SimpleFSMock{}, testPath)
 	require.Error(tc.T, err, "Should get an element exists error")
 
 	// check file
 	testPath = makeSimpleFSPath(tc.G, tempFile)
-	err = checkElementExists(context.TODO(), SimpleFSTestStat{}, testPath)
+	err = checkElementExists(context.TODO(), SimpleFSMock{}, testPath)
 	require.Error(tc.T, err, "Should get an element exists error")
 }
-
 
 func TestSimpleFSPlatformGlob(t *testing.T) {
 	if runtime.GOOS != "windows" {
