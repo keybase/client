@@ -197,8 +197,8 @@ function reducer (state: State = initialState, action: Actions) {
       return state.update('conversationStates', conversationStates => updateConversation(
         conversationStates,
         conversationIDKey,
-      // $FlowIssue
-        conv => conv.update('messages', messages => messages.filter(m => m.outboxID === outboxID))
+        // $FlowIssue
+        conv => conv.update('messages', messages => messages.filter(m => m.outboxID !== outboxID))
       ))
     }
     case 'chat:updateTempMessage': {
