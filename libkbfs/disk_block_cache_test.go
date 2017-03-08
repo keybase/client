@@ -83,7 +83,7 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	t.Log("Put a block into the cache.")
 	err := cache.Put(ctx, tlf1, block1Id, block1Encoded, block1ServerHalf)
 	require.NoError(t, err)
-	putTime, err := cache.getLRU(block1Id.Bytes())
+	putTime, err := cache.getLRU(block1Id)
 	require.NoError(t, err)
 	config.TestClock().Add(time.Second)
 
@@ -94,7 +94,7 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	require.Equal(t, block1Encoded, buf)
 
 	t.Log("Verify that the Get updated the LRU time for the block.")
-	getTime, err := cache.getLRU(block1Id.Bytes())
+	getTime, err := cache.getLRU(block1Id)
 	require.NoError(t, err)
 	require.True(t, getTime.After(putTime))
 
@@ -107,7 +107,7 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	require.Nil(t, buf)
 
 	t.Log("Verify that the cache returns no LRU time for the missing block.")
-	_, err = cache.getLRU(ptr2.ID.Bytes())
+	_, err = cache.getLRU(ptr2.ID)
 	require.EqualError(t, err, errors.ErrNotFound.Error())
 }
 
@@ -153,9 +153,9 @@ func TestDiskBlockCacheDelete(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Verify that the cache returns no LRU time for the missing blocks.")
-	_, err = cache.getLRU(block1Id.Bytes())
+	_, err = cache.getLRU(block1Id)
 	require.EqualError(t, err, errors.ErrNotFound.Error())
-	_, err = cache.getLRU(block2Id.Bytes())
+	_, err = cache.getLRU(block2Id)
 	require.EqualError(t, err, errors.ErrNotFound.Error())
 }
 
@@ -170,7 +170,6 @@ func TestDiskBlockCacheEvictFromTLF(t *testing.T) {
 	clock := config.TestClock()
 	initialTime := clock.Now()
 	t.Log("Seed the cache with some other TLFs.")
-	//fakeTlfs := []byte{}
 	fakeTlfs := []byte{0, 1, 2, 4, 5}
 	for _, f := range fakeTlfs {
 		tlf := tlf.FakeID(f, false)
@@ -212,7 +211,9 @@ func TestDiskBlockCacheEvictFromTLF(t *testing.T) {
 			defer iter.Release()
 			for iter.Next() {
 				blockIDBytes := iter.Key()[len(tlfBytes):]
-				putTime, err := cache.getLRU(blockIDBytes)
+				blockID, err := kbfsblock.IDFromBytes(blockIDBytes)
+				require.NoError(t, err)
+				putTime, err := cache.getLRU(blockID)
 				require.NoError(t, err)
 				avgDuration += putTime.Sub(initialTime)
 				blockCount++

@@ -57,11 +57,12 @@ type DiskBlockCacheStandard struct {
 	maxBlockID []byte
 	// Track the number of blocks in the cache per TLF and overall.
 	tlfCounts map[tlf.ID]int
-	tlfSizes  map[tlf.ID]uint64
 	numBlocks int
+	// Track the aggregate size of blocks in the cache per TLF and overall.
+	tlfSizes  map[tlf.ID]uint64
 	currBytes uint64
-	// protects the disk caches from being shutdown while they're being
-	// accessed
+	// This protects the disk caches from being shutdown while they're being
+	// accessed.
 	lock    sync.RWMutex
 	blockDb *leveldb.DB
 	metaDb  *leveldb.DB
@@ -316,9 +317,9 @@ func (cache *DiskBlockCacheStandard) updateMetadataLocked(ctx context.Context,
 
 // getMetadata retrieves the metadata for a block in the cache, or returns
 // leveldb.ErrNotFound and a zero-valued metadata otherwise.
-func (cache *DiskBlockCacheStandard) getMetadata(blockIDBytes []byte) (
+func (cache *DiskBlockCacheStandard) getMetadata(blockID kbfsblock.ID) (
 	metadata diskBlockCacheMetadata, err error) {
-	metadataBytes, err := cache.metaDb.Get(blockIDBytes, nil)
+	metadataBytes, err := cache.metaDb.Get(blockID.Bytes(), nil)
 	if err != nil {
 		return metadata, err
 	}
@@ -328,9 +329,9 @@ func (cache *DiskBlockCacheStandard) getMetadata(blockIDBytes []byte) (
 
 // getLRU retrieves the LRU time for a block in the cache, or returns
 // leveldb.ErrNotFound and a zero-valued time.Time otherwise.
-func (cache *DiskBlockCacheStandard) getLRU(
-	blockIDBytes []byte) (time.Time, error) {
-	metadata, err := cache.getMetadata(blockIDBytes)
+func (cache *DiskBlockCacheStandard) getLRU(blockID kbfsblock.ID) (
+	time.Time, error) {
+	metadata, err := cache.getMetadata(blockID)
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -572,7 +573,7 @@ func (cache *DiskBlockCacheStandard) evictFromTLFLocked(ctx context.Context,
 			continue
 		}
 		blockID, err := kbfsblock.IDFromBytes(blockIDBytes)
-		lru, err := cache.getLRU(blockIDBytes)
+		lru, err := cache.getLRU(blockID)
 		if err != nil {
 			cache.log.CWarningf(ctx, "Error decoding LRU time for block %s", blockID)
 			continue
