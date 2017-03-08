@@ -353,6 +353,7 @@ const (
 	KIDPGPDsa              = 0x11
 	KIDPGPEcdh             = 0x12
 	KIDPGPEcdsa            = 0x13
+	KIDPGPEddsa            = 0x16
 	KIDNaclEddsa           = 0x20
 	KIDNaclDH              = 0x21
 )

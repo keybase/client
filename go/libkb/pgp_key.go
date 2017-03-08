@@ -579,8 +579,10 @@ func (k PGPKeyBundle) KeyInfo() (algorithm, kid, creation string) {
 		typ = "DSA"
 	case packet.PubKeyAlgoECDSA:
 		typ = "ECDSA"
+	case packet.PubKeyAlgoEdDSA:
+		typ = "EdDSA"
 	default:
-		typ = "<UNKONWN TYPE>"
+		typ = "<UNKNOWN TYPE>"
 	}
 
 	bl, err := pubkey.BitLength()
@@ -701,7 +703,7 @@ func (k PGPKeyBundle) VerifyString(ctx VerifyContext, sig string, msg []byte) (i
 
 func IsPGPAlgo(algo AlgoType) bool {
 	switch algo {
-	case KIDPGPRsa, KIDPGPElgamal, KIDPGPDsa, KIDPGPEcdh, KIDPGPEcdsa, KIDPGPBase:
+	case KIDPGPRsa, KIDPGPElgamal, KIDPGPDsa, KIDPGPEcdh, KIDPGPEcdsa, KIDPGPBase, KIDPGPEddsa:
 		return true
 	}
 	return false
