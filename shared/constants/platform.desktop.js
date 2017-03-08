@@ -68,7 +68,7 @@ function linuxSocketDialPath (): string {
     console.warn("You don't have $HOME or $XDG_RUNTIME_DIR defined, so we can't find the Keybase service path.")
   }
 
-  return path.join(cacheDir, 'keybase', suffix, socketName)
+  return path.join(cacheDir, `keybase${suffix}`, socketName)
 }
 
 const darwinCacheRoot = `${getenv('HOME', '')}/Library/Caches/${envedPathOSX[runMode]}/`
