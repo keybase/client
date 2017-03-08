@@ -4,6 +4,7 @@ import {PushNotificationIOS, CameraRoll, ActionSheetIOS} from 'react-native'
 import * as PushConstants from '../constants/push'
 import {eventChannel} from 'redux-saga'
 import {isIOS} from '../constants/platform'
+import {isDevApplePushToken} from '../local-debug'
 
 function requestPushPermissions (): Promise<*> {
   return PushNotifications.requestPermissions()
@@ -39,7 +40,7 @@ function configurePush () {
       onRegister: (token) => {
         let tokenType: ?PushConstants.TokenType
         switch (token.os) {
-          case 'ios': tokenType = PushConstants.tokenTypeApple; break
+          case 'ios': tokenType = isDevApplePushToken ? PushConstants.tokenTypeAppleDev : PushConstants.tokenTypeApple; break
           case 'android': tokenType = PushConstants.tokenTypeAndroidPlay; break
         }
         if (tokenType) {
