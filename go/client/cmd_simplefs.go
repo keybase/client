@@ -20,8 +20,14 @@ import (
 
 var TargetFileExistsError = errors.New("target file exists")
 
-type SimpleFSStatter interface {
-	SimpleFSStat(ctx context.Context, path keybase1.Path) (res keybase1.Dirent, err error)
+// so the test can implement a mock
+type SimpleFSInterface interface {
+	SimpleFSStat(ctx context.Context, path keybase1.Path) (keybase1.Dirent, error)
+	SimpleFSMakeOpid(ctx context.Context) (keybase1.OpID, error)
+	SimpleFSClose(ctx context.Context, arg keybase1.OpID) error
+	SimpleFSWait(ctx context.Context, arg keybase1.OpID) error
+	SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListArg) error
+	SimpleFSReadList(ctx context.Context, arg keybase1.OpID) (keybase1.SimpleFSListResult, error)
 }
 
 // NewCmdSimpleFS creates the device command, which is just a holder
@@ -100,7 +106,7 @@ func pathToString(path keybase1.Path) string {
 }
 
 // Cheeck whether the given path is a directory and return its string
-func checkPathIsDir(ctx context.Context, cli SimpleFSStatter, path keybase1.Path) (bool, string, error) {
+func checkPathIsDir(ctx context.Context, cli SimpleFSInterface, path keybase1.Path) (bool, string, error) {
 	var isDir bool
 	var pathString string
 	var err error
@@ -139,7 +145,7 @@ func joinSimpleFSPaths(destType keybase1.PathType, destPathString, srcPathString
 	return keybase1.NewPathWithLocal(newDestString)
 }
 
-func checkElementExists(ctx context.Context, cli SimpleFSStatter, dest keybase1.Path) error {
+func checkElementExists(ctx context.Context, cli SimpleFSInterface, dest keybase1.Path) error {
 	destType, _ := dest.PathType()
 	var err error
 
@@ -164,7 +170,7 @@ func checkElementExists(ctx context.Context, cli SimpleFSStatter, dest keybase1.
 func makeDestPath(
 	g *libkb.GlobalContext,
 	ctx context.Context,
-	cli SimpleFSStatter,
+	cli SimpleFSInterface,
 	src keybase1.Path,
 	dest keybase1.Path,
 	isDestPath bool,

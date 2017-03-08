@@ -14,7 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func doSimpleFSRemoteGlob(g *libkb.GlobalContext, ctx context.Context, path keybase1.Path) ([]keybase1.Path, error) {
+func doSimpleFSRemoteGlob(g *libkb.GlobalContext, ctx context.Context, cli SimpleFSInterface, path keybase1.Path) ([]keybase1.Path, error) {
 
 	var returnPaths []keybase1.Path
 	directory := filepath.ToSlash(filepath.Dir(path.Kbfs()))
@@ -23,11 +23,6 @@ func doSimpleFSRemoteGlob(g *libkb.GlobalContext, ctx context.Context, path keyb
 
 	// We know the filename has wildcards at this point.
 	// kbfs list only works on directories, so build a glob from a list result.
-
-	cli, err := GetSimpleFSClient(g)
-	if err != nil {
-		return nil, err
-	}
 
 	g.Log.Debug("doSimpleFSRemoteGlob %s", path.Kbfs())
 
@@ -65,7 +60,7 @@ func doSimpleFSRemoteGlob(g *libkb.GlobalContext, ctx context.Context, path keyb
 	return returnPaths, err
 }
 
-func doSimpleFSPlatformGlob(g *libkb.GlobalContext, ctx context.Context, paths []keybase1.Path) ([]keybase1.Path, error) {
+func doSimpleFSPlatformGlob(g *libkb.GlobalContext, ctx context.Context, cli SimpleFSInterface, paths []keybase1.Path) ([]keybase1.Path, error) {
 	var returnPaths []keybase1.Path
 	for _, path := range paths {
 		pathType, err := path.PathType()
@@ -81,7 +76,7 @@ func doSimpleFSPlatformGlob(g *libkb.GlobalContext, ctx context.Context, paths [
 
 		if pathType == keybase1.PathType_KBFS {
 			// remote glob
-			globbed, err := doSimpleFSRemoteGlob(g, ctx, path)
+			globbed, err := doSimpleFSRemoteGlob(g, ctx, cli, path)
 			if err != nil {
 				return nil, err
 			}
