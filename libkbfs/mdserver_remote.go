@@ -37,8 +37,6 @@ const (
 // MDServerRemote is an implementation of the MDServer interface.
 type MDServerRemote struct {
 	config       Config
-	conn         *rpc.Connection
-	client       keybase1.MetadataClient
 	log          logger.Logger
 	mdSrvAddr    string
 	authToken    *kbfscrypto.AuthToken
@@ -46,6 +44,10 @@ type MDServerRemote struct {
 
 	authenticatedMtx sync.Mutex
 	isAuthenticated  bool
+
+	connMu sync.RWMutex
+	conn   *rpc.Connection
+	client keybase1.MetadataClient
 
 	observerMu sync.Mutex // protects observers
 	// chan is nil if we have unregistered locally, but not yet with
@@ -643,6 +645,18 @@ func (md *MDServerRemote) FolderNeedsRekey(ctx context.Context,
 	return nil
 }
 
+func (md *MDServerRemote) getConn() *rpc.Connection {
+	md.connMu.RLock()
+	defer md.connMu.RUnlock()
+	return md.conn
+}
+
+func (md *MDServerRemote) getClient() keybase1.MetadataClient {
+	md.connMu.RLock()
+	defer md.connMu.RUnlock()
+	return md.client
+}
+
 // RegisterForUpdate implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id tlf.ID,
 	currHead MetadataRevision) (<-chan error, error) {
@@ -654,10 +668,10 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id tlf.ID,
 
 	// register
 	var c chan error
-	err := md.conn.DoCommand(ctx, "register", func(rawClient rpc.GenericClient) error {
+	err := md.getConn().DoCommand(ctx, "register", func(rawClient rpc.GenericClient) error {
 		// set up the server to receive updates, since we may
 		// get disconnected between retries.
-		server := md.conn.GetServer()
+		server := md.getConn().GetServer()
 		err := server.Register(keybase1.MetadataUpdateProtocol(md))
 		if err != nil {
 			if _, ok := err.(rpc.AlreadyRegisteredError); !ok {
@@ -716,19 +730,19 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id tlf.ID,
 // TruncateLock implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) TruncateLock(ctx context.Context, id tlf.ID) (
 	bool, error) {
-	return md.client.TruncateLock(ctx, id.String())
+	return md.getClient().TruncateLock(ctx, id.String())
 }
 
 // TruncateUnlock implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) TruncateUnlock(ctx context.Context, id tlf.ID) (
 	bool, error) {
-	return md.client.TruncateUnlock(ctx, id.String())
+	return md.getClient().TruncateUnlock(ctx, id.String())
 }
 
 // GetLatestHandleForTLF implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 	tlf.Handle, error) {
-	buf, err := md.client.GetLatestFolderHandle(ctx, id.String())
+	buf, err := md.getClient().GetLatestFolderHandle(ctx, id.String())
 	if err != nil {
 		return tlf.Handle{}, err
 	}
@@ -764,7 +778,7 @@ func (md *MDServerRemote) CheckForRekeys(ctx context.Context) <-chan error {
 			c <- ctx.Err()
 		default:
 		}
-		if err := md.getFoldersForRekey(ctx, md.client); err != nil {
+		if err := md.getFoldersForRekey(ctx, md.getClient()); err != nil {
 			md.log.CDebugf(ctx, "getFoldersForRekey failed during "+
 				"CheckForRekeys: %v", err)
 			c <- err
@@ -788,6 +802,9 @@ func (md *MDServerRemote) getFoldersForRekey(ctx context.Context,
 
 // Shutdown implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) Shutdown() {
+	md.connMu.Lock()
+	defer md.connMu.Unlock()
+
 	// close the connection
 	md.conn.Shutdown()
 	// cancel pending observers
@@ -805,7 +822,8 @@ func (md *MDServerRemote) Shutdown() {
 
 // IsConnected implements the MDServer interface for MDServerLocal
 func (md *MDServerRemote) IsConnected() bool {
-	return md.conn != nil && md.conn.IsConnected()
+	conn := md.getConn()
+	return conn != nil && conn.IsConnected()
 }
 
 //
@@ -831,7 +849,7 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 		DeviceKID: cryptKey.KID().String(),
 		LogTags:   nil,
 	}
-	keyBytes, err := md.client.GetKey(ctx, arg)
+	keyBytes, err := md.getClient().GetKey(ctx, arg)
 	if err != nil {
 		return
 	}
@@ -869,7 +887,7 @@ func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
 		KeyHalves: keyHalves,
 		LogTags:   nil,
 	}
-	return md.client.PutKeys(ctx, arg)
+	return md.getClient().PutKeys(ctx, arg)
 }
 
 // DeleteTLFCryptKeyServerHalf is an implementation of the KeyServer interface.
@@ -889,7 +907,7 @@ func (md *MDServerRemote) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 		KeyHalfID: idBytes,
 		LogTags:   nil,
 	}
-	err = md.client.DeleteKey(ctx, arg)
+	err = md.getClient().DeleteKey(ctx, arg)
 	if err != nil {
 		return err
 	}
@@ -921,7 +939,7 @@ func (md *MDServerRemote) backgroundRekeyChecker(ctx context.Context) {
 	for {
 		select {
 		case <-md.rekeyTimer.C:
-			if !md.conn.IsConnected() {
+			if !md.getConn().IsConnected() {
 				md.rekeyTimer.Reset(MdServerBackgroundRekeyPeriod)
 				continue
 			}
@@ -929,7 +947,8 @@ func (md *MDServerRemote) backgroundRekeyChecker(ctx context.Context) {
 			// Assign an ID to this rekey check so we can track it.
 			newCtx := ctxWithRandomIDReplayable(ctx, CtxMDSRIDKey, CtxMDSROpID, md.log)
 			md.log.CDebugf(newCtx, "Checking for rekey folders")
-			if err := md.getFoldersForRekey(newCtx, md.client); err != nil {
+			if err := md.getFoldersForRekey(
+				newCtx, md.getClient()); err != nil {
 				md.log.CWarningf(newCtx, "MDServerRemote: getFoldersForRekey "+
 					"failed with %v", err)
 			}
@@ -951,7 +970,7 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 		ReaderBundleID: rkbID.String(),
 	}
 
-	response, err := md.client.GetKeyBundles(ctx, arg)
+	response, err := md.getClient().GetKeyBundles(ctx, arg)
 	if err != nil {
 		return nil, nil, err
 	}
