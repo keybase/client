@@ -36,11 +36,13 @@ const (
 
 // MDServerRemote is an implementation of the MDServer interface.
 type MDServerRemote struct {
-	config       Config
-	log          logger.Logger
-	mdSrvAddr    string
-	authToken    *kbfscrypto.AuthToken
-	squelchRekey bool
+	config        Config
+	log           logger.Logger
+	mdSrvAddr     string
+	connOpts      rpc.ConnectionOpts
+	rpcLogFactory *libkb.RPCLogFactory
+	authToken     *kbfscrypto.AuthToken
+	squelchRekey  bool
 
 	authenticatedMtx sync.Mutex
 	isAuthenticated  bool
@@ -81,25 +83,23 @@ var _ rpc.ConnectionHandler = (*MDServerRemote)(nil)
 func NewMDServerRemote(config Config, srvAddr string,
 	rpcLogFactory *libkb.RPCLogFactory) *MDServerRemote {
 	mdServer := &MDServerRemote{
-		config:     config,
-		observers:  make(map[tlf.ID]chan<- error),
-		log:        config.MakeLogger(""),
-		mdSrvAddr:  srvAddr,
-		rekeyTimer: time.NewTimer(MdServerBackgroundRekeyPeriod),
+		config:        config,
+		observers:     make(map[tlf.ID]chan<- error),
+		log:           config.MakeLogger(""),
+		mdSrvAddr:     srvAddr,
+		rpcLogFactory: rpcLogFactory,
+		rekeyTimer:    time.NewTimer(MdServerBackgroundRekeyPeriod),
 	}
 	mdServer.authToken = kbfscrypto.NewAuthToken(config.Crypto(),
 		MdServerTokenServer, MdServerTokenExpireIn,
 		"libkbfs_mdserver_remote", VersionString(), mdServer)
 	constBackoff := backoff.NewConstantBackOff(RPCReconnectInterval)
-	opts := rpc.ConnectionOpts{
+	mdServer.connOpts = rpc.ConnectionOpts{
 		WrapErrorFunc:    libkb.WrapError,
 		TagsFunc:         libkb.LogTagsFromContext,
 		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
 	}
-	conn := rpc.NewTLSConnection(srvAddr, kbfscrypto.GetRootCerts(srvAddr),
-		MDServerErrorUnwrapper{}, mdServer, rpcLogFactory, config.MakeLogger(""), opts)
-	mdServer.conn = conn
-	mdServer.client = keybase1.MetadataClient{Cli: conn.GetClient()}
+	mdServer.initNewConnection()
 
 	// Check for rekey opportunities periodically.
 	rekeyCtx, rekeyCancel := context.WithCancel(context.Background())
@@ -107,6 +107,21 @@ func NewMDServerRemote(config Config, srvAddr string,
 	go mdServer.backgroundRekeyChecker(rekeyCtx)
 
 	return mdServer
+}
+
+func (md *MDServerRemote) initNewConnection() {
+	md.connMu.Lock()
+	defer md.connMu.Unlock()
+
+	if md.conn != nil {
+		md.conn.Shutdown()
+	}
+
+	md.conn = rpc.NewTLSConnection(
+		md.mdSrvAddr, kbfscrypto.GetRootCerts(md.mdSrvAddr),
+		MDServerErrorUnwrapper{}, md, md.rpcLogFactory,
+		md.config.MakeLogger(""), md.connOpts)
+	md.client = keybase1.MetadataClient{Cli: md.conn.GetClient()}
 }
 
 // RemoteAddress returns the remote mdserver this client is talking to
