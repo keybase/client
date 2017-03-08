@@ -58,10 +58,10 @@ function win32SocketDialPath (): string {
 function linuxSocketDialPath (): string {
   // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
   const homeDir = getenv('HOME', '')
-  const homeCacheDir = path.join(homeDir, '.config')
+  const homeConfigDir = path.join(homeDir, '.config')
   const runtimeDir = getenv('XDG_RUNTIME_DIR', '')
 
-  const cacheDir = runtimeDir || homeCacheDir
+  const cacheDir = runtimeDir || homeConfigDir
   const suffix = runMode === 'prod' ? '' : `.${runMode}`
 
   if (!runtimeDir && !homeDir) {
