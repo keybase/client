@@ -17,17 +17,18 @@ import (
 
 const (
 	// error param keys
-	errorParamTlf               = "tlf"
-	errorParamMode              = "mode"
-	errorParamFeature           = "feature"
-	errorParamUsername          = "username"
-	errorParamExternal          = "external"
-	errorParamRekeySelf         = "rekeyself"
-	errorParamUsageBytes        = "usageBytes"
-	errorParamLimitBytes        = "limitBytes"
-	errorParamRenameOldFilename = "oldFilename"
-	errorParamFoldersCreated    = "foldersCreated"
-	errorParamFolderLimit       = "folderLimit"
+	errorParamTlf                 = "tlf"
+	errorParamMode                = "mode"
+	errorParamFeature             = "feature"
+	errorParamUsername            = "username"
+	errorParamExternal            = "external"
+	errorParamRekeySelf           = "rekeyself"
+	errorParamUsageBytes          = "usageBytes"
+	errorParamLimitBytes          = "limitBytes"
+	errorParamRenameOldFilename   = "oldFilename"
+	errorParamFoldersCreated      = "foldersCreated"
+	errorParamFolderLimit         = "folderLimit"
+	errorParamApplicationExecPath = "applicationExecPath"
 
 	// error operation modes
 	errorModeRead  = "read"
@@ -158,6 +159,11 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 		code = keybase1.FSErrorType_TOO_MANY_FOLDERS
 		params[errorParamFolderLimit] = strconv.FormatUint(e.Limit, 10)
 		params[errorParamFoldersCreated] = strconv.FormatUint(e.Created, 10)
+	case RenameAcrossDirsError:
+		if len(e.ApplicationExecPath) > 0 {
+			code = keybase1.FSErrorType_EXDEV_NOT_SUPPORTED
+			params[errorParamApplicationExecPath] = e.ApplicationExecPath
+		}
 	}
 
 	if code < 0 && err == context.DeadlineExceeded {

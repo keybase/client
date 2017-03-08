@@ -137,6 +137,9 @@ func (e TlfAccessError) Error() string {
 // RenameAcrossDirsError indicates that the user tried to do an atomic
 // rename across directories.
 type RenameAcrossDirsError struct {
+	// ApplicationExecPath, if not empty, is the exec path of the application
+	// that issued the rename.
+	ApplicationExecPath string
 }
 
 // Error implements the error interface for RenameAcrossDirsError

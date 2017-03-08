@@ -100,6 +100,7 @@ const (
 	FSErrorType_OVER_QUOTA            FSErrorType = 9
 	FSErrorType_NO_SIG_CHAIN          FSErrorType = 10
 	FSErrorType_TOO_MANY_FOLDERS      FSErrorType = 11
+	FSErrorType_EXDEV_NOT_SUPPORTED   FSErrorType = 12
 )
 
 var FSErrorTypeMap = map[string]FSErrorType{
@@ -115,6 +116,7 @@ var FSErrorTypeMap = map[string]FSErrorType{
 	"OVER_QUOTA":            9,
 	"NO_SIG_CHAIN":          10,
 	"TOO_MANY_FOLDERS":      11,
+	"EXDEV_NOT_SUPPORTED":   12,
 }
 
 var FSErrorTypeRevMap = map[FSErrorType]string{
@@ -130,6 +132,7 @@ var FSErrorTypeRevMap = map[FSErrorType]string{
 	9:  "OVER_QUOTA",
 	10: "NO_SIG_CHAIN",
 	11: "TOO_MANY_FOLDERS",
+	12: "EXDEV_NOT_SUPPORTED",
 }
 
 func (e FSErrorType) String() string {

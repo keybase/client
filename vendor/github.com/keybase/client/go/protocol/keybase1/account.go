@@ -33,6 +33,10 @@ type HasServerKeysArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type ResetAccountArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type AccountInterface interface {
 	// Change the passphrase from old to new. If old isn't set, and force is false,
 	// then prompt at the UI for it. If old isn't set and force is true, then we'll
@@ -44,6 +48,7 @@ type AccountInterface interface {
 	// * Whether the logged-in user has uploaded private keys
 	// * Will error if not logged in.
 	HasServerKeys(context.Context, int) (HasServerKeysRes, error)
+	ResetAccount(context.Context, int) error
 }
 
 func AccountProtocol(i AccountInterface) rpc.Protocol {
@@ -114,6 +119,22 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"resetAccount": {
+				MakeArg: func() interface{} {
+					ret := make([]ResetAccountArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ResetAccountArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ResetAccountArg)(nil), args)
+						return
+					}
+					err = i.ResetAccount(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -146,5 +167,11 @@ func (c AccountClient) EmailChange(ctx context.Context, __arg EmailChangeArg) (e
 func (c AccountClient) HasServerKeys(ctx context.Context, sessionID int) (res HasServerKeysRes, err error) {
 	__arg := HasServerKeysArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.account.hasServerKeys", []interface{}{__arg}, &res)
+	return
+}
+
+func (c AccountClient) ResetAccount(ctx context.Context, sessionID int) (err error) {
+	__arg := ResetAccountArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.account.resetAccount", []interface{}{__arg}, nil)
 	return
 }

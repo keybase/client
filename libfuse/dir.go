@@ -17,6 +17,7 @@ import (
 	"bazil.org/fuse/fs"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/sysutils"
 	"golang.org/x/net/context"
 )
 
@@ -681,35 +682,36 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 		if err != nil {
 			return err
 		}
+	case *FolderList, *Root:
+		// This normally wouldn't happen since a presumably pre-check on
+		// destination permissions would have failed. But in case it happens, it
+		// should be a EACCES according to rename() man page.
+		return fuse.Errno(syscall.EACCES)
 	default:
-		// The destination is not a TLF instance, probably
-		// because it's Root (or some other node type added
-		// later). The kernel won't let a rename newDir point
-		// to a non-directory.
-		//
-		// We have no cheap atomic rename across folders, so
-		// we can't serve this. EXDEV makes `mv` do a
-		// copy+delete, and the Lookup on the destination path
-		// will decide whether it's legal.
-		return fuse.Errno(syscall.EXDEV)
+		// This shouldn't happen unless we add other nodes. EIO is not in the error
+		// codes listed in rename(), but there doesn't seem to be any suitable
+		// error code listed for this situation either.
+		return fuse.Errno(syscall.EIO)
 	}
 
-	if d.folder != realNewDir.folder {
-		// Check this explicitly, not just trusting KBFSOps.Rename to
-		// return an error, because we rely on it for locking
-		// correctness.
-		return fuse.Errno(syscall.EXDEV)
-	}
+	err = d.folder.fs.config.KBFSOps().Rename(ctx,
+		d.node, req.OldName, realNewDir.node, req.NewName)
 
-	// overwritten node, if any, will be removed from Folder.nodes, if
-	// it is there in the first place, by its Forget
-
-	if err := d.folder.fs.config.KBFSOps().Rename(
-		ctx, d.node, req.OldName, realNewDir.node, req.NewName); err != nil {
+	switch e := err.(type) {
+	case nil:
+		return nil
+	case libkbfs.RenameAcrossDirsError:
+		var execPathErr error
+		e.ApplicationExecPath, execPathErr = sysutils.GetExecPathFromPID(req.Pid)
+		if execPathErr != nil {
+			d.folder.fs.log.CDebugf(ctx,
+				"Dir Rename: getting exec path for PID %d error: %v",
+				req.Pid, execPathErr)
+		}
+		return e
+	default:
 		return err
 	}
-
-	return nil
 }
 
 // Remove implements the fs.NodeRemover interface for Dir.

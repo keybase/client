@@ -133,3 +133,9 @@ var _ fuse.ErrorNumber = NoSuchFolderListError{}
 func (e NoSuchFolderListError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.ENOENT)
 }
+
+// Errno implements the fuse.ErrorNumber interface for
+// RenameAcrossDirsError.
+func (e RenameAcrossDirsError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.EXDEV)
+}
