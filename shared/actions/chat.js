@@ -942,7 +942,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             existingMessage = yield select(_messageSelector, conversationIDKey, message.messageID)
           }
 
-          // If we already have an existing message (say for an attachment, let's reuse that
+          // If we already have an existing message (say for an attachment, let's reuse that)
           if (existingMessage && existingMessage.outboxID && message.type === 'Attachment') {
             yield put(({
               type: 'chat:updateTempMessage',
@@ -1783,7 +1783,7 @@ function * _selectAttachment ({payload: {input}}: Constants.SelectAttachment): S
   const outboxID = `attachmentUpload-${Math.ceil(Math.random() * 1e9)}`
   const username = yield select(usernameSelector)
 
-  // If it's an Other type we should but the temp message now
+  // If it's an Other type we should put the temp message now
   // Otherwise we'll do it when we have the preview size info
   // to avoid rerenders
   yield put({
