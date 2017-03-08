@@ -56,10 +56,19 @@ function win32SocketDialPath (): string {
 }
 
 function linuxSocketDialPath (): string {
-  if (runMode === 'prod') {
-    return path.join(`${getenv('XDG_RUNTIME_DIR', '')}/keybase/`, socketName)
+  // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
+  const homeDir = getenv('HOME', '')
+  const homeConfigDir = path.join(homeDir, '.config')
+  const runtimeDir = getenv('XDG_RUNTIME_DIR', '')
+
+  const cacheDir = runtimeDir || homeConfigDir
+  const suffix = runMode === 'prod' ? '' : `.${runMode}`
+
+  if (!runtimeDir && !homeDir) {
+    console.warn("You don't have $HOME or $XDG_RUNTIME_DIR defined, so we can't find the Keybase service path.")
   }
-  return path.join(`${getenv('XDG_RUNTIME_DIR', '')}/keybase.${runMode}/`, socketName)
+
+  return path.join(cacheDir, `keybase${suffix}`, socketName)
 }
 
 const darwinCacheRoot = `${getenv('HOME', '')}/Library/Caches/${envedPathOSX[runMode]}/`
