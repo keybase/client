@@ -51,7 +51,7 @@ func setupJournalMDOpsTest(t *testing.T) (
 	}()
 
 	oldMDOps = config.MDOps()
-	err = config.EnableJournaling(
+	_, err = config.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
 	jServer, err = GetJournalServer(config)

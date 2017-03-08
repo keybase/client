@@ -4,8 +4,20 @@ import (
 	"golang.org/x/net/context"
 )
 
+type diskBlockCacheLimiter interface {
+	// onDiskBlockCacheDelete is called by the disk block cache after deleting
+	// blocks from the cache.
+	onDiskBlockCacheDelete(ctx context.Context, blockBytes int64)
+
+	// beforeDiskBlockCachePut is called by the disk block cache before putting
+	// a block into the cache. It returns how many bytes it acquired.
+	beforeDiskBlockCachePut(ctx context.Context, blockBytes,
+		diskBlockCacheBytes int64) (bytesAvailable int64, err error)
+}
+
 // diskLimiter is an interface for limiting disk usage.
 type diskLimiter interface {
+	diskBlockCacheLimiter
 	// onJournalEnable is called when initializing a TLF journal
 	// with that journal's current disk usage. Both journalBytes
 	// and journalFiles must be >= 0. The updated available byte
@@ -42,15 +54,6 @@ type diskLimiter interface {
 	// a block with either zero byte or zero file count shouldn't
 	// happen, but may as well let it go through.)
 	onBlockDelete(ctx context.Context, blockBytes, blockFiles int64)
-
-	// onDiskBlockCacheDelete is called by the disk block cache after deleting
-	// blocks from the cache.
-	onDiskBlockCacheDelete(ctx context.Context, blockBytes int64)
-
-	// beforeDiskBlockCachePut is called by the disk block cache before putting
-	// a block into the cache. It returns how many bytes it acquired.
-	beforeDiskBlockCachePut(ctx context.Context, blockBytes int64) (
-		bytesAcquired int64, err error)
 
 	// getStatus returns an object that's marshallable into JSON
 	// for use in displaying status.

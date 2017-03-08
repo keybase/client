@@ -52,7 +52,7 @@ func setupJournalBlockServerTest(t *testing.T) (
 		}
 	}()
 
-	err = config.EnableJournaling(
+	_, err = config.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
 	jServer, err = GetJournalServer(config)

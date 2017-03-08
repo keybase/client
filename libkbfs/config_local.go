@@ -914,12 +914,12 @@ const defaultDiskLimitMaxDelay = 10 * time.Second
 // non-fatal.
 func (c *ConfigLocal) EnableJournaling(
 	ctx context.Context, journalRoot string,
-	bws TLFJournalBackgroundWorkStatus) error {
+	bws TLFJournalBackgroundWorkStatus) (diskLimiter, error) {
 	jServer, err := GetJournalServer(c)
 	if err == nil {
 		// Journaling shouldn't be enabled twice for the same
 		// config.
-		return errors.New("Trying to enable journaling twice")
+		return nil, errors.New("Trying to enable journaling twice")
 	}
 
 	// TODO: Sanity-check the root directory, e.g. create
@@ -932,7 +932,7 @@ func (c *ConfigLocal) EnableJournaling(
 	// The backpressure disk limiter needs the dir to exist first.
 	err = ioutil.MkdirAll(journalRoot, 0700)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	const backpressureMinThreshold = 0.5
@@ -948,7 +948,7 @@ func (c *ConfigLocal) EnableJournaling(
 		journalByteLimitFrac, journalByteLimit, journalFileLimit,
 		defaultDiskLimitMaxDelay, journalRoot)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	log.Debug("Setting journal byte limit to %v", journalByteLimit)
@@ -977,20 +977,21 @@ func (c *ConfigLocal) EnableJournaling(
 	}()
 	switch {
 	case bcacheErr != nil && enableErr != nil:
-		return errors.Errorf(
+		return nil, errors.Errorf(
 			"Got errors %+v and %+v", bcacheErr, enableErr)
 	case bcacheErr != nil:
-		return bcacheErr
+		return nil, bcacheErr
 	case enableErr != nil:
-		return enableErr
+		return nil, enableErr
 	}
 
-	return nil
+	return bdl, nil
 }
 
 // EnableDiskBlockCache creates and enables a new disk block cache.
 func (c *ConfigLocal) EnableDiskBlockCache(ctx context.Context,
-	diskCacheRoot string) (err error) {
+	diskCacheRoot string, limiter diskBlockCacheLimiter) (err error) {
+	// TODO: use limiter
 	// Don't lock because:
 	// 1) This happens while constructing the config, and thus no goroutines
 	//	  are contending for access yet.

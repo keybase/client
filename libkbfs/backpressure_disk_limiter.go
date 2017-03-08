@@ -15,6 +15,10 @@ import (
 	"golang.org/x/net/context"
 )
 
+const (
+	diskBlockCacheFrac float64 = 0.5
+)
+
 // backpressureTracker keeps track of the variables used to calculate
 // backpressure. It keeps track of a generic resource (which can be
 // either bytes or files).
@@ -188,6 +192,11 @@ func (bt *backpressureTracker) onBlocksDelete(blockResources int64) {
 
 	bt.used -= blockResources
 	bt.updateSemaphoreMax()
+}
+
+func (bt *backpressureTracker) beforeDiskBlockCachePut(ctx context.Context,
+	blockResources int64) (availableResources int64, err error) {
+	return bt.semaphore.ForceAcquire(blockResources), nil
 }
 
 type backpressureTrackerStatus struct {
@@ -480,7 +489,8 @@ func (bdl *backpressureDiskLimiter) onDiskBlockCacheDelete(
 }
 
 func (bdl *backpressureDiskLimiter) beforeDiskBlockCachePut(
-	ctx context.Context, blockBytes int64) (availableBytes int64, err error) {
+	ctx context.Context, blockBytes, diskBlockCacheBytes int64) (
+	availableBytes int64, err error) {
 	if blockBytes == 0 {
 		// Better to return an error than to panic in Acquire.
 		return bdl.byteTracker.semaphore.Count(),
@@ -489,8 +499,20 @@ func (bdl *backpressureDiskLimiter) beforeDiskBlockCachePut(
 	}
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	// TODO: finish
-	return 0, nil
+	diskBlockCacheLimit := int64(bdl.byteTracker.currLimit() *
+		bdl.byteTracker.minThreshold * diskBlockCacheFrac)
+	if diskBlockCacheLimit < diskBlockCacheBytes+blockBytes {
+		// The overall disk block cache limit has been exceeded.  Return a
+		// negative result so the block cache knows how much it must evict
+		// before retrying.
+		return diskBlockCacheLimit - (diskBlockCacheBytes + blockBytes),
+			errors.New("backpressureDiskLimiter needs more space")
+	}
+	// The disk block cache is using up less than diskBlockCacheLimit bytes, so
+	// we can add more, even if it makes backpressure worse. This can return a
+	// negative number with a nil error, in which case the disk block cache
+	// must Put the block. It can choose to evict anyway afterwards.
+	return bdl.byteTracker.beforeDiskBlockCachePut(ctx, blockBytes)
 }
 
 type backpressureDiskLimiterStatus struct {
