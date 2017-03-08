@@ -197,6 +197,18 @@
 			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
+			"checksumSHA1": "IvrDXwIixB5yPPbo6tq1/1cSn78=",
+			"path": "github.com/keybase/go-crypto/ed25519",
+			"revision": "9a8c377169f632b40aff7df06e9405003cf5dcec",
+			"revisionTime": "2017-03-08T13:33:35Z"
+		},
+		{
+			"checksumSHA1": "4+fslB6pCbplNq4viy6CrOkkY6Y=",
+			"path": "github.com/keybase/go-crypto/ed25519/internal/edwards25519",
+			"revision": "9a8c377169f632b40aff7df06e9405003cf5dcec",
+			"revisionTime": "2017-03-08T13:33:35Z"
+		},
+		{
 			"checksumSHA1": "tU/72BMqzPlbK6qMeq7cklYwLWY=",
 			"path": "github.com/keybase/go-crypto/openpgp",
 			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
