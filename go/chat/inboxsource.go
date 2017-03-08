@@ -782,7 +782,7 @@ func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1
 		return nil, chat1.ConversationErrorType_LOCALMAXMESSAGENOTFOUND, err
 	}
 
-	// Make sure we get them all
+	// Make sure we legit msgs
 	var foundMsgs []chat1.MessageUnboxed
 	for _, msg := range res {
 		if msg != nil {
@@ -790,7 +790,7 @@ func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1
 		}
 	}
 
-	if len(foundMsgs) != len(msgs) {
+	if len(foundMsgs) == 0 {
 		return nil, chat1.ConversationErrorType_LOCALMAXMESSAGENOTFOUND,
 			errors.New("missing messages locally")
 	}
