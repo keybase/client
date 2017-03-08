@@ -193,9 +193,11 @@ function reducer (state: State = initialState, action: Actions) {
     }
     case 'chat:deleteTempMessage': {
       const {conversationIDKey, outboxID} = action.payload
+      // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversation(
         conversationStates,
         conversationIDKey,
+      // $FlowIssue
         conv => conv.update('messages', messages => messages.filter(m => m.outboxID === outboxID))
       ))
     }

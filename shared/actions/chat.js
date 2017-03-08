@@ -937,15 +937,32 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             }
           }
 
-          yield put({
-            logTransformer: appendMessageActionTransformer,
-            payload: {
-              conversationIDKey,
-              isSelected: conversationIDKey === selectedConversationIDKey,
-              messages: [message],
-            },
-            type: 'chat:appendMessages',
-          })
+          let existingMessage
+          if (message.messageID) {
+            existingMessage = yield select(_messageSelector, conversationIDKey, message.messageID)
+          }
+
+          // If we already have an existing message (say for an attachment, let's reuse that
+          if (existingMessage && existingMessage.outboxID && message.type === 'Attachment') {
+            yield put(({
+              type: 'chat:updateTempMessage',
+              payload: {
+                conversationIDKey,
+                outboxID: existingMessage.outboxID,
+                message,
+              },
+            }: Constants.UpdateTempMessage))
+          } else {
+            yield put({
+              logTransformer: appendMessageActionTransformer,
+              payload: {
+                conversationIDKey,
+                isSelected: conversationIDKey === selectedConversationIDKey,
+                messages: [message],
+              },
+              type: 'chat:appendMessages',
+            })
+          }
 
           if ((message.type === 'Attachment' || message.type === 'UpdateAttachment') && !message.previewPath && message.messageID) {
             const messageID = message.type === 'UpdateAttachment' ? message.targetMessageID : message.messageID
@@ -1869,8 +1886,11 @@ function * _selectAttachment ({payload: {input}}: Constants.SelectAttachment): S
     // We already received a message for this attachment
     if (existingMessage) {
       yield put(({
-        conversationIDKey,
-        outboxID,
+        type: 'chat:deleteTempMessage',
+        payload: {
+          conversationIDKey,
+          outboxID,
+        },
       }: Constants.DeleteTempMessage))
     } else {
       yield put(({
