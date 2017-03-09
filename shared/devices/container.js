@@ -1,4 +1,5 @@
 // @flow
+// // TODO use entities
 import Render from '.'
 import {List} from 'immutable'
 import {addNewPhone, addNewComputer, addNewPaperKey} from '../actions/login'
@@ -6,7 +7,6 @@ import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {lifecycle} from 'recompose'
 import {loadDevices} from '../actions/devices'
-import {navigateAppend} from '../actions/route-tree'
 
 import type {TypedState} from '../constants/reducer'
 
@@ -16,7 +16,7 @@ const Devices = lifecycle({
   },
 })(Render)
 
-const getAllDevicesSelector = (state: TypedState) => state.devices.devices
+const getAllDevicesSelector = (state: TypedState) => state.devices.get('devices')
 
 const getDevicesAndRevokedDevicesSelector = createSelector(
   getAllDevicesSelector,
@@ -32,7 +32,7 @@ const getDevicesAndRevokedDevicesSelector = createSelector(
 )
 
 const mapStateToProps = (state: any, {routeState}) => {
-  const {waitingForServer} = state.devices
+  const waitingForServer = state.devices.get('waitingForServer ')
   const {showingRevoked} = routeState
   const {devices, revokedDevices} = getDevicesAndRevokedDevicesSelector(state)
 
@@ -50,7 +50,6 @@ const mapDispatchToProps = (dispatch: any, {routeState, setRouteState}) => ({
   addNewPhone: () => dispatch(addNewPhone()),
   loadDevices: () => dispatch(loadDevices()),
   onToggleShowRevoked: () => { setRouteState({showingRevoked: !routeState.showingRevoked}) },
-  showExistingDevicePage: device => dispatch(navigateAppend([{props: {device}, selected: 'devicePage'}])),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(Devices)

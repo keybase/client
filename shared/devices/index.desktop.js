@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import flags from '../util/feature-flags'
 import {Box, Text, Icon, PopupMenu} from '../common-adapters'
+import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {IconType} from '../common-adapters/icon'
@@ -22,7 +23,9 @@ function RevokedHeader (props: RevokedHeaderProps) {
   )
 }
 
-const DeviceRow = ({device, revoked, showExistingDevicePage}) => {
+const _DeviceRow = ({device, showExistingDevicePage}) => {
+  const revoked = !!device.revokeBy
+
   const icon: IconType = {
     'mobile': 'icon-phone-32',
     'desktop': 'icon-computer-32',
@@ -42,7 +45,7 @@ const DeviceRow = ({device, revoked, showExistingDevicePage}) => {
     <Box
       className='existing-device-container'
       key={device.name}
-      onClick={() => showExistingDevicePage(device)}
+      onClick={showExistingDevicePage}
       style={{...stylesCommonRow, borderBottom: '1px solid rgba(0,0,0,.05)'}}>
       <Box style={revoked ? {opacity: 0.2} : {}}>
         <Icon type={icon} />
@@ -59,6 +62,8 @@ const DeviceRow = ({device, revoked, showExistingDevicePage}) => {
   )
 }
 
+const DeviceRow = RowConnector(_DeviceRow)
+
 const RevokedDescription = () => (
   <Box style={stylesRevokedDescription}>
     <Text type='BodySmall' style={{color: globalColors.black_40}}>Revoked devices will no longer be able to access your Keybase account.</Text>
@@ -68,7 +73,7 @@ const RevokedDescription = () => (
 const RevokedDevices = ({revokedDevices, showExistingDevicePage, showingRevoked, onToggleShowRevoked}) => (
   <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
     <RevokedDescription />
-    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked={true} showExistingDevicePage={showExistingDevicePage} />)}
+    {revokedDevices.map(device => <DeviceRow key={device.name} deviceID={device.deviceID} />)}
   </RevokedHeader>
 )
 
@@ -111,7 +116,7 @@ class DevicesRender extends Component<void, Props, State> {
           addNewDevice={() => this.setState({showingMenu: true})}
           showingMenu={this.state.showingMenu}
           onHidden={() => this.setState({showingMenu: false})} />
-        {devices && devices.map(device => <DeviceRow key={device.name} device={device} showExistingDevicePage={showExistingDevicePage} />)}
+        {devices && devices.map(device => <DeviceRow key={device.name} deviceID={device.deviceID} />)}
         {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} showExistingDevicePage={showExistingDevicePage} showingRevoked={showingRevoked} onToggleShowRevoked={onToggleShowRevoked} />}
       </Box>
     )

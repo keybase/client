@@ -13,6 +13,7 @@ import {setRevokedSelf} from './login'
 import type {DeviceRemoved, GeneratePaperKey, IncomingDisplayPaperKeyPhrase, LoadDevices, LoadingDevices, PaperKeyLoaded, PaperKeyLoading, RemoveDevice, ShowDevices, ShowRemovePage} from '../constants/devices'
 import type {Device} from '../constants/types/more'
 import type {SagaGenerator} from '../constants/types/saga'
+import type {TypedState} from '../constants/reducer'
 
 isMobile && module.hot && module.hot.accept(() => {
   console.log('accepted update in actions/devices')
@@ -52,7 +53,7 @@ function * _deviceShowRemovePageSaga (showRemovePageAction: ShowRemovePage): Sag
   ]))
 }
 
-const _waitingSelector = (state: TypedState) => state.devices.waitingForServer
+const _waitingSelector = (state: TypedState) => state.devices.get('waitingForServer')
 const _loggedInSelector = (state: TypedState) => state.config.loggedIn
 
 function * _deviceListSaga (): SagaGenerator<any, any> {
