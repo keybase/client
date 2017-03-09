@@ -7,32 +7,6 @@ import {lifecycle} from 'recompose'
 import {loadDevices} from '../actions/devices'
 import {navigateAppend} from '../actions/route-tree'
 
-// TODO remvoe this class
-// class Devices extends Component {
-  // componentWillMount () {
-    // this.props.loadDevices()
-  // }
-
-  // render () {
-    // // Divide the devices array into not-revoked and revoked.
-    // const [devices, revokedDevices] = _.partition(this.props.devices, dev => !dev.revokedAt)
-
-    // return (
-      // <Render
-        // devices={devices}
-        // revokedDevices={revokedDevices}
-        // showingRevoked={this.props.showingRevoked}
-        // onToggleShowRevoked={this.props.onToggleShowRevoked}
-        // addNewPhone={this.props.addNewPhone}
-        // addNewComputer={this.props.addNewComputer}
-        // addNewPaperKey={this.props.addNewPaperKey}
-        // waitingForServer={this.props.waitingForServer}
-        // showRemoveDevicePage={this.props.showRemoveDevicePage}
-        // showExistingDevicePage={this.props.showExistingDevicePage} />
-    // )
-  // }
-// }
-
 const Devices = lifecycle({
   componentWillMount: function () {
     this.props.loadDevices()
