@@ -1,48 +1,51 @@
 // @flow
 import HiddenString from '../util/hidden-string'
+import {List} from 'immutable'
 
-import type {TypedAction, NoErrorTypedAction} from './types/flux'
-import type {Device} from './types/more'
 import type {DeviceDetail} from './types/flow-types'
+import type {Device} from './types/more'
+import type {TypedAction, NoErrorTypedAction} from './types/flux'
 
-export const loadDevices = 'devices:loadDevices'
-export type LoadDevices = NoErrorTypedAction<'devices:loadDevices', void>
+type IncomingDisplayPaperKeyPhrase = {params: {phrase: string}, response: {result: () => void}}
 
-export const loadingDevices = 'devices:loadingDevices'
-export type LoadingDevices = NoErrorTypedAction<'devices:loadingDevices', void>
+type DeviceRemoved = TypedAction<'devices:deviceRemoved', void, {errorText: string}>
+type GeneratePaperKey = NoErrorTypedAction<'devices:generatePaperKey', void>
+type LoadDevices = NoErrorTypedAction<'devices:loadDevices', void>
+type LoadingDevices = NoErrorTypedAction<'devices:loadingDevices', void>
+type PaperKeyLoaded = TypedAction<'devices:paperKeyLoaded', HiddenString, {errorText: string}>
+type PaperKeyLoading = NoErrorTypedAction<'devices:paperKeyLoading', void>
+type RemoveDevice = NoErrorTypedAction<'devices:removeDevice', {currentDevice: boolean, deviceID: string, name: string}>
+type ShowDevices = TypedAction<'devices:showDevices', void, {errorText: string}>
+type ShowRemovePage = NoErrorTypedAction<'devices:showRemovePage', {device: Device}>
 
-export const removeDevice = 'devices:removeDevice'
-export type RemoveDevice = NoErrorTypedAction<'devices:removeDevice', {
-  deviceID: string,
-  name: string,
-  currentDevice: boolean,
-}>
+type Actions = DeviceRemoved
+| GeneratePaperKey
+| LoadDevices
+| LoadingDevices
+| PaperKeyLoaded
+| PaperKeyLoading
+| RemoveDevice
+| ShowDevices
+| ShowRemovePage
 
-export const showRemovePage = 'devices:showRemovePage'
-export type ShowRemovePage = NoErrorTypedAction<'devices:showRemovePage', {
-  device: Device,
-}>
-
-export const deviceRemoved = 'devices:deviceRemoved'
-export type DeviceRemoved = TypedAction<'devices:deviceRemoved', void, {errorText: string}>
-
-export const paperKeyLoaded = 'devices:paperKeyLoaded'
-export type PaperKeyLoaded = TypedAction<'devices:paperKeyLoaded', HiddenString, {errorText: string}>
-
-export const paperKeyLoading = 'devices:paperKeyLoading'
-export type PaperKeyLoading = NoErrorTypedAction<'devices:paperKeyLoading', void>
-
-export const showDevices = 'devices:showDevices'
-export type ShowDevices = TypedAction<'devices:showDevices', void, {errorText: string}>
-
-export const generatePaperKey = 'devices:generatePaperKey'
-export type GeneratePaperKey = NoErrorTypedAction<'devices:generatePaperKey', void>
-
-export type IncomingDisplayPaperKeyPhrase = {params: {phrase: string}, response: {result: () => void}}
-
-export type State = {
+type State = {
   waitingForServer: boolean,
-  devices: ?Array<DeviceDetail>,
+  devices: List<DeviceDetail>,
   error: any,
   paperKey: ?string,
+}
+
+export type {
+  Actions,
+  DeviceRemoved,
+  GeneratePaperKey,
+  IncomingDisplayPaperKeyPhrase,
+  LoadDevices,
+  LoadingDevices,
+  PaperKeyLoaded,
+  PaperKeyLoading,
+  RemoveDevice,
+  ShowDevices,
+  ShowRemovePage,
+  State,
 }

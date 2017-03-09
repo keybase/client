@@ -1,11 +1,10 @@
 // @flow
-import * as Constants from '../constants/devices'
-import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
-import {is} from 'immutable'
 import {call, put, select, fork} from 'redux-saga/effects'
 import {deviceDeviceHistoryListRpcPromise, loginDeprovisionRpcPromise, loginPaperKeyRpcChannelMap, revokeRevokeDeviceRpcPromise, rekeyGetRevokeWarningRpcPromise} from '../constants/types/flow-types'
 import {devicesTab, loginTab} from '../constants/tabs'
+import {isMobile} from '../constants/platform'
+import {is} from 'immutable'
 import {navigateTo} from './route-tree'
 import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {setRevokedSelf} from './login'
@@ -19,23 +18,23 @@ isMobile && module.hot && module.hot.accept(() => {
 })
 
 export function loadDevices (): LoadDevices {
-  return {payload: undefined, type: Constants.loadDevices}
+  return {payload: undefined, type: 'devices:loadDevices'}
 }
 
 export function loadingDevices (): LoadingDevices {
-  return {payload: undefined, type: Constants.loadingDevices}
+  return {payload: undefined, type: 'devices:loadingDevices'}
 }
 
 export function removeDevice (deviceID: string, name: string, currentDevice: boolean): RemoveDevice {
-  return {payload: {currentDevice, deviceID, name}, type: Constants.removeDevice}
+  return {payload: {currentDevice, deviceID, name}, type: 'devices:removeDevice'}
 }
 
 export function showRemovePage (device: Device): ShowRemovePage {
-  return {payload: {device}, type: Constants.showRemovePage}
+  return {payload: {device}, type: 'devices:showRemovePage'}
 }
 
 export function generatePaperKey (): GeneratePaperKey {
-  return {payload: undefined, type: Constants.generatePaperKey}
+  return {payload: undefined, type: 'devices:generatePaperKey'}
 }
 
 function * _deviceShowRemovePageSaga (showRemovePageAction: ShowRemovePage): SagaGenerator<any, any> {
@@ -58,13 +57,13 @@ function * _deviceListSaga (): SagaGenerator<any, any> {
     const devices = yield call(deviceDeviceHistoryListRpcPromise)
     yield put(({
       payload: devices,
-      type: Constants.showDevices,
+      type: 'devices:showDevices',
     }: ShowDevices))
   } catch (e) {
     yield put(({
       error: true,
       payload: {errorObj: e, errorText: e.desc + e.name},
-      type: Constants.showDevices,
+      type: 'devices:showDevices',
     }: ShowDevices))
   }
 }
@@ -84,7 +83,7 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
         yield put(({
           error: true,
           payload: error,
-          type: Constants.deviceRemoved,
+          type: 'devices:deviceRemoved',
         }: DeviceRemoved))
       }
       yield call(loginDeprovisionRpcPromise, {param: {doRevoke: true, username}})
@@ -92,14 +91,14 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
       yield put(setRevokedSelf(name))
       yield put(({
         payload: undefined,
-        type: Constants.deviceRemoved,
+        type: 'devices:deviceRemoved',
       }: DeviceRemoved))
     } catch (e) {
       console.warn('Error removing the current device:', e)
       yield put(({
         error: true,
         payload: {errorObj: e, errorText: e.desc + e.name},
-        type: Constants.deviceRemoved,
+        type: 'devices:deviceRemoved',
       }: DeviceRemoved))
     }
   } else {
@@ -110,14 +109,14 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
       })
       yield put(({
         payload: undefined,
-        type: Constants.deviceRemoved,
+        type: 'devices:deviceRemoved',
       }: DeviceRemoved))
     } catch (e) {
       console.warn('Error removing a device:', e)
       yield put(({
         error: true,
         payload: {errorObj: e, errorText: e.desc + e.name},
-        type: Constants.deviceRemoved,
+        type: 'devices:deviceRemoved',
       }: DeviceRemoved))
     }
   }
@@ -140,7 +139,7 @@ function * _handlePromptRevokePaperKeys (chanMap): SagaGenerator<any, any> {
 function * _devicePaperKeySaga (): SagaGenerator<any, any> {
   yield put(({
     payload: undefined,
-    type: Constants.paperKeyLoading,
+    type: 'devices:paperKeyLoading',
   }: PaperKeyLoading))
 
   const channelConfig = singleFixedChannelConfig(['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'])
@@ -156,13 +155,13 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
       yield put(({
         error: true,
         payload: error,
-        type: Constants.paperKeyLoaded,
+        type: 'devices:paperKeyLoaded',
       }: PaperKeyLoaded))
       return
     }
     yield put(({
       payload: new HiddenString(displayPaperKeyPhrase.params.phrase),
-      type: Constants.paperKeyLoaded,
+      type: 'devices:paperKeyLoaded',
     }: PaperKeyLoaded))
     displayPaperKeyPhrase.response.result()
   } catch (e) {
@@ -171,17 +170,17 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
     yield put(({
       error: true,
       payload: {errorObj: e, errorText: e.desc + e.name},
-      type: Constants.paperKeyLoaded,
+      type: 'devices:paperKeyLoaded',
     }: PaperKeyLoaded))
   }
 }
 
 function * deviceSaga (): SagaGenerator<any, any> {
   yield [
-    safeTakeLatest(Constants.loadDevices, _deviceListSaga),
-    safeTakeEvery(Constants.removeDevice, _deviceRemoveSaga),
-    safeTakeEvery(Constants.generatePaperKey, _devicePaperKeySaga),
-    safeTakeEvery(Constants.showRemovePage, _deviceShowRemovePageSaga),
+    safeTakeLatest('devices:loadDevices', _deviceListSaga),
+    safeTakeEvery('devices:removeDevice', _deviceRemoveSaga),
+    safeTakeEvery('devices:generatePaperKey', _devicePaperKeySaga),
+    safeTakeEvery('devices:showRemovePage', _deviceShowRemovePageSaga),
   ]
 }
 

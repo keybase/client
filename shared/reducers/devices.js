@@ -1,34 +1,34 @@
 // @flow
-import _ from 'lodash'
-import * as Constants from '../constants/devices'
+import {chain} from 'lodash'
 import * as CommonConstants from '../constants/common'
+import {List} from 'immutable'
 
-import type {State} from '../constants/devices'
+import type {State, Actions} from '../constants/devices'
 
 const initialState: State = {
-  devices: null,
+  devices: List(),
   error: null,
   paperKey: null,
   waitingForServer: false,
 }
 
-export default function (state: State = initialState, action: any) {
+export default function (state: State = initialState, action: Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}
 
-    case Constants.loadingDevices:
+    case 'devices:loadingDevices':
       return {
         ...state,
         error: null,
         waitingForServer: true,
       }
-    case Constants.showDevices:
+    case 'devices:showDevices':
       let devices
       if (action.error) {
         devices = null
       } else {
-        devices = _.chain(action.payload)
+        devices = chain(action.payload)
           .map(dev => ({
             created: dev.device.cTime,
             currentDevice: dev.currentDevice,
@@ -50,23 +50,23 @@ export default function (state: State = initialState, action: any) {
         error: action.error && action.payload,
         waitingForServer: false,
       }
-    case Constants.removeDevice:
+    case 'devices:removeDevice':
       return {
         ...state,
         waitingForServer: true,
       }
-    case Constants.deviceRemoved:
+    case 'devices:deviceRemoved':
       return {
         ...state,
         waitingForServer: false,
       }
-    case Constants.paperKeyLoading:
+    case 'devices:paperKeyLoading':
       return {
         ...state,
         error: null,
         paperKey: null,
       }
-    case Constants.paperKeyLoaded:
+    case 'devices:paperKeyLoaded':
       return {
         ...state,
         error: action.error && action.payload,
