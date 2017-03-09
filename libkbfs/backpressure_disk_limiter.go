@@ -251,7 +251,7 @@ type backpressureDiskLimiter struct {
 	byteTracker, fileTracker *backpressureTracker
 }
 
-var _ diskLimiter = (*backpressureDiskLimiter)(nil)
+var _ DiskLimiter = (*backpressureDiskLimiter)(nil)
 
 // newBackpressureDiskLimiterWithFunctions constructs a new
 // backpressureDiskLimiter with the given parameters, and also the

@@ -53,7 +53,7 @@ func setupJournalServerTest(t *testing.T) (
 		}
 	}()
 
-	_, err = config.enableJournaling(
+	_, err = config.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
 	jServer, err = GetJournalServer(config)
@@ -119,7 +119,7 @@ func TestJournalServerRestart(t *testing.T) {
 		config, jServer.log, tempdir, jServer.delegateBlockCache,
 		jServer.delegateDirtyBlockCache,
 		jServer.delegateBlockServer, jServer.delegateMDOps, nil, nil,
-		jServer.diskLimiter)
+		jServer.DiskLimiter)
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 	err = jServer.EnableExistingJournals(
@@ -441,7 +441,7 @@ func TestJournalServerEnableAuto(t *testing.T) {
 		config, jServer.log, tempdir, jServer.delegateBlockCache,
 		jServer.delegateDirtyBlockCache,
 		jServer.delegateBlockServer, jServer.delegateMDOps, nil, nil,
-		jServer.diskLimiter)
+		jServer.DiskLimiter)
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 	err = jServer.EnableExistingJournals(

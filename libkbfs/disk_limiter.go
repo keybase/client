@@ -15,8 +15,8 @@ type diskBlockCacheLimiter interface {
 		diskBlockCacheBytes int64) (bytesAvailable int64, err error)
 }
 
-// diskLimiter is an interface for limiting disk usage.
-type diskLimiter interface {
+// DiskLimiter is an interface for limiting disk usage.
+type DiskLimiter interface {
 	diskBlockCacheLimiter
 	// onJournalEnable is called when initializing a TLF journal
 	// with that journal's current disk usage. Both journalBytes

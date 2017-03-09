@@ -19,7 +19,7 @@ type semaphoreDiskLimiter struct {
 	fileSemaphore *kbfssync.Semaphore
 }
 
-var _ diskLimiter = semaphoreDiskLimiter{}
+var _ DiskLimiter = semaphoreDiskLimiter{}
 
 func newSemaphoreDiskLimiter(byteLimit, fileLimit int64) semaphoreDiskLimiter {
 	byteSemaphore := kbfssync.NewSemaphore()
