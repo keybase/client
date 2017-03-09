@@ -26,6 +26,6 @@ export const actionLogger = (store: any) => (next: any) => (action: any) => {
 
   const result = next(action)
   const logState = stateLogTransformer(store.getState())
-  logger.log('State:', logState)
+  logger.log('State:', [JSON.stringify(logState, null, 2)])
   return result
 }
