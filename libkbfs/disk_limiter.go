@@ -49,11 +49,11 @@ type diskLimiter interface {
 	afterBlockPut(ctx context.Context,
 		blockBytes, blockFiles int64, putData bool)
 
-	// onBlockDelete is called after deleting a block of the given
+	// onBlocksDelete is called after deleting blocks of the given
 	// byte and file count, both of which must be >= 0. (Deleting
 	// a block with either zero byte or zero file count shouldn't
 	// happen, but may as well let it go through.)
-	onBlockDelete(ctx context.Context, blockBytes, blockFiles int64)
+	onBlocksDelete(ctx context.Context, blockBytes, blockFiles int64)
 
 	// getStatus returns an object that's marshallable into JSON
 	// for use in displaying status.

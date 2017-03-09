@@ -991,12 +991,11 @@ func (c *ConfigLocal) EnableJournaling(
 // EnableDiskBlockCache creates and enables a new disk block cache.
 func (c *ConfigLocal) EnableDiskBlockCache(ctx context.Context,
 	diskCacheRoot string, limiter diskBlockCacheLimiter) (err error) {
-	// TODO: use limiter
 	// Don't lock because:
 	// 1) This happens while constructing the config, and thus no goroutines
 	//	  are contending for access yet.
 	// 2) It'll deadlock with uses of c's methods.
 	c.diskBlockCache, err = newDiskBlockCacheStandard(c, diskCacheRoot,
-		defaultDiskBlockCacheMaxBytes)
+		defaultDiskBlockCacheMaxBytes, limiter)
 	return err
 }

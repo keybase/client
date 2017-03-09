@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	testDiskBlockCacheMaxBytes uint64 = 1 << 20
+	testDiskBlockCacheMaxBytes uint64 = 1 << 30
 )
 
 type testDiskBlockCacheConfig struct {
@@ -41,8 +41,24 @@ func newDiskBlockCacheStandardForTest(config diskBlockCacheConfig,
 	blockStorage := storage.NewMemStorage()
 	lruStorage := storage.NewMemStorage()
 	tlfStorage := storage.NewMemStorage()
-	return newDiskBlockCacheStandardFromStorage(config, blockStorage,
-		lruStorage, tlfStorage, maxBytes)
+	maxFiles := int64(10000)
+	cache, err := newDiskBlockCacheStandardFromStorage(config, blockStorage,
+		lruStorage, tlfStorage, maxBytes, nil)
+	if err != nil {
+		return nil, err
+	}
+	cache.limiter, err = newBackpressureDiskLimiterWithFunctions(
+		config.MakeLogger(""), 0.5, 0.95, 0.25,
+		int64(testDiskBlockCacheMaxBytes*8), maxFiles, time.Second,
+		defaultDoDelay, func() (int64, int64, error) {
+			// hackity hackeroni
+			freeBytes := int64(maxBytes) - int64(cache.currBytes)
+			return freeBytes, maxFiles, nil
+		})
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
 }
 
 func initDiskBlockCacheTest(t *testing.T) (*DiskBlockCacheStandard,
