@@ -3,3 +3,14 @@
   color: #33a0ff;
 }
 */
+
+.keybase-reply form {
+    position: absolute;
+    display: block; !important
+    margin-top: 2em;
+    width: 42em;
+}
+
+.keybase-reply textarea {
+    width: 100%;
+}
