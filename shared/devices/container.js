@@ -42,15 +42,20 @@ export default connect(
     const {devices, waitingForServer} = state.devices
     const {loggedIn} = state.config
     const {showingRevoked} = routeState
-    return {devices: devices.toJS(), waitingForServer, loggedIn, showingRevoked} // toJS is temp
+    return {
+      devices: devices.toJS(),
+      loggedIn,
+      showingRevoked,
+      waitingForServer,
+    } // toJS is temp
   },
   (dispatch: any, {routeState, setRouteState}) => {
     return {
-      loadDevices: () => dispatch(loadDevices()),
-      onToggleShowRevoked: () => { setRouteState({showingRevoked: !routeState.showingRevoked}) },
-      showExistingDevicePage: device => dispatch(navigateAppend([{selected: 'devicePage', props: {device}}])),
-      addNewPhone: () => dispatch(addNewPhone()),
       addNewComputer: () => dispatch(addNewComputer()),
       addNewPaperKey: () => dispatch(addNewPaperKey()),
+      addNewPhone: () => dispatch(addNewPhone()),
+      loadDevices: () => dispatch(loadDevices()),
+      onToggleShowRevoked: () => { setRouteState({showingRevoked: !routeState.showingRevoked}) },
+      showExistingDevicePage: device => dispatch(navigateAppend([{props: {device}, selected: 'devicePage'}])),
     }
   })(Devices)

@@ -1,8 +1,7 @@
 // @flow
 import HiddenString from '../util/hidden-string'
-import {List} from 'immutable'
+import {List, Record} from 'immutable'
 
-import type {DeviceDetail} from './types/flow-types'
 import type {Device} from './types/more'
 import type {TypedAction, NoErrorTypedAction} from './types/flux'
 
@@ -28,14 +27,47 @@ type Actions = DeviceRemoved
 | ShowDevices
 | ShowRemovePage
 
-type State = {
+const DeviceDetailRecord = Record({
+  created: 0,
+  currentDevice: false,
+  deviceID: '',
+  lastUsed: 0,
+  name: '',
+  provisionedAt: 0,
+  provisioner: null,
+  revokedAt: null,
+  revokedBy: null,
+  type: '',
+})
+
+type DeviceDetail = Record<{
+  created: number,
+  currentDevice: boolean,
+  deviceID: string,
+  lastUsed: number,
+  name: string,
+  provisionedAt: number,
+  provisioner: ?Device,
+  revokedAt: ?number,
+  revokedBy: ?string,
+  type: string,
+}>
+
+const StateRecord = Record({
+  waitingForServer: false,
+  devices: List(),
+  paperKey: null,
+})
+
+type State = Record<{
   waitingForServer: boolean,
   devices: List<DeviceDetail>,
   paperKey: ?string,
-}
+}>
 
 export type {
   Actions,
+  DeviceDetail,
   DeviceRemoved,
   GeneratePaperKey,
   IncomingDisplayPaperKeyPhrase,
@@ -47,4 +79,9 @@ export type {
   ShowDevices,
   ShowRemovePage,
   State,
+}
+
+export {
+  DeviceDetailRecord,
+  StateRecord,
 }

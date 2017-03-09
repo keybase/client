@@ -1,19 +1,16 @@
 // @flow
 import * as CommonConstants from '../constants/common'
-import {List, fromJS} from 'immutable'
+import {List} from 'immutable'
+import {StateRecord, DeviceDetailRecord} from '../constants/devices'
 
 import type {State, Actions} from '../constants/devices'
 
-const initialState: State = {
-  devices: List(),
-  paperKey: null,
-  waitingForServer: false,
-}
+const initialState: State = new StateRecord()
 
 export default function (state: State = initialState, action: Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return {...initialState}
+      return new StateRecord()
 
     case 'devices:loadingDevices':
     case 'devices:removeDevice': // fallthrough
@@ -22,10 +19,10 @@ export default function (state: State = initialState, action: Actions) {
         waitingForServer: true,
       }
     case 'devices:showDevices':
-      const {devices} = action.payload
+      const devices = List(action.payload.devices.map(r => new DeviceDetailRecord(r)))
       return {
         ...state,
-        devices: fromJS(devices), // TODO record
+        devices,
         waitingForServer: false,
       }
     case 'devices:deviceRemoved':
