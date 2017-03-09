@@ -77,30 +77,30 @@ function Nav (props: Props) {
 }
 
 class HideNavOnKeyboard extends React.Component {
-  keyboardDidShowListener: any;
-  keyboardDidHideListener: any;
+  keyboardWillShowListener: any;
+  keyboardWillHideListener: any;
 
   componentWillMount () {
-    this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this._keyboardDidShow)
-    this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this._keyboardDidHide)
+    this.keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', this._keyboardWillShow)
+    this.keyboardWillHideListener = Keyboard.addListener('keyboardWillHide', this._keyboardWillHide)
   }
 
   componentWillUnmount () {
-    this.keyboardDidShowListener.remove()
-    this.keyboardDidHideListener.remove()
+    this.keyboardWillShowListener.remove()
+    this.keyboardWillHideListener.remove()
   }
 
   state = {
     hidden: false,
   }
 
-  _keyboardDidShow = () => {
+  _keyboardWillShow = () => {
     this.setState({
       hidden: true,
     })
   }
 
-  _keyboardDidHide = () => {
+  _keyboardWillHide = () => {
     this.setState({
       hidden: false,
     })
