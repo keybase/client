@@ -3,7 +3,7 @@ import GlobalError from './global-errors/container'
 import React from 'react'
 import TabBar from './tab-bar/index.render.native'
 import {Box, NativeKeyboardAvoidingView} from './common-adapters/index.native'
-import {NavigationExperimental} from 'react-native'
+import {NavigationExperimental, StatusBar} from 'react-native'
 import {chatTab, loginTab, folderTab} from './constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
@@ -50,6 +50,7 @@ function Nav (props: Props) {
             renderScene={({scene}) => {
               return (
                 <Box style={scene.route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
+                  <StatusBar hidden={scene.route.tags.hideStatusBar} />
                   {scene.route.component}
                 </Box>
               )
