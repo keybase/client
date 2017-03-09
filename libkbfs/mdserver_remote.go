@@ -266,9 +266,9 @@ func (md *MDServerRemote) RefreshAuthToken(ctx context.Context) {
 
 func (md *MDServerRemote) pingOnce(ctx context.Context) {
 	clock := md.config.Clock()
-	beforePing := clock.Now()
 	ctx, cancel := context.WithTimeout(ctx, MdServerPingTimeout)
 	defer cancel()
+	beforePing := clock.Now()
 	resp, err := md.getClient().Ping2(ctx)
 	if err == context.DeadlineExceeded {
 		md.log.CDebugf(ctx, "Ping timeout -- reinitializing connection")

@@ -25,6 +25,12 @@ const (
 	BServerTokenServer = "kbfs_block"
 	// BServerTokenExpireIn is the TTL to use when constructing an authentication token.
 	BServerTokenExpireIn = 2 * 60 * 60 // 2 hours
+	// BServerDefaultPingIntervalSeconds is the default interval on which the
+	// client should contact the block server.
+	BServerDefaultPingIntervalSeconds = 10
+	// BServerPingTimeout is how long to wait for a ping response
+	// before breaking the connection and trying to reconnect.
+	BServerPingTimeout = 30 * time.Second
 )
 
 // blockServerRemoteAuthTokenRefresher is a helper struct for
@@ -100,6 +106,9 @@ func (b *blockServerRemoteClientHandler) shutdown() {
 	if b.conn != nil {
 		b.conn.Shutdown()
 	}
+
+	// cancel the ping ticker
+	b.resetPingTicker(0)
 }
 
 func (b *blockServerRemoteClientHandler) getConn() *rpc.Connection {
@@ -166,7 +175,14 @@ func (b *blockServerRemoteClientHandler) OnConnect(ctx context.Context,
 	conn *rpc.Connection, client rpc.GenericClient, _ *rpc.Server) error {
 	// reset auth -- using client here would cause problematic recursion.
 	c := keybase1.BlockClient{Cli: client}
-	return b.resetAuth(ctx, c)
+	err := b.resetAuth(ctx, c)
+	if err != nil {
+		return err
+	}
+
+	// Start pinging.
+	b.resetPingTicker(BServerDefaultPingIntervalSeconds)
+	return nil
 }
 
 // OnConnectError implements the ConnectionHandler interface.
@@ -175,6 +191,7 @@ func (b *blockServerRemoteClientHandler) OnConnectError(err error, wait time.Dur
 	if b.authToken != nil {
 		b.authToken.Shutdown()
 	}
+	b.resetPingTicker(0)
 	// TODO: it might make sense to show something to the user if this is
 	// due to authentication, for example.
 }
@@ -193,6 +210,7 @@ func (b *blockServerRemoteClientHandler) OnDisconnected(ctx context.Context,
 	if b.authToken != nil {
 		b.authToken.Shutdown()
 	}
+	b.resetPingTicker(0)
 }
 
 // ShouldRetry implements the ConnectionHandler interface.
@@ -223,6 +241,52 @@ func (b *blockServerRemoteClientHandler) ShouldRetryOnConnect(err error) bool {
 }
 
 var _ rpc.ConnectionHandler = (*blockServerRemoteClientHandler)(nil)
+
+func (b *blockServerRemoteClientHandler) pingOnce(ctx context.Context) {
+	ctx, cancel := context.WithTimeout(ctx, BServerPingTimeout)
+	defer cancel()
+	_, err := b.getClient().BlockPing(ctx)
+	if err == context.DeadlineExceeded {
+		b.log.CDebugf(ctx, "Ping timeout -- reinitializing connection")
+		b.initNewConnection()
+	} else if err != nil {
+		b.log.CDebugf(ctx, "BServerRemote: ping error %s", err)
+	}
+}
+
+// Helper to reset a ping ticker.
+func (b *blockServerRemoteClientHandler) resetPingTicker(intervalSeconds int) {
+	b.tickerMu.Lock()
+	defer b.tickerMu.Unlock()
+
+	if b.tickerCancel != nil {
+		b.tickerCancel()
+		b.tickerCancel = nil
+	}
+	if intervalSeconds <= 0 {
+		return
+	}
+
+	b.log.Debug("BServerRemote: starting new ping ticker with interval %d",
+		intervalSeconds)
+
+	var ctx context.Context
+	ctx, b.tickerCancel = context.WithCancel(context.Background())
+	go func() {
+		ticker := time.NewTicker(time.Duration(intervalSeconds) * time.Second)
+		for {
+			select {
+			case <-ticker.C:
+				b.pingOnce(ctx)
+
+			case <-ctx.Done():
+				b.log.CDebugf(ctx, "BServerRemote: stopping ping ticker")
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+}
 
 type blockServerRemoteConfig interface {
 	diskBlockCacheGetter
