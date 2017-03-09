@@ -388,6 +388,7 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 		m.readMsgid[arg.ConversationID.String()] = inserted.ServerHeader.MessageID
 	}
 	conv.MaxMsgs = m.getMaxMsgs(arg.ConversationID)
+	conv.MaxMsgSummaries = nil
 	for _, m := range conv.MaxMsgs {
 		conv.MaxMsgSummaries = append(conv.MaxMsgSummaries, m.Summary())
 	}
