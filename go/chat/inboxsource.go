@@ -780,13 +780,8 @@ func (n nullUsernameSource) LookupUsername(ctx context.Context, uid keybase1.UID
 func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageSummary, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, chat1.ConversationErrorType, error) {
 
-	var msgIDs []chat1.MessageID
-	for _, msg := range msgs {
-		msgIDs = append(msgIDs, msg.GetMessageID())
-	}
-
 	st := storage.New(s.G(), func() libkb.SecretUI { return DelivererSecretUI{} })
-	res, err := st.FetchMessages(ctx, convID, uid, msgIDs)
+	res, err := st.FetchMessages(ctx, convID, uid, utils.PluckMessageIDs(msgs))
 	if err != nil {
 		// Just say we didn't find it in this case
 		return nil, chat1.ConversationErrorType_LOCALMAXMESSAGENOTFOUND, err
@@ -871,8 +866,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		}
 		conversationLocal.MaxMessages = msgs
 	} else {
-		conversationLocal.MaxMessages, err = s.G().ConvSource.GetMessagesWithRemotes(ctx,
-			conversationRemote.Metadata.ConversationID, uid, conversationRemote.MaxMsgSummaries, conversationRemote.Metadata.FinalizeInfo)
+		conversationLocal.MaxMessages, err = s.G().ConvSource.GetMessages(ctx,
+			conversationRemote.Metadata.ConversationID, uid, utils.PluckMessageIDs(conversationRemote.MaxMsgSummaries), conversationRemote.Metadata.FinalizeInfo)
 		if err != nil {
 			convErr := s.checkRekeyError(ctx, err, conversationRemote, unverifiedTLFName)
 			if convErr != nil {

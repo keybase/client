@@ -398,3 +398,11 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 		return nil, nil
 	}
 }
+
+func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
+	res := make([]chat1.MessageID, len(msgs))
+	for i, m := range msgs {
+		res[i] = m.GetMessageID()
+	}
+	return res
+}
