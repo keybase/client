@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	defaultLines = 1e5
-	maxLines     = 1e6
+	defaultBytes = 1024 * 1024 * 16
+	maxBytes     = 1024 * 1024 * 128
 )
 
 func NewCmdLogSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -33,7 +33,7 @@ func NewCmdLogSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Flags: []cli.Flag{
 			cli.IntFlag{
 				Name:  "n",
-				Usage: "Number of lines in each log file",
+				Usage: "Number of bytes in each log file to read",
 			},
 			cli.BoolFlag{
 				Name:  "no-confirm",
@@ -45,7 +45,7 @@ func NewCmdLogSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 
 type CmdLogSend struct {
 	libkb.Contextified
-	numLines  int
+	numBytes  int
 	noConfirm bool
 }
 
@@ -92,7 +92,7 @@ func (c *CmdLogSend) Run() error {
 		Logs:         logs,
 	}
 
-	id, err := logSendContext.LogSend(statusJSON, c.numLines)
+	id, err := logSendContext.LogSend(statusJSON, c.numBytes)
 	if err != nil {
 		return err
 	}
@@ -136,11 +136,11 @@ func (c *CmdLogSend) ParseArgv(ctx *cli.Context) error {
 		return UnexpectedArgsError("log send")
 	}
 	c.noConfirm = ctx.Bool("no-confirm")
-	c.numLines = ctx.Int("n")
-	if c.numLines < 1 {
-		c.numLines = defaultLines
-	} else if c.numLines > maxLines {
-		c.numLines = maxLines
+	c.numBytes = ctx.Int("n")
+	if c.numBytes < 1 {
+		c.numBytes = defaultBytes
+	} else if c.numBytes > maxBytes {
+		c.numBytes = maxBytes
 	}
 	return nil
 }
