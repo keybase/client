@@ -50,7 +50,13 @@ func (kcs *kbfsCurrentStatus) PushConnectionStatusChange(service string, err err
 	defer kcs.lock.Unlock()
 
 	if err != nil {
+		// Exit early if the service is already failed, to avoid an
+		// invalidation.
+		_, errExisted := kcs.failingServices[service]
 		kcs.failingServices[service] = err
+		if errExisted {
+			return
+		}
 	} else {
 		// Potentially exit early if nothing changes.
 		_, exist := kcs.failingServices[service]
