@@ -8,9 +8,64 @@
     position: absolute;
     display: block; !important
     margin-top: 2em;
-    width: 42em;
+    background: #fff;
+    width: 500px;
+    line-height: 2em;
+    font-size: 14px;
+
+    border-radius: 4px;
+    background-color: #ffffff;
+    box-shadow: 3px 3px 13px 0 #a29e9e;
+}
+
+.keybase-reply .keybase-username {
+    font-weight: bold;
+    color: #33a0ff;
+}
+
+.keybase-reply em {
+    font-weight: bold;
+    font-style: italic;
 }
 
 .keybase-reply textarea {
-    width: 100%;
+    width: 97%;
+    padding: 0.5em;
+}
+
+.keybase-reply p {
+    margin: 0em 1em 1em 1em;
+
+}
+
+.keybase-reply label {
+    color: rgba(0, 0, 0, 0.75);
+}
+
+.keybase-reply h3 {
+    text-align: center;
+    background: #33a0ff;
+    color: #fff;
+    height: 50px;
+    line-height: 50px;
+
+    font-weight: normal;
+    font-size: 16px;
+    letter-spacing: 0.3px;
+    margin-bottom: 0.5em;
+}
+
+.keybase-reply input[type="submit"] {
+    width: 116px;
+    height: 32px;
+    border: 0;
+    border-radius: 50px;
+    background-color: #33a0ff;
+    color: white;
+
+    font-size: 16px;
+    font-style: normal;
+    font-stretch: normal;
+    line-height: normal;
+    letter-spacing: 0.3px;
 }

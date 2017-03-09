@@ -51,19 +51,23 @@ function injectThread() {
 
 function renderChat(parent, toUsername) {
   // TODO: Cancel button
+  // TODO: Prevent navigation?
+  // The chat widget is enclosed in the form element.
   const f = document.createElement("form");
   f.innerHTML = '\
+    <h3>Keybase Chat</h3>\
     <p>Encrypt to <span class="keybase-username">'+ toUsername +'</span>:</p>\
-    <p><textarea name="keybase-chat"></textarea></p>\
-    <p><input type="checkbox" name="keybase-nudge" /> <em>public</em> nudge (so they know about Keybase)</p>\
+    <p><textarea name="keybase-chat" rows="6"></textarea></p>\
+    <p><label><input type="checkbox" name="keybase-nudge" checked /> <em>public</em> nudge (so they know about Keybase)</label></p>\
     <p><textarea name="keybase-nudge">/u/'+ toUsername + ' - I left you an end-to-end encrypted replace in Keybase. https://keybase.io/reddit-crypto</textarea></p>\
-    <p><input type="submit" /></p> \
+    <p><input type="submit" value="Send" /></p> \
   ';
   f.addEventListener('submit', submitChat);
   parent.insertBefore(f, parent.firstChild);
 }
 
 function submitChat(e) {
+  // Detach the chat widget from the parent.
   e.currentTarget.parentNode.removeChild(e.currentTarget);
   console.log("Chat submitted: ", e);
 }
