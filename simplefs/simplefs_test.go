@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package simplefs
 
 import (
 	"context"
@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/libkbfs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -41,7 +42,7 @@ func deleteTempLocalPath(path keybase1.Path) {
 
 func TestList(t *testing.T) {
 	ctx := context.Background()
-	sfs := newSimpleFS(MakeTestConfigOrBust(t, "jdoe"))
+	sfs := newSimpleFS(libkbfs.MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
 	// make a temp remote directory + files we will clean up later
@@ -97,7 +98,7 @@ func TestList(t *testing.T) {
 
 func TestCopyToLocal(t *testing.T) {
 	ctx := context.Background()
-	sfs := newSimpleFS(MakeTestConfigOrBust(t, "jdoe"))
+	sfs := newSimpleFS(libkbfs.MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
 	// make a temp remote directory + file(s) we will clean up later
@@ -134,7 +135,7 @@ func TestCopyToLocal(t *testing.T) {
 
 func TestCopyToRemote(t *testing.T) {
 	ctx := context.Background()
-	sfs := newSimpleFS(MakeTestConfigOrBust(t, "jdoe"))
+	sfs := newSimpleFS(libkbfs.MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
 	// make a temp remote directory + file(s) we will clean up later

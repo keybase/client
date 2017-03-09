@@ -1232,20 +1232,3 @@ type InvalidFavoritesOpError struct{}
 func (InvalidFavoritesOpError) Error() string {
 	return "invalid FavoritesOp"
 }
-
-// SimpleFSError wraps errors for SimpleFS
-type SimpleFSError struct {
-	reason string
-}
-
-// Error implements the error interface for SimpleFSError
-func (e SimpleFSError) Error() string { return e.reason }
-
-// ToStatus implements the keybase1.ToStatusAble interface for SimpleFSError
-func (e SimpleFSError) ToStatus() keybase1.Status {
-	return keybase1.Status{
-		Name: e.reason,
-		Code: int(keybase1.StatusCode_SCGeneric),
-		Desc: e.Error(),
-	}
-}

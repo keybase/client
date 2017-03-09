@@ -17,6 +17,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // InitParams contains the initialization parameters for Init(). It is
@@ -72,6 +73,10 @@ type InitParams struct {
 	// directory to put write journals in. If non-empty, enables
 	// write journaling to be turned on for TLFs.
 	WriteJournalRoot string
+
+	// CreateSimpleFSInstance creates a SimpleFSInterface from config.
+	// If this is nil then simplefs will be omitted in the rpc api.
+	CreateSimpleFSInstance func(Config) keybase1.SimpleFSInterface
 }
 
 // defaultBServer returns the default value for the -bserver flag.

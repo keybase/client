@@ -29,6 +29,9 @@ type KeybaseDaemonRPC struct {
 
 	// protocols (additional to required protocols) to register on server connect
 	protocols []rpc.Protocol
+
+	// simplefs is the simplefs implementation used (if not nil)
+	simplefs keybase1.SimpleFSInterface
 }
 
 var _ keybase1.NotifySessionInterface = (*KeybaseDaemonRPC)(nil)
@@ -43,10 +46,15 @@ var _ KeybaseService = (*KeybaseDaemonRPC)(nil)
 
 // NewKeybaseDaemonRPC makes a new KeybaseDaemonRPC that makes RPC
 // calls using the socket of the given Keybase context.
-func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger, debug bool) *KeybaseDaemonRPC {
+func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
+	debug bool, createSimpleFS func(Config) keybase1.SimpleFSInterface,
+) *KeybaseDaemonRPC {
 	k := newKeybaseDaemonRPC(config, kbCtx, log)
 	k.config = config
 	k.daemonLog = logger.NewWithCallDepth("daemon", 1)
+	if createSimpleFS != nil {
+		k.simplefs = createSimpleFS(config)
+	}
 	if debug {
 		k.daemonLog.Configure("", true, "")
 	}
@@ -240,7 +248,11 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 		keybase1.NotifyPaperKeyProtocol(k),
 		keybase1.NotifyFSRequestProtocol(k),
 		keybase1.TlfKeysProtocol(k),
-		keybase1.SimpleFSProtocol(newSimpleFS(k.config)),
+	}
+
+	// Add simplefs if set
+	if k.simplefs != nil {
+		protocols = append(protocols, keybase1.SimpleFSProtocol(k.simplefs))
 	}
 
 	if k.protocols != nil {

@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/simplefs"
 	"golang.org/x/net/context"
 )
 
@@ -26,6 +27,9 @@ type StartOptions struct {
 
 // Start the filesystem
 func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
+	// Hook simplefs implementation in.
+	options.KbfsParams.CreateSimpleFSInstance = simplefs.NewSimpleFS
+
 	log, err := libkbfs.InitLog(options.KbfsParams, kbCtx)
 	if err != nil {
 		return libfs.InitError(err.Error())
