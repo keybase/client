@@ -1,11 +1,12 @@
 // @flow
+import * as I from 'immutable'
 import HiddenString from '../util/hidden-string'
 import {call, put, select, fork} from 'redux-saga/effects'
 import {deviceDeviceHistoryListRpcPromise, loginDeprovisionRpcPromise, loginPaperKeyRpcChannelMap, revokeRevokeDeviceRpcPromise, rekeyGetRevokeWarningRpcPromise} from '../constants/types/flow-types'
 import {devicesTab, loginTab} from '../constants/tabs'
 import {isMobile} from '../constants/platform'
-import {is} from 'immutable'
 import {navigateTo} from './route-tree'
+import {orderBy} from 'lodash'
 import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {setRevokedSelf} from './login'
 
@@ -54,17 +55,26 @@ function * _deviceShowRemovePageSaga (showRemovePageAction: ShowRemovePage): Sag
 function * _deviceListSaga (): SagaGenerator<any, any> {
   yield put(loadingDevices())
   try {
-    const devices = yield call(deviceDeviceHistoryListRpcPromise)
+    const result = yield call(deviceDeviceHistoryListRpcPromise)
+    const devices = I.fromJS(orderBy(result.map(d => ({
+      created: d.device.cTime,
+      currentDevice: d.currentDevice,
+      deviceID: d.device.deviceID,
+      lastUsed: d.device.lastUsedTime,
+      name: d.device.name,
+      provisionedAt: d.provisionedAt,
+      provisioner: d.provisioner,
+      revokedAt: d.revokedAt,
+      revokedBy: d.revokedByDevice,
+      type: d.device.type,
+    })), ['currentDevice', 'name'], ['desc', 'asc']))
+
     yield put(({
-      payload: devices,
+      payload: {devices},
       type: 'devices:showDevices',
     }: ShowDevices))
   } catch (e) {
-    yield put(({
-      error: true,
-      payload: {errorObj: e, errorText: e.desc + e.name},
-      type: 'devices:showDevices',
-    }: ShowDevices))
+    throw new Error("Can't load devices")
   }
 }
 
@@ -78,13 +88,7 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
     try {
       const username = yield select(state => state.config && state.config.username)
       if (!username) {
-        const error = {errorText: 'No username in removeDevice'}
-        console.warn(error)
-        yield put(({
-          error: true,
-          payload: error,
-          type: 'devices:deviceRemoved',
-        }: DeviceRemoved))
+        throw new Error('No username in device remove')
       }
       yield call(loginDeprovisionRpcPromise, {param: {doRevoke: true, username}})
       yield put(navigateTo([loginTab]))
@@ -94,12 +98,7 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
         type: 'devices:deviceRemoved',
       }: DeviceRemoved))
     } catch (e) {
-      console.warn('Error removing the current device:', e)
-      yield put(({
-        error: true,
-        payload: {errorObj: e, errorText: e.desc + e.name},
-        type: 'devices:deviceRemoved',
-      }: DeviceRemoved))
+      throw new Error("Can't remove current device")
     }
   } else {
     // Not the current device.
@@ -112,18 +111,13 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
         type: 'devices:deviceRemoved',
       }: DeviceRemoved))
     } catch (e) {
-      console.warn('Error removing a device:', e)
-      yield put(({
-        error: true,
-        payload: {errorObj: e, errorText: e.desc + e.name},
-        type: 'devices:deviceRemoved',
-      }: DeviceRemoved))
+      throw new Error("Can't remove device")
     }
   }
   yield put(loadDevices())
 
   const afterRouteState = yield select(state => state.routeTree.routeState)
-  if (is(beforeRouteState, afterRouteState)) {
+  if (I.is(beforeRouteState, afterRouteState)) {
     yield put(navigateTo([devicesTab]))
   }
 }
@@ -147,31 +141,15 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
   const generatePaperKeyChanMap = ((yield call(_generatePaperKey, channelConfig)): any)
   try {
     yield fork(_handlePromptRevokePaperKeys, generatePaperKeyChanMap)
-    const displayPaperKeyPhrase:
-      ?IncomingDisplayPaperKeyPhrase = ((yield takeFromChannelMap(generatePaperKeyChanMap, 'keybase.1.loginUi.displayPaperKeyPhrase')): any)
-    if (!displayPaperKeyPhrase) {
-      const error = {errorText: 'no displayPaperKeyPhrase response'}
-      console.warn(error.errorText)
-      yield put(({
-        error: true,
-        payload: error,
-        type: 'devices:paperKeyLoaded',
-      }: PaperKeyLoaded))
-      return
-    }
+    const displayPaperKeyPhrase: IncomingDisplayPaperKeyPhrase = ((yield takeFromChannelMap(generatePaperKeyChanMap, 'keybase.1.loginUi.displayPaperKeyPhrase')): any)
     yield put(({
-      payload: new HiddenString(displayPaperKeyPhrase.params.phrase),
+      payload: {paperKey: new HiddenString(displayPaperKeyPhrase.params.phrase)},
       type: 'devices:paperKeyLoaded',
     }: PaperKeyLoaded))
     displayPaperKeyPhrase.response.result()
   } catch (e) {
     closeChannelMap(generatePaperKeyChanMap)
-    console.warn('error in generating paper key', e)
-    yield put(({
-      error: true,
-      payload: {errorObj: e, errorText: e.desc + e.name},
-      type: 'devices:paperKeyLoaded',
-    }: PaperKeyLoaded))
+    throw new Error('error in generating paper key')
   }
 }
 

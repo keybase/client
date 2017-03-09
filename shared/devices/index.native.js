@@ -1,9 +1,10 @@
 // @flow
 import React, {Component} from 'react'
-import type {IconType} from '../common-adapters/icon'
-import type {Props} from './render'
 import {Box, Text, PopupMenu, Icon, ClickableBox, NativeScrollView} from '../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../styles'
+
+import type {IconType} from '../common-adapters/icon'
+import type {Props} from '.'
 
 const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
   const icon: IconType = {

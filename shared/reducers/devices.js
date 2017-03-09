@@ -1,13 +1,11 @@
 // @flow
-import {chain} from 'lodash'
 import * as CommonConstants from '../constants/common'
-import {List} from 'immutable'
+import {List, fromJS} from 'immutable'
 
 import type {State, Actions} from '../constants/devices'
 
 const initialState: State = {
   devices: List(),
-  error: null,
   paperKey: null,
   waitingForServer: false,
 }
@@ -18,42 +16,17 @@ export default function (state: State = initialState, action: Actions) {
       return {...initialState}
 
     case 'devices:loadingDevices':
+    case 'devices:removeDevice': // fallthrough
       return {
         ...state,
-        error: null,
         waitingForServer: true,
       }
     case 'devices:showDevices':
-      let devices
-      if (action.error) {
-        devices = null
-      } else {
-        devices = chain(action.payload)
-          .map(dev => ({
-            created: dev.device.cTime,
-            currentDevice: dev.currentDevice,
-            deviceID: dev.device.deviceID,
-            lastUsed: dev.device.lastUsedTime,
-            name: dev.device.name,
-            provisionedAt: dev.provisionedAt,
-            provisioner: dev.provisioner,
-            revokedAt: dev.revokedAt,
-            revokedBy: dev.revokedByDevice,
-            type: dev.device.type,
-          }))
-          .orderBy(['currentDevice', 'name'], ['desc', 'asc'])
-          .value()
-      }
+      const {devices} = action.payload
       return {
         ...state,
-        devices,
-        error: action.error && action.payload,
+        devices: fromJS(devices), // TODO record
         waitingForServer: false,
-      }
-    case 'devices:removeDevice':
-      return {
-        ...state,
-        waitingForServer: true,
       }
     case 'devices:deviceRemoved':
       return {
@@ -63,14 +36,13 @@ export default function (state: State = initialState, action: Actions) {
     case 'devices:paperKeyLoading':
       return {
         ...state,
-        error: null,
         paperKey: null,
       }
     case 'devices:paperKeyLoaded':
+      const {paperKey} = action.payload
       return {
         ...state,
-        error: action.error && action.payload,
-        paperKey: action.error ? null : action.payload,
+        paperKey,
       }
     default:
       return state

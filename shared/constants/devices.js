@@ -8,14 +8,14 @@ import type {TypedAction, NoErrorTypedAction} from './types/flux'
 
 type IncomingDisplayPaperKeyPhrase = {params: {phrase: string}, response: {result: () => void}}
 
-type DeviceRemoved = TypedAction<'devices:deviceRemoved', void, {errorText: string}>
+type DeviceRemoved = NoErrorTypedAction<'devices:deviceRemoved', void>
 type GeneratePaperKey = NoErrorTypedAction<'devices:generatePaperKey', void>
 type LoadDevices = NoErrorTypedAction<'devices:loadDevices', void>
 type LoadingDevices = NoErrorTypedAction<'devices:loadingDevices', void>
-type PaperKeyLoaded = TypedAction<'devices:paperKeyLoaded', HiddenString, {errorText: string}>
+type PaperKeyLoaded = NoErrorTypedAction<'devices:paperKeyLoaded', {paperKey: HiddenString}>
 type PaperKeyLoading = NoErrorTypedAction<'devices:paperKeyLoading', void>
 type RemoveDevice = NoErrorTypedAction<'devices:removeDevice', {currentDevice: boolean, deviceID: string, name: string}>
-type ShowDevices = TypedAction<'devices:showDevices', void, {errorText: string}>
+type ShowDevices = NoErrorTypedAction<'devices:showDevices', {devices: Array<DeviceDetail>}>
 type ShowRemovePage = NoErrorTypedAction<'devices:showRemovePage', {device: Device}>
 
 type Actions = DeviceRemoved
@@ -31,7 +31,6 @@ type Actions = DeviceRemoved
 type State = {
   waitingForServer: boolean,
   devices: List<DeviceDetail>,
-  error: any,
   paperKey: ?string,
 }
 

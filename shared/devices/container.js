@@ -39,10 +39,10 @@ class Devices extends Component {
 
 export default connect(
   (state: any, {routeState}) => {
-    const {devices, waitingForServer, error} = state.devices
+    const {devices, waitingForServer} = state.devices
     const {loggedIn} = state.config
     const {showingRevoked} = routeState
-    return {devices: devices.toArray(), waitingForServer, error, loggedIn, showingRevoked} // toarray is temp
+    return {devices: devices.toJS(), waitingForServer, loggedIn, showingRevoked} // toJS is temp
   },
   (dispatch: any, {routeState, setRouteState}) => {
     return {
