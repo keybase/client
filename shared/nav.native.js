@@ -157,4 +157,4 @@ export default connect(
       dispatch(action(routePath.push(tab)))
     },
   })
-)(isAndroid ? HideNavOnKeyboard : Nav)
+)(HideNavOnKeyboard)
