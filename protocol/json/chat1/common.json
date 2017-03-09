@@ -219,13 +219,6 @@
         {
           "type": "boolean",
           "name": "computeActiveList"
-        },
-        {
-          "type": [
-            null,
-            "InboxResType"
-          ],
-          "name": "inboxView"
         }
       ]
     },
@@ -366,9 +359,9 @@
         {
           "type": {
             "type": "array",
-            "items": "MessageBoxed"
+            "items": "MessageIDTyped"
           },
-          "name": "maxMsgs"
+          "name": "maxMsgIDs"
         }
       ]
     },
@@ -383,30 +376,14 @@
         {
           "type": "MessageType",
           "name": "messageType"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ConversationMinimal",
-      "fields": [
-        {
-          "type": "ConversationMetadata",
-          "name": "metadata"
         },
         {
-          "type": [
-            null,
-            "ConversationReaderInfo"
-          ],
-          "name": "readerInfo"
+          "type": "string",
+          "name": "tlfName"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "MessageIDTyped"
-          },
-          "name": "maxMsgIDs"
+          "type": "boolean",
+          "name": "tlfPublic"
         }
       ]
     },
@@ -667,8 +644,7 @@
       "name": "InboxResType",
       "symbols": [
         "VERSIONHIT_0",
-        "FULL_1",
-        "MINIMAL_2"
+        "FULL_1"
       ]
     },
     {
@@ -683,30 +659,6 @@
           "type": {
             "type": "array",
             "items": "Conversation"
-          },
-          "name": "conversations"
-        },
-        {
-          "type": [
-            null,
-            "Pagination"
-          ],
-          "name": "pagination"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "InboxViewMinimal",
-      "fields": [
-        {
-          "type": "InboxVers",
-          "name": "vers"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "ConversationMinimal"
           },
           "name": "conversations"
         },
@@ -740,13 +692,6 @@
             "def": false
           },
           "body": "InboxViewFull"
-        },
-        {
-          "label": {
-            "name": "MINIMAL",
-            "def": false
-          },
-          "body": "InboxViewMinimal"
         }
       ]
     }

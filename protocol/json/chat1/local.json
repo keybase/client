@@ -442,7 +442,7 @@
         {
           "type": {
             "type": "array",
-            "items": "ConversationMinimal"
+            "items": "Conversation"
           },
           "name": "convsUnverified"
         },

@@ -161,7 +161,6 @@ type GetInboxQuery struct {
 	UnreadOnly        bool                 `codec:"unreadOnly" json:"unreadOnly"`
 	ReadOnly          bool                 `codec:"readOnly" json:"readOnly"`
 	ComputeActiveList bool                 `codec:"computeActiveList" json:"computeActiveList"`
-	InboxView         *InboxResType        `codec:"inboxView,omitempty" json:"inboxView,omitempty"`
 }
 
 type ConversationIDTriple struct {
@@ -201,18 +200,14 @@ type ConversationReaderInfo struct {
 type Conversation struct {
 	Metadata   ConversationMetadata    `codec:"metadata" json:"metadata"`
 	ReaderInfo *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
-	MaxMsgs    []MessageBoxed          `codec:"maxMsgs" json:"maxMsgs"`
+	MaxMsgIDs  []MessageIDTyped        `codec:"maxMsgIDs" json:"maxMsgIDs"`
 }
 
 type MessageIDTyped struct {
 	MsgID       MessageID   `codec:"msgID" json:"msgID"`
 	MessageType MessageType `codec:"messageType" json:"messageType"`
-}
-
-type ConversationMinimal struct {
-	Metadata   ConversationMetadata    `codec:"metadata" json:"metadata"`
-	ReaderInfo *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
-	MaxMsgIDs  []MessageIDTyped        `codec:"maxMsgIDs" json:"maxMsgIDs"`
+	TlfName     string      `codec:"tlfName" json:"tlfName"`
+	TlfPublic   bool        `codec:"tlfPublic" json:"tlfPublic"`
 }
 
 type MessageServerHeader struct {
@@ -292,19 +287,16 @@ type InboxResType int
 const (
 	InboxResType_VERSIONHIT InboxResType = 0
 	InboxResType_FULL       InboxResType = 1
-	InboxResType_MINIMAL    InboxResType = 2
 )
 
 var InboxResTypeMap = map[string]InboxResType{
 	"VERSIONHIT": 0,
 	"FULL":       1,
-	"MINIMAL":    2,
 }
 
 var InboxResTypeRevMap = map[InboxResType]string{
 	0: "VERSIONHIT",
 	1: "FULL",
-	2: "MINIMAL",
 }
 
 func (e InboxResType) String() string {
@@ -320,16 +312,9 @@ type InboxViewFull struct {
 	Pagination    *Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
-type InboxViewMinimal struct {
-	Vers          InboxVers             `codec:"vers" json:"vers"`
-	Conversations []ConversationMinimal `codec:"conversations" json:"conversations"`
-	Pagination    *Pagination           `codec:"pagination,omitempty" json:"pagination,omitempty"`
-}
-
 type InboxView struct {
-	Rtype__   InboxResType      `codec:"rtype" json:"rtype"`
-	Full__    *InboxViewFull    `codec:"full,omitempty" json:"full,omitempty"`
-	Minimal__ *InboxViewMinimal `codec:"minimal,omitempty" json:"minimal,omitempty"`
+	Rtype__ InboxResType   `codec:"rtype" json:"rtype"`
+	Full__  *InboxViewFull `codec:"full,omitempty" json:"full,omitempty"`
 }
 
 func (o *InboxView) Rtype() (ret InboxResType, err error) {
@@ -337,11 +322,6 @@ func (o *InboxView) Rtype() (ret InboxResType, err error) {
 	case InboxResType_FULL:
 		if o.Full__ == nil {
 			err = errors.New("unexpected nil value for Full__")
-			return ret, err
-		}
-	case InboxResType_MINIMAL:
-		if o.Minimal__ == nil {
-			err = errors.New("unexpected nil value for Minimal__")
 			return ret, err
 		}
 	}
@@ -358,16 +338,6 @@ func (o InboxView) Full() InboxViewFull {
 	return *o.Full__
 }
 
-func (o InboxView) Minimal() InboxViewMinimal {
-	if o.Rtype__ != InboxResType_MINIMAL {
-		panic("wrong case accessed")
-	}
-	if o.Minimal__ == nil {
-		return InboxViewMinimal{}
-	}
-	return *o.Minimal__
-}
-
 func NewInboxViewWithVersionhit() InboxView {
 	return InboxView{
 		Rtype__: InboxResType_VERSIONHIT,
@@ -378,13 +348,6 @@ func NewInboxViewWithFull(v InboxViewFull) InboxView {
 	return InboxView{
 		Rtype__: InboxResType_FULL,
 		Full__:  &v,
-	}
-}
-
-func NewInboxViewWithMinimal(v InboxViewMinimal) InboxView {
-	return InboxView{
-		Rtype__:   InboxResType_MINIMAL,
-		Minimal__: &v,
 	}
 }
 

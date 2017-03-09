@@ -104,8 +104,7 @@ func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.
 				continue
 			}
 
-			return maxText.ClientHeader.TLFNameExpanded(conv.Metadata.FinalizeInfo),
-				conv.Metadata.IdTriple.Tlfid, nil
+			return maxText.TLFNameExpanded(conv.Metadata.FinalizeInfo), conv.Metadata.IdTriple.Tlfid, nil
 		}
 	}
 

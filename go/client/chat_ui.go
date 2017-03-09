@@ -143,13 +143,13 @@ func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedA
 }
 
 func (c *ChatUI) getUnverifiedConvo(ctx context.Context, conv chat1.Conversation) (chat1.ConversationLocal, error) {
-	if len(conv.MaxMsgs) == 0 {
+	if len(conv.MaxMsgIDs) == 0 {
 		return chat1.ConversationLocal{}, fmt.Errorf("no max messages")
 	}
 
 	// Get max text message
-	var txtMsg *chat1.MessageBoxed
-	for _, msg := range conv.MaxMsgs {
+	var txtMsg *chat1.MessageIDTyped
+	for _, msg := range conv.MaxMsgIDs {
 		if msg.GetMessageType() == chat1.MessageType_TEXT {
 			txtMsg = &msg
 			break
@@ -161,7 +161,7 @@ func (c *ChatUI) getUnverifiedConvo(ctx context.Context, conv chat1.Conversation
 
 	// Don't bother with activelist, to avoid loading users from the client.
 	wnames, rnames, err := utils.ReorderParticipants(ctx, c.G().GetUPAKLoader(),
-		txtMsg.ClientHeader.TlfName, nil)
+		txtMsg.TlfName, nil)
 	if err != nil {
 		return chat1.ConversationLocal{}, err
 	}
@@ -180,14 +180,15 @@ func (c *ChatUI) getUnverifiedConvo(ctx context.Context, conv chat1.Conversation
 						},
 					},
 					ClientHeader: chat1.MessageClientHeaderVerified{
-						Conv:         txtMsg.ClientHeader.Conv,
-						TlfName:      txtMsg.ClientHeader.TlfName,
-						TlfPublic:    txtMsg.ClientHeader.TlfPublic,
-						MessageType:  chat1.MessageType_TEXT,
-						Sender:       txtMsg.ClientHeader.Sender,
-						SenderDevice: txtMsg.ClientHeader.SenderDevice,
+						// Conv:         txtMsg.ClientHeader.Conv,
+						Conv:        conv.Metadata.IdTriple,
+						TlfName:     txtMsg.TlfName,
+						TlfPublic:   txtMsg.TlfPublic,
+						MessageType: chat1.MessageType_TEXT,
+						// Sender:       txtMsg.ClientHeader.Sender,
+						// SenderDevice: txtMsg.ClientHeader.SenderDevice,
 					},
-					ServerHeader:   *txtMsg.ServerHeader,
+					// ServerHeader:   *txtMsg.ServerHeader,
 					SenderUsername: "???",
 				},
 			},

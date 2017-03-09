@@ -393,7 +393,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.Conve
 	return s.fetchUpToMsgIDLocked(ctx, convID, uid, maxMsgID, query, pagination)
 }
 
-func (s *Storage) Fetch(ctx context.Context, conv chat1.ConversationMinimal,
+func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.

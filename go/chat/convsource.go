@@ -196,12 +196,19 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 }
 
 func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageIDTyped,
 	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+
 	if s.IsOffline() {
 		return nil, nil
 	}
-	return s.boxer.UnboxMessages(ctx, msgs, convID, finalizeInfo)
+
+	// this is now the same as GetMessages as we only have the message IDs:
+	var msgIDs []chat1.MessageID
+	for _, msg := range msgs {
+		msgIDs = append(msgIDs, msg.GetMessageID())
+	}
+	return s.GetMessages(ctx, convID, uid, msgIDs, finalizeInfo)
 }
 
 type HybridConversationSource struct {
@@ -571,7 +578,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 }
 
 func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageIDTyped,
 	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
 
 	var res []chat1.MessageUnboxed
@@ -595,18 +602,30 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	s.Debug(ctx, "GetMessagesWithRemotes: convID: %s uid: %s total msgs: %d hits: %d", convID, uid,
 		len(msgs), len(lmsgsTab))
 	var merges []chat1.MessageUnboxed
+	var toFetch []chat1.MessageID
 	for _, msg := range msgs {
 		if lmsg, ok := lmsgsTab[msg.GetMessageID()]; ok {
 			res = append(res, lmsg)
 		} else if !s.IsOffline() {
-			unboxed, err := s.boxer.UnboxMessage(ctx, msg, convID, finalizeInfo)
-			if err != nil {
-				return res, err
-			}
-			merges = append(merges, unboxed)
-			res = append(res, unboxed)
+			toFetch = append(toFetch, msg.GetMessageID())
 		}
 	}
+
+	if !s.IsOffline() && len(toFetch) > 0 {
+		rres, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
+			ConversationID: convID,
+			MessageIDs:     toFetch,
+		})
+		msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs, convID, finalizeInfo)
+		if err != nil {
+			return res, err
+		}
+		for _, msg := range msgs {
+			merges = append(merges, msg)
+			res = append(res, msg)
+		}
+	}
+
 	if len(merges) > 0 {
 		if err = s.storage.Merge(ctx, convID, uid, merges); err != nil {
 			return res, err

@@ -331,16 +331,16 @@ func (d DebugLabeler) Trace(ctx context.Context, f func() error, msg string) fun
 }
 
 func GetUnverifiedConv(ctx context.Context, g *libkb.GlobalContext, uid gregor1.UID,
-	convID chat1.ConversationID, useLocalData bool) (chat1.ConversationMinimal, *chat1.RateLimit, error) {
+	convID chat1.ConversationID, useLocalData bool) (chat1.Conversation, *chat1.RateLimit, error) {
 
 	inbox, ratelim, err := g.InboxSource.ReadUnverified(ctx, uid, useLocalData, &chat1.GetInboxQuery{
 		ConvID: &convID,
 	}, nil)
 	if err != nil {
-		return chat1.ConversationMinimal{}, ratelim, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
+		return chat1.Conversation{}, ratelim, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
 	}
 	if len(inbox.ConvsUnverified) == 0 {
-		return chat1.ConversationMinimal{}, ratelim, fmt.Errorf("GetUnverifiedConv: no conv found: %s", convID)
+		return chat1.Conversation{}, ratelim, fmt.Errorf("GetUnverifiedConv: no conv found: %s", convID)
 	}
 	return inbox.ConvsUnverified[0], ratelim, nil
 }

@@ -91,9 +91,6 @@ protocol common {
     boolean unreadOnly;
     boolean readOnly;
     boolean computeActiveList;
-
-    // FULL or MINIMAL
-    union { null, InboxResType } inboxView; 
   }
 
   record ConversationIDTriple {
@@ -142,20 +139,18 @@ protocol common {
     union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective 
 
     // maxMsgs is the maximum message for each messageType in the conversation
-    array<MessageBoxed> maxMsgs;
+    // array<MessageBoxed> maxMsgs;
+
+    // maxMsgIDs is the maximum message IDs for each messageType in the conversation
+    array<MessageIDTyped> maxMsgIDs;
   }
 
+  // XXX rename to MessageSummary
   record MessageIDTyped {
     MessageID msgID;
     MessageType messageType;
-  }
-
-  record ConversationMinimal {
-    ConversationMetadata metadata;
-    union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective 
-
-    // maxMsgs is the maximum message IDs for each messageType in the conversation
-    array<MessageIDTyped> maxMsgIDs;
+    string tlfName;
+    boolean tlfPublic;
   }
 
   record MessageServerHeader {
@@ -250,8 +245,7 @@ protocol common {
 
   enum InboxResType {
     VERSIONHIT_0,
-    FULL_1,
-    MINIMAL_2
+    FULL_1
   }
 
   record InboxViewFull {
@@ -260,15 +254,8 @@ protocol common {
     union { null, Pagination } pagination;
   }
 
-  record InboxViewMinimal {
-    InboxVers vers;
-    array<ConversationMinimal> conversations;
-    union { null, Pagination } pagination;
-  }
-
   variant InboxView switch (InboxResType rtype) {
     case VERSIONHIT: void;
     case FULL: InboxViewFull;
-    case MINIMAL: InboxViewMinimal;
   }
 }
