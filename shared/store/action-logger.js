@@ -15,7 +15,11 @@ function makeActionToLog (action, oldState) {
   return noPayloadTransformer(action, oldState)
 }
 
-const logger = enableActionLogging ? setupLogger('actionLogger', 100, immediateStateLogging, immutableToJS, 50) : {log: () => {}}
+const transform = (o: Array<any>) => {
+  return [JSON.stringify(immutableToJS(o), null, 2)]
+}
+
+const logger = enableActionLogging ? setupLogger('actionLogger', 100, immediateStateLogging, transform, 50) : {log: () => {}}
 
 export const actionLogger = (store: any) => (next: any) => (action: any) => {
   const oldState = store.getState()

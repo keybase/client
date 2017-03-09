@@ -112,14 +112,23 @@ function setupSource () {
   }
 
   ['log', 'warn', 'error'].forEach(key => {
+    if (__DEV__ && typeof window !== 'undefined') {
+      window.console[`${key}_original`] = window.console[key]
+    }
     // $FlowIssue these can no longer be written to
     console[key] = (...args) => {
       try {
         key === 'log' && localLog(...args)
         key === 'warn' && localWarn(...args)
         key === 'error' && localError(...args)
-        const toSend = util.format('%j', args)
-        ipcRenderer.send('console.' + key, toSend)
+        const toSend = args.map(a => {
+          if (typeof a === 'object') {
+            return util.format('%j', a)
+          } else {
+            return a
+          }
+        })
+        ipcRenderer.send('console.' + key, ...toSend)
       } catch (_) {}
     }
   })
