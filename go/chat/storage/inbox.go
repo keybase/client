@@ -592,15 +592,15 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	// Update conversation
 	found := false
 	typ := msg.GetMessageType()
-	for mindex, maxmsg := range conv.MaxMsgIDs {
+	for mindex, maxmsg := range conv.MaxMsgSummaries {
 		if maxmsg.GetMessageType() == typ {
-			conv.MaxMsgIDs[mindex] = msg.Summary()
+			conv.MaxMsgSummaries[mindex] = msg.Summary()
 			found = true
 			break
 		}
 	}
 	if !found {
-		conv.MaxMsgIDs = append(conv.MaxMsgIDs, msg.Summary())
+		conv.MaxMsgSummaries = append(conv.MaxMsgSummaries, msg.Summary())
 	}
 
 	// If we are all up to date on the thread (and the sender is the current user),

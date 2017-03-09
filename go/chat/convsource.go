@@ -196,7 +196,7 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 }
 
 func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageIDTyped,
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageSummary,
 	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
 
 	if s.IsOffline() {
@@ -578,7 +578,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 }
 
 func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageIDTyped,
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageSummary,
 	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
 
 	var res []chat1.MessageUnboxed

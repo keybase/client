@@ -143,13 +143,13 @@ func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedA
 }
 
 func (c *ChatUI) getUnverifiedConvo(ctx context.Context, conv chat1.Conversation) (chat1.ConversationLocal, error) {
-	if len(conv.MaxMsgIDs) == 0 {
+	if len(conv.MaxMsgSummaries) == 0 {
 		return chat1.ConversationLocal{}, fmt.Errorf("no max messages")
 	}
 
 	// Get max text message
-	var txtMsg *chat1.MessageIDTyped
-	for _, msg := range conv.MaxMsgIDs {
+	var txtMsg *chat1.MessageSummary
+	for _, msg := range conv.MaxMsgSummaries {
 		if msg.GetMessageType() == chat1.MessageType_TEXT {
 			txtMsg = &msg
 			break

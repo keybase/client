@@ -396,7 +396,7 @@ function _conversationLocalToFinalized (convo: ?ChatTypes.ConversationLocal): Fi
 
 function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): List<InboxState> {
   return List((inbox.conversationsUnverified || []).map(convoUnverified => {
-    const msgMax = convoUnverified.maxMsgIDs && convoUnverified.maxMsgIDs.length && convoUnverified.maxMsgIDs[0]
+    const msgMax = convoUnverified.maxMsgSummaries && convoUnverified.maxMsgSummaries.length && convoUnverified.maxMsgSummaries[0]
 
     if (!msgMax) {
       return null

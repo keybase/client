@@ -167,8 +167,8 @@ func (m MessageBoxed) GetMessageType() MessageType {
 	return m.ClientHeader.MessageType
 }
 
-func (m MessageBoxed) Summary() MessageIDTyped {
-	return MessageIDTyped{
+func (m MessageBoxed) Summary() MessageSummary {
+	return MessageSummary{
 		MsgID:       m.GetMessageID(),
 		MessageType: m.GetMessageType(),
 		TlfName:     m.ClientHeader.TlfName,
@@ -287,7 +287,7 @@ func (h MessageClientHeader) TLFNameExpanded(finalizeInfo *ConversationFinalizeI
 
 // TLFNameExpanded returns a TLF name with a reset suffix if it exists.
 // This version can be used in requests to lookup the TLF.
-func (m MessageIDTyped) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
+func (m MessageSummary) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
 	return ExpandTLFName(m.TlfName, finalizeInfo)
 }
 
@@ -355,13 +355,13 @@ func (c Conversation) GetConvID() ConversationID {
 	return c.Metadata.ConversationID
 }
 
-func (c Conversation) GetMaxMessage(typ MessageType) (MessageIDTyped, error) {
-	for _, msg := range c.MaxMsgIDs {
+func (c Conversation) GetMaxMessage(typ MessageType) (MessageSummary, error) {
+	for _, msg := range c.MaxMsgSummaries {
 		if msg.GetMessageType() == typ {
 			return msg, nil
 		}
 	}
-	return MessageIDTyped{}, fmt.Errorf("max message not found: %v", typ)
+	return MessageSummary{}, fmt.Errorf("max message not found: %v", typ)
 }
 
 func (c Conversation) Includes(uid gregor1.UID) bool {
@@ -373,11 +373,11 @@ func (c Conversation) Includes(uid gregor1.UID) bool {
 	return false
 }
 
-func (m MessageIDTyped) GetMessageID() MessageID {
+func (m MessageSummary) GetMessageID() MessageID {
 	return m.MsgID
 }
 
-func (m MessageIDTyped) GetMessageType() MessageType {
+func (m MessageSummary) GetMessageType() MessageType {
 	return m.MessageType
 }
 

@@ -359,15 +359,15 @@
         {
           "type": {
             "type": "array",
-            "items": "MessageIDTyped"
+            "items": "MessageSummary"
           },
-          "name": "maxMsgIDs"
+          "name": "maxMsgSummaries"
         }
       ]
     },
     {
       "type": "record",
-      "name": "MessageIDTyped",
+      "name": "MessageSummary",
       "fields": [
         {
           "type": "MessageID",

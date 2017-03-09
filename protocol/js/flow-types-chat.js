@@ -731,7 +731,7 @@ export type ChatActivityType =
 export type Conversation = {
   metadata: ConversationMetadata,
   readerInfo?: ?ConversationReaderInfo,
-  maxMsgIDs?: ?Array<MessageIDTyped>,
+  maxMsgSummaries?: ?Array<MessageSummary>,
 }
 
 export type ConversationErrorLocal = {
@@ -1168,14 +1168,6 @@ export type MessageHeadline = {
 
 export type MessageID = uint
 
-export type MessageIDTyped = {
-  msgID: MessageID,
-  messageType: MessageType,
-  tlfName: string,
-  tlfPublic: boolean,
-  ctime: gregor1.Time,
-}
-
 export type MessagePlaintext = {
   clientHeader: MessageClientHeader,
   messageBody: MessageBody,
@@ -1189,6 +1181,14 @@ export type MessagePreviousPointer = {
 export type MessageServerHeader = {
   messageID: MessageID,
   supersededBy: MessageID,
+  ctime: gregor1.Time,
+}
+
+export type MessageSummary = {
+  msgID: MessageID,
+  messageType: MessageType,
+  tlfName: string,
+  tlfPublic: boolean,
   ctime: gregor1.Time,
 }
 

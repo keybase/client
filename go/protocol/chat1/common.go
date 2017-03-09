@@ -198,12 +198,12 @@ type ConversationReaderInfo struct {
 }
 
 type Conversation struct {
-	Metadata   ConversationMetadata    `codec:"metadata" json:"metadata"`
-	ReaderInfo *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
-	MaxMsgIDs  []MessageIDTyped        `codec:"maxMsgIDs" json:"maxMsgIDs"`
+	Metadata        ConversationMetadata    `codec:"metadata" json:"metadata"`
+	ReaderInfo      *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
+	MaxMsgSummaries []MessageSummary        `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
 }
 
-type MessageIDTyped struct {
+type MessageSummary struct {
 	MsgID       MessageID    `codec:"msgID" json:"msgID"`
 	MessageType MessageType  `codec:"messageType" json:"messageType"`
 	TlfName     string       `codec:"tlfName" json:"tlfName"`

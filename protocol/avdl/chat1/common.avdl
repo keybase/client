@@ -141,12 +141,12 @@ protocol common {
     // maxMsgs is the maximum message for each messageType in the conversation
     // array<MessageBoxed> maxMsgs;
 
-    // maxMsgIDs is the maximum message IDs for each messageType in the conversation
-    array<MessageIDTyped> maxMsgIDs;
+    // maxMsgSummaries contains a subset of the full MessageBoxed for the maximum message for
+    // each messageType in the conversation
+    array<MessageSummary> maxMsgSummaries;
   }
 
-  // XXX rename to MessageSummary
-  record MessageIDTyped {
+  record MessageSummary {
     MessageID msgID;
     MessageType messageType;
     string tlfName;
