@@ -2059,7 +2059,10 @@ function * _getInboxAndUnbox ({payload: {conversationIDKey}}: Constants.GetInbox
   const {conversations} = result
   if (conversations && conversations[0]) {
     yield call(_updateInbox, conversations[0])
+    // inbox loaded so rekeyInfo is now clear
+    yield put({payload: {conversationIDKey}, type: 'chat:clearRekey'})
   }
+  // TODO maybe we get failures and we should update rekeyinfo? unclear...
 }
 
 function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConversation): SagaGenerator<any, any> {

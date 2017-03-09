@@ -399,6 +399,10 @@ function reducer (state: State = initialState, action: Actions) {
         .findIndex(conv => conv.conversationIDKey === conversationIDKey),
           entry => entry.set('muted', muted))
       )
+    case 'chat:clearRekey': {
+      const {conversationIDKey} = action.payload
+      return state.set('rekeyInfos', state.get('rekeyInfos').delete(conversationIDKey))
+    }
     case 'chat:updateInboxRekeyOthers': {
       const {conversationIDKey, rekeyers} = action.payload
       return state.set('rekeyInfos', state.get('rekeyInfos').set(conversationIDKey, new RekeyInfoRecord({rekeyParticipants: List(rekeyers)})))
