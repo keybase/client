@@ -384,6 +384,10 @@
         {
           "type": "boolean",
           "name": "tlfPublic"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "ctime"
         }
       ]
     },

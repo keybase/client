@@ -204,10 +204,11 @@ type Conversation struct {
 }
 
 type MessageIDTyped struct {
-	MsgID       MessageID   `codec:"msgID" json:"msgID"`
-	MessageType MessageType `codec:"messageType" json:"messageType"`
-	TlfName     string      `codec:"tlfName" json:"tlfName"`
-	TlfPublic   bool        `codec:"tlfPublic" json:"tlfPublic"`
+	MsgID       MessageID    `codec:"msgID" json:"msgID"`
+	MessageType MessageType  `codec:"messageType" json:"messageType"`
+	TlfName     string       `codec:"tlfName" json:"tlfName"`
+	TlfPublic   bool         `codec:"tlfPublic" json:"tlfPublic"`
+	Ctime       gregor1.Time `codec:"ctime" json:"ctime"`
 }
 
 type MessageServerHeader struct {

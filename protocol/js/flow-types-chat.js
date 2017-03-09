@@ -1173,6 +1173,7 @@ export type MessageIDTyped = {
   messageType: MessageType,
   tlfName: string,
   tlfPublic: boolean,
+  ctime: gregor1.Time,
 }
 
 export type MessagePlaintext = {

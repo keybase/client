@@ -151,6 +151,7 @@ protocol common {
     MessageType messageType;
     string tlfName;
     boolean tlfPublic;
+    gregor1.Time ctime;
   }
 
   record MessageServerHeader {
