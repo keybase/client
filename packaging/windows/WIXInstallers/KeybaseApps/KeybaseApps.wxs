@@ -7,6 +7,7 @@
     <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
     <Property Id="ARPHELPLINK" Value="https://www.keybase.io"/>
     <Property Id="ARPURLINFOABOUT" Value="https://www.keybase.io"/>
+    <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
     <!-- This seems to be the best way to detect pending reboot - MsiSystemRebootPending did NOT work -->
     <Property Id="RESTART_PENDING">
       <RegistrySearch Id="RestartPending"
