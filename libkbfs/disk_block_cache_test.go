@@ -354,8 +354,14 @@ func TestDiskBlockCacheLimit(t *testing.T) {
 	}
 
 	t.Log("Set the cache maximum bytes to the current total.")
-	cache.maxBytes = cache.currBytes
-	currBytes := cache.maxBytes
+	const (
+		cacheLimitFactor        int64 = 2
+		backpressureStartFactor       = 2
+		limiterFactor                 = cacheLimitFactor * backpressureStartFactor
+	)
+	cache.limiter.(*backpressureDiskLimiter).byteTracker.limit =
+		int64(cache.currBytes) * limiterFactor
+	currBytes := cache.currBytes
 
 	t.Log("Add a block to the cache. Verify that blocks were evicted.")
 	blockID, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)

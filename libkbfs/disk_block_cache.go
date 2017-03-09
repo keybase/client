@@ -415,6 +415,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 				// space.
 				continue
 			}
+			break
 		}
 		err = cache.blockDb.Put(blockKey, entry, nil)
 		if err != nil {
