@@ -100,6 +100,12 @@ const demoRouteDef = new RouteDefNode({
     etc: {
       children: {},
     },
+    persist: {
+      children: {
+        child: emptyRouteDef,
+      },
+      tags: {persistChildren: true},
+    },
   },
 })
 
@@ -213,15 +219,16 @@ describe('routeNavigate', () => {
     }))
   })
 
-  it('persist the state of the children if passed persistState = true', () => {
-    const startRouteState = routeNavigate(demoRouteDef, null, (['foo', {selected: 'bar', props: {hello: 'world'}}]: PropsPath<*>))
+  it('persist children for routes with persistChildren tag set', () => {
+    const startRouteState = routeNavigate(demoRouteDef, null, (['persist', {selected: 'child', props: {hello: 'world'}}]: PropsPath<*>))
+
     expect(startRouteState).toEqual(new RouteStateNode({
-      selected: 'foo',
+      selected: 'persist',
       children: I.Map({
-        foo: new RouteStateNode({
-          selected: 'bar',
+        persist: new RouteStateNode({
+          selected: 'child',
           children: I.Map({
-            bar: new RouteStateNode({
+            child: new RouteStateNode({
               selected: null,
               props: I.Map({hello: 'world'}),
             }),
@@ -230,14 +237,14 @@ describe('routeNavigate', () => {
       }),
     }))
 
-    const newRouteState = routeNavigate(demoRouteDef, startRouteState, (['foo']: Array<string>), null, true)
+    const newRouteState = routeNavigate(demoRouteDef, startRouteState, (['persist']: Array<string>))
     expect(newRouteState).toEqual(new RouteStateNode({
-      selected: 'foo',
+      selected: 'persist',
       children: I.Map({
-        foo: new RouteStateNode({
+        persist: new RouteStateNode({
           selected: null,
           children: I.Map({
-            bar: new RouteStateNode({
+            child: new RouteStateNode({
               selected: null,
               props: I.Map({hello: 'world'}),
             }),

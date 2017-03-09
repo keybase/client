@@ -26,6 +26,7 @@ const routeTree = new RouteDefNode({
   containerComponent: Render,
   defaultSelected: nothingSelected,
   children: () => conversationRoute,
+  tags: {persistChildren: true},
 })
 
 export default routeTree
