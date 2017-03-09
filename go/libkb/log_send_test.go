@@ -10,17 +10,20 @@ import (
 
 func testTail(t *testing.T, testname, filename string, count, actual int, first, last string) {
 	log := logger.NewTestLogger(t)
-	tailed := tail(log, filename, count)
+	tailed := tail(log, "tset", filename, count)
 	lines := strings.Split(tailed, "\n")
-	if len(lines) != actual {
-		t.Errorf("test %s: tailed lines: %d, expected %d", testname, len(lines), actual)
+	if len(tailed) != actual {
+		t.Errorf("test %s: tailed bytes: %d, expected %d", testname, len(tailed), actual)
 	}
 
 	if strings.TrimSpace(lines[0]) != first {
 		t.Errorf("test %s: first line: %q, expected %q", testname, strings.TrimSpace(lines[0]), first)
 	}
-	if strings.TrimSpace(lines[len(lines)-1]) != last {
-		t.Errorf("test %s: last line: %q, expected %q", testname, strings.TrimSpace(lines[len(lines)-1]), last)
+	if strings.TrimSpace(lines[len(lines)-2]) != last {
+		t.Errorf("test %s: last line: %q, expected %q", testname, strings.TrimSpace(lines[len(lines)-2]), last)
+	}
+	if strings.TrimSpace(lines[len(lines)-1]) != "" {
+		t.Errorf("test %s: last line: %q, expected %q", testname, strings.TrimSpace(lines[len(lines)-1]), "")
 	}
 
 }
@@ -29,12 +32,17 @@ func TestTail(t *testing.T) {
 	// file has 20k lines in it
 	filename := filepath.Join("testfixtures", "longline.log")
 
-	firstLine := "00000"
-	firstLine10k := "10000"
 	lastLine := "19999"
 
-	testTail(t, "10k", filename, 10000, 10000, firstLine10k, lastLine)
+	testTail(t, "tail -c 1002", filename, 1002, 996, "19834", lastLine)
+	testTail(t, "tail -c 100002", filename, 100002, 89994, "05001", lastLine)
+	testTail(t, "tail -c 100002", filename, 100002, 89994, "05001", lastLine)
+	testTail(t, "tail -c 250002", filename, 250002, 249999, "00179", lastLine)
 
-	// asking for 100k lines should return 20k lines
-	testTail(t, "100k", filename, 100000, 20000, firstLine, lastLine)
+}
+
+func TestTailMulti(t *testing.T) {
+	stem := filepath.Join("testfixtures", "f.log")
+	testTail(t, "follow", stem, 100000, 99996, "13334", "29999")
+	testTail(t, "follow", stem, 10000, 9996, "28334", "29999")
 }
