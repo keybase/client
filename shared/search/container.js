@@ -10,6 +10,7 @@ import {privateFolderWithUsers, publicFolderWithUsers} from '../constants/config
 import {search, selectPlatform, addUsersToGroup, removeUserFromGroup, selectUserForInfo, hideUserGroup, reset} from '../actions/search'
 import {searchResultToAssertion} from '../constants/search'
 import {startConversation} from '../actions/chat'
+import {createSelector} from 'reselect'
 
 import type {TypedState} from '../constants/reducer'
 import type {Props} from '.'
@@ -18,11 +19,12 @@ type OwnProps = {}
 
 export default connect(
   (state: TypedState) => {
-    const {waiting, searchHintText, searchPlatform: selectedService, searchText, searchIcon, results, userForInfoPane, showUserGroup, selectedUsers, searchTextClearTrigger} = state.search
+    const {waiting, searchHintText, searchPlatform: selectedService, searchText, searchIcon, results, userForInfoPane, showUserGroup, selectedUsers, searchTextClearTrigger, usernames} = state.search
     const {username} = state.config
 
     return {
-      results,
+      usernames,
+      results: [],
       searchHintText,
       searchIcon,
       searchText,

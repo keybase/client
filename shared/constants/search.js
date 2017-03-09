@@ -83,6 +83,7 @@ export type Search = TypedAction<'search:search', {term: string}, void>
 
 export const results = 'search:results'
 export type Results = TypedAction<'search:results', {term: string, results: Array<SearchResult>, requestTimestamp: Date}, void>
+export type ResultsList = TypedAction<'search:resultsList', {usernames: Array<string>}, void>
 
 export const selectPlatform = 'search:selectPlatform'
 export type SelectPlatform = TypedAction<'search:selectPlatform', {platform: SearchPlatforms}, void>
@@ -171,3 +172,28 @@ export function platformToNiceName (platform: SearchPlatforms): string {
 export function equalSearchResult (a: SearchResult, b: SearchResult): boolean {
   return a.service === b.service && a.username === b.username
 }
+
+export type State = {
+  requestTimestamp: ?Date,
+  results: Array<SearchResult>, // TODO del
+  usernames: Array<string>,
+  searchHintText: string,
+  searchIcon: IconType,
+  searchPlatform: SearchPlatforms,
+  searchText: ?string,
+  searchTextClearTrigger: number,
+  selectedUsers: Array<SearchResult>,
+  showUserGroup: boolean,
+  userForInfoPane: ?SearchResult,
+  waiting: boolean,
+}
+
+export const searchHintText = (searchPlatform: SearchPlatforms, selectedUsers: Array<SearchResult>): string => {
+  const name = platformToNiceName(searchPlatform)
+  return `${selectedUsers.length ? `Add a ${name} user` : `Search ${name}`}`
+}
+
+export const showUserGroup = (searchText: ?string, selectedUsers: Array<SearchResult>): boolean => (
+  !searchText && !!selectedUsers.length
+)
+
