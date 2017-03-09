@@ -32,6 +32,9 @@ const (
 	// MdServerDefaultPingIntervalSeconds is the default interval on which the
 	// client should contact the MD Server
 	MdServerDefaultPingIntervalSeconds = 10
+	// MdServerPingTimeout is how long to wait for a ping response
+	// before breaking the connection and trying to reconnect.
+	MdServerPingTimeout = 30 * time.Second
 )
 
 // MDServerRemote is an implementation of the MDServer interface.
@@ -245,7 +248,7 @@ func (md *MDServerRemote) resetAuth(
 func (md *MDServerRemote) RefreshAuthToken(ctx context.Context) {
 	md.log.CDebugf(ctx, "MDServerRemote: Refreshing auth token...")
 
-	_, err := md.resetAuth(ctx, md.client)
+	_, err := md.resetAuth(ctx, md.getClient())
 	switch err.(type) {
 	case nil:
 		md.log.CDebugf(ctx, "MDServerRemote: auth token refreshed")
@@ -264,8 +267,14 @@ func (md *MDServerRemote) RefreshAuthToken(ctx context.Context) {
 func (md *MDServerRemote) pingOnce(ctx context.Context) {
 	clock := md.config.Clock()
 	beforePing := clock.Now()
-	resp, err := md.client.Ping2(ctx)
-	if err != nil {
+	ctx, cancel := context.WithTimeout(ctx, MdServerPingTimeout)
+	defer cancel()
+	resp, err := md.getClient().Ping2(ctx)
+	if err == context.DeadlineExceeded {
+		md.log.CDebugf(ctx, "Ping timeout -- reinitializing connection")
+		md.initNewConnection()
+		return
+	} else if err != nil {
 		md.log.CDebugf(ctx, "MDServerRemote: ping error %s", err)
 		return
 	}
@@ -467,7 +476,7 @@ func (md *MDServerRemote) get(ctx context.Context, id tlf.ID,
 	}
 
 	// request
-	response, err := md.client.GetMetadata(ctx, arg)
+	response, err := md.getClient().GetMetadata(ctx, arg)
 	if err != nil {
 		return id, nil, err
 	}
@@ -585,7 +594,7 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 		}
 	}
 
-	return md.client.PutMetadata(ctx, arg)
+	return md.getClient().PutMetadata(ctx, arg)
 }
 
 // PruneBranch implements the MDServer interface for MDServerRemote.
@@ -595,7 +604,7 @@ func (md *MDServerRemote) PruneBranch(ctx context.Context, id tlf.ID, bid Branch
 		BranchID: bid.String(),
 		LogTags:  nil,
 	}
-	return md.client.PruneBranch(ctx, arg)
+	return md.getClient().PruneBranch(ctx, arg)
 }
 
 // MetadataUpdate implements the MetadataUpdateProtocol interface.
