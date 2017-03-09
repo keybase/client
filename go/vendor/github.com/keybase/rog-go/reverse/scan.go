@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-const maxBufSize = 256 * 1024
+const maxBufSize = 4 * 1024 * 1024
 
 // Scanner presents the same interface as bufio.Scanner
 // except it scans tokens in reverse from the end of
