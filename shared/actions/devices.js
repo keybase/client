@@ -52,7 +52,19 @@ function * _deviceShowRemovePageSaga (showRemovePageAction: ShowRemovePage): Sag
   ]))
 }
 
+const _waitingSelector = (state: TypedState) => state.devices.waitingForServer
+const _loggedInSelector = (state: TypedState) => state.config.loggedIn
+
 function * _deviceListSaga (): SagaGenerator<any, any> {
+  const waitingForServer = yield select(_waitingSelector)
+  if (waitingForServer) {
+    return
+  }
+  const loggedIn = yield select(_loggedInSelector)
+  if (!loggedIn) {
+    return
+  }
+
   yield put(loadingDevices())
   try {
     const result = yield call(deviceDeviceHistoryListRpcPromise)

@@ -1,53 +1,59 @@
 // @flow
-import React, {Component} from 'react'
 import Render from '.'
-import _ from 'lodash'
+import {List} from 'immutable'
 import {addNewPhone, addNewComputer, addNewPaperKey} from '../actions/login'
 import {connect} from 'react-redux'
+import {lifecycle} from 'recompose'
 import {loadDevices} from '../actions/devices'
 import {navigateAppend} from '../actions/route-tree'
 
 // TODO remvoe this class
-class Devices extends Component {
-  componentWillMount () {
-    const {waitingForServer, loggedIn} = this.props
+// class Devices extends Component {
+  // componentWillMount () {
+    // this.props.loadDevices()
+  // }
 
-    if (loggedIn && !waitingForServer) {
-      this.props.loadDevices()
-    }
-  }
+  // render () {
+    // // Divide the devices array into not-revoked and revoked.
+    // const [devices, revokedDevices] = _.partition(this.props.devices, dev => !dev.revokedAt)
 
-  render () {
-    // Divide the devices array into not-revoked and revoked.
-    const [devices, revokedDevices] = _.partition(this.props.devices, dev => !dev.revokedAt)
+    // return (
+      // <Render
+        // devices={devices}
+        // revokedDevices={revokedDevices}
+        // showingRevoked={this.props.showingRevoked}
+        // onToggleShowRevoked={this.props.onToggleShowRevoked}
+        // addNewPhone={this.props.addNewPhone}
+        // addNewComputer={this.props.addNewComputer}
+        // addNewPaperKey={this.props.addNewPaperKey}
+        // waitingForServer={this.props.waitingForServer}
+        // showRemoveDevicePage={this.props.showRemoveDevicePage}
+        // showExistingDevicePage={this.props.showExistingDevicePage} />
+    // )
+  // }
+// }
 
-    return (
-      <Render
-        devices={devices}
-        revokedDevices={revokedDevices}
-        showingRevoked={this.props.showingRevoked}
-        onToggleShowRevoked={this.props.onToggleShowRevoked}
-        addNewPhone={this.props.addNewPhone}
-        addNewComputer={this.props.addNewComputer}
-        addNewPaperKey={this.props.addNewPaperKey}
-        waitingForServer={this.props.waitingForServer}
-        showRemoveDevicePage={this.props.showRemoveDevicePage}
-        showExistingDevicePage={this.props.showExistingDevicePage} />
-    )
-  }
-}
+const Devices = lifecycle({
+  componentWillMount: function () {
+    this.props.loadDevices()
+  },
+})(Render)
 
 export default connect(
   (state: any, {routeState}) => {
-    const {devices, waitingForServer} = state.devices
-    const {loggedIn} = state.config
+    const {devices: allDevices, waitingForServer} = state.devices
     const {showingRevoked} = routeState
+
+    const split = allDevices.groupBy(d => d.revokedAt ? 'revokedDevices' : 'devices')
+    const devices = split.get('devices', List())
+    const revokedDevices = split.get('revokedDevices', List())
+
     return {
-      devices: devices.toJS(),
-      loggedIn,
+      devices: devices.toJS(), // toJS is temp
+      revokedDevices: revokedDevices.toJS(),
       showingRevoked,
       waitingForServer,
-    } // toJS is temp
+    }
   },
   (dispatch: any, {routeState, setRouteState}) => {
     return {
