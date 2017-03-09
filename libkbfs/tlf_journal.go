@@ -989,13 +989,13 @@ func (j *tlfJournal) convertMDsToBranchLocked(
 	}
 	j.unsquashedBytes = 0
 
+	if j.onBranchChange != nil {
+		j.onBranchChange.onTLFBranchChange(j.tlfID, bid)
+	}
+
 	// Pause while on a conflict branch.
 	if doSignal {
 		j.pause(journalPauseConflict)
-	}
-
-	if j.onBranchChange != nil {
-		j.onBranchChange.onTLFBranchChange(j.tlfID, bid)
 	}
 
 	return nil
