@@ -1,12 +1,13 @@
 // @flow
 import React, {Component} from 'react'
-import Render from './render'
+import Render from '.'
 import _ from 'lodash'
 import {addNewPhone, addNewComputer, addNewPaperKey} from '../actions/login'
 import {connect} from 'react-redux'
 import {loadDevices} from '../actions/devices'
 import {navigateAppend} from '../actions/route-tree'
 
+// TODO remvoe this class
 class Devices extends Component {
   componentWillMount () {
     const {waitingForServer, loggedIn} = this.props
@@ -41,7 +42,7 @@ export default connect(
     const {devices, waitingForServer, error} = state.devices
     const {loggedIn} = state.config
     const {showingRevoked} = routeState
-    return {devices.toArray(), waitingForServer, error, loggedIn, showingRevoked} // toarray is temp
+    return {devices: devices.toArray(), waitingForServer, error, loggedIn, showingRevoked} // toarray is temp
   },
   (dispatch: any, {routeState, setRouteState}) => {
     return {

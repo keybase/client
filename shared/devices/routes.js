@@ -1,6 +1,6 @@
 // @flow
 import {RouteDefNode} from '../route-tree'
-import Devices from './'
+import Devices from './container'
 import CodePage from '../login/register/code-page'
 import GenPaperKey from './gen-paper-key'
 import DevicePage from './device-page'
