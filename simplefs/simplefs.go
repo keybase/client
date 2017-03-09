@@ -43,6 +43,7 @@ type handle struct {
 // make sure the interface is implemented
 var _ keybase1.SimpleFSInterface = (*SimpleFS)(nil)
 
+// NewSimpleFS creates a new SimpleFS instance.
 func NewSimpleFS(config libkbfs.Config) keybase1.SimpleFSInterface {
 	log := config.MakeLogger("simplefs")
 	return &SimpleFS{
@@ -515,7 +516,7 @@ func (k *SimpleFS) SimpleFSClose(ctx context.Context, opid keybase1.OpID) (err e
 // SimpleFSCheck - Check progress of pending operation
 func (k *SimpleFS) SimpleFSCheck(_ context.Context, opid keybase1.OpID) (keybase1.Progress, error) {
 	// TODO
-	return 0, SimpleFSError{"Not implemented"}
+	return 0, simpleFSError{"Not implemented"}
 }
 
 // SimpleFSGetOps - Get all the outstanding operations
@@ -769,7 +770,7 @@ func (k *SimpleFS) pathIO(ctx context.Context, path keybase1.Path,
 		}
 		return &localIO{f, det}, nil
 	}
-	return nil, SimpleFSError{"Invalid path type"}
+	return nil, simpleFSError{"Invalid path type"}
 }
 
 type kbfsIO struct {
@@ -900,21 +901,21 @@ func (k *SimpleFS) setResult(opid keybase1.OpID, val interface{}) {
 	k.lock.Unlock()
 }
 
-var errOnlyRemotePathSupported = SimpleFSError{"Only remote paths are supported for this operation"}
-var errInvalidRemotePath = SimpleFSError{"Invalid remote path"}
-var errNoSuchHandle = SimpleFSError{"No such handle"}
-var errNoResult = SimpleFSError{"Async result not found"}
+var errOnlyRemotePathSupported = simpleFSError{"Only remote paths are supported for this operation"}
+var errInvalidRemotePath = simpleFSError{"Invalid remote path"}
+var errNoSuchHandle = simpleFSError{"No such handle"}
+var errNoResult = simpleFSError{"Async result not found"}
 
-// SimpleFSError wraps errors for SimpleFS
-type SimpleFSError struct {
+// simpleFSError wraps errors for SimpleFS
+type simpleFSError struct {
 	reason string
 }
 
-// Error implements the error interface for SimpleFSError
-func (e SimpleFSError) Error() string { return e.reason }
+// Error implements the error interface for simpleFSError
+func (e simpleFSError) Error() string { return e.reason }
 
-// ToStatus implements the keybase1.ToStatusAble interface for SimpleFSError
-func (e SimpleFSError) ToStatus() keybase1.Status {
+// ToStatus implements the keybase1.ToStatusAble interface for simpleFSError
+func (e simpleFSError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Name: e.reason,
 		Code: int(keybase1.StatusCode_SCGeneric),
