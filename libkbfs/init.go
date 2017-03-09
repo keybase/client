@@ -65,7 +65,7 @@ type InitParams struct {
 	LogFileConfig logger.LogFileConfig
 
 	// TLFJournalBackgroundWorkStatus is the status to use to
-	// pass into JournalServer.EnableJournaling. Only has an effect when
+	// pass into JournalServer.enableJournaling. Only has an effect when
 	// WriteJournalRoot is non-empty.
 	TLFJournalBackgroundWorkStatus TLFJournalBackgroundWorkStatus
 
@@ -568,7 +568,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	// -mdserver point to local implementations.
 	var limiter diskLimiter
 	if len(params.WriteJournalRoot) != 0 {
-		limiter, err = config.EnableJournaling(
+		limiter, err = config.enableJournaling(
 			context.Background(), params.WriteJournalRoot,
 			params.TLFJournalBackgroundWorkStatus)
 		if err != nil {

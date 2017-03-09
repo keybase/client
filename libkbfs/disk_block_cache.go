@@ -415,6 +415,10 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 				// space.
 				continue
 			}
+			// If the limiter has made space, don't loop, even if we haven't
+			// verified that there are enough bytes available. The block cache
+			// isn't taking up its own limit, so while we might cause
+			// backpressure for the journal, we're still meeting our limit.
 			break
 		}
 		err = cache.blockDb.Put(blockKey, entry, nil)

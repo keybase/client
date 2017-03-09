@@ -909,10 +909,10 @@ func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
 // put.
 const defaultDiskLimitMaxDelay = 10 * time.Second
 
-// EnableJournaling creates a JournalServer and attaches it to
+// enableJournaling creates a JournalServer and attaches it to
 // this config. journalRoot must be non-empty. Errors returned are
 // non-fatal.
-func (c *ConfigLocal) EnableJournaling(
+func (c *ConfigLocal) enableJournaling(
 	ctx context.Context, journalRoot string,
 	bws TLFJournalBackgroundWorkStatus) (diskLimiter, error) {
 	jServer, err := GetJournalServer(c)
