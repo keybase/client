@@ -80,7 +80,7 @@ func MakeTestBlockServerOrBust(t logger.TestLogBackend,
 		return blockServer
 
 	case len(bserverAddr) != 0:
-		return NewBlockServerRemote(config, signer, bserverAddr, rpcLogFactory)
+		return NewBlockServerRemote(config, bserverAddr, rpcLogFactory)
 
 	default:
 		return NewBlockServerMemory(config.MakeLogger(""))
@@ -228,7 +228,7 @@ func configAsUserWithMode(config *ConfigLocal,
 	c.noBGFlush = config.noBGFlush
 
 	if s, ok := config.BlockServer().(*BlockServerRemote); ok {
-		blockServer := NewBlockServerRemote(c, c.Signer(), s.RemoteAddress(),
+		blockServer := NewBlockServerRemote(c, s.RemoteAddress(),
 			env.NewContext().NewRPCLogFactory())
 		c.SetBlockServer(blockServer)
 	} else {

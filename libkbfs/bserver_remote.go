@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/keybase/backoff"
@@ -26,46 +27,130 @@ const (
 	BServerTokenExpireIn = 2 * 60 * 60 // 2 hours
 )
 
-type blockServerRemoteConfig interface {
-	diskBlockCacheGetter
-	codecGetter
-	signerGetter
-	currentSessionGetterGetter
-	logMaker
-}
-
-// BlockServerRemote implements the BlockServer interface and
-// represents a remote KBFS block server.
-type BlockServerRemote struct {
-	config     blockServerRemoteConfig
-	shutdownFn func()
-	putClient  keybase1.BlockInterface
-	getClient  keybase1.BlockInterface
-	log        logger.Logger
-	deferLog   logger.Logger
-	blkSrvAddr string
-
-	putAuthToken *kbfscrypto.AuthToken
-	getAuthToken *kbfscrypto.AuthToken
-}
-
-// Test that BlockServerRemote fully implements the BlockServer interface.
-var _ BlockServer = (*BlockServerRemote)(nil)
-
 // blockServerRemoteAuthTokenRefresher is a helper struct for
-// refreshing auth tokens.
+// refreshing auth tokens and managing connections.
 type blockServerRemoteClientHandler struct {
-	bs        *BlockServerRemote
-	name      string
-	authToken *kbfscrypto.AuthToken
-	client    keybase1.BlockInterface
+	name          string
+	log           logger.Logger
+	deferLog      logger.Logger
+	csg           currentSessionGetter
+	authToken     *kbfscrypto.AuthToken
+	srvAddr       string
+	connOpts      rpc.ConnectionOpts
+	rpcLogFactory *libkb.RPCLogFactory
+
+	connMu sync.RWMutex
+	conn   *rpc.Connection
+	client keybase1.BlockInterface
+
+	tickerMu     sync.Mutex
+	tickerCancel context.CancelFunc
+}
+
+func newBlockServerRemoteClientHandler(name string, log logger.Logger,
+	signer kbfscrypto.Signer, csg currentSessionGetter, srvAddr string,
+	rpcLogFactory *libkb.RPCLogFactory) *blockServerRemoteClientHandler {
+	deferLog := log.CloneWithAddedDepth(1)
+	b := &blockServerRemoteClientHandler{
+		name:          name,
+		log:           log,
+		deferLog:      deferLog,
+		csg:           csg,
+		srvAddr:       srvAddr,
+		rpcLogFactory: rpcLogFactory,
+	}
+
+	b.authToken = kbfscrypto.NewAuthToken(
+		signer, BServerTokenServer, BServerTokenExpireIn,
+		"libkbfs_bserver_remote", VersionString(), b)
+
+	constBackoff := backoff.NewConstantBackOff(RPCReconnectInterval)
+	b.connOpts = rpc.ConnectionOpts{
+		DontConnectNow:   true, // connect only on-demand
+		WrapErrorFunc:    libkb.WrapError,
+		TagsFunc:         libkb.LogTagsFromContext,
+		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
+	}
+	b.initNewConnection()
+	return b
+}
+
+func (b *blockServerRemoteClientHandler) initNewConnection() {
+	b.connMu.Lock()
+	defer b.connMu.Unlock()
+
+	if b.conn != nil {
+		b.conn.Shutdown()
+	}
+
+	b.conn = rpc.NewTLSConnection(
+		b.srvAddr, kbfscrypto.GetRootCerts(b.srvAddr), MDServerErrorUnwrapper{},
+		b, b.rpcLogFactory, b.log, b.connOpts)
+	b.client = keybase1.BlockClient{Cli: b.conn.GetClient()}
+}
+
+func (b *blockServerRemoteClientHandler) shutdown() {
+	if b.authToken != nil {
+		b.authToken.Shutdown()
+	}
+
+	b.connMu.Lock()
+	defer b.connMu.Unlock()
+
+	if b.conn != nil {
+		b.conn.Shutdown()
+	}
+}
+
+func (b *blockServerRemoteClientHandler) getConn() *rpc.Connection {
+	b.connMu.RLock()
+	defer b.connMu.RUnlock()
+	return b.conn
+}
+
+func (b *blockServerRemoteClientHandler) getClient() keybase1.BlockInterface {
+	b.connMu.RLock()
+	defer b.connMu.RUnlock()
+	return b.client
+}
+
+// resetAuth is called to reset the authorization on a BlockServer
+// connection.
+func (b *blockServerRemoteClientHandler) resetAuth(
+	ctx context.Context, c keybase1.BlockInterface) (err error) {
+	defer func() {
+		b.deferLog.CDebugf(
+			ctx, "BlockServerRemote: resetAuth called, err: %#v", err)
+	}()
+
+	session, err := b.csg.GetCurrentSession(ctx)
+	if err != nil {
+		b.log.CDebugf(
+			ctx, "BlockServerRemote: User logged out, skipping resetAuth")
+		return nil
+	}
+
+	// request a challenge
+	challenge, err := c.GetSessionChallenge(ctx)
+	if err != nil {
+		return err
+	}
+
+	// get a new signature
+	signature, err := b.authToken.Sign(ctx, session.Name,
+		session.UID, session.VerifyingKey, challenge)
+	if err != nil {
+		return err
+	}
+
+	return c.AuthenticateSession(ctx, signature)
 }
 
 // RefreshAuthToken implements the AuthTokenRefreshHandler interface.
 func (b *blockServerRemoteClientHandler) RefreshAuthToken(
 	ctx context.Context) {
-	if err := b.bs.resetAuth(ctx, b.client, b.authToken); err != nil {
-		b.bs.log.CDebugf(ctx, "error refreshing auth token: %v", err)
+	if err := b.resetAuth(ctx, b.client); err != nil {
+		b.log.CDebugf(ctx, "error refreshing auth token: %v", err)
 	}
 }
 
@@ -81,13 +166,12 @@ func (b *blockServerRemoteClientHandler) OnConnect(ctx context.Context,
 	conn *rpc.Connection, client rpc.GenericClient, _ *rpc.Server) error {
 	// reset auth -- using client here would cause problematic recursion.
 	c := keybase1.BlockClient{Cli: client}
-	return b.bs.resetAuth(ctx, c, b.authToken)
+	return b.resetAuth(ctx, c)
 }
 
 // OnConnectError implements the ConnectionHandler interface.
 func (b *blockServerRemoteClientHandler) OnConnectError(err error, wait time.Duration) {
-	b.bs.log.Warning("connection error: %v; retrying in %s",
-		err, wait)
+	b.log.Warning("connection error: %v; retrying in %s", err, wait)
 	if b.authToken != nil {
 		b.authToken.Shutdown()
 	}
@@ -97,15 +181,14 @@ func (b *blockServerRemoteClientHandler) OnConnectError(err error, wait time.Dur
 
 // OnDoCommandError implements the ConnectionHandler interface.
 func (b *blockServerRemoteClientHandler) OnDoCommandError(err error, wait time.Duration) {
-	b.bs.log.Warning("DoCommand error: %v; retrying in %s",
-		err, wait)
+	b.log.Warning("DoCommand error: %v; retrying in %s", err, wait)
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
 func (b *blockServerRemoteClientHandler) OnDisconnected(ctx context.Context,
 	status rpc.DisconnectStatus) {
 	if status == rpc.StartingNonFirstConnection {
-		b.bs.log.CWarningf(ctx, "disconnected")
+		b.log.CWarningf(ctx, "disconnected")
 	}
 	if b.authToken != nil {
 		b.authToken.Shutdown()
@@ -141,11 +224,36 @@ func (b *blockServerRemoteClientHandler) ShouldRetryOnConnect(err error) bool {
 
 var _ rpc.ConnectionHandler = (*blockServerRemoteClientHandler)(nil)
 
+type blockServerRemoteConfig interface {
+	diskBlockCacheGetter
+	codecGetter
+	signerGetter
+	currentSessionGetterGetter
+	logMaker
+}
+
+// BlockServerRemote implements the BlockServer interface and
+// represents a remote KBFS block server.
+type BlockServerRemote struct {
+	config     blockServerRemoteConfig
+	shutdownFn func()
+	putClient  keybase1.BlockInterface
+	getClient  keybase1.BlockInterface
+	log        logger.Logger
+	deferLog   logger.Logger
+	blkSrvAddr string
+
+	putConn *blockServerRemoteClientHandler
+	getConn *blockServerRemoteClientHandler
+}
+
+// Test that BlockServerRemote fully implements the BlockServer interface.
+var _ BlockServer = (*BlockServerRemote)(nil)
+
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
 func NewBlockServerRemote(config blockServerRemoteConfig,
-	signer kbfscrypto.Signer, blkSrvAddr string,
-	rpcLogFactory *libkb.RPCLogFactory) *BlockServerRemote {
+	blkSrvAddr string, rpcLogFactory *libkb.RPCLogFactory) *BlockServerRemote {
 	log := config.MakeLogger("BSR")
 	deferLog := log.CloneWithAddedDepth(1)
 	bs := &BlockServerRemote{
@@ -154,56 +262,20 @@ func NewBlockServerRemote(config blockServerRemoteConfig,
 		deferLog:   deferLog,
 		blkSrvAddr: blkSrvAddr,
 	}
-	bs.log.Debug("new instance server addr %s", blkSrvAddr)
-
-	// Use two separate auth tokens and clients -- one for writes and
-	// one for reads.  This allows small reads to avoid getting
-	// trapped behind large asynchronous writes.  TODO: use some real
-	// network QoS to achieve better prioritization within the actual
-	// network.
-	putClientHandler := &blockServerRemoteClientHandler{
-		bs:   bs,
-		name: "BlockServerRemotePut",
-	}
-	bs.putAuthToken = kbfscrypto.NewAuthToken(signer,
-		BServerTokenServer, BServerTokenExpireIn,
-		"libkbfs_bserver_remote", VersionString(), putClientHandler)
-	putClientHandler.authToken = bs.putAuthToken
-	getClientHandler := &blockServerRemoteClientHandler{
-		bs:   bs,
-		name: "BlockServerRemoteGet",
-	}
-	bs.getAuthToken = kbfscrypto.NewAuthToken(signer,
-		BServerTokenServer, BServerTokenExpireIn,
-		"libkbfs_bserver_remote", VersionString(), getClientHandler)
-	getClientHandler.authToken = bs.getAuthToken
-
-	constBackoff := backoff.NewConstantBackOff(RPCReconnectInterval)
-	opts := rpc.ConnectionOpts{
-		DontConnectNow: true, // connect only on-demand
-		WrapErrorFunc:  libkb.WrapError,
-		TagsFunc:       libkb.LogTagsFromContext,
-		// This constant backoff is safe to share between multiple connections,
-		// because it has no internal state. But beware: an exponential backoff
-		// shouldn't be shared.
-		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
-	}
-	putConn := rpc.NewTLSConnection(blkSrvAddr,
-		kbfscrypto.GetRootCerts(blkSrvAddr),
-		kbfsblock.BServerErrorUnwrapper{}, putClientHandler,
-		rpcLogFactory, log, opts)
-	bs.putClient = keybase1.BlockClient{Cli: putConn.GetClient()}
-	putClientHandler.client = bs.putClient
-	getConn := rpc.NewTLSConnection(blkSrvAddr,
-		kbfscrypto.GetRootCerts(blkSrvAddr),
-		kbfsblock.BServerErrorUnwrapper{}, getClientHandler,
-		rpcLogFactory, log, opts)
-	bs.getClient = keybase1.BlockClient{Cli: getConn.GetClient()}
-	getClientHandler.client = bs.getClient
+	// Use two separate auth clients -- one for writes and one for
+	// reads.  This allows small reads to avoid getting trapped behind
+	// large asynchronous writes.  TODO: use some real network QoS to
+	// achieve better prioritization within the actual network.
+	bs.putConn = newBlockServerRemoteClientHandler(
+		"BlockServerRemotePut", log, config.Signer(),
+		config.currentSessionGetter(), blkSrvAddr, rpcLogFactory)
+	bs.getConn = newBlockServerRemoteClientHandler(
+		"BlockServerRemoteGet", log, config.Signer(),
+		config.currentSessionGetter(), blkSrvAddr, rpcLogFactory)
 
 	bs.shutdownFn = func() {
-		putConn.Shutdown()
-		getConn.Shutdown()
+		bs.putConn.shutdown()
+		bs.getConn.shutdown()
 	}
 	return bs
 }
@@ -214,10 +286,19 @@ func newBlockServerRemoteWithClient(config blockServerRemoteConfig,
 	log := config.MakeLogger("BSR")
 	deferLog := log.CloneWithAddedDepth(1)
 	bs := &BlockServerRemote{
-		config:    config,
-		putClient: client,
-		getClient: client,
-		deferLog:  deferLog,
+		config:   config,
+		log:      log,
+		deferLog: deferLog,
+		putConn: &blockServerRemoteClientHandler{
+			log:      log,
+			deferLog: deferLog,
+			client:   client,
+		},
+		getConn: &blockServerRemoteClientHandler{
+			log:      log,
+			deferLog: deferLog,
+			client:   client,
+		},
 	}
 	return bs
 }
@@ -227,46 +308,10 @@ func (b *BlockServerRemote) RemoteAddress() string {
 	return b.blkSrvAddr
 }
 
-// resetAuth is called to reset the authorization on a BlockServer
-// connection.
-func (b *BlockServerRemote) resetAuth(
-	ctx context.Context, c keybase1.BlockInterface,
-	authToken *kbfscrypto.AuthToken) (err error) {
-
-	defer func() {
-		b.log.Debug("BlockServerRemote: resetAuth called, err: %#v", err)
-	}()
-
-	session, err := b.config.currentSessionGetter().GetCurrentSession(ctx)
-	if err != nil {
-		b.log.Debug("BlockServerRemote: User logged out, skipping resetAuth")
-		return nil
-	}
-
-	// request a challenge
-	challenge, err := c.GetSessionChallenge(ctx)
-	if err != nil {
-		return err
-	}
-
-	// get a new signature
-	signature, err := authToken.Sign(ctx, session.Name,
-		session.UID, session.VerifyingKey, challenge)
-	if err != nil {
-		return err
-	}
-
-	return c.AuthenticateSession(ctx, signature)
-}
-
 // RefreshAuthToken implements the AuthTokenRefreshHandler interface.
 func (b *BlockServerRemote) RefreshAuthToken(ctx context.Context) {
-	if err := b.resetAuth(ctx, b.putClient, b.putAuthToken); err != nil {
-		b.log.CDebugf(ctx, "error refreshing put auth token: %v", err)
-	}
-	if err := b.resetAuth(ctx, b.getClient, b.getAuthToken); err != nil {
-		b.log.CDebugf(ctx, "error refreshing get auth token: %v", err)
-	}
+	b.putConn.RefreshAuthToken(ctx)
+	b.getConn.RefreshAuthToken(ctx)
 }
 
 func makeBlockIDCombo(id kbfsblock.ID, context kbfsblock.Context) keybase1.BlockIdCombo {
@@ -326,7 +371,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 		Folder: tlfID.String(),
 	}
 
-	res, err := b.getClient.GetBlock(ctx, arg)
+	res, err := b.getConn.getClient().GetBlock(ctx, arg)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
@@ -369,7 +414,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 	}
 
 	// Handle OverQuota errors at the caller
-	return b.putClient.PutBlock(ctx, arg)
+	return b.putConn.getClient().PutBlock(ctx, arg)
 }
 
 // AddBlockReference implements the BlockServer interface for BlockServerRemote
@@ -388,7 +433,7 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 	}()
 
 	// Handle OverQuota errors at the caller
-	return b.putClient.AddReference(ctx, keybase1.AddReferenceArg{
+	return b.putConn.getClient().AddReference(ctx, keybase1.AddReferenceArg{
 		Ref:    makeBlockReference(id, context),
 		Folder: tlfID.String(),
 	})
@@ -451,13 +496,13 @@ func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
 		var res keybase1.DowngradeReferenceRes
 		var err error
 		if archive {
-			res, err = b.putClient.ArchiveReferenceWithCount(ctx,
+			res, err = b.putConn.getClient().ArchiveReferenceWithCount(ctx,
 				keybase1.ArchiveReferenceWithCountArg{
 					Refs:   notDone,
 					Folder: tlfID.String(),
 				})
 		} else {
-			res, err = b.putClient.DelReferenceWithCount(ctx,
+			res, err = b.putConn.getClient().DelReferenceWithCount(ctx,
 				keybase1.DelReferenceWithCountArg{
 					Refs:   notDone,
 					Folder: tlfID.String(),
@@ -543,7 +588,7 @@ func (b *BlockServerRemote) getNotDone(all kbfsblock.ContextMap, doneRefs map[kb
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.UserQuotaInfo, err error) {
-	res, err := b.getClient.GetUserQuotaInfo(ctx)
+	res, err := b.getConn.getClient().GetUserQuotaInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -555,10 +600,6 @@ func (b *BlockServerRemote) Shutdown(ctx context.Context) {
 	if b.shutdownFn != nil {
 		b.shutdownFn()
 	}
-	if b.getAuthToken != nil {
-		b.getAuthToken.Shutdown()
-	}
-	if b.putAuthToken != nil {
-		b.putAuthToken.Shutdown()
-	}
+	b.getConn.shutdown()
+	b.putConn.shutdown()
 }
