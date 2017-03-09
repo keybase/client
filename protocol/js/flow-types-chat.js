@@ -731,6 +731,7 @@ export type ChatActivityType =
 export type Conversation = {
   metadata: ConversationMetadata,
   readerInfo?: ?ConversationReaderInfo,
+  maxMsgs?: ?Array<MessageBoxed>,
   maxMsgSummaries?: ?Array<MessageSummary>,
 }
 

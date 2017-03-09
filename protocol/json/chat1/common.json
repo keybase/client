@@ -363,6 +363,13 @@
         {
           "type": {
             "type": "array",
+            "items": "MessageBoxed"
+          },
+          "name": "maxMsgs"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "MessageSummary"
           },
           "name": "maxMsgSummaries"

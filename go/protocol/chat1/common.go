@@ -201,6 +201,7 @@ type ConversationReaderInfo struct {
 type Conversation struct {
 	Metadata        ConversationMetadata    `codec:"metadata" json:"metadata"`
 	ReaderInfo      *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
+	MaxMsgs         []MessageBoxed          `codec:"maxMsgs" json:"maxMsgs"`
 	MaxMsgSummaries []MessageSummary        `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
 }
 

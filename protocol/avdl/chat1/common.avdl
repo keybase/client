@@ -140,7 +140,7 @@ protocol common {
     union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective 
 
     // maxMsgs is the maximum message for each messageType in the conversation
-    // array<MessageBoxed> maxMsgs;
+    array<MessageBoxed> maxMsgs;
 
     // maxMsgSummaries contains a subset of the full MessageBoxed for the maximum message for
     // each messageType in the conversation
