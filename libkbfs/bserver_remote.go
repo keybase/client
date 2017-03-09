@@ -135,7 +135,7 @@ func (b *blockServerRemoteClientHandler) resetAuth(
 	session, err := b.csg.GetCurrentSession(ctx)
 	if err != nil {
 		b.log.CDebugf(
-			ctx, "BlockServerRemote: User logged out, skipping resetAuth")
+			ctx, "%s: User logged out, skipping resetAuth", b.name)
 		return nil
 	}
 
@@ -159,7 +159,7 @@ func (b *blockServerRemoteClientHandler) resetAuth(
 func (b *blockServerRemoteClientHandler) RefreshAuthToken(
 	ctx context.Context) {
 	if err := b.resetAuth(ctx, b.client); err != nil {
-		b.log.CDebugf(ctx, "error refreshing auth token: %v", err)
+		b.log.CDebugf(ctx, "%s: error refreshing auth token: %v", b.name, err)
 	}
 }
 
@@ -187,7 +187,7 @@ func (b *blockServerRemoteClientHandler) OnConnect(ctx context.Context,
 
 // OnConnectError implements the ConnectionHandler interface.
 func (b *blockServerRemoteClientHandler) OnConnectError(err error, wait time.Duration) {
-	b.log.Warning("connection error: %v; retrying in %s", err, wait)
+	b.log.Warning("%s: connection error: %v; retrying in %s", b.name, err, wait)
 	if b.authToken != nil {
 		b.authToken.Shutdown()
 	}
@@ -198,14 +198,14 @@ func (b *blockServerRemoteClientHandler) OnConnectError(err error, wait time.Dur
 
 // OnDoCommandError implements the ConnectionHandler interface.
 func (b *blockServerRemoteClientHandler) OnDoCommandError(err error, wait time.Duration) {
-	b.log.Warning("DoCommand error: %v; retrying in %s", err, wait)
+	b.log.Warning("%s: DoCommand error: %v; retrying in %s", b.name, err, wait)
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
 func (b *blockServerRemoteClientHandler) OnDisconnected(ctx context.Context,
 	status rpc.DisconnectStatus) {
 	if status == rpc.StartingNonFirstConnection {
-		b.log.CWarningf(ctx, "disconnected")
+		b.log.CWarningf(ctx, "%s: disconnected", b.name)
 	}
 	if b.authToken != nil {
 		b.authToken.Shutdown()
@@ -247,10 +247,11 @@ func (b *blockServerRemoteClientHandler) pingOnce(ctx context.Context) {
 	defer cancel()
 	_, err := b.getClient().BlockPing(ctx)
 	if err == context.DeadlineExceeded {
-		b.log.CDebugf(ctx, "Ping timeout -- reinitializing connection")
+		b.log.CDebugf(
+			ctx, "%s: Ping timeout -- reinitializing connection", b.name)
 		b.initNewConnection()
 	} else if err != nil {
-		b.log.CDebugf(ctx, "BServerRemote: ping error %s", err)
+		b.log.CDebugf(ctx, "%s: BServerRemote: ping error %s", b.name, err)
 	}
 }
 
@@ -267,8 +268,8 @@ func (b *blockServerRemoteClientHandler) resetPingTicker(intervalSeconds int) {
 		return
 	}
 
-	b.log.Debug("BServerRemote: starting new ping ticker with interval %d",
-		intervalSeconds)
+	b.log.Debug("%s: starting new ping ticker with interval %d",
+		b.name, intervalSeconds)
 
 	var ctx context.Context
 	ctx, b.tickerCancel = context.WithCancel(context.Background())
@@ -280,7 +281,7 @@ func (b *blockServerRemoteClientHandler) resetPingTicker(intervalSeconds int) {
 				b.pingOnce(ctx)
 
 			case <-ctx.Done():
-				b.log.CDebugf(ctx, "BServerRemote: stopping ping ticker")
+				b.log.CDebugf(ctx, "%s: stopping ping ticker", b.name)
 				ticker.Stop()
 				return
 			}
