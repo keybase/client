@@ -91,6 +91,7 @@ protocol common {
     boolean unreadOnly;
     boolean readOnly;
     boolean computeActiveList;
+    boolean summarizeMaxMsgs; // if true, resulting conversation will only have summaries of max msgs
   }
 
   record ConversationIDTriple {

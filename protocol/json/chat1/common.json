@@ -219,6 +219,10 @@
         {
           "type": "boolean",
           "name": "computeActiveList"
+        },
+        {
+          "type": "boolean",
+          "name": "summarizeMaxMsgs"
         }
       ]
     },

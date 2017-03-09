@@ -925,6 +925,7 @@ export type GetInboxQuery = {
   unreadOnly: boolean,
   readOnly: boolean,
   computeActiveList: boolean,
+  summarizeMaxMsgs: boolean,
 }
 
 export type GetInboxRemoteRes = {
@@ -1690,7 +1691,8 @@ export type remoteGetMessagesRemoteRpcParam = Exact<{
 
 export type remoteGetPublicConversationsRpcParam = Exact<{
   tlfID: TLFID,
-  topicType: TopicType
+  topicType: TopicType,
+  summarizeMaxMsgs: boolean
 }>
 
 export type remoteGetS3ParamsRpcParam = Exact<{

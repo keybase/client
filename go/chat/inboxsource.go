@@ -295,6 +295,7 @@ func (b *baseInboxSource) getInboxQueryLocalToRemote(ctx context.Context,
 	rquery.ConvID = lquery.ConvID
 	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
 	rquery.Status = lquery.Status
+	rquery.SummarizeMaxMsgs = true
 
 	return rquery, info, nil
 }
@@ -446,10 +447,12 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 	if query == nil {
 		rquery = chat1.GetInboxQuery{
 			ComputeActiveList: true,
+			SummarizeMaxMsgs:  true,
 		}
 	} else {
 		rquery = *query
 		rquery.ComputeActiveList = true
+		rquery.SummarizeMaxMsgs = true
 	}
 
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
