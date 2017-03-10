@@ -1,8 +1,9 @@
 // @flow
 import type {NoErrorTypedAction} from '../constants/types/flux'
 
-export type TokenType = 'apple' | 'androidplay'
+export type TokenType = 'apple' | 'appledev' | 'androidplay'
 export const tokenTypeApple: TokenType = 'apple'
+export const tokenTypeAppleDev: TokenType = 'appledev'
 export const tokenTypeAndroidPlay: TokenType = 'androidplay'
 
 // FIXME: these types diverge because of react-native-push-notification. In the

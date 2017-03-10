@@ -394,7 +394,8 @@ func TestReorder(t *testing.T) {
 		}
 	}
 	buf := make([]byte, 1000)
-	if _, err := c2.Read(buf); err != ErrBadPacketSequence {
+	_, err := c2.Read(buf)
+	if _, ok := err.(ErrBadPacketSequence); !ok {
 		t.Fatalf("expected an ErrBadPacketSequence; got %v", err)
 	}
 }
@@ -417,7 +418,8 @@ func TestDrop(t *testing.T) {
 		}
 	}
 	buf := make([]byte, 1000)
-	if _, err := c2.Read(buf); err != ErrBadPacketSequence {
+	_, err := c2.Read(buf)
+	if _, ok := err.(ErrBadPacketSequence); !ok {
 		t.Fatalf("expected an ErrBadPacketSequence; got %v", err)
 	}
 }

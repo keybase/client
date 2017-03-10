@@ -87,6 +87,12 @@ func BackgroundContext(sourceCtx context.Context) context.Context {
 	if ident, breaks, ok := IdentifyMode(sourceCtx); ok {
 		rctx = Context(rctx, ident, breaks, in)
 	}
+
+	// Overwrite trace tag
+	if tr, ok := sourceCtx.Value(chatTraceKey).(string); ok {
+		rctx = context.WithValue(rctx, chatTraceKey, tr)
+	}
+
 	rctx = context.WithValue(rctx, kfKey, CtxKeyFinder(sourceCtx))
 	rctx = context.WithValue(rctx, inKey, in)
 

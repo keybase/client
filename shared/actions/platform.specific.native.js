@@ -4,6 +4,7 @@ import {PushNotificationIOS, CameraRoll, ActionSheetIOS} from 'react-native'
 import * as PushConstants from '../constants/push'
 import {eventChannel} from 'redux-saga'
 import {isIOS} from '../constants/platform'
+import {isDevApplePushToken} from '../local-debug'
 
 function requestPushPermissions (): Promise<*> {
   return PushNotifications.requestPermissions()
@@ -39,7 +40,7 @@ function configurePush () {
       onRegister: (token) => {
         let tokenType: ?PushConstants.TokenType
         switch (token.os) {
-          case 'ios': tokenType = PushConstants.tokenTypeApple; break
+          case 'ios': tokenType = isDevApplePushToken ? PushConstants.tokenTypeAppleDev : PushConstants.tokenTypeApple; break
           case 'android': tokenType = PushConstants.tokenTypeAndroidPlay; break
         }
         if (tokenType) {
@@ -72,8 +73,8 @@ function configurePush () {
           type: 'push:error',
         }: PushConstants.PushError))
       },
-      // Don't request permissions now, we'll ask later, after showing UI
-      requestPermissions: false,
+      // Don't request permissions for ios, we'll ask later, after showing UI
+      requestPermissions: !isIOS,
     })
     // It doesn't look like there is a registrationError being set for iOS.
     // https://github.com/zo0r/react-native-push-notification/issues/261
@@ -85,25 +86,31 @@ function configurePush () {
     })
 
     console.log('Check push permissions')
-    PushNotifications.checkPermissions(permissions => {
-      console.log('Push checked permissions:', permissions)
-      if (!permissions.alert) {
-        // TODO(gabriel): Detect if we already showed permissions prompt and were denied,
-        // in which case we should not show prompt or show different prompt about enabling
-        // in Settings (for iOS)
-        emitter(({
-          payload: true,
-          type: 'push:permissionsPrompt',
-        }: PushConstants.PushPermissionsPromptAction))
-      } else {
-        // We have permissions, this triggers a token registration in
-        // case it changed.
-        emitter(({
-          payload: undefined,
-          type: 'push:permissionsRequest',
-        }: PushConstants.PushPermissionsRequestAction))
-      }
-    })
+    if (isIOS) {
+      PushNotifications.checkPermissions(permissions => {
+        console.log('Push checked permissions:', permissions)
+        if (!permissions.alert) {
+          // TODO(gabriel): Detect if we already showed permissions prompt and were denied,
+          // in which case we should not show prompt or show different prompt about enabling
+          // in Settings (for iOS)
+          emitter(({
+            payload: true,
+            type: 'push:permissionsPrompt',
+            logTransformer: action => ({
+              payload: action.payload,
+              type: action.type,
+            }),
+          }: PushConstants.PushPermissionsPromptAction))
+        } else {
+          // We have permissions, this triggers a token registration in
+          // case it changed.
+          emitter(({
+            payload: undefined,
+            type: 'push:permissionsRequest',
+          }: PushConstants.PushPermissionsRequestAction))
+        }
+      })
+    }
 
     // TODO make some true unsubscribe function
     return () => {}

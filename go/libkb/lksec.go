@@ -516,6 +516,10 @@ func (s *LKSec) ToSKB(key GenericKey) (ret *SKB, err error) {
 	var privateKey RawPrivateKey
 
 	publicKey, privateKey, err = key.ExportPublicAndPrivate()
+	if err != nil {
+		return nil, err
+	}
+
 	ret.Priv.Data, err = s.Encrypt([]byte(privateKey))
 	if err != nil {
 		return nil, err

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"flag"
 	"fmt"
 	"strconv"
 	"strings"
@@ -203,12 +204,22 @@ func (t ConversationIDTriple) Derivable(cid ConversationID) bool {
 	return bytes.Equal(h[2:], []byte(cid[2:]))
 }
 
-func (o OutboxID) Eq(r OutboxID) bool {
-	return bytes.Equal(o, r)
+func (o *OutboxID) Eq(r *OutboxID) bool {
+	if o != nil && r != nil {
+		return bytes.Equal(*o, *r)
+	}
+	return (o == nil) && (r == nil)
 }
 
 func (o OutboxID) String() string {
 	return hex.EncodeToString(o)
+}
+
+func (o *OutboxInfo) Eq(r *OutboxInfo) bool {
+	if o != nil && r != nil {
+		return *o == *r
+	}
+	return (o == nil) && (r == nil)
 }
 
 func (p MessagePreviousPointer) Eq(other MessagePreviousPointer) bool {
@@ -267,6 +278,23 @@ func (h MessageClientHeader) TLFNameExpanded(finalizeInfo *ConversationFinalizeI
 
 func (h MessageClientHeaderVerified) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
 	return ExpandTLFName(h.TlfName, finalizeInfo)
+}
+
+func (h MessageClientHeader) ToVerifiedForTesting() MessageClientHeaderVerified {
+	if flag.Lookup("test.v") == nil {
+		panic("MessageClientHeader.ToVerifiedForTesting used outside of test")
+	}
+	return MessageClientHeaderVerified{
+		Conv:         h.Conv,
+		TlfName:      h.TlfName,
+		TlfPublic:    h.TlfPublic,
+		MessageType:  h.MessageType,
+		Prev:         h.Prev,
+		Sender:       h.Sender,
+		SenderDevice: h.SenderDevice,
+		OutboxID:     h.OutboxID,
+		OutboxInfo:   h.OutboxInfo,
+	}
 }
 
 // ExpandTLFName returns a TLF name with a reset suffix if it exists.
@@ -365,6 +393,45 @@ func ConvertMessageBodyV1ToV2(v1 MessageBodyV1) (MessageBody, error) {
 	return MessageBody{}, fmt.Errorf("ConvertMessageBodyV1ToV2: unhandled message type %v", t)
 }
 */
+
+func (a *MerkleRoot) Eq(b *MerkleRoot) bool {
+	if a != nil && b != nil {
+		return (a.Seqno == b.Seqno) && bytes.Equal(a.Hash, b.Hash)
+	}
+	return (a == nil) && (b == nil)
+}
+
+func (d *SealedData) AsEncrypted() EncryptedData {
+	return EncryptedData{
+		V: d.V,
+		E: d.E,
+		N: d.N,
+	}
+}
+
+func (d *SealedData) AsSignEncrypted() SignEncryptedData {
+	return SignEncryptedData{
+		V: d.V,
+		E: d.E,
+		N: d.N,
+	}
+}
+
+func (d *EncryptedData) AsSealed() SealedData {
+	return SealedData{
+		V: d.V,
+		E: d.E,
+		N: d.N,
+	}
+}
+
+func (d *SignEncryptedData) AsSealed() SealedData {
+	return SealedData{
+		V: d.V,
+		E: d.E,
+		N: d.N,
+	}
+}
 
 func NewConversationErrorLocal(
 	message string,

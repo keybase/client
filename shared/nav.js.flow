@@ -16,6 +16,7 @@ export type Props = {
   children: React$Element<*>,
   routeSelected: Tab,
   routeStack: RouteRenderStack,
+  hideNav: boolean,
 }
 
 export default class Nav extends Component<void, Props, void> {}
