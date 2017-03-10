@@ -23,13 +23,13 @@ type pinger struct {
 	tickerCancel context.CancelFunc
 }
 
-func (p pinger) pingOnce(ctx context.Context) {
+func (p *pinger) pingOnce(ctx context.Context) {
 	ctx, cancel := context.WithTimeout(ctx, p.timeout)
 	defer cancel()
 	p.doPing(ctx)
 }
 
-func (p pinger) resetTicker(intervalSeconds int) {
+func (p *pinger) resetTicker(intervalSeconds int) {
 	p.tickerMu.Lock()
 	defer p.tickerMu.Unlock()
 
