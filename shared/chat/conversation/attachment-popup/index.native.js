@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Icon, Text, PopupDialog, ProgressIndicator, NativeImage} from '../../../common-adapters/index.native'
+import {Box, Icon, Text, ProgressIndicator, NativeImage} from '../../../common-adapters/index.native'
 import {MessagePopup} from '../messages/popup.native'
 import {ImageIcon as AttachmentStatusIcon} from '../messages/attachment'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
@@ -32,15 +32,10 @@ const AttachmentPopup = ({message, detailsPopupShowing, isZoomed, onCloseDetails
 
   if (!previewType || previewType === 'Other') {
     return (
-      <PopupDialog onClose={onClose} fill={true} styleContainer={{
+      <Box style={{
         ...globalStyles.flexBoxColumn,
+        ...globalStyles.fillAbsolute,
         backgroundColor: globalColors.white,
-        borderRadius: 0,
-        bottom: 0,
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 20,
       }}>
         <Text type='Body' onClick={onClose} style={{color: globalColors.blue, marginLeft: globalMargins.small, marginTop: globalMargins.small, borderBottomWidth: 1, borderBottomColor: globalColors.black_40}}>Close</Text>
         <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', flex: 1}}>
@@ -63,19 +58,15 @@ const AttachmentPopup = ({message, detailsPopupShowing, isZoomed, onCloseDetails
             onHidden={onCloseDetailsPopup}
             style={{position: 'absolute', right: globalMargins.xtiny, bottom: 28}}
           />}
-      </PopupDialog>
+      </Box>
     )
   }
 
   return (
-    <PopupDialog onClose={onClose} fill={true} styleContainer={{
+    <Box style={{
+      ...globalStyles.flexBoxColumn,
+      ...globalStyles.fillAbsolute,
       backgroundColor: globalColors.black,
-      borderRadius: 0,
-      bottom: 0,
-      left: 0,
-      position: 'absolute',
-      right: 0,
-      top: 20,
     }}>
       <Text type='Body' onClick={onClose} style={{color: globalColors.white, marginLeft: globalMargins.small, marginTop: globalMargins.small}}>Close</Text>
       <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={message.hdPreviewPath} />
@@ -92,7 +83,7 @@ const AttachmentPopup = ({message, detailsPopupShowing, isZoomed, onCloseDetails
           onHidden={onCloseDetailsPopup}
           style={{position: 'absolute', right: globalMargins.xtiny, bottom: 28}}
         />}
-    </PopupDialog>
+    </Box>
   )
 }
 

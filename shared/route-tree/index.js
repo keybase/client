@@ -9,6 +9,8 @@ type LeafTagsParams = {
   modal: boolean,
   layerOnTop: boolean,
   underStatusBar: boolean,
+  hideStatusBar: boolean,
+  fullscreen: boolean,
 }
 
 export const LeafTags: (spec?: LeafTagsParams) => LeafTagsParams & I.Record<LeafTagsParams> = I.Record({
@@ -16,6 +18,8 @@ export const LeafTags: (spec?: LeafTagsParams) => LeafTagsParams & I.Record<Leaf
   modal: false,
   layerOnTop: false,
   underStatusBar: false,
+  hideStatusBar: false,
+  fullscreen: false,
 })
 
 const _RouteDefNode = I.Record({
