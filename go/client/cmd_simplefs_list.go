@@ -95,7 +95,6 @@ func (c *CmdSimpleFSList) Run() error {
 
 	ctx := context.TODO()
 
-	// TODO: listing an individual file does not work yet
 	paths, err := doSimpleFSPlatformGlob(c.G(), ctx, cli, c.paths)
 	if err != nil {
 		return err
