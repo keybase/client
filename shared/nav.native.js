@@ -19,7 +19,7 @@ const {
 
 const StackWrapper = ({children}) => {
   if (isAndroid) {
-    return children
+    return <Box style={flexOne}>{children}</Box>
   } else {
     return <NativeKeyboardAvoidingView behavior={'padding'} style={sceneWrapStyleUnder} children={children} />
   }
