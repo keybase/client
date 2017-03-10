@@ -3,57 +3,58 @@ import React from 'react'
 import {Confirm, Box, Text, Icon} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 
-import type {IconType} from '../../common-adapters/icon'
 import type {Props} from '.'
 
-const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endangeredTLFs}: Props) => {
-  const icon: IconType = {
-    'mobile': 'icon-phone-revoke-64',
-    'desktop': 'icon-computer-revoke-64',
-    'backup': 'icon-paper-key-revoke-64',
-  }[type]
+const Header = ({name, icon}) => (
+  <Box style={styleIcon}>
+    <Icon type={icon} />
+    <Text type='BodyBig' style={styleName}>{name}</Text>
+  </Box>
+)
 
-  const header = (
-    <Box style={styleIcon}>
-      <Icon type={icon} />
-      <Text type='BodyBig' style={styleName}>{name}</Text>
+const Body = ({endangeredTLFs, name, currentDevice}) => (
+  <Box>
+    <Box style={styleHeader}>
+      <Text type='BodySemibold' style={styleText}>Are you sure you want to revoke {currentDevice ? 'your current device' : name}?</Text>
     </Box>
-  )
 
-  const body = (
-    <Box>
-      <Box style={styleHeader}>
-        <Text type='BodySemibold' style={styleText}>Are you sure you want to revoke {currentDevice ? 'your current device' : name}?</Text>
-      </Box>
-
-      {endangeredTLFs.length > 0 &&
+    {endangeredTLFs.length > 0 &&
+      <Box>
         <Box>
-          <Box>
-            <Text type='BodySmallSemibold' style={styleText}>You may lose access to these folders forever:</Text>
-          </Box>
-
-          <Box style={styleDevicesContainer}>
-            {endangeredTLFs.map(tlf => (
-              <Box key={tlf.name} style={styleTLF}>
-                <Text type='BodySemibold' style={styleText}>• {tlf.name}</Text>
-              </Box>
-            ))}
-          </Box>
+          <Text type='BodySmallSemibold' style={styleText}>You may lose access to these folders forever:</Text>
         </Box>
-      }
-    </Box>
-  )
 
-  return <Confirm theme='public' danger={true} header={header} body={body} submitLabel='Yes, delete it' onSubmit={() => onSubmit({deviceID, name, currentDevice})} onCancel={onCancel} />
-}
+        <Box style={styleDevicesContainer}>
+          {endangeredTLFs.map(tlf => (
+            <Box key={tlf.name} style={styleTLF}>
+              <Text type='BodySemibold' style={styleText}>• {tlf.name}</Text>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+    }
+  </Box>
+)
+
+const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endangeredTLFs, icon}: Props) => (
+  <Confirm
+    body={<Body endangeredTLFs={endangeredTLFs} name={name} currentDevice={currentDevice} />}
+    danger={true}
+    header={<Header name={name} icon={icon} />}
+    onCancel={onCancel}
+    onSubmit={() => onSubmit({currentDevice, deviceID, name})}
+    submitLabel='Yes, delete it'
+    theme='public'
+  />
+)
 
 const styleHeader = {
   marginBottom: globalMargins.tiny,
 }
 
 const styleTLF = {
-  marginTop: globalMargins.tiny,
   marginBottom: globalMargins.small,
+  marginTop: globalMargins.tiny,
 }
 
 const styleText = {
@@ -66,22 +67,22 @@ const styleIcon = {
 }
 
 const styleName = {
-  textDecorationLine: 'line-through',
   color: globalColors.red,
   fontStyle: 'italic',
   marginTop: 4,
+  textDecorationLine: 'line-through',
 }
 
 const styleDevicesContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
-  height: 200,
-  width: 300,
-  backgroundColor: globalColors.lightGrey,
   alignSelf: 'center',
-  marginTop: globalMargins.small,
+  backgroundColor: globalColors.lightGrey,
+  height: 200,
   marginBottom: globalMargins.small,
+  marginTop: globalMargins.small,
   padding: globalMargins.small,
+  width: 300,
 }
 
 export default Render
