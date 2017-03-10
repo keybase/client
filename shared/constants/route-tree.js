@@ -1,5 +1,5 @@
 // @flow
-import type {NoErrorTypedAction} from '../constants/types/flux'
+import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
 import type {RouteDefNode, Path, PropsPath} from '../route-tree'
 
 export const setRouteDef = 'routeTree:setRouteDef'
@@ -17,8 +17,13 @@ export type NavigateAppend = NoErrorTypedAction<'routeTree:navigateAppend', {pat
 export const navigateUp = 'routeTree:navigateUp'
 export type NavigateUp = NoErrorTypedAction<'routeTree:navigateUp', null>
 
+export const putActionIfOnPath = 'routeTree:putActionIfOnPath'
+export type PutActionIfOnPath<T: TypedAction<*, *, *>> = NoErrorTypedAction<'routeTree:putActionIfOnPath', {expectedPath: Path, otherAction: T}>
+
 export const setRouteState = 'routeTree:setRouteState'
 export type SetRouteState = NoErrorTypedAction<'routeTree:setRouteState', {path: Path, partialState: {}}>
 
 export const resetRoute = 'routeTree:resetRoute'
 export type ResetRoute = NoErrorTypedAction<'routeTree:resetRoute', {path: Path}>
+
+export type NavigateActions = SetRouteDef | SwitchTo | NavigateTo | NavigateAppend | NavigateUp | SetRouteState | ResetRoute
