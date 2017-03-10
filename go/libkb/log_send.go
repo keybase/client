@@ -205,6 +205,8 @@ func listLogFiles(log logger.Logger, stem string) (ret []string) {
 
 	// Sort the files in reverse chronological mtime order. We should get the raw stem first.
 	sort.Sort(nameAndMTimes(tmp))
+	log.Debug("Sorted file list: %+v", tmp)
+
 	for _, f := range tmp {
 		ret = append(ret, f.name)
 	}
