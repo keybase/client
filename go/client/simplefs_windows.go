@@ -7,7 +7,6 @@ package client
 
 import (
 	"context"
-	"errors"
 	"path/filepath"
 	"strings"
 
