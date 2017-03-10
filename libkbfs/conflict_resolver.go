@@ -3119,6 +3119,12 @@ func (cr *ConflictResolver) updateResolutionUsageAndPointers(
 	}
 	deletedBlocks := make(map[BlockPointer]bool)
 	for ptr := range toUnref {
+		if ptr == zeroPtr {
+			// A zero pointer can sneak in from the unrefs field of a
+			// syncOp following a failed syncOp, via
+			// `unmergedChains.toUnrefPointers` after a chain collapse.
+			continue
+		}
 		isUnflushed, err := cr.config.BlockServer().IsUnflushed(
 			ctx, cr.fbo.id(), ptr.ID)
 		if err != nil {
