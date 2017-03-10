@@ -1,17 +1,19 @@
 // @flow
 import * as I from 'immutable'
 import HiddenString from '../util/hidden-string'
+import {DeviceDetailRecord} from '../constants/devices'
 import {call, put, select, fork} from 'redux-saga/effects'
 import {deviceDeviceHistoryListRpcPromise, loginDeprovisionRpcPromise, loginPaperKeyRpcChannelMap, revokeRevokeDeviceRpcPromise, rekeyGetRevokeWarningRpcPromise} from '../constants/types/flow-types'
 import {devicesTab, loginTab} from '../constants/tabs'
 import {isMobile} from '../constants/platform'
 import {navigateTo} from './route-tree'
-import {orderBy} from 'lodash'
 import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {setRevokedSelf} from './login'
 
-import type {DeviceRemoved, GeneratePaperKey, IncomingDisplayPaperKeyPhrase, LoadDevices, LoadingDevices, PaperKeyLoaded, PaperKeyLoading, RemoveDevice, ShowDevices, ShowRemovePage} from '../constants/devices'
+import type {DeviceDetail} from '../constants/types/flow-types'
+import type {DeviceRemoved, GeneratePaperKey, IncomingDisplayPaperKeyPhrase, LoadDevices, LoadingDevices, PaperKeyLoaded, PaperKeyLoading, RemoveDevice, LoadedDevices, ShowRemovePage} from '../constants/devices'
 import type {Device} from '../constants/types/more'
+import type {Replace} from '../constants/entities'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
@@ -56,6 +58,12 @@ function * _deviceShowRemovePageSaga (showRemovePageAction: ShowRemovePage): Sag
 const _waitingSelector = (state: TypedState) => state.devices.get('waitingForServer')
 const _loggedInSelector = (state: TypedState) => state.config.loggedIn
 
+function _sortDevices (a: DeviceDetail, b: DeviceDetail) {
+  if (a.currentDevice) return -1
+  if (b.currentDevice) return 1
+  return a.device.name.localeCompare(b.device.name)
+}
+
 function * _deviceListSaga (): SagaGenerator<any, any> {
   const waitingForServer = yield select(_waitingSelector)
   if (waitingForServer) {
@@ -69,23 +77,27 @@ function * _deviceListSaga (): SagaGenerator<any, any> {
   yield put(loadingDevices())
   try {
     const result = yield call(deviceDeviceHistoryListRpcPromise)
-    const devices = I.fromJS(orderBy(result.map(d => ({
-      created: d.device.cTime,
-      currentDevice: d.currentDevice,
-      deviceID: d.device.deviceID,
-      lastUsed: d.device.lastUsedTime,
-      name: d.device.name,
-      provisionedAt: d.provisionedAt,
-      provisioner: d.provisioner,
-      revokedAt: d.revokedAt,
-      revokedBy: d.revokedByDevice,
-      type: d.device.type,
-    })), ['currentDevice', 'name'], ['desc', 'asc']))
+    const entities = result.reduce((map, d: DeviceDetail) => {
+      map[d.device.deviceID] = new DeviceDetailRecord({
+        created: d.device.cTime,
+        currentDevice: d.currentDevice,
+        deviceID: d.device.deviceID,
+        lastUsed: d.device.lastUsedTime,
+        name: d.device.name,
+        provisionedAt: d.provisionedAt,
+        revokedAt: d.revokedAt,
+        revokedBy: d.revokedByDevice,
+        type: d.device.type,
+      })
+      return map
+    }, {})
 
-    yield put(({
-      payload: {devices},
-      type: 'devices:showDevices',
-    }: ShowDevices))
+    const deviceIDs = result
+      .sort(_sortDevices)
+      .map(d => d.device.deviceID)
+
+    yield put(({payload: {entities, keyPath: ['devices']}, type: 'entity:replace'}: Replace))
+    yield put(({payload: {deviceIDs}, type: 'devices:loadedDevices'}: LoadedDevices))
   } catch (e) {
     throw new Error("Can't load devices")
   }

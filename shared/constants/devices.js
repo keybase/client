@@ -10,23 +10,25 @@ type IncomingDisplayPaperKeyPhrase = {params: {phrase: string}, response: {resul
 type DeviceRemoved = NoErrorTypedAction<'devices:deviceRemoved', void>
 type GeneratePaperKey = NoErrorTypedAction<'devices:generatePaperKey', void>
 type LoadDevices = NoErrorTypedAction<'devices:loadDevices', void>
+type LoadedDevices = NoErrorTypedAction<'devices:loadedDevices', {deviceIDs: Array<string>}>
 type LoadingDevices = NoErrorTypedAction<'devices:loadingDevices', void>
 type PaperKeyLoaded = NoErrorTypedAction<'devices:paperKeyLoaded', {paperKey: HiddenString}>
 type PaperKeyLoading = NoErrorTypedAction<'devices:paperKeyLoading', void>
 type RemoveDevice = NoErrorTypedAction<'devices:removeDevice', {currentDevice: boolean, deviceID: string, name: string}>
-type ShowDevices = NoErrorTypedAction<'devices:showDevices', {devices: Array<DeviceDetail>}>
 type ShowRemovePage = NoErrorTypedAction<'devices:showRemovePage', {device: Device}>
 
 type Actions = DeviceRemoved
 | GeneratePaperKey
 | LoadDevices
+| LoadedDevices
 | LoadingDevices
 | PaperKeyLoaded
 | PaperKeyLoading
 | RemoveDevice
-| ShowDevices
 | ShowRemovePage
 
+// TODO could potentially use entities for devices provisioned by other devices but we still have
+// to support pgp
 const DeviceDetailRecord = Record({
   created: 0,
   currentDevice: false,
@@ -49,19 +51,19 @@ type DeviceDetail = Record<{
   provisionedAt: number,
   provisioner: ?Device,
   revokedAt: ?number,
-  revokedBy: ?string,
+  revokedBy: ?Device,
   type: string,
 }>
 
 const StateRecord = Record({
   waitingForServer: false,
-  devices: List(),
+  deviceIDs: List(),
   paperKey: null,
 })
 
 type State = Record<{
   waitingForServer: boolean,
-  devices: List<DeviceDetail>,
+  deviceIDs: List<string>,
   paperKey: ?string,
 }>
 
@@ -72,11 +74,11 @@ export type {
   GeneratePaperKey,
   IncomingDisplayPaperKeyPhrase,
   LoadDevices,
+  LoadedDevices,
   LoadingDevices,
   PaperKeyLoaded,
   PaperKeyLoading,
   RemoveDevice,
-  ShowDevices,
   ShowRemovePage,
   State,
 }

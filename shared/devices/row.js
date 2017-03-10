@@ -5,13 +5,12 @@ import {navigateAppend} from '../actions/route-tree'
 
 import type {TypedState} from '../constants/reducer'
 
-const makeGetDeviceSelector = (deviceID: string) => (state: TypedState) => (
-  state.devices.get('devices').find(d => d.get('deviceID') === deviceID)
-)
-
 type OwnProps = {
   deviceID: string,
 }
+
+// $FlowIssue no getIn
+const makeGetDeviceSelector = (deviceID: string) => (state: TypedState) => state.entities.getIn(['devices', deviceID])
 
 const mapStateToProps = (state: TypedState, {deviceID}: OwnProps) => {
   const selector = createSelector(

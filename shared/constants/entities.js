@@ -2,9 +2,9 @@
 import {Set, List, Map, Record} from 'immutable'
 
 import type {NoErrorTypedAction} from './types/flux'
-import type {SearchResult} from './search'
+import type {DeviceDetailRecord} from './devices'
 
-type EntityTypes = 'search'
+type EntityTypes = 'devices'
 type EntityType = any // TODO stronger typing?
 
 // Actions
@@ -17,20 +17,12 @@ type Actions = Delete
   | Replace
 
 // State
-type SearchEntities = Record<{
-  results: Map<string, SearchResult>,
-}>
-
-const SearchEntitiesRecord = Record({
-  results: Map(),
-})
-
 type State = Record<{
-  search: SearchEntities,
+  devices: Map<string, DeviceDetailRecord>,
 }>
 
 const StateRecord = Record({
-  search: new SearchEntitiesRecord(),
+  devices: Map(),
 })
 
 export type {

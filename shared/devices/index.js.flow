@@ -1,17 +1,17 @@
 // @flow
 import {Component} from 'react'
-import type {Device as _Device} from '../constants/types/flow-types'
+import type {Device} from '../constants/types/flow-types'
 
 export type Props = {
-  devices: Array<_Device>,
-  revokedDevices?: Array<_Device>,
+  deviceIDs: Array<string>,
+  revokedDeviceIDs: Array<string>,
   waitingForServer: boolean,
   showingRevoked: boolean,
   addNewPhone: () => void,
   addNewComputer: () => void,
   addNewPaperKey: () => void,
-  showRemoveDevicePage: (device: _Device) => void,
-  showExistingDevicePage: (device: _Device) => void,
+  showRemoveDevicePage: (device: Device) => void,
+  showExistingDevicePage: (device: Device) => void,
   onToggleShowRevoked: () => void,
 }
 

@@ -1,16 +1,37 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, Text, PopupMenu, Icon, ClickableBox, NativeScrollView} from '../common-adapters/index.native'
+import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from '.'
 
-const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
+type RevokedHeaderProps = {children?: Array<any>, onToggleExpanded: () => void, expanded: boolean}
+
+const RevokedHeader = (props: RevokedHeaderProps) => (
+  <Box>
+    <ClickableBox onClick={props.onToggleExpanded}>
+      <Box style={stylesRevokedRow}>
+        <Text
+          type='BodySmallSemibold'
+          style={{color: globalColors.black_60}}>Revoked devices</Text>
+        <Icon
+          type={props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
+          style={{color: globalColors.black_60, fontSize: 10, padding: 5}} />
+      </Box>
+    </ClickableBox>
+    {props.expanded && props.children}
+  </Box>
+)
+
+const _DeviceRow = ({device, showExistingDevicePage}) => {
+  const revoked = !!device.revokeBy
+
   const icon: IconType = {
-    'mobile': 'icon-phone-48',
-    'desktop': 'icon-computer-48',
     'backup': 'icon-paper-key-48',
+    'desktop': 'icon-computer-48',
+    'mobile': 'icon-phone-48',
   }[device.type]
 
   let textStyle = {flex: 0}
@@ -36,47 +57,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
   )
 }
 
-const RevokedDescription = () => (
-  <Box style={stylesRevokedDescription}>
-    <Text type='BodySmallSemibold' style={{color: globalColors.black_40, textAlign: 'center', paddingTop: globalMargins.tiny, paddingBottom: globalMargins.tiny}}>Revoked devices will no longer be able to access your Keybase account.</Text>
-  </Box>
-)
-
-type RevokedHeaderState = {expanded: boolean}
-class RevokedDevices extends Component<void, {revokedDevices: Array<Object>}, RevokedHeaderState> {
-  state: RevokedHeaderState;
-
-  constructor (props: Props) {
-    super(props)
-    this.state = {expanded: false}
-  }
-
-  _toggleHeader (e) {
-    this.setState({expanded: !this.state.expanded})
-  }
-
-  render () {
-    if (!this.props.revokedDevices) {
-      return null
-    }
-
-    const iconType = this.state.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'
-
-    return (
-      <Box>
-        <ClickableBox onClick={e => this._toggleHeader(e)}>
-          <Box style={stylesRevokedRow}>
-            <Text type='BodySmallSemibold' style={{color: globalColors.black_60}}>Revoked devices</Text>
-            <Icon type={iconType} style={{padding: 5, fontSize: 10, color: globalColors.black_60}} />
-          </Box>
-        </ClickableBox>
-        <Box>
-          {this.state.expanded && <RevokedDescription />}
-          {this.state.expanded && this.props.revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked={true} />)}
-        </Box>
-      </Box>)
-  }
-}
+const DeviceRow = RowConnector(_DeviceRow)
 
 const DeviceHeader = ({onAddNew}) => (
   <ClickableBox onClick={onAddNew}>
@@ -87,36 +68,38 @@ const DeviceHeader = ({onAddNew}) => (
   </ClickableBox>
 )
 
-type State = {
-  menuVisible: boolean,
-}
-class DevicesRender extends Component<void, Props, State> {
-  state: State;
+const RevokedDescription = () => (
+  <Box style={stylesRevokedDescription}>
+    <Text type='BodySmallSemibold' style={{color: globalColors.black_40, textAlign: 'center', paddingTop: globalMargins.tiny, paddingBottom: globalMargins.tiny}}>Revoked devices will no longer be able to access your Keybase account.</Text>
+  </Box>
+)
 
-  constructor (props: Props) {
-    super(props)
-    this.state = {menuVisible: false}
+class DevicesRender extends Component<void, Props, {showingMenu: boolean}> {
+  state = {
+    showingMenu: false,
   }
 
   render () {
-    const items = [
-      {title: 'New Phone', onClick: () => this.props.addNewPhone()},
-      {title: 'New Computer', onClick: () => this.props.addNewComputer()},
-      {title: 'New Paper Key', onClick: () => this.props.addNewPaperKey()},
+    const menuItems = [
+      {onClick: this.props.addNewPhone, title: 'New Phone'},
+      {onClick: this.props.addNewComputer, title: 'New Computer'},
+      {onClick: this.props.addNewPaperKey, title: 'New Paper Key'},
     ]
+
+    const {deviceIDs, revokedDeviceIDs, showingRevoked, onToggleShowRevoked} = this.props
     return (
       <Box style={stylesContainer}>
-        <DeviceHeader onAddNew={() => this.setState({menuVisible: true})} />
+        <DeviceHeader onAddNew={() => this.setState({showingMenu: true})} />
         <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          {this.props.devices && this.props.devices.map(device =>
-            <DeviceRow
-              key={device.name}
-              device={device}
-              showRemoveDevicePage={this.props.showRemoveDevicePage}
-              showExistingDevicePage={this.props.showExistingDevicePage} />)}
-          <RevokedDevices revokedDevices={this.props.revokedDevices} />
+          {deviceIDs.map(id => <DeviceRow key={id} device={id} />)}
+          {revokedDeviceIDs.length && (
+            <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
+              <RevokedDescription />
+              {revokedDeviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
+            </RevokedHeader>
+          )}
         </NativeScrollView>
-        {this.state.menuVisible && <PopupMenu items={items} onHidden={() => this.setState({menuVisible: false})} />}
+        {this.state.menuVisible && <PopupMenu items={menuItems} onHidden={() => this.setState({showingMenu: false})} />}
       </Box>
     )
   }
@@ -128,25 +111,25 @@ const stylesContainer = {
 }
 
 const stylesCommonCore = {
+  alignItems: 'center',
   borderBottomColor: globalColors.black_05,
   borderBottomWidth: 1,
-  alignItems: 'center',
   justifyContent: 'center',
 }
 
 const stylesCommonRow = {
   ...globalStyles.flexBoxRow,
   ...stylesCommonCore,
-  padding: 8,
   minHeight: 64,
+  padding: 8,
 }
 
 const stylesRevokedRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  paddingLeft: 8,
-  minHeight: 38,
   justifyContent: 'flex-start',
+  minHeight: 38,
+  paddingLeft: 8,
 }
 
 const stylesRevokedDescription = {

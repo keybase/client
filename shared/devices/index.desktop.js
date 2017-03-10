@@ -8,20 +8,23 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './'
 
-type RevokedHeaderProps = {children?: Array<any>, onToggleExpanded: () => void}
+type RevokedHeaderProps = {children?: Array<any>, onToggleExpanded: () => void, expanded: boolean}
 
-function RevokedHeader (props: RevokedHeaderProps) {
-  const iconType = props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'
-  return (
-    <Box>
-      <Box style={stylesRevokedRow} onClick={props.onToggleExpanded}>
-        <Text type='BodySmallSemibold' style={{color: globalColors.black_60}}>Revoked devices</Text>
-        <Icon type={iconType} style={{padding: globalMargins.xtiny}} />
-      </Box>
-      {props.expanded && props.children}
+const RevokedHeader = (props: RevokedHeaderProps) => (
+  <Box>
+    <Box
+      style={stylesRevokedRow}
+      onClick={props.onToggleExpanded}>
+      <Text
+        type='BodySmallSemibold'
+        style={{color: globalColors.black_60}}>Revoked devices</Text>
+      <Icon
+        type={props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
+        style={{padding: globalMargins.xtiny}} />
     </Box>
-  )
-}
+    {props.expanded && props.children}
+  </Box>
+)
 
 const _DeviceRow = ({device, showExistingDevicePage}) => {
   const revoked = !!device.revokeBy
@@ -78,44 +81,33 @@ const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
   </Box>
 )
 
-type State = {showingMenu: boolean}
-
-class DevicesRender extends Component<void, Props, State> {
-  state: State;
-
-  constructor (props: Props) {
-    super(props)
-
-    this.state = {
-      showingMenu: false,
-    }
+class DevicesRender extends Component<void, Props, {showingMenu: boolean}> {
+  state = {
+    showingMenu: false,
   }
 
-  _items () {
-    return [
+  render () {
+    const {deviceIDs, revokedDeviceIDs, showingRevoked, onToggleShowRevoked} = this.props
+    const menuItems = [
       ...(flags.mobileAppsExist ? [
         {onClick: this.props.addNewPhone, title: 'New Phone'},
       ] : []),
       {onClick: this.props.addNewComputer, title: 'New computer'},
       {onClick: this.props.addNewPaperKey, title: 'New paper key'},
     ]
-  }
-
-  render () {
-    const {devices, revokedDevices, showingRevoked, onToggleShowRevoked} = this.props
 
     return (
       <Box style={stylesContainer}>
         <DeviceHeader
-          menuItems={this._items()}
+          menuItems={menuItems}
           addNewDevice={() => this.setState({showingMenu: true})}
           showingMenu={this.state.showingMenu}
           onHidden={() => this.setState({showingMenu: false})} />
-        {devices && devices.map(device => <DeviceRow key={device.name} deviceID={device.deviceID} />)}
-        {revokedDevices && (
+        {deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
+        {revokedDeviceIDs.length && (
           <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
             <RevokedDescription />
-            {revokedDevices.map(device => <DeviceRow key={device.name} deviceID={device.deviceID} />)}
+            {revokedDeviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
           </RevokedHeader>
         )}
       </Box>
