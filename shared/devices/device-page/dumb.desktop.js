@@ -1,5 +1,5 @@
 // @flow
-import Render from './index.render'
+import Render from '.'
 import type {DumbComponentMap} from '../../constants/types/more'
 
 const common = {

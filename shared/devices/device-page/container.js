@@ -1,5 +1,5 @@
 // @flow
-import Render from './index.render'
+import Render from '.'
 import moment from 'moment'
 import {connect} from 'react-redux'
 import {mapProps} from 'recompose'
