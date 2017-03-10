@@ -1,6 +1,8 @@
 // @flow
 import {Component} from 'react'
+
 import type {Device, DeviceType} from '../../constants/types/more'
+import type {IconType} from '../../common-adapters/icon'
 import type {Time} from '../../constants/types/flow-types'
 
 export type TimelineItem = {
@@ -10,14 +12,16 @@ export type TimelineItem = {
 }
 
 export type Props = {
-  banner?: BannerItem,
+  bannerBackgroundColor: ?string,
   bannerColor: ?string,
-  backgroundColor: ?string,
+  bannerDesc: ?string,
   currentDevice: boolean,
   device: Device,
   deviceID: string,
+  icon: IconType,
   name: string,
   onBack: () => void,
+  revokeName: ?string,
   revokedAt?: ?Time,
   showRevokeDevicePage: () => void,
   timeline?: Array<TimelineItem>,

@@ -1,17 +1,20 @@
 // @flow
 import {Component} from 'react'
+
 import type {Device} from '../constants/types/flow-types'
+import type {MenuItem} from '../common-adapters/popup-menu.js'
 
 export type Props = {
   deviceIDs: Array<string>,
-  revokedDeviceIDs: Array<string>,
-  showingRevoked: boolean,
-  addNewPhone: () => void,
-  addNewComputer: () => void,
-  addNewPaperKey: () => void,
-  showRemoveDevicePage: (device: Device) => void,
-  showExistingDevicePage: (device: Device) => void,
+  // $FlowIssue not sure why menuitem conflicts
+  menuItems: Array<MenuItem>,
   onToggleShowRevoked: () => void,
+  revokedDeviceIDs: Array<string>,
+  setShowingMenu: (showing: boolean) => void,
+  showExistingDevicePage: (device: Device) => void,
+  showRemoveDevicePage: (device: Device) => void,
+  showingMenu: boolean,
+  showingRevoked: boolean,
 }
 
 export default class Render extends Component<void, Props, void> { }

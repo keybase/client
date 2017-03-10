@@ -1,8 +1,9 @@
 // @flow
 import Render from '.'
+import flags from '../util/feature-flags'
 import {List} from 'immutable'
 import {addNewPhone, addNewComputer} from '../actions/login'
-import {compose, lifecycle, mapProps} from 'recompose'
+import {compose, lifecycle, mapProps, withState} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {load, paperKeyMake} from '../actions/devices'
@@ -44,6 +45,12 @@ const mapDispatchToProps = (dispatch: any, {routeState, setRouteState}) => ({
   onToggleShowRevoked: () => { setRouteState({showingRevoked: !routeState.showingRevoked}) },
 })
 
+const menuItems = props => ([
+  ...flags.mobileAppsExist && [{onClick: props.addNewPhone, title: 'New Phone'}] || [],
+  {onClick: props.addNewComputer, title: 'New computer'},
+  {onClick: props.addNewPaperKey, title: 'New paper key'},
+])
+
 const Devices = compose(
   lifecycle({
     componentWillMount: function () {
@@ -54,8 +61,10 @@ const Devices = compose(
   mapProps(props => ({
     ...props,
     deviceIDs: props.deviceIDs.toArray(),
+    menuItems: menuItems(props),
     revokedDeviceIDs: props.revokedDeviceIDs.toArray(),
-  }))
+  })),
+  withState('showingMenu', 'setShowingMenu', false),
 )(Render)
 
 export default connect(mapStateToProps, mapDispatchToProps)(Devices)

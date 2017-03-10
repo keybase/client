@@ -11,17 +11,17 @@ import type {DeviceDetail} from '../../constants/devices'
 import type {TypedState} from '../../constants/reducer'
 
 const buildTimeline = (device: DeviceDetail) => {
-  const revoked = device.get('revokedAt') ? [{
+  const revoked = device.get('revokedAt') && [{
     desc: `Revoked ${moment(device.get('revokedAt')).format('MMM D, YYYY')}`,
     // $FlowIssue getIn
     subDesc: device.getIn(['revokedBy', 'name'], ''),
-    type: 'Revoked'}] : []
+    type: 'Revoked'}]
 
-  const lastUsed = device.lastUsed ? [{
+  const lastUsed = device.lastUsed && [{
     desc: `Last used ${moment(device.get('lastUsed')).format('MMM D, YYYY')}`,
     subDesc: moment(device.get('lastUsed')).fromNow(),
     type: 'LastUsed',
-  }] : []
+  }]
 
   const added = {
     desc: `Added ${moment(device.get('created')).format('MMM D, YYYY')}`,
@@ -31,10 +31,10 @@ const buildTimeline = (device: DeviceDetail) => {
   }
 
   return [
-    ...revoked,
-    ...lastUsed,
+    ...revoked || [],
+    ...lastUsed || [],
     added,
-  ].filter(Boolean)
+  ]
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
@@ -57,14 +57,29 @@ const bannerBackgroundColor = props => ({
   'WillUnlock': globalColors.blue,
 }[props.type])
 
+const icon = props => ({
+  'backup': 'icon-paper-key-64',
+  'desktop': 'icon-computer-64',
+  'mobile': 'icon-phone-64',
+}[props.type])
+
+const revokeName = props => ({
+  'backup': 'paper key',
+  'desktop': 'device',
+  'mobile': 'device',
+}[props.type])
+
 const makeRenderProps = props => ({
   ...props,
   bannerBackgroundColor: bannerBackgroundColor(props),
   bannerColor: bannerColor(props),
+  bannerDesc: null, // TODO at some point
   currentDevice: props.device.currentDevice,
   device: props.device,
   deviceID: props.device.deviceID,
+  icon: icon(props),
   name: props.device.name,
+  revokeName: revokeName(props),
   revokedAt: props.device.revokedAt,
   timeline: buildTimeline(props.device),
   type: props.device.type,

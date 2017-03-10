@@ -1,6 +1,5 @@
 // @flow
-import React, {Component} from 'react'
-import flags from '../util/feature-flags'
+import React from 'react'
 import {Box, Text, Icon, PopupMenu} from '../common-adapters'
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins} from '../styles'
@@ -72,39 +71,22 @@ const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
   </Box>
 )
 
-class DevicesRender extends Component<void, Props, {showingMenu: boolean}> {
-  state = {
-    showingMenu: false,
-  }
-
-  render () {
-    const {deviceIDs, revokedDeviceIDs, showingRevoked, onToggleShowRevoked} = this.props
-    const menuItems = [
-      ...(flags.mobileAppsExist ? [
-        {onClick: this.props.addNewPhone, title: 'New Phone'},
-      ] : []),
-      {onClick: this.props.addNewComputer, title: 'New computer'},
-      {onClick: this.props.addNewPaperKey, title: 'New paper key'},
-    ]
-
-    return (
-      <Box style={stylesContainer}>
-        <DeviceHeader
-          menuItems={menuItems}
-          addNewDevice={() => this.setState({showingMenu: true})}
-          showingMenu={this.state.showingMenu}
-          onHidden={() => this.setState({showingMenu: false})} />
-        {deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
-        {!!revokedDeviceIDs.length && (
-          <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
-            <RevokedDescription />
-            {revokedDeviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
-          </RevokedHeader>
-        )}
-      </Box>
-    )
-  }
-}
+const DevicesRender = ({deviceIDs, revokedDeviceIDs, showingRevoked, onToggleShowRevoked, menuItems, showingMenu, setShowingMenu}: Props) => (
+  <Box style={stylesContainer}>
+    <DeviceHeader
+      menuItems={menuItems}
+      addNewDevice={() => setShowingMenu(true)}
+      showingMenu={showingMenu}
+      onHidden={() => setShowingMenu(false)} />
+    {deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
+    {!!revokedDeviceIDs.length && (
+      <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
+        <RevokedDescription />
+        {revokedDeviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
+      </RevokedHeader>
+    )}
+  </Box>
+)
 
 const stylesContainer = {
   ...globalStyles.scrollable,

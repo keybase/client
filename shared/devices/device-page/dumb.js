@@ -1,11 +1,17 @@
 // @flow
 import Render from '.'
+import {globalColors} from '../../styles'
+
 import type {DumbComponentMap} from '../../constants/types/more'
 
 const common = {
+  bannerBackgroundColor: null,
+  bannerColor: null,
+  bannerDesc: null,
   created: 1444423192000,
   currentDevice: false,
   deviceID: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  icon: 'icon-computer-64',
   lastUsed: 1444423192001,
   name: 'Home Computer',
   onBack: () => { console.log('onBack') },
@@ -14,6 +20,7 @@ const common = {
   revokedAt: null,
   showRevokeDevicePage: () => {},
   type: 'desktop',
+  revokeName: null,
 }
 
 const map: DumbComponentMap<Render> = {
@@ -21,10 +28,9 @@ const map: DumbComponentMap<Render> = {
   mocks: {
     'Normal': {
       ...common,
-      banner: {
-        desc: 'Home Computer is running an outdated version of Keybase. Remember to update!',
-        type: 'OutOfDate',
-      },
+      bannerBackgroundColor: globalColors.yellow,
+      bannerColor: globalColors.brown_60,
+      bannerDesc: 'Home Computer is running an outdated version of Keybase. Remember to update!',
       currentDevice: true,
       device: common,
       deviceID: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -45,6 +51,7 @@ const map: DumbComponentMap<Render> = {
       ...common,
       device: common,
       deviceID: 'dddddddddddddddddddddddddddddddd',
+      icon: 'icon-paper-key-64',
       name: 'project green...',
       timeline: [
         {
@@ -60,6 +67,7 @@ const map: DumbComponentMap<Render> = {
       currentDevice: false,
       device: common,
       deviceID: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      revokeName: 'device',
       revokedAt: 1444423192000,
       timeline: [
         {
@@ -81,12 +89,12 @@ const map: DumbComponentMap<Render> = {
     },
     'Unlock': {
       ...common,
-      banner: {
-        desc: 'Turning on this device will unlock 6 of your private folders.',
-        type: 'WillUnlock',
-      },
+      bannerBackgroundColor: globalColors.blue,
+      bannerColor: globalColors.white,
+      bannerDesc: 'Turning on this device will unlock 6 of your private folders.',
       device: common,
       deviceID: 'cccccccccccccccccccccccccccccccc',
+      icon: 'icon-phone-64',
       name: 'Chris\'s iPhone',
       timeline: [
         {

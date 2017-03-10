@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import React from 'react'
 import {Box, Text, PopupMenu, Icon, ClickableBox, NativeScrollView} from '../common-adapters/index.native'
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins} from '../styles'
@@ -65,36 +65,21 @@ const RevokedDescription = () => (
   </Box>
 )
 
-class DevicesRender extends Component<void, Props, {showingMenu: boolean}> {
-  state = {
-    showingMenu: false,
-  }
-
-  render () {
-    const menuItems = [
-      {onClick: this.props.addNewPhone, title: 'New Phone'},
-      {onClick: this.props.addNewComputer, title: 'New Computer'},
-      {onClick: this.props.addNewPaperKey, title: 'New Paper Key'},
-    ]
-
-    const {deviceIDs, revokedDeviceIDs, showingRevoked, onToggleShowRevoked} = this.props
-    return (
-      <Box style={stylesContainer}>
-        <DeviceHeader onAddNew={() => this.setState({showingMenu: true})} />
-        <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          {deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
-          {!!revokedDeviceIDs.length && (
-            <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
-              <RevokedDescription />
-              {revokedDeviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
-            </RevokedHeader>
-          )}
-        </NativeScrollView>
-        {this.state.menuVisible && <PopupMenu items={menuItems} onHidden={() => this.setState({showingMenu: false})} />}
-      </Box>
-    )
-  }
-}
+const DevicesRender = ({deviceIDs, revokedDeviceIDs, showingRevoked, onToggleShowRevoked, menuItems, showingMenu, setShowingMenu}: Props) => (
+  <Box style={stylesContainer}>
+    <DeviceHeader onAddNew={() => setShowingMenu(true)} />
+    <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
+      {deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
+      {!!revokedDeviceIDs.length && (
+        <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
+          <RevokedDescription />
+          {revokedDeviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
+        </RevokedHeader>
+      )}
+    </NativeScrollView>
+    {showingMenu && <PopupMenu items={menuItems} onHidden={() => setShowingMenu(false)} />}
+  </Box>
+)
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
