@@ -30,7 +30,7 @@ func testTail(t *testing.T, testname, filename string, count, actual int, first,
 
 func TestTail(t *testing.T) {
 	// file has 20k lines in it
-	filename := filepath.Join("testfixtures", "longline.log")
+	filename := filepath.Join("testfixtures", "longline.testlog")
 
 	lastLine := "19999"
 
@@ -42,7 +42,7 @@ func TestTail(t *testing.T) {
 }
 
 func TestTailMulti(t *testing.T) {
-	stem := filepath.Join("testfixtures", "f.log")
+	stem := filepath.Join("testfixtures", "f.testlog")
 	testTail(t, "follow", stem, 100000, 99996, "13334", "29999")
 	testTail(t, "follow", stem, 10000, 9996, "28334", "29999")
 }
