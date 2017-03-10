@@ -79,7 +79,7 @@ func (q *EventuallyConsistentQuotaUsage) getAndCache(
 
 // Get returns KBFS bytes used and limit for user. To help avoid having too
 // frequent calls into bserver, caller can provide a positive tolerance, to
-// accept stale LimitBytes and UsageByts data. If tolerance is 0 or negative,
+// accept stale LimitBytes and UsageBytes data. If tolerance is 0 or negative,
 // this always makes a blocking RPC to bserver and return latest quota usage.
 //
 // 1) If the age of cached data is less than half of tolerance, the cached
