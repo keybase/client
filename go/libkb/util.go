@@ -190,6 +190,10 @@ func safeWriteToFileOnce(g SafeWriteLogger, t SafeWriter, mode os.FileMode) erro
 		err = tmp.Close()
 		if err == nil {
 			err = os.Rename(tmpfn, fn)
+			if err != nil {
+				g.Errorf(fmt.Sprintf("Error renaming file %s: %s", tmpfn, err))
+				os.Remove(tmpfn)
+			}
 		} else {
 			g.Errorf(fmt.Sprintf("Error closing temporary file %s: %s", tmpfn, err))
 			os.Remove(tmpfn)
