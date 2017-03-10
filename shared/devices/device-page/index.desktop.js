@@ -4,21 +4,11 @@ import {Box, Text, Icon, Button, BackButton} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 
 import type {IconType} from '../../common-adapters/icon'
-import type {Props, BannerItem} from '.'
+import type {Props} from '.'
 
-const Banner = ({type, desc}: BannerItem) => {
-  const backgroundColor = {
-    'OutOfDate': globalColors.yellow,
-    'WillUnlock': globalColors.blue,
-  }[type]
-
-  const color = {
-    'OutOfDate': globalColors.brown_60,
-    'WillUnlock': globalColors.white,
-  }[type]
-
-  return <Box style={{...stylesBanner, backgroundColor}}><Text type='BodySemibold' style={{color}}>{desc}</Text></Box>
-}
+const Banner = ({color, backgroundColor, desc}) => (
+  <Box style={{...stylesBanner, backgroundColor}}><Text type='BodySemibold' style={{color}}>{desc}</Text></Box>
+)
 
 const Header = ({name, currentDevice, revokedAt}) => {
   const textStyle = revokedAt ? {textDecoration: 'line-through', color: globalColors.black_40, fontStyle: 'italic'} : {fontStyle: 'italic'}

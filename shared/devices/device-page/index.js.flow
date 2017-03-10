@@ -9,13 +9,10 @@ export type TimelineItem = {
   type: 'LastUsed' | 'Added' | 'Revoked',
 }
 
-export type BannerItem = {
-  desc: string,
-  type: 'OutOfDate' | 'WillUnlock',
-}
-
 export type Props = {
   banner?: BannerItem,
+  bannerColor: ?string,
+  backgroundColor: ?string,
   currentDevice: boolean,
   device: Device,
   deviceID: string,

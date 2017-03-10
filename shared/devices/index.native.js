@@ -82,8 +82,8 @@ class DevicesRender extends Component<void, Props, {showingMenu: boolean}> {
       <Box style={stylesContainer}>
         <DeviceHeader onAddNew={() => this.setState({showingMenu: true})} />
         <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          {deviceIDs.map(id => <DeviceRow key={id} device={id} />)}
-          {revokedDeviceIDs.length && (
+          {deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
+          {!!revokedDeviceIDs.length && (
             <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
               <RevokedDescription />
               {revokedDeviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
