@@ -12,9 +12,11 @@ import {setRevokedSelf} from './login'
 import {replaceEntity} from './entities'
 
 import type {DeviceDetail} from '../constants/types/flow-types'
-import type {Load, Loaded, PaperKeyLoaded, Revoke, ShowRevokePage, PaperKeyMake, Waiting} from '../constants/devices'
+import type {Load, Loaded, Revoke, ShowRevokePage, PaperKeyMake, Waiting} from '../constants/devices'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
+
+type IncomingDisplayPaperKeyPhrase = {params: {phrase: string}, response: {result: () => void}}
 
 isMobile && module.hot && module.hot.accept(() => {
   console.log('accepted update in actions/devices')
@@ -26,6 +28,8 @@ const paperKeyMake: () => PaperKeyMake = () => ({payload: undefined, type: 'devi
 const revoke: (deviceID: string) => Revoke = deviceID => ({payload: {deviceID}, type: 'devices:revoke'})
 const setWaiting: (waiting: boolean) => Waiting = waiting => ({payload: {waiting}, type: 'devices:waiting'})
 const showRevokePage: (deviceID: string) => ShowRevokePage = deviceID => ({payload: {deviceID}, type: 'devices:showRevokePage'})
+
+const _loggedInSelector = (state: TypedState) => state.config.loggedIn
 
 function * _deviceShowRevokePageSaga (action: ShowRevokePage): SagaGenerator<any, any> {
   const {deviceID} = action.payload
@@ -40,8 +44,6 @@ function * _deviceShowRevokePageSaga (action: ShowRevokePage): SagaGenerator<any
     {props: {deviceID, endangeredTLFs}, selected: 'revokeDevice'},
   ]))
 }
-
-const _loggedInSelector = (state: TypedState) => state.config.loggedIn
 
 function _sortDevices (a: DeviceDetail, b: DeviceDetail) {
   if (a.currentDevice) return -1
@@ -146,8 +148,6 @@ function _generatePaperKey (channelConfig) {
 function * _handlePromptRevokePaperKeys (chanMap): SagaGenerator<any, any> {
   yield effectOnChannelMap(c => safeTakeEvery(c, ({response}) => response.result(false)), chanMap, 'keybase.1.loginUi.promptRevokePaperKeys')
 }
-
-type IncomingDisplayPaperKeyPhrase = {params: {phrase: string}, response: {result: () => void}}
 
 function * _devicePaperKeySaga (): SagaGenerator<any, any> {
   const channelConfig = singleFixedChannelConfig(['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'])
