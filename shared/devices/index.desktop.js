@@ -27,9 +27,9 @@ const _DeviceRow = ({device, showExistingDevicePage}) => {
   const revoked = !!device.revokeBy
 
   const icon: IconType = {
-    'mobile': 'icon-phone-32',
-    'desktop': 'icon-computer-32',
     'backup': 'icon-paper-key-32',
+    'desktop': 'icon-computer-32',
+    'mobile': 'icon-phone-32',
   }[device.type]
 
   let textStyle = {fontStyle: 'italic'}
@@ -70,13 +70,6 @@ const RevokedDescription = () => (
   </Box>
 )
 
-const RevokedDevices = ({revokedDevices, showExistingDevicePage, showingRevoked, onToggleShowRevoked}) => (
-  <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
-    <RevokedDescription />
-    {revokedDevices.map(device => <DeviceRow key={device.name} deviceID={device.deviceID} />)}
-  </RevokedHeader>
-)
-
 const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
   <Box style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white, height: 48}} onClick={addNewDevice}>
     <Icon type='iconfont-new' style={{color: globalColors.blue}} />
@@ -100,14 +93,16 @@ class DevicesRender extends Component<void, Props, State> {
 
   _items () {
     return [
-      ...(flags.mobileAppsExist ? [{title: 'New Phone', onClick: () => this.props.addNewPhone()}] : []),
-      {title: 'New computer', onClick: () => this.props.addNewComputer()},
-      {title: 'New paper key', onClick: () => this.props.addNewPaperKey()},
+      ...(flags.mobileAppsExist ? [
+        {onClick: this.props.addNewPhone, title: 'New Phone'},
+      ] : []),
+      {onClick: this.props.addNewComputer, title: 'New computer'},
+      {onClick: this.props.addNewPaperKey, title: 'New paper key'},
     ]
   }
 
   render () {
-    const {devices, revokedDevices, showExistingDevicePage, showingRevoked, onToggleShowRevoked} = this.props
+    const {devices, revokedDevices, showingRevoked, onToggleShowRevoked} = this.props
 
     return (
       <Box style={stylesContainer}>
@@ -117,7 +112,12 @@ class DevicesRender extends Component<void, Props, State> {
           showingMenu={this.state.showingMenu}
           onHidden={() => this.setState({showingMenu: false})} />
         {devices && devices.map(device => <DeviceRow key={device.name} deviceID={device.deviceID} />)}
-        {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} showExistingDevicePage={showExistingDevicePage} showingRevoked={showingRevoked} onToggleShowRevoked={onToggleShowRevoked} />}
+        {revokedDevices && (
+          <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
+            <RevokedDescription />
+            {revokedDevices.map(device => <DeviceRow key={device.name} deviceID={device.deviceID} />)}
+          </RevokedHeader>
+        )}
       </Box>
     )
   }
