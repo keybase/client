@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package simplefs
 
 import (
 	"encoding/json"
@@ -17,12 +17,13 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/libkbfs"
 )
 
 // SimpleFS is the simple filesystem rpc layer implementation.
 type SimpleFS struct {
 	lock       sync.RWMutex
-	config     Config
+	config     libkbfs.Config
 	handles    map[keybase1.OpID]*handle
 	inProgress map[keybase1.OpID]*inprogress
 	log        logger.Logger
@@ -34,7 +35,7 @@ type inprogress struct {
 }
 
 type handle struct {
-	node  Node
+	node  libkbfs.Node
 	async interface{}
 	path  keybase1.Path
 }
@@ -42,7 +43,12 @@ type handle struct {
 // make sure the interface is implemented
 var _ keybase1.SimpleFSInterface = (*SimpleFS)(nil)
 
-func newSimpleFS(config Config) *SimpleFS {
+// NewSimpleFS creates a new SimpleFS instance.
+func NewSimpleFS(config libkbfs.Config) keybase1.SimpleFSInterface {
+	return newSimpleFS(config)
+}
+
+func newSimpleFS(config libkbfs.Config) *SimpleFS {
 	log := config.MakeLogger("simplefs")
 	return &SimpleFS{
 		config:     config,
@@ -61,7 +67,7 @@ func (k *SimpleFS) SimpleFSList(_ context.Context, arg keybase1.SimpleFSListArg)
 		keybase1.ListArgs{
 			OpID: arg.OpID, Path: arg.Path,
 		}), func(ctx context.Context) (err error) {
-		var children map[string]EntryInfo
+		var children map[string]libkbfs.EntryInfo
 
 		rawPath := arg.Path.Kbfs()
 		wantPublic := false
@@ -77,10 +83,10 @@ func (k *SimpleFS) SimpleFSList(_ context.Context, arg keybase1.SimpleFSListArg)
 				return err
 			}
 			switch ei.Type {
-			case Dir:
+			case libkbfs.Dir:
 				children, err = k.config.KBFSOps().GetDirChildren(ctx, node)
 			default:
-				children = map[string]EntryInfo{stdpath.Base(arg.Path.Kbfs()): ei}
+				children = map[string]libkbfs.EntryInfo{stdpath.Base(arg.Path.Kbfs()): ei}
 			}
 		}
 		if err != nil {
@@ -99,7 +105,7 @@ func (k *SimpleFS) SimpleFSList(_ context.Context, arg keybase1.SimpleFSListArg)
 	})
 }
 
-func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, wantPublic bool) (map[string]EntryInfo, error) {
+func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, wantPublic bool) (map[string]libkbfs.EntryInfo, error) {
 	session, err := k.config.KBPKI().GetCurrentSession(ctx)
 	// Return empty directory listing if we are not logged in.
 	if err != nil {
@@ -111,18 +117,18 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, wantPub
 		return nil, err
 	}
 
-	res := make(map[string]EntryInfo, len(favs))
+	res := make(map[string]libkbfs.EntryInfo, len(favs))
 	for _, fav := range favs {
 		if fav.Public != wantPublic {
 			continue
 		}
-		pname, err := FavoriteNameToPreferredTLFNameFormatAs(
-			session.Name, CanonicalTlfName(fav.Name))
+		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(
+			session.Name, libkbfs.CanonicalTlfName(fav.Name))
 		if err != nil {
 			k.log.Errorf("FavoriteNameToPreferredTLFNameFormatAs: %q %v", fav.Name, err)
 			continue
 		}
-		res[string(pname)] = EntryInfo{Type: Dir}
+		res[string(pname)] = libkbfs.EntryInfo{Type: libkbfs.Dir}
 	}
 	return res, nil
 }
@@ -155,7 +161,7 @@ func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.Simpl
 				setStat(&de, &ei)
 				de.Name = name
 				des = append(des, de)
-				if ei.Type == Dir {
+				if ei.Type == libkbfs.Dir {
 					paths = append(paths, keybase1.NewPathWithKbfs(
 						path.Kbfs()+"/"+name,
 					))
@@ -462,7 +468,7 @@ func (k *SimpleFS) doRemove(ctx context.Context, path keybase1.Path) error {
 		return err
 	}
 	switch ei.Type {
-	case Dir:
+	case libkbfs.Dir:
 		err = k.config.KBFSOps().RemoveDir(ctx, node, leaf)
 	default:
 		err = k.config.KBFSOps().RemoveEntry(ctx, node, leaf)
@@ -514,7 +520,7 @@ func (k *SimpleFS) SimpleFSClose(ctx context.Context, opid keybase1.OpID) (err e
 // SimpleFSCheck - Check progress of pending operation
 func (k *SimpleFS) SimpleFSCheck(_ context.Context, opid keybase1.OpID) (keybase1.Progress, error) {
 	// TODO
-	return 0, SimpleFSError{"Not implemented"}
+	return 0, simpleFSError{"Not implemented"}
 }
 
 // SimpleFSGetOps - Get all the outstanding operations
@@ -578,9 +584,9 @@ func remotePath(path keybase1.Path) (ps []string, public bool, err error) {
 }
 
 func (k *SimpleFS) open(ctx context.Context, dest keybase1.Path, f keybase1.OpenFlags) (
-	Node, EntryInfo, error) {
-	var node Node
-	var ei EntryInfo
+	libkbfs.Node, libkbfs.EntryInfo, error) {
+	var node libkbfs.Node
+	var ei libkbfs.EntryInfo
 
 	parent, name, err := k.getRemoteNodeParent(ctx, dest)
 	if err != nil {
@@ -592,7 +598,7 @@ func (k *SimpleFS) open(ctx context.Context, dest keybase1.Path, f keybase1.Open
 	if f&keybase1.OpenFlags_REPLACE != 0 {
 		node, ei, err = k.config.KBFSOps().Lookup(ctx, parent, name)
 		if err == nil {
-			if ei.Type != Dir {
+			if ei.Type != libkbfs.Dir {
 				err = k.config.KBFSOps().Truncate(ctx, node, 0)
 			}
 			return node, ei, err
@@ -612,30 +618,30 @@ func (k *SimpleFS) open(ctx context.Context, dest keybase1.Path, f keybase1.Open
 
 // getRemoteRootNode
 func (k *SimpleFS) getRemoteRootNode(ctx context.Context, path keybase1.Path) (
-	Node, EntryInfo, []string, error) {
+	libkbfs.Node, libkbfs.EntryInfo, []string, error) {
 	ps, public, err := remotePath(path)
 	if err != nil {
-		return nil, EntryInfo{}, nil, err
+		return nil, libkbfs.EntryInfo{}, nil, err
 	}
-	tlf, err := ParseTlfHandlePreferred(
+	tlf, err := libkbfs.ParseTlfHandlePreferred(
 		ctx, k.config.KBPKI(), ps[0], public)
 	if err != nil {
-		return nil, EntryInfo{}, nil, err
+		return nil, libkbfs.EntryInfo{}, nil, err
 	}
 	node, ei, err := k.config.KBFSOps().GetOrCreateRootNode(
-		ctx, tlf, MasterBranch)
+		ctx, tlf, libkbfs.MasterBranch)
 	if err != nil {
-		return nil, EntryInfo{}, nil, err
+		return nil, libkbfs.EntryInfo{}, nil, err
 	}
 	return node, ei, ps[1:], nil
 }
 
 // getRemoteNode
 func (k *SimpleFS) getRemoteNode(ctx context.Context, path keybase1.Path) (
-	Node, EntryInfo, error) {
+	libkbfs.Node, libkbfs.EntryInfo, error) {
 	node, ei, ps, err := k.getRemoteRootNode(ctx, path)
 	if err != nil {
-		return nil, EntryInfo{}, err
+		return nil, libkbfs.EntryInfo{}, err
 	}
 
 	// TODO: should we walk symlinks here?
@@ -643,7 +649,7 @@ func (k *SimpleFS) getRemoteNode(ctx context.Context, path keybase1.Path) (
 	for _, name := range ps {
 		node, ei, err = k.config.KBFSOps().Lookup(ctx, node, name)
 		if err != nil {
-			return nil, EntryInfo{}, err
+			return nil, libkbfs.EntryInfo{}, err
 		}
 	}
 
@@ -652,7 +658,7 @@ func (k *SimpleFS) getRemoteNode(ctx context.Context, path keybase1.Path) (
 
 // getRemoteNodeParent
 func (k *SimpleFS) getRemoteNodeParent(ctx context.Context, path keybase1.Path) (
-	Node, string, error) {
+	libkbfs.Node, string, error) {
 	node, _, ps, err := k.getRemoteRootNode(ctx, path)
 	if err != nil {
 		return nil, "", err
@@ -676,7 +682,7 @@ func (k *SimpleFS) getRemoteNodeParent(ctx context.Context, path keybase1.Path) 
 	return node, leaf, nil
 }
 
-func wrapStat(ei EntryInfo, err error) (keybase1.Dirent, error) {
+func wrapStat(ei libkbfs.EntryInfo, err error) (keybase1.Dirent, error) {
 	if err != nil {
 		return keybase1.Dirent{}, err
 	}
@@ -685,21 +691,21 @@ func wrapStat(ei EntryInfo, err error) (keybase1.Dirent, error) {
 	return de, nil
 }
 
-func setStat(de *keybase1.Dirent, ei *EntryInfo) {
+func setStat(de *keybase1.Dirent, ei *libkbfs.EntryInfo) {
 	de.Time = keybase1.Time(ei.Mtime / 1000000)
 	de.Size = int(ei.Size) // TODO: FIX protocol
 	de.DirentType = deTy2Ty(ei)
 }
 
-func deTy2Ty(ei *EntryInfo) keybase1.DirentType {
+func deTy2Ty(ei *libkbfs.EntryInfo) keybase1.DirentType {
 	switch ei.Type {
-	case Exec:
+	case libkbfs.Exec:
 		return keybase1.DirentType_EXEC
-	case File:
+	case libkbfs.File:
 		return keybase1.DirentType_FILE
-	case Dir:
+	case libkbfs.Dir:
 		return keybase1.DirentType_DIR
-	case Sym:
+	case libkbfs.Sym:
 		return keybase1.DirentType_SYM
 	}
 	panic("deTy2Ty unreachable")
@@ -708,7 +714,7 @@ func deTy2Ty(ei *EntryInfo) keybase1.DirentType {
 type ioer interface {
 	io.ReadWriteCloser
 	Type() keybase1.DirentType
-	Children() (map[string]EntryInfo, error)
+	Children() (map[string]libkbfs.EntryInfo, error)
 }
 
 func (k *SimpleFS) pathIO(ctx context.Context, path keybase1.Path,
@@ -768,13 +774,13 @@ func (k *SimpleFS) pathIO(ctx context.Context, path keybase1.Path,
 		}
 		return &localIO{f, det}, nil
 	}
-	return nil, SimpleFSError{"Invalid path type"}
+	return nil, simpleFSError{"Invalid path type"}
 }
 
 type kbfsIO struct {
 	ctx    context.Context
 	sfs    *SimpleFS
-	node   Node
+	node   libkbfs.Node
 	offset int64
 	deType keybase1.DirentType
 }
@@ -802,7 +808,7 @@ func (r *kbfsIO) Type() keybase1.DirentType {
 	return r.deType
 }
 
-func (r *kbfsIO) Children() (map[string]EntryInfo, error) {
+func (r *kbfsIO) Children() (map[string]libkbfs.EntryInfo, error) {
 	return r.sfs.config.KBFSOps().GetDirChildren(r.ctx, r.node)
 }
 
@@ -812,30 +818,30 @@ type localIO struct {
 }
 
 func (r *localIO) Type() keybase1.DirentType { return r.deType }
-func (r *localIO) Children() (map[string]EntryInfo, error) {
+func (r *localIO) Children() (map[string]libkbfs.EntryInfo, error) {
 	fis, err := r.File.Readdir(-1)
 	if err != nil {
 		return nil, err
 	}
-	eis := make(map[string]EntryInfo, len(fis))
+	eis := make(map[string]libkbfs.EntryInfo, len(fis))
 	for _, fi := range fis {
-		eis[fi.Name()] = EntryInfo{
+		eis[fi.Name()] = libkbfs.EntryInfo{
 			Type: ty2Kbfs(fi.Mode()),
 		}
 	}
 	return eis, nil
 }
 
-func ty2Kbfs(mode os.FileMode) EntryType {
+func ty2Kbfs(mode os.FileMode) libkbfs.EntryType {
 	switch {
 	case mode.IsDir():
-		return Dir
+		return libkbfs.Dir
 	case mode&os.ModeSymlink == os.ModeSymlink:
-		return Sym
+		return libkbfs.Sym
 	case mode.IsRegular() && (mode&0700 == 0700):
-		return Exec
+		return libkbfs.Exec
 	}
-	return File
+	return libkbfs.File
 }
 
 func (k *SimpleFS) startAsync(opid keybase1.OpID, desc keybase1.OpDescription,
@@ -866,7 +872,7 @@ func (k *SimpleFS) startSyncOp(ctx context.Context, name string, logarg interfac
 	return k.startOpWrapContext(ctx)
 }
 func (k *SimpleFS) startOpWrapContext(outer context.Context) (context.Context, error) {
-	return NewContextWithCancellationDelayer(NewContextReplayable(
+	return libkbfs.NewContextWithCancellationDelayer(libkbfs.NewContextReplayable(
 		outer, func(c context.Context) context.Context {
 			return c
 		}))
@@ -882,14 +888,14 @@ func (k *SimpleFS) doneOp(ctx context.Context, opid keybase1.OpID, err error) {
 	}
 	k.log.CDebugf(ctx, "done op %X, status=%v", opid, err)
 	if ctx != nil {
-		CleanupCancellationDelayer(ctx)
+		libkbfs.CleanupCancellationDelayer(ctx)
 	}
 }
 
 func (k *SimpleFS) doneSyncOp(ctx context.Context, err error) {
 	k.log.CDebugf(ctx, "done sync op, status=%v", err)
 	if ctx != nil {
-		CleanupCancellationDelayer(ctx)
+		libkbfs.CleanupCancellationDelayer(ctx)
 	}
 }
 
@@ -899,7 +905,24 @@ func (k *SimpleFS) setResult(opid keybase1.OpID, val interface{}) {
 	k.lock.Unlock()
 }
 
-var errOnlyRemotePathSupported = SimpleFSError{"Only remote paths are supported for this operation"}
-var errInvalidRemotePath = SimpleFSError{"Invalid remote path"}
-var errNoSuchHandle = SimpleFSError{"No such handle"}
-var errNoResult = SimpleFSError{"Async result not found"}
+var errOnlyRemotePathSupported = simpleFSError{"Only remote paths are supported for this operation"}
+var errInvalidRemotePath = simpleFSError{"Invalid remote path"}
+var errNoSuchHandle = simpleFSError{"No such handle"}
+var errNoResult = simpleFSError{"Async result not found"}
+
+// simpleFSError wraps errors for SimpleFS
+type simpleFSError struct {
+	reason string
+}
+
+// Error implements the error interface for simpleFSError
+func (e simpleFSError) Error() string { return e.reason }
+
+// ToStatus implements the keybase1.ToStatusAble interface for simpleFSError
+func (e simpleFSError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Name: e.reason,
+		Code: int(keybase1.StatusCode_SCGeneric),
+		Desc: e.Error(),
+	}
+}

@@ -302,6 +302,13 @@ def runNixTest(prefix) {
             sh './libfuse.test -test.timeout 2m'
         }
     }
+    tests[prefix+'simplefs'] = {
+        dir('simplefs') {
+            sh 'go test -i'
+            sh 'go test -c'
+            sh './simplefs.test -test.timeout 2m'
+        }
+    }
     tests[prefix+'test'] = {
         dir('test') {
             sh 'go test -i -tags fuse'
