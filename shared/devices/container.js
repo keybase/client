@@ -1,11 +1,11 @@
 // @flow
 import Render from '.'
 import {List} from 'immutable'
-import {addNewPhone, addNewComputer, addNewPaperKey} from '../actions/login'
+import {addNewPhone, addNewComputer} from '../actions/login'
 import {compose, lifecycle, mapProps} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
-import {load} from '../actions/devices'
+import {load, paperKeyMake} from '../actions/devices'
 
 import type {TypedState} from '../constants/reducer'
 
@@ -38,7 +38,7 @@ const mapStateToProps = (state: any, {routeState}) => {
 
 const mapDispatchToProps = (dispatch: any, {routeState, setRouteState}) => ({
   addNewComputer: () => dispatch(addNewComputer()),
-  addNewPaperKey: () => dispatch(addNewPaperKey()),
+  addNewPaperKey: () => dispatch(paperKeyMake()),
   addNewPhone: () => dispatch(addNewPhone()),
   loadDevices: () => dispatch(load()),
   onToggleShowRevoked: () => { setRouteState({showingRevoked: !routeState.showingRevoked}) },

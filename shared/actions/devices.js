@@ -157,12 +157,11 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
     yield put(setWaiting(true))
     yield fork(_handlePromptRevokePaperKeys, generatePaperKeyChanMap)
     const displayPaperKeyPhrase: IncomingDisplayPaperKeyPhrase = ((yield takeFromChannelMap(generatePaperKeyChanMap, 'keybase.1.loginUi.displayPaperKeyPhrase')): any)
-    yield put(setWaiting(false))
-    yield put(({
-      payload: {paperKey: new HiddenString(displayPaperKeyPhrase.params.phrase)},
-      type: 'devices:paperKeyLoaded',
-    }: PaperKeyLoaded))
     displayPaperKeyPhrase.response.result()
+    yield put(setWaiting(false))
+
+    const paperKey = new HiddenString(displayPaperKeyPhrase.params.phrase)
+    yield put(navigateTo([devicesTab, {props: {paperKey}, selected: 'genPaperKey'}]))
   } catch (e) {
     closeChannelMap(generatePaperKeyChanMap)
     throw new Error('error in generating paper key')

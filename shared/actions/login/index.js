@@ -329,10 +329,6 @@ export function addNewComputer () : AsyncAction {
   return addNewDevice(Constants.codePageDeviceRoleNewComputer)
 }
 
-export function addNewPaperKey () : Action {
-  return navigateTo([devicesTab, 'genPaperKey'])
-}
-
 function addNewDevice (kind: DeviceRole) : AsyncAction {
   return (dispatch, getState) => {
     // We can either be a newDevice or an existingDevice.  Here in the add a

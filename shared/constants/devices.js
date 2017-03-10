@@ -1,5 +1,4 @@
 // @flow
-import HiddenString from '../util/hidden-string'
 import {List, Record} from 'immutable'
 
 import type {Device} from './types/more'
@@ -7,7 +6,6 @@ import type {NoErrorTypedAction} from './types/flux'
 
 export type Load = NoErrorTypedAction<'devices:load', void>
 export type Loaded = NoErrorTypedAction<'devices:loaded', {deviceIDs: Array<string>}>
-export type PaperKeyLoaded = NoErrorTypedAction<'devices:paperKeyLoaded', {paperKey: HiddenString}>
 export type PaperKeyMake = NoErrorTypedAction<'devices:paperKeyMake', void>
 export type Revoke = NoErrorTypedAction<'devices:revoke', {deviceID: string}>
 export type ShowRevokePage = NoErrorTypedAction<'devices:showRevokePage', {deviceID: string}>
@@ -15,7 +13,6 @@ export type Waiting = NoErrorTypedAction<'devices:waiting', {waiting: boolean}>
 
 export type Actions = Load
   | Loaded
-  | PaperKeyLoaded
   | PaperKeyMake
   | Revoke
   | ShowRevokePage
@@ -51,14 +48,12 @@ export type DeviceDetail = Record<{
 
 const StateRecord = Record({
   deviceIDs: List(),
-  paperKey: null,
   waitingForServer: false,
 })
 
 export type State = Record<{
-  waitingForServer: boolean,
   deviceIDs: List<string>,
-  paperKey: ?string,
+  waitingForServer: boolean,
 }>
 
 export {
