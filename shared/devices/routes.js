@@ -3,7 +3,7 @@ import {RouteDefNode} from '../route-tree'
 import Devices from './container'
 import CodePage from '../login/register/code-page'
 import GenPaperKey from './gen-paper-key'
-import DevicePage from './device-page'
+import DevicePage from './device-page/container'
 import RemoveDevice from './device-revoke'
 
 const routeTree = new RouteDefNode({

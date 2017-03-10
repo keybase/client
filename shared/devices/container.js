@@ -2,9 +2,9 @@
 import Render from '.'
 import {List} from 'immutable'
 import {addNewPhone, addNewComputer, addNewPaperKey} from '../actions/login'
+import {compose, lifecycle, mapProps} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
-import {compose, lifecycle, mapProps} from 'recompose'
 import {loadDevices} from '../actions/devices'
 
 import type {TypedState} from '../constants/reducer'
