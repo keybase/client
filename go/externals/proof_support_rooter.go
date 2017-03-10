@@ -6,7 +6,6 @@
 package externals
 
 import (
-	"net/url"
 	"regexp"
 	"strings"
 
@@ -32,140 +31,8 @@ func NewRooterChecker(p libkb.RemoteProofChainLink) (*RooterChecker, libkb.Proof
 
 func (rc *RooterChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *RooterChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) (err libkb.ProofError) {
-	if pvl.UsePvl {
-		// checking the hint is done later in CheckStatus
-		return nil
-	}
-
-	ctx.GetLog().Debug("+ Rooter check hint: %v", h)
-	defer func() {
-		ctx.GetLog().Debug("- Rooter check hint: %v", err)
-	}()
-
-	u, perr := url.Parse(strings.ToLower(h.GetAPIURL()))
-	if perr != nil {
-		err = libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
-			"Bad hint from server (%s): %v", h.GetAPIURL(), perr)
-		return
-	}
-	wantedMedID := rc.proof.GetSigID().ToMediumID()
-	wantedPathPrefix := libkb.APIURIPathPrefix + "/rooter/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/"
-	if !strings.HasPrefix(u.Path, wantedPathPrefix) {
-		err = libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
-			"Bad hint from server; URL should have path prefix '%s'; got %v", wantedPathPrefix, u)
-	} else if !strings.Contains(h.GetCheckText(), wantedMedID) {
-		err = libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad proof-check text from server; need '%s' as a substring", wantedMedID)
-	}
-	return err
-}
-
-func (rc *RooterChecker) ScreenNameCompare(s1, s2 string) bool {
-	return libkb.Cicmp(s1, s2)
-}
-
-func (rc *RooterChecker) CheckData(h libkb.SigHint, dat string) libkb.ProofError {
-	_, sigID, err := libkb.OpenSig(rc.proof.GetArmoredSig())
-	if err != nil {
-		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad signature: %s", err)
-	} else if !strings.Contains(dat, sigID.ToMediumID()) {
-		return libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND,
-			"Missing signature ID (%s) in post title ('%s')",
-			sigID.ToMediumID(), dat)
-	}
-	return nil
-}
-
-func (rc *RooterChecker) contentMissing(err error) libkb.ProofError {
-	return libkb.NewProofError(keybase1.ProofStatus_CONTENT_MISSING, "Bad proof JSON: %s", err)
-}
-
-func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, libkb.ProofError) {
-	var status, post string
-	var err error
-
-	cf := keybase1.ProofStatus_CONTENT_FAILURE
-
-	inp.AtPath("status.name").GetStringVoid(&status, &err)
-	if err != nil {
-		return "", rc.contentMissing(err)
-	}
-	if status != "OK" {
-		var code int
-		inp.AtPath("status.code").GetIntVoid(&code, &err)
-		if err != nil {
-			return "", rc.contentMissing(err)
-		}
-		if code == libkb.SCNotFound {
-			return "", libkb.NewProofError(keybase1.ProofStatus_NOT_FOUND, status)
-		}
-		return "", libkb.NewProofError(cf, "Rooter: Non-OK status: %s", status)
-	}
-
-	inp.AtPath("toot.post").GetStringVoid(&post, &err)
-	if err != nil {
-		return "", rc.contentMissing(err)
-	}
-
-	return post, nil
-
-}
-
-func (rc *RooterChecker) rewriteURL(ctx libkb.ProofContext, s string) (string, error) {
-	u1, err := url.Parse(s)
-	if err != nil {
-		return "", err
-	}
-	u2, err := url.Parse(ctx.GetServerURI())
-	if err != nil {
-		return "", err
-	}
-
-	u3 := url.URL{
-		Host:     u2.Host,
-		Scheme:   u2.Scheme,
-		Path:     u1.Path,
-		Fragment: u1.Fragment,
-	}
-
-	return u3.String(), nil
-}
-
 func (rc *RooterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) (perr libkb.ProofError) {
-	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_ROOTER,
-			pvl.NewProofInfo(rc.proof, h))
-	}
-	return rc.CheckStatusOld(ctx, h)
-}
-
-func (rc *RooterChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) (perr libkb.ProofError) {
-	ctx.GetLog().Debug("+ Checking rooter at API=%s", h.GetAPIURL())
-	defer func() {
-		ctx.GetLog().Debug("- Rooter -> %v", perr)
-	}()
-
-	url, err := rc.rewriteURL(ctx, h.GetAPIURL())
-	if err != nil {
-		return libkb.XapiError(err, url)
-	}
-	ctx.GetLog().Debug("| URL after rewriter is: %s", url)
-
-	res, err := ctx.GetExternalAPI().Get(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), url))
-
-	if err != nil {
-		perr = libkb.XapiError(err, url)
-		return perr
-	}
-	dat, perr := rc.UnpackData(res.Body)
-	if perr != nil {
-		return perr
-	}
-
-	perr = rc.CheckData(h, dat)
-	return perr
+	return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_ROOTER, pvl.NewProofInfo(rc.proof, h))
 }
 
 //

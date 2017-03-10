@@ -86,9 +86,6 @@ func (i *Identify2WithUIDTester) DisplayName(n string) string { return n }
 func (i *Identify2WithUIDTester) GetPrompt() string           { return "" }
 func (i *Identify2WithUIDTester) GetProofType() string        { return "" }
 func (i *Identify2WithUIDTester) GetTypeName() string         { return "" }
-func (i *Identify2WithUIDTester) CheckHint(_ libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	return nil
-}
 func (i *Identify2WithUIDTester) NormalizeRemoteName(_ libkb.ProofContext, name string) (string, error) {
 	return name, nil
 }
