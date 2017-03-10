@@ -76,7 +76,7 @@
     "react-native": "0.42.0",
     "react-native-camera": "0.6.0",
     "react-native-image-picker": "0.25.7",
-    "react-native-push-notification": "2.2.1",
+    "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#eedae53f4346223b5aee60ef2702ecc47a01fcd2",
     "react-redux": "5.0.2",
     "react-tap-event-plugin": "2.0.1",
     "react-virtualized": "8.11.0",
