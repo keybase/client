@@ -38,7 +38,9 @@ func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOver
 // Init runs the Keybase services
 func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool) error {
 	fmt.Println("Go: Initializing")
-	fmt.Printf("Go: Using log: %s\n", logFile)
+	if logFile != "" {
+		fmt.Printf("Go: Using log: %s\n", logFile)
+	}
 
 	kbCtx = libkb.G
 	kbCtx.Init()
