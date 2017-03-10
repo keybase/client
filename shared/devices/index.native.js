@@ -4,7 +4,6 @@ import {Box, Text, PopupMenu, Icon, ClickableBox, NativeScrollView} from '../com
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-import type {IconType} from '../common-adapters/icon'
 import type {Props} from '.'
 
 type RevokedHeaderProps = {children?: Array<any>, onToggleExpanded: () => void, expanded: boolean}
@@ -25,17 +24,9 @@ const RevokedHeader = (props: RevokedHeaderProps) => (
   </Box>
 )
 
-const _DeviceRow = ({device, showExistingDevicePage}) => {
-  const revoked = !!device.revokeBy
-
-  const icon: IconType = {
-    'backup': 'icon-paper-key-48',
-    'desktop': 'icon-computer-48',
-    'mobile': 'icon-phone-48',
-  }[device.type]
-
+const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => {
   let textStyle = {flex: 0}
-  if (revoked) {
+  if (isRevoked) {
     textStyle = {
       ...textStyle,
       color: globalColors.black_40,
@@ -45,12 +36,12 @@ const _DeviceRow = ({device, showExistingDevicePage}) => {
   }
 
   return (
-    <ClickableBox onClick={() => showExistingDevicePage(device)} style={{...stylesCommonRow, alignItems: 'center'}}>
-      <Box key={device.name} style={{...globalStyles.flexBoxRow, flex: 1, alignItems: 'center'}}>
-        <Icon type={icon} style={revoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
-        <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start', flex: 1}}>
-          <Text style={textStyle} type='BodySemiboldItalic'>{device.name}</Text>
-          {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
+    <ClickableBox onClick={showExistingDevicePage} style={{...stylesCommonRow, alignItems: 'center'}}>
+      <Box key={name} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
+        <Icon type={icon} style={isRevoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-start'}}>
+          <Text style={textStyle} type='BodySemiboldItalic'>{name}</Text>
+          {isCurrentDevice && <Text type='BodySmall'>Current device</Text>}
         </Box>
       </Box>
     </ClickableBox>
@@ -70,7 +61,7 @@ const DeviceHeader = ({onAddNew}) => (
 
 const RevokedDescription = () => (
   <Box style={stylesRevokedDescription}>
-    <Text type='BodySmallSemibold' style={{color: globalColors.black_40, textAlign: 'center', paddingTop: globalMargins.tiny, paddingBottom: globalMargins.tiny}}>Revoked devices will no longer be able to access your Keybase account.</Text>
+    <Text type='BodySmallSemibold' style={{color: globalColors.black_40, paddingBottom: globalMargins.tiny, paddingTop: globalMargins.tiny, textAlign: 'center'}}>Revoked devices will no longer be able to access your Keybase account.</Text>
   </Box>
 )
 

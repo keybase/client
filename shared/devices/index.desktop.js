@@ -5,7 +5,6 @@ import {Box, Text, Icon, PopupMenu} from '../common-adapters'
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-import type {IconType} from '../common-adapters/icon'
 import type {Props} from './'
 
 type RevokedHeaderProps = {children?: Array<any>, onToggleExpanded: () => void, expanded: boolean}
@@ -26,17 +25,9 @@ const RevokedHeader = (props: RevokedHeaderProps) => (
   </Box>
 )
 
-const _DeviceRow = ({device, showExistingDevicePage}) => {
-  const revoked = !!device.revokeBy
-
-  const icon: IconType = {
-    'backup': 'icon-paper-key-32',
-    'desktop': 'icon-computer-32',
-    'mobile': 'icon-phone-32',
-  }[device.type]
-
+const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => {
   let textStyle = {fontStyle: 'italic'}
-  if (revoked) {
+  if (isRevoked) {
     textStyle = {
       ...textStyle,
       color: globalColors.black_40,
@@ -47,18 +38,18 @@ const _DeviceRow = ({device, showExistingDevicePage}) => {
   return (
     <Box
       className='existing-device-container'
-      key={device.name}
+      key={name}
       onClick={showExistingDevicePage}
       style={{...stylesCommonRow, borderBottom: '1px solid rgba(0,0,0,.05)'}}>
-      <Box style={revoked ? {opacity: 0.2} : {}}>
+      <Box style={isRevoked ? {opacity: 0.2} : {}}>
         <Icon type={icon} />
       </Box>
       <Box style={{flex: 1, marginLeft: globalMargins.small}}>
         <Box style={{...globalStyles.flexBoxRow}}>
-          <Text style={textStyle} type='BodySemibold'>{device.name}</Text>
+          <Text style={textStyle} type='BodySemibold'>{name}</Text>
         </Box>
         <Box style={{...globalStyles.flexBoxRow}}>
-          {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
+          {isCurrentDevice && <Text type='BodySmall'>Current device</Text>}
         </Box>
       </Box>
     </Box>
