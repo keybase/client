@@ -45,6 +45,10 @@ var _ keybase1.SimpleFSInterface = (*SimpleFS)(nil)
 
 // NewSimpleFS creates a new SimpleFS instance.
 func NewSimpleFS(config libkbfs.Config) keybase1.SimpleFSInterface {
+	return newSimpleFS(config)
+}
+
+func newSimpleFS(config libkbfs.Config) *SimpleFS {
 	log := config.MakeLogger("simplefs")
 	return &SimpleFS{
 		config:     config,
