@@ -29,6 +29,7 @@ class Icon extends Component<void, Exact<Props>, void> {
     const fontSizeHint = shared.fontSize(iconType)
     const fontSize = (this.props.style && (this.props.style.fontSize || styleWidth) && {fontSize: this.props.style.fontSize || styleWidth}) || fontSizeHint
     const textAlign = this.props.style && this.props.style.textAlign
+    const backgroundColor = this.props.style && {backgroundColor: this.props.style.backgroundColor} || {}
 
     // Color is for our fontIcon and not the container
     let containerProps = {...this.props.style}
@@ -44,9 +45,9 @@ class Icon extends Component<void, Exact<Props>, void> {
     }
 
     const icon = iconMeta[iconType].isFont
-      ? <NativeText style={{color, textAlign, fontFamily: 'kb', ...fontSize, ...width}}>{
+      ? <NativeText style={{color, textAlign, fontFamily: 'kb', ...fontSize, ...width, ...backgroundColor}}>{
         String.fromCharCode(iconMeta[iconType].charCode || 0)}</NativeText>
-      : <NativeImage source={iconMeta[iconType].require} style={{resizeMode: 'contain', ...width, ...height}} />
+      : <NativeImage source={iconMeta[iconType].require} style={{resizeMode: 'contain', ...width, ...height, ...backgroundColor}} />
 
     return (
       <TouchableHighlight

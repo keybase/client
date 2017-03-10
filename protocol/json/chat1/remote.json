@@ -357,6 +357,10 @@
         {
           "name": "topicType",
           "type": "TopicType"
+        },
+        {
+          "name": "summarizeMaxMsgs",
+          "type": "boolean"
         }
       ],
       "response": "GetPublicConversationsRes"

@@ -886,6 +886,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	attachment := chat1.MessageAttachment{
 		Object:   object,
 		Metadata: arg.Metadata,
+		Uploaded: true,
 	}
 	if preview != nil {
 		preview.Title = arg.Title
@@ -894,7 +895,6 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		preview.Tag = chat1.AssetTag_PRIMARY
 		attachment.Previews = []chat1.Asset{*preview}
 		attachment.Preview = preview
-		attachment.Uploaded = true
 	}
 
 	// edit the placeholder  attachment message with the asset information
@@ -1513,8 +1513,9 @@ func (h *chatLocalHandler) FindConversationsLocal(ctx context.Context,
 
 		// Call into gregor to try and find some public convs
 		pubConvs, err := h.remoteClient().GetPublicConversations(ctx, chat1.GetPublicConversationsArg{
-			TlfID:     tlfInfo.ID,
-			TopicType: arg.TopicType,
+			TlfID:            tlfInfo.ID,
+			TopicType:        arg.TopicType,
+			SummarizeMaxMsgs: true,
 		})
 		if err != nil {
 			return res, err

@@ -74,6 +74,11 @@
           "name": "failed"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "BlockPingResponse",
+      "fields": []
     }
   ],
   "messages": {
@@ -204,6 +209,10 @@
     "getUserQuotaInfo": {
       "request": [],
       "response": "bytes"
+    },
+    "blockPing": {
+      "request": [],
+      "response": "BlockPingResponse"
     }
   },
   "namespace": "keybase.1"

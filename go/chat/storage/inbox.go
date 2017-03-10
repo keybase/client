@@ -21,7 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const inboxVersion = 7
+const inboxVersion = 8
 
 type queryHash []byte
 
@@ -592,15 +592,15 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	// Update conversation
 	found := false
 	typ := msg.GetMessageType()
-	for mindex, maxmsg := range conv.MaxMsgs {
+	for mindex, maxmsg := range conv.MaxMsgSummaries {
 		if maxmsg.GetMessageType() == typ {
-			conv.MaxMsgs[mindex] = msg
+			conv.MaxMsgSummaries[mindex] = msg.Summary()
 			found = true
 			break
 		}
 	}
 	if !found {
-		conv.MaxMsgs = append(conv.MaxMsgs, msg)
+		conv.MaxMsgSummaries = append(conv.MaxMsgSummaries, msg.Summary())
 	}
 
 	// If we are all up to date on the thread (and the sender is the current user),

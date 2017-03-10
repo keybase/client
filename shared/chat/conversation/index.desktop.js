@@ -86,8 +86,7 @@ class Conversation extends Component<void, Props, State> {
       finalizeInfo,
     } = this.props
 
-    // $FlowIssue with variants
-    const banner = bannerMessage && <Banner {...bannerMessage} />
+    const banner = bannerMessage && <Banner message={bannerMessage} />
     const dropOverlay = this.state.showDropOverlay && (
       <Box style={dropOverlayStyle} onDragLeave={this._onDragLeave} onDrop={this._onDrop}>
         <Icon type='icon-file-dropping-48' />

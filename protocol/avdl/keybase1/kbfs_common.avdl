@@ -33,7 +33,8 @@ protocol kbfsCommon {
     OLD_VERSION_8,
     OVER_QUOTA_9,
     NO_SIG_CHAIN_10,
-    TOO_MANY_FOLDERS_11
+    TOO_MANY_FOLDERS_11,
+    EXDEV_NOT_SUPPORTED_12
   }
 
   record FSNotification {

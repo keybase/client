@@ -295,6 +295,7 @@ func (b *baseInboxSource) getInboxQueryLocalToRemote(ctx context.Context,
 	rquery.ConvID = lquery.ConvID
 	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
 	rquery.Status = lquery.Status
+	rquery.SummarizeMaxMsgs = true
 
 	return rquery, info, nil
 }
@@ -446,10 +447,12 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 	if query == nil {
 		rquery = chat1.GetInboxQuery{
 			ComputeActiveList: true,
+			SummarizeMaxMsgs:  true,
 		}
 	} else {
 		rquery = *query
 		rquery.ComputeActiveList = true
+		rquery.SummarizeMaxMsgs = true
 	}
 
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
@@ -758,10 +761,10 @@ func (s *localizerPipeline) isErrPermanent(err error) bool {
 func getUnverifiedTlfNameForErrors(conversationRemote chat1.Conversation) string {
 	var tlfName string
 	var latestMsgID chat1.MessageID
-	for _, msg := range conversationRemote.MaxMsgs {
+	for _, msg := range conversationRemote.MaxMsgSummaries {
 		if msg.GetMessageID() > latestMsgID {
 			latestMsgID = msg.GetMessageID()
-			tlfName = msg.ClientHeader.TLFNameExpanded(conversationRemote.Metadata.FinalizeInfo)
+			tlfName = msg.TLFNameExpanded(conversationRemote.Metadata.FinalizeInfo)
 		}
 	}
 	return tlfName
@@ -775,15 +778,10 @@ func (n nullUsernameSource) LookupUsername(ctx context.Context, uid keybase1.UID
 }
 
 func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, chat1.ConversationErrorType, error) {
-
-	var msgIDs []chat1.MessageID
-	for _, msg := range msgs {
-		msgIDs = append(msgIDs, msg.GetMessageID())
-	}
+	uid gregor1.UID, msgs []chat1.MessageSummary, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, chat1.ConversationErrorType, error) {
 
 	st := storage.New(s.G(), func() libkb.SecretUI { return DelivererSecretUI{} })
-	res, err := st.FetchMessages(ctx, convID, uid, msgIDs)
+	res, err := st.FetchMessages(ctx, convID, uid, utils.PluckMessageIDs(msgs))
 	if err != nil {
 		// Just say we didn't find it in this case
 		return nil, chat1.ConversationErrorType_LOCALMAXMESSAGENOTFOUND, err
@@ -831,8 +829,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 	conversationLocal.ReaderInfo = *conversationRemote.ReaderInfo
 
-	if len(conversationRemote.MaxMsgs) == 0 {
-		errMsg := "conversation has an empty MaxMsgs field"
+	if len(conversationRemote.MaxMsgSummaries) == 0 {
+		errMsg := "conversation has an empty MaxMsgSummaries field"
 		conversationLocal.Error = chat1.NewConversationErrorLocal(
 			errMsg, conversationRemote, false, unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
 		return conversationLocal
@@ -841,7 +839,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// Conversation is not empty as long as we have a visible message, even if they are
 	// errors
 	conversationLocal.IsEmpty = true
-	for _, maxMsg := range conversationRemote.MaxMsgs {
+	for _, maxMsg := range conversationRemote.MaxMsgSummaries {
 		if utils.IsVisibleChatMessageType(maxMsg.GetMessageType()) {
 			conversationLocal.IsEmpty = false
 			break
@@ -853,7 +851,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	var err error
 	if s.offline {
 		msgs, errTyp, err := s.getMessagesOffline(ctx, conversationRemote.GetConvID(),
-			uid, conversationRemote.MaxMsgs, conversationRemote.Metadata.FinalizeInfo)
+			uid, conversationRemote.MaxMsgSummaries, conversationRemote.Metadata.FinalizeInfo)
 		if err != nil {
 			convErr := s.checkRekeyError(ctx, err, conversationRemote, unverifiedTLFName)
 			if convErr != nil {
@@ -868,8 +866,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		}
 		conversationLocal.MaxMessages = msgs
 	} else {
-		conversationLocal.MaxMessages, err = s.G().ConvSource.GetMessagesWithRemotes(ctx,
-			conversationRemote.Metadata.ConversationID, uid, conversationRemote.MaxMsgs, conversationRemote.Metadata.FinalizeInfo)
+		conversationLocal.MaxMessages, err = s.G().ConvSource.GetMessages(ctx,
+			conversationRemote.Metadata.ConversationID, uid, utils.PluckMessageIDs(conversationRemote.MaxMsgSummaries), conversationRemote.Metadata.FinalizeInfo)
 		if err != nil {
 			convErr := s.checkRekeyError(ctx, err, conversationRemote, unverifiedTLFName)
 			if convErr != nil {
@@ -1029,10 +1027,10 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 		return nil, nil
 	}
 
-	if len(conversationRemote.MaxMsgs) == 0 {
+	if len(conversationRemote.MaxMsgSummaries) == 0 {
 		return nil, errors.New("can't determine isPrivate with no maxMsgs")
 	}
-	rekeyInfo.TlfPublic = conversationRemote.MaxMsgs[0].ClientHeader.TlfPublic
+	rekeyInfo.TlfPublic = conversationRemote.MaxMsgSummaries[0].TlfPublic
 
 	// Fill readers and writers
 	writerNames, readerNames, err := utils.ReorderParticipants(
