@@ -172,8 +172,10 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 		err := ioutil.RemoveAll(tempdir)
 		assert.NoError(t, err)
 	}()
+	limiter, err := config1.MakeDiskLimiter(tempdir)
+	require.NoError(t, err)
 	_, err = config1.EnableJournaling(
-		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
+		ctx, tempdir, limiter, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
 	jServer, err := GetJournalServer(config1)
 	require.NoError(t, err)
@@ -231,7 +233,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 	config1B := ConfigAsUser(config1, userName1)
 	defer CheckConfigAndShutdown(ctx, t, config1B)
 	_, err = config1B.EnableJournaling(
-		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
+		ctx, tempdir, limiter, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
 	jServer, err = GetJournalServer(config1B)
 	require.NoError(t, err)

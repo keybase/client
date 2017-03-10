@@ -192,9 +192,9 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 		defaultParams.LogFileConfig.MaxKeepFiles, "Maximum number of log "+
 			"files for this service, older ones are deleted. 0 for infinite.")
 	flags.StringVar(&params.WriteJournalRoot, "write-journal-root",
-		defaultParams.WriteJournalRoot, "(EXPERIMENTAL) If non-empty, "+
-			"permits write journals to be turned on for TLFs which will be "+
-			"put in the given directory")
+		defaultParams.WriteJournalRoot, "If non-empty, permits write "+
+			"journals to be turned on for TLFs which will be put in the "+
+			"given directory")
 	flags.Uint64Var(&params.CleanBlockCacheCapacity, "clean-bcache-cap",
 		defaultParams.CleanBlockCacheCapacity,
 		"If non-zero, specify the capacity of clean block cache. If zero, "+
@@ -214,6 +214,29 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 		int(defaultParams.MetadataVersion),
 		"Metadata version to use when creating new metadata")
 	return &params
+}
+
+// TODO: Add a server endpoint to get this data.
+var adminFeatureList = map[keybase1.UID]bool{
+	"23260c2ce19420f97b58d7d95b68ca00": true, // Chris Coyne "chris"
+	"dbb165b7879fe7b1174df73bed0b9500": true, // Max Krohn, "max"
+	"ef2e49961eddaa77094b45ed635cfc00": true, // Jeremy Stribling, "strib"
+	"41b1f75fb55046d370608425a3208100": true, // Jack O'Connor, "oconnor663"
+	"9403ede05906b942fd7361f40a679500": true, // Jinyang Li, "jinyang"
+	"b7c2eaddcced7727bcb229751d91e800": true, // Gabriel Handford, "gabrielh"
+	"1563ec26dc20fd162a4f783551141200": true, // Patrick Crosby, "patrick"
+	"ebbe1d99410ab70123262cf8dfc87900": true, // Fred Akalin, "akalin"
+	"8bc0fd2f5fefd30d3ec04452600f4300": true, // Andy Alness, "alness"
+	"e0b4166c9c839275cf5633ff65c3e819": true, // Chris Nojima, "chrisnojima"
+	"d95f137b3b4a3600bc9e39350adba819": true, // Cécile Boucheron, "cecileb"
+	"4c230ae8d2f922dc2ccc1d2f94890700": true, // Marco Polo, "marcopolo"
+	"237e85db5d939fbd4b84999331638200": true, // Chris Ball, "cjb"
+	"69da56f622a2ac750b8e590c3658a700": true, // John Zila, "jzila"
+	"673a740cd20fb4bd348738b16d228219": true, // Steve Sanders, "zanderz"
+	"95e88f2087e480cae28f08d81554bc00": true, // Mike Maxim, "mikem"
+	"5c2ef2d4eddd2381daa681ac1a901519": true, // Max Goodman, "chromakode"
+	"08abe80bd2da8984534b2d8f7b12c700": true, // Song Gao, "songgao"
+	"eb08cb06e608ea41bd893946445d7919": true, // Miles Steele, "mlsteele"
 }
 
 // GetRemoteUsageString returns a string describing the flags to use
@@ -564,12 +587,15 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 
 	config.SetBlockServer(bserv)
 
+	limiter, err := config.MakeDiskLimiter(params.WriteJournalRoot)
+	if err != nil {
+		return nil, err
+	}
 	// TODO: Don't turn on journaling if either -bserver or
 	// -mdserver point to local implementations.
-	var limiter DiskLimiter
 	if len(params.WriteJournalRoot) != 0 {
-		limiter, err = config.EnableJournaling(
-			context.Background(), params.WriteJournalRoot,
+		limiter, err = config.EnableJournaling(context.Background(),
+			params.WriteJournalRoot, limiter,
 			params.TLFJournalBackgroundWorkStatus)
 		if err != nil {
 			log.Warning("Could not initialize journal server: %+v", err)
@@ -580,7 +606,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	// caching root directory, or enabled caching in the default directory.
 	if len(params.DiskCacheRoot) != 0 && (params.EnableDiskCache ||
 		params.DiskCacheRoot != defaultParams.DiskCacheRoot) {
-		err = config.EnableDiskBlockCache(context.TODO(),
+		err := config.EnableDiskBlockCache(context.TODO(),
 			params.DiskCacheRoot, limiter)
 		if err != nil {
 			log.Warning("Could not initialize disk cache: %+v", err)

@@ -909,11 +909,30 @@ func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
 // put.
 const defaultDiskLimitMaxDelay = 10 * time.Second
 
+// MakeDiskLimiter makes a DiskLimiter for use in journaling and disk caching.
+func (c *ConfigLocal) MakeDiskLimiter(configRoot string) (DiskLimiter, error) {
+	const (
+		backpressureMinThreshold = 0.5
+		backpressureMaxThreshold = 0.95
+		// Cap filesystem usage to a quarter of the free space.
+		byteLimitFrac = 0.25
+		// Set the absolute filesystem byte limit to 50 GiB for now.
+		byteLimit int64 = 50 * 1024 * 1024 * 1024
+		// Set the absolute file limit to 1.5 million for now.
+		fileLimit int64 = 1500000
+	)
+	log := c.MakeLogger("")
+	log.Debug("Setting disk storage byte limit to %v", byteLimit)
+	return newBackpressureDiskLimiter(log, backpressureMinThreshold,
+		backpressureMaxThreshold, byteLimitFrac, byteLimit, fileLimit,
+		defaultDiskLimitMaxDelay, configRoot)
+}
+
 // EnableJournaling creates a JournalServer and attaches it to
 // this config. journalRoot must be non-empty. Errors returned are
 // non-fatal.
 func (c *ConfigLocal) EnableJournaling(
-	ctx context.Context, journalRoot string,
+	ctx context.Context, journalRoot string, bdl DiskLimiter,
 	bws TLFJournalBackgroundWorkStatus) (DiskLimiter, error) {
 	jServer, err := GetJournalServer(c)
 	if err == nil {
@@ -935,23 +954,13 @@ func (c *ConfigLocal) EnableJournaling(
 		return nil, err
 	}
 
-	const backpressureMinThreshold = 0.5
-	const backpressureMaxThreshold = 0.95
-	// Cap journal usage to a quarter of the free space.
-	const journalByteLimitFrac = 0.25
-	// Set the absolute journal byte limit to 50 GiB for now.
-	const journalByteLimit int64 = 50 * 1024 * 1024 * 1024
-	// Set the absolute journal file limit to 1.5 million for now.
-	const journalFileLimit int64 = 1500000
-	bdl, err := newBackpressureDiskLimiter(
-		log, backpressureMinThreshold, backpressureMaxThreshold,
-		journalByteLimitFrac, journalByteLimit, journalFileLimit,
-		defaultDiskLimitMaxDelay, journalRoot)
-	if err != nil {
-		return nil, err
+	if bdl == nil {
+		bdl, err = c.MakeDiskLimiter(journalRoot)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	log.Debug("Setting journal byte limit to %v", journalByteLimit)
 	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
 		flushListener, bdl)
