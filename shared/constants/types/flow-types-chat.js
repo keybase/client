@@ -732,6 +732,7 @@ export type Conversation = {
   metadata: ConversationMetadata,
   readerInfo?: ?ConversationReaderInfo,
   maxMsgs?: ?Array<MessageBoxed>,
+  maxMsgSummaries?: ?Array<MessageSummary>,
 }
 
 export type ConversationErrorLocal = {
@@ -925,6 +926,7 @@ export type GetInboxQuery = {
   unreadOnly: boolean,
   readOnly: boolean,
   computeActiveList: boolean,
+  summarizeMaxMsgs: boolean,
 }
 
 export type GetInboxRemoteRes = {
@@ -1181,6 +1183,14 @@ export type MessagePreviousPointer = {
 export type MessageServerHeader = {
   messageID: MessageID,
   supersededBy: MessageID,
+  ctime: gregor1.Time,
+}
+
+export type MessageSummary = {
+  msgID: MessageID,
+  messageType: MessageType,
+  tlfName: string,
+  tlfPublic: boolean,
   ctime: gregor1.Time,
 }
 
@@ -1682,7 +1692,8 @@ export type remoteGetMessagesRemoteRpcParam = Exact<{
 
 export type remoteGetPublicConversationsRpcParam = Exact<{
   tlfID: TLFID,
-  topicType: TopicType
+  topicType: TopicType,
+  summarizeMaxMsgs: boolean
 }>
 
 export type remoteGetS3ParamsRpcParam = Exact<{

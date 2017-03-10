@@ -167,6 +167,15 @@ func (m MessageBoxed) GetMessageType() MessageType {
 	return m.ClientHeader.MessageType
 }
 
+func (m MessageBoxed) Summary() MessageSummary {
+	return MessageSummary{
+		MsgID:       m.GetMessageID(),
+		MessageType: m.GetMessageType(),
+		TlfName:     m.ClientHeader.TlfName,
+		TlfPublic:   m.ClientHeader.TlfPublic,
+	}
+}
+
 var ConversationStatusGregorMap = map[ConversationStatus]string{
 	ConversationStatus_UNFILED:  "unfiled",
 	ConversationStatus_FAVORITE: "favorite",
@@ -276,6 +285,12 @@ func (h MessageClientHeader) TLFNameExpanded(finalizeInfo *ConversationFinalizeI
 	return ExpandTLFName(h.TlfName, finalizeInfo)
 }
 
+// TLFNameExpanded returns a TLF name with a reset suffix if it exists.
+// This version can be used in requests to lookup the TLF.
+func (m MessageSummary) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
+	return ExpandTLFName(m.TlfName, finalizeInfo)
+}
+
 func (h MessageClientHeaderVerified) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
 	return ExpandTLFName(h.TlfName, finalizeInfo)
 }
@@ -340,13 +355,13 @@ func (c Conversation) GetConvID() ConversationID {
 	return c.Metadata.ConversationID
 }
 
-func (c Conversation) GetMaxMessage(typ MessageType) (MessageBoxed, error) {
-	for _, msg := range c.MaxMsgs {
+func (c Conversation) GetMaxMessage(typ MessageType) (MessageSummary, error) {
+	for _, msg := range c.MaxMsgSummaries {
 		if msg.GetMessageType() == typ {
 			return msg, nil
 		}
 	}
-	return MessageBoxed{}, fmt.Errorf("max message not found: %v", typ)
+	return MessageSummary{}, fmt.Errorf("max message not found: %v", typ)
 }
 
 func (c Conversation) Includes(uid gregor1.UID) bool {
@@ -356,6 +371,14 @@ func (c Conversation) Includes(uid gregor1.UID) bool {
 		}
 	}
 	return false
+}
+
+func (m MessageSummary) GetMessageID() MessageID {
+	return m.MsgID
+}
+
+func (m MessageSummary) GetMessageType() MessageType {
+	return m.MessageType
 }
 
 /*

@@ -128,8 +128,9 @@ type GetThreadRemoteArg struct {
 }
 
 type GetPublicConversationsArg struct {
-	TlfID     TLFID     `codec:"tlfID" json:"tlfID"`
-	TopicType TopicType `codec:"topicType" json:"topicType"`
+	TlfID            TLFID     `codec:"tlfID" json:"tlfID"`
+	TopicType        TopicType `codec:"topicType" json:"topicType"`
+	SummarizeMaxMsgs bool      `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 type PostRemoteArg struct {
