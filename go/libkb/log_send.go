@@ -186,8 +186,16 @@ func listLogFiles(log logger.Logger, stem string) (ret []string) {
 
 	var tmp []nameAndMTime
 	for _, d := range files {
+		fullname := filepath.Clean(filepath.Join(dir, d.Name()))
+		// Use the stat on the file (and not from the directory read)
+		// since the latter doesn't work reliably on Windows
+		finfo, err := os.Stat(fullname)
+		if err != nil {
+			log.Debug("Cannot stat %q: %s", fullname, err)
+			continue
+		}
 		if strings.HasPrefix(d.Name(), base) {
-			tmp = append(tmp, nameAndMTime{d.Name(), d.ModTime()})
+			tmp = append(tmp, nameAndMTime{fullname, finfo.ModTime()})
 		}
 	}
 	if len(tmp) == 0 {
@@ -198,7 +206,7 @@ func listLogFiles(log logger.Logger, stem string) (ret []string) {
 	// Sort the files in reverse chronological mtime order. We should get the raw stem first.
 	sort.Sort(nameAndMTimes(tmp))
 	for _, f := range tmp {
-		ret = append(ret, filepath.Clean(filepath.Join(dir, f.name)))
+		ret = append(ret, f.name)
 	}
 
 	// If we didn't get the raw stem first, then we have a problem, so just use only the
