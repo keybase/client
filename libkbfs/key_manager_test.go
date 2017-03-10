@@ -960,8 +960,8 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	kbfsOps1.(*KBFSOpsStandard).getOpsNoAdd(
 		rootNode1.GetFolderBranch()).identifyDone = false
 
-	// now user 1 should rekey
-	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps1, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %+v", err)
 	}
@@ -1001,7 +1001,8 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 
 	// First request a rekey from the new device, which will only be
 	// able to set the rekey bit (copying the root MD).
-	err = config2Dev3.KBFSOps().Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		config2Dev3.KBFSOps(), rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %+v", err)
 	}
@@ -1012,7 +1013,8 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	}
 
 	// rekey again
-	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps1, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %+v", err)
 	}
@@ -1186,7 +1188,8 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver MetadataVer) 
 		rootNode1.GetFolderBranch()).identifyDone = false
 
 	// now user 1 should rekey
-	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps1, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %+v", err)
 	}
@@ -1255,7 +1258,8 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver MetadataVer) {
 	root2dev1 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
-	err = kbfsOps2.Rekey(ctx, root2dev1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps2, root2dev1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %+v", err)
 	}
@@ -1352,7 +1356,8 @@ func testKeyManagerReaderRekey(t *testing.T, ver MetadataVer) {
 	root2dev1 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
-	err = kbfsOps2.Rekey(ctx, root2dev1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps2, root2dev1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Expected reader rekey to partially complete. Actual error: %#v", err)
 	}
@@ -1437,7 +1442,8 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver MetadataVer) {
 	t.Log("User 2 rekeys from device 2")
 	root2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
-	err = kbfsOps2Dev2.Rekey(ctx, root2Dev2.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps2Dev2, root2Dev2.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Expected reader rekey to partially complete. "+
 			"Actual error: %#v", err)
@@ -1452,7 +1458,8 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver MetadataVer) {
 	// rekeyed by a writer).
 	ops := getOps(config2Dev2, root2Dev2.GetFolderBranch().Tlf)
 	rev1 := ops.head.Revision()
-	err = kbfsOps2Dev2.Rekey(ctx, root2Dev2.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps2Dev2, root2Dev2.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Expected reader rekey to partially complete. "+
 			"Actual error: %#v", err)
@@ -1534,7 +1541,8 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 
 	// now user 2 should set the rekey bit
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
-	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %+v", err)
 	}
@@ -1546,7 +1554,8 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 	}
 
 	// user 1 should try to rekey
-	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps1, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %+v", err)
 	}
@@ -1595,7 +1604,8 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 
 	// now user 3 dev 2 should set the rekey bit
 	kbfsOps3Dev2 := config3Dev2.KBFSOps()
-	err = kbfsOps3Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps3Dev2, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %+v", err)
 	}
@@ -1607,7 +1617,8 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 	}
 
 	// user 2 dev 2 should try to rekey
-	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %+v", err)
 	}
@@ -1691,7 +1702,8 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver Metadat
 	}
 
 	// now user 1 should rekey
-	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps1, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %+v", err)
 	}
@@ -1711,7 +1723,8 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver Metadat
 	// Have user 1 also try to rekey but fail due to conflict
 	errChan := make(chan error, 1)
 	go func() {
-		errChan <- kbfsOps1.Rekey(putCtx, rootNode1.GetFolderBranch().Tlf)
+		_, err := RequestRekeyAndWaitForOneFinishEvent(putCtx, kbfsOps1, rootNode1.GetFolderBranch().Tlf)
+		errChan <- err
 	}()
 	select {
 	case <-ctx.Done():
@@ -1720,7 +1733,8 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver Metadat
 	}
 
 	// rekey again but with user 2 device 2
-	err = kbfsOps2Dev2.Rekey(ctx, root2Dev2.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps2Dev2, root2Dev2.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %+v", err)
 	}
@@ -1833,7 +1847,8 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	// The new device should be unable to rekey on its own, and will
 	// just set the rekey bit.
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
-	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("First rekey failed %+v", err)
 	}
@@ -1845,7 +1860,8 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 
 	// Do it again, to simulate the mdserver sending back this node's
 	// own rekey request.  This shouldn't increase the MD version.
-	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Second rekey failed %+v", err)
 	}
@@ -1867,7 +1883,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), sync.Once{}, c, config2.Crypto()}
 	config2Dev2.SetCrypto(clta)
 
-	ops.rekeyWithPromptTimer.Reset(1 * time.Millisecond)
+	ops.rekeyFSM.Event(newRekeyKickoffEventForTest())
 	select {
 	case <-c:
 	case <-ctx.Done():
@@ -1955,7 +1971,8 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	// The new device should be unable to rekey on its own, and will
 	// just set the rekey bit.
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
-	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("First rekey failed %+v", err)
 	}
@@ -1967,7 +1984,8 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 
 	// Do it again, to simulate the mdserver sending back this node's
 	// own rekey request.  This shouldn't increase the MD version.
-	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Second rekey failed %+v", err)
 	}
@@ -1982,15 +2000,15 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 		t.Fatalf("Couldn't set rekey bit")
 	}
 
-	// Simulate a restart by clearing the timer after the rekey bit was set
-	ops.rekeyWithPromptTimer.Stop()
-	ops.rekeyWithPromptTimer = nil
+	// Simulate a restart after the rekey bit was set
+	ops.rekeyFSM.Event(newRekeyCancelEventForTest())
 
 	t.Log("Doing third rekey")
 
 	// Try again, which should reset the timer (and so the Reset below
 	// will be on a non-nil timer).
-	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Third rekey failed %+v", err)
 	}
@@ -2002,7 +2020,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), sync.Once{}, c, config2.Crypto()}
 	config2Dev2.SetCrypto(clta)
 
-	ops.rekeyWithPromptTimer.Reset(1 * time.Millisecond)
+	ops.rekeyFSM.Event(newRekeyKickoffEventForTest())
 	select {
 	case <-c:
 	case <-ctx.Done():
@@ -2066,7 +2084,8 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 	// The new device should be unable to rekey on its own, and will
 	// just set the rekey bit.
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
-	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("First rekey failed %+v", err)
 	}
@@ -2085,7 +2104,7 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 	c := make(chan struct{}, 1)
 	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), sync.Once{}, c, config2Dev2.Crypto()}
 	config2Dev2.SetCrypto(clta)
-	ops.rekeyWithPromptTimer.Reset(1 * time.Millisecond)
+	ops.rekeyFSM.Event(newRekeyKickoffEventForTest())
 	select {
 	case <-c:
 	case <-ctx.Done():
@@ -2139,6 +2158,26 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 	t.Log("Getting the root node, which should now succeed")
 
 	GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
+}
+
+// maybeReplaceContext, defined on *protectedContext, enables replacing context
+// stored in protectedContext.
+//
+// This is importantly defined in a _test.go file since we should not use it
+// anywhere other than in tests.
+//
+// For now, the only application for this is to cause states in rekey_fsm
+// to replace existing context when new request comes in. This is needed
+// because stallers store staller key in context, and context needs to be
+// updated in states in order for stalling to be effective.
+func (c *protectedContext) maybeReplaceContext(newCtx context.Context) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.log != nil {
+		c.log.CDebugf(c.ctx, "Replacing context")
+		defer c.log.CDebugf(newCtx, "Context replaced")
+	}
+	c.ctx = newCtx
 }
 
 func TestKeyManager(t *testing.T) {

@@ -726,3 +726,9 @@ const (
 	// FavoritesOpNoChange means no changes regarding to favorites should be made.
 	FavoritesOpNoChange
 )
+
+// RekeyResult represents the result of an rekey operation.
+type RekeyResult struct {
+	DidRekey      bool
+	NeedsPaperKey bool
+}

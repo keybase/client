@@ -694,14 +694,12 @@ func (_mr *_MockKBFSOpsRecorder) UnstageForTesting(arg0, arg1 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnstageForTesting", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) Rekey(ctx context.Context, id tlf.ID) error {
-	ret := _m.ctrl.Call(_m, "Rekey", ctx, id)
-	ret0, _ := ret[0].(error)
-	return ret0
+func (_m *MockKBFSOps) RequestRekey(ctx context.Context, id tlf.ID) {
+	_m.ctrl.Call(_m, "RequestRekey", ctx, id)
 }
 
-func (_mr *_MockKBFSOpsRecorder) Rekey(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Rekey", arg0, arg1)
+func (_mr *_MockKBFSOpsRecorder) RequestRekey(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RequestRekey", arg0, arg1)
 }
 
 func (_m *MockKBFSOps) SyncFromServerForTesting(ctx context.Context, folderBranch FolderBranch) error {
@@ -4803,10 +4801,8 @@ func (_m *MockRekeyQueue) EXPECT() *_MockRekeyQueueRecorder {
 	return _m.recorder
 }
 
-func (_m *MockRekeyQueue) Enqueue(_param0 tlf.ID) <-chan error {
-	ret := _m.ctrl.Call(_m, "Enqueue", _param0)
-	ret0, _ := ret[0].(<-chan error)
-	return ret0
+func (_m *MockRekeyQueue) Enqueue(_param0 tlf.ID) {
+	_m.ctrl.Call(_m, "Enqueue", _param0)
 }
 
 func (_mr *_MockRekeyQueueRecorder) Enqueue(arg0 interface{}) *gomock.Call {
@@ -4823,22 +4819,12 @@ func (_mr *_MockRekeyQueueRecorder) IsRekeyPending(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsRekeyPending", arg0)
 }
 
-func (_m *MockRekeyQueue) Clear() {
-	_m.ctrl.Call(_m, "Clear")
+func (_m *MockRekeyQueue) Shutdown() {
+	_m.ctrl.Call(_m, "Shutdown")
 }
 
-func (_mr *_MockRekeyQueueRecorder) Clear() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Clear")
-}
-
-func (_m *MockRekeyQueue) Wait(ctx context.Context) error {
-	ret := _m.ctrl.Call(_m, "Wait", ctx)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockRekeyQueueRecorder) Wait(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Wait", arg0)
+func (_mr *_MockRekeyQueueRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
 // Mock of BareRootMetadata interface
@@ -4944,8 +4930,8 @@ func (_mr *_MockBareRootMetadataRecorder) IsFinal() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsFinal")
 }
 
-func (_m *MockBareRootMetadata) IsWriter(user keybase1.UID, deviceKID keybase1.KID, extra ExtraMetadata) bool {
-	ret := _m.ctrl.Call(_m, "IsWriter", user, deviceKID, extra)
+func (_m *MockBareRootMetadata) IsWriter(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool {
+	ret := _m.ctrl.Call(_m, "IsWriter", user, deviceKey, extra)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
@@ -4954,8 +4940,8 @@ func (_mr *_MockBareRootMetadataRecorder) IsWriter(arg0, arg1, arg2 interface{})
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsWriter", arg0, arg1, arg2)
 }
 
-func (_m *MockBareRootMetadata) IsReader(user keybase1.UID, deviceKID keybase1.KID, extra ExtraMetadata) bool {
-	ret := _m.ctrl.Call(_m, "IsReader", user, deviceKID, extra)
+func (_m *MockBareRootMetadata) IsReader(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool {
+	ret := _m.ctrl.Call(_m, "IsReader", user, deviceKey, extra)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
@@ -5380,8 +5366,8 @@ func (_mr *_MockMutableBareRootMetadataRecorder) IsFinal() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsFinal")
 }
 
-func (_m *MockMutableBareRootMetadata) IsWriter(user keybase1.UID, deviceKID keybase1.KID, extra ExtraMetadata) bool {
-	ret := _m.ctrl.Call(_m, "IsWriter", user, deviceKID, extra)
+func (_m *MockMutableBareRootMetadata) IsWriter(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool {
+	ret := _m.ctrl.Call(_m, "IsWriter", user, deviceKey, extra)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
@@ -5390,8 +5376,8 @@ func (_mr *_MockMutableBareRootMetadataRecorder) IsWriter(arg0, arg1, arg2 inter
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsWriter", arg0, arg1, arg2)
 }
 
-func (_m *MockMutableBareRootMetadata) IsReader(user keybase1.UID, deviceKID keybase1.KID, extra ExtraMetadata) bool {
-	ret := _m.ctrl.Call(_m, "IsReader", user, deviceKID, extra)
+func (_m *MockMutableBareRootMetadata) IsReader(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool {
+	ret := _m.ctrl.Call(_m, "IsReader", user, deviceKey, extra)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
@@ -6066,4 +6052,49 @@ func (_m *MockKeyBundleCache) PutTLFWriterKeyBundle(_param0 tlf.ID, _param1 TLFW
 
 func (_mr *_MockKeyBundleCacheRecorder) PutTLFWriterKeyBundle(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFWriterKeyBundle", arg0, arg1, arg2)
+}
+
+// Mock of RekeyFSM interface
+type MockRekeyFSM struct {
+	ctrl     *gomock.Controller
+	recorder *_MockRekeyFSMRecorder
+}
+
+// Recorder for MockRekeyFSM (not exported)
+type _MockRekeyFSMRecorder struct {
+	mock *MockRekeyFSM
+}
+
+func NewMockRekeyFSM(ctrl *gomock.Controller) *MockRekeyFSM {
+	mock := &MockRekeyFSM{ctrl: ctrl}
+	mock.recorder = &_MockRekeyFSMRecorder{mock}
+	return mock
+}
+
+func (_m *MockRekeyFSM) EXPECT() *_MockRekeyFSMRecorder {
+	return _m.recorder
+}
+
+func (_m *MockRekeyFSM) Event(event RekeyEvent) {
+	_m.ctrl.Call(_m, "Event", event)
+}
+
+func (_mr *_MockRekeyFSMRecorder) Event(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Event", arg0)
+}
+
+func (_m *MockRekeyFSM) Shutdown() {
+	_m.ctrl.Call(_m, "Shutdown")
+}
+
+func (_mr *_MockRekeyFSMRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
+}
+
+func (_m *MockRekeyFSM) listenOnEvent(event rekeyEventType, callback func(RekeyEvent), repeatedly bool) {
+	_m.ctrl.Call(_m, "listenOnEvent", event, callback, repeatedly)
+}
+
+func (_mr *_MockRekeyFSMRecorder) listenOnEvent(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "listenOnEvent", arg0, arg1, arg2)
 }

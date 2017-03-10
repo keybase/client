@@ -595,7 +595,9 @@ func (k *LibKBFS) Rekey(u User, tlfName string, isPublic bool) error {
 		return err
 	}
 
-	return config.KBFSOps().Rekey(ctx, dir.GetFolderBranch().Tlf)
+	_, err = libkbfs.RequestRekeyAndWaitForOneFinishEvent(ctx,
+		config.KBFSOps(), dir.GetFolderBranch().Tlf)
+	return err
 }
 
 // EnableJournal implements the Engine interface.

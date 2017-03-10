@@ -280,8 +280,9 @@ type KBFSOps interface {
 	// any, and fast-forwards to the current head of this
 	// folder-branch.
 	UnstageForTesting(ctx context.Context, folderBranch FolderBranch) error
-	// Rekey rekeys this folder.
-	Rekey(ctx context.Context, id tlf.ID) error
+	// RequestRekey requests to rekey this folder. Note that this asynchronously
+	// requests a rekey, so canceling ctx doesn't cancel the rekey.
+	RequestRekey(ctx context.Context, id tlf.ID)
 	// SyncFromServerForTesting blocks until the local client has
 	// contacted the server and guaranteed that all known updates
 	// for the given top-level folder have been applied locally
@@ -1647,20 +1648,19 @@ type crAction interface {
 	String() string
 }
 
-// RekeyQueue is a managed queue of folders needing some rekey action taken upon them
-// by the current client.
+// RekeyQueue is a managed queue of folders needing some rekey action taken
+// upon them by the current client.
 type RekeyQueue interface {
 	// Enqueue enqueues a folder for rekey action. If the TLF is already in the
 	// rekey queue, the error channel of the existing one is returned.
-	Enqueue(tlf.ID) <-chan error
+	Enqueue(tlf.ID)
 	// IsRekeyPending returns true if the given folder is in the rekey queue.
-	// Note that a rekey request that a worker has already picked up and is
-	// working on doesn't count as "pending".
+	// Note that an ongoing rekey doesn't count as "pending".
 	IsRekeyPending(tlf.ID) bool
-	// Clear cancels all pending rekey actions and clears the queue.
-	Clear()
-	// Waits for all queued rekeys to finish
-	Wait(ctx context.Context) error
+	// Shutdown cancels all pending rekey actions and clears the queue. It
+	// doesn't cancel ongoing rekeys. After Shutdown() is called, the same
+	// RekeyQueue shouldn't be used anymore.
+	Shutdown()
 }
 
 // BareRootMetadata is a read-only interface to the bare serializeable MD that
@@ -1944,4 +1944,28 @@ type KeyBundleCache interface {
 	PutTLFReaderKeyBundle(tlf.ID, TLFReaderKeyBundleID, TLFReaderKeyBundleV3)
 	// PutTLFWriterKeyBundle stores the given TLFWriterKeyBundleV3.
 	PutTLFWriterKeyBundle(tlf.ID, TLFWriterKeyBundleID, TLFWriterKeyBundleV3)
+}
+
+// RekeyFSM is a Finite State Machine (FSM) for housekeeping rekey states for a
+// FolderBranch. Each FolderBranch has its own FSM for rekeys.
+//
+// See rekey_fsm.go for implementation details.
+//
+// TODO: report FSM status in FolderBranchStatus?
+type RekeyFSM interface {
+	// Event sends an event to the FSM.
+	Event(event RekeyEvent)
+	// Shutdown shuts down the FSM. No new event should be sent into the FSM
+	// after this method is called.
+	Shutdown()
+
+	// listenOnEvent adds a listener (callback) to the FSM so that when
+	// event happens, callback is called with the received event. If repeatedly
+	// is set to false, callback is called only once. Otherwise it's called every
+	// time event happens.
+	//
+	// Currently this is only used in tests and for RekeyFile. See comment for
+	// RequestRekeyAndWaitForOneFinishEvent for more details.
+	listenOnEvent(
+		event rekeyEventType, callback func(RekeyEvent), repeatedly bool)
 }

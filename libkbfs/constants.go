@@ -8,3 +8,10 @@ import "time"
 
 // RPCReconnectInterval specifies the time between reconnect attempts for RPC Connections.
 const RPCReconnectInterval = 2 * time.Second
+
+// rekeyRecheckInterval is the time duration to wait for before rechecking for
+// rekey for the same TLF. See fbo.Rekey for more details.
+const rekeyRecheckInterval = 30 * time.Second
+
+// rekeyInitialTTL is the maximum number rechecks each rekey request can trigger.
+const rekeyInitialTTL = 4

@@ -317,10 +317,7 @@ type folderBranchOps struct {
 	// Helper class for archiving and cleaning up the blocks for this TLF
 	fbm *folderBlockManager
 
-	// rekeyWithPromptTimer tracks a timed function that will try to
-	// rekey with a paper key prompt, if enough time has passed.
-	// Protected by mdWriterLock
-	rekeyWithPromptTimer *time.Timer
+	rekeyFSM RekeyFSM
 
 	editHistory *TlfEditHistory
 
@@ -392,6 +389,7 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 	fbo.cr = NewConflictResolver(config, fbo)
 	fbo.fbm = newFolderBlockManager(config, fb, fbo)
 	fbo.editHistory = NewTlfEditHistory(config, fbo, log)
+	fbo.rekeyFSM = NewRekeyFSM(fbo)
 	if config.DoBackgroundFlushes() {
 		go fbo.backgroundFlusher(secondsBetweenBackgroundFlushes * time.Second)
 	}
@@ -438,6 +436,7 @@ func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 	fbo.cr.Shutdown()
 	fbo.fbm.shutdown()
 	fbo.editHistory.Shutdown()
+	fbo.rekeyFSM.Shutdown()
 	// Wait for the update goroutine to finish, so that we don't have
 	// any races with logging during test reporting.
 	if fbo.updateDoneChan != nil {
@@ -4622,16 +4621,16 @@ func (fbo *folderBranchOps) UnstageForTesting(
 
 // mdWriterLock must be taken by the caller.
 func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
-	lState *lockState, promptPaper bool) (err error) {
+	lState *lockState, promptPaper bool) (res RekeyResult, err error) {
 	fbo.log.CDebugf(ctx, "rekeyLocked")
 	defer func() {
-		fbo.deferLog.CDebugf(ctx, "rekeyLocked done: %+v", err)
+		fbo.deferLog.CDebugf(ctx, "rekeyLocked done: %+v %+v", res, err)
 	}()
 
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	if !fbo.isMasterBranchLocked(lState) {
-		return errors.New("can't rekey while staged")
+		return RekeyResult{}, errors.New("can't rekey while staged")
 	}
 
 	// untrusted head is ok here.
@@ -4646,7 +4645,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 			ctx, lState, fbo.applyMDUpdatesLocked); err != nil {
 			if applyErr, ok := err.(MDRevisionMismatch); !ok ||
 				applyErr.rev != applyErr.curr {
-				return err
+				return RekeyResult{}, err
 			}
 		}
 	}
@@ -4654,25 +4653,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 	md, lastWriterVerifyingKey, rekeyWasSet, err :=
 		fbo.getMDForRekeyWriteLocked(ctx, lState)
 	if err != nil {
-		return err
-	}
-
-	if fbo.rekeyWithPromptTimer != nil {
-		if !promptPaper {
-			fbo.log.CDebugf(ctx, "rekeyWithPrompt superseded before it fires.")
-		} else if !md.IsRekeySet() {
-			fbo.rekeyWithPromptTimer.Stop()
-			fbo.rekeyWithPromptTimer = nil
-			// If the rekey bit isn't set, then some other device
-			// already took care of our request, and we can stop
-			// early.  Note that if this FBO never registered for
-			// updates, then we might not yet have seen the update, in
-			// which case we'll still try to rekey but it will fail as
-			// a conflict.
-			fbo.log.CDebugf(ctx, "rekeyWithPrompt not needed because the "+
-				"rekey bit was already unset.")
-			return nil
-		}
+		return RekeyResult{}, err
 	}
 
 	currKeyGen := md.LatestKeyGeneration()
@@ -4686,13 +4667,16 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		// devices haven't changed?
 		if !rekeyDone {
 			fbo.log.CDebugf(ctx, "No rekey necessary")
-			return nil
+			return RekeyResult{
+				DidRekey:      false,
+				NeedsPaperKey: false,
+			}, nil
 		}
 		// Clear the rekey bit if any.
 		md.clearRekeyBit()
 		session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
 		if err != nil {
-			return err
+			return RekeyResult{}, err
 		}
 		// Readers can't clear the last revision, because:
 		// 1) They don't have access to the writer metadata, so can't clear the
@@ -4709,7 +4693,10 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 			// The rekey bit was already set, and there's nothing else
 			// we can to do, so don't put any new revisions.
 			fbo.log.CDebugf(ctx, "No further rekey possible by this user.")
-			return nil
+			return RekeyResult{
+				DidRekey:      false,
+				NeedsPaperKey: false,
+			}, nil
 		}
 
 		// Rekey incomplete, fallthrough without early exit, to ensure
@@ -4717,9 +4704,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		fbo.log.CDebugf(ctx,
 			"Rekeyed reader devices, but still need writer rekey")
 
-	case NeedOtherRekeyError:
-		stillNeedsRekey = true
-	case NeedSelfRekeyError:
+	case NeedOtherRekeyError, NeedSelfRekeyError:
 		stillNeedsRekey = true
 
 	default:
@@ -4728,7 +4713,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 			// Reschedule the prompt in the timeout case.
 			stillNeedsRekey = true
 		} else {
-			return err
+			return RekeyResult{}, err
 		}
 	}
 
@@ -4743,18 +4728,14 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		// key.  Only schedule this as a one-time event, since direct
 		// folder accesses from the user will also cause a
 		// rekeyWithPrompt.
-		//
-		// Only ever set the timer once.
-		if fbo.rekeyWithPromptTimer == nil {
-			d := fbo.config.RekeyWithPromptWaitTime()
-			fbo.log.CDebugf(ctx, "Scheduling a rekeyWithPrompt in %s", d)
-			fbo.rekeyWithPromptTimer = time.AfterFunc(d, fbo.rekeyWithPrompt)
-		}
 
 		if rekeyWasSet {
 			// Devices not yet keyed shouldn't set the rekey bit again
 			fbo.log.CDebugf(ctx, "Rekey bit already set")
-			return nil
+			return RekeyResult{
+				DidRekey:      rekeyDone,
+				NeedsPaperKey: true,
+			}, nil
 		}
 		// This device hasn't been keyed yet, fall through to set the rekey bit
 	}
@@ -4767,7 +4748,10 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 	err = fbo.finalizeMDRekeyWriteLocked(
 		ctx, lState, md, lastWriterVerifyingKey)
 	if err != nil {
-		return err
+		return RekeyResult{
+			DidRekey:      rekeyDone,
+			NeedsPaperKey: stillNeedsRekey,
+		}, err
 	}
 
 	// cache any new TLF crypt key
@@ -4775,7 +4759,10 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		keyGen := md.LatestKeyGeneration()
 		err = fbo.config.KeyCache().PutTLFCryptKey(md.TlfID(), keyGen, *tlfCryptKey)
 		if err != nil {
-			return err
+			return RekeyResult{
+				DidRekey:      rekeyDone,
+				NeedsPaperKey: stillNeedsRekey,
+			}, err
 		}
 	}
 
@@ -4785,44 +4772,20 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		fbo.config.Reporter().Notify(ctx,
 			rekeyNotification(ctx, fbo.config, handle, true))
 	}
-	if !stillNeedsRekey && fbo.rekeyWithPromptTimer != nil {
-		fbo.log.CDebugf(ctx, "Scheduled rekey timer no longer needed")
-		fbo.rekeyWithPromptTimer.Stop()
-		fbo.rekeyWithPromptTimer = nil
-	}
-	return nil
+
+	return RekeyResult{
+		DidRekey:      rekeyDone,
+		NeedsPaperKey: stillNeedsRekey,
+	}, nil
 }
 
-func (fbo *folderBranchOps) rekeyWithPrompt() {
-	var err error
-	ctx := ctxWithRandomIDReplayable(
-		context.Background(), CtxRekeyIDKey, CtxRekeyOpID, fbo.log)
-	// Only give the user limited time to enter their paper key, so we
-	// don't wait around forever.
-	d := fbo.config.RekeyWithPromptWaitTime()
-	ctx, cancel := context.WithTimeout(ctx, d)
-	defer cancel()
-	if ctx, err = NewContextWithCancellationDelayer(ctx); err != nil {
-		panic(err)
-	}
-
-	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx,
-		func(lState *lockState) error {
-			return fbo.rekeyLocked(ctx, lState, true)
-		})
-}
-
-// Rekey rekeys the given folder.
-func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf tlf.ID) (err error) {
+func (fbo *folderBranchOps) RequestRekey(_ context.Context, tlf tlf.ID) {
 	fb := FolderBranch{tlf, MasterBranch}
 	if fb != fbo.folderBranch {
-		return WrongOpsError{fbo.folderBranch, fb}
+		// TODO: log instead of panic?
+		panic(WrongOpsError{fbo.folderBranch, fb})
 	}
-
-	return fbo.doMDWriteWithRetryUnlessCanceled(ctx,
-		func(lState *lockState) error {
-			return fbo.rekeyLocked(ctx, lState, false)
-		})
+	fbo.rekeyFSM.Event(NewRekeyRequestEvent())
 }
 
 func (fbo *folderBranchOps) SyncFromServerForTesting(

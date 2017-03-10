@@ -784,8 +784,7 @@ func (c *ConfigLocal) TLFValidDuration() time.Duration {
 
 // Shutdown implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) Shutdown(ctx context.Context) error {
-	c.RekeyQueue().Clear()
-	c.RekeyQueue().Wait(ctx)
+	c.RekeyQueue().Shutdown()
 	if c.CheckStateOnShutdown() {
 		// Before we do anything, wait for all archiving and
 		// journaling to finish.

@@ -79,19 +79,22 @@ func TestRekeyQueueBasic(t *testing.T) {
 		}
 	}
 
-	var rekeyChannels []<-chan error
+	fch := make(chan error, len(names))
 
 	// now user 1 should rekey via its rekey worker
 	for _, name := range names {
 		rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
+		getRekeyFSM(config1.KBFSOps(), rootNode1.GetFolderBranch().Tlf).
+			listenOnEvent(rekeyFinishedEvent, func(e RekeyEvent) {
+				fch <- e.finished.err
+			}, false)
 		// queue it for rekey
-		c := config1.RekeyQueue().Enqueue(rootNode1.GetFolderBranch().Tlf)
-		rekeyChannels = append(rekeyChannels, c)
+		config1.RekeyQueue().Enqueue(rootNode1.GetFolderBranch().Tlf)
 	}
 
 	// listen for all of the rekey results
-	for _, c := range rekeyChannels {
-		if err := <-c; err != nil {
+	for _ = range names {
+		if err := <-fch; err != nil {
 			t.Fatal(err)
 		}
 	}
