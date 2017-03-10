@@ -1,25 +1,15 @@
 // @flow
-import Render from '.'
+import DevicePage from '.'
 import moment from 'moment'
 import {connect} from 'react-redux'
-import {mapProps} from 'recompose'
+import {compose, mapProps} from 'recompose'
 import {navigateUp} from '../../actions/route-tree'
-import {showRemovePage} from '../../actions/devices'
+import {showRevokePage} from '../../actions/devices'
 
 import type {DeviceDetail} from '../../constants/devices'
 import type {TypedState} from '../../constants/reducer'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  // $FlowIssue getIn
-  device: state.entities.getIn(['devices', routeProps.deviceID]),
-})
-
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
-  onBack: () => dispatch(navigateUp()),
-  showRemoveDevicePage: () => dispatch(showRemovePage(routeProps.deviceID)),
-})
-
-const _buildTimeline = (device: DeviceDetail) => {
+const buildTimeline = (device: DeviceDetail) => {
   const added = moment(device.get('created'))
   const timeline = []
   if (device.revokedAt) {
@@ -47,15 +37,28 @@ const _buildTimeline = (device: DeviceDetail) => {
   return timeline
 }
 
-const DevicePage = mapProps(props => ({
+const mapStateToProps = (state: TypedState, {routeProps}) => ({
+  // $FlowIssue getIn
+  device: state.entities.getIn(['devices', routeProps.deviceID]),
+})
+
+const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
+  onBack: () => dispatch(navigateUp()),
+  showRevokeDevicePage: () => dispatch(showRevokePage(routeProps.deviceID)),
+})
+
+const makeRenderProps = props => ({
   ...props,
   currentDevice: props.device.currentDevice,
   device: props.device,
   deviceID: props.device.deviceID,
   name: props.device.name,
   revokedAt: props.device.revokedAt,
-  timeline: _buildTimeline(props.device),
+  timeline: buildTimeline(props.device),
   type: props.device.type,
-}))(Render)
+})
 
-export default connect(mapStateToProps, mapDispatchToProps)(DevicePage)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  mapProps(makeRenderProps),
+)(DevicePage)

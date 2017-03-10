@@ -13,23 +13,15 @@ export default function (state: State = initialState, action: Actions) {
   switch (action.type) {
     case 'common:resetStore':
       return new StateRecord()
-    case 'devices:loadingDevices':
-    case 'devices:removeDevice': // fallthrough
-      return updateWaitingForServer(state, true)
-    case 'devices:loadedDevices':
+    case 'devices:waiting':
+      const {waiting} = action.payload
+      return updateWaitingForServer(state, waiting)
+    case 'devices:loaded':
       const {deviceIDs} = action.payload
-      // $FlowIssue doesn't understand withMutations
-      return state.withMutations(s => {
-        s.set('deviceIDs', List(deviceIDs))
-        updateWaitingForServer(s, false)
-      })
-    case 'devices:deviceRemoved':
-      return updateWaitingForServer(state, false)
-    case 'devices:paperKeyLoading':
-      return updatePaperKey(state, null)
+      return state.set('deviceIDs', List(deviceIDs))
     case 'devices:paperKeyLoaded':
       return updatePaperKey(state, action.payload.paperKey)
-    default:
-      return state
   }
+
+  return state
 }

@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import type {IconType} from '../../common-adapters/icon'
-import type {Props, BannerItem} from './index.render'
+import type {Props, BannerItem} from '.'
 import {Box, Text, Icon, Button, BackButton, Meta} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 
@@ -61,7 +61,7 @@ const Timeline = ({timeline}) => (
 )
 
 const Render = ({banner, name, type, deviceID, currentDevice, timeline,
-  revokedAt, showRemoveDevicePage, device, onBack}: Props) => {
+  revokedAt, showRevokeDevicePage, device, onBack}: Props) => {
   const icon: IconType = {
     'mobile': 'icon-phone-64',
     'desktop': 'icon-computer-64',
@@ -81,7 +81,7 @@ const Render = ({banner, name, type, deviceID, currentDevice, timeline,
       <Icon type={icon} style={{opacity: revokedAt ? 0.4 : 1, marginTop: 32}} />
       <Header name={name} isCurrent={currentDevice} isRevoked={revokedAt} />
       {!!timeline && <Timeline timeline={timeline} />}
-      {!revokedAt && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={() => showRemoveDevicePage(device)} />}
+      {!revokedAt && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={showRevokeDevicePage} />}
     </Box>
   )
 }

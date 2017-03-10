@@ -5,7 +5,7 @@ import {addNewPhone, addNewComputer, addNewPaperKey} from '../actions/login'
 import {compose, lifecycle, mapProps} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
-import {loadDevices} from '../actions/devices'
+import {load} from '../actions/devices'
 
 import type {TypedState} from '../constants/reducer'
 
@@ -26,7 +26,6 @@ const getDevicesAndRevokedDevicesSelector = createSelector(
 )
 
 const mapStateToProps = (state: any, {routeState}) => {
-  const waitingForServer = state.devices.get('waitingForServer ')
   const {showingRevoked} = routeState
   const {deviceIDs, revokedDeviceIDs} = getDevicesAndRevokedDevicesSelector(state)
 
@@ -34,7 +33,6 @@ const mapStateToProps = (state: any, {routeState}) => {
     deviceIDs,
     revokedDeviceIDs,
     showingRevoked,
-    waitingForServer,
   }
 }
 
@@ -42,7 +40,7 @@ const mapDispatchToProps = (dispatch: any, {routeState, setRouteState}) => ({
   addNewComputer: () => dispatch(addNewComputer()),
   addNewPaperKey: () => dispatch(addNewPaperKey()),
   addNewPhone: () => dispatch(addNewPhone()),
-  loadDevices: () => dispatch(loadDevices()),
+  loadDevices: () => dispatch(load()),
   onToggleShowRevoked: () => { setRouteState({showingRevoked: !routeState.showingRevoked}) },
 })
 

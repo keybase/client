@@ -5,7 +5,6 @@ import type {Device} from '../constants/types/flow-types'
 export type Props = {
   deviceIDs: Array<string>,
   revokedDeviceIDs: Array<string>,
-  waitingForServer: boolean,
   showingRevoked: boolean,
   addNewPhone: () => void,
   addNewComputer: () => void,

@@ -4,27 +4,27 @@ import type {Device, DeviceType} from '../../constants/types/more'
 import type {Time} from '../../constants/types/flow-types'
 
 export type TimelineItem = {
-  type: 'LastUsed' | 'Added' | 'Revoked',
   desc: string,
-  subDesc?: string
+  subDesc?: string,
+  type: 'LastUsed' | 'Added' | 'Revoked',
 }
 
 export type BannerItem = {
+  desc: string,
   type: 'OutOfDate' | 'WillUnlock',
-  desc: string
 }
 
 export type Props = {
-  type: DeviceType,
-  name: string,
-  deviceID: string,
-  currentDevice: boolean,
-  revokedAt?: ?Time,
-  timeline?: Array<TimelineItem>,
   banner?: BannerItem,
-  showRemoveDevicePage: () => void,
+  currentDevice: boolean,
   device: Device,
-  onBack: () => void
+  deviceID: string,
+  name: string,
+  onBack: () => void,
+  revokedAt?: ?Time,
+  showRevokeDevicePage: () => void,
+  timeline?: Array<TimelineItem>,
+  type: DeviceType,
 }
 
 export default class Render extends Component<void, Props, void> { }

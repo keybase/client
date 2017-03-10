@@ -40,7 +40,7 @@ const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDeviceP
       className='existing-device-container'
       key={name}
       onClick={showExistingDevicePage}
-      style={{...stylesCommonRow, borderBottom: '1px solid rgba(0,0,0,.05)'}}>
+      style={{...stylesCommonRow, borderBottom: `1px solid ${globalColors.black_05}`}}>
       <Box style={isRevoked ? {opacity: 0.2} : {}}>
         <Icon type={icon} />
       </Box>
@@ -95,7 +95,7 @@ class DevicesRender extends Component<void, Props, {showingMenu: boolean}> {
           showingMenu={this.state.showingMenu}
           onHidden={() => this.setState({showingMenu: false})} />
         {deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
-        {revokedDeviceIDs.length && (
+        {!!revokedDeviceIDs.length && (
           <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
             <RevokedDescription />
             {revokedDeviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}

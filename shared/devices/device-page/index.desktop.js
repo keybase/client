@@ -1,9 +1,10 @@
 // @flow
 import React from 'react'
-import type {IconType} from '../../common-adapters/icon'
-import type {Props, BannerItem} from './index.render'
 import {Box, Text, Icon, Button, BackButton} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
+
+import type {IconType} from '../../common-adapters/icon'
+import type {Props, BannerItem} from '.'
 
 const Banner = ({type, desc}: BannerItem) => {
   const backgroundColor = {
@@ -60,7 +61,7 @@ const Timeline = ({timeline}) => (
 )
 
 const Render = ({banner, name, type, deviceID, currentDevice,
-  timeline, revokedAt, showRemoveDevicePage, device, onBack}: Props) => {
+  timeline, revokedAt, showRevokeDevicePage, device, onBack}: Props) => {
   const icon: IconType = {
     'mobile': 'icon-phone-64',
     'desktop': 'icon-computer-64',
@@ -86,7 +87,7 @@ const Render = ({banner, name, type, deviceID, currentDevice,
         <Box style={{...globalStyles.flexBoxColumn}}>
           <Header name={name} currentDevice={currentDevice} revokedAt={revokedAt} />
           {!!timeline && <Timeline timeline={timeline} />}
-          {!revokedAt && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={() => showRemoveDevicePage(device)} />}
+          {!revokedAt && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={showRevokeDevicePage} />}
         </Box>
       </Box>
     </Box>)

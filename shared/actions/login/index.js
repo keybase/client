@@ -9,7 +9,7 @@ import {bootstrap} from '../config'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {devicesTab, loginTab, profileTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
-import {loadDevices} from '../devices'
+import {load as loadDevices} from '../devices'
 import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
   deviceDeviceAddRpc, loginGetConfiguredAccountsRpc, CommonClientType,
   ConstantsStatusCode, ProvisionUiGPGMethod, CommonDeviceType,
