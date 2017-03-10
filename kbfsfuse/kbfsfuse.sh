@@ -25,16 +25,11 @@ fi
 
 keybase -debug service &
 SERVICE=$!
-KEYBASE_DEBUG=1 kbfsfuse -debug -mdserver $MDSERVER_ADDR -bserver $BSERVER_ADDR -localuser= -md-version $KBFS_METADATA_VERSION -log-to-file /keybase &
-KBFS=$!
-
-# Disable journals for tests, since some tests depend on the sync
+# Journaling is turned off for all tests until we change the tests to
+# turn it on/off when needed, since some tests depend on sync
 # semantics.
-until ls /keybase/.kbfs_disable_auto_journals > /dev/null 2>&1; do
-    echo "Waiting for KBFS"
-    sleep 1
-done
-echo 1 > /keybase/.kbfs_disable_auto_journals
+KEYBASE_DEBUG=1 kbfsfuse -debug -mdserver $MDSERVER_ADDR -bserver $BSERVER_ADDR -localuser= -md-version $KBFS_METADATA_VERSION -log-to-file -write-journal-root "" /keybase &
+KBFS=$!
 
 wait "$SERVICE"
 wait "$KBFS"
