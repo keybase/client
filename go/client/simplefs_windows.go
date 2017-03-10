@@ -7,6 +7,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"path/filepath"
 	"strings"
 
@@ -24,6 +25,10 @@ func doSimpleFSRemoteGlob(g *libkb.GlobalContext, ctx context.Context, cli Simpl
 	// kbfs list only works on directories, so build a glob from a list result.
 
 	g.Log.Debug("doSimpleFSRemoteGlob %s", path.Kbfs())
+
+	if strings.ContainsAny(filepath.Base(directory), "?*[]") == true {
+		return nil, errors.New("wildcards not supported in parent directories")
+	}
 
 	opid, err := cli.SimpleFSMakeOpid(ctx)
 	if err != nil {
