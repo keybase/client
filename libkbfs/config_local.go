@@ -45,6 +45,29 @@ const (
 	tlfValidDurationDefault = 6 * time.Hour
 )
 
+// TODO: Add a server endpoint to get this data.
+var adminFeatureList = map[keybase1.UID]bool{
+	"23260c2ce19420f97b58d7d95b68ca00": true, // Chris Coyne "chris"
+	"dbb165b7879fe7b1174df73bed0b9500": true, // Max Krohn, "max"
+	"ef2e49961eddaa77094b45ed635cfc00": true, // Jeremy Stribling, "strib"
+	"41b1f75fb55046d370608425a3208100": true, // Jack O'Connor, "oconnor663"
+	"9403ede05906b942fd7361f40a679500": true, // Jinyang Li, "jinyang"
+	"b7c2eaddcced7727bcb229751d91e800": true, // Gabriel Handford, "gabrielh"
+	"1563ec26dc20fd162a4f783551141200": true, // Patrick Crosby, "patrick"
+	"ebbe1d99410ab70123262cf8dfc87900": true, // Fred Akalin, "akalin"
+	"8bc0fd2f5fefd30d3ec04452600f4300": true, // Andy Alness, "alness"
+	"e0b4166c9c839275cf5633ff65c3e819": true, // Chris Nojima, "chrisnojima"
+	"d95f137b3b4a3600bc9e39350adba819": true, // Cécile Boucheron, "cecileb"
+	"4c230ae8d2f922dc2ccc1d2f94890700": true, // Marco Polo, "marcopolo"
+	"237e85db5d939fbd4b84999331638200": true, // Chris Ball, "cjb"
+	"69da56f622a2ac750b8e590c3658a700": true, // John Zila, "jzila"
+	"673a740cd20fb4bd348738b16d228219": true, // Steve Sanders, "zanderz"
+	"95e88f2087e480cae28f08d81554bc00": true, // Mike Maxim, "mikem"
+	"5c2ef2d4eddd2381daa681ac1a901519": true, // Max Goodman, "chromakode"
+	"08abe80bd2da8984534b2d8f7b12c700": true, // Song Gao, "songgao"
+	"eb08cb06e608ea41bd893946445d7919": true, // Miles Steele, "mlsteele"
+}
+
 // ConfigLocal implements the Config interface using purely local
 // server objects (no KBFS operations used RPCs).
 type ConfigLocal struct {
@@ -76,6 +99,7 @@ type ConfigLocal struct {
 	loggerFn       func(prefix string) logger.Logger
 	noBGFlush      bool // logic opposite so the default value is the common setting
 	rwpWaitTime    time.Duration
+	diskLimiter    DiskLimiter
 
 	maxNameBytes uint32
 	maxDirBytes  uint64
@@ -390,11 +414,18 @@ func (c *ConfigLocal) SetDirtyBlockCache(d DirtyBlockCache) {
 	c.dirtyBcache = d
 }
 
-// DiskBlockCache implements the COnfig interface for ConfigLocal.
+// DiskBlockCache implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DiskBlockCache() DiskBlockCache {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.diskBlockCache
+}
+
+// DiskLimiter implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) DiskLimiter() DiskLimiter {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.diskLimiter
 }
 
 // Crypto implements the Config interface for ConfigLocal.
@@ -925,16 +956,18 @@ func (c *ConfigLocal) MakeDiskLimiter(configRoot string) (DiskLimiter, error) {
 	log := c.MakeLogger("")
 	log.Debug("Setting disk storage byte limit to %v", byteLimit)
 	os.MkdirAll(configRoot, 0700)
-	return newBackpressureDiskLimiter(log, backpressureMinThreshold,
+	var err error
+	c.diskLimiter, err = newBackpressureDiskLimiter(log, backpressureMinThreshold,
 		backpressureMaxThreshold, byteLimitFrac, byteLimit, fileLimit,
 		defaultDiskLimitMaxDelay, configRoot)
+	return c.diskLimiter, err
 }
 
 // EnableJournaling creates a JournalServer and attaches it to
 // this config. journalRoot must be non-empty. Errors returned are
 // non-fatal.
 func (c *ConfigLocal) EnableJournaling(
-	ctx context.Context, journalRoot string, bdl DiskLimiter,
+	ctx context.Context, journalRoot string, limiter DiskLimiter,
 	bws TLFJournalBackgroundWorkStatus) error {
 	jServer, err := GetJournalServer(c)
 	if err == nil {
@@ -956,8 +989,8 @@ func (c *ConfigLocal) EnableJournaling(
 		return err
 	}
 
-	if bdl == nil {
-		bdl, err = c.MakeDiskLimiter(journalRoot)
+	if limiter == nil {
+		limiter, err = c.MakeDiskLimiter(journalRoot)
 		if err != nil {
 			return err
 		}
@@ -965,7 +998,7 @@ func (c *ConfigLocal) EnableJournaling(
 
 	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
-		flushListener, bdl)
+		flushListener, limiter)
 
 	c.SetBlockServer(jServer.blockServer())
 	c.SetMDOps(jServer.mdOps())
