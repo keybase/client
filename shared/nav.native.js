@@ -147,8 +147,7 @@ export default connect(
     navigateUp: () => dispatch(navigateUp()),
     switchTab: (tab: Tab) => {
       if (tab === chatTab && routeSelected === tab) {
-        // clicking the chat tab when already selected should persistState and nav to the chat tab
-        dispatch(navigateTo(routePath.push(tab), null, true))
+        dispatch(navigateTo(routePath.push(tab)))
         return
       }
 
