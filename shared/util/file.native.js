@@ -13,9 +13,8 @@ function copy (from: string, to: string) {
   throw new Error('Unimplemented')
 }
 
-function exists (from: string, to: string): boolean {
-  // FIXME implement
-  return false
+function exists (filepath: string): Promise<boolean> {
+  return RNFS.exists(filepath)
 }
 
 export {
