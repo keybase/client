@@ -95,8 +95,9 @@ func (b *blockServerRemoteClientHandler) initNewConnection() {
 	}
 
 	b.conn = rpc.NewTLSConnection(
-		b.srvAddr, kbfscrypto.GetRootCerts(b.srvAddr), MDServerErrorUnwrapper{},
-		b, b.rpcLogFactory, b.log, b.connOpts)
+		b.srvAddr, kbfscrypto.GetRootCerts(b.srvAddr),
+		kbfsblock.BServerErrorUnwrapper{}, b, b.rpcLogFactory, b.log,
+		b.connOpts)
 	b.client = keybase1.BlockClient{Cli: b.conn.GetClient()}
 }
 
