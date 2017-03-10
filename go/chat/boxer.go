@@ -17,7 +17,6 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
-	"github.com/agl/ed25519"
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
@@ -27,6 +26,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/go-crypto/ed25519"
 )
 
 var publicCryptKey keybase1.CryptKey

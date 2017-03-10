@@ -59,16 +59,6 @@
 			"revisionTime": "2015-11-18T11:02:55Z"
 		},
 		{
-			"path": "github.com/agl/ed25519",
-			"revision": "d2b94fd789ea21d12fac1a4443dd3a3f79cda72c",
-			"revisionTime": "2014-09-07T16:52:47-07:00"
-		},
-		{
-			"path": "github.com/agl/ed25519/edwards25519",
-			"revision": "d2b94fd789ea21d12fac1a4443dd3a3f79cda72c",
-			"revisionTime": "2014-09-07T16:52:47-07:00"
-		},
-		{
 			"path": "github.com/akavel/rsrc",
 			"revision": "ba14da1f827188454a4591717fff29999010887f",
 			"revisionTime": "2015-11-03T21:43:39+01:00"
