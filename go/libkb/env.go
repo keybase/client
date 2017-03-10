@@ -448,6 +448,14 @@ func (e *Env) GetChatDbFilename() string {
 	)
 }
 
+// GetPvlKitFilename gets the path to pvl kit file.
+// Its value is usually "" which means to use the server.
+func (e *Env) GetPvlKitFilename() string {
+	return e.GetString(
+		func() string { return os.Getenv("KEYBASE_PVL_KIT_FILE") },
+	)
+}
+
 func (e *Env) GetDebug() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.Test.GetDebug() },

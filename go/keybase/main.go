@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -58,6 +59,9 @@ func main() {
 
 	// Set our panel of external services.
 	g.SetServices(externals.GetServices())
+
+	// Set a pvl source
+	pvlsource.NewPvlSourceAndInstall(g)
 
 	// Don't abort here. This should not happen on any known version of Windows, but
 	// new MS platforms may create regressions.

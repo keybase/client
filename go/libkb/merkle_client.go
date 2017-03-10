@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -215,6 +216,7 @@ type MerkleRoot struct {
 	Contextified
 	sigs    *jsonw.Wrapper
 	payload MerkleRootPayload
+	fetched time.Time
 }
 
 type SkipSequence []MerkleRootPayload
@@ -285,6 +287,7 @@ type MerkleRootPayloadUnpacked struct {
 		Txid          string        `json:"txid"`
 		Type          string        `json:"type"`
 		Version       int           `json:"version"`
+		PvlHash       string        `json:"pvl_hash"`
 	} `json:"body"`
 	Ctime int64  `json:"ctime"`
 	Tag   string `json:"tag"`
@@ -441,6 +444,7 @@ func (mr *MerkleRoot) ToJSON() (jw *jsonw.Wrapper) {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("sigs", mr.sigs)
 	ret.SetKey("payload_json", jsonw.NewString(mr.payload.packed))
+	ret.SetKey("fetched_ns", jsonw.NewInt64(mr.fetched.UnixNano()))
 	return ret
 }
 
@@ -475,10 +479,17 @@ func NewMerkleRootFromJSON(jw *jsonw.Wrapper, g *GlobalContext) (ret *MerkleRoot
 	}
 
 	ret = &MerkleRoot{
+		Contextified: NewContextified(g),
 		sigs:         sigs,
 		payload:      mrp,
-		Contextified: NewContextified(g),
+		fetched:      time.Time{},
 	}
+
+	fetchedNs, err := jw.AtKey("fetched_ns").GetInt64()
+	if err == nil {
+		ret.fetched = time.Unix(0, fetchedNs)
+	}
+
 	return ret, nil
 }
 
@@ -626,6 +637,7 @@ func (mc *MerkleClient) readPathFromAPIRes(ctx context.Context, res *APIRes) (re
 	if err != nil {
 		return nil, err
 	}
+	ret.root.fetched = mc.G().Clock().Now()
 
 	ret.uid, err = GetUID(res.Body.AtKey("uid"))
 	if err != nil {
@@ -1243,6 +1255,13 @@ func (mr *MerkleRoot) LegacyUIDRootHash() NodeHash {
 	return mr.payload.legacyUIDRootHash()
 }
 
+func (mr *MerkleRoot) PvlHash() string {
+	if mr == nil {
+		return ""
+	}
+	return mr.payload.pvlHash()
+}
+
 func (mr *MerkleRoot) SkipToSeqno(s Seqno) NodeHash {
 	if mr == nil {
 		return nil
@@ -1257,6 +1276,13 @@ func (mr *MerkleRoot) Ctime() int64 {
 	return mr.payload.ctime()
 }
 
+func (mr *MerkleRoot) Fetched() time.Time {
+	if mr == nil {
+		return time.Time{}
+	}
+	return mr.fetched
+}
+
 func (mrp MerkleRootPayload) skipToSeqno(s Seqno) NodeHash {
 	if mrp.unpacked.Body.Skips == nil {
 		return nil
@@ -1267,4 +1293,5 @@ func (mrp MerkleRootPayload) skipToSeqno(s Seqno) NodeHash {
 func (mrp MerkleRootPayload) seqno() Seqno                { return mrp.unpacked.Body.Seqno }
 func (mrp MerkleRootPayload) rootHash() NodeHash          { return mrp.unpacked.Body.Root }
 func (mrp MerkleRootPayload) legacyUIDRootHash() NodeHash { return mrp.unpacked.Body.LegacyUIDRoot }
+func (mrp MerkleRootPayload) pvlHash() string             { return mrp.unpacked.Body.PvlHash }
 func (mrp MerkleRootPayload) ctime() int64                { return mrp.unpacked.Ctime }
