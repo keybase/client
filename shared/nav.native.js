@@ -3,7 +3,7 @@ import GlobalError from './global-errors/container'
 import React from 'react'
 import TabBar from './tab-bar/index.render.native'
 import {Box, NativeKeyboardAvoidingView} from './common-adapters/index.native'
-import {NavigationExperimental} from 'react-native'
+import {NavigationExperimental, Keyboard} from 'react-native'
 import {chatTab, loginTab, folderTab} from './constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
@@ -59,7 +59,7 @@ function Nav (props: Props) {
           {layerScreens.map(r => r.leafComponent)}
         </Box>
       </StackWrapper>
-      {props.routeSelected !== loginTab &&
+      {!props.hideNav &&
         <TabBar
           onTabClick={props.switchTab}
           selectedTab={props.routeSelected}
@@ -73,6 +73,41 @@ function Nav (props: Props) {
       <GlobalError />
     </Box>
   )
+}
+
+class HideNavOnKeyboard extends React.Component {
+  keyboardDidShowListener: any;
+  keyboardDidHideListener: any;
+
+  componentWillMount () {
+    this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this._keyboardDidShow)
+    this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this._keyboardDidHide)
+  }
+
+  componentWillUnmount () {
+    this.keyboardDidShowListener.remove()
+    this.keyboardDidHideListener.remove()
+  }
+
+  state = {
+    hidden: false,
+  }
+
+  _keyboardDidShow = () => {
+    this.setState({
+      hidden: true,
+    })
+  }
+
+  _keyboardDidHide = () => {
+    this.setState({
+      hidden: false,
+    })
+  }
+
+  render () {
+    return <Nav {...this.props} hideNav={this.props.hideNav || this.state.hidden} />
+  }
 }
 
 const sceneWrapStyleUnder = {
@@ -100,19 +135,19 @@ export default connect(
     config: {extendedConfig, username},
     dev: {debugConfig: {dumbFullscreen}},
     notifications: {menuBadge, menuNotifications},
-  }) => ({
+  }, {routeSelected}) => ({
     chatBadge: menuNotifications.chatBadge,
     dumbFullscreen,
     folderBadge: menuNotifications.folderBadge,
     provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
     username,
+    hideNav: routeSelected === loginTab,
   }),
   (dispatch: any, {routeSelected, routePath}) => ({
     navigateUp: () => dispatch(navigateUp()),
     switchTab: (tab: Tab) => {
       if (tab === chatTab && routeSelected === tab) {
-        // clicking the chat tab when already selected should persistState and nav to the chat tab
-        dispatch(navigateTo(routePath.push(tab), null, true))
+        dispatch(navigateTo(routePath.push(tab)))
         return
       }
 
@@ -120,4 +155,4 @@ export default connect(
       dispatch(action(routePath.push(tab)))
     },
   })
-)(Nav)
+)(isAndroid ? HideNavOnKeyboard : Nav)

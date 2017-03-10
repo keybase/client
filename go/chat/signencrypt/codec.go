@@ -130,8 +130,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/agl/ed25519"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/go-crypto/ed25519"
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
@@ -183,7 +183,7 @@ func getPacketLen(plaintextChunkLen int) int {
 
 func sealPacket(plaintext []byte, encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.SignaturePrefix, nonce SecretboxNonce) []byte {
 	signatureInput := makeSignatureInput(plaintext, encKey, signaturePrefix, nonce)
-	signature := ed25519.Sign(signKey, signatureInput)
+	signature := ed25519.Sign(signKey[:], signatureInput)
 	signedChunk := append(signature[:], plaintext...)
 	packet := secretbox.Seal(nil, signedChunk, nonce, encKey)
 	return packet
@@ -198,11 +198,10 @@ func openPacket(packet []byte, encKey SecretboxKey, verifyKey VerifyKey, signatu
 	if len(signedChunk) < ed25519.SignatureSize {
 		return nil, NewError(ShortSignature, "signature too short")
 	}
-	var signature [ed25519.SignatureSize]byte
-	copy(signature[:], signedChunk[0:ed25519.SignatureSize])
+	signature := signedChunk[0:ed25519.SignatureSize]
 	plaintext := signedChunk[ed25519.SignatureSize:]
 	signatureInput := makeSignatureInput(plaintext, encKey, signaturePrefix, nonce)
-	signatureValid := ed25519.Verify(verifyKey, signatureInput, &signature)
+	signatureValid := ed25519.Verify(verifyKey[:], signatureInput, signature)
 	if !signatureValid {
 		return nil, NewError(BadSignature, "signature failed to verify")
 	}

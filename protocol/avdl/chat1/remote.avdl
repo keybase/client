@@ -101,7 +101,7 @@ protocol remote {
 
   GetInboxRemoteRes getInboxRemote(InboxVers vers, union { null, GetInboxQuery } query, union { null, Pagination } pagination);
   GetThreadRemoteRes getThreadRemote(ConversationID conversationID, union { null, GetThreadQuery } query, union { null, Pagination } pagination);
-  GetPublicConversationsRes getPublicConversations(TLFID tlfID, TopicType topicType);
+  GetPublicConversationsRes getPublicConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs);
 
   PostRemoteRes postRemote(ConversationID conversationID, MessageBoxed messageBoxed);
   NewConversationRemoteRes newConversationRemote(ConversationIDTriple idTriple);

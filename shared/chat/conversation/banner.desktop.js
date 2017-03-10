@@ -73,23 +73,23 @@ const ErrorBanner = (props: ErrorVariant) => {
 const InviteBanner = (props: InviteVariant) => {
   return (
     <Header style={{backgroundColor: globalColors.blue}}>
-      <BannerText backgroundMode='Announcements' style={{flex: 1, ...globalStyles.flexBoxCenter}}>Your messages to {props.users.join(' & ')} will unlock when they join Keybase.</BannerText>
+      <BannerText style={{flex: 1, ...globalStyles.flexBoxCenter}}>Your messages to {props.users.join(' & ')} will unlock when they join Keybase.</BannerText>
     </Header>
   )
 }
 
-const Banner = (props: Props) => {
-  if (props.type === 'Error') {
-    return <ErrorBanner {...props} />
-  } else if (props.type === 'Invite') {
-    return <InviteBanner {...props} />
-  } else if (props.type === 'BrokenTracker') {
-    return <BrokenTrackerBanner {...props} />
+const Banner = ({message}: Props) => {
+  if (message.type === 'Error') {
+    return <ErrorBanner {...message} />
+  } else if (message.type === 'Invite') {
+    return <InviteBanner {...message} />
+  } else if (message.type === 'BrokenTracker') {
+    return <BrokenTrackerBanner {...message} />
   }
 
   return (
     <Header style={{backgroundColor: globalColors.blue}}>
-      <BannerText>{props.text}</BannerText>
+      <BannerText>{message.text}</BannerText>
     </Header>
   )
 }

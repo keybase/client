@@ -5,12 +5,14 @@ import type {ConnectedComponent} from 'react-redux'
 import type {ConnectedComponent as TypedConnectedComponent} from '../util/typed-connect'
 
 type LeafTagsParams = {
+  persistChildren: boolean,  // Whether to persist children state when navigating to this route.
   modal: boolean,
   layerOnTop: boolean,
   underStatusBar: boolean,
 }
 
 export const LeafTags: (spec?: LeafTagsParams) => LeafTagsParams & I.Record<LeafTagsParams> = I.Record({
+  persistChildren: false,
   modal: false,
   layerOnTop: false,
   underStatusBar: false,
@@ -108,13 +110,13 @@ type PathSetSpec<P> = I.IndexedIterable<{type: 'traverse' | 'navigate', next: st
 // the "next" props of each item in the pathSpec, then following any
 // defaultSelected from the routeDefs. It creates any routeState nodes that
 // don't exist along the way.
-function _routeSet (routeDef: RouteDefNode, routeState: ?RouteStateNode, pathSpec: PathSetSpec<*>, persistState: ?boolean = false): RouteStateNode {
+function _routeSet (routeDef: RouteDefNode, routeState: ?RouteStateNode, pathSpec: PathSetSpec<*>): RouteStateNode {
   const pathHead = pathSpec && pathSpec.first()
 
   let newRouteState = routeState || new RouteStateNode({selected: routeDef.defaultSelected})
   if (pathHead && pathHead.type === 'navigate') {
     newRouteState = newRouteState.set('selected', pathHead.next || routeDef.defaultSelected)
-    if (pathHead.next === null && !persistState) {
+    if (pathHead.next === null && !routeDef.tags.persistChildren) {
       // Navigating to a route clears out the state of any children that may
       // have previously been displayed.
       newRouteState = newRouteState.delete('children')
@@ -129,7 +131,7 @@ function _routeSet (routeDef: RouteDefNode, routeState: ?RouteStateNode, pathSpe
     }
 
     newRouteState = newRouteState.updateChild(childName, childState => {
-      let newChild = _routeSet(childDef, childState, pathSpec.skip(1), persistState)
+      let newChild = _routeSet(childDef, childState, pathSpec.skip(1))
       if (pathHead && pathHead.hasOwnProperty('props')) {
         newChild = newChild.set('props', I.Map(pathHead.props))
       }
@@ -140,7 +142,7 @@ function _routeSet (routeDef: RouteDefNode, routeState: ?RouteStateNode, pathSpe
   return newRouteState
 }
 
-export function routeSetProps (routeDef: RouteDefNode, routeState: ?RouteStateNode, pathProps: PathParam<*>, parentPath: ?Path, persistState: ?boolean = false): RouteStateNode {
+export function routeSetProps (routeDef: RouteDefNode, routeState: ?RouteStateNode, pathProps: PathParam<*>, parentPath: ?Path): RouteStateNode {
   const pathSeq = I.Seq(pathProps).map(item => {
     if (typeof item === 'string') {
       return {type: 'navigate', next: item}
@@ -151,11 +153,11 @@ export function routeSetProps (routeDef: RouteDefNode, routeState: ?RouteStateNo
   const parentPathSeq = I.Seq(parentPath || []).map(item => {
     return {type: 'traverse', next: item}
   })
-  return _routeSet(routeDef, routeState, parentPathSeq.concat(pathSeq), persistState)
+  return _routeSet(routeDef, routeState, parentPathSeq.concat(pathSeq))
 }
 
-export function routeNavigate (routeDef: RouteDefNode, routeState: ?RouteStateNode, pathProps: PathParam<*>, parentPath: ?Path, persistState?: boolean = false): RouteStateNode {
-  return routeSetProps(routeDef, routeState, I.List(pathProps).push({selected: null, props: {}}), parentPath, persistState)
+export function routeNavigate (routeDef: RouteDefNode, routeState: ?RouteStateNode, pathProps: PathParam<*>, parentPath: ?Path): RouteStateNode {
+  return routeSetProps(routeDef, routeState, I.List(pathProps).push({selected: null, props: {}}), parentPath)
 }
 
 export function routeSetState (routeDef: RouteDefNode, routeState: RouteStateNode, path: Path, partialState: {}): RouteStateNode {

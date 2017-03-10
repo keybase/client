@@ -1513,8 +1513,9 @@ func (h *chatLocalHandler) FindConversationsLocal(ctx context.Context,
 
 		// Call into gregor to try and find some public convs
 		pubConvs, err := h.remoteClient().GetPublicConversations(ctx, chat1.GetPublicConversationsArg{
-			TlfID:     tlfInfo.ID,
-			TopicType: arg.TopicType,
+			TlfID:            tlfInfo.ID,
+			TopicType:        arg.TopicType,
+			SummarizeMaxMsgs: true,
 		})
 		if err != nil {
 			return res, err

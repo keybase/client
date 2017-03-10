@@ -5,9 +5,9 @@ import (
 	"errors"
 	"io"
 
-	"github.com/agl/ed25519"
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/go-crypto/ed25519"
 )
 
 type Encrypter interface {

@@ -396,13 +396,13 @@ function _conversationLocalToFinalized (convo: ?ChatTypes.ConversationLocal): Fi
 
 function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): List<InboxState> {
   return List((inbox.conversationsUnverified || []).map(convoUnverified => {
-    const msgBoxed = convoUnverified.maxMsgs && convoUnverified.maxMsgs.length && convoUnverified.maxMsgs[0]
+    const msgMax = convoUnverified.maxMsgSummaries && convoUnverified.maxMsgSummaries.length && convoUnverified.maxMsgSummaries[0]
 
-    if (!msgBoxed) {
+    if (!msgMax) {
       return null
     }
 
-    const participants = List(parseFolderNameToUsers(author, msgBoxed.clientHeader.tlfName).map(ul => ul.username))
+    const participants = List(parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username))
     const muted = convoUnverified.metadata.status === CommonConversationStatus.muted
 
     return new InboxStateRecord({

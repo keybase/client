@@ -637,6 +637,9 @@ func TestChatGetInboxSummaryForCLILocal(t *testing.T) {
 	}
 	// TODO: fix this when merging master back in
 	if len(res.Conversations[0].MaxMessages) != 2 {
+		for i, m := range res.Conversations[0].MaxMessages {
+			t.Logf("%d: %+v", i, m.Valid())
+		}
 		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 2 messages in the first conversation, got %d\n", len(res.Conversations[0].MaxMessages))
 	}
 

@@ -10,7 +10,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/agl/ed25519"
+	"github.com/keybase/go-crypto/ed25519"
 	"github.com/keybase/saltpack"
 )
 
@@ -33,7 +33,7 @@ func (s *sigPubKey) Verify(message []byte, signature []byte) error {
 	var fixed [ed25519.SignatureSize]byte
 	copy(fixed[:], signature)
 
-	if !ed25519.Verify(&s.key, message, &fixed) {
+	if !ed25519.Verify(s.key[:], message, &fixed) {
 		return errors.New("bad signature")
 	}
 	return nil

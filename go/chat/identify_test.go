@@ -36,12 +36,16 @@ func TestChatBackgroundIdentify(t *testing.T) {
 			Sender:      u.User.GetUID().ToBytes(),
 			MessageType: chat1.MessageType_TEXT,
 		},
+		ServerHeader: &chat1.MessageServerHeader{
+			MessageID: 2,
+		},
 	}
 	conv := chat1.Conversation{
 		Metadata: chat1.ConversationMetadata{
 			ActiveList: []gregor1.UID{u.User.GetUID().ToBytes()},
 		},
-		MaxMsgs: []chat1.MessageBoxed{msg},
+		MaxMsgs:         []chat1.MessageBoxed{msg},
+		MaxMsgSummaries: []chat1.MessageSummary{msg.Summary()},
 	}
 	require.NoError(t, inbox.Merge(context.TODO(), 1, []chat1.Conversation{conv}, nil, nil))
 

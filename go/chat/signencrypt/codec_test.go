@@ -11,8 +11,8 @@ import (
 
 	"golang.org/x/crypto/nacl/secretbox"
 
-	"github.com/agl/ed25519"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/go-crypto/ed25519"
 	"github.com/stretchr/testify/require"
 )
 
