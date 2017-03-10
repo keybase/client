@@ -492,7 +492,7 @@ func (bdl *backpressureDiskLimiter) beforeDiskBlockCachePut(
 	ctx context.Context, blockBytes, diskBlockCacheBytes int64) (
 	availableBytes int64, err error) {
 	if blockBytes == 0 {
-		// Better to return an error than to panic in Acquire.
+		// Better to return an error than to panic in ForceAcquire.
 		return 0, errors.New("backpressureDiskLimiter.beforeDiskBlockCachePut" +
 			" called with 0 blockBytes")
 	}
@@ -500,7 +500,7 @@ func (bdl *backpressureDiskLimiter) beforeDiskBlockCachePut(
 	defer bdl.lock.Unlock()
 	freeBytes, freeFiles, err := bdl.freeBytesAndFilesFn()
 	if err != nil {
-		return
+		return 0, err
 	}
 	bdl.byteTracker.updateFree(freeBytes)
 	bdl.fileTracker.updateFree(freeFiles)

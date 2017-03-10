@@ -109,15 +109,12 @@ func (sdl semaphoreDiskLimiter) onDiskBlockCacheDelete(ctx context.Context,
 }
 
 func (sdl semaphoreDiskLimiter) beforeDiskBlockCachePut(ctx context.Context,
-	blockBytes, diskBlockCacheBytes int64) (bytesAcquired int64, err error) {
+	blockBytes, diskBlockCacheBytes int64) (availableBytes int64, err error) {
 	if blockBytes == 0 {
-		return 0, nil
+		return 0, errors.New("semaphoreDiskLimiter.beforeDiskBlockCachePut" +
+			" called with 0 blockBytes")
 	}
-	availableBytes, err := sdl.byteSemaphore.Acquire(ctx, blockBytes)
-	if err != nil {
-		return availableBytes, err
-	}
-	return availableBytes, nil
+	return sdl.byteSemaphore.ForceAcquire(blockBytes), nil
 }
 
 type semaphoreDiskLimiterStatus struct {
