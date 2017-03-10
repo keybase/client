@@ -50,24 +50,24 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
 const bannerColor = props => ({
   'OutOfDate': globalColors.brown_60,
   'WillUnlock': globalColors.white,
-}[props.type])
+}[props.device.type])
 
 const bannerBackgroundColor = props => ({
   'OutOfDate': globalColors.yellow,
   'WillUnlock': globalColors.blue,
-}[props.type])
+}[props.device.type])
 
 const icon = props => ({
   'backup': 'icon-paper-key-64',
   'desktop': 'icon-computer-64',
   'mobile': 'icon-phone-64',
-}[props.type])
+}[props.device.type])
 
 const revokeName = props => ({
   'backup': 'paper key',
   'desktop': 'device',
   'mobile': 'device',
-}[props.type])
+}[props.device.type])
 
 const makeRenderProps = props => ({
   ...props,

@@ -24,29 +24,29 @@ const RevokedHeader = (props: RevokedHeaderProps) => (
   </Box>
 )
 
-const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => {
-  let textStyle = {flex: 0}
-  if (isRevoked) {
-    textStyle = {
-      ...textStyle,
-      color: globalColors.black_40,
-      textDecorationLine: 'line-through',
-      textDecorationStyle: 'solid',
-    }
+const textStyle = isRevoked => (
+  isRevoked
+  ? {
+    color: globalColors.black_40,
+    flex: 0,
+    textDecorationLine: 'line-through',
+    textDecorationStyle: 'solid',
   }
-
-  return (
-    <ClickableBox onClick={showExistingDevicePage} style={{...stylesCommonRow, alignItems: 'center'}}>
-      <Box key={name} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
-        <Icon type={icon} style={isRevoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-start'}}>
-          <Text style={textStyle} type='BodySemiboldItalic'>{name}</Text>
-          {isCurrentDevice && <Text type='BodySmall'>Current device</Text>}
-        </Box>
+  : {
+    flex: 0,
+  }
+)
+const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => (
+  <ClickableBox onClick={showExistingDevicePage} style={{...stylesCommonRow, alignItems: 'center'}}>
+    <Box key={name} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
+      <Icon type={icon} style={isRevoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-start'}}>
+        <Text style={textStyle(isRevoked)} type='BodySemiboldItalic'>{name}</Text>
+        {isCurrentDevice && <Text type='BodySmall'>Current device</Text>}
       </Box>
-    </ClickableBox>
-  )
-}
+    </Box>
+  </ClickableBox>
+)
 
 const DeviceRow = RowConnector(_DeviceRow)
 

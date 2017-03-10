@@ -24,36 +24,37 @@ const RevokedHeader = (props: RevokedHeaderProps) => (
   </Box>
 )
 
-const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => {
-  let textStyle = {fontStyle: 'italic'}
-  if (isRevoked) {
-    textStyle = {
-      ...textStyle,
-      color: globalColors.black_40,
-      textDecoration: 'line-through',
-    }
+const textStyle = isRevoked => (
+  isRevoked
+  ? {
+    color: globalColors.black_40,
+    fontStyle: 'italic',
+    textDecoration: 'line-through',
   }
+  : {
+    fontStyle: 'italic',
+  }
+)
 
-  return (
-    <Box
-      className='existing-device-container'
-      key={name}
-      onClick={showExistingDevicePage}
-      style={{...stylesCommonRow, borderBottom: `1px solid ${globalColors.black_05}`}}>
-      <Box style={isRevoked ? {opacity: 0.2} : {}}>
-        <Icon type={icon} />
+const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => (
+  <Box
+    className='existing-device-container'
+    key={name}
+    onClick={showExistingDevicePage}
+    style={{...stylesCommonRow, borderBottom: `1px solid ${globalColors.black_05}`}}>
+    <Box style={isRevoked ? {opacity: 0.2} : {}}>
+      <Icon type={icon} />
+    </Box>
+    <Box style={{flex: 1, marginLeft: globalMargins.small}}>
+      <Box style={{...globalStyles.flexBoxRow}}>
+        <Text style={textStyle(isRevoked)} type='BodySemibold'>{name}</Text>
       </Box>
-      <Box style={{flex: 1, marginLeft: globalMargins.small}}>
-        <Box style={{...globalStyles.flexBoxRow}}>
-          <Text style={textStyle} type='BodySemibold'>{name}</Text>
-        </Box>
-        <Box style={{...globalStyles.flexBoxRow}}>
-          {isCurrentDevice && <Text type='BodySmall'>Current device</Text>}
-        </Box>
+      <Box style={{...globalStyles.flexBoxRow}}>
+        {isCurrentDevice && <Text type='BodySmall'>Current device</Text>}
       </Box>
     </Box>
-  )
-}
+  </Box>
+)
 
 const DeviceRow = RowConnector(_DeviceRow)
 
