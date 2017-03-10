@@ -19,7 +19,6 @@ func doSimpleFSRemoteGlob(g *libkb.GlobalContext, ctx context.Context, cli Simpl
 	var returnPaths []keybase1.Path
 	directory := filepath.ToSlash(filepath.Dir(path.Kbfs()))
 	base := filepath.Base(path.Kbfs())
-	context.TODO()
 
 	// We know the filename has wildcards at this point.
 	// kbfs list only works on directories, so build a glob from a list result.
@@ -69,7 +68,7 @@ func doSimpleFSPlatformGlob(g *libkb.GlobalContext, ctx context.Context, cli Sim
 		}
 
 		pathString := pathToString(path)
-		if strings.ContainsAny(filepath.Base(pathString), "?*") == false {
+		if strings.ContainsAny(filepath.Base(pathString), "?*[]") == false {
 			returnPaths = append(returnPaths, path)
 			continue
 		}
