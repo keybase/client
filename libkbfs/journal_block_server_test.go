@@ -54,7 +54,7 @@ func setupJournalBlockServerTest(t *testing.T) (
 
 	limiter, err := config.MakeDiskLimiter(tempdir)
 	require.NoError(t, err)
-	_, err = config.EnableJournaling(
+	err = config.EnableJournaling(
 		ctx, tempdir, limiter, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
 	jServer, err = GetJournalServer(config)

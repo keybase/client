@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"os"
 	"sync"
 	"time"
 
@@ -923,6 +924,7 @@ func (c *ConfigLocal) MakeDiskLimiter(configRoot string) (DiskLimiter, error) {
 	)
 	log := c.MakeLogger("")
 	log.Debug("Setting disk storage byte limit to %v", byteLimit)
+	os.MkdirAll(configRoot, 0700)
 	return newBackpressureDiskLimiter(log, backpressureMinThreshold,
 		backpressureMaxThreshold, byteLimitFrac, byteLimit, fileLimit,
 		defaultDiskLimitMaxDelay, configRoot)
@@ -933,12 +935,12 @@ func (c *ConfigLocal) MakeDiskLimiter(configRoot string) (DiskLimiter, error) {
 // non-fatal.
 func (c *ConfigLocal) EnableJournaling(
 	ctx context.Context, journalRoot string, bdl DiskLimiter,
-	bws TLFJournalBackgroundWorkStatus) (DiskLimiter, error) {
+	bws TLFJournalBackgroundWorkStatus) error {
 	jServer, err := GetJournalServer(c)
 	if err == nil {
 		// Journaling shouldn't be enabled twice for the same
 		// config.
-		return nil, errors.New("Trying to enable journaling twice")
+		return errors.New("Trying to enable journaling twice")
 	}
 
 	// TODO: Sanity-check the root directory, e.g. create
@@ -951,13 +953,13 @@ func (c *ConfigLocal) EnableJournaling(
 	// The backpressure disk limiter needs the dir to exist first.
 	err = ioutil.MkdirAll(journalRoot, 0700)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if bdl == nil {
 		bdl, err = c.MakeDiskLimiter(journalRoot)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
@@ -986,15 +988,15 @@ func (c *ConfigLocal) EnableJournaling(
 	}()
 	switch {
 	case bcacheErr != nil && enableErr != nil:
-		return nil, errors.Errorf(
+		return errors.Errorf(
 			"Got errors %+v and %+v", bcacheErr, enableErr)
 	case bcacheErr != nil:
-		return nil, bcacheErr
+		return bcacheErr
 	case enableErr != nil:
-		return nil, enableErr
+		return enableErr
 	}
 
-	return bdl, nil
+	return nil
 }
 
 // EnableDiskBlockCache creates and enables a new disk block cache.

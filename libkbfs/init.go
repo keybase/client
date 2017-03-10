@@ -594,7 +594,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	// TODO: Don't turn on journaling if either -bserver or
 	// -mdserver point to local implementations.
 	if len(params.WriteJournalRoot) != 0 {
-		limiter, err = config.EnableJournaling(context.Background(),
+		err = config.EnableJournaling(context.Background(),
 			params.WriteJournalRoot, limiter,
 			params.TLFJournalBackgroundWorkStatus)
 		if err != nil {
