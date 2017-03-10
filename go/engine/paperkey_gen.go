@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/agl/ed25519"
+	"github.com/keybase/go-crypto/ed25519"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/scrypt"
 
@@ -111,9 +111,9 @@ func (e *PaperKeyGen) makeSigKey(seed []byte) error {
 	}
 
 	var key libkb.NaclSigningKeyPair
-	copy(key.Public[:], (*pub)[:])
+	copy(key.Public[:], pub[:])
 	key.Private = &libkb.NaclSigningKeyPrivate{}
-	copy(key.Private[:], (*priv)[:])
+	copy(key.Private[:], priv[:])
 
 	e.sigKey = key
 
