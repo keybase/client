@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/agl/ed25519"
+	"github.com/keybase/go-crypto/ed25519"
 )
 
 // to avoid importing all of libkb, some constants copied from
@@ -48,9 +48,9 @@ func main() {
 			PublicKeybase string
 			Private       string
 		}{
-			Public:        hex.EncodeToString((*pub)[:]),
+			Public:        hex.EncodeToString(pub[:]),
 			PublicKeybase: hex.EncodeToString(pubkb),
-			Private:       hex.EncodeToString((*priv)[:]),
+			Private:       hex.EncodeToString(priv[:]),
 		}
 		j, err := json.MarshalIndent(x, "", "    ")
 		if err != nil {
@@ -59,8 +59,8 @@ func main() {
 		}
 		fmt.Println(string(j))
 	} else {
-		fmt.Printf("Public key:         %x\n", *pub)
+		fmt.Printf("Public key:         %x\n", pub)
 		fmt.Printf("Keybase public key: %x\n", pubkb)
-		fmt.Printf("Private key:        %x\n", *priv)
+		fmt.Printf("Private key:        %x\n", priv)
 	}
 }

@@ -11,7 +11,7 @@ const conversationRoute = new RouteDefNode({
   children: {
     attachment: {
       component: AttachmentPopup,
-      tags: {layerOnTop: true},
+      tags: {hideStatusBar: true, fullscreen: true},
       children: {},
     },
     attachmentInput: {
@@ -29,6 +29,7 @@ const conversationRoute = new RouteDefNode({
 const routeTree = new RouteDefNode({
   component: ConversationList,
   children: () => conversationRoute,
+  tags: {persistChildren: true},
 })
 
 export default routeTree
