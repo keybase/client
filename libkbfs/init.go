@@ -453,7 +453,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 			lg.Configure("", true, "")
 		}
 		return lg
-	})
+	}, params.StorageRoot)
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.Debug("overriding default clean block cache capacity from %d to %d",
@@ -574,14 +574,15 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 		}
 	}
 	if params.EnableDiskCache {
-		diskCacheRoot := filepath.Join(params.StorageRoot, "kbfs_block_cache")
-		err := config.EnableDiskBlockCache(context.TODO(),
-			diskCacheRoot, limiter)
+		dbc, err := newDiskBlockCacheStandard(config,
+			diskBlockCacheRootFromStorageRoot(params.StorageRoot),
+			defaultDiskBlockCacheMaxBytes, limiter)
 		if err != nil {
 			log.Warning("Could not initialize disk cache: %+v", err)
 			// TODO: Make this error less fatal later.
 			return nil, err
 		}
+		config.SetDiskBlockCache(dbc)
 	}
 
 	return config, nil

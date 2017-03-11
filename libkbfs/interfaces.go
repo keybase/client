@@ -63,6 +63,10 @@ type diskBlockCacheGetter interface {
 	DiskBlockCache() DiskBlockCache
 }
 
+type diskBlockCacheSetter interface {
+	SetDiskBlockCache(DiskBlockCache)
+}
+
 type clockGetter interface {
 	Clock() Clock
 }
@@ -1492,6 +1496,7 @@ type Config interface {
 	signerGetter
 	currentSessionGetterGetter
 	diskBlockCacheGetter
+	diskBlockCacheSetter
 	clockGetter
 	diskLimiterGetter
 	KBFSOps() KBFSOps
@@ -1586,6 +1591,9 @@ type Config interface {
 
 	// ResetCaches clears and re-initializes all data and key caches.
 	ResetCaches()
+
+	// StorageRoot returns the path to the storage root for this config.
+	StorageRoot() string
 
 	// MetricsRegistry may be nil, which should be interpreted as
 	// not using metrics at all. (i.e., as if UseNilMetrics were
