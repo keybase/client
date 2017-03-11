@@ -50,9 +50,15 @@ function MainNavStack (props: Props) {
             key={props.routeSelected}  // don't transition when switching tabs
             navigationState={stackToNavigationState(baseScreens)}
             renderScene={({scene}) => {
+              const {underStatusBar, hideStatusBar} = scene.route.tags
               return (
-                <Box style={scene.route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
-                  <StatusBar hidden={scene.route.tags.hideStatusBar} />
+                <Box style={underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
+                  <StatusBar
+                    hidden={hideStatusBar}
+                    translucent={true}
+                    backgroundColor={underStatusBar ? globalColors.transparent : globalColors.white}
+                    barStyle={underStatusBar ? 'light-content' : 'dark-content'}
+                  />
                   {scene.route.component}
                 </Box>
               )
