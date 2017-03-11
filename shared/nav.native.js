@@ -18,6 +18,8 @@ const {
 } = NavigationExperimental
 
 const StackWrapper = ({children}) => {
+  // FIXME: KeyboardAvoidingView doubles the padding needed on Android. Remove
+  // this shim when it works consistently with iOS.
   if (isAndroid) {
     return children
   } else {
