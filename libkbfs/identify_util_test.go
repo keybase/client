@@ -104,7 +104,7 @@ func TestIdentify(t *testing.T) {
 		uids[u] = true
 	}
 
-	err := identifyUsersForTLF(context.Background(), nug, ti, nug.uidMap(), nil, false)
+	err := identifyUsersForTLF(context.Background(), nug, ti, nug.uidMap(), false)
 	require.NoError(t, err)
 	require.Equal(t, uids, ti.identifiedUids)
 }
@@ -122,13 +122,13 @@ func TestIdentifyAlternativeBehaviors(t *testing.T) {
 	ctx, err := makeExtendedIdentify(context.Background(),
 		keybase1.TLFIdentifyBehavior_CHAT_CLI)
 	require.NoError(t, err)
-	err = identifyUsersForTLF(ctx, nug, ti, nug.uidMap(), nil, false)
+	err = identifyUsersForTLF(ctx, nug, ti, nug.uidMap(), false)
 	require.Error(t, err)
 
 	ctx, err = makeExtendedIdentify(context.Background(),
 		keybase1.TLFIdentifyBehavior_CHAT_GUI)
 	require.NoError(t, err)
-	err = identifyUsersForTLF(ctx, nug, ti, nug.uidMap(), nil, false)
+	err = identifyUsersForTLF(ctx, nug, ti, nug.uidMap(), false)
 	require.NoError(t, err)
 	tb := getExtendedIdentify(ctx).getTlfBreakAndClose()
 	require.Len(t, tb.Breaks, 1)

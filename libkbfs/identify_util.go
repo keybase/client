@@ -141,6 +141,8 @@ func getExtendedIdentify(ctx context.Context) (ei *extendedIdentify) {
 	}
 }
 
+// identifyUID performs identify based only on UID. It should be
+// used only if the username is not known - as e.g. when rekeying.
 func identifyUID(ctx context.Context, nug normalizedUsernameGetter,
 	identifier identifier, uid keybase1.UID, isPublic bool) error {
 	username, err := nug.GetNormalizedUsername(ctx, uid)
@@ -150,6 +152,7 @@ func identifyUID(ctx context.Context, nug normalizedUsernameGetter,
 	return identifyUser(ctx, nug, identifier, username, uid, isPublic)
 }
 
+// identifyUser is the preferred way to run identifies.
 func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 	identifier identifier, username libkb.NormalizedUsername,
 	uid keybase1.UID, isPublic bool) error {
@@ -186,69 +189,51 @@ func identifyUserToChan(ctx context.Context, nug normalizedUsernameGetter,
 
 // identifyUsers identifies the users in the given maps.
 func identifyUsers(ctx context.Context, nug normalizedUsernameGetter,
-	identifier identifier, writers, readers map[keybase1.UID]libkb.NormalizedUsername,
+	identifier identifier, users map[keybase1.UID]libkb.NormalizedUsername,
 	public bool) error {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
+	eg, ctx := errgroup.WithContext(ctx)
 
-	nitems := len(writers) + len(readers)
-	errChan := make(chan error, nitems)
-	// TODO: limit the number of concurrent identifies? Otherwise we can use
-	// errgroup.Group here.
-	for uid, name := range writers {
-		go identifyUserToChan(ctx, nug, identifier, name, uid, public, errChan)
-	}
-	for uid, name := range readers {
-		go identifyUserToChan(ctx, nug, identifier, name, uid, public, errChan)
+	// TODO: limit the number of concurrent identifies?
+	// TODO: implement a version of errgroup with limited concurrency.
+	for uid, name := range users {
+		uid, name := uid, name
+		eg.Go(func() error {
+			return identifyUser(ctx, nug, identifier, name, uid, public)
+		})
 	}
 
-	return readUpToNErrors(nitems, errChan)
+	return eg.Wait()
 }
 
 // identifyUserList identifies the users in the given list.
 func identifyUserList(ctx context.Context, nug normalizedUsernameGetter, identifier identifier, uids []keybase1.UID, public bool) error {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
+	eg, ctx := errgroup.WithContext(ctx)
 
-	errChan := make(chan error, len(uids))
-	// TODO: limit the number of concurrent identifies? Otherwise we can use
-	// errgroup.Group here.
+	// TODO: limit the number of concurrent identifies?
+	// TODO: implement concurrency limited version of errgroup.
 	for _, uid := range uids {
-		go func(uid keybase1.UID) {
-			err := identifyUID(ctx, nug, identifier, uid, public)
-			errChan <- err
-		}(uid)
+		uid := uid
+		eg.Go(func() error {
+			return identifyUID(ctx, nug, identifier, uid, public)
+		})
 	}
 
-	return readUpToNErrors(len(uids), errChan)
-}
-
-// readUpToNErrors reads up to n errors from an error channel and returns
-// the first non-nil error encountered or nil after reading n nils from
-// the channel.
-func readUpToNErrors(n int, errChan chan error) error {
-	for i := 0; i < n; i++ {
-		err := <-errChan
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return eg.Wait()
 }
 
 // identifyUsersForTLF is a helper for identifyHandle for easier testing.
 func identifyUsersForTLF(ctx context.Context, nug normalizedUsernameGetter,
-	identifier identifier, writers, readers map[keybase1.UID]libkb.NormalizedUsername,
+	identifier identifier, users map[keybase1.UID]libkb.NormalizedUsername,
 	public bool) error {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	eg.Go(func() error {
 		ei := getExtendedIdentify(ctx)
-		return ei.makeTlfBreaksIfNeeded(ctx, len(writers)+len(readers))
+		return ei.makeTlfBreaksIfNeeded(ctx, len(users))
 	})
 
 	eg.Go(func() error {
-		return identifyUsers(ctx, nug, identifier, writers, readers, public)
+		return identifyUsers(ctx, nug, identifier, users, public)
 	})
 
 	return eg.Wait()
@@ -257,5 +242,5 @@ func identifyUsersForTLF(ctx context.Context, nug normalizedUsernameGetter,
 // identifyHandle identifies the canonical names in the given handle.
 func identifyHandle(ctx context.Context, nug normalizedUsernameGetter, identifier identifier, h *TlfHandle) error {
 	return identifyUsersForTLF(ctx, nug, identifier,
-		h.ResolvedWritersMap(), h.ResolvedReadersMap(), h.IsPublic())
+		h.ResolvedUsersMap(), h.IsPublic())
 }
