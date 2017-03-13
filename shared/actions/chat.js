@@ -323,9 +323,11 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
 
   const conversationIDKey = conversationIDToKey(convo.info.id)
   let snippet
+  let time
 
   (convo.maxMessages || []).some(message => {
-    if (message.state === LocalMessageUnboxedState.valid && message.valid) {
+    if (message.state === LocalMessageUnboxedState.valid && message.valid && convo && convo.readerInfo) {
+      time = message.valid.serverHeader.ctime || convo.readerInfo.mtime
       snippet = makeSnippet(message.valid.messageBody)
       return !!snippet
     }
@@ -341,7 +343,7 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
     conversationIDKey,
     participants,
     muted,
-    time: convo.readerInfo.mtime,
+    time,
     snippet,
     validated: true,
   })
