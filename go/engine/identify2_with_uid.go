@@ -718,7 +718,7 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 		return err
 	}
 
-	waiter := e.displayUserCardAsync(ctx.NetContext, iui)
+	waiter := e.displayUserCardAsync(context.Background(), iui)
 
 	e.G().Log.Debug("| IdentifyUI.Identify(%s)", e.them.GetName())
 	var them *libkb.User
