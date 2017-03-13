@@ -1367,11 +1367,6 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 	// cache (in the defer above).
 	doCache = true
 
-	if res.err = pc.CheckHint(idt.G(), *res.hint); res.err != nil {
-		idt.G().Log.CDebugf(ctx, "| Hint failed with error: %s", res.err.Error())
-		return
-	}
-
 	// ProofCheckerModeActive or Passive mainly decides whether we need to reach out to
 	// self-hosted services. We want to avoid so doing when the user is acting passively
 	// (such as when receiving a message).
