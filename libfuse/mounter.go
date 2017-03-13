@@ -89,7 +89,8 @@ func doUnmount(dir string, force bool) (err error) {
 	switch runtime.GOOS {
 	case "darwin":
 		if force {
-			_, err = exec.Command("/usr/sbin/diskutil", "unmountDisk", "force", dir).Output()
+			_, err = exec.Command(
+				"/usr/sbin/diskutil", "unmountDisk", "force", dir).Output()
 		} else {
 			_, err = exec.Command("/sbin/umount", dir).Output()
 		}
@@ -103,8 +104,11 @@ func doUnmount(dir string, force bool) (err error) {
 		if force {
 			err = errors.New("Forced unmount is not supported on this platform yet")
 		} else {
-			fuse.Unmount(dir)
+			err = fuse.Unmount(dir)
 		}
+	}
+	if execErr, ok := err.(*exec.ExitError); ok && execErr.Stderr != nil {
+		err = fmt.Errorf("%s (%s)", execErr, execErr.Stderr)
 	}
 	return err
 }

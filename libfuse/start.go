@@ -60,7 +60,9 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 	done := make(chan struct{})
 	if c != nil { // c can be nil for NoopMounter
 		interruptFn = func() {
-			mounter.Unmount()
+			if unmountErr := mounter.Unmount(); unmountErr != nil {
+				log.Debug("Unmounting error: %v", unmountErr)
+			}
 		}
 	} else {
 		interruptFn = func() {

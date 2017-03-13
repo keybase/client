@@ -354,11 +354,26 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 	go func() {
 		_ = <-interruptChan
 
+		close(done)
+
 		if onInterruptFn != nil {
 			onInterruptFn()
+
+			// Unmount can fail if there are open file handles. In this case, the
+			// files need to be closed before calling unmount again. We keep
+			// listening on the signal channel in case unmount fails the first time,
+			// so user can press Ctrl-C again after closing open files.
+			//
+			// Not closing the channel here because we need to keep it open to handle
+			// further incoming signals. We don't explicitly call os.Exit here so
+			// that the process exits through normal workflow as a result of Ctrl-C.
+			// If the process needs to exit immediately no matter unmount succeeds or
+			// not, a different interrupt (e.g. SIGTERM) can be used to skip this.
+			for range interruptChan {
+				onInterruptFn()
+			}
 		}
 
-		close(done)
 	}()
 
 	// Spawn a new goroutine for `doInit` so that we can `select` on `done` and
