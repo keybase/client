@@ -163,6 +163,9 @@ func (p CommandLine) GetFeatureFlags() (libkb.FeatureFlags, error) {
 func (p CommandLine) GetPinentry() string {
 	return p.GetGString("pinentry")
 }
+func (p CommandLine) GetAppType() libkb.AppType {
+	return libkb.DesktopAppType
+}
 func (p CommandLine) GetGString(s string) string {
 	return p.ctx.GlobalString(s)
 }

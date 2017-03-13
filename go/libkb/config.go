@@ -795,3 +795,7 @@ func (f JSONConfigFile) GetBug3964RepairTime(un NormalizedUsername) (time.Time, 
 func (f JSONConfigFile) SetBug3964RepairTime(un NormalizedUsername, t time.Time) (err error) {
 	return f.SetStringAtPath(bug3964path(un), fmt.Sprintf("%d", int64(keybase1.ToTime(t))))
 }
+
+func (f JSONConfigFile) GetAppType() AppType {
+	return AppType(f.GetTopLevelString("app_type"))
+}
