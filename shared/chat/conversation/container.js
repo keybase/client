@@ -9,7 +9,7 @@ import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat,
 import * as ChatConstants from '../../constants/chat'
 import {downloadFilePath} from '../../util/file'
 import {getProfile} from '../../actions/tracker'
-import {navigateAppend, navigateUp} from '../../actions/route-tree'
+import {navigateAppend} from '../../actions/route-tree'
 import {onUserClick} from '../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
 import {pick} from 'lodash'
@@ -157,10 +157,10 @@ export default connect(
       supersededBy: null,
     }
   },
-  (dispatch: Dispatch, {setRouteState}) => ({
+  (dispatch: Dispatch, {setRouteState, navigateUp}) => ({
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
     onAttach: (selectedConversation, inputs: Array<AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
-    onBack: () => dispatch(navigateUp(true)),
+    onBack: () => dispatch(navigateUp()),
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
     onEditMessage: (message: Message, body: string) => { dispatch(editMessage(message, new HiddenString(body))) },
     onShowEditor: (message: Message) => { dispatch(showEditor(message)) },

@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeListView} from '../../common-adapters/index.native'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../../styles'
 import {RowConnector} from './row'
 
 import type {Props, RowProps} from './'
@@ -201,6 +201,7 @@ const boxStyle = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.darkBlue4,
   flex: 1,
+  paddingTop: statusBarHeight,
 }
 
 const listStyle = {
