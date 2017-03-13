@@ -57,7 +57,7 @@ func serviceLoggedIn(ctx context.Context, config Config, name string,
 	if config.DiskBlockCache() == nil && adminFeatureList[session.UID] {
 		dbc, err := newDiskBlockCacheStandard(config,
 			diskBlockCacheRootFromStorageRoot(config.StorageRoot()),
-			defaultDiskBlockCacheMaxBytes, config.DiskLimiter())
+			config.DiskLimiter())
 		if err == nil {
 			config.SetDiskBlockCache(dbc)
 		}

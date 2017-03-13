@@ -841,7 +841,7 @@ type DiskBlockCache interface {
 	Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
 		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
 	// DeleteByTLF deletes some blocks from the disk cache.
-	DeleteByTLF(ctx context.Context, tlfID tlf.ID, blockIDs []kbfsblock.ID) error
+	DeleteByTLF(ctx context.Context, tlfID tlf.ID, blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error)
 	// Shutdown cleanly shuts down the disk block cache.
 	Shutdown(ctx context.Context)
 }

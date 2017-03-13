@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	testDiskBlockCacheMaxBytes uint64 = 1 << 30
+	testDiskBlockCacheMaxBytes int64 = 1 << 30
 )
 
 type testDiskBlockCacheConfig struct {
@@ -37,22 +37,22 @@ func newTestDiskBlockCacheConfig(t *testing.T) testDiskBlockCacheConfig {
 }
 
 func newDiskBlockCacheStandardForTest(config diskBlockCacheConfig,
-	maxBytes uint64) (*DiskBlockCacheStandard, error) {
+	maxBytes int64) (*DiskBlockCacheStandard, error) {
 	blockStorage := storage.NewMemStorage()
 	lruStorage := storage.NewMemStorage()
 	tlfStorage := storage.NewMemStorage()
 	maxFiles := int64(10000)
 	cache, err := newDiskBlockCacheStandardFromStorage(config, blockStorage,
-		lruStorage, tlfStorage, maxBytes, nil)
+		lruStorage, tlfStorage, nil)
 	if err != nil {
 		return nil, err
 	}
 	cache.limiter, err = newBackpressureDiskLimiterWithFunctions(
-		config.MakeLogger(""), 0.5, 0.95, 0.15, 0.1,
-		int64(testDiskBlockCacheMaxBytes*8), maxFiles, time.Second,
+		config.MakeLogger(""), 0.5, 0.95, 0.25, 0.25,
+		testDiskBlockCacheMaxBytes, maxFiles, time.Second,
 		defaultDoDelay, func() (int64, int64, error) {
 			// hackity hackeroni
-			freeBytes := int64(maxBytes) - int64(cache.currBytes)
+			freeBytes := maxBytes - int64(cache.currBytes)
 			return freeBytes, maxFiles, nil
 		})
 	if err != nil {
@@ -156,7 +156,7 @@ func TestDiskBlockCacheDelete(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Delete two of the blocks from the cache.")
-	err = cache.DeleteByTLF(ctx, tlf1, []kbfsblock.ID{
+	_, _, err = cache.DeleteByTLF(ctx, tlf1, []kbfsblock.ID{
 		block1Id, block2Id})
 	require.NoError(t, err)
 
@@ -214,7 +214,7 @@ func TestDiskBlockCacheEvictFromTLF(t *testing.T) {
 	// about our assertions.
 	for expectedCount != 0 {
 		t.Log("Evict 10 blocks from the cache.")
-		numRemoved, err := cache.evictFromTLFLocked(ctx, tlf1, 10)
+		numRemoved, _, err := cache.evictFromTLFLocked(ctx, tlf1, 10)
 		require.NoError(t, err)
 		expectedCount -= numRemoved
 
@@ -293,7 +293,7 @@ func TestDiskBlockCacheEvictOverall(t *testing.T) {
 	// about our assertions.
 	for expectedCount != 0 {
 		t.Log("Evict 10 blocks from the cache.")
-		numRemoved, err := cache.evictLocked(ctx, 10)
+		numRemoved, _, err := cache.evictLocked(ctx, 10)
 		require.NoError(t, err)
 		expectedCount -= numRemoved
 
@@ -354,20 +354,15 @@ func TestDiskBlockCacheLimit(t *testing.T) {
 	}
 
 	t.Log("Set the cache maximum bytes to the current total.")
-	const (
-		cacheLimitFactor        int64 = 2
-		backpressureStartFactor       = 2
-		limiterFactor                 = cacheLimitFactor * backpressureStartFactor
-	)
-	cache.limiter.(*backpressureDiskLimiter).byteTracker.limit =
-		int64(cache.currBytes) * limiterFactor
-	currBytes := cache.currBytes
+	currBytes := int64(cache.currBytes)
+	cache.limiter.(*backpressureDiskLimiter).diskCacheByteTracker.limit =
+		currBytes
 
 	t.Log("Add a block to the cache. Verify that blocks were evicted.")
 	blockID, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
 	err := cache.Put(ctx, tlf.FakeID(10, false), blockID, blockEncoded, serverHalf)
 	require.NoError(t, err)
 
-	require.True(t, cache.currBytes < currBytes)
+	require.True(t, int64(cache.currBytes) < currBytes)
 	require.Equal(t, 41, cache.numBlocks)
 }

@@ -575,8 +575,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	}
 	if params.EnableDiskCache {
 		dbc, err := newDiskBlockCacheStandard(config,
-			diskBlockCacheRootFromStorageRoot(params.StorageRoot),
-			defaultDiskBlockCacheMaxBytes, limiter)
+			diskBlockCacheRootFromStorageRoot(params.StorageRoot), limiter)
 		if err != nil {
 			log.Warning("Could not initialize disk cache: %+v", err)
 			// TODO: Make this error less fatal later.

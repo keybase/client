@@ -11,8 +11,8 @@ type diskBlockCacheLimiter interface {
 
 	// beforeDiskBlockCachePut is called by the disk block cache before putting
 	// a block into the cache. It returns how many bytes it acquired.
-	beforeDiskBlockCachePut(ctx context.Context, blockBytes,
-		diskBlockCacheBytes int64) (bytesAvailable int64, err error)
+	beforeDiskBlockCachePut(ctx context.Context, blockBytes int64) (
+		bytesAvailable int64, err error)
 }
 
 // DiskLimiter is an interface for limiting disk usage.

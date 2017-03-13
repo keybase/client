@@ -15,10 +15,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-const (
-	diskBlockCacheFrac float64 = 0.5
-)
-
 // backpressureTracker keeps track of the variables used to calculate
 // backpressure. It keeps track of a generic resource (which can be
 // either bytes or files).
@@ -491,11 +487,11 @@ func (bdl *backpressureDiskLimiter) onDiskBlockCacheDelete(
 	}
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	bdl.byteTracker.onBlocksDelete(blockBytes)
+	bdl.diskCacheByteTracker.onBlocksDelete(blockBytes)
 }
 
 func (bdl *backpressureDiskLimiter) beforeDiskBlockCachePut(
-	ctx context.Context, blockBytes, diskBlockCacheBytes int64) (
+	ctx context.Context, blockBytes int64) (
 	availableBytes int64, err error) {
 	if blockBytes == 0 {
 		// Better to return an error than to panic in ForceAcquire.
@@ -504,27 +500,30 @@ func (bdl *backpressureDiskLimiter) beforeDiskBlockCachePut(
 	}
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	freeBytes, freeFiles, err := bdl.freeBytesAndFilesFn()
+	freeBytes, _, err := bdl.freeBytesAndFilesFn()
 	if err != nil {
 		return 0, err
 	}
-	bdl.byteTracker.updateFree(freeBytes)
-	bdl.fileTracker.updateFree(freeFiles)
 
-	diskBlockCacheLimit := int64(bdl.byteTracker.currLimit() *
-		bdl.byteTracker.minThreshold * diskBlockCacheFrac)
-	if diskBlockCacheLimit < diskBlockCacheBytes+blockBytes {
-		// The overall disk block cache limit has been exceeded.  Return a
-		// negative result so the block cache knows how much it must evict
-		// before retrying.
-		return diskBlockCacheLimit - (diskBlockCacheBytes + blockBytes),
-			errors.New("backpressureDiskLimiter needs more space")
-	}
-	// The disk block cache is using up less than diskBlockCacheLimit bytes, so
-	// we can add more, even if it makes backpressure worse. This can return a
-	// negative number with a nil error, in which case the disk block cache
-	// must Put the block. It can choose to evict anyway afterwards.
-	return bdl.byteTracker.beforeDiskBlockCachePut(ctx, blockBytes)
+	bt := bdl.diskCacheByteTracker
+	bt.updateFree(freeBytes)
+
+	defer func() {
+		if err != nil || availableBytes < 0 {
+			// We must roll back the acquisition of resources. We should still
+			// return the negative number, however, so the disk block cache
+			// knows how much to evict.
+			bt.afterBlockPut(blockBytes, false)
+		}
+	}()
+	return bt.beforeDiskBlockCachePut(ctx, blockBytes)
+}
+
+func (bdl *backpressureDiskLimiter) afterDiskBlockCachePut(
+	ctx context.Context, blockBytes int64, putData bool) {
+	bdl.lock.Lock()
+	defer bdl.lock.Unlock()
+	bdl.diskCacheByteTracker.afterBlockPut(blockBytes, putData)
 }
 
 type backpressureDiskLimiterStatus struct {
