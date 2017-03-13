@@ -931,19 +931,23 @@ func (c *ConfigLocal) MakeDiskLimiter(configRoot string) (DiskLimiter, error) {
 	const (
 		backpressureMinThreshold = 0.5
 		backpressureMaxThreshold = 0.95
-		// Cap filesystem usage to a quarter of the free space.
-		byteLimitFrac = 0.25
-		// Set the absolute filesystem byte limit to 50 GiB for now.
-		byteLimit int64 = 50 * 1024 * 1024 * 1024
-		// Set the absolute file limit to 1.5 million for now.
-		fileLimit int64 = 1500000
+		// Cap journal usage to a 15% of free space.
+		journalByteLimitFrac = 0.15
+		// Cap disk cache usage to a 10% of free space.
+		diskCacheByteLimitFrac = 0.10
+		// Set the absolute filesystem byte limit to 200 GiB. This will be
+		// scaled by the various *Frac parameters.
+		byteLimit int64 = 200 * 1024 * 1024 * 1024
+		// Set the absolute file limit to 6 million for now.
+		fileLimit int64 = 6000000
 	)
 	log := c.MakeLogger("")
 	log.Debug("Setting disk storage byte limit to %v", byteLimit)
 	os.MkdirAll(configRoot, 0700)
 	var err error
-	c.diskLimiter, err = newBackpressureDiskLimiter(log, backpressureMinThreshold,
-		backpressureMaxThreshold, byteLimitFrac, byteLimit, fileLimit,
+	c.diskLimiter, err = newBackpressureDiskLimiter(log,
+		backpressureMinThreshold, backpressureMaxThreshold,
+		journalByteLimitFrac, diskCacheByteLimitFrac, byteLimit, fileLimit,
 		defaultDiskLimitMaxDelay, configRoot)
 	return c.diskLimiter, err
 }

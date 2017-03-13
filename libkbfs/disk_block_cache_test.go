@@ -48,7 +48,7 @@ func newDiskBlockCacheStandardForTest(config diskBlockCacheConfig,
 		return nil, err
 	}
 	cache.limiter, err = newBackpressureDiskLimiterWithFunctions(
-		config.MakeLogger(""), 0.5, 0.95, 0.25,
+		config.MakeLogger(""), 0.5, 0.95, 0.15, 0.1,
 		int64(testDiskBlockCacheMaxBytes*8), maxFiles, time.Second,
 		defaultDoDelay, func() (int64, int64, error) {
 			// hackity hackeroni

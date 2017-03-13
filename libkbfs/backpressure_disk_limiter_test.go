@@ -157,7 +157,7 @@ func TestBackpressureConstructorError(t *testing.T) {
 	log := logger.NewTestLogger(t)
 	fakeErr := errors.New("Fake error")
 	_, err := newBackpressureDiskLimiterWithFunctions(
-		log, 0.1, 0.9, 0.25, 100, 10, 8*time.Second, nil,
+		log, 0.1, 0.9, 0.25, 0.1, 400, 40, 8*time.Second, nil,
 		func() (int64, int64, error) {
 			return 0, 0, fakeErr
 		})
@@ -170,7 +170,7 @@ func TestBackpressureConstructorError(t *testing.T) {
 func TestBackpressureDiskLimiterBeforeBlockPut(t *testing.T) {
 	log := logger.NewTestLogger(t)
 	bdl, err := newBackpressureDiskLimiterWithFunctions(
-		log, 0.1, 0.9, 0.25, 22, 5, 8*time.Second,
+		log, 0.1, 0.9, 0.25, 0.1, 88, 20, 8*time.Second,
 		func(ctx context.Context, delay time.Duration) error {
 			return nil
 		},
@@ -193,7 +193,7 @@ func TestBackpressureDiskLimiterBeforeBlockPut(t *testing.T) {
 func TestBackpressureDiskLimiterBeforeBlockPutError(t *testing.T) {
 	log := logger.NewTestLogger(t)
 	bdl, err := newBackpressureDiskLimiterWithFunctions(
-		log, 0.1, 0.9, 0.25, 10, 1, 8*time.Second,
+		log, 0.1, 0.9, 0.25, 0.1, 40, 4, 8*time.Second,
 		func(ctx context.Context, delay time.Duration) error {
 			return nil
 		},
@@ -220,7 +220,7 @@ func TestBackpressureDiskLimiterBeforeBlockPutError(t *testing.T) {
 func TestBackpressureDiskLimiterGetDelay(t *testing.T) {
 	log := logger.NewTestLogger(t)
 	bdl, err := newBackpressureDiskLimiterWithFunctions(
-		log, 0.1, 0.9, 0.25, math.MaxInt64, math.MaxInt64,
+		log, 0.1, 0.9, 0.25, 0.1, math.MaxInt64, math.MaxInt64,
 		8*time.Second,
 		func(ctx context.Context, delay time.Duration) error {
 			return nil
@@ -307,7 +307,7 @@ func testBackpressureDiskLimiterLargeDiskDelay(
 
 	log := logger.NewTestLogger(t)
 	bdl, err := newBackpressureDiskLimiterWithFunctions(
-		log, 0.1, 0.9, 0.25, byteLimit, fileLimit,
+		log, 0.1, 0.9, 0.25, 0.1, byteLimit*4, fileLimit*4,
 		8*time.Second, delayFn,
 		func() (int64, int64, error) {
 			return math.MaxInt64, math.MaxInt64, nil
@@ -493,7 +493,7 @@ func testBackpressureDiskLimiterSmallDiskDelay(
 
 	log := logger.NewTestLogger(t)
 	bdl, err := newBackpressureDiskLimiterWithFunctions(
-		log, 0.1, 0.9, 0.25, math.MaxInt64, math.MaxInt64,
+		log, 0.1, 0.9, 0.25, 0.1, math.MaxInt64, math.MaxInt64,
 		8*time.Second, delayFn, getFreeBytesAndFilesFn)
 	require.NoError(t, err)
 

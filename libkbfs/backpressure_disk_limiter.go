@@ -249,6 +249,7 @@ type backpressureDiskLimiter struct {
 	// actual semaphore itself.
 	lock                     sync.RWMutex
 	byteTracker, fileTracker *backpressureTracker
+	diskCacheByteTracker     *backpressureTracker
 }
 
 var _ DiskLimiter = (*backpressureDiskLimiter)(nil)
@@ -256,10 +257,9 @@ var _ DiskLimiter = (*backpressureDiskLimiter)(nil)
 // newBackpressureDiskLimiterWithFunctions constructs a new
 // backpressureDiskLimiter with the given parameters, and also the
 // given delay function, which is overridden in tests.
-func newBackpressureDiskLimiterWithFunctions(
-	log logger.Logger,
-	backpressureMinThreshold, backpressureMaxThreshold, limitFrac float64,
-	byteLimit, fileLimit int64, maxDelay time.Duration,
+func newBackpressureDiskLimiterWithFunctions(log logger.Logger,
+	backpressureMinThreshold, backpressureMaxThreshold, journalFrac,
+	diskCacheFrac float64, byteLimit, fileLimit int64, maxDelay time.Duration,
 	delayFn func(context.Context, time.Duration) error,
 	freeBytesAndFilesFn func() (int64, int64, error)) (
 	*backpressureDiskLimiter, error) {
@@ -267,21 +267,28 @@ func newBackpressureDiskLimiterWithFunctions(
 	if err != nil {
 		return nil, err
 	}
+	// byteLimit and fileLimit must be scaled by the proportion of the limit
+	// that the journal should consume.
+	journalByteLimit := int64((float64(byteLimit) * journalFrac) + 0.5)
 	byteTracker, err := newBackpressureTracker(
 		backpressureMinThreshold, backpressureMaxThreshold,
-		limitFrac, byteLimit, freeBytes)
+		journalFrac, journalByteLimit, freeBytes)
 	if err != nil {
 		return nil, err
 	}
+	journalFileLimit := int64((float64(fileLimit) * journalFrac) + 0.5)
 	fileTracker, err := newBackpressureTracker(
 		backpressureMinThreshold, backpressureMaxThreshold,
-		limitFrac, fileLimit, freeFiles)
+		journalFrac, journalFileLimit, freeFiles)
 	if err != nil {
 		return nil, err
 	}
+	diskCacheByteLimit := int64((float64(byteLimit) * diskCacheFrac) + 0.5)
+	diskCacheByteTracker, err := newBackpressureTracker(
+		1.0, 1.0, diskCacheFrac, diskCacheByteLimit, freeBytes)
 	bdl := &backpressureDiskLimiter{
 		log, maxDelay, delayFn, freeBytesAndFilesFn, sync.RWMutex{},
-		byteTracker, fileTracker,
+		byteTracker, fileTracker, diskCacheByteTracker,
 	}
 	return bdl, nil
 }
@@ -322,14 +329,13 @@ func defaultGetFreeBytesAndFiles(path string) (int64, int64, error) {
 
 // newBackpressureDiskLimiter constructs a new backpressureDiskLimiter
 // with the given parameters.
-func newBackpressureDiskLimiter(
-	log logger.Logger,
-	backpressureMinThreshold, backpressureMaxThreshold, limitFrac float64,
-	byteLimit, fileLimit int64, maxDelay time.Duration,
-	journalPath string) (*backpressureDiskLimiter, error) {
+func newBackpressureDiskLimiter(log logger.Logger, backpressureMinThreshold,
+	backpressureMaxThreshold, journalFrac, diskCacheFrac float64, byteLimit,
+	fileLimit int64, maxDelay time.Duration, journalPath string) (
+	*backpressureDiskLimiter, error) {
 	return newBackpressureDiskLimiterWithFunctions(
 		log, backpressureMinThreshold, backpressureMaxThreshold,
-		limitFrac, byteLimit, fileLimit, maxDelay,
+		journalFrac, diskCacheFrac, byteLimit, fileLimit, maxDelay,
 		defaultDoDelay, func() (int64, int64, error) {
 			return defaultGetFreeBytesAndFiles(journalPath)
 		})
