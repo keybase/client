@@ -231,7 +231,7 @@ func TestSimpleFSLocalSrcFile(t *testing.T) {
 	// Destination file given
 	destPath, err = makeDestPath(tc.G,
 		context.TODO(),
-		SimpleFSTestStat{},
+		SimpleFSMock{},
 		path1,
 		destPath,
 		true,
@@ -288,7 +288,7 @@ func TestSimpleFSRemoteSrcFile(t *testing.T) {
 	// Dest file included in path
 	destPath, err = makeDestPath(tc.G,
 		context.TODO(),
-		SimpleFSTestStat{remoteExists: true},
+		SimpleFSMock{remoteExists: true},
 		srcPath,
 		destPath,
 		true,
