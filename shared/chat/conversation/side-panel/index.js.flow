@@ -9,6 +9,7 @@ export type Props = {
   metaDataMap: MetaDataMap,
   muted: boolean,
   onAddParticipant: () => void,
+  onBlockConversation: (blocked: boolean) => void,
   onMuteConversation: (muted: boolean) => void,
   onShowProfile: (username: string) => void,
   onToggleSidePanel: () => void,

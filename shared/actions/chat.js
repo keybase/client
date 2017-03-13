@@ -37,6 +37,7 @@ import type {
   AppendMessages,
   AttachmentInput,
   BadgeAppForChat,
+  BlockConversation,
   ConversationBadgeState,
   ConversationIDKey,
   ConversationSetStatus,
@@ -269,6 +270,10 @@ function editMessage (message: Message, text: HiddenString): EditMessage {
 
 function muteConversation (conversationIDKey: ConversationIDKey, muted: boolean): MuteConversation {
   return {payload: {conversationIDKey, muted}, type: 'chat:muteConversation'}
+}
+
+function blockConversation (blocked: boolean, conversationIDKey: ConversationIDKey): BlockConversation {
+  return {payload: {blocked, conversationIDKey}, type: 'chat:blockConversation'}
 }
 
 function deleteMessage (message: Message): DeleteMessage {
@@ -1687,6 +1692,16 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
   }
 }
 
+function * _blockConversation (action: BlockConversation): SagaGenerator<any, any> {
+  const {blocked, conversationIDKey} = action.payload
+  const conversationID = keyToConversationID(conversationIDKey)
+  const status = blocked ? CommonConversationStatus.blocked : CommonConversationStatus.unfiled
+  const identifyBehavior: TLFIdentifyBehavior = TlfKeysTLFIdentifyBehavior.chatGui
+  yield call(localSetConversationStatusLocalRpcPromise, {
+    param: {conversationID, identifyBehavior, status},
+  })
+}
+
 function * _muteConversation (action: MuteConversation): SagaGenerator<any, any> {
   const {conversationIDKey, muted} = action.payload
   const conversationID = keyToConversationID(conversationIDKey)
@@ -2162,6 +2177,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery('chat:incomingMessage', _incomingMessage),
     safeTakeEvery('chat:markThreadsStale', _markThreadsStale),
     safeTakeEvery('chat:muteConversation', _muteConversation),
+    safeTakeEvery('chat:blockConversation', _blockConversation),
     safeTakeEvery('chat:newChat', _newChat),
     safeTakeEvery('chat:postMessage', _postMessage),
     safeTakeEvery('chat:editMessage', _editMessage),
@@ -2190,6 +2206,7 @@ export default chatSaga
 
 export {
   badgeAppForChat,
+  blockConversation,
   deleteMessage,
   editMessage,
   loadAttachment,

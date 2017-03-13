@@ -19,6 +19,10 @@ const conversationRoute = new RouteDefNode({
       tags: {layerOnTop: true},
       children: {},
     },
+    showBlockConversationDialog: {
+      component: AttachmentInputPopup,
+      tags: {layerOnTop: true},
+      children: {},
   },
 })
 

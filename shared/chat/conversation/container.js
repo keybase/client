@@ -163,6 +163,7 @@ export default connect(
     onBack: () => dispatch(navigateUp()),
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
     onEditMessage: (message: Message, body: string) => { dispatch(editMessage(message, new HiddenString(body))) },
+    onShowBlockConversationDialog: (selectedConversation, participants) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, participants}, selected: 'blockConversationDialog'}])) },
     onShowEditor: (message: Message) => { dispatch(showEditor(message)) },
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, false, downloadFilePath(filename))),
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
@@ -227,6 +228,7 @@ export default connect(
       onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
       onRetryMessage: (outboxID: OutboxIDKey) => dispatchProps.onRetryMessage(stateProps.selectedConversation, outboxID),
       onSelectAttachment: (input) => dispatchProps.onSelectAttachment(stateProps.selectedConversation, input),
+      onShowBlockConversationDialog: () => dispatchProps.onShowBlockConversationDialog(stateProps.selectedConversation, stateProps.participants.toArray().join(',')),
       restartConversation: () => dispatchProps.startConversation(stateProps.participants.toArray()),
     }
   },

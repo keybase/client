@@ -23,6 +23,11 @@ const conversationRoute = new RouteDefNode({
       component: MessagePopup,
       tags: {layerOnTop: true},
     },
+    showBlockConversationDialog: {
+      component: BlockConversationWarning,
+      tags: {layerOnTop: true},
+      children: {},
+    },
   },
 })
 

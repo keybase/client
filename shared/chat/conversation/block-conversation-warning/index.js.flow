@@ -1,0 +1,10 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  participants: string,
+  onClose: () => void,
+  onBlock: () => void,
+}
+
+export default class RenderBlockConversationWarning extends Component<void, Props, void> {}

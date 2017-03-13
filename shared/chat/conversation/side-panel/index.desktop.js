@@ -21,6 +21,9 @@ const SidePanel = (props: Props) => (
     </Box>
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
+
+    <Button type='Danger' label='Block this conversation' onClick={() => props.showBlockConversationDialog()}
+    <Divider style={{marginBottom: 20, marginTop: 20}} />
   </Box>
 )
 
