@@ -220,6 +220,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	ctx := arg.NetContext
 	if ctx == nil {
 		ctx = context.Background()
+		api.G().Log.CDebugf(ctx, "made a new one!")
 	}
 	ctx = WithLogTag(ctx, "API")
 	api.G().Log.CDebugf(ctx, "+ API %s %s", req.Method, req.URL)
@@ -238,11 +239,14 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 
 	timer := api.G().Timers.Start(timerType)
-	internalResp, err := doRetry(ctx, api, arg, cli, req)
+	internalResp, canc, err := doRetry(ctx, api, arg, cli, req)
 
 	defer func() {
 		if internalResp != nil && err != nil {
 			DiscardAndCloseBody(internalResp)
+		}
+		if canc != nil {
+			canc()
 		}
 	}()
 
@@ -292,11 +296,14 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 
 // doRetry will just call cli.cli.Do if arg.Timeout and arg.RetryCount aren't set.
 // If they are set, it will cancel requests that last longer than arg.Timeout and
-// retry them arg.RetryCount times.
-func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.Response, error) {
+// retry them arg.RetryCount times. It returns 3 values: the HTTP response, if all goes
+// well; a canceler function func() that the caller should call after all work is completed
+// on this request; and an error. The canceler function is to clean up the timeout.
+func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.Response, func(), error) {
 
 	if arg.InitialTimeout == 0 && arg.RetryCount == 0 {
-		return ctxhttp.Do(ctx, cli.cli, req)
+		resp, err := ctxhttp.Do(ctx, cli.cli, req)
+		return resp, nil, err
 	}
 
 	timeout := cli.cli.Timeout
@@ -319,22 +326,25 @@ func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *
 		if i > 0 {
 			g.G().Log.CDebugf(ctx, "retry attempt %d of %d for %s", i, retries, arg.Endpoint)
 		}
-		resp, err := doTimeout(ctx, cli, req, timeout)
+		resp, canc, err := doTimeout(ctx, cli, req, timeout)
 		if err == nil {
-			return resp, nil
+			return resp, canc, nil
 		}
 		lastErr = err
 		timeout = time.Duration(float64(timeout) * multiplier)
 	}
 
-	return nil, fmt.Errorf("doRetry failed, attempts: %d, timeout %s, last err: %s", retries, timeout, lastErr)
+	return nil, nil, fmt.Errorf("doRetry failed, attempts: %d, timeout %s, last err: %s", retries, timeout, lastErr)
 
 }
 
-func doTimeout(origCtx context.Context, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, error) {
+// doTimeout does the http request with a timeout. It returns the response from making the HTTP request,
+// a canceler, and an error. The canceler ought to be called before the caller (or its caller) is done
+// with this request.
+func doTimeout(origCtx context.Context, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, func(), error) {
 	ctx, cancel := context.WithTimeout(origCtx, timeout)
-	defer cancel()
-	return ctxhttp.Do(ctx, cli.cli, req)
+	resp, err := ctxhttp.Do(ctx, cli.cli, req)
+	return resp, cancel, err
 }
 
 func checkHTTPStatus(arg APIArg, resp *http.Response) error {
