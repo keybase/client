@@ -675,11 +675,11 @@ func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {
 	return nil
 }
 
-func (e *Identify2WithUID) displayUserCardAsync(iui libkb.IdentifyUI) <-chan error {
+func (e *Identify2WithUID) displayUserCardAsync(ctx context.Context, iui libkb.IdentifyUI) <-chan error {
 	if e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
 		return nil
 	}
-	return displayUserCardAsync(e.G(), iui, e.them.GetUID(), (e.me != nil))
+	return displayUserCardAsync(ctx, e.G(), iui, e.them.GetUID(), (e.me != nil))
 }
 
 func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
@@ -718,7 +718,7 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 		return err
 	}
 
-	waiter := e.displayUserCardAsync(iui)
+	waiter := e.displayUserCardAsync(ctx.NetContext, iui)
 
 	e.G().Log.Debug("| IdentifyUI.Identify(%s)", e.them.GetName())
 	var them *libkb.User
