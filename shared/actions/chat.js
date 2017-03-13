@@ -1049,7 +1049,7 @@ const followingSelector = (state: TypedState) => state.config.following
 
 let _loadedInboxOnce = false
 function * _loadInboxMaybeOnce (action: LoadInbox): SagaGenerator<any, any> {
-  if (!_loadedInboxOnce || action.force) {
+  if (!_loadedInboxOnce || action.payload.force) {
     _loadedInboxOnce = true
     yield call(_loadInbox)
   }
