@@ -175,6 +175,12 @@ export const RemoteMessageBoxedVersion = {
   v2: 2,
 }
 
+export const RemoteSyncInboxResType = {
+  current: 0,
+  incremental: 1,
+  clear: 2,
+}
+
 export function localCancelPostRpc (request: Exact<requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.local.CancelPost'})
 }
@@ -607,6 +613,18 @@ export function remoteSetConversationStatusRpcPromise (request: $Exact<requestCo
   return new Promise((resolve, reject) => { remoteSetConversationStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function remoteSyncInboxRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncInboxResult) => void} & {param: remoteSyncInboxRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.remote.syncInbox'})
+}
+
+export function remoteSyncInboxRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncInboxResult) => void} & {param: remoteSyncInboxRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteSyncInboxRpc({...request, incomingCallMap, callback}))
+}
+
+export function remoteSyncInboxRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncInboxResult) => void} & {param: remoteSyncInboxRpcParam}>): Promise<remoteSyncInboxResult> {
+  return new Promise((resolve, reject) => { remoteSyncInboxRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteTlfFinalizeRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteTlfFinalizeRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.remote.tlfFinalize'})
 }
@@ -923,6 +941,7 @@ export type GetInboxQuery = {
   after?: ?gregor1.Time,
   oneChatTypePerTLF?: ?boolean,
   status?: ?Array<ConversationStatus>,
+  convIDs?: ?Array<ConversationID>,
   unreadOnly: boolean,
   readOnly: boolean,
   computeActiveList: boolean,
@@ -1439,6 +1458,21 @@ export type SignatureInfo = {
   k: bytes,
 }
 
+export type SyncInboxRes =
+    { typ: 0 }
+  | { typ: 1, incremental: ?SyncIncrementalRes }
+  | { typ: 2 }
+
+export type SyncInboxResType =
+    0 // CURRENT_0
+  | 1 // INCREMENTAL_1
+  | 2 // CLEAR_2
+
+export type SyncIncrementalRes = {
+  vers: InboxVers,
+  convs?: ?Array<Conversation>,
+}
+
 export type TLFFinalizeUpdate = {
   finalizeInfo: ConversationFinalizeInfo,
   convIDs?: ?Array<ConversationID>,
@@ -1751,6 +1785,10 @@ export type remoteSetConversationStatusRpcParam = Exact<{
   status: ConversationStatus
 }>
 
+export type remoteSyncInboxRpcParam = Exact<{
+  vers: InboxVers
+}>
+
 export type remoteTlfFinalizeRpcParam = Exact<{
   tlfID: TLFID,
   resetUser: string,
@@ -1829,6 +1867,8 @@ type remoteS3SignResult = bytes
 
 type remoteSetConversationStatusResult = SetConversationStatusRes
 
+type remoteSyncInboxResult = SyncInboxRes
+
 export type rpc =
     localCancelPostRpc
   | localDownloadAttachmentLocalRpc
@@ -1866,6 +1906,7 @@ export type rpc =
   | remotePublishSetConversationStatusRpc
   | remoteS3SignRpc
   | remoteSetConversationStatusRpc
+  | remoteSyncInboxRpc
   | remoteTlfFinalizeRpc
   | remoteTlfResolveRpc
 export type incomingCallMapType = Exact<{
