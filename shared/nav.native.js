@@ -7,7 +7,7 @@ import {Dimensions, NavigationExperimental, StatusBar} from 'react-native'
 import {chatTab, loginTab, folderTab} from './constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
-import {isAndroid} from './constants/platform'
+import {isAndroid, isIOS} from './constants/platform'
 import {navigateTo, navigateUp, switchTo} from './actions/route-tree'
 
 import type {Props} from './nav'
@@ -58,8 +58,8 @@ function MainNavStack (props: Props) {
                 <StatusBar
                   hidden={hideStatusBar}
                   translucent={true}
-                  backgroundColor={underStatusBar ? globalColors.transparent : globalColors.white}
-                  barStyle={underStatusBar ? 'light-content' : 'dark-content'}
+                  backgroundColor='rgba(0, 26, 51, 0.25)'
+                  barStyle={!underStatusBar && isIOS ? 'dark-content' : 'light-content'}
                 />
                 {scene.route.component}
               </Box>
