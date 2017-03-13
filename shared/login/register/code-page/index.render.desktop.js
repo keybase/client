@@ -34,7 +34,7 @@ const CodePageText = ({onBack, textCode}) => (
 
 const CodePageCode = ({onBack, otherDeviceRole, setCodePageMode, qrCode}) => (
   <Container
-    style={stylesContainer}
+    style={{...stylesContainer, alignItems: 'stretch'}}
     onBack={onBack}>
     <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, overflowY: 'auto'}}>
       <Text style={{marginBottom: 11, marginTop: 38}} type='Header'>Scan this QR code</Text>
