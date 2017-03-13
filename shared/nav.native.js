@@ -25,30 +25,28 @@ const StackWrapper = ({children}) => {
   }
 }
 
-function stackToNavigationState (stack) {
-  return {
-    index: stack.size - 1,
-    routes: stack.map(r => ({
+function Nav (props: Props) {
+  const visibleScreens = props.routeStack.filter(r => !r.tags.layerOnTop)
+  if (!visibleScreens.size) {
+    throw new Error('no route component to render without layerOnTop tag')
+  }
+  const navigationState = {
+    index: visibleScreens.size - 1,
+    routes: visibleScreens.map(r => ({
       component: r.component,
       key: r.path.join('/'),
       tags: r.tags,
     })).toArray(),
   }
-}
-
-function MainNavStack (props: Props) {
-  const baseScreens = props.routeStack.filter(r => !r.tags.layerOnTop)
-  if (!baseScreens.size) {
-    throw new Error('no route component to render without layerOnTop tag')
-  }
   const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
+
   return (
     <Box style={flexOne}>
       <StackWrapper>
         <Box style={flexColumnOne}>
           <NavigationCardStack
-            key={props.routeSelected}  // don't transition when switching tabs
-            navigationState={stackToNavigationState(baseScreens)}
+            key={props.routeSelected}
+            navigationState={navigationState}
             renderScene={({scene}) => {
               return (
                 <Box style={scene.route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
@@ -61,44 +59,20 @@ function MainNavStack (props: Props) {
           />
           {layerScreens.map(r => r.leafComponent)}
         </Box>
-        {!props.hideNav && !baseScreens.last().tags.fullscreen &&
-          <TabBar
-            onTabClick={props.switchTab}
-            selectedTab={props.routeSelected}
-            username={props.username}
-            badgeNumbers={{
-              [chatTab]: props.chatBadge,
-              [folderTab]: props.folderBadge,
-            }}
-          />
-        }
-        <GlobalError />
       </StackWrapper>
+      {!props.hideNav &&
+        <TabBar
+          onTabClick={props.switchTab}
+          selectedTab={props.routeSelected}
+          username={props.username}
+          badgeNumbers={{
+            [chatTab]: props.chatBadge,
+            [folderTab]: props.folderBadge,
+          }}
+        />
+      }
+      <GlobalError />
     </Box>
-  )
-}
-
-function Nav (props: Props) {
-  const mainScreens = props.routeStack.filter(r => !r.tags.fullscreen)
-  const fullScreens = props.routeStack.filter(r => r.tags.fullscreen)
-    .unshift({
-      path: ['main'],
-      component: <MainNavStack {...props} routeStack={mainScreens} />,
-      tags: {},
-    })
-
-  return (
-    <NavigationCardStack
-      navigationState={stackToNavigationState(fullScreens)}
-      renderScene={({scene}) => {
-        return (
-          <Box style={globalStyles.fillAbsolute}>
-            {scene.route.component}
-          </Box>
-        )
-      }}
-      enableGestures={false}
-    />
   )
 }
 
