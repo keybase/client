@@ -238,7 +238,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 
 	timer := api.G().Timers.Start(timerType)
-	internalResp, err := doRetry(api, arg, cli, req)
+	internalResp, err := doRetry(ctx, api, arg, cli, req)
 
 	defer func() {
 		if internalResp != nil && err != nil {
@@ -293,11 +293,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 // doRetry will just call cli.cli.Do if arg.Timeout and arg.RetryCount aren't set.
 // If they are set, it will cancel requests that last longer than arg.Timeout and
 // retry them arg.RetryCount times.
-func doRetry(g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.Response, error) {
-	ctx := arg.NetContext
-	if ctx == nil {
-		ctx = context.Background()
-	}
+func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.Response, error) {
 
 	if arg.InitialTimeout == 0 && arg.RetryCount == 0 {
 		return ctxhttp.Do(ctx, cli.cli, req)
