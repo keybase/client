@@ -29,7 +29,7 @@ const conversationRoute = new RouteDefNode({
 const routeTree = new RouteDefNode({
   component: ConversationList,
   children: () => conversationRoute,
-  tags: {persistChildren: true},
+  tags: {persistChildren: true, underStatusBar: true},
 })
 
 export default routeTree
