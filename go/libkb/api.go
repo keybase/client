@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
+	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/PuerkitoBio/goquery"
 	jsonw "github.com/keybase/go-jsonw"
@@ -293,8 +294,13 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 // If they are set, it will cancel requests that last longer than arg.Timeout and
 // retry them arg.RetryCount times.
 func doRetry(g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.Response, error) {
+	ctx := arg.NetContext
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	if arg.InitialTimeout == 0 && arg.RetryCount == 0 {
-		return cli.cli.Do(req)
+		return ctxhttp.Do(ctx, cli.cli, req)
 	}
 
 	timeout := cli.cli.Timeout
@@ -315,9 +321,9 @@ func doRetry(g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.
 	var lastErr error
 	for i := 0; i < retries; i++ {
 		if i > 0 {
-			g.G().Log.CDebugf(arg.NetContext, "retry attempt %d of %d for %s", i, retries, arg.Endpoint)
+			g.G().Log.CDebugf(ctx, "retry attempt %d of %d for %s", i, retries, arg.Endpoint)
 		}
-		resp, err := doTimeout(cli, req, timeout)
+		resp, err := doTimeout(ctx, cli, req, timeout)
 		if err == nil {
 			return resp, nil
 		}
@@ -329,40 +335,10 @@ func doRetry(g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.
 
 }
 
-// adapted from https://blog.golang.org/context httpDo func
-func doTimeout(cli *Client, req *http.Request, timeout time.Duration) (*http.Response, error) {
-	// TODO: could pass in a context from further up the chain
-	// and use that instead of context.Background()
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+func doTimeout(origCtx context.Context, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, error) {
+	ctx, cancel := context.WithTimeout(origCtx, timeout)
 	defer cancel()
-
-	// new way to cancel requests
-	reqCancel := make(chan struct{})
-	req.Cancel = reqCancel
-
-	type response struct {
-		resp *http.Response
-		err  error
-	}
-	c := make(chan response, 1)
-	go func() {
-		var r response
-		r.resp, r.err = cli.cli.Do(req)
-		c <- r
-	}()
-
-	select {
-	case <-ctx.Done():
-		// request ctx timed out.  Cancel the request by closing req.Cancel channel:
-		close(reqCancel)
-		// wait for request to finish
-		<-c
-		return nil, ctx.Err()
-	case r := <-c:
-		// request successful
-		return r.resp, r.err
-	}
-
+	return ctxhttp.Do(ctx, cli.cli, req)
 }
 
 func checkHTTPStatus(arg APIArg, resp *http.Response) error {
