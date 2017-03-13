@@ -1,24 +1,20 @@
 // @flow
-import {NativeModules} from 'react-native'
+import RNFS from 'react-native-fs'
 
-const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
-
-// TODO
 function tmpFile (suffix: string): string {
-  return `${nativeBridge.tmpDir}${suffix}`
+  return `${RNFS.CachesDirectoryPath}/${suffix}`
 }
 
 function downloadFilePath (suffix: string): string {
-  return `${nativeBridge.tmpDir}${suffix}`
+  return `${RNFS.CachesDirectoryPath}/${suffix}`
 }
 
 function copy (from: string, to: string) {
   throw new Error('Unimplemented')
 }
 
-function exists (from: string, to: string): boolean {
-  // FIXME implement
-  return false
+function exists (filepath: string): Promise<boolean> {
+  return RNFS.exists(filepath)
 }
 
 export {

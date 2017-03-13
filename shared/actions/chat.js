@@ -1936,7 +1936,8 @@ function * _isCached (conversationIDKey, messageID): Generator<any, ?string, any
 function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview, isHdPreview, filename}}: Constants.LoadAttachment): SagaGenerator<any, any> {
   // See if we already have this image cached
   if (loadPreview || isHdPreview) {
-    if (exists(filename)) {
+    const imageCached = yield call(exists, filename)
+    if (imageCached) {
       const action: Constants.AttachmentLoaded = {
         type: 'chat:attachmentLoaded',
         payload: {conversationIDKey, messageID, path: filename, isPreview: loadPreview, isHdPreview: isHdPreview},

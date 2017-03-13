@@ -113,7 +113,6 @@ RCT_EXPORT_METHOD(reset) {
 }
 
 - (NSDictionary *)constantsToExport {
-  NSString * tmpDir = NSTemporaryDirectory();
   NSString * testVal = [Utils areWeBeingUnitTested] ? @"1" : @"";
   NSString * simulatorVal =
 #if TARGET_IPHONE_SIMULATOR
@@ -125,7 +124,6 @@ RCT_EXPORT_METHOD(reset) {
   return @{ @"eventName": eventName,
             @"test": testVal,
             @"usingSimulator": simulatorVal,
-            @"tmpDir": tmpDir,
             @"version": GoKeybaseVersion()};
 }
 

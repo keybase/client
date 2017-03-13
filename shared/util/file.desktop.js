@@ -28,8 +28,12 @@ function downloadFilePath (suffix: string): string {
   return _findAvailableFilename(path.join(downloadFolder, suffix))
 }
 
-function exists (filepath: string): boolean {
-  return fs.existsSync(filepath)
+function exists (filepath: string): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    fs.exists(filepath, exists => {
+      resolve(exists)
+    })
+  })
 }
 
 function _findAvailableFilename (filepath: string): string {
