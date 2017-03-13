@@ -40,6 +40,7 @@ func (s *Syncer) SendChatStaleNotifications(uid gregor1.UID, convs []chat1.Conve
 }
 
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) (err error) {
+	ctx = CtxAddLogTags(ctx)
 	s.Debug(ctx, "Connected: running")
 
 	// Let the Offlinables know that we are back online
@@ -60,7 +61,6 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 	s.Debug(ctx, "Connected: current inbox version: %v", vers)
 
 	// Run the sync call on the server to see how current our local copy is
-	ctx = CtxAddLogTags(ctx)
 	if syncRes, err = cli.SyncInbox(ctx, vers); err != nil {
 		s.Debug(ctx, "Connected: failed to sync inbox: %s", err.Error())
 		return err
