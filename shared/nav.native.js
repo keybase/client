@@ -1,9 +1,9 @@
 // @flow
 import GlobalError from './global-errors/container'
 import React from 'react'
-import TabBar from './tab-bar/index.render.native'
+import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
 import {Box, NativeKeyboardAvoidingView} from './common-adapters/index.native'
-import {NavigationExperimental, Keyboard, StatusBar} from 'react-native'
+import {Dimensions, NavigationExperimental, StatusBar} from 'react-native'
 import {chatTab, loginTab, folderTab} from './constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
@@ -18,6 +18,8 @@ const {
 } = NavigationExperimental
 
 const StackWrapper = ({children}) => {
+  // FIXME: KeyboardAvoidingView doubles the padding needed on Android. Remove
+  // this shim when it works consistently with iOS.
   if (isAndroid) {
     return <Box style={flexOne}>{children}</Box>
   } else {
@@ -42,26 +44,28 @@ function MainNavStack (props: Props) {
     throw new Error('no route component to render without layerOnTop tag')
   }
   const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
+
   return (
-    <Box style={flexOne}>
-      <StackWrapper>
-        <Box style={flexColumnOne}>
-          <NavigationCardStack
-            key={props.routeSelected}  // don't transition when switching tabs
-            navigationState={stackToNavigationState(baseScreens)}
-            renderScene={({scene}) => {
-              return (
-                <Box style={scene.route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
-                  <StatusBar hidden={scene.route.tags.hideStatusBar} />
-                  {scene.route.component}
-                </Box>
-              )
-            }}
-            onNavigateBack={props.navigateUp}
-          />
-          {layerScreens.map(r => r.leafComponent)}
-        </Box>
-        {!props.hideNav && !baseScreens.last().tags.fullscreen &&
+    <StackWrapper>
+      <Box style={!props.hideNav ? styleScreenSpace : flexOne}>
+        <NavigationCardStack
+          key={props.routeSelected}  // don't transition when switching tabs
+          navigationState={stackToNavigationState(baseScreens)}
+          renderScene={({scene}) => {
+            return (
+              <Box style={scene.route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
+                <StatusBar hidden={scene.route.tags.hideStatusBar} />
+                {scene.route.component}
+              </Box>
+            )
+          }}
+          onNavigateBack={props.navigateUp}
+        />
+        {layerScreens.map(r => r.leafComponent)}
+        <GlobalError />
+      </Box>
+      {!props.hideNav &&
+        <Box style={styleCollapsibleNav}>
           <TabBar
             onTabClick={props.switchTab}
             selectedTab={props.routeSelected}
@@ -71,10 +75,9 @@ function MainNavStack (props: Props) {
               [folderTab]: props.folderBadge,
             }}
           />
-        }
-        <GlobalError />
-      </StackWrapper>
-    </Box>
+        </Box>
+      }
+    </StackWrapper>
   )
 }
 
@@ -102,41 +105,6 @@ function Nav (props: Props) {
   )
 }
 
-class HideNavOnKeyboard extends React.Component {
-  keyboardWillShowListener: any;
-  keyboardWillHideListener: any;
-
-  componentWillMount () {
-    this.keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', this._keyboardWillShow)
-    this.keyboardWillHideListener = Keyboard.addListener('keyboardWillHide', this._keyboardWillHide)
-  }
-
-  componentWillUnmount () {
-    this.keyboardWillShowListener.remove()
-    this.keyboardWillHideListener.remove()
-  }
-
-  state = {
-    hidden: false,
-  }
-
-  _keyboardWillShow = () => {
-    this.setState({
-      hidden: true,
-    })
-  }
-
-  _keyboardWillHide = () => {
-    this.setState({
-      hidden: false,
-    })
-  }
-
-  render () {
-    return <Nav {...this.props} hideNav={this.props.hideNav || this.state.hidden} />
-  }
-}
-
 const sceneWrapStyleUnder = {
   backgroundColor: globalColors.white,
   flex: 1,
@@ -148,9 +116,13 @@ const sceneWrapStyleOver = {
   paddingTop: statusBarHeight,
 }
 
-const flexColumnOne = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
+const styleScreenSpace = {
+  flex: -1,
+  height: Dimensions.get('window').height - tabBarHeight,
+}
+
+const styleCollapsibleNav = {
+  flexShrink: 999999,
 }
 
 const flexOne = {
@@ -162,7 +134,7 @@ export default connect(
     config: {extendedConfig, username},
     dev: {debugConfig: {dumbFullscreen}},
     notifications: {menuBadge, menuNotifications},
-  }, {routeSelected}) => ({
+  }, {routeStack, routeSelected}) => ({
     chatBadge: menuNotifications.chatBadge,
     dumbFullscreen,
     folderBadge: menuNotifications.folderBadge,
@@ -182,4 +154,4 @@ export default connect(
       dispatch(action(routePath.push(tab)))
     },
   })
-)(HideNavOnKeyboard)
+)(Nav)
