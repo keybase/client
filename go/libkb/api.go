@@ -220,7 +220,6 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	ctx := arg.NetContext
 	if ctx == nil {
 		ctx = context.Background()
-		api.G().Log.CDebugf(ctx, "made a new one!")
 	}
 	ctx = WithLogTag(ctx, "API")
 	api.G().Log.CDebugf(ctx, "+ API %s %s", req.Method, req.URL)
