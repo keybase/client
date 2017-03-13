@@ -48,7 +48,7 @@ const Timeline = ({timeline}) => (
 )
 
 const Render = ({
-  name, type, deviceID, currentDevice, timeline, revokedAt, showRevokeDevicePage, device, onBack, bannerBackgroundColor, bannerColor, bannerDesc, icon, revokeName
+  name, type, deviceID, currentDevice, timeline, revokedAt, showRevokeDevicePage, device, onBack, bannerBackgroundColor, bannerColor, bannerDesc, icon, revokeName,
 }: Props) => (
   <Box style={{...globalStyles.flexBoxColumn}}>
     <Box style={{...globalStyles.flexBoxColumn, height: 48, justifyContent: 'center', paddingLeft: 16}}>

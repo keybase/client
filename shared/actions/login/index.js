@@ -21,7 +21,7 @@ import {overrideLoggedInTab} from '../../local-debug'
 
 import type {DeviceRole} from '../../constants/login'
 import type {DeviceType} from '../../constants/types/more'
-import type {Dispatch, GetState, AsyncAction, TypedAction, Action} from '../../constants/types/flux'
+import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
 import type {ResponseType} from '../../engine'
 import type {incomingCallMapType, DeviceType as RPCDeviceType} from '../../constants/types/flow-types'
 
