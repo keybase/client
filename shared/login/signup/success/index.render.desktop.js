@@ -27,7 +27,7 @@ class SuccessRender extends Component<void, Props, State> {
         </Box>
       )
       : (
-        <Box style={{...stylesPaperKeyContainer, ...globalStyles.flexBoxCenter}}>
+        <Box style={{stylesPaperKeyContainer}}>
           <ProgressIndicator type='Small' style={{width: 40}} />
           <Icon type='icon-paper-key-corner' style={stylesPaperCorner} />
         </Box>
@@ -49,33 +49,34 @@ const stylesContainer = {
   alignItems: 'center',
 }
 const stylesHeader = {
-  marginTop: 60,
   marginBottom: 5,
+  marginTop: 60,
 }
 const stylesBody = {
-  paddingLeft: 15,
-  paddingRight: 15,
   marginBottom: 35,
   maxWidth: 560,
+  paddingLeft: 15,
+  paddingRight: 15,
   textAlign: 'center',
 }
 const stylesPaperKeyContainer = {
-  position: 'relative',
-  width: 400,
-  minHeight: 100,
-  marginBottom: 35,
-  paddingTop: 8,
-  paddingLeft: 24,
-  paddingRight: 24 * 2,
-  paddingBottom: 8,
-  borderRadius: 3,
+  ...globalStyles.flexBoxCenter,
   backgroundColor: globalColors.white,
   border: `solid 3px ${globalColors.darkBlue}`,
+  borderRadius: 3,
+  marginBottom: 35,
+  minHeight: 100,
+  paddingBottom: 8,
+  paddingLeft: 24,
+  paddingRight: 24 * 2,
+  paddingTop: 8,
+  position: 'relative',
+  width: 400,
 }
 const stylesPaperCorner = {
   position: 'absolute',
-  top: -3,
   right: -3,
+  top: -3,
 }
 const stylesCheck = {
   marginBottom: 60,

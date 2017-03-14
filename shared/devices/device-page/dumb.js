@@ -53,6 +53,7 @@ const map: DumbComponentMap<Render> = {
       deviceID: 'dddddddddddddddddddddddddddddddd',
       icon: 'icon-paper-key-64',
       name: 'project green...',
+      revokeName: 'paper key',
       timeline: [
         {
           desc: 'Created Mar 03, 2014',
@@ -61,7 +62,6 @@ const map: DumbComponentMap<Render> = {
         },
       ],
       type: 'backup',
-      revokeName: 'device',
     },
     'Revoked': {
       ...common,
