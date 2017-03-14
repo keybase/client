@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,13 +13,40 @@ type Response struct {
 	Message string `json:"message"`
 }
 
+func discardPrefix(b *bufio.Reader, until string) error {
+	for {
+		c, err := b.Peek(1)
+		if err != nil {
+			return err
+		}
+		if string(c) == until {
+			return nil
+		}
+		if _, err = b.Discard(1); err != nil {
+			return err
+		}
+	}
+}
+
 func main() {
 	// Read JSON per line from STDIN, respond with JSON to STDOUT
-	in := json.NewDecoder(os.Stdin)
+	bufin := bufio.NewReader(os.Stdin)
 	out := json.NewEncoder(os.Stdout)
+
 	for {
+		// Skip initial form feed delimiter
+		err := discardPrefix(bufin, "{")
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %s", err)
+			return
+		}
+
+		in := json.NewDecoder(bufin)
+
 		var v interface{}
-		if err := in.Decode(&v); err == io.EOF {
+		err = in.Decode(&v)
+
+		if err == io.EOF {
 			// Closed
 			break
 		} else if err != nil {
@@ -29,10 +57,12 @@ func main() {
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "error: %s", err)
 			}
-			return
+			// Restart decoder
+			in = json.NewDecoder(os.Stdin)
+			continue
 		}
 
-		err := out.Encode(Response{
+		err = out.Encode(Response{
 			Status:  "ok",
 			Message: "Parsed message successfully.",
 		})
