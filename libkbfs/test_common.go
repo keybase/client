@@ -49,8 +49,9 @@ func fakeMdID(b byte) MdID {
 // MakeTestConfigOrBust or ConfigAsUser.
 //
 // TODO: Move more common code here.
-func newConfigForTest(loggerFn func(module string) logger.Logger) *ConfigLocal {
-	config := NewConfigLocal(InitDefault, loggerFn, "")
+func newConfigForTest(mode InitMode,
+	loggerFn func(module string) logger.Logger) *ConfigLocal {
+	config := NewConfigLocal(mode, loggerFn, "")
 
 	bops := NewBlockOpsStandard(config,
 		testBlockRetrievalWorkerQueueSize)
@@ -91,7 +92,7 @@ func MakeTestBlockServerOrBust(t logger.TestLogBackend,
 func MakeTestConfigOrBust(t logger.TestLogBackend,
 	users ...libkb.NormalizedUsername) *ConfigLocal {
 	log := logger.NewTestLogger(t)
-	config := newConfigForTest(func(m string) logger.Logger {
+	config := newConfigForTest(InitDefault, func(m string) logger.Logger {
 		return log
 	})
 
@@ -192,11 +193,9 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	return config
 }
 
-// ConfigAsUser clones a test configuration, setting another user as
-// the logged in user.  Journaling will not be enabled in the returned
-// Config, regardless of the journal status in `config`.
-func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *ConfigLocal {
-	c := newConfigForTest(config.loggerFn)
+func configAsUserWithMode(config *ConfigLocal,
+	loggedInUser libkb.NormalizedUsername, mode InitMode) *ConfigLocal {
+	c := newConfigForTest(mode, config.loggerFn)
 	c.SetMetadataVersion(config.MetadataVersion())
 	c.SetRekeyWithPromptWaitTime(config.RekeyWithPromptWaitTime())
 
@@ -268,6 +267,15 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	*c.allKnownConfigsForTesting = append(*c.allKnownConfigsForTesting, c)
 
 	return c
+}
+
+// ConfigAsUser clones a test configuration in default init mode,
+// setting another user as the logged in user.  Journaling will not be
+// enabled in the returned Config, regardless of the journal status in
+// `config`.
+func ConfigAsUser(config *ConfigLocal,
+	loggedInUser libkb.NormalizedUsername) *ConfigLocal {
+	return configAsUserWithMode(config, loggedInUser, InitDefault)
 }
 
 // FakeBranchID creates a fake branch ID from the given

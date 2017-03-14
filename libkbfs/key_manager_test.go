@@ -2160,6 +2160,77 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 	GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 }
 
+func testKeyManagerRekeyMinimal(t *testing.T, ver MetadataVer) {
+	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	clock := newTestClockNow()
+	config1.SetClock(clock)
+
+	config1.SetMetadataVersion(ver)
+
+	// User 2 is in minimal mode.
+	config2 := configAsUserWithMode(config1, u2, InitMinimal)
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	session2, err := config2.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	uid2 := session2.UID
+
+	// Create a shared folder
+	name := u1.String() + "," + u2.String()
+
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
+
+	kbfsOps1 := config1.KBFSOps()
+
+	// user 1 creates a file
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %+v", err)
+	}
+
+	// Device 2 is in default mode, so we can check that the rekey
+	// worked.
+	config2Dev2 := ConfigAsUser(config1, u2)
+	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
+
+	// Now give u2 a new device.  The configs don't share a Keybase
+	// Daemon so we have to do it in all places.
+	AddDeviceForLocalUserOrBust(t, config1, uid2)
+	AddDeviceForLocalUserOrBust(t, config2, uid2)
+	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
+	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
+
+	// user 2 should be unable to read the data now since its device
+	// wasn't registered when the folder was originally created.
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
+	if _, ok := err.(NeedSelfRekeyError); !ok {
+		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+	}
+
+	// Have the minimal instance do the rekey.
+	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
+		config2.KBFSOps(), rootNode1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't rekey: %+v", err)
+	}
+
+	root2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
+	kbfsOps2Dev2 := config2Dev2.KBFSOps()
+	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx,
+		root2Dev2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %+v", err)
+	}
+
+	children, err := kbfsOps2Dev2.GetDirChildren(ctx, root2Dev2)
+	if _, ok := children["a"]; !ok {
+		t.Fatalf("Device 2 couldn't see the dir entry")
+	}
+}
+
 // maybeReplaceContext, defined on *protectedContext, enables replacing context
 // stored in protectedContext.
 //
@@ -2208,6 +2279,7 @@ func TestKeyManager(t *testing.T) {
 		testKeyManagerRekeyAddDeviceWithPrompt,
 		testKeyManagerRekeyAddDeviceWithPromptAfterRestart,
 		testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess,
+		testKeyManagerRekeyMinimal,
 	}
 	runTestsOverMetadataVers(t, "testKeyManager", tests)
 }

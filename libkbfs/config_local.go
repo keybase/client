@@ -895,7 +895,10 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	c.BlockServer().Shutdown(ctx)
 	c.Crypto().Shutdown()
 	c.Reporter().Shutdown()
-	err = c.DirtyBlockCache().Shutdown()
+	dirtyBcache := c.DirtyBlockCache()
+	if dirtyBcache != nil {
+		err = dirtyBcache.Shutdown()
+	}
 	if err != nil {
 		errorList = append(errorList, err)
 	}
