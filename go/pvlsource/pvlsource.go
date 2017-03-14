@@ -113,7 +113,7 @@ func (s *PvlSourceImpl) GetKitString(ctx context.Context) (string, error) {
 		// Attempt a refresh if the root is old or nil.
 		err := s.refreshRoot(ctx)
 		if err != nil {
-			s.G().Log.Warning("could not refresh merkle root: %s", err)
+			s.G().Log.Warning("PvlSource: could not refresh merkle root: %s", err)
 		} else {
 			root = mc.LastRoot()
 		}
@@ -165,6 +165,7 @@ func (s *PvlSourceImpl) GetKitString(ctx context.Context) (string, error) {
 	// Schedule a db write
 	go s.dbSet(hash, pvl)
 
+	s.G().Log.Debug("PvlSource: using hash: %s", hash)
 	return pvl, nil
 }
 
@@ -243,7 +244,7 @@ func (s *PvlSourceImpl) dbGet(hash string) *string {
 	}
 	buf, found, err := db.GetRaw(dbKey)
 	if err != nil {
-		s.G().Log.Warning("error reading from db: %s", err)
+		s.G().Log.Warning("PvlSource: error reading from db: %s", err)
 		return nil
 	}
 	if !found {
@@ -252,7 +253,7 @@ func (s *PvlSourceImpl) dbGet(hash string) *string {
 	var e entry
 	err = decode(buf, &e)
 	if err != nil {
-		s.G().Log.Warning("error reading db: %s", err)
+		s.G().Log.Warning("PvlSource: error reading db: %s", err)
 		return nil
 	}
 	if e.dbVersion != e.dbVersion {
