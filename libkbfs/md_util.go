@@ -267,12 +267,19 @@ func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 // and unmerged branch, between the merge point for that branch and
 // startRev (inclusive).  The returned MDs are the same instances that
 // are stored in the MD cache, so they should be modified with care.
+// If bid is NullBranchID, it returns an empty MD list.
 //
 // TODO: Accept a parameter to express that we want copies of the MDs
 // instead of the cached versions.
 func getUnmergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 	bid BranchID, startRev MetadataRevision) (
-	currHead MetadataRevision, unmergedRmds []ImmutableRootMetadata, err error) {
+	currHead MetadataRevision, unmergedRmds []ImmutableRootMetadata,
+	err error) {
+	if bid == NullBranchID {
+		// We're not really unmerged, so there's nothing to do.
+		return startRev, nil, nil
+	}
+
 	// We don't yet know about any revisions yet, so there's no range
 	// to get.
 	if startRev < MetadataRevisionInitial {
