@@ -95,6 +95,7 @@ func (a *AttachmentStore) putSingle(ctx context.Context, r io.Reader, size int64
 		err := b.PutReader(ctx, params.ObjectKey, tee, size, "application/octet-stream", s3.ACL(params.Acl), s3.Options{})
 		if err == nil {
 			a.log.Debug("putSingle attempt %d success", i+1)
+			progWriter.Finish()
 			return nil
 		}
 		a.log.Debug("putSingle attempt %d error: %s", i+1, err)
@@ -167,14 +168,11 @@ func (a *AttachmentStore) putMultiPipeline(ctx context.Context, r io.Reader, siz
 		close(retCh)
 	}()
 
-	var complete int64
 	var parts []s3.Part
+	progWriter := newProgressWriter(task.Progress, int(size))
 	for p := range retCh {
 		parts = append(parts, p)
-		complete += p.Size
-		if task.Progress != nil {
-			task.Progress(int(complete), int(size))
-		}
+		progWriter.Update(int(p.Size))
 	}
 	if err := eg.Wait(); err != nil {
 		return "", err
@@ -191,6 +189,8 @@ func (a *AttachmentStore) putMultiPipeline(ctx context.Context, r io.Reader, siz
 		return "", err
 	}
 	a.log.Debug("s3 putMulti success, %d parts", len(parts))
+	// Just to make sure the UI gets the 100% call
+	progWriter.Finish()
 
 	return task.S3Params.ObjectKey, nil
 }
