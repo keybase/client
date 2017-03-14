@@ -10,24 +10,26 @@ const KBNM = function() {
 KBNM.prototype.connect = function() {
   if (this.port != null) return;
 
-  this.port = chrome.runtime.connectNative(this.port);
-  port.onMessage.addListener(this.receive);
-  port.onDisconnect.addListener(this.disconnect);
+  this.port = chrome.runtime.connectNative(this.host);
+  this.port.onMessage.addListener(this._onReceive.bind(this));
+  this.port.onDisconnect.addListener(this._onDisconnect.bind(this));
 }
 
 KBNM.prototype.send = function(msg) {
   this.port.postMessage(msg);
 }
 
-KBNM.prototype.receive = function(msg) {
-  console.log("KBNM: received: ", msg);
+KBNM.prototype._onReceive = function(msg) {
+  console.log("KBNM: received: ", msg, this);
 }
 
-KBNM.prototype.disconnect = function() {
+KBNM.prototype._onDisconnect = function() {
+  console.log("KBNM: disconnected: ", this);
   this.port = null;
 }
 
 
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
+  // FIXME: Switch to the persistent KBNM connection?
   chrome.runtime.sendNativeMessage(KBNM_HOST, msg, sendResponse);
 });
