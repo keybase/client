@@ -1,4 +1,5 @@
 // @flow
+import RNFS from 'react-native-fs'
 import React, {Component} from 'react'
 import {Box, Text, Button, NativeLinking, NativeClipboard} from '../../common-adapters/index.native'
 import {dumpLoggers} from '../../util/periodic-logger'
@@ -18,8 +19,23 @@ class LogSendRender extends Component<void, Props, {copiedToClipboard: boolean}>
 
   _logSend = () => {
     // We don't get the notification from the daemon so we have to do this ourselves
-    dumpLoggers()
-    this.props.onLogSend()
+    const logs = []
+    dumpLoggers((...args) => {
+      try {
+        logs.push(JSON.stringify(args))
+      } catch (_) {}
+    })
+
+    const data = logs.join('\n')
+
+    RNFS.writeFile(`${RNFS.CachesDirectoryPath}/Keybase/rn.log`, data, 'utf8')
+      .then((success) => {
+        this.props.onLogSend()
+      })
+      .catch((err) => {
+        this.props.onLogSend()
+        throw new Error(`Couldn't log send! ${err}`)
+      })
   }
 
   render () {
@@ -42,7 +58,7 @@ class LogSendRender extends Component<void, Props, {copiedToClipboard: boolean}>
           <Text type='Terminal' onClick={this._copyToClipboard}>
             {this.props.logSendId} (tap to copy)
           </Text>
-          {this.state.copiedToClipboard && <Text type='Body' style={{marginTop: 5, marginBottom: 5}}>Copied to clipboard!</Text>}
+          {this.state.copiedToClipboard && <Text type='Body' style={{marginBottom: 5, marginTop: 5}}>Copied to clipboard!</Text>}
 
           <Text type='Body'>Send us the log id along with a description of what's going on in this Github issue:</Text>
           <Button type='Primary' label='File a Github issue:' onClick={onSubmitIssue} />

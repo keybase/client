@@ -75,7 +75,6 @@ const BOOL isDebug = NO;
                                                    } error:&err];
 
   [LogSend setPath:rnLogFile];
-#endif
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
