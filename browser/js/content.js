@@ -71,10 +71,10 @@ function renderChat(parent, toUsername) {
 function submitChat(e) {
   e.preventDefault();
 
-  const to = e.currentTarget["keybase-to"];
-  const body = e.currentTarget["keybase-chat"];
+  const to = e.currentTarget["keybase-to"].value;
+  const body = e.currentTarget["keybase-chat"].value;
   const nudgeDo = e.currentTarget["keybase-nudge"].checked;
-  const nudgeText = e.currentTarget["keybase-text"];
+  const nudgeText = e.currentTarget["keybase-text"].value;
 
   var sending = chrome.runtime.sendMessage({
     "method": "chat",
