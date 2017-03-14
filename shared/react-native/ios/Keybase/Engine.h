@@ -7,7 +7,12 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
 
 @interface Engine : NSObject
 - (instancetype)initWithSettings:(NSDictionary *)settings error:(NSError **)error;
+@end
+
+@interface KeybaseEngine : RCTEventEmitter <RCTBridgeModule>
 @end

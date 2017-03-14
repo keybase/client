@@ -7,7 +7,7 @@ import * as Tabs from './constants/tabs'
 import {NativeModules} from 'react-native'
 import {updateDebugConfig} from './actions/dev'
 
-const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
+const nativeBridge = NativeModules.KeybaseEngine
 
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
