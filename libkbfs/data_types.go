@@ -732,3 +732,15 @@ type RekeyResult struct {
 	DidRekey      bool
 	NeedsPaperKey bool
 }
+
+// InitMode indicates how KBFS should configure itself at runtime.
+type InitMode int
+
+const (
+	// InitDefault is the normal mode for when KBFS data will be read
+	// and written.
+	InitDefault InitMode = iota
+	// InitMinimal is for when KBFS will only be used as a MD lookup
+	// layer (e.g., for chat on mobile).
+	InitMinimal
+)

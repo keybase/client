@@ -16,7 +16,7 @@ import (
 
 const (
 	defaultBlockRetrievalWorkerQueueSize int = 100
-	defaultNumPrefetchWorkers            int = 1
+	minimalBlockRetrievalWorkerQueueSize int = 2
 	testBlockRetrievalWorkerQueueSize    int = 5
 	defaultOnDemandRequestPriority       int = 100
 )

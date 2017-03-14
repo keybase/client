@@ -1563,6 +1563,9 @@ type Config interface {
 	RekeyWithPromptWaitTime() time.Duration
 	SetRekeyWithPromptWaitTime(time.Duration)
 
+	// Mode indicates how KBFS is configured to run.
+	Mode() InitMode
+
 	// GracePeriod specifies a grace period for which a delayed cancellation
 	// waits before actual cancels the context. This is useful for giving
 	// critical portion of a slow remote operation some extra time to finish as

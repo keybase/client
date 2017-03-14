@@ -21,12 +21,12 @@ import (
 )
 
 const (
-	// InitDefault is the normal mode for when KBFS data will be read
-	// and written.
-	InitDefault string = "default"
-	// InitMinimal is for when KBFS will only be used as a MD lookup
-	// layer (e.g., for chat on mobile).
-	InitMinimal = "minimal"
+	// InitDefaultString is the normal mode for when KBFS data will be
+	// read and written.
+	InitDefaultString string = "default"
+	// InitMinimalString is for when KBFS will only be used as a MD
+	// lookup layer (e.g., for chat on mobile).
+	InitMinimalString = "minimal"
 )
 
 // InitParams contains the initialization parameters for Init(). It is
@@ -219,8 +219,9 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	flags.IntVar((*int)(&params.MetadataVersion), "md-version",
 		int(defaultParams.MetadataVersion),
 		"Metadata version to use when creating new metadata")
-	flags.StringVar(&params.Mode, "mode", InitDefault,
-		fmt.Sprintf("Init mode (%s or %s)", InitDefault, InitMinimal))
+	flags.StringVar(&params.Mode, "mode", InitDefaultString,
+		fmt.Sprintf("Init mode (%s or %s)", InitDefaultString,
+			InitMinimalString))
 
 	return &params
 }
@@ -454,7 +455,17 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 
 func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	log logger.Logger) (Config, error) {
-	config := NewConfigLocal(func(module string) logger.Logger {
+	mode := InitDefault
+	switch params.Mode {
+	case InitDefaultString:
+		// Already the default
+	case InitMinimalString:
+		mode = InitMinimal
+	default:
+		return nil, fmt.Errorf("Unexpected mode: %s", mode)
+	}
+
+	config := NewConfigLocal(mode, func(module string) logger.Logger {
 		mname := "kbfs"
 		if module != "" {
 			mname += fmt.Sprintf("(%s)", module)
@@ -478,15 +489,13 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 			params.CleanBlockCacheCapacity)
 	}
 
-	mode := params.Mode
-	switch mode {
-	case InitDefault, InitMinimal:
-	default:
-		return nil, fmt.Errorf("Unexpected mode: %s", mode)
+	workers := defaultBlockRetrievalWorkerQueueSize
+	if config.Mode() == InitMinimal {
+		// In minimal mode, a few workers are still needed to fetch
+		// unembedded block changes in the MD updates, but not many.
+		workers = minimalBlockRetrievalWorkerQueueSize
 	}
-
-	config.SetBlockOps(NewBlockOpsStandard(config,
-		defaultBlockRetrievalWorkerQueueSize))
+	config.SetBlockOps(NewBlockOpsStandard(config, workers))
 
 	bsplitter, err := NewBlockSplitterSimple(MaxBlockSizeBytesDefault, 8*1024,
 		config.Codec())

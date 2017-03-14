@@ -97,6 +97,8 @@ type ConfigLocal struct {
 
 	// metadataVersion is the version to use when creating new metadata.
 	metadataVersion MetadataVer
+
+	mode InitMode
 }
 
 var _ Config = (*ConfigLocal)(nil)
@@ -233,11 +235,12 @@ func getDefaultCleanBlockCacheCapacity() uint64 {
 //
 // TODO: Now that NewConfigLocal takes loggerFn, add more default
 // components.
-func NewConfigLocal(loggerFn func(module string) logger.Logger,
+func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 	storageRoot string) *ConfigLocal {
 	config := &ConfigLocal{
 		loggerFn:    loggerFn,
 		storageRoot: storageRoot,
+		mode:        mode,
 	}
 	config.SetClock(wallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
@@ -666,6 +669,11 @@ func (c *ConfigLocal) SetRekeyWithPromptWaitTime(d time.Duration) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	c.rwpWaitTime = d
+}
+
+// Mode implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) Mode() InitMode {
+	return c.mode
 }
 
 // DelayedCancellationGracePeriod implements the Config interface for ConfigLocal.
