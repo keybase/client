@@ -747,6 +747,12 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	}
 	c.bcache = NewBlockCacheStandard(10000, capacity)
 
+	if c.mode == InitMinimal {
+		// No blocks will be dirtied in minimal mode, so don't bother
+		// with the dirty block cache.
+		return nil
+	}
+
 	oldDirtyBcache := c.dirtyBcache
 
 	// TODO: we should probably fail or re-schedule this reset if
