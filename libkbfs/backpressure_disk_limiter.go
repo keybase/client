@@ -383,16 +383,15 @@ func (bdl *backpressureDiskLimiter) onJournalDisable(
 	bdl.updateFreeLocked()
 }
 
-func (bdl *backpressureDiskLimiter) onDiskCacheEnable(ctx context.Context,
-	diskCacheBytes int64) (availableBytes int64) {
+func (bdl *backpressureDiskLimiter) onDiskBlockCacheEnable(ctx context.Context,
+	diskCacheBytes int64) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	availableBytes = bdl.diskCacheByteTracker.onEnable(diskCacheBytes)
+	bdl.diskCacheByteTracker.onEnable(diskCacheBytes)
 	bdl.updateFreeLocked()
-	return availableBytes
 }
 
-func (bdl *backpressureDiskLimiter) onDiskCacheDisable(ctx context.Context,
+func (bdl *backpressureDiskLimiter) onDiskBlockCacheDisable(ctx context.Context,
 	diskCacheBytes int64) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()

@@ -448,6 +448,13 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	return cache.updateMetadataLocked(ctx, tlfID, blockKey, int(encodedLen))
 }
 
+// Size implements the DiskBlockCache interface for DiskBlockCacheStandard.
+func (cache *DiskBlockCacheStandard) Size() int64 {
+	cache.lock.RLock()
+	defer cache.lock.RUnlock()
+	return int64(cache.currBytes)
+}
+
 // deleteLocked deletes a set of blocks from the disk block cache.
 func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 	blockEntries []diskBlockCacheDeleteKey) (numRemoved int, sizeRemoved int64, err error) {
@@ -661,4 +668,5 @@ func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
 		cache.log.CWarningf(ctx, "Error closing blockDb: %+v", err)
 	}
 	cache.metaDb = nil
+	cache.config.DiskLimiter().onDiskBlockCacheDisable(ctx, int64(cache.currBytes))
 }

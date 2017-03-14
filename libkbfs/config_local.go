@@ -1025,9 +1025,10 @@ func (c *ConfigLocal) EnableJournaling(
 func (c *ConfigLocal) SetDiskBlockCache(dbc DiskBlockCache) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+	ctx := context.TODO()
 	if c.diskBlockCache != nil {
-		// TODO: disable old one
+		c.diskBlockCache.Shutdown(ctx)
 	}
 	c.diskBlockCache = dbc
-	// TODO: enable new one
+	c.diskLimiter.onDiskBlockCacheEnable(ctx, dbc.Size())
 }
