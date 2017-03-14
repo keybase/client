@@ -668,6 +668,12 @@
 			"revisionTime": "2016-06-20T16:30:30-04:00"
 		},
 		{
+			"checksumSHA1": "WHc3uByvGaMcnSoI21fhzYgbOgg=",
+			"path": "golang.org/x/net/context/ctxhttp",
+			"revision": "a6577fac2d73be281a500b310739095313165611",
+			"revisionTime": "2017-03-08T20:54:49Z"
+		},
+		{
 			"path": "golang.org/x/net/html",
 			"revision": "dfcbca9c45aeabb8971affa4f76b2d40f6f72328",
 			"revisionTime": "2015-06-09T11:52:15-07:00"

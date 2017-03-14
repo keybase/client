@@ -10,9 +10,6 @@ import (
 // ErrShutdown is raised when an operation is pending but the CA is shutting down
 var ErrShutdown = errors.New("shutting down")
 
-// ErrCanceled is raised when an API operation is canceled midstream.
-var ErrCanceled = errors.New("canceled")
-
 // BadUsernameError is raised when the given username disagreeds with the expected
 // username
 type BadUsernameError struct {

@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
+	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/PuerkitoBio/goquery"
 	jsonw "github.com/keybase/go-jsonw"
@@ -237,11 +238,14 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 
 	timer := api.G().Timers.Start(timerType)
-	internalResp, err := doRetry(api, arg, cli, req)
+	internalResp, canc, err := doRetry(ctx, api, arg, cli, req)
 
 	defer func() {
 		if internalResp != nil && err != nil {
 			DiscardAndCloseBody(internalResp)
+		}
+		if canc != nil {
+			canc()
 		}
 	}()
 
@@ -291,10 +295,14 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 
 // doRetry will just call cli.cli.Do if arg.Timeout and arg.RetryCount aren't set.
 // If they are set, it will cancel requests that last longer than arg.Timeout and
-// retry them arg.RetryCount times.
-func doRetry(g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.Response, error) {
+// retry them arg.RetryCount times. It returns 3 values: the HTTP response, if all goes
+// well; a canceler function func() that the caller should call after all work is completed
+// on this request; and an error. The canceler function is to clean up the timeout.
+func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.Response, func(), error) {
+
 	if arg.InitialTimeout == 0 && arg.RetryCount == 0 {
-		return cli.cli.Do(req)
+		resp, err := ctxhttp.Do(ctx, cli.cli, req)
+		return resp, nil, err
 	}
 
 	timeout := cli.cli.Timeout
@@ -315,54 +323,27 @@ func doRetry(g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.
 	var lastErr error
 	for i := 0; i < retries; i++ {
 		if i > 0 {
-			g.G().Log.CDebugf(arg.NetContext, "retry attempt %d of %d for %s", i, retries, arg.Endpoint)
+			g.G().Log.CDebugf(ctx, "retry attempt %d of %d for %s", i, retries, arg.Endpoint)
 		}
-		resp, err := doTimeout(cli, req, timeout)
+		resp, canc, err := doTimeout(ctx, cli, req, timeout)
 		if err == nil {
-			return resp, nil
+			return resp, canc, nil
 		}
 		lastErr = err
 		timeout = time.Duration(float64(timeout) * multiplier)
 	}
 
-	return nil, fmt.Errorf("doRetry failed, attempts: %d, timeout %s, last err: %s", retries, timeout, lastErr)
+	return nil, nil, fmt.Errorf("doRetry failed, attempts: %d, timeout %s, last err: %s", retries, timeout, lastErr)
 
 }
 
-// adapted from https://blog.golang.org/context httpDo func
-func doTimeout(cli *Client, req *http.Request, timeout time.Duration) (*http.Response, error) {
-	// TODO: could pass in a context from further up the chain
-	// and use that instead of context.Background()
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	// new way to cancel requests
-	reqCancel := make(chan struct{})
-	req.Cancel = reqCancel
-
-	type response struct {
-		resp *http.Response
-		err  error
-	}
-	c := make(chan response, 1)
-	go func() {
-		var r response
-		r.resp, r.err = cli.cli.Do(req)
-		c <- r
-	}()
-
-	select {
-	case <-ctx.Done():
-		// request ctx timed out.  Cancel the request by closing req.Cancel channel:
-		close(reqCancel)
-		// wait for request to finish
-		<-c
-		return nil, ctx.Err()
-	case r := <-c:
-		// request successful
-		return r.resp, r.err
-	}
-
+// doTimeout does the http request with a timeout. It returns the response from making the HTTP request,
+// a canceler, and an error. The canceler ought to be called before the caller (or its caller) is done
+// with this request.
+func doTimeout(origCtx context.Context, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, func(), error) {
+	ctx, cancel := context.WithTimeout(origCtx, timeout)
+	resp, err := ctxhttp.Do(ctx, cli.cli, req)
+	return resp, cancel, err
 }
 
 func checkHTTPStatus(arg APIArg, resp *http.Response) error {
