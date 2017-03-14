@@ -211,8 +211,8 @@ func TestBackpressureDiskLimiterBeforeBlockPutError(t *testing.T) {
 	require.Equal(t, int64(10), availBytes)
 	require.Equal(t, int64(1), availFiles)
 
-	require.Equal(t, int64(10), bdl.byteTracker.semaphore.Count())
-	require.Equal(t, int64(1), bdl.fileTracker.semaphore.Count())
+	require.Equal(t, int64(10), bdl.journalByteTracker.semaphore.Count())
+	require.Equal(t, int64(1), bdl.journalFileTracker.semaphore.Count())
 }
 
 // TestBackpressureDiskLimiterGetDelay tests the delay calculation,
@@ -236,11 +236,11 @@ func TestBackpressureDiskLimiterGetDelay(t *testing.T) {
 		bdl.lock.Lock()
 		defer bdl.lock.Unlock()
 		// byteDelayScale should be 25/(.25(350 + 25)) = 0.267.
-		bdl.byteTracker.used = 25
-		bdl.byteTracker.free = 350
+		bdl.journalByteTracker.used = 25
+		bdl.journalByteTracker.free = 350
 		// fileDelayScale should by 50/(.25(350 + 50)) = 0.5.
-		bdl.fileTracker.used = 50
-		bdl.fileTracker.free = 350
+		bdl.journalFileTracker.used = 50
+		bdl.journalFileTracker.free = 350
 	}()
 
 	ctx := context.Background()
@@ -487,8 +487,8 @@ func testBackpressureDiskLimiterSmallDiskDelay(
 		// When called in subsequent times from
 		// beforeBlockPut, simulate the journal taking up
 		// space.
-		return diskBytes - bdl.byteTracker.used,
-			diskFiles - bdl.fileTracker.used, nil
+		return diskBytes - bdl.journalByteTracker.used,
+			diskFiles - bdl.journalFileTracker.used, nil
 	}
 
 	log := logger.NewTestLogger(t)
