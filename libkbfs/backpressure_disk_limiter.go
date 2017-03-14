@@ -429,8 +429,9 @@ func (bdl *backpressureDiskLimiter) beforeBlockPut(
 			return 0, err
 		}
 
-		bdl.journalByteTracker.updateFree(freeBytes)
 		bdl.journalFileTracker.updateFree(freeFiles)
+		bdl.journalByteTracker.updateFree(freeBytes + bdl.diskCacheByteTracker.used)
+		bdl.diskCacheByteTracker.updateFree(freeBytes + bdl.journalByteTracker.used)
 
 		delay := bdl.getDelayLocked(ctx, time.Now())
 		if delay > 0 {
@@ -508,13 +509,15 @@ func (bdl *backpressureDiskLimiter) beforeDiskBlockCachePut(
 	}
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	freeBytes, _, err := bdl.freeBytesAndFilesFn()
+	freeBytes, freeFiles, err := bdl.freeBytesAndFilesFn()
 	if err != nil {
 		return 0, err
 	}
 
 	bt := bdl.diskCacheByteTracker
-	bt.updateFree(freeBytes)
+	bdl.journalFileTracker.updateFree(freeFiles)
+	bdl.journalByteTracker.updateFree(freeBytes + bdl.diskCacheByteTracker.used)
+	bdl.diskCacheByteTracker.updateFree(freeBytes + bdl.journalByteTracker.used)
 
 	return bt.beforeDiskBlockCachePut(blockBytes), nil
 }
