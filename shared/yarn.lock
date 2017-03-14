@@ -5738,7 +5738,7 @@ react-native-camera@0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/react-native-camera/-/react-native-camera-0.6.0.tgz#dd2760b7857d660761c78f2da575b494fdc8dcb5"
 
-react-native-fs@^2.1.0-rc.1:
+react-native-fs@2.1.0-rc.1:
   version v2.1.0-rc.1
   resolved "https://registry.yarnpkg.com/react-native-fs/-/react-native-fs-2.1.0-rc.1.tgz#f6078891005478648738db396e822ec0aefc4b95"
   dependencies:
