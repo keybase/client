@@ -139,7 +139,8 @@ func DefaultInitParams(ctx Context) InitParams {
 			MaxKeepFiles: 3,
 		},
 		TLFJournalBackgroundWorkStatus: TLFJournalBackgroundWorkEnabled,
-		WriteJournalRoot:               filepath.Join(ctx.GetDataDir(), "kbfs_journal"),
+		WriteJournalRoot: filepath.Join(
+			ctx.GetDataDir(), "kbfs_journal"),
 	}
 }
 
@@ -149,28 +150,54 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	defaultParams := DefaultInitParams(ctx)
 
 	var params InitParams
-	flags.BoolVar(&params.Debug, "debug", defaultParams.Debug, "Print debug messages")
+	flags.BoolVar(&params.Debug, "debug", defaultParams.Debug,
+		"Print debug messages")
 
-	flags.StringVar(&params.BServerAddr, "bserver", defaultParams.BServerAddr, "host:port of the block server, 'memory', or 'dir:/path/to/dir'")
-	flags.StringVar(&params.MDServerAddr, "mdserver", defaultParams.MDServerAddr, "host:port of the metadata server, 'memory', or 'dir:/path/to/dir'")
-	flags.StringVar(&params.LocalUser, "localuser", defaultParams.LocalUser, "fake local user")
-	flags.StringVar(&params.LocalFavoriteStorage, "local-fav-storage", defaultParams.LocalFavoriteStorage, "where to put favorites; used only when -localuser is set, then must either be 'memory' or 'dir:/path/to/dir'")
-	flags.DurationVar(&params.TLFValidDuration, "tlf-valid", defaultParams.TLFValidDuration, "time tlfs are valid before redoing identification")
-	flags.BoolVar(&params.LogToFile, "log-to-file", false, fmt.Sprintf("Log to default file: %s", defaultLogPath(ctx)))
-	flags.StringVar(&params.LogFileConfig.Path, "log-file", "", "Path to log file")
-	flags.DurationVar(&params.LogFileConfig.MaxAge, "log-file-max-age", defaultParams.LogFileConfig.MaxAge, "Maximum age of a log file before rotation")
+	flags.StringVar(&params.BServerAddr, "bserver", defaultParams.BServerAddr,
+		"host:port of the block server, 'memory', or 'dir:/path/to/dir'")
+	flags.StringVar(&params.MDServerAddr, "mdserver",
+		defaultParams.MDServerAddr,
+		"host:port of the metadata server, 'memory', or 'dir:/path/to/dir'")
+	flags.StringVar(&params.LocalUser, "localuser", defaultParams.LocalUser,
+		"fake local user")
+	flags.StringVar(&params.LocalFavoriteStorage, "local-fav-storage",
+		defaultParams.LocalFavoriteStorage,
+		"where to put favorites; used only when -localuser is set, then must "+
+			"either be 'memory' or 'dir:/path/to/dir'")
+	flags.DurationVar(&params.TLFValidDuration, "tlf-valid",
+		defaultParams.TLFValidDuration,
+		"time tlfs are valid before redoing identification")
+	flags.BoolVar(&params.LogToFile, "log-to-file", false,
+		fmt.Sprintf("Log to default file: %s", defaultLogPath(ctx)))
+	flags.StringVar(&params.LogFileConfig.Path, "log-file", "",
+		"Path to log file")
+	flags.DurationVar(&params.LogFileConfig.MaxAge, "log-file-max-age",
+		defaultParams.LogFileConfig.MaxAge,
+		"Maximum age of a log file before rotation")
 	params.LogFileConfig.MaxSize = defaultParams.LogFileConfig.MaxSize
-	flags.Var(SizeFlag{&params.LogFileConfig.MaxSize}, "log-file-max-size", "Maximum size of a log file before rotation")
+	flags.Var(SizeFlag{&params.LogFileConfig.MaxSize}, "log-file-max-size",
+		"Maximum size of a log file before rotation")
 	// The default is to *DELETE* old log files for kbfs.
-	flags.IntVar(&params.LogFileConfig.MaxKeepFiles, "log-file-max-keep-files", defaultParams.LogFileConfig.MaxKeepFiles, "Maximum number of log files for this service, older ones are deleted. 0 for infinite.")
-	flags.StringVar(&params.WriteJournalRoot, "write-journal-root", defaultParams.WriteJournalRoot, "(EXPERIMENTAL) If non-empty, permits write journals to be turned on for TLFs which will be put in the given directory")
-	flags.Uint64Var(&params.CleanBlockCacheCapacity, "clean-bcache-cap", defaultParams.CleanBlockCacheCapacity, "If non-zero, specify the capacity of clean block cache. If zero, the capacity is set based on system RAM.")
+	flags.IntVar(&params.LogFileConfig.MaxKeepFiles, "log-file-max-keep-files",
+		defaultParams.LogFileConfig.MaxKeepFiles, "Maximum number of log "+
+			"files for this service, older ones are deleted. 0 for infinite.")
+	flags.StringVar(&params.WriteJournalRoot, "write-journal-root",
+		defaultParams.WriteJournalRoot, "(EXPERIMENTAL) If non-empty, "+
+			"permits write journals to be turned on for TLFs which will be "+
+			"put in the given directory")
+	flags.Uint64Var(&params.CleanBlockCacheCapacity, "clean-bcache-cap",
+		defaultParams.CleanBlockCacheCapacity,
+		"If non-zero, specify the capacity of clean block cache. If zero, "+
+			"the capacity is set based on system RAM.")
 
 	// No real need to enable setting
 	// params.TLFJournalBackgroundWorkStatus via a flag.
-	params.TLFJournalBackgroundWorkStatus = defaultParams.TLFJournalBackgroundWorkStatus
+	params.TLFJournalBackgroundWorkStatus =
+		defaultParams.TLFJournalBackgroundWorkStatus
 
-	flags.IntVar((*int)(&params.MetadataVersion), "md-version", int(defaultParams.MetadataVersion), "Metadata version to use when creating new metadata")
+	flags.IntVar((*int)(&params.MetadataVersion), "md-version",
+		int(defaultParams.MetadataVersion),
+		"Metadata version to use when creating new metadata")
 	return &params
 }
 
@@ -315,7 +342,8 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 	// Set log file to default if log-to-file was specified
 	if params.LogToFile {
 		if params.LogFileConfig.Path != "" {
-			return nil, fmt.Errorf("log-to-file and log-file flags can't be specified together")
+			return nil, fmt.Errorf(
+				"log-to-file and log-file flags can't be specified together")
 		}
 		params.LogFileConfig.Path = defaultLogPath(ctx)
 	}
@@ -328,7 +356,8 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 	log.Info("KBFS version %s", VersionString())
 
 	if err != nil {
-		log.Warning("Failed to setup log file %q: %+v", params.LogFileConfig.Path, err)
+		log.Warning("Failed to setup log file %q: %+v",
+			params.LogFileConfig.Path, err)
 	}
 
 	return log, err
@@ -346,8 +375,8 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 // The keybaseServiceCn argument is to specify a custom service and
 // crypto (for non-RPC environments) like mobile. If this is nil, we'll
 // use the default RPC implementation.
-func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onInterruptFn func(), log logger.Logger) (cfg Config, err error) {
-
+func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
+	onInterruptFn func(), log logger.Logger) (cfg Config, err error) {
 	done := make(chan struct{})
 	interruptChan := make(chan os.Signal, 1)
 	signal.Notify(interruptChan, os.Interrupt)
@@ -359,16 +388,19 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 		if onInterruptFn != nil {
 			onInterruptFn()
 
-			// Unmount can fail if there are open file handles. In this case, the
-			// files need to be closed before calling unmount again. We keep
-			// listening on the signal channel in case unmount fails the first time,
-			// so user can press Ctrl-C again after closing open files.
+			// Unmount can fail if there are open file handles. In
+			// this case, the files need to be closed before calling
+			// unmount again. We keep listening on the signal channel
+			// in case unmount fails the first time, so user can press
+			// Ctrl-C again after closing open files.
 			//
-			// Not closing the channel here because we need to keep it open to handle
-			// further incoming signals. We don't explicitly call os.Exit here so
-			// that the process exits through normal workflow as a result of Ctrl-C.
-			// If the process needs to exit immediately no matter unmount succeeds or
-			// not, a different interrupt (e.g. SIGTERM) can be used to skip this.
+			// Not closing the channel here because we need to keep it
+			// open to handle further incoming signals. We don't
+			// explicitly call os.Exit here so that the process exits
+			// through normal workflow as a result of Ctrl-C.  If the
+			// process needs to exit immediately no matter unmount
+			// succeeds or not, a different interrupt (e.g. SIGTERM)
+			// can be used to skip this.
 			for range interruptChan {
 				onInterruptFn()
 			}
@@ -376,11 +408,12 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 
 	}()
 
-	// Spawn a new goroutine for `doInit` so that we can `select` on `done` and
-	// `errCh` below. This is particularly for the situation where a SIGINT comes
-	// in while `doInit` is still not finished (because e.g. service daemon is
-	// not up), where the process can fail to exit while being stuck in `doInit`.
-	// This allows us to not call `os.Exit()` in the interrupt handler.
+	// Spawn a new goroutine for `doInit` so that we can `select` on
+	// `done` and `errCh` below. This is particularly for the
+	// situation where a SIGINT comes in while `doInit` is still not
+	// finished (because e.g. service daemon is not up), where the
+	// process can fail to exit while being stuck in `doInit`.  This
+	// allows us to not call `os.Exit()` in the interrupt handler.
 	errCh := make(chan error)
 	go func() {
 		var er error
@@ -396,7 +429,8 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 	}
 }
 
-func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, log logger.Logger) (Config, error) {
+func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
+	log logger.Logger) (Config, error) {
 	config := NewConfigLocal(func(module string) logger.Logger {
 		mname := "kbfs"
 		if module != "" {
@@ -417,7 +451,8 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, l
 		log.Debug("overriding default clean block cache capacity from %d to %d",
 			config.BlockCache().GetCleanBytesCapacity(),
 			params.CleanBlockCacheCapacity)
-		config.BlockCache().SetCleanBytesCapacity(params.CleanBlockCacheCapacity)
+		config.BlockCache().SetCleanBytesCapacity(
+			params.CleanBlockCacheCapacity)
 	}
 
 	config.SetBlockOps(NewBlockOpsStandard(config,
@@ -454,7 +489,8 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, l
 	if keybaseServiceCn == nil {
 		keybaseServiceCn = keybaseDaemon{}
 	}
-	service, err := keybaseServiceCn.NewKeybaseService(config, params, ctx, kbfsLog)
+	service, err := keybaseServiceCn.NewKeybaseService(
+		config, params, ctx, kbfsLog)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating service: %s", err)
 	}
@@ -483,7 +519,8 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, l
 
 	config.SetCrypto(crypto)
 
-	mdServer, err := makeMDServer(config, params.MDServerAddr, ctx.NewRPCLogFactory(), log)
+	mdServer, err := makeMDServer(
+		config, params.MDServerAddr, ctx.NewRPCLogFactory(), log)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating MD server: %+v", err)
 	}
@@ -501,7 +538,8 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, l
 
 	config.SetKeyServer(keyServer)
 
-	bserv, err := makeBlockServer(config, params.BServerAddr, ctx.NewRPCLogFactory(), log)
+	bserv, err := makeBlockServer(
+		config, params.BServerAddr, ctx.NewRPCLogFactory(), log)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open block database: %+v", err)
 	}
