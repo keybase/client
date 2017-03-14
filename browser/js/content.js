@@ -76,11 +76,12 @@ function submitChat(e) {
   const nudgeDo = e.currentTarget["keybase-nudge"].checked;
   const nudgeText = e.currentTarget["keybase-text"];
 
-  KBNM.connect();
-  KBNM.send({
+  var sending = chrome.runtime.sendMessage({
     "method": "chat",
     "to": to,
     "body": body
+  }, function(response) {
+    console.log("response: ", response);
   });
 
   // TODO: Send nudge
@@ -89,30 +90,3 @@ function submitChat(e) {
   e.currentTarget.parentNode.removeChild(e.currentTarget);
   console.log("Chat submitted: ", e);
 }
-
-
-var KBNM = function() {
-  this.host = "com.keybase.kbnm";
-  this.port = null;
-}
-
-KBNM.connect = function() {
-  if (this.port != null) return;
-
-  this.port = chrome.runtime.connectNative(this.port);
-  port.onMessage.addListener(this.receive);
-  port.onDisconnect.addListener(this.disconnect);
-}
-
-KBNM.send = function(msg) {
-  this.port.postMessage(msg);
-}
-
-KBNM.receive = function(msg) {
-  console.log("KBNM: received: ", msg);
-}
-
-KBNM.disconnect = function() {
-  this.port = null;
-}
-

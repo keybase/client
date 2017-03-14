@@ -30,5 +30,8 @@
       "run_at": "document_end"
     }
   ],
+  "background": {
+    "scripts": ["js/background.js"]
+  },
   "manifest_version": 2
 }
