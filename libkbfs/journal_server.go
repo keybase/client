@@ -118,8 +118,6 @@ type JournalServer struct {
 	onBranchChange          branchChangeListener
 	onMDFlush               mdFlushListener
 
-	DiskLimiter DiskLimiter
-
 	// Protects all fields below.
 	lock                sync.RWMutex
 	currentUID          keybase1.UID
@@ -134,7 +132,7 @@ func makeJournalServer(
 	config Config, log logger.Logger, dir string,
 	bcache BlockCache, dirtyBcache DirtyBlockCache, bserver BlockServer,
 	mdOps MDOps, onBranchChange branchChangeListener,
-	onMDFlush mdFlushListener, DiskLimiter DiskLimiter) *JournalServer {
+	onMDFlush mdFlushListener) *JournalServer {
 	if len(dir) == 0 {
 		panic("journal root path string unexpectedly empty")
 	}
@@ -150,7 +148,6 @@ func makeJournalServer(
 		onBranchChange:          onBranchChange,
 		onMDFlush:               onMDFlush,
 		tlfJournals:             make(map[tlf.ID]*tlfJournal),
-		DiskLimiter:             DiskLimiter,
 	}
 	jServer.dirtyOpsDone = sync.NewCond(&jServer.lock)
 	return &jServer
@@ -414,7 +411,7 @@ func (j *JournalServer) enableLocked(
 	tlfJournal, err := makeTLFJournal(
 		ctx, j.currentUID, j.currentVerifyingKey, tlfDir,
 		tlfID, tlfJournalConfigAdapter{j.config}, j.delegateBlockServer,
-		bws, nil, j.onBranchChange, j.onMDFlush, j.DiskLimiter)
+		bws, nil, j.onBranchChange, j.onMDFlush, j.config.DiskLimiter())
 	if err != nil {
 		return err
 	}
@@ -630,7 +627,7 @@ func (j *JournalServer) Status(
 		StoredBytes:         totalStoredBytes,
 		StoredFiles:         totalStoredFiles,
 		UnflushedBytes:      totalUnflushedBytes,
-		DiskLimiterStatus:   j.DiskLimiter.getStatus(),
+		DiskLimiterStatus:   j.config.DiskLimiter().getStatus(),
 	}, tlfIDs
 }
 

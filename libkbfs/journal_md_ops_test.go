@@ -51,10 +51,10 @@ func setupJournalMDOpsTest(t *testing.T) (
 	}()
 
 	oldMDOps = config.MDOps()
-	limiter, err := config.MakeDiskLimiter(tempdir)
+	_, err = config.MakeDiskLimiter(tempdir)
 	require.NoError(t, err)
 	err = config.EnableJournaling(
-		ctx, tempdir, limiter, TLFJournalBackgroundWorkEnabled)
+		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
 	jServer, err = GetJournalServer(config)
 	// Turn off listeners to avoid background MD pushes for CR.

@@ -26,28 +26,34 @@ type testDiskBlockCacheConfig struct {
 	codecGetter
 	logMaker
 	*testClockGetter
+	limiter DiskLimiter
 }
 
-func newTestDiskBlockCacheConfig(t *testing.T) testDiskBlockCacheConfig {
-	return testDiskBlockCacheConfig{
+func newTestDiskBlockCacheConfig(t *testing.T) *testDiskBlockCacheConfig {
+	return &testDiskBlockCacheConfig{
 		newTestCodecGetter(),
 		newTestLogMaker(t),
 		newTestClockGetter(),
+		nil,
 	}
 }
 
-func newDiskBlockCacheStandardForTest(config diskBlockCacheConfig,
+func (c testDiskBlockCacheConfig) DiskLimiter() DiskLimiter {
+	return c.limiter
+}
+
+func newDiskBlockCacheStandardForTest(config *testDiskBlockCacheConfig,
 	maxBytes int64) (*DiskBlockCacheStandard, error) {
 	blockStorage := storage.NewMemStorage()
 	lruStorage := storage.NewMemStorage()
 	tlfStorage := storage.NewMemStorage()
 	maxFiles := int64(10000)
 	cache, err := newDiskBlockCacheStandardFromStorage(config, blockStorage,
-		lruStorage, tlfStorage, nil)
+		lruStorage, tlfStorage)
 	if err != nil {
 		return nil, err
 	}
-	cache.limiter, err = newBackpressureDiskLimiterWithFunctions(
+	limiter, err := newBackpressureDiskLimiterWithFunctions(
 		config.MakeLogger(""), 0.5, 0.95, 0.25, 0.25,
 		testDiskBlockCacheMaxBytes, maxFiles, time.Second,
 		defaultDoDelay, func() (int64, int64, error) {
@@ -55,6 +61,8 @@ func newDiskBlockCacheStandardForTest(config diskBlockCacheConfig,
 			freeBytes := maxBytes - int64(cache.currBytes)
 			return freeBytes, maxFiles, nil
 		})
+	// Sooooo hacky :(
+	config.limiter = limiter
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +70,7 @@ func newDiskBlockCacheStandardForTest(config diskBlockCacheConfig,
 }
 
 func initDiskBlockCacheTest(t *testing.T) (*DiskBlockCacheStandard,
-	testDiskBlockCacheConfig) {
+	*testDiskBlockCacheConfig) {
 	config := newTestDiskBlockCacheConfig(t)
 	cache, err := newDiskBlockCacheStandardForTest(config,
 		testDiskBlockCacheMaxBytes)
@@ -355,7 +363,7 @@ func TestDiskBlockCacheLimit(t *testing.T) {
 
 	t.Log("Set the cache maximum bytes to the current total.")
 	currBytes := int64(cache.currBytes)
-	cache.limiter.(*backpressureDiskLimiter).diskCacheByteTracker.limit =
+	cache.config.DiskLimiter().(*backpressureDiskLimiter).diskCacheByteTracker.limit =
 		currBytes
 
 	t.Log("Add a block to the cache. Verify that blocks were evicted.")

@@ -46,12 +46,12 @@ type diskBlockCacheConfig interface {
 	codecGetter
 	logMaker
 	clockGetter
+	diskLimiterGetter
 }
 
 // DiskBlockCacheStandard is the standard implementation for DiskBlockCache.
 type DiskBlockCacheStandard struct {
 	config     diskBlockCacheConfig
-	limiter    DiskLimiter
 	log        logger.Logger
 	maxBlockID []byte
 	// Track the number of blocks in the cache per TLF and overall.
@@ -93,8 +93,7 @@ func diskBlockCacheRootFromStorageRoot(storageRoot string) string {
 // with the passed-in storage.Storage interfaces as storage layers for each
 // cache.
 func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
-	blockStorage, metadataStorage, tlfStorage storage.Storage,
-	limiter DiskLimiter) (
+	blockStorage, metadataStorage, tlfStorage storage.Storage) (
 	cache *DiskBlockCacheStandard, err error) {
 	log := config.MakeLogger("KBC")
 	blockDb, err := openLevelDB(blockStorage)
@@ -133,7 +132,6 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 	}
 	cache = &DiskBlockCacheStandard{
 		config:     config,
-		limiter:    limiter,
 		maxBlockID: maxBlockID.Bytes(),
 		tlfCounts:  map[tlf.ID]int{},
 		tlfSizes:   map[tlf.ID]uint64{},
@@ -200,8 +198,7 @@ func getVersionedPathForDiskCache(dirPath string) (versionedDirPath string,
 
 // newDiskBlockCacheStandard creates a new *DiskBlockCacheStandard with a
 // specified directory on the filesystem as storage.
-func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
-	limiter DiskLimiter) (
+func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string) (
 	cache *DiskBlockCacheStandard, err error) {
 	versionPath, err := getVersionedPathForDiskCache(dirPath)
 	if err != nil {
@@ -238,7 +235,7 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
 		}
 	}()
 	return newDiskBlockCacheStandardFromStorage(config, blockStorage,
-		metadataStorage, tlfStorage, limiter)
+		metadataStorage, tlfStorage)
 }
 
 func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
@@ -410,7 +407,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 				return ctx.Err()
 			default:
 			}
-			bytesAvailable, err := cache.limiter.beforeDiskBlockCachePut(ctx,
+			bytesAvailable, err := cache.config.DiskLimiter().beforeDiskBlockCachePut(ctx,
 				encodedLen)
 			if err != nil {
 				cache.log.CWarningf(ctx, "Error obtaining space for the disk"+
@@ -427,10 +424,10 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 		}
 		err = cache.blockDb.Put(blockKey, entry, nil)
 		if err != nil {
-			cache.limiter.afterDiskBlockCachePut(ctx, encodedLen, false)
+			cache.config.DiskLimiter().afterDiskBlockCachePut(ctx, encodedLen, false)
 			return err
 		}
-		cache.limiter.afterDiskBlockCachePut(ctx, encodedLen, true)
+		cache.config.DiskLimiter().afterDiskBlockCachePut(ctx, encodedLen, true)
 		cache.tlfCounts[tlfID]++
 		cache.numBlocks++
 		encodedLenUint := uint64(encodedLen)
@@ -502,7 +499,7 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 		cache.tlfSizes[k] -= removalSizes[k]
 		cache.currBytes -= removalSizes[k]
 	}
-	cache.limiter.onDiskBlockCacheDelete(ctx, sizeRemoved)
+	cache.config.DiskLimiter().onDiskBlockCacheDelete(ctx, sizeRemoved)
 
 	return numRemoved, sizeRemoved, nil
 }

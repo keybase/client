@@ -80,12 +80,12 @@ func (k *LibKBFS) InitTest(ver libkbfs.MetadataVer,
 		for name, c := range userMap {
 			config := c.(*libkbfs.ConfigLocal)
 			journalRoot := filepath.Join(jdir, name.String())
-			limiter, err := config.MakeDiskLimiter(journalRoot)
+			_, err = config.MakeDiskLimiter(journalRoot)
 			if err != nil {
 				panic(fmt.Sprintf("No disk limiter for %s: %+v", name, err))
 			}
 			config.EnableJournaling(context.Background(), journalRoot,
-				limiter, libkbfs.TLFJournalBackgroundWorkEnabled)
+				libkbfs.TLFJournalBackgroundWorkEnabled)
 			jServer, err := libkbfs.GetJournalServer(config)
 			if err != nil {
 				panic(fmt.Sprintf("No journal server for %s: %+v", name, err))

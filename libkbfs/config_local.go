@@ -956,7 +956,7 @@ func (c *ConfigLocal) MakeDiskLimiter(configRoot string) (DiskLimiter, error) {
 // this config. journalRoot must be non-empty. Errors returned are
 // non-fatal.
 func (c *ConfigLocal) EnableJournaling(
-	ctx context.Context, journalRoot string, limiter DiskLimiter,
+	ctx context.Context, journalRoot string,
 	bws TLFJournalBackgroundWorkStatus) error {
 	jServer, err := GetJournalServer(c)
 	if err == nil {
@@ -978,8 +978,8 @@ func (c *ConfigLocal) EnableJournaling(
 		return err
 	}
 
-	if limiter == nil {
-		limiter, err = c.MakeDiskLimiter(journalRoot)
+	if c.DiskLimiter() == nil {
+		_, err = c.MakeDiskLimiter(journalRoot)
 		if err != nil {
 			return err
 		}
@@ -987,7 +987,7 @@ func (c *ConfigLocal) EnableJournaling(
 
 	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
-		flushListener, limiter)
+		flushListener)
 
 	c.SetBlockServer(jServer.blockServer())
 	c.SetMDOps(jServer.mdOps())
@@ -1025,5 +1025,9 @@ func (c *ConfigLocal) EnableJournaling(
 func (c *ConfigLocal) SetDiskBlockCache(dbc DiskBlockCache) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+	if c.diskBlockCache != nil {
+		// TODO: disable old one
+	}
 	c.diskBlockCache = dbc
+	// TODO: enable new one
 }

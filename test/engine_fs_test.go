@@ -567,13 +567,12 @@ func (e *fsEngine) InitTest(ver libkbfs.MetadataVer,
 		e.tb.Logf("Journal directory: %s", e.journalDir)
 		for i, c := range cfgs {
 			journalRoot := filepath.Join(jdir, users[i].String())
-			limiter, err := c.MakeDiskLimiter(journalRoot)
+			_, err = c.MakeDiskLimiter(journalRoot)
 			if err != nil {
 				panic(fmt.Sprintf("No disk limiter for %d: %+v", i, err))
 			}
 			c.EnableJournaling(context.Background(),
-				journalRoot, limiter,
-				libkbfs.TLFJournalBackgroundWorkEnabled)
+				journalRoot, libkbfs.TLFJournalBackgroundWorkEnabled)
 			jServer, err := libkbfs.GetJournalServer(c)
 			if err != nil {
 				panic(fmt.Sprintf("No journal server for %d: %+v", i, err))

@@ -558,7 +558,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 
 	config.SetBlockServer(bserv)
 
-	limiter, err := config.MakeDiskLimiter(params.StorageRoot)
+	_, err = config.MakeDiskLimiter(params.StorageRoot)
 	if err != nil {
 		log.Warning("Could not initialize disk limiter: %+v", err)
 		return nil, err
@@ -568,14 +568,14 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	if params.EnableJournal {
 		journalRoot := filepath.Join(params.StorageRoot, "kbfs_journal")
 		err = config.EnableJournaling(context.Background(), journalRoot,
-			limiter, params.TLFJournalBackgroundWorkStatus)
+			params.TLFJournalBackgroundWorkStatus)
 		if err != nil {
 			log.Warning("Could not initialize journal server: %+v", err)
 		}
 	}
 	if params.EnableDiskCache {
 		dbc, err := newDiskBlockCacheStandard(config,
-			diskBlockCacheRootFromStorageRoot(params.StorageRoot), limiter)
+			diskBlockCacheRootFromStorageRoot(params.StorageRoot))
 		if err != nil {
 			log.Warning("Could not initialize disk cache: %+v", err)
 			// TODO: Make this error less fatal later.
