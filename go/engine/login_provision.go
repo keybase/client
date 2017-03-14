@@ -515,6 +515,9 @@ func (e *loginProvision) gpgPrivateIndex() (*libkb.GpgKeyIndex, error) {
 
 // gpgClient returns a gpg client.
 func (e *loginProvision) gpgClient() (gpgInterface, error) {
+	if e.arg.DeviceType == libkb.DeviceTypeMobile {
+		return nil, libkb.GPGUnavailableError{}
+	}
 	if e.gpgCli != nil {
 		return e.gpgCli, nil
 	}
