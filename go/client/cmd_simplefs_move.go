@@ -52,7 +52,9 @@ func (c *CmdSimpleFSMove) Run() error {
 		return err
 	}
 
+
 	destPaths, err := doSimpleFSGlob(c.G(), ctx, cli, c.src)
+
 	if err != nil {
 		return err
 	}

@@ -39,6 +39,7 @@ func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	}
 }
 
+
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSList) Run() error {
 
@@ -49,6 +50,7 @@ func (c *CmdSimpleFSList) Run() error {
 	ctx := context.TODO()
 
 	paths, err := doSimpleFSGlob(c.G(), ctx, cli, c.paths)
+
 	if err != nil {
 		return err
 	}

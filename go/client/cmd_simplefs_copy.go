@@ -54,6 +54,7 @@ func (c *CmdSimpleFSCopy) Run() error {
 
 	c.G().Log.Debug("SimpleFSCopy (recursive: %v) to: %s", c.recurse, pathToString(c.dest))
 
+
 	destPaths, err := doSimpleFSGlob(c.G(), ctx, cli, c.src)
 	if err != nil {
 		return err

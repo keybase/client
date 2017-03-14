@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -473,6 +474,7 @@ func TestSimpleFSPlatformGlob(t *testing.T) {
 	path1 := keybase1.NewPathWithLocal(filepath.Join(tempdir, "*.txt"))
 
 	paths, err := doSimpleFSGlob(tc.G, context.TODO(), SimpleFSMock{}, []keybase1.Path{path1})
+
 	require.NoError(t, err)
 	assert.Equal(tc.T, filepath.Join(tempdir, "test1.txt"), paths[0].Local())
 	assert.Equal(tc.T, filepath.Join(tempdir, "test2.txt"), paths[1].Local())
