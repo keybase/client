@@ -4,6 +4,7 @@ import React, {Component} from 'react'
 import {Box, Text, Button, NativeLinking, NativeClipboard} from '../../common-adapters/index.native'
 import {dumpLoggers} from '../../util/periodic-logger'
 import {globalStyles} from '../../styles'
+import {isIOS} from '../../constants/platform'
 
 import type {Props} from './render'
 
@@ -18,24 +19,30 @@ class LogSendRender extends Component<void, Props, {copiedToClipboard: boolean}>
   }
 
   _logSend = () => {
-    // We don't get the notification from the daemon so we have to do this ourselves
-    const logs = []
-    dumpLoggers((...args) => {
-      try {
-        logs.push(JSON.stringify(args))
-      } catch (_) {}
-    })
-
-    const data = logs.join('\n')
-
-    RNFS.writeFile(`${RNFS.CachesDirectoryPath}/Keybase/rn.log`, data, 'utf8')
-      .then((success) => {
-        this.props.onLogSend()
+    if (isIOS) {
+      // We don't get the notification from the daemon so we have to do this ourselves
+      const logs = []
+      dumpLoggers((...args) => {
+        try {
+          logs.push(JSON.stringify(args))
+        } catch (_) {}
       })
-      .catch((err) => {
-        this.props.onLogSend()
-        throw new Error(`Couldn't log send! ${err}`)
-      })
+
+      const data = logs.join('\n')
+      const path = `${RNFS.CachesDirectoryPath}/Keybase/rn.log`
+
+      RNFS.writeFile(path, data, 'utf8')
+        .then((success) => {
+          this.props.onLogSend()
+        })
+        .catch((err) => {
+          this.props.onLogSend()
+          throw new Error(`Couldn't log send! ${err}`)
+        })
+    } else {
+      console.warn('TODO better android logging')
+      this.props.onLogSend()
+    }
   }
 
   render () {
