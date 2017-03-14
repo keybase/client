@@ -200,7 +200,7 @@ const _pendingFailureSelector = (state: TypedState, outboxID: OutboxIDKey) => st
 const _devicenameSelector = (state: TypedState) => state.config && state.config.extendedConfig && state.config.extendedConfig.device && state.config.extendedConfig.device.name
 
 function _tmpFileName (isHdPreview: boolean, conversationID: ConversationIDKey, messageID: ?MessageID, filename: string) {
-  return `kbchat-${isHdPreview ? 'hdPreview' : 'preview'}-${messageID || ''}-${filename}`
+  return `kbchat-${isHdPreview ? 'hdPreview' : 'preview'}-${conversationID}-${messageID || ''}-${filename}`
 }
 
 function _pendingToRealConversation (oldKey: ConversationIDKey, newKey: ConversationIDKey): PendingToRealConversation {
