@@ -2,8 +2,5 @@
 #import <keybase/keybase.h>
 
 @interface LogSend : NSObject <RCTBridgeModule>
-- (instancetype)initWithPath:(NSString *)uiLogPath;
-
-@property NSString *uiLogPath;
-
++ (void)setPath:(NSString*)uiLogPath;
 @end

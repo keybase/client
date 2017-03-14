@@ -15,9 +15,6 @@
 #import "LogSend.h"
 
 @interface AppDelegate ()
-
-@property (nonatomic, strong) LogSend * logSender;
-
 @end
 
 #if TARGET_OS_SIMULATOR
@@ -57,7 +54,8 @@ const BOOL isDebug = NO;
   NSString * home = NSHomeDirectory();
 
   NSString * keybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
-  NSString * logFile = skipLogFile ? @"" : [@"~/Library/Caches/Keybase/ios.log" stringByExpandingTildeInPath];
+  NSString * serviceLogFile = skipLogFile ? @"" : [@"~/Library/Caches/Keybase/ios.log" stringByExpandingTildeInPath];
+  NSString * rnLogFile = [@"~/Library/Caches/Keybase/rn.log" stringByExpandingTildeInPath];
 
   // Make keybasePath if it doesn't exist
   [[NSFileManager defaultManager] createDirectoryAtPath:keybasePath
@@ -71,12 +69,13 @@ const BOOL isDebug = NO;
   self.engine = [[Engine alloc] initWithSettings:@{
                                                    @"runmode": @"prod",
                                                    @"homedir": home,
-                                                   @"logFile": logFile,
+                                                   @"logFile": serviceLogFile,
                                                    @"serverURI": @"",
                                                    @"SecurityAccessGroupOverride": @(securityAccessGroupOverride)
                                                    } error:&err];
 
-  self.logSender = [[LogSend alloc] initWithPath:logFile];
+  [LogSend setPath:rnLogFile];
+#endif
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
