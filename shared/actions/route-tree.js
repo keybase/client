@@ -32,7 +32,7 @@ const pathActionTransformer = (action, oldState) => {
   }
 }
 
-function _pathSelector (state: TypedState): Path {
+export function pathSelector (state: TypedState): Path {
   return getPath(state.routeTree.routeState)
 }
 
@@ -131,7 +131,7 @@ export function resetRoute (path: Path): ResetRoute {
 }
 
 function * _putActionIfOnPath ({payload: {otherAction, expectedPath}}: Constants.PutActionIfOnPath<*>) {
-  const currentPath = yield select(_pathSelector)
+  const currentPath = yield select(pathSelector)
   if (Immutable.is(expectedPath, currentPath)) {
     yield put(otherAction)
   }

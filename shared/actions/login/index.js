@@ -16,7 +16,7 @@ import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
   PassphraseCommonPassphraseType,
   loginLoginProvisionedDeviceRpc,
 } from '../../constants/types/flow-types'
-import {navigateTo, navigateAppend} from '../route-tree'
+import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
 
 import type {DeviceRole} from '../../constants/login'
@@ -503,14 +503,20 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
     'keybase.1.secretUi.getPassphrase': ({pinentry: {type, prompt, username, retryLabel}}, response) => {
       switch (type) {
         case PassphraseCommonPassphraseType.paperKey:
-          dispatch(navigateAppend([{
+          const destination = {
             props: {
               error: retryLabel,
               onBack: () => onBack(response),
               onSubmit: (passphrase: string) => { response.result({passphrase, storeSecret: false}) },
             },
             selected: 'paperkey',
-          }], [loginTab, 'login']))
+          }
+          const currentPath = pathSelector(getState())
+          if (currentPath.last() === 'paperkey') {
+            dispatch(navigateTo(currentPath.pop(1).push(destination)))
+          } else {
+            dispatch(navigateAppend([destination], [loginTab, 'login']))
+          }
           break
         case PassphraseCommonPassphraseType.passPhrase:
           dispatch(navigateAppend([{
