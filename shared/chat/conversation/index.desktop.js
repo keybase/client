@@ -144,7 +144,7 @@ export default branch(
   (props: Props) => props.selectedConversation === Constants.nothingSelected,
   renderComponent(NoConversation),
   branch(
-    (props: Props) => !!props.rekeyInfo,
+    (props: Props) => !!props.rekeyInfo && !props.finalizeInfo,
     branch(
       (props: Props) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
       renderComponent(ParticipantRekey),

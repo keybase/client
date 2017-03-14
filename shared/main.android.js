@@ -10,7 +10,6 @@ import {getPath} from './route-tree'
 import RenderRoute from './route-tree/render-route'
 import Push from './push/push.native'
 import {setRouteState, navigateUp} from './actions/route-tree'
-import {StatusBar} from 'react-native'
 import {initAvatarLookup, initAvatarLoad} from './common-adapters'
 import {getUserImageMap, loadUserImageMap} from './util/pictures'
 
@@ -32,7 +31,6 @@ class Main extends Component {
   }
 
   componentWillMount () {
-    StatusBar.setTranslucent(true)
     // TODO Proper back history
     NativeBackAndroid.addEventListener('hardwareBackPress', () => {
       if (getPath(this.props.routeState).size === 1) {

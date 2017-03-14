@@ -251,8 +251,8 @@ function retryMessage (conversationIDKey: ConversationIDKey, outboxIDKey: string
   return {type: 'chat:retryMessage', payload: {conversationIDKey, outboxIDKey}, logTransformer: retryMessageActionTransformer}
 }
 
-function loadInbox (): LoadInbox {
-  return {payload: undefined, type: 'chat:loadInbox'}
+function loadInbox (force?: boolean = false): LoadInbox {
+  return {payload: {force}, type: 'chat:loadInbox'}
 }
 
 function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean): LoadMoreMessages {
@@ -323,9 +323,11 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
 
   const conversationIDKey = conversationIDToKey(convo.info.id)
   let snippet
+  let time
 
   (convo.maxMessages || []).some(message => {
-    if (message.state === LocalMessageUnboxedState.valid && message.valid) {
+    if (message.state === LocalMessageUnboxedState.valid && message.valid && convo && convo.readerInfo) {
+      time = message.valid.serverHeader.ctime || convo.readerInfo.mtime
       snippet = makeSnippet(message.valid.messageBody)
       return !!snippet
     }
@@ -341,7 +343,7 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
     conversationIDKey,
     participants,
     muted,
-    time: convo.readerInfo.mtime,
+    time,
     snippet,
     validated: true,
   })
@@ -1008,7 +1010,7 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({convIDs}) => {
-      dispatch({type: 'chat:markThreadsStale', payload: {convIDKeys: convIDs.map(conversationIDToKey)}})
+      dispatch({type: 'chat:markThreadsStale', payload: {convIDs: convIDs.map(conversationIDToKey)}})
     })
   })
 }
@@ -1048,8 +1050,8 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
 const followingSelector = (state: TypedState) => state.config.following
 
 let _loadedInboxOnce = false
-function * _loadInboxOnce (): SagaGenerator<any, any> {
-  if (!_loadedInboxOnce) {
+function * _loadInboxMaybeOnce (action: LoadInbox): SagaGenerator<any, any> {
+  if (!_loadedInboxOnce || action.payload.force) {
     _loadedInboxOnce = true
     yield call(_loadInbox)
   }
@@ -1934,7 +1936,8 @@ function * _isCached (conversationIDKey, messageID): Generator<any, ?string, any
 function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview, isHdPreview, filename}}: Constants.LoadAttachment): SagaGenerator<any, any> {
   // See if we already have this image cached
   if (loadPreview || isHdPreview) {
-    if (exists(filename)) {
+    const imageCached = yield call(exists, filename)
+    if (imageCached) {
       const action: Constants.AttachmentLoaded = {
         type: 'chat:attachmentLoaded',
         payload: {conversationIDKey, messageID, path: filename, isPreview: loadPreview, isHdPreview: isHdPreview},
@@ -2045,6 +2048,11 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
 }
 
 function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any> {
+  // Load inbox items of any stale items so we get update on rekeyInfos, etc
+  const {convIDs} = action.payload
+  yield convIDs.map(conversationIDKey => call(_getInboxAndUnbox, {payload: {conversationIDKey}, type: 'chat:getInboxAndUnbox'}))
+
+  // Selected is stale?
   const selectedConversation = yield select(getSelectedConversation)
   if (!selectedConversation) {
     return
@@ -2087,7 +2095,10 @@ function * _getInboxAndUnbox ({payload: {conversationIDKey}}: Constants.GetInbox
   const {conversations} = result
   if (conversations && conversations[0]) {
     yield call(_updateInbox, conversations[0])
+    // inbox loaded so rekeyInfo is now clear
+    yield put({payload: {conversationIDKey}, type: 'chat:clearRekey'})
   }
+  // TODO maybe we get failures and we should update rekeyinfo? unclear...
 }
 
 function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConversation): SagaGenerator<any, any> {
@@ -2150,7 +2161,7 @@ function * _saveAttachmentNative ({payload: {message}}: Constants.SaveAttachment
 
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
-    safeTakeSerially('chat:loadInbox', _loadInboxOnce),
+    safeTakeSerially('chat:loadInbox', _loadInboxMaybeOnce),
     safeTakeLatest('chat:inboxStale', _loadInbox),
     safeTakeEvery('chat:loadMoreMessages', cancelWhen(_threadIsCleared, _loadMoreMessages)),
     safeTakeLatest('chat:selectConversation', _selectConversation),
