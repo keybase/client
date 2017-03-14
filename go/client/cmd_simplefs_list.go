@@ -101,9 +101,9 @@ func (c *CmdSimpleFSList) Run() error {
 	}
 
 	for _, path := range paths {
-		if isTLFRequest, err := c.HandleTopLevelKeybaseList(path); isTLFRequest == true {
-			return err
-		}
+		//		if isTLFRequest, err := c.HandleTopLevelKeybaseList(path); isTLFRequest == true {
+		//			return err
+		//		}
 
 		c.G().Log.Debug("SimpleFSList %s", pathToString(path))
 
