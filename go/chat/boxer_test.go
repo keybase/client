@@ -1118,6 +1118,18 @@ func modifyBoxerForTesting(t *testing.T, boxer *Boxer, canned *cannedMessage) {
 	}
 }
 
+func requireValidMessage(t *testing.T, unboxed chat1.MessageUnboxed, description string) {
+	state, err := unboxed.State()
+	require.NoError(t, err, "failed to get the unboxed message state")
+	require.Equal(t, chat1.MessageUnboxedState_VALID, state, description)
+}
+
+func requireErrorMessage(t *testing.T, unboxed chat1.MessageUnboxed, description string) {
+	state, err := unboxed.State()
+	require.NoError(t, err, "failed to get the unboxed message state")
+	require.Equal(t, chat1.MessageUnboxedState_ERROR, state, description)
+}
+
 func TestChatMessageBodyHashReplay(t *testing.T) {
 	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
 		text := "hi"
@@ -1153,23 +1165,20 @@ func TestChatMessageBodyHashReplay(t *testing.T) {
 		}
 
 		// Unbox the message once.
-		_, err = boxer.UnboxMessage(boxerContext, *boxed, convID, nil)
-		if err != nil {
-			t.Fatal(err)
-		}
+		unboxed, err := boxer.UnboxMessage(boxerContext, *boxed, convID, nil)
+		require.NoError(t, err)
+		requireValidMessage(t, unboxed, "we expected msg4 to succeed")
 
 		// Unbox it again. This should be fine.
-		_, err = boxer.UnboxMessage(boxerContext, *boxed, convID, nil)
-		if err != nil {
-			t.Fatal(err)
-		}
+		unboxed, err = boxer.UnboxMessage(boxerContext, *boxed, convID, nil)
+		require.NoError(t, err)
+		requireValidMessage(t, unboxed, "we expected msg4 to succeed the second time too")
 
 		// Now try to unbox it again with a different MessageID. This must fail.
 		boxed.ServerHeader.MessageID = 2
-		_, err = boxer.UnboxMessage(boxerContext, *boxed, convID, nil)
-		if err == nil {
-			t.Fatal("replay must be detected")
-		}
+		unboxed, err = boxer.UnboxMessage(boxerContext, *boxed, convID, nil)
+		require.NoError(t, err)
+		requireErrorMessage(t, unboxed, "replay must be detected")
 	})
 }
 
@@ -1180,9 +1189,7 @@ func TestChatMessagePrevPointerInconsistency(t *testing.T) {
 
 		// need a real user
 		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 
 		signKP := getSigningKeyPairForTest(t, tc, u)
 
@@ -1198,9 +1205,7 @@ func TestChatMessagePrevPointerInconsistency(t *testing.T) {
 			msg := textMsgWithSender(t, "foo text", gregor1.UID(u.User.GetUID().ToBytes()))
 			msg.ClientHeader.Prev = prevs
 			boxed, err := boxer.box(msg, key, signKP, mbVersion)
-			if err != nil {
-				t.Fatal(err)
-			}
+			require.NoError(t, err)
 			boxed.ServerHeader = &chat1.MessageServerHeader{
 				Ctime:     gregor1.ToTime(time.Now()),
 				MessageID: id,
@@ -1216,9 +1221,7 @@ func TestChatMessagePrevPointerInconsistency(t *testing.T) {
 		// second one out of the cache for now though. (We'll use it to cause an
 		// error later.)
 		unboxed1, err := boxer.UnboxMessage(boxerContext, *boxed1, convID, nil)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 
 		// Create two more messages, which both have bad prev pointers. Msg3 has a
 		// bad prev for msg1, and must fail to unbox, because we've already unboxed
@@ -1246,21 +1249,19 @@ func TestChatMessagePrevPointerInconsistency(t *testing.T) {
 				Hash: []byte("ANOTHER BAD PREV POINTER OMG"),
 			},
 		})
-		_, err = boxer.UnboxMessage(boxerContext, *boxed3, convID, nil)
-		if err == nil {
-			t.Fatal("msg3 has a known bad prev pointer and must fail to unbox")
-			t.Fatal(err)
-		}
-		_, err = boxer.UnboxMessage(boxerContext, *boxed4, convID, nil)
-		if err != nil {
-			t.Fatalf("we expected msg4 to succeed: %s", err)
-		}
+
+		unboxed, err := boxer.UnboxMessage(boxerContext, *boxed3, convID, nil)
+		require.NoError(t, err)
+		requireErrorMessage(t, unboxed, "msg3 has a known bad prev pointer and must fail to unbox")
+
+		unboxed, err = boxer.UnboxMessage(boxerContext, *boxed4, convID, nil)
+		require.NoError(t, err)
+		requireValidMessage(t, unboxed, "we expected msg4 to succeed")
 
 		// Now try to unbox msg2. Because of msg4's bad pointer, this should fail.
-		_, err = boxer.UnboxMessage(boxerContext, *boxed2, convID, nil)
-		if err == nil {
-			t.Fatalf("msg2 should fail to unbox, because of msg4's bad pointer")
-		}
+		unboxed, err = boxer.UnboxMessage(boxerContext, *boxed2, convID, nil)
+		require.NoError(t, err)
+		requireErrorMessage(t, unboxed, "msg2 should fail to unbox, because of msg4's bad pointer")
 	})
 }
 
@@ -1272,9 +1273,7 @@ func TestChatMessageBadConvID(t *testing.T) {
 
 		// need a real user
 		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 
 		signKP := getSigningKeyPairForTest(t, tc, u)
 
@@ -1287,9 +1286,7 @@ func TestChatMessageBadConvID(t *testing.T) {
 		// can still extract the ConvID from it.
 		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
 		boxed, err := boxer.box(msg, key, signKP, mbVersion)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		boxed.ServerHeader = &chat1.MessageServerHeader{
 			Ctime:     gregor1.ToTime(time.Now()),
 			MessageID: 1,
@@ -1301,10 +1298,9 @@ func TestChatMessageBadConvID(t *testing.T) {
 			Tlfid: []byte("random non-matching TLF ID"),
 		}
 		badConvID := badTriple.ToConversationID([2]byte{0, 0})
-		_, err = boxer.UnboxMessage(boxerContext, *boxed, badConvID, nil)
-		if err == nil {
-			t.Fatal("expected a bad convID to fail the unboxing")
-		}
+		unboxed, err := boxer.UnboxMessage(boxerContext, *boxed, badConvID, nil)
+		require.NoError(t, err)
+		requireErrorMessage(t, unboxed, "expected a bad convID to fail the unboxing")
 	})
 }
 
