@@ -23,6 +23,7 @@ class SuccessRender extends Component<void, Props, State> {
       ? (
         <Box style={stylesPaperKeyContainer}>
           <Text type='Header' style={stylesPaperkey}>{this.props.paperkey.stringValue()}</Text>
+          <Icon type='icon-paper-key-corner' style={stylesPaperCorner} />
         </Box>
       )
       : (

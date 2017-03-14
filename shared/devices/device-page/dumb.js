@@ -17,10 +17,10 @@ const common = {
   onBack: () => { console.log('onBack') },
   provisionedAt: null,
   provisioner: null,
+  revokeName: 'device',
   revokedAt: null,
   showRevokeDevicePage: () => {},
   type: 'desktop',
-  revokeName: null,
 }
 
 const map: DumbComponentMap<Render> = {
@@ -61,6 +61,7 @@ const map: DumbComponentMap<Render> = {
         },
       ],
       type: 'backup',
+      revokeName: 'device',
     },
     'Revoked': {
       ...common,

@@ -15,7 +15,8 @@ const buildTimeline = (device: DeviceDetail) => {
     desc: `Revoked ${moment(device.get('revokedAt')).format('MMM D, YYYY')}`,
     // $FlowIssue getIn
     subDesc: device.getIn(['revokedBy', 'name'], ''),
-    type: 'Revoked'}]
+    type: 'Revoked',
+  }]
 
   const lastUsed = device.lastUsed && [{
     desc: `Last used ${moment(device.get('lastUsed')).format('MMM D, YYYY')}`,

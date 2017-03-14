@@ -14,7 +14,7 @@ const getAllDevicesSelector = (state: TypedState) => state.devices.get('deviceID
 const getDeviceEntitiesSelector = (state: TypedState) => state.entities.get('devices')
 
 const getDevicesAndRevokedDevicesSelector = createSelector(
-  getAllDevicesSelector, getDeviceEntitiesSelector,
+  [getAllDevicesSelector, getDeviceEntitiesSelector],
   (allDevices, deviceEntities) => {
     const split = allDevices.groupBy(id => deviceEntities.get(id).revokedAt ? 'revokedDeviceIDs' : 'deviceIDs')
     const deviceIDs = split.get('deviceIDs', List())
@@ -26,7 +26,7 @@ const getDevicesAndRevokedDevicesSelector = createSelector(
   }
 )
 
-const mapStateToProps = (state: any, {routeState}) => {
+const mapStateToProps = (state: TypedState, {routeState}) => {
   const {showingRevoked} = routeState
   const {deviceIDs, revokedDeviceIDs} = getDevicesAndRevokedDevicesSelector(state)
 
@@ -46,7 +46,7 @@ const mapDispatchToProps = (dispatch: any, {routeState, setRouteState}) => ({
 })
 
 const menuItems = props => ([
-  ...flags.mobileAppsExist && [{onClick: props.addNewPhone, title: 'New Phone'}] || [],
+  ...flags.mobileAppsExist && [{onClick: props.addNewPhone, title: 'New phone'}] || [],
   {onClick: props.addNewComputer, title: 'New computer'},
   {onClick: props.addNewPaperKey, title: 'New paper key'},
 ])

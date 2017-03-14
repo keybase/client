@@ -6,10 +6,11 @@ import {call, put, select, fork} from 'redux-saga/effects'
 import {deviceDeviceHistoryListRpcPromise, loginDeprovisionRpcPromise, loginPaperKeyRpcChannelMap, revokeRevokeDeviceRpcPromise, rekeyGetRevokeWarningRpcPromise} from '../constants/types/flow-types'
 import {devicesTab, loginTab} from '../constants/tabs'
 import {isMobile} from '../constants/platform'
+import {keyBy} from 'lodash'
 import {navigateTo} from './route-tree'
+import {replaceEntity} from './entities'
 import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {setRevokedSelf} from './login'
-import {replaceEntity} from './entities'
 
 import type {DeviceDetail} from '../constants/types/flow-types'
 import type {Load, Loaded, Revoke, ShowRevokePage, PaperKeyMake, Waiting} from '../constants/devices'
@@ -45,10 +46,10 @@ function * _deviceShowRevokePageSaga (action: ShowRevokePage): SagaGenerator<any
   ]))
 }
 
-function _sortDevices (a: DeviceDetail, b: DeviceDetail) {
+function _sortRecords (a: DeviceDetailRecord, b: DeviceDetailRecord) {
   if (a.currentDevice) return -1
   if (b.currentDevice) return 1
-  return a.device.name.localeCompare(b.device.name)
+  return a.name.localeCompare(b.name)
 }
 
 function * _deviceListSaga (): SagaGenerator<any, any> {
@@ -61,28 +62,25 @@ function * _deviceListSaga (): SagaGenerator<any, any> {
 
   try {
     const result = yield call(deviceDeviceHistoryListRpcPromise)
-    const entities = result.reduce((map, d: DeviceDetail) => {
-      map[d.device.deviceID] = new DeviceDetailRecord({
-        created: d.device.cTime,
-        currentDevice: d.currentDevice,
-        deviceID: d.device.deviceID,
-        lastUsed: d.device.lastUsedTime,
-        name: d.device.name,
-        provisionedAt: d.provisionedAt,
-        revokedAt: d.revokedAt,
-        revokedBy: d.revokedByDevice,
-        type: d.device.type,
+    const records = result.map((r: DeviceDetail) => (
+      new DeviceDetailRecord({
+        created: r.device.cTime,
+        currentDevice: r.currentDevice,
+        deviceID: r.device.deviceID,
+        lastUsed: r.device.lastUsedTime,
+        name: r.device.name,
+        provisionedAt: r.provisionedAt,
+        revokedAt: r.revokedAt,
+        revokedBy: r.revokedByDevice,
+        type: r.device.type,
       })
-      return map
-    }, {})
+    ))
 
-    const deviceIDs = result
-      .sort(_sortDevices)
-      .map(d => d.device.deviceID)
+    const deviceIDs = records.sort(_sortRecords).map(r => r.deviceID)
+    const entities = keyBy(records, 'deviceID')
 
     yield put(replaceEntity(['devices'], entities))
     yield put(loaded(deviceIDs))
-    yield put(setWaiting(false))
   } catch (e) {
     throw new Error("Can't load devices")
   } finally {
@@ -164,7 +162,7 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
     yield put(navigateTo([devicesTab, {props: {paperKey}, selected: 'genPaperKey'}]))
   } catch (e) {
     closeChannelMap(generatePaperKeyChanMap)
-    throw new Error('error in generating paper key')
+    throw new Error(`Error in generating paper key ${e}`)
   }
 }
 

@@ -6,8 +6,7 @@ import type {MenuItem} from '../common-adapters/popup-menu.js'
 
 export type Props = {
   deviceIDs: Array<string>,
-  // $FlowIssue not sure why menuitem conflicts
-  menuItems: Array<MenuItem>,
+  menuItems: Array<MenuItem | 'Divider' | null>,
   onToggleShowRevoked: () => void,
   revokedDeviceIDs: Array<string>,
   setShowingMenu: (showing: boolean) => void,
