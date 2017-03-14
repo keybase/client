@@ -786,9 +786,11 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       if (setStatus) {
         yield call(_updateInbox, setStatus.conv)
         const conversationIDKey = conversationIDToKey(setStatus.convID)
+        const blocked = setStatus.status === CommonConversationStatus.blocked
         const muted = setStatus.status === CommonConversationStatus.muted
         yield put(({
           payload: {
+            blocked,
             conversationIDKey,
             muted,
           },

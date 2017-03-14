@@ -387,6 +387,15 @@ function reducer (state: State = initialState, action: Actions) {
       const oldInbox = state.get('inbox')
       const existing = oldInbox.findEntry(i => i.get('conversationIDKey') === toFind)
       let updatedInbox = existing ? oldInbox.set(existing[0], convo) : oldInbox.push(convo)
+      // If the convo's just been blocked, delete it from the inbox.
+      const blocked = existing && existing[0] && existing[0].blocked
+      existing && existing[0] && console.warn(existing[0].toJS())
+      console.log('blocked is', blocked)
+      console.warn(updatedInbox.toJS())
+      if (blocked) {
+        //updatedInbox = updatedInbox.delete(existing[0])
+      }
+      console.warn(updatedInbox)
       // time changed so we need to sort
       if (!existing || existing[1].time !== convo.get('time')) {
         updatedInbox = sortInbox(updatedInbox)

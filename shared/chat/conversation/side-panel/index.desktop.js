@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Checkbox, Divider, Icon} from '../../../common-adapters'
+import {Box, Button, Checkbox, Divider, Icon} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import Participants from './participants'
 
@@ -22,7 +22,7 @@ const SidePanel = (props: Props) => (
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
-    <Button type='Danger' label='Block this conversation' onClick={() => props.showBlockConversationDialog()}
+    <Button type='Danger' label='Block this conversation' onClick={() => props.onShowBlockConversationDialog()} />
     <Divider style={{marginBottom: 20, marginTop: 20}} />
   </Box>
 )

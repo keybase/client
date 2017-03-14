@@ -10,15 +10,11 @@ class RenderBlockConversationWarning extends Component<void, Props, State> {
 
   constructor (props: Props) {
     super(props)
-    this.state = {
-      index: 0,
-      title: props.inputs.length > 0 && props.inputs[0].title || '',
-    }
   }
 
   _onBlock = () => {
     const {conversationIDKey} = this.props
-    this.props.onBlock({conversationIDKey})
+    this.props.onBlock(conversationIDKey)
     this.props.onClose()
   }
 
@@ -27,10 +23,11 @@ class RenderBlockConversationWarning extends Component<void, Props, State> {
     return (
       <PopupDialog onClose={this.props.onClose}>
         <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center', marginBottom: 80, marginLeft: 80, marginRight: 80, marginTop: 90}}>
-          <Text type='Body'>Foo bar baz</Text>
+          <Text type='Header'>Block the conversation with {this.props.participants}?</Text>
+          <Text type='Body'>You won't see this conversation anymore.  To unblock, use <Text type='Terminal'>keybase hide -u</Text> in the terminal.</Text>
           <Box style={{...globalStyles.flexBoxRow, marginTop: 100}}>
             <Button type='Secondary' onClick={this.props.onClose} label="No, don't block them"/>
-            <Button type='Primary' style={{marginLeft: globalMargins.tiny}} onClick={this._onBlock} label='Yes, block them' />
+            <Button type='Danger' style={{marginLeft: globalMargins.tiny}} onClick={this._onBlock} label='Yes, block them' />
           </Box>
         </Box>
       </PopupDialog>
@@ -38,4 +35,4 @@ class RenderBlockConversationWarning extends Component<void, Props, State> {
   }
 }
 
-export default RenderBlockWarningDialog
+export default RenderBlockConversationWarning
