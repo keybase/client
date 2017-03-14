@@ -460,9 +460,10 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	case InitDefaultString:
 		// Already the default
 	case InitMinimalString:
+		log.Debug("Initializing in minimal mode")
 		mode = InitMinimal
 	default:
-		return nil, fmt.Errorf("Unexpected mode: %s", mode)
+		return nil, fmt.Errorf("Unexpected mode: %s", params.Mode)
 	}
 
 	config := NewConfigLocal(mode, func(module string) logger.Logger {
