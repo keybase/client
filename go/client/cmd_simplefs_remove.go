@@ -41,7 +41,7 @@ func (c *CmdSimpleFSRemove) Run() error {
 
 	ctx := context.TODO()
 
-	paths, err := doSimpleFSPlatformGlob(c.G(), ctx, cli, c.paths)
+	paths, err := doSimpleFSGlob(c.G(), ctx, cli, c.paths)
 	if err != nil {
 		return err
 	}

@@ -54,7 +54,7 @@ func (c *CmdSimpleFSCopy) Run() error {
 
 	c.G().Log.Debug("SimpleFSCopy (recursive: %v) to: %s", c.recurse, pathToString(c.dest))
 
-	destPaths, err := doSimpleFSPlatformGlob(c.G(), ctx, cli, c.src)
+	destPaths, err := doSimpleFSGlob(c.G(), ctx, cli, c.src)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (c *CmdSimpleFSCopy) Run() error {
 	// Eat the error because it's ok here if the dest doesn't exist
 	isDestDir, destPathString, _ := checkPathIsDir(ctx, cli, c.dest)
 
-	for _, src := range c.src {
+	for _, src := range destPaths {
 		var dest keybase1.Path
 		dest, err = makeDestPath(c.G(), ctx, cli, src, c.dest, isDestDir, destPathString)
 		c.G().Log.Debug("SimpleFSCopy %s -> %s, %v", pathToString(src), pathToString(dest), isDestDir)
