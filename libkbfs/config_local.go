@@ -643,6 +643,12 @@ func (c *ConfigLocal) DataVersion() DataVer {
 
 // DoBackgroundFlushes implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DoBackgroundFlushes() bool {
+	if c.mode == InitMinimal {
+		// Don't do background flushes when in minimal mode, since
+		// there shouldn't be any data writes.
+		return false
+	}
+
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return !c.noBGFlush

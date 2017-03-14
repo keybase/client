@@ -136,10 +136,18 @@ func newFolderBlockManager(config Config, fb FolderBranch,
 	// Pass in the BlockOps here so that the archive goroutine
 	// doesn't do possibly-racy-in-tests access to
 	// fbm.config.BlockOps().
-	go fbm.archiveBlocksInBackground()
-	go fbm.deleteBlocksInBackground()
-	if fb.Branch == MasterBranch {
-		go fbm.reclaimQuotaInBackground()
+
+	if config.Mode() != InitMinimal {
+		go fbm.archiveBlocksInBackground()
+		go fbm.deleteBlocksInBackground()
+		if fb.Branch == MasterBranch {
+			go fbm.reclaimQuotaInBackground()
+		}
+	} else {
+		// If this device is in minimal mode and won't be doing any
+		// data writes, no need deal with block-level cleanup
+		// operations.  TODO: in the future it might still be useful
+		// to have e.g. mobile devices doing QR.
 	}
 	return fbm
 }

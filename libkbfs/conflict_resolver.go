@@ -95,7 +95,13 @@ func NewConflictResolver(
 		},
 	}
 
-	cr.startProcessing(BackgroundContextWithCancellationDelayer())
+	if config.Mode() != InitMinimal {
+		cr.startProcessing(BackgroundContextWithCancellationDelayer())
+	} else {
+		// No need to run CR if there won't be any data writes on this
+		// device.  (There may still be rekey writes, but we don't
+		// allow conflicts to happen in that case.)
+	}
 	return cr
 }
 
