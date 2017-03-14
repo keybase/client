@@ -31,7 +31,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 	// Increase U by 10, so that increases sM by 0.25*10 = 2.5, so
 	// sM is now 52.
 
-	avail := bt.onJournalEnable(10)
+	avail := bt.onEnable(10)
 	require.Equal(t, int64(42), avail)
 
 	require.Equal(t, int64(10), bt.used)
@@ -42,7 +42,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 	// Decrease U by 9, so that decreases sM by 0.25*9 = 2.25, so
 	// sM is back to 50.
 
-	bt.onJournalDisable(9)
+	bt.onDisable(9)
 
 	require.Equal(t, int64(1), bt.used)
 	require.Equal(t, int64(200), bt.free)
@@ -52,7 +52,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 	// Increase U by 440, so that increases sM by 0.25*110 = 110,
 	// so sM maxes out at 100, and semaphore should go negative.
 
-	avail = bt.onJournalEnable(440)
+	avail = bt.onEnable(440)
 	require.Equal(t, int64(-341), avail)
 
 	require.Equal(t, int64(441), bt.used)
@@ -62,7 +62,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 
 	// Now revert that increase.
 
-	bt.onJournalDisable(440)
+	bt.onDisable(440)
 
 	require.Equal(t, int64(1), bt.used)
 	require.Equal(t, int64(200), bt.free)
@@ -70,7 +70,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 	require.Equal(t, int64(49), bt.semaphore.Count())
 
 	// This should be a no-op.
-	avail = bt.onJournalEnable(0)
+	avail = bt.onEnable(0)
 	require.Equal(t, int64(49), avail)
 
 	require.Equal(t, int64(1), bt.used)
@@ -79,7 +79,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 	require.Equal(t, int64(49), bt.semaphore.Count())
 
 	// So should this.
-	bt.onJournalDisable(0)
+	bt.onDisable(0)
 
 	require.Equal(t, int64(1), bt.used)
 	require.Equal(t, int64(200), bt.free)

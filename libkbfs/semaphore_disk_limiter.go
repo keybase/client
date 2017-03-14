@@ -57,6 +57,24 @@ func (sdl semaphoreDiskLimiter) onJournalDisable(
 	}
 }
 
+func (sdl semaphoreDiskLimiter) onDiskCacheEnable(
+	ctx context.Context, diskCacheBytes int64) (
+	availableBytes int64) {
+	if diskCacheBytes != 0 {
+		availableBytes = sdl.byteSemaphore.ForceAcquire(diskCacheBytes)
+	} else {
+		availableBytes = sdl.byteSemaphore.Count()
+	}
+	return availableBytes
+}
+
+func (sdl semaphoreDiskLimiter) onDiskCacheDisable(
+	ctx context.Context, diskCacheBytes int64) {
+	if diskCacheBytes != 0 {
+		sdl.byteSemaphore.Release(diskCacheBytes)
+	}
+}
+
 func (sdl semaphoreDiskLimiter) beforeBlockPut(
 	ctx context.Context, blockBytes, blockFiles int64) (
 	availableBytes, availableFiles int64, err error) {

@@ -131,7 +131,7 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 	if err != nil {
 		return nil, err
 	}
-	return &DiskBlockCacheStandard{
+	cache = &DiskBlockCacheStandard{
 		config:     config,
 		limiter:    limiter,
 		maxBlockID: maxBlockID.Bytes(),
@@ -141,7 +141,12 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		blockDb:    blockDb,
 		metaDb:     metaDb,
 		tlfDb:      tlfDb,
-	}, nil
+	}
+	err = cache.syncBlockCountsFromDb()
+	if err != nil {
+		return nil, err
+	}
+	return cache, nil
 }
 
 func versionPathFromVersion(dirPath string, version uint64) string {
@@ -232,16 +237,8 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
 			tlfStorage.Close()
 		}
 	}()
-	cache, err = newDiskBlockCacheStandardFromStorage(config, blockStorage,
+	return newDiskBlockCacheStandardFromStorage(config, blockStorage,
 		metadataStorage, tlfStorage, limiter)
-	if err != nil {
-		return nil, err
-	}
-	err = cache.syncBlockCountsFromDb()
-	if err != nil {
-		return nil, err
-	}
-	return cache, nil
 }
 
 func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
