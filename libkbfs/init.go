@@ -20,6 +20,15 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+const (
+	// InitDefault is the normal mode for when KBFS data will be read
+	// and written.
+	InitDefault string = "default"
+	// InitMinimal is for when KBFS will only be used as a MD lookup
+	// layer (e.g., for chat on mobile).
+	InitMinimal = "minimal"
+)
+
 // InitParams contains the initialization parameters for Init(). It is
 // usually filled in by the flags parser passed into AddFlags().
 type InitParams struct {
@@ -83,6 +92,9 @@ type InitParams struct {
 	// StorageRoot, if non-empty, points to a local directory to put its local
 	// databases for things like the journal or disk cache.
 	StorageRoot string
+
+	// Mode describes how KBFS should initialize itself.
+	Mode string
 }
 
 // defaultBServer returns the default value for the -bserver flag.
@@ -207,6 +219,9 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	flags.IntVar((*int)(&params.MetadataVersion), "md-version",
 		int(defaultParams.MetadataVersion),
 		"Metadata version to use when creating new metadata")
+	flags.StringVar(&params.Mode, "mode", InitDefault,
+		fmt.Sprintf("Init mode (%s or %s)", InitDefault, InitMinimal))
+
 	return &params
 }
 
@@ -461,6 +476,13 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 			params.CleanBlockCacheCapacity)
 		config.BlockCache().SetCleanBytesCapacity(
 			params.CleanBlockCacheCapacity)
+	}
+
+	mode := params.Mode
+	switch mode {
+	case InitDefault, InitMinimal:
+	default:
+		return nil, fmt.Errorf("Unexpected mode: %s", mode)
 	}
 
 	config.SetBlockOps(NewBlockOpsStandard(config,
