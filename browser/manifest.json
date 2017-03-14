@@ -7,6 +7,7 @@
     "128": "images/icon-keybase-logo-128.png"
   },
   "permissions": [
+    "nativeMessaging",
     "http://reddit.com/*",
     "https://reddit.com/*",
     "http://*.reddit.com/*",
