@@ -507,7 +507,9 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 		}
 	}
 
-	// Re-embed the block changes if it's needed.
+	// Re-embed the block changes if it's needed.  TODO: we don't need
+	// to do this in minimal mode, since there's no node cache
+	// (KBFS-2026).
 	err := reembedBlockChanges(
 		ctx, codec, bcache, bops, rmdWithKeys.TlfID(),
 		&pmd, rmdWithKeys, log)

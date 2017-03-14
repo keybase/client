@@ -493,6 +493,8 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	if config.Mode() == InitMinimal {
 		// In minimal mode, a few workers are still needed to fetch
 		// unembedded block changes in the MD updates, but not many.
+		// TODO: turn off the block retriever entirely as part of
+		// KBFS-2026, when block re-embedding is no longer required.
 		workers = minimalBlockRetrievalWorkerQueueSize
 	}
 	config.SetBlockOps(NewBlockOpsStandard(config, workers))
