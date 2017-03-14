@@ -72,8 +72,8 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 
 	// Resolve supersedes
 	if q == nil || !q.DisableResolveSupersedes {
-		transform := newSupersedesTransform(s.G())
-		if thread.Messages, err = transform.run(ctx, convID, uid, thread.Messages, finalizeInfo); err != nil {
+		transform := newBasicSupersedesTransform(s.G())
+		if thread.Messages, err = transform.Run(ctx, convID, uid, thread.Messages, finalizeInfo); err != nil {
 			return err
 		}
 	}
@@ -93,8 +93,8 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 }
 
 func (s *baseConversationSource) TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
-	transform := newSupersedesTransform(s.G())
-	return transform.run(ctx, convID, uid, msgs, finalizeInfo)
+	transform := newBasicSupersedesTransform(s.G())
+	return transform.Run(ctx, convID, uid, msgs, finalizeInfo)
 }
 
 type RemoteConversationSource struct {
@@ -193,15 +193,6 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 	}
 
 	return msgs, nil
-}
-
-func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
-	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
-	if s.IsOffline() {
-		return nil, nil
-	}
-	return s.boxer.UnboxMessages(ctx, msgs, convID, finalizeInfo)
 }
 
 type HybridConversationSource struct {
@@ -432,16 +423,26 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 	switch typ {
 	case chat1.MessageUnboxedState_VALID:
 		m := message.Valid()
-		if m.HeaderSignature == nil {
-			// Skip revocation check for messages cached before the sig was part of the cache.
+
+		var verificationKey []byte
+
+		if m.HeaderSignature != nil {
+			verificationKey = m.HeaderSignature.K
+		}
+
+		if m.VerificationKey != nil {
+			verificationKey = *m.VerificationKey
+		}
+
+		if verificationKey == nil {
+			// Skip revocation check for messages cached before the sig/key was part of the cache.
 			s.Debug(ctx, "updateMessage skipping message (%v) with no cached HeaderSignature", m.ServerHeader.MessageID)
 			return message, nil
 		}
 
 		sender := m.ClientHeader.Sender
-		key := m.HeaderSignature.K
 		ctime := m.ServerHeader.Ctime
-		found, validAtCtime, revoked, err := s.boxer.ValidSenderKey(ctx, sender, key, ctime)
+		found, validAtCtime, revoked, err := s.boxer.ValidSenderKey(ctx, sender, verificationKey, ctime)
 		if err != nil {
 			return chat1.MessageUnboxed{}, err
 		}
@@ -555,58 +556,6 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
 		s.Debug(ctx, "GetMessages: identify failed: %s", ierr.Error())
 		return nil, ierr
-	}
-
-	return res, nil
-}
-
-func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
-	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
-
-	var res []chat1.MessageUnboxed
-	var msgIDs []chat1.MessageID
-	for _, msg := range msgs {
-		msgIDs = append(msgIDs, msg.GetMessageID())
-	}
-
-	lmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
-
-	lmsgs, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
-	if err != nil {
-		return nil, err
-	}
-	for _, lmsg := range lmsgs {
-		if lmsg != nil {
-			lmsgsTab[lmsg.GetMessageID()] = *lmsg
-		}
-	}
-
-	s.Debug(ctx, "GetMessagesWithRemotes: convID: %s uid: %s total msgs: %d hits: %d", convID, uid,
-		len(msgs), len(lmsgsTab))
-	var merges []chat1.MessageUnboxed
-	for _, msg := range msgs {
-		if lmsg, ok := lmsgsTab[msg.GetMessageID()]; ok {
-			res = append(res, lmsg)
-		} else if !s.IsOffline() {
-			unboxed, err := s.boxer.UnboxMessage(ctx, msg, convID, finalizeInfo)
-			if err != nil {
-				return res, err
-			}
-			merges = append(merges, unboxed)
-			res = append(res, unboxed)
-		}
-	}
-	if len(merges) > 0 {
-		if err = s.storage.Merge(ctx, convID, uid, merges); err != nil {
-			return res, err
-		}
-	}
-
-	// Identify this TLF by running crypt keys
-	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
-		s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
-		return res, ierr
 	}
 
 	return res, nil

@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import {List} from 'immutable'
 
-import type {Props as BannerMessage} from './banner'
+import type {BannerMessage} from './banner'
 import type {AttachmentInput, AttachmentType, AttachmentMessage, ConversationIDKey, FinalizeInfo, Message, MessageID, MetaDataMap, FollowingMap, RekeyInfo, ServerMessage, SupersedeInfo} from '../../constants/chat'
 
 export type Props = {

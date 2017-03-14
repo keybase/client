@@ -6,8 +6,10 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
+import com.facebook.soloader.SoLoader;
 import com.lwansbrough.RCTCamera.RCTCameraPackage;
 import com.imagepicker.ImagePickerPackage;
+import com.rnfs.RNFSPackage;
 
 import java.io.File;
 import java.util.Arrays;
@@ -19,6 +21,7 @@ public class MainApplication extends Application implements ReactApplication {
   @Override
   public void onCreate () {
     super.onCreate();
+    SoLoader.init(this, /* native exopackage */ false);
 
     logFile = this.getFileStreamPath("android.log");
   }
@@ -37,7 +40,8 @@ public class MainApplication extends Application implements ReactApplication {
               new KBReactPackage(logFile.getAbsolutePath()),
               new ReactNativePushNotificationPackage(),
               new RCTCameraPackage(),
-              new ImagePickerPackage()
+              new ImagePickerPackage(),
+              new RNFSPackage()
       );
     }
 

@@ -208,7 +208,7 @@ const _pendingFailureSelector = (state: TypedState, outboxID: OutboxIDKey) => st
 const _devicenameSelector = (state: TypedState) => state.config && state.config.extendedConfig && state.config.extendedConfig.device && state.config.extendedConfig.device.name
 
 function _tmpFileName (isHdPreview: boolean, conversationID: ConversationIDKey, messageID: ?MessageID, filename: string) {
-  return `kbchat-${isHdPreview ? 'hdPreview' : 'preview'}-${messageID || ''}-${filename}`
+  return `kbchat-${isHdPreview ? 'hdPreview' : 'preview'}-${conversationID}-${messageID || ''}-${filename}`
 }
 
 function _pendingToRealConversation (oldKey: ConversationIDKey, newKey: ConversationIDKey): PendingToRealConversation {
@@ -259,8 +259,8 @@ function retryMessage (conversationIDKey: ConversationIDKey, outboxIDKey: string
   return {type: 'chat:retryMessage', payload: {conversationIDKey, outboxIDKey}, logTransformer: retryMessageActionTransformer}
 }
 
-function loadInbox (): LoadInbox {
-  return {payload: undefined, type: 'chat:loadInbox'}
+function loadInbox (force?: boolean = false): LoadInbox {
+  return {payload: {force}, type: 'chat:loadInbox'}
 }
 
 function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean): LoadMoreMessages {
@@ -343,9 +343,11 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
 
   const conversationIDKey = conversationIDToKey(convo.info.id)
   let snippet
+  let time
 
   (convo.maxMessages || []).some(message => {
-    if (message.state === LocalMessageUnboxedState.valid && message.valid) {
+    if (message.state === LocalMessageUnboxedState.valid && message.valid && convo && convo.readerInfo) {
+      time = message.valid.serverHeader.ctime || convo.readerInfo.mtime
       snippet = makeSnippet(message.valid.messageBody)
       return !!snippet
     }
@@ -361,7 +363,7 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
     conversationIDKey,
     participants,
     muted,
-    time: convo.readerInfo.mtime,
+    time,
     snippet,
     validated: true,
   })
@@ -416,13 +418,13 @@ function _conversationLocalToFinalized (convo: ?ChatTypes.ConversationLocal): Fi
 
 function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): List<InboxState> {
   return List((inbox.conversationsUnverified || []).map(convoUnverified => {
-    const msgBoxed = convoUnverified.maxMsgs && convoUnverified.maxMsgs.length && convoUnverified.maxMsgs[0]
+    const msgMax = convoUnverified.maxMsgSummaries && convoUnverified.maxMsgSummaries.length && convoUnverified.maxMsgSummaries[0]
 
-    if (!msgBoxed) {
+    if (!msgMax) {
       return null
     }
 
-    const participants = List(parseFolderNameToUsers(author, msgBoxed.clientHeader.tlfName).map(ul => ul.username))
+    const participants = List(parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username))
     const muted = convoUnverified.metadata.status === CommonConversationStatus.muted
 
     return new InboxStateRecord({
@@ -942,15 +944,32 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             }
           }
 
-          yield put({
-            logTransformer: appendMessageActionTransformer,
-            payload: {
-              conversationIDKey,
-              isSelected: conversationIDKey === selectedConversationIDKey,
-              messages: [message],
-            },
-            type: 'chat:appendMessages',
-          })
+          let existingMessage
+          if (message.messageID) {
+            existingMessage = yield select(_messageSelector, conversationIDKey, message.messageID)
+          }
+
+          // If we already have an existing message (say for an attachment, let's reuse that)
+          if (existingMessage && existingMessage.outboxID && message.type === 'Attachment') {
+            yield put(({
+              type: 'chat:updateTempMessage',
+              payload: {
+                conversationIDKey,
+                outboxID: existingMessage.outboxID,
+                message,
+              },
+            }: Constants.UpdateTempMessage))
+          } else {
+            yield put({
+              logTransformer: appendMessageActionTransformer,
+              payload: {
+                conversationIDKey,
+                isSelected: conversationIDKey === selectedConversationIDKey,
+                messages: [message],
+              },
+              type: 'chat:appendMessages',
+            })
+          }
 
           if ((message.type === 'Attachment' || message.type === 'UpdateAttachment') && !message.previewPath && message.messageID) {
             const messageID = message.type === 'UpdateAttachment' ? message.targetMessageID : message.messageID
@@ -996,7 +1015,7 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({convIDs}) => {
-      dispatch({type: 'chat:markThreadsStale', payload: {convIDKeys: convIDs.map(conversationIDToKey)}})
+      dispatch({type: 'chat:markThreadsStale', payload: {convIDs: convIDs.map(conversationIDToKey)}})
     })
   })
 }
@@ -1036,8 +1055,8 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
 const followingSelector = (state: TypedState) => state.config.following
 
 let _loadedInboxOnce = false
-function * _loadInboxOnce (): SagaGenerator<any, any> {
-  if (!_loadedInboxOnce) {
+function * _loadInboxMaybeOnce (action: LoadInbox): SagaGenerator<any, any> {
+  if (!_loadedInboxOnce || action.payload.force) {
     _loadedInboxOnce = true
     yield call(_loadInbox)
   }
@@ -1772,6 +1791,22 @@ function * _selectAttachment ({payload: {input}}: Constants.SelectAttachment): S
   const outboxID = `attachmentUpload-${Math.ceil(Math.random() * 1e9)}`
   const username = yield select(usernameSelector)
 
+  yield put({
+    logTransformer: appendMessageActionTransformer,
+    payload: {
+      conversationIDKey,
+      messages: [_temporaryAttachmentMessageForUpload(
+        conversationIDKey,
+        username,
+        title,
+        filename,
+        outboxID,
+        type,
+      )],
+    },
+    type: 'chat:appendMessages',
+  })
+
   const clientHeader = yield call(_clientHeader, CommonMessageType.attachment, conversationIDKey)
   const attachment = {
     filename,
@@ -1863,8 +1898,11 @@ function * _selectAttachment ({payload: {input}}: Constants.SelectAttachment): S
     // We already received a message for this attachment
     if (existingMessage) {
       yield put(({
-        conversationIDKey,
-        outboxID,
+        type: 'chat:deleteTempMessage',
+        payload: {
+          conversationIDKey,
+          outboxID,
+        },
       }: Constants.DeleteTempMessage))
     } else {
       yield put(updateTempMessage(
@@ -1873,6 +1911,7 @@ function * _selectAttachment ({payload: {input}}: Constants.SelectAttachment): S
         outboxID,
       ))
     }
+
     yield put(({
       type: 'chat:markSeenMessage',
       payload: {
@@ -1901,7 +1940,8 @@ function * _isCached (conversationIDKey, messageID): Generator<any, ?string, any
 function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview, isHdPreview, filename}}: Constants.LoadAttachment): SagaGenerator<any, any> {
   // See if we already have this image cached
   if (loadPreview || isHdPreview) {
-    if (exists(filename)) {
+    const imageCached = yield call(exists, filename)
+    if (imageCached) {
       const action: Constants.AttachmentLoaded = {
         type: 'chat:attachmentLoaded',
         payload: {conversationIDKey, messageID, path: filename, isPreview: loadPreview, isHdPreview: isHdPreview},
@@ -2012,6 +2052,11 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
 }
 
 function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any> {
+  // Load inbox items of any stale items so we get update on rekeyInfos, etc
+  const {convIDs} = action.payload
+  yield convIDs.map(conversationIDKey => call(_getInboxAndUnbox, {payload: {conversationIDKey}, type: 'chat:getInboxAndUnbox'}))
+
+  // Selected is stale?
   const selectedConversation = yield select(getSelectedConversation)
   if (!selectedConversation) {
     return
@@ -2054,7 +2099,10 @@ function * _getInboxAndUnbox ({payload: {conversationIDKey}}: Constants.GetInbox
   const {conversations} = result
   if (conversations && conversations[0]) {
     yield call(_updateInbox, conversations[0])
+    // inbox loaded so rekeyInfo is now clear
+    yield put({payload: {conversationIDKey}, type: 'chat:clearRekey'})
   }
+  // TODO maybe we get failures and we should update rekeyinfo? unclear...
 }
 
 function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConversation): SagaGenerator<any, any> {
@@ -2117,7 +2165,7 @@ function * _saveAttachmentNative ({payload: {message}}: Constants.SaveAttachment
 
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
-    safeTakeSerially('chat:loadInbox', _loadInboxOnce),
+    safeTakeSerially('chat:loadInbox', _loadInboxMaybeOnce),
     safeTakeLatest('chat:inboxStale', _loadInbox),
     safeTakeEvery('chat:loadMoreMessages', cancelWhen(_threadIsCleared, _loadMoreMessages)),
     safeTakeLatest('chat:selectConversation', _selectConversation),

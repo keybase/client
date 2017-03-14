@@ -28,62 +28,10 @@ func NewCoinbaseChecker(p libkb.RemoteProofChainLink) (*CoinbaseChecker, libkb.P
 	return &CoinbaseChecker{p}, nil
 }
 
-func (rc *CoinbaseChecker) ProfileURL() string {
-	return "https://coinbase.com/" + rc.proof.GetRemoteUsername() + "/public-key"
-}
-
-func (rc *CoinbaseChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	if pvl.UsePvl {
-		// checking the hint is done later in CheckStatus
-		return nil
-	}
-
-	wanted := rc.ProfileURL()
-	url := h.GetAPIURL()
-	if strings.ToLower(wanted) == strings.ToLower(url) {
-		return nil
-	}
-	return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL, "Bad hint from server; URL should be %q; got %q", wanted, url)
-}
-
 func (rc *CoinbaseChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *CoinbaseChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
-	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_COINBASE,
-			pvl.NewProofInfo(rc.proof, h))
-	}
-	return rc.CheckStatusOld(ctx, h)
-}
-
-func (rc *CoinbaseChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	url := h.GetAPIURL()
-	res, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), url))
-	if err != nil {
-		return libkb.XapiError(err, url)
-	}
-	csssel := "pre.statement"
-	div := res.GoQuery.Find(csssel)
-	if div.Length() == 0 {
-		return libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find a div $(%s)", csssel)
-	}
-
-	// Only consider the first
-	div = div.First()
-
-	var ret libkb.ProofError
-
-	if html, err := div.Html(); err != nil {
-		ret = libkb.NewProofError(keybase1.ProofStatus_CONTENT_MISSING,
-			"Missing proof HTML content: %s", err)
-	} else if sigBody, _, err := libkb.OpenSig(rc.proof.GetArmoredSig()); err != nil {
-		ret = libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad signature: %s", err)
-	} else if !libkb.FindBase64Block(html, sigBody, false) {
-		ret = libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
-	}
-
-	return ret
+	return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_COINBASE, pvl.NewProofInfo(rc.proof, h))
 }
 
 //

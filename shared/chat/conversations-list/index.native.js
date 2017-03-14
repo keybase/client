@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeListView} from '../../common-adapters/index.native'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../../styles'
 import {RowConnector} from './row'
 
 import type {Props, RowProps} from './'
@@ -41,7 +41,6 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
   }
 
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
-    backgroundColor,
     borderColor: rowBorderColor(idx, idx === (avatarCount - 1), backgroundColor),
     loadingColor: globalColors.blue3_40,
     size: 24,
@@ -52,8 +51,8 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
   })).toArray()
 
   return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, justifyContent: 'flex-start', maxWidth: 48, paddingLeft: 4}}>
-      <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, justifyContent: 'flex-start', maxWidth: 48, paddingLeft: 4, backgroundColor}}>
+      <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} style={{backgroundColor}} />
       {icon}
     </Box>
   )
@@ -81,7 +80,7 @@ const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, userna
   )
 }
 
-const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, subColor, snippet}) => {
+const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, subColor, snippet, backgroundColor}) => {
   const boldOverride = showBold ? globalStyles.fontBold : null
 
   let content
@@ -97,8 +96,8 @@ const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, 
   }
 
   return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17, position: 'relative'}}>
-      <Box style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17, position: 'relative', backgroundColor}}>
+      <Box style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0, backgroundColor}}>
         {content}
       </Box>
     </Box>
@@ -107,7 +106,7 @@ const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, 
 
 const _Row = (props: RowProps) => {
   return (
-    <ClickableBox onClick={() => props.onSelectConversation(props.conversationIDKey)}>
+    <ClickableBox onClick={() => props.onSelectConversation(props.conversationIDKey)} style={{backgroundColor: props.backgroundColor}}>
       <Box
         style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}
         title={`${props.unreadCount} unread`}>
@@ -123,7 +122,8 @@ const _Row = (props: RowProps) => {
         <Box style={{
           ...globalStyles.flexBoxColumn,
           ...conversationRowStyle,
-          borderBottomColor: (!props.isSelected && !props.hasUnread) ? globalColors.black_10 : globalColors.transparent,
+          backgroundColor: props.backgroundColor,
+          borderBottomColor: (!props.isSelected && !props.hasUnread) ? globalColors.black_10 : props.backgroundColor,
           borderBottomWidth: 1,
         }}>
           <TopLine
@@ -135,6 +135,7 @@ const _Row = (props: RowProps) => {
             usernameColor={props.usernameColor}
           />
           <BottomLine
+            backgroundColor={props.backgroundColor}
             isMuted={props.isMuted}
             participantNeedToRekey={props.participantNeedToRekey}
             showBold={props.showBold}
@@ -200,6 +201,7 @@ const boxStyle = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.darkBlue4,
   flex: 1,
+  paddingTop: statusBarHeight,
 }
 
 const listStyle = {

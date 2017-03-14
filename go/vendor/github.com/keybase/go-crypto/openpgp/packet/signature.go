@@ -596,6 +596,12 @@ func (sig *Signature) Sign(h hash.Hash, priv *PrivateKey, config *Config) (err e
 			sig.ECDSASigR = FromBig(r)
 			sig.ECDSASigS = FromBig(s)
 		}
+	case PubKeyAlgoEdDSA:
+		r, s, err := priv.PrivateKey.(*EdDSAPrivateKey).Sign(digest)
+		if err == nil {
+			sig.EdDSASigR = FromBytes(r)
+			sig.EdDSASigS = FromBytes(s)
+		}
 	default:
 		err = errors.UnsupportedError("public key algorithm: " + strconv.Itoa(int(sig.PubKeyAlgo)))
 	}
@@ -651,7 +657,10 @@ func (sig *Signature) Serialize(w io.Writer) (err error) {
 	if len(sig.outSubpackets) == 0 {
 		sig.outSubpackets = sig.rawSubpackets
 	}
-	if sig.RSASignature.bytes == nil && sig.DSASigR.bytes == nil && sig.ECDSASigR.bytes == nil {
+	if sig.RSASignature.bytes == nil &&
+		sig.DSASigR.bytes == nil &&
+		sig.ECDSASigR.bytes == nil &&
+		sig.EdDSASigR.bytes == nil {
 		return errors.InvalidArgumentError("Signature: need to call Sign, SignUserId or SignKey before Serialize")
 	}
 

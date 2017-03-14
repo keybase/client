@@ -21,7 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const inboxVersion = 6
+const inboxVersion = 8
 
 type queryHash []byte
 
@@ -107,7 +107,7 @@ func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 	if !found {
 		return ibox, MissError{}
 	}
-	if ibox.Version > inboxVersion {
+	if ibox.Version != inboxVersion {
 		i.Debug(ctx, "on disk version not equal to program version, clearing: disk :%d program: %d",
 			ibox.Version, inboxVersion)
 		if cerr := i.clear(ctx); cerr != nil {
@@ -592,15 +592,15 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	// Update conversation
 	found := false
 	typ := msg.GetMessageType()
-	for mindex, maxmsg := range conv.MaxMsgs {
+	for mindex, maxmsg := range conv.MaxMsgSummaries {
 		if maxmsg.GetMessageType() == typ {
-			conv.MaxMsgs[mindex] = msg
+			conv.MaxMsgSummaries[mindex] = msg.Summary()
 			found = true
 			break
 		}
 	}
 	if !found {
-		conv.MaxMsgs = append(conv.MaxMsgs, msg)
+		conv.MaxMsgSummaries = append(conv.MaxMsgSummaries, msg.Summary())
 	}
 
 	// If we are all up to date on the thread (and the sender is the current user),

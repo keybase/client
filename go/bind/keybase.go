@@ -38,7 +38,9 @@ func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOver
 // Init runs the Keybase services
 func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool) error {
 	fmt.Println("Go: Initializing")
-	fmt.Printf("Go: Using log: %s\n", logFile)
+	if logFile != "" {
+		fmt.Printf("Go: Using log: %s\n", logFile)
+	}
 
 	kbCtx = libkb.G
 	kbCtx.Init()
@@ -99,7 +101,7 @@ type serviceCn struct {
 }
 
 func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
-	keybaseService := libkbfs.NewKeybaseDaemonRPC(config, ctx, log, true)
+	keybaseService := libkbfs.NewKeybaseDaemonRPC(config, ctx, log, true, nil)
 	keybaseService.AddProtocols([]rpc.Protocol{
 		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
 	})

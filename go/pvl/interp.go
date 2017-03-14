@@ -17,9 +17,6 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-// UsePvl says whether to use PVL for verifying proofs.
-const UsePvl = true
-
 // SupportedVersion is which version of PVL is supported by this client.
 const SupportedVersion int = 1
 

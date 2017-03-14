@@ -19,6 +19,7 @@ let config: {[key: string]: any} = {
   featureFlagsOverride: null,
   forceImmediateLogging: false,
   forwardLogs: true,
+  isDevApplePushToken: false,
   isTesting: nativeBridge.test === '1',
   immediateStateLogging: false,
   logStatFrequency: 0,
@@ -32,12 +33,14 @@ let config: {[key: string]: any} = {
 }
 
 if (__DEV__ && true) {
+  config.isDevApplePushToken = true
   config.devStoreChangingFunctions = true
   config.dumbChatOnly = false
   config.dumbSheetOnly = false
   config.enableActionLogging = false
-  config.enableStoreLogging = false
+  config.enableStoreLogging = true
   config.forwardLogs = true
+  config.immediateStateLogging = true
   config.overrideLoggedInTab = Tabs.settingsTab
   config.printOutstandingRPCs = true
   config.printRPC = true
@@ -57,6 +60,7 @@ export const {
   featureFlagsOverride,
   forceImmediateLogging,
   forwardLogs,
+  isDevApplePushToken,
   isTesting,
   immediateStateLogging,
   logStatFrequency,

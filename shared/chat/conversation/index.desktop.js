@@ -86,8 +86,7 @@ class Conversation extends Component<void, Props, State> {
       finalizeInfo,
     } = this.props
 
-    // $FlowIssue with variants
-    const banner = bannerMessage && <Banner {...bannerMessage} />
+    const banner = bannerMessage && <Banner message={bannerMessage} />
     const dropOverlay = this.state.showDropOverlay && (
       <Box style={dropOverlayStyle} onDragLeave={this._onDragLeave} onDrop={this._onDrop}>
         <Icon type='icon-file-dropping-48' />
@@ -145,7 +144,7 @@ export default branch(
   (props: Props) => props.selectedConversation === Constants.nothingSelected,
   renderComponent(NoConversation),
   branch(
-    (props: Props) => !!props.rekeyInfo,
+    (props: Props) => !!props.rekeyInfo && !props.finalizeInfo,
     branch(
       (props: Props) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
       renderComponent(ParticipantRekey),

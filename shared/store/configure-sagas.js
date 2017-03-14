@@ -9,6 +9,7 @@ import notificationsSaga from '../actions/notifications'
 import pgpSaga from '../actions/pgp'
 import planBillingSaga from '../actions/plan-billing'
 import profileSaga from '../actions/profile'
+import routeSaga from '../actions/route-tree'
 import settingsSaga from '../actions/settings'
 import pushSaga from '../actions/push'
 import {call} from 'redux-saga/effects'
@@ -27,6 +28,7 @@ function * mainSaga (): SagaGenerator<any, any> {
     call(planBillingSaga),
     call(profileSaga),
     call(pushSaga),
+    call(routeSaga),
     call(settingsSaga),
   ]
 }

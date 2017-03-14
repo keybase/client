@@ -91,6 +91,7 @@ protocol common {
     boolean unreadOnly;
     boolean readOnly;
     boolean computeActiveList;
+    boolean summarizeMaxMsgs; // if true, resulting conversation will only have summaries of max msgs
   }
 
   record ConversationIDTriple {
@@ -140,6 +141,18 @@ protocol common {
 
     // maxMsgs is the maximum message for each messageType in the conversation
     array<MessageBoxed> maxMsgs;
+
+    // maxMsgSummaries contains a subset of the full MessageBoxed for the maximum message for
+    // each messageType in the conversation
+    array<MessageSummary> maxMsgSummaries;
+  }
+
+  record MessageSummary {
+    MessageID msgID;
+    MessageType messageType;
+    string tlfName;
+    boolean tlfPublic;
+    gregor1.Time ctime;
   }
 
   record MessageServerHeader {
@@ -163,6 +176,8 @@ protocol common {
   record MessageClientHeader {
     // This type is attached to MessageBoxed.
     // When on a received message these fields are server-set and have not been verified.
+    // If adding fields, consider whether they should be signed,
+    // and if so add them to MessageClientHeaderVerified as well.
 
     ConversationIDTriple conv;
     string tlfName;
@@ -183,6 +198,8 @@ protocol common {
     // This type is the result of unboxing.
     // And to be used locally to the client only.
     // All fields have been verified signed by the sender.
+    // If adding fields, consider updating Boxer's compareHeaders methods
+    // to check invariants early.
 
     ConversationIDTriple conv;
     string tlfName;
@@ -202,16 +219,25 @@ protocol common {
     bytes n;  // nonce
   }
 
+  record SignEncryptedData {
+    int   v; // version = 1
+    bytes e; // signEncryptedData (output of signencrypt.SealWhole)
+    bytes n; // nonce
+  }
+
+  // Encrypted or SignEncrypted. Must know which from context.
+  record SealedData {
+    int   v;  // version = 1
+    // Encrypted: output of secret box
+    // SignEncrypted: output of signencrypt.SealWhole
+    bytes e;
+    bytes n;  // nonce
+  }
+
   record SignatureInfo {
     int   v; // version = 1
     bytes s; // signature; output of EdDSA
     bytes k; // Verifying key
-  }
-
-  record SignEncryptedData {
-    int   v; // version = 1
-    bytes b; // signEncryptedData (output of signencrypt.SealWhole)
-    bytes n; // nonce
   }
 
   record MerkleRoot {

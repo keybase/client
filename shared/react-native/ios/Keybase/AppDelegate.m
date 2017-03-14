@@ -20,6 +20,18 @@
 
 @end
 
+#if TARGET_OS_SIMULATOR
+const BOOL isSimulator = YES;
+#else
+const BOOL isSimulator = NO;
+#endif
+
+#if DEBUG
+const BOOL isDebug = YES;
+#else
+const BOOL isDebug = NO;
+#endif
+
 @implementation AppDelegate
 
 - (BOOL)addSkipBackupAttributeToItemAtPath:(NSString *) filePathString
@@ -35,20 +47,17 @@
 
 - (void) setupGo
 {
-
-  NSNumber * SecurityAccessGroupOverride =
-#if SIMULATOR
-  @YES;
-#else
-  @NO;
+#if TESTING
+  return
 #endif
+
+  BOOL securityAccessGroupOverride = isSimulator;
+  BOOL skipLogFile = isDebug;
 
   NSString * home = NSHomeDirectory();
 
-#if TESTING
-#else
   NSString * keybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
-  NSString * logFile = [@"~/Library/Caches/Keybase/ios.log" stringByExpandingTildeInPath];
+  NSString * logFile = skipLogFile ? @"" : [@"~/Library/Caches/Keybase/ios.log" stringByExpandingTildeInPath];
 
   // Make keybasePath if it doesn't exist
   [[NSFileManager defaultManager] createDirectoryAtPath:keybasePath
@@ -64,12 +73,10 @@
                                                    @"homedir": home,
                                                    @"logFile": logFile,
                                                    @"serverURI": @"",
-                                                   @"SecurityAccessGroupOverride": SecurityAccessGroupOverride
+                                                   @"SecurityAccessGroupOverride": @(securityAccessGroupOverride)
                                                    } error:&err];
 
   self.logSender = [[LogSend alloc] initWithPath:logFile];
-#endif
-
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions

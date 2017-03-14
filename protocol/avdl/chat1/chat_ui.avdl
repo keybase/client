@@ -3,10 +3,10 @@
 protocol chatUi {
   void chatAttachmentUploadStart(int sessionID, AssetMetadata metadata, MessageID placeholderMsgID) oneway;	
   void chatAttachmentUploadProgress(int sessionID, int bytesComplete, int bytesTotal) oneway;     
-  void chatAttachmentUploadDone(int sessionID) oneway;	
+  void chatAttachmentUploadDone(int sessionID);	
 
   void chatAttachmentPreviewUploadStart(int sessionID, AssetMetadata metadata) oneway;	
-  void chatAttachmentPreviewUploadDone(int sessionID) oneway;	
+  void chatAttachmentPreviewUploadDone(int sessionID);	
 
   void chatAttachmentDownloadStart(int sessionID) oneway;	
   void chatAttachmentDownloadProgress(int sessionID, int bytesComplete, int bytesTotal) oneway;     

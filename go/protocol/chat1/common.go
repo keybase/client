@@ -161,6 +161,7 @@ type GetInboxQuery struct {
 	UnreadOnly        bool                 `codec:"unreadOnly" json:"unreadOnly"`
 	ReadOnly          bool                 `codec:"readOnly" json:"readOnly"`
 	ComputeActiveList bool                 `codec:"computeActiveList" json:"computeActiveList"`
+	SummarizeMaxMsgs  bool                 `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 type ConversationIDTriple struct {
@@ -198,9 +199,18 @@ type ConversationReaderInfo struct {
 }
 
 type Conversation struct {
-	Metadata   ConversationMetadata    `codec:"metadata" json:"metadata"`
-	ReaderInfo *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
-	MaxMsgs    []MessageBoxed          `codec:"maxMsgs" json:"maxMsgs"`
+	Metadata        ConversationMetadata    `codec:"metadata" json:"metadata"`
+	ReaderInfo      *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
+	MaxMsgs         []MessageBoxed          `codec:"maxMsgs" json:"maxMsgs"`
+	MaxMsgSummaries []MessageSummary        `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
+}
+
+type MessageSummary struct {
+	MsgID       MessageID    `codec:"msgID" json:"msgID"`
+	MessageType MessageType  `codec:"messageType" json:"messageType"`
+	TlfName     string       `codec:"tlfName" json:"tlfName"`
+	TlfPublic   bool         `codec:"tlfPublic" json:"tlfPublic"`
+	Ctime       gregor1.Time `codec:"ctime" json:"ctime"`
 }
 
 type MessageServerHeader struct {
@@ -252,16 +262,22 @@ type EncryptedData struct {
 	N []byte `codec:"n" json:"n"`
 }
 
+type SignEncryptedData struct {
+	V int    `codec:"v" json:"v"`
+	E []byte `codec:"e" json:"e"`
+	N []byte `codec:"n" json:"n"`
+}
+
+type SealedData struct {
+	V int    `codec:"v" json:"v"`
+	E []byte `codec:"e" json:"e"`
+	N []byte `codec:"n" json:"n"`
+}
+
 type SignatureInfo struct {
 	V int    `codec:"v" json:"v"`
 	S []byte `codec:"s" json:"s"`
 	K []byte `codec:"k" json:"k"`
-}
-
-type SignEncryptedData struct {
-	V int    `codec:"v" json:"v"`
-	B []byte `codec:"b" json:"b"`
-	N []byte `codec:"n" json:"n"`
 }
 
 type MerkleRoot struct {

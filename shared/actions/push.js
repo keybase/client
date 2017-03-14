@@ -3,6 +3,8 @@ import * as Constants from '../constants/push'
 import {isMobile} from '../constants/platform'
 import {apiserverPostRpcPromise} from '../constants/types/flow-types'
 import {call, put, take, select} from 'redux-saga/effects'
+import {chatTab} from '../constants/tabs'
+import {navigateTo} from './route-tree'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 
 import type {SagaGenerator} from '../constants/types/saga'
@@ -55,8 +57,18 @@ function * permissionsRequestSaga (): SagaGenerator<any, any> {
 }
 
 function * pushNotificationSaga (notification: PushNotification): SagaGenerator<any, any> {
-  // TODO: Handle push notifications
   console.warn('Push notification:', notification)
+  const payload = notification.payload
+  if (payload && payload.userInteraction) {
+    const convID = payload.data ? payload.data.convID : payload.convID
+
+    if (!convID) {
+      console.error('Push notification payload missing conversation ID')
+      return
+    }
+
+    yield put(navigateTo([chatTab, convID]))
+  }
 }
 
 function * pushTokenSaga (action: PushTokenAction): SagaGenerator<any, any> {

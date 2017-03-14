@@ -17,39 +17,22 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type getMessagesRes struct {
-	err    error
-	errTyp chat1.ConversationErrorType
-	msgs   []chat1.MessageUnboxed
-}
-
-type getMessagesFunc func(context.Context, chat1.ConversationID, gregor1.UID, []chat1.MessageBoxed,
-	*chat1.ConversationFinalizeInfo) getMessagesRes
-
 type localizerPipeline struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
 	offline         bool
 	getTlfInterface func() keybase1.TlfInterface
-	getMessages     getMessagesFunc
+	superXform      supersedesTransform
 }
 
-func newLocalizerPipeline(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface) *localizerPipeline {
+func newLocalizerPipeline(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface,
+	superXform supersedesTransform) *localizerPipeline {
 	return &localizerPipeline{
 		Contextified:    libkb.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g, "localizerPipeline", false),
 		getTlfInterface: getTlfInterface,
-	}
-}
-
-func newLocalizerPipelineCustom(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface,
-	getMessages getMessagesFunc) *localizerPipeline {
-	return &localizerPipeline{
-		Contextified:    libkb.NewContextified(g),
-		DebugLabeler:    utils.NewDebugLabeler(g, "localizerPipeline", false),
-		getTlfInterface: getTlfInterface,
-		getMessages:     getMessages,
+		superXform:      superXform,
 	}
 }
 
@@ -61,7 +44,7 @@ type BlockingLocalizer struct {
 func NewBlockingLocalizer(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface) *BlockingLocalizer {
 	return &BlockingLocalizer{
 		Contextified: libkb.NewContextified(g),
-		pipeline:     newLocalizerPipeline(g, getTlfInterface),
+		pipeline:     newLocalizerPipeline(g, getTlfInterface, newBasicSupersedesTransform(g)),
 	}
 }
 
@@ -103,7 +86,7 @@ func NewNonblockingLocalizer(g *libkb.GlobalContext, localizeCb chan NonblockInb
 	return &NonblockingLocalizer{
 		Contextified: libkb.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "NonblockingLocalizer", false),
-		pipeline:     newLocalizerPipeline(g, getTlfInterface),
+		pipeline:     newLocalizerPipeline(g, getTlfInterface, newBasicSupersedesTransform(g)),
 		localizeCb:   localizeCb,
 	}
 }
@@ -113,46 +96,11 @@ func (b *NonblockingLocalizer) SetOffline() {
 }
 
 func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.Inbox, uid gregor1.UID) chat1.Inbox {
+	defer b.Trace(ctx, func() error { return nil }, "filterInboxRes")()
 
-	f := func(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-		msgs []chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) getMessagesRes {
+	localizer := newLocalizerPipeline(b.G(), b.pipeline.getTlfInterface, newNullSupersedesTransform())
+	localizer.offline = true // Set this guy offline, so we are guaranteed to not do anything slow
 
-		var msgIDs []chat1.MessageID
-		for _, msg := range msgs {
-			msgIDs = append(msgIDs, msg.GetMessageID())
-		}
-
-		st := storage.New(b.G(), func() libkb.SecretUI { return DelivererSecretUI{} })
-		res, err := st.FetchMessages(ctx, convID, uid, msgIDs)
-		if err != nil {
-			// Just say we didn't find it in this case
-			return getMessagesRes{
-				err:    err,
-				errTyp: chat1.ConversationErrorType_LOCALMAXMESSAGENOTFOUND,
-			}
-		}
-
-		// Make sure we get them all
-		var foundMsgs []chat1.MessageUnboxed
-		for _, msg := range res {
-			if msg != nil {
-				foundMsgs = append(foundMsgs, *msg)
-			}
-		}
-
-		if len(foundMsgs) != len(msgs) {
-			return getMessagesRes{
-				err:    errors.New("missing messages locally"),
-				errTyp: chat1.ConversationErrorType_LOCALMAXMESSAGENOTFOUND,
-			}
-		}
-
-		return getMessagesRes{
-			msgs: foundMsgs,
-		}
-	}
-
-	localizer := newLocalizerPipelineCustom(b.G(), b.pipeline.getTlfInterface, f)
 	convs, err := localizer.localizeConversationsPipeline(ctx, uid, inbox.ConvsUnverified, nil)
 	if err != nil {
 		// Any errors we just return original inbox
@@ -193,7 +141,8 @@ func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.I
 	}
 }
 
-func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) ([]chat1.ConversationLocal, error) {
+func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) (res []chat1.ConversationLocal, err error) {
+	defer b.Trace(ctx, func() error { return err }, "Localize")()
 
 	// Run some easy filters for empty messages and known errors to optimize UI drawing behavior
 	filteredInbox := b.filterInboxRes(ctx, inbox, uid)
@@ -206,6 +155,8 @@ func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 	// Spawn off localization into its own goroutine and use cb to communicate with outside world
 	bctx := BackgroundContext(ctx)
 	go func() {
+		b.Debug(bctx, "Localize: starting background localization: convs: %d",
+			len(inbox.ConvsUnverified))
 		b.pipeline.localizeConversationsPipeline(bctx, uid, inbox.ConvsUnverified,
 			&b.localizeCb)
 
@@ -344,6 +295,7 @@ func (b *baseInboxSource) getInboxQueryLocalToRemote(ctx context.Context,
 	rquery.ConvID = lquery.ConvID
 	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
 	rquery.Status = lquery.Status
+	rquery.SummarizeMaxMsgs = true
 
 	return rquery, info, nil
 }
@@ -495,10 +447,12 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 	if query == nil {
 		rquery = chat1.GetInboxQuery{
 			ComputeActiveList: true,
+			SummarizeMaxMsgs:  true,
 		}
 	} else {
 		rquery = *query
 		rquery.ComputeActiveList = true
+		rquery.SummarizeMaxMsgs = true
 	}
 
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
@@ -807,10 +761,10 @@ func (s *localizerPipeline) isErrPermanent(err error) bool {
 func getUnverifiedTlfNameForErrors(conversationRemote chat1.Conversation) string {
 	var tlfName string
 	var latestMsgID chat1.MessageID
-	for _, msg := range conversationRemote.MaxMsgs {
+	for _, msg := range conversationRemote.MaxMsgSummaries {
 		if msg.GetMessageID() > latestMsgID {
 			latestMsgID = msg.GetMessageID()
-			tlfName = msg.ClientHeader.TLFNameExpanded(conversationRemote.Metadata.FinalizeInfo)
+			tlfName = msg.TLFNameExpanded(conversationRemote.Metadata.FinalizeInfo)
 		}
 	}
 	return tlfName
@@ -823,10 +777,34 @@ func (n nullUsernameSource) LookupUsername(ctx context.Context, uid keybase1.UID
 	return "", errors.New("null username loader always fails")
 }
 
+func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgs []chat1.MessageSummary, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, chat1.ConversationErrorType, error) {
+
+	st := storage.New(s.G(), func() libkb.SecretUI { return DelivererSecretUI{} })
+	res, err := st.FetchMessages(ctx, convID, uid, utils.PluckMessageIDs(msgs))
+	if err != nil {
+		// Just say we didn't find it in this case
+		return nil, chat1.ConversationErrorType_LOCALMAXMESSAGENOTFOUND, err
+	}
+
+	// Make sure we legit msgs
+	var foundMsgs []chat1.MessageUnboxed
+	for _, msg := range res {
+		if msg != nil {
+			foundMsgs = append(foundMsgs, *msg)
+		}
+	}
+
+	if len(foundMsgs) == 0 {
+		return nil, chat1.ConversationErrorType_LOCALMAXMESSAGENOTFOUND,
+			errors.New("missing messages locally")
+	}
+
+	return foundMsgs, chat1.ConversationErrorType_MISC, nil
+}
+
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
-
-	s.Debug(ctx, "localizing %d msgs", len(conversationRemote.MaxMsgs))
 
 	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
 
@@ -851,8 +829,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 	conversationLocal.ReaderInfo = *conversationRemote.ReaderInfo
 
-	if len(conversationRemote.MaxMsgs) == 0 {
-		errMsg := "conversation has an empty MaxMsgs field"
+	if len(conversationRemote.MaxMsgSummaries) == 0 {
+		errMsg := "conversation has an empty MaxMsgSummaries field"
 		conversationLocal.Error = chat1.NewConversationErrorLocal(
 			errMsg, conversationRemote, false, unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
 		return conversationLocal
@@ -861,7 +839,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// Conversation is not empty as long as we have a visible message, even if they are
 	// errors
 	conversationLocal.IsEmpty = true
-	for _, maxMsg := range conversationRemote.MaxMsgs {
+	for _, maxMsg := range conversationRemote.MaxMsgSummaries {
 		if utils.IsVisibleChatMessageType(maxMsg.GetMessageType()) {
 			conversationLocal.IsEmpty = false
 			break
@@ -871,24 +849,25 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// Fetch max messages unboxed, using either a custom function or through
 	// the conversation source configured in the global context
 	var err error
-	if s.getMessages != nil {
-		gmRes := s.getMessages(ctx, conversationRemote.GetConvID(),
-			uid, conversationRemote.MaxMsgs, conversationRemote.Metadata.FinalizeInfo)
-		if gmRes.err != nil {
-			convErr := s.checkRekeyError(ctx, gmRes.err, conversationRemote, unverifiedTLFName)
+	if s.offline {
+		msgs, errTyp, err := s.getMessagesOffline(ctx, conversationRemote.GetConvID(),
+			uid, conversationRemote.MaxMsgSummaries, conversationRemote.Metadata.FinalizeInfo)
+		if err != nil {
+			convErr := s.checkRekeyError(ctx, err, conversationRemote, unverifiedTLFName)
 			if convErr != nil {
 				conversationLocal.Error = convErr
 				return conversationLocal
 			}
 
 			conversationLocal.Error = chat1.NewConversationErrorLocal(
-				gmRes.err.Error(), conversationRemote, s.isErrPermanent(gmRes.err), unverifiedTLFName, gmRes.errTyp, nil)
+				err.Error(), conversationRemote, s.isErrPermanent(err), unverifiedTLFName,
+				errTyp, nil)
 			return conversationLocal
 		}
-		conversationLocal.MaxMessages = gmRes.msgs
+		conversationLocal.MaxMessages = msgs
 	} else {
-		conversationLocal.MaxMessages, err = s.G().ConvSource.GetMessagesWithRemotes(ctx,
-			conversationRemote.Metadata.ConversationID, uid, conversationRemote.MaxMsgs, conversationRemote.Metadata.FinalizeInfo)
+		conversationLocal.MaxMessages, err = s.G().ConvSource.GetMessages(ctx,
+			conversationRemote.Metadata.ConversationID, uid, utils.PluckMessageIDs(conversationRemote.MaxMsgSummaries), conversationRemote.Metadata.FinalizeInfo)
 		if err != nil {
 			convErr := s.checkRekeyError(ctx, err, conversationRemote, unverifiedTLFName)
 			if convErr != nil {
@@ -903,8 +882,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 
 	var maxValidID chat1.MessageID
-	superXform := newSupersedesTransform(s.G())
-
 	var newMaxMsgs []chat1.MessageUnboxed
 	for _, mm := range conversationLocal.MaxMessages {
 		if mm.IsValid() {
@@ -928,7 +905,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 
 			// Resolve edits/deletes
 			var newMsg []chat1.MessageUnboxed
-			if newMsg, err = superXform.run(ctx, conversationLocal.GetConvID(), uid,
+			if newMsg, err = s.superXform.Run(ctx, conversationLocal.GetConvID(), uid,
 				[]chat1.MessageUnboxed{mm}, conversationRemote.Metadata.FinalizeInfo); err != nil {
 				s.Debug(ctx, "failed to transform message: id: %d err: %s", mm.GetMessageID(),
 					err.Error())
@@ -1050,10 +1027,10 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 		return nil, nil
 	}
 
-	if len(conversationRemote.MaxMsgs) == 0 {
+	if len(conversationRemote.MaxMsgSummaries) == 0 {
 		return nil, errors.New("can't determine isPrivate with no maxMsgs")
 	}
-	rekeyInfo.TlfPublic = conversationRemote.MaxMsgs[0].ClientHeader.TlfPublic
+	rekeyInfo.TlfPublic = conversationRemote.MaxMsgSummaries[0].TlfPublic
 
 	// Fill readers and writers
 	writerNames, readerNames, err := utils.ReorderParticipants(

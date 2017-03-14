@@ -320,10 +320,11 @@ func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}
 
 func (d DebugLabeler) Trace(ctx context.Context, f func() error, msg string) func() {
 	if d.showLog() {
+		start := time.Now()
 		d.G().Log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
 		return func() {
-			d.G().Log.CDebugf(ctx, "++Chat: - %s: %s -> %s", d.label, msg,
-				libkb.ErrToOk(f()))
+			d.G().Log.CDebugf(ctx, "++Chat: - %s: %s -> %s (%v)", d.label, msg,
+				libkb.ErrToOk(f()), time.Since(start))
 		}
 	}
 	return func() {}
@@ -396,4 +397,12 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	default:
 		return nil, nil
 	}
+}
+
+func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
+	res := make([]chat1.MessageID, len(msgs))
+	for i, m := range msgs {
+		res[i] = m.GetMessageID()
+	}
+	return res
 }

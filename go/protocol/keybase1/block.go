@@ -30,6 +30,9 @@ type DowngradeReferenceRes struct {
 	Failed    BlockReference        `codec:"failed" json:"failed"`
 }
 
+type BlockPingResponse struct {
+}
+
 type GetSessionChallengeArg struct {
 }
 
@@ -77,6 +80,9 @@ type ArchiveReferenceWithCountArg struct {
 type GetUserQuotaInfoArg struct {
 }
 
+type BlockPingArg struct {
+}
+
 type BlockInterface interface {
 	GetSessionChallenge(context.Context) (ChallengeInfo, error)
 	AuthenticateSession(context.Context, string) error
@@ -88,6 +94,7 @@ type BlockInterface interface {
 	DelReferenceWithCount(context.Context, DelReferenceWithCountArg) (DowngradeReferenceRes, error)
 	ArchiveReferenceWithCount(context.Context, ArchiveReferenceWithCountArg) (DowngradeReferenceRes, error)
 	GetUserQuotaInfo(context.Context) ([]byte, error)
+	BlockPing(context.Context) (BlockPingResponse, error)
 }
 
 func BlockProtocol(i BlockInterface) rpc.Protocol {
@@ -244,6 +251,17 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"blockPing": {
+				MakeArg: func() interface{} {
+					ret := make([]BlockPingArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.BlockPing(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -300,5 +318,10 @@ func (c BlockClient) ArchiveReferenceWithCount(ctx context.Context, __arg Archiv
 
 func (c BlockClient) GetUserQuotaInfo(ctx context.Context) (res []byte, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.block.getUserQuotaInfo", []interface{}{GetUserQuotaInfoArg{}}, &res)
+	return
+}
+
+func (c BlockClient) BlockPing(ctx context.Context) (res BlockPingResponse, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.blockPing", []interface{}{BlockPingArg{}}, &res)
 	return
 }

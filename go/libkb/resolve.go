@@ -140,8 +140,19 @@ func isMutable(au AssertionURL) bool {
 	return !(au.IsUID() || au.IsKeybase())
 }
 
+func (r *Resolver) getFromUPAKLoader(ctx context.Context, uid keybase1.UID) (ret *ResolveResult) {
+	nun, err := r.G().GetUPAKLoader().LookupUsername(ctx, uid)
+	if err != nil {
+		return nil
+	}
+	return &ResolveResult{uid: uid, queriedByUID: true, resolvedKbUsername: nun.String(), mutable: false}
+}
+
 func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string, withBody bool, needUsername bool) (res ResolveResult) {
 	ck := au.CacheKey()
+
+	lock := r.locktab.AcquireOnName(ctx, r.G(), ck)
+	defer lock.Release(ctx)
 
 	// Debug succintly what happened in the resolution
 	var trace string
@@ -168,6 +179,15 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 		r.putToMemCache(ck, *p)
 		trace += "d"
 		return *p
+	}
+
+	// We can check the UPAK loader for the username if we're just mapping a UID to a username.
+	if tmp := au.ToUID(); !withBody && tmp.Exists() {
+		if p := r.getFromUPAKLoader(ctx, tmp); p != nil {
+			trace += "l"
+			r.putToMemCache(ck, *p)
+			return *p
+		}
 	}
 
 	trace += "s"
@@ -275,6 +295,7 @@ type Resolver struct {
 	cache   *ramcache.Ramcache
 	Stats   ResolveCacheStats
 	NowFunc func() time.Time
+	locktab LockTable
 }
 
 func (s ResolveCacheStats) Eq(m, t, mt, et, h int) bool {

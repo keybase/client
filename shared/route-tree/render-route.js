@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import React, {PureComponent} from 'react'
 import {LeafTags, pathToString} from './'
+import {putActionIfOnPath, navigateUp} from '../actions/route-tree'
 
 import type {RouteDefNode, RouteStateNode} from './'
 
@@ -51,6 +52,7 @@ class RenderRouteNode extends PureComponent<*, RenderRouteNodeProps<*>, *> {
         routeProps={routeState.props.toObject()}
         routeState={routeDef.initialState.merge(routeState.state).toObject()}
         routeSelected={routeState.selected}
+        navigateUp={() => putActionIfOnPath(path, navigateUp())}
         routePath={path}
         routeLeafTags={leafTags || LeafTags()}
         routeStack={stack || I.Stack()}

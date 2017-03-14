@@ -2,7 +2,7 @@
 import {compose, withState, withProps} from 'recompose'
 import RenderAttachmentPopup from './'
 import {connect} from 'react-redux'
-import {navigateUp} from '../../../actions/route-tree'
+import {deleteMessage} from '../../../actions/chat'
 import {downloadFilePath} from '../../../util/file'
 
 import type {RouteProps} from '../../../route-tree/render-route'
@@ -46,10 +46,12 @@ export default compose(
 
       return {
         ...ownProps,
+        you: state.config.username,
         message,
       }
     },
-    (dispatch: Dispatch) => ({
+    (dispatch: Dispatch, {navigateUp}) => ({
+      deleteMessage: message => dispatch(deleteMessage(message)),
       onClose: () => dispatch(navigateUp()),
       onDownloadAttachment: (message: AttachmentMessage) => {
         const messageID = message.messageID
@@ -77,6 +79,10 @@ export default compose(
       return {
         ...stateProps,
         ...dispatchProps,
+        onDeleteMessage: () => {
+          dispatchProps.deleteMessage(message)
+          dispatchProps.onClose()
+        },
         onDownloadAttachment: () => dispatchProps.onDownloadAttachment(message),
         onOpenInFileUI: () => dispatchProps.onOpenInFileUI(message.downloadedPath),
       }

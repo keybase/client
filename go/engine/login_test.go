@@ -2381,6 +2381,44 @@ func TestProvisionerSecretStore(t *testing.T) {
 	}
 }
 
+// GPG key required for provisioning, but user on a mobile device.
+func TestProvisionGPGMobile(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := createFakeUserWithPGPPubOnly(t, tc)
+	Logout(tc)
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// we need the gpg keyring that's in the first homedir
+	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// now safe to cleanup first home
+	tc.Cleanup()
+
+	// run login on new device
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPGImport(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc2.G, libkb.DeviceTypeMobile, "", keybase1.ClientType_CLI)
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Fatal("no error provisioning with gpg on mobile")
+	}
+	if _, ok := err.(libkb.GPGUnavailableError); !ok {
+		t.Errorf("error type: %T, expected libkb.GPGUnavailableError", err)
+	}
+}
+
 type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod

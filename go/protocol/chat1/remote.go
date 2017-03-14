@@ -10,14 +10,13 @@ import (
 )
 
 type MessageBoxed struct {
-	Version               MessageBoxedVersion  `codec:"version" json:"version"`
-	ServerHeader          *MessageServerHeader `codec:"serverHeader,omitempty" json:"serverHeader,omitempty"`
-	ClientHeader          MessageClientHeader  `codec:"clientHeader" json:"clientHeader"`
-	HeaderCiphertext      EncryptedData        `codec:"headerCiphertext" json:"headerCiphertext"`
-	HeaderSealed          SignEncryptedData    `codec:"headerSealed" json:"headerSealed"`
-	BodyCiphertext        EncryptedData        `codec:"bodyCiphertext" json:"bodyCiphertext"`
-	HeaderVerificationKey []byte               `codec:"headerVerificationKey" json:"headerVerificationKey"`
-	KeyGeneration         int                  `codec:"keyGeneration" json:"keyGeneration"`
+	Version          MessageBoxedVersion  `codec:"version" json:"version"`
+	ServerHeader     *MessageServerHeader `codec:"serverHeader,omitempty" json:"serverHeader,omitempty"`
+	ClientHeader     MessageClientHeader  `codec:"clientHeader" json:"clientHeader"`
+	HeaderCiphertext SealedData           `codec:"headerCiphertext" json:"headerCiphertext"`
+	BodyCiphertext   EncryptedData        `codec:"bodyCiphertext" json:"bodyCiphertext"`
+	VerifyKey        []byte               `codec:"verifyKey" json:"verifyKey"`
+	KeyGeneration    int                  `codec:"keyGeneration" json:"keyGeneration"`
 }
 
 type MessageBoxedVersion int
@@ -129,8 +128,9 @@ type GetThreadRemoteArg struct {
 }
 
 type GetPublicConversationsArg struct {
-	TlfID     TLFID     `codec:"tlfID" json:"tlfID"`
-	TopicType TopicType `codec:"topicType" json:"topicType"`
+	TlfID            TLFID     `codec:"tlfID" json:"tlfID"`
+	TopicType        TopicType `codec:"topicType" json:"topicType"`
+	SummarizeMaxMsgs bool      `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 type PostRemoteArg struct {

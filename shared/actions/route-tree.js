@@ -1,7 +1,13 @@
 // @flow
 import * as Constants from '../constants/route-tree'
+import * as Immutable from 'immutable'
 import {getPath} from '../route-tree'
+import {put, select} from 'redux-saga/effects'
+import {safeTakeEvery} from '../util/saga'
+
 import type {RouteDefNode, Path, PropsPath} from '../route-tree'
+import type {TypedAction} from '../constants/types/flux'
+import type {TypedState} from '../constants/reducer'
 import type {
   SetRouteDef,
   SwitchTo,
@@ -24,6 +30,10 @@ const pathActionTransformer = (action, oldState) => {
     },
     type: action.type,
   }
+}
+
+function _pathSelector (state: TypedState): Path {
+  return getPath(state.routeTree.routeState)
 }
 
 // Set (or update) the tree of route definitions. Dispatched at initialization
@@ -67,10 +77,10 @@ export function switchTo (path: Path, parentPath?: Path): SwitchTo {
 //
 // If parentPath is provided, the path will be navigated to relative to
 // parentPath without navigating to it.
-export function navigateTo (path: PropsPath<*>, parentPath?: ?Path, persistState?: boolean = false): NavigateTo {
+export function navigateTo (path: PropsPath<*>, parentPath?: ?Path): NavigateTo {
   return {
     type: Constants.navigateTo,
-    payload: {path, parentPath, persistState},
+    payload: {path, parentPath},
     logTransformer: pathActionTransformer,
   }
 }
@@ -87,10 +97,18 @@ export function navigateAppend (path: PropsPath<*>, parentPath?: Path): Navigate
 }
 
 // Navigate one step up from the current path.
-export function navigateUp (persistState?: boolean = false): NavigateUp {
+export function navigateUp (): NavigateUp {
   return {
     type: Constants.navigateUp,
-    payload: {persistState: !!persistState},
+    payload: null,
+  }
+}
+
+// Do a navigate action if the path is still what is expected
+export function putActionIfOnPath<T: TypedAction<*, *, *>> (expectedPath: Path, otherAction: T): Constants.PutActionIfOnPath<T> {
+  return {
+    type: Constants.putActionIfOnPath,
+    payload: {expectedPath, otherAction},
   }
 }
 
@@ -111,3 +129,18 @@ export function resetRoute (path: Path): ResetRoute {
     logTransformer: pathActionTransformer,
   }
 }
+
+function * _putActionIfOnPath ({payload: {otherAction, expectedPath}}: Constants.PutActionIfOnPath<*>) {
+  const currentPath = yield select(_pathSelector)
+  if (Immutable.is(expectedPath, currentPath)) {
+    yield put(otherAction)
+  }
+}
+
+function * routeSaga (): any {
+  yield [
+    safeTakeEvery('routeTree:putActionIfOnPath', _putActionIfOnPath),
+  ]
+}
+
+export default routeSaga

@@ -32,9 +32,6 @@ class Push extends Component<void, Props, void> {
             <Text type='Header' style={{textAlign: 'center'}}>
               Please turn on notifications!
             </Text>
-
-            {/* The image is wider and will stretch the parent flex box, so we'll
-               position absolute, and then specify a "filler" height. */}
             <Box style={{marginTop: 41}} />
             <Text type='BodySemibold' style={{textAlign: 'center'}}>It's <Text type='BodySemiboldItalic'>very</Text> important you enable notifications.</Text>
             <Text type='Body' style={{textAlign: 'center', marginTop: 20}}>

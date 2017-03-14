@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/agl/ed25519"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-crypto/ed25519"
 	"golang.org/x/crypto/nacl/box"
 )
 
@@ -53,11 +53,13 @@ type NaclSigningKeyPublic [ed25519.PublicKeySize]byte
 type NaclSigningKeyPrivate [ed25519.PrivateKeySize]byte
 
 func (k NaclSigningKeyPrivate) Sign(msg []byte) *NaclSignature {
-	return (*NaclSignature)(ed25519.Sign((*[ed25519.PrivateKeySize]byte)(&k), msg))
+	var sig NaclSignature
+	copy(sig[:], ed25519.Sign(k[:], msg))
+	return &sig
 }
 
 func (k NaclSigningKeyPublic) Verify(msg []byte, sig *NaclSignature) bool {
-	return ed25519.Verify((*[ed25519.PublicKeySize]byte)(&k), msg, (*[ed25519.SignatureSize]byte)(sig))
+	return ed25519.Verify(k[:], msg, sig[:])
 }
 
 type NaclSigningKeyPair struct {
@@ -516,13 +518,20 @@ func (k NaclDHKeyPair) ExportPublicAndPrivate() (RawPublicKey, RawPrivateKey, er
 }
 
 func makeNaclSigningKeyPair(reader io.Reader) (NaclSigningKeyPair, error) {
-	pub, priv, err := ed25519.GenerateKey(reader)
+	publicKey, privateKey, err := ed25519.GenerateKey(reader)
 	if err != nil {
 		return NaclSigningKeyPair{}, err
 	}
+
+	var publicArray NaclSigningKeyPublic
+	var privateArray NaclSigningKeyPrivate
+
+	copy(publicArray[:], publicKey)
+	copy(privateArray[:], privateKey)
+
 	return NaclSigningKeyPair{
-		Public:  *pub,
-		Private: (*NaclSigningKeyPrivate)(priv),
+		Public:  publicArray,
+		Private: &privateArray,
 	}, nil
 }
 
