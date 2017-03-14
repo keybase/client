@@ -1,14 +1,26 @@
 // @flow
 import * as Constants from '../constants/search'
-import type {TypedAsyncAction} from '../constants/types/flux'
 import {apiserverGetRpc} from '../constants/types/flow-types'
 import {capitalize, trim} from 'lodash'
 import {filterNull} from '../util/arrays'
 import {isFollowing as isFollowing_} from './config'
 
-import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo,
-  AddUsersToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult,
-  SearchPlatforms, Reset, Waiting} from '../constants/search'
+import type {Replace} from '../constants/entities'
+import type {TypedAsyncAction} from '../constants/types/flux'
+import type {
+  AddUsersToGroup,
+  ExtraInfo,
+  RemoveUserFromGroup,
+  Reset,
+  Results,
+  Search,
+  SearchPlatforms,
+  SearchResult,
+  SelectPlatform,
+  SelectUserForInfo,
+  ToggleUserGroup,
+  Waiting,
+} from '../constants/search'
 
 const {platformToLogo16, platformToLogo32, searchResultKeys} = Constants
 
@@ -129,7 +141,14 @@ function rawResults (term: string, platform: SearchPlatforms, rresults: Array<Ra
   }
 }
 
-function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncAction<Search | Results | Waiting> {
+function _transformedToEntities (t: Results): {[id: string]: SearchResult} {
+  return t.payload ? t.payload.results.reduce((map, result) => {
+    map[result.username] = result
+    return map
+  }, {}) : {}
+}
+
+function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncAction<Search | Results | Waiting | Replace> {
   return (dispatch, getState) => {
     // In case platform is passed in as null
     const platform: SearchPlatforms = maybePlatform || 'Keybase'
@@ -173,7 +192,15 @@ function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncActi
               searchResultKeys(cur).forEach(key => { m[key] = true })
               return m
             }, {})
-            dispatch(rawResults(term, platform, json.list || [], requestTimestamp, isFollowing, added))
+
+            const action: Results = rawResults(term, platform, json.list || [], requestTimestamp, isFollowing, added)
+            // old TODO del
+            dispatch(action)
+
+            // new
+            const entities = _transformedToEntities(action)
+            dispatch({payload: {usernames: Object.keys(entities)}, type: 'chat:resultsList'})
+            dispatch({payload: {entities, keyPath: ['search', 'results']}, type: 'entity:replace'})
           } catch (_) {
             console.log('Error searching (json). Not handling this error')
           }

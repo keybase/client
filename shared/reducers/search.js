@@ -2,33 +2,9 @@
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/search'
 
-import type {IconType} from '../common-adapters/icon'
-import type {SearchResult, SearchActions, SearchPlatforms} from '../constants/search'
+import type {SearchResult, SearchActions, State} from '../constants/search'
 
-const {equalSearchResult, platformToNiceName} = Constants
-
-export type State = {
-  requestTimestamp: ?Date,
-  results: Array<SearchResult>,
-  searchHintText: string,
-  searchIcon: IconType,
-  searchPlatform: SearchPlatforms,
-  searchText: ?string,
-  searchTextClearTrigger: number,
-  selectedUsers: Array<SearchResult>,
-  showUserGroup: boolean,
-  userForInfoPane: ?SearchResult,
-  waiting: boolean,
-}
-
-const searchHintText = (searchPlatform: SearchPlatforms, selectedUsers: Array<SearchResult>): string => {
-  const name = platformToNiceName(searchPlatform)
-  return `${selectedUsers.length ? `Add a ${name} user` : `Search ${name}`}`
-}
-
-const showUserGroup = (searchText: ?string, selectedUsers: Array<SearchResult>): boolean => (
-  !searchText && !!selectedUsers.length
-)
+const {equalSearchResult, searchHintText, showUserGroup} = Constants
 
 const initialState: State = {
   requestTimestamp: null,
@@ -50,6 +26,13 @@ export default function (state: State = initialState, action: SearchActions): St
   }
 
   switch (action.type) {
+    case 'chat:resultsList': {
+      const {usernames} = action.payload
+      return {
+        ...state,
+        usernames,
+      }
+    }
     case Constants.search:
       if (!action.error) {
         return {
