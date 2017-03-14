@@ -196,6 +196,7 @@ func identifyUsers(ctx context.Context, nug normalizedUsernameGetter,
 	// TODO: limit the number of concurrent identifies?
 	// TODO: implement a version of errgroup with limited concurrency.
 	for uid, name := range users {
+		// Capture range variables.
 		uid, name := uid, name
 		eg.Go(func() error {
 			return identifyUser(ctx, nug, identifier, name, uid, public)
@@ -206,12 +207,14 @@ func identifyUsers(ctx context.Context, nug normalizedUsernameGetter,
 }
 
 // identifyUserList identifies the users in the given list.
+// Only use this when the usernames are not known - like when rekeying.
 func identifyUserList(ctx context.Context, nug normalizedUsernameGetter, identifier identifier, uids []keybase1.UID, public bool) error {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	// TODO: limit the number of concurrent identifies?
 	// TODO: implement concurrency limited version of errgroup.
 	for _, uid := range uids {
+		// Capture range variable.
 		uid := uid
 		eg.Go(func() error {
 			return identifyUID(ctx, nug, identifier, uid, public)
