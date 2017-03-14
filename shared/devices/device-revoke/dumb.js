@@ -1,6 +1,7 @@
 // @flow
-import Render from './index.render'
+import Render from '.'
 import {isMobile} from '../../constants/platform'
+
 import type {DumbComponentMap} from '../../constants/types/more'
 
 const parent = isMobile ? {
@@ -12,17 +13,18 @@ const parent = isMobile ? {
 } : {}
 
 const common = {
-  type: 'desktop',
-  name: 'Home Computer',
-  deviceID: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
   created: 1444423192000,
-  provisioner: null,
-  provisionedAt: null,
-  revokedAt: null,
   currentDevice: false,
+  deviceID: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  icon: 'icon-computer-revoke-48',
   lastUsed: 1444423192001,
-  onSubmit: () => { console.log('device revoke on submit') },
+  name: 'Home Computer',
   onCancel: () => { console.log('device revoke on cancel') },
+  onSubmit: () => { console.log('device revoke on submit') },
+  provisionedAt: null,
+  provisioner: null,
+  revokedAt: null,
+  type: 'desktop',
   ...parent,
 }
 
@@ -40,9 +42,10 @@ const map: DumbComponentMap<Render> = {
   mocks: {
     'Normal': {
       ...common,
-      type: 'mobile',
       device: common,
       endangeredTLFs: [],
+      icon: 'icon-phone-revoke-48',
+      type: 'mobile',
     },
     'Current': {
       ...common,

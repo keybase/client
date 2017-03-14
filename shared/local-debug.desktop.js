@@ -53,11 +53,10 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   const envJson = envVarDebugJson()
   config = {...config, ...envJson}
 }
-
 if (fs.existsSync(jsonDebugFileName)) {
   try {
     const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf-8'))
-    console.log('Loaded', pathJson)
+    console.log('Loaded', jsonDebugFileName, pathJson)
     config = {...config, ...pathJson}
   } catch (e) {
     console.warn('Invalid local debug file')

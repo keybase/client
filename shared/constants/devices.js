@@ -1,48 +1,62 @@
 // @flow
-import HiddenString from '../util/hidden-string'
+import {List, Record} from 'immutable'
 
-import type {TypedAction, NoErrorTypedAction} from './types/flux'
 import type {Device} from './types/more'
-import type {DeviceDetail} from './types/flow-types'
+import type {NoErrorTypedAction} from './types/flux'
 
-export const loadDevices = 'devices:loadDevices'
-export type LoadDevices = NoErrorTypedAction<'devices:loadDevices', void>
+export type Load = NoErrorTypedAction<'devices:load', void>
+export type Loaded = NoErrorTypedAction<'devices:loaded', {deviceIDs: Array<string>}>
+export type PaperKeyMake = NoErrorTypedAction<'devices:paperKeyMake', void>
+export type Revoke = NoErrorTypedAction<'devices:revoke', {deviceID: string}>
+export type ShowRevokePage = NoErrorTypedAction<'devices:showRevokePage', {deviceID: string}>
+export type Waiting = NoErrorTypedAction<'devices:waiting', {waiting: boolean}>
 
-export const loadingDevices = 'devices:loadingDevices'
-export type LoadingDevices = NoErrorTypedAction<'devices:loadingDevices', void>
+export type Actions = Load
+  | Loaded
+  | PaperKeyMake
+  | Revoke
+  | ShowRevokePage
+  | Waiting
 
-export const removeDevice = 'devices:removeDevice'
-export type RemoveDevice = NoErrorTypedAction<'devices:removeDevice', {
-  deviceID: string,
-  name: string,
+// TODO could potentially use entities for devices provisioned by other devices but we still have
+// to support pgp
+const DeviceDetailRecord = Record({
+  created: 0,
+  currentDevice: false,
+  deviceID: '',
+  lastUsed: 0,
+  name: '',
+  provisionedAt: 0,
+  provisioner: null,
+  revokedAt: null,
+  revokedBy: null,
+  type: '',
+})
+
+export type DeviceDetail = Record<{
+  created: number,
   currentDevice: boolean,
+  deviceID: string,
+  lastUsed: number,
+  name: string,
+  provisionedAt: number,
+  provisioner: ?Device,
+  revokedAt: ?number,
+  revokedBy: ?Device,
+  type: string,
 }>
 
-export const showRemovePage = 'devices:showRemovePage'
-export type ShowRemovePage = NoErrorTypedAction<'devices:showRemovePage', {
-  device: Device,
-}>
+const StateRecord = Record({
+  deviceIDs: List(),
+  waitingForServer: false,
+})
 
-export const deviceRemoved = 'devices:deviceRemoved'
-export type DeviceRemoved = TypedAction<'devices:deviceRemoved', void, {errorText: string}>
-
-export const paperKeyLoaded = 'devices:paperKeyLoaded'
-export type PaperKeyLoaded = TypedAction<'devices:paperKeyLoaded', HiddenString, {errorText: string}>
-
-export const paperKeyLoading = 'devices:paperKeyLoading'
-export type PaperKeyLoading = NoErrorTypedAction<'devices:paperKeyLoading', void>
-
-export const showDevices = 'devices:showDevices'
-export type ShowDevices = TypedAction<'devices:showDevices', void, {errorText: string}>
-
-export const generatePaperKey = 'devices:generatePaperKey'
-export type GeneratePaperKey = NoErrorTypedAction<'devices:generatePaperKey', void>
-
-export type IncomingDisplayPaperKeyPhrase = {params: {phrase: string}, response: {result: () => void}}
-
-export type State = {
+export type State = Record<{
+  deviceIDs: List<string>,
   waitingForServer: boolean,
-  devices: ?Array<DeviceDetail>,
-  error: any,
-  paperKey: ?string,
+}>
+
+export {
+  DeviceDetailRecord,
+  StateRecord,
 }
