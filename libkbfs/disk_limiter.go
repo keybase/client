@@ -10,9 +10,14 @@ type diskBlockCacheLimiter interface {
 	onDiskBlockCacheDelete(ctx context.Context, blockBytes int64)
 
 	// beforeDiskBlockCachePut is called by the disk block cache before putting
-	// a block into the cache. It returns how many bytes it acquired.
+	// a block into the cache. It returns the total number of available bytes.
 	beforeDiskBlockCachePut(ctx context.Context, blockBytes int64) (
 		bytesAvailable int64, err error)
+
+	// afterDiskBlockCachePut is called by the disk block cache after putting
+	// a block into the cache. It returns how many bytes it acquired.
+	afterDiskBlockCachePut(ctx context.Context, blockBytes int64,
+		putData bool)
 }
 
 // DiskLimiter is an interface for limiting disk usage.

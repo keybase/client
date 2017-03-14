@@ -51,7 +51,7 @@ type diskBlockCacheConfig interface {
 // DiskBlockCacheStandard is the standard implementation for DiskBlockCache.
 type DiskBlockCacheStandard struct {
 	config     diskBlockCacheConfig
-	limiter    diskBlockCacheLimiter
+	limiter    DiskLimiter
 	log        logger.Logger
 	maxBlockID []byte
 	// Track the number of blocks in the cache per TLF and overall.
@@ -94,7 +94,7 @@ func diskBlockCacheRootFromStorageRoot(storageRoot string) string {
 // cache.
 func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 	blockStorage, metadataStorage, tlfStorage storage.Storage,
-	limiter diskBlockCacheLimiter) (
+	limiter DiskLimiter) (
 	cache *DiskBlockCacheStandard, err error) {
 	log := config.MakeLogger("KBC")
 	blockDb, err := openLevelDB(blockStorage)
@@ -196,7 +196,7 @@ func getVersionedPathForDiskCache(dirPath string) (versionedDirPath string,
 // newDiskBlockCacheStandard creates a new *DiskBlockCacheStandard with a
 // specified directory on the filesystem as storage.
 func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
-	limiter diskBlockCacheLimiter) (
+	limiter DiskLimiter) (
 	cache *DiskBlockCacheStandard, err error) {
 	versionPath, err := getVersionedPathForDiskCache(dirPath)
 	if err != nil {
@@ -396,7 +396,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	if err != nil {
 		return err
 	}
-	encodedLen := len(entry)
+	encodedLen := int64(len(entry))
 	defer func() {
 		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d err=%+v", blockID, tlfID, blockLen, encodedLen, err)
 	}()
@@ -414,25 +414,26 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 			default:
 			}
 			bytesAvailable, err := cache.limiter.beforeDiskBlockCachePut(ctx,
-				int64(encodedLen))
-			if bytesAvailable < 0 {
-				cache.evictLocked(ctx, defaultNumBlocksToEvict)
-			}
+				encodedLen)
 			if err != nil {
-				// We cannot Put the block yet since the limiter hasn't made
-				// space.
-				continue
+				cache.log.CWarningf(ctx, "Error obtaining space for the disk"+
+					" block cache: %+v", err)
+				return err
 			}
-			// If the limiter has made space, don't loop, even if we haven't
-			// verified that there are enough bytes available. The block cache
-			// isn't taking up its own limit, so while we might cause
-			// backpressure for the journal, we're still meeting our limit.
-			break
+			if bytesAvailable >= 0 {
+				break
+			}
+			_, _, err = cache.evictLocked(ctx, defaultNumBlocksToEvict)
+			if err != nil {
+				return err
+			}
 		}
 		err = cache.blockDb.Put(blockKey, entry, nil)
 		if err != nil {
+			cache.limiter.afterDiskBlockCachePut(ctx, encodedLen, false)
 			return err
 		}
+		cache.limiter.afterDiskBlockCachePut(ctx, encodedLen, true)
 		cache.tlfCounts[tlfID]++
 		cache.numBlocks++
 		encodedLenUint := uint64(encodedLen)
@@ -450,7 +451,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 			cache.log.CWarningf(ctx, "Error writing to TLF cache database: %+v", err)
 		}
 	}
-	return cache.updateMetadataLocked(ctx, tlfID, blockKey, encodedLen)
+	return cache.updateMetadataLocked(ctx, tlfID, blockKey, int(encodedLen))
 }
 
 // deleteLocked deletes a set of blocks from the disk block cache.

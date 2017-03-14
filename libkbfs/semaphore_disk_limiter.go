@@ -117,6 +117,13 @@ func (sdl semaphoreDiskLimiter) beforeDiskBlockCachePut(ctx context.Context,
 	return sdl.byteSemaphore.ForceAcquire(blockBytes), nil
 }
 
+func (sdl semaphoreDiskLimiter) afterDiskBlockCachePut(ctx context.Context,
+	blockBytes int64, putData bool) {
+	if !putData {
+		sdl.byteSemaphore.Release(blockBytes)
+	}
+}
+
 type semaphoreDiskLimiterStatus struct {
 	Type string
 
