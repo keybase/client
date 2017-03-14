@@ -11,7 +11,7 @@ import {ImageRender} from './attachment.render'
 import type {Props, ProgressBarProps, ImageIconProps} from './attachment'
 
 function _showProgressBar (messageState, progress) {
-  return !!progress && (messageState === 'uploading' || (!isMobile && messageState === 'downloading'))
+  return !!progress && (messageState === 'uploading' || (messageState === 'downloading'))
 }
 
 function _showPreviewProgress (messageState, progress) {
