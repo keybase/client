@@ -2075,7 +2075,7 @@ func (fbo *folderBlockOps) makeLocalBcache(ctx context.Context,
 // StartSync starts a sync for the given file. It returns the new
 // FileBlock which has the readied top-level block which includes all
 // writes since the last sync. Must be used with CleanupSyncState()
-// and FinishSync() like so:
+// and UpdatePointers/FinishSyncLocked() like so:
 //
 // 	fblock, bps, lbc, syncState, err :=
 //		...fbo.StartSync(ctx, lState, md, uid, file)
@@ -2088,7 +2088,10 @@ func (fbo *folderBlockOps) makeLocalBcache(ctx context.Context,
 //	}
 //      ...
 //
-//	... = ...fbo.FinishSync(ctx, lState, file, ..., syncState)
+//
+//	... = fbo.UpdatePointers(..., func() error {
+//      ...fbo.FinishSyncLocked(ctx, lState, file, ..., syncState)
+//  })
 func (fbo *folderBlockOps) StartSync(ctx context.Context,
 	lState *lockState, md *RootMetadata, uid keybase1.UID, file path) (
 	fblock *FileBlock, bps *blockPutState, lbc localBcache,
@@ -2295,16 +2298,15 @@ func (fbo *folderBlockOps) doDeferredWritesLocked(ctx context.Context,
 	return stillDirty, nil
 }
 
-// FinishSync finishes the sync process for a file, given the state
-// from StartSync. Specifically, it re-applies any writes that
+// FinishSyncLocked finishes the sync process for a file, given the
+// state from StartSync. Specifically, it re-applies any writes that
 // happened since the call to StartSync.
-func (fbo *folderBlockOps) FinishSync(
+func (fbo *folderBlockOps) FinishSyncLocked(
 	ctx context.Context, lState *lockState,
 	oldPath, newPath path, md ReadOnlyRootMetadata,
 	syncState fileSyncState, fbm *folderBlockManager) (
 	stillDirty bool, err error) {
-	fbo.blockLock.Lock(lState)
-	defer fbo.blockLock.Unlock(lState)
+	fbo.blockLock.AssertLocked(lState)
 
 	dirtyBcache := fbo.config.DirtyBlockCache()
 	for _, ptr := range syncState.oldFileBlockPtrs {
@@ -2771,13 +2773,21 @@ func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, n
 }
 
 // UpdatePointers updates all the pointers in the node cache
-// atomically.
-func (fbo *folderBlockOps) UpdatePointers(kmd KeyMetadata, lState *lockState, op op, shouldPrefetch bool) {
+// atomically.  If `afterUpdateFn` is non-nil, it's called under the
+// same block lock under which the pointers were updated.
+func (fbo *folderBlockOps) UpdatePointers(kmd KeyMetadata, lState *lockState,
+	op op, shouldPrefetch bool, afterUpdateFn func() error) error {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	for _, update := range op.allUpdates() {
 		fbo.updatePointer(kmd, update.Unref, update.Ref, shouldPrefetch)
 	}
+
+	if afterUpdateFn == nil {
+		return nil
+	}
+
+	return afterUpdateFn()
 }
 
 func (fbo *folderBlockOps) unlinkDuringFastForwardLocked(ctx context.Context,
