@@ -242,6 +242,18 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, conv
 		if query.ConvID != nil && !query.ConvID.Eq(conv.Metadata.ConversationID) {
 			ok = false
 		}
+		if len(query.ConvIDs) > 0 {
+			found := false
+			for _, cid := range query.ConvIDs {
+				if cid.Eq(conv.GetConvID()) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				ok = false
+			}
+		}
 		if query.After != nil && !conv.ReaderInfo.Mtime.After(*query.After) {
 			ok = false
 		}
