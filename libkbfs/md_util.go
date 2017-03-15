@@ -277,6 +277,9 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 	err error) {
 	if bid == NullBranchID {
 		// We're not really unmerged, so there's nothing to do.
+		// TODO: require the caller to avoid making this call if the
+		// bid isn't set (and change the mdserver behavior in that
+		// case as well).
 		return startRev, nil, nil
 	}
 
