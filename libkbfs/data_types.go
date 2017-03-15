@@ -744,3 +744,14 @@ const (
 	// layer (e.g., for chat on mobile).
 	InitMinimal
 )
+
+func (im InitMode) String() string {
+	switch im {
+	case InitDefault:
+		return InitDefaultString
+	case InitMinimal:
+		return InitMinimalString
+	default:
+		return "unknown"
+	}
+}
