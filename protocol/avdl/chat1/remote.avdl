@@ -159,9 +159,9 @@ protocol remote {
   } 
 
   variant SyncInboxRes switch (SyncInboxResType typ) {
-    case CURRENT: InboxVers;
+    case CURRENT: void;
     case INCREMENTAL: SyncIncrementalRes;
-    case CLEAR: InboxVers;
+    case CLEAR: void;
   }
 
   // Sync down the inbox given a current version

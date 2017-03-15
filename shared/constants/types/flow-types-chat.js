@@ -1459,9 +1459,9 @@ export type SignatureInfo = {
 }
 
 export type SyncInboxRes =
-    { typ: 0, current: ?InboxVers }
+    { typ: 0 }
   | { typ: 1, incremental: ?SyncIncrementalRes }
-  | { typ: 2, clear: ?InboxVers }
+  | { typ: 2 }
 
 export type SyncInboxResType =
     0 // CURRENT_0

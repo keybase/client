@@ -339,7 +339,7 @@
             "name": "CURRENT",
             "def": false
           },
-          "body": "InboxVers"
+          "body": null
         },
         {
           "label": {
@@ -353,7 +353,7 @@
             "name": "CLEAR",
             "def": false
           },
-          "body": "InboxVers"
+          "body": null
         }
       ]
     }
