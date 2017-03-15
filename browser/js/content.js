@@ -61,7 +61,7 @@ function renderChat(parent, toUsername) {
     <p>Encrypt to <span class="keybase-username">'+ toUsername +'</span>:</p>\
     <p><textarea name="keybase-chat" rows="6"></textarea></p>\
     <p><label><input type="checkbox" name="keybase-nudge" checked /> <em>public</em> nudge (so they know about Keybase)</label></p>\
-    <p><textarea name="keybase-text">/u/'+ toUsername + ' - I left you an end-to-end encrypted replace in Keybase. https://keybase.io/reddit-crypto</textarea></p>\
+    <p><textarea name="keybase-text">/u/'+ toUsername + ' - I left you an end-to-end encrypted message in Keybase. https://keybase.io/reddit-crypto</textarea></p>\
     <p><input type="submit" value="Send" /></p> \
   ';
   f.addEventListener('submit', submitChat);
