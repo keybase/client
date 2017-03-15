@@ -18,9 +18,20 @@ function setupSource () {
   }
   forwarded = true
 
-  window.console.log = (...args) => { localLog(...args); logger.info(args.join(', ')) }
-  window.console.warn = (...args) => { localWarn(...args); logger.warn(args.join(', ')) }
-  window.console.error = (...args) => { localError(...args); logger.error(args.join(', ')) }
+  window.console.log = (...args) => {
+    localLog(...args)
+    logger.info(args.join(', '))
+  }
+
+  window.console.warn = (...args) => {
+    localWarn(...args)
+    logger.warn(args.join(', '))
+  }
+
+  window.console.error = (...args) => {
+    localError(...args)
+    logger.error(args.join(', '))
+  }
 }
 
 export {

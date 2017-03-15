@@ -38,7 +38,7 @@ public class MainActivity extends ReactActivity {
         }
 
         logFile = this.getFileStreamPath("android.log");
-        initOnce(this.getFilesDir().getPath(), logFile.getAbsolutePath(), "prod", false);
+        initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false);
 
         super.onCreate(savedInstanceState);
     }
