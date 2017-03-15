@@ -33,9 +33,8 @@ static NSString *const eventName = @"objc-engine-event";
 
 - (instancetype)initWithSettings:(NSDictionary *)settings error:(NSError **)error {
   if ((self = [super init])) {
-    [self setupKeybaseWithSettings:settings error:error];
     [self setupQueues];
-//    [self startReadLoop];
+    [self setupKeybaseWithSettings:settings error:error];
   }
   return self;
 }
