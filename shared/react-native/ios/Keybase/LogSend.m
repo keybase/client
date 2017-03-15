@@ -1,6 +1,6 @@
 #import "LogSend.h"
 
-NSString * logPath = @"";
+static NSString * logPath = @"";
 
 @implementation LogSend
 + (void)setPath:(NSString*)uiLogPath {
