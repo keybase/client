@@ -54,7 +54,7 @@ function renderChat(parent, toUsername) {
   // TODO: Prevent navigation?
   // The chat widget is enclosed in the form element.
   const f = document.createElement("form");
-  f.action = "#"; // Avoid submitting even if we failt to preventDefault
+  f.action = "#"; // Avoid submitting even if we fail to preventDefault
   f.innerHTML = '\
     <h3>Keybase Chat</h3>\
     <input type="hidden" name="keybase-to" value="'+ toUsername +'" />\
@@ -76,10 +76,12 @@ function submitChat(e) {
   const nudgeDo = e.currentTarget["keybase-nudge"].checked;
   const nudgeText = e.currentTarget["keybase-text"].value;
 
+  // TODO: Check that to/body are not empty.
+
   const port = chrome.runtime.connect();
   port.postMessage({
     "method": "chat",
-    "to": to,
+    "to": to + "@reddit",
     "body": body
   });
   port.onMessage.addListener(function(response) {
