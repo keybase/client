@@ -6,7 +6,7 @@ package pvlsource
 import (
 	"crypto/sha512"
 	"encoding/hex"
-	"fmt"
+	"encoding/json"
 	"io/ioutil"
 	"sync"
 	"time"
@@ -15,7 +15,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	jsonw "github.com/keybase/go-jsonw"
 )
 
 // Older than this will try to refresh merkle root.
@@ -61,29 +60,35 @@ func NewPvlSourceAndInstall(g *libkb.GlobalContext) libkb.PvlSource {
 	return s
 }
 
+type pvlKitT struct {
+	KitVersion int                     `json:"kit_version"`
+	Ctime      int                     `json:"ctime"`
+	Tab        map[int]json.RawMessage `json:"tab"`
+}
+
 // Get PVL to use.
 func (s *PvlSourceImpl) GetPVL(ctx context.Context, pvlVersion int) (string, error) {
+
 	kitJSON, err := s.GetKitString(ctx)
 	if err != nil {
 		return "", err
 	}
-	kit, err := jsonw.Unmarshal([]byte(kitJSON))
+
+	var kit pvlKitT
+	err = json.Unmarshal([]byte(kitJSON), &kit)
 	if err != nil {
-		return "", err
+		return "", libkb.NewPvlSourceError("unmarshalling kit: %s", err)
 	}
 
-	sub := kit.AtKey("tab").AtKey(fmt.Sprintf("%d", pvlVersion))
-	if !sub.IsOk() {
+	sub, ok := kit.Tab[pvlVersion]
+	if !ok {
 		return "", libkb.NewPvlSourceError("missing pvl for version: %d", pvlVersion)
 	}
-	if sub.IsNil() {
+	if len(sub) == 0 {
 		return "", libkb.NewPvlSourceError("empty pvl for version: %d", pvlVersion)
 	}
-	pvl, err := sub.Marshal()
-	if err != nil {
-		return "", libkb.NewPvlSourceError("error re-marshalling pvl: %s", err)
-	}
-	return string(pvl), nil
+
+	return string(sub), nil
 }
 
 // Get pvl kit as a string.
