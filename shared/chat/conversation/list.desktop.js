@@ -13,7 +13,7 @@ import hoc from './list-hoc'
 import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache as DefaultCellMeasurerCellSizeCache} from 'react-virtualized'
 import {Icon} from '../../common-adapters'
 import {TextPopupMenu, AttachmentPopupMenu} from './messages/popup'
-import {clipboard} from 'electron'
+import {BrowserWindow, clipboard} from 'electron'
 import {globalColors, globalStyles} from '../../styles'
 
 import type {List} from 'immutable'
@@ -255,6 +255,7 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _showEditor = (message: TextMessage, messageRect: any) => {
+    console.log('messageRect:', messageRect)
     const popupComponent = (
       <EditPopup
         messageRect={messageRect}
@@ -272,13 +273,20 @@ class ConversationList extends Component<void, Props, State> {
     })
   }
 
-  _findMessageFromDOMNode (start: any) : any {
+  _findMessageFromDOMNode (start: any, match: string = '.message') : any {
     let current = start
-    while (current) {
-      if (current.matches('.message')) {
+    while (current && current.matches) {
+      if (current.matches(match)) {
         return current
       }
       current = current.parentNode
+    }
+
+    // If not found, try to find it in the message-wrapper
+    const wrapper = this._findMessageFromDOMNode(start, '.message-wrapper')
+    if (wrapper) {
+      const messageNodes = wrapper.getElementsByClassName('message')
+      if (messageNodes.length > 0) return messageNodes[0]
     }
 
     return null
@@ -339,7 +347,17 @@ class ConversationList extends Component<void, Props, State> {
     const isFirstMessage = index === 0
     const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
 
-    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, this._onAction)
+    const onShowEditor = (message: Message, event: any) => {
+      if (message.type === 'Text') {
+        const messageNode = this._findMessageFromDOMNode(event.target)
+        const messageRect = messageNode && this._domNodeToRect(messageNode)
+        if (messageRect) {
+          this._showEditor(message, messageRect)
+        }
+      }
+    }
+
+    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, this._onAction, onShowEditor)
 
     return messageFactory(options)
   }
