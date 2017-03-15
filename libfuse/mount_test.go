@@ -1227,7 +1227,7 @@ func TestRemoveFileWhileOpenSetEx(t *testing.T) {
 	}
 }
 
-func TestRemoveFileWhileOpenWriting(t *testing.T) {
+func TestRemoveFileWhileOpenWritingInTLFRoot(t *testing.T) {
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	defer libkbfs.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
@@ -1260,6 +1260,151 @@ func TestRemoveFileWhileOpenWriting(t *testing.T) {
 
 	if _, err := ioutil.ReadFile(p); !ioutil.IsNotExist(err) {
 		t.Errorf("file still exists: %v", err)
+	}
+}
+
+func TestRemoveFileWhileOpenWritingInSubDir(t *testing.T) {
+	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	defer libkbfs.CleanupCancellationDelayer(ctx)
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+	mnt, _, cancelFn := makeFS(t, ctx, config)
+	defer mnt.Close()
+	defer cancelFn()
+
+	dirPath := path.Join(mnt.Dir, PrivateName, "jdoe", "dir")
+	if err := os.Mkdir(dirPath, 0700); err != nil {
+		t.Fatal(err)
+	}
+
+	p := path.Join(dirPath, "myfile")
+	f, err := os.Create(p)
+	if err != nil {
+		t.Fatalf("cannot create file: %v", err)
+	}
+	defer f.Close()
+
+	if err := ioutil.Remove(p); err != nil {
+		t.Fatalf("cannot delete file: %v", err)
+	}
+
+	// this must not resurrect a deleted file
+	const input = "hello, world\n"
+	if _, err := f.Write([]byte(input)); err != nil {
+		t.Fatalf("cannot write: %v", err)
+	}
+	if err := f.Close(); err != nil {
+		t.Fatalf("error on close: %v", err)
+	}
+
+	checkDir(t, dirPath, map[string]fileInfoCheck{})
+
+	if _, err := ioutil.ReadFile(p); !ioutil.IsNotExist(err) {
+		t.Errorf("file still exists: %v", err)
+	}
+}
+
+func TestRenameOverFileWhileOpenWritingInDifferentDir(t *testing.T) {
+	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	defer libkbfs.CleanupCancellationDelayer(ctx)
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+	mnt, _, cancelFn := makeFS(t, ctx, config)
+	defer mnt.Close()
+	defer cancelFn()
+
+	dirPath := path.Join(mnt.Dir, PrivateName, "jdoe", "dir")
+	if err := os.Mkdir(dirPath, 0700); err != nil {
+		t.Fatal(err)
+	}
+
+	p1 := path.Join(dirPath, "myfile")
+	f1, err := os.Create(p1)
+	if err != nil {
+		t.Fatalf("cannot create file: %v", err)
+	}
+	defer f1.Close()
+
+	p2 := path.Join(mnt.Dir, PrivateName, "jdoe", "mynewfile")
+	f2, err := os.Create(p2)
+	if err != nil {
+		t.Fatalf("cannot create file: %v", err)
+	}
+	f2.Close()
+
+	if err := os.Rename(p2, p1); err != nil {
+		t.Fatalf("cannot move file: %v", err)
+	}
+
+	// this must not resurrect content in f2
+	const input = "hello, world\n"
+	if _, err := f1.Write([]byte(input)); err != nil {
+		t.Fatalf("cannot write: %v", err)
+	}
+	if err := f1.Close(); err != nil {
+		t.Fatalf("error on close: %v", err)
+	}
+
+	checkDir(t, dirPath, map[string]fileInfoCheck{"myfile": nil})
+
+	content, err := ioutil.ReadFile(p1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(content) > 0 {
+		t.Errorf("write to overwritee resulted in content in overwriter")
+	}
+}
+
+func TestRenameOverFileWhileOpenWritingInSameSubDir(t *testing.T) {
+	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	defer libkbfs.CleanupCancellationDelayer(ctx)
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+	mnt, _, cancelFn := makeFS(t, ctx, config)
+	defer mnt.Close()
+	defer cancelFn()
+
+	dirPath := path.Join(mnt.Dir, PrivateName, "jdoe", "dir")
+	if err := os.Mkdir(dirPath, 0700); err != nil {
+		t.Fatal(err)
+	}
+
+	p1 := path.Join(dirPath, "myfile")
+	f1, err := os.Create(p1)
+	if err != nil {
+		t.Fatalf("cannot create file: %v", err)
+	}
+	defer f1.Close()
+
+	p2 := path.Join(dirPath, "mynewfile")
+	f2, err := os.Create(p2)
+	if err != nil {
+		t.Fatalf("cannot create file: %v", err)
+	}
+	f2.Close()
+
+	if err := os.Rename(p2, p1); err != nil {
+		t.Fatalf("cannot move file: %v", err)
+	}
+
+	// this must not resurrect content in f2
+	const input = "hello, world\n"
+	if _, err := f1.Write([]byte(input)); err != nil {
+		t.Fatalf("cannot write: %v", err)
+	}
+	if err := f1.Close(); err != nil {
+		t.Fatalf("error on close: %v", err)
+	}
+
+	checkDir(t, dirPath, map[string]fileInfoCheck{"myfile": nil})
+
+	content, err := ioutil.ReadFile(p1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(content) > 0 {
+		t.Errorf("write to overwritee resulted in content in overwriter")
 	}
 }
 
