@@ -489,3 +489,22 @@ const (
 // FirstPRodMerkleSeqnoWithSkips is the first merkle root on production that
 // has skip pointers indicating log(n) previous merkle roots.
 var FirstProdMerkleSeqnoWithSkips = Seqno(835903)
+
+type AppType string
+
+const (
+	MobileAppType  AppType = "mobile"
+	DesktopAppType         = "desktop"
+	NoAppType              = ""
+)
+
+func StringToAppType(s string) AppType {
+	switch s {
+	case string(MobileAppType):
+		return MobileAppType
+	case string(DesktopAppType):
+		return DesktopAppType
+	default:
+		return NoAppType
+	}
+}

@@ -30,6 +30,7 @@ import (
 
 type configGetter interface {
 	GetAPITimeout() (time.Duration, bool)
+	GetAppType() AppType
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
 	GetCodeSigningKIDs() []string
