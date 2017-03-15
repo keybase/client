@@ -52,7 +52,12 @@ func (c *CmdSimpleFSMove) Run() error {
 		return err
 	}
 
-	for _, src := range c.src {
+	destPaths, err := doSimpleFSPlatformGlob(c.G(), ctx, cli, c.src)
+	if err != nil {
+		return err
+	}
+
+	for _, src := range destPaths {
 		c.G().Log.Debug("SimpleFSMove %s -> %s, %v", pathToString(src), destPathString, isDestDir)
 
 		dest, err := makeDestPath(c.G(), ctx, cli, src, c.dest, isDestDir, destPathString)

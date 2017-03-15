@@ -11,10 +11,13 @@ import type {TypedState} from '../../constants/reducer'
 import type {ConversationIDKey} from '../../constants/chat'
 import {CommonConversationStatus} from '../../constants/types/flow-types-chat'
 
-function _rowDerivedProps (rekeyInfo, unreadCount, isSelected) {
+function _rowDerivedProps (rekeyInfo, finalizeInfo, unreadCount, isSelected) {
   // Derived props
-  const youNeedToRekey = rekeyInfo && !rekeyInfo.get('rekeyParticipants').count() && rekeyInfo.get('youCanRekey')
-  const participantNeedToRekey = rekeyInfo && !!rekeyInfo.get('rekeyParticipants').count()
+
+  // If it's finalized we don't show the rekey as they can't solve it themselves
+  const youNeedToRekey = !finalizeInfo && rekeyInfo && !rekeyInfo.get('rekeyParticipants').count() && rekeyInfo.get('youCanRekey')
+  const participantNeedToRekey = !finalizeInfo && rekeyInfo && !!rekeyInfo.get('rekeyParticipants').count()
+
   const hasUnread = !!unreadCount
   const subColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
   const showBold = !isSelected && hasUnread
@@ -42,6 +45,7 @@ const makeGetParticipants = conversationIDKey => state => (
   participantFilter(state.chat.get('pendingConversations').get(conversationIDKey), state.config.username || '')
 )
 const getNowOverride = state => state.chat.get('nowOverride')
+const makeGetFinalizedInfo = conversationIDKey => state => state.chat.get('finalizedState').get(conversationIDKey)
 
 const makeSelector = (conversationIDKey) => {
   const isPending = isPendingConversationIDKey(conversationIDKey)
@@ -57,13 +61,13 @@ const makeSelector = (conversationIDKey) => {
         snippet: '',
         timestamp: formatTimeForConversationList(Date.now(), nowOverride),
         unreadCount: 0,
-        ..._rowDerivedProps(null, 0, isSelected),
+        ..._rowDerivedProps(null, null, 0, isSelected),
       })
     )
   } else {
     return createImmutableEqualSelector(
-      [makeGetConversation(conversationIDKey), makeGetIsSelected(conversationIDKey), makeGetUnreadCounts(conversationIDKey), getYou, makeGetRekeyInfo(conversationIDKey), getNowOverride],
-      (conversation, isSelected, unreadCount, you, rekeyInfo, nowOverride) => ({
+      [makeGetConversation(conversationIDKey), makeGetIsSelected(conversationIDKey), makeGetUnreadCounts(conversationIDKey), getYou, makeGetRekeyInfo(conversationIDKey), getNowOverride, makeGetFinalizedInfo(conversationIDKey)],
+      (conversation, isSelected, unreadCount, you, rekeyInfo, nowOverride, finalizeInfo) => ({
         conversationIDKey,
         isMuted: conversation.get('info').status === CommonConversationStatus.muted,
         isSelected,
@@ -72,7 +76,7 @@ const makeSelector = (conversationIDKey) => {
         snippet: conversation.get('snippet'),
         timestamp: formatTimeForConversationList(conversation.get('time'), nowOverride),
         unreadCount,
-        ..._rowDerivedProps(rekeyInfo, unreadCount, isSelected),
+        ..._rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isSelected),
       })
     )
   }

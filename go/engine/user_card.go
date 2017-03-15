@@ -6,6 +6,7 @@ package engine
 import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 type card struct {
@@ -29,29 +30,29 @@ func (c *card) GetAppStatus() *libkb.AppStatus {
 	return &c.Status
 }
 
-func getUserCard(g *libkb.GlobalContext, uid keybase1.UID, useSession bool) (ret *keybase1.UserCard, err error) {
-	defer g.Trace("getUserCard", func() error { return err })()
+func getUserCard(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, useSession bool) (ret *keybase1.UserCard, err error) {
+	defer g.CTrace(ctx, "getUserCard", func() error { return err })()
 
 	cached, err := g.CardCache.Get(uid, useSession)
 	if err != nil {
-		g.Log.Debug("CardCache.Get error: %s", err)
+		g.Log.CDebugf(ctx, "CardCache.Get error: %s", err)
 	} else if cached != nil {
-		g.Log.Debug("CardCache.Get hit for %s", uid)
+		g.Log.CDebugf(ctx, "CardCache.Get hit for %s", uid)
 		return cached, nil
 	}
-	g.Log.Debug("CardCache.Get miss for %s", uid)
+	g.Log.CDebugf(ctx, "CardCache.Get miss for %s", uid)
 
 	arg := libkb.APIArg{
 		Endpoint:    "user/card",
 		NeedSession: useSession,
 		Args:        libkb.HTTPArgs{"uid": libkb.S{Val: uid.String()}},
-		NetContext:  g.NetContext,
+		NetContext:  ctx,
 	}
 
 	var card card
 
 	if err = g.API.GetDecode(arg, &card); err != nil {
-		g.Log.Warning("error getting user/card for %s: %s\n", uid, err)
+		g.Log.CWarningf(ctx, "error getting user/card for %s: %s\n", uid, err)
 		return nil, err
 	}
 
@@ -69,14 +70,14 @@ func getUserCard(g *libkb.GlobalContext, uid keybase1.UID, useSession bool) (ret
 	}
 
 	if err := g.CardCache.Set(ret, useSession); err != nil {
-		g.Log.Debug("CardCache.Set error: %s", err)
+		g.Log.CDebugf(ctx, "CardCache.Set error: %s", err)
 	}
 
 	return ret, nil
 }
 
-func displayUserCard(g *libkb.GlobalContext, iui libkb.IdentifyUI, uid keybase1.UID, useSession bool) error {
-	card, err := getUserCard(g, uid, useSession)
+func displayUserCard(ctx context.Context, g *libkb.GlobalContext, iui libkb.IdentifyUI, uid keybase1.UID, useSession bool) error {
+	card, err := getUserCard(ctx, g, uid, useSession)
 	if err != nil {
 		return err
 	}
@@ -87,10 +88,10 @@ func displayUserCard(g *libkb.GlobalContext, iui libkb.IdentifyUI, uid keybase1.
 	return iui.DisplayUserCard(*card)
 }
 
-func displayUserCardAsync(g *libkb.GlobalContext, iui libkb.IdentifyUI, uid keybase1.UID, useSession bool) <-chan error {
+func displayUserCardAsync(ctx context.Context, g *libkb.GlobalContext, iui libkb.IdentifyUI, uid keybase1.UID, useSession bool) <-chan error {
 	ch := make(chan error)
 	go func() {
-		ch <- displayUserCard(g, iui, uid, useSession)
+		ch <- displayUserCard(ctx, g, iui, uid, useSession)
 	}()
 	return ch
 }

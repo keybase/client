@@ -320,10 +320,11 @@ export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: Message
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
-export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
+export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', {force: boolean}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type AddPendingConversation = NoErrorTypedAction<'chat:addPendingConversation', {participants: Array<string>}>
+export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
 export type PendingToRealConversation = NoErrorTypedAction<'chat:pendingToRealConversation', {oldKey: ConversationIDKey, newKey: ConversationIDKey}>
 export type ReplaceConversation = NoErrorTypedAction<'chat:replaceConversation', {oldKey: ConversationIDKey, newKey: ConversationIDKey}>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
@@ -418,6 +419,7 @@ export type ShareAttachment = NoErrorTypedAction<'chat:shareAttachment', {
 
 export type Actions = AddPendingConversation
   | AppendMessages
+  | ClearRekey
   | DeleteMessage
   | EditMessage
   | ShowEditor

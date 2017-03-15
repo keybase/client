@@ -1,10 +1,10 @@
 // @flow
-import {RouteDefNode} from '../route-tree'
-import Devices from './'
 import CodePage from '../login/register/code-page'
-import GenPaperKey from './gen-paper-key'
-import DevicePage from './device-page'
-import RemoveDevice from './device-revoke'
+import DevicePage from './device-page/container'
+import Devices from './container'
+import GenPaperKey from './gen-paper-key/container'
+import RevokeDevice from './device-revoke/container'
+import {RouteDefNode} from '../route-tree'
 
 const routeTree = new RouteDefNode({
   component: Devices,
@@ -20,9 +20,9 @@ const routeTree = new RouteDefNode({
     devicePage: {
       component: DevicePage,
       children: {
-        removeDevice: {
+        revokeDevice: {
           title: 'Device Revoke',
-          component: RemoveDevice,
+          component: RevokeDevice,
         },
       },
     },

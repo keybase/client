@@ -479,7 +479,7 @@ func (v *CredentialAuthority) CheckUserKey(ctx context.Context, uid keybase1.UID
 	v.checkCh <- checkArg{uid: uid, username: username, kid: kid, retCh: retCh}
 	select {
 	case <-ctx.Done():
-		err = ErrCanceled
+		err = ctx.Err()
 	case err = <-retCh:
 	}
 	return err
@@ -506,7 +506,7 @@ func (v *CredentialAuthority) CompareUserKeys(ctx context.Context, uid keybase1.
 	v.checkCh <- checkArg{uid: uid, sibkeys: sibkeys, subkeys: subkeys, retCh: retCh}
 	select {
 	case <-ctx.Done():
-		err = ErrCanceled
+		err = ctx.Err()
 	case err = <-retCh:
 	}
 	return err

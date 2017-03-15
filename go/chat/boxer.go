@@ -128,6 +128,9 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	}
 
 	unboxed, ierr := b.unbox(ctx, boxed, encryptionKey)
+	if ierr == nil {
+		ierr = b.checkInvariants(ctx, convID, boxed, unboxed)
+	}
 	if ierr != nil {
 		b.Debug(ctx, "failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
 			ierr.Error())
@@ -137,11 +140,15 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		return chat1.MessageUnboxed{}, ierr
 	}
 
+	return chat1.NewMessageUnboxedWithValid(*unboxed), nil
+}
+
+func (b *Boxer) checkInvariants(ctx context.Context, convID chat1.ConversationID, boxed chat1.MessageBoxed, unboxed *chat1.MessageUnboxedValid) UnboxingError {
 	// Check that the ConversationIDTriple in the signed message header matches
 	// the conversation ID we were expecting.
 	if !unboxed.ClientHeader.Conv.Derivable(convID) {
 		err := fmt.Errorf("conversation ID mismatch")
-		return chat1.MessageUnboxed{}, NewPermanentUnboxingError(err)
+		return NewPermanentUnboxingError(err)
 	}
 
 	// Make sure the body hash is unique to this message, and then record it.
@@ -171,7 +178,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	replayErr := storage.CheckAndRecordBodyHash(b.G(), unboxed.BodyHash, boxed.ServerHeader.MessageID, convID)
 	if replayErr != nil {
 		b.Debug(ctx, "UnboxMessage found a replayed body hash: %s", replayErr)
-		return chat1.MessageUnboxed{}, NewPermanentUnboxingError(replayErr)
+		return NewPermanentUnboxingError(replayErr)
 	}
 
 	// Make sure the header hash and prev pointers of this message are
@@ -185,17 +192,17 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	prevPtrErr := storage.CheckAndRecordPrevPointer(b.G(), boxed.ServerHeader.MessageID, convID, unboxed.HeaderHash)
 	if prevPtrErr != nil {
 		b.Debug(ctx, "UnboxMessage found an inconsistent header hash: %s", prevPtrErr)
-		return chat1.MessageUnboxed{}, NewPermanentUnboxingError(prevPtrErr)
+		return NewPermanentUnboxingError(prevPtrErr)
 	}
 	for _, prevPtr := range unboxed.ClientHeader.Prev {
 		prevPtrErr := storage.CheckAndRecordPrevPointer(b.G(), prevPtr.Id, convID, prevPtr.Hash)
 		if prevPtrErr != nil {
 			b.Debug(ctx, "UnboxMessage found an inconsistent prev pointer: %s", prevPtrErr)
-			return chat1.MessageUnboxed{}, NewPermanentUnboxingError(prevPtrErr)
+			return NewPermanentUnboxingError(prevPtrErr)
 		}
 	}
 
-	return chat1.NewMessageUnboxedWithValid(*unboxed), nil
+	return nil
 }
 
 func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed, encryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {

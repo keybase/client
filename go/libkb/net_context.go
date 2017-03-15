@@ -49,3 +49,18 @@ func LogTagsToString(ctx context.Context) string {
 	}
 	return strings.Join(out, ",")
 }
+
+func CopyTagsToBackground(ctx context.Context) context.Context {
+	ret := context.Background()
+	if tags, ok := logger.LogTagsFromContext(ctx); ok {
+		ctx = logger.NewContextWithLogTags(ctx, tags)
+		for key, _ := range tags {
+			if ctxKey, ok := key.(withLogTagKey); ok {
+				if val, ok := ctx.Value(ctxKey).(string); ok && len(val) > 0 {
+					ret = context.WithValue(ret, ctxKey, val)
+				}
+			}
+		}
+	}
+	return ret
+}
