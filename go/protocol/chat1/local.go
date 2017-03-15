@@ -1389,7 +1389,7 @@ type GetInboxLocalRes struct {
 type GetInboxLocalQuery struct {
 	TlfName           *string              `codec:"tlfName,omitempty" json:"tlfName,omitempty"`
 	TopicName         *string              `codec:"topicName,omitempty" json:"topicName,omitempty"`
-	ConvID            *ConversationID      `codec:"convID,omitempty" json:"convID,omitempty"`
+	ConvIDs           []ConversationID     `codec:"convIDs" json:"convIDs"`
 	TopicType         *TopicType           `codec:"topicType,omitempty" json:"topicType,omitempty"`
 	TlfVisibility     *TLFVisibility       `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
 	Before            *gregor1.Time        `codec:"before,omitempty" json:"before,omitempty"`
@@ -1523,6 +1523,7 @@ type GetInboxAndUnboxLocalArg struct {
 
 type GetInboxNonblockLocalArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
+	MaxUnbox         *int                         `codec:"maxUnbox,omitempty" json:"maxUnbox,omitempty"`
 	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`

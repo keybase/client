@@ -1284,11 +1284,11 @@
           "name": "topicName"
         },
         {
-          "type": [
-            null,
-            "ConversationID"
-          ],
-          "name": "convID"
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "convIDs"
         },
         {
           "type": [
@@ -1829,6 +1829,13 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "maxUnbox",
+          "type": [
+            null,
+            "int"
+          ]
         },
         {
           "name": "query",

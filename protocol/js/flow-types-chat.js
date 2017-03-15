@@ -930,7 +930,7 @@ export type GetInboxByTLFIDRemoteRes = {
 export type GetInboxLocalQuery = {
   tlfName?: ?string,
   topicName?: ?string,
-  convID?: ?ConversationID,
+  convIDs?: ?Array<ConversationID>,
   topicType?: ?TopicType,
   tlfVisibility?: ?TLFVisibility,
   before?: ?gregor1.Time,
@@ -1638,6 +1638,7 @@ export type localGetInboxAndUnboxLocalRpcParam = Exact<{
 }>
 
 export type localGetInboxNonblockLocalRpcParam = Exact<{
+  maxUnbox?: ?int,
   query?: ?GetInboxLocalQuery,
   pagination?: ?Pagination,
   identifyBehavior: keybase1.TLFIdentifyBehavior

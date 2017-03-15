@@ -54,7 +54,7 @@ func (b *BlockingLocalizer) SetOffline() {
 
 func (b *BlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) (res []chat1.ConversationLocal, err error) {
 
-	res, err = b.pipeline.localizeConversationsPipeline(ctx, uid, inbox.ConvsUnverified, nil)
+	res, err = b.pipeline.localizeConversationsPipeline(ctx, uid, inbox.ConvsUnverified, nil, nil)
 	if err != nil {
 		return res, err
 	}
@@ -79,15 +79,17 @@ type NonblockingLocalizer struct {
 
 	pipeline   *localizerPipeline
 	localizeCb chan NonblockInboxResult
+	maxUnbox   *int
 }
 
 func NewNonblockingLocalizer(g *libkb.GlobalContext, localizeCb chan NonblockInboxResult,
-	getTlfInterface func() keybase1.TlfInterface) *NonblockingLocalizer {
+	maxUnbox *int, getTlfInterface func() keybase1.TlfInterface) *NonblockingLocalizer {
 	return &NonblockingLocalizer{
 		Contextified: libkb.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "NonblockingLocalizer", false),
 		pipeline:     newLocalizerPipeline(g, getTlfInterface, newBasicSupersedesTransform(g)),
 		localizeCb:   localizeCb,
+		maxUnbox:     maxUnbox,
 	}
 }
 
@@ -101,7 +103,7 @@ func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.I
 	localizer := newLocalizerPipeline(b.G(), b.pipeline.getTlfInterface, newNullSupersedesTransform())
 	localizer.offline = true // Set this guy offline, so we are guaranteed to not do anything slow
 
-	convs, err := localizer.localizeConversationsPipeline(ctx, uid, inbox.ConvsUnverified, nil)
+	convs, err := localizer.localizeConversationsPipeline(ctx, uid, inbox.ConvsUnverified, nil, nil)
 	if err != nil {
 		// Any errors we just return original inbox
 		b.Debug(ctx, "filterInboxRes: error running localize pipeline: %s", err.Error())
@@ -158,7 +160,7 @@ func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 		b.Debug(bctx, "Localize: starting background localization: convs: %d",
 			len(inbox.ConvsUnverified))
 		b.pipeline.localizeConversationsPipeline(bctx, uid, inbox.ConvsUnverified,
-			&b.localizeCb)
+			b.maxUnbox, &b.localizeCb)
 
 		// Shutdown localize channel
 		close(b.localizeCb)
@@ -672,7 +674,7 @@ func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 }
 
 func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, uid gregor1.UID,
-	convs []chat1.Conversation, localizeCb *chan NonblockInboxResult) ([]chat1.ConversationLocal, error) {
+	convs []chat1.Conversation, maxUnbox *int, localizeCb *chan NonblockInboxResult) ([]chat1.ConversationLocal, error) {
 
 	// Fetch conversation local information in parallel
 	type jobRes struct {
@@ -694,6 +696,11 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 			case convCh <- job{conv: conv, index: i}:
 			case <-ctx.Done():
 				return ctx.Err()
+			}
+			if maxUnbox != nil && i >= *maxUnbox {
+				s.Debug(ctx, "localizeConversationsPipeline: maxUnbox set and reached, early exit: %d",
+					*maxUnbox)
+				break
 			}
 		}
 		return nil
