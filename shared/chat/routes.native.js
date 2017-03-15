@@ -21,6 +21,9 @@ const conversationRoute = new RouteDefNode({
       tags: {layerOnTop: true},
       children: {},
     },
+    enterPaperkey: {
+      component: EnterPaperkey,
+    },
     messageAction: {
       component: MessagePopup,
       tags: {layerOnTop: true},
@@ -30,9 +33,7 @@ const conversationRoute = new RouteDefNode({
       tags: {layerOnTop: true},
       children: {},
     },
-    enterPaperkey: {
-      component: EnterPaperkey,
-    },
+
   },
 })
 
