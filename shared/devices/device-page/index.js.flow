@@ -1,30 +1,31 @@
 // @flow
 import {Component} from 'react'
+
 import type {Device, DeviceType} from '../../constants/types/more'
+import type {IconType} from '../../common-adapters/icon'
 import type {Time} from '../../constants/types/flow-types'
 
 export type TimelineItem = {
-  type: 'LastUsed' | 'Added' | 'Revoked',
   desc: string,
-  subDesc?: string
-}
-
-export type BannerItem = {
-  type: 'OutOfDate' | 'WillUnlock',
-  desc: string
+  subDesc?: string,
+  type: 'LastUsed' | 'Added' | 'Revoked',
 }
 
 export type Props = {
-  type: DeviceType,
-  name: string,
-  deviceID: string,
+  bannerBackgroundColor: ?string,
+  bannerColor: ?string,
+  bannerDesc: ?string,
   currentDevice: boolean,
-  revokedAt?: ?Time,
-  timeline?: Array<TimelineItem>,
-  banner?: BannerItem,
-  showRemoveDevicePage: () => void,
   device: Device,
-  onBack: () => void
+  deviceID: string,
+  icon: IconType,
+  name: string,
+  onBack: () => void,
+  revokeName: ?string,
+  revokedAt?: ?Time,
+  showRevokeDevicePage: () => void,
+  timeline?: Array<TimelineItem>,
+  type: DeviceType,
 }
 
 export default class Render extends Component<void, Props, void> { }

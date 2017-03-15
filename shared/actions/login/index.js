@@ -9,7 +9,7 @@ import {bootstrap} from '../config'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {devicesTab, loginTab, profileTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
-import {loadDevices} from '../devices'
+import {load as loadDevices} from '../devices'
 import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
   deviceDeviceAddRpc, loginGetConfiguredAccountsRpc, CommonClientType,
   ConstantsStatusCode, ProvisionUiGPGMethod, CommonDeviceType,
@@ -21,7 +21,7 @@ import {overrideLoggedInTab} from '../../local-debug'
 
 import type {DeviceRole} from '../../constants/login'
 import type {DeviceType} from '../../constants/types/more'
-import type {Dispatch, GetState, AsyncAction, TypedAction, Action} from '../../constants/types/flux'
+import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
 import type {ResponseType} from '../../engine'
 import type {incomingCallMapType, DeviceType as RPCDeviceType} from '../../constants/types/flow-types'
 
@@ -327,10 +327,6 @@ export function addNewPhone () : AsyncAction {
 
 export function addNewComputer () : AsyncAction {
   return addNewDevice(Constants.codePageDeviceRoleNewComputer)
-}
-
-export function addNewPaperKey () : Action {
-  return navigateTo([devicesTab, 'genPaperKey'])
 }
 
 function addNewDevice (kind: DeviceRole) : AsyncAction {

@@ -55,11 +55,13 @@ export default function TabBarRender ({selectedTab, onTabClick, username, badgeN
   )
 }
 
+export const tabBarHeight = 56
+
 const stylesTabBar = {
   ...globalStyles.flexBoxRow,
   backgroundColor: globalColors.midnightBlue,
   justifyContent: 'space-between',
-  height: 56,
+  height: tabBarHeight,
 }
 
 const stylesTabButton = {

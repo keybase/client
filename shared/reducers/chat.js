@@ -326,11 +326,11 @@ function reducer (state: State = initialState, action: Actions) {
       ))
     }
     case 'chat:markThreadsStale': {
-      const {convIDKeys} = action.payload
+      const {convIDs} = action.payload
       // $FlowIssue
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
-          if (convIDKeys.length === 0 || convIDKeys.includes(conversationIDKey)) {
+          if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
             return conversationState.set('isStale', true)
           }
           return conversationState
@@ -409,6 +409,10 @@ function reducer (state: State = initialState, action: Actions) {
         .findIndex(conv => conv.conversationIDKey === conversationIDKey),
           entry => entry.set('muted', muted))
       )
+    case 'chat:clearRekey': {
+      const {conversationIDKey} = action.payload
+      return state.set('rekeyInfos', state.get('rekeyInfos').delete(conversationIDKey))
+    }
     case 'chat:updateInboxRekeyOthers': {
       const {conversationIDKey, rekeyers} = action.payload
       return state.set('rekeyInfos', state.get('rekeyInfos').set(conversationIDKey, new RekeyInfoRecord({rekeyParticipants: List(rekeyers)})))

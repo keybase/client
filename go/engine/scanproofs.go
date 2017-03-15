@@ -365,6 +365,7 @@ func (e *ScanProofsEngine) ProcessOne(ctx *Context, i int, rec map[string]string
 }
 
 // CheckOne checks one proof using two checkers (default, pvl).
+// NOTE: This doesn't make sense anymore because pvl is the default.
 // Returns nil or an error, whether a hint was found, and any more serious error
 func (e *ScanProofsEngine) CheckOne(ctx *Context, rec map[string]string, forcepvl bool, tickers ScanProofsTickers) (libkb.ProofError, bool, error) {
 	uid := keybase1.UID(rec["uid"])
@@ -403,12 +404,7 @@ func (e *ScanProofsEngine) CheckOne(ctx *Context, rec map[string]string, forcepv
 		return perr, foundhint, nil
 	}
 
-	perr := pc.CheckHint(e.G(), *hint)
-	if perr != nil {
-		return perr, foundhint, nil
-	}
-
-	perr = pc.CheckStatus(e.G(), *hint, libkb.ProofCheckerModeActive)
+	perr := pc.CheckStatus(e.G(), *hint, libkb.ProofCheckerModeActive)
 	if perr != nil {
 		return perr, foundhint, nil
 	}

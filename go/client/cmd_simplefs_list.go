@@ -5,8 +5,6 @@ package client
 
 import (
 	"errors"
-	"path/filepath"
-	"strings"
 
 	"golang.org/x/net/context"
 
@@ -41,49 +39,6 @@ func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	}
 }
 
-// HandleTopLevelKeybaseList - See if this is either /keybase/public or /keybase/private,
-// and request favorites accordingly.
-func (c *CmdSimpleFSList) HandleTopLevelKeybaseList(path keybase1.Path) (bool, error) {
-	private := false
-	pathType, err := path.PathType()
-	if err != nil {
-		return false, err
-	}
-	if pathType != keybase1.PathType_KBFS {
-		return false, nil
-	}
-	acc := filepath.Clean(strings.ToLower(path.Kbfs()))
-	acc = filepath.ToSlash(acc)
-	c.G().Log.Debug("fs ls HandleTopLevelKeybaseList: %s -> %s", path.Kbfs(), acc)
-	if acc == "/private" {
-		private = true
-	} else if acc != "/public" {
-		return false, nil
-	}
-
-	arg := keybase1.GetFavoritesArg{}
-	tlfs, err := list(arg)
-	if err != nil {
-		return true, err
-	}
-
-	result := keybase1.SimpleFSListResult{}
-
-	// copy the list result into a SimpleFS result
-	// to use the same output function
-	for _, f := range tlfs.FavoriteFolders {
-		if f.Private == private {
-			result.Entries = append(result.Entries, keybase1.Dirent{
-				Name:       f.Name,
-				DirentType: keybase1.DirentType_DIR,
-			})
-		}
-
-	}
-	c.output(result)
-
-	return true, nil
-}
 
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSList) Run() error {
@@ -92,18 +47,15 @@ func (c *CmdSimpleFSList) Run() error {
 	if err != nil {
 		return err
 	}
-
 	ctx := context.TODO()
 
-	paths, err := doSimpleFSPlatformGlob(c.G(), ctx, cli, c.paths)
+	paths, err := doSimpleFSGlob(c.G(), ctx, cli, c.paths)
+
 	if err != nil {
 		return err
 	}
 
 	for _, path := range paths {
-		//		if isTLFRequest, err := c.HandleTopLevelKeybaseList(path); isTLFRequest == true {
-		//			return err
-		//		}
 
 		c.G().Log.Debug("SimpleFSList %s", pathToString(path))
 

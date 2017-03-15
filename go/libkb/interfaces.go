@@ -489,7 +489,6 @@ const (
 )
 
 type ProofChecker interface {
-	CheckHint(ctx ProofContext, h SigHint) ProofError
 	CheckStatus(ctx ProofContext, h SigHint, pcm ProofCheckerMode) ProofError
 	GetTorError() ProofError
 }

@@ -57,6 +57,10 @@ func (c *Context) GetNetContext() context.Context {
 	return c.NetContext
 }
 
+func (c *Context) SetNetContext(netCtx context.Context) {
+	c.NetContext = netCtx
+}
+
 func (c *Context) SecretKeyPromptArg(ska libkb.SecretKeyArg, reason string) libkb.SecretKeyPromptArg {
 	return libkb.SecretKeyPromptArg{
 		LoginContext: c.LoginContext,

@@ -1,7 +1,7 @@
 // @flow
 import ChatMap from '../../chat/dumb'
 import CommonMap from '../../common-adapters/dumb'
-import DevicePageMap from '../../devices/device-page/dumb.desktop'
+import DevicePageMap from '../../devices/device-page/dumb'
 import DeviceRevokeMap from '../../devices/device-revoke/dumb'
 import DevicesMap from '../../devices/dumb'
 import EditProfileMap from '../../profile/edit-profile/dumb'
