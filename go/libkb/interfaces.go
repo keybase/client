@@ -33,6 +33,7 @@ type configGetter interface {
 	GetAppType() AppType
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
+	GetPvlKitFilename() string
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
 	GetDbFilename() string

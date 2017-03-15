@@ -41,7 +41,7 @@ protocol proveCommon {
     TIMEOUT_160,
     INTERNAL_ERROR_170,
     UNCHECKED_171,  /* must be a soft error so that it can't be returned to active mode identifiers */
-    MISSING_PVL_172, /* TODO is this being a soft error the right way to handle this? */
+    MISSING_PVL_172,
 
     BASE_HARD_ERROR_200,
     NOT_FOUND_201,
