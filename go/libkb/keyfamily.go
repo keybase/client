@@ -686,8 +686,14 @@ func (ckf ComputedKeyFamily) GetKeyRole(kid keybase1.KID) (ret KeyRole) {
 func (ckf ComputedKeyFamily) GetAllActiveKeysWithRoleAtTime(role KeyRole, t time.Time) (ret []GenericKey) {
 	for kid := range ckf.kf.AllKIDs {
 		if ckf.GetKeyRoleAtTime(kid, t) == role {
-			key, _ := ckf.FindKeyWithKIDUnsafe(kid)
-			ret = append(ret, key)
+			key, err := ckf.FindKeyWithKIDUnsafe(kid)
+			if err != nil {
+				ckf.G().Log.Debug("GetAllActiveKeysWithRoleAtTime: Failed to get KID %s: %s", kid, err)
+			} else if ret == nil {
+				ckf.G().Log.Debug("GetAllActiveKeysWithRoleAtTime: Null key for KID %s", kid)
+			} else {
+				ret = append(ret, key)
+			}
 		}
 	}
 	return
