@@ -1474,7 +1474,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 			md.Revision(), md.MergedStatus(), err)
 	}()
 
-	if md.IsReadable() {
+	if md.IsReadable() && fbo.config.Mode() != InitMinimal {
 		// We will prefetch this as on-demand so that it triggers downstream
 		// prefetches.
 		fbo.config.BlockOps().Prefetcher().PrefetchBlock(
