@@ -31,11 +31,10 @@ KBNM.prototype.send = function(msg, cb) {
   const client = this.counter++;
   this.clients[client] = cb;
 
+  msg["client"] = client;
+
   this.connect();
-  this.port.postMessage({
-    "client": client,
-    "message": msg
-  });
+  this.port.postMessage(msg);
 }
 
 KBNM.prototype._onReceive = function(msg) {
