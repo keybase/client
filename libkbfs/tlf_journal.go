@@ -1408,10 +1408,12 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 		}
 		rmd := makeRootMetadata(brmd, ibrmd.extra, handle)
 
+		// Assume, since journal is running, that we're in default mode.
+		mode := InitDefault
 		pmd, err := decryptMDPrivateData(
 			ctx, j.config.Codec(), j.config.Crypto(),
 			j.config.BlockCache(), j.config.BlockOps(),
-			j.config.mdDecryptionKeyGetter(), j.uid,
+			j.config.mdDecryptionKeyGetter(), mode, j.uid,
 			rmd.GetSerializedPrivateMetadata(), rmd, rmd, j.log)
 		if err != nil {
 			return nil, err

@@ -223,8 +223,8 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	pmd, err := decryptMDPrivateData(
 		ctx, md.config.Codec(), md.config.Crypto(),
 		md.config.BlockCache(), md.config.BlockOps(),
-		md.config.KeyManager(), uid, rmd.GetSerializedPrivateMetadata(),
-		rmd, rmd, md.log)
+		md.config.KeyManager(), md.config.Mode(), uid,
+		rmd.GetSerializedPrivateMetadata(), rmd, rmd, md.log)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}

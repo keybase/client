@@ -237,7 +237,7 @@ func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 			pmd, err := decryptMDPrivateData(
 				ctx, config.Codec(), config.Crypto(),
 				config.BlockCache(), config.BlockOps(),
-				config.KeyManager(), uid,
+				config.KeyManager(), config.Mode(), uid,
 				rmd.GetSerializedPrivateMetadata(),
 				rmd, latestRmd, config.MakeLogger(""))
 			if err != nil {
@@ -407,10 +407,17 @@ func getFileBlockForMD(ctx context.Context, bcache BlockCache, bops BlockOps,
 }
 
 func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
-	bcache BlockCache, bops BlockOps, tlfID tlf.ID, pmd *PrivateMetadata,
-	rmdWithKeys KeyMetadata, log logger.Logger) error {
+	bcache BlockCache, bops BlockOps, mode InitMode, tlfID tlf.ID,
+	pmd *PrivateMetadata, rmdWithKeys KeyMetadata, log logger.Logger) error {
 	info := pmd.Changes.Info
 	if info.BlockPointer == zeroPtr {
+		return nil
+	}
+
+	if mode != InitDefault {
+		// Leave the block changes unembedded -- they aren't needed in
+		// non-default mode.
+		log.CDebugf(ctx, "Skipping block change reembedding in mode: %s", mode)
 		return nil
 	}
 
@@ -464,7 +471,7 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 // decryptMDPrivateData does not use uid if the handle is a public one.
 func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 	crypto Crypto, bcache BlockCache, bops BlockOps,
-	keyGetter mdDecryptionKeyGetter, uid keybase1.UID,
+	keyGetter mdDecryptionKeyGetter, mode InitMode, uid keybase1.UID,
 	serializedPrivateMetadata []byte,
 	rmdToDecrypt, rmdWithKeys KeyMetadata, log logger.Logger) (
 	PrivateMetadata, error) {
@@ -511,7 +518,7 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 	// to do this in minimal mode, since there's no node cache
 	// (KBFS-2026).
 	err := reembedBlockChanges(
-		ctx, codec, bcache, bops, rmdWithKeys.TlfID(),
+		ctx, codec, bcache, bops, mode, rmdWithKeys.TlfID(),
 		&pmd, rmdWithKeys, log)
 	if err != nil {
 		return PrivateMetadata{}, err

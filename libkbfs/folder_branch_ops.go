@@ -744,7 +744,8 @@ func (fbo *folderBranchOps) setHeadLocked(
 
 	// Make sure that any unembedded block changes have been swapped
 	// back in.
-	if md.data.Changes.Info.BlockPointer != zeroPtr &&
+	if fbo.config.Mode() == InitDefault &&
+		md.data.Changes.Info.BlockPointer != zeroPtr &&
 		len(md.data.Changes.Ops) == 0 {
 		return errors.New("Must swap in block changes before setting head")
 	}
