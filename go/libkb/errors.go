@@ -30,6 +30,18 @@ func ProofErrorIsSoft(pe ProofError) bool {
 	return (s >= keybase1.ProofStatus_BASE_ERROR && s < keybase1.ProofStatus_BASE_HARD_ERROR)
 }
 
+func ProofErrorIsPvlBad(pe ProofError) bool {
+	s := pe.GetProofStatus()
+	switch s {
+	case keybase1.ProofStatus_INVALID_PVL:
+		return true
+	case keybase1.ProofStatus_MISSING_PVL:
+		return true
+	default:
+		return false
+	}
+}
+
 func ProofErrorToState(pe ProofError) keybase1.ProofState {
 	if pe == nil {
 		return keybase1.ProofState_OK
