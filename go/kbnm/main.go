@@ -11,6 +11,11 @@ import (
 type Response struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
+	Client  int    `json:"client"`
+}
+
+type Request struct {
+	Client int `json:"client"`
 }
 
 func main() {
@@ -20,9 +25,9 @@ func main() {
 
 	for {
 		var resp Response
-		var msg interface{}
+		var req Request
 
-		err := in.Decode(&msg)
+		err := in.Decode(&req)
 
 		if err == io.EOF {
 			// Closed
@@ -35,6 +40,7 @@ func main() {
 			resp.Status = "ok"
 			resp.Message = "Parsed message successfully."
 		}
+		resp.Client = req.Client
 
 		err = out.Encode(resp)
 		if err != nil {
