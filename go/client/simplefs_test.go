@@ -475,7 +475,7 @@ func TestSimpleFSPlatformGlob(t *testing.T) {
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(filepath.Join(tempdir, "*.txt"))
 
-	paths, err := doSimpleFSPlatformGlob(tc.G, context.TODO(), SimpleFSMock{}, []keybase1.Path{path1})
+	paths, err := doSimpleFSGlob(tc.G, context.TODO(), SimpleFSMock{}, []keybase1.Path{path1})
 	require.NoError(t, err)
 	assert.Equal(tc.T, filepath.Join(tempdir, "test1.txt"), paths[0].Local())
 	assert.Equal(tc.T, filepath.Join(tempdir, "test2.txt"), paths[1].Local())
@@ -494,7 +494,7 @@ func TestSimpleFSPlatformGlob(t *testing.T) {
 	}
 	path1 = keybase1.NewPathWithKbfs("/private/foobar/temp/*.txt")
 
-	paths, err = doSimpleFSPlatformGlob(tc.G, context.TODO(), clientMock, []keybase1.Path{path1})
+	paths, err = doSimpleFSGlob(tc.G, context.TODO(), clientMock, []keybase1.Path{path1})
 	require.NoError(t, err)
 	assert.Equal(tc.T, "/private/foobar/temp/test1.txt", paths[0].Kbfs())
 	assert.Equal(tc.T, "/private/foobar/temp/test2.txt", paths[1].Kbfs())
