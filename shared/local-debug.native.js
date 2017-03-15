@@ -38,12 +38,12 @@ if (__DEV__ && true) {
   config.dumbChatOnly = false
   config.dumbSheetOnly = false
   config.enableActionLogging = false
-  config.enableStoreLogging = false
-  config.forwardLogs = false
-  config.immediateStateLogging = false
+  config.enableStoreLogging = true
+  config.forwardLogs = true
+  config.immediateStateLogging = true
   config.overrideLoggedInTab = Tabs.settingsTab
   config.printOutstandingRPCs = true
-  config.printRPC = false
+  config.printRPC = true
   config.printRoutes = true
   config.reactPerf = false
   config.redirectOnLogout = false
