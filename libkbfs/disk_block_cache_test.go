@@ -338,9 +338,9 @@ func TestDiskBlockCacheEvictOverall(t *testing.T) {
 		"Average overall LRU delta from an eviction: %.2f", averageDifference)
 }
 
-func TestDiskBlockCacheLimit(t *testing.T) {
+func TestDiskBlockCacheStaticLimit(t *testing.T) {
 	t.Parallel()
-	t.Log("Test that disk cache eviction works overall.")
+	t.Log("Test that disk cache eviction works when we hit the static limit.")
 	cache, config := initDiskBlockCacheTest(t)
 	defer shutdownDiskBlockCacheTest(cache)
 
@@ -365,6 +365,50 @@ func TestDiskBlockCacheLimit(t *testing.T) {
 	currBytes := int64(cache.currBytes)
 	cache.config.DiskLimiter().(*backpressureDiskLimiter).diskCacheByteTracker.limit =
 		currBytes
+
+	t.Log("Add a block to the cache. Verify that blocks were evicted.")
+	blockID, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
+	err := cache.Put(ctx, tlf.FakeID(10, false), blockID, blockEncoded, serverHalf)
+	require.NoError(t, err)
+
+	require.True(t, int64(cache.currBytes) < currBytes)
+	require.Equal(t, 41, cache.numBlocks)
+}
+
+func TestDiskBlockCacheDynamicLimit(t *testing.T) {
+	t.Parallel()
+	t.Skip("doesn't work yet")
+	t.Log("Test that disk cache eviction works when we hit a dynamic limit.")
+	cache, config := initDiskBlockCacheTest(t)
+	defer shutdownDiskBlockCacheTest(cache)
+
+	ctx := context.Background()
+	clock := config.TestClock()
+
+	numTlfs := 10
+	numBlocksPerTlf := 5
+
+	t.Log("Seed the cache with some blocks.")
+	for i := byte(0); int(i) < numTlfs; i++ {
+		currTlf := tlf.FakeID(i, false)
+		for j := 0; j < numBlocksPerTlf; j++ {
+			blockID, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
+			err := cache.Put(ctx, currTlf, blockID, blockEncoded, serverHalf)
+			require.NoError(t, err)
+			clock.Add(time.Second)
+		}
+	}
+
+	t.Log("Set the cache maximum bytes to the current total.")
+	currBytes := int64(cache.currBytes)
+	limiter := cache.config.DiskLimiter().(*backpressureDiskLimiter)
+	limiter.freeBytesAndFilesFn = func() (int64, int64, error) {
+		// hackity hackeroni
+		freeBytes := currBytes * 4
+		// arbitrarily large number
+		numFiles := int64(100000000)
+		return freeBytes, numFiles, nil
+	}
 
 	t.Log("Add a block to the cache. Verify that blocks were evicted.")
 	blockID, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
