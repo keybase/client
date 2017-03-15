@@ -173,7 +173,6 @@ class Input extends Component<void, Props, State> {
       ...globalStyles.fontSemibold,
       backgroundColor: globalColors.transparent,
       color: globalColors.black_75,
-      maxWidth: 460,
       flex: 1,
       border: 'none',
       outlineWidth: 0,
@@ -196,12 +195,14 @@ class Input extends Component<void, Props, State> {
 
     const inputStyle = {
       ...commonInputStyle,
+      maxWidth: 460,
       height: this.props.small ? 18 : 28,
     }
 
     const textareaStyle = {
       ...commonInputStyle,
       height: 'initial',
+      width: '100%',
       resize: 'none',
       wrap: 'off',
       paddingTop: 0,
