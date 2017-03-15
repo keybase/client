@@ -125,7 +125,6 @@ RCT_EXPORT_METHOD(start) {
   [self.engine start: self];
 }
 
-
 - (NSDictionary *)constantsToExport {
   NSString * testVal = [Utils areWeBeingUnitTested] ? @"1" : @"";
   NSString * simulatorVal =
