@@ -581,6 +581,11 @@ func (ckf *ComputedKeyFamily) SetActivePGPHash(kid keybase1.KID, hash string) {
 		found = true
 	}
 	if !found {
+		// We've noted this case in the wild (see CORE-4771). It occured
+		// because the server accepted a new Cv25519 key, but an old client
+		// failed to parse it in ParseKeyFamily above. So just warn here.
+		// We expect, though, that if you get this Warning there is trouble ahead,
+		// and FindKeyWithKIDUnsafe will return nil.
 		ckf.G().Log.Warning("Didn't have a PGP key for %s with hash %s", kid, hash)
 	}
 	if _, ok := ckf.cki.Infos[kid]; ok {
