@@ -782,7 +782,6 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
     case NotifyChatChatActivityType.setStatus:
       const setStatus: ?SetStatusInfo = action.payload.activity.setStatus
       if (setStatus) {
-        console.warn('in setStatus, conv is', setStatus.conv)
         yield call(_updateInbox, setStatus.conv)
         yield call(_ensureValidSelectedChat, false)
       }
@@ -1014,7 +1013,6 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
 const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
 
 function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
-  console.warn('in _ensureValidSelectedChat', onlyIfNoSelection)
   if (isMobile) {
     return // Mobile doesn't auto select a conversation
   }
