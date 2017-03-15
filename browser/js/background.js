@@ -2,6 +2,10 @@
 
 const KBNM_HOST = "com.keybase.kbnm";
 
+// KBNM sits between the NativeMessage port and manages disjoint async
+// messages to the callers. Response callbacks from NativeMessages are
+// not in the same context as this background context, so the callback
+// needs to be disjoint.
 const KBNM = function() {
   this.host = KBNM_HOST;
   this.port = null;
@@ -50,9 +54,11 @@ KBNM.prototype._onDisconnect = function() {
 
 const channel = new KBNM();
 
-chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
-  channel.send(msg, sendResponse);
-});
+// This does not work:
+//   chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
+//     chrome.runtime.sendNativeMessage(msg, sendResponse);
+//   });
+// Because the sendNativeMessage callback can't call sendResponse from the outer clojure.
 
 chrome.runtime.onConnect.addListener(function(port) {
   port.onMessage.addListener(function(msg) {
