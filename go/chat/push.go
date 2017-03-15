@@ -119,8 +119,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, badger *badges.Badger) (err error) {
 	defer g.Trace(ctx, func() error { return err }, "Activity")()
 	if m.Body() == nil {
-		err = errors.New("gregor handler for chat.activity: nil message body")
-		return err
+		return errors.New("gregor handler for chat.activity: nil message body")
 	}
 
 	var activity chat1.ChatActivity
@@ -274,8 +273,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 		}
 		if len(inbox.Convs) != 1 {
 			g.Debug(ctx, "chat activity: unable to find conversation")
-			err = fmt.Errorf("unable to find conversation")
-			return err
+			return fmt.Errorf("unable to find conversation")
 		}
 		updateConv := inbox.ConvsUnverified[0]
 		if err = g.G().InboxSource.NewConversation(ctx, uid, nm.InboxVers, updateConv); err != nil {
@@ -290,12 +288,10 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 			badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 		}
 	default:
-		err = fmt.Errorf("unhandled chat.activity action %q", action)
-		return err
+		return fmt.Errorf("unhandled chat.activity action %q", action)
 	}
 
-	err = g.notifyNewChatActivity(ctx, m.UID(), &activity)
-	return err
+	return g.notifyNewChatActivity(ctx, m.UID(), &activity)
 }
 
 func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID, activity *chat1.ChatActivity) error {
