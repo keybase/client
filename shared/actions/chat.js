@@ -40,7 +40,6 @@ import type {
   BlockConversation,
   ConversationBadgeState,
   ConversationIDKey,
-  ConversationSetStatus,
   CreatePendingFailure,
   DeleteMessage,
   EditMessage,
@@ -309,6 +308,7 @@ function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Consta
 
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
 function selectConversation (conversationIDKey: ?ConversationIDKey, fromUser: boolean): SelectConversation {
+  console.warn('in selectConversation', fromUser)
   return {type: 'chat:selectConversation', payload: {conversationIDKey, fromUser}}
 }
 
@@ -340,14 +340,12 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
   })
 
   const participants = List(convo.info.writerNames || [])
-  const muted = convo.info.status === CommonConversationStatus.muted
 
   return new InboxStateRecord({
     info: convo.info,
     isEmpty: convo.isEmpty,
     conversationIDKey,
     participants,
-    muted,
     time,
     snippet,
     validated: true,
@@ -786,17 +784,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       if (setStatus) {
         console.warn('in setStatus, conv is', setStatus.conv)
         yield call(_updateInbox, setStatus.conv)
-        const conversationIDKey = conversationIDToKey(setStatus.convID)
-        const blocked = setStatus.status === CommonConversationStatus.blocked
-        const muted = setStatus.status === CommonConversationStatus.muted
-        yield put(({
-          payload: {
-            blocked,
-            conversationIDKey,
-            muted,
-          },
-          type: 'chat:conversationSetStatus',
-        }: ConversationSetStatus))
+        yield call(_ensureValidSelectedChat, false)
       }
       return
     case NotifyChatChatActivityType.failedMessage:
@@ -1026,8 +1014,9 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
 const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
 
 function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
+  console.warn('in _ensureValidSelectedChat', onlyIfNoSelection)
   if (isMobile) {
-    return // Mobile doens't auto select a conversation
+    return // Mobile doesn't auto select a conversation
   }
   const inbox = yield select(inboxSelector)
   if (inbox.count()) {

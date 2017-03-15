@@ -9,6 +9,7 @@ import {selectConversation} from '../../actions/chat'
 
 import type {TypedState} from '../../constants/reducer'
 import type {ConversationIDKey} from '../../constants/chat'
+import {CommonConversationStatus} from '../../constants/types/flow-types-chat'
 
 function _rowDerivedProps (rekeyInfo, unreadCount, isSelected) {
   // Derived props
@@ -64,7 +65,7 @@ const makeSelector = (conversationIDKey) => {
       [makeGetConversation(conversationIDKey), makeGetIsSelected(conversationIDKey), makeGetUnreadCounts(conversationIDKey), getYou, makeGetRekeyInfo(conversationIDKey), getNowOverride],
       (conversation, isSelected, unreadCount, you, rekeyInfo, nowOverride) => ({
         conversationIDKey,
-        isMuted: conversation.get('muted'),
+        isMuted: conversation.get('info').status === CommonConversationStatus.muted,
         isSelected,
         participants: participantFilter(conversation.get('participants'), you),
         rekeyInfo,

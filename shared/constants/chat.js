@@ -9,7 +9,7 @@ import {chatTab} from './tabs'
 
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
-import type {AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFinalizeInfo, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
+import type {AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFinalizeInfo, ConversationStatus, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
 import type {TypedState} from './reducer'
 
@@ -212,12 +212,10 @@ export const ConversationBadgeStateRecord = Record({
 })
 
 export const InboxStateRecord = Record({
-  blocked: false,
   info: null,
   isEmpty: false,
   participants: List(),
   conversationIDKey: '',
-  muted: false,
   time: 0,
   snippet: '',
   snippetKey: null,
@@ -225,12 +223,10 @@ export const InboxStateRecord = Record({
 })
 
 export type InboxState = Record<{
-  blocked: boolean,
   info: ConversationInfoLocal,
   isEmpty: boolean,
   participants: List<string>,
   conversationIDKey: ConversationIDKey,
-  muted: boolean,
   time: number,
   snippet: string,
   snippetKey: any,
@@ -318,7 +314,6 @@ export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversa
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeState>>
 export type BlockConversation = NoErrorTypedAction<'chat:blockConversation', {blocked: boolean, conversationIDKey: ConversationIDKey}>
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
-export type ConversationSetStatus = NoErrorTypedAction<'chat:conversationSetStatus', {blocked: boolean, conversationIDKey: ConversationIDKey, muted: boolean}>
 export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {failureDescription: string, outboxID: OutboxIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: Message}>

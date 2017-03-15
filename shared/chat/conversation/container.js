@@ -7,6 +7,7 @@ import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
 import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, selectAttachment, startConversation, loadAttachment, retryAttachment, showEditor} from '../../actions/chat'
 import * as ChatConstants from '../../constants/chat'
+import {CommonConversationStatus} from '../../constants/types/flow-types-chat'
 import {downloadFilePath} from '../../util/file'
 import {getProfile} from '../../actions/tracker'
 import {navigateAppend} from '../../actions/route-tree'
@@ -109,7 +110,7 @@ export default connect(
       if (conversationState) {
         const inbox = state.chat.get('inbox')
         const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversation)
-        const muted = selected && selected.get('muted')
+        const muted = selected && selected.get('info') && selected.get('info').status === CommonConversationStatus.muted
         const participants = selected && selected.participants || List()
         const rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversation)
 

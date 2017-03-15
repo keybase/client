@@ -3,6 +3,7 @@ import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
 import {Set, List, Map} from 'immutable'
+import {CommonConversationStatus} from '../constants/types/flow-types-chat'
 
 import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState, TextMessage} from '../constants/chat'
 
@@ -389,10 +390,13 @@ function reducer (state: State = initialState, action: Actions) {
       let updatedInbox = existing ? oldInbox.set(existing[0], convo) : oldInbox.push(convo)
       // If the convo's just been blocked, delete it from the inbox.
       // const blocked = existing && existing[0] && existing[1].get('blocked')
-      console.warn(updatedInbox.toJS())
-      if (existing && existing[1].get('blocked')) {
+      if (existing && convo.info.status === CommonConversationStatus.blocked) {
         console.warn('DELETING')
         updatedInbox = updatedInbox.delete(existing[0])
+      } else if (existing) {
+        console.warn('existing', existing[1], existing[1].status)
+      } else {
+        console.warn("didn't exist")
       }
       console.warn(updatedInbox.toJS())
       // time changed so we need to sort
@@ -409,14 +413,9 @@ function reducer (state: State = initialState, action: Actions) {
       })
 
       return state.set('metaData', metaData)
-    case 'chat:updateConversationUnreadCounts':
+    case 'chat:updateConversationUnreadCounts': {
       return state.set('conversationUnreadCounts', action.payload)
-    case 'chat:conversationSetStatus':
-      const {blocked, conversationIDKey, muted} = action.payload
-      return state.set('inbox', state.get('inbox').update(state.get('inbox')
-        .findIndex(conv => conv.conversationIDKey === conversationIDKey),
-          entry => entry.set('muted', muted).set('blocked', blocked))
-      )
+    }
     case 'chat:updateInboxRekeyOthers': {
       const {conversationIDKey, rekeyers} = action.payload
       return state.set('rekeyInfos', state.get('rekeyInfos').set(conversationIDKey, new RekeyInfoRecord({rekeyParticipants: List(rekeyers)})))
