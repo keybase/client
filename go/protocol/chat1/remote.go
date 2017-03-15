@@ -150,18 +150,40 @@ type SyncIncrementalRes struct {
 
 type SyncInboxRes struct {
 	Typ__         SyncInboxResType    `codec:"typ" json:"typ"`
+	Current__     *InboxVers          `codec:"current,omitempty" json:"current,omitempty"`
 	Incremental__ *SyncIncrementalRes `codec:"incremental,omitempty" json:"incremental,omitempty"`
+	Clear__       *InboxVers          `codec:"clear,omitempty" json:"clear,omitempty"`
 }
 
 func (o *SyncInboxRes) Typ() (ret SyncInboxResType, err error) {
 	switch o.Typ__ {
+	case SyncInboxResType_CURRENT:
+		if o.Current__ == nil {
+			err = errors.New("unexpected nil value for Current__")
+			return ret, err
+		}
 	case SyncInboxResType_INCREMENTAL:
 		if o.Incremental__ == nil {
 			err = errors.New("unexpected nil value for Incremental__")
 			return ret, err
 		}
+	case SyncInboxResType_CLEAR:
+		if o.Clear__ == nil {
+			err = errors.New("unexpected nil value for Clear__")
+			return ret, err
+		}
 	}
 	return o.Typ__, nil
+}
+
+func (o SyncInboxRes) Current() InboxVers {
+	if o.Typ__ != SyncInboxResType_CURRENT {
+		panic("wrong case accessed")
+	}
+	if o.Current__ == nil {
+		return InboxVers{}
+	}
+	return *o.Current__
 }
 
 func (o SyncInboxRes) Incremental() SyncIncrementalRes {
@@ -174,9 +196,20 @@ func (o SyncInboxRes) Incremental() SyncIncrementalRes {
 	return *o.Incremental__
 }
 
-func NewSyncInboxResWithCurrent() SyncInboxRes {
+func (o SyncInboxRes) Clear() InboxVers {
+	if o.Typ__ != SyncInboxResType_CLEAR {
+		panic("wrong case accessed")
+	}
+	if o.Clear__ == nil {
+		return InboxVers{}
+	}
+	return *o.Clear__
+}
+
+func NewSyncInboxResWithCurrent(v InboxVers) SyncInboxRes {
 	return SyncInboxRes{
-		Typ__: SyncInboxResType_CURRENT,
+		Typ__:     SyncInboxResType_CURRENT,
+		Current__: &v,
 	}
 }
 
@@ -187,9 +220,10 @@ func NewSyncInboxResWithIncremental(v SyncIncrementalRes) SyncInboxRes {
 	}
 }
 
-func NewSyncInboxResWithClear() SyncInboxRes {
+func NewSyncInboxResWithClear(v InboxVers) SyncInboxRes {
 	return SyncInboxRes{
-		Typ__: SyncInboxResType_CLEAR,
+		Typ__:   SyncInboxResType_CLEAR,
+		Clear__: &v,
 	}
 }
 
