@@ -76,11 +76,13 @@ function submitChat(e) {
   const nudgeDo = e.currentTarget["keybase-nudge"].checked;
   const nudgeText = e.currentTarget["keybase-text"].value;
 
-  var sending = chrome.runtime.sendMessage({
+  const port = chrome.runtime.connect();
+  port.postMessage({
     "method": "chat",
     "to": to,
     "body": body
-  }, function(response) {
+  });
+  port.onMessage.addListener(function(response) {
     console.log("response: ", response);
   });
 
