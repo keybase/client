@@ -13,7 +13,7 @@ import hoc from './list-hoc'
 import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache as DefaultCellMeasurerCellSizeCache} from 'react-virtualized'
 import {Icon} from '../../common-adapters'
 import {TextPopupMenu, AttachmentPopupMenu} from './messages/popup'
-import {BrowserWindow, clipboard} from 'electron'
+import {clipboard} from 'electron'
 import {globalColors, globalStyles} from '../../styles'
 
 import type {List} from 'immutable'
@@ -255,7 +255,6 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _showEditor = (message: TextMessage, messageRect: any) => {
-    console.log('messageRect:', messageRect)
     const popupComponent = (
       <EditPopup
         messageRect={messageRect}
