@@ -316,7 +316,6 @@ function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Consta
 
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
 function selectConversation (conversationIDKey: ?ConversationIDKey, fromUser: boolean): SelectConversation {
-  console.warn('in selectConversation', fromUser)
   return {type: 'chat:selectConversation', payload: {conversationIDKey, fromUser}}
 }
 
@@ -794,7 +793,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       const setStatus: ?SetStatusInfo = action.payload.activity.setStatus
       if (setStatus) {
         yield call(_updateInbox, setStatus.conv)
-        yield call(_ensureValidSelectedChat, false)
+        yield call(_ensureValidSelectedChat, false, true)
       }
       return
     case NotifyChatChatActivityType.failedMessage:
@@ -1017,10 +1016,12 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
 
 const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
 
-function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
-  if (isMobile) {
-    return // Mobile doesn't auto select a conversation
+function * _ensureValidSelectedChat (onlyIfNoSelection: boolean, forceSelectOnMobile: boolean) {
+  // Mobile doesn't auto select a conversation
+  if (isMobile && !forceSelectOnMobile) {
+    return
   }
+
   const inbox = yield select(inboxSelector)
   if (inbox.count()) {
     const conversationIDKey = yield select(getSelectedConversation)
@@ -1038,7 +1039,7 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
     }
 
     const firstGood = inbox.find(i => !i.get('isEmpty') || alwaysShow.has(i.get('conversationIDKey')))
-    if (firstGood) {
+    if (firstGood && !isMobile) {
       const conversationIDKey = firstGood.get('conversationIDKey')
       yield put(selectConversation(conversationIDKey, false))
     } else {
@@ -2197,8 +2198,8 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(changedFocus, _changedFocus),
     safeTakeEvery('chat:deleteMessage', _deleteMessage),
     safeTakeEvery('chat:openTlfInChat', _openTlfInChat),
-    safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true),
-    safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat),
+    safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false),
+    safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false),
     safeTakeEvery('chat:saveAttachmentNative', _saveAttachmentNative),
     safeTakeEvery('chat:shareAttachment', _shareAttachment),
   ]
