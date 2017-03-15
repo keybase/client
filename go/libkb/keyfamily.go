@@ -576,6 +576,13 @@ func (ckf *ComputedKeyFamily) Revoke(tcl TypedChainLink) (err error) {
 
 // SetPGPHash sets the authoritative version (by hash) of a PGP key
 func (ckf *ComputedKeyFamily) SetActivePGPHash(kid keybase1.KID, hash string) {
+	found := false
+	if ks, ok := ckf.kf.PGPKeySets[kid]; ok && ks != nil && ks.KeysByHash[hash] != nil {
+		found = true
+	}
+	if !found {
+		ckf.G().Log.Warning("Didn't have a PGP key for %s with hash %s", kid, hash)
+	}
 	if _, ok := ckf.cki.Infos[kid]; ok {
 		ckf.cki.Infos[kid].ActivePGPHash = hash
 	} else {
