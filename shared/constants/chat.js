@@ -212,6 +212,7 @@ export const ConversationBadgeStateRecord = Record({
 })
 
 export const InboxStateRecord = Record({
+  blocked: false,
   info: null,
   isEmpty: false,
   participants: List(),
@@ -224,6 +225,7 @@ export const InboxStateRecord = Record({
 })
 
 export type InboxState = Record<{
+  blocked: boolean,
   info: ConversationInfoLocal,
   isEmpty: boolean,
   participants: List<string>,

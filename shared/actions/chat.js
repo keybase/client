@@ -784,6 +784,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
     case NotifyChatChatActivityType.setStatus:
       const setStatus: ?SetStatusInfo = action.payload.activity.setStatus
       if (setStatus) {
+        console.warn('in setStatus, conv is', setStatus.conv)
         yield call(_updateInbox, setStatus.conv)
         const conversationIDKey = conversationIDToKey(setStatus.convID)
         const blocked = setStatus.status === CommonConversationStatus.blocked
