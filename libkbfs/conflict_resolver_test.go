@@ -114,20 +114,26 @@ func TestCRInput(t *testing.T) {
 	unmergedHead := MetadataRevision(5)
 	mergedHead := MetadataRevision(15)
 
-	cr.fbo.head = crMakeFakeRMD(unmergedHead, cr.fbo.bid)
+	crypto := MakeCryptoCommon(config.Codec())
+	bid, err := crypto.MakeRandomBranchID()
+	if err != nil {
+		t.Fatalf("Branch id err: %+v", bid)
+	}
+	cr.fbo.bid = bid
+	cr.fbo.head = crMakeFakeRMD(unmergedHead, bid)
 	cr.fbo.headStatus = headTrusted
 	// serve all the MDs from the cache
 	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes().Return(nil)
 	for i := unmergedHead; i >= branchPoint+1; i-- {
-		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, cr.fbo.bid).Return(
-			crMakeFakeRMD(i, cr.fbo.bid), nil)
+		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, bid).Return(
+			crMakeFakeRMD(i, bid), nil)
 	}
 	for i := MetadataRevisionInitial; i <= branchPoint; i++ {
-		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, cr.fbo.bid).Return(
-			ImmutableRootMetadata{}, NoSuchMDError{cr.fbo.id(), branchPoint, cr.fbo.bid})
+		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, bid).Return(
+			ImmutableRootMetadata{}, NoSuchMDError{cr.fbo.id(), branchPoint, bid})
 	}
 	config.mockMdops.EXPECT().GetUnmergedRange(gomock.Any(), cr.fbo.id(),
-		cr.fbo.bid, MetadataRevisionInitial, branchPoint).Return(nil, nil)
+		bid, MetadataRevisionInitial, branchPoint).Return(nil, nil)
 
 	for i := branchPoint; i <= mergedHead; i++ {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, NullBranchID).Return(
@@ -170,19 +176,25 @@ func TestCRInputFracturedRange(t *testing.T) {
 	unmergedHead := MetadataRevision(5)
 	mergedHead := MetadataRevision(15)
 
-	cr.fbo.head = crMakeFakeRMD(unmergedHead, cr.fbo.bid)
+	crypto := MakeCryptoCommon(config.Codec())
+	bid, err := crypto.MakeRandomBranchID()
+	if err != nil {
+		t.Fatalf("Branch id err: %+v", bid)
+	}
+	cr.fbo.bid = bid
+	cr.fbo.head = crMakeFakeRMD(unmergedHead, bid)
 	cr.fbo.headStatus = headTrusted
 	// serve all the MDs from the cache
 	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes().Return(nil)
 	for i := unmergedHead; i >= branchPoint+1; i-- {
-		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, cr.fbo.bid).Return(crMakeFakeRMD(i, cr.fbo.bid), nil)
+		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, bid).Return(crMakeFakeRMD(i, bid), nil)
 	}
 	for i := MetadataRevisionInitial; i <= branchPoint; i++ {
-		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, cr.fbo.bid).Return(
-			ImmutableRootMetadata{}, NoSuchMDError{cr.fbo.id(), branchPoint, cr.fbo.bid})
+		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, bid).Return(
+			ImmutableRootMetadata{}, NoSuchMDError{cr.fbo.id(), branchPoint, bid})
 	}
 	config.mockMdops.EXPECT().GetUnmergedRange(gomock.Any(), cr.fbo.id(),
-		cr.fbo.bid, MetadataRevisionInitial, branchPoint).Return(nil, nil)
+		bid, MetadataRevisionInitial, branchPoint).Return(nil, nil)
 
 	skipCacheRevision := MetadataRevision(10)
 	for i := branchPoint; i <= mergedHead; i++ {
