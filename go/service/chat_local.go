@@ -407,7 +407,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 
 		ib, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), nil, false,
 			&chat1.GetInboxLocalQuery{
-				ConvID: &convID,
+				ConvIDs: []chat1.ConversationID{convID},
 			}, nil)
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, err

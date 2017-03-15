@@ -294,7 +294,7 @@ func (b *baseInboxSource) getInboxQueryLocalToRemote(ctx context.Context,
 	rquery.UnreadOnly = lquery.UnreadOnly
 	rquery.ReadOnly = lquery.ReadOnly
 	rquery.ComputeActiveList = lquery.ComputeActiveList
-	rquery.ConvID = lquery.ConvID
+	rquery.ConvIDs = lquery.ConvIDs
 	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
 	rquery.Status = lquery.Status
 	rquery.SummarizeMaxMsgs = true
@@ -592,7 +592,7 @@ func (s *HybridInboxSource) getConvLocal(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
 	// Read back affected conversation so we can send it to the frontend
 	ib, _, err := s.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-		ConvID: &convID,
+		ConvIDs: []chat1.ConversationID{convID},
 	}, nil)
 	if err != nil {
 		return conv, err

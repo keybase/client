@@ -2098,7 +2098,7 @@ function * _getInboxAndUnbox ({payload: {conversationIDKey}}: Constants.GetInbox
   const param: ChatTypes.localGetInboxAndUnboxLocalRpcParam = {
     identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
     query: {
-      convID: keyToConversationID(conversationIDKey),
+      convIDs: [keyToConversationID(conversationIDKey)],
       computeActiveList: true,
       tlfVisibility: CommonTLFVisibility.private,
       topicType: CommonTopicType.chat,
