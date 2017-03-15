@@ -686,6 +686,9 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 		index int
 	}
 
+	if maxUnbox != nil {
+		s.Debug(ctx, "pipeline: maxUnbox set to: %d", *maxUnbox)
+	}
 	eg, ctx := errgroup.WithContext(ctx)
 	convCh := make(chan job)
 	retCh := make(chan jobRes)
@@ -698,9 +701,9 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 				return ctx.Err()
 			}
 			if maxUnbox != nil && i >= *maxUnbox {
-				s.Debug(ctx, "localizeConversationsPipeline: maxUnbox set and reached, early exit: %d",
+				s.Debug(ctx, "pipeline: maxUnbox set and reached, early exit: %d",
 					*maxUnbox)
-				break
+				return nil
 			}
 		}
 		return nil
@@ -814,6 +817,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
 
 	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
+	s.Debug(ctx, "localizing: TLF: %s convID: %s", unverifiedTLFName, conversationRemote.GetConvID())
 
 	conversationLocal.Info = chat1.ConversationInfoLocal{
 		Id:         conversationRemote.Metadata.ConversationID,
