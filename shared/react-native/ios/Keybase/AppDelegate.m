@@ -52,7 +52,7 @@ const BOOL isDebug = NO;
 #endif
 
   BOOL securityAccessGroupOverride = isSimulator;
-  BOOL skipLogFile = false; // TEMP isDebug;
+  BOOL skipLogFile = isDebug;
 
   NSString * home = NSHomeDirectory();
 

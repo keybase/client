@@ -1058,6 +1058,7 @@ function * _loadInboxMaybeOnce (action: LoadInbox): SagaGenerator<any, any> {
 }
 
 function * _loadInbox (): SagaGenerator<any, any> {
+  console.time('loadinbox')
   const channelConfig = singleFixedChannelConfig([
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
@@ -1179,6 +1180,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
       }
     } else if (incoming.finished) {
       finishedCalled = true
+      console.timeEnd('loadinbox')
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
       break
     } else if (incoming.timeout) {
