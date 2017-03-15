@@ -400,35 +400,47 @@ const conversationBanner = {
   component: ConversationBanner,
   mocks: {
     'Info': {
-      type: 'Info',
-      text: 'Some info',
+      message: {
+        type: 'Info',
+        text: 'Some info',
+      },
     },
     'Invite': {
-      type: 'Invite',
-      users: ['malg@twitter'],
-      inviteLink: 'keybase.io/inv/9999999999',
-      onClickInviteLink: () => { console.log('Clicked the invite link') },
+      message: {
+        type: 'Invite',
+        users: ['malg@twitter'],
+        inviteLink: 'keybase.io/inv/9999999999',
+        onClickInviteLink: () => { console.log('Clicked the invite link') },
+      },
     },
     'Error': {
-      type: 'Error',
-      text: 'Some error',
-      textLink: 'Some link',
-      textLinkOnClick: () => { console.log('Clicked the text link') },
+      message: {
+        type: 'Error',
+        text: 'Some error',
+        textLink: 'Some link',
+        textLinkOnClick: () => { console.log('Clicked the text link') },
+      },
     },
     'BrokenTracker 1': {
-      type: 'BrokenTracker',
-      users: ['jzila'],
-      onClick: (user: string) => { console.log('Clicked on ', user) },
+      message: {
+        type: 'BrokenTracker',
+        users: ['jzila'],
+        onClick: (user: string) => { console.log('Clicked on ', user) },
+      },
     },
     'BrokenTracker 2': {
-      type: 'BrokenTracker',
-      users: ['jzila', 'cjb'],
-      onClick: (user: string) => { console.log('Clicked on ', user) },
+      message: {
+        type: 'BrokenTracker',
+        users: ['jzila', 'cjb'],
+        onClick: (user: string) => { console.log('Clicked on ', user) },
+      },
     },
     'BrokenTracker 3': {
-      type: 'BrokenTracker',
-      users: ['jzila', 'cjb', 'bob'],
-      onClick: (user: string) => { console.log('Clicked on ', user) },
+      message: {
+        type: 'BrokenTracker',
+        users: ['jzila', 'cjb', 'bob'],
+        onClick: (user: string) => { console.log('Clicked on ', user) },
+      },
     },
   },
 }

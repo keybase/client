@@ -149,10 +149,9 @@ class Input extends Component<void, Props, State> {
     }
     : {
       ...globalStyles.flexBoxColumn,
-      maxWidth: 460,
-      width: '100%',
-      marginTop: globalMargins.small,
+      alignItems: 'center',
       marginBottom: globalMargins.small,
+      marginTop: globalMargins.small,
     }
   }
 
@@ -174,6 +173,7 @@ class Input extends Component<void, Props, State> {
       ...globalStyles.fontSemibold,
       backgroundColor: globalColors.transparent,
       color: globalColors.black_75,
+      maxWidth: 460,
       flex: 1,
       border: 'none',
       outlineWidth: 0,
