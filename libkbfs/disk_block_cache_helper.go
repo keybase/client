@@ -3,7 +3,6 @@ package libkbfs
 import (
 	"time"
 
-	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -25,7 +24,6 @@ type diskBlockCacheDeleteKey struct {
 // diskBlockCacheMetadata packages the metadata needed to make decisions on
 // cache eviction.
 type diskBlockCacheMetadata struct {
-	codec.UnknownFieldSet
 	// the TLF ID for the block
 	TlfID tlf.ID
 	// the last time the block was used

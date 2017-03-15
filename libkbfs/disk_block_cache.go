@@ -417,9 +417,12 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 			if bytesAvailable >= 0 {
 				break
 			}
-			_, _, err = cache.evictLocked(ctx, defaultNumBlocksToEvict)
+			numRemoved, _, err := cache.evictLocked(ctx, defaultNumBlocksToEvict)
 			if err != nil {
 				return err
+			}
+			if numRemoved == 0 {
+				return errors.New("couldn't evict any more blocks from the disk cache")
 			}
 		}
 		err = cache.blockDb.Put(blockKey, entry, nil)

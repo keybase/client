@@ -192,6 +192,8 @@ func (bt *backpressureTracker) onBlocksDelete(blockResources int64) {
 
 func (bt *backpressureTracker) beforeDiskBlockCachePut(blockResources int64) (
 	availableResources int64) {
+	// TODO: Implement TryAcquire that automatically rolls back if it would go
+	// negative.
 	availableResources = bt.semaphore.ForceAcquire(blockResources)
 	if availableResources < 0 {
 		// We must roll back the acquisition of resources. We should still
@@ -279,6 +281,8 @@ func newBackpressureDiskLimiterWithFunctions(log logger.Logger,
 	if err != nil {
 		return nil, err
 	}
+	// the fileLimit is only used here, but in the interest of consistency with
+	// how we treat the byteLimit, we multiply it by the journalFrac.
 	journalFileLimit := int64((float64(fileLimit) * journalFrac) + 0.5)
 	fileTracker, err := newBackpressureTracker(
 		backpressureMinThreshold, backpressureMaxThreshold,
@@ -370,7 +374,6 @@ func (bdl *backpressureDiskLimiter) onJournalEnable(
 	defer bdl.lock.Unlock()
 	availableBytes = bdl.journalByteTracker.onEnable(journalBytes)
 	availableFiles = bdl.journalFileTracker.onEnable(journalFiles)
-	bdl.updateFreeLocked()
 	return availableBytes, availableFiles
 }
 
@@ -380,7 +383,6 @@ func (bdl *backpressureDiskLimiter) onJournalDisable(
 	defer bdl.lock.Unlock()
 	bdl.journalByteTracker.onDisable(journalBytes)
 	bdl.journalFileTracker.onDisable(journalFiles)
-	bdl.updateFreeLocked()
 }
 
 func (bdl *backpressureDiskLimiter) onDiskBlockCacheEnable(ctx context.Context,
@@ -388,7 +390,6 @@ func (bdl *backpressureDiskLimiter) onDiskBlockCacheEnable(ctx context.Context,
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 	bdl.diskCacheByteTracker.onEnable(diskCacheBytes)
-	bdl.updateFreeLocked()
 }
 
 func (bdl *backpressureDiskLimiter) onDiskBlockCacheDisable(ctx context.Context,
@@ -396,7 +397,6 @@ func (bdl *backpressureDiskLimiter) onDiskBlockCacheDisable(ctx context.Context,
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 	bdl.diskCacheByteTracker.onDisable(diskCacheBytes)
-	bdl.updateFreeLocked()
 }
 
 func (bdl *backpressureDiskLimiter) getDelayLocked(
