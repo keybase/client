@@ -427,7 +427,7 @@ const inputMap: DumbComponentMap<Input> = {
         style: {
           ...globalStyles.flexBoxColumn,
           alignItems: 'center',
-          width: 600,
+          width: isMobile ? 420 : 600,
           backgroundColor: 'yellow',
         },
       },
@@ -438,7 +438,7 @@ const inputMap: DumbComponentMap<Input> = {
         style: {
           ...globalStyles.flexBoxColumn,
           alignItems: 'stretch',
-          width: 600,
+          width: isMobile ? 420 : 600,
           backgroundColor: 'green',
         },
       },

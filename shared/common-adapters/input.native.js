@@ -145,7 +145,7 @@ class Input extends Component<void, Props, State> {
     : {
       ...globalStyles.flexBoxColumn,
       justifyContent: 'flex-start',
-      maxWidth: 460,
+      maxWidth: 400,
     }
   }
 
@@ -171,7 +171,8 @@ class Input extends Component<void, Props, State> {
 
     const singlelineStyle = {
       ...commonInputStyle,
-      height: 28,
+      maxHeight: 28,
+      minHeight: 28,
       padding: 0,
     }
 
