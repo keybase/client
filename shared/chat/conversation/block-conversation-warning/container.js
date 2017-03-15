@@ -8,7 +8,7 @@ import type {TypedState} from '../../../constants/reducer'
 import type {BlockConversation, ConversationIDKey} from '../../../constants/chat'
 
 type AttachmentInputRouteProps = RouteProps<{
-  conversationIDKey: conversationIDKey,
+  conversationIDKey: ConversationIDKey,
   participants: string,
 }, {}>
 type OwnProps = AttachmentInputRouteProps & {}

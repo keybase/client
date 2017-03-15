@@ -22,7 +22,10 @@ const SidePanel = (props: Props) => (
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
-    <Button type='Danger' label='Block this conversation' onClick={() => props.onShowBlockConversationDialog()} />
+    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+      <Button type='Danger' label='Block this conversation' onClick={() => props.onShowBlockConversationDialog()} />
+    </Box>
+
     <Divider style={{marginBottom: 20, marginTop: 20}} />
   </Box>
 )

@@ -1,11 +1,12 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Button, Icon, Input, PopupDialog, Text} from '../../../common-adapters/index'
-import {globalColors, globalMargins, globalStyles} from '../../../styles'
+import {Box, Button, PopupDialog, Text} from '../../../common-adapters/index'
+import {globalMargins, globalStyles} from '../../../styles'
+import {isMobile} from '../../../constants/platform'
 
 import type {Props} from './'
 
-class RenderBlockConversationWarning extends Component<void, Props, State> {
+class RenderBlockConversationWarning extends Component<void, Props, void> {
 
   _onBlock = () => {
     const {conversationIDKey} = this.props
@@ -19,7 +20,7 @@ class RenderBlockConversationWarning extends Component<void, Props, State> {
         <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center', marginBottom: 80, marginLeft: 80, marginRight: 80, marginTop: 90}}>
           <Text type='Header'>Block the conversation with {this.props.participants}?</Text>
           <Text type='Body' style={{marginTop: globalMargins.large}}>You won't see this conversation anymore.</Text>
-          <Text type='Body' style={{marginTop: globalMargins.small}}>  To unblock it, run <Text type='Terminal'>keybase chat hide -u {this.props.participants}</Text> in the terminal.</Text>
+          <Text type='Body' style={{marginTop: globalMargins.small}}>To unblock it, run <Text type='Terminal'>keybase chat hide -u {this.props.participants}</Text> {isMobile ? 'on a desktop computer' : 'in the terminal'}.</Text>
           <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.large}}>
             <Button type='Secondary' onClick={this.props.onClose} label="No, don't block them" />
             <Button type='Danger' style={{marginLeft: globalMargins.tiny}} onClick={this._onBlock} label='Yes, block them' />

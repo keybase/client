@@ -5,6 +5,7 @@ import Conversation from './conversation/container'
 import AttachmentPopup from './conversation/attachment-popup/container'
 import AttachmentInputPopup from './conversation/attachment-input/container'
 import MessagePopup from './conversation/messages/popup.native'
+import BlockConversationWarning from './conversation/block-conversation-warning/container'
 
 const conversationRoute = new RouteDefNode({
   component: Conversation,

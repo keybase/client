@@ -390,7 +390,7 @@ function reducer (state: State = initialState, action: Actions) {
       let updatedInbox = existing ? oldInbox.set(existing[0], convo) : oldInbox.push(convo)
       // If the convo's just been blocked, delete it from the inbox.
       // const blocked = existing && existing[0] && existing[1].get('blocked')
-      if (existing && convo.info.status === CommonConversationStatus.blocked) {
+      if (existing && convo.info && convo.info.status === CommonConversationStatus.blocked) {
         console.warn('DELETING')
         updatedInbox = updatedInbox.delete(existing[0])
       } else if (existing) {
