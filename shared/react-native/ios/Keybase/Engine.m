@@ -59,6 +59,9 @@ static NSString *const eventName = @"objc-engine-event";
         NSLog(@"Error reading data: %@", error);
       }
       if (data) {
+        if (!self.keybaseEngine) {
+          NSLog(@"NO ENGINE");
+        }
         [self.keybaseEngine sendEventWithName:eventName body:data];
       }
     }
