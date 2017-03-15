@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -15,19 +17,40 @@ type Response struct {
 }
 
 type Request struct {
-	Client int `json:"client"`
+	Client int    `json:"client"`
+	Method string `json:"method"`
+	To     string `json:"to"`
+	Body   string `json:"body"`
 }
 
+var plain = flag.Bool("plain", false, "line-delimited JSON IO, no length prefix")
+
 func main() {
+	flag.Parse()
+
 	// Native messages include a prefix which describes the length of each message.
-	in := nativemessaging.NewNativeJSONDecoder(os.Stdin)
-	out := nativemessaging.NewNativeJSONEncoder(os.Stdout)
+	var in nativemessaging.JSONDecoder
+	var out nativemessaging.JSONEncoder
+
+	if *plain {
+		// Used for testing interactively
+		in = json.NewDecoder(os.Stdin)
+		out = json.NewEncoder(os.Stdout)
+	} else {
+		// Used as part of the NativeMessaging API
+		in = nativemessaging.NewNativeJSONDecoder(os.Stdin)
+		out = nativemessaging.NewNativeJSONEncoder(os.Stdout)
+	}
 
 	for {
 		var resp Response
 		var req Request
 
 		err := in.Decode(&req)
+
+		if err == nil {
+			err = handle(&req)
+		}
 
 		if err == io.EOF {
 			// Closed
@@ -38,7 +61,6 @@ func main() {
 		} else {
 			// Success
 			resp.Status = "ok"
-			resp.Message = "Parsed message successfully."
 		}
 		resp.Client = req.Client
 
