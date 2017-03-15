@@ -67,6 +67,19 @@ func (h TlfHandle) IsReader(user keybase1.UID) bool {
 	return ok
 }
 
+// ResolvedUsersMap returns a map of resolved users from uid to usernames.
+func (h TlfHandle) ResolvedUsersMap() map[keybase1.UID]libkb.NormalizedUsername {
+	m := make(map[keybase1.UID]libkb.NormalizedUsername,
+		len(h.resolvedReaders)+len(h.resolvedWriters))
+	for k, v := range h.resolvedReaders {
+		m[k] = v
+	}
+	for k, v := range h.resolvedWriters {
+		m[k] = v
+	}
+	return m
+}
+
 func (h TlfHandle) unsortedResolvedWriters() []keybase1.UID {
 	if len(h.resolvedWriters) == 0 {
 		return nil

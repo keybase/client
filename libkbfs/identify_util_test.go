@@ -91,17 +91,20 @@ func makeNugAndTIForTest() (testNormalizedUsernameGetter, *testIdentifier) {
 			},
 		}
 }
+
+func (g testNormalizedUsernameGetter) uidMap() map[keybase1.UID]libkb.NormalizedUsername {
+	return (map[keybase1.UID]libkb.NormalizedUsername)(g)
+}
+
 func TestIdentify(t *testing.T) {
 	nug, ti := makeNugAndTIForTest()
 
 	uids := make(map[keybase1.UID]bool, len(nug))
-	uidList := make([]keybase1.UID, 0, len(nug))
 	for u := range nug {
 		uids[u] = true
-		uidList = append(uidList, u)
 	}
 
-	err := identifyUserListForTLF(context.Background(), nug, ti, uidList, false)
+	err := identifyUsersForTLF(context.Background(), nug, ti, nug.uidMap(), false)
 	require.NoError(t, err)
 	require.Equal(t, uids, ti.identifiedUids)
 }
@@ -116,21 +119,16 @@ func TestIdentifyAlternativeBehaviors(t *testing.T) {
 		},
 	}
 
-	uidList := make([]keybase1.UID, 0, len(nug))
-	for u := range nug {
-		uidList = append(uidList, u)
-	}
-
 	ctx, err := makeExtendedIdentify(context.Background(),
 		keybase1.TLFIdentifyBehavior_CHAT_CLI)
 	require.NoError(t, err)
-	err = identifyUserListForTLF(ctx, nug, ti, uidList, false)
+	err = identifyUsersForTLF(ctx, nug, ti, nug.uidMap(), false)
 	require.Error(t, err)
 
 	ctx, err = makeExtendedIdentify(context.Background(),
 		keybase1.TLFIdentifyBehavior_CHAT_GUI)
 	require.NoError(t, err)
-	err = identifyUserListForTLF(ctx, nug, ti, uidList, false)
+	err = identifyUsersForTLF(ctx, nug, ti, nug.uidMap(), false)
 	require.NoError(t, err)
 	tb := getExtendedIdentify(ctx).getTlfBreakAndClose()
 	require.Len(t, tb.Breaks, 1)
