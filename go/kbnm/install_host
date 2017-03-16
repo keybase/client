@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
-
-readonly host_name="com.keybase.kbnm"
-
+# Install and uninstall the Chrome NativeMessaging host whitelist file for the
+# Keybase extension.
+#
+# Usage:
+#   ./install_host
+#   ./install_host uninstall
+#
+# It can be run multiple times. The whitelist will be overwritten each time.
 
 detect() {
+  # Find where the NativeMessagingHosts whitelist lives for this platform.
   whoami="$(whoami)"
   if [[ "$(uname -s)" == "Darwin" ]]; then
     # Mac
@@ -23,6 +29,7 @@ detect() {
 }
 
 install() {
+  # Install the whitelist.
   declare target="$1"
 
   local target_dir="$(dirname target)"
@@ -44,6 +51,7 @@ install() {
 }
 
 uninstall() {
+  # Uninstall the whitelist.
   declare target="$1"
 
   rm "$target" && echo "Removed Chrome NativeMessaging whitelist: $target" || echo "Install not found: $target"
@@ -54,6 +62,8 @@ main() {
   set -eo pipefail; [[ "$TRACE" ]] && set -x
 
   declare cmd="$1"
+
+  readonly host_name="com.keybase.kbnm"
   local target="$(detect)/${host_name}.json"
 
   if [[ "$cmd" == "uninstall" ]]; then
