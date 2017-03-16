@@ -93,9 +93,11 @@ function renderChat(parent, toUsername) {
 }
 
 // Remove the chat widget from the DOM
-function removeChat(chatNode) {
-  // TODO: Prompt if there is text written?
-  chatNode.parentNode.removeChild(chatNode);
+function removeChat(chatForm, skipCheck) {
+  if (!skipCheck && chatForm["keybase-chat"].value != "") {
+    if (!confirm("Discard your message?")) return;
+  }
+  chatForm.parentNode.removeChild(chatForm);
 }
 
 
@@ -121,6 +123,6 @@ function submitChat(e) {
 
   // TODO: Send nudge
 
-  removeChat(e.currentTarget);
+  removeChat(e.currentTarget, true /* skipCheck */);
   console.log("Chat submitted: ", e);
 }
