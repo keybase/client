@@ -40,6 +40,69 @@ func deleteTempLocalPath(path keybase1.Path) {
 	os.RemoveAll(path.Local())
 }
 
+// "pending" tells whether we expect the operation to still be
+// there, because there is no "none" in AsyncOps
+func checkPendingOp(ctx context.Context,
+	t *testing.T,
+	sfs *SimpleFS,
+	opid keybase1.OpID,
+	expectedOp keybase1.AsyncOps,
+	src keybase1.Path,
+	dest keybase1.Path,
+	pending bool) {
+
+	// TODO: what do we expect the progress to be?
+	_, err := sfs.SimpleFSCheck(ctx, opid)
+	if pending {
+		require.NoError(t, err)
+	} else {
+		require.Error(t, err)
+	}
+
+	ops, err := sfs.SimpleFSGetOps(ctx)
+
+	if !pending {
+		assert.Len(t, ops, 0, "Expected zero pending operations")
+		return
+	}
+
+	assert.True(t, len(ops) > 0, "Expected at least one pending operation")
+
+	o := ops[0]
+	op, err := o.AsyncOp()
+	require.NoError(t, err)
+	assert.Equal(t, expectedOp, op, "Expected at least one pending operation")
+
+	// TODO: verify read/write arguments
+	switch op {
+	case keybase1.AsyncOps_LIST:
+		list := o.List()
+		assert.Equal(t, list.Path, src, "Expected matching path in operation")
+	case keybase1.AsyncOps_LIST_RECURSIVE:
+		list := o.ListRecursive()
+		assert.Equal(t, list.Path, src, "Expected matching path in operation")
+	// TODO: read is not async
+	case keybase1.AsyncOps_READ:
+		read := o.Read()
+		assert.Equal(t, read.Path, src, "Expected matching path in operation")
+	// TODO: write is not asynce
+	case keybase1.AsyncOps_WRITE:
+		write := o.Write()
+		assert.Equal(t, write.Path, src, "Expected matching path in operation")
+	case keybase1.AsyncOps_COPY:
+		copy := o.Copy()
+		assert.Equal(t, copy.Src, src, "Expected matching path in operation")
+		assert.Equal(t, copy.Dest, dest, "Expected matching path in operation")
+	case keybase1.AsyncOps_MOVE:
+		move := o.Move()
+		assert.Equal(t, move.Src, src, "Expected matching path in operation")
+		assert.Equal(t, move.Dest, dest, "Expected matching path in operation")
+	case keybase1.AsyncOps_REMOVE:
+		remove := o.Remove()
+		assert.Equal(t, remove.Path, src, "Expected matching path in operation")
+	}
+}
+
 func TestList(t *testing.T) {
 	ctx := context.Background()
 	sfs := newSimpleFS(libkbfs.MakeTestConfigOrBust(t, "jdoe"))
@@ -58,6 +121,7 @@ func TestList(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_LIST, path1, keybase1.Path{}, true)
 	err = sfs.SimpleFSWait(ctx, opid)
 	require.NoError(t, err)
 
@@ -114,16 +178,21 @@ func TestCopyToLocal(t *testing.T) {
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 
+	srcPath := pathAppend(path1, "test1.txt")
+	destPath := pathAppend(path2, "test1.txt")
+
 	err = sfs.SimpleFSCopy(ctx, keybase1.SimpleFSCopyArg{
 		OpID: opid,
-		Src:  pathAppend(path1, "test1.txt"),
-		Dest: pathAppend(path2, "test1.txt"),
+		Src:  srcPath,
+		Dest: destPath,
 	})
 	require.NoError(t, err)
 
+	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_COPY, srcPath, destPath, true)
 	err = sfs.SimpleFSWait(ctx, opid)
 	require.NoError(t, err)
 
+	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_COPY, srcPath, destPath, false)
 	// Verify error on double wait
 	err = sfs.SimpleFSWait(ctx, opid)
 	require.Error(t, err)
@@ -153,15 +222,21 @@ func TestCopyToRemote(t *testing.T) {
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 
+	srcPath := keybase1.NewPathWithLocal(filepath.Join(path1.Local(), "test1.txt"))
+	destPath := pathAppend(path2, "test1.txt")
 	err = sfs.SimpleFSCopy(ctx, keybase1.SimpleFSCopyArg{
 		OpID: opid,
-		Src:  keybase1.NewPathWithLocal(filepath.Join(path1.Local(), "test1.txt")),
-		Dest: pathAppend(path2, "test1.txt"),
+		Src:  srcPath,
+		Dest: destPath,
 	})
 	require.NoError(t, err)
 
+	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_COPY, srcPath, destPath, true)
+
 	err = sfs.SimpleFSWait(ctx, opid)
 	require.NoError(t, err)
+
+	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_COPY, srcPath, destPath, false)
 
 	// Verify error on double wait
 	err = sfs.SimpleFSWait(ctx, opid)
@@ -188,6 +263,7 @@ func writeRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path keyb
 		Offset:  0,
 		Content: data,
 	})
+
 	require.NoError(t, err)
 }
 
