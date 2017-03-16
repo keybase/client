@@ -1,55 +1,52 @@
 // @flow
 import Avatar from './avatar'
-import React, {Component} from 'react'
-import type {Props} from './user-card'
+import React from 'react'
 import Box from './box'
 import {globalStyles, globalColors} from '../styles'
 
+import type {Props} from './user-card'
+
 const avatarSize = 112
 
-class UserCard extends Component<void, Props, void> {
-  render () {
-    const url = this.props.username ? `https://keybase.io/${this.props.username}` : null
-    return (
-      <Box style={{...styles.container, ...this.props.outerStyle}}>
-        <Box style={styles.avatar}>
-          <Box style={styles.avatarBackground} />
-          <Avatar size={avatarSize} onClick={this.props.onAvatarClicked} url={url} />
-        </Box>
-        <Box style={{...styles.inside, ...this.props.style}}>
-          {this.props.children}
-        </Box>
-      </Box>
-    )
-  }
+const UserCard = ({outerStyle, onAvatarClicked, username, style, children}: Props) => (
+  <Box style={{...styleContainer, ...outerStyle}}>
+    <Box style={styleAvatar}>
+      <Box style={styleAvatarBackground} />
+      <Avatar size={avatarSize} onClick={onAvatarClicked} username={username} />
+    </Box>
+    <Box style={{...styleInside, ...style}}>
+      {children}
+    </Box>
+  </Box>
+)
+
+const styleContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'stretch',
 }
 
-const styles = {
-  container: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-  },
-  inside: {
-    ...globalStyles.flexBoxColumn,
-    justifyContent: 'flex-start',
-    alignItems: 'stretch',
-    backgroundColor: globalColors.white,
-    padding: 16,
-  },
-  avatar: {
-    ...globalStyles.flexBoxColumn,
-    marginTop: 0,
-    alignItems: 'center',
-    alignSelf: 'stretch',
-  },
-  avatarBackground: {
-    backgroundColor: globalColors.white,
-    position: 'absolute',
-    height: avatarSize / 2,
-    top: avatarSize / 2,
-    left: 0,
-    right: 0,
-  },
+const styleInside = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'stretch',
+  backgroundColor: globalColors.white,
+  justifyContent: 'flex-start',
+  padding: 16,
+}
+
+const styleAvatar = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  alignSelf: 'stretch',
+  marginTop: 0,
+}
+
+const styleAvatarBackground = {
+  backgroundColor: globalColors.white,
+  height: avatarSize / 2,
+  left: 0,
+  position: 'absolute',
+  right: 0,
+  top: avatarSize / 2,
 }
 
 export default UserCard
