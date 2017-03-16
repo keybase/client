@@ -54,14 +54,13 @@ func (s *SimpleFSHandler) SimpleFSListRecursive(ctx context.Context, arg keybase
 	return cli.SimpleFSListRecursive(ctx, arg)
 }
 
-// SimpleFSReadList - Get list of Paths in progress. Can indicate status of pending
-// to get more entries.
-func (s *SimpleFSHandler) SimpleFSReadList(ctx context.Context, arg keybase1.OpID) (keybase1.SimpleFSListResult, error) {
+// SimpleFSWaitList - Get list of Paths in progress.
+func (s *SimpleFSHandler) SimpleFSWaitList(ctx context.Context, arg keybase1.OpID) (keybase1.SimpleFSListResult, error) {
 	cli, err := s.client()
 	if err != nil {
 		return keybase1.SimpleFSListResult{}, err
 	}
-	return cli.SimpleFSReadList(ctx, arg)
+	return cli.SimpleFSWaitList(ctx, arg)
 }
 
 // SimpleFSCopy - Begin copy of file or directory
@@ -124,10 +123,10 @@ func (s *SimpleFSHandler) SimpleFSSetStat(ctx context.Context, arg keybase1.Simp
 // up to the amount specified by size.
 // Repeat until zero bytes are returned or error.
 // If size is zero, read an arbitrary amount.
-func (s *SimpleFSHandler) SimpleFSRead(ctx context.Context, arg keybase1.SimpleFSReadArg) (keybase1.FileContent, error) {
+func (s *SimpleFSHandler) SimpleFSRead(ctx context.Context, arg keybase1.SimpleFSReadArg) error {
 	cli, err := s.client()
 	if err != nil {
-		return keybase1.FileContent{}, err
+		return err
 	}
 	return cli.SimpleFSRead(ctx, arg)
 }
@@ -180,10 +179,10 @@ func (s *SimpleFSHandler) SimpleFSClose(ctx context.Context, arg keybase1.OpID) 
 }
 
 // SimpleFSCheck - Check progress of pending operation
-func (s *SimpleFSHandler) SimpleFSCheck(ctx context.Context, arg keybase1.OpID) (keybase1.Progress, error) {
+func (s *SimpleFSHandler) SimpleFSCheck(ctx context.Context, arg keybase1.OpID) (keybase1.SimpleFSOpResult, error) {
 	cli, err := s.client()
 	if err != nil {
-		return 0, err
+		return keybase1.SimpleFSOpResult{}, err
 	}
 	return cli.SimpleFSCheck(ctx, arg)
 }

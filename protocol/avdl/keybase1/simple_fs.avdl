@@ -14,14 +14,14 @@ protocol SimpleFS {
     simpleFSOpen
     simpleFSMove
     simpleFSRemove
-  then calls one of the following until until status is no longer pending
-  or operation is cancelled:
-    simpleFSReadList (after list or listRecursive)
-    simpleFSRead (after open)
-    simpleFSWrite (after open)
-    simpleFSCheck (after copy, move or remove)
-  Caller can optionally block by calling wait()
-  Operation must be closed by calling close
+    simpleFSRead
+    simpleFSWrite
+  then calls simpleFSWait to block until the operation is finished
+  or cancelled,
+  then callse simpleFSCheck to retrieve results.
+    simpleFSWaitList (after list or listRecursive) is used for partial results.
+  
+  Operation can be cancelled by calling simpleFSClose
 */
 
   // Random GUID provided by caller 
@@ -38,15 +38,16 @@ protocol SimpleFS {
   }
 
   enum DirentType {
-    FILE_0,
-    DIR_1,
-    SYM_2,
-    EXEC_3
+    NONE_0,
+    FILE_1,
+    DIR_2,
+    SYM_3,
+    EXEC_4
   }
   
   record Dirent {
     Time time;
-    int size;   // size of file or count of dir entries (TBD - mmay be expensive/unnecessary)
+    long size;   // size of file, undefined for dir entries
     string name;
     DirentType direntType;
   }
@@ -63,27 +64,15 @@ protocol SimpleFS {
     DIRECTORY_16
   }
 
-  @typedef("int")
-  record Progress {}
-
-  record SimpleFSListResult {
-    array<Dirent> entries;
-    Progress progress;
-  }
-  
-  record FileContent {
-    bytes data;         // Zero bytes when read is complete
-    Progress progress;  // Amount of data copied so far during this and previous reads
-  }                     // (TBD: should this be percentage?)
-
   enum AsyncOps {
-    LIST_0,
-    LIST_RECURSIVE_1,
-    READ_2,
-    WRITE_3,
-    COPY_4,
-    MOVE_5,
-    REMOVE_6
+    NONE_0,
+    LIST_1,
+    LIST_RECURSIVE_2,
+    READ_3,
+    WRITE_4,
+    COPY_5,
+    MOVE_6,
+    REMOVE_7
   }
 
   record ListArgs {
@@ -131,9 +120,48 @@ protocol SimpleFS {
     case REMOVE: RemoveArgs;
   }
 
+  @typedef("int")
+  record Progress {}
+
+  record SimpleFSListResult {
+    array<Dirent> entries;
+    Progress progress;
+  }
+  
+  record ReadResult {
+    bytes data;         // Zero bytes when read is complete
+    Progress progress;  // Amount of data copied so far during this and previous reads
+  }                     // (TBD: should this be percentage?)
+
+  record WriteResult{
+    Progress progress;    
+  }
+
+  record CopyResult{
+    Progress progress;
+  }
+
+  record MoveResult{
+    Progress progress;    
+  }
+
+  record RemoveResult{
+    Progress progress;    
+  }
+
+  variant SimpleFSOpResult switch (AsyncOps asyncOp) {
+    case LIST: SimpleFSListResult;
+    case LIST_RECURSIVE: SimpleFSListResult;
+    case READ: ReadResult;
+    case WRITE: WriteResult;
+    case COPY: CopyResult;
+    case MOVE: MoveResult;
+    case REMOVE: RemoveResult;
+  }
+
   /**
    Begin list of items in directory at path
-   Retrieve results with readList()
+   Retrieve results with check()
    Can be a single file to get flags/status
    */
   void simpleFSList(OpID opID, Path path);
@@ -144,10 +172,9 @@ protocol SimpleFS {
   void simpleFSListRecursive(OpID opID, Path path);
 
   /**
-   Get list of Paths in progress. Can indicate status of pending
-   to get more entries.
-   */
-  SimpleFSListResult simpleFSReadList(OpID opID);
+   Get list of Paths in progress. Can return partial results.
+  */
+   SimpleFSListResult simpleFSWaitList(OpID opID);
 
   /**
    Begin copy of file or directory 
@@ -184,10 +211,9 @@ protocol SimpleFS {
   /**
    Read (possibly partial) contents of open file,
    up to the amount specified by size.
-   Repeat until zero bytes are returned or error.
    If size is zero, read an arbitrary amount.
    */
-  FileContent simpleFSRead(OpID opID, long offset, int size);
+  void simpleFSRead(OpID opID, long offset, int size);
 
   /**
    Append content to opened file.
@@ -219,7 +245,7 @@ protocol SimpleFS {
   /**
    Check progress of pending operation
    */
-  Progress simpleFSCheck(OpID opID);
+  SimpleFSOpResult simpleFSCheck(OpID opID);
 
   /**
    Get all the outstanding operations

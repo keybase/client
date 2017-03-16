@@ -48,10 +48,11 @@
       "type": "enum",
       "name": "DirentType",
       "symbols": [
-        "FILE_0",
-        "DIR_1",
-        "SYM_2",
-        "EXEC_3"
+        "NONE_0",
+        "FILE_1",
+        "DIR_2",
+        "SYM_3",
+        "EXEC_4"
       ]
     },
     {
@@ -63,7 +64,7 @@
           "name": "time"
         },
         {
-          "type": "int",
+          "type": "long",
           "name": "size"
         },
         {
@@ -95,53 +96,17 @@
       ]
     },
     {
-      "type": "record",
-      "name": "Progress",
-      "fields": [],
-      "typedef": "int"
-    },
-    {
-      "type": "record",
-      "name": "SimpleFSListResult",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "Dirent"
-          },
-          "name": "entries"
-        },
-        {
-          "type": "Progress",
-          "name": "progress"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "FileContent",
-      "fields": [
-        {
-          "type": "bytes",
-          "name": "data"
-        },
-        {
-          "type": "Progress",
-          "name": "progress"
-        }
-      ]
-    },
-    {
       "type": "enum",
       "name": "AsyncOps",
       "symbols": [
-        "LIST_0",
-        "LIST_RECURSIVE_1",
-        "READ_2",
-        "WRITE_3",
-        "COPY_4",
-        "MOVE_5",
-        "REMOVE_6"
+        "NONE_0",
+        "LIST_1",
+        "LIST_RECURSIVE_2",
+        "READ_3",
+        "WRITE_4",
+        "COPY_5",
+        "MOVE_6",
+        "REMOVE_7"
       ]
     },
     {
@@ -306,6 +271,142 @@
           "body": "RemoveArgs"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "Progress",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSListResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Dirent"
+          },
+          "name": "entries"
+        },
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ReadResult",
+      "fields": [
+        {
+          "type": "bytes",
+          "name": "data"
+        },
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "WriteResult",
+      "fields": [
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CopyResult",
+      "fields": [
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MoveResult",
+      "fields": [
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RemoveResult",
+      "fields": [
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "SimpleFSOpResult",
+      "switch": {
+        "type": "AsyncOps",
+        "name": "asyncOp"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "LIST",
+            "def": false
+          },
+          "body": "SimpleFSListResult"
+        },
+        {
+          "label": {
+            "name": "LIST_RECURSIVE",
+            "def": false
+          },
+          "body": "SimpleFSListResult"
+        },
+        {
+          "label": {
+            "name": "READ",
+            "def": false
+          },
+          "body": "ReadResult"
+        },
+        {
+          "label": {
+            "name": "WRITE",
+            "def": false
+          },
+          "body": "WriteResult"
+        },
+        {
+          "label": {
+            "name": "COPY",
+            "def": false
+          },
+          "body": "CopyResult"
+        },
+        {
+          "label": {
+            "name": "MOVE",
+            "def": false
+          },
+          "body": "MoveResult"
+        },
+        {
+          "label": {
+            "name": "REMOVE",
+            "def": false
+          },
+          "body": "RemoveResult"
+        }
+      ]
     }
   ],
   "messages": {
@@ -321,7 +422,7 @@
         }
       ],
       "response": null,
-      "doc": "Begin list of items in directory at path\n   Retrieve results with readList()\n   Can be a single file to get flags/status"
+      "doc": "Begin list of items in directory at path\n   Retrieve results with check()\n   Can be a single file to get flags/status"
     },
     "simpleFSListRecursive": {
       "request": [
@@ -337,7 +438,7 @@
       "response": null,
       "doc": "Begin recursive list of items in directory at path"
     },
-    "simpleFSReadList": {
+    "simpleFSWaitList": {
       "request": [
         {
           "name": "opID",
@@ -345,7 +446,7 @@
         }
       ],
       "response": "SimpleFSListResult",
-      "doc": "Get list of Paths in progress. Can indicate status of pending\n   to get more entries."
+      "doc": "Get list of Paths in progress. Can return partial results."
     },
     "simpleFSCopy": {
       "request": [
@@ -462,8 +563,8 @@
           "type": "int"
         }
       ],
-      "response": "FileContent",
-      "doc": "Read (possibly partial) contents of open file,\n   up to the amount specified by size.\n   Repeat until zero bytes are returned or error.\n   If size is zero, read an arbitrary amount."
+      "response": null,
+      "doc": "Read (possibly partial) contents of open file,\n   up to the amount specified by size.\n   If size is zero, read an arbitrary amount."
     },
     "simpleFSWrite": {
       "request": [
@@ -529,7 +630,7 @@
           "type": "OpID"
         }
       ],
-      "response": "Progress",
+      "response": "SimpleFSOpResult",
       "doc": "Check progress of pending operation"
     },
     "simpleFSGetOps": {
