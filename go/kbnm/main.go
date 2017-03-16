@@ -10,12 +10,14 @@ import (
 	"github.com/qrtz/nativemessaging"
 )
 
+// Response from the kbnm service
 type Response struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
 	Client  int    `json:"client"`
 }
 
+// Request to the kbnm service
 type Request struct {
 	Client int    `json:"client"`
 	Method string `json:"method"`

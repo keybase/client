@@ -5,22 +5,22 @@ import (
 	"os/exec"
 )
 
-var ErrInvalidMethod = errors.New("invalid method")
+var errInvalidMethod = errors.New("invalid method")
 
-var ErrMissingField = errors.New("missing field")
+var errMissingField = errors.New("missing field")
 
 func handle(req *Request) error {
 	switch req.Method {
 	case "chat":
 		return handleChat(req)
 	default:
-		return ErrInvalidMethod
+		return errInvalidMethod
 	}
 }
 
 func handleChat(req *Request) error {
 	if req.Body == "" || req.To == "" {
-		return ErrMissingField
+		return errMissingField
 	}
 
 	// FIXME: Get the absolute path without a filled PATH var somehow?
