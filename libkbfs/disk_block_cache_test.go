@@ -43,7 +43,7 @@ func (c testDiskBlockCacheConfig) DiskLimiter() DiskLimiter {
 }
 
 func newDiskBlockCacheStandardForTest(config *testDiskBlockCacheConfig,
-	maxBytes int64) (*DiskBlockCacheStandard, error) {
+	maxBytes int64, limiter DiskLimiter) (*DiskBlockCacheStandard, error) {
 	blockStorage := storage.NewMemStorage()
 	lruStorage := storage.NewMemStorage()
 	tlfStorage := storage.NewMemStorage()
@@ -53,15 +53,16 @@ func newDiskBlockCacheStandardForTest(config *testDiskBlockCacheConfig,
 	if err != nil {
 		return nil, err
 	}
-	limiter, err := newBackpressureDiskLimiterWithFunctions(
-		config.MakeLogger(""), 0.5, 0.95, 0.25, 0.25,
-		testDiskBlockCacheMaxBytes, maxFiles, time.Second,
-		defaultDoDelay, func() (int64, int64, error) {
-			// hackity hackeroni
-			freeBytes := maxBytes - int64(cache.currBytes)
-			return freeBytes, maxFiles, nil
-		})
-	// Sooooo hacky :(
+	if limiter == nil {
+		limiter, err = newBackpressureDiskLimiterWithFunctions(
+			config.MakeLogger(""), 0.5, 0.95, 0.25, 0.25,
+			testDiskBlockCacheMaxBytes, maxFiles, time.Second,
+			defaultDoDelay, func() (int64, int64, error) {
+				// hackity hackeroni
+				freeBytes := maxBytes - int64(cache.currBytes)
+				return freeBytes, maxFiles, nil
+			})
+	}
 	config.limiter = limiter
 	if err != nil {
 		return nil, err
@@ -73,7 +74,7 @@ func initDiskBlockCacheTest(t *testing.T) (*DiskBlockCacheStandard,
 	*testDiskBlockCacheConfig) {
 	config := newTestDiskBlockCacheConfig(t)
 	cache, err := newDiskBlockCacheStandardForTest(config,
-		testDiskBlockCacheMaxBytes)
+		testDiskBlockCacheMaxBytes, nil)
 	require.NoError(t, err)
 	return cache, config
 }
@@ -349,44 +350,7 @@ func TestDiskBlockCacheStaticLimit(t *testing.T) {
 
 	numTlfs := 10
 	numBlocksPerTlf := 5
-
-	t.Log("Seed the cache with some blocks.")
-	for i := byte(0); int(i) < numTlfs; i++ {
-		currTlf := tlf.FakeID(i, false)
-		for j := 0; j < numBlocksPerTlf; j++ {
-			blockID, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
-			err := cache.Put(ctx, currTlf, blockID, blockEncoded, serverHalf)
-			require.NoError(t, err)
-			clock.Add(time.Second)
-		}
-	}
-
-	t.Log("Set the cache maximum bytes to the current total.")
-	currBytes := int64(cache.currBytes)
-	cache.config.DiskLimiter().(*backpressureDiskLimiter).diskCacheByteTracker.limit =
-		currBytes
-
-	t.Log("Add a block to the cache. Verify that blocks were evicted.")
-	blockID, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
-	err := cache.Put(ctx, tlf.FakeID(10, false), blockID, blockEncoded, serverHalf)
-	require.NoError(t, err)
-
-	require.True(t, int64(cache.currBytes) < currBytes)
-	require.Equal(t, 41, cache.numBlocks)
-}
-
-func TestDiskBlockCacheDynamicLimit(t *testing.T) {
-	t.Parallel()
-	t.Skip("doesn't work yet")
-	t.Log("Test that disk cache eviction works when we hit a dynamic limit.")
-	cache, config := initDiskBlockCacheTest(t)
-	defer shutdownDiskBlockCacheTest(cache)
-
-	ctx := context.Background()
-	clock := config.TestClock()
-
-	numTlfs := 10
-	numBlocksPerTlf := 5
+	numBlocks := numTlfs * numBlocksPerTlf
 
 	t.Log("Seed the cache with some blocks.")
 	for i := byte(0); int(i) < numTlfs; i++ {
@@ -402,13 +366,7 @@ func TestDiskBlockCacheDynamicLimit(t *testing.T) {
 	t.Log("Set the cache maximum bytes to the current total.")
 	currBytes := int64(cache.currBytes)
 	limiter := cache.config.DiskLimiter().(*backpressureDiskLimiter)
-	limiter.freeBytesAndFilesFn = func() (int64, int64, error) {
-		// hackity hackeroni
-		freeBytes := currBytes * 4
-		// arbitrarily large number
-		numFiles := int64(100000000)
-		return freeBytes, numFiles, nil
-	}
+	limiter.diskCacheByteTracker.limit = currBytes
 
 	t.Log("Add a block to the cache. Verify that blocks were evicted.")
 	blockID, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
@@ -416,5 +374,57 @@ func TestDiskBlockCacheDynamicLimit(t *testing.T) {
 	require.NoError(t, err)
 
 	require.True(t, int64(cache.currBytes) < currBytes)
-	require.Equal(t, 41, cache.numBlocks)
+	require.Equal(t, 1+numBlocks-int(defaultNumBlocksToEvict), cache.numBlocks)
+}
+
+func TestDiskBlockCacheDynamicLimit(t *testing.T) {
+	t.Parallel()
+	t.Log("Test that disk cache eviction works when we hit a dynamic limit.")
+	cache, config := initDiskBlockCacheTest(t)
+	defer shutdownDiskBlockCacheTest(cache)
+
+	ctx := context.Background()
+	clock := config.TestClock()
+
+	numTlfs := 10
+	numBlocksPerTlf := 5
+	numBlocks := numTlfs * numBlocksPerTlf
+
+	t.Log("Seed the cache with some blocks.")
+	for i := byte(0); int(i) < numTlfs; i++ {
+		currTlf := tlf.FakeID(i, false)
+		for j := 0; j < numBlocksPerTlf; j++ {
+			blockID, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
+			err := cache.Put(ctx, currTlf, blockID, blockEncoded, serverHalf)
+			require.NoError(t, err)
+			clock.Add(time.Second)
+		}
+	}
+
+	t.Log("Set the cache dynamic limit to its current value by tweaking the" +
+		" free space function.")
+	currBytes := int64(cache.currBytes)
+	limiter := cache.config.DiskLimiter().(*backpressureDiskLimiter)
+	limiter.freeBytesAndFilesFn = func() (int64, int64, error) {
+		// Since the limit is 25% of the total available space, make that true
+		// for the current used byte count.  We do this by setting the free
+		// byte count to 75% of the total, which is 3x used bytes.
+		freeBytes := currBytes * 3
+		// arbitrarily large number
+		numFiles := int64(100000000)
+		return freeBytes, numFiles, nil
+	}
+
+	t.Log("Add a round of blocks to the cache. Verify that blocks were" +
+		" evicted each time we went past the limit.")
+	start := numBlocks - int(defaultNumBlocksToEvict)
+	for i := 1; i <= numBlocks; i++ {
+		blockID, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
+		err := cache.Put(ctx, tlf.FakeID(10, false), blockID, blockEncoded, serverHalf)
+		require.NoError(t, err)
+		require.Equal(t, start+(i%int(defaultNumBlocksToEvict)), cache.numBlocks)
+	}
+
+	require.True(t, int64(cache.currBytes) < currBytes)
+	require.Equal(t, start, cache.numBlocks)
 }
