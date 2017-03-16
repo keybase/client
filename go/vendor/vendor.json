@@ -385,6 +385,11 @@
 			"revisionTime": "2016-01-10T10:55:54Z"
 		},
 		{
+			"path": "github.com/qrtz/nativemessaging",
+			"revision": "f4769a80e040056dd57d0841a5f1f7cedbcdd251",
+			"revisionTime": "2016-12-20T22:57:08-05:00"
+		},
+		{
 			"checksumSHA1": "Q68FxXX04PtPDIG7C1RlSDhx/ko=",
 			"path": "github.com/rwcarlsen/goexif/exif",
 			"revision": "709fab3d192d7c62f86043caff1e7e3fb0f42bd8",
