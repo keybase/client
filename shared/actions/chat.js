@@ -1669,8 +1669,9 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
     yield put({type: 'chat:clearMessages', payload: {conversationIDKey}})
   }
 
+  let loadMoreTask
   if (conversationIDKey) {
-    yield put(loadMoreMessages(conversationIDKey, true))
+    loadMoreTask = yield fork(cancelWhen(_threadIsCleared, _loadMoreMessages), loadMoreMessages(conversationIDKey, true))
     yield put(navigateTo([conversationIDKey], [chatTab]))
   } else {
     yield put(navigateTo([], [chatTab]))
@@ -1686,6 +1687,7 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
   }
 
   if (fromUser && conversationIDKey) {
+    yield join(loadMoreTask)
     yield put(updateBadging(conversationIDKey))
     yield put(updateLatestMessage(conversationIDKey))
   }
