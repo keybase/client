@@ -44,7 +44,7 @@ class LogSendRender extends Component<void, Props, State> {
           </Text>
           {this.state.copiedToClipboard && <Text type='Body'>Copied to clipboard!</Text>}
 
-          <Text type='Body'>Send us the log id along with a description of what's going on in this Github issue:</Text>
+          <Text type='Body'>Send us the log id along with a description of what's going on in this GitHub issue:</Text>
           <Button type='Primary' label='File a Github issue:' onClick={onSubmitIssue} />
         </Box>
       )
