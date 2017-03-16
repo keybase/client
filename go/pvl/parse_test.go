@@ -46,8 +46,4 @@ func TestParse2(t *testing.T) {
 	if cbs.Instructions[0].RegexCapture == nil {
 		t.Fatalf("first instruction is not a regex capture")
 	}
-	_, ok = p.Services.Map[keybase1.ProofType_COINBASE]
-	if ok {
-		t.Fatalf("we didn't expect a coinbase service entry")
-	}
 }
