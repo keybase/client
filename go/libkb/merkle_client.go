@@ -699,6 +699,17 @@ func (mc *MerkleClient) LastRoot() *MerkleRoot {
 	return mc.lastRoot.ShallowCopy()
 }
 
+// storeRoot stores the root in the db and mem.
+// Must be called from under a lock.
+func (mc *MerkleClient) storeRoot(ctx context.Context, root *MerkleRoot, storeFirstSkip bool) {
+	err := root.Store(storeFirstSkip)
+	if err != nil {
+		mc.G().Log.Errorf("Cannot commit Merkle root to local DB: %s", err)
+	} else {
+		mc.lastRoot = root
+	}
+}
+
 func (mc *MerkleClient) FirstSeqnoWithSkips() *Seqno {
 
 	if mc.G().Env.GetRunMode() == ProductionRunMode {
@@ -815,6 +826,7 @@ func (mc *MerkleClient) verifyAndStoreRoot(ctx context.Context, root *MerkleRoot
 	// Maybe we've already verified it before.
 	verified, found := mc.verified[*root.Seqno()]
 	if verified && found {
+		mc.storeRoot(ctx, root, false)
 		return nil
 	}
 
@@ -849,9 +861,7 @@ func (mc *MerkleClient) verifyAndStoreRoot(ctx context.Context, root *MerkleRoot
 		newFirstSkip = true
 	}
 
-	if e2 := root.Store(newFirstSkip); e2 != nil {
-		mc.G().Log.Errorf("Cannot commit Merkle root to local DB: %s", e2)
-	}
+	mc.storeRoot(ctx, root, newFirstSkip)
 
 	return nil
 }

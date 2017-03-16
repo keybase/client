@@ -114,7 +114,7 @@ func (s *PvlSourceImpl) GetKitString(ctx context.Context) (string, error) {
 	// The time that the root was fetched is used rather than when the
 	// root was published so that we can continue to operate even if
 	// the root has not been published in a long time.
-	if (root == nil) || s.pastDue(root.Fetched(), tShouldRefresh) {
+	if (root == nil) || s.pastDue(ctx, root.Fetched(), tShouldRefresh) {
 		s.G().Log.CDebugf(ctx, "PvlSource: merkle root should refresh")
 
 		// Attempt a refresh if the root is old or nil.
@@ -130,7 +130,7 @@ func (s *PvlSourceImpl) GetKitString(ctx context.Context) (string, error) {
 		return "", libkb.NewPvlSourceError("no merkle root")
 	}
 
-	if s.pastDue(root.Fetched(), tRequireRefresh) {
+	if s.pastDue(ctx, root.Fetched(), tRequireRefresh) {
 		// The root is still too old, even after an attempted refresh.
 		s.G().Log.CDebugf(ctx, "PvlSource: merkle root too old")
 		return "", libkb.NewPvlSourceError("merkle root too old: %v %s", seqnoWrap(root.Seqno()), root.Fetched())
@@ -304,9 +304,13 @@ func (s *PvlSourceImpl) hash(in string) string {
 	return out
 }
 
-func (s *PvlSourceImpl) pastDue(event time.Time, limit time.Duration) bool {
+func (s *PvlSourceImpl) pastDue(ctx context.Context, event time.Time, limit time.Duration) bool {
 	diff := s.G().Clock().Now().Sub(event)
-	return diff > limit
+	overdue := diff > limit
+	if overdue {
+		s.G().Log.CDebugf(ctx, "PvlSource: pastDue diff:(%s) t1:(%s) limit:(%s)", diff, event, limit)
+	}
+	return overdue
 }
 
 func (s *PvlSourceImpl) readFile(path string) (string, error) {
