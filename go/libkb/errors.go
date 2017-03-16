@@ -1607,6 +1607,16 @@ func (e ChatConvExistsError) Error() string {
 
 //=============================================================================
 
+type ChatMessageCollisionError struct {
+	HeaderHash string
+}
+
+func (e ChatMessageCollisionError) Error() string {
+	return fmt.Sprintf("a message with that hash already exists: %s", e.HeaderHash)
+}
+
+//=============================================================================
+
 type ChatCollisionError struct {
 }
 

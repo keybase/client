@@ -180,6 +180,7 @@ export const ConstantsStatusCode = {
   scidentifysummaryerror: 2511,
   scneedselfrekey: 2512,
   scneedotherrekey: 2513,
+  scchatmessagecollision: 2514,
 }
 
 export const CtlDbType = {
@@ -4594,6 +4595,7 @@ export type StatusCode =
   | 2511 // SCIdentifySummaryError_2511
   | 2512 // SCNeedSelfRekey_2512
   | 2513 // SCNeedOtherRekey_2513
+  | 2514 // SCChatMessageCollision_2514
 
 export type Stream = {
   fd: int,

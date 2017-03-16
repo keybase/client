@@ -219,6 +219,7 @@ const (
 	SCIdentifySummaryError   = int(keybase1.StatusCode_SCIdentifySummaryError)
 	SCNeedSelfRekey          = int(keybase1.StatusCode_SCNeedSelfRekey)
 	SCNeedOtherRekey         = int(keybase1.StatusCode_SCNeedOtherRekey)
+	SCChatMessageCollision   = int(keybase1.StatusCode_SCChatMessageCollision)
 )
 
 const (
