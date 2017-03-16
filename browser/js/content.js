@@ -41,6 +41,12 @@ function injectThread() {
     buttons.appendChild(li);
 
     li.getElementsByTagName("a")[0].addEventListener('click', function(e) {
+      const forms = e.currentTarget.parentNode.getElementsByTagName("form");
+      if (forms.length > 0) {
+        // Chat widget already present, toggle it.
+        removeChat(forms[0]);
+        return;
+      }
       renderChat(e.currentTarget.parentNode, author);
       e.preventDefault();
     });
@@ -48,9 +54,8 @@ function injectThread() {
   }
 }
 
-
 function renderChat(parent, toUsername) {
-  // TODO: Cancel button
+  // TODO: Replace hardcoded HTML with some posh templating tech?
   // TODO: Prevent navigation?
   const isLoggedIn = document.getElementsByClassName("logout").length > 0;
 
@@ -83,9 +88,16 @@ function renderChat(parent, toUsername) {
   // Install closing button (the "x" in the corner)
   const closer = f.getElementsByClassName("keybase-close")[0];
   closer.addEventListener("click", function(e) {
-    parent.removeChild(f);
+    removeChat(f);
   });
 }
+
+// Remove the chat widget from the DOM
+function removeChat(chatNode) {
+  // TODO: Prompt if there is text written?
+  chatNode.parentNode.removeChild(chatNode);
+}
+
 
 function submitChat(e) {
   e.preventDefault();
@@ -109,7 +121,6 @@ function submitChat(e) {
 
   // TODO: Send nudge
 
-  // Detach the chat widget from the parent.
-  e.currentTarget.parentNode.removeChild(e.currentTarget);
+  removeChat(e.currentTarget);
   console.log("Chat submitted: ", e);
 }
