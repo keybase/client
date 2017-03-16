@@ -360,9 +360,8 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
 
   const participants = List(convo.info.writerNames || [])
   const infoStatus = convo.info ? convo.info.status : 'unfiled'
+  // Go backwards from the value in CommonConversationStatus to its key.
   const status = Object.keys(CommonConversationStatus).filter(key => CommonConversationStatus[key] === infoStatus)[0]
-
-  console.warn('status is', status)
 
   return new InboxStateRecord({
     info: convo.info,
