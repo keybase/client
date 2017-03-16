@@ -5,6 +5,9 @@ package client
 
 import (
 	"errors"
+	"path/filepath"
+	"runtime"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -14,16 +17,32 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
+// This is for the non-windows options
+type ListOptions struct {
+	all          bool
+	long         bool
+	human        bool
+	one          bool
+	dir          bool
+	color        bool
+	sort_reverse bool
+	sort_time    bool
+	sort_size    bool
+	help         bool
+	dirs_first   bool
+}
+
 // CmdSimpleFSList is the 'fs ls' command.
 type CmdSimpleFSList struct {
 	libkb.Contextified
 	paths   []keybase1.Path
 	recurse bool
+	options ListOptions
 }
 
 // NewCmdSimpleFSList creates a new cli.Command.
 func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	return cli.Command{
+	command := cli.Command{
 		Name:         "ls",
 		ArgumentHelp: "<path>",
 		Usage:        "list directory contents",
@@ -37,6 +56,87 @@ func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			},
 		},
 	}
+	if runtime.GOOS != "windows" {
+		command.Flags = append(command.Flags, []cli.Flag{
+			cli.BoolFlag{
+				Name:  "dirs-first",
+				Usage: "list directories first",
+			},
+			cli.BoolFlag{
+				Name:  "nocolor",
+				Usage: "remove color formatting",
+			},
+			cli.BoolFlag{
+				Name:  "1, one",
+				Usage: "one entry per line",
+			},
+			cli.BoolFlag{
+				Name:  "a, all",
+				Usage: "include entries starting with '.'",
+			},
+			cli.BoolFlag{
+				Name:  "l, long",
+				Usage: "long listing",
+			},
+			cli.BoolFlag{
+				Name:  "r, sort-reverse",
+				Usage: "reverse any sorting",
+			},
+			cli.BoolFlag{
+				Name:  "t, sort-time",
+				Usage: "sort entries by modify time",
+			},
+			cli.BoolFlag{
+				Name:  "s, sort-size",
+				Usage: "sort entries by size",
+			},
+		}...)
+	}
+	return command
+}
+
+// HandleTopLevelKeybaseList - See if this is either /keybase/public or /keybase/private,
+// and request favorites accordingly.
+func (c *CmdSimpleFSList) HandleTopLevelKeybaseList(path keybase1.Path) (bool, error) {
+	private := false
+	pathType, err := path.PathType()
+	if err != nil {
+		return false, err
+	}
+	if pathType != keybase1.PathType_KBFS {
+		return false, nil
+	}
+	acc := filepath.Clean(strings.ToLower(path.Kbfs()))
+	acc = filepath.ToSlash(acc)
+	c.G().Log.Debug("fs ls HandleTopLevelKeybaseList: %s -> %s", path.Kbfs(), acc)
+	if acc == "/private" {
+		private = true
+	} else if acc != "/public" {
+		return false, nil
+	}
+
+	arg := keybase1.GetFavoritesArg{}
+	tlfs, err := list(arg)
+	if err != nil {
+		return true, err
+	}
+
+	result := keybase1.SimpleFSListResult{}
+
+	// copy the list result into a SimpleFS result
+	// to use the same output function
+	for _, f := range tlfs.FavoriteFolders {
+		if f.Private == private {
+			result.Entries = append(result.Entries, keybase1.Dirent{
+				Name:       f.Name,
+				DirentType: keybase1.DirentType_DIR,
+			})
+		}
+
+	}
+	err = c.output(result)
+
+	return true, err
 }
 
 // Run runs the command in client/server mode.
@@ -106,25 +206,21 @@ func (c *CmdSimpleFSList) Run() error {
 	return err
 }
 
-func (c *CmdSimpleFSList) output(listResult keybase1.SimpleFSListResult) {
-
-	ui := c.G().UI.GetTerminalUI()
-
-	for _, e := range listResult.Entries {
-		if e.DirentType == keybase1.DirentType_DIR {
-			ui.Printf("%s\t<%s>\t\t%s\n", keybase1.FormatTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Name)
-		} else {
-			ui.Printf("%s\t%s\t%d\t%s\n", keybase1.FormatTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Size, e.Name)
-		}
-	}
-}
-
 // ParseArgv gets the required path argument for this command.
 func (c *CmdSimpleFSList) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
 	c.recurse = ctx.Bool("recurse")
+	c.options.all = ctx.Bool("all")
+	c.options.long = ctx.Bool("long")
+	c.options.one = ctx.Bool("one")
+	c.options.dir = true // treat dirs as regular entries
+	c.options.color = !ctx.Bool("nocolor")
+	c.options.sort_reverse = ctx.Bool("sort-reverse")
+	c.options.sort_time = ctx.Bool("sort-time")
+	c.options.sort_size = ctx.Bool("sort-size")
+	c.options.dirs_first = ctx.Bool("dirs-first")
 
 	if nargs < 1 {
 		return errors.New("ls requires at least one KBFS path argument")
