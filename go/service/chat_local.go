@@ -40,8 +40,9 @@ type chatLocalHandler struct {
 	identNotifier *chat.IdentifyNotifier
 
 	// Only for testing
-	rc         chat1.RemoteInterface
-	mockChatUI libkb.ChatUI
+	rc                chat1.RemoteInterface
+	mockChatUI        libkb.ChatUI
+	cachedThreadDelay *time.Duration
 }
 
 // newChatLocalHandler creates a chatLocalHandler.
@@ -262,25 +263,40 @@ func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetT
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		localThread, err := h.G().ConvSource.PullLocalOnly(bctx, arg.ConversationID,
-			gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
-		if err != nil {
-			h.Debug(ctx, "GetThreadNonblock: error running PullLocalOnly (not sending): %s",
-				err.Error())
+
+		// Get local copy of the thread, abort the call if we have sent the full copy
+		var localThread chat1.ThreadView
+		ch := make(chan error, 1)
+		go func() {
+			var err error
+			if h.cachedThreadDelay != nil {
+				time.Sleep(*h.cachedThreadDelay)
+			}
+			localThread, err = h.G().ConvSource.PullLocalOnly(bctx, arg.ConversationID,
+				gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
+			ch <- err
+		}()
+		select {
+		case err := <-ch:
+			if err != nil {
+				h.Debug(ctx, "GetThreadNonblock: error running PullLocalOnly (not sending): %s",
+					err.Error())
+				return
+			}
+		case <-bctx.Done():
+			h.Debug(ctx, "GetThreadNonblock: context canceled before PullLocalOnly returned")
 			return
 		}
 
 		uilock.Lock()
 		defer uilock.Unlock()
-
-		// Check if we have already sent the full result
+		// Check this again, since we might have waited on the lock while full sent
 		select {
 		case <-bctx.Done():
 			h.Debug(ctx, "GetThreadNonblock: context canceled before local copy sent")
 			return
 		default:
 		}
-
 		h.Debug(ctx, "GetThreadNonblock: cached thread sent")
 		chatUI.ChatThreadCached(bctx, chat1.ChatThreadCachedArg{
 			SessionID: arg.SessionID,
