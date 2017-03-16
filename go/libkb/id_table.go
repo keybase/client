@@ -529,21 +529,43 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	}
 	for index := 0; index < ln; index++ {
 		proof := w.AtIndex(index).AtKey("remote_key_proof")
-		if i, e := proof.AtKey("state").GetInt(); e != nil {
-			l.G().Log.Warning("Bad 'state' in track statement: %s", e)
-		} else if t, e := proof.AtKey("proof_type").GetInt(); e != nil {
-			l.G().Log.Warning("Bad 'proof_type' in track statement: %s", e)
-		} else if sb, e := ParseServiceBlock(proof.AtKey("check_data_json"), keybase1.ProofType(t)); e != nil {
-			l.G().Log.Warning("Bad remote_key_proof.check_data_json: %s", e)
-		} else {
-			sb.proofState = keybase1.ProofState(i)
-			if sb.proofState != keybase1.ProofState_OK {
-				l.G().Log.Debug("Including broken proof at index = %d", index)
-			}
+		sb := checkProof(l.G(), proof, index)
+		if sb != nil {
 			ret = append(ret, sb)
 		}
 	}
-	return
+	return ret
+}
+
+func checkProof(g *GlobalContext, proof *jsonw.Wrapper, index int) (ret *ServiceBlock) {
+	var i, t int
+	var err error
+	i, err = proof.AtKey("state").GetInt()
+	if err != nil {
+		g.Log.Warning("Bad 'state' in track statement: %s", err)
+		return nil
+	}
+	t, err = proof.AtKey("proof_type").GetInt()
+	if err != nil {
+		g.Log.Warning("Bad 'proof_type' in track statement: %s", err)
+		return nil
+	}
+	proofType := keybase1.ProofType(t)
+	if isProofTypeDefunct(proofType) {
+		g.Log.Debug("Ignoring now defunct proof type %q at index=%d", proofType, index)
+		return nil
+	}
+	ret, err = ParseServiceBlock(proof.AtKey("check_data_json"), proofType)
+	if err != nil {
+		g.Log.Warning("Bad remote_key_proof.check_data_json: %s", err)
+		return nil
+	}
+
+	ret.proofState = keybase1.ProofState(i)
+	if ret.proofState != keybase1.ProofState_OK {
+		g.Log.Debug("Including broken proof at index=%d (proof state=%d)", index, ret.proofState)
+	}
+	return ret
 }
 
 func (l *TrackChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {
@@ -1114,7 +1136,17 @@ func (idt *IdentityTable) populate() (err error) {
 	return nil
 }
 
+func isProofTypeDefunct(typ keybase1.ProofType) bool {
+	return typ == keybase1.ProofType_COINBASE
+}
+
 func (idt *IdentityTable) insertRemoteProof(link RemoteProofChainLink) {
+
+	if isProofTypeDefunct(link.GetProofType()) {
+		idt.G().Log.Debug("Ignoring now-defunct proof: %s", link.ToDebugString())
+		return
+	}
+
 	// note that the links in the identity table have no ProofError state.
 	idt.remoteProofLinks.Insert(link, nil)
 }

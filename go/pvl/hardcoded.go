@@ -11,45 +11,6 @@ var hardcodedPVLString = `
   "pvl_version": 1,
   "revision": 1,
   "services": {
-    "coinbase": [
-      [
-        {
-          "fill": {
-            "into": "our_url",
-            "with": "https://coinbase.com/%{username_service}/public-key"
-          }
-        },
-        {
-          "fetch": {
-            "from": "our_url",
-            "kind": "html"
-          }
-        },
-        {
-          "selector_css": {
-            "error": [
-              "FAILED_PARSE",
-              "Couldn't find a div $(pre.statement)"
-            ],
-            "into": "haystack",
-            "selectors": [
-              "pre.statement",
-              0
-            ]
-          }
-        },
-        {
-          "assert_find_base64": {
-            "haystack": "haystack",
-            "needle": "sig"
-          },
-          "error": [
-            "TEXT_NOT_FOUND",
-            "signature not found in body"
-          ]
-        }
-      ]
-    ],
     "dns": [
       [
         {
