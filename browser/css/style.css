@@ -78,3 +78,17 @@
     line-height: normal;
     letter-spacing: 0.3px;
 }
+
+.keybase-close {
+    display: inline-block;
+    font-size: 18px;
+    font-weight: bold;
+    position: absolute;
+    right: 0.5em;
+    top: -0.5em;
+    color: rgba(0,0,0,0.2);
+    cursor: pointer;
+}
+.keybase-close::before {
+    content: "×";
+}

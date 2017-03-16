@@ -70,15 +70,21 @@ function renderChat(parent, toUsername) {
   const f = document.createElement("form");
   f.action = "#"; // Avoid submitting even if we fail to preventDefault
   f.innerHTML = '\
-    <h3>Keybase Chat</h3>\
+    <h3>Keybase Chat <span class="keybase-close"> </span></h3>\
     <input type="hidden" name="keybase-to" value="'+ toUsername +'" />\
     <p>Encrypt to <span class="keybase-username">'+ toUsername +'</span>:</p>\
     <p><textarea name="keybase-chat" rows="6"></textarea></p>\
     '+ nudgeHTML +'\
     <p><input type="submit" value="Send" /></p> \
   ';
-  f.addEventListener('submit', submitChat);
+  f.addEventListener("submit", submitChat);
   parent.insertBefore(f, parent.firstChild);
+
+  // Install closing button (the "x" in the corner)
+  const closer = f.getElementsByClassName("keybase-close")[0];
+  closer.addEventListener("click", function(e) {
+    parent.removeChild(f);
+  });
 }
 
 function submitChat(e) {
