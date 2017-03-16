@@ -9,7 +9,6 @@ import {selectConversation} from '../../actions/chat'
 
 import type {TypedState} from '../../constants/reducer'
 import type {ConversationIDKey} from '../../constants/chat'
-import {CommonConversationStatus} from '../../constants/types/flow-types-chat'
 
 function _rowDerivedProps (rekeyInfo, finalizeInfo, unreadCount, isSelected) {
   // Derived props
