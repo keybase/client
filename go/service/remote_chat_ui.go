@@ -73,3 +73,15 @@ func (r *RemoteChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxF
 func (r *RemoteChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnverifiedArg) error {
 	return r.cli.ChatInboxUnverified(ctx, arg)
 }
+
+func (r *RemoteChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCachedArg) error {
+	return r.cli.ChatThreadCached(ctx, arg)
+}
+
+func (r *RemoteChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
+	return r.cli.ChatThreadFull(ctx, arg)
+}
+
+func (r *RemoteChatUI) ChatThreadFailed(ctx context.Context, arg chat1.ChatThreadFailedArg) error {
+	return r.cli.ChatThreadFailed(ctx, arg)
+}

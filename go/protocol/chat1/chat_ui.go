@@ -63,6 +63,21 @@ type ChatInboxFailedArg struct {
 	Error     ConversationErrorLocal `codec:"error" json:"error"`
 }
 
+type ChatThreadCachedArg struct {
+	SessionID int        `codec:"sessionID" json:"sessionID"`
+	Thread    ThreadView `codec:"thread" json:"thread"`
+}
+
+type ChatThreadFullArg struct {
+	SessionID int        `codec:"sessionID" json:"sessionID"`
+	Thread    ThreadView `codec:"thread" json:"thread"`
+}
+
+type ChatThreadFailedArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Message   string `codec:"message" json:"message"`
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentUploadStart(context.Context, ChatAttachmentUploadStartArg) error
 	ChatAttachmentUploadProgress(context.Context, ChatAttachmentUploadProgressArg) error
@@ -75,6 +90,9 @@ type ChatUiInterface interface {
 	ChatInboxUnverified(context.Context, ChatInboxUnverifiedArg) error
 	ChatInboxConversation(context.Context, ChatInboxConversationArg) error
 	ChatInboxFailed(context.Context, ChatInboxFailedArg) error
+	ChatThreadCached(context.Context, ChatThreadCachedArg) error
+	ChatThreadFull(context.Context, ChatThreadFullArg) error
+	ChatThreadFailed(context.Context, ChatThreadFailedArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -257,6 +275,54 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"chatThreadCached": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatThreadCachedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatThreadCachedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatThreadCachedArg)(nil), args)
+						return
+					}
+					err = i.ChatThreadCached(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+			"chatThreadFull": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatThreadFullArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatThreadFullArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatThreadFullArg)(nil), args)
+						return
+					}
+					err = i.ChatThreadFull(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+			"chatThreadFailed": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatThreadFailedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatThreadFailedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatThreadFailedArg)(nil), args)
+						return
+					}
+					err = i.ChatThreadFailed(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -321,5 +387,20 @@ func (c ChatUiClient) ChatInboxConversation(ctx context.Context, __arg ChatInbox
 
 func (c ChatUiClient) ChatInboxFailed(ctx context.Context, __arg ChatInboxFailedArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxFailed", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatThreadCached(ctx context.Context, __arg ChatThreadCachedArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatThreadCached", []interface{}{__arg})
+	return
+}
+
+func (c ChatUiClient) ChatThreadFull(ctx context.Context, __arg ChatThreadFullArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatThreadFull", []interface{}{__arg})
+	return
+}
+
+func (c ChatUiClient) ChatThreadFailed(ctx context.Context, __arg ChatThreadFailedArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatThreadFailed", []interface{}{__arg})
 	return
 }

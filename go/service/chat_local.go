@@ -68,7 +68,7 @@ func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
 	return h.BaseHandler.getChatUI(sessionID)
 }
 
-func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) (res chat1.GetInboxNonblockLocalRes, err error) {
+func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) (res chat1.NonblockFetchRes, err error) {
 	var breaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &breaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetInboxNonblockLocal")()
@@ -193,6 +193,29 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 	return res, nil
 }
 
+func (h *chatLocalHandler) GetCachedThread(ctx context.Context, arg chat1.GetCachedThreadArg) (res chat1.GetThreadLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetCachedThread")()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return chat1.GetThreadLocalRes{}, err
+	}
+
+	// Get messages from local disk only
+	uid := h.G().Env.GetUID()
+	thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID,
+		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
+	if err != nil {
+		return chat1.GetThreadLocalRes{}, err
+	}
+
+	return chat1.GetThreadLocalRes{
+		Thread:           thread,
+		Offline:          h.G().ConvSource.IsOffline(),
+		IdentifyFailures: identBreaks,
+	}, nil
+}
+
 // GetThreadLocal implements keybase.chatLocal.getThreadLocal protocol.
 func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg) (res chat1.GetThreadLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -204,11 +227,6 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 
 	// Get messages from the source
 	uid := h.G().Env.GetUID()
-	if uid.IsNil() {
-		err = libkb.LoginRequiredError{}
-		return chat1.GetThreadLocalRes{}, err
-	}
-
 	thread, rl, err := h.G().ConvSource.Pull(ctx, arg.ConversationID,
 		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
 	if err != nil {
@@ -221,6 +239,85 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 		RateLimits:       utils.AggRateLimitsP(rl),
 		IdentifyFailures: identBreaks,
 	}, nil
+}
+
+func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetThreadNonblock")()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+
+	// Grab local copy first
+	uid := h.G().Env.GetUID()
+	chatUI := h.getChatUI(arg.SessionID)
+
+	// Race the full operation versus the local one, so we don't lose anytime grabbing the local
+	// version if they are roughly as fast. However, the full operation has preference, so if it does
+	// win the race we don't send anything up from the local operation.
+	var uilock sync.Mutex
+	var wg sync.WaitGroup
+	bctx, cancel := context.WithCancel(ctx)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		localThread, err := h.G().ConvSource.PullLocalOnly(bctx, arg.ConversationID,
+			gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
+		if err != nil {
+			h.Debug(ctx, "GetThreadNonblock: error running PullLocalOnly (not sending): %s",
+				err.Error())
+			return
+		}
+
+		uilock.Lock()
+		defer uilock.Unlock()
+
+		// Check if we have already sent the full result
+		select {
+		case <-bctx.Done():
+			h.Debug(ctx, "GetThreadNonblock: context canceled before local copy sent")
+			return
+		default:
+		}
+
+		chatUI.ChatThreadCached(bctx, chat1.ChatThreadCachedArg{
+			SessionID: arg.SessionID,
+			Thread:    localThread,
+		})
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		defer cancel()
+
+		// Run the full Pull operation, and redo pagination
+		remoteThread, rl, err := h.G().ConvSource.Pull(bctx, arg.ConversationID,
+			gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
+
+		// Acquire lock and send up actual response
+		uilock.Lock()
+		defer uilock.Unlock()
+		if err != nil {
+			h.Debug(ctx, "GetThreadNonblock: error running Pull, sending error: %s", err.Error())
+			chatUI.ChatThreadFailed(bctx, chat1.ChatThreadFailedArg{
+				SessionID: arg.SessionID,
+				Message:   err.Error(),
+			})
+			return
+		}
+		res.RateLimits = utils.AggRateLimitsP(rl)
+
+		chatUI.ChatThreadFull(bctx, chat1.ChatThreadFullArg{
+			SessionID: arg.SessionID,
+			Thread:    remoteThread,
+		})
+	}()
+
+	wg.Wait()
+
+	return res, nil
 }
 
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.

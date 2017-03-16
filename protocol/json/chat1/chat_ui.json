@@ -151,6 +151,48 @@
         }
       ],
       "response": null
+    },
+    "chatThreadCached": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "thread",
+          "type": "ThreadView"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "chatThreadFull": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "thread",
+          "type": "ThreadView"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "chatThreadFailed": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "message",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "chat.1"
