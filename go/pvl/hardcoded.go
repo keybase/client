@@ -15,38 +15,19 @@ var hardcodedPVLString = `
       [
         {
           "fill": {
-            "into": "our_url",
-            "with": "https://coinbase.com/%{username_service}/public-key"
+            "into": "tmp1",
+            "with": "x"
           }
         },
         {
-          "fetch": {
-            "from": "our_url",
-            "kind": "html"
-          }
-        },
-        {
-          "selector_css": {
+          "assert_regex_match": {
             "error": [
-              "FAILED_PARSE",
-              "Couldn't find a div $(pre.statement)"
+              "SERVICE_DEAD",
+              "coinbase proofs are no longer supported"
             ],
-            "into": "haystack",
-            "selectors": [
-              "pre.statement",
-              0
-            ]
+            "from": "tmp1",
+            "pattern": "^y$"
           }
-        },
-        {
-          "assert_find_base64": {
-            "haystack": "haystack",
-            "needle": "sig"
-          },
-          "error": [
-            "TEXT_NOT_FOUND",
-            "signature not found in body"
-          ]
         }
       ]
     ],
