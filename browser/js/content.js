@@ -90,6 +90,8 @@ function renderChat(parent, toUsername) {
   closer.addEventListener("click", function(e) {
     removeChat(f);
   });
+
+  // TODO: Also add an onbeforeunload check if chat has text written in it.
 }
 
 // Remove the chat widget from the DOM
