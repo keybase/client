@@ -207,7 +207,7 @@ const header = {
     },
     'Muted': {
       ...commonConvoProps,
-      status: 'muted',
+      muted: true,
       onBack: () => console.log('back clicked'),
     },
   },
