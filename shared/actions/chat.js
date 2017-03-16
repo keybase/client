@@ -359,12 +359,17 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
   })
 
   const participants = List(convo.info.writerNames || [])
+  const infoStatus = convo.info ? convo.info.status : 'unfiled'
+  const status = Object.keys(CommonConversationStatus).filter(key => CommonConversationStatus[key] === infoStatus)[0]
+
+  console.warn('status is', status)
 
   return new InboxStateRecord({
     info: convo.info,
     isEmpty: convo.isEmpty,
     conversationIDKey,
     participants,
+    status,
     time,
     snippet,
     validated: true,
@@ -427,13 +432,12 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
     }
 
     const participants = List(parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username))
-    const muted = convoUnverified.metadata.status === CommonConversationStatus.muted
 
     return new InboxStateRecord({
       info: null,
       conversationIDKey: conversationIDToKey(convoUnverified.metadata.conversationID),
       participants,
-      muted,
+      status: 'unfiled',
       time: convoUnverified.readerInfo && convoUnverified.readerInfo.mtime,
       snippet: ' ',
       validated: false,
@@ -1156,7 +1160,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
         isEmpty: false,
         conversationIDKey,
         participants: List([].concat(error.rekeyInfo ? error.rekeyInfo.writerNames : [], error.rekeyInfo ? error.rekeyInfo.readerNames : []).filter(Boolean)),
-        muted: false,
+        status: 'unfiled',
         time: error.remoteConv.readerInfo.mtime,
         snippet: null,
         validated: true,

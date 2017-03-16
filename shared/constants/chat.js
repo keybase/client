@@ -211,12 +211,15 @@ export const ConversationBadgeStateRecord = Record({
   UnreadMessages: 0,
 })
 
+export type ConversationStateEnum = $Keys<typeof ChatTypes.CommonConversationStatus>
+
 export const InboxStateRecord = Record({
   info: null,
   isEmpty: false,
   participants: List(),
   conversationIDKey: '',
   time: 0,
+  status: 'unfiled',
   snippet: '',
   snippetKey: null,
   validated: false,
@@ -230,6 +233,7 @@ export type InboxState = Record<{
   time: number,
   snippet: string,
   snippetKey: any,
+  status: ConversationStateEnum,
   validated: boolean,
 }>
 
