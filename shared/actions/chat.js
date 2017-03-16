@@ -890,9 +890,8 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const selectedTab = yield select(_routeSelector)
         const chatTabSelected = (selectedTab === chatTab)
         const conversationIsFocused = conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected
-        const messageIsYours = (message.type === 'Text' || message.type === 'Attachment') && message.author === yourName
 
-        if (message && message.messageID && conversationIsFocused && !messageIsYours) {
+        if (message && message.messageID && conversationIsFocused) {
           yield call(localMarkAsReadLocalRpcPromise, {
             param: {
               conversationID: incomingMessage.convID,
@@ -1670,8 +1669,9 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
     yield put({type: 'chat:clearMessages', payload: {conversationIDKey}})
   }
 
+  let loadMoreTask
   if (conversationIDKey) {
-    yield put(loadMoreMessages(conversationIDKey, true))
+    loadMoreTask = yield fork(cancelWhen(_threadIsCleared, _loadMoreMessages), loadMoreMessages(conversationIDKey, true))
     yield put(navigateTo([conversationIDKey], [chatTab]))
   } else {
     yield put(navigateTo([], [chatTab]))
@@ -1687,6 +1687,7 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
   }
 
   if (fromUser && conversationIDKey) {
+    yield join(loadMoreTask)
     yield put(updateBadging(conversationIDKey))
     yield put(updateLatestMessage(conversationIDKey))
   }
@@ -1706,7 +1707,7 @@ function * _updateBadging (action: UpdateBadging): SagaGenerator<any, any> {
   // Update gregor's view of the latest message we've read.
   const {conversationIDKey} = action.payload
   const conversationState = yield select(_conversationStateSelector, conversationIDKey)
-  if (conversationState && conversationState.firstNewMessageID && conversationState.messages !== null && conversationState.messages.size > 0) {
+  if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
     const conversationID = keyToConversationID(conversationIDKey)
     const msgID = conversationState.messages.get(conversationState.messages.size - 1).messageID
     yield call(localMarkAsReadLocalRpcPromise, {
