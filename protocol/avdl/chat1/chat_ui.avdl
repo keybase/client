@@ -18,5 +18,4 @@ protocol chatUi {
 
   void chatThreadCached(int sessionID, ThreadView thread) oneway;
   void chatThreadFull(int sessionID, ThreadView thread) oneway;
-  void chatThreadFailed(int sessionID, string message) oneway; 
 }

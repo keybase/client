@@ -241,11 +241,11 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 	}, nil
 }
 
-func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, err error) {
+func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "GetThreadNonblock")()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	defer h.Trace(ctx, func() error { return fullErr }, "GetThreadNonblock")()
+	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
 
@@ -294,22 +294,19 @@ func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetT
 		defer cancel()
 
 		// Run the full Pull operation, and redo pagination
-		remoteThread, rl, err := h.G().ConvSource.Pull(bctx, arg.ConversationID,
+		var remoteThread chat1.ThreadView
+		var rl []*chat1.RateLimit
+		remoteThread, rl, fullErr = h.G().ConvSource.Pull(bctx, arg.ConversationID,
 			gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
-
-		// Acquire lock and send up actual response
-		uilock.Lock()
-		defer uilock.Unlock()
-		if err != nil {
-			h.Debug(ctx, "GetThreadNonblock: error running Pull, sending error: %s", err.Error())
-			chatUI.ChatThreadFailed(bctx, chat1.ChatThreadFailedArg{
-				SessionID: arg.SessionID,
-				Message:   err.Error(),
-			})
+		if fullErr != nil {
+			h.Debug(ctx, "GetThreadNonblock: error running Pull, returning error: %s", fullErr.Error())
 			return
 		}
 		res.RateLimits = utils.AggRateLimitsP(rl)
 
+		// Acquire lock and send up actual response
+		uilock.Lock()
+		defer uilock.Unlock()
 		h.Debug(ctx, "GetThreadNonblock: full thread sent")
 		chatUI.ChatThreadFull(bctx, chat1.ChatThreadFullArg{
 			SessionID: arg.SessionID,
@@ -318,8 +315,7 @@ func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetT
 	}()
 
 	wg.Wait()
-
-	return res, nil
+	return res, fullErr
 }
 
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.

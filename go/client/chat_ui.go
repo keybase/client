@@ -230,7 +230,3 @@ func (c *ChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCache
 func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
 	return nil
 }
-
-func (c *ChatUI) ChatThreadFailed(ctx context.Context, arg chat1.ChatThreadFailedArg) error {
-	return nil
-}

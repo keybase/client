@@ -1587,10 +1587,6 @@ export type chatUiChatThreadCachedRpcParam = Exact<{
   thread: ThreadView
 }>
 
-export type chatUiChatThreadFailedRpcParam = Exact<{
-  message: string
-}>
-
 export type chatUiChatThreadFullRpcParam = Exact<{
   thread: ThreadView
 }>
@@ -2054,13 +2050,6 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       sessionID: int,
       thread: ThreadView
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.chatUi.chatThreadFailed'?: (
-    params: Exact<{
-      sessionID: int,
-      message: string
     }>,
     response: CommonResponseHandler
   ) => void,

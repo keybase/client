@@ -179,20 +179,6 @@
       ],
       "response": null,
       "oneway": true
-    },
-    "chatThreadFailed": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "message",
-          "type": "string"
-        }
-      ],
-      "response": null,
-      "oneway": true
     }
   },
   "namespace": "chat.1"
