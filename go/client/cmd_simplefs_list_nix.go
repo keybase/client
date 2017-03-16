@@ -942,7 +942,6 @@ func (c *CmdSimpleFSList) ls(output_buffer *bytes.Buffer, listResult keybase1.Si
 func (c *CmdSimpleFSList) output(listResult keybase1.SimpleFSListResult) error {
 
 	ui := c.G().UI.GetTerminalUI()
-	ui.Printf("\n")
 
 	// capture the current terminal dimensions
 	terminal_width, _, err := terminal.GetSize(int(os.Stdout.Fd()))
@@ -958,7 +957,7 @@ func (c *CmdSimpleFSList) output(listResult keybase1.SimpleFSListResult) error {
 	}
 
 	if output_buffer.String() != "" {
-		ui.Printf("%s\n", output_buffer.String())
+		ui.Printf("%s", output_buffer.String())
 	}
 	return nil
 }
