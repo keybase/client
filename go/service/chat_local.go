@@ -281,6 +281,7 @@ func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetT
 		default:
 		}
 
+		h.Debug(ctx, "GetThreadNonblock: cached thread sent")
 		chatUI.ChatThreadCached(bctx, chat1.ChatThreadCachedArg{
 			SessionID: arg.SessionID,
 			Thread:    localThread,
@@ -309,6 +310,7 @@ func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetT
 		}
 		res.RateLimits = utils.AggRateLimitsP(rl)
 
+		h.Debug(ctx, "GetThreadNonblock: full thread sent")
 		chatUI.ChatThreadFull(bctx, chat1.ChatThreadFullArg{
 			SessionID: arg.SessionID,
 			Thread:    remoteThread,
