@@ -6,21 +6,30 @@
 
 .keybase-reply form {
     position: absolute;
-    display: block; !important
+    display: block !important;
     margin-top: 2em;
     background: #fff;
     width: 500px;
-    line-height: 2em;
-    font-size: 14px;
+    white-space: normal !important;
+    font-size: 13px;
+    line-height: 1.5em;
 
     border-radius: 4px;
     background-color: #ffffff;
     box-shadow: 3px 3px 13px 0 #a29e9e;
+    overflow: hidden;
 }
 
 .keybase-reply .keybase-username {
     font-weight: bold;
     color: #33a0ff;
+}
+
+.keybase-reply a.reddit-user {
+    /* Mimic normal reddit user tag */
+    color: #0079d3 !important;
+    padding: 0 !important;
+    font-weight: normal !important;
 }
 
 .keybase-reply em {
@@ -34,7 +43,7 @@
 }
 
 .keybase-reply p {
-    margin: 0em 1em 1em 1em;
+    margin: 0em 1.5em 1.5em 1.5em;
 
 }
 
@@ -52,7 +61,7 @@
     font-weight: normal;
     font-size: 16px;
     letter-spacing: 0.3px;
-    margin-bottom: 0.5em;
+    margin-bottom: 1.5em;
 }
 
 .keybase-reply input[type="submit"] {

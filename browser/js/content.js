@@ -52,6 +52,20 @@ function injectThread() {
 function renderChat(parent, toUsername) {
   // TODO: Cancel button
   // TODO: Prevent navigation?
+  const isLoggedIn = document.getElementsByClassName("logout").length > 0;
+
+  let nudgeHTML = '\
+    <p><label><input type="checkbox" name="keybase-nudge" checked /> <em>public</em> nudge (so they know about Keybase)</label></p>\
+    <p><textarea name="keybase-nudgetext">/u/'+ toUsername + ' - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto</textarea></p>\
+  ';
+  if (!isLoggedIn) {
+    // FIXME: Won't need this if we have a KeybaseBot PM'ing people?
+    nudgeHTML = '\
+      <p>You will need to let <a target="_blank" href="/u/'+ toUsername +'" class="reddit-user">/u/' + toUsername + '</a> know that they have a Keybase message waiting for them.</p>\
+      <p>Share this handy link: <a target="_blank" href="https://keybase.io/reddit-crypto">https://keybase.io/reddit-crypto</a></p>\
+    ';
+  }
+
   // The chat widget is enclosed in the form element.
   const f = document.createElement("form");
   f.action = "#"; // Avoid submitting even if we fail to preventDefault
@@ -60,8 +74,7 @@ function renderChat(parent, toUsername) {
     <input type="hidden" name="keybase-to" value="'+ toUsername +'" />\
     <p>Encrypt to <span class="keybase-username">'+ toUsername +'</span>:</p>\
     <p><textarea name="keybase-chat" rows="6"></textarea></p>\
-    <p><label><input type="checkbox" name="keybase-nudge" checked /> <em>public</em> nudge (so they know about Keybase)</label></p>\
-    <p><textarea name="keybase-text">/u/'+ toUsername + ' - I left you an end-to-end encrypted message in Keybase. https://keybase.io/reddit-crypto</textarea></p>\
+    '+ nudgeHTML +'\
     <p><input type="submit" value="Send" /></p> \
   ';
   f.addEventListener('submit', submitChat);
@@ -74,7 +87,7 @@ function submitChat(e) {
   const to = e.currentTarget["keybase-to"].value;
   const body = e.currentTarget["keybase-chat"].value;
   const nudgeDo = e.currentTarget["keybase-nudge"].checked;
-  const nudgeText = e.currentTarget["keybase-text"].value;
+  const nudgeText = e.currentTarget["keybase-nudgetext"].value;
 
   // TODO: Check that to/body are not empty.
 
