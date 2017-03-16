@@ -445,6 +445,8 @@ func TestBackpressureDiskLimiterJournalAndDiskCache(
 	}
 
 	const blockBytes int64 = 100
+	// Big number, but no risk of overflow
+	maxFreeBytes := int64(1 << 30)
 
 	// Set the bottleneck; i.e. set parameters so that semaphoreMax for the
 	// bottleneck always has value 10 * blockX when called in beforeBlockPut,
@@ -459,30 +461,31 @@ func TestBackpressureDiskLimiterJournalAndDiskCache(
 		log, 0.1, 0.9, 0.25, 0.25, byteLimit*4, fileLimit*4,
 		8*time.Second, delayFn,
 		func() (int64, int64, error) {
-			return math.MaxInt64, math.MaxInt64, nil
+			return maxFreeBytes, math.MaxInt64, nil
 		})
 	require.NoError(t, err)
 
 	byteSnapshot, _ := bdl.getSnapshotsForTest()
 	require.Equal(t, bdlSnapshot{
 		used:  0,
-		free:  math.MaxInt64,
+		free:  maxFreeBytes,
 		max:   byteLimit,
 		count: byteLimit,
 	}, byteSnapshot)
 
 	ctx := context.Background()
 
-	var bytesPut int64
+	var journalBytesPut int64
+	var diskCacheBytesPut int64
 
 	checkCountersAfterBeforeBlockPut := func(
 		i int, availBytes int64) {
 		byteSnapshot, _ := bdl.getSnapshotsForTest()
-		expectedByteCount := byteLimit - bytesPut - blockBytes
+		expectedByteCount := byteLimit - journalBytesPut - blockBytes
 		require.Equal(t, expectedByteCount, availBytes)
 		require.Equal(t, bdlSnapshot{
-			used:  bytesPut,
-			free:  math.MaxInt64,
+			used:  journalBytesPut,
+			free:  maxFreeBytes + diskCacheBytesPut,
 			max:   byteLimit,
 			count: expectedByteCount,
 		}, byteSnapshot, "i=%d", i)
@@ -491,16 +494,23 @@ func TestBackpressureDiskLimiterJournalAndDiskCache(
 	checkCountersAfterBlockPut := func(i int) {
 		byteSnapshot, _ := bdl.getSnapshotsForTest()
 		require.Equal(t, bdlSnapshot{
-			used:  bytesPut,
-			free:  math.MaxInt64,
+			used:  journalBytesPut,
+			free:  maxFreeBytes + diskCacheBytesPut,
 			max:   byteLimit,
-			count: byteLimit - bytesPut,
+			count: byteLimit - journalBytesPut,
 		}, byteSnapshot, "i=%d", i)
 	}
 
 	// The first two puts shouldn't encounter any backpressure...
 
 	for i := 0; i < 2; i++ {
+		// Ensure the disk block cache doesn't interfere with the journal
+		// limits.
+		_, err := bdl.beforeDiskBlockCachePut(ctx, blockBytes)
+		require.NoError(t, err)
+		bdl.afterDiskBlockCachePut(ctx, blockBytes, true)
+		diskCacheBytesPut += blockBytes
+
 		availBytes, _, err :=
 			bdl.beforeBlockPut(ctx, blockBytes, 1)
 		require.NoError(t, err)
@@ -508,7 +518,7 @@ func TestBackpressureDiskLimiterJournalAndDiskCache(
 		checkCountersAfterBeforeBlockPut(i, availBytes)
 
 		bdl.afterBlockPut(ctx, blockBytes, 1, true)
-		bytesPut += blockBytes
+		journalBytesPut += blockBytes
 		checkCountersAfterBlockPut(i)
 
 		// TODO: track disk cache puts as well
@@ -518,6 +528,13 @@ func TestBackpressureDiskLimiterJournalAndDiskCache(
 	// backpressure...
 
 	for i := 1; i < 9; i++ {
+		// Ensure the disk block cache doesn't interfere with the journal
+		// limits.
+		_, err := bdl.beforeDiskBlockCachePut(ctx, blockBytes)
+		require.NoError(t, err)
+		bdl.afterDiskBlockCachePut(ctx, blockBytes, true)
+		diskCacheBytesPut += blockBytes
+
 		availBytes, _, err :=
 			bdl.beforeBlockPut(ctx, blockBytes, 1)
 		require.NoError(t, err)
@@ -526,7 +543,7 @@ func TestBackpressureDiskLimiterJournalAndDiskCache(
 		checkCountersAfterBeforeBlockPut(i, availBytes)
 
 		bdl.afterBlockPut(ctx, blockBytes, 1, true)
-		bytesPut += blockBytes
+		journalBytesPut += blockBytes
 		checkCountersAfterBlockPut(i)
 	}
 
@@ -543,12 +560,12 @@ func TestBackpressureDiskLimiterJournalAndDiskCache(
 	// This does the same thing as checkCountersAfterBlockPut(),
 	// but only by coincidence; contrast with similar block in
 	// TestBackpressureDiskLimiterSmallDisk below.
-	expectedByteCount := byteLimit - bytesPut
+	expectedByteCount := byteLimit - journalBytesPut
 	require.Equal(t, expectedByteCount, availBytes)
 	byteSnapshot, _ = bdl.getSnapshotsForTest()
 	require.Equal(t, bdlSnapshot{
-		used:  bytesPut,
-		free:  math.MaxInt64,
+		used:  journalBytesPut,
+		free:  maxFreeBytes + diskCacheBytesPut,
 		max:   byteLimit,
 		count: expectedByteCount,
 	}, byteSnapshot)
