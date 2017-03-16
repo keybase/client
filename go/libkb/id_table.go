@@ -529,7 +529,7 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	}
 	for index := 0; index < ln; index++ {
 		proof := w.AtIndex(index).AtKey("remote_key_proof")
-		sb := checkProof(l.G(), proof, index)
+		sb := convertTrackedProofToServiceBlock(l.G(), proof, index)
 		if sb != nil {
 			ret = append(ret, sb)
 		}
@@ -537,7 +537,12 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	return ret
 }
 
-func checkProof(g *GlobalContext, proof *jsonw.Wrapper, index int) (ret *ServiceBlock) {
+// converTrackedProofToServiceBlock will take a JSON stanza from a track statement, and convert it
+// to a ServiceBlock if it fails some important sanity checks. We check that the JSON stanza is
+// well-formed, and that it's not for a defunct proof type (like Coinbase). If all succeeeds,
+// we output a service block that can entered into found-versus-tracked comparison logic.
+// The `index` provided is what index this JSON stanza is in the overall track statement.
+func convertTrackedProofToServiceBlock(g *GlobalContext, proof *jsonw.Wrapper, index int) (ret *ServiceBlock) {
 	var i, t int
 	var err error
 	i, err = proof.AtKey("state").GetInt()
