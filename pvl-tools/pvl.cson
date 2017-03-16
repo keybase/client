@@ -2,23 +2,15 @@ pvl_version: 1
 revision: 1
 services:
   coinbase: [[
-    # make the url (we don't need the hint)
+    # coinbase proofs are not supported anymore
+    # all checks fail
     { fill: {
-      , with: "https://coinbase.com/%{username_service}/public-key"
-      , into: "our_url" } },
-    # fetch
-    { fetch: {
-      , kind: "html"
-      , from: "our_url" } },
-    # find the sig
-    { selector_css: {
-      , selectors: ["pre.statement", 0]
-      , into: "haystack"
-      , error: ["FAILED_PARSE", "Couldn't find a div $(pre.statement)"] } },
-    { assert_find_base64: {
-      , needle: "sig"
-      , haystack: "haystack" }
-      , error: ["TEXT_NOT_FOUND", "signature not found in body"] },
+      , with: "x"
+      , into: "tmp1" } },
+    { assert_regex_match: {
+      , pattern: "^y$"
+      , from: "tmp1"
+      , error: ["SERVICE_DEAD", "coinbase proofs are no longer supported"] } },
   ]]
   dns: [[
     # DNS has no hint. And it checks every txt record on two domains. And errors are handled specially.

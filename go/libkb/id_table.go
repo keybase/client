@@ -537,7 +537,7 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	return ret
 }
 
-// converTrackedProofToServiceBlock will take a JSON stanza from a track statement, and convert it
+// convertTrackedProofToServiceBlock will take a JSON stanza from a track statement, and convert it
 // to a ServiceBlock if it fails some important sanity checks. We check that the JSON stanza is
 // well-formed, and that it's not for a defunct proof type (like Coinbase). If all succeeeds,
 // we output a service block that can entered into found-versus-tracked comparison logic.

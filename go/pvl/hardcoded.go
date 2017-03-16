@@ -11,6 +11,26 @@ var hardcodedPVLString = `
   "pvl_version": 1,
   "revision": 1,
   "services": {
+    "coinbase": [
+      [
+        {
+          "fill": {
+            "into": "tmp1",
+            "with": "x"
+          }
+        },
+        {
+          "assert_regex_match": {
+            "error": [
+              "SERVICE_DEAD",
+              "coinbase proofs are no longer supported"
+            ],
+            "from": "tmp1",
+            "pattern": "^y$"
+          }
+        }
+      ]
+    ],
     "dns": [
       [
         {
