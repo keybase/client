@@ -24,8 +24,8 @@ $ git checkout "shazow/chrome-extension"
 ```shell
 $ go get github.com/keybase/client/go/kbnm
 $ $GOPATH/src/github.com/keybase/client/go/kbnm/install_host
-Writing: /Users/shazow/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.keybase.kbnm.json
-Success: Installed Chrome NativeMessaging whitelist: /Users/shazow/local/go/bin/kbnm for com.keybase.kbnm
+Writing: /Users/shazow/Library/Application Support/Google/Chrome/NativeMessagingHosts/io.keybase.kbnm.json
+Success: Installed Chrome NativeMessaging whitelist: /Users/shazow/local/go/bin/kbnm for io.keybase.kbnm
 ```
 
 Now you can add the extension in development mode:

@@ -1,6 +1,6 @@
 "use strict";
 
-const KBNM_HOST = "com.keybase.kbnm";
+const KBNM_HOST = "io.keybase.kbnm";
 
 // KBNM sits between the NativeMessage port and manages disjoint async
 // messages to the callers. Response callbacks from NativeMessages are

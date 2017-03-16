@@ -1,5 +1,5 @@
 {
-  "name": "com.keybase.kbnm",
+  "name": "io.keybase.kbnm",
   "description": "Keybase Native Messaging API",
   "path": "@@HOST_PATH@@",
   "type": "stdio",
