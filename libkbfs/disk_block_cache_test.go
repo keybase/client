@@ -58,10 +58,13 @@ func newDiskBlockCacheStandardForTest(config *testDiskBlockCacheConfig,
 			config.MakeLogger(""), 0.5, 0.95, 0.25, 0.25,
 			testDiskBlockCacheMaxBytes, maxFiles, time.Second,
 			defaultDoDelay, func() (int64, int64, error) {
-				// hackity hackeroni
+				// hackity hackeroni: simulate the disk cache taking up space.
 				freeBytes := maxBytes - int64(cache.currBytes)
 				return freeBytes, maxFiles, nil
 			})
+		if err != nil {
+			return nil, err
+		}
 	}
 	config.limiter = limiter
 	if err != nil {

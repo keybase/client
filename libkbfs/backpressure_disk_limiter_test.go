@@ -433,10 +433,10 @@ func testBackpressureDiskLimiterLargeDiskDelay(
 	}, fileSnapshot)
 }
 
-// testBackpressureDiskLimiterLargeDiskDelay checks the delays when
-// pretending to have a large disk.
-func TestBackpressureDiskLimiterJournalAndDiskCache(
-	t *testing.T) {
+// TestBackpressureDiskLimiterJournalAndDiskCache checks that the limiter
+// correctly handles the interaction between changes to the disk cache and the
+// journal.
+func TestBackpressureDiskLimiterJournalAndDiskCache(t *testing.T) {
 	t.Parallel()
 	var lastDelay time.Duration
 	delayFn := func(ctx context.Context, delay time.Duration) error {
@@ -449,16 +449,16 @@ func TestBackpressureDiskLimiterJournalAndDiskCache(
 	maxFreeBytes := int64(1 << 30)
 
 	// Set the bottleneck; i.e. set parameters so that semaphoreMax for the
-	// bottleneck always has value 10 * blockX when called in beforeBlockPut,
-	// and every block put beyond the min threshold leads to an increase in
-	// timeout of 1 second up to the max.
+	// bottleneck always has value 10 * blockBytes when called in
+	// beforeBlockPut, and every block put beyond the min threshold leads to an
+	// increase in timeout of 1 second up to the max.
 	byteLimit := 10 * blockBytes
 	// arbitrarily large number
-	fileLimit := int64(100000000)
+	var fileLimit int64 = math.MaxInt64
 
 	log := logger.NewTestLogger(t)
 	bdl, err := newBackpressureDiskLimiterWithFunctions(
-		log, 0.1, 0.9, 0.25, 0.25, byteLimit*4, fileLimit*4,
+		log, 0.1, 0.9, 0.25, 0.25, byteLimit*4, fileLimit,
 		8*time.Second, delayFn,
 		func() (int64, int64, error) {
 			return maxFreeBytes, math.MaxInt64, nil
