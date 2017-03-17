@@ -2,6 +2,7 @@ package chat
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -57,6 +58,11 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
+	ib, err := t.identifyTLF(ctx, tlfName, true)
+	if err != nil {
+		return keybase1.GetTLFCryptKeysRes{}, err
+	}
+
 	tlfClient, err := t.tlfKeysClient()
 	if err != nil {
 		return res, err
@@ -69,6 +75,9 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 	if err != nil {
 		return resp, err
 	}
+
+	// for now, replace id breaks with those calculated here
+	resp.NameIDBreaks.Breaks.Breaks = ib
 
 	if in := CtxIdentifyNotifier(ctx); in != nil {
 		in.Send(resp.NameIDBreaks)
@@ -131,6 +140,38 @@ func (t *KBFSTLFInfoSource) CompleteAndCanonicalizePrivateTlfName(ctx context.Co
 	}
 
 	return resp.NameIDBreaks, nil
+}
+
+func (t *KBFSTLFInfoSource) identifyTLF(ctx context.Context, arg keybase1.TLFQuery, private bool) ([]keybase1.TLFIdentifyFailure, error) {
+	var fails []keybase1.TLFIdentifyFailure
+	pieces := strings.Split(arg.TlfName, ",")
+	for _, p := range pieces {
+		f, err := h.identifyUser(ctx, p, private, arg.IdentifyBehavior)
+		if err != nil {
+			return nil, err
+		}
+		fails = append(fails, f)
+	}
+	return fails, nil
+}
+
+func (t *KBFSTLFInfoSource) identifyUser(ctx context.Context, assertion string, private bool, idBehavior keybase1.TLFIdentifyBehavior) (keybase1.TLFIdentifyFailure, error) {
+	reason := "You accessed a public conversation."
+	if private {
+		reason = fmt.Sprintf("You accessed a private conversation with %s.", assertion)
+	}
+
+	arg := keybase1.Identify2Arg{
+		UserAssertion:    assertion,
+		UseDelegateUI:    true,
+		Reason:           keybase1.IdentifyReason{Reason: reason},
+		CanSuppressUI:    true,
+		IdentifyBehavior: idBehavior,
+	}
+
+	res, err := eng.Run(ectx, arg)
+
+	return keybase1.TLFIdentifyFailure{}, nil
 }
 
 func appendBreaks(l []keybase1.TLFIdentifyFailure, r []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
