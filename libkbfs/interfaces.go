@@ -63,8 +63,16 @@ type diskBlockCacheGetter interface {
 	DiskBlockCache() DiskBlockCache
 }
 
+type diskBlockCacheSetter interface {
+	SetDiskBlockCache(DiskBlockCache)
+}
+
 type clockGetter interface {
 	Clock() Clock
+}
+
+type diskLimiterGetter interface {
+	DiskLimiter() DiskLimiter
 }
 
 // Block just needs to be (de)serialized using msgpack
@@ -833,7 +841,9 @@ type DiskBlockCache interface {
 	Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
 		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
 	// DeleteByTLF deletes some blocks from the disk cache.
-	DeleteByTLF(ctx context.Context, tlfID tlf.ID, blockIDs []kbfsblock.ID) error
+	DeleteByTLF(ctx context.Context, tlfID tlf.ID, blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error)
+	// Size returns the size in bytes of the disk cache.
+	Size() int64
 	// Shutdown cleanly shuts down the disk block cache.
 	Shutdown(ctx context.Context)
 }
@@ -1488,7 +1498,9 @@ type Config interface {
 	signerGetter
 	currentSessionGetterGetter
 	diskBlockCacheGetter
+	diskBlockCacheSetter
 	clockGetter
+	diskLimiterGetter
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)
 	KBPKI() KBPKI
@@ -1581,6 +1593,9 @@ type Config interface {
 
 	// ResetCaches clears and re-initializes all data and key caches.
 	ResetCaches()
+
+	// StorageRoot returns the path to the storage root for this config.
+	StorageRoot() string
 
 	// MetricsRegistry may be nil, which should be interpreted as
 	// not using metrics at all. (i.e., as if UseNilMetrics were

@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"os"
 	"sync"
 	"time"
 
@@ -75,10 +76,12 @@ type ConfigLocal struct {
 	loggerFn       func(prefix string) logger.Logger
 	noBGFlush      bool // logic opposite so the default value is the common setting
 	rwpWaitTime    time.Duration
+	diskLimiter    DiskLimiter
 
 	maxNameBytes uint32
 	maxDirBytes  uint64
 	rekeyQueue   RekeyQueue
+	storageRoot  string
 
 	qrPeriod                       time.Duration
 	qrUnrefAge                     time.Duration
@@ -230,9 +233,11 @@ func getDefaultCleanBlockCacheCapacity() uint64 {
 //
 // TODO: Now that NewConfigLocal takes loggerFn, add more default
 // components.
-func NewConfigLocal(loggerFn func(module string) logger.Logger) *ConfigLocal {
+func NewConfigLocal(loggerFn func(module string) logger.Logger,
+	storageRoot string) *ConfigLocal {
 	config := &ConfigLocal{
-		loggerFn: loggerFn,
+		loggerFn:    loggerFn,
+		storageRoot: storageRoot,
 	}
 	config.SetClock(wallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
@@ -389,11 +394,18 @@ func (c *ConfigLocal) SetDirtyBlockCache(d DirtyBlockCache) {
 	c.dirtyBcache = d
 }
 
-// DiskBlockCache implements the COnfig interface for ConfigLocal.
+// DiskBlockCache implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DiskBlockCache() DiskBlockCache {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.diskBlockCache
+}
+
+// DiskLimiter implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) DiskLimiter() DiskLimiter {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.diskLimiter
 }
 
 // Crypto implements the Config interface for ConfigLocal.
@@ -696,6 +708,11 @@ func (c *ConfigLocal) MaxDirBytes() uint64 {
 	return c.maxDirBytes
 }
 
+// StorageRoot implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) StorageRoot() string {
+	return c.storageRoot
+}
+
 func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	c.lock.Lock()
 	defer c.lock.Unlock()
@@ -909,6 +926,32 @@ func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
 // put.
 const defaultDiskLimitMaxDelay = 10 * time.Second
 
+// MakeDiskLimiter makes a DiskLimiter for use in journaling and disk caching.
+func (c *ConfigLocal) MakeDiskLimiter(configRoot string) (DiskLimiter, error) {
+	const (
+		backpressureMinThreshold = 0.5
+		backpressureMaxThreshold = 0.95
+		// Cap journal usage to a 15% of free space.
+		journalByteLimitFrac = 0.15
+		// Cap disk cache usage to a 10% of free space.
+		diskCacheByteLimitFrac = 0.10
+		// Set the absolute filesystem byte limit to 200 GiB. This will be
+		// scaled by the various *Frac parameters.
+		byteLimit int64 = 200 * 1024 * 1024 * 1024
+		// Set the absolute file limit to 6 million for now.
+		fileLimit int64 = 6000000
+	)
+	log := c.MakeLogger("")
+	log.Debug("Setting disk storage byte limit to %v", byteLimit)
+	os.MkdirAll(configRoot, 0700)
+	var err error
+	c.diskLimiter, err = newBackpressureDiskLimiter(log,
+		backpressureMinThreshold, backpressureMaxThreshold,
+		journalByteLimitFrac, diskCacheByteLimitFrac, byteLimit, fileLimit,
+		defaultDiskLimitMaxDelay, configRoot)
+	return c.diskLimiter, err
+}
+
 // EnableJournaling creates a JournalServer and attaches it to
 // this config. journalRoot must be non-empty. Errors returned are
 // non-fatal.
@@ -929,32 +972,15 @@ func (c *ConfigLocal) EnableJournaling(
 	branchListener := c.KBFSOps().(branchChangeListener)
 	flushListener := c.KBFSOps().(mdFlushListener)
 
-	// The backpressure disk limiter needs the dir to exist first.
+	// Make sure the journal root exists.
 	err = ioutil.MkdirAll(journalRoot, 0700)
 	if err != nil {
 		return err
 	}
 
-	const backpressureMinThreshold = 0.5
-	const backpressureMaxThreshold = 0.95
-	// Cap journal usage to a quarter of the free space.
-	const journalByteLimitFrac = 0.25
-	// Set the absolute journal byte limit to 50 GiB for now.
-	const journalByteLimit int64 = 50 * 1024 * 1024 * 1024
-	// Set the absolute journal file limit to 1.5 million for now.
-	const journalFileLimit int64 = 1500000
-	bdl, err := newBackpressureDiskLimiter(
-		log, backpressureMinThreshold, backpressureMaxThreshold,
-		journalByteLimitFrac, journalByteLimit, journalFileLimit,
-		defaultDiskLimitMaxDelay, journalRoot)
-	if err != nil {
-		return err
-	}
-
-	log.Debug("Setting journal byte limit to %v", journalByteLimit)
 	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
-		flushListener, bdl)
+		flushListener)
 
 	c.SetBlockServer(jServer.blockServer())
 	c.SetMDOps(jServer.mdOps())
@@ -988,14 +1014,14 @@ func (c *ConfigLocal) EnableJournaling(
 	return nil
 }
 
-// EnableDiskBlockCache creates and enables a new disk block cache.
-func (c *ConfigLocal) EnableDiskBlockCache(ctx context.Context,
-	diskCacheRoot string) (err error) {
-	// Don't lock because:
-	// 1) This happens while constructing the config, and thus no goroutines
-	//	  are contending for access yet.
-	// 2) It'll deadlock with uses of c's methods.
-	c.diskBlockCache, err = newDiskBlockCacheStandard(c, diskCacheRoot,
-		defaultDiskBlockCacheMaxBytes)
-	return err
+// SetDiskBlockCache implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetDiskBlockCache(dbc DiskBlockCache) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	ctx := context.TODO()
+	if c.diskBlockCache != nil {
+		c.diskBlockCache.Shutdown(ctx)
+	}
+	c.diskBlockCache = dbc
+	c.diskLimiter.onDiskBlockCacheEnable(ctx, dbc.Size())
 }

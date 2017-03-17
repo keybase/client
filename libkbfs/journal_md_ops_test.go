@@ -51,6 +51,8 @@ func setupJournalMDOpsTest(t *testing.T) (
 	}()
 
 	oldMDOps = config.MDOps()
+	_, err = config.MakeDiskLimiter(tempdir)
+	require.NoError(t, err)
 	err = config.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)

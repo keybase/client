@@ -7,3 +7,5 @@ kbfsfuse/kbfs_key/
 kbfsfuse/kbfs_md/
 kbfsfuse/revision
 *.test
+
+**/vim-go-test-compile

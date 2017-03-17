@@ -475,7 +475,7 @@ func testTLFJournalBlockOpDiskByteLimit(t *testing.T, ver MetadataVer) {
 	defer teardownTLFJournalTest(
 		tempdir, config, ctx, cancel, tlfJournal, delegate)
 
-	tlfJournal.diskLimiter.onJournalEnable(ctx, math.MaxInt64-6, 0)
+	tlfJournal.DiskLimiter.onJournalEnable(ctx, math.MaxInt64-6, 0)
 
 	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
 
@@ -512,7 +512,7 @@ func testTLFJournalBlockOpDiskFileLimit(t *testing.T, ver MetadataVer) {
 	defer teardownTLFJournalTest(
 		tempdir, config, ctx, cancel, tlfJournal, delegate)
 
-	tlfJournal.diskLimiter.onJournalEnable(
+	tlfJournal.DiskLimiter.onJournalEnable(
 		ctx, 0, math.MaxInt64-2*filesPerBlockMax+1)
 
 	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
@@ -550,7 +550,7 @@ func testTLFJournalBlockOpDiskLimitDuplicate(t *testing.T, ver MetadataVer) {
 	defer teardownTLFJournalTest(
 		tempdir, config, ctx, cancel, tlfJournal, delegate)
 
-	tlfJournal.diskLimiter.onJournalEnable(
+	tlfJournal.DiskLimiter.onJournalEnable(
 		ctx, math.MaxInt64-8, math.MaxInt64-2*filesPerBlockMax)
 
 	data := []byte{1, 2, 3, 4}
@@ -575,7 +575,7 @@ func testTLFJournalBlockOpDiskLimitCancel(t *testing.T, ver MetadataVer) {
 	defer teardownTLFJournalTest(
 		tempdir, config, ctx, cancel, tlfJournal, delegate)
 
-	tlfJournal.diskLimiter.onJournalEnable(ctx, math.MaxInt64, 0)
+	tlfJournal.DiskLimiter.onJournalEnable(ctx, math.MaxInt64, 0)
 
 	ctx2, cancel2 := context.WithCancel(ctx)
 	cancel2()
@@ -592,7 +592,7 @@ func testTLFJournalBlockOpDiskLimitTimeout(t *testing.T, ver MetadataVer) {
 	defer teardownTLFJournalTest(
 		tempdir, config, ctx, cancel, tlfJournal, delegate)
 
-	tlfJournal.diskLimiter.onJournalEnable(
+	tlfJournal.DiskLimiter.onJournalEnable(
 		ctx, math.MaxInt64, math.MaxInt64-1)
 	config.dlTimeout = 3 * time.Microsecond
 
@@ -615,7 +615,7 @@ func testTLFJournalBlockOpDiskLimitPutFailure(t *testing.T, ver MetadataVer) {
 	defer teardownTLFJournalTest(
 		tempdir, config, ctx, cancel, tlfJournal, delegate)
 
-	tlfJournal.diskLimiter.onJournalEnable(
+	tlfJournal.DiskLimiter.onJournalEnable(
 		ctx, math.MaxInt64-6, math.MaxInt64-filesPerBlockMax)
 
 	data := []byte{1, 2, 3, 4}

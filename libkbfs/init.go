@@ -65,26 +65,24 @@ type InitParams struct {
 	LogFileConfig logger.LogFileConfig
 
 	// TLFJournalBackgroundWorkStatus is the status to use to
-	// pass into JournalServer.EnableJournaling. Only has an effect when
-	// WriteJournalRoot is non-empty.
+	// pass into JournalServer.enableJournaling. Only has an effect when
+	// EnableJournal is non-empty.
 	TLFJournalBackgroundWorkStatus TLFJournalBackgroundWorkStatus
-
-	// WriteJournalRoot, if non-empty, points to a path to a local
-	// directory to put write journals in. If non-empty, enables
-	// write journaling to be turned on for TLFs.
-	WriteJournalRoot string
 
 	// CreateSimpleFSInstance creates a SimpleFSInterface from config.
 	// If this is nil then simplefs will be omitted in the rpc api.
 	CreateSimpleFSInstance func(Config) keybase1.SimpleFSInterface
 
-	// DiskCacheRoot, if non-empty, points to a path to a local directory to
-	// put the block cache database. If non-default, enables disk caching.
-	DiskCacheRoot string
-	// EnableDiskCache toggles whether the disk cache is enabled in the default
-	// data directory. Note that specifying a non-default DiskCacheRoot
-	// overrides this setting.
+	// EnableJournal enables journaling.
+	EnableJournal bool
+
+	// EnableDiskCache toggles whether the disk cache is enabled in the
+	// StorageRoot data directory.
 	EnableDiskCache bool
+
+	// StorageRoot, if non-empty, points to a local directory to put its local
+	// databases for things like the journal or disk cache.
+	StorageRoot string
 }
 
 // defaultBServer returns the default value for the -bserver flag.
@@ -147,10 +145,7 @@ func DefaultInitParams(ctx Context) InitParams {
 			MaxKeepFiles: 3,
 		},
 		TLFJournalBackgroundWorkStatus: TLFJournalBackgroundWorkEnabled,
-		WriteJournalRoot: filepath.Join(
-			ctx.GetDataDir(), "kbfs_journal"),
-		DiskCacheRoot: filepath.Join(
-			ctx.GetDataDir(), "kbfs_block_cache"),
+		StorageRoot:                    ctx.GetDataDir(),
 	}
 }
 
@@ -191,19 +186,18 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	flags.IntVar(&params.LogFileConfig.MaxKeepFiles, "log-file-max-keep-files",
 		defaultParams.LogFileConfig.MaxKeepFiles, "Maximum number of log "+
 			"files for this service, older ones are deleted. 0 for infinite.")
-	flags.StringVar(&params.WriteJournalRoot, "write-journal-root",
-		defaultParams.WriteJournalRoot, "(EXPERIMENTAL) If non-empty, "+
-			"permits write journals to be turned on for TLFs which will be "+
-			"put in the given directory")
 	flags.Uint64Var(&params.CleanBlockCacheCapacity, "clean-bcache-cap",
 		defaultParams.CleanBlockCacheCapacity,
 		"If non-zero, specify the capacity of clean block cache. If zero, "+
 			"the capacity is set based on system RAM.")
-	flags.StringVar(&params.DiskCacheRoot, "disk-cache-root",
-		defaultParams.DiskCacheRoot, "(EXPERIMENTAL) If non-empty, permits "+
-			"a block database to be saved in the specified directory.")
+	flags.StringVar(&params.StorageRoot, "storage-root",
+		defaultParams.StorageRoot, "Specifies where Keybase will store its "+
+			"local databases for the journal and disk cache.")
 	flags.BoolVar(&params.EnableDiskCache, "enable-disk-cache", false,
-		"(EXPERIMENTAL) Enables the disk cache for the default data directory.")
+		"(EXPERIMENTAL) Enables the disk cache for the directory specified "+
+			"by -storage-root.")
+	flags.BoolVar(&params.EnableJournal, "enable-journal", true, "Enables "+
+		"write journaling for TLFs.")
 
 	// No real need to enable setting
 	// params.TLFJournalBackgroundWorkStatus via a flag.
@@ -459,7 +453,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 			lg.Configure("", true, "")
 		}
 		return lg
-	})
+	}, params.StorageRoot)
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.Debug("overriding default clean block cache capacity from %d to %d",
@@ -564,28 +558,30 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 
 	config.SetBlockServer(bserv)
 
+	_, err = config.MakeDiskLimiter(params.StorageRoot)
+	if err != nil {
+		log.Warning("Could not initialize disk limiter: %+v", err)
+		return nil, err
+	}
 	// TODO: Don't turn on journaling if either -bserver or
 	// -mdserver point to local implementations.
-	if len(params.WriteJournalRoot) != 0 {
-		err := config.EnableJournaling(
-			context.Background(), params.WriteJournalRoot,
+	if params.EnableJournal {
+		journalRoot := filepath.Join(params.StorageRoot, "kbfs_journal")
+		err = config.EnableJournaling(context.Background(), journalRoot,
 			params.TLFJournalBackgroundWorkStatus)
 		if err != nil {
 			log.Warning("Could not initialize journal server: %+v", err)
 		}
 	}
-	defaultParams := DefaultInitParams(ctx)
-	// Only enable the disk block cache if the user has explicitly specified a
-	// caching root directory, or enabled caching in the default directory.
-	if len(params.DiskCacheRoot) != 0 && (params.EnableDiskCache ||
-		params.DiskCacheRoot != defaultParams.DiskCacheRoot) {
-		err := config.EnableDiskBlockCache(context.TODO(),
-			params.DiskCacheRoot)
+	if params.EnableDiskCache {
+		dbc, err := newDiskBlockCacheStandard(config,
+			diskBlockCacheRootFromStorageRoot(params.StorageRoot))
 		if err != nil {
 			log.Warning("Could not initialize disk cache: %+v", err)
 			// TODO: Make this error less fatal later.
 			return nil, err
 		}
+		config.SetDiskBlockCache(dbc)
 	}
 
 	return config, nil
