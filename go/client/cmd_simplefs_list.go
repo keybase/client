@@ -201,11 +201,11 @@ func (c *CmdSimpleFSList) Run() error {
 		for {
 			listResult, err := cli.SimpleFSReadList(ctx, opid)
 			if err != nil {
-				break
+				return err
 			}
 			err = c.output(listResult)
 			if err != nil {
-				break
+				return err
 			}
 		}
 	}
