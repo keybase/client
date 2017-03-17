@@ -509,3 +509,6 @@ func StringToAppType(s string) AppType {
 		return NoAppType
 	}
 }
+
+// UID of t_alice
+const TAliceUID = keybase1.UID("295a7eea607af32040647123732bc819")

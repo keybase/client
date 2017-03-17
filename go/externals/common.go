@@ -4,20 +4,17 @@
 package externals
 
 import (
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/pvl"
 )
 
 func CheckProofPvl(ctx libkb.ProofContext, proofType keybase1.ProofType, proof libkb.RemoteProofChainLink, hint libkb.SigHint) libkb.ProofError {
-	netCtx := context.TODO()
 	pvlSource := ctx.GetPvlSource()
 	if pvlSource == nil {
 		return libkb.NewProofError(keybase1.ProofStatus_MISSING_PVL, "no pvl source for proof verification")
 	}
-	pvlString, err := pvlSource.GetPVL(netCtx, pvl.SupportedVersion)
+	pvlString, err := pvlSource.GetPVL(ctx.GetNetContext(), pvl.SupportedVersion)
 	if err != nil {
 		return libkb.NewProofError(keybase1.ProofStatus_MISSING_PVL, "error getting pvl: %s", err)
 	}

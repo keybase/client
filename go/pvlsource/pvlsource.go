@@ -14,7 +14,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // Older than this will try to refresh merkle root.
@@ -68,7 +67,6 @@ type pvlKitT struct {
 
 // Get PVL to use.
 func (s *PvlSourceImpl) GetPVL(ctx context.Context, pvlVersion int) (string, error) {
-
 	kitJSON, err := s.GetKitString(ctx)
 	if err != nil {
 		return "", err
@@ -229,7 +227,7 @@ func (s *PvlSourceImpl) refreshRoot(ctx context.Context) error {
 	uid := s.G().GetMyUID()
 	if len(uid) == 0 {
 		// Use t_alice's uid.
-		uid = keybase1.UID("295a7eea607af32040647123732bc819")
+		uid = libkb.TAliceUID
 	}
 	q.Add("uid", libkb.UIDArg(uid))
 	_, err := s.G().MerkleClient.LookupUser(ctx, q, nil)
