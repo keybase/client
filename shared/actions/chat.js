@@ -432,7 +432,7 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
 
     const participants = List(parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username))
     const statusEnum = convoUnverified.metadata.status || 0
-    const status = ConversationStatusByEnum[statusEnum]
+    const status = Constants.ConversationStatusByEnum[statusEnum]
 
     return new InboxStateRecord({
       info: null,
