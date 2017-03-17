@@ -53,7 +53,7 @@ func LogTagsToString(ctx context.Context) string {
 func CopyTagsToBackground(ctx context.Context) context.Context {
 	ret := context.Background()
 	if tags, ok := logger.LogTagsFromContext(ctx); ok {
-		ctx = logger.NewContextWithLogTags(ctx, tags)
+		ret = logger.NewContextWithLogTags(ctx, tags)
 		for key, _ := range tags {
 			if ctxKey, ok := key.(withLogTagKey); ok {
 				if val, ok := ctx.Value(ctxKey).(string); ok && len(val) > 0 {
