@@ -54,7 +54,7 @@ func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
-				Name:  "r, recursive",
+				Name:  "rec, recursive",
 				Usage: "recurse into subdirectories",
 			},
 			cli.BoolFlag{
