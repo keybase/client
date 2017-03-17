@@ -19,7 +19,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// This is for the non-windows options
+// ListOptions is for the linux style
 type ListOptions struct {
 	all         bool
 	long        bool
@@ -203,7 +203,10 @@ func (c *CmdSimpleFSList) Run() error {
 			if err != nil {
 				break
 			}
-			c.output(listResult)
+			err = c.output(listResult)
+			if err != nil {
+				break
+			}
 		}
 	}
 	return err
