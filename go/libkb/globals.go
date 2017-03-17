@@ -63,6 +63,7 @@ type GlobalContext struct {
 	upakLoader     UPAKLoader      // Load flat users with the ability to hit the cache
 	CardCache      *UserCardCache  // cache of keybase1.UserCard objects
 	fullSelfer     FullSelfer      // a loader that gets the full self object
+	pvlSource      PvlSource       // a cache and fetcher for pvl
 
 	GpgClient         *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks     []ShutdownHook // on shutdown, fire these...
@@ -411,6 +412,10 @@ func (g *GlobalContext) GetFullSelfer() FullSelfer {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.fullSelfer
+}
+
+func (g *GlobalContext) GetPvlSource() PvlSource {
+	return g.pvlSource
 }
 
 func (g *GlobalContext) ConfigureExportedStreams() error {
@@ -825,6 +830,10 @@ func (g *GlobalContext) MakeAssertionContext() AssertionContext {
 
 func (g *GlobalContext) SetServices(s ExternalServicesCollector) {
 	g.Services = s
+}
+
+func (g *GlobalContext) SetPvlSource(s PvlSource) {
+	g.pvlSource = s
 }
 
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {

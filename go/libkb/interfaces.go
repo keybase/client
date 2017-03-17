@@ -33,6 +33,7 @@ type configGetter interface {
 	GetAppType() AppType
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
+	GetPvlKitFilename() string
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
 	GetDbFilename() string
@@ -474,6 +475,7 @@ type ProofContext interface {
 	LogContext
 	APIContext
 	NetContext
+	GetPvlSource() PvlSource
 }
 
 type AssertionContext interface {
@@ -534,6 +536,10 @@ type ServiceType interface {
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
 	ListProofCheckers(mode RunMode) []string
+}
+
+type PvlSource interface {
+	GetPVL(ctx context.Context, pvlVersion int) (string, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.

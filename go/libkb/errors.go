@@ -30,6 +30,18 @@ func ProofErrorIsSoft(pe ProofError) bool {
 	return (s >= keybase1.ProofStatus_BASE_ERROR && s < keybase1.ProofStatus_BASE_HARD_ERROR)
 }
 
+func ProofErrorIsPvlBad(pe ProofError) bool {
+	s := pe.GetProofStatus()
+	switch s {
+	case keybase1.ProofStatus_INVALID_PVL:
+		return true
+	case keybase1.ProofStatus_MISSING_PVL:
+		return true
+	default:
+		return false
+	}
+}
+
 func ProofErrorToState(pe ProofError) keybase1.ProofState {
 	if pe == nil {
 		return keybase1.ProofState_OK
@@ -1056,6 +1068,20 @@ type MerkleClashError struct {
 
 func (m MerkleClashError) Error() string {
 	return fmt.Sprintf("Merkle tree clashed with server reply: %s", m.c)
+}
+
+//=============================================================================
+
+type PvlSourceError struct {
+	msg string
+}
+
+func (e PvlSourceError) Error() string {
+	return fmt.Sprintf("PvlSource: %s", e.msg)
+}
+
+func NewPvlSourceError(msgf string, a ...interface{}) PvlSourceError {
+	return PvlSourceError{msg: fmt.Sprintf(msgf, a...)}
 }
 
 //=============================================================================

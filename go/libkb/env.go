@@ -25,6 +25,7 @@ func (n NullConfiguration) GetUpdaterConfigFilename() string                    
 func (n NullConfiguration) GetSessionFilename() string                                     { return "" }
 func (n NullConfiguration) GetDbFilename() string                                          { return "" }
 func (n NullConfiguration) GetChatDbFilename() string                                      { return "" }
+func (n NullConfiguration) GetPvlKitFilename() string                                      { return "" }
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
 func (n NullConfiguration) GetProxy() string                                               { return "" }
@@ -445,6 +446,16 @@ func (e *Env) GetChatDbFilename() string {
 		func() string { return os.Getenv("KEYBASE_CHAT_DB_FILE") },
 		func() string { return e.config.GetChatDbFilename() },
 		func() string { return filepath.Join(e.GetDataDir(), ChatDBFile) },
+	)
+}
+
+// GetPvlKitFilename gets the path to pvl kit file.
+// Its value is usually "" which means to use the server.
+func (e *Env) GetPvlKitFilename() string {
+	return e.GetString(
+		func() string { return e.cmd.GetPvlKitFilename() },
+		func() string { return os.Getenv("KEYBASE_PVL_KIT_FILE") },
+		func() string { return e.config.GetPvlKitFilename() },
 	)
 }
 
