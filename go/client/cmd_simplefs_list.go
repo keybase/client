@@ -198,11 +198,19 @@ func (c *CmdSimpleFSList) Run() error {
 		if err != nil {
 			return err
 		}
+		gotList := false
 		for {
 			listResult, err := cli.SimpleFSReadList(ctx, opid)
+			// Eat the error here because it may just mean the results
+			// are complete. TODO: should KBFS return non-error here
+			// until the opid is closed?
 			if err != nil {
+				if gotList == true {
+					err = nil
+				}
 				return err
 			}
+			gotList = true
 			err = c.output(listResult)
 			if err != nil {
 				return err
