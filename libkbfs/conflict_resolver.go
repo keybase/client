@@ -3916,6 +3916,14 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	if err != nil {
 		return
 	}
+	if len(unmergedMDs) == 0 {
+		// TODO: This is probably due to an extra Resolve() call that
+		// got queued during a resolution (but too late to cancel it),
+		// and executed after the resolution completed successfully.
+		cr.log.CDebugf(ctx, "No unmerged updates at all, so we must not be "+
+			"unmerged after all")
+		return
+	}
 	if len(mergedPaths) == 0 || len(mergedMDs) == 0 {
 		var mostRecentMergedMD ImmutableRootMetadata
 		if len(mergedMDs) > 0 {
