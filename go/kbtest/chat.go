@@ -247,6 +247,21 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 			continue
 		}
 		if arg.Query != nil {
+			if arg.Query.ConvID != nil {
+				arg.Query.ConvIDs = append(arg.Query.ConvIDs, *arg.Query.ConvID)
+			}
+			if len(arg.Query.ConvIDs) > 0 {
+				found := false
+				for _, convID := range arg.Query.ConvIDs {
+					if convID.Eq(conv.GetConvID()) {
+						found = true
+						break
+					}
+				}
+				if !found {
+					continue
+				}
+			}
 			if arg.Query.ConvID != nil && !conv.Metadata.ConversationID.Eq(*arg.Query.ConvID) {
 				continue
 			}
