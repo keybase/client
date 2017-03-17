@@ -359,9 +359,9 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
   })
 
   const participants = List(convo.info.writerNames || [])
-  const infoStatus = convo.info ? convo.info.status : 'unfiled'
+  const infoStatus = convo.info ? convo.info.status : 0
   // Go backwards from the value in CommonConversationStatus to its key.
-  const status = Object.keys(CommonConversationStatus).filter(key => CommonConversationStatus[key] === infoStatus)[0]
+  const status = Constants.ConversationStatusByEnum[infoStatus]
 
   return new InboxStateRecord({
     info: convo.info,
@@ -431,12 +431,14 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
     }
 
     const participants = List(parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username))
+    const statusEnum = convoUnverified.metadata.status || 0
+    const status = ConversationStatusByEnum[statusEnum]
 
     return new InboxStateRecord({
       info: null,
       conversationIDKey: conversationIDToKey(convoUnverified.metadata.conversationID),
       participants,
-      status: 'unfiled',
+      status,
       time: convoUnverified.readerInfo && convoUnverified.readerInfo.mtime,
       snippet: ' ',
       validated: false,

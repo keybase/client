@@ -6,10 +6,11 @@ import {clamp} from 'lodash'
 import * as ChatTypes from './types/flow-types-chat'
 import {getPath} from '../route-tree'
 import {chatTab} from './tabs'
+import _ from 'lodash'
 
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
-import type {AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFinalizeInfo, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
+import type {AssetMetadata, ChatActivity, CommonConversationStatus, ConversationInfoLocal, ConversationFinalizeInfo, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
 import type {TypedState} from './reducer'
 
@@ -175,6 +176,8 @@ export type UpdatingAttachment = {
 }
 
 export type MaybeTimestamp = TimestampMessage | null
+
+export const ConversationStatusByEnum = _.invert(ChatTypes.CommonConversationStatus)
 
 export const ConversationStateRecord = Record({
   messages: List(),

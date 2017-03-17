@@ -7,11 +7,11 @@ import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
 import type {BlockConversation, ConversationIDKey} from '../../../constants/chat'
 
-type AttachmentInputRouteProps = RouteProps<{
+type RenderBlockConversationWarningRouteProps = RouteProps<{
   conversationIDKey: ConversationIDKey,
   participants: string,
 }, {}>
-type OwnProps = AttachmentInputRouteProps & {}
+type OwnProps = RenderBlockConversationWarningRouteProps & {}
 
 export default connect(
   (state: TypedState, {routeProps}: OwnProps) => {
@@ -22,9 +22,9 @@ export default connect(
     }
   },
   (dispatch: Dispatch) => ({
-    onClose: () => dispatch(navigateUp()),
     onBlock: (conversationIDKey: ConversationIDKey) => {
       dispatch(({payload: {blocked: true, conversationIDKey}, type: 'chat:blockConversation'}: BlockConversation))
     },
+    onClose: () => dispatch(navigateUp()),
   })
 )(RenderBlockConversationWarning)
