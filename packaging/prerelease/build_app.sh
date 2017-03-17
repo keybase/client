@@ -87,8 +87,8 @@ if [ ! "$nowait" = "1" ]; then
   "$release_bin" wait-ci --repo="client" --commit=`git -C $client_dir log -1 --pretty=format:%h` --context="continuous-integration/jenkins/branch" --context="ci/circleci"
   echo "Checking kbfs CI"
   "$release_bin" wait-ci --repo="kbfs" --commit=`git -C $kbfs_dir log -1 --pretty=format:%h` --context="continuous-integration/jenkins/branch"
-  #echo "Checking updater CI"
-  #"$release_bin" wait-ci --repo="go-updater" --commit=`git -C $updater_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push"
+  echo "Checking updater CI"
+  "$release_bin" wait-ci --repo="go-updater" --commit=`git -C $updater_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push"
 
   "$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build for $platform."
 fi
