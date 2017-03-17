@@ -6,15 +6,18 @@ package pvl
 import (
 	"bytes"
 	b64 "encoding/base64"
-	"net"
+	"fmt"
 	"net/url"
 	"regexp"
 	"strings"
+
+	"net"
 
 	"github.com/PuerkitoBio/goquery"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	"github.com/miekg/dns"
 )
 
 // SupportedVersion is which version of PVL is supported by this client.
@@ -446,13 +449,54 @@ func runDNS(g proofContextExt, userdomain string, scripts []scriptT, mknewstate 
 	return libkb.NewProofError(errs[0].GetProofStatus(), strings.Join(descs, "; "))
 }
 
+func runDNSTXTQuery(g proofContextExt, domain string) (res []string, err error) {
+
+	// Attempt to use the built-in reoslver first, but this might fail on mobile.
+	// The reason for that is currently (as of Go 1.8), LookupTXT does not properly
+	// use the cgo DNS routines if they are configured to be used (like they are for mobile).
+	// As for now, we can use a different library to specify our own name servers, since the
+	// Go resolver will attempt to use /etc/resolv.conf, which is not a thing on mobile.
+	if res, err = net.LookupTXT(domain); err != nil {
+		debug(g, "DNS LookupTXT failed: %s", err.Error())
+	} else {
+		return res, nil
+	}
+
+	// Google, Level3, and Verisign public DNS servers
+	servers := []string{"8.8.8.8:53", "209.244.0.3:53", "64.6.64.6:53"}
+	var r *dns.Msg
+	c := dns.Client{}
+	m := dns.Msg{}
+	found := false
+	for _, srv := range servers {
+		debug(g, "DNS trying backup server: %s", srv)
+		m.SetQuestion(domain+".", dns.TypeTXT)
+		r, _, err = c.Exchange(&m, srv)
+		if err != nil {
+			debug(g, "DNS backup server failed; %s", err.Error())
+		} else {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return res, fmt.Errorf("failed to lookup DNS: %s", domain)
+	}
+
+	for _, ans := range r.Answer {
+		record := ans.(*dns.TXT)
+		res = append(res, record.Txt[len(record.Txt)-1])
+	}
+	return res, err
+}
+
 // Run each script on each TXT record of the domain.
 func runDNSOne(g proofContextExt, domain string, scripts []scriptT, mknewstate stateMaker, sigIDMedium string) libkb.ProofError {
 	// Fetch TXT records
 	var txts []string
 	var err error
 	if g.getStubDNS() == nil {
-		txts, err = net.LookupTXT(domain)
+		txts, err = runDNSTXTQuery(g, domain)
 	} else {
 		txts, err = g.getStubDNS().LookupTXT(domain)
 	}
