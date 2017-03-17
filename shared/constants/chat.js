@@ -2,7 +2,7 @@
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
-import {clamp} from 'lodash'
+import {clamp, invert} from 'lodash'
 import * as ChatTypes from './types/flow-types-chat'
 import {getPath} from '../route-tree'
 import {chatTab} from './tabs'
@@ -176,6 +176,8 @@ export type UpdatingAttachment = {
 
 export type MaybeTimestamp = TimestampMessage | null
 
+export const ConversationStatusByEnum = invert(ChatTypes.CommonConversationStatus)
+
 export const ConversationStateRecord = Record({
   messages: List(),
   seenMessages: Set(),
@@ -211,13 +213,15 @@ export const ConversationBadgeStateRecord = Record({
   UnreadMessages: 0,
 })
 
+export type ConversationStateEnum = $Keys<typeof ChatTypes.CommonConversationStatus>
+
 export const InboxStateRecord = Record({
   info: null,
   isEmpty: false,
   participants: List(),
   conversationIDKey: '',
-  muted: false,
   time: 0,
+  status: 'unfiled',
   snippet: '',
   snippetKey: null,
   validated: false,
@@ -228,10 +232,10 @@ export type InboxState = Record<{
   isEmpty: boolean,
   participants: List<string>,
   conversationIDKey: ConversationIDKey,
-  muted: boolean,
   time: number,
   snippet: string,
   snippetKey: any,
+  status: ConversationStateEnum,
   validated: boolean,
 }>
 
@@ -314,8 +318,8 @@ export const nothingSelected = 'chat:noneSelected'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<ServerMessage>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeState>>
+export type BlockConversation = NoErrorTypedAction<'chat:blockConversation', {blocked: boolean, conversationIDKey: ConversationIDKey}>
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
-export type ConversationSetStatus = NoErrorTypedAction<'chat:conversationSetStatus', {conversationIDKey: ConversationIDKey, muted: boolean}>
 export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {failureDescription: string, outboxID: OutboxIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: Message}>

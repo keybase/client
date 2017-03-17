@@ -109,7 +109,7 @@ export default connect(
       if (conversationState) {
         const inbox = state.chat.get('inbox')
         const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversation)
-        const muted = selected && selected.get('muted')
+        const muted = selected && selected.get('status') === 'muted'
         const participants = selected && selected.participants || List()
         const rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversation)
 
@@ -163,6 +163,7 @@ export default connect(
     onBack: () => dispatch(navigateUp()),
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
     onEditMessage: (message: Message, body: string) => { dispatch(editMessage(message, new HiddenString(body))) },
+    onShowBlockConversationDialog: (selectedConversation, participants) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, participants}, selected: 'showBlockConversationDialog'}])) },
     onShowEditor: (message: Message) => { dispatch(showEditor(message)) },
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, false, downloadFilePath(filename))),
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
@@ -228,6 +229,7 @@ export default connect(
       onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
       onRetryMessage: (outboxID: OutboxIDKey) => dispatchProps.onRetryMessage(stateProps.selectedConversation, outboxID),
       onSelectAttachment: (input) => dispatchProps.onSelectAttachment(stateProps.selectedConversation, input),
+      onShowBlockConversationDialog: () => dispatchProps.onShowBlockConversationDialog(stateProps.selectedConversation, stateProps.participants.toArray().join(',')),
       restartConversation: () => dispatchProps.startConversation(stateProps.participants.toArray()),
     }
   },
