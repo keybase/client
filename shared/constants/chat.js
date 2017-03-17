@@ -2,11 +2,10 @@
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
-import {clamp} from 'lodash'
+import {clamp, invert} from 'lodash'
 import * as ChatTypes from './types/flow-types-chat'
 import {getPath} from '../route-tree'
 import {chatTab} from './tabs'
-import _ from 'lodash'
 
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
@@ -177,7 +176,7 @@ export type UpdatingAttachment = {
 
 export type MaybeTimestamp = TimestampMessage | null
 
-export const ConversationStatusByEnum = _.invert(ChatTypes.CommonConversationStatus)
+export const ConversationStatusByEnum = invert(ChatTypes.CommonConversationStatus)
 
 export const ConversationStateRecord = Record({
   messages: List(),
