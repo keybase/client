@@ -220,7 +220,8 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 		int(defaultParams.MetadataVersion),
 		"Metadata version to use when creating new metadata")
 	flags.StringVar(&params.Mode, "mode", InitDefaultString,
-		fmt.Sprintf("Init mode (%s or %s)", InitDefaultString,
+		fmt.Sprintf("Overall initialization mode for KBFS, indicating how "+
+			"heavy-weight it can be (%s or %s)", InitDefaultString,
 			InitMinimalString))
 
 	return &params
@@ -458,6 +459,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	mode := InitDefault
 	switch params.Mode {
 	case InitDefaultString:
+		log.Debug("Initializing in default mode")
 		// Already the default
 	case InitMinimalString:
 		log.Debug("Initializing in minimal mode")

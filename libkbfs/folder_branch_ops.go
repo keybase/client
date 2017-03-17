@@ -334,11 +334,11 @@ var _ fbmHelper = (*folderBranchOps)(nil)
 func newFolderBranchOps(config Config, fb FolderBranch,
 	bType branchType) *folderBranchOps {
 	var nodeCache NodeCache
-	if config.Mode() != InitMinimal {
-		nodeCache = newNodeCacheStandard(fb)
-	} else {
+	if config.Mode() == InitMinimal {
 		// If we're in minimal mode, let the block cache remain nil to
 		// ensure that the user doesn't try any data reads or writes.
+	} else {
+		nodeCache = newNodeCacheStandard(fb)
 	}
 
 	// make logger

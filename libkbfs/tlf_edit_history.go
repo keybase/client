@@ -175,11 +175,11 @@ func NewTlfEditHistory(config Config, fbo *folderBranchOps,
 		rmdsChan: make(chan []ImmutableRootMetadata, 100),
 		cancel:   cancel,
 	}
-	if config.Mode() != InitMinimal {
-		go teh.process(processCtx)
-	} else {
+	if config.Mode() == InitMinimal {
 		// No need to process updates in minimal mode. TODO: avoid
 		// rmdsChan memory overhead?
+	} else {
+		go teh.process(processCtx)
 	}
 	return teh
 }
