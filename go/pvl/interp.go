@@ -451,7 +451,7 @@ func runDNS(g proofContextExt, userdomain string, scripts []scriptT, mknewstate 
 
 func runDNSTXTQuery(g proofContextExt, domain string) (res []string, err error) {
 
-	// Attempt to use the built-in reoslver first, but this might fail on mobile.
+	// Attempt to use the built-in resolver first, but this might fail on mobile.
 	// The reason for that is currently (as of Go 1.8), LookupTXT does not properly
 	// use the cgo DNS routines if they are configured to be used (like they are for mobile).
 	// As for now, we can use a different library to specify our own name servers, since the
