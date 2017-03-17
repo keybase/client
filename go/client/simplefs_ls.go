@@ -357,34 +357,7 @@ func (c *CmdSimpleFSList) createListing(dirname string, fip FileInfoPath) (Listi
 	if fip.info.Mode()&os.ModeSymlink == os.ModeSymlink {
 		currentListing.permissions = strings.Replace(
 			currentListing.permissions, "L", "l", 1)
-
-		var _pathstr string
-		if dirname == "" {
-			_pathstr = fmt.Sprintf("%s", fip.path)
-		} else {
-			_pathstr = fmt.Sprintf("%s/%s", dirname, fip.path)
-		}
-		link, err := os.Readlink(fmt.Sprintf(_pathstr))
-		if err != nil {
-			return currentListing, err
-		}
-		currentListing.linkName = link
-
-		// check to see if the symlink target exists
-		var _linkPathstr string
-		if dirname == "" {
-			_linkPathstr = fmt.Sprintf("%s", link)
-		} else {
-			_linkPathstr = fmt.Sprintf("%s/%s", dirname, link)
-		}
-		_, err = os.Open(_linkPathstr)
-		if err != nil {
-			if os.IsNotExist(err) {
-				currentListing.linkOrphan = true
-			} else {
-				return currentListing, err
-			}
-		}
+		// Note: don't follow KBFS symlinks for now
 	} else if currentListing.permissions[0] == 'D' {
 		currentListing.permissions = currentListing.permissions[1:]
 	} else if currentListing.permissions[0:2] == "ug" {
