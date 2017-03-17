@@ -5,9 +5,14 @@
 package libfuse
 
 import (
+	"net"
+	"net/http"
+	"net/http/pprof"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"bazil.org/fuse"
@@ -16,6 +21,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -26,6 +32,13 @@ type FS struct {
 	conn   *fuse.Conn
 	log    logger.Logger
 	errLog logger.Logger
+
+	// Protects debugServerListener and debugServer.addr.
+	debugServerLock     sync.Mutex
+	debugServerListener net.Listener
+	// An HTTP server used for debugging. Normally off unless
+	// turned on via enableDebugServer().
+	debugServer *http.Server
 
 	notifications *libfs.FSNotifications
 
@@ -55,11 +68,30 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool, platformParams Pl
 		log.Configure("", true, "")
 		errLog.Configure("", true, "")
 	}
+
+	serveMux := http.NewServeMux()
+
+	// Replicate the default endpoints from pprof's init function.
+	serveMux.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
+	serveMux.Handle("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
+	serveMux.Handle("/debug/pprof/profile", http.HandlerFunc(pprof.Profile))
+	serveMux.Handle("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
+	serveMux.Handle("/debug/pprof/trace", http.HandlerFunc(pprof.Trace))
+
+	// Leave Addr blank to be set in enableDebugServer() and
+	// disableDebugServer().
+	debugServer := &http.Server{
+		Handler:      serveMux,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+
 	fs := &FS{
 		config:         config,
 		conn:           conn,
 		log:            log,
 		errLog:         errLog,
+		debugServer:    debugServer,
 		notifications:  libfs.NewFSNotifications(log),
 		platformParams: platformParams,
 		quotaUsage:     libkbfs.NewEventuallyConsistentQuotaUsage(config, "FS"),
@@ -77,6 +109,84 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool, platformParams Pl
 		time.AfterFunc(d, f)
 	}
 	return fs
+}
+
+// tcpKeepAliveListener is copied from net/http/server.go, since it is
+// used in http.(*Server).ListenAndServe() which we want to emulate in
+// enableDebugServer.
+type tcpKeepAliveListener struct {
+	*net.TCPListener
+}
+
+func (tkal tcpKeepAliveListener) Accept() (c net.Conn, err error) {
+	tc, err := tkal.AcceptTCP()
+	if err != nil {
+		return
+	}
+	tc.SetKeepAlive(true)
+	tc.SetKeepAlivePeriod(3 * time.Minute)
+	return tc, nil
+}
+
+func (f *FS) enableDebugServer(ctx context.Context, port uint16) error {
+	f.debugServerLock.Lock()
+	defer f.debugServerLock.Unlock()
+
+	if f.debugServer.Addr != "" {
+		return errors.Errorf("Debug server already enabled at %s",
+			f.debugServer.Addr)
+	}
+
+	addr := net.JoinHostPort("localhost",
+		strconv.FormatUint(uint64(port), 10))
+	f.log.CDebugf(ctx, "Enabling debug http server at %s", addr)
+
+	// Do Listen and Serve separately so we can catch errors with
+	// the port (e.g. "port already in use") and return it.
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		f.log.CDebugf(ctx, "Got error when listening on %s: %+v",
+			addr, err)
+		return err
+	}
+
+	f.debugServer.Addr = addr
+	f.debugServerListener =
+		tcpKeepAliveListener{listener.(*net.TCPListener)}
+
+	// This seems racy because the spawned goroutine may be
+	// scheduled to run after disableDebugServer is called. But
+	// that's okay since Serve will error out immediately after
+	// f.debugServerListener.Close() is called.
+	go func(server *http.Server, listener net.Listener) {
+		err := server.Serve(listener)
+		f.log.Debug("Debug http server ended with %+v", err)
+	}(f.debugServer, f.debugServerListener)
+
+	return nil
+}
+
+func (f *FS) disableDebugServer(ctx context.Context) error {
+	f.debugServerLock.Lock()
+	defer f.debugServerLock.Unlock()
+
+	if f.debugServer.Addr == "" {
+		return errors.New("Debug server already disabled")
+	}
+
+	f.log.CDebugf(ctx, "Disabling debug http server at %s",
+		f.debugServer.Addr)
+	// TODO: Use f.debugServer.Close() or f.debugServer.Shutdown()
+	// when we switch to go 1.8.
+	err := f.debugServerListener.Close()
+	f.log.CDebugf(ctx, "Debug http server shutdown with %+v", err)
+
+	// Assume the close succeeds in stopping the server, even if
+	// it returns an error.
+	f.debugServer.Addr = ""
+	f.debugServerListener = nil
+
+	return err
 }
 
 // SetFuseConn sets fuse connection for this FS.

@@ -70,20 +70,13 @@ var _ fs.NodeOpener = timedProfileFile{}
 
 func (f timedProfileFile) Open(ctx context.Context,
 	req *fuse.OpenRequest, resp *fuse.OpenResponse) (fs.Handle, error) {
-	// Blocking here until the profile is done is weird, but has a
-	// nice side effect of being exempt from the macOS FUSE
-	// timeout.
+	// TODO: Blocking here until the profile is done is
+	// weird. Blocking on read is better.
 	//
-	// The downside is that there's no easy way to start capturing
-	// a profile and then interrupt when done. But even if we try
-	// and stream the profile data, one problem is that the CPU
-	// profile is, at least as of go 1.8, buffered until it's
-	// stopped anyway, so we'd run into timeouts.
-	//
-	// TODO: Maybe keep around a special last_profile file to
-	// solve the problem above, which would also be useful in
-	// general, since you be able to save a profile even if you
-	// open it up with a tool.
+	// TODO: Maybe keep around a special last_profile file to be
+	// able to start capturing a profile and then interrupt when
+	// done, which would also be useful in general, since you be
+	// able to save a profile even if you open it up with a tool.
 	var buf bytes.Buffer
 	err := f.profile.Start(&buf)
 	if err != nil {

@@ -59,6 +59,11 @@ func handleNonTLFSpecialFile(
 		return &PrefetchFile{fs: fs, enable: true}
 	case libfs.DisableBlockPrefetchingFileName:
 		return &PrefetchFile{fs: fs, enable: false}
+
+	case libfs.EnableDebugServerFileName:
+		return &DebugServerFile{fs: fs, enable: true}
+	case libfs.DisableDebugServerFileName:
+		return &DebugServerFile{fs: fs, enable: false}
 	}
 
 	return nil
