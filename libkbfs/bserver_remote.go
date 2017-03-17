@@ -272,8 +272,6 @@ type blockServerRemoteConfig interface {
 type BlockServerRemote struct {
 	config     blockServerRemoteConfig
 	shutdownFn func()
-	putClient  keybase1.BlockInterface
-	getClient  keybase1.BlockInterface
 	log        logger.Logger
 	deferLog   logger.Logger
 	blkSrvAddr string
