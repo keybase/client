@@ -6,11 +6,9 @@ package client
 import (
 	"bytes"
 	"errors"
-	"os"
 	"path/filepath"
 	"strings"
 
-	"golang.org/x/crypto/ssh/terminal"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -204,7 +202,7 @@ func (c *CmdSimpleFSList) Run() error {
 			// Eat the error here because it may just mean the results
 			// are complete. TODO: should KBFS return non-error here
 			// until the opid is closed?
-			if err != nil {
+			if err != nil || len(listResult.Entries) == 0 {
 				if gotList == true {
 					err = nil
 				}
@@ -233,14 +231,11 @@ func (c *CmdSimpleFSList) output(listResult keybase1.SimpleFSListResult) error {
 		}
 	} else {
 		// capture the current terminal dimensions
-		terminalWidth, _, err := terminal.GetSize(int(os.Stdout.Fd()))
-		if err != nil {
-			return err
-		}
+		terminalWidth, _ := ui.TerminalSize()
 
 		var outputBuffer bytes.Buffer
 
-		err = c.ls(&outputBuffer, listResult, terminalWidth)
+		err := c.ls(&outputBuffer, listResult, terminalWidth)
 		if err != nil {
 			return err
 		}
