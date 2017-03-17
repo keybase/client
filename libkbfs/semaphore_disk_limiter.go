@@ -19,7 +19,7 @@ type semaphoreDiskLimiter struct {
 	fileSemaphore *kbfssync.Semaphore
 }
 
-var _ diskLimiter = semaphoreDiskLimiter{}
+var _ DiskLimiter = semaphoreDiskLimiter{}
 
 func newSemaphoreDiskLimiter(byteLimit, fileLimit int64) semaphoreDiskLimiter {
 	byteSemaphore := kbfssync.NewSemaphore()
@@ -54,6 +54,20 @@ func (sdl semaphoreDiskLimiter) onJournalDisable(
 	}
 	if journalFiles != 0 {
 		sdl.fileSemaphore.Release(journalFiles)
+	}
+}
+
+func (sdl semaphoreDiskLimiter) onDiskBlockCacheEnable(
+	ctx context.Context, diskCacheBytes int64) {
+	if diskCacheBytes != 0 {
+		sdl.byteSemaphore.ForceAcquire(diskCacheBytes)
+	}
+}
+
+func (sdl semaphoreDiskLimiter) onDiskBlockCacheDisable(
+	ctx context.Context, diskCacheBytes int64) {
+	if diskCacheBytes != 0 {
+		sdl.byteSemaphore.Release(diskCacheBytes)
 	}
 }
 
@@ -100,6 +114,27 @@ func (sdl semaphoreDiskLimiter) onBlocksDelete(
 	}
 	if blockFiles != 0 {
 		sdl.fileSemaphore.Release(blockFiles)
+	}
+}
+
+func (sdl semaphoreDiskLimiter) onDiskBlockCacheDelete(ctx context.Context,
+	blockBytes int64) {
+	sdl.onBlocksDelete(ctx, blockBytes, 0)
+}
+
+func (sdl semaphoreDiskLimiter) beforeDiskBlockCachePut(ctx context.Context,
+	blockBytes int64) (availableBytes int64, err error) {
+	if blockBytes == 0 {
+		return 0, errors.New("semaphoreDiskLimiter.beforeDiskBlockCachePut" +
+			" called with 0 blockBytes")
+	}
+	return sdl.byteSemaphore.ForceAcquire(blockBytes), nil
+}
+
+func (sdl semaphoreDiskLimiter) afterDiskBlockCachePut(ctx context.Context,
+	blockBytes int64, putData bool) {
+	if !putData {
+		sdl.byteSemaphore.Release(blockBytes)
 	}
 }
 

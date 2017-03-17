@@ -5,6 +5,8 @@
 package kbfsblock
 
 import (
+	"encoding/binary"
+	"math"
 	"testing"
 
 	"github.com/keybase/kbfs/kbfscodec"
@@ -59,4 +61,42 @@ func TestTemporaryIDRandom(t *testing.T) {
 	require.NotEqual(t, ID{}, b2)
 
 	require.NotEqual(t, b1, b2)
+}
+
+// Test that MakeRandomIDInRange returns items in the range specified.
+func TestRandomIDInRange(t *testing.T) {
+	idToInt := func(id ID) uint64 {
+		idBytes := id.Bytes()[1:9]
+		return binary.BigEndian.Uint64(idBytes)
+	}
+	t.Log("Test that the random IDs are within the range specified.")
+	const maxUintFloat = float64(math.MaxUint64)
+	for i := uint64(0x1000); i < (math.MaxUint64 / 4); i *= 2 {
+		for j := i * 2; j < (math.MaxUint64 / 2); j *= 2 {
+			iAsFloat := float64(i) / maxUintFloat
+			jAsFloat := float64(j) / maxUintFloat
+			id, err := MakeRandomIDInRange(iAsFloat, jAsFloat)
+			require.NoError(t, err)
+			asInt := idToInt(id)
+			require.True(t, asInt >= i)
+			require.True(t, asInt < j)
+		}
+	}
+
+	t.Log("Test that the distribution of IDs is roughly uniform.")
+	buckets := make([]int, 16)
+	for i := 0; i < 100000; i++ {
+		id, err := MakeRandomIDInRange(0, 1.0)
+		require.NoError(t, err)
+		asInt := idToInt(id)
+		buckets[asInt>>60]++
+	}
+	t.Log("Buckets:")
+	for i, v := range buckets {
+		t.Logf("Bucket %x: %d", i, v)
+		// They should all be around 100,000/16 = 6250. This tests that they're
+		// within 10% in either direction.
+		require.True(t, v > 5625)
+		require.True(t, v < 6875)
+	}
 }

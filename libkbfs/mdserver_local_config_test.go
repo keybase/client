@@ -5,8 +5,8 @@
 package libkbfs
 
 import (
-	"github.com/keybase/client/go/logger"
-	"github.com/keybase/kbfs/kbfscodec"
+	"testing"
+
 	"golang.org/x/net/context"
 )
 
@@ -20,31 +20,27 @@ func (csg singleCurrentSessionGetter) GetCurrentSession(ctx context.Context) (
 }
 
 type testMDServerLocalConfig struct {
-	log    logger.Logger
+	codecGetter
+	logMaker
 	clock  Clock
-	codec  kbfscodec.Codec
 	crypto cryptoPure
 	csg    currentSessionGetter
 }
 
 func newTestMDServerLocalConfig(
-	log logger.Logger, csg currentSessionGetter) testMDServerLocalConfig {
-	codec := kbfscodec.NewMsgpack()
+	t *testing.T, csg currentSessionGetter) testMDServerLocalConfig {
+	cg := newTestCodecGetter()
 	return testMDServerLocalConfig{
-		log:    log,
-		clock:  newTestClockNow(),
-		codec:  codec,
-		crypto: MakeCryptoCommon(codec),
-		csg:    csg,
+		codecGetter: cg,
+		logMaker:    newTestLogMaker(t),
+		clock:       newTestClockNow(),
+		crypto:      MakeCryptoCommon(cg.Codec()),
+		csg:         csg,
 	}
 }
 
 func (c testMDServerLocalConfig) Clock() Clock {
 	return c.clock
-}
-
-func (c testMDServerLocalConfig) Codec() kbfscodec.Codec {
-	return c.codec
 }
 
 func (c testMDServerLocalConfig) cryptoPure() cryptoPure {
@@ -57,8 +53,4 @@ func (c testMDServerLocalConfig) currentSessionGetter() currentSessionGetter {
 
 func (c testMDServerLocalConfig) MetadataVersion() MetadataVer {
 	return defaultClientMetadataVer
-}
-
-func (c testMDServerLocalConfig) MakeLogger(module string) logger.Logger {
-	return c.log
 }

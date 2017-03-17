@@ -234,6 +234,130 @@ func (_mr *_MockcryptoPureGetterRecorder) cryptoPure() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "cryptoPure")
 }
 
+// Mock of cryptoGetter interface
+type MockcryptoGetter struct {
+	ctrl     *gomock.Controller
+	recorder *_MockcryptoGetterRecorder
+}
+
+// Recorder for MockcryptoGetter (not exported)
+type _MockcryptoGetterRecorder struct {
+	mock *MockcryptoGetter
+}
+
+func NewMockcryptoGetter(ctrl *gomock.Controller) *MockcryptoGetter {
+	mock := &MockcryptoGetter{ctrl: ctrl}
+	mock.recorder = &_MockcryptoGetterRecorder{mock}
+	return mock
+}
+
+func (_m *MockcryptoGetter) EXPECT() *_MockcryptoGetterRecorder {
+	return _m.recorder
+}
+
+func (_m *MockcryptoGetter) Crypto() Crypto {
+	ret := _m.ctrl.Call(_m, "Crypto")
+	ret0, _ := ret[0].(Crypto)
+	return ret0
+}
+
+func (_mr *_MockcryptoGetterRecorder) Crypto() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Crypto")
+}
+
+// Mock of currentSessionGetterGetter interface
+type MockcurrentSessionGetterGetter struct {
+	ctrl     *gomock.Controller
+	recorder *_MockcurrentSessionGetterGetterRecorder
+}
+
+// Recorder for MockcurrentSessionGetterGetter (not exported)
+type _MockcurrentSessionGetterGetterRecorder struct {
+	mock *MockcurrentSessionGetterGetter
+}
+
+func NewMockcurrentSessionGetterGetter(ctrl *gomock.Controller) *MockcurrentSessionGetterGetter {
+	mock := &MockcurrentSessionGetterGetter{ctrl: ctrl}
+	mock.recorder = &_MockcurrentSessionGetterGetterRecorder{mock}
+	return mock
+}
+
+func (_m *MockcurrentSessionGetterGetter) EXPECT() *_MockcurrentSessionGetterGetterRecorder {
+	return _m.recorder
+}
+
+func (_m *MockcurrentSessionGetterGetter) currentSessionGetter() currentSessionGetter {
+	ret := _m.ctrl.Call(_m, "currentSessionGetter")
+	ret0, _ := ret[0].(currentSessionGetter)
+	return ret0
+}
+
+func (_mr *_MockcurrentSessionGetterGetterRecorder) currentSessionGetter() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "currentSessionGetter")
+}
+
+// Mock of signerGetter interface
+type MocksignerGetter struct {
+	ctrl     *gomock.Controller
+	recorder *_MocksignerGetterRecorder
+}
+
+// Recorder for MocksignerGetter (not exported)
+type _MocksignerGetterRecorder struct {
+	mock *MocksignerGetter
+}
+
+func NewMocksignerGetter(ctrl *gomock.Controller) *MocksignerGetter {
+	mock := &MocksignerGetter{ctrl: ctrl}
+	mock.recorder = &_MocksignerGetterRecorder{mock}
+	return mock
+}
+
+func (_m *MocksignerGetter) EXPECT() *_MocksignerGetterRecorder {
+	return _m.recorder
+}
+
+func (_m *MocksignerGetter) Signer() kbfscrypto.Signer {
+	ret := _m.ctrl.Call(_m, "Signer")
+	ret0, _ := ret[0].(kbfscrypto.Signer)
+	return ret0
+}
+
+func (_mr *_MocksignerGetterRecorder) Signer() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Signer")
+}
+
+// Mock of diskBlockCacheGetter interface
+type MockdiskBlockCacheGetter struct {
+	ctrl     *gomock.Controller
+	recorder *_MockdiskBlockCacheGetterRecorder
+}
+
+// Recorder for MockdiskBlockCacheGetter (not exported)
+type _MockdiskBlockCacheGetterRecorder struct {
+	mock *MockdiskBlockCacheGetter
+}
+
+func NewMockdiskBlockCacheGetter(ctrl *gomock.Controller) *MockdiskBlockCacheGetter {
+	mock := &MockdiskBlockCacheGetter{ctrl: ctrl}
+	mock.recorder = &_MockdiskBlockCacheGetterRecorder{mock}
+	return mock
+}
+
+func (_m *MockdiskBlockCacheGetter) EXPECT() *_MockdiskBlockCacheGetterRecorder {
+	return _m.recorder
+}
+
+func (_m *MockdiskBlockCacheGetter) DiskBlockCache() DiskBlockCache {
+	ret := _m.ctrl.Call(_m, "DiskBlockCache")
+	ret0, _ := ret[0].(DiskBlockCache)
+	return ret0
+}
+
+func (_mr *_MockdiskBlockCacheGetterRecorder) DiskBlockCache() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DiskBlockCache")
+}
+
 // Mock of Block interface
 type MockBlock struct {
 	ctrl     *gomock.Controller
@@ -2036,6 +2160,67 @@ func (_m *MockDirtyBlockCache) Shutdown() error {
 }
 
 func (_mr *_MockDirtyBlockCacheRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
+}
+
+// Mock of DiskBlockCache interface
+type MockDiskBlockCache struct {
+	ctrl     *gomock.Controller
+	recorder *_MockDiskBlockCacheRecorder
+}
+
+// Recorder for MockDiskBlockCache (not exported)
+type _MockDiskBlockCacheRecorder struct {
+	mock *MockDiskBlockCache
+}
+
+func NewMockDiskBlockCache(ctrl *gomock.Controller) *MockDiskBlockCache {
+	mock := &MockDiskBlockCache{ctrl: ctrl}
+	mock.recorder = &_MockDiskBlockCacheRecorder{mock}
+	return mock
+}
+
+func (_m *MockDiskBlockCache) EXPECT() *_MockDiskBlockCacheRecorder {
+	return _m.recorder
+}
+
+func (_m *MockDiskBlockCache) Get(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+	ret := _m.ctrl.Call(_m, "Get", ctx, tlfID, blockID)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(kbfscrypto.BlockCryptKeyServerHalf)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockDiskBlockCacheRecorder) Get(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2)
+}
+
+func (_m *MockDiskBlockCache) Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	ret := _m.ctrl.Call(_m, "Put", ctx, tlfID, blockID, buf, serverHalf)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockDiskBlockCacheRecorder) Put(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4)
+}
+
+func (_m *MockDiskBlockCache) Delete(ctx context.Context, tlfID tlf.ID, blockIDs []kbfsblock.ID) error {
+	ret := _m.ctrl.Call(_m, "Delete", ctx, tlfID, blockIDs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockDiskBlockCacheRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1, arg2)
+}
+
+func (_m *MockDiskBlockCache) Shutdown() {
+	_m.ctrl.Call(_m, "Shutdown")
+}
+
+func (_mr *_MockDiskBlockCacheRecorder) Shutdown() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
@@ -4045,6 +4230,46 @@ func (_mr *_MockConfigRecorder) keyGetter() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "keyGetter")
 }
 
+func (_m *MockConfig) Crypto() Crypto {
+	ret := _m.ctrl.Call(_m, "Crypto")
+	ret0, _ := ret[0].(Crypto)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) Crypto() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Crypto")
+}
+
+func (_m *MockConfig) Signer() kbfscrypto.Signer {
+	ret := _m.ctrl.Call(_m, "Signer")
+	ret0, _ := ret[0].(kbfscrypto.Signer)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) Signer() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Signer")
+}
+
+func (_m *MockConfig) currentSessionGetter() currentSessionGetter {
+	ret := _m.ctrl.Call(_m, "currentSessionGetter")
+	ret0, _ := ret[0].(currentSessionGetter)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) currentSessionGetter() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "currentSessionGetter")
+}
+
+func (_m *MockConfig) DiskBlockCache() DiskBlockCache {
+	ret := _m.ctrl.Call(_m, "DiskBlockCache")
+	ret0, _ := ret[0].(DiskBlockCache)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) DiskBlockCache() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DiskBlockCache")
+}
+
 func (_m *MockConfig) KBFSOps() KBFSOps {
 	ret := _m.ctrl.Call(_m, "KBFSOps")
 	ret0, _ := ret[0].(KBFSOps)
@@ -4195,16 +4420,6 @@ func (_m *MockConfig) SetDirtyBlockCache(_param0 DirtyBlockCache) {
 
 func (_mr *_MockConfigRecorder) SetDirtyBlockCache(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetDirtyBlockCache", arg0)
-}
-
-func (_m *MockConfig) Crypto() Crypto {
-	ret := _m.ctrl.Call(_m, "Crypto")
-	ret0, _ := ret[0].(Crypto)
-	return ret0
-}
-
-func (_mr *_MockConfigRecorder) Crypto() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Crypto")
 }
 
 func (_m *MockConfig) SetCrypto(_param0 Crypto) {

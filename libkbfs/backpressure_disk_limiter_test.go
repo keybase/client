@@ -31,7 +31,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 	// Increase U by 10, so that increases sM by 0.25*10 = 2.5, so
 	// sM is now 52.
 
-	avail := bt.onJournalEnable(10)
+	avail := bt.onEnable(10)
 	require.Equal(t, int64(42), avail)
 
 	require.Equal(t, int64(10), bt.used)
@@ -42,7 +42,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 	// Decrease U by 9, so that decreases sM by 0.25*9 = 2.25, so
 	// sM is back to 50.
 
-	bt.onJournalDisable(9)
+	bt.onDisable(9)
 
 	require.Equal(t, int64(1), bt.used)
 	require.Equal(t, int64(200), bt.free)
@@ -52,7 +52,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 	// Increase U by 440, so that increases sM by 0.25*110 = 110,
 	// so sM maxes out at 100, and semaphore should go negative.
 
-	avail = bt.onJournalEnable(440)
+	avail = bt.onEnable(440)
 	require.Equal(t, int64(-341), avail)
 
 	require.Equal(t, int64(441), bt.used)
@@ -62,7 +62,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 
 	// Now revert that increase.
 
-	bt.onJournalDisable(440)
+	bt.onDisable(440)
 
 	require.Equal(t, int64(1), bt.used)
 	require.Equal(t, int64(200), bt.free)
@@ -70,7 +70,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 	require.Equal(t, int64(49), bt.semaphore.Count())
 
 	// This should be a no-op.
-	avail = bt.onJournalEnable(0)
+	avail = bt.onEnable(0)
 	require.Equal(t, int64(49), avail)
 
 	require.Equal(t, int64(1), bt.used)
@@ -79,7 +79,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 	require.Equal(t, int64(49), bt.semaphore.Count())
 
 	// So should this.
-	bt.onJournalDisable(0)
+	bt.onDisable(0)
 
 	require.Equal(t, int64(1), bt.used)
 	require.Equal(t, int64(200), bt.free)
@@ -157,7 +157,7 @@ func TestBackpressureConstructorError(t *testing.T) {
 	log := logger.NewTestLogger(t)
 	fakeErr := errors.New("Fake error")
 	_, err := newBackpressureDiskLimiterWithFunctions(
-		log, 0.1, 0.9, 0.25, 100, 10, 8*time.Second, nil,
+		log, 0.1, 0.9, 0.25, 0.1, 400, 40, 8*time.Second, nil,
 		func() (int64, int64, error) {
 			return 0, 0, fakeErr
 		})
@@ -170,7 +170,7 @@ func TestBackpressureConstructorError(t *testing.T) {
 func TestBackpressureDiskLimiterBeforeBlockPut(t *testing.T) {
 	log := logger.NewTestLogger(t)
 	bdl, err := newBackpressureDiskLimiterWithFunctions(
-		log, 0.1, 0.9, 0.25, 22, 5, 8*time.Second,
+		log, 0.1, 0.9, 0.25, 0.1, 88, 20, 8*time.Second,
 		func(ctx context.Context, delay time.Duration) error {
 			return nil
 		},
@@ -193,7 +193,7 @@ func TestBackpressureDiskLimiterBeforeBlockPut(t *testing.T) {
 func TestBackpressureDiskLimiterBeforeBlockPutError(t *testing.T) {
 	log := logger.NewTestLogger(t)
 	bdl, err := newBackpressureDiskLimiterWithFunctions(
-		log, 0.1, 0.9, 0.25, 10, 1, 8*time.Second,
+		log, 0.1, 0.9, 0.25, 0.1, 40, 4, 8*time.Second,
 		func(ctx context.Context, delay time.Duration) error {
 			return nil
 		},
@@ -211,8 +211,8 @@ func TestBackpressureDiskLimiterBeforeBlockPutError(t *testing.T) {
 	require.Equal(t, int64(10), availBytes)
 	require.Equal(t, int64(1), availFiles)
 
-	require.Equal(t, int64(10), bdl.byteTracker.semaphore.Count())
-	require.Equal(t, int64(1), bdl.fileTracker.semaphore.Count())
+	require.Equal(t, int64(10), bdl.journalByteTracker.semaphore.Count())
+	require.Equal(t, int64(1), bdl.journalFileTracker.semaphore.Count())
 }
 
 // TestBackpressureDiskLimiterGetDelay tests the delay calculation,
@@ -220,7 +220,7 @@ func TestBackpressureDiskLimiterBeforeBlockPutError(t *testing.T) {
 func TestBackpressureDiskLimiterGetDelay(t *testing.T) {
 	log := logger.NewTestLogger(t)
 	bdl, err := newBackpressureDiskLimiterWithFunctions(
-		log, 0.1, 0.9, 0.25, math.MaxInt64, math.MaxInt64,
+		log, 0.1, 0.9, 0.25, 0.1, math.MaxInt64, math.MaxInt64,
 		8*time.Second,
 		func(ctx context.Context, delay time.Duration) error {
 			return nil
@@ -236,11 +236,11 @@ func TestBackpressureDiskLimiterGetDelay(t *testing.T) {
 		bdl.lock.Lock()
 		defer bdl.lock.Unlock()
 		// byteDelayScale should be 25/(.25(350 + 25)) = 0.267.
-		bdl.byteTracker.used = 25
-		bdl.byteTracker.free = 350
+		bdl.journalByteTracker.used = 25
+		bdl.journalByteTracker.free = 350
 		// fileDelayScale should by 50/(.25(350 + 50)) = 0.5.
-		bdl.fileTracker.used = 50
-		bdl.fileTracker.free = 350
+		bdl.journalFileTracker.used = 50
+		bdl.journalFileTracker.free = 350
 	}()
 
 	ctx := context.Background()
@@ -307,7 +307,7 @@ func testBackpressureDiskLimiterLargeDiskDelay(
 
 	log := logger.NewTestLogger(t)
 	bdl, err := newBackpressureDiskLimiterWithFunctions(
-		log, 0.1, 0.9, 0.25, byteLimit, fileLimit,
+		log, 0.1, 0.9, 0.25, 0.1, byteLimit*4, fileLimit*4,
 		8*time.Second, delayFn,
 		func() (int64, int64, error) {
 			return math.MaxInt64, math.MaxInt64, nil
@@ -433,6 +433,144 @@ func testBackpressureDiskLimiterLargeDiskDelay(
 	}, fileSnapshot)
 }
 
+// TestBackpressureDiskLimiterJournalAndDiskCache checks that the limiter
+// correctly handles the interaction between changes to the disk cache and the
+// journal.
+func TestBackpressureDiskLimiterJournalAndDiskCache(t *testing.T) {
+	t.Parallel()
+	var lastDelay time.Duration
+	delayFn := func(ctx context.Context, delay time.Duration) error {
+		lastDelay = delay
+		return nil
+	}
+
+	const blockBytes int64 = 100
+	// Big number, but no risk of overflow
+	maxFreeBytes := int64(1 << 30)
+
+	// Set the bottleneck; i.e. set parameters so that semaphoreMax for the
+	// bottleneck always has value 10 * blockBytes when called in
+	// beforeBlockPut, and every block put beyond the min threshold leads to an
+	// increase in timeout of 1 second up to the max.
+	byteLimit := 10 * blockBytes
+	// arbitrarily large number
+	var fileLimit int64 = math.MaxInt64
+
+	log := logger.NewTestLogger(t)
+	bdl, err := newBackpressureDiskLimiterWithFunctions(
+		log, 0.1, 0.9, 0.25, 0.25, byteLimit*4, fileLimit,
+		8*time.Second, delayFn,
+		func() (int64, int64, error) {
+			return maxFreeBytes, math.MaxInt64, nil
+		})
+	require.NoError(t, err)
+
+	byteSnapshot, _ := bdl.getSnapshotsForTest()
+	require.Equal(t, bdlSnapshot{
+		used:  0,
+		free:  maxFreeBytes,
+		max:   byteLimit,
+		count: byteLimit,
+	}, byteSnapshot)
+
+	ctx := context.Background()
+
+	var journalBytesPut int64
+	var diskCacheBytesPut int64
+
+	checkCountersAfterBeforeBlockPut := func(
+		i int, availBytes int64) {
+		byteSnapshot, _ := bdl.getSnapshotsForTest()
+		expectedByteCount := byteLimit - journalBytesPut - blockBytes
+		require.Equal(t, expectedByteCount, availBytes)
+		require.Equal(t, bdlSnapshot{
+			used:  journalBytesPut,
+			free:  maxFreeBytes + diskCacheBytesPut,
+			max:   byteLimit,
+			count: expectedByteCount,
+		}, byteSnapshot, "i=%d", i)
+	}
+
+	checkCountersAfterBlockPut := func(i int) {
+		byteSnapshot, _ := bdl.getSnapshotsForTest()
+		require.Equal(t, bdlSnapshot{
+			used:  journalBytesPut,
+			free:  maxFreeBytes + diskCacheBytesPut,
+			max:   byteLimit,
+			count: byteLimit - journalBytesPut,
+		}, byteSnapshot, "i=%d", i)
+	}
+
+	// The first two puts shouldn't encounter any backpressure...
+
+	for i := 0; i < 2; i++ {
+		// Ensure the disk block cache doesn't interfere with the journal
+		// limits.
+		_, err := bdl.beforeDiskBlockCachePut(ctx, blockBytes)
+		require.NoError(t, err)
+		bdl.afterDiskBlockCachePut(ctx, blockBytes, true)
+		diskCacheBytesPut += blockBytes
+
+		availBytes, _, err :=
+			bdl.beforeBlockPut(ctx, blockBytes, 1)
+		require.NoError(t, err)
+		require.Equal(t, 0*time.Second, lastDelay)
+		checkCountersAfterBeforeBlockPut(i, availBytes)
+
+		bdl.afterBlockPut(ctx, blockBytes, 1, true)
+		journalBytesPut += blockBytes
+		checkCountersAfterBlockPut(i)
+
+		// TODO: track disk cache puts as well
+	}
+
+	// ...but the next eight should encounter increasing
+	// backpressure...
+
+	for i := 1; i < 9; i++ {
+		// Ensure the disk block cache doesn't interfere with the journal
+		// limits.
+		_, err := bdl.beforeDiskBlockCachePut(ctx, blockBytes)
+		require.NoError(t, err)
+		bdl.afterDiskBlockCachePut(ctx, blockBytes, true)
+		diskCacheBytesPut += blockBytes
+
+		availBytes, _, err :=
+			bdl.beforeBlockPut(ctx, blockBytes, 1)
+		require.NoError(t, err)
+		require.InEpsilon(t, float64(i), lastDelay.Seconds(),
+			0.01, "i=%d", i)
+		checkCountersAfterBeforeBlockPut(i, availBytes)
+
+		bdl.afterBlockPut(ctx, blockBytes, 1, true)
+		journalBytesPut += blockBytes
+		checkCountersAfterBlockPut(i)
+	}
+
+	// ...and the last one should stall completely, if not for the
+	// cancelled context.
+
+	ctx2, cancel2 := context.WithCancel(ctx)
+	cancel2()
+	availBytes, _, err := bdl.beforeBlockPut(
+		ctx2, blockBytes, 1)
+	require.Equal(t, ctx2.Err(), errors.Cause(err))
+	require.Equal(t, 8*time.Second, lastDelay)
+
+	// This does the same thing as checkCountersAfterBlockPut(),
+	// but only by coincidence; contrast with similar block in
+	// TestBackpressureDiskLimiterSmallDisk below.
+	expectedByteCount := byteLimit - journalBytesPut
+	require.Equal(t, expectedByteCount, availBytes)
+	byteSnapshot, _ = bdl.getSnapshotsForTest()
+	require.Equal(t, bdlSnapshot{
+		used:  journalBytesPut,
+		free:  maxFreeBytes + diskCacheBytesPut,
+		max:   byteLimit,
+		count: expectedByteCount,
+	}, byteSnapshot)
+}
+
 func TestBackpressureDiskLimiterLargeDiskDelay(t *testing.T) {
 	t.Run(byteTest.String(), func(t *testing.T) {
 		testBackpressureDiskLimiterLargeDiskDelay(t, byteTest)
@@ -487,13 +625,13 @@ func testBackpressureDiskLimiterSmallDiskDelay(
 		// When called in subsequent times from
 		// beforeBlockPut, simulate the journal taking up
 		// space.
-		return diskBytes - bdl.byteTracker.used,
-			diskFiles - bdl.fileTracker.used, nil
+		return diskBytes - bdl.journalByteTracker.used,
+			diskFiles - bdl.journalFileTracker.used, nil
 	}
 
 	log := logger.NewTestLogger(t)
 	bdl, err := newBackpressureDiskLimiterWithFunctions(
-		log, 0.1, 0.9, 0.25, math.MaxInt64, math.MaxInt64,
+		log, 0.1, 0.9, 0.25, 0.1, math.MaxInt64, math.MaxInt64,
 		8*time.Second, delayFn, getFreeBytesAndFilesFn)
 	require.NoError(t, err)
 

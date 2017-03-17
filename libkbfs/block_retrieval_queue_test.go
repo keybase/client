@@ -8,41 +8,31 @@ import (
 	"io"
 	"testing"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
 type testBlockRetrievalConfig struct {
-	testCodec kbfscodec.Codec
+	codecGetter
+	logMaker
 	testCache BlockCache
 	bg        blockGetter
-	t         *testing.T
 }
 
 func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter) *testBlockRetrievalConfig {
 	return &testBlockRetrievalConfig{
-		kbfscodec.NewMsgpack(),
+		newTestCodecGetter(),
+		newTestLogMaker(t),
 		NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity()),
 		bg,
-		t,
 	}
-}
-
-func (c *testBlockRetrievalConfig) Codec() kbfscodec.Codec {
-	return c.testCodec
 }
 
 func (c *testBlockRetrievalConfig) BlockCache() BlockCache {
 	return c.testCache
-}
-
-func (c *testBlockRetrievalConfig) MakeLogger(_ string) logger.Logger {
-	return logger.NewTestLogger(c.t)
 }
 
 func (c testBlockRetrievalConfig) DataVersion() DataVer {

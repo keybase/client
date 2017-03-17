@@ -6,6 +6,9 @@ package kbfsblock
 
 import (
 	"encoding"
+	"encoding/binary"
+	"errors"
+	"math"
 
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
@@ -30,6 +33,16 @@ const MaxIDStringLength = kbfshash.MaxHashStringLength
 // returned error is nil, the returned ID is valid.
 func IDFromString(idStr string) (ID, error) {
 	h, err := kbfshash.HashFromString(idStr)
+	if err != nil {
+		return ID{}, err
+	}
+	return ID{h}, nil
+}
+
+// IDFromBytes creates a ID from the given bytes. If the returned error is nil,
+// the returned ID is valid.
+func IDFromBytes(idBytes []byte) (ID, error) {
+	h, err := kbfshash.HashFromBytes(idBytes)
 	if err != nil {
 		return ID{}, err
 	}
@@ -84,6 +97,39 @@ func MakeTemporaryID() (ID, error) {
 	if err != nil {
 		return ID{}, err
 	}
+	h, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType, dh[:])
+	if err != nil {
+		return ID{}, err
+	}
+	return ID{h}, nil
+}
+
+// MakeRandomIDInRange generates a random block ID using a CSPRNG, distributing
+// the random variable over the interval [start, end), where the full range is
+// [0, MaxUint64). This corresponds to a normalized representation of the
+// range [kbfshash.RawDefaultHash{}, kbfshash.MaxDefaultHash).
+func MakeRandomIDInRange(start, end float64) (ID, error) {
+	if start < 0.0 || 1.0 < end || end <= start {
+		return ID{}, errors.New("Expected range within the interval [0.0, 1.0)")
+	}
+	rangeSize := end - start
+	randBuf := [8]byte{}
+	err := kbfscrypto.RandRead(randBuf[:])
+	if err != nil {
+		return ID{}, err
+	}
+	// Generate a random unsigned int. Endianness doesn't matter here because
+	// the bytes are random.
+	randUint := binary.BigEndian.Uint64(randBuf[:])
+	const maxUintFloat = float64(math.MaxUint64)
+	randFloat := float64(randUint) / maxUintFloat
+	// This forms the start. We fill in the rest with zeroes.
+	randFloatInInterval := rangeSize*randFloat + start
+	scaledRandomUint := uint64(randFloatInInterval * maxUintFloat)
+	// Now endianness matters, because we are relying on how the system
+	// represented integers while doing the calculation.
+	var dh kbfshash.RawDefaultHash
+	binary.BigEndian.PutUint64(dh[:], scaledRandomUint)
 	h, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType, dh[:])
 	if err != nil {
 		return ID{}, err

@@ -514,6 +514,20 @@ func (e OutdatedVersionError) Error() string {
 		"Please use `keybase update check` to upgrade your software."
 }
 
+// InvalidVersionError indicates that we have encountered some new data version
+// we don't understand, and we don't know how to handle it.
+type InvalidVersionError struct {
+	msg string
+}
+
+// Error implements the error interface for InvalidVersionError.
+func (e InvalidVersionError) Error() string {
+	if e.msg != "" {
+		return e.msg
+	}
+	return "The version provided is not valid."
+}
+
 // InvalidKeyGenerationError indicates that an invalid key generation
 // was used.
 type InvalidKeyGenerationError struct {
@@ -1231,4 +1245,15 @@ type InvalidFavoritesOpError struct{}
 // Error implements the error interface for InvalidFavoritesOpError.
 func (InvalidFavoritesOpError) Error() string {
 	return "invalid FavoritesOp"
+}
+
+// DiskCacheClosedError indicates that the disk cache has been
+// closed, and thus isn't accepting any more operations.
+type DiskCacheClosedError struct {
+	op string
+}
+
+// Error implements the error interface for DiskCacheClosedError.
+func (e DiskCacheClosedError) Error() string {
+	return fmt.Sprintf("Error performing %s operation: the disk cache is closed", e.op)
 }
