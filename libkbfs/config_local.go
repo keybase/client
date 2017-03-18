@@ -887,6 +887,7 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	if err != nil {
 		errorList = append(errorList, err)
 		// Continue with shutdown regardless of err.
+		err = nil
 	}
 	c.BlockOps().Shutdown()
 	c.MDServer().Shutdown()
