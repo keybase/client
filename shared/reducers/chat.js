@@ -201,16 +201,6 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       return state
         .set('conversationStates', newConversationStates)
     }
-    case 'chat:deleteTempMessage': {
-      const {conversationIDKey, outboxID} = action.payload
-      // $FlowIssue
-      return state.update('conversationStates', conversationStates => updateConversation(
-        conversationStates,
-        conversationIDKey,
-        // $FlowIssue
-        conv => conv.update('messages', messages => messages.filter(m => m.outboxID !== outboxID))
-      ))
-    }
     case 'chat:updateTempMessage': {
       if (action.error) {
         console.warn('Error in updateTempMessage')
@@ -320,14 +310,14 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       ))
     }
     case 'chat:uploadProgress': {
-      const {conversationIDKey, outboxID, bytesComplete, bytesTotal} = action.payload
+      const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
       const progress = bytesComplete / bytesTotal
 
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversationMessage(
         conversationStates,
         conversationIDKey,
-        item => !!item.outboxID && item.outboxID === outboxID,
+        item => !!item.messageID && item.messageID === messageID,
         m => ({
           ...m,
           messageState: 'uploading',

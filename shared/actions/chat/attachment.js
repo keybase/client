@@ -7,11 +7,9 @@ import * as Saga from '../../util/saga'
 import * as Shared from './shared'
 import {call, put, select, cancel, fork, join} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
-import {isMobile} from '../../constants/platform'
 import {navigateAppend} from '../route-tree'
 import {saveAttachment, showShareActionSheet} from '../platform.specific'
 import {tmpFile, downloadFilePath, copy, exists} from '../../util/file'
-import {usernameSelector} from '../../constants/selectors'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 
@@ -110,32 +108,6 @@ function * onLoadAttachment ({payload: {conversationIDKey, messageID, loadPrevie
   yield put(Creators.attachmentLoaded(conversationIDKey, messageID, filename, loadPreview, isHdPreview))
 }
 
-const _temporaryAttachmentMessageForUpload = (convID: Constants.ConversationIDKey, username: string, title: string, filename: string, outboxID: Constants.OutboxIDKey, previewType: $PropertyType<Constants.AttachmentMessage, 'previewType'>, previewSize: $PropertyType<Constants.AttachmentMessage, 'previewSize'>): Constants.AttachmentMessage => ({
-  type: 'Attachment',
-  timestamp: Date.now(),
-  conversationIDKey: convID,
-  followState: 'You',
-  author: username,
-  attachmentDurationMs: null,
-  previewDurationMs: null,
-  senderDeviceRevokedAt: null,
-  hdPreviewPath: null,
-  // TODO we should be able to fill this in
-  deviceName: '',
-  deviceType: isMobile ? 'mobile' : 'desktop',
-  filename,
-  title,
-  you: username,
-  previewType,
-  previewSize,
-  previewPath: filename,
-  downloadedPath: null,
-  outboxID,
-  progress: 0,
-  messageState: 'uploading',
-  key: Constants.messageKey('tempAttachment', outboxID),
-})
-
 function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): Generator<any, any, any> {
   const {title, filename, type} = input
   let {conversationIDKey} = input
@@ -147,13 +119,6 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
       return
     }
   }
-
-  const outboxID = `attachmentUpload-${Math.ceil(Math.random() * 1e9)}`
-  const username = yield select(usernameSelector)
-
-  yield put(Creators.appendMessages(conversationIDKey,
-    false,
-    [_temporaryAttachmentMessageForUpload(conversationIDKey, username, title, filename, outboxID, type)]))
 
   const header = yield call(Shared.clientHeader, ChatTypes.CommonMessageType.attachment, conversationIDKey)
   const param = {
@@ -178,18 +143,20 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
 
   const uploadStart = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
   uploadStart.response.result()
+  const messageID = uploadStart.params.placeholderMsgID
+  yield put(Creators.updateMessage(conversationIDKey, {previewType: type, previewPath: filename}, messageID))
 
   const finishedTask = yield fork(function * () {
     const finished = yield Saga.takeFromChannelMap(channelMap, 'finished')
     if (finished.error) {
-      yield put(Creators.updateTempMessage(conversationIDKey, {messageState: 'failed'}, outboxID))
+      yield put(Creators.updateMessage(conversationIDKey, {messageState: 'failed'}, messageID))
     }
     return finished
   })
 
   const progressTask = yield Saga.effectOnChannelMap(c => Saga.safeTakeEvery(c, function * ({response}) {
     const {bytesComplete, bytesTotal} = response.param
-    yield put(Creators.uploadProgress(conversationIDKey, outboxID, bytesComplete, bytesTotal))
+    yield put(Creators.uploadProgress(conversationIDKey, messageID, bytesComplete, bytesTotal))
     response.result()
   }), channelMap, 'chat.1.chatUi.chatAttachmentUploadProgress')
 
@@ -198,12 +165,10 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
     previewUploadStart.response.result()
 
     const metadata = previewUploadStart.params && previewUploadStart.params.metadata
-    const previewSize = metadata && Constants.parseMetadataPreviewSize(metadata) || null
-
-    yield put(Creators.appendMessages(conversationIDKey,
-      false,
-      [_temporaryAttachmentMessageForUpload(conversationIDKey, username, title, filename, outboxID, type, previewSize)]
-    ))
+    const previewSize = metadata && Constants.parseMetadataPreviewSize(metadata)
+    if (previewSize) {
+      yield put(Creators.updateMessage(conversationIDKey, {previewSize}, messageID))
+    }
 
     const previewUploadDone = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
     previewUploadDone.response.result()
@@ -212,27 +177,12 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
   const uploadDone = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadDone')
   uploadDone.response.result()
 
-  const finished = yield join(finishedTask)
+  yield join(finishedTask)
   yield cancel(progressTask)
   yield cancel(previewTask)
   Saga.closeChannelMap(channelMap)
 
-  if (!finished.error) {
-    const {params: {messageID}} = finished
-    const existingMessage = yield select(Shared.messageSelector, conversationIDKey, messageID)
-    // We already received a message for this attachment
-    if (existingMessage) {
-      yield put(Creators.deleteTempMessage(conversationIDKey, outboxID))
-    } else {
-      yield put(Creators.updateTempMessage(
-        conversationIDKey,
-        {type: 'Attachment', messageState: 'sent', messageID, key: Constants.messageKey('messageID', messageID)},
-        outboxID,
-      ))
-    }
-
-    yield put(Creators.markSeenMessage(conversationIDKey, messageID))
-  }
+  return messageID
 }
 
 function * onOpenAttachmentPopup (action: Constants.OpenAttachmentPopup): SagaGenerator<any, any> {
