@@ -49,6 +49,8 @@ const NaclDHKeySecretSize = 32
 // Todo: Ideally, box would specify nonce size
 const NaclDHNonceSize = 24
 
+const NaclSecretBoxKeySize = 32
+
 type NaclSigningKeyPublic [ed25519.PublicKeySize]byte
 type NaclSigningKeyPrivate [ed25519.PrivateKeySize]byte
 
@@ -78,6 +80,8 @@ type NaclDHKeyPair struct {
 }
 
 var _ GenericKey = NaclDHKeyPair{}
+
+type NaclSecretBoxKey [NaclSecretBoxKeySize]byte
 
 func importNaclHex(s string, typ byte, bodyLen int) (ret []byte, err error) {
 	kid := keybase1.KIDFromString(s)
@@ -313,11 +317,14 @@ func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSigInfo, err error) {
 	return
 }
 
-func (k NaclSigningKeyPair) SecretSymmetricKey(reason EncryptionReason) ([]byte, error) {
-	return nil, KeyCannotEncryptError{}
+func (k NaclSigningKeyPair) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBoxKey, error) {
+	return NaclSecretBoxKey{}, KeyCannotEncryptError{}
 }
 
 type SignaturePrefix string
+
+const encryptionReasonMinLength = 8
+
 type EncryptionReason string
 
 func (p SignaturePrefix) hasNullByte() bool {
@@ -700,20 +707,32 @@ func (k NaclDHKeyPair) EncryptToString(plaintext []byte, sender GenericKey) (str
 	return PacketArmoredEncode(info)
 }
 
-func (k NaclDHKeyPair) SecretSymmetricKey(reason EncryptionReason) ([]byte, error) {
-
+func (k NaclDHKeyPair) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBoxKey, error) {
 	if !k.CanDecrypt() {
-		return nil, NoSecretKeyError{}
-	}
-	if len(reason) < 8 {
-		return nil, KeyGenError{Msg: "reason must be at least 8 bytes"}
+		return NaclSecretBoxKey{}, NoSecretKeyError{}
 	}
 
-	mac := hmac.New(sha256.New, k.Private[:])
-	mac.Write(reason.Bytes())
-	symmetricKey := mac.Sum(nil)
+	return DeriveSymmetricKey([32]byte(*k.Private), reason)
+}
 
-	return symmetricKey, nil
+func DeriveSymmetricKey(inKey NaclSecretBoxKey, reason EncryptionReason) (NaclSecretBoxKey, error) {
+	var outKey [32]byte = [32]byte{}
+	if len(reason) < encryptionReasonMinLength {
+		return outKey, KeyGenError{Msg: "reason must be at least 8 bytes"}
+	}
+
+	mac := hmac.New(sha256.New, inKey[:])
+	_, err := mac.Write(reason.Bytes())
+	if err != nil {
+		return outKey, err
+	}
+	out := mac.Sum(nil)
+
+	if copy(outKey[:], out) != len(outKey) {
+		return outKey, KeyGenError{Msg: "derived key of wrong size"}
+	}
+
+	return outKey, nil
 }
 
 // ToPacket implements the Packetable interface.
