@@ -143,6 +143,7 @@ const (
 	SCInputError             = int(keybase1.StatusCode_SCInputError)
 	SCLoginRequired          = int(keybase1.StatusCode_SCLoginRequired)
 	SCBadSession             = int(keybase1.StatusCode_SCBadSession)
+	SCNoSession              = int(keybase1.StatusCode_SCNoSession)
 	SCBadLoginUserNotFound   = int(keybase1.StatusCode_SCBadLoginUserNotFound)
 	SCBadLoginPassword       = int(keybase1.StatusCode_SCBadLoginPassword)
 	SCNotFound               = int(keybase1.StatusCode_SCNotFound)
