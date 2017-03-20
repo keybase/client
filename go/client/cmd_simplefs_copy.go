@@ -4,6 +4,8 @@
 package client
 
 import (
+	"encoding/hex"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -19,6 +21,7 @@ type CmdSimpleFSCopy struct {
 	dest        keybase1.Path
 	recurse     bool
 	interactive bool
+	opid        *keybase1.OpID
 }
 
 // NewCmdSimpleFSCopy creates a new cli.Command.
@@ -77,19 +80,20 @@ func (c *CmdSimpleFSCopy) Run() error {
 		}
 
 		opid, err := cli.SimpleFSMakeOpid(ctx)
+		c.opid = &opid
 		if err != nil {
 			return err
 		}
 
 		if c.recurse {
 			err = cli.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
-				OpID: opid,
+				OpID: *c.opid,
 				Src:  src,
 				Dest: dest,
 			})
 		} else {
 			err = cli.SimpleFSCopy(ctx, keybase1.SimpleFSCopyArg{
-				OpID: opid,
+				OpID: *c.opid,
 				Src:  src,
 				Dest: dest,
 			})
@@ -98,7 +102,7 @@ func (c *CmdSimpleFSCopy) Run() error {
 			break
 		}
 
-		err = cli.SimpleFSWait(ctx, opid)
+		err = cli.SimpleFSWait(ctx, *c.opid)
 		if err != nil {
 			break
 		}
@@ -125,4 +129,21 @@ func (c *CmdSimpleFSCopy) GetUsage() libkb.Usage {
 		KbKeyring: true,
 		API:       true,
 	}
+}
+
+func (c *CmdSimpleFSCopy) Cancel() error {
+	// If the operation hasn't been started, short-circuit.
+	// TODO: This is a race. Fix it.
+	if c.opid == nil {
+		return nil
+	}
+	c.G().Log.Error("JACK TRYING TO CANCEL", hex.EncodeToString(c.opid[:]))
+
+	cli, err := GetSimpleFSClient(c.G())
+	if err != nil {
+		return err
+	}
+	err = cli.SimpleFSClose(context.TODO(), *c.opid)
+	c.G().Log.Error("JACK CANCELLED WOO", err)
+	return err
 }
