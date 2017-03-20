@@ -18,22 +18,20 @@ type baseConversationSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
-	boxer         *Boxer
-	tlfInfoSource types.TLFInfoSource
-	ri            func() chat1.RemoteInterface
-	getSecretUI   func() libkb.SecretUI
-	offline       bool
+	boxer       *Boxer
+	ri          func() chat1.RemoteInterface
+	getSecretUI func() libkb.SecretUI
+	offline     bool
 }
 
 func newBaseConversationSource(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI,
 	ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
 	return &baseConversationSource{
-		Contextified:  libkb.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g, "baseConversationSource", false),
-		getSecretUI:   getSecretUI,
-		ri:            ri,
-		boxer:         boxer,
-		tlfInfoSource: boxer.tlfInfoSource,
+		Contextified: libkb.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "baseConversationSource", false),
+		getSecretUI:  getSecretUI,
+		ri:           ri,
+		boxer:        boxer,
 	}
 }
 
@@ -56,7 +54,7 @@ func (s *baseConversationSource) SetRemoteInterface(ri func() chat1.RemoteInterf
 }
 
 func (s *baseConversationSource) SetTLFInfoSource(tlfInfoSource types.TLFInfoSource) {
-	s.tlfInfoSource = tlfInfoSource
+	s.boxer.tlfInfoSource = tlfInfoSource
 }
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
@@ -288,7 +286,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 				vis = chat1.TLFVisibility_PUBLIC
 			}
 
-			_, err := s.tlfInfoSource.Lookup(ctx, tlfName, vis)
+			_, err := s.boxer.tlfInfoSource.Lookup(ctx, tlfName, vis)
 			if err != nil {
 				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s", tlfName, convID)
 				return err

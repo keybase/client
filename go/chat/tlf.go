@@ -36,7 +36,6 @@ func (t *KBFSTLFInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 
 func (t *KBFSTLFInfoSource) Lookup(ctx context.Context, tlfName string,
 	visibility chat1.TLFVisibility) (*types.TLFInfo, error) {
-
 	res, err := CtxKeyFinder(ctx).Find(ctx, t, tlfName, visibility == chat1.TLFVisibility_PUBLIC)
 	if err != nil {
 		return nil, err

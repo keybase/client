@@ -21,18 +21,16 @@ type IdentifyNotifier struct {
 	utils.DebugLabeler
 
 	sync.RWMutex
-	storage       *storage.Storage
-	tlfInfoSource types.TLFInfoSource
-	identCache    map[string]keybase1.CanonicalTLFNameAndIDWithBreaks
+	storage    *storage.Storage
+	identCache map[string]keybase1.CanonicalTLFNameAndIDWithBreaks
 }
 
 func NewIdentifyNotifier(g *libkb.GlobalContext) *IdentifyNotifier {
 	return &IdentifyNotifier{
-		Contextified:  libkb.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g, "IdentifyNotifier", false),
-		identCache:    make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
-		storage:       storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
-		tlfInfoSource: NewKBFSTLFInfoSource(g),
+		Contextified: libkb.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "IdentifyNotifier", false),
+		identCache:   make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
+		storage:      storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
 	}
 }
 

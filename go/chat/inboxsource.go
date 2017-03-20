@@ -88,11 +88,10 @@ type NonblockingLocalizer struct {
 
 func NewNonblockingLocalizer(g *libkb.GlobalContext, localizeCb chan NonblockInboxResult,
 	maxUnbox *int, tlfInfoSource types.TLFInfoSource) *NonblockingLocalizer {
-	tlf := NewKBFSTLFInfoSource(g)
 	return &NonblockingLocalizer{
 		Contextified:  libkb.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g, "NonblockingLocalizer", false),
-		pipeline:      newLocalizerPipeline(g, newBasicSupersedesTransform(g), tlf),
+		pipeline:      newLocalizerPipeline(g, newBasicSupersedesTransform(g), tlfInfoSource),
 		localizeCb:    localizeCb,
 		maxUnbox:      maxUnbox,
 		tlfInfoSource: tlfInfoSource,
