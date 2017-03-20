@@ -7,6 +7,8 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 // Test that VerifyString accepts the output of SignToString.
@@ -277,4 +279,48 @@ func TestNaclPrefixedSigs(t *testing.T) {
 	if _, ok := err.(BadSignaturePrefixError); !ok {
 		t.Fatal("expected a BadSignaturePrefixError")
 	}
+}
+
+func TestDeriveSymmetricKeyTooShort(t *testing.T) {
+	key1 := generateNaclSecretboxKey(t)
+	_, err := DeriveSymmetricKey(key1, EncryptionReason("x"))
+	require.Error(t, err, "should error with short reason")
+	require.Contains(t, err.Error(), "must be at least 8 bytes")
+}
+
+func TestDeriveSymmetricKeyDifferentEquality(t *testing.T) {
+	key1 := generateNaclSecretboxKey(t)
+
+	key2, err := DeriveSymmetricKey(key1, EncryptionReasonChatLocalStorage)
+	require.NoError(t, err)
+
+	key2_2, err := DeriveSymmetricKey(key1, EncryptionReasonChatLocalStorage)
+	require.NoError(t, err)
+
+	key3, err := DeriveSymmetricKey(key1, EncryptionReasonChatMessage)
+	require.NoError(t, err)
+
+	require.NotEqual(t, key1, key2, "derived key must be different from original")
+	require.NotEqual(t, key2, key3, "derived keys must differ")
+	require.Equal(t, key2, key2_2, "two derivations must be equivalent")
+}
+
+func TestDeriveSymmetricKeyKnown(t *testing.T) {
+	bs, err := hex.DecodeString(
+		"aaba52a997cfa11b704c7272e986ad337c8b327baa4265fb024147c97e7b672f")
+	require.NoError(t, err)
+	var key1 NaclSecretBoxKey
+	require.Equal(t, NaclSecretBoxKeySize, copy(key1[:], bs))
+
+	key2, err := DeriveSymmetricKey(key1, EncryptionReason("testing-testing"))
+	require.NoError(t, err)
+
+	expected := "a637302de8593ca06d652c3dc8df15ae5eecc89f25718a367f24b28decaa916e"
+	require.Equal(t, expected, hex.EncodeToString(key2[:]))
+}
+
+func generateNaclSecretboxKey(t *testing.T) NaclSecretBoxKey {
+	keyPair, err := GenerateNaclDHKeyPair()
+	require.NoError(t, err, "generating key")
+	return NaclSecretBoxKey(*keyPair.Private)
 }
