@@ -1054,15 +1054,18 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean, forceSelectOnMo
 
 const followingSelector = (state: TypedState) => state.config.following
 
-let _loadedInboxOnce = false
 function * _loadInboxMaybeOnce (action: LoadInbox): SagaGenerator<any, any> {
-  if (!_loadedInboxOnce || action.payload.force) {
-    _loadedInboxOnce = true
+  console.log('Load inbox? complete:', _inboxComplete, 'error:', _inboxError, 'force:', action.payload.force)
+  if (!_inboxComplete || _inboxError || action.payload.force) {
     yield call(_loadInbox)
   }
 }
 
+let _inboxError = null
+let _inboxComplete = false
 function * _loadInbox (): SagaGenerator<any, any> {
+  _inboxError = null
+  _inboxComplete = false
   const channelConfig = singleFixedChannelConfig([
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
@@ -1147,13 +1150,14 @@ function * _loadInbox (): SagaGenerator<any, any> {
       }
       // find it
     } else if (incoming.chatInboxFailed) {
-      console.log('ignoring chatInboxFailed', incoming.chatInboxFailed)
+      console.log('chatInboxFailed', incoming.chatInboxFailed)
       requestIdleCallback(() => {
         incoming.chatInboxFailed.response.result()
       }, {timeout: 100})
 
       yield call(delay, 1)
       const error = incoming.chatInboxFailed.params.error
+      _inboxError = error
       const conversationIDKey = conversationIDToKey(incoming.chatInboxFailed.params.convID)
       const conversation = new InboxStateRecord({
         info: null,
@@ -1183,6 +1187,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
           }
       }
     } else if (incoming.finished) {
+      _inboxComplete = true
       finishedCalled = true
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
       break
