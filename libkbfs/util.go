@@ -81,6 +81,8 @@ const (
 
 func ctxWithRandomIDReplayable(ctx context.Context, tagKey interface{},
 	tagName string, log logger.Logger) context.Context {
+	ctx = logger.ConvertRPCTagsToLogTags(ctx)
+
 	id, err := MakeRandomRequestID()
 	if err != nil && log != nil {
 		log.Warning("Couldn't generate a random request ID: %v", err)
