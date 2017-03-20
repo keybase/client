@@ -30,6 +30,18 @@ func ProofErrorIsSoft(pe ProofError) bool {
 	return (s >= keybase1.ProofStatus_BASE_ERROR && s < keybase1.ProofStatus_BASE_HARD_ERROR)
 }
 
+func ProofErrorIsPvlBad(pe ProofError) bool {
+	s := pe.GetProofStatus()
+	switch s {
+	case keybase1.ProofStatus_INVALID_PVL:
+		return true
+	case keybase1.ProofStatus_MISSING_PVL:
+		return true
+	default:
+		return false
+	}
+}
+
 func ProofErrorToState(pe ProofError) keybase1.ProofState {
 	if pe == nil {
 		return keybase1.ProofState_OK
@@ -209,7 +221,15 @@ type UserNotFoundError struct {
 }
 
 func (u UserNotFoundError) Error() string {
-	return fmt.Sprintf("User %s wasn't found (%s)", u.UID, u.Msg)
+	uid := ""
+	if !u.UID.IsNil() {
+		uid = " " + string(u.UID)
+	}
+	msg := ""
+	if u.Msg != "" {
+		msg = " (" + u.Msg + ")"
+	}
+	return fmt.Sprintf("User%s wasn't found%s", uid, msg)
 }
 
 //=============================================================================
@@ -496,6 +516,13 @@ type DeviceRequiredError struct{}
 
 func (e DeviceRequiredError) Error() string {
 	return "Login required"
+}
+
+type NoSessionError struct{}
+
+// KBFS currently matching on this string, so be careful changing this:
+func (e NoSessionError) Error() string {
+	return "no current session"
 }
 
 //=============================================================================
@@ -1052,6 +1079,20 @@ func (m MerkleClashError) Error() string {
 
 //=============================================================================
 
+type PvlSourceError struct {
+	msg string
+}
+
+func (e PvlSourceError) Error() string {
+	return fmt.Sprintf("PvlSource: %s", e.msg)
+}
+
+func NewPvlSourceError(msgf string, a ...interface{}) PvlSourceError {
+	return PvlSourceError{msg: fmt.Sprintf(msgf, a...)}
+}
+
+//=============================================================================
+
 type CanceledError struct {
 	M string
 }
@@ -1266,7 +1307,7 @@ func (e IdentifyFailedError) Error() string {
 //=============================================================================
 
 type IdentifySummaryError struct {
-	username string
+	username NormalizedUsername
 	problems []string
 }
 
@@ -1599,6 +1640,16 @@ func (e ChatConvExistsError) Error() string {
 
 //=============================================================================
 
+type ChatMessageCollisionError struct {
+	HeaderHash string
+}
+
+func (e ChatMessageCollisionError) Error() string {
+	return fmt.Sprintf("a message with that hash already exists: %s", e.HeaderHash)
+}
+
+//=============================================================================
+
 type ChatCollisionError struct {
 }
 
@@ -1755,6 +1806,22 @@ type NeedOtherRekeyError struct {
 
 func (e NeedOtherRekeyError) Error() string {
 	return e.Msg
+}
+
+//=============================================================================
+
+type DeviceNotFoundError struct {
+	Where  string
+	ID     keybase1.DeviceID
+	Loaded bool
+}
+
+func (e DeviceNotFoundError) Error() string {
+	loaded := ""
+	if !e.Loaded {
+		loaded = " (no device keys loaded)"
+	}
+	return fmt.Sprintf("%s: no device found for ID=%s%s", e.Where, e.ID, loaded)
 }
 
 //=============================================================================

@@ -392,7 +392,7 @@ func remoteProofInsertIntoTable(l RemoteProofChainLink, tab *IdentityTable) {
 //
 type TrackChainLink struct {
 	GenericChainLink
-	whomUsername  string
+	whomUsername  NormalizedUsername
 	whomUID       keybase1.UID
 	untrack       *UntrackChainLink
 	local         bool
@@ -404,12 +404,13 @@ func (l TrackChainLink) IsRemote() bool {
 }
 
 func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
-	var whomUsername string
-	whomUsername, err = b.payloadJSON.AtPath("body.track.basics.username").GetString()
+	var tmp string
+	tmp, err = b.payloadJSON.AtPath("body.track.basics.username").GetString()
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
 		return
 	}
+	whomUsername := NewNormalizedUsername(tmp)
 
 	whomUID, err := GetUID(b.payloadJSON.AtPath("body.track.id"))
 	if err != nil {
@@ -424,7 +425,7 @@ func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
 func (l *TrackChainLink) Type() string { return "track" }
 
 func (l *TrackChainLink) ToDisplayString() string {
-	return l.whomUsername
+	return l.whomUsername.String()
 }
 
 func (l *TrackChainLink) GetTmpExpireTime() (ret time.Time) {
@@ -504,8 +505,12 @@ func (l *TrackChainLink) GetTrackedUID() (keybase1.UID, error) {
 	return GetUID(l.payloadJSON.AtPath("body.track.id"))
 }
 
-func (l *TrackChainLink) GetTrackedUsername() (string, error) {
-	return l.payloadJSON.AtPath("body.track.basics.username").GetString()
+func (l *TrackChainLink) GetTrackedUsername() (NormalizedUsername, error) {
+	tmp, err := l.payloadJSON.AtPath("body.track.basics.username").GetString()
+	if err != nil {
+		return NormalizedUsername(""), nil
+	}
+	return NewNormalizedUsername(tmp), err
 }
 
 func (l *TrackChainLink) IsRevoked() bool {
@@ -524,21 +529,48 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	}
 	for index := 0; index < ln; index++ {
 		proof := w.AtIndex(index).AtKey("remote_key_proof")
-		if i, e := proof.AtKey("state").GetInt(); e != nil {
-			l.G().Log.Warning("Bad 'state' in track statement: %s", e)
-		} else if t, e := proof.AtKey("proof_type").GetInt(); e != nil {
-			l.G().Log.Warning("Bad 'proof_type' in track statement: %s", e)
-		} else if sb, e := ParseServiceBlock(proof.AtKey("check_data_json"), keybase1.ProofType(t)); e != nil {
-			l.G().Log.Warning("Bad remote_key_proof.check_data_json: %s", e)
-		} else {
-			sb.proofState = keybase1.ProofState(i)
-			if sb.proofState != keybase1.ProofState_OK {
-				l.G().Log.Debug("Including broken proof at index = %d", index)
-			}
+		sb := convertTrackedProofToServiceBlock(l.G(), proof, index)
+		if sb != nil {
 			ret = append(ret, sb)
 		}
 	}
-	return
+	return ret
+}
+
+// convertTrackedProofToServiceBlock will take a JSON stanza from a track statement, and convert it
+// to a ServiceBlock if it fails some important sanity checks. We check that the JSON stanza is
+// well-formed, and that it's not for a defunct proof type (like Coinbase). If all succeeeds,
+// we output a service block that can entered into found-versus-tracked comparison logic.
+// The `index` provided is what index this JSON stanza is in the overall track statement.
+func convertTrackedProofToServiceBlock(g *GlobalContext, proof *jsonw.Wrapper, index int) (ret *ServiceBlock) {
+	var i, t int
+	var err error
+	i, err = proof.AtKey("state").GetInt()
+	if err != nil {
+		g.Log.Warning("Bad 'state' in track statement: %s", err)
+		return nil
+	}
+	t, err = proof.AtKey("proof_type").GetInt()
+	if err != nil {
+		g.Log.Warning("Bad 'proof_type' in track statement: %s", err)
+		return nil
+	}
+	proofType := keybase1.ProofType(t)
+	if isProofTypeDefunct(proofType) {
+		g.Log.Debug("Ignoring now defunct proof type %q at index=%d", proofType, index)
+		return nil
+	}
+	ret, err = ParseServiceBlock(proof.AtKey("check_data_json"), proofType)
+	if err != nil {
+		g.Log.Warning("Bad remote_key_proof.check_data_json: %s", err)
+		return nil
+	}
+
+	ret.proofState = keybase1.ProofState(i)
+	if ret.proofState != keybase1.ProofState_OK {
+		g.Log.Debug("Including broken proof at index=%d (proof state=%d)", index, ret.proofState)
+	}
+	return ret
 }
 
 func (l *TrackChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {
@@ -761,17 +793,18 @@ func (s *DeviceChainLink) insertIntoTable(tab *IdentityTable) {
 
 type UntrackChainLink struct {
 	GenericChainLink
-	whomUsername string
+	whomUsername NormalizedUsername
 	whomUID      keybase1.UID
 }
 
 func ParseUntrackChainLink(b GenericChainLink) (ret *UntrackChainLink, err error) {
-	var whomUsername string
-	whomUsername, err = b.payloadJSON.AtPath("body.untrack.basics.username").GetString()
+	var tmp string
+	tmp, err = b.payloadJSON.AtPath("body.untrack.basics.username").GetString()
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
 		return
 	}
+	whomUsername := NewNormalizedUsername(tmp)
 
 	whomUID, err := GetUID(b.payloadJSON.AtPath("body.untrack.id"))
 	if err != nil {
@@ -796,7 +829,7 @@ func (u *UntrackChainLink) insertIntoTable(tab *IdentityTable) {
 }
 
 func (u *UntrackChainLink) ToDisplayString() string {
-	return u.whomUsername
+	return u.whomUsername.String()
 }
 
 func (u *UntrackChainLink) Type() string { return "untrack" }
@@ -984,7 +1017,7 @@ type IdentityTable struct {
 	revocations      map[keybase1.SigID]bool
 	links            map[keybase1.SigID]TypedChainLink
 	remoteProofLinks *RemoteProofLinks
-	tracks           map[string][]*TrackChainLink
+	tracks           map[NormalizedUsername][]*TrackChainLink
 	Order            []TypedChainLink
 	sigHints         *SigHints
 	cryptocurrency   []*CryptocurrencyChainLink
@@ -996,7 +1029,7 @@ func (idt *IdentityTable) GetActiveProofsFor(st ServiceType) (ret []RemoteProofC
 	return idt.remoteProofLinks.ForService(st)
 }
 
-func (idt *IdentityTable) GetTrackMap() map[string][]*TrackChainLink {
+func (idt *IdentityTable) GetTrackMap() map[NormalizedUsername][]*TrackChainLink {
 	return idt.tracks
 }
 
@@ -1073,7 +1106,7 @@ func NewIdentityTable(g *GlobalContext, eldest keybase1.KID, sc *SigChain, h *Si
 		revocations:      make(map[keybase1.SigID]bool),
 		links:            make(map[keybase1.SigID]TypedChainLink),
 		remoteProofLinks: NewRemoteProofLinks(),
-		tracks:           make(map[string][]*TrackChainLink),
+		tracks:           make(map[NormalizedUsername][]*TrackChainLink),
 		sigHints:         h,
 		eldest:           eldest,
 	}
@@ -1108,7 +1141,17 @@ func (idt *IdentityTable) populate() (err error) {
 	return nil
 }
 
+func isProofTypeDefunct(typ keybase1.ProofType) bool {
+	return typ == keybase1.ProofType_COINBASE
+}
+
 func (idt *IdentityTable) insertRemoteProof(link RemoteProofChainLink) {
+
+	if isProofTypeDefunct(link.GetProofType()) {
+		idt.G().Log.Debug("Ignoring now-defunct proof: %s", link.ToDebugString())
+		return
+	}
+
 	// note that the links in the identity table have no ProofError state.
 	idt.remoteProofLinks.Insert(link, nil)
 }
@@ -1144,7 +1187,7 @@ func (idt *IdentityTable) GetTrackList() (ret []*TrackChainLink) {
 	return
 }
 
-func (idt *IdentityTable) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
+func (idt *IdentityTable) TrackChainLinkFor(username NormalizedUsername, uid keybase1.UID) (*TrackChainLink, error) {
 	list, found := idt.tracks[username]
 	if !found {
 		return nil, nil
@@ -1360,11 +1403,6 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 	// From this point on in the function, we'll be putting our results into
 	// cache (in the defer above).
 	doCache = true
-
-	if res.err = pc.CheckHint(idt.G(), *res.hint); res.err != nil {
-		idt.G().Log.CDebugf(ctx, "| Hint failed with error: %s", res.err.Error())
-		return
-	}
 
 	// ProofCheckerModeActive or Passive mainly decides whether we need to reach out to
 	// self-hosted services. We want to avoid so doing when the user is acting passively

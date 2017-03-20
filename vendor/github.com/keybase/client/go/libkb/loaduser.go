@@ -5,11 +5,12 @@ package libkb
 
 import (
 	"fmt"
+	"runtime/debug"
+
+	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
-	"golang.org/x/net/context"
-	"runtime/debug"
 )
 
 type LoadUserArg struct {
@@ -81,6 +82,25 @@ func NewLoadUserByUIDForceArg(g *GlobalContext, uid keybase1.UID) LoadUserArg {
 
 func NewLoadUserPubOptionalArg(g *GlobalContext) LoadUserArg {
 	arg := NewLoadUserArg(g)
+	arg.PublicKeyOptional = true
+	return arg
+}
+
+func NewLoadUserArgBase(g *GlobalContext) *LoadUserArg {
+	return &LoadUserArg{Contextified: NewContextified(g)}
+}
+
+func (arg *LoadUserArg) WithNetContext(ctx context.Context) *LoadUserArg {
+	arg.NetContext = ctx
+	return arg
+}
+
+func (arg *LoadUserArg) WithUID(uid keybase1.UID) *LoadUserArg {
+	arg.UID = uid
+	return arg
+}
+
+func (arg *LoadUserArg) WithPublicKeyOptional() *LoadUserArg {
 	arg.PublicKeyOptional = true
 	return arg
 }
@@ -436,6 +456,21 @@ func lookupMerkleLeaf(ctx context.Context, g *GlobalContext, uid keybase1.UID, l
 	}
 
 	return
+}
+
+func lookupSigHintsAndMerkleLeaf(ctx context.Context, g *GlobalContext, uid keybase1.UID, localExists bool) (sigHints *SigHints, leaf *MerkleUserLeaf, err error) {
+	defer g.CTrace(ctx, "lookupSigHintsAndMerkleLeaf", func() error { return err })()
+	sigHints, err = LoadSigHints(ctx, uid, g)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	leaf, err = lookupMerkleLeaf(ctx, g, uid, true, sigHints)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return sigHints, leaf, nil
 }
 
 // LoadUserPlusKeys loads user and keys for the given UID.  If `pollForKID` is provided, we'll request

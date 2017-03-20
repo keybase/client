@@ -190,6 +190,10 @@ func safeWriteToFileOnce(g SafeWriteLogger, t SafeWriter, mode os.FileMode) erro
 		err = tmp.Close()
 		if err == nil {
 			err = os.Rename(tmpfn, fn)
+			if err != nil {
+				g.Errorf(fmt.Sprintf("Error renaming file %s: %s", tmpfn, err))
+				os.Remove(tmpfn)
+			}
 		} else {
 			g.Errorf(fmt.Sprintf("Error closing temporary file %s: %s", tmpfn, err))
 			os.Remove(tmpfn)
@@ -236,15 +240,17 @@ func IsIn(needle string, haystack []string, ci bool) bool {
 	return false
 }
 
+// Found regex here: http://stackoverflow.com/questions/106179/regular-expression-to-match-dns-hostname-or-ip-address
+var hostnameRE = regexp.MustCompile("^(?i:[a-z0-9]|[a-z0-9][a-z0-9-]*[a-z0-9])$")
+
 func IsValidHostname(s string) bool {
 	parts := strings.Split(s, ".")
 	// Found regex here: http://stackoverflow.com/questions/106179/regular-expression-to-match-dns-hostname-or-ip-address
-	rxx := regexp.MustCompile("^(?i:[a-z0-9]|[a-z0-9][a-z0-9-]*[a-z0-9])$")
 	if len(parts) < 2 {
 		return false
 	}
 	for _, p := range parts {
-		if !rxx.MatchString(p) {
+		if !hostnameRE.MatchString(p) {
 			return false
 		}
 	}
@@ -531,8 +537,10 @@ func CTimeLog(ctx context.Context, name string, start time.Time, out func(contex
 	out(ctx, "time> %s: %s", name, time.Since(start))
 }
 
+var wsRE = regexp.MustCompile(`\s+`)
+
 func WhitespaceNormalize(s string) string {
-	v := regexp.MustCompile(`\s+`).Split(s, -1)
+	v := wsRE.Split(s, -1)
 	if len(v) > 0 && len(v[0]) == 0 {
 		v = v[1:]
 	}

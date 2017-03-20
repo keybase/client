@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"flag"
 	"fmt"
 	"strconv"
 	"strings"
@@ -84,6 +85,8 @@ func (t MessageType) String() string {
 		return "DELETE"
 	case MessageType_METADATA:
 		return "METADATA"
+	case MessageType_TLFNAME:
+		return "TLFNAME"
 	case MessageType_ATTACHMENTUPLOADED:
 		return "ATTACHMENTUPLOADED"
 	default:
@@ -108,10 +111,10 @@ func (t TopicID) String() string {
 	return hex.EncodeToString(t)
 }
 
-func (me ConversationIDTriple) Eq(other ConversationIDTriple) bool {
-	return me.Tlfid.Eq(other.Tlfid) &&
-		bytes.Equal([]byte(me.TopicID), []byte(other.TopicID)) &&
-		me.TopicType == other.TopicType
+func (t ConversationIDTriple) Eq(other ConversationIDTriple) bool {
+	return t.Tlfid.Eq(other.Tlfid) &&
+		bytes.Equal([]byte(t.TopicID), []byte(other.TopicID)) &&
+		t.TopicType == other.TopicType
 }
 
 func (hash Hash) String() string {
@@ -142,6 +145,9 @@ func (m MessageUnboxed) GetMessageType() MessageType {
 		if state == MessageUnboxedState_ERROR {
 			return m.Error().MessageType
 		}
+		if state == MessageUnboxedState_OUTBOX {
+			return m.Outbox().Msg.ClientHeader.MessageType
+		}
 	}
 	return MessageType_NONE
 }
@@ -159,6 +165,15 @@ func (m MessageBoxed) GetMessageID() MessageID {
 
 func (m MessageBoxed) GetMessageType() MessageType {
 	return m.ClientHeader.MessageType
+}
+
+func (m MessageBoxed) Summary() MessageSummary {
+	return MessageSummary{
+		MsgID:       m.GetMessageID(),
+		MessageType: m.GetMessageType(),
+		TlfName:     m.ClientHeader.TlfName,
+		TlfPublic:   m.ClientHeader.TlfPublic,
+	}
 }
 
 var ConversationStatusGregorMap = map[ConversationStatus]string{
@@ -198,12 +213,26 @@ func (t ConversationIDTriple) Derivable(cid ConversationID) bool {
 	return bytes.Equal(h[2:], []byte(cid[2:]))
 }
 
-func (o OutboxID) Eq(r OutboxID) bool {
-	return bytes.Equal(o, r)
+func (o *OutboxID) Eq(r *OutboxID) bool {
+	if o != nil && r != nil {
+		return bytes.Equal(*o, *r)
+	}
+	return (o == nil) && (r == nil)
 }
 
 func (o OutboxID) String() string {
 	return hex.EncodeToString(o)
+}
+
+func (o *OutboxInfo) Eq(r *OutboxInfo) bool {
+	if o != nil && r != nil {
+		return *o == *r
+	}
+	return (o == nil) && (r == nil)
+}
+
+func (p MessagePreviousPointer) Eq(other MessagePreviousPointer) bool {
+	return (p.Id == other.Id) && (p.Hash.Eq(other.Hash))
 }
 
 func (t TLFVisibility) Eq(r TLFVisibility) bool {
@@ -256,6 +285,33 @@ func (h MessageClientHeader) TLFNameExpanded(finalizeInfo *ConversationFinalizeI
 	return ExpandTLFName(h.TlfName, finalizeInfo)
 }
 
+// TLFNameExpanded returns a TLF name with a reset suffix if it exists.
+// This version can be used in requests to lookup the TLF.
+func (m MessageSummary) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
+	return ExpandTLFName(m.TlfName, finalizeInfo)
+}
+
+func (h MessageClientHeaderVerified) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
+	return ExpandTLFName(h.TlfName, finalizeInfo)
+}
+
+func (h MessageClientHeader) ToVerifiedForTesting() MessageClientHeaderVerified {
+	if flag.Lookup("test.v") == nil {
+		panic("MessageClientHeader.ToVerifiedForTesting used outside of test")
+	}
+	return MessageClientHeaderVerified{
+		Conv:         h.Conv,
+		TlfName:      h.TlfName,
+		TlfPublic:    h.TlfPublic,
+		MessageType:  h.MessageType,
+		Prev:         h.Prev,
+		Sender:       h.Sender,
+		SenderDevice: h.SenderDevice,
+		OutboxID:     h.OutboxID,
+		OutboxInfo:   h.OutboxInfo,
+	}
+}
+
 // ExpandTLFName returns a TLF name with a reset suffix if it exists.
 // This version can be used in requests to lookup the TLF.
 func ExpandTLFName(name string, finalizeInfo *ConversationFinalizeInfo) string {
@@ -299,13 +355,13 @@ func (c Conversation) GetConvID() ConversationID {
 	return c.Metadata.ConversationID
 }
 
-func (c Conversation) GetMaxMessage(typ MessageType) (MessageBoxed, error) {
-	for _, msg := range c.MaxMsgs {
+func (c Conversation) GetMaxMessage(typ MessageType) (MessageSummary, error) {
+	for _, msg := range c.MaxMsgSummaries {
 		if msg.GetMessageType() == typ {
 			return msg, nil
 		}
 	}
-	return MessageBoxed{}, fmt.Errorf("max message not found: %v", typ)
+	return MessageSummary{}, fmt.Errorf("max message not found: %v", typ)
 }
 
 func (c Conversation) Includes(uid gregor1.UID) bool {
@@ -315,6 +371,14 @@ func (c Conversation) Includes(uid gregor1.UID) bool {
 		}
 	}
 	return false
+}
+
+func (m MessageSummary) GetMessageID() MessageID {
+	return m.MsgID
+}
+
+func (m MessageSummary) GetMessageType() MessageType {
+	return m.MessageType
 }
 
 /*
@@ -352,6 +416,45 @@ func ConvertMessageBodyV1ToV2(v1 MessageBodyV1) (MessageBody, error) {
 	return MessageBody{}, fmt.Errorf("ConvertMessageBodyV1ToV2: unhandled message type %v", t)
 }
 */
+
+func (a *MerkleRoot) Eq(b *MerkleRoot) bool {
+	if a != nil && b != nil {
+		return (a.Seqno == b.Seqno) && bytes.Equal(a.Hash, b.Hash)
+	}
+	return (a == nil) && (b == nil)
+}
+
+func (d *SealedData) AsEncrypted() EncryptedData {
+	return EncryptedData{
+		V: d.V,
+		E: d.E,
+		N: d.N,
+	}
+}
+
+func (d *SealedData) AsSignEncrypted() SignEncryptedData {
+	return SignEncryptedData{
+		V: d.V,
+		E: d.E,
+		N: d.N,
+	}
+}
+
+func (d *EncryptedData) AsSealed() SealedData {
+	return SealedData{
+		V: d.V,
+		E: d.E,
+		N: d.N,
+	}
+}
+
+func (d *SignEncryptedData) AsSealed() SealedData {
+	return SealedData{
+		V: d.V,
+		E: d.E,
+		N: d.N,
+	}
+}
 
 func NewConversationErrorLocal(
 	message string,

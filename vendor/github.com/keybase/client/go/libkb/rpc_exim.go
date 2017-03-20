@@ -233,6 +233,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return NoSecretKeyError{}
 	case SCLoginRequired:
 		return LoginRequiredError{s.Desc}
+	case SCNoSession:
+		return NoSessionError{}
 	case SCKeyInUse:
 		var fp *PGPFingerprint
 		if len(s.Desc) > 0 {
@@ -289,7 +291,7 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		ret := IdentifySummaryError{}
 		for _, pair := range s.Fields {
 			if pair.Key == "username" {
-				ret.username = pair.Value
+				ret.username = NewNormalizedUsername(pair.Value)
 			} else {
 				// The other keys are expected to be "problem_%d".
 				ret.problems = append(ret.problems, pair.Value)
@@ -477,6 +479,17 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return InvalidAddressError{Msg: s.Desc}
 	case SCChatCollision:
 		return ChatCollisionError{}
+	case SCChatMessageCollision:
+		var headerHash string
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "HeaderHash":
+				headerHash = field.Value
+			}
+		}
+		return ChatMessageCollisionError{
+			HeaderHash: headerHash,
+		}
 	case SCNeedSelfRekey:
 		ret := NeedSelfRekeyError{Msg: s.Desc}
 		for _, field := range s.Fields {
@@ -596,10 +609,10 @@ func (ir *IdentifyOutcome) Export() *keybase1.IdentifyOutcome {
 		del[i] = *ExportTrackDiff(d)
 	}
 	ret := &keybase1.IdentifyOutcome{
-		Username:          ir.Username,
+		Username:          ir.Username.String(),
 		Status:            ExportErrorAsStatus(ir.Error),
 		Warnings:          v,
-		TrackUsed:         ExportTrackSummary(ir.TrackUsed, ir.Username),
+		TrackUsed:         ExportTrackSummary(ir.TrackUsed, ir.Username.String()),
 		TrackStatus:       ir.TrackStatus(),
 		NumTrackFailures:  ir.NumTrackFailures(),
 		NumTrackChanges:   ir.NumTrackChanges(),
@@ -1035,7 +1048,7 @@ func (i LinkID) Export() keybase1.LinkID {
 func (t TrackChainLink) Export() keybase1.RemoteTrack {
 	return keybase1.RemoteTrack{
 		Uid:      t.whomUID,
-		Username: strings.ToLower(t.whomUsername),
+		Username: t.whomUsername.String(),
 		LinkID:   t.id.Export(),
 	}
 }
@@ -1104,6 +1117,14 @@ func (u LoginRequiredError) ToStatus() (s keybase1.Status) {
 	s.Code = SCLoginRequired
 	s.Name = "LOGIN_REQUIRED"
 	s.Desc = u.Context
+	return
+}
+
+//=============================================================================
+
+func (u NoSessionError) ToStatus() (s keybase1.Status) {
+	s.Code = SCNoSession
+	s.Name = "NO_SESSION"
 	return
 }
 
@@ -1272,7 +1293,7 @@ func (e IdentifyFailedError) ToStatus() keybase1.Status {
 
 func (e IdentifySummaryError) ToStatus() keybase1.Status {
 	kvpairs := []keybase1.StringKVPair{
-		keybase1.StringKVPair{Key: "username", Value: e.username},
+		keybase1.StringKVPair{Key: "username", Value: e.username.String()},
 	}
 	for index, problem := range e.problems {
 		kvpairs = append(kvpairs, keybase1.StringKVPair{
@@ -1564,6 +1585,19 @@ func (e ChatCollisionError) ToStatus() keybase1.Status {
 		Code: SCChatCollision,
 		Name: "SC_CHAT_COLLISION",
 		Desc: e.Error(),
+	}
+}
+
+func (e ChatMessageCollisionError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "HeaderHash",
+		Value: e.HeaderHash,
+	}
+	return keybase1.Status{
+		Code:   SCChatMessageCollision,
+		Name:   "SC_CHAT_MESSAGE_COLLISION",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
 	}
 }
 

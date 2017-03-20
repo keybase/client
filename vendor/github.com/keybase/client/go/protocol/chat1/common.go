@@ -158,9 +158,11 @@ type GetInboxQuery struct {
 	After             *gregor1.Time        `codec:"after,omitempty" json:"after,omitempty"`
 	OneChatTypePerTLF *bool                `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
 	Status            []ConversationStatus `codec:"status" json:"status"`
+	ConvIDs           []ConversationID     `codec:"convIDs" json:"convIDs"`
 	UnreadOnly        bool                 `codec:"unreadOnly" json:"unreadOnly"`
 	ReadOnly          bool                 `codec:"readOnly" json:"readOnly"`
 	ComputeActiveList bool                 `codec:"computeActiveList" json:"computeActiveList"`
+	SummarizeMaxMsgs  bool                 `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 type ConversationIDTriple struct {
@@ -198,9 +200,18 @@ type ConversationReaderInfo struct {
 }
 
 type Conversation struct {
-	Metadata   ConversationMetadata    `codec:"metadata" json:"metadata"`
-	ReaderInfo *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
-	MaxMsgs    []MessageBoxed          `codec:"maxMsgs" json:"maxMsgs"`
+	Metadata        ConversationMetadata    `codec:"metadata" json:"metadata"`
+	ReaderInfo      *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
+	MaxMsgs         []MessageBoxed          `codec:"maxMsgs" json:"maxMsgs"`
+	MaxMsgSummaries []MessageSummary        `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
+}
+
+type MessageSummary struct {
+	MsgID       MessageID    `codec:"msgID" json:"msgID"`
+	MessageType MessageType  `codec:"messageType" json:"messageType"`
+	TlfName     string       `codec:"tlfName" json:"tlfName"`
+	TlfPublic   bool         `codec:"tlfPublic" json:"tlfPublic"`
+	Ctime       gregor1.Time `codec:"ctime" json:"ctime"`
 }
 
 type MessageServerHeader struct {
@@ -234,7 +245,31 @@ type MessageClientHeader struct {
 	OutboxInfo   *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 }
 
+type MessageClientHeaderVerified struct {
+	Conv         ConversationIDTriple     `codec:"conv" json:"conv"`
+	TlfName      string                   `codec:"tlfName" json:"tlfName"`
+	TlfPublic    bool                     `codec:"tlfPublic" json:"tlfPublic"`
+	MessageType  MessageType              `codec:"messageType" json:"messageType"`
+	Prev         []MessagePreviousPointer `codec:"prev" json:"prev"`
+	Sender       gregor1.UID              `codec:"sender" json:"sender"`
+	SenderDevice gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
+	OutboxID     *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	OutboxInfo   *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
+}
+
 type EncryptedData struct {
+	V int    `codec:"v" json:"v"`
+	E []byte `codec:"e" json:"e"`
+	N []byte `codec:"n" json:"n"`
+}
+
+type SignEncryptedData struct {
+	V int    `codec:"v" json:"v"`
+	E []byte `codec:"e" json:"e"`
+	N []byte `codec:"n" json:"n"`
+}
+
+type SealedData struct {
 	V int    `codec:"v" json:"v"`
 	E []byte `codec:"e" json:"e"`
 	N []byte `codec:"n" json:"n"`

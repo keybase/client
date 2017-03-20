@@ -18,67 +18,72 @@ import (
 
 type NullConfiguration struct{}
 
-func (n NullConfiguration) GetHome() string                                 { return "" }
-func (n NullConfiguration) GetServerURI() string                            { return "" }
-func (n NullConfiguration) GetConfigFilename() string                       { return "" }
-func (n NullConfiguration) GetUpdaterConfigFilename() string                { return "" }
-func (n NullConfiguration) GetSessionFilename() string                      { return "" }
-func (n NullConfiguration) GetDbFilename() string                           { return "" }
-func (n NullConfiguration) GetChatDbFilename() string                       { return "" }
-func (n NullConfiguration) GetUsername() NormalizedUsername                 { return NormalizedUsername("") }
-func (n NullConfiguration) GetEmail() string                                { return "" }
-func (n NullConfiguration) GetProxy() string                                { return "" }
-func (n NullConfiguration) GetGpgHome() string                              { return "" }
-func (n NullConfiguration) GetBundledCA(h string) string                    { return "" }
-func (n NullConfiguration) GetUserCacheMaxAge() (time.Duration, bool)       { return 0, false }
-func (n NullConfiguration) GetProofCacheSize() (int, bool)                  { return 0, false }
-func (n NullConfiguration) GetProofCacheLongDur() (time.Duration, bool)     { return 0, false }
-func (n NullConfiguration) GetProofCacheMediumDur() (time.Duration, bool)   { return 0, false }
-func (n NullConfiguration) GetProofCacheShortDur() (time.Duration, bool)    { return 0, false }
-func (n NullConfiguration) GetLinkCacheSize() (int, bool)                   { return 0, false }
-func (n NullConfiguration) GetLinkCacheCleanDur() (time.Duration, bool)     { return 0, false }
-func (n NullConfiguration) GetMerkleKIDs() []string                         { return nil }
-func (n NullConfiguration) GetCodeSigningKIDs() []string                    { return nil }
-func (n NullConfiguration) GetPinentry() string                             { return "" }
-func (n NullConfiguration) GetUID() (ret keybase1.UID)                      { return }
-func (n NullConfiguration) GetGpg() string                                  { return "" }
-func (n NullConfiguration) GetGpgOptions() []string                         { return nil }
-func (n NullConfiguration) GetPGPFingerprint() *PGPFingerprint              { return nil }
-func (n NullConfiguration) GetSecretKeyringTemplate() string                { return "" }
-func (n NullConfiguration) GetSalt() []byte                                 { return nil }
-func (n NullConfiguration) GetSocketFile() string                           { return "" }
-func (n NullConfiguration) GetPidFile() string                              { return "" }
-func (n NullConfiguration) GetStandalone() (bool, bool)                     { return false, false }
-func (n NullConfiguration) GetLocalRPCDebug() string                        { return "" }
-func (n NullConfiguration) GetTimers() string                               { return "" }
-func (n NullConfiguration) GetDeviceID() keybase1.DeviceID                  { return "" }
-func (n NullConfiguration) GetProxyCACerts() ([]string, error)              { return nil, nil }
-func (n NullConfiguration) GetAutoFork() (bool, bool)                       { return false, false }
-func (n NullConfiguration) GetRunMode() (RunMode, error)                    { return NoRunMode, nil }
-func (n NullConfiguration) GetNoAutoFork() (bool, bool)                     { return false, false }
-func (n NullConfiguration) GetLogFile() string                              { return "" }
-func (n NullConfiguration) GetScraperTimeout() (time.Duration, bool)        { return 0, false }
-func (n NullConfiguration) GetAPITimeout() (time.Duration, bool)            { return 0, false }
-func (n NullConfiguration) GetTorMode() (TorMode, error)                    { return TorNone, nil }
-func (n NullConfiguration) GetTorHiddenAddress() string                     { return "" }
-func (n NullConfiguration) GetTorProxy() string                             { return "" }
-func (n NullConfiguration) GetUpdatePreferenceAuto() (bool, bool)           { return false, false }
-func (n NullConfiguration) GetUpdatePreferenceSnoozeUntil() keybase1.Time   { return keybase1.Time(0) }
-func (n NullConfiguration) GetUpdateLastChecked() keybase1.Time             { return keybase1.Time(0) }
-func (n NullConfiguration) GetUpdatePreferenceSkip() string                 { return "" }
-func (n NullConfiguration) GetUpdateURL() string                            { return "" }
-func (n NullConfiguration) GetUpdateDisabled() (bool, bool)                 { return false, false }
-func (n NullConfiguration) GetVDebugSetting() string                        { return "" }
-func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)      { return 0, false }
-func (n NullConfiguration) GetGregorURI() string                            { return "" }
-func (n NullConfiguration) GetGregorSaveInterval() (time.Duration, bool)    { return 0, false }
-func (n NullConfiguration) GetGregorPingInterval() (time.Duration, bool)    { return 0, false }
-func (n NullConfiguration) GetGregorPingTimeout() (time.Duration, bool)     { return 0, false }
-func (n NullConfiguration) GetChatDelivererInterval() (time.Duration, bool) { return 0, false }
-func (n NullConfiguration) IsAdmin() (bool, bool)                           { return false, false }
-func (n NullConfiguration) GetGregorDisabled() (bool, bool)                 { return false, false }
-func (n NullConfiguration) GetMountDir() string                             { return "" }
-func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)           { return false, false }
+func (n NullConfiguration) GetHome() string                                                { return "" }
+func (n NullConfiguration) GetServerURI() string                                           { return "" }
+func (n NullConfiguration) GetConfigFilename() string                                      { return "" }
+func (n NullConfiguration) GetUpdaterConfigFilename() string                               { return "" }
+func (n NullConfiguration) GetSessionFilename() string                                     { return "" }
+func (n NullConfiguration) GetDbFilename() string                                          { return "" }
+func (n NullConfiguration) GetChatDbFilename() string                                      { return "" }
+func (n NullConfiguration) GetPvlKitFilename() string                                      { return "" }
+func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
+func (n NullConfiguration) GetEmail() string                                               { return "" }
+func (n NullConfiguration) GetProxy() string                                               { return "" }
+func (n NullConfiguration) GetGpgHome() string                                             { return "" }
+func (n NullConfiguration) GetBundledCA(h string) string                                   { return "" }
+func (n NullConfiguration) GetUserCacheMaxAge() (time.Duration, bool)                      { return 0, false }
+func (n NullConfiguration) GetProofCacheSize() (int, bool)                                 { return 0, false }
+func (n NullConfiguration) GetProofCacheLongDur() (time.Duration, bool)                    { return 0, false }
+func (n NullConfiguration) GetProofCacheMediumDur() (time.Duration, bool)                  { return 0, false }
+func (n NullConfiguration) GetProofCacheShortDur() (time.Duration, bool)                   { return 0, false }
+func (n NullConfiguration) GetLinkCacheSize() (int, bool)                                  { return 0, false }
+func (n NullConfiguration) GetLinkCacheCleanDur() (time.Duration, bool)                    { return 0, false }
+func (n NullConfiguration) GetMerkleKIDs() []string                                        { return nil }
+func (n NullConfiguration) GetCodeSigningKIDs() []string                                   { return nil }
+func (n NullConfiguration) GetPinentry() string                                            { return "" }
+func (n NullConfiguration) GetUID() (ret keybase1.UID)                                     { return }
+func (n NullConfiguration) GetGpg() string                                                 { return "" }
+func (n NullConfiguration) GetGpgOptions() []string                                        { return nil }
+func (n NullConfiguration) GetPGPFingerprint() *PGPFingerprint                             { return nil }
+func (n NullConfiguration) GetSecretKeyringTemplate() string                               { return "" }
+func (n NullConfiguration) GetSalt() []byte                                                { return nil }
+func (n NullConfiguration) GetSocketFile() string                                          { return "" }
+func (n NullConfiguration) GetPidFile() string                                             { return "" }
+func (n NullConfiguration) GetStandalone() (bool, bool)                                    { return false, false }
+func (n NullConfiguration) GetLocalRPCDebug() string                                       { return "" }
+func (n NullConfiguration) GetTimers() string                                              { return "" }
+func (n NullConfiguration) GetDeviceID() keybase1.DeviceID                                 { return "" }
+func (n NullConfiguration) GetDeviceIDForUsername(un NormalizedUsername) keybase1.DeviceID { return "" }
+func (n NullConfiguration) GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID             { return "" }
+func (n NullConfiguration) GetProxyCACerts() ([]string, error)                             { return nil, nil }
+func (n NullConfiguration) GetAutoFork() (bool, bool)                                      { return false, false }
+func (n NullConfiguration) GetRunMode() (RunMode, error)                                   { return NoRunMode, nil }
+func (n NullConfiguration) GetNoAutoFork() (bool, bool)                                    { return false, false }
+func (n NullConfiguration) GetLogFile() string                                             { return "" }
+func (n NullConfiguration) GetScraperTimeout() (time.Duration, bool)                       { return 0, false }
+func (n NullConfiguration) GetAPITimeout() (time.Duration, bool)                           { return 0, false }
+func (n NullConfiguration) GetTorMode() (TorMode, error)                                   { return TorNone, nil }
+func (n NullConfiguration) GetTorHiddenAddress() string                                    { return "" }
+func (n NullConfiguration) GetTorProxy() string                                            { return "" }
+func (n NullConfiguration) GetUpdatePreferenceAuto() (bool, bool)                          { return false, false }
+func (n NullConfiguration) GetUpdatePreferenceSnoozeUntil() keybase1.Time                  { return keybase1.Time(0) }
+func (n NullConfiguration) GetUpdateLastChecked() keybase1.Time                            { return keybase1.Time(0) }
+func (n NullConfiguration) GetUpdatePreferenceSkip() string                                { return "" }
+func (n NullConfiguration) GetUpdateURL() string                                           { return "" }
+func (n NullConfiguration) GetUpdateDisabled() (bool, bool)                                { return false, false }
+func (n NullConfiguration) GetVDebugSetting() string                                       { return "" }
+func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)                     { return 0, false }
+func (n NullConfiguration) GetGregorURI() string                                           { return "" }
+func (n NullConfiguration) GetGregorSaveInterval() (time.Duration, bool)                   { return 0, false }
+func (n NullConfiguration) GetGregorPingInterval() (time.Duration, bool)                   { return 0, false }
+func (n NullConfiguration) GetGregorPingTimeout() (time.Duration, bool)                    { return 0, false }
+func (n NullConfiguration) GetChatDelivererInterval() (time.Duration, bool)                { return 0, false }
+func (n NullConfiguration) IsAdmin() (bool, bool)                                          { return false, false }
+func (n NullConfiguration) GetGregorDisabled() (bool, bool)                                { return false, false }
+func (n NullConfiguration) GetMountDir() string                                            { return "" }
+func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)                          { return false, false }
+func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)                         { return FeatureFlags{}, nil }
+func (n NullConfiguration) GetAppType() AppType                                            { return NoAppType }
 
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
@@ -444,6 +449,16 @@ func (e *Env) GetChatDbFilename() string {
 	)
 }
 
+// GetPvlKitFilename gets the path to pvl kit file.
+// Its value is usually "" which means to use the server.
+func (e *Env) GetPvlKitFilename() string {
+	return e.GetString(
+		func() string { return e.cmd.GetPvlKitFilename() },
+		func() string { return os.Getenv("KEYBASE_PVL_KIT_FILE") },
+		func() string { return e.config.GetPvlKitFilename() },
+	)
+}
+
 func (e *Env) GetDebug() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.Test.GetDebug() },
@@ -803,6 +818,32 @@ func (e *Env) GetRunMode() RunMode {
 	return ret
 }
 
+func (e *Env) GetAppType() AppType {
+	switch {
+	case e.cmd.GetAppType() != NoAppType:
+		return e.cmd.GetAppType()
+	case StringToAppType(os.Getenv("KEYBASE_APP_TYPE")) != NoAppType:
+		return StringToAppType(os.Getenv("KEYBASE_APP_TYPE"))
+	case e.config.GetAppType() != NoAppType:
+		return e.config.GetAppType()
+	default:
+		return NoAppType
+	}
+}
+
+func (e *Env) GetFeatureFlags() FeatureFlags {
+	var ret FeatureFlags
+	pick := func(f FeatureFlags, err error) {
+		if ret.Empty() && err == nil {
+			ret = f
+		}
+	}
+	pick(e.cmd.GetFeatureFlags())
+	pick(StringToFeatureFlags(os.Getenv("KEYBASE_FEATURES")), nil)
+	pick(e.config.GetFeatureFlags())
+	return ret
+}
+
 func (e *Env) GetUID() keybase1.UID { return e.config.GetUID() }
 
 func (e *Env) GetStringList(list ...(func() []string)) []string {
@@ -934,6 +975,14 @@ func (e *Env) GetDeviceID() keybase1.DeviceID {
 	return e.config.GetDeviceID()
 }
 
+func (e *Env) GetDeviceIDForUsername(u NormalizedUsername) keybase1.DeviceID {
+	return e.config.GetDeviceIDForUsername(u)
+}
+
+func (e *Env) GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID {
+	return e.config.GetDeviceIDForUID(u)
+}
+
 func (e *Env) GetInstallID() (ret InstallID) {
 	if rdr := e.GetUpdaterConfig(); rdr != nil {
 		ret = rdr.GetInstallID()
@@ -1029,6 +1078,8 @@ type AppConfig struct {
 	SecurityAccessGroupOverride bool
 }
 
+var _ CommandLine = AppConfig{}
+
 func (c AppConfig) GetLogFile() string {
 	return c.LogFile
 }
@@ -1055,6 +1106,10 @@ func (c AppConfig) GetServerURI() string {
 
 func (c AppConfig) GetSecurityAccessGroupOverride() (bool, bool) {
 	return c.SecurityAccessGroupOverride, c.SecurityAccessGroupOverride
+}
+
+func (c AppConfig) GetAppType() AppType {
+	return MobileAppType
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {

@@ -306,7 +306,7 @@ func (s *LKSec) LoadServerHalf(lctx LoginContext) (err error) {
 func (s *LKSec) LoadServerDetails(lctx LoginContext) (ret DeviceKeyMap, err error) {
 	defer s.G().Trace("LKSec#LoadServerDetails", func() error { return err })()
 
-	devid := s.G().Env.GetDeviceID()
+	devid := s.G().Env.GetDeviceIDForUID(s.uid)
 	if devid.IsNil() {
 		return ret, fmt.Errorf("lksec load: no device id set, thus can't fetch server half")
 	}
@@ -516,6 +516,10 @@ func (s *LKSec) ToSKB(key GenericKey) (ret *SKB, err error) {
 	var privateKey RawPrivateKey
 
 	publicKey, privateKey, err = key.ExportPublicAndPrivate()
+	if err != nil {
+		return nil, err
+	}
+
 	ret.Priv.Data, err = s.Encrypt([]byte(privateKey))
 	if err != nil {
 		return nil, err

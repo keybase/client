@@ -143,6 +143,7 @@ const (
 	SCInputError             = int(keybase1.StatusCode_SCInputError)
 	SCLoginRequired          = int(keybase1.StatusCode_SCLoginRequired)
 	SCBadSession             = int(keybase1.StatusCode_SCBadSession)
+	SCNoSession              = int(keybase1.StatusCode_SCNoSession)
 	SCBadLoginUserNotFound   = int(keybase1.StatusCode_SCBadLoginUserNotFound)
 	SCBadLoginPassword       = int(keybase1.StatusCode_SCBadLoginPassword)
 	SCNotFound               = int(keybase1.StatusCode_SCNotFound)
@@ -219,6 +220,7 @@ const (
 	SCIdentifySummaryError   = int(keybase1.StatusCode_SCIdentifySummaryError)
 	SCNeedSelfRekey          = int(keybase1.StatusCode_SCNeedSelfRekey)
 	SCNeedOtherRekey         = int(keybase1.StatusCode_SCNeedOtherRekey)
+	SCChatMessageCollision   = int(keybase1.StatusCode_SCChatMessageCollision)
 )
 
 const (
@@ -353,6 +355,7 @@ const (
 	KIDPGPDsa              = 0x11
 	KIDPGPEcdh             = 0x12
 	KIDPGPEcdsa            = 0x13
+	KIDPGPEddsa            = 0x16
 	KIDNaclEddsa           = 0x20
 	KIDNaclDH              = 0x21
 )
@@ -468,9 +471,12 @@ const (
 
 const (
 	SignaturePrefixKBFS           SignaturePrefix = "Keybase-KBFS-1"
-	SignaturePrefixChat           SignaturePrefix = "Keybase-Chat-1"
 	SignaturePrefixSigchain       SignaturePrefix = "Keybase-Sigchain-1"
 	SignaturePrefixChatAttachment SignaturePrefix = "Keybase-Chat-Attachment-1"
+	SignaturePrefixTesting        SignaturePrefix = "Keybase-Testing-1"
+	// Chat prefixes for each MessageBoxedVersion.
+	SignaturePrefixChatMBv1 SignaturePrefix = "Keybase-Chat-1"
+	SignaturePrefixChatMBv2 SignaturePrefix = "Keybase-Chat-2"
 )
 
 const (
@@ -482,5 +488,28 @@ const (
 	EncryptionReasonChatLocalStorage EncryptionReason = "Keybase-Chat-Local-Storage-1"
 )
 
-// Eventually, this will be set to the first merkle root block with skip pointers.
-var FirstProdMerkleSeqnoWithSkips *Seqno
+// FirstPRodMerkleSeqnoWithSkips is the first merkle root on production that
+// has skip pointers indicating log(n) previous merkle roots.
+var FirstProdMerkleSeqnoWithSkips = Seqno(835903)
+
+type AppType string
+
+const (
+	MobileAppType  AppType = "mobile"
+	DesktopAppType         = "desktop"
+	NoAppType              = ""
+)
+
+func StringToAppType(s string) AppType {
+	switch s {
+	case string(MobileAppType):
+		return MobileAppType
+	case string(DesktopAppType):
+		return DesktopAppType
+	default:
+		return NoAppType
+	}
+}
+
+// UID of t_alice
+const TAliceUID = keybase1.UID("295a7eea607af32040647123732bc819")

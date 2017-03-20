@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
+	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/PuerkitoBio/goquery"
 	jsonw "github.com/keybase/go-jsonw"
@@ -137,14 +138,11 @@ func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client) {
 func (api *BaseAPIEngine) PrepareGet(url1 url.URL, arg APIArg) (*http.Request, error) {
 	url1.RawQuery = arg.getHTTPArgs().Encode()
 	ruri := url1.String()
-	api.G().Log.CDebugf(arg.NetContext, "+ API GET request to %s", ruri)
 	return http.NewRequest("GET", ruri, nil)
 }
 
 func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg, sendJSON bool) (*http.Request, error) {
 	ruri := url1.String()
-	api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("+ API Post request to %s", ruri))
-
 	var body io.Reader
 
 	if sendJSON {
@@ -179,6 +177,25 @@ func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg, sendJSON bool) (
 //
 //============================================================================
 
+type countingReader struct {
+	r io.Reader
+	n int
+}
+
+func newCountingReader(r io.Reader) *countingReader {
+	return &countingReader{r: r}
+}
+
+func (c *countingReader) Read(p []byte) (n int, err error) {
+	n, err = c.r.Read(p)
+	c.n += n
+	return n, err
+}
+
+func (c *countingReader) numRead() int {
+	return c.n
+}
+
 //============================================================================
 // Shared code
 //
@@ -192,10 +209,6 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		return
 	}
 
-	dbg := func(s string) {
-		api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| doRequestShared(%s) for %s", s, arg.Endpoint))
-	}
-
 	api.fixHeaders(arg, req)
 	cli := api.getCli(arg.NeedSession)
 
@@ -204,22 +217,35 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	if api.isExternal() {
 		timerType = TimerXAPI
 	}
+	ctx := arg.NetContext
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	ctx = WithLogTag(ctx, "API")
+	api.G().Log.CDebugf(ctx, "+ API %s %s", req.Method, req.URL)
+
+	var jsonBytes int
+	var status string
+	defer func() {
+		api.G().Log.CDebugf(ctx, "- API %s %s: err=%s, status=%q, jsonBytes=%d", req.Method, req.URL,
+			ErrToOk(err), status, jsonBytes)
+	}()
 
 	if api.G().Env.GetAPIDump() {
 		jpStr, _ := json.MarshalIndent(arg.JSONPayload, "", "  ")
 		argStr, _ := json.MarshalIndent(arg.getHTTPArgs(), "", "  ")
-		api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| full request: json:%s querystring:%s", jpStr, argStr))
+		api.G().Log.CDebugf(ctx, "| full request: json:%s querystring:%s", jpStr, argStr)
 	}
 
 	timer := api.G().Timers.Start(timerType)
-
-	dbg("Do")
-	internalResp, err := doRetry(api, arg, cli, req)
-	dbg("Done")
+	internalResp, canc, err := doRetry(ctx, api, arg, cli, req)
 
 	defer func() {
 		if internalResp != nil && err != nil {
 			DiscardAndCloseBody(internalResp)
+		}
+		if canc != nil {
+			canc()
 		}
 	}()
 
@@ -228,7 +254,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	if err != nil {
 		return nil, nil, APINetError{err: err}
 	}
-	api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| Result is: %s", internalResp.Status))
+	status = internalResp.Status
 
 	// The server sends "client version out of date" messages through the API
 	// headers. If the client is *really* out of date, the request status will
@@ -246,10 +272,12 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 
 	if wantJSONRes {
-		decoder := json.NewDecoder(internalResp.Body)
+		reader := newCountingReader(internalResp.Body)
+		decoder := json.NewDecoder(reader)
 		var obj interface{}
 		decoder.UseNumber()
 		err = decoder.Decode(&obj)
+		jsonBytes = reader.numRead()
 		if err != nil {
 			err = fmt.Errorf("Error in parsing JSON reply from server: %s", err)
 			return nil, nil, err
@@ -258,7 +286,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		jw = jsonw.NewWrapper(obj)
 		if api.G().Env.GetAPIDump() {
 			b, _ := json.MarshalIndent(obj, "", "  ")
-			api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| full reply: %s", b))
+			api.G().Log.CDebugf(ctx, "| full reply: %s", b)
 		}
 	}
 
@@ -267,10 +295,14 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 
 // doRetry will just call cli.cli.Do if arg.Timeout and arg.RetryCount aren't set.
 // If they are set, it will cancel requests that last longer than arg.Timeout and
-// retry them arg.RetryCount times.
-func doRetry(g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.Response, error) {
+// retry them arg.RetryCount times. It returns 3 values: the HTTP response, if all goes
+// well; a canceler function func() that the caller should call after all work is completed
+// on this request; and an error. The canceler function is to clean up the timeout.
+func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.Response, func(), error) {
+
 	if arg.InitialTimeout == 0 && arg.RetryCount == 0 {
-		return cli.cli.Do(req)
+		resp, err := ctxhttp.Do(ctx, cli.cli, req)
+		return resp, nil, err
 	}
 
 	timeout := cli.cli.Timeout
@@ -291,54 +323,27 @@ func doRetry(g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.
 	var lastErr error
 	for i := 0; i < retries; i++ {
 		if i > 0 {
-			g.G().Log.CDebugf(arg.NetContext, "retry attempt %d of %d for %s", i, retries, arg.Endpoint)
+			g.G().Log.CDebugf(ctx, "retry attempt %d of %d for %s", i, retries, arg.Endpoint)
 		}
-		resp, err := doTimeout(cli, req, timeout)
+		resp, canc, err := doTimeout(ctx, cli, req, timeout)
 		if err == nil {
-			return resp, nil
+			return resp, canc, nil
 		}
 		lastErr = err
 		timeout = time.Duration(float64(timeout) * multiplier)
 	}
 
-	return nil, fmt.Errorf("doRetry failed, attempts: %d, timeout %s, last err: %s", retries, timeout, lastErr)
+	return nil, nil, fmt.Errorf("doRetry failed, attempts: %d, timeout %s, last err: %s", retries, timeout, lastErr)
 
 }
 
-// adapted from https://blog.golang.org/context httpDo func
-func doTimeout(cli *Client, req *http.Request, timeout time.Duration) (*http.Response, error) {
-	// TODO: could pass in a context from further up the chain
-	// and use that instead of context.Background()
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	// new way to cancel requests
-	reqCancel := make(chan struct{})
-	req.Cancel = reqCancel
-
-	type response struct {
-		resp *http.Response
-		err  error
-	}
-	c := make(chan response, 1)
-	go func() {
-		var r response
-		r.resp, r.err = cli.cli.Do(req)
-		c <- r
-	}()
-
-	select {
-	case <-ctx.Done():
-		// request ctx timed out.  Cancel the request by closing req.Cancel channel:
-		close(reqCancel)
-		// wait for request to finish
-		<-c
-		return nil, ctx.Err()
-	case r := <-c:
-		// request successful
-		return r.resp, r.err
-	}
-
+// doTimeout does the http request with a timeout. It returns the response from making the HTTP request,
+// a canceler, and an error. The canceler ought to be called before the caller (or its caller) is done
+// with this request.
+func doTimeout(origCtx context.Context, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, func(), error) {
+	ctx, cancel := context.WithTimeout(origCtx, timeout)
+	resp, err := ctxhttp.Do(ctx, cli.cli, req)
+	return resp, cancel, err
 }
 
 func checkHTTPStatus(arg APIArg, resp *http.Response) error {
@@ -497,6 +502,9 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 		}
 		if i := a.G().Env.GetInstallID(); i.Exists() {
 			req.Header.Set("X-Keybase-Install-ID", i.String())
+		}
+		if tags := LogTagsToString(arg.NetContext); tags != "" {
+			req.Header.Set("X-Keybase-Log-Tags", tags)
 		}
 	}
 }

@@ -579,8 +579,10 @@ func (k PGPKeyBundle) KeyInfo() (algorithm, kid, creation string) {
 		typ = "DSA"
 	case packet.PubKeyAlgoECDSA:
 		typ = "ECDSA"
+	case packet.PubKeyAlgoEdDSA:
+		typ = "EdDSA"
 	default:
-		typ = "<UNKONWN TYPE>"
+		typ = "<UNKNOWN TYPE>"
 	}
 
 	bl, err := pubkey.BitLength()
@@ -608,6 +610,20 @@ func unlockPrivateKey(k *packet.PrivateKey, pw string) error {
 	return err
 }
 
+func (k *PGPKeyBundle) isAnyKeyEncrypted() bool {
+	if k.PrivateKey.Encrypted {
+		return true
+	}
+
+	for _, subkey := range k.Subkeys {
+		if subkey.PrivateKey.Encrypted {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (k *PGPKeyBundle) unlockAllPrivateKeys(pw string) error {
 	if err := unlockPrivateKey(k.PrivateKey, pw); err != nil {
 		return err
@@ -621,6 +637,10 @@ func (k *PGPKeyBundle) unlockAllPrivateKeys(pw string) error {
 }
 
 func (k *PGPKeyBundle) Unlock(g *GlobalContext, reason string, secretUI SecretUI) error {
+	if !k.isAnyKeyEncrypted() {
+		g.Log.Debug("Key is not encrypted, skipping Unlock.")
+		return nil
+	}
 
 	unlocker := func(pw string, _ bool) (ret GenericKey, err error) {
 		if err = k.unlockAllPrivateKeys(pw); err != nil {
@@ -629,15 +649,7 @@ func (k *PGPKeyBundle) Unlock(g *GlobalContext, reason string, secretUI SecretUI
 		return k, nil
 	}
 
-	_, err := KeyUnlocker{
-		Tries:        5,
-		Reason:       reason,
-		KeyDesc:      k.VerboseDescription(),
-		Unlocker:     unlocker,
-		UI:           secretUI,
-		Which:        "the PGP key",
-		Contextified: NewContextified(g),
-	}.Run()
+	_, err := NewKeyUnlocker(g, 5, reason, k.VerboseDescription(), PassphraseTypePGP, false, secretUI, unlocker).Run()
 	return err
 }
 
@@ -691,7 +703,7 @@ func (k PGPKeyBundle) VerifyString(ctx VerifyContext, sig string, msg []byte) (i
 
 func IsPGPAlgo(algo AlgoType) bool {
 	switch algo {
-	case KIDPGPRsa, KIDPGPElgamal, KIDPGPDsa, KIDPGPEcdh, KIDPGPEcdsa, KIDPGPBase:
+	case KIDPGPRsa, KIDPGPElgamal, KIDPGPDsa, KIDPGPEcdh, KIDPGPEcdsa, KIDPGPBase, KIDPGPEddsa:
 		return true
 	}
 	return false
@@ -722,6 +734,10 @@ func (k *PGPKeyBundle) GetPGPIdentities() []keybase1.PGPIdentity {
 	return ret
 }
 
+// CheckIdentity finds the foo_user@keybase.io PGP identity and figures out when it
+// was created and when it's slated to expire. We plan to start phasing out use of
+// PGP-specified Expiration times as far as sigchain walking is concerned. But for now,
+// there are a few places where it's still used (see ComputedKeyInfos#InsertServerEldestKey).
 func (k *PGPKeyBundle) CheckIdentity(kbid Identity) (match bool, ctime int64, etime int64) {
 	ctime, etime = -1, -1
 	for _, pgpIdentity := range k.Identities {

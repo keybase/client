@@ -4,17 +4,47 @@
 package chat1
 
 import (
+	"errors"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
 
 type MessageBoxed struct {
+	Version          MessageBoxedVersion  `codec:"version" json:"version"`
 	ServerHeader     *MessageServerHeader `codec:"serverHeader,omitempty" json:"serverHeader,omitempty"`
 	ClientHeader     MessageClientHeader  `codec:"clientHeader" json:"clientHeader"`
-	HeaderCiphertext EncryptedData        `codec:"headerCiphertext" json:"headerCiphertext"`
+	HeaderCiphertext SealedData           `codec:"headerCiphertext" json:"headerCiphertext"`
 	BodyCiphertext   EncryptedData        `codec:"bodyCiphertext" json:"bodyCiphertext"`
+	VerifyKey        []byte               `codec:"verifyKey" json:"verifyKey"`
 	KeyGeneration    int                  `codec:"keyGeneration" json:"keyGeneration"`
+}
+
+type MessageBoxedVersion int
+
+const (
+	MessageBoxedVersion_VNONE MessageBoxedVersion = 0
+	MessageBoxedVersion_V1    MessageBoxedVersion = 1
+	MessageBoxedVersion_V2    MessageBoxedVersion = 2
+)
+
+var MessageBoxedVersionMap = map[string]MessageBoxedVersion{
+	"VNONE": 0,
+	"V1":    1,
+	"V2":    2,
+}
+
+var MessageBoxedVersionRevMap = map[MessageBoxedVersion]string{
+	0: "VNONE",
+	1: "V1",
+	2: "V2",
+}
+
+func (e MessageBoxedVersion) String() string {
+	if v, ok := MessageBoxedVersionRevMap[e]; ok {
+		return v
+	}
+	return ""
 }
 
 type ThreadViewBoxed struct {
@@ -86,6 +116,83 @@ type S3Params struct {
 	RegionBucketEndpoint string `codec:"regionBucketEndpoint" json:"regionBucketEndpoint"`
 }
 
+type SyncInboxResType int
+
+const (
+	SyncInboxResType_CURRENT     SyncInboxResType = 0
+	SyncInboxResType_INCREMENTAL SyncInboxResType = 1
+	SyncInboxResType_CLEAR       SyncInboxResType = 2
+)
+
+var SyncInboxResTypeMap = map[string]SyncInboxResType{
+	"CURRENT":     0,
+	"INCREMENTAL": 1,
+	"CLEAR":       2,
+}
+
+var SyncInboxResTypeRevMap = map[SyncInboxResType]string{
+	0: "CURRENT",
+	1: "INCREMENTAL",
+	2: "CLEAR",
+}
+
+func (e SyncInboxResType) String() string {
+	if v, ok := SyncInboxResTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type SyncIncrementalRes struct {
+	Vers  InboxVers      `codec:"vers" json:"vers"`
+	Convs []Conversation `codec:"convs" json:"convs"`
+}
+
+type SyncInboxRes struct {
+	Typ__         SyncInboxResType    `codec:"typ" json:"typ"`
+	Incremental__ *SyncIncrementalRes `codec:"incremental,omitempty" json:"incremental,omitempty"`
+}
+
+func (o *SyncInboxRes) Typ() (ret SyncInboxResType, err error) {
+	switch o.Typ__ {
+	case SyncInboxResType_INCREMENTAL:
+		if o.Incremental__ == nil {
+			err = errors.New("unexpected nil value for Incremental__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o SyncInboxRes) Incremental() SyncIncrementalRes {
+	if o.Typ__ != SyncInboxResType_INCREMENTAL {
+		panic("wrong case accessed")
+	}
+	if o.Incremental__ == nil {
+		return SyncIncrementalRes{}
+	}
+	return *o.Incremental__
+}
+
+func NewSyncInboxResWithCurrent() SyncInboxRes {
+	return SyncInboxRes{
+		Typ__: SyncInboxResType_CURRENT,
+	}
+}
+
+func NewSyncInboxResWithIncremental(v SyncIncrementalRes) SyncInboxRes {
+	return SyncInboxRes{
+		Typ__:         SyncInboxResType_INCREMENTAL,
+		Incremental__: &v,
+	}
+}
+
+func NewSyncInboxResWithClear() SyncInboxRes {
+	return SyncInboxRes{
+		Typ__: SyncInboxResType_CLEAR,
+	}
+}
+
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -99,8 +206,9 @@ type GetThreadRemoteArg struct {
 }
 
 type GetPublicConversationsArg struct {
-	TlfID     TLFID     `codec:"tlfID" json:"tlfID"`
-	TopicType TopicType `codec:"topicType" json:"topicType"`
+	TlfID            TLFID     `codec:"tlfID" json:"tlfID"`
+	TopicType        TopicType `codec:"topicType" json:"topicType"`
+	SummarizeMaxMsgs bool      `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 type PostRemoteArg struct {
@@ -149,6 +257,10 @@ type GetInboxVersionArg struct {
 	Uid gregor1.UID `codec:"uid" json:"uid"`
 }
 
+type SyncInboxArg struct {
+	Vers InboxVers `codec:"vers" json:"vers"`
+}
+
 type TlfFinalizeArg struct {
 	TlfID          TLFID        `codec:"tlfID" json:"tlfID"`
 	ResetUser      string       `codec:"resetUser" json:"resetUser"`
@@ -189,6 +301,7 @@ type RemoteInterface interface {
 	GetS3Params(context.Context, ConversationID) (S3Params, error)
 	S3Sign(context.Context, S3SignArg) ([]byte, error)
 	GetInboxVersion(context.Context, gregor1.UID) (InboxVers, error)
+	SyncInbox(context.Context, InboxVers) (SyncInboxRes, error)
 	TlfFinalize(context.Context, TlfFinalizeArg) error
 	TlfResolve(context.Context, TlfResolveArg) error
 	PublishReadMessage(context.Context, PublishReadMessageArg) error
@@ -407,6 +520,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"syncInbox": {
+				MakeArg: func() interface{} {
+					ret := make([]SyncInboxArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SyncInboxArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SyncInboxArg)(nil), args)
+						return
+					}
+					ret, err = i.SyncInbox(ctx, (*typedArgs)[0].Vers)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"tlfFinalize": {
 				MakeArg: func() interface{} {
 					ret := make([]TlfFinalizeArg, 1)
@@ -545,6 +674,12 @@ func (c RemoteClient) S3Sign(ctx context.Context, __arg S3SignArg) (res []byte, 
 func (c RemoteClient) GetInboxVersion(ctx context.Context, uid gregor1.UID) (res InboxVers, err error) {
 	__arg := GetInboxVersionArg{Uid: uid}
 	err = c.Cli.Call(ctx, "chat.1.remote.getInboxVersion", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) SyncInbox(ctx context.Context, vers InboxVers) (res SyncInboxRes, err error) {
+	__arg := SyncInboxArg{Vers: vers}
+	err = c.Cli.Call(ctx, "chat.1.remote.syncInbox", []interface{}{__arg}, &res)
 	return
 }
 

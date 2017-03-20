@@ -63,6 +63,16 @@ type ChatInboxFailedArg struct {
 	Error     ConversationErrorLocal `codec:"error" json:"error"`
 }
 
+type ChatThreadCachedArg struct {
+	SessionID int        `codec:"sessionID" json:"sessionID"`
+	Thread    ThreadView `codec:"thread" json:"thread"`
+}
+
+type ChatThreadFullArg struct {
+	SessionID int        `codec:"sessionID" json:"sessionID"`
+	Thread    ThreadView `codec:"thread" json:"thread"`
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentUploadStart(context.Context, ChatAttachmentUploadStartArg) error
 	ChatAttachmentUploadProgress(context.Context, ChatAttachmentUploadProgressArg) error
@@ -75,6 +85,8 @@ type ChatUiInterface interface {
 	ChatInboxUnverified(context.Context, ChatInboxUnverifiedArg) error
 	ChatInboxConversation(context.Context, ChatInboxConversationArg) error
 	ChatInboxFailed(context.Context, ChatInboxFailedArg) error
+	ChatThreadCached(context.Context, ChatThreadCachedArg) error
+	ChatThreadFull(context.Context, ChatThreadFullArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -127,7 +139,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					err = i.ChatAttachmentUploadDone(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
-				MethodType: rpc.MethodNotify,
+				MethodType: rpc.MethodCall,
 			},
 			"chatAttachmentPreviewUploadStart": {
 				MakeArg: func() interface{} {
@@ -159,7 +171,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					err = i.ChatAttachmentPreviewUploadDone(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
-				MethodType: rpc.MethodNotify,
+				MethodType: rpc.MethodCall,
 			},
 			"chatAttachmentDownloadStart": {
 				MakeArg: func() interface{} {
@@ -257,6 +269,38 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"chatThreadCached": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatThreadCachedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatThreadCachedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatThreadCachedArg)(nil), args)
+						return
+					}
+					err = i.ChatThreadCached(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+			"chatThreadFull": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatThreadFullArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatThreadFullArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatThreadFullArg)(nil), args)
+						return
+					}
+					err = i.ChatThreadFull(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -277,7 +321,7 @@ func (c ChatUiClient) ChatAttachmentUploadProgress(ctx context.Context, __arg Ch
 
 func (c ChatUiClient) ChatAttachmentUploadDone(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatAttachmentUploadDoneArg{SessionID: sessionID}
-	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatAttachmentUploadDone", []interface{}{__arg})
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentUploadDone", []interface{}{__arg}, nil)
 	return
 }
 
@@ -288,7 +332,7 @@ func (c ChatUiClient) ChatAttachmentPreviewUploadStart(ctx context.Context, __ar
 
 func (c ChatUiClient) ChatAttachmentPreviewUploadDone(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatAttachmentPreviewUploadDoneArg{SessionID: sessionID}
-	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatAttachmentPreviewUploadDone", []interface{}{__arg})
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentPreviewUploadDone", []interface{}{__arg}, nil)
 	return
 }
 
@@ -321,5 +365,15 @@ func (c ChatUiClient) ChatInboxConversation(ctx context.Context, __arg ChatInbox
 
 func (c ChatUiClient) ChatInboxFailed(ctx context.Context, __arg ChatInboxFailedArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxFailed", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatThreadCached(ctx context.Context, __arg ChatThreadCachedArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatThreadCached", []interface{}{__arg})
+	return
+}
+
+func (c ChatUiClient) ChatThreadFull(ctx context.Context, __arg ChatThreadFullArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatThreadFull", []interface{}{__arg})
 	return
 }

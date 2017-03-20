@@ -24,6 +24,7 @@ import (
 	"sync"
 	"time"
 
+	chatinterfaces "github.com/keybase/client/go/chat/interfaces"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	clockwork "github.com/keybase/clockwork"
@@ -62,6 +63,7 @@ type GlobalContext struct {
 	upakLoader     UPAKLoader      // Load flat users with the ability to hit the cache
 	CardCache      *UserCardCache  // cache of keybase1.UserCard objects
 	fullSelfer     FullSelfer      // a loader that gets the full self object
+	pvlSource      PvlSource       // a cache and fetcher for pvl
 
 	GpgClient         *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks     []ShutdownHook // on shutdown, fire these...
@@ -99,9 +101,9 @@ type GlobalContext struct {
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
 
-	InboxSource      InboxSource        // source of remote inbox entries for chat
-	ConvSource       ConversationSource // source of remote message bodies for chat
-	MessageDeliverer MessageDeliverer   // background message delivery service
+	InboxSource      chatinterfaces.InboxSource        // source of remote inbox entries for chat
+	ConvSource       chatinterfaces.ConversationSource // source of remote message bodies for chat
+	MessageDeliverer chatinterfaces.MessageDeliverer   // background message delivery service
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -260,6 +262,11 @@ func (g *GlobalContext) Logout() error {
 		}
 	}
 
+	// reload config to clear anything in memory
+	if err := g.ConfigReload(); err != nil {
+		g.Log.Debug("Logout ConfigReload error: %s", err)
+	}
+
 	return nil
 }
 
@@ -405,6 +412,10 @@ func (g *GlobalContext) GetFullSelfer() FullSelfer {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.fullSelfer
+}
+
+func (g *GlobalContext) GetPvlSource() PvlSource {
+	return g.pvlSource
 }
 
 func (g *GlobalContext) ConfigureExportedStreams() error {
@@ -821,6 +832,10 @@ func (g *GlobalContext) SetServices(s ExternalServicesCollector) {
 	g.Services = s
 }
 
+func (g *GlobalContext) SetPvlSource(s PvlSource) {
+	g.pvlSource = s
+}
+
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
 	arg := NewLoadUserByUIDArg(nil, g, uid)
 	arg.PublicKeyOptional = true
@@ -839,6 +854,11 @@ func (g *GlobalContext) UIDToUsername(uid keybase1.UID) (NormalizedUsername, err
 
 func (g *GlobalContext) BustLocalUserCache(u keybase1.UID) {
 	g.GetUPAKLoader().Invalidate(g.NetContext, u)
+	g.GetFullSelfer().HandleUserChanged(u)
+}
+
+func (g *GlobalContext) OverrideUPAKLoader(upak UPAKLoader) {
+	g.upakLoader = upak
 }
 
 func (g *GlobalContext) AddUserChangedHandler(h UserChangedHandler) {
@@ -854,12 +874,28 @@ func (g *GlobalContext) GetOutOfDateInfo() keybase1.OutOfDateInfo {
 	return ret
 }
 
+func (g *GlobalContext) KeyfamilyChanged(u keybase1.UID) {
+	g.Log.Debug("+ KeyfamilyChanged(%s)", u)
+	defer g.Log.Debug("- KeyfamilyChanged(%s)", u)
+
+	// Make sure we kill the UPAK and full self cache for this user
+	g.BustLocalUserCache(u)
+
+	if g.NotifyRouter != nil {
+		g.NotifyRouter.HandleKeyfamilyChanged(u)
+		// TODO: remove this when KBFS handles KeyfamilyChanged
+		g.NotifyRouter.HandleUserChanged(u)
+	}
+}
+
 func (g *GlobalContext) UserChanged(u keybase1.UID) {
+	g.Log.Debug("+ UserChanged(%s)", u)
+	defer g.Log.Debug("- UserChanged(%s)", u)
+
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
 		g.NotifyRouter.HandleUserChanged(u)
 	}
-	g.GetFullSelfer().HandleUserChanged(u)
 
 	g.uchMu.Lock()
 	list := g.UserChangedHandlers

@@ -60,23 +60,22 @@ type Lexer struct {
 	buffer  []byte
 	last    *Token
 	putback bool
-	re      *regexp.Regexp
-	wss     *regexp.Regexp
 }
 
+// We're allowing '||' or ',' for disjunction
+// We're allowing '&&' or '+' for conjunction
+var re = regexp.MustCompile(`^(\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|([^ \n\t&|(),+]+)`)
+var wss = regexp.MustCompile(`^([\n\t ]+)`)
+
 func NewLexer(s string) *Lexer {
-	// We're allowing '||' or ',' for disjunction
-	// We're allowing '&&' or '+' for conjunction
-	re := regexp.MustCompile(`^(\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|([^ \n\t&|(),+]+)`)
-	wss := regexp.MustCompile(`^([\n\t ]+)`)
-	l := &Lexer{buffer: []byte(s), re: re, wss: wss}
+	l := &Lexer{buffer: []byte(s)}
 	l.stripBuffer()
 	return l
 }
 
 func (lx *Lexer) stripBuffer() {
 	if len(lx.buffer) > 0 {
-		if match := lx.wss.FindSubmatchIndex(lx.buffer); match != nil {
+		if match := wss.FindSubmatchIndex(lx.buffer); match != nil {
 			lx.buffer = lx.buffer[match[3]:]
 		}
 	}
@@ -98,7 +97,7 @@ func (lx *Lexer) Get() *Token {
 		lx.putback = false
 	} else if len(lx.buffer) == 0 {
 		ret = NewToken(EOF)
-	} else if match := lx.re.FindSubmatchIndex(lx.buffer); match != nil {
+	} else if match := re.FindSubmatchIndex(lx.buffer); match != nil {
 		seq := []int{NONE, OR, OR, AND, AND, LPAREN, RPAREN, URL}
 		for i := 1; i <= len(seq); i++ {
 			if match[i*2] >= 0 {

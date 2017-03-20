@@ -135,6 +135,12 @@
 			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
+			"checksumSHA1": "gLinqeOpvTWSGUlxrFbvsc016Oc=",
+			"path": "github.com/keybase/client/go/chat/interfaces",
+			"revision": "66b4b1333325587c1161b18c2b462b3d1781696e",
+			"revisionTime": "2017-03-20T19:37:17Z"
+		},
+		{
 			"checksumSHA1": "XLuIsEwolQy0HYCl0qkqcgCkSFQ=",
 			"path": "github.com/keybase/client/go/externals",
 			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
@@ -153,10 +159,10 @@
 			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
-			"checksumSHA1": "iCQM0dov+82oscLvOAhMcNRjbvM=",
+			"checksumSHA1": "izAKnxnWAKBhfisFveXwWSd1Gz4=",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
-			"revisionTime": "2017-02-13T21:07:17Z"
+			"revision": "66b4b1333325587c1161b18c2b462b3d1781696e",
+			"revisionTime": "2017-03-20T19:37:17Z"
 		},
 		{
 			"checksumSHA1": "3ijtWRJkPFOXXKvlswIdSmwhjXk=",
@@ -171,10 +177,10 @@
 			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
-			"checksumSHA1": "F+XotFFBuPOg2oHYkD4TOBxGE7M=",
+			"checksumSHA1": "vTm7HH3hzSzdG1MiYsUPYqpLm6c=",
 			"path": "github.com/keybase/client/go/protocol/chat1",
-			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
-			"revisionTime": "2017-02-13T21:07:17Z"
+			"revision": "66b4b1333325587c1161b18c2b462b3d1781696e",
+			"revisionTime": "2017-03-20T19:37:17Z"
 		},
 		{
 			"checksumSHA1": "uGXPG5Atdb80jZ/5cg+CkWlHlt8=",
@@ -183,10 +189,10 @@
 			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
-			"checksumSHA1": "GTs0SjrAByoPhIPJ8FY33rVFyUY=",
+			"checksumSHA1": "wjqppOFQQ4pKglfjqa0ehgI8lvY=",
 			"path": "github.com/keybase/client/go/protocol/keybase1",
-			"revision": "450c10b3b0d4338d68651a2189f4c7e960471b49",
-			"revisionTime": "2017-03-08T18:48:48Z"
+			"revision": "66b4b1333325587c1161b18c2b462b3d1781696e",
+			"revisionTime": "2017-03-20T19:37:17Z"
 		},
 		{
 			"checksumSHA1": "aUMkkGW8nO2sf+UxAMxnmVbDbzU=",
@@ -219,6 +225,18 @@
 			"path": "github.com/keybase/go-crypto/cast5",
 			"revision": "75e99ce9f804b4b5518cf237da5ae544a31579b6",
 			"revisionTime": "2017-01-27T17:30:55Z"
+		},
+		{
+			"checksumSHA1": "IvrDXwIixB5yPPbo6tq1/1cSn78=",
+			"path": "github.com/keybase/go-crypto/ed25519",
+			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
+			"revisionTime": "2017-03-08T15:50:15Z"
+		},
+		{
+			"checksumSHA1": "4+fslB6pCbplNq4viy6CrOkkY6Y=",
+			"path": "github.com/keybase/go-crypto/ed25519/internal/edwards25519",
+			"revision": "3535216ff45ffdef1adba71fdcb3fcdebbe49322",
+			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
 			"checksumSHA1": "w2xCoKHxu0Ccg4Ebxqo3YN9ysGI=",
@@ -523,6 +541,12 @@
 			"path": "golang.org/x/net/context",
 			"revision": "a7c5ee4a843ee6e4ccf898ae9e5ad1dd301a358e",
 			"revisionTime": "2016-08-26T20:58:34Z"
+		},
+		{
+			"checksumSHA1": "WHc3uByvGaMcnSoI21fhzYgbOgg=",
+			"path": "golang.org/x/net/context/ctxhttp",
+			"revision": "ed0556cc888129faa06ff0ef3c65e0ce59c8b75c",
+			"revisionTime": "2016-09-29T06:24:16Z"
 		},
 		{
 			"checksumSHA1": "vqc3a+oTUGX8PmD0TS+qQ7gmN8I=",

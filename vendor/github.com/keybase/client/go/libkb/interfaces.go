@@ -30,8 +30,10 @@ import (
 
 type configGetter interface {
 	GetAPITimeout() (time.Duration, bool)
+	GetAppType() AppType
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
+	GetPvlKitFilename() string
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
 	GetDbFilename() string
@@ -72,6 +74,7 @@ type configGetter interface {
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetVDebugSetting() string
 	GetChatDelivererInterval() (time.Duration, bool)
+	GetFeatureFlags() (FeatureFlags, error)
 }
 
 type CommandLine interface {
@@ -137,6 +140,8 @@ type ConfigReader interface {
 	GetNoPinentry() (bool, bool)
 	GetSalt() []byte
 	GetDeviceID() keybase1.DeviceID
+	GetDeviceIDForUsername(nu NormalizedUsername) keybase1.DeviceID
+	GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID
 	GetUsername() NormalizedUsername
 	GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error)
 	GetUID() keybase1.UID
@@ -345,6 +350,8 @@ type ChatUI interface {
 	ChatInboxUnverified(context.Context, chat1.ChatInboxUnverifiedArg) error
 	ChatInboxConversation(context.Context, chat1.ChatInboxConversationArg) error
 	ChatInboxFailed(context.Context, chat1.ChatInboxFailedArg) error
+	ChatThreadCached(context.Context, chat1.ChatThreadCachedArg) error
+	ChatThreadFull(context.Context, chat1.ChatThreadFullArg) error
 }
 
 type PromptDefault int
@@ -470,6 +477,7 @@ type ProofContext interface {
 	LogContext
 	APIContext
 	NetContext
+	GetPvlSource() PvlSource
 }
 
 type AssertionContext interface {
@@ -486,7 +494,6 @@ const (
 )
 
 type ProofChecker interface {
-	CheckHint(ctx ProofContext, h SigHint) ProofError
 	CheckStatus(ctx ProofContext, h SigHint, pcm ProofCheckerMode) ProofError
 	GetTorError() ProofError
 }
@@ -533,53 +540,8 @@ type ExternalServicesCollector interface {
 	ListProofCheckers(mode RunMode) []string
 }
 
-type ConversationSource interface {
-	Push(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-		msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error)
-	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
-		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
-	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-		query *chat1.GetThreadQuery, p *chat1.Pagination) (chat1.ThreadView, error)
-	GetMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgIDs []chat1.MessageID, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
-	GetMessagesWithRemotes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-		msgs []chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
-	Clear(convID chat1.ConversationID, uid gregor1.UID) error
-	TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
-}
-
-type MessageDeliverer interface {
-	Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
-		identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error)
-	Start(ctx context.Context, uid gregor1.UID)
-	Stop(ctx context.Context) chan struct{}
-	ForceDeliverLoop(ctx context.Context)
-	Connected(ctx context.Context)
-	Disconnected(ctx context.Context)
-}
-
-type ChatLocalizer interface {
-	Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) ([]chat1.ConversationLocal, error)
-	Name() string
-}
-
-type InboxSource interface {
-	Read(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer, query *chat1.GetInboxLocalQuery,
-		p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
-	ReadNoCache(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer,
-		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
-	ReadRemote(ctx context.Context, uid gregor1.UID, query *chat1.GetInboxLocalQuery,
-		p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
-
-	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-		conv chat1.Conversation) error
-	NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
-		msg chat1.MessageBoxed) (*chat1.ConversationLocal, error)
-	ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
-		msgID chat1.MessageID) (*chat1.ConversationLocal, error)
-	SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
-		status chat1.ConversationStatus) (*chat1.ConversationLocal, error)
-	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
+type PvlSource interface {
+	GetPVL(ctx context.Context, pvlVersion int) (string, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.
