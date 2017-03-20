@@ -30,14 +30,6 @@ var G = libkb.G
 
 var cmd libcmdline.Command
 
-type Canceler interface {
-	Cancel() error
-}
-
-type Stopper interface {
-	Stop(exitcode keybase1.ExitCode)
-}
-
 func handleQuickVersion() bool {
 	if len(os.Args) == 3 && os.Args[1] == "version" && os.Args[2] == "-S" {
 		fmt.Printf("%s\n", libkb.VersionString())
@@ -317,14 +309,14 @@ func HandleSignals() {
 			// if the current command has a Stop function, then call it.
 			// It will do its own stopping of the process and calling
 			// shutdown
-			if stop, ok := cmd.(Stopper); ok {
+			if stop, ok := cmd.(client.Stopper); ok {
 				G.Log.Debug("Stopping command cleanly via stopper")
 				stop.Stop(keybase1.ExitCode_OK)
 				return
 			}
 
 			// if the current command has a Cancel function, then call it:
-			if canc, ok := cmd.(Canceler); ok {
+			if canc, ok := cmd.(client.Canceler); ok {
 				G.Log.Debug("canceling running command")
 				if err := canc.Cancel(); err != nil {
 					G.Log.Warning("error canceling command: %s", err)

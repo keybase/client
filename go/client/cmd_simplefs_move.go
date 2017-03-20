@@ -67,7 +67,7 @@ func (c *CmdSimpleFSMove) Run() error {
 
 		dest, err := makeDestPath(c.G(), ctx, cli, src, c.dest, isDestDir, destPathString)
 
-		if err == TargetFileExistsError {
+		if err == ErrTargetFileExists {
 			if c.interactive == true {
 				err = doOverwritePrompt(c.G(), pathToString(dest))
 			} else if c.force == true {

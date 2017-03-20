@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"golang.org/x/net/context"
 
@@ -18,7 +19,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-var TargetFileExistsError = errors.New("target file exists")
+var ErrTargetFileExists = errors.New("target file exists")
 
 // NewCmdSimpleFS creates the device command, which is just a holder
 // for subcommands.
@@ -144,12 +145,12 @@ func checkElementExists(ctx context.Context, cli keybase1.SimpleFSInterface, des
 		// See if the dest file exists
 		_, err2 := cli.SimpleFSStat(ctx, dest)
 		if err2 == nil {
-			err = TargetFileExistsError
+			err = ErrTargetFileExists
 		}
 	} else {
 		if exists, _ := libkb.FileExists(dest.Local()); exists == true {
 			// we should have already tested whether it's a directory
-			err = TargetFileExistsError
+			err = ErrTargetFileExists
 		}
 	}
 	return err
@@ -177,7 +178,7 @@ func makeDestPath(
 			// Here, we have both source and dest as paths, so
 			// we have to check whether dest exists. If so, append.
 			err2 := checkElementExists(ctx, cli, dest)
-			if err2 == TargetFileExistsError {
+			if err2 == ErrTargetFileExists {
 				appendDest = true
 			}
 			g.Log.Debug("makeDestPath: src and dest both dir. append: %v", appendDest)
@@ -323,4 +324,59 @@ func doSimpleFSGlob(g *libkb.GlobalContext, ctx context.Context, cli keybase1.Si
 		}
 	}
 	return returnPaths, nil
+}
+
+type OpCanceler struct {
+	libkb.Contextified
+	lock      *sync.Mutex
+	cancelled bool
+	opids     []keybase1.OpID
+}
+
+func NewOpCanceler(g *libkb.GlobalContext) *OpCanceler {
+	return &OpCanceler{
+		Contextified: libkb.NewContextified(g),
+		lock:         &sync.Mutex{},
+	}
+}
+
+func (j *OpCanceler) AddOp(opid keybase1.OpID) {
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	if j.cancelled {
+		j.G().Log.Warning("added a SimpleFS opid after cancellation")
+	}
+	j.opids = append(j.opids, opid)
+}
+
+func (j *OpCanceler) IsCancelled() bool {
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	return j.cancelled
+}
+
+func (j *OpCanceler) Cancel() error {
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	j.cancelled = true
+	cli, err := GetSimpleFSClient(j.G())
+	if err != nil {
+		return err
+	}
+	var cancelError error
+	for _, opid := range j.opids {
+		opidString := hex.EncodeToString(opid[:])
+		err := cli.SimpleFSCancel(context.TODO(), opid)
+		if err != nil {
+			// We retain the first cancel error we see, but we still try to
+			// cancel all running operations.
+			if cancelError == nil {
+				cancelError = err
+			}
+			j.G().Log.Error("Error cancelling FS operation %s: %s", opidString, err)
+		} else {
+			j.G().Log.Info("Cancelled FS operation %s", opidString)
+		}
+	}
+	return cancelError
 }
