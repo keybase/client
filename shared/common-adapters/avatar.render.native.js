@@ -2,7 +2,7 @@
 import Icon from './icon'
 import React, {PureComponent} from 'react'
 import {globalColors} from '../styles'
-import {NativeTouchableWithoutFeedback, NativeImage, Box} from './index.native'
+import {ClickableBox, NativeImage, Box} from './index.native'
 
 import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'
@@ -119,7 +119,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
     const {url, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle, children} = this.props
 
     return (
-      <NativeTouchableWithoutFeedback onPress={onClick}>
+      <ClickableBox onPress={onClick} feedback={false}>
         <Box style={{
           height: size,
           position: 'relative',
@@ -136,7 +136,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
           {followIconType && <Icon type={followIconType} style={followIconStyle} />}
           {children}
         </Box>
-      </NativeTouchableWithoutFeedback>
+      </ClickableBox>
     )
   }
 }

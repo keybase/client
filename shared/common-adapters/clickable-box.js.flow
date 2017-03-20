@@ -9,6 +9,7 @@ export type Props = {
   underlayColor?: any,
   onPressIn?: ?() => void,
   onPressOut?: ?() => void,
+  feedback?: boolean,
 }
 
 declare export default class ClickableBox extends Component<void, Props, void> { }
