@@ -202,6 +202,8 @@ const dumbMap: DumbComponentMap<Profile> = {
     'Your Profile - Empty': {
       ...propsBase,
       bioEditFns,
+      followers: [],
+      following: [],
       isYou: true,
       userInfo: {
         ...mockUserInfo.userInfo,
