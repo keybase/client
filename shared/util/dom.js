@@ -1,8 +1,7 @@
 // @flow
 
-export function findDOMNode (start: any, match: string) : any {
+export function findDOMNode (start: any, match: string, max: number = 1000) : any {
   let current = start
-  const max = 1000
   let index = 0
   while (current && current.matches) {
     if (current.matches(match)) {
