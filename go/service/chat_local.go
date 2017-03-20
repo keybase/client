@@ -307,7 +307,6 @@ func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetT
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		defer cancel()
 
 		// Run the full Pull operation, and redo pagination
 		var remoteThread chat1.ThreadView
@@ -328,6 +327,9 @@ func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetT
 			SessionID: arg.SessionID,
 			Thread:    remoteThread,
 		})
+
+		// This means we transmitted with success, so cancel local thread
+		cancel()
 	}()
 
 	wg.Wait()
