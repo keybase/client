@@ -165,10 +165,10 @@
 			"revisionTime": "2017-03-20T19:37:17Z"
 		},
 		{
-			"checksumSHA1": "3ijtWRJkPFOXXKvlswIdSmwhjXk=",
+			"checksumSHA1": "jAH6LB6sSSp+Vxx/bTBE5DtocGo=",
 			"path": "github.com/keybase/client/go/logger",
-			"revision": "5374606c314d5a66e9f726d473e4d78429c22c1f",
-			"revisionTime": "2017-02-22T19:32:43Z"
+			"revision": "f59fbd24c1d4d05b4b02763385ceff7f064614c9",
+			"revisionTime": "2017-03-21T16:41:32Z"
 		},
 		{
 			"checksumSHA1": "O1Q0NBB6o1mj4A+1uk1xgf7nw+c=",
