@@ -68,7 +68,7 @@ const makeSelector = (conversationIDKey) => {
       [makeGetConversation(conversationIDKey), makeGetIsSelected(conversationIDKey), makeGetUnreadCounts(conversationIDKey), getYou, makeGetRekeyInfo(conversationIDKey), getNowOverride, makeGetFinalizedInfo(conversationIDKey)],
       (conversation, isSelected, unreadCount, you, rekeyInfo, nowOverride, finalizeInfo) => ({
         conversationIDKey,
-        isMuted: conversation.get('muted'),
+        isMuted: conversation.get('status') === 'muted',
         isSelected,
         participants: participantFilter(conversation.get('participants'), you),
         rekeyInfo,

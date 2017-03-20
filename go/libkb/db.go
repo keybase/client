@@ -188,6 +188,7 @@ const (
 	DBIdentify                = 0xfa
 	DBResolveUsernameToUID    = 0xfb
 	DBChatBodyHashIndex       = 0xfc
+	DBPvl                     = 0xfd
 )
 
 const (

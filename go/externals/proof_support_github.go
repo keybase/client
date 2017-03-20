@@ -9,7 +9,6 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -30,7 +29,7 @@ func NewGithubChecker(p libkb.RemoteProofChainLink) (*GithubChecker, libkb.Proof
 func (rc *GithubChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *GithubChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
-	return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_GITHUB, pvl.NewProofInfo(rc.proof, h))
+	return CheckProofPvl(ctx, keybase1.ProofType_GITHUB, rc.proof, h)
 }
 
 //

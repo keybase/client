@@ -4,7 +4,7 @@
   "description": "Tools for converting pvl from cson into a useable form",
   "main": "reader.iced",
   "scripts": {
-    "build": "./reader.iced pvl.cson --go > ../go/pvl/hardcoded.go",
+    "build": "./tool.iced",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

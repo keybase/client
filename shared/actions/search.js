@@ -147,7 +147,7 @@ function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncActi
     }
 
     const service = {
-      'Coinbase': 'coinbase',
+      'Coinbase': 'coinbase', // Coinbase is no longer supported
       'Facebook': 'facebook',
       'Github': 'github',
       'Hackernews': 'hackernews',

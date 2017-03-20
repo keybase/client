@@ -11,7 +11,6 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -47,7 +46,7 @@ func (rc *WebChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, pcm l
 		ctx.GetLog().CDebugf(ctx.GetNetContext(), "Web check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
 		return libkb.ProofErrorUnchecked
 	}
-	return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_GENERIC_WEB_SITE, pvl.NewProofInfo(rc.proof, h))
+	return CheckProofPvl(ctx, keybase1.ProofType_GENERIC_WEB_SITE, rc.proof, h)
 }
 
 //

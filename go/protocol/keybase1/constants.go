@@ -95,6 +95,7 @@ const (
 	StatusCode_SCIdentifySummaryError   StatusCode = 2511
 	StatusCode_SCNeedSelfRekey          StatusCode = 2512
 	StatusCode_SCNeedOtherRekey         StatusCode = 2513
+	StatusCode_SCChatMessageCollision   StatusCode = 2514
 )
 
 var StatusCodeMap = map[string]StatusCode{
@@ -183,6 +184,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCIdentifySummaryError":   2511,
 	"SCNeedSelfRekey":          2512,
 	"SCNeedOtherRekey":         2513,
+	"SCChatMessageCollision":   2514,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -271,6 +273,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2511: "SCIdentifySummaryError",
 	2512: "SCNeedSelfRekey",
 	2513: "SCNeedOtherRekey",
+	2514: "SCChatMessageCollision",
 }
 
 func (e StatusCode) String() string {

@@ -36,6 +36,7 @@ export type Props = {
   onRetryAttachment: (message: AttachmentMessage) => void,
   onRetryMessage: (outboxID: string) => void,
   onSelectAttachment: (input: AttachmentInput) => void,
+  onShowBlockConversationDialog: () => void,
   onShowProfile: (username: string) => void,
   onStoreInputText: (inputText: string) => void,
   onToggleSidePanel: () => void,

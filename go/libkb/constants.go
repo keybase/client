@@ -219,6 +219,7 @@ const (
 	SCIdentifySummaryError   = int(keybase1.StatusCode_SCIdentifySummaryError)
 	SCNeedSelfRekey          = int(keybase1.StatusCode_SCNeedSelfRekey)
 	SCNeedOtherRekey         = int(keybase1.StatusCode_SCNeedOtherRekey)
+	SCChatMessageCollision   = int(keybase1.StatusCode_SCChatMessageCollision)
 )
 
 const (
@@ -489,3 +490,25 @@ const (
 // FirstPRodMerkleSeqnoWithSkips is the first merkle root on production that
 // has skip pointers indicating log(n) previous merkle roots.
 var FirstProdMerkleSeqnoWithSkips = Seqno(835903)
+
+type AppType string
+
+const (
+	MobileAppType  AppType = "mobile"
+	DesktopAppType         = "desktop"
+	NoAppType              = ""
+)
+
+func StringToAppType(s string) AppType {
+	switch s {
+	case string(MobileAppType):
+		return MobileAppType
+	case string(DesktopAppType):
+		return DesktopAppType
+	default:
+		return NoAppType
+	}
+}
+
+// UID of t_alice
+const TAliceUID = keybase1.UID("295a7eea607af32040647123732bc819")

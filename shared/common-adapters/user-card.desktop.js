@@ -1,41 +1,37 @@
 // @flow
 import Avatar from './avatar'
-import React, {Component} from 'react'
-import type {Props} from './user-card'
+import React from 'react'
 import {globalStyles, globalColors} from '../styles'
+
+import type {Props} from './user-card'
 
 const avatarSize = 112
 
-class UserCard extends Component<void, Props, void> {
-  render () {
-    return (
-      <div style={{...styles.container, ...this.props.outerStyle}}>
-        <Avatar size={avatarSize} onClick={this.props.onAvatarClicked} username={this.props.username} />
-        <div style={{...styles.inside, ...this.props.style}}>
-          {this.props.children}
-        </div>
-      </div>
-    )
-  }
+const UserCard = ({outerStyle, onAvatarClicked, username, style, children}: Props) => (
+  <div style={{...styleContainer, ...outerStyle}}>
+    <Avatar size={avatarSize} onClick={onAvatarClicked} username={username} />
+    <div style={{...styleInside, ...style}}>
+      {children}
+    </div>
+  </div>
+)
+
+const styleContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  height: 430,
+  width: 410,
 }
 
-const styles = {
-  container: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    width: 410,
-    height: 430,
-  },
-  inside: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    backgroundColor: globalColors.white,
-    borderRadius: 4,
-    marginTop: -avatarSize / 2,
-    padding: 30,
-    paddingTop: 30 + avatarSize / 2,
-  },
+const styleInside = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  alignSelf: 'stretch',
+  backgroundColor: globalColors.white,
+  borderRadius: 4,
+  marginTop: -avatarSize / 2,
+  padding: 30,
+  paddingTop: 30 + avatarSize / 2,
 }
 
 export default UserCard

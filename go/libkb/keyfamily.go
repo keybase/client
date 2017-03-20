@@ -576,6 +576,18 @@ func (ckf *ComputedKeyFamily) Revoke(tcl TypedChainLink) (err error) {
 
 // SetPGPHash sets the authoritative version (by hash) of a PGP key
 func (ckf *ComputedKeyFamily) SetActivePGPHash(kid keybase1.KID, hash string) {
+	found := false
+	if ks, ok := ckf.kf.PGPKeySets[kid]; ok && ks != nil && ks.KeysByHash[hash] != nil {
+		found = true
+	}
+	if !found {
+		// We've noted this case in the wild (see CORE-4771). It occured
+		// because the server accepted a new Cv25519 key, but an old client
+		// failed to parse it in ParseKeyFamily above. So just warn here.
+		// We expect, though, that if you get this Warning there is trouble ahead,
+		// and FindKeyWithKIDUnsafe will return nil.
+		ckf.G().Log.Warning("Didn't have a PGP key for %s with hash %s", kid, hash)
+	}
 	if _, ok := ckf.cki.Infos[kid]; ok {
 		ckf.cki.Infos[kid].ActivePGPHash = hash
 	} else {
@@ -686,8 +698,15 @@ func (ckf ComputedKeyFamily) GetKeyRole(kid keybase1.KID) (ret KeyRole) {
 func (ckf ComputedKeyFamily) GetAllActiveKeysWithRoleAtTime(role KeyRole, t time.Time) (ret []GenericKey) {
 	for kid := range ckf.kf.AllKIDs {
 		if ckf.GetKeyRoleAtTime(kid, t) == role {
-			key, _ := ckf.FindKeyWithKIDUnsafe(kid)
-			ret = append(ret, key)
+			key, err := ckf.FindKeyWithKIDUnsafe(kid)
+			if err != nil {
+				ckf.G().Log.Warning("GetAllActiveKeysWithRoleAtTime: Error in getting KID %s: %s", kid, err)
+			}
+			if key == nil {
+				ckf.G().Log.Warning("GetAllActiveKeysWithRoleAtTime: Null key for KID %s", kid)
+			} else {
+				ret = append(ret, key)
+			}
 		}
 	}
 	return

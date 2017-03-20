@@ -9,7 +9,6 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -30,7 +29,7 @@ func NewTwitterChecker(p libkb.RemoteProofChainLink) (*TwitterChecker, libkb.Pro
 func (rc *TwitterChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *TwitterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
-	return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_TWITTER, pvl.NewProofInfo(rc.proof, h))
+	return CheckProofPvl(ctx, keybase1.ProofType_TWITTER, rc.proof, h)
 }
 
 //
