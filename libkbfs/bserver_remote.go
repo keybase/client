@@ -312,6 +312,9 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 				ctx, "Get id=%s tlf=%s context=%s sz=%d err=%v",
 				id, tlfID, context, size, err)
 		} else {
+			if b.config.DiskBlockCache() != nil {
+				go b.config.DiskBlockCache().Put(ctx, tlfID, id, buf, serverHalf)
+			}
 			b.deferLog.CDebugf(
 				ctx, "Get id=%s tlf=%s context=%s sz=%d",
 				id, tlfID, context, size)
