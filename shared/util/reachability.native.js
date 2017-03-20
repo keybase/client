@@ -2,8 +2,9 @@
 
 import * as Constants from '../constants/gregor'
 import {NetInfo} from 'react-native'
+import type {Dispatch} from '../constants/types/flux'
 
-function nativeReachabilityEvents (dispatch) {
+function nativeReachabilityEvents (dispatch: Dispatch) {
   NetInfo.addEventListener(
     'change',
     () => dispatch({type: Constants.checkReachability, payload: undefined})
