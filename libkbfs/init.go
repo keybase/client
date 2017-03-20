@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	gocontext "golang.org/x/net/context"
 )
 
 const (
@@ -608,8 +609,10 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 		if err != nil {
 			log.Warning("Could not initialize journal server: %+v", err)
 		}
+		log.Debug("Journaling enabled")
 	}
-	if params.EnableDiskCache {
+	session, err := k.GetCurrentSession(gocontext.TODO())
+	if params.EnableDiskCache || (err == nil && adminFeatureList[session.UID]) {
 		dbc, err := newDiskBlockCacheStandard(config,
 			diskBlockCacheRootFromStorageRoot(params.StorageRoot))
 		if err != nil {
@@ -618,6 +621,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 			return nil, err
 		}
 		config.SetDiskBlockCache(dbc)
+		log.Debug("Disk cache enabled")
 	}
 
 	return config, nil
