@@ -159,6 +159,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		},
 		TLFJournalBackgroundWorkStatus: TLFJournalBackgroundWorkEnabled,
 		StorageRoot:                    ctx.GetDataDir(),
+		Mode:                           InitDefaultString,
 	}
 }
 
