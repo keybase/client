@@ -8,7 +8,7 @@ export function findDOMNode (start: any, match: string, max: number = 1000) : an
       return current
     }
     current = current.parentNode
-    if (++index >= max) throw new Error('Error looping while trying to find in DOM')
+    if (++index >= max) throw new Error('Hit max loop count while trying to find in DOM')
   }
 
   return null
