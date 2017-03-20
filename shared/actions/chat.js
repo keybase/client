@@ -23,6 +23,7 @@ import {isMobile} from '../constants/platform'
 import {toDeviceType, unsafeUnwrap} from '../constants/types/more'
 import {showMainWindow, saveAttachment, showShareActionSheet} from './platform.specific'
 import {requestIdleCallback} from '../util/idle-callback'
+import {replaceEntity, deleteEntity, deleteAll} from './entities'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
@@ -81,6 +82,7 @@ const {
   CommonMessageType,
   CommonTLFVisibility,
   CommonTopicType,
+  Conversation,
   LocalAssetMetadataType,
   LocalMessageUnboxedErrorType,
   LocalConversationErrorType,
@@ -102,6 +104,7 @@ const {
 
 const {
   InboxStateRecord,
+  InboxEntityRecord,
   MetaDataRecord,
   conversationIDToKey,
   getBrokenUsers,
@@ -1097,6 +1100,32 @@ function * _loadInbox (): SagaGenerator<any, any> {
   const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {}, metaData)
   const finalizedState: FinalizedState = _inboxToFinalized(inbox)
 
+  const tlfsToUntrusted = (inbox.conversationsUnverified || []).reduce((map: {[tlf: string]: InboxEntityRecord}, c: Conversation) => {
+    const msgMax = c.maxMsgSummaries && c.maxMsgSummaries.length && c.maxMsgSummaries[0]
+    if (!msgMax ||
+        c.metadata.visibility === ChatTypes.CommonTLFVisibility.public ||
+        msgMax.tlfName.includes('#')) {
+      return map
+    }
+
+    map[msgMax.tlfName] = new InboxEntityRecord({
+      conversationIDKey: conversationIDToKey(c.metadata.conversationID),
+      info: null,
+      participants: List(parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username)),
+      snippet: '',
+      status: Constants.ConversationStatusByEnum[c.metadata.status || 0],
+      time: c.readerInfo && c.readerInfo.mtime,
+      validated: false,
+    })
+
+    return map
+  }, {})
+
+  yield put(({type: 'chat:setInboxTLFs', payload: {inboxTLFs: Object.keys(tlfsToUntrusted)}}: Constants.SetInboxTLFs))
+  yield put(deleteAll(['chatInbox']))
+  yield put(replaceEntity(['chatInbox'], tlfsToUntrusted))
+
+  // TODO del
   yield put(({type: 'chat:loadedInbox', payload: {inbox: conversations}, logTransformer: loadedInboxActionTransformer}: Constants.LoadedInbox))
   if (finalizedState.count()) {
     yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
@@ -1138,6 +1167,11 @@ function * _loadInbox (): SagaGenerator<any, any> {
       }
 
       if (conversation) {
+        const tlf = incoming.chatInboxConversation.params.conv.info.tlfName
+        console.log('aaa update', tlf, conversation)
+        yield put(replaceEntity(['chatInbox'], {[tlf]: conversation}))
+
+        // TODO del
         yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
         const selectedConversation = yield select(getSelectedConversation)
         if (selectedConversation === conversation.get('conversationIDKey')) {
@@ -1165,6 +1199,23 @@ function * _loadInbox (): SagaGenerator<any, any> {
         snippet: null,
         validated: true,
       })
+
+      const entity = new InboxEntityRecord({
+        conversationIDKey,
+        info: null,
+        isEmpty: false,
+        participants: List([].concat(error.rekeyInfo ? error.rekeyInfo.writerNames : [], error.rekeyInfo ? error.rekeyInfo.readerNames : []).filter(Boolean)),
+        snippet: null,
+        status: 'unfiled',
+        time: error.remoteConv.readerInfo.mtime,
+        validated: true,
+      })
+
+      const tlf = incoming.chatInboxFailed.params.error.unverifiedTLFName
+      console.log('aaa fail', tlf, entity, incoming)
+      yield put(replaceEntity(['chatInbox'], {[tlf]: entity}))
+
+      // TODO del
       yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
 
       switch (error.typ) {
@@ -1184,6 +1235,17 @@ function * _loadInbox (): SagaGenerator<any, any> {
       }
     } else if (incoming.finished) {
       finishedCalled = true
+
+      const toDelSelector = (state: TypedState) => {
+        const map = state.entities.get('chatInbox')
+        console.log('aaa chatinbox', map)
+        return map.map((e, key) => e.get('validated') ? null : key).filter(Boolean)
+      }
+      const toDel = yield select(toDelSelector)
+      console.log('aaa todel', toDel)
+      yield put(deleteEntity(['chatInbox'], toDel))
+
+      // TODO del
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
       break
     } else if (incoming.timeout) {

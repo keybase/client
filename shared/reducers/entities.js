@@ -13,8 +13,12 @@ export default function (state: State = initialState, action: Actions): State {
     }
     case 'entity:delete': {
       const {keyPath, ids} = action.payload
+      // TODO with immutable 4.0.0
+      // return state.updateIn(keyPath, map => map.deleteAll(ids))
       // $FlowIssue doesn't understand this API
-      return state.updateIn(keyPath, map => map.deleteAll(ids))
+      return state.updateIn(keyPath, map => map.withMutations(map => {
+        ids.forEach(id => map.delete(id))
+      }))
     }
     case 'entity:merge': {
       const {keyPath, entities} = action.payload
@@ -25,6 +29,11 @@ export default function (state: State = initialState, action: Actions): State {
       const {keyPath, entities} = action.payload
       // $FlowIssue doesn't understand this API
       return state.mergeIn(keyPath, entities)
+    }
+    case 'entity:deleteAll': {
+      const {keyPath} = action.payload
+      // $FlowIssue doesn't understand this API
+      return state.updateIn(keyPath, map => map.clear())
     }
     default:
       break

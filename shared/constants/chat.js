@@ -239,6 +239,28 @@ export type InboxState = Record<{
   validated: boolean,
 }>
 
+export const InboxEntityRecord = Record({
+  conversationIDKey: '',
+  info: null,
+  isEmpty: false,
+  participants: List(),
+  snippet: '',
+  status: 'unfiled',
+  time: 0,
+  validated: false,
+})
+
+export type InboxEntity = Record<{
+  conversationIDKey: ConversationIDKey,
+  info: ?ConversationInfoLocal,
+  isEmpty: boolean,
+  participants: List<string>,
+  snippet: string,
+  status: ConversationStateEnum,
+  time: number,
+  validated: boolean,
+}>
+
 export type SupersedeInfo = {
   conversationIDKey: ConversationID,
   finalizeInfo: ConversationFinalizeInfo,
@@ -276,7 +298,8 @@ export type RekeyInfo = Record<{
 }>
 
 export const StateRecord = Record({
-  inbox: List(),
+  inboxTLFs: List(),
+  inbox: List(), // TODO del
   conversationStates: Map(),
   focused: false,
   metaData: Map(),
@@ -293,6 +316,7 @@ export const StateRecord = Record({
 })
 
 export type State = Record<{
+  inboxTLFs: List<string>, // tlfs
   inbox: List<InboxState>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   finalizedState: FinalizedState,
@@ -327,6 +351,7 @@ export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Messa
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', {force: boolean}>
+export type SetInboxTLFs = NoErrorTypedAction<'chat:setInboxTLFs', {inboxTLFs: Array<string>}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type AddPendingConversation = NoErrorTypedAction<'chat:addPendingConversation', {participants: Array<string>}>

@@ -462,6 +462,9 @@ function reducer (state: State = initialState, action: Actions) {
     case 'chat:showEditor': {
       return state.set('editingMessage', action.payload.message)
     }
+    case 'chat:setInboxTLFs': {
+      return state.set('inboxTLFs', action.payload.inboxTLFs)
+    }
   }
 
   return state
