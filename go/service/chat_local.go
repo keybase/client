@@ -333,8 +333,15 @@ func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetT
 		// This means we transmitted with success, so cancel local thread
 		cancel()
 	}()
-
 	wg.Wait()
+
+	// Clean up context
+	select {
+	case <-bctx.Done():
+	default:
+		cancel()
+	}
+
 	res.Offline = h.G().ConvSource.IsOffline()
 	return res, fullErr
 }
