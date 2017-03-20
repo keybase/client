@@ -86,10 +86,11 @@ const {
   LocalConversationErrorType,
   LocalMessageUnboxedState,
   NotifyChatChatActivityType,
+  ThreadView,
   localCancelPostRpcPromise,
   localDownloadFileAttachmentLocalRpcChannelMap,
   localGetInboxNonblockLocalRpcChannelMap,
-  localGetThreadLocalRpcPromise,
+  localGetThreadNonblockRpcChannelMap,
   localMarkAsReadLocalRpcPromise,
   localNewConversationLocalRpcPromise,
   localPostDeleteNonblockRpcPromise,
@@ -1245,61 +1246,94 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
     next = oldConversationState.get('paginationNext', undefined)
   }
 
-  yield put({type: 'chat:loadingMessages', payload: {conversationIDKey}})
+  yield put({payload: {conversationIDKey}, type: 'chat:loadingMessages'})
+
+  const yourName = yield select(usernameSelector)
+  const yourDeviceName = yield select(_devicenameSelector)
 
   // We receive the list with edit/delete/etc already applied so lets filter that out
   const messageTypes = Object.keys(CommonMessageType).filter(k => !['edit', 'delete', 'headline', 'attachmentuploaded'].includes(k)).map(k => CommonMessageType[k])
   const conversationID = keyToConversationID(conversationIDKey)
 
-  const thread = yield call(localGetThreadLocalRpcPromise, {param: {
-    conversationID,
-    query: {
-      markAsRead: true,
-      messageTypes,
-    },
-    pagination: {
-      next,
-      num: Constants.maxMessagesToLoadAtATime,
-    },
-    identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-  }})
-
-  const yourName = yield select(usernameSelector)
-  const yourDeviceName = yield select(_devicenameSelector)
-  const messages = (thread && thread.thread && thread.thread.messages || []).map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey)).reverse()
-  let newMessages = []
-  messages.forEach((message, idx) => {
-    if (idx > 0) {
-      const timestamp = _maybeAddTimestamp(messages[idx], messages[idx - 1])
-      if (timestamp !== null) {
-        newMessages.push(timestamp)
+  const updateThread = function * (thread: ThreadView) {
+    const messages = (thread && thread.messages || []).map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey)).reverse()
+    let newMessages = []
+    messages.forEach((message, idx) => {
+      if (idx > 0) {
+        const timestamp = _maybeAddTimestamp(messages[idx], messages[idx - 1])
+        if (timestamp !== null) {
+          newMessages.push(timestamp)
+        }
       }
-    }
-    newMessages.push(message)
-  })
+      newMessages.push(message)
+    })
 
-  const pagination = _threadToPagination(thread)
+    const pagination = _threadToPagination(thread)
 
-  yield put({
-    payload: {
-      conversationIDKey,
-      messages: newMessages,
-      moreToLoad: !pagination.last,
-      paginationNext: pagination.next,
+    yield put({
+      logTransformer: prependMessagesActionTransformer,
+      payload: {
+        conversationIDKey,
+        messages: newMessages,
+        moreToLoad: !pagination.last,
+        paginationNext: pagination.next,
+      },
+      type: 'chat:prependMessages',
+    })
+
+    // Load previews for attachments
+    const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' && m.messageID ? acc.push(m) : acc, new List())
+    yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) =>
+      // $FlowIssue we check for messageID existance above
+      put(loadAttachment(conversationIDKey, messageID, true, false, tmpFile(_tmpFileName(false, conversationIDKey, messageID, filename))))).toArray()
+  }
+
+  const channelConfig = singleFixedChannelConfig([
+    'chat.1.chatUi.chatThreadCached',
+    'chat.1.chatUi.chatThreadFull',
+    'finished',
+  ])
+
+  const loadInboxChanMap: ChannelMap<any> = localGetThreadNonblockRpcChannelMap(channelConfig, {
+    param: {
+      conversationID,
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      pagination: {
+        last: false,
+        next,
+        num: Constants.maxMessagesToLoadAtATime,
+        previous: null,
+      },
+      query: {
+        disableResolveSupersedes: false,
+        markAsRead: true,
+        messageTypes,
+      },
     },
-    logTransformer: prependMessagesActionTransformer,
-    type: 'chat:prependMessages',
   })
 
-  // Load previews for attachments
-  const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' && m.messageID ? acc.push(m) : acc, new List())
-  // $FlowIssue we check for messageID existance above
-  yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => put(loadAttachment(conversationIDKey, messageID, true, false, tmpFile(_tmpFileName(false, conversationIDKey, messageID, filename))))).toArray()
+  while (true) {
+    const incoming: {[key: string]: any} = yield race({
+      chatThreadCached: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatThreadCached'),
+      chatThreadFull: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatThreadFull'),
+      finished: takeFromChannelMap(loadInboxChanMap, 'finished'),
+    })
+
+    if (incoming.chatThreadCached) {
+      incoming.chatThreadCached.response.result()
+      yield call(updateThread, incoming.chatThreadCached.params.thread)
+    } else if (incoming.chatThreadFull) {
+      incoming.chatThreadFull.response.result()
+      yield call(updateThread, incoming.chatThreadFull.params.thread)
+    } else if (incoming.finished) {
+      break
+    }
+  }
 }
 
-function _threadToPagination (thread) {
-  if (thread && thread.thread && thread.thread.pagination) {
-    return thread.thread.pagination
+function _threadToPagination (thread): {last: any, next: any} {
+  if (thread && thread.pagination) {
+    return thread.pagination
   }
   return {
     last: undefined,
