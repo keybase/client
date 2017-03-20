@@ -18,6 +18,7 @@ type CmdSimpleFSMove struct {
 	src         []keybase1.Path
 	dest        keybase1.Path
 	interactive bool
+	force       bool
 }
 
 // NewCmdSimpleFSMove creates a new cli.Command.
@@ -33,6 +34,10 @@ func NewCmdSimpleFSMove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			cli.BoolFlag{
 				Name:  "i, interactive",
 				Usage: "Prompt before overwrite",
+			},
+			cli.BoolFlag{
+				Name:  "f, force",
+				Usage: "force overwrite",
 			},
 		},
 	}
@@ -61,9 +66,15 @@ func (c *CmdSimpleFSMove) Run() error {
 		c.G().Log.Debug("SimpleFSMove %s -> %s, %v", pathToString(src), destPathString, isDestDir)
 
 		dest, err := makeDestPath(c.G(), ctx, cli, src, c.dest, isDestDir, destPathString)
-		if err == TargetFileExistsError && c.interactive == true {
-			err = doOverwritePrompt(c.G(), pathToString(dest))
+
+		if err == TargetFileExistsError {
+			if c.interactive == true {
+				err = doOverwritePrompt(c.G(), pathToString(dest))
+			} else if c.force == true {
+				err = nil
+			}
 		}
+
 		if err != nil {
 			return err
 		}
@@ -95,6 +106,7 @@ func (c *CmdSimpleFSMove) Run() error {
 func (c *CmdSimpleFSMove) ParseArgv(ctx *cli.Context) error {
 	var err error
 	c.interactive = ctx.Bool("interactive")
+	c.force = ctx.Bool("force")
 	c.src, c.dest, err = parseSrcDestArgs(c.G(), ctx, "mv")
 	return err
 }
