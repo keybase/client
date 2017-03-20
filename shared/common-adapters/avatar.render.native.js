@@ -119,7 +119,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
     const {url, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle, children} = this.props
 
     return (
-      <ClickableBox onPress={onClick} feedback={false}>
+      <ClickableBox onClick={onClick} feedback={false}>
         <Box style={{
           height: size,
           position: 'relative',
