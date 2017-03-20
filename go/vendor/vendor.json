@@ -361,6 +361,12 @@
 			"revisionTime": "2015-12-11T09:06:21+09:00"
 		},
 		{
+			"checksumSHA1": "I/D4D4g+IkllRz35PuCCsM04Qag=",
+			"path": "github.com/miekg/dns",
+			"revision": "c862b7e359850847d4945cce311db2ea90cab7c0",
+			"revisionTime": "2017-03-10T21:57:03Z"
+		},
+		{
 			"checksumSHA1": "rZ4W4fT8VjifBeSBQSEjWWI4ISU=",
 			"path": "github.com/nf/cr2",
 			"revision": "05d46fef4f2f903240751e25871cd318d001deba",

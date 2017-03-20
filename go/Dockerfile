@@ -3,12 +3,13 @@ MAINTAINER Keybase <admin@keybase.io>
 
 # Remove openssl once KBFSDocker changes are in
 RUN apk add --update fuse jq bash openssl && \
-    adduser -D keybase && \
+    rm -rf /tmp/* /var/cache/apk/*
+
+RUN adduser -D keybase && \
     mkdir /keybase && \
     chmod 777 /keybase && \
     mkdir -p /home/keybase && \
-    chown keybase:keybase /home/keybase && \
-    rm -rf /tmp/* /var/cache/apk/*
+    chown keybase:keybase /home/keybase
 
 USER keybase
 WORKDIR /home/keybase

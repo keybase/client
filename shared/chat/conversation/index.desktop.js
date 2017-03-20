@@ -77,6 +77,7 @@ class Conversation extends Component<void, Props, State> {
       metaDataMap,
       onAddParticipant,
       onMuteConversation,
+      onShowBlockConversationDialog,
       onShowProfile,
       onToggleSidePanel,
       muted,
@@ -111,6 +112,7 @@ class Conversation extends Component<void, Props, State> {
             muted={muted}
             onAddParticipant={onAddParticipant}
             onMuteConversation={onMuteConversation}
+            onShowBlockConversationDialog={onShowBlockConversationDialog}
             onShowProfile={onShowProfile}
             onToggleSidePanel={onToggleSidePanel}
             participants={participants} />

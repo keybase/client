@@ -387,6 +387,10 @@ function reducer (state: State = initialState, action: Actions) {
       const oldInbox = state.get('inbox')
       const existing = oldInbox.findEntry(i => i.get('conversationIDKey') === toFind)
       let updatedInbox = existing ? oldInbox.set(existing[0], convo) : oldInbox.push(convo)
+      // If the convo's just been blocked, delete it from the inbox.
+      if (existing && convo.get('status') === 'blocked') {
+        updatedInbox = updatedInbox.delete(existing[0])
+      }
       // time changed so we need to sort
       if (!existing || existing[1].time !== convo.get('time')) {
         updatedInbox = sortInbox(updatedInbox)
@@ -403,12 +407,6 @@ function reducer (state: State = initialState, action: Actions) {
       return state.set('metaData', metaData)
     case 'chat:updateConversationUnreadCounts':
       return state.set('conversationUnreadCounts', action.payload)
-    case 'chat:conversationSetStatus':
-      const {conversationIDKey, muted} = action.payload
-      return state.set('inbox', state.get('inbox').update(state.get('inbox')
-        .findIndex(conv => conv.conversationIDKey === conversationIDKey),
-          entry => entry.set('muted', muted))
-      )
     case 'chat:clearRekey': {
       const {conversationIDKey} = action.payload
       return state.set('rekeyInfos', state.get('rekeyInfos').delete(conversationIDKey))

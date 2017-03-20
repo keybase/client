@@ -239,8 +239,20 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, conv
 	for _, conv := range convs {
 		ok := true
 		// Basic checks
-		if query.ConvID != nil && !query.ConvID.Eq(conv.Metadata.ConversationID) {
-			ok = false
+		if query.ConvID != nil {
+			query.ConvIDs = append(query.ConvIDs, *query.ConvID)
+		}
+		if len(query.ConvIDs) > 0 {
+			found := false
+			for _, cid := range query.ConvIDs {
+				if cid.Eq(conv.GetConvID()) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				ok = false
+			}
 		}
 		if query.After != nil && !conv.ReaderInfo.Mtime.After(*query.After) {
 			ok = false
@@ -282,7 +294,7 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, conv
 		// If we are finalized and are superseded, then don't return this
 		if query.OneChatTypePerTLF == nil ||
 			(query.OneChatTypePerTLF != nil && *query.OneChatTypePerTLF) {
-			if conv.Metadata.FinalizeInfo != nil && len(conv.Metadata.SupersededBy) > 0 && query.ConvID == nil {
+			if conv.Metadata.FinalizeInfo != nil && len(conv.Metadata.SupersededBy) > 0 && len(query.ConvIDs) == 0 {
 				ok = false
 			}
 		}

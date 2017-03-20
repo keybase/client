@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import _ from 'lodash'
 import {Box, Avatar, Text, ClickableBox, TabBar, NativeListView, NativeDimensions} from '../common-adapters/index.native'
 import {TabBarItem} from '../common-adapters/tab-bar'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {Props, FriendshipUserInfo} from './friendships'
 
@@ -93,17 +93,28 @@ class FriendshipsRender extends Component<void, Props, State> {
 
   render () {
     const {height, width} = NativeDimensions.get('window')
+    const textWhenEmpty = {
+      Followers: 'You have no followers.',
+      Following: 'You are not following anyone.',
+    }
+    const counts = {
+      Followers: this.props.followers.length,
+      Following: this.props.following.length,
+    }
     return (
       <TabBar>
         {['Followers', 'Following'].map(tab => {
           return <TabBarItem
             key={tab}
             selected={this.props.currentTab === tab}
-            label={tab.toUpperCase()}
+            label={`${tab.toUpperCase()} (${counts[tab]})`}
             styleContainer={{flex: 1}}
             onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(tab) }}>
             <Box style={{...tabItemContainerStyle, maxHeight: height - 160, width: width}}>
               <Box style={tabItemContainerTopBorder} />
+              {counts[tab] === 0 && <Box style={tabItemEmptyStyle}>
+                <Text type='Body' style={{color: globalColors.black_40}}>{textWhenEmpty[tab]}</Text>
+              </Box>}
               <Box style={tabItemContainerUsers}>
                 {this.props.currentTab === tab && !!this.state.dataSource &&
                 <NativeListView
@@ -139,6 +150,13 @@ const tabItemContainerUsers = {
   flexWrap: 'wrap',
   justifyContent: 'space-around',
   paddingTop: 8,
+}
+
+const tabItemEmptyStyle = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  paddingBottom: globalMargins.tiny,
+  paddingTop: globalMargins.tiny,
 }
 
 export default FriendshipsRender

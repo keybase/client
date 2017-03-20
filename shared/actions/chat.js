@@ -37,9 +37,9 @@ import type {
   AppendMessages,
   AttachmentInput,
   BadgeAppForChat,
+  BlockConversation,
   ConversationBadgeState,
   ConversationIDKey,
-  ConversationSetStatus,
   CreatePendingFailure,
   DeleteMessage,
   EditMessage,
@@ -279,6 +279,10 @@ function muteConversation (conversationIDKey: ConversationIDKey, muted: boolean)
   return {payload: {conversationIDKey, muted}, type: 'chat:muteConversation'}
 }
 
+function blockConversation (blocked: boolean, conversationIDKey: ConversationIDKey): BlockConversation {
+  return {payload: {blocked, conversationIDKey}, type: 'chat:blockConversation'}
+}
+
 function deleteMessage (message: Message): DeleteMessage {
   return {type: 'chat:deleteMessage', payload: {message}}
 }
@@ -355,14 +359,16 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
   })
 
   const participants = List(convo.info.writerNames || [])
-  const muted = convo.info.status === CommonConversationStatus.muted
+  const infoStatus = convo.info ? convo.info.status : 0
+  // Go backwards from the value in CommonConversationStatus to its key.
+  const status = Constants.ConversationStatusByEnum[infoStatus]
 
   return new InboxStateRecord({
     info: convo.info,
     isEmpty: convo.isEmpty,
     conversationIDKey,
     participants,
-    muted,
+    status,
     time,
     snippet,
     validated: true,
@@ -425,13 +431,14 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
     }
 
     const participants = List(parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username))
-    const muted = convoUnverified.metadata.status === CommonConversationStatus.muted
+    const statusEnum = convoUnverified.metadata.status || 0
+    const status = Constants.ConversationStatusByEnum[statusEnum]
 
     return new InboxStateRecord({
       info: null,
       conversationIDKey: conversationIDToKey(convoUnverified.metadata.conversationID),
       participants,
-      muted,
+      status,
       time: convoUnverified.readerInfo && convoUnverified.readerInfo.mtime,
       snippet: ' ',
       validated: false,
@@ -791,15 +798,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       const setStatus: ?SetStatusInfo = action.payload.activity.setStatus
       if (setStatus) {
         yield call(_updateInbox, setStatus.conv)
-        const conversationIDKey = conversationIDToKey(setStatus.convID)
-        const muted = setStatus.status === CommonConversationStatus.muted
-        yield put(({
-          payload: {
-            conversationIDKey,
-            muted,
-          },
-          type: 'chat:conversationSetStatus',
-        }: ConversationSetStatus))
+        yield call(_ensureValidSelectedChat, false, true)
       }
       return
     case NotifyChatChatActivityType.failedMessage:
@@ -890,9 +889,8 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const selectedTab = yield select(_routeSelector)
         const chatTabSelected = (selectedTab === chatTab)
         const conversationIsFocused = conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected
-        const messageIsYours = (message.type === 'Text' || message.type === 'Attachment') && message.author === yourName
 
-        if (message && message.messageID && conversationIsFocused && !messageIsYours) {
+        if (message && message.messageID && conversationIsFocused) {
           yield call(localMarkAsReadLocalRpcPromise, {
             param: {
               conversationID: incomingMessage.convID,
@@ -1022,10 +1020,12 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
 
 const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
 
-function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
-  if (isMobile) {
-    return // Mobile doens't auto select a conversation
+function * _ensureValidSelectedChat (onlyIfNoSelection: boolean, forceSelectOnMobile: boolean) {
+  // Mobile doesn't auto select a conversation
+  if (isMobile && !forceSelectOnMobile) {
+    return
   }
+
   const inbox = yield select(inboxSelector)
   if (inbox.count()) {
     const conversationIDKey = yield select(getSelectedConversation)
@@ -1043,7 +1043,7 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
     }
 
     const firstGood = inbox.find(i => !i.get('isEmpty') || alwaysShow.has(i.get('conversationIDKey')))
-    if (firstGood) {
+    if (firstGood && !isMobile) {
       const conversationIDKey = firstGood.get('conversationIDKey')
       yield put(selectConversation(conversationIDKey, false))
     } else {
@@ -1160,7 +1160,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
         isEmpty: false,
         conversationIDKey,
         participants: List([].concat(error.rekeyInfo ? error.rekeyInfo.writerNames : [], error.rekeyInfo ? error.rekeyInfo.readerNames : []).filter(Boolean)),
-        muted: false,
+        status: 'unfiled',
         time: error.remoteConv.readerInfo.mtime,
         snippet: null,
         validated: true,
@@ -1670,8 +1670,9 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
     yield put({type: 'chat:clearMessages', payload: {conversationIDKey}})
   }
 
+  let loadMoreTask
   if (conversationIDKey) {
-    yield put(loadMoreMessages(conversationIDKey, true))
+    loadMoreTask = yield fork(cancelWhen(_threadIsCleared, _loadMoreMessages), loadMoreMessages(conversationIDKey, true))
     yield put(navigateTo([conversationIDKey], [chatTab]))
   } else {
     yield put(navigateTo([], [chatTab]))
@@ -1687,9 +1688,20 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
   }
 
   if (fromUser && conversationIDKey) {
+    yield join(loadMoreTask)
     yield put(updateBadging(conversationIDKey))
     yield put(updateLatestMessage(conversationIDKey))
   }
+}
+
+function * _blockConversation (action: BlockConversation): SagaGenerator<any, any> {
+  const {blocked, conversationIDKey} = action.payload
+  const conversationID = keyToConversationID(conversationIDKey)
+  const status = blocked ? CommonConversationStatus.blocked : CommonConversationStatus.unfiled
+  const identifyBehavior: TLFIdentifyBehavior = TlfKeysTLFIdentifyBehavior.chatGui
+  yield call(localSetConversationStatusLocalRpcPromise, {
+    param: {conversationID, identifyBehavior, status},
+  })
 }
 
 function * _muteConversation (action: MuteConversation): SagaGenerator<any, any> {
@@ -1706,7 +1718,7 @@ function * _updateBadging (action: UpdateBadging): SagaGenerator<any, any> {
   // Update gregor's view of the latest message we've read.
   const {conversationIDKey} = action.payload
   const conversationState = yield select(_conversationStateSelector, conversationIDKey)
-  if (conversationState && conversationState.firstNewMessageID && conversationState.messages !== null && conversationState.messages.size > 0) {
+  if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
     const conversationID = keyToConversationID(conversationIDKey)
     const msgID = conversationState.messages.get(conversationState.messages.size - 1).messageID
     yield call(localMarkAsReadLocalRpcPromise, {
@@ -2086,7 +2098,7 @@ function * _getInboxAndUnbox ({payload: {conversationIDKey}}: Constants.GetInbox
   const param: ChatTypes.localGetInboxAndUnboxLocalRpcParam = {
     identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
     query: {
-      convID: keyToConversationID(conversationIDKey),
+      convIDs: [keyToConversationID(conversationIDKey)],
       computeActiveList: true,
       tlfVisibility: CommonTLFVisibility.private,
       topicType: CommonTopicType.chat,
@@ -2174,6 +2186,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery('chat:incomingMessage', _incomingMessage),
     safeTakeEvery('chat:markThreadsStale', _markThreadsStale),
     safeTakeEvery('chat:muteConversation', _muteConversation),
+    safeTakeEvery('chat:blockConversation', _blockConversation),
     safeTakeEvery('chat:newChat', _newChat),
     safeTakeEvery('chat:postMessage', _postMessage),
     safeTakeEvery('chat:editMessage', _editMessage),
@@ -2191,8 +2204,8 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(changedFocus, _changedFocus),
     safeTakeEvery('chat:deleteMessage', _deleteMessage),
     safeTakeEvery('chat:openTlfInChat', _openTlfInChat),
-    safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true),
-    safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat),
+    safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false),
+    safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false),
     safeTakeEvery('chat:saveAttachmentNative', _saveAttachmentNative),
     safeTakeEvery('chat:shareAttachment', _shareAttachment),
   ]
@@ -2202,6 +2215,7 @@ export default chatSaga
 
 export {
   badgeAppForChat,
+  blockConversation,
   deleteMessage,
   editMessage,
   loadAttachment,

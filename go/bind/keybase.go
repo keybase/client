@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/fsrpc"
@@ -45,6 +46,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	kbCtx = libkb.G
 	kbCtx.Init()
 	kbCtx.SetServices(externals.GetServices())
+	pvlsource.NewPvlSourceAndInstall(kbCtx)
 	usage := libkb.Usage{
 		Config:    true,
 		API:       true,
@@ -115,7 +117,7 @@ func (s serviceCn) NewCrypto(config libkbfs.Config, params libkbfs.InitParams, c
 // LogSend sends a log to Keybase
 func LogSend(uiLogPath string) (string, error) {
 	logSendContext.Logs.Desktop = uiLogPath
-	return logSendContext.LogSend("", 10000)
+	return logSendContext.LogSend("", 5*1024*1024)
 }
 
 // WriteB64 sends a base64 encoded msgpack rpc payload

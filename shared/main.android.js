@@ -47,17 +47,17 @@ class Main extends Component {
     }
 
     // TODO: move Push prompt into route
-    const enablePushPrompt = this.props.provisioned && this.props.permissionsPrompt
+    const {showPushPrompt, mountPush} = this.props
     return (
       <Box style={{flex: 1}}>
-        {!enablePushPrompt &&
+        {!showPushPrompt &&
           <RenderRoute
             routeDef={this.props.routeDef}
             routeState={this.props.routeState}
             setRouteState={this.props.setRouteState}
           />
         }
-        <Push prompt={enablePushPrompt} />
+        {mountPush && <Push prompt={showPushPrompt} />}
       </Box>
     )
   }
@@ -68,17 +68,18 @@ export default connect(
   ({
     routeTree: {routeDef, routeState},
     favorite: {privateBadge, publicBadge},
-    config: {extendedConfig, username},
+    config: {extendedConfig, username, bootStatus, loggedIn},
     dev: {debugConfig: {dumbFullscreen}},
     push: {permissionsPrompt},
   }) => ({
     routeDef,
     routeState,
-    provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
     username,
     dumbFullscreen,
     folderBadge: privateBadge + publicBadge,
     permissionsPrompt,
+    mountPush: extendedConfig && !!extendedConfig.defaultDeviceID && loggedIn && bootStatus === 'bootStatusBootstrapped',
+    showPushPrompt: permissionsPrompt,
   }),
   dispatch => ({
     setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },

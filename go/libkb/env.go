@@ -25,6 +25,7 @@ func (n NullConfiguration) GetUpdaterConfigFilename() string                    
 func (n NullConfiguration) GetSessionFilename() string                                     { return "" }
 func (n NullConfiguration) GetDbFilename() string                                          { return "" }
 func (n NullConfiguration) GetChatDbFilename() string                                      { return "" }
+func (n NullConfiguration) GetPvlKitFilename() string                                      { return "" }
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
 func (n NullConfiguration) GetProxy() string                                               { return "" }
@@ -82,6 +83,7 @@ func (n NullConfiguration) GetGregorDisabled() (bool, bool)                     
 func (n NullConfiguration) GetMountDir() string                                            { return "" }
 func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)                          { return false, false }
 func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)                         { return FeatureFlags{}, nil }
+func (n NullConfiguration) GetAppType() AppType                                            { return NoAppType }
 
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
@@ -447,6 +449,16 @@ func (e *Env) GetChatDbFilename() string {
 	)
 }
 
+// GetPvlKitFilename gets the path to pvl kit file.
+// Its value is usually "" which means to use the server.
+func (e *Env) GetPvlKitFilename() string {
+	return e.GetString(
+		func() string { return e.cmd.GetPvlKitFilename() },
+		func() string { return os.Getenv("KEYBASE_PVL_KIT_FILE") },
+		func() string { return e.config.GetPvlKitFilename() },
+	)
+}
+
 func (e *Env) GetDebug() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.Test.GetDebug() },
@@ -806,6 +818,19 @@ func (e *Env) GetRunMode() RunMode {
 	return ret
 }
 
+func (e *Env) GetAppType() AppType {
+	switch {
+	case e.cmd.GetAppType() != NoAppType:
+		return e.cmd.GetAppType()
+	case StringToAppType(os.Getenv("KEYBASE_APP_TYPE")) != NoAppType:
+		return StringToAppType(os.Getenv("KEYBASE_APP_TYPE"))
+	case e.config.GetAppType() != NoAppType:
+		return e.config.GetAppType()
+	default:
+		return NoAppType
+	}
+}
+
 func (e *Env) GetFeatureFlags() FeatureFlags {
 	var ret FeatureFlags
 	pick := func(f FeatureFlags, err error) {
@@ -1053,6 +1078,8 @@ type AppConfig struct {
 	SecurityAccessGroupOverride bool
 }
 
+var _ CommandLine = AppConfig{}
+
 func (c AppConfig) GetLogFile() string {
 	return c.LogFile
 }
@@ -1079,6 +1106,10 @@ func (c AppConfig) GetServerURI() string {
 
 func (c AppConfig) GetSecurityAccessGroupOverride() (bool, bool) {
 	return c.SecurityAccessGroupOverride, c.SecurityAccessGroupOverride
+}
+
+func (c AppConfig) GetAppType() AppType {
+	return MobileAppType
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {

@@ -210,6 +210,14 @@ const dumbMap: DumbComponentMap<Profile> = {
         bio: '',
       },
     },
+    'Your Profile - No followers or following': {
+      ...propsBase,
+      afterMount: (c, node) => { node.querySelector('.scroll-container').scrollTop = 400 },
+      bioEditFns,
+      followers: [],
+      following: [],
+      isYou: true,
+    },
     'Your Profile - Proof Menu': {
       ...propsBase,
       bioEditFns,

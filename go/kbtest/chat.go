@@ -247,6 +247,21 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 			continue
 		}
 		if arg.Query != nil {
+			if arg.Query.ConvID != nil {
+				arg.Query.ConvIDs = append(arg.Query.ConvIDs, *arg.Query.ConvID)
+			}
+			if len(arg.Query.ConvIDs) > 0 {
+				found := false
+				for _, convID := range arg.Query.ConvIDs {
+					if convID.Eq(conv.GetConvID()) {
+						found = true
+						break
+					}
+				}
+				if !found {
+					continue
+				}
+			}
 			if arg.Query.ConvID != nil && !conv.Metadata.ConversationID.Eq(*arg.Query.ConvID) {
 				continue
 			}
@@ -590,13 +605,20 @@ type NonblockInboxResult struct {
 	InboxRes *chat1.GetInboxLocalRes
 }
 
-type ChatUI struct {
-	cb chan NonblockInboxResult
+type NonblockThreadResult struct {
+	Thread chat1.ThreadView
+	Full   bool
 }
 
-func NewChatUI(cb chan NonblockInboxResult) *ChatUI {
+type ChatUI struct {
+	inboxCb  chan NonblockInboxResult
+	threadCb chan NonblockThreadResult
+}
+
+func NewChatUI(inboxCb chan NonblockInboxResult, threadCb chan NonblockThreadResult) *ChatUI {
 	return &ChatUI{
-		cb: cb,
+		inboxCb:  inboxCb,
+		threadCb: threadCb,
 	}
 }
 
@@ -633,7 +655,7 @@ func (c *ChatUI) ChatAttachmentDownloadDone(context.Context) error {
 }
 
 func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {
-	c.cb <- NonblockInboxResult{
+	c.inboxCb <- NonblockInboxResult{
 		ConvRes: &arg.Conv,
 		ConvID:  arg.Conv.Info.Id,
 	}
@@ -641,15 +663,31 @@ func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxC
 }
 
 func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedArg) error {
-	c.cb <- NonblockInboxResult{
+	c.inboxCb <- NonblockInboxResult{
 		Err: fmt.Errorf("%s", arg.Error.Message),
 	}
 	return nil
 }
 
 func (c *ChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnverifiedArg) error {
-	c.cb <- NonblockInboxResult{
+	c.inboxCb <- NonblockInboxResult{
 		InboxRes: &arg.Inbox,
+	}
+	return nil
+}
+
+func (c *ChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCachedArg) error {
+	c.threadCb <- NonblockThreadResult{
+		Thread: arg.Thread,
+		Full:   false,
+	}
+	return nil
+}
+
+func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
+	c.threadCb <- NonblockThreadResult{
+		Thread: arg.Thread,
+		Full:   true,
 	}
 	return nil
 }

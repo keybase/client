@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Checkbox, Divider, Icon} from '../../../common-adapters'
+import {Box, Button, Checkbox, Divider, Icon} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import Participants from './participants'
 
@@ -18,6 +18,12 @@ const SidePanel = (props: Props) => (
         <Checkbox checked={props.muted} onCheck={checked => props.onMuteConversation(checked)} label='Mute notifications' />
         <Icon type='icon-shh-active-16' style={{marginLeft: globalMargins.tiny}} />
       </Box>
+    </Box>
+
+    <Divider style={{marginBottom: 20, marginTop: 20}} />
+
+    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+      <Button type='Danger' label='Block this conversation' onClick={() => props.onShowBlockConversationDialog()} />
     </Box>
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
