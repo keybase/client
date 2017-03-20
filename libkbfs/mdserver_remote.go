@@ -171,9 +171,15 @@ func (md *MDServerRemote) resetAuth(
 	}()
 
 	session, err := md.config.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		md.log.Debug("MDServerRemote: User logged out, skipping resetAuth")
-		return MdServerDefaultPingIntervalSeconds, NoCurrentSessionError{}
+	if _, ok := err.(NoCurrentSessionError); ok {
+		md.log.CDebugf(ctx, "User logged out (%+v), skipping resetAuth", err)
+		return MdServerDefaultPingIntervalSeconds, err
+	} else if err != nil {
+		// We can't rely on getting a `LoggedIn` error from the
+		// service in this case, so let the RPC connection fail and
+		// retry a bit later.
+		md.log.CDebugf(ctx, "Unexpected error when getting session: %+v", err)
+		return MdServerDefaultPingIntervalSeconds, err
 	}
 
 	challenge, err := c.GetChallenge(ctx)
@@ -233,7 +239,11 @@ func (md *MDServerRemote) RefreshAuthToken(ctx context.Context) {
 		md.log.CDebugf(ctx,
 			"MDServerRemote: no session available, connection remains anonymous")
 	default:
-		md.log.Debug("MDServerRemote: error refreshing auth token: %v", err)
+		md.log.CDebugf(ctx,
+			"MDServerRemote: error refreshing auth token: %v", err)
+		// TODO: once KBFS-1982 is merged, an unknown error here
+		// should just cause a complete disconnect, and we can let the
+		// rpc connection do the retry.
 	}
 }
 
