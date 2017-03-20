@@ -17,7 +17,7 @@
 
 + (NSUserDefaults *)userDefaults;
 
-+ (void)setupLogging;
++ (void)setupLogging:(BOOL)debug;
 
 + (NSWindow *)windowWithContentView:(NSView<NSWindowDelegate> *)contentView;
 

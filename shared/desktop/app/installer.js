@@ -28,7 +28,7 @@ export default (callback: (err: any) => void): void => {
   if (app.getLoginItemSettings().wasOpenedAtLogin) {
     timeout = 90
   }
-  const args = ['--app-path=' + bundlePath, '--run-mode=' + runMode, '--timeout=' + timeout]
+  const args = ['--debug', '--app-path=' + bundlePath, '--run-mode=' + runMode, '--timeout=' + timeout]
 
   exec(installerPath, args, 'darwin', 'prod', true, function (err) {
     if (err && err.code === 1) {
