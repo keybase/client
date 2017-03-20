@@ -1246,7 +1246,7 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
     next = oldConversationState.get('paginationNext', undefined)
   }
 
-  yield put({payload: {conversationIDKey}, type: 'chat:loadingMessages'})
+  yield put({payload: {conversationIDKey, isRequesting: true}, type: 'chat:loadingMessages'})
 
   const yourName = yield select(usernameSelector)
   const yourDeviceName = yield select(_devicenameSelector)
@@ -1326,6 +1326,12 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
       incoming.chatThreadFull.response.result()
       yield call(updateThread, incoming.chatThreadFull.params.thread)
     } else if (incoming.finished) {
+      if (incoming.finished.error) {
+        yield put({payload: {conversationIDKey, isRequesting: false}, type: 'chat:loadingMessages'}) // unmark as loaded
+      } else {
+        // TODO use was offline?
+        // incoming.finished.params.offline
+      }
       break
     }
   }
