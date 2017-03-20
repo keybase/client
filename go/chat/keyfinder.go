@@ -43,7 +43,7 @@ func (k *KeyFinderImpl) Find(ctx context.Context, tlf *TLFInfoSource, tlfName st
 
 	var keys keybase1.GetTLFCryptKeysRes
 	if tlfPublic {
-		res, err := tlf.PublicCanonicalTLFNameAndID(ctx, tlfName, keybase1.TLFIdentifyBehavior_CHAT_CLI)
+		res, err := tlf.PublicCanonicalTLFNameAndID(ctx, tlfName)
 		if err != nil {
 			return keybase1.GetTLFCryptKeysRes{}, err
 		}
@@ -51,7 +51,7 @@ func (k *KeyFinderImpl) Find(ctx context.Context, tlf *TLFInfoSource, tlfName st
 		keys.CryptKeys = []keybase1.CryptKey{publicCryptKey}
 	} else {
 		var err error
-		keys, err = tlf.CryptKeys(ctx, tlfName, keybase1.TLFIdentifyBehavior_CHAT_CLI)
+		keys, err = tlf.CryptKeys(ctx, tlfName)
 		if err != nil {
 			return keybase1.GetTLFCryptKeysRes{}, err
 		}

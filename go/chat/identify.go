@@ -189,7 +189,7 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 	}
 
 	// Run against CryptKeys to generate notifications if necessary
-	_, err = NewTLFInfoSource(h.G()).CryptKeys(ctx, tlfName, ident)
+	_, err = NewTLFInfoSource(h.G()).CryptKeys(ctx, tlfName)
 	if err != nil {
 		h.Debug(ctx, "HandleUserChanged: failed to run CryptKeys: %s", err.Error())
 	}

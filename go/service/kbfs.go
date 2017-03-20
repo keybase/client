@@ -109,7 +109,7 @@ func (h *KBFSHandler) conversationIDs(uid keybase1.UID, tlf string, public bool)
 	}
 
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx := chat.NewContext(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+	ctx := chat.Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		chat.NewIdentifyNotifier(h.G()))
 	ib, _, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), nil, true, &query, nil)
 	if err != nil {

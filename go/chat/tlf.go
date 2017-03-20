@@ -54,20 +54,17 @@ func (t *TLFInfoSource) Lookup(ctx context.Context, tlfName string,
 	return info, nil
 }
 
-func (t *TLFInfoSource) CryptKeys(ctx context.Context, tlfName string,
-	identBehavior keybase1.TLFIdentifyBehavior) (keybase1.GetTLFCryptKeysRes, error) {
-
-	var err error
-	ident, breaks, ok := IdentifyMode(ctx)
-	if ok {
-		identBehavior = ident
-	}
+func (t *TLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, err error) {
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
+	identBehavior, breaks, ok := IdentifyMode(ctx)
+	if !ok {
+		return res, fmt.Errorf("invalid context with no chat metadata")
+	}
 	tlfClient, err := t.tlfKeysClient()
 	if err != nil {
-		return keybase1.GetTLFCryptKeysRes{}, err
+		return res, err
 	}
 
 	resp, err := tlfClient.GetTLFCryptKeys(ctx, keybase1.TLFQuery{
@@ -87,12 +84,10 @@ func (t *TLFInfoSource) CryptKeys(ctx context.Context, tlfName string,
 	return resp, nil
 }
 
-func (t *TLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string,
-	identBehavior keybase1.TLFIdentifyBehavior) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
-	var err error
-	ident, breaks, ok := IdentifyMode(ctx)
-	if ok {
-		identBehavior = ident
+func (t *TLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
+	identBehavior, breaks, ok := IdentifyMode(ctx)
+	if !ok {
+		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", tlfName, identBehavior))()
@@ -119,8 +114,7 @@ func (t *TLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName
 	return resp, nil
 }
 
-func (t *TLFInfoSource) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, tlfName string,
-	identBehavior keybase1.TLFIdentifyBehavior) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
+func (t *TLFInfoSource) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
 	username := t.G().Env.GetUsername()
 	if len(username) == 0 {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, libkb.LoginRequiredError{}
@@ -136,7 +130,7 @@ func (t *TLFInfoSource) CompleteAndCanonicalizePrivateTlfName(ctx context.Contex
 
 	// TODO: do some caching so we don't end up calling this RPC
 	// unnecessarily too often
-	resp, err := t.CryptKeys(ctx, tlfName, identBehavior)
+	resp, err := t.CryptKeys(ctx, tlfName)
 	if err != nil {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
 	}
