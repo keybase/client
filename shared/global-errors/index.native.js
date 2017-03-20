@@ -87,10 +87,10 @@ class GlobalError extends Component<void, Props, State> {
 
     return (
       <Box style={{...containerStyle, maxHeight}}>
-        <NativeTouchableWithoutFeedback onPress={this._onExpandClick}>
+        <NativeTouchableWithoutFeedback>
           <Box style={summaryRowStyle}>
-            {summary && <Icon type='iconfont-exclamation' style={{color: globalColors.white, marginRight: 8}} />}
-            <Text type='BodySmall' style={{color: globalColors.white, textAlign: 'center'}}>{summary}</Text>
+            {summary && <Icon onClick={this._onExpandClick} type='iconfont-exclamation' style={{color: globalColors.white, marginRight: 8}} />}
+            <Text onClick={this._onExpandClick} type='BodySmall' style={{color: globalColors.white, textAlign: 'center'}}>{summary}</Text>
             {summary && <Icon type='iconfont-close' onClick={onDismiss} style={{position: 'absolute', right: 8, color: globalColors.white_75, top: 20}} />}
           </Box>
         </NativeTouchableWithoutFeedback>
