@@ -171,8 +171,8 @@ class Input extends Component<void, Props, State> {
 
     const singlelineStyle = {
       ...commonInputStyle,
-      maxHeight: 28,
-      minHeight: 28,
+      maxHeight: _lineHeight, // ensure it doesn't grow or shrink
+      minHeight: _lineHeight,
       padding: 0,
     }
 
