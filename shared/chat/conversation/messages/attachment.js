@@ -64,7 +64,7 @@ function PreviewImage ({message: {attachmentDurationMs, previewDurationMs, previ
             <ImageIcon
               style={{position: 'relative', right: 19, top: 3}}
               type={messageState === 'downloading' ? 'Downloading' : 'Downloaded'} />}
-          {attachmentDurationMs && !previewDurationMs &&
+          {attachmentDurationMs && !previewDurationMs && messageState !== 'downloading-preview' &&
             <Box style={{...globalStyles.flexBoxCenter, position: 'absolute', top: 0, left: 0, bottom: 0, right: 0}}>
               <Icon type='icon-play-64' />
             </Box>
