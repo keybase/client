@@ -34,8 +34,8 @@ func NewRedditChecker(p libkb.RemoteProofChainLink) (*RedditChecker, libkb.Proof
 
 func (rc *RedditChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *RedditChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
-	return CheckProofPvl(ctx, keybase1.ProofType_REDDIT, rc.proof, h)
+func (rc *RedditChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+	return CheckProofPvl(ctx, keybase1.ProofType_REDDIT, rc.proof, h, pvlU)
 }
 
 //

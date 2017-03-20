@@ -494,7 +494,7 @@ const (
 )
 
 type ProofChecker interface {
-	CheckStatus(ctx ProofContext, h SigHint, pcm ProofCheckerMode) ProofError
+	CheckStatus(ctx ProofContext, h SigHint, pcm ProofCheckerMode, pvlU PvlUnparsed) ProofError
 	GetTorError() ProofError
 }
 
@@ -541,7 +541,7 @@ type ExternalServicesCollector interface {
 }
 
 type PvlSource interface {
-	GetPVL(ctx context.Context, pvlVersion int) (string, error)
+	GetPVL(ctx context.Context) (PvlUnparsed, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.

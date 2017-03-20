@@ -14,8 +14,9 @@ import (
 
 type CheckResult struct {
 	Contextified
-	Status ProofError // Or nil if it was a success
-	Time   time.Time  // When the last check was
+	Status  ProofError // Or nil if it was a success
+	Time    time.Time  // When the last check was
+	PvlHash string     // Added after other fields. Some entries may not have this packed.
 }
 
 func (cr CheckResult) Pack() *jsonw.Wrapper {
@@ -25,6 +26,7 @@ func (cr CheckResult) Pack() *jsonw.Wrapper {
 		s.SetKey("code", jsonw.NewInt(int(cr.Status.GetProofStatus())))
 		s.SetKey("desc", jsonw.NewString(cr.Status.GetDesc()))
 		p.SetKey("status", s)
+		p.SetKey("pvlhash", jsonw.NewString(cr.PvlHash))
 	}
 	p.SetKey("time", jsonw.NewInt64(cr.Time.Unix()))
 	return p
@@ -65,11 +67,14 @@ func NewNowCheckResult(g *GlobalContext, pe ProofError) *CheckResult {
 }
 
 func NewCheckResult(g *GlobalContext, jw *jsonw.Wrapper) (res *CheckResult, err error) {
+	var ignoreErr error
 	var t int64
 	var code int
 	var desc string
+	var pvlHash string
 
 	jw.AtKey("time").GetInt64Void(&t, &err)
+	jw.AtKey("pvlhash").GetStringVoid(&pvlHash, &ignoreErr)
 	status := jw.AtKey("status")
 	var pe ProofError
 
@@ -83,6 +88,7 @@ func NewCheckResult(g *GlobalContext, jw *jsonw.Wrapper) (res *CheckResult, err 
 			Contextified: NewContextified(g),
 			Status:       pe,
 			Time:         time.Unix(t, 0),
+			PvlHash:      pvlHash,
 		}
 	}
 	return
@@ -165,7 +171,7 @@ func (pc *ProofCache) memPut(sid keybase1.SigID, cr CheckResult) {
 	pc.lru.Add(sid, cr)
 }
 
-func (pc *ProofCache) Get(sid keybase1.SigID) *CheckResult {
+func (pc *ProofCache) Get(sid keybase1.SigID, pvlHash PvlKitHash) *CheckResult {
 	if pc == nil {
 		return nil
 	}
@@ -174,6 +180,19 @@ func (pc *ProofCache) Get(sid keybase1.SigID) *CheckResult {
 	if cr == nil {
 		cr = pc.dbGet(sid)
 	}
+	if cr == nil {
+		return nil
+	}
+
+	if cr.PvlHash == "" {
+		pc.G().Log.Debug("^ ProofCache ignoring entry with pvl-hash empty")
+		return nil
+	}
+	if cr.PvlHash != string(pvlHash) {
+		pc.G().Log.Debug("^ ProofCache ignoring entry with pvl-hash mismatch")
+		return nil
+	}
+
 	return cr
 }
 
@@ -233,7 +252,7 @@ func (pc *ProofCache) dbPut(sid keybase1.SigID, cr CheckResult) error {
 	return pc.G().LocalDb.Put(dbkey, []DbKey{}, jw)
 }
 
-func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError) error {
+func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError, pvlHash PvlKitHash) error {
 	if pc == nil {
 		return nil
 	}
@@ -241,6 +260,7 @@ func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError) error {
 		Contextified: pc.Contextified,
 		Status:       pe,
 		Time:         pc.G().Clock().Now(),
+		PvlHash:      string(pvlHash),
 	}
 	pc.memPut(sid, cr)
 	return pc.dbPut(sid, cr)
