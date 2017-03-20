@@ -1,8 +1,7 @@
 // @flow
 import {Component} from 'react'
-import type {Exact} from '../constants/types/more'
 
-export type Props = Exact<{
+export type Props = {
   autoFocus?: bool,
   blur?: () => void,
   errorStyle?: ?Object,
@@ -34,6 +33,6 @@ export type Props = Exact<{
   autoCorrect?: bool,
   keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'ascii-capable' | 'numbers-and-punctuation' | 'url' | 'number-pad' | 'name-phone-pad' | 'decimal-pad' | 'twitter' | 'web-search',
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send'
-}>
+}
 
 declare export default class Input extends Component<void, Props, void> { }

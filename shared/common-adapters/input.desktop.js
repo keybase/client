@@ -149,10 +149,9 @@ class Input extends Component<void, Props, State> {
     }
     : {
       ...globalStyles.flexBoxColumn,
-      maxWidth: 460,
-      width: '100%',
-      marginTop: globalMargins.small,
+      alignItems: 'center',
       marginBottom: globalMargins.small,
+      marginTop: globalMargins.small,
     }
   }
 
@@ -196,12 +195,14 @@ class Input extends Component<void, Props, State> {
 
     const inputStyle = {
       ...commonInputStyle,
+      maxWidth: 460,
       height: this.props.small ? 18 : 28,
     }
 
     const textareaStyle = {
       ...commonInputStyle,
       height: 'initial',
+      width: '100%',
       resize: 'none',
       wrap: 'off',
       paddingTop: 0,
