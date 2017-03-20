@@ -135,9 +135,9 @@
 			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
-			"checksumSHA1": "gLinqeOpvTWSGUlxrFbvsc016Oc=",
-			"path": "github.com/keybase/client/go/chat/interfaces",
-			"revision": "66b4b1333325587c1161b18c2b462b3d1781696e",
+			"checksumSHA1": "/M69Gv5ANGm5un2FLnBTEVuKsxI=",
+			"path": "github.com/keybase/client/go/chat/types",
+			"revision": "dec61b18d5ccccc63a14100393675b7edd249f43",
 			"revisionTime": "2017-03-20T19:37:17Z"
 		},
 		{
@@ -159,9 +159,9 @@
 			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
-			"checksumSHA1": "izAKnxnWAKBhfisFveXwWSd1Gz4=",
+			"checksumSHA1": "OU+qaJCZkbBMoQYamhJ4HhWS7c8=",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "66b4b1333325587c1161b18c2b462b3d1781696e",
+			"revision": "dec61b18d5ccccc63a14100393675b7edd249f43",
 			"revisionTime": "2017-03-20T19:37:17Z"
 		},
 		{
@@ -177,9 +177,9 @@
 			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
-			"checksumSHA1": "vTm7HH3hzSzdG1MiYsUPYqpLm6c=",
+			"checksumSHA1": "LsKwdzQMatyS/SbuGP7TF+DbCvc=",
 			"path": "github.com/keybase/client/go/protocol/chat1",
-			"revision": "66b4b1333325587c1161b18c2b462b3d1781696e",
+			"revision": "dec61b18d5ccccc63a14100393675b7edd249f43",
 			"revisionTime": "2017-03-20T19:37:17Z"
 		},
 		{
@@ -191,7 +191,7 @@
 		{
 			"checksumSHA1": "wjqppOFQQ4pKglfjqa0ehgI8lvY=",
 			"path": "github.com/keybase/client/go/protocol/keybase1",
-			"revision": "66b4b1333325587c1161b18c2b462b3d1781696e",
+			"revision": "dec61b18d5ccccc63a14100393675b7edd249f43",
 			"revisionTime": "2017-03-20T19:37:17Z"
 		},
 		{
