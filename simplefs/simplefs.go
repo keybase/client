@@ -30,8 +30,9 @@ type SimpleFS struct {
 }
 
 type inprogress struct {
-	desc keybase1.OpDescription
-	done chan error
+	desc   keybase1.OpDescription
+	cancel context.CancelFunc
+	done   chan error
 }
 
 type handle struct {
@@ -219,10 +220,28 @@ func (k *SimpleFS) doCopy(ctx context.Context, srcPath, destPath keybase1.Path) 
 	defer dst.Close()
 
 	if src.Type() == keybase1.DirentType_FILE || src.Type() == keybase1.DirentType_EXEC {
-		_, err = io.Copy(dst, src)
+		err = copyWithCancellation(ctx, dst, src)
+		if err != nil {
+			return err
+		}
 	}
 
-	return err
+	return nil
+}
+
+func copyWithCancellation(ctx context.Context, dst io.Writer, src io.Reader) error {
+	for {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		_, err := io.CopyN(dst, src, 64*1024)
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+	}
 }
 
 type pathPair struct {
@@ -238,6 +257,9 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 
 			var paths = []pathPair{{src: arg.Src, dest: arg.Dest}}
 			for len(paths) > 0 {
+				if err := ctx.Err(); err != nil {
+					return err
+				}
 				// wrap in a function for defers.
 				err = func() error {
 					path := paths[len(paths)-1]
@@ -258,7 +280,10 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 					// TODO symlinks
 					switch src.Type() {
 					case keybase1.DirentType_FILE, keybase1.DirentType_EXEC:
-						_, err = io.Copy(dst, src)
+						err = copyWithCancellation(ctx, dst, src)
+						if err != nil {
+							return err
+						}
 					case keybase1.DirentType_DIR:
 						eis, err := src.Children()
 						if err != nil {
@@ -515,6 +540,20 @@ func (k *SimpleFS) SimpleFSClose(ctx context.Context, opid keybase1.OpID) (err e
 		err = k.config.KBFSOps().Sync(ctx, h.node)
 	}
 	return err
+}
+
+// SimpleFSCancel starts to cancel op with the given opid.
+// Also remove any pending references of opid everywhere.
+func (k *SimpleFS) SimpleFSCancel(_ context.Context, opid keybase1.OpID) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	w, ok := k.inProgress[opid]
+	if !ok {
+		return
+	}
+	delete(k.inProgress, opid)
+	delete(k.handles, opid)
+	w.cancel()
 }
 
 // SimpleFSCheck - Check progress of pending operation
@@ -867,8 +906,9 @@ func (k *SimpleFS) startAsync(opid keybase1.OpID, desc keybase1.OpDescription,
 
 func (k *SimpleFS) startOp(ctx context.Context, opid keybase1.OpID,
 	desc keybase1.OpDescription) (context.Context, error) {
+	ctx, cancel := context.WithCancel(ctx)
 	k.lock.Lock()
-	k.inProgress[opid] = &inprogress{desc, make(chan error, 1)}
+	k.inProgress[opid] = &inprogress{desc, cancel, make(chan error, 1)}
 	k.lock.Unlock()
 	// ignore error, this is just for logging.
 	descBS, _ := json.Marshal(desc)
