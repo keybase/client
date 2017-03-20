@@ -352,7 +352,6 @@ type ChatUI interface {
 	ChatInboxFailed(context.Context, chat1.ChatInboxFailedArg) error
 	ChatThreadCached(context.Context, chat1.ChatThreadCachedArg) error
 	ChatThreadFull(context.Context, chat1.ChatThreadFullArg) error
-	ChatThreadCacheMiss(context.Context) error
 }
 
 type PromptDefault int

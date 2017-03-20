@@ -1584,7 +1584,7 @@ export type chatUiChatInboxUnverifiedRpcParam = Exact<{
 }>
 
 export type chatUiChatThreadCachedRpcParam = Exact<{
-  thread: ThreadView
+  thread?: ?ThreadView
 }>
 
 export type chatUiChatThreadFullRpcParam = Exact<{
@@ -2040,16 +2040,10 @@ export type incomingCallMapType = Exact<{
     }>,
     response: CommonResponseHandler
   ) => void,
-  'keybase.1.chatUi.chatThreadCacheMiss'?: (
-    params: Exact<{
-      sessionID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
   'keybase.1.chatUi.chatThreadCached'?: (
     params: Exact<{
       sessionID: int,
-      thread: ThreadView
+      thread?: ?ThreadView
     }>,
     response: CommonResponseHandler
   ) => void,

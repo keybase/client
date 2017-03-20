@@ -265,6 +265,7 @@ func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetT
 		defer wg.Done()
 
 		// Get local copy of the thread, abort the call if we have sent the full copy
+		var resThread *chat1.ThreadView
 		var localThread chat1.ThreadView
 		ch := make(chan error, 1)
 		go func() {
@@ -281,8 +282,8 @@ func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetT
 			if err != nil {
 				h.Debug(ctx, "GetThreadNonblock: error running PullLocalOnly (sending miss): %s",
 					err.Error())
-				chatUI.ChatThreadCacheMiss(bctx)
-				return
+			} else {
+				resThread = &localThread
 			}
 		case <-bctx.Done():
 			h.Debug(ctx, "GetThreadNonblock: context canceled before PullLocalOnly returned")
@@ -301,7 +302,7 @@ func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetT
 		h.Debug(ctx, "GetThreadNonblock: cached thread sent")
 		chatUI.ChatThreadCached(bctx, chat1.ChatThreadCachedArg{
 			SessionID: arg.SessionID,
-			Thread:    localThread,
+			Thread:    resThread,
 		})
 	}()
 

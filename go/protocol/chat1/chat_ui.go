@@ -63,13 +63,9 @@ type ChatInboxFailedArg struct {
 	Error     ConversationErrorLocal `codec:"error" json:"error"`
 }
 
-type ChatThreadCacheMissArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
 type ChatThreadCachedArg struct {
-	SessionID int        `codec:"sessionID" json:"sessionID"`
-	Thread    ThreadView `codec:"thread" json:"thread"`
+	SessionID int         `codec:"sessionID" json:"sessionID"`
+	Thread    *ThreadView `codec:"thread,omitempty" json:"thread,omitempty"`
 }
 
 type ChatThreadFullArg struct {
@@ -89,7 +85,6 @@ type ChatUiInterface interface {
 	ChatInboxUnverified(context.Context, ChatInboxUnverifiedArg) error
 	ChatInboxConversation(context.Context, ChatInboxConversationArg) error
 	ChatInboxFailed(context.Context, ChatInboxFailedArg) error
-	ChatThreadCacheMiss(context.Context, int) error
 	ChatThreadCached(context.Context, ChatThreadCachedArg) error
 	ChatThreadFull(context.Context, ChatThreadFullArg) error
 }
@@ -274,22 +269,6 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"chatThreadCacheMiss": {
-				MakeArg: func() interface{} {
-					ret := make([]ChatThreadCacheMissArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]ChatThreadCacheMissArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]ChatThreadCacheMissArg)(nil), args)
-						return
-					}
-					err = i.ChatThreadCacheMiss(ctx, (*typedArgs)[0].SessionID)
-					return
-				},
-				MethodType: rpc.MethodNotify,
-			},
 			"chatThreadCached": {
 				MakeArg: func() interface{} {
 					ret := make([]ChatThreadCachedArg, 1)
@@ -386,12 +365,6 @@ func (c ChatUiClient) ChatInboxConversation(ctx context.Context, __arg ChatInbox
 
 func (c ChatUiClient) ChatInboxFailed(ctx context.Context, __arg ChatInboxFailedArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxFailed", []interface{}{__arg}, nil)
-	return
-}
-
-func (c ChatUiClient) ChatThreadCacheMiss(ctx context.Context, sessionID int) (err error) {
-	__arg := ChatThreadCacheMissArg{SessionID: sessionID}
-	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatThreadCacheMiss", []interface{}{__arg})
 	return
 }
 

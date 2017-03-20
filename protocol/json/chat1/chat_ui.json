@@ -152,16 +152,6 @@
       ],
       "response": null
     },
-    "chatThreadCacheMiss": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null,
-      "oneway": true
-    },
     "chatThreadCached": {
       "request": [
         {
@@ -170,7 +160,10 @@
         },
         {
           "name": "thread",
-          "type": "ThreadView"
+          "type": [
+            null,
+            "ThreadView"
+          ]
         }
       ],
       "response": null,
