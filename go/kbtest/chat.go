@@ -617,7 +617,7 @@ type NonblockInboxResult struct {
 }
 
 type NonblockThreadResult struct {
-	Thread chat1.ThreadView
+	Thread *chat1.ThreadView
 	Full   bool
 }
 
@@ -697,7 +697,7 @@ func (c *ChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCache
 
 func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
 	c.threadCb <- NonblockThreadResult{
-		Thread: arg.Thread,
+		Thread: &arg.Thread,
 		Full:   true,
 	}
 	return nil
