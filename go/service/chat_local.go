@@ -219,6 +219,7 @@ func (h *chatLocalHandler) GetCachedThread(ctx context.Context, arg chat1.GetCac
 
 // GetThreadLocal implements keybase.chatLocal.getThreadLocal protocol.
 func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg) (res chat1.GetThreadLocalRes, err error) {
+	defer h.perfLog("GetThreadLocal", time.Now())
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetThreadLocal")()
@@ -338,6 +339,7 @@ func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetT
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
 // Create a new conversation. Or in the case of CHAT, create-or-get a conversation.
 func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.NewConversationLocalArg) (res chat1.NewConversationLocalRes, reserr error) {
+	defer h.perfLog("NewConversationLocal", time.Now())
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return reserr }, "NewConversationLocal")()
@@ -345,10 +347,12 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		return chat1.NewConversationLocalRes{}, err
 	}
 
+	lnow := time.Now()
 	info, err := chat.LookupTLF(ctx, h.tlf, arg.TlfName, arg.TlfVisibility)
 	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
 	}
+	h.perfLog("chat.LookupTLF", lnow)
 
 	triple := chat1.ConversationIDTriple{
 		Tlfid:     info.ID,
@@ -369,10 +373,12 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		}
 
 		var ncrres chat1.NewConversationRemoteRes
+		rnow := time.Now()
 		ncrres, reserr = h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:   triple,
 			TLFMessage: *firstMessageBoxed,
 		})
+		h.perfLog("NewConversationRemote2", rnow)
 		if ncrres.RateLimit != nil {
 			res.RateLimits = append(res.RateLimits, *ncrres.RateLimit)
 		}
@@ -641,6 +647,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 }
 
 func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMessagesLocalArg) (res chat1.GetMessagesLocalRes, err error) {
+	defer h.perfLog("GetMessagesLocal", time.Now())
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetMessagesLocal")()
@@ -686,6 +693,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 }
 
 func (h *chatLocalHandler) SetConversationStatusLocal(ctx context.Context, arg chat1.SetConversationStatusLocalArg) (res chat1.SetConversationStatusLocalRes, err error) {
+	defer h.perfLog("SetConversationStatusLocal", time.Now())
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SetConversationStatusLocal")()
@@ -709,6 +717,7 @@ func (h *chatLocalHandler) SetConversationStatusLocal(ctx context.Context, arg c
 
 // PostLocal implements keybase.chatLocal.postLocal protocol.
 func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res chat1.PostLocalRes, err error) {
+	defer h.perfLog("PostLocal", time.Now())
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocal")()
@@ -748,6 +757,7 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 }
 
 func (h *chatLocalHandler) PostDeleteNonblock(ctx context.Context, arg chat1.PostDeleteNonblockArg) (chat1.PostLocalNonblockRes, error) {
+	defer h.perfLog("PostDeleteNonblock", time.Now())
 
 	var parg chat1.PostLocalNonblockArg
 	parg.ClientPrev = arg.ClientPrev
@@ -763,6 +773,7 @@ func (h *chatLocalHandler) PostDeleteNonblock(ctx context.Context, arg chat1.Pos
 }
 
 func (h *chatLocalHandler) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonblockArg) (chat1.PostLocalNonblockRes, error) {
+	defer h.perfLog("PostEditNonblock", time.Now())
 
 	var parg chat1.PostLocalNonblockArg
 	parg.ClientPrev = arg.ClientPrev
@@ -782,6 +793,7 @@ func (h *chatLocalHandler) PostEditNonblock(ctx context.Context, arg chat1.PostE
 }
 
 func (h *chatLocalHandler) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (chat1.PostLocalNonblockRes, error) {
+	defer h.perfLog("PostTextNonblock", time.Now())
 
 	var parg chat1.PostLocalNonblockArg
 	parg.ClientPrev = arg.ClientPrev
@@ -800,6 +812,7 @@ func (h *chatLocalHandler) PostTextNonblock(ctx context.Context, arg chat1.PostT
 }
 
 func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+	defer h.perfLog("PostLocalNonblock", time.Now())
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocalNonblock")()
@@ -853,6 +866,7 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 
 // PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
 func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (res chat1.PostLocalRes, err error) {
+	defer h.perfLog("PostAttachmentLocal", time.Now())
 	defer h.Trace(ctx, func() error { return err }, "PostAttachmentLocal")()
 	parg := postAttachmentArg{
 		SessionID:        arg.SessionID,
@@ -875,6 +889,7 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 
 // PostFileAttachmentLocal implements chat1.LocalInterface.PostFileAttachmentLocal.
 func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFileAttachmentLocalArg) (res chat1.PostLocalRes, err error) {
+	defer h.perfLog("PostFileAttachmentLocal", time.Now())
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocal")()
 	parg := postAttachmentArg{
 		SessionID:        arg.SessionID,
@@ -1184,6 +1199,7 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 
 // DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.
 func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat1.DownloadAttachmentLocalArg) (res chat1.DownloadAttachmentLocalRes, err error) {
+	defer h.perfLog("DownloadAttachmentLocal", time.Now())
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "DownloadAttachmentLocal")()
@@ -1202,6 +1218,7 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
 func (h *chatLocalHandler) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadAttachmentLocalRes, err error) {
+	defer h.perfLog("DownloadFileAttachmentLocal", time.Now())
 	defer h.Trace(ctx, func() error { return err }, "DownloadFileAttachmentLocal")()
 	darg := downloadAttachmentArg{
 		SessionID:        arg.SessionID,
@@ -1280,6 +1297,7 @@ func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg down
 }
 
 func (h *chatLocalHandler) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {
+	defer h.perfLog("CancelPost", time.Now())
 	defer h.Trace(ctx, func() error { return err }, "CancelPost")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return err
@@ -1295,6 +1313,7 @@ func (h *chatLocalHandler) CancelPost(ctx context.Context, outboxID chat1.Outbox
 }
 
 func (h *chatLocalHandler) RetryPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {
+	defer h.perfLog("RetryPost", time.Now())
 	defer h.Trace(ctx, func() error { return err }, "RetryPost")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return err
@@ -1575,6 +1594,9 @@ func (h *chatLocalHandler) deleteAssets(ctx context.Context, conversationID chat
 
 func (h *chatLocalHandler) FindConversationsLocal(ctx context.Context,
 	arg chat1.FindConversationsLocalArg) (res chat1.FindConversationsLocalRes, err error) {
+
+	defer h.perfLog("FindConversationsLocal", time.Now())
+
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "FindConversationsLocal")()
@@ -1662,4 +1684,10 @@ func (h *chatLocalHandler) FindConversationsLocal(ctx context.Context,
 
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 	return res, nil
+}
+
+// perfLog logs function call durations in ms.
+//    example usage: defer h.perfLog("MyFunc", time.Now())
+func (h *chatLocalHandler) perfLog(name string, start time.Time) {
+	h.G().Log.Debug("ChatPerf %s: %d", name, time.Since(start)/time.Millisecond)
 }
