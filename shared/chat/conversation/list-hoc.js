@@ -4,10 +4,8 @@ import * as ChatConstants from '../../constants/chat'
 import {List} from 'immutable'
 import {withProps} from 'recompose'
 
-import type {Props} from './list'
+import type {Props, OptionsFn} from './list'
 import type {Options} from './messages'
-
-type OptionsFn = (message: ChatConstants.Message, prevMessage: ChatConstants.Message, isFirstMessage: boolean, isSelected: boolean, isScrolling: boolean, key: any, style: Object, onAction: () => void, onShowEditor: (event: any) => void, isEditing: boolean) => Options
 
 function propsToMessageOptionsFn (props: Props): OptionsFn {
   return function (message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, onAction, onShowEditor, isEditing = false): Options {

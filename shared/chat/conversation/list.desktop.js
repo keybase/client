@@ -18,7 +18,7 @@ import {globalColors, globalStyles} from '../../styles'
 import {findDOMNode} from '../../util/dom'
 
 import type {List} from 'immutable'
-import type {Message, MessageID, TextMessage, AttachmentMessage} from '../../constants/chat'
+import type {AttachmentMessage, Message, MessageID, ServerMessage, TextMessage} from '../../constants/chat'
 import type {Props} from './list'
 
 type State = {
@@ -310,7 +310,7 @@ class ConversationList extends Component<void, Props, State> {
     ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
   }
 
-  _onAction = (message, event) => {
+  _onAction = (message: ServerMessage, event: any) => {
     if (message.type === 'Text' || message.type === 'Attachment') {
       this._showPopup(message, event)
     }
@@ -352,7 +352,7 @@ class ConversationList extends Component<void, Props, State> {
     const isFirstMessage = index === 0
     const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
 
-    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, this._onAction, this._onShowEditor)
+    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, this._onAction, this._onShowEditor, false)
 
     return messageFactory(options)
   }
