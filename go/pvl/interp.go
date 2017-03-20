@@ -928,7 +928,13 @@ func stepSelectorCSS(g proofContextExt, ins selectorCSST, state scriptState) (sc
 			"Cannot use css selector with non-html fetch result")
 	}
 
-	selection, perr := runCSSSelectorInner(g, state.FetchResult.HTML.Selection, ins.Selectors)
+	dump := false
+	who, err := state.Regs.Get("username_keybase")
+	if state.Service == keybase1.ProofType_TWITTER && err == nil && who == "cjb" {
+		dump = true
+	}
+
+	selection, perr := runCSSSelectorInner(g, state.FetchResult.HTML.Selection, ins.Selectors, dump)
 	if perr != nil {
 		return state, perr
 	}
@@ -953,7 +959,7 @@ func stepSelectorCSS(g proofContextExt, ins selectorCSST, state scriptState) (sc
 		res = selectionText(selection)
 	}
 
-	err := state.Regs.Set(ins.Into, res)
+	err = state.Regs.Set(ins.Into, res)
 	return state, err
 }
 
@@ -973,7 +979,15 @@ func stepFill(g proofContextExt, ins fillT, state scriptState) (scriptState, lib
 // Run a PVL CSS selector.
 // selectors is a list like [ "div .foo", 0, ".bar"] ].
 // Each string runs a selector, each integer runs a Eq.
-func runCSSSelectorInner(g proofContextExt, html *goquery.Selection, selectors []selectorEntryT) (*goquery.Selection, libkb.ProofError) {
+func runCSSSelectorInner(g proofContextExt, html *goquery.Selection, selectors []selectorEntryT, dump bool) (*goquery.Selection, libkb.ProofError) {
+	if dump {
+		s, err := goquery.OuterHtml(html)
+		if err != nil {
+			panic(err)
+		}
+		debug(g, "flobble: --@@--\n\n%s\n\n--@@--", s)
+	}
+
 	if len(selectors) < 1 {
 		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"CSS selectors array must not be empty")
