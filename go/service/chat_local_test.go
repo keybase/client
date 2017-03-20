@@ -251,8 +251,9 @@ func TestGetInboxNonblock(t *testing.T) {
 	users := ctc.users()
 
 	numconvs := 5
-	cb := make(chan kbtest.NonblockInboxResult, 100)
-	ui := kbtest.NewChatUI(cb)
+	inboxCb := make(chan kbtest.NonblockInboxResult, 100)
+	threadCb := make(chan kbtest.NonblockThreadResult, 100)
+	ui := kbtest.NewChatUI(inboxCb, threadCb)
 	ctc.as(t, users[0]).h.mockChatUI = ui
 
 	// Create a bunch of blank convos
@@ -270,7 +271,7 @@ func TestGetInboxNonblock(t *testing.T) {
 	)
 	require.NoError(t, err)
 	select {
-	case ibox := <-cb:
+	case ibox := <-inboxCb:
 		require.NotNil(t, ibox.InboxRes, "nil inbox")
 		require.Zero(t, len(ibox.InboxRes.ConversationsUnverified), "wrong size inbox")
 	case <-time.After(20 * time.Second):
@@ -279,7 +280,7 @@ func TestGetInboxNonblock(t *testing.T) {
 	// Get all convos
 	for i := 0; i < numconvs; i++ {
 		select {
-		case conv := <-cb:
+		case conv := <-inboxCb:
 			require.NotNil(t, conv.ConvRes, "no conv")
 			delete(convs, conv.ConvID.String())
 		case <-time.After(20 * time.Second):
@@ -319,7 +320,7 @@ func TestGetInboxNonblock(t *testing.T) {
 	)
 	require.NoError(t, err)
 	select {
-	case ibox := <-cb:
+	case ibox := <-inboxCb:
 		require.NotNil(t, ibox.InboxRes, "nil inbox")
 		require.Equal(t, len(convs), len(ibox.InboxRes.ConversationsUnverified), "wrong size inbox")
 	case <-time.After(20 * time.Second):
@@ -328,7 +329,7 @@ func TestGetInboxNonblock(t *testing.T) {
 	// Get all convos
 	for i := 0; i < numconvs; i++ {
 		select {
-		case conv := <-cb:
+		case conv := <-inboxCb:
 			require.NotNil(t, conv.ConvRes, "no conv")
 			delete(convs, conv.ConvID.String())
 		case <-time.After(20 * time.Second):
@@ -339,7 +340,7 @@ func TestGetInboxNonblock(t *testing.T) {
 
 	// Make sure there is nothing left
 	select {
-	case <-cb:
+	case <-inboxCb:
 		require.Fail(t, "should have drained channel")
 	default:
 	}
@@ -1092,4 +1093,85 @@ func TestFindConversations(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res.Conversations), "conv found")
 	require.Equal(t, created.Id, res.Conversations[0].GetConvID(), "wrong conv")
+}
+
+func receiveThreadResult(t *testing.T, cb chan kbtest.NonblockThreadResult) (res chat1.ThreadView) {
+	var tres kbtest.NonblockThreadResult
+	select {
+	case tres = <-cb:
+		res = tres.Thread
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no thread received")
+	}
+	if !tres.Full {
+		select {
+		case tres = <-cb:
+			require.True(t, tres.Full)
+			res = tres.Thread
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread received")
+		}
+	}
+	return res
+}
+
+func TestGetThreadNonblock(t *testing.T) {
+	ctc := makeChatTestContext(t, "GetThreadNonblock", 1)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	inboxCb := make(chan kbtest.NonblockInboxResult, 100)
+	threadCb := make(chan kbtest.NonblockThreadResult, 100)
+	ui := kbtest.NewChatUI(inboxCb, threadCb)
+	ctc.as(t, users[0]).h.mockChatUI = ui
+
+	t.Logf("test empty thread")
+	query := chat1.GetThreadQuery{
+		MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+	}
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, users[0].Username)
+	_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(context.TODO(),
+		chat1.GetThreadNonblockArg{
+			ConversationID:   conv.Id,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			Query:            &query,
+		},
+	)
+	require.NoError(t, err)
+	res := receiveThreadResult(t, threadCb)
+	require.Zero(t, len(res.Messages))
+
+	t.Logf("send a bunch of messages")
+	numMsgs := 20
+	msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
+	for i := 0; i < numMsgs; i++ {
+		mustPostLocalForTest(t, ctc, users[0], conv, msg)
+	}
+
+	t.Logf("read back full thread")
+	_, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(context.TODO(),
+		chat1.GetThreadNonblockArg{
+			ConversationID:   conv.Id,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			Query:            &query,
+		},
+	)
+	require.NoError(t, err)
+	res = receiveThreadResult(t, threadCb)
+	require.Equal(t, numMsgs, len(res.Messages))
+
+	t.Logf("read back with a delay on the local pull")
+	delay := time.Hour * 800
+	ctc.as(t, users[0]).h.cachedThreadDelay = &delay
+	_, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(context.TODO(),
+		chat1.GetThreadNonblockArg{
+			ConversationID:   conv.Id,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			Query:            &query,
+		},
+	)
+	require.NoError(t, err)
+	res = receiveThreadResult(t, threadCb)
+	require.Equal(t, numMsgs, len(res.Messages))
+
 }

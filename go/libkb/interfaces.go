@@ -350,6 +350,8 @@ type ChatUI interface {
 	ChatInboxUnverified(context.Context, chat1.ChatInboxUnverifiedArg) error
 	ChatInboxConversation(context.Context, chat1.ChatInboxConversationArg) error
 	ChatInboxFailed(context.Context, chat1.ChatInboxFailedArg) error
+	ChatThreadCached(context.Context, chat1.ChatThreadCachedArg) error
+	ChatThreadFull(context.Context, chat1.ChatThreadFullArg) error
 }
 
 type PromptDefault int

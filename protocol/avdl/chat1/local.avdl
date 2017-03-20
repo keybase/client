@@ -391,6 +391,12 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
+  record NonblockFetchRes {
+    boolean offline;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+
   record ThreadView {
     array<MessageUnboxed> messages;
     union { null, Pagination } pagination;
@@ -412,6 +418,10 @@ protocol local {
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
+
+  GetThreadLocalRes getCachedThread(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior); 
 
   record GetInboxLocalRes {
     array<Conversation> conversationsUnverified;
@@ -456,12 +466,7 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  GetInboxNonblockLocalRes getInboxNonblockLocal(int sessionID, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
-  record GetInboxNonblockLocalRes {
-    boolean offline;
-    array<RateLimit> rateLimits;
-    array<keybase1.TLFIdentifyFailure> identifyFailures;
-  }
+  NonblockFetchRes getInboxNonblockLocal(int sessionID, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior); 
 
   PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalRes {
