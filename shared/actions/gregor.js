@@ -9,6 +9,7 @@ import {folderFromPath} from '../constants/favorite.js'
 import {bootstrap} from '../actions/config'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {usernameSelector} from '../constants/selectors'
+import {nativeReachabilityEvents} from '../util/reachability'
 
 import type {CheckReachability, PushState, PushOOBM, UpdateReachability, UpdateSeenMsgs, MsgMap, NonNullGregorItem} from '../constants/gregor'
 import type {Dispatch} from '../constants/types/flux'
@@ -73,6 +74,10 @@ function registerReachability () {
 
     dispatch(checkReachabilityOnConnect())
   }
+}
+
+function listenForNativeReachabilityEvents (dispatch: Dispatch) {
+  return dispatch(nativeReachabilityEvents)
 }
 
 function checkReachabilityOnConnect () {
@@ -198,6 +203,7 @@ export {
   pushState,
   registerGregorListeners,
   registerReachability,
+  listenForNativeReachabilityEvents,
 }
 
 export default gregorSaga
