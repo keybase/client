@@ -342,7 +342,7 @@ func TestSimpleFSLocalSrcDir(t *testing.T) {
 		true,
 		"/public/foobar")
 	assert.Equal(tc.T, filepath.ToSlash(filepath.Join("/public/foobar", filepath.Base(tempdir))), destPath.Kbfs())
-	assert.Equal(tc.T, err, TargetFileExistsError, "Expected that remote target path exists because of SimpleFSMock")
+	assert.Equal(tc.T, err, ErrTargetFileExists, "Expected that remote target path exists because of SimpleFSMock")
 	//	require.NoError(tc.T, err, "bad path type")
 
 	pathType, err := destPath.PathType()
