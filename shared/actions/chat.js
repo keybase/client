@@ -1326,6 +1326,7 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
       incoming.chatThreadFull.response.result()
       yield call(updateThread, incoming.chatThreadFull.params.thread)
     } else if (incoming.finished) {
+      console.log('aaaa', incoming.finished)
       if (incoming.finished.error) {
         yield put({payload: {conversationIDKey, isRequesting: false}, type: 'chat:loadingMessages'}) // unmark as loaded
       } else {
