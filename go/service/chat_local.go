@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -34,7 +35,7 @@ type chatLocalHandler struct {
 	utils.DebugLabeler
 
 	gh            *gregorHandler
-	tlf           keybase1.TlfInterface
+	tlfInfoSource types.TLFInfoSource
 	boxer         *chat.Boxer
 	store         *chat.AttachmentStore
 	identNotifier *chat.IdentifyNotifier
@@ -47,14 +48,14 @@ type chatLocalHandler struct {
 
 // newChatLocalHandler creates a chatLocalHandler.
 func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, store *chat.AttachmentStore, gh *gregorHandler) *chatLocalHandler {
-	tlf := newTlfHandler(nil, g)
+	tlf := chat.NewKBFSTLFInfoSource(g)
 	h := &chatLocalHandler{
 		BaseHandler:   NewBaseHandler(xp),
 		Contextified:  libkb.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g, "ChatLocalHandler", false),
 		gh:            gh,
-		tlf:           tlf,
-		boxer:         chat.NewBoxer(g, func() keybase1.TlfInterface { return tlf }),
+		tlfInfoSource: tlf,
+		boxer:         chat.NewBoxer(g, tlf),
 		store:         store,
 		identNotifier: chat.NewIdentifyNotifier(g),
 	}
@@ -87,8 +88,7 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 	localizeCb := make(chan chat.NonblockInboxResult, 1)
 
 	// Invoke nonblocking inbox read and get remote inbox version to send back as our result
-	localizer := chat.NewNonblockingLocalizer(h.G(), localizeCb, arg.MaxUnbox,
-		func() keybase1.TlfInterface { return h.tlf })
+	localizer := chat.NewNonblockingLocalizer(h.G(), localizeCb, arg.MaxUnbox, h.tlfInfoSource)
 	_, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
 	if err != nil {
 		return res, err
@@ -176,7 +176,7 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 	}
 
 	// Read inbox from the source
-	localizer := chat.NewBlockingLocalizer(h.G(), func() keybase1.TlfInterface { return h.tlf })
+	localizer := chat.NewBlockingLocalizer(h.G(), h.tlfInfoSource)
 	ib, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query,
 		arg.Pagination)
 	if err != nil {
@@ -345,7 +345,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		return chat1.NewConversationLocalRes{}, err
 	}
 
-	info, err := chat.LookupTLF(ctx, h.tlf, arg.TlfName, arg.TlfVisibility)
+	info, err := h.tlfInfoSource.Lookup(ctx, arg.TlfName, arg.TlfVisibility)
 	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
 	}
@@ -1618,7 +1618,7 @@ func (h *chatLocalHandler) FindConversationsLocal(ctx context.Context,
 
 		// If we miss the inbox, and we are looking for a public TLF, let's try and find
 		// any conversation that matches
-		tlfInfo, err := chat.GetInboxQueryTLFInfo(ctx, h.tlf, &query)
+		tlfInfo, err := chat.GetInboxQueryTLFInfo(ctx, h.tlfInfoSource, &query)
 		if err != nil {
 			return res, err
 		}
@@ -1638,9 +1638,7 @@ func (h *chatLocalHandler) FindConversationsLocal(ctx context.Context,
 
 		// Localize the convs (if any)
 		if len(pubConvs.Conversations) > 0 {
-			localizer := chat.NewBlockingLocalizer(h.G(), func() keybase1.TlfInterface {
-				return h.tlf
-			})
+			localizer := chat.NewBlockingLocalizer(h.G(), h.tlfInfoSource)
 			convsLocal, err := localizer.Localize(ctx, uid.ToBytes(), chat1.Inbox{
 				ConvsUnverified: pubConvs.Conversations,
 			})

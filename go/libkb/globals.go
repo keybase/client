@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	chatinterfaces "github.com/keybase/client/go/chat/interfaces"
+	chattypes "github.com/keybase/client/go/chat/types"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	clockwork "github.com/keybase/clockwork"
@@ -101,9 +101,9 @@ type GlobalContext struct {
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
 
-	InboxSource      chatinterfaces.InboxSource        // source of remote inbox entries for chat
-	ConvSource       chatinterfaces.ConversationSource // source of remote message bodies for chat
-	MessageDeliverer chatinterfaces.MessageDeliverer   // background message delivery service
+	InboxSource      chattypes.InboxSource        // source of remote inbox entries for chat
+	ConvSource       chattypes.ConversationSource // source of remote message bodies for chat
+	MessageDeliverer chattypes.MessageDeliverer   // background message delivery service
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)

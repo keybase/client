@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -65,14 +66,14 @@ type IdentifyChangedHandler struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
-	tlf func() keybase1.TlfInterface
+	tlfInfoSource types.TLFInfoSource
 }
 
-func NewIdentifyChangedHandler(g *libkb.GlobalContext, tlf func() keybase1.TlfInterface) *IdentifyChangedHandler {
+func NewIdentifyChangedHandler(g *libkb.GlobalContext, tlfInfoSource types.TLFInfoSource) *IdentifyChangedHandler {
 	return &IdentifyChangedHandler{
-		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "IdentifyChangedHandler", false),
-		tlf:          tlf,
+		Contextified:  libkb.NewContextified(g),
+		DebugLabeler:  utils.NewDebugLabeler(g, "IdentifyChangedHandler", false),
+		tlfInfoSource: tlfInfoSource,
 	}
 }
 
@@ -192,10 +193,7 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 	}
 
 	// Run against CryptKeys to generate notifications if necessary
-	_, err = h.tlf().CryptKeys(ctx, keybase1.TLFQuery{
-		TlfName:          tlfName,
-		IdentifyBehavior: ident,
-	})
+	_, err = h.tlfInfoSource.CryptKeys(ctx, tlfName)
 	if err != nil {
 		h.Debug(ctx, "HandleUserChanged: failed to run CryptKeys: %s", err.Error())
 	}
