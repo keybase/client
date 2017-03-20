@@ -223,7 +223,7 @@ func TestChatGetInboxAndUnboxLocal(t *testing.T) {
 
 	gilres, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(context.Background(), chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
-			ConvID: &created.Id,
+			ConvIDs: []chat1.ConversationID{created.Id},
 		},
 	})
 	if err != nil {

@@ -87,7 +87,7 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 	localizeCb := make(chan chat.NonblockInboxResult, 1)
 
 	// Invoke nonblocking inbox read and get remote inbox version to send back as our result
-	localizer := chat.NewNonblockingLocalizer(h.G(), localizeCb,
+	localizer := chat.NewNonblockingLocalizer(h.G(), localizeCb, arg.MaxUnbox,
 		func() keybase1.TlfInterface { return h.tlf })
 	_, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
 	if err != nil {
@@ -407,7 +407,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 
 		ib, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), nil, false,
 			&chat1.GetInboxLocalQuery{
-				ConvID: &convID,
+				ConvIDs: []chat1.ConversationID{convID},
 			}, nil)
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, err
