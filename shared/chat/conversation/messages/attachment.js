@@ -148,7 +148,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
     <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
       <Box style={{...globalStyles.flexBoxColumn, alignSelf: 'flex-start', position: 'relative'}}>
         <PreviewImage message={message} onOpenInPopup={onOpenInPopup} />
-        {_showPreviewProgress(messageState, message.progress) && !!message.progress &&
+        {_showPreviewProgress(messageState, message.progress) &&
           <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>
             <ProgressIndicator style={{width: 32}} />
           </Box>
