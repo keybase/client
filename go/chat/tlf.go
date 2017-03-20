@@ -55,13 +55,13 @@ func (t *TLFInfoSource) Lookup(ctx context.Context, tlfName string,
 }
 
 func (t *TLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, err error) {
-	defer t.Trace(ctx, func() error { return err },
-		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", tlfName, identBehavior))()
-
 	identBehavior, breaks, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
+	defer t.Trace(ctx, func() error { return err },
+		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", tlfName, identBehavior))()
+
 	tlfClient, err := t.tlfKeysClient()
 	if err != nil {
 		return res, err
