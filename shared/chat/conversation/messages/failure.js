@@ -7,14 +7,14 @@ const Failure = ({failureDescription, onShowEditor, onRetry}: {failureDescriptio
   const error = `Failed to send${failureDescription ? ` -  ${failureDescription}` : ''}. `
   const resolveByEdit = failureDescription === 'message is too long'
   return (
-    <div>
+    <Text type='BodySmall'>
       <Text type='BodySmall' style={{color: globalColors.red, fontSize: 9}}>{'┏(>_<)┓'}</Text>
       <Text type='BodySmall' style={{color: globalColors.red}}> {error}</Text>
       {resolveByEdit &&
         <Text type='BodySmall' style={{color: globalColors.red, ...globalStyles.textDecoration('underline')}} onClick={onShowEditor}>Edit</Text>}
       {!resolveByEdit &&
         <Text type='BodySmall' style={{color: globalColors.red, ...globalStyles.textDecoration('underline')}} onClick={onRetry}>Retry</Text>}
-    </div>
+    </Text>
   )
 }
 
