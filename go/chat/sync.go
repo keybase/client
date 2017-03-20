@@ -3,8 +3,8 @@ package chat
 import (
 	"context"
 
-	"github.com/keybase/client/go/chat/interfaces"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -16,7 +16,7 @@ type Syncer struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
-	offlinables []interfaces.Offlinable
+	offlinables []types.Offlinable
 }
 
 func NewSyncer(g *libkb.GlobalContext) *Syncer {
@@ -110,6 +110,6 @@ func (s *Syncer) Disconnected(ctx context.Context) {
 	}
 }
 
-func (s *Syncer) RegisterOfflinable(offlinable interfaces.Offlinable) {
+func (s *Syncer) RegisterOfflinable(offlinable types.Offlinable) {
 	s.offlinables = append(s.offlinables, offlinable)
 }

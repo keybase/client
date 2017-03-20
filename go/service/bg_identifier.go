@@ -93,7 +93,7 @@ func (b *BackgroundIdentifier) completedIdentifyJob(ij engine.IdentifyJob) {
 	b.G().Log.Debug("| Identify(%s) changed: %v -> %v", ij.UID(), ij.ThisError(), ij.LastError())
 
 	// Let the chat system know about this identify change
-	chat.NewIdentifyChangedHandler(b.G()).BackgroundIdentifyChanged(context.Background(), ij)
+	chat.NewIdentifyChangedHandler(b.G(), chat.NewKBFSTLFInfoSource(b.G())).BackgroundIdentifyChanged(context.Background(), ij)
 }
 
 func (b *BackgroundIdentifier) populateWithFollowees() (err error) {

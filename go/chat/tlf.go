@@ -1,35 +1,30 @@
 package chat
 
 import (
-	"context"
 	"fmt"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	context "golang.org/x/net/context"
 )
 
-type TLFInfo struct {
-	ID               chat1.TLFID
-	CanonicalName    string
-	IdentifyFailures []keybase1.TLFIdentifyFailure
-}
-
-type TLFInfoSource struct {
+type KBFSTLFInfoSource struct {
 	utils.DebugLabeler
 	libkb.Contextified
 }
 
-func NewTLFInfoSource(g *libkb.GlobalContext) *TLFInfoSource {
-	return &TLFInfoSource{
-		DebugLabeler: utils.NewDebugLabeler(g, "TLFInfoSource", false),
+func NewKBFSTLFInfoSource(g *libkb.GlobalContext) *KBFSTLFInfoSource {
+	return &KBFSTLFInfoSource{
+		DebugLabeler: utils.NewDebugLabeler(g, "KBFSTLFInfoSource", false),
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func (t *TLFInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
+func (t *KBFSTLFInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 	xp := t.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp == nil {
 		return nil, fmt.Errorf("KBFS client wasn't found")
@@ -39,14 +34,14 @@ func (t *TLFInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 	}, nil
 }
 
-func (t *TLFInfoSource) Lookup(ctx context.Context, tlfName string,
-	visibility chat1.TLFVisibility) (*TLFInfo, error) {
+func (t *KBFSTLFInfoSource) Lookup(ctx context.Context, tlfName string,
+	visibility chat1.TLFVisibility) (*types.TLFInfo, error) {
 
 	res, err := CtxKeyFinder(ctx).Find(ctx, t, tlfName, visibility == chat1.TLFVisibility_PUBLIC)
 	if err != nil {
 		return nil, err
 	}
-	info := &TLFInfo{
+	info := &types.TLFInfo{
 		ID:               chat1.TLFID(res.NameIDBreaks.TlfID.ToBytes()),
 		CanonicalName:    res.NameIDBreaks.CanonicalName.String(),
 		IdentifyFailures: res.NameIDBreaks.Breaks.Breaks,
@@ -54,7 +49,7 @@ func (t *TLFInfoSource) Lookup(ctx context.Context, tlfName string,
 	return info, nil
 }
 
-func (t *TLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, err error) {
+func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, err error) {
 	identBehavior, breaks, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
@@ -84,7 +79,7 @@ func (t *TLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keyb
 	return resp, nil
 }
 
-func (t *TLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
+func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
 	identBehavior, breaks, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
@@ -114,7 +109,7 @@ func (t *TLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName
 	return resp, nil
 }
 
-func (t *TLFInfoSource) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
+func (t *KBFSTLFInfoSource) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
 	username := t.G().Env.GetUsername()
 	if len(username) == 0 {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, libkb.LoginRequiredError{}

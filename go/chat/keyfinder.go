@@ -1,16 +1,17 @@
 package chat
 
 import (
-	"context"
 	"fmt"
 	"sync"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 // KeyFinder remembers results from previous calls to CryptKeys().
 type KeyFinder interface {
-	Find(ctx context.Context, tlf *TLFInfoSource, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error)
+	Find(ctx context.Context, tlf types.TLFInfoSource, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error)
 }
 
 type KeyFinderImpl struct {
@@ -31,7 +32,7 @@ func (k *KeyFinderImpl) cacheKey(tlfName string, tlfPublic bool) string {
 
 // Find finds keybase1.TLFCryptKeys for tlfName, checking for existing
 // results.
-func (k *KeyFinderImpl) Find(ctx context.Context, tlf *TLFInfoSource, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
+func (k *KeyFinderImpl) Find(ctx context.Context, tlf types.TLFInfoSource, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
 
 	ckey := k.cacheKey(tlfName, tlfPublic)
 	k.Lock()

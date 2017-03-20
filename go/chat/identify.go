@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -20,16 +21,18 @@ type IdentifyNotifier struct {
 	utils.DebugLabeler
 
 	sync.RWMutex
-	storage    *storage.Storage
-	identCache map[string]keybase1.CanonicalTLFNameAndIDWithBreaks
+	storage       *storage.Storage
+	tlfInfoSource types.TLFInfoSource
+	identCache    map[string]keybase1.CanonicalTLFNameAndIDWithBreaks
 }
 
 func NewIdentifyNotifier(g *libkb.GlobalContext) *IdentifyNotifier {
 	return &IdentifyNotifier{
-		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "IdentifyNotifier", false),
-		identCache:   make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
-		storage:      storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
+		Contextified:  libkb.NewContextified(g),
+		DebugLabeler:  utils.NewDebugLabeler(g, "IdentifyNotifier", false),
+		identCache:    make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
+		storage:       storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
+		tlfInfoSource: NewKBFSTLFInfoSource(g),
 	}
 }
 
@@ -64,12 +67,15 @@ func (i *IdentifyNotifier) Send(update keybase1.CanonicalTLFNameAndIDWithBreaks)
 type IdentifyChangedHandler struct {
 	libkb.Contextified
 	utils.DebugLabeler
+
+	tlfInfoSource types.TLFInfoSource
 }
 
-func NewIdentifyChangedHandler(g *libkb.GlobalContext) *IdentifyChangedHandler {
+func NewIdentifyChangedHandler(g *libkb.GlobalContext, tlfInfoSource types.TLFInfoSource) *IdentifyChangedHandler {
 	return &IdentifyChangedHandler{
-		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "IdentifyChangedHandler", false),
+		Contextified:  libkb.NewContextified(g),
+		DebugLabeler:  utils.NewDebugLabeler(g, "IdentifyChangedHandler", false),
+		tlfInfoSource: tlfInfoSource,
 	}
 }
 
@@ -189,7 +195,7 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 	}
 
 	// Run against CryptKeys to generate notifications if necessary
-	_, err = NewTLFInfoSource(h.G()).CryptKeys(ctx, tlfName)
+	_, err = h.tlfInfoSource.CryptKeys(ctx, tlfName)
 	if err != nil {
 		h.Debug(ctx, "HandleUserChanged: failed to run CryptKeys: %s", err.Error())
 	}

@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -82,10 +83,8 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 	}
 }
 
-func newConvTriple(t *testing.T, tlf keybase1.TlfInterface, username string) chat1.ConversationIDTriple {
-	cres, err := tlf.CryptKeys(context.TODO(), keybase1.TLFQuery{
-		TlfName: username,
-	})
+func newConvTriple(t *testing.T, tlf types.TLFInfoSource, username string) chat1.ConversationIDTriple {
+	cres, err := tlf.CryptKeys(context.TODO(), username)
 	require.NoError(t, err)
 
 	trip := chat1.ConversationIDTriple{
@@ -114,7 +113,7 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
 	tc.G.SetService()
-	boxer := NewBoxer(tc.G, func() keybase1.TlfInterface { return tlf })
+	boxer := NewBoxer(tc.G, tlf)
 	f := func() libkb.SecretUI {
 		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	}
@@ -129,8 +128,7 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 		func() chat1.RemoteInterface { return ri },
 		func() libkb.SecretUI { return &libkb.TestSecretUI{} })
 	tc.G.InboxSource = NewHybridInboxSource(tc.G,
-		func() keybase1.TlfInterface { return tlf },
-		func() chat1.RemoteInterface { return ri }, f)
+		func() chat1.RemoteInterface { return ri }, f, tlf)
 	tc.G.NotifyRouter.SetListener(&listener)
 	tc.G.MessageDeliverer = NewDeliverer(tc.G, baseSender)
 	tc.G.MessageDeliverer.(*Deliverer).SetClock(world.Fc)

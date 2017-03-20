@@ -4,8 +4,8 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/keybase/client/go/chat/interfaces"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -18,20 +18,22 @@ type baseConversationSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
-	boxer       *Boxer
-	ri          func() chat1.RemoteInterface
-	getSecretUI func() libkb.SecretUI
-	offline     bool
+	boxer         *Boxer
+	tlfInfoSource types.TLFInfoSource
+	ri            func() chat1.RemoteInterface
+	getSecretUI   func() libkb.SecretUI
+	offline       bool
 }
 
 func newBaseConversationSource(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI,
 	ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
 	return &baseConversationSource{
-		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "baseConversationSource", false),
-		getSecretUI:  getSecretUI,
-		ri:           ri,
-		boxer:        boxer,
+		Contextified:  libkb.NewContextified(g),
+		DebugLabeler:  utils.NewDebugLabeler(g, "baseConversationSource", false),
+		getSecretUI:   getSecretUI,
+		ri:            ri,
+		boxer:         boxer,
+		tlfInfoSource: boxer.tlfInfoSource,
 	}
 }
 
@@ -51,6 +53,10 @@ func (s *baseConversationSource) IsOffline() bool {
 
 func (s *baseConversationSource) SetRemoteInterface(ri func() chat1.RemoteInterface) {
 	s.ri = ri
+}
+
+func (s *baseConversationSource) SetTLFInfoSource(tlfInfoSource types.TLFInfoSource) {
+	s.tlfInfoSource = tlfInfoSource
 }
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
@@ -282,7 +288,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 				vis = chat1.TLFVisibility_PUBLIC
 			}
 
-			_, err := NewTLFInfoSource(s.G()).Lookup(ctx, tlfName, vis)
+			_, err := s.tlfInfoSource.Lookup(ctx, tlfName, vis)
 			if err != nil {
 				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s", tlfName, convID)
 				return err
@@ -558,7 +564,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 }
 
 func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer, storage *storage.Storage,
-	ri func() chat1.RemoteInterface, si func() libkb.SecretUI) interfaces.ConversationSource {
+	ri func() chat1.RemoteInterface, si func() libkb.SecretUI) types.ConversationSource {
 	if typ == "hybrid" {
 		return NewHybridConversationSource(g, boxer, storage, ri, si)
 	}

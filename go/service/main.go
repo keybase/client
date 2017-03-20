@@ -251,8 +251,9 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 func (d *Service) createMessageDeliverer() {
 	ri := d.chatRemoteClient
 	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
+	tlf := chat.NewKBFSTLFInfoSource(d.G())
 
-	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G()), d.attachmentstore, ri, si)
+	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), d.attachmentstore, ri, si)
 	d.G().MessageDeliverer = chat.NewDeliverer(d.G(), sender)
 }
 
@@ -266,16 +267,17 @@ func (d *Service) startMessageDeliverer() {
 func (d *Service) createChatSources() {
 	ri := d.chatRemoteClient
 	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
+	tlf := chat.NewKBFSTLFInfoSource(d.G())
 
-	boxer := chat.NewBoxer(d.G())
-	d.G().InboxSource = chat.NewInboxSource(d.G(), d.G().Env.GetInboxSourceType(), ri, si)
+	boxer := chat.NewBoxer(d.G(), tlf)
+	d.G().InboxSource = chat.NewInboxSource(d.G(), d.G().Env.GetInboxSourceType(), ri, si, tlf)
 
 	d.G().ConvSource = chat.NewConversationSource(d.G(), d.G().Env.GetConvSourceType(),
 		boxer, storage.New(d.G(), si), ri, si)
 
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh
-	d.G().AddUserChangedHandler(chat.NewIdentifyChangedHandler(d.G()))
+	d.G().AddUserChangedHandler(chat.NewIdentifyChangedHandler(d.G(), tlf))
 }
 
 func (d *Service) chatRemoteClient() chat1.RemoteInterface {
