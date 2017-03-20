@@ -18,7 +18,7 @@ let config: {[key: string]: any} = {
   forceImmediateLogging: false,
   forceMainWindowPosition: null,
   forwardLogs: true,
-  ignoreDisconnectOverlay: false,
+  ignoreDisconnectOverlay: true,
   immediateStateLogging: false,
   initialTabState: {},
   isTesting: false,

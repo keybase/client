@@ -81,3 +81,7 @@ func (r *RemoteChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThrea
 func (r *RemoteChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
 	return r.cli.ChatThreadFull(ctx, arg)
 }
+
+func (r *RemoteChatUI) ChatThreadCacheMiss(ctx context.Context) error {
+	return r.cli.ChatThreadCacheMiss(ctx, r.sessionID)
+}

@@ -279,8 +279,9 @@ func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetT
 		select {
 		case err := <-ch:
 			if err != nil {
-				h.Debug(ctx, "GetThreadNonblock: error running PullLocalOnly (not sending): %s",
+				h.Debug(ctx, "GetThreadNonblock: error running PullLocalOnly (sending miss): %s",
 					err.Error())
+				chatUI.ChatThreadCacheMiss(bctx)
 				return
 			}
 		case <-bctx.Done():

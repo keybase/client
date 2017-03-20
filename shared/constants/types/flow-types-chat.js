@@ -2040,6 +2040,12 @@ export type incomingCallMapType = Exact<{
     }>,
     response: CommonResponseHandler
   ) => void,
+  'keybase.1.chatUi.chatThreadCacheMiss'?: (
+    params: Exact<{
+      sessionID: int
+    }>,
+    response: CommonResponseHandler
+  ) => void,
   'keybase.1.chatUi.chatThreadCached'?: (
     params: Exact<{
       sessionID: int,

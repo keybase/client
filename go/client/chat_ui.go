@@ -230,3 +230,7 @@ func (c *ChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCache
 func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
 	return nil
 }
+
+func (c *ChatUI) ChatThreadCacheMiss(ctx context.Context, sessionID int) error {
+	return nil
+}

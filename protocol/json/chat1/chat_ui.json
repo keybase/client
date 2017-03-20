@@ -152,6 +152,16 @@
       ],
       "response": null
     },
+    "chatThreadCacheMiss": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
     "chatThreadCached": {
       "request": [
         {
