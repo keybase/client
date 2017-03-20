@@ -233,6 +233,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return NoSecretKeyError{}
 	case SCLoginRequired:
 		return LoginRequiredError{s.Desc}
+	case SCNoSession:
+		return NoSessionError{}
 	case SCKeyInUse:
 		var fp *PGPFingerprint
 		if len(s.Desc) > 0 {
@@ -1115,6 +1117,14 @@ func (u LoginRequiredError) ToStatus() (s keybase1.Status) {
 	s.Code = SCLoginRequired
 	s.Name = "LOGIN_REQUIRED"
 	s.Desc = u.Context
+	return
+}
+
+//=============================================================================
+
+func (u NoSessionError) ToStatus() (s keybase1.Status) {
+	s.Code = SCNoSession
+	s.Name = "NO_SESSION"
 	return
 }
 

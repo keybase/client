@@ -4,16 +4,12 @@
 package service
 
 import (
-	"errors"
-
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
-
-var ErrNoSession = errors.New("no current session")
 
 // SessionHandler is the RPC handler for the session interface.
 type SessionHandler struct {
@@ -51,7 +47,7 @@ func (h *SessionHandler) CurrentSession(_ context.Context, sessionID int) (keyba
 	}
 	if err != nil {
 		if _, ok := err.(libkb.LoginRequiredError); ok {
-			return s, ErrNoSession
+			return s, libkb.NoSessionError{}
 		}
 		return s, err
 	}

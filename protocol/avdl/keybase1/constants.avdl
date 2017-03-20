@@ -24,6 +24,7 @@ protocol constants {
     SCWrongCryptoFormat_279,
     SCDecryptionError_280,
     SCInvalidAddress_281,
+    SCNoSession_282,
     SCBadEmail_472,
     SCBadSignupUsernameTaken_701,
     SCBadInvitationCode_707,
