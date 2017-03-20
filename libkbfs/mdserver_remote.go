@@ -129,7 +129,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 		}
 	}()
 
-	md.log.Debug("MDServerRemote: OnConnect called with a new connection")
+	md.log.CDebugf(ctx, "OnConnect called with a new connection")
 
 	// we'll get replies asynchronously as to not block the connection
 	// for doing other active work for the user. they will be sent to
@@ -159,9 +159,9 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 
 // resetAuth is called to reset the authorization on an MDServer
 // connection.
-func (md *MDServerRemote) resetAuth(ctx context.Context, c keybase1.MetadataClient) (int, error) {
-
-	md.log.Debug("MDServerRemote: resetAuth called")
+func (md *MDServerRemote) resetAuth(
+	ctx context.Context, c keybase1.MetadataClient) (int, error) {
+	md.log.CDebugf(ctx, "resetAuth called")
 
 	isAuthenticated := false
 	defer func() {
@@ -178,27 +178,28 @@ func (md *MDServerRemote) resetAuth(ctx context.Context, c keybase1.MetadataClie
 
 	challenge, err := c.GetChallenge(ctx)
 	if err != nil {
-		md.log.Warning("MDServerRemote: challenge request error: %v", err)
+		md.log.CWarningf(ctx, "challenge request error: %v", err)
 		return 0, err
 	}
-	md.log.Debug("MDServerRemote: received challenge")
+	md.log.CDebugf(ctx, "received challenge")
 
 	// get a new signature
 	signature, err := md.authToken.Sign(ctx, session.Name, session.UID,
 		session.VerifyingKey, challenge)
 	if err != nil {
-		md.log.Warning("MDServerRemote: error signing authentication token: %v", err)
+		md.log.CWarningf(ctx, "error signing authentication token: %v", err)
 		return 0, err
 	}
-	md.log.Debug("MDServerRemote: authentication token signed")
+	md.log.CDebugf(ctx, "authentication token signed")
 
 	// authenticate
 	pingIntervalSeconds, err := c.Authenticate(ctx, signature)
 	if err != nil {
-		md.log.Warning("MDServerRemote: authentication error: %v", err)
+		md.log.CWarningf(ctx, "authentication error: %v", err)
 		return 0, err
 	}
-	md.log.Debug("MDServerRemote: authentication successful; ping interval: %ds", pingIntervalSeconds)
+	md.log.CDebugf(ctx, "authentication successful; ping interval: %ds",
+		pingIntervalSeconds)
 
 	isAuthenticated = true
 
@@ -207,9 +208,10 @@ func (md *MDServerRemote) resetAuth(ctx context.Context, c keybase1.MetadataClie
 		defer func() {
 			// request a list of folders needing rekey action
 			if err := md.getFoldersForRekey(ctx, c); err != nil {
-				md.log.Warning("MDServerRemote: getFoldersForRekey failed with %v", err)
+				md.log.CWarningf(ctx, "getFoldersForRekey failed with %v", err)
 			}
-			md.log.Debug("MDServerRemote: requested list of folders for rekey")
+			md.log.CDebugf(ctx,
+				"requested list of folders for rekey")
 		}()
 	}
 	// Need to ensure that any conflicting thread gets the updated value
@@ -221,14 +223,15 @@ func (md *MDServerRemote) resetAuth(ctx context.Context, c keybase1.MetadataClie
 
 // RefreshAuthToken implements the AuthTokenRefreshHandler interface.
 func (md *MDServerRemote) RefreshAuthToken(ctx context.Context) {
-	md.log.Debug("MDServerRemote: Refreshing auth token...")
+	md.log.CDebugf(ctx, "MDServerRemote: Refreshing auth token...")
 
 	_, err := md.resetAuth(ctx, md.client)
 	switch err.(type) {
 	case nil:
-		md.log.Debug("MDServerRemote: auth token refreshed")
+		md.log.CDebugf(ctx, "MDServerRemote: auth token refreshed")
 	case NoCurrentSessionError:
-		md.log.Debug("MDServerRemote: no session available, connection remains anonymous")
+		md.log.CDebugf(ctx,
+			"MDServerRemote: no session available, connection remains anonymous")
 	default:
 		md.log.Debug("MDServerRemote: error refreshing auth token: %v", err)
 	}
@@ -278,7 +281,8 @@ func (md *MDServerRemote) resetPingTicker(intervalSeconds int) {
 		return
 	}
 
-	md.log.Debug("MDServerRemote: starting new ping ticker with interval %d",
+	md.log.CDebugf(context.TODO(),
+		"MDServerRemote: starting new ping ticker with interval %d",
 		intervalSeconds)
 
 	var ctx context.Context
@@ -304,8 +308,8 @@ func (md *MDServerRemote) resetPingTicker(intervalSeconds int) {
 
 // OnConnectError implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnConnectError(err error, wait time.Duration) {
-	md.log.Warning("MDServerRemote: connection error: %q; retrying in %s",
-		err, wait)
+	md.log.CWarningf(context.TODO(),
+		"MDServerRemote: connection error: %q; retrying in %s", err, wait)
 	// TODO: it might make sense to show something to the user if this is
 	// due to authentication, for example.
 	md.cancelObservers()
@@ -319,8 +323,8 @@ func (md *MDServerRemote) OnConnectError(err error, wait time.Duration) {
 
 // OnDoCommandError implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnDoCommandError(err error, wait time.Duration) {
-	md.log.Warning("MDServerRemote: DoCommand error: %q; retrying in %s",
-		err, wait)
+	md.log.CWarningf(context.TODO(),
+		"MDServerRemote: DoCommand error: %q; retrying in %s", err, wait)
 	// Only push errors that should not be retried as connection status changes.
 	if !md.ShouldRetry("", err) {
 		md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, err)
