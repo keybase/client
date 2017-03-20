@@ -1095,7 +1095,7 @@ func TestFindConversations(t *testing.T) {
 	require.Equal(t, created.Id, res.Conversations[0].GetConvID(), "wrong conv")
 }
 
-func receiveThreadResult(t *testing.T, cb chan kbtest.NonblockThreadResult) (res chat1.ThreadView) {
+func receiveThreadResult(t *testing.T, cb chan kbtest.NonblockThreadResult) (res *chat1.ThreadView) {
 	var tres kbtest.NonblockThreadResult
 	select {
 	case tres = <-cb:

@@ -336,11 +336,7 @@ func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetT
 	wg.Wait()
 
 	// Clean up context
-	select {
-	case <-bctx.Done():
-	default:
-		cancel()
-	}
+	cancel()
 
 	res.Offline = h.G().ConvSource.IsOffline()
 	return res, fullErr
