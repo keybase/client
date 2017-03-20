@@ -362,6 +362,7 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
 		chat1.ChatUiProtocol(ui),
+		NewIdentifyUIProtocol(c.G()),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)

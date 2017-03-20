@@ -6,6 +6,7 @@ import (
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -169,9 +170,33 @@ func (t *KBFSTLFInfoSource) identifyUser(ctx context.Context, assertion string, 
 		IdentifyBehavior: idBehavior,
 	}
 
-	res, err := eng.Run(ectx, arg)
+	// no sessionID as this can be called anywhere, not just as a client action
+	sessionID := 0
+	ectx := engine.Context{
+		LogUI: h.getLogUI(sessionID),
+		// IdentifyUI: h.NewRemoteIdentifyUI(sessionID, h.G()),
+		IdentifyUI: nil,
+		SessionID:  sessionID,
+		NetContext: ctx,
+	}
 
-	return keybase1.TLFIdentifyFailure{}, nil
+	eng := engine.NewResolveThenIdentify2(h.G(), &arg)
+	err := engine.RunEngine(eng, &ectx)
+	if err != nil {
+		return keybase1.TLFIdentifyFailure{}, err
+	}
+	resp := eng.Result()
+
+	var frep keybase1.TLFIdentifyFailure
+	if resp != nil {
+		frep.User = keybase1.User{
+			Uid:      resp.Upk.Uid,
+			Username: resp.Upk.Username,
+		}
+		frep.Breaks = resp.TrackBreaks
+	}
+
+	return frep, nil
 }
 
 func appendBreaks(l []keybase1.TLFIdentifyFailure, r []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {

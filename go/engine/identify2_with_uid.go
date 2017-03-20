@@ -339,7 +339,7 @@ func (e *Identify2WithUID) run(ctx *Context) {
 	// If no identifyUI was specified (because running the background)
 	// then don't do anything.
 	if ctx.IdentifyUI != nil {
-		ctx.IdentifyUI.Cancel()
+		//		ctx.IdentifyUI.Cancel()
 	}
 }
 
