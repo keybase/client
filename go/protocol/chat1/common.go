@@ -158,6 +158,7 @@ type GetInboxQuery struct {
 	After             *gregor1.Time        `codec:"after,omitempty" json:"after,omitempty"`
 	OneChatTypePerTLF *bool                `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
 	Status            []ConversationStatus `codec:"status" json:"status"`
+	ConvIDs           []ConversationID     `codec:"convIDs" json:"convIDs"`
 	UnreadOnly        bool                 `codec:"unreadOnly" json:"unreadOnly"`
 	ReadOnly          bool                 `codec:"readOnly" json:"readOnly"`
 	ComputeActiveList bool                 `codec:"computeActiveList" json:"computeActiveList"`

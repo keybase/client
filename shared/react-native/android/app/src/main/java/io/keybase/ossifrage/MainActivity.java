@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Window;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactInstanceManager;
@@ -41,6 +42,18 @@ public class MainActivity extends ReactActivity {
         initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false);
 
         super.onCreate(savedInstanceState);
+
+        // Hide splash screen background after 3s.
+        // This prevents the image from being visible behind the app, such as during a
+        // keyboard show animation.
+        final Window mainWindow = this.getWindow();
+        new android.os.Handler().postDelayed(
+            new Runnable() {
+                public void run() {
+                    mainWindow.setBackgroundDrawableResource(R.color.white);
+                }
+            },
+        3000);
     }
 
     @Override

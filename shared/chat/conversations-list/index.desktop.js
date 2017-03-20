@@ -81,7 +81,7 @@ const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, userna
   )
 }
 
-const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, subColor, snippet}) => {
+const BottomLine = ({participantNeedToRekey, youNeedToRekey, showBold, subColor, snippet}) => {
   const boldOverride = showBold ? globalStyles.fontBold : null
 
   let content
@@ -90,7 +90,7 @@ const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, 
     content = <Text type='BodySmallSemibold' backgroundMode='Terminal' style={{alignSelf: 'flex-start', backgroundColor: globalColors.red, borderRadius: 2, color: globalColors.white, fontSize: 10, paddingLeft: 2, paddingRight: 2}}>REKEY NEEDED</Text>
   } else if (participantNeedToRekey) {
     content = <Text type='BodySmall' backgroundMode='Terminal' style={{color: subColor}}>Waiting for participants to rekey</Text>
-  } else if (snippet && !isMuted) {
+  } else if (snippet) {
     content = <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: '15px', minHeight: 15}}>{snippet}</Markdown>
   } else {
     return null
@@ -131,7 +131,6 @@ const _Row = (props: RowProps) => {
           usernameColor={props.usernameColor}
         />
         <BottomLine
-          isMuted={props.isMuted}
           participantNeedToRekey={props.participantNeedToRekey}
           showBold={props.showBold}
           snippet={props.snippet}

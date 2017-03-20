@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../constants/route-tree'
-import * as Immutable from 'immutable'
+import * as I from 'immutable'
 import {getPath} from '../route-tree'
 import {put, select} from 'redux-saga/effects'
 import {safeTakeEvery} from '../util/saga'
@@ -32,7 +32,7 @@ const pathActionTransformer = (action, oldState) => {
   }
 }
 
-function _pathSelector (state: TypedState): Path {
+export function pathSelector (state: TypedState): I.List<string> {
   return getPath(state.routeTree.routeState)
 }
 
@@ -131,8 +131,8 @@ export function resetRoute (path: Path): ResetRoute {
 }
 
 function * _putActionIfOnPath ({payload: {otherAction, expectedPath}}: Constants.PutActionIfOnPath<*>) {
-  const currentPath = yield select(_pathSelector)
-  if (Immutable.is(expectedPath, currentPath)) {
+  const currentPath = yield select(pathSelector)
+  if (I.is(expectedPath, currentPath)) {
     yield put(otherAction)
   }
 }

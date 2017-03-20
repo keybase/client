@@ -16,7 +16,7 @@
         args:
         - -c
         - cd shared && yarn run flow
--   repo: git@github.com:keybase/pre-commit-golang.git
+-   repo: https://github.com/keybase/pre-commit-golang.git
     sha: 06cb541d5ec2ec6adc218f7862098c55b5b24fc1
     hooks:
     -   id: go-fmt

@@ -477,6 +477,17 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return InvalidAddressError{Msg: s.Desc}
 	case SCChatCollision:
 		return ChatCollisionError{}
+	case SCChatMessageCollision:
+		var headerHash string
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "HeaderHash":
+				headerHash = field.Value
+			}
+		}
+		return ChatMessageCollisionError{
+			HeaderHash: headerHash,
+		}
 	case SCNeedSelfRekey:
 		ret := NeedSelfRekeyError{Msg: s.Desc}
 		for _, field := range s.Fields {
@@ -1564,6 +1575,19 @@ func (e ChatCollisionError) ToStatus() keybase1.Status {
 		Code: SCChatCollision,
 		Name: "SC_CHAT_COLLISION",
 		Desc: e.Error(),
+	}
+}
+
+func (e ChatMessageCollisionError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "HeaderHash",
+		Value: e.HeaderHash,
+	}
+	return keybase1.Status{
+		Code:   SCChatMessageCollision,
+		Name:   "SC_CHAT_MESSAGE_COLLISION",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
 	}
 }
 

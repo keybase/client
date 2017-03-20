@@ -1352,6 +1352,12 @@ type ConversationLocal struct {
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
+type NonblockFetchRes struct {
+	Offline          bool                          `codec:"offline" json:"offline"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
 type ThreadView struct {
 	Messages   []MessageUnboxed `codec:"messages" json:"messages"`
 	Pagination *Pagination      `codec:"pagination,omitempty" json:"pagination,omitempty"`
@@ -1398,12 +1404,6 @@ type GetInboxLocalQuery struct {
 type GetInboxAndUnboxLocalRes struct {
 	Conversations    []ConversationLocal           `codec:"conversations" json:"conversations"`
 	Pagination       *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	Offline          bool                          `codec:"offline" json:"offline"`
-	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
-	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
-}
-
-type GetInboxNonblockLocalRes struct {
 	Offline          bool                          `codec:"offline" json:"offline"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
@@ -1494,6 +1494,21 @@ type FindConversationsLocalRes struct {
 }
 
 type GetThreadLocalArg struct {
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
+	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type GetCachedThreadArg struct {
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
+	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type GetThreadNonblockArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
@@ -1651,8 +1666,10 @@ type FindConversationsLocalArg struct {
 
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
+	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
+	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
-	GetInboxNonblockLocal(context.Context, GetInboxNonblockLocalArg) (GetInboxNonblockLocalRes, error)
+	GetInboxNonblockLocal(context.Context, GetInboxNonblockLocalArg) (NonblockFetchRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
 	PostLocalNonblock(context.Context, PostLocalNonblockArg) (PostLocalNonblockRes, error)
 	PostTextNonblock(context.Context, PostTextNonblockArg) (PostLocalNonblockRes, error)
@@ -1689,6 +1706,38 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetThreadLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getCachedThread": {
+				MakeArg: func() interface{} {
+					ret := make([]GetCachedThreadArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetCachedThreadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetCachedThreadArg)(nil), args)
+						return
+					}
+					ret, err = i.GetCachedThread(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getThreadNonblock": {
+				MakeArg: func() interface{} {
+					ret := make([]GetThreadNonblockArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetThreadNonblockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetThreadNonblockArg)(nil), args)
+						return
+					}
+					ret, err = i.GetThreadNonblock(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2026,12 +2075,22 @@ func (c LocalClient) GetThreadLocal(ctx context.Context, __arg GetThreadLocalArg
 	return
 }
 
+func (c LocalClient) GetCachedThread(ctx context.Context, __arg GetCachedThreadArg) (res GetThreadLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getCachedThread", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetThreadNonblock(ctx context.Context, __arg GetThreadNonblockArg) (res NonblockFetchRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getThreadNonblock", []interface{}{__arg}, &res)
+	return
+}
+
 func (c LocalClient) GetInboxAndUnboxLocal(ctx context.Context, __arg GetInboxAndUnboxLocalArg) (res GetInboxAndUnboxLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getInboxAndUnboxLocal", []interface{}{__arg}, &res)
 	return
 }
 
-func (c LocalClient) GetInboxNonblockLocal(ctx context.Context, __arg GetInboxNonblockLocalArg) (res GetInboxNonblockLocalRes, err error) {
+func (c LocalClient) GetInboxNonblockLocal(ctx context.Context, __arg GetInboxNonblockLocalArg) (res NonblockFetchRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getInboxNonblockLocal", []interface{}{__arg}, &res)
 	return
 }

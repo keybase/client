@@ -421,6 +421,28 @@ const inputMap: DumbComponentMap<Input> = {
     'Default Filled': {
       value: 'Hello, World!',
     },
+    'Default Filled Center': {
+      value: 'Hello, World on yellow!',
+      parentProps: {
+        style: {
+          ...globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          width: isMobile ? 420 : 600,
+          backgroundColor: 'yellow',
+        },
+      },
+    },
+    'Default Filled Stretch': {
+      value: 'Hello, World on green!',
+      parentProps: {
+        style: {
+          ...globalStyles.flexBoxColumn,
+          alignItems: 'stretch',
+          width: isMobile ? 420 : 600,
+          backgroundColor: 'green',
+        },
+      },
+    },
     'Default Filled style override': {
       value: 'Hello, World!',
       style: {

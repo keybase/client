@@ -30,8 +30,10 @@ import (
 
 type configGetter interface {
 	GetAPITimeout() (time.Duration, bool)
+	GetAppType() AppType
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
+	GetPvlKitFilename() string
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
 	GetDbFilename() string
@@ -348,6 +350,8 @@ type ChatUI interface {
 	ChatInboxUnverified(context.Context, chat1.ChatInboxUnverifiedArg) error
 	ChatInboxConversation(context.Context, chat1.ChatInboxConversationArg) error
 	ChatInboxFailed(context.Context, chat1.ChatInboxFailedArg) error
+	ChatThreadCached(context.Context, chat1.ChatThreadCachedArg) error
+	ChatThreadFull(context.Context, chat1.ChatThreadFullArg) error
 }
 
 type PromptDefault int
@@ -473,6 +477,7 @@ type ProofContext interface {
 	LogContext
 	APIContext
 	NetContext
+	GetPvlSource() PvlSource
 }
 
 type AssertionContext interface {
@@ -533,6 +538,10 @@ type ServiceType interface {
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
 	ListProofCheckers(mode RunMode) []string
+}
+
+type PvlSource interface {
+	GetPVL(ctx context.Context, pvlVersion int) (string, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.

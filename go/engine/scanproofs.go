@@ -16,7 +16,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/pvl"
 )
 
 type ScanProofsCacheData struct {
@@ -332,7 +331,7 @@ func (e *ScanProofsEngine) ProcessOne(ctx *Context, i int, rec map[string]string
 	}
 
 	deluserstr := "Error loading user: Deleted"
-	perr1, foundhint1, err := e.CheckOne(ctx, rec, false, tickers)
+	perr1, foundhint1, err := e.CheckOne(ctx, rec, tickers)
 	if err != nil {
 		if err.Error() == deluserstr {
 			e.G().Log.Info("deleted user")
@@ -341,7 +340,7 @@ func (e *ScanProofsEngine) ProcessOne(ctx *Context, i int, rec map[string]string
 		return err
 	}
 	// Skip the rate limit on the second check.
-	perr2, foundhint2, err := e.CheckOne(ctx, rec, true, nil)
+	perr2, foundhint2, err := e.CheckOne(ctx, rec, nil)
 	if err != nil {
 		return err
 	}
@@ -367,7 +366,7 @@ func (e *ScanProofsEngine) ProcessOne(ctx *Context, i int, rec map[string]string
 // CheckOne checks one proof using two checkers (default, pvl).
 // NOTE: This doesn't make sense anymore because pvl is the default.
 // Returns nil or an error, whether a hint was found, and any more serious error
-func (e *ScanProofsEngine) CheckOne(ctx *Context, rec map[string]string, forcepvl bool, tickers ScanProofsTickers) (libkb.ProofError, bool, error) {
+func (e *ScanProofsEngine) CheckOne(ctx *Context, rec map[string]string, tickers ScanProofsTickers) (libkb.ProofError, bool, error) {
 	uid := keybase1.UID(rec["uid"])
 	sigid := keybase1.SigID(rec["sig_id"])
 
@@ -396,12 +395,6 @@ func (e *ScanProofsEngine) CheckOne(ctx *Context, rec map[string]string, forcepv
 	if tickers[ptype] != nil {
 		e.G().Log.Info("Waiting for ticker: %v (%v)", keybase1.ProofTypeRevMap[ptype], ptype)
 		<-tickers[ptype].C
-	}
-
-	if forcepvl {
-		perr := pvl.CheckProof(e.G(), pvl.GetHardcodedPvlString(), link.GetProofType(),
-			pvl.NewProofInfo(link, *hint))
-		return perr, foundhint, nil
 	}
 
 	perr := pc.CheckStatus(e.G(), *hint, libkb.ProofCheckerModeActive)

@@ -15,4 +15,7 @@ protocol chatUi {
   void chatInboxUnverified(int sessionID, GetInboxLocalRes inbox); 
   void chatInboxConversation(int sessionID, ConversationLocal conv);
   void chatInboxFailed(int sessionID, ConversationID convID, ConversationErrorLocal error);
+
+  void chatThreadCached(int sessionID, ThreadView thread) oneway;
+  void chatThreadFull(int sessionID, ThreadView thread) oneway;
 }

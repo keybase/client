@@ -4,6 +4,7 @@
 package client
 
 import (
+	"bytes"
 	"errors"
 	"path/filepath"
 	"strings"
@@ -16,11 +17,28 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
+// ListOptions is for the linux style
+type ListOptions struct {
+	all         bool
+	long        bool
+	human       bool
+	one         bool
+	dir         bool
+	color       bool
+	sortReverse bool
+	sortTime    bool
+	sortSize    bool
+	help        bool
+	dirsFirst   bool
+}
+
 // CmdSimpleFSList is the 'fs ls' command.
 type CmdSimpleFSList struct {
 	libkb.Contextified
-	paths   []keybase1.Path
-	recurse bool
+	paths    []keybase1.Path
+	recurse  bool
+	winStyle bool
+	options  ListOptions
 }
 
 // NewCmdSimpleFSList creates a new cli.Command.
@@ -34,11 +52,48 @@ func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
-				Name:  "r, recursive",
+				Name:  "rec, recursive",
 				Usage: "recurse into subdirectories",
+			},
+			cli.BoolFlag{
+				Name:  "dirs-first",
+				Usage: "list directories first",
+			},
+			cli.BoolFlag{
+				Name:  "nocolor",
+				Usage: "remove color formatting",
+			},
+			cli.BoolFlag{
+				Name:  "1, one",
+				Usage: "one entry per line",
+			},
+			cli.BoolFlag{
+				Name:  "a, all",
+				Usage: "include entries starting with '.'",
+			},
+			cli.BoolFlag{
+				Name:  "l, long",
+				Usage: "long listing",
+			},
+			cli.BoolFlag{
+				Name:  "r, sort-reverse",
+				Usage: "reverse any sorting",
+			},
+			cli.BoolFlag{
+				Name:  "t, sort-time",
+				Usage: "sort entries by modify time",
+			},
+			cli.BoolFlag{
+				Name:  "s, sort-size",
+				Usage: "sort entries by size",
+			},
+			cli.BoolFlag{
+				Name:  "w, windows",
+				Usage: "windows style dir",
 			},
 		},
 	}
+
 }
 
 // HandleTopLevelKeybaseList - See if this is either /keybase/public or /keybase/private,
@@ -80,9 +135,9 @@ func (c *CmdSimpleFSList) HandleTopLevelKeybaseList(path keybase1.Path) (bool, e
 		}
 
 	}
-	c.output(result)
+	err = c.output(result)
 
-	return true, nil
+	return true, err
 }
 
 // Run runs the command in client/server mode.
@@ -95,16 +150,26 @@ func (c *CmdSimpleFSList) Run() error {
 
 	ctx := context.TODO()
 
-	paths, err := doSimpleFSPlatformGlob(c.G(), ctx, cli, c.paths)
+	paths, err := doSimpleFSGlob(c.G(), ctx, cli, c.paths)
 	if err != nil {
 		return err
 	}
 
-	for _, path := range paths {
-		//		if isTLFRequest, err := c.HandleTopLevelKeybaseList(path); isTLFRequest == true {
-		//			return err
-		//		}
-
+	// If the argument was globbed, we really just want a stat of each item
+	if len(paths) > 1 {
+		var listResult keybase1.SimpleFSListResult
+		for _, path := range paths {
+			e, err := cli.SimpleFSStat(context.TODO(), path)
+			if err != nil {
+				return err
+			}
+			// TODO: should stat include the path in the result?
+			e.Name = pathToString(path)
+			listResult.Entries = append(listResult.Entries, e)
+		}
+		c.output(listResult)
+	} else if len(paths) == 1 {
+		path := paths[0]
 		c.G().Log.Debug("SimpleFSList %s", pathToString(path))
 
 		opid, err := cli.SimpleFSMakeOpid(ctx)
@@ -131,29 +196,55 @@ func (c *CmdSimpleFSList) Run() error {
 		if err != nil {
 			return err
 		}
-
+		gotList := false
 		for {
 			listResult, err := cli.SimpleFSReadList(ctx, opid)
-			if err != nil {
-				break
+			// Eat the error here because it may just mean the results
+			// are complete. TODO: should KBFS return non-error here
+			// until the opid is closed?
+			if err != nil || len(listResult.Entries) == 0 {
+				if gotList == true {
+					err = nil
+				}
+				return err
 			}
-			c.output(listResult)
+			gotList = true
+			err = c.output(listResult)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return err
 }
 
-func (c *CmdSimpleFSList) output(listResult keybase1.SimpleFSListResult) {
-
+func (c *CmdSimpleFSList) output(listResult keybase1.SimpleFSListResult) error {
 	ui := c.G().UI.GetTerminalUI()
 
-	for _, e := range listResult.Entries {
-		if e.DirentType == keybase1.DirentType_DIR {
-			ui.Printf("%s\t<%s>\t\t%s\n", keybase1.FormatTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Name)
-		} else {
-			ui.Printf("%s\t%s\t%d\t%s\n", keybase1.FormatTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Size, e.Name)
+	if c.winStyle {
+		for _, e := range listResult.Entries {
+			if e.DirentType == keybase1.DirentType_DIR {
+				ui.Printf("%s\t<%s>\t\t%s\n", keybase1.FormatTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Name)
+			} else {
+				ui.Printf("%s\t%s\t%d\t%s\n", keybase1.FormatTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Size, e.Name)
+			}
+		}
+	} else {
+		// capture the current terminal dimensions
+		terminalWidth, _ := ui.TerminalSize()
+
+		var outputBuffer bytes.Buffer
+
+		err := c.ls(&outputBuffer, listResult, terminalWidth)
+		if err != nil {
+			return err
+		}
+
+		if outputBuffer.String() != "" {
+			ui.Printf("%s", outputBuffer.String())
 		}
 	}
+	return nil
 }
 
 // ParseArgv gets the required path argument for this command.
@@ -162,6 +253,16 @@ func (c *CmdSimpleFSList) ParseArgv(ctx *cli.Context) error {
 	var err error
 
 	c.recurse = ctx.Bool("recurse")
+	c.winStyle = ctx.Bool("windows")
+	c.options.all = ctx.Bool("all")
+	c.options.long = ctx.Bool("long")
+	c.options.one = ctx.Bool("one")
+	c.options.dir = true // treat dirs as regular entries
+	c.options.color = !ctx.Bool("nocolor")
+	c.options.sortReverse = ctx.Bool("sort-reverse")
+	c.options.sortTime = ctx.Bool("sort-time")
+	c.options.sortSize = ctx.Bool("sort-size")
+	c.options.dirsFirst = ctx.Bool("dirs-first")
 
 	if nargs < 1 {
 		return errors.New("ls requires at least one KBFS path argument")
