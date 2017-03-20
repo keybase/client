@@ -10,6 +10,8 @@ import (
 type withLogTagKey string
 
 func WithLogTag(ctx context.Context, k string) context.Context {
+	ctx = logger.ConvertRPCTagsToLogTags(ctx)
+
 	addLogTags := true
 	tagKey := withLogTagKey(k)
 
