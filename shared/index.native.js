@@ -14,6 +14,7 @@ import {setup as setupLocalDebug, dumbSheetOnly, dumbChatOnly} from './local-deb
 import {stateKey} from './constants/reducer'
 import routeDefs from './routes'
 import {setRouteDef} from './actions/route-tree'
+import {setupSource} from './util/forward-logs'
 
 module.hot && module.hot.accept(() => {
   console.log('accepted update in shared/index.native')
@@ -29,6 +30,7 @@ class Keybase extends Component {
   store: any;
   subscriptions: Array<{remove: () => void}>
   componentWillMount () {
+    setupSource()
     this.store = configureStore()
     setupLocalDebug(this.store)
     this.store.dispatch(setRouteDef(routeDefs))

@@ -40,7 +40,7 @@ class LogSendRender extends Component<void, Props, {copiedToClipboard: boolean}>
           throw new Error(`Couldn't log send! ${err}`)
         })
     } else {
-      console.warn('TODO better android logging')
+      dumpLoggers()
       this.props.onLogSend()
     }
   }
