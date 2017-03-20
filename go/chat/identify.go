@@ -64,15 +64,12 @@ func (i *IdentifyNotifier) Send(update keybase1.CanonicalTLFNameAndIDWithBreaks)
 type IdentifyChangedHandler struct {
 	libkb.Contextified
 	utils.DebugLabeler
-
-	tlf func() keybase1.TlfInterface
 }
 
-func NewIdentifyChangedHandler(g *libkb.GlobalContext, tlf func() keybase1.TlfInterface) *IdentifyChangedHandler {
+func NewIdentifyChangedHandler(g *libkb.GlobalContext) *IdentifyChangedHandler {
 	return &IdentifyChangedHandler{
 		Contextified: libkb.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "IdentifyChangedHandler", false),
-		tlf:          tlf,
 	}
 }
 
@@ -192,10 +189,7 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 	}
 
 	// Run against CryptKeys to generate notifications if necessary
-	_, err = h.tlf().CryptKeys(ctx, keybase1.TLFQuery{
-		TlfName:          tlfName,
-		IdentifyBehavior: ident,
-	})
+	_, err = NewTLFInfoSource(h.G()).CryptKeys(ctx, tlfName, ident)
 	if err != nil {
 		h.Debug(ctx, "HandleUserChanged: failed to run CryptKeys: %s", err.Error())
 	}

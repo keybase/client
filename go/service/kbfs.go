@@ -8,6 +8,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -107,7 +108,10 @@ func (h *KBFSHandler) conversationIDs(uid keybase1.UID, tlf string, public bool)
 		TopicType:     &toptype,
 	}
 
-	ib, _, err := h.G().InboxSource.Read(context.Background(), uid.ToBytes(), nil, true, &query, nil)
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx := chat.NewContext(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		chat.NewIdentifyNotifier(h.G()))
+	ib, _, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), nil, true, &query, nil)
 	if err != nil {
 		return nil, err
 	}

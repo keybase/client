@@ -1,16 +1,16 @@
 package chat
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // KeyFinder remembers results from previous calls to CryptKeys().
 type KeyFinder interface {
-	Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error)
+	Find(ctx context.Context, tlf *TLFInfoSource, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error)
 }
 
 type KeyFinderImpl struct {
@@ -31,7 +31,7 @@ func (k *KeyFinderImpl) cacheKey(tlfName string, tlfPublic bool) string {
 
 // Find finds keybase1.TLFCryptKeys for tlfName, checking for existing
 // results.
-func (k *KeyFinderImpl) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
+func (k *KeyFinderImpl) Find(ctx context.Context, tlf *TLFInfoSource, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
 
 	ckey := k.cacheKey(tlfName, tlfPublic)
 	k.Lock()
@@ -41,12 +41,9 @@ func (k *KeyFinderImpl) Find(ctx context.Context, tlf keybase1.TlfInterface, tlf
 		return existing, nil
 	}
 
-	query := keybase1.TLFQuery{
-		TlfName: tlfName,
-	}
 	var keys keybase1.GetTLFCryptKeysRes
 	if tlfPublic {
-		res, err := tlf.PublicCanonicalTLFNameAndID(ctx, query)
+		res, err := tlf.PublicCanonicalTLFNameAndID(ctx, tlfName, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 		if err != nil {
 			return keybase1.GetTLFCryptKeysRes{}, err
 		}
@@ -54,7 +51,7 @@ func (k *KeyFinderImpl) Find(ctx context.Context, tlf keybase1.TlfInterface, tlf
 		keys.CryptKeys = []keybase1.CryptKey{publicCryptKey}
 	} else {
 		var err error
-		keys, err = tlf.CryptKeys(ctx, query)
+		keys, err = tlf.CryptKeys(ctx, tlfName, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 		if err != nil {
 			return keybase1.GetTLFCryptKeysRes{}, err
 		}

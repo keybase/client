@@ -27,7 +27,6 @@ type ConversationSource interface {
 	TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
-	SetTlfInterface(func() keybase1.TlfInterface)
 }
 
 type MessageDeliverer interface {
@@ -66,5 +65,4 @@ type InboxSource interface {
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
-	SetTlfInterface(func() keybase1.TlfInterface)
 }

@@ -53,10 +53,6 @@ func (s *baseConversationSource) SetRemoteInterface(ri func() chat1.RemoteInterf
 	s.ri = ri
 }
 
-func (s *baseConversationSource) SetTlfInterface(ti func() keybase1.TlfInterface) {
-	s.boxer.tlf = ti
-}
-
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
 	finalizeInfo *chat1.ConversationFinalizeInfo) (err error) {
@@ -286,7 +282,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 				vis = chat1.TLFVisibility_PUBLIC
 			}
 
-			_, err := LookupTLF(ctx, s.boxer.tlf(), tlfName, vis)
+			_, err := NewTLFInfoSource(s.G()).Lookup(ctx, tlfName, vis)
 			if err != nil {
 				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s", tlfName, convID)
 				return err
