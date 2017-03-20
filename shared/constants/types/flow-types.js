@@ -117,7 +117,7 @@ export const ConstantsStatusCode = {
   scwrongcryptoformat: 279,
   scdecryptionerror: 280,
   scinvalidaddress: 281,
-  scnosession: 282,
+  scnosession: 283,
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
@@ -4535,7 +4535,7 @@ export type StatusCode =
   | 279 // SCWrongCryptoFormat_279
   | 280 // SCDecryptionError_280
   | 281 // SCInvalidAddress_281
-  | 282 // SCNoSession_282
+  | 283 // SCNoSession_283
   | 472 // SCBadEmail_472
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
