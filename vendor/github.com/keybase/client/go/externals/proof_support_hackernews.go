@@ -9,7 +9,6 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -25,78 +24,22 @@ var _ libkb.ProofChecker = (*HackerNewsChecker)(nil)
 
 func (h *HackerNewsChecker) GetTorError() libkb.ProofError { return nil }
 
-func APIBase(un string) string {
-	return "https://hacker-news.firebaseio.com/v0/user/" + un
-}
-func (h *HackerNewsChecker) APIBase() string {
-	return APIBase(h.proof.GetRemoteUsername())
-}
-func (h *HackerNewsChecker) APIURL() string {
-	return h.APIBase() + "/about.json"
-}
-func KarmaURL(un string) string {
-	return APIBase(un) + "/karma.json"
-}
-
-func (h *HackerNewsChecker) KarmaURL() string {
-	return KarmaURL(h.proof.GetRemoteUsername())
-}
-
-func (h *HackerNewsChecker) HumanURL() string {
-	return "https://news.ycombinator.com/user?id=" + h.proof.GetRemoteUsername()
-}
-
 func NewHackerNewsChecker(p libkb.RemoteProofChainLink) (*HackerNewsChecker, libkb.ProofError) {
 	return &HackerNewsChecker{p}, nil
 }
 
-func (h *HackerNewsChecker) CheckHint(ctx libkb.ProofContext, hint libkb.SigHint) libkb.ProofError {
-	if pvl.UsePvl {
-		// checking the hint is done later in CheckStatus
-		return nil
-	}
-
-	wanted := h.APIURL()
-	if libkb.Cicmp(wanted, hint.GetAPIURL()) {
-		return nil
-	}
-
-	return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL, "Bad hint from server; URL should start with '%s'", wanted)
+func (h *HackerNewsChecker) CheckStatus(ctx libkb.ProofContext, hint libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+	return CheckProofPvl(ctx, keybase1.ProofType_HACKERNEWS, h.proof, hint, pvlU)
 }
 
-func (h *HackerNewsChecker) CheckStatus(ctx libkb.ProofContext, hint libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
-	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_HACKERNEWS,
-			pvl.NewProofInfo(h.proof, hint))
-	}
-	return h.CheckStatusOld(ctx, hint)
+//=============================================================================
+
+func APIBase(un string) string {
+	return "https://hacker-news.firebaseio.com/v0/user/" + un
 }
 
-func (h *HackerNewsChecker) CheckStatusOld(ctx libkb.ProofContext, hint libkb.SigHint) libkb.ProofError {
-	res, err := ctx.GetExternalAPI().GetText(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), hint.GetAPIURL()))
-
-	if err != nil {
-		return libkb.XapiError(err, hint.GetAPIURL())
-	}
-
-	var sigID keybase1.SigID
-	_, sigID, err = libkb.OpenSig(h.proof.GetArmoredSig())
-	var ret libkb.ProofError
-
-	if err != nil {
-		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad signature: %s", err)
-	}
-
-	wanted := sigID.ToMediumID()
-	ctx.GetLog().Debug("| HackerNews profile: %s", res.Body)
-	ctx.GetLog().Debug("| Wanted signature hash: %s", wanted)
-	if !strings.Contains(res.Body, wanted) {
-		ret = libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND,
-			"Posted text does not include signature '%s'", wanted)
-	}
-
-	return ret
+func KarmaURL(un string) string {
+	return APIBase(un) + "/karma.json"
 }
 
 func CheckKarma(ctx libkb.ProofContext, un string) (int, error) {
@@ -108,7 +51,6 @@ func CheckKarma(ctx libkb.ProofContext, un string) (int, error) {
 	return res.Body.GetInt()
 }
 
-//
 //=============================================================================
 
 type HackerNewsServiceType struct{ libkb.BaseServiceType }

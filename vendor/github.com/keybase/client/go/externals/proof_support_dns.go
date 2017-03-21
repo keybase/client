@@ -4,12 +4,10 @@
 package externals
 
 import (
-	"net"
 	"strings"
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -29,75 +27,12 @@ func NewDNSChecker(p libkb.RemoteProofChainLink) (*DNSChecker, libkb.ProofError)
 
 func (rc *DNSChecker) GetTorError() libkb.ProofError { return libkb.ProofErrorDNSOverTor }
 
-func (rc *DNSChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	if pvl.UsePvl {
-		// checking the hint is done later in CheckStatus
-		return nil
-	}
-
-	_, sigID, err := libkb.OpenSig(rc.proof.GetArmoredSig())
-
-	if err != nil {
-		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad signature: %s", err)
-	}
-
-	wanted := sigID.ToMediumID()
-
-	if !strings.HasSuffix(h.GetCheckText(), wanted) {
-		return libkb.NewProofError(keybase1.ProofStatus_BAD_HINT_TEXT,
-			"Bad hint from server; wanted TXT value '%s' but got '%s'",
-			wanted, h.GetCheckText())
-	}
-	return nil
-}
-
-func (rc *DNSChecker) CheckDomain(ctx libkb.ProofContext, sig string, domain string) libkb.ProofError {
-	txt, err := net.LookupTXT(domain)
-	if err != nil {
-		return libkb.NewProofError(keybase1.ProofStatus_DNS_ERROR,
-			"DNS failure for %s: %s", domain, err)
-	}
-
-	for _, record := range txt {
-		ctx.GetLog().Debug("For %s, got TXT record: %s", domain, record)
-		if record == sig {
-			return nil
-		}
-	}
-	return libkb.NewProofError(keybase1.ProofStatus_NOT_FOUND,
-		"Checked %d TXT entries of %s, but didn't find signature %s",
-		len(txt), domain, sig)
-}
-
-func (rc *DNSChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, pcm libkb.ProofCheckerMode) libkb.ProofError {
+func (rc *DNSChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
 	if pcm != libkb.ProofCheckerModeActive {
 		ctx.GetLog().CDebugf(ctx.GetNetContext(), "DNS check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
 		return libkb.ProofErrorUnchecked
 	}
-	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_DNS,
-			pvl.NewProofInfo(rc.proof, h))
-	}
-	return rc.CheckStatusOld(ctx, h)
-}
-
-func (rc *DNSChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	wanted := h.GetCheckText()
-	ctx.GetLog().Debug("| DNS proof, want TXT value: %s", wanted)
-
-	domain := rc.proof.GetHostname()
-
-	// Try the apex first, and report its error if both
-	// attempts fail
-	pe := rc.CheckDomain(ctx, wanted, domain)
-	if pe != nil {
-		tmp := rc.CheckDomain(ctx, wanted, "_keybase."+domain)
-		if tmp == nil {
-			pe = nil
-		}
-	}
-	return pe
+	return CheckProofPvl(ctx, keybase1.ProofType_DNS, rc.proof, h, pvlU)
 }
 
 //

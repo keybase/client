@@ -10,7 +10,6 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -35,107 +34,8 @@ func NewRedditChecker(p libkb.RemoteProofChainLink) (*RedditChecker, libkb.Proof
 
 func (rc *RedditChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *RedditChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	if pvl.UsePvl {
-		// checking the hint is done later in CheckStatus
-		return nil
-	}
-
-	if strings.HasPrefix(strings.ToLower(h.GetAPIURL()), RedditSub) {
-		return nil
-	}
-	return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
-		"Bad hint from server; URL should start with '%s'", RedditSub)
-}
-
-func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) (*jsonw.Wrapper, libkb.ProofError) {
-	var k1, k2 string
-	var err error
-
-	inp.AtIndex(0).AtKey("kind").GetStringVoid(&k1, &err)
-	parent := inp.AtIndex(0).AtKey("data").AtKey("children").AtIndex(0)
-	parent.AtKey("kind").GetStringVoid(&k2, &err)
-	var ret *jsonw.Wrapper
-
-	var pe libkb.ProofError
-	cf := keybase1.ProofStatus_CONTENT_FAILURE
-	cm := keybase1.ProofStatus_CONTENT_MISSING
-
-	if err != nil {
-		pe = libkb.NewProofError(cm, "Bad proof JSON: %s", err)
-	} else if k1 != "Listing" {
-		pe = libkb.NewProofError(cf,
-			"Reddit: Wanted a post of type 'Listing', but got %s", k1)
-	} else if k2 != "t3" {
-		pe = libkb.NewProofError(cf, "Wanted a child of type 't3' but got %s", k2)
-	} else if ret = parent.AtKey("data"); ret.IsNil() {
-		pe = libkb.NewProofError(cm, "Couldn't get child data for post")
-	}
-
-	return ret, pe
-
-}
-
-func (rc *RedditChecker) ScreenNameCompare(s1, s2 string) bool {
-	return libkb.Cicmp(s1, s2)
-}
-
-func (rc *RedditChecker) CheckData(h libkb.SigHint, dat *jsonw.Wrapper) libkb.ProofError {
-	sigBody, sigID, err := libkb.OpenSig(rc.proof.GetArmoredSig())
-	if err != nil {
-		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE, "Bad signature: %s", err)
-	}
-
-	var subreddit, author, selftext, title string
-
-	dat.AtKey("subreddit").GetStringVoid(&subreddit, &err)
-	dat.AtKey("author").GetStringVoid(&author, &err)
-	dat.AtKey("selftext").GetStringVoid(&selftext, &err)
-	dat.AtKey("title").GetStringVoid(&title, &err)
-
-	if err != nil {
-		return libkb.NewProofError(keybase1.ProofStatus_CONTENT_MISSING, "content missing: %s", err)
-	}
-
-	if strings.ToLower(subreddit) != "keybaseproofs" {
-		return libkb.NewProofError(keybase1.ProofStatus_SERVICE_ERROR, "the post must be to /r/KeybaseProofs")
-	}
-
-	if wanted := rc.proof.GetRemoteUsername(); !rc.ScreenNameCompare(author, wanted) {
-		return libkb.NewProofError(keybase1.ProofStatus_BAD_USERNAME,
-			"Bad post author; wanted '%s' but got '%s'", wanted, author)
-	}
-
-	if psid := sigID.ToMediumID(); !strings.Contains(title, psid) {
-		return libkb.NewProofError(keybase1.ProofStatus_TITLE_NOT_FOUND, "Missing signature ID (%s) in post title ('%s')", psid, title)
-	}
-
-	if !libkb.FindBase64Block(selftext, sigBody, false) {
-		return libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
-	}
-
-	return nil
-}
-
-func (rc *RedditChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
-	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_REDDIT,
-			pvl.NewProofInfo(rc.proof, h))
-	}
-	return rc.CheckStatusOld(ctx, h)
-}
-
-func (rc *RedditChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	res, err := ctx.GetExternalAPI().Get(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), h.GetAPIURL()))
-	if err != nil {
-		return libkb.XapiError(err, h.GetAPIURL())
-	}
-
-	dat, perr := rc.UnpackData(res.Body)
-	if perr != nil {
-		return perr
-	}
-	return rc.CheckData(h, dat)
+func (rc *RedditChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+	return CheckProofPvl(ctx, keybase1.ProofType_REDDIT, rc.proof, h, pvlU)
 }
 
 //

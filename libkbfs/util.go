@@ -98,14 +98,6 @@ func ctxWithRandomIDReplayable(ctx context.Context, tagKey interface{},
 	})
 }
 
-// LogTagsFromContext is a wrapper around logger.LogTagsFromContext
-// that simply casts the result to the type expected by
-// rpc.Connection.
-func LogTagsFromContext(ctx context.Context) (map[interface{}]string, bool) {
-	tags, ok := logger.LogTagsFromContext(ctx)
-	return map[interface{}]string(tags), ok
-}
-
 // checkDataVersion validates that the data version for a
 // block pointer is valid for the given version validator
 func checkDataVersion(versioner dataVersioner, p path, ptr BlockPointer) error {

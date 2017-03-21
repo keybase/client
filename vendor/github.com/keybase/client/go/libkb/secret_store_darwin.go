@@ -77,8 +77,13 @@ func (k KeychainSecretStore) RetrieveSecret(accountName NormalizedUsername) (LKS
 
 func (k KeychainSecretStore) ClearSecret(accountName NormalizedUsername) error {
 	k.context.GetLog().Debug("KeychainSecretStore.ClearSecret(%s)", accountName)
-	query := keychain.NewGenericPassword(k.serviceName(), string(accountName), "", nil, "")
-	query.SetMatchLimit(keychain.MatchLimitAll)
+	var query keychain.Item
+	if isIOS {
+		query = keychain.NewGenericPassword(k.serviceName(), string(accountName), "", nil, k.accessGroup())
+	} else {
+		query = keychain.NewGenericPassword(k.serviceName(), string(accountName), "", nil, "")
+		query.SetMatchLimit(keychain.MatchLimitAll)
+	}
 	err := keychain.DeleteItem(query)
 	if err == keychain.ErrorItemNotFound {
 		k.context.GetLog().Debug("KeychainSecretStore.ClearSecret(%s), item not found", accountName)

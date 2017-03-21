@@ -141,10 +141,10 @@
 			"revisionTime": "2017-03-20T19:37:17Z"
 		},
 		{
-			"checksumSHA1": "XLuIsEwolQy0HYCl0qkqcgCkSFQ=",
+			"checksumSHA1": "lLbCVGm/TFGHDXTBYf2Th5xXyXk=",
 			"path": "github.com/keybase/client/go/externals",
-			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
-			"revisionTime": "2017-02-13T21:07:17Z"
+			"revision": "6cfea84cabdb3c58610a70da29569b95fd3eeb42",
+			"revisionTime": "2017-03-21T20:27:42Z"
 		},
 		{
 			"checksumSHA1": "wXT+Sk5B8Al1PyMczAzCrzYwZAc=",
@@ -153,16 +153,16 @@
 			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
-			"checksumSHA1": "YqnSB+btAlX7OQRnlTe6fnbn0fw=",
+			"checksumSHA1": "14I1t/OXgS4/nqpWltTeab8nVE0=",
 			"path": "github.com/keybase/client/go/kex2",
-			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
-			"revisionTime": "2017-02-13T21:07:17Z"
+			"revision": "6cfea84cabdb3c58610a70da29569b95fd3eeb42",
+			"revisionTime": "2017-03-21T20:27:42Z"
 		},
 		{
-			"checksumSHA1": "OU+qaJCZkbBMoQYamhJ4HhWS7c8=",
+			"checksumSHA1": "KJa6RfcpaljhaXP/OsONUjrJINo=",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "dec61b18d5ccccc63a14100393675b7edd249f43",
-			"revisionTime": "2017-03-20T19:37:17Z"
+			"revision": "6cfea84cabdb3c58610a70da29569b95fd3eeb42",
+			"revisionTime": "2017-03-21T20:27:42Z"
 		},
 		{
 			"checksumSHA1": "jAH6LB6sSSp+Vxx/bTBE5DtocGo=",
@@ -199,6 +199,12 @@
 			"path": "github.com/keybase/client/go/pvl",
 			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
 			"revisionTime": "2017-02-13T21:07:17Z"
+		},
+		{
+			"checksumSHA1": "Hgd9Y2ZEXOn04gOK4iCo4Q9cZDg=",
+			"path": "github.com/keybase/client/go/pvlsource",
+			"revision": "6cfea84cabdb3c58610a70da29569b95fd3eeb42",
+			"revisionTime": "2017-03-21T20:27:42Z"
 		},
 		{
 			"checksumSHA1": "qtfSDF71FbCm7kTNKdraxOpU7wY=",
@@ -287,10 +293,10 @@
 			"revisionTime": "2016-12-08T01:54:25Z"
 		},
 		{
-			"checksumSHA1": "IXitcIrP3o9YzQ+OjvNWWVX3QX0=",
+			"checksumSHA1": "JfG/DT0QIPFFHh9pB5uPZUXhO4w=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "6df28f7bb1acfb3ab689a143c3e4d369c7f2df50",
-			"revisionTime": "2017-03-06T22:50:13Z"
+			"revision": "2641a997029da6b373ad1b4dd386aa1f8e28e216",
+			"revisionTime": "2017-03-21T20:26:42Z"
 		},
 		{
 			"checksumSHA1": "vecRkvbIBGmLUxH37v899JcgjO4=",

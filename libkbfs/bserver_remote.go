@@ -182,7 +182,7 @@ func NewBlockServerRemote(config blockServerRemoteConfig,
 	opts := rpc.ConnectionOpts{
 		DontConnectNow: true, // connect only on-demand
 		WrapErrorFunc:  libkb.WrapError,
-		TagsFunc:       LogTagsFromContext,
+		TagsFunc:       libkb.LogTagsFromContext,
 		// This constant backoff is safe to share between multiple connections,
 		// because it has no internal state. But beware: an exponential backoff
 		// shouldn't be shared.
