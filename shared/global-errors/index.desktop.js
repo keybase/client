@@ -2,7 +2,6 @@
 import React, {Component} from 'react'
 import {Box, Text, Icon, HOCTimers} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, transition} from '../styles'
-import {ReachabilityReachable} from '../constants/types/flow-types'
 import {ignoreDisconnectOverlay} from '../local-debug.desktop.js'
 
 import type {Props} from './index'
@@ -22,9 +21,9 @@ class GlobalError extends Component<void, Props, State> {
     super(props)
 
     this.state = {
-      size: 'Closed',
-      cachedSummary: this._summaryForError(props.error),
       cachedDetails: this._detailsForError(props.error),
+      cachedSummary: this._summaryForError(props.error),
+      size: 'Closed',
     }
   }
 
@@ -65,23 +64,23 @@ class GlobalError extends Component<void, Props, State> {
     if (nextProps.error !== this.props.error) {
       this.props.setTimeout(() => {
         this.setState({
-          cachedSummary: this._summaryForError(nextProps.error),
           cachedDetails: this._detailsForError(nextProps.error),
+          cachedSummary: this._summaryForError(nextProps.error),
         })
-      }, nextProps.error ? 0 : 3000) // if its set, do it immediately, if its cleared set it in a bit
+      }, nextProps.error ? 0 : 7000) // if its set, do it immediately, if its cleared set it in a bit
       this._resetError(!!nextProps.error)
     }
   }
 
   static maxHeightForSize (size: Size) {
     return {
+      'Big': 900,
       'Closed': 0,
       'Small': 35,
-      'Big': 900,
     }[size]
   }
 
-  renderReachability () {
+  renderDeamonError () {
     if (ignoreDisconnectOverlay) {
       console.warn('Ignoring disconnect overlay')
       return null
@@ -89,11 +88,11 @@ class GlobalError extends Component<void, Props, State> {
 
     const message = this.props.daemonError && this.props.daemonError.message || 'Keybase is currently unreachable. Trying to reconnect you…'
     return (
-      <Box style={{...containerOverlayStyle}}>
-        <Box style={{...overlayRowStyle}}>
+      <Box style={containerOverlayStyle}>
+        <Box style={overlayRowStyle}>
           <Text type='BodySemibold' style={{color: globalColors.white, textAlign: 'center'}}>{message}</Text>
         </Box>
-        <Box style={{...overlayFillStyle}}>
+        <Box style={overlayFillStyle}>
           <Icon type='icon-loader-connecting-266' />
         </Box>
       </Box>
@@ -110,8 +109,8 @@ class GlobalError extends Component<void, Props, State> {
       <Box style={{...containerStyle, ...containerErrorStyle, maxHeight}} onClick={this._onExpandClick}>
         <Box style={{...summaryRowStyle, ...summaryRowErrorStyle}}>
           {summary && <Icon type='iconfont-exclamation' style={{color: globalColors.white, marginRight: 8}} />}
-          <Text type='BodyBig' style={{color: globalColors.white, textAlign: 'center'}}>{summary}</Text>
-          {summary && <Icon type='iconfont-close' onClick={onDismiss} style={{position: 'absolute', right: 8, color: globalColors.white_75}} />}
+          <Text type='BodyBig' style={{color: globalColors.white, textAlign: 'center', flex: 1}}>{summary}</Text>
+          {summary && <Icon type='iconfont-close' onClick={onDismiss} style={{color: globalColors.white_75}} />}
         </Box>
         <Text type='BodyBig' style={detailStyle}>{details}</Text>
       </Box>
@@ -119,10 +118,8 @@ class GlobalError extends Component<void, Props, State> {
   }
 
   render () {
-    if (this.props.reachability && this.props.reachability.reachable === ReachabilityReachable.no) {
-      return this.renderReachability()
-    } else if (this.props.daemonError) {
-      return this.renderReachability()
+    if (this.props.daemonError) {
+      return this.renderDeamonError()
     }
     return this.renderError()
   }
@@ -130,11 +127,11 @@ class GlobalError extends Component<void, Props, State> {
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
+  left: 0,
   overflow: 'hidden',
   position: 'absolute',
-  top: 0,
-  left: 0,
   right: 0,
+  top: 0,
   zIndex: 1000,
 }
 
@@ -144,11 +141,11 @@ const containerErrorStyle = {
 
 const summaryRowStyle = {
   ...globalStyles.flexBoxRow,
+  alignItems: 'center',
   flex: 1,
   justifyContent: 'center',
-  alignItems: 'center',
-  position: 'relative',
   padding: 8,
+  position: 'relative',
 }
 
 const summaryRowErrorStyle = {
@@ -158,38 +155,38 @@ const summaryRowErrorStyle = {
 
 const detailStyle = {
   ...globalStyles.selectable,
-  color: globalColors.white_75,
   backgroundColor: globalColors.black_75,
+  color: globalColors.white_75,
   padding: 8,
-  textAlign: 'center',
   paddingLeft: globalMargins.xlarge,
   paddingRight: globalMargins.xlarge,
+  textAlign: 'center',
 }
 
 const containerOverlayStyle = {
   ...globalStyles.flexBoxColumn,
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  zIndex: 1000,
   bottom: 0,
+  left: 0,
+  position: 'absolute',
+  right: 0,
+  top: 0,
+  zIndex: 1000,
 }
 
 const overlayRowStyle = {
   ...globalStyles.flexBoxRow,
-  justifyContent: 'center',
   alignItems: 'center',
-  padding: 8,
   backgroundColor: globalColors.blue,
+  justifyContent: 'center',
+  padding: 8,
 }
 
 const overlayFillStyle = {
   ...globalStyles.flexBoxColumn,
-  flex: 1,
-  justifyContent: 'center',
   alignItems: 'center',
   backgroundColor: globalColors.white,
+  flex: 1,
+  justifyContent: 'center',
 }
 
 export default HOCTimers(GlobalError)
