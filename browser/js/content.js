@@ -54,6 +54,7 @@ function injectThread() {
   }
 }
 
+// Render the Keybase chat reply widget
 function renderChat(parent, toUsername) {
   // TODO: Replace hardcoded HTML with some posh templating tech?
   // TODO: Prevent navigation?
@@ -103,6 +104,7 @@ function removeChat(chatForm, skipCheck) {
 }
 
 
+// Submit the chat widget
 function submitChat(e) {
   e.preventDefault();
 
@@ -123,8 +125,47 @@ function submitChat(e) {
     console.log("response: ", response);
   });
 
-  // TODO: Send nudge
-
+  const originalParent = e.currentTarget.parentNode;
   removeChat(e.currentTarget, true /* skipCheck */);
   console.log("Chat submitted: ", e);
+
+  // Send nudge?
+  if (!nudgeDo) return;
+
+  const commentNode = findParentByClass(originalParent, "comment");
+  if (!commentNode) return; // Not found
+
+  postReply(commentNode, nudgeText);
+}
+
+// Post a Reddit thread reply on the given comment node.
+function postReply(commentNode, text) {
+  // This will break if there is no reply button.
+  const commentID = commentNode.getAttribute("data-fullname");
+  const replyLink = commentNode.getElementsByClassName("reply-button")[0].firstChild;
+
+  // Open the reply window.
+  replyLink.click();
+
+  const replyForm = document.getElementById("commentreply_" + commentID);
+  replyForm["text"].value = text;
+
+  // Submit form
+
+  // Note: Calling replyForm.submit() bypasses the onsubmit handler, so we
+  // need to dispatch an event or click a submit button.
+  replyForm.dispatchEvent(new Event("submit"));
+}
+
+
+/*** Helpers ***/
+
+// Find a parent with a given className.
+function findParentByClass(el, className) {
+  const root = el.getRootNode();
+  while(el != root) {
+    if (el.classList.contains(className)) return el;
+    el = el.parentNode;
+  }
+  return null;
 }
