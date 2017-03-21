@@ -64,8 +64,8 @@ type ChatInboxFailedArg struct {
 }
 
 type ChatThreadCachedArg struct {
-	SessionID int        `codec:"sessionID" json:"sessionID"`
-	Thread    ThreadView `codec:"thread" json:"thread"`
+	SessionID int         `codec:"sessionID" json:"sessionID"`
+	Thread    *ThreadView `codec:"thread,omitempty" json:"thread,omitempty"`
 }
 
 type ChatThreadFullArg struct {

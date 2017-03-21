@@ -4,8 +4,8 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/keybase/client/go/chat/interfaces"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -53,8 +53,8 @@ func (s *baseConversationSource) SetRemoteInterface(ri func() chat1.RemoteInterf
 	s.ri = ri
 }
 
-func (s *baseConversationSource) SetTlfInterface(ti func() keybase1.TlfInterface) {
-	s.boxer.tlf = ti
+func (s *baseConversationSource) SetTLFInfoSource(tlfInfoSource types.TLFInfoSource) {
+	s.boxer.tlfInfoSource = tlfInfoSource
 }
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
@@ -286,7 +286,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 				vis = chat1.TLFVisibility_PUBLIC
 			}
 
-			_, err := LookupTLF(ctx, s.boxer.tlf(), tlfName, vis)
+			_, err := s.boxer.tlfInfoSource.Lookup(ctx, tlfName, vis)
 			if err != nil {
 				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s", tlfName, convID)
 				return err
@@ -562,7 +562,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 }
 
 func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer, storage *storage.Storage,
-	ri func() chat1.RemoteInterface, si func() libkb.SecretUI) interfaces.ConversationSource {
+	ri func() chat1.RemoteInterface, si func() libkb.SecretUI) types.ConversationSource {
 	if typ == "hybrid" {
 		return NewHybridConversationSource(g, boxer, storage, ri, si)
 	}

@@ -160,7 +160,10 @@
         },
         {
           "name": "thread",
-          "type": "ThreadView"
+          "type": [
+            null,
+            "ThreadView"
+          ]
         }
       ],
       "response": null,

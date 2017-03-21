@@ -518,6 +518,13 @@ func (e DeviceRequiredError) Error() string {
 	return "Login required"
 }
 
+type NoSessionError struct{}
+
+// KBFS currently matching on this string, so be careful changing this:
+func (e NoSessionError) Error() string {
+	return "no current session"
+}
+
 //=============================================================================
 
 type LogoutError struct{}

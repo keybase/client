@@ -1,4 +1,4 @@
-package interfaces
+package types
 
 import (
 	"github.com/keybase/client/go/protocol/chat1"
@@ -11,6 +11,13 @@ type Offlinable interface {
 	IsOffline() bool
 	Connected(ctx context.Context)
 	Disconnected(ctx context.Context)
+}
+
+type TLFInfoSource interface {
+	Lookup(ctx context.Context, tlfName string, vis chat1.TLFVisibility) (*TLFInfo, error)
+	CryptKeys(ctx context.Context, tlfName string) (keybase1.GetTLFCryptKeysRes, error)
+	PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (keybase1.CanonicalTLFNameAndIDWithBreaks, error)
+	CompleteAndCanonicalizePrivateTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error)
 }
 
 type ConversationSource interface {
@@ -27,7 +34,7 @@ type ConversationSource interface {
 	TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
-	SetTlfInterface(func() keybase1.TlfInterface)
+	SetTLFInfoSource(tlfInfoSource TLFInfoSource)
 }
 
 type MessageDeliverer interface {
@@ -66,5 +73,5 @@ type InboxSource interface {
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
-	SetTlfInterface(func() keybase1.TlfInterface)
+	SetTLFInfoSource(tlfInfoSource TLFInfoSource)
 }

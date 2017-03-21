@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -139,8 +140,6 @@ type TlfMock struct {
 	world *ChatMockWorld
 }
 
-var _ keybase1.TlfInterface = TlfMock{}
-
 func NewTlfMock(world *ChatMockWorld) TlfMock {
 	return TlfMock{world}
 }
@@ -168,8 +167,20 @@ func (m TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, erro
 	return keybase1.TLFID(hex.EncodeToString([]byte(tlfID))), nil
 }
 
-func (m TlfMock) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (res keybase1.GetTLFCryptKeysRes, err error) {
-	res.NameIDBreaks.CanonicalName = CanonicalTlfNameForTest(arg.TlfName)
+func (m TlfMock) Lookup(ctx context.Context, tlfName string, vis chat1.TLFVisibility) (res *types.TLFInfo, err error) {
+	var tlfID keybase1.TLFID
+	name := CanonicalTlfNameForTest(tlfName)
+	res = new(types.TLFInfo)
+	res.CanonicalName = name.String()
+	if tlfID, err = m.getTlfID(name); err != nil {
+		return nil, err
+	}
+	res.ID = tlfID.ToBytes()
+	return res, nil
+}
+
+func (m TlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, err error) {
+	res.NameIDBreaks.CanonicalName = CanonicalTlfNameForTest(tlfName)
 	if res.NameIDBreaks.TlfID, err = m.getTlfID(res.NameIDBreaks.CanonicalName); err != nil {
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
@@ -181,9 +192,9 @@ func (m TlfMock) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (res keyb
 	return res, nil
 }
 
-func (m TlfMock) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, arg keybase1.TLFQuery) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
+func (m TlfMock) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, tlfName string) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
 	var res keybase1.CanonicalTLFNameAndIDWithBreaks
-	res.CanonicalName = CanonicalTlfNameForTest(arg.TlfName)
+	res.CanonicalName = CanonicalTlfNameForTest(tlfName)
 	var err error
 	res.TlfID, err = m.getTlfID(res.CanonicalName)
 	if err != nil {
@@ -192,9 +203,9 @@ func (m TlfMock) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, arg 
 	return res, nil
 }
 
-func (m TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybase1.TLFQuery) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
+func (m TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
 	res := keybase1.CanonicalTLFNameAndIDWithBreaks{
-		CanonicalName: keybase1.CanonicalTlfName(arg.TlfName),
+		CanonicalName: keybase1.CanonicalTlfName(tlfName),
 		TlfID:         "abcdefg",
 	}
 	return res, nil
@@ -606,7 +617,7 @@ type NonblockInboxResult struct {
 }
 
 type NonblockThreadResult struct {
-	Thread chat1.ThreadView
+	Thread *chat1.ThreadView
 	Full   bool
 }
 
@@ -686,7 +697,7 @@ func (c *ChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCache
 
 func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
 	c.threadCb <- NonblockThreadResult{
-		Thread: arg.Thread,
+		Thread: &arg.Thread,
 		Full:   true,
 	}
 	return nil

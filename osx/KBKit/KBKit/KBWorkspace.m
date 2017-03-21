@@ -30,11 +30,11 @@
   return userDefaults;
 }
 
-+ (void)setupLogging {
++ (void)setupLogging:(BOOL)debug {
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     DDTTYLogger.sharedInstance.logFormatter = [[KBLogFormatter alloc] init];
-    [DDLog addLogger:DDTTYLogger.sharedInstance withLevel:DDLogLevelDebug]; // Xcode output
+    [DDLog addLogger:DDTTYLogger.sharedInstance withLevel:debug ? DDLogLevelDebug : DDLogLevelInfo]; // Xcode output
   });
 }
 
