@@ -168,7 +168,7 @@ function * startNewConversation (oldConversationIDKey: Constants.ConversationIDK
     yield put(selectConversation(newConversationIDKey, false))
   }
   // Load the inbox so we can post, we wait till this is done
-  yield call(getInboxAndUnbox, {payload: {conversationIDKey: newConversationIDKey}, type: 'chat:getInboxAndUnbox'})
+  yield call(getInboxAndUnbox, {payload: {conversationIDKeys: [newConversationIDKey]}, type: 'chat:getInboxAndUnbox'})
   return newConversationIDKey
 }
 

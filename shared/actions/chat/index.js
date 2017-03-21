@@ -244,7 +244,7 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatTLFFinalize', ({convID}) => {
-      dispatch(({type: 'chat:getInboxAndUnbox', payload: {conversationIDKey: Constants.conversationIDToKey(convID)}}: Constants.GetInboxAndUnbox))
+      dispatch(({type: 'chat:getInboxAndUnbox', payload: {conversationIDKeys: [Constants.conversationIDToKey(convID)]}}: Constants.GetInboxAndUnbox))
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatInboxStale', () => {
@@ -855,8 +855,8 @@ function * _sendNotifications (action: Constants.AppendMessages): SagaGenerator<
 
 function * _markThreadsStale (action: Constants.MarkThreadsStale): SagaGenerator<any, any> {
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
-  const {convIDs} = action.payload
-  yield convIDs.map(conversationIDKey => call(Inbox.getInboxAndUnbox, {payload: {conversationIDKey}, type: 'chat:getInboxAndUnbox'}))
+  const {convIDs: conversationIDKeys} = action.payload
+  yield call(Inbox.getInboxAndUnbox, {payload: {conversationIDKeys}, type: 'chat:getInboxAndUnbox'})
 
   // Selected is stale?
   const selectedConversation = yield select(Constants.getSelectedConversation)
@@ -875,7 +875,7 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
   const inbox = yield select(inboxSelector)
   const validInbox = inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))
   if (!validInbox) {
-    yield put(({type: 'chat:getInboxAndUnbox', payload: {conversationIDKey}}: Constants.GetInboxAndUnbox))
+    yield put(({type: 'chat:getInboxAndUnbox', payload: {conversationIDKeys: [conversationIDKey]}}: Constants.GetInboxAndUnbox))
     const raceResult: {[key: string]: any} = yield race({
       updateInbox: take(a => a.type === 'chat:updateInbox' && a.payload.conversation && a.payload.conversation.conversationIDKey === conversationIDKey),
       timeout: call(delay, 10e3),

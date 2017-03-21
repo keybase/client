@@ -18,15 +18,24 @@ import type {TypedState} from '../../constants/reducer'
 const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
 const followingSelector = (state: TypedState) => state.config.following
 
-let _loadedInboxOnce = false
 function * onLoadInboxMaybeOnce (action: Constants.LoadInbox): SagaGenerator<any, any> {
-  if (!_loadedInboxOnce || action.payload.force) {
-    _loadedInboxOnce = true
-    yield call(onLoadInbox)
-  }
+  // Don't load if we are currently loading. Load if we haven't ever loaded,
+  // or had an error or are forcing it
+  if (!_inboxLoading && (!_inboxLoadedOnce || _inboxError || action.payload.force)) {
+    _inboxLoadedOnce = true
+    _inboxLoading = true
+     yield call(onLoadInbox)
+    }
 }
 
+let _inboxLoadedOnce = false
+let _inboxLoading = false
+let _inboxError = null
+
 function * onLoadInbox (): SagaGenerator<any, any> {
+  _inboxError = null
+  _inboxLoading = true
+
   const channelConfig = singleFixedChannelConfig([
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
@@ -45,6 +54,7 @@ function * onLoadInbox (): SagaGenerator<any, any> {
         topicType: ChatTypes.CommonTopicType.chat,
         unreadOnly: false,
       },
+      maxUnbox: 0,
     },
   })
 
@@ -68,8 +78,7 @@ function * onLoadInbox (): SagaGenerator<any, any> {
 
   chatInboxUnverified.response.result()
 
-  let finishedCalled = false
-  while (!finishedCalled) {
+  while (true) {
     const incoming: {[key: string]: any} = yield race({
       chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
       chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
@@ -111,13 +120,14 @@ function * onLoadInbox (): SagaGenerator<any, any> {
       }
       // find it
     } else if (incoming.chatInboxFailed) {
-      console.log('ignoring chatInboxFailed', incoming.chatInboxFailed)
+      console.log('chatInboxFailed', incoming.chatInboxFailed)
       requestIdleCallback(() => {
         incoming.chatInboxFailed.response.result()
       }, {timeout: 100})
 
       yield call(delay, 1)
       const error = incoming.chatInboxFailed.params.error
+      _inboxError = error
       const conversationIDKey = Constants.conversationIDToKey(incoming.chatInboxFailed.params.convID)
       const conversation = new Constants.InboxStateRecord({
         conversationIDKey,
@@ -147,10 +157,12 @@ function * onLoadInbox (): SagaGenerator<any, any> {
           }
       }
     } else if (incoming.finished) {
-      finishedCalled = true
+      _inboxLoading = false
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
       break
     } else if (incoming.timeout) {
+      _inboxLoading = false
+      _inboxError = new Error('Inbox loading timed out')
       console.warn('Inbox loading timed out')
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
       break
@@ -177,12 +189,12 @@ function _conversationLocalToFinalized (convo: ?ChatTypes.ConversationLocal): Co
   return Map()
 }
 
-function * getInboxAndUnbox ({payload: {conversationIDKey}}: Constants.GetInboxAndUnbox): SagaGenerator<any, any> {
+function * getInboxAndUnbox ({payload: {conversationIDKeys}}: Constants.GetInboxAndUnbox): SagaGenerator<any, any> {
   const param: ChatTypes.localGetInboxAndUnboxLocalRpcParam = {
     identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
     query: {
       computeActiveList: true,
-      convIDs: [Constants.keyToConversationID(conversationIDKey)],
+      convIDs: conversationIDKeys.map(Constants.keyToConversationID),
       readOnly: true,
       tlfVisibility: ChatTypes.CommonTLFVisibility.private,
       topicType: ChatTypes.CommonTopicType.chat,
@@ -192,10 +204,14 @@ function * getInboxAndUnbox ({payload: {conversationIDKey}}: Constants.GetInboxA
 
   const result: ChatTypes.GetInboxAndUnboxLocalRes = yield call(ChatTypes.localGetInboxAndUnboxLocalRpcPromise, {param})
   const {conversations} = result
-  if (conversations && conversations[0]) {
-    yield call(updateInbox, conversations[0])
-    // inbox loaded so rekeyInfo is now clear
-    yield put({payload: {conversationIDKey}, type: 'chat:clearRekey'})
+  if (conversations) {
+    const updates = conversations.reduce((list, c) => {
+      list.push(call(updateInbox, c))
+      // inbox loaded so rekeyInfo is now clear
+      list.push(put({payload: {c}, type: 'chat:clearRekey'}))
+      return list
+    }, [])
+    yield updates
   }
   // TODO maybe we get failures and we should update rekeyinfo? unclear...
 }
