@@ -75,3 +75,7 @@ type InboxSource interface {
 	SetRemoteInterface(func() chat1.RemoteInterface)
 	SetTLFInfoSource(tlfInfoSource TLFInfoSource)
 }
+
+type Identifier interface {
+	Identify(ctx context.Context, assertion string, private bool, idBehavior keybase1.TLFIdentifyBehavior) (keybase1.TLFIdentifyFailure, error)
+}

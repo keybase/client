@@ -205,3 +205,59 @@ func (u *RemoteIdentifyUI) DisplayTLFCreateWithInvite(arg keybase1.DisplayTLFCre
 	arg.SessionID = u.sessionID
 	return u.uicli.DisplayTLFCreateWithInvite(ctx, arg)
 }
+
+/*
+type ChatIdentifier struct {
+	libkb.Contextified
+	ui libkb.IdentifyUI
+}
+
+func NewChatIdentifier(g *libkb.GlobalContext, ui libkb.IdentifyUI) *ChatIdentifier {
+	return &ChatIdentifier{
+		Contextified: libkb.NewContextified(g),
+		ui:           ui,
+	}
+}
+
+func (c *ChatIdentifier) Identify(ctx context.Context, assertion string, private bool, idBehavior keybase1.TLFIdentifyBehavior) (keybase1.TLFIdentifyFailure, error) {
+	reason := "You accessed a public conversation."
+	if private {
+		reason = fmt.Sprintf("You accessed a private conversation with %s.", assertion)
+	}
+
+	arg := keybase1.Identify2Arg{
+		UserAssertion:    assertion,
+		UseDelegateUI:    true,
+		Reason:           keybase1.IdentifyReason{Reason: reason},
+		CanSuppressUI:    true,
+		IdentifyBehavior: idBehavior,
+	}
+
+	// no sessionID as this can be called anywhere, not just as a client action
+	sessionID := 0
+	ectx := engine.Context{
+		IdentifyUI: c.ui,
+		SessionID:  sessionID,
+		NetContext: ctx,
+	}
+
+	eng := engine.NewResolveThenIdentify2(c.G(), &arg)
+	err := engine.RunEngine(eng, &ectx)
+	if err != nil {
+		return keybase1.TLFIdentifyFailure{}, err
+	}
+	resp := eng.Result()
+
+	var frep keybase1.TLFIdentifyFailure
+	if resp != nil {
+		frep.User = keybase1.User{
+			Uid:      resp.Upk.Uid,
+			Username: resp.Upk.Username,
+		}
+		frep.Breaks = resp.TrackBreaks
+	}
+
+	return frep, nil
+
+}
+*/

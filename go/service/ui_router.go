@@ -112,6 +112,29 @@ func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 	return ret, nil
 }
 
+func (u *UIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI, error) {
+	x, _ := u.getUI(libkb.IdentifyUIKind)
+	if x == nil {
+		return 0, nil, nil
+	}
+	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
+	iuicli := keybase1.IdentifyUiClient{Cli: cli}
+	sessionID, err := iuicli.DelegateIdentifyUI(ctx)
+	if err != nil {
+		return 0, nil, err
+	}
+	ret := &RemoteIdentifyUI{
+		sessionID: sessionID,
+		uicli:     iuicli,
+		logUI: &LogUI{
+			sessionID,
+			&keybase1.LogUiClient{Cli: cli},
+		},
+		Contextified: libkb.NewContextified(u.G()),
+	}
+	return sessionID, ret, nil
+}
+
 func (u *UIRouter) GetSecretUI(sessionID int) (ui libkb.SecretUI, err error) {
 	defer u.G().Trace("UIRouter#GetSecretUI", func() error { return err })()
 	x, _ := u.getUI(libkb.SecretUIKind)

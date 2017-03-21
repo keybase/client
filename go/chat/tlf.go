@@ -59,7 +59,11 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
-	ib, err := t.identifyTLF(ctx, tlfName, true)
+	query := keybase1.TLFQuery{
+		TlfName:          tlfName,
+		IdentifyBehavior: identBehavior,
+	}
+	ib, err := t.identifyTLF(ctx, query, true)
 	if err != nil {
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
@@ -69,10 +73,7 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 		return res, err
 	}
 
-	resp, err := tlfClient.GetTLFCryptKeys(ctx, keybase1.TLFQuery{
-		TlfName:          tlfName,
-		IdentifyBehavior: identBehavior,
-	})
+	resp, err := tlfClient.GetTLFCryptKeys(ctx, query)
 	if err != nil {
 		return resp, err
 	}
@@ -147,7 +148,7 @@ func (t *KBFSTLFInfoSource) identifyTLF(ctx context.Context, arg keybase1.TLFQue
 	var fails []keybase1.TLFIdentifyFailure
 	pieces := strings.Split(arg.TlfName, ",")
 	for _, p := range pieces {
-		f, err := h.identifyUser(ctx, p, private, arg.IdentifyBehavior)
+		f, err := t.identifyUser(ctx, p, private, arg.IdentifyBehavior)
 		if err != nil {
 			return nil, err
 		}
@@ -170,17 +171,19 @@ func (t *KBFSTLFInfoSource) identifyUser(ctx context.Context, assertion string, 
 		IdentifyBehavior: idBehavior,
 	}
 
-	// no sessionID as this can be called anywhere, not just as a client action
-	sessionID := 0
+	sessionID, idUI, err := t.G().UIRouter.GetIdentifyUICtx(ctx)
+	if err != nil {
+		return keybase1.TLFIdentifyFailure{}, err
+	}
+
 	ectx := engine.Context{
-		LogUI:      h.getLogUI(sessionID),
-		IdentifyUI: h.NewRemoteIdentifyUI(sessionID, h.G()),
+		IdentifyUI: idUI,
 		SessionID:  sessionID,
 		NetContext: ctx,
 	}
 
-	eng := engine.NewResolveThenIdentify2(h.G(), &arg)
-	err := engine.RunEngine(eng, &ectx)
+	eng := engine.NewResolveThenIdentify2(t.G(), &arg)
+	err = engine.RunEngine(eng, &ectx)
 	if err != nil {
 		return keybase1.TLFIdentifyFailure{}, err
 	}
