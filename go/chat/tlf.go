@@ -173,9 +173,8 @@ func (t *KBFSTLFInfoSource) identifyUser(ctx context.Context, assertion string, 
 	// no sessionID as this can be called anywhere, not just as a client action
 	sessionID := 0
 	ectx := engine.Context{
-		LogUI: h.getLogUI(sessionID),
-		// IdentifyUI: h.NewRemoteIdentifyUI(sessionID, h.G()),
-		IdentifyUI: nil,
+		LogUI:      h.getLogUI(sessionID),
+		IdentifyUI: h.NewRemoteIdentifyUI(sessionID, h.G()),
 		SessionID:  sessionID,
 		NetContext: ctx,
 	}
