@@ -4,6 +4,7 @@ import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
 import * as Inbox from './inbox'
+import * as Messages from './messages'
 import * as Shared from './shared'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
@@ -33,211 +34,6 @@ import type {ChangedFocus} from '../../constants/window'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
-
-function * _retryMessage (action: Constants.RetryMessage): SagaGenerator<any, any> {
-  const {conversationIDKey, outboxIDKey} = action.payload
-
-  yield put(Creators.updateTempMessage(conversationIDKey, {messageState: 'pending'}, outboxIDKey))
-
-  yield call(ChatTypes.localRetryPostRpcPromise, {
-    param: {
-      outboxID: Constants.keyToOutboxID(outboxIDKey),
-    },
-  })
-}
-
-function * _editMessage (action: Constants.EditMessage): SagaGenerator<any, any> {
-  const {message} = action.payload
-  let messageID: ?Constants.MessageID
-  let conversationIDKey: Constants.ConversationIDKey = ''
-  switch (message.type) {
-    case 'Text':
-    case 'Attachment': // fallthrough
-      conversationIDKey = message.conversationIDKey
-      messageID = message.messageID
-      break
-  }
-
-  if (!messageID) {
-    console.warn('Editing unknown message type', message)
-    return
-  }
-
-  const clientHeader = yield call(Shared.clientHeader, ChatTypes.CommonMessageType.edit, conversationIDKey)
-  const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
-  let lastMessageID
-  if (conversationState) {
-    const message = conversationState.messages.findLast(m => !!m.messageID)
-    if (message) {
-      lastMessageID = message.messageID
-    }
-  }
-
-  yield call(ChatTypes.localPostEditNonblockRpcPromise, {
-    param: {
-      body: action.payload.text.stringValue(),
-      clientPrev: lastMessageID,
-      conv: clientHeader.conv,
-      conversationID: Constants.keyToConversationID(conversationIDKey),
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-      supersedes: messageID,
-      tlfName: clientHeader.tlfName,
-      tlfPublic: clientHeader.tlfPublic,
-    },
-  })
-}
-
-function * _postMessage (action: Constants.PostMessage): SagaGenerator<any, any> {
-  let {conversationIDKey} = action.payload
-
-  if (Constants.isPendingConversationIDKey(conversationIDKey)) {
-    // Get a real conversationIDKey
-    conversationIDKey = yield call(Shared.startNewConversation, conversationIDKey)
-    if (!conversationIDKey) {
-      return
-    }
-  }
-
-  const clientHeader = yield call(Shared.clientHeader, ChatTypes.CommonMessageType.text, conversationIDKey)
-  const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
-  let lastMessageID
-  if (conversationState) {
-    const message = conversationState.messages.findLast(m => !!m.messageID)
-    if (message) {
-      lastMessageID = message.messageID
-    }
-  }
-
-  const sent = yield call(ChatTypes.localPostLocalNonblockRpcPromise, {
-    param: {
-      conversationID: Constants.keyToConversationID(conversationIDKey),
-      identifyBehavior: yield call(Shared.getPostingIdentifyBehavior, conversationIDKey),
-      clientPrev: lastMessageID,
-      msg: {
-        clientHeader,
-        messageBody: {
-          messageType: ChatTypes.CommonMessageType.text,
-          text: {
-            body: action.payload.text.stringValue(),
-          },
-        },
-      },
-    },
-  })
-
-  const author = yield select(usernameSelector)
-  if (sent && author) {
-    const outboxID = Constants.outboxIDToKey(sent.outboxID)
-    const hasPendingFailure = yield select(Shared.pendingFailureSelector, outboxID)
-    const message: Constants.Message = {
-      author,
-      conversationIDKey: action.payload.conversationIDKey,
-      deviceName: '',
-      deviceType: isMobile ? 'mobile' : 'desktop',
-      editedCount: 0,
-      failureDescription: null,
-      key: Constants.messageKey('outboxID', outboxID),
-      message: new HiddenString(action.payload.text.stringValue()),
-      messageState: hasPendingFailure ? 'failed' : 'pending',
-      outboxID,
-      senderDeviceRevokedAt: null,
-      timestamp: Date.now(),
-      type: 'Text',
-      you: author,
-    }
-
-    // Time to decide: should we add a timestamp before our new message?
-    const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
-    let messages = []
-    if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
-      const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
-      const timestamp = _maybeAddTimestamp(message, prevMessage)
-      if (timestamp !== null) {
-        messages.push(timestamp)
-      }
-    }
-
-    messages.push(message)
-    const selectedConversation = yield select(Constants.getSelectedConversation)
-    yield put({
-      logTransformer: Shared.appendMessageActionTransformer,
-      payload: {
-        conversationIDKey,
-        isSelected: conversationIDKey === selectedConversation,
-        messages,
-      },
-      type: 'chat:appendMessages',
-    })
-    if (hasPendingFailure) {
-      yield put(({
-        payload: {
-          outboxID,
-        },
-        type: 'chat:removePendingFailure',
-      }: Constants.RemovePendingFailure))
-    }
-  }
-}
-
-function * _deleteMessage (action: Constants.DeleteMessage): SagaGenerator<any, any> {
-  const {message} = action.payload
-  let messageID: ?Constants.MessageID
-  let conversationIDKey: Constants.ConversationIDKey
-  switch (message.type) {
-    case 'Text':
-      conversationIDKey = message.conversationIDKey
-      messageID = message.messageID
-      break
-    case 'Attachment':
-      conversationIDKey = message.conversationIDKey
-      messageID = message.messageID
-      break
-  }
-
-  if (!conversationIDKey) throw new Error('No conversation for message delete')
-
-  if (messageID) {
-    // Deleting a server message.
-    const clientHeader = yield call(Shared.clientHeader, ChatTypes.CommonMessageType.delete, conversationIDKey)
-    const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
-    let lastMessageID
-    if (conversationState) {
-      const message = conversationState.messages.findLast(m => !!m.messageID)
-      if (message) {
-        lastMessageID = message.messageID
-      }
-    }
-
-    yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {
-      param: {
-        clientPrev: lastMessageID,
-        conv: clientHeader.conv,
-        conversationID: Constants.keyToConversationID(conversationIDKey),
-        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-        supersedes: messageID,
-        tlfName: clientHeader.tlfName,
-        tlfPublic: clientHeader.tlfPublic,
-      },
-    })
-  } else {
-    // Deleting a local outbox message.
-    if (message.messageState !== 'failed') throw new Error('Tried to delete a non-failed message')
-    const outboxID = message.outboxID
-    if (!outboxID) throw new Error('No outboxID for pending message delete')
-
-    yield call(ChatTypes.localCancelPostRpcPromise, {
-      param: {
-        outboxID: Constants.keyToOutboxID(outboxID),
-      },
-    })
-    // It's deleted, but we don't get notified that the conversation now has
-    // one less outbox entry in it.  Gotta remove it from the store ourselves.
-    yield put(({
-      payload: {conversationIDKey, outboxID},
-      type: 'chat:removeOutboxMessage',
-    }: Constants.RemoveOutboxMessage))
-  }
-}
 
 function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
@@ -375,7 +171,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
             const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
 
-            const timestamp = _maybeAddTimestamp(message, prevMessage)
+            const timestamp = Shared.maybeAddTimestamp(message, prevMessage)
             if (timestamp !== null) {
               yield put({
                 logTransformer: Shared.appendMessageActionTransformer,
@@ -575,7 +371,7 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
   let newMessages = []
   messages.forEach((message, idx) => {
     if (idx > 0) {
-      const timestamp = _maybeAddTimestamp(messages[idx], messages[idx - 1])
+      const timestamp = Shared.maybeAddTimestamp(messages[idx], messages[idx - 1])
       if (timestamp !== null) {
         newMessages.push(timestamp)
       }
@@ -610,47 +406,6 @@ function _threadToPagination (thread) {
     last: undefined,
     next: undefined,
   }
-}
-
-type TimestampableMessage = {
-  timestamp: number,
-  messageID: Constants.MessageID,
-  type: any,
-}
-
-function _filterTimestampableMessage (message: Constants.Message): ?TimestampableMessage {
-  if (message.messageID === 1) {
-    // $FlowIssue with casting todo(mm) can we fix this?
-    return message
-  }
-
-  if (message === null || message.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type)) {
-    return null
-  }
-
-  if (!message.timestamp) {
-    return null
-  }
-
-  // $FlowIssue with casting todo(mm) can we fix this?
-  return message
-}
-
-function _maybeAddTimestamp (_message: Constants.Message, _prevMessage: Constants.Message): Constants.MaybeTimestamp {
-  const prevMessage = _filterTimestampableMessage(_prevMessage)
-  const message = _filterTimestampableMessage(_message)
-  if (!message || !prevMessage) return null
-
-  // messageID 1 is an unhandled placeholder. We want to add a timestamp before
-  // the first message, as well as between any two messages with long duration.
-  if (prevMessage.messageID === 1 || message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
-    return {
-      type: 'Timestamp',
-      timestamp: message.timestamp,
-      key: Constants.messageKey('timestamp', message.timestamp),
-    }
-  }
-  return null
 }
 
 // used to key errors
@@ -1147,9 +902,9 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery('chat:muteConversation', _muteConversation),
     safeTakeEvery('chat:blockConversation', _blockConversation),
     safeTakeEvery('chat:newChat', _newChat),
-    safeTakeEvery('chat:postMessage', _postMessage),
-    safeTakeEvery('chat:editMessage', _editMessage),
-    safeTakeEvery('chat:retryMessage', _retryMessage),
+    safeTakeEvery('chat:postMessage', Messages.postMessage),
+    safeTakeEvery('chat:editMessage', Messages.editMessage),
+    safeTakeEvery('chat:retryMessage', Messages.retryMessage),
     safeTakeEvery('chat:startConversation', _startConversation),
     safeTakeEvery('chat:updateMetadata', _updateMetadata),
     safeTakeEvery('chat:appendMessages', _sendNotifications),
@@ -1161,7 +916,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest('chat:openFolder', _openFolder),
     safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat),
     safeTakeEvery(changedFocus, _changedFocus),
-    safeTakeEvery('chat:deleteMessage', _deleteMessage),
+    safeTakeEvery('chat:deleteMessage', Messages.deleteMessage),
     safeTakeEvery('chat:openTlfInChat', _openTlfInChat),
     safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false),
     safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false),
