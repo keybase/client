@@ -1044,7 +1044,8 @@ function * _loadInbox (): SagaGenerator<any, any> {
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
       break
     } else if (incoming.timeout) {
-      _inboxLoading = false
+      // Since finishedCalled isn't set to true on timeout, the load will be
+      // retried on the next loop
       console.warn('Inbox loading timed out')
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
       break
