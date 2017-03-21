@@ -59,7 +59,7 @@ uninstall() {
 
 
 main() {
-  set -eo pipefail; [[ "$TRACE" ]] && set -x
+  set -eou pipefail; [[ "$TRACE" ]] && set -x
 
   declare cmd="$1"
 
