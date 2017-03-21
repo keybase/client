@@ -3,12 +3,12 @@ import React from 'react'
 import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
 import {ReachabilityReachable} from '../constants/types/flow-types'
-import {ignoreDisconnectOverlay} from '../local-debug.desktop.js'
+import {ignoreDisconnectOverlay} from '../local-debug'
 
 import type {Props} from './index'
 
 const Offline = ({reachability}: Props) => {
-  if (reachability && reachability.reachable === ReachabilityReachable.no) {
+  if (reachability && reachability.reachable !== ReachabilityReachable.no) {
     return null
   }
 
@@ -49,6 +49,7 @@ const overlayRowStyle = {
   backgroundColor: globalColors.blue,
   justifyContent: 'center',
   padding: 8,
+  paddingTop: 28,
 }
 
 const containerOverlayStyle = {
@@ -58,7 +59,6 @@ const containerOverlayStyle = {
   position: 'absolute',
   right: 0,
   top: 0,
-  zIndex: 1000,
 }
 
 export default Offline

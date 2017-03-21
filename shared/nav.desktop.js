@@ -36,7 +36,7 @@ function Nav (props: Props) {
         {layerScreens.map(r => r.leafComponent)}
       </Box>
       <div id='popupContainer' />
-      {props.routeSelected !== chatTab && <Offline reachability={props.reachability} />}
+      {![chatTab, loginTab].includes(props.routeSelected) && <Offline reachability={props.reachability} />}
       <GlobalError />
     </Box>
   )
