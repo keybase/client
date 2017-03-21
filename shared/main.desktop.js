@@ -1,7 +1,6 @@
 // @flow
 import React, {Component} from 'react'
 import RenderRoute from './route-tree/render-route'
-import {checkReachability} from './actions/gregor'
 import {connect} from 'react-redux'
 import {ipcRenderer} from 'electron'
 import {navigateUp, setRouteState} from './actions/route-tree'
@@ -17,7 +16,6 @@ type Props = {
   routeDef: RouteDefNode,
   routeState: RouteStateNode,
   setRouteState: (path: Path, partialState: {}) => void,
-  checkReachability: () => void,
 }
 
 class Main extends Component<void, Props, void> {
@@ -30,9 +28,6 @@ class Main extends Component<void, Props, void> {
 
   componentDidMount () {
     ipcRenderer.send('showTray', this.props.menuBadge, this.props.menuBadgeCount)
-
-    window.addEventListener('online', this.props.checkReachability)
-    window.addEventListener('offline', this.props.checkReachability)
   }
 
   render () {
@@ -63,7 +58,6 @@ export default connect(
     return {
       navigateUp: () => dispatch(navigateUp()),
       setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
-      checkReachability: () => dispatch(checkReachability()),
     }
   }
 )(Main)
