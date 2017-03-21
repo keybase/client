@@ -1,10 +1,8 @@
 // @flow
 import * as Constants from '../../constants/chat'
 import HiddenString from '../../util/hidden-string'
-import {uniq} from 'lodash'
 import {List} from 'immutable'
-
-import type {AddPendingConversation, AttachmentInput, BadgeAppForChat, BlockConversation, ConversationBadgeState, ConversationIDKey, DeleteMessage, EditMessage, InboxState, LoadInbox, LoadMoreMessages, LoadedInbox, Message, MuteConversation, NewChat, OpenFolder, OpenTlfInChat, PendingToRealConversation, PostMessage, ReplaceConversation, RetryMessage, SelectConversation, SetupChatHandlers, ShowEditor, StartConversation, UpdateBadging, UpdateLatestMessage} from '../../constants/chat'
+import {uniq} from 'lodash'
 
 // Whitelisted action loggers
 const updateTempMessageTransformer = ({type, payload: {conversationIDKey, outboxID}}: Constants.UpdateTempMessage) => ({
@@ -57,87 +55,87 @@ const retryMessageActionTransformer = action => ({
   type: action.type,
 })
 
-function loadedInbox (conversations: List<InboxState>): LoadedInbox {
+function loadedInbox (conversations: List<Constants.InboxState>): Constants.LoadedInbox {
   return {logTransformer: loadedInboxActionTransformer, payload: {inbox: conversations}, type: 'chat:loadedInbox'}
 }
 
-function pendingToRealConversation (oldKey: ConversationIDKey, newKey: ConversationIDKey): PendingToRealConversation {
+function pendingToRealConversation (oldKey: Constants.ConversationIDKey, newKey: Constants.ConversationIDKey): Constants.PendingToRealConversation {
   return {payload: {newKey, oldKey}, type: 'chat:pendingToRealConversation'}
 }
 
-function replaceConversation (oldKey: ConversationIDKey, newKey: ConversationIDKey): ReplaceConversation {
+function replaceConversation (oldKey: Constants.ConversationIDKey, newKey: Constants.ConversationIDKey): Constants.ReplaceConversation {
   return {payload: {newKey, oldKey}, type: 'chat:replaceConversation'}
 }
 
-function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
+function updateBadging (conversationIDKey: Constants.ConversationIDKey): Constants.UpdateBadging {
   return {payload: {conversationIDKey}, type: 'chat:updateBadging'}
 }
 
-function updateLatestMessage (conversationIDKey: ConversationIDKey): UpdateLatestMessage {
+function updateLatestMessage (conversationIDKey: Constants.ConversationIDKey): Constants.UpdateLatestMessage {
   return {payload: {conversationIDKey}, type: 'chat:updateLatestMessage'}
 }
 
-function badgeAppForChat (conversations: List<ConversationBadgeState>): BadgeAppForChat {
+function badgeAppForChat (conversations: List<Constants.ConversationBadgeState>): Constants.BadgeAppForChat {
   return {payload: conversations, type: 'chat:badgeAppForChat'}
 }
 
-function openFolder (): OpenFolder {
+function openFolder (): Constants.OpenFolder {
   return {payload: undefined, type: 'chat:openFolder'}
 }
 
-function openTlfInChat (tlf: string): OpenTlfInChat {
+function openTlfInChat (tlf: string): Constants.OpenTlfInChat {
   return {payload: tlf, type: 'chat:openTlfInChat'}
 }
 
-function startConversation (users: Array<string>, forceImmediate?: boolean = false): StartConversation {
+function startConversation (users: Array<string>, forceImmediate?: boolean = false): Constants.StartConversation {
   return {payload: {forceImmediate, users: uniq(users)}, type: 'chat:startConversation'}
 }
 
-function newChat (existingParticipants: Array<string>): NewChat {
+function newChat (existingParticipants: Array<string>): Constants.NewChat {
   return {payload: {existingParticipants}, type: 'chat:newChat'}
 }
 
-function postMessage (conversationIDKey: ConversationIDKey, text: HiddenString): PostMessage {
+function postMessage (conversationIDKey: Constants.ConversationIDKey, text: HiddenString): Constants.PostMessage {
   return {logTransformer: postMessageActionTransformer, payload: {conversationIDKey, text}, type: 'chat:postMessage'}
 }
 
-function setupChatHandlers (): SetupChatHandlers {
+function setupChatHandlers (): Constants.SetupChatHandlers {
   return {payload: undefined, type: 'chat:setupChatHandlers'}
 }
 
-function retryMessage (conversationIDKey: ConversationIDKey, outboxIDKey: string): RetryMessage {
+function retryMessage (conversationIDKey: Constants.ConversationIDKey, outboxIDKey: string): Constants.RetryMessage {
   return {logTransformer: retryMessageActionTransformer, payload: {conversationIDKey, outboxIDKey}, type: 'chat:retryMessage'}
 }
 
-function loadInbox (force?: boolean = false): LoadInbox {
+function loadInbox (force?: boolean = false): Constants.LoadInbox {
   return {payload: {force}, type: 'chat:loadInbox'}
 }
 
-function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean): LoadMoreMessages {
+function loadMoreMessages (conversationIDKey: Constants.ConversationIDKey, onlyIfUnloaded: boolean): Constants.LoadMoreMessages {
   return {payload: {conversationIDKey, onlyIfUnloaded}, type: 'chat:loadMoreMessages'}
 }
 
-function showEditor (message: Message): ShowEditor {
+function showEditor (message: Constants.Message): Constants.ShowEditor {
   return {payload: {message}, type: 'chat:showEditor'}
 }
 
-function editMessage (message: Message, text: HiddenString): EditMessage {
+function editMessage (message: Constants.Message, text: HiddenString): Constants.EditMessage {
   return {payload: {message, text}, type: 'chat:editMessage'}
 }
 
-function muteConversation (conversationIDKey: ConversationIDKey, muted: boolean): MuteConversation {
+function muteConversation (conversationIDKey: Constants.ConversationIDKey, muted: boolean): Constants.MuteConversation {
   return {payload: {conversationIDKey, muted}, type: 'chat:muteConversation'}
 }
 
-function blockConversation (blocked: boolean, conversationIDKey: ConversationIDKey): BlockConversation {
+function blockConversation (blocked: boolean, conversationIDKey: Constants.ConversationIDKey): Constants.BlockConversation {
   return {payload: {blocked, conversationIDKey}, type: 'chat:blockConversation'}
 }
 
-function deleteMessage (message: Message): DeleteMessage {
+function deleteMessage (message: Constants.Message): Constants.DeleteMessage {
   return {payload: {message}, type: 'chat:deleteMessage'}
 }
 
-function addPending (participants: Array<string>): AddPendingConversation {
+function addPending (participants: Array<string>): Constants.AddPendingConversation {
   return {payload: {participants}, type: 'chat:addPendingConversation'}
 }
 
@@ -156,20 +154,20 @@ function retryAttachment (message: Constants.AttachmentMessage): Constants.Selec
   return {payload: {input}, type: 'chat:selectAttachment'}
 }
 
-function selectAttachment (input: AttachmentInput): Constants.SelectAttachment {
+function selectAttachment (input: Constants.AttachmentInput): Constants.SelectAttachment {
   return {payload: {input}, type: 'chat:selectAttachment'}
 }
 
-function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean, isHdPreview: boolean, filename: string): Constants.LoadAttachment {
+function loadAttachment (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean, isHdPreview: boolean, filename: string): Constants.LoadAttachment {
   return {payload: {conversationIDKey, filename, isHdPreview, loadPreview, messageID}, type: 'chat:loadAttachment'}
 }
 
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
-function selectConversation (conversationIDKey: ?ConversationIDKey, fromUser: boolean): SelectConversation {
+function selectConversation (conversationIDKey: ?Constants.ConversationIDKey, fromUser: boolean): Constants.SelectConversation {
   return {payload: {conversationIDKey, fromUser}, type: 'chat:selectConversation'}
 }
 
-function updateTempMessage (conversationIDKey: ConversationIDKey, message: $Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>, outboxID: Constants.OutboxIDKey): Constants.UpdateTempMessage {
+function updateTempMessage (conversationIDKey: Constants.ConversationIDKey, message: $Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>, outboxID: Constants.OutboxIDKey): Constants.UpdateTempMessage {
   return {
     logTransformer: updateTempMessageTransformer,
     payload: {

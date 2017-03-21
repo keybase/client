@@ -12,19 +12,14 @@ import {singleFixedChannelConfig, takeFromChannelMap} from '../../util/saga'
 import {unsafeUnwrap} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 
-import type {FinalizedState, InboxState, LoadInbox, ConversationIDKey, MetaData} from '../../constants/chat'
-import type {GetInboxLocalRes, ConversationLocal} from '../../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
-
-const {CommonConversationStatus, CommonTLFVisibility, CommonTopicType, LocalConversationErrorType, localGetInboxNonblockLocalRpcChannelMap, LocalMessageUnboxedState} = ChatTypes
-const {InboxStateRecord, conversationIDToKey, getSelectedConversation, GetInboxAndUnbox, keyToConversationID, makeSnippet} = Constants
 
 const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
 const followingSelector = (state: TypedState) => state.config.following
 
 let _loadedInboxOnce = false
-function * onLoadInboxMaybeOnce (action: LoadInbox): SagaGenerator<any, any> {
+function * onLoadInboxMaybeOnce (action: Constants.LoadInbox): SagaGenerator<any, any> {
   if (!_loadedInboxOnce || action.payload.force) {
     _loadedInboxOnce = true
     yield call(onLoadInbox)
@@ -39,15 +34,15 @@ function * onLoadInbox (): SagaGenerator<any, any> {
     'finished',
   ])
 
-  const loadInboxChanMap: ChannelMap<any> = localGetInboxNonblockLocalRpcChannelMap(channelConfig, {
+  const loadInboxChanMap: ChannelMap<any> = ChatTypes.localGetInboxNonblockLocalRpcChannelMap(channelConfig, {
     param: {
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
       query: {
         computeActiveList: true,
         readOnly: false,
-        status: Object.keys(CommonConversationStatus).filter(k => !['ignored', 'blocked'].includes(k)).map(k => CommonConversationStatus[k]),
-        tlfVisibility: CommonTLFVisibility.private,
-        topicType: CommonTopicType.chat,
+        status: Object.keys(ChatTypes.CommonConversationStatus).filter(k => !['ignored', 'blocked'].includes(k)).map(k => ChatTypes.CommonConversationStatus[k]),
+        tlfVisibility: ChatTypes.CommonTLFVisibility.private,
+        topicType: ChatTypes.CommonTopicType.chat,
         unreadOnly: false,
       },
     },
@@ -60,11 +55,11 @@ function * onLoadInbox (): SagaGenerator<any, any> {
   }
 
   const metaData = ((yield select(_metaDataSelector)): any)
-  const inbox: GetInboxLocalRes = chatInboxUnverified.params.inbox
+  const inbox: ChatTypes.GetInboxLocalRes = chatInboxUnverified.params.inbox
   const author = yield select(usernameSelector)
   const following = yield select(followingSelector)
-  const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {}, metaData)
-  const finalizedState: FinalizedState = _inboxToFinalized(inbox)
+  const conversations: List<Constants.InboxState> = _inboxToConversations(inbox, author, following || {}, metaData)
+  const finalizedState: Constants.FinalizedState = _inboxToFinalized(inbox)
 
   yield put(loadedInbox(conversations))
   if (finalizedState.count()) {
@@ -88,7 +83,7 @@ function * onLoadInbox (): SagaGenerator<any, any> {
       }, {timeout: 100})
 
       yield call(delay, 1)
-      let conversation: ?InboxState = _inboxConversationToInboxState(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
+      let conversation: ?Constants.InboxState = _inboxConversationToInboxState(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
 
       // TODO this is ugly, ideally we should just call updateInbox here
       const conv = incoming.chatInboxConversation.params.conv
@@ -108,7 +103,7 @@ function * onLoadInbox (): SagaGenerator<any, any> {
 
       if (conversation) {
         yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
-        const selectedConversation = yield select(getSelectedConversation)
+        const selectedConversation = yield select(Constants.getSelectedConversation)
         if (selectedConversation === conversation.get('conversationIDKey')) {
           // load validated selected
           yield put(loadMoreMessages(selectedConversation, false))
@@ -123,8 +118,8 @@ function * onLoadInbox (): SagaGenerator<any, any> {
 
       yield call(delay, 1)
       const error = incoming.chatInboxFailed.params.error
-      const conversationIDKey = conversationIDToKey(incoming.chatInboxFailed.params.convID)
-      const conversation = new InboxStateRecord({
+      const conversationIDKey = Constants.conversationIDToKey(incoming.chatInboxFailed.params.convID)
+      const conversation = new Constants.InboxStateRecord({
         conversationIDKey,
         info: null,
         isEmpty: false,
@@ -137,11 +132,11 @@ function * onLoadInbox (): SagaGenerator<any, any> {
       yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
 
       switch (error.typ) {
-        case LocalConversationErrorType.selfrekeyneeded: {
+        case ChatTypes.LocalConversationErrorType.selfrekeyneeded: {
           yield put({type: 'chat:updateInboxRekeySelf', payload: {conversationIDKey}})
           break
         }
-        case LocalConversationErrorType.otherrekeyneeded: {
+        case ChatTypes.LocalConversationErrorType.otherrekeyneeded: {
           const rekeyers = error.rekeyInfo.rekeyers
           yield put({type: 'chat:updateInboxRekeyOthers', payload: {conversationIDKey, rekeyers}})
           break
@@ -163,34 +158,34 @@ function * onLoadInbox (): SagaGenerator<any, any> {
   }
 }
 
-function _inboxConversationLocalToSupersededByState (convo: ?ConversationLocal): Constants.SupersededByState {
+function _inboxConversationLocalToSupersededByState (convo: ?ChatTypes.ConversationLocal): Constants.SupersededByState {
   if (!convo || !convo.info || !convo.info.id || !convo.supersededBy) {
     return Map()
   }
 
-  const conversationIDKey = conversationIDToKey(convo.info.id)
+  const conversationIDKey = Constants.conversationIDToKey(convo.info.id)
   const supersededBy = _toSupersedeInfo(conversationIDKey, (convo.supersededBy || []))
   return supersededBy ? Map({[conversationIDKey]: supersededBy}) : Map()
 }
 
-function _conversationLocalToFinalized (convo: ?ConversationLocal): FinalizedState {
+function _conversationLocalToFinalized (convo: ?ChatTypes.ConversationLocal): Constants.FinalizedState {
   if (convo && convo.info.id && convo.info.finalizeInfo) {
     return Map({
-      [conversationIDToKey(convo.info.id)]: convo.info.finalizeInfo,
+      [Constants.conversationIDToKey(convo.info.id)]: convo.info.finalizeInfo,
     })
   }
   return Map()
 }
 
-function * getInboxAndUnbox ({payload: {conversationIDKey}}: GetInboxAndUnbox): SagaGenerator<any, any> {
+function * getInboxAndUnbox ({payload: {conversationIDKey}}: Constants.GetInboxAndUnbox): SagaGenerator<any, any> {
   const param: ChatTypes.localGetInboxAndUnboxLocalRpcParam = {
     identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
     query: {
       computeActiveList: true,
-      convIDs: [keyToConversationID(conversationIDKey)],
+      convIDs: [Constants.keyToConversationID(conversationIDKey)],
       readOnly: true,
-      tlfVisibility: CommonTLFVisibility.private,
-      topicType: CommonTopicType.chat,
+      tlfVisibility: ChatTypes.CommonTLFVisibility.private,
+      topicType: ChatTypes.CommonTopicType.chat,
       unreadOnly: false,
     },
   }
@@ -205,7 +200,7 @@ function * getInboxAndUnbox ({payload: {conversationIDKey}}: GetInboxAndUnbox): 
   // TODO maybe we get failures and we should update rekeyinfo? unclear...
 }
 
-function * updateInbox (conv: ?ConversationLocal): SagaGenerator<any, any> {
+function * updateInbox (conv: ?ChatTypes.ConversationLocal): SagaGenerator<any, any> {
   const inboxState = _inboxConversationToInboxState(conv)
   const supersedesState: Constants.SupersedesState = _inboxConversationLocalToSupersedesState(conv)
   const supersededByState: Constants.SupersededByState = _inboxConversationLocalToSupersededByState(conv)
@@ -235,21 +230,21 @@ function _inboxConversationLocalToSupersedesState (convo: ?ChatTypes.Conversatio
     return Map()
   }
 
-  const conversationIDKey = conversationIDToKey(convo.info.id)
+  const conversationIDKey = Constants.conversationIDToKey(convo.info.id)
   const supersedes = _toSupersedeInfo(conversationIDKey, (convo.supersedes || []))
   return supersedes ? Map({[conversationIDKey]: supersedes}) : Map()
 }
 
-function _toSupersedeInfo (conversationIDKey: ConversationIDKey, supersedeData: Array<ChatTypes.ConversationMetadata>): ?Constants.SupersedeInfo {
+function _toSupersedeInfo (conversationIDKey: Constants.ConversationIDKey, supersedeData: Array<ChatTypes.ConversationMetadata>): ?Constants.SupersedeInfo {
   const parsed = supersedeData
-    .filter(md => md.idTriple.topicType === CommonTopicType.chat && md.finalizeInfo)
+    .filter(md => md.idTriple.topicType === ChatTypes.CommonTopicType.chat && md.finalizeInfo)
     .map(md => ({
-      conversationIDKey: conversationIDToKey(md.conversationID),
+      conversationIDKey: Constants.conversationIDToKey(md.conversationID),
       finalizeInfo: unsafeUnwrap(md && md.finalizeInfo),
     }))
   return parsed.length ? parsed[0] : null
 }
-function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState {
+function _inboxConversationToInboxState (convo: ?ChatTypes.ConversationLocal): ?Constants.InboxState {
   if (!convo || !convo.info || !convo.info.id) {
     return null
   }
@@ -263,14 +258,14 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
     return null
   }
 
-  const conversationIDKey = conversationIDToKey(convo.info.id)
+  const conversationIDKey = Constants.conversationIDToKey(convo.info.id)
   let snippet
   let time
 
   (convo.maxMessages || []).some(message => {
-    if (message.state === LocalMessageUnboxedState.valid && message.valid && convo && convo.readerInfo) {
+    if (message.state === ChatTypes.LocalMessageUnboxedState.valid && message.valid && convo && convo.readerInfo) {
       time = message.valid.serverHeader.ctime || convo.readerInfo.mtime
-      snippet = makeSnippet(message.valid.messageBody)
+      snippet = Constants.makeSnippet(message.valid.messageBody)
       return !!snippet
     }
     return false
@@ -281,7 +276,7 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
   // Go backwards from the value in CommonConversationStatus to its key.
   const status = Constants.ConversationStatusByEnum[infoStatus]
 
-  return new InboxStateRecord({
+  return new Constants.InboxStateRecord({
     conversationIDKey,
     info: convo.info,
     isEmpty: convo.isEmpty,
@@ -293,7 +288,7 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
   })
 }
 
-function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): List<InboxState> {
+function _inboxToConversations (inbox: ChatTypes.GetInboxLocalRes, author: ?string, following: {[key: string]: boolean}, metaData: Constants.MetaData): List<Constants.InboxState> {
   return List((inbox.conversationsUnverified || []).map(convoUnverified => {
     const msgMax = convoUnverified.maxMsgSummaries && convoUnverified.maxMsgSummaries.length && convoUnverified.maxMsgSummaries[0]
 
@@ -305,8 +300,8 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
     const statusEnum = convoUnverified.metadata.status || 0
     const status = Constants.ConversationStatusByEnum[statusEnum]
 
-    return new InboxStateRecord({
-      conversationIDKey: conversationIDToKey(convoUnverified.metadata.conversationID),
+    return new Constants.InboxStateRecord({
+      conversationIDKey: Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
       info: null,
       participants,
       snippet: ' ',
@@ -317,9 +312,9 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
   }).filter(Boolean))
 }
 
-function _inboxToFinalized (inbox: GetInboxLocalRes): FinalizedState {
+function _inboxToFinalized (inbox: ChatTypes.GetInboxLocalRes): Constants.FinalizedState {
   return Map((inbox.conversationsUnverified || []).map(convoUnverified => [
-    conversationIDToKey(convoUnverified.metadata.conversationID),
+    Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
     convoUnverified.metadata.finalizeInfo,
   ]))
 }
