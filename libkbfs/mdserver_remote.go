@@ -146,6 +146,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	switch err.(type) {
 	case nil:
 	case NoCurrentSessionError:
+		md.log.CDebugf(ctx, "Logged-out user")
 	default:
 		return err
 	}
@@ -158,7 +159,8 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 }
 
 // resetAuth is called to reset the authorization on an MDServer
-// connection.
+// connection.  If this function returns NoCurrentSessionError, the
+// caller should treat this as a logged-out user.
 func (md *MDServerRemote) resetAuth(
 	ctx context.Context, c keybase1.MetadataClient) (int, error) {
 	md.log.CDebugf(ctx, "resetAuth called")
@@ -171,14 +173,9 @@ func (md *MDServerRemote) resetAuth(
 	}()
 
 	session, err := md.config.KBPKI().GetCurrentSession(ctx)
-	if _, ok := err.(NoCurrentSessionError); ok {
-		md.log.CDebugf(ctx, "User logged out (%+v), skipping resetAuth", err)
-		return MdServerDefaultPingIntervalSeconds, err
-	} else if err != nil {
-		// We can't rely on getting a `LoggedIn` error from the
-		// service in this case, so let the RPC connection fail and
-		// retry a bit later.
-		md.log.CDebugf(ctx, "Unexpected error when getting session: %+v", err)
+	if err != nil {
+		md.log.CDebugf(ctx,
+			"Error getting current session (%+v), skipping resetAuth", err)
 		return MdServerDefaultPingIntervalSeconds, err
 	}
 
