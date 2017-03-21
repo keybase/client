@@ -19,7 +19,7 @@ const Header = ({muted, onBack, onOpenFolder, onShowProfile, onToggleSidePanel, 
         onUsernameClicked={onShowProfile} />
       {muted && <Icon type='iconfont-shh' style={{...styleCenter, ...styleLeft}} />}
     </Box>
-    <Icon type={sidePanelOpen ? 'iconfont-close' : 'iconfont-info'} style={{...styleLeft, flexShrink: 0, padding: 4}} onClick={onToggleSidePanel} />
+    <Icon type={sidePanelOpen ? 'iconfont-close' : 'iconfont-info'} style={{...styleLeft, flexShrink: 0, padding: globalMargins.xtiny}} onClick={onToggleSidePanel} />
   </Box>
 )
 
