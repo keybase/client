@@ -903,7 +903,6 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean, forceSelectOnMo
 const followingSelector = (state: TypedState) => state.config.following
 
 function * _loadInboxMaybeOnce (action: LoadInbox): SagaGenerator<any, any> {
-  console.log('Load inbox? complete:', _inboxComplete, 'error:', _inboxError, 'force:', action.payload.force)
   if (!_inboxComplete || _inboxError || action.payload.force) {
     yield call(_loadInbox)
   }
