@@ -71,8 +71,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	mockRemote := kbtest.NewChatRemoteMock(c.world)
 	mockRemote.SetCurrentUser(user.User.GetUID().ToBytes())
 
-	h.tlf = kbtest.NewTlfMock(c.world)
-	h.boxer = chat.NewBoxer(tc.G, func() keybase1.TlfInterface { return h.tlf })
+	h.tlfInfoSource = kbtest.NewTlfMock(c.world)
+	h.boxer = chat.NewBoxer(tc.G, h.tlfInfoSource)
 
 	f := func() libkb.SecretUI {
 		return &libkb.TestSecretUI{Passphrase: user.Passphrase}
@@ -82,9 +82,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		func() chat1.RemoteInterface { return mockRemote },
 		func() libkb.SecretUI { return &libkb.TestSecretUI{} })
 	tc.G.InboxSource = chat.NewHybridInboxSource(tc.G,
-		func() keybase1.TlfInterface { return h.tlf },
 		func() chat1.RemoteInterface { return mockRemote },
-		f)
+		f, h.tlfInfoSource)
 	h.setTestRemoteClient(mockRemote)
 	h.gh, _ = newGregorHandler(tc.G)
 
@@ -223,7 +222,7 @@ func TestChatGetInboxAndUnboxLocal(t *testing.T) {
 
 	gilres, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(context.Background(), chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
-			ConvID: &created.Id,
+			ConvIDs: []chat1.ConversationID{created.Id},
 		},
 	})
 	if err != nil {
@@ -1095,7 +1094,7 @@ func TestFindConversations(t *testing.T) {
 	require.Equal(t, created.Id, res.Conversations[0].GetConvID(), "wrong conv")
 }
 
-func receiveThreadResult(t *testing.T, cb chan kbtest.NonblockThreadResult) (res chat1.ThreadView) {
+func receiveThreadResult(t *testing.T, cb chan kbtest.NonblockThreadResult) (res *chat1.ThreadView) {
 	var tres kbtest.NonblockThreadResult
 	select {
 	case tres = <-cb:

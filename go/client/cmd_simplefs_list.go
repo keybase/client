@@ -218,15 +218,21 @@ func (c *CmdSimpleFSList) Run() error {
 	return err
 }
 
+// like keybase1.FormatTime(), except no time zone
+func formatListTime(t keybase1.Time) string {
+	layout := "2006-01-02 15:04:05"
+	return keybase1.FromTime(t).Format(layout)
+}
+
 func (c *CmdSimpleFSList) output(listResult keybase1.SimpleFSListResult) error {
 	ui := c.G().UI.GetTerminalUI()
 
 	if c.winStyle {
 		for _, e := range listResult.Entries {
-			if e.DirentType == keybase1.DirentType_DIR {
-				ui.Printf("%s\t<%s>\t\t%s\n", keybase1.FormatTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Name)
+			if e.DirentType == keybase1.DirentType_DIR || e.DirentType == keybase1.DirentType_SYM {
+				ui.Printf("%s\t<%s>\t\t%s\n", formatListTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Name)
 			} else {
-				ui.Printf("%s\t%s\t%d\t%s\n", keybase1.FormatTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Size, e.Name)
+				ui.Printf("%s\t%9d\t%s\n", formatListTime(e.Time), e.Size, e.Name)
 			}
 		}
 	} else {

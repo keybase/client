@@ -930,7 +930,7 @@ export type GetInboxByTLFIDRemoteRes = {
 export type GetInboxLocalQuery = {
   tlfName?: ?string,
   topicName?: ?string,
-  convID?: ?ConversationID,
+  convIDs?: ?Array<ConversationID>,
   topicType?: ?TopicType,
   tlfVisibility?: ?TLFVisibility,
   before?: ?gregor1.Time,
@@ -1584,7 +1584,7 @@ export type chatUiChatInboxUnverifiedRpcParam = Exact<{
 }>
 
 export type chatUiChatThreadCachedRpcParam = Exact<{
-  thread: ThreadView
+  thread?: ?ThreadView
 }>
 
 export type chatUiChatThreadFullRpcParam = Exact<{
@@ -1638,6 +1638,7 @@ export type localGetInboxAndUnboxLocalRpcParam = Exact<{
 }>
 
 export type localGetInboxNonblockLocalRpcParam = Exact<{
+  maxUnbox?: ?int,
   query?: ?GetInboxLocalQuery,
   pagination?: ?Pagination,
   identifyBehavior: keybase1.TLFIdentifyBehavior
@@ -2042,7 +2043,7 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatThreadCached'?: (
     params: Exact<{
       sessionID: int,
-      thread: ThreadView
+      thread?: ?ThreadView
     }>,
     response: CommonResponseHandler
   ) => void,

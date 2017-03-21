@@ -3,6 +3,7 @@ package chat
 import (
 	"testing"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -229,19 +230,24 @@ func newFailingTlf(t *testing.T) failingTlf {
 	}
 }
 
-func (f failingTlf) CryptKeys(context.Context, keybase1.TLFQuery) (keybase1.GetTLFCryptKeysRes, error) {
+func (f failingTlf) CryptKeys(context.Context, string) (keybase1.GetTLFCryptKeysRes, error) {
 	require.Fail(f.t, "CryptKeys call")
 	return keybase1.GetTLFCryptKeysRes{}, nil
 }
 
-func (f failingTlf) PublicCanonicalTLFNameAndID(context.Context, keybase1.TLFQuery) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
+func (f failingTlf) PublicCanonicalTLFNameAndID(context.Context, string) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
 	require.Fail(f.t, "PublicCanonicalTLFNameAndID call")
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, nil
 }
 
-func (f failingTlf) CompleteAndCanonicalizePrivateTlfName(context.Context, keybase1.TLFQuery) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
+func (f failingTlf) CompleteAndCanonicalizePrivateTlfName(context.Context, string) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
 	require.Fail(f.t, "CompleteAndCanonicalizePrivateTlfName call")
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, nil
+}
+
+func (f failingTlf) Lookup(context.Context, string, chat1.TLFVisibility) (*types.TLFInfo, error) {
+	require.Fail(f.t, "Lookup call")
+	return nil, nil
 }
 
 type failingUpak struct {
@@ -359,9 +365,9 @@ func TestGetThreadCaching(t *testing.T) {
 	tc.G.ConvSource.Disconnected(context.TODO())
 	tc.G.InboxSource.Disconnected(context.TODO())
 	tc.G.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface { return failingRI })
-	tc.G.ConvSource.SetTlfInterface(func() keybase1.TlfInterface { return failingTI })
+	tc.G.ConvSource.SetTLFInfoSource(failingTI)
 	tc.G.InboxSource.SetRemoteInterface(func() chat1.RemoteInterface { return failingRI })
-	tc.G.InboxSource.SetTlfInterface(func() keybase1.TlfInterface { return failingTI })
+	tc.G.InboxSource.SetTLFInfoSource(failingTI)
 
 	tc.G.OverrideUPAKLoader(newFailingUpak(t))
 

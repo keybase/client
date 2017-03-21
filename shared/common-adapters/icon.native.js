@@ -1,8 +1,9 @@
 // @flow
 import * as shared from './icon.shared'
+import Box from './box'
+import ClickableBox from './clickable-box'
 import React, {Component} from 'react'
 import {NativeText, NativeImage} from './native-wrappers.native'
-import {TouchableHighlight} from 'react-native'
 import {globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 
@@ -50,14 +51,14 @@ class Icon extends Component<void, Exact<Props>, void> {
       : <NativeImage source={iconMeta[iconType].require} style={{resizeMode: 'contain', ...width, ...height, ...backgroundColor}} />
 
     return (
-      <TouchableHighlight
+      <ClickableBox
         activeOpacity={0.8}
         underlayColor={this.props.underlayColor || globalColors.white}
-        onPress={this.props.onClick || (() => {})}
-        disabled={!(this.props.onClick)}
-        style={{...containerProps}}>
-        {icon}
-      </TouchableHighlight>
+        onClick={this.props.onClick}>
+        <Box style={containerProps}>
+          {icon}
+        </Box>
+      </ClickableBox>
     )
   }
 }

@@ -768,7 +768,7 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 	if !id.IsNil() {
 		gilres, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 			Query: &chat1.GetInboxLocalQuery{
-				ConvID: &id,
+				ConvIDs: []chat1.ConversationID{id},
 			},
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})

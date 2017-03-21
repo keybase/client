@@ -1,20 +1,34 @@
 // @flow
 import React from 'react'
 import type {Props} from './clickable-box'
-import {TouchableHighlight} from 'react-native'
+import {TouchableHighlight, TouchableWithoutFeedback} from 'react-native'
 import {globalColors} from '../styles'
 
-const ClickableBox = ({onClick, style, children, underlayColor, onPressIn, onPressOut}: Props) => (
-  <TouchableHighlight
-    disabled={!onClick}
-    onPress={onClick}
-    onPressIn={onPressIn}
-    onPressOut={onPressOut}
-    style={{...boxStyle, ...style}}
-    underlayColor={underlayColor || globalColors.black_10}>
-    {children}
-  </TouchableHighlight>
-)
+const ClickableBox = ({onClick, style, children, underlayColor, onPressIn, onPressOut, feedback = true}: Props) => {
+  if (onClick) {
+    if (feedback) {
+      return <TouchableHighlight
+        disabled={!onClick}
+        onPress={onClick}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        style={{...boxStyle, ...style}}
+        underlayColor={underlayColor || globalColors.black_10}>
+        {children}
+      </TouchableHighlight>
+    } else {
+      return <TouchableWithoutFeedback
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        style={{...boxStyle, ...style}}
+        onPress={onClick}>
+        {children}
+      </TouchableWithoutFeedback>
+    }
+  } else {
+    return children
+  }
+}
 
 const boxStyle = {
   borderRadius: 3,

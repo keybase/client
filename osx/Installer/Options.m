@@ -48,6 +48,7 @@
   [parser registerSwitch:@"install-mountdir"];
   [parser registerSwitch:@"install-app-bundle"];
   [parser registerOption:@"source-path" requirement:GBValueOptional]; // If using install-app-bundle
+  [parser registerSwitch:@"debug"];
   [parser registerSettings:self.settings];
   NSArray *subargs = [args subarrayWithRange:NSMakeRange(1, args.count-1)];
   if (![parser parseOptionsWithArguments:subargs commandLine:args[0]]) {
