@@ -9,7 +9,6 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -30,7 +29,7 @@ func NewHackerNewsChecker(p libkb.RemoteProofChainLink) (*HackerNewsChecker, lib
 }
 
 func (h *HackerNewsChecker) CheckStatus(ctx libkb.ProofContext, hint libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
-	return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_HACKERNEWS, pvl.NewProofInfo(h.proof, hint))
+	return CheckProofPvl(ctx, keybase1.ProofType_HACKERNEWS, h.proof, hint)
 }
 
 //=============================================================================

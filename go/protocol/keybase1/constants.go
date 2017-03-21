@@ -32,6 +32,7 @@ const (
 	StatusCode_SCWrongCryptoFormat      StatusCode = 279
 	StatusCode_SCDecryptionError        StatusCode = 280
 	StatusCode_SCInvalidAddress         StatusCode = 281
+	StatusCode_SCNoSession              StatusCode = 283
 	StatusCode_SCBadEmail               StatusCode = 472
 	StatusCode_SCBadSignupUsernameTaken StatusCode = 701
 	StatusCode_SCBadInvitationCode      StatusCode = 707
@@ -95,6 +96,7 @@ const (
 	StatusCode_SCIdentifySummaryError   StatusCode = 2511
 	StatusCode_SCNeedSelfRekey          StatusCode = 2512
 	StatusCode_SCNeedOtherRekey         StatusCode = 2513
+	StatusCode_SCChatMessageCollision   StatusCode = 2514
 )
 
 var StatusCodeMap = map[string]StatusCode{
@@ -120,6 +122,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCWrongCryptoFormat":      279,
 	"SCDecryptionError":        280,
 	"SCInvalidAddress":         281,
+	"SCNoSession":              283,
 	"SCBadEmail":               472,
 	"SCBadSignupUsernameTaken": 701,
 	"SCBadInvitationCode":      707,
@@ -183,6 +186,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCIdentifySummaryError":   2511,
 	"SCNeedSelfRekey":          2512,
 	"SCNeedOtherRekey":         2513,
+	"SCChatMessageCollision":   2514,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -208,6 +212,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	279:  "SCWrongCryptoFormat",
 	280:  "SCDecryptionError",
 	281:  "SCInvalidAddress",
+	283:  "SCNoSession",
 	472:  "SCBadEmail",
 	701:  "SCBadSignupUsernameTaken",
 	707:  "SCBadInvitationCode",
@@ -271,6 +276,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2511: "SCIdentifySummaryError",
 	2512: "SCNeedSelfRekey",
 	2513: "SCNeedOtherRekey",
+	2514: "SCChatMessageCollision",
 }
 
 func (e StatusCode) String() string {

@@ -10,7 +10,6 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -36,7 +35,7 @@ func NewRedditChecker(p libkb.RemoteProofChainLink) (*RedditChecker, libkb.Proof
 func (rc *RedditChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *RedditChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
-	return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_REDDIT, pvl.NewProofInfo(rc.proof, h))
+	return CheckProofPvl(ctx, keybase1.ProofType_REDDIT, rc.proof, h)
 }
 
 //

@@ -36,6 +36,7 @@ if (enableStoreLogging) {
   loggerMiddleware = createLogger({
     actionTransformer: (...args) => {
       console.log('Action:', ...args)
+      logger.log('Action:', ...args)
       return null
     },
     collapsed: true,

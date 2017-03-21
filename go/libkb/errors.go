@@ -30,6 +30,18 @@ func ProofErrorIsSoft(pe ProofError) bool {
 	return (s >= keybase1.ProofStatus_BASE_ERROR && s < keybase1.ProofStatus_BASE_HARD_ERROR)
 }
 
+func ProofErrorIsPvlBad(pe ProofError) bool {
+	s := pe.GetProofStatus()
+	switch s {
+	case keybase1.ProofStatus_INVALID_PVL:
+		return true
+	case keybase1.ProofStatus_MISSING_PVL:
+		return true
+	default:
+		return false
+	}
+}
+
 func ProofErrorToState(pe ProofError) keybase1.ProofState {
 	if pe == nil {
 		return keybase1.ProofState_OK
@@ -504,6 +516,13 @@ type DeviceRequiredError struct{}
 
 func (e DeviceRequiredError) Error() string {
 	return "Login required"
+}
+
+type NoSessionError struct{}
+
+// KBFS currently matching on this string, so be careful changing this:
+func (e NoSessionError) Error() string {
+	return "no current session"
 }
 
 //=============================================================================
@@ -1060,6 +1079,20 @@ func (m MerkleClashError) Error() string {
 
 //=============================================================================
 
+type PvlSourceError struct {
+	msg string
+}
+
+func (e PvlSourceError) Error() string {
+	return fmt.Sprintf("PvlSource: %s", e.msg)
+}
+
+func NewPvlSourceError(msgf string, a ...interface{}) PvlSourceError {
+	return PvlSourceError{msg: fmt.Sprintf(msgf, a...)}
+}
+
+//=============================================================================
+
 type CanceledError struct {
 	M string
 }
@@ -1603,6 +1636,16 @@ type ChatConvExistsError struct {
 
 func (e ChatConvExistsError) Error() string {
 	return fmt.Sprintf("conversation already exists: %s", e.ConvID)
+}
+
+//=============================================================================
+
+type ChatMessageCollisionError struct {
+	HeaderHash string
+}
+
+func (e ChatMessageCollisionError) Error() string {
+	return fmt.Sprintf("a message with that hash already exists: %s", e.HeaderHash)
 }
 
 //=============================================================================

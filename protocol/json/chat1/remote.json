@@ -299,6 +299,63 @@
           "name": "regionBucketEndpoint"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "SyncInboxResType",
+      "symbols": [
+        "CURRENT_0",
+        "INCREMENTAL_1",
+        "CLEAR_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SyncIncrementalRes",
+      "fields": [
+        {
+          "type": "InboxVers",
+          "name": "vers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Conversation"
+          },
+          "name": "convs"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "SyncInboxRes",
+      "switch": {
+        "type": "SyncInboxResType",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "CURRENT",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "INCREMENTAL",
+            "def": false
+          },
+          "body": "SyncIncrementalRes"
+        },
+        {
+          "label": {
+            "name": "CLEAR",
+            "def": false
+          },
+          "body": null
+        }
+      ]
     }
   ],
   "messages": {
@@ -484,6 +541,15 @@
         }
       ],
       "response": "InboxVers"
+    },
+    "syncInbox": {
+      "request": [
+        {
+          "name": "vers",
+          "type": "InboxVers"
+        }
+      ],
+      "response": "SyncInboxRes"
     },
     "tlfFinalize": {
       "request": [

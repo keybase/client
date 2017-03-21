@@ -32,6 +32,7 @@ const Conversation = (props: Props) => (
       muted={props.muted}
       onAddParticipant={props.onAddParticipant}
       onMuteConversation={props.onMuteConversation}
+      onShowBlockConversationDialog={props.onShowBlockConversationDialog}
       onShowProfile={props.onShowProfile}
       onToggleSidePanel={props.onToggleSidePanel}
       participants={props.participants} /> }
@@ -39,7 +40,7 @@ const Conversation = (props: Props) => (
 )
 
 export default branch(
-  (props: Props) => !!props.rekeyInfo,
+  (props: Props) => !!props.rekeyInfo && !props.finalizeInfo,
   branch(
     (props: Props) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
     renderComponent(ParticipantRekey),

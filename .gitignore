@@ -43,5 +43,6 @@ shared/node_modules
 packaging/desktop/node_modules
 packaging/prerelease/node_modules
 visdiff/node_modules
+pvl-tools/node_modules
 
 Keybase.app.dSYM.zip

@@ -19,6 +19,7 @@ import (
 
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -46,7 +47,8 @@ type Boxer struct {
 
 	boxWithVersion chat1.MessageBoxedVersion
 
-	tlf func() keybase1.TlfInterface
+	// TLF info source
+	tlfInfoSource types.TLFInfoSource
 
 	// Replaceable for testing.
 	// Normally set to normal implementations.
@@ -60,13 +62,13 @@ type Boxer struct {
 	testingSignatureMangle func([]byte) []byte
 }
 
-func NewBoxer(g *libkb.GlobalContext, tlf func() keybase1.TlfInterface) *Boxer {
+func NewBoxer(g *libkb.GlobalContext, tlfInfoSource types.TLFInfoSource) *Boxer {
 	return &Boxer{
 		DebugLabeler:   utils.NewDebugLabeler(g, "Boxer", false),
 		boxWithVersion: chat1.MessageBoxedVersion_V1,
-		tlf:            tlf,
 		hashV1:         hashSha256V1,
 		Contextified:   libkb.NewContextified(g),
+		tlfInfoSource:  tlfInfoSource,
 	}
 }
 
@@ -108,7 +110,7 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, convID chat1.ConversationID, finalizeInfo *chat1.ConversationFinalizeInfo) (chat1.MessageUnboxed, UnboxingError) {
 	tlfName := boxed.ClientHeader.TLFNameExpanded(finalizeInfo)
 	tlfPublic := boxed.ClientHeader.TlfPublic
-	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlf(), tlfName, tlfPublic)
+	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlfInfoSource, tlfName, tlfPublic)
 	if err != nil {
 		// transient error. Rekey errors come through here
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
@@ -128,6 +130,9 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	}
 
 	unboxed, ierr := b.unbox(ctx, boxed, encryptionKey)
+	if ierr == nil {
+		ierr = b.checkInvariants(ctx, convID, boxed, unboxed)
+	}
 	if ierr != nil {
 		b.Debug(ctx, "failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
 			ierr.Error())
@@ -137,11 +142,15 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		return chat1.MessageUnboxed{}, ierr
 	}
 
+	return chat1.NewMessageUnboxedWithValid(*unboxed), nil
+}
+
+func (b *Boxer) checkInvariants(ctx context.Context, convID chat1.ConversationID, boxed chat1.MessageBoxed, unboxed *chat1.MessageUnboxedValid) UnboxingError {
 	// Check that the ConversationIDTriple in the signed message header matches
 	// the conversation ID we were expecting.
 	if !unboxed.ClientHeader.Conv.Derivable(convID) {
 		err := fmt.Errorf("conversation ID mismatch")
-		return chat1.MessageUnboxed{}, NewPermanentUnboxingError(err)
+		return NewPermanentUnboxingError(err)
 	}
 
 	// Make sure the body hash is unique to this message, and then record it.
@@ -171,7 +180,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	replayErr := storage.CheckAndRecordBodyHash(b.G(), unboxed.BodyHash, boxed.ServerHeader.MessageID, convID)
 	if replayErr != nil {
 		b.Debug(ctx, "UnboxMessage found a replayed body hash: %s", replayErr)
-		return chat1.MessageUnboxed{}, NewPermanentUnboxingError(replayErr)
+		return NewPermanentUnboxingError(replayErr)
 	}
 
 	// Make sure the header hash and prev pointers of this message are
@@ -185,17 +194,17 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	prevPtrErr := storage.CheckAndRecordPrevPointer(b.G(), boxed.ServerHeader.MessageID, convID, unboxed.HeaderHash)
 	if prevPtrErr != nil {
 		b.Debug(ctx, "UnboxMessage found an inconsistent header hash: %s", prevPtrErr)
-		return chat1.MessageUnboxed{}, NewPermanentUnboxingError(prevPtrErr)
+		return NewPermanentUnboxingError(prevPtrErr)
 	}
 	for _, prevPtr := range unboxed.ClientHeader.Prev {
 		prevPtrErr := storage.CheckAndRecordPrevPointer(b.G(), prevPtr.Id, convID, prevPtr.Hash)
 		if prevPtrErr != nil {
 			b.Debug(ctx, "UnboxMessage found an inconsistent prev pointer: %s", prevPtrErr)
-			return chat1.MessageUnboxed{}, NewPermanentUnboxingError(prevPtrErr)
+			return NewPermanentUnboxingError(prevPtrErr)
 		}
 	}
 
-	return chat1.NewMessageUnboxedWithValid(*unboxed), nil
+	return nil
 }
 
 func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed, encryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
@@ -796,7 +805,9 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 		return nil, NewBoxingError("blank TLF name given", true)
 	}
 
-	cres, err := CtxKeyFinder(ctx).Find(ctx, b.tlf(), tlfName, msg.ClientHeader.TlfPublic)
+	cres, err := CtxKeyFinder(ctx).Find(ctx, b.tlfInfoSource, tlfName,
+		msg.ClientHeader.TlfPublic)
+
 	if err != nil {
 		return nil, NewBoxingCryptKeysError(err)
 	}

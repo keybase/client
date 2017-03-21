@@ -529,3 +529,36 @@ func TestInboxTlfFinalize(t *testing.T) {
 			chat1.ConversationFinalizeInfo{ResetFull: "reset"})
 	})
 }
+
+func TestInboxSync(t *testing.T) {
+	_, inbox, _ := setupInboxTest(t, "basic")
+
+	// Create an inbox with a bunch of convos, merge it and read it back out
+	numConvs := 10
+	var convs []chat1.Conversation
+	for i := numConvs - 1; i >= 0; i-- {
+		convs = append(convs, makeConvo(gregor1.Time(i), 1, 1))
+	}
+
+	require.NoError(t, inbox.Merge(context.TODO(), 1, convs, nil, nil))
+	_, res, _, err := inbox.Read(context.TODO(), nil, nil)
+	require.NoError(t, err)
+
+	var syncConvs []chat1.Conversation
+	convs[0].Metadata.Status = chat1.ConversationStatus_MUTED
+	convs[6].Metadata.Status = chat1.ConversationStatus_MUTED
+	syncConvs = append(syncConvs, convs[0])
+	syncConvs = append(syncConvs, convs[6])
+	syncConvs = append(syncConvs, makeConvo(gregor1.Time(60), 1, 1))
+
+	vers, err := inbox.Version(context.TODO())
+	require.NoError(t, err)
+	require.NoError(t, inbox.Sync(context.TODO(), vers+1, syncConvs))
+	newVers, newRes, _, err := inbox.Read(context.TODO(), nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, vers+1, newVers)
+	require.Equal(t, chat1.ConversationStatus_MUTED, newRes[0].Metadata.Status)
+	require.Equal(t, chat1.ConversationStatus_MUTED, newRes[6].Metadata.Status)
+	require.Equal(t, chat1.ConversationStatus_UNFILED, newRes[3].Metadata.Status)
+	require.Equal(t, len(res), len(newRes))
+}

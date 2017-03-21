@@ -361,6 +361,12 @@
 			"revisionTime": "2015-12-11T09:06:21+09:00"
 		},
 		{
+			"checksumSHA1": "I/D4D4g+IkllRz35PuCCsM04Qag=",
+			"path": "github.com/miekg/dns",
+			"revision": "c862b7e359850847d4945cce311db2ea90cab7c0",
+			"revisionTime": "2017-03-10T21:57:03Z"
+		},
+		{
 			"checksumSHA1": "rZ4W4fT8VjifBeSBQSEjWWI4ISU=",
 			"path": "github.com/nf/cr2",
 			"revision": "05d46fef4f2f903240751e25871cd318d001deba",
@@ -666,6 +672,12 @@
 			"path": "golang.org/x/net/context",
 			"revision": "7c71ca708c71bcbd0e6c856b01468ee07fe24557",
 			"revisionTime": "2016-06-20T16:30:30-04:00"
+		},
+		{
+			"checksumSHA1": "WHc3uByvGaMcnSoI21fhzYgbOgg=",
+			"path": "golang.org/x/net/context/ctxhttp",
+			"revision": "a6577fac2d73be281a500b310739095313165611",
+			"revisionTime": "2017-03-08T20:54:49Z"
 		},
 		{
 			"path": "golang.org/x/net/html",

@@ -1122,6 +1122,30 @@
     },
     {
       "type": "record",
+      "name": "NonblockFetchRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ThreadView",
       "fields": [
         {
@@ -1260,11 +1284,11 @@
           "name": "topicName"
         },
         {
-          "type": [
-            null,
-            "ConversationID"
-          ],
-          "name": "convID"
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "convIDs"
         },
         {
           "type": [
@@ -1340,30 +1364,6 @@
           ],
           "name": "pagination"
         },
-        {
-          "type": "boolean",
-          "name": "offline"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "RateLimit"
-          },
-          "name": "rateLimits"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "keybase1.TLFIdentifyFailure"
-          },
-          "name": "identifyFailures"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "GetInboxNonblockLocalRes",
-      "fields": [
         {
           "type": "boolean",
           "name": "offline"
@@ -1743,6 +1743,64 @@
       ],
       "response": "GetThreadLocalRes"
     },
+    "getCachedThread": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "query",
+          "type": [
+            null,
+            "GetThreadQuery"
+          ]
+        },
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "Pagination"
+          ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "GetThreadLocalRes"
+    },
+    "getThreadNonblock": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "query",
+          "type": [
+            null,
+            "GetThreadQuery"
+          ]
+        },
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "Pagination"
+          ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "NonblockFetchRes"
+    },
     "getInboxAndUnboxLocal": {
       "request": [
         {
@@ -1773,6 +1831,13 @@
           "type": "int"
         },
         {
+          "name": "maxUnbox",
+          "type": [
+            null,
+            "int"
+          ]
+        },
+        {
           "name": "query",
           "type": [
             null,
@@ -1791,7 +1856,7 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "GetInboxNonblockLocalRes"
+      "response": "NonblockFetchRes"
     },
     "postLocal": {
       "request": [

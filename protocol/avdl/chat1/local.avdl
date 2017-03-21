@@ -391,6 +391,12 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
+  record NonblockFetchRes {
+    boolean offline;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+
   record ThreadView {
     array<MessageUnboxed> messages;
     union { null, Pagination } pagination;
@@ -413,6 +419,10 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
+  GetThreadLocalRes getCachedThread(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior); 
+
   record GetInboxLocalRes {
     array<Conversation> conversationsUnverified;
     union { null, Pagination } pagination;
@@ -433,7 +443,7 @@ protocol local {
     union { null, string } tlfName;
     union { null, string } topicName;
 
-    union { null, ConversationID } convID;
+    array<ConversationID> convIDs;
     union { null, TopicType } topicType;
     union { null, TLFVisibility } tlfVisibility;
     union { null, gregor1.Time } before;
@@ -456,12 +466,7 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  GetInboxNonblockLocalRes getInboxNonblockLocal(int sessionID, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
-  record GetInboxNonblockLocalRes {
-    boolean offline;
-    array<RateLimit> rateLimits;
-    array<keybase1.TLFIdentifyFailure> identifyFailures;
-  }
+  NonblockFetchRes getInboxNonblockLocal(int sessionID, union { null, int } maxUnbox, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalRes {

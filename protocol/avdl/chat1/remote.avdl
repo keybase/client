@@ -147,6 +147,26 @@ protocol remote {
   // Get the inbox version for a user
   InboxVers getInboxVersion(gregor1.UID uid); 
 
+  enum SyncInboxResType {
+    CURRENT_0,
+    INCREMENTAL_1,
+    CLEAR_2
+  }
+  
+  record SyncIncrementalRes {
+    InboxVers vers;
+    array<Conversation> convs;
+  } 
+
+  variant SyncInboxRes switch (SyncInboxResType typ) {
+    case CURRENT: void;
+    case INCREMENTAL: SyncIncrementalRes;
+    case CLEAR: void;
+  }
+
+  // Sync down the inbox given a current version
+  SyncInboxRes syncInbox(InboxVers vers);
+
   // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
   // Gregor keeps an internal record of these TLF IDs, so that it can always return the latest
   // conversation per TLF ID on GetInboxRemote.

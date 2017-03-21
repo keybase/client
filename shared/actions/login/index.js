@@ -9,19 +9,19 @@ import {bootstrap} from '../config'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {devicesTab, loginTab, profileTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
-import {loadDevices} from '../devices'
+import {load as loadDevices} from '../devices'
 import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
   deviceDeviceAddRpc, loginGetConfiguredAccountsRpc, CommonClientType,
   ConstantsStatusCode, ProvisionUiGPGMethod, CommonDeviceType,
   PassphraseCommonPassphraseType,
   loginLoginProvisionedDeviceRpc,
 } from '../../constants/types/flow-types'
-import {navigateTo, navigateAppend} from '../route-tree'
+import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
 
 import type {DeviceRole} from '../../constants/login'
 import type {DeviceType} from '../../constants/types/more'
-import type {Dispatch, GetState, AsyncAction, TypedAction, Action} from '../../constants/types/flux'
+import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
 import type {ResponseType} from '../../engine'
 import type {incomingCallMapType, DeviceType as RPCDeviceType} from '../../constants/types/flow-types'
 
@@ -329,10 +329,6 @@ export function addNewComputer () : AsyncAction {
   return addNewDevice(Constants.codePageDeviceRoleNewComputer)
 }
 
-export function addNewPaperKey () : Action {
-  return navigateTo([devicesTab, 'genPaperKey'])
-}
-
 function addNewDevice (kind: DeviceRole) : AsyncAction {
   return (dispatch, getState) => {
     // We can either be a newDevice or an existingDevice.  Here in the add a
@@ -507,14 +503,20 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
     'keybase.1.secretUi.getPassphrase': ({pinentry: {type, prompt, username, retryLabel}}, response) => {
       switch (type) {
         case PassphraseCommonPassphraseType.paperKey:
-          dispatch(navigateAppend([{
+          const destination = {
             props: {
               error: retryLabel,
               onBack: () => onBack(response),
               onSubmit: (passphrase: string) => { response.result({passphrase, storeSecret: false}) },
             },
             selected: 'paperkey',
-          }], [loginTab, 'login']))
+          }
+          const currentPath = pathSelector(getState())
+          if (currentPath.last() === 'paperkey') {
+            dispatch(navigateTo(currentPath.pop(1).push(destination)))
+          } else {
+            dispatch(navigateAppend([destination], [loginTab, 'login']))
+          }
           break
         case PassphraseCommonPassphraseType.passPhrase:
           dispatch(navigateAppend([{

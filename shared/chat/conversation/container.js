@@ -9,7 +9,7 @@ import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat,
 import * as ChatConstants from '../../constants/chat'
 import {downloadFilePath} from '../../util/file'
 import {getProfile} from '../../actions/tracker'
-import {navigateAppend, navigateUp} from '../../actions/route-tree'
+import {navigateAppend} from '../../actions/route-tree'
 import {onUserClick} from '../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
 import {pick} from 'lodash'
@@ -109,7 +109,7 @@ export default connect(
       if (conversationState) {
         const inbox = state.chat.get('inbox')
         const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversation)
-        const muted = selected && selected.get('muted')
+        const muted = selected && selected.get('status') === 'muted'
         const participants = selected && selected.participants || List()
         const rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversation)
 
@@ -157,12 +157,13 @@ export default connect(
       supersededBy: null,
     }
   },
-  (dispatch: Dispatch, {setRouteState}) => ({
+  (dispatch: Dispatch, {setRouteState, navigateUp}) => ({
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
     onAttach: (selectedConversation, inputs: Array<AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
-    onBack: () => dispatch(navigateUp(true)),
+    onBack: () => dispatch(navigateUp()),
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
     onEditMessage: (message: Message, body: string) => { dispatch(editMessage(message, new HiddenString(body))) },
+    onShowBlockConversationDialog: (selectedConversation, participants) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, participants}, selected: 'showBlockConversationDialog'}])) },
     onShowEditor: (message: Message) => { dispatch(showEditor(message)) },
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, false, downloadFilePath(filename))),
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
@@ -191,6 +192,7 @@ export default connect(
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
     onRekey: () => dispatch(openRekeyDialog()),
+    onEnterPaperkey: () => dispatch(navigateAppend(['enterPaperkey'])),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     let bannerMessage
@@ -227,6 +229,7 @@ export default connect(
       onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
       onRetryMessage: (outboxID: OutboxIDKey) => dispatchProps.onRetryMessage(stateProps.selectedConversation, outboxID),
       onSelectAttachment: (input) => dispatchProps.onSelectAttachment(stateProps.selectedConversation, input),
+      onShowBlockConversationDialog: () => dispatchProps.onShowBlockConversationDialog(stateProps.selectedConversation, stateProps.participants.toArray().join(',')),
       restartConversation: () => dispatchProps.startConversation(stateProps.participants.toArray()),
     }
   },

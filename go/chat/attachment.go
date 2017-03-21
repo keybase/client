@@ -240,6 +240,7 @@ func (a *AttachmentStore) DownloadAsset(ctx context.Context, params chat1.S3Para
 	}
 
 	a.log.Debug("downloaded and decrypted to %d plaintext bytes", n)
+	progWriter.Finish()
 
 	// validate the EncHash
 	if !hmac.Equal(asset.EncHash, hash.Sum(nil)) {

@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeListView} from '../../common-adapters/index.native'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../../styles'
 import {RowConnector} from './row'
 
 import type {Props, RowProps} from './'
@@ -9,7 +9,7 @@ import type {Props, RowProps} from './'
 const AddNewRow = ({onNewChat}: {onNewChat: () => void}) => (
   <Box
     style={{...globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 0, justifyContent: 'center', minHeight: 48}}>
-    <ClickableBox style={{...globalStyles.flexBoxColumn}} onClick={onNewChat}>
+    <ClickableBox style={{...globalStyles.flexBoxColumn, padding: 8}} onClick={onNewChat}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', justifyContent: 'center'}}>
         <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
         <Text type='BodyBigLink'>New chat</Text>
@@ -201,6 +201,7 @@ const boxStyle = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.darkBlue4,
   flex: 1,
+  paddingTop: statusBarHeight,
 }
 
 const listStyle = {

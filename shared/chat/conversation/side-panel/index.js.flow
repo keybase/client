@@ -10,6 +10,7 @@ export type Props = {
   muted: boolean,
   onAddParticipant: () => void,
   onMuteConversation: (muted: boolean) => void,
+  onShowBlockConversationDialog: () => void,
   onShowProfile: (username: string) => void,
   onToggleSidePanel: () => void,
   participants: List<string>,

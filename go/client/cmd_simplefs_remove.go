@@ -41,12 +41,18 @@ func (c *CmdSimpleFSRemove) Run() error {
 
 	ctx := context.TODO()
 
-	for _, path := range c.paths {
+	paths, err := doSimpleFSGlob(c.G(), ctx, cli, c.paths)
+	if err != nil {
+		return err
+	}
+
+	for _, path := range paths {
 		opid, err := cli.SimpleFSMakeOpid(ctx)
 		if err != nil {
 			return err
 		}
 		defer cli.SimpleFSClose(ctx, opid)
+		c.G().Log.Debug("SimpleFSRemove %s", path.Kbfs())
 		err = cli.SimpleFSRemove(ctx, keybase1.SimpleFSRemoveArg{
 			OpID: opid,
 			Path: path,
@@ -75,7 +81,6 @@ func (c *CmdSimpleFSRemove) ParseArgv(ctx *cli.Context) error {
 		}
 		c.paths = append(c.paths, argPath)
 	}
-
 	return err
 }
 

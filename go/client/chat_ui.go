@@ -222,3 +222,11 @@ func (c *ChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnv
 
 	return nil
 }
+
+func (c *ChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCachedArg) error {
+	return nil
+}
+
+func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
+	return nil
+}

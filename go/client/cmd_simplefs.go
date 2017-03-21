@@ -20,10 +20,6 @@ import (
 
 var TargetFileExistsError = errors.New("target file exists")
 
-type SimpleFSStatter interface {
-	SimpleFSStat(ctx context.Context, path keybase1.Path) (res keybase1.Dirent, err error)
-}
-
 // NewCmdSimpleFS creates the device command, which is just a holder
 // for subcommands.
 func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -100,7 +96,7 @@ func pathToString(path keybase1.Path) string {
 }
 
 // Cheeck whether the given path is a directory and return its string
-func checkPathIsDir(ctx context.Context, cli SimpleFSStatter, path keybase1.Path) (bool, string, error) {
+func checkPathIsDir(ctx context.Context, cli keybase1.SimpleFSInterface, path keybase1.Path) (bool, string, error) {
 	var isDir bool
 	var pathString string
 	var err error
@@ -139,7 +135,7 @@ func joinSimpleFSPaths(destType keybase1.PathType, destPathString, srcPathString
 	return keybase1.NewPathWithLocal(newDestString)
 }
 
-func checkElementExists(ctx context.Context, cli SimpleFSStatter, dest keybase1.Path) error {
+func checkElementExists(ctx context.Context, cli keybase1.SimpleFSInterface, dest keybase1.Path) error {
 	destType, _ := dest.PathType()
 	var err error
 
@@ -164,7 +160,7 @@ func checkElementExists(ctx context.Context, cli SimpleFSStatter, dest keybase1.
 func makeDestPath(
 	g *libkb.GlobalContext,
 	ctx context.Context,
-	cli SimpleFSStatter,
+	cli keybase1.SimpleFSInterface,
 	src keybase1.Path,
 	dest keybase1.Path,
 	isDestPath bool,
@@ -243,4 +239,88 @@ func doOverwritePrompt(g *libkb.GlobalContext, dest string) error {
 		return NotConfirmedError{}
 	}
 	return nil
+}
+
+func doSimpleFSRemoteGlob(g *libkb.GlobalContext, ctx context.Context, cli keybase1.SimpleFSInterface, path keybase1.Path) ([]keybase1.Path, error) {
+
+	var returnPaths []keybase1.Path
+	directory := filepath.ToSlash(filepath.Dir(path.Kbfs()))
+	base := filepath.Base(path.Kbfs())
+
+	// We know the filename has wildcards at this point.
+	// kbfs list only works on directories, so build a glob from a list result.
+
+	g.Log.Debug("doSimpleFSRemoteGlob %s", path.Kbfs())
+
+	if strings.ContainsAny(directory, "?*[]") == true {
+		return nil, errors.New("wildcards not supported in parent directories")
+	}
+
+	opid, err := cli.SimpleFSMakeOpid(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer cli.SimpleFSClose(ctx, opid)
+
+	err = cli.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID: opid,
+		Path: keybase1.NewPathWithKbfs(directory),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = cli.SimpleFSWait(ctx, opid)
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		listResult, err := cli.SimpleFSReadList(ctx, opid)
+		if err != nil {
+			break
+		}
+		for _, entry := range listResult.Entries {
+			match, err := filepath.Match(base, entry.Name)
+			if err == nil && match == true {
+				returnPaths = append(returnPaths, keybase1.NewPathWithKbfs(filepath.ToSlash(filepath.Join(directory, entry.Name))))
+			}
+		}
+	}
+	return returnPaths, err
+}
+
+func doSimpleFSGlob(g *libkb.GlobalContext, ctx context.Context, cli keybase1.SimpleFSInterface, paths []keybase1.Path) ([]keybase1.Path, error) {
+	var returnPaths []keybase1.Path
+	for _, path := range paths {
+		pathType, err := path.PathType()
+		if err != nil {
+			return returnPaths, err
+		}
+
+		pathString := pathToString(path)
+		if strings.ContainsAny(filepath.Base(pathString), "?*[]") == false {
+			returnPaths = append(returnPaths, path)
+			continue
+		}
+
+		if pathType == keybase1.PathType_KBFS {
+			// remote glob
+			globbed, err := doSimpleFSRemoteGlob(g, ctx, cli, path)
+			if err != nil {
+				return nil, err
+			}
+			returnPaths = append(returnPaths, globbed...)
+		} else {
+			// local glob
+			matches, err := filepath.Glob(pathString)
+			if err != nil {
+				return nil, err
+			}
+			for _, match := range matches {
+				returnPaths = append(returnPaths, keybase1.NewPathWithLocal(match))
+			}
+		}
+	}
+	return returnPaths, nil
 }

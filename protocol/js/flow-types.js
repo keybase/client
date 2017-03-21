@@ -117,6 +117,7 @@ export const ConstantsStatusCode = {
   scwrongcryptoformat: 279,
   scdecryptionerror: 280,
   scinvalidaddress: 281,
+  scnosession: 283,
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
@@ -180,6 +181,7 @@ export const ConstantsStatusCode = {
   scidentifysummaryerror: 2511,
   scneedselfrekey: 2512,
   scneedotherrekey: 2513,
+  scchatmessagecollision: 2514,
 }
 
 export const CtlDbType = {
@@ -346,6 +348,7 @@ export const ProveCommonProofStatus = {
   timeout: 160,
   internalError: 170,
   unchecked: 171,
+  missingPvl: 172,
   baseHardError: 200,
   notFound: 201,
   contentFailure: 202,
@@ -4072,6 +4075,7 @@ export type ProofStatus =
   | 160 // TIMEOUT_160
   | 170 // INTERNAL_ERROR_170
   | 171 // UNCHECKED_171
+  | 172 // MISSING_PVL_172
   | 200 // BASE_HARD_ERROR_200
   | 201 // NOT_FOUND_201
   | 202 // CONTENT_FAILURE_202
@@ -4531,6 +4535,7 @@ export type StatusCode =
   | 279 // SCWrongCryptoFormat_279
   | 280 // SCDecryptionError_280
   | 281 // SCInvalidAddress_281
+  | 283 // SCNoSession_283
   | 472 // SCBadEmail_472
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
@@ -4594,6 +4599,7 @@ export type StatusCode =
   | 2511 // SCIdentifySummaryError_2511
   | 2512 // SCNeedSelfRekey_2512
   | 2513 // SCNeedOtherRekey_2513
+  | 2514 // SCChatMessageCollision_2514
 
 export type Stream = {
   fd: int,

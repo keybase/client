@@ -39,6 +39,7 @@
         "TIMEOUT_160",
         "INTERNAL_ERROR_170",
         "UNCHECKED_171",
+        "MISSING_PVL_172",
         "BASE_HARD_ERROR_200",
         "NOT_FOUND_201",
         "CONTENT_FAILURE_202",

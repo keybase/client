@@ -1,7 +1,13 @@
 // @flow
 import * as Constants from '../constants/route-tree'
+import * as I from 'immutable'
 import {getPath} from '../route-tree'
+import {put, select} from 'redux-saga/effects'
+import {safeTakeEvery} from '../util/saga'
+
 import type {RouteDefNode, Path, PropsPath} from '../route-tree'
+import type {TypedAction} from '../constants/types/flux'
+import type {TypedState} from '../constants/reducer'
 import type {
   SetRouteDef,
   SwitchTo,
@@ -24,6 +30,10 @@ const pathActionTransformer = (action, oldState) => {
     },
     type: action.type,
   }
+}
+
+export function pathSelector (state: TypedState): I.List<string> {
+  return getPath(state.routeTree.routeState)
 }
 
 // Set (or update) the tree of route definitions. Dispatched at initialization
@@ -94,6 +104,14 @@ export function navigateUp (): NavigateUp {
   }
 }
 
+// Do a navigate action if the path is still what is expected
+export function putActionIfOnPath<T: TypedAction<*, *, *>> (expectedPath: Path, otherAction: T): Constants.PutActionIfOnPath<T> {
+  return {
+    type: Constants.putActionIfOnPath,
+    payload: {expectedPath, otherAction},
+  }
+}
+
 // Update the state object of a route at a specified path.
 export function setRouteState (path: Path, partialState: {}): SetRouteState {
   return {
@@ -111,3 +129,18 @@ export function resetRoute (path: Path): ResetRoute {
     logTransformer: pathActionTransformer,
   }
 }
+
+function * _putActionIfOnPath ({payload: {otherAction, expectedPath}}: Constants.PutActionIfOnPath<*>) {
+  const currentPath = yield select(pathSelector)
+  if (I.is(expectedPath, currentPath)) {
+    yield put(otherAction)
+  }
+}
+
+function * routeSaga (): any {
+  yield [
+    safeTakeEvery('routeTree:putActionIfOnPath', _putActionIfOnPath),
+  ]
+}
+
+export default routeSaga

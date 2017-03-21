@@ -29,7 +29,7 @@ class Text extends Component<void, Props, void> {
       ref={ref => { this._nativeText = ref }}
       style={style}
       {...lineClamp(this.props.lineClamp)}
-      onPress={this.props.onClick || (this.props.onClickURL && this._urlClick)}>{this.props.children}</NativeText>
+      onPress={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined)}>{this.props.children}</NativeText>
   }
 }
 

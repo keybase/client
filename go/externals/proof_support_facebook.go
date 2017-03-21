@@ -11,7 +11,6 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -32,7 +31,7 @@ func NewFacebookChecker(p libkb.RemoteProofChainLink) (*FacebookChecker, libkb.P
 func (rc *FacebookChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *FacebookChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
-	return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_FACEBOOK, pvl.NewProofInfo(rc.proof, h))
+	return CheckProofPvl(ctx, keybase1.ProofType_FACEBOOK, rc.proof, h)
 }
 
 //

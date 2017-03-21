@@ -41,6 +41,10 @@ func (cr CheckResult) Freshness() keybase1.CheckResultFreshness {
 		case age < cr.G().Env.GetProofCacheLongDur():
 			return keybase1.CheckResultFreshness_AGED
 		}
+	case ProofErrorIsPvlBad(cr.Status):
+		// Don't use cache results for pvl problems.
+		// The hope is that they will soon be resolved server-side.
+		return keybase1.CheckResultFreshness_RANCID
 	case !ProofErrorIsSoft(cr.Status):
 		if age < cr.G().Env.GetProofCacheShortDur() {
 			return keybase1.CheckResultFreshness_FRESH

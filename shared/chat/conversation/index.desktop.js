@@ -77,6 +77,7 @@ class Conversation extends Component<void, Props, State> {
       metaDataMap,
       onAddParticipant,
       onMuteConversation,
+      onShowBlockConversationDialog,
       onShowProfile,
       onToggleSidePanel,
       muted,
@@ -111,6 +112,7 @@ class Conversation extends Component<void, Props, State> {
             muted={muted}
             onAddParticipant={onAddParticipant}
             onMuteConversation={onMuteConversation}
+            onShowBlockConversationDialog={onShowBlockConversationDialog}
             onShowProfile={onShowProfile}
             onToggleSidePanel={onToggleSidePanel}
             participants={participants} />
@@ -144,7 +146,7 @@ export default branch(
   (props: Props) => props.selectedConversation === Constants.nothingSelected,
   renderComponent(NoConversation),
   branch(
-    (props: Props) => !!props.rekeyInfo,
+    (props: Props) => !!props.rekeyInfo && !props.finalizeInfo,
     branch(
       (props: Props) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
       renderComponent(ParticipantRekey),

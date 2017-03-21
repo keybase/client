@@ -95,7 +95,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 
 	// Get and localize the conversation to get the new tlfname.
 	inbox, _, err := g.G().InboxSource.Read(ctx, m.UID().Bytes(), nil, true, &chat1.GetInboxLocalQuery{
-		ConvID: &update.ConvID,
+		ConvIDs: []chat1.ConversationID{update.ConvID},
 	}, nil)
 	if err != nil {
 		g.Debug(ctx, "resolve: unable to read conversation: %s", err.Error())
@@ -116,7 +116,8 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 	return nil
 }
 
-func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, badger *badges.Badger) error {
+func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, badger *badges.Badger) (err error) {
+	defer g.Trace(ctx, func() error { return err }, "Activity")()
 	if m.Body() == nil {
 		return errors.New("gregor handler for chat.activity: nil message body")
 	}
@@ -125,7 +126,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 	var gm chat1.GenericPayload
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err := dec.Decode(&gm)
+	err = dec.Decode(&gm)
 	if err != nil {
 		return err
 	}
@@ -158,8 +159,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 
 		var conv *chat1.ConversationLocal
 		decmsg, appended, pushErr := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
-		if err != nil {
-			g.Debug(ctx, "chat activity: unable to push message: %s", err.Error())
+		if pushErr != nil {
+			g.Debug(ctx, "chat activity: unable to push message: %s", pushErr.Error())
 		}
 		if conv, err = g.G().InboxSource.NewMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.Message); err != nil {
 			g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
@@ -265,7 +266,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 		// We need to get this conversation and then localize it
 		var inbox chat1.Inbox
 		if inbox, _, err = g.G().InboxSource.Read(ctx, uid, nil, false, &chat1.GetInboxLocalQuery{
-			ConvID: &nm.ConvID,
+			ConvIDs: []chat1.ConversationID{nm.ConvID},
 		}, nil); err != nil {
 			g.Debug(ctx, "chat activity: unable to read conversation: %s", err.Error())
 			return err

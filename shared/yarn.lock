@@ -325,7 +325,7 @@ babel-code-frame@^6.11.0, babel-code-frame@^6.16.0, babel-code-frame@^6.22.0:
     esutils "^2.0.2"
     js-tokens "^3.0.0"
 
-babel-core@6.22.1, babel-core@^6.0.0, babel-core@^6.22.1:
+babel-core@6.22.1, babel-core@^6.0.0, babel-core@^6.21.0, babel-core@^6.22.1:
   version "6.22.1"
   resolved "https://registry.yarnpkg.com/babel-core/-/babel-core-6.22.1.tgz#9c5fd658ba1772d28d721f6d25d968fc7ae21648"
   dependencies:
@@ -349,7 +349,7 @@ babel-core@6.22.1, babel-core@^6.0.0, babel-core@^6.22.1:
     slash "^1.0.0"
     source-map "^0.5.0"
 
-babel-core@^6.21.0, babel-core@^6.23.0, babel-core@^6.7.2:
+babel-core@^6.23.0, babel-core@^6.7.2:
   version "6.23.1"
   resolved "https://registry.yarnpkg.com/babel-core/-/babel-core-6.23.1.tgz#c143cb621bb2f621710c220c5d579d15b8a442df"
   dependencies:
@@ -1192,6 +1192,10 @@ backo2@1.0.2:
 balanced-match@^0.4.1, balanced-match@^0.4.2:
   version "0.4.2"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-0.4.2.tgz#cb3f3e3c732dc0f01ee70b403f302e61d7709838"
+
+base-64@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/base-64/-/base-64-0.1.0.tgz#780a99c84e7d600260361511c4877613bf24f6bb"
 
 base16@^1.0.0:
   version "1.0.0"
@@ -2937,9 +2941,9 @@ flatten@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/flatten/-/flatten-1.0.2.tgz#dae46a9d78fbe25292258cc1e780a41d95c03782"
 
-flow-bin@0.39.0:
-  version "0.39.0"
-  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.39.0.tgz#b1012a14460df1aa79d3a728e10f93c6944226d0"
+flow-bin@0.41.0:
+  version "0.41.0"
+  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.41.0.tgz#8badac9a19da45004997e599bd316518db489b2e"
 
 for-in@^1.0.1:
   version "1.0.2"
@@ -4592,13 +4596,13 @@ mime-db@~1.23.0:
   version "1.23.0"
   resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.23.0.tgz#a31b4070adaea27d732ea333740a64d0ec9a6659"
 
-mime-types@2.1.11, mime-types@~2.1.11:
+mime-types@2.1.11, mime-types@~2.1.11, mime-types@~2.1.7:
   version "2.1.11"
   resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.11.tgz#c259c471bda808a85d6cd193b430a5fae4473b3c"
   dependencies:
     mime-db "~1.23.0"
 
-mime-types@^2.1.12, mime-types@~2.1.13, mime-types@~2.1.6, mime-types@~2.1.7, mime-types@~2.1.9:
+mime-types@^2.1.12, mime-types@~2.1.13, mime-types@~2.1.6, mime-types@~2.1.9:
   version "2.1.14"
   resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.14.tgz#f7ef7d97583fcaf3b7d282b6f8b5679dab1e94ee"
   dependencies:
@@ -5734,13 +5738,20 @@ react-native-camera@0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/react-native-camera/-/react-native-camera-0.6.0.tgz#dd2760b7857d660761c78f2da575b494fdc8dcb5"
 
+react-native-fs@2.1.0-rc.1:
+  version v2.1.0-rc.1
+  resolved "https://registry.yarnpkg.com/react-native-fs/-/react-native-fs-2.1.0-rc.1.tgz#f6078891005478648738db396e822ec0aefc4b95"
+  dependencies:
+    base-64 "^0.1.0"
+    utf8 "^2.1.1"
+
 react-native-image-picker@0.25.7:
   version "0.25.7"
   resolved "https://registry.yarnpkg.com/react-native-image-picker/-/react-native-image-picker-0.25.7.tgz#1475fd72111a74f434598f2c99453998ac21b599"
 
-react-native-push-notification@2.2.1:
+"react-native-push-notification@git://github.com/keybase/react-native-push-notification#eedae53f4346223b5aee60ef2702ecc47a01fcd2":
   version "2.2.1"
-  resolved "https://registry.yarnpkg.com/react-native-push-notification/-/react-native-push-notification-2.2.1.tgz#9b392cee8f5223a1e1772c9a88c95742549fcfc3"
+  resolved "git://github.com/keybase/react-native-push-notification#eedae53f4346223b5aee60ef2702ecc47a01fcd2"
 
 react-native@0.42.0:
   version "0.42.0"
@@ -7106,6 +7117,10 @@ user-home@^2.0.0:
 utf8-byte-length@^1.0.1:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/utf8-byte-length/-/utf8-byte-length-1.0.4.tgz#f45f150c4c66eee968186505ab93fcbb8ad6bf61"
+
+utf8@^2.1.1:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/utf8/-/utf8-2.1.2.tgz#1fa0d9270e9be850d9b05027f63519bf46457d96"
 
 util-deprecate@1.0.2, util-deprecate@~1.0.1:
   version "1.0.2"
