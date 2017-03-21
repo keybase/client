@@ -25,6 +25,7 @@ KBNM.prototype.connect = function() {
 KBNM.prototype.disconnect = function() {
   this.port.disconnect();
   this.port = null;
+  this.clients = {};
 }
 
 KBNM.prototype.send = function(msg, cb) {
@@ -43,6 +44,7 @@ KBNM.prototype._onReceive = function(msg) {
   const cb = this.clients[client];
   if (cb === undefined) return;
   cb(msg);
+  delete this.clients[client];
 }
 
 KBNM.prototype._onDisconnect = function() {
