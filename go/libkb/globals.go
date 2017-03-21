@@ -101,9 +101,11 @@ type GlobalContext struct {
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
 
-	InboxSource      chattypes.InboxSource        // source of remote inbox entries for chat
-	ConvSource       chattypes.ConversationSource // source of remote message bodies for chat
-	MessageDeliverer chattypes.MessageDeliverer   // background message delivery service
+	// Chat globals
+	InboxSource         chattypes.InboxSource         // source of remote inbox entries for chat
+	ConvSource          chattypes.ConversationSource  // source of remote message bodies for chat
+	MessageDeliverer    chattypes.MessageDeliverer    // background message delivery service
+	ServerCacheVersions chattypes.ServerCacheVersions // server side versions for chat caches
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)

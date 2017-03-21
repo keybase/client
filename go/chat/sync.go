@@ -43,6 +43,21 @@ func (s *Syncer) SendChatStaleNotifications(uid gregor1.UID, convs []chat1.Conve
 	s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid, s.getConvIDs(convs))
 }
 
+func (s *Syncer) isServerInboxClear(ctx context.Context, inbox *storage.Inbox) bool {
+	iboxSrvVers, err := inbox.ServerVersion(ctx)
+	if err != nil {
+		s.Debug(ctx, "isServerInboxClear: failed to get server version: %s", err.Error())
+		return true
+	}
+
+	if _, err := s.G().ServerCacheVersions.MatchInbox(ctx, iboxSrvVers); err != nil {
+		s.Debug(ctx, "isServerInboxClear: inbox server version match error: %s", err.Error())
+		return true
+	}
+
+	return false
+}
+
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) (err error) {
 	ctx = CtxAddLogTags(ctx)
 	s.Debug(ctx, "Connected: running")
@@ -87,9 +102,8 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 	}
 
 	// Grab current on disk version
-	ibox := storage.NewInbox(s.G(), uid, func() libkb.SecretUI {
-		return DelivererSecretUI{}
-	})
+	ibox := storage.NewInbox(s.G(), uid)
+	var syncRes chat1.SyncChatRes
 	vers, err := ibox.Version(ctx)
 	if err != nil {
 		s.Debug(ctx, "Sync: failed to get current inbox version (using 0): %s", err.Error())
@@ -98,18 +112,28 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 	s.Debug(ctx, "Sync: current inbox version: %v", vers)
 
 	// Run the sync call on the server to see how current our local copy is
-	var syncRes chat1.SyncInboxRes
-	if syncRes, err = cli.SyncInbox(ctx, vers); err != nil {
+
+	if syncRes, err = cli.SyncChat(ctx, vers); err != nil {
 		s.Debug(ctx, "Sync: failed to sync inbox: %s", err.Error())
 		return err
 	}
 
+	// Set new server versions
+	if err = s.G().ServerCacheVersions.Set(ctx, syncRes.CacheVers); err != nil {
+		s.Debug(ctx, "Connected: failed to set new server versions: %s", err.Error())
+	}
+
 	// Process what the server has told us to do with the local inbox copy
-	rtyp, err := syncRes.Typ()
+	rtyp, err := syncRes.InboxRes.Typ()
 	if err != nil {
 		s.Debug(ctx, "Sync: strange type from SyncInbox: %s", err.Error())
 		return err
 	}
+	// Check if the server has cleared the inbox
+	if s.isServerInboxClear(ctx, ibox) {
+		rtyp = chat1.SyncInboxResType_CLEAR
+	}
+
 	switch rtyp {
 	case chat1.SyncInboxResType_CLEAR:
 		s.Debug(ctx, "Sync: version out of date, clearing inbox: %v", vers)
@@ -121,7 +145,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 	case chat1.SyncInboxResType_CURRENT:
 		s.Debug(ctx, "Sync: version is current, standing pat: %v", vers)
 	case chat1.SyncInboxResType_INCREMENTAL:
-		incr := syncRes.Incremental()
+		incr := syncRes.InboxRes.Incremental()
 		s.Debug(ctx, "Sync: version out of date, but can incrementally sync: old vers: %v vers: %v convs: %d",
 			vers, incr.Vers, len(incr.Convs))
 

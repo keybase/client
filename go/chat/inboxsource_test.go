@@ -14,7 +14,7 @@ import (
 )
 
 func TestInboxSourceUpdateRace(t *testing.T) {
-	world, ri, _, sender, _, _, tlf := setupTest(t, 1)
+	world, ri, _, sender, _, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]

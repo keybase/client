@@ -30,7 +30,7 @@ func NewIdentifyNotifier(g *libkb.GlobalContext) *IdentifyNotifier {
 		Contextified: libkb.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "IdentifyNotifier", false),
 		identCache:   make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
-		storage:      storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
+		storage:      storage.New(g),
 	}
 }
 
@@ -87,9 +87,7 @@ func (h *IdentifyChangedHandler) getUsername(ctx context.Context, uid keybase1.U
 func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.UID) (string, chat1.TLFID, error) {
 
 	me := h.G().Env.GetUID()
-	inbox := storage.NewInbox(h.G(), me.ToBytes(), func() libkb.SecretUI {
-		return DelivererSecretUI{}
-	})
+	inbox := storage.NewInbox(h.G(), me.ToBytes())
 
 	_, allConvs, err := inbox.ReadAll(ctx)
 	if err != nil {

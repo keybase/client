@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const blockIndexVersion = 5
+const blockIndexVersion = 6
 const blockSize = 100
 
 type blockEngine struct {
@@ -27,11 +27,12 @@ func newBlockEngine(g *libkb.GlobalContext) *blockEngine {
 }
 
 type blockIndex struct {
-	Version   int
-	ConvID    chat1.ConversationID
-	UID       gregor1.UID
-	MaxBlock  int
-	BlockSize int
+	Version       int
+	ServerVersion int
+	ConvID        chat1.ConversationID
+	UID           gregor1.UID
+	MaxBlock      int
+	BlockSize     int
 }
 
 type block struct {
@@ -67,17 +68,26 @@ func (be *blockEngine) getMsgID(blockNum, blockPos int) chat1.MessageID {
 func (be *blockEngine) createBlockIndex(ctx context.Context, key libkb.DbKey,
 	convID chat1.ConversationID, uid gregor1.UID) (blockIndex, Error) {
 
-	bi := blockIndex{
-		Version:   blockIndexVersion,
-		ConvID:    convID,
-		UID:       uid,
-		MaxBlock:  0,
-		BlockSize: blockSize,
+	be.Debug(ctx, "createBlockIndex: creating new block index: convID: %s uid: %s", convID, uid)
+
+	// Grab latest server version to tag local data with
+	srvVers, serr := be.G().ServerCacheVersions.Fetch(ctx)
+	if serr != nil {
+		return blockIndex{},
+			NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to get server versions: %s", serr.Error())
 	}
 
-	be.Debug(ctx, "createBlockIndex: creating new block index: convID: %d uid: %s", convID, uid)
-	_, err := be.createBlock(ctx, &bi, 0)
-	if err != nil {
+	bi := blockIndex{
+		Version:       blockIndexVersion,
+		ServerVersion: srvVers.BodiesVers,
+		ConvID:        convID,
+		UID:           uid,
+		MaxBlock:      0,
+		BlockSize:     blockSize,
+	}
+
+	var err Error
+	if _, err = be.createBlock(ctx, &bi, 0); err != nil {
 		return bi, NewInternalError(ctx, be.DebugLabeler, "createBlockIndex: failed to create block: %s", err.Message())
 	}
 
@@ -113,6 +123,12 @@ func (be *blockEngine) readBlockIndex(ctx context.Context, convID chat1.Conversa
 		return be.createBlockIndex(ctx, key, convID, uid)
 	}
 
+	// Check server version
+	if _, err = be.G().ServerCacheVersions.MatchBodies(ctx, bi.ServerVersion); err != nil {
+		be.Debug(ctx, "readBlockInbox: server version error: %s, creating new index", err.Error())
+		return be.createBlockIndex(ctx, key, convID, uid)
+	}
+
 	return bi, nil
 }
 
@@ -121,7 +137,7 @@ type bekey string
 var bebikey bekey = "bebi"
 var beskkey bekey = "besk"
 
-func (be *blockEngine) init(ctx context.Context, key [32]byte, convID chat1.ConversationID,
+func (be *blockEngine) Init(ctx context.Context, key [32]byte, convID chat1.ConversationID,
 	uid gregor1.UID) (context.Context, Error) {
 
 	ctx = context.WithValue(ctx, beskkey, key)
@@ -287,7 +303,7 @@ func (be *blockEngine) writeBlock(ctx context.Context, bi blockIndex, b block) E
 	return nil
 }
 
-func (be *blockEngine) writeMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+func (be *blockEngine) WriteMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) Error {
 
 	var err Error
@@ -346,12 +362,12 @@ func (be *blockEngine) writeMessages(ctx context.Context, convID chat1.Conversat
 
 	// We didn't write everything out in this block, move to another one
 	if lastWritten < len(msgs)-1 {
-		return be.writeMessages(ctx, convID, uid, msgs[lastWritten+1:])
+		return be.WriteMessages(ctx, convID, uid, msgs[lastWritten+1:])
 	}
 	return nil
 }
 
-func (be *blockEngine) readMessages(ctx context.Context, res resultCollector,
+func (be *blockEngine) ReadMessages(ctx context.Context, res resultCollector,
 	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) (err Error) {
 
 	// Run all errors through resultCollector
@@ -405,7 +421,7 @@ func (be *blockEngine) readMessages(ctx context.Context, res resultCollector,
 
 	// Check if we read anything, otherwise move to another block and try again
 	if !res.done() && b.BlockID > 0 {
-		return be.readMessages(ctx, res, convID, uid, lastAdded-1)
+		return be.ReadMessages(ctx, res, convID, uid, lastAdded-1)
 	}
 	return nil
 }

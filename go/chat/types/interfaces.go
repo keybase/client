@@ -75,3 +75,10 @@ type InboxSource interface {
 	SetRemoteInterface(func() chat1.RemoteInterface)
 	SetTLFInfoSource(tlfInfoSource TLFInfoSource)
 }
+
+type ServerCacheVersions interface {
+	Set(ctx context.Context, vers chat1.ServerCacheVers) error
+	MatchBodies(ctx context.Context, vers int) (int, error)
+	MatchInbox(ctx context.Context, vers int) (int, error)
+	Fetch(ctx context.Context) (chat1.ServerCacheVers, error)
+}

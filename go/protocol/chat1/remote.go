@@ -148,6 +148,11 @@ type SyncIncrementalRes struct {
 	Convs []Conversation `codec:"convs" json:"convs"`
 }
 
+type ServerCacheVers struct {
+	InboxVers  int `codec:"inboxVers" json:"inboxVers"`
+	BodiesVers int `codec:"bodiesVers" json:"bodiesVers"`
+}
+
 type SyncInboxRes struct {
 	Typ__         SyncInboxResType    `codec:"typ" json:"typ"`
 	Incremental__ *SyncIncrementalRes `codec:"incremental,omitempty" json:"incremental,omitempty"`
@@ -191,6 +196,11 @@ func NewSyncInboxResWithClear() SyncInboxRes {
 	return SyncInboxRes{
 		Typ__: SyncInboxResType_CLEAR,
 	}
+}
+
+type SyncChatRes struct {
+	CacheVers ServerCacheVers `codec:"cacheVers" json:"cacheVers"`
+	InboxRes  SyncInboxRes    `codec:"inboxRes" json:"inboxRes"`
 }
 
 type GetInboxRemoteArg struct {
@@ -261,6 +271,10 @@ type SyncInboxArg struct {
 	Vers InboxVers `codec:"vers" json:"vers"`
 }
 
+type SyncChatArg struct {
+	Vers InboxVers `codec:"vers" json:"vers"`
+}
+
 type TlfFinalizeArg struct {
 	TlfID          TLFID        `codec:"tlfID" json:"tlfID"`
 	ResetUser      string       `codec:"resetUser" json:"resetUser"`
@@ -302,6 +316,7 @@ type RemoteInterface interface {
 	S3Sign(context.Context, S3SignArg) ([]byte, error)
 	GetInboxVersion(context.Context, gregor1.UID) (InboxVers, error)
 	SyncInbox(context.Context, InboxVers) (SyncInboxRes, error)
+	SyncChat(context.Context, InboxVers) (SyncChatRes, error)
 	TlfFinalize(context.Context, TlfFinalizeArg) error
 	TlfResolve(context.Context, TlfResolveArg) error
 	PublishReadMessage(context.Context, PublishReadMessageArg) error
@@ -536,6 +551,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"syncChat": {
+				MakeArg: func() interface{} {
+					ret := make([]SyncChatArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SyncChatArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SyncChatArg)(nil), args)
+						return
+					}
+					ret, err = i.SyncChat(ctx, (*typedArgs)[0].Vers)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"tlfFinalize": {
 				MakeArg: func() interface{} {
 					ret := make([]TlfFinalizeArg, 1)
@@ -680,6 +711,12 @@ func (c RemoteClient) GetInboxVersion(ctx context.Context, uid gregor1.UID) (res
 func (c RemoteClient) SyncInbox(ctx context.Context, vers InboxVers) (res SyncInboxRes, err error) {
 	__arg := SyncInboxArg{Vers: vers}
 	err = c.Cli.Call(ctx, "chat.1.remote.syncInbox", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) SyncChat(ctx context.Context, vers InboxVers) (res SyncChatRes, err error) {
+	__arg := SyncChatArg{Vers: vers}
+	err = c.Cli.Call(ctx, "chat.1.remote.syncChat", []interface{}{__arg}, &res)
 	return
 }
 

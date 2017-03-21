@@ -30,11 +30,11 @@ type diskOutbox struct {
 	Records []chat1.OutboxRecord `codec:"O"`
 }
 
-func NewOutbox(g *libkb.GlobalContext, uid gregor1.UID, getSecretUI func() libkb.SecretUI) *Outbox {
+func NewOutbox(g *libkb.GlobalContext, uid gregor1.UID) *Outbox {
 	return &Outbox{
 		Contextified: libkb.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "Outbox", false),
-		baseBox:      newBaseBox(g, getSecretUI),
+		baseBox:      newBaseBox(g),
 		uid:          uid,
 		clock:        clockwork.NewRealClock(),
 	}
