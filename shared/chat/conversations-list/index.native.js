@@ -9,7 +9,7 @@ import type {Props, RowProps} from './'
 const AddNewRow = ({onNewChat}: {onNewChat: () => void}) => (
   <Box
     style={{...globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 0, justifyContent: 'center', minHeight: 48}}>
-    <ClickableBox style={{...globalStyles.flexBoxColumn}} onClick={onNewChat}>
+    <ClickableBox style={{...globalStyles.flexBoxColumn, padding: 8}} onClick={onNewChat}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', justifyContent: 'center'}}>
         <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
         <Text type='BodyBigLink'>New chat</Text>

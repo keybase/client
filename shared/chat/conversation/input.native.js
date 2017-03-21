@@ -1,10 +1,10 @@
 // @flow
 /* eslint-env browser */
-import React, {Component} from 'react'
-import {Box, Icon, Input, Text} from '../../common-adapters'
-import {globalMargins, globalStyles} from '../../styles'
-import {isIOS} from '../../constants/platform'
 import ImagePicker from 'react-native-image-picker'
+import React, {Component} from 'react'
+import {Box, Icon, Input, Text, ClickableBox} from '../../common-adapters'
+import {globalMargins, globalStyles, globalColors} from '../../styles'
+import {isIOS} from '../../constants/platform'
 
 import type {AttachmentInput} from '../../constants/chat'
 import type {Props} from './input'
@@ -77,7 +77,10 @@ class ConversationInput extends Component<void, Props, State> {
   }
 
   _openFilePicker = () => {
-    ImagePicker.showImagePicker({}, (response) => {
+    ImagePicker.showImagePicker({}, response => {
+      if (response.didCancel) {
+        return
+      }
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
       const conversationIDKey = this.props.selectedConversation
       if (!response.didCancel && conversationIDKey) {
@@ -96,44 +99,57 @@ class ConversationInput extends Component<void, Props, State> {
     // Auto-growing multiline doesn't work smoothly on Android yet.
     const multilineOpts = isIOS ? {rowsMax: 3, rowsMin: 1} : {rowsMax: 2, rowsMin: 2}
 
-    return (
-      <Box style={{...globalStyles.flexBoxColumn}}>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
-          <Input
-            autoCorrect={true}
-            autoFocus={true}
-            small={true}
-            style={styleInput}
-            ref={this._setRef}
-            hintText='Write a message'
-            hideUnderline={true}
-            onChangeText={this._onChangeText}
-            onBlur={this._onBlur}
-            value={this.state.text}
-            multiline={true}
-            {...multilineOpts}
-          />
-          <Box style={styleRight}>
-            {!this.state.text && <Icon onClick={this._openFilePicker} type='iconfont-attachment' />}
-            {!!this.state.text && <Text type='BodyBigLink' onClick={this._onSubmit}>Send</Text>}
+    const action = this.state.text
+      ? (
+        <ClickableBox feedback={false} onClick={this._onSubmit}>
+          <Box style={{padding: globalMargins.small}}>
+            <Text type='BodyBigLink'>Send</Text>
           </Box>
-        </Box>
+        </ClickableBox>
+        )
+      : <Icon onClick={this._openFilePicker} type='iconfont-attachment' style={{padding: globalMargins.small}} />
+
+    return (
+      <Box style={styleContainer}>
+        <Input
+          autoCorrect={true}
+          autoFocus={true}
+          hideUnderline={true}
+          hintText='Write a message'
+          inputStyle={styleInputText}
+          multiline={true}
+          onBlur={this._onBlur}
+          onChangeText={this._onChangeText}
+          ref={this._setRef}
+          small={true}
+          style={styleInput}
+          value={this.state.text}
+          {...multilineOpts}
+        />
+        {action}
       </Box>
     )
   }
+}
+
+const styleInputText = {
+  ...globalStyles.fontRegular,
+  fontSize: 14,
+  lineHeight: 18,
+}
+
+const styleContainer = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  borderTopColor: globalColors.black_05,
+  borderTopWidth: 1,
+  height: 48,
 }
 
 const styleInput = {
   flex: 1,
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
-  marginTop: globalMargins.tiny,
-}
-
-const styleRight = {
-  alignSelf: 'center',
-  marginRight: globalMargins.tiny,
-  marginTop: globalMargins.tiny,
 }
 
 export default ConversationInput

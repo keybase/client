@@ -6,8 +6,8 @@ import (
 
 	"strings"
 
-	"github.com/keybase/client/go/chat/interfaces"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -21,30 +21,33 @@ type localizerPipeline struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
-	offline         bool
-	getTlfInterface func() keybase1.TlfInterface
-	superXform      supersedesTransform
+	offline       bool
+	superXform    supersedesTransform
+	tlfInfoSource types.TLFInfoSource
 }
 
-func newLocalizerPipeline(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface,
-	superXform supersedesTransform) *localizerPipeline {
+func newLocalizerPipeline(g *libkb.GlobalContext, superXform supersedesTransform,
+	tlfInfoSource types.TLFInfoSource) *localizerPipeline {
 	return &localizerPipeline{
-		Contextified:    libkb.NewContextified(g),
-		DebugLabeler:    utils.NewDebugLabeler(g, "localizerPipeline", false),
-		getTlfInterface: getTlfInterface,
-		superXform:      superXform,
+		Contextified:  libkb.NewContextified(g),
+		DebugLabeler:  utils.NewDebugLabeler(g, "localizerPipeline", false),
+		superXform:    superXform,
+		tlfInfoSource: tlfInfoSource,
 	}
 }
 
 type BlockingLocalizer struct {
 	libkb.Contextified
 	pipeline *localizerPipeline
+
+	tlfInfoSource types.TLFInfoSource
 }
 
-func NewBlockingLocalizer(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface) *BlockingLocalizer {
+func NewBlockingLocalizer(g *libkb.GlobalContext, tlfInfoSource types.TLFInfoSource) *BlockingLocalizer {
 	return &BlockingLocalizer{
-		Contextified: libkb.NewContextified(g),
-		pipeline:     newLocalizerPipeline(g, getTlfInterface, newBasicSupersedesTransform(g)),
+		Contextified:  libkb.NewContextified(g),
+		pipeline:      newLocalizerPipeline(g, newBasicSupersedesTransform(g), tlfInfoSource),
+		tlfInfoSource: tlfInfoSource,
 	}
 }
 
@@ -77,19 +80,21 @@ type NonblockingLocalizer struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
-	pipeline   *localizerPipeline
-	localizeCb chan NonblockInboxResult
-	maxUnbox   *int
+	tlfInfoSource types.TLFInfoSource
+	pipeline      *localizerPipeline
+	localizeCb    chan NonblockInboxResult
+	maxUnbox      *int
 }
 
 func NewNonblockingLocalizer(g *libkb.GlobalContext, localizeCb chan NonblockInboxResult,
-	maxUnbox *int, getTlfInterface func() keybase1.TlfInterface) *NonblockingLocalizer {
+	maxUnbox *int, tlfInfoSource types.TLFInfoSource) *NonblockingLocalizer {
 	return &NonblockingLocalizer{
-		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "NonblockingLocalizer", false),
-		pipeline:     newLocalizerPipeline(g, getTlfInterface, newBasicSupersedesTransform(g)),
-		localizeCb:   localizeCb,
-		maxUnbox:     maxUnbox,
+		Contextified:  libkb.NewContextified(g),
+		DebugLabeler:  utils.NewDebugLabeler(g, "NonblockingLocalizer", false),
+		pipeline:      newLocalizerPipeline(g, newBasicSupersedesTransform(g), tlfInfoSource),
+		localizeCb:    localizeCb,
+		maxUnbox:      maxUnbox,
+		tlfInfoSource: tlfInfoSource,
 	}
 }
 
@@ -100,7 +105,7 @@ func (b *NonblockingLocalizer) SetOffline() {
 func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.Inbox, uid gregor1.UID) chat1.Inbox {
 	defer b.Trace(ctx, func() error { return nil }, "filterInboxRes")()
 
-	localizer := newLocalizerPipeline(b.G(), b.pipeline.getTlfInterface, newNullSupersedesTransform())
+	localizer := newLocalizerPipeline(b.G(), newNullSupersedesTransform(), b.tlfInfoSource)
 	localizer.offline = true // Set this guy offline, so we are guaranteed to not do anything slow
 
 	convs, err := localizer.localizeConversationsPipeline(ctx, uid, inbox.ConvsUnverified, nil, nil)
@@ -174,7 +179,7 @@ func (b *NonblockingLocalizer) Name() string {
 }
 
 func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInboxQuery,
-	query *chat1.GetInboxLocalQuery, tlfInfo *TLFInfo) (res []chat1.ConversationLocal, err error) {
+	query *chat1.GetInboxLocalQuery, tlfInfo *types.TLFInfo) (res []chat1.ConversationLocal, err error) {
 
 	for _, convLocal := range convLocals {
 
@@ -218,18 +223,18 @@ type baseInboxSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
+	tlfInfoSource    types.TLFInfoSource
 	getChatInterface func() chat1.RemoteInterface
-	getTlfInterface  func() keybase1.TlfInterface
 	offline          bool
 }
 
 func newBaseInboxSource(g *libkb.GlobalContext, getChatInterface func() chat1.RemoteInterface,
-	getTlfInterface func() keybase1.TlfInterface) *baseInboxSource {
+	tlfInfoSource types.TLFInfoSource) *baseInboxSource {
 	return &baseInboxSource{
 		Contextified:     libkb.NewContextified(g),
 		DebugLabeler:     utils.NewDebugLabeler(g, "baseInboxSource", false),
 		getChatInterface: getChatInterface,
-		getTlfInterface:  getTlfInterface,
+		tlfInfoSource:    tlfInfoSource,
 	}
 }
 
@@ -264,13 +269,12 @@ func (b *baseInboxSource) SetRemoteInterface(ri func() chat1.RemoteInterface) {
 	b.getChatInterface = ri
 }
 
-func (b *baseInboxSource) SetTlfInterface(ti func() keybase1.TlfInterface) {
-	b.getTlfInterface = ti
+func (b *baseInboxSource) SetTLFInfoSource(tlfInfoSource types.TLFInfoSource) {
+	b.tlfInfoSource = tlfInfoSource
 }
 
 func (b *baseInboxSource) getInboxQueryLocalToRemote(ctx context.Context,
-	tlfInterface keybase1.TlfInterface, lquery *chat1.GetInboxLocalQuery) (
-	rquery *chat1.GetInboxQuery, info *TLFInfo, err error) {
+	lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, info *types.TLFInfo, err error) {
 
 	if lquery == nil {
 		return nil, nil, nil
@@ -279,7 +283,7 @@ func (b *baseInboxSource) getInboxQueryLocalToRemote(ctx context.Context,
 	rquery = &chat1.GetInboxQuery{}
 	if lquery.TlfName != nil && len(*lquery.TlfName) > 0 {
 		var err error
-		info, err = LookupTLF(ctx, tlfInterface, *lquery.TlfName, lquery.Visibility())
+		info, err = b.tlfInfoSource.Lookup(ctx, *lquery.TlfName, lquery.Visibility())
 		if err != nil {
 			return nil, nil, err
 		}
@@ -302,11 +306,12 @@ func (b *baseInboxSource) getInboxQueryLocalToRemote(ctx context.Context,
 	return rquery, info, nil
 }
 
-func GetInboxQueryTLFInfo(ctx context.Context, tlfInterface keybase1.TlfInterface, lquery *chat1.GetInboxLocalQuery) (*TLFInfo, error) {
+func GetInboxQueryTLFInfo(ctx context.Context, tlfInfo types.TLFInfoSource,
+	lquery *chat1.GetInboxLocalQuery) (*types.TLFInfo, error) {
 	if lquery.TlfName == nil || len(*lquery.TlfName) == 0 {
 		return nil, nil
 	}
-	return LookupTLF(ctx, tlfInterface, *lquery.TlfName, lquery.Visibility())
+	return tlfInfo.Lookup(ctx, *lquery.TlfName, lquery.Visibility())
 }
 
 type RemoteInboxSource struct {
@@ -316,27 +321,27 @@ type RemoteInboxSource struct {
 }
 
 func NewRemoteInboxSource(g *libkb.GlobalContext, ri func() chat1.RemoteInterface,
-	tlf func() keybase1.TlfInterface) *RemoteInboxSource {
+	tlfInfoSource types.TLFInfoSource) *RemoteInboxSource {
 	return &RemoteInboxSource{
 		Contextified:    libkb.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g, "RemoteInboxSource", false),
-		baseInboxSource: newBaseInboxSource(g, ri, tlf),
+		baseInboxSource: newBaseInboxSource(g, ri, tlfInfoSource),
 	}
 }
 
 func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
-	localizer interfaces.ChatLocalizer, useLocalData bool, query *chat1.GetInboxLocalQuery,
+	localizer types.ChatLocalizer, useLocalData bool, query *chat1.GetInboxLocalQuery,
 	p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
 
 	if localizer == nil {
-		localizer = NewBlockingLocalizer(s.G(), s.getTlfInterface)
+		localizer = NewBlockingLocalizer(s.G(), s.tlfInfoSource)
 	}
 	if s.IsOffline() {
 		localizer.SetOffline()
 	}
 	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
 
-	rquery, tlfInfo, err := s.getInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
+	rquery, tlfInfo, err := s.getInboxQueryLocalToRemote(ctx, query)
 	if err != nil {
 		return chat1.Inbox{}, nil, err
 	}
@@ -422,14 +427,14 @@ type HybridInboxSource struct {
 }
 
 func NewHybridInboxSource(g *libkb.GlobalContext,
-	getTlfInterface func() keybase1.TlfInterface,
 	getChatInterface func() chat1.RemoteInterface,
 	getSecretUI func() libkb.SecretUI,
+	tlfInfoSource types.TLFInfoSource,
 ) *HybridInboxSource {
 	return &HybridInboxSource{
 		Contextified:    libkb.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g, "HybridInboxSource", false),
-		baseInboxSource: newBaseInboxSource(g, getChatInterface, getTlfInterface),
+		baseInboxSource: newBaseInboxSource(g, getChatInterface, tlfInfoSource),
 		getSecretUI:     getSecretUI,
 		syncer:          NewSyncer(g),
 	}
@@ -473,11 +478,12 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 }
 
 func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
-	localizer interfaces.ChatLocalizer, useLocalData bool, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (inbox chat1.Inbox, rl *chat1.RateLimit, err error) {
+	localizer types.ChatLocalizer, useLocalData bool, query *chat1.GetInboxLocalQuery,
+	p *chat1.Pagination) (inbox chat1.Inbox, rl *chat1.RateLimit, err error) {
 
 	defer s.Trace(ctx, func() error { return err }, "Read")()
 	if localizer == nil {
-		localizer = NewBlockingLocalizer(s.G(), s.getTlfInterface)
+		localizer = NewBlockingLocalizer(s.G(), s.tlfInfoSource)
 	}
 	if s.IsOffline() {
 		localizer.SetOffline()
@@ -485,7 +491,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
 
 	// Read unverified inbox
-	rquery, tlfInfo, err := s.getInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
+	rquery, tlfInfo, err := s.getInboxQueryLocalToRemote(ctx, query)
 	if err != nil {
 		return inbox, rl, err
 	}
@@ -955,7 +961,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// Only do this check if there is a chance the TLF name might be an SBS name. Only attempt
 	// this if we are online
 	if !s.offline && s.needsCanonicalize(conversationLocal.Info.TlfName) {
-		info, err := LookupTLF(ctx, s.getTlfInterface(), conversationLocal.Info.TLFNameExpanded(), conversationLocal.Info.Visibility)
+		info, err := s.tlfInfoSource.Lookup(ctx,
+			conversationLocal.Info.TLFNameExpanded(), conversationLocal.Info.Visibility)
 		if err != nil {
 			errMsg := err.Error()
 			conversationLocal.Error = chat1.NewConversationErrorLocal(
@@ -1076,11 +1083,11 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 }
 
 func NewInboxSource(g *libkb.GlobalContext, typ string, ri func() chat1.RemoteInterface,
-	si func() libkb.SecretUI, ti func() keybase1.TlfInterface) interfaces.InboxSource {
-	remoteInbox := NewRemoteInboxSource(g, ri, ti)
+	si func() libkb.SecretUI, tlfInfoSource types.TLFInfoSource) types.InboxSource {
+	remoteInbox := NewRemoteInboxSource(g, ri, tlfInfoSource)
 	switch typ {
 	case "hybrid":
-		return NewHybridInboxSource(g, ti, ri, si)
+		return NewHybridInboxSource(g, ri, si, tlfInfoSource)
 	default:
 		return remoteInbox
 	}

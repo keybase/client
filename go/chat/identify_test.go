@@ -12,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -49,9 +48,7 @@ func TestChatBackgroundIdentify(t *testing.T) {
 	}
 	require.NoError(t, inbox.Merge(context.TODO(), 1, []chat1.Conversation{conv}, nil, nil))
 
-	handler := NewIdentifyChangedHandler(tc.G, func() keybase1.TlfInterface {
-		return kbtest.NewTlfMock(world)
-	})
+	handler := NewIdentifyChangedHandler(tc.G, kbtest.NewTlfMock(world))
 	require.NotNil(t, handler.G().NotifyRouter, "notify router")
 
 	t.Logf("new error job in inbox")
