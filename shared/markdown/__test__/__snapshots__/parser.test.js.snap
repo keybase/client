@@ -1,3 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
 exports[`Markdown parser eats multiple empty lines at end 1`] = `
 Object {
   "children": Array [
@@ -291,9 +293,9 @@ Object {
     },
     Object {
       "children": Array [
-        "if (var == \"foo\")
-  echo \"foo\";
-else echo \"bar\";",
+        "if (var == \\"foo\\")
+  echo \\"foo\\";
+else echo \\"bar\\";",
       ],
       "type": "code-block",
     },
