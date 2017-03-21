@@ -310,15 +310,24 @@ func (j journalMDOps) getRange(
 		return nil, err
 	}
 
-	// If it's empty, fall back to the server.
+	// If it's empty, fall back to the server if this isn't a local
+	// squash branch.  TODO: we should be able to avoid server access
+	// for regular conflict branches when the journal is enabled, as
+	// well, once we're confident that all old server-based branches
+	// have been resolved.
 	if len(jirmds) == 0 {
+		if bid == PendingLocalSquashBranchID {
+			return jirmds, nil
+		}
 		return delegateFn(ctx, id, start, stop)
 	}
 
-	// If the first revision from the journal is the first
-	// revision we asked for, then just return the range from the
-	// journal.
-	if jirmds[0].Revision() == start {
+	// If the first revision from the journal is the first revision we
+	// asked for (or this is a local squash that doesn't require
+	// server access), then just return the range from the journal.
+	// TODO: we should be able to avoid server access for regular
+	// conflict branches, as well.
+	if jirmds[0].Revision() == start || bid == PendingLocalSquashBranchID {
 		return jirmds, nil
 	}
 
