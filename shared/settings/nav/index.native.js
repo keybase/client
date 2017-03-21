@@ -9,6 +9,9 @@ import {
   notificationsTab,
   deleteMeTab,
   devMenuTab,
+  feedbackTab,
+  aboutTab,
+  devicesTab,
 } from '../../constants/settings'
 
 import type {Props} from './index'
@@ -41,19 +44,24 @@ function SettingsNav ({badgeNumbers, selectedTab, onTabChange}: Props) {
         onClick={() => onTabChange(invitationsTab)}
       />
       <SettingsItem
+        text='Devices'
+        badgeNumber={badgeNumbers[devicesTab]}
+        onClick={() => onTabChange(devicesTab)}
+      />
+      <SettingsItem
         text='Notifications'
         badgeNumber={badgeNumbers[notificationsTab]}
         onClick={() => onTabChange(notificationsTab)}
       />
       <SettingsItem
         text='About'
-        badgeNumber={badgeNumbers[notificationsTab]}
-        onClick={() => console.log('todo')}
+        badgeNumber={badgeNumbers[aboutTab]}
+        onClick={() => onTabChange(aboutTab)}
       />
       <SettingsItem
         text='Feedback'
-        badgeNumber={badgeNumbers[notificationsTab]}
-        onClick={() => console.log('todo')}
+        badgeNumber={badgeNumbers[feedbackTab]}
+        onClick={() => onTabChange(feedbackTab)}
       />
       <SettingsItem
         text='Delete Me'
