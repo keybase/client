@@ -339,7 +339,7 @@ export type ResponseType = {
 let engine
 const makeEngine = () => {
   if (__DEV__ && engine) {
-    throw new Error('makeEngine called multiple times')
+    console.warn('makeEngine called multiple times')
   }
 
   if (!engine) {

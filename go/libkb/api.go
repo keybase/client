@@ -714,6 +714,11 @@ func (api *ExternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 	// Awful hack to make reddit as happy as possible.
 	if isReddit(req) {
 		userAgent += " (by /u/oconnor663)"
+	} else {
+		// For non-reddit sites we don't want to be served mobile HTML.
+		if runtime.GOOS == "android" {
+			userAgent = strings.Replace(userAgent, "android", "linux", 1)
+		}
 	}
 	if api.G().Env.GetTorMode().UseHeaders() {
 		req.Header.Set("User-Agent", userAgent)

@@ -4,16 +4,16 @@ import {Avatar, Box, Icon, NativeTouchableHighlight, Text} from '../../../common
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {withHandlers} from 'recompose'
 import {marginColor, colorForAuthor} from './shared'
-import Retry from './retry'
+import Failure from './failure'
 
 import type {Props} from './wrapper'
 
-type MessageProps = Props & {onRetry: () => void}
+type MessageProps = Props & {onRetry: () => void, onShowEditor: () => void}
 
 class MessageWrapper extends PureComponent<void, MessageProps, void> {
 
   render () {
-    const {children, message, style, includeHeader, isFirstNewMessage, onAction, onRetry, isSelected, you, followingMap, metaDataMap} = this.props
+    const {children, message, style, includeHeader, isFirstNewMessage, onAction, onRetry, onShowEditor, isSelected, you, followingMap, metaDataMap} = this.props
     return (
       <NativeTouchableHighlight onLongPress={(event) => onAction(message, event)} underlayColor={globalColors.black_10}>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : _stylesUnselected), ...style}}>
@@ -34,7 +34,7 @@ class MessageWrapper extends PureComponent<void, MessageProps, void> {
                     {message.senderDeviceRevokedAt && <Icon type='iconfont-exclamation' style={_exclamationStyle} />}
                   </Box>
                 </Box>
-                {message.messageState === 'failed' && <Retry failureDescription={message.failureDescription} onRetry={onRetry} />}
+                {message.messageState === 'failed' && <Failure failureDescription={message.failureDescription} onRetry={onRetry} onShowEditor={onShowEditor} />}
               </Box>
             </Box>
           </Box>

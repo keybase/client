@@ -19,15 +19,16 @@ const factory = (options: Options) => {
     key,
     isEditing,
     isFirstNewMessage,
-    style,
-    onAction,
     isSelected,
+    onAction,
     onLoadAttachment,
     onOpenConversation,
     onOpenInFileUI,
     onOpenInPopup,
     onRetry,
     onRetryAttachment,
+    onShowEditor,
+    style,
     you,
     metaDataMap,
     followingMap,
@@ -48,6 +49,7 @@ const factory = (options: Options) => {
         style={style}
         message={message}
         onRetry={onRetry}
+        onShowEditor={onShowEditor}
         includeHeader={includeHeader}
         isFirstNewMessage={isFirstNewMessage}
         isSelected={isSelected}

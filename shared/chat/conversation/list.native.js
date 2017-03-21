@@ -8,7 +8,7 @@ import messageFactory from './messages'
 import shallowEqual from 'shallowequal'
 
 import type {Props} from './list'
-import type {ServerMessage} from '../../constants/chat'
+import type {Message, ServerMessage} from '../../constants/chat'
 
 type State = {
   dataSource: NativeListView.DataSource,
@@ -125,13 +125,17 @@ class ConversationList extends Component <void, Props, State> {
     this.props.onMessageAction(message)
   }
 
+  _onShowEditor = (message: Message, event: any) => {
+    // TODO
+  }
+
   _renderRow = (message, sectionID, rowID) => {
     const messages = this._allMessages(this.props)
     const isFirstMessage = rowID === 0
     const prevMessage = messages.get(rowID - 1)
     const isSelected = false
     const isScrolling = false
-    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, message.key || `other-${rowID}`, {}, this._onAction, this.props.editingMessage === message)
+    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, message.key || `other-${rowID}`, {}, this._onAction, this._onShowEditor, this.props.editingMessage === message)
 
     return messageFactory(options)
   }
