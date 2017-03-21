@@ -15,9 +15,10 @@ import {Icon} from '../../common-adapters'
 import {TextPopupMenu, AttachmentPopupMenu} from './messages/popup'
 import {clipboard} from 'electron'
 import {globalColors, globalStyles} from '../../styles'
+import {findDOMNode} from '../../util/dom'
 
 import type {List} from 'immutable'
-import type {Message, MessageID, TextMessage, AttachmentMessage} from '../../constants/chat'
+import type {AttachmentMessage, Message, MessageID, ServerMessage, TextMessage} from '../../constants/chat'
 import type {Props} from './list'
 
 type State = {
@@ -273,12 +274,14 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _findMessageFromDOMNode (start: any) : any {
-    let current = start
-    while (current) {
-      if (current.matches('.message')) {
-        return current
-      }
-      current = current.parentNode
+    const node = findDOMNode(start, '.message')
+    if (node) return node
+
+    // If not found, try to find it in the message-wrapper
+    const wrapper = findDOMNode(start, '.message-wrapper')
+    if (wrapper) {
+      const messageNodes = wrapper.getElementsByClassName('message')
+      if (messageNodes.length > 0) return messageNodes[0]
     }
 
     return null
@@ -307,7 +310,7 @@ class ConversationList extends Component<void, Props, State> {
     ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
   }
 
-  _onAction = (message, event) => {
+  _onAction = (message: ServerMessage, event: any) => {
     if (message.type === 'Text' || message.type === 'Attachment') {
       this._showPopup(message, event)
     }
@@ -322,6 +325,16 @@ class ConversationList extends Component<void, Props, State> {
 
   _cellRenderer = ({rowIndex, ...rest}) => {
     return this._rowRenderer({index: rowIndex, ...rest})
+  }
+
+  _onShowEditor = (message: Message, event: any) => {
+    if (message.type === 'Text') {
+      const messageNode = this._findMessageFromDOMNode(event.target)
+      const messageRect = messageNode && this._domNodeToRect(messageNode)
+      if (messageRect) {
+        this._showEditor(message, messageRect)
+      }
+    }
   }
 
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
@@ -339,7 +352,7 @@ class ConversationList extends Component<void, Props, State> {
     const isFirstMessage = index === 0
     const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
 
-    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, this._onAction)
+    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, this._onAction, this._onShowEditor, false)
 
     return messageFactory(options)
   }

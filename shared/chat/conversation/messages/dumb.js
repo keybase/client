@@ -62,6 +62,7 @@ const baseMock = {
   onEdit: () => console.log('onEdit'),
   onDelete: () => console.log('onDelete'),
   onAction: () => console.log('onAction'),
+  onShowEditor: () => console.log('onShowEditor'),
   isFirstNewMessage: false,
   isSelected: false,
   isEditing: false,
