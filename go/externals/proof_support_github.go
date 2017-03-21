@@ -28,8 +28,8 @@ func NewGithubChecker(p libkb.RemoteProofChainLink) (*GithubChecker, libkb.Proof
 
 func (rc *GithubChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *GithubChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
-	return CheckProofPvl(ctx, keybase1.ProofType_GITHUB, rc.proof, h)
+func (rc *GithubChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+	return CheckProofPvl(ctx, keybase1.ProofType_GITHUB, rc.proof, h, pvlU)
 }
 
 //

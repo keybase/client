@@ -1342,6 +1342,7 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 
 	idt.G().Log.CDebugf(ctx, "+ RemoteCheckProof %s", p.ToDebugString())
 	doCache := false
+	pvlHashUsed := PvlKitHash("")
 	sid := p.GetSigID()
 
 	defer func() {
@@ -1359,14 +1360,26 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 		}
 
 		if doCache {
-			idt.G().Log.CDebugf(ctx, "| Caching results under key=%s", sid)
-			if cacheErr := idt.G().ProofCache.Put(sid, res.err); cacheErr != nil {
+			idt.G().Log.CDebugf(ctx, "| Caching results under key=%s pvlHash=%s", sid, pvlHashUsed)
+			if cacheErr := idt.G().ProofCache.Put(sid, res.err, pvlHashUsed); cacheErr != nil {
 				idt.G().Log.CWarningf(ctx, "proof cache put error: %s", cacheErr)
 			}
 		}
 
 		idt.G().Log.CDebugf(ctx, "- RemoteCheckProof %s", p.ToDebugString())
 	}()
+
+	pvlSource := idt.G().GetPvlSource()
+	if pvlSource == nil {
+		res.err = NewProofError(keybase1.ProofStatus_MISSING_PVL, "no pvl source for proof verification")
+		return
+	}
+	pvlU, err := pvlSource.GetPVL(ctx)
+	if err != nil {
+		res.err = NewProofError(keybase1.ProofStatus_MISSING_PVL, "error getting pvl: %s", err)
+		return
+	}
+	pvlHashUsed = pvlU.Hash
 
 	res.hint = idt.sigHints.Lookup(sid)
 	if res.hint == nil {
@@ -1391,7 +1404,7 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 	}
 
 	if !forceRemoteCheck {
-		res.cached = idt.G().ProofCache.Get(sid)
+		res.cached = idt.G().ProofCache.Get(sid, pvlU.Hash)
 		idt.G().Log.CDebugf(ctx, "| Proof cache lookup for %s: %+v", sid, res.cached)
 		if res.cached != nil && res.cached.Freshness() == keybase1.CheckResultFreshness_FRESH {
 			res.err = res.cached.Status
@@ -1411,7 +1424,7 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 	if (hasPreviousTrack && res.trackedProofState != keybase1.ProofState_NONE && res.trackedProofState != keybase1.ProofState_UNCHECKED) || itm == IdentifyTableModeActive {
 		pcm = ProofCheckerModeActive
 	}
-	res.err = pc.CheckStatus(idt.G().CloneWithNetContext(ctx), *res.hint, pcm)
+	res.err = pc.CheckStatus(idt.G().CloneWithNetContext(ctx), *res.hint, pcm, pvlU)
 
 	// If no error than all good
 	if res.err == nil {

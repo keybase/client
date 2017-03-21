@@ -64,7 +64,7 @@ function PreviewImage ({message: {attachmentDurationMs, previewDurationMs, previ
             <ImageIcon
               style={{position: 'relative', right: 19, top: 3}}
               type={messageState === 'downloading' ? 'Downloading' : 'Downloaded'} />}
-          {attachmentDurationMs && !previewDurationMs &&
+          {attachmentDurationMs && !previewDurationMs && messageState !== 'downloading-preview' &&
             <Box style={{...globalStyles.flexBoxCenter, position: 'absolute', top: 0, left: 0, bottom: 0, right: 0}}>
               <Icon type='icon-play-64' />
             </Box>
@@ -148,7 +148,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
     <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
       <Box style={{...globalStyles.flexBoxColumn, alignSelf: 'flex-start', position: 'relative'}}>
         <PreviewImage message={message} onOpenInPopup={onOpenInPopup} />
-        {_showPreviewProgress(messageState, message.progress) && !!message.progress &&
+        {_showPreviewProgress(messageState, message.progress) &&
           <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>
             <ProgressIndicator style={{width: 32}} />
           </Box>

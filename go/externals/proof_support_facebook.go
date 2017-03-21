@@ -30,8 +30,8 @@ func NewFacebookChecker(p libkb.RemoteProofChainLink) (*FacebookChecker, libkb.P
 
 func (rc *FacebookChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *FacebookChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
-	return CheckProofPvl(ctx, keybase1.ProofType_FACEBOOK, rc.proof, h)
+func (rc *FacebookChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+	return CheckProofPvl(ctx, keybase1.ProofType_FACEBOOK, rc.proof, h, pvlU)
 }
 
 //
