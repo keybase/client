@@ -30,8 +30,8 @@ func NewRooterChecker(p libkb.RemoteProofChainLink) (*RooterChecker, libkb.Proof
 
 func (rc *RooterChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *RooterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) (perr libkb.ProofError) {
-	return CheckProofPvl(ctx, keybase1.ProofType_ROOTER, rc.proof, h)
+func (rc *RooterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) (perr libkb.ProofError) {
+	return CheckProofPvl(ctx, keybase1.ProofType_ROOTER, rc.proof, h, pvlU)
 }
 
 //

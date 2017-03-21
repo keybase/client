@@ -28,8 +28,8 @@ func NewHackerNewsChecker(p libkb.RemoteProofChainLink) (*HackerNewsChecker, lib
 	return &HackerNewsChecker{p}, nil
 }
 
-func (h *HackerNewsChecker) CheckStatus(ctx libkb.ProofContext, hint libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
-	return CheckProofPvl(ctx, keybase1.ProofType_HACKERNEWS, h.proof, hint)
+func (h *HackerNewsChecker) CheckStatus(ctx libkb.ProofContext, hint libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+	return CheckProofPvl(ctx, keybase1.ProofType_HACKERNEWS, h.proof, hint, pvlU)
 }
 
 //=============================================================================

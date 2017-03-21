@@ -41,12 +41,12 @@ func (rc *WebChecker) GetTorError() libkb.ProofError {
 	return nil
 }
 
-func (rc *WebChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, pcm libkb.ProofCheckerMode) libkb.ProofError {
+func (rc *WebChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
 	if pcm != libkb.ProofCheckerModeActive {
 		ctx.GetLog().CDebugf(ctx.GetNetContext(), "Web check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
 		return libkb.ProofErrorUnchecked
 	}
-	return CheckProofPvl(ctx, keybase1.ProofType_GENERIC_WEB_SITE, rc.proof, h)
+	return CheckProofPvl(ctx, keybase1.ProofType_GENERIC_WEB_SITE, rc.proof, h, pvlU)
 }
 
 //

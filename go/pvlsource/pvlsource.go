@@ -14,15 +14,8 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/pvl"
 )
-
-// Older than this will try to refresh merkle root.
-// Measures time since merkle root fetched, not time since published.
-const tShouldRefresh time.Duration = 1 * time.Hour
-
-// Older than this is too old to use. All identifies will fail.
-// Measures time since merkle root fetched, not time since published.
-const tRequireRefresh time.Duration = 24 * time.Hour
 
 var dbKey = libkb.DbKey{
 	Typ: libkb.DBPvl,
@@ -34,8 +27,8 @@ const dbVersion = 1
 
 type entry struct {
 	DBVersion int
-	Hash      string
-	PvlKit    string
+	Hash      libkb.PvlKitHash
+	PvlKit    libkb.PvlKitString
 }
 
 // PvlSource is the way to get active pvl.
@@ -66,43 +59,50 @@ type pvlKitT struct {
 }
 
 // Get PVL to use.
-func (s *PvlSourceImpl) GetPVL(ctx context.Context, pvlVersion int) (string, error) {
-	kitJSON, err := s.GetKitString(ctx)
+func (s *PvlSourceImpl) GetPVL(ctx context.Context) (libkb.PvlUnparsed, error) {
+	pvlVersion := pvl.SupportedVersion
+
+	kitJSON, hash, err := s.GetKitString(ctx)
 	if err != nil {
-		return "", err
+		return libkb.PvlUnparsed{}, err
 	}
 
 	var kit pvlKitT
 	err = json.Unmarshal([]byte(kitJSON), &kit)
 	if err != nil {
-		return "", libkb.NewPvlSourceError("unmarshalling kit: %s", err)
+		return libkb.PvlUnparsed{}, libkb.NewPvlSourceError("unmarshalling kit: %s", err)
 	}
 
 	sub, ok := kit.Tab[pvlVersion]
 	if !ok {
-		return "", libkb.NewPvlSourceError("missing pvl for version: %d", pvlVersion)
+		return libkb.PvlUnparsed{}, libkb.NewPvlSourceError("missing pvl for version: %d", pvlVersion)
 	}
 	if len(sub) == 0 {
-		return "", libkb.NewPvlSourceError("empty pvl for version: %d", pvlVersion)
+		return libkb.PvlUnparsed{}, libkb.NewPvlSourceError("empty pvl for version: %d", pvlVersion)
 	}
 
-	return string(sub), nil
+	return libkb.PvlUnparsed{
+		Hash: hash,
+		Pvl:  libkb.PvlString(sub),
+	}, nil
 }
 
 // Get pvl kit as a string.
 // First it makes sure that the merkle root is recent enough.
 // Using the pvl hash from that, it fetches from in-memory falling back to db
 // falling back to server.
-func (s *PvlSourceImpl) GetKitString(ctx context.Context) (string, error) {
+func (s *PvlSourceImpl) GetKitString(ctx context.Context) (libkb.PvlKitString, libkb.PvlKitHash, error) {
 
 	// Use a file instead if specified.
-	if len(s.G().Env.GetPvlKitFilename()) > 0 {
-		return s.readFile(s.G().Env.GetPvlKitFilename())
+	kitFile := s.G().Env.GetPvlKitFilename()
+	if len(kitFile) > 0 {
+		s.G().Log.CWarningf(ctx, "PvlSource: using kit file: %s", kitFile)
+		return s.readFile(kitFile)
 	}
 
 	mc := s.G().GetMerkleClient()
 	if mc == nil {
-		return "", libkb.NewPvlSourceError("no MerkleClient available")
+		return "", "", libkb.NewPvlSourceError("no MerkleClient available")
 	}
 
 	s.Lock()
@@ -112,7 +112,7 @@ func (s *PvlSourceImpl) GetKitString(ctx context.Context) (string, error) {
 	// The time that the root was fetched is used rather than when the
 	// root was published so that we can continue to operate even if
 	// the root has not been published in a long time.
-	if (root == nil) || s.pastDue(ctx, root.Fetched(), tShouldRefresh) {
+	if (root == nil) || s.pastDue(ctx, root.Fetched(), libkb.PvlSourceShouldRefresh) {
 		s.G().Log.CDebugf(ctx, "PvlSource: merkle root should refresh")
 
 		// Attempt a refresh if the root is old or nil.
@@ -125,20 +125,20 @@ func (s *PvlSourceImpl) GetKitString(ctx context.Context) (string, error) {
 	}
 
 	if root == nil {
-		return "", libkb.NewPvlSourceError("no merkle root")
+		return "", "", libkb.NewPvlSourceError("no merkle root")
 	}
 
-	if s.pastDue(ctx, root.Fetched(), tRequireRefresh) {
+	if s.pastDue(ctx, root.Fetched(), libkb.PvlSourceRequireRefresh) {
 		// The root is still too old, even after an attempted refresh.
 		s.G().Log.CDebugf(ctx, "PvlSource: merkle root too old")
-		return "", libkb.NewPvlSourceError("merkle root too old: %v %s", seqnoWrap(root.Seqno()), root.Fetched())
+		return "", "", libkb.NewPvlSourceError("merkle root too old: %v %s", seqnoWrap(root.Seqno()), root.Fetched())
 	}
 
 	// This is the hash we are being instructed to use.
-	hash := root.PvlHash()
+	hash := libkb.PvlKitHash(root.PvlHash())
 
 	if hash == "" {
-		return "", libkb.NewPvlSourceError("merkle root has empty pvl hash: %v", seqnoWrap(root.Seqno()))
+		return "", "", libkb.NewPvlSourceError("merkle root has empty pvl hash: %v", seqnoWrap(root.Seqno()))
 	}
 
 	// If multiple Get's occur, these mem/db gets and sets may race.
@@ -150,7 +150,7 @@ func (s *PvlSourceImpl) GetKitString(ctx context.Context) (string, error) {
 	if fromMem != nil {
 		s.G().Log.CDebugf(ctx, "PvlSource: mem cache hit")
 		s.G().Log.CDebugf(ctx, "PvlSource: using hash: %s", hash)
-		return *fromMem, nil
+		return *fromMem, hash, nil
 	}
 
 	// Use db cache if it matches
@@ -162,14 +162,14 @@ func (s *PvlSourceImpl) GetKitString(ctx context.Context) (string, error) {
 		s.memSet(hash, *fromDB)
 
 		s.G().Log.CDebugf(ctx, "PvlSource: using hash: %s", hash)
-		return *fromDB, nil
+		return *fromDB, hash, nil
 	}
 
 	// Fetch from the server
 	// This validates the hash
 	pvl, err := s.fetch(ctx, hash)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	// Store to memory
@@ -179,12 +179,12 @@ func (s *PvlSourceImpl) GetKitString(ctx context.Context) (string, error) {
 	go s.dbSet(context.Background(), hash, pvl)
 
 	s.G().Log.CDebugf(ctx, "PvlSource: using hash: %s", hash)
-	return pvl, nil
+	return pvl, hash, nil
 }
 
 type pvlServerRes struct {
-	Status  libkb.AppStatus `json:"status"`
-	KitJSON string          `json:"kit_json"`
+	Status  libkb.AppStatus    `json:"status"`
+	KitJSON libkb.PvlKitString `json:"kit_json"`
 }
 
 func (r *pvlServerRes) GetAppStatus() *libkb.AppStatus {
@@ -192,7 +192,7 @@ func (r *pvlServerRes) GetAppStatus() *libkb.AppStatus {
 }
 
 // Fetch pvl and check the hash.
-func (s *PvlSourceImpl) fetch(ctx context.Context, hash string) (string, error) {
+func (s *PvlSourceImpl) fetch(ctx context.Context, hash libkb.PvlKitHash) (libkb.PvlKitString, error) {
 	s.G().Log.CDebugf(ctx, "PvlSource: fetching from server: %s", hash)
 	var res pvlServerRes
 	err := s.G().API.GetDecode(libkb.APIArg{
@@ -200,7 +200,7 @@ func (s *PvlSourceImpl) fetch(ctx context.Context, hash string) (string, error) 
 		NeedSession: false,
 		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
-			"hash": libkb.S{Val: hash},
+			"hash": libkb.S{Val: string(hash)},
 		},
 	}, &res)
 	if err != nil {
@@ -234,7 +234,7 @@ func (s *PvlSourceImpl) refreshRoot(ctx context.Context) error {
 	return err
 }
 
-func (s *PvlSourceImpl) memGet(hash string) *string {
+func (s *PvlSourceImpl) memGet(hash libkb.PvlKitHash) *libkb.PvlKitString {
 	if s.mem != nil {
 		if s.mem.Hash == hash {
 			ret := s.mem.PvlKit
@@ -244,7 +244,7 @@ func (s *PvlSourceImpl) memGet(hash string) *string {
 	return nil
 }
 
-func (s *PvlSourceImpl) memSet(hash string, pvl string) {
+func (s *PvlSourceImpl) memSet(hash libkb.PvlKitHash, pvl libkb.PvlKitString) {
 	s.mem = &entry{
 		DBVersion: dbVersion,
 		Hash:      hash,
@@ -253,7 +253,7 @@ func (s *PvlSourceImpl) memSet(hash string, pvl string) {
 }
 
 // Get from local db. Can return nil.
-func (s *PvlSourceImpl) dbGet(ctx context.Context, hash string) *string {
+func (s *PvlSourceImpl) dbGet(ctx context.Context, hash libkb.PvlKitHash) *libkb.PvlKitString {
 	db := s.G().LocalDb
 	if db == nil {
 		return nil
@@ -278,7 +278,7 @@ func (s *PvlSourceImpl) dbGet(ctx context.Context, hash string) *string {
 
 // Run in a goroutine.
 // Logs errors.
-func (s *PvlSourceImpl) dbSet(ctx context.Context, hash string, pvl string) {
+func (s *PvlSourceImpl) dbSet(ctx context.Context, hash libkb.PvlKitHash, pvl libkb.PvlKitString) {
 	db := s.G().LocalDb
 	if db == nil {
 		s.G().Log.CErrorf(ctx, "storing pvl: no db")
@@ -296,10 +296,10 @@ func (s *PvlSourceImpl) dbSet(ctx context.Context, hash string, pvl string) {
 }
 
 // hex of sha512
-func (s *PvlSourceImpl) hash(in string) string {
+func (s *PvlSourceImpl) hash(in libkb.PvlKitString) libkb.PvlKitHash {
 	buf := sha512.Sum512([]byte(in))
 	out := hex.EncodeToString(buf[:])
-	return out
+	return libkb.PvlKitHash(out)
 }
 
 func (s *PvlSourceImpl) pastDue(ctx context.Context, event time.Time, limit time.Duration) bool {
@@ -311,9 +311,10 @@ func (s *PvlSourceImpl) pastDue(ctx context.Context, event time.Time, limit time
 	return overdue
 }
 
-func (s *PvlSourceImpl) readFile(path string) (string, error) {
+func (s *PvlSourceImpl) readFile(path string) (libkb.PvlKitString, libkb.PvlKitHash, error) {
 	buf, err := ioutil.ReadFile(path)
-	return string(buf), err
+	pvl := libkb.PvlKitString(string(buf))
+	return pvl, s.hash(pvl), err
 }
 
 func seqnoWrap(x *libkb.Seqno) int64 {
