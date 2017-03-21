@@ -494,7 +494,7 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 		}
 	}
 	if a.G().Env.GetTorMode().UseHeaders() {
-		req.Header.Set("User-Agent", UserAgent())
+		req.Header.Set("User-Agent", UserAgent)
 		identifyAs := GoClientID + " v" + VersionString() + " " + runtime.GOOS
 		req.Header.Set("X-Keybase-Client", identifyAs)
 		if a.G().Env.GetDeviceID().Exists() {
@@ -710,10 +710,15 @@ func (api *ExternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 	// want in Tor mode. Clients that are actually using Tor will always be
 	// distinguishable from the rest, insofar as their originating IP will be a
 	// Tor exit node, but there may be other use cases where this matters more?
-	userAgent := UserAgent()
+	userAgent := UserAgent
 	// Awful hack to make reddit as happy as possible.
 	if isReddit(req) {
 		userAgent += " (by /u/oconnor663)"
+	} else {
+		// For non-reddit sites we don't want to be served mobile HTML.
+		if runtime.GOOS == "android" {
+			userAgent = strings.Replace(userAgent, "android", "linux", 1)
+		}
 	}
 	if api.G().Env.GetTorMode().UseHeaders() {
 		req.Header.Set("User-Agent", userAgent)

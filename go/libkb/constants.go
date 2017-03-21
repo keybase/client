@@ -71,15 +71,7 @@ const (
 // Right now reddit is the only site that seems to have any requirements for
 // our User-Agent string. (See https://github.com/reddit/reddit/wiki/API.)If
 // something else comes up, we'll want to make this more configurable.
-func UserAgent () string {
-	// Twitter and Facebook serve up mobile versions of their sites if
-	// our useragent contains "android", breaking PVL; pretend to be Linux.
-	var OS = runtime.GOOS
-	if runtime.GOOS == "android" {
-		OS = "linux"
-	}
-	return OS + ":" + "Keybase CLI (" + runtime.Version() + "):" + Version
-}
+var UserAgent = runtime.GOOS + ":" + "Keybase CLI (" + runtime.Version() + "):" + Version
 
 const (
 	PermFile          os.FileMode = 0600
