@@ -10,6 +10,12 @@ import {usernameSelector} from '../../constants/selectors'
 
 import type {TypedState} from '../../constants/reducer'
 
+type TimestampableMessage = {
+  timestamp: number,
+  messageID: Constants.MessageID,
+  type: any,
+}
+
 function followingSelector (state: TypedState) { return state.config.following }
 function alwaysShowSelector (state: TypedState) { return state.chat.get('alwaysShow') }
 function metaDataSelector (state: TypedState) { return state.chat.get('metaData') }
@@ -184,14 +190,51 @@ function * getPostingIdentifyBehavior (conversationIDKey: Constants.Conversation
   return TlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
+function _filterTimestampableMessage (message: Constants.Message): ?TimestampableMessage {
+  if (message.messageID === 1) {
+    // $FlowIssue with casting todo(mm) can we fix this?
+    return message
+  }
+
+  if (message === null || message.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type)) {
+    return null
+  }
+
+  if (!message.timestamp) {
+    return null
+  }
+
+  // $FlowIssue with casting todo(mm) can we fix this?
+  return message
+}
+
+function maybeAddTimestamp (_message: Constants.Message, _prevMessage: Constants.Message): Constants.MaybeTimestamp {
+  const prevMessage = _filterTimestampableMessage(_prevMessage)
+  const message = _filterTimestampableMessage(_message)
+  if (!message || !prevMessage) return null
+
+  // messageID 1 is an unhandled placeholder. We want to add a timestamp before
+  // the first message, as well as between any two messages with long duration.
+  if (prevMessage.messageID === 1 || message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
+    return {
+      type: 'Timestamp',
+      timestamp: message.timestamp,
+      key: Constants.messageKey('timestamp', message.timestamp),
+    }
+  }
+  return null
+}
+
 export {
-  appendMessageActionTransformer,
   alwaysShowSelector,
+  appendMessageActionTransformer,
   clientHeader,
   conversationStateSelector,
   devicenameSelector,
   focusedSelector,
   followingSelector,
+  getPostingIdentifyBehavior,
+  maybeAddTimestamp,
   messageOutboxIDSelector,
   messageSelector,
   metaDataSelector,
@@ -199,7 +242,6 @@ export {
   prependMessagesActionTransformer,
   routeSelector,
   selectedInboxSelector,
-  tmpFileName,
   startNewConversation,
-  getPostingIdentifyBehavior,
+  tmpFileName,
 }
