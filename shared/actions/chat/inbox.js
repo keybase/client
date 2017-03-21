@@ -75,8 +75,7 @@ function * onLoadInbox (): SagaGenerator<any, any> {
 
   chatInboxUnverified.response.result()
 
-  let finishedCalled = false
-  while (!finishedCalled) {
+  while (true) {
     const incoming: {[key: string]: any} = yield race({
       chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
       chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
@@ -155,7 +154,6 @@ function * onLoadInbox (): SagaGenerator<any, any> {
           }
       }
     } else if (incoming.finished) {
-      finishedCalled = true
       _inboxLoading = false
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
       break
