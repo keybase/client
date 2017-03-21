@@ -32,7 +32,7 @@ function injectThread() {
   console.log("keybase: On thread.");
 
   for (let c of document.getElementsByClassName("comment")) {
-    const author = c.getAttribute("data-author");
+    const author = escape(c.getAttribute("data-author"));
     const buttons = c.getElementsByClassName("buttons")[0];
 
     const li = document.createElement("li");
