@@ -19,7 +19,7 @@ const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
 const followingSelector = (state: TypedState) => state.config.following
 
 function * onLoadInboxMaybeOnce (action: Constants.LoadInbox): SagaGenerator<any, any> {
-  // Don't load if we are currently loading, but load if we haven't ever loaded,
+  // Don't load if we are currently loading. Load if we haven't ever loaded,
   // or had an error or are forcing it
   if (!_inboxLoading && (!_inboxLoadedOnce || _inboxError || action.payload.force)) {
     _inboxLoadedOnce = true
