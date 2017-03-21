@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {globalColors, globalStyles} from '../../../styles'
-import {Box, Text} from '../../../common-adapters'
+import {Text} from '../../../common-adapters'
 
 const Failure = ({failureDescription, onShowEditor, onRetry}: {failureDescription?: ?string, onRetry: () => void, onShowEditor: (event: any) => void}) => {
   const error = `Failed to send${failureDescription ? ` -  ${failureDescription}` : ''}. `
