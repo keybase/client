@@ -1174,3 +1174,14 @@ func TestGetThreadNonblock(t *testing.T) {
 	require.Equal(t, numMsgs, len(res.Messages))
 
 }
+
+func TestMakePreview(t *testing.T) {
+	ctc := makeChatTestContext(t, "MakePreview", 1)
+	defer ctc.cleanup()
+	user := ctc.users()[0]
+
+	/*
+		res, err := ctc.as(t, user).chatLocalHandler().MakePreview(context.TODO(),
+			chat1.
+	*/
+}
