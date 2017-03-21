@@ -14,6 +14,7 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/ed25519"
+	"golang.org/x/crypto/hkdf"
 	"golang.org/x/crypto/nacl/box"
 )
 
@@ -712,11 +713,15 @@ func (k NaclDHKeyPair) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBo
 		return NaclSecretBoxKey{}, NoSecretKeyError{}
 	}
 
-	return DeriveSymmetricKey([32]byte(*k.Private), reason)
+	return deriveSymmetricKeyFromAsymmetric(*k.Private, reason)
 }
 
-func DeriveSymmetricKey(inKey NaclSecretBoxKey, reason EncryptionReason) (NaclSecretBoxKey, error) {
-	var outKey [32]byte = [32]byte{}
+// Derive a symmetric key using HMAC(k, reason).
+// Suitable for deriving from an asymmetric encryption key.
+// For deriving from a shared encryption key, this output is too close
+// to something that might be used as a public authenticator.
+func deriveSymmetricKeyFromAsymmetric(inKey NaclDHKeyPrivate, reason EncryptionReason) (NaclSecretBoxKey, error) {
+	var outKey = [32]byte{}
 	if len(reason) < encryptionReasonMinLength {
 		return outKey, KeyGenError{Msg: "reason must be at least 8 bytes"}
 	}
@@ -730,6 +735,31 @@ func DeriveSymmetricKey(inKey NaclSecretBoxKey, reason EncryptionReason) (NaclSe
 
 	if copy(outKey[:], out) != len(outKey) {
 		return outKey, KeyGenError{Msg: "derived key of wrong size"}
+	}
+
+	return outKey, nil
+}
+
+// Derive a symmetric key using HKDF.
+func DeriveSymmetricKey(inKey NaclSecretBoxKey, reason EncryptionReason) (NaclSecretBoxKey, error) {
+	if len(reason) < encryptionReasonMinLength {
+		return NaclSecretBoxKey{}, KeyGenError{Msg: "reason must be at least 8 bytes"}
+	}
+
+	hash := sha256.New
+	info := []byte(reason)
+
+	// Use nil salt
+	stream := hkdf.New(hash, inKey[:], nil, info)
+
+	var outKey NaclSecretBoxKey
+	nRead, err := io.ReadFull(stream, outKey[:])
+	if err != nil {
+		return NaclSecretBoxKey{}, KeyGenError{Msg: err.Error()}
+	}
+	if nRead != NaclSecretBoxKeySize {
+		return NaclSecretBoxKey{}, KeyGenError{
+			Msg: fmt.Sprintf("read n bytes %v != %v", nRead, NaclSecretBoxKeySize)}
 	}
 
 	return outKey, nil
