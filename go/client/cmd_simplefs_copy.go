@@ -4,6 +4,8 @@
 package client
 
 import (
+	"errors"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -122,6 +124,10 @@ func (c *CmdSimpleFSCopy) ParseArgv(ctx *cli.Context) error {
 	c.recurse = ctx.Bool("recursive")
 	c.interactive = ctx.Bool("interactive")
 	c.force = ctx.Bool("force")
+
+	if c.force && c.interactive {
+		return errors.New("force and interactive are incompatible")
+	}
 
 	c.src, c.dest, err = parseSrcDestArgs(c.G(), ctx, "cp")
 

@@ -4,6 +4,8 @@
 package client
 
 import (
+	"errors"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -107,6 +109,11 @@ func (c *CmdSimpleFSMove) ParseArgv(ctx *cli.Context) error {
 	var err error
 	c.interactive = ctx.Bool("interactive")
 	c.force = ctx.Bool("force")
+
+	if c.force && c.interactive {
+		return errors.New("force and interactive are incompatible")
+	}
+
 	c.src, c.dest, err = parseSrcDestArgs(c.G(), ctx, "mv")
 	return err
 }
