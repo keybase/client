@@ -21,7 +21,7 @@ import {openInKBFS} from '../kbfs'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../../constants/config'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from '../search'
-import {safeTakeEvery, safeTakeLatest, safeTakeSerially, cancelWhen} from '../../util/saga'
+import {safeTakeEvery, safeTakeLatest, safeTakeSerially, cancelWhen, singleFixedChannelConfig, takeFromChannelMap} from '../../util/saga'
 import {searchTab, chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform.specific'
 import {some} from 'lodash'
@@ -32,7 +32,7 @@ import {usernameSelector} from '../../constants/selectors'
 import type {Action} from '../../constants/types/flux'
 import type {ChangedFocus} from '../../constants/window'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
-import type {SagaGenerator} from '../../constants/types/saga'
+import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
 function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<any, any> {
@@ -346,61 +346,95 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
     next = oldConversationState.get('paginationNext', undefined)
   }
 
-  yield put({type: 'chat:loadingMessages', payload: {conversationIDKey}})
+  yield put({payload: {conversationIDKey, isRequesting: true}, type: 'chat:loadingMessages'})
+
+  const yourName = yield select(usernameSelector)
+  const yourDeviceName = yield select(Shared.devicenameSelector)
 
   // We receive the list with edit/delete/etc already applied so lets filter that out
   const messageTypes = Object.keys(ChatTypes.CommonMessageType).filter(k => !['edit', 'delete', 'headline', 'attachmentuploaded'].includes(k)).map(k => ChatTypes.CommonMessageType[k])
   const conversationID = Constants.keyToConversationID(conversationIDKey)
 
-  const thread = yield call(ChatTypes.localGetThreadLocalRpcPromise, {param: {
-    conversationID,
-    query: {
-      markAsRead: true,
-      messageTypes,
-    },
-    pagination: {
-      next,
-      num: Constants.maxMessagesToLoadAtATime,
-    },
-    identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-  }})
-
-  const yourName = yield select(usernameSelector)
-  const yourDeviceName = yield select(Shared.devicenameSelector)
-  const messages = (thread && thread.thread && thread.thread.messages || []).map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey)).reverse()
-  let newMessages = []
-  messages.forEach((message, idx) => {
-    if (idx > 0) {
-      const timestamp = Shared.maybeAddTimestamp(messages[idx], messages[idx - 1])
-      if (timestamp !== null) {
-        newMessages.push(timestamp)
+  const updateThread = function * (thread: ChatTypes.ThreadView) {
+    const messages = (thread && thread.messages || []).map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey)).reverse()
+    let newMessages = []
+    messages.forEach((message, idx) => {
+      if (idx > 0) {
+        const timestamp = Shared.maybeAddTimestamp(messages[idx], messages[idx - 1])
+        if (timestamp !== null) {
+          newMessages.push(timestamp)
+        }
       }
-    }
-    newMessages.push(message)
-  })
+      newMessages.push(message)
+    })
 
-  const pagination = _threadToPagination(thread)
+    const pagination = _threadToPagination(thread)
 
-  yield put({
-    payload: {
-      conversationIDKey,
-      messages: newMessages,
-      moreToLoad: !pagination.last,
-      paginationNext: pagination.next,
+    yield put({
+      logTransformer: Shared.prependMessagesActionTransformer,
+      payload: {
+        conversationIDKey,
+        messages: newMessages,
+        moreToLoad: !pagination.last,
+        paginationNext: pagination.next,
+      },
+      type: 'chat:prependMessages',
+    })
+
+    // Load previews for attachments
+    const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' && m.messageID ? acc.push(m) : acc, new List())
+    // $FlowIssue we check for messageID existance above
+    yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => put(Creators.loadAttachment(conversationIDKey, messageID, true, false, tmpFile(Shared.tmpFileName(false, conversationIDKey, messageID, filename))))).toArray()
+  }
+
+  const channelConfig = singleFixedChannelConfig([
+    'chat.1.chatUi.chatThreadCached',
+    'chat.1.chatUi.chatThreadFull',
+    'finished',
+  ])
+
+  const loadInboxChanMap: ChannelMap<any> = ChatTypes.localGetThreadNonblockRpcChannelMap(channelConfig, {
+    param: {
+      conversationID,
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      pagination: {
+        last: false,
+        next,
+        num: Constants.maxMessagesToLoadAtATime,
+        previous: null,
+      },
+      query: {
+        disableResolveSupersedes: false,
+        markAsRead: true,
+        messageTypes,
+      },
     },
-    logTransformer: Shared.prependMessagesActionTransformer,
     type: 'chat:prependMessages',
   })
 
-  // Load previews for attachments
-  const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' && m.messageID ? acc.push(m) : acc, new List())
-  // $FlowIssue we check for messageID existance above
-  yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => put(Creators.loadAttachment(conversationIDKey, messageID, true, false, tmpFile(Shared.tmpFileName(false, conversationIDKey, messageID, filename))))).toArray()
+  while (true) {
+    const incoming: {[key: string]: any} = yield race({
+      chatThreadCached: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatThreadCached'),
+      chatThreadFull: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatThreadFull'),
+      finished: takeFromChannelMap(loadInboxChanMap, 'finished'),
+    })
+
+    if (incoming.chatThreadCached) {
+      incoming.chatThreadCached.response.result()
+      yield call(updateThread, incoming.chatThreadCached.params.thread)
+    } else if (incoming.chatThreadFull) {
+      incoming.chatThreadFull.response.result()
+      yield call(updateThread, incoming.chatThreadFull.params.thread)
+    } else if (incoming.finished) {
+      yield put({payload: {conversationIDKey, isLoaded: !!incoming.finished.error}, type: 'chat:setLoading'}) // reset isLoaded on error
+      break
+    }
+  }
 }
 
-function _threadToPagination (thread) {
-  if (thread && thread.thread && thread.thread.pagination) {
-    return thread.thread.pagination
+function _threadToPagination (thread): {last: any, next: any} {
+  if (thread && thread.pagination) {
+    return thread.pagination
   }
   return {
     last: undefined,

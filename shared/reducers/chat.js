@@ -132,6 +132,16 @@ function reducer (state: State = initialState, action: Actions) {
         conversationStates.set(conversationIDKey, clearedConversationState)
       )
     }
+    case 'chat:setLoaded': {
+      const {conversationIDKey, isLoaded} = action.payload
+      const newConversationStates = state.get('conversationStates').update(
+        conversationIDKey,
+        initialConversation,
+        conversation => conversation.set('isLoaded', isLoaded)
+      )
+
+      return state.set('conversationStates', newConversationStates)
+    }
     case 'chat:prependMessages': {
       const {messages: prependMessages, moreToLoad, paginationNext, conversationIDKey} = action.payload
       const {messages, deletedIDs} = _filterTypes(prependMessages)
@@ -150,7 +160,6 @@ function reducer (state: State = initialState, action: Actions) {
             .set('paginationNext', paginationNext)
             .set('deletedIDs', nextDeletedIDs)
             .set('isRequesting', false)
-            .set('isLoaded', true)
         })
 
       return state.set('conversationStates', newConversationStates)
@@ -351,11 +360,9 @@ function reducer (state: State = initialState, action: Actions) {
       return state.set('alwaysShow', state.get('alwaysShow').add(conversationIDKey))
     }
     case 'chat:loadingMessages': {
-      const newConversationStates = state.get('conversationStates').update(
-        action.payload.conversationIDKey,
-        initialConversation,
-        conversation => conversation.set('isRequesting', true))
-
+      const {isRequesting, conversationIDKey} = action.payload
+      const newConversationStates = state.get('conversationStates').update(conversationIDKey, initialConversation,
+        conversation => conversation.set('isRequesting', isRequesting))
       return state.set('conversationStates', newConversationStates)
     }
     case 'chat:updatePaginationNext': {

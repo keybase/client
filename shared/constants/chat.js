@@ -349,6 +349,7 @@ export type RetryMessage = NoErrorTypedAction<'chat:retryMessage', {conversation
 export type OpenConversation = NoErrorTypedAction<'chat:openConversation', {conversationIDKey: ConversationIDKey}>
 export type GetInboxAndUnbox = NoErrorTypedAction<'chat:getInboxAndUnbox', {conversationIDKey: ConversationIDKey}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ?ConversationIDKey, fromUser: boolean}>
+export type SetLoaded = NoErrorTypedAction<'chat:setLoaded', {isLoaded: boolean}>
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
 export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>, forceImmediate: boolean}>
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
