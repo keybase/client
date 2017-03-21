@@ -59,9 +59,9 @@ uninstall() {
 
 
 main() {
-  set -eou pipefail; [[ "$TRACE" ]] && set -x
+  set -eou pipefail; [[ "${TRACE:-}" ]] && set -x
 
-  declare cmd="$1"
+  declare cmd="${1:-}"
 
   readonly host_name="io.keybase.kbnm"
   local target="$(detect)/${host_name}.json"
