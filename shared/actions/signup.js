@@ -189,7 +189,7 @@ function checkUsernameEmail (username: ?string, email: ?string): TypedAsyncActio
             dispatch(nextPhase())
             resolve()
           } else {
-            reject()
+            reject(new Error('no user or email'))
           }
         }
       },
@@ -309,7 +309,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
               type: Constants.signup,
             }: Signup))
             dispatch(nextPhase())
-            reject()
+            reject(new Error(err))
           } else {
             console.log('Successful signup', passphraseOk, postOk, writeOk)
             dispatch(waiting(true))
@@ -346,7 +346,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
       })
     } else {
       console.warn('Entered signup action with a null required field')
-      reject()
+      reject(new Error('null required field'))
     }
   })
 }

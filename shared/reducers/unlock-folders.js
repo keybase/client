@@ -109,4 +109,3 @@ export default function (state: State = initialState, action: UnlockFolderAction
       return state
   }
 }
-

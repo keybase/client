@@ -20,6 +20,25 @@ import type {List} from 'immutable'
 import type {Message, MessageID, TextMessage, AttachmentMessage} from '../../constants/chat'
 import type {Props} from './list'
 
+type DefaultCellRangeRendererParams = {
+  cellCache: Object,
+  cellRenderer: Function,
+  columnSizeAndPositionManager: Object,
+  columnStartIndex: number,
+  columnStopIndex: number,
+  horizontalOffsetAdjustment: number,
+  isScrolling: boolean,
+  rowSizeAndPositionManager: Object,
+  rowStartIndex: number,
+  rowStopIndex: number,
+  scrollLeft: number,
+  scrollTop: number,
+  styleCache: Object,
+  verticalOffsetAdjustment: number,
+  visibleColumnIndices: Object,
+  visibleRowIndices: Object,
+}
+
 type State = {
   isLockedToBottom: boolean,
   isScrolling: boolean,
@@ -619,25 +638,6 @@ function chatCellRangeRenderer (firstKey: string, cellSizeCache: any, {
   }
 
   return renderedCells
-}
-
-type DefaultCellRangeRendererParams = {
-  cellCache: Object,
-  cellRenderer: Function,
-  columnSizeAndPositionManager: Object,
-  columnStartIndex: number,
-  columnStopIndex: number,
-  horizontalOffsetAdjustment: number,
-  isScrolling: boolean,
-  rowSizeAndPositionManager: Object,
-  rowStartIndex: number,
-  rowStopIndex: number,
-  scrollLeft: number,
-  scrollTop: number,
-  styleCache: Object,
-  verticalOffsetAdjustment: number,
-  visibleColumnIndices: Object,
-  visibleRowIndices: Object,
 }
 
 export default hoc(ConversationList)

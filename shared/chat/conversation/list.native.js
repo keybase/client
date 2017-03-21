@@ -85,7 +85,6 @@ class ConversationList extends Component <void, Props, State> {
     const {contentHeight, scrollViewHeight} = this.state
     if (contentHeight && scrollViewHeight && (contentHeight !== prevContentHeight || scrollViewHeight !== prevScrollViewHeight)) {
       this.state.isLockedToBottom && this._scrollToBottom()
-      return
     }
   }
 

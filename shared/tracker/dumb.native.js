@@ -219,4 +219,3 @@ const dumbMap: DumbComponentMap<Tracker> = {
 export default {
   'Tracker': dumbMap,
 }
-
