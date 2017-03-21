@@ -83,6 +83,7 @@ const propsHoc = withProps(
       onOpenInPopup,
       onRetryAttachment,
       onRetryMessage,
+      onShowEditor,
       selectedConversation,
       sidePanelOpen,
       validated,
