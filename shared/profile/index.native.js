@@ -200,6 +200,7 @@ class Profile extends Component<void, Props, State> {
           </Box>
           {!this.props.loading &&
             <Friendships
+              isYou={this.props.isYou}
               currentTab={this.state.currentFriendshipsTab}
               onSwitchTab={currentFriendshipsTab => this.setState({currentFriendshipsTab})}
               onUserClick={this.props.onUserClick}
