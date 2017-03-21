@@ -22,7 +22,7 @@ func (h *notifyFSRequestHandler) client() (*keybase1.NotifyFSRequestClient, erro
 		return nil, errors.New("KBFS client wasn't found")
 	}
 	return &keybase1.NotifyFSRequestClient{
-		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}),
+		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil),
 	}, nil
 }
 

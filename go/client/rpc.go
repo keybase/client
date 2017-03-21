@@ -34,7 +34,7 @@ func getSocket(g *libkb.GlobalContext, clearError bool) (xp rpc.Transporter, err
 
 func GetRPCClientWithContext(g *libkb.GlobalContext) (ret *rpc.Client, xp rpc.Transporter, err error) {
 	if xp, err = getSocketNoRetry(g); err == nil {
-		ret = rpc.NewClient(xp, libkb.ErrorUnwrapper{})
+		ret = rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil)
 	}
 	return
 }
@@ -278,7 +278,7 @@ func GetChatLocalClient(g *libkb.GlobalContext) (cli chat1.LocalClient, err erro
 }
 
 func introduceMyself(g *libkb.GlobalContext, xp rpc.Transporter) error {
-	cli := rpc.NewClient(xp, libkb.ErrorUnwrapper{})
+	cli := rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil)
 	ccli := keybase1.ConfigClient{Cli: cli}
 	return ccli.HelloIAm(context.TODO(), g.GetMyClientDetails())
 }
