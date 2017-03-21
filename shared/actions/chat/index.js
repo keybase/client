@@ -20,9 +20,10 @@ import {searchTab, chatTab} from '../../constants/tabs'
 import {tmpFile, downloadFilePath, copy, exists} from '../../util/file'
 import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
-import {toDeviceType, unsafeUnwrap} from '../../constants/types/more'
+import {toDeviceType} from '../../constants/types/more'
 import {showMainWindow, saveAttachment, showShareActionSheet} from '../platform.specific'
-import {requestIdleCallback} from '../../util/idle-callback'
+import {onLoadInboxMaybeOnce, onLoadInbox, getInboxAndUnbox, updateInbox} from './inbox'
+
 import {
   addPending,
   badgeAppForChat,
@@ -32,7 +33,6 @@ import {
   loadAttachment,
   loadInbox,
   loadMoreMessages,
-  loadedInbox,
   muteConversation,
   newChat,
   openFolder,
@@ -57,8 +57,9 @@ import * as ChatTypes from '../../constants/types/flow-types-chat'
 import type {Action} from '../../constants/types/flux'
 import type {ChangedFocus} from '../../constants/window'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
-import type {FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageBody, MessageText, MessageUnboxed, OutboxRecord, SetStatusInfo, ConversationLocal, GetInboxLocalRes} from '../../constants/types/flow-types-chat'
-import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
+import type {FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageBody, MessageText, MessageUnboxed, OutboxRecord, SetStatusInfo} from '../../constants/types/flow-types-chat'
+
+import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 import type {
   AppendMessages,
@@ -68,17 +69,13 @@ import type {
   CreatePendingFailure,
   DeleteMessage,
   EditMessage,
-  FinalizedState,
-  InboxState,
-  IncomingMessage,
-  LoadInbox,
   LoadMoreMessages,
+  IncomingMessage,
   MarkThreadsStale,
   MaybeTimestamp,
   Message,
   MessageID,
   MessageState,
-  MetaData,
   MuteConversation,
   NewChat,
   OpenAttachmentPopup,
@@ -102,12 +99,10 @@ const {
   CommonTopicType,
   LocalAssetMetadataType,
   LocalMessageUnboxedErrorType,
-  LocalConversationErrorType,
   LocalMessageUnboxedState,
   NotifyChatChatActivityType,
   localCancelPostRpcPromise,
   localDownloadFileAttachmentLocalRpcChannelMap,
-  localGetInboxNonblockLocalRpcChannelMap,
   localGetThreadLocalRpcPromise,
   localMarkAsReadLocalRpcPromise,
   localNewConversationLocalRpcPromise,
@@ -120,7 +115,6 @@ const {
 } = ChatTypes
 
 const {
-  InboxStateRecord,
   MetaDataRecord,
   conversationIDToKey,
   getBrokenUsers,
@@ -165,6 +159,7 @@ const _selectedInboxSelector = (state: TypedState, conversationIDKey) => {
   return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
 }
 
+const followingSelector = (state: TypedState) => state.config.following
 const _alwaysShowSelector = (state: TypedState) => state.chat.get('alwaysShow')
 const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
 const _routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
@@ -177,121 +172,6 @@ const _devicenameSelector = (state: TypedState) => state.config && state.config.
 
 function _tmpFileName (isHdPreview: boolean, conversationID: ConversationIDKey, messageID: ?MessageID, filename: string) {
   return `kbchat-${isHdPreview ? 'hdPreview' : 'preview'}-${conversationID}-${messageID || ''}-${filename}`
-}
-
-function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState {
-  if (!convo || !convo.info || !convo.info.id) {
-    return null
-  }
-
-  if (convo.info.visibility !== ChatTypes.CommonTLFVisibility.private) {
-    return null
-  }
-
-  // We don't support mixed reader/writers
-  if (convo.info.tlfName.includes('#')) {
-    return null
-  }
-
-  const conversationIDKey = conversationIDToKey(convo.info.id)
-  let snippet
-  let time
-
-  (convo.maxMessages || []).some(message => {
-    if (message.state === LocalMessageUnboxedState.valid && message.valid && convo && convo.readerInfo) {
-      time = message.valid.serverHeader.ctime || convo.readerInfo.mtime
-      snippet = makeSnippet(message.valid.messageBody)
-      return !!snippet
-    }
-    return false
-  })
-
-  const participants = List(convo.info.writerNames || [])
-  const infoStatus = convo.info ? convo.info.status : 0
-  // Go backwards from the value in CommonConversationStatus to its key.
-  const status = Constants.ConversationStatusByEnum[infoStatus]
-
-  return new InboxStateRecord({
-    info: convo.info,
-    isEmpty: convo.isEmpty,
-    conversationIDKey,
-    participants,
-    status,
-    time,
-    snippet,
-    validated: true,
-  })
-}
-
-function _toSupersedeInfo (conversationIDKey: ConversationIDKey, supersedeData: Array<ChatTypes.ConversationMetadata>): ?Constants.SupersedeInfo {
-  const parsed = supersedeData
-    .filter(md => md.idTriple.topicType === CommonTopicType.chat && md.finalizeInfo)
-    .map(md => ({
-      conversationIDKey: conversationIDToKey(md.conversationID),
-      finalizeInfo: unsafeUnwrap(md && md.finalizeInfo),
-    }))
-  return parsed.length ? parsed[0] : null
-}
-
-function _inboxConversationLocalToSupersedesState (convo: ?ChatTypes.ConversationLocal): Constants.SupersedesState {
-  // TODO deep supersedes checking
-  if (!convo || !convo.info || !convo.info.id || !convo.supersedes) {
-    return Map()
-  }
-
-  const conversationIDKey = conversationIDToKey(convo.info.id)
-  const supersedes = _toSupersedeInfo(conversationIDKey, (convo.supersedes || []))
-  return supersedes ? Map({[conversationIDKey]: supersedes}) : Map()
-}
-
-function _inboxConversationLocalToSupersededByState (convo: ?ChatTypes.ConversationLocal): Constants.SupersededByState {
-  if (!convo || !convo.info || !convo.info.id || !convo.supersededBy) {
-    return Map()
-  }
-
-  const conversationIDKey = conversationIDToKey(convo.info.id)
-  const supersededBy = _toSupersedeInfo(conversationIDKey, (convo.supersededBy || []))
-  return supersededBy ? Map({[conversationIDKey]: supersededBy}) : Map()
-}
-
-function _inboxToFinalized (inbox: GetInboxLocalRes): FinalizedState {
-  return Map((inbox.conversationsUnverified || []).map(convoUnverified => [
-    conversationIDToKey(convoUnverified.metadata.conversationID),
-    convoUnverified.metadata.finalizeInfo,
-  ]))
-}
-
-function _conversationLocalToFinalized (convo: ?ChatTypes.ConversationLocal): FinalizedState {
-  if (convo && convo.info.id && convo.info.finalizeInfo) {
-    return Map({
-      [conversationIDToKey(convo.info.id)]: convo.info.finalizeInfo,
-    })
-  }
-  return Map()
-}
-
-function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): List<InboxState> {
-  return List((inbox.conversationsUnverified || []).map(convoUnverified => {
-    const msgMax = convoUnverified.maxMsgSummaries && convoUnverified.maxMsgSummaries.length && convoUnverified.maxMsgSummaries[0]
-
-    if (!msgMax) {
-      return null
-    }
-
-    const participants = List(parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username))
-    const statusEnum = convoUnverified.metadata.status || 0
-    const status = Constants.ConversationStatusByEnum[statusEnum]
-
-    return new InboxStateRecord({
-      info: null,
-      conversationIDKey: conversationIDToKey(convoUnverified.metadata.conversationID),
-      participants,
-      status,
-      time: convoUnverified.readerInfo && convoUnverified.readerInfo.mtime,
-      snippet: ' ',
-      validated: false,
-    })
-  }).filter(Boolean))
 }
 
 function * _clientHeader (messageType: ChatTypes.MessageType, conversationIDKey): Generator<any, ?ChatTypes.MessageClientHeader, any> {
@@ -460,7 +340,7 @@ function * _startNewConversation (oldConversationIDKey: ConversationIDKey) {
     yield put(selectConversation(newConversationIDKey, false))
   }
   // Load the inbox so we can post, we wait till this is done
-  yield call(_getInboxAndUnbox, {payload: {conversationIDKey: newConversationIDKey}, type: 'chat:getInboxAndUnbox'})
+  yield call(getInboxAndUnbox, {payload: {conversationIDKey: newConversationIDKey}, type: 'chat:getInboxAndUnbox'})
   return newConversationIDKey
 }
 
@@ -616,36 +496,12 @@ function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
   }
 }
 
-function * _updateInbox (conv: ?ConversationLocal) {
-  const inboxState = _inboxConversationToInboxState(conv)
-  const supersedesState: Constants.SupersedesState = _inboxConversationLocalToSupersedesState(conv)
-  const supersededByState: Constants.SupersededByState = _inboxConversationLocalToSupersededByState(conv)
-  const finalizedState: Constants.FinalizedState = _conversationLocalToFinalized(conv)
-
-  if (supersedesState.count()) {
-    yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
-  }
-  if (supersededByState.count()) {
-    yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
-  }
-  if (finalizedState.count()) {
-    yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
-  }
-
-  if (inboxState) {
-    yield put(({
-      payload: {conversation: inboxState},
-      type: 'chat:updateInbox',
-    }: Constants.UpdateInbox))
-  }
-}
-
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
     case NotifyChatChatActivityType.setStatus:
       const setStatus: ?SetStatusInfo = action.payload.activity.setStatus
       if (setStatus) {
-        yield call(_updateInbox, setStatus.conv)
+        yield call(updateInbox, setStatus.conv)
         yield call(_ensureValidSelectedChat, false, true)
       }
       return
@@ -695,7 +551,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       return
     case NotifyChatChatActivityType.readMessage:
       if (action.payload.activity.readMessage) {
-        yield call(_updateInbox, action.payload.activity.readMessage.conv)
+        yield call(updateInbox, action.payload.activity.readMessage.conv)
       }
       return
     case NotifyChatChatActivityType.incomingMessage:
@@ -708,7 +564,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           return
         }
 
-        yield call(_updateInbox, incomingMessage.conv)
+        yield call(updateInbox, incomingMessage.conv)
 
         const messageUnboxed: MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
@@ -896,148 +752,6 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean, forceSelectOnMo
       yield put(selectConversation(conversationIDKey, false))
     } else {
       yield put(selectConversation(null, false))
-    }
-  }
-}
-
-const followingSelector = (state: TypedState) => state.config.following
-
-let _loadedInboxOnce = false
-function * _loadInboxMaybeOnce (action: LoadInbox): SagaGenerator<any, any> {
-  if (!_loadedInboxOnce || action.payload.force) {
-    _loadedInboxOnce = true
-    yield call(_loadInbox)
-  }
-}
-
-function * _loadInbox (): SagaGenerator<any, any> {
-  const channelConfig = singleFixedChannelConfig([
-    'chat.1.chatUi.chatInboxUnverified',
-    'chat.1.chatUi.chatInboxConversation',
-    'chat.1.chatUi.chatInboxFailed',
-    'finished',
-  ])
-
-  const loadInboxChanMap: ChannelMap<any> = localGetInboxNonblockLocalRpcChannelMap(channelConfig, {
-    param: {
-      query: {
-        status: Object.keys(CommonConversationStatus).filter(k => !['ignored', 'blocked'].includes(k)).map(k => CommonConversationStatus[k]),
-        computeActiveList: true,
-        tlfVisibility: CommonTLFVisibility.private,
-        topicType: CommonTopicType.chat,
-        unreadOnly: false,
-        readOnly: false,
-      },
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-    },
-  })
-
-  const chatInboxUnverified = yield takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxUnverified')
-
-  if (!chatInboxUnverified) {
-    throw new Error("Can't load inbox")
-  }
-
-  const metaData = ((yield select(_metaDataSelector)): any)
-  const inbox: GetInboxLocalRes = chatInboxUnverified.params.inbox
-  const author = yield select(usernameSelector)
-  const following = yield select(followingSelector)
-  const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {}, metaData)
-  const finalizedState: FinalizedState = _inboxToFinalized(inbox)
-
-  yield put(loadedInbox(conversations))
-  if (finalizedState.count()) {
-    yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
-  }
-
-  chatInboxUnverified.response.result()
-
-  let finishedCalled = false
-  while (!finishedCalled) {
-    const incoming: {[key: string]: any} = yield race({
-      chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
-      chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
-      finished: takeFromChannelMap(loadInboxChanMap, 'finished'),
-      timeout: call(delay, 30000),
-    })
-
-    if (incoming.chatInboxConversation) {
-      requestIdleCallback(() => {
-        incoming.chatInboxConversation.response.result()
-      }, {timeout: 100})
-
-      yield call(delay, 1)
-      let conversation: ?InboxState = _inboxConversationToInboxState(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
-
-      // TODO this is ugly, ideally we should just call _updateInbox here
-      const conv = incoming.chatInboxConversation.params.conv
-      const supersedesState: Constants.SupersedesState = _inboxConversationLocalToSupersedesState(conv)
-      const supersededByState: Constants.SupersededByState = _inboxConversationLocalToSupersededByState(conv)
-      const finalizedState: Constants.FinalizedState = _conversationLocalToFinalized(conv)
-
-      if (supersedesState.count()) {
-        yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
-      }
-      if (supersededByState.count()) {
-        yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
-      }
-      if (finalizedState.count()) {
-        yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
-      }
-
-      if (conversation) {
-        yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
-        const selectedConversation = yield select(getSelectedConversation)
-        if (selectedConversation === conversation.get('conversationIDKey')) {
-          // load validated selected
-          yield put(loadMoreMessages(selectedConversation, false))
-        }
-      }
-      // find it
-    } else if (incoming.chatInboxFailed) {
-      console.log('ignoring chatInboxFailed', incoming.chatInboxFailed)
-      requestIdleCallback(() => {
-        incoming.chatInboxFailed.response.result()
-      }, {timeout: 100})
-
-      yield call(delay, 1)
-      const error = incoming.chatInboxFailed.params.error
-      const conversationIDKey = conversationIDToKey(incoming.chatInboxFailed.params.convID)
-      const conversation = new InboxStateRecord({
-        info: null,
-        isEmpty: false,
-        conversationIDKey,
-        participants: List([].concat(error.rekeyInfo ? error.rekeyInfo.writerNames : [], error.rekeyInfo ? error.rekeyInfo.readerNames : []).filter(Boolean)),
-        status: 'unfiled',
-        time: error.remoteConv.readerInfo.mtime,
-        snippet: null,
-        validated: true,
-      })
-      yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
-
-      switch (error.typ) {
-        case LocalConversationErrorType.selfrekeyneeded: {
-          yield put({type: 'chat:updateInboxRekeySelf', payload: {conversationIDKey}})
-          break
-        }
-        case LocalConversationErrorType.otherrekeyneeded: {
-          const rekeyers = error.rekeyInfo.rekeyers
-          yield put({type: 'chat:updateInboxRekeyOthers', payload: {conversationIDKey, rekeyers}})
-          break
-        }
-        default:
-          if (__DEV__) {
-            console.warn('Inbox error:', error)
-          }
-      }
-    } else if (incoming.finished) {
-      finishedCalled = true
-      yield put({type: 'chat:updateInboxComplete', payload: undefined})
-      break
-    } else if (incoming.timeout) {
-      console.warn('Inbox loading timed out')
-      yield put({type: 'chat:updateInboxComplete', payload: undefined})
-      break
     }
   }
 }
@@ -1464,7 +1178,6 @@ function * _newChat (action: NewChat): SagaGenerator<any, any> {
   yield put(searchReset())
 
   const metaData = ((yield select(_metaDataSelector)): any)
-
   const following = (yield select(followingSelector)) || {}
 
   yield put(searchAddUsersToGroup(action.payload.existingParticipants.map(username => ({
@@ -1914,7 +1627,7 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
 function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any> {
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
   const {convIDs} = action.payload
-  yield convIDs.map(conversationIDKey => call(_getInboxAndUnbox, {payload: {conversationIDKey}, type: 'chat:getInboxAndUnbox'}))
+  yield convIDs.map(conversationIDKey => call(getInboxAndUnbox, {payload: {conversationIDKey}, type: 'chat:getInboxAndUnbox'}))
 
   // Selected is stale?
   const selectedConversation = yield select(getSelectedConversation)
@@ -1940,29 +1653,6 @@ function * _openAttachmentPopup (action: OpenAttachmentPopup): SagaGenerator<any
 
 function _threadIsCleared (originalAction: Action, checkAction: Action): boolean {
   return originalAction.type === 'chat:loadMoreMessages' && checkAction.type === 'chat:clearMessages' && originalAction.conversationIDKey === checkAction.conversationIDKey
-}
-
-function * _getInboxAndUnbox ({payload: {conversationIDKey}}: Constants.GetInboxAndUnbox) {
-  const param: ChatTypes.localGetInboxAndUnboxLocalRpcParam = {
-    identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-    query: {
-      convIDs: [keyToConversationID(conversationIDKey)],
-      computeActiveList: true,
-      tlfVisibility: CommonTLFVisibility.private,
-      topicType: CommonTopicType.chat,
-      unreadOnly: false,
-      readOnly: true,
-    },
-  }
-
-  const result: ChatTypes.GetInboxAndUnboxLocalRes = yield call(ChatTypes.localGetInboxAndUnboxLocalRpcPromise, {param})
-  const {conversations} = result
-  if (conversations && conversations[0]) {
-    yield call(_updateInbox, conversations[0])
-    // inbox loaded so rekeyInfo is now clear
-    yield put({payload: {conversationIDKey}, type: 'chat:clearRekey'})
-  }
-  // TODO maybe we get failures and we should update rekeyinfo? unclear...
 }
 
 function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConversation): SagaGenerator<any, any> {
@@ -2025,8 +1715,8 @@ function * _saveAttachmentNative ({payload: {message}}: Constants.SaveAttachment
 
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
-    safeTakeSerially('chat:loadInbox', _loadInboxMaybeOnce),
-    safeTakeLatest('chat:inboxStale', _loadInbox),
+    safeTakeSerially('chat:loadInbox', onLoadInboxMaybeOnce),
+    safeTakeLatest('chat:inboxStale', onLoadInbox),
     safeTakeEvery('chat:loadMoreMessages', cancelWhen(_threadIsCleared, _loadMoreMessages)),
     safeTakeLatest('chat:selectConversation', _selectConversation),
     safeTakeEvery('chat:updateBadging', _updateBadging),
@@ -2044,7 +1734,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery('chat:appendMessages', _sendNotifications),
     safeTakeEvery('chat:selectAttachment', _selectAttachment),
     safeTakeEvery('chat:openConversation', _openConversation),
-    safeTakeEvery('chat:getInboxAndUnbox', _getInboxAndUnbox),
+    safeTakeEvery('chat:getInboxAndUnbox', getInboxAndUnbox),
     safeTakeEvery('chat:loadAttachment', _loadAttachment),
     safeTakeEvery('chat:openAttachmentPopup', _openAttachmentPopup),
     safeTakeLatest('chat:openFolder', _openFolder),
