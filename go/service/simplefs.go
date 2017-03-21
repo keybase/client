@@ -179,6 +179,14 @@ func (s *SimpleFSHandler) SimpleFSClose(ctx context.Context, arg keybase1.OpID) 
 	return cli.SimpleFSClose(ctx, arg)
 }
 
+func (s *SimpleFSHandler) SimpleFSCancel(ctx context.Context, arg keybase1.OpID) error {
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSCancel(ctx, arg)
+}
+
 // SimpleFSCheck - Check progress of pending operation
 func (s *SimpleFSHandler) SimpleFSCheck(ctx context.Context, arg keybase1.OpID) (keybase1.Progress, error) {
 	cli, err := s.client()

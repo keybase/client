@@ -216,6 +216,8 @@ protocol SimpleFS {
    */
   void simpleFSClose(OpID opID);
 
+  void simpleFSCancel(OpID opID);
+
   /**
    Check progress of pending operation
    */

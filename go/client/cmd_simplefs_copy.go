@@ -143,7 +143,7 @@ func (c *CmdSimpleFSCopy) Cancel() error {
 	if err != nil {
 		return err
 	}
-	err = cli.SimpleFSClose(context.TODO(), *c.opid)
+	err = cli.SimpleFSCancel(context.TODO(), *c.opid)
 	c.G().Log.Error("JACK CANCELLED WOO", err)
 	return err
 }

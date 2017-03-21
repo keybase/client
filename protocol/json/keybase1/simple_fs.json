@@ -522,6 +522,15 @@
       "response": null,
       "doc": "Close OpID, cancels any pending operation.\n   Must be called after list/copy/remove"
     },
+    "simpleFSCancel": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": null
+    },
     "simpleFSCheck": {
       "request": [
         {
