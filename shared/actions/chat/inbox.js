@@ -119,6 +119,8 @@ function * onLoadInbox (): SagaGenerator<any, any> {
       yield call(delay, 1)
       const error = incoming.chatInboxFailed.params.error
       const conversationIDKey = Constants.conversationIDToKey(incoming.chatInboxFailed.params.convID)
+
+      // Valid inbox item for rekey only
       const conversation = new Constants.InboxStateRecord({
         conversationIDKey,
         info: null,
@@ -129,14 +131,15 @@ function * onLoadInbox (): SagaGenerator<any, any> {
         time: error.remoteConv.readerInfo.mtime,
         validated: true,
       })
-      yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
 
       switch (error.typ) {
         case ChatTypes.LocalConversationErrorType.selfrekeyneeded: {
+          yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
           yield put({type: 'chat:updateInboxRekeySelf', payload: {conversationIDKey}})
           break
         }
         case ChatTypes.LocalConversationErrorType.otherrekeyneeded: {
+          yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
           const rekeyers = error.rekeyInfo.rekeyers
           yield put({type: 'chat:updateInboxRekeyOthers', payload: {conversationIDKey, rekeyers}})
           break
