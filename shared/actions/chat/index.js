@@ -1,49 +1,73 @@
 // @flow
-import * as Constants from '../constants/chat'
-import HiddenString from '../util/hidden-string'
-import engine from '../engine'
-import {some, uniq} from 'lodash'
+import * as Constants from '../../constants/chat'
+import HiddenString from '../../util/hidden-string'
+import engine from '../../engine'
+import {some} from 'lodash'
 import {List, Map} from 'immutable'
-import {NotifyPopup} from '../native/notifications'
-import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
-import {badgeApp} from './notifications'
+import {NotifyPopup} from '../../native/notifications'
+import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
+import {badgeApp} from '../notifications'
 import {call, put, take, select, race, cancel, fork, join} from 'redux-saga/effects'
-import {changedFocus} from '../constants/window'
+import {changedFocus} from '../../constants/window'
 import {delay} from 'redux-saga'
-import {navigateAppend, navigateTo, switchTo} from './route-tree'
-import {openInKBFS} from './kbfs'
-import {parseFolderNameToUsers} from '../util/kbfs'
-import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
-import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
-import {safeTakeEvery, safeTakeLatest, safeTakeSerially, singleFixedChannelConfig, cancelWhen, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
-import {searchTab, chatTab} from '../constants/tabs'
-import {tmpFile, downloadFilePath, copy, exists} from '../util/file'
-import {usernameSelector} from '../constants/selectors'
-import {isMobile} from '../constants/platform'
-import {toDeviceType, unsafeUnwrap} from '../constants/types/more'
-import {showMainWindow, saveAttachment, showShareActionSheet} from './platform.specific'
-import {requestIdleCallback} from '../util/idle-callback'
+import {navigateAppend, navigateTo, switchTo} from '../route-tree'
+import {openInKBFS} from '../kbfs'
+import {parseFolderNameToUsers} from '../../util/kbfs'
+import {publicFolderWithUsers, privateFolderWithUsers} from '../../constants/config'
+import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from '../search'
+import {safeTakeEvery, safeTakeLatest, safeTakeSerially, singleFixedChannelConfig, cancelWhen, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../../util/saga'
+import {searchTab, chatTab} from '../../constants/tabs'
+import {tmpFile, downloadFilePath, copy, exists} from '../../util/file'
+import {usernameSelector} from '../../constants/selectors'
+import {isMobile} from '../../constants/platform'
+import {toDeviceType, unsafeUnwrap} from '../../constants/types/more'
+import {showMainWindow, saveAttachment, showShareActionSheet} from '../platform.specific'
+import {requestIdleCallback} from '../../util/idle-callback'
+import {
+  addPending,
+  badgeAppForChat,
+  blockConversation,
+  deleteMessage,
+  editMessage,
+  loadAttachment,
+  loadInbox,
+  loadMoreMessages,
+  loadedInbox,
+  muteConversation,
+  newChat,
+  openFolder,
+  openTlfInChat,
+  pendingToRealConversation,
+  postMessage,
+  replaceConversation,
+  retryAttachment,
+  retryMessage,
+  selectAttachment,
+  selectConversation,
+  setupChatHandlers,
+  showEditor,
+  startConversation,
+  updateBadging,
+  updateLatestMessage,
+  updateTempMessage,
+} from './creators'
 
-import * as ChatTypes from '../constants/types/flow-types-chat'
+import * as ChatTypes from '../../constants/types/flow-types-chat'
 
-import type {Action} from '../constants/types/flux'
-import type {ChangedFocus} from '../constants/window'
-import type {TLFIdentifyBehavior} from '../constants/types/flow-types'
-import type {FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageBody, MessageText, MessageUnboxed, OutboxRecord, SetStatusInfo, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
-import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
-import type {TypedState} from '../constants/reducer'
+import type {Action} from '../../constants/types/flux'
+import type {ChangedFocus} from '../../constants/window'
+import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
+import type {FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageBody, MessageText, MessageUnboxed, OutboxRecord, SetStatusInfo, ConversationLocal, GetInboxLocalRes} from '../../constants/types/flow-types-chat'
+import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
+import type {TypedState} from '../../constants/reducer'
 import type {
-  AddPendingConversation,
   AppendMessages,
-  AttachmentInput,
   BadgeAppForChat,
   BlockConversation,
-  ConversationBadgeState,
   ConversationIDKey,
   CreatePendingFailure,
   DeleteMessage,
   EditMessage,
-  ShowEditor,
   FinalizedState,
   InboxState,
   IncomingMessage,
@@ -58,23 +82,18 @@ import type {
   MuteConversation,
   NewChat,
   OpenAttachmentPopup,
-  OpenFolder,
   OpenTlfInChat,
   OutboxIDKey,
-  PendingToRealConversation,
   PostMessage,
-  ReplaceConversation,
   RemoveOutboxMessage,
   RemovePendingFailure,
   RetryMessage,
   SelectConversation,
-  SetupChatHandlers,
   StartConversation,
   UnhandledMessage,
   UpdateBadging,
-  UpdateLatestMessage,
   UpdateMetadata,
-} from '../constants/chat'
+} from '../../constants/chat'
 
 const {
   CommonConversationStatus,
@@ -116,49 +135,6 @@ const {
   getSelectedConversation,
 } = Constants
 
-// Whitelisted action loggers
-const loadedInboxActionTransformer = action => ({
-  payload: {
-    inbox: action.payload.inbox.map(i => {
-      const {
-        conversationIDKey,
-        muted,
-        time,
-        validated,
-        participants,
-        info,
-      } = i
-
-      return {
-        conversationIDKey,
-        info: {
-          status: info && info.status,
-        },
-        muted,
-        participantsCount: participants.count(),
-        time,
-        validated,
-      }
-    }),
-  },
-  type: action.type,
-})
-
-const postMessageActionTransformer = action => ({
-  payload: {
-    conversationIDKey: action.payload.conversationIDKey,
-  },
-  type: action.type,
-})
-
-const retryMessageActionTransformer = action => ({
-  payload: {
-    conversationIDKey: action.payload.conversationIDKey,
-    outboxIDKey: action.payload.outboxIDKey,
-  },
-  type: action.type,
-})
-
 const safeServerMessageMap = m => ({
   key: m.key,
   messageID: m.messageID,
@@ -185,14 +161,6 @@ const appendMessageActionTransformer = action => ({
   type: action.type,
 })
 
-const updateTempMessageTransformer = ({type, payload: {conversationIDKey, outboxID}}: Constants.UpdateTempMessage) => ({
-  payload: {
-    conversationIDKey,
-    outboxID,
-  },
-  type,
-})
-
 const _selectedInboxSelector = (state: TypedState, conversationIDKey) => {
   return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
 }
@@ -209,126 +177,6 @@ const _devicenameSelector = (state: TypedState) => state.config && state.config.
 
 function _tmpFileName (isHdPreview: boolean, conversationID: ConversationIDKey, messageID: ?MessageID, filename: string) {
   return `kbchat-${isHdPreview ? 'hdPreview' : 'preview'}-${conversationID}-${messageID || ''}-${filename}`
-}
-
-function _pendingToRealConversation (oldKey: ConversationIDKey, newKey: ConversationIDKey): PendingToRealConversation {
-  return {payload: {newKey, oldKey}, type: 'chat:pendingToRealConversation'}
-}
-
-function _replaceConversation (oldKey: ConversationIDKey, newKey: ConversationIDKey): ReplaceConversation {
-  return {payload: {newKey, oldKey}, type: 'chat:replaceConversation'}
-}
-
-function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
-  return {type: 'chat:updateBadging', payload: {conversationIDKey}}
-}
-
-function updateLatestMessage (conversationIDKey: ConversationIDKey): UpdateLatestMessage {
-  return {type: 'chat:updateLatestMessage', payload: {conversationIDKey}}
-}
-
-function badgeAppForChat (conversations: List<ConversationBadgeState>): BadgeAppForChat {
-  return {type: 'chat:badgeAppForChat', payload: conversations}
-}
-
-function openFolder (): OpenFolder {
-  return {type: 'chat:openFolder', payload: undefined}
-}
-
-function openTlfInChat (tlf: string): OpenTlfInChat {
-  return {type: 'chat:openTlfInChat', payload: tlf}
-}
-
-function startConversation (users: Array<string>, forceImmediate?: boolean = false): StartConversation {
-  return {type: 'chat:startConversation', payload: {forceImmediate, users: uniq(users)}}
-}
-
-function newChat (existingParticipants: Array<string>): NewChat {
-  return {type: 'chat:newChat', payload: {existingParticipants}}
-}
-
-function postMessage (conversationIDKey: ConversationIDKey, text: HiddenString): PostMessage {
-  return {type: 'chat:postMessage', payload: {conversationIDKey, text}, logTransformer: postMessageActionTransformer}
-}
-
-function setupChatHandlers (): SetupChatHandlers {
-  return {type: 'chat:setupChatHandlers', payload: undefined}
-}
-
-function retryMessage (conversationIDKey: ConversationIDKey, outboxIDKey: string): RetryMessage {
-  return {type: 'chat:retryMessage', payload: {conversationIDKey, outboxIDKey}, logTransformer: retryMessageActionTransformer}
-}
-
-function loadInbox (force?: boolean = false): LoadInbox {
-  return {payload: {force}, type: 'chat:loadInbox'}
-}
-
-function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean): LoadMoreMessages {
-  return {type: 'chat:loadMoreMessages', payload: {conversationIDKey, onlyIfUnloaded}}
-}
-
-function showEditor (message: Message): ShowEditor {
-  return {type: 'chat:showEditor', payload: {message}}
-}
-
-function editMessage (message: Message, text: HiddenString): EditMessage {
-  return {type: 'chat:editMessage', payload: {message, text}}
-}
-
-function muteConversation (conversationIDKey: ConversationIDKey, muted: boolean): MuteConversation {
-  return {payload: {conversationIDKey, muted}, type: 'chat:muteConversation'}
-}
-
-function blockConversation (blocked: boolean, conversationIDKey: ConversationIDKey): BlockConversation {
-  return {payload: {blocked, conversationIDKey}, type: 'chat:blockConversation'}
-}
-
-function deleteMessage (message: Message): DeleteMessage {
-  return {type: 'chat:deleteMessage', payload: {message}}
-}
-
-function addPending (participants: Array<string>): AddPendingConversation {
-  return {type: 'chat:addPendingConversation', payload: {participants}}
-}
-
-function retryAttachment (message: Constants.AttachmentMessage): Constants.SelectAttachment {
-  const {conversationIDKey, filename, title, previewType, outboxID} = message
-  if (!filename || !title || !previewType) {
-    throw new Error('attempted to retry attachment without filename')
-  }
-  const input = {
-    conversationIDKey,
-    filename,
-    outboxID,
-    title,
-    type: previewType || 'Other',
-  }
-  return {type: 'chat:selectAttachment', payload: {input}}
-}
-
-function selectAttachment (input: AttachmentInput): Constants.SelectAttachment {
-  return {type: 'chat:selectAttachment', payload: {input}}
-}
-
-function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean, isHdPreview: boolean, filename: string): Constants.LoadAttachment {
-  return {type: 'chat:loadAttachment', payload: {conversationIDKey, messageID, loadPreview, isHdPreview, filename}}
-}
-
-// Select conversation, fromUser indicates it was triggered by a user and not programatically
-function selectConversation (conversationIDKey: ?ConversationIDKey, fromUser: boolean): SelectConversation {
-  return {type: 'chat:selectConversation', payload: {conversationIDKey, fromUser}}
-}
-
-function updateTempMessage (conversationIDKey: ConversationIDKey, message: $Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>, outboxID: Constants.OutboxIDKey): Constants.UpdateTempMessage {
-  return {
-    payload: {
-      conversationIDKey,
-      message,
-      outboxID,
-    },
-    type: 'chat:updateTempMessage',
-    logTransformer: updateTempMessageTransformer,
-  }
 }
 
 function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState {
@@ -601,9 +449,9 @@ function * _startNewConversation (oldConversationIDKey: ConversationIDKey) {
 
   // Replace any existing convo
   if (pendingTlfName) {
-    yield put(_pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
+    yield put(pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
   } else {
-    yield put(_replaceConversation(oldConversationIDKey, newConversationIDKey))
+    yield put(replaceConversation(oldConversationIDKey, newConversationIDKey))
   }
 
   // Select the new version if the old one was selected
@@ -1097,7 +945,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
   const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {}, metaData)
   const finalizedState: FinalizedState = _inboxToFinalized(inbox)
 
-  yield put(({type: 'chat:loadedInbox', payload: {inbox: conversations}, logTransformer: loadedInboxActionTransformer}: Constants.LoadedInbox))
+  yield put(loadedInbox(conversations))
   if (finalizedState.count()) {
     yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
   }
