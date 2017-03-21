@@ -3,6 +3,9 @@ import {Component} from 'react'
 import {List} from 'immutable'
 
 import type {ConversationIDKey, AttachmentMessage, Message, MessageID, MetaDataMap, ServerMessage, SupersedeInfo, FollowingMap} from '../../constants/chat'
+import type {Options} from './messages'
+
+export type OptionsFn = (message: Message, prevMessage: Message, isFirstMessage: boolean, isSelected: boolean, isScrolling: boolean, key: any, style: Object, onAction: (message: ServerMessage, event: any) => void, onShowEditor: (message: Message, event: any) => void, isEditing: boolean) => Options
 
 export type Props = {
   firstNewMessageID: ?MessageID,
@@ -31,8 +34,7 @@ export type Props = {
   validated: boolean,
   sidePanelOpen: boolean,
   editLastMessageCounter: number,
-  // TODO: better types will remove these
-  optionsFn: any,
+  optionsFn: OptionsFn,
 }
 
 export default class ConversationList extends Component<void, Props, void> {

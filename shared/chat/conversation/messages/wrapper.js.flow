@@ -1,13 +1,14 @@
 // @flow
 import {Component} from 'react'
-import type {AttachmentMessage, FollowingMap, MetaDataMap, OutboxIDKey, TextMessage, ServerMessage} from '../../../constants/chat'
+import type {AttachmentMessage, FollowingMap, Message, MetaDataMap, OutboxIDKey, TextMessage, ServerMessage} from '../../../constants/chat'
 
 export type Props = {
   includeHeader: boolean,
   isEditing: boolean,
   isFirstNewMessage: boolean,
-  onRetry: (outboxID: OutboxIDKey) => void,
   onAction: (message: ServerMessage, event: any) => void,
+  onRetry: (outboxID: OutboxIDKey) => void,
+  onShowEditor: (message: Message, event: any) => void,
   style: Object,
   isSelected: boolean,
   children?: React$Element<*>,
