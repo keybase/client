@@ -351,10 +351,9 @@ function reducer (state: State = initialState, action: Actions) {
       return state.set('alwaysShow', state.get('alwaysShow').add(conversationIDKey))
     }
     case 'chat:loadingMessages': {
-      const newConversationStates = state.get('conversationStates').update(
-        action.payload.conversationIDKey,
-        initialConversation,
-        conversation => conversation.set('isRequesting', true))
+      const {isRequesting, conversationIDKey} = action.payload
+      const newConversationStates = state.get('conversationStates').update(conversationIDKey, initialConversation,
+        conversation => conversation.set('isRequesting', isRequesting))
 
       return state.set('conversationStates', newConversationStates)
     }
