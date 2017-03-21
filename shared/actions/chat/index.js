@@ -903,16 +903,21 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean, forceSelectOnMo
 const followingSelector = (state: TypedState) => state.config.following
 
 function * _loadInboxMaybeOnce (action: LoadInbox): SagaGenerator<any, any> {
-  if (!_inboxComplete || _inboxError || action.payload.force) {
+  // Don't load if we are currently loading, but load if we haven't ever loaded,
+  // or had an error or are forcing it
+  if (!_inboxLoading && (!_inboxLoadedOnce || _inboxError || action.payload.force)) {
+    _inboxLoadedOnce = true
+    _inboxLoading = true
     yield call(_loadInbox)
   }
 }
 
+let _inboxLoadedOnce = false
+let _inboxLoading = false
 let _inboxError = null
-let _inboxComplete = false
 function * _loadInbox (): SagaGenerator<any, any> {
   _inboxError = null
-  _inboxComplete = false
+  _inboxLoading = true
   const channelConfig = singleFixedChannelConfig([
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
@@ -1034,11 +1039,12 @@ function * _loadInbox (): SagaGenerator<any, any> {
           }
       }
     } else if (incoming.finished) {
-      _inboxComplete = true
+      _inboxLoading = false
       finishedCalled = true
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
       break
     } else if (incoming.timeout) {
+      _inboxLoading = false
       console.warn('Inbox loading timed out')
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
       break
