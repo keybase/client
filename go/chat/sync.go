@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"sync"
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -15,7 +16,10 @@ import (
 type Syncer struct {
 	libkb.Contextified
 	utils.DebugLabeler
+	sync.Mutex
 
+	isConnected bool
+	// TODO access to this list is not done in a threadsafe manner
 	offlinables []types.Offlinable
 }
 
@@ -23,6 +27,7 @@ func NewSyncer(g *libkb.GlobalContext) *Syncer {
 	return &Syncer{
 		Contextified: libkb.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "Syncer", false),
+		isConnected:  true,
 	}
 }
 
@@ -43,6 +48,10 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 	ctx = CtxAddLogTags(ctx)
 	s.Debug(ctx, "Connected: running")
 
+	s.Lock()
+	s.isConnected = true
+	s.Unlock()
+
 	// Let the Offlinables know that we are back online
 	for _, o := range s.offlinables {
 		o.Connected(ctx)
@@ -53,8 +62,26 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 	return nil
 }
 
+func (s *Syncer) Disconnected(ctx context.Context) {
+	s.Debug(ctx, "Disconnected: running")
+
+	s.Lock()
+	s.isConnected = false
+	s.Unlock()
+
+	// Let the Offlinables know of connection state change
+	for _, o := range s.offlinables {
+		o.Disconnected(ctx)
+	}
+}
+
 func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) (err error) {
-	s.Debug(ctx, "Sync: remoteInterface: %p[%T] -> %v", &cli, cli, cli)
+	s.Lock()
+	if !s.isConnected {
+		s.Debug(ctx, "Sync: aborting because currently offline")
+		return OfflineError{}
+	}
+	s.Unlock()
 
 	// Grab current on disk version
 	ibox := storage.NewInbox(s.G(), uid, func() libkb.SecretUI {
@@ -109,15 +136,8 @@ func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 	return nil
 }
 
-func (s *Syncer) Disconnected(ctx context.Context) {
-	s.Debug(ctx, "Disconnected: running")
-
-	// Let the Offlinables know of connection state change
-	for _, o := range s.offlinables {
-		o.Disconnected(ctx)
-	}
-}
-
 func (s *Syncer) RegisterOfflinable(offlinable types.Offlinable) {
+	s.Lock()
 	s.offlinables = append(s.offlinables, offlinable)
+	s.Unlock()
 }
