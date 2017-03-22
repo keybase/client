@@ -17,6 +17,7 @@ import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
 
 type UntrustedState = 'unloaded' | 'loaded' | 'loading'
 
+// Common props for getting the inbox
 const _getInboxQuery = {
   computeActiveList: true,
   readOnly: false,
@@ -46,6 +47,7 @@ function * onInitialInboxLoad (action: Constants.LoadInbox): SagaGenerator<any, 
   }
 }
 
+// On desktop we passively unbox inbox items
 function * _backgroundUnboxLoop () {
   const maxPerLoop = 10
 
@@ -201,6 +203,7 @@ function * updateInbox (c: ?ChatTypes.ConversationLocal): SagaGenerator<any, any
   }
 }
 
+// Gui is showing boxed content, find some rows to unbox
 function * untrustedInboxVisible (action: Constants.UntrustedInboxVisible): SagaGenerator<any, any> {
   const {conversationIDKey, rowsVisible} = action.payload
   const inboxes = yield select(state => state.chat.get('inbox'))
@@ -221,7 +224,6 @@ function * untrustedInboxVisible (action: Constants.UntrustedInboxVisible): Saga
 
 // Loads the trusted inbox segments
 function * _unboxConversations (conversationIDKeys: Array<Constants.ConversationIDKey>): Generator<any, any, any> {
-  console.log('aaa', conversationIDKeys.length, '\n', conversationIDKeys.join('\n'))
   yield put(Creators.setUnboxing(conversationIDKeys))
 
   const channelConfig = singleFixedChannelConfig([
@@ -260,10 +262,7 @@ function * _unboxConversations (conversationIDKeys: Array<Constants.Conversation
       // find it
     } else if (incoming.chatInboxFailed) {
       console.log('chatInboxFailed', incoming.chatInboxFailed)
-      requestIdleCallback(() => {
-        incoming.chatInboxFailed.response.result()
-      }, {timeout: 100})
-
+      requestIdleCallback(() => { incoming.chatInboxFailed.response.result() }, {timeout: 100})
       yield call(delay, 1)
       const error = incoming.chatInboxFailed.params.error
       const conversationIDKey = Constants.conversationIDToKey(incoming.chatInboxFailed.params.convID)
@@ -279,14 +278,14 @@ function * _unboxConversations (conversationIDKeys: Array<Constants.Conversation
 
       switch (error.typ) {
         case ChatTypes.LocalConversationErrorType.selfrekeyneeded: {
-          yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
-          yield put({type: 'chat:updateInboxRekeySelf', payload: {conversationIDKey}})
+          yield put(({payload: {conversation}, type: 'chat:updateInbox'}: Constants.UpdateInbox))
+          yield put({payload: {conversationIDKey}, type: 'chat:updateInboxRekeySelf'})
           break
         }
         case ChatTypes.LocalConversationErrorType.otherrekeyneeded: {
-          yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
+          yield put(({payload: {conversation}, type: 'chat:updateInbox'}: Constants.UpdateInbox))
           const rekeyers = error.rekeyInfo.rekeyers
-          yield put({type: 'chat:updateInboxRekeyOthers', payload: {conversationIDKey, rekeyers}})
+          yield put({payload: {conversationIDKey, rekeyers}, type: 'chat:updateInboxRekeyOthers'})
           break
         }
         default:
@@ -294,14 +293,13 @@ function * _unboxConversations (conversationIDKeys: Array<Constants.Conversation
             console.warn('Inbox error:', error)
           }
       }
-    } else if (incoming.finished) {
-      break
-    } else if (incoming.timeout) {
+    } else if (incoming.finished || incoming.timeout) {
       break
     }
   }
 }
 
+// Convert server to our data type. Make timestamps and snippets
 function _conversationLocalToInboxState (c: ?ChatTypes.ConversationLocal): ?Constants.InboxState {
   if (!c ||
       !c.info ||
