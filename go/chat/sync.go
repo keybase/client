@@ -19,7 +19,6 @@ type Syncer struct {
 	sync.Mutex
 
 	isConnected bool
-	// TODO access to this list is not done in a threadsafe manner
 	offlinables []types.Offlinable
 }
 
@@ -47,27 +46,27 @@ func (s *Syncer) SendChatStaleNotifications(uid gregor1.UID, convs []chat1.Conve
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) (err error) {
 	ctx = CtxAddLogTags(ctx)
 	s.Debug(ctx, "Connected: running")
-
 	s.Lock()
+	defer s.Unlock()
+
 	s.isConnected = true
-	s.Unlock()
 
 	// Let the Offlinables know that we are back online
 	for _, o := range s.offlinables {
 		o.Connected(ctx)
 	}
 
-	s.Sync(ctx, cli, uid)
+	s.sync(ctx, cli, uid)
 
 	return nil
 }
 
 func (s *Syncer) Disconnected(ctx context.Context) {
 	s.Debug(ctx, "Disconnected: running")
-
 	s.Lock()
+	defer s.Unlock()
+
 	s.isConnected = false
-	s.Unlock()
 
 	// Let the Offlinables know of connection state change
 	for _, o := range s.offlinables {
@@ -77,11 +76,15 @@ func (s *Syncer) Disconnected(ctx context.Context) {
 
 func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) (err error) {
 	s.Lock()
+	defer s.Unlock()
+	return s.sync(ctx, cli, uid)
+}
+
+func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) (err error) {
 	if !s.isConnected {
 		s.Debug(ctx, "Sync: aborting because currently offline")
 		return OfflineError{}
 	}
-	s.Unlock()
 
 	// Grab current on disk version
 	ibox := storage.NewInbox(s.G(), uid, func() libkb.SecretUI {
@@ -138,6 +141,6 @@ func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 
 func (s *Syncer) RegisterOfflinable(offlinable types.Offlinable) {
 	s.Lock()
+	defer s.Unlock()
 	s.offlinables = append(s.offlinables, offlinable)
-	s.Unlock()
 }
