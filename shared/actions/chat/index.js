@@ -409,7 +409,6 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
         messageTypes,
       },
     },
-    type: 'chat:prependMessages',
   })
 
   while (true) {
