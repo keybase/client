@@ -872,7 +872,7 @@ func (h *chatLocalHandler) MakePreview(ctx context.Context, arg chat1.MakePrevie
 		return chat1.MakePreviewRes{}, err
 	}
 
-	res := chat1.MakePreviewRes{
+	res = chat1.MakePreviewRes{
 		MimeType: pre.ContentType,
 	}
 
