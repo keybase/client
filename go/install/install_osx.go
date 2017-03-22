@@ -557,6 +557,51 @@ func InstallKBFS(context Context, binPath string, force bool, timeout time.Durat
 	return nil
 }
 
+// InstallKBNM installs the Keybase NativeMessaging whitelist
+func InstallKBNM(context Context, binPath string, log Log) error {
+	// Find path of the keybase binary
+	hostPath, err := chooseBinPath(binPath)
+	if err != nil {
+		return err
+	}
+
+	metadata := struct {
+		Name           string   `json:"name"`
+		Description    string   `json:"description"`
+		Path           string   `json:"path"`
+		Type           string   `json:"type"`
+		AllowedOrigins []string `json:"allowed_origins"`
+	}{
+		Name:        "io.keybase.kbnm",
+		Description: "Keybase Native Messaging API",
+		Path:        hostPath,
+		Type:        "stdio",
+		AllowedOrigins: []string{
+			"chrome-extension://bddkhaigcjacfohdeklflaigfnebicfm/",
+		},
+	}
+
+	// TODO: Find path to write JSON into, one of:
+	// "/Library/Google/Chrome/NativeMessagingHosts"
+	// "$HOME/Library/Application Support/Google/Chrome/NativeMessagingHosts"
+
+	// XXX: Are we always root?
+	jsonPath := filepath.Join("/Library/Google/Chrome/NativeMessagingHosts", metadata.Name+".json")
+
+	// TODO: Write JSON
+	// {
+	//   "name": "io.keybase.kbnm",
+	//   "description": "Keybase Native Messaging API",
+	//   "path": "@@HOST_PATH@@",
+	//   "type": "stdio",
+	//   "allowed_origins": [
+	//     "chrome-extension://bddkhaigcjacfohdeklflaigfnebicfm/"
+	//   ]
+	// }
+
+	return nil
+}
+
 // Uninstall uninstalls all keybase services
 func Uninstall(context Context, components []string, log Log) keybase1.UninstallResult {
 	var err error
