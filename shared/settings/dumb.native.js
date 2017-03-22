@@ -3,7 +3,8 @@
 import React from 'react'
 import {Box} from '../common-adapters'
 import About from './about'
-import SettingsNav from './nav/index.native'
+import SettingsNav from './nav'
+import Feedback from './feedback'
 import * as settingsConstants from '../constants/settings'
 
 import type {DumbComponentMap} from '../constants/types/more'
@@ -26,7 +27,17 @@ const settingsNavMap: DumbComponentMap<SettingsNav> = {
   },
 }
 
+const feedbackMap: DumbComponentMap<SettingsNav> = {
+  component: Feedback,
+  mocks: {
+    'Normal': {
+      onSendFeedback: (sendLogs) => console.log('todo', sendLogs),
+    },
+  },
+}
+
 export default {
   About: aboutMap,
   SettingsNav: settingsNavMap,
+  Feedback: feedbackMap,
 }

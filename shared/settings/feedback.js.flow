@@ -1,0 +1,12 @@
+// @flow
+
+import {Component} from 'react'
+
+export type Props = {
+  onSendFeedback: (includeLogs: boolean) => void,
+  showSuccessBanner: boolean,
+}
+
+export default class Feedback extends Component<void, Props, void> { }
+
+
