@@ -216,27 +216,27 @@ export const ConversationBadgeStateRecord = Record({
 export type ConversationStateEnum = $Keys<typeof ChatTypes.CommonConversationStatus>
 
 export const InboxStateRecord = Record({
+  conversationIDKey: '',
   info: null,
   isEmpty: false,
   participants: List(),
-  conversationIDKey: '',
-  time: 0,
-  status: 'unfiled',
   snippet: '',
   snippetKey: null,
-  validated: false,
+  state: 'untrusted',
+  status: 'unfiled',
+  time: 0,
 })
 
 export type InboxState = Record<{
+  conversationIDKey: ConversationIDKey,
   info: ConversationInfoLocal,
   isEmpty: boolean,
   participants: List<string>,
-  conversationIDKey: ConversationIDKey,
-  time: number,
   snippet: string,
   snippetKey: any,
+  state: 'untrusted' | 'unboxed' | 'error',
   status: ConversationStateEnum,
-  validated: boolean,
+  time: number,
 }>
 
 export type SupersedeInfo = {
@@ -359,6 +359,7 @@ export type UpdateInboxRekeyOthers = NoErrorTypedAction<'chat:updateInboxRekeyOt
 export type UpdateFinalizedState = NoErrorTypedAction<'chat:updateFinalizedState', {finalizedState: FinalizedState}>
 export type UpdateSupersedesState = NoErrorTypedAction<'chat:updateSupersedesState', {supersedesState: SupersedesState}>
 export type UpdateSupersededByState = NoErrorTypedAction<'chat:updateSupersededByState', {supersededByState: SupersededByState}>
+export type UnboxInbox = NoErrorTypedAction<'chat:updateSupersededByState', {conversationIDKeys: Array<ConversationIDKey>}>
 
 export type UpdateInboxRekeySelf = NoErrorTypedAction<'chat:updateInboxRekeySelf', {conversationIDKey: ConversationIDKey}>
 export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>

@@ -891,8 +891,8 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
 
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
-    safeTakeSerially('chat:loadInbox', Inbox.onLoadInboxMaybeOnce),
-    safeTakeLatest('chat:inboxStale', Inbox.onLoadInbox),
+    safeTakeSerially('chat:loadInbox', Inbox.onInitialInboxLoad),
+    safeTakeLatest('chat:inboxStale', Inbox.onInboxStale),
     safeTakeEvery('chat:loadMoreMessages', cancelWhen(_threadIsCleared, _loadMoreMessages)),
     safeTakeLatest('chat:selectConversation', _selectConversation),
     safeTakeEvery('chat:updateBadging', _updateBadging),

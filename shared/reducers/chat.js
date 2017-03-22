@@ -379,8 +379,8 @@ function reducer (state: State = initialState, action: Actions) {
       }))
 
       return state.set('inbox', newInbox).set('rekeyInfos', Map())
-    case 'chat:updateInboxComplete':
-      return state.set('inbox', state.get('inbox').filter(i => i.get('validated')))
+    // case 'chat:updateInboxComplete':
+      //return state.set('inbox', state.get('inbox').filter(i => i.get('validated')))
     case 'chat:updateInbox':
       const convo: InboxState = action.payload.conversation
       const toFind = convo.get('conversationIDKey')
