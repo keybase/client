@@ -2,11 +2,12 @@ package auth
 
 import (
 	"fmt"
+	"time"
+
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 const (
@@ -226,9 +227,13 @@ func (v *CredentialAuthority) runWithCancel(body func(ctx context.Context) error
 // pollLoop() keeps running until the CA is shut down via Shutdown(). It calls Poll()
 // on the UserKeyAPIer once per iteration.
 func (v *CredentialAuthority) pollLoop() {
-	var err error
-	for err != ErrShutdown {
-		err = v.pollOnce()
+	for {
+		if err := v.pollOnce(); err != nil {
+			if err == ErrShutdown {
+				return
+			}
+			time.Sleep(pollWait)
+		}
 	}
 }
 
