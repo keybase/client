@@ -2,11 +2,12 @@ package auth
 
 import (
 	"fmt"
+	"time"
+
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 const (
@@ -118,7 +119,11 @@ type UserKeyAPIer interface {
 	GetUser(context.Context, keybase1.UID) (
 		un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, err error)
 	// PollForChanges returns the UIDs that have recently changed on the server
-	// side. It will be called in a poll loop.
+	// side. It will be called in a poll loop. This call should function as
+	// a *long poll*, meaning, it should not return unless there is a change
+	// to report, or a sufficient amount of time has passed. If an error occurred,
+	// then PollForChanges should delay before return, so we don't wind up
+	// busy-waiting.
 	PollForChanges(context.Context) ([]keybase1.UID, error)
 }
 
@@ -226,9 +231,11 @@ func (v *CredentialAuthority) runWithCancel(body func(ctx context.Context) error
 // pollLoop() keeps running until the CA is shut down via Shutdown(). It calls Poll()
 // on the UserKeyAPIer once per iteration.
 func (v *CredentialAuthority) pollLoop() {
-	var err error
-	for err != ErrShutdown {
-		err = v.pollOnce()
+	for {
+		// We rely on pollOnce to not return right away, so we don't busy loop.
+		if v.pollOnce() == ErrShutdown {
+			break
+		}
 	}
 }
 
@@ -479,7 +486,7 @@ func (v *CredentialAuthority) CheckUserKey(ctx context.Context, uid keybase1.UID
 	v.checkCh <- checkArg{uid: uid, username: username, kid: kid, retCh: retCh}
 	select {
 	case <-ctx.Done():
-		err = ErrCanceled
+		err = ctx.Err()
 	case err = <-retCh:
 	}
 	return err
@@ -506,7 +513,7 @@ func (v *CredentialAuthority) CompareUserKeys(ctx context.Context, uid keybase1.
 	v.checkCh <- checkArg{uid: uid, sibkeys: sibkeys, subkeys: subkeys, retCh: retCh}
 	select {
 	case <-ctx.Done():
-		err = ErrCanceled
+		err = ctx.Err()
 	case err = <-retCh:
 	}
 	return err

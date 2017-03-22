@@ -72,6 +72,7 @@ func (u *userKeyAPI) GetUser(ctx context.Context, uid keybase1.UID) (
 		Args: libkb.HTTPArgs{
 			"uid": libkb.S{Val: uid.String()},
 		},
+		NetContext: ctx,
 	}, &ukr)
 	if err != nil {
 		return "", nil, nil, err
@@ -87,24 +88,28 @@ func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, e
 		}
 	}()
 
-	select {
-	case <-ctx.Done():
-		return nil, ErrCanceled
-	case <-time.After(pollWait):
-	}
-
 	var psb pubsubResponse
 	args := libkb.HTTPArgs{
 		"feed":            libkb.S{Val: "user.key_change"},
 		"last_sync_stamp": libkb.I{Val: u.lastSyncPoint},
 		"instance_id":     libkb.S{Val: u.instanceID},
+		"wait_for_msec":   libkb.I{Val: int(pollWait / time.Millisecond)},
 	}
 	err = u.api.GetDecode(libkb.APIArg{
-		Endpoint: "pubsub/poll",
-		Args:     args,
+		Endpoint:   "pubsub/poll",
+		Args:       args,
+		NetContext: ctx,
 	}, &psb)
 
+	// If there was an error (say if the API server was down), then don't busy
+	// loop, wait the pollWait amount of time before exiting.
 	if err != nil {
+		u.log.Debug("Error in poll; waiting for pollWait=%s time", pollWait)
+		select {
+		case <-time.After(pollWait):
+		case <-ctx.Done():
+			u.log.Debug("Wait short-circuited due to context cancelation")
+		}
 		return uids, err
 	}
 
