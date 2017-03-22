@@ -1210,11 +1210,11 @@ func (e TLFCryptKeyNotPerDeviceEncrypted) Error() string {
 }
 
 type cachePutCacheFullError struct {
-	ptr BlockPointer
+	blockID kbfsblock.ID
 }
 
 func (e cachePutCacheFullError) Error() string {
-	return fmt.Sprintf("tried and failed to put transient block into the cache because it is full. Pointer: %+v", e.ptr)
+	return fmt.Sprintf("tried and failed to put transient block into the cache because it is full. Block: %s", e.blockID)
 }
 
 // FileTooBigForCRError indicates that a file is too big to fit in
