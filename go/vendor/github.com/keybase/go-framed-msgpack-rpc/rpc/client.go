@@ -12,12 +12,14 @@ import (
 type Client struct {
 	xp             Transporter
 	errorUnwrapper ErrorUnwrapper
+	tagsFunc       LogTagsFromContext
 }
 
 // NewClient constructs a new client from the given RPC Transporter and the
 // ErrorUnwrapper.
-func NewClient(xp Transporter, u ErrorUnwrapper) *Client {
-	return &Client{xp, u}
+func NewClient(xp Transporter, u ErrorUnwrapper,
+	tagsFunc LogTagsFromContext) *Client {
+	return &Client{xp, u, tagsFunc}
 }
 
 // Call makes an msgpack RPC call over the transports that's bound to this
@@ -29,6 +31,20 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 	if ctx == nil {
 		return errors.New("No Context provided for this call")
 	}
+
+	if c.tagsFunc != nil {
+		tags, ok := c.tagsFunc(ctx)
+		if ok {
+			rpcTags := make(CtxRpcTags)
+			for key, tagName := range tags {
+				if v := ctx.Value(key); v != nil {
+					rpcTags[tagName] = v
+				}
+			}
+			ctx = AddRpcTagsToContext(ctx, rpcTags)
+		}
+	}
+
 	c.xp.receiveFrames()
 	d, err := c.xp.getDispatcher()
 	if err != nil {

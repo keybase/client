@@ -560,3 +560,11 @@ func JoinPredicate(arr []string, delimeter string, f func(s string) bool) string
 	}
 	return strings.Join(arrNew, delimeter)
 }
+
+// LogTagsFromContext is a wrapper around logger.LogTagsFromContext
+// that simply casts the result to the type expected by
+// rpc.Connection.
+func LogTagsFromContext(ctx context.Context) (map[interface{}]string, bool) {
+	tags, ok := logger.LogTagsFromContext(ctx)
+	return map[interface{}]string(tags), ok
+}

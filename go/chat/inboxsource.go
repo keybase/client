@@ -701,15 +701,15 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 	eg.Go(func() error {
 		defer close(convCh)
 		for i, conv := range convs {
-			select {
-			case convCh <- job{conv: conv, index: i}:
-			case <-ctx.Done():
-				return ctx.Err()
-			}
 			if maxUnbox != nil && i >= *maxUnbox {
 				s.Debug(ctx, "pipeline: maxUnbox set and reached, early exit: %d",
 					*maxUnbox)
 				return nil
+			}
+			select {
+			case convCh <- job{conv: conv, index: i}:
+			case <-ctx.Done():
+				return ctx.Err()
 			}
 		}
 		return nil

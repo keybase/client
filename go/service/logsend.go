@@ -30,7 +30,7 @@ func (h *LogsendHandler) PrepareLogsend(ctx context.Context) error {
 		return errors.New("GUI main process wasn't found")
 	}
 
-	cli := keybase1.LogsendClient{Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{})}
+	cli := keybase1.LogsendClient{Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil)}
 	var cancel func()
 	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()

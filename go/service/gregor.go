@@ -72,7 +72,7 @@ func newGregorFirehoseHandler(g *libkb.GlobalContext, connID libkb.ConnectionID,
 	return &gregorFirehoseHandler{
 		Contextified: libkb.NewContextified(g),
 		connID:       connID,
-		cli:          keybase1.GregorUIClient{Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{})},
+		cli:          keybase1.GregorUIClient{Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil)},
 	}
 }
 
