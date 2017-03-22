@@ -296,7 +296,7 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 	}
 	if lifetime == TransientEntry {
 		if !transientCacheHasRoom {
-			return cachePutCacheFullError{ptr}
+			return cachePutCacheFullError{ptr.ID}
 		}
 		b.cleanTransient.Add(ptr.ID, blockContainer{block, hasPrefetched})
 	}

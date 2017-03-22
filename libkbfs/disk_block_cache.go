@@ -31,6 +31,7 @@ const (
 	defaultDiskBlockCacheMaxBytes uint64 = 10 * (1 << 30)
 	evictionConsiderationFactor   int    = 3
 	defaultNumBlocksToEvict       int    = 10
+	maxEvictionsPerPut            int    = 4
 	blockDbFilename               string = "diskCacheBlocks.leveldb"
 	metaDbFilename                string = "diskCacheMetadata.leveldb"
 	tlfDbFilename                 string = "diskCacheTLF.leveldb"
@@ -400,7 +401,8 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 		return err
 	}
 	if !hasKey {
-		for {
+		i := 0
+		for ; i < maxEvictionsPerPut; i++ {
 			select {
 			// Ensure we don't loop infinitely
 			case <-ctx.Done():
@@ -424,6 +426,9 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 			if numRemoved == 0 {
 				return errors.New("couldn't evict any more blocks from the disk cache")
 			}
+		}
+		if i == maxEvictionsPerPut {
+			return cachePutCacheFullError{blockID}
 		}
 		err = cache.blockDb.Put(blockKey, entry, nil)
 		if err != nil {

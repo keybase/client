@@ -300,7 +300,7 @@ func TestBlockCacheEvictIncludesPermanentSize(t *testing.T) {
 	id := kbfsblock.FakeID(8)
 	ptr = BlockPointer{ID: id}
 	err = bcache.Put(ptr, tlf, block, TransientEntry)
-	require.EqualError(t, err, cachePutCacheFullError{ptr}.Error())
+	require.EqualError(t, err, cachePutCacheFullError{ptr.ID}.Error())
 
 	// All transient blocks should be gone (including the new one)
 	_, err = bcache.Get(BlockPointer{ID: idPerm})
