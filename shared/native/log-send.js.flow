@@ -1,4 +1,4 @@
 // @flow
-declare function logSend(): Promise<string>
+declare function logSend(feedback: string): Promise<string>
 
 export default logSend
