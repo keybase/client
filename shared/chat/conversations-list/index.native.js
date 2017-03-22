@@ -184,7 +184,8 @@ class ConversationList extends PureComponent<void, Props, {dataSource: any}> {
     const idxs = Object.keys(visibleRows.s1)
 
     if (idxs.length) {
-      const conversationIDKey = this.props.rows.get(idxs[0]).conversationIDKey
+      const idx = parseInt(idxs[0], 10)
+      const conversationIDKey = this.props.rows.get(idx)
       this.props.onUntrustedInboxVisible(conversationIDKey, idxs.length)
     }
   }, 1000)
