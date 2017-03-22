@@ -54,14 +54,23 @@ func newDiskBlockCacheStandardForTest(config *testDiskBlockCacheConfig,
 		return nil, err
 	}
 	if limiter == nil {
-		limiter, err = newBackpressureDiskLimiterWithFunctions(
-			config.MakeLogger(""), 0.5, 0.95, 0.25, 0.25,
-			testDiskBlockCacheMaxBytes, maxFiles, time.Second,
-			defaultDoDelay, func() (int64, int64, error) {
+		params := backpressureDiskLimiterParams{
+			minThreshold:  0.5,
+			maxThreshold:  0.95,
+			journalFrac:   0.25,
+			diskCacheFrac: 0.25,
+			byteLimit:     testDiskBlockCacheMaxBytes,
+			fileLimit:     maxFiles,
+			maxDelay:      time.Second,
+			delayFn:       defaultDoDelay,
+			freeBytesAndFilesFn: func() (int64, int64, error) {
 				// hackity hackeroni: simulate the disk cache taking up space.
 				freeBytes := maxBytes - int64(cache.currBytes)
 				return freeBytes, maxFiles, nil
-			})
+			},
+		}
+		limiter, err = newBackpressureDiskLimiter(
+			config.MakeLogger(""), params)
 		if err != nil {
 			return nil, err
 		}

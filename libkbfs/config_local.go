@@ -946,33 +946,15 @@ func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
 	return nil
 }
 
-// defaultDiskLimitMaxDelay is the maximum amount to delay a block
-// put.
-const defaultDiskLimitMaxDelay = 10 * time.Second
-
 // MakeDiskLimiter makes a DiskLimiter for use in journaling and disk caching.
 func (c *ConfigLocal) MakeDiskLimiter(configRoot string) (DiskLimiter, error) {
-	const (
-		backpressureMinThreshold = 0.5
-		backpressureMaxThreshold = 0.95
-		// Cap journal usage to a 15% of free space.
-		journalByteLimitFrac = 0.15
-		// Cap disk cache usage to a 10% of free space.
-		diskCacheByteLimitFrac = 0.10
-		// Set the absolute filesystem byte limit to 200 GiB. This will be
-		// scaled by the various *Frac parameters.
-		byteLimit int64 = 200 * 1024 * 1024 * 1024
-		// Set the absolute file limit to 6 million for now.
-		fileLimit int64 = 6000000
-	)
+	params := makeDefaultBackpressureDiskLimiterParams(configRoot)
 	log := c.MakeLogger("")
-	log.Debug("Setting disk storage byte limit to %v", byteLimit)
+	log.Debug("Setting disk storage byte limit to %d and file limit to %d",
+		params.byteLimit, params.fileLimit)
 	os.MkdirAll(configRoot, 0700)
 	var err error
-	c.diskLimiter, err = newBackpressureDiskLimiter(log,
-		backpressureMinThreshold, backpressureMaxThreshold,
-		journalByteLimitFrac, diskCacheByteLimitFrac, byteLimit, fileLimit,
-		defaultDiskLimitMaxDelay, configRoot)
+	c.diskLimiter, err = newBackpressureDiskLimiter(log, params)
 	return c.diskLimiter, err
 }
 

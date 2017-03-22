@@ -259,42 +259,110 @@ type backpressureDiskLimiter struct {
 
 var _ DiskLimiter = (*backpressureDiskLimiter)(nil)
 
-// newBackpressureDiskLimiterWithFunctions constructs a new
-// backpressureDiskLimiter with the given parameters, and also the
-// given delay function, which is overridden in tests.
-func newBackpressureDiskLimiterWithFunctions(log logger.Logger,
-	backpressureMinThreshold, backpressureMaxThreshold, journalFrac,
-	diskCacheFrac float64, byteLimit, fileLimit int64, maxDelay time.Duration,
-	delayFn func(context.Context, time.Duration) error,
-	freeBytesAndFilesFn func() (int64, int64, error)) (
+type backpressureDiskLimiterParams struct {
+	// minThreshold is the fraction of the free bytes/files at
+	// which we start to apply backpressure.
+	minThreshold float64
+	// maxThreshold is the fraction of the free bytes/files at
+	// which we max out on backpressure.
+	maxThreshold float64
+	// journalFrac is fraction of the free bytes/files that the
+	// journal is allowed to use.
+	journalFrac float64
+	// diskCacheFrac is the fraction of the free bytes that the
+	// disk cache is allowed to use. The disk cache doesn't store
+	// individual files.
+	diskCacheFrac float64
+	// byteLimit is the total cap for free bytes. The journal will
+	// be allowed to use at most journalFrac*byteLimit, and the
+	// disk cache will be allowed to use at most
+	// diskCacheFrac*byteLimit.
+	byteLimit int64
+	// maxFreeFiles is the cap for free files. The journal will be
+	// allowed to use at most journalFrac*fileLimit. This limit
+	// doesn't apply to the disk cache, since it doesn't store
+	// individual files.
+	fileLimit int64
+	// maxDelay is the maximum delay used for backpressure.
+	maxDelay time.Duration
+	// delayFn is a function that takes a context and a duration
+	// and returns after sleeping for that duration, or if the
+	// context is cancelled. Overridable for testing.
+	delayFn func(context.Context, time.Duration) error
+	// freeBytesAndFilesFn is a function that returns the current
+	// free bytes and files on the disk containing the
+	// journal/disk cache directory. Overridable for testing.
+	freeBytesAndFilesFn func() (int64, int64, error)
+}
+
+// defaultDiskLimitMaxDelay is the maximum amount to delay a block
+// put. Exposed as a constant as it is used by
+// tlfJournalConfigAdapter.
+const defaultDiskLimitMaxDelay = 10 * time.Second
+
+func makeDefaultBackpressureDiskLimiterParams(
+	storageRoot string) backpressureDiskLimiterParams {
+	return backpressureDiskLimiterParams{
+		// Start backpressure when 50% of free bytes or files
+		// are used...
+		minThreshold: 0.5,
+		// ...and max it out at 95% (slightly less than 100%
+		// to allow for inaccuracies in estimates).
+		maxThreshold: 0.95,
+		// Cap journal usage to 15% of free bytes and files...
+		journalFrac: 0.15,
+		// ...and cap disk cache usage to 10% of free
+		// bytes. The disk cache doesn't store individual
+		// files.
+		diskCacheFrac: 0.10,
+		// Set the byte limit to 200 GiB, which translates to
+		// having the journal take up at most 30 GiB, and the
+		// disk cache to take up at most 20 GiB.
+		byteLimit: 200 * 1024 * 1024 * 1024,
+		// Set the file limit to 6 million files, which
+		// translates to having the journal take up at most
+		// 900k files.
+		fileLimit: 6000000,
+		maxDelay:  defaultDiskLimitMaxDelay,
+		delayFn:   defaultDoDelay,
+		freeBytesAndFilesFn: func() (int64, int64, error) {
+			return defaultGetFreeBytesAndFiles(storageRoot)
+		},
+	}
+}
+
+// newBackpressureDiskLimiter constructs a new backpressureDiskLimiter
+// with the given params.
+func newBackpressureDiskLimiter(
+	log logger.Logger, params backpressureDiskLimiterParams) (
 	*backpressureDiskLimiter, error) {
-	freeBytes, freeFiles, err := freeBytesAndFilesFn()
+	freeBytes, freeFiles, err := params.freeBytesAndFilesFn()
 	if err != nil {
 		return nil, err
 	}
-	// byteLimit and fileLimit must be scaled by the proportion of the limit
-	// that the journal should consume.
-	journalByteLimit := int64((float64(byteLimit) * journalFrac) + 0.5)
+	// byteLimit and fileLimit must be scaled by the proportion of
+	// the limit that the journal should consume.
+	journalByteLimit := int64((float64(params.byteLimit) * params.journalFrac) + 0.5)
 	byteTracker, err := newBackpressureTracker(
-		backpressureMinThreshold, backpressureMaxThreshold,
-		journalFrac, journalByteLimit, freeBytes)
+		params.minThreshold, params.maxThreshold,
+		params.journalFrac, journalByteLimit, freeBytes)
 	if err != nil {
 		return nil, err
 	}
 	// the fileLimit is only used here, but in the interest of consistency with
 	// how we treat the byteLimit, we multiply it by the journalFrac.
-	journalFileLimit := int64((float64(fileLimit) * journalFrac) + 0.5)
+	journalFileLimit := int64((float64(params.fileLimit) * params.journalFrac) + 0.5)
 	fileTracker, err := newBackpressureTracker(
-		backpressureMinThreshold, backpressureMaxThreshold,
-		journalFrac, journalFileLimit, freeFiles)
+		params.minThreshold, params.maxThreshold,
+		params.journalFrac, journalFileLimit, freeFiles)
 	if err != nil {
 		return nil, err
 	}
-	diskCacheByteLimit := int64((float64(byteLimit) * diskCacheFrac) + 0.5)
+	diskCacheByteLimit := int64((float64(params.byteLimit) * params.diskCacheFrac) + 0.5)
 	diskCacheByteTracker, err := newBackpressureTracker(
-		1.0, 1.0, diskCacheFrac, diskCacheByteLimit, freeBytes)
+		1.0, 1.0, params.diskCacheFrac, diskCacheByteLimit, freeBytes)
 	bdl := &backpressureDiskLimiter{
-		log, maxDelay, delayFn, freeBytesAndFilesFn, sync.RWMutex{},
+		log, params.maxDelay, params.delayFn, params.freeBytesAndFilesFn, sync.RWMutex{},
 		byteTracker, fileTracker, diskCacheByteTracker,
 	}
 	return bdl, nil
@@ -332,20 +400,6 @@ func defaultGetFreeBytesAndFiles(path string) (int64, int64, error) {
 		freeFiles = math.MaxInt64
 	}
 	return int64(freeBytes), int64(freeFiles), nil
-}
-
-// newBackpressureDiskLimiter constructs a new backpressureDiskLimiter
-// with the given parameters.
-func newBackpressureDiskLimiter(log logger.Logger, backpressureMinThreshold,
-	backpressureMaxThreshold, journalFrac, diskCacheFrac float64, byteLimit,
-	fileLimit int64, maxDelay time.Duration, journalPath string) (
-	*backpressureDiskLimiter, error) {
-	return newBackpressureDiskLimiterWithFunctions(
-		log, backpressureMinThreshold, backpressureMaxThreshold,
-		journalFrac, diskCacheFrac, byteLimit, fileLimit, maxDelay,
-		defaultDoDelay, func() (int64, int64, error) {
-			return defaultGetFreeBytesAndFiles(journalPath)
-		})
 }
 
 type bdlSnapshot struct {
