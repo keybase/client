@@ -228,6 +228,8 @@ func (v *CredentialAuthority) runWithCancel(body func(ctx context.Context) error
 // on the UserKeyAPIer once per iteration.
 func (v *CredentialAuthority) pollLoop() {
 	for {
+		// pollOnce will block for pollWait amount of time if there are no events
+		// to receive from the server, so we only have to sleep if there is an error
 		if err := v.pollOnce(); err != nil {
 			if err == ErrShutdown {
 				return
