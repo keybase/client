@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import ConversationList from './index'
 import {connect} from 'react-redux'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
-import {loadInbox, newChat} from '../../actions/chat'
+import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -33,5 +33,6 @@ export default connect(
   (dispatch: Dispatch) => ({
     loadInbox: () => dispatch(loadInbox()),
     onNewChat: () => dispatch(newChat([])),
+    onUntrustedInboxVisible: (converationIDKey, rowsVisible) => dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
   })
 )(ConversationList)

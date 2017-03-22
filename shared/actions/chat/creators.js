@@ -179,6 +179,20 @@ function updateTempMessage (conversationIDKey: Constants.ConversationIDKey, mess
   }
 }
 
+function untrustedInboxVisible (conversationIDKey: Constants.ConversationIDKey, rowsVisible: number): Constants.UntrustedInboxVisible {
+  return {
+    payload: {conversationIDKey, rowsVisible},
+    type: 'chat:untrustedInboxVisible',
+  }
+}
+
+function setUnboxing (conversationIDKeys: Array<Constants.ConversationIDKey>): Constants.SetUnboxing {
+  return {
+    payload: {conversationIDKeys},
+    type: 'chat:setUnboxing',
+  }
+}
+
 export {
   addPending,
   badgeAppForChat,
@@ -200,9 +214,11 @@ export {
   retryMessage,
   selectAttachment,
   selectConversation,
+  setUnboxing,
   setupChatHandlers,
   showEditor,
   startConversation,
+  untrustedInboxVisible,
   updateBadging,
   updateLatestMessage,
   updateTempMessage,

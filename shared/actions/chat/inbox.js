@@ -1,11 +1,11 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as Creators from './creators'
 import {List, Map} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
-import {call, put, select, race} from 'redux-saga/effects'
+import {call, put, select, race, fork} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
-import {loadMoreMessages, loadedInbox} from './creators'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {requestIdleCallback} from '../../util/idle-callback'
 import {singleFixedChannelConfig, takeFromChannelMap} from '../../util/saga'
@@ -27,7 +27,6 @@ const _getInboxQuery = {
 
 let _inboxUntrustedState: UntrustedState = 'unloaded'
 let _inboxUntrustedError = null
-// const inboxUnboxSize = 50
 
 // Load the inbox if we haven't yet, mostly done by the UI
 function * onInitialInboxLoad (action: Constants.LoadInbox): SagaGenerator<any, any> {
@@ -40,6 +39,32 @@ function * onInitialInboxLoad (action: Constants.LoadInbox): SagaGenerator<any, 
     _inboxUntrustedState = 'loading'
     _inboxUntrustedError = null
     yield call(onInboxStale)
+    yield fork(_backgroundUnboxLoop)
+  }
+}
+
+function * _backgroundUnboxLoop () {
+  const maxPerLoop = 10
+
+  while (true) {
+    yield call(delay, 10 * 1000)
+    const inboxes = yield select(state => state.chat.get('inbox'))
+
+    const conversationIDKeys = []
+    inboxes.forEach(inbox => {
+      if (inbox.state === 'untrusted') {
+        conversationIDKeys.push(inbox.conversationIDKey)
+        if (conversationIDKeys.length === maxPerLoop) {
+          return false
+        }
+      }
+    })
+
+    if (conversationIDKeys.length) {
+      yield call(_unboxConversations, conversationIDKeys)
+    } else {
+      break
+    }
   }
 }
 
@@ -80,8 +105,12 @@ function * onInboxStale (): SagaGenerator<any, any> {
 
   const author = yield select(usernameSelector)
   const conversations: List<Constants.InboxState> = List((inbox.conversationsUnverified || []).map(c => {
+    if (c.metadata.visibility !== ChatTypes.CommonTLFVisibility.private) { // private chats only
+      return null
+    }
+
     const msgMax = c.maxMsgSummaries && c.maxMsgSummaries.length && c.maxMsgSummaries[0]
-    if (!msgMax) {
+    if (!msgMax || msgMax.tlfName.includes('#')) { // We don't support mixed reader/writers
       return null
     }
 
@@ -96,7 +125,7 @@ function * onInboxStale (): SagaGenerator<any, any> {
     })
   }).filter(Boolean))
 
-  yield put(loadedInbox(conversations))
+  yield put(Creators.loadedInbox(conversations))
   chatInboxUnverified.response.result()
 }
 
@@ -164,13 +193,33 @@ function * updateInbox (c: ?ChatTypes.ConversationLocal): SagaGenerator<any, any
     const selectedConversation = yield select(Constants.getSelectedConversation)
     if (selectedConversation === inboxState.get('conversationIDKey')) {
       // load validated selected
-      yield put(loadMoreMessages(selectedConversation, false))
+      yield put(Creators.loadMoreMessages(selectedConversation, false))
     }
   }
 }
 
+function * untrustedInboxVisible (action: Constants.UntrustedInboxVisible): SagaGenerator<any, any> {
+  const {conversationIDKey, rowsVisible} = action.payload
+  const inboxes = yield select(state => state.chat.get('inbox'))
+
+  const idx = inboxes.findIndex(inbox => inbox.conversationIDKey === conversationIDKey)
+  if (idx === -1) {
+    return
+  }
+
+  // Collect items to unbox
+  const total = rowsVisible * 2
+  const conversationIDKeys = inboxes.slice(idx, idx + total).map(i => i.state === 'untrusted' ? i.conversationIDKey : null).filter(Boolean).toArray()
+
+  if (conversationIDKeys.length) {
+    yield call(_unboxConversations, conversationIDKeys)
+  }
+}
+
 // Loads the trusted inbox segments
-function * onUnboxInbox (action: Constants.UnboxInbox): SagaGenerator<any, any> {
+function * _unboxConversations (conversationIDKeys: Array<Constants.ConversationIDKey>): Generator<any, any, any> {
+  yield put(Creators.setUnboxing(conversationIDKeys))
+
   const channelConfig = singleFixedChannelConfig([
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
@@ -183,7 +232,7 @@ function * onUnboxInbox (action: Constants.UnboxInbox): SagaGenerator<any, any> 
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
       query: {
         ..._getInboxQuery,
-        convIDs: action.payload.conversationIDKeys.map(Constants.keyToConversationID),
+        convIDs: conversationIDKeys.map(Constants.keyToConversationID),
       },
     },
   })
@@ -289,4 +338,5 @@ export {
   onInboxStale,
   getInboxAndUnbox,
   updateInbox,
+  untrustedInboxVisible,
 }

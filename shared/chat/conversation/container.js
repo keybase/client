@@ -131,7 +131,7 @@ export default connect(
           participants,
           rekeyInfo,
           selectedConversation,
-          validated: selected && selected.validated,
+          validated: selected && selected.state === 'unboxed',
           you,
           supersedes,
           supersededBy,

@@ -309,8 +309,8 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
 
   const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
 
-  if (inboxConvo && !inboxConvo.validated) {
-    __DEV__ && console.log('Bailing on not yet validated conversation')
+  if (inboxConvo && inboxConvo.state !== 'unboxed') {
+    __DEV__ && console.log('Bailing on not yet unboxed conversation')
     return
   }
 
@@ -742,7 +742,7 @@ function * _selectConversation (action: Constants.SelectConversation): SagaGener
     yield put({type: 'chat:updateMetadata', payload: {users: inbox.get('participants').toArray()}})
   }
 
-  if (inbox && !inbox.get('validated')) {
+  if (inbox && inbox.get('state') !== 'unboxed') {
     return
   }
 
@@ -873,7 +873,7 @@ function _threadIsCleared (originalAction: Action, checkAction: Action): boolean
 
 function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConversation): SagaGenerator<any, any> {
   const inbox = yield select(inboxSelector)
-  const validInbox = inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))
+  const validInbox = inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('state') === 'unboxed')
   if (!validInbox) {
     yield put(({type: 'chat:getInboxAndUnbox', payload: {conversationIDKeys: [conversationIDKey]}}: Constants.GetInboxAndUnbox))
     const raceResult: {[key: string]: any} = yield race({
@@ -895,6 +895,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest('chat:inboxStale', Inbox.onInboxStale),
     safeTakeEvery('chat:loadMoreMessages', cancelWhen(_threadIsCleared, _loadMoreMessages)),
     safeTakeLatest('chat:selectConversation', _selectConversation),
+    safeTakeEvery('chat:untrustedInboxVisible', Inbox.untrustedInboxVisible),
     safeTakeEvery('chat:updateBadging', _updateBadging),
     safeTakeEvery('chat:setupChatHandlers', _setupChatHandlers),
     safeTakeEvery('chat:incomingMessage', _incomingMessage),
@@ -948,6 +949,7 @@ export {
   setupChatHandlers,
   showEditor,
   startConversation,
+  untrustedInboxVisible,
   updateBadging,
   updateLatestMessage,
   updateTempMessage,
