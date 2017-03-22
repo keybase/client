@@ -425,6 +425,9 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
       incoming.chatThreadFull.response.result()
       yield call(updateThread, incoming.chatThreadFull.params.thread)
     } else if (incoming.finished) {
+      if (incoming.finished.params.offline) {
+        yield put({payload: {conversationIDKey}, type: 'chat:threadLoadedOffline'})
+      }
       yield put({payload: {conversationIDKey, isLoaded: !!incoming.finished.error}, type: 'chat:setLoading'}) // reset isLoaded on error
       break
     }

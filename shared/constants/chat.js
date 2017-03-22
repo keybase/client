@@ -188,6 +188,7 @@ export const ConversationStateRecord = Record({
   isLoaded: false,
   isRequesting: false,
   isStale: false,
+  loadedOffline: false,
   paginationNext: undefined,
   paginationPrevious: undefined,
   firstNewMessageID: undefined,
@@ -200,6 +201,7 @@ export type ConversationState = Record<{
   moreToLoad: boolean,
   isRequesting: boolean,
   isStale: boolean,
+  loadedOffline: boolean,
   paginationNext: ?Buffer,
   paginationPrevious: ?Buffer,
   firstNewMessageID: ?MessageID,
@@ -369,6 +371,8 @@ export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage',
 export type UpdateMessage = NoErrorTypedAction<'chat:updateMessage', {conversationIDKey: ConversationIDKey, message: $Shape<AttachmentMessage> | $Shape<TextMessage>, messageID: MessageID}>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
+
+export type ThreadLoadedOffline = NoErrorTypedAction<'chat:threadLoadedOffline', {conversationIDKey: ConversationIDKey}>
 
 export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {input: AttachmentInput}>
 export type UpdateBrokenTracker = NoErrorTypedAction<'chat:updateBrokenTracker', {userToBroken: {[username: string]: boolean}}>
