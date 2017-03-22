@@ -11,7 +11,7 @@ import LogSend from '../dev/log-send'
 import Push from '../push/push.native'
 import DevicesRoute from '../devices/routes'
 
-import About from './about'
+import About from './about-container'
 import NotificationsContainer from './notifications/container'
 import DeleteContainer from './delete/container'
 import RemoveDevice from '../devices/device-revoke/container'
