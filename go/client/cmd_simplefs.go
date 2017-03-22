@@ -70,6 +70,12 @@ func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
 
 	path = filepath.ToSlash(filepath.Clean(path))
 
+	// Certain users seem to want to use SimpleFS on their
+	// mounted KBFS
+	if strings.HasPrefix(path, mountDir) {
+		return keybase1.NewPathWithKbfs(path[len(mountDir):])
+	}
+
 	return keybase1.NewPathWithLocal(path)
 }
 
