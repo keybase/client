@@ -5,7 +5,6 @@ import {Text, Icon, Button, Box} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 
 class Intro extends Component<void, IntroProps, void> {
-
   _renderSplash () {
     return (
       <Box style={stylesLoginForm}>
