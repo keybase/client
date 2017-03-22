@@ -54,15 +54,13 @@ func (c *CmdSimpleFSMove) Run() error {
 
 	ctx := context.TODO()
 
-	isDestDir, destPathString, err := checkPathIsDir(ctx, cli, c.dest)
-	if err != nil {
-		return err
-	}
-
 	destPaths, err := doSimpleFSGlob(c.G(), ctx, cli, c.src)
 	if err != nil {
 		return err
 	}
+
+	// Eat the error because it's ok here if the dest doesn't exist
+	isDestDir, destPathString, _ := checkPathIsDir(ctx, cli, c.dest)
 
 	for _, src := range destPaths {
 		c.G().Log.Debug("SimpleFSMove %s -> %s, %v", pathToString(src), destPathString, isDestDir)
