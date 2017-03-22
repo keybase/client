@@ -228,10 +228,12 @@ func (v *CredentialAuthority) runWithCancel(body func(ctx context.Context) error
 // on the UserKeyAPIer once per iteration.
 func (v *CredentialAuthority) pollLoop() {
 	for {
-		if err := v.pollOnce(); err == ErrShutdown {
-			return
+		if err := v.pollOnce(); err != nil {
+			if err == ErrShutdown {
+				return
+			}
+			time.Sleep(pollWait)
 		}
-		time.Sleep(time.Second)
 	}
 }
 
