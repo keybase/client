@@ -6,4 +6,3 @@ export class UnlockFoldersRender extends Component {
     return null
   }
 }
-

@@ -13,6 +13,9 @@ import type {AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFin
 import type {DeviceType} from './types/more'
 import type {TypedState} from './reducer'
 
+type MessageKey = string
+type MessageKeyKind = 'messageID' | 'outboxID' | 'tempAttachment' | 'timestamp' | 'error'
+
 export type MessageType = 'Text'
 export type FollowingMap = {[key: string]: boolean}
 
@@ -29,11 +32,6 @@ export type OutboxID = RPCOutboxID
 export type OutboxIDKey = string
 
 export type MessageID = RPCMessageID
-
-export type ClientMessage = TimestampMessage | SupersedesMessage | LoadingMoreMessage | ChatSecuredHeaderMessage
-export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage | UpdatingAttachment | InvisibleErrorMessage
-
-export type Message = ClientMessage | ServerMessage
 
 export type TextMessage = {
   type: 'Text',
@@ -173,6 +171,11 @@ export type UpdatingAttachment = {
     title: ?string,
   },
 }
+
+export type ClientMessage = TimestampMessage | SupersedesMessage | LoadingMoreMessage | ChatSecuredHeaderMessage
+export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage | UpdatingAttachment | InvisibleErrorMessage
+
+export type Message = ClientMessage | ServerMessage
 
 export type MaybeTimestamp = TimestampMessage | null
 
@@ -508,7 +511,7 @@ function serverMessageToMessageBody (message: ServerMessage): ?MessageBody {
         },
       }
     default:
-      null
+      return null
   }
 }
 
@@ -592,8 +595,6 @@ const getSelectedConversation = (state: TypedState) => {
   return selected
 }
 
-type MessageKey = string
-type MessageKeyKind = 'messageID' | 'outboxID' | 'tempAttachment' | 'timestamp' | 'error'
 function messageKey (kind: MessageKeyKind, value: string | number): MessageKey {
   return `${kind}:${value}`
 }

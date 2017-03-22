@@ -93,6 +93,7 @@ class FriendshipsRender extends Component<void, Props, State> {
 
   render () {
     const {height, width} = NativeDimensions.get('window')
+    const {isYou} = this.props
     const textWhenEmpty = {
       Followers: 'You have no followers.',
       Following: 'You are not following anyone.',
@@ -112,7 +113,7 @@ class FriendshipsRender extends Component<void, Props, State> {
             onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(tab) }}>
             <Box style={{...tabItemContainerStyle, maxHeight: height - 160, width: width}}>
               <Box style={tabItemContainerTopBorder} />
-              {counts[tab] === 0 && <Box style={tabItemEmptyStyle}>
+              {isYou && counts[tab] === 0 && <Box style={tabItemEmptyStyle}>
                 <Text type='Body' style={{color: globalColors.black_40}}>{textWhenEmpty[tab]}</Text>
               </Box>}
               <Box style={tabItemContainerUsers}>

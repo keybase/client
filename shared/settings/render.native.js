@@ -15,7 +15,6 @@ class SettingsRender extends Component<void, Props, void> {
 
     return null
   }
-
 }
 
 export default SettingsRender

@@ -186,4 +186,3 @@ export function priceToString (pennies: number): string {
     return `$${pennies / 100}/month`
   }
 }
-

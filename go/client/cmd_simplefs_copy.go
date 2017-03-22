@@ -4,6 +4,8 @@
 package client
 
 import (
+	"errors"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -19,6 +21,7 @@ type CmdSimpleFSCopy struct {
 	dest        keybase1.Path
 	recurse     bool
 	interactive bool
+	force       bool
 }
 
 // NewCmdSimpleFSCopy creates a new cli.Command.
@@ -38,6 +41,10 @@ func NewCmdSimpleFSCopy(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			cli.BoolFlag{
 				Name:  "i, interactive",
 				Usage: "Prompt before overwrite",
+			},
+			cli.BoolFlag{
+				Name:  "f, force",
+				Usage: "force overwrite",
 			},
 		},
 	}
@@ -67,8 +74,12 @@ func (c *CmdSimpleFSCopy) Run() error {
 		dest, err = makeDestPath(c.G(), ctx, cli, src, c.dest, isDestDir, destPathString)
 		c.G().Log.Debug("SimpleFSCopy %s -> %s, %v", pathToString(src), pathToString(dest), isDestDir)
 
-		if err == TargetFileExistsError && c.interactive == true {
-			err = doOverwritePrompt(c.G(), pathToString(dest))
+		if err == TargetFileExistsError {
+			if c.interactive == true {
+				err = doOverwritePrompt(c.G(), pathToString(dest))
+			} else if c.force == true {
+				err = nil
+			}
 		}
 
 		if err != nil {
@@ -112,6 +123,11 @@ func (c *CmdSimpleFSCopy) ParseArgv(ctx *cli.Context) error {
 
 	c.recurse = ctx.Bool("recursive")
 	c.interactive = ctx.Bool("interactive")
+	c.force = ctx.Bool("force")
+
+	if c.force && c.interactive {
+		return errors.New("force and interactive are incompatible")
+	}
 
 	c.src, c.dest, err = parseSrcDestArgs(c.G(), ctx, "cp")
 

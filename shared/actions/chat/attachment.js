@@ -65,7 +65,6 @@ function * _isCached (conversationIDKey, messageID): Generator<any, ?string, any
     }
   } catch (e) {
     console.warn('error in checking cached file', e)
-    return
   }
 }
 

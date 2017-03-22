@@ -165,7 +165,8 @@ func (p *provisionee) pickFirstConnection() (err error) {
 		if err != nil {
 			return err
 		}
-		cli := keybase1.Kex2ProvisionerClient{Cli: rpc.NewClient(p.xp, nil)}
+		cli := keybase1.Kex2ProvisionerClient{
+			Cli: rpc.NewClient(p.xp, nil, nil)}
 		if err = cli.KexStart(p.arg.Ctx); err != nil {
 			return err
 		}

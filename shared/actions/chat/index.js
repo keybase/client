@@ -916,7 +916,6 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
     if (raceResult.updateInbox) {
       yield put(Creators.selectConversation(conversationIDKey, false))
     }
-    return
   } else {
     yield put(Creators.selectConversation(conversationIDKey, false))
   }

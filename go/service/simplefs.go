@@ -30,7 +30,7 @@ func (s *SimpleFSHandler) client() (*keybase1.SimpleFSClient, error) {
 		return nil, errors.New("KBFS client wasn't found")
 	}
 	return &keybase1.SimpleFSClient{
-		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}),
+		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil),
 	}, nil
 }
 

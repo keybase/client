@@ -29,4 +29,3 @@ export default function (state: State = initialState, action: Actions): State {
   }
   return state
 }
-

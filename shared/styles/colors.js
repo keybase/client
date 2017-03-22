@@ -43,4 +43,3 @@ export default {
   yellowGreen3: '#d2e697',
   yellowGreen: '#a8cf36',
 }
-
