@@ -4,7 +4,7 @@ import React from 'react'
 import {globalStyles} from '../styles'
 import {Box, Icon, Text} from '../common-adapters'
 
-type Props = {}
+import type {Props} from './about'
 
 const About = ({version}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center'}}>
