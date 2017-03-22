@@ -153,7 +153,7 @@ class ConversationList extends PureComponent<void, Props, void> {
   }
 
   componentWillReceiveProps (nextProps: Props) {
-    if (this.props.rows !== nextProps.rows && nextProps.rows) {
+    if (this.props.rows !== nextProps.rows && nextProps.rows.count()) {
       this._onScroll()
     }
   }

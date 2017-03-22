@@ -3,6 +3,7 @@ import React, {PureComponent} from 'react'
 import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeListView} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../../styles'
 import {RowConnector} from './row'
+import {debounce} from 'lodash'
 
 import type {Props, RowProps} from './'
 
@@ -151,12 +152,8 @@ const _Row = (props: RowProps) => {
 
 const Row = RowConnector(_Row)
 
-type State = {
-  dataSource: any,
-}
-
-class ConversationList extends PureComponent<void, Props, State> {
-  state: State = {
+class ConversationList extends PureComponent<void, Props, {dataSource: any}> {
+  state = {
     dataSource: null,
   }
 
@@ -172,15 +169,29 @@ class ConversationList extends PureComponent<void, Props, State> {
     })
   }
 
-  componentWillMount () {
-    this.props.loadInbox()
-    this._setupDataSource(this.props)
-  }
-
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.rows !== nextProps.rows) {
       this._setupDataSource(nextProps)
+
+      if (nextProps.rows.count()) {
+        const conversationIDKey = nextProps.rows.get(0)
+        this.props.onUntrustedInboxVisible(conversationIDKey, 20)
+      }
     }
+  }
+
+  _onChangeVisibleRows = debounce((visibleRows) => {
+    const idxs = Object.keys(visibleRows.s1)
+
+    if (idxs.length) {
+      const conversationIDKey = this.props.rows.get(idxs[0]).conversationIDKey
+      this.props.onUntrustedInboxVisible(conversationIDKey, idxs.length)
+    }
+  }, 1000)
+
+  componentWillMount () {
+    this.props.loadInbox()
+    this._setupDataSource(this.props)
   }
 
   render () {
@@ -191,6 +202,7 @@ class ConversationList extends PureComponent<void, Props, State> {
           enableEmptySections={true}
           style={listStyle}
           dataSource={this.state.dataSource}
+          onChangeVisibleRows={this._onChangeVisibleRows}
           renderRow={this._itemRenderer} />
       </Box>
     )

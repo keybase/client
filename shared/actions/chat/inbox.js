@@ -11,6 +11,7 @@ import {requestIdleCallback} from '../../util/idle-callback'
 import {singleFixedChannelConfig, takeFromChannelMap} from '../../util/saga'
 import {unsafeUnwrap} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
+import {isMobile} from '../../constants/platform'
 
 import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
 
@@ -39,7 +40,9 @@ function * onInitialInboxLoad (action: Constants.LoadInbox): SagaGenerator<any, 
     _inboxUntrustedState = 'loading'
     _inboxUntrustedError = null
     yield call(onInboxStale)
-    yield fork(_backgroundUnboxLoop)
+    if (!isMobile) {
+      yield fork(_backgroundUnboxLoop)
+    }
   }
 }
 
@@ -218,6 +221,7 @@ function * untrustedInboxVisible (action: Constants.UntrustedInboxVisible): Saga
 
 // Loads the trusted inbox segments
 function * _unboxConversations (conversationIDKeys: Array<Constants.ConversationIDKey>): Generator<any, any, any> {
+  console.log('aaa', conversationIDKeys.length, '\n', conversationIDKeys.join('\n'))
   yield put(Creators.setUnboxing(conversationIDKeys))
 
   const channelConfig = singleFixedChannelConfig([
