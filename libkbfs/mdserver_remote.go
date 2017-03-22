@@ -253,6 +253,12 @@ func (md *MDServerRemote) resetAuth(
 	return pingIntervalSeconds, nil
 }
 
+func (md *MDServerRemote) getClient() keybase1.MetadataClient {
+	md.connMu.RLock()
+	defer md.connMu.RUnlock()
+	return md.client
+}
+
 // RefreshAuthToken implements the AuthTokenRefreshHandler interface.
 func (md *MDServerRemote) RefreshAuthToken(ctx context.Context) {
 	md.log.CDebugf(ctx, "MDServerRemote: Refreshing auth token...")
@@ -315,7 +321,7 @@ func (md *MDServerRemote) OnConnectError(err error, wait time.Duration) {
 	// TODO: it might make sense to show something to the user if this is
 	// due to authentication, for example.
 	md.cancelObservers()
-	md.pinger.resetTicker(0)
+	md.pinger.cancelTicker()
 	if md.authToken != nil {
 		md.authToken.Shutdown()
 	}
@@ -354,7 +360,7 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 	md.authenticatedMtx.Unlock()
 
 	md.cancelObservers()
-	md.pinger.resetTicker(0)
+	md.pinger.cancelTicker()
 	if md.authToken != nil {
 		md.authToken.Shutdown()
 	}
@@ -644,12 +650,6 @@ func (md *MDServerRemote) getConn() *rpc.Connection {
 	return md.conn
 }
 
-func (md *MDServerRemote) getClient() keybase1.MetadataClient {
-	md.connMu.RLock()
-	defer md.connMu.RUnlock()
-	return md.client
-}
-
 // RegisterForUpdate implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id tlf.ID,
 	currHead MetadataRevision) (<-chan error, error) {
@@ -803,7 +803,7 @@ func (md *MDServerRemote) Shutdown() {
 	// cancel pending observers
 	md.cancelObservers()
 	// cancel the ping ticker
-	md.pinger.resetTicker(0)
+	md.pinger.cancelTicker()
 	// cancel the auth token ticker
 	if md.authToken != nil {
 		md.authToken.Shutdown()

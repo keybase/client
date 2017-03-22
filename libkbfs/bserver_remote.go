@@ -114,7 +114,7 @@ func (b *blockServerRemoteClientHandler) shutdown() {
 	}
 
 	// cancel the ping ticker
-	b.pinger.resetTicker(0)
+	b.pinger.cancelTicker()
 }
 
 func (b *blockServerRemoteClientHandler) getConn() *rpc.Connection {
@@ -197,7 +197,7 @@ func (b *blockServerRemoteClientHandler) OnConnectError(err error, wait time.Dur
 	if b.authToken != nil {
 		b.authToken.Shutdown()
 	}
-	b.pinger.resetTicker(0)
+	b.pinger.cancelTicker()
 	// TODO: it might make sense to show something to the user if this is
 	// due to authentication, for example.
 }
@@ -216,7 +216,7 @@ func (b *blockServerRemoteClientHandler) OnDisconnected(ctx context.Context,
 	if b.authToken != nil {
 		b.authToken.Shutdown()
 	}
-	b.pinger.resetTicker(0)
+	b.pinger.cancelTicker()
 }
 
 // ShouldRetry implements the ConnectionHandler interface.

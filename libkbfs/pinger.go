@@ -29,7 +29,7 @@ func (p *pinger) pingOnce(ctx context.Context) {
 	p.doPing(ctx)
 }
 
-func (p *pinger) resetTicker(intervalSeconds int) {
+func (p *pinger) cancelTicker() {
 	p.tickerMu.Lock()
 	defer p.tickerMu.Unlock()
 
@@ -37,8 +37,15 @@ func (p *pinger) resetTicker(intervalSeconds int) {
 		p.tickerCancel()
 		p.tickerCancel = nil
 	}
-	if intervalSeconds <= 0 {
-		return
+}
+
+func (p *pinger) resetTicker(intervalSeconds int) {
+	p.tickerMu.Lock()
+	defer p.tickerMu.Unlock()
+
+	if p.tickerCancel != nil {
+		p.tickerCancel()
+		p.tickerCancel = nil
 	}
 
 	p.log.CDebugf(context.TODO(),
@@ -49,6 +56,10 @@ func (p *pinger) resetTicker(intervalSeconds int) {
 	ctx, p.tickerCancel = context.WithCancel(context.Background())
 	go func() {
 		p.pingOnce(ctx)
+
+		if intervalSeconds <= 0 {
+			return
+		}
 
 		ticker := time.NewTicker(time.Duration(intervalSeconds) * time.Second)
 		for {
