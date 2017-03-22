@@ -132,6 +132,11 @@ func (s SimpleFSMock) SimpleFSClose(ctx context.Context, arg keybase1.OpID) erro
 	return nil
 }
 
+// SimpleFSCancel - Cancels a running operation, like copy.
+func (s SimpleFSMock) SimpleFSCancel(ctx context.Context, arg keybase1.OpID) error {
+	return nil
+}
+
 // SimpleFSCheck - Check progress of pending operation
 func (s SimpleFSMock) SimpleFSCheck(ctx context.Context, arg keybase1.OpID) (keybase1.Progress, error) {
 	return 0, nil
