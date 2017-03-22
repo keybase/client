@@ -6,7 +6,7 @@ import {Box, Button, Checkbox, Icon, Text, Input} from '../common-adapters'
 import {withState} from 'recompose'
 
 const Feedback = ({onSendFeedback, showSuccessBanner, sendLogs, onChangeSendLogs}) => (
-  <Box style={globalStyles.flexBoxColumn}>
+  <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginBottom: globalMargins.medium}}>
     {showSuccessBanner &&
       <Box style={{flex: 1, height: 40, ...globalStyles.flexBoxRow, backgroundColor: globalColors.green, alignItems: 'center'}}>
         <Text type='BodySemibold' backgroundMode='Success' style={{flex: 1, textAlign: 'center'}}>Thanks! Your feedback was sent.</Text>
