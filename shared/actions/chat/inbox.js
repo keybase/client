@@ -18,15 +18,22 @@ import type {TypedState} from '../../constants/reducer'
 const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
 const followingSelector = (state: TypedState) => state.config.following
 
-let _loadedInboxOnce = false
 function * onLoadInboxMaybeOnce (action: Constants.LoadInbox): SagaGenerator<any, any> {
-  if (!_loadedInboxOnce || action.payload.force) {
-    _loadedInboxOnce = true
+  // Don't load if we are currently loading. Load if we haven't ever loaded,
+  // or had an error or are forcing it
+  if (!_inboxLoading && (!_inboxLoadedOnce || _inboxError || action.payload.force)) {
+    _inboxLoadedOnce = true
+    _inboxLoading = true
     yield call(onLoadInbox)
   }
 }
 
+let _inboxLoadedOnce = false
+let _inboxLoading = false
+let _inboxError = null
 function * onLoadInbox (): SagaGenerator<any, any> {
+  _inboxError = null
+  _inboxLoading = true
   const channelConfig = singleFixedChannelConfig([
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
@@ -68,8 +75,7 @@ function * onLoadInbox (): SagaGenerator<any, any> {
 
   chatInboxUnverified.response.result()
 
-  let finishedCalled = false
-  while (!finishedCalled) {
+  while (true) {
     const incoming: {[key: string]: any} = yield race({
       chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
       chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
@@ -111,13 +117,14 @@ function * onLoadInbox (): SagaGenerator<any, any> {
       }
       // find it
     } else if (incoming.chatInboxFailed) {
-      console.log('ignoring chatInboxFailed', incoming.chatInboxFailed)
+      console.log('chatInboxFailed', incoming.chatInboxFailed)
       requestIdleCallback(() => {
         incoming.chatInboxFailed.response.result()
       }, {timeout: 100})
 
       yield call(delay, 1)
       const error = incoming.chatInboxFailed.params.error
+      _inboxError = error
       const conversationIDKey = Constants.conversationIDToKey(incoming.chatInboxFailed.params.convID)
       const conversation = new Constants.InboxStateRecord({
         conversationIDKey,
@@ -147,10 +154,12 @@ function * onLoadInbox (): SagaGenerator<any, any> {
           }
       }
     } else if (incoming.finished) {
-      finishedCalled = true
+      _inboxLoading = false
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
       break
     } else if (incoming.timeout) {
+      _inboxLoading = false
+      _inboxError = new Error('Inbox loading timed out')
       console.warn('Inbox loading timed out')
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
       break
