@@ -859,7 +859,9 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 	}, nil
 }
 
-func (h *chatLocalHandler) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (chat1.MakePreviewRes, error) {
+// MakePreview implements chat1.LocalInterface.MakePreview.
+func (h *chatLocalHandler) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res chat1.MakePreviewRes, err error) {
+	defer h.Trace(ctx, func() error { return err }, "MakePreview")()
 	src, err := newFileSource(arg.Attachment)
 	if err != nil {
 		return chat1.MakePreviewRes{}, err
