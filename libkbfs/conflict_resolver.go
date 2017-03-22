@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfssync"
 	"golang.org/x/net/context"
+	"golang.org/x/net/trace"
 )
 
 // CtxCRTagKey is the type used for unique context tags related to
@@ -139,6 +140,24 @@ func (cr *ConflictResolver) cancelExistingLocked(ci conflictInput) bool {
 		cr.currCancel()
 	}
 	return true
+}
+
+func (cr *ConflictResolver) maybeStartTrace(
+	ctx context.Context, family, title string) context.Context {
+	// TODO: Obey tracing options when we add them.
+	tr := trace.New(family, title)
+	ctx = trace.NewContext(ctx, tr)
+	return ctx
+}
+
+func (cr *ConflictResolver) maybeFinishTrace(ctx context.Context, err error) {
+	if tr, ok := trace.FromContext(ctx); ok {
+		if err != nil {
+			tr.LazyPrintf("err=%+v", err)
+			tr.SetError()
+		}
+		tr.Finish()
+	}
 }
 
 // processInput processes conflict resolution jobs from the given
@@ -3837,11 +3856,14 @@ func (e CRWrapError) Error() string {
 }
 
 func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
-	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
+	ctx = cr.maybeStartTrace(ctx, "CR.doResolve",
+		fmt.Sprintf("%s %+v", cr.fbo.folderBranch, ci))
+	defer func() { cr.maybeFinishTrace(ctx, err) }()
+	cr.log.CDebugf(ctx, "Starting conflict resolution with input %+v", ci)
 	lState := makeFBOLockState()
 	defer func() {
-		cr.log.CDebugf(ctx, "Finished conflict resolution: %v", err)
+		cr.log.CDebugf(ctx, "Finished conflict resolution: %+v", err)
 		if err != nil {
 			head := cr.fbo.getTrustedHead(lState)
 			if head == (ImmutableRootMetadata{}) {

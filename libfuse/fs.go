@@ -23,6 +23,7 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
+	"golang.org/x/net/trace"
 )
 
 // FS implements the newfuse FS interface for KBFS.
@@ -56,6 +57,18 @@ type FS struct {
 	quotaUsage *libkbfs.EventuallyConsistentQuotaUsage
 }
 
+func makeTraceHandler(renderFn func(http.ResponseWriter, *http.Request, bool)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		any, sensitive := trace.AuthRequest(req)
+		if !any {
+			http.Error(w, "not allowed", http.StatusUnauthorized)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		renderFn(w, req, sensitive)
+	}
+}
+
 // NewFS creates an FS
 func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool, platformParams PlatformParams) *FS {
 	log := config.MakeLogger("kbfsfuse")
@@ -72,11 +85,17 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool, platformParams Pl
 	serveMux := http.NewServeMux()
 
 	// Replicate the default endpoints from pprof's init function.
-	serveMux.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
-	serveMux.Handle("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
-	serveMux.Handle("/debug/pprof/profile", http.HandlerFunc(pprof.Profile))
-	serveMux.Handle("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
-	serveMux.Handle("/debug/pprof/trace", http.HandlerFunc(pprof.Trace))
+	serveMux.HandleFunc("/debug/pprof/", pprof.Index)
+	serveMux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	serveMux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	serveMux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	serveMux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+	// Replicate the default endpoints from net/trace's init function.
+	serveMux.HandleFunc("/debug/requests", makeTraceHandler(func(w http.ResponseWriter, req *http.Request, sensitive bool) {
+		trace.Render(w, req, sensitive)
+	}))
+	serveMux.HandleFunc("/debug/events", makeTraceHandler(trace.RenderEvents))
 
 	// Leave Addr blank to be set in enableDebugServer() and
 	// disableDebugServer().
@@ -258,6 +277,25 @@ func (f *FS) WithContext(ctx context.Context) context.Context {
 	}
 
 	return ctx
+}
+
+func (f *FS) maybeStartTrace(
+	ctx context.Context, family, title string) context.Context {
+	// TODO: Add options to enable/disable tracing, or adjust
+	// trace detail.
+	tr := trace.New(family, title)
+	ctx = trace.NewContext(ctx, tr)
+	return ctx
+}
+
+func (f *FS) maybeFinishTrace(ctx context.Context, err error) {
+	if tr, ok := trace.FromContext(ctx); ok {
+		if err != nil {
+			tr.LazyPrintf("err=%+v", err)
+			tr.SetError()
+		}
+		tr.Finish()
+	}
 }
 
 // Serve FS. Will block.

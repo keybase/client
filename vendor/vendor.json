@@ -569,6 +569,18 @@
 			"revisionTime": "2016-08-26T20:58:34Z"
 		},
 		{
+			"checksumSHA1": "/k7k6eJDkxXx6K9Zpo/OwNm58XM=",
+			"path": "golang.org/x/net/internal/timeseries",
+			"revision": "8fd7f25955530b92e73e9e1932a41b522b22ccd9",
+			"revisionTime": "2016-12-29T20:13:24Z"
+		},
+		{
+			"checksumSHA1": "P9qTIn8a6L6Q9wd1IJBCuhno1Q8=",
+			"path": "golang.org/x/net/trace",
+			"revision": "8fd7f25955530b92e73e9e1932a41b522b22ccd9",
+			"revisionTime": "2016-12-29T20:13:24Z"
+		},
+		{
 			"checksumSHA1": "S0DP7Pn7sZUmXc55IzZnNvERu6s=",
 			"path": "golang.org/x/sync/errgroup",
 			"revision": "1ae7c7b29e06598039be46c5083819ba6fd7a97e",

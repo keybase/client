@@ -5,6 +5,7 @@
 package libfuse
 
 import (
+	"fmt"
 	"os"
 	"sync"
 
@@ -76,6 +77,10 @@ func (f *File) fillAttrWithMode(
 
 // Attr implements the fs.Node interface for File.
 func (f *File) Attr(ctx context.Context, a *fuse.Attr) (err error) {
+	ctx = f.folder.fs.maybeStartTrace(
+		ctx, "File.Attr", f.node.GetBasename())
+	defer func() { f.folder.fs.maybeFinishTrace(ctx, err) }()
+
 	f.folder.fs.log.CDebugf(ctx, "File Attr")
 	defer func() { f.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
@@ -118,7 +123,11 @@ var _ fs.NodeAccesser = (*File)(nil)
 // checks for executable bit using Access (instead of Attr!), it gets a
 // success, which makes it think the file is executable, yielding a "Unix
 // executable" UTI.
-func (f *File) Access(ctx context.Context, r *fuse.AccessRequest) error {
+func (f *File) Access(ctx context.Context, r *fuse.AccessRequest) (err error) {
+	ctx = f.folder.fs.maybeStartTrace(
+		ctx, "File.Access", f.node.GetBasename())
+	defer func() { f.folder.fs.maybeFinishTrace(ctx, err) }()
+
 	if int(r.Uid) != os.Getuid() &&
 		// Finder likes to use UID 0 for some operations. osxfuse already allows
 		// ACCESS and GETXATTR requests from root to go through. This allows root
@@ -174,6 +183,10 @@ func (f *File) sync(ctx context.Context) error {
 
 // Fsync implements the fs.NodeFsyncer interface for File.
 func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
+	ctx = f.folder.fs.maybeStartTrace(
+		ctx, "File.Fsync", f.node.GetBasename())
+	defer func() { f.folder.fs.maybeFinishTrace(ctx, err) }()
+
 	f.folder.fs.log.CDebugf(ctx, "File Fsync")
 	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
@@ -194,11 +207,17 @@ var _ fs.HandleReader = (*File)(nil)
 // Read implements the fs.HandleReader interface for File.
 func (f *File) Read(ctx context.Context, req *fuse.ReadRequest,
 	resp *fuse.ReadResponse) (err error) {
-	f.folder.fs.log.CDebugf(ctx, "File Read")
+	off := req.Offset
+	sz := cap(resp.Data)
+	ctx = f.folder.fs.maybeStartTrace(ctx, "File.Read",
+		fmt.Sprintf("%s off=%d sz=%d", f.node.GetBasename(), off, sz))
+	defer func() { f.folder.fs.maybeFinishTrace(ctx, err) }()
+
+	f.folder.fs.log.CDebugf(ctx, "File Read off=%d sz=%d", off, sz)
 	defer func() { f.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	n, err := f.folder.fs.config.KBFSOps().Read(
-		ctx, f.node, resp.Data[:cap(resp.Data)], req.Offset)
+		ctx, f.node, resp.Data[:sz], off)
 	if err != nil {
 		return err
 	}
@@ -211,7 +230,12 @@ var _ fs.HandleWriter = (*File)(nil)
 // Write implements the fs.HandleWriter interface for File.
 func (f *File) Write(ctx context.Context, req *fuse.WriteRequest,
 	resp *fuse.WriteResponse) (err error) {
-	f.folder.fs.log.CDebugf(ctx, "File Write sz=%d ", len(req.Data))
+	sz := len(req.Data)
+	ctx = f.folder.fs.maybeStartTrace(ctx, "File.Write",
+		fmt.Sprintf("%s sz=%d", f.node.GetBasename(), sz))
+	defer func() { f.folder.fs.maybeFinishTrace(ctx, err) }()
+
+	f.folder.fs.log.CDebugf(ctx, "File Write sz=%d ", sz)
 	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	f.eiCache.destroy()
@@ -227,6 +251,10 @@ var _ fs.HandleFlusher = (*File)(nil)
 
 // Flush implements the fs.HandleFlusher interface for File.
 func (f *File) Flush(ctx context.Context, req *fuse.FlushRequest) (err error) {
+	ctx = f.folder.fs.maybeStartTrace(
+		ctx, "File.Flush", f.node.GetBasename())
+	defer func() { f.folder.fs.maybeFinishTrace(ctx, err) }()
+
 	f.folder.fs.log.CDebugf(ctx, "File Flush")
 	// I'm not sure about the guarantees from KBFSOps, so we don't
 	// differentiate between Flush and Fsync.
@@ -247,12 +275,16 @@ var _ fs.NodeSetattrer = (*File)(nil)
 // Setattr implements the fs.NodeSetattrer interface for File.
 func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 	resp *fuse.SetattrResponse) (err error) {
-	f.folder.fs.log.CDebugf(ctx, "File SetAttr")
+	valid := req.Valid
+	ctx = f.folder.fs.maybeStartTrace(ctx, "File.SetAttr",
+		fmt.Sprintf("%s %s", f.node.GetBasename(), valid))
+	defer func() { f.folder.fs.maybeFinishTrace(ctx, err) }()
+
+	f.folder.fs.log.CDebugf(ctx, "File SetAttr %s", valid)
 	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	f.eiCache.destroy()
 
-	valid := req.Valid
 	if valid.Size() {
 		if err := f.folder.fs.config.KBFSOps().Truncate(
 			ctx, f.node, req.Size); err != nil {
