@@ -6,5 +6,4 @@ export type Props = {
   onBack: ?(() => void),
 }
 
-declare export default class HeaderHoc extends Component<void, Props, void> {
-}
+declare export default function HeaderHoc<P> (WrappedComponent: ReactClass<P>): ReactClass<P & Props>;

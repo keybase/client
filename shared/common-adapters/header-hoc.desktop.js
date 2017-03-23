@@ -7,17 +7,20 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {Props} from './header-hoc'
 
-const HeaderHoc = WrappedComponent => ({onBack, title, ...restProps}: Props) => (
-  <Box style={containerStyle}>
-    <Box style={headerStyle}>
-      <Box style={backButtonStyle}>
-        {onBack && <BackButton iconStyle={backButtonIconStyle} onClick={onBack} />}
+function HeaderHoc<P> (WrappedComponent: ReactClass<P>) {
+  return ({onBack, title, ...restProps}: Props & P) => (
+    <Box style={containerStyle}>
+      <Box style={headerStyle}>
+        <Box style={backButtonStyle}>
+          {onBack && <BackButton iconStyle={backButtonIconStyle} onClick={onBack} />}
+        </Box>
+        <Text type='Header' style={headerText}>{title}</Text>
       </Box>
-      <Text type='Header' style={headerText}>{title}</Text>
+      {<WrappedComponent {...restProps} />}
     </Box>
-    {<WrappedComponent {...restProps} />}
-  </Box>
-)
+  )
+}
+
 
 const backButtonMarginLeft = globalMargins.small
 const backButtonWidth = 40
