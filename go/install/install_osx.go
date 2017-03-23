@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -567,12 +568,16 @@ func InstallKBFS(context Context, binPath string, force bool, timeout time.Durat
 }
 
 // Return where the NativeMessaging host manifest lives on this platform.
-func kbnmManifestPath() string {
-	// Find path to write JSON into, one of:
-	// "/Library/Google/Chrome/NativeMessagingHosts"
-	// "$HOME/Library/Application Support/Google/Chrome/NativeMessagingHosts"
-	// XXX: Are we always root?
-	return "/Library/Google/Chrome/NativeMessagingHosts"
+func kbnmManifestPath(u *user.User) string {
+	const rootPath = "/Library/Google/Chrome/NativeMessagingHosts"
+	const homePath = "Library/Application Support/Google/Chrome/NativeMessagingHosts"
+
+	if u.Uid == "0" {
+		// Installing as root
+		return rootPath
+	}
+
+	return filepath.Join(u.HomeDir, homePath)
 }
 
 // kbnmHostName is the name of the NativeMessage host that the extension communicates with.
@@ -609,10 +614,22 @@ func InstallKBNM(context Context, binPath string, log Log) error {
 		},
 	}
 
-	hostsPath := kbnmManifestPath()
+	u, err := user.Current()
+	if err != nil {
+		return err
+	}
+
+	hostsPath := kbnmManifestPath(u)
 	jsonPath := filepath.Join(hostsPath, kbnmHostName+".json")
 
-	fp, err := os.OpenFile(jsonPath, os.O_WRONLY, 0444)
+	// Make the path if it doesn't exist
+	if err := os.MkdirAll(hostsPath, os.ModePerm); err != nil {
+		return err
+	}
+
+	// Write the file
+	log.Debug("Installing KBNM host manifest: %s", jsonPath)
+	fp, err := os.OpenFile(jsonPath, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -624,11 +641,16 @@ func InstallKBNM(context Context, binPath string, log Log) error {
 
 // UninstallKBNM removes the Keybase NativeMessaging whitelist
 func UninstallKBNM(log Log) error {
-	hostsPath := kbnmManifestPath()
+	u, err := user.Current()
+	if err != nil {
+		return err
+	}
+
+	hostsPath := kbnmManifestPath(u)
 	jsonPath := filepath.Join(hostsPath, kbnmHostName+".json")
 
-	err := os.Remove(jsonPath)
-	if err != nil && !os.IsNotExist(err) {
+	log.Debug("Uninstalling KBNM host manifest: %s", jsonPath)
+	if err := os.Remove(jsonPath); err != nil && !os.IsNotExist(err) {
 		// We don't care if it doesn't exist, but other errors should escalate
 		return err
 	}
