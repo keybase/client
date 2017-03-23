@@ -10,6 +10,9 @@ import (
 	"github.com/qrtz/nativemessaging"
 )
 
+// Version is the build version of kbnm, overwritten during build.
+const Version = "dev"
+
 // Response from the kbnm service
 type Response struct {
 	Status  string `json:"status"`
@@ -25,16 +28,22 @@ type Request struct {
 	Body   string `json:"body"`
 }
 
-var plain = flag.Bool("plain", false, "line-delimited JSON IO, no length prefix")
+var plainFlag = flag.Bool("plain", false, "newline-delimited JSON IO, no length prefix")
+var versionFlag = flag.Bool("version", false, "print the version and exit")
 
 func main() {
 	flag.Parse()
+
+	if *versionFlag {
+		fmt.Println(Version)
+		return
+	}
 
 	// Native messages include a prefix which describes the length of each message.
 	var in nativemessaging.JSONDecoder
 	var out nativemessaging.JSONEncoder
 
-	if *plain {
+	if *plainFlag {
 		// Used for testing interactively
 		in = json.NewDecoder(os.Stdin)
 		out = json.NewEncoder(os.Stdout)
@@ -68,8 +77,8 @@ func main() {
 
 		err = out.Encode(resp)
 		if err != nil {
-			// TODO: Log this somewhere?
 			fmt.Fprintf(os.Stderr, "error: %s", err)
+			os.Exit(1)
 			return
 		}
 	}
