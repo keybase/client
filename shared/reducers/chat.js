@@ -4,14 +4,11 @@ import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
 import {Set, List, Map} from 'immutable'
 
-import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState, TextMessage} from '../constants/chat'
-
-const {StateRecord, ConversationStateRecord, MetaDataRecord, RekeyInfoRecord, pendingConversationIDKey} = Constants
-const initialState: State = new StateRecord()
-const initialConversation: ConversationState = new ConversationStateRecord()
+const initialState: Constants.State = new Constants.StateRecord()
+const initialConversation: Constants.ConversationState = new Constants.ConversationStateRecord()
 
 // dedupes and removed deleted messages. Applies edits
-function _processMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List(), deletedIDs: Set<any>): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
+function _processMessages (seenMessages: Set<any>, messages: List<Constants.Message> = List(), prepend: List<Constants.Message> = List(), append: List<Constants.Message> = List(), deletedIDs: Set<any>): {nextSeenMessages: Set<any>, nextMessages: List<Constants.Message>} {
   const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key))
   const filteredAppendGroups = append.filter(m => !seenMessages.has(m.key)).groupBy(m => m.type === 'Edit' || m.type === 'UpdateAttachment' ? m.type : 'Append')
   const filteredAppend = filteredAppendGroups.get('Append') || List()
@@ -19,16 +16,17 @@ function _processMessages (seenMessages: Set<any>, messages: List<ServerMessage>
   const messagesToUpdate = Map(prepend.concat(append).filter(m => seenMessages.has(m.key)).map(m => [m.key, m]))
   const updatedMessages = messages.map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m)
   // We have to check for m.messageID being falsey and set.has(undefined) is true!. We shouldn't ever have a zero messageID
-  let nextMessages: List<ServerMessage> = filteredPrepend.concat(updatedMessages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
+  let nextMessages: List<Constants.Message> = filteredPrepend.concat(updatedMessages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
 
   filteredAppendGroups.get('Edit', List()).forEach(edit => {
     if (edit.type !== 'Edit') {
       return
     }
     const targetMessageID = edit.targetMessageID
+    // $FlowIssue TODO ServerMessage -> Message change
     const entry = nextMessages.findEntry(m => m.messageID === targetMessageID)
     if (entry) {
-      const [idx: number, message: TextMessage] = entry
+      const [idx: number, message: Constants.TextMessage] = entry
       // $FlowIssue doesn't like the intersection types
       nextMessages = nextMessages.set(idx, {...message, message: edit.message, editedCount: message.editedCount + 1})
     }
@@ -38,6 +36,7 @@ function _processMessages (seenMessages: Set<any>, messages: List<ServerMessage>
       return
     }
     const targetMessageID = update.targetMessageID
+    // $FlowIssue TODO ServerMessage -> Message change
     const entry = nextMessages.findEntry(m => m.messageID === targetMessageID)
     if (entry) {
       const [idx: number, message: AttachmentMessage] = entry
@@ -54,7 +53,7 @@ function _processMessages (seenMessages: Set<any>, messages: List<ServerMessage>
 }
 
 // _filterTypes separates out deleted message types and returns their ID's
-function _filterTypes (inMessages: Array<ServerMessage>): {messages: Array<ServerMessage>, deletedIDs: Array<any>} {
+function _filterTypes (inMessages: Array<Constants.Message>): {messages: Array<Constants.Message>, deletedIDs: Array<any>} {
   const messages = []
   const deletedIDs = []
   inMessages.forEach((message, idx) => {
@@ -67,7 +66,7 @@ function _filterTypes (inMessages: Array<ServerMessage>): {messages: Array<Serve
   return {messages, deletedIDs}
 }
 
-type ConversationsStates = Map<Constants.ConversationIDKey, ConversationState>
+type ConversationsStates = Map<Constants.ConversationIDKey, Constants.ConversationState>
 type ConversationUpdateFn = (c: Constants.ConversationState) => Constants.ConversationState
 function updateConversation (conversationStates: ConversationsStates, conversationIDKey: Constants.ConversationIDKey, conversationUpdateFn: ConversationUpdateFn): ConversationsStates {
   return conversationStates.update(
@@ -77,8 +76,8 @@ function updateConversation (conversationStates: ConversationsStates, conversati
   )
 }
 
-type MessageUpdateFn = (message: $Subtype<Message>) => Message
-type MessageFindPredFn = (message: Message) => boolean
+type MessageUpdateFn = (message: $Subtype<Constants.Message>) => Constants.Message
+type MessageFindPredFn = (message: Constants.Message) => boolean
 function updateConversationMessage (conversationStates: ConversationsStates, conversationIDKey: Constants.ConversationIDKey, pred: MessageFindPredFn, messageUpdateFn: MessageUpdateFn): ConversationsStates {
   return updateConversation(
     conversationStates,
@@ -95,16 +94,16 @@ function updateConversationMessage (conversationStates: ConversationsStates, con
   )
 }
 
-function sortInbox (inbox: List<InboxState>): List<InboxState> {
+function sortInbox (inbox: List<Constants.InboxState>): List<Constants.InboxState> {
   return inbox.sort((a, b) => {
     return b.get('time') - a.get('time')
   })
 }
 
-function reducer (state: State = initialState, action: Actions) {
+function reducer (state: Constants.State = initialState, action: Constants.Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return new StateRecord()
+      return new Constants.StateRecord()
     case 'chat:removeOutboxMessage': {
       const {conversationIDKey, outboxID} = action.payload
       // $FlowIssue
@@ -165,7 +164,7 @@ function reducer (state: State = initialState, action: Actions) {
       return state.set('conversationStates', newConversationStates)
     }
     case 'chat:appendMessages': {
-      const appendAction: AppendMessages = action
+      const appendAction: Constants.AppendMessages = action
       const appendMessages = appendAction.payload.messages
       const isSelected = action.payload.isSelected
       const conversationIDKey = appendAction.payload.conversationIDKey
@@ -184,6 +183,7 @@ function reducer (state: State = initialState, action: Actions) {
           if (!conversation.get('firstNewMessageID') && !inConversationFocused) {
             // Set first new message if we don't have one set, and are not in
             // the conversation with window focused
+            // $FlowIssue TODO ServerMessage -> Message change
             conversation = conversation.set('firstNewMessageID', firstMessage.messageID)
           } else if (inConversationFocused) {
             // Clear new message if we received a new message while in
@@ -375,7 +375,7 @@ function reducer (state: State = initialState, action: Actions) {
       return state.set('conversationStates', newConversationStates)
     }
     case 'chat:updatedMetadata':
-      return state.set('metaData', state.get('metaData').merge(action.payload))
+      return state.set('metaData', state.get('metaData').merge(action.payload.updated))
     case 'chat:loadedInbox':
       // Don't overwrite existing verified inbox data
       const existingRows = state.get('inbox')
@@ -389,7 +389,7 @@ function reducer (state: State = initialState, action: Actions) {
     case 'chat:updateInboxComplete':
       return state.set('inbox', state.get('inbox').filter(i => i.get('validated')))
     case 'chat:updateInbox':
-      const convo: InboxState = action.payload.conversation
+      const convo: Constants.InboxState = action.payload.conversation
       const toFind = convo.get('conversationIDKey')
       const oldInbox = state.get('inbox')
       const existing = oldInbox.findEntry(i => i.get('conversationIDKey') === toFind)
@@ -408,28 +408,28 @@ function reducer (state: State = initialState, action: Actions) {
       let metaData = state.get('metaData')
 
       Object.keys(userToBroken).forEach(user => {
-        metaData = metaData.update(user, new MetaDataRecord(), old => old.set('brokenTracker', userToBroken[user]))
+        metaData = metaData.update(user, new Constants.MetaDataRecord(), old => old.set('brokenTracker', userToBroken[user]))
       })
 
       return state.set('metaData', metaData)
     case 'chat:updateConversationUnreadCounts':
-      return state.set('conversationUnreadCounts', action.payload)
+      return state.set('conversationUnreadCounts', action.payload.conversationUnreadCounts)
     case 'chat:clearRekey': {
       const {conversationIDKey} = action.payload
       return state.set('rekeyInfos', state.get('rekeyInfos').delete(conversationIDKey))
     }
     case 'chat:updateInboxRekeyOthers': {
       const {conversationIDKey, rekeyers} = action.payload
-      return state.set('rekeyInfos', state.get('rekeyInfos').set(conversationIDKey, new RekeyInfoRecord({rekeyParticipants: List(rekeyers)})))
+      return state.set('rekeyInfos', state.get('rekeyInfos').set(conversationIDKey, new Constants.RekeyInfoRecord({rekeyParticipants: List(rekeyers)})))
     }
     case 'chat:updateInboxRekeySelf': {
       const {conversationIDKey} = action.payload
-      return state.set('rekeyInfos', state.get('rekeyInfos').set(conversationIDKey, new RekeyInfoRecord({youCanRekey: true})))
+      return state.set('rekeyInfos', state.get('rekeyInfos').set(conversationIDKey, new Constants.RekeyInfoRecord({youCanRekey: true})))
     }
     case 'chat:addPendingConversation': {
       const {participants} = action.payload
       const sorted = participants.sort()
-      const conversationIDKey = pendingConversationIDKey(sorted.join(','))
+      const conversationIDKey = Constants.pendingConversationIDKey(sorted.join(','))
       return state.set('pendingConversations', state.get('pendingConversations').set(conversationIDKey, List(sorted)))
     }
     case 'chat:pendingToRealConversation': {

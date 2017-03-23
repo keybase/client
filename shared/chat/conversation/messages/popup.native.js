@@ -2,7 +2,7 @@
 import React from 'react'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../../actions/route-tree'
-import {deleteMessage, showEditor} from '../../../actions/chat'
+import {deleteMessage, showEditor} from '../../../actions/chat/creators'
 import {NativeClipboard, PopupMenu} from '../../../common-adapters/index.native'
 import * as ChatConstants from '../../../constants/chat'
 import MessagePopupHeader from './popup-header'
