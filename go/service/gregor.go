@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net"
+	"net/url"
 	"sync"
 	"time"
 
@@ -117,6 +119,7 @@ type gregorHandler struct {
 	badger           *badges.Badger
 	chatHandler      *chat.PushHandler
 	chatSync         *chat.Syncer
+	reachability     *reachability
 
 	// This mutex protects the con object
 	connMutex sync.Mutex
@@ -264,6 +267,10 @@ func (g *gregorHandler) Errorf(s string, args ...interface{}) {
 
 func (g *gregorHandler) SetPushStateFilter(f func(m gregor.Message) bool) {
 	g.pushStateFilter = f
+}
+
+func (g *gregorHandler) SetReachability(r *reachability) {
+	g.reachability = r
 }
 
 func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
@@ -515,6 +522,12 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 			return err
 		}
 	}
+	// Call out to reachability module if we have one
+	if g.reachability != nil {
+		g.reachability.setReachability(keybase1.Reachability{
+			Reachable: keybase1.Reachable_YES,
+		})
+	}
 
 	// Sync down events since we have been dead
 	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: timeoutCli})
@@ -543,6 +556,13 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 
 func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
 	g.Debug(context.Background(), "connect error %s, reconnect throttle duration: %s", err, reconnectThrottleDuration)
+
+	// Call out to reachability module if we have one
+	if g.reachability != nil {
+		g.reachability.setReachability(keybase1.Reachability{
+			Reachable: keybase1.Reachable_NO,
+		})
+	}
 }
 
 func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
@@ -550,6 +570,13 @@ func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.Disconnec
 
 	// Alert chat syncer that we are now disconnected
 	g.chatSync.Disconnected(ctx)
+
+	// Call out to reachability module if we have one
+	if g.reachability != nil {
+		g.reachability.setReachability(keybase1.Reachability{
+			Reachable: keybase1.Reachable_NO,
+		})
+	}
 }
 
 func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
@@ -1016,36 +1043,89 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) (err er
 	return nil
 }
 
+func (g *gregorHandler) isReachable() bool {
+	ctx := context.Background()
+	timeout := g.G().Env.GetGregorPingTimeout()
+	url, err := url.Parse(g.G().Env.GetGregorURI())
+	if err != nil {
+		g.Debug(ctx, "isReachable: failed to parse server uri, exiting: %s", err.Error())
+		return false
+	}
+
+	// If we currently think we are online, then make sure
+	conn, err := net.DialTimeout("tcp", url.Host, timeout)
+	if conn != nil {
+		conn.Close()
+		return true
+	}
+	if err != nil {
+		g.Debug(ctx, "isReachable: error: terminating connection: %s", err.Error())
+		g.Shutdown()
+		if err := g.Connect(g.uri); err != nil {
+			g.Debug(ctx, "isReachable: error connecting: %s", err.Error())
+		}
+		return false
+	}
+
+	return true
+}
+
 func (g *gregorHandler) pingLoop() {
 
+	ctx := context.Background()
 	id, _ := libkb.RandBytes(4)
 	duration := g.G().Env.GetGregorPingInterval()
 	timeout := g.G().Env.GetGregorPingTimeout()
-	g.Debug(context.Background(), "ping loop: starting up: id: %x duration: %v timeout: %v", id, duration, timeout)
-	defer g.Debug(context.Background(), "ping loop: id: %x terminating", id)
+	url, err := url.Parse(g.G().Env.GetGregorURI())
+	if err != nil {
+		g.Debug(ctx, "ping loop: failed to parse server uri, exiting: %s", err.Error())
+		return
+	}
+
+	g.Debug(ctx, "ping loop: starting up: id: %x duration: %v timeout: %v url: %s",
+		id, duration, timeout, url.Host)
+	defer g.Debug(ctx, "ping loop: id: %x terminating", id)
 
 	for {
+		ctx, shutdownCancel := context.WithCancel(context.Background())
 		select {
 		case <-g.G().Clock().After(duration):
 			var err error
-			ctx := context.Background()
 
-			if g.IsConnected() {
-				// If we are connected, subject the ping call to a fairly
-				// aggressive timeout so our chat stuff can be responsive
-				// to changes in connectivity
-				var cancel context.CancelFunc
-				ctx, cancel = context.WithTimeout(ctx, timeout)
-				_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(ctx)
-				cancel()
-			} else {
-				// If we are not connected, we don't want to timeout anything
-				// Just hook into the normal reconnect chan stuff in the RPC
-				// library
-				g.Debug(ctx, "ping loop: id: %x normal ping, not connected", id)
-				_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(ctx)
+			doneCh := make(chan error)
+			go func(ctx context.Context) {
+				if g.IsConnected() {
+					// If we are connected, subject the ping call to a fairly
+					// aggressive timeout so our chat stuff can be responsive
+					// to changes in connectivity
+					var timeoutCancel context.CancelFunc
+					var timeoutCtx context.Context
+					timeoutCtx, timeoutCancel = context.WithTimeout(ctx, timeout)
+					_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(timeoutCtx)
+					timeoutCancel()
+				} else {
+					// If we are not connected, we don't want to timeout anything
+					// Just hook into the normal reconnect chan stuff in the RPC
+					// library
+					g.Debug(ctx, "ping loop: id: %x normal ping, not connected", id)
+					_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(ctx)
+				}
+				select {
+				case <-ctx.Done():
+					g.Debug(ctx, "ping loop: id: %x context cancelled, so not sending err", id)
+				default:
+					doneCh <- err
+				}
+			}(ctx)
+
+			select {
+			case err = <-doneCh:
+				g.Debug(ctx, "ping loop: id %x ping", id)
+			case <-g.shutdownCh:
+				g.Debug(ctx, "ping loop: id: %x shutdown received", id)
+				shutdownCancel()
+				return
 			}
-
 			if err != nil {
 				g.Debug(ctx, "ping loop: id: %x error: %s", id, err.Error())
 				if err == context.DeadlineExceeded {
@@ -1055,15 +1135,17 @@ func (g *gregorHandler) pingLoop() {
 					if err := g.Connect(g.uri); err != nil {
 						g.Debug(ctx, "ping loop: id: %x error connecting: %s", id, err.Error())
 					}
+					shutdownCancel()
 					return
 				}
 			}
 		case <-g.shutdownCh:
-			g.Debug(context.Background(), "ping loop: id: %x shutdown received", id)
+			g.Debug(ctx, "ping loop: id: %x shutdown received", id)
+			shutdownCancel()
 			return
 		}
+		shutdownCancel()
 	}
-
 }
 
 func (g *gregorHandler) connectTLS() error {

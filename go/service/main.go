@@ -39,7 +39,6 @@ type Service struct {
 	gregor               *gregorHandler
 	rekeyMaster          *rekeyMaster
 	attachmentstore      *chat.AttachmentStore
-	messageDeliverer     *chat.Deliverer
 	badger               *badges.Badger
 	reachability         *reachability
 	backgroundIdentifier *BackgroundIdentifier
@@ -59,7 +58,6 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		rekeyMaster:     newRekeyMaster(g),
 		attachmentstore: chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
 		badger:          badges.NewBadger(g),
-		reachability:    newReachability(g),
 	}
 }
 
@@ -322,6 +320,8 @@ func (d *Service) startupGregor() {
 			d.G().Log.Warning("failed to create push service handler: %s", err)
 			return
 		}
+
+		d.reachability = newReachability(d.G(), d.gregor)
 		d.gregor.badger = d.badger
 		d.G().GregorDismisser = d.gregor
 		d.G().GregorListener = d.gregor
@@ -472,9 +472,7 @@ func (d *Service) OnLogout() (err error) {
 	}
 
 	log("shutting down message deliverer")
-	if d.messageDeliverer != nil {
-		d.messageDeliverer.Stop(context.Background())
-	}
+	d.G().MessageDeliverer.Stop(context.Background())
 
 	log("shutting down rekeyMaster")
 	d.rekeyMaster.Logout()
