@@ -3,7 +3,6 @@
 import React from 'react'
 import {globalStyles, globalMargins, globalColors} from '../styles'
 import {Box, Button, Checkbox, Icon, Text, Input} from '../common-adapters'
-import {compose, withState, withHandlers} from 'recompose'
 
 const Feedback = ({onSendFeedbackContained, showSuccessBanner, sendLogs, onChangeSendLogs, feedback, onChangeFeedback}) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginBottom: globalMargins.medium}}>
@@ -42,9 +41,4 @@ const Feedback = ({onSendFeedbackContained, showSuccessBanner, sendLogs, onChang
   </Box>
 )
 
-export default compose(
-  withState('sendLogs', 'onChangeSendLogs', true),
-  withHandlers({
-    onSendFeedbackContained: ({sendLogs, feedback, onSendFeedback}) => () => onSendFeedback(feedback, sendLogs),
-  })
-)(Feedback)
+export default Feedback

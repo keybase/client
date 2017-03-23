@@ -3,10 +3,12 @@
 import {Component} from 'react'
 
 export type Props = {
-  onSendFeedback: (feedback: string, includeLogs: boolean) => void,
+  onSendFeedbackContained: () => void,
   showSuccessBanner: boolean,
+  sendLogs: boolean,
   feedback: ?string,
-  onChangeFeedback: ?string,
+  onChangeSendLogs: (nextValue: boolean) => void,
+  onChangeFeedback: (nextValue: ?string) => void,
 }
 
 export default class Feedback extends Component<void, Props, void> { }

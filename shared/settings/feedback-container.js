@@ -2,9 +2,15 @@
 import React, {Component} from 'react'
 
 import Feedback from './feedback'
-import {connect} from 'react-redux'
+import logSend from '../native/log-send'
+import {compose, withState, withHandlers} from 'recompose'
 
-import type {TypedState} from '../constants/reducer'
+const FeedbackWrapped = compose(
+  withState('sendLogs', 'onChangeSendLogs', true),
+  withHandlers({
+    onSendFeedbackContained: ({sendLogs, feedback, onSendFeedback}) => () => onSendFeedback(feedback, sendLogs),
+  })
+)(Feedback)
 
 type State = {
   sentFeedback: boolean,
@@ -27,14 +33,18 @@ class LogSend extends Component<void, {}, State> {
   }
 
   render () {
-    const onSendFeedback = (sendLogs, feedback) => {
-      // logSend(feedback).then(logSendId => this.setState({sentFeedback: true}))
+    const onSendFeedback = (feedback, sendLogs) => {
+      logSend(feedback, sendLogs).then(logSendId => {
+        console.warn('logSendId is', logSendId)
+        this.setState({
+          sentFeedback: true,
+          feedback: null,
+        })
+      })
       console.log('sending feedback', sendLogs, feedback)
-      this.setState({sentFeedback: true})
-      this.setState({feedback: null})
     }
 
-    return <Feedback showSuccessBanner={this.state.sentFeedback} onSendFeedback={onSendFeedback} onChangeFeedback={this._onChangeFeedback} feedback={this.state.feedback} />
+    return <FeedbackWrapped showSuccessBanner={this.state.sentFeedback} onSendFeedback={onSendFeedback} onChangeFeedback={this._onChangeFeedback} feedback={this.state.feedback} />
   }
 }
 

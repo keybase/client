@@ -31,7 +31,7 @@ const routeTree = new RouteDefNode({
     },
     [Constants.landingTab]: {
       // TODO
-      component: Feedback,
+      component: About,
     },
     [Constants.invitationsTab]: {
       component: InvitationsContainer,
