@@ -40,7 +40,7 @@ class Profile extends Component<void, Props, State> {
   _handleToggleMenu (idx: number) {
     const selectedProof = this.props.proofs[idx]
     this.setState({
-      activeMenuProof: this.state.activeMenuProof && this.state.activeMenuProof.id === selectedProof.id ? undefined : selectedProof,
+      activeMenuProof: this.state.activeMenuProof && selectedProof && this.state.activeMenuProof.id === selectedProof.id ? undefined : selectedProof,
     })
   }
 
