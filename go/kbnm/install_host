@@ -8,6 +8,14 @@
 #
 # It can be run multiple times. The whitelist will be overwritten each time.
 
+realpath() {
+  if [[ $1 = /* ]]; then
+    echo "$1"
+  else
+    echo "$PWD/${1#./}"
+  fi
+}
+
 detect() {
   # Find where the NativeMessagingHosts whitelist lives for this platform.
   whoami="$(whoami)"
@@ -32,9 +40,9 @@ install() {
   # Install the whitelist.
   declare target="$1"
 
-  local target_dir="$(dirname target)"
+  local target_dir="$(dirname "$target")"
   if [[ ! -d "$target_dir" ]]; then
-    mkdir -p "target_dir"
+    mkdir -p "$target_dir"
   fi
 
   local here="$(dirname $(realpath "$BASH_SOURCE"))"
@@ -47,7 +55,9 @@ install() {
 
   chmod +r "$target"
 
-  echo "Success: Installed Chrome NativeMessaging whitelist: "$host_path" for $host_name"
+  cat "$target"
+
+  echo "Success."
 }
 
 uninstall() {
