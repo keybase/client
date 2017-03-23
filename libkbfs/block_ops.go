@@ -19,6 +19,7 @@ type blockOpsConfig interface {
 	codecGetter
 	cryptoPureGetter
 	keyGetterGetter
+	diskBlockCacheGetter
 }
 
 // BlockOpsStandard implements the BlockOps interface by relaying

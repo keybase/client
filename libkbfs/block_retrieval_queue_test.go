@@ -20,6 +20,7 @@ type testBlockRetrievalConfig struct {
 	logMaker
 	testCache BlockCache
 	bg        blockGetter
+	diskBlockCacheGetter
 }
 
 func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter) *testBlockRetrievalConfig {
@@ -28,6 +29,7 @@ func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter) *testBlockRetriev
 		newTestLogMaker(t),
 		NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity()),
 		bg,
+		newTestDiskBlockCacheGetter(t),
 	}
 }
 

@@ -25,6 +25,7 @@ type blockRetrievalPartialConfig interface {
 	dataVersioner
 	logMaker
 	blockCacher
+	diskBlockCacheGetter
 }
 
 type blockRetrievalConfig interface {

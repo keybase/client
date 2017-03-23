@@ -91,6 +91,19 @@ func initDiskBlockCacheTest(t *testing.T) (*DiskBlockCacheStandard,
 	return cache, config
 }
 
+type testDiskBlockCacheGetter struct {
+	dbc *DiskBlockCacheStandard
+}
+
+func (dbcg *testDiskBlockCacheGetter) DiskBlockCache() DiskBlockCache {
+	return dbcg.dbc
+}
+
+func newTestDiskBlockCacheGetter(t *testing.T) *testDiskBlockCacheGetter {
+	cache, _ := initDiskBlockCacheTest(t)
+	return &testDiskBlockCacheGetter{cache}
+}
+
 func shutdownDiskBlockCacheTest(cache DiskBlockCache) {
 	cache.Shutdown(context.Background())
 }

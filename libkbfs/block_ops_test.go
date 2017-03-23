@@ -83,6 +83,7 @@ type testBlockOpsConfig struct {
 	bserver BlockServer
 	cp      cryptoPure
 	cache   BlockCache
+	diskBlockCacheGetter
 }
 
 var _ blockOpsConfig = (*testBlockOpsConfig)(nil)
@@ -113,7 +114,8 @@ func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	bserver := NewBlockServerMemory(lm.MakeLogger(""))
 	crypto := MakeCryptoCommon(codecGetter.Codec())
 	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity())
-	return testBlockOpsConfig{codecGetter, lm, bserver, crypto, cache}
+	dbcg := newTestDiskBlockCacheGetter(t)
+	return testBlockOpsConfig{codecGetter, lm, bserver, crypto, cache, dbcg}
 }
 
 // TestBlockOpsReadySuccess checks that BlockOpsStandard.Ready()
