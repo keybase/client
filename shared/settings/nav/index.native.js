@@ -32,24 +32,9 @@ function SettingsNav ({badgeNumbers, selectedTab, onTabChange}: Props) {
   return (
     <Box style={styleNavBox}>
       <SettingsItem
-        text='Your Account'
-        badgeNumber={badgeNumbers[landingTab]}
-        onClick={() => onTabChange(landingTab)}
-      />
-      <SettingsItem
-        text='Invitations'
-        badgeNumber={badgeNumbers[invitationsTab]}
-        onClick={() => onTabChange(invitationsTab)}
-      />
-      <SettingsItem
         text='Devices'
         badgeNumber={badgeNumbers[devicesTab]}
         onClick={() => onTabChange(devicesTab)}
-      />
-      <SettingsItem
-        text='Notifications'
-        badgeNumber={badgeNumbers[notificationsTab]}
-        onClick={() => onTabChange(notificationsTab)}
       />
       <SettingsItem
         text='About'
@@ -60,11 +45,6 @@ function SettingsNav ({badgeNumbers, selectedTab, onTabChange}: Props) {
         text='Feedback'
         badgeNumber={badgeNumbers[feedbackTab]}
         onClick={() => onTabChange(feedbackTab)}
-      />
-      <SettingsItem
-        text='Delete Me'
-        badgeNumber={badgeNumbers[deleteMeTab]}
-        onClick={() => onTabChange(deleteMeTab)}
       />
       {__DEV__ &&
         <SettingsItem
