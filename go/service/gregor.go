@@ -1120,7 +1120,6 @@ func (g *gregorHandler) pingLoop() {
 
 			select {
 			case err = <-doneCh:
-				g.Debug(ctx, "ping loop: id %x ping", id)
 			case <-g.shutdownCh:
 				g.Debug(ctx, "ping loop: id: %x shutdown received", id)
 				shutdownCancel()
