@@ -296,7 +296,8 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 	err = jServer.Enable(ctx, id, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
-	rmd := makeMDForJournalMDOpsTest(t, config, id, h, MetadataRevision(1))
+	rmd := makeMDForJournalMDOpsTest(t, config, id, h, MetadataRevision(2))
+	rmd.SetPrevRoot(fakeMdID(1))
 	rmd.SetBranchID(FakeBranchID(1))
 
 	_, err = mdOps.PutUnmerged(ctx, rmd)

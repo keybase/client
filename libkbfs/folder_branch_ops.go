@@ -1401,7 +1401,11 @@ func (fbo *folderBranchOps) initMDLocked(
 		return err
 	}
 
-	// finally, write out the new metadata
+	// Finally, write out the new metadata.  TODO: if journaling is
+	// enabled, we should bypass it here, so we don't have to worry
+	// about delayed conflicts (since this is essentially a rekey, and
+	// we always bypass the journal for rekeys).  The caller will have
+	// to intelligently deal with a conflict.
 	mdID, err := fbo.config.MDOps().Put(ctx, md)
 	if err != nil {
 		return err

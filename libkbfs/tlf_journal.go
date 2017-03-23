@@ -1874,17 +1874,22 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	if !j.unflushedPaths.appendToCache(mdInfo, perRevMap) {
 		return MdID{}, true, nil
 	}
+
+	// Treat the first revision as a squash, so that it doesn't end up
+	// as the earliest revision in a range during a CR squash.
+	isFirstRev := rmd.Revision() == MetadataRevisionInitial
+
 	// TODO: remove the revision from the cache on any errors below?
 	// Tricky when the append is only queued.
 
 	mdID, err = j.mdJournal.put(ctx, j.config.Crypto(),
 		j.config.encryptionKeyGetter(), j.config.BlockSplitter(),
-		rmd, false)
+		rmd, isFirstRev)
 	if err != nil {
 		return MdID{}, false, err
 	}
 
-	err = j.blockJournal.markMDRevision(ctx, rmd.Revision(), false)
+	err = j.blockJournal.markMDRevision(ctx, rmd.Revision(), isFirstRev)
 	if err != nil {
 		return MdID{}, false, err
 	}

@@ -1535,6 +1535,54 @@ func testTLFJournalSquashByBytes(t *testing.T, ver MetadataVer) {
 		t, PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
 }
 
+// Test that the first revision of a TLF doesn't get squashed.
+func testTLFJournalFirstRevNoSquash(t *testing.T, ver MetadataVer) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate :=
+		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		tempdir, config, ctx, cancel, tlfJournal, delegate)
+	tlfJournal.forcedSquashByBytes = 10
+
+	data := make([]byte, tlfJournal.forcedSquashByBytes+1)
+	bid, bCtx, serverHalf := config.makeBlock(data)
+	err := tlfJournal.putBlockData(ctx, bid, bCtx, data, serverHalf)
+	require.NoError(t, err)
+
+	firstRevision := MetadataRevisionInitial
+	mdCount := 4
+
+	var firstMdID, prevRoot MdID
+	for i := 0; i < mdCount; i++ {
+		revision := firstRevision + MetadataRevision(i)
+		md := config.makeMD(revision, prevRoot)
+		mdID, err := tlfJournal.putMD(ctx, md)
+		require.NoError(t, err)
+		prevRoot = mdID
+		if i == 0 {
+			firstMdID = mdID
+		}
+	}
+
+	// This should convert it to a branch, based on the number of
+	// outstanding bytes.
+	err = tlfJournal.flush(ctx)
+	require.NoError(t, err)
+	require.Equal(
+		t, PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
+	requireJournalEntryCounts(t, tlfJournal, 5, 4)
+	unsquashedRange, err := tlfJournal.getMDRange(
+		ctx, NullBranchID, firstRevision, firstRevision+3)
+	require.NoError(t, err)
+	require.Len(t, unsquashedRange, 1)
+	require.Equal(t, firstRevision, unsquashedRange[0].RevisionNumber())
+	require.Equal(t, firstMdID, unsquashedRange[0].mdID)
+	squashRange, err := tlfJournal.getMDRange(
+		ctx, PendingLocalSquashBranchID, firstRevision, firstRevision+3)
+	require.NoError(t, err)
+	require.Len(t, squashRange, 3)
+	require.Equal(t, firstRevision+1, squashRange[0].RevisionNumber())
+}
+
 func TestTLFJournal(t *testing.T) {
 	tests := []func(*testing.T, MetadataVer){
 		testTLFJournalBasic,
@@ -1563,6 +1611,7 @@ func TestTLFJournal(t *testing.T) {
 		testTLFJournalFlushRetry,
 		testTLFJournalResolveBranch,
 		testTLFJournalSquashByBytes,
+		testTLFJournalFirstRevNoSquash,
 	}
 	runTestsOverMetadataVers(t, "testTLFJournal", tests)
 }
