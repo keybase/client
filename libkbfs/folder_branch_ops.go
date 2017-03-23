@@ -964,6 +964,8 @@ func (fbo *folderBranchOps) identifyOnce(
 		len(ei.getTlfBreakAndClose().Breaks) > 0 {
 		fbo.log.CDebugf(ctx,
 			"Identify finished with no error but broken proof warnings")
+	} else if ei.behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
+		fbo.log.CDebugf(ctx, "Identify skipped")
 	} else {
 		fbo.log.CDebugf(ctx, "Identify finished successfully")
 		fbo.identifyDone = true
