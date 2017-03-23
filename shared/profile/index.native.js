@@ -48,6 +48,7 @@ class Profile extends Component<void, Props, State> {
     return (
       <UserBio
         type='Profile'
+        editFns={this.props.bioEditFns}
         avatarSize={AVATAR_SIZE}
         loading={loading}
         username={this.props.username}
