@@ -156,8 +156,7 @@ func identifyUID(ctx context.Context, nug normalizedUsernameGetter,
 func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 	identifier identifier, username libkb.NormalizedUsername,
 	uid keybase1.UID, isPublic bool) error {
-
-	// check to see if identify should be skipped altogether
+	// Check to see if identify should be skipped altogether.
 	ei := getExtendedIdentify(ctx)
 	if ei.behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
 		return nil
