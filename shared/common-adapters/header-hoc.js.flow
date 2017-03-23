@@ -6,5 +6,5 @@ export type Props = {
   onBack: ?(() => void),
 }
 
-declare export default class HeaderHOC extends Component<DefaultProps, Props, void> {
+declare export default class HeaderHoc extends Component<void, Props, void> {
 }
