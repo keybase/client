@@ -108,18 +108,30 @@ func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlf
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
+	query := keybase1.TLFQuery{
+		TlfName:          tlfName,
+		IdentifyBehavior: identBehavior,
+	}
+	ib, err := t.identifyTLF(ctx, query, false)
+	if err != nil {
+		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
+	}
+
 	tlfClient, err := t.tlfKeysClient()
 	if err != nil {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
 	}
 
-	resp, err := tlfClient.GetPublicCanonicalTLFNameAndID(ctx, keybase1.TLFQuery{
-		TlfName:          tlfName,
-		IdentifyBehavior: identBehavior,
-	})
+	// skip identify:
+	query.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CHAT_SKIP
+
+	resp, err := tlfClient.GetPublicCanonicalTLFNameAndID(ctx, query)
 	if err != nil {
 		return resp, err
 	}
+
+	// use id breaks calculated by identifyTLF
+	resp.Breaks.Breaks = ib
 
 	if in := CtxIdentifyNotifier(ctx); in != nil {
 		in.Send(resp)
@@ -156,7 +168,7 @@ func (t *KBFSTLFInfoSource) CompleteAndCanonicalizePrivateTlfName(ctx context.Co
 
 func (t *KBFSTLFInfoSource) identifyTLF(ctx context.Context, arg keybase1.TLFQuery, private bool) ([]keybase1.TLFIdentifyFailure, error) {
 	var fails []keybase1.TLFIdentifyFailure
-	pieces := strings.Split(arg.TlfName, ",")
+	pieces := strings.Split(strings.Fields(arg.TlfName)[0], ",")
 	for _, p := range pieces {
 		f, err := t.identifyUser(ctx, p, private, arg.IdentifyBehavior)
 		if err != nil {
