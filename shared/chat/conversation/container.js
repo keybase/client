@@ -13,6 +13,7 @@ import {navigateAppend} from '../../actions/route-tree'
 import {onUserClick} from '../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
 import {pick} from 'lodash'
+import {isMobile} from '../../constants/platform'
 
 import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
@@ -160,6 +161,7 @@ export default connect(
     onBack: () => dispatch(navigateUp()),
     onDeleteMessage: (message: Constants.Message) => { dispatch(Creators.deleteMessage(message)) },
     onEditMessage: (message: Constants.Message, body: string) => { dispatch(Creators.editMessage(message, new HiddenString(body))) },
+    onBannerWarning: (username: string) => { isMobile ? dispatch(Creators.onShowProfile(username)) : dispatch(Creators.onShowTracker(username)) },
     onShowBlockConversationDialog: (selectedConversation, participants) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, participants}, selected: 'showBlockConversationDialog'}])) },
     onShowEditor: (message: Constants.Message) => { dispatch(Creators.showEditor(message)) },
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(Creators.loadAttachment(selectedConversation, messageID, downloadFilePath(filename), false, false)),
@@ -187,7 +189,7 @@ export default connect(
     const brokenUsers = Constants.getBrokenUsers(stateProps.participants.toArray(), stateProps.you, stateProps.metaDataMap)
     if (brokenUsers.length) {
       bannerMessage = {
-        onClick: (user: string) => dispatchProps.onShowTracker(user),
+        onClick: (user: string) => dispatchProps.onBannerWarning(user),
         type: 'BrokenTracker',
         users: brokenUsers,
       }
