@@ -189,10 +189,11 @@ func (t *KBFSTLFInfoSource) identifyUser(ctx context.Context, assertion string, 
 
 	if idUI == nil {
 		if t.identifier != nil {
-			t.G().Log.Debug("using KBFSTLFInfoSource.identifier to identify")
+			t.Debug(ctx, "using KBFSTLFInfoSource.identifier to identify")
 			return t.identifier.Identify(ctx, assertion, private, idBehavior)
 		}
 
+		t.Debug(ctx, "no delegated identify ui, no KBFSTLFInfoSource.identifier: using null identify ui")
 		sessionID = 0
 		idUI = chatNullIdentifyUI{}
 	}
