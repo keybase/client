@@ -13,6 +13,7 @@ import {navigateAppend} from '../../actions/route-tree'
 import {onUserClick} from '../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
 import {pick} from 'lodash'
+import {isMobile} from '../../constants/platform'
 
 import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
@@ -158,6 +159,7 @@ export default connect(
     onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
     onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
     onBack: () => dispatch(navigateUp()),
+    onBannerWarning: (username: string) => { isMobile ? dispatch(onUserClick(username, '')) : dispatch(getProfile(username, true, true)) },
     onDeleteMessage: (message: Constants.Message) => { dispatch(Creators.deleteMessage(message)) },
     onEditMessage: (message: Constants.Message, body: string) => { dispatch(Creators.editMessage(message, new HiddenString(body))) },
     onShowBlockConversationDialog: (selectedConversation, participants) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, participants}, selected: 'showBlockConversationDialog'}])) },
@@ -187,7 +189,7 @@ export default connect(
     const brokenUsers = Constants.getBrokenUsers(stateProps.participants.toArray(), stateProps.you, stateProps.metaDataMap)
     if (brokenUsers.length) {
       bannerMessage = {
-        onClick: (user: string) => dispatchProps.onShowTracker(user),
+        onClick: (user: string) => dispatchProps.onBannerWarning(user),
         type: 'BrokenTracker',
         users: brokenUsers,
       }
