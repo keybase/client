@@ -1,9 +1,13 @@
 // @flow
 import React, {Component} from 'react'
 
+import HeaderHoc from '../common-adapters/header-hoc'
 import Feedback from './feedback'
 import logSend from '../native/log-send'
+import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
+
+import type {Dispatch} from '../constants/types/flux'
 
 const FeedbackWrapped = compose(
   withState('sendLogs', 'onChangeSendLogs', true),
@@ -17,7 +21,7 @@ type State = {
   feedback: ?string,
 }
 
-class LogSend extends Component<void, {}, State> {
+class FeedbackContainer extends Component<void, {}, State> {
   state: State;
 
   constructor (props: {}) {
@@ -47,4 +51,10 @@ class LogSend extends Component<void, {}, State> {
   }
 }
 
-export default LogSend
+export default connect(
+  () => ({}),
+  (dispatch: Dispatch, {navigateUp}) => ({
+    title: 'Feedback',
+    onBack: () => dispatch(navigateUp()),
+  })
+)(HeaderHoc(FeedbackContainer))

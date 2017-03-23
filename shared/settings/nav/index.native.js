@@ -3,6 +3,7 @@ import React from 'react'
 import {StyleSheet} from 'react-native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Badge, ClickableBox, Text} from '../../common-adapters'
+import HeaderHoc from '../../common-adapters/header-hoc'
 import {
   landingTab,
   invitationsTab,
@@ -13,6 +14,7 @@ import {
   aboutTab,
   devicesTab,
 } from '../../constants/settings'
+import {compose, defaultProps} from 'recompose'
 
 import type {Props} from './index'
 
@@ -30,9 +32,6 @@ export function SettingsItem ({text, onClick, badgeNumber}: {text: string, onCli
 function SettingsNav ({badgeNumbers, selectedTab, onTabChange}: Props) {
   return (
     <Box style={styleNavBox}>
-      <Box style={headerContainerStyle}>
-        <Text type='Header' style={headerStyle}>SETTINGS</Text>
-      </Box>
       <SettingsItem
         text='Your Account'
         badgeNumber={badgeNumbers[landingTab]}
@@ -79,10 +78,6 @@ function SettingsNav ({badgeNumbers, selectedTab, onTabChange}: Props) {
   )
 }
 
-const headerStyle = {
-  textAlign: 'center',
-}
-
 const headerContainerStyle = {
   paddingTop: globalMargins.tiny,
   paddingBottom: globalMargins.tiny,
@@ -118,4 +113,4 @@ const badgeStyle = {
   marginTop: 2,
 }
 
-export default SettingsNav
+export default compose(defaultProps({title: 'SETTINGS'}), HeaderHoc)(SettingsNav)

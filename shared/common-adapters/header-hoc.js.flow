@@ -1,0 +1,10 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  title: ?string,
+  onBack: ?(() => void),
+}
+
+declare export default class HeaderHOC extends Component<DefaultProps, Props, void> {
+}
