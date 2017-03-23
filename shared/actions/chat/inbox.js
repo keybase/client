@@ -81,7 +81,7 @@ function * _updateFinalized (inbox: ChatTypes.GetInboxLocalRes) {
   ]))
 
   if (finalizedState.count()) {
-    yield put(({payload: {finalizedState}, type: 'chat:updateFinalizedState'}: Constants.UpdateFinalizedState))
+    yield put(Creators.updateFinalizedState(finalizedState))
   }
 }
 
@@ -164,35 +164,26 @@ function * updateInbox (c: ?ChatTypes.ConversationLocal): SagaGenerator<any, any
 
     const supersedes = _toSupersedeInfo(conversationIDKey, c.supersedes || [])
     if (supersedes) {
-      yield put(({
-        payload: {supersedesState: Map({[conversationIDKey]: supersedes})},
-        type: 'chat:updateSupersedesState',
-      }: Constants.UpdateSupersedesState))
+      yield put(Creators.updateSupersedesState(Map({[conversationIDKey]: supersedes})))
     }
 
     const supersededBy = _toSupersedeInfo(conversationIDKey, c.supersededBy || [])
     if (supersededBy) {
-      yield put(({
-        payload: {supersededByState: Map({[conversationIDKey]: supersededBy})},
-        type: 'chat:updateSupersededByState',
-      }: Constants.UpdateSupersededByState))
+      yield put(Creators.updateSupersededByState(Map({[conversationIDKey]: supersededBy})))
     }
 
     if (c.info.finalizeInfo) {
-      yield put(({
-        payload: {finalizedState: Map({[conversationIDKey]: c.info.finalizeInfo})},
-        type: 'chat:updateFinalizedState',
-      }: Constants.UpdateFinalizedState))
+      yield put(Creators.updateFinalizedState(Map({[conversationIDKey]: c.info.finalizeInfo})))
     }
   }
 
   const inboxState = _conversationLocalToInboxState(c)
 
   if (inboxState) {
-    yield put(({payload: {conversation: inboxState}, type: 'chat:updateInbox'}: Constants.UpdateInbox))
+    yield put(Creators.updateInbox(inboxState))
 
     // inbox loaded so rekeyInfo is now clear
-    yield put({payload: {conversationIDKey: inboxState.get('conversationIDKey')}, type: 'chat:clearRekey'})
+    yield put(Creators.clearRekey(inboxState.get('conversationIDKey')))
 
     // Try and load messages if the updated item is the selected one
     const selectedConversation = yield select(Constants.getSelectedConversation)
@@ -278,14 +269,14 @@ function * _unboxConversations (conversationIDKeys: Array<Constants.Conversation
 
       switch (error.typ) {
         case ChatTypes.LocalConversationErrorType.selfrekeyneeded: {
-          yield put(({payload: {conversation}, type: 'chat:updateInbox'}: Constants.UpdateInbox))
-          yield put({payload: {conversationIDKey}, type: 'chat:updateInboxRekeySelf'})
+          yield call(Creators.updateInbox(conversation))
+          yield put(Creators.updateInboxRekeySelf(conversationIDKey))
           break
         }
         case ChatTypes.LocalConversationErrorType.otherrekeyneeded: {
-          yield put(({payload: {conversation}, type: 'chat:updateInbox'}: Constants.UpdateInbox))
+          yield call(Creators.updateInbox(conversation))
           const rekeyers = error.rekeyInfo.rekeyers
-          yield put({payload: {conversationIDKey, rekeyers}, type: 'chat:updateInboxRekeyOthers'})
+          yield put(Creators.updateInboxRekeyOthers(conversationIDKey, rekeyers))
           break
         }
         default:

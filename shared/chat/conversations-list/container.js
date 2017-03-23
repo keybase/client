@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import ConversationList from './index'
 import {connect} from 'react-redux'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
-import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat'
+import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat/creators'
 
 import type {TypedState} from '../../constants/reducer'
 

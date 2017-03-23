@@ -11,7 +11,6 @@ import type {Props} from './wrapper'
 type MessageProps = Props & {onRetry: () => void, onShowEditor: () => void}
 
 class MessageWrapper extends PureComponent<void, MessageProps, void> {
-
   render () {
     const {children, message, style, includeHeader, isFirstNewMessage, onAction, onRetry, onShowEditor, isSelected, you, followingMap, metaDataMap} = this.props
     return (

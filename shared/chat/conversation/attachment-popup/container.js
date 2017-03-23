@@ -2,7 +2,7 @@
 import {compose, withState, withProps} from 'recompose'
 import RenderAttachmentPopup from './'
 import {connect} from 'react-redux'
-import {deleteMessage} from '../../../actions/chat'
+import {deleteMessage} from '../../../actions/chat/creators'
 import {downloadFilePath} from '../../../util/file'
 
 import type {RouteProps} from '../../../route-tree/render-route'

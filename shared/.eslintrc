@@ -75,6 +75,8 @@
         "standard/computed-property-even-spacing": ["error", "never"],
         "standard/object-curly-even-spacing": ["error", "never"],
         "strict": ["error", "global"],
-        "sort-keys": ["warn", "asc", {"caseSensitive": true, "natural": false}]
+        "sort-keys": ["warn", "asc", {"caseSensitive": true, "natural": false}],
+        "no-mixed-operators": "off",
+        "react/no-unused-prop-types": "off"
     }
 }

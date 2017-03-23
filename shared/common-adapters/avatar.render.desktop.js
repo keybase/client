@@ -134,7 +134,6 @@ class AvatarRender extends PureComponent<void, Props, State> {
         } else {
           this._image.src = single
         }
-        return
       }
     }
   }

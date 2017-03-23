@@ -85,7 +85,7 @@ function safeTakeLatest (pattern: string | Array<any> | Function, worker: Functi
 }
 
 // take on pattern. If pattern happens while the original one is running just ignore it
-function* safeTakeSerially (pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>): any {
+function * safeTakeSerially (pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>): any {
   const wrappedWorker = function * (...args) {
     try {
       yield call(worker, ...args)
@@ -100,7 +100,7 @@ function* safeTakeSerially (pattern: string | Array<any> | Function, worker: Fun
     }
   }
 
-  const task = yield fork(function* () {
+  const task = yield fork(function * () {
     let lastTask
     while (true) {
       const action = yield take(pattern)

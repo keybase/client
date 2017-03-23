@@ -4,6 +4,57 @@ import type {Email} from './types/flow-types'
 import type {AcceptedInvite, PendingInvite} from '../settings/invites/index'
 import HiddenString from '../util/hidden-string'
 
+export type Invitation = {
+  created: number,
+  email: string,
+  id: string,
+  type: string,
+  username?: string,
+  uid?: string,
+  url: string,
+}
+
+export type InvitesState = {
+  pendingInvites: Array<PendingInvite>,
+  acceptedInvites: Array<AcceptedInvite>,
+  error: ?Error,
+}
+
+export type NotificationsState = {
+  settings: ?Array<{
+    name: string,
+    subscribed: boolean,
+    description: string,
+  }>,
+  unsubscribedFromAll: ?boolean,
+  allowSave: boolean,
+  allowEdit: boolean,
+}
+
+export type PassphraseState = {
+  newPassphrase: HiddenString,
+  newPassphraseConfirm: HiddenString,
+  error: ?Error,
+  newPassphraseError: ?HiddenString,
+  newPassphraseConfirmError: ?HiddenString,
+  hasPGPKeyOnServer: ?boolean,
+}
+
+export type EmailState = {
+  emails: Array<Email>,
+  newEmail: string,
+  error: ?Error,
+}
+
+export type State = {
+  allowDeleteAccount: boolean,
+  waitingForResponse: boolean,
+  invites: InvitesState,
+  notifications: NotificationsState,
+  email: EmailState,
+  passphrase: PassphraseState,
+}
+
 export const invitesReclaim = 'settings:invitesReclaim'
 export type InvitesReclaim = NoErrorTypedAction<'settings:invitesReclaim', {inviteId: string}>
 
@@ -95,57 +146,6 @@ export const devMenuTab = 'settingsTabs:devMenuTab'
 export type Tab = LandingTab | UpdatePaymentTab | InvitationsTab | NotificationsTab | DeleteMeTab | DevMenuTab
 
 export type Actions = InvitesRefresh | NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
-
-export type Invitation = {
-  created: number,
-  email: string,
-  id: string,
-  type: string,
-  username?: string,
-  uid?: string,
-  url: string,
-}
-
-export type InvitesState = {
-  pendingInvites: Array<PendingInvite>,
-  acceptedInvites: Array<AcceptedInvite>,
-  error: ?Error,
-}
-
-export type NotificationsState = {
-  settings: ?Array<{
-    name: string,
-    subscribed: boolean,
-    description: string,
-  }>,
-  unsubscribedFromAll: ?boolean,
-  allowSave: boolean,
-  allowEdit: boolean,
-}
-
-export type PassphraseState = {
-  newPassphrase: HiddenString,
-  newPassphraseConfirm: HiddenString,
-  error: ?Error,
-  newPassphraseError: ?HiddenString,
-  newPassphraseConfirmError: ?HiddenString,
-  hasPGPKeyOnServer: ?boolean,
-}
-
-export type EmailState = {
-  emails: Array<Email>,
-  newEmail: string,
-  error: ?Error,
-}
-
-export type State = {
-  allowDeleteAccount: boolean,
-  waitingForResponse: boolean,
-  invites: InvitesState,
-  notifications: NotificationsState,
-  email: EmailState,
-  passphrase: PassphraseState,
-}
 
 export const waitingForResponse = 'settings:waitingForResponse'
 export function waiting (waiting: boolean) : TypedAction<'settings:waitingForResponse', boolean, void> {

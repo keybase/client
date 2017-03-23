@@ -5,7 +5,7 @@ import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isPendingConversationIDKey, newestConversationIDKey, participantFilter, getSelectedConversation} from '../../constants/chat'
-import {selectConversation} from '../../actions/chat'
+import {selectConversation} from '../../actions/chat/creators'
 
 import type {TypedState} from '../../constants/reducer'
 import type {ConversationIDKey} from '../../constants/chat'

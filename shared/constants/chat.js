@@ -13,6 +13,9 @@ import type {AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFin
 import type {DeviceType} from './types/more'
 import type {TypedState} from './reducer'
 
+type MessageKey = string
+type MessageKeyKind = 'messageID' | 'outboxID' | 'tempAttachment' | 'timestamp' | 'error'
+
 export type MessageType = 'Text'
 export type FollowingMap = {[key: string]: boolean}
 
@@ -29,11 +32,6 @@ export type OutboxID = RPCOutboxID
 export type OutboxIDKey = string
 
 export type MessageID = RPCMessageID
-
-export type ClientMessage = TimestampMessage | SupersedesMessage | LoadingMoreMessage | ChatSecuredHeaderMessage
-export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage | UpdatingAttachment | InvisibleErrorMessage
-
-export type Message = ClientMessage | ServerMessage
 
 export type TextMessage = {
   type: 'Text',
@@ -173,6 +171,11 @@ export type UpdatingAttachment = {
     title: ?string,
   },
 }
+
+export type ClientMessage = TimestampMessage | SupersedesMessage | LoadingMoreMessage | ChatSecuredHeaderMessage
+export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage | UpdatingAttachment | InvisibleErrorMessage
+
+export type Message = ClientMessage | ServerMessage
 
 export type MaybeTimestamp = TimestampMessage | null
 
@@ -317,7 +320,7 @@ export const maxMessagesToLoadAtATime = 50
 export const nothingSelected = 'chat:noneSelected'
 
 export type AddPendingConversation = NoErrorTypedAction<'chat:addPendingConversation', {participants: Array<string>}>
-export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<ServerMessage>}>
+export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<Message>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeState>>
 export type BlockConversation = NoErrorTypedAction<'chat:blockConversation', {blocked: boolean, conversationIDKey: ConversationIDKey}>
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
@@ -331,7 +334,7 @@ export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activi
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', {force: boolean}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
-export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
+export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey, isRequesting: boolean}>
 export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
 export type MuteConversation = NoErrorTypedAction<'chat:muteConversation', {conversationIDKey: ConversationIDKey, muted: boolean}>
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
@@ -341,12 +344,13 @@ export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
 export type OpenTlfInChat = NoErrorTypedAction<'chat:openTlfInChat', string>
 export type PendingToRealConversation = NoErrorTypedAction<'chat:pendingToRealConversation', {oldKey: ConversationIDKey, newKey: ConversationIDKey}>
 export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
-export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>, moreToLoad: boolean, paginationNext: ?Buffer}>
+export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>, moreToLoad: boolean, paginationNext: ?Buffer}>
 export type RemoveOutboxMessage = NoErrorTypedAction<'chat:removeOutboxMessage', {conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey}>
 export type RemovePendingFailure = NoErrorTypedAction<'chat:removePendingFailure', {outboxID: OutboxIDKey}>
 export type ReplaceConversation = NoErrorTypedAction<'chat:replaceConversation', {oldKey: ConversationIDKey, newKey: ConversationIDKey}>
 export type RetryMessage = NoErrorTypedAction<'chat:retryMessage', {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ?ConversationIDKey, fromUser: boolean}>
+export type SetLoaded = NoErrorTypedAction<'chat:setLoaded', {conversationIDKey: ConversationIDKey, isLoaded: boolean}>
 export type SetUnboxing = NoErrorTypedAction<'chat:setUnboxing', {conversationIDKeys: Array<ConversationIDKey>}>
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
 export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: Message}>
@@ -354,20 +358,19 @@ export type StartConversation = NoErrorTypedAction<'chat:startConversation', {us
 export type UnboxInbox = NoErrorTypedAction<'chat:updateSupersededByState', {conversationIDKeys: Array<ConversationIDKey>}>
 export type UntrustedInboxVisible = NoErrorTypedAction<'chat:untrustedInboxVisible', {conversationIDKey: ConversationIDKey, rowsVisible: number}>
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
-export type UpdateConversationUnreadCounts = NoErrorTypedAction<'chat:updateConversationUnreadCounts', Map<ConversationIDKey, number>>
+export type UpdateConversationUnreadCounts = NoErrorTypedAction<'chat:updateConversationUnreadCounts', {conversationUnreadCounts: Map<ConversationIDKey, number>}>
 export type UpdateFinalizedState = NoErrorTypedAction<'chat:updateFinalizedState', {finalizedState: FinalizedState}>
 export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: InboxState}>
 export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>
 export type UpdateInboxRekeyOthers = NoErrorTypedAction<'chat:updateInboxRekeyOthers', {conversationIDKey: ConversationIDKey, rekeyers: Array<string>}>
-export type UpdatePaginationNext = NoErrorTypedAction<'chat:updatePaginationNext', {conversationIDKey: ConversationIDKey, paginationNext: Buffer}>
-export type UpdateSupersededByState = NoErrorTypedAction<'chat:updateSupersededByState', {supersededByState: SupersededByState}>
-export type UpdateSupersedesState = NoErrorTypedAction<'chat:updateSupersedesState', {supersedesState: SupersedesState}>
-
 export type UpdateInboxRekeySelf = NoErrorTypedAction<'chat:updateInboxRekeySelf', {conversationIDKey: ConversationIDKey}>
 export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>
 export type UpdateMessage = NoErrorTypedAction<'chat:updateMessage', {conversationIDKey: ConversationIDKey, message: $Shape<AttachmentMessage> | $Shape<TextMessage>, messageID: MessageID}>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
-export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
+export type UpdatePaginationNext = NoErrorTypedAction<'chat:updatePaginationNext', {conversationIDKey: ConversationIDKey, paginationNext: Buffer}>
+export type UpdateSupersededByState = NoErrorTypedAction<'chat:updateSupersededByState', {supersededByState: SupersededByState}>
+export type UpdateSupersedesState = NoErrorTypedAction<'chat:updateSupersedesState', {supersedesState: SupersedesState}>
+export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {updated: {[key: string]: MetaData}}>
 
 export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {input: AttachmentInput}>
 export type UpdateBrokenTracker = NoErrorTypedAction<'chat:updateBrokenTracker', {userToBroken: {[username: string]: boolean}}>
@@ -510,7 +513,7 @@ function serverMessageToMessageBody (message: ServerMessage): ?MessageBody {
         },
       }
     default:
-      null
+      return null
   }
 }
 
@@ -594,8 +597,6 @@ const getSelectedConversation = (state: TypedState) => {
   return selected
 }
 
-type MessageKey = string
-type MessageKeyKind = 'messageID' | 'outboxID' | 'tempAttachment' | 'timestamp' | 'error'
 function messageKey (kind: MessageKeyKind, value: string | number): MessageKey {
   return `${kind}:${value}`
 }

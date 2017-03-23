@@ -96,32 +96,6 @@ function * clientHeader (messageType: ChatTypes.MessageType, conversationIDKey: 
   }
 }
 
-const appendMessageActionTransformer = (action: Constants.AppendMessages) => ({
-  payload: {
-    conversationIDKey: action.payload.conversationIDKey,
-    messages: action.payload.messages.map(safeServerMessageMap),
-  },
-  type: action.type,
-})
-
-const safeServerMessageMap = (m: any) => ({
-  key: m.key,
-  messageID: m.messageID,
-  messageState: m.messageState,
-  outboxID: m.outboxID,
-  type: m.type,
-})
-
-const prependMessagesActionTransformer = (action: Constants.PrependMessages) => ({
-  payload: {
-    conversationIDKey: action.payload.conversationIDKey,
-    hasPaginationNext: !!action.payload.paginationNext,
-    messages: action.payload.messages.map(safeServerMessageMap),
-    moreToLoad: action.payload.moreToLoad,
-  },
-  type: action.type,
-})
-
 // Actually start a new conversation. conversationIDKey can be a pending one or a replacement
 function * startNewConversation (oldConversationIDKey: Constants.ConversationIDKey): Generator<any, ?Constants.ConversationIDKey, any> {
   // Find the participants
@@ -227,7 +201,6 @@ function maybeAddTimestamp (_message: Constants.Message, _prevMessage: Constants
 
 export {
   alwaysShowSelector,
-  appendMessageActionTransformer,
   clientHeader,
   conversationStateSelector,
   devicenameSelector,
@@ -239,7 +212,6 @@ export {
   messageSelector,
   metaDataSelector,
   pendingFailureSelector,
-  prependMessagesActionTransformer,
   routeSelector,
   selectedInboxSelector,
   startNewConversation,

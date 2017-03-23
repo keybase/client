@@ -1,0 +1,10 @@
+// @flow
+import {Component} from 'react'
+
+import type {Reachability} from '../constants/types/flow-types'
+
+export type Props = {
+  reachability: ?Reachability,
+}
+
+export default class Offline extends Component<void, Props, void> {}

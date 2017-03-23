@@ -1,5 +1,6 @@
 // @flow
 import GlobalError from './global-errors/container'
+import Offline from './offline'
 import React from 'react'
 import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
 import {Box, NativeKeyboardAvoidingView} from './common-adapters/index.native'
@@ -68,6 +69,7 @@ function MainNavStack (props: Props) {
           onNavigateBack={props.navigateUp}
         />
         {layerScreens.map(r => r.leafComponent)}
+        {![chatTab, loginTab].includes(props.routeSelected) && <Offline reachability={props.reachability} />}
         <GlobalError />
       </Box>
       {!props.hideNav &&
@@ -140,6 +142,7 @@ export default connect(
     config: {extendedConfig, username},
     dev: {debugConfig: {dumbFullscreen}},
     notifications: {menuBadge, menuNotifications},
+    gregor: {reachability},
   }, {routeStack, routeSelected}) => ({
     chatBadge: menuNotifications.chatBadge,
     dumbFullscreen,
@@ -147,6 +150,7 @@ export default connect(
     provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
     username,
     hideNav: routeSelected === loginTab,
+    reachability,
   }),
   (dispatch: any, {routeSelected, routePath}) => ({
     navigateUp: () => dispatch(navigateUp()),
