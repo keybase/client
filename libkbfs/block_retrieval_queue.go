@@ -200,7 +200,9 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ptr BlockPointer, block Block,
 }
 
 // Request submits a block request to the queue.
-func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error {
+func (brq *blockRetrievalQueue) Request(ctx context.Context,
+	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
+	lifetime BlockCacheLifetime) <-chan error {
 	// Only continue if we haven't been shut down
 	ch := make(chan error, 1)
 	select {
@@ -225,13 +227,12 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 	for {
 		br, exists := brq.ptrs[bpLookup]
 		if !exists {
-			// Attempt to retrieve the block from the cache. This
-			// might be a specific type where the request blocks are
-			// CommonBlocks, but that direction can Set correctly. The
-			// cache will never have CommonBlocks.  TODO: verify that
-			// the returned lifetime here matches `lifetime` (which
-			// should always be TransientEntry, since a PermanentEntry
-			// would have been served directly from the cache
+			// Attempt to retrieve the block from the cache. This might be a
+			// specific type where the request blocks are CommonBlocks, but
+			// that direction can Set correctly. The cache will never have
+			// CommonBlocks.  TODO: verify that the returned lifetime here
+			// matches `lifetime` (which should always be TransientEntry, since
+			// a PermanentEntry would have been served directly from the cache
 			// elsewhere)?
 			cachedBlock, hasPrefetched, _, err :=
 				brq.config.BlockCache().GetWithPrefetch(ptr)

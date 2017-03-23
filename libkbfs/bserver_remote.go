@@ -377,7 +377,8 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 	context kbfsblock.Context) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	// TODO: do this in parallel.
-	if b.config.DiskBlockCache() != nil {
+	dbc := b.config.DiskBlockCache()
+	if dbc != nil {
 		buf, serverHalf, err = b.config.DiskBlockCache().Get(ctx, tlfID, id)
 		if err == nil {
 			return
@@ -390,8 +391,8 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 				ctx, "Get id=%s tlf=%s context=%s sz=%d err=%v",
 				id, tlfID, context, size, err)
 		} else {
-			if b.config.DiskBlockCache() != nil {
-				go b.config.DiskBlockCache().Put(ctx, tlfID, id, buf, serverHalf)
+			if dbc != nil {
+				go dbc.Put(ctx, tlfID, id, buf, serverHalf)
 			}
 			b.deferLog.CDebugf(
 				ctx, "Get id=%s tlf=%s context=%s sz=%d",
@@ -421,8 +422,9 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	bContext kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
-	if b.config.DiskBlockCache() != nil {
-		go b.config.DiskBlockCache().Put(ctx, tlfID, id, buf, serverHalf)
+	dbc := b.config.DiskBlockCache()
+	if dbc != nil {
+		go dbc.Put(ctx, tlfID, id, buf, serverHalf)
 	}
 	size := len(buf)
 	defer func() {
