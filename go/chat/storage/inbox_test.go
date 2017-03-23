@@ -308,8 +308,8 @@ func TestInboxNewConversation(t *testing.T) {
 	}
 
 	t.Logf("basic newconv")
-	newConv := makeConvo(gregor1.Time(11), 1, 1)
 	require.NoError(t, inbox.Merge(context.TODO(), 1, convs, nil, nil))
+	newConv := makeConvo(gregor1.Time(11), 1, 1)
 	require.NoError(t, inbox.NewConversation(context.TODO(), 2, newConv))
 	_, res, _, err := inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
@@ -331,9 +331,10 @@ func TestInboxNewConversation(t *testing.T) {
 	convs = append([]chat1.Conversation{newConv}, convs...)
 	convListCompare(t, append(convs[:7], convs[8:]...), res, "newconv finalized")
 
-	validateBadUpdate(t, inbox, func() error {
-		return inbox.NewConversation(context.TODO(), 10, newConv)
-	})
+	require.Equal(t, numConvs+2, len(convs), "n convs")
+
+	err = inbox.NewConversation(context.TODO(), 10, newConv)
+	require.IsType(t, VersionMismatchError{}, err)
 }
 
 func TestInboxNewMessage(t *testing.T) {
@@ -385,9 +386,8 @@ func TestInboxNewMessage(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(3), maxMsg.GetMessageID(), "max msg not updated")
 
-	validateBadUpdate(t, inbox, func() error {
-		return inbox.NewMessage(context.TODO(), 10, conv.GetConvID(), msg)
-	})
+	err = inbox.NewMessage(context.TODO(), 10, conv.GetConvID(), msg)
+	require.IsType(t, VersionMismatchError{}, err)
 }
 
 func TestInboxReadMessage(t *testing.T) {
@@ -422,9 +422,8 @@ func TestInboxReadMessage(t *testing.T) {
 	require.Equal(t, chat1.MessageID(2), res[0].ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(2), res[0].ReaderInfo.ReadMsgid, "wrong read msgid")
 
-	validateBadUpdate(t, inbox, func() error {
-		return inbox.ReadMessage(context.TODO(), 10, conv.GetConvID(), 3)
-	})
+	err = inbox.ReadMessage(context.TODO(), 10, conv.GetConvID(), 3)
+	require.IsType(t, VersionMismatchError{}, err)
 }
 
 func TestInboxSetStatus(t *testing.T) {
@@ -460,9 +459,8 @@ func TestInboxSetStatus(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 0, len(res), "ignore not unset")
 
-	validateBadUpdate(t, inbox, func() error {
-		return inbox.SetStatus(context.TODO(), 10, conv.GetConvID(), chat1.ConversationStatus_BLOCKED)
-	})
+	err = inbox.SetStatus(context.TODO(), 10, conv.GetConvID(), chat1.ConversationStatus_BLOCKED)
+	require.IsType(t, VersionMismatchError{}, err)
 }
 
 func TestInboxSetStatusMuted(t *testing.T) {
@@ -498,9 +496,8 @@ func TestInboxSetStatusMuted(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res), "muted wrongly unset")
 
-	validateBadUpdate(t, inbox, func() error {
-		return inbox.SetStatus(context.TODO(), 10, conv.GetConvID(), chat1.ConversationStatus_BLOCKED)
-	})
+	err = inbox.SetStatus(context.TODO(), 10, conv.GetConvID(), chat1.ConversationStatus_BLOCKED)
+	require.IsType(t, VersionMismatchError{}, err)
 }
 
 func TestInboxTlfFinalize(t *testing.T) {
@@ -524,10 +521,9 @@ func TestInboxTlfFinalize(t *testing.T) {
 	require.Equal(t, conv.GetConvID(), res[5].GetConvID(), "id")
 	require.NotNil(t, res[5].Metadata.FinalizeInfo, "finalize info")
 
-	validateBadUpdate(t, inbox, func() error {
-		return inbox.TlfFinalize(context.TODO(), 10, []chat1.ConversationID{conv.GetConvID()},
-			chat1.ConversationFinalizeInfo{ResetFull: "reset"})
-	})
+	err = inbox.TlfFinalize(context.TODO(), 10, []chat1.ConversationID{conv.GetConvID()},
+		chat1.ConversationFinalizeInfo{ResetFull: "reset"})
+	require.IsType(t, VersionMismatchError{}, err)
 }
 
 func TestInboxSync(t *testing.T) {

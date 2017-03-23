@@ -114,28 +114,26 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	tc := world.Tcs[u.Username]
 	tc.G.SetService()
 	boxer := NewBoxer(tc.G, tlf)
-	f := func() libkb.SecretUI {
-		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
-	}
-	baseSender := NewBlockingSender(tc.G, boxer, nil, func() chat1.RemoteInterface { return ri }, f)
+	getSecretUI := func() libkb.SecretUI { return &libkb.TestSecretUI{Passphrase: u.Passphrase} }
+	getRI := func() chat1.RemoteInterface { return ri }
+	baseSender := NewBlockingSender(tc.G, boxer, nil, getRI, getSecretUI)
 	sender := NewNonblockingSender(tc.G, baseSender)
 	listener := chatListener{
 		incoming:       make(chan int),
 		failing:        make(chan []chat1.OutboxRecord),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks),
 	}
-	tc.G.ConvSource = NewHybridConversationSource(tc.G, boxer, storage.New(tc.G, f),
-		func() chat1.RemoteInterface { return ri },
+	tc.G.ConvSource = NewHybridConversationSource(tc.G, boxer, storage.New(tc.G, getSecretUI), getRI,
 		func() libkb.SecretUI { return &libkb.TestSecretUI{} })
 	tc.G.InboxSource = NewHybridInboxSource(tc.G,
-		func() chat1.RemoteInterface { return ri }, f, tlf)
+		getRI, getSecretUI, tlf)
 	tc.G.NotifyRouter.SetListener(&listener)
 	tc.G.MessageDeliverer = NewDeliverer(tc.G, baseSender)
 	tc.G.MessageDeliverer.(*Deliverer).SetClock(world.Fc)
 	tc.G.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
 	tc.G.MessageDeliverer.Connected(context.TODO())
 
-	return world, ri, sender, baseSender, &listener, f, tlf
+	return world, ri, sender, baseSender, &listener, getSecretUI, tlf
 }
 
 func TestNonblockChannel(t *testing.T) {

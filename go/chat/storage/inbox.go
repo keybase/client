@@ -462,7 +462,7 @@ func (i *Inbox) handleVersion(ctx context.Context, ourvers chat1.InboxVers, upda
 	if updatevers == 0 {
 		// Don't do anything to the version if we are just writing into ourselves, we'll
 		// get the correct version when Gregor bounces the update back at us
-		i.Debug(ctx, "handleVersion: received an self update: ours: %d update: %d", ourvers, updatevers)
+		i.Debug(ctx, "handleVersion: received a self update: ours: %d update: %d", ourvers, updatevers)
 		return ourvers, true, nil
 	} else if ourvers >= updatevers {
 		i.Debug(ctx, "handleVersion: received an old update: ours: %d update: %d", ourvers, updatevers)
@@ -472,13 +472,11 @@ func (i *Inbox) handleVersion(ctx context.Context, ourvers chat1.InboxVers, upda
 		return updatevers, true, nil
 	}
 
-	i.Debug(ctx, "handleVersion: received a non-incremental update, clearing: ours: %d update: %d",
+	i.Debug(ctx, "handleVersion: received a non-incremental update: ours: %d update: %d",
 		ourvers, updatevers)
 
-	// Nuke our own storage if we hit this case
-	if err := i.Clear(ctx); err != nil {
-		return ourvers, false, err
-	}
+	// The update is far ahead of what we have.
+	// Leave our state alone, but request a resync using a VersionMismatchError.
 	return ourvers, false, NewVersionMismatchError(ourvers, updatevers)
 }
 
@@ -774,30 +772,6 @@ func (i *Inbox) TlfFinalize(ctx context.Context, vers chat1.InboxVers, convIDs [
 	ibox.InboxVersion = vers
 	if err := i.writeDiskInbox(ctx, ibox); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (i *Inbox) VersionSync(ctx context.Context, vers chat1.InboxVers) (err Error) {
-	locks.Inbox.Lock()
-	defer locks.Inbox.Unlock()
-	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
-
-	ibox, err := i.readDiskInbox(ctx)
-	if err != nil {
-		if _, ok := err.(MissError); !ok {
-			return err
-		}
-		return nil
-	}
-
-	// If the versions don't match here, we just clear the inbox for the user
-	if ibox.InboxVersion != vers {
-		if err = i.Clear(ctx); err != nil {
-			return err
-		}
-		return NewVersionMismatchError(ibox.InboxVersion, vers)
 	}
 
 	return nil

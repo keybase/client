@@ -215,6 +215,8 @@ type ChatRemoteMock struct {
 	world     *ChatMockWorld
 	readMsgid map[string]chat1.MessageID
 	uid       *gregor1.UID
+
+	SyncInboxFunc func(m *ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error)
 }
 
 var _ chat1.RemoteInterface = (*ChatRemoteMock)(nil)
@@ -537,7 +539,10 @@ func (m *ChatRemoteMock) GetInboxVersion(ctx context.Context, uid gregor1.UID) (
 }
 
 func (m *ChatRemoteMock) SyncInbox(ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
-	return chat1.SyncInboxRes{}, nil
+	if m.SyncInboxFunc == nil {
+		return chat1.SyncInboxRes{}, nil
+	}
+	return m.SyncInboxFunc(m, ctx, vers)
 }
 
 type convByNewlyUpdated struct {
