@@ -178,7 +178,7 @@ function _filterTimestampableMessage (message: Constants.Message): ?Timestampabl
 }
 
 function _isTimestampableMessage (message: Constants.Message): boolean {
-  return !!(message && message.timestamp && !['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type))
+  return (!!message && !!message.timestamp && !['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type))
 }
 
 function _previousTimestampableMessage (messages: Array<Constants.Message>, prevIndex: number): ?Constants.Message {
