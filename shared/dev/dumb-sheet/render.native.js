@@ -149,8 +149,6 @@ class DumbSheetRender extends Component<void, Props, any> {
     const total = this._getTotal(filter)
     const {component, parentProps, mockStore} = this._getComponent(filter, this.props.dumbIndex % total)
 
-    console.log('aaa', component, mockStore)
-
     this._updateMockStore(mockStore)
 
     if (this.props.dumbFullscreen) {
