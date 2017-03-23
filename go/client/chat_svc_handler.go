@@ -46,6 +46,12 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	if err != nil {
 		return c.errReply(err)
 	}
+	protocols := []rpc.Protocol{
+		NewIdentifyUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return c.errReply(err)
+	}
 
 	topicType, err := TopicTypeFromStrDefault(opts.TopicType)
 	if err != nil {
@@ -118,6 +124,12 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 	var rlimits []chat1.RateLimit
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
+		return c.errReply(err)
+	}
+	protocols := []rpc.Protocol{
+		NewIdentifyUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
 	}
 
@@ -436,6 +448,7 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
 		chat1.ChatUiProtocol(ui),
+		NewIdentifyUIProtocol(c.G()),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
@@ -481,6 +494,7 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
 		chat1.ChatUiProtocol(ui),
+		NewIdentifyUIProtocol(c.G()),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
@@ -529,6 +543,7 @@ func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downlo
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
 		chat1.ChatUiProtocol(ui),
+		NewIdentifyUIProtocol(c.G()),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
@@ -586,6 +601,12 @@ func (c *chatServiceHandler) SetStatusV1(ctx context.Context, opts setStatusOpti
 	if err != nil {
 		return c.errReply(err)
 	}
+	protocols := []rpc.Protocol{
+		NewIdentifyUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return c.errReply(err)
+	}
 	localRes, err := client.SetConversationStatusLocal(ctx, setStatusArg)
 	if err != nil {
 		return c.errReply(err)
@@ -608,6 +629,12 @@ func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Rep
 
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
+		return c.errReply(err)
+	}
+	protocols := []rpc.Protocol{
+		NewIdentifyUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
 	}
 
@@ -672,6 +699,12 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1) Reply {
 	if err != nil {
 		return c.errReply(err)
 	}
+	protocols := []rpc.Protocol{
+		NewIdentifyUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return c.errReply(err)
+	}
 
 	var idFails []keybase1.TLFIdentifyFailure
 	if arg.nonblock {
@@ -714,6 +747,12 @@ type postHeader struct {
 func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, existing []chat1.ConversationLocal) (*postHeader, error) {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
+		return nil, err
+	}
+	protocols := []rpc.Protocol{
+		NewIdentifyUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return nil, err
 	}
 
@@ -770,6 +809,12 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.ConversationID, channel ChatChannel) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
+		return nil, nil, err
+	}
+	protocols := []rpc.Protocol{
+		NewIdentifyUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return nil, nil, err
 	}
 
