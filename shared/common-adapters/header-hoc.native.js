@@ -12,7 +12,7 @@ const HeaderHoc = WrappedComponent => ({onBack, title, ...restProps}: Props) => 
   <Box style={containerStyle}>
     <Box style={headerStyle}>
       <Box style={backButtonStyle}>
-        {onBack && <BackButton style={backButtonStyle} iconStyle={backButtonIconStyle} onClick={onBack} />}
+        {onBack && <BackButton iconStyle={backButtonIconStyle} onClick={onBack} />}
       </Box>
       <Text type='Header' style={headerText}>{title}</Text>
     </Box>
