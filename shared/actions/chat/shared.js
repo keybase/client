@@ -170,30 +170,38 @@ function _filterTimestampableMessage (message: Constants.Message): ?Timestampabl
     return message
   }
 
-  if (message === null || message.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type)) {
-    return null
-  }
-
-  if (!message.timestamp) {
-    return null
-  }
+  if (!_isTimestampableMessage(message)) return null
 
   // $FlowIssue with casting todo(mm) can we fix this?
   return message
 }
 
-function maybeAddTimestamp (_message: Constants.Message, _prevMessage: Constants.Message): Constants.MaybeTimestamp {
-  const prevMessage = _filterTimestampableMessage(_prevMessage)
+function _isTimestampableMessage (message: Constants.Message): boolean {
+  if (message && message.timestamp && !['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type)) return true
+  return false
+}
+
+function _previousMessage (messages: Array<Constants.Message>, prevIndex: number): ?Constants.Message {
+  for (var i = prevIndex; i >= 0; i--) {
+    const prevMessage = messages[i]
+    if (_isTimestampableMessage(prevMessage)) return prevMessage
+  }
+  return null
+}
+
+function maybeAddTimestamp (_message: Constants.Message, messages: Array<Constants.Message>, prevIndex: number): Constants.MaybeTimestamp {
+  const prevMessage = _previousMessage(messages, prevIndex)
   const message = _filterTimestampableMessage(_message)
   if (!message || !prevMessage) return null
 
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
   // the first message, as well as between any two messages with long duration.
+  // $FlowIssue with casting todo(mm) can we fix this?
   if (prevMessage.messageID === 1 || message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
     return {
-      type: 'Timestamp',
-      timestamp: message.timestamp,
       key: Constants.messageKey('timestamp', message.timestamp),
+      timestamp: message.timestamp,
+      type: 'Timestamp',
     }
   }
   return null
