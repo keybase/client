@@ -156,17 +156,6 @@ func (d *Service) Handle(c net.Conn) {
 		return
 	}
 
-	// create an identifier
-	/*
-		cli := rpc.NewClient(xp, libkb.ErrorUnwrapper{})
-		idUI := &RemoteIdentifyUI{
-			Contextified: libkb.NewContextified(d.G()),
-			uicli:        keybase1.IdentifyUiClient{Cli: cli},
-			logUI:        &LogUI{cli: &keybase1.LogUiClient{Cli: cli}},
-		}
-		identifier := NewChatIdentifier(d.G(), idUI)
-	*/
-
 	// Run the server and wait for it to finish.
 	<-server.Run()
 	// err is always non-nil.

@@ -88,7 +88,7 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 		return resp, err
 	}
 
-	// for now, replace id breaks with those calculated here
+	// use id breaks calculated by identifyTLF
 	resp.NameIDBreaks.Breaks.Breaks = ib
 
 	if in := CtxIdentifyNotifier(ctx); in != nil {
