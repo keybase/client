@@ -1,6 +1,6 @@
 // @flow
 import {RouteDefNode} from '../route-tree'
-import ConversationList from './conversations-list/container'
+import ConversationList from './inbox/container'
 import Conversation from './conversation/container'
 import EnterPaperkey from './conversation/enter-paper-key'
 import AttachmentPopup from './conversation/attachment-popup/container'
