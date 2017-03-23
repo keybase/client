@@ -82,28 +82,29 @@ class DumbSheetRender extends Component<void, Props, any> {
     return total
   }
 
-  _getComponent (filter: ?string, renderIdx: number) {
+  _getComponent (filter: ?string, renderIdx: number): {component: any, mock: any, key: any} {
     let component = null
-    let parentProps = {}
-    let mockStore = null
+    let mock = null
+    let key = null
 
     let currentIdx = 0
-    Object.keys(dumbComponentMap).forEach(key => {
-      if (filter && key.toLowerCase().indexOf(filter) === -1) {
+    Object.keys(dumbComponentMap).forEach(k => {
+      if (filter && k.toLowerCase().indexOf(filter) === -1) {
         return
       }
 
-      const map = dumbComponentMap[key]
+      const map = dumbComponentMap[k]
       const Component = map.component
 
       Object.keys(map.mocks).forEach((mockKey, idx) => {
         if (renderIdx === currentIdx) {
-          const mock = {...map.mocks[mockKey]}
-          parentProps = mock.parentProps || {}
-          mockStore = mock.mockStore
-          mock.parentProps = undefined
-          mock.mockStore = undefined
-          component = <Component key={mockKey} {...mock} />
+          key = k
+          mock = map.mocks[mockKey]
+          component = <Component key={mockKey} {...{
+            ...map.mocks[mockKey],
+            mockStore: undefined,
+            parentProps: undefined,
+          }} />
         }
         ++currentIdx
       })
@@ -111,8 +112,8 @@ class DumbSheetRender extends Component<void, Props, any> {
 
     return {
       component,
-      parentProps,
-      mockStore,
+      key,
+      mock,
     }
   }
 
@@ -120,14 +121,14 @@ class DumbSheetRender extends Component<void, Props, any> {
     if (this.state.testIndex === -1) {
       return <Text type='Body'>DONE TESTING</Text>
     }
-    const {component, mockStore} = this._getComponent(null, this.state.testIndex)
+    const {component, mock} = this._getComponent(null, this.state.testIndex)
 
-    this._updateMockStore(mockStore)
+    this._updateMockStore(mock.mockStore)
     console.log('test render idx', this.state.testIndex, component)
     return <Box>{this._makeStoreWrapper(component)}</Box>
   }
 
-  _updateMockStore (mockStore) {
+  _updateMockStore (mockStore: any) {
     if (mockStore) {
       if (!this._mockStore) {
         this._mockStore = createStore((old) => mockStore, mockStore)
@@ -147,13 +148,13 @@ class DumbSheetRender extends Component<void, Props, any> {
   renderSingle () {
     const filter = this.props.dumbFilter.toLowerCase()
     const total = this._getTotal(filter)
-    const {component, parentProps, mockStore} = this._getComponent(filter, this.props.dumbIndex % total)
+    const {component, mock, key} = this._getComponent(filter, this.props.dumbIndex % total)
 
-    this._updateMockStore(mockStore)
+    this._updateMockStore(mock.mockStore)
 
     if (this.props.dumbFullscreen) {
       return (
-        <Box style={{flex: 1}} {...parentProps}>
+        <Box style={{flex: 1}} {...mock.parentProps}>
           {this._makeStoreWrapper(component)}
           <Icon type='iconfont-import' style={{position: 'absolute', top: 20, right: 0}} onClick={() => {
             this.props.onDebugConfigChange({dumbFullscreen: !this.props.dumbFullscreen})
@@ -188,7 +189,12 @@ class DumbSheetRender extends Component<void, Props, any> {
           }} />
         </Box>
         <NativeScrollView>
-          {this._makeStoreWrapper(component)}
+          <Box style={styleBox}>
+            <Text type='BodySmall'>{key}: {mock.mockKey}</Text>
+            <Box {...mock.parentProps}>
+              {this._makeStoreWrapper(component)}
+            </Box>
+          </Box>
         </NativeScrollView>
       </Box>
     )
@@ -207,6 +213,10 @@ class DumbSheetRender extends Component<void, Props, any> {
   }
 }
 
+const styleBox = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+}
 const stylesButton = {
   borderRadius: 10,
   height: 20,
