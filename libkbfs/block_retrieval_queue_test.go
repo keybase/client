@@ -29,7 +29,7 @@ func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter) *testBlockRetriev
 		newTestLogMaker(t),
 		NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity()),
 		bg,
-		newTestDiskBlockCacheGetter(t),
+		nil,
 	}
 }
 

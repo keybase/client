@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	testDiskBlockCacheMaxBytes int64 = 1 << 30
+	testDiskBlockCacheMaxBytes int64 = 1 << 20
 )
 
 type testDiskBlockCacheConfig struct {

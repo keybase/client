@@ -114,8 +114,7 @@ func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	bserver := NewBlockServerMemory(lm.MakeLogger(""))
 	crypto := MakeCryptoCommon(codecGetter.Codec())
 	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity())
-	dbcg := newTestDiskBlockCacheGetter(t)
-	return testBlockOpsConfig{codecGetter, lm, bserver, crypto, cache, dbcg}
+	return testBlockOpsConfig{codecGetter, lm, bserver, crypto, cache, nil}
 }
 
 // TestBlockOpsReadySuccess checks that BlockOpsStandard.Ready()
