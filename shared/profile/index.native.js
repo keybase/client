@@ -9,7 +9,7 @@ import moment from 'moment'
 import {BackButton, Box, Icon, PopupMenu, Text, UserActions, UserBio, UserProofs, NativeScrollView} from '../common-adapters/index.native'
 import {friendlyName as platformFriendlyName} from '../util/platforms'
 import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
-import {normal as proofNormal, metaPending, metaUnreachable} from '../constants/tracker'
+import {normal as proofNormal, checking as proofChecking, metaPending, metaUnreachable} from '../constants/tracker'
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
 
@@ -133,8 +133,10 @@ class Profile extends Component<void, Props, State> {
     const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 
     let proofNotice
-    if (this.props.trackerState !== proofNormal) {
-      proofNotice = `Some of ${this.props.username}'s proofs are broken.`
+    if (!this.props.loading &&
+        this.props.trackerState !== proofChecking &&
+        this.props.trackerState !== proofNormal) {
+      proofNotice = `Some of ${this.props.isYou ? 'your' : this.props.username + "'s"} proofs are broken.`
     }
 
     let folders = _.chain(this.props.tlfs)
