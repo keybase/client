@@ -2,8 +2,7 @@
 import React from 'react'
 import {StyleSheet} from 'react-native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {Box, Badge, ClickableBox, Text} from '../../common-adapters'
-import HeaderHoc from '../../common-adapters/header-hoc'
+import {Box, Badge, ClickableBox, Text, HeaderHoc} from '../../common-adapters'
 import {
   landingTab,
   invitationsTab,
