@@ -11,6 +11,8 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/keybase/client/go/logger"
+
 	"golang.org/x/net/context"
 )
 
@@ -94,6 +96,7 @@ type blockPtrLookup struct {
 // given priority level.
 type blockRetrievalQueue struct {
 	config blockRetrievalConfig
+	log    logger.Logger
 	// protects ptrs, insertionCount, and the heap
 	mtx sync.RWMutex
 	// queued or in progress retrievals
@@ -126,6 +129,7 @@ var _ blockRetriever = (*blockRetrievalQueue)(nil)
 func newBlockRetrievalQueue(numWorkers int, config blockRetrievalConfig) *blockRetrievalQueue {
 	q := &blockRetrievalQueue{
 		config:      config,
+		log:         config.MakeLogger("BRQ"),
 		ptrs:        make(map[blockPtrLookup]*blockRetrieval),
 		heap:        &blockRetrievalHeap{},
 		workerQueue: make(chan chan<- *blockRetrieval, numWorkers),
@@ -162,6 +166,37 @@ func (brq *blockRetrievalQueue) notifyWorker() {
 		retrieval := brq.popIfNotEmpty()
 		ch <- retrieval
 	}
+}
+
+func (brq *blockRetrievalQueue) CacheAndPrefetch(ptr BlockPointer, block Block,
+	kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
+	hasPrefetched bool) error {
+	if hasPrefetched {
+		// We discard the error because there's nothing we can do about it.
+		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
+			lifetime, true)
+	}
+	if priority < defaultOnDemandRequestPriority {
+		// Only on-demand or higher priority requests can trigger prefetches.
+		// We discard the error because there's nothing we can do about it.
+		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
+			lifetime, false)
+	}
+	// We must let the cache know at this point that we've prefetched.
+	// 1) To prevent any other Gets from prefetching.
+	// 2) To prevent prefetching if a cache Put fails, since prefetching if
+	//	  only useful when combined with the cache.
+	err := brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
+		lifetime, true)
+	if _, isCacheFullError := err.(cachePutCacheFullError); isCacheFullError {
+		brq.log.CDebugf(context.TODO(), "Skipping prefetch because the cache "+
+			"is full")
+		return err
+	}
+	// This must be called in a goroutine to prevent deadlock in case this
+	// CacheAndPrefetch call was triggered by the prefetcher itself.
+	go brq.Prefetcher().PrefetchAfterBlockRetrieved(block, ptr, kmd)
+	return nil
 }
 
 // Request submits a block request to the queue.
@@ -202,17 +237,9 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 				brq.config.BlockCache().GetWithPrefetch(ptr)
 			if err == nil && cachedBlock != nil {
 				block.Set(cachedBlock)
-				// This must be called in a goroutine to prevent deadlock in
-				// case this Request call was triggered by the prefetcher
-				// itself.
-				go func() {
-					brq.Prefetcher().PrefetchAfterBlockRetrieved(
-						cachedBlock, ptr, kmd, priority, lifetime, hasPrefetched)
-					// To prevent races, we don't tell the requestor that we're
-					// done until we've attempted to prefetch and cached the
-					// result of that attempt.
-					ch <- nil
-				}()
+				brq.CacheAndPrefetch(ptr, cachedBlock, kmd, priority, lifetime,
+					hasPrefetched)
+				ch <- nil
 				return ch
 			}
 			// Add to the heap
@@ -281,9 +308,8 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	if err == nil {
 		// We treat this request as not having been prefetched, because the
 		// only way to get here is if the request wasn't already cached.
-		brq.Prefetcher().PrefetchAfterBlockRetrieved(block,
-			retrieval.blockPtr, retrieval.kmd, retrieval.priority,
-			retrieval.cacheLifetime, false)
+		brq.CacheAndPrefetch(retrieval.blockPtr, block, retrieval.kmd,
+			retrieval.priority, retrieval.cacheLifetime, false)
 	}
 
 	// This is a symbolic lock, since there shouldn't be any other goroutines

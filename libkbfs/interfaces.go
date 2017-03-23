@@ -1090,10 +1090,9 @@ type Prefetcher interface {
 	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
 	// after a block has been retrieved. Whichever component is responsible for
 	// retrieving blocks will call this method once it's done retrieving a
-	// block. It caches if it has triggered a prefetch.
+	// block.
 	PrefetchAfterBlockRetrieved(b Block, blockPtr BlockPointer,
-		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-		hasPrefetched bool)
+		kmd KeyMetadata)
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are
@@ -1142,6 +1141,9 @@ type BlockOps interface {
 
 	// TogglePrefetcher activates or deactivates the prefetcher.
 	TogglePrefetcher(ctx context.Context, enable bool) error
+
+	// BlockRetriever obtains the block retriever
+	BlockRetriever() blockRetriever
 
 	// Prefetcher retrieves this BlockOps' Prefetcher.
 	Prefetcher() Prefetcher
