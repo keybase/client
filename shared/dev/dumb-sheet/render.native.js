@@ -2,15 +2,19 @@
 import React, {Component} from 'react'
 import debounce from 'lodash/debounce'
 import dumbComponentMap from './component-map.native'
-import type {Props} from './render'
 import {Box, Text, Input, Button, NativeScrollView, Icon} from '../../common-adapters/index.native'
+import {Provider} from 'react-redux'
+import {createStore} from 'redux'
 import {globalStyles, globalColors} from '../../styles'
+
+import type {Props} from './render'
 
 class DumbSheetRender extends Component<void, Props, any> {
   state: any;
   _onFilterChange: (a: any) => void;
   _onFilterChangeProp: (a: any) => void;
   _max: number;
+  _mockStore: any;
 
   constructor (props: Props) {
     super(props)
@@ -37,8 +41,8 @@ class DumbSheetRender extends Component<void, Props, any> {
 
   _increment () {
     if (this.props.autoIncrement && this.state.testIndex !== -1) {
-      const {componentsOnly} = this._getComponents()
-      if (this.state.testIndex >= componentsOnly.length) {
+      const total = this._getTotal(null, -1)
+      if (this.state.testIndex >= total) {
         this.setState({testIndex: -1})
       } else {
         this.setState({testIndex: this.state.testIndex + 1})
@@ -64,11 +68,26 @@ class DumbSheetRender extends Component<void, Props, any> {
     return this.props.autoIncrement ? this.renderIncrement() : this.renderSingle()
   }
 
-  _getComponents (filter: ?string) {
-    const components = []
-    const componentsOnly = []
-    const parentPropsOnly = []
+  _getTotal (filter: ?string) {
+    let total = 0
+    Object.keys(dumbComponentMap).forEach(key => {
+      if (filter && key.toLowerCase().indexOf(filter) === -1) {
+        return
+      }
 
+      const map = dumbComponentMap[key]
+      total += Object.keys(map.mocks).length
+    })
+
+    return total
+  }
+
+  _getComponent (filter: ?string, renderIdx: number) {
+    let component = null
+    let parentProps = {}
+    let mockStore = null
+
+    let currentIdx = 0
     Object.keys(dumbComponentMap).forEach(key => {
       if (filter && key.toLowerCase().indexOf(filter) === -1) {
         return
@@ -76,28 +95,24 @@ class DumbSheetRender extends Component<void, Props, any> {
 
       const map = dumbComponentMap[key]
       const Component = map.component
-      Object.keys(map.mocks).forEach((mockKey, idx) => {
-        const mock = {...map.mocks[mockKey]}
-        const parentProps = mock.parentProps
-        mock.parentProps = undefined
 
-        components.push(
-          <Box key={mockKey} style={styleBox}>
-            <Text type='BodySmall'>{key}: {mockKey}</Text>
-            <Box {...parentProps}>
-              <Component key={mockKey} {...mock} />
-            </Box>
-          </Box>
-        )
-        componentsOnly.push(<Component key={mockKey} {...mock} />)
-        parentPropsOnly.push(parentProps)
+      Object.keys(map.mocks).forEach((mockKey, idx) => {
+        if (renderIdx === currentIdx) {
+          const mock = {...map.mocks[mockKey]}
+          parentProps = mock.parentProps || {}
+          mockStore = mock.mockStore
+          mock.parentProps = undefined
+          mock.mockStore = undefined
+          component = <Component key={mockKey} {...mock} />
+        }
+        ++currentIdx
       })
     })
 
     return {
-      components,
-      componentsOnly,
-      parentPropsOnly,
+      component,
+      parentProps,
+      mockStore,
     }
   }
 
@@ -105,22 +120,43 @@ class DumbSheetRender extends Component<void, Props, any> {
     if (this.state.testIndex === -1) {
       return <Text type='Body'>DONE TESTING</Text>
     }
-    const {componentsOnly} = this._getComponents()
-    const sub = componentsOnly.slice(this.state.testIndex, this.state.testIndex + 1)
-    console.log('test render idx', this.state.testIndex, sub)
-    return <Box>{sub}</Box>
+    const {component, mockStore} = this._getComponent(null, this.state.testIndex)
+
+    this._updateMockStore(mockStore)
+    console.log('test render idx', this.state.testIndex, component)
+    return <Box>{this._makeStoreWrapper(component)}</Box>
+  }
+
+  _updateMockStore (mockStore) {
+    if (mockStore) {
+      if (!this._mockStore) {
+        this._mockStore = createStore((old) => mockStore, mockStore)
+      } else {
+        // necessary to stop warnings about dynamically replacing the store https://github.com/reactjs/react-redux/releases/tag/v2.0.0
+        this._mockStore.replaceReducer((old) => mockStore)
+      }
+    } else {
+      this._mockStore = null
+    }
+  }
+
+  _makeStoreWrapper (component) {
+    return this._mockStore ? <Provider store={this._mockStore}>{component}</Provider> : component
   }
 
   renderSingle () {
     const filter = this.props.dumbFilter.toLowerCase()
-    const {components, componentsOnly, parentPropsOnly} = this._getComponents(filter)
+    const total = this._getTotal(filter)
+    const {component, parentProps, mockStore} = this._getComponent(filter, this.props.dumbIndex % total)
 
-    const ToShow = components[this.props.dumbIndex % components.length]
+    console.log('aaa', component, mockStore)
+
+    this._updateMockStore(mockStore)
 
     if (this.props.dumbFullscreen) {
       return (
-        <Box style={{flex: 1}} {...parentPropsOnly[this.props.dumbIndex % components.length]}>
-          {componentsOnly[this.props.dumbIndex % components.length]}
+        <Box style={{flex: 1}} {...parentProps}>
+          {this._makeStoreWrapper(component)}
           <Icon type='iconfont-import' style={{position: 'absolute', top: 20, right: 0}} onClick={() => {
             this.props.onDebugConfigChange({dumbFullscreen: !this.props.dumbFullscreen})
           }} />
@@ -154,7 +190,7 @@ class DumbSheetRender extends Component<void, Props, any> {
           }} />
         </Box>
         <NativeScrollView>
-          {ToShow}
+          {this._makeStoreWrapper(component)}
         </NativeScrollView>
       </Box>
     )
@@ -173,22 +209,17 @@ class DumbSheetRender extends Component<void, Props, any> {
   }
 }
 
-const styleBox = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
-}
-
 const stylesButton = {
-  width: 20,
+  borderRadius: 10,
   height: 20,
+  margin: 0,
   overflow: 'hidden',
   padding: 0,
-  margin: 0,
-  paddingTop: 0,
+  paddingBottom: 0,
   paddingLeft: 0,
   paddingRight: 0,
-  paddingBottom: 0,
-  borderRadius: 10,
+  paddingTop: 0,
+  width: 20,
 }
 
 export default DumbSheetRender

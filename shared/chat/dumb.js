@@ -91,6 +91,8 @@ const followingMap = {
 
 const commonConvoProps = {
   loadMoreMessages: () => console.log('load more'),
+  metaDataMap: Map(metaData),
+  followingMap,
   messages: List(messages),
   users: users,
   moreToLoad: false,
