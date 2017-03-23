@@ -4,10 +4,6 @@ import {StyleSheet} from 'react-native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Badge, ClickableBox, Text, HeaderHoc} from '../../common-adapters'
 import {
-  landingTab,
-  invitationsTab,
-  notificationsTab,
-  deleteMeTab,
   devMenuTab,
   feedbackTab,
   aboutTab,
@@ -55,13 +51,6 @@ function SettingsNav ({badgeNumbers, selectedTab, onTabChange}: Props) {
       }
     </Box>
   )
-}
-
-const headerContainerStyle = {
-  paddingTop: globalMargins.tiny,
-  paddingBottom: globalMargins.tiny,
-  borderBottomColor: globalColors.black_05,
-  borderBottomWidth: StyleSheet.hairlineWidth,
 }
 
 const styleNavBox = {

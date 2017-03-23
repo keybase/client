@@ -1,7 +1,4 @@
 // @flow
-
-import React from 'react'
-import {Box} from '../common-adapters'
 import About from './about'
 import SettingsNav from './nav'
 import Feedback from './feedback'

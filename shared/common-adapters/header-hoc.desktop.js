@@ -21,7 +21,6 @@ function HeaderHoc<P> (WrappedComponent: ReactClass<P>) {
   )
 }
 
-
 const backButtonMarginLeft = globalMargins.small
 const backButtonWidth = 40
 
