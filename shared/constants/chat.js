@@ -314,7 +314,7 @@ export type State = Record<{
 
 export const maxAttachmentPreviewSize = 320
 
-export const howLongBetweenTimestampsMs = 1000 // * 60 * 15
+export const howLongBetweenTimestampsMs = 1000 * 60 * 15
 export const maxMessagesToLoadAtATime = 50
 
 export const nothingSelected = 'chat:noneSelected'

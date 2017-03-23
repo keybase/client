@@ -177,11 +177,13 @@ function _filterTimestampableMessage (message: Constants.Message): ?Timestampabl
 }
 
 function _isTimestampableMessage (message: Constants.Message): boolean {
-  if (message && message.timestamp && !['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type)) return true
+  if (message && message.timestamp && !['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type)) {
+    return true
+  }
   return false
 }
 
-function _previousMessage (messages: Array<Constants.Message>, prevIndex: number): ?Constants.Message {
+function _previousTimestampableMessage (messages: Array<Constants.Message>, prevIndex: number): ?Constants.Message {
   for (var i = prevIndex; i >= 0; i--) {
     const prevMessage = messages[i]
     if (_isTimestampableMessage(prevMessage)) return prevMessage
@@ -190,7 +192,7 @@ function _previousMessage (messages: Array<Constants.Message>, prevIndex: number
 }
 
 function maybeAddTimestamp (_message: Constants.Message, messages: Array<Constants.Message>, prevIndex: number): Constants.MaybeTimestamp {
-  const prevMessage = _previousMessage(messages, prevIndex)
+  const prevMessage = _previousTimestampableMessage(messages, prevIndex)
   const message = _filterTimestampableMessage(_message)
   if (!message || !prevMessage) return null
 
