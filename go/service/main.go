@@ -315,12 +315,7 @@ func (d *Service) startupGregor() {
 		// Create gregorHandler instance first so any handlers can connect
 		// to it before we actually connect to gregor (either gregor is down
 		// or we aren't logged in)
-		var err error
-		if d.gregor, err = newGregorHandler(d.G()); err != nil {
-			d.G().Log.Warning("failed to create push service handler: %s", err)
-			return
-		}
-
+		d.gregor = newGregorHandler(d.G())
 		d.reachability = newReachability(d.G(), d.gregor)
 		d.gregor.SetReachability(d.reachability)
 		d.gregor.badger = d.badger

@@ -168,7 +168,7 @@ func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
 	return res, err
 }
 
-func newGregorHandler(g *libkb.GlobalContext) (*gregorHandler, error) {
+func newGregorHandler(g *libkb.GlobalContext) *gregorHandler {
 	gh := &gregorHandler{
 		Contextified:    libkb.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g, "PushHandler", false),
@@ -194,7 +194,7 @@ func newGregorHandler(g *libkb.GlobalContext) (*gregorHandler, error) {
 	// Start broadcast handler goroutine
 	go gh.broadcastMessageHandler()
 
-	return gh, nil
+	return gh
 }
 
 func (g *gregorHandler) resetGregorClient() (err error) {
