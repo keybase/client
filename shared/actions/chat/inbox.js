@@ -1,14 +1,14 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as Creators from './creators'
+import * as Saga from '../../util/saga'
 import {List, Map} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select, race} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
-import {loadMoreMessages, loadedInbox} from './creators'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {requestIdleCallback} from '../../util/idle-callback'
-import {singleFixedChannelConfig, takeFromChannelMap} from '../../util/saga'
 import {unsafeUnwrap} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 
@@ -27,7 +27,7 @@ function * onLoadInboxMaybeOnce (action: Constants.LoadInbox): SagaGenerator<any
 }
 
 function * onLoadInbox (): SagaGenerator<any, any> {
-  const channelConfig = singleFixedChannelConfig([
+  const channelConfig = Saga.singleFixedChannelConfig([
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
     'chat.1.chatUi.chatInboxFailed',
@@ -48,7 +48,7 @@ function * onLoadInbox (): SagaGenerator<any, any> {
     },
   })
 
-  const chatInboxUnverified = yield takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxUnverified')
+  const chatInboxUnverified = yield Saga.takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxUnverified')
 
   if (!chatInboxUnverified) {
     throw new Error("Can't load inbox")
@@ -61,9 +61,9 @@ function * onLoadInbox (): SagaGenerator<any, any> {
   const conversations: List<Constants.InboxState> = _inboxToConversations(inbox, author, following || {}, metaData)
   const finalizedState: Constants.FinalizedState = _inboxToFinalized(inbox)
 
-  yield put(loadedInbox(conversations))
+  yield put(Creators.loadedInbox(conversations))
   if (finalizedState.count()) {
-    yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+    yield put(Creators.updateFinalizedState(finalizedState))
   }
 
   chatInboxUnverified.response.result()
@@ -71,9 +71,9 @@ function * onLoadInbox (): SagaGenerator<any, any> {
   let finishedCalled = false
   while (!finishedCalled) {
     const incoming: {[key: string]: any} = yield race({
-      chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
-      chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
-      finished: takeFromChannelMap(loadInboxChanMap, 'finished'),
+      chatInboxConversation: Saga.takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
+      chatInboxFailed: Saga.takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
+      finished: Saga.takeFromChannelMap(loadInboxChanMap, 'finished'),
       timeout: call(delay, 30000),
     })
 
@@ -92,21 +92,21 @@ function * onLoadInbox (): SagaGenerator<any, any> {
       const finalizedState: Constants.FinalizedState = _conversationLocalToFinalized(conv)
 
       if (supersedesState.count()) {
-        yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
+        yield put(Creators.updateSupersedesState(supersedesState))
       }
       if (supersededByState.count()) {
-        yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
+        yield put(Creators.updateSupersededByState(supersededByState))
       }
       if (finalizedState.count()) {
-        yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+        yield put(Creators.updateFinalizedState(finalizedState))
       }
 
       if (conversation) {
-        yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
+        yield put(Creators.updateInbox(conversation))
         const selectedConversation = yield select(Constants.getSelectedConversation)
         if (selectedConversation === conversation.get('conversationIDKey')) {
           // load validated selected
-          yield put(loadMoreMessages(selectedConversation, false))
+          yield put(Creators.loadMoreMessages(selectedConversation, false))
         }
       }
       // find it
@@ -129,16 +129,16 @@ function * onLoadInbox (): SagaGenerator<any, any> {
         time: error.remoteConv.readerInfo.mtime,
         validated: true,
       })
-      yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
+      yield put(Creators.updateInbox(conversation))
 
       switch (error.typ) {
         case ChatTypes.LocalConversationErrorType.selfrekeyneeded: {
-          yield put({type: 'chat:updateInboxRekeySelf', payload: {conversationIDKey}})
+          yield put(Creators.updateInboxRekeySelf(conversationIDKey))
           break
         }
         case ChatTypes.LocalConversationErrorType.otherrekeyneeded: {
           const rekeyers = error.rekeyInfo.rekeyers
-          yield put({type: 'chat:updateInboxRekeyOthers', payload: {conversationIDKey, rekeyers}})
+          yield put(Creators.updateInboxRekeyOthers(conversationIDKey, rekeyers))
           break
         }
         default:
@@ -148,11 +148,11 @@ function * onLoadInbox (): SagaGenerator<any, any> {
       }
     } else if (incoming.finished) {
       finishedCalled = true
-      yield put({type: 'chat:updateInboxComplete', payload: undefined})
+      yield put(Creators.updateInboxComplete())
       break
     } else if (incoming.timeout) {
       console.warn('Inbox loading timed out')
-      yield put({type: 'chat:updateInboxComplete', payload: undefined})
+      yield put(Creators.updateInboxComplete())
       break
     }
   }
@@ -195,7 +195,7 @@ function * getInboxAndUnbox ({payload: {conversationIDKey}}: Constants.GetInboxA
   if (conversations && conversations[0]) {
     yield call(updateInbox, conversations[0])
     // inbox loaded so rekeyInfo is now clear
-    yield put({payload: {conversationIDKey}, type: 'chat:clearRekey'})
+    yield put(Creators.clearRekey(conversationIDKey))
   }
   // TODO maybe we get failures and we should update rekeyinfo? unclear...
 }
@@ -207,20 +207,16 @@ function * updateInbox (conv: ?ChatTypes.ConversationLocal): SagaGenerator<any, 
   const finalizedState: Constants.FinalizedState = _conversationLocalToFinalized(conv)
 
   if (supersedesState.count()) {
-    yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
+    yield put(Creators.updateSupersedesState(supersedesState))
   }
   if (supersededByState.count()) {
-    yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
+    yield put(Creators.updateSupersededByState(supersededByState))
   }
   if (finalizedState.count()) {
-    yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+    yield put(Creators.updateFinalizedState(finalizedState))
   }
-
   if (inboxState) {
-    yield put(({
-      payload: {conversation: inboxState},
-      type: 'chat:updateInbox',
-    }: Constants.UpdateInbox))
+    yield put(Creators.updateInbox(inboxState))
   }
 }
 

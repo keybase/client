@@ -38,3 +38,5 @@ Exampe `pvl_kit`:
 - `kit_version` is 1. We can use this to signal a major to the kit format.
 - `ctime` should be some time between when the kit was authored and when it was signed into the merkle tree for the first time. It is not used by the client.
 - `tab` is a map from supported `pvl_version`s to their `pvl_chunk`. The key and `pvl_version` inside must match. Supporting multiple versions of the pvl interpreter may be necessary if there's a change to the spec. To disable older clients from checking proofs, drop their version's entry.
+
+The files in `tab` are composed in CSON because it allows for comments and a little brevity. Everything downstream uses JSON.
