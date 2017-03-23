@@ -47,7 +47,7 @@ function previewCreateComponent (style) {
   return function (type, key, children, options) {
     switch (type) {
       case 'markup':
-        return <Text type='Body' key={key} lineClamp={1}>{children}</Text>
+        return <Text type='Body' key={key} lineClamp={1} style={style}>{children}</Text>
       case 'emoji':
         return <EmojiIfExists key={key}>{children}</EmojiIfExists>
       case 'native-emoji':
