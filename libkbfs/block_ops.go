@@ -193,8 +193,8 @@ func (b *BlockOpsStandard) Prefetcher() Prefetcher {
 	return b.queue.Prefetcher()
 }
 
-// Prefetcher implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) BlockRetriever() blockRetriever {
+// BlockRetriever implements the BlockOps interface for BlockOpsStandard.
+func (b *BlockOpsStandard) BlockRetriever() BlockRetriever {
 	return b.queue
 }
 

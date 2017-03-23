@@ -35,18 +35,11 @@ type prefetchRequest struct {
 	block    Block
 }
 
-// blockRetriever specifies a method for retrieving blocks asynchronously.
-type blockRetriever interface {
-	Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
-	CacheAndPrefetch(ptr BlockPointer, block Block, kmd KeyMetadata,
-		priority int, lifetime BlockCacheLifetime, hasPrefetched bool) error
-}
-
 type blockPrefetcher struct {
 	config prefetcherConfig
 	log    logger.Logger
 	// blockRetriever to retrieve blocks from the server
-	retriever blockRetriever
+	retriever BlockRetriever
 	// channel to synchronize prefetch requests with the prefetcher shutdown
 	progressCh chan prefetchRequest
 	// channel that is idempotently closed when a shutdown occurs
@@ -58,7 +51,7 @@ type blockPrefetcher struct {
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
 
-func newBlockPrefetcher(retriever blockRetriever, config prefetcherConfig) *blockPrefetcher {
+func newBlockPrefetcher(retriever BlockRetriever, config prefetcherConfig) *blockPrefetcher {
 	p := &blockPrefetcher{
 		config:     config,
 		retriever:  retriever,

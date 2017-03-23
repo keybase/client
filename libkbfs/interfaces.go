@@ -1143,7 +1143,7 @@ type BlockOps interface {
 	TogglePrefetcher(ctx context.Context, enable bool) error
 
 	// BlockRetriever obtains the block retriever
-	BlockRetriever() blockRetriever
+	BlockRetriever() BlockRetriever
 
 	// Prefetcher retrieves this BlockOps' Prefetcher.
 	Prefetcher() Prefetcher
@@ -2025,4 +2025,15 @@ type RekeyFSM interface {
 	// RequestRekeyAndWaitForOneFinishEvent for more details.
 	listenOnEvent(
 		event rekeyEventType, callback func(RekeyEvent), repeatedly bool)
+}
+
+// BlockRetriever specifies how to retrieve blocks.
+type BlockRetriever interface {
+	// Request retrieves blocks asynchronously.
+	Request(ctx context.Context, priority int, kmd KeyMetadata,
+		ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
+	// CacheAndPrefetch caches a block along with its prefetch status, and then
+	// triggers prefetches as appropriate.
+	CacheAndPrefetch(ptr BlockPointer, block Block, kmd KeyMetadata,
+		priority int, lifetime BlockCacheLifetime, hasPrefetched bool) error
 }

@@ -121,7 +121,7 @@ type blockRetrievalQueue struct {
 	prefetcher Prefetcher
 }
 
-var _ blockRetriever = (*blockRetrievalQueue)(nil)
+var _ BlockRetriever = (*blockRetrievalQueue)(nil)
 
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
 // parameter determines how many workers can concurrently call Work (more than

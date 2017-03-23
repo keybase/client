@@ -3261,9 +3261,9 @@ func (_mr *_MockBlockOpsRecorder) TogglePrefetcher(arg0, arg1 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "TogglePrefetcher", arg0, arg1)
 }
 
-func (_m *MockBlockOps) BlockRetriever() blockRetriever {
+func (_m *MockBlockOps) BlockRetriever() BlockRetriever {
 	ret := _m.ctrl.Call(_m, "BlockRetriever")
-	ret0, _ := ret[0].(blockRetriever)
+	ret0, _ := ret[0].(BlockRetriever)
 	return ret0
 }
 
@@ -6463,4 +6463,45 @@ func (_m *MockRekeyFSM) listenOnEvent(event rekeyEventType, callback func(RekeyE
 
 func (_mr *_MockRekeyFSMRecorder) listenOnEvent(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "listenOnEvent", arg0, arg1, arg2)
+}
+
+// Mock of BlockRetriever interface
+type MockBlockRetriever struct {
+	ctrl     *gomock.Controller
+	recorder *_MockBlockRetrieverRecorder
+}
+
+// Recorder for MockBlockRetriever (not exported)
+type _MockBlockRetrieverRecorder struct {
+	mock *MockBlockRetriever
+}
+
+func NewMockBlockRetriever(ctrl *gomock.Controller) *MockBlockRetriever {
+	mock := &MockBlockRetriever{ctrl: ctrl}
+	mock.recorder = &_MockBlockRetrieverRecorder{mock}
+	return mock
+}
+
+func (_m *MockBlockRetriever) EXPECT() *_MockBlockRetrieverRecorder {
+	return _m.recorder
+}
+
+func (_m *MockBlockRetriever) Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error {
+	ret := _m.ctrl.Call(_m, "Request", ctx, priority, kmd, ptr, block, lifetime)
+	ret0, _ := ret[0].(<-chan error)
+	return ret0
+}
+
+func (_mr *_MockBlockRetrieverRecorder) Request(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Request", arg0, arg1, arg2, arg3, arg4, arg5)
+}
+
+func (_m *MockBlockRetriever) CacheAndPrefetch(ptr BlockPointer, block Block, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, hasPrefetched bool) error {
+	ret := _m.ctrl.Call(_m, "CacheAndPrefetch", ptr, block, kmd, priority, lifetime, hasPrefetched)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBlockRetrieverRecorder) CacheAndPrefetch(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CacheAndPrefetch", arg0, arg1, arg2, arg3, arg4, arg5)
 }
