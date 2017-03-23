@@ -3,8 +3,10 @@
 import {Component} from 'react'
 
 export type Props = {
-  onSendFeedback: (includeLogs: boolean) => void,
+  onSendFeedback: (feedback: string, includeLogs: boolean) => void,
   showSuccessBanner: boolean,
+  feedback: ?string,
+  onChangeFeedback: ?string,
 }
 
 export default class Feedback extends Component<void, Props, void> { }

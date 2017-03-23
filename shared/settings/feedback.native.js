@@ -3,12 +3,12 @@
 import React from 'react'
 import {globalStyles, globalMargins, globalColors} from '../styles'
 import {Box, Button, Checkbox, Icon, Text, Input} from '../common-adapters'
-import {withState} from 'recompose'
+import {compose, withState, withHandlers} from 'recompose'
 
-const Feedback = ({onSendFeedback, showSuccessBanner, sendLogs, onChangeSendLogs}) => (
+const Feedback = ({onSendFeedbackContained, showSuccessBanner, sendLogs, onChangeSendLogs, feedback, onChangeFeedback}) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginBottom: globalMargins.medium}}>
     {showSuccessBanner &&
-      <Box style={{flex: 1, height: 40, ...globalStyles.flexBoxRow, backgroundColor: globalColors.green, alignItems: 'center'}}>
+      <Box style={{flex: 0, height: 40, ...globalStyles.flexBoxRow, backgroundColor: globalColors.green, alignItems: 'center'}}>
         <Text type='BodySemibold' backgroundMode='Success' style={{flex: 1, textAlign: 'center'}}>Thanks! Your feedback was sent.</Text>
       </Box>}
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center', marginLeft: globalMargins.small, marginRight: globalMargins.small}}>
@@ -22,6 +22,8 @@ const Feedback = ({onSendFeedback, showSuccessBanner, sendLogs, onChangeSendLogs
           small={true}
           rowsMin={4}
           hintText='Write a comment'
+          value={feedback}
+          onChangeText={onChangeFeedback}
         />
       </Box>
       <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.small}}>
@@ -35,9 +37,14 @@ const Feedback = ({onSendFeedback, showSuccessBanner, sendLogs, onChangeSendLogs
           <Text type='BodySmall'>This includes some metadata info but it will help the developers fix bugs quicker.</Text>
         </Box>
       </Box>
-      <Button label='Send' type='Primary' onClick={() => onSendFeedback(sendLogs)} style={{marginTop: globalMargins.small}} />
+      <Button label='Send' type='Primary' onClick={onSendFeedbackContained} style={{marginTop: globalMargins.small}} />
     </Box>
   </Box>
 )
 
-export default withState('sendLogs', 'onChangeSendLogs', true)(Feedback)
+export default compose(
+  withState('sendLogs', 'onChangeSendLogs', true),
+  withHandlers({
+    onSendFeedbackContained: ({sendLogs, feedback, onSendFeedback}) => () => onSendFeedback(feedback, sendLogs),
+  })
+)(Feedback)
