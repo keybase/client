@@ -17,7 +17,6 @@ import (
 type KBFSTLFInfoSource struct {
 	utils.DebugLabeler
 	libkb.Contextified
-	identifier types.Identifier
 }
 
 func NewKBFSTLFInfoSource(g *libkb.GlobalContext) *KBFSTLFInfoSource {
@@ -25,12 +24,6 @@ func NewKBFSTLFInfoSource(g *libkb.GlobalContext) *KBFSTLFInfoSource {
 		DebugLabeler: utils.NewDebugLabeler(g, "KBFSTLFInfoSource", false),
 		Contextified: libkb.NewContextified(g),
 	}
-}
-
-func NewKBFSTLFInfoSourceWithIdentifier(g *libkb.GlobalContext, identifier types.Identifier) *KBFSTLFInfoSource {
-	s := NewKBFSTLFInfoSource(g)
-	s.identifier = identifier
-	return s
 }
 
 func (t *KBFSTLFInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
@@ -180,24 +173,6 @@ func (t *KBFSTLFInfoSource) identifyTLF(ctx context.Context, arg keybase1.TLFQue
 }
 
 func (t *KBFSTLFInfoSource) identifyUser(ctx context.Context, assertion string, private bool, idBehavior keybase1.TLFIdentifyBehavior) (keybase1.TLFIdentifyFailure, error) {
-
-	// if an identify UI is registered, then use it
-	sessionID, idUI, err := t.G().UIRouter.GetIdentifyUICtx(ctx)
-	if err != nil {
-		return keybase1.TLFIdentifyFailure{}, err
-	}
-
-	if idUI == nil {
-		if t.identifier != nil {
-			t.Debug(ctx, "using KBFSTLFInfoSource.identifier to identify")
-			return t.identifier.Identify(ctx, assertion, private, idBehavior)
-		}
-
-		t.Debug(ctx, "no delegated identify ui, no KBFSTLFInfoSource.identifier: using null identify ui")
-		sessionID = 0
-		idUI = chatNullIdentifyUI{}
-	}
-
 	reason := "You accessed a public conversation."
 	if private {
 		reason = fmt.Sprintf("You accessed a private conversation with %s.", assertion)
@@ -205,20 +180,19 @@ func (t *KBFSTLFInfoSource) identifyUser(ctx context.Context, assertion string, 
 
 	arg := keybase1.Identify2Arg{
 		UserAssertion:    assertion,
-		UseDelegateUI:    true,
+		UseDelegateUI:    false,
 		Reason:           keybase1.IdentifyReason{Reason: reason},
 		CanSuppressUI:    true,
 		IdentifyBehavior: idBehavior,
 	}
 
 	ectx := engine.Context{
-		IdentifyUI: idUI,
-		SessionID:  sessionID,
+		IdentifyUI: chatNullIdentifyUI{},
 		NetContext: ctx,
 	}
 
 	eng := engine.NewResolveThenIdentify2(t.G(), &arg)
-	err = engine.RunEngine(eng, &ectx)
+	err := engine.RunEngine(eng, &ectx)
 	if err != nil {
 		return keybase1.TLFIdentifyFailure{}, err
 	}
