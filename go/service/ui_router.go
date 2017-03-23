@@ -117,7 +117,7 @@ func (u *UIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI,
 	if x == nil {
 		return 0, nil, nil
 	}
-	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
+	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{}, nil)
 	iuicli := keybase1.IdentifyUiClient{Cli: cli}
 	sessionID, err := iuicli.DelegateIdentifyUI(ctx)
 	if err != nil {
