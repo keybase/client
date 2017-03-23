@@ -41,7 +41,6 @@ class LogSend extends Component<void, {}, State> {
           feedback: null,
         })
       })
-      console.log('sending feedback', sendLogs, feedback)
     }
 
     return <FeedbackWrapped showSuccessBanner={this.state.sentFeedback} onSendFeedback={onSendFeedback} onChangeFeedback={this._onChangeFeedback} feedback={this.state.feedback} />
