@@ -53,7 +53,7 @@ function previewCreateComponent (style) {
       case 'native-emoji':
         return <Emoji key={key}>{children}</Emoji>
       default:
-        return <Text type='BodySmall' key={key} style={{...neutralStyle, ...style}}>{children}</Text>
+        return <Text type='Body' key={key} style={{...neutralStyle, ...style}}>{children}</Text>
     }
   }
 }
