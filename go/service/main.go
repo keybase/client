@@ -156,6 +156,17 @@ func (d *Service) Handle(c net.Conn) {
 		return
 	}
 
+	// create an identifier
+	/*
+		cli := rpc.NewClient(xp, libkb.ErrorUnwrapper{})
+		idUI := &RemoteIdentifyUI{
+			Contextified: libkb.NewContextified(d.G()),
+			uicli:        keybase1.IdentifyUiClient{Cli: cli},
+			logUI:        &LogUI{cli: &keybase1.LogUiClient{Cli: cli}},
+		}
+		identifier := NewChatIdentifier(d.G(), idUI)
+	*/
+
 	// Run the server and wait for it to finish.
 	<-server.Run()
 	// err is always non-nil.
@@ -251,8 +262,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 func (d *Service) createMessageDeliverer() {
 	ri := d.chatRemoteClient
 	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
-	// base := NewBaseHandler(xp)
-	// tlf := chat.NewKBFSTLFInfoSource(d.G(), NewChatIdentifier(g, base.NewRemoteIdentifyUI(0, g)))
 	tlf := chat.NewKBFSTLFInfoSource(d.G())
 
 	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), d.attachmentstore, ri, si)

@@ -48,9 +48,10 @@ type chatLocalHandler struct {
 
 // newChatLocalHandler creates a chatLocalHandler.
 func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, store *chat.AttachmentStore, gh *gregorHandler) *chatLocalHandler {
-	tlf := chat.NewKBFSTLFInfoSource(g)
+	base := NewBaseHandler(xp)
+	tlf := chat.NewKBFSTLFInfoSourceWithIdentifier(g, NewChatIdentifier(g, base.NewRemoteIdentifyUI(0, g)))
 	h := &chatLocalHandler{
-		BaseHandler:   NewBaseHandler(xp),
+		BaseHandler:   base,
 		Contextified:  libkb.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g, "ChatLocalHandler", false),
 		gh:            gh,

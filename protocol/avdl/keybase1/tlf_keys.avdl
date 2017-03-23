@@ -12,7 +12,8 @@ protocol tlfKeys {
     CHAT_GUI_2,
     CHAT_GUI_STRICT_3,
     KBFS_REKEY_4,
-    KBFS_QR_5
+    KBFS_QR_5,
+    CHAT_SKIP_6
   }
 
   @typedef("string")

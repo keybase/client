@@ -206,7 +206,6 @@ func (u *RemoteIdentifyUI) DisplayTLFCreateWithInvite(arg keybase1.DisplayTLFCre
 	return u.uicli.DisplayTLFCreateWithInvite(ctx, arg)
 }
 
-/*
 type ChatIdentifier struct {
 	libkb.Contextified
 	ui libkb.IdentifyUI
@@ -260,4 +259,3 @@ func (c *ChatIdentifier) Identify(ctx context.Context, assertion string, private
 	return frep, nil
 
 }
-*/
