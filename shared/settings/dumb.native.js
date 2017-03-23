@@ -27,11 +27,24 @@ const settingsNavMap: DumbComponentMap<SettingsNav> = {
   },
 }
 
-const feedbackMap: DumbComponentMap<SettingsNav> = {
+const feedbackMap: DumbComponentMap<Feedback> = {
   component: Feedback,
   mocks: {
     'Normal': {
-      onSendFeedback: (sendLogs) => console.log('todo', sendLogs),
+      onSendFeedbackContained: () => console.log('Sent Feedback'),
+      showSuccessBanner: false,
+      sendLogs: true,
+      feedback: null,
+      onChangeFeedback: () => {},
+      onChangeSendLogs: () => {},
+    },
+    'Success - Sent logs': {
+      onSendFeedbackContained: () => console.log('Sent Feedback'),
+      showSuccessBanner: true,
+      sendLogs: true,
+      feedback: null,
+      onChangeFeedback: () => {},
+      onChangeSendLogs: () => {},
     },
   },
 }

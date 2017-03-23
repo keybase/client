@@ -71,6 +71,7 @@ function SettingsNav ({badgeNumbers, selectedTab, onTabChange}: Props) {
       {__DEV__ &&
         <SettingsItem
           text='😎 &nbsp; Dev Menu'
+          badgeNumber={0}
           onClick={() => onTabChange(devMenuTab)}
         />
       }
@@ -91,7 +92,7 @@ const headerContainerStyle = {
 
 const styleNavBox = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.small,
+  backgroundColor: globalColors.white,
   borderBottomColor: globalColors.black_05,
 }
 

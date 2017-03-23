@@ -4,7 +4,9 @@ import React from 'react'
 import {globalStyles, globalMargins, globalColors} from '../styles'
 import {Box, Button, Checkbox, Icon, Text, Input} from '../common-adapters'
 
-const Feedback = ({onSendFeedbackContained, showSuccessBanner, sendLogs, onChangeSendLogs, feedback, onChangeFeedback}) => (
+import type {Props} from './feedback'
+
+const Feedback = ({onSendFeedbackContained, showSuccessBanner, sendLogs, onChangeSendLogs, feedback, onChangeFeedback}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginBottom: globalMargins.medium}}>
     {showSuccessBanner &&
       <Box style={{flex: 0, height: 40, ...globalStyles.flexBoxRow, backgroundColor: globalColors.green, alignItems: 'center'}}>
@@ -27,6 +29,7 @@ const Feedback = ({onSendFeedbackContained, showSuccessBanner, sendLogs, onChang
       </Box>
       <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.small}}>
         <Checkbox
+          label=''
           style={{alignItems: 'flex-start'}}
           checked={sendLogs}
           onCheck={onChangeSendLogs}
