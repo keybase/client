@@ -32,7 +32,7 @@ function injectThread() {
   console.log("keybase: On thread.");
 
   for (let c of document.getElementsByClassName("comment")) {
-    const author = escape(c.getAttribute("data-author"));
+    const author = safeHTML(c.getAttribute("data-author"));
     const buttons = c.getElementsByClassName("buttons")[0];
 
     const li = document.createElement("li");
@@ -168,4 +168,9 @@ function findParentByClass(el, className) {
     el = el.parentNode;
   }
   return null;
+}
+
+// Convert a user input into a string that is safe for inlining into HTML.
+function safeHTML(s) {
+  return s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
