@@ -92,16 +92,16 @@ func initDiskBlockCacheTest(t *testing.T) (*DiskBlockCacheStandard,
 }
 
 type testDiskBlockCacheGetter struct {
-	dbc *DiskBlockCacheStandard
+	dbc DiskBlockCache
 }
 
 func (dbcg *testDiskBlockCacheGetter) DiskBlockCache() DiskBlockCache {
 	return dbcg.dbc
 }
 
-func newTestDiskBlockCacheGetter(t *testing.T) *testDiskBlockCacheGetter {
-	cache, _ := initDiskBlockCacheTest(t)
-	return &testDiskBlockCacheGetter{cache}
+func newTestDiskBlockCacheGetter(t *testing.T,
+	dbc DiskBlockCache) *testDiskBlockCacheGetter {
+	return &testDiskBlockCacheGetter{dbc}
 }
 
 func shutdownDiskBlockCacheTest(cache DiskBlockCache) {

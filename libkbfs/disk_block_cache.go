@@ -301,7 +301,7 @@ func (cache *DiskBlockCacheStandard) updateMetadataLocked(ctx context.Context,
 	if err != nil {
 		cache.log.CWarningf(ctx, "Error writing to LRU cache database: %+v", err)
 	}
-	return nil
+	return err
 }
 
 // getMetadata retrieves the metadata for a block in the cache, or returns
@@ -454,6 +454,20 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 		}
 	}
 	return cache.updateMetadataLocked(ctx, tlfID, blockKey, int(encodedLen))
+}
+
+// UpdateMetadata implements the DiskBlockCache interface for
+// DiskBlockCacheStandard.
+func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
+	blockID kbfsblock.ID) error {
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
+	md, err := cache.getMetadata(blockID)
+	if err != nil {
+		return NoSuchBlockError{blockID}
+	}
+	return cache.updateMetadataLocked(ctx, md.TlfID, blockID.Bytes(),
+		int(md.BlockSize))
 }
 
 // Size implements the DiskBlockCache interface for DiskBlockCacheStandard.

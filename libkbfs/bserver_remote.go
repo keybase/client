@@ -376,14 +376,6 @@ func makeBlockReference(id kbfsblock.ID, context kbfsblock.Context) keybase1.Blo
 func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
-	// TODO: do this in parallel.
-	dbc := b.config.DiskBlockCache()
-	if dbc != nil {
-		buf, serverHalf, err = b.config.DiskBlockCache().Get(ctx, tlfID, id)
-		if err == nil {
-			return
-		}
-	}
 	size := -1
 	defer func() {
 		if err != nil {
@@ -391,6 +383,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 				ctx, "Get id=%s tlf=%s context=%s sz=%d err=%v",
 				id, tlfID, context, size, err)
 		} else {
+			dbc := b.config.DiskBlockCache()
 			if dbc != nil {
 				go dbc.Put(ctx, tlfID, id, buf, serverHalf)
 			}

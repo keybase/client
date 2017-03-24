@@ -170,15 +170,17 @@ func (brq *blockRetrievalQueue) notifyWorker() {
 
 func (brq *blockRetrievalQueue) CacheAndPrefetch(ptr BlockPointer, block Block,
 	kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-	hasPrefetched bool) error {
+	hasPrefetched bool) (err error) {
+	dbc := brq.config.DiskBlockCache()
+	if dbc != nil {
+		go dbc.UpdateMetadata(context.TODO(), ptr.ID)
+	}
 	if hasPrefetched {
-		// We discard the error because there's nothing we can do about it.
 		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
 			lifetime, true)
 	}
 	if priority < defaultOnDemandRequestPriority {
 		// Only on-demand or higher priority requests can trigger prefetches.
-		// We discard the error because there's nothing we can do about it.
 		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
 			lifetime, false)
 	}
@@ -186,7 +188,7 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ptr BlockPointer, block Block,
 	// 1) To prevent any other Gets from prefetching.
 	// 2) To prevent prefetching if a cache Put fails, since prefetching if
 	//	  only useful when combined with the cache.
-	err := brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
+	err = brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
 		lifetime, true)
 	if _, isCacheFullError := err.(cachePutCacheFullError); isCacheFullError {
 		brq.log.CDebugf(context.TODO(), "Skipping prefetch because the cache "+
@@ -196,6 +198,49 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ptr BlockPointer, block Block,
 	// This must be called in a goroutine to prevent deadlock in case this
 	// CacheAndPrefetch call was triggered by the prefetcher itself.
 	go brq.Prefetcher().PrefetchAfterBlockRetrieved(block, ptr, kmd)
+	return nil
+}
+
+func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
+	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
+	lifetime BlockCacheLifetime) error {
+	// Attempt to retrieve the block from the cache. This might be a
+	// specific type where the request blocks are CommonBlocks, but
+	// that direction can Set correctly. The cache will never have
+	// CommonBlocks.  TODO: verify that the returned lifetime here
+	// matches `lifetime` (which should always be TransientEntry, since
+	// a PermanentEntry would have been served directly from the cache
+	// elsewhere)?
+	cachedBlock, hasPrefetched, _, err :=
+		brq.config.BlockCache().GetWithPrefetch(ptr)
+	if err == nil && cachedBlock != nil {
+		block.Set(cachedBlock)
+		brq.CacheAndPrefetch(ptr, cachedBlock, kmd, priority, lifetime,
+			hasPrefetched)
+		return nil
+	}
+
+	// Check the disk cache.
+	dbc := brq.config.DiskBlockCache()
+	if dbc == nil {
+		return NoSuchBlockError{ptr.ID}
+	}
+	blockBuf, serverHalf, err := dbc.Get(ctx, kmd.TlfID(), ptr.ID)
+	if err != nil || len(blockBuf) == 0 {
+		return NoSuchBlockError{ptr.ID}
+	}
+
+	// Assemble the block from the encrypted block buffer.
+	err = brq.config.blockGetter().assembleBlock(ctx, kmd,
+		ptr, block, blockBuf, serverHalf)
+	if err != nil {
+		return NoSuchBlockError{ptr.ID}
+	}
+
+	// TODO: once the DiskBlockCache knows about
+	// hasPrefetched, pipe that through here.
+	brq.CacheAndPrefetch(ptr, cachedBlock, kmd, priority,
+		lifetime, false)
 	return nil
 }
 
@@ -227,19 +272,8 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	for {
 		br, exists := brq.ptrs[bpLookup]
 		if !exists {
-			// Attempt to retrieve the block from the cache. This might be a
-			// specific type where the request blocks are CommonBlocks, but
-			// that direction can Set correctly. The cache will never have
-			// CommonBlocks.  TODO: verify that the returned lifetime here
-			// matches `lifetime` (which should always be TransientEntry, since
-			// a PermanentEntry would have been served directly from the cache
-			// elsewhere)?
-			cachedBlock, hasPrefetched, _, err :=
-				brq.config.BlockCache().GetWithPrefetch(ptr)
-			if err == nil && cachedBlock != nil {
-				block.Set(cachedBlock)
-				brq.CacheAndPrefetch(ptr, cachedBlock, kmd, priority, lifetime,
-					hasPrefetched)
+			err := brq.checkCaches(ctx, priority, kmd, ptr, block, lifetime)
+			if err == nil {
 				ch <- nil
 				return ch
 			}

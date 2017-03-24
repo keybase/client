@@ -842,6 +842,9 @@ type DiskBlockCache interface {
 		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
 	// DeleteByTLF deletes some blocks from the disk cache.
 	DeleteByTLF(ctx context.Context, tlfID tlf.ID, blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error)
+	// UpdateMetadata updates the metadata for the given block, including
+	// setting the LRU time to now.
+	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID) error
 	// Size returns the size in bytes of the disk cache.
 	Size() int64
 	// Shutdown cleanly shuts down the disk block cache.

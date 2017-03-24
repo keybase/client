@@ -8,12 +8,15 @@ import (
 	"fmt"
 
 	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
 // blockGetter provides the API for the block retrieval worker to obtain blocks.
 type blockGetter interface {
 	getBlock(context.Context, KeyMetadata, BlockPointer, Block) error
+	assembleBlock(context.Context, KeyMetadata, BlockPointer, Block, []byte,
+		kbfscrypto.BlockCryptKeyServerHalf) error
 }
 
 // realBlockGetter obtains real blocks using the APIs available in Config.
@@ -40,4 +43,11 @@ func (bg *realBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 	return assembleBlock(
 		ctx, bg.config.keyGetter(), bg.config.Codec(), bg.config.cryptoPure(),
 		kmd, blockPtr, block, buf, blockServerHalf)
+}
+
+func (bg *realBlockGetter) assembleBlock(ctx context.Context,
+	kmd KeyMetadata, ptr BlockPointer, block Block, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	return assembleBlock(ctx, bg.config.keyGetter(), bg.config.Codec(),
+		bg.config.cryptoPure(), kmd, ptr, block, buf, serverHalf)
 }
