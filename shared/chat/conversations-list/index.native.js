@@ -90,7 +90,7 @@ const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, 
   } else if (participantNeedToRekey) {
     content = <Text type='BodySmall' backgroundMode='Terminal' style={{color: subColor}}>Waiting for participants to rekey</Text>
   } else if (snippet && !isMuted) {
-    content = <Markdown preview={true} style={{...boldOverride, color: subColor, fontSize: 11, lineHeight: 15, minHeight: 15}}>{snippet}</Markdown>
+    content = <Markdown preview={true} style={{...boldOverride, color: subColor, fontSize: 11, lineHeight: 20, minHeight: 20}}>{snippet}</Markdown>
   } else {
     return null
   }
