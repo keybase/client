@@ -12,7 +12,7 @@ import {getUserImageMap, loadUserImageMap} from './util/pictures'
 import {initAvatarLookup, initAvatarLoad} from './common-adapters'
 import {listenForNotifications} from './actions/notifications'
 import {persistRouteState, loadRouteState} from './actions/platform-specific.native'
-import {setRouteState} from './actions/route-tree'
+import {setRouteState, navigateUp} from './actions/route-tree'
 
 // TODO type this later
 type Props = any
@@ -23,10 +23,10 @@ class Main extends Component<void, any, void> {
 
     initAvatarLookup(getUserImageMap)
     initAvatarLoad(loadUserImageMap)
+    this.props.loadRouteState()
     this.props.bootstrap()
     this.props.listenForNotifications()
     this.props.hello()
-    this.props.loadRouteState()
   }
 
   _persistRoute = debounce(() => {
@@ -86,6 +86,7 @@ const connector = connect(
     persistRouteState: () => dispatch(persistRouteState()),
     loadRouteState: () => dispatch(loadRouteState()),
     setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
+    navigateUp: () => dispatch(navigateUp()),
   })
 )
 
