@@ -261,6 +261,12 @@ func (t *KBFSTLFInfoSource) identifyUser(ctx context.Context, assertion string, 
 	eng := engine.NewResolveThenIdentify2(t.G(), &arg)
 	err := engine.RunEngine(eng, &ectx)
 	if err != nil {
+		if _, ok := err.(libkb.NotFoundError); ok {
+			err = nil
+		}
+		if _, ok := err.(libkb.ResolutionError); ok {
+			err = nil
+		}
 		return keybase1.TLFIdentifyFailure{}, err
 	}
 	resp := eng.Result()
