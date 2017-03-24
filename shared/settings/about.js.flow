@@ -1,0 +1,8 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  version: string,
+}
+
+export default class About extends Component<void, Props, void> { }

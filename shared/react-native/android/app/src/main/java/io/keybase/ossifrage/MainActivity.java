@@ -27,7 +27,6 @@ import static go.keybase.Keybase.logSend;
 
 public class MainActivity extends ReactActivity {
     private static final String TAG = MainActivity.class.getName();
-    private File logFile;
 
     @Override
     @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -38,7 +37,6 @@ public class MainActivity extends ReactActivity {
             e.printStackTrace();
         }
 
-        logFile = this.getFileStreamPath("android.log");
         initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false);
 
         super.onCreate(savedInstanceState);
@@ -59,12 +57,6 @@ public class MainActivity extends ReactActivity {
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (BuildConfig.DEBUG && keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-            try {
-                final String id = logSend(logFile.getAbsolutePath());
-                Log.d(TAG, "LOG id is: " + id);
-            } catch (Exception e) {
-                Log.d(TAG, "Error in log sending:", e);
-            }
             return super.onKeyUp(KeyEvent.KEYCODE_MENU, null);
         }
         return super.onKeyUp(keyCode, event);
