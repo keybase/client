@@ -126,7 +126,8 @@ var _ BlockRetriever = (*blockRetrievalQueue)(nil)
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
 // parameter determines how many workers can concurrently call Work (more than
 // numWorkers will block).
-func newBlockRetrievalQueue(numWorkers int, config blockRetrievalConfig) *blockRetrievalQueue {
+func newBlockRetrievalQueue(numWorkers int,
+	config blockRetrievalConfig) *blockRetrievalQueue {
 	q := &blockRetrievalQueue{
 		config:      config,
 		log:         config.MakeLogger("BRQ"),
@@ -204,13 +205,12 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ptr BlockPointer, block Block,
 func (brq *blockRetrievalQueue) checkCachesLocked(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime) error {
-	// Attempt to retrieve the block from the cache. This might be a
-	// specific type where the request blocks are CommonBlocks, but
-	// that direction can Set correctly. The cache will never have
-	// CommonBlocks.  TODO: verify that the returned lifetime here
-	// matches `lifetime` (which should always be TransientEntry, since
-	// a PermanentEntry would have been served directly from the cache
-	// elsewhere)?
+	// Attempt to retrieve the block from the cache. This might be a specific
+	// type where the request blocks are CommonBlocks, but that direction can
+	// Set correctly. The cache will never have CommonBlocks.  TODO: verify
+	// that the returned lifetime here matches `lifetime` (which should always
+	// be TransientEntry, since a PermanentEntry would have been served
+	// directly from the cache elsewhere)?
 	cachedBlock, hasPrefetched, _, err :=
 		brq.config.BlockCache().GetWithPrefetch(ptr)
 	if err == nil && cachedBlock != nil {
@@ -232,16 +232,15 @@ func (brq *blockRetrievalQueue) checkCachesLocked(ctx context.Context,
 	}
 
 	// Assemble the block from the encrypted block buffer.
-	err = brq.config.blockGetter().assembleBlock(ctx, kmd,
-		ptr, block, blockBuf, serverHalf)
+	err = brq.config.blockGetter().assembleBlock(ctx, kmd, ptr, block,
+		blockBuf, serverHalf)
 	if err != nil {
 		return NoSuchBlockError{ptr.ID}
 	}
 
 	// TODO: once the DiskBlockCache knows about
 	// hasPrefetched, pipe that through here.
-	brq.CacheAndPrefetch(ptr, cachedBlock, kmd, priority,
-		lifetime, false)
+	brq.CacheAndPrefetch(ptr, cachedBlock, kmd, priority, lifetime, false)
 	return nil
 }
 
@@ -273,7 +272,8 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	for {
 		br, exists := brq.ptrs[bpLookup]
 		if !exists {
-			err := brq.checkCachesLocked(ctx, priority, kmd, ptr, block, lifetime)
+			err := brq.checkCachesLocked(ctx, priority, kmd, ptr, block,
+				lifetime)
 			if err == nil {
 				ch <- nil
 				return ch
@@ -295,8 +295,8 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 		} else {
 			err := br.ctx.AddContext(ctx)
 			if err == context.Canceled {
-				// We need to delete the request pointer, but we'll still let the
-				// existing request be processed by a worker.
+				// We need to delete the request pointer, but we'll still let
+				// the existing request be processed by a worker.
 				delete(brq.ptrs, bpLookup)
 				continue
 			}
@@ -311,8 +311,8 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 		}
 		br.reqMtx.Unlock()
 		// If the new request priority is higher, elevate the retrieval in the
-		// queue.  Skip this if the request is no longer in the queue (which means
-		// it's actively being processed).
+		// queue.  Skip this if the request is no longer in the queue (which
+		// means it's actively being processed).
 		if br.index != -1 && priority > br.priority {
 			br.priority = priority
 			heap.Fix(brq.heap, br.index)
@@ -360,7 +360,8 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 			// Copy the decrypted block to the caller
 			req.block.Set(block)
 		}
-		// Since we created this channel with a buffer size of 1, this won't block.
+		// Since we created this channel with a buffer size of 1, this won't
+		// block.
 		req.doneCh <- err
 	}
 }
@@ -383,7 +384,8 @@ func (brq *blockRetrievalQueue) Shutdown() {
 // TogglePrefetcher allows upstream components to turn the prefetcher on or
 // off. If an error is returned due to a context cancelation, the prefetcher is
 // never re-enabled.
-func (brq *blockRetrievalQueue) TogglePrefetcher(ctx context.Context, enable bool) (err error) {
+func (brq *blockRetrievalQueue) TogglePrefetcher(ctx context.Context,
+	enable bool) (err error) {
 	// We must hold this lock for the whole function so that multiple calls to
 	// this function doesn't leak prefetchers.
 	brq.prefetchMtx.Lock()
