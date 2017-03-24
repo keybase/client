@@ -19,11 +19,9 @@ import (
 func setupStorageTest(t testing.TB, name string) (libkb.TestContext, *Storage, gregor1.UID) {
 	tc := externals.SetupTest(t, name, 2)
 	u, err := kbtest.CreateAndSignupFakeUser("cs", tc.G)
+	tc.G.ServerCacheVersions = NewServerVersions(tc.G)
 	require.NoError(t, err)
-	f := func() libkb.SecretUI {
-		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
-	}
-	return tc, New(tc.G, f), gregor1.UID(u.User.GetUID().ToBytes())
+	return tc, New(tc.G), gregor1.UID(u.User.GetUID().ToBytes())
 }
 
 func randBytes(n int) []byte {
@@ -464,6 +462,31 @@ func TestStorageFetchMessages(t *testing.T) {
 		}
 	}
 	require.Equal(t, 1, nils, "wrong number of nils")
+}
+
+func TestStorageServerVersion(t *testing.T) {
+	tc, storage, uid := setupStorageTest(t, "serverVersion")
+
+	msgs := makeMsgRange(300)
+	conv := makeConversation(msgs[0].GetMessageID())
+	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+	res, err := storage.Fetch(context.TODO(), conv, uid, nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, len(msgs), len(res.Messages))
+
+	cerr := tc.G.ServerCacheVersions.Set(context.TODO(), chat1.ServerCacheVers{
+		BodiesVers: 5,
+	})
+	require.NoError(t, cerr)
+
+	res, err = storage.Fetch(context.TODO(), conv, uid, nil, nil)
+	require.Error(t, err)
+	require.IsType(t, MissError{}, err)
+
+	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+	res, err = storage.Fetch(context.TODO(), conv, uid, nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, len(msgs), len(res.Messages))
 }
 
 func TestStorageDetectBodyHashReplay(t *testing.T) {

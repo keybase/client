@@ -55,7 +55,7 @@ func (ms *msgEngine) makeMsgKey(convID chat1.ConversationID, uid gregor1.UID, ms
 	}
 }
 
-func (ms *msgEngine) writeMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+func (ms *msgEngine) WriteMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) Error {
 
 	// Sanity check
@@ -110,7 +110,7 @@ func (ms *msgEngine) writeMessages(ctx context.Context, convID chat1.Conversatio
 	return nil
 }
 
-func (ms *msgEngine) readMessages(ctx context.Context, rc resultCollector,
+func (ms *msgEngine) ReadMessages(ctx context.Context, rc resultCollector,
 	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) (err Error) {
 
 	// Run all errors through resultCollector
@@ -164,7 +164,7 @@ func (ms *msgEngine) readMessages(ctx context.Context, rc resultCollector,
 	return nil
 }
 
-func (ms *msgEngine) init(ctx context.Context, key [32]byte, convID chat1.ConversationID,
+func (ms *msgEngine) Init(ctx context.Context, key [32]byte, convID chat1.ConversationID,
 	uid gregor1.UID) (context.Context, Error) {
 	return context.WithValue(ctx, beskkey, key), nil
 }
