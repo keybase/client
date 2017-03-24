@@ -3,6 +3,7 @@ import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
 import {Set, List, Map} from 'immutable'
+import {ReachabilityReachable} from '../constants/types/flow-types'
 
 const initialState: Constants.State = new Constants.StateRecord()
 const initialConversation: Constants.ConversationState = new Constants.ConversationStateRecord()
@@ -471,6 +472,24 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
     }
     case 'chat:setInitialConversation': {
       return state.set('initialConversation', action.payload.conversationIDKey)
+    }
+    case 'chat:threadLoadedOffline': {
+      const {conversationIDKey} = action.payload
+      const newConversationStates = state.get('conversationStates').update(
+        conversationIDKey,
+        initialConversation,
+        conversation => conversation.set('loadedOffline', true),
+      )
+      return state.set('conversationStates', newConversationStates)
+    }
+    case 'gregor:updateReachability': { // reset this when we go online
+      if (action.payload.reachability.reachable === ReachabilityReachable.yes) {
+        const newConversationStates = state.get('conversationStates').map(
+          conversation => conversation.set('loadedOffline', false)
+        )
+        return state.set('conversationStates', newConversationStates)
+      }
+      break
     }
   }
 

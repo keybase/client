@@ -320,6 +320,10 @@ function setInitialConversation (conversationIDKey: ?Constants.ConversationIDKey
   return {payload: {conversationIDKey}, type: 'chat:setInitialConversation'}
 }
 
+function threadLoadedOffline (conversationIDKey: Constants.ConversationIDKey): Constants.ThreadLoadedOffline {
+  return {payload: {conversationIDKey}, type: 'chat:threadLoadedOffline'}
+}
+
 export {
   addPending,
   appendMessages,
@@ -364,6 +368,7 @@ export {
   setupChatHandlers,
   showEditor,
   startConversation,
+  threadLoadedOffline,
   updateBadging,
   updateBrokenTracker,
   updateConversationUnreadCounts,
