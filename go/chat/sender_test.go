@@ -25,6 +25,8 @@ type chatListener struct {
 	incoming       chan int
 	failing        chan []chat1.OutboxRecord
 	identifyUpdate chan keybase1.CanonicalTLFNameAndIDWithBreaks
+	inboxStale     chan struct{}
+	threadsStale   chan []chat1.ConversationID
 }
 
 var _ libkb.NotifyListener = (*chatListener)(nil)
@@ -52,8 +54,22 @@ func (n *chatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.Conversati
 }
 func (n *chatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
 }
-func (n *chatListener) ChatInboxStale(uid keybase1.UID)                                {}
-func (n *chatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {}
+func (n *chatListener) ChatInboxStale(uid keybase1.UID) {
+	select {
+	case n.inboxStale <- struct{}{}:
+	case <-time.After(5 * time.Second):
+		panic("timeout on the inbox stale channel")
+	}
+}
+
+func (n *chatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {
+	select {
+	case n.threadsStale <- cids:
+	case <-time.After(5 * time.Second):
+		panic("timeout on the threads stale channel")
+	}
+}
+
 func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	n.Lock()
 	defer n.Unlock()
@@ -121,6 +137,8 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 		incoming:       make(chan int),
 		failing:        make(chan []chat1.OutboxRecord),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks),
+		inboxStale:     make(chan struct{}, 1),
+		threadsStale:   make(chan []chat1.ConversationID, 1),
 	}
 	tc.G.ConvSource = NewHybridConversationSource(tc.G, boxer, storage.New(tc.G), getRI)
 	tc.G.InboxSource = NewHybridInboxSource(tc.G, getRI, tlf)
