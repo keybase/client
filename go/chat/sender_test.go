@@ -122,7 +122,7 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 		failing:        make(chan []chat1.OutboxRecord),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks),
 	}
-	tc.G.ConvSource = NewHybridConversationSource(tc.G, boxer, storage.New(tc.G, getSecretUI), getRI)
+	tc.G.ConvSource = NewHybridConversationSource(tc.G, boxer, storage.New(tc.G), getRI)
 	tc.G.InboxSource = NewHybridInboxSource(tc.G, getRI, tlf)
 	tc.G.ServerCacheVersions = storage.NewServerVersions(tc.G)
 	tc.G.NotifyRouter.SetListener(&listener)

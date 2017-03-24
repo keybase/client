@@ -80,7 +80,7 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 // a complete sync of the inbox occurs.
 func TestInboxSourceSkipAhead(t *testing.T) {
 	t.Logf("setup")
-	world, ri2, _, sender, _, _, tlf := setupTest(t, 1)
+	world, ri2, _, sender, _, tlf := setupTest(t, 1)
 	ri := ri2.(*kbtest.ChatRemoteMock)
 	defer world.Cleanup()
 	t.Logf("test's remoteInterface: %p[%T] -> %v", &ri, ri, ri)
