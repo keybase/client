@@ -25,13 +25,11 @@ type tlfHandler struct {
 }
 
 func newTlfHandler(xp rpc.Transporter, g *libkb.GlobalContext) *tlfHandler {
-	base := NewBaseHandler(xp)
-	tlf := chat.NewKBFSTLFInfoSource(g)
 	return &tlfHandler{
-		BaseHandler:   base,
+		BaseHandler:   NewBaseHandler(xp),
 		Contextified:  libkb.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g, "TlfHandler", false),
-		tlfInfoSource: tlf,
+		tlfInfoSource: chat.NewKBFSTLFInfoSource(g),
 	}
 }
 
