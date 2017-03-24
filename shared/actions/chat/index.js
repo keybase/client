@@ -40,7 +40,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
     case ChatTypes.NotifyChatChatActivityType.setStatus:
       const setStatus: ?ChatTypes.SetStatusInfo = action.payload.activity.setStatus
       if (setStatus) {
-        yield call(Inbox.updateInbox, setStatus.conv)
+        yield call(Inbox.processConversation, setStatus.conv)
         yield call(_ensureValidSelectedChat, false, true)
       }
       return
@@ -84,7 +84,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
       return
     case ChatTypes.NotifyChatChatActivityType.readMessage:
       if (action.payload.activity.readMessage) {
-        yield call(Inbox.updateInbox, action.payload.activity.readMessage.conv)
+        yield call(Inbox.processConversation, action.payload.activity.readMessage.conv)
       }
       return
     case ChatTypes.NotifyChatChatActivityType.incomingMessage:
@@ -97,7 +97,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           return
         }
 
-        yield call(Inbox.updateInbox, incomingMessage.conv)
+        yield call(Inbox.processConversation, incomingMessage.conv)
 
         const messageUnboxed: ChatTypes.MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
@@ -845,7 +845,7 @@ function * _sendNotifications (action: Constants.AppendMessages): SagaGenerator<
 function * _markThreadsStale (action: Constants.MarkThreadsStale): SagaGenerator<any, any> {
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
   const {convIDs} = action.payload
-  yield call(Inbox.getInboxAndUnbox, Creators.getInboxAndUnbox(convIDs))
+  yield call(Inbox.unboxConversations, convIDs)
 
   // Selected is stale?
   const selectedConversation = yield select(Constants.getSelectedConversation)
@@ -899,7 +899,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     Saga.safeTakeEvery('chat:appendMessages', _sendNotifications),
     Saga.safeTakeEvery('chat:selectAttachment', Attachment.onSelectAttachment),
     Saga.safeTakeEvery('chat:openConversation', _openConversation),
-    Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.getInboxAndUnbox),
+    Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox),
     Saga.safeTakeEvery('chat:loadAttachment', Attachment.onLoadAttachment),
     Saga.safeTakeEvery('chat:openAttachmentPopup', Attachment.onOpenAttachmentPopup),
     Saga.safeTakeLatest('chat:openFolder', _openFolder),

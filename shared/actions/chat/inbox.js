@@ -49,15 +49,13 @@ function * onInitialInboxLoad (action: Constants.LoadInbox): SagaGenerator<any, 
 
 // On desktop we passively unbox inbox items
 function * _backgroundUnboxLoop () {
-  const maxPerLoop = 10
-
   while (true) {
     yield call(delay, 10 * 1000)
     const inboxes = yield select(state => state.chat.get('inbox'))
-    const conversationIDKeys = inboxes.filter(i => i.state === 'untrusted').take(maxPerLoop)
+    const conversationIDKeys = inboxes.filter(i => i.state === 'untrusted').take(10).map(i => i.conversationIDKey).toArray()
 
     if (conversationIDKeys.length) {
-      yield call(_unboxConversations, conversationIDKeys)
+      yield call(unboxConversations, conversationIDKeys)
     } else {
       break
     }
@@ -125,17 +123,8 @@ function * onInboxStale (): SagaGenerator<any, any> {
   chatInboxUnverified.response.result()
 }
 
-// Unbox one specific item by keys
-function * getInboxAndUnbox ({payload: {conversationIDKeys}}: Constants.GetInboxAndUnbox): SagaGenerator<any, any> {
-  const param: ChatTypes.localGetInboxAndUnboxLocalRpcParam = {
-    identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-    query: {..._getInboxQuery, readOnly: true},
-  }
-
-  const result: ChatTypes.GetInboxAndUnboxLocalRes = yield call(ChatTypes.localGetInboxAndUnboxLocalRpcPromise, {param})
-  if (result.conversations) {
-    yield result.conversations.map(conv => call(updateInbox, conv))
-  }
+function * onGetInboxAndUnbox ({payload: {conversationIDKeys}}: Constants.GetInboxAndUnbox): SagaGenerator<any, any> {
+  yield call(unboxConversations, conversationIDKeys)
 }
 
 function _toSupersedeInfo (conversationIDKey: Constants.ConversationIDKey, supersedeData: Array<ChatTypes.ConversationMetadata>): ?Constants.SupersedeInfo {
@@ -148,24 +137,22 @@ function _toSupersedeInfo (conversationIDKey: Constants.ConversationIDKey, super
   return parsed.length ? parsed[0] : null
 }
 
-// Update an unboxed inbox item
-function * updateInbox (c: ?ChatTypes.ConversationLocal): SagaGenerator<any, any> {
-  if (c && c.info && c.info.id) {
-    const conversationIDKey = Constants.conversationIDToKey(c.info.id)
+// Update an inbox item
+function * processConversation (c: ChatTypes.ConversationLocal): SagaGenerator<any, any> {
+  const conversationIDKey = Constants.conversationIDToKey(c.info.id)
 
-    const supersedes = _toSupersedeInfo(conversationIDKey, c.supersedes || [])
-    if (supersedes) {
-      yield put(Creators.updateSupersedesState(Map({[conversationIDKey]: supersedes})))
-    }
+  const supersedes = _toSupersedeInfo(conversationIDKey, c.supersedes || [])
+  if (supersedes) {
+    yield put(Creators.updateSupersedesState(Map({[conversationIDKey]: supersedes})))
+  }
 
-    const supersededBy = _toSupersedeInfo(conversationIDKey, c.supersededBy || [])
-    if (supersededBy) {
-      yield put(Creators.updateSupersededByState(Map({[conversationIDKey]: supersededBy})))
-    }
+  const supersededBy = _toSupersedeInfo(conversationIDKey, c.supersededBy || [])
+  if (supersededBy) {
+    yield put(Creators.updateSupersededByState(Map({[conversationIDKey]: supersededBy})))
+  }
 
-    if (c.info.finalizeInfo) {
-      yield put(Creators.updateFinalizedState(Map({[conversationIDKey]: c.info.finalizeInfo})))
-    }
+  if (c.info.finalizeInfo) {
+    yield put(Creators.updateFinalizedState(Map({[conversationIDKey]: c.info.finalizeInfo})))
   }
 
   const inboxState = _conversationLocalToInboxState(c)
@@ -200,12 +187,12 @@ function * untrustedInboxVisible (action: Constants.UntrustedInboxVisible): Saga
   const conversationIDKeys = inboxes.slice(idx, idx + total).map(i => i.state === 'untrusted' ? i.conversationIDKey : null).filter(Boolean).toArray()
 
   if (conversationIDKeys.length) {
-    yield call(_unboxConversations, conversationIDKeys)
+    yield call(unboxConversations, conversationIDKeys)
   }
 }
 
 // Loads the trusted inbox segments
-function * _unboxConversations (conversationIDKeys: Array<Constants.ConversationIDKey>): Generator<any, any, any> {
+function * unboxConversations (conversationIDKeys: Array<Constants.ConversationIDKey>): Generator<any, any, any> {
   yield put(Creators.setUnboxing(conversationIDKeys))
 
   const channelConfig = singleFixedChannelConfig([
@@ -240,7 +227,7 @@ function * _unboxConversations (conversationIDKeys: Array<Constants.Conversation
     } else if (incoming.chatInboxConversation) {
       requestIdleCallback(() => { incoming.chatInboxConversation.response.result() }, {timeout: 100})
       yield call(delay, 1)
-      yield call(updateInbox, incoming.chatInboxConversation.params.conv)
+      yield call(processConversation, incoming.chatInboxConversation.params.conv)
       // find it
     } else if (incoming.chatInboxFailed) {
       console.log('chatInboxFailed', incoming.chatInboxFailed)
@@ -284,8 +271,6 @@ function * _unboxConversations (conversationIDKeys: Array<Constants.Conversation
 // Convert server to our data type. Make timestamps and snippets
 function _conversationLocalToInboxState (c: ?ChatTypes.ConversationLocal): ?Constants.InboxState {
   if (!c ||
-      !c.info ||
-      !c.info.id ||
       c.info.visibility !== ChatTypes.CommonTLFVisibility.private || // private chats only
       c.info.tlfName.includes('#') // We don't support mixed reader/writers
       ) {
@@ -320,7 +305,8 @@ function _conversationLocalToInboxState (c: ?ChatTypes.ConversationLocal): ?Cons
 export {
   onInitialInboxLoad,
   onInboxStale,
-  getInboxAndUnbox,
-  updateInbox,
+  onGetInboxAndUnbox,
+  unboxConversations,
+  processConversation,
   untrustedInboxVisible,
 }

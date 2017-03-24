@@ -4,7 +4,7 @@ import * as Constants from '../../constants/chat'
 import {Map} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
-import {getInboxAndUnbox} from './inbox'
+import {unboxConversations} from './inbox'
 import {pendingToRealConversation, replaceConversation, selectConversation} from './creators'
 import {usernameSelector} from '../../constants/selectors'
 
@@ -142,7 +142,7 @@ function * startNewConversation (oldConversationIDKey: Constants.ConversationIDK
     yield put(selectConversation(newConversationIDKey, false))
   }
   // Load the inbox so we can post, we wait till this is done
-  yield call(getInboxAndUnbox, {payload: {conversationIDKeys: [newConversationIDKey]}, type: 'chat:getInboxAndUnbox'})
+  yield call(unboxConversations, [newConversationIDKey])
   return newConversationIDKey
 }
 
