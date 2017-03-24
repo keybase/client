@@ -468,11 +468,16 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 // UpdateMetadata implements the DiskBlockCache interface for
 // DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
-	blockID kbfsblock.ID) error {
+	blockID kbfsblock.ID) (err error) {
+	var md diskBlockCacheMetadata
+	defer func() {
+		cache.log.CDebugf(ctx, "Cache UpdateMetadata id=%s entrySize=%d "+
+			"err=%+v", blockID, md.BlockSize, err)
+	}()
 	// Only obtain a read lock because this happens on Get, not on Put.
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
-	md, err := cache.getMetadata(blockID)
+	md, err = cache.getMetadata(blockID)
 	if err != nil {
 		return NoSuchBlockError{blockID}
 	}
