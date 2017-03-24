@@ -246,7 +246,7 @@ const listParentProps = {
   style: {
     ...globalStyles.flexBoxColumn,
     minWidth: 300,
-    height: isMobile ? undefined : 300,
+    height: isMobile ? undefined : 500,
   },
 }
 
@@ -335,7 +335,7 @@ const inboxParentProps = {
   style: {
     ...globalStyles.flexBoxColumn,
     minWidth: 240,
-    height: isMobile ? undefined : 300,
+    height: isMobile ? undefined : 500,
   },
 }
 
