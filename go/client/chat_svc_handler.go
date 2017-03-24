@@ -72,7 +72,8 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	}
 
 	cl := ChatList{
-		Offline: res.Offline,
+		Offline:          res.Offline,
+		IdentifyFailures: res.IdentifyFailures,
 	}
 	for _, conv := range res.Conversations {
 		var convSummary ConvSummary
@@ -153,7 +154,8 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 	}
 
 	thread := Thread{
-		Offline: threadView.Offline,
+		Offline:          threadView.Offline,
+		IdentifyFailures: threadView.IdentifyFailures,
 	}
 	for _, m := range threadView.Thread.Messages {
 		st, err := m.State()
@@ -507,6 +509,7 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 		RateLimits: RateLimits{
 			RateLimits: c.aggRateLimits(rlimits),
 		},
+		IdentifyFailures: dres.IdentifyFailures,
 	}
 
 	return Reply{Result: res}
@@ -669,6 +672,7 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1) Reply {
 		return c.errReply(err)
 	}
 
+	var idFails []keybase1.TLFIdentifyFailure
 	if arg.nonblock {
 		var nbarg chat1.PostLocalNonblockArg
 		nbarg.ConversationID = postArg.ConversationID
@@ -679,12 +683,14 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1) Reply {
 			return c.errReply(err)
 		}
 		rl = append(rl, plres.RateLimits...)
+		idFails = plres.IdentifyFailures
 	} else {
 		plres, err := client.PostLocal(ctx, postArg)
 		if err != nil {
 			return c.errReply(err)
 		}
 		rl = append(rl, plres.RateLimits...)
+		idFails = plres.IdentifyFailures
 	}
 
 	res := SendRes{
@@ -692,6 +698,7 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1) Reply {
 		RateLimits: RateLimits{
 			RateLimits: c.aggRateLimits(rl),
 		},
+		IdentifyFailures: idFails,
 	}
 
 	return Reply{Result: res}
@@ -980,8 +987,9 @@ type Message struct {
 
 // Thread is used for JSON output of a thread of messages.
 type Thread struct {
-	Messages []Message `json:"messages"`
-	Offline  bool      `json:"offline,omitempty"`
+	Messages         []Message                     `json:"messages"`
+	Offline          bool                          `json:"offline,omitempty"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
 	RateLimits
 }
 
@@ -1000,14 +1008,16 @@ type ConvSummary struct {
 
 // ChatList is a list of conversations in the inbox.
 type ChatList struct {
-	Conversations []ConvSummary `json:"conversations"`
-	Offline       bool          `json:"offline"`
+	Conversations    []ConvSummary                 `json:"conversations"`
+	Offline          bool                          `json:"offline"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
 	RateLimits
 }
 
 // SendRes is the result of successfully sending a message.
 type SendRes struct {
-	Message string `json:"message"`
+	Message          string                        `json:"message"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
 	RateLimits
 }
 
