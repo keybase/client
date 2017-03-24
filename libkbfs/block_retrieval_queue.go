@@ -201,7 +201,7 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ptr BlockPointer, block Block,
 	return nil
 }
 
-func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
+func (brq *blockRetrievalQueue) checkCachesLocked(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime) error {
 	// Attempt to retrieve the block from the cache. This might be a
@@ -225,6 +225,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	if dbc == nil {
 		return NoSuchBlockError{ptr.ID}
 	}
+	// FIXME: This does disk I/O, and we're under mutex. Bad.
 	blockBuf, serverHalf, err := dbc.Get(ctx, kmd.TlfID(), ptr.ID)
 	if err != nil || len(blockBuf) == 0 {
 		return NoSuchBlockError{ptr.ID}
@@ -272,7 +273,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	for {
 		br, exists := brq.ptrs[bpLookup]
 		if !exists {
-			err := brq.checkCaches(ctx, priority, kmd, ptr, block, lifetime)
+			err := brq.checkCachesLocked(ctx, priority, kmd, ptr, block, lifetime)
 			if err == nil {
 				ch <- nil
 				return ch
