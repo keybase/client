@@ -14,6 +14,7 @@ export type Props = {
   inputText: string,
   isLoading: boolean,
   listScrollDownState: number,
+  threadLoadedOffline: boolean,
   messages: List<Message>,
   metaDataMap: MetaDataMap,
   moreToLoad: boolean,

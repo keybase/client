@@ -126,6 +126,8 @@ backgroundModes.forEach(backgroundMode => {
     }
   })
 
+  mocks['Body - Wrap'] = {...mocks['Body'], children: 'hello world '.repeat(50)}
+
   Object.keys(mocks).forEach(key => {
     textMocks[`${key}: ${backgroundMode}`] = mocks[key]
   })

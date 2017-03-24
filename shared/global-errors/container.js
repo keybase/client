@@ -9,7 +9,6 @@ export default connect(
   (state: TypedState) => ({
     error: state.config.globalError,
     daemonError: state.config.daemonError,
-    reachability: state.gregor.reachability,
   }),
   (dispatch: any) => ({
     onDismiss: () => dispatch({type: globalErrorDismiss}),

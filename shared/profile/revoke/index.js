@@ -23,7 +23,7 @@ const Revoke = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isW
         <Text style={styleReminderText} type='Body'>You can add it again later, if you change your mind.</Text>
         <Box style={styleButtonsContainer}>
           <Button type='Secondary' onClick={onCancel} label='Cancel' disabled={isWaiting} />
-          <Button type='Danger' onClick={onRevoke} label={formatConfirmButton(platform)} waiting={isWaiting} />
+          <Button type='Danger' onClick={onRevoke} style={{marginLeft: globalMargins.tiny}} label={formatConfirmButton(platform)} waiting={isWaiting} />
         </Box>
       </Box>
     </Box>

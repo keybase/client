@@ -1,6 +1,8 @@
 package service
 
 import (
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -18,6 +20,10 @@ func (f fakeUIRouter) SetUI(libkb.ConnectionID, libkb.UIKind) {}
 
 func (f fakeUIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 	return f.identifyUI, nil
+}
+
+func (f fakeUIRouter) GetIdentifyUICtx(context.Context) (int, libkb.IdentifyUI, error) {
+	return 0, f.identifyUI, nil
 }
 
 func (f fakeUIRouter) GetSecretUI(int) (libkb.SecretUI, error) {

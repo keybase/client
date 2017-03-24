@@ -6,10 +6,9 @@ import LoadingWrapper from '../common-adapters/loading-wrapper.native'
 import React, {Component} from 'react'
 import _ from 'lodash'
 import moment from 'moment'
-import {BackButton, Box, Icon, PopupMenu, Text, UserActions, UserBio, UserProofs, NativeScrollView} from '../common-adapters/index.native'
-import {friendlyName as platformFriendlyName} from '../util/platforms'
+import {BackButton, Box, Icon, PlatformIcon, PopupMenu, Text, UserActions, UserBio, UserProofs, NativeScrollView} from '../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
-import {normal as proofNormal, metaPending, metaUnreachable} from '../constants/tracker'
+import {normal as proofNormal, checking as proofChecking, metaPending, metaUnreachable} from '../constants/tracker'
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
 
@@ -40,7 +39,7 @@ class Profile extends Component<void, Props, State> {
   _handleToggleMenu (idx: number) {
     const selectedProof = this.props.proofs[idx]
     this.setState({
-      activeMenuProof: this.state.activeMenuProof && this.state.activeMenuProof.id === selectedProof.id ? undefined : selectedProof,
+      activeMenuProof: this.state.activeMenuProof && selectedProof && this.state.activeMenuProof.id === selectedProof.id ? undefined : selectedProof,
     })
   }
 
@@ -48,6 +47,7 @@ class Profile extends Component<void, Props, State> {
     return (
       <UserBio
         type='Profile'
+        editFns={this.props.bioEditFns}
         avatarSize={AVATAR_SIZE}
         loading={loading}
         username={this.props.username}
@@ -102,8 +102,8 @@ class Profile extends Component<void, Props, State> {
         title: 'header',
         view: (
           <Box style={{...globalStyles.flexBoxColumn, ...globalStyles.flexBoxCenter}}>
-            <Text type='BodySmall' style={{textAlign: 'center', color: globalColors.white}}>{platformFriendlyName(proof.type)}</Text>
-            {!!proof.mTime && <Text type='BodySmall' style={{textAlign: 'center', color: globalColors.white}}>Posted on {moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>}
+            <PlatformIcon platform={proof.type} overlay='icon-proof-success' overlayColor={globalColors.blue} />
+            {!!proof.mTime && <Text type='BodySmall' style={{textAlign: 'center'}}>Posted on {moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>}
           </Box>
         ),
       },
@@ -133,8 +133,10 @@ class Profile extends Component<void, Props, State> {
     const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 
     let proofNotice
-    if (this.props.trackerState !== proofNormal) {
-      proofNotice = `Some of ${this.props.username}'s proofs are broken.`
+    if (!this.props.loading &&
+        this.props.trackerState !== proofChecking &&
+        this.props.trackerState !== proofNormal) {
+      proofNotice = `Some of ${this.props.isYou ? 'your' : this.props.username + "'s"} proofs are broken.`
     }
 
     let folders = _.chain(this.props.tlfs)

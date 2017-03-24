@@ -2,6 +2,7 @@
 import React from 'react'
 import {Box} from './common-adapters'
 import GlobalError from './global-errors/container'
+import Offline from './offline'
 import TabBar from './tab-bar/index.render'
 import {chatTab, loginTab, folderTab} from './constants/tabs'
 import {connect} from 'react-redux'
@@ -35,6 +36,7 @@ function Nav (props: Props) {
         {layerScreens.map(r => r.leafComponent)}
       </Box>
       <div id='popupContainer' />
+      {![chatTab, loginTab].includes(props.routeSelected) && <Offline reachability={props.reachability} />}
       <GlobalError />
     </Box>
   )
@@ -49,11 +51,13 @@ export default connect(
   ({
     config: {extendedConfig, username},
     notifications: {menuBadge, menuNotifications},
+    gregor: {reachability},
   }) => ({
     provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
     username,
     folderBadge: menuNotifications.folderBadge,
     chatBadge: menuNotifications.chatBadge,
+    reachability,
   }),
   (dispatch: any, {routeSelected, routePath}) => ({
     switchTab: (tab: Tab) => {

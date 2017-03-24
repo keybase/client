@@ -484,9 +484,10 @@ func runDNSTXTQuery(g proofContextExt, domain string) (res []string, err error) 
 	}
 
 	for _, ans := range r.Answer {
-		record := ans.(*dns.TXT)
-		if len(record.Txt) > 0 {
-			res = append(res, record.Txt[len(record.Txt)-1])
+		if record, ok := ans.(*dns.TXT); ok {
+			if len(record.Txt) > 0 {
+				res = append(res, record.Txt[len(record.Txt)-1])
+			}
 		}
 	}
 	return res, err
