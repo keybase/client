@@ -61,7 +61,7 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
 	// call identifyTLF and GetTLFCryptKeys concurrently:
-	var group errgroup.Group
+	group, ectx := errgroup.WithContext(BackgroundContext(ctx))
 
 	var ib []keybase1.TLFIdentifyFailure
 	group.Go(func() error {
@@ -70,7 +70,7 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 			IdentifyBehavior: identBehavior,
 		}
 		var err error
-		ib, err = t.identifyTLF(ctx, query, true)
+		ib, err = t.identifyTLF(ectx, query, true)
 		return err
 	})
 
@@ -86,7 +86,7 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_SKIP,
 		}
 
-		res, err = tlfClient.GetTLFCryptKeys(ctx, query)
+		res, err = tlfClient.GetTLFCryptKeys(ectx, query)
 		return err
 	})
 
@@ -114,7 +114,7 @@ func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlf
 		fmt.Sprintf("PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
 	// call identifyTLF and CanonicalTLFNameAndIDWithBreaks concurrently:
-	var group errgroup.Group
+	group, ectx := errgroup.WithContext(BackgroundContext(ctx))
 
 	var ib []keybase1.TLFIdentifyFailure
 	group.Go(func() error {
@@ -124,7 +124,7 @@ func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlf
 		}
 
 		var err error
-		ib, err = t.identifyTLF(ctx, query, false)
+		ib, err = t.identifyTLF(ectx, query, false)
 		return err
 	})
 
@@ -140,7 +140,7 @@ func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlf
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_SKIP,
 		}
 
-		res, err = tlfClient.GetPublicCanonicalTLFNameAndID(ctx, query)
+		res, err = tlfClient.GetPublicCanonicalTLFNameAndID(ectx, query)
 		return err
 	})
 
@@ -185,7 +185,7 @@ func (t *KBFSTLFInfoSource) CompleteAndCanonicalizePrivateTlfName(ctx context.Co
 
 func (t *KBFSTLFInfoSource) identifyTLF(ctx context.Context, arg keybase1.TLFQuery, private bool) ([]keybase1.TLFIdentifyFailure, error) {
 	// need new context as errgroup will cancel it.
-	group, ectx := errgroup.WithContext(context.Background())
+	group, ectx := errgroup.WithContext(BackgroundContext(ctx))
 	assertions := make(chan string)
 
 	group.Go(func() error {
