@@ -97,6 +97,7 @@ export default connect(
           rekeyInfo: null,
           selectedConversation,
           validated: true,
+          threadLoadedOffline: false,
           you,
         }
       }
@@ -133,6 +134,7 @@ export default connect(
           you,
           supersedes,
           supersededBy,
+          threadLoadedOffline: conversationState.loadedOffline,
           finalizeInfo,
           editingMessage: state.chat.get('editingMessage'),
         }
@@ -150,6 +152,7 @@ export default connect(
       rekeyInfo: null,
       selectedConversation,
       validated: false,
+      threadLoadedOffline: false,
       you,
       supersedes: null,
       supersededBy: null,
