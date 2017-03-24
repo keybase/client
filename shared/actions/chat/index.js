@@ -215,7 +215,9 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({convIDs}) => {
-      dispatch(Creators.markThreadsStale(convIDs.map(Constants.conversationIDToKey)))
+      if (convIDs) {
+        dispatch(Creators.markThreadsStale(convIDs.map(Constants.conversationIDToKey)))
+      }
     })
   })
 }
