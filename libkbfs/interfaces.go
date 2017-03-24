@@ -840,8 +840,9 @@ type DiskBlockCache interface {
 	// Put puts a block to the disk cache.
 	Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
 		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
-	// DeleteByTLF deletes some blocks from the disk cache.
-	DeleteByTLF(ctx context.Context, tlfID tlf.ID, blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error)
+	// Delete deletes some blocks from the disk cache.
+	Delete(ctx context.Context, blockIDs []kbfsblock.ID) (numRemoved int,
+		sizeRemoved int64, err error)
 	// UpdateMetadata updates the metadata for the given block, including
 	// setting the LRU time to now.
 	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID) error

@@ -237,8 +237,8 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 		return NoSuchBlockError{ptr.ID}
 	}
 
-	// TODO: once the DiskBlockCache knows about
-	// hasPrefetched, pipe that through here.
+	// TODO: once the DiskBlockCache knows about hasPrefetched, pipe that
+	// through here.
 	brq.CacheAndPrefetch(ptr, cachedBlock, kmd, priority, lifetime, false)
 	return nil
 }
@@ -261,8 +261,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	}
 
 	// Check caches before locking the mutex.
-	err := brq.checkCaches(ctx, priority, kmd, ptr, block,
-		lifetime)
+	err := brq.checkCaches(ctx, priority, kmd, ptr, block, lifetime)
 	if err == nil {
 		ch <- nil
 		return ch
