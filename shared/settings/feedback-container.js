@@ -22,28 +22,31 @@ type State = {
 }
 
 class FeedbackContainer extends Component<void, {}, State> {
-  state: State;
+  mounted = true
 
-  constructor (props: {}) {
-    super(props)
-    this.state = {
-      sentFeedback: false,
-      feedback: null,
-    }
+  state = {
+    sentFeedback: false,
+    feedback: null,
   }
 
   _onChangeFeedback = (feedback) => {
     this.setState({feedback})
   }
 
+  componentWillUnmount () {
+    this.mounted = false
+  }
+
   render () {
     const onSendFeedback = (feedback, sendLogs) => {
       logSend(feedback, sendLogs).then(logSendId => {
         console.warn('logSendId is', logSendId)
-        this.setState({
-          sentFeedback: true,
-          feedback: null,
-        })
+        if (this.mounted) {
+          this.setState({
+            sentFeedback: true,
+            feedback: null,
+          })
+        }
       })
     }
 
@@ -51,10 +54,13 @@ class FeedbackContainer extends Component<void, {}, State> {
   }
 }
 
-export default connect(
-  () => ({}),
+export default compose(
+  connect(
+  null,
   (dispatch: Dispatch, {navigateUp}) => ({
     title: 'Feedback',
     onBack: () => dispatch(navigateUp()),
   })
-)(HeaderHoc(FeedbackContainer))
+  ),
+  HeaderHoc
+)(FeedbackContainer)

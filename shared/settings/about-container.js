@@ -7,12 +7,16 @@ import {defaultProps, compose} from 'recompose'
 
 import type {Dispatch} from '../constants/types/flux'
 
-const connectedHeaderHoc = connect(
-  () => ({}),
-  (dispatch: Dispatch, {navigateUp}) => ({
-    title: 'About',
-    onBack: () => dispatch(navigateUp()),
-  })
-)(compose(HeaderHoc, defaultProps({version}))(About))
+const connectedHeaderHoc = compose(
+  connect(
+    null,
+    (dispatch: Dispatch, {navigateUp}) => ({
+      title: 'About',
+      onBack: () => dispatch(navigateUp()),
+    })
+  ),
+  HeaderHoc,
+  defaultProps({version})
+)(About)
 
 export default connectedHeaderHoc
