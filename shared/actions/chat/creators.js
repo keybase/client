@@ -316,6 +316,10 @@ function openAttachmentPopup (message: Constants.AttachmentMessage): Constants.O
   return {payload: {message}, type: 'chat:openAttachmentPopup'}
 }
 
+function threadLoadedOffline (conversationIDKey: Constants.ConversationIDKey): Constants.ThreadLoadedOffline {
+  return {payload: {conversationIDKey}, type: 'chat:threadLoadedOffline'}
+}
+
 export {
   addPending,
   appendMessages,
@@ -359,6 +363,7 @@ export {
   setupChatHandlers,
   showEditor,
   startConversation,
+  threadLoadedOffline,
   updateBadging,
   updateBrokenTracker,
   updateConversationUnreadCounts,

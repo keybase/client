@@ -9,8 +9,8 @@ import ParticipantRekey from './participant-rekey.desktop'
 import React, {Component} from 'react'
 import SidePanel from './side-panel'
 import YouRekey from './you-rekey.desktop.js'
-import {Box, Icon} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles'
+import {Box, Icon, Text} from '../../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
 import * as Constants from '../../constants/chat'
 import hoc from './index-hoc'
@@ -94,8 +94,15 @@ class Conversation extends Component<void, Props, State> {
       </Box>
     )
 
+    const offline = this.props.threadLoadedOffline && (
+      <Box style={{...globalStyles.flexBoxCenter, backgroundColor: globalColors.black_10, flex: 1, maxHeight: globalMargins.medium}}>
+        <Text type='BodySmallSemibold'>Couldn't load all chat messages due to network connectivity. Retrying...</Text>
+      </Box>
+    )
+
     return (
       <Box className='conversation' style={containerStyle} onDragEnter={this._onDragEnter} onPaste={this._onPaste}>
+        {offline}
         <Header {...this.props.headerProps} />
         <List {...this.props.listProps} />
         {banner}

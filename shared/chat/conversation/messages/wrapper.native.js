@@ -62,8 +62,9 @@ const _stylesUnselected = {
 }
 
 const _exclamationStyle = {
-  fontSize: 14,
   color: globalColors.blue,
+  fontSize: 14,
+  marginRight: globalMargins.tiny,
 }
 
 const _textContainerStyle = {
