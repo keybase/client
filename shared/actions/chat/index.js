@@ -23,7 +23,7 @@ import {parseFolderNameToUsers} from '../../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../../constants/config'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from '../search'
 import {searchTab, chatTab} from '../../constants/tabs'
-import {showMainWindow} from '../platform.specific'
+import {showMainWindow} from '../platform-specific'
 import {some} from 'lodash'
 import {tmpFile} from '../../util/file'
 import {toDeviceType} from '../../constants/types/more'
@@ -917,4 +917,5 @@ export {
   openTlfInChat,
   setupChatHandlers,
   startConversation,
+  setInitialConversation,
 } from './creators'

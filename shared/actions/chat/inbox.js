@@ -6,7 +6,9 @@ import * as Saga from '../../util/saga'
 import {List, Map} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select, race} from 'redux-saga/effects'
+import {chatTab} from '../../constants/tabs'
 import {delay} from 'redux-saga'
+import {navigateTo} from '../route-tree'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {requestIdleCallback} from '../../util/idle-callback'
 import {unsafeUnwrap} from '../../constants/types/more'
@@ -62,6 +64,13 @@ function * onLoadInbox (): SagaGenerator<any, any> {
   const finalizedState: Constants.FinalizedState = _inboxToFinalized(inbox)
 
   yield put(Creators.loadedInbox(conversations))
+
+  const initialConversation = yield select(state => state.chat.get('initialConversation'))
+  if (initialConversation) {
+    yield put(Creators.setInitialConversation(null))
+    yield put(navigateTo([initialConversation], [chatTab]))
+  }
+
   if (finalizedState.count()) {
     yield put(Creators.updateFinalizedState(finalizedState))
   }

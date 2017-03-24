@@ -293,6 +293,7 @@ export const StateRecord = Record({
   pendingConversations: Map(),
   nowOverride: null,
   editingMessage: null,
+  initialConversation: null,
 })
 
 export type State = Record<{
@@ -310,6 +311,7 @@ export type State = Record<{
   pendingConversations: Map<ConversationIDKey, Participants>,
   nowOverride: ?Date,
   editingMessage: ?Message,
+  initialConversation: ?ConversationIDKey,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -349,6 +351,7 @@ export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conver
 export type RemoveOutboxMessage = NoErrorTypedAction<'chat:removeOutboxMessage', {conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey}>
 export type RemovePendingFailure = NoErrorTypedAction<'chat:removePendingFailure', {outboxID: OutboxIDKey}>
 export type RetryMessage = NoErrorTypedAction<'chat:retryMessage', {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}>
+export type SetInitialConversation = NoErrorTypedAction<'chat:setInitialConversation', {conversationIDKey: ?ConversationIDKey}>
 export type OpenConversation = NoErrorTypedAction<'chat:openConversation', {conversationIDKey: ConversationIDKey}>
 export type GetInboxAndUnbox = NoErrorTypedAction<'chat:getInboxAndUnbox', {conversationIDKey: ConversationIDKey}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ?ConversationIDKey, fromUser: boolean}>

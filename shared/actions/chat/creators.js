@@ -316,6 +316,10 @@ function openAttachmentPopup (message: Constants.AttachmentMessage): Constants.O
   return {payload: {message}, type: 'chat:openAttachmentPopup'}
 }
 
+function setInitialConversation (conversationIDKey: ?Constants.ConversationIDKey): Constants.SetInitialConversation {
+  return {payload: {conversationIDKey}, type: 'chat:setInitialConversation'}
+}
+
 export {
   addPending,
   appendMessages,
@@ -355,6 +359,7 @@ export {
   retryMessage,
   selectAttachment,
   selectConversation,
+  setInitialConversation,
   setLoaded,
   setupChatHandlers,
   showEditor,
