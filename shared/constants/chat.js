@@ -188,6 +188,7 @@ export const ConversationStateRecord = Record({
   isLoaded: false,
   isRequesting: false,
   isStale: false,
+  loadedOffline: false,
   paginationNext: undefined,
   paginationPrevious: undefined,
   firstNewMessageID: undefined,
@@ -200,6 +201,7 @@ export type ConversationState = Record<{
   moreToLoad: boolean,
   isRequesting: boolean,
   isStale: boolean,
+  loadedOffline: boolean,
   paginationNext: ?Buffer,
   paginationPrevious: ?Buffer,
   firstNewMessageID: ?MessageID,
@@ -371,6 +373,8 @@ export type UpdatePaginationNext = NoErrorTypedAction<'chat:updatePaginationNext
 export type UpdateSupersededByState = NoErrorTypedAction<'chat:updateSupersededByState', {supersededByState: SupersededByState}>
 export type UpdateSupersedesState = NoErrorTypedAction<'chat:updateSupersedesState', {supersedesState: SupersedesState}>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {updated: {[key: string]: MetaData}}>
+
+export type ThreadLoadedOffline = NoErrorTypedAction<'chat:threadLoadedOffline', {conversationIDKey: ConversationIDKey}>
 
 export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {input: AttachmentInput}>
 export type UpdateBrokenTracker = NoErrorTypedAction<'chat:updateBrokenTracker', {userToBroken: {[username: string]: boolean}}>
