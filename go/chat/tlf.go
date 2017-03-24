@@ -210,6 +210,9 @@ func (t *KBFSTLFInfoSource) identifyTLF(ctx context.Context, arg keybase1.TLFQue
 				if err != nil {
 					return err
 				}
+				if f.Breaks == nil {
+					continue
+				}
 				select {
 				case fails <- f:
 				case <-ectx.Done():
