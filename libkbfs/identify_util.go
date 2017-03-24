@@ -156,6 +156,12 @@ func identifyUID(ctx context.Context, nug normalizedUsernameGetter,
 func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 	identifier identifier, username libkb.NormalizedUsername,
 	uid keybase1.UID, isPublic bool) error {
+	// Check to see if identify should be skipped altogether.
+	ei := getExtendedIdentify(ctx)
+	if ei.behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
+		return nil
+	}
+
 	var reason string
 	if isPublic {
 		reason = "You accessed a public folder."
