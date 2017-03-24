@@ -263,7 +263,7 @@ func (t *KBFSTLFInfoSource) identifyUser(ctx context.Context, assertion string, 
 	resp := eng.Result()
 
 	var frep keybase1.TLFIdentifyFailure
-	if resp != nil {
+	if resp != nil && resp.TrackBreaks != nil {
 		frep.User = keybase1.User{
 			Uid:      resp.Upk.Uid,
 			Username: resp.Upk.Username,
