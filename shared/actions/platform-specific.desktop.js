@@ -26,14 +26,8 @@ function showMainWindow (): AsyncAction {
   }
 }
 
-function persistRouteState (): AsyncAction {
-  // Not implemented, safe to call this
-  return () => {}
-}
-
 export {
   requestPushPermissions,
-  persistRouteState,
   showMainWindow,
   configurePush,
   saveAttachment,
