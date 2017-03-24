@@ -22,7 +22,7 @@ type State = {
 }
 
 class FeedbackContainer extends Component<void, {}, State> {
-  mounted = true
+  mounted = false
 
   state = {
     sentFeedback: false,
@@ -35,6 +35,10 @@ class FeedbackContainer extends Component<void, {}, State> {
 
   componentWillUnmount () {
     this.mounted = false
+  }
+
+  componentDidMount () {
+    this.mounted = true
   }
 
   render () {
