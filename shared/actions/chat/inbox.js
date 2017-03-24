@@ -54,16 +54,7 @@ function * _backgroundUnboxLoop () {
   while (true) {
     yield call(delay, 10 * 1000)
     const inboxes = yield select(state => state.chat.get('inbox'))
-
-    const conversationIDKeys = []
-    inboxes.forEach(inbox => {
-      if (inbox.state === 'untrusted') {
-        conversationIDKeys.push(inbox.conversationIDKey)
-        if (conversationIDKeys.length === maxPerLoop) {
-          return false
-        }
-      }
-    })
+    const conversationIDKeys = inboxes.filter(i => i.state === 'untrusted').take(maxPerLoop)
 
     if (conversationIDKeys.length) {
       yield call(_unboxConversations, conversationIDKeys)
