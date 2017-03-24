@@ -5,13 +5,14 @@ import ConversationInput from './conversation/input'
 import ConversationList from './conversation/list'
 import ConversationSidePanel from './conversation/side-panel'
 import HiddenString from '../util/hidden-string'
-import Inbox from './conversations-list/container'
+import Inbox from './inbox/container'
 import ParticipantRekey from './conversation/participant-rekey'
 import YouRekey from './conversation/you-rekey'
 import {InboxStateRecord, MetaDataRecord, RekeyInfoRecord, StateRecord} from '../constants/chat'
 import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 import {RouteStateNode} from '../route-tree'
+import {isMobile} from '../constants/platform'
 
 import type {ConversationIDKey} from '../constants/chat'
 
@@ -154,6 +155,15 @@ const inbox = [
     snippet: '3 hours ago',
     unreadCount: 1,
   }),
+  new InboxStateRecord({
+    info: null,
+    participants: List(participants.slice(0, 1)),
+    conversationIDKey: 'convo7',
+    status: 'muted',
+    time: now - 1000 * 60 * 60 * 5,
+    snippet: '3 hours ago',
+    unreadCount: 1,
+  }),
 ]
 
 const conversationUnreadCounts = {
@@ -162,6 +172,7 @@ const conversationUnreadCounts = {
   convo3: 0,
   convo5: 0,
   convo6: 1,
+  convo7: 1,
 }
 
 const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) => ({
@@ -235,7 +246,7 @@ const listParentProps = {
   style: {
     ...globalStyles.flexBoxColumn,
     minWidth: 300,
-    height: 300,
+    height: isMobile ? undefined : 500,
   },
 }
 
@@ -324,7 +335,7 @@ const inboxParentProps = {
   style: {
     ...globalStyles.flexBoxColumn,
     minWidth: 240,
-    height: 300,
+    height: isMobile ? undefined : 500,
   },
 }
 
