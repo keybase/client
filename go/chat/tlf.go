@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 type KBFSTLFInfoSource struct {
@@ -51,88 +52,111 @@ func (t *KBFSTLFInfoSource) Lookup(ctx context.Context, tlfName string,
 	return info, nil
 }
 
-func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, err error) {
+func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, ferr error) {
 	identBehavior, breaks, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
-	defer t.Trace(ctx, func() error { return err },
+	defer t.Trace(ctx, func() error { return ferr },
 		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
-	query := keybase1.TLFQuery{
-		TlfName:          tlfName,
-		IdentifyBehavior: identBehavior,
-	}
-	ib, err := t.identifyTLF(ctx, query, true)
-	if err != nil {
+	// call identifyTLF and GetTLFCryptKeys concurrently:
+	var group errgroup.Group
+
+	var ib []keybase1.TLFIdentifyFailure
+	group.Go(func() error {
+		query := keybase1.TLFQuery{
+			TlfName:          tlfName,
+			IdentifyBehavior: identBehavior,
+		}
+		var err error
+		ib, err = t.identifyTLF(ctx, query, true)
+		return err
+	})
+
+	group.Go(func() error {
+		tlfClient, err := t.tlfKeysClient()
+		if err != nil {
+			return err
+		}
+
+		// skip identify:
+		query := keybase1.TLFQuery{
+			TlfName:          tlfName,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_SKIP,
+		}
+
+		res, err = tlfClient.GetTLFCryptKeys(ctx, query)
+		return err
+	})
+
+	if err := group.Wait(); err != nil {
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
 
-	tlfClient, err := t.tlfKeysClient()
-	if err != nil {
-		return res, err
-	}
-
-	// skip identify:
-	query.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CHAT_SKIP
-
-	resp, err := tlfClient.GetTLFCryptKeys(ctx, query)
-	if err != nil {
-		return resp, err
-	}
-
 	// use id breaks calculated by identifyTLF
-	resp.NameIDBreaks.Breaks.Breaks = ib
+	res.NameIDBreaks.Breaks.Breaks = ib
 
 	if in := CtxIdentifyNotifier(ctx); in != nil {
-		in.Send(resp.NameIDBreaks)
+		in.Send(res.NameIDBreaks)
 	}
-	if ok {
-		*breaks = appendBreaks(*breaks, resp.NameIDBreaks.Breaks.Breaks)
-	}
-	return resp, nil
+	*breaks = appendBreaks(*breaks, res.NameIDBreaks.Breaks.Breaks)
+
+	return res, nil
 }
 
-func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
+func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, ferr error) {
 	identBehavior, breaks, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
-	defer t.Trace(ctx, func() error { return err },
+	defer t.Trace(ctx, func() error { return ferr },
 		fmt.Sprintf("PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
-	query := keybase1.TLFQuery{
-		TlfName:          tlfName,
-		IdentifyBehavior: identBehavior,
-	}
-	ib, err := t.identifyTLF(ctx, query, false)
-	if err != nil {
+	// call identifyTLF and CanonicalTLFNameAndIDWithBreaks concurrently:
+	var group errgroup.Group
+
+	var ib []keybase1.TLFIdentifyFailure
+	group.Go(func() error {
+		query := keybase1.TLFQuery{
+			TlfName:          tlfName,
+			IdentifyBehavior: identBehavior,
+		}
+
+		var err error
+		ib, err = t.identifyTLF(ctx, query, false)
+		return err
+	})
+
+	group.Go(func() error {
+		tlfClient, err := t.tlfKeysClient()
+		if err != nil {
+			return err
+		}
+
+		// skip identify:
+		query := keybase1.TLFQuery{
+			TlfName:          tlfName,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_SKIP,
+		}
+
+		res, err = tlfClient.GetPublicCanonicalTLFNameAndID(ctx, query)
+		return err
+	})
+
+	if err := group.Wait(); err != nil {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
-	}
-
-	tlfClient, err := t.tlfKeysClient()
-	if err != nil {
-		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
-	}
-
-	// skip identify:
-	query.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CHAT_SKIP
-
-	resp, err := tlfClient.GetPublicCanonicalTLFNameAndID(ctx, query)
-	if err != nil {
-		return resp, err
 	}
 
 	// use id breaks calculated by identifyTLF
-	resp.Breaks.Breaks = ib
+	res.Breaks.Breaks = ib
 
 	if in := CtxIdentifyNotifier(ctx); in != nil {
-		in.Send(resp)
+		in.Send(res)
 	}
-	if ok {
-		*breaks = appendBreaks(*breaks, resp.Breaks.Breaks)
-	}
-	return resp, nil
+	*breaks = appendBreaks(*breaks, res.Breaks.Breaks)
+
+	return res, nil
 }
 
 func (t *KBFSTLFInfoSource) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
@@ -160,16 +184,56 @@ func (t *KBFSTLFInfoSource) CompleteAndCanonicalizePrivateTlfName(ctx context.Co
 }
 
 func (t *KBFSTLFInfoSource) identifyTLF(ctx context.Context, arg keybase1.TLFQuery, private bool) ([]keybase1.TLFIdentifyFailure, error) {
-	var fails []keybase1.TLFIdentifyFailure
-	pieces := strings.Split(strings.Fields(arg.TlfName)[0], ",")
-	for _, p := range pieces {
-		f, err := t.identifyUser(ctx, p, private, arg.IdentifyBehavior)
-		if err != nil {
-			return nil, err
+	// need new context as errgroup will cancel it.
+	group, ectx := errgroup.WithContext(context.Background())
+	assertions := make(chan string)
+
+	group.Go(func() error {
+		defer close(assertions)
+		pieces := strings.Split(strings.Fields(arg.TlfName)[0], ",")
+		for _, p := range pieces {
+			select {
+			case assertions <- p:
+			case <-ectx.Done():
+				return ectx.Err()
+			}
 		}
-		fails = append(fails, f)
+		return nil
+	})
+
+	fails := make(chan keybase1.TLFIdentifyFailure)
+	const numIdentifiers = 3
+	for i := 0; i < numIdentifiers; i++ {
+		group.Go(func() error {
+			for assertion := range assertions {
+				f, err := t.identifyUser(ectx, assertion, private, arg.IdentifyBehavior)
+				if err != nil {
+					return err
+				}
+				select {
+				case fails <- f:
+				case <-ectx.Done():
+					return ectx.Err()
+				}
+			}
+			return nil
+		})
 	}
-	return fails, nil
+
+	go func() {
+		group.Wait()
+		close(fails)
+	}()
+
+	var res []keybase1.TLFIdentifyFailure
+	for f := range fails {
+		res = append(res, f)
+	}
+
+	if err := group.Wait(); err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (t *KBFSTLFInfoSource) identifyUser(ctx context.Context, assertion string, private bool, idBehavior keybase1.TLFIdentifyBehavior) (keybase1.TLFIdentifyFailure, error) {
