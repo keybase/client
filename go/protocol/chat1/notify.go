@@ -221,7 +221,8 @@ type ChatTLFResolveArg struct {
 }
 
 type ChatInboxStaleArg struct {
-	Uid keybase1.UID `codec:"uid" json:"uid"`
+	Uid     keybase1.UID     `codec:"uid" json:"uid"`
+	ConvIDs []ConversationID `codec:"convIDs" json:"convIDs"`
 }
 
 type ChatThreadsStaleArg struct {
@@ -234,7 +235,7 @@ type NotifyChatInterface interface {
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
 	ChatTLFFinalize(context.Context, ChatTLFFinalizeArg) error
 	ChatTLFResolve(context.Context, ChatTLFResolveArg) error
-	ChatInboxStale(context.Context, keybase1.UID) error
+	ChatInboxStale(context.Context, ChatInboxStaleArg) error
 	ChatThreadsStale(context.Context, ChatThreadsStaleArg) error
 }
 
@@ -317,7 +318,7 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ChatInboxStaleArg)(nil), args)
 						return
 					}
-					err = i.ChatInboxStale(ctx, (*typedArgs)[0].Uid)
+					err = i.ChatInboxStale(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -367,8 +368,7 @@ func (c NotifyChatClient) ChatTLFResolve(ctx context.Context, __arg ChatTLFResol
 	return
 }
 
-func (c NotifyChatClient) ChatInboxStale(ctx context.Context, uid keybase1.UID) (err error) {
-	__arg := ChatInboxStaleArg{Uid: uid}
+func (c NotifyChatClient) ChatInboxStale(ctx context.Context, __arg ChatInboxStaleArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxStale", []interface{}{__arg})
 	return
 }
