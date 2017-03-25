@@ -589,7 +589,7 @@ func (n *NotifyRouter) HandleChatTLFResolve(ctx context.Context, uid keybase1.UI
 	n.G().Log.Debug("- Sent ChatTLFResolve notification")
 }
 
-func (n *NotifyRouter) HandleChatInboxStale(ctx context.Context, uid keybase1.UID) {
+func (n *NotifyRouter) HandleChatInboxStale(ctx context.Context, uid keybase1.UID, convIDs []chat1.ConversationID) {
 	if n == nil {
 		return
 	}
@@ -601,7 +601,10 @@ func (n *NotifyRouter) HandleChatInboxStale(ctx context.Context, uid keybase1.UI
 			go func() {
 				(chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}, nil),
-				}).ChatInboxStale(context.Background(), uid)
+				}).ChatInboxStale(context.Background(), chat1.ChatInboxStaleArg{
+					Uid:     uid,
+					ConvIDs: convIDs,
+				})
 				wg.Done()
 			}()
 		}
