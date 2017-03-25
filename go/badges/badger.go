@@ -6,6 +6,7 @@ package badges
 import (
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -48,9 +49,19 @@ func (b *Badger) PushChatUpdate(update chat1.UnreadUpdate, inboxVers chat1.Inbox
 	}
 }
 
+func (b *Badger) inboxVersion(ctx context.Context) chat1.InboxVers {
+	uid := b.G().Env.GetUID()
+	vers, err := storage.NewInbox(b.G(), uid.ToBytes()).Version(ctx)
+	if err != nil {
+		b.G().Log.Debug("Badger: inboxVersion error: %s", err.Error())
+		return chat1.InboxVers(0)
+	}
+	return vers
+}
+
 func (b *Badger) Resync(ctx context.Context, remoteClient *chat1.RemoteClient) error {
 	b.G().Log.Debug("Badger resync req")
-	update, err := remoteClient.GetUnreadUpdateFull(ctx, chat1.InboxVers(0))
+	update, err := remoteClient.GetUnreadUpdateFull(ctx, b.inboxVersion(ctx))
 	if err != nil {
 		b.G().Log.Warning("Badger resync failed: %v", err)
 		return err
