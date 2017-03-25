@@ -46,7 +46,7 @@ type NotifyListener interface {
 		finalizeInfo chat1.ConversationFinalizeInfo)
 	ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID,
 		resolveInfo chat1.ConversationResolveInfo)
-	ChatInboxStale(uid keybase1.UID)
+	ChatInboxStale(uid keybase1.UID, cids []chat1.ConversationID)
 	ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
@@ -612,7 +612,7 @@ func (n *NotifyRouter) HandleChatInboxStale(ctx context.Context, uid keybase1.UI
 	})
 	wg.Wait()
 	if n.listener != nil {
-		n.listener.ChatInboxStale(uid)
+		n.listener.ChatInboxStale(uid, convIDs)
 	}
 	n.G().Log.Debug("- Sent ChatInboxStale notification")
 }

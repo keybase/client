@@ -25,7 +25,7 @@ type chatListener struct {
 	incoming       chan int
 	failing        chan []chat1.OutboxRecord
 	identifyUpdate chan keybase1.CanonicalTLFNameAndIDWithBreaks
-	inboxStale     chan struct{}
+	inboxStale     chan []chat1.ConversationID
 	threadsStale   chan []chat1.ConversationID
 }
 
@@ -54,9 +54,9 @@ func (n *chatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.Conversati
 }
 func (n *chatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
 }
-func (n *chatListener) ChatInboxStale(uid keybase1.UID) {
+func (n *chatListener) ChatInboxStale(uid keybase1.UID, cids []chat1.ConversationID) {
 	select {
-	case n.inboxStale <- struct{}{}:
+	case n.inboxStale <- cids:
 	case <-time.After(5 * time.Second):
 		panic("timeout on the inbox stale channel")
 	}
@@ -137,7 +137,7 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 		incoming:       make(chan int),
 		failing:        make(chan []chat1.OutboxRecord),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks),
-		inboxStale:     make(chan struct{}, 1),
+		inboxStale:     make(chan []chat1.ConversationID, 1),
 		threadsStale:   make(chan []chat1.ConversationID, 1),
 	}
 	tc.G.ConvSource = NewHybridConversationSource(tc.G, boxer, storage.New(tc.G), getRI)

@@ -908,7 +908,7 @@ func (n *chatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.Conversati
 }
 func (n *chatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
 }
-func (n *chatListener) ChatInboxStale(uid keybase1.UID)                                {}
+func (n *chatListener) ChatInboxStale(uid keybase1.UID, cids []chat1.ConversationID)   {}
 func (n *chatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {}
 func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	typ, _ := activity.ActivityType()
