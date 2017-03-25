@@ -3,6 +3,7 @@ package storage
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/keybase/client/go/gregor"
@@ -65,16 +66,16 @@ func (c *Client) Restore() error {
 
 	value, err := c.Storage.Load(c.User)
 	if err != nil {
-		return err
+		return fmt.Errorf("Restore(): failed to load: %s", err.Error())
 	}
 
 	state, err := c.Sm.ObjFactory().UnmarshalState(value)
 	if err != nil {
-		return err
+		return fmt.Errorf("Restore(): failed to unmarshal: %s", err.Error())
 	}
 
 	if err := c.Sm.InitState(state); err != nil {
-		return err
+		return fmt.Errorf("Restore(): failed to init state: %s", err.Error())
 	}
 
 	return nil
@@ -147,7 +148,15 @@ func (c *Client) freshSync(cli gregor1.IncomingInterface) ([]gregor.InBandMessag
 	return msgs, nil
 }
 
-func (c *Client) Sync(cli gregor1.IncomingInterface) ([]gregor.InBandMessage, error) {
+func (c *Client) Sync(cli gregor1.IncomingInterface) (res []gregor.InBandMessage, err error) {
+	defer func() {
+		if err == nil {
+			if err = c.Save(); err != nil {
+				c.Log.Debug("Sync(): error save state: %s", err.Error())
+			}
+		}
+	}()
+
 	latestCtime := c.Sm.LatestCTime(c.User, c.Device)
 	if latestCtime == nil || latestCtime.IsZero() {
 		c.Log.Debug("Sync(): fresh server sync: using State()")
@@ -181,14 +190,14 @@ func (c *Client) InBandMessagesFromState(s gregor.State) ([]gregor.InBandMessage
 	return res, nil
 }
 
-func (c *Client) State(cli gregor1.IncomingInterface) (gregor.State, error) {
+func (c *Client) State(cli gregor1.IncomingInterface) (res gregor.State, err error) {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	arg := gregor1.StateArg{
 		Uid:          gregor1.UID(c.User.Bytes()),
 		Deviceid:     gregor1.DeviceID(c.Device.Bytes()),
 		TimeOrOffset: gregor1.TimeOrOffset{},
 	}
-	res, err := cli.State(ctx, arg)
+	res, err = cli.State(ctx, arg)
 	if err != nil {
 		return nil, err
 	}
