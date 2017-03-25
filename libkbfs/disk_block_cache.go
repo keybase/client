@@ -465,9 +465,9 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	return cache.updateMetadataLocked(ctx, tlfID, blockKey, int(encodedLen))
 }
 
-// UpdateMetadata implements the DiskBlockCache interface for
+// UpdateLRUTime implements the DiskBlockCache interface for
 // DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
+func (cache *DiskBlockCacheStandard) UpdateLRUTime(ctx context.Context,
 	blockID kbfsblock.ID) (err error) {
 	var md diskBlockCacheMetadata
 	defer func() {

@@ -1948,7 +1948,7 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 		fblock, ok := block.(*FileBlock)
 		if !ok {
 			return nil, false, errors.Errorf(
-				"Block for %s is not a file block. Block type: %T", ptr, block)
+				"Block for %s is not a file block, block type: %T", ptr, block)
 		}
 		return fblock, true, nil
 	}

@@ -12,7 +12,6 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/logger"
-
 	"golang.org/x/net/context"
 )
 
@@ -130,7 +129,7 @@ func newBlockRetrievalQueue(numWorkers int,
 	config blockRetrievalConfig) *blockRetrievalQueue {
 	q := &blockRetrievalQueue{
 		config:      config,
-		log:         config.MakeLogger("BRQ"),
+		log:         config.MakeLogger(""),
 		ptrs:        make(map[blockPtrLookup]*blockRetrieval),
 		heap:        &blockRetrievalHeap{},
 		workerQueue: make(chan chan<- *blockRetrieval, numWorkers),
@@ -169,12 +168,20 @@ func (brq *blockRetrievalQueue) notifyWorker() {
 	}
 }
 
-func (brq *blockRetrievalQueue) CacheAndPrefetch(ptr BlockPointer, block Block,
-	kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-	hasPrefetched bool) (err error) {
+// CacheAndPrefetch implements the BlockRetrieval interface for
+// blockRetrievalQueue. It also updates the LRU time for the block in the disk
+// cache.
+func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
+	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
+	lifetime BlockCacheLifetime, hasPrefetched bool) (err error) {
 	dbc := brq.config.DiskBlockCache()
 	if dbc != nil {
-		go dbc.UpdateMetadata(context.TODO(), ptr.ID)
+		go func() {
+			err := dbc.UpdateLRUTime(ctx, ptr.ID)
+			if err != nil {
+				brq.log.CWarningf(ctx, "Error updating metadata: %+v", err)
+			}
+		}()
 	}
 	if hasPrefetched {
 		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
@@ -191,10 +198,15 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ptr BlockPointer, block Block,
 	//	  only useful when combined with the cache.
 	err = brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
 		lifetime, true)
-	if _, isCacheFullError := err.(cachePutCacheFullError); isCacheFullError {
-		brq.log.CDebugf(context.TODO(), "Skipping prefetch because the cache "+
+	switch err.(type) {
+	case nil:
+	case cachePutCacheFullError:
+		brq.log.CDebugf(ctx, "Skipping prefetch because the cache "+
 			"is full")
 		return err
+	default:
+		brq.log.CWarningf(ctx, "Error Putting into the block cache: %+v",
+			err)
 	}
 	// This must be called in a goroutine to prevent deadlock in case this
 	// CacheAndPrefetch call was triggered by the prefetcher itself.
@@ -215,7 +227,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 		brq.config.BlockCache().GetWithPrefetch(ptr)
 	if err == nil && cachedBlock != nil {
 		block.Set(cachedBlock)
-		brq.CacheAndPrefetch(ptr, cachedBlock, kmd, priority, lifetime,
+		brq.CacheAndPrefetch(ctx, ptr, cachedBlock, kmd, priority, lifetime,
 			hasPrefetched)
 		return nil
 	}
@@ -226,7 +238,10 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 		return NoSuchBlockError{ptr.ID}
 	}
 	blockBuf, serverHalf, err := dbc.Get(ctx, kmd.TlfID(), ptr.ID)
-	if err != nil || len(blockBuf) == 0 {
+	if err != nil {
+		return err
+	}
+	if len(blockBuf) == 0 {
 		return NoSuchBlockError{ptr.ID}
 	}
 
@@ -234,13 +249,13 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	err = brq.config.blockGetter().assembleBlock(ctx, kmd, ptr, block,
 		blockBuf, serverHalf)
 	if err != nil {
-		return NoSuchBlockError{ptr.ID}
+		return err
 	}
 
 	// TODO: once the DiskBlockCache knows about hasPrefetched, pipe that
 	// through here.
-	brq.CacheAndPrefetch(ptr, cachedBlock, kmd, priority, lifetime, false)
-	return nil
+	return brq.CacheAndPrefetch(ctx, ptr, cachedBlock, kmd, priority, lifetime,
+		false)
 }
 
 // Request submits a block request to the queue.
@@ -344,8 +359,10 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	if err == nil {
 		// We treat this request as not having been prefetched, because the
 		// only way to get here is if the request wasn't already cached.
-		brq.CacheAndPrefetch(retrieval.blockPtr, block, retrieval.kmd,
-			retrieval.priority, retrieval.cacheLifetime, false)
+		// Need to call with context.Background() because the retrieval's
+		// context will be canceled as soon as this method returns.
+		brq.CacheAndPrefetch(context.Background(), retrieval.blockPtr, block,
+			retrieval.kmd, retrieval.priority, retrieval.cacheLifetime, false)
 	}
 
 	// This is a symbolic lock, since there shouldn't be any other goroutines

@@ -2297,16 +2297,26 @@ func (_mr *_MockDiskBlockCacheRecorder) Put(arg0, arg1, arg2, arg3, arg4 interfa
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockDiskBlockCache) DeleteByTLF(ctx context.Context, tlfID tlf.ID, blockIDs []kbfsblock.ID) (int, int64, error) {
-	ret := _m.ctrl.Call(_m, "DeleteByTLF", ctx, tlfID, blockIDs)
+func (_m *MockDiskBlockCache) Delete(ctx context.Context, blockIDs []kbfsblock.ID) (int, int64, error) {
+	ret := _m.ctrl.Call(_m, "Delete", ctx, blockIDs)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-func (_mr *_MockDiskBlockCacheRecorder) DeleteByTLF(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteByTLF", arg0, arg1, arg2)
+func (_mr *_MockDiskBlockCacheRecorder) Delete(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1)
+}
+
+func (_m *MockDiskBlockCache) UpdateLRUTime(ctx context.Context, blockID kbfsblock.ID) error {
+	ret := _m.ctrl.Call(_m, "UpdateLRUTime", ctx, blockID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockDiskBlockCacheRecorder) UpdateLRUTime(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateLRUTime", arg0, arg1)
 }
 
 func (_m *MockDiskBlockCache) Size() int64 {
@@ -6496,12 +6506,12 @@ func (_mr *_MockBlockRetrieverRecorder) Request(arg0, arg1, arg2, arg3, arg4, ar
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Request", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
-func (_m *MockBlockRetriever) CacheAndPrefetch(ptr BlockPointer, block Block, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, hasPrefetched bool) error {
-	ret := _m.ctrl.Call(_m, "CacheAndPrefetch", ptr, block, kmd, priority, lifetime, hasPrefetched)
+func (_m *MockBlockRetriever) CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, hasPrefetched bool) error {
+	ret := _m.ctrl.Call(_m, "CacheAndPrefetch", ctx, ptr, block, kmd, priority, lifetime, hasPrefetched)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBlockRetrieverRecorder) CacheAndPrefetch(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "CacheAndPrefetch", arg0, arg1, arg2, arg3, arg4, arg5)
+func (_mr *_MockBlockRetrieverRecorder) CacheAndPrefetch(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CacheAndPrefetch", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }

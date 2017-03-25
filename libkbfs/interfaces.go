@@ -843,9 +843,8 @@ type DiskBlockCache interface {
 	// Delete deletes some blocks from the disk cache.
 	Delete(ctx context.Context, blockIDs []kbfsblock.ID) (numRemoved int,
 		sizeRemoved int64, err error)
-	// UpdateMetadata updates the metadata for the given block, including
-	// setting the LRU time to now.
-	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID) error
+	// UpdateLRUTime updates the LRU time to Now() for a given block.
+	UpdateLRUTime(ctx context.Context, blockID kbfsblock.ID) error
 	// Size returns the size in bytes of the disk cache.
 	Size() int64
 	// Shutdown cleanly shuts down the disk block cache.
@@ -2038,6 +2037,7 @@ type BlockRetriever interface {
 		ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
 	// CacheAndPrefetch caches a block along with its prefetch status, and then
 	// triggers prefetches as appropriate.
-	CacheAndPrefetch(ptr BlockPointer, block Block, kmd KeyMetadata,
-		priority int, lifetime BlockCacheLifetime, hasPrefetched bool) error
+	CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block,
+		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
+		hasPrefetched bool) error
 }
