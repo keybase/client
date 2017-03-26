@@ -119,7 +119,11 @@ type UserKeyAPIer interface {
 	GetUser(context.Context, keybase1.UID) (
 		un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, err error)
 	// PollForChanges returns the UIDs that have recently changed on the server
-	// side. It will be called in a poll loop.
+	// side. It will be called in a poll loop. This call should function as
+	// a *long poll*, meaning, it should not return unless there is a change
+	// to report, or a sufficient amount of time has passed. If an error occurred,
+	// then PollForChanges should delay before return, so we don't wind up
+	// busy-waiting.
 	PollForChanges(context.Context) ([]keybase1.UID, error)
 }
 
