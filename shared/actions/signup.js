@@ -71,7 +71,6 @@ function requestAutoInvite (): TypedAsyncAction<CheckInviteCode | NavigateAppend
           dispatch(checkInviteCode(inviteCode))
           // For navigateAppend to work in nextPhase(), need the right path.
           dispatch(navigateTo([loginTab, 'signup']))
-          dispatch(nextPhase())
           inviteCode ? resolve() : reject(err)
         }
       },
