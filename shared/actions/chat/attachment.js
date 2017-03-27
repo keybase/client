@@ -9,7 +9,7 @@ import {call, put, select, cancel, fork, join} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {navigateAppend} from '../route-tree'
 import {saveAttachment, showShareActionSheet} from '../platform.specific'
-import {tmpFile, downloadFilePath, copy, exists} from '../../util/file'
+import {tmpDir, tmpFile, downloadFilePath, copy, exists} from '../../util/file'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 
@@ -120,11 +120,19 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
     }
   }
 
+  const preview = yield call(ChatTypes.localMakePreviewRpcPromise, {
+    param: {
+      attachment: {filename},
+      outputDir: tmpDir(),
+    },
+  })
+
   const header = yield call(Shared.clientHeader, ChatTypes.CommonMessageType.attachment, conversationIDKey)
   const param = {
     conversationID: Constants.keyToConversationID(conversationIDKey),
     clientHeader: header,
     attachment: {filename},
+    preview: {filename: preview.filename},
     title,
     metadata: null,
     identifyBehavior: yield call(Shared.getPostingIdentifyBehavior, conversationIDKey),
@@ -144,7 +152,10 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
   const uploadStart = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
   uploadStart.response.result()
   const messageID = uploadStart.params.placeholderMsgID
-  yield put(Creators.updateMessage(conversationIDKey, {previewType: type, previewPath: filename}, messageID))
+//  yield put(Creators.updateMessage(conversationIDKey, {
+//    previewType: type,
+//    previewPath: preview.filename,
+//  }, messageID))
 
   const finishedTask = yield fork(function * () {
     const finished = yield Saga.takeFromChannelMap(channelMap, 'finished')

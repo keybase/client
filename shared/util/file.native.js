@@ -1,6 +1,10 @@
 // @flow
 import RNFS from 'react-native-fs'
 
+function tmpDir (): string {
+  return RNFS.CachesDirectoryPath
+}
+
 function tmpFile (suffix: string): string {
   return `${RNFS.CachesDirectoryPath}/${suffix}`
 }
@@ -21,5 +25,6 @@ export {
   copy,
   exists,
   downloadFilePath,
+  tmpDir,
   tmpFile,
 }
