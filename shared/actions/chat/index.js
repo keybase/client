@@ -384,6 +384,8 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
       incoming.chatThreadFull.response.result()
       yield call(updateThread, incoming.chatThreadFull.params.thread)
     } else if (incoming.finished) {
+      yield put(Creators.loadingMessages(conversationIDKey, false))
+
       if (incoming.finished.params.offline) {
         yield put(Creators.threadLoadedOffline(conversationIDKey))
       }
