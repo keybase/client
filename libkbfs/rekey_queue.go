@@ -74,17 +74,23 @@ func NewRekeyQueueStandard(config Config) (rkq *RekeyQueueStandard) {
 // branch ops while conforming to the rater limiter.
 func (rkq *RekeyQueueStandard) start(ctx context.Context) {
 	go func() {
-		for id := range rkq.queue {
-			if err := rkq.limiter.Wait(ctx); err != nil {
-				rkq.log.Debug("Waiting on rate limiter for tlf=%v error: %v", id, err)
+		for {
+			select {
+			case id := <-rkq.queue:
+				if err := rkq.limiter.Wait(ctx); err != nil {
+					rkq.log.Debug("Waiting on rate limiter for tlf=%v error: %v", id, err)
+					return
+				}
+				rkq.config.KBFSOps().RequestRekey(context.Background(), id)
+				func(id tlf.ID) {
+					rkq.mu.Lock()
+					defer rkq.mu.Unlock()
+					delete(rkq.pendings, id)
+				}(id)
+			case err := <-ctx.Done():
+				rkq.log.Debug("Rekey queue background routine context done: %v", err)
 				return
 			}
-			rkq.config.KBFSOps().RequestRekey(context.Background(), id)
-			func(id tlf.ID) {
-				rkq.mu.Lock()
-				defer rkq.mu.Unlock()
-				delete(rkq.pendings, id)
-			}(id)
 		}
 	}()
 }
