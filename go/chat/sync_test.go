@@ -2,6 +2,7 @@ package chat
 
 import (
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/kbtest"
@@ -83,13 +84,13 @@ func TestSyncerConnected(t *testing.T) {
 	require.NoError(t, syncer.Sync(context.TODO(), ri, uid))
 	select {
 	case <-list.inboxStale:
-	default:
+	case <-time.After(20 * time.Second):
 		require.Fail(t, "no inbox stale received")
 	}
 	select {
 	case cids := <-list.threadsStale:
 		require.Zero(t, len(cids))
-	default:
+	case <-time.After(20 * time.Second):
 		require.Fail(t, "no threads stale received")
 	}
 	_, _, err := ibox.ReadAll(context.TODO())
@@ -122,7 +123,7 @@ func TestSyncerConnected(t *testing.T) {
 	case cids := <-list.threadsStale:
 		require.Equal(t, 1, len(cids))
 		require.Equal(t, convs[1].GetConvID(), cids[0])
-	default:
+	case <-time.After(20 * time.Second):
 		require.Fail(t, "no threads stale received")
 	}
 	vers, iconvs, err := ibox.ReadAll(context.TODO())
@@ -151,13 +152,13 @@ func TestSyncerConnected(t *testing.T) {
 	require.NoError(t, syncer.Sync(context.TODO(), ri, uid))
 	select {
 	case <-list.inboxStale:
-	default:
+	case <-time.After(20 * time.Second):
 		require.Fail(t, "no inbox stale received")
 	}
 	select {
 	case cids := <-list.threadsStale:
 		require.Zero(t, len(cids))
-	default:
+	case <-time.After(20 * time.Second):
 		require.Fail(t, "no threads stale received")
 	}
 	_, _, err = ibox.ReadAll(context.TODO())
