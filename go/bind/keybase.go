@@ -91,11 +91,10 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	// client and watching JS logs. Disabling until we have a root cause / fix.
 	kbfsParams := libkbfs.DefaultInitParams(kbCtx)
 	// Avoid lots of background routines.
-	kbfsParams.Mode = libkbfs.InitMinimalString
-	kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, serviceCn{}, func() {}, kbCtx.Log)
-	if err != nil {
-		return err
-	}
+	go func() {
+		kbfsParams.Mode = libkbfs.InitMinimalString
+		kbfsConfig, _ = libkbfs.Init(kbCtx, kbfsParams, serviceCn{}, func() {}, kbCtx.Log)
+	}()
 
 	return Reset()
 }
