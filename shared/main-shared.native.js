@@ -21,12 +21,15 @@ class Main extends Component<void, any, void> {
   constructor (props: Props) {
     super(props)
 
-    initAvatarLookup(getUserImageMap)
-    initAvatarLoad(loadUserImageMap)
-    this.props.loadRouteState()
-    this.props.bootstrap()
-    this.props.listenForNotifications()
-    this.props.hello()
+    if (!global.mainLoaded) {
+      global.mainLoaded = true
+      initAvatarLookup(getUserImageMap)
+      initAvatarLoad(loadUserImageMap)
+      this.props.loadRouteState()
+      this.props.bootstrap()
+      this.props.listenForNotifications()
+      this.props.hello()
+    }
   }
 
   _persistRoute = debounce(() => {

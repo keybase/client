@@ -24,7 +24,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     private static final String NAME = "KeybaseEngine";
     private static final String RPC_EVENT_NAME = "RPC";
-    private final ExecutorService executor;
+    private ExecutorService executor;
 
     private class ReadFromKBLib implements Runnable {
         private final ReactApplicationContext reactContext;
@@ -56,12 +56,14 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     public KeybaseEngine(final ReactApplicationContext reactContext) {
         super(reactContext);
 
-        executor = Executors.newSingleThreadExecutor();
-        executor.execute(new ReadFromKBLib(reactContext));
 
         reactContext.addLifecycleEventListener(new LifecycleEventListener() {
             @Override
             public void onHostResume() {
+                if (executor == null) {
+                    executor = Executors.newSingleThreadExecutor();
+                    executor.execute(new ReadFromKBLib(reactContext));
+                }
             }
 
             @Override
@@ -80,6 +82,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
             executor.shutdownNow();
             reset();
             executor.awaitTermination(30, TimeUnit.SECONDS);
+            executor = null;
         } catch (Exception e) {
             e.printStackTrace();
         }

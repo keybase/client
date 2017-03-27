@@ -25,11 +25,7 @@ class ConversationList extends Component <void, Props, State> {
 
   constructor (props: Props) {
     super(props)
-    const ds = new NativeListView.DataSource({
-      rowHasChanged: (r1, r2) => {
-        return r1 !== r2 || r1 === this.props.editingMessage || r2 === this.props.editingMessage
-      },
-    })
+    const ds = this._makeDataSource()
     this.state = {
       contentHeight: null,
       dataSource: ds.cloneWithRows(this._allMessages(props).toArray()),
@@ -38,9 +34,19 @@ class ConversationList extends Component <void, Props, State> {
     }
   }
 
+  // Have to remake this else it won't pick up changes. Hopefully ditch this with new flatlist
+  _makeDataSource () {
+    return new NativeListView.DataSource({
+      rowHasChanged: (r1, r2) => {
+        return r1 !== r2 || r1 === this.props.editingMessage || r2 === this.props.editingMessage
+      },
+    })
+  }
+
   _updateDataSource (nextProps) {
+    const ds = this._makeDataSource()
     this.setState({
-      dataSource: this.state.dataSource.cloneWithRows(this._allMessages(nextProps).toArray()),
+      dataSource: ds.cloneWithRows(this._allMessages(nextProps).toArray()),
     })
   }
 
@@ -124,9 +130,8 @@ class ConversationList extends Component <void, Props, State> {
     this.props.onMessageAction(message)
   }
 
-  _onShowEditor = (message: Message, event: any) => {
-    // TODO
-  }
+  // This is handled slightly differently on mobile, leave this blank
+  _onShowEditor = (message: Message, event: any) => { }
 
   _renderRow = (message, sectionID, rowID) => {
     const messages = this._allMessages(this.props)
