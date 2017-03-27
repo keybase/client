@@ -13,7 +13,7 @@ import (
 )
 
 func TestGetThreadSupersedes(t *testing.T) {
-	world, ri, _, sender, _, _, tlf := setupTest(t, 1)
+	world, ri, _, sender, _, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -220,6 +220,11 @@ func (f failingRemote) SyncInbox(ctx context.Context, vers chat1.InboxVers) (cha
 	return chat1.SyncInboxRes{}, nil
 }
 
+func (f failingRemote) SyncChat(ctx context.Context, vers chat1.InboxVers) (chat1.SyncChatRes, error) {
+	require.Fail(f.t, "SyncChat")
+	return chat1.SyncChatRes{}, nil
+}
+
 type failingTlf struct {
 	t *testing.T
 }
@@ -300,7 +305,7 @@ func (f failingUpak) PutUserToCache(ctx context.Context, user *libkb.User) error
 }
 
 func TestGetThreadCaching(t *testing.T) {
-	world, ri, _, sender, _, _, tlf := setupTest(t, 1)
+	world, ri, _, sender, _, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]

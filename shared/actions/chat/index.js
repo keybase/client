@@ -40,7 +40,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
     case ChatTypes.NotifyChatChatActivityType.setStatus:
       const setStatus: ?ChatTypes.SetStatusInfo = action.payload.activity.setStatus
       if (setStatus) {
-        yield call(Inbox.updateInbox, setStatus.conv)
+        yield call(Inbox.processConversation, setStatus.conv)
         yield call(_ensureValidSelectedChat, false, true)
       }
       return
@@ -84,7 +84,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
       return
     case ChatTypes.NotifyChatChatActivityType.readMessage:
       if (action.payload.activity.readMessage) {
-        yield call(Inbox.updateInbox, action.payload.activity.readMessage.conv)
+        yield call(Inbox.processConversation, action.payload.activity.readMessage.conv)
       }
       return
     case ChatTypes.NotifyChatChatActivityType.incomingMessage:
@@ -97,7 +97,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           return
         }
 
-        yield call(Inbox.updateInbox, incomingMessage.conv)
+        yield call(Inbox.processConversation, incomingMessage.conv)
 
         const messageUnboxed: ChatTypes.MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
@@ -151,9 +151,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
         } else {
           // How long was it between the previous message and this one?
           if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
-            const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
-
-            const timestamp = Shared.maybeAddTimestamp(message, prevMessage)
+            const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages, conversationState.messages.size - 1)
             if (timestamp !== null) {
               yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, [timestamp]))
             }
@@ -203,7 +201,7 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatTLFFinalize', ({convID}) => {
-      dispatch(Creators.getInboxAndUnbox(Constants.conversationIDToKey(convID)))
+      dispatch(Creators.getInboxAndUnbox([Constants.conversationIDToKey(convID)]))
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatInboxStale', () => {
@@ -215,7 +213,9 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({convIDs}) => {
-      dispatch(Creators.markThreadsStale(convIDs.map(Constants.conversationIDToKey)))
+      if (convIDs) {
+        dispatch(Creators.markThreadsStale(convIDs.map(Constants.conversationIDToKey)))
+      }
     })
   })
 }
@@ -268,8 +268,8 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
 
   const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
 
-  if (inboxConvo && !inboxConvo.validated) {
-    __DEV__ && console.log('Bailing on not yet validated conversation')
+  if (inboxConvo && inboxConvo.state !== 'unboxed') {
+    __DEV__ && console.log('Bailing on not yet unboxed conversation')
     return
   }
 
@@ -319,7 +319,7 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
     let newMessages = []
     messages.forEach((message, idx) => {
       if (idx > 0) {
-        const timestamp = Shared.maybeAddTimestamp(messages[idx], messages[idx - 1])
+        const timestamp = Shared.maybeAddTimestamp(messages[idx], messages, idx - 1)
         if (timestamp !== null) {
           newMessages.push(timestamp)
         }
@@ -734,7 +734,7 @@ function * _selectConversation (action: Constants.SelectConversation): SagaGener
     yield put(Creators.updateMetadata(inbox.get('participants').toArray()))
   }
 
-  if (inbox && !inbox.get('validated')) {
+  if (inbox && inbox.get('state') !== 'unboxed') {
     return
   }
 
@@ -845,7 +845,7 @@ function * _sendNotifications (action: Constants.AppendMessages): SagaGenerator<
 function * _markThreadsStale (action: Constants.MarkThreadsStale): SagaGenerator<any, any> {
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
   const {convIDs} = action.payload
-  yield convIDs.map(conversationIDKey => call(Inbox.getInboxAndUnbox, Creators.getInboxAndUnbox(conversationIDKey)))
+  yield call(Inbox.unboxConversations, convIDs)
 
   // Selected is stale?
   const selectedConversation = yield select(Constants.getSelectedConversation)
@@ -862,9 +862,9 @@ function _threadIsCleared (originalAction: Action, checkAction: Action): boolean
 
 function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConversation): SagaGenerator<any, any> {
   const inbox = yield select(inboxSelector)
-  const validInbox = inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))
+  const validInbox = inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('state') === 'unboxed')
   if (!validInbox) {
-    yield put(Creators.getInboxAndUnbox(conversationIDKey))
+    yield put(Creators.getInboxAndUnbox([conversationIDKey]))
     const raceResult: {[key: string]: any} = yield race({
       updateInbox: take(a => a.type === 'chat:updateInbox' && a.payload.conversation && a.payload.conversation.conversationIDKey === conversationIDKey),
       timeout: call(delay, 10e3),
@@ -879,10 +879,11 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
 
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
-    Saga.safeTakeSerially('chat:loadInbox', Inbox.onLoadInboxMaybeOnce),
-    Saga.safeTakeLatest('chat:inboxStale', Inbox.onLoadInbox),
+    Saga.safeTakeSerially('chat:loadInbox', Inbox.onInitialInboxLoad),
+    Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale),
     Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages)),
     Saga.safeTakeLatest('chat:selectConversation', _selectConversation),
+    Saga.safeTakeEvery('chat:untrustedInboxVisible', Inbox.untrustedInboxVisible),
     Saga.safeTakeEvery('chat:updateBadging', _updateBadging),
     Saga.safeTakeEvery('chat:setupChatHandlers', _setupChatHandlers),
     Saga.safeTakeEvery('chat:incomingMessage', _incomingMessage),
@@ -898,7 +899,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     Saga.safeTakeEvery('chat:appendMessages', _sendNotifications),
     Saga.safeTakeEvery('chat:selectAttachment', Attachment.onSelectAttachment),
     Saga.safeTakeEvery('chat:openConversation', _openConversation),
-    Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.getInboxAndUnbox),
+    Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox),
     Saga.safeTakeEvery('chat:loadAttachment', Attachment.onLoadAttachment),
     Saga.safeTakeEvery('chat:openAttachmentPopup', Attachment.onOpenAttachmentPopup),
     Saga.safeTakeLatest('chat:openFolder', _openFolder),
@@ -921,4 +922,5 @@ export {
   setupChatHandlers,
   startConversation,
   setInitialConversation,
+  untrustedInboxVisible,
 } from './creators'

@@ -11,7 +11,7 @@
         }
       ],
       "response": "ReminderSet",
-      "doc": "getReminders gets the reminders waiting to be sent out as a batch. Get at most\n\t maxReminders back."
+      "doc": "getReminders gets the reminders waiting to be sent out as a batch. Get at most\n   maxReminders back."
     },
     "deleteReminders": {
       "request": [

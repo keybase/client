@@ -4,6 +4,7 @@ import ReactList from 'react-list'
 import {Text, MultiAvatar, Icon, Usernames, Markdown} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {RowConnector} from './row'
+import {debounce} from 'lodash'
 
 import type {Props, RowProps} from './'
 
@@ -121,7 +122,7 @@ const _Row = (props: RowProps) => {
         participants={props.participants}
         youNeedToRekey={props.youNeedToRekey}
       />
-      <div style={{...globalStyles.flexBoxColumn, ...conversationRowStyle, borderBottom: (!props.isSelected && !props.hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
+      <div style={{...globalStyles.flexBoxColumn, ...conversationRowStyle, borderBottom: !props.isSelected ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
         <TopLine
           hasUnread={props.hasUnread}
           participants={props.participants}
@@ -145,8 +146,16 @@ const _Row = (props: RowProps) => {
 const Row = RowConnector(_Row)
 
 class ConversationList extends PureComponent<void, Props, void> {
+  _list: any
+
   componentWillMount () {
     this.props.loadInbox()
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    if (this.props.rows !== nextProps.rows && nextProps.rows.count()) {
+      this._onScroll()
+    }
   }
 
   _itemRenderer = (index) => {
@@ -154,12 +163,27 @@ class ConversationList extends PureComponent<void, Props, void> {
     return <Row conversationIDKey={conversationIDKey} key={conversationIDKey} />
   }
 
+  _onScroll = debounce(() => {
+    if (!this._list) {
+      return
+    }
+
+    const [first, end] = this._list.getVisibleRange()
+    const conversationIDKey = this.props.rows.get(first)
+    this.props.onUntrustedInboxVisible(conversationIDKey, end - first)
+  }, 200)
+
+  _setRef = list => {
+    this._list = list
+  }
+
   render () {
     return (
       <div style={containerStyle}>
         <AddNewRow onNewChat={this.props.onNewChat} />
-        <div style={scrollableStyle}>
+        <div style={scrollableStyle} onScroll={this._onScroll}>
           <ReactList
+            ref={this._setRef}
             style={listStyle}
             useTranslate3d={true}
             useStaticSize={true}

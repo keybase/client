@@ -6,6 +6,7 @@ package engine
 import (
 	"fmt"
 	"net/url"
+	"runtime/debug"
 
 	"github.com/keybase/client/go/libkb"
 )
@@ -121,11 +122,14 @@ func wantsDelegateUI(e Engine, kind libkb.UIKind) bool {
 
 func check(c libkb.UIConsumer, ctx *Context) error {
 	if err := checkUI(c, ctx); err != nil {
-		return CheckError{fmt.Sprintf("%s: %s", c.Name(), err)}
+		return err
 	}
 
 	for _, sub := range c.SubConsumers() {
 		if err := check(sub, ctx); err != nil {
+			if _, ok := err.(CheckError); ok {
+				return err
+			}
 			return CheckError{fmt.Sprintf("%s: %s", sub.Name(), err)}
 		}
 	}
@@ -136,7 +140,7 @@ func check(c libkb.UIConsumer, ctx *Context) error {
 func checkUI(c libkb.UIConsumer, ctx *Context) error {
 	for _, ui := range c.RequiredUIs() {
 		if !ctx.HasUI(ui) {
-			return CheckError{fmt.Sprintf("requires ui %q", ui)}
+			return CheckError{fmt.Sprintf("%s: requires ui %q\n\n%s", c.Name(), ui, string(debug.Stack()))}
 		}
 	}
 	return nil

@@ -1,9 +1,11 @@
 // @flow
 import Render from '.'
+import {HeaderHoc} from '../common-adapters'
+import {isMobile} from '../constants/platform'
 import flags from '../util/feature-flags'
 import {List} from 'immutable'
 import {addNewPhone, addNewComputer} from '../actions/login'
-import {compose, lifecycle, mapProps, withState} from 'recompose'
+import {branch, compose, lifecycle, mapProps, withState} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {load, paperKeyMake} from '../actions/devices'
@@ -37,12 +39,14 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: any, {routeState, setRouteState}) => ({
+const mapDispatchToProps = (dispatch: any, {routeState, setRouteState, navigateUp}) => ({
   addNewComputer: () => dispatch(addNewComputer()),
   addNewPaperKey: () => dispatch(paperKeyMake()),
   addNewPhone: () => dispatch(addNewPhone()),
   loadDevices: () => dispatch(load()),
   onToggleShowRevoked: () => { setRouteState({showingRevoked: !routeState.showingRevoked}) },
+  title: 'Devices',
+  onBack: () => dispatch(navigateUp()),
 })
 
 const menuItems = props => ([
@@ -67,4 +71,4 @@ const Devices = compose(
   withState('showingMenu', 'setShowingMenu', false),
 )(Render)
 
-export default connect(mapStateToProps, mapDispatchToProps)(Devices)
+export default connect(mapStateToProps, mapDispatchToProps)(branch(() => isMobile, HeaderHoc)(Devices))

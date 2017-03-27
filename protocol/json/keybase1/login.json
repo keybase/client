@@ -84,7 +84,7 @@
         }
       ],
       "response": null,
-      "doc": "Login and unlock by\n\t- trying unlocked device keys if available\n\t- prompting for a paper key and using that"
+      "doc": "Login and unlock by\n  - trying unlocked device keys if available\n  - prompting for a paper key and using that"
     },
     "clearStoredSecret": {
       "request": [

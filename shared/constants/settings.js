@@ -143,7 +143,15 @@ type DeleteMeTab = 'settingsTabs:deleteMeTab'
 export const deleteMeTab = 'settingsTabs:deleteMeTab'
 type DevMenuTab = 'settingsTabs:devMenuTab'
 export const devMenuTab = 'settingsTabs:devMenuTab'
+type FeedbackTab = 'settingsTabs:feedbackTab'
+export const feedbackTab = 'settingsTabs:feedbackTab'
+type AboutTab = 'settingsTabs:aboutTab'
+export const aboutTab = 'settingsTabs:aboutTab'
+type DevicesTab = 'settingsTabs:devicesTab'
+export const devicesTab = 'settingsTabs:devicesTab'
+
 export type Tab = LandingTab | UpdatePaymentTab | InvitationsTab | NotificationsTab | DeleteMeTab | DevMenuTab
+  | FeedbackTab | AboutTab | DevicesTab
 
 export type Actions = InvitesRefresh | NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
 

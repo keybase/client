@@ -1,0 +1,9 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  title: ?string,
+  onBack: ?(() => void),
+}
+
+declare export default function HeaderHoc<P> (WrappedComponent: ReactClass<P>): ReactClass<P & Props>;
