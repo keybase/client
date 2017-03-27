@@ -37,8 +37,8 @@ protocol login {
 
   /**
     Login and unlock by
-	- trying unlocked device keys if available
-	- prompting for a paper key and using that
+  - trying unlocked device keys if available
+  - prompting for a paper key and using that
     */
   void loginWithPaperKey(int sessionID);
 

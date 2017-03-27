@@ -25,6 +25,8 @@ type chatListener struct {
 	incoming       chan int
 	failing        chan []chat1.OutboxRecord
 	identifyUpdate chan keybase1.CanonicalTLFNameAndIDWithBreaks
+	inboxStale     chan struct{}
+	threadsStale   chan []chat1.ConversationID
 }
 
 var _ libkb.NotifyListener = (*chatListener)(nil)
@@ -52,8 +54,22 @@ func (n *chatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.Conversati
 }
 func (n *chatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
 }
-func (n *chatListener) ChatInboxStale(uid keybase1.UID)                                {}
-func (n *chatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {}
+func (n *chatListener) ChatInboxStale(uid keybase1.UID) {
+	select {
+	case n.inboxStale <- struct{}{}:
+	case <-time.After(5 * time.Second):
+		panic("timeout on the inbox stale channel")
+	}
+}
+
+func (n *chatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {
+	select {
+	case n.threadsStale <- cids:
+	case <-time.After(5 * time.Second):
+		panic("timeout on the threads stale channel")
+	}
+}
+
 func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	n.Lock()
 	defer n.Unlock()
@@ -106,7 +122,7 @@ func userTc(t *testing.T, world *kbtest.ChatMockWorld, user *kbtest.FakeUser) *k
 	return &kbtest.ChatTestContext{}
 }
 
-func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteInterface, Sender, Sender, *chatListener, func() libkb.SecretUI, kbtest.TlfMock) {
+func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteInterface, Sender, Sender, *chatListener, kbtest.TlfMock) {
 	world := kbtest.NewChatMockWorld(t, "chatsender", numUsers)
 	ri := kbtest.NewChatRemoteMock(world)
 	tlf := kbtest.NewTlfMock(world)
@@ -114,32 +130,30 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	tc := world.Tcs[u.Username]
 	tc.G.SetService()
 	boxer := NewBoxer(tc.G, tlf)
-	f := func() libkb.SecretUI {
-		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
-	}
-	baseSender := NewBlockingSender(tc.G, boxer, nil, func() chat1.RemoteInterface { return ri }, f)
+	getRI := func() chat1.RemoteInterface { return ri }
+	baseSender := NewBlockingSender(tc.G, boxer, nil, getRI)
 	sender := NewNonblockingSender(tc.G, baseSender)
 	listener := chatListener{
 		incoming:       make(chan int),
 		failing:        make(chan []chat1.OutboxRecord),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks),
+		inboxStale:     make(chan struct{}, 1),
+		threadsStale:   make(chan []chat1.ConversationID, 1),
 	}
-	tc.G.ConvSource = NewHybridConversationSource(tc.G, boxer, storage.New(tc.G, f),
-		func() chat1.RemoteInterface { return ri },
-		func() libkb.SecretUI { return &libkb.TestSecretUI{} })
-	tc.G.InboxSource = NewHybridInboxSource(tc.G,
-		func() chat1.RemoteInterface { return ri }, f, tlf)
+	tc.G.ConvSource = NewHybridConversationSource(tc.G, boxer, storage.New(tc.G), getRI)
+	tc.G.InboxSource = NewHybridInboxSource(tc.G, getRI, tlf)
+	tc.G.ServerCacheVersions = storage.NewServerVersions(tc.G)
 	tc.G.NotifyRouter.SetListener(&listener)
 	tc.G.MessageDeliverer = NewDeliverer(tc.G, baseSender)
 	tc.G.MessageDeliverer.(*Deliverer).SetClock(world.Fc)
 	tc.G.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
 	tc.G.MessageDeliverer.Connected(context.TODO())
 
-	return world, ri, sender, baseSender, &listener, f, tlf
+	return world, ri, sender, baseSender, &listener, tlf
 }
 
 func TestNonblockChannel(t *testing.T) {
-	world, ri, sender, _, listener, _, tlf := setupTest(t, 1)
+	world, ri, sender, _, listener, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -206,7 +220,7 @@ func checkThread(t *testing.T, thread chat1.ThreadView, ref []sentRecord) {
 }
 
 func TestNonblockTimer(t *testing.T) {
-	world, ri, _, baseSender, listener, f, tlf := setupTest(t, 1)
+	world, ri, _, baseSender, listener, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -250,7 +264,7 @@ func TestNonblockTimer(t *testing.T) {
 	}
 
 	tc := userTc(t, world, u)
-	outbox := storage.NewOutbox(tc.G, u.User.GetUID().ToBytes(), f)
+	outbox := storage.NewOutbox(tc.G, u.User.GetUID().ToBytes())
 	var obids []chat1.OutboxID
 	msgID := *sentRef[len(sentRef)-1].msgID
 	for i := 0; i < 5; i++ {
@@ -352,7 +366,7 @@ func recordCompare(t *testing.T, obids []chat1.OutboxID, obrs []chat1.OutboxReco
 
 func TestFailingSender(t *testing.T) {
 
-	world, ri, sender, _, listener, _, tlf := setupTest(t, 1)
+	world, ri, sender, _, listener, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -410,7 +424,7 @@ func TestFailingSender(t *testing.T) {
 
 func TestDisconnectedFailure(t *testing.T) {
 
-	world, ri, sender, baseSender, listener, _, tlf := setupTest(t, 1)
+	world, ri, sender, baseSender, listener, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -486,10 +500,7 @@ func TestDisconnectedFailure(t *testing.T) {
 	<-tc.G.MessageDeliverer.Stop(context.TODO())
 	<-tc.G.MessageDeliverer.Stop(context.TODO())
 	tc.G.MessageDeliverer.(*Deliverer).SetSender(baseSender)
-	f := func() libkb.SecretUI {
-		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
-	}
-	outbox := storage.NewOutbox(tc.G, u.User.GetUID().ToBytes(), f)
+	outbox := storage.NewOutbox(tc.G, u.User.GetUID().ToBytes())
 	for _, obid := range obids {
 		require.NoError(t, outbox.RetryMessage(context.TODO(), obid))
 	}
@@ -516,7 +527,7 @@ func TestDisconnectedFailure(t *testing.T) {
 // The sender is responsible for making sure that a deletion of a single
 // message is expanded to include all of its edits.
 func TestDeletionHeaders(t *testing.T) {
-	world, ri, _, blockingSender, _, _, tlf := setupTest(t, 1)
+	world, ri, _, blockingSender, _, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -602,7 +613,7 @@ func TestDeletionHeaders(t *testing.T) {
 }
 
 func TestPrevPointerAddition(t *testing.T) {
-	world, ri, _, blockingSender, _, secretUI, tlf := setupTest(t, 1)
+	world, ri, _, blockingSender, _, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -637,7 +648,7 @@ func TestPrevPointerAddition(t *testing.T) {
 	}
 
 	// Nuke the body cache
-	require.NoError(t, storage.New(tc.G, secretUI).MaybeNuke(true, nil, res.ConvID, uid))
+	require.NoError(t, storage.New(tc.G).MaybeNuke(true, nil, res.ConvID, uid))
 
 	// Fetch a subset into the cache
 	_, _, err = tc.G.ConvSource.Pull(context.TODO(), res.ConvID, uid, nil, &chat1.Pagination{
@@ -664,7 +675,7 @@ func TestPrevPointerAddition(t *testing.T) {
 // Test a DELETE attempts to delete all associated assets.
 // func TestDeletionHeaders(t *testing.T) { // <- TODO delete this line
 func TestDeletionAssets(t *testing.T) {
-	world, ri, _, blockingSender, _, _, tlf := setupTest(t, 1)
+	world, ri, _, blockingSender, _, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]

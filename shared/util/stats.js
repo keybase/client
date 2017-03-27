@@ -53,4 +53,3 @@ export function shouldRunStats (frequency: number): boolean {
   }
   return false
 }
-

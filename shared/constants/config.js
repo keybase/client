@@ -45,4 +45,3 @@ export function privateFolderWithUsers (users: Array<string>): string {
 export function publicFolderWithUsers (users: Array<string>): string {
   return `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
 }
-

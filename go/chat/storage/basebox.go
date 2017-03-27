@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 )
@@ -16,14 +17,20 @@ type boxedData struct {
 
 type baseBox struct {
 	libkb.Contextified
-
-	getSecretUI func() libkb.SecretUI
 }
 
-func newBaseBox(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *baseBox {
+type SecretUI struct {
+}
+
+func (d SecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	return keybase1.GetPassphraseRes{}, fmt.Errorf("no secret UI available")
+}
+
+var DefaultSecretUI = func() libkb.SecretUI { return SecretUI{} }
+
+func newBaseBox(g *libkb.GlobalContext) *baseBox {
 	return &baseBox{
 		Contextified: libkb.NewContextified(g),
-		getSecretUI:  getSecretUI,
 	}
 }
 
@@ -46,7 +53,7 @@ func (i *baseBox) readDiskBox(ctx context.Context, key libkb.DbKey, res interfac
 		return true, fmt.Errorf("bad crypto version: %d current: %d", boxed.V,
 			cryptoVersion)
 	}
-	enckey, err := getSecretBoxKey(ctx, i.G(), i.getSecretUI)
+	enckey, err := getSecretBoxKey(ctx, i.G(), DefaultSecretUI)
 	if err != nil {
 		return true, err
 	}
@@ -70,7 +77,7 @@ func (i *baseBox) writeDiskBox(ctx context.Context, key libkb.DbKey, data interf
 	}
 
 	// Encrypt outbox
-	enckey, err := getSecretBoxKey(ctx, i.G(), i.getSecretUI)
+	enckey, err := getSecretBoxKey(ctx, i.G(), DefaultSecretUI)
 	if err != nil {
 		return err
 	}

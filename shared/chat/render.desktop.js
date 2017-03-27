@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import Inbox from './conversations-list/container'
+import Inbox from './inbox/container'
 import {globalStyles} from '../styles'
 
 const Render = ({children}: {children: any}) => (

@@ -4,6 +4,8 @@
 package client
 
 import (
+	"errors"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -19,7 +21,11 @@ type CmdSimpleFSCopy struct {
 	dest        keybase1.Path
 	recurse     bool
 	interactive bool
+	force       bool
+	opCanceler  *OpCanceler
 }
+
+var _ Canceler = (*CmdSimpleFSCopy)(nil)
 
 // NewCmdSimpleFSCopy creates a new cli.Command.
 func NewCmdSimpleFSCopy(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -28,7 +34,10 @@ func NewCmdSimpleFSCopy(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		ArgumentHelp: "<source> [source] <dest>",
 		Usage:        "copy one or more directory elements to dest",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdSimpleFSCopy{Contextified: libkb.NewContextified(g)}, "cp", c)
+			cl.ChooseCommand(&CmdSimpleFSCopy{
+				Contextified: libkb.NewContextified(g),
+				opCanceler:   NewOpCanceler(g),
+			}, "cp", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
@@ -38,6 +47,10 @@ func NewCmdSimpleFSCopy(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			cli.BoolFlag{
 				Name:  "i, interactive",
 				Usage: "Prompt before overwrite",
+			},
+			cli.BoolFlag{
+				Name:  "f, force",
+				Usage: "force overwrite",
 			},
 		},
 	}
@@ -67,8 +80,12 @@ func (c *CmdSimpleFSCopy) Run() error {
 		dest, err = makeDestPath(c.G(), ctx, cli, src, c.dest, isDestDir, destPathString)
 		c.G().Log.Debug("SimpleFSCopy %s -> %s, %v", pathToString(src), pathToString(dest), isDestDir)
 
-		if err == TargetFileExistsError && c.interactive == true {
-			err = doOverwritePrompt(c.G(), pathToString(dest))
+		if err == ErrTargetFileExists {
+			if c.interactive == true {
+				err = doOverwritePrompt(c.G(), pathToString(dest))
+			} else if c.force == true {
+				err = nil
+			}
 		}
 
 		if err != nil {
@@ -76,10 +93,17 @@ func (c *CmdSimpleFSCopy) Run() error {
 			return err
 		}
 
+		// Don't spawn new jobs if we've been cancelled.
+		// TODO: This is still a race condition, if we get cancelled immediately after.
+		if c.opCanceler.IsCancelled() {
+			break
+		}
+
 		opid, err := cli.SimpleFSMakeOpid(ctx)
 		if err != nil {
 			return err
 		}
+		c.opCanceler.AddOp(opid)
 
 		if c.recurse {
 			err = cli.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
@@ -112,6 +136,11 @@ func (c *CmdSimpleFSCopy) ParseArgv(ctx *cli.Context) error {
 
 	c.recurse = ctx.Bool("recursive")
 	c.interactive = ctx.Bool("interactive")
+	c.force = ctx.Bool("force")
+
+	if c.force && c.interactive {
+		return errors.New("force and interactive are incompatible")
+	}
 
 	c.src, c.dest, err = parseSrcDestArgs(c.G(), ctx, "cp")
 
@@ -125,4 +154,8 @@ func (c *CmdSimpleFSCopy) GetUsage() libkb.Usage {
 		KbKeyring: true,
 		API:       true,
 	}
+}
+
+func (c *CmdSimpleFSCopy) Cancel() error {
+	return c.opCanceler.Cancel()
 }

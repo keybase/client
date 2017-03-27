@@ -5,7 +5,7 @@ import {CommonClientType, configGetConfigRpc, configGetExtendedStatusRpc, config
 import {isMobile} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
 import {navBasedOnLoginState} from '../../actions/login'
-import {checkReachabilityOnConnect, registerGregorListeners, registerReachability} from '../../actions/gregor'
+import {checkReachabilityOnConnect, registerGregorListeners, registerReachability, listenForNativeReachabilityEvents} from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
 
 import type {UpdateFollowing} from '../../constants/config'
@@ -134,6 +134,7 @@ function getExtendedStatus (): AsyncAction {
 
 function registerListeners (): AsyncAction {
   return dispatch => {
+    dispatch(listenForNativeReachabilityEvents)
     dispatch(registerGregorListeners())
     dispatch(registerReachability())
   }

@@ -28,8 +28,8 @@ func NewTwitterChecker(p libkb.RemoteProofChainLink) (*TwitterChecker, libkb.Pro
 
 func (rc *TwitterChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *TwitterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
-	return CheckProofPvl(ctx, keybase1.ProofType_TWITTER, rc.proof, h)
+func (rc *TwitterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+	return CheckProofPvl(ctx, keybase1.ProofType_TWITTER, rc.proof, h, pvlU)
 }
 
 //

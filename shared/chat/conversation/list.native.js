@@ -1,7 +1,7 @@
 // @flow
 //
 import React, {Component} from 'react'
-import {Text} from '../../common-adapters'
+import {Box, Icon} from '../../common-adapters'
 import {NativeListView} from '../../common-adapters/index.native'
 import hoc from './list-hoc'
 import messageFactory from './messages'
@@ -31,10 +31,10 @@ class ConversationList extends Component <void, Props, State> {
       },
     })
     this.state = {
+      contentHeight: null,
       dataSource: ds.cloneWithRows(this._allMessages(props).toArray()),
       isLockedToBottom: true,
       scrollViewHeight: null,
-      contentHeight: null,
     }
   }
 
@@ -85,7 +85,6 @@ class ConversationList extends Component <void, Props, State> {
     const {contentHeight, scrollViewHeight} = this.state
     if (contentHeight && scrollViewHeight && (contentHeight !== prevContentHeight || scrollViewHeight !== prevScrollViewHeight)) {
       this.state.isLockedToBottom && this._scrollToBottom()
-      return
     }
   }
 
@@ -147,11 +146,19 @@ class ConversationList extends Component <void, Props, State> {
     } = this.props
 
     if (moreToLoad && messages.count() === 0) {
-      return <Text type='Body'>Loading Messages...</Text>
+      return (
+        <Box style={{alignItems: 'center', flexGrow: 1, justifyContent: 'flex-start'}}>
+          <Icon type='icon-securing-static-266' />
+        </Box>
+      )
     }
 
     if (messages.count() === 0) {
-      return <Text type='Body'>No messages here</Text>
+      return (
+        <Box style={{alignItems: 'center', flexGrow: 1, justifyContent: 'flex-start'}}>
+          <Icon type='icon-secure-static-266' />
+        </Box>
+      )
     }
 
     return (

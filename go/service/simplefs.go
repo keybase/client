@@ -30,7 +30,7 @@ func (s *SimpleFSHandler) client() (*keybase1.SimpleFSClient, error) {
 		return nil, errors.New("KBFS client wasn't found")
 	}
 	return &keybase1.SimpleFSClient{
-		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}),
+		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil),
 	}, nil
 }
 
@@ -177,6 +177,15 @@ func (s *SimpleFSHandler) SimpleFSClose(ctx context.Context, arg keybase1.OpID) 
 		return err
 	}
 	return cli.SimpleFSClose(ctx, arg)
+}
+
+// SimpleFSCancel - Cancels a running operation, like copy.
+func (s *SimpleFSHandler) SimpleFSCancel(ctx context.Context, arg keybase1.OpID) error {
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSCancel(ctx, arg)
 }
 
 // SimpleFSCheck - Check progress of pending operation

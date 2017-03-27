@@ -397,7 +397,16 @@ func (e *ScanProofsEngine) CheckOne(ctx *Context, rec map[string]string, tickers
 		<-tickers[ptype].C
 	}
 
-	perr := pc.CheckStatus(e.G(), *hint, libkb.ProofCheckerModeActive)
+	pvlSource := e.G().GetPvlSource()
+	if pvlSource == nil {
+		return nil, foundhint, fmt.Errorf("no pvl source for proof verification")
+	}
+	pvlU, err := pvlSource.GetPVL(ctx.GetNetContext())
+	if err != nil {
+		return nil, foundhint, fmt.Errorf("error getting pvl: %s", err)
+	}
+
+	perr := pc.CheckStatus(e.G(), *hint, libkb.ProofCheckerModeActive, pvlU)
 	if perr != nil {
 		return perr, foundhint, nil
 	}

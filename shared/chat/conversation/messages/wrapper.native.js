@@ -11,7 +11,6 @@ import type {Props} from './wrapper'
 type MessageProps = Props & {onRetry: () => void, onShowEditor: () => void}
 
 class MessageWrapper extends PureComponent<void, MessageProps, void> {
-
   render () {
     const {children, message, style, includeHeader, isFirstNewMessage, onAction, onRetry, onShowEditor, isSelected, you, followingMap, metaDataMap} = this.props
     return (
@@ -63,8 +62,9 @@ const _stylesUnselected = {
 }
 
 const _exclamationStyle = {
-  fontSize: 14,
   color: globalColors.blue,
+  fontSize: 14,
+  marginRight: globalMargins.tiny,
 }
 
 const _textContainerStyle = {

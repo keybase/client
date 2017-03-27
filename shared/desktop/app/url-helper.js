@@ -1,24 +1,11 @@
 // @flow
 import {ipcMain} from 'electron'
-import keybaseUrl from '../../constants/urls'
 import openUrl from '../../util/open-url'
-
-const linkFuncs = {
-  home: () => keybaseUrl,
-  help: () => `${keybaseUrl}/getting-started`,
-  user: ({username}) => `${keybaseUrl}/${username || ''}`,
-}
+import {urlHelper} from '../../util/url-helper'
 
 export default function () {
   ipcMain.on('openURL', (event, type, params) => {
-    const linkFunc = linkFuncs[type]
-    if (linkFunc) {
-      const link = linkFunc(params)
-      if (link) {
-        openUrl(link)
-      }
-    } else {
-      console.warn(`No openURL handler for ${type}`, params)
-    }
+    const link = urlHelper(type, params)
+    link && openUrl(link)
   })
 }

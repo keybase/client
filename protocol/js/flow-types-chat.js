@@ -649,6 +649,18 @@ export function remoteSetConversationStatusRpcPromise (request: $Exact<requestCo
   return new Promise((resolve, reject) => { remoteSetConversationStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function remoteSyncChatRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncChatResult) => void} & {param: remoteSyncChatRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.remote.syncChat'})
+}
+
+export function remoteSyncChatRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncChatResult) => void} & {param: remoteSyncChatRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteSyncChatRpc({...request, incomingCallMap, callback}))
+}
+
+export function remoteSyncChatRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncChatResult) => void} & {param: remoteSyncChatRpcParam}>): Promise<remoteSyncChatResult> {
+  return new Promise((resolve, reject) => { remoteSyncChatRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteSyncInboxRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncInboxResult) => void} & {param: remoteSyncInboxRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.remote.syncInbox'})
 }
@@ -1465,6 +1477,11 @@ export type SealedData = {
   n: bytes,
 }
 
+export type ServerCacheVers = {
+  inboxVers: int,
+  bodiesVers: int,
+}
+
 export type SetConversationStatusLocalRes = {
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
@@ -1498,6 +1515,11 @@ export type SignatureInfo = {
   v: int,
   s: bytes,
   k: bytes,
+}
+
+export type SyncChatRes = {
+  cacheVers: ServerCacheVers,
+  inboxRes: SyncInboxRes,
 }
 
 export type SyncInboxRes =
@@ -1855,6 +1877,10 @@ export type remoteSetConversationStatusRpcParam = Exact<{
   status: ConversationStatus
 }>
 
+export type remoteSyncChatRpcParam = Exact<{
+  vers: InboxVers
+}>
+
 export type remoteSyncInboxRpcParam = Exact<{
   vers: InboxVers
 }>
@@ -1943,6 +1969,8 @@ type remoteS3SignResult = bytes
 
 type remoteSetConversationStatusResult = SetConversationStatusRes
 
+type remoteSyncChatResult = SyncChatRes
+
 type remoteSyncInboxResult = SyncInboxRes
 
 export type rpc =
@@ -1985,6 +2013,7 @@ export type rpc =
   | remotePublishSetConversationStatusRpc
   | remoteS3SignRpc
   | remoteSetConversationStatusRpc
+  | remoteSyncChatRpc
   | remoteSyncInboxRpc
   | remoteTlfFinalizeRpc
   | remoteTlfResolveRpc

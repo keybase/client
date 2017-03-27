@@ -496,6 +496,10 @@ type SimpleFSCloseArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 }
 
+type SimpleFSCancelArg struct {
+	OpID OpID `codec:"opID" json:"opID"`
+}
+
 type SimpleFSCheckArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 }
@@ -548,6 +552,8 @@ type SimpleFSInterface interface {
 	// Close OpID, cancels any pending operation.
 	// Must be called after list/copy/remove
 	SimpleFSClose(context.Context, OpID) error
+	// Cancels a running operation, like copy.
+	SimpleFSCancel(context.Context, OpID) error
 	// Check progress of pending operation
 	SimpleFSCheck(context.Context, OpID) (Progress, error)
 	// Get all the outstanding operations
@@ -795,6 +801,22 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"simpleFSCancel": {
+				MakeArg: func() interface{} {
+					ret := make([]SimpleFSCancelArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SimpleFSCancelArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SimpleFSCancelArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSCancel(ctx, (*typedArgs)[0].OpID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"simpleFSCheck": {
 				MakeArg: func() interface{} {
 					ret := make([]SimpleFSCheckArg, 1)
@@ -946,6 +968,13 @@ func (c SimpleFSClient) SimpleFSMakeOpid(ctx context.Context) (res OpID, err err
 func (c SimpleFSClient) SimpleFSClose(ctx context.Context, opID OpID) (err error) {
 	__arg := SimpleFSCloseArg{OpID: opID}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSClose", []interface{}{__arg}, nil)
+	return
+}
+
+// Cancels a running operation, like copy.
+func (c SimpleFSClient) SimpleFSCancel(ctx context.Context, opID OpID) (err error) {
+	__arg := SimpleFSCancelArg{OpID: opID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCancel", []interface{}{__arg}, nil)
 	return
 }
 

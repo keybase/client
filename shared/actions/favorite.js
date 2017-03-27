@@ -178,7 +178,6 @@ function * _addSaga (action: FavoriteAdd): SagaGenerator<any, any> {
   if (!folder) {
     const action: FavoriteAdded = {type: Constants.favoriteAdded, error: true, payload: {errorText: 'No folder specified'}}
     yield put(action)
-    return
   } else {
     try {
       yield call(favoriteFavoriteAddRpcPromise, {param: {folder}})
@@ -197,7 +196,6 @@ function * _ignoreSaga (action: FavoriteAdd): SagaGenerator<any, any> {
   if (!folder) {
     const action: FavoriteIgnored = {type: Constants.favoriteIgnored, error: true, payload: {errorText: 'No folder specified'}}
     yield put(action)
-    return
   } else {
     try {
       yield call(favoriteFavoriteIgnoreRpcPromise, {param: {folder}})

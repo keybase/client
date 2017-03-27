@@ -1,9 +1,11 @@
 // @flow
 import GlobalError from './global-errors/container'
-import React from 'react'
+import Offline from './offline'
+import React, {Component} from 'react'
 import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
 import {Box, NativeKeyboardAvoidingView} from './common-adapters/index.native'
-import {Dimensions, NavigationExperimental, StatusBar} from 'react-native'
+import {Dimensions, StatusBar} from 'react-native'
+import {CardStack, NavigationActions} from 'react-navigation'
 import {chatTab, loginTab, folderTab} from './constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
@@ -12,10 +14,7 @@ import {navigateTo, navigateUp, switchTo} from './actions/route-tree'
 
 import type {Props} from './nav'
 import type {Tab} from './constants/tabs'
-
-const {
-  CardStack: NavigationCardStack,
-} = NavigationExperimental
+import type {NavigationAction} from 'react-navigation'
 
 const StackWrapper = ({children}) => {
   // FIXME: KeyboardAvoidingView doubles the padding needed on Android. Remove
@@ -27,15 +26,60 @@ const StackWrapper = ({children}) => {
   }
 }
 
-function stackToNavigationState (stack) {
-  return {
-    index: stack.size - 1,
-    routes: stack.map(r => ({
-      component: r.component,
-      key: r.path.join('/'),
-      tags: r.tags,
-    })).toArray(),
+class CardStackShim extends Component {
+  getScreenConfig = () => null
+
+  getComponentForRouteName = () => this.RenderRouteShim
+
+  RenderRouteShim = ({navigation}) => {
+    const route = navigation.state.params
+    return this.props.renderRoute(route)
   }
+
+  _dispatchShim = (action: NavigationAction) => {
+    if (action.type === NavigationActions.BACK) {
+      this.props.onNavigateBack()
+    }
+  }
+
+  render () {
+    const stack = this.props.stack
+
+    const navigation = {
+      state: {
+        index: stack.size - 1,
+        routes: stack.map(route => {
+          const routeName = route.path.join('/')
+          return {key: routeName, routeName, params: route}
+        }),
+      },
+      dispatch: this._dispatchShim,
+    }
+
+    return (
+      <CardStack
+        navigation={navigation}
+        router={this}
+        headerMode='none'
+        mode={this.props.mode}
+      />
+    )
+  }
+}
+
+function renderMainStackRoute (route) {
+  const {underStatusBar, hideStatusBar} = route.tags
+  return (
+    <Box style={route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
+      <StatusBar
+        hidden={hideStatusBar}
+        translucent={true}
+        backgroundColor='rgba(0, 26, 51, 0.25)'
+        barStyle={!underStatusBar && isIOS ? 'dark-content' : 'light-content'}
+      />
+      {route.component}
+    </Box>
+  )
 }
 
 function MainNavStack (props: Props) {
@@ -48,26 +92,14 @@ function MainNavStack (props: Props) {
   return (
     <StackWrapper>
       <Box style={!props.hideNav ? styleScreenSpace : flexOne}>
-        <NavigationCardStack
+        <CardStackShim
           key={props.routeSelected}  // don't transition when switching tabs
-          navigationState={stackToNavigationState(baseScreens)}
-          renderScene={({scene}) => {
-            const {underStatusBar, hideStatusBar} = scene.route.tags
-            return (
-              <Box style={scene.route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
-                <StatusBar
-                  hidden={hideStatusBar}
-                  translucent={true}
-                  backgroundColor='rgba(0, 26, 51, 0.25)'
-                  barStyle={!underStatusBar && isIOS ? 'dark-content' : 'light-content'}
-                />
-                {scene.route.component}
-              </Box>
-            )
-          }}
+          stack={baseScreens}
+          renderRoute={renderMainStackRoute}
           onNavigateBack={props.navigateUp}
         />
         {layerScreens.map(r => r.leafComponent)}
+        {![chatTab, loginTab].includes(props.routeSelected) && <Offline reachability={props.reachability} />}
         <GlobalError />
       </Box>
       {!props.hideNav &&
@@ -87,6 +119,14 @@ function MainNavStack (props: Props) {
   )
 }
 
+function renderFullScreenStackRoute (route) {
+  return (
+    <Box style={globalStyles.fillAbsolute}>
+      {route.component}
+    </Box>
+  )
+}
+
 function Nav (props: Props) {
   const mainScreens = props.routeStack.filter(r => !r.tags.fullscreen)
   const fullScreens = props.routeStack.filter(r => r.tags.fullscreen)
@@ -97,16 +137,11 @@ function Nav (props: Props) {
     })
 
   return (
-    <NavigationCardStack
-      navigationState={stackToNavigationState(fullScreens)}
-      renderScene={({scene}) => {
-        return (
-          <Box style={globalStyles.fillAbsolute}>
-            {scene.route.component}
-          </Box>
-        )
-      }}
-      enableGestures={false}
+    <CardStackShim
+      stack={fullScreens}
+      renderRoute={renderFullScreenStackRoute}
+      onNavigateBack={props.navigateUp}
+      mode='modal'
     />
   )
 }
@@ -140,6 +175,7 @@ export default connect(
     config: {extendedConfig, username},
     dev: {debugConfig: {dumbFullscreen}},
     notifications: {menuBadge, menuNotifications},
+    gregor: {reachability},
   }, {routeStack, routeSelected}) => ({
     chatBadge: menuNotifications.chatBadge,
     dumbFullscreen,
@@ -147,6 +183,7 @@ export default connect(
     provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
     username,
     hideNav: routeSelected === loginTab,
+    reachability,
   }),
   (dispatch: any, {routeSelected, routePath}) => ({
     navigateUp: () => dispatch(navigateUp()),

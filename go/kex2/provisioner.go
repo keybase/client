@@ -186,7 +186,7 @@ func (p *provisioner) runProtocol() (err error) {
 }
 
 func (p *provisioner) runProtocolV2() (fallback bool, err error) {
-	cli := keybase1.Kex2Provisionee2Client{Cli: rpc.NewClient(p.xp, nil)}
+	cli := keybase1.Kex2Provisionee2Client{Cli: rpc.NewClient(p.xp, nil, nil)}
 	var helloArg keybase1.Hello2Arg
 	helloArg, err = p.arg.Provisioner.GetHello2Arg()
 	if err != nil {
@@ -214,7 +214,7 @@ func (p *provisioner) runProtocolV2() (fallback bool, err error) {
 }
 
 func (p *provisioner) runProtocolV1() (err error) {
-	cli := keybase1.Kex2ProvisioneeClient{Cli: rpc.NewClient(p.xp, nil)}
+	cli := keybase1.Kex2ProvisioneeClient{Cli: rpc.NewClient(p.xp, nil, nil)}
 	var helloArg keybase1.HelloArg
 	helloArg, err = p.arg.Provisioner.GetHelloArg()
 	if err != nil {

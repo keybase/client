@@ -10,8 +10,6 @@ const PREFIX_ERROR: string = 'PLE:'
 const PREFIX_DUMP_CURRENT: string = 'PLC:'
 const PREFIX_DUMP_ALL: string = 'PLA:'
 
-const _loggers: {[name: string]: PeriodicLogger} = {}
-
 class PeriodicLogger {
   _name: string
   _lastWrite: number = -1 // can be larger than array, used as a 'virtual' index so we can bookkeep messages
@@ -100,6 +98,8 @@ class PeriodicLogger {
     }
   }
 }
+
+const _loggers: {[name: string]: PeriodicLogger} = {}
 
 // Provider your own replacemes for console.log for the logger
 function dumpLoggers (consoleLogOverwrite: any) {

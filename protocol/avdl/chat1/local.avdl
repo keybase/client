@@ -384,7 +384,7 @@ protocol local {
     array<MessageUnboxed> maxMessages; // the latest message for each message type
 
     // Whether this conversation has no content-ful messages.
-	  boolean isEmpty;
+    boolean isEmpty;
 
     // This field, if null or empty, indicates identify succeeded without any
     // break.

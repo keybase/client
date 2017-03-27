@@ -66,6 +66,7 @@ class FriendshipsRender extends Component<void, Props, void> {
   }
 
   render () {
+    const {isYou} = this.props
     const followers = this.props.followers.length
     const following = this.props.following.length
     return (
@@ -75,7 +76,7 @@ class FriendshipsRender extends Component<void, Props, void> {
           label={`FOLLOWERS (${followers})`}
           onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Followers') }}>
           <Box style={{marginTop: globalMargins.small}}>
-            {followers === 0 && <Box style={friendshipEmptyStyle}>
+            {followers === 0 && isYou && <Box style={friendshipEmptyStyle}>
               <Text type='Body' style={{color: globalColors.black_40}}>You have no followers.</Text>
             </Box>}
             <ReactList
@@ -90,7 +91,7 @@ class FriendshipsRender extends Component<void, Props, void> {
           label={`FOLLOWING (${following})`}
           onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Following') }}>
           <Box style={{marginTop: globalMargins.small}}>
-            {following === 0 && <Box style={friendshipEmptyStyle}>
+            {following === 0 && isYou && <Box style={friendshipEmptyStyle}>
               <Text type='Body' style={{color: globalColors.black_40}}>You are not following anyone.</Text>
             </Box>}
             <ReactList

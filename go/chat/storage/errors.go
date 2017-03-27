@@ -102,7 +102,7 @@ func (e VersionMismatchError) Error() string {
 }
 
 func (e VersionMismatchError) ShouldClear() bool {
-	return true
+	return false
 }
 
 func (e VersionMismatchError) Message() string {

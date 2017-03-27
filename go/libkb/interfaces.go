@@ -406,6 +406,7 @@ type UIRouter interface {
 	// These are allowed to return nil for the UI even if
 	// error is nil.
 	GetIdentifyUI() (IdentifyUI, error)
+	GetIdentifyUICtx(ctx context.Context) (int, IdentifyUI, error)
 	GetSecretUI(sessionID int) (SecretUI, error)
 	GetRekeyUI() (keybase1.RekeyUIInterface, int, error)
 	GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error)
@@ -494,7 +495,7 @@ const (
 )
 
 type ProofChecker interface {
-	CheckStatus(ctx ProofContext, h SigHint, pcm ProofCheckerMode) ProofError
+	CheckStatus(ctx ProofContext, h SigHint, pcm ProofCheckerMode, pvlU PvlUnparsed) ProofError
 	GetTorError() ProofError
 }
 
@@ -541,7 +542,7 @@ type ExternalServicesCollector interface {
 }
 
 type PvlSource interface {
-	GetPVL(ctx context.Context, pvlVersion int) (string, error)
+	GetPVL(ctx context.Context) (PvlUnparsed, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.

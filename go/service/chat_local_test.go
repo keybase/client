@@ -75,21 +75,19 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	h.tlfInfoSource = kbtest.NewTlfMock(c.world)
 	h.boxer = chat.NewBoxer(tc.G, h.tlfInfoSource)
 
-	f := func() libkb.SecretUI {
-		return &libkb.TestSecretUI{Passphrase: user.Passphrase}
-	}
-	storage := storage.New(tc.G, f)
-	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, storage,
-		func() chat1.RemoteInterface { return mockRemote },
-		func() libkb.SecretUI { return &libkb.TestSecretUI{} })
+	chatStorage := storage.New(tc.G)
+	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, chatStorage,
+		func() chat1.RemoteInterface { return mockRemote })
 	tc.G.InboxSource = chat.NewHybridInboxSource(tc.G,
 		func() chat1.RemoteInterface { return mockRemote },
-		f, h.tlfInfoSource)
+		h.tlfInfoSource)
+	tc.G.ServerCacheVersions = storage.NewServerVersions(tc.G)
+
 	h.setTestRemoteClient(mockRemote)
 	h.gh, _ = newGregorHandler(tc.G)
 
 	baseSender := chat.NewBlockingSender(tc.G, h.boxer, nil,
-		func() chat1.RemoteInterface { return mockRemote }, f)
+		func() chat1.RemoteInterface { return mockRemote })
 	tc.G.MessageDeliverer = chat.NewDeliverer(tc.G, baseSender)
 	tc.G.MessageDeliverer.Start(context.TODO(), user.User.GetUID().ToBytes())
 	tc.G.MessageDeliverer.Connected(context.TODO())
@@ -777,7 +775,7 @@ func TestGetOutbox(t *testing.T) {
 	u := users[0]
 	h := ctc.as(t, users[0]).h
 	tc := ctc.world.Tcs[ctc.as(t, users[0]).user().Username]
-	outbox := storage.NewOutbox(tc.G, users[0].User.GetUID().ToBytes(), h.getSecretUI)
+	outbox := storage.NewOutbox(tc.G, users[0].User.GetUID().ToBytes())
 
 	obr, err := outbox.PushMessage(context.TODO(), created.Id, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{

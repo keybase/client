@@ -1,8 +1,9 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeListView} from '../../common-adapters/index.native'
-import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../../styles'
+import {globalStyles, globalColors, statusBarHeight} from '../../styles'
 import {RowConnector} from './row'
+import {debounce} from 'lodash'
 
 import type {Props, RowProps} from './'
 
@@ -43,7 +44,7 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
     borderColor: rowBorderColor(idx, idx === (avatarCount - 1), backgroundColor),
     loadingColor: globalColors.blue3_40,
-    size: 24,
+    size: 32,
     style: {
       opacity: youNeedToRekey || participantNeedToRekey ? 0.4 : 1,
     },
@@ -51,9 +52,11 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
   })).toArray()
 
   return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, justifyContent: 'flex-start', maxWidth: 48, paddingLeft: 4, backgroundColor}}>
-      <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} style={{backgroundColor}} />
-      {icon}
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', backgroundColor, justifyContent: 'flex-start', maxWidth: 55, minWidth: 55, paddingLeft: 4}}>
+      <Box style={{position: 'relative'}}>
+        <MultiAvatar singleSize={40} multiSize={32} avatarProps={avatarProps} style={{alignSelf: 'center', backgroundColor}} />
+        {icon}
+      </Box>
     </Box>
   )
 }
@@ -61,8 +64,8 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
 const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor}) => {
   const boldOverride = showBold ? globalStyles.fontBold : null
   return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17}}>
-      <Box style={{...globalStyles.flexBoxRow, flex: 1, height: 17, position: 'relative'}}>
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 18, minHeight: 18}}>
+      <Box style={{...globalStyles.flexBoxRow, flex: 1, maxHeight: 18, minHeight: 18, position: 'relative'}}>
         <Box style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
           <Usernames
             inline={true}
@@ -74,7 +77,7 @@ const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, userna
             title={participants.join(', ')} />
         </Box>
       </Box>
-      <Text type='BodySmall' style={{...boldOverride, color: subColor, lineHeight: 17}}>{timestamp}</Text>
+      <Text type='BodySmall' style={{...boldOverride, color: subColor, lineHeight: 18}}>{timestamp}</Text>
       {hasUnread && <Box style={unreadDotStyle} />}
     </Box>
   )
@@ -90,14 +93,14 @@ const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, 
   } else if (participantNeedToRekey) {
     content = <Text type='BodySmall' backgroundMode='Terminal' style={{color: subColor}}>Waiting for participants to rekey</Text>
   } else if (snippet && !isMuted) {
-    content = <Markdown preview={true} style={{...boldOverride, color: subColor, fontSize: 11, lineHeight: 15, minHeight: 15}}>{snippet}</Markdown>
+    content = <Markdown preview={true} style={{...boldOverride, color: subColor, fontSize: 12, lineHeight: 16}}>{snippet}</Markdown>
   } else {
     return null
   }
 
   return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17, position: 'relative', backgroundColor}}>
-      <Box style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0, backgroundColor}}>
+    <Box style={{...globalStyles.flexBoxRow, backgroundColor, flexGrow: 1, maxHeight: 16, minHeight: 16, position: 'relative'}}>
+      <Box style={{...globalStyles.flexBoxRow, aligntItems: 'flex-start', bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
         {content}
       </Box>
     </Box>
@@ -108,8 +111,7 @@ const _Row = (props: RowProps) => {
   return (
     <ClickableBox onClick={() => props.onSelectConversation(props.conversationIDKey)} style={{backgroundColor: props.backgroundColor}}>
       <Box
-        style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}
-        title={`${props.unreadCount} unread`}>
+        style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
         <Avatars
           backgroundColor={props.backgroundColor}
           hasUnread={props.hasUnread}
@@ -120,11 +122,9 @@ const _Row = (props: RowProps) => {
           youNeedToRekey={props.youNeedToRekey}
         />
         <Box style={{
-          ...globalStyles.flexBoxColumn,
           ...conversationRowStyle,
           backgroundColor: props.backgroundColor,
-          borderBottomColor: (!props.isSelected && !props.hasUnread) ? globalColors.black_10 : props.backgroundColor,
-          borderBottomWidth: 1,
+          borderBottomColor: !props.isSelected ? globalColors.black_10 : props.backgroundColor,
         }}>
           <TopLine
             hasUnread={props.hasUnread}
@@ -151,36 +151,41 @@ const _Row = (props: RowProps) => {
 
 const Row = RowConnector(_Row)
 
-type State = {
-  dataSource: any,
-}
+class ConversationList extends PureComponent<void, Props, {dataSource: any}> {
+  state = {dataSource: null}
 
-class ConversationList extends PureComponent<void, Props, State> {
-  state: State = {
-    dataSource: null,
-  }
-
-  _itemRenderer = (conversationIDKey) => {
-    return <Row conversationIDKey={conversationIDKey} key={conversationIDKey} />
-  }
+  _itemRenderer = conversationIDKey => <Row conversationIDKey={conversationIDKey} key={conversationIDKey} />
 
   _ds = new NativeListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
   _setupDataSource = (props: Props) => {
-    this.setState({
-      dataSource: this._ds.cloneWithRows(props.rows.toArray()),
-    })
-  }
-
-  componentWillMount () {
-    this.props.loadInbox()
-    this._setupDataSource(this.props)
+    this.setState({dataSource: this._ds.cloneWithRows(props.rows.toArray())})
   }
 
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.rows !== nextProps.rows) {
       this._setupDataSource(nextProps)
+
+      if (nextProps.rows.count()) {
+        const conversationIDKey = nextProps.rows.get(0)
+        this.props.onUntrustedInboxVisible(conversationIDKey, 20)
+      }
     }
+  }
+
+  _onChangeVisibleRows = debounce((visibleRows) => {
+    const idxs = Object.keys(visibleRows.s1)
+
+    if (idxs.length) {
+      const idx = parseInt(idxs[0], 10)
+      const conversationIDKey = this.props.rows.get(idx)
+      this.props.onUntrustedInboxVisible(conversationIDKey, idxs.length)
+    }
+  }, 1000)
+
+  componentWillMount () {
+    this.props.loadInbox()
+    this._setupDataSource(this.props)
   }
 
   render () {
@@ -191,6 +196,7 @@ class ConversationList extends PureComponent<void, Props, State> {
           enableEmptySections={true}
           style={listStyle}
           dataSource={this.state.dataSource}
+          onChangeVisibleRows={this._onChangeVisibleRows}
           renderRow={this._itemRenderer} />
       </Box>
     )
@@ -218,29 +224,36 @@ const unreadDotStyle = {
 }
 
 const avatarMutedIconStyle = {
-  marginLeft: -globalMargins.small,
-  marginTop: 20,
+  bottom: 0,
+  position: 'absolute',
+  right: 0,
   zIndex: 1,
 }
 
 const avatarLockIconStyle = {
-  marginLeft: -10,
-  marginTop: 20,
+  bottom: 0,
+  position: 'absolute',
+  right: 0,
   zIndex: 1,
 }
 
 const conversationRowStyle = {
-  flex: 1,
+  ...globalStyles.flexBoxColumn,
+  borderBottomWidth: 1,
+  flexGrow: 1,
   justifyContent: 'center',
+  maxHeight: 56,
+  minHeight: 56,
   paddingRight: 8,
 }
 
 const rowContainerStyle = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
-  flexShrink: 0,
-  maxHeight: 48,
-  minHeight: 48,
+  alignItems: 'center',
+  flexGrow: 1,
+  maxHeight: 56,
+  minHeight: 56,
 }
 
 export default ConversationList

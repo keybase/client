@@ -158,14 +158,26 @@ protocol remote {
     array<Conversation> convs;
   } 
 
+  record ServerCacheVers {
+    int inboxVers;
+    int bodiesVers;
+  }
+
   variant SyncInboxRes switch (SyncInboxResType typ) {
     case CURRENT: void;
     case INCREMENTAL: SyncIncrementalRes;
     case CLEAR: void;
   }
 
-  // Sync down the inbox given a current version
+  // (DEPRECATED) Sync down the inbox given a current version
   SyncInboxRes syncInbox(InboxVers vers);
+
+  record SyncChatRes {
+    ServerCacheVers cacheVers;
+    SyncInboxRes inboxRes;
+  }
+
+  SyncChatRes syncChat(InboxVers vers);
 
   // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
   // Gregor keeps an internal record of these TLF IDs, so that it can always return the latest

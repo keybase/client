@@ -94,7 +94,7 @@ func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 	if x == nil {
 		return nil, nil
 	}
-	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
+	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{}, nil)
 	iuicli := keybase1.IdentifyUiClient{Cli: cli}
 	sessionID, err := iuicli.DelegateIdentifyUI(context.TODO())
 	if err != nil {
@@ -112,6 +112,29 @@ func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 	return ret, nil
 }
 
+func (u *UIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI, error) {
+	x, _ := u.getUI(libkb.IdentifyUIKind)
+	if x == nil {
+		return 0, nil, nil
+	}
+	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{}, nil)
+	iuicli := keybase1.IdentifyUiClient{Cli: cli}
+	sessionID, err := iuicli.DelegateIdentifyUI(ctx)
+	if err != nil {
+		return 0, nil, err
+	}
+	ret := &RemoteIdentifyUI{
+		sessionID: sessionID,
+		uicli:     iuicli,
+		logUI: &LogUI{
+			sessionID,
+			&keybase1.LogUiClient{Cli: cli},
+		},
+		Contextified: libkb.NewContextified(u.G()),
+	}
+	return sessionID, ret, nil
+}
+
 func (u *UIRouter) GetSecretUI(sessionID int) (ui libkb.SecretUI, err error) {
 	defer u.G().Trace("UIRouter#GetSecretUI", func() error { return err })()
 	x, _ := u.getUI(libkb.SecretUIKind)
@@ -119,7 +142,7 @@ func (u *UIRouter) GetSecretUI(sessionID int) (ui libkb.SecretUI, err error) {
 		u.G().Log.Debug("| getUI(libkb.SecretUIKind) returned nil")
 		return nil, nil
 	}
-	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
+	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{}, nil)
 	scli := keybase1.SecretUiClient{Cli: cli}
 
 	u.G().Log.Debug("| returning delegated SecretUI with sessionID = %d", sessionID)
@@ -140,7 +163,7 @@ func (u *UIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error) {
 		u.G().Log.Debug("| getUI(libkb.RekeyUIKind) returned nil")
 		return nil, 0, nil
 	}
-	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
+	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{}, nil)
 	uicli := keybase1.RekeyUIClient{Cli: cli}
 	sessionID, err := uicli.DelegateRekeyUI(context.TODO())
 	if err != nil {
@@ -167,7 +190,7 @@ func (u *UIRouter) getOrReuseRekeyUI(prev *RekeyUI) (ret *RekeyUI, err error) {
 		return prev, nil
 	}
 
-	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
+	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{}, nil)
 	uicli := keybase1.RekeyUIClient{Cli: cli}
 	var sessionID int
 	sessionID, err = uicli.DelegateRekeyUI(context.TODO())

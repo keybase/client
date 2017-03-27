@@ -31,12 +31,12 @@
 
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
-      <Custom Action="StopUpdater" Before="InstallValidate"/>
+      <Custom Action="StopUpdater" Before="InstallValidate"><![CDATA[Installed]]></Custom>
       <!-- These roaming actions are temporary, while we switch from appdata to localappdata. -->
-      <Custom Action="StopUpdaterRoaming" Before="InstallValidate"/>
-      <Custom Action="StopMainAppRoaming" Before="StopGUI"/>
-      <Custom Action="StopMainApp" Before="StopGUI"/>
-      <Custom Action="StopGUI" Before="InstallValidate"/>
+      <Custom Action="StopUpdaterRoaming" Before="InstallValidate"><![CDATA[Installed]]></Custom>
+      <Custom Action="StopMainAppRoaming" Before="StopGUI"><![CDATA[Installed]]></Custom>
+      <Custom Action="StopMainApp" Before="StopGUI"><![CDATA[Installed]]></Custom>
+      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed]]></Custom>
       <Custom Action="RunMainAppDummyForRepair" Before="RunMainApp"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>

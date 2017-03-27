@@ -327,6 +327,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "ServerCacheVers",
+      "fields": [
+        {
+          "type": "int",
+          "name": "inboxVers"
+        },
+        {
+          "type": "int",
+          "name": "bodiesVers"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "SyncInboxRes",
       "switch": {
@@ -354,6 +368,20 @@
             "def": false
           },
           "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SyncChatRes",
+      "fields": [
+        {
+          "type": "ServerCacheVers",
+          "name": "cacheVers"
+        },
+        {
+          "type": "SyncInboxRes",
+          "name": "inboxRes"
         }
       ]
     }
@@ -550,6 +578,15 @@
         }
       ],
       "response": "SyncInboxRes"
+    },
+    "syncChat": {
+      "request": [
+        {
+          "name": "vers",
+          "type": "InboxVers"
+        }
+      ],
+      "response": "SyncChatRes"
     },
     "tlfFinalize": {
       "request": [
