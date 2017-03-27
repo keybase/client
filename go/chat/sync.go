@@ -89,10 +89,12 @@ func (s *Syncer) sendNotificationLoop() {
 		case <-s.shutdownCh:
 			return
 		case uid := <-s.fullReloadCh:
+			s.notificationLock.Lock()
 			kuid := keybase1.UID(uid.String())
 			s.G().NotifyRouter.HandleChatInboxStale(context.Background(), kuid)
 			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid, nil)
 			s.notificationQueue = make(map[string][]chat1.ConversationID)
+			s.notificationLock.Unlock()
 		case <-s.clock.After(s.sendDelay):
 			s.sendNotificationsOnce()
 		case <-s.flushCh:
