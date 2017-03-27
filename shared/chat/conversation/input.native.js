@@ -143,7 +143,7 @@ const styleContainer = {
   alignItems: 'center',
   borderTopColor: globalColors.black_05,
   borderTopWidth: 1,
-  height: 48,
+  minHeight: 48,
 }
 
 const styleInput = {

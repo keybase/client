@@ -128,7 +128,7 @@ function loadMoreMessages (conversationIDKey: Constants.ConversationIDKey, onlyI
   return {payload: {conversationIDKey, onlyIfUnloaded}, type: 'chat:loadMoreMessages'}
 }
 
-function showEditor (message: Constants.Message): Constants.ShowEditor {
+function showEditor (message: ?Constants.Message): Constants.ShowEditor {
   return {payload: {message}, type: 'chat:showEditor'}
 }
 

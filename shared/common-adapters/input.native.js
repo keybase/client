@@ -53,7 +53,7 @@ class Input extends Component<void, Props, State> {
         height = maxHeight
       }
 
-      if (height !== this.state.height && this.state.value !== '') {
+      if (height !== this.state.height) {
         this.setState({height})
       }
     }
