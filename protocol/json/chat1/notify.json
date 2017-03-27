@@ -236,6 +236,13 @@
         {
           "name": "uid",
           "type": "keybase1.UID"
+        },
+        {
+          "name": "convIDs",
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          }
         }
       ],
       "response": null,

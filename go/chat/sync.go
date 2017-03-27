@@ -39,8 +39,10 @@ func (s *Syncer) getConvIDs(convs []chat1.Conversation) (res []chat1.Conversatio
 
 func (s *Syncer) SendChatStaleNotifications(uid gregor1.UID, convs []chat1.Conversation) {
 	kuid := keybase1.UID(uid.String())
-	s.G().NotifyRouter.HandleChatInboxStale(context.Background(), kuid)
-	s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid, s.getConvIDs(convs))
+
+	convIDs := s.getConvIDs(convs)
+	s.G().NotifyRouter.HandleChatInboxStale(context.Background(), kuid, convIDs)
+	s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid, convIDs)
 }
 
 func (s *Syncer) isServerInboxClear(ctx context.Context, inbox *storage.Inbox, srvVers int) bool {

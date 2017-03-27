@@ -1337,7 +1337,8 @@ export type NotifyChatChatIdentifyUpdateRpcParam = Exact<{
 }>
 
 export type NotifyChatChatInboxStaleRpcParam = Exact<{
-  uid: keybase1.UID
+  uid: keybase1.UID,
+  convIDs?: ?Array<ConversationID>
 }>
 
 export type NotifyChatChatTLFFinalizeRpcParam = Exact<{
@@ -2119,7 +2120,8 @@ export type incomingCallMapType = Exact<{
   ) => void,
   'keybase.1.NotifyChat.ChatInboxStale'?: (
     params: Exact<{
-      uid: keybase1.UID
+      uid: keybase1.UID,
+      convIDs?: ?Array<ConversationID>
     }> /* ,
     response: {} // Notify call
     */
