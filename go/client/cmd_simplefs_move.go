@@ -60,7 +60,7 @@ func (c *CmdSimpleFSMove) Run() error {
 
 	ctx := context.TODO()
 
-	destPaths, err := doSimpleFSGlob(c.G(), ctx, cli, c.src)
+	destPaths, err := doSimpleFSGlob(ctx, c.G(), cli, c.src)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (c *CmdSimpleFSMove) Run() error {
 	for _, src := range destPaths {
 		c.G().Log.Debug("SimpleFSMove %s -> %s, %v", pathToString(src), destPathString, isDestDir)
 
-		dest, err := makeDestPath(c.G(), ctx, cli, src, c.dest, isDestDir, destPathString)
+		dest, err := makeDestPath(ctx, c.G(), cli, src, c.dest, isDestDir, destPathString)
 
 		if err == ErrTargetFileExists {
 			if c.interactive == true {
