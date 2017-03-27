@@ -13,6 +13,7 @@ export type SettingsItem = {
 export type Props = {
   selectedTab: Tab,
   onTabChange: (tab: Tab) => void,
+  onLogout: () => void,
   badgeNumbers: {[key: Tab]: number},
 }
 
