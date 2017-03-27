@@ -231,7 +231,7 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	t.Log("Test that worker shutdown works.")
 	bg := newFakeBlockGetter(false)
-	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t, bg))
+	q := newBlockRetrievalQueue(0, newTestBlockRetrievalConfig(t, bg))
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
