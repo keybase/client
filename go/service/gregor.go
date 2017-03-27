@@ -562,8 +562,7 @@ func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.Disconnec
 	g.Debug(context.Background(), "disconnected: %v", status)
 
 	// Alert chat syncer that we are now disconnected
-<<<<<<< HEAD
-	g.chatSync.Disconnected(ctx)
+	g.G().Syncer.Disconnected(ctx)
 
 	// Call out to reachability module if we have one
 	if g.reachability != nil {
@@ -571,9 +570,6 @@ func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.Disconnec
 			Reachable: keybase1.Reachable_NO,
 		})
 	}
-=======
-	g.G().Syncer.Disconnected(ctx)
->>>>>>> wip
 }
 
 func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
