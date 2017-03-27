@@ -269,7 +269,7 @@ func (g *gregorHandler) SetPushStateFilter(f func(m gregor.Message) bool) {
 	g.pushStateFilter = f
 }
 
-func (g *gregorHandler) SetReachability(r *reachability) {
+func (g *gregorHandler) setReachability(r *reachability) {
 	g.reachability = r
 }
 

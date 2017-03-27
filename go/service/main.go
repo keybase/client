@@ -317,7 +317,7 @@ func (d *Service) startupGregor() {
 		// or we aren't logged in)
 		d.gregor = newGregorHandler(d.G())
 		d.reachability = newReachability(d.G(), d.gregor)
-		d.gregor.SetReachability(d.reachability)
+		d.gregor.setReachability(d.reachability)
 		d.gregor.badger = d.badger
 		d.G().GregorDismisser = d.gregor
 		d.G().GregorListener = d.gregor
