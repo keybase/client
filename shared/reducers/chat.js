@@ -1,7 +1,6 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
-import * as WindowConstants from '../constants/window'
 import {Set, List, Map} from 'immutable'
 import {ReachabilityReachable} from '../constants/types/flow-types'
 
@@ -454,7 +453,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       console.warn("couldn't find conversation to upgrade", oldKey)
       break
     }
-    case WindowConstants.changedFocus:
+    case 'app:changedFocus':
       return state.set('focused', action.payload)
     case 'chat:updateFinalizedState': {
       // $FlowIssue doesn't recognize updates

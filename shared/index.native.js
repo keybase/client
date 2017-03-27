@@ -6,7 +6,7 @@ import DumbChatOnly from './dev/chat-only.native'
 import Main from './main'
 import React, {Component} from 'react'
 import configureStore from './store/configure-store'
-import {AppRegistry, NativeAppEventEmitter, AsyncStorage} from 'react-native'
+import {AppRegistry, AppState, AsyncStorage, NativeAppEventEmitter} from 'react-native'
 import {Provider} from 'react-redux'
 import {makeEngine} from './engine'
 import {serializeRestore, serializeSave, timeTravel, timeTravelForward, timeTravelBack} from './constants/dev'
@@ -35,6 +35,7 @@ class Keybase extends Component {
     setupLocalDebug(this.store)
     this.store.dispatch(setRouteDef(routeDefs))
     makeEngine()
+    AppState.addEventListener('change', this._handleAppStateChange)
     this.subscriptions = []
     if (__DEV__) {
       global.devStore = this.store
@@ -57,7 +58,16 @@ class Keybase extends Component {
   }
 
   componentWillUnmount () {
+    AppState.removeEventListener('change', this._handleAppStateChange)
     this.subscriptions.forEach(s => s.remove())
+  }
+
+  _handleAppStateChange = (nextAppState: string) => {
+    if (nextAppState === 'active') {
+      this.store.dispatch({payload: true, type: 'app:changedFocus'})
+    } else if (nextAppState === 'inactive') {
+      this.store.dispatch({payload: false, type: 'app:changedFocus'})
+    }
   }
 
   render () {

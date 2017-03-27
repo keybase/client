@@ -14,7 +14,6 @@ import {NotifyPopup} from '../../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {badgeApp} from '../notifications'
 import {call, put, take, select, race, fork, join} from 'redux-saga/effects'
-import {changedFocus} from '../../constants/window'
 import {delay} from 'redux-saga'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, switchTo} from '../route-tree'
@@ -30,7 +29,7 @@ import {toDeviceType} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 
 import type {Action} from '../../constants/types/flux'
-import type {ChangedFocus} from '../../constants/window'
+import type {ChangedFocus} from '../../constants/app'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
 import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
@@ -904,7 +903,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     Saga.safeTakeEvery('chat:openAttachmentPopup', Attachment.onOpenAttachmentPopup),
     Saga.safeTakeLatest('chat:openFolder', _openFolder),
     Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat),
-    Saga.safeTakeEvery(changedFocus, _changedFocus),
+    Saga.safeTakeEvery('app:changedFocus', _changedFocus),
     Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage),
     Saga.safeTakeEvery('chat:openTlfInChat', _openTlfInChat),
     Saga.safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false),
