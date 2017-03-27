@@ -389,7 +389,7 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
       if (incoming.finished.params.offline) {
         yield put(Creators.threadLoadedOffline(conversationIDKey))
       }
-      yield put(Creators.setLoaded(conversationIDKey, !!incoming.finished.error)) // reset isLoaded on error
+      yield put(Creators.setLoaded(conversationIDKey, !incoming.finished.error)) // reset isLoaded on error
       break
     }
   }
