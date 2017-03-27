@@ -195,8 +195,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 			if pushErr != nil {
 				g.Debug(ctx, "chat activity: newMessage: push error, alerting")
 			}
-			kuid := keybase1.UID(m.UID().String())
-			g.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid,
+			NewSyncer(g.G()).SendChatStaleNotifications(context.Background(), m.UID().Bytes(),
 				[]chat1.ConversationID{nm.ConvID})
 		}
 

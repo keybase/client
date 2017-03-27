@@ -115,8 +115,8 @@ func TestSyncerConnected(t *testing.T) {
 	require.NoError(t, syncer.Sync(context.TODO(), ri, uid))
 	select {
 	case <-list.inboxStale:
+		require.Fail(t, "should not receive inbox stale")
 	default:
-		require.Fail(t, "no inbox stale received")
 	}
 	select {
 	case cids := <-list.threadsStale:
