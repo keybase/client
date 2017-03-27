@@ -101,7 +101,15 @@ func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, e
 		NetContext: ctx,
 	}, &psb)
 
+	// If there was an error (say if the API server was down), then don't busy
+	// loop, wait the pollWait amount of time before exiting.
 	if err != nil {
+		u.log.Debug("Error in poll; waiting for pollWait=%s time", pollWait)
+		select {
+		case <-time.After(pollWait):
+		case <-ctx.Done():
+			u.log.Debug("Wait short-circuited due to context cancelation")
+		}
 		return uids, err
 	}
 

@@ -274,16 +274,33 @@ func tailFile(log logger.Logger, which string, filename string, numBytes int) (r
 }
 
 // LogSend sends the the tails of log files to kb
-func (l *LogSendContext) LogSend(statusJSON string, numBytes int) (string, error) {
+func (l *LogSendContext) LogSend(statusJSON string, sendLogs bool, numBytes int) (string, error) {
 	logs := l.Logs
+	var kbfsLog string
+	var svcLog string
+	var desktopLog string
+	var updaterLog string
+	var startLog string
+	var installLog string
+	var systemLog string
 
-	kbfsLog := tail(l.G().Log, "kbfs", logs.Kbfs, numBytes)
-	svcLog := tail(l.G().Log, "service", logs.Service, numBytes)
-	desktopLog := tail(l.G().Log, "desktop", logs.Desktop, numBytes)
-	updaterLog := tail(l.G().Log, "updater", logs.Updater, numBytes)
-	startLog := tail(l.G().Log, "start", logs.Start, numBytes)
-	installLog := tail(l.G().Log, "install", logs.Install, numBytes)
-	systemLog := tail(l.G().Log, "system", logs.System, numBytes)
+	if sendLogs {
+		kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes)
+		svcLog = tail(l.G().Log, "service", logs.Service, numBytes)
+		desktopLog = tail(l.G().Log, "desktop", logs.Desktop, numBytes)
+		updaterLog = tail(l.G().Log, "updater", logs.Updater, numBytes)
+		startLog = tail(l.G().Log, "start", logs.Start, numBytes)
+		installLog = tail(l.G().Log, "install", logs.Install, numBytes)
+		systemLog = tail(l.G().Log, "system", logs.System, numBytes)
+	} else {
+		kbfsLog = ""
+		svcLog = ""
+		desktopLog = ""
+		updaterLog = ""
+		startLog = ""
+		installLog = ""
+		systemLog = ""
+	}
 
 	return l.post(statusJSON, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog)
 }

@@ -16,13 +16,11 @@ import (
 
 func setupInboxTest(t testing.TB, name string) (libkb.TestContext, *Inbox, gregor1.UID) {
 	tc := externals.SetupTest(t, name, 2)
+	tc.G.ServerCacheVersions = NewServerVersions(tc.G)
 	u, err := kbtest.CreateAndSignupFakeUser("ib", tc.G)
 	require.NoError(t, err)
-	f := func() libkb.SecretUI {
-		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
-	}
 	uid := gregor1.UID(u.User.GetUID().ToBytes())
-	return tc, NewInbox(tc.G, uid, f), uid
+	return tc, NewInbox(tc.G, uid), uid
 }
 
 func makeTlfID() chat1.TLFID {
@@ -557,4 +555,35 @@ func TestInboxSync(t *testing.T) {
 	require.Equal(t, chat1.ConversationStatus_MUTED, newRes[6].Metadata.Status)
 	require.Equal(t, chat1.ConversationStatus_UNFILED, newRes[3].Metadata.Status)
 	require.Equal(t, len(res), len(newRes))
+}
+
+func TestInboxServerVersion(t *testing.T) {
+	tc, inbox, _ := setupInboxTest(t, "basic")
+
+	// Create an inbox with a bunch of convos, merge it and read it back out
+	numConvs := 10
+	var convs []chat1.Conversation
+	for i := numConvs - 1; i >= 0; i-- {
+		convs = append(convs, makeConvo(gregor1.Time(i), 1, 1))
+	}
+
+	require.NoError(t, inbox.Merge(context.TODO(), 1, convs, nil, nil))
+	_, res, _, err := inbox.Read(context.TODO(), nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, numConvs, len(res))
+
+	// Increase server version
+	cerr := tc.G.ServerCacheVersions.Set(context.TODO(), chat1.ServerCacheVers{
+		InboxVers: 5,
+	})
+	require.NoError(t, cerr)
+
+	_, res, _, err = inbox.Read(context.TODO(), nil, nil)
+	require.Error(t, err)
+	require.IsType(t, MissError{}, err)
+
+	require.NoError(t, inbox.Merge(context.TODO(), 1, convs, nil, nil))
+	idata, err := inbox.readDiskInbox(context.TODO())
+	require.NoError(t, err)
+	require.Equal(t, 5, idata.ServerVersion)
 }

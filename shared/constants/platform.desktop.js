@@ -131,6 +131,8 @@ const socketPath = findSocketDialPath()
 const dataRoot = findDataRoot()
 const cacheRoot = findCacheRoot()
 
+const version = 'TODO'
+
 export {
   cacheRoot,
   dataRoot,
@@ -146,4 +148,5 @@ export {
   jsonDebugFileName,
   runMode,
   socketPath,
+  version,
 }

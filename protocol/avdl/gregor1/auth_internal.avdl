@@ -2,5 +2,5 @@
 
 // only calls from gregor to authd
 protocol authInternal {
-	SessionToken createGregorSuperUserSessionToken();
+  SessionToken createGregorSuperUserSessionToken();
 }

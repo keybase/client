@@ -48,7 +48,6 @@ class MultiAvatar extends Component<void, Props, void> {
 
 const containerStyle = {
   position: 'relative',
-  width: 32,
 }
 
 const leftAvatar = {

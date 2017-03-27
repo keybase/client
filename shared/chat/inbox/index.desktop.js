@@ -122,7 +122,7 @@ const _Row = (props: RowProps) => {
         participants={props.participants}
         youNeedToRekey={props.youNeedToRekey}
       />
-      <div style={{...globalStyles.flexBoxColumn, ...conversationRowStyle, borderBottom: (!props.isSelected && !props.hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
+      <div style={{...globalStyles.flexBoxColumn, ...conversationRowStyle, borderBottom: !props.isSelected ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
         <TopLine
           hasUnread={props.hasUnread}
           participants={props.participants}

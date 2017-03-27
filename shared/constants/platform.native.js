@@ -1,5 +1,9 @@
 // @flow
-import {Platform} from 'react-native'
+import {Platform, NativeModules} from 'react-native'
+// Modules from the native part of the code. Differently named on android/ios
+const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
+const version = nativeBridge.version
+
 const runMode = 'prod'
 const isIOS = Platform.OS === 'ios'
 const isAndroid = !isIOS
@@ -21,4 +25,5 @@ export {
   isMobile,
   isWindows,
   runMode,
+  version,
 }

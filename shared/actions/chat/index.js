@@ -151,9 +151,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
         } else {
           // How long was it between the previous message and this one?
           if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
-            const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
-
-            const timestamp = Shared.maybeAddTimestamp(message, prevMessage)
+            const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages, conversationState.messages.size - 1)
             if (timestamp !== null) {
               yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, [timestamp]))
             }
@@ -215,7 +213,9 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({convIDs}) => {
-      dispatch(Creators.markThreadsStale(convIDs.map(Constants.conversationIDToKey)))
+      if (convIDs) {
+        dispatch(Creators.markThreadsStale(convIDs.map(Constants.conversationIDToKey)))
+      }
     })
   })
 }
@@ -319,7 +319,7 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
     let newMessages = []
     messages.forEach((message, idx) => {
       if (idx > 0) {
-        const timestamp = Shared.maybeAddTimestamp(messages[idx], messages[idx - 1])
+        const timestamp = Shared.maybeAddTimestamp(messages[idx], messages, idx - 1)
         if (timestamp !== null) {
           newMessages.push(timestamp)
         }
