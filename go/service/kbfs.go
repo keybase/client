@@ -92,7 +92,7 @@ func (h *KBFSHandler) notifyConversation(uid keybase1.UID, filename string, publ
 	}
 
 	h.G().Log.Debug("sending ChatThreadsStale notification (conversations: %d)", len(convIDs))
-	chat.NewSyncer(h.G()).SendChatStaleNotifications(context.Background(), uid.ToBytes(), convIDs)
+	h.G().Syncer.SendChatStaleNotifications(context.Background(), uid.ToBytes(), convIDs, false)
 }
 
 func (h *KBFSHandler) conversationIDs(uid keybase1.UID, tlf string, public bool) ([]chat1.ConversationID, error) {

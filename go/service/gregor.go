@@ -118,7 +118,6 @@ type gregorHandler struct {
 	firehoseHandlers []libkb.GregorFirehoseHandler
 	badger           *badges.Badger
 	chatHandler      *chat.PushHandler
-	chatSync         *chat.Syncer
 	reachability     *reachability
 
 	// This mutex protects the con object
@@ -175,15 +174,9 @@ func newGregorHandler(g *libkb.GlobalContext) *gregorHandler {
 		freshReplay:     true,
 		pushStateFilter: func(m gregor.Message) bool { return true },
 		badger:          nil,
-		chatSync:        chat.NewSyncer(g),
 		chatHandler:     chat.NewPushHandler(g),
 		broadcastCh:     make(chan gregor1.Message, 10000),
 	}
-
-	// Set up Offlinables on Syncer
-	gh.chatSync.RegisterOfflinable(g.InboxSource)
-	gh.chatSync.RegisterOfflinable(g.ConvSource)
-	gh.chatSync.RegisterOfflinable(g.MessageDeliverer)
 
 	// Attempt to create a gregor client initially, if we are not logged in
 	// or don't have user/device info in G, then this won't work
@@ -518,7 +511,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	if err == nil {
 		chatCli := chat1.RemoteClient{Cli: cli}
 		uid := gcli.User.(gregor1.UID)
-		if err := g.chatSync.Connected(ctx, chatCli, uid); err != nil {
+		if err := g.G().Syncer.Connected(ctx, chatCli, uid); err != nil {
 			return err
 		}
 	}
@@ -569,6 +562,7 @@ func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.Disconnec
 	g.Debug(context.Background(), "disconnected: %v", status)
 
 	// Alert chat syncer that we are now disconnected
+<<<<<<< HEAD
 	g.chatSync.Disconnected(ctx)
 
 	// Call out to reachability module if we have one
@@ -577,6 +571,9 @@ func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.Disconnec
 			Reachable: keybase1.Reachable_NO,
 		})
 	}
+=======
+	g.G().Syncer.Disconnected(ctx)
+>>>>>>> wip
 }
 
 func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
