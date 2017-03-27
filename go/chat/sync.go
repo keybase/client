@@ -93,7 +93,7 @@ func (s *Syncer) sendNotificationLoop() {
 			kuid := keybase1.UID(uid.String())
 			s.G().NotifyRouter.HandleChatInboxStale(context.Background(), kuid)
 			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid, nil)
-			s.notificationQueue = make(map[string][]chat1.ConversationID)
+			s.notificationQueue[uid.String()] = nil
 			s.notificationLock.Unlock()
 		case <-s.clock.After(s.sendDelay):
 			s.sendNotificationsOnce()
