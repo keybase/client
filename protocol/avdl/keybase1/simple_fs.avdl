@@ -217,6 +217,11 @@ protocol SimpleFS {
   void simpleFSClose(OpID opID);
 
   /**
+   Cancels a running operation, like copy.
+   */
+  void simpleFSCancel(OpID opID);
+
+  /**
    Check progress of pending operation
    */
   Progress simpleFSCheck(OpID opID);

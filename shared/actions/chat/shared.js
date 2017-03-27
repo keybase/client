@@ -1,10 +1,11 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import {findLast} from 'lodash'
 import {Map} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
-import {getInboxAndUnbox} from './inbox'
+import {unboxConversations} from './inbox'
 import {pendingToRealConversation, replaceConversation, selectConversation} from './creators'
 import {usernameSelector} from '../../constants/selectors'
 
@@ -142,7 +143,7 @@ function * startNewConversation (oldConversationIDKey: Constants.ConversationIDK
     yield put(selectConversation(newConversationIDKey, false))
   }
   // Load the inbox so we can post, we wait till this is done
-  yield call(getInboxAndUnbox, {payload: {conversationIDKey: newConversationIDKey}, type: 'chat:getInboxAndUnbox'})
+  yield call(unboxConversations, [newConversationIDKey])
   return newConversationIDKey
 }
 
@@ -170,30 +171,33 @@ function _filterTimestampableMessage (message: Constants.Message): ?Timestampabl
     return message
   }
 
-  if (message === null || message.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type)) {
-    return null
-  }
-
-  if (!message.timestamp) {
-    return null
-  }
+  if (!_isTimestampableMessage(message)) return null
 
   // $FlowIssue with casting todo(mm) can we fix this?
   return message
 }
 
-function maybeAddTimestamp (_message: Constants.Message, _prevMessage: Constants.Message): Constants.MaybeTimestamp {
-  const prevMessage = _filterTimestampableMessage(_prevMessage)
+function _isTimestampableMessage (message: Constants.Message): boolean {
+  return (!!message && !!message.timestamp && !['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type))
+}
+
+function _previousTimestampableMessage (messages: Array<Constants.Message>, prevIndex: number): ?Constants.Message {
+  return findLast(messages, message => _isTimestampableMessage(message) ? message : null, prevIndex)
+}
+
+function maybeAddTimestamp (_message: Constants.Message, messages: Array<Constants.Message>, prevIndex: number): Constants.MaybeTimestamp {
+  const prevMessage = _previousTimestampableMessage(messages, prevIndex)
   const message = _filterTimestampableMessage(_message)
   if (!message || !prevMessage) return null
 
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
   // the first message, as well as between any two messages with long duration.
+  // $FlowIssue with casting todo(mm) can we fix this?
   if (prevMessage.messageID === 1 || message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
     return {
-      type: 'Timestamp',
-      timestamp: message.timestamp,
       key: Constants.messageKey('timestamp', message.timestamp),
+      timestamp: message.timestamp,
+      type: 'Timestamp',
     }
   }
   return null

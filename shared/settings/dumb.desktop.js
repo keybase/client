@@ -230,6 +230,7 @@ const settingsNavBase = {
   children: fillerContent,
   selectedTab: landingTab,
   onTabChange: tab => { console.log('onTabChange', tab) },
+  onLogout: () => {},
   showComingSoon: false,
 }
 

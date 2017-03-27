@@ -37,10 +37,25 @@ func (s *Syncer) getConvIDs(convs []chat1.Conversation) (res []chat1.Conversatio
 	return res
 }
 
-func (s *Syncer) SendChatStaleNotifications(uid gregor1.UID, convs []chat1.Conversation) {
+func (s *Syncer) SendChatStaleNotifications(ctx context.Context, uid gregor1.UID,
+	convIDs []chat1.ConversationID) {
+
 	kuid := keybase1.UID(uid.String())
-	s.G().NotifyRouter.HandleChatInboxStale(context.Background(), kuid)
-	s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid, s.getConvIDs(convs))
+	if len(convIDs) == 0 {
+		s.Debug(ctx, "sending inbox stale message")
+		s.G().NotifyRouter.HandleChatInboxStale(context.Background(), kuid)
+	}
+	s.Debug(ctx, "sending threads stale message: len: %d", len(convIDs))
+	s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid, convIDs)
+}
+
+func (s *Syncer) isServerInboxClear(ctx context.Context, inbox *storage.Inbox, srvVers int) bool {
+	if _, err := s.G().ServerCacheVersions.MatchInbox(ctx, srvVers); err != nil {
+		s.Debug(ctx, "isServerInboxClear: inbox server version match error: %s", err.Error())
+		return true
+	}
+
+	return false
 }
 
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) (err error) {
@@ -87,29 +102,43 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 	}
 
 	// Grab current on disk version
-	ibox := storage.NewInbox(s.G(), uid, func() libkb.SecretUI {
-		return DelivererSecretUI{}
-	})
+	ibox := storage.NewInbox(s.G(), uid)
+	var syncRes chat1.SyncChatRes
 	vers, err := ibox.Version(ctx)
 	if err != nil {
 		s.Debug(ctx, "Sync: failed to get current inbox version (using 0): %s", err.Error())
 		vers = chat1.InboxVers(0)
 	}
-	s.Debug(ctx, "Sync: current inbox version: %v", vers)
+	srvVers, err := ibox.ServerVersion(ctx)
+	if err != nil {
+		s.Debug(ctx, "Sync: failed to get current inbox server version (using 0): %s", err.Error())
+		srvVers = 0
+	}
+	s.Debug(ctx, "Sync: current inbox version: %v server version: %d", vers, srvVers)
 
 	// Run the sync call on the server to see how current our local copy is
-	var syncRes chat1.SyncInboxRes
-	if syncRes, err = cli.SyncInbox(ctx, vers); err != nil {
+
+	if syncRes, err = cli.SyncChat(ctx, vers); err != nil {
 		s.Debug(ctx, "Sync: failed to sync inbox: %s", err.Error())
 		return err
 	}
 
+	// Set new server versions
+	if err = s.G().ServerCacheVersions.Set(ctx, syncRes.CacheVers); err != nil {
+		s.Debug(ctx, "Connected: failed to set new server versions: %s", err.Error())
+	}
+
 	// Process what the server has told us to do with the local inbox copy
-	rtyp, err := syncRes.Typ()
+	rtyp, err := syncRes.InboxRes.Typ()
 	if err != nil {
 		s.Debug(ctx, "Sync: strange type from SyncInbox: %s", err.Error())
 		return err
 	}
+	// Check if the server has cleared the inbox
+	if s.isServerInboxClear(ctx, ibox, srvVers) {
+		rtyp = chat1.SyncInboxResType_CLEAR
+	}
+
 	switch rtyp {
 	case chat1.SyncInboxResType_CLEAR:
 		s.Debug(ctx, "Sync: version out of date, clearing inbox: %v", vers)
@@ -117,11 +146,11 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.Debug(ctx, "Sync: failed to clear inbox: %s", err.Error())
 		}
 		// Send notifications for a full clear
-		s.SendChatStaleNotifications(uid, nil)
+		s.SendChatStaleNotifications(ctx, uid, nil)
 	case chat1.SyncInboxResType_CURRENT:
 		s.Debug(ctx, "Sync: version is current, standing pat: %v", vers)
 	case chat1.SyncInboxResType_INCREMENTAL:
-		incr := syncRes.Incremental()
+		incr := syncRes.InboxRes.Incremental()
 		s.Debug(ctx, "Sync: version out of date, but can incrementally sync: old vers: %v vers: %v convs: %d",
 			vers, incr.Vers, len(incr.Convs))
 
@@ -129,10 +158,10 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.Debug(ctx, "Sync: failed to sync conversations to inbox: %s", err.Error())
 
 			// Send notifications for a full clear
-			s.SendChatStaleNotifications(uid, nil)
+			s.SendChatStaleNotifications(ctx, uid, nil)
 		} else {
 			// Send notifications for a successful partial sync
-			s.SendChatStaleNotifications(uid, incr.Convs)
+			s.SendChatStaleNotifications(ctx, uid, s.getConvIDs(incr.Convs))
 		}
 	}
 

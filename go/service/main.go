@@ -39,7 +39,6 @@ type Service struct {
 	gregor               *gregorHandler
 	rekeyMaster          *rekeyMaster
 	attachmentstore      *chat.AttachmentStore
-	messageDeliverer     *chat.Deliverer
 	badger               *badges.Badger
 	reachability         *reachability
 	backgroundIdentifier *BackgroundIdentifier
@@ -59,7 +58,6 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		rekeyMaster:     newRekeyMaster(g),
 		attachmentstore: chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
 		badger:          badges.NewBadger(g),
-		reachability:    newReachability(g),
 	}
 }
 
@@ -250,10 +248,9 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 
 func (d *Service) createMessageDeliverer() {
 	ri := d.chatRemoteClient
-	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
 	tlf := chat.NewKBFSTLFInfoSource(d.G())
 
-	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), d.attachmentstore, ri, si)
+	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), d.attachmentstore, ri)
 	d.G().MessageDeliverer = chat.NewDeliverer(d.G(), sender)
 }
 
@@ -266,14 +263,15 @@ func (d *Service) startMessageDeliverer() {
 
 func (d *Service) createChatSources() {
 	ri := d.chatRemoteClient
-	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
 	tlf := chat.NewKBFSTLFInfoSource(d.G())
 
 	boxer := chat.NewBoxer(d.G(), tlf)
-	d.G().InboxSource = chat.NewInboxSource(d.G(), d.G().Env.GetInboxSourceType(), ri, si, tlf)
+	d.G().InboxSource = chat.NewInboxSource(d.G(), d.G().Env.GetInboxSourceType(), ri, tlf)
 
 	d.G().ConvSource = chat.NewConversationSource(d.G(), d.G().Env.GetConvSourceType(),
-		boxer, storage.New(d.G(), si), ri, si)
+		boxer, storage.New(d.G()), ri)
+
+	d.G().ServerCacheVersions = storage.NewServerVersions(d.G())
 
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh
@@ -317,11 +315,9 @@ func (d *Service) startupGregor() {
 		// Create gregorHandler instance first so any handlers can connect
 		// to it before we actually connect to gregor (either gregor is down
 		// or we aren't logged in)
-		var err error
-		if d.gregor, err = newGregorHandler(d.G()); err != nil {
-			d.G().Log.Warning("failed to create push service handler: %s", err)
-			return
-		}
+		d.gregor = newGregorHandler(d.G())
+		d.reachability = newReachability(d.G(), d.gregor)
+		d.gregor.setReachability(d.reachability)
 		d.gregor.badger = d.badger
 		d.G().GregorDismisser = d.gregor
 		d.G().GregorListener = d.gregor
@@ -472,9 +468,7 @@ func (d *Service) OnLogout() (err error) {
 	}
 
 	log("shutting down message deliverer")
-	if d.messageDeliverer != nil {
-		d.messageDeliverer.Stop(context.Background())
-	}
+	d.G().MessageDeliverer.Stop(context.Background())
 
 	log("shutting down rekeyMaster")
 	d.rekeyMaster.Logout()

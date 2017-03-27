@@ -1,20 +1,17 @@
 // @flow
-import React, {Component} from 'react'
-import {ComingSoon} from '../common-adapters'
+import React from 'react'
+import SettingsNav from './nav'
+import {Box} from '../common-adapters'
+import {globalStyles} from '../styles'
+
 import type {Props} from './render'
 
-class SettingsRender extends Component<void, Props, void> {
-  _renderComingSoon () {
-    return <ComingSoon />
-  }
-
-  render () {
-    if (this.props.showComingSoon) {
-      return this._renderComingSoon()
-    }
-
-    return null
-  }
+function SettingsRender (props: Props) {
+  return (
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+      <SettingsNav badgeNumbers={props.badgeNumbers} selectedTab={props.selectedTab} onTabChange={props.onTabChange} onLogout={props.onLogout} />
+    </Box>
+  )
 }
 
 export default SettingsRender

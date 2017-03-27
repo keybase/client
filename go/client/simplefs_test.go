@@ -132,6 +132,11 @@ func (s SimpleFSMock) SimpleFSClose(ctx context.Context, arg keybase1.OpID) erro
 	return nil
 }
 
+// SimpleFSCancel - Cancels a running operation, like copy.
+func (s SimpleFSMock) SimpleFSCancel(ctx context.Context, arg keybase1.OpID) error {
+	return nil
+}
+
 // SimpleFSCheck - Check progress of pending operation
 func (s SimpleFSMock) SimpleFSCheck(ctx context.Context, arg keybase1.OpID) (keybase1.Progress, error) {
 	return 0, nil
@@ -337,7 +342,7 @@ func TestSimpleFSLocalSrcDir(t *testing.T) {
 		true,
 		"/public/foobar")
 	assert.Equal(tc.T, filepath.ToSlash(filepath.Join("/public/foobar", filepath.Base(tempdir))), destPath.Kbfs())
-	assert.Equal(tc.T, err, TargetFileExistsError, "Expected that remote target path exists because of SimpleFSMock")
+	assert.Equal(tc.T, err, ErrTargetFileExists, "Expected that remote target path exists because of SimpleFSMock")
 	//	require.NoError(tc.T, err, "bad path type")
 
 	pathType, err := destPath.PathType()

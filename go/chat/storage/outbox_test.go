@@ -20,12 +20,9 @@ func setupOutboxTest(t testing.TB, name string) (libkb.TestContext, *Outbox, gre
 	tc := externals.SetupTest(t, name, 2)
 	u, err := kbtest.CreateAndSignupFakeUser("ob", tc.G)
 	require.NoError(t, err)
-	f := func() libkb.SecretUI {
-		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
-	}
 	uid := gregor1.UID(u.User.GetUID().ToBytes())
 	cl := clockwork.NewFakeClock()
-	ob := NewOutbox(tc.G, uid, f)
+	ob := NewOutbox(tc.G, uid)
 	ob.SetClock(cl)
 	return tc, ob, uid, cl
 }

@@ -21,7 +21,10 @@ type CmdSimpleFSMove struct {
 	dest        keybase1.Path
 	interactive bool
 	force       bool
+	opCanceler  *OpCanceler
 }
+
+var _ Canceler = (*CmdSimpleFSMove)(nil)
 
 // NewCmdSimpleFSMove creates a new cli.Command.
 func NewCmdSimpleFSMove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -30,7 +33,10 @@ func NewCmdSimpleFSMove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		ArgumentHelp: "<source> [source] <dest>",
 		Usage:        "move one or more directory elements to dest",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdSimpleFSMove{Contextified: libkb.NewContextified(g)}, "mv", c)
+			cl.ChooseCommand(&CmdSimpleFSMove{
+				Contextified: libkb.NewContextified(g),
+				opCanceler:   NewOpCanceler(g),
+			}, "mv", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
@@ -54,22 +60,20 @@ func (c *CmdSimpleFSMove) Run() error {
 
 	ctx := context.TODO()
 
-	isDestDir, destPathString, err := checkPathIsDir(ctx, cli, c.dest)
-	if err != nil {
-		return err
-	}
-
 	destPaths, err := doSimpleFSGlob(c.G(), ctx, cli, c.src)
 	if err != nil {
 		return err
 	}
+
+	// Eat the error because it's ok here if the dest doesn't exist
+	isDestDir, destPathString, _ := checkPathIsDir(ctx, cli, c.dest)
 
 	for _, src := range destPaths {
 		c.G().Log.Debug("SimpleFSMove %s -> %s, %v", pathToString(src), destPathString, isDestDir)
 
 		dest, err := makeDestPath(c.G(), ctx, cli, src, c.dest, isDestDir, destPathString)
 
-		if err == TargetFileExistsError {
+		if err == ErrTargetFileExists {
 			if c.interactive == true {
 				err = doOverwritePrompt(c.G(), pathToString(dest))
 			} else if c.force == true {
@@ -82,10 +86,17 @@ func (c *CmdSimpleFSMove) Run() error {
 		}
 		c.G().Log.Debug("SimpleFSMove %s -> %s", pathToString(src), pathToString(dest))
 
+		// Don't spawn new jobs if we've been cancelled.
+		// TODO: This is still a race condition, if we get cancelled immediately after.
+		if c.opCanceler.IsCancelled() {
+			break
+		}
+
 		opid, err := cli.SimpleFSMakeOpid(ctx)
 		if err != nil {
 			return err
 		}
+		c.opCanceler.AddOp(opid)
 		defer cli.SimpleFSClose(ctx, opid)
 
 		err = cli.SimpleFSMove(ctx, keybase1.SimpleFSMoveArg{
@@ -125,4 +136,8 @@ func (c *CmdSimpleFSMove) GetUsage() libkb.Usage {
 		KbKeyring: true,
 		API:       true,
 	}
+}
+
+func (c *CmdSimpleFSMove) Cancel() error {
+	return c.opCanceler.Cancel()
 }

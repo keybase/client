@@ -406,6 +406,7 @@ type UIRouter interface {
 	// These are allowed to return nil for the UI even if
 	// error is nil.
 	GetIdentifyUI() (IdentifyUI, error)
+	GetIdentifyUICtx(ctx context.Context) (int, IdentifyUI, error)
 	GetSecretUI(sessionID int) (SecretUI, error)
 	GetRekeyUI() (keybase1.RekeyUIInterface, int, error)
 	GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error)
