@@ -113,7 +113,7 @@ class ConversationInput extends Component<void, Props, State> {
       <Box style={styleContainer}>
         <Input
           autoCorrect={true}
-          autoFocus={true}
+          autoFocus={false}
           hideUnderline={true}
           hintText='Write a message'
           inputStyle={styleInputText}
