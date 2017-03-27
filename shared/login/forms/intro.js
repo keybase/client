@@ -6,6 +6,7 @@ import {loginTab} from '../../constants/tabs'
 import {navigateTo} from '../../actions/route-tree'
 import {retryBootstrap} from '../../actions/config'
 import {setRevokedSelf, setDeletedSelf, setLoginFromRevokedDevice, login} from '../../actions/login'
+import {requestAutoInvite} from '../../actions/signup'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -36,7 +37,7 @@ export default connect(
       dispatch(setLoginFromRevokedDevice(''))
       dispatch(setRevokedSelf(''))
       dispatch(setDeletedSelf(''))
-      dispatch(navigateTo([loginTab, 'signup']))
+      dispatch(requestAutoInvite())
     },
     onLogin: () => {
       dispatch(setLoginFromRevokedDevice(''))
