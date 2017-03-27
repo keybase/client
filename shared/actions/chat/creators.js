@@ -324,6 +324,10 @@ function openAttachmentPopup (message: Constants.AttachmentMessage): Constants.O
   return {payload: {message}, type: 'chat:openAttachmentPopup'}
 }
 
+function setInitialConversation (conversationIDKey: ?Constants.ConversationIDKey): Constants.SetInitialConversation {
+  return {payload: {conversationIDKey}, type: 'chat:setInitialConversation'}
+}
+
 function threadLoadedOffline (conversationIDKey: Constants.ConversationIDKey): Constants.ThreadLoadedOffline {
   return {payload: {conversationIDKey}, type: 'chat:threadLoadedOffline'}
 }
@@ -367,6 +371,7 @@ export {
   retryMessage,
   selectAttachment,
   selectConversation,
+  setInitialConversation,
   setLoaded,
   setUnboxing,
   setupChatHandlers,

@@ -1,11 +1,14 @@
 // @flow
+//
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
 import {List, Map} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select, race, fork} from 'redux-saga/effects'
+import {chatTab} from '../../constants/tabs'
 import {delay} from 'redux-saga'
+import {navigateTo} from '../route-tree'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {requestIdleCallback} from '../../util/idle-callback'
 import {singleFixedChannelConfig, takeFromChannelMap} from '../../util/saga'
@@ -121,6 +124,12 @@ function * onInboxStale (): SagaGenerator<any, any> {
 
   yield put(Creators.loadedInbox(conversations))
   chatInboxUnverified.response.result()
+
+  const initialConversation = yield select(state => state.chat.get('initialConversation'))
+  if (initialConversation) {
+    yield put(Creators.setInitialConversation(null))
+    yield put(navigateTo([initialConversation], [chatTab]))
+  }
 }
 
 function * onGetInboxAndUnbox ({payload: {conversationIDKeys}}: Constants.GetInboxAndUnbox): SagaGenerator<any, any> {
