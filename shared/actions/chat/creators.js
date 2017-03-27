@@ -184,8 +184,8 @@ function appendMessages (conversationIDKey: Constants.ConversationIDKey, isSelec
   return {logTransformer: appendMessageActionTransformer, payload: {conversationIDKey, isSelected, messages}, type: 'chat:appendMessages'}
 }
 
-function getInboxAndUnbox (conversationIDKey: Constants.ConversationIDKey): Constants.GetInboxAndUnbox {
-  return {payload: {conversationIDKey}, type: 'chat:getInboxAndUnbox'}
+function getInboxAndUnbox (conversationIDKeys: Array<Constants.ConversationIDKey>): Constants.GetInboxAndUnbox {
+  return {payload: {conversationIDKeys}, type: 'chat:getInboxAndUnbox'}
 }
 
 function clearMessages (conversationIDKey: Constants.ConversationIDKey): Constants.ClearMessages {
@@ -284,6 +284,14 @@ function updateTempMessage (conversationIDKey: Constants.ConversationIDKey, mess
   }
 }
 
+function untrustedInboxVisible (conversationIDKey: Constants.ConversationIDKey, rowsVisible: number): Constants.UntrustedInboxVisible {
+  return {payload: {conversationIDKey, rowsVisible}, type: 'chat:untrustedInboxVisible'}
+}
+
+function setUnboxing (conversationIDKeys: Array<Constants.ConversationIDKey>): Constants.SetUnboxing {
+  return {payload: {conversationIDKeys}, type: 'chat:setUnboxing'}
+}
+
 function clearRekey (conversationIDKey: Constants.ConversationIDKey): Constants.ClearRekey {
   return {payload: {conversationIDKey}, type: 'chat:clearRekey'}
 }
@@ -360,9 +368,11 @@ export {
   selectAttachment,
   selectConversation,
   setLoaded,
+  setUnboxing,
   setupChatHandlers,
   showEditor,
   startConversation,
+  untrustedInboxVisible,
   threadLoadedOffline,
   updateBadging,
   updateBrokenTracker,
