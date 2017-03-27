@@ -15,10 +15,7 @@ import routeDefs from './routes'
 import {setRouteDef} from './actions/route-tree'
 import {setupSource} from './util/forward-logs'
 
-debugger
-
 module.hot && module.hot.accept(() => {
-debugger
   console.log('accepted update in shared/index.native')
   if (global.store) {
     // We use global.devStore because module scope variables seem to be cleared
@@ -33,7 +30,6 @@ class Keybase extends Component {
 
   constructor (props: any) {
     super(props)
-debugger
 
     if (!global.keybaseLoaded) {
       global.keybaseLoaded = true
@@ -68,7 +64,6 @@ debugger
 }
 
 function load () {
-  debugger
   AppRegistry.registerComponent('Keybase', () => Keybase)
 }
 
