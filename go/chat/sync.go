@@ -37,10 +37,16 @@ func (s *Syncer) getConvIDs(convs []chat1.Conversation) (res []chat1.Conversatio
 	return res
 }
 
-func (s *Syncer) SendChatStaleNotifications(uid gregor1.UID, convs []chat1.Conversation) {
+func (s *Syncer) SendChatStaleNotifications(ctx context.Context, uid gregor1.UID,
+	convIDs []chat1.ConversationID) {
+
 	kuid := keybase1.UID(uid.String())
-	s.G().NotifyRouter.HandleChatInboxStale(context.Background(), kuid)
-	s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid, s.getConvIDs(convs))
+	if len(convIDs) == 0 {
+		s.Debug(ctx, "sending inbox stale message")
+		s.G().NotifyRouter.HandleChatInboxStale(context.Background(), kuid)
+	}
+	s.Debug(ctx, "sending threads stale message: len: %d", len(convIDs))
+	s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid, convIDs)
 }
 
 func (s *Syncer) isServerInboxClear(ctx context.Context, inbox *storage.Inbox, srvVers int) bool {
@@ -140,7 +146,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.Debug(ctx, "Sync: failed to clear inbox: %s", err.Error())
 		}
 		// Send notifications for a full clear
-		s.SendChatStaleNotifications(uid, nil)
+		s.SendChatStaleNotifications(ctx, uid, nil)
 	case chat1.SyncInboxResType_CURRENT:
 		s.Debug(ctx, "Sync: version is current, standing pat: %v", vers)
 	case chat1.SyncInboxResType_INCREMENTAL:
@@ -152,10 +158,10 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.Debug(ctx, "Sync: failed to sync conversations to inbox: %s", err.Error())
 
 			// Send notifications for a full clear
-			s.SendChatStaleNotifications(uid, nil)
+			s.SendChatStaleNotifications(ctx, uid, nil)
 		} else {
 			// Send notifications for a successful partial sync
-			s.SendChatStaleNotifications(uid, incr.Convs)
+			s.SendChatStaleNotifications(ctx, uid, s.getConvIDs(incr.Convs))
 		}
 	}
 
