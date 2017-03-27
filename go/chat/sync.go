@@ -43,7 +43,7 @@ func NewSyncer(g *libkb.GlobalContext) *Syncer {
 		fullReloadCh:      make(chan gregor1.UID),
 		flushCh:           make(chan struct{}),
 		notificationQueue: make(map[string][]chat1.ConversationID),
-		sendDelay:         time.Millisecond * 200,
+		sendDelay:         time.Millisecond * 1000,
 	}
 
 	go s.sendNotificationLoop()
