@@ -806,7 +806,7 @@ function * _badgeAppForChat (action: Constants.BadgeAppForChat): SagaGenerator<a
     const selected = (Constants.conversationIDToKey(conv.get('convID')) === selectedConversationIDKey)
     const addThisConv = (unread && (!selected || !windowFocused))
     // Desktop shows number of thread unread. Mobile shows number of messages unread
-    const toAdd = isMobile ? unread : 1
+    const toAdd = isMobile ? conv.get('UnreadMessages') : 1
     return addThisConv ? acc + toAdd : acc
   }, 0)
   yield put(badgeApp('chatInbox', newConversations > 0, newConversations))

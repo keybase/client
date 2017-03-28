@@ -40,7 +40,6 @@ if (__DEV__ && true) {
   config.enableStoreLogging = true
   config.forwardLogs = false
   config.immediateStateLogging = false
-  config.overrideLoggedInTab = Tabs.settingsTab
   config.printOutstandingRPCs = true
   config.printRPC = true
   config.printRoutes = true
