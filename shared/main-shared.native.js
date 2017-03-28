@@ -15,7 +15,6 @@ import {listenForNotifications} from './actions/notifications'
 import {persistRouteState, loadRouteState} from './actions/platform-specific.native'
 import {setRouteState} from './actions/route-tree'
 
-// TODO type this later
 type Props = {
   dumbFullscreen: boolean,
   folderBadge: number,
