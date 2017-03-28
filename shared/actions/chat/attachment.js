@@ -9,7 +9,7 @@ import {call, put, select, cancel, fork, join} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {isMobile} from '../../constants/platform'
 import {navigateAppend} from '../route-tree'
-import {saveAttachment, showShareActionSheet} from '../platform.specific'
+import {saveAttachment, showShareActionSheet} from '../platform-specific'
 import {tmpFile, downloadFilePath, copy, exists} from '../../util/file'
 import {usernameSelector} from '../../constants/selectors'
 
