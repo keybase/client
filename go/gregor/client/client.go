@@ -99,13 +99,13 @@ func (c *Client) SyncFromTime(cli gregor1.IncomingInterface, t *time.Time) (msgs
 	}
 
 	// Grab the events from gregord
-	c.Log.Debug("syncFromTime from: %s", gregor1.FromTime(arg.Ctime))
+	c.Log.Debug("Sync(): start time: %s", gregor1.FromTime(arg.Ctime))
 	res, err := cli.Sync(ctx, arg)
 	if err != nil {
 		return nil, err
 	}
 
-	c.Log.Debug("syncFromTime consuming %d messages", len(res.Msgs))
+	c.Log.Debug("Sync(): consuming %d messages", len(res.Msgs))
 	for _, ibm := range res.Msgs {
 		m := gregor1.Message{Ibm_: &ibm}
 		msgs = append(msgs, ibm)
@@ -167,11 +167,12 @@ func (c *Client) Sync(cli gregor1.IncomingInterface) (res []gregor.InBandMessage
 	msgs, err := c.SyncFromTime(cli, latestCtime)
 	if err != nil {
 		if _, ok := err.(ErrHashMismatch); ok {
-			c.Log.Info("Sync failure: %v\nResetting StateMachine and retrying", err)
+			c.Log.Debug("Sync(): hash check failure: %v", err)
 			return c.freshSync(cli)
 		}
 		return msgs, err
 	}
+	c.Log.Debug("Sync(): sync success!")
 	return msgs, nil
 }
 
