@@ -9,6 +9,7 @@ export type Props = {
   selectedTab: Tab,
   showComingSoon: boolean,
   onTabChange: (tab: Tab) => void,
+  onLogout: () => void,
 }
 
 export default class Render extends Component<void, Props, void> { }

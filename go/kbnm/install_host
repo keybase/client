@@ -8,6 +8,14 @@
 #
 # It can be run multiple times. The whitelist will be overwritten each time.
 
+realpath() {
+  if [[ $1 = /* ]]; then
+    echo "$1"
+  else
+    echo "$PWD/${1#./}"
+  fi
+}
+
 detect() {
   # Find where the NativeMessagingHosts whitelist lives for this platform.
   whoami="$(whoami)"
@@ -32,13 +40,23 @@ install() {
   # Install the whitelist.
   declare target="$1"
 
-  local target_dir="$(dirname target)"
+  local target_dir="$(dirname "$target")"
   if [[ ! -d "$target_dir" ]]; then
-    mkdir -p "target_dir"
+    mkdir -p "$target_dir"
   fi
 
   local here="$(dirname $(realpath "$BASH_SOURCE"))"
-  local host_path="$(which kbnm || echo "$here/kbnm")"
+  local host_path="$(which "kbnm" || echo "$here/kbnm")"
+
+  if [[ ! -x "$host_path" ]]; then
+    # Is it in GOPATH, but not PATH?
+    host_path="$GOPATH/bin/kbnm"
+  fi
+
+  if [[ ! -x "$host_path" ]]; then
+    echo "failed to find kbnm executable, make sure it's in your \$PATH."
+    exit 2
+  fi
 
   echo "Writing: $target"
   cat "$here/host_json.template" \
@@ -47,7 +65,9 @@ install() {
 
   chmod +r "$target"
 
-  echo "Success: Installed Chrome NativeMessaging whitelist: "$host_path" for $host_name"
+  cat "$target"
+
+  echo "Success."
 }
 
 uninstall() {

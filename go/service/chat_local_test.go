@@ -81,9 +81,10 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		func() chat1.RemoteInterface { return mockRemote },
 		h.tlfInfoSource)
 	tc.G.ServerCacheVersions = storage.NewServerVersions(tc.G)
+	tc.G.Syncer = chat.NewSyncer(tc.G)
 
 	h.setTestRemoteClient(mockRemote)
-	h.gh, _ = newGregorHandler(tc.G)
+	h.gh = newGregorHandler(tc.G)
 
 	baseSender := chat.NewBlockingSender(tc.G, h.boxer, nil,
 		func() chat1.RemoteInterface { return mockRemote })

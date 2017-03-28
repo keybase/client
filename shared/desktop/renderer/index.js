@@ -101,8 +101,8 @@ function setupApp (store) {
   ipcRenderer.send('install-check')
 
   const currentWindow = electron.remote.getCurrentWindow()
-  currentWindow.on('focus', () => { store.dispatch({payload: true, type: 'app:changedFocus'}) })
-  currentWindow.on('blur', () => { store.dispatch({payload: false, type: 'app:changedFocus'}) })
+  currentWindow.on('focus', () => { store.dispatch({payload: {focused: true}, type: 'app:changedFocus'}) })
+  currentWindow.on('blur', () => { store.dispatch({payload: {focused: false}, type: 'app:changedFocus'}) })
 
   const _menubarSelector = menubarSelector()
   const _unlockFoldersSelector = unlockFoldersSelector()

@@ -113,7 +113,7 @@ class ConversationInput extends Component<void, Props, State> {
       <Box style={styleContainer}>
         <Input
           autoCorrect={true}
-          autoFocus={true}
+          autoFocus={false}
           hideUnderline={true}
           hintText='Write a message'
           inputStyle={styleInputText}
@@ -143,7 +143,7 @@ const styleContainer = {
   alignItems: 'center',
   borderTopColor: globalColors.black_05,
   borderTopWidth: 1,
-  height: 48,
+  minHeight: 48,
 }
 
 const styleInput = {
