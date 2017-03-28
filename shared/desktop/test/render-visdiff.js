@@ -51,18 +51,13 @@ app.on('ready', () => {
     rendering++
   }
 
-  ipcMain.on('display-error', (ev, msg) => {
-    count++
-    console.log(`[${count} / ${total}] error ${msg}`)
-    rendering--
-    const sender = ev.sender
-    renderNext(sender)
-  })
-
   ipcMain.on('display-done', (ev, msg) => {
     const sender = ev.sender
     sender.getOwnerBrowserWindow().capturePage(msg.rect, img => {
       const filenameParts = [msg.key, msg.mockKey].map(s => _.words(s).join('_').replace(/[^\w_]/g, ''))
+      if (msg.isError) {
+        filenameParts.push('ERROR')
+      }
       const filename = filenameParts.join('-') + '.png'
       fs.writeFile(path.join(outputDir, filename), img.toPng(), err => {
         if (err) {
@@ -70,7 +65,11 @@ app.on('ready', () => {
           app.exit(1)
         }
         count++
-        console.log(`[${count} / ${total}] wrote ${filename}`)
+        if (msg.isError) {
+          console.log(`[${count} / ${total}] error rendering: ${msg.key} - ${msg.mockKey}`)
+        } else {
+          console.log(`[${count} / ${total}] wrote ${filename}`)
+        }
         rendering--
         renderNext(sender)
       })
