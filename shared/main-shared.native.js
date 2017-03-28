@@ -57,7 +57,7 @@ class Main extends Component<void, any, void> {
     }
 
     if (this.props.menuBadgeCount !== nextProps.menuBadgeCount) {
-      RNPN.setApplicationIconBadgeNumber(100 + nextProps.menuBadgeCount) // TEMP 100
+      RNPN.setApplicationIconBadgeNumber(nextProps.menuBadgeCount)
     }
   }
 
