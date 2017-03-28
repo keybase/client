@@ -12,6 +12,7 @@
 		7608E936D0B84B4FB1849590 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D4D90F8FFC2D4682850A6803 /* libRCTCamera.a */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */; };
+		C3A47BFE1E8B148A00974A63 /* keybasemessage.wav in Resources */ = {isa = PBXBuildFile; fileRef = C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */; };
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
 		DB2BD1E51DE7D9A600BB7989 /* libRCTActionSheet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1961DE7D96200BB7989 /* libRCTActionSheet.a */; };
@@ -280,6 +281,7 @@
 		A969A4161CF65CB200F273F2 /* LogSend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LogSend.h; sourceTree = "<group>"; };
 		A9BB30BC1E6A273A00E713E5 /* RCTCameraRoll.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTCameraRoll.xcodeproj; path = "../../node_modules/react-native/Libraries/CameraRoll/RCTCameraRoll.xcodeproj"; sourceTree = "<group>"; };
 		ABD163941ED341428B028E6D /* libRNFS.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNFS.a; sourceTree = "<group>"; };
+		C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = keybasemessage.wav; path = ../../../sounds/keybasemessage.wav; sourceTree = "<group>"; };
 		D4D90F8FFC2D4682850A6803 /* libRCTCamera.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTCamera.a; sourceTree = "<group>"; };
 		DB0846041BA75DC800F54960 /* keybase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = keybase.framework; sourceTree = "<group>"; };
 		DB27DE551D747A6B003DE8BC /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
@@ -450,6 +452,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		C3A47BAA1E8B035500974A63 /* sounds */ = {
+			isa = PBXGroup;
+			children = (
+				C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */,
+			);
+			name = sounds;
+			sourceTree = "<group>";
+		};
 		DB0417D51E200FC0000B4B1F /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -588,6 +598,7 @@
 		DBDCF3031B8D03DD00BA95D8 /* Keybase */ = {
 			isa = PBXGroup;
 			children = (
+				C3A47BAA1E8B035500974A63 /* sounds */,
 				005BF9961BB9C6B000BD8953 /* Keybase.entitlements */,
 				DBBCC6111D9C4A8100312652 /* AppDelegate.h */,
 				DBBCC6121D9C4A8100312652 /* AppDelegate.m */,
@@ -999,6 +1010,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DBDC800D1DE7CC8E005387B3 /* OpenSans-Semi_bold_italic.ttf in Resources */,
+				C3A47BFE1E8B148A00974A63 /* keybasemessage.wav in Resources */,
 				DBDC80111DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf in Resources */,
 				DBDC800E1DE7CC8E005387B3 /* OpenSans.ttf in Resources */,
 				DBDC800C1DE7CC8E005387B3 /* OpenSans-Semi_bold.ttf in Resources */,
