@@ -86,6 +86,16 @@ function renderChat(parent, toUsername) {
   f.addEventListener("submit", submitChat);
   parent.insertBefore(f, parent.firstChild);
 
+  // Install nudge toggle
+  const nudgeCheck = f["keybase-nudge"];
+  if (nudgeCheck !== undefined) {
+    // Select the <p><textarea>...</textarea></p>
+    const nudgeText = nudgeCheck.parentNode.parentNode.nextElementSibling;
+    nudgeCheck.addEventListener("change", function(e) {
+      nudgeText.hidden = !e.currentTarget.checked;
+    });
+  }
+
   // Install closing button (the "x" in the corner)
   const closer = f.getElementsByClassName("keybase-close")[0];
   closer.addEventListener("click", function(e) {
