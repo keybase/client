@@ -24,6 +24,10 @@ func NewKex2Secret(mobile bool) (*Kex2Secret, error) {
 	}
 
 	phrase := strings.Join(words, " ")
+	// If we are provisioning a mobile device, we want to use an easier to compute secret. In order to
+	// communicate that to the two devices involved in kex without breaking the existing protocol,
+	// we have added an extra word that is not in the dictionary. Up to date clients can see this
+	// word and use the lighter version of scrypt.
 	if mobile {
 		phrase += " " + kexPhraseVersion
 	}
@@ -33,6 +37,8 @@ func NewKex2Secret(mobile bool) (*Kex2Secret, error) {
 func NewKex2SecretFromPhrase(phrase string) (*Kex2Secret, error) {
 
 	scryptCost := Kex2ScryptCost
+	// Detect if the phrase contain the magic word that indicates that we are provisioning a mobile
+	// device. If so, then we use the lighter cost version of scrypt.
 	words := strings.Split(phrase, " ")
 	if words[len(words)-1] == kexPhraseVersion {
 		scryptCost = Kex2ScryptLiteCost
