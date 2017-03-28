@@ -8,13 +8,18 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props} from './header-hoc'
 
 function HeaderHoc<P> (WrappedComponent: ReactClass<P>) {
-  return ({onBack, title, ...restProps}: Props & P) => (
-    <Box style={containerStyle}>
-      <Box style={headerStyle}>
-        <Box style={backButtonStyle}>
-          {onBack && <BackButton iconStyle={backButtonIconStyle} onClick={onBack} />}
-        </Box>
-        <Text type='Header' style={headerText}>{title}</Text>
+  return ({onBack, onCancel, headerStyle, title, ...restProps}: Props & P) => (
+    <Box style={_containerStyle}>
+      <Box style={{..._headerStyle, ...headerStyle}}>
+        {onCancel &&
+        <Box style={_cancelStyle}>
+          <Text type='BodyBigLink' onClick={onCancel}>Cancel</Text>
+        </Box>}
+        {onBack &&
+        <Box style={_backButtonStyle}>
+          <BackButton iconStyle={_backButtonIconStyle} onClick={onBack} />
+        </Box>}
+        <Text type='Header' style={_headerText}>{title}</Text>
       </Box>
       {<WrappedComponent {...restProps} />}
     </Box>
@@ -24,22 +29,26 @@ function HeaderHoc<P> (WrappedComponent: ReactClass<P>) {
 const backButtonMarginLeft = globalMargins.small
 const backButtonWidth = 40
 
-const backButtonStyle = {
+const _cancelStyle = {
+  marginLeft: backButtonMarginLeft,
+}
+
+const _backButtonStyle = {
   marginLeft: backButtonMarginLeft,
   paddingBottom: 2,
   width: backButtonWidth,
 }
 
-const backButtonIconStyle = {
+const _backButtonIconStyle = {
   color: globalColors.blue,
 }
 
-const containerStyle = {
+const _containerStyle = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
 }
 
-const headerStyle = {
+const _headerStyle = {
   ...globalStyles.flexBoxRow,
   justifyContent: 'center',
   alignItems: 'center',
@@ -49,7 +58,7 @@ const headerStyle = {
   borderBottomColor: globalColors.black_05,
 }
 
-const headerText = {
+const _headerText = {
   marginRight: backButtonMarginLeft + backButtonWidth,
   textAlign: 'center',
   flex: 1,

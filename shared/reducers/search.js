@@ -149,6 +149,7 @@ export default function (state: State = initialState, action: SearchActions): St
     case Constants.reset:
       return {
         ...initialState,
+        searchTextClearTrigger: state.searchTextClearTrigger + 1,
         searchIcon: state.searchIcon,
         searchPlatform: state.searchPlatform,
         showUserGroup: showUserGroup(null, []),

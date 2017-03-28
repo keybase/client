@@ -3,7 +3,9 @@ import {Component} from 'react'
 
 export type Props = {
   title: ?string,
-  onBack: ?(() => void),
+  onBack?: ?(() => void),
+  onCancel?: ?(() => void),
+  headerStyle?: ?Object,
 }
 
 declare export default function HeaderHoc<P> (WrappedComponent: ReactClass<P>): ReactClass<P & Props>;
