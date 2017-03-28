@@ -9,25 +9,21 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbtest"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
 func TestChatBackgroundIdentify(t *testing.T) {
 
-	world, _, _, _, listener, _, _ := setupTest(t, 2)
+	world, _, _, _, listener, _ := setupTest(t, 2)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
 	u1 := world.GetUsers()[1]
 	tc := world.Tcs[u.Username]
 
-	inbox := storage.NewInbox(tc.G, u.User.GetUID().ToBytes(), func() libkb.SecretUI {
-		return &libkb.TestSecretUI{}
-	})
+	inbox := storage.NewInbox(tc.G, u.User.GetUID().ToBytes())
 
 	tlfName := u.Username
 	msg := chat1.MessageBoxed{
@@ -49,9 +45,7 @@ func TestChatBackgroundIdentify(t *testing.T) {
 	}
 	require.NoError(t, inbox.Merge(context.TODO(), 1, []chat1.Conversation{conv}, nil, nil))
 
-	handler := NewIdentifyChangedHandler(tc.G, func() keybase1.TlfInterface {
-		return kbtest.NewTlfMock(world)
-	})
+	handler := NewIdentifyChangedHandler(tc.G, kbtest.NewTlfMock(world))
 	require.NotNil(t, handler.G().NotifyRouter, "notify router")
 
 	t.Logf("new error job in inbox")

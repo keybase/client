@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -139,8 +140,6 @@ type TlfMock struct {
 	world *ChatMockWorld
 }
 
-var _ keybase1.TlfInterface = TlfMock{}
-
 func NewTlfMock(world *ChatMockWorld) TlfMock {
 	return TlfMock{world}
 }
@@ -168,8 +167,20 @@ func (m TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, erro
 	return keybase1.TLFID(hex.EncodeToString([]byte(tlfID))), nil
 }
 
-func (m TlfMock) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (res keybase1.GetTLFCryptKeysRes, err error) {
-	res.NameIDBreaks.CanonicalName = CanonicalTlfNameForTest(arg.TlfName)
+func (m TlfMock) Lookup(ctx context.Context, tlfName string, vis chat1.TLFVisibility) (res *types.TLFInfo, err error) {
+	var tlfID keybase1.TLFID
+	name := CanonicalTlfNameForTest(tlfName)
+	res = new(types.TLFInfo)
+	res.CanonicalName = name.String()
+	if tlfID, err = m.getTlfID(name); err != nil {
+		return nil, err
+	}
+	res.ID = tlfID.ToBytes()
+	return res, nil
+}
+
+func (m TlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, err error) {
+	res.NameIDBreaks.CanonicalName = CanonicalTlfNameForTest(tlfName)
 	if res.NameIDBreaks.TlfID, err = m.getTlfID(res.NameIDBreaks.CanonicalName); err != nil {
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
@@ -181,9 +192,9 @@ func (m TlfMock) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (res keyb
 	return res, nil
 }
 
-func (m TlfMock) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, arg keybase1.TLFQuery) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
+func (m TlfMock) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, tlfName string) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
 	var res keybase1.CanonicalTLFNameAndIDWithBreaks
-	res.CanonicalName = CanonicalTlfNameForTest(arg.TlfName)
+	res.CanonicalName = CanonicalTlfNameForTest(tlfName)
 	var err error
 	res.TlfID, err = m.getTlfID(res.CanonicalName)
 	if err != nil {
@@ -192,9 +203,9 @@ func (m TlfMock) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, arg 
 	return res, nil
 }
 
-func (m TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybase1.TLFQuery) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
+func (m TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
 	res := keybase1.CanonicalTLFNameAndIDWithBreaks{
-		CanonicalName: keybase1.CanonicalTlfName(arg.TlfName),
+		CanonicalName: keybase1.CanonicalTlfName(tlfName),
 		TlfID:         "abcdefg",
 	}
 	return res, nil
@@ -204,6 +215,11 @@ type ChatRemoteMock struct {
 	world     *ChatMockWorld
 	readMsgid map[string]chat1.MessageID
 	uid       *gregor1.UID
+
+	CacheBodiesVersion int
+	CacheInboxVersion  int
+
+	SyncInboxFunc func(m *ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error)
 }
 
 var _ chat1.RemoteInterface = (*ChatRemoteMock)(nil)
@@ -247,6 +263,21 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 			continue
 		}
 		if arg.Query != nil {
+			if arg.Query.ConvID != nil {
+				arg.Query.ConvIDs = append(arg.Query.ConvIDs, *arg.Query.ConvID)
+			}
+			if len(arg.Query.ConvIDs) > 0 {
+				found := false
+				for _, convID := range arg.Query.ConvIDs {
+					if convID.Eq(conv.GetConvID()) {
+						found = true
+						break
+					}
+				}
+				if !found {
+					continue
+				}
+			}
 			if arg.Query.ConvID != nil && !conv.Metadata.ConversationID.Eq(*arg.Query.ConvID) {
 				continue
 			}
@@ -510,6 +541,31 @@ func (m *ChatRemoteMock) GetInboxVersion(ctx context.Context, uid gregor1.UID) (
 	return 1, nil
 }
 
+func (m *ChatRemoteMock) SyncInbox(ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
+	if m.SyncInboxFunc == nil {
+		return chat1.SyncInboxRes{}, nil
+	}
+	return m.SyncInboxFunc(m, ctx, vers)
+}
+
+func (m *ChatRemoteMock) SyncChat(ctx context.Context, vers chat1.InboxVers) (chat1.SyncChatRes, error) {
+	if m.SyncInboxFunc == nil {
+		return chat1.SyncChatRes{}, nil
+	}
+
+	iboxRes, err := m.SyncInboxFunc(m, ctx, vers)
+	if err != nil {
+		return chat1.SyncChatRes{}, err
+	}
+	return chat1.SyncChatRes{
+		InboxRes: iboxRes,
+		CacheVers: chat1.ServerCacheVers{
+			InboxVers:  m.CacheInboxVersion,
+			BodiesVers: m.CacheBodiesVersion,
+		},
+	}, nil
+}
+
 type convByNewlyUpdated struct {
 	mock *ChatRemoteMock
 }
@@ -586,13 +642,20 @@ type NonblockInboxResult struct {
 	InboxRes *chat1.GetInboxLocalRes
 }
 
-type ChatUI struct {
-	cb chan NonblockInboxResult
+type NonblockThreadResult struct {
+	Thread *chat1.ThreadView
+	Full   bool
 }
 
-func NewChatUI(cb chan NonblockInboxResult) *ChatUI {
+type ChatUI struct {
+	inboxCb  chan NonblockInboxResult
+	threadCb chan NonblockThreadResult
+}
+
+func NewChatUI(inboxCb chan NonblockInboxResult, threadCb chan NonblockThreadResult) *ChatUI {
 	return &ChatUI{
-		cb: cb,
+		inboxCb:  inboxCb,
+		threadCb: threadCb,
 	}
 }
 
@@ -629,7 +692,7 @@ func (c *ChatUI) ChatAttachmentDownloadDone(context.Context) error {
 }
 
 func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {
-	c.cb <- NonblockInboxResult{
+	c.inboxCb <- NonblockInboxResult{
 		ConvRes: &arg.Conv,
 		ConvID:  arg.Conv.Info.Id,
 	}
@@ -637,15 +700,31 @@ func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxC
 }
 
 func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedArg) error {
-	c.cb <- NonblockInboxResult{
+	c.inboxCb <- NonblockInboxResult{
 		Err: fmt.Errorf("%s", arg.Error.Message),
 	}
 	return nil
 }
 
 func (c *ChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnverifiedArg) error {
-	c.cb <- NonblockInboxResult{
+	c.inboxCb <- NonblockInboxResult{
 		InboxRes: &arg.Inbox,
+	}
+	return nil
+}
+
+func (c *ChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCachedArg) error {
+	c.threadCb <- NonblockThreadResult{
+		Thread: arg.Thread,
+		Full:   false,
+	}
+	return nil
+}
+
+func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
+	c.threadCb <- NonblockThreadResult{
+		Thread: &arg.Thread,
+		Full:   true,
 	}
 	return nil
 }

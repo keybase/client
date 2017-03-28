@@ -13,6 +13,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat/signencrypt"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
@@ -59,8 +60,7 @@ func textMsgWithHeader(t *testing.T, text string, header chat1.MessageClientHead
 
 func setupChatTest(t *testing.T, name string) (libkb.TestContext, *Boxer) {
 	tc := externals.SetupTest(t, name, 2)
-	emptyTlfInterfaceClosure := func() keybase1.TlfInterface { return nil }
-	return tc, NewBoxer(tc.G, emptyTlfInterfaceClosure)
+	return tc, NewBoxer(tc.G, NewKBFSTLFInfoSource(tc.G))
 }
 
 func getSigningKeyPairForTest(t *testing.T, tc libkb.TestContext, u *kbtest.FakeUser) libkb.NaclSigningKeyPair {
@@ -277,7 +277,7 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 
 		world := kbtest.NewChatMockWorld(t, "unbox", 4)
 		tlf := kbtest.NewTlfMock(world)
-		boxer.tlf = func() keybase1.TlfInterface { return tlf }
+		boxer.tlfInfoSource = tlf
 
 		header := chat1.MessageClientHeader{
 			Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
@@ -337,7 +337,7 @@ func TestChatMessageUnboxNoCryptKey(t *testing.T) {
 
 		world := kbtest.NewChatMockWorld(t, "unbox", 4)
 		tlf := kbtest.NewTlfMock(world)
-		boxer.tlf = func() keybase1.TlfInterface { return tlf }
+		boxer.tlfInfoSource = tlf
 
 		header := chat1.MessageClientHeader{
 			Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
@@ -610,7 +610,7 @@ func TestChatMessagePublic(t *testing.T) {
 
 		world := kbtest.NewChatMockWorld(t, "unbox", 4)
 		tlf := kbtest.NewTlfMock(world)
-		boxer.tlf = func() keybase1.TlfInterface { return tlf }
+		boxer.tlfInfoSource = tlf
 
 		header := chat1.MessageClientHeader{
 			Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
@@ -1314,7 +1314,7 @@ func NewKeyFinderMock(cryptKeys []keybase1.CryptKey) KeyFinder {
 	return &KeyFinderMock{cryptKeys}
 }
 
-func (k *KeyFinderMock) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
+func (k *KeyFinderMock) Find(ctx context.Context, tlf types.TLFInfoSource, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
 	return keybase1.GetTLFCryptKeysRes{CryptKeys: k.cryptKeys}, nil
 }
 

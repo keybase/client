@@ -1,5 +1,5 @@
 // @flow
-import {shell} from 'electron'
+import {shell, ipcRenderer} from 'electron'
 
 export default function openURL (url: ?string) {
   if (!url) {
@@ -7,4 +7,8 @@ export default function openURL (url: ?string) {
     return
   }
   shell.openExternal(url)
+}
+
+export function openURLWithHelper (type: string, params: ?string) {
+  ipcRenderer.send('openURL', type, params)
 }

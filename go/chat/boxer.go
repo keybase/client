@@ -19,6 +19,7 @@ import (
 
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -46,7 +47,8 @@ type Boxer struct {
 
 	boxWithVersion chat1.MessageBoxedVersion
 
-	tlf func() keybase1.TlfInterface
+	// TLF info source
+	tlfInfoSource types.TLFInfoSource
 
 	// Replaceable for testing.
 	// Normally set to normal implementations.
@@ -60,13 +62,13 @@ type Boxer struct {
 	testingSignatureMangle func([]byte) []byte
 }
 
-func NewBoxer(g *libkb.GlobalContext, tlf func() keybase1.TlfInterface) *Boxer {
+func NewBoxer(g *libkb.GlobalContext, tlfInfoSource types.TLFInfoSource) *Boxer {
 	return &Boxer{
 		DebugLabeler:   utils.NewDebugLabeler(g, "Boxer", false),
 		boxWithVersion: chat1.MessageBoxedVersion_V1,
-		tlf:            tlf,
 		hashV1:         hashSha256V1,
 		Contextified:   libkb.NewContextified(g),
+		tlfInfoSource:  tlfInfoSource,
 	}
 }
 
@@ -108,7 +110,7 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, convID chat1.ConversationID, finalizeInfo *chat1.ConversationFinalizeInfo) (chat1.MessageUnboxed, UnboxingError) {
 	tlfName := boxed.ClientHeader.TLFNameExpanded(finalizeInfo)
 	tlfPublic := boxed.ClientHeader.TlfPublic
-	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlf(), tlfName, tlfPublic)
+	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlfInfoSource, tlfName, tlfPublic)
 	if err != nil {
 		// transient error. Rekey errors come through here
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
@@ -803,7 +805,9 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 		return nil, NewBoxingError("blank TLF name given", true)
 	}
 
-	cres, err := CtxKeyFinder(ctx).Find(ctx, b.tlf(), tlfName, msg.ClientHeader.TlfPublic)
+	cres, err := CtxKeyFinder(ctx).Find(ctx, b.tlfInfoSource, tlfName,
+		msg.ClientHeader.TlfPublic)
+
 	if err != nil {
 		return nil, NewBoxingCryptKeysError(err)
 	}

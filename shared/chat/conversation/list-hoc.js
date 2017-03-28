@@ -4,13 +4,11 @@ import * as ChatConstants from '../../constants/chat'
 import {List} from 'immutable'
 import {withProps} from 'recompose'
 
-import type {Props} from './list'
+import type {Props, OptionsFn} from './list'
 import type {Options} from './messages'
 
-type OptionsFn = (message: ChatConstants.Message, prevMessage: ChatConstants.Message, isFirstMessage: boolean, isSelected: boolean, isScrolling: boolean, key: any, style: Object, onAction: () => void, isEditing: boolean) => Options
-
 function propsToMessageOptionsFn (props: Props): OptionsFn {
-  return function (message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, onAction, isEditing = false): Options {
+  return function (message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, onAction, onShowEditor, isEditing = false): Options {
     const skipMsgHeader = (message.author != null && prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
     const isFirstNewMessage = message.messageID != null && props.firstNewMessageID ? props.firstNewMessageID === message.messageID : false
 
@@ -45,6 +43,7 @@ function propsToMessageOptionsFn (props: Props): OptionsFn {
       onRetryAttachment: () => { message.type === 'Attachment' && onRetryAttachment(message) },
       onOpenInPopup,
       onRetry: onRetryMessage,
+      onShowEditor,
       style,
       you,
     }

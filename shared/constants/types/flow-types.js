@@ -117,6 +117,7 @@ export const ConstantsStatusCode = {
   scwrongcryptoformat: 279,
   scdecryptionerror: 280,
   scinvalidaddress: 281,
+  scnosession: 283,
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
@@ -180,6 +181,7 @@ export const ConstantsStatusCode = {
   scidentifysummaryerror: 2511,
   scneedselfrekey: 2512,
   scneedotherrekey: 2513,
+  scchatmessagecollision: 2514,
 }
 
 export const CtlDbType = {
@@ -346,6 +348,7 @@ export const ProveCommonProofStatus = {
   timeout: 160,
   internalError: 170,
   unchecked: 171,
+  missingPvl: 172,
   baseHardError: 200,
   notFound: 201,
   contentFailure: 202,
@@ -484,6 +487,7 @@ export const TlfKeysTLFIdentifyBehavior = {
   chatGuiStrict: 3,
   kbfsRekey: 4,
   kbfsQr: 5,
+  chatSkip: 6,
 }
 
 export const UiPromptDefault = {
@@ -610,6 +614,18 @@ export function SecretKeysGetSecretKeysRpcChannelMap (channelConfig: ChannelConf
 
 export function SecretKeysGetSecretKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SecretKeysGetSecretKeysResult) => void}>): Promise<SecretKeysGetSecretKeysResult> {
   return new Promise((resolve, reject) => { SecretKeysGetSecretKeysRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSSimpleFSCancelRpc (request: Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSCancelRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.simpleFSCancel'})
+}
+
+export function SimpleFSSimpleFSCancelRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSCancelRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSSimpleFSCancelRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSSimpleFSCancelRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSCancelRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { SimpleFSSimpleFSCancelRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function SimpleFSSimpleFSCheckRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSCheckResult) => void} & {param: SimpleFSSimpleFSCheckRpcParam}>) {
@@ -4072,6 +4088,7 @@ export type ProofStatus =
   | 160 // TIMEOUT_160
   | 170 // INTERNAL_ERROR_170
   | 171 // UNCHECKED_171
+  | 172 // MISSING_PVL_172
   | 200 // BASE_HARD_ERROR_200
   | 201 // NOT_FOUND_201
   | 202 // CONTENT_FAILURE_202
@@ -4409,6 +4426,10 @@ export type SimpleFSListResult = {
   progress: Progress,
 }
 
+export type SimpleFSSimpleFSCancelRpcParam = Exact<{
+  opID: OpID
+}>
+
 export type SimpleFSSimpleFSCheckRpcParam = Exact<{
   opID: OpID
 }>
@@ -4531,6 +4552,7 @@ export type StatusCode =
   | 279 // SCWrongCryptoFormat_279
   | 280 // SCDecryptionError_280
   | 281 // SCInvalidAddress_281
+  | 283 // SCNoSession_283
   | 472 // SCBadEmail_472
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
@@ -4594,6 +4616,7 @@ export type StatusCode =
   | 2511 // SCIdentifySummaryError_2511
   | 2512 // SCNeedSelfRekey_2512
   | 2513 // SCNeedOtherRekey_2513
+  | 2514 // SCChatMessageCollision_2514
 
 export type Stream = {
   fd: int,
@@ -4625,6 +4648,7 @@ export type TLFIdentifyBehavior =
   | 3 // CHAT_GUI_STRICT_3
   | 4 // KBFS_REKEY_4
   | 5 // KBFS_QR_5
+  | 6 // CHAT_SKIP_6
 
 export type TLFIdentifyFailure = {
   user: User,
@@ -6032,6 +6056,7 @@ export type rpc =
   | NotifyFSRequestFSSyncStatusRequestRpc
   | ScanProofsScanProofsRpc
   | SecretKeysGetSecretKeysRpc
+  | SimpleFSSimpleFSCancelRpc
   | SimpleFSSimpleFSCheckRpc
   | SimpleFSSimpleFSCloseRpc
   | SimpleFSSimpleFSCopyRecursiveRpc

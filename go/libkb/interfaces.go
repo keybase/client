@@ -30,8 +30,10 @@ import (
 
 type configGetter interface {
 	GetAPITimeout() (time.Duration, bool)
+	GetAppType() AppType
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
+	GetPvlKitFilename() string
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
 	GetDbFilename() string
@@ -348,6 +350,8 @@ type ChatUI interface {
 	ChatInboxUnverified(context.Context, chat1.ChatInboxUnverifiedArg) error
 	ChatInboxConversation(context.Context, chat1.ChatInboxConversationArg) error
 	ChatInboxFailed(context.Context, chat1.ChatInboxFailedArg) error
+	ChatThreadCached(context.Context, chat1.ChatThreadCachedArg) error
+	ChatThreadFull(context.Context, chat1.ChatThreadFullArg) error
 }
 
 type PromptDefault int
@@ -402,6 +406,7 @@ type UIRouter interface {
 	// These are allowed to return nil for the UI even if
 	// error is nil.
 	GetIdentifyUI() (IdentifyUI, error)
+	GetIdentifyUICtx(ctx context.Context) (int, IdentifyUI, error)
 	GetSecretUI(sessionID int) (SecretUI, error)
 	GetRekeyUI() (keybase1.RekeyUIInterface, int, error)
 	GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error)
@@ -473,6 +478,7 @@ type ProofContext interface {
 	LogContext
 	APIContext
 	NetContext
+	GetPvlSource() PvlSource
 }
 
 type AssertionContext interface {
@@ -489,7 +495,7 @@ const (
 )
 
 type ProofChecker interface {
-	CheckStatus(ctx ProofContext, h SigHint, pcm ProofCheckerMode) ProofError
+	CheckStatus(ctx ProofContext, h SigHint, pcm ProofCheckerMode, pvlU PvlUnparsed) ProofError
 	GetTorError() ProofError
 }
 
@@ -533,6 +539,10 @@ type ServiceType interface {
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
 	ListProofCheckers(mode RunMode) []string
+}
+
+type PvlSource interface {
+	GetPVL(ctx context.Context) (PvlUnparsed, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.

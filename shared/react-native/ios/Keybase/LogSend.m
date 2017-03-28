@@ -1,24 +1,24 @@
 #import "LogSend.h"
 
-@implementation LogSend
+static NSString * logPath = @"";
 
-- (instancetype)initWithPath:(NSString *)uiLogPath {
-  if ((self = [super init])) {
-    self.uiLogPath = uiLogPath;
-  }
-  return self;
+@implementation LogSend
++ (void)setPath:(NSString*)uiLogPath {
+  logPath = uiLogPath;
 }
 
 RCT_EXPORT_MODULE();
 
 RCT_REMAP_METHOD(logSend,
+                 feedback:(NSString*)feedback
+                 sendLogs:(BOOL)sendLogs
                  resolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject)
 {
 
   NSString *logId = nil;
   NSError *err = nil;
-  GoKeybaseLogSend(self.uiLogPath, &logId, &err);
+  GoKeybaseLogSend(feedback, sendLogs, logPath, &logId, &err);
   if (err == nil) {
     resolve(logId);
   } else {

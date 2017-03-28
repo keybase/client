@@ -28,7 +28,6 @@ var nsatests = []nsatest{
 	{in: "bob@foo@bar", out: keybase1.SocialAssertion{}, ok: false},
 	{in: "foo:bar:bob", out: keybase1.SocialAssertion{}, ok: false},
 	{in: "foo:bob@bar", out: keybase1.SocialAssertion{}, ok: false},
-	{in: "BOB@coinbase", out: keybase1.SocialAssertion{User: "bob", Service: "coinbase"}, ok: true},
 	{in: "BOB@github", out: keybase1.SocialAssertion{User: "bob", Service: "github"}, ok: true},
 	{in: "BOB@hackernews", out: keybase1.SocialAssertion{User: "BOB", Service: "hackernews"}, ok: true},
 	{in: "BOB@reddit", out: keybase1.SocialAssertion{User: "bob", Service: "reddit"}, ok: true},

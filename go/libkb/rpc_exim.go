@@ -233,6 +233,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return NoSecretKeyError{}
 	case SCLoginRequired:
 		return LoginRequiredError{s.Desc}
+	case SCNoSession:
+		return NoSessionError{}
 	case SCKeyInUse:
 		var fp *PGPFingerprint
 		if len(s.Desc) > 0 {
@@ -477,6 +479,17 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return InvalidAddressError{Msg: s.Desc}
 	case SCChatCollision:
 		return ChatCollisionError{}
+	case SCChatMessageCollision:
+		var headerHash string
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "HeaderHash":
+				headerHash = field.Value
+			}
+		}
+		return ChatMessageCollisionError{
+			HeaderHash: headerHash,
+		}
 	case SCNeedSelfRekey:
 		ret := NeedSelfRekeyError{Msg: s.Desc}
 		for _, field := range s.Fields {
@@ -1109,6 +1122,14 @@ func (u LoginRequiredError) ToStatus() (s keybase1.Status) {
 
 //=============================================================================
 
+func (u NoSessionError) ToStatus() (s keybase1.Status) {
+	s.Code = SCNoSession
+	s.Name = "NO_SESSION"
+	return
+}
+
+//=============================================================================
+
 func (e APINetError) ToStatus() (s keybase1.Status) {
 	s.Code = SCAPINetworkError
 	s.Name = "API_NETWORK_ERROR"
@@ -1564,6 +1585,19 @@ func (e ChatCollisionError) ToStatus() keybase1.Status {
 		Code: SCChatCollision,
 		Name: "SC_CHAT_COLLISION",
 		Desc: e.Error(),
+	}
+}
+
+func (e ChatMessageCollisionError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "HeaderHash",
+		Value: e.HeaderHash,
+	}
+	return keybase1.Status{
+		Code:   SCChatMessageCollision,
+		Name:   "SC_CHAT_MESSAGE_COLLISION",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
 	}
 }
 

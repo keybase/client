@@ -3,7 +3,6 @@
  * File to stash local debug changes to. Never check this in with changes
  */
 
-import * as Tabs from './constants/tabs'
 import {NativeModules} from 'react-native'
 import {updateDebugConfig} from './actions/dev'
 
@@ -41,7 +40,6 @@ if (__DEV__ && true) {
   config.enableStoreLogging = true
   config.forwardLogs = true
   config.immediateStateLogging = true
-  config.overrideLoggedInTab = Tabs.settingsTab
   config.printOutstandingRPCs = true
   config.printRPC = true
   config.printRoutes = true

@@ -33,6 +33,7 @@ import {selector as unlockFoldersSelector} from '../../unlock-folders'
 import {setRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../../util/forward-logs'
+import flags from '../../util/feature-flags'
 import {updateDebugConfig} from '../../actions/dev'
 import {updateReloading} from '../../constants/dev'
 
@@ -40,7 +41,12 @@ let _store
 function setupStore () {
   if (!_store) {
     _store = configureStore()
+
+    if (flags.admin) {
+      window.DEBUGStore = _store
+    }
   }
+
   return _store
 }
 

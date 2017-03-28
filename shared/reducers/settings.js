@@ -199,7 +199,6 @@ function reducer (state: State = initialState, action: Actions): State {
         ...state,
         waitingForResponse: action.payload,
       }
-
   }
   return state
 }

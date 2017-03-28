@@ -66,13 +66,19 @@ class FriendshipsRender extends Component<void, Props, void> {
   }
 
   render () {
+    const {isYou} = this.props
+    const followers = this.props.followers.length
+    const following = this.props.following.length
     return (
       <TabBar style={this.props.style}>
         <TabBarItem
           selected={this.props.currentTab === 'Followers'}
-          label={`FOLLOWERS (${this.props.followers.length})`}
+          label={`FOLLOWERS (${followers})`}
           onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Followers') }}>
           <Box style={{marginTop: globalMargins.small}}>
+            {followers === 0 && isYou && <Box style={friendshipEmptyStyle}>
+              <Text type='Body' style={{color: globalColors.black_40}}>You have no followers.</Text>
+            </Box>}
             <ReactList
               useTranslate3d={true}
               itemRenderer={(index, key) => this._itemRenderer(true, index)}
@@ -82,9 +88,12 @@ class FriendshipsRender extends Component<void, Props, void> {
         </TabBarItem>
         <TabBarItem
           selected={this.props.currentTab === 'Following'}
-          label={`FOLLOWING (${this.props.following.length})`}
+          label={`FOLLOWING (${following})`}
           onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Following') }}>
           <Box style={{marginTop: globalMargins.small}}>
+            {following === 0 && isYou && <Box style={friendshipEmptyStyle}>
+              <Text type='Body' style={{color: globalColors.black_40}}>You are not following anyone.</Text>
+            </Box>}
             <ReactList
               useTranslate3d={true}
               itemRenderer={(index, key) => this._itemRenderer(false, index)}
@@ -95,6 +104,11 @@ class FriendshipsRender extends Component<void, Props, void> {
       </TabBar>
     )
   }
+}
+
+const friendshipEmptyStyle = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
 }
 
 export default FriendshipsRender

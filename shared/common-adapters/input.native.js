@@ -53,7 +53,7 @@ class Input extends Component<void, Props, State> {
         height = maxHeight
       }
 
-      if (height !== this.state.height && this.state.value !== '') {
+      if (height !== this.state.height) {
         this.setState({height})
       }
     }
@@ -145,7 +145,7 @@ class Input extends Component<void, Props, State> {
     : {
       ...globalStyles.flexBoxColumn,
       justifyContent: 'flex-start',
-      maxWidth: 460,
+      maxWidth: 400,
     }
   }
 
@@ -171,7 +171,8 @@ class Input extends Component<void, Props, State> {
 
     const singlelineStyle = {
       ...commonInputStyle,
-      height: 28,
+      maxHeight: _lineHeight, // ensure it doesn't grow or shrink
+      minHeight: _lineHeight,
       padding: 0,
     }
 

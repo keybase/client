@@ -1,11 +1,12 @@
 // @flow
 import {RouteDefNode} from '../route-tree'
-import ConversationList from './conversations-list/container'
+import ConversationList from './inbox/container'
 import Conversation from './conversation/container'
 import EnterPaperkey from './conversation/enter-paper-key'
 import AttachmentPopup from './conversation/attachment-popup/container'
 import AttachmentInputPopup from './conversation/attachment-input/container'
 import MessagePopup from './conversation/messages/popup.native'
+import BlockConversationWarning from './conversation/block-conversation-warning/container'
 
 const conversationRoute = new RouteDefNode({
   component: Conversation,
@@ -20,13 +21,19 @@ const conversationRoute = new RouteDefNode({
       tags: {layerOnTop: true},
       children: {},
     },
+    enterPaperkey: {
+      component: EnterPaperkey,
+    },
     messageAction: {
       component: MessagePopup,
       tags: {layerOnTop: true},
     },
-    enterPaperkey: {
-      component: EnterPaperkey,
+    showBlockConversationDialog: {
+      component: BlockConversationWarning,
+      tags: {layerOnTop: true},
+      children: {},
     },
+
   },
 })
 

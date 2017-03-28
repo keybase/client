@@ -4,8 +4,8 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/keybase/client/go/chat/interfaces"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -18,18 +18,15 @@ type baseConversationSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
-	boxer       *Boxer
-	ri          func() chat1.RemoteInterface
-	getSecretUI func() libkb.SecretUI
-	offline     bool
+	boxer   *Boxer
+	ri      func() chat1.RemoteInterface
+	offline bool
 }
 
-func newBaseConversationSource(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI,
-	ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
+func newBaseConversationSource(g *libkb.GlobalContext, ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
 	return &baseConversationSource{
 		Contextified: libkb.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "baseConversationSource", false),
-		getSecretUI:  getSecretUI,
 		ri:           ri,
 		boxer:        boxer,
 	}
@@ -53,8 +50,8 @@ func (s *baseConversationSource) SetRemoteInterface(ri func() chat1.RemoteInterf
 	s.ri = ri
 }
 
-func (s *baseConversationSource) SetTlfInterface(ti func() keybase1.TlfInterface) {
-	s.boxer.tlf = ti
+func (s *baseConversationSource) SetTLFInfoSource(tlfInfoSource types.TLFInfoSource) {
+	s.boxer.tlfInfoSource = tlfInfoSource
 }
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
@@ -82,7 +79,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	thread.Messages = utils.FilterByType(thread.Messages, q, true)
 
 	// Fetch outbox and tack onto the result
-	outbox := storage.NewOutbox(s.G(), uid, s.getSecretUI)
+	outbox := storage.NewOutbox(s.G(), uid)
 	if err = outbox.SprinkleIntoThread(ctx, convID, thread); err != nil {
 		if _, ok := err.(storage.MissError); !ok {
 			return err
@@ -102,11 +99,10 @@ type RemoteConversationSource struct {
 	libkb.Contextified
 }
 
-func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri func() chat1.RemoteInterface,
-	si func() libkb.SecretUI) *RemoteConversationSource {
+func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri func() chat1.RemoteInterface) *RemoteConversationSource {
 	return &RemoteConversationSource{
 		Contextified:           libkb.NewContextified(g),
-		baseConversationSource: newBaseConversationSource(g, si, ri, b),
+		baseConversationSource: newBaseConversationSource(g, ri, b),
 	}
 }
 
@@ -204,11 +200,11 @@ type HybridConversationSource struct {
 }
 
 func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *storage.Storage,
-	ri func() chat1.RemoteInterface, si func() libkb.SecretUI) *HybridConversationSource {
+	ri func() chat1.RemoteInterface) *HybridConversationSource {
 	return &HybridConversationSource{
 		Contextified:           libkb.NewContextified(g),
 		DebugLabeler:           utils.NewDebugLabeler(g, "HybridConversationSource", false),
-		baseConversationSource: newBaseConversationSource(g, si, ri, b),
+		baseConversationSource: newBaseConversationSource(g, ri, b),
 		storage:                storage,
 	}
 }
@@ -286,7 +282,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 				vis = chat1.TLFVisibility_PUBLIC
 			}
 
-			_, err := LookupTLF(ctx, s.boxer.tlf(), tlfName, vis)
+			_, err := s.boxer.tlfInfoSource.Lookup(ctx, tlfName, vis)
 			if err != nil {
 				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s", tlfName, convID)
 				return err
@@ -562,9 +558,9 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 }
 
 func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer, storage *storage.Storage,
-	ri func() chat1.RemoteInterface, si func() libkb.SecretUI) interfaces.ConversationSource {
+	ri func() chat1.RemoteInterface) types.ConversationSource {
 	if typ == "hybrid" {
-		return NewHybridConversationSource(g, boxer, storage, ri, si)
+		return NewHybridConversationSource(g, boxer, storage, ri)
 	}
-	return NewRemoteConversationSource(g, boxer, ri, si)
+	return NewRemoteConversationSource(g, boxer, ri)
 }

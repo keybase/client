@@ -1,35 +1,29 @@
 // @flow
 import * as CommonConstants from '../../constants/common'
 import * as Constants from '../../constants/login'
+import * as Types from '../../constants/types/flow-types'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import openURL from '../../util/open-url'
 import {RPCError} from '../../util/errors'
-import {bootstrap} from '../config'
+import {bootstrap, setInitialTab} from '../config'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {devicesTab, loginTab, profileTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {load as loadDevices} from '../devices'
-import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
-  deviceDeviceAddRpc, loginGetConfiguredAccountsRpc, CommonClientType,
-  ConstantsStatusCode, ProvisionUiGPGMethod, CommonDeviceType,
-  PassphraseCommonPassphraseType,
-  loginLoginProvisionedDeviceRpc,
-} from '../../constants/types/flow-types'
-import {navigateTo, navigateAppend} from '../route-tree'
+import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
 
 import type {DeviceRole} from '../../constants/login'
 import type {DeviceType} from '../../constants/types/more'
 import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
 import type {ResponseType} from '../../engine'
-import type {incomingCallMapType, DeviceType as RPCDeviceType} from '../../constants/types/flow-types'
 
 module.hot && module.hot.accept(() => {
   console.log('accepted update in actions/login')
 })
 
-const InputCancelError = {code: ConstantsStatusCode.scinputcanceled, desc: 'Cancel Login'}
+const InputCancelError = {code: Types.ConstantsStatusCode.scinputcanceled, desc: 'Cancel Login'}
 
 function makeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
   return {
@@ -46,7 +40,7 @@ function waitingForResponse (waiting: boolean) : TypedAction<'login:waitingForRe
 
 export function navBasedOnLoginState (): AsyncAction {
   return (dispatch, getState) => {
-    const {config: {status, extendedConfig}, login: {justDeletedSelf}} = getState()
+    const {config: {status, extendedConfig, initialTab}, login: {justDeletedSelf}} = getState()
 
     // No status?
     if (!status || !Object.keys(status).length || !extendedConfig || !Object.keys(extendedConfig).length ||
@@ -57,6 +51,10 @@ export function navBasedOnLoginState (): AsyncAction {
         if (overrideLoggedInTab) {
           console.log('Loading overridden logged in tab')
           dispatch(navigateTo([overrideLoggedInTab]))
+        } else if (initialTab) {
+          /// only do this once
+          dispatch(setInitialTab(null))
+          dispatch(navigateTo([initialTab]))
         } else {
           dispatch(navigateTo([profileTab]))
         }
@@ -72,7 +70,7 @@ export function navBasedOnLoginState (): AsyncAction {
 
 function getAccounts (): AsyncAction {
   return dispatch => {
-    loginGetConfiguredAccountsRpc({
+    Types.loginGetConfiguredAccountsRpc({
       ...makeWaitingHandler(dispatch),
       callback: (error, accounts) => {
         if (error) {
@@ -93,7 +91,7 @@ export function login (): AsyncAction {
       const onBack = response => { dispatch(cancelLogin(response)) }
       const onProvisionerSuccess = () => { dispatch(navBasedOnLoginState()) }
       const incomingCallMap = makeKex2IncomingMap(dispatch, getState, onBack, onProvisionerSuccess)
-      loginLoginRpc({
+      Types.loginLoginRpc({
         ...makeWaitingHandler(dispatch),
         callback: (error, response) => {
           if (error) {
@@ -118,7 +116,7 @@ export function login (): AsyncAction {
         },
         incomingCallMap,
         param: {
-          clientType: CommonClientType.guiMain,
+          clientType: Types.CommonClientType.guiMain,
           deviceType,
           usernameOrEmail: usernameOrEmail,
         },
@@ -222,7 +220,7 @@ export function submitForgotPassword () : AsyncAction {
   return (dispatch, getState) => {
     dispatch({payload: undefined, type: Constants.actionSetForgotPasswordSubmitting})
 
-    loginRecoverAccountFromEmailAddressRpc({
+    Types.loginRecoverAccountFromEmailAddressRpc({
       ...makeWaitingHandler(dispatch),
       callback: (error, response) => {
         if (error) {
@@ -254,7 +252,7 @@ function loginSuccess (): AsyncAction {
 
 export function relogin (username: string, passphrase: string) : AsyncAction {
   return dispatch => {
-    loginLoginProvisionedDeviceRpc({
+    Types.loginLoginProvisionedDeviceRpc({
       ...makeWaitingHandler(dispatch),
       callback: (error, status) => {
         if (error) {
@@ -288,7 +286,7 @@ export function relogin (username: string, passphrase: string) : AsyncAction {
 
 export function logout () : AsyncAction {
   return dispatch => {
-    loginLogoutRpc({
+    Types.loginLogoutRpc({
       ...makeWaitingHandler(dispatch),
       callback: (error, response) => {
         if (error) {
@@ -349,10 +347,10 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
     }
 
     const incomingCallMap = makeKex2IncomingMap(dispatch, getState, onBack, onBack)
-    incomingCallMap['keybase.1.provisionUi.chooseDeviceType'] = ({sessionID}, response: {result: (type: RPCDeviceType) => void}) => {
+    incomingCallMap['keybase.1.provisionUi.chooseDeviceType'] = ({sessionID}, response: {result: (type: Types.DeviceType) => void}) => {
       const deviceTypeMap: {[key: string]: any} = {
-        [Constants.codePageDeviceRoleNewComputer]: CommonDeviceType.desktop,
-        [Constants.codePageDeviceRoleNewPhone]: CommonDeviceType.mobile,
+        [Constants.codePageDeviceRoleNewComputer]: Types.CommonDeviceType.desktop,
+        [Constants.codePageDeviceRoleNewPhone]: Types.CommonDeviceType.mobile,
       }
       let deviceType = deviceTypeMap[kind]
 
@@ -360,7 +358,7 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
       response.result(deviceType)
     }
 
-    deviceDeviceAddRpc({
+    Types.deviceDeviceAddRpc({
       ...makeWaitingHandler(dispatch),
       callback: (ignoredError, response) => {
         onBack()
@@ -377,7 +375,7 @@ export function openAccountResetPage () : AsyncAction {
 }
 
 type SimpleCB = () => void
-function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisionerSuccess: SimpleCB) : incomingCallMapType {
+function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisionerSuccess: SimpleCB) : Types.incomingCallMapType {
   // FIXME (mbg): The above usage of React components in the action code causes
   // a module dependency which prevents HMR. We can't hot reload action code,
   // so when these views (or more likely, their subcomponents from
@@ -422,7 +420,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
 
   return {
     'keybase.1.gpgUi.selectKey': (param, response) => {
-      response.error(new RPCError('Not supported in GUI', ConstantsStatusCode.sckeynotfound))
+      response.error(new RPCError('Not supported in GUI', Types.ConstantsStatusCode.sckeynotfound))
     },
     'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
       dispatch(navigateAppend([{
@@ -495,24 +493,30 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
       dispatch(navigateAppend([{
         props: {
           onBack: () => onBack(response),
-          onSubmit: exportKey => response.result(exportKey ? ProvisionUiGPGMethod.gpgImport : ProvisionUiGPGMethod.gpgSign),
+          onSubmit: exportKey => response.result(exportKey ? Types.ProvisionUiGPGMethod.gpgImport : Types.ProvisionUiGPGMethod.gpgSign),
         },
         selected: 'gpgSign',
       }], [loginTab, 'login']))
     },
     'keybase.1.secretUi.getPassphrase': ({pinentry: {type, prompt, username, retryLabel}}, response) => {
       switch (type) {
-        case PassphraseCommonPassphraseType.paperKey:
-          dispatch(navigateAppend([{
+        case Types.PassphraseCommonPassphraseType.paperKey:
+          const destination = {
             props: {
               error: retryLabel,
               onBack: () => onBack(response),
               onSubmit: (passphrase: string) => { response.result({passphrase, storeSecret: false}) },
             },
             selected: 'paperkey',
-          }], [loginTab, 'login']))
+          }
+          const currentPath = pathSelector(getState())
+          if (currentPath.last() === 'paperkey') {
+            dispatch(navigateTo(currentPath.pop(1).push(destination)))
+          } else {
+            dispatch(navigateAppend([destination], [loginTab, 'login']))
+          }
           break
-        case PassphraseCommonPassphraseType.passPhrase:
+        case Types.PassphraseCommonPassphraseType.passPhrase:
           dispatch(navigateAppend([{
             props: {
               error: retryLabel,
@@ -528,7 +532,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
           }], [loginTab, 'login']))
           break
         default:
-          response.error(new RPCError('Unknown getPassphrase type', ConstantsStatusCode.scnotfound))
+          response.error(new RPCError('Unknown getPassphrase type', Types.ConstantsStatusCode.scnotfound))
       }
     },
   }

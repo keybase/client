@@ -6,11 +6,11 @@ import {Avatar, Icon, Text} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {withHandlers} from 'recompose'
 import {marginColor, colorForAuthor} from './shared'
-import Retry from './retry'
+import Failure from './failure'
 
 import type {Props} from './wrapper'
 
-type MessageProps = Props & {onIconClick: (event: any) => void, onRetry: () => void}
+type MessageProps = Props & {onIconClick: (event: any) => void, onRetry: () => void, onShowEditor: () => void}
 
 class MessageWrapper extends PureComponent<void, MessageProps, void> {
   shouldComponentUpdate (nextProps: MessageProps) {
@@ -31,7 +31,7 @@ class MessageWrapper extends PureComponent<void, MessageProps, void> {
   }
 
   render () {
-    const {children, message, style, includeHeader, isFirstNewMessage, onRetry, onIconClick, isSelected, you, followingMap, metaDataMap} = this.props
+    const {children, message, style, includeHeader, isFirstNewMessage, onRetry, onShowEditor, onIconClick, isSelected, you, followingMap, metaDataMap} = this.props
     return (
       <div style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null), ...style}}>
         <div style={_marginContainerStyle}>
@@ -40,7 +40,7 @@ class MessageWrapper extends PureComponent<void, MessageProps, void> {
             {includeHeader
               ? <Avatar size={24} username={message.author} style={_avatarStyle} />
               : <div style={_noHeaderStyle} />}
-            <div style={_bodyContainerStyle}>
+            <div style={_bodyContainerStyle} className='message-wrapper'>
               {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.author, you, followingMap, metaDataMap), ...(message.author === you ? globalStyles.italic : null), marginBottom: 2}}>{message.author}</Text>}
               <div style={_textContainerStyle} className='message' data-message-key={message.key}>
                 <div style={_childrenWrapStyle}>
@@ -52,7 +52,7 @@ class MessageWrapper extends PureComponent<void, MessageProps, void> {
                   <Icon type='iconfont-ellipsis' style={_ellipsisStyle} onClick={onIconClick} />
                 </div>
               </div>
-              {message.messageState === 'failed' && <Retry failureDescription={message.failureDescription} onRetry={onRetry} />}
+              {message.messageState === 'failed' && <Failure failureDescription={message.failureDescription} onRetry={onRetry} onShowEditor={onShowEditor} />}
             </div>
           </div>
         </div>
@@ -123,5 +123,8 @@ export default withHandlers({
   },
   onRetry: (props: Props) => () => {
     props.message.outboxID && props.onRetry(props.message.outboxID)
+  },
+  onShowEditor: (props: Props) => event => {
+    props.onShowEditor(props.message, event)
   },
 })(MessageWrapper)

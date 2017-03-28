@@ -259,10 +259,10 @@
 			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
-			"checksumSHA1": "IXitcIrP3o9YzQ+OjvNWWVX3QX0=",
+			"checksumSHA1": "JfG/DT0QIPFFHh9pB5uPZUXhO4w=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "6df28f7bb1acfb3ab689a143c3e4d369c7f2df50",
-			"revisionTime": "2017-03-06T22:50:13Z"
+			"revision": "2641a997029da6b373ad1b4dd386aa1f8e28e216",
+			"revisionTime": "2017-03-21T20:26:42Z"
 		},
 		{
 			"path": "github.com/keybase/go-jsonw",
@@ -361,6 +361,12 @@
 			"revisionTime": "2015-12-11T09:06:21+09:00"
 		},
 		{
+			"checksumSHA1": "I/D4D4g+IkllRz35PuCCsM04Qag=",
+			"path": "github.com/miekg/dns",
+			"revision": "c862b7e359850847d4945cce311db2ea90cab7c0",
+			"revisionTime": "2017-03-10T21:57:03Z"
+		},
+		{
 			"checksumSHA1": "rZ4W4fT8VjifBeSBQSEjWWI4ISU=",
 			"path": "github.com/nf/cr2",
 			"revision": "05d46fef4f2f903240751e25871cd318d001deba",
@@ -377,6 +383,11 @@
 			"path": "github.com/pmezard/go-difflib/difflib",
 			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
 			"revisionTime": "2016-01-10T10:55:54Z"
+		},
+		{
+			"path": "github.com/qrtz/nativemessaging",
+			"revision": "f4769a80e040056dd57d0841a5f1f7cedbcdd251",
+			"revisionTime": "2016-12-20T22:57:08-05:00"
 		},
 		{
 			"checksumSHA1": "Q68FxXX04PtPDIG7C1RlSDhx/ko=",

@@ -5,15 +5,20 @@ import {CommonClientType, configGetConfigRpc, configGetExtendedStatusRpc, config
 import {isMobile} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
 import {navBasedOnLoginState} from '../../actions/login'
-import {checkReachabilityOnConnect, registerGregorListeners, registerReachability} from '../../actions/gregor'
+import {checkReachabilityOnConnect, registerGregorListeners, registerReachability, listenForNativeReachabilityEvents} from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
 
+import type {Tab} from '../../constants/tabs'
 import type {UpdateFollowing} from '../../constants/config'
 import type {AsyncAction, Action} from '../../constants/types/flux'
 
 isMobile && module.hot && module.hot.accept(() => {
   console.log('accepted update in actions/config')
 })
+
+function setInitialTab (tab: ?Tab) {
+  return {payload: {tab}, type: 'config:setInitialTab'}
+}
 
 function getConfig (): AsyncAction {
   return (dispatch, getState) => {
@@ -134,6 +139,7 @@ function getExtendedStatus (): AsyncAction {
 
 function registerListeners (): AsyncAction {
   return dispatch => {
+    dispatch(listenForNativeReachabilityEvents)
     dispatch(registerGregorListeners())
     dispatch(registerReachability())
   }
@@ -185,7 +191,7 @@ function bootstrap (opts?: BootstrapOptions = {}): AsyncAction {
           dispatch(listenForKBFSNotifications())
           if (!opts.isReconnect) {
             dispatch(navBasedOnLoginState())
-            dispatch((resetSignup(): Action))
+            dispatch(resetSignup())
           }
         }).catch(error => {
           console.warn('[bootstrap] error bootstrapping: ', error)
@@ -236,6 +242,7 @@ export {
   isFollower,
   isFollowing,
   retryBootstrap,
+  setInitialTab,
   updateFollowing,
   waitForKBFS,
 }

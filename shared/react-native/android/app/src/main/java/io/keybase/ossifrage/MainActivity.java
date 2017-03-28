@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Window;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactInstanceManager;
@@ -26,7 +27,6 @@ import static go.keybase.Keybase.logSend;
 
 public class MainActivity extends ReactActivity {
     private static final String TAG = MainActivity.class.getName();
-    private File logFile;
 
     @Override
     @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -37,21 +37,26 @@ public class MainActivity extends ReactActivity {
             e.printStackTrace();
         }
 
-        logFile = this.getFileStreamPath("android.log");
-        initOnce(this.getFilesDir().getPath(), logFile.getAbsolutePath(), "prod", false);
+        initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false);
 
         super.onCreate(savedInstanceState);
+
+        // Hide splash screen background after 3s.
+        // This prevents the image from being visible behind the app, such as during a
+        // keyboard show animation.
+        final Window mainWindow = this.getWindow();
+        new android.os.Handler().postDelayed(
+            new Runnable() {
+                public void run() {
+                    mainWindow.setBackgroundDrawableResource(R.color.white);
+                }
+            },
+        3000);
     }
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (BuildConfig.DEBUG && keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-            try {
-                final String id = logSend(logFile.getAbsolutePath());
-                Log.d(TAG, "LOG id is: " + id);
-            } catch (Exception e) {
-                Log.d(TAG, "Error in log sending:", e);
-            }
             return super.onKeyUp(KeyEvent.KEYCODE_MENU, null);
         }
         return super.onKeyUp(keyCode, event);

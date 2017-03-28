@@ -240,6 +240,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-fancy-encrypted-phone-183-x-96.png'),
   },
+  'icon-fancy-feedback-96': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-feedback-96.png'),
+  },
   'icon-fancy-folders-138-x-48': {
     isFont: false,
     extension: 'png',

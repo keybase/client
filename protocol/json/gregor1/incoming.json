@@ -106,7 +106,7 @@
         }
       ],
       "response": "State",
-      "doc": "StateByCategoryPrefix loads the messages of the user's state whose\n\t  categories are prefixed by the given prefix"
+      "doc": "StateByCategoryPrefix loads the messages of the user's state whose\n    categories are prefixed by the given prefix"
     }
   },
   "namespace": "gregor.1"

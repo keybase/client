@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/fsrpc"
@@ -45,6 +46,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	kbCtx = libkb.G
 	kbCtx.Init()
 	kbCtx.SetServices(externals.GetServices())
+	pvlsource.NewPvlSourceAndInstall(kbCtx)
 	usage := libkb.Usage{
 		Config:    true,
 		API:       true,
@@ -84,14 +86,14 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		Logs:         logs,
 	}
 
-	// FIXME (MBG): This is causing RPC responses to sometimes not be recieved
-	// on iOS. Repro by hooking up getExtendedStatus to a button in the iOS
-	// client and watching JS logs. Disabling until we have a root cause / fix.
-	kbfsParams := libkbfs.DefaultInitParams(kbCtx)
-	kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, serviceCn{}, func() {}, kbCtx.Log)
-	if err != nil {
-		return err
-	}
+	go func() {
+		kbfsParams := libkbfs.DefaultInitParams(kbCtx)
+		// Setting this flag will enable KBFS debug logging to alway be
+		// true in a mobile setting. Kill this setting if too spammy.
+		kbfsParams.Debug = true
+		kbfsParams.Mode = libkbfs.InitMinimalString
+		kbfsConfig, _ = libkbfs.Init(kbCtx, kbfsParams, serviceCn{}, func() {}, kbCtx.Log)
+	}()
 
 	return Reset()
 }
@@ -113,9 +115,9 @@ func (s serviceCn) NewCrypto(config libkbfs.Config, params libkbfs.InitParams, c
 }
 
 // LogSend sends a log to Keybase
-func LogSend(uiLogPath string) (string, error) {
+func LogSend(feedback string, sendLogs bool, uiLogPath string) (string, error) {
 	logSendContext.Logs.Desktop = uiLogPath
-	return logSendContext.LogSend("", 10000)
+	return logSendContext.LogSend(fmt.Sprintf("{\"feedback\": \"%s\"}", feedback), sendLogs, 5*1024*1024)
 }
 
 // WriteB64 sends a base64 encoded msgpack rpc payload

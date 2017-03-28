@@ -27,19 +27,17 @@ type BlockingSender struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
-	boxer       *Boxer
-	store       *AttachmentStore
-	getSecretUI func() libkb.SecretUI
-	getRi       func() chat1.RemoteInterface
+	boxer *Boxer
+	store *AttachmentStore
+	getRi func() chat1.RemoteInterface
 }
 
-func NewBlockingSender(g *libkb.GlobalContext, boxer *Boxer, store *AttachmentStore, getRi func() chat1.RemoteInterface,
-	getSecretUI func() libkb.SecretUI) *BlockingSender {
+func NewBlockingSender(g *libkb.GlobalContext, boxer *Boxer, store *AttachmentStore,
+	getRi func() chat1.RemoteInterface) *BlockingSender {
 	return &BlockingSender{
 		Contextified: libkb.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "BlockingSender", false),
 		getRi:        getRi,
-		getSecretUI:  getSecretUI,
 		boxer:        boxer,
 		store:        store,
 	}
@@ -310,7 +308,8 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 func (s *BlockingSender) getSigningKeyPair(ctx context.Context) (kp libkb.NaclSigningKeyPair, err error) {
 	// get device signing key for this user
-	signingKey, err := engine.GetMySecretKey(ctx, s.G(), s.getSecretUI, libkb.DeviceSigningKeyType, "sign chat message")
+	signingKey, err := engine.GetMySecretKey(ctx, s.G(), storage.DefaultSecretUI,
+		libkb.DeviceSigningKeyType, "sign chat message")
 	if err != nil {
 		return libkb.NaclSigningKeyPair{}, err
 	}
@@ -406,13 +405,6 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	return []byte{}, plres.MsgHeader.MessageID, plres.RateLimit, nil
 }
 
-type DelivererSecretUI struct {
-}
-
-func (d DelivererSecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, fmt.Errorf("no secret UI available")
-}
-
 const deliverMaxAttempts = 5
 
 type DelivererInfoError interface {
@@ -461,9 +453,7 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 
 	<-s.doStop(ctx)
 
-	s.outbox = storage.NewOutbox(s.G(), uid, func() libkb.SecretUI {
-		return DelivererSecretUI{}
-	})
+	s.outbox = storage.NewOutbox(s.G(), uid)
 	s.outbox.SetClock(s.clock)
 
 	s.delivering = true

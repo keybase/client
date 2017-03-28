@@ -92,7 +92,7 @@ func TestBackgroundIdentifier(t *testing.T) {
 			panic("wrong UID %s")
 		}
 		if job.err != i.err {
-			t.Errorf("Bad error status: %v v %v", job.err, i.err)
+			t.Errorf("Bad error status: (%+v) vs (%+v)", job.err, i.err)
 			panic("job's error status was unexpected")
 		}
 	}

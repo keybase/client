@@ -19,6 +19,7 @@ export type Options = {
   onOpenInPopup: (message: AttachmentMessage) => void,
   onRetry: (outboxID: OutboxIDKey) => void,
   onRetryAttachment: () => void,
+  onShowEditor: (message: Message, event: any) => void,
   you: string,
   metaDataMap: MetaDataMap,
   followingMap: FollowingMap,

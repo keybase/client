@@ -175,6 +175,12 @@ export const RemoteMessageBoxedVersion = {
   v2: 2,
 }
 
+export const RemoteSyncInboxResType = {
+  current: 0,
+  incremental: 1,
+  clear: 2,
+}
+
 export function localCancelPostRpc (request: Exact<requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.local.CancelPost'})
 }
@@ -221,6 +227,18 @@ export function localFindConversationsLocalRpcChannelMap (channelConfig: Channel
 
 export function localFindConversationsLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localFindConversationsLocalResult) => void} & {param: localFindConversationsLocalRpcParam}>): Promise<localFindConversationsLocalResult> {
   return new Promise((resolve, reject) => { localFindConversationsLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function localGetCachedThreadRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetCachedThreadResult) => void} & {param: localGetCachedThreadRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.getCachedThread'})
+}
+
+export function localGetCachedThreadRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetCachedThreadResult) => void} & {param: localGetCachedThreadRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localGetCachedThreadRpc({...request, incomingCallMap, callback}))
+}
+
+export function localGetCachedThreadRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetCachedThreadResult) => void} & {param: localGetCachedThreadRpcParam}>): Promise<localGetCachedThreadResult> {
+  return new Promise((resolve, reject) => { localGetCachedThreadRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function localGetConversationForCLILocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetConversationForCLILocalResult) => void} & {param: localGetConversationForCLILocalRpcParam}>) {
@@ -293,6 +311,18 @@ export function localGetThreadLocalRpcChannelMap (channelConfig: ChannelConfig<*
 
 export function localGetThreadLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetThreadLocalResult) => void} & {param: localGetThreadLocalRpcParam}>): Promise<localGetThreadLocalResult> {
   return new Promise((resolve, reject) => { localGetThreadLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function localGetThreadNonblockRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetThreadNonblockResult) => void} & {param: localGetThreadNonblockRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.getThreadNonblock'})
+}
+
+export function localGetThreadNonblockRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetThreadNonblockResult) => void} & {param: localGetThreadNonblockRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localGetThreadNonblockRpc({...request, incomingCallMap, callback}))
+}
+
+export function localGetThreadNonblockRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetThreadNonblockResult) => void} & {param: localGetThreadNonblockRpcParam}>): Promise<localGetThreadNonblockResult> {
+  return new Promise((resolve, reject) => { localGetThreadNonblockRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function localMarkAsReadLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localMarkAsReadLocalResult) => void} & {param: localMarkAsReadLocalRpcParam}>) {
@@ -607,6 +637,30 @@ export function remoteSetConversationStatusRpcPromise (request: $Exact<requestCo
   return new Promise((resolve, reject) => { remoteSetConversationStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function remoteSyncChatRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncChatResult) => void} & {param: remoteSyncChatRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.remote.syncChat'})
+}
+
+export function remoteSyncChatRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncChatResult) => void} & {param: remoteSyncChatRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteSyncChatRpc({...request, incomingCallMap, callback}))
+}
+
+export function remoteSyncChatRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncChatResult) => void} & {param: remoteSyncChatRpcParam}>): Promise<remoteSyncChatResult> {
+  return new Promise((resolve, reject) => { remoteSyncChatRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function remoteSyncInboxRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncInboxResult) => void} & {param: remoteSyncInboxRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.remote.syncInbox'})
+}
+
+export function remoteSyncInboxRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncInboxResult) => void} & {param: remoteSyncInboxRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteSyncInboxRpc({...request, incomingCallMap, callback}))
+}
+
+export function remoteSyncInboxRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncInboxResult) => void} & {param: remoteSyncInboxRpcParam}>): Promise<remoteSyncInboxResult> {
+  return new Promise((resolve, reject) => { remoteSyncInboxRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteTlfFinalizeRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteTlfFinalizeRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.remote.tlfFinalize'})
 }
@@ -888,7 +942,7 @@ export type GetInboxByTLFIDRemoteRes = {
 export type GetInboxLocalQuery = {
   tlfName?: ?string,
   topicName?: ?string,
-  convID?: ?ConversationID,
+  convIDs?: ?Array<ConversationID>,
   topicType?: ?TopicType,
   tlfVisibility?: ?TLFVisibility,
   before?: ?gregor1.Time,
@@ -908,12 +962,6 @@ export type GetInboxLocalRes = {
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
-export type GetInboxNonblockLocalRes = {
-  offline: boolean,
-  rateLimits?: ?Array<RateLimit>,
-  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
-}
-
 export type GetInboxQuery = {
   convID?: ?ConversationID,
   topicType?: ?TopicType,
@@ -923,6 +971,7 @@ export type GetInboxQuery = {
   after?: ?gregor1.Time,
   oneChatTypePerTLF?: ?boolean,
   status?: ?Array<ConversationStatus>,
+  convIDs?: ?Array<ConversationID>,
   unreadOnly: boolean,
   readOnly: boolean,
   computeActiveList: boolean,
@@ -1277,6 +1326,12 @@ export type NewMessagePayload = {
   unreadUpdate?: ?UnreadUpdate,
 }
 
+export type NonblockFetchRes = {
+  offline: boolean,
+  rateLimits?: ?Array<RateLimit>,
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
+}
+
 export type NotifyChatChatIdentifyUpdateRpcParam = Exact<{
   update: keybase1.CanonicalTLFNameAndIDWithBreaks
 }>
@@ -1404,6 +1459,11 @@ export type SealedData = {
   n: bytes,
 }
 
+export type ServerCacheVers = {
+  inboxVers: int,
+  bodiesVers: int,
+}
+
 export type SetConversationStatusLocalRes = {
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
@@ -1437,6 +1497,26 @@ export type SignatureInfo = {
   v: int,
   s: bytes,
   k: bytes,
+}
+
+export type SyncChatRes = {
+  cacheVers: ServerCacheVers,
+  inboxRes: SyncInboxRes,
+}
+
+export type SyncInboxRes =
+    { typ: 0 }
+  | { typ: 1, incremental: ?SyncIncrementalRes }
+  | { typ: 2 }
+
+export type SyncInboxResType =
+    0 // CURRENT_0
+  | 1 // INCREMENTAL_1
+  | 2 // CLEAR_2
+
+export type SyncIncrementalRes = {
+  vers: InboxVers,
+  convs?: ?Array<Conversation>,
 }
 
 export type TLFFinalizeUpdate = {
@@ -1525,6 +1605,14 @@ export type chatUiChatInboxUnverifiedRpcParam = Exact<{
   inbox: GetInboxLocalRes
 }>
 
+export type chatUiChatThreadCachedRpcParam = Exact<{
+  thread?: ?ThreadView
+}>
+
+export type chatUiChatThreadFullRpcParam = Exact<{
+  thread: ThreadView
+}>
+
 export type localCancelPostRpcParam = Exact<{
   outboxID: OutboxID
 }>
@@ -1554,6 +1642,13 @@ export type localFindConversationsLocalRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localGetCachedThreadRpcParam = Exact<{
+  conversationID: ConversationID,
+  query?: ?GetThreadQuery,
+  pagination?: ?Pagination,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
 export type localGetConversationForCLILocalRpcParam = Exact<{
   query: GetConversationForCLILocalQuery
 }>
@@ -1565,6 +1660,7 @@ export type localGetInboxAndUnboxLocalRpcParam = Exact<{
 }>
 
 export type localGetInboxNonblockLocalRpcParam = Exact<{
+  maxUnbox?: ?int,
   query?: ?GetInboxLocalQuery,
   pagination?: ?Pagination,
   identifyBehavior: keybase1.TLFIdentifyBehavior
@@ -1582,6 +1678,13 @@ export type localGetMessagesLocalRpcParam = Exact<{
 }>
 
 export type localGetThreadLocalRpcParam = Exact<{
+  conversationID: ConversationID,
+  query?: ?GetThreadQuery,
+  pagination?: ?Pagination,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
+export type localGetThreadNonblockRpcParam = Exact<{
   conversationID: ConversationID,
   query?: ?GetThreadQuery,
   pagination?: ?Pagination,
@@ -1751,6 +1854,14 @@ export type remoteSetConversationStatusRpcParam = Exact<{
   status: ConversationStatus
 }>
 
+export type remoteSyncChatRpcParam = Exact<{
+  vers: InboxVers
+}>
+
+export type remoteSyncInboxRpcParam = Exact<{
+  vers: InboxVers
+}>
+
 export type remoteTlfFinalizeRpcParam = Exact<{
   tlfID: TLFID,
   resetUser: string,
@@ -1771,17 +1882,21 @@ type localDownloadFileAttachmentLocalResult = DownloadAttachmentLocalRes
 
 type localFindConversationsLocalResult = FindConversationsLocalRes
 
+type localGetCachedThreadResult = GetThreadLocalRes
+
 type localGetConversationForCLILocalResult = GetConversationForCLILocalRes
 
 type localGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
 
-type localGetInboxNonblockLocalResult = GetInboxNonblockLocalRes
+type localGetInboxNonblockLocalResult = NonblockFetchRes
 
 type localGetInboxSummaryForCLILocalResult = GetInboxSummaryForCLILocalRes
 
 type localGetMessagesLocalResult = GetMessagesLocalRes
 
 type localGetThreadLocalResult = GetThreadLocalRes
+
+type localGetThreadNonblockResult = NonblockFetchRes
 
 type localMarkAsReadLocalResult = MarkAsReadRes
 
@@ -1829,17 +1944,23 @@ type remoteS3SignResult = bytes
 
 type remoteSetConversationStatusResult = SetConversationStatusRes
 
+type remoteSyncChatResult = SyncChatRes
+
+type remoteSyncInboxResult = SyncInboxRes
+
 export type rpc =
     localCancelPostRpc
   | localDownloadAttachmentLocalRpc
   | localDownloadFileAttachmentLocalRpc
   | localFindConversationsLocalRpc
+  | localGetCachedThreadRpc
   | localGetConversationForCLILocalRpc
   | localGetInboxAndUnboxLocalRpc
   | localGetInboxNonblockLocalRpc
   | localGetInboxSummaryForCLILocalRpc
   | localGetMessagesLocalRpc
   | localGetThreadLocalRpc
+  | localGetThreadNonblockRpc
   | localMarkAsReadLocalRpc
   | localNewConversationLocalRpc
   | localPostAttachmentLocalRpc
@@ -1866,6 +1987,8 @@ export type rpc =
   | remotePublishSetConversationStatusRpc
   | remoteS3SignRpc
   | remoteSetConversationStatusRpc
+  | remoteSyncChatRpc
+  | remoteSyncInboxRpc
   | remoteTlfFinalizeRpc
   | remoteTlfResolveRpc
 export type incomingCallMapType = Exact<{
@@ -1943,6 +2066,20 @@ export type incomingCallMapType = Exact<{
       sessionID: int,
       convID: ConversationID,
       error: ConversationErrorLocal
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.chatUi.chatThreadCached'?: (
+    params: Exact<{
+      sessionID: int,
+      thread?: ?ThreadView
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.chatUi.chatThreadFull'?: (
+    params: Exact<{
+      sessionID: int,
+      thread: ThreadView
     }>,
     response: CommonResponseHandler
   ) => void,

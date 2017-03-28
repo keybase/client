@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+# Install and uninstall the Chrome NativeMessaging host whitelist file for the
+# Keybase extension.
+#
+# Usage:
+#   ./install_host
+#   ./install_host uninstall
+#
+# It can be run multiple times. The whitelist will be overwritten each time.
+
+realpath() {
+  if [[ $1 = /* ]]; then
+    echo "$1"
+  else
+    echo "$PWD/${1#./}"
+  fi
+}
+
+detect() {
+  # Find where the NativeMessagingHosts whitelist lives for this platform.
+  whoami="$(whoami)"
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    # Mac
+    if [[ "$whoami" == "root" ]]; then
+      echo "/Library/Google/Chrome/NativeMessagingHosts"
+    else
+      echo "$HOME/Library/Application Support/Google/Chrome/NativeMessagingHosts"
+    fi
+  else
+    # Linux
+    if [[ "$whoami" == "root" ]]; then
+      echo "/etc/opt/chrome/native-messaging-hosts"
+    else
+      echo "$HOME/.config/google-chrome/NativeMessagingHosts"
+    fi
+  fi
+}
+
+install() {
+  # Install the whitelist.
+  declare target="$1"
+
+  local target_dir="$(dirname "$target")"
+  if [[ ! -d "$target_dir" ]]; then
+    mkdir -p "$target_dir"
+  fi
+
+  local here="$(dirname $(realpath "$BASH_SOURCE"))"
+  local host_path="$(which "kbnm" || echo "$here/kbnm")"
+
+  if [[ ! -x "$host_path" ]]; then
+    # Is it in GOPATH, but not PATH?
+    host_path="$GOPATH/bin/kbnm"
+  fi
+
+  if [[ ! -x "$host_path" ]]; then
+    echo "failed to find kbnm executable, make sure it's in your \$PATH."
+    exit 2
+  fi
+
+  echo "Writing: $target"
+  cat "$here/host_json.template" \
+    | sed "s|@@HOST_PATH@@|$host_path|g" \
+    > "$target"
+
+  chmod +r "$target"
+
+  cat "$target"
+
+  echo "Success."
+}
+
+uninstall() {
+  # Uninstall the whitelist.
+  declare target="$1"
+
+  rm "$target" && echo "Removed Chrome NativeMessaging whitelist: $target" || echo "Install not found: $target"
+}
+
+
+main() {
+  set -eou pipefail; [[ "${TRACE:-}" ]] && set -x
+
+  declare cmd="${1:-}"
+
+  readonly host_name="io.keybase.kbnm"
+  local target="$(detect)/${host_name}.json"
+
+  if [[ "$cmd" == "uninstall" ]]; then
+    uninstall "$target"
+  else
+    install "$target"
+  fi
+}
+
+
+[[ "$0" == "$BASH_SOURCE" ]] && main "$@"

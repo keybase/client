@@ -85,6 +85,7 @@ const (
 	ProofStatus_TIMEOUT           ProofStatus = 160
 	ProofStatus_INTERNAL_ERROR    ProofStatus = 170
 	ProofStatus_UNCHECKED         ProofStatus = 171
+	ProofStatus_MISSING_PVL       ProofStatus = 172
 	ProofStatus_BASE_HARD_ERROR   ProofStatus = 200
 	ProofStatus_NOT_FOUND         ProofStatus = 201
 	ProofStatus_CONTENT_FAILURE   ProofStatus = 202
@@ -127,6 +128,7 @@ var ProofStatusMap = map[string]ProofStatus{
 	"TIMEOUT":           160,
 	"INTERNAL_ERROR":    170,
 	"UNCHECKED":         171,
+	"MISSING_PVL":       172,
 	"BASE_HARD_ERROR":   200,
 	"NOT_FOUND":         201,
 	"CONTENT_FAILURE":   202,
@@ -169,6 +171,7 @@ var ProofStatusRevMap = map[ProofStatus]string{
 	160: "TIMEOUT",
 	170: "INTERNAL_ERROR",
 	171: "UNCHECKED",
+	172: "MISSING_PVL",
 	200: "BASE_HARD_ERROR",
 	201: "NOT_FOUND",
 	202: "CONTENT_FAILURE",

@@ -39,7 +39,6 @@ type Service struct {
 	gregor               *gregorHandler
 	rekeyMaster          *rekeyMaster
 	attachmentstore      *chat.AttachmentStore
-	messageDeliverer     *chat.Deliverer
 	badger               *badges.Badger
 	reachability         *reachability
 	backgroundIdentifier *BackgroundIdentifier
@@ -59,7 +58,6 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		rekeyMaster:     newRekeyMaster(g),
 		attachmentstore: chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
 		badger:          badges.NewBadger(g),
-		reachability:    newReachability(g),
 	}
 }
 
@@ -249,13 +247,13 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 }
 
 func (d *Service) createMessageDeliverer() {
-	tlf := newTlfHandler(nil, d.G())
 	ri := d.chatRemoteClient
-	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
-	ti := func() keybase1.TlfInterface { return tlf }
+	tlf := chat.NewKBFSTLFInfoSource(d.G())
 
-	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), ti), d.attachmentstore, ri, si)
+	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), d.attachmentstore, ri)
 	d.G().MessageDeliverer = chat.NewDeliverer(d.G(), sender)
+
+	d.G().Syncer.RegisterOfflinable(d.G().MessageDeliverer)
 }
 
 func (d *Service) startMessageDeliverer() {
@@ -266,23 +264,23 @@ func (d *Service) startMessageDeliverer() {
 }
 
 func (d *Service) createChatSources() {
-	tlf := newTlfHandler(nil, d.G())
 	ri := d.chatRemoteClient
-	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
-	ti := func() keybase1.TlfInterface { return tlf }
+	tlf := chat.NewKBFSTLFInfoSource(d.G())
 
-	boxer := chat.NewBoxer(d.G(), ti)
-	d.G().InboxSource = chat.NewInboxSource(d.G(), d.G().Env.GetInboxSourceType(),
-		ri, si, func() keybase1.TlfInterface { return tlf })
-
+	boxer := chat.NewBoxer(d.G(), tlf)
+	d.G().InboxSource = chat.NewInboxSource(d.G(), d.G().Env.GetInboxSourceType(), ri, tlf)
 	d.G().ConvSource = chat.NewConversationSource(d.G(), d.G().Env.GetConvSourceType(),
-		boxer, storage.New(d.G(), si), ri, si)
+		boxer, storage.New(d.G()), ri)
+	d.G().ServerCacheVersions = storage.NewServerVersions(d.G())
+	d.G().Syncer = chat.NewSyncer(d.G())
+
+	// Set up Offlinables on Syncer
+	d.G().Syncer.RegisterOfflinable(d.G().InboxSource)
+	d.G().Syncer.RegisterOfflinable(d.G().ConvSource)
 
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh
-	d.G().AddUserChangedHandler(chat.NewIdentifyChangedHandler(d.G(), func() keybase1.TlfInterface {
-		return tlf
-	}))
+	d.G().AddUserChangedHandler(chat.NewIdentifyChangedHandler(d.G(), tlf))
 }
 
 func (d *Service) chatRemoteClient() chat1.RemoteInterface {
@@ -322,11 +320,9 @@ func (d *Service) startupGregor() {
 		// Create gregorHandler instance first so any handlers can connect
 		// to it before we actually connect to gregor (either gregor is down
 		// or we aren't logged in)
-		var err error
-		if d.gregor, err = newGregorHandler(d.G()); err != nil {
-			d.G().Log.Warning("failed to create push service handler: %s", err)
-			return
-		}
+		d.gregor = newGregorHandler(d.G())
+		d.reachability = newReachability(d.G(), d.gregor)
+		d.gregor.setReachability(d.reachability)
 		d.gregor.badger = d.badger
 		d.G().GregorDismisser = d.gregor
 		d.G().GregorListener = d.gregor
@@ -477,9 +473,7 @@ func (d *Service) OnLogout() (err error) {
 	}
 
 	log("shutting down message deliverer")
-	if d.messageDeliverer != nil {
-		d.messageDeliverer.Stop(context.Background())
-	}
+	d.G().MessageDeliverer.Stop(context.Background())
 
 	log("shutting down rekeyMaster")
 	d.rekeyMaster.Logout()

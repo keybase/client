@@ -10,8 +10,6 @@ const PREFIX_ERROR: string = 'PLE:'
 const PREFIX_DUMP_CURRENT: string = 'PLC:'
 const PREFIX_DUMP_ALL: string = 'PLA:'
 
-const _loggers: {[name: string]: PeriodicLogger} = {}
-
 class PeriodicLogger {
   _name: string
   _lastWrite: number = -1 // can be larger than array, used as a 'virtual' index so we can bookkeep messages
@@ -37,10 +35,10 @@ class PeriodicLogger {
     this._messages[this._lastWrite % this._size] = args
 
     if (this._logIncoming) {
-      this._dump(PREFIX_DUMP_CURRENT, args)
+      this._dump(null, PREFIX_DUMP_CURRENT, args)
     } else if (this._logAfterXActions > 0) {
       if ((this._lastWrite % this._logAfterXActions) === 0) {
-        this._dump(PREFIX_DUMP_CURRENT, args)
+        this._dump(null, PREFIX_DUMP_CURRENT, args)
       }
     }
   }
@@ -65,14 +63,18 @@ class PeriodicLogger {
   group () { }
   info () { }
 
-  _dump (prefix: string, args: Array<any>) {
-    console.log(prefix, ...this._logTransform(args))
+  _dump (consoleLogOverwrite: any, prefix: string, args: Array<any>) {
+    if (consoleLogOverwrite) {
+      consoleLogOverwrite(prefix, ...this._logTransform(args))
+    } else {
+      console.log(prefix, ...this._logTransform(args))
+    }
   }
 
-  dumpCurrent () {
+  dumpCurrent (consoleLogOverwrite: any) {
     const args = this._lastWrite !== -1 && this._messages[this._lastWrite % this._size]
     if (args) {
-      this._dump(`${PREFIX_DUMP_CURRENT}${this._lastWrite}:`, args)
+      this._dump(consoleLogOverwrite, `${PREFIX_DUMP_CURRENT}${this._lastWrite}:`, args)
     }
   }
 
@@ -81,25 +83,28 @@ class PeriodicLogger {
     this._messages = []
   }
 
-  dumpAll () {
-    let index = this._lastWrite
-    const endIndex = Math.max(0, index - this._size)
-    while (index >= endIndex) {
+  dumpAll (consoleLogOverwrite: any) {
+    const endIndex = this._lastWrite
+    let index = Math.max(0, endIndex - this._size)
+    while (index <= endIndex) {
       const args = this._messages[index % this._size]
       if (args) {
-        this._dump(`${PREFIX_DUMP_ALL}${index}:`, args)
+        this._dump(consoleLogOverwrite, `${PREFIX_DUMP_ALL}${index}:`, args)
       } else {
         break
       }
 
-      index--
+      index++
     }
   }
 }
 
-function dumpLoggers () {
+const _loggers: {[name: string]: PeriodicLogger} = {}
+
+// Provider your own replacemes for console.log for the logger
+function dumpLoggers (consoleLogOverwrite: any) {
   Object.keys(_loggers).forEach(name => {
-    _loggers[name].dumpAll()
+    _loggers[name].dumpAll(consoleLogOverwrite)
   })
 }
 

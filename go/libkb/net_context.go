@@ -10,6 +10,8 @@ import (
 type withLogTagKey string
 
 func WithLogTag(ctx context.Context, k string) context.Context {
+	ctx = logger.ConvertRPCTagsToLogTags(ctx)
+
 	addLogTags := true
 	tagKey := withLogTagKey(k)
 
@@ -53,8 +55,8 @@ func LogTagsToString(ctx context.Context) string {
 func CopyTagsToBackground(ctx context.Context) context.Context {
 	ret := context.Background()
 	if tags, ok := logger.LogTagsFromContext(ctx); ok {
-		ctx = logger.NewContextWithLogTags(ctx, tags)
-		for key, _ := range tags {
+		ret = logger.NewContextWithLogTags(ret, tags)
+		for key := range tags {
 			if ctxKey, ok := key.(withLogTagKey); ok {
 				if val, ok := ctx.Value(ctxKey).(string); ok && len(val) > 0 {
 					ret = context.WithValue(ret, ctxKey, val)

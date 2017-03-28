@@ -529,21 +529,48 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	}
 	for index := 0; index < ln; index++ {
 		proof := w.AtIndex(index).AtKey("remote_key_proof")
-		if i, e := proof.AtKey("state").GetInt(); e != nil {
-			l.G().Log.Warning("Bad 'state' in track statement: %s", e)
-		} else if t, e := proof.AtKey("proof_type").GetInt(); e != nil {
-			l.G().Log.Warning("Bad 'proof_type' in track statement: %s", e)
-		} else if sb, e := ParseServiceBlock(proof.AtKey("check_data_json"), keybase1.ProofType(t)); e != nil {
-			l.G().Log.Warning("Bad remote_key_proof.check_data_json: %s", e)
-		} else {
-			sb.proofState = keybase1.ProofState(i)
-			if sb.proofState != keybase1.ProofState_OK {
-				l.G().Log.Debug("Including broken proof at index = %d", index)
-			}
+		sb := convertTrackedProofToServiceBlock(l.G(), proof, index)
+		if sb != nil {
 			ret = append(ret, sb)
 		}
 	}
-	return
+	return ret
+}
+
+// convertTrackedProofToServiceBlock will take a JSON stanza from a track statement, and convert it
+// to a ServiceBlock if it fails some important sanity checks. We check that the JSON stanza is
+// well-formed, and that it's not for a defunct proof type (like Coinbase). If all succeeeds,
+// we output a service block that can entered into found-versus-tracked comparison logic.
+// The `index` provided is what index this JSON stanza is in the overall track statement.
+func convertTrackedProofToServiceBlock(g *GlobalContext, proof *jsonw.Wrapper, index int) (ret *ServiceBlock) {
+	var i, t int
+	var err error
+	i, err = proof.AtKey("state").GetInt()
+	if err != nil {
+		g.Log.Warning("Bad 'state' in track statement: %s", err)
+		return nil
+	}
+	t, err = proof.AtKey("proof_type").GetInt()
+	if err != nil {
+		g.Log.Warning("Bad 'proof_type' in track statement: %s", err)
+		return nil
+	}
+	proofType := keybase1.ProofType(t)
+	if isProofTypeDefunct(proofType) {
+		g.Log.Debug("Ignoring now defunct proof type %q at index=%d", proofType, index)
+		return nil
+	}
+	ret, err = ParseServiceBlock(proof.AtKey("check_data_json"), proofType)
+	if err != nil {
+		g.Log.Warning("Bad remote_key_proof.check_data_json: %s", err)
+		return nil
+	}
+
+	ret.proofState = keybase1.ProofState(i)
+	if ret.proofState != keybase1.ProofState_OK {
+		g.Log.Debug("Including broken proof at index=%d (proof state=%d)", index, ret.proofState)
+	}
+	return ret
 }
 
 func (l *TrackChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {
@@ -1114,7 +1141,17 @@ func (idt *IdentityTable) populate() (err error) {
 	return nil
 }
 
+func isProofTypeDefunct(typ keybase1.ProofType) bool {
+	return typ == keybase1.ProofType_COINBASE
+}
+
 func (idt *IdentityTable) insertRemoteProof(link RemoteProofChainLink) {
+
+	if isProofTypeDefunct(link.GetProofType()) {
+		idt.G().Log.Debug("Ignoring now-defunct proof: %s", link.ToDebugString())
+		return
+	}
+
 	// note that the links in the identity table have no ProofError state.
 	idt.remoteProofLinks.Insert(link, nil)
 }
@@ -1305,6 +1342,7 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 
 	idt.G().Log.CDebugf(ctx, "+ RemoteCheckProof %s", p.ToDebugString())
 	doCache := false
+	pvlHashUsed := PvlKitHash("")
 	sid := p.GetSigID()
 
 	defer func() {
@@ -1322,14 +1360,26 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 		}
 
 		if doCache {
-			idt.G().Log.CDebugf(ctx, "| Caching results under key=%s", sid)
-			if cacheErr := idt.G().ProofCache.Put(sid, res.err); cacheErr != nil {
+			idt.G().Log.CDebugf(ctx, "| Caching results under key=%s pvlHash=%s", sid, pvlHashUsed)
+			if cacheErr := idt.G().ProofCache.Put(sid, res.err, pvlHashUsed); cacheErr != nil {
 				idt.G().Log.CWarningf(ctx, "proof cache put error: %s", cacheErr)
 			}
 		}
 
 		idt.G().Log.CDebugf(ctx, "- RemoteCheckProof %s", p.ToDebugString())
 	}()
+
+	pvlSource := idt.G().GetPvlSource()
+	if pvlSource == nil {
+		res.err = NewProofError(keybase1.ProofStatus_MISSING_PVL, "no pvl source for proof verification")
+		return
+	}
+	pvlU, err := pvlSource.GetPVL(ctx)
+	if err != nil {
+		res.err = NewProofError(keybase1.ProofStatus_MISSING_PVL, "error getting pvl: %s", err)
+		return
+	}
+	pvlHashUsed = pvlU.Hash
 
 	res.hint = idt.sigHints.Lookup(sid)
 	if res.hint == nil {
@@ -1354,7 +1404,7 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 	}
 
 	if !forceRemoteCheck {
-		res.cached = idt.G().ProofCache.Get(sid)
+		res.cached = idt.G().ProofCache.Get(sid, pvlU.Hash)
 		idt.G().Log.CDebugf(ctx, "| Proof cache lookup for %s: %+v", sid, res.cached)
 		if res.cached != nil && res.cached.Freshness() == keybase1.CheckResultFreshness_FRESH {
 			res.err = res.cached.Status
@@ -1374,7 +1424,7 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 	if (hasPreviousTrack && res.trackedProofState != keybase1.ProofState_NONE && res.trackedProofState != keybase1.ProofState_UNCHECKED) || itm == IdentifyTableModeActive {
 		pcm = ProofCheckerModeActive
 	}
-	res.err = pc.CheckStatus(idt.G().CloneWithNetContext(ctx), *res.hint, pcm)
+	res.err = pc.CheckStatus(idt.G().CloneWithNetContext(ctx), *res.hint, pcm, pvlU)
 
 	// If no error than all good
 	if res.err == nil {

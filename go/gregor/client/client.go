@@ -3,6 +3,7 @@ package storage
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/keybase/client/go/gregor"
@@ -65,16 +66,16 @@ func (c *Client) Restore() error {
 
 	value, err := c.Storage.Load(c.User)
 	if err != nil {
-		return err
+		return fmt.Errorf("Restore(): failed to load: %s", err.Error())
 	}
 
 	state, err := c.Sm.ObjFactory().UnmarshalState(value)
 	if err != nil {
-		return err
+		return fmt.Errorf("Restore(): failed to unmarshal: %s", err.Error())
 	}
 
 	if err := c.Sm.InitState(state); err != nil {
-		return err
+		return fmt.Errorf("Restore(): failed to init state: %s", err.Error())
 	}
 
 	return nil
@@ -98,13 +99,13 @@ func (c *Client) SyncFromTime(cli gregor1.IncomingInterface, t *time.Time) (msgs
 	}
 
 	// Grab the events from gregord
-	c.Log.Debug("syncFromTime from: %s", gregor1.FromTime(arg.Ctime))
+	c.Log.Debug("Sync(): start time: %s", gregor1.FromTime(arg.Ctime))
 	res, err := cli.Sync(ctx, arg)
 	if err != nil {
 		return nil, err
 	}
 
-	c.Log.Debug("syncFromTime consuming %d messages", len(res.Msgs))
+	c.Log.Debug("Sync(): consuming %d messages", len(res.Msgs))
 	for _, ibm := range res.Msgs {
 		m := gregor1.Message{Ibm_: &ibm}
 		msgs = append(msgs, ibm)
@@ -147,7 +148,15 @@ func (c *Client) freshSync(cli gregor1.IncomingInterface) ([]gregor.InBandMessag
 	return msgs, nil
 }
 
-func (c *Client) Sync(cli gregor1.IncomingInterface) ([]gregor.InBandMessage, error) {
+func (c *Client) Sync(cli gregor1.IncomingInterface) (res []gregor.InBandMessage, err error) {
+	defer func() {
+		if err == nil {
+			if err = c.Save(); err != nil {
+				c.Log.Debug("Sync(): error save state: %s", err.Error())
+			}
+		}
+	}()
+
 	latestCtime := c.Sm.LatestCTime(c.User, c.Device)
 	if latestCtime == nil || latestCtime.IsZero() {
 		c.Log.Debug("Sync(): fresh server sync: using State()")
@@ -158,11 +167,12 @@ func (c *Client) Sync(cli gregor1.IncomingInterface) ([]gregor.InBandMessage, er
 	msgs, err := c.SyncFromTime(cli, latestCtime)
 	if err != nil {
 		if _, ok := err.(ErrHashMismatch); ok {
-			c.Log.Info("Sync failure: %v\nResetting StateMachine and retrying", err)
+			c.Log.Debug("Sync(): hash check failure: %v", err)
 			return c.freshSync(cli)
 		}
 		return msgs, err
 	}
+	c.Log.Debug("Sync(): sync success!")
 	return msgs, nil
 }
 
@@ -181,14 +191,14 @@ func (c *Client) InBandMessagesFromState(s gregor.State) ([]gregor.InBandMessage
 	return res, nil
 }
 
-func (c *Client) State(cli gregor1.IncomingInterface) (gregor.State, error) {
+func (c *Client) State(cli gregor1.IncomingInterface) (res gregor.State, err error) {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	arg := gregor1.StateArg{
 		Uid:          gregor1.UID(c.User.Bytes()),
 		Deviceid:     gregor1.DeviceID(c.Device.Bytes()),
 		TimeOrOffset: gregor1.TimeOrOffset{},
 	}
-	res, err := cli.State(ctx, arg)
+	res, err = cli.State(ctx, arg)
 	if err != nil {
 		return nil, err
 	}

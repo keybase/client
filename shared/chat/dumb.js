@@ -5,13 +5,14 @@ import ConversationInput from './conversation/input'
 import ConversationList from './conversation/list'
 import ConversationSidePanel from './conversation/side-panel'
 import HiddenString from '../util/hidden-string'
-import Inbox from './conversations-list/container'
+import Inbox from './inbox/container'
 import ParticipantRekey from './conversation/participant-rekey'
 import YouRekey from './conversation/you-rekey'
 import {InboxStateRecord, MetaDataRecord, RekeyInfoRecord, StateRecord} from '../constants/chat'
 import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 import {RouteStateNode} from '../route-tree'
+import {isMobile} from '../constants/platform'
 
 import type {ConversationIDKey} from '../constants/chat'
 
@@ -91,6 +92,8 @@ const followingMap = {
 
 const commonConvoProps = {
   loadMoreMessages: () => console.log('load more'),
+  metaDataMap: Map(metaData),
+  followingMap,
   messages: List(messages),
   users: users,
   moreToLoad: false,
@@ -111,7 +114,7 @@ const inbox = [
     info: null,
     participants: List(participants),
     conversationIDKey: 'convo1',
-    muted: false,
+    status: 'unfiled',
     time: now,
     snippet: 'five',
     unreadCount: 3,
@@ -120,7 +123,7 @@ const inbox = [
     info: null,
     participants: List(participants.slice(0, 2)),
     conversationIDKey: 'convo2',
-    muted: false,
+    status: 'unfiled',
     time: now - 1000 * 60 * 60 * 3,
     snippet: '3 hours ago',
     unreadCount: 0,
@@ -129,7 +132,7 @@ const inbox = [
     info: null,
     participants: List(participants.slice(0, 3)),
     conversationIDKey: 'convo3',
-    muted: true,
+    status: 'muted',
     time: now - 1000 * 60 * 60 * 24 * 3,
     snippet: '3 days ago',
     unreadCount: 0,
@@ -138,7 +141,7 @@ const inbox = [
     info: null,
     participants: List(participants.slice(0, 4)),
     conversationIDKey: 'convo5',
-    muted: false,
+    status: 'unfiled',
     time: now - 1000 * 60 * 60 * 24 * 30,
     snippet: 'long ago',
     unreadCount: 0,
@@ -147,8 +150,17 @@ const inbox = [
     info: null,
     participants: List(participants.slice(0, 2)),
     conversationIDKey: 'convo6',
-    muted: false,
+    status: 'unfiled',
     time: now - 1000 * 60 * 60 * 3,
+    snippet: '3 hours ago',
+    unreadCount: 1,
+  }),
+  new InboxStateRecord({
+    info: null,
+    participants: List(participants.slice(0, 1)),
+    conversationIDKey: 'convo7',
+    status: 'muted',
+    time: now - 1000 * 60 * 60 * 5,
     snippet: '3 hours ago',
     unreadCount: 1,
   }),
@@ -160,6 +172,7 @@ const conversationUnreadCounts = {
   convo3: 0,
   convo5: 0,
   convo6: 1,
+  convo7: 1,
 }
 
 const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) => ({
@@ -233,7 +246,7 @@ const listParentProps = {
   style: {
     ...globalStyles.flexBoxColumn,
     minWidth: 300,
-    height: 300,
+    height: isMobile ? undefined : 500,
   },
 }
 
@@ -313,7 +326,7 @@ const sidePanel = {
     'Muted': {
       ...emptyConvoProps,
       ...commonSidePanel,
-      muted: true,
+      status: 'muted',
     },
   },
 }
@@ -322,7 +335,7 @@ const inboxParentProps = {
   style: {
     ...globalStyles.flexBoxColumn,
     minWidth: 240,
-    height: 300,
+    height: isMobile ? undefined : 500,
   },
 }
 
@@ -367,7 +380,7 @@ const conversationsList = {
           new InboxStateRecord({
             conversationIDKey: 'convo1',
             info: null,
-            muted: false,
+            status: 'unfiled',
             participants: List(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']),
             snippet: 'look up!',
             time: now,
@@ -383,7 +396,7 @@ const conversationsList = {
           new InboxStateRecord({
             conversationIDKey: 'convo1',
             info: null,
-            muted: false,
+            status: 'unfiled',
             participants: List(['look down!']),
             snippet: 'one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen',
             time: now,
@@ -400,35 +413,47 @@ const conversationBanner = {
   component: ConversationBanner,
   mocks: {
     'Info': {
-      type: 'Info',
-      text: 'Some info',
+      message: {
+        type: 'Info',
+        text: 'Some info',
+      },
     },
     'Invite': {
-      type: 'Invite',
-      users: ['malg@twitter'],
-      inviteLink: 'keybase.io/inv/9999999999',
-      onClickInviteLink: () => { console.log('Clicked the invite link') },
+      message: {
+        type: 'Invite',
+        users: ['malg@twitter'],
+        inviteLink: 'keybase.io/inv/9999999999',
+        onClickInviteLink: () => { console.log('Clicked the invite link') },
+      },
     },
     'Error': {
-      type: 'Error',
-      text: 'Some error',
-      textLink: 'Some link',
-      textLinkOnClick: () => { console.log('Clicked the text link') },
+      message: {
+        type: 'Error',
+        text: 'Some error',
+        textLink: 'Some link',
+        textLinkOnClick: () => { console.log('Clicked the text link') },
+      },
     },
     'BrokenTracker 1': {
-      type: 'BrokenTracker',
-      users: ['jzila'],
-      onClick: (user: string) => { console.log('Clicked on ', user) },
+      message: {
+        type: 'BrokenTracker',
+        users: ['jzila'],
+        onClick: (user: string) => { console.log('Clicked on ', user) },
+      },
     },
     'BrokenTracker 2': {
-      type: 'BrokenTracker',
-      users: ['jzila', 'cjb'],
-      onClick: (user: string) => { console.log('Clicked on ', user) },
+      message: {
+        type: 'BrokenTracker',
+        users: ['jzila', 'cjb'],
+        onClick: (user: string) => { console.log('Clicked on ', user) },
+      },
     },
     'BrokenTracker 3': {
-      type: 'BrokenTracker',
-      users: ['jzila', 'cjb', 'bob'],
-      onClick: (user: string) => { console.log('Clicked on ', user) },
+      message: {
+        type: 'BrokenTracker',
+        users: ['jzila', 'cjb', 'bob'],
+        onClick: (user: string) => { console.log('Clicked on ', user) },
+      },
     },
   },
 }

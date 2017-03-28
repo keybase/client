@@ -32,7 +32,14 @@ typedef NS_ENUM (NSInteger, KBExit) {
 }
 
 - (void)run {
-  [KBWorkspace setupLogging];
+  // Check process arguments directly for debug (instead of GBCli) to setup logging right away
+  NSArray *arguments = [[NSProcessInfo processInfo] arguments];
+  BOOL debug = NO;
+  if ([arguments containsObject:@"--debug"]) {
+    debug = YES;
+  }
+
+  [KBWorkspace setupLogging:debug];
 
   _memLogger = [[KBMemLogger alloc] init];
   [DDLog addLogger:_memLogger withLevel:DDLogLevelDebug];

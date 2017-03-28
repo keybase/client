@@ -11,7 +11,6 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -31,8 +30,8 @@ func NewRooterChecker(p libkb.RemoteProofChainLink) (*RooterChecker, libkb.Proof
 
 func (rc *RooterChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *RooterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) (perr libkb.ProofError) {
-	return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_ROOTER, pvl.NewProofInfo(rc.proof, h))
+func (rc *RooterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) (perr libkb.ProofError) {
+	return CheckProofPvl(ctx, keybase1.ProofType_ROOTER, rc.proof, h, pvlU)
 }
 
 //

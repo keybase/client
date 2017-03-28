@@ -4,11 +4,12 @@ import React, {Component} from 'react'
 export type Props = {
   children?: any,
   style?: Object,
-  onClick: ?(event: SyntheticEvent) => void,
+  onClick?: ?(event: SyntheticEvent) => void,
   onPress?: void,
   underlayColor?: any,
   onPressIn?: ?() => void,
   onPressOut?: ?() => void,
+  feedback?: boolean,
 }
 
 declare export default class ClickableBox extends Component<void, Props, void> { }

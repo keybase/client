@@ -1,0 +1,10 @@
+{
+  "name": "io.keybase.kbnm",
+  "description": "Keybase Native Messaging API",
+  "path": "@@HOST_PATH@@",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://kockbbfoibcdfibclaojljblnhpnjndg/",
+    "chrome-extension://gnjkbjlgkpiaehpibpdefaieklbfljjm/"
+  ]
+}

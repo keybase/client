@@ -24,6 +24,7 @@ protocol constants {
     SCWrongCryptoFormat_279,
     SCDecryptionError_280,
     SCInvalidAddress_281,
+    SCNoSession_283,
     SCBadEmail_472,
     SCBadSignupUsernameTaken_701,
     SCBadInvitationCode_707,
@@ -86,7 +87,8 @@ protocol constants {
     SCChatCollision_2510,
     SCIdentifySummaryError_2511,
     SCNeedSelfRekey_2512,
-    SCNeedOtherRekey_2513
+    SCNeedOtherRekey_2513,
+    SCChatMessageCollision_2514
   }
 
 }

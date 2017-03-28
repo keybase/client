@@ -83,16 +83,24 @@ const (
 	UserCacheMaxAge      = 5 * time.Minute
 	PGPFingerprintHexLen = 40
 
-	ProofCacheSize              = 0x1000
-	ProofCacheLongDur           = 48 * time.Hour
-	ProofCacheMediumDur         = 6 * time.Hour
-	ProofCacheShortDur          = 30 * time.Minute
+	ProofCacheSize      = 0x1000
+	ProofCacheLongDur   = 48 * time.Hour
+	ProofCacheMediumDur = 6 * time.Hour
+	ProofCacheShortDur  = 30 * time.Minute
+
+	// How old the merkle root must be to ask for a refresh.
+	// Measures time since the root was fetched, not time since published.
+	PvlSourceShouldRefresh time.Duration = 1 * time.Hour
+	// An older merkle root than this is too old to use. All identifies will fail.
+	PvlSourceRequireRefresh time.Duration = 24 * time.Hour
+
 	Identify2CacheLongTimeout   = 6 * time.Hour
 	Identify2CacheBrokenTimeout = 1 * time.Hour
 	Identify2CacheShortTimeout  = 1 * time.Minute
-	CachedUserTimeout           = 10 * time.Minute // How long we'll go without rerequesting hints/merkle seqno
-	LinkCacheSize               = 0x10000
-	LinkCacheCleanDur           = 1 * time.Minute
+
+	CachedUserTimeout = 10 * time.Minute // How long we'll go without rerequesting hints/merkle seqno
+	LinkCacheSize     = 0x10000
+	LinkCacheCleanDur = 1 * time.Minute
 
 	SigShortIDBytes  = 27
 	LocalTrackMaxAge = 48 * time.Hour
@@ -143,6 +151,7 @@ const (
 	SCInputError             = int(keybase1.StatusCode_SCInputError)
 	SCLoginRequired          = int(keybase1.StatusCode_SCLoginRequired)
 	SCBadSession             = int(keybase1.StatusCode_SCBadSession)
+	SCNoSession              = int(keybase1.StatusCode_SCNoSession)
 	SCBadLoginUserNotFound   = int(keybase1.StatusCode_SCBadLoginUserNotFound)
 	SCBadLoginPassword       = int(keybase1.StatusCode_SCBadLoginPassword)
 	SCNotFound               = int(keybase1.StatusCode_SCNotFound)
@@ -219,6 +228,7 @@ const (
 	SCIdentifySummaryError   = int(keybase1.StatusCode_SCIdentifySummaryError)
 	SCNeedSelfRekey          = int(keybase1.StatusCode_SCNeedSelfRekey)
 	SCNeedOtherRekey         = int(keybase1.StatusCode_SCNeedOtherRekey)
+	SCChatMessageCollision   = int(keybase1.StatusCode_SCChatMessageCollision)
 )
 
 const (
@@ -489,3 +499,39 @@ const (
 // FirstPRodMerkleSeqnoWithSkips is the first merkle root on production that
 // has skip pointers indicating log(n) previous merkle roots.
 var FirstProdMerkleSeqnoWithSkips = Seqno(835903)
+
+type AppType string
+
+const (
+	MobileAppType  AppType = "mobile"
+	DesktopAppType         = "desktop"
+	NoAppType              = ""
+)
+
+func StringToAppType(s string) AppType {
+	switch s {
+	case string(MobileAppType):
+		return MobileAppType
+	case string(DesktopAppType):
+		return DesktopAppType
+	default:
+		return NoAppType
+	}
+}
+
+// UID of t_alice
+const TAliceUID = keybase1.UID("295a7eea607af32040647123732bc819")
+
+// Pvl kit hash, pegged to merkle tree.
+type PvlKitHash string
+
+// String containing a pvl kit.
+type PvlKitString string
+
+// String containing a pvl chunk.
+type PvlString string
+
+type PvlUnparsed struct {
+	Hash PvlKitHash
+	Pvl  PvlString
+}

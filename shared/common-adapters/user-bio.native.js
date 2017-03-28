@@ -4,6 +4,7 @@ import React, {Component} from 'react'
 import Box from './box'
 import Avatar from './avatar'
 import Text from './text'
+import {Button} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
 
@@ -37,7 +38,7 @@ class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize,
 
 class BioRender extends Component<void, Props, void> {
   render () {
-    const {avatarSize, username, userInfo, currentlyFollowing, loading} = this.props
+    const {avatarSize, currentlyFollowing, editFns, loading, userInfo, username} = this.props
     if (loading) {
       return (
         <Box style={{...stylesContainer, ...this.props.style}}>
@@ -99,6 +100,13 @@ class BioRender extends Component<void, Props, void> {
             </Text>}
           {!!userInfo.location &&
             <Text type='BodySmall' style={stylesLocation} {...locationLineClamp}>{userInfo.location}</Text>}
+          {editFns &&
+            <Button
+              label='Edit profile'
+              onClick={editFns.onEditProfile}
+              small={true}
+              style={{marginTop: globalMargins.small}}
+              type='Primary' />}
         </Box>
       </Box>
     )
