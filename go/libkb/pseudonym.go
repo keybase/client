@@ -11,9 +11,9 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	context "golang.org/x/net/context"
+	"github.com/keybase/go-codec/codec"
 
-	"github.com/keybase/kbfs/kbfscodec"
+	context "golang.org/x/net/context"
 )
 
 // TLFPseudonym is an identifier for a key in a tlf
@@ -96,8 +96,10 @@ func MakePseudonym(info TlfPseudonymInfo) (TlfPseudonym, error) {
 		ID:      info.ID,
 		KeyGen:  info.KeyGen,
 	}
-	codec := kbfscodec.NewMsgpack()
-	buf, err := codec.Encode(input)
+	mh := codec.MsgpackHandle{WriteExt: true}
+	var buf []byte
+	enc := codec.NewEncoderBytes(&buf, &mh)
+	err := enc.Encode(input)
 	if err != nil {
 		return [32]byte{}, err
 	}
