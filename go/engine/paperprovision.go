@@ -13,20 +13,23 @@ import (
 
 type PaperProvisionEngine struct {
 	libkb.Contextified
-	Username   string
-	DeviceName string
-	PaperKey   string
-	result     error
-	lks        *libkb.LKSec
-	User       *libkb.User
+	Username     string
+	DeviceName   string
+	PaperKey     string
+	keepPaperKey bool
+	result       error
+	lks          *libkb.LKSec
+	User         *libkb.User
 }
 
-func NewPaperProvisionEngine(g *libkb.GlobalContext, username, deviceName, paperKey string) *PaperProvisionEngine {
+func NewPaperProvisionEngine(g *libkb.GlobalContext, username, deviceName,
+	paperKey string, keepPaperKey bool) *PaperProvisionEngine {
 	return &PaperProvisionEngine{
 		Contextified: libkb.NewContextified(g),
 		Username:     username,
 		DeviceName:   deviceName,
 		PaperKey:     paperKey,
+		keepPaperKey: keepPaperKey,
 	}
 }
 
