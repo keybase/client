@@ -4,10 +4,7 @@
 package libkb
 
 import (
-	"fmt"
-	"os"
 	"strings"
-	"time"
 
 	"github.com/keybase/client/go/kex2"
 	"golang.org/x/crypto/scrypt"
@@ -34,8 +31,6 @@ func NewKex2Secret(mobile bool) (*Kex2Secret, error) {
 }
 
 func NewKex2SecretFromPhrase(phrase string) (*Kex2Secret, error) {
-	fmt.Fprintf(os.Stderr, "SCRYPT: %s", phrase)
-	time.Sleep(10 * time.Second)
 
 	scryptCost := Kex2ScryptCost
 	words := strings.Split(phrase, " ")
