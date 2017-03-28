@@ -247,12 +247,12 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
 
       switch (error.typ) {
         case ChatTypes.LocalConversationErrorType.selfrekeyneeded: {
-          yield call(Creators.updateInbox(conversation))
+          yield put(Creators.updateInbox(conversation))
           yield put(Creators.updateInboxRekeySelf(conversationIDKey))
           break
         }
         case ChatTypes.LocalConversationErrorType.otherrekeyneeded: {
-          yield call(Creators.updateInbox(conversation))
+          yield put(Creators.updateInbox(conversation))
           const rekeyers = error.rekeyInfo.rekeyers
           yield put(Creators.updateInboxRekeyOthers(conversationIDKey, rekeyers))
           break

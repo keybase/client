@@ -39,8 +39,8 @@ if (__DEV__ && true) {
   config.dumbSheetOnly = false
   config.enableActionLogging = false
   config.enableStoreLogging = true
-  config.forwardLogs = true
-  config.immediateStateLogging = true
+  config.forwardLogs = false
+  config.immediateStateLogging = false
   config.overrideLoggedInTab = Tabs.settingsTab
   config.printOutstandingRPCs = true
   config.printRPC = true

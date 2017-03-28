@@ -1,6 +1,5 @@
 // @flow
 import React, {Component} from 'react'
-import {NativeModules} from 'react-native'
 import hello from './util/hello'
 import {Box} from './common-adapters/index'
 import DumbSheet from './dev/dumb-sheet'
@@ -12,9 +11,7 @@ import Push from './push/push.native'
 import {setRouteState} from './actions/route-tree'
 import {initAvatarLookup, initAvatarLoad} from './common-adapters'
 import {getUserImageMap, loadUserImageMap} from './util/pictures'
-import {setApplicationIconBadgeNumber} from 'react-native-push-notification'
-
-const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
+import RNPN from 'react-native-push-notification'
 
 module.hot && module.hot.accept(() => {
   console.log('accepted update in main.ios')
@@ -38,12 +35,7 @@ class Main extends Component {
 
   componentWillReceiveProps (nextProps) {
     if (this.props.menuBadgeCount !== nextProps.menuBadgeCount) {
-
-      if (nativeBridge.usingSimulator === '1') {
-        console.log('Skipping settings badge due to simulator', nextProps.menuBadgeCount)
-      } else {
-        setApplicationIconBadgeNumber(100 + nextProps.menuBadgeCount) // TEMP 100
-      }
+      RNPN.setApplicationIconBadgeNumber(100 + nextProps.menuBadgeCount) // TEMP 100
     }
   }
 
