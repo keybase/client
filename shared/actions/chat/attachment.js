@@ -39,7 +39,8 @@ function * _isCached (conversationIDKey, messageID): Generator<any, ?string, any
   try {
     const message = yield select(Shared.messageSelector, conversationIDKey, messageID)
     if (message.hdPreviewPath) {
-      return message.hdPreviewPath
+      const fileExists = yield call(exists, message.hdPreviewPath)
+      return fileExists ? message.hdPreviewPath : null
     }
   } catch (e) {
     console.warn('error in checking cached file', e)

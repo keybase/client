@@ -4,6 +4,7 @@ import RenderAttachmentPopup from './'
 import {connect} from 'react-redux'
 import {deleteMessage} from '../../../actions/chat/creators'
 import {downloadFilePath} from '../../../util/file'
+import {navigateAppend} from '../../../actions/route-tree'
 
 import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
@@ -16,19 +17,14 @@ type AttachmentPopupRouteProps = RouteProps<{
 }, {}>
 type OwnProps = AttachmentPopupRouteProps & {
   isZoomed: boolean,
-  detailsPopupShowing: boolean,
   onToggleZoom: () => void,
   onOpenDetailsPopup: () => void,
-  onCloseDetailsPopup: () => void,
 }
 
 export default compose(
   withState('isZoomed', 'setZoomed', false),
-  withState('detailsPopupShowing', 'setDetailsPopupShowing', false),
   withProps(({setZoomed, setDetailsPopupShowing}) => ({
     onToggleZoom: () => setZoomed(zoomed => !zoomed),
-    onOpenDetailsPopup: () => setDetailsPopupShowing(true),
-    onCloseDetailsPopup: () => setDetailsPopupShowing(false),
   })),
   connect(
     (state: TypedState, {routeProps, ...ownProps}: OwnProps) => {
@@ -51,6 +47,7 @@ export default compose(
       }
     },
     (dispatch: Dispatch, {navigateUp}) => ({
+      _onMessageAction: (message: Constants.ServerMessage) => dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
       deleteMessage: message => dispatch(deleteMessage(message)),
       onClose: () => dispatch(navigateUp()),
       onDownloadAttachment: (message: AttachmentMessage) => {
@@ -83,6 +80,7 @@ export default compose(
           dispatchProps.deleteMessage(message)
           dispatchProps.onClose()
         },
+        onMessageAction: () => dispatchProps._onMessageAction(message),
         onDownloadAttachment: () => dispatchProps.onDownloadAttachment(message),
         onOpenInFileUI: () => dispatchProps.onOpenInFileUI(message.downloadedPath),
       }

@@ -53,7 +53,7 @@ function _attachmentMessagePopupHelper ({message, onSaveAttachment, onShareAttac
   return items
 }
 
-export function MessagePopup (props: TextProps | AttachmentProps) {
+function MessagePopup (props: TextProps | AttachmentProps) {
   const {message, onDeleteMessage, onHidden} = props
   if (message.type !== 'Text' && message.type !== 'Attachment') return null
 
