@@ -17,14 +17,19 @@ type AttachmentPopupRouteProps = RouteProps<{
 }, {}>
 type OwnProps = AttachmentPopupRouteProps & {
   isZoomed: boolean,
+  detailsPopupShowing: boolean,
   onToggleZoom: () => void,
   onOpenDetailsPopup: () => void,
+  onCloseDetailsPopup: () => void,
 }
 
 export default compose(
   withState('isZoomed', 'setZoomed', false),
+  withState('detailsPopupShowing', 'setDetailsPopupShowing', false),
   withProps(({setZoomed, setDetailsPopupShowing}) => ({
     onToggleZoom: () => setZoomed(zoomed => !zoomed),
+    onOpenDetailsPopup: () => setDetailsPopupShowing(true),
+    onCloseDetailsPopup: () => setDetailsPopupShowing(false),
   })),
   connect(
     (state: TypedState, {routeProps, ...ownProps}: OwnProps) => {
