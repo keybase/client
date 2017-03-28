@@ -29,7 +29,11 @@ function setupSource () {
   }
 
   window.console.error = (...args) => {
-    localError(...args)
+    if (__DEV__) {
+      localError(...args)
+    } else {
+      localWarn(...args)
+    }
     logger.error(args.join(', '))
   }
 }
