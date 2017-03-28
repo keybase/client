@@ -159,7 +159,6 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
             .set('moreToLoad', moreToLoad)
             .set('paginationNext', paginationNext)
             .set('deletedIDs', nextDeletedIDs)
-            .set('isRequesting', false)
         })
 
       return state.set('conversationStates', newConversationStates)

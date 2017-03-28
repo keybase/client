@@ -167,7 +167,7 @@ function * processConversation (c: ChatTypes.ConversationLocal): SagaGenerator<a
     const selectedConversation = yield select(Constants.getSelectedConversation)
     if (selectedConversation === inboxState.get('conversationIDKey')) {
       // load validated selected
-      yield put(Creators.loadMoreMessages(selectedConversation, false))
+      yield put(Creators.loadMoreMessages(selectedConversation, true))
     }
   }
 }
