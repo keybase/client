@@ -175,7 +175,6 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 	if err != nil {
 		return err
 	}
-	e.G().Log.Debug("secret phrase received")
 
 	// create provisionee engine
 	provisionee := NewKex2Provisionee(e.G(), device, secret.Secret())
@@ -203,7 +202,7 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 			copy(ks[:], receivedSecret.Secret)
 			provisionee.AddSecret(ks)
 		} else if len(receivedSecret.Phrase) > 0 {
-			e.G().Log.Debug("received secret phrase, adding to provisionee: %s", receivedSecret.Phrase)
+			e.G().Log.Debug("received secret phrase, adding to provisionee")
 			ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
 			if err != nil {
 				e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)

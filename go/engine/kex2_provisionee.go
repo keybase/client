@@ -137,9 +137,7 @@ func (e *Kex2Provisionee) Cancel() {
 // AddSecret inserts a received secret into the provisionee's
 // secret channel.
 func (e *Kex2Provisionee) AddSecret(s kex2.Secret) {
-	e.G().Log.Debug("AddSecret: about to send on channel: %v")
 	e.secretCh <- s
-	e.G().Log.Debug("AddSecret: successful send on channel: %v")
 }
 
 // GetLogFactory implements GetLogFactory in kex2.Provisionee.
