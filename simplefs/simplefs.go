@@ -22,11 +22,19 @@ import (
 
 // SimpleFS is the simple filesystem rpc layer implementation.
 type SimpleFS struct {
-	lock       sync.RWMutex
-	config     libkbfs.Config
-	handles    map[keybase1.OpID]*handle
+	// log for logging - constant, does not need locking.
+	log logger.Logger
+	// config for the fs - constant, does not need locking.
+	config libkbfs.Config
+	// lock protects handles and inProgress
+	lock sync.RWMutex
+	// handles contains handles opened by SimpleFSOpen,
+	// closed by SimpleFSClose (or SimpleFSCancel) and used
+	// by listing, reading and writing.
+	handles map[keybase1.OpID]*handle
+	// inProgress is for keeping state of operations in progress,
+	// values are removed by SimpleFSWait (or SimpleFSCancel).
 	inProgress map[keybase1.OpID]*inprogress
-	log        logger.Logger
 }
 
 type inprogress struct {
@@ -520,8 +528,7 @@ func (k *SimpleFS) SimpleFSMakeOpid(_ context.Context) (keybase1.OpID, error) {
 	return opid, err
 }
 
-// SimpleFSClose - Close OpID, cancels any pending operation.
-// Must be called after list/copy/remove
+// SimpleFSClose - Close removes a handle associated with Open / List.
 func (k *SimpleFS) SimpleFSClose(ctx context.Context, opid keybase1.OpID) (err error) {
 	ctx, err = k.startSyncOp(ctx, "Close", opid)
 	if err != nil {
