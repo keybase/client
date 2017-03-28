@@ -1,6 +1,7 @@
 // @flow
 import DumbSheet from './dev/dumb-sheet'
 import Push from './push/push.native'
+import RNPN from 'react-native-push-notification'
 import React, {Component} from 'react'
 import RenderRoute from './route-tree/render-route'
 import hello from './util/hello'
@@ -12,10 +13,23 @@ import {getUserImageMap, loadUserImageMap} from './util/pictures'
 import {initAvatarLookup, initAvatarLoad} from './common-adapters'
 import {listenForNotifications} from './actions/notifications'
 import {persistRouteState, loadRouteState} from './actions/platform-specific.native'
-import {setRouteState, navigateUp} from './actions/route-tree'
+import {setRouteState} from './actions/route-tree'
 
-// TODO type this later
-type Props = any
+type Props = {
+  dumbFullscreen: boolean,
+  folderBadge: number,
+  menuBadgeCount: number,
+  mountPush: boolean,
+  routeDef: any,
+  routeState: any,
+  showPushPrompt: any,
+  bootstrap: () => void,
+  hello: () => void,
+  listenForNotifications: () => void,
+  loadRouteState: () => void,
+  persistRouteState: () => void,
+  setRouteState: (path: any, partialState: any) => void,
+}
 
 class Main extends Component<void, any, void> {
   constructor (props: Props) {
@@ -39,6 +53,10 @@ class Main extends Component<void, any, void> {
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.routeState !== nextProps.routeState) {
       this._persistRoute()
+    }
+
+    if (this.props.menuBadgeCount !== nextProps.menuBadgeCount) {
+      RNPN.setApplicationIconBadgeNumber(nextProps.menuBadgeCount)
     }
   }
 
@@ -67,29 +85,28 @@ class Main extends Component<void, any, void> {
 // $FlowIssue
 const connector = connect(
   ({
-    config: {extendedConfig, username, bootStatus, loggedIn},
+    config: {extendedConfig, bootStatus, loggedIn},
     dev: {debugConfig: {dumbFullscreen}},
     favorite: {privateBadge, publicBadge},
     push: {permissionsPrompt},
     routeTree: {routeDef, routeState},
+    notifications: {menuBadgeCount},
   }) => ({
     dumbFullscreen,
     folderBadge: privateBadge + publicBadge,
+    menuBadgeCount,
     mountPush: extendedConfig && !!extendedConfig.defaultDeviceID && loggedIn && bootStatus === 'bootStatusBootstrapped',
-    permissionsPrompt,
     routeDef,
     routeState,
     showPushPrompt: permissionsPrompt,
-    username,
   }),
   (dispatch, {platform, version}) => ({
     bootstrap: () => dispatch(bootstrap()),
     hello: () => hello(0, platform, [], version, true), // TODO real version
     listenForNotifications: () => dispatch(listenForNotifications()),
-    persistRouteState: () => dispatch(persistRouteState()),
     loadRouteState: () => dispatch(loadRouteState()),
+    persistRouteState: () => dispatch(persistRouteState()),
     setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
-    navigateUp: () => dispatch(navigateUp()),
   })
 )
 
