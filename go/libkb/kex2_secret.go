@@ -37,7 +37,7 @@ func NewKex2Secret(mobile bool) (*Kex2Secret, error) {
 func NewKex2SecretFromPhrase(phrase string) (*Kex2Secret, error) {
 
 	scryptCost := Kex2ScryptCost
-	// Detect if the phrase contain the magic word that indicates that we are provisioning a mobile
+	// Detect if the phrase contains the magic word that indicates that we are provisioning a mobile
 	// device. If so, then we use the lighter cost version of scrypt.
 	words := strings.Split(phrase, " ")
 	if words[len(words)-1] == kexPhraseVersion {
