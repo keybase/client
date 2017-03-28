@@ -81,7 +81,7 @@ function renderChat(parent, toUsername) {
     <p>Encrypt to <span class="keybase-username">'+ toUsername +'</span>:</p>\
     <p><textarea name="keybase-chat" rows="6"></textarea></p>\
     '+ nudgeHTML +'\
-    <p><input type="submit" value="Send" /></p> \
+    <p><input type="submit" value="Send" name="keybase-submit" /></p> \
   ';
   f.addEventListener("submit", submitChat);
   parent.insertBefore(f, parent.firstChild);
@@ -118,12 +118,29 @@ function removeChat(chatForm, skipCheck) {
 function submitChat(e) {
   e.preventDefault();
 
-  const to = e.currentTarget["keybase-to"].value;
-  const body = e.currentTarget["keybase-chat"].value;
-  const nudgeDo = e.currentTarget["keybase-nudge"].checked;
-  const nudgeText = e.currentTarget["keybase-nudgetext"].value;
+  const f = e.currentTarget; // The form.
+  const to = f["keybase-to"].value;
+  const body = f["keybase-chat"].value;
+  const nudgeDo = f["keybase-nudge"].checked;
+  const nudgeText = f["keybase-nudgetext"].value;
 
   // TODO: Check that to/body are not empty.
+
+  // We need this for when the chat widget gets detached from the DOM.
+  const originalParent = e.currentTarget.parentNode;
+  function nudgeCallback() {
+    // Send nudge?
+    if (!nudgeDo) return;
+
+    const commentNode = findParentByClass(originalParent, "comment");
+    if (!commentNode) return; // Not found
+
+    postReply(commentNode, nudgeText);
+  }
+
+  const submitButton = f["keybase-submit"];
+  submitButton.disabled = true;
+  submitButton.value = "Sending...";
 
   const port = chrome.runtime.connect();
   port.postMessage({
@@ -133,19 +150,24 @@ function submitChat(e) {
   });
   port.onMessage.addListener(function(response) {
     console.log("response: ", response);
+
+    if (response.status != "ok") {
+      renderError(f, response.message);
+      submitButton.value = "Error";
+      return;
+    }
+
+    removeChat(f, true /* skipCheck */);
+    nudgeCallback();
   });
+}
 
-  const originalParent = e.currentTarget.parentNode;
-  removeChat(e.currentTarget, true /* skipCheck */);
-  console.log("Chat submitted: ", e);
-
-  // Send nudge?
-  if (!nudgeDo) return;
-
-  const commentNode = findParentByClass(originalParent, "comment");
-  if (!commentNode) return; // Not found
-
-  postReply(commentNode, nudgeText);
+// Render error message inside our chat widget.
+function renderError(chatForm, msg) {
+  const p = document.createElement("p");
+  p.className = "keybase-error";
+  p.innerText = msg;
+  chatForm.appendChild(p);
 }
 
 // Post a Reddit thread reply on the given comment node.
