@@ -9,7 +9,6 @@ import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
 import {downloadFilePath} from '../../util/file'
 import {getProfile} from '../../actions/tracker'
-import {navigateAppend} from '../../actions/route-tree'
 import {onUserClick} from '../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
 import {pick} from 'lodash'
@@ -158,7 +157,7 @@ export default connect(
       supersededBy: null,
     }
   },
-  (dispatch: Dispatch, {setRouteState, navigateUp}) => ({
+  (dispatch: Dispatch, {setRouteState, navigateUp, navigateAppend, routePath}) => ({
     onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
     onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
     onBack: () => dispatch(navigateUp()),
@@ -174,7 +173,7 @@ export default connect(
     onOpenFolder: () => dispatch(Creators.openFolder()),
     onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => dispatch(Creators.openConversation(conversationIDKey)),
     onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
-    onOpenInPopup: (message: Constants.AttachmentMessage) => dispatch(Creators.openAttachmentPopup(message)),
+    onOpenInPopup: (message: Constants.AttachmentMessage) => dispatch(Creators.openAttachmentPopup(message, routePath)),
     onPostMessage: (selectedConversation, text) => dispatch(Creators.postMessage(selectedConversation, new HiddenString(text))),
     onRetryAttachment: (message: Constants.AttachmentMessage) => dispatch(Creators.retryAttachment(message)),
     onRetryMessage: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => dispatch(Creators.retryMessage(conversationIDKey, outboxID)),

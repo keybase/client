@@ -8,7 +8,7 @@ import * as Shared from './shared'
 import {call, put, select, cancel, fork, join} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {isMobile} from '../../constants/platform'
-import {navigateAppend} from '../route-tree'
+import {putActionIfOnPath, navigateAppend} from '../route-tree'
 import {saveAttachment, showShareActionSheet} from '../platform-specific'
 import {tmpFile, downloadFilePath, copy, exists} from '../../util/file'
 import {usernameSelector} from '../../constants/selectors'
@@ -237,13 +237,13 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
 }
 
 function * onOpenAttachmentPopup (action: Constants.OpenAttachmentPopup): SagaGenerator<any, any> {
-  const {message} = action.payload
+  const {message, currentPath} = action.payload
   const messageID = message.messageID
   if (!messageID) {
     throw new Error('Cannot open attachment popup for message missing ID')
   }
 
-  yield put(navigateAppend([{props: {messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}]))
+  yield put(putActionIfOnPath(currentPath, navigateAppend([{props: {messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}])))
   if (!message.hdPreviewPath && message.filename) {
     yield put(Creators.loadAttachment(message.conversationIDKey, messageID, tmpFile(Shared.tmpFileName(true, message.conversationIDKey, message.messageID, message.filename)), false, true))
   }

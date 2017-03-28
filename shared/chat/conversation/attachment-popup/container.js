@@ -4,7 +4,6 @@ import RenderAttachmentPopup from './'
 import {connect} from 'react-redux'
 import {deleteMessage} from '../../../actions/chat/creators'
 import {downloadFilePath} from '../../../util/file'
-import {navigateAppend} from '../../../actions/route-tree'
 
 import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
@@ -46,7 +45,7 @@ export default compose(
         message,
       }
     },
-    (dispatch: Dispatch, {navigateUp}) => ({
+    (dispatch: Dispatch, {navigateUp, navigateAppend}) => ({
       _onMessageAction: (message: Constants.ServerMessage) => dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
       deleteMessage: message => dispatch(deleteMessage(message)),
       onClose: () => dispatch(navigateUp()),

@@ -5,6 +5,8 @@ import HiddenString from '../../util/hidden-string'
 import {List, Map} from 'immutable'
 import {uniq} from 'lodash'
 
+import type {Path} from '../../route-tree'
+
 // Whitelisted action loggers
 const updateTempMessageTransformer = ({type, payload: {conversationIDKey, outboxID}}: Constants.UpdateTempMessage) => ({
   payload: {conversationIDKey, outboxID},
@@ -320,8 +322,8 @@ function openConversation (conversationIDKey: Constants.ConversationIDKey): Cons
   return {payload: {conversationIDKey}, type: 'chat:openConversation'}
 }
 
-function openAttachmentPopup (message: Constants.AttachmentMessage): Constants.OpenAttachmentPopup {
-  return {payload: {message}, type: 'chat:openAttachmentPopup'}
+function openAttachmentPopup (message: Constants.AttachmentMessage, currentPath, Path): Constants.OpenAttachmentPopup {
+  return {payload: {message, currentPath}, type: 'chat:openAttachmentPopup'}
 }
 
 function setInitialConversation (conversationIDKey: ?Constants.ConversationIDKey): Constants.SetInitialConversation {
