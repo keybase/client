@@ -106,6 +106,9 @@ func (u *user) addItem(now time.Time, i gregor.Item) *item {
 		}
 	}
 	newItem := &item{item: i, ctime: nowIfZero(now, i.Metadata().CTime())}
+	if i.DTime() != nil {
+		newItem.dtime = i.DTime().Time()
+	}
 	u.items = append(u.items, newItem)
 	return newItem
 }
