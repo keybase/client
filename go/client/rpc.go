@@ -190,6 +190,14 @@ func GetScanProofsClient(g *libkb.GlobalContext) (cli keybase1.ScanProofsClient,
 	return
 }
 
+func GetFooClient(g *libkb.GlobalContext) (cli keybase1.FooClient, err error) {
+	var rcli *rpc.Client
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
+		cli = keybase1.FooClient{Cli: rcli}
+	}
+	return
+}
+
 func GetCtlClient(g *libkb.GlobalContext) (cli keybase1.CtlClient, err error) {
 	var rcli *rpc.Client
 	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
