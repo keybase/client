@@ -51,7 +51,7 @@ class CardStackShim extends Component {
         routes: stack.map(route => {
           const routeName = route.path.join('/')
           return {key: routeName, routeName, params: route}
-        }),
+        }).toArray(),
       },
       dispatch: this._dispatchShim,
     }

@@ -100,7 +100,7 @@ const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, 
 
   return (
     <Box style={{...globalStyles.flexBoxRow, backgroundColor, flexGrow: 1, maxHeight: 16, minHeight: 16, position: 'relative'}}>
-      <Box style={{...globalStyles.flexBoxRow, aligntItems: 'flex-start', bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
+      <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start', bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
         {content}
       </Box>
     </Box>

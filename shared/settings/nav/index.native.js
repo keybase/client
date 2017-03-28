@@ -71,7 +71,6 @@ const itemStyle = {
   paddingRight: globalMargins.small,
   alignItems: 'center',
   position: 'relative',
-  textTransform: 'uppercase',
   borderBottomColor: globalColors.black_05,
   borderBottomWidth: StyleSheet.hairlineWidth,
 }
