@@ -69,16 +69,16 @@ func (a *FakeAPI) PostJSON(APIArg) (*APIRes, error) {
 	return nil, fmt.Errorf("PostJSON is phony")
 }
 
-func (a *FakeAPI) PostResp(APIArg) (*http.Response, error) {
-	return nil, fmt.Errorf("PostResp is phony")
-}
-
 func (a *FakeAPI) PostRaw(APIArg, string, io.Reader) (*APIRes, error) {
 	return nil, fmt.Errorf("PostRaw is phony")
 }
 
 func (a *FakeAPI) PostDecode(APIArg, APIResponseWrapper) error {
 	return fmt.Errorf("GetDecode is phony")
+}
+
+func (a *FakeAPI) PostDecodeJSON(APIArg, APIResponseWrapper) error {
+	return fmt.Errorf("GetDecodeJSON is phony")
 }
 
 func TestLoginSessionTimeout(t *testing.T) {

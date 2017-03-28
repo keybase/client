@@ -620,12 +620,12 @@ func (a *InternalAPIEngine) PostJSON(arg APIArg) (*APIRes, error) {
 	return a.DoRequest(arg, req)
 }
 
-// PostResp performs a POST request and returns the http response.
+// postResp performs a POST request and returns the http response.
 // The returned response, if non-nil, should have
 // DiscardAndCloseBody() called on it.
-func (a *InternalAPIEngine) PostResp(arg APIArg) (*http.Response, error) {
+func (a *InternalAPIEngine) postResp(arg APIArg, sendJSON bool) (*http.Response, error) {
 	url1 := a.getURL(arg)
-	req, err := a.PreparePost(url1, arg, false)
+	req, err := a.PreparePost(url1, arg, sendJSON)
 	if err != nil {
 		return nil, err
 	}
@@ -639,7 +639,20 @@ func (a *InternalAPIEngine) PostResp(arg APIArg) (*http.Response, error) {
 }
 
 func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
-	resp, err := a.PostResp(arg)
+	resp, err := a.postResp(arg, false)
+	if err != nil {
+		return err
+	}
+	defer DiscardAndCloseBody(resp)
+	dec := json.NewDecoder(resp.Body)
+	if err = dec.Decode(&v); err != nil {
+		return err
+	}
+	return a.checkAppStatus(arg, v.GetAppStatus())
+}
+
+func (a *InternalAPIEngine) PostDecodeJSON(arg APIArg, v APIResponseWrapper) error {
+	resp, err := a.postResp(arg, true)
 	if err != nil {
 		return err
 	}
