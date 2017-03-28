@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../constants/notifications'
 import * as CommonConstants from '../constants/common'
+import {isMobile} from '../constants/platform'
 
 import type {NotificationKeys, NotificationAction, BadgeType, MenuNotificationState} from '../constants/notifications'
 
@@ -56,7 +57,10 @@ export default function (state: State = initialState, action: NotificationAction
         menuNotifications.chatBadge = badgeAction.payload.count || 0
       }
 
-      const menuBadgeCount = Object.keys(menuNotifications).reduce((total, n) => total + menuNotifications[n], 0)
+      // Menu badge is chat only currently
+      const menuBadgeCount = isMobile
+        ? menuNotifications.chatBadge
+        : Object.keys(menuNotifications).reduce((total, n) => total + menuNotifications[n], 0)
 
       return {
         ...state,

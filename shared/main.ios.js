@@ -1,5 +1,6 @@
 // @flow
 import React, {Component} from 'react'
+import {NativeModules} from 'react-native'
 import hello from './util/hello'
 import {Box} from './common-adapters/index'
 import DumbSheet from './dev/dumb-sheet'
@@ -11,6 +12,9 @@ import Push from './push/push.native'
 import {setRouteState} from './actions/route-tree'
 import {initAvatarLookup, initAvatarLoad} from './common-adapters'
 import {getUserImageMap, loadUserImageMap} from './util/pictures'
+import {setApplicationIconBadgeNumber} from 'react-native-push-notification'
+
+const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
 
 module.hot && module.hot.accept(() => {
   console.log('accepted update in main.ios')
@@ -29,6 +33,17 @@ class Main extends Component {
 
       // Introduce ourselves to the service
       hello(0, 'iOS app', [], '0.0.0', true) // TODO real version
+    }
+  }
+
+  componentWillReceiveProps (nextProps) {
+    if (this.props.menuBadgeCount !== nextProps.menuBadgeCount) {
+
+      if (nativeBridge.usingSimulator === '1') {
+        console.log('Skipping settings badge due to simulator', nextProps.menuBadgeCount)
+      } else {
+        setApplicationIconBadgeNumber(100 + nextProps.menuBadgeCount) // TEMP 100
+      }
     }
   }
 
@@ -62,6 +77,7 @@ export default connect(
     config: {extendedConfig, username, bootStatus, loggedIn},
     dev: {debugConfig: {dumbFullscreen}},
     push: {permissionsPrompt},
+    notifications: {menuBadgeCount},
   }) => ({
     routeDef,
     routeState,
@@ -71,6 +87,7 @@ export default connect(
     permissionsPrompt,
     mountPush: extendedConfig && !!extendedConfig.defaultDeviceID && loggedIn && bootStatus === 'bootStatusBootstrapped',
     showPushPrompt: permissionsPrompt,
+    menuBadgeCount,
   }),
   dispatch => ({
     setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
