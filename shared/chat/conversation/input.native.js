@@ -103,7 +103,7 @@ class ConversationInput extends Component<void, Props, State> {
       ? (
         <ClickableBox feedback={false} onClick={this._onSubmit}>
           <Box style={{padding: globalMargins.small}}>
-            <Text type='BodyBigLink'>Send</Text>
+            <Text type='BodyBigLink'>{this.props.editingMessage ? 'Save' : 'Send'}</Text>
           </Box>
         </ClickableBox>
         )
