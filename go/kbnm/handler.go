@@ -34,12 +34,15 @@ func handleChat(req *Request) error {
 		return err
 	}
 
-	go func() {
-		io.WriteString(stdin, req.Body)
+	if err := cmd.Start(); err != nil {
 		stdin.Close()
-	}()
+		return err
+	}
+
+	io.WriteString(stdin, req.Body)
+	stdin.Close()
 
 	// TODO: Check/convert status code more precisely? Maybe return stdout as
 	// part of the error if there is one?
-	return cmd.Run()
+	return cmd.Wait()
 }
