@@ -10,6 +10,7 @@ import dumbComponentMap from '../../dev/dumb-sheet/component-map.desktop'
 const WORKER_COUNT = 10
 const CANVAS_SIZE = 1000
 const DEBUG_WINDOWS = false
+const FILTER_KEY = ''
 
 if (process.argv.length !== 3) {
   console.log(`Usage: electron ${path.basename(process.argv[1])} DESTINATION`)
@@ -23,6 +24,9 @@ if (!fs.existsSync(outputDir)) {
 
 const toRender = []
 Object.keys(dumbComponentMap).forEach(key => {
+  if (FILTER_KEY && key !== FILTER_KEY) {
+    return
+  }
   Object.keys(dumbComponentMap[key].mocks).forEach(mockKey => {
     toRender.push({key, mockKey})
   })
