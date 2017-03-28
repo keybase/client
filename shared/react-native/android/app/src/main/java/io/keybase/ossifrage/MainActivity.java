@@ -37,7 +37,7 @@ public class MainActivity extends ReactActivity {
             e.printStackTrace();
         }
 
-        initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false);
+        initOnce(this.getFilesDir().getPath(), null, "prod", false);
 
         super.onCreate(savedInstanceState);
 

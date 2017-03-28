@@ -159,12 +159,6 @@ func saveToSecretStore(g *libkb.GlobalContext, lctx libkb.LoginContext, nun libk
 // deviceWithType provisions this device with an existing device using the
 // kex2 protocol.  provisionerType is the existing device type.
 func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.DeviceType) error {
-	// make a new secret:
-	secret, err := libkb.NewKex2Secret()
-	if err != nil {
-		return err
-	}
-	e.G().Log.Debug("secret phrase received")
 
 	// make a new device:
 	deviceID, err := libkb.NewDeviceID()
@@ -175,6 +169,13 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		ID:   deviceID,
 		Type: e.arg.DeviceType,
 	}
+
+	// make a new secret:
+	secret, err := libkb.NewKex2Secret(e.arg.DeviceType == libkb.DeviceTypeMobile)
+	if err != nil {
+		return err
+	}
+	e.G().Log.Debug("secret phrase received")
 
 	// create provisionee engine
 	provisionee := NewKex2Provisionee(e.G(), device, secret.Secret())
@@ -202,7 +203,7 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 			copy(ks[:], receivedSecret.Secret)
 			provisionee.AddSecret(ks)
 		} else if len(receivedSecret.Phrase) > 0 {
-			e.G().Log.Debug("received secret phrase, adding to provisionee")
+			e.G().Log.Debug("received secret phrase, adding to provisionee: %s", receivedSecret.Phrase)
 			ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
 			if err != nil {
 				e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
