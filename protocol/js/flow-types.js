@@ -508,6 +508,18 @@ export function BTCRegisterBTCRpcPromise (request: $Exact<requestCommon & reques
   return new Promise((resolve, reject) => { BTCRegisterBTCRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function FooFooRpc (request: Exact<requestCommon & requestErrorCallback & {param: FooFooRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.Foo.foo'})
+}
+
+export function FooFooRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: FooFooRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => FooFooRpc({...request, incomingCallMap, callback}))
+}
+
+export function FooFooRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: FooFooRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { FooFooRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function Kex2Provisionee2DidCounterSign2Rpc (request: Exact<requestCommon & requestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.Kex2Provisionee2.didCounterSign2'})
 }
@@ -3513,6 +3525,10 @@ export type Folder = {
   created: boolean,
 }
 
+export type FooFooRpcParam = Exact<{
+  name: string
+}>
+
 export type ForkType =
     0 // NONE_0
   | 1 // AUTO_1
@@ -6047,6 +6063,7 @@ type userSearchResult = ?Array<SearchResult>
 
 export type rpc =
     BTCRegisterBTCRpc
+  | FooFooRpc
   | Kex2Provisionee2DidCounterSign2Rpc
   | Kex2Provisionee2Hello2Rpc
   | Kex2ProvisioneeDidCounterSignRpc

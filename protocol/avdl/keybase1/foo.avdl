@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+
+protocol Foo {
+  import idl "common.avdl";
+
+  void foo(int sessionID, string name);
+}
