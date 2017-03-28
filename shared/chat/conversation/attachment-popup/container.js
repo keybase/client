@@ -4,6 +4,7 @@ import RenderAttachmentPopup from './'
 import {connect} from 'react-redux'
 import {deleteMessage} from '../../../actions/chat/creators'
 import {downloadFilePath} from '../../../util/file'
+import * as Constants from '../../../constants/chat'
 
 import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'

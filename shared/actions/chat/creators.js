@@ -322,7 +322,7 @@ function openConversation (conversationIDKey: Constants.ConversationIDKey): Cons
   return {payload: {conversationIDKey}, type: 'chat:openConversation'}
 }
 
-function openAttachmentPopup (message: Constants.AttachmentMessage, currentPath, Path): Constants.OpenAttachmentPopup {
+function openAttachmentPopup (message: Constants.AttachmentMessage, currentPath: Path): Constants.OpenAttachmentPopup {
   return {payload: {message, currentPath}, type: 'chat:openAttachmentPopup'}
 }
 

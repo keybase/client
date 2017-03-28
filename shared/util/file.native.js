@@ -14,7 +14,7 @@ function copy (from: string, to: string) {
 }
 
 function exists (filepath: string): Promise<boolean> {
-  return false
+  return Promise.resolve(false)
   // Change to this when copy above is implemented
   // return RNFS.exists(filepath)
 }
