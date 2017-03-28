@@ -3,7 +3,6 @@
  * File to stash local debug changes to. Never check this in with changes
  */
 
-import * as Tabs from './constants/tabs'
 import {NativeModules} from 'react-native'
 import {updateDebugConfig} from './actions/dev'
 

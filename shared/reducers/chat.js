@@ -159,7 +159,6 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
             .set('moreToLoad', moreToLoad)
             .set('paginationNext', paginationNext)
             .set('deletedIDs', nextDeletedIDs)
-            .set('isRequesting', false)
         })
 
       return state.set('conversationStates', newConversationStates)
@@ -470,6 +469,9 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
     }
     case 'chat:showEditor': {
       return state.set('editingMessage', action.payload.message)
+    }
+    case 'chat:setInitialConversation': {
+      return state.set('initialConversation', action.payload.conversationIDKey)
     }
     case 'chat:threadLoadedOffline': {
       const {conversationIDKey} = action.payload
