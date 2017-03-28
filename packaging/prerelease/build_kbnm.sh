@@ -22,7 +22,7 @@ if [ "$PLATFORM" = "darwin" ]; then
   ldflags="-s $ldflags"
 fi
 
-echo "Building $build_dir/kbfs ($kbnm_build)"
+echo "Building $build_dir/kbnm ($kbnm_build)"
 go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/kbnm" "$pkg"
 
 if [ "$PLATFORM" = "darwin" ]; then
