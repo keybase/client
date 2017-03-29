@@ -332,7 +332,12 @@ func (e *PGPKeyImportEngine) prepareSecretPush(ctx *Context) error {
 func (e *PGPKeyImportEngine) push(ctx *Context) (err error) {
 	e.G().Log.Debug("+ PGP::Push")
 	if e.arg.GPGFallback {
-		e.bundle.InitGPGKey()
+		e.bundle.GPGFallbackKey = libkb.NewGPGKey(
+			nil,
+			e.bundle.GetFingerprintP(),
+			e.bundle.GetKID(),
+			ctx.GPGUI,
+			keybase1.ClientType_CLI)
 	}
 	e.del.NewKey = e.bundle
 	e.del.EncodedPrivateKey = e.epk
