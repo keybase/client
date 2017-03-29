@@ -53,13 +53,16 @@ func main() {
 		out = nativemessaging.NewNativeJSONEncoder(os.Stdout)
 	}
 
+	abort := false
 	for {
 		var resp Response
 		var req Request
 
 		err := in.Decode(&req)
 
-		if err == nil {
+		if err != nil {
+			abort = true
+		} else {
 			err = handle(&req)
 		}
 
@@ -79,7 +82,10 @@ func main() {
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error: %s", err)
 			os.Exit(1)
-			return
+		}
+
+		if abort {
+			os.Exit(2)
 		}
 	}
 }
