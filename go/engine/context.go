@@ -6,6 +6,7 @@ package engine
 import (
 	"fmt"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -22,6 +23,12 @@ type Context struct {
 	LoginContext libkb.LoginContext
 	NetContext   context.Context
 	SaltpackUI   libkb.SaltpackUI
+
+	// Usually set to `NONE`, meaning none specified.
+	// But if we know it, specify the end client type here
+	// since some things like GPG shell-out work differently
+	// depending.
+	ClientType keybase1.ClientType
 
 	SessionID int
 }
