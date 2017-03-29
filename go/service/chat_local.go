@@ -1048,7 +1048,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		return err
 	})
 
-	if arg.Preview.source != nil {
+	if arg.Preview != nil && arg.Preview.source != nil {
 		g.Go(func() error {
 			chatUI.ChatAttachmentPreviewUploadStart(ctx, pre.PreviewMetadata())
 			// copy the params so as not to mess with the main params above
@@ -1200,7 +1200,7 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 		return err
 	})
 
-	if arg.Preview.source != nil {
+	if arg.Preview != nil && arg.Preview.source != nil {
 		g.Go(func() error {
 			chatUI.ChatAttachmentPreviewUploadStart(ctx, pre.PreviewMetadata())
 			// copy the params so as not to mess with the main params above
