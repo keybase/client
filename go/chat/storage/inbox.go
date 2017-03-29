@@ -596,6 +596,9 @@ func (i *Inbox) promoteWriter(ctx context.Context, sender gregor1.UID, writers [
 			return res
 		}
 	}
+
+	i.Debug(ctx, "promoteWriter: failed to promote sender, adding to front: sender: %s", sender)
+	res = append([]gregor1.UID{sender}, res...)
 	return res
 }
 
