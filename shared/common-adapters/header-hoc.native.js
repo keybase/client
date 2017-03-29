@@ -4,7 +4,7 @@ import Text from './text'
 import {StyleSheet} from 'react-native'
 import BackButton from './back-button'
 import Box from './box'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
 
 import type {Props} from './header-hoc'
 
@@ -12,32 +12,15 @@ function HeaderHoc<P> (WrappedComponent: ReactClass<P>) {
   return ({onBack, onCancel, headerStyle, title, ...restProps}: Props & P) => (
     <Box style={_containerStyle}>
       <Box style={{..._headerStyle, ...headerStyle}}>
-        {onCancel &&
-        <Box style={_cancelStyle}>
-          <Text type='BodyBigLink' onClick={onCancel}>Cancel</Text>
-        </Box>}
-        {onBack &&
-        <Box style={_backButtonStyle}>
-          <BackButton iconStyle={_backButtonIconStyle} onClick={onBack} />
-        </Box>}
-        <Text type='Header' style={_headerText}>{title}</Text>
+        {onCancel && <Text type='BodyBigLink' onClick={onCancel}>Cancel</Text>}
+        {onBack && <BackButton iconStyle={_backButtonIconStyle} onClick={onBack} />}
+        <Box style={_titleStyle}>
+          <Text type='Header'>{title}</Text>
+        </Box>
       </Box>
       {<WrappedComponent {...restProps} />}
     </Box>
   )
-}
-
-const backButtonMarginLeft = globalMargins.small
-const backButtonWidth = 40
-
-const _cancelStyle = {
-  marginLeft: backButtonMarginLeft,
-}
-
-const _backButtonStyle = {
-  marginLeft: backButtonMarginLeft,
-  paddingBottom: 2,
-  width: backButtonWidth,
 }
 
 const _backButtonIconStyle = {
@@ -51,18 +34,27 @@ const _containerStyle = {
 
 const _headerStyle = {
   ...globalStyles.flexBoxRow,
-  justifyContent: 'center',
   alignItems: 'center',
-  borderBottomWidth: StyleSheet.hairlineWidth,
-  paddingTop: globalMargins.tiny,
-  paddingBottom: globalMargins.tiny,
   borderBottomColor: globalColors.black_05,
+  borderBottomWidth: StyleSheet.hairlineWidth,
+  justifyContent: 'flex-start',
+  marginTop: statusBarHeight,
+  minHeight: globalMargins.xlarge - statusBarHeight,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
+  position: 'relative',
 }
 
-const _headerText = {
-  marginRight: backButtonMarginLeft + backButtonWidth,
-  textAlign: 'center',
+const _titleStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  bottom: 0,
   flex: 1,
+  justifyContent: 'center',
+  left: 0,
+  position: 'absolute', // This is always centered so we never worry about items to the left/right. If you have overlap or other issues you likely have to fix the content
+  right: 0,
+  top: 0,
 }
 
 export default HeaderHoc
