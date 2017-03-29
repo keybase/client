@@ -1,11 +1,9 @@
 // @flow
 import Render from '.'
-import {HeaderHoc} from '../common-adapters'
-import {isMobile} from '../constants/platform'
 import flags from '../util/feature-flags'
 import {List} from 'immutable'
 import {addNewPhone, addNewComputer} from '../actions/login'
-import {branch, compose, lifecycle, mapProps, withState} from 'recompose'
+import {compose, lifecycle, mapProps, withState} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {load, paperKeyMake} from '../actions/devices'
@@ -71,4 +69,4 @@ const Devices = compose(
   withState('showingMenu', 'setShowingMenu', false),
 )(Render)
 
-export default connect(mapStateToProps, mapDispatchToProps)(branch(() => isMobile, HeaderHoc)(Devices))
+export default connect(mapStateToProps, mapDispatchToProps)(Devices)

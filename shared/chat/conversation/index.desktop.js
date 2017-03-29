@@ -14,7 +14,7 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
 import * as Constants from '../../constants/chat'
 import hoc from './index-hoc'
-import {branch, renderComponent} from 'recompose'
+import {compose, branch, renderComponent} from 'recompose'
 
 import type {Props} from '.'
 
@@ -149,15 +149,18 @@ const dropOverlayStyle = {
   top: 0,
 }
 
-export default branch(
-  (props: Props) => props.selectedConversation === Constants.nothingSelected,
-  renderComponent(NoConversation),
+export default compose(
+  branch(
+    (props: Props) => props.selectedConversation === Constants.nothingSelected,
+    renderComponent(NoConversation)
+  ),
+  branch(
+    (props: Props) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
+    renderComponent(ParticipantRekey)
+  ),
   branch(
     (props: Props) => !!props.rekeyInfo && !props.finalizeInfo,
-    branch(
-      (props: Props) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
-      renderComponent(ParticipantRekey),
-      renderComponent(YouRekey)
-    )
-  )
-)(hoc(Conversation))
+    renderComponent(YouRekey)
+  ),
+  hoc
+)(Conversation)

@@ -10,7 +10,7 @@ import YouRekey from './you-rekey'
 import hoc from './index-hoc'
 import Banner from './banner'
 import {Box} from '../../common-adapters'
-import {branch, renderComponent} from 'recompose'
+import {compose, branch, renderComponent} from 'recompose'
 import {globalStyles} from '../../styles'
 
 import type {Props} from './index'
@@ -39,11 +39,14 @@ const Conversation = (props: Props) => (
   </Box>
 )
 
-export default branch(
-  (props: Props) => !!props.rekeyInfo && !props.finalizeInfo,
+export default compose(
   branch(
     (props: Props) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
-    renderComponent(ParticipantRekey),
+    renderComponent(ParticipantRekey)
+  ),
+  branch(
+    (props: Props) => !!props.rekeyInfo && !props.finalizeInfo,
     renderComponent(YouRekey)
-  )
-)(hoc(Conversation))
+  ),
+  hoc
+)(Conversation)
