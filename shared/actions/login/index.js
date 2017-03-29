@@ -8,7 +8,7 @@ import openURL from '../../util/open-url'
 import {RPCError} from '../../util/errors'
 import {bootstrap, setInitialTab} from '../config'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
-import {devicesTab, loginTab, profileTab} from '../../constants/tabs'
+import {devicesTab, loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {load as loadDevices} from '../devices'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
@@ -45,7 +45,7 @@ const navBasedOnLoginState = (): AsyncAction => (dispatch, getState) => {
       if (overrideLoggedInTab) {
         console.log('Loading overridden logged in tab')
         dispatch(navigateTo([overrideLoggedInTab]))
-      } else if (initialTab) {
+      } else if (initialTab && isValidInitialTab(initialTab)) {
         /// only do this once
         dispatch(setInitialTab(null))
         dispatch(navigateTo([initialTab]))
