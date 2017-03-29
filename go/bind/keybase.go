@@ -70,7 +70,10 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	}
 
 	svc := service.NewService(kbCtx, false)
-	svc.StartLoopbackServer()
+	err = svc.StartLoopbackServer()
+	if err != nil {
+		return err
+	}
 	kbCtx.SetService()
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
