@@ -1133,6 +1133,21 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 		chatUI.ChatAttachmentUploadProgress(ctx, parg)
 	}
 
+	// preprocess asset (get content type, create preview if possible)
+	pre, err := h.preprocessAsset(ctx, arg.SessionID, arg.Attachment, arg.Preview)
+	if err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+	if pre.Preview != nil {
+		h.Debug(ctx, "created preview in preprocess")
+		md := pre.PreviewMetadata()
+		arg.Preview = &attachmentPreview{
+			source:   pre.Preview,
+			md:       &md,
+			mimeType: pre.PreviewContentType,
+		}
+	}
+
 	// Send a placeholder attachment message that will
 	// be edited after the assets are uploaded.  Sending
 	// it now to preserve the order of send messages.
@@ -1162,21 +1177,6 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 			h.Debug(ctx, "error deleting placeholder message: %s", derr)
 		}
 	}()
-
-	// preprocess asset (get content type, create preview if possible)
-	pre, err := h.preprocessAsset(ctx, arg.SessionID, arg.Attachment, arg.Preview)
-	if err != nil {
-		return chat1.PostLocalRes{}, err
-	}
-	if pre.Preview != nil {
-		h.Debug(ctx, "created preview in preprocess")
-		md := pre.PreviewMetadata()
-		arg.Preview = &attachmentPreview{
-			source:   pre.Preview,
-			md:       &md,
-			mimeType: pre.PreviewContentType,
-		}
-	}
 
 	// get s3 upload params from server
 	params, err := h.remoteClient().GetS3Params(ctx, arg.ConversationID)
@@ -1448,6 +1448,15 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 func (h *chatLocalHandler) postAttachmentPlaceholder(ctx context.Context, arg postAttachmentArg) (chat1.PostLocalRes, error) {
 	attachment := chat1.MessageAttachment{
 		Metadata: arg.Metadata,
+	}
+	if arg.Preview != nil {
+		asset := chat1.Asset{
+			MimeType: arg.Preview.mimeType,
+		}
+		if arg.Preview.md != nil {
+			asset.Metadata = *arg.Preview.md
+		}
+		attachment.Previews = []chat1.Asset{asset}
 	}
 	postArg := chat1.PostLocalArg{
 		ConversationID: arg.ConversationID,
