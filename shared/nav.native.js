@@ -99,7 +99,7 @@ function MainNavStack (props: Props) {
           onNavigateBack={props.navigateUp}
         />
         {layerScreens.map(r => r.leafComponent)}
-        {![chatTab, loginTab].includes(props.routeSelected) && <Offline reachability={props.reachability} />}
+        {![chatTab].includes(props.routeSelected) && <Offline reachability={props.reachability} />}
         <GlobalError />
       </Box>
       {!props.hideNav &&
