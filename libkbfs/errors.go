@@ -1255,5 +1255,18 @@ type DiskCacheClosedError struct {
 
 // Error implements the error interface for DiskCacheClosedError.
 func (e DiskCacheClosedError) Error() string {
-	return fmt.Sprintf("Error performing %s operation: the disk cache is closed", e.op)
+	return fmt.Sprintf("Error performing %s operation: the disk cache is "+
+		"closed", e.op)
+}
+
+// DiskCacheStartingError indicates that the disk cache has been
+// closed, and thus isn't accepting any more operations.
+type DiskCacheStartingError struct {
+	op string
+}
+
+// Error implements the error interface for DiskCacheStartingError.
+func (e DiskCacheStartingError) Error() string {
+	return fmt.Sprintf("Error performing %s operation: the disk cache is "+
+		"still starting", e.op)
 }
