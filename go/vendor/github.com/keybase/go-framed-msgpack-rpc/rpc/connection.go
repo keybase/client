@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"reflect"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/keybase/backoff"
@@ -166,9 +168,14 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 		}
 		// connect
 		var err error
-		conn, err = tls.DialWithDialer(&net.Dialer{
-			KeepAlive: 10 * time.Second,
-		}, "tcp", ct.srvAddr, config)
+		baseConn, err := net.Dial("tcp", ct.srvAddr)
+		if err != nil {
+			return err
+		}
+		conn = tls.Client(baseConn, config)
+
+		fd := int(reflect.ValueOf(baseConn).Elem().FieldByName("fd").Elem().FieldByName("sysfd").Int())
+		err = syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, syscall.SO_NOSIGPIPE, 1)
 		return err
 	})
 	if err != nil {

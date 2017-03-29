@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 	"reflect"
 	"syscall"
 )
@@ -62,6 +63,7 @@ func (f *FMPURI) String() string {
 
 func (f *FMPURI) DialWithConfig(config *tls.Config) (c net.Conn, err error) {
 	defer func() {
+		fmt.Fprintf(os.Stderr, "SETSOCKOPT\n")
 		// use reflection until https://github.com/golang/go/issues/9661 is fixed
 		fd := int(reflect.ValueOf(c).Elem().FieldByName("fd").Elem().FieldByName("sysfd").Int())
 		err = syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, syscall.SO_NOSIGPIPE, 1)
