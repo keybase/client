@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import type {BootStatus} from '../../constants/config'
 
-export type IntroProps = {
+export type Props = {
   onSignup: () => void,
   onLogin: () => void,
   onRetry: () => void,
@@ -11,4 +11,6 @@ export type IntroProps = {
   justDeletedSelf: ?string,
 }
 
-export default class Intro extends Component<void, IntroProps, void> { }
+export class Intro extends Component<void, Props, void> { }
+export class Splash extends Component<void, Props, void> { }
+export class Failure extends Component<void, Props, void> { }
