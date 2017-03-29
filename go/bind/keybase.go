@@ -100,7 +100,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGPIPE)
 	go func() {
-		for sig := range c {
+		for range c {
 		}
 	}()
 
