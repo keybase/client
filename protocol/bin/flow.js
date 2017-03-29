@@ -219,7 +219,7 @@ function analyzeMessages (json, project) {
     const callbackType = r ? `{callback?: ?(err: ?any${r}) => void}` : 'requestErrorCallback'
     const innerParamType = p ? `{param: ${name}RpcParam}` : null
     const rpc = isUIProtocol ? '' : `export function ${name}Rpc (request: Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>) {
-  engineRpcOutgoing({...request, method: '${json.namespace}.${json.protocol}.${m}'})
+  engineRpcOutgoing('${json.namespace}.${json.protocol}.${m}', request)
 }`
 
     const rpcPromise = isUIProtocol ? '' : codeGenerators.rpcPromiseGen(name, callbackType, innerParamType, responseType)
@@ -350,7 +350,7 @@ export type bytes = Buffer
 export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
 
 // $FlowIssue we're calling an internal method on engine that's there just for us
-const engineRpcOutgoing = (...args) => engine()._rpcOutgoing(...args)
+const engineRpcOutgoing = (method, params) => engine()._rpcOutgoing(method, params)
 
 type requestCommon = {
   waitingHandler?: WaitingHandlerType,

@@ -161,14 +161,13 @@ class Engine {
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
-  _rpcOutgoing (params: {
-    method: MethodKey,
+  _rpcOutgoing (method: string, params: {
     param?: ?Object,
     incomingCallMap?: incomingCallMapType,
     callback?: ?(...args: Array<any>) => void,
     waitingHandler?: WaitingHandlerType}
   ) {
-    let {method, param, incomingCallMap, callback, waitingHandler} = params
+    let {param, incomingCallMap, callback, waitingHandler} = params
 
     // Ensure a non-null param
     if (!param) {
