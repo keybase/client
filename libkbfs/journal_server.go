@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"sync"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 type journalServerConfig struct {
@@ -311,54 +313,85 @@ func (j *JournalServer) EnableExistingJournals(
 		return err
 	}
 
-	for _, fi := range fileInfos {
-		name := fi.Name()
-		if !fi.IsDir() {
-			j.log.CDebugf(ctx, "Skipping file %q", name)
-			continue
-		}
+	eg, groupCtx := errgroup.WithContext(ctx)
 
-		dir := filepath.Join(j.rootPath(), name)
-		uid, key, tlfID, err := readTLFJournalInfoFile(dir)
-		if err != nil {
-			j.log.CDebugf(
-				ctx, "Skipping non-TLF dir %q: %+v", name, err)
-			continue
-		}
+	fileCh := make(chan os.FileInfo, len(fileInfos))
+	worker := func() error {
+		for fi := range fileCh {
+			name := fi.Name()
+			if !fi.IsDir() {
+				j.log.CDebugf(groupCtx, "Skipping file %q", name)
+				continue
+			}
 
-		if uid != currentUID {
-			j.log.CDebugf(
-				ctx, "Skipping dir %q due to mismatched UID %s",
-				name, uid)
-			continue
-		}
+			dir := filepath.Join(j.rootPath(), name)
+			uid, key, tlfID, err := readTLFJournalInfoFile(dir)
+			if err != nil {
+				j.log.CDebugf(
+					groupCtx, "Skipping non-TLF dir %q: %+v", name, err)
+				continue
+			}
 
-		if key != currentVerifyingKey {
-			j.log.CDebugf(
-				ctx, "Skipping dir %q due to mismatched key %s",
-				name, uid)
-			continue
-		}
+			if uid != currentUID {
+				j.log.CDebugf(
+					groupCtx, "Skipping dir %q due to mismatched UID %s",
+					name, uid)
+				continue
+			}
 
-		expectedDir := j.tlfJournalPathLocked(tlfID)
-		if dir != expectedDir {
-			j.log.CDebugf(
-				ctx, "Skipping misnamed dir %q; expected %q",
-				dir, expectedDir)
-			continue
-		}
+			if key != currentVerifyingKey {
+				j.log.CDebugf(
+					groupCtx, "Skipping dir %q due to mismatched key %s",
+					name, uid)
+				continue
+			}
 
-		// Allow enable even if dirty, since any dirty writes
-		// in flight are most likely for another user.
-		err = j.enableLocked(ctx, tlfID, bws, true)
-		if err != nil {
-			// Don't treat per-TLF errors as fatal.
-			j.log.CWarningf(
-				ctx, "Error when enabling existing journal for %s: %+v",
-				tlfID, err)
-			continue
+			expectedDir := j.tlfJournalPathLocked(tlfID)
+			if dir != expectedDir {
+				j.log.CDebugf(
+					groupCtx, "Skipping misnamed dir %q; expected %q",
+					dir, expectedDir)
+				continue
+			}
+
+			// Allow enable even if dirty, since any dirty writes
+			// in flight are most likely for another user.
+			err = j.enableLocked(groupCtx, tlfID, bws, true)
+			if err != nil {
+				// Don't treat per-TLF errors as fatal.
+				j.log.CWarningf(
+					groupCtx,
+					"Error when enabling existing journal for %s: %+v",
+					tlfID, err)
+				continue
+			}
 		}
+		return nil
 	}
+
+	// Initialize many TLF journals at once to overlap disk latency as
+	// much as possible.
+	numWorkers := 100
+	if numWorkers > len(fileInfos) {
+		numWorkers = len(fileInfos)
+	}
+	for i := 0; i < numWorkers; i++ {
+		eg.Go(worker)
+	}
+
+	for _, fi := range fileInfos {
+		fileCh <- fi
+	}
+	close(fileCh)
+
+	err = eg.Wait()
+	if err != nil {
+		// None of the workers return an error so this should never
+		// happen...
+		return err
+	}
+
+	j.log.CDebugf(ctx, "Done enabling journals")
 
 	enableSucceeded = true
 	return nil
