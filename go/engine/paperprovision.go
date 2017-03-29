@@ -111,7 +111,7 @@ func (e *PaperProvisionEngine) Run(ctx *Context) (err error) {
 	}
 
 	// Make new device keys and sign them with this paper key
-	err = e.paper(ctx, kp)
+	err = e.paper(ctx, kp, e.keepPaperKey)
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func (e *PaperProvisionEngine) uidByKID(kid keybase1.KID) (keybase1.UID, error) 
 }
 
 // copied more or less from loginProvision.paper()
-func (e *PaperProvisionEngine) paper(ctx *Context, kp *keypair) error {
+func (e *PaperProvisionEngine) paper(ctx *Context, kp *keypair, keepPaperKey bool) error {
 	// After obtaining login session, this will be called before the login state is released.
 	// It signs this new device with the paper key.
 	var afterLogin = func(lctx libkb.LoginContext) error {
@@ -164,7 +164,9 @@ func (e *PaperProvisionEngine) paper(ctx *Context, kp *keypair) error {
 		if err := e.makeDeviceKeysWithSigner(ctx, kp.sigKey); err != nil {
 			return err
 		}
-		lctx.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
+		if keepPaperKey {
+			lctx.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
+		}
 		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
 			// not a fatal error, session will stay in memory
 			e.G().Log.Warning("error saving session file: %s", err)
