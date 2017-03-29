@@ -288,9 +288,14 @@ func (cache *DiskBlockCacheStandard) compactCachesLocked(ctx context.Context) {
 		metaDb := cache.metaDb
 		tlfDb := cache.tlfDb
 		go func() {
+			cache.log.CDebugf(ctx, "+ Disk cache compaction starting.")
+			cache.log.CDebugf(ctx, "Compacting metadata db.")
 			metaDb.CompactRange(util.Range{})
+			cache.log.CDebugf(ctx, "Compacting TLF db.")
 			tlfDb.CompactRange(util.Range{})
+			cache.log.CDebugf(ctx, "Compacting block db.")
 			blockDb.CompactRange(util.Range{})
+			cache.log.CDebugf(ctx, "- Disk cache compaction complete.")
 			// Give back the sentinel.
 			cache.compactCh <- struct{}{}
 		}()
