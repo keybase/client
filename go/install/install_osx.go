@@ -567,7 +567,7 @@ func InstallKBFS(context Context, binPath string, force bool, timeout time.Durat
 	return nil
 }
 
-// Return where the NativeMessaging host manifest lives on this platform.
+// kbnmManifestPath returns where the NativeMessaging host manifest lives on this platform.
 func kbnmManifestPath(u *user.User) string {
 	const rootPath = "/Library/Google/Chrome/NativeMessagingHosts"
 	const homePath = "Library/Application Support/Google/Chrome/NativeMessagingHosts"
