@@ -470,7 +470,8 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             throw new Error('empty attachment body')
           }
           const attachment: ChatTypes.MessageAttachment = payload.messageBody.attachment
-          const attachmentInfo = Constants.getAttachmentInfo(attachment && attachment.preview, attachment && attachment.object)
+          const preview = attachment && (attachment.preview || attachment.previews && attachment.previews[0])
+          const attachmentInfo = Constants.getAttachmentInfo(preview, attachment && attachment.object)
 
           let messageState
           if (attachment.uploaded) {
