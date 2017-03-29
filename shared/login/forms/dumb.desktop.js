@@ -1,34 +1,44 @@
 // @flow
-import Intro from './intro.render'
-import type {IntroProps} from './intro.render'
-import type {DumbComponentMap} from '../../constants/types/more'
+import {Intro, Splash, Failure} from '.'
 
-const props: IntroProps = {
-  onSignup: () => {},
-  onLogin: () => {},
-  onRetry: () => {},
-  justRevokedSelf: null,
+import type {DumbComponentMap} from '../../constants/types/more'
+import type {Props} from '.'
+
+const props: Props = {
+  bootStatus: 'bootStatusLoading',
   justDeletedSelf: null,
   justLoginFromRevokedDevice: null,
-  bootStatus: 'bootStatusLoading',
+  justRevokedSelf: null,
+  onLogin: () => {},
+  onRetry: () => {},
+  onSignup: () => {},
 }
 
-const dumbMap: DumbComponentMap<Intro> = {
+const intro: DumbComponentMap<Intro> = {
   component: Intro,
   mocks: {
-    'Splash': props,
-    'Failure': {...props, bootStatus: 'bootStatusFailure'},
     'First time user': {...props, bootStatus: 'bootStatusBootstrapped'},
     'User who just revoked device': {...props, bootStatus: 'bootStatusBootstrapped', justRevokedSelf: 'DEVICE_NAME'},
     'User who just deleted self': {...props, bootStatus: 'bootStatusBootstrapped', justDeletedSelf: 'hal9000'},
     'User who tried to login from revoked device': {...props, bootStatus: 'bootStatusBootstrapped', justLoginFromRevokedDevice: 'DEVICE_NAME'},
   },
 }
-
-export default {
-  'Intro': dumbMap,
+const splash: DumbComponentMap<Splash> = {
+  component: Splash,
+  mocks: {
+    'Splash': props,
+  },
 }
 
-export {
-  dumbMap,
+const failure: DumbComponentMap<Failure> = {
+  component: Failure,
+  mocks: {
+    'Failure': {...props, bootStatus: 'bootStatusFailure'},
+  },
+}
+
+export default {
+  'Failure': failure,
+  'Intro': intro,
+  'Splash': splash,
 }
