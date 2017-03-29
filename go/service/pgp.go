@@ -47,12 +47,14 @@ func (u *RemotePgpUI) Finished(ctx context.Context, sessionID int) error {
 type PGPHandler struct {
 	*BaseHandler
 	libkb.Contextified
+	connID libkb.ConnectionID
 }
 
-func NewPGPHandler(xp rpc.Transporter, g *libkb.GlobalContext) *PGPHandler {
+func NewPGPHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb.GlobalContext) *PGPHandler {
 	return &PGPHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
+		connID:       id,
 	}
 }
 
@@ -258,6 +260,12 @@ func (h *PGPHandler) PGPSelect(nctx context.Context, sarg keybase1.PGPSelectArg)
 		LoginUI:    h.getLoginUI(sarg.SessionID),
 		SessionID:  sarg.SessionID,
 		NetContext: nctx,
+
+		// TODO: Pull this type from the connectionID, rather than always
+		// hardcoding CLI, which is all we use now. Note that if we did this, we'd
+		// have to send HelloIAm RPCs in Main() for the CLI commands. A bit of an
+		// annoying TODO, so postpone until we have a Desktop use for PGPSelect.
+		ClientType: keybase1.ClientType_CLI,
 	}
 	return engine.RunEngine(gpg, ctx)
 }
