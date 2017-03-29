@@ -68,7 +68,9 @@ type DiskBlockCacheStandard struct {
 	metaDb  *leveldb.DB
 	tlfDb   *leveldb.DB
 
-	compactCh chan struct{}
+	compactCh  chan struct{}
+	startedCh  chan struct{}
+	startErrCh chan struct{}
 }
 
 var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
@@ -134,7 +136,8 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		return nil, err
 	}
 	compactCh := make(chan struct{}, 1)
-	compactCh <- struct{}{}
+	startedCh := make(chan struct{})
+	startErrCh := make(chan struct{})
 	cache = &DiskBlockCacheStandard{
 		config:     config,
 		maxBlockID: maxBlockID.Bytes(),
@@ -145,11 +148,25 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		metaDb:     metaDb,
 		tlfDb:      tlfDb,
 		compactCh:  compactCh,
+		startedCh:  startedCh,
+		startErrCh: startErrCh,
 	}
-	err = cache.syncBlockCountsFromDb()
-	if err != nil {
-		return nil, err
-	}
+	// Sync the block counts asynchronously so syncing doesn't block init.
+	// Since this method blocks, any Get or Put requests to the disk block
+	// cache will block until this is done. The log will contain the beginning
+	// and end of this sync.
+	go func() {
+		err := cache.syncBlockCountsFromDb()
+		if err != nil {
+			close(startErrCh)
+			log.Warning("Disabling disk block cache due to error syncing the "+
+				"block counts from DB: %+v", err)
+			return
+		}
+		// Only enable compaction after the block counts have been synced.
+		compactCh <- struct{}{}
+		close(startedCh)
+	}()
 	return cache, nil
 }
 
@@ -245,7 +262,14 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string) (
 		metadataStorage, tlfStorage)
 }
 
+// WaitUntilStarted waits until this cache has started.
+func (cache *DiskBlockCacheStandard) WaitUntilStarted() {
+	<-cache.startedCh
+}
+
 func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
+	cache.log.Debug("+ syncBlockCountsFromDb begin")
+	defer cache.log.Debug("- syncBlockCountsFromDb end")
 	// We take a write lock for this to prevent any reads from happening while
 	// we're syncing the block counts.
 	cache.lock.Lock()
@@ -381,6 +405,13 @@ func (cache *DiskBlockCacheStandard) encodeBlockCacheEntry(buf []byte,
 func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID) (buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	select {
+	case <-cache.startedCh:
+	default:
+		// If the cache hasn't started yet, pretend like no blocks exist.
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+			DiskCacheStartingError{"Get"}
+	}
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 	if cache.blockDb == nil {
@@ -408,6 +439,12 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	select {
+	case <-cache.startedCh:
+	default:
+		// If the cache hasn't started yet, return an error.
+		return DiskCacheStartingError{"Put"}
+	}
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
 	if cache.blockDb == nil {
@@ -494,6 +531,12 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 // DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) UpdateLRUTime(ctx context.Context,
 	blockID kbfsblock.ID) (err error) {
+	select {
+	case <-cache.startedCh:
+	default:
+		// If the cache hasn't started yet, return an error.
+		return DiskCacheStartingError{"UpdateLRUTime"}
+	}
 	var md diskBlockCacheMetadata
 	defer func() {
 		cache.log.CDebugf(ctx, "Cache UpdateLRUTime id=%s entrySize=%d "+
@@ -512,6 +555,12 @@ func (cache *DiskBlockCacheStandard) UpdateLRUTime(ctx context.Context,
 
 // Size implements the DiskBlockCache interface for DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) Size() int64 {
+	select {
+	case <-cache.startedCh:
+	default:
+		// If the cache hasn't started yet, return 0.
+		return 0
+	}
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 	return int64(cache.currBytes)
@@ -519,7 +568,8 @@ func (cache *DiskBlockCacheStandard) Size() int64 {
 
 // deleteLocked deletes a set of blocks from the disk block cache.
 func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
-	blockEntries []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
+	blockEntries []kbfsblock.ID) (numRemoved int, sizeRemoved int64,
+	err error) {
 	if len(blockEntries) == 0 {
 		return 0, 0, nil
 	}
@@ -578,6 +628,12 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 // Delete implements the DiskBlockCache interface for DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) Delete(ctx context.Context,
 	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
+	select {
+	case <-cache.startedCh:
+	default:
+		// If the cache hasn't started yet, return an error.
+		return 0, 0, DiskCacheStartingError{"Delete"}
+	}
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
 	if cache.blockDb == nil {
@@ -714,10 +770,15 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
-	cache.lock.Lock()
-	defer cache.lock.Unlock()
+	// Wait for the cache to either finish starting or error.
+	select {
+	case <-cache.startedCh:
+	case <-cache.startErrCh:
+	}
 	// Receive from the compactCh sentinel to wait for pending compactions.
 	<-cache.compactCh
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
 	if cache.blockDb == nil {
 		return
 	}
