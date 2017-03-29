@@ -134,7 +134,6 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		return nil, err
 	}
 	compactCh := make(chan struct{}, 1)
-	compactCh <- struct{}{}
 	cache = &DiskBlockCacheStandard{
 		config:     config,
 		maxBlockID: maxBlockID.Bytes(),
@@ -155,6 +154,8 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		if err != nil {
 			log.Warning("Error syncing the block counts from DB: %+v", err)
 		}
+		// Only enable compaction after the block counts have been synced.
+		compactCh <- struct{}{}
 	}()
 	return cache, nil
 }
@@ -527,7 +528,8 @@ func (cache *DiskBlockCacheStandard) Size() int64 {
 
 // deleteLocked deletes a set of blocks from the disk block cache.
 func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
-	blockEntries []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
+	blockEntries []kbfsblock.ID) (numRemoved int, sizeRemoved int64,
+	err error) {
 	if len(blockEntries) == 0 {
 		return 0, 0, nil
 	}
