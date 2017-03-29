@@ -67,6 +67,8 @@ type DiskBlockCacheStandard struct {
 	blockDb *leveldb.DB
 	metaDb  *leveldb.DB
 	tlfDb   *leveldb.DB
+
+	compactCh chan struct{}
 }
 
 var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
@@ -131,6 +133,8 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 	if err != nil {
 		return nil, err
 	}
+	compactCh := make(chan struct{}, 1)
+	compactCh <- struct{}{}
 	cache = &DiskBlockCacheStandard{
 		config:     config,
 		maxBlockID: maxBlockID.Bytes(),
@@ -140,6 +144,7 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		blockDb:    blockDb,
 		metaDb:     metaDb,
 		tlfDb:      tlfDb,
+		compactCh:  compactCh,
 	}
 	err = cache.syncBlockCountsFromDb()
 	if err != nil {
@@ -271,12 +276,32 @@ func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
 	return nil
 }
 
-// compactCachesLocked manually forces both the block cache and LRU cache to
-// compact their underlying data.
+// compactCachesLocked manually forces the disk cache databases to compact
+// their underlying data.
 func (cache *DiskBlockCacheStandard) compactCachesLocked(ctx context.Context) {
-	cache.blockDb.CompactRange(util.Range{})
-	cache.metaDb.CompactRange(util.Range{})
-	cache.tlfDb.CompactRange(util.Range{})
+	// Execute these in a goroutine so we don't block reads or the completion
+	// of the delete that called this. Use a sentinel channel to make sure only
+	// one compaction can happen at once.
+	select {
+	case <-cache.compactCh:
+		blockDb := cache.blockDb
+		metaDb := cache.metaDb
+		tlfDb := cache.tlfDb
+		go func() {
+			cache.log.CDebugf(ctx, "+ Disk cache compaction starting.")
+			cache.log.CDebugf(ctx, "Compacting metadata db.")
+			metaDb.CompactRange(util.Range{})
+			cache.log.CDebugf(ctx, "Compacting TLF db.")
+			tlfDb.CompactRange(util.Range{})
+			cache.log.CDebugf(ctx, "Compacting block db.")
+			blockDb.CompactRange(util.Range{})
+			cache.log.CDebugf(ctx, "- Disk cache compaction complete.")
+			// Give back the sentinel.
+			cache.compactCh <- struct{}{}
+		}()
+	default:
+		// Don't try to compact if one is already happening
+	}
 }
 
 // tlfKey generates a TLF cache key from a tlf.ID and a binary-encoded block
@@ -537,6 +562,8 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 	}
 
 	cache.compactCachesLocked(ctx)
+
+	// Update the cache's totals.
 	for k, v := range removalCounts {
 		cache.tlfCounts[k] -= v
 		cache.numBlocks -= v
@@ -689,6 +716,8 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
+	// Receive from the compactCh sentinel to wait for pending compactions.
+	<-cache.compactCh
 	if cache.blockDb == nil {
 		return
 	}
