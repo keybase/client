@@ -146,10 +146,16 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		tlfDb:      tlfDb,
 		compactCh:  compactCh,
 	}
-	err = cache.syncBlockCountsFromDb()
-	if err != nil {
-		return nil, err
-	}
+	// Sync the block counts asynchronously so syncing doesn't block init.
+	// Since this method blocks, any Get or Put requests to the disk block
+	// cache will block until this is done. The log will contain the beginning
+	// and end of this sync.
+	go func() {
+		err := cache.syncBlockCountsFromDb()
+		if err != nil {
+			log.Warning("Error syncing the block counts from DB: %+v", err)
+		}
+	}()
 	return cache, nil
 }
 
@@ -246,6 +252,8 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string) (
 }
 
 func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
+	cache.log.Debug("+ syncBlockCountsFromDb begin")
+	defer cache.log.Debug("- syncBlockCountsFromDb end")
 	// We take a write lock for this to prevent any reads from happening while
 	// we're syncing the block counts.
 	cache.lock.Lock()
