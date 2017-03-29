@@ -60,10 +60,8 @@ func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
 	}
 
 	// make absolute
-	if !filepath.IsAbs(path) {
-		if wd, err := os.Getwd(); err == nil {
-			path = filepath.Join(wd, path)
-		}
+	if absPath, err := filepath.Abs(path); err == nil {
+		path = absPath
 	}
 
 	// eval symlinks
