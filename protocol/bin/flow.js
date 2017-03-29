@@ -88,7 +88,7 @@ function analyzeEnums (json, project) {
     }
   }).reduce((acc, t) => {
     return acc.concat([
-      `export const ${t.name} = {
+      `\nexport const ${t.name} = {
   ${Object.keys(t.map).map(k => {
     return `${k}: ${t.map[k]}` // eslint-disable-line
   }).join(',\n  ')},
@@ -107,13 +107,13 @@ function analyzeTypes (json, project) {
 
     switch (t.type) {
       case 'record':
-        return [`export type ${t.name} = ${parseRecord(t)}`]
+        return [`\nexport type ${t.name} = ${parseRecord(t)}`]
       case 'enum':
-        return [`export type ${t.name} =${parseEnum(t)}`]
+        return [`\nexport type ${t.name} =${parseEnum(t)}`]
       case 'variant':
-        return [`export type ${t.name} =${parseVariant(t, project)}`]
+        return [`\nexport type ${t.name} =${parseVariant(t, project)}`]
       case 'fixed':
-        return [`export type ${t.name} = any`]
+        return [`\nexport type ${t.name} = any`]
       default:
         return null
     }
@@ -215,10 +215,10 @@ function analyzeMessages (json, project) {
     p = params(false, '  ')
     if (p) { p = `\n${p}\n` }
 
-    const paramType = p ? `export type ${name}RpcParam = Exact<{${p}}>` : ''
+    const paramType = p ? `\nexport type ${name}RpcParam = Exact<{${p}}>` : ''
     const callbackType = r ? `{callback?: ?(err: ?any${r}) => void}` : 'requestErrorCallback'
     const innerParamType = p ? `{param: ${name}RpcParam}` : null
-    const rpc = isUIProtocol ? '' : `export function ${name}Rpc (request: Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>) {
+    const rpc = isUIProtocol ? '' : `\nexport function ${name}Rpc (request: Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>) {
   engineRpcOutgoing('${json.namespace}.${json.protocol}.${m}', request)
 }`
 
@@ -318,7 +318,7 @@ function makeRpcUnionType (typeDefs) {
   .join('\n  | ')
 
   if (rpcTypes) {
-    const unionRpcType = `export type rpc =
+    const unionRpcType = `\nexport type rpc =
     ${rpcTypes}`
     return typeDefs.concat(unionRpcType)
   }
@@ -368,9 +368,9 @@ type CommonResponseHandler = {
   result: (...rest: Array<void>) => void,
 }`
 
-  const incomingMap = `export type incomingCallMapType = Exact<{\n` +
+  const incomingMap = `\nexport type incomingCallMapType = Exact<{\n` +
   Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',\n') + '\n}>\n'
-  const toWrite = [typePrelude, codeGenerators.channelMapPrelude, typeDefs.join('\n\n'), incomingMap].join('\n')
+  const toWrite = [typePrelude, codeGenerators.channelMapPrelude, typeDefs.join('\n'), incomingMap].join('\n')
   fs.writeFileSync(project.out, toWrite)
 }
 

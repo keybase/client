@@ -35,6 +35,7 @@ type CommonResponseHandler = {
   error: RPCErrorHandler,
   result: (...rest: Array<void>) => void,
 }
+
 function _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (incomingCallMap: any, callback: Function) => void): ChannelMap<*> {
   const channelMap = createChannelMap(channelConfig)
   const incomingCallMap = Object.keys(channelMap).reduce((acc, k) => {
@@ -51,6 +52,7 @@ function _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (
   return channelMap
 }
 
+
 export function authAuthenticateSessionTokenRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: authAuthenticateSessionTokenResult) => void} & {param: authAuthenticateSessionTokenRpcParam}>) {
   engineRpcOutgoing('gregor.1.auth.authenticateSessionToken', request)
 }
@@ -60,7 +62,7 @@ export function authAuthenticateSessionTokenRpcChannelMap (channelConfig: Channe
 }
 
 export function authAuthenticateSessionTokenRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: authAuthenticateSessionTokenResult) => void} & {param: authAuthenticateSessionTokenRpcParam}>): Promise<authAuthenticateSessionTokenResult> {
-  return new Promise((resolve, reject) => { authAuthenticateSessionTokenRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+  return new Promise((resolve, reject) => authAuthenticateSessionTokenRpc({...request, callback: (error, result) => error ? reject(error) : resolve(result)}))
 }
 
 export function authInternalCreateGregorSuperUserSessionTokenRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: authInternalCreateGregorSuperUserSessionTokenResult) => void}>) {
@@ -72,7 +74,7 @@ export function authInternalCreateGregorSuperUserSessionTokenRpcChannelMap (chan
 }
 
 export function authInternalCreateGregorSuperUserSessionTokenRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: authInternalCreateGregorSuperUserSessionTokenResult) => void}>): Promise<authInternalCreateGregorSuperUserSessionTokenResult> {
-  return new Promise((resolve, reject) => { authInternalCreateGregorSuperUserSessionTokenRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+  return new Promise((resolve, reject) => authInternalCreateGregorSuperUserSessionTokenRpc({...request, callback: (error, result) => error ? reject(error) : resolve(result)}))
 }
 
 export function authUpdateRevokeSessionIDsRpc (request: Exact<requestCommon & requestErrorCallback & {param: authUpdateRevokeSessionIDsRpcParam}>) {
@@ -83,8 +85,8 @@ export function authUpdateRevokeSessionIDsRpcChannelMap (channelConfig: ChannelC
   return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => authUpdateRevokeSessionIDsRpc({...request, incomingCallMap, callback}))
 }
 
-export function authUpdateRevokeSessionIDsRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: authUpdateRevokeSessionIDsRpcParam}>): Promise<any> {
-  return new Promise((resolve, reject) => { authUpdateRevokeSessionIDsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+export function authUpdateRevokeSessionIDsRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: authUpdateRevokeSessionIDsRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => authUpdateRevokeSessionIDsRpc({...request, callback: (error, result) => error ? reject(error) : resolve(result)}))
 }
 
 export function incomingConsumeMessageRpc (request: Exact<requestCommon & requestErrorCallback & {param: incomingConsumeMessageRpcParam}>) {
@@ -95,8 +97,8 @@ export function incomingConsumeMessageRpcChannelMap (channelConfig: ChannelConfi
   return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => incomingConsumeMessageRpc({...request, incomingCallMap, callback}))
 }
 
-export function incomingConsumeMessageRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: incomingConsumeMessageRpcParam}>): Promise<any> {
-  return new Promise((resolve, reject) => { incomingConsumeMessageRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+export function incomingConsumeMessageRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: incomingConsumeMessageRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => incomingConsumeMessageRpc({...request, callback: (error, result) => error ? reject(error) : resolve(result)}))
 }
 
 export function incomingConsumePublishMessageRpc (request: Exact<requestCommon & requestErrorCallback & {param: incomingConsumePublishMessageRpcParam}>) {
@@ -107,8 +109,8 @@ export function incomingConsumePublishMessageRpcChannelMap (channelConfig: Chann
   return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => incomingConsumePublishMessageRpc({...request, incomingCallMap, callback}))
 }
 
-export function incomingConsumePublishMessageRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: incomingConsumePublishMessageRpcParam}>): Promise<any> {
-  return new Promise((resolve, reject) => { incomingConsumePublishMessageRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+export function incomingConsumePublishMessageRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: incomingConsumePublishMessageRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => incomingConsumePublishMessageRpc({...request, callback: (error, result) => error ? reject(error) : resolve(result)}))
 }
 
 export function incomingPingRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: incomingPingResult) => void}>) {
@@ -120,7 +122,7 @@ export function incomingPingRpcChannelMap (channelConfig: ChannelConfig<*>, requ
 }
 
 export function incomingPingRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingPingResult) => void}>): Promise<incomingPingResult> {
-  return new Promise((resolve, reject) => { incomingPingRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+  return new Promise((resolve, reject) => incomingPingRpc({...request, callback: (error, result) => error ? reject(error) : resolve(result)}))
 }
 
 export function incomingStateByCategoryPrefixRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: incomingStateByCategoryPrefixResult) => void} & {param: incomingStateByCategoryPrefixRpcParam}>) {
@@ -132,7 +134,7 @@ export function incomingStateByCategoryPrefixRpcChannelMap (channelConfig: Chann
 }
 
 export function incomingStateByCategoryPrefixRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingStateByCategoryPrefixResult) => void} & {param: incomingStateByCategoryPrefixRpcParam}>): Promise<incomingStateByCategoryPrefixResult> {
-  return new Promise((resolve, reject) => { incomingStateByCategoryPrefixRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+  return new Promise((resolve, reject) => incomingStateByCategoryPrefixRpc({...request, callback: (error, result) => error ? reject(error) : resolve(result)}))
 }
 
 export function incomingStateRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: incomingStateResult) => void} & {param: incomingStateRpcParam}>) {
@@ -144,7 +146,7 @@ export function incomingStateRpcChannelMap (channelConfig: ChannelConfig<*>, req
 }
 
 export function incomingStateRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingStateResult) => void} & {param: incomingStateRpcParam}>): Promise<incomingStateResult> {
-  return new Promise((resolve, reject) => { incomingStateRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+  return new Promise((resolve, reject) => incomingStateRpc({...request, callback: (error, result) => error ? reject(error) : resolve(result)}))
 }
 
 export function incomingSyncRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: incomingSyncResult) => void} & {param: incomingSyncRpcParam}>) {
@@ -156,7 +158,7 @@ export function incomingSyncRpcChannelMap (channelConfig: ChannelConfig<*>, requ
 }
 
 export function incomingSyncRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingSyncResult) => void} & {param: incomingSyncRpcParam}>): Promise<incomingSyncResult> {
-  return new Promise((resolve, reject) => { incomingSyncRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+  return new Promise((resolve, reject) => incomingSyncRpc({...request, callback: (error, result) => error ? reject(error) : resolve(result)}))
 }
 
 export function incomingVersionRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: incomingVersionResult) => void} & {param: incomingVersionRpcParam}>) {
@@ -168,7 +170,7 @@ export function incomingVersionRpcChannelMap (channelConfig: ChannelConfig<*>, r
 }
 
 export function incomingVersionRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingVersionResult) => void} & {param: incomingVersionRpcParam}>): Promise<incomingVersionResult> {
-  return new Promise((resolve, reject) => { incomingVersionRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+  return new Promise((resolve, reject) => incomingVersionRpc({...request, callback: (error, result) => error ? reject(error) : resolve(result)}))
 }
 
 export function outgoingBroadcastMessageRpc (request: Exact<requestCommon & requestErrorCallback & {param: outgoingBroadcastMessageRpcParam}>) {
@@ -179,8 +181,8 @@ export function outgoingBroadcastMessageRpcChannelMap (channelConfig: ChannelCon
   return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => outgoingBroadcastMessageRpc({...request, incomingCallMap, callback}))
 }
 
-export function outgoingBroadcastMessageRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: outgoingBroadcastMessageRpcParam}>): Promise<any> {
-  return new Promise((resolve, reject) => { outgoingBroadcastMessageRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+export function outgoingBroadcastMessageRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: outgoingBroadcastMessageRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => outgoingBroadcastMessageRpc({...request, callback: (error, result) => error ? reject(error) : resolve(result)}))
 }
 
 export function remindDeleteRemindersRpc (request: Exact<requestCommon & requestErrorCallback & {param: remindDeleteRemindersRpcParam}>) {
@@ -191,8 +193,8 @@ export function remindDeleteRemindersRpcChannelMap (channelConfig: ChannelConfig
   return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remindDeleteRemindersRpc({...request, incomingCallMap, callback}))
 }
 
-export function remindDeleteRemindersRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remindDeleteRemindersRpcParam}>): Promise<any> {
-  return new Promise((resolve, reject) => { remindDeleteRemindersRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+export function remindDeleteRemindersRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remindDeleteRemindersRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => remindDeleteRemindersRpc({...request, callback: (error, result) => error ? reject(error) : resolve(result)}))
 }
 
 export function remindGetRemindersRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remindGetRemindersResult) => void} & {param: remindGetRemindersRpcParam}>) {
@@ -204,7 +206,7 @@ export function remindGetRemindersRpcChannelMap (channelConfig: ChannelConfig<*>
 }
 
 export function remindGetRemindersRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remindGetRemindersResult) => void} & {param: remindGetRemindersRpcParam}>): Promise<remindGetRemindersResult> {
-  return new Promise((resolve, reject) => { remindGetRemindersRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+  return new Promise((resolve, reject) => remindGetRemindersRpc({...request, callback: (error, result) => error ? reject(error) : resolve(result)}))
 }
 
 export type AuthResult = {
@@ -371,21 +373,13 @@ export type remindDeleteRemindersRpcParam = Exact<{
 export type remindGetRemindersRpcParam = Exact<{
   maxReminders: int
 }>
-
 type authAuthenticateSessionTokenResult = AuthResult
-
 type authInternalCreateGregorSuperUserSessionTokenResult = SessionToken
-
 type incomingPingResult = string
-
 type incomingStateByCategoryPrefixResult = State
-
 type incomingStateResult = State
-
 type incomingSyncResult = SyncResult
-
 type incomingVersionResult = string
-
 type remindGetRemindersResult = ReminderSet
 
 export type rpc =
@@ -402,6 +396,7 @@ export type rpc =
   | outgoingBroadcastMessageRpc
   | remindDeleteRemindersRpc
   | remindGetRemindersRpc
+
 export type incomingCallMapType = Exact<{
 
 }>
