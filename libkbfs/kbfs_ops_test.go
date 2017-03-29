@@ -110,7 +110,13 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	config.mockBops.EXPECT().Archive(gomock.Any(), gomock.Any(),
 		gomock.Any()).AnyTimes().Return(nil)
 	// Ignore Prefetcher calls
-	config.mockBops.EXPECT().Prefetcher().AnyTimes().Return(newBlockPrefetcher(nil, &testBlockRetrievalConfig{nil, newTestLogMaker(t), config.BlockCache(), nil}))
+	brc := &testBlockRetrievalConfig{nil, newTestLogMaker(t),
+		config.BlockCache(), nil, newTestDiskBlockCacheGetter(t, nil)}
+	pre := newBlockPrefetcher(nil, brc)
+	config.mockBops.EXPECT().Prefetcher().AnyTimes().Return(pre)
+	// Ignore BlockRetriever calls
+	brq := newBlockRetrievalQueue(0, brc)
+	config.mockBops.EXPECT().BlockRetriever().AnyTimes().Return(brq)
 
 	// Ignore key bundle ID creation calls for now
 	config.mockCrypto.EXPECT().MakeTLFWriterKeyBundleID(gomock.Any()).

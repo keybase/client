@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -83,6 +84,12 @@ func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 			return ctx.Err()
 		}
 	}
+}
+
+func (bg *fakeBlockGetter) assembleBlock(ctx context.Context,
+	kmd KeyMetadata, ptr BlockPointer, block Block, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	return errors.New("Not implemented")
 }
 
 func makeFakeFileBlock(t *testing.T, doHash bool) *FileBlock {

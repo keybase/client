@@ -840,8 +840,11 @@ type DiskBlockCache interface {
 	// Put puts a block to the disk cache.
 	Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
 		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
-	// DeleteByTLF deletes some blocks from the disk cache.
-	DeleteByTLF(ctx context.Context, tlfID tlf.ID, blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error)
+	// Delete deletes some blocks from the disk cache.
+	Delete(ctx context.Context, blockIDs []kbfsblock.ID) (numRemoved int,
+		sizeRemoved int64, err error)
+	// UpdateLRUTime updates the LRU time to Now() for a given block.
+	UpdateLRUTime(ctx context.Context, blockID kbfsblock.ID) error
 	// Size returns the size in bytes of the disk cache.
 	Size() int64
 	// Shutdown cleanly shuts down the disk block cache.
@@ -1090,10 +1093,9 @@ type Prefetcher interface {
 	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
 	// after a block has been retrieved. Whichever component is responsible for
 	// retrieving blocks will call this method once it's done retrieving a
-	// block. It caches if it has triggered a prefetch.
+	// block.
 	PrefetchAfterBlockRetrieved(b Block, blockPtr BlockPointer,
-		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-		hasPrefetched bool)
+		kmd KeyMetadata)
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are
@@ -1142,6 +1144,9 @@ type BlockOps interface {
 
 	// TogglePrefetcher activates or deactivates the prefetcher.
 	TogglePrefetcher(ctx context.Context, enable bool) error
+
+	// BlockRetriever obtains the block retriever
+	BlockRetriever() BlockRetriever
 
 	// Prefetcher retrieves this BlockOps' Prefetcher.
 	Prefetcher() Prefetcher
@@ -2023,4 +2028,16 @@ type RekeyFSM interface {
 	// RequestRekeyAndWaitForOneFinishEvent for more details.
 	listenOnEvent(
 		event rekeyEventType, callback func(RekeyEvent), repeatedly bool)
+}
+
+// BlockRetriever specifies how to retrieve blocks.
+type BlockRetriever interface {
+	// Request retrieves blocks asynchronously.
+	Request(ctx context.Context, priority int, kmd KeyMetadata,
+		ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
+	// CacheAndPrefetch caches a block along with its prefetch status, and then
+	// triggers prefetches as appropriate.
+	CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block,
+		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
+		hasPrefetched bool) error
 }

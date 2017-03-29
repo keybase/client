@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 )
 
 type blockContainer struct {
@@ -242,6 +243,18 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64, lifetime BlockCacheLif
 func (b *BlockCacheStandard) PutWithPrefetch(
 	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime,
 	hasPrefetched bool) (err error) {
+	// Just in case we tried to cache a block type that shouldn't be cached,
+	// return an error. This is an insurance check. That said, this got rid of
+	// a flake in TestSBSConflicts, so we should still look for the underlying
+	// error.
+	switch block.(type) {
+	case *DirBlock:
+	case *FileBlock:
+	case *CommonBlock:
+		return errors.New("attempted to Put a common block")
+	default:
+		return errors.Errorf("attempted to Put an unknown block type %T", block)
+	}
 
 	var wasInCache bool
 
@@ -251,7 +264,8 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 
 	case TransientEntry:
 		// If it's the right type of block, store the hash -> ID mapping.
-		if fBlock, isFileBlock := block.(*FileBlock); b.ids != nil && isFileBlock && !fBlock.IsInd {
+		if fBlock, isFileBlock := block.(*FileBlock); b.ids != nil &&
+			isFileBlock && !fBlock.IsInd {
 
 			key := idCacheKey{tlf, fBlock.GetHash()}
 			// zero out the refnonce, it doesn't matter
@@ -264,10 +278,10 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		// We could use `cleanTransient.Contains()`, but that wouldn't update
 		// the LRU time. By using `Get`, we make it less likely that another
 		// goroutine will evict this block before we can `Put` it again.
-		var block interface{}
-		block, wasInCache = b.cleanTransient.Get(ptr.ID)
+		var bc interface{}
+		bc, wasInCache = b.cleanTransient.Get(ptr.ID)
 		if wasInCache {
-			hasPrefetched = (hasPrefetched || block.(blockContainer).hasPrefetched)
+			hasPrefetched = (hasPrefetched || bc.(blockContainer).hasPrefetched)
 		}
 		// Cache it later, once we know there's room
 

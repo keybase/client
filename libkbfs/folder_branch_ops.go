@@ -1947,8 +1947,8 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 		}
 		fblock, ok := block.(*FileBlock)
 		if !ok {
-			return nil, false,
-				errors.Errorf("Block for %s is not a file block", ptr)
+			return nil, false, errors.Errorf(
+				"Block for %s is not a file block, block type: %T", ptr, block)
 		}
 		return fblock, true, nil
 	}
@@ -4165,7 +4165,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 		}
 		diskCache := fbo.config.DiskBlockCache()
 		if diskCache != nil {
-			go diskCache.DeleteByTLF(ctx, md.TlfID(), idsToDelete)
+			go diskCache.Delete(ctx, idsToDelete)
 		}
 	case *resolutionOp:
 		// If there are any unrefs of blocks that have a node, this is an

@@ -19,6 +19,7 @@ type blockOpsConfig interface {
 	codecGetter
 	cryptoPureGetter
 	keyGetterGetter
+	diskBlockCacheGetter
 }
 
 // BlockOpsStandard implements the BlockOps interface by relaying
@@ -190,6 +191,11 @@ func (b *BlockOpsStandard) TogglePrefetcher(ctx context.Context,
 // Prefetcher implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Prefetcher() Prefetcher {
 	return b.queue.Prefetcher()
+}
+
+// BlockRetriever implements the BlockOps interface for BlockOpsStandard.
+func (b *BlockOpsStandard) BlockRetriever() BlockRetriever {
+	return b.queue
 }
 
 // Shutdown implements the BlockOps interface for BlockOpsStandard.

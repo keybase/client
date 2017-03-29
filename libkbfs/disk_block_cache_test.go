@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	testDiskBlockCacheMaxBytes int64 = 1 << 30
+	testDiskBlockCacheMaxBytes int64 = 1 << 20
 )
 
 type testDiskBlockCacheConfig struct {
@@ -89,6 +89,19 @@ func initDiskBlockCacheTest(t *testing.T) (*DiskBlockCacheStandard,
 		testDiskBlockCacheMaxBytes, nil)
 	require.NoError(t, err)
 	return cache, config
+}
+
+type testDiskBlockCacheGetter struct {
+	dbc DiskBlockCache
+}
+
+func (dbcg *testDiskBlockCacheGetter) DiskBlockCache() DiskBlockCache {
+	return dbcg.dbc
+}
+
+func newTestDiskBlockCacheGetter(t *testing.T,
+	dbc DiskBlockCache) *testDiskBlockCacheGetter {
+	return &testDiskBlockCacheGetter{dbc}
 }
 
 func shutdownDiskBlockCacheTest(cache DiskBlockCache) {
@@ -164,9 +177,12 @@ func TestDiskBlockCacheDelete(t *testing.T) {
 		require.NoError(t, err)
 	}
 	tlf1 := tlf.FakeID(3, false)
-	block1Id, block1Encoded, block1ServerHalf := setupBlockForDiskCache(t, config)
-	block2Id, block2Encoded, block2ServerHalf := setupBlockForDiskCache(t, config)
-	block3Id, block3Encoded, block3ServerHalf := setupBlockForDiskCache(t, config)
+	block1Id, block1Encoded, block1ServerHalf := setupBlockForDiskCache(t,
+		config)
+	block2Id, block2Encoded, block2ServerHalf := setupBlockForDiskCache(t,
+		config)
+	block3Id, block3Encoded, block3ServerHalf := setupBlockForDiskCache(t,
+		config)
 
 	t.Log("Put three blocks into the cache.")
 	err := cache.Put(ctx, tlf1, block1Id, block1Encoded, block1ServerHalf)
@@ -177,8 +193,7 @@ func TestDiskBlockCacheDelete(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Delete two of the blocks from the cache.")
-	_, _, err = cache.DeleteByTLF(ctx, tlf1, []kbfsblock.ID{
-		block1Id, block2Id})
+	_, _, err = cache.Delete(ctx, []kbfsblock.ID{block1Id, block2Id})
 	require.NoError(t, err)
 
 	t.Log("Verify that only the non-deleted block is still in the cache.")

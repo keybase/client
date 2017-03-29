@@ -410,3 +410,29 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 	_, err = cache.Get(childPtr)
 	require.EqualError(t, err, NoSuchBlockError{childPtr.ID}.Error())
 }
+
+func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
+	t.Log("Test empty direct dir block prefetching.")
+	q, bg, config := initPrefetcherTest(t)
+	defer shutdownPrefetcherTest(q)
+
+	t.Log("Initialize a direct dir block with entries pointing to 3 files.")
+	ptr1 := makeRandomBlockPointer(t)
+	dir1 := &DirBlock{Children: map[string]DirEntry{}}
+
+	_, continueCh1 := bg.setBlockToReturn(ptr1, dir1)
+
+	var block Block = &DirBlock{}
+	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, makeKMD(), ptr1, block, TransientEntry)
+	continueCh1 <- nil
+	err := <-ch
+	require.NoError(t, err)
+	require.Equal(t, dir1, block)
+
+	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
+	<-q.Prefetcher().Shutdown()
+
+	t.Log("Ensure that the directory block is in the cache.")
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), ptr1, dir1, true, TransientEntry)
+}

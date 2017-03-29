@@ -903,8 +903,9 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	if err != nil {
 		errorList = append(errorList, err)
 	}
-	if c.DiskBlockCache() != nil {
-		c.DiskBlockCache().Shutdown(ctx)
+	dbc := c.DiskBlockCache()
+	if dbc != nil {
+		dbc.Shutdown(ctx)
 	}
 
 	if len(errorList) == 1 {

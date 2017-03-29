@@ -35,16 +35,11 @@ type prefetchRequest struct {
 	block    Block
 }
 
-// blockRetriever specifies a method for retrieving blocks asynchronously.
-type blockRetriever interface {
-	Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
-}
-
 type blockPrefetcher struct {
 	config prefetcherConfig
 	log    logger.Logger
 	// blockRetriever to retrieve blocks from the server
-	retriever blockRetriever
+	retriever BlockRetriever
 	// channel to synchronize prefetch requests with the prefetcher shutdown
 	progressCh chan prefetchRequest
 	// channel that is idempotently closed when a shutdown occurs
@@ -56,7 +51,7 @@ type blockPrefetcher struct {
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
 
-func newBlockPrefetcher(retriever blockRetriever, config prefetcherConfig) *blockPrefetcher {
+func newBlockPrefetcher(retriever BlockRetriever, config prefetcherConfig) *blockPrefetcher {
 	p := &blockPrefetcher{
 		config:     config,
 		retriever:  retriever,
@@ -190,31 +185,7 @@ func (p *blockPrefetcher) PrefetchBlock(
 // PrefetchAfterBlockRetrieved implements the Prefetcher interface for
 // blockPrefetcher.
 func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(
-	b Block, ptr BlockPointer, kmd KeyMetadata, priority int,
-	lifetime BlockCacheLifetime, hasPrefetched bool) {
-	if hasPrefetched {
-		// We discard the error because there's nothing we can do about it.
-		_ = p.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), b,
-			lifetime, true)
-		return
-	}
-	if priority < defaultOnDemandRequestPriority {
-		// Only on-demand or higher priority requests can trigger prefetches.
-		// We discard the error because there's nothing we can do about it.
-		_ = p.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), b,
-			lifetime, false)
-		return
-	}
-	// We must let the cache know at this point that we've prefetched.
-	// 1) To prevent any other Gets from prefetching.
-	// 2) To prevent prefetching if a cache Put fails, since prefetching if
-	//	  only useful when combined with the cache.
-	err := p.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), b,
-		lifetime, true)
-	if _, isCacheFullError := err.(cachePutCacheFullError); isCacheFullError {
-		p.log.CDebugf(context.TODO(), "Skipping prefetch because the cache is full")
-		return
-	}
+	b Block, ptr BlockPointer, kmd KeyMetadata) {
 	switch b := b.(type) {
 	case *FileBlock:
 		if b.IsInd {
