@@ -183,6 +183,12 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 			}
 		}()
 	}
+	defer func() {
+		if err != nil {
+			brq.log.CWarningf(ctx, "Error Putting into the block cache: %+v",
+				err)
+		}
+	}()
 	if hasPrefetched {
 		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
 			lifetime, true)
@@ -205,8 +211,9 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 			"is full")
 		return err
 	default:
-		brq.log.CWarningf(ctx, "Error Putting into the block cache: %+v",
-			err)
+		// We should return the error here because otherwise we could thrash
+		// the prefetcher.
+		return err
 	}
 	// This must be called in a goroutine to prevent deadlock in case this
 	// CacheAndPrefetch call was triggered by the prefetcher itself.
@@ -227,9 +234,8 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 		brq.config.BlockCache().GetWithPrefetch(ptr)
 	if err == nil && cachedBlock != nil {
 		block.Set(cachedBlock)
-		brq.CacheAndPrefetch(ctx, ptr, cachedBlock, kmd, priority, lifetime,
-			hasPrefetched)
-		return nil
+		return brq.CacheAndPrefetch(ctx, ptr, cachedBlock, kmd, priority,
+			lifetime, hasPrefetched)
 	}
 
 	// Check the disk cache.
