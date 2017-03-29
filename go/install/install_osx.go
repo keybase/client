@@ -6,9 +6,11 @@
 package install
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -460,6 +462,14 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		}
 	}
 
+	if libkb.IsIn(string(ComponentNameKBNM), components, false) {
+		err = InstallKBNM(context, binPath, log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameKBNM), err))
+		if err != nil {
+			log.Errorf("Error installing KBNM: %s", err)
+		}
+	}
+
 	return newInstallResult(componentResults)
 }
 
@@ -552,6 +562,96 @@ func InstallKBFS(context Context, binPath string, force bool, timeout time.Durat
 	log.Debug("Installing KBFS (%s, timeout=%s)", label, timeout)
 	if _, err := installKBFSService(context, kbfsService, plist, timeout, log); err != nil {
 		log.Errorf("Error installing KBFS: %s", err)
+		return err
+	}
+	return nil
+}
+
+// kbnmManifestPath returns where the NativeMessaging host manifest lives on this platform.
+func kbnmManifestPath(u *user.User) string {
+	const rootPath = "/Library/Google/Chrome/NativeMessagingHosts"
+	const homePath = "Library/Application Support/Google/Chrome/NativeMessagingHosts"
+
+	if u.Uid == "0" {
+		// Installing as root
+		return rootPath
+	}
+
+	return filepath.Join(u.HomeDir, homePath)
+}
+
+// kbnmHostName is the name of the NativeMessage host that the extension communicates with.
+const kbnmHostName = "io.keybase.kbnm"
+
+// kbnmDescription is the description of the purpose for the manifest whitelist.
+const kbnmDescription = "Keybase Native Messaging API"
+
+// kbnmExtensionID is the
+const kbnmExtensionID = "chrome-extension://bddkhaigcjacfohdeklflaigfnebicfm/"
+
+// InstallKBNM installs the Keybase NativeMessaging whitelist
+func InstallKBNM(context Context, binPath string, log Log) error {
+	// Find path of the keybase binary
+	hostPath, err := chooseBinPath(binPath)
+	if err != nil {
+		return err
+	}
+
+	// Host manifest, see: https://developer.chrome.com/extensions/nativeMessaging
+	hostManifest := struct {
+		Name           string   `json:"name"`
+		Description    string   `json:"description"`
+		Path           string   `json:"path"`
+		Type           string   `json:"type"`
+		AllowedOrigins []string `json:"allowed_origins"`
+	}{
+		Name:        kbnmHostName,
+		Description: kbnmDescription,
+		Path:        hostPath,
+		Type:        "stdio",
+		AllowedOrigins: []string{
+			kbnmExtensionID,
+		},
+	}
+
+	u, err := user.Current()
+	if err != nil {
+		return err
+	}
+
+	hostsPath := kbnmManifestPath(u)
+	jsonPath := filepath.Join(hostsPath, kbnmHostName+".json")
+
+	// Make the path if it doesn't exist
+	if err := os.MkdirAll(hostsPath, os.ModePerm); err != nil {
+		return err
+	}
+
+	// Write the file
+	log.Debug("Installing KBNM host manifest: %s", jsonPath)
+	fp, err := os.OpenFile(jsonPath, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+
+	encoder := json.NewEncoder(fp)
+	return encoder.Encode(&hostManifest)
+}
+
+// UninstallKBNM removes the Keybase NativeMessaging whitelist
+func UninstallKBNM(log Log) error {
+	u, err := user.Current()
+	if err != nil {
+		return err
+	}
+
+	hostsPath := kbnmManifestPath(u)
+	jsonPath := filepath.Join(hostsPath, kbnmHostName+".json")
+
+	log.Debug("Uninstalling KBNM host manifest: %s", jsonPath)
+	if err := os.Remove(jsonPath); err != nil && !os.IsNotExist(err) {
+		// We don't care if it doesn't exist, but other errors should escalate
 		return err
 	}
 	return nil

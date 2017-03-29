@@ -1,11 +1,11 @@
 package libkb
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
-	"os"
 
 	"github.com/keybase/client/go/logger"
 )
@@ -49,9 +49,9 @@ func TestTailMulti(t *testing.T) {
 	atime := time.Date(2017, time.March, 2, 4, 5, 6, 0, time.UTC)
 	// Force the fact the logs are from different times, since
 	// on windows on CI, we can't get the mtime set on git checkout.
-	for i, sffx := range([]string{"", ".1", ".2"}) {
-		mtime := time.Date(2017, time.February, 1, 3, (60-5*i), 0, 0, time.UTC)
-		if err := os.Chtimes(stem + sffx, atime, mtime);  err != nil {
+	for i, sffx := range []string{"", ".1", ".2"} {
+		mtime := time.Date(2017, time.February, 1, 3, (60 - 5*i), 0, 0, time.UTC)
+		if err := os.Chtimes(stem+sffx, atime, mtime); err != nil {
 			t.Fatal(err)
 		}
 	}
