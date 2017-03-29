@@ -276,11 +276,14 @@ func (g *GlobalContext) ConfigureLogging() error {
 	style := g.Env.GetLogFormat()
 	debug := g.Env.GetDebug()
 	logFile := g.Env.GetLogFile()
-	if logFile == "" {
-		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())
-	} else {
-		g.Log.Configure(style, debug, logFile)
-		g.Log.RotateLogFile()
+	g.Log.Configure(style, debug)
+	if logFile != "" {
+		logger.SetLogFileConfig(&logger.LogFileConfig{
+			Path:         logFile,
+			MaxAge:       30 * 24 * time.Hour,
+			MaxSize:      g.Env.GetLogMaxSize(),
+			MaxKeepFiles: 3,
+		})
 	}
 	g.Output = os.Stdout
 	g.VDL.Configure(g.Env.GetVDebugSetting())

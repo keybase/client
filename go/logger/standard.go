@@ -105,7 +105,6 @@ type entry struct {
 
 type Standard struct {
 	internal       *logging.Logger
-	filename       string
 	configureMutex sync.Mutex
 	module         string
 
@@ -267,17 +266,14 @@ func (log *Standard) Profile(fmts string, arg ...interface{}) {
 	log.Debug(fmts, arg...)
 }
 
-// Configure sets the style of the log file, whether debugging (verbose)
-// is enabled and a filename. If a filename is provided here it will
-// be used for logging straight away (this is a new feature).
+// Configure sets the style of the log file, whether debugging (verbose) is enabled.
 // SetLogFileConfig provides a way to set the log file with more control on rotation.
-func (log *Standard) Configure(style string, debug bool, filename string) {
+func (log *Standard) Configure(style string, debug bool) {
 	log.configureMutex.Lock()
 	defer log.configureMutex.Unlock()
 
-	log.filename = filename
-
-	var logfmt string
+	// This is changed if we are not logging to a file.
+	logfmt := fileFormat
 
 	globalLock.Lock()
 	isTerm := stderrIsTerminal
@@ -290,8 +286,6 @@ func (log *Standard) Configure(style string, debug bool, filename string) {
 		} else {
 			logfmt = defaultFormat
 		}
-	} else {
-		logfmt = fileFormat
 	}
 
 	// Override the format above if an explicit style was specified.
@@ -311,12 +305,11 @@ func (log *Standard) Configure(style string, debug bool, filename string) {
 	}
 
 	logging.SetFormatter(logging.MustStringFormatter(logfmt))
-
 }
 
-func OpenLogFile(filename string) (name string, file *os.File, err error) {
+func openLogFile(filename string) (name string, file *os.File, err error) {
 	name = filename
-	if err = MakeParentDirs(name); err != nil {
+	if err = makeParentDirs(name); err != nil {
 		return
 	}
 	file, err = os.OpenFile(name, (os.O_APPEND | os.O_WRONLY | os.O_CREATE), 0600)
@@ -326,7 +319,7 @@ func OpenLogFile(filename string) (name string, file *os.File, err error) {
 	return
 }
 
-func FileExists(path string) (bool, error) {
+func fileExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
 		return true, nil
@@ -337,13 +330,13 @@ func FileExists(path string) (bool, error) {
 	return false, err
 }
 
-func MakeParentDirs(filename string) error {
+func makeParentDirs(filename string) error {
 	dir, _ := filepath.Split(filename)
 	// If passed a plain file name as a path
 	if dir == "" {
 		return nil
 	}
-	exists, err := FileExists(dir)
+	exists, err := fileExists(dir)
 	if err != nil {
 		return err
 	}
@@ -368,7 +361,6 @@ func PickFirstError(errors ...error) error {
 
 func (log *Standard) CloneWithAddedDepth(depth int) Logger {
 	clone := Standard{
-		filename:        log.filename,
 		module:          log.module,
 		externalHandler: log.externalHandler,
 	}

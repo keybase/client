@@ -60,6 +60,7 @@ func (n NullConfiguration) GetAutoFork() (bool, bool)                           
 func (n NullConfiguration) GetRunMode() (RunMode, error)                                   { return NoRunMode, nil }
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                                    { return false, false }
 func (n NullConfiguration) GetLogFile() string                                             { return "" }
+func (n NullConfiguration) GetLogMaxSize() (int64, bool)                                   { return 128 * 1024 * 1024, false }
 func (n NullConfiguration) GetScraperTimeout() (time.Duration, bool)                       { return 0, false }
 func (n NullConfiguration) GetAPITimeout() (time.Duration, bool)                           { return 0, false }
 func (n NullConfiguration) GetTorMode() (TorMode, error)                                   { return TorNone, nil }
@@ -283,11 +284,16 @@ func (e *Env) GetRuntimeDir() string {
 func (e *Env) GetServiceSpawnDir() (string, error) { return e.homeFinder.ServiceSpawnDir() }
 
 func (e *Env) getEnvInt(s string) (int, bool) {
+	v, b := e.getEnvInt64(s)
+	return int(v), b
+}
+
+func (e *Env) getEnvInt64(s string) (int64, bool) {
 	v := os.Getenv(s)
 	if len(v) > 0 {
 		tmp, err := strconv.ParseInt(v, 0, 64)
 		if err == nil {
-			return int(tmp), true
+			return tmp, true
 		}
 	}
 	return 0, false
@@ -370,6 +376,15 @@ func (e *Env) GetNegBool(def bool, flist []NegBoolFunc) bool {
 }
 
 func (e *Env) GetInt(def int, flist ...func() (int, bool)) int {
+	for _, f := range flist {
+		if val, isSet := f(); isSet {
+			return val
+		}
+	}
+	return def
+}
+
+func (e *Env) GetInt64(def int64, flist ...func() (int64, bool)) int64 {
 	for _, f := range flist {
 		if val, isSet := f(); isSet {
 			return val
@@ -994,6 +1009,14 @@ func (e *Env) GetLogFile() string {
 	return e.GetString(
 		func() string { return e.cmd.GetLogFile() },
 		func() string { return os.Getenv("KEYBASE_LOG_FILE") },
+	)
+}
+
+func (e *Env) GetLogMaxSize() int64 {
+	return e.GetInt64(128*1024*1024,
+		e.cmd.GetLogMaxSize,
+		func() (int64, bool) { return e.getEnvInt64("KEYBASE_LOG_MAX_SIZE") },
+		e.config.GetLogMaxSize,
 	)
 }
 

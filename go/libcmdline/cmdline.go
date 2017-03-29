@@ -108,6 +108,10 @@ func (p CommandLine) GetProxy() string {
 func (p CommandLine) GetLogFile() string {
 	return p.GetGString("log-file")
 }
+func (p CommandLine) GetLogMaxSize() (int64,bool) {
+	v := p.GetGInt("log-max-size")
+	return int64(v), v != 0
+}
 func (p CommandLine) GetLogFormat() string {
 	return p.GetGString("log-format")
 }

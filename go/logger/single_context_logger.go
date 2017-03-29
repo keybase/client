@@ -65,8 +65,8 @@ func (s *SingleContextLogger) CFatalf(ctx context.Context, format string, args .
 func (s *SingleContextLogger) Profile(fmts string, arg ...interface{}) {
 	s.logger.Profile(fmts, arg...)
 }
-func (s *SingleContextLogger) Configure(style string, debug bool, filename string) {
-	s.logger.Configure(style, debug, filename)
+func (s *SingleContextLogger) Configure(style string, debug bool) {
+	s.logger.Configure(style, debug)
 }
 func (s *SingleContextLogger) RotateLogFile() error {
 	return s.logger.RotateLogFile()

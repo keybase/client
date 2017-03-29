@@ -53,6 +53,7 @@ type configGetter interface {
 	GetLocalTrackMaxAge() (time.Duration, bool)
 	GetLogFile() string
 	GetLogFormat() string
+	GetLogMaxSize() (int64, bool)
 	GetMerkleKIDs() []string
 	GetMountDir() string
 	GetPidFile() string

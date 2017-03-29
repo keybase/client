@@ -50,10 +50,8 @@ type Logger interface {
 	CFatalf(ctx context.Context, format string, args ...interface{})
 	// Profile logs a profile message, with formatting args.
 	Profile(fmts string, arg ...interface{})
-	// Configure sets the style, debug level, and filename of the
-	// logger.  Output isn't redirected to the file until
-	// RotateLogFile is called for the first time.
-	Configure(style string, debug bool, filename string)
+	// Configure sets the style, debug level for the logger.
+	Configure(style string, debug bool)
 	// RotateLogFile rotates the log file, if the underlying logger is
 	// writing to a file.
 	RotateLogFile() error

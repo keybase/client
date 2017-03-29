@@ -538,6 +538,10 @@ func (f JSONConfigFile) GetAutoFork() (bool, bool) {
 func (f JSONConfigFile) GetLogFormat() string {
 	return f.GetTopLevelString("log_format")
 }
+func (f JSONConfigFile) GetLogMaxSize() (int64, bool) {
+	v, b := f.GetIntAtPath("log_max_size")
+	return int64(v), b
+}
 func (f JSONConfigFile) GetStandalone() (bool, bool) {
 	return f.GetTopLevelBool("standalone")
 }
