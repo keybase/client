@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"reflect"
+	"syscall"
 )
 
 const (
@@ -58,7 +60,12 @@ func (f *FMPURI) String() string {
 	return fmt.Sprintf("%s://%s", f.Scheme, f.HostPort)
 }
 
-func (f *FMPURI) DialWithConfig(config *tls.Config) (net.Conn, error) {
+func (f *FMPURI) DialWithConfig(config *tls.Config) (c net.Conn, err error) {
+	defer func() {
+		// use reflection until https://github.com/golang/go/issues/9661 is fixed
+		fd := int(reflect.ValueOf(c).Elem().FieldByName("fd").Elem().FieldByName("sysfd").Int())
+		err = syscall.SetsockoptInt(fd, syscall.SOL_SOCKET, syscall.SO_NOSIGPIPE, 1)
+	}()
 	network, addr := "tcp", f.HostPort
 	if f.UseTLS() {
 		return tls.Dial(network, addr, config)
