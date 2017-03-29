@@ -370,12 +370,12 @@ Loop:
 					}
 				}
 			}
-			// never exceed the allowed label count lenght (63) 
-			if labels >= 63 { 
+			// never exceed the allowed label count lenght (63)
+			if labels >= 63 {
 				return "", lenmsg, &Error{err: "name exceeds 63 labels"}
 			}
 			labels += 1
-			// never exceed the allowed doman name length (255 octets) 
+			// never exceed the allowed doman name length (255 octets)
 			if len(s) >= 255 {
 				return "", lenmsg, &Error{err: "name exceeded allowed 255 octets"}
 			}
