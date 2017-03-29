@@ -184,6 +184,8 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	if err != nil {
 		e.G().Log.Warning("error getting TTY for GPG: %s", err)
 		err = nil
+	} else {
+		gpg.SetTTY(tty)
 	}
 
 	bundle, err := gpg.ImportKey(true, *(selected.GetFingerprint()), tty)
