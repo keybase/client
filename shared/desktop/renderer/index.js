@@ -17,7 +17,6 @@ import loadPerf from '../../util/load-perf'
 import routeDefs from '../../routes'
 import {AppContainer} from 'react-hot-loader'
 import {bootstrap} from '../../actions/config'
-import {changedFocus} from '../../actions/window'
 import {devEditAction} from '../../reducers/dev-edit'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap} from '../../util/pictures'
@@ -102,8 +101,8 @@ function setupApp (store) {
   ipcRenderer.send('install-check')
 
   const currentWindow = electron.remote.getCurrentWindow()
-  currentWindow.on('focus', () => { store.dispatch(changedFocus(true)) })
-  currentWindow.on('blur', () => { store.dispatch(changedFocus(false)) })
+  currentWindow.on('focus', () => { store.dispatch({payload: {focused: true}, type: 'app:changedFocus'}) })
+  currentWindow.on('blur', () => { store.dispatch({payload: {focused: false}, type: 'app:changedFocus'}) })
 
   const _menubarSelector = menubarSelector()
   const _unlockFoldersSelector = unlockFoldersSelector()

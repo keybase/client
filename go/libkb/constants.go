@@ -420,11 +420,12 @@ const (
 )
 
 const (
-	Kex2PhraseEntropy = 88
-	Kex2ScryptCost    = 1 << 17
-	Kex2ScryptR       = 8
-	Kex2ScryptP       = 1
-	Kex2ScryptKeylen  = 32
+	Kex2PhraseEntropy  = 88
+	Kex2ScryptCost     = 1 << 17
+	Kex2ScryptLiteCost = 1 << 10
+	Kex2ScryptR        = 8
+	Kex2ScryptP        = 1
+	Kex2ScryptKeylen   = 32
 )
 
 // PaperKeyWordCountMin of 13 is based on the current state:
