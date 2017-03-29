@@ -68,8 +68,9 @@ type DiskBlockCacheStandard struct {
 	metaDb  *leveldb.DB
 	tlfDb   *leveldb.DB
 
-	compactCh chan struct{}
-	startedCh chan struct{}
+	compactCh  chan struct{}
+	startedCh  chan struct{}
+	startErrCh chan struct{}
 }
 
 var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
@@ -136,6 +137,7 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 	}
 	compactCh := make(chan struct{}, 1)
 	startedCh := make(chan struct{})
+	startErrCh := make(chan struct{})
 	cache = &DiskBlockCacheStandard{
 		config:     config,
 		maxBlockID: maxBlockID.Bytes(),
@@ -147,6 +149,7 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		tlfDb:      tlfDb,
 		compactCh:  compactCh,
 		startedCh:  startedCh,
+		startErrCh: startErrCh,
 	}
 	// Sync the block counts asynchronously so syncing doesn't block init.
 	// Since this method blocks, any Get or Put requests to the disk block
@@ -155,6 +158,7 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 	go func() {
 		err := cache.syncBlockCountsFromDb()
 		if err != nil {
+			close(startErrCh)
 			log.Warning("Disabling disk block cache due to error syncing the "+
 				"block counts from DB: %+v", err)
 			return
@@ -766,6 +770,11 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
+	// Wait for the cache to either finish starting or error.
+	select {
+	case <-cache.startedCh:
+	case <-cache.startErrCh:
+	}
 	// Receive from the compactCh sentinel to wait for pending compactions.
 	<-cache.compactCh
 	cache.lock.Lock()
