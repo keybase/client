@@ -918,8 +918,20 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 	defer parg.Attachment.Close()
 
 	if arg.Preview != nil {
-		parg.Preview = newStreamSource(*arg.Preview)
-		defer parg.Preview.Close()
+		parg.Preview = new(attachmentPreview)
+		if arg.Preview.Filename != nil {
+			parg.Preview.source, err = newFileSource(chat1.LocalFileSource{
+				Filename: *arg.Preview.Filename,
+			})
+			if err != nil {
+				return res, err
+			}
+		}
+		if arg.Preview.Metadata != nil {
+			parg.Preview.md = arg.Preview.Metadata
+		}
+		parg.Preview.mimeType = arg.Preview.MimeType
+		defer parg.Preview.source.Close()
 	}
 
 	return h.postAttachmentLocal(ctx, parg)
@@ -944,15 +956,29 @@ func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat
 	defer parg.Attachment.Close()
 
 	if arg.Preview != nil {
-		psrc, err := newFileSource(*arg.Preview)
-		if err != nil {
-			return chat1.PostLocalRes{}, err
+		parg.Preview = new(attachmentPreview)
+		if arg.Preview.Filename != nil {
+			parg.Preview.source, err = newFileSource(chat1.LocalFileSource{
+				Filename: *arg.Preview.Filename,
+			})
+			if err != nil {
+				return res, err
+			}
 		}
-		parg.Preview = psrc
-		defer parg.Preview.Close()
+		if arg.Preview.Metadata != nil {
+			parg.Preview.md = arg.Preview.Metadata
+		}
+		parg.Preview.mimeType = arg.Preview.MimeType
+		defer parg.Preview.source.Close()
 	}
 
 	return h.postAttachmentLocal(ctx, parg)
+}
+
+type attachmentPreview struct {
+	source   assetSource
+	mimeType string
+	md       *chat1.AssetMetadata
 }
 
 // postAttachmentArg is a shared arg struct for the multiple PostAttachment* endpoints
@@ -961,7 +987,7 @@ type postAttachmentArg struct {
 	ConversationID   chat1.ConversationID
 	ClientHeader     chat1.MessageClientHeader
 	Attachment       assetSource
-	Preview          assetSource
+	Preview          *attachmentPreview
 	Title            string
 	Metadata         []byte
 	IdentifyBehavior keybase1.TLFIdentifyBehavior
@@ -992,7 +1018,12 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	}
 	if pre.Preview != nil {
 		h.Debug(ctx, "created preview in preprocess")
-		arg.Preview = pre.Preview
+		md := pre.PreviewMetadata()
+		arg.Preview = &attachmentPreview{
+			source:   pre.Preview,
+			md:       &md,
+			mimeType: pre.PreviewContentType,
+		}
 	}
 
 	// get s3 upload params from server
@@ -1017,7 +1048,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		return err
 	})
 
-	if arg.Preview != nil {
+	if arg.Preview.source != nil {
 		g.Go(func() error {
 			chatUI.ChatAttachmentPreviewUploadStart(ctx, pre.PreviewMetadata())
 			// copy the params so as not to mess with the main params above
@@ -1026,7 +1057,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 			// add preview suffix to object key (P in hex)
 			// the s3path in gregor is expecting hex here
 			previewParams.ObjectKey += "50"
-			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, arg.Preview, arg.ConversationID, nil)
+			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, arg.Preview.source, arg.ConversationID, nil)
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
 				preview = &prev
@@ -1139,7 +1170,12 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 	}
 	if pre.Preview != nil {
 		h.Debug(ctx, "created preview in preprocess")
-		arg.Preview = pre.Preview
+		md := pre.PreviewMetadata()
+		arg.Preview = &attachmentPreview{
+			source:   pre.Preview,
+			md:       &md,
+			mimeType: pre.PreviewContentType,
+		}
 	}
 
 	// get s3 upload params from server
@@ -1164,7 +1200,7 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 		return err
 	})
 
-	if arg.Preview != nil {
+	if arg.Preview.source != nil {
 		g.Go(func() error {
 			chatUI.ChatAttachmentPreviewUploadStart(ctx, pre.PreviewMetadata())
 			// copy the params so as not to mess with the main params above
@@ -1173,7 +1209,7 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 			// add preview suffix to object key (P in hex)
 			// the s3path in gregor is expecting hex here
 			previewParams.ObjectKey += "50"
-			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, arg.Preview, arg.ConversationID, nil)
+			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, arg.Preview.source, arg.ConversationID, nil)
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
 				preview = &prev
@@ -1484,7 +1520,7 @@ func (p *preprocess) PreviewMetadata() chat1.AssetMetadata {
 	return chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{Width: p.PreviewDim.Width, Height: p.PreviewDim.Height})
 }
 
-func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, attachment, preview assetSource) (*preprocess, error) {
+func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, attachment assetSource, preview *attachmentPreview) (*preprocess, error) {
 	// create a buffered stream
 	cli := h.getStreamUICli()
 	src, err := attachment.Open(sessionID, cli)
@@ -1525,6 +1561,24 @@ func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, a
 			}
 			p.BaseDurationMs = previewRes.BaseDurationMs
 			p.PreviewDurationMs = previewRes.PreviewDurationMs
+		}
+	} else {
+		h.Debug(ctx, "attachment preview info provided, populating metadata")
+		p.PreviewContentType = preview.mimeType
+		if preview.md != nil {
+			typ, err := preview.md.AssetType()
+			if err != nil {
+				return nil, err
+			}
+			switch typ {
+			case chat1.AssetMetadataType_IMAGE:
+				p.PreviewDim = &dimension{Width: preview.md.Image().Width, Height: preview.md.Image().Height}
+			case chat1.AssetMetadataType_VIDEO:
+				p.PreviewDurationMs = preview.md.Video().DurationMs
+				p.PreviewDim = &dimension{Width: preview.md.Video().Width, Height: preview.md.Video().Height}
+			case chat1.AssetMetadataType_AUDIO:
+				p.PreviewDurationMs = preview.md.Audio().DurationMs
+			}
 		}
 	}
 

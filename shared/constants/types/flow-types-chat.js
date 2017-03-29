@@ -1731,7 +1731,7 @@ export type localPostAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   clientHeader: MessageClientHeader,
   attachment: LocalSource,
-  preview?: ?LocalSource,
+  preview?: ?MakePreviewRes,
   title: string,
   metadata: bytes,
   identifyBehavior: keybase1.TLFIdentifyBehavior
@@ -1762,7 +1762,7 @@ export type localPostFileAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   clientHeader: MessageClientHeader,
   attachment: LocalFileSource,
-  preview?: ?LocalFileSource,
+  preview?: ?MakePreviewRes,
   title: string,
   metadata: bytes,
   identifyBehavior: keybase1.TLFIdentifyBehavior

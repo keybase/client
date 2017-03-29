@@ -132,7 +132,7 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
     conversationID: Constants.keyToConversationID(conversationIDKey),
     clientHeader: header,
     attachment: {filename},
-    preview: {filename: preview.filename},
+    preview,
     title,
     metadata: null,
     identifyBehavior: yield call(Shared.getPostingIdentifyBehavior, conversationIDKey),

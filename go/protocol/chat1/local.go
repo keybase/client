@@ -1613,7 +1613,7 @@ type PostAttachmentLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	ClientHeader     MessageClientHeader          `codec:"clientHeader" json:"clientHeader"`
 	Attachment       LocalSource                  `codec:"attachment" json:"attachment"`
-	Preview          *LocalSource                 `codec:"preview,omitempty" json:"preview,omitempty"`
+	Preview          *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
 	Title            string                       `codec:"title" json:"title"`
 	Metadata         []byte                       `codec:"metadata" json:"metadata"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
@@ -1624,7 +1624,7 @@ type PostFileAttachmentLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	ClientHeader     MessageClientHeader          `codec:"clientHeader" json:"clientHeader"`
 	Attachment       LocalFileSource              `codec:"attachment" json:"attachment"`
-	Preview          *LocalFileSource             `codec:"preview,omitempty" json:"preview,omitempty"`
+	Preview          *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
 	Title            string                       `codec:"title" json:"title"`
 	Metadata         []byte                       `codec:"metadata" json:"metadata"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`

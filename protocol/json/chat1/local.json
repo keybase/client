@@ -2134,7 +2134,7 @@
           "name": "preview",
           "type": [
             null,
-            "LocalSource"
+            "MakePreviewRes"
           ]
         },
         {
@@ -2174,7 +2174,7 @@
           "name": "preview",
           "type": [
             null,
-            "LocalFileSource"
+            "MakePreviewRes"
           ]
         },
         {
