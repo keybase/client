@@ -218,12 +218,13 @@ function analyzeMessages (json, project) {
     const paramType = p ? `\nexport type ${name}RpcParam = Exact<{${p}}>` : ''
     const callbackType = r ? `{callback?: ?(err: ?any${r}) => void}` : 'requestErrorCallback'
     const innerParamType = p ? `{param: ${name}RpcParam}` : null
+    const methodName = `'${json.namespace}.${json.protocol}.${m}'`
     const rpc = isUIProtocol ? '' : `\nexport function ${name}Rpc (request: Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>) {
-  engineRpcOutgoing('${json.namespace}.${json.protocol}.${m}', request)
+  engineRpcOutgoing(${methodName}, request)
 }`
 
-    const rpcPromise = isUIProtocol ? '' : codeGenerators.rpcPromiseGen(name, callbackType, innerParamType, responseType)
-    const rpcChannelMap = isUIProtocol ? '' : codeGenerators.rpcChannelMap(name, callbackType, innerParamType, responseType)
+    const rpcPromise = isUIProtocol ? '' : codeGenerators.rpcPromiseGen(methodName, name, callbackType, innerParamType, responseType)
+    const rpcChannelMap = isUIProtocol ? '' : codeGenerators.rpcChannelMap(methodName, name, callbackType, innerParamType, responseType)
     return [paramType, response, rpc, rpcPromise, rpcChannelMap]
   })
 }
@@ -349,8 +350,7 @@ export type double = number
 export type bytes = Buffer
 export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
 
-// $FlowIssue we're calling an internal method on engine that's there just for us
-const engineRpcOutgoing = (method, params) => engine()._rpcOutgoing(method, params)
+const engineRpcOutgoing = (method: string, params: any, callbackOverride: any, incomingCallMapOverride: any) => engine()._rpcOutgoing(method, params, callbackOverride, incomingCallMapOverride)
 
 type requestCommon = {
   waitingHandler?: WaitingHandlerType,
