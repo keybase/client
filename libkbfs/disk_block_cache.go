@@ -271,9 +271,9 @@ func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
 	return nil
 }
 
-// compactCachesLocked manually forces both the block cache and LRU cache to
-// compact their underlying data.
-func (cache *DiskBlockCacheStandard) compactCachesLocked(ctx context.Context) {
+// compactCaches manually forces both the block cache and LRU cache to compact
+// their underlying data.
+func (cache *DiskBlockCacheStandard) compactCaches(ctx context.Context) {
 	cache.blockDb.CompactRange(util.Range{})
 	cache.metaDb.CompactRange(util.Range{})
 	cache.tlfDb.CompactRange(util.Range{})
@@ -536,7 +536,10 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 		return 0, 0, err
 	}
 
-	cache.compactCachesLocked(ctx)
+	// Call this in a goroutine so it doesn't block reads.
+	go cache.compactCaches(ctx)
+
+	// Update the cache's totals.
 	for k, v := range removalCounts {
 		cache.tlfCounts[k] -= v
 		cache.numBlocks -= v
