@@ -6,13 +6,14 @@
 package engine
 
 import (
+	"sync"
+	"testing"
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
-	"sync"
-	"testing"
-	"time"
 )
 
 func TestLoadDeviceKeyNew(t *testing.T) {
@@ -92,7 +93,7 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 
-	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase)
+	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase, true)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -251,7 +252,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 
-	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase)
+	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase, true)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
