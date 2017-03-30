@@ -13,7 +13,7 @@ let config: {[key: string]: any} = {
   devStoreChangingFunctions: false,
   dumbChatOnly: false,
   dumbSheetOnly: false,
-  enableActionLogging: false,
+  enableActionLogging: true,
   enableStoreLogging: false,
   featureFlagsOverride: null,
   forceImmediateLogging: false,
@@ -37,7 +37,7 @@ if (__DEV__ && true) {
   config.dumbChatOnly = false
   config.dumbSheetOnly = false
   config.enableActionLogging = false
-  config.enableStoreLogging = false
+  config.enableStoreLogging = true
   config.forwardLogs = true
   config.immediateStateLogging = true
   config.printOutstandingRPCs = true
