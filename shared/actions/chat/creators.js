@@ -309,6 +309,10 @@ function updateInboxComplete (): Constants.UpdateInboxComplete {
   return {payload: undefined, type: 'chat:updateInboxComplete'}
 }
 
+function receivedMessage (message: Constants.Message): Constants.ReceivedMessage {
+  return {payload: {message}, type: 'chat:receivedMessage'}
+}
+
 function removeOutboxMessage (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey): Constants.RemoveOutboxMessage {
   return {payload: {conversationIDKey, outboxID}, type: 'chat:removeOutboxMessage'}
 }
@@ -368,6 +372,7 @@ export {
   pendingToRealConversation,
   postMessage,
   prependMessages,
+  receivedMessage,
   removeOutboxMessage,
   removePendingFailure,
   replaceConversation,

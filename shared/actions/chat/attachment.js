@@ -5,7 +5,7 @@ import * as Creators from './creators'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Shared from './shared'
-import {call, put, select, cancel, fork, join} from 'redux-saga/effects'
+import {call, put, select, cancel, fork, join, take} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {navigateAppend} from '../route-tree'
 import {saveAttachment, showShareActionSheet} from '../platform.specific'
@@ -109,7 +109,7 @@ function * onLoadAttachment ({payload: {conversationIDKey, messageID, loadPrevie
 }
 
 function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): Generator<any, any, any> {
-  const {title, filename, type} = input
+  const {title, filename} = input
   let {conversationIDKey} = input
 
   if (Constants.isPendingConversationIDKey(conversationIDKey)) {
@@ -126,6 +126,7 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
       outputDir: tmpDir(),
     },
   })
+  const previewSize = preview.metadata && Constants.parseMetadataPreviewSize(preview.metadata)
 
   const header = yield call(Shared.clientHeader, ChatTypes.CommonMessageType.attachment, conversationIDKey)
   const param = {
@@ -152,10 +153,6 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
   const uploadStart = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
   uploadStart.response.result()
   const messageID = uploadStart.params.placeholderMsgID
-//  yield put(Creators.updateMessage(conversationIDKey, {
-//    previewType: type,
-//    previewPath: preview.filename,
-//  }, messageID))
 
   const finishedTask = yield fork(function * () {
     const finished = yield Saga.takeFromChannelMap(channelMap, 'finished')
@@ -171,26 +168,21 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
     response.result()
   }), channelMap, 'chat.1.chatUi.chatAttachmentUploadProgress')
 
-  const previewTask = yield fork(function * () {
-    const previewUploadStart = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
-    previewUploadStart.response.result()
+  yield take(action => action.type === 'chat:receivedMessage' && action.payload.message.messageID === messageID)
+  yield put(Creators.updateMessage(conversationIDKey, {
+    previewPath: preview.filename,
+    previewSize,
+  }, messageID))
 
-    const metadata = previewUploadStart.params && previewUploadStart.params.metadata
-    const previewSize = metadata && Constants.parseMetadataPreviewSize(metadata)
-    if (previewSize) {
-      yield put(Creators.updateMessage(conversationIDKey, {previewSize}, messageID))
-    }
-
-    const previewUploadDone = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
-    previewUploadDone.response.result()
-  })
-
+  const previewUploadStart = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
+  previewUploadStart.response.result()
+  const previewUploadDone = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
+  previewUploadDone.response.result()
   const uploadDone = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadDone')
   uploadDone.response.result()
 
   yield join(finishedTask)
   yield cancel(progressTask)
-  yield cancel(previewTask)
   Saga.closeChannelMap(channelMap)
 
   return messageID

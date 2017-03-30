@@ -167,6 +167,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
             }
           }
         }
+        yield put(Creators.receivedMessage(message))
       }
       break
     default:
