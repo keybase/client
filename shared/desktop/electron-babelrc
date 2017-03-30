@@ -1,0 +1,14 @@
+{
+  "presets": [
+    ["env", {
+        "useBuiltIns": false,
+        "targets": {
+            "electron": "1.4.12",
+        },
+        "debug": true,
+        "exclude": [
+          "transform-regenerator"
+        ],
+    }]
+  ]
+}
