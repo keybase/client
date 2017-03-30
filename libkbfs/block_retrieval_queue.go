@@ -257,7 +257,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 
 	// TODO: once the DiskBlockCache knows about hasPrefetched, pipe that
 	// through here.
-	return brq.CacheAndPrefetch(ctx, ptr, cachedBlock, kmd, priority, lifetime,
+	return brq.CacheAndPrefetch(ctx, ptr, block, kmd, priority, lifetime,
 		false)
 }
 
