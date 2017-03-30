@@ -53,6 +53,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   const envJson = envVarDebugJson()
   config = {...config, ...envJson}
 }
+
 if (fs.existsSync(jsonDebugFileName)) {
   try {
     const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf-8'))
@@ -79,7 +80,7 @@ if (__DEV__ && process.env.KEYBASE_PERF) {
   config.redirectOnLogout = false
 }
 
-export const {
+const {
   actionStatFrequency,
   closureStoreCheck,
   devStoreChangingFunctions,
@@ -105,6 +106,34 @@ export const {
   showDevTools,
   skipSecondaryDevtools,
 } = config
+
+// Necessary for electron for some reason
+export {
+  actionStatFrequency,
+  closureStoreCheck,
+  devStoreChangingFunctions,
+  enableActionLogging,
+  enableStoreLogging,
+  featureFlagsOverride,
+  forceImmediateLogging,
+  forceMainWindowPosition,
+  forwardLogs,
+  ignoreDisconnectOverlay,
+  immediateStateLogging,
+  isTesting,
+  logStatFrequency,
+  overrideLoggedInTab,
+  printOutstandingRPCs,
+  printRPC,
+  printRoutes,
+  reactPerf,
+  reduxDevToolsEnable,
+  reduxDevToolsSelect,
+  resetEngineOnHMR,
+  showAllTrackers,
+  showDevTools,
+  skipSecondaryDevtools,
+}
 
 export function envVarDebugJson () {
   if (process.env.KEYBASE_LOCAL_DEBUG_JSON) {
