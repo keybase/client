@@ -77,10 +77,6 @@ func (a *FakeAPI) PostDecode(APIArg, APIResponseWrapper) error {
 	return fmt.Errorf("GetDecode is phony")
 }
 
-func (a *FakeAPI) PostDecodeJSON(APIArg, APIResponseWrapper) error {
-	return fmt.Errorf("GetDecodeJSON is phony")
-}
-
 func TestLoginSessionTimeout(t *testing.T) {
 	tc := SetupTest(t, "login_session_test", 1)
 	tc.G.API = &FakeAPI{}

@@ -141,14 +141,18 @@ func (api *BaseAPIEngine) PrepareGet(url1 url.URL, arg APIArg) (*http.Request, e
 	return http.NewRequest("GET", ruri, nil)
 }
 
-func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg, sendJSON bool) (*http.Request, error) {
+func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg) (*http.Request, error) {
 	ruri := url1.String()
 	var body io.Reader
 
-	if sendJSON {
-		if len(arg.getHTTPArgs()) > 0 {
-			panic("PreparePost: sending JSON, but http args exist and they will be ignored. Fix your APIArg.")
-		}
+	useHTTPArgs := len(arg.getHTTPArgs()) > 0
+	useJSON := len(arg.JSONPayload) > 0
+
+	if useHTTPArgs && useJSON {
+		panic("PreparePost: Malformed APIArg: Both HTTP args and JSONPayload set on request.")
+	}
+
+	if useJSON {
 		jsonString, err := json.Marshal(arg.JSONPayload)
 		if err != nil {
 			return nil, err
@@ -164,7 +168,7 @@ func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg, sendJSON bool) (
 	}
 
 	var typ string
-	if sendJSON {
+	if useJSON {
 		typ = "application/json"
 	} else {
 		typ = "application/x-www-form-urlencoded; charset=utf-8"
@@ -604,28 +608,25 @@ func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
 
 func (a *InternalAPIEngine) Post(arg APIArg) (*APIRes, error) {
 	url1 := a.getURL(arg)
-	req, err := a.PreparePost(url1, arg, false)
+	req, err := a.PreparePost(url1, arg)
 	if err != nil {
 		return nil, err
 	}
 	return a.DoRequest(arg, req)
 }
 
+// PostJSON does _not_ actually enforce the use of JSON.
+// That is now determined by APIArg's fields.
 func (a *InternalAPIEngine) PostJSON(arg APIArg) (*APIRes, error) {
-	url1 := a.getURL(arg)
-	req, err := a.PreparePost(url1, arg, true)
-	if err != nil {
-		return nil, err
-	}
-	return a.DoRequest(arg, req)
+	return a.Post(arg)
 }
 
 // postResp performs a POST request and returns the http response.
 // The returned response, if non-nil, should have
 // DiscardAndCloseBody() called on it.
-func (a *InternalAPIEngine) postResp(arg APIArg, sendJSON bool) (*http.Response, error) {
+func (a *InternalAPIEngine) postResp(arg APIArg) (*http.Response, error) {
 	url1 := a.getURL(arg)
-	req, err := a.PreparePost(url1, arg, sendJSON)
+	req, err := a.PreparePost(url1, arg)
 	if err != nil {
 		return nil, err
 	}
@@ -639,20 +640,7 @@ func (a *InternalAPIEngine) postResp(arg APIArg, sendJSON bool) (*http.Response,
 }
 
 func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
-	resp, err := a.postResp(arg, false)
-	if err != nil {
-		return err
-	}
-	defer DiscardAndCloseBody(resp)
-	dec := json.NewDecoder(resp.Body)
-	if err = dec.Decode(&v); err != nil {
-		return err
-	}
-	return a.checkAppStatus(arg, v.GetAppStatus())
-}
-
-func (a *InternalAPIEngine) PostDecodeJSON(arg APIArg, v APIResponseWrapper) error {
-	resp, err := a.postResp(arg, true)
+	resp, err := a.postResp(arg)
 	if err != nil {
 		return err
 	}
@@ -827,7 +815,7 @@ func (api *ExternalAPIEngine) postCommon(arg APIArg, restype XAPIResType) (
 	if err != nil {
 		return
 	}
-	req, err = api.PreparePost(*url1, arg, false)
+	req, err = api.PreparePost(*url1, arg)
 	if err != nil {
 		return
 	}
