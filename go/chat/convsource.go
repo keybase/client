@@ -2,6 +2,7 @@ package chat
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 
 	"github.com/keybase/client/go/chat/storage"
@@ -191,6 +192,15 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 	}
 
 	return msgs, nil
+}
+
+func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
+	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+	if s.IsOffline() {
+		return nil, OfflineError{}
+	}
+	return s.boxer.UnboxMessages(ctx, msgs, convID, finalizeInfo)
 }
 
 type HybridConversationSource struct {
@@ -494,28 +504,76 @@ func (m ByMsgID) Len() int           { return len(m) }
 func (m ByMsgID) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
 func (m ByMsgID) Less(i, j int) bool { return m[i].GetMessageID() > m[j].GetMessageID() }
 
-func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgIDs []chat1.MessageID, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+// getMessagesShared gets messages by ID.
+// The returned messages correspond to `getMsgIDs`.
+// All the new messages in `preFetched` are also saved.
+func (s *HybridConversationSource) getMessagesShared(
+	ctx context.Context,
+	convID chat1.ConversationID,
+	uid gregor1.UID,
+	getMsgIDs []chat1.MessageID,
+	preFetched []chat1.MessageBoxed,
+	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
 
-	rmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
+	getMsgIDsUnique, _ := utils.UniqueifyMessageIDs(getMsgIDs)
+	preFetchedIDs, preFetchedIDsMap := utils.GetBoxedIDs(preFetched)
 
-	msgs, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
+	// All IDs involved.
+	allMsgIDs, _ := utils.UniqueifyMessageIDs(append(getMsgIDsUnique, preFetchedIDs...))
+	allMsgs := make(map[chat1.MessageID]chat1.MessageUnboxed)
+
+	// Get messages that already exist in storage.
+	existingMsgs, err := s.storage.FetchMessages(ctx, convID, uid, allMsgIDs)
 	if err != nil {
 		return nil, err
 	}
+	for _, m := range existingMsgs {
+		if m != nil {
+			allMsgs[m.GetMessageID()] = *m
+		}
+	}
+	_, existingIDsMap := utils.GetUnboxedIDs(existingMsgs)
 
-	// Make a pass to determine which message IDs we need to grab remotely
-	var remoteMsgs []chat1.MessageID
-	for index, msg := range msgs {
-		if msg == nil {
-			remoteMsgs = append(remoteMsgs, msgIDs[index])
+	// Make a pass to determine which messages we need to unbox from preFetched.
+	// = preFetched - existing
+	var toUnboxPFs []chat1.MessageBoxed
+	for _, m := range preFetched {
+		if !existingIDsMap[m.GetMessageID()] {
+			toUnboxPFs = append(toUnboxPFs, m)
 		}
 	}
 
+	// Make a pass to determine which message IDs we need to grab remotely.
+	// = getMsgIDs - (existing + preFetched)
+	var remoteIDs []chat1.MessageID
+	for _, mid := range getMsgIDsUnique {
+		if !preFetchedIDsMap[mid] && !existingIDsMap[mid] {
+			remoteIDs = append(remoteIDs, mid)
+		}
+	}
+
+	s.Debug(ctx, "getMessagesShared: convID: %s uid: %s get: %d prefetched: %d remote: %d",
+		convID, uid, len(getMsgIDs), len(preFetched), len(remoteIDs))
+
+	// Messages that are new to storage.
+	var msgsToMerge []chat1.MessageUnboxed
+
+	// Unbox prefetched messages
+	if len(toUnboxPFs) > 0 {
+		pmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, preFetched, convID, finalizeInfo)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, m := range pmsgsUnboxed {
+			allMsgs[m.GetMessageID()] = m
+		}
+
+		msgsToMerge = append(msgsToMerge, pmsgsUnboxed...)
+	}
+
 	// Grab message from remote
-	s.Debug(ctx, "GetMessages: convID: %s uid: %s total msgs: %d remote: %d", convID, uid, len(msgIDs),
-		len(remoteMsgs))
-	if len(remoteMsgs) > 0 {
+	if len(remoteIDs) > 0 {
 
 		// Insta fail if we are offline
 		if s.IsOffline() {
@@ -524,7 +582,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 
 		rmsgs, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
 			ConversationID: convID,
-			MessageIDs:     remoteMsgs,
+			MessageIDs:     remoteIDs,
 		})
 		if err != nil {
 			return nil, err
@@ -536,34 +594,53 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 			return nil, err
 		}
 
-		sort.Sort(ByMsgID(rmsgsUnboxed))
-		for _, rmsg := range rmsgsUnboxed {
-			rmsgsTab[rmsg.GetMessageID()] = rmsg
+		for _, m := range rmsgsUnboxed {
+			allMsgs[m.GetMessageID()] = m
 		}
 
-		// Write out messages
-		if err := s.storage.Merge(ctx, convID, uid, rmsgsUnboxed); err != nil {
-			return nil, err
-		}
+		msgsToMerge = append(msgsToMerge, rmsgsUnboxed...)
+	}
+
+	// Write out messages
+	sort.Sort(ByMsgID(msgsToMerge))
+	if err := s.storage.Merge(ctx, convID, uid, msgsToMerge); err != nil {
+		return nil, err
 	}
 
 	// Form final result
 	var res []chat1.MessageUnboxed
-	for index, msg := range msgs {
-		if msg != nil {
-			res = append(res, *msg)
-		} else {
-			res = append(res, rmsgsTab[msgIDs[index]])
+	for _, mid := range getMsgIDs {
+		m, ok := allMsgs[mid]
+		if !ok {
+			return nil, fmt.Errorf("getMessagesShared missing message id: %v", mid)
 		}
+		res = append(res, m)
 	}
 
 	// Identify this TLF by running crypt keys
 	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
-		s.Debug(ctx, "GetMessages: identify failed: %s", ierr.Error())
+		s.Debug(ctx, "getMessagesShared: identify failed: %s", ierr.Error())
 		return nil, ierr
 	}
 
 	return res, nil
+}
+
+func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgIDs []chat1.MessageID, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+
+	return s.getMessagesShared(ctx, convID, uid, msgIDs, nil, finalizeInfo)
+}
+
+func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
+	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+
+	var ids []chat1.MessageID
+	for _, m := range msgs {
+		ids = append(ids, m.GetMessageID())
+	}
+	return s.getMessagesShared(ctx, convID, uid, ids, msgs, finalizeInfo)
 }
 
 func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer, storage *storage.Storage,

@@ -30,6 +30,8 @@ type ConversationSource interface {
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		query *chat1.GetThreadQuery, p *chat1.Pagination) (chat1.ThreadView, error)
 	GetMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgIDs []chat1.MessageID, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
+	GetMessagesWithRemotes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		msgs []chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
 	Clear(convID chat1.ConversationID, uid gregor1.UID) error
 	TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
 

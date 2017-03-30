@@ -406,3 +406,34 @@ func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
 	}
 	return res
 }
+
+// UniqueifyMessageIDs removes duplicates and returns a presence map.
+func UniqueifyMessageIDs(ids []chat1.MessageID) ([]chat1.MessageID, map[chat1.MessageID]bool) {
+	var res []chat1.MessageID
+	m := make(map[chat1.MessageID]bool)
+	for _, id := range ids {
+		if !m[id] {
+			m[id] = true
+			res = append(res, id)
+		}
+	}
+	return res, m
+}
+
+func GetBoxedIDs(msgs []chat1.MessageBoxed) ([]chat1.MessageID, map[chat1.MessageID]bool) {
+	var ids []chat1.MessageID
+	for _, m := range msgs {
+		ids = append(ids, m.GetMessageID())
+	}
+	return UniqueifyMessageIDs(ids)
+}
+
+func GetUnboxedIDs(msgs []*chat1.MessageUnboxed) ([]chat1.MessageID, map[chat1.MessageID]bool) {
+	var ids []chat1.MessageID
+	for _, m := range msgs {
+		if m != nil {
+			ids = append(ids, m.GetMessageID())
+		}
+	}
+	return UniqueifyMessageIDs(ids)
+}
