@@ -33,8 +33,11 @@ if (!SKIP_OPTIMIZE) {
   const babelLoader = config.module.loaders.find(l => l.loader === 'babel')
   const envPreset = babelLoader.query.presets.find(p => p[0] === 'env')[1]
 
+  // Need regenerator
+  babelLoader.query.plugins.push('babel-plugin-transform-runtime')
   // Have to fall back to more transpiling so we can use ugilfy
   envPreset.targets.uglify = true
+  envPreset.useBuiltIns = false
   // Allow all uglify targets
   envPreset.exclude = []
 
