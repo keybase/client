@@ -353,7 +353,7 @@ func TestDeriveSymmetricKeyKnown(t *testing.T) {
 	key2, err := DeriveSymmetricKey(key1, EncryptionReason("testing-testing"))
 	require.NoError(t, err)
 
-	expected := "dd1e44385ee9aae4d9194665d14712eb4de99ed3291bfd099bb00df4cacbecb4"
+	expected := "b72ed915c99394c24fc609f9eb794e032580d99c5dbb4f3505f8a6fc8fc6b22b"
 	require.Equal(t, expected, hex.EncodeToString(key2[:]))
 }
 

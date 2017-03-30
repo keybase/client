@@ -14,7 +14,6 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/ed25519"
-	"golang.org/x/crypto/hkdf"
 	"golang.org/x/crypto/nacl/box"
 )
 
@@ -740,26 +739,25 @@ func deriveSymmetricKeyFromAsymmetric(inKey NaclDHKeyPrivate, reason EncryptionR
 	return outKey, nil
 }
 
-// Derive a symmetric key using HKDF.
+// Derive a symmetric key.
+// Uses HMAC(key=reason, data=key)
+// Note the message and data are swapped as inputs to HMAC because that is less
+// likely to be accidentally used for another purpose such as authentication.
 func DeriveSymmetricKey(inKey NaclSecretBoxKey, reason EncryptionReason) (NaclSecretBoxKey, error) {
+	var outKey = [32]byte{}
 	if len(reason) < encryptionReasonMinLength {
-		return NaclSecretBoxKey{}, KeyGenError{Msg: "reason must be at least 8 bytes"}
+		return outKey, KeyGenError{Msg: "reason must be at least 8 bytes"}
 	}
 
-	hash := sha256.New
-	info := []byte(reason)
-
-	// Use nil salt
-	stream := hkdf.New(hash, inKey[:], nil, info)
-
-	var outKey NaclSecretBoxKey
-	nRead, err := io.ReadFull(stream, outKey[:])
+	mac := hmac.New(sha256.New, []byte(reason))
+	_, err := mac.Write(inKey[:])
 	if err != nil {
-		return NaclSecretBoxKey{}, KeyGenError{Msg: err.Error()}
+		return outKey, err
 	}
-	if nRead != NaclSecretBoxKeySize {
-		return NaclSecretBoxKey{}, KeyGenError{
-			Msg: fmt.Sprintf("read n bytes %v != %v", nRead, NaclSecretBoxKeySize)}
+	out := mac.Sum(nil)
+
+	if copy(outKey[:], out) != len(outKey) {
+		return outKey, KeyGenError{Msg: "derived key of wrong size"}
 	}
 
 	return outKey, nil
