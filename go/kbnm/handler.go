@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os/exec"
 	"strings"
 )
@@ -91,8 +90,6 @@ func (h *handler) handleQuery(req *Request) (*resultQuery, error) {
 	cmd.Stdout = &out
 
 	err = h.Run(cmd)
-
-	fmt.Println("parsing: ", out.String())
 
 	result := &resultQuery{}
 	json.Unmarshal(out.Bytes(), &result.Sigs)
