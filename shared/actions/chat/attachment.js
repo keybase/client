@@ -151,8 +151,17 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
   const channelMap = ((yield call(ChatTypes.localPostFileAttachmentLocalRpcChannelMap, channelConfig, {param})): any)
 
   const uploadStart = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
-  uploadStart.response.result()
   const messageID = uploadStart.params.placeholderMsgID
+
+  const updateLocalMessageTask = yield fork(function * () {
+    yield take(action => action.type === 'chat:receivedMessage' && action.payload.message.messageID === messageID)
+    yield put(Creators.updateMessage(conversationIDKey, {
+      previewPath: preview.filename,
+      previewSize,
+    }, messageID))
+  })
+
+  uploadStart.response.result()
 
   const finishedTask = yield fork(function * () {
     const finished = yield Saga.takeFromChannelMap(channelMap, 'finished')
@@ -168,12 +177,6 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
     response.result()
   }), channelMap, 'chat.1.chatUi.chatAttachmentUploadProgress')
 
-  yield take(action => action.type === 'chat:receivedMessage' && action.payload.message.messageID === messageID)
-  yield put(Creators.updateMessage(conversationIDKey, {
-    previewPath: preview.filename,
-    previewSize,
-  }, messageID))
-
   const previewUploadStart = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
   previewUploadStart.response.result()
   const previewUploadDone = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
@@ -181,6 +184,7 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
   const uploadDone = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadDone')
   uploadDone.response.result()
 
+  yield join(updateLocalMessageTask)
   yield join(finishedTask)
   yield cancel(progressTask)
   Saga.closeChannelMap(channelMap)
