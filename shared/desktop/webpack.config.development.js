@@ -66,23 +66,23 @@ if (!NO_SERVER) {
 
 config.plugins.push(new webpack.optimize.OccurenceOrderPlugin())
 
-// if (getenv.boolish('HOT', false)) {
-  // config.plugins.push(new webpack.HotModuleReplacementPlugin())
-// }
+if (getenv.boolish('HOT', false)) {
+  config.plugins.push(new webpack.HotModuleReplacementPlugin())
+}
 
 config.plugins.push(
   new webpack.NoErrorsPlugin(),
   new webpack.DefinePlugin(defines)
 )
 
-// if (USING_DLL) {
-  // config.plugins.push(
-    // new webpack.DllReferencePlugin({
-      // context: './renderer',
-      // manifest: require('./dll/vendor-manifest.json'),
-    // })
-  // )
-// }
+if (USING_DLL) {
+  config.plugins.push(
+    new webpack.DllReferencePlugin({
+      context: './renderer',
+      manifest: require('./dll/vendor-manifest.json'),
+    })
+  )
+}
 
 if (getenv.boolish('HOT', false)) {
   config.entry.index = ['react-hot-loader/patch'].concat(config.entry.index)
@@ -102,5 +102,5 @@ if (USING_DLL) {
   delete config.entry.main
 }
 
-// config.target = webpackTargetElectronRenderer(config)
+config.target = webpackTargetElectronRenderer(config)
 module.exports = config

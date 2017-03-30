@@ -23,6 +23,7 @@ module.exports = {
       exclude: /(node_modules|\/dist\/)/,
       query: Object.assign({
         cacheDirectory: false,
+        // Have to do this or it'll inherit babelrcs from the root and pull in things we don't want
         babelrc: false,
         presets: [
           ['env', {
@@ -41,9 +42,10 @@ module.exports = {
             {globals: ['Error']},
           ],
           'transform-flow-strip-types',
+          'transform-object-rest-spread',
+          'babel-plugin-transform-class-properties',
         ],
       }),
-        // path.resolve('./electron-babelrc')}),
     }, {
       test: /\.json?$/,
       loader: 'json',

@@ -8,6 +8,7 @@ import type {FeatureKeys, FeatureFlags} from './feature-flags'
 // For example, KEYBASE_FEATURES=tracker2,login,awesomefeature
 
 let features = (featureFlagsOverride && featureFlagsOverride.split(',')) || getenv.array('KEYBASE_FEATURES', 'string', '')
+console.log(`bbbbb ${featureFlagsOverride} ${features}`)
 
 const featureOn = (key: FeatureKeys, includeAdmin: boolean = false) => ( // eslint-disable-line space-infix-ops
   features.includes(key) || (includeAdmin && featureOn('admin'))
