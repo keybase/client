@@ -42,8 +42,9 @@ module.exports = {
             {globals: ['Error']},
           ],
           'transform-flow-strip-types',
-          'transform-object-rest-spread',
-          'babel-plugin-transform-class-properties',
+          'transform-object-rest-spread', // not supported by electron yet
+          'babel-plugin-transform-class-properties', // not supported by electron yet
+          'transform-es2015-destructuring', // due to a bug: https://github.com/babel/babel/pull/5469
         ],
       }),
     }, {

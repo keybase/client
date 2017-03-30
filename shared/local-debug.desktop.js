@@ -80,7 +80,7 @@ if (__DEV__ && process.env.KEYBASE_PERF) {
   config.redirectOnLogout = false
 }
 
-const {
+export const {
   actionStatFrequency,
   closureStoreCheck,
   devStoreChangingFunctions,
@@ -106,34 +106,6 @@ const {
   showDevTools,
   skipSecondaryDevtools,
 } = config
-
-// Necessary for electron for some reason
-export {
-  actionStatFrequency,
-  closureStoreCheck,
-  devStoreChangingFunctions,
-  enableActionLogging,
-  enableStoreLogging,
-  featureFlagsOverride,
-  forceImmediateLogging,
-  forceMainWindowPosition,
-  forwardLogs,
-  ignoreDisconnectOverlay,
-  immediateStateLogging,
-  isTesting,
-  logStatFrequency,
-  overrideLoggedInTab,
-  printOutstandingRPCs,
-  printRPC,
-  printRoutes,
-  reactPerf,
-  reduxDevToolsEnable,
-  reduxDevToolsSelect,
-  resetEngineOnHMR,
-  showAllTrackers,
-  showDevTools,
-  skipSecondaryDevtools,
-}
 
 export function envVarDebugJson () {
   if (process.env.KEYBASE_LOCAL_DEBUG_JSON) {
