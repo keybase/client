@@ -74,8 +74,9 @@ if [ "$kbfs_version" = "" ]; then
 fi
 
 if [ "$kbnm_version" = "" ]; then
-  echo "Specify KBNM_VERSION for use (Github release/tag)"
-  exit 1
+  # TODO: Make KBNM_VERSION be injected during build.
+  kbnm_version="$keybase_version"
+  echo "KBNM_VERSION unspecified, defaulting to: $kbnm_version"
 fi
 
 # if [ "$comment" = "" ]; then
