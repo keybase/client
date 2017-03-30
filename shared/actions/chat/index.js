@@ -318,7 +318,7 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
     let newMessages = []
     messages.forEach((message, idx) => {
       if (idx > 0) {
-        const timestamp = Shared.maybeAddTimestamp(messages[idx], messages, idx - 1)
+        const timestamp = Shared.maybeAddTimestamp(messages[idx], List(messages), idx - 1)
         if (timestamp !== null) {
           newMessages.push(timestamp)
         }
