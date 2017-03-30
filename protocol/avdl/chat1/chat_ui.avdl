@@ -8,9 +8,9 @@ protocol chatUi {
   void chatAttachmentPreviewUploadStart(int sessionID, AssetMetadata metadata) oneway;  
   void chatAttachmentPreviewUploadDone(int sessionID);  
 
-  void chatAttachmentDownloadStart(int sessionID) oneway; 
+  void chatAttachmentDownloadStart(int sessionID); 
   void chatAttachmentDownloadProgress(int sessionID, int bytesComplete, int bytesTotal) oneway;     
-  void chatAttachmentDownloadDone(int sessionID) oneway;  
+  void chatAttachmentDownloadDone(int sessionID);  
 
   void chatInboxUnverified(int sessionID, GetInboxLocalRes inbox); 
   void chatInboxConversation(int sessionID, ConversationLocal conv);
