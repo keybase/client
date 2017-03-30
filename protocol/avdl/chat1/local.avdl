@@ -588,6 +588,13 @@ protocol local {
   // Filename must be writable by the service.
   @lint("ignore")
   DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
+ 
+  record MakePreviewRes {
+    string mimeType;				// this will always be populated 
+    union {null, string} filename;		// will exist if service is able to make a preview 
+    union {null, AssetMetadata} metadata;	// will exist if service is able to make a preview
+  } 
+  MakePreviewRes makePreview(int sessionID, LocalFileSource attachment, string outputDir);
 
   @lint("ignore")
   void CancelPost(OutboxID outboxID);

@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"sync"
@@ -860,6 +861,50 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 	}, nil
 }
 
+// MakePreview implements chat1.LocalInterface.MakePreview.
+func (h *chatLocalHandler) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res chat1.MakePreviewRes, err error) {
+	defer h.Trace(ctx, func() error { return err }, "MakePreview")()
+	src, err := newFileSource(arg.Attachment)
+	if err != nil {
+		return chat1.MakePreviewRes{}, err
+	}
+	defer src.Close()
+	pre, err := h.preprocessAsset(ctx, arg.SessionID, src, nil)
+	if err != nil {
+		return chat1.MakePreviewRes{}, err
+	}
+
+	res = chat1.MakePreviewRes{
+		MimeType: pre.ContentType,
+	}
+
+	if pre.Preview != nil {
+		f, err := ioutil.TempFile(arg.OutputDir, "prev")
+		if err != nil {
+			return res, err
+		}
+		defer f.Close()
+		buf := pre.Preview.Bytes()
+		n, err := f.Write(buf)
+		if err != nil {
+			return res, err
+		}
+		if n != len(buf) {
+			return res, io.ErrShortWrite
+		}
+		name := f.Name()
+		res.Filename = &name
+
+		md := pre.PreviewMetadata()
+		var empty chat1.AssetMetadata
+		if md != empty {
+			res.Metadata = &md
+		}
+	}
+
+	return res, nil
+}
+
 // PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
 func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (res chat1.PostLocalRes, err error) {
 	defer h.Trace(ctx, func() error { return err }, "PostAttachmentLocal")()
@@ -925,7 +970,7 @@ type postAttachmentArg struct {
 }
 
 func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAttachmentArg) (res chat1.PostLocalRes, err error) {
-	if os.Getenv("KEYBASE_CHAT_ATTACHMENT_ORDERED") == "1" {
+	if os.Getenv("KEYBASE_CHAT_ATTACHMENT_UNORDERED") == "" {
 		return h.postAttachmentLocalInOrder(ctx, arg)
 	}
 

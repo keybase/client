@@ -325,6 +325,18 @@ export function localGetThreadNonblockRpcPromise (request: $Exact<requestCommon 
   return new Promise((resolve, reject) => { localGetThreadNonblockRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function localMakePreviewRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localMakePreviewResult) => void} & {param: localMakePreviewRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.makePreview'})
+}
+
+export function localMakePreviewRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localMakePreviewResult) => void} & {param: localMakePreviewRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localMakePreviewRpc({...request, incomingCallMap, callback}))
+}
+
+export function localMakePreviewRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localMakePreviewResult) => void} & {param: localMakePreviewRpcParam}>): Promise<localMakePreviewResult> {
+  return new Promise((resolve, reject) => { localMakePreviewRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function localMarkAsReadLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localMarkAsReadLocalResult) => void} & {param: localMarkAsReadLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.local.markAsReadLocal'})
 }
@@ -1125,6 +1137,12 @@ export type LocalSource = {
   size: int,
 }
 
+export type MakePreviewRes = {
+  mimeType: string,
+  filename?: ?string,
+  metadata?: ?AssetMetadata,
+}
+
 export type MarkAsReadRes = {
   rateLimit?: ?RateLimit,
 }
@@ -1691,6 +1709,11 @@ export type localGetThreadNonblockRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localMakePreviewRpcParam = Exact<{
+  attachment: LocalFileSource,
+  outputDir: string
+}>
+
 export type localMarkAsReadLocalRpcParam = Exact<{
   conversationID: ConversationID,
   msgID: MessageID
@@ -1898,6 +1921,8 @@ type localGetThreadLocalResult = GetThreadLocalRes
 
 type localGetThreadNonblockResult = NonblockFetchRes
 
+type localMakePreviewResult = MakePreviewRes
+
 type localMarkAsReadLocalResult = MarkAsReadRes
 
 type localNewConversationLocalResult = NewConversationLocalRes
@@ -1961,6 +1986,7 @@ export type rpc =
   | localGetMessagesLocalRpc
   | localGetThreadLocalRpc
   | localGetThreadNonblockRpc
+  | localMakePreviewRpc
   | localMarkAsReadLocalRpc
   | localNewConversationLocalRpc
   | localPostAttachmentLocalRpc
