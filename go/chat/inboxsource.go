@@ -3,7 +3,6 @@ package chat
 import (
 	"errors"
 	"fmt"
-	"runtime/debug"
 
 	"strings"
 
@@ -457,8 +456,6 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 		rquery.SummarizeMaxMsgs = false
 	}
 
-	s.logStack(ctx)
-
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
 		Query:      &rquery,
 		Pagination: p,
@@ -472,12 +469,6 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 		ConvsUnverified: ib.Inbox.Full().Conversations,
 		Pagination:      ib.Inbox.Full().Pagination,
 	}, ib.RateLimit, nil
-}
-
-func (s *HybridInboxSource) logStack(ctx context.Context) {
-	for _, line := range strings.Split(string(debug.Stack()), "\n") {
-		s.Debug(ctx, "@@@ %s", line)
-	}
 }
 
 func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
