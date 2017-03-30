@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"golang.org/x/net/context"
 
@@ -87,7 +88,7 @@ func (e ErrHashMismatch) Error() string {
 	return "local state hash != server state hash"
 }
 
-func (c *Client) SyncFromTime(cli gregor1.IncomingInterface, t *time.Time) (msgs []gregor.InBandMessage, err error) {
+func (c *Client) SyncFromTime(cli gregor1.IncomingInterface, t *time.Time, syncResult *gregor1.SyncResult) (msgs []gregor.InBandMessage, err error) {
 
 	ctx, _ := context.WithTimeout(context.Background(), time.Second)
 	arg := gregor1.SyncArg{
@@ -99,14 +100,19 @@ func (c *Client) SyncFromTime(cli gregor1.IncomingInterface, t *time.Time) (msgs
 	}
 
 	// Grab the events from gregord
-	c.Log.Debug("Sync(): start time: %s", gregor1.FromTime(arg.Ctime))
-	res, err := cli.Sync(ctx, arg)
-	if err != nil {
-		return nil, err
+	if syncResult == nil {
+		c.Log.Debug("Sync(): start time: %s", gregor1.FromTime(arg.Ctime))
+		syncResult = new(gregor1.SyncResult)
+		*syncResult, err = cli.Sync(ctx, arg)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		c.Log.Debug("Sync(): skipping sync call, data previously obtained")
 	}
 
-	c.Log.Debug("Sync(): consuming %d messages", len(res.Msgs))
-	for _, ibm := range res.Msgs {
+	c.Log.Debug("Sync(): consuming %d messages", len(syncResult.Msgs))
+	for _, ibm := range syncResult.Msgs {
 		m := gregor1.Message{Ibm_: &ibm}
 		msgs = append(msgs, ibm)
 		c.Sm.ConsumeMessage(m)
@@ -121,34 +127,37 @@ func (c *Client) SyncFromTime(cli gregor1.IncomingInterface, t *time.Time) (msgs
 	if err != nil {
 		return nil, err
 	}
-	if !bytes.Equal(res.Hash, hash) {
+	if !bytes.Equal(syncResult.Hash, hash) {
 		return nil, ErrHashMismatch{}
 	}
 
 	return msgs, nil
 }
 
-func (c *Client) freshSync(cli gregor1.IncomingInterface) ([]gregor.InBandMessage, error) {
+func (c *Client) freshSync(cli gregor1.IncomingInterface, state *gregor.State) ([]gregor.InBandMessage, error) {
 
 	var msgs []gregor.InBandMessage
 	var err error
 
 	c.Sm.Clear()
-	state, err := c.State(cli)
-	if err != nil {
+	if state == nil {
+		state = new(gregor.State)
+		*state, err = c.State(cli)
+		if err != nil {
+			return msgs, err
+		}
+	}
+	if msgs, err = c.InBandMessagesFromState(*state); err != nil {
 		return msgs, err
 	}
-	if msgs, err = c.InBandMessagesFromState(state); err != nil {
-		return msgs, err
-	}
-	if err = c.Sm.InitState(state); err != nil {
+	if err = c.Sm.InitState(*state); err != nil {
 		return msgs, err
 	}
 
 	return msgs, nil
 }
 
-func (c *Client) Sync(cli gregor1.IncomingInterface) (res []gregor.InBandMessage, err error) {
+func (c *Client) Sync(cli gregor1.IncomingInterface, syncRes *chat1.SyncAllNotificationRes) (res []gregor.InBandMessage, err error) {
 	defer func() {
 		if err == nil {
 			if err = c.Save(); err != nil {
@@ -157,18 +166,31 @@ func (c *Client) Sync(cli gregor1.IncomingInterface) (res []gregor.InBandMessage
 		}
 	}()
 
-	latestCtime := c.Sm.LatestCTime(c.User, c.Device)
-	if latestCtime == nil || latestCtime.IsZero() {
-		c.Log.Debug("Sync(): fresh server sync: using State()")
-		return c.freshSync(cli)
+	var syncResult *gregor1.SyncResult
+	if syncRes != nil {
+		c.Log.Debug("Sync(): using previously obtained data")
+		typ, err := syncRes.Typ()
+		if err != nil {
+			return res, err
+		}
+		switch typ {
+		case chat1.SyncAllNotificationType_STATE:
+			c.Log.Debug("Sync(): using previously obtained state result for freshSync")
+			st := gregor.State(syncRes.State())
+			return c.freshSync(cli, &st)
+		case chat1.SyncAllNotificationType_INCREMENTAL:
+			c.Log.Debug("Sync(): using previously obtained incremental result")
+			inc := syncRes.Incremental()
+			syncResult = &inc
+		}
 	}
 
 	c.Log.Debug("Sync(): incremental server sync: using Sync()")
-	msgs, err := c.SyncFromTime(cli, latestCtime)
+	msgs, err := c.SyncFromTime(cli, c.Sm.LatestCTime(c.User, c.Device), syncResult)
 	if err != nil {
 		if _, ok := err.(ErrHashMismatch); ok {
 			c.Log.Debug("Sync(): hash check failure: %v", err)
-			return c.freshSync(cli)
+			return c.freshSync(cli, nil)
 		}
 		return msgs, err
 	}

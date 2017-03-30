@@ -84,7 +84,8 @@ type ServerCacheVersions interface {
 }
 
 type Syncer interface {
-	Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) error
+	Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
+		syncRes *chat1.SyncChatRes) error
 	Disconnected(ctx context.Context)
 	Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) error
 	RegisterOfflinable(offlinable Offlinable)
