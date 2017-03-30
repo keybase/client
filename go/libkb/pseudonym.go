@@ -105,14 +105,10 @@ func MakePseudonym(info TlfPseudonymInfo) (TlfPseudonym, error) {
 	}
 	mac := hmac.New(sha256.New, info.HmacKey[:])
 	mac.Write(buf)
-	hmacArr := mac.Sum(nil)
-	var hmac [32]byte
-	if len(hmacArr) != len(hmac) {
-		return [32]byte{}, fmt.Errorf(
-			"Expected array of size %d, got %d",
-			len(hmac), len(hmacArr))
+	hmac, err := MakeByte32(mac.Sum(nil))
+	if err != nil {
+		return [32]byte{}, err
 	}
-	copy(hmac[:], hmacArr)
 	return hmac, nil
 }
 
