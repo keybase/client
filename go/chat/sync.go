@@ -138,9 +138,9 @@ func (s *Syncer) isServerInboxClear(ctx context.Context, inbox *storage.Inbox, s
 
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) (err error) {
 	ctx = CtxAddLogTags(ctx)
-	s.Debug(ctx, "Connected: running")
 	s.Lock()
 	defer s.Unlock()
+	defer s.Trace(ctx, func() error { return err }, "Connected")()
 
 	s.isConnected = true
 
@@ -155,9 +155,9 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 }
 
 func (s *Syncer) Disconnected(ctx context.Context) {
-	s.Debug(ctx, "Disconnected: running")
 	s.Lock()
 	defer s.Unlock()
+	defer s.Trace(ctx, func() error { return nil }, "Disconnected")()
 
 	s.isConnected = false
 
@@ -170,6 +170,7 @@ func (s *Syncer) Disconnected(ctx context.Context) {
 func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) (err error) {
 	s.Lock()
 	defer s.Unlock()
+	defer s.Trace(ctx, func() error { return err }, "Sync")()
 	return s.sync(ctx, cli, uid)
 }
 
