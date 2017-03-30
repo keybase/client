@@ -4153,6 +4153,7 @@ export type PublicKey = {
   deviceType: string,
   cTime: Time,
   eTime: Time,
+  isRevoked: boolean,
 }
 
 export type PushReason =
