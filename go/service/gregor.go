@@ -1163,6 +1163,7 @@ func (g *gregorHandler) connectTLS() error {
 		TagsFunc:         logger.LogTagsFromContextRPC,
 		WrapErrorFunc:    libkb.WrapError,
 		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
+		DisableSigPipe:   true,
 	}
 	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{}, g, libkb.NewRPCLogFactory(g.G()), g.G().Log, opts)
 
