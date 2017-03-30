@@ -316,6 +316,11 @@ func (j *JournalServer) EnableExistingJournals(
 	eg, groupCtx := errgroup.WithContext(ctx)
 
 	fileCh := make(chan os.FileInfo, len(fileInfos))
+	type journalRet struct {
+		id      tlf.ID
+		journal *tlfJournal
+	}
+	journalCh := make(chan journalRet, len(fileInfos))
 	worker := func() error {
 		for fi := range fileCh {
 			name := fi.Name()
@@ -356,7 +361,7 @@ func (j *JournalServer) EnableExistingJournals(
 
 			// Allow enable even if dirty, since any dirty writes
 			// in flight are most likely for another user.
-			err = j.enableLocked(groupCtx, tlfID, bws, true)
+			tj, err := j.enableLocked(groupCtx, tlfID, bws, true)
 			if err != nil {
 				// Don't treat per-TLF errors as fatal.
 				j.log.CWarningf(
@@ -365,6 +370,7 @@ func (j *JournalServer) EnableExistingJournals(
 					tlfID, err)
 				continue
 			}
+			journalCh <- journalRet{tlfID, tj}
 		}
 		return nil
 	}
@@ -390,6 +396,11 @@ func (j *JournalServer) EnableExistingJournals(
 		// happen...
 		return err
 	}
+	close(journalCh)
+
+	for r := range journalCh {
+		j.tlfJournals[r.id] = r.journal
+	}
 
 	j.log.CDebugf(ctx, "Done enabling journals")
 
@@ -397,9 +408,12 @@ func (j *JournalServer) EnableExistingJournals(
 	return nil
 }
 
+// enabledLocked returns an enabled journal; it is the caller's
+// responsibility to add it to `j.tlfJournals`.  This allows this
+// method to be called in parallel during initialization, if desired.
 func (j *JournalServer) enableLocked(
 	ctx context.Context, tlfID tlf.ID, bws TLFJournalBackgroundWorkStatus,
-	allowEnableIfDirty bool) (err error) {
+	allowEnableIfDirty bool) (tj *tlfJournal, err error) {
 	j.log.CDebugf(ctx, "Enabling journal for %s (%s)", tlfID, bws)
 	defer func() {
 		if err != nil {
@@ -410,14 +424,18 @@ func (j *JournalServer) enableLocked(
 	}()
 
 	if j.currentUID == keybase1.UID("") {
-		return errors.New("Current UID is empty")
+		return nil, errors.New("Current UID is empty")
 	}
 	if j.currentVerifyingKey == (kbfscrypto.VerifyingKey{}) {
-		return errors.New("Current verifying key is empty")
+		return nil, errors.New("Current verifying key is empty")
 	}
 
-	if tlfJournal, ok := j.tlfJournals[tlfID]; ok {
-		return tlfJournal.enable()
+	if tj, ok := j.tlfJournals[tlfID]; ok {
+		err = tj.enable()
+		if err != nil {
+			return nil, err
+		}
+		return tj, nil
 	}
 
 	err = func() error {
@@ -433,24 +451,24 @@ func (j *JournalServer) enableLocked(
 	}()
 	if err != nil {
 		if !allowEnableIfDirty {
-			return err
+			return nil, err
 		}
 
 		j.log.CWarningf(ctx,
-			"Got ignorable error on journal enable, and proceeding anyway: %+v", err)
+			"Got ignorable error on journal enable, and proceeding anyway: %+v",
+			err)
 	}
 
 	tlfDir := j.tlfJournalPathLocked(tlfID)
-	tlfJournal, err := makeTLFJournal(
+	tj, err = makeTLFJournal(
 		ctx, j.currentUID, j.currentVerifyingKey, tlfDir,
 		tlfID, tlfJournalConfigAdapter{j.config}, j.delegateBlockServer,
 		bws, nil, j.onBranchChange, j.onMDFlush, j.config.DiskLimiter())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	j.tlfJournals[tlfID] = tlfJournal
-	return nil
+	return tj, nil
 }
 
 // Enable turns on the write journal for the given TLF.
@@ -458,7 +476,12 @@ func (j *JournalServer) Enable(ctx context.Context, tlfID tlf.ID,
 	bws TLFJournalBackgroundWorkStatus) error {
 	j.lock.Lock()
 	defer j.lock.Unlock()
-	return j.enableLocked(ctx, tlfID, bws, false)
+	tj, err := j.enableLocked(ctx, tlfID, bws, false)
+	if err != nil {
+		return err
+	}
+	j.tlfJournals[tlfID] = tj
+	return nil
 }
 
 // EnableAuto turns on the write journal for all TLFs, even new ones,
