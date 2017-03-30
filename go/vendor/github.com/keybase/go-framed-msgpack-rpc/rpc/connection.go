@@ -188,7 +188,10 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 		}
 
 		// connect
-		baseConn, err := net.Dial("tcp", ct.srvAddr)
+		dialer := net.Dialer{
+			KeepAlive: 10 * time.Second,
+		}
+		baseConn, err := dialer.Dial("tcp", ct.srvAddr)
 		if err != nil {
 			return err
 		}
