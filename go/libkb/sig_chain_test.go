@@ -14,6 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 	testvectors "github.com/keybase/keybase-test-vectors/go"
+	"golang.org/x/net/context"
 )
 
 // Returns a map from error name strings to sets of Go error types. If a test
@@ -67,6 +68,18 @@ func getErrorTypesMap() map[string]map[reflect.Type]bool {
 		"WRONG_PREV": {
 			reflect.TypeOf(ChainLinkPrevHashMismatchError{}): true,
 		},
+		"SIGCHAIN_V2_STUBBED_SIGNATURE_NEEDED": {
+			reflect.TypeOf(SigchainV2StubbedSignatureNeededError{}): true,
+		},
+		"SIGCHAIN_V2_STUBBED_FIRST_LINK": {
+			reflect.TypeOf(SigchainV2StubbedFirstLinkError{}): true,
+		},
+		"SIGCHAIN_V2_MISMATCHED_FIELD": {
+			reflect.TypeOf(SigchainV2MismatchedFieldError{}): true,
+		},
+		"SIGCHAIN_V2_MISMATCHED_HASH": {
+			reflect.TypeOf(SigchainV2MismatchedHashError{}): true,
+		},
 	}
 }
 
@@ -111,11 +124,11 @@ func TestAllChains(t *testing.T) {
 	for _, name := range testNames {
 		testCase := testList.Tests[name]
 		G.Log.Info("starting sigchain test case %s (%s)", name, testCase.Input)
-		doChainTest(t, testCase)
+		doChainTest(t, tc, testCase)
 	}
 }
 
-func doChainTest(t *testing.T, testCase TestCase) {
+func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 	inputJSON, exists := testvectors.ChainTestInputs[testCase.Input]
 	if !exists {
 		t.Fatal("missing test input: " + testCase.Input)
@@ -168,7 +181,12 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	// code that's actually being tested.
 	var sigchainErr error
 	ckf := ComputedKeyFamily{kf: keyFamily}
-	sigchain := SigChain{username: NewNormalizedUsername(input.Username), uid: uid, loadedFromLinkOne: true}
+	sigchain := SigChain{
+		username:          NewNormalizedUsername(input.Username),
+		uid:               uid,
+		loadedFromLinkOne: true,
+		Contextified:      NewContextified(tc.G),
+	}
 	for i := 0; i < chainLen; i++ {
 		linkBlob := inputBlob.AtKey("chain").AtIndex(i)
 		link, err := ImportLinkFromServer(nil, &sigchain, linkBlob, uid)
@@ -213,7 +231,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	// Tests that expected an error terminated above. Tests that get here
 	// should succeed without errors.
 	if sigchainErr != nil {
-		t.Fatal(err)
+		t.Fatal(sigchainErr)
 	}
 
 	// Check the expected results: total unrevoked links, sibkeys, and subkeys.
@@ -244,7 +262,47 @@ func doChainTest(t *testing.T, testCase TestCase) {
 		t.Fatalf("Expected %d subkeys, got %d", testCase.Subkeys, numSubkeys)
 	}
 
+	storeAndLoad(t, tc, &sigchain)
 	// Success!
+}
+
+func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
+	nLinks := chain.Len()
+	err := chain.Store(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	sgl := SigChainLoader{
+		user: &User{
+			name: chain.username.String(),
+			id:   chain.uid,
+		},
+		self:    false,
+		allKeys: true,
+		leaf: &MerkleUserLeaf{
+			public: chain.GetCurrentTailTriple(),
+			uid:    chain.uid,
+		},
+		chainType:    PublicChain,
+		Contextified: NewContextified(tc.G),
+		ctx:          context.Background(),
+	}
+	sgl.chain = chain
+	sgl.dirtyTail = chain.GetCurrentTailTriple()
+	err = sgl.Store()
+	if err != nil {
+		t.Fatal(err)
+	}
+	sgl.chain = nil
+	sgl.dirtyTail = nil
+	var sc2 *SigChain
+	sc2, err = sgl.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if nLinks != sc2.Len() {
+		t.Fatalf("lost some links: %d != %d", nLinks, sc2.Len())
+	}
 }
 
 func createKeyFamily(bundles []string) (*KeyFamily, error) {

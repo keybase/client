@@ -995,6 +995,40 @@ func (c ChainLinkError) Error() string {
 	return fmt.Sprintf("Error in parsing chain Link: %s", c.msg)
 }
 
+type SigchainV2Error struct {
+	msg string
+}
+
+func (s SigchainV2Error) Error() string {
+	return fmt.Sprintf("Error in sigchain v2 link: %s", s.msg)
+}
+
+type SigchainV2MismatchedFieldError struct {
+	msg string
+}
+
+func (s SigchainV2MismatchedFieldError) Error() string {
+	return fmt.Sprintf("Mismatched field in sigchain v2 link: %s", s.msg)
+}
+
+type SigchainV2StubbedFirstLinkError struct{}
+
+func (s SigchainV2StubbedFirstLinkError) Error() string {
+	return "First link can't be stubbed out"
+}
+
+type SigchainV2StubbedSignatureNeededError struct{}
+
+func (s SigchainV2StubbedSignatureNeededError) Error() string {
+	return "Stubbed-out link actually needs a signature"
+}
+
+type SigchainV2MismatchedHashError struct{}
+
+func (s SigchainV2MismatchedHashError) Error() string {
+	return "Sigchain V2 hash mismatch error"
+}
+
 //=============================================================================
 
 type ReverseSigError struct {
