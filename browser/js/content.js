@@ -107,6 +107,10 @@ function renderChat(parent, toUsername) {
 
 // Remove the chat widget from the DOM
 function removeChat(chatForm, skipCheck) {
+  if (!chatForm.parentNode) {
+    // Already removed, skip.
+    return;
+  }
   if (!skipCheck && chatForm["keybase-chat"].value != "") {
     if (!confirm("Discard your message?")) return;
   }
@@ -127,7 +131,7 @@ function submitChat(e) {
   // TODO: Check that to/body are not empty.
 
   // We need this for when the chat widget gets detached from the DOM.
-  const originalParent = e.currentTarget.parentNode;
+  const originalParent = f.parentNode;
   function nudgeCallback() {
     // Send nudge?
     if (!nudgeDo) return;
@@ -175,6 +179,9 @@ function postReply(commentNode, text) {
   // This will break if there is no reply button.
   const commentID = commentNode.getAttribute("data-fullname");
   const replyLink = commentNode.getElementsByClassName("reply-button")[0].firstChild;
+  if (!commentID) {
+    throw new ExtensionException("failed to find the comment ID");
+  }
 
   // Open the reply window.
   replyLink.click();
@@ -191,6 +198,11 @@ function postReply(commentNode, text) {
 
 
 /*** Helpers ***/
+
+function ExtensionException(message) {
+   this.name = 'ExtensionException';
+   this.message = message;
+}
 
 // Find a parent with a given className.
 function findParentByClass(el, className) {
