@@ -15,9 +15,10 @@ const Version = "dev"
 
 // Response from the kbnm service
 type Response struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
-	Client  int    `json:"client"`
+	Client  int         `json:"client"`
+	Status  string      `json:"status"`
+	Message string      `json:"message"`
+	Result  interface{} `json:"result",omitempty`
 }
 
 // Request to the kbnm service
@@ -34,10 +35,7 @@ var versionFlag = flag.Bool("version", false, "print the version and exit")
 func main() {
 	flag.Parse()
 
-	if *versionFlag {
-		fmt.Println(Version)
-		return
-	}
+	h := Handler()
 
 	// Native messages include a prefix which describes the length of each message.
 	var in nativemessaging.JSONDecoder
@@ -61,9 +59,12 @@ func main() {
 		err := in.Decode(&req)
 
 		if err != nil {
+			// Input failed to parse; we can't guarantee future inputs will
+			// get into a parseable state, so we abort after sending an error
+			// response.
 			abort = true
 		} else {
-			err = handle(&req)
+			resp.Result, err = h.Handle(&req)
 		}
 
 		if err == io.EOF {
