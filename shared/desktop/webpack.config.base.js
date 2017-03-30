@@ -21,7 +21,29 @@ module.exports = {
       test: /\.jsx?$/,
       loader: 'babel',
       exclude: /(node_modules|\/dist\/)/,
-      query: Object.assign({cacheDirectory: true}),
+      query: Object.assign({
+        cacheDirectory: false,
+        babelrc: false,
+        presets: [
+          ['env', {
+            useBuiltIns: false,
+            targets: {
+              electron: '1.4.12',
+            },
+            debug: true,
+            exclude: ['transform-regenerator'],
+          }],
+          'babel-preset-react',
+        ],
+        plugins: [
+          [
+            'babel-plugin-transform-builtin-extend',
+            {globals: ['Error']},
+          ],
+          'transform-flow-strip-types',
+        ],
+      }),
+        // path.resolve('./electron-babelrc')}),
     }, {
       test: /\.json?$/,
       loader: 'json',
@@ -60,4 +82,5 @@ module.exports = {
     launcher: ['./desktop/renderer/launcher.js'],
     'remote-component-loader': ['./desktop/renderer/remote-component-loader.js'],
   },
+  profile: true,
 }

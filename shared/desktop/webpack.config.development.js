@@ -9,7 +9,7 @@ const DashboardPlugin = require('webpack-dashboard/plugin')
 
 const USING_DLL = getenv.boolish('USING_DLL', false)
 const NO_SERVER = getenv.boolish('NO_SERVER', false)
-const NO_SOURCE_MAPS = getenv.boolish('NO_SOURCE_MAPS', false)
+const NO_SOURCE_MAPS = true // getenv.boolish('NO_SOURCE_MAPS', false)
 const HOT = getenv.boolish('HOT', false)
 const defines = {
   '__DEV__': true,
@@ -66,23 +66,23 @@ if (!NO_SERVER) {
 
 config.plugins.push(new webpack.optimize.OccurenceOrderPlugin())
 
-if (getenv.boolish('HOT', false)) {
-  config.plugins.push(new webpack.HotModuleReplacementPlugin())
-}
+// if (getenv.boolish('HOT', false)) {
+  // config.plugins.push(new webpack.HotModuleReplacementPlugin())
+// }
 
 config.plugins.push(
   new webpack.NoErrorsPlugin(),
   new webpack.DefinePlugin(defines)
 )
 
-if (USING_DLL) {
-  config.plugins.push(
-    new webpack.DllReferencePlugin({
-      context: './renderer',
-      manifest: require('./dll/vendor-manifest.json'),
-    })
-  )
-}
+// if (USING_DLL) {
+  // config.plugins.push(
+    // new webpack.DllReferencePlugin({
+      // context: './renderer',
+      // manifest: require('./dll/vendor-manifest.json'),
+    // })
+  // )
+// }
 
 if (getenv.boolish('HOT', false)) {
   config.entry.index = ['react-hot-loader/patch'].concat(config.entry.index)
@@ -102,5 +102,5 @@ if (USING_DLL) {
   delete config.entry.main
 }
 
-config.target = webpackTargetElectronRenderer(config)
+// config.target = webpackTargetElectronRenderer(config)
 module.exports = config
