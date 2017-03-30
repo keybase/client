@@ -566,10 +566,9 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: timeoutCli}, gcli,
 		&syncAllRes.Notification)
 	if err != nil {
-		g.Errorf("sync failure: %s", err)
+		g.Debug(ctx, "sync failure: %s", err)
 	} else {
-		g.Debug(ctx, "sync success: replayed: %d consumed: %d",
-			len(replayedMsgs), len(consumedMsgs))
+		g.Debug(ctx, "sync success: replayed: %d consumed: %d", len(replayedMsgs), len(consumedMsgs))
 	}
 
 	// Sync badge state in the background
