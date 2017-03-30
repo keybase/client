@@ -79,7 +79,7 @@ func (t *connTransport) Dial(context.Context) (Transporter, error) {
 
 	// If the client has requested to disable SIGPIPE, then do so now
 	if t.disableSigPipe {
-		if err = disableSigPipe(t.conn); err != nil {
+		if err = DisableSigPipe(t.conn); err != nil {
 			return nil, err
 		}
 	}
@@ -201,7 +201,7 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 		// this somewhat janky method below. See:
 		// https://github.com/golang/go/issues/17393
 		if ct.disableSigPipe {
-			err = disableSigPipe(baseConn)
+			err = DisableSigPipe(baseConn)
 		}
 		return err
 	})
