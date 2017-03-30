@@ -1141,6 +1141,7 @@ export type MakePreviewRes = {
   mimeType: string,
   filename?: ?string,
   metadata?: ?AssetMetadata,
+  baseMetadata?: ?AssetMetadata,
 }
 
 export type MarkAsReadRes = {

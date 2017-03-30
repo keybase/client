@@ -1487,9 +1487,10 @@ type DownloadAttachmentLocalRes struct {
 }
 
 type MakePreviewRes struct {
-	MimeType string         `codec:"mimeType" json:"mimeType"`
-	Filename *string        `codec:"filename,omitempty" json:"filename,omitempty"`
-	Metadata *AssetMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
+	MimeType     string         `codec:"mimeType" json:"mimeType"`
+	Filename     *string        `codec:"filename,omitempty" json:"filename,omitempty"`
+	Metadata     *AssetMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
+	BaseMetadata *AssetMetadata `codec:"baseMetadata,omitempty" json:"baseMetadata,omitempty"`
 }
 
 type FindConversationsLocalRes struct {

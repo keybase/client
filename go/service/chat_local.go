@@ -898,6 +898,11 @@ func (h *chatLocalHandler) MakePreview(ctx context.Context, arg chat1.MakePrevie
 		if md != empty {
 			res.Metadata = &md
 		}
+
+		baseMd := pre.BaseMetadata()
+		if baseMd != empty {
+			res.BaseMetadata = &baseMd
+		}
 	}
 
 	return res, nil
@@ -929,6 +934,9 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 		}
 		if arg.Preview.Metadata != nil {
 			parg.Preview.md = arg.Preview.Metadata
+		}
+		if arg.Preview.BaseMetadata != nil {
+			parg.Preview.baseMd = arg.Preview.BaseMetadata
 		}
 		parg.Preview.mimeType = arg.Preview.MimeType
 		defer parg.Preview.source.Close()
@@ -968,6 +976,9 @@ func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat
 		if arg.Preview.Metadata != nil {
 			parg.Preview.md = arg.Preview.Metadata
 		}
+		if arg.Preview.BaseMetadata != nil {
+			parg.Preview.baseMd = arg.Preview.BaseMetadata
+		}
 		parg.Preview.mimeType = arg.Preview.MimeType
 		defer parg.Preview.source.Close()
 	}
@@ -979,6 +990,7 @@ type attachmentPreview struct {
 	source   assetSource
 	mimeType string
 	md       *chat1.AssetMetadata
+	baseMd   *chat1.AssetMetadata
 }
 
 // postAttachmentArg is a shared arg struct for the multiple PostAttachment* endpoints
@@ -1019,9 +1031,11 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	if pre.Preview != nil {
 		h.Debug(ctx, "created preview in preprocess")
 		md := pre.PreviewMetadata()
+		baseMd := pre.BaseMetadata()
 		arg.Preview = &attachmentPreview{
 			source:   pre.Preview,
 			md:       &md,
+			baseMd:   &baseMd,
 			mimeType: pre.PreviewContentType,
 		}
 	}
@@ -1141,9 +1155,11 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 	if pre.Preview != nil {
 		h.Debug(ctx, "created preview in preprocess")
 		md := pre.PreviewMetadata()
+		baseMd := pre.BaseMetadata()
 		arg.Preview = &attachmentPreview{
 			source:   pre.Preview,
 			md:       &md,
+			baseMd:   &baseMd,
 			mimeType: pre.PreviewContentType,
 		}
 	}
@@ -1587,6 +1603,21 @@ func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, a
 				p.PreviewDim = &dimension{Width: preview.md.Video().Width, Height: preview.md.Video().Height}
 			case chat1.AssetMetadataType_AUDIO:
 				p.PreviewDurationMs = preview.md.Audio().DurationMs
+			}
+		}
+		if preview.baseMd != nil {
+			typ, err := preview.baseMd.AssetType()
+			if err != nil {
+				return nil, err
+			}
+			switch typ {
+			case chat1.AssetMetadataType_IMAGE:
+				p.BaseDim = &dimension{Width: preview.baseMd.Image().Width, Height: preview.baseMd.Image().Height}
+			case chat1.AssetMetadataType_VIDEO:
+				p.BaseDurationMs = preview.baseMd.Video().DurationMs
+				p.BaseDim = &dimension{Width: preview.baseMd.Video().Width, Height: preview.baseMd.Video().Height}
+			case chat1.AssetMetadataType_AUDIO:
+				p.BaseDurationMs = preview.baseMd.Audio().DurationMs
 			}
 		}
 	}

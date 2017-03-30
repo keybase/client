@@ -593,6 +593,7 @@ protocol local {
     string mimeType;        // this will always be populated 
     union {null, string} filename;    // will exist if service is able to make a preview 
     union {null, AssetMetadata} metadata; // will exist if service is able to make a preview
+    union {null, AssetMetadata} baseMetadata; // will exist if service is able to get base metadata
   } 
   MakePreviewRes makePreview(int sessionID, LocalFileSource attachment, string outputDir);
 

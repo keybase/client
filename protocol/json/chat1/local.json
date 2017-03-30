@@ -1704,6 +1704,13 @@
             "AssetMetadata"
           ],
           "name": "metadata"
+        },
+        {
+          "type": [
+            null,
+            "AssetMetadata"
+          ],
+          "name": "baseMetadata"
         }
       ]
     },
