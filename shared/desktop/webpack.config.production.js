@@ -1,9 +1,9 @@
-// @flow
+/* eslint-disable flowtype/require-valid-file-annotation */
 const path = require('path')
 const webpack = require('webpack')
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
-const config: any = Object.assign({}, baseConfig)
+const config = Object.assign({}, baseConfig)
 
 const SKIP_OPTIMIZE = false
 // __VERSION__ is injected by package.js
@@ -30,6 +30,14 @@ config.plugins.push(
 )
 
 if (!SKIP_OPTIMIZE) {
+  const babelLoader = config.module.loaders.find(l => l.loader === 'babel')
+  const envPreset = babelLoader.query.presets.find(p => p[0] === 'env')[1]
+
+  // Have to fall back to more transpiling so we can use ugilfy
+  envPreset.targets.uglify = true
+  // Allow all uglify targets
+  envPreset.exclude = []
+
   config.plugins.push(
     new webpack.optimize.UglifyJsPlugin({
       screw_ie8: true,
