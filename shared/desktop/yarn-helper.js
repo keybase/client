@@ -43,7 +43,6 @@ const commands = {
     help: 'Copy font output into the right folders',
   },
   'build-dev': {
-    // env: {BABEL_ENV: 'electron', NO_SERVER: 'true'},
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
     help: 'Make a development build of the js code',
     nodeEnv: 'production',

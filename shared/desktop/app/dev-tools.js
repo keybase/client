@@ -16,7 +16,6 @@ function setupDevToolsExtensions () {
 function setupOpenDevtools () {
   let devToolsState = showDevTools
 
-  console.log(`aaa ${showDevTools} ${JSON.stringify(flags)}`)
   if (flags.admin) {
     globalShortcut.register('CommandOrControl+Alt+k+b', () => {
       devToolsState = !devToolsState
@@ -32,7 +31,6 @@ function cleanupOpenDevtools () {
 }
 
 export default function () {
-  console.log(`aaa default devtools`)
   app.on('ready', () => {
     setupDevToolsExtensions()
     setupOpenDevtools()

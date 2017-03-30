@@ -84,5 +84,4 @@ module.exports = {
     launcher: ['./desktop/renderer/launcher.js'],
     'remote-component-loader': ['./desktop/renderer/remote-component-loader.js'],
   },
-  profile: true,
 }
