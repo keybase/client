@@ -56,7 +56,6 @@ type connTransport struct {
 	conn            net.Conn
 	transport       Transporter
 	stagedTransport Transporter
-	disableSigPipe  bool
 }
 
 var _ ConnectionTransport = (*connTransport)(nil)
@@ -77,11 +76,9 @@ func (t *connTransport) Dial(context.Context) (Transporter, error) {
 		return nil, err
 	}
 
-	// If the client has requested to disable SIGPIPE, then do so now
-	if t.disableSigPipe {
-		if err = DisableSigPipe(t.conn); err != nil {
-			return nil, err
-		}
+	// Disable SIGPIPE on platforms that require it (Darwin). See sigpipe_bsd.go.
+	if err = DisableSigPipe(t.conn); err != nil {
+		return nil, err
 	}
 
 	t.stagedTransport = NewTransport(t.conn, t.l, t.wef)
@@ -139,10 +136,9 @@ type ConnectionHandler interface {
 // ConnectionTransportTLS is a ConnectionTransport implementation that
 // uses TLS+rpc.
 type ConnectionTransportTLS struct {
-	rootCerts      []byte
-	srvAddr        string
-	tlsConfig      *tls.Config
-	disableSigPipe bool
+	rootCerts []byte
+	srvAddr   string
+	tlsConfig *tls.Config
 
 	// Protects everything below.
 	mutex           sync.Mutex
@@ -182,7 +178,7 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 			}
 		}
 		// Final check to make sure we have a TLS config since tls.Client requires
-		// either ServerName or InsecureSkipVerify to be set
+		// either ServerName or InsecureSkipVerify to be set.
 		if config == nil {
 			config = &tls.Config{ServerName: host}
 		}
@@ -197,13 +193,8 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 		}
 		conn = tls.Client(baseConn, config)
 
-		// If the client has requested we disable SIGPIPE for this connection, then do it using
-		// this somewhat janky method below. See:
-		// https://github.com/golang/go/issues/17393
-		if ct.disableSigPipe {
-			err = DisableSigPipe(baseConn)
-		}
-		return err
+		// Disable SIGPIPE on platforms that require it (Darwin). See sigpipe_bsd.go.
+		return DisableSigPipe(baseConn)
 	})
 	if err != nil {
 		return nil, err
@@ -294,7 +285,6 @@ type ConnectionOpts struct {
 	WrapErrorFunc    WrapErrorFunc
 	ReconnectBackoff func() backoff.BackOff
 	CommandBackoff   func() backoff.BackOff
-	DisableSigPipe   bool
 }
 
 // NewTLSConnection returns a connection that tries to connect to the
@@ -309,11 +299,10 @@ func NewTLSConnection(
 	opts ConnectionOpts,
 ) *Connection {
 	transport := &ConnectionTransportTLS{
-		rootCerts:      rootCerts,
-		srvAddr:        srvAddr,
-		logFactory:     logFactory,
-		wef:            opts.WrapErrorFunc,
-		disableSigPipe: opts.DisableSigPipe,
+		rootCerts:  rootCerts,
+		srvAddr:    srvAddr,
+		logFactory: logFactory,
+		wef:        opts.WrapErrorFunc,
 	}
 	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }
