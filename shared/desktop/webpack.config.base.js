@@ -22,7 +22,7 @@ module.exports = {
       loader: 'babel',
       exclude: /(node_modules|\/dist\/)/,
       query: Object.assign({
-        cacheDirectory: false,
+        cacheDirectory: true,
         // Have to do this or it'll inherit babelrcs from the root and pull in things we don't want
         babelrc: false,
         presets: [
