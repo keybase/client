@@ -10,10 +10,6 @@ import (
 	"net"
 	"sync"
 
-	"os"
-	"os/signal"
-	"syscall"
-
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -46,13 +42,6 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
 	}
-
-	// We don't want SIGPIPE to ever work its way up into the mobile OS. We can
-	// handle reconnecting ourselves from within the service. As of 03/29/2016,
-	// SIGPIPE will leak out into the underlying OS and potentially crash the app
-	// https://github.com/golang/go/issues/17393
-	fmt.Printf("Go: installing SIGPIPE handler\n")
-	signal.Notify(make(chan os.Signal), syscall.SIGPIPE)
 
 	kbCtx = libkb.G
 	kbCtx.Init()
