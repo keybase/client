@@ -204,5 +204,15 @@ function findParentByClass(el, className) {
 
 // Convert a user input into a string that is safe for inlining into HTML.
 function safeHTML(s) {
-  return s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return s.replace(/[&'"<>\/]/g, function (c) {
+    // Per https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content
+    return {
+      '&': "&amp;",
+      '"': "&quot;",
+      "'": "&#x27",
+      '/': "&#x2F",
+      '<': "&lt;",
+      '>': "&gt;"
+    }[c];
+  });
 }
