@@ -795,7 +795,7 @@ function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
 function * _badgeAppForChat (action: Constants.BadgeAppForChat): SagaGenerator<any, any> {
   const conversations = action.payload
   const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
-  const windowFocused = yield select(Shared.focusedSelector)
+  const appFocused = yield select(Shared.focusedSelector)
 
   const newConversations = conversations.reduce((acc, conv) => {
     // Badge this conversation if it's unread and either the app doesn't have
@@ -803,7 +803,7 @@ function * _badgeAppForChat (action: Constants.BadgeAppForChat): SagaGenerator<a
     // selected (same).
     const unread = conv.get('UnreadMessages') > 0
     const selected = (Constants.conversationIDToKey(conv.get('convID')) === selectedConversationIDKey)
-    const addThisConv = (unread && (!selected || !windowFocused))
+    const addThisConv = (unread && (!selected || !appFocused))
     // Desktop shows number of thread unread. Mobile shows number of messages unread
     const toAdd = isMobile ? conv.get('UnreadMessages') : 1
     return addThisConv ? acc + toAdd : acc
