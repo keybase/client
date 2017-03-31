@@ -79,7 +79,7 @@ class CodePageRender extends Component<void, Props, void> {
       <ClickableBox
         underlayColor={globalColors.white}
         onClick={() => this.props.setCodePageMode(mode)}
-        style={{marginBottom: 5}}>
+        style={{marginBottom: 20}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', alignSelf: 'center', marginLeft: 10, marginRight: 10}}>
           <Icon type={icon} />
           <Text type='BodyBigLink' style={{marginLeft: 4}}>{label}</Text>

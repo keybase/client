@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import type {Props} from './clickable-box'
-import {TouchableHighlight, TouchableWithoutFeedback, View} from 'react-native'
+import {TouchableHighlight, TouchableWithoutFeedback} from 'react-native'
 import {globalColors} from '../styles'
 
 const ClickableBox = ({onClick, style, children, underlayColor, onPressIn, onPressOut, feedback = true}: Props) => {
