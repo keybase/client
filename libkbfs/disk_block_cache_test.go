@@ -495,6 +495,12 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
 
+	t.Log("Remove the block from the disk cache to rule it out for " +
+		"the next step.")
+	numRemoved, _, err := dbc.Delete(ctx, []kbfsblock.ID{ptr1.ID})
+	require.Equal(t, 1, numRemoved)
+	require.NoError(t, err)
+
 	block = &FileBlock{}
 	t.Log("Request the same block again to verify the memory cache.")
 	ch = q.Request(ctx, 1, makeKMD(), ptr1, block, TransientEntry)
