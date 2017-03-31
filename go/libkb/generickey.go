@@ -45,7 +45,7 @@ type GenericKey interface {
 	DecryptFromString(ciphertext string) (msg []byte, sender keybase1.KID, err error)
 
 	// Derive a secret key from a DH secret key
-	SecretSymmetricKey(reason EncryptionReason) ([]byte, error)
+	SecretSymmetricKey(reason EncryptionReason) (NaclSecretBoxKey, error)
 
 	VerboseDescription() string
 	CheckSecretKey() error
