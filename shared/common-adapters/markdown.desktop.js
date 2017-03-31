@@ -50,9 +50,9 @@ const quoteStyle = {borderLeft: `3px solid ${globalColors.lightGrey2}`, paddingL
 function previewCreateComponent (type, key, children, options) {
   switch (type) {
     case 'emoji':
-      return <EmojiIfExists size={13} key={key} style={neutralPreviewStyle}>{children}</EmojiIfExists>
+      return <EmojiIfExists emojiName={String(children)} size={13} key={key} style={neutralPreviewStyle} />
     case 'native-emoji':
-      return <Emoji size={16} key={key}>{children}</Emoji>
+      return <Emoji emojiName={String(children)} size={16} key={key} />
     default:
       return <Text type='BodySmall' key={key} style={neutralPreviewStyle}>{children}</Text>
   }
@@ -77,9 +77,9 @@ function messageCreateComponent (type, key, children, options) {
     case 'strike':
       return <Text type='Body' key={key} style={strikeStyle}>{children}</Text>
     case 'emoji':
-      return <EmojiIfExists size={16} key={key}>{children}</EmojiIfExists>
+      return <EmojiIfExists emojiName={String(children)} size={16} key={key} />
     case 'native-emoji':
-      return <Emoji size={16} key={key}>{children}</Emoji>
+      return <Emoji emojiName={String(children)} size={16} key={key} />
     case 'quote-block':
       return <Box key={key} style={quoteStyle}>{children}</Box>
   }
