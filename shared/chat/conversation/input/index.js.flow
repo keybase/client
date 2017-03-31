@@ -4,18 +4,19 @@ import * as Constants from '../../../constants/chat'
 
 export type Props = {
   defaultText: string,
-  emojiPickerOpen: boolean,
   editingMessage: ?Constants.Message,
-  onShowEditor: (message: ?Constants.Message) => void,
-  onEditMessage: (message: ?Constants.Message, text: string) => void,
+  emojiPickerOpen: boolean,
+  focusInputCounter: number,
   isLoading: boolean,
   onAttach: (inputs: Array<Constants.AttachmentInput>) => void,
-  onPostMessage: (text: string) => void,
   onEditLastMessage: () => void,
+  onEditMessage: (message: ?Constants.Message, text: string) => void,
+  onPostMessage: (text: string) => void,
   onSelectAttachment: (input: Constants.AttachmentInput) => void,
-  selectedConversationIDKey: ?Constants.ConversationIDKey,
-  focusInputCounter: number,
+  onShowEditor: (message: ?Constants.Message) => void,
   onStoreInputText: (text: string) => void,
+  toggleEmojiPicker: () => void,
+  selectedConversationIDKey: ?Constants.ConversationIDKey,
 }
 
 export default class Input extends Component<void, Props, void> { }

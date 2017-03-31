@@ -9,7 +9,6 @@ import {backgroundImageFn} from '../../../common-adapters/emoji'
 import type {Props} from '.'
 
 type State = {
-  emojiPickerOpen: boolean,
   text: string,
 }
 
@@ -24,8 +23,7 @@ class ConversationInput extends Component<void, Props, State> {
 
   constructor (props: Props) {
     super(props)
-    const {emojiPickerOpen} = props
-    this.state = {emojiPickerOpen, text: this.props.defaultText}
+    this.state = {text: this.props.defaultText}
   }
 
   componentDidMount () {
@@ -76,10 +74,6 @@ class ConversationInput extends Component<void, Props, State> {
     }
   }
 
-  _onClickEmoji = () => {
-    this.setState({emojiPickerOpen: !this.state.emojiPickerOpen})
-  }
-
   _openFilePicker = () => {
     if (this._fileInput) {
       this._fileInput.click()
@@ -117,7 +111,7 @@ class ConversationInput extends Component<void, Props, State> {
 
   _pickerOnClick = (emoji) => {
     this._insertEmoji(emoji.colons)
-    this._onClickEmoji()
+    this.props.toggleEmojiPicker()
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent) => {
@@ -142,10 +136,6 @@ class ConversationInput extends Component<void, Props, State> {
     this._fileInput = r
   }
 
-  _closePicker = () => {
-    this.setState({emojiPickerOpen: false})
-  }
-
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
@@ -166,9 +156,9 @@ class ConversationInput extends Component<void, Props, State> {
             onKeyDown={this._onKeyDown}
             onEnterKeyDown={this._onEnterKeyDown}
           />
-          {this.state.emojiPickerOpen && (
+          {this.props.emojiPickerOpen && (
             <Box>
-              <Box style={{position: 'absolute', right: 0, bottom: 0, top: 0, left: 0}} onClick={this._closePicker} />
+              <Box style={{position: 'absolute', right: 0, bottom: 0, top: 0, left: 0}} onClick={this.props.toggleEmojiPicker} />
               <Box style={{position: 'relative'}}>
                 <Box style={{position: 'absolute', right: 0, bottom: 0}}>
                   <Picker onClick={this._pickerOnClick} emoji={'ghost'} title={'emojibase'} backgroundImageFn={backgroundImageFn} />
@@ -176,7 +166,8 @@ class ConversationInput extends Component<void, Props, State> {
               </Box>
             </Box>
           )}
-          <Icon onClick={this._onClickEmoji} style={styleIcon} type='iconfont-emoji' />
+          <Icon onClick={this.props.toggleEmojiPicker}
+            style={styleIcon} type='iconfont-emoji' />
           <Icon onClick={this._openFilePicker} style={styleIcon} type='iconfont-attachment' />
         </Box>
         <Text type='BodySmall' style={styleFooter} onClick={this.focusInput}>*bold*, _italics_, `code`, >quote</Text>
@@ -187,25 +178,25 @@ class ConversationInput extends Component<void, Props, State> {
 
 const styleInput = {
   flex: 1,
-  marginTop: globalMargins.tiny,
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
+  marginTop: globalMargins.tiny,
   textAlign: 'left',
 }
 
 const styleIcon = {
-  paddingTop: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
+  paddingTop: globalMargins.tiny,
 }
 
 const styleFooter = {
-  flex: 1,
   color: globalColors.black_20,
   cursor: 'text',
-  textAlign: 'right',
-  marginTop: 0,
+  flex: 1,
   marginBottom: globalMargins.xtiny,
   marginRight: globalMargins.tiny,
+  marginTop: 0,
+  textAlign: 'right',
 }
 
 export default ConversationInput

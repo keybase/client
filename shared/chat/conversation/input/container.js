@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import Input from '.'
-import {compose} from 'recompose'
+import {compose, withState, withHandlers} from 'recompose'
 import {connect} from 'react-redux'
 
 import type {TypedState} from '../../../constants/reducer'
@@ -42,4 +42,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {onStoreInputText, onAttach, onE
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
+  withState('emojiPickerOpen', 'setEmojiPickerOpen', false),
+  withHandlers({
+    toggleEmojiPicker: ({emojiPickerOpen, setEmojiPickerOpen}) => () => setEmojiPickerOpen(!emojiPickerOpen),
+  }),
 )(Input)
