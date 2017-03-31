@@ -453,7 +453,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       break
     }
     case 'app:changedFocus':
-      return state.set('focused', action.payload)
+      return state.set('focused', action.payload.focused)
     case 'chat:updateFinalizedState': {
       // $FlowIssue doesn't recognize updates
       return state.update('finalizedState', finalizedState => finalizedState.merge(action.payload.finalizedState))
