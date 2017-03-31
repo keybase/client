@@ -10,7 +10,6 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/errors"
 )
 
-// Common errors.
 var (
 	ErrNotFound         = errors.ErrNotFound
 	ErrReadOnly         = errors.New("leveldb: read-only mode")

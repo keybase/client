@@ -15,7 +15,6 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
-// Common errors.
 var (
 	ErrNotFound    = New("leveldb: not found")
 	ErrReleased    = util.ErrReleased
@@ -35,10 +34,11 @@ type ErrCorrupted struct {
 }
 
 func (e *ErrCorrupted) Error() string {
-	if !e.Fd.Zero() {
+	if !e.Fd.Nil() {
 		return fmt.Sprintf("%v [file=%v]", e.Err, e.Fd)
+	} else {
+		return e.Err.Error()
 	}
-	return e.Err.Error()
 }
 
 // NewErrCorrupted creates new ErrCorrupted error.

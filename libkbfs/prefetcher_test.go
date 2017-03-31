@@ -61,7 +61,7 @@ func initPrefetcherTest(t *testing.T) (*blockRetrievalQueue,
 	// <-q.Prefetcher().Shutdown() to represent whether the retrieval requests
 	// _actually_ completed.
 	bg := newFakeBlockGetter(false)
-	config := newTestBlockRetrievalConfig(t, bg)
+	config := newTestBlockRetrievalConfig(t, bg, nil)
 	q := newBlockRetrievalQueue(1, config)
 	require.NotNil(t, q)
 

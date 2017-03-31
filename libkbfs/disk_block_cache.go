@@ -71,6 +71,7 @@ type DiskBlockCacheStandard struct {
 	compactCh  chan struct{}
 	startedCh  chan struct{}
 	startErrCh chan struct{}
+	shutdownCh chan struct{}
 }
 
 var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
@@ -150,6 +151,7 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		compactCh:  compactCh,
 		startedCh:  startedCh,
 		startErrCh: startErrCh,
+		shutdownCh: make(chan struct{}),
 	}
 	// Sync the block counts asynchronously so syncing doesn't block init.
 	// Since this method blocks, any Get or Put requests to the disk block
@@ -414,6 +416,13 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	}
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
+	// shutdownCh has to be checked under lock, otherwise we can race.
+	select {
+	case <-cache.shutdownCh:
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+			DiskCacheClosedError{"Get"}
+	default:
+	}
 	if cache.blockDb == nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
 			errors.WithStack(DiskCacheClosedError{"Get"})
@@ -447,6 +456,12 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	}
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
+	// shutdownCh has to be checked under lock, otherwise we can race.
+	select {
+	case <-cache.shutdownCh:
+		return DiskCacheClosedError{"Put"}
+	default:
+	}
 	if cache.blockDb == nil {
 		return errors.WithStack(DiskCacheClosedError{"Put"})
 	}
@@ -545,6 +560,12 @@ func (cache *DiskBlockCacheStandard) UpdateLRUTime(ctx context.Context,
 	// Only obtain a read lock because this happens on Get, not on Put.
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
+	// shutdownCh has to be checked under lock, otherwise we can race.
+	select {
+	case <-cache.shutdownCh:
+		return DiskCacheClosedError{"UpdateLRUTime"}
+	default:
+	}
 	md, err = cache.getMetadata(blockID)
 	if err != nil {
 		return NoSuchBlockError{blockID}
@@ -563,6 +584,12 @@ func (cache *DiskBlockCacheStandard) Size() int64 {
 	}
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
+	// shutdownCh has to be checked under lock, otherwise we can race.
+	select {
+	case <-cache.shutdownCh:
+		return 0
+	default:
+	}
 	return int64(cache.currBytes)
 }
 
@@ -636,6 +663,12 @@ func (cache *DiskBlockCacheStandard) Delete(ctx context.Context,
 	}
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
+	// shutdownCh has to be checked under lock, otherwise we can race.
+	select {
+	case <-cache.shutdownCh:
+		return 0, 0, DiskCacheClosedError{"Delete"}
+	default:
+	}
 	if cache.blockDb == nil {
 		return 0, 0, errors.WithStack(DiskCacheClosedError{"Delete"})
 	}
@@ -774,11 +807,19 @@ func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
 	select {
 	case <-cache.startedCh:
 	case <-cache.startErrCh:
+		return
 	}
 	// Receive from the compactCh sentinel to wait for pending compactions.
 	<-cache.compactCh
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
+	// shutdownCh has to be checked under lock, otherwise we can race.
+	select {
+	case <-cache.shutdownCh:
+		cache.log.CWarningf(ctx, "Shutdown called more than once")
+	default:
+	}
+	close(cache.shutdownCh)
 	if cache.blockDb == nil {
 		return
 	}

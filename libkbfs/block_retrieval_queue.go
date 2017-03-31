@@ -177,8 +177,7 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	dbc := brq.config.DiskBlockCache()
 	if dbc != nil {
 		go func() {
-			err := dbc.UpdateLRUTime(ctx, ptr.ID)
-			if err != nil {
+			if err := dbc.UpdateLRUTime(ctx, ptr.ID); err != nil {
 				brq.log.CWarningf(ctx, "Error updating metadata: %+v", err)
 			}
 		}()
@@ -260,7 +259,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 
 	// TODO: once the DiskBlockCache knows about hasPrefetched, pipe that
 	// through here.
-	return brq.CacheAndPrefetch(ctx, ptr, cachedBlock, kmd, priority, lifetime,
+	return brq.CacheAndPrefetch(ctx, ptr, block, kmd, priority, lifetime,
 		false)
 }
 
