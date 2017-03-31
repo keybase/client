@@ -250,6 +250,9 @@ func (fb *FileBlock) Set(other Block) {
 	fb.Contents = fbCopy.Contents
 	fb.IPtrs = fbCopy.IPtrs
 	fb.ToCommonBlock().Set(fbCopy.ToCommonBlock())
+	if otherFb.hash != nil {
+		_ = fb.GetHash()
+	}
 }
 
 // DeepCopy makes a complete copy of a FileBlock
