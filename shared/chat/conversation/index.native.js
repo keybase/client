@@ -1,5 +1,5 @@
 // @flow
-import Header from './header.native'
+import Header from './header/container'
 import Input from './input.native'
 import List from './list.native'
 import OldProfileResetNotice from './notices/old-profile-reset-notice'
@@ -17,7 +17,7 @@ import type {Props} from './index'
 
 const Conversation = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-    <Header {...props.headerProps} />
+    <Header sidePanelOpen={props.sidePanelOpen} onToggleSidePanel={props.onToggleSidePanel} onBack={props.onBack} selectedConversation={props.selectedConversation} />
     <List {...props.listProps} />
     {props.bannerMessage && <Banner message={props.bannerMessage} />}
     {props.finalizeInfo
