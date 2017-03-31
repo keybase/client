@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import openURL from '../util/open-url'
-import {Box, Icon, Text, Button, Input, PlatformIcon, StandardScreen} from '../common-adapters'
+import {Box, Icon, Text, Button, Input, HeaderHoc, PlatformIcon, StandardScreen} from '../common-adapters'
 import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {platformText} from './prove-enter-username.shared'
@@ -112,4 +112,4 @@ const styleButton = {
   marginTop: globalMargins.large,
 }
 
-export default PrivateEnterUsernameRender
+export default HeaderHoc(PrivateEnterUsernameRender)

@@ -6,6 +6,8 @@ package libkb
 import (
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type cmpTest struct {
@@ -64,4 +66,22 @@ func TestWhitespaceNormalize(t *testing.T) {
 		}
 	}
 
+}
+
+func TestMakeByte32(t *testing.T) {
+	var x1 [32]byte
+	var x2 [31]byte
+	var x3 [33]byte
+
+	x1[3] = 5
+
+	y, err := MakeByte32(x1[:])
+	require.NoError(t, err)
+	require.Equal(t, x1, y)
+
+	y, err = MakeByte32(x2[:])
+	require.Error(t, err)
+
+	y, err = MakeByte32(x3[:])
+	require.Error(t, err)
 }

@@ -56,15 +56,17 @@ func (s *baseConversationSource) SetTLFInfoSource(tlfInfoSource types.TLFInfoSou
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
-	finalizeInfo *chat1.ConversationFinalizeInfo) (err error) {
+	finalizeInfo *chat1.ConversationFinalizeInfo, checkPrev bool) (err error) {
 
 	// Sanity check the prev pointers in this thread.
 	// TODO: We'll do this against what's in the cache once that's ready,
 	//       rather than only checking the messages we just fetched against
 	//       each other.
-	_, err = CheckPrevPointersAndGetUnpreved(thread)
-	if err != nil {
-		return err
+	if checkPrev {
+		_, err = CheckPrevPointersAndGetUnpreved(thread)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Resolve supersedes
@@ -154,7 +156,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Post process thread before returning
-	if err = s.postProcessThread(ctx, uid, convID, &thread, query, conv.Metadata.FinalizeInfo); err != nil {
+	if err = s.postProcessThread(ctx, uid, convID, &thread, query, conv.Metadata.FinalizeInfo, true); err != nil {
 		return chat1.ThreadView{}, nil, err
 	}
 
@@ -315,7 +317,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	defer func() {
 		if err == nil {
 			err = s.postProcessThread(ctx, uid, convID, &thread, query,
-				finalizeInfo)
+				finalizeInfo, true)
 		}
 	}()
 
@@ -457,9 +459,16 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 }
 
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (tv chat1.ThreadView, err error) {
 
-	tv, err := s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, query, pagination)
+	// Post process thread before returning
+	defer func() {
+		if err == nil {
+			err = s.postProcessThread(ctx, uid, convID, &tv, query, nil, false)
+		}
+	}()
+
+	tv, err = s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, query, pagination)
 	if err != nil {
 		s.Debug(ctx, "PullLocalOnly: failed to fetch local messages: %s", err.Error())
 		return chat1.ThreadView{}, err

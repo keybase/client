@@ -1825,3 +1825,17 @@ func (e DeviceNotFoundError) Error() string {
 }
 
 //=============================================================================
+
+// PseudonymGetError is sometimes written by unmarshaling (no fields of) a server response.
+type PseudonymGetError struct {
+	msg string
+}
+
+func (e PseudonymGetError) Error() string {
+	if e.msg == "" {
+		return "Pseudonym could not be resolved"
+	}
+	return e.msg
+}
+
+var _ error = (*PseudonymGetError)(nil)

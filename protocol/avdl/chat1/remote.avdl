@@ -16,10 +16,11 @@ protocol remote {
     MessageClientHeader clientHeader;
 
     // V1: Encrypted HeaderPlaintext
-    // V2: SignEncrypted HeaderPlaintext
+    // V2: SignEncrypted HeaderPlaintext (using derived encryption key)
     SealedData headerCiphertext;
 
-    // [V1, V2]: Encrypted BodyPlaintext
+    // V1: Encrypted BodyPlaintext
+    // V2: Encrypted BodyPlaintext (using derived key)
     EncryptedData bodyCiphertext;
 
     // V1: Missing

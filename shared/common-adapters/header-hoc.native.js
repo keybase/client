@@ -12,11 +12,11 @@ function HeaderHoc<P> (WrappedComponent: ReactClass<P>) {
   return ({onBack, onCancel, headerStyle, title, ...restProps}: Props & P) => (
     <Box style={_containerStyle}>
       <Box style={{..._headerStyle, ...headerStyle}}>
-        {onCancel && <Text type='BodyBigLink' onClick={onCancel}>Cancel</Text>}
-        {onBack && <BackButton iconStyle={_backButtonIconStyle} onClick={onBack} />}
         <Box style={_titleStyle}>
           <Text type='Header'>{title}</Text>
         </Box>
+        {onCancel && <Text type='BodyBigLink' onClick={onCancel}>Cancel</Text>}
+        {onBack && <BackButton iconStyle={_backButtonIconStyle} onClick={onBack} />}
       </Box>
       {<WrappedComponent {...restProps} />}
     </Box>

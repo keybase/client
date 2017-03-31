@@ -1,6 +1,6 @@
 'use strict' // eslint-disable-line
 
-const channelMapPrelude = `function _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (incomingCallMap: any, callback: Function) => void): ChannelMap<*> {
+const channelMapPrelude = `\nfunction _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (incomingCallMap: any, callback: Function) => void): ChannelMap<*> {
   const channelMap = createChannelMap(channelConfig)
   const incomingCallMap = Object.keys(channelMap).reduce((acc, k) => {
     acc[k] = (params, response) => {
@@ -17,15 +17,15 @@ const channelMapPrelude = `function _channelMapRpcHelper(channelConfig: ChannelC
 }
 `
 
-function rpcChannelMap (name, callbackType, innerParamType, responseType) {
-  return `export function ${name}RpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => ${name}Rpc({...request, incomingCallMap, callback}))
+function rpcChannelMap (methodName, name, callbackType, innerParamType, responseType) {
+  return `\nexport function ${name}RpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing(${methodName}, request, callback, incomingCallMap) })
 }`
 }
 
-function rpcPromiseGen (name, callbackType, innerParamType, responseType) {
-  return `export function ${name}RpcPromise (request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>): Promise<${responseType !== 'null' ? `${name}Result` : 'any'}> {
-  return new Promise((resolve, reject) => { ${name}Rpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+function rpcPromiseGen (methodName, name, callbackType, innerParamType, responseType) {
+  return `\nexport function ${name}RpcPromise (request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>): Promise<${responseType !== 'null' ? `${name}Result` : 'void'}> {
+  return new Promise((resolve, reject) => engineRpcOutgoing(${methodName}, request, (error, result) => error ? reject(error) : resolve(result)))
 }`
 }
 

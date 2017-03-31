@@ -12,11 +12,8 @@ import '../desktop/renderer/style.css'
 
 const PADDING = 25
 
-function onDisplay (ev, msg) {
-  const map = dumbComponentMap[msg.key]
-  const mockKey = msg.mockKey
-
-  const displayTree = (
+function Mock ({map, mockKey}) {
+  return (
     <MuiThemeProvider muiTheme={materialTheme}>
       <GlobalEscapeHandler>
         <DumbSheetItem
@@ -30,17 +27,46 @@ function onDisplay (ev, msg) {
       </GlobalEscapeHandler>
     </MuiThemeProvider>
   )
+}
+
+function ErrorMessage ({error}) {
+  return (
+    <div
+      id='rendered'
+      data-error={true}
+      style={{alignSelf: 'flex-start', border: '5px solid red', font: '12px/16px sans-serif', padding: 14}}
+    >
+      <p>{error.stack}</p>
+      <p>{JSON.stringify(error)}</p>
+    </div>
+  )
+}
+
+function onDisplay (ev, msg) {
+  const appEl = document.getElementById('root')
+  if (!appEl) {
+    throw new Error('Page missing #root container')
+  }
+
+  const map = dumbComponentMap[msg.key]
+  const mockKey = msg.mockKey
 
   const sendDisplayDone = () => {
     // Unfortunately some resources lazy load after they're rendered.  We need
     // to give the renderer time to load.  After trying process.nextTick,
     // requestAnimationFrame, etc., simply putting in a time delay worked best.
     setTimeout(() => {
-      const renderedEl = document.getElementById('rendered')
+      let renderedEl = document.getElementById('rendered')
+      let isError
       if (!renderedEl) {
-        ipcRenderer.send('display-error', {...msg})
-        return
+        renderedEl = document.createElement('div')
+        renderedEl.textContent = 'Error: rendered content missing from page'
+        appEl.appendChild(renderedEl)
+        isError = true
+      } else {
+        isError = renderedEl.dataset.error === 'true'
       }
+
       const box = renderedEl.getBoundingClientRect()
       const rect = {
         x: box.left - PADDING,
@@ -49,13 +75,12 @@ function onDisplay (ev, msg) {
         height: Math.floor(box.height + 2 * PADDING),
       }
 
-      ipcRenderer.send('display-done', {rect, ...msg})
+      ipcRenderer.send('display-done', {rect, isError, ...msg})
     }, 1000)
   }
 
-  const appEl = document.getElementById('root')
   try {
-    ReactDOM.render(displayTree, appEl, () => {
+    ReactDOM.render(<Mock map={map} mockKey={mockKey} />, appEl, () => {
       // Remove pesky blinking cursors
       if (document.activeElement && (document.activeElement.tagName === 'INPUT' ||
           document.activeElement.tagName === 'TEXTAREA')) {
@@ -65,7 +90,7 @@ function onDisplay (ev, msg) {
       sendDisplayDone()
     })
   } catch (err) {
-    ReactDOM.render(<p>{JSON.stringify(err)}</p>, appEl, () => {
+    ReactDOM.render(<ErrorMessage error={err} />, appEl, () => {
       sendDisplayDone()
     })
   }
