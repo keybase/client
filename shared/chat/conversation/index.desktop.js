@@ -123,6 +123,7 @@ class Conversation extends Component<void, Props, State> {
               onEditLastMessage={this._onEditLastMessage}
               onStoreInputText={this.props.onStoreInputText}
               selectedConversationIDKey={this.props.selectedConversationIDKey}
+              onScrollDown={this.props.onScrollDown}
             /> }
         {sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>
           <SidePanel

@@ -5,6 +5,7 @@ import HiddenString from '../../../util/hidden-string'
 import Input from '.'
 import {compose, withState, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
+import {navigateAppend} from '../../../actions/route-tree'
 
 import type {TypedState} from '../../../constants/reducer'
 
@@ -36,6 +37,7 @@ const mapStateToProps = (state: TypedState, {defaultText, focusInputCounter, sel
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
   onEditMessage: (message: Constants.Message, body: string) => { dispatch(Creators.editMessage(message, new HiddenString(body))) },
   onPostMessage: (selectedConversation, text) => dispatch(Creators.postMessage(selectedConversation, new HiddenString(text))),
   onShowEditor: (message: Constants.Message) => { dispatch(Creators.showEditor(message)) },
