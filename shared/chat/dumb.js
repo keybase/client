@@ -100,7 +100,6 @@ const commonConvoProps = {
   isRequesting: false,
   onPostMessage: (text: string) => console.log('on post', text),
   selectedConversation: 'convo1',
-  emojiPickerOpen: false,
   onShowProfile: (username: string) => console.log('on show profile', username),
   onBack: () => console.log('back clicked'),
 }

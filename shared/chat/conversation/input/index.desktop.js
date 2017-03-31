@@ -160,7 +160,7 @@ const styleFooter = {
 }
 
 export default compose(
-  withState('emojiPickerOpen', 'setEmojiPickerOpen', props => props.emojiPickerOpen),
+  withState('emojiPickerOpen', 'setEmojiPickerOpen', false),
   withHandlers(props => {
     let fileInput
     return {

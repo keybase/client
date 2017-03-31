@@ -93,7 +93,6 @@ export default connect(
 
         return {
           bannerMessage: null,
-          emojiPickerOpen: false,
           followingMap: pick(followingMap, participants.toArray()),
           defaultText: routeState.inputText && routeState.inputText.stringValue(),
           isLoading: false,
@@ -126,7 +125,6 @@ export default connect(
 
         return {
           bannerMessage: null,
-          emojiPickerOpen: false,
           firstNewMessageID: conversationState.firstNewMessageID,
           followingMap: pick(followingMap, participants.toArray()),
           defaultText: routeState.inputText && routeState.inputText.stringValue(),
