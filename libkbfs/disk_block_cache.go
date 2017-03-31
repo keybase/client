@@ -71,6 +71,7 @@ type DiskBlockCacheStandard struct {
 	compactCh  chan struct{}
 	startedCh  chan struct{}
 	startErrCh chan struct{}
+	shutdownCh chan struct{}
 }
 
 var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
@@ -150,6 +151,7 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		compactCh:  compactCh,
 		startedCh:  startedCh,
 		startErrCh: startErrCh,
+		shutdownCh: make(chan struct{}),
 	}
 	// Sync the block counts asynchronously so syncing doesn't block init.
 	// Since this method blocks, any Get or Put requests to the disk block
@@ -407,6 +409,9 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	select {
 	case <-cache.startedCh:
+	case <-cache.shutdownCh:
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+			errors.WithStack(DiskCacheClosedError{"Get"})
 	default:
 		// If the cache hasn't started yet, pretend like no blocks exist.
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
@@ -441,6 +446,8 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	select {
 	case <-cache.startedCh:
+	case <-cache.shutdownCh:
+		return errors.WithStack(DiskCacheClosedError{"Put"})
 	default:
 		// If the cache hasn't started yet, return an error.
 		return DiskCacheStartingError{"Put"}
@@ -533,6 +540,8 @@ func (cache *DiskBlockCacheStandard) UpdateLRUTime(ctx context.Context,
 	blockID kbfsblock.ID) (err error) {
 	select {
 	case <-cache.startedCh:
+	case <-cache.shutdownCh:
+		return errors.WithStack(DiskCacheClosedError{"UpdateLRUTime"})
 	default:
 		// If the cache hasn't started yet, return an error.
 		return DiskCacheStartingError{"UpdateLRUTime"}
@@ -557,6 +566,8 @@ func (cache *DiskBlockCacheStandard) UpdateLRUTime(ctx context.Context,
 func (cache *DiskBlockCacheStandard) Size() int64 {
 	select {
 	case <-cache.startedCh:
+	case <-cache.shutdownCh:
+		return 0
 	default:
 		// If the cache hasn't started yet, return 0.
 		return 0
@@ -630,6 +641,8 @@ func (cache *DiskBlockCacheStandard) Delete(ctx context.Context,
 	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
 	select {
 	case <-cache.startedCh:
+	case <-cache.shutdownCh:
+		return 0, 0, errors.WithStack(DiskCacheClosedError{"UpdateLRUTime"})
 	default:
 		// If the cache hasn't started yet, return an error.
 		return 0, 0, DiskCacheStartingError{"Delete"}
@@ -774,11 +787,15 @@ func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
 	select {
 	case <-cache.startedCh:
 	case <-cache.startErrCh:
+	case <-cache.shutdownCh:
+		cache.log.CWarningf(ctx, "Shutdown called more than once")
+		return
 	}
 	// Receive from the compactCh sentinel to wait for pending compactions.
 	<-cache.compactCh
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
+	close(cache.shutdownCh)
 	if cache.blockDb == nil {
 		return
 	}

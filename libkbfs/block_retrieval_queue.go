@@ -176,9 +176,11 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	lifetime BlockCacheLifetime, hasPrefetched bool) (err error) {
 	dbc := brq.config.DiskBlockCache()
 	if dbc != nil {
-		if err := dbc.UpdateLRUTime(ctx, ptr.ID); err != nil {
-			brq.log.CWarningf(ctx, "Error updating metadata: %+v", err)
-		}
+		go func() {
+			if err := dbc.UpdateLRUTime(ctx, ptr.ID); err != nil {
+				brq.log.CWarningf(ctx, "Error updating metadata: %+v", err)
+			}
+		}()
 	}
 	defer func() {
 		if err != nil {

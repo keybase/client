@@ -250,6 +250,9 @@ func (fb *FileBlock) Set(other Block) {
 	fb.Contents = fbCopy.Contents
 	fb.IPtrs = fbCopy.IPtrs
 	fb.ToCommonBlock().Set(fbCopy.ToCommonBlock())
+	// Ensure that the Set is complete from Go's perspective by calculating the
+	// hash on the new FileBlock if the old one has been set. This is mainly so
+	// tests can blindly compare that blocks are equivalent.
 	if otherFb.hash != nil {
 		_ = fb.GetHash()
 	}

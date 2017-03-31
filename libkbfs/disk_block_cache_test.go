@@ -484,8 +484,8 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 	ptr1, block1, block1Encoded, serverHalf1 := setupBlockForDiskCache(
 		t, dbcConfig)
 	err := dbc.Put(ctx, kmd.TlfID(), ptr1.ID, block1Encoded, serverHalf1)
-	_, _ = bg.setBlockToReturn(ptr1, block1)
 	require.NoError(t, err)
+	_, _ = bg.setBlockToReturn(ptr1, block1)
 
 	t.Log("Request a block retrieval for ptr1. " +
 		"Verify the block against the one we put in the disk block cache.")
@@ -498,8 +498,8 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 	t.Log("Remove the block from the disk cache to rule it out for " +
 		"the next step.")
 	numRemoved, _, err := dbc.Delete(ctx, []kbfsblock.ID{ptr1.ID})
-	require.Equal(t, 1, numRemoved)
 	require.NoError(t, err)
+	require.Equal(t, 1, numRemoved)
 
 	block = &FileBlock{}
 	t.Log("Request the same block again to verify the memory cache.")

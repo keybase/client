@@ -1259,8 +1259,8 @@ func (e DiskCacheClosedError) Error() string {
 		"closed", e.op)
 }
 
-// DiskCacheStartingError indicates that the disk cache has been
-// closed, and thus isn't accepting any more operations.
+// DiskCacheStartingError indicates that the disk cache has not yet started, so
+// it isn't yet accepting operations.
 type DiskCacheStartingError struct {
 	op string
 }
