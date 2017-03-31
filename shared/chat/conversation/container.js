@@ -37,7 +37,7 @@ class ConversationContainer extends Component<void, Props, State> {
   }
 
   componentWillReceiveProps (nextProps: Props) {
-    if (this.props.selectedConversation !== nextProps.selectedConversation) {
+    if (this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {
       this.setState({
         sidePanelOpen: false,
       })
@@ -59,7 +59,7 @@ class ConversationContainer extends Component<void, Props, State> {
   }
 
   render () {
-    if (!this.props.selectedConversation) {
+    if (!this.props.selectedConversationIDKey) {
       return <Box style={{flex: 1}} />
     }
 
@@ -79,14 +79,14 @@ class ConversationContainer extends Component<void, Props, State> {
 
 export default connect(
   (state: TypedState, {routePath, routeState}) => {
-    const selectedConversation = routePath.last()
+    const selectedConversationIDKey = routePath.last()
 
     const you = state.config.username || ''
     const followingMap = state.config.following
     const metaDataMap = state.chat.get('metaData')
 
-    if (Constants.isPendingConversationIDKey(selectedConversation)) {
-      const tlfName = Constants.pendingConversationIDKeyToTlfName(selectedConversation)
+    if (Constants.isPendingConversationIDKey(selectedConversationIDKey)) {
+      const tlfName = Constants.pendingConversationIDKeyToTlfName(selectedConversationIDKey)
       if (tlfName) {
         const participants = List(tlfName.split(','))
 
@@ -94,7 +94,7 @@ export default connect(
           bannerMessage: null,
           emojiPickerOpen: false,
           followingMap: pick(followingMap, participants.toArray()),
-          inputText: routeState.inputText && routeState.inputText.stringValue(),
+          defaultText: routeState.inputText && routeState.inputText.stringValue(),
           isLoading: false,
           messages: List(),
           metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
@@ -102,7 +102,7 @@ export default connect(
           muted: false,
           participants,
           rekeyInfo: null,
-          selectedConversation,
+          selectedConversationIDKey,
           validated: true,
           threadLoadedOffline: false,
           you,
@@ -110,25 +110,25 @@ export default connect(
       }
     }
 
-    if (selectedConversation !== Constants.nothingSelected) {
-      const conversationState = state.chat.get('conversationStates').get(selectedConversation)
+    if (selectedConversationIDKey !== Constants.nothingSelected) {
+      const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
       if (conversationState) {
         const inbox = state.chat.get('inbox')
-        const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversation)
+        const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
         const muted = selected && selected.get('status') === 'muted'
         const participants = selected && selected.participants || List()
-        const rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversation)
+        const rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversationIDKey)
 
-        const supersedes = Constants.convSupersedesInfo(selectedConversation, state.chat)
-        const supersededBy = Constants.convSupersededByInfo(selectedConversation, state.chat)
-        const finalizeInfo = state.chat.get('finalizedState').get(selectedConversation)
+        const supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
+        const supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
+        const finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)
 
         return {
           bannerMessage: null,
           emojiPickerOpen: false,
           firstNewMessageID: conversationState.firstNewMessageID,
           followingMap: pick(followingMap, participants.toArray()),
-          inputText: routeState.inputText && routeState.inputText.stringValue(),
+          defaultText: routeState.inputText && routeState.inputText.stringValue(),
           isLoading: conversationState.isLoading,
           messages: conversationState.messages,
           metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
@@ -136,7 +136,7 @@ export default connect(
           muted,
           participants,
           rekeyInfo,
-          selectedConversation,
+          selectedConversationIDKey,
           validated: selected && selected.state === 'unboxed',
           you,
           supersedes,
@@ -157,7 +157,7 @@ export default connect(
       moreToLoad: false,
       participants: List(),
       rekeyInfo: null,
-      selectedConversation,
+      selectedConversationIDKey,
       validated: false,
       threadLoadedOffline: false,
       you,
@@ -221,14 +221,14 @@ export default connect(
       ...ownProps,
       bannerMessage,
       onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => p !== stateProps.you).toArray()),
-      onAttach: (inputs: Array<Constants.AttachmentInput>) => dispatchProps.onAttach(stateProps.selectedConversation, inputs),
-      onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
-      onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
-      onMuteConversation: (muted: boolean) => dispatchProps.onMuteConversation(stateProps.selectedConversation, muted),
-      onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
-      onRetryMessage: (outboxID: Constants.OutboxIDKey) => dispatchProps.onRetryMessage(stateProps.selectedConversation, outboxID),
-      onSelectAttachment: (input) => dispatchProps.onSelectAttachment(stateProps.selectedConversation, input),
-      onShowBlockConversationDialog: () => dispatchProps.onShowBlockConversationDialog(stateProps.selectedConversation, stateProps.participants.toArray().join(',')),
+      onAttach: (inputs: Array<Constants.AttachmentInput>) => dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
+      onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversationIDKey, messageID, filename),
+      onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversationIDKey),
+      onMuteConversation: (muted: boolean) => dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted),
+      onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversationIDKey, text),
+      onRetryMessage: (outboxID: Constants.OutboxIDKey) => dispatchProps.onRetryMessage(stateProps.selectedConversationIDKey, outboxID),
+      onSelectAttachment: (input) => dispatchProps.onSelectAttachment(stateProps.selectedConversationIDKey, input),
+      onShowBlockConversationDialog: () => dispatchProps.onShowBlockConversationDialog(stateProps.selectedConversationIDKey, stateProps.participants.toArray().join(',')),
       restartConversation: () => dispatchProps.startConversation(stateProps.participants.toArray()),
     }
   },

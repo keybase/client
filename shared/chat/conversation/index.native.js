@@ -1,6 +1,6 @@
 // @flow
 import Header from './header/container'
-import Input from './input.native'
+import Input from './input/container'
 import List from './list.native'
 import OldProfileResetNotice from './notices/old-profile-reset-notice'
 import ParticipantRekey from './participant-rekey'
@@ -17,14 +17,23 @@ import type {Props} from './index'
 
 const Conversation = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-    <Header sidePanelOpen={props.sidePanelOpen} onToggleSidePanel={props.onToggleSidePanel} onBack={props.onBack} selectedConversation={props.selectedConversation} />
+    <Header sidePanelOpen={props.sidePanelOpen} onToggleSidePanel={props.onToggleSidePanel} onBack={props.onBack} selectedConversationIDKey={props.selectedConversationIDKey} />
     <List {...props.listProps} />
     {props.bannerMessage && <Banner message={props.bannerMessage} />}
     {props.finalizeInfo
       ? <OldProfileResetNotice
         onOpenNewerConversation={props.onOpenNewerConversation}
         username={props.finalizeInfo.resetUser} />
-      : <Input {...props.inputProps} /> }
+      : <Input
+        defaultText={props.defaultText}
+        focusInputCounter={props.focusInputCounter}
+        onEditLastMessage={props.onEditLastMessage}
+        selectedConversationIDKey={props.selectedConversationIDKey}
+        onStoreInputText={props.onStoreInputText}
+        onAttach={props.onAttach}
+        onPostMessage={props.onPostMessage}
+      /> }
+
     {props.sidePanelOpen && <SidePanel
       you={props.you}
       metaDataMap={props.metaDataMap}

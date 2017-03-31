@@ -1,7 +1,7 @@
 // @flow
 import Banner from './banner'
 import Header from './header/container'
-import Input from './input.desktop'
+import Input from './input/container'
 import List from './list.desktop'
 import OldProfileResetNotice from './notices/old-profile-reset-notice'
 import NoConversation from './no-conversation.desktop'
@@ -29,8 +29,8 @@ class Conversation extends Component<void, Props, State> {
 
   _onDrop = e => {
     const fileList = e.dataTransfer.files
-    if (!this.props.selectedConversation) throw new Error('No conversation')
-    const conversationIDKey = this.props.selectedConversation
+    if (!this.props.selectedConversationIDKey) throw new Error('No conversation')
+    const conversationIDKey = this.props.selectedConversationIDKey
     // FileList, not an array
     const inputs = Array.prototype.map.call(fileList, file => ({
       conversationIDKey,
@@ -57,11 +57,11 @@ class Conversation extends Component<void, Props, State> {
       this.setState({showDropOverlay: true})
     }).then(clipboardData => {
       this.setState({showDropOverlay: false})
-      if (!this.props.selectedConversation) throw new Error('No conversation')
+      if (!this.props.selectedConversationIDKey) throw new Error('No conversation')
       if (clipboardData) {
         const {path, title} = clipboardData
         this.props.onAttach([{
-          conversationIDKey: this.props.selectedConversation,
+          conversationIDKey: this.props.selectedConversationIDKey,
           filename: path,
           title,
           type: 'Image',
@@ -84,7 +84,7 @@ class Conversation extends Component<void, Props, State> {
       onShowProfile,
       onToggleSidePanel,
       participants,
-      selectedConversation,
+      selectedConversationIDKey,
       sidePanelOpen,
       you,
     } = this.props
@@ -105,14 +105,22 @@ class Conversation extends Component<void, Props, State> {
     return (
       <Box className='conversation' style={containerStyle} onDragEnter={this._onDragEnter} onPaste={this._onPaste}>
         {offline}
-        <Header sidePanelOpen={sidePanelOpen} onToggleSidePanel={onToggleSidePanel} onBack={onBack} selectedConversation={selectedConversation} />
+        <Header sidePanelOpen={sidePanelOpen} onToggleSidePanel={onToggleSidePanel} onBack={onBack} selectedConversationIDKey={selectedConversationIDKey} />
         <List {...this.props.listProps} />
         {banner}
         {finalizeInfo
           ? <OldProfileResetNotice
             onOpenNewerConversation={this.props.onOpenNewerConversation}
             username={finalizeInfo.resetUser} />
-          : <Input {...this.props.inputProps} /> }
+            : <Input
+              defaultText={this.props.defaultText}
+              focusInputCounter={this.props.focusInputCounter}
+              onEditLastMessage={this.props.onEditLastMessage}
+              selectedConversationIDKey={this.props.selectedConversationIDKey}
+              onStoreInputText={this.props.onStoreInputText}
+              onAttach={this.props.onAttach}
+              onPostMessage={this.props.onPostMessage}
+            /> }
         {sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>
           <SidePanel
             you={you}
@@ -152,7 +160,7 @@ const dropOverlayStyle = {
 }
 
 export default branch(
-  (props: Props) => props.selectedConversation === Constants.nothingSelected,
+  (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected,
   renderComponent(NoConversation),
   branch(
     (props: Props) => !!props.rekeyInfo && !props.finalizeInfo,

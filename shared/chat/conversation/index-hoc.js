@@ -6,27 +6,20 @@ import * as Constants from '../../constants/chat'
 
 import type {Props} from './index'
 import type {Props as ListProps} from './list'
-import type {Props as InputProps} from './input'
 
 const propsHoc = withProps(
   (props) => {
     const {
       editLastMessageCounter,
       editingMessage,
-      emojiPickerOpen,
       firstNewMessageID,
-      focusInputCounter,
       followingMap,
-      inputText,
-      isLoading,
       listScrollDownState,
       messages,
       metaDataMap,
       moreToLoad,
       muted,
-      onAttach,
       onDeleteMessage,
-      onEditLastMessage,
       onEditMessage,
       onFocusInput,
       onLoadAttachment,
@@ -35,11 +28,8 @@ const propsHoc = withProps(
       onOpenConversation,
       onOpenInFileUI,
       onOpenInPopup,
-      onPostMessage,
       onRetryAttachment,
       onRetryMessage,
-      onStoreInputText,
-      onSelectAttachment,
       selectedConversation,
       onShowEditor,
       sidePanelOpen,
@@ -79,23 +69,7 @@ const propsHoc = withProps(
       you,
     }
 
-    const inputProps: InputProps = {
-      editingMessage,
-      defaultText: inputText,
-      emojiPickerOpen,
-      isLoading,
-      onAttach,
-      onShowEditor,
-      onEditMessage,
-      onEditLastMessage,
-      onUnmountText: onStoreInputText,
-      focusInputCounter: focusInputCounter,
-      onPostMessage,
-      onSelectAttachment,
-      selectedConversation,
-    }
-
-    return {inputProps, listProps, onOpenNewerConversation}
+    return {listProps, onOpenNewerConversation}
   }
 )
 
