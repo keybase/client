@@ -177,8 +177,8 @@ func GetTlfPseudonyms(ctx context.Context, g *GlobalContext, pnyms []TlfPseudony
 			len(res.TlfPseudonyms), len(pnyms))}
 	}
 	var resList []GetTlfPseudonymEither
-	for i, e := range res.TlfPseudonyms {
-		resList = append(resList, checkAndConvertTlfPseudonymFromServer(ctx, g, pnyms[i], e))
+	for i, received := range res.TlfPseudonyms {
+		resList = append(resList, checkAndConvertTlfPseudonymFromServer(ctx, g, pnyms[i], received))
 	}
 
 	return resList, nil
@@ -194,8 +194,12 @@ func checkAndConvertTlfPseudonymFromServer(ctx context.Context, g *GlobalContext
 
 	x := GetTlfPseudonymEither{}
 
+	// This check is necessary because of sneaky typed nil.
+	// received.Err's type is lower than x.Err
+	// So doing `x.Err = received.Err` is bad if received.Err is nil.
+	// https://golang.org/doc/faq#nil_error
+	// https://play.golang.org/p/BnjVTGh-gO
 	if received.Err != nil {
-		// This check is necessary because of https://golang.org/doc/faq#nil_error
 		x.Err = received.Err
 	}
 
