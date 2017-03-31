@@ -457,9 +457,16 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 }
 
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (tv chat1.ThreadView, err error) {
 
-	tv, err := s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, query, pagination)
+	// Post process thread before returning
+	defer func() {
+		if err == nil {
+			err = s.postProcessThread(ctx, uid, convID, &tv, query, nil)
+		}
+	}()
+
+	tv, err = s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, query, pagination)
 	if err != nil {
 		s.Debug(ctx, "PullLocalOnly: failed to fetch local messages: %s", err.Error())
 		return chat1.ThreadView{}, err
