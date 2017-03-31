@@ -353,6 +353,7 @@ func TestInboxNewMessage(t *testing.T) {
 	require.NoError(t, err)
 
 	convs[5].Metadata.ActiveList = []gregor1.UID{uid2, uid3, uid1}
+	convs[6].Metadata.ActiveList = []gregor1.UID{uid2, uid3}
 	conv := convs[5]
 	msg := makeInboxMsg(2, chat1.MessageType_TEXT)
 	msg.ClientHeader.Sender = uid1
@@ -371,10 +372,17 @@ func TestInboxNewMessage(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(2), maxMsg.GetMessageID(), "max msg not updated")
 
+	// Test incomplete active list
+	conv = convs[6]
+	require.NoError(t, inbox.NewMessage(context.TODO(), 3, conv.GetConvID(), msg))
+	_, res, _, err = inbox.Read(context.TODO(), nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, []gregor1.UID{uid1, uid2, uid3}, res[0].Metadata.ActiveList, "active list")
+
 	// Send another one from a diff User
 	msg = makeInboxMsg(3, chat1.MessageType_TEXT)
 	msg.ClientHeader.Sender = uid2
-	require.NoError(t, inbox.NewMessage(context.TODO(), 3, conv.GetConvID(), msg))
+	require.NoError(t, inbox.NewMessage(context.TODO(), 4, conv.GetConvID(), msg))
 	_, res, _, err = inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(3), res[0].ReaderInfo.MaxMsgid, "wrong max msgid")

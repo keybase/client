@@ -297,6 +297,7 @@ export const StateRecord = Record({
   pendingConversations: Map(),
   nowOverride: null,
   editingMessage: null,
+  initialConversation: null,
 })
 
 export type State = Record<{
@@ -314,6 +315,7 @@ export type State = Record<{
   pendingConversations: Map<ConversationIDKey, Participants>,
   nowOverride: ?Date,
   editingMessage: ?Message,
+  initialConversation: ?ConversationIDKey,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -354,11 +356,12 @@ export type RemoveOutboxMessage = NoErrorTypedAction<'chat:removeOutboxMessage',
 export type RemovePendingFailure = NoErrorTypedAction<'chat:removePendingFailure', {outboxID: OutboxIDKey}>
 export type ReplaceConversation = NoErrorTypedAction<'chat:replaceConversation', {oldKey: ConversationIDKey, newKey: ConversationIDKey}>
 export type RetryMessage = NoErrorTypedAction<'chat:retryMessage', {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}>
+export type SetInitialConversation = NoErrorTypedAction<'chat:setInitialConversation', {conversationIDKey: ?ConversationIDKey}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ?ConversationIDKey, fromUser: boolean}>
 export type SetLoaded = NoErrorTypedAction<'chat:setLoaded', {conversationIDKey: ConversationIDKey, isLoaded: boolean}>
 export type SetUnboxing = NoErrorTypedAction<'chat:setUnboxing', {conversationIDKeys: Array<ConversationIDKey>}>
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
-export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: Message}>
+export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: ?Message}>
 export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>, forceImmediate: boolean}>
 export type UnboxInbox = NoErrorTypedAction<'chat:updateSupersededByState', {conversationIDKeys: Array<ConversationIDKey>}>
 export type UntrustedInboxVisible = NoErrorTypedAction<'chat:untrustedInboxVisible', {conversationIDKey: ConversationIDKey, rowsVisible: number}>

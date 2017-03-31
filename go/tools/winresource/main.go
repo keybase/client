@@ -76,8 +76,10 @@ func kbWriteSyso(vi *goversioninfo.VersionInfo, filename string, arch string, ic
 	}
 	// if extra icons were passed in
 	for _, i := range icons {
-		if err := addIcon(coff, i, newID); err != nil {
-			return err
+		if i != "" {
+			if err := addIcon(coff, i, newID); err != nil {
+				return err
+			}
 		}
 	}
 

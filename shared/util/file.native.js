@@ -21,10 +21,18 @@ function exists (filepath: string): Promise<boolean> {
   return RNFS.exists(filepath)
 }
 
+function writeFile (filepath: string, contents: string, encoding?: string): Promise<void> {
+  return RNFS.writeFile(filepath, contents, encoding)
+}
+
+const cachesDirectoryPath = RNFS.CachesDirectoryPath
+
 export {
+  cachesDirectoryPath,
   copy,
   exists,
   downloadFilePath,
   tmpDir,
   tmpFile,
+  writeFile,
 }

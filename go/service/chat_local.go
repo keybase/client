@@ -151,6 +151,8 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 }
 
 func (h *chatLocalHandler) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalArg) (res chat1.MarkAsReadRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "MarkAsReadLocal")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.MarkAsReadRes{}, err

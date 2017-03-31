@@ -47,8 +47,7 @@ func TestGregorHandler(t *testing.T) {
 	require.NoError(t, err)
 
 	var h *gregorHandler
-	h, err = newGregorHandler(tc.G)
-	require.NoError(t, err)
+	h = newGregorHandler(tc.G)
 	h.testingEvents = newTestingEvents()
 	require.Equal(t, "keybase service", h.HandlerName(), "wrong name")
 
@@ -182,8 +181,7 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 	require.NoError(t, err)
 
 	var h *gregorHandler
-	h, err = newGregorHandler(tc.G)
-	require.NoError(t, err)
+	h = newGregorHandler(tc.G)
 	h.testingEvents = newTestingEvents()
 
 	h.PushHandler(idhandler)
@@ -364,9 +362,7 @@ func setupSyncTests(t *testing.T, tc libkb.TestContext) (*gregorHandler, mockGre
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
 
 	var h *gregorHandler
-	if h, err = newGregorHandler(tc.G); err != nil {
-		t.Fatal(err)
-	}
+	h = newGregorHandler(tc.G)
 	h.testingEvents = newTestingEvents()
 
 	server := newGregordMock(tc.G.Log)
@@ -497,9 +493,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 	}
 
 	// Create a new gregor handler, this will restore our saved state
-	if h, err = newGregorHandler(tc.G); err != nil {
-		t.Fatal(err)
-	}
+	h = newGregorHandler(tc.G)
 
 	// Sync from the server
 	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
@@ -547,9 +541,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 	}
 
 	// Create a new gregor handler, this will restore our saved state
-	if h, err = newGregorHandler(tc.G); err != nil {
-		t.Fatal(err)
-	}
+	h = newGregorHandler(tc.G)
 
 	// Turn off fresh replay
 	h.freshReplay = false
@@ -777,9 +769,7 @@ func TestBroadcastRepeat(t *testing.T) {
 	}
 
 	var h *gregorHandler
-	if h, err = newGregorHandler(tc.G); err != nil {
-		t.Fatal(err)
-	}
+	h = newGregorHandler(tc.G)
 	h.testingEvents = newTestingEvents()
 
 	m, err := h.templateMessage()

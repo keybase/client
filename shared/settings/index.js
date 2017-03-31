@@ -2,6 +2,7 @@
 import SettingsContainer from './render'
 import {connect} from 'react-redux'
 import {switchTo} from '../actions/route-tree'
+import {logout} from '../actions/login'
 
 import type {RouteProps} from '../route-tree/render-route'
 
@@ -13,6 +14,7 @@ export default connect(
     isModal: routeLeafTags.modal,
   }),
   (dispatch, {routePath}: RouteProps<{}, {}>) => ({
-    onTabChange: tab => { dispatch(switchTo(routePath.push(tab))) },
+    onTabChange: tab => dispatch(switchTo(routePath.push(tab))),
+    onLogout: () => dispatch(logout()),
   })
 )(SettingsContainer)

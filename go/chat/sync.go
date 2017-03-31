@@ -1,8 +1,9 @@
 package chat
 
 import (
-	"context"
+	"encoding/hex"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -11,6 +12,8 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
+	"golang.org/x/net/context"
 )
 
 type Syncer struct {
@@ -20,14 +23,85 @@ type Syncer struct {
 
 	isConnected bool
 	offlinables []types.Offlinable
+
+	notificationLock  sync.Mutex
+	clock             clockwork.Clock
+	sendDelay         time.Duration
+	shutdownCh        chan struct{}
+	fullReloadCh      chan gregor1.UID
+	flushCh           chan struct{}
+	notificationQueue map[string][]chat1.ConversationID
 }
 
 func NewSyncer(g *libkb.GlobalContext) *Syncer {
-	return &Syncer{
-		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "Syncer", false),
-		isConnected:  true,
+	s := &Syncer{
+		Contextified:      libkb.NewContextified(g),
+		DebugLabeler:      utils.NewDebugLabeler(g, "Syncer", false),
+		isConnected:       true,
+		clock:             clockwork.NewRealClock(),
+		shutdownCh:        make(chan struct{}),
+		fullReloadCh:      make(chan gregor1.UID),
+		flushCh:           make(chan struct{}),
+		notificationQueue: make(map[string][]chat1.ConversationID),
+		sendDelay:         time.Millisecond * 1000,
 	}
+
+	go s.sendNotificationLoop()
+	return s
+}
+
+func (s *Syncer) SetClock(clock clockwork.Clock) {
+	s.clock = clock
+}
+
+func (s *Syncer) Shutdown() {
+	s.Debug(context.Background(), "shutting down")
+	close(s.shutdownCh)
+}
+
+func (s *Syncer) dedupConvIDs(convIDs []chat1.ConversationID) (res []chat1.ConversationID) {
+	m := make(map[string]bool)
+	for _, convID := range convIDs {
+		m[convID.String()] = true
+	}
+	for hexConvID := range m {
+		convID, _ := hex.DecodeString(hexConvID)
+		res = append(res, convID)
+	}
+	return res
+}
+
+func (s *Syncer) sendNotificationsOnce() {
+	s.notificationLock.Lock()
+	defer s.notificationLock.Unlock()
+	for uid, convIDs := range s.notificationQueue {
+		convIDs = s.dedupConvIDs(convIDs)
+		s.Debug(context.Background(), "flushing notifications: uid: %s len: %d", uid, len(convIDs))
+		s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), keybase1.UID(uid), convIDs)
+	}
+	s.notificationQueue = make(map[string][]chat1.ConversationID)
+}
+
+func (s *Syncer) sendNotificationLoop() {
+	s.Debug(context.Background(), "starting notification loop")
+	for {
+		select {
+		case <-s.shutdownCh:
+			return
+		case uid := <-s.fullReloadCh:
+			s.notificationLock.Lock()
+			kuid := keybase1.UID(uid.String())
+			s.G().NotifyRouter.HandleChatInboxStale(context.Background(), kuid)
+			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid, nil)
+			s.notificationQueue[uid.String()] = nil
+			s.notificationLock.Unlock()
+		case <-s.clock.After(s.sendDelay):
+			s.sendNotificationsOnce()
+		case <-s.flushCh:
+			s.sendNotificationsOnce()
+		}
+	}
+
 }
 
 func (s *Syncer) getConvIDs(convs []chat1.Conversation) (res []chat1.ConversationID) {
@@ -38,15 +112,19 @@ func (s *Syncer) getConvIDs(convs []chat1.Conversation) (res []chat1.Conversatio
 }
 
 func (s *Syncer) SendChatStaleNotifications(ctx context.Context, uid gregor1.UID,
-	convIDs []chat1.ConversationID) {
-
-	kuid := keybase1.UID(uid.String())
+	convIDs []chat1.ConversationID, immediate bool) {
 	if len(convIDs) == 0 {
 		s.Debug(ctx, "sending inbox stale message")
-		s.G().NotifyRouter.HandleChatInboxStale(context.Background(), kuid)
+		s.fullReloadCh <- uid
+	} else {
+		s.Debug(ctx, "sending threads stale message: len: %d", len(convIDs))
+		s.notificationLock.Lock()
+		s.notificationQueue[uid.String()] = append(s.notificationQueue[uid.String()], convIDs...)
+		s.notificationLock.Unlock()
+		if immediate {
+			s.flushCh <- struct{}{}
+		}
 	}
-	s.Debug(ctx, "sending threads stale message: len: %d", len(convIDs))
-	s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid, convIDs)
 }
 
 func (s *Syncer) isServerInboxClear(ctx context.Context, inbox *storage.Inbox, srvVers int) bool {
@@ -60,9 +138,9 @@ func (s *Syncer) isServerInboxClear(ctx context.Context, inbox *storage.Inbox, s
 
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) (err error) {
 	ctx = CtxAddLogTags(ctx)
-	s.Debug(ctx, "Connected: running")
 	s.Lock()
 	defer s.Unlock()
+	defer s.Trace(ctx, func() error { return err }, "Connected")()
 
 	s.isConnected = true
 
@@ -77,9 +155,9 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 }
 
 func (s *Syncer) Disconnected(ctx context.Context) {
-	s.Debug(ctx, "Disconnected: running")
 	s.Lock()
 	defer s.Unlock()
+	defer s.Trace(ctx, func() error { return nil }, "Disconnected")()
 
 	s.isConnected = false
 
@@ -92,6 +170,7 @@ func (s *Syncer) Disconnected(ctx context.Context) {
 func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) (err error) {
 	s.Lock()
 	defer s.Unlock()
+	defer s.Trace(ctx, func() error { return err }, "Sync")()
 	return s.sync(ctx, cli, uid)
 }
 
@@ -146,7 +225,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.Debug(ctx, "Sync: failed to clear inbox: %s", err.Error())
 		}
 		// Send notifications for a full clear
-		s.SendChatStaleNotifications(ctx, uid, nil)
+		s.SendChatStaleNotifications(ctx, uid, nil, true)
 	case chat1.SyncInboxResType_CURRENT:
 		s.Debug(ctx, "Sync: version is current, standing pat: %v", vers)
 	case chat1.SyncInboxResType_INCREMENTAL:
@@ -158,10 +237,10 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.Debug(ctx, "Sync: failed to sync conversations to inbox: %s", err.Error())
 
 			// Send notifications for a full clear
-			s.SendChatStaleNotifications(ctx, uid, nil)
+			s.SendChatStaleNotifications(ctx, uid, nil, true)
 		} else {
 			// Send notifications for a successful partial sync
-			s.SendChatStaleNotifications(ctx, uid, s.getConvIDs(incr.Convs))
+			s.SendChatStaleNotifications(ctx, uid, s.getConvIDs(incr.Convs), true)
 		}
 	}
 

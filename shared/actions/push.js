@@ -12,7 +12,7 @@ import type {TypedState} from '../constants/reducer'
 
 import type {PushNotification, PushNotificationAction, PushPermissionsPromptAction, PushPermissionsRequestAction, PushPermissionsRequestingAction, PushTokenAction, SavePushTokenAction, TokenType, UpdatePushTokenAction} from '../constants/push'
 
-import {requestPushPermissions, configurePush} from './platform.specific'
+import {requestPushPermissions, configurePush} from './platform-specific'
 
 export function permissionsRequest (): PushPermissionsRequestAction {
   return {type: Constants.permissionsRequest, payload: undefined}

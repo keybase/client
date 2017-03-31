@@ -421,8 +421,6 @@ type HybridInboxSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
 	*baseInboxSource
-
-	syncer *Syncer
 }
 
 func NewHybridInboxSource(g *libkb.GlobalContext,
@@ -433,7 +431,6 @@ func NewHybridInboxSource(g *libkb.GlobalContext,
 		Contextified:    libkb.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g, "HybridInboxSource", false),
 		baseInboxSource: newBaseInboxSource(g, getChatInterface, tlfInfoSource),
-		syncer:          NewSyncer(g),
 	}
 }
 
@@ -574,7 +571,7 @@ func (s *HybridInboxSource) handleInboxError(ctx context.Context, err storage.Er
 	if verr, ok := err.(storage.VersionMismatchError); ok {
 		s.Debug(ctx, "handleInboxError: version mismatch, syncing and sending stale notifications: %s",
 			verr.Error())
-		s.syncer.Sync(ctx, s.getChatInterface(), uid)
+		s.G().Syncer.Sync(ctx, s.getChatInterface(), uid)
 		return nil
 	}
 	return err

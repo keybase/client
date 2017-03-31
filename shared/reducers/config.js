@@ -4,6 +4,7 @@ import type {BootStatus} from '../constants/config'
 import * as CommonConstants from '../constants/common'
 import {isMobile} from '../constants/platform'
 
+import type {Tab} from '../constants/tabs'
 import type {Action} from '../constants/types/flux'
 import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/types/flow-types'
 
@@ -23,6 +24,7 @@ export type ConfigState = {
   status: ?GetCurrentStatusRes,
   uid: ?string,
   username: ?string,
+  initialTab: ?Tab,
 }
 
 // Mobile is ready for bootstrap automatically, desktop needs to wait for
@@ -45,6 +47,7 @@ const initialState: ConfigState = {
   status: null,
   uid: null,
   username: null,
+  initialTab: null,
 }
 
 export default function (state: ConfigState = initialState, action: Action): ConfigState {
@@ -177,6 +180,13 @@ export default function (state: ConfigState = initialState, action: Action): Con
       return {
         ...state,
         daemonError: error,
+      }
+    }
+
+    case 'config:setInitialTab': {
+      return {
+        ...state,
+        initialTab: action.payload.tab,
       }
     }
 

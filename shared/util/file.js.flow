@@ -5,11 +5,16 @@ declare function tmpFile (suffix: string): string;
 declare function downloadFilePath (filename: string): string;
 declare function copy (from: string, to: string): void;
 declare function exists (filename: string): Promise<boolean>;
+declare function writeFile (filepath: string, contents: string, encoding?: string): Promise<void>;
+
+declare var cachesDirectoryPath: string
 
 export {
+  cachesDirectoryPath,
   copy,
   exists,
   downloadFilePath,
   tmpDir,
   tmpFile,
+  writeFile,
 }

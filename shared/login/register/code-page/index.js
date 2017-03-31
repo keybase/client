@@ -8,19 +8,9 @@ import RenderCodePage from './index.render'
 import type {Props} from './index.render'
 import {connect} from 'react-redux'
 
-type State = {
-  enterText: string,
-}
-
-class CodePage extends Component<void, Props, State> {
-  state: State;
-
-  constructor (props: Props) {
-    super(props)
-
-    this.state = {
-      enterText: '',
-    }
+class CodePage extends Component<void, Props, {enterText: string}> {
+  state = {
+    enterText: '',
   }
 
   render () {

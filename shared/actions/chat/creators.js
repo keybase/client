@@ -133,7 +133,7 @@ function loadMoreMessages (conversationIDKey: Constants.ConversationIDKey, onlyI
   return {payload: {conversationIDKey, onlyIfUnloaded}, type: 'chat:loadMoreMessages'}
 }
 
-function showEditor (message: Constants.Message): Constants.ShowEditor {
+function showEditor (message: ?Constants.Message): Constants.ShowEditor {
   return {payload: {message}, type: 'chat:showEditor'}
 }
 
@@ -329,6 +329,10 @@ function openAttachmentPopup (message: Constants.AttachmentMessage): Constants.O
   return {payload: {message}, type: 'chat:openAttachmentPopup'}
 }
 
+function setInitialConversation (conversationIDKey: ?Constants.ConversationIDKey): Constants.SetInitialConversation {
+  return {payload: {conversationIDKey}, type: 'chat:setInitialConversation'}
+}
+
 function threadLoadedOffline (conversationIDKey: Constants.ConversationIDKey): Constants.ThreadLoadedOffline {
   return {payload: {conversationIDKey}, type: 'chat:threadLoadedOffline'}
 }
@@ -380,6 +384,7 @@ export {
   retryMessage,
   selectAttachment,
   selectConversation,
+  setInitialConversation,
   setLoaded,
   setUnboxing,
   setupChatHandlers,

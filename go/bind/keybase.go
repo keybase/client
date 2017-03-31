@@ -70,7 +70,10 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	}
 
 	svc := service.NewService(kbCtx, false)
-	svc.StartLoopbackServer()
+	err = svc.StartLoopbackServer()
+	if err != nil {
+		return err
+	}
 	kbCtx.SetService()
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
@@ -86,16 +89,14 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		Logs:         logs,
 	}
 
-	// FIXME (MBG): This is causing RPC responses to sometimes not be recieved
-	// on iOS. Repro by hooking up getExtendedStatus to a button in the iOS
-	// client and watching JS logs. Disabling until we have a root cause / fix.
-	kbfsParams := libkbfs.DefaultInitParams(kbCtx)
-	// Avoid lots of background routines.
-	kbfsParams.Mode = libkbfs.InitMinimalString
-	kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, serviceCn{}, func() {}, kbCtx.Log)
-	if err != nil {
-		return err
-	}
+	go func() {
+		kbfsParams := libkbfs.DefaultInitParams(kbCtx)
+		// Setting this flag will enable KBFS debug logging to alway be
+		// true in a mobile setting. Kill this setting if too spammy.
+		kbfsParams.Debug = true
+		kbfsParams.Mode = libkbfs.InitMinimalString
+		kbfsConfig, _ = libkbfs.Init(kbCtx, kbfsParams, serviceCn{}, func() {}, kbCtx.Log)
+	}()
 
 	return Reset()
 }

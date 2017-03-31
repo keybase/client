@@ -20,9 +20,9 @@ class GlobalError extends Component<void, Props, State> {
     super(props)
 
     this.state = {
-      size: 'Closed',
-      cachedSummary: this._summaryForError(props.error),
       cachedDetails: this._detailsForError(props.error),
+      cachedSummary: this._summaryForError(props.error),
+      size: 'Closed',
     }
   }
 
@@ -52,7 +52,7 @@ class GlobalError extends Component<void, Props, State> {
   }
 
   _summaryForError (err: ?Error): ?string {
-    return err ? err.message : null
+    return err ? err.message && err.message.substring(0, 40) : null
   }
 
   _detailsForError (err: ?Error): ?string {
@@ -63,8 +63,8 @@ class GlobalError extends Component<void, Props, State> {
     if (nextProps.error !== this.props.error) {
       this.props.setTimeout(() => {
         this.setState({
-          cachedSummary: this._summaryForError(nextProps.error),
           cachedDetails: this._detailsForError(nextProps.error),
+          cachedSummary: this._summaryForError(nextProps.error),
         })
       }, nextProps.error ? 0 : 3000) // if its set, do it immediately, if its cleared set it in a bit
       this._resetError(!!nextProps.error)
@@ -73,9 +73,9 @@ class GlobalError extends Component<void, Props, State> {
 
   static maxHeightForSize (size: Size) {
     return {
+      'Big': 500,
       'Closed': 0,
       'Small': 35 + 20,
-      'Big': 500,
     }[size]
   }
 
@@ -89,9 +89,9 @@ class GlobalError extends Component<void, Props, State> {
       <Box style={{...containerStyle, maxHeight}}>
         <NativeTouchableWithoutFeedback onPress={this._onExpandClick}>
           <Box style={summaryRowStyle}>
-            {summary && <Icon type='iconfont-exclamation' style={{color: globalColors.white, marginRight: 8}} />}
-            <Text type='BodySmall' style={{color: globalColors.white, textAlign: 'center'}}>{summary}</Text>
-            {summary && <Icon type='iconfont-close' onClick={onDismiss} style={{position: 'absolute', right: 8, color: globalColors.white_75, top: 20}} />}
+            {summary && <Icon type='iconfont-exclamation' style={{color: globalColors.white, marginRight: globalMargins.tiny}} />}
+            <Text type='BodySmall' style={{color: globalColors.white, flex: 1, textAlign: 'center'}}>{summary}</Text>
+            {summary && <Icon type='iconfont-close' onClick={onDismiss} style={{color: globalColors.white_75, marginLeft: globalMargins.tiny}} />}
           </Box>
         </NativeTouchableWithoutFeedback>
         <NativeScrollView>
@@ -104,30 +104,30 @@ class GlobalError extends Component<void, Props, State> {
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.black_75,
+  left: 0,
   overflow: 'hidden',
   position: 'absolute',
-  top: 0,
-  left: 0,
   right: 0,
-  backgroundColor: globalColors.black_75,
+  top: 0,
 }
 
 const summaryRowStyle = {
   ...globalStyles.flexBoxRow,
-  justifyContent: 'center',
+  alignItems: 'flex-start',
+  justifyContent: 'flex-start',
   minHeight: GlobalError.maxHeightForSize('Small'),
-  padding: 8,
-  alignItems: 'center',
-  position: 'relative',
+  padding: globalMargins.tiny,
+  paddingTop: globalMargins.medium,
 }
 
 const detailStyle = {
   ...globalStyles.selectable,
   color: globalColors.white_75,
-  padding: 8,
-  textAlign: 'center',
-  paddingLeft: globalMargins.xlarge,
-  paddingRight: globalMargins.xlarge,
+  fontSize: 10,
+  lineHeight: 12,
+  padding: globalMargins.xtiny,
+  paddingTop: globalMargins.tiny,
 }
 
 export default HOCTimers(GlobalError)

@@ -1,20 +1,23 @@
 // @flow
+import {isMobile} from './platform'
+
+const chatTab = 'tabs:chatTab'
+const devicesTab = 'tabs:devicesTab'
+const folderTab = 'tabs:folderTab'
+const loginTab = 'tabs:loginTab'
+const peopleTab = 'tabs:peopleTab'
+const profileTab = 'tabs:profileTab'
+const searchTab = 'tabs:searchTab'
+const settingsTab = 'tabs:settingsTab'
+
 type ChatTab = 'tabs:chatTab'
-export const chatTab = 'tabs:chatTab'
-type LoginTab = 'tabs:loginTab'
-export const loginTab = 'tabs:loginTab'
-type ProfileTab = 'tabs:profileTab'
-export const profileTab = 'tabs:profileTab'
-type PeopleTab = 'tabs:peopleTab'
-export const peopleTab = 'tabs:peopleTab'
 type DevicesTab = 'tabs:devicesTab'
-export const devicesTab = 'tabs:devicesTab'
 type FolderTab = 'tabs:folderTab'
-export const folderTab = 'tabs:folderTab'
+type LoginTab = 'tabs:loginTab'
+type PeopleTab = 'tabs:peopleTab'
+type ProfileTab = 'tabs:profileTab'
 type SearchTab = 'tabs:searchTab'
-export const searchTab = 'tabs:searchTab'
 type SettingsTab = 'tabs:settingsTab'
-export const settingsTab = 'tabs:settingsTab'
 
 export type Tab = ChatTab
 | DevicesTab
@@ -24,3 +27,23 @@ export type Tab = ChatTab
 | ProfileTab
 | SettingsTab
 | SearchTab
+
+function isValidInitialTab (tab: ?Tab) {
+  if (isMobile) {
+    return [chatTab, folderTab, profileTab, searchTab, settingsTab].includes(tab)
+  } else {
+    return [chatTab, folderTab, profileTab, devicesTab, searchTab, settingsTab].includes(tab)
+  }
+}
+
+export {
+  chatTab,
+  devicesTab,
+  folderTab,
+  isValidInitialTab,
+  loginTab,
+  peopleTab,
+  profileTab,
+  searchTab,
+  settingsTab,
+}

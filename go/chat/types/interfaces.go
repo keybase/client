@@ -82,3 +82,13 @@ type ServerCacheVersions interface {
 	MatchInbox(ctx context.Context, vers int) (int, error)
 	Fetch(ctx context.Context) (chat1.ServerCacheVers, error)
 }
+
+type Syncer interface {
+	Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) error
+	Disconnected(ctx context.Context)
+	Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) error
+	RegisterOfflinable(offlinable Offlinable)
+	SendChatStaleNotifications(ctx context.Context, uid gregor1.UID, convIDs []chat1.ConversationID,
+		immediate bool)
+	Shutdown()
+}

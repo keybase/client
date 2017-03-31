@@ -17,7 +17,11 @@ class Push extends Component<void, Props, void> {
       console.log('Skipping push config due to simulator')
       return
     }
-    this.props.configurePush()
+
+    if (!global.pushLoaded) {
+      global.pushLoaded = true
+      this.props.configurePush()
+    }
   }
 
   render () {

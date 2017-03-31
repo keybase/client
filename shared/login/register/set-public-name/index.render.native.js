@@ -44,10 +44,13 @@ const stylesBox = {
 
 const stylesContainer = {
   alignItems: 'center',
+  justifyContent: 'center',
+  marginLeft: globalMargins.small,
+  marginRight: globalMargins.small,
 }
 
 const stylesHeader = {
-  marginTop: globalMargins.small,
+  marginTop: globalMargins.tiny,
 }
 
 const stylesButton = {
@@ -56,14 +59,14 @@ const stylesButton = {
 }
 
 const stylesInput = {
-  marginTop: 20,
-  marginBottom: 20,
+  marginTop: globalMargins.tiny,
+  marginBottom: globalMargins.tiny,
   alignSelf: 'stretch',
 }
 
 const stylesIcon = {
-  marginTop: globalMargins.small,
-  marginBottom: globalMargins.small,
+  marginTop: globalMargins.tiny,
+  marginBottom: globalMargins.tiny,
 }
 
 export default SetPublicName

@@ -3,7 +3,7 @@ import {Component} from 'react'
 
 export type Props = {
   size?: number,
-  children?: Array<string>,
+  emojiName: string,
 }
 
 declare function backgroundImageFn (set: string, sheetSize: string): string

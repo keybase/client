@@ -169,6 +169,9 @@ function * editMessage (action: Constants.EditMessage): SagaGenerator<any, any> 
     }
   }
 
+  // Not editing anymore
+  yield put(Creators.showEditor(null))
+
   yield call(ChatTypes.localPostEditNonblockRpcPromise, {
     param: {
       body: action.payload.text.stringValue(),

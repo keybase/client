@@ -1,10 +1,11 @@
 // @flow
 import React, {Component} from 'react'
-import {Box} from '../common-adapters'
+import {Box, HeaderHoc} from '../common-adapters/index'
 import SearchBar from './user-search/search-bar'
 import UserGroup from './user-search/user-group'
 import UserSearch from './user-search/render'
 import {globalStyles} from '../styles'
+import {compose, withProps} from 'recompose'
 
 import type {Props} from '.'
 import type {Props as UserSearchProps} from './user-search/render'
@@ -28,4 +29,12 @@ class SearchRender extends Component<void, Props, void> {
   }
 }
 
-export default SearchRender
+export default compose(
+  withProps(ownProps => ({
+    headerStyle: {
+      borderBottomWidth: 0,
+    },
+    onCancel: ownProps.onReset,
+  })),
+  HeaderHoc,
+)(SearchRender)

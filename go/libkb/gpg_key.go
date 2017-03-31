@@ -121,6 +121,6 @@ func (g *GPGKey) Encode() (string, error) {
 	return "", errors.New("Encode not implemented")
 }
 
-func (g *GPGKey) SecretSymmetricKey(reason EncryptionReason) ([]byte, error) {
-	return nil, KeyCannotEncryptError{}
+func (g *GPGKey) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBoxKey, error) {
+	return NaclSecretBoxKey{}, KeyCannotEncryptError{}
 }

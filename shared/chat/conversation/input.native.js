@@ -103,7 +103,7 @@ class ConversationInput extends Component<void, Props, State> {
       ? (
         <ClickableBox feedback={false} onClick={this._onSubmit}>
           <Box style={{padding: globalMargins.small}}>
-            <Text type='BodyBigLink'>Send</Text>
+            <Text type='BodyBigLink'>{this.props.editingMessage ? 'Save' : 'Send'}</Text>
           </Box>
         </ClickableBox>
         )
@@ -113,7 +113,7 @@ class ConversationInput extends Component<void, Props, State> {
       <Box style={styleContainer}>
         <Input
           autoCorrect={true}
-          autoFocus={true}
+          autoFocus={false}
           hideUnderline={true}
           hintText='Write a message'
           inputStyle={styleInputText}
@@ -143,7 +143,7 @@ const styleContainer = {
   alignItems: 'center',
   borderTopColor: globalColors.black_05,
   borderTopWidth: 1,
-  height: 48,
+  minHeight: 48,
 }
 
 const styleInput = {

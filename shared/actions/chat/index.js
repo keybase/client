@@ -14,7 +14,6 @@ import {NotifyPopup} from '../../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {badgeApp} from '../notifications'
 import {call, put, take, select, race, fork, join} from 'redux-saga/effects'
-import {changedFocus} from '../../constants/window'
 import {delay} from 'redux-saga'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, switchTo} from '../route-tree'
@@ -23,14 +22,14 @@ import {parseFolderNameToUsers} from '../../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../../constants/config'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from '../search'
 import {searchTab, chatTab} from '../../constants/tabs'
-import {showMainWindow} from '../platform.specific'
+import {showMainWindow} from '../platform-specific'
 import {some} from 'lodash'
 import {tmpFile} from '../../util/file'
 import {toDeviceType} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 
 import type {Action} from '../../constants/types/flux'
-import type {ChangedFocus} from '../../constants/window'
+import type {ChangedFocus} from '../../constants/app'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
 import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
@@ -375,10 +374,12 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
       incoming.chatThreadFull.response.result()
       yield call(updateThread, incoming.chatThreadFull.params.thread)
     } else if (incoming.finished) {
+      yield put(Creators.loadingMessages(conversationIDKey, false))
+
       if (incoming.finished.params.offline) {
         yield put(Creators.threadLoadedOffline(conversationIDKey))
       }
-      yield put(Creators.setLoaded(conversationIDKey, !!incoming.finished.error)) // reset isLoaded on error
+      yield put(Creators.setLoaded(conversationIDKey, !incoming.finished.error)) // reset isLoaded on error
       break
     }
   }
@@ -745,12 +746,12 @@ function * _updateBadging (action: Constants.UpdateBadging): SagaGenerator<any, 
 
 function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
   // Update badging and the latest message due to the refocus.
-  const appFocused = action.payload
+  const {focused} = action.payload
   const conversationIDKey = yield select(Constants.getSelectedConversation)
   const selectedTab = yield select(Shared.routeSelector)
   const chatTabSelected = (selectedTab === chatTab)
 
-  if (conversationIDKey && appFocused && chatTabSelected) {
+  if (conversationIDKey && focused && chatTabSelected) {
     yield put(Creators.updateBadging(conversationIDKey))
     yield put(Creators.updateLatestMessage(conversationIDKey))
   }
@@ -768,7 +769,9 @@ function * _badgeAppForChat (action: Constants.BadgeAppForChat): SagaGenerator<a
     const unread = conv.get('UnreadMessages') > 0
     const selected = (Constants.conversationIDToKey(conv.get('convID')) === selectedConversationIDKey)
     const addThisConv = (unread && (!selected || !windowFocused))
-    return addThisConv ? acc + 1 : acc
+    // Desktop shows number of thread unread. Mobile shows number of messages unread
+    const toAdd = isMobile ? conv.get('UnreadMessages') : 1
+    return addThisConv ? acc + toAdd : acc
   }, 0)
   yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
 
@@ -869,7 +872,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     Saga.safeTakeEvery('chat:openAttachmentPopup', Attachment.onOpenAttachmentPopup),
     Saga.safeTakeLatest('chat:openFolder', _openFolder),
     Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat),
-    Saga.safeTakeEvery(changedFocus, _changedFocus),
+    Saga.safeTakeEvery('app:changedFocus', _changedFocus),
     Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage),
     Saga.safeTakeEvery('chat:openTlfInChat', _openTlfInChat),
     Saga.safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false),
@@ -886,5 +889,6 @@ export {
   openTlfInChat,
   setupChatHandlers,
   startConversation,
+  setInitialConversation,
   untrustedInboxVisible,
 } from './creators'

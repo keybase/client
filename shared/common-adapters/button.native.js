@@ -60,9 +60,8 @@ class Button extends Component<void, Props, void> {
     return (
       <ClickableBox
         onClick={onPress}
-        underlayColor={style.backgroundColor}
-        style={{...style, ...this.props.style}}>
-        <Box style={{alignItems: 'center', justifyContent: 'center'}}>
+        underlayColor={style.backgroundColor}>
+        <Box style={{...style, ...this.props.style, alignItems: 'center', justifyContent: 'center'}}>
           <Text type={this.props.small ? 'BodySemibold' : 'BodyBig'} style={{...labelStyle, ...this.props.labelStyle}}>{this.props.label}</Text>
           {this.props.waiting && <Progress />}
         </Box>

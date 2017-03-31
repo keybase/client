@@ -9,10 +9,11 @@ import (
 )
 
 type PaperProvisionArg struct {
-	SessionID  int    `codec:"sessionID" json:"sessionID"`
-	Username   string `codec:"username" json:"username"`
-	DeviceName string `codec:"deviceName" json:"deviceName"`
-	PaperKey   string `codec:"paperKey" json:"paperKey"`
+	SessionID    int    `codec:"sessionID" json:"sessionID"`
+	Username     string `codec:"username" json:"username"`
+	DeviceName   string `codec:"deviceName" json:"deviceName"`
+	PaperKey     string `codec:"paperKey" json:"paperKey"`
+	KeepPaperKey bool   `codec:"keepPaperKey" json:"keepPaperKey"`
 }
 
 type PaperprovisionInterface interface {

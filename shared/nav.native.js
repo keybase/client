@@ -51,7 +51,7 @@ class CardStackShim extends Component {
         routes: stack.map(route => {
           const routeName = route.path.join('/')
           return {key: routeName, routeName, params: route}
-        }),
+        }).toArray(),
       },
       dispatch: this._dispatchShim,
     }
@@ -99,7 +99,7 @@ function MainNavStack (props: Props) {
           onNavigateBack={props.navigateUp}
         />
         {layerScreens.map(r => r.leafComponent)}
-        {![chatTab, loginTab].includes(props.routeSelected) && <Offline reachability={props.reachability} />}
+        {![chatTab].includes(props.routeSelected) && <Offline reachability={props.reachability} />}
         <GlobalError />
       </Box>
       {!props.hideNav &&

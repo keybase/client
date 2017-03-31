@@ -11,7 +11,7 @@ import React, {Component} from 'react'
 import {Box, Button, ClickableBox, Icon, Input, NativeStyleSheet, TabBar, Text} from '../../../common-adapters/index.native'
 import {TabBarItem} from '../../../common-adapters/tab-bar'
 import {codePageDeviceRoleExistingPhone, codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
-import {globalStyles, globalColors} from '../../../styles'
+import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 import type {IconType} from '../../../common-adapters/icon'
 import type {Mode} from '../../../constants/login'
@@ -69,7 +69,7 @@ class CodePageRender extends Component<void, Props, void> {
           value={this.props.enterText}
           onChangeText={text => this.props.onChangeText(text)}
         />
-        <Button type='Primary' style={{marginTop: 10, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
+        <Button type='Primary' disabled={!this.props.enterText} style={{marginTop: 10, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
       </Box>
     )
   }
@@ -234,9 +234,8 @@ const stylesContainer = {
 }
 
 const stylesIntro = {
-  marginTop: 30,
   alignItems: 'center',
-  marginBottom: 20,
+  marginBottom: globalMargins.tiny,
 }
 
 const stylesEnterText = {

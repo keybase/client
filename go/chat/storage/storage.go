@@ -332,12 +332,14 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 				return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
 			}
 			maxID = pid - 1
+			s.Debug(ctx, "Fetch: next pagination: pid: %d", pid)
 		} else {
 			if derr := decode(pagination.Previous, &pid); derr != nil {
 				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
 				return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
 			}
 			maxID = chat1.MessageID(int(pid) + num)
+			s.Debug(ctx, "Fetch: prev pagination: pid: %d", pid)
 		}
 	}
 	s.Debug(ctx, "Fetch: maxID: %d num: %d", maxID, num)

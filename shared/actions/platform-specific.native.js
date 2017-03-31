@@ -1,10 +1,15 @@
 // @flow
 import * as PushNotifications from 'react-native-push-notification'
-import {PushNotificationIOS, CameraRoll, ActionSheetIOS} from 'react-native'
+import {PushNotificationIOS, CameraRoll, ActionSheetIOS, AsyncStorage} from 'react-native'
 import * as PushConstants from '../constants/push'
 import {eventChannel} from 'redux-saga'
 import {isIOS} from '../constants/platform'
 import {isDevApplePushToken} from '../local-debug'
+import {chatTab} from '../constants/tabs'
+import {setInitialTab} from './config'
+import {setInitialConversation} from './chat'
+
+import type {AsyncAction} from '../constants/types/flux'
 
 function requestPushPermissions (): Promise<*> {
   return PushNotifications.requestPermissions()
@@ -117,7 +122,49 @@ function configurePush () {
   })
 }
 
+function persistRouteState (): AsyncAction {
+  return (dispatch, getState) => {
+    const routeState = getState().routeTree.routeState
+    const toWrite = {}
+
+    const selectedTab = routeState.selected
+    if (selectedTab) {
+      toWrite.tab = selectedTab
+    }
+
+    if (selectedTab === chatTab) {
+      const tab = routeState.children.get(chatTab)
+      if (tab && tab.selected) {
+        toWrite.selectedConversationIDKey = tab.selected
+      }
+    }
+
+    AsyncStorage.setItem('routeState', JSON.stringify(toWrite))
+  }
+}
+
+function loadRouteState (): AsyncAction {
+  return (dispatch, getState) => {
+    AsyncStorage.getItem('routeState', (err, s) => {
+      if (!err && s) {
+        try {
+          const item = JSON.parse(s)
+          if (item.tab) {
+            dispatch(setInitialTab(item.tab))
+          }
+
+          if (item.selectedConversationIDKey) {
+            dispatch(setInitialConversation(item.selectedConversationIDKey))
+          }
+        } catch (_) { }
+      }
+    })
+  }
+}
+
 export {
+  loadRouteState,
+  persistRouteState,
   requestPushPermissions,
   showMainWindow,
   configurePush,

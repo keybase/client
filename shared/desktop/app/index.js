@@ -13,21 +13,24 @@ import windowHelper from './window-helper'
 import {BrowserWindow, app, ipcMain, dialog} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {setupTarget} from '../../util/forward-logs'
+import {allowMultipleInstances} from '../../local-debug.desktop'
 
 let mainWindow = null
 
 function start () {
-  // Only one app per app in osx...
-  const shouldQuit = app.makeSingleInstance(() => {
-    if (mainWindow) {
-      mainWindow.show(true)
-    }
-  })
+  if (!allowMultipleInstances) {
+    // Only one app per app in osx...
+    const shouldQuit = app.makeSingleInstance(() => {
+      if (mainWindow) {
+        mainWindow.show(true)
+      }
+    })
 
-  if (shouldQuit) {
-    console.log('Only one instance of keybase GUI allowed, bailing!')
-    app.quit()
-    return
+    if (shouldQuit) {
+      console.log('Only one instance of keybase GUI allowed, bailing!')
+      app.quit()
+      return
+    }
   }
 
   // Check supported OS version
