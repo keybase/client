@@ -25,42 +25,35 @@ const getSelectedInbox = (state: TypedState, selectedConversation: ?Constants.Co
   state.chat.get('inbox').find(inbox => inbox.get('conversationIDKey') === selectedConversation)
 )
 
-const getParticipants = createSelector(
+const getTLF = createSelector(
   [getSelectedInbox, getSelectedConversation],
   (selectedInbox, selectedConversation) => {
     if (Constants.isPendingConversationIDKey(selectedConversation)) {
-      const tlfName = Constants.pendingConversationIDKeyToTlfName(selectedConversation)
-      if (tlfName) {
-        return List(tlfName.split(','))
-      }
-    } else if (selectedConversation !== Constants.nothingSelected) {
-      if (selectedInbox) {
-        return selectedInbox.participants || List()
-      }
+      return Constants.pendingConversationIDKeyToTlfName(selectedConversation) || ''
+    } else if (selectedConversation !== Constants.nothingSelected && selectedInbox) {
+      return selectedInbox.participants.join(',')
     }
-    return List()
+    return ''
   }
 )
 
 const getUsers = createSelector(
-  [getYou, getParticipants, getFollowingMap, getMetaDataMap],
-  (you, participants, followingMap, metaDataMap) => {
-    return Constants.usernamesToUserListItem(Constants.participantFilter(participants, you).toArray(), you, metaDataMap, followingMap)
-  }
+  [getYou, getTLF, getFollowingMap, getMetaDataMap],
+  (you, tlf, followingMap, metaDataMap) => (
+    Constants.usernamesToUserListItem(Constants.participantFilter(List(tlf.split(',')), you).toArray(), you, metaDataMap, followingMap)
+  )
 )
 
 const getMuted = createSelector(
   [getSelectedInbox],
-  (selectedInbox) => selectedInbox && selectedInbox.get('status') === 'muted'
+  (selectedInbox) => selectedInbox && selectedInbox.get('status') === 'muted',
 )
 
-const mapStateToProps = (state: TypedState, {selectedConversation, sidePanelOpen}: OwnProps) => {
-  return {
-    muted: getMuted(state, selectedConversation),
-    sidePanelOpen,
-    users: getUsers(state, selectedConversation),
-  }
-}
+const mapStateToProps = (state: TypedState, {selectedConversation, sidePanelOpen}: OwnProps) => ({
+  muted: getMuted(state, selectedConversation),
+  sidePanelOpen,
+  users: getUsers(state, selectedConversation),
+})
 
 const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleSidePanel}: OwnProps) => ({
   onBack,
