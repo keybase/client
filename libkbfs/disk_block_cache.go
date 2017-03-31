@@ -409,9 +409,6 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	select {
 	case <-cache.startedCh:
-	case <-cache.shutdownCh:
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
-			errors.WithStack(DiskCacheClosedError{"Get"})
 	default:
 		// If the cache hasn't started yet, pretend like no blocks exist.
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
@@ -419,6 +416,13 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	}
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
+	// shutdownCh has to be checked under lock, otherwise we can race.
+	select {
+	case <-cache.shutdownCh:
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+			DiskCacheClosedError{"Get"}
+	default:
+	}
 	if cache.blockDb == nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
 			errors.WithStack(DiskCacheClosedError{"Get"})
@@ -446,14 +450,18 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	select {
 	case <-cache.startedCh:
-	case <-cache.shutdownCh:
-		return errors.WithStack(DiskCacheClosedError{"Put"})
 	default:
 		// If the cache hasn't started yet, return an error.
 		return DiskCacheStartingError{"Put"}
 	}
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
+	// shutdownCh has to be checked under lock, otherwise we can race.
+	select {
+	case <-cache.shutdownCh:
+		return DiskCacheClosedError{"Put"}
+	default:
+	}
 	if cache.blockDb == nil {
 		return errors.WithStack(DiskCacheClosedError{"Put"})
 	}
@@ -540,8 +548,6 @@ func (cache *DiskBlockCacheStandard) UpdateLRUTime(ctx context.Context,
 	blockID kbfsblock.ID) (err error) {
 	select {
 	case <-cache.startedCh:
-	case <-cache.shutdownCh:
-		return errors.WithStack(DiskCacheClosedError{"UpdateLRUTime"})
 	default:
 		// If the cache hasn't started yet, return an error.
 		return DiskCacheStartingError{"UpdateLRUTime"}
@@ -554,6 +560,12 @@ func (cache *DiskBlockCacheStandard) UpdateLRUTime(ctx context.Context,
 	// Only obtain a read lock because this happens on Get, not on Put.
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
+	// shutdownCh has to be checked under lock, otherwise we can race.
+	select {
+	case <-cache.shutdownCh:
+		return DiskCacheClosedError{"UpdateLRUTime"}
+	default:
+	}
 	md, err = cache.getMetadata(blockID)
 	if err != nil {
 		return NoSuchBlockError{blockID}
@@ -566,14 +578,18 @@ func (cache *DiskBlockCacheStandard) UpdateLRUTime(ctx context.Context,
 func (cache *DiskBlockCacheStandard) Size() int64 {
 	select {
 	case <-cache.startedCh:
-	case <-cache.shutdownCh:
-		return 0
 	default:
 		// If the cache hasn't started yet, return 0.
 		return 0
 	}
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
+	// shutdownCh has to be checked under lock, otherwise we can race.
+	select {
+	case <-cache.shutdownCh:
+		return 0
+	default:
+	}
 	return int64(cache.currBytes)
 }
 
@@ -641,14 +657,18 @@ func (cache *DiskBlockCacheStandard) Delete(ctx context.Context,
 	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
 	select {
 	case <-cache.startedCh:
-	case <-cache.shutdownCh:
-		return 0, 0, errors.WithStack(DiskCacheClosedError{"UpdateLRUTime"})
 	default:
 		// If the cache hasn't started yet, return an error.
 		return 0, 0, DiskCacheStartingError{"Delete"}
 	}
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
+	// shutdownCh has to be checked under lock, otherwise we can race.
+	select {
+	case <-cache.shutdownCh:
+		return 0, 0, DiskCacheClosedError{"Delete"}
+	default:
+	}
 	if cache.blockDb == nil {
 		return 0, 0, errors.WithStack(DiskCacheClosedError{"Delete"})
 	}
@@ -787,14 +807,18 @@ func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
 	select {
 	case <-cache.startedCh:
 	case <-cache.startErrCh:
-	case <-cache.shutdownCh:
-		cache.log.CWarningf(ctx, "Shutdown called more than once")
 		return
 	}
 	// Receive from the compactCh sentinel to wait for pending compactions.
 	<-cache.compactCh
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
+	// shutdownCh has to be checked under lock, otherwise we can race.
+	select {
+	case <-cache.shutdownCh:
+		cache.log.CWarningf(ctx, "Shutdown called more than once")
+	default:
+	}
 	close(cache.shutdownCh)
 	if cache.blockDb == nil {
 		return
