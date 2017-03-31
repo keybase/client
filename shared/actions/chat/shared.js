@@ -1,8 +1,7 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
-import {findLast} from 'lodash'
-import {List, Map} from 'immutable'
+import {List, Map, Seq} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {unboxConversations} from './inbox'
@@ -181,12 +180,12 @@ function _isTimestampableMessage (message: Constants.Message): boolean {
   return (!!message && !!message.timestamp && !['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type))
 }
 
-function _previousTimestampableMessage (messages: List<Constants.Message>, prevIndex: number): ?Constants.Message {
-  return findLast(messages.toArray(), message => _isTimestampableMessage(message) ? message : null, prevIndex)
+function _previousTimestampableMessage (messages: List<Constants.Message>): ?Constants.Message {
+  return Seq(messages).findLast(message => _isTimestampableMessage(message) ? message : null)
 }
 
-function maybeAddTimestamp (_message: Constants.Message, messages: List<Constants.Message>, prevIndex: number): Constants.MaybeTimestamp {
-  const prevMessage = _previousTimestampableMessage(messages, prevIndex)
+function maybeAddTimestamp (_message: Constants.Message, messages: List<Constants.Message>): Constants.MaybeTimestamp {
+  const prevMessage = _previousTimestampableMessage(messages)
   const message = _filterTimestampableMessage(_message)
   if (!message || !prevMessage) return null
 

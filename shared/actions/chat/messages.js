@@ -127,7 +127,7 @@ function * postMessage (action: Constants.PostMessage): SagaGenerator<any, any> 
     const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
     let messages = []
     if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
-      const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages, conversationState.messages.size - 1)
+      const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages)
       if (timestamp !== null) {
         messages.push(timestamp)
       }
