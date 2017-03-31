@@ -162,6 +162,8 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
     }, messageID))
   })
 
+
+  // We will not receive the placeholder message before we respond to this RPC
   uploadStart.response.result()
 
   const finishedTask = yield fork(function * () {
