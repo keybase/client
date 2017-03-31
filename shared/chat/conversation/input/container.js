@@ -42,8 +42,16 @@ const mapDispatchToProps = (dispatch: Dispatch, {onStoreInputText, onAttach, onE
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withState('emojiPickerOpen', 'setEmojiPickerOpen', false),
-  withHandlers({
-    toggleEmojiPicker: ({emojiPickerOpen, setEmojiPickerOpen}) => () => setEmojiPickerOpen(!emojiPickerOpen),
-  }),
+  withState('text', 'setText', props => props.defaultState || ''),
+  withHandlers(
+    props => {
+      let input
+      return {
+        inputFocus: props => () => input && input.focus(),
+        inputSelections: props => () => input && input.selections() || {},
+        inputSetRef: props => i => { input = i },
+        inputValue: props => () => input && input.getValue() || '',
+      }
+    }
+  ),
 )(Input)

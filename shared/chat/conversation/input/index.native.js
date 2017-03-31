@@ -9,71 +9,42 @@ import {isIOS} from '../../../constants/platform'
 import type {AttachmentInput} from '../../../constants/chat'
 import type {Props} from '.'
 
-type State = {
-  text: string,
-}
-
-class ConversationInput extends Component<void, Props, State> {
-  _input: any;
-  _fileInput: any;
-  state: State;
-
-  _setRef = r => {
-    this._input = r
-  }
-
-  constructor (props: Props) {
-    super(props)
-    this.state = {text: this.props.defaultText}
-  }
-
+class ConversationInput extends Component<void, Props, void> {
   componentDidUpdate (prevProps: Props) {
     if (!this.props.isLoading && prevProps.isLoading) {
-      this.focusInput()
+      this.props.inputFocus()
     }
   }
 
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.editingMessage !== nextProps.editingMessage) {
       if (nextProps.editingMessage && nextProps.editingMessage.type === 'Text') {
-        this.setState({text: nextProps.editingMessage.message.stringValue()})
-        this.focusInput()
+        this.props.setText(nextProps.editingMessage.message.stringValue())
+        this.props.inputFocus()
       }
     }
   }
 
   componentWillUnmount () {
-    this.props.onStoreInputText(this.getValue())
-  }
-
-  focusInput = () => {
-    this._input && this._input.focus()
-  }
-
-  getValue () {
-    return this._input ? this._input.getValue() : ''
+    this.props.onStoreInputText(this.props.inputValue())
   }
 
   _onBlur = () => {
     if (this.props.editingMessage) {
       this.props.onShowEditor(null)
-      this.setState({text: ''})
+      this.props.setText('')
     }
   }
 
   _onSubmit = () => {
-    if (this.state.text) {
+    if (this.props.text) {
       if (this.props.editingMessage) {
-        this.props.onEditMessage(this.props.editingMessage, this.state.text)
+        this.props.onEditMessage(this.props.editingMessage, this.props.text)
       } else {
-        this.props.onPostMessage(this.state.text)
+        this.props.onPostMessage(this.props.text)
       }
-      this.setState({text: ''})
+      this.props.setText('')
     }
-  }
-
-  _onChangeText = text => {
-    this.setState({text})
   }
 
   _openFilePicker = () => {
@@ -99,7 +70,7 @@ class ConversationInput extends Component<void, Props, State> {
     // Auto-growing multiline doesn't work smoothly on Android yet.
     const multilineOpts = isIOS ? {rowsMax: 3, rowsMin: 1} : {rowsMax: 2, rowsMin: 2}
 
-    const action = this.state.text
+    const action = this.props.text
       ? (
         <ClickableBox feedback={false} onClick={this._onSubmit}>
           <Box style={{padding: globalMargins.small}}>
@@ -119,11 +90,11 @@ class ConversationInput extends Component<void, Props, State> {
           inputStyle={styleInputText}
           multiline={true}
           onBlur={this._onBlur}
-          onChangeText={this._onChangeText}
-          ref={this._setRef}
+          onChangeText={this.props.setText}
+          ref={this.props.inputSetRef}
           small={true}
           style={styleInput}
-          value={this.state.text}
+          value={this.props.text}
           {...multilineOpts}
         />
         {action}

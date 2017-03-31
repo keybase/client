@@ -4,9 +4,15 @@ import * as Constants from '../../../constants/chat'
 
 export type Props = {
   defaultText: string,
+  text: string,
+  setText: (text: string) => void,
   editingMessage: ?Constants.Message,
   emojiPickerOpen: boolean,
   focusInputCounter: number,
+  inputFocus: () => void,
+  inputSelections: () => {selectionStart?: number, selectionEnd?: number},
+  inputSetRef: (r: any) => void,
+  inputValue: () => string,
   isLoading: boolean,
   onAttach: (inputs: Array<Constants.AttachmentInput>) => void,
   onEditLastMessage: () => void,

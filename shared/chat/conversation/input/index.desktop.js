@@ -5,26 +5,12 @@ import {Box, Icon, Input, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../common-adapters/emoji'
+import {compose, withState, withHandlers} from 'recompose'
 
 import type {Props} from '.'
 
-type State = {
-  text: string,
-}
-
-class ConversationInput extends Component<void, Props, State> {
-  _input: any;
+class ConversationInput extends Component<void, Props, void> {
   _fileInput: any;
-  state: State;
-
-  _setRef = r => {
-    this._input = r
-  }
-
-  constructor (props: Props) {
-    super(props)
-    this.state = {text: this.props.defaultText}
-  }
 
   componentDidMount () {
     document.body && document.body.addEventListener('keydown', this._globalKeyDownHandler)
@@ -34,24 +20,17 @@ class ConversationInput extends Component<void, Props, State> {
   componentWillUnmount () {
     document.body && document.body.removeEventListener('keydown', this._globalKeyDownHandler)
     document.body && document.body.removeEventListener('keypress', this._globalKeyDownHandler)
-    this.props.onStoreInputText(this.getValue())
+    this.props.onStoreInputText(this.props.inputValue())
   }
 
   componentDidUpdate (prevProps: Props) {
-    if (!this.props.isLoading && prevProps.isLoading) {
-      this.focusInput()
-    }
-
-    if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
-      this.focusInput()
+    if (!this.props.isLoading && prevProps.isLoading ||
+      this.props.focusInputCounter !== prevProps.focusInputCounter) {
+      this.props.inputFocus()
     }
   }
 
   _globalKeyDownHandler = (ev: KeyboardEvent) => {
-    if (!this._input) {
-      return
-    }
-
     const target = ev.target
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
       return
@@ -60,18 +39,15 @@ class ConversationInput extends Component<void, Props, State> {
     const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
     const isValidSpecialKey = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter'].includes(ev.key)
     if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
-      this._input.focus()
+      this.props.inputFocus()
     }
   }
 
   _insertEmoji (emojiColons: string) {
-    const text: string = this.state.text || ''
-    if (this._input) {
-      const {selectionStart = 0, selectionEnd = 0} = this._input.selections() || {}
-      const nextText = [text.substring(0, selectionStart), emojiColons, text.substring(selectionEnd)].join('')
-      this.setState({text: nextText})
-      this.focusInput()
-    }
+    const {selectionStart = 0, selectionEnd = 0} = this.props.inputSelections()
+    const nextText = [this.props.text.substring(0, selectionStart), emojiColons, this.props.text.substring(selectionEnd)].join('')
+    this.props.setText(nextText)
+    this.props.inputFocus()
   }
 
   _openFilePicker = () => {
@@ -101,35 +77,23 @@ class ConversationInput extends Component<void, Props, State> {
     }
   }
 
-  focusInput = () => {
-    this._input && this._input.focus()
-  }
-
-  getValue () {
-    return this._input ? this._input.getValue() : ''
-  }
-
   _pickerOnClick = (emoji) => {
     this._insertEmoji(emoji.colons)
     this.props.toggleEmojiPicker()
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent) => {
-    if (e.key === 'ArrowUp' && !this.state.text) {
+    if (e.key === 'ArrowUp' && !this.props.text) {
       this.props.onEditLastMessage()
     }
   }
 
   _onEnterKeyDown = (e: SyntheticKeyboardEvent) => {
     e.preventDefault()
-    if (this.state.text) {
-      this.props.onPostMessage(this.state.text)
-      this.setState({text: ''})
+    if (this.props.text) {
+      this.props.onPostMessage(this.props.text)
+      this.props.setText('')
     }
-  }
-
-  _onChangeText = text => {
-    this.setState({text})
   }
 
   _setFileInputRef = r => {
@@ -145,11 +109,11 @@ class ConversationInput extends Component<void, Props, State> {
             autoFocus={true}
             small={true}
             style={styleInput}
-            ref={this._setRef}
+            ref={this.props.inputSetRef}
             hintText='Write a message'
             hideUnderline={true}
-            onChangeText={this._onChangeText}
-            value={this.state.text}
+            onChangeText={this.props.setText}
+            value={this.props.text}
             multiline={true}
             rowsMin={1}
             rowsMax={5}
@@ -170,7 +134,7 @@ class ConversationInput extends Component<void, Props, State> {
             style={styleIcon} type='iconfont-emoji' />
           <Icon onClick={this._openFilePicker} style={styleIcon} type='iconfont-attachment' />
         </Box>
-        <Text type='BodySmall' style={styleFooter} onClick={this.focusInput}>*bold*, _italics_, `code`, >quote</Text>
+        <Text type='BodySmall' style={styleFooter} onClick={this.props.inputFocus}>*bold*, _italics_, `code`, >quote</Text>
       </Box>
     )
   }
@@ -199,4 +163,9 @@ const styleFooter = {
   textAlign: 'right',
 }
 
-export default ConversationInput
+export default compose(
+  withState('emojiPickerOpen', 'setEmojiPickerOpen', props => props.emojiPickerOpen),
+  withHandlers({
+    toggleEmojiPicker: ({emojiPickerOpen, setEmojiPickerOpen}) => () => setEmojiPickerOpen(!emojiPickerOpen),
+  }),
+)(ConversationInput)
