@@ -118,7 +118,6 @@ class Conversation extends Component<void, Props, State> {
             onOpenNewerConversation={this.props.onOpenNewerConversation}
             username={finalizeInfo.resetUser} />
             : <Input
-              defaultText={this.props.defaultText}
               focusInputCounter={this.props.focusInputCounter}
               onEditLastMessage={this._onEditLastMessage}
               onStoreInputText={this.props.onStoreInputText}

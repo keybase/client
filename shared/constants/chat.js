@@ -4,7 +4,7 @@ import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
 import {clamp, invert} from 'lodash'
 import * as ChatTypes from './types/flow-types-chat'
-import {getPath} from '../route-tree'
+import {getPath, getPathState} from '../route-tree'
 import {chatTab} from './tabs'
 
 import type {UserListItem} from '../common-adapters/usernames'
@@ -604,6 +604,12 @@ const getSelectedConversation = (state: TypedState) => {
   return selected
 }
 
+const getSelectedRouteState = (state: TypedState) => {
+  const selected = getSelectedConversation(state)
+  if (!selected) return null
+  return getPathState(state.routeTree.routeState, [chatTab, selected])
+}
+
 function messageKey (kind: MessageKeyKind, value: string | number): MessageKey {
   return `${kind}:${value}`
 }
@@ -628,4 +634,5 @@ export {
   pendingConversationIDKey,
   isPendingConversationIDKey,
   pendingConversationIDKeyToTlfName,
+  getSelectedRouteState,
 }

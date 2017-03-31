@@ -25,7 +25,6 @@ const Conversation = (props: Props) => (
         onOpenNewerConversation={props.onOpenNewerConversation}
         username={props.finalizeInfo.resetUser} />
       : <Input
-        defaultText={props.defaultText}
         focusInputCounter={props.focusInputCounter}
         onEditLastMessage={props.onEditLastMessage}
         onStoreInputText={props.onStoreInputText}

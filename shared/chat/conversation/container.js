@@ -94,7 +94,6 @@ export default connect(
         return {
           bannerMessage: null,
           followingMap: pick(followingMap, participants.toArray()),
-          defaultText: routeState.inputText && routeState.inputText.stringValue(),
           isLoading: false,
           messages: List(),
           metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
@@ -127,7 +126,6 @@ export default connect(
           bannerMessage: null,
           firstNewMessageID: conversationState.firstNewMessageID,
           followingMap: pick(followingMap, participants.toArray()),
-          defaultText: routeState.inputText && routeState.inputText.stringValue(),
           isLoading: conversationState.isLoading,
           messages: conversationState.messages,
           metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),

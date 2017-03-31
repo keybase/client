@@ -10,7 +10,6 @@ import {navigateAppend} from '../../../actions/route-tree'
 import type {TypedState} from '../../../constants/reducer'
 
 type OwnProps = {
-  defaultText: ?string,
   focusInputCounter: number,
   selectedConversationIDKey: ?Constants.ConversationIDKey,
   onStoreInputText: (text: string) => void,
@@ -18,7 +17,7 @@ type OwnProps = {
   onScrollDown: () => void,
 }
 
-const mapStateToProps = (state: TypedState, {defaultText, focusInputCounter, selectedConversationIDKey}: OwnProps) => {
+const mapStateToProps = (state: TypedState, {focusInputCounter, selectedConversationIDKey}: OwnProps) => {
   let isLoading = false
   if (selectedConversationIDKey !== Constants.nothingSelected) {
     const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
@@ -26,6 +25,9 @@ const mapStateToProps = (state: TypedState, {defaultText, focusInputCounter, sel
       isLoading = conversationState.isLoading
     }
   }
+
+  const routeState = Constants.getSelectedRouteState(state)
+  const defaultText = routeState && routeState.get('inputText', new HiddenString('')).stringValue() || ''
 
   return {
     defaultText,
