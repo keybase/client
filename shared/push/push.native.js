@@ -9,7 +9,7 @@ import {permissionsRequest} from '../actions/push'
 import type {Props} from './push'
 import * as Constants from '../constants/push'
 
-const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
+const nativeBridge = NativeModules.KeybaseEngine
 
 class Push extends Component<void, Props, void> {
   componentDidMount () {

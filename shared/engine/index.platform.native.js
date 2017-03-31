@@ -1,12 +1,12 @@
 // @flow
 import {Buffer} from 'buffer'
-import {NativeModules, NativeAppEventEmitter} from 'react-native'
+import {NativeModules, NativeEventEmitter} from 'react-native'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 
 import type {incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
-// Modules from the native part of the code. Differently named on android/ios
-const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
+const nativeBridge = NativeModules.KeybaseEngine
+const RNEmitter = new NativeEventEmitter(nativeBridge)
 
 class NativeTransport extends TransportShared {
   constructor (incomingRPCCallback, connectCallback, disconnectCallback) {
@@ -15,9 +15,7 @@ class NativeTransport extends TransportShared {
       disconnectCallback,
       incomingRPCCallback,
       // We pass data over to the native side to be handled
-      (data) => {
-        nativeBridge.runWithData(data)
-      }
+      data => nativeBridge.runWithData(data),
     )
 
     // We're connected locally so we never get disconnected
@@ -51,15 +49,12 @@ class NativeTransport extends TransportShared {
 function createClient (incomingRPCCallback: incomingRPCCallbackType, connectCallback: connectDisconnectCB, disconnectCallback: connectDisconnectCB) {
   const client = sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback))
 
+  nativeBridge.start()
+
   // This is how the RN side writes back to us
-  NativeAppEventEmitter.addListener(
+  RNEmitter.addListener(
     nativeBridge.eventName,
-    payload => {
-      if (payload) {
-        // We get b64 encoded data back from the RN bridge
-        client.transport.packetize_data(new Buffer(payload, 'base64'))
-      }
-    }
+    payload => client.transport.packetize_data(Buffer.from(payload, 'base64')),
   )
 
   return client
