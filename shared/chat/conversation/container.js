@@ -57,13 +57,6 @@ class ConversationContainer extends Component<void, Props, State> {
   _onBack = () => {
     this.props.onBack()
   }
-  _onAttach = (inputs) => {
-    this.props.onAttach(inputs)
-  }
-  _onPostMessage = (text) => {
-    this._onTriggerScrollDown()
-    this.props.onPostMessage(text)
-  }
   _onStoreInputText = (text) => {
     this.props.onStoreInputText(text)
   }
@@ -78,9 +71,8 @@ class ConversationContainer extends Component<void, Props, State> {
       sidePanelOpen={this.state.sidePanelOpen}
       onToggleSidePanel={this._onToggleSidePanel}
       onBack={this._onBack}
-      onAttach={this._onAttach}
       onStoreInputText={this._onStoreInputText}
-      onPostMessage={this._onPostMessage}
+      onScrollDown={this._onTriggerScrollDown}
       listScrollDownState={this.state.listScrollDownCounter}
     />
   }

@@ -38,6 +38,7 @@ export type Props = {
   onPostMessage: (text: string) => void,
   onRetryAttachment: (message: Constants.AttachmentMessage) => void,
   onRetryMessage: (outboxID: string) => void,
+  onScrollDown: () => void,
   onSelectAttachment: (input: Constants.AttachmentInput) => void,
   onShowBlockConversationDialog: () => void,
   onShowProfile: (username: string) => void,

@@ -1,5 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
+import * as Creators from '../../../actions/chat/creators'
+import HiddenString from '../../../util/hidden-string'
 import Input from '.'
 import {compose, withState, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
@@ -11,11 +13,8 @@ type OwnProps = {
   focusInputCounter: number,
   selectedConversationIDKey: ?Constants.ConversationIDKey,
   onStoreInputText: (text: string) => void,
-  onAttach: (inputs: Array<Constants.AttachmentInput>) => void,
   onEditLastMessage: () => void,
-  onEditMessage: (message: Constants.Message, body: string) => void,
-  onPostMessage: (text: string) => void,
-  onShowEditor: (message: ?Constants.Message) => void,
+  onScrollDown: () => void,
 }
 
 const mapStateToProps = (state: TypedState, {defaultText, focusInputCounter, selectedConversationIDKey}: OwnProps) => {
@@ -32,20 +31,31 @@ const mapStateToProps = (state: TypedState, {defaultText, focusInputCounter, sel
     editingMessage: state.chat.get('editingMessage'),
     focusInputCounter,
     isLoading,
+    selectedConversationIDKey,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {onStoreInputText, onAttach, onEditLastMessage, onPostMessage, onEditMessage, onShowEditor}: OwnProps) => ({
-  onAttach,
-  onEditLastMessage,
-  onEditMessage,
-  onPostMessage,
-  onShowEditor,
-  onStoreInputText,
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onEditMessage: (message: Constants.Message, body: string) => { dispatch(Creators.editMessage(message, new HiddenString(body))) },
+  onPostMessage: (selectedConversation, text) => dispatch(Creators.postMessage(selectedConversation, new HiddenString(text))),
+  onShowEditor: (message: Constants.Message) => { dispatch(Creators.showEditor(message)) },
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+  ...ownProps,
+  onAttach: (inputs: Array<Constants.AttachmentInput>) => dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
+  onEditLastMessage: ownProps.onEditLastMessage,
+  onPostMessage: text => {
+    dispatchProps.onPostMessage(stateProps.selectedConversationIDKey, text)
+    ownProps.onScrollDown()
+  },
+  onStoreInputText: ownProps.onStoreInputText,
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withState('text', 'setText', props => props.defaultText || ''),
   withHandlers(
     props => {

@@ -121,10 +121,8 @@ class Conversation extends Component<void, Props, State> {
               defaultText={this.props.defaultText}
               focusInputCounter={this.props.focusInputCounter}
               onEditLastMessage={this._onEditLastMessage}
-              selectedConversationIDKey={this.props.selectedConversationIDKey}
               onStoreInputText={this.props.onStoreInputText}
-              onAttach={this.props.onAttach}
-              onPostMessage={this.props.onPostMessage}
+              selectedConversationIDKey={this.props.selectedConversationIDKey}
             /> }
         {sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>
           <SidePanel
