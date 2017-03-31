@@ -27,14 +27,16 @@ class ConversationInput extends Component<void, Props, void> {
   }
 
   _onSubmit = () => {
-    if (this.props.text) {
-      if (this.props.editingMessage) {
-        this.props.onEditMessage(this.props.editingMessage, this.props.text)
-      } else {
-        this.props.onPostMessage(this.props.text)
-      }
-      this.props.setText('')
+    if (!this.props.text) {
+      return
     }
+
+    if (this.props.editingMessage) {
+      this.props.onEditMessage(this.props.editingMessage, this.props.text)
+    } else {
+      this.props.onPostMessage(this.props.text)
+    }
+    this.props.setText('')
   }
 
   _openFilePicker = () => {
