@@ -302,34 +302,6 @@ func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
 	return nil
 }
 
-// compactCachesLocked manually forces the disk cache databases to compact
-// their underlying data.
-func (cache *DiskBlockCacheStandard) compactCachesLocked(ctx context.Context) {
-	// Execute these in a goroutine so we don't block reads or the completion
-	// of the delete that called this. Use a sentinel channel to make sure only
-	// one compaction can happen at once.
-	select {
-	case <-cache.compactCh:
-		blockDb := cache.blockDb
-		metaDb := cache.metaDb
-		tlfDb := cache.tlfDb
-		go func() {
-			cache.log.CDebugf(ctx, "+ Disk cache compaction starting.")
-			cache.log.CDebugf(ctx, "Compacting metadata db.")
-			metaDb.CompactRange(util.Range{})
-			cache.log.CDebugf(ctx, "Compacting TLF db.")
-			tlfDb.CompactRange(util.Range{})
-			cache.log.CDebugf(ctx, "Compacting block db.")
-			blockDb.CompactRange(util.Range{})
-			cache.log.CDebugf(ctx, "- Disk cache compaction complete.")
-			// Give back the sentinel.
-			cache.compactCh <- struct{}{}
-		}()
-	default:
-		// Don't try to compact if one is already happening
-	}
-}
-
 // tlfKey generates a TLF cache key from a tlf.ID and a binary-encoded block
 // ID.
 func (*DiskBlockCacheStandard) tlfKey(tlfID tlf.ID, blockKey []byte) []byte {
@@ -637,8 +609,6 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 	if err := cache.blockDb.Write(blockBatch, nil); err != nil {
 		return 0, 0, err
 	}
-
-	cache.compactCachesLocked(ctx)
 
 	// Update the cache's totals.
 	for k, v := range removalCounts {
