@@ -64,16 +64,20 @@ function * onLoadAttachment ({payload: {conversationIDKey, messageID, loadPrevie
     const cachedPath = yield call(_isCached, conversationIDKey, messageID)
 
     if (cachedPath) {
-      copy(cachedPath, filename)
+      try {
+        copy(cachedPath, filename)
 
-      // for visual feedback, we'll briefly display a progress bar
-      for (let i = 0; i < 5; i++) {
-        yield put(Creators.downloadProgress(conversationIDKey, messageID, false, i + 1, 5))
-        yield delay(5)
+        // for visual feedback, we'll briefly display a progress bar
+        for (let i = 0; i < 5; i++) {
+          yield put(Creators.downloadProgress(conversationIDKey, messageID, false, i + 1, 5))
+          yield delay(5)
+        }
+
+        yield put(Creators.attachmentLoaded(conversationIDKey, messageID, filename, loadPreview, isHdPreview))
+        return
+      } catch (e) {
+        console.warn('copy failed:', e)
       }
-
-      yield put(Creators.attachmentLoaded(conversationIDKey, messageID, filename, loadPreview, isHdPreview))
-      return
     }
   }
 
