@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import Input from '.'
-import {compose, withState, withHandlers} from 'recompose'
+import {compose, withState, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 
 import type {TypedState} from '../../../constants/reducer'
@@ -42,7 +42,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {onStoreInputText, onAttach, onE
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withState('text', 'setText', props => props.defaultState || ''),
+  withState('text', 'setText', props => props.defaultText || ''),
   withHandlers(
     props => {
       let input
@@ -54,4 +54,15 @@ export default compose(
       }
     }
   ),
+  lifecycle({
+    componentDidUpdate: function (prevProps) {
+      if (!this.props.isLoading && prevProps.isLoading ||
+        this.props.focusInputCounter !== prevProps.focusInputCounter) {
+        this.props.inputFocus()
+      }
+    },
+    componentWillUnmount: function () {
+      this.props.onStoreInputText(this.props.inputValue())
+    },
+  })
 )(Input)

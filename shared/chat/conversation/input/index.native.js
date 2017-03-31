@@ -10,12 +10,6 @@ import type {AttachmentInput} from '../../../constants/chat'
 import type {Props} from '.'
 
 class ConversationInput extends Component<void, Props, void> {
-  componentDidUpdate (prevProps: Props) {
-    if (!this.props.isLoading && prevProps.isLoading) {
-      this.props.inputFocus()
-    }
-  }
-
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.editingMessage !== nextProps.editingMessage) {
       if (nextProps.editingMessage && nextProps.editingMessage.type === 'Text') {
@@ -23,10 +17,6 @@ class ConversationInput extends Component<void, Props, void> {
         this.props.inputFocus()
       }
     }
-  }
-
-  componentWillUnmount () {
-    this.props.onStoreInputText(this.props.inputValue())
   }
 
   _onBlur = () => {

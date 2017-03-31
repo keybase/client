@@ -20,14 +20,6 @@ class ConversationInput extends Component<void, Props, void> {
   componentWillUnmount () {
     document.body && document.body.removeEventListener('keydown', this._globalKeyDownHandler)
     document.body && document.body.removeEventListener('keypress', this._globalKeyDownHandler)
-    this.props.onStoreInputText(this.props.inputValue())
-  }
-
-  componentDidUpdate (prevProps: Props) {
-    if (!this.props.isLoading && prevProps.isLoading ||
-      this.props.focusInputCounter !== prevProps.focusInputCounter) {
-      this.props.inputFocus()
-    }
   }
 
   _globalKeyDownHandler = (ev: KeyboardEvent) => {
