@@ -244,7 +244,6 @@ type API interface {
 	GetDecode(APIArg, APIResponseWrapper) error
 	Post(APIArg) (*APIRes, error)
 	PostJSON(APIArg) (*APIRes, error)
-	PostResp(APIArg) (*http.Response, error)
 	PostDecode(APIArg, APIResponseWrapper) error
 	PostRaw(APIArg, string, io.Reader) (*APIRes, error)
 }

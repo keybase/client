@@ -17,7 +17,6 @@ func (n *NullMockAPI) GetResp(APIArg) (*http.Response, error)             { retu
 func (n *NullMockAPI) GetDecode(APIArg, APIResponseWrapper) error         { return nil }
 func (n *NullMockAPI) Post(APIArg) (*APIRes, error)                       { return nil, nil }
 func (n *NullMockAPI) PostJSON(APIArg) (*APIRes, error)                   { return nil, nil }
-func (n *NullMockAPI) PostResp(APIArg) (*http.Response, error)            { return nil, nil }
 func (n *NullMockAPI) PostDecode(APIArg, APIResponseWrapper) error        { return nil }
 func (n *NullMockAPI) PostRaw(APIArg, string, io.Reader) (*APIRes, error) { return nil, nil }
 
