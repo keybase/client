@@ -86,9 +86,12 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 
 	var prevs []chat1.MessagePreviousPointer
 
-	res, err := s.G().ConvSource.PullLocalOnly(ctx, convID, msg.ClientHeader.Sender, nil,
+	res, err := s.G().ConvSource.PullLocalOnly(ctx, convID, msg.ClientHeader.Sender,
+		&chat1.GetThreadQuery{
+			DisableResolveSupersedes: true,
+		},
 		&chat1.Pagination{
-			Num: -1,
+			Num: 100,
 		})
 	switch err.(type) {
 	case storage.MissError:
