@@ -126,4 +126,20 @@ const BOOL isDebug = NO;
   [RCTPushNotificationManager didReceiveLocalNotification:notification];
 }
 
+- (void)applicationDidEnterBackground:(UIApplication *)application
+{
+  UIImageView *imageView = [[UIImageView alloc] initWithFrame:self.window.bounds];
+  imageView.contentMode = UIViewContentModeCenter;
+  imageView.tag = 42;    // Give some decent tagvalue or keep a reference of imageView in self
+  imageView.backgroundColor = [UIColor whiteColor];
+  [imageView setImage:[UIImage imageNamed:@"LaunchImage"]];
+  [UIApplication.sharedApplication.keyWindow.subviews.lastObject addSubview:imageView];
+}
+
+- (void)applicationWillEnterForeground:(UIApplication *)application
+ {
+  UIImageView *imageView = (UIImageView *)[UIApplication.sharedApplication.keyWindow.subviews.lastObject viewWithTag:42];   // search by the same tag value
+  [imageView removeFromSuperview];
+}
+
 @end
