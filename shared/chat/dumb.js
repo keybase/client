@@ -102,6 +102,7 @@ const commonConvoProps = {
   selectedConversation: 'convo1',
   emojiPickerOpen: false,
   onShowProfile: (username: string) => console.log('on show profile', username),
+  onBack: () => console.log('back clicked'),
 }
 
 const emptyConvoProps = {
@@ -216,12 +217,10 @@ const header = {
   mocks: {
     'Normal': {
       ...commonConvoProps,
-      onBack: () => console.log('back clicked'),
     },
     'Muted': {
       ...commonConvoProps,
       muted: true,
-      onBack: () => console.log('back clicked'),
     },
   },
 }

@@ -7,9 +7,6 @@ import * as Constants from '../../constants/chat'
 import type {Props} from './index'
 import type {Props as ListProps} from './list'
 import type {Props as InputProps} from './input'
-import type {Props as HeaderProps} from './header'
-
-const {participantFilter, usernamesToUserListItem} = Constants
 
 const propsHoc = withProps(
   (props) => {
@@ -28,7 +25,6 @@ const propsHoc = withProps(
       moreToLoad,
       muted,
       onAttach,
-      onBack,
       onDeleteMessage,
       onEditLastMessage,
       onEditMessage,
@@ -37,17 +33,12 @@ const propsHoc = withProps(
       onLoadMoreMessages,
       onMessageAction,
       onOpenConversation,
-      onOpenFolder,
       onOpenInFileUI,
       onOpenInPopup,
       onPostMessage,
       onRetryAttachment,
       onRetryMessage,
-      onShowBlockConversationDialog,
-      onShowProfile,
       onStoreInputText,
-      onToggleSidePanel,
-      participants,
       onSelectAttachment,
       selectedConversation,
       onShowEditor,
@@ -55,8 +46,6 @@ const propsHoc = withProps(
       validated,
       you,
     } = props
-
-    const users = usernamesToUserListItem(participantFilter(participants, you).toArray(), you, metaDataMap, followingMap)
 
     const onOpenNewerConversation = props.supersededBy
       ? () => props.onOpenConversation(props.supersededBy.conversationIDKey)
@@ -106,18 +95,7 @@ const propsHoc = withProps(
       selectedConversation,
     }
 
-    const headerProps: HeaderProps = {
-      muted,
-      onBack,
-      onOpenFolder,
-      onShowBlockConversationDialog,
-      onShowProfile,
-      onToggleSidePanel,
-      sidePanelOpen,
-      users,
-    }
-
-    return {inputProps, listProps, headerProps, onOpenNewerConversation}
+    return {inputProps, listProps, onOpenNewerConversation}
   }
 )
 

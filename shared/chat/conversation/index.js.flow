@@ -55,7 +55,6 @@ export type Props = {
   // TODO: better types will remove these
   inputProps: any,
   listProps: any,
-  headerProps: any,
 }
 
 export default class Conversation extends Component<void, Props, void> { }

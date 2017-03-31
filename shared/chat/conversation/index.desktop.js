@@ -1,6 +1,6 @@
 // @flow
 import Banner from './banner'
-import Header from './header.desktop'
+import Header from './header/container'
 import Input from './input.desktop'
 import List from './list.desktop'
 import OldProfileResetNotice from './notices/old-profile-reset-notice'
@@ -73,18 +73,20 @@ class Conversation extends Component<void, Props, State> {
   render () {
     const {
       bannerMessage,
+      finalizeInfo,
       followingMap,
       metaDataMap,
+      muted,
       onAddParticipant,
+      onBack,
       onMuteConversation,
       onShowBlockConversationDialog,
       onShowProfile,
       onToggleSidePanel,
-      muted,
       participants,
+      selectedConversation,
       sidePanelOpen,
       you,
-      finalizeInfo,
     } = this.props
 
     const banner = bannerMessage && <Banner message={bannerMessage} />
@@ -103,7 +105,7 @@ class Conversation extends Component<void, Props, State> {
     return (
       <Box className='conversation' style={containerStyle} onDragEnter={this._onDragEnter} onPaste={this._onPaste}>
         {offline}
-        <Header {...this.props.headerProps} />
+        <Header sidePanelOpen={sidePanelOpen} onToggleSidePanel={onToggleSidePanel} onBack={onBack} selectedConversation={selectedConversation} />
         <List {...this.props.listProps} />
         {banner}
         {finalizeInfo

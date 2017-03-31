@@ -1,9 +1,9 @@
 // @flow
 import React from 'react'
-import {BackButton, Box, Icon, Usernames} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {BackButton, Box, Icon, Usernames} from '../../../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
-import type {Props} from './header'
+import type {Props} from '.'
 
 const Header = ({muted, onBack, onOpenFolder, onShowProfile, onToggleSidePanel, sidePanelOpen, users}: Props) => (
   <Box style={containerStyle}>

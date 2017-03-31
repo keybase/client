@@ -1,7 +1,6 @@
 // @flow
 import {Component} from 'react'
-import {List} from 'immutable'
-import type {UserList} from '../../common-adapters/usernames'
+import type {UserList} from '../../../common-adapters/usernames'
 
 export type Props = {
   muted: boolean,
