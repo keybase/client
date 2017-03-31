@@ -10,7 +10,6 @@ import {delay} from 'redux-saga'
 import {navigateAppend} from '../route-tree'
 import {saveAttachment, showShareActionSheet} from '../platform-specific'
 import {tmpDir, tmpFile, downloadFilePath, copy, exists} from '../../util/file'
-import {usernameSelector} from '../../constants/selectors'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 
@@ -161,7 +160,6 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
       previewSize,
     }, messageID))
   })
-
 
   // We will not receive the placeholder message before we respond to this RPC
   uploadStart.response.result()
