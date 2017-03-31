@@ -8,12 +8,9 @@ import type {BannerMessage} from './banner'
 export type Props = {
   focusInputCounter: number,
   bannerMessage: ?BannerMessage,
-  emojiPickerOpen: boolean,
   finalizeInfo: ?Constants.FinalizeInfo,
   firstNewMessageID: ?Constants.MessageID,
   followingMap: Constants.FollowingMap,
-  defaultText: string,
-  isLoading: boolean,
   listScrollDownState: number,
   threadLoadedOffline: boolean,
   messages: List<Constants.Message>,
