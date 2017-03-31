@@ -65,7 +65,7 @@ const stylesInput = {
 }
 
 const stylesIcon = {
-  marginTop: globalMargins.small,
+  marginTop: globalMargins.tiny,
   marginBottom: globalMargins.tiny,
 }
 
