@@ -781,12 +781,12 @@ function * _updateBadging (action: Constants.UpdateBadging): SagaGenerator<any, 
 
 function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
   // Update badging and the latest message due to the refocus.
-  const appFocused = action.payload
+  const {focused} = action.payload
   const conversationIDKey = yield select(Constants.getSelectedConversation)
   const selectedTab = yield select(Shared.routeSelector)
   const chatTabSelected = (selectedTab === chatTab)
 
-  if (conversationIDKey && appFocused && chatTabSelected) {
+  if (conversationIDKey && focused && chatTabSelected) {
     yield put(Creators.updateBadging(conversationIDKey))
     yield put(Creators.updateLatestMessage(conversationIDKey))
   }
