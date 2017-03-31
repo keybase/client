@@ -70,6 +70,11 @@ class Conversation extends Component<void, Props, State> {
     })
   }
 
+  // Wrapped to stop churn to input
+  _onEditLastMessage = () => {
+    this.props.onEditLastMessage()
+  }
+
   render () {
     const {
       bannerMessage,
@@ -115,7 +120,7 @@ class Conversation extends Component<void, Props, State> {
             : <Input
               defaultText={this.props.defaultText}
               focusInputCounter={this.props.focusInputCounter}
-              onEditLastMessage={this.props.onEditLastMessage}
+              onEditLastMessage={this._onEditLastMessage}
               selectedConversationIDKey={this.props.selectedConversationIDKey}
               onStoreInputText={this.props.onStoreInputText}
               onAttach={this.props.onAttach}
