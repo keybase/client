@@ -11,12 +11,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+
+	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
-// FileType represent a file type.
 type FileType int
 
-// File types.
 const (
 	TypeManifest FileType = 1 << iota
 	TypeJournal
@@ -40,7 +40,6 @@ func (t FileType) String() string {
 	return fmt.Sprintf("<unknown:%d>", t)
 }
 
-// Common error.
 var (
 	ErrInvalidFile = errors.New("leveldb/storage: invalid file for argument")
 	ErrLocked      = errors.New("leveldb/storage: already locked")
@@ -56,10 +55,11 @@ type ErrCorrupted struct {
 }
 
 func (e *ErrCorrupted) Error() string {
-	if !e.Fd.Zero() {
+	if !e.Fd.Nil() {
 		return fmt.Sprintf("%v [file=%v]", e.Err, e.Fd)
+	} else {
+		return e.Err.Error()
 	}
-	return e.Err.Error()
 }
 
 // Syncer is the interface that wraps basic Sync method.
@@ -83,12 +83,11 @@ type Writer interface {
 	Syncer
 }
 
-// Locker is the interface that wraps Unlock method.
-type Locker interface {
-	Unlock()
+type Lock interface {
+	util.Releaser
 }
 
-// FileDesc is a 'file descriptor'.
+// FileDesc is a file descriptor.
 type FileDesc struct {
 	Type FileType
 	Num  int64
@@ -109,12 +108,12 @@ func (fd FileDesc) String() string {
 	}
 }
 
-// Zero returns true if fd == (FileDesc{}).
-func (fd FileDesc) Zero() bool {
+// Nil returns true if fd == (FileDesc{}).
+func (fd FileDesc) Nil() bool {
 	return fd == (FileDesc{})
 }
 
-// FileDescOk returns true if fd is a valid 'file descriptor'.
+// FileDescOk returns true if fd is a valid file descriptor.
 func FileDescOk(fd FileDesc) bool {
 	switch fd.Type {
 	case TypeManifest:
@@ -127,44 +126,43 @@ func FileDescOk(fd FileDesc) bool {
 	return fd.Num >= 0
 }
 
-// Storage is the storage. A storage instance must be safe for concurrent use.
+// Storage is the storage. A storage instance must be goroutine-safe.
 type Storage interface {
 	// Lock locks the storage. Any subsequent attempt to call Lock will fail
 	// until the last lock released.
-	// Caller should call Unlock method after use.
-	Lock() (Locker, error)
+	// After use the caller should call the Release method.
+	Lock() (Lock, error)
 
 	// Log logs a string. This is used for logging.
 	// An implementation may write to a file, stdout or simply do nothing.
 	Log(str string)
 
-	// SetMeta store 'file descriptor' that can later be acquired using GetMeta
-	// method. The 'file descriptor' should point to a valid file.
-	// SetMeta should be implemented in such way that changes should happen
+	// SetMeta sets to point to the given fd, which then can be acquired using
+	// GetMeta method.
+	// SetMeta should be implemented in such way that changes should happened
 	// atomically.
 	SetMeta(fd FileDesc) error
 
-	// GetMeta returns 'file descriptor' stored in meta. The 'file descriptor'
-	// can be updated using SetMeta method.
-	// Returns os.ErrNotExist if meta doesn't store any 'file descriptor', or
-	// 'file descriptor' point to nonexistent file.
+	// GetManifest returns a manifest file.
+	// Returns os.ErrNotExist if meta doesn't point to any fd, or point to fd
+	// that doesn't exist.
 	GetMeta() (FileDesc, error)
 
-	// List returns file descriptors that match the given file types.
+	// List returns fds that match the given file types.
 	// The file types may be OR'ed together.
 	List(ft FileType) ([]FileDesc, error)
 
-	// Open opens file with the given 'file descriptor' read-only.
+	// Open opens file with the given fd read-only.
 	// Returns os.ErrNotExist error if the file does not exist.
 	// Returns ErrClosed if the underlying storage is closed.
 	Open(fd FileDesc) (Reader, error)
 
-	// Create creates file with the given 'file descriptor', truncate if already
-	// exist and opens write-only.
+	// Create creates file with the given fd, truncate if already exist and
+	// opens write-only.
 	// Returns ErrClosed if the underlying storage is closed.
 	Create(fd FileDesc) (Writer, error)
 
-	// Remove removes file with the given 'file descriptor'.
+	// Remove removes file with the given fd.
 	// Returns ErrClosed if the underlying storage is closed.
 	Remove(fd FileDesc) error
 

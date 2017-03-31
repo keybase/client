@@ -26,15 +26,12 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
-// Reader errors.
 var (
 	ErrNotFound       = errors.ErrNotFound
 	ErrReaderReleased = errors.New("leveldb/table: reader released")
 	ErrIterReleased   = errors.New("leveldb/table: iterator released")
 )
 
-// ErrCorrupted describes error due to corruption. This error will be wrapped
-// with errors.ErrCorrupted.
 type ErrCorrupted struct {
 	Pos    int64
 	Size   int64
@@ -64,7 +61,7 @@ type block struct {
 func (b *block) seek(cmp comparer.Comparer, rstart, rlimit int, key []byte) (index, offset int, err error) {
 	index = sort.Search(b.restartsLen-rstart-(b.restartsLen-rlimit), func(i int) bool {
 		offset := int(binary.LittleEndian.Uint32(b.data[b.restartsOffset+4*(rstart+i):]))
-		offset++                                    // shared always zero, since this is a restart point
+		offset += 1                                 // shared always zero, since this is a restart point
 		v1, n1 := binary.Uvarint(b.data[offset:])   // key length
 		_, n2 := binary.Uvarint(b.data[offset+n1:]) // value length
 		m := offset + n1 + n2
@@ -359,7 +356,7 @@ func (i *blockIter) Prev() bool {
 	i.value = nil
 	offset := i.block.restartOffset(ri)
 	if offset == i.offset {
-		ri--
+		ri -= 1
 		if ri < 0 {
 			i.dir = dirSOI
 			return false
@@ -786,8 +783,8 @@ func (r *Reader) getDataIterErr(dataBH blockHandle, slice *util.Range, verifyChe
 // table. And a nil Range.Limit is treated as a key after all keys in
 // the table.
 //
-// The returned iterator is not safe for concurrent use and should be released
-// after use.
+// The returned iterator is not goroutine-safe and should be released
+// when not used.
 //
 // Also read Iterator documentation of the leveldb/iterator package.
 func (r *Reader) NewIterator(slice *util.Range, ro *opt.ReadOptions) iterator.Iterator {
@@ -829,21 +826,18 @@ func (r *Reader) find(key []byte, filtered bool, ro *opt.ReadOptions, noValue bo
 
 	index := r.newBlockIter(indexBlock, nil, nil, true)
 	defer index.Release()
-
 	if !index.Seek(key) {
-		if err = index.Error(); err == nil {
+		err = index.Error()
+		if err == nil {
 			err = ErrNotFound
 		}
 		return
 	}
-
 	dataBH, n := decodeBlockHandle(index.Value())
 	if n == 0 {
 		r.err = r.newErrCorruptedBH(r.indexBH, "bad data block handle")
-		return nil, nil, r.err
+		return
 	}
-
-	// The filter should only used for exact match.
 	if filtered && r.filter != nil {
 		filterBlock, frel, ferr := r.getFilterBlock(true)
 		if ferr == nil {
@@ -853,53 +847,30 @@ func (r *Reader) find(key []byte, filtered bool, ro *opt.ReadOptions, noValue bo
 			}
 			frel.Release()
 		} else if !errors.IsCorrupted(ferr) {
-			return nil, nil, ferr
+			err = ferr
+			return
 		}
 	}
-
 	data := r.getDataIter(dataBH, nil, r.verifyChecksum, !ro.GetDontFillCache())
+	defer data.Release()
 	if !data.Seek(key) {
-		data.Release()
-		if err = data.Error(); err != nil {
-			return
+		err = data.Error()
+		if err == nil {
+			err = ErrNotFound
 		}
-
-		// The nearest greater-than key is the first key of the next block.
-		if !index.Next() {
-			if err = index.Error(); err == nil {
-				err = ErrNotFound
-			}
-			return
-		}
-
-		dataBH, n = decodeBlockHandle(index.Value())
-		if n == 0 {
-			r.err = r.newErrCorruptedBH(r.indexBH, "bad data block handle")
-			return nil, nil, r.err
-		}
-
-		data = r.getDataIter(dataBH, nil, r.verifyChecksum, !ro.GetDontFillCache())
-		if !data.Next() {
-			data.Release()
-			if err = data.Error(); err == nil {
-				err = ErrNotFound
-			}
-			return
-		}
+		return
 	}
-
-	// Key doesn't use block buffer, no need to copy the buffer.
+	// Don't use block buffer, no need to copy the buffer.
 	rkey = data.Key()
 	if !noValue {
 		if r.bpool == nil {
 			value = data.Value()
 		} else {
-			// Value does use block buffer, and since the buffer will be
-			// recycled, it need to be copied.
+			// Use block buffer, and since the buffer will be recycled, the buffer
+			// need to be copied.
 			value = append([]byte{}, data.Value()...)
 		}
 	}
-	data.Release()
 	return
 }
 
@@ -917,7 +888,7 @@ func (r *Reader) Find(key []byte, filtered bool, ro *opt.ReadOptions) (rkey, val
 	return r.find(key, filtered, ro, false)
 }
 
-// FindKey finds key that is greater than or equal to the given key.
+// Find finds key that is greater than or equal to the given key.
 // It returns ErrNotFound if the table doesn't contain such key.
 // If filtered is true then the nearest 'block' will be checked against
 // 'filter data' (if present) and will immediately return ErrNotFound if
@@ -1016,7 +987,7 @@ func (r *Reader) Release() {
 // NewReader creates a new initialized table reader for the file.
 // The fi, cache and bpool is optional and can be nil.
 //
-// The returned table reader instance is safe for concurrent use.
+// The returned table reader instance is goroutine-safe.
 func NewReader(f io.ReaderAt, size int64, fd storage.FileDesc, cache *cache.NamespaceGetter, bpool *util.BufferPool, o *opt.Options) (*Reader, error) {
 	if f == nil {
 		return nil, errors.New("leveldb/table: nil file")
@@ -1068,8 +1039,9 @@ func NewReader(f io.ReaderAt, size int64, fd storage.FileDesc, cache *cache.Name
 		if errors.IsCorrupted(err) {
 			r.err = err
 			return r, nil
+		} else {
+			return nil, err
 		}
-		return nil, err
 	}
 
 	// Set data end.
@@ -1114,8 +1086,9 @@ func NewReader(f io.ReaderAt, size int64, fd storage.FileDesc, cache *cache.Name
 			if errors.IsCorrupted(err) {
 				r.err = err
 				return r, nil
+			} else {
+				return nil, err
 			}
-			return nil, err
 		}
 		if r.filter != nil {
 			r.filterBlock, err = r.readFilterBlock(r.filterBH)

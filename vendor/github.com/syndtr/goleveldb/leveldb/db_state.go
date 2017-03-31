@@ -67,11 +67,12 @@ func (db *DB) sampleSeek(ikey internalKey) {
 }
 
 func (db *DB) mpoolPut(mem *memdb.DB) {
-	if !db.isClosed() {
-		select {
-		case db.memPool <- mem:
-		default:
-		}
+	defer func() {
+		recover()
+	}()
+	select {
+	case db.memPool <- mem:
+	default:
 	}
 }
 
@@ -99,13 +100,7 @@ func (db *DB) mpoolDrain() {
 			case <-db.memPool:
 			default:
 			}
-		case <-db.closeC:
-			ticker.Stop()
-			// Make sure the pool is drained.
-			select {
-			case <-db.memPool:
-			case <-time.After(time.Second):
-			}
+		case _, _ = <-db.closeC:
 			close(db.memPool)
 			return
 		}
@@ -153,26 +148,24 @@ func (db *DB) newMem(n int) (mem *memDB, err error) {
 func (db *DB) getMems() (e, f *memDB) {
 	db.memMu.RLock()
 	defer db.memMu.RUnlock()
-	if db.mem != nil {
-		db.mem.incref()
-	} else if !db.isClosed() {
+	if db.mem == nil {
 		panic("nil effective mem")
 	}
+	db.mem.incref()
 	if db.frozenMem != nil {
 		db.frozenMem.incref()
 	}
 	return db.mem, db.frozenMem
 }
 
-// Get effective memdb.
+// Get frozen memdb.
 func (db *DB) getEffectiveMem() *memDB {
 	db.memMu.RLock()
 	defer db.memMu.RUnlock()
-	if db.mem != nil {
-		db.mem.incref()
-	} else if !db.isClosed() {
+	if db.mem == nil {
 		panic("nil effective mem")
 	}
+	db.mem.incref()
 	return db.mem
 }
 
@@ -203,14 +196,6 @@ func (db *DB) dropFrozenMem() {
 	}
 	db.frozenJournalFd = storage.FileDesc{}
 	db.frozenMem.decref()
-	db.frozenMem = nil
-	db.memMu.Unlock()
-}
-
-// Clear mems ptr; used by DB.Close().
-func (db *DB) clearMems() {
-	db.memMu.Lock()
-	db.mem = nil
 	db.frozenMem = nil
 	db.memMu.Unlock()
 }
