@@ -27,11 +27,13 @@ const Conversation = (props: Props) => (
       : <Input
         defaultText={props.defaultText}
         focusInputCounter={props.focusInputCounter}
-        onEditLastMessage={props.onEditLastMessage}
-        selectedConversationIDKey={props.selectedConversationIDKey}
-        onStoreInputText={props.onStoreInputText}
         onAttach={props.onAttach}
+        onEditLastMessage={props.onEditLastMessage}
+        onEditMessage={props.onEditMessage}
         onPostMessage={props.onPostMessage}
+        onShowEditor={props.onShowEditor}
+        onStoreInputText={props.onStoreInputText}
+        selectedConversationIDKey={props.selectedConversationIDKey}
       /> }
 
     {props.sidePanelOpen && <SidePanel

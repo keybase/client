@@ -13,7 +13,9 @@ type OwnProps = {
   onStoreInputText: (text: string) => void,
   onAttach: (inputs: Array<Constants.AttachmentInput>) => void,
   onEditLastMessage: () => void,
+  onEditMessage: (message: Constants.Message, body: string) => void,
   onPostMessage: (text: string) => void,
+  onShowEditor: (message: ?Constants.Message) => void,
 }
 
 const mapStateToProps = (state: TypedState, {defaultText, focusInputCounter, selectedConversationIDKey}: OwnProps) => {
@@ -33,10 +35,12 @@ const mapStateToProps = (state: TypedState, {defaultText, focusInputCounter, sel
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {onStoreInputText, onAttach, onEditLastMessage, onPostMessage}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {onStoreInputText, onAttach, onEditLastMessage, onPostMessage, onEditMessage, onShowEditor}: OwnProps) => ({
   onAttach,
   onEditLastMessage,
+  onEditMessage,
   onPostMessage,
+  onShowEditor,
   onStoreInputText,
 })
 

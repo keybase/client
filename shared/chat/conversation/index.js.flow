@@ -41,6 +41,7 @@ export type Props = {
   onSelectAttachment: (input: Constants.AttachmentInput) => void,
   onShowBlockConversationDialog: () => void,
   onShowProfile: (username: string) => void,
+  onShowEditor: (message: ?Constants.Message) => void,
   onStoreInputText: (inputText: string) => void,
   onToggleSidePanel: () => void,
   participants: List<string>,
