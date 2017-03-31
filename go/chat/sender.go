@@ -91,7 +91,7 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 			DisableResolveSupersedes: true,
 		},
 		&chat1.Pagination{
-			Num: 100,
+			Num: -1,
 		})
 	switch err.(type) {
 	case storage.MissError:
