@@ -26,10 +26,7 @@ const ClickableBox = ({onClick, style, children, underlayColor, onPressIn, onPre
       </TouchableWithoutFeedback>
     }
   } else {
-    return <View
-      style={{...boxStyle, ...style}}>
-      {children}
-    </View>
+    return children
   }
 }
 
