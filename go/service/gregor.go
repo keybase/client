@@ -439,13 +439,6 @@ func (g *gregorHandler) IsConnected() bool {
 func (g *gregorHandler) serverSync(ctx context.Context,
 	cli gregor1.IncomingInterface, gcli *grclient.Client, syncRes *chat1.SyncAllNotificationRes) ([]gregor.InBandMessage, []gregor.InBandMessage, error) {
 
-	// Sync down everything from the server
-	consumedMsgs, err := gcli.Sync(cli, syncRes)
-	if err != nil {
-		g.Debug(ctx, "serverSync: error syncing from the server, reason: %s", err)
-		return nil, nil, err
-	}
-
 	// Get time of the last message we synced (unless this is our first time syncing)
 	var t time.Time
 	if !g.freshReplay {
@@ -456,6 +449,13 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 		g.Debug(ctx, "serverSync: starting replay from: %s", t)
 	} else {
 		g.Debug(ctx, "serverSync: performing a fresh replay")
+	}
+
+	// Sync down everything from the server
+	consumedMsgs, err := gcli.Sync(cli, syncRes)
+	if err != nil {
+		g.Debug(ctx, "serverSync: error syncing from the server, reason: %s", err)
+		return nil, nil, err
 	}
 
 	// Replay in-band messages
