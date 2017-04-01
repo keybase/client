@@ -566,8 +566,14 @@ func (m *ChatRemoteMock) SyncChat(ctx context.Context, vers chat1.InboxVers) (ch
 	}, nil
 }
 
-func (m *ChatRemoteMock) SyncAll(ctx context.Context, arg chat1.SyncAllArg) (chat1.SyncAllResult, error) {
-	return chat1.SyncAllResult{}, nil
+func (m *ChatRemoteMock) SyncAll(ctx context.Context, arg chat1.SyncAllArg) (res chat1.SyncAllResult, err error) {
+	cres, err := m.SyncChat(ctx, arg.InboxVers)
+	if err != nil {
+		return res, err
+	}
+	return chat1.SyncAllResult{
+		Chat: cres,
+	}, nil
 }
 
 type convByNewlyUpdated struct {

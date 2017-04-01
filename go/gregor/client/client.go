@@ -146,7 +146,10 @@ func (c *Client) freshSync(cli gregor1.IncomingInterface, state *gregor.State) (
 		if err != nil {
 			return msgs, err
 		}
+	} else {
+		c.Log.Debug("Sync(): freshSync(): skipping State call, data previously obtained")
 	}
+
 	if msgs, err = c.InBandMessagesFromState(*state); err != nil {
 		return msgs, err
 	}

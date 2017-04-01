@@ -173,7 +173,7 @@ func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 	s.Lock()
 	defer s.Unlock()
 	defer s.Trace(ctx, func() error { return err }, "Sync")()
-	return s.sync(ctx, cli, uid, nil)
+	return s.sync(ctx, cli, uid, syncRes)
 }
 
 func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
