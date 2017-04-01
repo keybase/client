@@ -87,7 +87,8 @@ type Syncer interface {
 	Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 		syncRes *chat1.SyncChatRes) error
 	Disconnected(ctx context.Context)
-	Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) error
+	Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
+		syncRes *chat1.SyncChatRes) error
 	RegisterOfflinable(offlinable Offlinable)
 	SendChatStaleNotifications(ctx context.Context, uid gregor1.UID, convIDs []chat1.ConversationID,
 		immediate bool)

@@ -168,7 +168,8 @@ func (s *Syncer) Disconnected(ctx context.Context) {
 	}
 }
 
-func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) (err error) {
+func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
+	syncRes *chat1.SyncChatRes) (err error) {
 	s.Lock()
 	defer s.Unlock()
 	defer s.Trace(ctx, func() error { return err }, "Sync")()
