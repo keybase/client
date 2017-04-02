@@ -382,9 +382,11 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 
 	// Delete assets associated with a delete operation.
 	// Logs instead of returning an error. Assets can be left undeleted.
-	err = s.deleteAssets(ctx, convID, pendingAssetDeletes)
-	if err != nil {
-		return chat1.OutboxID{}, 0, nil, err
+	if len(pendingAssetDeletes) > 0 {
+		err = s.deleteAssets(ctx, convID, pendingAssetDeletes)
+		if err != nil {
+			return chat1.OutboxID{}, 0, nil, err
+		}
 	}
 
 	rarg := chat1.PostRemoteArg{

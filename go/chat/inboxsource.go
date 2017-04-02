@@ -817,7 +817,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
 
 	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
-	s.Debug(ctx, "localizing: TLF: %s convID: %s", unverifiedTLFName, conversationRemote.GetConvID())
+	s.Debug(ctx, "localizing: TLF: %s convID: %s offline: %v", unverifiedTLFName,
+		conversationRemote.GetConvID(), s.offline)
 
 	conversationLocal.Info = chat1.ConversationInfoLocal{
 		Id:         conversationRemote.Metadata.ConversationID,
