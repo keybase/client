@@ -1,7 +1,7 @@
 // @flow
 
 import * as Immutable from 'immutable'
-import {compose, withState, withProps} from 'recompose'
+import {compose, withProps} from 'recompose'
 import * as Constants from '../../constants/chat'
 
 import type {Props} from './index'
@@ -93,24 +93,6 @@ const decoratedMesssagesHoc = withProps((props) => ({
   messages: _decorateSupersedes(props, props.messages),
 }))
 
-const focusInputHoc = compose(
-  withState(
-    'focusInputCounter',
-    'setFocusInputCounter',
-    0
-  ),
-  withProps(({setFocusInputCounter}) => ({onFocusInput: () => setFocusInputCounter(n => n + 1)})),
-)
-
-const editLastMessageHoc = compose(
-  withState(
-    'editLastMessageCounter',
-    'setEditLastMessageCounter',
-    0
-  ),
-  withProps(({setEditLastMessageCounter}) => ({onEditLastMessage: () => setEditLastMessageCounter(n => n + 1)}))
-)
-
-const hoc = compose(focusInputHoc, editLastMessageHoc, decoratedMesssagesHoc, propsHoc)
+const hoc = compose(decoratedMesssagesHoc, propsHoc)
 
 export default hoc

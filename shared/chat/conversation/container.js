@@ -23,10 +23,12 @@ import type {Props} from '.'
 type OwnProps = {}
 
 type ConversationContainerProps = {
-  listScrollDownCounter: number,
   setSidePanelOpen: (open: boolean) => void,
   sidePanelOpen: boolean,
-  triggerListScrollDown: () => void,
+  listScrollDownCounter: number,
+  onEditLastMessage: () => void,
+  onFocus: () => void,
+  onScrollDown: () => void,
 } & Props
 
 class ConversationContainer extends Component<void, ConversationContainerProps, void> {
@@ -60,8 +62,10 @@ class ConversationContainer extends Component<void, ConversationContainerProps, 
       onToggleSidePanel={this._onToggleSidePanel}
       onBack={this._onBack}
       onStoreInputText={this._onStoreInputText}
-      onScrollDown={this.props.triggerListScrollDown}
+      onScrollDown={this.props.onScrollDown}
       listScrollDownState={this.props.listScrollDownCounter}
+      onFocus={this.props.onFocus}
+      onEditLastMessage={this.props.onEditLastMessage}
     />
   }
 }
@@ -218,9 +222,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
   withState('sidePanelOpen', 'setSidePanelOpen', false),
+  withState('focusInputCounter', 'setFocusInputCounter', 0),
+  withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
+  withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
   withHandlers({
-    triggerListScrollDown: props => () => setListScrollDownCounter(props.listScrollDownCounter + 1),
+    onEditLastMessage: props => () => props.setEditLastMessageCounter(props.editLastMessageCounter + 1),
+    onFocus: props => () => props.setFocusInputCounter(props.focusInputCounter + 1),
+    onScrollDown: props => () => props.setListScrollDownCounter(props.listScrollDownCounter + 1),
   }),
 )(ConversationContainer)
