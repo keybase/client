@@ -407,8 +407,29 @@ func (i *Inbox) applyPagination(ctx context.Context, convs []chat1.Conversation,
 	return res, pagination, nil
 }
 
+func (i *Inbox) queryConvIDsExist(ctx context.Context, ibox inboxDiskData,
+	convIDs []chat1.ConversationID) bool {
+	m := make(map[string]bool)
+	for _, conv := range ibox.Conversations {
+		m[conv.GetConvID().String()] = true
+	}
+	for _, convID := range convIDs {
+		if !m[convID.String()] {
+			return false
+		}
+	}
+	return true
+}
+
 func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat1.GetInboxQuery,
 	p *chat1.Pagination) bool {
+
+	// If the query is specifying a list of conversation IDs, just check to see if we have *all*
+	// of them on the disk
+	if query != nil && len(query.ConvIDs) > 0 {
+		i.Debug(ctx, "Read: queryExists: convIDs query, checking list: len: %d", len(query.ConvIDs))
+		return i.queryConvIDsExist(ctx, ibox, query.ConvIDs)
+	}
 
 	hquery, err := i.hashQuery(ctx, query)
 	if err != nil {
