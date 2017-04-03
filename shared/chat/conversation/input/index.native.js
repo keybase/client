@@ -62,16 +62,6 @@ class ConversationInput extends Component<void, Props, void> {
     // Auto-growing multiline doesn't work smoothly on Android yet.
     const multilineOpts = isIOS ? {rowsMax: 3, rowsMin: 1} : {rowsMax: 2, rowsMin: 2}
 
-    const action = this.props.text
-      ? (
-        <ClickableBox feedback={false} onClick={this._onSubmit}>
-          <Box style={{padding: globalMargins.small}}>
-            <Text type='BodyBigLink'>{this.props.editingMessage ? 'Save' : 'Send'}</Text>
-          </Box>
-        </ClickableBox>
-        )
-      : <Icon onClick={this._openFilePicker} type='iconfont-attachment' style={{padding: globalMargins.small}} />
-
     return (
       <Box style={styleContainer}>
         <Input
@@ -89,11 +79,23 @@ class ConversationInput extends Component<void, Props, void> {
           value={this.props.text}
           {...multilineOpts}
         />
-        {action}
+        <Action text={this.props.text} onSubmit={this._onSubmit} editingMessage={this.props.editingMessage} openFilePicker={this._openFilePicker} />
       </Box>
     )
   }
 }
+
+const Action = ({text, onSubmit, editingMessage, openFilePicker}) => (
+  text ? (
+    <ClickableBox feedback={false} onClick={onSubmit}>
+      <Box style={{padding: globalMargins.small}}>
+        <Text type='BodyBigLink'>{editingMessage ? 'Save' : 'Send'}</Text>
+      </Box>
+    </ClickableBox>
+  ) : (
+    <Icon onClick={openFilePicker} type='iconfont-attachment' style={{padding: globalMargins.small}} />
+  )
+)
 
 const styleInputText = {
   ...globalStyles.fontRegular,

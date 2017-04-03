@@ -64,20 +64,22 @@ class ConversationInput extends Component<void, InputProps, void> {
       throw new Error('No conversation')
     }
     const files = this.props.filePickerFiles()
-    if (files.length > 0) {
-      const inputs = Array.prototype.map.call(files, file => {
-        const {path, name, type} = file
-        return {
-          conversationIDKey,
-          filename: path,
-          title: name,
-          type: type.indexOf('image') >= 0 ? 'Image' : 'Other',
-        }
-      })
-
-      this.props.onAttach(inputs)
-      this.props.filePickerSetValue(null)
+    if (files.length <= 0) {
+      return
     }
+
+    const inputs = Array.prototype.map.call(files, file => {
+      const {path, name, type} = file
+      return {
+        conversationIDKey,
+        filename: path,
+        title: name,
+        type: type.indexOf('image') >= 0 ? 'Image' : 'Other',
+      }
+    })
+
+    this.props.onAttach(inputs)
+    this.props.filePickerSetValue(null)
   }
 
   _pickerOnClick = (emoji) => {
@@ -119,16 +121,7 @@ class ConversationInput extends Component<void, InputProps, void> {
             onKeyDown={this._onKeyDown}
             onEnterKeyDown={this._onEnterKeyDown}
           />
-          {this.props.emojiPickerOpen && (
-            <Box>
-              <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0, top: 0}} onClick={this.props.emojiPickerToggle} />
-              <Box style={{position: 'relative'}}>
-                <Box style={{bottom: 0, position: 'absolute', right: 0}}>
-                  <Picker onClick={this._pickerOnClick} emoji={'ghost'} title={'emojibase'} backgroundImageFn={backgroundImageFn} />
-                </Box>
-              </Box>
-            </Box>
-          )}
+          {this.props.emojiPickerOpen && <EmojiPicker emojiPickerToggle={this.props.emojiPickerToggle} onClick={this._pickerOnClick} />}
           <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type='iconfont-emoji' />
           <Icon onClick={this.props.filePickerOpen} style={styleIcon} type='iconfont-attachment' />
         </Box>
@@ -137,6 +130,17 @@ class ConversationInput extends Component<void, InputProps, void> {
     )
   }
 }
+
+const EmojiPicker = ({emojiPickerToggle, onClick}) => (
+  <Box>
+    <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0, top: 0}} onClick={emojiPickerToggle} />
+    <Box style={{position: 'relative'}}>
+      <Box style={{bottom: 0, position: 'absolute', right: 0}}>
+        <Picker onClick={onClick} emoji={'ghost'} title={'emojibase'} backgroundImageFn={backgroundImageFn} />
+      </Box>
+    </Box>
+  </Box>
+)
 
 const styleInput = {
   flex: 1,
