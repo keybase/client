@@ -73,6 +73,7 @@ protocol Common {
     string deviceType;
     Time cTime;
     Time eTime;
+    boolean isRevoked;
   }
 
   record KeybaseTime {
