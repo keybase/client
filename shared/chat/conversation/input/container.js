@@ -80,8 +80,11 @@ export default compose(
         this.props.inputFocus()
       }
     },
-    componentWillUnmount: function () {
-      this.props.onStoreInputText(this.props.inputValue())
+    componentWillReceiveProps: function (nextProps) {
+      if (this.props.selectedConversationIDKey &&
+          this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {
+        this.props.onStoreInputText(this.props.inputValue())
+      }
     },
   })
 )(Input)
