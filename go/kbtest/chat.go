@@ -525,6 +525,10 @@ func (m *ChatRemoteMock) SetConversationStatus(ctx context.Context, arg chat1.Se
 	return chat1.SetConversationStatusRes{}, errors.New("not implemented")
 }
 
+func (m *ChatRemoteMock) SetSettings(ctx context.Context, arg chat1.SetSettingsArg) (res chat1.SetSettingsRes, err error) {
+	return chat1.SetSettingsRes{}, errors.New("not implemented")
+}
+
 func (m *ChatRemoteMock) TlfFinalize(ctx context.Context, arg chat1.TlfFinalizeArg) error {
 	return nil
 }

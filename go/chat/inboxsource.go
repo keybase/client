@@ -410,6 +410,11 @@ func (s *RemoteInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers
 	return nil, nil
 }
 
+func (s *RemoteInboxSource) SetSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convID chat1.ConversationID, settings []chat1.SettingKV) (*chat1.ConversationLocal, error) {
+	return nil, nil
+}
+
 func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error) {
 	// Notify rest of system about reset
@@ -656,6 +661,20 @@ func (s *HybridInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers
 	return conv, nil
 }
 
+func (s *HybridInboxSource) SetSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convID chat1.ConversationID, settings []chat1.SettingKV) (conv *chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "SetSettings")()
+	if cerr := storage.NewInbox(s.G(), uid).SetSettings(ctx, vers, convID, settings); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
+	}
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "SetSettings: unable to load conversation: convID: %s err: %s", convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
+}
+
 func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) (convs []chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "TlfFinalize")()
@@ -832,6 +851,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		Visibility: conversationRemote.Metadata.Visibility,
 		Triple:     conversationRemote.Metadata.IdTriple,
 		Status:     conversationRemote.Metadata.Status,
+		Settings:   conversationRemote.Metadata.Settings,
 	}
 	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
 	for _, super := range conversationRemote.Metadata.Supersedes {

@@ -797,6 +797,47 @@ func (i *Inbox) SetStatus(ctx context.Context, vers chat1.InboxVers, convID chat
 	return nil
 }
 
+func (i *Inbox) SetSettings(ctx context.Context, vers chat1.InboxVers, convID chat1.ConversationID,
+	settings []chat1.SettingKV) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, "SetSettings")()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
+
+	i.Debug(ctx, "SetSettings: vers: %d convID: %s", vers, convID)
+	ibox, err := i.readDiskInbox(ctx)
+	if err != nil {
+		if _, ok := err.(MissError); !ok {
+			return nil
+		}
+		return err
+	}
+
+	// Check inbox versions, make sure it makes sense (clear otherwise)
+	var cont bool
+	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
+		return err
+	}
+
+	// Find conversation
+	_, conv := i.getConv(convID, ibox.Conversations)
+	if conv == nil {
+		i.Debug(ctx, "SetSettings: no conversation found: convID: %s, clearing", convID)
+		return i.Clear(ctx)
+	}
+
+	conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
+	conv.Metadata.Settings = settings
+
+	// Write out to disk
+	ibox.InboxVersion = vers
+	if err := i.writeDiskInbox(ctx, ibox); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (i *Inbox) TlfFinalize(ctx context.Context, vers chat1.InboxVers, convIDs []chat1.ConversationID,
 	finalizeInfo chat1.ConversationFinalizeInfo) (err Error) {
 	locks.Inbox.Lock()
