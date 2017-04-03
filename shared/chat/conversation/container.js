@@ -170,7 +170,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}) => 
   onOpenInPopup: (message: Constants.AttachmentMessage) => dispatch(Creators.openAttachmentPopup(message)),
   onRetryAttachment: (message: Constants.AttachmentMessage) => dispatch(Creators.retryAttachment(message)),
   onRetryMessage: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
-  onSelectAttachment: (conversationIDKey: Constants.ConversationIDKey, input: Constants.AttachmentInput) => dispatch(Creators.selectAttachment(input)),
   startConversation: (users: Array<string>) => dispatch(Creators.startConversation(users, true)),
   onStoreInputText: (inputText: string) => setRouteState({inputText: new HiddenString(inputText)}),
   onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
@@ -212,7 +211,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversationIDKey),
     onMuteConversation: (muted: boolean) => dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted),
     onRetryMessage: (outboxID: Constants.OutboxIDKey) => dispatchProps.onRetryMessage(stateProps.selectedConversationIDKey, outboxID),
-    onSelectAttachment: (input) => dispatchProps.onSelectAttachment(stateProps.selectedConversationIDKey, input),
     onShowBlockConversationDialog: () => dispatchProps.onShowBlockConversationDialog(stateProps.selectedConversationIDKey, stateProps.participants.toArray().join(',')),
     restartConversation: () => dispatchProps.startConversation(stateProps.participants.toArray()),
   }
