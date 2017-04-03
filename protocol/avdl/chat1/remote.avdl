@@ -100,6 +100,10 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
 
+  record SetSettingsRes {
+    union { null, RateLimit } rateLimit;
+  }
+
   GetInboxRemoteRes getInboxRemote(InboxVers vers, union { null, GetInboxQuery } query, union { null, Pagination } pagination);
   GetThreadRemoteRes getThreadRemote(ConversationID conversationID, union { null, GetThreadQuery } query, union { null, Pagination } pagination);
   GetPublicConversationsRes getPublicConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs);
@@ -209,4 +213,37 @@ protocol remote {
   // Pubsub endpoints
   void publishReadMessage(gregor1.UID uid, ConversationID convID, MessageID msgID);
   void publishSetConversationStatus(gregor1.UID uid, ConversationID convID, ConversationStatus status);
+
+  SetSettingsRes setSettings(
+    // null means the setting applies to all conversations.
+    // only non-null is supported.
+    union { null, ConversationID } convID,
+    // null means the setting applies to all devices.
+    // only null is supported.
+    union { null, gregor1.DeviceID } deviceID,
+    array<SettingKV> settings
+  );
+
+  enum SettingKey {
+    MOBILE_NOTIFICATION_1,
+    EMAIL_NOTIFICATION_2
+  }
+
+  variant SettingKV switch (SettingKey setting) {
+    case MOBILE_NOTIFICATION: SettingMobileNotificationValue;
+    case EMAIL_NOTIFICATION:  SettingEmailNotificationValue;
+  }
+
+  enum SettingMobileNotificationValue {
+    DEFAULT_0,
+    ALL_1,
+    DISABLED_2
+  }
+
+  enum SettingEmailNotificationValue {
+    DEFAULT_0,
+    ALL_1,
+    DISABLED_2
+  }
+
 }

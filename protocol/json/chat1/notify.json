@@ -17,7 +17,8 @@
         "READ_MESSAGE_2",
         "NEW_CONVERSATION_3",
         "SET_STATUS_4",
-        "FAILED_MESSAGE_5"
+        "FAILED_MESSAGE_5",
+        "SET_SETTINGS_6"
       ]
     },
     {
@@ -114,6 +115,33 @@
       ]
     },
     {
+      "type": "record",
+      "name": "SetSettingsInfo",
+      "fields": [
+        {
+          "type": [
+            null,
+            "ConversationID"
+          ],
+          "name": "convID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SettingKV"
+          },
+          "name": "settings"
+        },
+        {
+          "type": [
+            null,
+            "ConversationLocal"
+          ],
+          "name": "conv"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "ChatActivity",
       "switch": {
@@ -155,6 +183,13 @@
             "def": false
           },
           "body": "FailedMessageInfo"
+        },
+        {
+          "label": {
+            "name": "SET_SETTINGS",
+            "def": false
+          },
+          "body": "SetSettingsInfo"
         }
       ]
     }

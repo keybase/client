@@ -42,6 +42,14 @@ type SetStatusPayload struct {
 	UnreadUpdate *UnreadUpdate      `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 }
 
+type SetSettingsPayload struct {
+	Action       string          `codec:"Action" json:"Action"`
+	ConvID       *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
+	Settings     []SettingKV     `codec:"settings" json:"settings"`
+	InboxVers    InboxVers       `codec:"inboxVers" json:"inboxVers"`
+	UnreadUpdate *UnreadUpdate   `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
+}
+
 type UnreadUpdate struct {
 	ConvID         ConversationID `codec:"convID" json:"convID"`
 	UnreadMessages int            `codec:"UnreadMessages" json:"UnreadMessages"`

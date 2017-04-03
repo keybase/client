@@ -1283,6 +1283,7 @@ type ConversationInfoLocal struct {
 	TopicName    string                    `codec:"topicName" json:"topicName"`
 	Visibility   TLFVisibility             `codec:"visibility" json:"visibility"`
 	Status       ConversationStatus        `codec:"status" json:"status"`
+	Settings     []SettingKV               `codec:"settings" json:"settings"`
 	WriterNames  []string                  `codec:"writerNames" json:"writerNames"`
 	ReaderNames  []string                  `codec:"readerNames" json:"readerNames"`
 	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
@@ -1424,6 +1425,11 @@ type PostLocalNonblockRes struct {
 }
 
 type SetConversationStatusLocalRes struct {
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+type SetConversationSettingLocalRes struct {
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
@@ -1594,6 +1600,12 @@ type SetConversationStatusLocalArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type SetConversationSettingLocalArg struct {
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	Setting          SettingKV                    `codec:"setting" json:"setting"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
 type NewConversationLocalArg struct {
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
 	TopicType        TopicType                    `codec:"topicType" json:"topicType"`
@@ -1698,6 +1710,7 @@ type LocalInterface interface {
 	PostDeleteNonblock(context.Context, PostDeleteNonblockArg) (PostLocalNonblockRes, error)
 	PostEditNonblock(context.Context, PostEditNonblockArg) (PostLocalNonblockRes, error)
 	SetConversationStatusLocal(context.Context, SetConversationStatusLocalArg) (SetConversationStatusLocalRes, error)
+	SetConversationSettingLocal(context.Context, SetConversationSettingLocalArg) (SetConversationSettingLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
 	GetConversationForCLILocal(context.Context, GetConversationForCLILocalQuery) (GetConversationForCLILocalRes, error)
@@ -1889,6 +1902,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.SetConversationStatusLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setConversationSettingLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]SetConversationSettingLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetConversationSettingLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetConversationSettingLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.SetConversationSettingLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2161,6 +2190,11 @@ func (c LocalClient) PostEditNonblock(ctx context.Context, __arg PostEditNonbloc
 
 func (c LocalClient) SetConversationStatusLocal(ctx context.Context, __arg SetConversationStatusLocalArg) (res SetConversationStatusLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.SetConversationStatusLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) SetConversationSettingLocal(ctx context.Context, __arg SetConversationSettingLocalArg) (res SetConversationSettingLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.setConversationSettingLocal", []interface{}{__arg}, &res)
 	return
 }
 

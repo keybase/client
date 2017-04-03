@@ -131,6 +131,42 @@
     },
     {
       "type": "record",
+      "name": "SetSettingsPayload",
+      "fields": [
+        {
+          "type": "string",
+          "name": "Action",
+          "lint": "ignore"
+        },
+        {
+          "type": [
+            null,
+            "ConversationID"
+          ],
+          "name": "convID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SettingKV"
+          },
+          "name": "settings"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        },
+        {
+          "type": [
+            null,
+            "UnreadUpdate"
+          ],
+          "name": "unreadUpdate"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnreadUpdate",
       "fields": [
         {

@@ -967,6 +967,13 @@
         {
           "type": {
             "type": "array",
+            "items": "SettingKV"
+          },
+          "name": "settings"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "string"
           },
           "name": "writerNames"
@@ -1432,6 +1439,26 @@
     {
       "type": "record",
       "name": "SetConversationStatusLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SetConversationSettingLocalRes",
       "fields": [
         {
           "type": {
@@ -2065,6 +2092,23 @@
       ],
       "response": "SetConversationStatusLocalRes",
       "lint": "ignore"
+    },
+    "setConversationSettingLocal": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "setting",
+          "type": "SettingKV"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "SetConversationSettingLocalRes"
     },
     "newConversationLocal": {
       "request": [
