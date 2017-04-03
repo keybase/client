@@ -120,7 +120,6 @@ class Conversation extends Component<void, Props, State> {
             : <Input
               focusInputCounter={this.props.focusInputCounter}
               onEditLastMessage={this._onEditLastMessage}
-              onStoreInputText={this.props.onStoreInputText}
               selectedConversationIDKey={this.props.selectedConversationIDKey}
               onScrollDown={this.props.onScrollDown}
             /> }

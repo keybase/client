@@ -12,7 +12,6 @@ import type {TypedState} from '../../../constants/reducer'
 type OwnProps = {
   focusInputCounter: number,
   selectedConversationIDKey: ?Constants.ConversationIDKey,
-  onStoreInputText: (text: string) => void,
   onEditLastMessage: () => void,
   onScrollDown: () => void,
 }

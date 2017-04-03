@@ -14,7 +14,6 @@ export type Props = {
   onEditLastMessage: () => void,
   onEditMessage: (message: ?Constants.Message, text: string) => void,
   onPostMessage: (text: string) => void,
-  onSelectAttachment: (input: Constants.AttachmentInput) => void,
   onShowEditor: (message: ?Constants.Message) => void,
   onStoreInputText: (text: string) => void,
   selectedConversationIDKey: ?Constants.ConversationIDKey,

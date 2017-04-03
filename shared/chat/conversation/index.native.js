@@ -27,7 +27,6 @@ const Conversation = (props: Props) => (
       : <Input
         focusInputCounter={props.focusInputCounter}
         onEditLastMessage={props.onEditLastMessage}
-        onStoreInputText={props.onStoreInputText}
         selectedConversationIDKey={props.selectedConversationIDKey}
         onScrollDown={props.onScrollDown}
       /> }
