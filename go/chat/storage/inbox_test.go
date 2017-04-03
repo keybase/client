@@ -209,9 +209,19 @@ func TestInboxQueries(t *testing.T) {
 
 	t.Logf("merging before query")
 	before := full[5:]
+	var beforeConvIDs []chat1.ConversationID
+	for _, bconv := range before {
+		beforeConvIDs = append(beforeConvIDs, bconv.GetConvID())
+	}
 	btime := gregor1.Time(15)
 	q = &chat1.GetInboxQuery{Before: &btime}
 	mergeReadAndCheck(t, before, "before")
+
+	t.Logf("check conv IDs queries work")
+	q = &chat1.GetInboxQuery{Before: &btime, ConvIDs: beforeConvIDs}
+	_, cres, _, err := inbox.Read(context.TODO(), q, nil)
+	require.NoError(t, err)
+	require.Equal(t, before, cres)
 }
 
 func TestInboxPagination(t *testing.T) {
