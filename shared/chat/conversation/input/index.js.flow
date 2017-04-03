@@ -20,7 +20,6 @@ export type Props = {
   selectedConversationIDKey: ?Constants.ConversationIDKey,
   setText: (text: string) => void,
   text: string,
-  toggleEmojiPicker: () => void,
 }
 
 export default class Input extends Component<void, Props, void> { }
