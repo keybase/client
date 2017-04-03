@@ -120,7 +120,6 @@ class Conversation extends Component<void, Props, State> {
             : <Input
               focusInputCounter={this.props.focusInputCounter}
               onEditLastMessage={this._onEditLastMessage}
-              selectedConversationIDKey={this.props.selectedConversationIDKey}
               onScrollDown={this.props.onScrollDown}
             /> }
         {sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>

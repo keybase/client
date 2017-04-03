@@ -8,15 +8,17 @@ import {connect} from 'react-redux'
 import {navigateAppend} from '../../../actions/route-tree'
 
 import type {TypedState} from '../../../constants/reducer'
+import type {Props} from '.'
 
 type OwnProps = {
   focusInputCounter: number,
-  selectedConversationIDKey: ?Constants.ConversationIDKey,
   onEditLastMessage: () => void,
   onScrollDown: () => void,
 }
 
-const mapStateToProps = (state: TypedState, {focusInputCounter, selectedConversationIDKey}: OwnProps) => {
+const mapStateToProps = (state: TypedState, {focusInputCounter}: OwnProps) => {
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
+
   let isLoading = false
   if (selectedConversationIDKey !== Constants.nothingSelected) {
     const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
@@ -45,10 +47,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) => dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   ...stateProps,
   ...dispatchProps,
-  ...ownProps,
   onAttach: (inputs: Array<Constants.AttachmentInput>) => dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
   onEditLastMessage: ownProps.onEditLastMessage,
   onPostMessage: text => {
