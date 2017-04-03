@@ -271,12 +271,12 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       ))
     }
     case 'chat:createPendingFailure': {
-      const {outboxID} = action.payload
-      return state.set('pendingFailures', state.get('pendingFailures').add(outboxID))
+      const {failureDescription, outboxID} = action.payload
+      return state.set('pendingFailures', state.get('pendingFailures').set(outboxID, failureDescription))
     }
     case 'chat:removePendingFailure': {
       const {outboxID} = action.payload
-      return state.set('pendingFailures', state.get('pendingFailures').remove(outboxID))
+      return state.set('pendingFailures', state.get('pendingFailures').delete(outboxID))
     }
     case 'chat:attachmentLoaded': {
       const {conversationIDKey, messageID, path, isPreview, isHdPreview} = action.payload
