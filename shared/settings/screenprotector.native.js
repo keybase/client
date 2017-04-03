@@ -4,6 +4,7 @@ import React, {Component} from 'react'
 import {globalStyles} from '../styles'
 import {Box, Icon, Text, Checkbox} from '../common-adapters'
 import {getSecureFlagSetting, setSecureFlagSetting} from '../native/screenprotector'
+import {isAndroid} from '../constants/platform'
 
 type State = {
   secureFlag: boolean,
@@ -36,6 +37,10 @@ class Screenprotector extends Component {
   }
 
   render () {
+    if (!isAndroid) {
+      return <Text type='Body'>Screenprotector is only supported on android</Text>
+    }
+
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center'}}>
         <Icon type='icon-keybase-logo-128' />
