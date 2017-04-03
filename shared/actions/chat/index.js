@@ -150,7 +150,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
         } else {
           // How long was it between the previous message and this one?
           if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
-            const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages, conversationState.messages.size - 1)
+            const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages.toArray(), conversationState.messages.size - 1)
             if (timestamp !== null) {
               yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, [timestamp]))
             }
