@@ -10,6 +10,8 @@ import {compose, withState, withHandlers} from 'recompose'
 import type {Props} from '.'
 
 type InputProps = {
+  inputSelections: () => {selectionStart?: number, selectionEnd?: number},
+  emojiPickerOpen: boolean,
   emojiPickerToggle: () => void,
   filePickerFiles: () => Array<any>,
   filePickerOpen: () => void,
