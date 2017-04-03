@@ -34,7 +34,7 @@ const routeTree = new RouteDefNode({
       // TODO
       component: About,
     },
-    'screenprotector': {
+    [Constants.screenprotectorTab]: {
       component: Screenprotector,
     },
     [Constants.invitationsTab]: {
