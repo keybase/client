@@ -6,6 +6,7 @@ import {clamp, invert} from 'lodash'
 import * as ChatTypes from './types/flow-types-chat'
 import {getPath, getPathState} from '../route-tree'
 import {chatTab} from './tabs'
+import {createSelector} from 'reselect'
 
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
@@ -614,6 +615,31 @@ function messageKey (kind: MessageKeyKind, value: string | number): MessageKey {
   return `${kind}:${value}`
 }
 
+const getYou = (state: TypedState) => state.config.username || ''
+const getFollowingMap = (state: TypedState) => state.config.following
+const getMetaDataMap = (state: TypedState) => state.chat.get('metaData')
+const getSelectedInbox = (state: TypedState) => {
+  const selected = getSelectedConversation(state)
+  return state.chat.get('inbox').find(inbox => inbox.get('conversationIDKey') === selected)
+}
+
+const getTLF = createSelector(
+  [getSelectedInbox, getSelectedConversation],
+  (selectedInbox, selected) => {
+    if (isPendingConversationIDKey(selected)) {
+      return pendingConversationIDKeyToTlfName(selected) || ''
+    } else if (selected !== nothingSelected && selectedInbox) {
+      return selectedInbox.participants.join(',')
+    }
+    return ''
+  }
+)
+
+const getMuted = createSelector(
+  [getSelectedInbox],
+  (selectedInbox) => selectedInbox && selectedInbox.get('status') === 'muted',
+)
+
 export {
   getBrokenUsers,
   getSelectedConversation,
@@ -635,4 +661,10 @@ export {
   isPendingConversationIDKey,
   pendingConversationIDKeyToTlfName,
   getSelectedRouteState,
+  getYou,
+  getFollowingMap,
+  getMetaDataMap,
+  getSelectedInbox,
+  getTLF,
+  getMuted,
 }

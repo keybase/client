@@ -20,10 +20,9 @@ import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
 import type {Props} from '.'
 
-type OwnProps = {}
-
 type ConversationContainerProps = {
-  setSidePanelOpen: (open: boolean) => void,
+  onCloseSidePanel: () => void,
+  onToggleSidePanel: () => void,
   sidePanelOpen: boolean,
   listScrollDownCounter: number,
   onEditLastMessage: () => void,
@@ -34,12 +33,8 @@ type ConversationContainerProps = {
 class ConversationContainer extends Component<void, ConversationContainerProps, void> {
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {
-      this.props.setSidePanelOpen(false)
+      this.props.onCloseSidePanel()
     }
-  }
-
-  _onToggleSidePanel = () => {
-    this.props.setSidePanelOpen(!this.props.sidePanelOpen)
   }
 
   // We wrap this so children don't churn when this.props.onBack() changes due to this component churning. Whe this thing does less we can
@@ -55,7 +50,7 @@ class ConversationContainer extends Component<void, ConversationContainerProps, 
     return <Conversation
       {...this.props}
       sidePanelOpen={this.props.sidePanelOpen}
-      onToggleSidePanel={this._onToggleSidePanel}
+      onToggleSidePanel={this.props.onToggleSidePanel}
       onBack={this._onBack}
       onScrollDown={this.props.onScrollDown}
       listScrollDownState={this.props.listScrollDownCounter}
@@ -172,7 +167,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}) => 
   onEnterPaperkey: () => dispatch(navigateAppend(['enterPaperkey'])),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps) => {
   let bannerMessage
 
   const brokenUsers = Constants.getBrokenUsers(stateProps.participants.toArray(), stateProps.you, stateProps.metaDataMap)
@@ -197,7 +192,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
-    ...ownProps,
     bannerMessage,
     onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => p !== stateProps.you).toArray()),
     onAttach: (inputs: Array<Constants.AttachmentInput>) => dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
@@ -217,8 +211,10 @@ export default compose(
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
   withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
   withHandlers({
+    onCloseSidePanel: props => () => props.setSidePanelOpen(false),
     onEditLastMessage: props => () => props.setEditLastMessageCounter(props.editLastMessageCounter + 1),
     onFocus: props => () => props.setFocusInputCounter(props.focusInputCounter + 1),
     onScrollDown: props => () => props.setListScrollDownCounter(props.listScrollDownCounter + 1),
+    onToggleSidePanel: props => () => props.setSidePanelOpen(!props.sidePanelOpen),
   }),
 )(ConversationContainer)
