@@ -251,6 +251,33 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 		if badger != nil && nm.UnreadUpdate != nil {
 			badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 		}
+	case "setSettings":
+		var nm chat1.SetSettingsPayload
+		err = dec.Decode(&nm)
+		if err != nil {
+			g.Debug(ctx, "chat activity: error decoding: %s", err.Error())
+			return err
+		}
+		g.Debug(ctx, "chat activity: setSettings: convID: %s settings: %d",
+			nm.ConvID, len(nm.Settings))
+
+		var conv *chat1.ConversationLocal
+		uid := m.UID().Bytes()
+		if nm.ConvID == nil {
+			return fmt.Errorf("multi-conv settings not supported")
+		}
+		if conv, err = g.G().InboxSource.SetSettings(ctx, uid, nm.InboxVers, *nm.ConvID, nm.Settings); err != nil {
+			g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
+		}
+		activity = chat1.NewChatActivityWithSetSettings(chat1.SetSettingsInfo{
+			ConvID:   nm.ConvID,
+			Settings: nm.Settings,
+			Conv:     conv,
+		})
+
+		if badger != nil && nm.UnreadUpdate != nil {
+			badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
+		}
 	case "newConversation":
 		var nm chat1.NewConversationPayload
 		err = dec.Decode(&nm)

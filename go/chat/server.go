@@ -786,6 +786,7 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SetConversationStatusLocal")()
+
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.SetConversationStatusLocalRes{}, err
 	}
@@ -799,6 +800,31 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 	}
 
 	return chat1.SetConversationStatusLocalRes{
+		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{scsres.RateLimit}),
+		IdentifyFailures: identBreaks,
+	}, nil
+}
+
+func (h *Server) SetConversationSettingLocal(ctx context.Context, arg chat1.SetConversationSettingLocalArg) (res chat1.SetConversationSettingLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetConversationSettingLocal")()
+
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return chat1.SetConversationSettingLocalRes{}, err
+	}
+
+	remoteArg := chat1.SetSettingsArg{
+		ConvID:   &arg.ConversationID,
+		DeviceID: nil,
+		Settings: []chat1.SettingKV{arg.Setting},
+	}
+	scsres, err := h.remoteClient().SetSettings(ctx, remoteArg)
+	if err != nil {
+		return chat1.SetConversationSettingLocalRes{}, err
+	}
+
+	return chat1.SetConversationSettingLocalRes{
 		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{scsres.RateLimit}),
 		IdentifyFailures: identBreaks,
 	}, nil
