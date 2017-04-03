@@ -16,7 +16,6 @@ export type Props = {
   messages: List<Constants.Message>,
   metaDataMap: Constants.MetaDataMap,
   moreToLoad: boolean,
-  muted: boolean,
   onAddParticipant: () => void,
   onAttach: (inputs: Array<Constants.AttachmentInput>) => void,
   onBack: () => void,

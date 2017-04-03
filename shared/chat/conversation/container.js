@@ -78,7 +78,6 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
         messages: List(),
         metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
         moreToLoad: false,
-        muted: false,
         participants,
         rekeyInfo: null,
         selectedConversationIDKey,
@@ -94,7 +93,6 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
     if (conversationState) {
       const inbox = state.chat.get('inbox')
       const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
-      const muted = selected && selected.get('status') === 'muted'
       const participants = selected && selected.participants || List()
       const rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversationIDKey)
 
@@ -109,7 +107,6 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
         messages: conversationState.messages,
         metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
         moreToLoad: conversationState.moreToLoad,
-        muted,
         participants,
         rekeyInfo,
         selectedConversationIDKey,
@@ -153,7 +150,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}) => 
   onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(Creators.loadAttachment(selectedConversation, messageID, downloadFilePath(filename), false, false)),
   onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => dispatch(Creators.loadMoreMessages(conversationIDKey, false)),
   onMessageAction: (message: Constants.ServerMessage) => dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
-  onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => { dispatch(Creators.muteConversation(conversationIDKey, muted)) },
   onOpenFolder: () => dispatch(Creators.openFolder()),
   onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => dispatch(Creators.openConversation(conversationIDKey)),
   onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
@@ -197,7 +193,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     onAttach: (inputs: Array<Constants.AttachmentInput>) => dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
     onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversationIDKey, messageID, filename),
     onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversationIDKey),
-    onMuteConversation: (muted: boolean) => dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted),
     onRetryMessage: (outboxID: Constants.OutboxIDKey) => dispatchProps.onRetryMessage(stateProps.selectedConversationIDKey, outboxID),
     onShowBlockConversationDialog: () => dispatchProps.onShowBlockConversationDialog(stateProps.selectedConversationIDKey, stateProps.participants.toArray().join(',')),
     restartConversation: () => dispatchProps.startConversation(stateProps.participants.toArray()),
