@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -52,6 +53,14 @@ func newConv(t *testing.T, uid gregor1.UID, ri chat1.RemoteInterface, sender Sen
 	return ires.Inbox.Full().Conversations[0]
 }
 
+func doSync(t *testing.T, syncer types.Syncer, ri chat1.RemoteInterface, uid gregor1.UID) {
+	res, err := ri.SyncAll(context.TODO(), chat1.SyncAllArg{
+		Uid: uid,
+	})
+	require.NoError(t, err)
+	require.NoError(t, syncer.Sync(context.TODO(), ri, uid, &res.Chat))
+}
+
 func TestSyncerConnected(t *testing.T) {
 	world, ri2, _, sender, list, tlf := setupTest(t, 3)
 	defer world.Cleanup()
@@ -75,13 +84,13 @@ func TestSyncerConnected(t *testing.T) {
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
 		return chat1.NewSyncInboxResWithCurrent(), nil
 	}
-	require.NoError(t, syncer.Sync(context.TODO(), ri, uid))
+	doSync(t, syncer, ri, uid)
 
 	t.Logf("test clear")
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
 		return chat1.NewSyncInboxResWithClear(), nil
 	}
-	require.NoError(t, syncer.Sync(context.TODO(), ri, uid))
+	doSync(t, syncer, ri, uid)
 	select {
 	case <-list.inboxStale:
 	case <-time.After(20 * time.Second):
@@ -113,7 +122,7 @@ func TestSyncerConnected(t *testing.T) {
 			Convs: []chat1.Conversation{mconv},
 		}), nil
 	}
-	require.NoError(t, syncer.Sync(context.TODO(), ri, uid))
+	doSync(t, syncer, ri, uid)
 	select {
 	case <-list.inboxStale:
 		require.Fail(t, "should not receive inbox stale")
@@ -149,7 +158,7 @@ func TestSyncerConnected(t *testing.T) {
 	}
 	ri.CacheInboxVersion = 5
 	ri.CacheBodiesVersion = 5
-	require.NoError(t, syncer.Sync(context.TODO(), ri, uid))
+	doSync(t, syncer, ri, uid)
 	select {
 	case <-list.inboxStale:
 	case <-time.After(20 * time.Second):

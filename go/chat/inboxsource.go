@@ -571,7 +571,7 @@ func (s *HybridInboxSource) handleInboxError(ctx context.Context, err storage.Er
 	if verr, ok := err.(storage.VersionMismatchError); ok {
 		s.Debug(ctx, "handleInboxError: version mismatch, syncing and sending stale notifications: %s",
 			verr.Error())
-		s.G().Syncer.Sync(ctx, s.getChatInterface(), uid)
+		s.G().Syncer.Sync(ctx, s.getChatInterface(), uid, nil)
 		return nil
 	}
 	return err
@@ -817,7 +817,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
 
 	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
-	s.Debug(ctx, "localizing: TLF: %s convID: %s", unverifiedTLFName, conversationRemote.GetConvID())
+	s.Debug(ctx, "localizing: TLF: %s convID: %s offline: %v", unverifiedTLFName,
+		conversationRemote.GetConvID(), s.offline)
 
 	conversationLocal.Info = chat1.ConversationInfoLocal{
 		Id:         conversationRemote.Metadata.ConversationID,
