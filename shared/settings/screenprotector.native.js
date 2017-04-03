@@ -5,7 +5,6 @@ import {globalStyles} from '../styles'
 import {Box, Icon, Text, Checkbox} from '../common-adapters'
 import {getSecureFlagSetting, setSecureFlagSetting} from '../native/screenprotector'
 
-type Props = {}
 type State = {
   secureFlag: boolean,
 }
