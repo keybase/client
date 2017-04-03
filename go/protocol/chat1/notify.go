@@ -19,6 +19,7 @@ const (
 	ChatActivityType_NEW_CONVERSATION ChatActivityType = 3
 	ChatActivityType_SET_STATUS       ChatActivityType = 4
 	ChatActivityType_FAILED_MESSAGE   ChatActivityType = 5
+	ChatActivityType_SET_SETTINGS     ChatActivityType = 6
 )
 
 var ChatActivityTypeMap = map[string]ChatActivityType{
@@ -28,6 +29,7 @@ var ChatActivityTypeMap = map[string]ChatActivityType{
 	"NEW_CONVERSATION": 3,
 	"SET_STATUS":       4,
 	"FAILED_MESSAGE":   5,
+	"SET_SETTINGS":     6,
 }
 
 var ChatActivityTypeRevMap = map[ChatActivityType]string{
@@ -37,6 +39,7 @@ var ChatActivityTypeRevMap = map[ChatActivityType]string{
 	3: "NEW_CONVERSATION",
 	4: "SET_STATUS",
 	5: "FAILED_MESSAGE",
+	6: "SET_SETTINGS",
 }
 
 func (e ChatActivityType) String() string {
@@ -73,6 +76,12 @@ type FailedMessageInfo struct {
 	OutboxRecords []OutboxRecord `codec:"outboxRecords" json:"outboxRecords"`
 }
 
+type SetSettingsInfo struct {
+	ConvID   *ConversationID    `codec:"convID,omitempty" json:"convID,omitempty"`
+	Settings []SettingKV        `codec:"settings" json:"settings"`
+	Conv     *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
+}
+
 type ChatActivity struct {
 	ActivityType__    ChatActivityType     `codec:"activityType" json:"activityType"`
 	IncomingMessage__ *IncomingMessage     `codec:"incomingMessage,omitempty" json:"incomingMessage,omitempty"`
@@ -80,6 +89,7 @@ type ChatActivity struct {
 	NewConversation__ *NewConversationInfo `codec:"newConversation,omitempty" json:"newConversation,omitempty"`
 	SetStatus__       *SetStatusInfo       `codec:"setStatus,omitempty" json:"setStatus,omitempty"`
 	FailedMessage__   *FailedMessageInfo   `codec:"failedMessage,omitempty" json:"failedMessage,omitempty"`
+	SetSettings__     *SetSettingsInfo     `codec:"setSettings,omitempty" json:"setSettings,omitempty"`
 }
 
 func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
@@ -107,6 +117,11 @@ func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
 	case ChatActivityType_FAILED_MESSAGE:
 		if o.FailedMessage__ == nil {
 			err = errors.New("unexpected nil value for FailedMessage__")
+			return ret, err
+		}
+	case ChatActivityType_SET_SETTINGS:
+		if o.SetSettings__ == nil {
+			err = errors.New("unexpected nil value for SetSettings__")
 			return ret, err
 		}
 	}
@@ -163,6 +178,16 @@ func (o ChatActivity) FailedMessage() (res FailedMessageInfo) {
 	return *o.FailedMessage__
 }
 
+func (o ChatActivity) SetSettings() (res SetSettingsInfo) {
+	if o.ActivityType__ != ChatActivityType_SET_SETTINGS {
+		panic("wrong case accessed")
+	}
+	if o.SetSettings__ == nil {
+		return
+	}
+	return *o.SetSettings__
+}
+
 func NewChatActivityWithIncomingMessage(v IncomingMessage) ChatActivity {
 	return ChatActivity{
 		ActivityType__:    ChatActivityType_INCOMING_MESSAGE,
@@ -195,6 +220,13 @@ func NewChatActivityWithFailedMessage(v FailedMessageInfo) ChatActivity {
 	return ChatActivity{
 		ActivityType__:  ChatActivityType_FAILED_MESSAGE,
 		FailedMessage__: &v,
+	}
+}
+
+func NewChatActivityWithSetSettings(v SetSettingsInfo) ChatActivity {
+	return ChatActivity{
+		ActivityType__: ChatActivityType_SET_SETTINGS,
+		SetSettings__:  &v,
 	}
 }
 

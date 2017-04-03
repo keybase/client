@@ -305,6 +305,13 @@
           "name": "status"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "SettingKV"
+          },
+          "name": "settings"
+        },
+        {
           "type": [
             null,
             "ConversationFinalizeInfo"

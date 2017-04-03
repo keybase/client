@@ -247,6 +247,19 @@
     },
     {
       "type": "record",
+      "name": "SetSettingsRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnreadUpdateFull",
       "fields": [
         {
@@ -437,6 +450,56 @@
           "type": "UnreadUpdateFull",
           "name": "badge"
         }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "SettingKey",
+      "symbols": [
+        "MOBILE_NOTIFICATION_1",
+        "EMAIL_NOTIFICATION_2"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "SettingKV",
+      "switch": {
+        "type": "SettingKey",
+        "name": "setting"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "MOBILE_NOTIFICATION",
+            "def": false
+          },
+          "body": "SettingMobileNotificationValue"
+        },
+        {
+          "label": {
+            "name": "EMAIL_NOTIFICATION",
+            "def": false
+          },
+          "body": "SettingEmailNotificationValue"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "SettingMobileNotificationValue",
+      "symbols": [
+        "DEFAULT_0",
+        "ALL_1",
+        "DISABLED_2"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "SettingEmailNotificationValue",
+      "symbols": [
+        "DEFAULT_0",
+        "ALL_1",
+        "DISABLED_2"
       ]
     }
   ],
@@ -748,6 +811,32 @@
         }
       ],
       "response": null
+    },
+    "setSettings": {
+      "request": [
+        {
+          "name": "convID",
+          "type": [
+            null,
+            "ConversationID"
+          ]
+        },
+        {
+          "name": "deviceID",
+          "type": [
+            null,
+            "gregor1.DeviceID"
+          ]
+        },
+        {
+          "name": "settings",
+          "type": {
+            "type": "array",
+            "items": "SettingKV"
+          }
+        }
+      ],
+      "response": "SetSettingsRes"
     }
   },
   "namespace": "chat.1"

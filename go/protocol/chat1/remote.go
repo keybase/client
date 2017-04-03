@@ -100,6 +100,10 @@ type GetPublicConversationsRes struct {
 	RateLimit     *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
+type SetSettingsRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
 type UnreadUpdateFull struct {
 	Ignore    bool           `codec:"ignore" json:"ignore"`
 	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
@@ -290,6 +294,140 @@ type SyncAllResult struct {
 	Badge        UnreadUpdateFull       `codec:"badge" json:"badge"`
 }
 
+type SettingKey int
+
+const (
+	SettingKey_MOBILE_NOTIFICATION SettingKey = 1
+	SettingKey_EMAIL_NOTIFICATION  SettingKey = 2
+)
+
+var SettingKeyMap = map[string]SettingKey{
+	"MOBILE_NOTIFICATION": 1,
+	"EMAIL_NOTIFICATION":  2,
+}
+
+var SettingKeyRevMap = map[SettingKey]string{
+	1: "MOBILE_NOTIFICATION",
+	2: "EMAIL_NOTIFICATION",
+}
+
+func (e SettingKey) String() string {
+	if v, ok := SettingKeyRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type SettingKV struct {
+	Setting__            SettingKey                      `codec:"setting" json:"setting"`
+	MobileNotification__ *SettingMobileNotificationValue `codec:"mobileNotification,omitempty" json:"mobileNotification,omitempty"`
+	EmailNotification__  *SettingEmailNotificationValue  `codec:"emailNotification,omitempty" json:"emailNotification,omitempty"`
+}
+
+func (o *SettingKV) Setting() (ret SettingKey, err error) {
+	switch o.Setting__ {
+	case SettingKey_MOBILE_NOTIFICATION:
+		if o.MobileNotification__ == nil {
+			err = errors.New("unexpected nil value for MobileNotification__")
+			return ret, err
+		}
+	case SettingKey_EMAIL_NOTIFICATION:
+		if o.EmailNotification__ == nil {
+			err = errors.New("unexpected nil value for EmailNotification__")
+			return ret, err
+		}
+	}
+	return o.Setting__, nil
+}
+
+func (o SettingKV) MobileNotification() (res SettingMobileNotificationValue) {
+	if o.Setting__ != SettingKey_MOBILE_NOTIFICATION {
+		panic("wrong case accessed")
+	}
+	if o.MobileNotification__ == nil {
+		return
+	}
+	return *o.MobileNotification__
+}
+
+func (o SettingKV) EmailNotification() (res SettingEmailNotificationValue) {
+	if o.Setting__ != SettingKey_EMAIL_NOTIFICATION {
+		panic("wrong case accessed")
+	}
+	if o.EmailNotification__ == nil {
+		return
+	}
+	return *o.EmailNotification__
+}
+
+func NewSettingKVWithMobileNotification(v SettingMobileNotificationValue) SettingKV {
+	return SettingKV{
+		Setting__:            SettingKey_MOBILE_NOTIFICATION,
+		MobileNotification__: &v,
+	}
+}
+
+func NewSettingKVWithEmailNotification(v SettingEmailNotificationValue) SettingKV {
+	return SettingKV{
+		Setting__:           SettingKey_EMAIL_NOTIFICATION,
+		EmailNotification__: &v,
+	}
+}
+
+type SettingMobileNotificationValue int
+
+const (
+	SettingMobileNotificationValue_DEFAULT  SettingMobileNotificationValue = 0
+	SettingMobileNotificationValue_ALL      SettingMobileNotificationValue = 1
+	SettingMobileNotificationValue_DISABLED SettingMobileNotificationValue = 2
+)
+
+var SettingMobileNotificationValueMap = map[string]SettingMobileNotificationValue{
+	"DEFAULT":  0,
+	"ALL":      1,
+	"DISABLED": 2,
+}
+
+var SettingMobileNotificationValueRevMap = map[SettingMobileNotificationValue]string{
+	0: "DEFAULT",
+	1: "ALL",
+	2: "DISABLED",
+}
+
+func (e SettingMobileNotificationValue) String() string {
+	if v, ok := SettingMobileNotificationValueRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type SettingEmailNotificationValue int
+
+const (
+	SettingEmailNotificationValue_DEFAULT  SettingEmailNotificationValue = 0
+	SettingEmailNotificationValue_ALL      SettingEmailNotificationValue = 1
+	SettingEmailNotificationValue_DISABLED SettingEmailNotificationValue = 2
+)
+
+var SettingEmailNotificationValueMap = map[string]SettingEmailNotificationValue{
+	"DEFAULT":  0,
+	"ALL":      1,
+	"DISABLED": 2,
+}
+
+var SettingEmailNotificationValueRevMap = map[SettingEmailNotificationValue]string{
+	0: "DEFAULT",
+	1: "ALL",
+	2: "DISABLED",
+}
+
+func (e SettingEmailNotificationValue) String() string {
+	if v, ok := SettingEmailNotificationValueRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -396,6 +534,12 @@ type PublishSetConversationStatusArg struct {
 	Status ConversationStatus `codec:"status" json:"status"`
 }
 
+type SetSettingsArg struct {
+	ConvID   *ConversationID   `codec:"convID,omitempty" json:"convID,omitempty"`
+	DeviceID *gregor1.DeviceID `codec:"deviceID,omitempty" json:"deviceID,omitempty"`
+	Settings []SettingKV       `codec:"settings" json:"settings"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -417,6 +561,7 @@ type RemoteInterface interface {
 	TlfResolve(context.Context, TlfResolveArg) error
 	PublishReadMessage(context.Context, PublishReadMessageArg) error
 	PublishSetConversationStatus(context.Context, PublishSetConversationStatusArg) error
+	SetSettings(context.Context, SetSettingsArg) (SetSettingsRes, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -743,6 +888,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setSettings": {
+				MakeArg: func() interface{} {
+					ret := make([]SetSettingsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetSettingsArg)(nil), args)
+						return
+					}
+					ret, err = i.SetSettings(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -854,5 +1015,10 @@ func (c RemoteClient) PublishReadMessage(ctx context.Context, __arg PublishReadM
 
 func (c RemoteClient) PublishSetConversationStatus(ctx context.Context, __arg PublishSetConversationStatusArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.publishSetConversationStatus", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RemoteClient) SetSettings(ctx context.Context, __arg SetSettingsArg) (res SetSettingsRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.setSettings", []interface{}{__arg}, &res)
 	return
 }

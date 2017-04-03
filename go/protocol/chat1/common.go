@@ -187,6 +187,7 @@ type ConversationMetadata struct {
 	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
 	Visibility     TLFVisibility             `codec:"visibility" json:"visibility"`
 	Status         ConversationStatus        `codec:"status" json:"status"`
+	Settings       []SettingKV               `codec:"settings" json:"settings"`
 	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes     []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
 	SupersededBy   []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
