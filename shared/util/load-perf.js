@@ -1,7 +1,7 @@
 // @flow
 import {reactPerf} from '../local-debug'
 import {keys as fetchKeys} from 'lodash'
-import {isMobile} from '../constants/platform'
+import Perf from './react-perf'
 
 function print (...rest) {
   // $FlowIssue
@@ -12,9 +12,6 @@ export default function () {
   let start = false
   const onPerf = showDom => {
     setImmediate(() => {
-      // $FlowIssue RectPerf works on RN. See https://github.com/facebook/react-native/issues/12163
-      const Perf = isMobile ? require('ReactPerf') : require('react-addons-perf')
-
       if (!start) {
         print('start')
         Perf.start()
