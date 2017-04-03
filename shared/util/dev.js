@@ -9,6 +9,8 @@ const injectReactQueryParams = (url: string): string => {
   return `${url}${url.indexOf('?') === -1 ? '?' : '&'}react_perf`
 }
 
+// This is a helper for creatorSelector from reselect. Just use this instead of creatorSelector() and it'll
+// output logs when the selector isn't memoized so you can debug why your cache isn't being reused
 const debugCreateSelector = createSelectorCreator(
   defaultMemoize,
   (a, b) => {

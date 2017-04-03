@@ -42,7 +42,7 @@ class ConversationContainer extends Component<void, ConversationContainerProps, 
     this.props.setSidePanelOpen(!this.props.sidePanelOpen)
   }
 
-  // We wrap this so children don't churn when this.props.onBack() changes due to this component churning. Whe this thing does less we can
+  // We wrap this so children don't churn when this.props.onBack() changes due to this component churning. When this thing does less we can
   // likely remove this
   _onBack = () => {
     this.props.onBack()
