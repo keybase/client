@@ -28,12 +28,12 @@ const mapStateToProps = (state: TypedState, {focusInputCounter, selectedConversa
 
   const routeState = Constants.getSelectedRouteState(state)
   const defaultText = routeState && routeState.get('inputText', new HiddenString('')).stringValue() || ''
-
   return {
     defaultText,
     editingMessage: state.chat.get('editingMessage'),
     focusInputCounter,
     isLoading,
+    routeState,
     selectedConversationIDKey,
   }
 }
@@ -43,6 +43,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onEditMessage: (message: Constants.Message, body: string) => { dispatch(Creators.editMessage(message, new HiddenString(body))) },
   onPostMessage: (selectedConversation, text) => dispatch(Creators.postMessage(selectedConversation, new HiddenString(text))),
   onShowEditor: (message: Constants.Message) => { dispatch(Creators.showEditor(message)) },
+  onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) => dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
@@ -55,7 +56,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
     dispatchProps.onPostMessage(stateProps.selectedConversationIDKey, text)
     ownProps.onScrollDown()
   },
-  onStoreInputText: ownProps.onStoreInputText,
+  onStoreInputText: (inputText: string) => dispatchProps.onStoreInputText(stateProps.selectedConversationIDKey, inputText),
 })
 
 export default compose(

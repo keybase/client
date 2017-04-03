@@ -47,10 +47,6 @@ class ConversationContainer extends Component<void, ConversationContainerProps, 
   _onBack = () => {
     this.props.onBack()
   }
-  _onStoreInputText = (text) => {
-    this.props.onStoreInputText(text)
-  }
-
   render () {
     if (!this.props.selectedConversationIDKey) {
       return <Box style={{flex: 1}} />
@@ -61,7 +57,6 @@ class ConversationContainer extends Component<void, ConversationContainerProps, 
       sidePanelOpen={this.props.sidePanelOpen}
       onToggleSidePanel={this._onToggleSidePanel}
       onBack={this._onBack}
-      onStoreInputText={this._onStoreInputText}
       onScrollDown={this.props.onScrollDown}
       listScrollDownState={this.props.listScrollDownCounter}
       onFocus={this.props.onFocus}
@@ -171,7 +166,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}) => 
   onRetryAttachment: (message: Constants.AttachmentMessage) => dispatch(Creators.retryAttachment(message)),
   onRetryMessage: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
   startConversation: (users: Array<string>) => dispatch(Creators.startConversation(users, true)),
-  onStoreInputText: (inputText: string) => setRouteState({inputText: new HiddenString(inputText)}),
   onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
   onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
   onRekey: () => dispatch(openRekeyDialog()),
