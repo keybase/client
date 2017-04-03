@@ -173,7 +173,7 @@ func TestSimpleFSPathRemote(t *testing.T) {
 	testPath := makeSimpleFSPath(tc.G, "/keybase/private/foobar")
 	pathType, err := testPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
-	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
+	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local %s", pathToString(testPath))
 	assert.Equal(tc.T, "/private/foobar", testPath.Kbfs())
 
 	testPath = makeSimpleFSPath(tc.G, "/keybase/private/")
@@ -217,8 +217,9 @@ func TestSimpleFSLocalSrcFile(t *testing.T) {
 	require.True(tc.T, isDestDir)
 	require.Equal(tc.T, "/public/foobar", destPathString)
 
-	destPath, err = makeDestPath(tc.G,
+	destPath, err = makeDestPath(
 		context.TODO(),
+		tc.G,
 		SimpleFSMock{},
 		path1,
 		destPath,
@@ -234,8 +235,9 @@ func TestSimpleFSLocalSrcFile(t *testing.T) {
 	assert.Equal(tc.T, "/public/foobar/test1.txt", destPath.Kbfs())
 
 	// Destination file given
-	destPath, err = makeDestPath(tc.G,
+	destPath, err = makeDestPath(
 		context.TODO(),
+		tc.G,
 		SimpleFSMock{},
 		path1,
 		destPath,
@@ -266,8 +268,9 @@ func TestSimpleFSRemoteSrcFile(t *testing.T) {
 	srcPath := makeSimpleFSPath(tc.G, "/keybase/public/foobar/test1.txt")
 
 	// Destination file not included in path
-	destPath, err = makeDestPath(tc.G,
+	destPath, err = makeDestPath(
 		context.TODO(),
+		tc.G,
 		SimpleFSMock{remoteExists: true},
 		srcPath,
 		destPath,
@@ -291,8 +294,9 @@ func TestSimpleFSRemoteSrcFile(t *testing.T) {
 	assert.Equal(tc.T, filepath.ToSlash(filepath.Join(tempdir, "test1.txt")), destPath.Local())
 
 	// Dest file included in path
-	destPath, err = makeDestPath(tc.G,
+	destPath, err = makeDestPath(
 		context.TODO(),
+		tc.G,
 		SimpleFSMock{remoteExists: true},
 		srcPath,
 		destPath,
@@ -334,8 +338,9 @@ func TestSimpleFSLocalSrcDir(t *testing.T) {
 	require.True(tc.T, isDestDir)
 	require.Equal(tc.T, "/public/foobar", destPathString)
 
-	destPath, err := makeDestPath(tc.G,
+	destPath, err := makeDestPath(
 		context.TODO(),
+		tc.G,
 		testStatter,
 		path1,
 		destPathInitial,
@@ -356,8 +361,9 @@ func TestSimpleFSLocalSrcDir(t *testing.T) {
 	require.NoError(tc.T, err, "bad path type")
 	require.True(tc.T, isDestDir)
 
-	destPath, err = makeDestPath(tc.G,
+	destPath, err = makeDestPath(
 		context.TODO(),
+		tc.G,
 		SimpleFSMock{},
 		path1,
 		destPathInitial,
@@ -398,8 +404,9 @@ func TestSimpleFSRemoteSrcDir(t *testing.T) {
 	require.True(tc.T, isDestDir)
 	require.Equal(tc.T, tempdir, destPathString)
 
-	destPath, err := makeDestPath(tc.G,
+	destPath, err := makeDestPath(
 		context.TODO(),
+		tc.G,
 		testStatter,
 		srcPathInitial,
 		destPathInitial,
@@ -420,8 +427,9 @@ func TestSimpleFSRemoteSrcDir(t *testing.T) {
 	isDestDir, destPathString, err = checkPathIsDir(context.TODO(), testStatter, destPathInitial)
 	assert.Equal(tc.T, tempdir, destPathString, "should use dest dir as-is")
 
-	destPath, err = makeDestPath(tc.G,
+	destPath, err = makeDestPath(
 		context.TODO(),
+		tc.G,
 		SimpleFSMock{},
 		srcPathInitial,
 		destPathInitial,
@@ -480,7 +488,7 @@ func TestSimpleFSPlatformGlob(t *testing.T) {
 	require.NoError(t, err)
 	path1 := keybase1.NewPathWithLocal(filepath.Join(tempdir, "*.txt"))
 
-	paths, err := doSimpleFSGlob(tc.G, context.TODO(), SimpleFSMock{}, []keybase1.Path{path1})
+	paths, err := doSimpleFSGlob(context.TODO(), tc.G, SimpleFSMock{}, []keybase1.Path{path1})
 	require.NoError(t, err)
 	assert.Equal(tc.T, filepath.Join(tempdir, "test1.txt"), paths[0].Local())
 	assert.Equal(tc.T, filepath.Join(tempdir, "test2.txt"), paths[1].Local())
@@ -499,7 +507,7 @@ func TestSimpleFSPlatformGlob(t *testing.T) {
 	}
 	path1 = keybase1.NewPathWithKbfs("/private/foobar/temp/*.txt")
 
-	paths, err = doSimpleFSGlob(tc.G, context.TODO(), clientMock, []keybase1.Path{path1})
+	paths, err = doSimpleFSGlob(context.TODO(), tc.G, clientMock, []keybase1.Path{path1})
 	require.NoError(t, err)
 	assert.Equal(tc.T, "/private/foobar/temp/test1.txt", paths[0].Kbfs())
 	assert.Equal(tc.T, "/private/foobar/temp/test2.txt", paths[1].Kbfs())
