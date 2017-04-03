@@ -192,6 +192,9 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 			return err
 		}
 		conn = tls.Client(baseConn, config)
+		if err := conn.(*tls.Conn).Handshake(); err != nil {
+			return err
+		}
 
 		// Disable SIGPIPE on platforms that require it (Darwin). See sigpipe_bsd.go.
 		return DisableSigPipe(baseConn)
