@@ -12,6 +12,7 @@ export default function () {
   let start = false
   const onPerf = showDom => {
     setImmediate(() => {
+      // $FlowIssue RectPerf works on RN. See https://github.com/facebook/react-native/issues/12163
       const Perf = isMobile ? require('ReactPerf') : require('react-addons-perf')
 
       if (!start) {
