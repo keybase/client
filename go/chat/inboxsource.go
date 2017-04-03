@@ -564,15 +564,22 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	return res, rl, err
 }
 
-func (s *HybridInboxSource) handleInboxError(ctx context.Context, err storage.Error, uid gregor1.UID) error {
+func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid gregor1.UID) (ferr error) {
+	defer func() {
+		if ferr != nil {
+			s.Debug(ctx, "handleInboxError: failed to recover from inbox error, clearing: %s",
+				ferr.Error())
+			storage.NewInbox(s.G(), uid).Clear(ctx)
+		}
+	}()
+
 	if _, ok := err.(storage.MissError); ok {
 		return nil
 	}
 	if verr, ok := err.(storage.VersionMismatchError); ok {
 		s.Debug(ctx, "handleInboxError: version mismatch, syncing and sending stale notifications: %s",
 			verr.Error())
-		s.G().Syncer.Sync(ctx, s.getChatInterface(), uid, nil)
-		return nil
+		return s.G().Syncer.Sync(ctx, s.getChatInterface(), uid, nil)
 	}
 	return err
 }
@@ -609,9 +616,31 @@ func (s *HybridInboxSource) getConvLocal(ctx context.Context, uid gregor1.UID,
 func (s *HybridInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, msg chat1.MessageBoxed) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "NewMessage")()
-	if cerr := storage.NewInbox(s.G(), uid).NewMessage(ctx, vers, convID, msg); cerr != nil {
-		err = s.handleInboxError(ctx, cerr, uid)
-		return nil, err
+	defer func() {
+		if err != nil {
+			err = s.handleInboxError(ctx, err, uid)
+		}
+	}()
+
+	ibox := storage.NewInbox(s.G(), uid)
+	if msg.GetMessageType() == chat1.MessageType_DELETE {
+		// It is too complicated to update max messages for deletes, so just re-sync from the server
+		// if we get one.
+		var ib chat1.Inbox
+		ib, _, err = s.Read(ctx, uid, nil, false, &chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{convID},
+		}, nil)
+		if err != nil {
+			return conv, err
+		}
+		if err = ibox.Sync(ctx, ib.Version, ib.ConvsUnverified); err != nil {
+			return conv, err
+		}
+	} else {
+		if cerr := ibox.NewMessage(ctx, vers, convID, msg); cerr != nil {
+			return nil, err
+		}
+
 	}
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
 		s.Debug(ctx, "NewMessage: unable to load conversation: convID: %s err: %s", convID, err.Error())
