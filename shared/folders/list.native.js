@@ -26,7 +26,7 @@ class ListRender extends Component<void, Props, State> {
   }
 
   componentWillReceiveProps (nextProps: Props) {
-    if (this.props.tlfs !== nextProps.tlfs) {
+    if (this.props.tlfs !== nextProps.tlfs || this.props.ignored !== nextProps.ignored) {
       this.setState({
         dataSource: this._dataSourceForProps(nextProps, false),
       })
