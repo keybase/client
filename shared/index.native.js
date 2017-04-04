@@ -7,7 +7,7 @@ import DumbChatOnly from './dev/chat-only.native'
 import Main from './main'
 import React, {Component} from 'react'
 import configureStore from './store/configure-store'
-import {AppRegistry} from 'react-native'
+import {AppRegistry, AppState} from 'react-native'
 import {Provider} from 'react-redux'
 import {makeEngine} from './engine'
 import {setup as setupLocalDebug, dumbSheetOnly, dumbChatOnly} from './local-debug'
@@ -41,6 +41,20 @@ class Keybase extends Component {
       makeEngine()
     } else {
       this.store = global.store
+    }
+
+    AppState.addEventListener('change', this._handleAppStateChange)
+  }
+
+  componentWillUnmount () {
+    AppState.removeEventListener('change', this._handleAppStateChange)
+  }
+
+  _handleAppStateChange = (nextAppState: string) => {
+    if (nextAppState === 'active') {
+      this.store.dispatch({payload: {focused: true}, type: 'app:changedFocus'})
+    } else if (nextAppState === 'inactive') {
+      this.store.dispatch({payload: {focused: false}, type: 'app:changedFocus'})
     }
   }
 

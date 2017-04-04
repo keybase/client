@@ -1,7 +1,6 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
-import * as WindowConstants from '../constants/window'
 import {Set, List, Map} from 'immutable'
 import {ReachabilityReachable} from '../constants/types/flow-types'
 
@@ -272,12 +271,12 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       ))
     }
     case 'chat:createPendingFailure': {
-      const {outboxID} = action.payload
-      return state.set('pendingFailures', state.get('pendingFailures').add(outboxID))
+      const {failureDescription, outboxID} = action.payload
+      return state.set('pendingFailures', state.get('pendingFailures').set(outboxID, failureDescription))
     }
     case 'chat:removePendingFailure': {
       const {outboxID} = action.payload
-      return state.set('pendingFailures', state.get('pendingFailures').remove(outboxID))
+      return state.set('pendingFailures', state.get('pendingFailures').delete(outboxID))
     }
     case 'chat:attachmentLoaded': {
       const {conversationIDKey, messageID, path, isPreview, isHdPreview} = action.payload
@@ -453,8 +452,8 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       console.warn("couldn't find conversation to upgrade", oldKey)
       break
     }
-    case WindowConstants.changedFocus:
-      return state.set('focused', action.payload)
+    case 'app:changedFocus':
+      return state.set('focused', action.payload.focused)
     case 'chat:updateFinalizedState': {
       // $FlowIssue doesn't recognize updates
       return state.update('finalizedState', finalizedState => finalizedState.merge(action.payload.finalizedState))

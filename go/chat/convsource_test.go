@@ -225,6 +225,11 @@ func (f failingRemote) SyncChat(ctx context.Context, vers chat1.InboxVers) (chat
 	return chat1.SyncChatRes{}, nil
 }
 
+func (f failingRemote) SyncAll(ctx context.Context, arg chat1.SyncAllArg) (chat1.SyncAllResult, error) {
+	require.Fail(f.t, "SyncAll")
+	return chat1.SyncAllResult{}, nil
+}
+
 type failingTlf struct {
 	t *testing.T
 }

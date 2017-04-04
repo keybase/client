@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Text, PopupMenu, Icon, ClickableBox, NativeScrollView} from '../common-adapters/index.native'
+import {Box, Text, PopupMenu, Icon, ClickableBox, NativeScrollView, HeaderHoc} from '../common-adapters/index.native'
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
@@ -116,4 +116,4 @@ const stylesRevokedDescription = {
   paddingRight: 32,
 }
 
-export default DevicesRender
+export default HeaderHoc(DevicesRender)

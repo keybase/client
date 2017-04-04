@@ -29,6 +29,6 @@ func getSecretBoxKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI fu
 		return fkey, err
 	}
 
-	copy(fkey[:], skey)
+	copy(fkey[:], skey[:])
 	return fkey, nil
 }

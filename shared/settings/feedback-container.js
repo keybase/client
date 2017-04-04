@@ -6,6 +6,9 @@ import Feedback from './feedback'
 import logSend from '../native/log-send'
 import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
+import {isElectron, isIOS} from '../constants/platform'
+import {dumpLoggers} from '../util/periodic-logger'
+import {writeFile, cachesDirectoryPath} from '../util/file'
 
 import type {Dispatch} from '../constants/types/flux'
 
@@ -33,6 +36,38 @@ class FeedbackContainer extends Component<void, {}, State> {
     this.setState({feedback})
   }
 
+  _dumpLogs = () => new Promise((resolve, reject) => {
+    // This isn't used on desktop yet, but we'll likely have to dump the logs there too
+    if (isElectron) {
+      reject(new Error('Not implemented on Desktop!'))
+    }
+
+    if (isIOS) {
+      // We don't get the notification from the daemon so we have to do this ourselves
+      const logs = []
+      dumpLoggers((...args) => {
+        try {
+          logs.push(JSON.stringify(args))
+        } catch (_) {}
+      })
+
+      const data = logs.join('\n')
+      const path = `${cachesDirectoryPath}/Keybase/rn.log`
+
+      writeFile(path, data, 'utf8')
+        .then((success) => {
+          resolve(true)
+        })
+        .catch((err) => {
+          resolve(false)
+          console.warn(`Couldn't log send! ${err}`)
+        })
+    } else {
+      dumpLoggers()
+      resolve(true)
+    }
+  })
+
   componentWillUnmount () {
     this.mounted = false
   }
@@ -43,15 +78,17 @@ class FeedbackContainer extends Component<void, {}, State> {
 
   render () {
     const onSendFeedback = (feedback, sendLogs) => {
-      logSend(feedback, sendLogs).then(logSendId => {
-        console.warn('logSendId is', logSendId)
-        if (this.mounted) {
-          this.setState({
-            sentFeedback: true,
-            feedback: null,
-          })
-        }
-      })
+      this._dumpLogs()
+        .then(() => logSend(feedback, sendLogs))
+        .then(logSendId => {
+          console.warn('logSendId is', logSendId)
+          if (this.mounted) {
+            this.setState({
+              sentFeedback: true,
+              feedback: null,
+            })
+          }
+        })
     }
 
     return <FeedbackWrapped showSuccessBanner={this.state.sentFeedback} onSendFeedback={onSendFeedback} onChangeFeedback={this._onChangeFeedback} feedback={this.state.feedback} />

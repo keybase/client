@@ -86,7 +86,10 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 
 	var prevs []chat1.MessagePreviousPointer
 
-	res, err := s.G().ConvSource.PullLocalOnly(ctx, convID, msg.ClientHeader.Sender, nil,
+	res, err := s.G().ConvSource.PullLocalOnly(ctx, convID, msg.ClientHeader.Sender,
+		&chat1.GetThreadQuery{
+			DisableResolveSupersedes: true,
+		},
 		&chat1.Pagination{
 			Num: -1,
 		})
@@ -379,9 +382,11 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 
 	// Delete assets associated with a delete operation.
 	// Logs instead of returning an error. Assets can be left undeleted.
-	err = s.deleteAssets(ctx, convID, pendingAssetDeletes)
-	if err != nil {
-		return chat1.OutboxID{}, 0, nil, err
+	if len(pendingAssetDeletes) > 0 {
+		err = s.deleteAssets(ctx, convID, pendingAssetDeletes)
+		if err != nil {
+			return chat1.OutboxID{}, 0, nil, err
+		}
 	}
 
 	rarg := chat1.PostRemoteArg{

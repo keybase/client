@@ -136,11 +136,12 @@ func (s *Syncer) isServerInboxClear(ctx context.Context, inbox *storage.Inbox, s
 	return false
 }
 
-func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) (err error) {
+func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
+	syncRes *chat1.SyncChatRes) (err error) {
 	ctx = CtxAddLogTags(ctx)
-	s.Debug(ctx, "Connected: running")
 	s.Lock()
 	defer s.Unlock()
+	defer s.Trace(ctx, func() error { return err }, "Connected")()
 
 	s.isConnected = true
 
@@ -149,15 +150,15 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 		o.Connected(ctx)
 	}
 
-	s.sync(ctx, cli, uid)
+	s.sync(ctx, cli, uid, syncRes)
 
 	return nil
 }
 
 func (s *Syncer) Disconnected(ctx context.Context) {
-	s.Debug(ctx, "Disconnected: running")
 	s.Lock()
 	defer s.Unlock()
+	defer s.Trace(ctx, func() error { return nil }, "Disconnected")()
 
 	s.isConnected = false
 
@@ -167,13 +168,16 @@ func (s *Syncer) Disconnected(ctx context.Context) {
 	}
 }
 
-func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) (err error) {
+func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
+	syncRes *chat1.SyncChatRes) (err error) {
 	s.Lock()
 	defer s.Unlock()
-	return s.sync(ctx, cli, uid)
+	defer s.Trace(ctx, func() error { return err }, "Sync")()
+	return s.sync(ctx, cli, uid, syncRes)
 }
 
-func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) (err error) {
+func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
+	syncRes *chat1.SyncChatRes) (err error) {
 	if !s.isConnected {
 		s.Debug(ctx, "Sync: aborting because currently offline")
 		return OfflineError{}
@@ -181,7 +185,6 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 
 	// Grab current on disk version
 	ibox := storage.NewInbox(s.G(), uid)
-	var syncRes chat1.SyncChatRes
 	vers, err := ibox.Version(ctx)
 	if err != nil {
 		s.Debug(ctx, "Sync: failed to get current inbox version (using 0): %s", err.Error())
@@ -194,16 +197,20 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 	}
 	s.Debug(ctx, "Sync: current inbox version: %v server version: %d", vers, srvVers)
 
-	// Run the sync call on the server to see how current our local copy is
-
-	if syncRes, err = cli.SyncChat(ctx, vers); err != nil {
-		s.Debug(ctx, "Sync: failed to sync inbox: %s", err.Error())
-		return err
+	if syncRes == nil {
+		// Run the sync call on the server to see how current our local copy is
+		syncRes = new(chat1.SyncChatRes)
+		if *syncRes, err = cli.SyncChat(ctx, vers); err != nil {
+			s.Debug(ctx, "Sync: failed to sync inbox: %s", err.Error())
+			return err
+		}
+	} else {
+		s.Debug(ctx, "Sync: skipping sync call, data provided")
 	}
 
 	// Set new server versions
 	if err = s.G().ServerCacheVersions.Set(ctx, syncRes.CacheVers); err != nil {
-		s.Debug(ctx, "Connected: failed to set new server versions: %s", err.Error())
+		s.Debug(ctx, "Sync: failed to set new server versions: %s", err.Error())
 	}
 
 	// Process what the server has told us to do with the local inbox copy

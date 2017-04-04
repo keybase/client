@@ -1,0 +1,24 @@
+// @flow
+import {Component} from 'react'
+import * as Constants from '../../../constants/chat'
+
+export type Props = {
+  defaultText: string,
+  editingMessage: ?Constants.Message,
+  focusInputCounter: number,
+  inputFocus: () => void,
+  inputSetRef: (r: any) => void,
+  inputValue: () => string,
+  isLoading: boolean,
+  onAttach: (inputs: Array<Constants.AttachmentInput>) => void,
+  onEditLastMessage: () => void,
+  onEditMessage: (message: ?Constants.Message, text: string) => void,
+  onPostMessage: (text: string) => void,
+  onShowEditor: (message: ?Constants.Message) => void,
+  onStoreInputText: (text: string) => void,
+  selectedConversationIDKey: ?Constants.ConversationIDKey,
+  setText: (text: string) => void,
+  text: string,
+}
+
+export default class Input extends Component<void, Props, void> { }

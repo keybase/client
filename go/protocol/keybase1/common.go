@@ -52,6 +52,7 @@ type PublicKey struct {
 	DeviceType        string        `codec:"deviceType" json:"deviceType"`
 	CTime             Time          `codec:"cTime" json:"cTime"`
 	ETime             Time          `codec:"eTime" json:"eTime"`
+	IsRevoked         bool          `codec:"isRevoked" json:"isRevoked"`
 }
 
 type KeybaseTime struct {

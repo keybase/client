@@ -32,7 +32,7 @@ function injectThread() {
   console.log("keybase: On thread.");
 
   for (let c of document.getElementsByClassName("comment")) {
-    const author = escape(c.getAttribute("data-author"));
+    const author = safeHTML(c.getAttribute("data-author"));
     const buttons = c.getElementsByClassName("buttons")[0];
 
     const li = document.createElement("li");
@@ -41,6 +41,12 @@ function injectThread() {
     buttons.appendChild(li);
 
     li.getElementsByTagName("a")[0].addEventListener('click', function(e) {
+      const forms = e.currentTarget.parentNode.getElementsByTagName("form");
+      if (forms.length > 0) {
+        // Chat widget already present, toggle it.
+        removeChat(forms[0]);
+        return;
+      }
       renderChat(e.currentTarget.parentNode, author);
       e.preventDefault();
     });
@@ -48,9 +54,9 @@ function injectThread() {
   }
 }
 
-
+// Render the Keybase chat reply widget
 function renderChat(parent, toUsername) {
-  // TODO: Cancel button
+  // TODO: Replace hardcoded HTML with some posh templating tech?
   // TODO: Prevent navigation?
   const isLoggedIn = document.getElementsByClassName("logout").length > 0;
 
@@ -75,27 +81,70 @@ function renderChat(parent, toUsername) {
     <p>Encrypt to <span class="keybase-username">'+ toUsername +'</span>:</p>\
     <p><textarea name="keybase-chat" rows="6"></textarea></p>\
     '+ nudgeHTML +'\
-    <p><input type="submit" value="Send" /></p> \
+    <p><input type="submit" value="Send" name="keybase-submit" /></p> \
   ';
   f.addEventListener("submit", submitChat);
   parent.insertBefore(f, parent.firstChild);
 
+  // Install nudge toggle
+  const nudgeCheck = f["keybase-nudge"];
+  if (nudgeCheck !== undefined) {
+    // Select the <p><textarea>...</textarea></p>
+    const nudgeText = nudgeCheck.parentNode.parentNode.nextElementSibling;
+    nudgeCheck.addEventListener("change", function(e) {
+      nudgeText.hidden = !e.currentTarget.checked;
+    });
+  }
+
   // Install closing button (the "x" in the corner)
   const closer = f.getElementsByClassName("keybase-close")[0];
   closer.addEventListener("click", function(e) {
-    parent.removeChild(f);
+    removeChat(f);
   });
+
+  // TODO: Also add an onbeforeunload check if chat has text written in it.
 }
 
+// Remove the chat widget from the DOM
+function removeChat(chatForm, skipCheck) {
+  if (!chatForm.parentNode) {
+    // Already removed, skip.
+    return;
+  }
+  if (!skipCheck && chatForm["keybase-chat"].value != "") {
+    if (!confirm("Discard your message?")) return;
+  }
+  chatForm.parentNode.removeChild(chatForm);
+}
+
+
+// Submit the chat widget
 function submitChat(e) {
   e.preventDefault();
 
-  const to = e.currentTarget["keybase-to"].value;
-  const body = e.currentTarget["keybase-chat"].value;
-  const nudgeDo = e.currentTarget["keybase-nudge"].checked;
-  const nudgeText = e.currentTarget["keybase-nudgetext"].value;
+  const f = e.currentTarget; // The form.
+  const to = f["keybase-to"].value;
+  const body = f["keybase-chat"].value;
+  const nudgeDo = f["keybase-nudge"].checked;
+  const nudgeText = f["keybase-nudgetext"].value;
 
   // TODO: Check that to/body are not empty.
+
+  // We need this for when the chat widget gets detached from the DOM.
+  const originalParent = f.parentNode;
+  function nudgeCallback() {
+    // Send nudge?
+    if (!nudgeDo) return;
+
+    const commentNode = findParentByClass(originalParent, "comment");
+    if (!commentNode) return; // Not found
+
+    postReply(commentNode, nudgeText);
+  }
+
+  const submitButton = f["keybase-submit"];
+  submitButton.disabled = true;
+  submitButton.value = "Sending...";
 
   const port = chrome.runtime.connect();
   port.postMessage({
@@ -105,11 +154,77 @@ function submitChat(e) {
   });
   port.onMessage.addListener(function(response) {
     console.log("response: ", response);
+
+    if (response.status != "ok") {
+      renderError(f, response.message);
+      submitButton.value = "Error";
+      return;
+    }
+
+    removeChat(f, true /* skipCheck */);
+    nudgeCallback();
   });
+}
 
-  // TODO: Send nudge
+// Render error message inside our chat widget.
+function renderError(chatForm, msg) {
+  const p = document.createElement("p");
+  p.className = "keybase-error";
+  p.innerText = msg;
+  chatForm.appendChild(p);
+}
 
-  // Detach the chat widget from the parent.
-  e.currentTarget.parentNode.removeChild(e.currentTarget);
-  console.log("Chat submitted: ", e);
+// Post a Reddit thread reply on the given comment node.
+function postReply(commentNode, text) {
+  // This will break if there is no reply button.
+  const commentID = commentNode.getAttribute("data-fullname");
+  const replyLink = commentNode.getElementsByClassName("reply-button")[0].firstChild;
+  if (!commentID) {
+    throw new ExtensionException("failed to find the comment ID");
+  }
+
+  // Open the reply window.
+  replyLink.click();
+
+  const replyForm = document.getElementById("commentreply_" + commentID);
+  replyForm["text"].value = text;
+
+  // Submit form
+
+  // Note: Calling replyForm.submit() bypasses the onsubmit handler, so we
+  // need to dispatch an event or click a submit button.
+  replyForm.dispatchEvent(new Event("submit"));
+}
+
+
+/*** Helpers ***/
+
+function ExtensionException(message) {
+   this.name = 'ExtensionException';
+   this.message = message;
+}
+
+// Find a parent with a given className.
+function findParentByClass(el, className) {
+  const root = el.getRootNode();
+  while(el != root) {
+    if (el.classList.contains(className)) return el;
+    el = el.parentNode;
+  }
+  return null;
+}
+
+// Convert a user input into a string that is safe for inlining into HTML.
+function safeHTML(s) {
+  return s.replace(/[&'"<>\/]/g, function (c) {
+    // Per https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content
+    return {
+      '&': "&amp;",
+      '"': "&quot;",
+      "'": "&#x27",
+      '/': "&#x2F",
+      '<': "&lt;",
+      '>': "&gt;"
+    }[c];
+  });
 }

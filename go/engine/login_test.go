@@ -778,7 +778,7 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 
-	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase)
+	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase, true)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}

@@ -94,7 +94,7 @@ function MainNavStack (props: Props) {
           renderRoute={renderMainStackRoute}
           onNavigateBack={props.navigateUp}
         />
-        {![chatTab, loginTab].includes(props.routeSelected) && <Offline reachability={props.reachability} />}
+        {![chatTab].includes(props.routeSelected) && <Offline reachability={props.reachability} />}
         <GlobalError />
       </Box>
       {!props.hideNav &&

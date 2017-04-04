@@ -14,5 +14,6 @@
 
 @property (nonatomic, strong) UIWindow *window;
 @property (nonatomic, strong) Engine *engine;
+@property UIImageView *resignImageView;
 
 @end

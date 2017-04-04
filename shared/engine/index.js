@@ -161,18 +161,40 @@ class Engine {
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
-  _rpcOutgoing (params: {
-    method: MethodKey,
-    param?: ?Object,
-    incomingCallMap?: incomingCallMapType,
-    callback?: ?(...args: Array<any>) => void,
-    waitingHandler?: WaitingHandlerType}
+  _rpcOutgoing (
+    method: string,
+    params: ?{
+      param?: ?Object,
+      incomingCallMap?: incomingCallMapType,
+      callback?: ?(...args: Array<any>) => void,
+      waitingHandler?: WaitingHandlerType,
+    },
+    callbackOverride?: ?(...args: Array<any>) => void,
+    incomingCallMapOverride?: incomingCallMapType,
   ) {
-    let {method, param, incomingCallMap, callback, waitingHandler} = params
+    if (!params) {
+      params = {}
+    }
+
+    let {param, incomingCallMap, callback, waitingHandler} = params
 
     // Ensure a non-null param
     if (!param) {
       param = {}
+    }
+
+    // Allow overrides from helpers
+    if (callbackOverride) {
+      if (callback) {
+        throw new Error('RPC callback overridden over real callback! You likely passed a callback to a RpcPromise')
+      }
+      callback = callbackOverride
+    }
+    if (incomingCallMapOverride) {
+      if (incomingCallMap) {
+        throw new Error('RPC incomingCallMap overriden over real incomingCallMap! You likely passed an incoming callmap to a RpcChannelMap')
+      }
+      incomingCallMap = incomingCallMapOverride
     }
 
     // Make a new session and start the request
@@ -323,6 +345,16 @@ class FakeEngine {
   createSession () {
     return new Session(0, {}, null, () => {}, () => {})
   }
+  _rpcOutgoing (
+    method: string,
+    params: {
+      param?: ?Object,
+      incomingCallMap?: incomingCallMapType,
+      callback?: ?(...args: Array<any>) => void,
+      waitingHandler?: WaitingHandlerType,
+    },
+    callbackOverride?: ?(...args: Array<any>) => void,
+    incomingCallMapOverride?: incomingCallMapType) {}
 }
 
 export type EndHandlerType = (session: Object) => void

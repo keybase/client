@@ -58,7 +58,7 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 	e.G().Log.Debug("provisionee device type: %v", provisioneeType)
 
 	// make a new secret:
-	secret, err := libkb.NewKex2Secret()
+	secret, err := libkb.NewKex2Secret(provisioneeType == keybase1.DeviceType_MOBILE)
 	if err != nil {
 		return err
 	}

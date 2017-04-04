@@ -44,23 +44,24 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 	}
 }
 
+const mountDir = "/keybase"
+
 func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
-	mountDir := "/keybase"
 
 	path = filepath.ToSlash(path)
 	if strings.HasSuffix(path, "/") {
 		path = path[:len(path)-1]
 	}
 
+	// Test for the special mount dir prefix before the absolute test.
+	// Otherwise the current dir will be prepended, below.
 	if strings.HasPrefix(path, mountDir) {
 		return keybase1.NewPathWithKbfs(path[len(mountDir):])
 	}
 
 	// make absolute
-	if !filepath.IsAbs(path) {
-		if wd, err := os.Getwd(); err == nil {
-			path = filepath.Join(wd, path)
-		}
+	if absPath, err := filepath.Abs(path); err == nil {
+		path = absPath
 	}
 
 	// eval symlinks
@@ -69,6 +70,13 @@ func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
 	}
 
 	path = filepath.ToSlash(filepath.Clean(path))
+
+	// Certain users seem to want to use SimpleFS on their
+	// mounted KBFS. This is for those who want to do so
+	// from "/keybase/..."
+	if strings.HasPrefix(path, mountDir) {
+		return keybase1.NewPathWithKbfs(path[len(mountDir):])
+	}
 
 	return keybase1.NewPathWithLocal(path)
 }
@@ -159,8 +167,8 @@ func checkElementExists(ctx context.Context, cli keybase1.SimpleFSInterface, des
 // Make sure the destination ends with the same filename as the source,
 // if any, unless the destination is not a directory
 func makeDestPath(
-	g *libkb.GlobalContext,
 	ctx context.Context,
+	g *libkb.GlobalContext,
 	cli keybase1.SimpleFSInterface,
 	src keybase1.Path,
 	dest keybase1.Path,
@@ -242,7 +250,7 @@ func doOverwritePrompt(g *libkb.GlobalContext, dest string) error {
 	return nil
 }
 
-func doSimpleFSRemoteGlob(g *libkb.GlobalContext, ctx context.Context, cli keybase1.SimpleFSInterface, path keybase1.Path) ([]keybase1.Path, error) {
+func doSimpleFSRemoteGlob(ctx context.Context, g *libkb.GlobalContext, cli keybase1.SimpleFSInterface, path keybase1.Path) ([]keybase1.Path, error) {
 
 	var returnPaths []keybase1.Path
 	directory := filepath.ToSlash(filepath.Dir(path.Kbfs()))
@@ -291,7 +299,7 @@ func doSimpleFSRemoteGlob(g *libkb.GlobalContext, ctx context.Context, cli keyba
 	return returnPaths, err
 }
 
-func doSimpleFSGlob(g *libkb.GlobalContext, ctx context.Context, cli keybase1.SimpleFSInterface, paths []keybase1.Path) ([]keybase1.Path, error) {
+func doSimpleFSGlob(ctx context.Context, g *libkb.GlobalContext, cli keybase1.SimpleFSInterface, paths []keybase1.Path) ([]keybase1.Path, error) {
 	var returnPaths []keybase1.Path
 	for _, path := range paths {
 		pathType, err := path.PathType()
@@ -307,7 +315,7 @@ func doSimpleFSGlob(g *libkb.GlobalContext, ctx context.Context, cli keybase1.Si
 
 		if pathType == keybase1.PathType_KBFS {
 			// remote glob
-			globbed, err := doSimpleFSRemoteGlob(g, ctx, cli, path)
+			globbed, err := doSimpleFSRemoteGlob(ctx, g, cli, path)
 			if err != nil {
 				return nil, err
 			}

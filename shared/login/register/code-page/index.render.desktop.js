@@ -117,8 +117,6 @@ const stylesQrContainer = {
   alignSelf: 'stretch',
   backgroundColor: globalColors.blue2,
   marginBottom: 47,
-  marginLeft: -65,
-  marginRight: -65,
   marginTop: 35,
   minHeight: 220,
   minWidth: 220,

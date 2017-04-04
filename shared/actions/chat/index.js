@@ -14,7 +14,6 @@ import {NotifyPopup} from '../../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {badgeApp} from '../notifications'
 import {call, put, take, select, race, fork, join} from 'redux-saga/effects'
-import {changedFocus} from '../../constants/window'
 import {delay} from 'redux-saga'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, switchTo} from '../route-tree'
@@ -30,7 +29,7 @@ import {toDeviceType} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 
 import type {Action} from '../../constants/types/flux'
-import type {ChangedFocus} from '../../constants/window'
+import type {ChangedFocus} from '../../constants/app'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
 import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
@@ -97,7 +96,9 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           return
         }
 
-        yield call(Inbox.processConversation, incomingMessage.conv)
+        if (incomingMessage.conv) {
+          yield call(Inbox.processConversation, incomingMessage.conv)
+        }
 
         const messageUnboxed: ChatTypes.MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
@@ -151,7 +152,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
         } else {
           // How long was it between the previous message and this one?
           if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
-            const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages, conversationState.messages.size - 1)
+            const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages.toArray(), conversationState.messages.size - 1)
             if (timestamp !== null) {
               yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, [timestamp]))
             }
@@ -782,12 +783,12 @@ function * _updateBadging (action: Constants.UpdateBadging): SagaGenerator<any, 
 
 function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
   // Update badging and the latest message due to the refocus.
-  const appFocused = action.payload
+  const {focused} = action.payload
   const conversationIDKey = yield select(Constants.getSelectedConversation)
   const selectedTab = yield select(Shared.routeSelector)
   const chatTabSelected = (selectedTab === chatTab)
 
-  if (conversationIDKey && appFocused && chatTabSelected) {
+  if (conversationIDKey && focused && chatTabSelected) {
     yield put(Creators.updateBadging(conversationIDKey))
     yield put(Creators.updateLatestMessage(conversationIDKey))
   }
@@ -796,7 +797,7 @@ function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
 function * _badgeAppForChat (action: Constants.BadgeAppForChat): SagaGenerator<any, any> {
   const conversations = action.payload
   const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
-  const windowFocused = yield select(Shared.focusedSelector)
+  const appFocused = yield select(Shared.focusedSelector)
 
   const newConversations = conversations.reduce((acc, conv) => {
     // Badge this conversation if it's unread and either the app doesn't have
@@ -804,7 +805,7 @@ function * _badgeAppForChat (action: Constants.BadgeAppForChat): SagaGenerator<a
     // selected (same).
     const unread = conv.get('UnreadMessages') > 0
     const selected = (Constants.conversationIDToKey(conv.get('convID')) === selectedConversationIDKey)
-    const addThisConv = (unread && (!selected || !windowFocused))
+    const addThisConv = (unread && (!selected || !appFocused))
     // Desktop shows number of thread unread. Mobile shows number of messages unread
     const toAdd = isMobile ? conv.get('UnreadMessages') : 1
     return addThisConv ? acc + toAdd : acc
@@ -908,7 +909,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     Saga.safeTakeEvery('chat:openAttachmentPopup', Attachment.onOpenAttachmentPopup),
     Saga.safeTakeLatest('chat:openFolder', _openFolder),
     Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat),
-    Saga.safeTakeEvery(changedFocus, _changedFocus),
+    Saga.safeTakeEvery('app:changedFocus', _changedFocus),
     Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage),
     Saga.safeTakeEvery('chat:openTlfInChat', _openTlfInChat),
     Saga.safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false),

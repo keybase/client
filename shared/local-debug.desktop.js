@@ -10,6 +10,7 @@ import {updateConfig} from './command-line.desktop.js'
 
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
+  allowMultipleInstances: false,
   closureStoreCheck: false,
   devStoreChangingFunctions: false,
   enableActionLogging: true,
@@ -39,6 +40,7 @@ let config: {[key: string]: any} = {
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.actionStatFrequency = 0.8
+  config.allowMultipleInstances = true
   config.devStoreChangingFunctions = true
   config.enableActionLogging = false
   config.enableStoreLogging = true
@@ -53,6 +55,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   const envJson = envVarDebugJson()
   config = {...config, ...envJson}
 }
+
 if (fs.existsSync(jsonDebugFileName)) {
   try {
     const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf-8'))
@@ -81,6 +84,7 @@ if (__DEV__ && process.env.KEYBASE_PERF) {
 
 export const {
   actionStatFrequency,
+  allowMultipleInstances,
   closureStoreCheck,
   devStoreChangingFunctions,
   enableActionLogging,

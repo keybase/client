@@ -113,7 +113,7 @@ func TestDeviceAddPhrase(t *testing.T) {
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")
 
-	secretY, err := libkb.NewKex2Secret()
+	secretY, err := libkb.NewKex2Secret(false)
 	if err != nil {
 		t.Fatal(err)
 	}

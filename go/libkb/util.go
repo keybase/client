@@ -568,3 +568,15 @@ func LogTagsFromContext(ctx context.Context) (map[interface{}]string, bool) {
 	tags, ok := logger.LogTagsFromContext(ctx)
 	return map[interface{}]string(tags), ok
 }
+
+func MakeByte32(a []byte) ([32]byte, error) {
+	const n = 32
+	var b [n]byte
+	if len(a) != n {
+		return b, fmt.Errorf("MakeByte expected len %v but got %v slice", n, len(a))
+	}
+	if copy(b[:], a) != n {
+		return b, fmt.Errorf("MakeByte expected len %v but got %v slice", n, len(a))
+	}
+	return b, nil
+}

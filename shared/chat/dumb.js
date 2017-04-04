@@ -88,6 +88,9 @@ const metaData = {
 
 const followingMap = {
   oconnor663: true,
+  cjb: false,
+  chris: false,
+  chrisnojima: false,
 }
 
 const commonConvoProps = {
@@ -100,8 +103,8 @@ const commonConvoProps = {
   isRequesting: false,
   onPostMessage: (text: string) => console.log('on post', text),
   selectedConversation: 'convo1',
-  emojiPickerOpen: false,
   onShowProfile: (username: string) => console.log('on show profile', username),
+  onBack: () => console.log('back clicked'),
 }
 
 const emptyConvoProps = {
@@ -216,12 +219,10 @@ const header = {
   mocks: {
     'Normal': {
       ...commonConvoProps,
-      onBack: () => console.log('back clicked'),
     },
     'Muted': {
       ...commonConvoProps,
       muted: true,
-      onBack: () => console.log('back clicked'),
     },
   },
 }
@@ -305,28 +306,29 @@ const list = {
 }
 
 const commonSidePanel = {
-  followingMap,
-  metaDataMap: Map(metaData),
   parentProps: {
     style: {
       width: 320,
     },
   },
-  participants: List(participants),
-  you: 'chris',
+  participants: List(participants.map(p => ({
+    broken: metaData[p].get('brokenTracker'),
+    following: !!followingMap[p],
+    fullname: metaData[p].get('fullname'),
+    isYou: p === 'chris',
+    username: p,
+  }))),
 }
 
 const sidePanel = {
   component: ConversationSidePanel,
   mocks: {
     'Normal': {
-      ...commonConvoProps,
       ...commonSidePanel,
     },
     'Muted': {
-      ...emptyConvoProps,
       ...commonSidePanel,
-      status: 'muted',
+      muted: true,
     },
   },
 }

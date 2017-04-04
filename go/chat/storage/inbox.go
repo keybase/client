@@ -21,7 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const inboxVersion = 9
+const inboxVersion = 10
 
 type queryHash []byte
 
@@ -407,8 +407,29 @@ func (i *Inbox) applyPagination(ctx context.Context, convs []chat1.Conversation,
 	return res, pagination, nil
 }
 
+func (i *Inbox) queryConvIDsExist(ctx context.Context, ibox inboxDiskData,
+	convIDs []chat1.ConversationID) bool {
+	m := make(map[string]bool)
+	for _, conv := range ibox.Conversations {
+		m[conv.GetConvID().String()] = true
+	}
+	for _, convID := range convIDs {
+		if !m[convID.String()] {
+			return false
+		}
+	}
+	return true
+}
+
 func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat1.GetInboxQuery,
 	p *chat1.Pagination) bool {
+
+	// If the query is specifying a list of conversation IDs, just check to see if we have *all*
+	// of them on the disk
+	if query != nil && len(query.ConvIDs) > 0 {
+		i.Debug(ctx, "Read: queryExists: convIDs query, checking list: len: %d", len(query.ConvIDs))
+		return i.queryConvIDsExist(ctx, ibox, query.ConvIDs)
+	}
 
 	hquery, err := i.hashQuery(ctx, query)
 	if err != nil {
@@ -596,6 +617,9 @@ func (i *Inbox) promoteWriter(ctx context.Context, sender gregor1.UID, writers [
 			return res
 		}
 	}
+
+	i.Debug(ctx, "promoteWriter: failed to promote sender, adding to front: sender: %s", sender)
+	res = append([]gregor1.UID{sender}, res...)
 	return res
 }
 
@@ -619,6 +643,12 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	var cont bool
 	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
 		return err
+	}
+
+	// Check for a delete, if so just auto return a version mismatch to resync. The reason
+	// is it is tricky to update max messages in this case.
+	if msg.GetMessageType() == chat1.MessageType_DELETE {
+		return NewVersionMismatchError(ibox.InboxVersion, vers)
 	}
 
 	// Find conversation
@@ -851,7 +881,7 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 		return err
 	}
 
-	// Sync inbox with new conversations if we know about them already
+	// Sync inbox with new conversations
 	oldVers := ibox.InboxVersion
 	ibox.InboxVersion = vers
 	convMap := make(map[string]chat1.Conversation)
@@ -861,10 +891,16 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	for index, conv := range ibox.Conversations {
 		if newConv, ok := convMap[conv.GetConvID().String()]; ok {
 			ibox.Conversations[index] = newConv
+			delete(convMap, conv.GetConvID().String())
 		}
 	}
-	i.Debug(ctx, "Sync: old vers: %v new vers: %v convs: %d", oldVers, ibox.InboxVersion, len(convs))
+	i.Debug(ctx, "Sync: adding %d new conversations", len(convMap))
+	for _, conv := range convMap {
+		ibox.Conversations = append(ibox.Conversations, conv)
+	}
+	sort.Sort(ByDatabaseOrder(ibox.Conversations))
 
+	i.Debug(ctx, "Sync: old vers: %v new vers: %v convs: %d", oldVers, ibox.InboxVersion, len(convs))
 	if err = i.writeDiskInbox(ctx, ibox); err != nil {
 		return err
 	}

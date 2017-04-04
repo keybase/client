@@ -27,11 +27,13 @@ node_bin="$dir/node_modules/.bin"
 
 app_name=Keybase
 keybase_version=${KEYBASE_VERSION:-}
+kbnm_version=${KBNM_VERSION:-}
 kbfs_version=${KBFS_VERSION:-}
 comment=""
 
 keybase_binpath=${KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
+kbnm_binpath=${KBNM_BINPATH:-}
 updater_binpath=${UPDATER_BINPATH:-}
 
 icon_path="$client_dir/media/icons/Keybase.icns"
@@ -54,6 +56,13 @@ if [ "$kbfs_version" = "" ]; then
   fi
 fi
 
+if [ "$kbnm_version" = "" ]; then
+  if [ ! "$kbnm_binpath" = "" ]; then
+    kbnm_version=`$kbnm_binpath -version`
+    echo "Using kbnm (bin) version: $kbnm_version"
+  fi
+fi
+
 if [ "$keybase_version" = "" ]; then
   echo "Specify KEYBASE_VERSION to use (Github release/tag)"
   exit 1
@@ -62,6 +71,12 @@ fi
 if [ "$kbfs_version" = "" ]; then
   echo "Specify KBFS_VERSION for use (Github release/tag)"
   exit 1
+fi
+
+if [ "$kbnm_version" = "" ]; then
+  # TODO: Make KBNM_VERSION be injected during build.
+  kbnm_version="$keybase_version"
+  echo "KBNM_VERSION unspecified, defaulting to: $kbnm_version"
 fi
 
 # if [ "$comment" = "" ]; then
@@ -82,6 +97,7 @@ updater_url="https://prerelease.keybase.io/darwin-package/KeybaseUpdater-1.0.6-d
 
 keybase_bin="$tmp_dir/keybase"
 kbfs_bin="$tmp_dir/kbfs"
+kbnm_bin="$tmp_dir/kbnm"
 updater_bin="$tmp_dir/updater"
 installer_app="$tmp_dir/KeybaseInstaller.app"
 updater_app="$tmp_dir/KeybaseUpdater.app"
@@ -135,6 +151,16 @@ get_deps() {(
     curl -J -L -Ss "$kbfs_url" | tar zx
   fi
 
+  if [ ! "$kbnm_binpath" = "" ]; then
+    echo "Using local kbnm binpath: $kbnm_binpath"
+    cp "$kbnm_binpath" .
+  else
+    kbnm_url="https://github.com/keybase/kbnm/releases/download/v$kbnm_version/kbnm-$kbnm_version-darwin.tgz"
+    echo "Getting $kbnm_url"
+    ensure_url $kbnm_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
+    curl -J -L -Ss "$kbnm_url" | tar zx
+  fi
+
   echo "Using local updater binpath: $updater_binpath"
   cp "$updater_binpath" .
 
@@ -169,6 +195,7 @@ package_app() {(
   mkdir -p "$shared_support_dir/bin"
   cp "$keybase_bin" "$shared_support_dir/bin"
   cp "$kbfs_bin" "$shared_support_dir/bin"
+  cp "$kbnm_bin" "$shared_support_dir/bin"
   cp "$updater_bin" "$shared_support_dir/bin"
   mkdir -p "$resources_dir"
   echo "Copying icons"
@@ -197,6 +224,7 @@ sign() {(
   spctl --assess --verbose=4 "$app_name.app"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/keybase"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/kbfs"
+  codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/kbnm"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/updater"
   bundle_installer_app="$app_name.app/Contents/Resources/KeybaseInstaller.app"
   codesign --verify --verbose=4 "$bundle_installer_app"

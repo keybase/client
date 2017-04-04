@@ -126,4 +126,18 @@ const BOOL isDebug = NO;
   [RCTPushNotificationManager didReceiveLocalNotification:notification];
 }
 
+- (void)applicationWillResignActive:(UIApplication *)application
+{
+  self.resignImageView = [[UIImageView alloc] initWithFrame:self.window.bounds];
+  self.resignImageView.contentMode = UIViewContentModeCenter;
+  self.resignImageView.backgroundColor = [UIColor whiteColor];
+  [self.resignImageView setImage:[UIImage imageNamed:@"LaunchImage"]];
+  [self.window addSubview:self.resignImageView];
+}
+
+- (void)applicationDidBecomeActive:(UIApplication *)application
+{
+  [self.resignImageView removeFromSuperview];
+}
+
 @end

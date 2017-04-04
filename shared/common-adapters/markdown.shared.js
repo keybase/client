@@ -39,8 +39,8 @@ export function parseMarkdown (markdown: string = '', markdownCreateComponent: M
 
 export class EmojiIfExists extends PureComponent<void, EmojiProps & {style?: Object}, void> {
   render () {
-    const emojiName = (this.props.children && this.props.children.join('')) || ''
-    const exists = !!emojiIndexByName[emojiName]
-    return exists ? <Emoji {...this.props} /> : <Text type='Body' style={this.props.style}>{emojiName}</Text>
+    const emojiNameLower = this.props.emojiName.toLowerCase()
+    const exists = !!emojiIndexByName[emojiNameLower]
+    return exists ? <Emoji emojiName={emojiNameLower} size={this.props.size} /> : <Text type='Body' style={this.props.style}>{this.props.emojiName}</Text>
   }
 }

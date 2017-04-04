@@ -43,19 +43,19 @@ const commands = {
     help: 'Copy font output into the right folders',
   },
   'build-dev': {
-    env: {BABEL_ENV: 'electron', NO_SERVER: 'true'},
+    env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
     help: 'Make a development build of the js code',
     nodeEnv: 'production',
     shell: `${nodeCmd} desktop/server.js`,
   },
   'build-main-thread': {
-    env: {BABEL_ENV: 'electron', HOT: 'true'},
+    env: {BABEL_ENV: 'yarn', HOT: 'true'},
     help: 'Bundle the code that the main node thread uses',
     nodeEnv: 'development',
     shell: 'webpack --config desktop/webpack.config.main-thread-only.js --progress --profile --colors',
   },
   'build-prod': {
-    env: {BABEL_ENV: 'electron'},
+    env: {BABEL_ENV: 'yarn'},
     help: 'Make a production build of the js code',
     nodeEnv: 'production',
     shell: 'webpack --config desktop/webpack.config.production.js --progress --profile --colors',
@@ -66,7 +66,7 @@ const commands = {
     shell: 'webpack --config desktop/webpack.config.development.js --progress --profile --json > /tmp/stats.json',
   },
   'build-wpdll': {
-    env: {BABEL_ENV: 'electron'},
+    env: {BABEL_ENV: 'yarn'},
     help: 'Make a production build of the js code',
     nodeEnv: 'development',
     shell: 'webpack --config desktop/webpack.config.dll-build.js --progress',
@@ -88,7 +88,7 @@ const commands = {
     },
   },
   'hot-server': {
-    env: {BABEL_ENV: 'electron', HOT: 'true', USING_DLL: 'true'},
+    env: {BABEL_ENV: 'yarn', HOT: 'true', USING_DLL: 'true'},
     help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
     nodeEnv: 'development',
     shell: process.env['NO_DASHBOARD'] ? `${nodeCmd} desktop/server.js` : `webpack-dashboard -- ${nodeCmd} desktop/server.js`,
@@ -98,7 +98,7 @@ const commands = {
     shell: 'yarn run package; cp dist/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist/',
   },
   'hot-server-dumb': {
-    env: {HOT: 'true', USING_DLL: 'true', DUMB: 'true', BABEL_ENV: 'electron'},
+    env: {HOT: 'true', USING_DLL: 'true', DUMB: 'true', BABEL_ENV: 'yarn'},
     nodeEnv: 'development',
     nodePathDesktop: true,
     shell: process.env['NO_DASHBOARD'] ? `${nodeCmd} desktop/server.js` : `webpack-dashboard -- ${nodeCmd} desktop/server.js`,
@@ -117,7 +117,7 @@ const commands = {
     shell: 'cd ../visdiff && yarn install --pure-lockfile && cd ../shared && node ../visdiff/dist/index.js',
   },
   'package': {
-    env: {BABEL_ENV: 'electron', NO_SOURCE_MAPS: 'true'},
+    env: {BABEL_ENV: 'yarn', NO_SOURCE_MAPS: 'true'},
     help: 'Package up the production js code',
     nodeEnv: 'production',
     shell: `${nodeCmd} desktop/package.js`,
@@ -128,7 +128,7 @@ const commands = {
   },
   'render-screenshots': {
     env: {
-      BABEL_ENV: 'electron',
+      BABEL_ENV: 'yarn',
       ELECTRON_ENABLE_LOGGING: 1,
       KEYBASE_NO_ENGINE: 1,
     },
@@ -149,7 +149,7 @@ const commands = {
     shell: 'electron ./desktop/dist/main.bundle.js',
   },
   'start-hot': {
-    env: {BABEL_ENV: 'electron', HOT: 'true'},
+    env: {BABEL_ENV: 'yarn', HOT: 'true'},
     help: 'Start electron with hot reloading (needs yarn run hot-server)',
     nodeEnv: 'development',
     shell: `${nodeCmd} desktop/client.js`,

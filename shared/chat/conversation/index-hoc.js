@@ -1,62 +1,40 @@
 // @flow
 
 import * as Immutable from 'immutable'
-import {compose, withState, withProps} from 'recompose'
+import {compose, withProps} from 'recompose'
 import * as Constants from '../../constants/chat'
 
 import type {Props} from './index'
 import type {Props as ListProps} from './list'
-import type {Props as InputProps} from './input'
-import type {Props as HeaderProps} from './header'
-
-const {participantFilter, usernamesToUserListItem} = Constants
 
 const propsHoc = withProps(
   (props) => {
     const {
       editLastMessageCounter,
       editingMessage,
-      emojiPickerOpen,
       firstNewMessageID,
-      focusInputCounter,
       followingMap,
-      inputText,
-      isLoading,
       listScrollDownState,
       messages,
       metaDataMap,
       moreToLoad,
-      muted,
-      onAttach,
-      onBack,
       onDeleteMessage,
-      onEditLastMessage,
       onEditMessage,
-      onFocusInput,
+      onFocus,
       onLoadAttachment,
       onLoadMoreMessages,
       onMessageAction,
       onOpenConversation,
-      onOpenFolder,
       onOpenInFileUI,
       onOpenInPopup,
-      onPostMessage,
       onRetryAttachment,
       onRetryMessage,
-      onShowBlockConversationDialog,
-      onShowProfile,
-      onStoreInputText,
-      onToggleSidePanel,
-      participants,
-      onSelectAttachment,
       selectedConversation,
       onShowEditor,
       sidePanelOpen,
       validated,
       you,
     } = props
-
-    const users = usernamesToUserListItem(participantFilter(participants, you).toArray(), you, metaDataMap, followingMap)
 
     const onOpenNewerConversation = props.supersededBy
       ? () => props.onOpenConversation(props.supersededBy.conversationIDKey)
@@ -71,10 +49,9 @@ const propsHoc = withProps(
       messages,
       metaDataMap,
       moreToLoad,
-      muted,
       onDeleteMessage,
       onEditMessage,
-      onFocusInput,
+      onFocusInput: onFocus,
       onLoadAttachment,
       onLoadMoreMessages,
       onMessageAction,
@@ -90,34 +67,7 @@ const propsHoc = withProps(
       you,
     }
 
-    const inputProps: InputProps = {
-      editingMessage,
-      defaultText: inputText,
-      emojiPickerOpen,
-      isLoading,
-      onAttach,
-      onShowEditor,
-      onEditMessage,
-      onEditLastMessage,
-      onUnmountText: onStoreInputText,
-      focusInputCounter: focusInputCounter,
-      onPostMessage,
-      onSelectAttachment,
-      selectedConversation,
-    }
-
-    const headerProps: HeaderProps = {
-      muted,
-      onBack,
-      onOpenFolder,
-      onShowBlockConversationDialog,
-      onShowProfile,
-      onToggleSidePanel,
-      sidePanelOpen,
-      users,
-    }
-
-    return {inputProps, listProps, headerProps, onOpenNewerConversation}
+    return {listProps, onOpenNewerConversation}
   }
 )
 
@@ -141,24 +91,6 @@ const decoratedMesssagesHoc = withProps((props) => ({
   messages: _decorateSupersedes(props, props.messages),
 }))
 
-const focusInputHoc = compose(
-  withState(
-    'focusInputCounter',
-    'setFocusInputCounter',
-    0
-  ),
-  withProps(({setFocusInputCounter}) => ({onFocusInput: () => setFocusInputCounter(n => n + 1)})),
-)
-
-const editLastMessageHoc = compose(
-  withState(
-    'editLastMessageCounter',
-    'setEditLastMessageCounter',
-    0
-  ),
-  withProps(({setEditLastMessageCounter}) => ({onEditLastMessage: () => setEditLastMessageCounter(n => n + 1)}))
-)
-
-const hoc = compose(focusInputHoc, editLastMessageHoc, decoratedMesssagesHoc, propsHoc)
+const hoc = compose(decoratedMesssagesHoc, propsHoc)
 
 export default hoc

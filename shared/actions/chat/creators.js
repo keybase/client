@@ -1,11 +1,14 @@
 // @flow
-import * as Constants from '../../constants/chat'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
+import * as Constants from '../../constants/chat'
 import HiddenString from '../../util/hidden-string'
 import {List, Map} from 'immutable'
+import {chatTab} from '../../constants/tabs'
+import {setRouteState} from '../route-tree'
 import {uniq} from 'lodash'
 
 import type {Path} from '../../route-tree'
+import type {SetRouteState} from '../../constants/route-tree'
 
 // Whitelisted action loggers
 const updateTempMessageTransformer = ({type, payload: {conversationIDKey, outboxID}}: Constants.UpdateTempMessage) => ({
@@ -334,6 +337,10 @@ function threadLoadedOffline (conversationIDKey: Constants.ConversationIDKey): C
   return {payload: {conversationIDKey}, type: 'chat:threadLoadedOffline'}
 }
 
+function setSelectedRouteState (selectedConversation: Constants.ConversationIDKey, partialState: Object): SetRouteState {
+  return setRouteState(List([chatTab, selectedConversation]), partialState)
+}
+
 export {
   addPending,
   appendMessages,
@@ -375,12 +382,13 @@ export {
   selectConversation,
   setInitialConversation,
   setLoaded,
+  setSelectedRouteState,
   setUnboxing,
   setupChatHandlers,
   showEditor,
   startConversation,
-  untrustedInboxVisible,
   threadLoadedOffline,
+  untrustedInboxVisible,
   updateBadging,
   updateBrokenTracker,
   updateConversationUnreadCounts,

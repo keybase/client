@@ -308,7 +308,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	// will remain empty if the body was deleted
 	var bodyVersioned chat1.BodyPlaintext
 	if !skipBodyVerification {
-		packedBody, err := b.open(boxed.BodyCiphertext, encryptionKey)
+		packedBody, err := b.open(boxed.BodyCiphertext, libkb.NaclSecretBoxKey(encryptionKey.Key))
 		if err != nil {
 			return nil, NewPermanentUnboxingError(err)
 		}
@@ -318,7 +318,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	}
 
 	// decrypt header
-	packedHeader, err := b.open(boxed.HeaderCiphertext.AsEncrypted(), encryptionKey)
+	packedHeader, err := b.open(boxed.HeaderCiphertext.AsEncrypted(), libkb.NaclSecretBoxKey(encryptionKey.Key))
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
 	}
@@ -417,9 +417,15 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	}, nil
 }
 
-func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, encryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
+func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, baseEncryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
 	if boxed.ServerHeader == nil {
 		return nil, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
+	}
+
+	derivedEncryptionKey, err := libkb.DeriveSymmetricKey(
+		libkb.NaclSecretBoxKey(baseEncryptionKey.Key), libkb.EncryptionReasonChatMessage)
+	if err != nil {
+		return nil, NewPermanentUnboxingError(err)
 	}
 
 	// Validate verification key against unverified sender id.
@@ -442,7 +448,7 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	}
 
 	// Open header and verify against VerifyKey
-	headerPacked, err := b.signEncryptOpen(boxed.HeaderCiphertext.AsSignEncrypted(), encryptionKey,
+	headerPacked, err := b.signEncryptOpen(boxed.HeaderCiphertext.AsSignEncrypted(), derivedEncryptionKey,
 		boxed.VerifyKey, libkb.SignaturePrefixChatMBv2)
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
@@ -489,7 +495,7 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	// If the body is deleted, this is left blank.
 	var body chat1.MessageBody
 	if !isBodyDeleted {
-		bodyPacked, err := b.open(boxed.BodyCiphertext, encryptionKey)
+		bodyPacked, err := b.open(boxed.BodyCiphertext, derivedEncryptionKey)
 		if err != nil {
 			return nil, NewPermanentUnboxingError(err)
 		}
@@ -870,7 +876,7 @@ func (b *Boxer) boxV1(messagePlaintext chat1.MessagePlaintext, key *keybase1.Cry
 		MessageBody: messagePlaintext.MessageBody,
 	}
 	plaintextBody := chat1.NewBodyPlaintextWithV1(body)
-	encryptedBody, err := b.seal(plaintextBody, key)
+	encryptedBody, err := b.seal(plaintextBody, libkb.NaclSecretBoxKey(key.Key))
 	if err != nil {
 		return nil, err
 	}
@@ -901,7 +907,7 @@ func (b *Boxer) boxV1(messagePlaintext chat1.MessagePlaintext, key *keybase1.Cry
 
 	// create a plaintext header
 	plaintextHeader := chat1.NewHeaderPlaintextWithV1(header)
-	encryptedHeader, err := b.seal(plaintextHeader, key)
+	encryptedHeader, err := b.seal(plaintextHeader, libkb.NaclSecretBoxKey(key.Key))
 	if err != nil {
 		return nil, err
 	}
@@ -917,13 +923,19 @@ func (b *Boxer) boxV1(messagePlaintext chat1.MessagePlaintext, key *keybase1.Cry
 	return boxed, nil
 }
 
-func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, encryptionKey *keybase1.CryptKey,
+func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, baseEncryptionKey *keybase1.CryptKey,
 	signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
+
+	derivedEncryptionKey, err := libkb.DeriveSymmetricKey(
+		libkb.NaclSecretBoxKey(baseEncryptionKey.Key), libkb.EncryptionReasonChatMessage)
+	if err != nil {
+		return nil, err
+	}
 
 	bodyVersioned := chat1.NewBodyPlaintextWithV1(chat1.BodyPlaintextV1{
 		MessageBody: messagePlaintext.MessageBody,
 	})
-	bodyEncrypted, err := b.seal(bodyVersioned, encryptionKey)
+	bodyEncrypted, err := b.seal(bodyVersioned, derivedEncryptionKey)
 	if err != nil {
 		return nil, err
 	}
@@ -951,7 +963,7 @@ func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, encryptionKey *ke
 	})
 
 	// signencrypt the header
-	headerSealed, err := b.signEncryptMarshal(headerVersioned, encryptionKey,
+	headerSealed, err := b.signEncryptMarshal(headerVersioned, derivedEncryptionKey,
 		signingKeyPair, libkb.SignaturePrefixChatMBv2)
 	if err != nil {
 		return nil, err
@@ -967,14 +979,14 @@ func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, encryptionKey *ke
 		HeaderCiphertext: headerSealed.AsSealed(),
 		BodyCiphertext:   *bodyEncrypted,
 		VerifyKey:        verifyKey,
-		KeyGeneration:    encryptionKey.KeyGeneration,
+		KeyGeneration:    baseEncryptionKey.KeyGeneration,
 	}
 
 	return boxed, nil
 }
 
 // seal encrypts data into chat1.EncryptedData.
-func (b *Boxer) seal(data interface{}, key *keybase1.CryptKey) (*chat1.EncryptedData, error) {
+func (b *Boxer) seal(data interface{}, key libkb.NaclSecretBoxKey) (*chat1.EncryptedData, error) {
 	s, err := b.marshal(data)
 	if err != nil {
 		return nil, err
@@ -985,7 +997,9 @@ func (b *Boxer) seal(data interface{}, key *keybase1.CryptKey) (*chat1.Encrypted
 		return nil, err
 	}
 
-	sealed := secretbox.Seal(nil, []byte(s), &nonce, ((*[32]byte)(&key.Key)))
+	var encKey [libkb.NaclSecretBoxKeySize]byte = key
+
+	sealed := secretbox.Seal(nil, []byte(s), &nonce, &encKey)
 	enc := &chat1.EncryptedData{
 		V: 1,
 		E: sealed,
@@ -996,14 +1010,14 @@ func (b *Boxer) seal(data interface{}, key *keybase1.CryptKey) (*chat1.Encrypted
 }
 
 // open decrypts chat1.EncryptedData.
-func (b *Boxer) open(data chat1.EncryptedData, key *keybase1.CryptKey) ([]byte, error) {
+func (b *Boxer) open(data chat1.EncryptedData, key libkb.NaclSecretBoxKey) ([]byte, error) {
 	if len(data.N) != libkb.NaclDHNonceSize {
 		return nil, libkb.DecryptBadNonceError{}
 	}
 	var nonce [libkb.NaclDHNonceSize]byte
 	copy(nonce[:], data.N)
 
-	plain, ok := secretbox.Open(nil, data.E, &nonce, ((*[32]byte)(&key.Key)))
+	plain, ok := secretbox.Open(nil, data.E, &nonce, (*[32]byte)(&key))
 	if !ok {
 		return nil, libkb.DecryptOpenError{}
 	}
@@ -1023,7 +1037,7 @@ func (b *Boxer) signMarshal(data interface{}, kp libkb.NaclSigningKeyPair, prefi
 
 // signEncryptMarshal signencrypts data given an encryption and signing key, returning a chat1.SignEncryptedData.
 // It marshals data before signing.
-func (b *Boxer) signEncryptMarshal(data interface{}, encryptionKey *keybase1.CryptKey,
+func (b *Boxer) signEncryptMarshal(data interface{}, encryptionKey libkb.NaclSecretBoxKey,
 	signingKeyPair libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignEncryptedData, error) {
 	encoded, err := b.marshal(data)
 	if err != nil {
@@ -1054,7 +1068,7 @@ func (b *Boxer) sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.Signa
 }
 
 // signEncrypt signencrypts msg.
-func (b *Boxer) signEncrypt(msg []byte, encryptionKey *keybase1.CryptKey,
+func (b *Boxer) signEncrypt(msg []byte, encryptionKey libkb.NaclSecretBoxKey,
 	signingKeyPair libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignEncryptedData, error) {
 	if signingKeyPair.Private == nil {
 		return chat1.SignEncryptedData{}, libkb.NoSecretKeyError{}
@@ -1065,7 +1079,7 @@ func (b *Boxer) signEncrypt(msg []byte, encryptionKey *keybase1.CryptKey,
 		return chat1.SignEncryptedData{}, err
 	}
 
-	var encKey [signencrypt.SecretboxKeySize]byte = encryptionKey.Key
+	var encKey [signencrypt.SecretboxKeySize]byte = encryptionKey
 	var signKey [ed25519.PrivateKeySize]byte = *signingKeyPair.Private
 
 	signEncryptedBytes := signencrypt.SealWhole(
@@ -1085,9 +1099,9 @@ func (b *Boxer) signEncrypt(msg []byte, encryptionKey *keybase1.CryptKey,
 }
 
 // signEncryptOpen opens and verifies chat1.SignEncryptedData.
-func (b *Boxer) signEncryptOpen(data chat1.SignEncryptedData, encryptionKey *keybase1.CryptKey,
+func (b *Boxer) signEncryptOpen(data chat1.SignEncryptedData, encryptionKey libkb.NaclSecretBoxKey,
 	verifyKID []byte, prefix libkb.SignaturePrefix) ([]byte, error) {
-	var encKey [signencrypt.SecretboxKeySize]byte = encryptionKey.Key
+	var encKey [signencrypt.SecretboxKeySize]byte = encryptionKey
 
 	verifyKey := libkb.KIDToNaclSigningKeyPublic(verifyKID)
 	if verifyKey == nil {

@@ -4,7 +4,7 @@ import type {Props} from './clickable-box'
 import {TouchableHighlight, TouchableWithoutFeedback} from 'react-native'
 import {globalColors} from '../styles'
 
-const ClickableBox = ({onClick, style, children, underlayColor, onPressIn, onPressOut, feedback = true}: Props) => {
+const ClickableBox = ({onClick, onLongPress, style, children, underlayColor, onPressIn, onPressOut, feedback = true}: Props) => {
   if (onClick) {
     if (feedback) {
       return <TouchableHighlight
@@ -12,6 +12,7 @@ const ClickableBox = ({onClick, style, children, underlayColor, onPressIn, onPre
         onPress={onClick}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
+        onLongPress={onLongPress}
         style={{...boxStyle, ...style}}
         underlayColor={underlayColor || globalColors.black_10}>
         {children}
@@ -21,7 +22,8 @@ const ClickableBox = ({onClick, style, children, underlayColor, onPressIn, onPre
         onPressIn={onPressIn}
         onPressOut={onPressOut}
         style={{...boxStyle, ...style}}
-        onPress={onClick}>
+        onPress={onClick}
+        onLongPress={onLongPress}>
         {children}
       </TouchableWithoutFeedback>
     }

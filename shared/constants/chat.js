@@ -4,8 +4,9 @@ import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
 import {clamp, invert} from 'lodash'
 import * as ChatTypes from './types/flow-types-chat'
-import {getPath} from '../route-tree'
+import {getPath, getPathState} from '../route-tree'
 import {chatTab} from './tabs'
+import {createSelector} from 'reselect'
 
 import type {UserListItem} from '../common-adapters/usernames'
 import type {Path} from '../route-tree'
@@ -289,7 +290,7 @@ export const StateRecord = Record({
   finalizedState: Map(),
   supersedesState: Map(),
   supersededByState: Map(),
-  pendingFailures: Set(),
+  pendingFailures: Map(),
   conversationUnreadCounts: Map(),
   rekeyInfos: Map(),
   alwaysShow: Set(),
@@ -307,7 +308,7 @@ export type State = Record<{
   supersededByState: SupersededByState,
   focused: boolean,
   metaData: MetaDataMap,
-  pendingFailures: Set<OutboxIDKey>,
+  pendingFailures: Map<OutboxIDKey, ?string>,
   conversationUnreadCounts: Map<ConversationIDKey, number>,
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
   alwaysShow: Set<ConversationIDKey>,
@@ -605,9 +606,40 @@ const getSelectedConversation = (state: TypedState) => {
   return selected
 }
 
+const getSelectedRouteState = (state: TypedState) => {
+  const selected = getSelectedConversation(state)
+  if (!selected) return null
+  return getPathState(state.routeTree.routeState, [chatTab, selected])
+}
+
 function messageKey (kind: MessageKeyKind, value: string | number): MessageKey {
   return `${kind}:${value}`
 }
+
+const getYou = (state: TypedState) => state.config.username || ''
+const getFollowingMap = (state: TypedState) => state.config.following
+const getMetaDataMap = (state: TypedState) => state.chat.get('metaData')
+const getSelectedInbox = (state: TypedState) => {
+  const selected = getSelectedConversation(state)
+  return state.chat.get('inbox').find(inbox => inbox.get('conversationIDKey') === selected)
+}
+
+const getTLF = createSelector(
+  [getSelectedInbox, getSelectedConversation],
+  (selectedInbox, selected) => {
+    if (isPendingConversationIDKey(selected)) {
+      return pendingConversationIDKeyToTlfName(selected) || ''
+    } else if (selected !== nothingSelected && selectedInbox) {
+      return selectedInbox.participants.join(',')
+    }
+    return ''
+  }
+)
+
+const getMuted = createSelector(
+  [getSelectedInbox],
+  (selectedInbox) => selectedInbox && selectedInbox.get('status') === 'muted',
+)
 
 export {
   getBrokenUsers,
@@ -629,4 +661,11 @@ export {
   pendingConversationIDKey,
   isPendingConversationIDKey,
   pendingConversationIDKeyToTlfName,
+  getSelectedRouteState,
+  getYou,
+  getFollowingMap,
+  getMetaDataMap,
+  getSelectedInbox,
+  getTLF,
+  getMuted,
 }

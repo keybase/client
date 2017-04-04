@@ -2,7 +2,7 @@
 import React from 'react'
 import type {Props} from './container'
 import {Box, BackButton} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import {globalMargins, globalStyles} from '../../styles'
 
 const Container = ({children, onBack, style, outerStyle}: Props) => {
   return (
@@ -22,7 +22,7 @@ const styles = {
   },
   innerContainer: {
     ...globalStyles.flexBoxColumn,
-    marginTop: 30,
+    marginTop: globalMargins.tiny,
     flexGrow: 1,
   },
   button: {
