@@ -12,8 +12,8 @@ const Feedback = ({onSendFeedbackContained, showSuccessBanner, sendLogs, onChang
       <Box style={{flex: 0, height: 40, ...globalStyles.flexBoxRow, backgroundColor: globalColors.green, alignItems: 'center'}}>
         <Text type='BodySemibold' backgroundMode='Success' style={{flex: 1, textAlign: 'center'}}>Thanks! Your feedback was sent.</Text>
       </Box>}
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center', marginLeft: globalMargins.small, marginRight: globalMargins.small}}>
-      <Icon type='icon-fancy-feedback-96' style={{height: 96, width: 96, marginTop: globalMargins.medium, marginBottom: globalMargins.medium}} />
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'stretch', justifyContent: 'flex-start', marginLeft: globalMargins.small, marginRight: globalMargins.small}}>
+      <Icon type='icon-fancy-feedback-96' style={{height: 96, width: 96, marginTop: globalMargins.medium, marginBottom: globalMargins.medium, alignSelf: 'center'}} />
       <Text style={{textAlign: 'center'}} type='Body'>Please send us any feedback or describe any bugs you’ve encountered.</Text>
       <Box style={{flex: 1, ...globalStyles.flexBoxRow}}>
         <Input
