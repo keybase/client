@@ -9,7 +9,7 @@ import * as Shared from './shared'
 import * as Saga from '../../util/saga'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
-import {List, Map} from 'immutable'
+import {Map} from 'immutable'
 import {NotifyPopup} from '../../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {badgeApp} from '../notifications'
@@ -24,7 +24,6 @@ import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from '..
 import {searchTab, chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
 import {some} from 'lodash'
-import {tmpFile} from '../../util/file'
 import {toDeviceType} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 
@@ -172,14 +171,6 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           }
 
           yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, [message]))
-
-          if ((message.type === 'Attachment' || message.type === 'UpdateAttachment') && !message.previewPath && message.messageID) {
-            const messageID = message.type === 'UpdateAttachment' ? message.targetMessageID : message.messageID
-            const filename = message.type === 'UpdateAttachment' ? message.updates.filename : message.filename
-            if (filename) {
-              yield put(Creators.loadAttachment(conversationIDKey, messageID, tmpFile(Shared.tmpFileName(false, conversationIDKey, messageID, filename)), true, false))
-            }
-          }
         }
       }
       break
@@ -334,20 +325,6 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
     const pagination = _threadToPagination(thread)
 
     yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
-
-    // Load previews for attachments
-    const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' && m.messageID ? acc.push(m) : acc, new List())
-    yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => {
-      if (messageID && filename) {
-        return put(Creators.loadAttachment(
-          conversationIDKey,
-          messageID,
-          tmpFile(Shared.tmpFileName(false, conversationIDKey, messageID, filename)),
-          true,
-          false)
-        )
-      }
-    }).toArray().filter(Boolean)
   }
 
   const channelConfig = Saga.singleFixedChannelConfig([
@@ -885,6 +862,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     Saga.safeTakeEvery('chat:openConversation', _openConversation),
     Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox),
     Saga.safeTakeEvery('chat:loadAttachment', Attachment.onLoadAttachment),
+    Saga.safeTakeEvery('chat:loadAttachmentPreview', Attachment.onLoadAttachmentPreview),
     Saga.safeTakeEvery('chat:openAttachmentPopup', Attachment.onOpenAttachmentPopup),
     Saga.safeTakeLatest('chat:openFolder', _openFolder),
     Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat),

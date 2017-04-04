@@ -409,6 +409,9 @@ export type LoadAttachment = NoErrorTypedAction<'chat:loadAttachment', {
   isHdPreview: boolean,
   filename: string,
 }>
+export type LoadAttachmentPreview = NoErrorTypedAction<'chat:loadAttachmentPreview', {
+  message: AttachmentMessage,
+}>
 export type AttachmentLoaded = NoErrorTypedAction<'chat:attachmentLoaded', {
   messageID: MessageID,
   conversationIDKey: ConversationIDKey,

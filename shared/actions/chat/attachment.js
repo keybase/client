@@ -31,6 +31,14 @@ function * onSaveAttachmentNative ({payload: {message}}: Constants.SaveAttachmen
   }
 }
 
+function * onLoadAttachmentPreview ({payload: {message}}: Constants.LoadAttachmentPreview): SagaGenerator<any, any> {
+  const {filename, messageID, conversationIDKey} = message
+  if (filename && messageID) {
+    const path = tmpFile(Shared.tmpFileName(false, conversationIDKey, messageID, filename))
+    yield call(onLoadAttachment, Creators.loadAttachment(conversationIDKey, messageID, path, true, false))
+  }
+}
+
 // Instead of redownloading the full attachment again, we may have it cached from an earlier hdPreview
 // returns cached filepath
 function * _isCached (conversationIDKey, messageID): Generator<any, ?string, any> {
@@ -207,6 +215,7 @@ function * onOpenAttachmentPopup (action: Constants.OpenAttachmentPopup): SagaGe
 
 export {
   onLoadAttachment,
+  onLoadAttachmentPreview,
   onOpenAttachmentPopup,
   onSaveAttachmentNative,
   onShareAttachment,
