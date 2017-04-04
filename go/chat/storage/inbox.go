@@ -869,14 +869,6 @@ func (i *Inbox) ServerVersion(ctx context.Context) (vers int, err Error) {
 	return vers, nil
 }
 
-type ByConvMtime []chat1.Conversation
-
-func (b ByConvMtime) Len() int      { return len(b) }
-func (b ByConvMtime) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
-func (b ByConvMtime) Less(i, j int) bool {
-	return b[i].ReaderInfo.Mtime.After(b[j].ReaderInfo.Mtime)
-}
-
 func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Conversation) (err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
