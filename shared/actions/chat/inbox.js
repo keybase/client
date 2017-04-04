@@ -289,14 +289,15 @@ function _conversationLocalToInboxState (c: ?ChatTypes.ConversationLocal): ?Cons
   let time = c.readerInfo.mtime
   let snippet
 
-  (c.maxMessages || []).some(message => {
-    if (message.state === ChatTypes.LocalMessageUnboxedState.valid && message.valid) {
-      time = message.valid.serverHeader.ctime || time
-      snippet = Constants.makeSnippet(message.valid.messageBody)
+  (c.maxMessages || [])
+    .filter(m => m.valid && m.state === ChatTypes.LocalMessageUnboxedState.valid)
+    .map((m: any) => ({body: m.valid.messageBody, time: m.valid.serverHeader.ctime || time}))
+    .sort((a, b) => b.time - a.time)
+    .some((message: {time: number, body: ?ChatTypes.MessageBody}) => {
+      time = message.time
+      snippet = Constants.makeSnippet(message.body)
       return !!snippet
-    }
-    return false
-  })
+    })
 
   return new Constants.InboxStateRecord({
     conversationIDKey,
