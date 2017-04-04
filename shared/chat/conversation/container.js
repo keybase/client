@@ -9,7 +9,6 @@ import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
 import {downloadFilePath} from '../../util/file'
 import {getProfile} from '../../actions/tracker'
-import {navigateAppend} from '../../actions/route-tree'
 import {onUserClick} from '../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
 import {pick} from 'lodash'
@@ -138,7 +137,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp, navigateAppend, routePath}) => ({
   onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
   onBack: () => dispatch(navigateUp()),
   onBannerWarning: (username: string) => { isMobile ? dispatch(onUserClick(username, '')) : dispatch(getProfile(username, true, true)) },
@@ -151,7 +150,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}) => 
   onOpenFolder: () => dispatch(Creators.openFolder()),
   onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => dispatch(Creators.openConversation(conversationIDKey)),
   onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
-  onOpenInPopup: (message: Constants.AttachmentMessage) => dispatch(Creators.openAttachmentPopup(message)),
+  onOpenInPopup: (message: Constants.AttachmentMessage) => dispatch(Creators.openAttachmentPopup(message, routePath)),
   onRetryAttachment: (message: Constants.AttachmentMessage) => dispatch(Creators.retryAttachment(message)),
   onRetryMessage: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
   startConversation: (users: Array<string>) => dispatch(Creators.startConversation(users, true)),

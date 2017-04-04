@@ -7,6 +7,7 @@ import {chatTab} from '../../constants/tabs'
 import {setRouteState} from '../route-tree'
 import {uniq} from 'lodash'
 
+import type {Path} from '../../route-tree'
 import type {SetRouteState} from '../../constants/route-tree'
 
 // Whitelisted action loggers
@@ -324,8 +325,8 @@ function openConversation (conversationIDKey: Constants.ConversationIDKey): Cons
   return {payload: {conversationIDKey}, type: 'chat:openConversation'}
 }
 
-function openAttachmentPopup (message: Constants.AttachmentMessage): Constants.OpenAttachmentPopup {
-  return {payload: {message}, type: 'chat:openAttachmentPopup'}
+function openAttachmentPopup (message: Constants.AttachmentMessage, currentPath: Path): Constants.OpenAttachmentPopup {
+  return {payload: {message, currentPath}, type: 'chat:openAttachmentPopup'}
 }
 
 function setInitialConversation (conversationIDKey: ?Constants.ConversationIDKey): Constants.SetInitialConversation {
