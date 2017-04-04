@@ -53,7 +53,6 @@ function * _isCached (conversationIDKey, messageID): Generator<any, ?string, any
   }
 }
 
-// TODO load previews too
 function * onLoadAttachment ({payload: {conversationIDKey, messageID, loadPreview, isHdPreview, filename}}: Constants.LoadAttachment): SagaGenerator<any, any> {
   // See if we already have this image cached
   if (loadPreview || isHdPreview) {
