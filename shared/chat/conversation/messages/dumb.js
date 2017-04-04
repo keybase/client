@@ -218,6 +218,7 @@ const attachmentBaseMock = {
   you: 'marcopolo',
   followingMap,
   metaDataMap,
+  mockStore: {},
 }
 
 const attachmentMap: DumbComponentMap<AttachmentMessageComponent> = {
