@@ -203,6 +203,93 @@ type SyncChatRes struct {
 	InboxRes  SyncInboxRes    `codec:"inboxRes" json:"inboxRes"`
 }
 
+type SyncAllNotificationType int
+
+const (
+	SyncAllNotificationType_STATE       SyncAllNotificationType = 0
+	SyncAllNotificationType_INCREMENTAL SyncAllNotificationType = 1
+)
+
+var SyncAllNotificationTypeMap = map[string]SyncAllNotificationType{
+	"STATE":       0,
+	"INCREMENTAL": 1,
+}
+
+var SyncAllNotificationTypeRevMap = map[SyncAllNotificationType]string{
+	0: "STATE",
+	1: "INCREMENTAL",
+}
+
+func (e SyncAllNotificationType) String() string {
+	if v, ok := SyncAllNotificationTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type SyncAllNotificationRes struct {
+	Typ__         SyncAllNotificationType `codec:"typ" json:"typ"`
+	State__       *gregor1.State          `codec:"state,omitempty" json:"state,omitempty"`
+	Incremental__ *gregor1.SyncResult     `codec:"incremental,omitempty" json:"incremental,omitempty"`
+}
+
+func (o *SyncAllNotificationRes) Typ() (ret SyncAllNotificationType, err error) {
+	switch o.Typ__ {
+	case SyncAllNotificationType_STATE:
+		if o.State__ == nil {
+			err = errors.New("unexpected nil value for State__")
+			return ret, err
+		}
+	case SyncAllNotificationType_INCREMENTAL:
+		if o.Incremental__ == nil {
+			err = errors.New("unexpected nil value for Incremental__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o SyncAllNotificationRes) State() gregor1.State {
+	if o.Typ__ != SyncAllNotificationType_STATE {
+		panic("wrong case accessed")
+	}
+	if o.State__ == nil {
+		return gregor1.State{}
+	}
+	return *o.State__
+}
+
+func (o SyncAllNotificationRes) Incremental() gregor1.SyncResult {
+	if o.Typ__ != SyncAllNotificationType_INCREMENTAL {
+		panic("wrong case accessed")
+	}
+	if o.Incremental__ == nil {
+		return gregor1.SyncResult{}
+	}
+	return *o.Incremental__
+}
+
+func NewSyncAllNotificationResWithState(v gregor1.State) SyncAllNotificationRes {
+	return SyncAllNotificationRes{
+		Typ__:   SyncAllNotificationType_STATE,
+		State__: &v,
+	}
+}
+
+func NewSyncAllNotificationResWithIncremental(v gregor1.SyncResult) SyncAllNotificationRes {
+	return SyncAllNotificationRes{
+		Typ__:         SyncAllNotificationType_INCREMENTAL,
+		Incremental__: &v,
+	}
+}
+
+type SyncAllResult struct {
+	Auth         gregor1.AuthResult     `codec:"auth" json:"auth"`
+	Chat         SyncChatRes            `codec:"chat" json:"chat"`
+	Notification SyncAllNotificationRes `codec:"notification" json:"notification"`
+	Badge        UnreadUpdateFull       `codec:"badge" json:"badge"`
+}
+
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -275,6 +362,14 @@ type SyncChatArg struct {
 	Vers InboxVers `codec:"vers" json:"vers"`
 }
 
+type SyncAllArg struct {
+	Uid       gregor1.UID          `codec:"uid" json:"uid"`
+	DeviceID  gregor1.DeviceID     `codec:"deviceID" json:"deviceID"`
+	Session   gregor1.SessionToken `codec:"session" json:"session"`
+	InboxVers InboxVers            `codec:"inboxVers" json:"inboxVers"`
+	Ctime     gregor1.Time         `codec:"ctime" json:"ctime"`
+}
+
 type TlfFinalizeArg struct {
 	TlfID          TLFID        `codec:"tlfID" json:"tlfID"`
 	ResetUser      string       `codec:"resetUser" json:"resetUser"`
@@ -317,6 +412,7 @@ type RemoteInterface interface {
 	GetInboxVersion(context.Context, gregor1.UID) (InboxVers, error)
 	SyncInbox(context.Context, InboxVers) (SyncInboxRes, error)
 	SyncChat(context.Context, InboxVers) (SyncChatRes, error)
+	SyncAll(context.Context, SyncAllArg) (SyncAllResult, error)
 	TlfFinalize(context.Context, TlfFinalizeArg) error
 	TlfResolve(context.Context, TlfResolveArg) error
 	PublishReadMessage(context.Context, PublishReadMessageArg) error
@@ -567,6 +663,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"syncAll": {
+				MakeArg: func() interface{} {
+					ret := make([]SyncAllArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SyncAllArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SyncAllArg)(nil), args)
+						return
+					}
+					ret, err = i.SyncAll(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"tlfFinalize": {
 				MakeArg: func() interface{} {
 					ret := make([]TlfFinalizeArg, 1)
@@ -717,6 +829,11 @@ func (c RemoteClient) SyncInbox(ctx context.Context, vers InboxVers) (res SyncIn
 func (c RemoteClient) SyncChat(ctx context.Context, vers InboxVers) (res SyncChatRes, err error) {
 	__arg := SyncChatArg{Vers: vers}
 	err = c.Cli.Call(ctx, "chat.1.remote.syncChat", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) SyncAll(ctx context.Context, __arg SyncAllArg) (res SyncAllResult, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.syncAll", []interface{}{__arg}, &res)
 	return
 }
 

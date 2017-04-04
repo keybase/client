@@ -38,6 +38,7 @@ export default connector.connect(
       canContinue: true,
       errorCode: profile.errorCode,
       errorText: profile.errorText,
+      title: 'Add Proof',
       onCancel: () => { dispatch(cancelAddProof()) },
       onContinue: (username: string) => {
         dispatch(updateUsername(username))

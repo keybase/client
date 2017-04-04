@@ -5,7 +5,7 @@ import type {DeviceType} from '../../../constants/types/more'
 import type {IconType} from '../../../common-adapters/icon'
 import type {Props} from './index.render'
 import {Box, Text, Icon, ClickableBox, NativeScrollView} from '../../../common-adapters/index.native'
-import {globalStyles, globalColors} from '../../../styles'
+import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconType = ({
@@ -45,11 +45,10 @@ const Render = ({onBack, devices, onWont, onSelect}: Props) => (
 const stylesContainer = {
   alignItems: 'center',
 }
-
 const stylesHeader = {
+  marginBottom: globalMargins.small,
+  marginTop: globalMargins.tiny,
   textAlign: 'center',
-  marginTop: 46,
-  marginBottom: 20,
 }
 const stylesDevicesContainer = {
   ...globalStyles.flexBoxColumn,

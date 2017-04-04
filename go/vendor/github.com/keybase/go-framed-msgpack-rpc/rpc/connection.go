@@ -75,6 +75,12 @@ func (t *connTransport) Dial(context.Context) (Transporter, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Disable SIGPIPE on platforms that require it (Darwin). See sigpipe_bsd.go.
+	if err = DisableSigPipe(t.conn); err != nil {
+		return nil, err
+	}
+
 	t.stagedTransport = NewTransport(t.conn, t.l, t.wef)
 	return t.stagedTransport, nil
 }
@@ -152,6 +158,10 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 	var conn net.Conn
 	err := runUnlessCanceled(ctx, func() error {
 		config := ct.tlsConfig
+		host, _, err := net.SplitHostPort(ct.srvAddr)
+		if err != nil {
+			return err
+		}
 
 		// If we didn't specify a tls.Config, but we did specify
 		// explicit rootCerts, then populate a new tls.Config here.
@@ -162,14 +172,32 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 			if !certs.AppendCertsFromPEM(ct.rootCerts) {
 				return errors.New("Unable to load root certificates")
 			}
-			config = &tls.Config{RootCAs: certs}
+			config = &tls.Config{
+				RootCAs:    certs,
+				ServerName: host,
+			}
 		}
+		// Final check to make sure we have a TLS config since tls.Client requires
+		// either ServerName or InsecureSkipVerify to be set.
+		if config == nil {
+			config = &tls.Config{ServerName: host}
+		}
+
 		// connect
-		var err error
-		conn, err = tls.DialWithDialer(&net.Dialer{
+		dialer := net.Dialer{
 			KeepAlive: 10 * time.Second,
-		}, "tcp", ct.srvAddr, config)
-		return err
+		}
+		baseConn, err := dialer.Dial("tcp", ct.srvAddr)
+		if err != nil {
+			return err
+		}
+		conn = tls.Client(baseConn, config)
+		if err := conn.(*tls.Conn).Handshake(); err != nil {
+			return err
+		}
+
+		// Disable SIGPIPE on platforms that require it (Darwin). See sigpipe_bsd.go.
+		return DisableSigPipe(baseConn)
 	})
 	if err != nil {
 		return nil, err

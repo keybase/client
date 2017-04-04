@@ -17,6 +17,5 @@ protocol incoming {
     categories are prefixed by the given prefix
    */
   State stateByCategoryPrefix(UID uid, DeviceID deviceid, TimeOrOffset timeOrOffset, Category categoryPrefix);
-
-
+ 
 }

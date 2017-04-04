@@ -69,10 +69,6 @@ func (a *FakeAPI) PostJSON(APIArg) (*APIRes, error) {
 	return nil, fmt.Errorf("PostJSON is phony")
 }
 
-func (a *FakeAPI) PostResp(APIArg) (*http.Response, error) {
-	return nil, fmt.Errorf("PostResp is phony")
-}
-
 func (a *FakeAPI) PostRaw(APIArg, string, io.Reader) (*APIRes, error) {
 	return nil, fmt.Errorf("PostRaw is phony")
 }

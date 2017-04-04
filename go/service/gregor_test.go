@@ -236,6 +236,20 @@ type mockGregord struct {
 	log logger.Logger
 }
 
+func (m mockGregord) SyncAll(ctx context.Context, arg chat1.SyncAllArg) (res chat1.SyncAllResult, err error) {
+	sres, err := m.Sync(ctx, gregor1.SyncArg{
+		Uid:      arg.Uid,
+		Deviceid: arg.DeviceID,
+		Ctime:    arg.Ctime,
+	})
+	if err != nil {
+		return res, err
+	}
+
+	res.Notification = chat1.NewSyncAllNotificationResWithIncremental(sres)
+	return res, nil
+}
+
 func (m mockGregord) Sync(_ context.Context, arg gregor1.SyncArg) (gregor1.SyncResult, error) {
 	var res gregor1.SyncResult
 	msgs, err := m.sm.InBandMessagesSince(arg.UID(), arg.DeviceID(), arg.CTime())
@@ -391,6 +405,25 @@ func checkMessages(t *testing.T, source string, msgs []gregor.InBandMessage,
 	}
 }
 
+func doServerSync(t *testing.T, h *gregorHandler, srv mockGregord) ([]gregor.InBandMessage, []gregor.InBandMessage) {
+	_, token, _ := h.loggedIn(context.TODO())
+	pctime := h.gregorCli.StateMachineLatestCTime()
+	ctime := gregor1.Time(0)
+	if pctime != nil {
+		ctime = gregor1.ToTime(*pctime)
+	}
+	sres, err := srv.SyncAll(context.TODO(), chat1.SyncAllArg{
+		Uid:      h.gregorCli.User.(gregor1.UID),
+		DeviceID: h.gregorCli.Device.(gregor1.DeviceID),
+		Session:  gregor1.SessionToken(token),
+		Ctime:    ctime,
+	})
+	require.NoError(t, err)
+	r, c, err := h.serverSync(context.TODO(), srv, h.gregorCli, &sres.Notification)
+	require.NoError(t, err)
+	return r, c
+}
+
 func TestSyncFresh(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
@@ -409,11 +442,7 @@ func TestSyncFresh(t *testing.T) {
 	}
 
 	// Sync messages down and see if we get 20
-	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	replayedMessages, consumedMessages := doServerSync(t, h, server)
 	checkMessages(t, "replayed messages", replayedMessages, refMsgs)
 	checkMessages(t, "consumed messages", consumedMessages, refMsgs)
 }
@@ -449,11 +478,7 @@ func TestSyncNonFresh(t *testing.T) {
 	h.freshReplay = false
 
 	// We should only get half of the messages on a non-fresh sync
-	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	replayedMessages, consumedMessages := doServerSync(t, h, server)
 	checkMessages(t, "replayed messages", replayedMessages, refMsgs)
 	checkMessages(t, "consumed messages", consumedMessages, refMsgs)
 }
@@ -496,11 +521,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 	h = newGregorHandler(tc.G)
 
 	// Sync from the server
-	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	replayedMessages, consumedMessages := doServerSync(t, h, server)
 	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
 }
@@ -547,11 +568,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 	h.freshReplay = false
 
 	// Sync from the server
-	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	replayedMessages, consumedMessages := doServerSync(t, h, server)
 	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
 }
@@ -573,11 +590,7 @@ func TestSyncDismissal(t *testing.T) {
 	server.ConsumeMessage(context.TODO(), dismissal)
 
 	// Sync from the server
-	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	replayedMessages, consumedMessages := doServerSync(t, h, server)
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
 	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
@@ -605,7 +618,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 
 	// Sync from the server
 	t.Logf("client sync")
-	_, _, err := h.serverSync(context.TODO(), server)
+	_, _, err := h.serverSync(context.TODO(), server, h.gregorCli, nil)
 	require.NoError(t, err)
 	t.Logf("client sync complete")
 
@@ -617,7 +630,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
 
 	t.Logf("client sync")
-	_, _, err = h.serverSync(context.TODO(), server)
+	_, _, err = h.serverSync(context.TODO(), server, h.gregorCli, nil)
 	require.NoError(t, err)
 	t.Logf("client sync complete")
 
@@ -708,11 +721,7 @@ func TestSyncDismissalExistingState(t *testing.T) {
 
 	// Sync from the server
 	h.freshReplay = false
-	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	replayedMessages, consumedMessages := doServerSync(t, h, server)
 	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
 }
@@ -747,11 +756,7 @@ func TestSyncFutureDismissals(t *testing.T) {
 
 	// Sync from the server
 	h.freshReplay = false
-	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	replayedMessages, consumedMessages := doServerSync(t, h, server)
 	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
 }
