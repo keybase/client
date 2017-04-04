@@ -81,8 +81,9 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
         participants,
         rekeyInfo: null,
         selectedConversationIDKey,
-        validated: true,
+        showLoader: false,
         threadLoadedOffline: false,
+        validated: true,
         you,
       }
     }
@@ -110,6 +111,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
         participants,
         rekeyInfo,
         selectedConversationIDKey,
+        showLoader: !(selected && selected.state === 'unboxed') || conversationState.isRequesting,
         validated: selected && selected.state === 'unboxed',
         you,
         supersedes,
@@ -130,11 +132,12 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
     participants: List(),
     rekeyInfo: null,
     selectedConversationIDKey,
-    validated: false,
-    threadLoadedOffline: false,
-    you,
-    supersedes: null,
+    showLoader: false,
     supersededBy: null,
+    supersedes: null,
+    threadLoadedOffline: false,
+    validated: false,
+    you,
   }
 }
 
