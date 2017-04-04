@@ -15,6 +15,7 @@ import io.keybase.ossifrage.modules.FileLogger;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.KillableModule;
 import io.keybase.ossifrage.modules.LogSend;
+import io.keybase.ossifrage.modules.ScreenProtector;
 
 public class KBReactPackage implements com.facebook.react.ReactPackage {
     private final String logFilePath;
@@ -36,6 +37,7 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         final KeybaseEngine kbEngine = new KeybaseEngine(reactApplicationContext);
         final FileLogger kbLogger = new FileLogger(reactApplicationContext, logFilePath);
         final LogSend logSend = new LogSend(reactApplicationContext, logFilePath);
+        final ScreenProtector screenProtector = new ScreenProtector(reactApplicationContext);
 
         killableModules.add(kbEngine);
 
@@ -43,6 +45,7 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         modules.add(kbEngine);
         modules.add(kbLogger);
         modules.add(logSend);
+        modules.add(screenProtector);
 
         return modules;
     }

@@ -1,48 +1,98 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
-	"io"
 	"os/exec"
+	"strings"
 )
 
 var errInvalidMethod = errors.New("invalid method")
 
 var errMissingField = errors.New("missing field")
 
-func handle(req *Request) error {
-	switch req.Method {
-	case "chat":
-		return handleChat(req)
-	default:
-		return errInvalidMethod
+var errUserNotFound = errors.New("user not found")
+
+// findKeybaseBinary returns the path to the Keybase binary, if it finds it.
+func findKeybaseBinary() (string, error) {
+	// FIXME: Get the absolute path without a filled PATH var somehow?
+	return "/usr/local/bin/keybase", nil
+}
+
+func execRunner(cmd *exec.Cmd) error {
+	return cmd.Run()
+}
+
+// Handler returns a request handler.
+func Handler() *handler {
+	return &handler{
+		Run: execRunner,
 	}
 }
 
-func handleChat(req *Request) error {
+type handler struct {
+	// Run wraps the equivalent of cmd.Run(), allowing for mocking
+	Run func(cmd *exec.Cmd) error
+}
+
+// Handle accepts a request, handles it, and returns an optional result if there was no error
+func (h *handler) Handle(req *Request) (interface{}, error) {
+	switch req.Method {
+	case "chat":
+		return nil, h.handleChat(req)
+	case "query":
+		return h.handleQuery(req)
+	}
+	return nil, errInvalidMethod
+}
+
+// handleChat sends a chat message to a user.
+func (h *handler) handleChat(req *Request) error {
 	if req.Body == "" || req.To == "" {
 		return errMissingField
 	}
 
-	// FIXME: Get the absolute path without a filled PATH var somehow?
-	cmd := exec.Command("/usr/local/bin/keybase", "chat", "send", "--private", req.To)
-
-	// Write message body over STDIN to avoid running up against bugs with
-	// super long messages.
-	stdin, err := cmd.StdinPipe()
+	binPath, err := findKeybaseBinary()
 	if err != nil {
 		return err
 	}
 
-	if err := cmd.Start(); err != nil {
-		stdin.Close()
-		return err
-	}
-
-	io.WriteString(stdin, req.Body)
-	stdin.Close()
+	cmd := exec.Command(binPath, "chat", "send", "--private", req.To)
+	cmd.Stdin = strings.NewReader(req.Body)
 
 	// TODO: Check/convert status code more precisely? Maybe return stdout as
 	// part of the error if there is one?
-	return cmd.Wait()
+	err = h.Run(cmd)
+
+	return err
+}
+
+type resultQuery struct {
+	Sigs []struct {
+		Statement string `json:"statement"`
+	} `json:"sigs"`
+}
+
+// handleQuery searches whether a user is present in Keybase.
+func (h *handler) handleQuery(req *Request) (*resultQuery, error) {
+	if req.To == "" {
+		return nil, errMissingField
+	}
+
+	binPath, err := findKeybaseBinary()
+	if err != nil {
+		return nil, err
+	}
+
+	var out bytes.Buffer
+	cmd := exec.Command(binPath, "sigs", "list", "--type=self", "--json", req.To)
+	cmd.Stdout = &out
+
+	err = h.Run(cmd)
+
+	result := &resultQuery{}
+	json.Unmarshal(out.Bytes(), &result.Sigs)
+
+	return result, err
 }

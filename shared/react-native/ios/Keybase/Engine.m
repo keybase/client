@@ -17,8 +17,9 @@
 
 @property dispatch_queue_t readQueue;
 @property dispatch_queue_t writeQueue;
-@property (strong) RCTBridge *bridge;
+@property (strong) KeybaseEngine * keybaseEngine;
 
+- (void)start:(KeybaseEngine*)emitter;
 - (void)startReadLoop;
 - (void)setupQueues;
 - (void)runWithData:(NSString *)data;
@@ -32,9 +33,8 @@ static NSString *const eventName = @"objc-engine-event";
 
 - (instancetype)initWithSettings:(NSDictionary *)settings error:(NSError **)error {
   if ((self = [super init])) {
-    [self setupKeybaseWithSettings:settings error:error];
     [self setupQueues];
-    [self startReadLoop];
+    [self setupKeybaseWithSettings:settings error:error];
   }
   return self;
 }
@@ -58,10 +58,18 @@ static NSString *const eventName = @"objc-engine-event";
         NSLog(@"Error reading data: %@", error);
       }
       if (data) {
-        [self.bridge.eventDispatcher sendAppEventWithName:eventName body:data];
+        if (!self.keybaseEngine) {
+          NSLog(@"NO ENGINE");
+        }
+        [self.keybaseEngine sendEventWithName:eventName body:data];
       }
     }
   });
+}
+
+- (void)start:(KeybaseEngine*)emitter {
+  self.keybaseEngine = emitter;
+  [self startReadLoop];
 }
 
 - (void)runWithData:(NSString *)data {
@@ -86,16 +94,18 @@ static NSString *const eventName = @"objc-engine-event";
 
 #pragma mark - Engine exposed to react
 
-@interface ObjcEngine : NSObject <RCTBridgeModule>
+@interface KeybaseEngine ()
 @property (readonly) Engine* engine;
 @end
 
-@implementation ObjcEngine
+@implementation KeybaseEngine
 
 RCT_EXPORT_MODULE();
 
-// required by reactnative
-@synthesize bridge = _bridge;
+- (NSArray<NSString *> *)supportedEvents
+{
+  return @[eventName];
+}
 
 - (Engine *)engine {
   AppDelegate * delegate = (AppDelegate*)[UIApplication sharedApplication].delegate;
@@ -103,13 +113,15 @@ RCT_EXPORT_MODULE();
 }
 
 RCT_EXPORT_METHOD(runWithData:(NSString *)data) {
-  Engine * engine = self.engine;
-  engine.bridge = self.bridge;
   [self.engine runWithData: data];
 }
 
 RCT_EXPORT_METHOD(reset) {
   [self.engine reset];
+}
+
+RCT_EXPORT_METHOD(start) {
+  [self.engine start: self];
 }
 
 - (NSDictionary *)constantsToExport {

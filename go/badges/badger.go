@@ -59,16 +59,25 @@ func (b *Badger) inboxVersion(ctx context.Context) chat1.InboxVers {
 	return vers
 }
 
-func (b *Badger) Resync(ctx context.Context, remoteClient *chat1.RemoteClient) error {
+func (b *Badger) Resync(ctx context.Context, remoteClient *chat1.RemoteClient,
+	update *chat1.UnreadUpdateFull) error {
 	b.G().Log.Debug("Badger resync req")
-	iboxVersion := b.inboxVersion(ctx)
-	b.G().Log.Debug("Badger: Resync(): using inbox version: %v", iboxVersion)
-	update, err := remoteClient.GetUnreadUpdateFull(ctx, iboxVersion)
-	if err != nil {
-		b.G().Log.Warning("Badger resync failed: %v", err)
-		return err
+
+	var err error
+	if update == nil {
+		iboxVersion := b.inboxVersion(ctx)
+		b.G().Log.Debug("Badger: Resync(): using inbox version: %v", iboxVersion)
+		update = new(chat1.UnreadUpdateFull)
+		*update, err = remoteClient.GetUnreadUpdateFull(ctx, iboxVersion)
+		if err != nil {
+			b.G().Log.Warning("Badger resync failed: %v", err)
+			return err
+		}
+	} else {
+		b.G().Log.Debug("Badger: Resync(): skipping remote call, data previously obtained")
 	}
-	b.badgeState.UpdateWithChatFull(update)
+
+	b.badgeState.UpdateWithChatFull(*update)
 	err = b.Send()
 	if err != nil {
 		b.G().Log.Warning("Badger send (resync) failed: %v", err)

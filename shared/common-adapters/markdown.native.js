@@ -49,9 +49,9 @@ function previewCreateComponent (style) {
       case 'markup':
         return <Text type='Body' key={key} lineClamp={1} style={style}>{children}</Text>
       case 'emoji':
-        return <EmojiIfExists key={key}>{children}</EmojiIfExists>
+        return <EmojiIfExists emojiName={String(children)} size={16} key={key} />
       case 'native-emoji':
-        return <Emoji key={key}>{children}</Emoji>
+        return <Emoji emojiName={String(children)} size={16} key={key} />
       default:
         return <Text type='Body' key={key} style={{...neutralStyle, ...style}}>{children}</Text>
     }
@@ -82,9 +82,9 @@ function messageCreateComponent (style) {
       case 'strike':
         return <Text type='Body' key={key} style={strikeStyle}>{children}</Text>
       case 'emoji':
-        return <EmojiIfExists key={key}>{children}</EmojiIfExists>
+        return <EmojiIfExists emojiName={String(children)} key={key} />
       case 'native-emoji':
-        return <Emoji key={key}>{children}</Emoji>
+        return <Emoji emojiName={String(children)} key={key} />
       case 'quote-block':
         return <Box key={key} style={quoteBlockStyle}>{children}</Box>
     }

@@ -384,6 +384,60 @@
           "name": "inboxRes"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "SyncAllNotificationType",
+      "symbols": [
+        "STATE_0",
+        "INCREMENTAL_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "SyncAllNotificationRes",
+      "switch": {
+        "type": "SyncAllNotificationType",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "STATE",
+            "def": false
+          },
+          "body": "gregor1.State"
+        },
+        {
+          "label": {
+            "name": "INCREMENTAL",
+            "def": false
+          },
+          "body": "gregor1.SyncResult"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SyncAllResult",
+      "fields": [
+        {
+          "type": "gregor1.AuthResult",
+          "name": "auth"
+        },
+        {
+          "type": "SyncChatRes",
+          "name": "chat"
+        },
+        {
+          "type": "SyncAllNotificationRes",
+          "name": "notification"
+        },
+        {
+          "type": "UnreadUpdateFull",
+          "name": "badge"
+        }
+      ]
     }
   ],
   "messages": {
@@ -587,6 +641,31 @@
         }
       ],
       "response": "SyncChatRes"
+    },
+    "syncAll": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        },
+        {
+          "name": "deviceID",
+          "type": "gregor1.DeviceID"
+        },
+        {
+          "name": "session",
+          "type": "gregor1.SessionToken"
+        },
+        {
+          "name": "inboxVers",
+          "type": "InboxVers"
+        },
+        {
+          "name": "ctime",
+          "type": "gregor1.Time"
+        }
+      ],
+      "response": "SyncAllResult"
     },
     "tlfFinalize": {
       "request": [

@@ -112,7 +112,7 @@ function * postMessage (action: Constants.PostMessage): SagaGenerator<any, any> 
       deviceName: '',
       deviceType: isMobile ? 'mobile' : 'desktop',
       editedCount: 0,
-      failureDescription: null,
+      failureDescription: hasPendingFailure,
       key: Constants.messageKey('outboxID', outboxID),
       message: new HiddenString(action.payload.text.stringValue()),
       messageState: hasPendingFailure ? 'failed' : 'pending',
@@ -127,7 +127,7 @@ function * postMessage (action: Constants.PostMessage): SagaGenerator<any, any> 
     const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
     let messages = []
     if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
-      const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages, conversationState.messages.size - 1)
+      const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages.toArray(), conversationState.messages.size - 1)
       if (timestamp !== null) {
         messages.push(timestamp)
       }

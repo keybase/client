@@ -19,6 +19,10 @@
     overflow: hidden;
 }
 
+.keybase-error {
+    color: #ff4d61;
+}
+
 .keybase-reply .keybase-username {
     font-weight: bold;
     color: #33a0ff;
@@ -74,6 +78,10 @@
     font-stretch: normal;
     line-height: normal;
     letter-spacing: 0.3px;
+}
+
+.keybase-reply input[type="submit"]:disabled {
+    background: #bbb;
 }
 
 .keybase-close {

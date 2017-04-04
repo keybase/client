@@ -149,9 +149,11 @@ type AboutTab = 'settingsTabs:aboutTab'
 export const aboutTab = 'settingsTabs:aboutTab'
 type DevicesTab = 'settingsTabs:devicesTab'
 export const devicesTab = 'settingsTabs:devicesTab'
+type ScreenprotectorTab = 'settingsTabs:screenprotector'
+export const screenprotectorTab = 'settingsTabs:screenprotector'
 
 export type Tab = LandingTab | UpdatePaymentTab | InvitationsTab | NotificationsTab | DeleteMeTab | DevMenuTab
-  | FeedbackTab | AboutTab | DevicesTab
+  | FeedbackTab | AboutTab | DevicesTab | ScreenprotectorTab
 
 export type Actions = InvitesRefresh | NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
 
