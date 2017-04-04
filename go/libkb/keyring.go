@@ -266,18 +266,21 @@ func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret 
 }
 
 func (k *Keyrings) cachedSecretKey(lctx LoginContext, ska SecretKeyArg) GenericKey {
-	var key GenericKey
-	var err error
-	if lctx != nil {
-		key, err = lctx.CachedSecretKey(ska)
-	} else {
-		aerr := k.G().LoginState().Account(func(a *Account) {
-			key, err = a.CachedSecretKey(ska)
-		}, "Keyrings - cachedSecretKey")
-		if aerr != nil {
-			k.G().Log.Debug("Account error: %s", aerr)
+	/*
+		var key GenericKey
+		var err error
+		if lctx != nil {
+			key, err = lctx.CachedSecretKey(ska)
+		} else {
+			aerr := k.G().LoginState().Account(func(a *Account) {
+				key, err = a.CachedSecretKey(ska)
+			}, "Keyrings - cachedSecretKey")
+			if aerr != nil {
+				k.G().Log.Debug("Account error: %s", aerr)
+			}
 		}
-	}
+	*/
+	key, err := k.G().ActiveDevice.KeyByType(ska.KeyType)
 
 	if key != nil && err == nil {
 		k.G().Log.Debug("found cached secret key for ska: %+v", ska)

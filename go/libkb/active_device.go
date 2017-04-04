@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -99,6 +100,17 @@ func (a *ActiveDevice) EncryptionKey() GenericKey {
 	a.RLock()
 	defer a.RUnlock()
 	return a.encryptionKey
+}
+
+func (a *ActiveDevice) KeyByType(t SecretKeyType) (GenericKey, error) {
+	switch t {
+	case DeviceSigningKeyType:
+		return a.SigningKey(), nil
+	case DeviceEncryptionKeyType:
+		return a.EncryptionKey(), nil
+	default:
+		return nil, fmt.Errorf("Invalid type %v", t)
+	}
 }
 
 func (a *ActiveDevice) AllFields() (uid keybase1.UID, deviceID keybase1.DeviceID, sigKey GenericKey, encKey GenericKey) {

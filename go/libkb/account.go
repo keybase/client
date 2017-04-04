@@ -460,6 +460,7 @@ func (a *Account) Dump() {
 	a.streamCache.Dump()
 }
 
+/*
 func (a *Account) CachedSecretKey(ska SecretKeyArg) (GenericKey, error) {
 	if ska.KeyType == DeviceSigningKeyType {
 		if a.secSigKey != nil {
@@ -475,6 +476,7 @@ func (a *Account) CachedSecretKey(ska SecretKeyArg) (GenericKey, error) {
 	}
 	return nil, fmt.Errorf("invalid key type for cached secret key: %d", ska.KeyType)
 }
+*/
 
 func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error {
 	if key == nil {
