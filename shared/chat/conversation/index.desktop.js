@@ -76,14 +76,7 @@ class Conversation extends Component<void, Props, State> {
   }
 
   render () {
-    const {
-      bannerMessage,
-      finalizeInfo,
-      onBack,
-      onToggleSidePanel,
-      selectedConversationIDKey,
-      sidePanelOpen,
-    } = this.props
+    const {bannerMessage, finalizeInfo, onBack, onToggleSidePanel, sidePanelOpen} = this.props
 
     const banner = bannerMessage && <Banner message={bannerMessage} />
     const dropOverlay = this.state.showDropOverlay && (
