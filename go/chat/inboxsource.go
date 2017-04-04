@@ -618,7 +618,8 @@ func (s *HybridInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, ver
 	defer s.Trace(ctx, func() error { return err }, "NewMessage")()
 
 	if cerr := storage.NewInbox(s.G(), uid).NewMessage(ctx, vers, convID, msg); cerr != nil {
-		return nil, s.handleInboxError(ctx, cerr, uid)
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
 	}
 
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
