@@ -234,7 +234,7 @@ func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 		writers = append(writers, resolvableNameUIDPair{w, uid})
 	}
 	for _, uw := range h.unresolvedWriters {
-		writers = append(writers, resolvableAssertion{resolver,
+		writers = append(writers, resolvableAssertion{resolver, nil,
 			uw.String(), uid})
 	}
 
@@ -245,7 +245,7 @@ func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 			readers = append(readers, resolvableNameUIDPair{r, uid})
 		}
 		for _, ur := range h.unresolvedReaders {
-			readers = append(readers, resolvableAssertion{resolver,
+			readers = append(readers, resolvableAssertion{resolver, nil,
 				ur.String(), uid})
 		}
 	}
@@ -415,6 +415,7 @@ func (ra resolvableAssertionWithChangeReport) resolve(ctx context.Context) (
 
 type resolvableAssertion struct {
 	resolver   resolver
+	identifier identifier // only needed until KBFS-2022 is fixed
 	assertion  string
 	mustBeUser keybase1.UID
 }
@@ -428,6 +429,29 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 	if err == nil && ra.mustBeUser != keybase1.UID("") && ra.mustBeUser != uid {
 		// Force an unresolved assertion sinced the forced user doesn't match
 		err = NoSuchUserError{ra.assertion}
+	}
+	// The service's Resolve2 doesn't handle compound assertions
+	// correctly because it would rely too much on server trust.  It
+	// just resolves the first component, so something like
+	// "strib+therealdonaldtrump@twitter" would actually resolve
+	// correctly.  So we need to do an explicit identify in that case,
+	// at least until KBFS-2022 is finished.  Note that this
+	// explicitly avoids checking any of the extended identify context
+	// info, since we need to do this regardless of what the
+	// originator wants.
+	if strings.Contains(ra.assertion, "+") {
+		if ra.identifier == nil {
+			return nameUIDPair{}, keybase1.SocialAssertion{}, errors.New(
+				"Can't resolve an AND assertion without an identifier")
+		}
+		reason := fmt.Sprintf("You accessed a folder with %s.", ra.assertion)
+		var ui UserInfo
+		ui, err = ra.identifier.Identify(ctx, ra.assertion, reason)
+		if err == nil && ui.Name != name {
+			return nameUIDPair{}, keybase1.SocialAssertion{}, fmt.Errorf(
+				"Resolved name %s doesn't match identified name %s for "+
+					"assertion %s", name, ui.Name, ra.assertion)
+		}
 	}
 	switch err := err.(type) {
 	default:
@@ -471,12 +495,12 @@ func parseTlfHandleLoose(
 	writers := make([]resolvableUser, len(writerNames))
 	for i, w := range writerNames {
 		writers[i] = resolvableAssertionWithChangeReport{
-			resolvableAssertion{kbpki, w, keybase1.UID("")}, changesCh}
+			resolvableAssertion{kbpki, kbpki, w, keybase1.UID("")}, changesCh}
 	}
 	readers := make([]resolvableUser, len(readerNames))
 	for i, r := range readerNames {
 		readers[i] = resolvableAssertionWithChangeReport{
-			resolvableAssertion{kbpki, r, keybase1.UID("")}, changesCh}
+			resolvableAssertion{kbpki, kbpki, r, keybase1.UID("")}, changesCh}
 	}
 
 	var extensions []tlf.HandleExtension

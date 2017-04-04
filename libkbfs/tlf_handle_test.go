@@ -578,7 +578,9 @@ func TestParseTlfHandleAndAssertion(t *testing.T) {
 
 	a := currentUID.String() + "@uid+u1@twitter"
 	_, err := ParseTlfHandle(ctx, kbpki, a, false)
-	assert.Equal(t, 1, kbpki.getIdentifyCalls())
+	// We expect 1 extra identify for compound assertions until
+	// KBFS-2022 is completed.
+	assert.Equal(t, 1+1, kbpki.getIdentifyCalls())
 	assert.Equal(t, TlfNameNotCanonical{a, "u1"}, err)
 }
 
@@ -624,7 +626,9 @@ func TestParseTlfHandleFailConflictingAssertion(t *testing.T) {
 
 	a := currentUID.String() + "@uid+u2@twitter"
 	_, err := ParseTlfHandle(ctx, kbpki, a, false)
-	assert.Equal(t, 0, kbpki.getIdentifyCalls())
+	// We expect 1 extra identify for compound assertions until
+	// KBFS-2022 is completed.
+	assert.Equal(t, 0+1, kbpki.getIdentifyCalls())
 	require.Error(t, err)
 }
 
