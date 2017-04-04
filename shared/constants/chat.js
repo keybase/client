@@ -9,6 +9,7 @@ import {chatTab} from './tabs'
 import {createSelector} from 'reselect'
 
 import type {UserListItem} from '../common-adapters/usernames'
+import type {Path} from '../route-tree'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
 import type {Asset, AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFinalizeInfo, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
@@ -345,7 +346,7 @@ export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conver
 export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
 export type MuteConversation = NoErrorTypedAction<'chat:muteConversation', {conversationIDKey: ConversationIDKey, muted: boolean}>
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
-export type OpenAttachmentPopup = NoErrorTypedAction<'chat:openAttachmentPopup', {message: AttachmentMessage}>
+export type OpenAttachmentPopup = NoErrorTypedAction<'chat:openAttachmentPopup', {message: AttachmentMessage, currentPath: Path}>
 export type OpenConversation = NoErrorTypedAction<'chat:openConversation', {conversationIDKey: ConversationIDKey}>
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
 export type OpenTlfInChat = NoErrorTypedAction<'chat:openTlfInChat', string>
@@ -657,7 +658,7 @@ const getSelectedInbox = (state: TypedState) => {
 const getTLF = createSelector(
   [getSelectedInbox, getSelectedConversation],
   (selectedInbox, selected) => {
-    if (isPendingConversationIDKey(selected)) {
+    if (selected && isPendingConversationIDKey(selected)) {
       return pendingConversationIDKeyToTlfName(selected) || ''
     } else if (selected !== nothingSelected && selectedInbox) {
       return selectedInbox.participants.join(',')

@@ -37,7 +37,8 @@ function * _isCached (conversationIDKey, messageID): Generator<any, ?string, any
   try {
     const message = yield select(Shared.messageSelector, conversationIDKey, messageID)
     if (message.hdPreviewPath) {
-      return message.hdPreviewPath
+      const fileExists = yield call(exists, message.hdPreviewPath)
+      return fileExists ? message.hdPreviewPath : null
     }
   } catch (e) {
     console.warn('error in checking cached file', e)
@@ -61,16 +62,20 @@ function * onLoadAttachment ({payload: {conversationIDKey, messageID, loadPrevie
     const cachedPath = yield call(_isCached, conversationIDKey, messageID)
 
     if (cachedPath) {
-      copy(cachedPath, filename)
+      try {
+        copy(cachedPath, filename)
 
-      // for visual feedback, we'll briefly display a progress bar
-      for (let i = 0; i < 5; i++) {
-        yield put(Creators.downloadProgress(conversationIDKey, messageID, false, i + 1, 5))
-        yield delay(5)
+        // for visual feedback, we'll briefly display a progress bar
+        for (let i = 0; i < 5; i++) {
+          yield put(Creators.downloadProgress(conversationIDKey, messageID, false, i + 1, 5))
+          yield delay(5)
+        }
+
+        yield put(Creators.attachmentLoaded(conversationIDKey, messageID, filename, loadPreview, isHdPreview))
+        return
+      } catch (e) {
+        console.warn('copy failed:', e)
       }
-
-      yield put(Creators.attachmentLoaded(conversationIDKey, messageID, filename, loadPreview, isHdPreview))
-      return
     }
   }
 
@@ -194,13 +199,13 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
 }
 
 function * onOpenAttachmentPopup (action: Constants.OpenAttachmentPopup): SagaGenerator<any, any> {
-  const {message} = action.payload
+  const {message, currentPath} = action.payload
   const messageID = message.messageID
   if (!messageID) {
     throw new Error('Cannot open attachment popup for message missing ID')
   }
 
-  yield put(navigateAppend([{props: {messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}]))
+  yield put(putActionIfOnPath(currentPath, navigateAppend([{props: {messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}])))
   if (!message.hdPreviewPath && message.filename) {
     yield put(Creators.loadAttachment(message.conversationIDKey, messageID, tmpFile(Shared.tmpFileName(true, message.conversationIDKey, message.messageID, message.filename)), false, true))
   }
