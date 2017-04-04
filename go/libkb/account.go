@@ -91,7 +91,7 @@ func (a *Account) LoggedIn() bool {
 	return a.LocalSession().IsLoggedIn()
 }
 
-func (a *Account) LoggedInAndProvisioined() bool {
+func (a *Account) LoggedInAndProvisioned() bool {
 	return a.LocalSession().IsLoggedInAndProvisioned()
 }
 
@@ -483,11 +483,17 @@ func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error {
 	if ska.KeyType == DeviceSigningKeyType {
 		a.G().Log.Debug("caching secret key for %d", ska.KeyType)
 		a.secSigKey = key
+		if err := a.G().ActiveDevice.setSigningKey(a.localSession.GetUID(), a.localSession.GetDeviceID(), key); err != nil {
+			return err
+		}
 		return nil
 	}
 	if ska.KeyType == DeviceEncryptionKeyType {
 		a.G().Log.Debug("caching secret key for %d", ska.KeyType)
 		a.secEncKey = key
+		if err := a.G().ActiveDevice.setEncryptionKey(a.localSession.GetUID(), a.localSession.GetDeviceID(), key); err != nil {
+			return err
+		}
 		return nil
 	}
 	return fmt.Errorf("attempt to cache invalid key type: %d", ska.KeyType)
@@ -518,6 +524,7 @@ func (a *Account) ClearCachedSecretKeys() {
 	a.secSigKey = nil
 	a.secEncKey = nil
 	a.ClearPaperKeys()
+	a.G().ActiveDevice.clear()
 }
 
 func (a *Account) ClearPaperKeys() {
