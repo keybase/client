@@ -73,7 +73,6 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
       const participants = List(tlfName.split(','))
 
       return {
-        bannerMessage: null,
         followingMap: pick(followingMap, participants.toArray()),
         messages: List(),
         metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
@@ -101,7 +100,6 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
       const finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)
 
       return {
-        bannerMessage: null,
         firstNewMessageID: conversationState.firstNewMessageID,
         followingMap: pick(followingMap, participants.toArray()),
         messages: conversationState.messages,
@@ -122,7 +120,6 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
   }
 
   return {
-    bannerMessage: null,
     followingMap,
     messages: List(),
     metaDataMap: Map(),
@@ -141,7 +138,6 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}) => ({
   onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
   onBack: () => dispatch(navigateUp()),
-  onBannerWarning: (username: string) => { isMobile ? dispatch(onUserClick(username, '')) : dispatch(getProfile(username, true, true)) },
   onDeleteMessage: (message: Constants.Message) => { dispatch(Creators.deleteMessage(message)) },
   onEditMessage: (message: Constants.Message, body: string) => { dispatch(Creators.editMessage(message, new HiddenString(body))) },
   onShowEditor: (message: Constants.Message) => { dispatch(Creators.showEditor(message)) },
@@ -162,31 +158,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}) => 
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
-  let bannerMessage
-
-  const brokenUsers = Constants.getBrokenUsers(stateProps.participants.toArray(), stateProps.you, stateProps.metaDataMap)
-  if (brokenUsers.length) {
-    bannerMessage = {
-      onClick: (user: string) => dispatchProps.onBannerWarning(user),
-      type: 'BrokenTracker',
-      users: brokenUsers,
-    }
-  }
-
-  if (!bannerMessage) {
-    const sbsUsers = stateProps.participants.filter(p => p.includes('@')).toArray()
-    if (sbsUsers.length) {
-      bannerMessage = {
-        type: 'Invite',
-        users: sbsUsers,
-      }
-    }
-  }
-
   return {
     ...stateProps,
     ...dispatchProps,
-    bannerMessage,
     onAttach: (inputs: Array<Constants.AttachmentInput>) => dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
     onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversationIDKey, messageID, filename),
     onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversationIDKey),

@@ -1,5 +1,5 @@
 // @flow
-import Banner from './banner'
+import Banner from './banner/container'
 import Header from './header/container'
 import Input from './input/container'
 import List from './list.desktop'
@@ -76,9 +76,8 @@ class Conversation extends Component<void, Props, State> {
   }
 
   render () {
-    const {bannerMessage, finalizeInfo, onBack, onToggleSidePanel, sidePanelOpen} = this.props
+    const {finalizeInfo, onBack, onToggleSidePanel, sidePanelOpen} = this.props
 
-    const banner = bannerMessage && <Banner message={bannerMessage} />
     const dropOverlay = this.state.showDropOverlay && (
       <Box style={dropOverlayStyle} onDragLeave={this._onDragLeave} onDrop={this._onDrop}>
         <Icon type='icon-file-dropping-48' />
@@ -96,7 +95,7 @@ class Conversation extends Component<void, Props, State> {
         {offline}
         <Header sidePanelOpen={sidePanelOpen} onToggleSidePanel={onToggleSidePanel} onBack={onBack} />
         <List {...this.props.listProps} />
-        {banner}
+        <Banner />
         {finalizeInfo
           ? <OldProfileResetNotice
             onOpenNewerConversation={this.props.onOpenNewerConversation}

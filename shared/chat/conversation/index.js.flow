@@ -3,11 +3,8 @@ import {Component} from 'react'
 import {List} from 'immutable'
 import * as Constants from '../../constants/chat'
 
-import type {BannerMessage} from './banner'
-
 export type Props = {
   focusInputCounter: number,
-  bannerMessage: ?BannerMessage,
   finalizeInfo: ?Constants.FinalizeInfo,
   firstNewMessageID: ?Constants.MessageID,
   followingMap: Constants.FollowingMap,
