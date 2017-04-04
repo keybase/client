@@ -1,45 +1,34 @@
 // @flow
 
 import * as Immutable from 'immutable'
-import {compose, withState, withProps} from 'recompose'
+import {compose, withProps} from 'recompose'
 import * as Constants from '../../constants/chat'
 
 import type {Props} from './index'
 import type {Props as ListProps} from './list'
-import type {Props as InputProps} from './input'
 
 const propsHoc = withProps(
   (props) => {
     const {
       editLastMessageCounter,
       editingMessage,
-      emojiPickerOpen,
       firstNewMessageID,
-      focusInputCounter,
       followingMap,
-      inputText,
-      isLoading,
       listScrollDownState,
       messages,
       metaDataMap,
       moreToLoad,
-      muted,
-      onAttach,
       onDeleteMessage,
-      onEditLastMessage,
       onEditMessage,
-      onFocusInput,
+      onFocus,
       onLoadAttachment,
       onLoadMoreMessages,
       onMessageAction,
       onOpenConversation,
       onOpenInFileUI,
       onOpenInPopup,
-      onPostMessage,
       onRetryAttachment,
       onRetryMessage,
-      onStoreInputText,
-      onSelectAttachment,
       selectedConversation,
       onShowEditor,
       sidePanelOpen,
@@ -60,10 +49,9 @@ const propsHoc = withProps(
       messages,
       metaDataMap,
       moreToLoad,
-      muted,
       onDeleteMessage,
       onEditMessage,
-      onFocusInput,
+      onFocusInput: onFocus,
       onLoadAttachment,
       onLoadMoreMessages,
       onMessageAction,
@@ -79,23 +67,7 @@ const propsHoc = withProps(
       you,
     }
 
-    const inputProps: InputProps = {
-      editingMessage,
-      defaultText: inputText,
-      emojiPickerOpen,
-      isLoading,
-      onAttach,
-      onShowEditor,
-      onEditMessage,
-      onEditLastMessage,
-      onUnmountText: onStoreInputText,
-      focusInputCounter: focusInputCounter,
-      onPostMessage,
-      onSelectAttachment,
-      selectedConversation,
-    }
-
-    return {inputProps, listProps, onOpenNewerConversation}
+    return {listProps, onOpenNewerConversation}
   }
 )
 
@@ -119,24 +91,6 @@ const decoratedMesssagesHoc = withProps((props) => ({
   messages: _decorateSupersedes(props, props.messages),
 }))
 
-const focusInputHoc = compose(
-  withState(
-    'focusInputCounter',
-    'setFocusInputCounter',
-    0
-  ),
-  withProps(({setFocusInputCounter}) => ({onFocusInput: () => setFocusInputCounter(n => n + 1)})),
-)
-
-const editLastMessageHoc = compose(
-  withState(
-    'editLastMessageCounter',
-    'setEditLastMessageCounter',
-    0
-  ),
-  withProps(({setEditLastMessageCounter}) => ({onEditLastMessage: () => setEditLastMessageCounter(n => n + 1)}))
-)
-
-const hoc = compose(focusInputHoc, editLastMessageHoc, decoratedMesssagesHoc, propsHoc)
+const hoc = compose(decoratedMesssagesHoc, propsHoc)
 
 export default hoc
