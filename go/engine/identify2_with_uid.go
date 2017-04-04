@@ -431,7 +431,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return err
 	}
 
-	if e.isSelfLoad() && !e.arg.NoSkipSelf {
+	if e.isSelfLoad() && !e.arg.NoSkipSelf && !e.useRemoteAssertions() {
 		e.G().Log.CDebugf(netCtx, "| was a self load, short-circuiting")
 		e.maybeCacheSelf()
 		return nil
