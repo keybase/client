@@ -564,15 +564,22 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	return res, rl, err
 }
 
-func (s *HybridInboxSource) handleInboxError(ctx context.Context, err storage.Error, uid gregor1.UID) error {
+func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid gregor1.UID) (ferr error) {
+	defer func() {
+		if ferr != nil {
+			s.Debug(ctx, "handleInboxError: failed to recover from inbox error, clearing: %s",
+				ferr.Error())
+			storage.NewInbox(s.G(), uid).Clear(ctx)
+		}
+	}()
+
 	if _, ok := err.(storage.MissError); ok {
 		return nil
 	}
 	if verr, ok := err.(storage.VersionMismatchError); ok {
 		s.Debug(ctx, "handleInboxError: version mismatch, syncing and sending stale notifications: %s",
 			verr.Error())
-		s.G().Syncer.Sync(ctx, s.getChatInterface(), uid, nil)
-		return nil
+		return s.G().Syncer.Sync(ctx, s.getChatInterface(), uid, nil)
 	}
 	return err
 }
@@ -609,10 +616,12 @@ func (s *HybridInboxSource) getConvLocal(ctx context.Context, uid gregor1.UID,
 func (s *HybridInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, msg chat1.MessageBoxed) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "NewMessage")()
+
 	if cerr := storage.NewInbox(s.G(), uid).NewMessage(ctx, vers, convID, msg); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return nil, err
 	}
+
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
 		s.Debug(ctx, "NewMessage: unable to load conversation: convID: %s err: %s", convID, err.Error())
 		return nil, nil

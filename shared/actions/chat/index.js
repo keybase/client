@@ -96,7 +96,9 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           return
         }
 
-        yield call(Inbox.processConversation, incomingMessage.conv)
+        if (incomingMessage.conv) {
+          yield call(Inbox.processConversation, incomingMessage.conv)
+        }
 
         const messageUnboxed: ChatTypes.MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)

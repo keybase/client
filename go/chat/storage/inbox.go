@@ -21,7 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const inboxVersion = 9
+const inboxVersion = 10
 
 type queryHash []byte
 
@@ -645,6 +645,12 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 		return err
 	}
 
+	// Check for a delete, if so just auto return a version mismatch to resync. The reason
+	// is it is tricky to update max messages in this case.
+	if msg.GetMessageType() == chat1.MessageType_DELETE {
+		return NewVersionMismatchError(ibox.InboxVersion, vers)
+	}
+
 	// Find conversation
 	index, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
@@ -863,6 +869,14 @@ func (i *Inbox) ServerVersion(ctx context.Context) (vers int, err Error) {
 	return vers, nil
 }
 
+type ByConvMtime []chat1.Conversation
+
+func (b ByConvMtime) Len() int      { return len(b) }
+func (b ByConvMtime) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
+func (b ByConvMtime) Less(i, j int) bool {
+	return b[i].ReaderInfo.Mtime.After(b[j].ReaderInfo.Mtime)
+}
+
 func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Conversation) (err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
@@ -875,7 +889,7 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 		return err
 	}
 
-	// Sync inbox with new conversations if we know about them already
+	// Sync inbox with new conversations
 	oldVers := ibox.InboxVersion
 	ibox.InboxVersion = vers
 	convMap := make(map[string]chat1.Conversation)
@@ -885,10 +899,16 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	for index, conv := range ibox.Conversations {
 		if newConv, ok := convMap[conv.GetConvID().String()]; ok {
 			ibox.Conversations[index] = newConv
+			delete(convMap, conv.GetConvID().String())
 		}
 	}
-	i.Debug(ctx, "Sync: old vers: %v new vers: %v convs: %d", oldVers, ibox.InboxVersion, len(convs))
+	i.Debug(ctx, "Sync: adding %d new conversations", len(convMap))
+	for _, conv := range convMap {
+		ibox.Conversations = append(ibox.Conversations, conv)
+	}
+	sort.Sort(ByConvMtime(ibox.Conversations))
 
+	i.Debug(ctx, "Sync: old vers: %v new vers: %v convs: %d", oldVers, ibox.InboxVersion, len(convs))
 	if err = i.writeDiskInbox(ctx, ibox); err != nil {
 		return err
 	}
