@@ -13,7 +13,7 @@ import {getUserImageMap, loadUserImageMap} from './util/pictures'
 import {initAvatarLookup, initAvatarLoad} from './common-adapters'
 import {listenForNotifications} from './actions/notifications'
 import {persistRouteState, loadRouteState} from './actions/platform-specific.native'
-import {setRouteState} from './actions/route-tree'
+import {navigateUp, setRouteState} from './actions/route-tree'
 
 type Props = {
   dumbFullscreen: boolean,
@@ -29,6 +29,7 @@ type Props = {
   loadRouteState: () => void,
   persistRouteState: () => void,
   setRouteState: (path: any, partialState: any) => void,
+  navigateUp: () => void,
 }
 
 class Main extends Component<void, any, void> {
@@ -107,6 +108,7 @@ const connector = connect(
     loadRouteState: () => dispatch(loadRouteState()),
     persistRouteState: () => dispatch(persistRouteState()),
     setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
+    navigateUp: () => { dispatch(navigateUp()) },
   })
 )
 
