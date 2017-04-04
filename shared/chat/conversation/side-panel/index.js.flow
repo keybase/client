@@ -2,19 +2,20 @@
 import {Component} from 'react'
 import {List} from 'immutable'
 
-import type {MetaDataMap, FollowingMap} from '../../../constants/chat'
-
 export type Props = {
-  followingMap: FollowingMap,
-  metaDataMap: MetaDataMap,
   muted: boolean,
   onAddParticipant: () => void,
   onMuteConversation: (muted: boolean) => void,
   onShowBlockConversationDialog: () => void,
   onShowProfile: (username: string) => void,
   onToggleSidePanel: () => void,
-  participants: List<string>,
-  you: string,
+  participants: List<{
+    username: string,
+    following: boolean,
+    fullname: string,
+    broken: boolean,
+    isYou: boolean,
+  }>,
 }
 
 export default class SidePanel extends Component<void, Props, void> { }
