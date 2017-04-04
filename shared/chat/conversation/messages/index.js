@@ -19,6 +19,7 @@ const factory = (options: Options) => {
     key,
     isEditing,
     isFirstNewMessage,
+    isMeasuring,
     isSelected,
     onAction,
     onLoadAttachment,
@@ -85,6 +86,7 @@ const factory = (options: Options) => {
         onOpenInPopup={onOpenInPopup}
         messageID={message.messageID}
         onAction={onAction}
+        isMeasuring={isMeasuring}
         />
     case 'LoadingMore':
       return <LoadingMore style={{...style}} key={key} hasMoreItems={moreToLoad} />

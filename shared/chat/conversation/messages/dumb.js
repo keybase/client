@@ -208,6 +208,7 @@ const attachmentBaseMock = {
   message: attachmentBaseMessage,
   includeHeader: true,
   isFirstNewMessage: false,
+  isMeasuring: false,
   onLoadAttachment: () => console.log('onLoadAttachment'),
   onAction: () => console.log('onAction'),
   onRetry: () => console.log('onRetry'),

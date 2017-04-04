@@ -11,6 +11,7 @@ export type Options = {
   isFirstNewMessage: boolean,
   style: Object,
   isScrolling: boolean,
+  isMeasuring: boolean,
   onAction: (message: ServerMessage, event: any) => void,
   isSelected: boolean,
   onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void,

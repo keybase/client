@@ -22,6 +22,7 @@ export type Props = {
   message: AttachmentMessage,
   includeHeader: boolean,
   isFirstNewMessage: boolean,
+  isMeasuring: boolean,
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
   onAction: (message: ServerMessage, event: any) => void,
   onRetry: (message: ServerMessage) => void,

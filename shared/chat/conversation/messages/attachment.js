@@ -222,7 +222,9 @@ type ConnectedProps = Props & { onEnsurePreviewLoaded: () => void }
 
 export class AttachmentMessage extends PureComponent<void, ConnectedProps, void> {
   componentDidMount () {
-    this.props.onEnsurePreviewLoaded()
+    if (!this.props.isMeasuring) {
+      this.props.onEnsurePreviewLoaded()
+    }
   }
 
   _onOpenInPopup = () => {
