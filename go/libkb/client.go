@@ -7,7 +7,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -15,8 +14,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	"h12.me/socks"
 )
@@ -142,17 +139,6 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 
 	var xprt http.Transport
 	var timeout time.Duration
-
-	xprt.Dial = func(network, addr string) (c net.Conn, err error) {
-		c, err = net.Dial(network, addr)
-		if err != nil {
-			return c, err
-		}
-		if err = rpc.DisableSigPipe(c); err != nil {
-			return c, err
-		}
-		return c, nil
-	}
 
 	if (config != nil && config.RootCAs != nil) || e.GetTorMode().Enabled() {
 		if config != nil && config.RootCAs != nil {
