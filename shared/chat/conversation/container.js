@@ -20,10 +20,9 @@ import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
 import type {Props} from '.'
 
-type OwnProps = {}
-
 type ConversationContainerProps = {
-  setSidePanelOpen: (open: boolean) => void,
+  onCloseSidePanel: () => void,
+  onToggleSidePanel: () => void,
   sidePanelOpen: boolean,
   listScrollDownCounter: number,
   onEditLastMessage: () => void,
@@ -34,12 +33,8 @@ type ConversationContainerProps = {
 class ConversationContainer extends Component<void, ConversationContainerProps, void> {
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {
-      this.props.setSidePanelOpen(false)
+      this.props.onCloseSidePanel()
     }
-  }
-
-  _onToggleSidePanel = () => {
-    this.props.setSidePanelOpen(!this.props.sidePanelOpen)
   }
 
   // We wrap this so children don't churn when this.props.onBack() changes due to this component churning. When this thing does less we can
@@ -55,7 +50,7 @@ class ConversationContainer extends Component<void, ConversationContainerProps, 
     return <Conversation
       {...this.props}
       sidePanelOpen={this.props.sidePanelOpen}
-      onToggleSidePanel={this._onToggleSidePanel}
+      onToggleSidePanel={this.props.onToggleSidePanel}
       onBack={this._onBack}
       onScrollDown={this.props.onScrollDown}
       listScrollDownState={this.props.listScrollDownCounter}
@@ -83,7 +78,6 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
         messages: List(),
         metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
         moreToLoad: false,
-        muted: false,
         participants,
         rekeyInfo: null,
         selectedConversationIDKey,
@@ -99,7 +93,6 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
     if (conversationState) {
       const inbox = state.chat.get('inbox')
       const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
-      const muted = selected && selected.get('status') === 'muted'
       const participants = selected && selected.participants || List()
       const rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversationIDKey)
 
@@ -114,7 +107,6 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
         messages: conversationState.messages,
         metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
         moreToLoad: conversationState.moreToLoad,
-        muted,
         participants,
         rekeyInfo,
         selectedConversationIDKey,
@@ -147,18 +139,15 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}) => ({
-  onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
   onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
   onBack: () => dispatch(navigateUp()),
   onBannerWarning: (username: string) => { isMobile ? dispatch(onUserClick(username, '')) : dispatch(getProfile(username, true, true)) },
   onDeleteMessage: (message: Constants.Message) => { dispatch(Creators.deleteMessage(message)) },
   onEditMessage: (message: Constants.Message, body: string) => { dispatch(Creators.editMessage(message, new HiddenString(body))) },
-  onShowBlockConversationDialog: (selectedConversation, participants) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, participants}, selected: 'showBlockConversationDialog'}])) },
   onShowEditor: (message: Constants.Message) => { dispatch(Creators.showEditor(message)) },
   onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(Creators.loadAttachment(selectedConversation, messageID, downloadFilePath(filename), false, false)),
   onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => dispatch(Creators.loadMoreMessages(conversationIDKey, false)),
   onMessageAction: (message: Constants.ServerMessage) => dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
-  onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => { dispatch(Creators.muteConversation(conversationIDKey, muted)) },
   onOpenFolder: () => dispatch(Creators.openFolder()),
   onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => dispatch(Creators.openConversation(conversationIDKey)),
   onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
@@ -172,7 +161,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}) => 
   onEnterPaperkey: () => dispatch(navigateAppend(['enterPaperkey'])),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps) => {
   let bannerMessage
 
   const brokenUsers = Constants.getBrokenUsers(stateProps.participants.toArray(), stateProps.you, stateProps.metaDataMap)
@@ -197,15 +186,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
-    ...ownProps,
     bannerMessage,
-    onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => p !== stateProps.you).toArray()),
     onAttach: (inputs: Array<Constants.AttachmentInput>) => dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
     onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversationIDKey, messageID, filename),
     onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversationIDKey),
-    onMuteConversation: (muted: boolean) => dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted),
     onRetryMessage: (outboxID: Constants.OutboxIDKey) => dispatchProps.onRetryMessage(stateProps.selectedConversationIDKey, outboxID),
-    onShowBlockConversationDialog: () => dispatchProps.onShowBlockConversationDialog(stateProps.selectedConversationIDKey, stateProps.participants.toArray().join(',')),
     restartConversation: () => dispatchProps.startConversation(stateProps.participants.toArray()),
   }
 }
@@ -217,8 +202,10 @@ export default compose(
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
   withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
   withHandlers({
+    onCloseSidePanel: props => () => props.setSidePanelOpen(false),
     onEditLastMessage: props => () => props.setEditLastMessageCounter(props.editLastMessageCounter + 1),
     onFocus: props => () => props.setFocusInputCounter(props.focusInputCounter + 1),
     onScrollDown: props => () => props.setListScrollDownCounter(props.listScrollDownCounter + 1),
+    onToggleSidePanel: props => () => props.setSidePanelOpen(!props.sidePanelOpen),
   }),
 )(ConversationContainer)

@@ -1,6 +1,7 @@
 // @flow
 import {reactPerf} from '../local-debug'
 import {keys as fetchKeys} from 'lodash'
+import Perf from './react-perf'
 
 function print (...rest) {
   // $FlowIssue
@@ -11,8 +12,6 @@ export default function () {
   let start = false
   const onPerf = showDom => {
     setImmediate(() => {
-      const Perf = require('react-addons-perf')
-
       if (!start) {
         print('start')
         Perf.start()
@@ -40,8 +39,10 @@ export default function () {
     onPerf(false)
   }
 
-  window.KBPERF = onPerf
-  window.shallowEqualDebug = shallowEqualDebug
+  if (typeof window !== 'undefined') {
+    window.KBPERF = onPerf
+    window.shallowEqualDebug = shallowEqualDebug
+  }
 }
 
 // https://raw.githubusercontent.com/dashed/shallowequal/master/src/index.js but with debug statements

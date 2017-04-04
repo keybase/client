@@ -4,6 +4,7 @@ import Push from './push/push.native'
 import RNPN from 'react-native-push-notification'
 import React, {Component} from 'react'
 import RenderRoute from './route-tree/render-route'
+import loadPerf from './util/load-perf'
 import hello from './util/hello'
 import {Box} from './common-adapters/index'
 import {bootstrap} from './actions/config'
@@ -43,6 +44,7 @@ class Main extends Component<void, any, void> {
       this.props.bootstrap()
       this.props.listenForNotifications()
       this.props.hello()
+      loadPerf()
     }
   }
 
