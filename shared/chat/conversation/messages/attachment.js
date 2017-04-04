@@ -222,7 +222,15 @@ type ConnectedProps = Props & { onEnsurePreviewLoaded: () => void }
 
 export class AttachmentMessage extends PureComponent<void, ConnectedProps, void> {
   componentDidMount () {
-    if (!this.props.isMeasuring) {
+    this._ensurePreviewLoaded()
+  }
+
+  componentDidUpdate () {
+    this._ensurePreviewLoaded()
+  }
+
+  _ensurePreviewLoaded () {
+    if (this.props.message && this.props.message.filename) {
       this.props.onEnsurePreviewLoaded()
     }
   }
