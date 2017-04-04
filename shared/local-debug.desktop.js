@@ -55,6 +55,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   const envJson = envVarDebugJson()
   config = {...config, ...envJson}
 }
+
 if (fs.existsSync(jsonDebugFileName)) {
   try {
     const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf-8'))

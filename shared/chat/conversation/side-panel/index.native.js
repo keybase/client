@@ -12,7 +12,7 @@ const SidePanel = (props: Props) => (
     <NativeScrollView>
       <Divider style={{marginTop: 20}} />
       <Box style={{...globalStyles.flexBoxRow}}>
-        <Participants {...props} />
+        <Participants participants={props.participants} onAddParticipant={props.onAddParticipant} onShowProfile={props.onShowProfile} />
       </Box>
 
       <Box style={{...globalStyles.flexBoxRow}}>

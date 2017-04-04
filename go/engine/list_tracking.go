@@ -75,7 +75,9 @@ func (e *ListTrackingEngine) Run(ctx *Context) (err error) {
 
 		var trackList TrackList
 		var err error
-		trackList = user.IDTable().GetTrackList()
+		if idTable := user.IDTable(); idTable != nil {
+			trackList = idTable.GetTrackList()
+		}
 
 		trackList, err = filterRxx(trackList, e.arg.Filter)
 		if err != nil {

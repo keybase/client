@@ -21,7 +21,32 @@ module.exports = {
       test: /\.jsx?$/,
       loader: 'babel',
       exclude: /(node_modules|\/dist\/)/,
-      query: Object.assign({cacheDirectory: true}),
+      query: Object.assign({
+        cacheDirectory: true,
+        // Have to do this or it'll inherit babelrcs from the root and pull in things we don't want
+        babelrc: false,
+        presets: [
+          ['env', {
+            useBuiltIns: false,
+            targets: {
+              electron: '1.4.12',
+            },
+            debug: true,
+            exclude: ['transform-regenerator'],
+          }],
+          'babel-preset-react',
+        ],
+        plugins: [
+          [
+            'babel-plugin-transform-builtin-extend',
+            {globals: ['Error']},
+          ],
+          'transform-flow-strip-types',
+          'transform-object-rest-spread', // not supported by electron yet
+          'babel-plugin-transform-class-properties', // not supported by electron yet
+          'transform-es2015-destructuring', // due to a bug: https://github.com/babel/babel/pull/5469
+        ],
+      }),
     }, {
       test: /\.json?$/,
       loader: 'json',

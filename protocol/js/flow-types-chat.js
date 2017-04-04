@@ -176,6 +176,11 @@ export const RemoteMessageBoxedVersion = {
   v2: 2,
 }
 
+export const RemoteSyncAllNotificationType = {
+  state: 0,
+  incremental: 1,
+}
+
 export const RemoteSyncInboxResType = {
   current: 0,
   incremental: 1,
@@ -648,6 +653,18 @@ export function remoteSetConversationStatusRpcChannelMap (channelConfig: Channel
 
 export function remoteSetConversationStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSetConversationStatusResult) => void} & {param: remoteSetConversationStatusRpcParam}>): Promise<remoteSetConversationStatusResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.SetConversationStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function remoteSyncAllRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncAllResult) => void} & {param: remoteSyncAllRpcParam}>) {
+  engineRpcOutgoing('chat.1.remote.syncAll', request)
+}
+
+export function remoteSyncAllRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncAllResult) => void} & {param: remoteSyncAllRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.remote.syncAll', request, callback, incomingCallMap) })
+}
+
+export function remoteSyncAllRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncAllResult) => void} & {param: remoteSyncAllRpcParam}>): Promise<remoteSyncAllResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.syncAll', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function remoteSyncChatRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncChatResult) => void} & {param: remoteSyncChatRpcParam}>) {
@@ -1519,6 +1536,21 @@ export type SignatureInfo = {
   k: bytes,
 }
 
+export type SyncAllNotificationRes =
+    { typ: 0, state: ?gregor1.State }
+  | { typ: 1, incremental: ?gregor1.SyncResult }
+
+export type SyncAllNotificationType =
+    0 // STATE_0
+  | 1 // INCREMENTAL_1
+
+export type SyncAllResult = {
+  auth: gregor1.AuthResult,
+  chat: SyncChatRes,
+  notification: SyncAllNotificationRes,
+  badge: UnreadUpdateFull,
+}
+
 export type SyncChatRes = {
   cacheVers: ServerCacheVers,
   inboxRes: SyncInboxRes,
@@ -1879,6 +1911,14 @@ export type remoteSetConversationStatusRpcParam = Exact<{
   status: ConversationStatus
 }>
 
+export type remoteSyncAllRpcParam = Exact<{
+  uid: gregor1.UID,
+  deviceID: gregor1.DeviceID,
+  session: gregor1.SessionToken,
+  inboxVers: InboxVers,
+  ctime: gregor1.Time
+}>
+
 export type remoteSyncChatRpcParam = Exact<{
   vers: InboxVers
 }>
@@ -1935,6 +1975,7 @@ type remoteNewConversationRemoteResult = NewConversationRemoteRes
 type remotePostRemoteResult = PostRemoteRes
 type remoteS3SignResult = bytes
 type remoteSetConversationStatusResult = SetConversationStatusRes
+type remoteSyncAllResult = SyncAllResult
 type remoteSyncChatResult = SyncChatRes
 type remoteSyncInboxResult = SyncInboxRes
 
@@ -1978,6 +2019,7 @@ export type rpc =
   | remotePublishSetConversationStatusRpc
   | remoteS3SignRpc
   | remoteSetConversationStatusRpc
+  | remoteSyncAllRpc
   | remoteSyncChatRpc
   | remoteSyncInboxRpc
   | remoteTlfFinalizeRpc

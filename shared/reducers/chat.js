@@ -261,12 +261,12 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       ))
     }
     case 'chat:createPendingFailure': {
-      const {outboxID} = action.payload
-      return state.set('pendingFailures', state.get('pendingFailures').add(outboxID))
+      const {failureDescription, outboxID} = action.payload
+      return state.set('pendingFailures', state.get('pendingFailures').set(outboxID, failureDescription))
     }
     case 'chat:removePendingFailure': {
       const {outboxID} = action.payload
-      return state.set('pendingFailures', state.get('pendingFailures').remove(outboxID))
+      return state.set('pendingFailures', state.get('pendingFailures').delete(outboxID))
     }
     case 'chat:attachmentLoaded': {
       const {conversationIDKey, messageID, path, isPreview, isHdPreview} = action.payload
@@ -443,7 +443,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       break
     }
     case 'app:changedFocus':
-      return state.set('focused', action.payload)
+      return state.set('focused', action.payload.focused)
     case 'chat:updateFinalizedState': {
       // $FlowIssue doesn't recognize updates
       return state.update('finalizedState', finalizedState => finalizedState.merge(action.payload.finalizedState))

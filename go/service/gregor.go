@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"
+	chatstorage "github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
@@ -436,12 +437,7 @@ func (g *gregorHandler) IsConnected() bool {
 // gregord. This can happen either on initial startup, or after a reconnect. Needs
 // to be called with gregorHandler locked.
 func (g *gregorHandler) serverSync(ctx context.Context,
-	cli gregor1.IncomingInterface) ([]gregor.InBandMessage, []gregor.InBandMessage, error) {
-
-	gcli, err := g.getGregorCli()
-	if err != nil {
-		return nil, nil, err
-	}
+	cli gregor1.IncomingInterface, gcli *grclient.Client, syncRes *chat1.SyncAllNotificationRes) ([]gregor.InBandMessage, []gregor.InBandMessage, error) {
 
 	// Get time of the last message we synced (unless this is our first time syncing)
 	var t time.Time
@@ -450,15 +446,15 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 		if pt != nil {
 			t = *pt
 		}
-		g.Debug(ctx, "starting replay from: %s", t)
+		g.Debug(ctx, "serverSync: starting replay from: %s", t)
 	} else {
-		g.Debug(ctx, "performing a fresh replay")
+		g.Debug(ctx, "serverSync: performing a fresh replay")
 	}
 
 	// Sync down everything from the server
-	consumedMsgs, err := gcli.Sync(cli)
+	consumedMsgs, err := gcli.Sync(cli, syncRes)
 	if err != nil {
-		g.Errorf("error syncing from the server, reason: %s", err)
+		g.Debug(ctx, "serverSync: error syncing from the server, reason: %s", err)
 		return nil, nil, err
 	}
 
@@ -473,7 +469,6 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 	g.freshReplay = false
 
 	g.pushState(keybase1.PushReason_RECONNECTED)
-
 	return replayedMsgs, consumedMsgs, nil
 }
 
@@ -485,6 +480,37 @@ func (g *gregorHandler) makeReconnectOobm() gregor1.Message {
 	}
 }
 
+func (g *gregorHandler) authParams(ctx context.Context) (uid gregor1.UID, token gregor1.SessionToken, err error) {
+	var ok bool
+	var stoken string
+	var kuid keybase1.UID
+	if kuid, stoken, ok = g.loggedIn(ctx); !ok {
+		g.skipRetryConnect = true
+		return uid, token, errors.New("not logged in for auth")
+	}
+	return kuid.ToBytes(), gregor1.SessionToken(stoken), nil
+}
+
+func (g *gregorHandler) inboxParams(ctx context.Context, uid gregor1.UID) chat1.InboxVers {
+	// Grab current on disk version
+	ibox := chatstorage.NewInbox(g.G(), uid)
+	vers, err := ibox.Version(ctx)
+	if err != nil {
+		g.Debug(ctx, "inboxParams: failed to get current inbox version (using 0): %s", err.Error())
+		vers = chat1.InboxVers(0)
+	}
+	return vers
+}
+
+func (g *gregorHandler) notificationParams(ctx context.Context, gcli *grclient.Client) (t gregor1.Time) {
+	pt := gcli.StateMachineLatestCTime()
+	if pt != nil {
+		t = gregor1.ToTime(*pt)
+	}
+	g.Debug(ctx, "notificationParams: latest ctime: %s", t)
+	return t
+}
+
 // OnConnect is called by the rpc library to indicate we have connected to
 // gregord
 func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
@@ -493,49 +519,70 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	defer g.Unlock()
 
 	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, ErrGregorTimeout)
+	chatCli := chat1.RemoteClient{Cli: cli}
 
 	g.Debug(ctx, "connected")
-	g.Debug(ctx, "registering protocols")
 	if err := srv.Register(gregor1.OutgoingProtocol(g)); err != nil {
-		return err
+		return fmt.Errorf("error registering protocol: %s", err.Error())
+	}
+
+	// Grab authentication and sync params
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return fmt.Errorf("failed to get gregor client: %s", err.Error())
+	}
+	uid, token, err := g.authParams(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to obtain auth params: %s", err.Error())
+	}
+	iboxVers := g.inboxParams(ctx, uid)
+	latestCtime := g.notificationParams(ctx, gcli)
+
+	// Run SyncAll to both authenticate, and grab all the data we will need to run the
+	// various resync procedures for chat and notifications
+	syncAllRes, err := chatCli.SyncAll(ctx, chat1.SyncAllArg{
+		Uid:       uid,
+		DeviceID:  gcli.Device.(gregor1.DeviceID),
+		Session:   token,
+		InboxVers: iboxVers,
+		Ctime:     latestCtime,
+	})
+	if err != nil {
+		return fmt.Errorf("error running SyncAll: %s", err.Error())
 	}
 
 	// Use the client parameter instead of conn.GetClient(), since we can get stuck
 	// in a recursive loop if we keep retrying on reconnect.
-	if err := g.auth(ctx, timeoutCli); err != nil {
-		return err
+	if err := g.auth(ctx, timeoutCli, &syncAllRes.Auth); err != nil {
+		return fmt.Errorf("error authenticating: %s", err.Error())
 	}
 
 	// Sync chat data using a Syncer object
-	gcli, err := g.getGregorCli()
-	if err == nil {
-		chatCli := chat1.RemoteClient{Cli: cli}
-		uid := gcli.User.(gregor1.UID)
-		if err := g.G().Syncer.Connected(ctx, chatCli, uid); err != nil {
-			return err
-		}
-	}
-	// Call out to reachability module if we have one
-	if g.reachability != nil {
-		g.reachability.setReachability(keybase1.Reachability{
-			Reachable: keybase1.Reachable_YES,
-		})
+	if err := g.G().Syncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil {
+		return fmt.Errorf("error running chat sync: %s", err.Error())
 	}
 
 	// Sync down events since we have been dead
-	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: timeoutCli})
+	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: timeoutCli}, gcli,
+		&syncAllRes.Notification)
 	if err != nil {
-		g.Errorf("sync failure: %s", err)
+		g.Debug(ctx, "sync failure: %s", err)
 	} else {
-		g.Debug(ctx, "sync success: replayed: %d consumed: %d",
-			len(replayedMsgs), len(consumedMsgs))
+		g.Debug(ctx, "sync success: replayed: %d consumed: %d", len(replayedMsgs), len(consumedMsgs))
 	}
 
 	// Sync badge state in the background
 	if g.badger != nil {
 		go func(badger *badges.Badger) {
-			badger.Resync(context.Background(), &chat1.RemoteClient{Cli: g.cli})
+			badger.Resync(context.Background(), &chat1.RemoteClient{Cli: g.cli}, &syncAllRes.Badge)
 		}(g.badger)
+	}
+
+	// Call out to reachability module if we have one
+	if g.reachability != nil {
+		g.reachability.setReachability(keybase1.Reachability{
+			Reachable: keybase1.Reachable_YES,
+		})
 	}
 
 	// Broadcast reconnect oobm. Spawn this off into a goroutine so that we don't delay
@@ -1008,7 +1055,7 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 	return uid, token, true
 }
 
-func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) (err error) {
+func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient, auth *gregor1.AuthResult) (err error) {
 	var token string
 	var ok bool
 	var uid keybase1.UID
@@ -1018,15 +1065,20 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) (err er
 		return errors.New("not logged in for auth")
 	}
 
-	g.Debug(ctx, "logged in: authenticating")
-	ac := gregor1.AuthClient{Cli: cli}
-	auth, err := ac.AuthenticateSessionToken(ctx, gregor1.SessionToken(token))
-	if err != nil {
-		g.Debug(ctx, "auth error: %s", err)
-		return err
+	if auth == nil {
+		g.Debug(ctx, "logged in: authenticating")
+		ac := gregor1.AuthClient{Cli: cli}
+		auth = new(gregor1.AuthResult)
+		*auth, err = ac.AuthenticateSessionToken(ctx, gregor1.SessionToken(token))
+		if err != nil {
+			g.Debug(ctx, "auth error: %s", err)
+			return err
+		}
+	} else {
+		g.Debug(ctx, "using previously obtained auth result")
 	}
 
-	g.Debug(ctx, "auth result: %+v", auth)
+	g.Debug(ctx, "auth result: %+v", *auth)
 	if !bytes.Equal(auth.Uid, uid.ToBytes()) {
 		g.skipRetryConnect = true
 		return fmt.Errorf("auth result uid %x doesn't match session uid %q", auth.Uid, uid)

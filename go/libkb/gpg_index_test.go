@@ -94,6 +94,23 @@ func TestGPGFindGreg(t *testing.T) {
 	}
 }
 
+func TestGPGRevokedID(t *testing.T) {
+	index := parse(t, keyringRevokedID)
+	if index == nil {
+		t.Fatal("parsing failed")
+	}
+	keys := index.Fingerprints.Get("582AB5DE7B6BB11F6E2B7075851B3498422B2DFA")
+	if len(keys) != 1 {
+		t.Fatal("expected to find one key")
+	}
+	if numIds := len(keys[0].identities); numIds != 1 {
+		t.Fatalf("expected to have one identity (got %v)", numIds)
+	}
+	if keys[0].identities[0].Format() != "This One WIll be rev0ked" {
+		t.Fatalf("Invalid identity: %v", keys[0].identities[0])
+	}
+}
+
 const myKeyring = `
 tru::1:1416474053:1439900531:3:1:5
 pub:u:2048:17:76D78F0500D026C4:1282220531:1439900531::u:::scESC:
@@ -269,4 +286,15 @@ uid:u::::1292846928::C9A8CEFCDA1CEF8706A5B815EE4027F1340F209F::Gregory Martin Pf
 ssb:u:2048:16:35259A50693B4429:1149381489::::::e:::+:::
 fpr:::::::::82E14B2AF315373CFFA88C8335259A50693B4429:
 grp:::::::::36714469BDCD99CD5748B39D9463E3DD06BEE2CC:
+`
+
+const keyringRevokedID = `
+sec:u:256:22:851B3498422B2DFA:1491212600:::u:::scESC:::+::ed25519::
+fpr:::::::::582AB5DE7B6BB11F6E2B7075851B3498422B2DFA:
+grp:::::::::45712C069D5ECB349A11DE7C7155E66D1D3E9BC3:
+uid:u::::1491212618::999BA342C3370F86AAE7A163C67EA2518F69ECFE::This One WIll be rev0ked:::::::::
+uid:r::::::30EC553EACC420881282218E39CEDA11E722D937::Hello AA:::::::::
+ssb:u:256:18:151E2B742F97B843:1491212600::::::e:::+::cv25519:
+fpr:::::::::2DEBE37BF89745512A87C69D151E2B742F97B843:
+grp:::::::::788233E7043694A6C4D9DE4562FEC67972C0CBF9:
 `
