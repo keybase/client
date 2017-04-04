@@ -147,13 +147,11 @@ function submitChat(e) {
   submitButton.disabled = true;
   submitButton.value = "Sending...";
 
-  const port = chrome.runtime.connect();
-  port.postMessage({
+  chrome.runtime.sendMessage({
     "method": "chat",
     "to": to + "@reddit",
     "body": body
-  });
-  port.onMessage.addListener(function(response) {
+  }, function(response) {
     if (response.status != "ok") {
       renderError(f, response.message);
       submitButton.value = "Error";
