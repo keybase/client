@@ -35,23 +35,28 @@ function injectThread() {
     const author = safeHTML(c.getAttribute("data-author"));
     const buttons = c.getElementsByClassName("buttons")[0];
 
+    renderChatButton(buttons, author);
+  }
+}
+
+// Render the "keybase chat reply" button with handlers.
+function renderChatButton(parent, toUsername) {
     const li = document.createElement("li");
     li.className = "keybase-reply";
-    li.innerHTML = "<a href=\"keybase://"+ author +"@reddit/\">keybase chat reply</a>";
-    buttons.appendChild(li);
+    li.innerHTML = `<a href="keybase://${toUsername}@reddit/">keybase chat reply</a>`;
 
     li.getElementsByTagName("a")[0].addEventListener('click', function(e) {
+      e.preventDefault();
       const forms = e.currentTarget.parentNode.getElementsByTagName("form");
       if (forms.length > 0) {
         // Chat widget already present, toggle it.
         removeChat(forms[0]);
         return;
       }
-      renderChat(e.currentTarget.parentNode, author);
-      e.preventDefault();
+      renderChat(e.currentTarget.parentNode, toUsername);
     });
 
-  }
+    parent.appendChild(li);
 }
 
 // Render the Keybase chat reply widget
@@ -60,29 +65,29 @@ function renderChat(parent, toUsername) {
   // TODO: Prevent navigation?
   const isLoggedIn = document.getElementsByClassName("logout").length > 0;
 
-  let nudgeHTML = '\
-    <p><label><input type="checkbox" name="keybase-nudge" checked /> <em>public</em> nudge (so they know about Keybase)</label></p>\
-    <p><textarea name="keybase-nudgetext">/u/'+ toUsername + ' - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto</textarea></p>\
-  ';
+  let nudgeHTML = `
+    <p><label><input type="checkbox" name="keybase-nudge" checked /> <em>public</em> nudge (so they know about Keybase)</label></p>
+    <p><textarea name="keybase-nudgetext">/u/${toUsername} - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto</textarea></p>
+  `;
   if (!isLoggedIn) {
     // FIXME: Won't need this if we have a KeybaseBot PM'ing people?
-    nudgeHTML = '\
-      <p>You will need to let <a target="_blank" href="/u/'+ toUsername +'" class="reddit-user">/u/' + toUsername + '</a> know that they have a Keybase message waiting for them.</p>\
-      <p>Share this handy link: <a target="_blank" href="https://keybase.io/reddit-crypto">https://keybase.io/reddit-crypto</a></p>\
-    ';
+    nudgeHTML = `
+      <p>You will need to let <a target="_blank" href="/u/${toUsername}" class="reddit-user">/u/${toUsername}</a> know that they have a Keybase message waiting for them.</p>
+      <p>Share this handy link: <a target="_blank" href="https://keybase.io/reddit-crypto">https://keybase.io/reddit-crypto</a></p>
+    `;
   }
 
   // The chat widget is enclosed in the form element.
   const f = document.createElement("form");
   f.action = "#"; // Avoid submitting even if we fail to preventDefault
-  f.innerHTML = '\
-    <h3>Keybase Chat <span class="keybase-close"> </span></h3>\
-    <input type="hidden" name="keybase-to" value="'+ toUsername +'" />\
-    <p>Encrypt to <span class="keybase-username">'+ toUsername +'</span>:</p>\
-    <p><textarea name="keybase-chat" rows="6"></textarea></p>\
-    '+ nudgeHTML +'\
-    <p><input type="submit" value="Send" name="keybase-submit" /></p> \
-  ';
+  f.innerHTML = `
+    <h3>Keybase Chat <span class="keybase-close"> </span></h3>
+    <input type="hidden" name="keybase-to" value="${toUsername}" />
+    <p>Encrypt to <span class="keybase-username">${toUsername}</span>:</p>
+    <p><textarea name="keybase-chat" rows="6"></textarea></p>
+    ${nudgeHTML}
+    <p><input type="submit" value="Send" name="keybase-submit" /></p> 
+  `;
   f.addEventListener("submit", submitChat);
   parent.insertBefore(f, parent.firstChild);
 
