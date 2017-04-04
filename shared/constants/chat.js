@@ -626,7 +626,7 @@ const getSelectedInbox = (state: TypedState) => {
 const getTLF = createSelector(
   [getSelectedInbox, getSelectedConversation],
   (selectedInbox, selected) => {
-    if (isPendingConversationIDKey(selected)) {
+    if (selected && isPendingConversationIDKey(selected)) {
       return pendingConversationIDKeyToTlfName(selected) || ''
     } else if (selected !== nothingSelected && selectedInbox) {
       return selectedInbox.participants.join(',')
