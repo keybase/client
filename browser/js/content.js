@@ -16,21 +16,17 @@ const checkCompose = /^\/message\/compose$/
 function injectCompose() {
   // /message/compose
   // TODO: ...
-  console.log("keybase: On compose.");
 }
 
 const checkProfile = /^\/user\//;
 function injectProfile() {
   // /user/<user>
   // TODO: ...
-  console.log("keybase: On profile.");
 }
 
 const checkThread = /^\/r\/\w+\/comments\/\w+\//;
 function injectThread() {
   // /r/<subreddit>/comments/<id>/<slug>
-  console.log("keybase: On thread.");
-
   for (let c of document.getElementsByClassName("comment")) {
     const author = safeHTML(c.getAttribute("data-author"));
     const buttons = c.getElementsByClassName("buttons")[0];
@@ -158,8 +154,6 @@ function submitChat(e) {
     "body": body
   });
   port.onMessage.addListener(function(response) {
-    console.log("response: ", response);
-
     if (response.status != "ok") {
       renderError(f, response.message);
       submitButton.value = "Error";

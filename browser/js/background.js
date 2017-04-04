@@ -39,7 +39,6 @@ KBNM.prototype.send = function(msg, cb) {
 }
 
 KBNM.prototype._onReceive = function(msg) {
-  console.log("KBNM: received: ", msg, this);
   const client = msg["client"];
   const cb = this.clients[client];
   if (cb === undefined) return;
@@ -48,7 +47,6 @@ KBNM.prototype._onReceive = function(msg) {
 }
 
 KBNM.prototype._onDisconnect = function() {
-  console.log("KBNM: disconnected: ", this);
   this.port = null;
 }
 
