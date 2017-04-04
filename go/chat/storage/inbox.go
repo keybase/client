@@ -21,7 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const inboxVersion = 9
+const inboxVersion = 10
 
 type queryHash []byte
 
@@ -875,7 +875,7 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 		return err
 	}
 
-	// Sync inbox with new conversations if we know about them already
+	// Sync inbox with new conversations
 	oldVers := ibox.InboxVersion
 	ibox.InboxVersion = vers
 	convMap := make(map[string]chat1.Conversation)
@@ -885,10 +885,16 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	for index, conv := range ibox.Conversations {
 		if newConv, ok := convMap[conv.GetConvID().String()]; ok {
 			ibox.Conversations[index] = newConv
+			delete(convMap, conv.GetConvID().String())
 		}
 	}
-	i.Debug(ctx, "Sync: old vers: %v new vers: %v convs: %d", oldVers, ibox.InboxVersion, len(convs))
+	i.Debug(ctx, "Sync: adding %d new conversations", len(convMap))
+	for _, conv := range convMap {
+		ibox.Conversations = append(ibox.Conversations, conv)
+	}
+	sort.Sort(ByDatabaseOrder(ibox.Conversations))
 
+	i.Debug(ctx, "Sync: old vers: %v new vers: %v convs: %d", oldVers, ibox.InboxVersion, len(convs))
 	if err = i.writeDiskInbox(ctx, ibox); err != nil {
 		return err
 	}
