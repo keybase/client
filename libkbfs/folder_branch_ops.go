@@ -255,8 +255,8 @@ type folderBranchOps struct {
 	// Has this folder ever been cleared?
 	hasBeenCleared bool
 
-	blocks folderBlockOps
-	syncer pathSyncer
+	blocks  folderBlockOps
+	prepper folderUpdatePrepper
 
 	// nodeCache itself is goroutine-safe, but this object's use
 	// of it has special requirements:
@@ -393,7 +393,7 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 		updatePauseChan: make(chan (<-chan struct{})),
 		forceSyncChan:   forceSyncChan,
 	}
-	fbo.syncer = pathSyncer{
+	fbo.prepper = folderUpdatePrepper{
 		config:       config,
 		folderBranch: fb,
 		blocks:       &fbo.blocks,
@@ -1275,7 +1275,7 @@ func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 	}
 
 	bps := newBlockPutState(1)
-	err = fbo.syncer.unembedBlockChanges(
+	err = fbo.prepper.unembedBlockChanges(
 		ctx, bps, md, &md.data.Changes, session.UID)
 	if err != nil {
 		return nil, err
@@ -1913,7 +1913,7 @@ func (fbo *folderBranchOps) syncBlockLocked(
 	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer,
 	lbc localBcache) (path, DirEntry, *blockPutState, error) {
 	fbo.mdWriterLock.AssertLocked(lState)
-	return fbo.syncer.syncBlock(ctx, lState, uid, md, newBlock, dir, name,
+	return fbo.prepper.syncBlock(ctx, lState, uid, md, newBlock, dir, name,
 		entryType, mtime, ctime, stopAt, lbc)
 }
 
@@ -1925,7 +1925,7 @@ func (fbo *folderBranchOps) syncBlockForConflictResolution(
 	md *RootMetadata, newBlock Block, dir path, name string,
 	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer,
 	lbc localBcache) (path, DirEntry, *blockPutState, error) {
-	return fbo.syncer.syncBlock(
+	return fbo.prepper.syncBlock(
 		ctx, lState, uid, md, newBlock, dir,
 		name, entryType, mtime, ctime, stopAt, lbc)
 }
@@ -1955,7 +1955,7 @@ func (fbo *folderBranchOps) syncBlockAndCheckEmbedLocked(ctx context.Context,
 	if stopAt == zeroPtr {
 		bsplit := fbo.config.BlockSplitter()
 		if !bsplit.ShouldEmbedBlockChanges(&md.data.Changes) {
-			err = fbo.syncer.unembedBlockChanges(
+			err = fbo.prepper.unembedBlockChanges(
 				ctx, bps, md, &md.data.Changes, session.UID)
 			if err != nil {
 				return path{}, DirEntry{}, nil, err

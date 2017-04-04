@@ -15,32 +15,36 @@ import (
 	"golang.org/x/net/context"
 )
 
-type pathSyncer struct {
+// folderUpdatePrepper is a helper struct for preparing blocks and MD
+// updates before they get synced to the backend servers.  It can be
+// used for a single update or for a batch of updates (e.g. conflict
+// resolution).
+type folderUpdatePrepper struct {
 	config       Config
 	folderBranch FolderBranch
 	blocks       *folderBlockOps
 	log          logger.Logger
 }
 
-func (ps pathSyncer) id() tlf.ID {
-	return ps.folderBranch.Tlf
+func (fup folderUpdatePrepper) id() tlf.ID {
+	return fup.folderBranch.Tlf
 }
 
-func (ps pathSyncer) branch() BranchName {
-	return ps.folderBranch.Branch
+func (fup folderUpdatePrepper) branch() BranchName {
+	return fup.folderBranch.Branch
 }
 
-func (ps pathSyncer) nowUnixNano() int64 {
-	return ps.config.Clock().Now().UnixNano()
+func (fup folderUpdatePrepper) nowUnixNano() int64 {
+	return fup.config.Clock().Now().UnixNano()
 }
 
-func (ps pathSyncer) readyBlockMultiple(ctx context.Context,
+func (fup folderUpdatePrepper) readyBlockMultiple(ctx context.Context,
 	kmd KeyMetadata, currBlock Block, uid keybase1.UID,
 	bps *blockPutState, bType keybase1.BlockType) (
 	info BlockInfo, plainSize int, err error) {
 	info, plainSize, readyBlockData, err :=
-		ReadyBlock(ctx, ps.config.BlockCache(), ps.config.BlockOps(),
-			ps.config.Crypto(), kmd, currBlock, uid, bType)
+		ReadyBlock(ctx, fup.config.BlockCache(), fup.config.BlockOps(),
+			fup.config.Crypto(), kmd, currBlock, uid, bType)
 	if err != nil {
 		return
 	}
@@ -49,10 +53,10 @@ func (ps pathSyncer) readyBlockMultiple(ctx context.Context,
 	return
 }
 
-func (ps pathSyncer) unembedBlockChanges(
+func (fup folderUpdatePrepper) unembedBlockChanges(
 	ctx context.Context, bps *blockPutState, md *RootMetadata,
 	changes *BlockChanges, uid keybase1.UID) error {
-	buf, err := ps.config.Codec().Encode(changes)
+	buf, err := fup.config.Codec().Encode(changes)
 	if err != nil {
 		return err
 	}
@@ -60,18 +64,18 @@ func (ps pathSyncer) unembedBlockChanges(
 	// Treat the block change list as a file so we can reuse all the
 	// indirection code in fileData.
 	block := NewFileBlock().(*FileBlock)
-	bid, err := ps.config.Crypto().MakeTemporaryBlockID()
+	bid, err := fup.config.Crypto().MakeTemporaryBlockID()
 	if err != nil {
 		return err
 	}
 	ptr := BlockPointer{
 		ID:         bid,
 		KeyGen:     md.LatestKeyGeneration(),
-		DataVer:    ps.config.DataVersion(),
+		DataVer:    fup.config.DataVersion(),
 		DirectType: DirectBlock,
 		Context:    kbfsblock.MakeFirstContext(uid, keybase1.BlockType_MD),
 	}
-	file := path{ps.folderBranch,
+	file := path{fup.folderBranch,
 		[]pathNode{{ptr, fmt.Sprintf("<MD rev %d>", md.Revision())}}}
 
 	dirtyBcache := simpleDirtyBlockCacheStandard()
@@ -79,7 +83,7 @@ func (ps pathSyncer) unembedBlockChanges(
 
 	getter := func(_ context.Context, _ KeyMetadata, ptr BlockPointer,
 		_ path, _ blockReqType) (*FileBlock, bool, error) {
-		block, err := dirtyBcache.Get(ps.id(), ptr, ps.branch())
+		block, err := dirtyBcache.Get(fup.id(), ptr, fup.branch())
 		if err != nil {
 			return nil, false, err
 		}
@@ -91,7 +95,7 @@ func (ps pathSyncer) unembedBlockChanges(
 		return fblock, true, nil
 	}
 	cacher := func(ptr BlockPointer, block Block) error {
-		return dirtyBcache.Put(ps.id(), ptr, ps.branch(), block)
+		return dirtyBcache.Put(fup.id(), ptr, fup.branch(), block)
 	}
 	// Start off the cache with the new block
 	err = cacher(ptr, block)
@@ -100,8 +104,8 @@ func (ps pathSyncer) unembedBlockChanges(
 	}
 
 	df := newDirtyFile(file, dirtyBcache)
-	fd := newFileData(file, uid, ps.config.Crypto(),
-		ps.config.BlockSplitter(), md.ReadOnly(), getter, cacher, ps.log)
+	fd := newFileData(file, uid, fup.config.Crypto(),
+		fup.config.BlockSplitter(), md.ReadOnly(), getter, cacher, fup.log)
 
 	// Write all the data.
 	_, _, _, _, _, err = fd.write(ctx, buf, 0, block, DirEntry{}, df)
@@ -110,7 +114,7 @@ func (ps pathSyncer) unembedBlockChanges(
 	}
 
 	// There might be a new top block.
-	topBlock, err := dirtyBcache.Get(ps.id(), ptr, ps.branch())
+	topBlock, err := dirtyBcache.Get(fup.id(), ptr, fup.branch())
 	if err != nil {
 		return err
 	}
@@ -120,8 +124,8 @@ func (ps pathSyncer) unembedBlockChanges(
 	}
 
 	// Ready all the child blocks.
-	infos, err := fd.ready(ctx, ps.id(), ps.config.BlockCache(),
-		dirtyBcache, ps.config.BlockOps(), bps, block, df)
+	infos, err := fd.ready(ctx, fup.id(), fup.config.BlockCache(),
+		dirtyBcache, fup.config.BlockOps(), bps, block, df)
 	if err != nil {
 		return err
 	}
@@ -129,10 +133,10 @@ func (ps pathSyncer) unembedBlockChanges(
 		md.AddMDRefBytes(uint64(info.EncodedSize))
 		md.AddMDDiskUsage(uint64(info.EncodedSize))
 	}
-	ps.log.CDebugf(ctx, "%d unembedded child blocks", len(infos))
+	fup.log.CDebugf(ctx, "%d unembedded child blocks", len(infos))
 
 	// Ready the top block.
-	info, _, err := ps.readyBlockMultiple(
+	info, _, err := fup.readyBlockMultiple(
 		ctx, md.ReadOnly(), block, uid, bps, keybase1.BlockType_MD)
 	if err != nil {
 		return err
@@ -157,16 +161,14 @@ func (ps pathSyncer) unembedBlockChanges(
 // the blocks that now must be put to the block server.
 //
 // This function is safe to use unlocked, but may modify MD to have
-// the same revision number as another one. All functions in this file
-// must call syncBlockLocked instead, which holds mdWriterLock and
-// thus serializes the revision numbers. Conflict resolution may call
-// syncBlockForConflictResolution, which doesn't hold the lock, since
-// it already handles conflicts correctly.
+// the same revision number as another one. Callers that require
+// serialized revision numbers must implement their own locking around
+// their instance.
 //
 // entryType must not be Sym.
 //
 // TODO: deal with multiple nodes for indirect blocks
-func (ps pathSyncer) syncBlock(
+func (fup folderUpdatePrepper) syncBlock(
 	ctx context.Context, lState *lockState, uid keybase1.UID,
 	md *RootMetadata, newBlock Block, dir path, name string,
 	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer,
@@ -183,9 +185,9 @@ func (ps pathSyncer) syncBlock(
 	refPath := dir.ChildPathNoPtr(name)
 	var newDe DirEntry
 	doSetTime := true
-	now := ps.nowUnixNano()
+	now := fup.nowUnixNano()
 	for len(newPath.path) < len(dir.path)+1 {
-		info, plainSize, err := ps.readyBlockMultiple(
+		info, plainSize, err := fup.readyBlockMultiple(
 			ctx, md.ReadOnly(), currBlock, uid, bps, keybase1.BlockType_DATA)
 		if err != nil {
 			return path{}, DirEntry{}, nil, err
@@ -221,7 +223,7 @@ func (ps pathSyncer) syncBlock(
 				// network. Directory blocks are only ever
 				// modified while holding mdWriterLock, so it's
 				// safe to fetch them one at a time.
-				prevDblock, err = ps.blocks.GetDir(
+				prevDblock, err = fup.blocks.GetDir(
 					ctx, lState, md.ReadOnly(), prevDir, blockWrite)
 				if err != nil {
 					return path{}, DirEntry{}, nil, err
@@ -319,12 +321,12 @@ func (ps pathSyncer) syncBlock(
 	return newPath, newDe, bps, nil
 }
 
-// crPathTreeNode represents a particular node in the part of the FS
-// tree affected by the conflict resolution, which needs to be sync'd.
-type crPathTreeNode struct {
+// pathTreeNode represents a particular node in the part of the FS
+// tree affected by a set of updates which needs to be sync'd.
+type pathTreeNode struct {
 	ptr        BlockPointer
-	parent     *crPathTreeNode
-	children   map[string]*crPathTreeNode
+	parent     *pathTreeNode
+	children   map[string]*pathTreeNode
 	mergedPath path
 }
 
@@ -338,9 +340,9 @@ type crPathTreeNode struct {
 // (with all child changes applied) before readying any parent blocks.
 // syncTree returns the merged blockPutState for itself and all of its
 // children.
-func (ps pathSyncer) syncTree(ctx context.Context, lState *lockState,
+func (fup folderUpdatePrepper) syncTree(ctx context.Context, lState *lockState,
 	unmergedChains *crChains, newMD *RootMetadata, uid keybase1.UID,
-	node *crPathTreeNode, stopAt BlockPointer, lbc localBcache,
+	node *pathTreeNode, stopAt BlockPointer, lbc localBcache,
 	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache) (
 	*blockPutState, error) {
 	// If this has no children, then sync it, as far back as stopAt.
@@ -384,8 +386,8 @@ func (ps pathSyncer) syncTree(ctx context.Context, lState *lockState,
 			// If journaling is enabled, new references aren't
 			// supported.  We have to fetch each block and ready
 			// it.  TODO: remove this when KBFS-1149 is fixed.
-			if TLFJournalEnabled(ps.config, ps.id()) {
-				infos, err = ps.blocks.UndupChildrenInCopy(
+			if TLFJournalEnabled(fup.config, fup.id()) {
+				infos, err = fup.blocks.UndupChildrenInCopy(
 					ctx, lState, newMD.ReadOnly(), node.mergedPath, childBps,
 					dirtyBcache, fblock)
 				if err != nil {
@@ -393,14 +395,14 @@ func (ps pathSyncer) syncTree(ctx context.Context, lState *lockState,
 				}
 			} else {
 				// Ready any mid-level internal children.
-				_, err = ps.blocks.ReadyNonLeafBlocksInCopy(
+				_, err = fup.blocks.ReadyNonLeafBlocksInCopy(
 					ctx, lState, newMD.ReadOnly(), node.mergedPath, childBps,
 					dirtyBcache, fblock)
 				if err != nil {
 					return nil, err
 				}
 
-				infos, err = ps.blocks.
+				infos, err = fup.blocks.
 					GetIndirectFileBlockInfosWithTopBlock(
 						ctx, lState, newMD.ReadOnly(), node.mergedPath, fblock)
 				if err != nil {
@@ -422,7 +424,7 @@ func (ps pathSyncer) syncTree(ctx context.Context, lState *lockState,
 		}
 
 		// TODO: fix mtime and ctime?
-		_, _, bps, err := ps.syncBlock(
+		_, _, bps, err := fup.syncBlock(
 			ctx, lState, uid, newMD, block,
 			*node.mergedPath.parentPath(), node.mergedPath.tailName(),
 			entryType, false, false, stopAt, lbc)
@@ -447,7 +449,7 @@ func (ps pathSyncer) syncTree(ctx context.Context, lState *lockState,
 		if count == len(node.children) {
 			localStopAt = stopAt
 		}
-		childBps, err := ps.syncTree(
+		childBps, err := fup.syncTree(
 			ctx, lState, unmergedChains, newMD, uid, child, localStopAt, lbc,
 			newFileBlocks, dirtyBcache)
 		if err != nil {
@@ -461,7 +463,7 @@ func (ps pathSyncer) syncTree(ctx context.Context, lState *lockState,
 // updateResolutionUsage figures out how many bytes are referenced and
 // unreferenced in the merged branch by this resolution.  Only needs
 // to be called for non-squash resolutions.
-func (ps pathSyncer) updateResolutionUsage(ctx context.Context,
+func (fup folderUpdatePrepper) updateResolutionUsage(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState,
 	unmergedChains, mergedChains *crChains,
 	mostRecentMergedMD ImmutableRootMetadata,
@@ -488,7 +490,7 @@ func (ps pathSyncer) updateResolutionUsage(ctx context.Context,
 		} else {
 			refPtrsToFetch = append(refPtrsToFetch, ptr)
 		}
-		ps.log.CDebugf(ctx, "Ref'ing block %v", ptr)
+		fup.log.CDebugf(ctx, "Ref'ing block %v", ptr)
 	}
 
 	// Look up the total sum of the ref blocks in parallel to get
@@ -499,14 +501,14 @@ func (ps pathSyncer) updateResolutionUsage(ctx context.Context,
 	// we might be able to get the encoded size from other sources as
 	// well (such as its directory entry or its indirect file block)
 	// if we happened to have come across it before.
-	refSumFetched, err := ps.blocks.GetCleanEncodedBlocksSizeSum(
-		ctx, lState, md.ReadOnly(), refPtrsToFetch, nil, ps.branch())
+	refSumFetched, err := fup.blocks.GetCleanEncodedBlocksSizeSum(
+		ctx, lState, md.ReadOnly(), refPtrsToFetch, nil, fup.branch())
 	if err != nil {
 		return err
 	}
 	refSum += refSumFetched
 
-	ps.log.CDebugf(ctx, "Ref'ing a total of %d bytes", refSum)
+	fup.log.CDebugf(ctx, "Ref'ing a total of %d bytes", refSum)
 	md.AddRefBytes(refSum)
 	md.AddDiskUsage(refSum)
 
@@ -542,16 +544,16 @@ func (ps pathSyncer) updateResolutionUsage(ctx context.Context,
 	// them up generically.  Ignore any recoverable errors for unrefs.
 	// Note that we can't combine these with the above ref fetches
 	// since they require a different MD.
-	unrefSum, err := ps.blocks.GetCleanEncodedBlocksSizeSum(
+	unrefSum, err := fup.blocks.GetCleanEncodedBlocksSizeSum(
 		ctx, lState, mostRecentMergedMD, unrefPtrsToFetch, unrefs,
-		ps.branch())
+		fup.branch())
 	if err != nil {
 		return err
 	}
 
 	// Subtract bytes for every unref'd block that wasn't created in
 	// the unmerged branch.
-	ps.log.CDebugf(ctx, "Unref'ing a total of %d bytes", unrefSum)
+	fup.log.CDebugf(ctx, "Unref'ing a total of %d bytes", unrefSum)
 	md.AddUnrefBytes(unrefSum)
 	md.SetDiskUsage(md.DiskUsage() - unrefSum)
 	return nil
@@ -576,7 +578,7 @@ func addUnrefToFinalResOp(ops opsList, ptr BlockPointer) opsList {
 // final `resolutionOp` as necessary. It should be called before the
 // block changes are unembedded in md.  It returns the list of blocks
 // that can be remove from the flushing queue, if any.
-func (ps pathSyncer) updateResolutionUsageAndPointers(
+func (fup folderUpdatePrepper) updateResolutionUsageAndPointers(
 	ctx context.Context, lState *lockState, md *RootMetadata,
 	bps *blockPutState, unmergedChains, mergedChains *crChains,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
@@ -594,7 +596,7 @@ func (ps pathSyncer) updateResolutionUsageAndPointers(
 			// pointer.  Also, we shouldn't be referencing this
 			// anymore!
 			if unmergedChains.blockChangePointers[ptr] {
-				ps.log.CDebugf(ctx, "Ignoring block change ptr %v", ptr)
+				fup.log.CDebugf(ctx, "Ignoring block change ptr %v", ptr)
 				op.DelRefBlock(ptr)
 			} else {
 				refs[ptr] = true
@@ -657,7 +659,7 @@ func (ps pathSyncer) updateResolutionUsageAndPointers(
 		md.SetMDDiskUsage(mergedMDUsage)
 		md.SetMDRefBytes(0)
 	} else {
-		err = ps.updateResolutionUsage(
+		err = fup.updateResolutionUsage(
 			ctx, lState, md, bps, unmergedChains, mergedChains,
 			mostRecentMergedMD, refs, unrefs)
 		if err != nil {
@@ -692,8 +694,8 @@ func (ps pathSyncer) updateResolutionUsageAndPointers(
 			// `unmergedChains.toUnrefPointers` after a chain collapse.
 			continue
 		}
-		isUnflushed, err := ps.config.BlockServer().IsUnflushed(
-			ctx, ps.id(), ptr.ID)
+		isUnflushed, err := fup.config.BlockServer().IsUnflushed(
+			ctx, fup.id(), ptr.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -706,7 +708,7 @@ func (ps pathSyncer) updateResolutionUsageAndPointers(
 
 		// Put the unrefs in a new resOp after the final operation, to
 		// cancel out any stray refs in earlier ops.
-		ps.log.CDebugf(ctx, "Unreferencing dropped block %v", ptr)
+		fup.log.CDebugf(ctx, "Unreferencing dropped block %v", ptr)
 		md.data.Changes.Ops = addUnrefToFinalResOp(md.data.Changes.Ops, ptr)
 	}
 
@@ -727,33 +729,33 @@ func (ps pathSyncer) updateResolutionUsageAndPointers(
 		}
 	}
 
-	ps.log.CDebugf(ctx, "New md byte usage: %d ref, %d unref, %d total usage "+
+	fup.log.CDebugf(ctx, "New md byte usage: %d ref, %d unref, %d total usage "+
 		"(previously %d)", md.RefBytes(), md.UnrefBytes(), md.DiskUsage(),
 		mostRecentMergedMD.DiskUsage())
 	return blocksToDelete, nil
 }
 
-func (ps pathSyncer) makeSyncTree(ctx context.Context,
+func (fup folderUpdatePrepper) makeSyncTree(ctx context.Context,
 	resolvedPaths map[BlockPointer]path, lbc localBcache,
-	newFileBlocks fileBlockMap) *crPathTreeNode {
-	var root *crPathTreeNode
+	newFileBlocks fileBlockMap) *pathTreeNode {
+	var root *pathTreeNode
 	for _, p := range resolvedPaths {
-		ps.log.CDebugf(ctx, "Creating tree from merged path: %v", p.path)
-		var parent *crPathTreeNode
+		fup.log.CDebugf(ctx, "Creating tree from merged path: %v", p.path)
+		var parent *pathTreeNode
 		for i, pnode := range p.path {
-			var nextNode *crPathTreeNode
+			var nextNode *pathTreeNode
 			if parent != nil {
 				nextNode = parent.children[pnode.Name]
 			} else if root != nil {
 				nextNode = root
 			}
 			if nextNode == nil {
-				ps.log.CDebugf(ctx, "Creating node with pointer %v",
+				fup.log.CDebugf(ctx, "Creating node with pointer %v",
 					pnode.BlockPointer)
-				nextNode = &crPathTreeNode{
+				nextNode = &pathTreeNode{
 					ptr:      pnode.BlockPointer,
 					parent:   parent,
-					children: make(map[string]*crPathTreeNode),
+					children: make(map[string]*pathTreeNode),
 					// save the full path, since we'll only use this
 					// at the leaves anyway.
 					mergedPath: p,
@@ -789,7 +791,7 @@ func (ps pathSyncer) makeSyncTree(ctx context.Context,
 				if de, ok := dblock.Children[name]; ok {
 					filePtr = de.BlockPointer
 				}
-				ps.log.CDebugf(ctx, "Creating child node for name %s for "+
+				fup.log.CDebugf(ctx, "Creating child node for name %s for "+
 					"parent %v", name, pnode.BlockPointer)
 				childPath := path{
 					FolderBranch: p.FolderBranch,
@@ -797,10 +799,10 @@ func (ps pathSyncer) makeSyncTree(ctx context.Context,
 				}
 				copy(childPath.path[0:i+1], p.path[0:i+1])
 				childPath.path[i+1] = pathNode{Name: name}
-				childNode := &crPathTreeNode{
+				childNode := &pathTreeNode{
 					ptr:        filePtr,
 					parent:     nextNode,
-					children:   make(map[string]*crPathTreeNode),
+					children:   make(map[string]*pathTreeNode),
 					mergedPath: childPath,
 				}
 				nextNode.children[name] = childNode
@@ -810,15 +812,14 @@ func (ps pathSyncer) makeSyncTree(ctx context.Context,
 	return root
 }
 
-// syncBlocks takes in the complete set of paths affected by this
-// conflict resolution, and organizes them into a tree, which it then
-// syncs using syncTree.  It returns a map describing how blocks were
-// updated in the merged branch, as well as the complete set of blocks
-// that need to be put to the server (and cached) to complete this
-// resolution and a list of blocks that can be removed from the
-// flushing queue.
-func (ps pathSyncer) syncBlocks(ctx context.Context, lState *lockState,
-	md *RootMetadata, unmergedChains, mergedChains *crChains,
+// syncBlocks takes in the complete set of paths affected by a set of
+// changes, and organizes them into a tree, which it then syncs using
+// syncTree.  It returns a map describing how blocks were updated in
+// the final update, as well as the complete set of blocks that need
+// to be put to the server (and cached) to complete this update and a
+// list of blocks that can be removed from the flushing queue.
+func (fup folderUpdatePrepper) syncBlocks(ctx context.Context,
+	lState *lockState, md *RootMetadata, unmergedChains, mergedChains *crChains,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
 	resolvedPaths map[BlockPointer]path, lbc localBcache,
 	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache) (
@@ -826,7 +827,7 @@ func (ps pathSyncer) syncBlocks(ctx context.Context, lState *lockState,
 	blocksToDelete []kbfsblock.ID, err error) {
 	updates = make(map[BlockPointer]BlockPointer)
 
-	session, err := ps.config.KBPKI().GetCurrentSession(ctx)
+	session, err := fup.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -857,10 +858,10 @@ func (ps pathSyncer) syncBlocks(ctx context.Context, lState *lockState,
 		}
 	} else {
 		// Construct a tree out of the merged paths, and do a sync at each leaf.
-		root := ps.makeSyncTree(ctx, resolvedPaths, lbc, newFileBlocks)
+		root := fup.makeSyncTree(ctx, resolvedPaths, lbc, newFileBlocks)
 
 		if root != nil {
-			bps, err = ps.syncTree(ctx, lState, unmergedChains,
+			bps, err = fup.syncTree(ctx, lState, unmergedChains,
 				md, session.UID, root,
 				BlockPointer{}, lbc, newFileBlocks, dirtyBcache)
 			if err != nil {
@@ -873,7 +874,7 @@ func (ps pathSyncer) syncBlocks(ctx context.Context, lState *lockState,
 
 	// Create an update map, and fix up the gc ops.
 	for i, update := range resOp.Updates {
-		ps.log.CDebugf(ctx, "resOp update: %v -> %v", update.Unref, update.Ref)
+		fup.log.CDebugf(ctx, "resOp update: %v -> %v", update.Unref, update.Ref)
 		// The unref should represent the most recent merged pointer
 		// for the block.  However, the other ops will be using the
 		// original pointer as the unref, so use that as the key.
@@ -896,7 +897,7 @@ func (ps pathSyncer) syncBlocks(ctx context.Context, lState *lockState,
 			if err != nil {
 				return nil, nil, nil, err
 			}
-			ps.log.CDebugf(ctx, "Fixing resOp update from unmerged most "+
+			fup.log.CDebugf(ctx, "Fixing resOp update from unmerged most "+
 				"recent %v to merged most recent %v",
 				update.Unref, mergedMostRecent)
 			err = update.setUnref(mergedMostRecent)
@@ -918,7 +919,7 @@ func (ps pathSyncer) syncBlocks(ctx context.Context, lState *lockState,
 			continue
 		}
 		if _, ok := updates[so.File.Unref]; !ok {
-			ps.log.CDebugf(ctx, "Adding sync op update %v -> %v",
+			fup.log.CDebugf(ctx, "Adding sync op update %v -> %v",
 				so.File.Unref, so.File.Ref)
 			updates[so.File.Unref] = so.File.Ref
 			resOp.AddUpdate(so.File.Unref, so.File.Ref)
@@ -989,7 +990,8 @@ func (ps pathSyncer) syncBlocks(ctx context.Context, lState *lockState,
 		if _, ok := unmergedChains.originals[update.Unref]; !ok &&
 			unmergedChains.byOriginal[update.Unref] == nil &&
 			mergedChains.byMostRecent[update.Unref] == nil {
-			ps.log.CDebugf(ctx, "Turning update from %v into just a ref for %v",
+			fup.log.CDebugf(ctx,
+				"Turning update from %v into just a ref for %v",
 				update.Unref, update.Ref)
 			resOp.AddRefBlock(update.Ref)
 			continue
@@ -1049,11 +1051,11 @@ func (ps pathSyncer) syncBlocks(ctx context.Context, lState *lockState,
 					_, alreadyUpdated = updates[chain.original]
 				}
 				if newBlocks[update.Ref] || (isMostRecent && !alreadyUpdated) {
-					ps.log.CDebugf(ctx, "Including update from old resOp: "+
+					fup.log.CDebugf(ctx, "Including update from old resOp: "+
 						"%v -> %v", update.Unref, update.Ref)
 					resOp.AddUpdate(update.Unref, update.Ref)
 				} else if !isMostRecent {
-					ps.log.CDebugf(ctx, "Unrefing an update from old resOp: "+
+					fup.log.CDebugf(ctx, "Unrefing an update from old resOp: "+
 						"%v (original=%v)", update.Ref, update.Unref)
 					newOps = addUnrefToFinalResOp(newOps, update.Ref)
 				}
@@ -1066,15 +1068,15 @@ func (ps pathSyncer) syncBlocks(ctx context.Context, lState *lockState,
 
 	// TODO: only perform this loop if debugging is enabled.
 	for _, op := range newOps {
-		ps.log.CDebugf(ctx, "remote op %s: refs: %v", op, op.Refs())
-		ps.log.CDebugf(ctx, "remote op %s: unrefs: %v", op, op.Unrefs())
+		fup.log.CDebugf(ctx, "remote op %s: refs: %v", op, op.Refs())
+		fup.log.CDebugf(ctx, "remote op %s: unrefs: %v", op, op.Unrefs())
 		for _, update := range op.allUpdates() {
-			ps.log.CDebugf(ctx, "remote op %s: update: %v -> %v", op,
+			fup.log.CDebugf(ctx, "remote op %s: update: %v -> %v", op,
 				update.Unref, update.Ref)
 		}
 	}
 
-	blocksToDelete, err = ps.updateResolutionUsageAndPointers(ctx, lState, md,
+	blocksToDelete, err = fup.updateResolutionUsageAndPointers(ctx, lState, md,
 		bps, unmergedChains, mergedChains, mostRecentUnmergedMD,
 		mostRecentMergedMD, isSquash)
 	if err != nil {
@@ -1091,20 +1093,20 @@ func (ps pathSyncer) syncBlocks(ctx context.Context, lState *lockState,
 		for i := len(unmergedResOp.Refs()) - 1; i >= 0; i-- {
 			ptr := unmergedResOp.Refs()[i]
 			if unmergedChains.blockChangePointers[ptr] {
-				ps.log.CDebugf(ctx, "Ignoring block change ptr %v", ptr)
+				fup.log.CDebugf(ctx, "Ignoring block change ptr %v", ptr)
 				unmergedResOp.DelRefBlock(ptr)
 				md.data.Changes.Ops =
 					addUnrefToFinalResOp(md.data.Changes.Ops, ptr)
 			}
 		}
 		for _, ptr := range unmergedResOp.Unrefs() {
-			ps.log.CDebugf(ctx, "Unref pointer from old resOp: %v", ptr)
+			fup.log.CDebugf(ctx, "Unref pointer from old resOp: %v", ptr)
 			md.data.Changes.Ops = addUnrefToFinalResOp(md.data.Changes.Ops, ptr)
 		}
 	}
 
 	// do the block changes need their own blocks?
-	bsplit := ps.config.BlockSplitter()
+	bsplit := fup.config.BlockSplitter()
 	if !bsplit.ShouldEmbedBlockChanges(&md.data.Changes) {
 		// The child blocks should be referenced in the resolution op.
 		_, ok := md.data.Changes.Ops[len(md.data.Changes.Ops)-1].(*resolutionOp)
@@ -1114,7 +1116,7 @@ func (ps pathSyncer) syncBlocks(ctx context.Context, lState *lockState,
 			md.data.Changes.Ops = append(md.data.Changes.Ops, newResolutionOp())
 		}
 
-		err = ps.unembedBlockChanges(ctx, bps, md,
+		err = fup.unembedBlockChanges(ctx, bps, md,
 			&md.data.Changes, session.UID)
 		if err != nil {
 			return nil, nil, nil, err

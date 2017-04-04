@@ -55,7 +55,7 @@ type conflictInput struct {
 type ConflictResolver struct {
 	config           Config
 	fbo              *folderBranchOps
-	syncer           pathSyncer
+	prepper          folderUpdatePrepper
 	log              logger.Logger
 	maxRevsThreshold int
 
@@ -88,7 +88,7 @@ func NewConflictResolver(
 	cr := &ConflictResolver{
 		config: config,
 		fbo:    fbo,
-		syncer: pathSyncer{
+		prepper: folderUpdatePrepper{
 			config:       config,
 			folderBranch: fbo.folderBranch,
 			blocks:       &fbo.blocks,
@@ -2958,7 +2958,7 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 		return err
 	}
 
-	updates, bps, blocksToDelete, err := cr.syncer.syncBlocks(
+	updates, bps, blocksToDelete, err := cr.prepper.syncBlocks(
 		ctx, lState, md, unmergedChains, mergedChains,
 		mostRecentUnmergedMD, mostRecentMergedMD, resolvedPaths, lbc,
 		newFileBlocks, dirtyBcache)
