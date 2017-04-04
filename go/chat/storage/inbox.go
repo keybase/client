@@ -21,7 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const inboxVersion = 9
+const inboxVersion = 10
 
 type queryHash []byte
 
