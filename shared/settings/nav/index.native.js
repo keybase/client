@@ -3,11 +3,13 @@ import React from 'react'
 import {StyleSheet} from 'react-native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Badge, ClickableBox, Text, HeaderHoc} from '../../common-adapters'
+import {isAndroid} from '../../constants/platform'
 import {
   devMenuTab,
   feedbackTab,
   aboutTab,
   devicesTab,
+  screenprotectorTab,
 } from '../../constants/settings'
 import {compose, defaultProps} from 'recompose'
 
@@ -42,6 +44,13 @@ function SettingsNav ({badgeNumbers, selectedTab, onTabChange, onLogout}: Props)
         badgeNumber={badgeNumbers[feedbackTab]}
         onClick={() => onTabChange(feedbackTab)}
       />
+      {isAndroid &&
+        <SettingsItem
+          text='Screen Protector'
+          badgeNumber={0}
+          onClick={() => onTabChange(screenprotectorTab)}
+        />
+      }
       <SettingsItem
         text='Sign out'
         badgeNumber={0}
