@@ -57,6 +57,11 @@ function * _isCached (conversationIDKey, messageID): Generator<any, ?string, any
 function * onLoadAttachment ({payload: {conversationIDKey, messageID, loadPreview, isHdPreview, filename}}: Constants.LoadAttachment): SagaGenerator<any, any> {
   // See if we already have this image cached
   if (loadPreview || isHdPreview) {
+    const existingMessage = yield select(Shared.messageSelector, conversationIDKey, messageID)
+    if (existingMessage && (loadPreview && existingMessage.previewPath || isHdPreview && existingMessage.hdPreviewPath)) {
+      return
+    }
+
     const imageCached = yield call(exists, filename)
     if (imageCached) {
       yield put(Creators.attachmentLoaded(conversationIDKey, messageID, filename, loadPreview, isHdPreview))
