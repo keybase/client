@@ -616,32 +616,11 @@ func (s *HybridInboxSource) getConvLocal(ctx context.Context, uid gregor1.UID,
 func (s *HybridInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, msg chat1.MessageBoxed) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "NewMessage")()
-	defer func() {
-		if err != nil {
-			err = s.handleInboxError(ctx, err, uid)
-		}
-	}()
 
-	ibox := storage.NewInbox(s.G(), uid)
-	if msg.GetMessageType() == chat1.MessageType_DELETE {
-		// It is too complicated to update max messages for deletes, so just re-sync from the server
-		// if we get one.
-		var ib chat1.Inbox
-		ib, _, err = s.Read(ctx, uid, nil, false, &chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
-		if err != nil {
-			return conv, err
-		}
-		if err = ibox.Sync(ctx, ib.Version, ib.ConvsUnverified); err != nil {
-			return conv, err
-		}
-	} else {
-		if cerr := ibox.NewMessage(ctx, vers, convID, msg); cerr != nil {
-			return nil, err
-		}
-
+	if cerr := storage.NewInbox(s.G(), uid).NewMessage(ctx, vers, convID, msg); cerr != nil {
+		return nil, s.handleInboxError(ctx, cerr, uid)
 	}
+
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
 		s.Debug(ctx, "NewMessage: unable to load conversation: convID: %s err: %s", convID, err.Error())
 		return nil, nil
