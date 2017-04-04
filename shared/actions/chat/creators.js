@@ -269,11 +269,11 @@ function loadAttachmentPreview (message: Constants.AttachmentMessage): Constants
   return {payload: {message}, type: 'chat:loadAttachmentPreview'}
 }
 
-function attachmentLoaded (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, path: string, isPreview: boolean, isHdPreview: boolean): Constants.AttachmentLoaded {
+function attachmentLoaded (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, path: ?string, isPreview: boolean, isHdPreview: boolean): Constants.AttachmentLoaded {
   return {payload: {conversationIDKey, isHdPreview, isPreview, messageID, path}, type: 'chat:attachmentLoaded'}
 }
 
-function downloadProgress (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, isPreview: boolean, bytesComplete: number, bytesTotal: number): Constants.DownloadProgress {
+function downloadProgress (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, isPreview: boolean, bytesComplete?: number, bytesTotal?: number): Constants.DownloadProgress {
   return {payload: {bytesComplete, bytesTotal, conversationIDKey, isPreview, messageID}, type: 'chat:downloadProgress'}
 }
 
