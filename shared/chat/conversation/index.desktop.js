@@ -7,7 +7,7 @@ import OldProfileResetNotice from './notices/old-profile-reset-notice'
 import NoConversation from './no-conversation.desktop'
 import ParticipantRekey from './participant-rekey.desktop'
 import React, {Component} from 'react'
-import SidePanel from './side-panel'
+import SidePanel from './side-panel/container'
 import YouRekey from './you-rekey.desktop.js'
 import {Box, Icon, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
@@ -79,19 +79,10 @@ class Conversation extends Component<void, Props, State> {
     const {
       bannerMessage,
       finalizeInfo,
-      followingMap,
-      metaDataMap,
-      muted,
-      onAddParticipant,
       onBack,
-      onMuteConversation,
-      onShowBlockConversationDialog,
-      onShowProfile,
       onToggleSidePanel,
-      participants,
       selectedConversationIDKey,
       sidePanelOpen,
-      you,
     } = this.props
 
     const banner = bannerMessage && <Banner message={bannerMessage} />
@@ -110,7 +101,7 @@ class Conversation extends Component<void, Props, State> {
     return (
       <Box className='conversation' style={containerStyle} onDragEnter={this._onDragEnter} onPaste={this._onPaste}>
         {offline}
-        <Header sidePanelOpen={sidePanelOpen} onToggleSidePanel={onToggleSidePanel} onBack={onBack} selectedConversationIDKey={selectedConversationIDKey} />
+        <Header sidePanelOpen={sidePanelOpen} onToggleSidePanel={onToggleSidePanel} onBack={onBack} />
         <List {...this.props.listProps} />
         {banner}
         {finalizeInfo
@@ -123,17 +114,7 @@ class Conversation extends Component<void, Props, State> {
               onScrollDown={this.props.onScrollDown}
             /> }
         {sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>
-          <SidePanel
-            you={you}
-            metaDataMap={metaDataMap}
-            followingMap={followingMap}
-            muted={muted}
-            onAddParticipant={onAddParticipant}
-            onMuteConversation={onMuteConversation}
-            onShowBlockConversationDialog={onShowBlockConversationDialog}
-            onShowProfile={onShowProfile}
-            onToggleSidePanel={onToggleSidePanel}
-            participants={participants} />
+          <SidePanel onToggleSidePanel={onToggleSidePanel} />
         </div>}
         {dropOverlay}
       </Box>
