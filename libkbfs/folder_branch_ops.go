@@ -394,9 +394,10 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 		forceSyncChan:   forceSyncChan,
 	}
 	fbo.syncer = pathSyncer{
-		config: config,
-		blocks: &fbo.blocks,
-		log:    log,
+		config:       config,
+		folderBranch: fb,
+		blocks:       &fbo.blocks,
+		log:          log,
 	}
 	fbo.cr = NewConflictResolver(config, fbo)
 	fbo.fbm = newFolderBlockManager(config, fb, fbo)
@@ -1274,7 +1275,8 @@ func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 	}
 
 	bps := newBlockPutState(1)
-	err = fbo.unembedBlockChanges(ctx, bps, md, &md.data.Changes, session.UID)
+	err = fbo.syncer.unembedBlockChanges(
+		ctx, bps, md, &md.data.Changes, session.UID)
 	if err != nil {
 		return nil, err
 	}
@@ -1902,103 +1904,6 @@ func (bps *blockPutState) DeepCopy() *blockPutState {
 	return newBps
 }
 
-func (fbo *folderBranchOps) unembedBlockChanges(
-	ctx context.Context, bps *blockPutState, md *RootMetadata,
-	changes *BlockChanges, uid keybase1.UID) error {
-	buf, err := fbo.config.Codec().Encode(changes)
-	if err != nil {
-		return err
-	}
-
-	// Treat the block change list as a file so we can reuse all the
-	// indirection code in fileData.
-	block := NewFileBlock().(*FileBlock)
-	bid, err := fbo.config.Crypto().MakeTemporaryBlockID()
-	if err != nil {
-		return err
-	}
-	ptr := BlockPointer{
-		ID:         bid,
-		KeyGen:     md.LatestKeyGeneration(),
-		DataVer:    fbo.config.DataVersion(),
-		DirectType: DirectBlock,
-		Context:    kbfsblock.MakeFirstContext(uid, keybase1.BlockType_MD),
-	}
-	file := path{fbo.folderBranch,
-		[]pathNode{{ptr, fmt.Sprintf("<MD rev %d>", md.Revision())}}}
-
-	dirtyBcache := simpleDirtyBlockCacheStandard()
-	// Simple dirty bcaches don't need to be shut down.
-
-	getter := func(_ context.Context, _ KeyMetadata, ptr BlockPointer,
-		_ path, _ blockReqType) (*FileBlock, bool, error) {
-		block, err := dirtyBcache.Get(fbo.id(), ptr, fbo.branch())
-		if err != nil {
-			return nil, false, err
-		}
-		fblock, ok := block.(*FileBlock)
-		if !ok {
-			return nil, false, errors.Errorf(
-				"Block for %s is not a file block, block type: %T", ptr, block)
-		}
-		return fblock, true, nil
-	}
-	cacher := func(ptr BlockPointer, block Block) error {
-		return dirtyBcache.Put(fbo.id(), ptr, fbo.branch(), block)
-	}
-	// Start off the cache with the new block
-	err = cacher(ptr, block)
-	if err != nil {
-		return err
-	}
-
-	df := newDirtyFile(file, dirtyBcache)
-	fd := newFileData(file, uid, fbo.config.Crypto(),
-		fbo.config.BlockSplitter(), md.ReadOnly(), getter, cacher, fbo.log)
-
-	// Write all the data.
-	_, _, _, _, _, err = fd.write(ctx, buf, 0, block, DirEntry{}, df)
-	if err != nil {
-		return err
-	}
-
-	// There might be a new top block.
-	topBlock, err := dirtyBcache.Get(fbo.id(), ptr, fbo.branch())
-	if err != nil {
-		return err
-	}
-	block, ok := topBlock.(*FileBlock)
-	if !ok {
-		return errors.New("Top block change block no longer a file block")
-	}
-
-	// Ready all the child blocks.
-	infos, err := fd.ready(ctx, fbo.id(), fbo.config.BlockCache(),
-		dirtyBcache, fbo.config.BlockOps(), bps, block, df)
-	if err != nil {
-		return err
-	}
-	for info := range infos {
-		md.AddMDRefBytes(uint64(info.EncodedSize))
-		md.AddMDDiskUsage(uint64(info.EncodedSize))
-	}
-	fbo.log.CDebugf(ctx, "%d unembedded child blocks", len(infos))
-
-	// Ready the top block.
-	info, _, err := fbo.syncer.readyBlockMultiple(
-		ctx, md.ReadOnly(), block, uid, bps, keybase1.BlockType_MD)
-	if err != nil {
-		return err
-	}
-
-	md.AddMDRefBytes(uint64(info.EncodedSize))
-	md.AddMDDiskUsage(uint64(info.EncodedSize))
-	md.data.cachedChanges = *changes
-	changes.Info = info
-	changes.Ops = nil
-	return nil
-}
-
 type localBcache map[BlockPointer]*DirBlock
 
 // syncBlockLock calls syncBlock under mdWriterLock.
@@ -2050,7 +1955,7 @@ func (fbo *folderBranchOps) syncBlockAndCheckEmbedLocked(ctx context.Context,
 	if stopAt == zeroPtr {
 		bsplit := fbo.config.BlockSplitter()
 		if !bsplit.ShouldEmbedBlockChanges(&md.data.Changes) {
-			err = fbo.unembedBlockChanges(
+			err = fbo.syncer.unembedBlockChanges(
 				ctx, bps, md, &md.data.Changes, session.UID)
 			if err != nil {
 				return path{}, DirEntry{}, nil, err
