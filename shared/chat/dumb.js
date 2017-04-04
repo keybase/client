@@ -432,25 +432,31 @@ const brokenTrackerBanner = {
 const errorBanner = {
   component: ErrorBanner,
   mocks: {
-    text: 'Some error',
-    textLink: 'Some link',
-    textLinkOnClick: () => { console.log('Clicked the text link') },
+    'Error': {
+      text: 'Some error',
+      textLink: 'Some link',
+      textLinkOnClick: () => { console.log('Clicked the text link') },
+    },
   },
 }
 
 const inviteBanner = {
   component: InviteBanner,
   mocks: {
-    users: ['malg@twitter'],
-    inviteLink: 'keybase.io/inv/9999999999',
-    onClickInviteLink: () => { console.log('Clicked the invite link') },
+    'Invite': {
+      inviteLink: 'keybase.io/inv/9999999999',
+      onClickInviteLink: () => { console.log('Clicked the invite link') },
+      users: ['malg@twitter'],
+    },
   },
 }
 
 const infoBanner = {
   component: InfoBanner,
   mocks: {
-    text: 'Some info',
+    'Info': {
+      text: 'Some info',
+    },
   },
 }
 

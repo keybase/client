@@ -13,7 +13,6 @@ import {navigateAppend} from '../../actions/route-tree'
 import {onUserClick} from '../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
 import {pick} from 'lodash'
-import {isMobile} from '../../constants/platform'
 import {withState, withHandlers, compose} from 'recompose'
 
 import type {TypedState} from '../../constants/reducer'
