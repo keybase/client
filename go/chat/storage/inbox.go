@@ -258,8 +258,10 @@ func (i *Inbox) supersedersNotEmpty(ctx context.Context, superseders []chat1.Con
 	for _, superseder := range superseders {
 		for _, conv := range convs {
 			if superseder.ConversationID.Eq(conv.Metadata.ConversationID) {
-				if len(conv.MaxMsgs) > 0 {
-					return true
+				for _, msg := range conv.MaxMsgSummaries {
+					if utils.IsVisibleChatMessageType(msg.GetMessageType()) {
+						return true
+					}
 				}
 			}
 		}

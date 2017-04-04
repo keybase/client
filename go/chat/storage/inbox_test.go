@@ -44,8 +44,8 @@ func makeConvo(mtime gregor1.Time, rmsg chat1.MessageID, mmsg chat1.MessageID) c
 			ReadMsgid: rmsg,
 			MaxMsgid:  mmsg,
 		},
-		// Make it look like there's a message in here too
-		MaxMsgs: make([]chat1.MessageBoxed, 1),
+		// Make it look like there's a visible message in here too
+		MaxMsgSummaries: []chat1.MessageSummary{{MessageType: chat1.MessageType_TEXT}},
 	}
 }
 
@@ -235,7 +235,7 @@ func TestInboxEmptySuperseder(t *testing.T) {
 	var convs []chat1.Conversation
 	for i := 0; i < numConvs; i++ {
 		conv := makeConvo(gregor1.Time(i), 1, 1)
-		conv.MaxMsgs = []chat1.MessageBoxed{}
+		conv.MaxMsgSummaries = []chat1.MessageSummary{}
 		convs = append(convs, conv)
 	}
 	var full, superseded []chat1.Conversation
