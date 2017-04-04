@@ -254,6 +254,19 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1
 	return nil
 }
 
+func (i *Inbox) supersedersNotEmpty(ctx context.Context, superseders []chat1.ConversationMetadata, convs []chat1.Conversation) bool {
+	for _, superseder := range superseders {
+		for _, conv := range convs {
+			if superseder.ConversationID.Eq(conv.Metadata.ConversationID) {
+				if len(conv.MaxMsgs) > 0 {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, convs []chat1.Conversation) []chat1.Conversation {
 	if query == nil {
 		query = &chat1.GetInboxQuery{}
@@ -319,7 +332,9 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, conv
 		if query.OneChatTypePerTLF == nil ||
 			(query.OneChatTypePerTLF != nil && *query.OneChatTypePerTLF) {
 			if conv.Metadata.FinalizeInfo != nil && len(conv.Metadata.SupersededBy) > 0 && len(query.ConvIDs) == 0 {
-				ok = false
+				if i.supersedersNotEmpty(ctx, conv.Metadata.SupersededBy, convs) {
+					ok = false
+				}
 			}
 		}
 

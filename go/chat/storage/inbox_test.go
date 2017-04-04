@@ -44,6 +44,8 @@ func makeConvo(mtime gregor1.Time, rmsg chat1.MessageID, mmsg chat1.MessageID) c
 			ReadMsgid: rmsg,
 			MaxMsgid:  mmsg,
 		},
+		// Make it look like there's a message in here too
+		MaxMsgs: make([]chat1.MessageBoxed, 1),
 	}
 }
 
@@ -222,6 +224,78 @@ func TestInboxQueries(t *testing.T) {
 	_, cres, _, err := inbox.Read(context.TODO(), q, nil)
 	require.NoError(t, err)
 	require.Equal(t, before, cres)
+}
+
+func TestInboxEmptySuperseder(t *testing.T) {
+
+	_, inbox, _ := setupInboxTest(t, "queries")
+
+	// Create an inbox with a bunch of convos, merge it and read it back out
+	numConvs := 20
+	var convs []chat1.Conversation
+	for i := 0; i < numConvs; i++ {
+		conv := makeConvo(gregor1.Time(i), 1, 1)
+		conv.MaxMsgs = []chat1.MessageBoxed{}
+		convs = append(convs, conv)
+	}
+	var full, superseded []chat1.Conversation
+	convs[6].Metadata.SupersededBy = append(convs[6].Metadata.SupersededBy, convs[17].Metadata)
+	convs[17].Metadata.Supersedes = append(convs[17].Metadata.Supersedes, convs[6].Metadata)
+	for i := len(convs) - 1; i >= 0; i-- {
+		// Don't skip the superseded one, since it's not supposed to be filtered out
+		// by an empty superseder
+		full = append(full, convs[i])
+	}
+	for _, conv := range full {
+		t.Logf("convID: %s", conv.GetConvID())
+	}
+
+	require.NoError(t, inbox.Merge(context.TODO(), 1, convs, nil, nil))
+
+	// Merge in queries and try to read them back out
+	var q *chat1.GetInboxQuery
+	mergeReadAndCheck := func(t *testing.T, ref []chat1.Conversation, name string) {
+		require.NoError(t, inbox.Merge(context.TODO(), 1, []chat1.Conversation{}, q, nil))
+		_, res, _, err := inbox.Read(context.TODO(), q, nil)
+		require.NoError(t, err)
+		convListCompare(t, ref, res, name)
+	}
+	t.Logf("merging all convs with nil query")
+	q = nil
+	mergeReadAndCheck(t, full, "all")
+
+	t.Logf("merging empty superseder query")
+	// Don't skip the superseded one, since it's not supposed to be filtered out
+	// by an empty superseder
+	for _, conv := range full {
+		superseded = append(superseded, conv)
+	}
+	q = &chat1.GetInboxQuery{}
+	// OneChatTypePerTLF
+	t.Logf("full has %d, superseded has %d", len(full), len(superseded))
+
+	mergeReadAndCheck(t, superseded, "superseded")
+
+	// Now test OneChatTypePerTLF
+	_, inbox, _ = setupInboxTest(t, "queries2")
+	full = []chat1.Conversation{}
+	superseded = []chat1.Conversation{}
+	for i := len(convs) - 1; i >= 0; i-- {
+		// skip the superseded one, since it's supposed to be filtered out
+		// if not OneChatTypePerTLF
+		if i == 6 {
+			continue
+		}
+		full = append(full, convs[i])
+	}
+	require.NoError(t, inbox.Merge(context.TODO(), 1, full, nil, nil))
+	for _, conv := range full {
+		superseded = append(superseded, conv)
+	}
+	oneChatTypePerTLF := false
+	q = &chat1.GetInboxQuery{OneChatTypePerTLF: &oneChatTypePerTLF}
+	mergeReadAndCheck(t, superseded, "superseded")
+
 }
 
 func TestInboxPagination(t *testing.T) {
