@@ -10,17 +10,6 @@ other browsers too.
 
 You'll need to install the Keybase Native Messaging client (`kbnm`) and install the whitelist for the extension to use the binary:
 
-**Temporary detour:** The straight-up `go get` won't work until the
-`shazow/chrome-extension` branch is merged into master. For now:
-
-```shell
-$ go get github.com/keybase/client
-$ cd $GOPATH/src/github.com/keybase/client
-$ git checkout "shazow/chrome-extension"
-```
-
-**Back to your regularly scheduled tour:**
-
 ```shell
 $ go get github.com/keybase/client/go/kbnm
 $ $GOPATH/src/github.com/keybase/client/go/kbnm/install_host
