@@ -490,7 +490,8 @@ class ConversationList extends Component<void, Props, State> {
               ref={this._setCellMeasurerRef}
               cellSizeCache={this._cellCache}
               rowCount={rowCount}
-              width={width - scrollbarWidth} >
+              width={width - scrollbarWidth}
+            >
               {({getRowHeight}) => (
                 <VirtualizedList
                   cellRangeRenderer={this._cellRangeRenderer}
@@ -504,7 +505,10 @@ class ConversationList extends Component<void, Props, State> {
                   rowCount={rowCount}
                   rowHeight={getRowHeight}
                   columnWidth={width}
-                  rowRenderer={this._rowRenderer} />)}</CellMeasurer>)}
+                  rowRenderer={this._rowRenderer} />
+              )}
+            </CellMeasurer>
+          )}
         </AutoSizer>
       </div>
     )
