@@ -222,13 +222,18 @@ type ConnectedProps = Props & { onEnsurePreviewLoaded: () => void }
 
 export class AttachmentMessage extends PureComponent<void, ConnectedProps, void> {
   componentDidMount () {
-    if (this.props.message && this.props.message.filename) {
-      setImmediate(() => this.props.onEnsurePreviewLoaded())
-    }
+    this._ensurePreviewLoaded()
   }
 
   componentDidUpdate (prevProps: ConnectedProps) {
     if (this.props.message && prevProps.message && prevProps.message.filename != this.props.message.filename) {
+      this._ensurePreviewLoaded()
+    }
+  }
+
+  _ensurePreviewLoaded () {
+    const {message} = this.props
+    if (message && message.filename && !message.previewPath) {
       setImmediate(() => this.props.onEnsurePreviewLoaded())
     }
   }
