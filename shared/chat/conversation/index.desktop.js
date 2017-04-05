@@ -101,7 +101,6 @@ class Conversation extends Component<void, Props, State> {
         {offline}
         <Header sidePanelOpen={sidePanelOpen} onToggleSidePanel={onToggleSidePanel} onBack={onBack} />
         <List
-          selectedConversationIDKey={selectedConversationIDKey}
           focusInputCounter={focusInputCounter}
           listScrollDownCounter={listScrollDownCounter}
           onEditLastMessage={onEditLastMessage}

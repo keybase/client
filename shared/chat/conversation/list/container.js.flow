@@ -3,7 +3,6 @@ import {Component} from 'react'
 import * as Constants from '../../../constants/chat'
 
 export type OwnProps = {
-  selectedConversationIDKey: ?Constants.ConversationIDKey,
   focusInputCounter: number,
   listScrollDownCounter: number,
   onEditLastMessage: () => void,

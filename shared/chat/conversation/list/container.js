@@ -16,7 +16,8 @@ import type {Props, OptionsFn} from '.'
 import type {OwnProps} from './container'
 import type {TypedState} from '../../../constants/reducer'
 
-const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollDownCounter, onFocusInput, selectedConversationIDKey}: OwnProps) => {
+const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollDownCounter, onFocusInput}: OwnProps) => {
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const you = state.config.username || ''
   const origFollowingMap = state.config.following
   const origMetaDataMap = state.chat.get('metaData')
