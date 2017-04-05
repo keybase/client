@@ -232,8 +232,8 @@ export class AttachmentMessage extends PureComponent<void, ConnectedProps, void>
   }
 
   _ensurePreviewLoaded () {
-    const {message} = this.props
-    if (message && message.filename && !message.previewPath) {
+    const {isMeasuring, message} = this.props
+    if (!isMeasuring && message && message.filename && !message.previewPath) {
       setImmediate(() => this.props.onEnsurePreviewLoaded())
     }
   }
