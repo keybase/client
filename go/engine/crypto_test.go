@@ -222,14 +222,7 @@ func TestCryptoUnboxBytes32NoEncryptionKey(t *testing.T) {
 }
 
 func cachedSecretKey(tc libkb.TestContext, ktype libkb.SecretKeyType) (key libkb.GenericKey, err error) {
-	aerr := tc.G.LoginState().Account(func(a *libkb.Account) {
-		key, err = a.CachedSecretKey(libkb.SecretKeyArg{KeyType: ktype})
-	}, "cachedSecretKey")
-
-	if aerr != nil {
-		return nil, aerr
-	}
-	return key, err
+	return tc.G.ActiveDevice.KeyByType(ktype)
 }
 
 func assertCachedSecretKey(tc libkb.TestContext, ktype libkb.SecretKeyType) {
