@@ -200,7 +200,7 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 	case keybase1.DeviceType_MOBILE:
 		args.DeviceType = libkb.DeviceTypeMobile
 	default:
-		return fmt.Errorf("unknown device type: %v", args.DeviceType)
+		return fmt.Errorf("unknown device type: %v", s.arg.DeviceType)
 	}
 
 	eng := NewDeviceWrap(args, s.G())
