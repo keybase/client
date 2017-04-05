@@ -314,10 +314,6 @@ function updateInboxComplete (): Constants.UpdateInboxComplete {
   return {payload: undefined, type: 'chat:updateInboxComplete'}
 }
 
-function receivedMessage (message: Constants.Message): Constants.ReceivedMessage {
-  return {payload: {message}, type: 'chat:receivedMessage'}
-}
-
 function removeOutboxMessage (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey): Constants.RemoveOutboxMessage {
   return {payload: {conversationIDKey, outboxID}, type: 'chat:removeOutboxMessage'}
 }
@@ -354,12 +350,21 @@ function setSelectedRouteState (selectedConversation: Constants.ConversationIDKe
   return setRouteState(List([chatTab, selectedConversation]), partialState)
 }
 
+function setAttachmentPlaceholderPreview (outboxID: Constants.OutboxIDKey, previewPath: string): Constants.SetAttachmentPlaceholderPreview {
+  return {payload: {previewPath, outboxID}, type: 'chat:setAttachmentPlaceholderPreview'}
+}
+
+function clearAttachmentPlaceholderPreview (outboxID: Constants.OutboxIDKey): Constants.ClearAttachmentPlaceholderPreview {
+  return {payload: {outboxID}, type: 'chat:clearAttachmentPlaceholderPreview'}
+}
+
 export {
   addPending,
   appendMessages,
   attachmentLoaded,
   badgeAppForChat,
   blockConversation,
+  clearAttachmentPlaceholderPreview,
   clearMessages,
   clearRekey,
   createPendingFailure,
@@ -385,7 +390,6 @@ export {
   pendingToRealConversation,
   postMessage,
   prependMessages,
-  receivedMessage,
   removeOutboxMessage,
   removePendingFailure,
   replaceConversation,
@@ -393,6 +397,7 @@ export {
   retryMessage,
   selectAttachment,
   selectConversation,
+  setAttachmentPlaceholderPreview,
   setInitialConversation,
   setLoaded,
   setSelectedRouteState,

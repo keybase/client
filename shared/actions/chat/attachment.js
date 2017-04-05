@@ -5,7 +5,7 @@ import * as Creators from './creators'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Shared from './shared'
-import {call, put, select, cancel, fork, join, take} from 'redux-saga/effects'
+import {call, put, select, cancel, fork, join} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
 import {saveAttachment, showShareActionSheet} from '../platform-specific'
@@ -131,7 +131,6 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
       outputDir: tmpDir(),
     },
   })
-  const previewSize = preview.metadata && Constants.parseMetadataPreviewSize(preview.metadata)
 
   const header = yield call(Shared.clientHeader, ChatTypes.CommonMessageType.attachment, conversationIDKey)
   const param = {
@@ -145,6 +144,7 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
   }
 
   const channelConfig = Saga.singleFixedChannelConfig([
+    'chat.1.chatUi.chatAttachmentUploadOutboxID',
     'chat.1.chatUi.chatAttachmentUploadStart',
     'chat.1.chatUi.chatAttachmentPreviewUploadStart',
     'chat.1.chatUi.chatAttachmentUploadProgress',
@@ -155,18 +155,13 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
 
   const channelMap = ((yield call(ChatTypes.localPostFileAttachmentLocalRpcChannelMap, channelConfig, {param})): any)
 
+  const outboxIDResp = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadOutboxID')
+  const {outboxID} = outboxIDResp.params
+  yield put(Creators.setAttachmentPlaceholderPreview(Constants.outboxIDToKey(outboxID), preview.filename))
+  outboxIDResp.response.result()
+
   const uploadStart = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
   const messageID = uploadStart.params.placeholderMsgID
-
-  const updateLocalMessageTask = yield fork(function * () {
-    yield take(action => action.type === 'chat:receivedMessage' && action.payload.message.messageID === messageID)
-    yield put(Creators.updateMessage(conversationIDKey, {
-      previewPath: preview.filename,
-      previewSize,
-    }, messageID))
-  })
-
-  // We will not receive the placeholder message before we respond to this RPC
   uploadStart.response.result()
 
   const finishedTask = yield fork(function * () {
@@ -190,7 +185,6 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
   const uploadDone = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadDone')
   uploadDone.response.result()
 
-  yield join(updateLocalMessageTask)
   yield join(finishedTask)
   yield cancel(progressTask)
   Saga.closeChannelMap(channelMap)

@@ -131,8 +131,21 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           })
         }
 
+        const messageFromYou = message.deviceName === yourDeviceName && message.author && yourName === message.author
+
+        if (message.type === 'Attachment' && messageFromYou) {
+          const outboxID = message.outboxID
+          if (outboxID) {  // const + inner if to satisfy flow
+            const previewPath = yield select(Shared.attachmentPlaceholderPreviewSelector, outboxID)
+            if (previewPath) {
+              message.previewPath = previewPath
+              yield put(Creators.clearAttachmentPlaceholderPreview(outboxID))
+            }
+          }
+        }
+
         const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
-        if (message.type === 'Text' && message.outboxID && message.deviceName === yourDeviceName && yourName === message.author) {
+        if (message.type === 'Text' && message.outboxID && messageFromYou) {
           // If the message has an outboxID and came from our device, then we
           // sent it and have already rendered it in the message list; we just
           // need to mark it as sent.
@@ -168,7 +181,6 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
             }
           }
         }
-        yield put(Creators.receivedMessage(message))
       }
       break
     default:
@@ -470,6 +482,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             key: Constants.messageKey('messageID', common.messageID),
           }
         case ChatTypes.CommonMessageType.attachment: {
+          const outboxID = payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
           if (!payload.messageBody.attachment) {
             throw new Error('empty attachment body')
           }
@@ -492,6 +505,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             previewPath: null,
             hdPreviewPath: null,
             downloadedPath: null,
+            outboxID,
             key: Constants.messageKey('messageID', common.messageID),
           }
         }

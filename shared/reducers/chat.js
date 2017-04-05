@@ -471,6 +471,16 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       )
       return state.set('conversationStates', newConversationStates)
     }
+    case 'chat:setAttachmentPlaceholderPreview': {
+      const {outboxID, previewPath} = action.payload
+      // $FlowIssue doesn't recognize updates
+      return state.update('attachmentPlaceholderPreviews', previews => previews.set(outboxID, previewPath))
+    }
+    case 'chat:clearAttachmentPlaceholderPreview': {
+      const {outboxID} = action.payload
+      // $FlowIssue doesn't recognize updates
+      return state.update('attachmentPlaceholderPreviews', previews => previews.delete(outboxID))
+    }
     case 'gregor:updateReachability': { // reset this when we go online
       if (action.payload.reachability.reachable === ReachabilityReachable.yes) {
         const newConversationStates = state.get('conversationStates').map(
