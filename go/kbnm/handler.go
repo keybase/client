@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
-	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"os/exec"
 	"strings"
 )
@@ -66,9 +68,28 @@ func (h *handler) handleChat(req *Request) error {
 }
 
 type resultQuery struct {
-	Sigs []struct {
-		Statement string `json:"statement"`
-	} `json:"sigs"`
+	Username string `json:"username"`
+}
+
+func parseQuery(r io.Reader) (*resultQuery, error) {
+	br := bufio.NewReader(r)
+	line, err := br.ReadBytes('\n')
+	if err != nil {
+		return nil, err
+	}
+	parts := bytes.Split([]byte(`001`), line)
+	if len(parts) != 2 {
+		fmt.Printf("%q\n%d: %q\n", line, len(parts), parts)
+		return nil, errParsing
+	}
+
+	if bytes.HasPrefix(parts[1], []byte(`Not found`)) {
+		return nil, errUserNotFound
+	}
+
+	resp := &resultQuery{}
+	_, err = fmt.Sscanf(parts[1], "Identifying ^[[1m%s^[[22m$", &resp.Username)
+	return resp, err
 }
 
 // handleQuery searches whether a user is present in Keybase.
@@ -82,14 +103,16 @@ func (h *handler) handleQuery(req *Request) (*resultQuery, error) {
 		return nil, err
 	}
 
+	// Unfortunately `keybase id ...` does not support JSON output, so we parse the output
 	var out bytes.Buffer
-	cmd := exec.Command(binPath, "sigs", "list", "--type=self", "--json", req.To)
-	cmd.Stdout = &out
+	cmd := exec.Command(binPath, "id", req.To)
+	cmd.Stderr = &out
 
 	err = h.Run(cmd)
+	if err != nil {
+		// TODO: Differentiate betewen failure and not matched
+		return nil, err
+	}
 
-	result := &resultQuery{}
-	json.Unmarshal(out.Bytes(), &result.Sigs)
-
-	return result, err
+	return parseQuery(&out)
 }
