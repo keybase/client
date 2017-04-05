@@ -13,10 +13,10 @@ import {compose} from 'recompose'
 import type {OpenInFileUI} from '../../../constants/kbfs'
 import type {Options} from '../messages'
 import type {Props, OptionsFn} from '.'
-import type {OwnProps} from './container'
+import type {OwnProps, StateProps, DispatchProps} from './container'
 import type {TypedState} from '../../../constants/reducer'
 
-const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollDownCounter, onFocusInput}: OwnProps) => {
+const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollDownCounter, onFocusInput}: OwnProps): StateProps => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const you = state.config.username || ''
   const origFollowingMap = state.config.following
@@ -79,20 +79,20 @@ const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollD
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
+  _onLoadAttachment: (selectedConversation, messageID, filename) => { dispatch(Creators.loadAttachment(selectedConversation, messageID, downloadFilePath(filename), false, false)) },
+  _onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => { dispatch(Creators.loadMoreMessages(conversationIDKey, false)) },
+  _onRetryMessage: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
   onDeleteMessage: (message: Constants.Message) => { dispatch(Creators.deleteMessage(message)) },
   onEditMessage: (message: Constants.Message, body: string) => { dispatch(Creators.editMessage(message, new HiddenString(body))) },
-  onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(Creators.loadAttachment(selectedConversation, messageID, downloadFilePath(filename), false, false)),
-  onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => dispatch(Creators.loadMoreMessages(conversationIDKey, false)),
   onMessageAction: (message: Constants.ServerMessage) => dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
   onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => dispatch(Creators.openConversation(conversationIDKey)),
   onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
   onOpenInPopup: (message: Constants.AttachmentMessage) => dispatch(Creators.openAttachmentPopup(message)),
   onRetryAttachment: (message: Constants.AttachmentMessage) => dispatch(Creators.retryAttachment(message)),
-  onRetryMessage: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
 })
 
-const mergeProps = (stateProps, dispatchProps): Props => {
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => {
   const props = {
     ...stateProps,
     ...dispatchProps,
@@ -100,21 +100,21 @@ const mergeProps = (stateProps, dispatchProps): Props => {
       {key: `chatSecuredHeader-${stateProps.moreToLoad.toString()}`, type: 'ChatSecuredHeader'},
       {key: `loadingMore-${stateProps.moreToLoad.toString()}`, type: 'LoadingMore'},
     ]),
-    onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
-    onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
-    onRetryMessage: (outboxID: Constants.OutboxIDKey) => dispatchProps.onRetryMessage(stateProps.selectedConversation, outboxID),
+    onLoadAttachment: (messageID, filename) => { stateProps.selectedConversation && dispatchProps._onLoadAttachment(stateProps.selectedConversation, messageID, filename) },
+    onLoadMoreMessages: () => { stateProps.selectedConversation && dispatchProps._onLoadMoreMessages(stateProps.selectedConversation) },
+    onRetryMessage: (outboxID: Constants.OutboxIDKey) => { stateProps.selectedConversation && dispatchProps._onRetryMessage(stateProps.selectedConversation, outboxID) },
   }
 
   return {
     ...props,
-    messages: decorateSupersedes(props),
+    messages: decorateSupersedes(props.supersedes, props.moreToLoad, props.messages),
     optionsFn: propsToMessageOptionsFn(props),
   }
 }
 
-function decorateSupersedes (props: Props): List<Constants.Message> {
-  if (props.supersedes && !props.moreToLoad) {
-    const {conversationIDKey, finalizeInfo: {resetUser}} = props.supersedes
+function decorateSupersedes (supersedes, moreToLoad, messages): List<Constants.Message> {
+  if (supersedes && !moreToLoad) {
+    const {conversationIDKey, finalizeInfo: {resetUser}} = supersedes
     const supersedesMessage: Constants.SupersedesMessage = {
       key: `supersedes-${conversationIDKey}-${resetUser}`,
       supersedes: conversationIDKey,
@@ -122,13 +122,14 @@ function decorateSupersedes (props: Props): List<Constants.Message> {
       type: 'Supersedes',
       username: resetUser,
     }
-    return props.messages.unshift(supersedesMessage)
+    return messages.unshift(supersedesMessage)
   }
 
-  return props.messages
+  return messages
 }
 
 // TODO remove this. Not needed w/ connected messages
+// $FlowIssue wants props with optionsFn inside of it, which this thing itself is building. This'll all go away soon
 function propsToMessageOptionsFn (props: Props): OptionsFn {
   return function (message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, onAction, onShowEditor, isEditing = false): Options {
     const skipMsgHeader = (message.author != null && prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)

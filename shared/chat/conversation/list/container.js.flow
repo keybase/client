@@ -1,6 +1,37 @@
 // @flow
 import {Component} from 'react'
+import {List} from 'immutable'
 import * as Constants from '../../../constants/chat'
+
+export type StateProps = {
+  editLastMessageCounter: number,
+  editingMessage: ?Constants.Message,
+  firstNewMessageID: ?Constants.MessageID,
+  followingMap: Constants.FollowingMap,
+  listScrollDownCounter: number,
+  messages: List<Constants.Message>,
+  metaDataMap: Constants.MetaDataMap,
+  moreToLoad: boolean,
+  onFocusInput: () => void,
+  selectedConversation: ?Constants.ConversationIDKey,
+  supersededBy: ?Constants.SupersedeInfo,
+  supersedes: ?Constants.SupersedeInfo,
+  validated: boolean,
+  you: string,
+}
+
+export type DispatchProps = {
+  _onLoadAttachment: (selectedConversation: Constants.ConversationIDKey, messageID: Constants.MessageID, filename: string) => void,
+  _onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => void,
+  _onRetryMessage: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => void,
+  onDeleteMessage: (message: Constants.Message) => void,
+  onEditMessage: (message: Constants.Message, body: string) => void,
+  onMessageAction: (message: Constants.ServerMessage) => void,
+  onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => void,
+  onOpenInFileUI: (path: string) => void,
+  onOpenInPopup: (message: Constants.AttachmentMessage) => void,
+  onRetryAttachment: (message: Constants.AttachmentMessage) => void,
+}
 
 export type OwnProps = {
   focusInputCounter: number,

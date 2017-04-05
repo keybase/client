@@ -159,7 +159,7 @@ class ConversationList extends Component<void, Props, State> {
       this._recomputeList()
     }
 
-    const willScrollDown = nextProps.listScrollDownState !== this.props.listScrollDownState
+    const willScrollDown = nextProps.listScrollDownCounter !== this.props.listScrollDownCounter
 
     if (!this.state.isScrolling || willScrollDown || this.state.isLockedToBottom) {
       this._updateInternalMessages(nextProps)

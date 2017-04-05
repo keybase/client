@@ -77,7 +77,7 @@ class ConversationList extends Component <void, Props, State> {
   }
 
   componentWillReceiveProps (nextProps: Props) {
-    const willScrollDown = nextProps.listScrollDownState !== this.props.listScrollDownState
+    const willScrollDown = nextProps.listScrollDownCounter !== this.props.listScrollDownCounter
 
     if (willScrollDown) {
       this.setState({isLockedToBottom: true})

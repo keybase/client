@@ -80,7 +80,6 @@ class Conversation extends Component<void, Props, State> {
       onFocusInput,
       onScrollDown,
       onToggleSidePanel,
-      selectedConversationIDKey,
       sidePanelOpen,
     } = this.props
 

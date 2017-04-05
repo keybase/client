@@ -9,11 +9,11 @@ export type OptionsFn = (message: Constants.Message, prevMessage: Constants.Mess
 
 export type Props = {
   editLastMessageCounter: number,
-  editingMessage: Constants.Message,
+  editingMessage: ?Constants.Message,
   firstNewMessageID: ?Constants.MessageID,
   followingMap: Constants.FollowingMap,
   headerMessages: List<Constants.Message>,
-  listScrollDownState: number,
+  listScrollDownCounter: number,
   messages: List<Constants.Message>,
   metaDataMap: Constants.MetaDataMap,
   moreToLoad: boolean,

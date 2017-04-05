@@ -43,7 +43,7 @@ const mockFollowingMap = (authorSeeds: Array<number>, seedToBool) => {
 
 const mockListProps = (messages, metaDataMap, you, authorSeeds, moreToLoad) => ({
   firstNewMessageID: null,
-  listScrollDownState: 0,
+  listScrollDownCounter: 0,
   messages: Immutable.List(messages),
   metaDataMap,
   muted: false,
