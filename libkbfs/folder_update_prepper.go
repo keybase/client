@@ -150,15 +150,16 @@ func (fup folderUpdatePrepper) unembedBlockChanges(
 	return nil
 }
 
-// syncBlock updates, and readies, the blocks along the path for the
-// given write, up to the root of the tree or stopAt (if specified).
-// When it updates the root of the tree, it also modifies the given
-// head object with a new revision number and root block ID.  It first
-// checks the provided lbc for blocks that may have been modified by
-// previous syncBlock calls or the FS calls themselves.  It returns
-// the updated path to the changed directory, the new or updated
-// directory entry created as part of the call, and a summary of all
-// the blocks that now must be put to the block server.
+// prepUpdateForPath updates, and readies, the blocks along the path
+// for the given write, up to the root of the tree or stopAt (if
+// specified).  When it updates the root of the tree, it also modifies
+// the given head object with a new revision number and root block ID.
+// It first checks the provided lbc for blocks that may have been
+// modified by previous prepUpdateForPath calls or the FS calls
+// themselves.  It returns the updated path to the changed directory,
+// the new or updated directory entry created as part of the call, and
+// a summary of all the blocks that now must be put to the block
+// server.
 //
 // This function is safe to use unlocked, but may modify MD to have
 // the same revision number as another one. Callers that require
@@ -168,7 +169,7 @@ func (fup folderUpdatePrepper) unembedBlockChanges(
 // entryType must not be Sym.
 //
 // TODO: deal with multiple nodes for indirect blocks
-func (fup folderUpdatePrepper) syncBlock(
+func (fup folderUpdatePrepper) prepUpdateForPath(
 	ctx context.Context, lState *lockState, uid keybase1.UID,
 	md *RootMetadata, newBlock Block, dir path, name string,
 	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer,
@@ -214,7 +215,7 @@ func (fup folderUpdatePrepper) syncBlock(
 
 			// First, check the localBcache, which could contain
 			// blocks that were modified across multiple calls to
-			// syncBlock.
+			// prepUpdateForPath.
 			var ok bool
 			prevDblock, ok = lbc[prevDir.tailPointer()]
 			if !ok {
@@ -307,7 +308,7 @@ func (fup folderUpdatePrepper) syncBlock(
 		// on the next sync call
 		if prevIdx >= 0 && dir.path[prevIdx].BlockPointer == stopAt {
 			// Put this back into the cache as dirty -- the next
-			// syncBlock call will ready it.
+			// prepUpdateForPath call will ready it.
 			dblock, ok := currBlock.(*DirBlock)
 			if !ok {
 				return path{}, DirEntry{}, nil, BadDataError{stopAt.ID}
@@ -330,17 +331,17 @@ type pathTreeNode struct {
 	mergedPath path
 }
 
-// syncTree, given a node in part of the FS tree that needs to be
-// sync'd, either calls FolderBranchOps.syncBlock on it if the node
-// has no children of its own, or it calls syncTree recursively for
-// all children.  When calling itself recursively on its children, it
+// prepTree, given a node in part of the FS tree that needs to be
+// sync'd, either calls prepUpdateForPath on it if the node has no
+// children of its own, or it calls prepTree recursively for all
+// children.  When calling itself recursively on its children, it
 // instructs each child to sync only up to this node, except for the
 // last child which may sync back to the given stopAt pointer.  This
 // ensures that the sync process will ready blocks that are complete
 // (with all child changes applied) before readying any parent blocks.
-// syncTree returns the merged blockPutState for itself and all of its
+// prepTree returns the merged blockPutState for itself and all of its
 // children.
-func (fup folderUpdatePrepper) syncTree(ctx context.Context, lState *lockState,
+func (fup folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 	unmergedChains *crChains, newMD *RootMetadata, uid keybase1.UID,
 	node *pathTreeNode, stopAt BlockPointer, lbc localBcache,
 	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache) (
@@ -424,7 +425,7 @@ func (fup folderUpdatePrepper) syncTree(ctx context.Context, lState *lockState,
 		}
 
 		// TODO: fix mtime and ctime?
-		_, _, bps, err := fup.syncBlock(
+		_, _, bps, err := fup.prepUpdateForPath(
 			ctx, lState, uid, newMD, block,
 			*node.mergedPath.parentPath(), node.mergedPath.tailName(),
 			entryType, false, false, stopAt, lbc)
@@ -449,7 +450,7 @@ func (fup folderUpdatePrepper) syncTree(ctx context.Context, lState *lockState,
 		if count == len(node.children) {
 			localStopAt = stopAt
 		}
-		childBps, err := fup.syncTree(
+		childBps, err := fup.prepTree(
 			ctx, lState, unmergedChains, newMD, uid, child, localStopAt, lbc,
 			newFileBlocks, dirtyBcache)
 		if err != nil {
@@ -812,13 +813,109 @@ func (fup folderUpdatePrepper) makeSyncTree(ctx context.Context,
 	return root
 }
 
-// syncBlocks takes in the complete set of paths affected by a set of
-// changes, and organizes them into a tree, which it then syncs using
-// syncTree.  It returns a map describing how blocks were updated in
-// the final update, as well as the complete set of blocks that need
-// to be put to the server (and cached) to complete this update and a
-// list of blocks that can be removed from the flushing queue.
-func (fup folderUpdatePrepper) syncBlocks(ctx context.Context,
+// fixOpPointersForUpdate takes in a slice of "reverted" ops (all referring
+// to the original BlockPointers) and a map of BlockPointer updates
+// (from original to the new most recent pointer), and corrects all
+// the ops to use the new most recent pointers instead.  It returns a
+// new slice of these operations with room in the first slot for a
+// dummy operation containing all the updates.
+func fixOpPointersForUpdate(oldOps []op, updates map[BlockPointer]BlockPointer,
+	chains *crChains) (
+	[]op, error) {
+	newOps := make([]op, 0, len(oldOps)+1)
+	newOps = append(newOps, nil) // placeholder for dummy op
+	for _, op := range oldOps {
+		var updatesToFix []*blockUpdate
+		var ptrsToFix []*BlockPointer
+		switch realOp := op.(type) {
+		case *createOp:
+			updatesToFix = append(updatesToFix, &realOp.Dir)
+			// Since the created node was made exclusively during this
+			// branch, we can use the most recent pointer for that
+			// node as its ref.
+			refs := realOp.Refs()
+			realOp.RefBlocks = make([]BlockPointer, len(refs))
+			for i, ptr := range refs {
+				mostRecent, err := chains.mostRecentFromOriginalOrSame(ptr)
+				if err != nil {
+					return nil, err
+				}
+				realOp.RefBlocks[i] = mostRecent
+				ptrsToFix = append(ptrsToFix, &realOp.RefBlocks[i])
+			}
+			// The leading resolutionOp will take care of the updates.
+			realOp.Updates = nil
+		case *rmOp:
+			updatesToFix = append(updatesToFix, &realOp.Dir)
+			// Since the rm'd node was made exclusively during this
+			// branch, we can use the original pointer for that
+			// node as its unref.
+			unrefs := realOp.Unrefs()
+			realOp.UnrefBlocks = make([]BlockPointer, len(unrefs))
+			for i, ptr := range unrefs {
+				original, err := chains.originalFromMostRecentOrSame(ptr)
+				if err != nil {
+					return nil, err
+				}
+				realOp.UnrefBlocks[i] = original
+			}
+			// The leading resolutionOp will take care of the updates.
+			realOp.Updates = nil
+		case *renameOp:
+			updatesToFix = append(updatesToFix, &realOp.OldDir, &realOp.NewDir)
+			ptrsToFix = append(ptrsToFix, &realOp.Renamed)
+			// Hack: we need to fixup local conflict renames so that the block
+			// update changes to the new block pointer.
+			for i := range realOp.Updates {
+				ptrsToFix = append(ptrsToFix, &realOp.Updates[i].Ref)
+			}
+			// Note: Unrefs from the original renameOp are now in a
+			// separate rm operation.
+		case *syncOp:
+			updatesToFix = append(updatesToFix, &realOp.File)
+			realOp.Updates = nil
+		case *setAttrOp:
+			updatesToFix = append(updatesToFix, &realOp.Dir)
+			ptrsToFix = append(ptrsToFix, &realOp.File)
+			// The leading resolutionOp will take care of the updates.
+			realOp.Updates = nil
+		}
+
+		for _, update := range updatesToFix {
+			newPtr, ok := updates[update.Unref]
+			if !ok {
+				continue
+			}
+			// Since the first op does all the heavy lifting of
+			// updating pointers, we can set these to both just be the
+			// new pointer
+			var err error
+			*update, err = makeBlockUpdate(newPtr, newPtr)
+			if err != nil {
+				return nil, err
+			}
+		}
+		for _, ptr := range ptrsToFix {
+			newPtr, ok := updates[*ptr]
+			if !ok {
+				continue
+			}
+			*ptr = newPtr
+		}
+
+		newOps = append(newOps, op)
+	}
+	return newOps, nil
+}
+
+// prepUpdateForPaths takes in the complete set of paths affected by a
+// set of changes, and organizes them into a tree, which it then syncs
+// using prepTree.  It returns a map describing how blocks were
+// updated in the final update, as well as the complete set of blocks
+// that need to be put to the server (and cached) to complete this
+// update and a list of blocks that can be removed from the flushing
+// queue.
+func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 	lState *lockState, md *RootMetadata, unmergedChains, mergedChains *crChains,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
 	resolvedPaths map[BlockPointer]path, lbc localBcache,
@@ -861,7 +958,7 @@ func (fup folderUpdatePrepper) syncBlocks(ctx context.Context,
 		root := fup.makeSyncTree(ctx, resolvedPaths, lbc, newFileBlocks)
 
 		if root != nil {
-			bps, err = fup.syncTree(ctx, lState, unmergedChains,
+			bps, err = fup.prepTree(ctx, lState, unmergedChains,
 				md, session.UID, root,
 				BlockPointer{}, lbc, newFileBlocks, dirtyBcache)
 			if err != nil {
@@ -975,7 +1072,7 @@ func (fup folderUpdatePrepper) syncBlocks(ctx context.Context,
 		}
 	}
 
-	newOps, err := crFixOpPointers(oldOps[:len(oldOps)-1], updates,
+	newOps, err := fixOpPointersForUpdate(oldOps[:len(oldOps)-1], updates,
 		unmergedChains)
 	if err != nil {
 		return nil, nil, nil, err

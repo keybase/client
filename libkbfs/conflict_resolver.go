@@ -2531,101 +2531,6 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 	return newMD, nil
 }
 
-// crFixOpPointers takes in a slice of "reverted" ops (all referring
-// to the original BlockPointers) and a map of BlockPointer updates
-// (from original to the new most recent pointer), and corrects all
-// the ops to use the new most recent pointers instead.  It returns a
-// new slice of these operations with room in the first slot for a
-// dummy operation containing all the updates.
-func crFixOpPointers(oldOps []op, updates map[BlockPointer]BlockPointer,
-	chains *crChains) (
-	[]op, error) {
-	newOps := make([]op, 0, len(oldOps)+1)
-	newOps = append(newOps, nil) // placeholder for dummy op
-	for _, op := range oldOps {
-		var updatesToFix []*blockUpdate
-		var ptrsToFix []*BlockPointer
-		switch realOp := op.(type) {
-		case *createOp:
-			updatesToFix = append(updatesToFix, &realOp.Dir)
-			// Since the created node was made exclusively during this
-			// branch, we can use the most recent pointer for that
-			// node as its ref.
-			refs := realOp.Refs()
-			realOp.RefBlocks = make([]BlockPointer, len(refs))
-			for i, ptr := range refs {
-				mostRecent, err := chains.mostRecentFromOriginalOrSame(ptr)
-				if err != nil {
-					return nil, err
-				}
-				realOp.RefBlocks[i] = mostRecent
-				ptrsToFix = append(ptrsToFix, &realOp.RefBlocks[i])
-			}
-			// The leading resolutionOp will take care of the updates.
-			realOp.Updates = nil
-		case *rmOp:
-			updatesToFix = append(updatesToFix, &realOp.Dir)
-			// Since the rm'd node was made exclusively during this
-			// branch, we can use the original pointer for that
-			// node as its unref.
-			unrefs := realOp.Unrefs()
-			realOp.UnrefBlocks = make([]BlockPointer, len(unrefs))
-			for i, ptr := range unrefs {
-				original, err := chains.originalFromMostRecentOrSame(ptr)
-				if err != nil {
-					return nil, err
-				}
-				realOp.UnrefBlocks[i] = original
-			}
-			// The leading resolutionOp will take care of the updates.
-			realOp.Updates = nil
-		case *renameOp:
-			updatesToFix = append(updatesToFix, &realOp.OldDir, &realOp.NewDir)
-			ptrsToFix = append(ptrsToFix, &realOp.Renamed)
-			// Hack: we need to fixup local conflict renames so that the block
-			// update changes to the new block pointer.
-			for i := range realOp.Updates {
-				ptrsToFix = append(ptrsToFix, &realOp.Updates[i].Ref)
-			}
-			// Note: Unrefs from the original renameOp are now in a
-			// separate rm operation.
-		case *syncOp:
-			updatesToFix = append(updatesToFix, &realOp.File)
-			realOp.Updates = nil
-		case *setAttrOp:
-			updatesToFix = append(updatesToFix, &realOp.Dir)
-			ptrsToFix = append(ptrsToFix, &realOp.File)
-			// The leading resolutionOp will take care of the updates.
-			realOp.Updates = nil
-		}
-
-		for _, update := range updatesToFix {
-			newPtr, ok := updates[update.Unref]
-			if !ok {
-				continue
-			}
-			// Since the first op does all the heavy lifting of
-			// updating pointers, we can set these to both just be the
-			// new pointer
-			var err error
-			*update, err = makeBlockUpdate(newPtr, newPtr)
-			if err != nil {
-				return nil, err
-			}
-		}
-		for _, ptr := range ptrsToFix {
-			newPtr, ok := updates[*ptr]
-			if !ok {
-				continue
-			}
-			*ptr = newPtr
-		}
-
-		newOps = append(newOps, op)
-	}
-	return newOps, nil
-}
-
 // resolveOnePath figures out the new merged path, in the resolved
 // folder, for a given unmerged pointer.  For each node on the path,
 // see if the node has been renamed.  If so, see if there's a
@@ -2889,7 +2794,7 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	newOps, err := crFixOpPointers(ops, updates, mergedChains)
+	newOps, err := fixOpPointersForUpdate(ops, updates, mergedChains)
 	if err != nil {
 		return nil, err
 	}
@@ -2958,7 +2863,7 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 		return err
 	}
 
-	updates, bps, blocksToDelete, err := cr.prepper.syncBlocks(
+	updates, bps, blocksToDelete, err := cr.prepper.prepUpdateForPaths(
 		ctx, lState, md, unmergedChains, mergedChains,
 		mostRecentUnmergedMD, mostRecentMergedMD, resolvedPaths, lbc,
 		newFileBlocks, dirtyBcache)
@@ -2966,8 +2871,9 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 		return err
 	}
 
-	// Can only do this after syncBlocks, since syncBlocks calls
-	// crFixOpPointers, and the ops may be invalid until then.
+	// Can only do this after prepUpdateForPaths, since
+	// prepUpdateForPaths calls fixOpPointersForUpdate, and the ops
+	// may be invalid until then.
 	err = md.data.checkValid()
 	if err != nil {
 		return err

@@ -1913,7 +1913,8 @@ func (fbo *folderBranchOps) syncBlockLocked(
 	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer,
 	lbc localBcache) (path, DirEntry, *blockPutState, error) {
 	fbo.mdWriterLock.AssertLocked(lState)
-	return fbo.prepper.syncBlock(ctx, lState, uid, md, newBlock, dir, name,
+	return fbo.prepper.prepUpdateForPath(
+		ctx, lState, uid, md, newBlock, dir, name,
 		entryType, mtime, ctime, stopAt, lbc)
 }
 
@@ -1925,7 +1926,7 @@ func (fbo *folderBranchOps) syncBlockForConflictResolution(
 	md *RootMetadata, newBlock Block, dir path, name string,
 	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer,
 	lbc localBcache) (path, DirEntry, *blockPutState, error) {
-	return fbo.prepper.syncBlock(
+	return fbo.prepper.prepUpdateForPath(
 		ctx, lState, uid, md, newBlock, dir,
 		name, entryType, mtime, ctime, stopAt, lbc)
 }
