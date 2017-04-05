@@ -195,7 +195,7 @@ export default function (state: ConfigState = initialState, action: Action): Con
     case 'app:changedFocus':
       return {
         ...state,
-        appFocused: action.payload.focused,
+        appFocused: action.payload.appFocused,
       }
 
     default:
