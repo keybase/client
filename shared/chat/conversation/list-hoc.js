@@ -8,7 +8,7 @@ import type {Props, OptionsFn} from './list'
 import type {Options} from './messages'
 
 function propsToMessageOptionsFn (props: Props): OptionsFn {
-  return function (message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, onAction, onShowEditor, isEditing = false): Options {
+  return function (message, prevMessage, isFirstMessage, isSelected, isScrolling, isMeasuring, key, style, onAction, onShowEditor, isEditing = false): Options {
     const skipMsgHeader = (message.author != null && prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
     const isFirstNewMessage = message.messageID != null && props.firstNewMessageID ? props.firstNewMessageID === message.messageID : false
 
@@ -31,6 +31,7 @@ function propsToMessageOptionsFn (props: Props): OptionsFn {
       isEditing,
       isFirstNewMessage,
       isScrolling,
+      isMeasuring,
       isSelected,
       key,
       message,

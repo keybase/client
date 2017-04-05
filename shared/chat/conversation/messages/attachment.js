@@ -1,8 +1,10 @@
 // @flow
 import * as Constants from '../../../constants/chat'
+import * as Creators from '../../../actions/chat/creators'
 import MessageWrapper from './wrapper'
 import moment from 'moment'
 import React, {PureComponent} from 'react'
+import {connect} from 'react-redux'
 import {Box, Icon, ProgressIndicator, Text, ClickableBox} from '../../../common-adapters'
 import {isMobile, fileUIName} from '../../../constants/platform'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
@@ -216,7 +218,26 @@ function AttachmentMessagePreviewImage ({message, onMessageAction, onOpenInFileU
   )
 }
 
-export default class AttachmentMessage extends PureComponent<void, Props, void> {
+type ConnectedProps = Props & { onEnsurePreviewLoaded: () => void }
+
+export class AttachmentMessage extends PureComponent<void, ConnectedProps, void> {
+  componentDidMount () {
+    this._ensurePreviewLoaded()
+  }
+
+  componentDidUpdate (prevProps: ConnectedProps) {
+    if (this.props.message && prevProps.message && prevProps.message.filename !== this.props.message.filename) {
+      this._ensurePreviewLoaded()
+    }
+  }
+
+  _ensurePreviewLoaded () {
+    const {isMeasuring, message} = this.props
+    if (!isMeasuring && message && message.filename && !message.previewPath) {
+      setImmediate(() => this.props.onEnsurePreviewLoaded())
+    }
+  }
+
   _onOpenInPopup = () => {
     this.props.onOpenInPopup(this.props.message)
   }
@@ -255,6 +276,13 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
     )
   }
 }
+
+export default connect(
+  null,
+  (dispatch: Dispatch, {message}: Props) => ({
+    onEnsurePreviewLoaded: () => dispatch(Creators.loadAttachmentPreview(message)),
+  })
+)(AttachmentMessage)
 
 export {
   ProgressBar,

@@ -343,7 +343,7 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _cellRenderer = ({rowIndex, ...rest}) => {
-    return this._rowRenderer({index: rowIndex, ...rest})
+    return this._rowRenderer({index: rowIndex, ...rest, isMeasuring: true})
   }
 
   _onShowEditor = (message: Message, event: any) => {
@@ -356,7 +356,7 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
-  _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
+  _rowRenderer = ({index, key, style, isScrolling, isMeasuring}: {index: number, key: string, style: Object, isScrolling: boolean, isMeasuring?: boolean}) => {
     if (__DEV__ && DEBUG_ROW_RENDER && style) {
       style = {
         ...style,
@@ -371,7 +371,7 @@ class ConversationList extends Component<void, Props, State> {
     const isFirstMessage = index === 0
     const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
 
-    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, this._onAction, this._onShowEditor, false)
+    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, !!isMeasuring, key, style, this._onAction, this._onShowEditor, false)
 
     return messageFactory(options)
   }
@@ -490,7 +490,8 @@ class ConversationList extends Component<void, Props, State> {
               ref={this._setCellMeasurerRef}
               cellSizeCache={this._cellCache}
               rowCount={rowCount}
-              width={width - scrollbarWidth} >
+              width={width - scrollbarWidth}
+            >
               {({getRowHeight}) => (
                 <VirtualizedList
                   cellRangeRenderer={this._cellRangeRenderer}
@@ -504,7 +505,10 @@ class ConversationList extends Component<void, Props, State> {
                   rowCount={rowCount}
                   rowHeight={getRowHeight}
                   columnWidth={width}
-                  rowRenderer={this._rowRenderer} />)}</CellMeasurer>)}
+                  rowRenderer={this._rowRenderer} />
+              )}
+            </CellMeasurer>
+          )}
         </AutoSizer>
       </div>
     )
