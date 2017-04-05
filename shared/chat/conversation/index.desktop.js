@@ -70,19 +70,6 @@ class Conversation extends Component<void, Props, State> {
   }
 
   render () {
-    const {
-      editLastMessageCounter,
-      finalizeInfo,
-      focusInputCounter,
-      listScrollDownCounter,
-      onBack,
-      onEditLastMessage,
-      onFocusInput,
-      onScrollDown,
-      onToggleSidePanel,
-      sidePanelOpen,
-    } = this.props
-
     const dropOverlay = this.state.showDropOverlay && (
       <Box style={dropOverlayStyle} onDragLeave={this._onDragLeave} onDrop={this._onDrop}>
         <Icon type='icon-file-dropping-48' />
@@ -98,27 +85,27 @@ class Conversation extends Component<void, Props, State> {
     return (
       <Box className='conversation' style={containerStyle} onDragEnter={this._onDragEnter} onPaste={this._onPaste}>
         {offline}
-        <Header sidePanelOpen={sidePanelOpen} onToggleSidePanel={onToggleSidePanel} onBack={onBack} />
+        <Header sidePanelOpen={this.props.sidePanelOpen} onToggleSidePanel={this.props.onToggleSidePanel} onBack={this.props.onBack} />
         <List
-          focusInputCounter={focusInputCounter}
-          listScrollDownCounter={listScrollDownCounter}
-          onEditLastMessage={onEditLastMessage}
-          onScrollDown={onScrollDown}
-          onFocusInput={onFocusInput}
-          editLastMessageCounter={editLastMessageCounter}
+          focusInputCounter={this.props.focusInputCounter}
+          listScrollDownCounter={this.props.listScrollDownCounter}
+          onEditLastMessage={this.props.onEditLastMessage}
+          onScrollDown={this.props.onScrollDown}
+          onFocusInput={this.props.onFocusInput}
+          editLastMessageCounter={this.props.editLastMessageCounter}
         />
         <Banner />
-        {finalizeInfo
+        {this.props.finalizeInfo
           ? <OldProfileResetNotice
             onOpenNewerConversation={this.props.onOpenNewerConversation}
-            username={finalizeInfo.resetUser} />
+            username={this.props.finalizeInfo.resetUser} />
             : <Input
               focusInputCounter={this.props.focusInputCounter}
               onEditLastMessage={this.props.onEditLastMessage}
               onScrollDown={this.props.onScrollDown}
             /> }
-        {sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>
-          <SidePanel onToggleSidePanel={onToggleSidePanel} />
+        {this.props.sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>
+          <SidePanel onToggleSidePanel={this.props.onToggleSidePanel} />
         </div>}
         {dropOverlay}
       </Box>
