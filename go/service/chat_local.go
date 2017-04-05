@@ -70,20 +70,35 @@ func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
 	return h.BaseHandler.getChatUI(sessionID)
 }
 
+func (h *chatLocalHandler) isOfflineError(err error) bool {
+	switch terr := err.(type) {
+	case libkb.APINetError:
+		return true
+	case chat.OfflineError:
+		return true
+	case chat.TransientUnboxingError:
+		return h.isOfflineError(terr.Inner())
+	}
+	if err == ErrGregorTimeout {
+		return true
+	}
+	return false
+}
+
 func (h *chatLocalHandler) handleOfflineError(ctx context.Context, err error,
 	res chat1.OfflinableResult) error {
 
-	offline := false
-	switch err.(type) {
-	case libkb.APINetError:
-		offline = true
-	case chat.OfflineError:
-		offline = true
-	}
-
-	if offline {
+	if h.isOfflineError(err) {
 		h.Debug(ctx, "handleOfflineError: setting offline: err: %s", err.Error())
 		res.SetOffline()
+
+		// Disconnect Gregor if we think we are online
+		if h.G().Syncer.IsConnected(ctx) && h.gh.IsConnected() {
+			h.Debug(ctx, "handleOfflineError: inconsistent connected state: reconnecting to server")
+			if err := h.gh.Reconnect(ctx); err != nil {
+				h.Debug(ctx, "handleOfflineError: error reconnecting: %s", err.Error())
+			}
+		}
 		return nil
 	}
 
