@@ -324,8 +324,8 @@
 		{
 			"checksumSHA1": "bRJXC0lav7R1wtOd+XR3YofEC7s=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "becb8caab0d37bb6ca0f402e3030fe0741cbf0d9",
-			"revisionTime": "2017-03-31T21:21:10Z"
+			"revision": "a9d1d7eccf30e2b04ba68f00f8d54bce509b9f0f",
+			"revisionTime": "2017-04-05T18:10:50Z"
 		},
 		{
 			"path": "github.com/keybase/npipe",
