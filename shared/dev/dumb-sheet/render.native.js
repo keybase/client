@@ -84,7 +84,7 @@ class DumbSheetRender extends Component<void, Props, any> {
 
   _getComponent (filter: ?string, renderIdx: number): {component: any, mock: any, key: any} {
     let component = null
-    let mock = null
+    let mock = {}
     let key = null
 
     let currentIdx = 0
