@@ -44,7 +44,7 @@ func (fup folderUpdatePrepper) readyBlockMultiple(ctx context.Context,
 	info BlockInfo, plainSize int, err error) {
 	info, plainSize, readyBlockData, err :=
 		ReadyBlock(ctx, fup.config.BlockCache(), fup.config.BlockOps(),
-			fup.config.Crypto(), kmd, currBlock, uid, bType)
+			fup.config.cryptoPure(), kmd, currBlock, uid, bType)
 	if err != nil {
 		return
 	}
@@ -64,7 +64,7 @@ func (fup folderUpdatePrepper) unembedBlockChanges(
 	// Treat the block change list as a file so we can reuse all the
 	// indirection code in fileData.
 	block := NewFileBlock().(*FileBlock)
-	bid, err := fup.config.Crypto().MakeTemporaryBlockID()
+	bid, err := fup.config.cryptoPure().MakeTemporaryBlockID()
 	if err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func (fup folderUpdatePrepper) unembedBlockChanges(
 	}
 
 	df := newDirtyFile(file, dirtyBcache)
-	fd := newFileData(file, uid, fup.config.Crypto(),
+	fd := newFileData(file, uid, fup.config.cryptoPure(),
 		fup.config.BlockSplitter(), md.ReadOnly(), getter, cacher, fup.log)
 
 	// Write all the data.
