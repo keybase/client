@@ -27,6 +27,13 @@
     font-weight: bold;
     color: #33a0ff;
 }
+.keybase-reply .keybase-service {
+    font-weight: bold;
+    color: #888;
+}
+.keybase-reply .keybase-username a {
+    color: #ff6f21;
+}
 
 .keybase-reply a.reddit-user {
     /* Mimic normal reddit user tag */

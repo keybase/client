@@ -49,6 +49,7 @@ function renderChatButton(parent, toUsername) {
         removeChat(forms[0]);
         return;
       }
+
       renderChat(e.currentTarget.parentNode, toUsername);
     });
 
@@ -62,7 +63,7 @@ function renderChat(parent, toUsername) {
   const isLoggedIn = document.getElementsByClassName("logout").length > 0;
 
   let nudgeHTML = `
-    <p><label><input type="checkbox" name="keybase-nudge" checked /> <em>public</em> nudge (so they know about Keybase)</label></p>
+    <p><label><input type="checkbox" name="keybase-nudgecheck" checked /> <em>public</em> nudge (so they know about Keybase)</label></p>
     <p><textarea name="keybase-nudgetext">/u/${toUsername} - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto</textarea></p>
   `;
   if (!isLoggedIn) {
@@ -79,16 +80,34 @@ function renderChat(parent, toUsername) {
   f.innerHTML = `
     <h3>Keybase Chat <span class="keybase-close"> </span></h3>
     <input type="hidden" name="keybase-to" value="${toUsername}" />
-    <p>Encrypt to <span class="keybase-username">${toUsername}</span>:</p>
+    <p>Encrypt to <span class="keybase-username">${toUsername}</span><span class="keybase-service">@reddit</span>:</p>
     <p><textarea name="keybase-chat" rows="6"></textarea></p>
-    ${nudgeHTML}
+    <div class="keybase-nudge">
+      <p>Searching for <span class="keybase-username">${toUsername}</span><span class="keybase-service">@reddit</span>...</p>
+    </div>
     <p><input type="submit" value="Send" name="keybase-submit" /></p> 
   `;
   f.addEventListener("submit", submitChat);
   parent.insertBefore(f, parent.firstChild);
 
+  // Find user
+  const nudgePlaceholder = f.getElementsByClassName("keybase-nudge")[0];
+  chrome.runtime.sendMessage({
+    "method": "query",
+    "to": toUsername + "@reddit"
+  }, function(response) {
+    console.log(toUsername, response);
+    if (response.status == "ok") {
+      // Non-error response always returns at least one sig.
+      const keybaseUsername = safeHTML(response.result["sigs"][0]["statement"]);
+      nudgePlaceholder.innerHTML = `<p>Found proof linking to <a href="https://keybase.io/${keybaseUsername}">keybase.io/<span class="keybase-username">${keybaseUsername}</span></a></p>`;
+      return;
+    }
+    nudgePlaceholder.innerHTML = nudgeHTML;
+  });
+
   // Install nudge toggle
-  const nudgeCheck = f["keybase-nudge"];
+  const nudgeCheck = f["keybase-nudgecheck"];
   if (nudgeCheck !== undefined) {
     // Select the <p><textarea>...</textarea></p>
     const nudgeText = nudgeCheck.parentNode.parentNode.nextElementSibling;
@@ -102,6 +121,7 @@ function renderChat(parent, toUsername) {
   closer.addEventListener("click", function(e) {
     removeChat(f);
   });
+
 
   // TODO: Also add an onbeforeunload check if chat has text written in it.
 }
@@ -126,7 +146,7 @@ function submitChat(e) {
   const f = e.currentTarget; // The form.
   const to = f["keybase-to"].value;
   const body = f["keybase-chat"].value;
-  const nudgeDo = f["keybase-nudge"].checked;
+  const nudgeDo = f["keybase-nudgecheck"].checked;
   const nudgeText = f["keybase-nudgetext"].value;
 
   // TODO: Check that to/body are not empty.
