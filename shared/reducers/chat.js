@@ -490,6 +490,9 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       }
       break
     }
+    case 'chat:inboxUntrustedState': {
+      return state.set('inboxUntrustedState', action.payload.inboxUntrustedState)
+    }
   }
 
   return state

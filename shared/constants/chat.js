@@ -298,7 +298,10 @@ export const StateRecord = Record({
   nowOverride: null,
   editingMessage: null,
   initialConversation: null,
+  inboxUntrustedState: 'unloaded',
 })
+
+export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
 
 export type State = Record<{
   inbox: List<InboxState>,
@@ -316,6 +319,7 @@ export type State = Record<{
   nowOverride: ?Date,
   editingMessage: ?Message,
   initialConversation: ?ConversationIDKey,
+  inboxUntrustedState: UntrustedState,
 }>
 
 export const maxAttachmentPreviewSize = 320

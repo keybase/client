@@ -2,6 +2,7 @@
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
+import * as Shared from './shared'
 import {List, Map} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select, race, fork} from 'redux-saga/effects'
@@ -17,8 +18,6 @@ import {isMobile} from '../../constants/platform'
 
 import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
 
-type UntrustedState = 'unloaded' | 'loaded' | 'loading'
-
 // Common props for getting the inbox
 const _getInboxQuery = {
   computeActiveList: true,
@@ -29,18 +28,18 @@ const _getInboxQuery = {
   unreadOnly: false,
 }
 
-let _inboxUntrustedState: UntrustedState = 'unloaded'
 let _inboxUntrustedError = null
 
 // Load the inbox if we haven't yet, mostly done by the UI
 function * onInitialInboxLoad (action: Constants.LoadInbox): SagaGenerator<any, any> {
-  if (_inboxUntrustedState === 'loading') {
+  const inboxUntrustedState = yield select(Shared.inboxUntrustedStateSelector)
+  if (inboxUntrustedState === 'loading') {
     return
   }
 
   const {force} = action.payload
-  if (_inboxUntrustedState === 'unloaded' || _inboxUntrustedError || force) {
-    _inboxUntrustedState = 'loading'
+  if (inboxUntrustedState === 'unloaded' || _inboxUntrustedError || force) {
+    yield put({payload: {inboxUntrustedState: 'loading'}, type: 'chat:inboxUntrustedState'})
     _inboxUntrustedError = null
     yield call(onInboxStale)
     if (!isMobile) {
@@ -78,7 +77,7 @@ function * _updateFinalized (inbox: ChatTypes.GetInboxLocalRes) {
 
 // Loads the untrusted inbox only
 function * onInboxStale (): SagaGenerator<any, any> {
-  _inboxUntrustedState = 'loading'
+  yield put({payload: {inboxUntrustedState: 'loading'}, type: 'chat:inboxUntrustedState'})
   _inboxUntrustedError = null
 
   const channelConfig = singleFixedChannelConfig(['chat.1.chatUi.chatInboxUnverified', 'finished'])
@@ -121,6 +120,7 @@ function * onInboxStale (): SagaGenerator<any, any> {
     })
   }).filter(Boolean))
 
+  yield put({payload: {inboxUntrustedState: 'loaded'}, type: 'chat:inboxUntrustedState'})
   yield put(Creators.loadedInbox(conversations))
   chatInboxUnverified.response.result()
 
