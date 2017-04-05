@@ -71,6 +71,7 @@ func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
 }
 
 func (h *chatLocalHandler) isOfflineError(err error) bool {
+	// Check type
 	switch terr := err.(type) {
 	case libkb.APINetError:
 		return true
@@ -79,9 +80,16 @@ func (h *chatLocalHandler) isOfflineError(err error) bool {
 	case chat.TransientUnboxingError:
 		return h.isOfflineError(terr.Inner())
 	}
-	if err == ErrGregorTimeout {
+	// Check error itself
+	switch err {
+	case context.DeadlineExceeded:
+		fallthrough
+	case context.Canceled:
+		fallthrough
+	case ErrGregorTimeout:
 		return true
 	}
+
 	return false
 }
 
