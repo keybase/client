@@ -1,50 +1,27 @@
 // @flow
 import {Component} from 'react'
-import {List} from 'immutable'
 import * as Constants from '../../constants/chat'
 
 export type Props = {
-  focusInputCounter: number,
-  finalizeInfo: ?Constants.FinalizeInfo,
-  firstNewMessageID: ?Constants.MessageID,
-  followingMap: Constants.FollowingMap,
+  editLastMessageCounter: number,
   listScrollDownState: number,
-  threadLoadedOffline: boolean,
-  messages: List<Constants.Message>,
-  metaDataMap: Constants.MetaDataMap,
-  moreToLoad: boolean,
+  finalizeInfo: ?Constants.FinalizeInfo,
+  focusInputCounter: number,
+  listScrollDownCounter: number,
   onAttach: (inputs: Array<Constants.AttachmentInput>) => void,
   onBack: () => void,
-  onDeleteMessage: (message: Constants.Message) => void,
-  onEditMessage: (message: Constants.Message, body: string) => void,
+  onCloseSidePanel: () => void,
   onEditLastMessage: () => void,
-  onLoadAttachment: (messageID: Constants.MessageID, filename: string) => void,
-  onLoadMoreMessages: () => void,
-  onMessageAction: (message: Constants.ServerMessage) => void,
-  onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => void,
-  onOpenFolder: () => void,
-  onOpenInFileUI: (filename: string) => void,
-  onOpenInPopup: (message: Constants.AttachmentMessage) => void,
+  onFocusInput: () => void,
   onOpenNewerConversation: () => void,
-  onRetryAttachment: (message: Constants.AttachmentMessage) => void,
-  onRetryMessage: (outboxID: string) => void,
   onScrollDown: () => void,
-  onShowProfile: (username: string) => void,
-  onShowEditor: (message: ?Constants.Message) => void,
   onToggleSidePanel: () => void,
-  participants: List<string>,
   rekeyInfo: ?Constants.RekeyInfo,
-  restartConversation: () => void,
   selectedConversationIDKey: ?Constants.ConversationIDKey,
-  setInputText: (text: string) => void,
   sidePanelOpen: boolean,
   supersededBy: ?Constants.SupersedeInfo,
   supersedes: ?Constants.SupersedeInfo,
-  triggerListScrollDown: () => void,
-  validated: boolean,
-  you: string,
-  // TODO: better types will remove these
-  listProps: any,
+  threadLoadedOffline: boolean,
 }
 
 export default class Conversation extends Component<void, Props, void> { }

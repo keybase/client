@@ -1,0 +1,10 @@
+// @flow
+import {Component} from 'react'
+
+export type OwnProps = {
+  focusInputCounter: number,
+  onEditLastMessage: () => void,
+  onScrollDown: () => void,
+}
+
+export default class InputContainer extends Component<void, OwnProps, void> {}

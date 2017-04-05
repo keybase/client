@@ -2,24 +2,22 @@
 // An infinite scrolling chat list. Using react-virtualized which doesn't really handle this case out of the box.
 // We control which set of messages we render in our state object.
 // We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling.
-
-import EditPopup from './edit-popup.desktop'
+import * as Constants from '../../../constants/chat'
+import EditPopup from '../edit-popup.desktop'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import _ from 'lodash'
-import messageFactory from './messages'
+import messageFactory from '../messages'
 import shallowEqual from 'shallowequal'
-import hoc from './list-hoc'
 import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache as DefaultCellMeasurerCellSizeCache} from 'react-virtualized'
-import {Icon} from '../../common-adapters'
-import {TextPopupMenu, AttachmentPopupMenu} from './messages/popup'
+import {Icon} from '../../../common-adapters'
+import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
 import {clipboard} from 'electron'
-import {globalColors, globalStyles} from '../../styles'
-import {findDOMNode} from '../../util/dom'
+import {findDOMNode} from '../../../util/dom'
+import {globalColors, globalStyles} from '../../../styles'
 
 import type {List} from 'immutable'
-import type {AttachmentMessage, Message, MessageID, ServerMessage, TextMessage} from '../../constants/chat'
-import type {Props} from './list'
+import type {Props} from '.'
 
 type DefaultCellRangeRendererParams = {
   cellCache: Object,
@@ -43,9 +41,9 @@ type DefaultCellRangeRendererParams = {
 type State = {
   isLockedToBottom: boolean,
   isScrolling: boolean,
-  messages: List<Message>,
+  messages: List<Constants.Message>,
   scrollTop: number,
-  selectedMessageID?: MessageID,
+  selectedMessageID?: Constants.MessageID,
 }
 
 const scrollbarWidth = 20
@@ -243,14 +241,14 @@ class ConversationList extends Component<void, Props, State> {
     })
   }
 
-  _renderPopup (message: Message, style: Object, messageRect: any): ?React$Element<any> {
+  _renderPopup (message: Constants.Message, style: Object, messageRect: any): ?React$Element<any> {
     switch (message.type) {
       case 'Text':
         return (
           <TextPopupMenu
             you={this.props.you}
             message={message}
-            onShowEditor={(message: TextMessage) => this._showEditor(message, messageRect)}
+            onShowEditor={(message: Constants.TextMessage) => this._showEditor(message, messageRect)}
             onDeleteMessage={this.props.onDeleteMessage}
             onLoadAttachment={this.props.onLoadAttachment}
             onOpenInFileUI={this.props.onOpenInFileUI}
@@ -274,7 +272,7 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
-  _showEditor = (message: TextMessage, messageRect: any) => {
+  _showEditor = (message: Constants.TextMessage, messageRect: any) => {
     const popupComponent = (
       <EditPopup
         messageRect={messageRect}
@@ -306,7 +304,7 @@ class ConversationList extends Component<void, Props, State> {
     return null
   }
 
-  _showPopup (message: TextMessage | AttachmentMessage, event: any) {
+  _showPopup (message: Constants.TextMessage | Constants.AttachmentMessage, event: any) {
     const clientRect = event.target.getBoundingClientRect()
 
     const messageNode = this._findMessageFromDOMNode(event.target)
@@ -329,7 +327,7 @@ class ConversationList extends Component<void, Props, State> {
     ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
   }
 
-  _onAction = (message: ServerMessage, event: any) => {
+  _onAction = (message: Constants.ServerMessage, event: any) => {
     if (message.type === 'Text' || message.type === 'Attachment') {
       this._showPopup(message, event)
     }
@@ -346,7 +344,7 @@ class ConversationList extends Component<void, Props, State> {
     return this._rowRenderer({index: rowIndex, ...rest})
   }
 
-  _onShowEditor = (message: Message, event: any) => {
+  _onShowEditor = (message: Constants.Message, event: any) => {
     if (message.type === 'Text') {
       const messageNode = this._findMessageFromDOMNode(event.target)
       const messageRect = messageNode && this._domNodeToRect(messageNode)
@@ -441,7 +439,7 @@ class ConversationList extends Component<void, Props, State> {
     const entry: any = this.state.messages.findLastEntry(m => m.type === 'Text' && m.author === this.props.you)
     if (entry) {
       const idx: number = entry[0]
-      const message: TextMessage = entry[1]
+      const message: Constants.TextMessage = entry[1]
 
       if (this._listIsGood()) {
         this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: idx})
@@ -653,7 +651,7 @@ function chatCellRangeRenderer (firstKey: string, cellSizeCache: any, {
   return renderedCells
 }
 
-export default hoc(ConversationList)
+export default ConversationList
 
 if (__DEV__ && typeof window !== 'undefined') {
   window.showReactVirtualListMeasurer = () => {

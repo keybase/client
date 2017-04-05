@@ -9,12 +9,7 @@ import {createSelector} from 'reselect'
 import {onUserClick} from '../../../actions/profile'
 
 import type {TypedState} from '../../../constants/reducer'
-
-type OwnProps = {
-  onBack: () => void,
-  onToggleSidePanel: () => void,
-  sidePanelOpen: boolean,
-}
+import type {OwnProps} from './container'
 
 const getUsers = createSelector(
   [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],

@@ -9,12 +9,7 @@ import {navigateAppend} from '../../../actions/route-tree'
 
 import type {TypedState} from '../../../constants/reducer'
 import type {Props} from '.'
-
-type OwnProps = {
-  focusInputCounter: number,
-  onEditLastMessage: () => void,
-  onScrollDown: () => void,
-}
+import type {OwnProps} from './container'
 
 const mapStateToProps = (state: TypedState, {focusInputCounter}: OwnProps) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)

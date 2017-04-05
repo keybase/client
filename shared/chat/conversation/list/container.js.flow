@@ -1,0 +1,15 @@
+// @flow
+import {Component} from 'react'
+import * as Constants from '../../../constants/chat'
+
+export type OwnProps = {
+  selectedConversationIDKey: ?Constants.ConversationIDKey,
+  focusInputCounter: number,
+  listScrollDownCounter: number,
+  onEditLastMessage: () => void,
+  onScrollDown: () => void,
+  onFocusInput: () => void,
+  editLastMessageCounter: number,
+}
+
+export default class ListContainer extends Component<void, OwnProps, void> {}

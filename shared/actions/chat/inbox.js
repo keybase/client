@@ -44,7 +44,7 @@ function * onInitialInboxLoad (action: Constants.LoadInbox): SagaGenerator<any, 
     _inboxUntrustedError = null
     yield call(onInboxStale)
     if (!isMobile) {
-      yield fork(_backgroundUnboxLoop)
+      // yield fork(_backgroundUnboxLoop) // TEMP
     }
   }
 }
