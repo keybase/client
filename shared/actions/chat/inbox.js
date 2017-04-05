@@ -294,17 +294,17 @@ function _conversationLocalToInboxState (c: ?ChatTypes.ConversationLocal): ?Cons
     .map((message: {time: number, body: ?ChatTypes.MessageBody}) => ({
       snippet: Constants.makeSnippet(message.body),
       time: message.time,
-    })).take(1)
+    })).first() || {}
 
   return new Constants.InboxStateRecord({
     conversationIDKey,
     info: c.info,
     isEmpty: c.isEmpty,
     participants: List(c.info.writerNames || []),
-    snippet: toShow.get(0, {}).snippet,
+    snippet: toShow.snippet,
     state: 'unboxed',
     status: Constants.ConversationStatusByEnum[c.info ? c.info.status : 0],
-    time: toShow.get(0, {}).time || c.readerInfo.mtime,
+    time: toShow.time || c.readerInfo.mtime,
   })
 }
 
