@@ -251,7 +251,7 @@ func (h *chatLocalHandler) GetCachedThread(ctx context.Context, arg chat1.GetCac
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetCachedThread")()
-	defer h.handleOfflineError(ctx, err, &res)
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
