@@ -101,12 +101,10 @@ func (h *chatLocalHandler) handleOfflineError(ctx context.Context, err error,
 		res.SetOffline()
 
 		// Disconnect Gregor if we think we are online
-		if h.gh.IsConnected() {
-			h.Debug(ctx, "handleOfflineError: inconsistent connected state: reconnecting to server")
-			if err := h.gh.Reconnect(ctx); err != nil {
-				h.Debug(ctx, "handleOfflineError: error reconnecting: %s", err.Error())
-			}
+		if err := h.gh.Reconnect(ctx); err != nil {
+			h.Debug(ctx, "handleOfflineError: error reconnecting: %s", err.Error())
 		}
+
 		return nil
 	}
 

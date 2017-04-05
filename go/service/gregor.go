@@ -1117,9 +1117,14 @@ func (g *gregorHandler) isReachable() bool {
 }
 
 func (g *gregorHandler) Reconnect(ctx context.Context) error {
-	g.Debug(ctx, "Reconnect: reconnecting to server")
-	g.Shutdown()
-	return g.Connect(g.uri)
+	if g.IsConnected() {
+		g.Debug(ctx, "Reconnect: reconnecting to server")
+		g.Shutdown()
+		return g.Connect(g.uri)
+	}
+
+	g.Debug(ctx, "Reconnect: skipping reconnect, already disconnected")
+	return nil
 }
 
 func (g *gregorHandler) pingLoop() {
