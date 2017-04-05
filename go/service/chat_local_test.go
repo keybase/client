@@ -1194,6 +1194,9 @@ func TestMakePreview(t *testing.T) {
 	if res.Filename == nil {
 		t.Fatal("expected filename")
 	}
+	if !strings.HasSuffix(*res.Filename, ".jpeg") {
+		t.Fatalf("expected .jpeg suffix, got %q", *res.Filename)
+	}
 	defer os.Remove(*res.Filename)
 	if res.Metadata == nil {
 		t.Fatal("expected metadata")
@@ -1221,7 +1224,7 @@ func TestMakePreview(t *testing.T) {
 		t.Fatal(err)
 	}
 	if res.Filename != nil {
-		t.Fatalf("expected no preview file, got %q", res.Filename)
+		t.Fatalf("expected no preview file, got %q", *res.Filename)
 	}
 	if res.Metadata != nil {
 		t.Fatalf("expected no metadata, got %+v", res.Metadata)

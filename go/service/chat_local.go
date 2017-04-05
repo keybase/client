@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -883,9 +884,9 @@ func (h *chatLocalHandler) MakePreview(ctx context.Context, arg chat1.MakePrevie
 		if err != nil {
 			return res, err
 		}
-		defer f.Close()
 		buf := pre.Preview.Bytes()
 		n, err := f.Write(buf)
+		f.Close()
 		if err != nil {
 			return res, err
 		}
@@ -893,6 +894,15 @@ func (h *chatLocalHandler) MakePreview(ctx context.Context, arg chat1.MakePrevie
 			return res, io.ErrShortWrite
 		}
 		name := f.Name()
+		if strings.HasPrefix(pre.ContentType, "image/") {
+			suffix := strings.TrimPrefix(pre.ContentType, "image/")
+			suffixName := name + "." + suffix
+			h.Debug(ctx, "renaming preview file %q to %q", name, suffixName)
+			if err := os.Rename(name, suffixName); err != nil {
+				return res, err
+			}
+			name = suffixName
+		}
 		res.Filename = &name
 
 		md := pre.PreviewMetadata()
