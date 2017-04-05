@@ -27,8 +27,8 @@ const (
 
 func (t SigchainV2Type) NeedsSignature() bool {
 	switch t {
-	case SigchainV2TypeTrack, SigchainV2TypeUntrack,
-		SigchainV2TypeCryptocurrency, SigchainV2TypeAnnouncement:
+	case SigchainV2TypeTrack, SigchainV2TypeUntrack, SigchainV2TypeAnnouncement,
+		SigchainV2TypeCryptocurrency:
 		return false
 	default:
 		return true
@@ -92,39 +92,44 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 	return &ret, nil
 }
 
-func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations bool) (SigchainV2Type, error) {
+func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations bool) (ret SigchainV2Type, err error) {
+
 	switch s {
 	case "eldest":
-		return SigchainV2TypeEldest, nil
+		ret = SigchainV2TypeEldest
 	case "web_service_binding":
 		if hasRevocations {
-			return SigchainV2TypeWebServiceBindingWithRevoke, nil
+			ret = SigchainV2TypeWebServiceBindingWithRevoke
+		} else {
+			ret = SigchainV2TypeWebServiceBinding
 		}
-		return SigchainV2TypeWebServiceBinding, nil
 	case "track":
-		return SigchainV2TypeTrack, nil
+		ret = SigchainV2TypeTrack
 	case "untrack":
-		return SigchainV2TypeUntrack, nil
+		ret = SigchainV2TypeUntrack
 	case "revoke":
-		return SigchainV2TypeRevoke, nil
+		ret = SigchainV2TypeRevoke
 	case "cryptocurrency":
 		if hasRevocations {
-			return SigchainV2TypeCryptocurrencyWithRevoke, nil
+			ret = SigchainV2TypeCryptocurrencyWithRevoke
+		} else {
+			ret = SigchainV2TypeCryptocurrency
 		}
-		return SigchainV2TypeCryptocurrency, nil
 	case "announcement":
-		return SigchainV2TypeAnnouncement, nil
+		ret = SigchainV2TypeAnnouncement
 	case "device":
-		return SigchainV2TypeDevice, nil
+		ret = SigchainV2TypeDevice
 	case "sibkey":
-		return SigchainV2TypeSibkey, nil
+		ret = SigchainV2TypeSibkey
 	case "subkey":
-		return SigchainV2TypeSubkey, nil
+		ret = SigchainV2TypeSubkey
 	case "pgp_update":
-		return SigchainV2TypePGPUpdate, nil
+		ret = SigchainV2TypePGPUpdate
 	default:
-		return SigchainV2TypeNone, ChainLinkError{fmt.Sprintf("Unknow sig v1 type: %s", s)}
+		ret = SigchainV2TypeNone
+		err = ChainLinkError{fmt.Sprintf("Unknown sig v1 type: %s", s)}
 	}
+	return ret, err
 }
 
 func (o OuterLinkV2) AssertFields(v int, s Seqno, p LinkID, c LinkID, t SigchainV2Type) (err error) {

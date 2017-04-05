@@ -231,6 +231,19 @@ func (c *ChainLink) IsStubbed() bool {
 	return c.unpacked.stubbed
 }
 
+func (c *ChainLink) IsEldest() bool {
+	if c.unpacked == nil {
+		return false
+	}
+	if c.unpacked.outerLinkV2 != nil {
+		return c.unpacked.outerLinkV2.LinkType == SigchainV2TypeEldest
+	}
+	if c.unpacked.typ == string(DelegationTypeEldest) {
+		return true
+	}
+	return false
+}
+
 func (c *ChainLink) GetPrev() LinkID {
 	return c.unpacked.prev
 }
@@ -612,11 +625,6 @@ func (c *ChainLink) verifyHash() error {
 		return nil
 	}
 
-	// For V2 Sigchain links, we might not have the payload (to save bandwidth, etc)
-	if c.IsStubbed() {
-		return nil
-	}
-
 	h := sha256.Sum256([]byte(c.unpacked.payloadJSONStr))
 	if !FastByteArrayEq(h[:], c.id) {
 		return fmt.Errorf("hash mismatch")
@@ -821,6 +829,12 @@ func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID, g *GlobalContext) (*
 }
 
 func (c *ChainLink) VerifyLink() error {
+
+	// We might not have an unpacked payload at all, if it's a V2 link
+	// without a body (for BW savings)
+	if c.IsStubbed() {
+		return nil
+	}
 	if err := c.verifyHash(); err != nil {
 		return err
 	}
@@ -843,11 +857,6 @@ func (c *ChainLink) GetSigchainV2Type() (SigchainV2Type, error) {
 }
 
 func (c *ChainLink) verifyPayload() error {
-	// We might not have an unpacked payload at all, if it's a V2 link
-	// without a body (for BW savings)
-	if c.IsStubbed() {
-		return nil
-	}
 	v := c.unpacked.sigVersion
 	switch v {
 	case 1:

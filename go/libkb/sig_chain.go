@@ -351,6 +351,9 @@ func (sc *SigChain) GetCurrentSubchain(eldest keybase1.KID) (links []*ChainLink,
 
 		if sc.chainLinks[i].IsStubbed() {
 			lastGood = i
+			if sc.chainLinks[i].IsEldest() {
+				break
+			}
 			continue
 		}
 
