@@ -90,24 +90,30 @@ func (a *ActiveDevice) DeviceID() keybase1.DeviceID {
 	return a.deviceID
 }
 
-func (a *ActiveDevice) SigningKey() GenericKey {
+func (a *ActiveDevice) SigningKey() (GenericKey, error) {
 	a.RLock()
 	defer a.RUnlock()
-	return a.signingKey
+	if a.signingKey == nil {
+		return nil, NotFoundError{}
+	}
+	return a.signingKey, nil
 }
 
-func (a *ActiveDevice) EncryptionKey() GenericKey {
+func (a *ActiveDevice) EncryptionKey() (GenericKey, error) {
 	a.RLock()
 	defer a.RUnlock()
-	return a.encryptionKey
+	if a.encryptionKey == nil {
+		return nil, NotFoundError{}
+	}
+	return a.encryptionKey, nil
 }
 
 func (a *ActiveDevice) KeyByType(t SecretKeyType) (GenericKey, error) {
 	switch t {
 	case DeviceSigningKeyType:
-		return a.SigningKey(), nil
+		return a.SigningKey()
 	case DeviceEncryptionKeyType:
-		return a.EncryptionKey(), nil
+		return a.EncryptionKey()
 	default:
 		return nil, fmt.Errorf("Invalid type %v", t)
 	}

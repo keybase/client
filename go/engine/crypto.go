@@ -28,10 +28,7 @@ func GetMySecretKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI fun
 
 	// check ActiveDevice cache after acquiring lock
 	key, err := g.ActiveDevice.KeyByType(secretKeyType)
-	if err != nil {
-		return nil, err
-	}
-	if key != nil {
+	if err == nil && key != nil {
 		g.Log.CDebugf(ctx, "found cached device key in ActiveDevice")
 		return key, nil
 	}
@@ -271,8 +268,8 @@ func getMatchingSecretKey(g *libkb.GlobalContext, getSecretUI func() libkb.Secre
 // check cached keys for arg.Bundles match.
 func matchingCachedKey(g *libkb.GlobalContext, arg keybase1.UnboxBytes32AnyArg) (key libkb.GenericKey, index int, err error) {
 	// check device key first
-	dkey := g.ActiveDevice.EncryptionKey()
-	if dkey != nil {
+	dkey, err := g.ActiveDevice.EncryptionKey()
+	if err == nil && dkey != nil {
 		if n, ok := kidMatch(dkey, arg.Bundles); ok {
 			return dkey, n, nil
 		}

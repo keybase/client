@@ -210,6 +210,7 @@ func (g *GlobalContext) createLoginStateLocked() {
 		g.loginState.Shutdown()
 	}
 	g.loginState = NewLoginState(g)
+	g.ActiveDevice = new(ActiveDevice)
 }
 
 func (g *GlobalContext) createLoginState() {

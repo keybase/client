@@ -62,7 +62,6 @@ type LoginContext interface {
 	SecretSyncer() *SecretSyncer
 	RunSecretSyncer(uid keybase1.UID) error
 
-	// CachedSecretKey(ska SecretKeyArg) (GenericKey, error)
 	SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error
 	SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error
 
