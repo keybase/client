@@ -78,7 +78,7 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :: Double check that browser extension is codesigned
-signtool verify /pa %GOPATH%\src\github.com\keybase\go\kbnm\kbnm.exe
+signtool verify /pa %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
