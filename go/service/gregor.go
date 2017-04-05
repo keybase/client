@@ -430,6 +430,8 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 }
 
 func (g *gregorHandler) IsConnected() bool {
+	g.connMutex.Lock()
+	defer g.connMutex.Unlock()
 	return g.conn != nil && g.conn.IsConnected()
 }
 
