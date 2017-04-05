@@ -46,7 +46,7 @@ const navBasedOnLoginState = (): AsyncAction => (dispatch, getState) => {
         console.log('Loading overridden logged in tab')
         dispatch(navigateTo([overrideLoggedInTab]))
       } else if (initialTab && isValidInitialTab(initialTab)) {
-        /// only do this once
+        // only do this once
         dispatch(setInitialTab(null))
         dispatch(navigateTo([initialTab]))
       } else {

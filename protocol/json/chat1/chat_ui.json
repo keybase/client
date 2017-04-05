@@ -3,6 +3,19 @@
   "imports": [],
   "types": [],
   "messages": {
+    "chatAttachmentUploadOutboxID": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        }
+      ],
+      "response": null
+    },
     "chatAttachmentUploadStart": {
       "request": [
         {

@@ -1474,6 +1474,16 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 }
 
 func (h *chatLocalHandler) postAttachmentPlaceholder(ctx context.Context, arg postAttachmentArg) (chat1.PostLocalRes, error) {
+	// generate outbox id
+	rbs, err := libkb.RandBytes(8)
+	if err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+	obid := chat1.OutboxID(rbs)
+	arg.ClientHeader.OutboxID = &obid
+	chatUI := h.getChatUI(arg.SessionID)
+	chatUI.ChatAttachmentUploadOutboxID(ctx, chat1.ChatAttachmentUploadOutboxIDArg{SessionID: arg.SessionID, OutboxID: obid})
+
 	attachment := chat1.MessageAttachment{
 		Metadata: arg.Metadata,
 		Object: chat1.Asset{

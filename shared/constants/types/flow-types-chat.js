@@ -1634,6 +1634,10 @@ export type chatUiChatAttachmentPreviewUploadStartRpcParam = Exact<{
   metadata: AssetMetadata
 }>
 
+export type chatUiChatAttachmentUploadOutboxIDRpcParam = Exact<{
+  outboxID: OutboxID
+}>
+
 export type chatUiChatAttachmentUploadProgressRpcParam = Exact<{
   bytesComplete: int,
   bytesTotal: int
@@ -2026,6 +2030,13 @@ export type rpc =
   | remoteTlfResolveRpc
 
 export type incomingCallMapType = Exact<{
+  'keybase.1.chatUi.chatAttachmentUploadOutboxID'?: (
+    params: Exact<{
+      sessionID: int,
+      outboxID: OutboxID
+    }>,
+    response: CommonResponseHandler
+  ) => void,
   'keybase.1.chatUi.chatAttachmentUploadStart'?: (
     params: Exact<{
       sessionID: int,
