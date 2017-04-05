@@ -96,13 +96,13 @@ function renderChat(parent, toUsername) {
     "method": "query",
     "to": toUsername + "@reddit"
   }, function(response) {
-    console.log(toUsername, response);
     if (response.status == "ok") {
       // Non-error response always returns at least one sig.
       const keybaseUsername = safeHTML(response.result["sigs"][0]["statement"]);
       nudgePlaceholder.innerHTML = `<p>Found proof linking to <a href="https://keybase.io/${keybaseUsername}">keybase.io/<span class="keybase-username">${keybaseUsername}</span></a></p>`;
       return;
     }
+    renderError(f, response.message);
     nudgePlaceholder.innerHTML = nudgeHTML;
   });
 
