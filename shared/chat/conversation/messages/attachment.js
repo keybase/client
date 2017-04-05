@@ -226,7 +226,7 @@ export class AttachmentMessage extends PureComponent<void, ConnectedProps, void>
   }
 
   componentDidUpdate (prevProps: ConnectedProps) {
-    if (this.props.message && prevProps.message && prevProps.message.filename != this.props.message.filename) {
+    if (this.props.message && prevProps.message && prevProps.message.filename !== this.props.message.filename) {
       this._ensurePreviewLoaded()
     }
   }
