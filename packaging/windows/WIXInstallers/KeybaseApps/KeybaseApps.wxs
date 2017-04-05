@@ -26,6 +26,7 @@
       <ComponentGroupRef Id="ApplicationShortcuts" />
       <ComponentGroupRef Id="StartupShortcuts" />
       <ComponentGroupRef Id="GuiStartMenuTileColors" />
+      <ComponentGroupRef Id="BrowserExtensionKbnm" />
     </Feature>
 
 
@@ -191,6 +192,40 @@
     </ComponentGroup>    
   </Fragment>
   
+  <Fragment>
+    <ComponentGroup Id="BrowserExtensionKbnm" Directory="GuiDir">
+      
+      <Component Id="kbnm.exe" Guid="{FE0C96E0-FFC8-4256-A600-50FFFCF58349}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveMyBrowserExtensionExe" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="kbnmexe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="kbnm.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbnm\kbnm.exe" Checksum="yes"/>
+      </Component>
+
+      <Component Id="kbnm.json" Guid="{62193DE0-E8A9-4B64-BBA5-96CF3DEA48A7}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveMyBrowserExtensionJson" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="kbnmjson" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="kbnm.json" Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbnm\kbnm.json.windows" Checksum="yes"/>
+      </Component>
+      
+      <Component Id="RegistryEntriesKbnm" Guid="{87D8FCB8-F6CE-4A24-A629-A382FAFCED76}">
+        <RegistryKey Root="HKCU"
+                     Key="SOFTWARE\Google\Chrome\NativeMessagingHosts\io.keybase.kbnm"
+              Action="createAndRemoveOnUninstall">
+          <RegistryValue Type="string" Value="[INSTALLFOLDER]kbnm.json"/>
+        </RegistryKey>
+      </Component>
+
+    </ComponentGroup>
+  </Fragment>
+
+  
+
   <Fragment>
     <ComponentGroup Id="ApplicationShortcuts" Directory="ApplicationProgramsFolder">
       <Component Id="ApplicationShortcut" Guid="E05F8D29-F530-4791-AE6B-B89DAE1F6D5C">

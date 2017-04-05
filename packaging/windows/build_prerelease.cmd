@@ -67,4 +67,8 @@ pushd %GOPATH%\src\github.com\keybase\release
 go build
 popd
 
+:: Browser Extension
+pushd %GOPATH%\src\github.com\keybase\go-updater\service
+go build -a -o upd.exe
+popd
 
