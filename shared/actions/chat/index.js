@@ -154,7 +154,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
             const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages.toArray(), conversationState.messages.size - 1)
             if (timestamp !== null) {
-              yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, [timestamp]))
+              yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, appFocused, [timestamp]))
             }
           }
 
@@ -167,7 +167,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           if (existingMessage && existingMessage.outboxID && message.type === 'Attachment') {
             yield put(Creators.updateTempMessage(conversationIDKey, message, existingMessage.outboxID))
           } else {
-            yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, [message]))
+            yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, appFocused, [message]))
           }
 
           if ((message.type === 'Attachment' || message.type === 'UpdateAttachment') && !message.previewPath && message.messageID) {

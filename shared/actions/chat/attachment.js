@@ -155,9 +155,11 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
 
   const outboxID = `attachmentUpload-${Math.ceil(Math.random() * 1e9)}`
   const username = yield select(usernameSelector)
+  const appFocused = yield select(Shared.focusedSelector)
 
   yield put(Creators.appendMessages(conversationIDKey,
     false,
+    appFocused,
     [_temporaryAttachmentMessageForUpload(conversationIDKey, username, title, filename, outboxID, type)]))
 
   const header = yield call(Shared.clientHeader, ChatTypes.CommonMessageType.attachment, conversationIDKey)
@@ -204,9 +206,11 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
 
     const metadata = previewUploadStart.params && previewUploadStart.params.metadata
     const previewSize = metadata && Constants.parseMetadataPreviewSize(metadata) || null
+    const appFocused = yield select(Shared.focusedSelector)
 
     yield put(Creators.appendMessages(conversationIDKey,
       false,
+      appFocused,
       [_temporaryAttachmentMessageForUpload(conversationIDKey, username, title, filename, outboxID, type, previewSize)]
     ))
 

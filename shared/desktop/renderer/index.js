@@ -23,6 +23,7 @@ import {getUserImageMap, loadUserImageMap} from '../../util/pictures'
 import {GlobalEscapeHandler} from '../../util/escape-handler'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {listenForNotifications} from '../../actions/notifications'
+import {changedFocus} from '../../actions/app'
 import {merge, throttle} from 'lodash'
 import {reduxDevToolsEnable, devStoreChangingFunctions, resetEngineOnHMR} from '../../local-debug.desktop'
 import {selector as menubarSelector} from '../../menubar'
@@ -101,8 +102,8 @@ function setupApp (store) {
   ipcRenderer.send('install-check')
 
   const currentWindow = electron.remote.getCurrentWindow()
-  currentWindow.on('focus', () => { store.dispatch({payload: {focused: true}, type: 'app:changedFocus'}) })
-  currentWindow.on('blur', () => { store.dispatch({payload: {focused: false}, type: 'app:changedFocus'}) })
+  currentWindow.on('focus', () => { store.dispatch(changedFocus(true)) })
+  currentWindow.on('blur', () => { store.dispatch(changedFocus(false)) })
 
   const _menubarSelector = menubarSelector()
   const _unlockFoldersSelector = unlockFoldersSelector()
