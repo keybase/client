@@ -6,6 +6,9 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
+// See comment at top of sig_chain.go for a description of V1, V2 and
+// V2 stubbed sigchain links.
+
 type SigchainV2Type int
 
 const (

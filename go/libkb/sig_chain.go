@@ -12,6 +12,29 @@ import (
 	"golang.org/x/net/context"
 )
 
+//
+// As of Sigchain V2, there are 3 types of sigchain links you might
+// encounter.
+//
+//   V1 AKA Inner: The original sigchain link is a JSON blob describing
+//    the signer's eldest key, signing key, payload, and prev pointers,
+//    among other fields. As we migrate to sigchain V2, this is known as the
+//    "inner" link. It persists in some cases and is elided for bandwidth
+//    savings in others.
+//
+//   V2 AKA Outer/Inner Split: In V2, the signer computers a signature over
+//    a much smaller outer link (see OuterLinkV2 in chain_link_v2.go). The
+//    "curr" field in the outer link points to a V1 inner link by content hash.
+//    Essential fields from the V1 inner link are hoisted up into the V2 outer
+//    link and therefore must agree. Thus, the "prev" pointer in the V2 outer
+//    link is the same as the "prev" pointer in the V2 inner link; it equals
+//    the "curr" pointer of the previous outer link.
+//
+//   V2 Stubbed: To save bandwidth, the server is allowed to send over just
+//    the V2 Outer link, minus any signatures, minus an inner link, if the
+//    consuming client can safely ignore those details.
+//
+
 type SigChain struct {
 	Contextified
 
@@ -364,7 +387,7 @@ func (sc *SigChain) GetCurrentSubchain(eldest keybase1.KID) (links []*ChainLink,
 			break
 		}
 		// Also stop walking if the current link has type "eldest".
-		if sc.chainLinks[i].unpacked.typ == string(DelegationTypeEldest) {
+		if sc.chainLinks[i].IsEldest() {
 			break
 		}
 		// Or if the link is one of our hardcoded six that reuse an eldest key ambiguously.
