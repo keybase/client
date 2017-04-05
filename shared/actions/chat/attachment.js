@@ -7,7 +7,7 @@ import * as Saga from '../../util/saga'
 import * as Shared from './shared'
 import {call, put, select, cancel, fork, join, take} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
-import {navigateAppend} from '../route-tree'
+import {putActionIfOnPath, navigateAppend} from '../route-tree'
 import {saveAttachment, showShareActionSheet} from '../platform-specific'
 import {tmpDir, tmpFile, downloadFilePath, copy, exists} from '../../util/file'
 
