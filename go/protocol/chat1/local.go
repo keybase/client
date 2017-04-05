@@ -1482,8 +1482,14 @@ type LocalFileSource struct {
 }
 
 type DownloadAttachmentLocalRes struct {
+	Offline          bool                          `codec:"offline" json:"offline"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+type MarkAsReadLocalRes struct {
+	Offline    bool        `codec:"offline" json:"offline"`
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
 }
 
 type FindConversationsLocalRes struct {
@@ -1687,7 +1693,7 @@ type LocalInterface interface {
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	CancelPost(context.Context, OutboxID) error
 	RetryPost(context.Context, OutboxID) error
-	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadRes, error)
+	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
 	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
 }
 
@@ -2180,7 +2186,7 @@ func (c LocalClient) RetryPost(ctx context.Context, outboxID OutboxID) (err erro
 	return
 }
 
-func (c LocalClient) MarkAsReadLocal(ctx context.Context, __arg MarkAsReadLocalArg) (res MarkAsReadRes, err error) {
+func (c LocalClient) MarkAsReadLocal(ctx context.Context, __arg MarkAsReadLocalArg) (res MarkAsReadLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.markAsReadLocal", []interface{}{__arg}, &res)
 	return
 }

@@ -84,6 +84,7 @@ type ServerCacheVersions interface {
 }
 
 type Syncer interface {
+	IsConnected() bool
 	Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 		syncRes *chat1.SyncChatRes) error
 	Disconnected(ctx context.Context)

@@ -899,6 +899,7 @@ export type ConversationStatus =
   | 4 // MUTED_4
 
 export type DownloadAttachmentLocalRes = {
+  offline: boolean,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
@@ -1141,6 +1142,11 @@ export type LocalSource = {
   source: keybase1.Stream,
   filename: string,
   size: int,
+}
+
+export type MarkAsReadLocalRes = {
+  offline: boolean,
+  rateLimits?: ?Array<RateLimit>,
 }
 
 export type MarkAsReadRes = {
@@ -1927,7 +1933,7 @@ type localGetInboxSummaryForCLILocalResult = GetInboxSummaryForCLILocalRes
 type localGetMessagesLocalResult = GetMessagesLocalRes
 type localGetThreadLocalResult = GetThreadLocalRes
 type localGetThreadNonblockResult = NonblockFetchRes
-type localMarkAsReadLocalResult = MarkAsReadRes
+type localMarkAsReadLocalResult = MarkAsReadLocalRes
 type localNewConversationLocalResult = NewConversationLocalRes
 type localPostAttachmentLocalResult = PostLocalRes
 type localPostDeleteNonblockResult = PostLocalNonblockRes
