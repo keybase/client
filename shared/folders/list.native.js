@@ -95,19 +95,12 @@ class ListRender extends Component<void, Props, State> {
 
   render () {
     return (
-      <Box style={stylesContainer}>
-        <NativeListView
-          enableEmptySections={true}
-          dataSource={this.state.dataSource}
-          renderRow={this._renderRow} />
-      </Box>
+      <NativeListView
+        enableEmptySections={true}
+        dataSource={this.state.dataSource}
+        renderRow={this._renderRow} />
     )
   }
-}
-
-const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
-  flexGrow: 1,
 }
 
 const stylesIgnoreContainer = {
