@@ -341,6 +341,10 @@ function setSelectedRouteState (selectedConversation: Constants.ConversationIDKe
   return setRouteState(List([chatTab, selectedConversation]), partialState)
 }
 
+function setInboxUntrustedState (inboxUntrustedState: Constants.UntrustedState): Constants.SetInboxUntrustedState {
+  return {payload: {inboxUntrustedState}, type: 'chat:inboxUntrustedState'}
+}
+
 export {
   addPending,
   appendMessages,
@@ -380,6 +384,7 @@ export {
   retryMessage,
   selectAttachment,
   selectConversation,
+  setInboxUntrustedState,
   setInitialConversation,
   setLoaded,
   setSelectedRouteState,

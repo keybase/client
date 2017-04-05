@@ -39,7 +39,7 @@ function * onInitialInboxLoad (action: Constants.LoadInbox): SagaGenerator<any, 
 
   const {force} = action.payload
   if (inboxUntrustedState === 'unloaded' || _inboxUntrustedError || force) {
-    yield put({payload: {inboxUntrustedState: 'loading'}, type: 'chat:inboxUntrustedState'})
+    yield put(Creators.setInboxUntrustedState('loading'))
     _inboxUntrustedError = null
     yield call(onInboxStale)
     if (!isMobile) {
@@ -77,7 +77,7 @@ function * _updateFinalized (inbox: ChatTypes.GetInboxLocalRes) {
 
 // Loads the untrusted inbox only
 function * onInboxStale (): SagaGenerator<any, any> {
-  yield put({payload: {inboxUntrustedState: 'loading'}, type: 'chat:inboxUntrustedState'})
+  yield put(Creators.setInboxUntrustedState('loading'))
   _inboxUntrustedError = null
 
   const channelConfig = singleFixedChannelConfig(['chat.1.chatUi.chatInboxUnverified', 'finished'])
@@ -120,7 +120,7 @@ function * onInboxStale (): SagaGenerator<any, any> {
     })
   }).filter(Boolean))
 
-  yield put({payload: {inboxUntrustedState: 'loaded'}, type: 'chat:inboxUntrustedState'})
+  yield put(Creators.setInboxUntrustedState('loaded'))
   yield put(Creators.loadedInbox(conversations))
   chatInboxUnverified.response.result()
 
