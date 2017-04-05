@@ -30,8 +30,7 @@ const (
 
 func (t SigchainV2Type) NeedsSignature() bool {
 	switch t {
-	case SigchainV2TypeTrack, SigchainV2TypeUntrack, SigchainV2TypeAnnouncement,
-		SigchainV2TypeCryptocurrency:
+	case SigchainV2TypeTrack, SigchainV2TypeUntrack, SigchainV2TypeAnnouncement:
 		return false
 	default:
 		return true
@@ -132,6 +131,11 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations bool) (ret 
 		ret = SigchainV2TypeNone
 		err = ChainLinkError{fmt.Sprintf("Unknown sig v1 type: %s", s)}
 	}
+
+	if !ret.NeedsSignature() && hasRevocations {
+		err = ChainLinkError{fmt.Sprintf("invalid chain link of type %d with a revocation", ret)}
+	}
+
 	return ret, err
 }
 
