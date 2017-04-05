@@ -464,11 +464,11 @@ func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error {
 	}
 	if ska.KeyType == DeviceSigningKeyType {
 		a.G().Log.Debug("caching secret device signing key")
-		return a.G().ActiveDevice.setSigningKey(a.localSession.GetUID(), a.localSession.GetDeviceID(), key)
+		return a.G().ActiveDevice.setSigningKey(a, a.localSession.GetUID(), a.localSession.GetDeviceID(), key)
 	}
 	if ska.KeyType == DeviceEncryptionKeyType {
 		a.G().Log.Debug("caching secret device encryption key")
-		return a.G().ActiveDevice.setEncryptionKey(a.localSession.GetUID(), a.localSession.GetDeviceID(), key)
+		return a.G().ActiveDevice.setEncryptionKey(a, a.localSession.GetUID(), a.localSession.GetDeviceID(), key)
 	}
 	return fmt.Errorf("attempt to cache invalid key type: %d", ska.KeyType)
 }
@@ -496,7 +496,9 @@ func (a *Account) GetUnlockedPaperEncKey() GenericKey {
 func (a *Account) ClearCachedSecretKeys() {
 	a.G().Log.Debug("clearing cached secret keys")
 	a.ClearPaperKeys()
-	a.G().ActiveDevice.clear()
+	if err := a.G().ActiveDevice.clear(a); err != nil {
+		a.G().Log.Warning("error clearing ActiveDevice: %s", err)
+	}
 }
 
 func (a *Account) ClearPaperKeys() {

@@ -16,11 +16,14 @@ type ActiveDevice struct {
 	sync.RWMutex
 }
 
-func (a *ActiveDevice) set(uid keybase1.UID, deviceID keybase1.DeviceID, sigKey, encKey GenericKey) error {
+// Set acquires the write lock and sets all the fields in ActiveDevice.
+// The acct parameter is not used for anything except to help ensure
+// that this is called from inside a LogingState account request.
+func (a *ActiveDevice) set(acct *Account, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey, encKey GenericKey) error {
 	a.Lock()
 	defer a.Unlock()
 
-	if err := a.internalUpdateUIDDeviceID(uid, deviceID); err != nil {
+	if err := a.internalUpdateUIDDeviceID(acct, uid, deviceID); err != nil {
 		return err
 	}
 
@@ -30,11 +33,14 @@ func (a *ActiveDevice) set(uid keybase1.UID, deviceID keybase1.DeviceID, sigKey,
 	return nil
 }
 
-func (a *ActiveDevice) setSigningKey(uid keybase1.UID, deviceID keybase1.DeviceID, sigKey GenericKey) error {
+// setSigningKey acquires the write lock and sets the signing key.
+// The acct parameter is not used for anything except to help ensure
+// that this is called from inside a LogingState account request.
+func (a *ActiveDevice) setSigningKey(acct *Account, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey GenericKey) error {
 	a.Lock()
 	defer a.Unlock()
 
-	if err := a.internalUpdateUIDDeviceID(uid, deviceID); err != nil {
+	if err := a.internalUpdateUIDDeviceID(acct, uid, deviceID); err != nil {
 		return err
 	}
 
@@ -42,11 +48,14 @@ func (a *ActiveDevice) setSigningKey(uid keybase1.UID, deviceID keybase1.DeviceI
 	return nil
 }
 
-func (a *ActiveDevice) setEncryptionKey(uid keybase1.UID, deviceID keybase1.DeviceID, encKey GenericKey) error {
+// setEncryptionKey acquires the write lock and sets the encryption key.
+// The acct parameter is not used for anything except to help ensure
+// that this is called from inside a LogingState account request.
+func (a *ActiveDevice) setEncryptionKey(acct *Account, uid keybase1.UID, deviceID keybase1.DeviceID, encKey GenericKey) error {
 	a.Lock()
 	defer a.Unlock()
 
-	if err := a.internalUpdateUIDDeviceID(uid, deviceID); err != nil {
+	if err := a.internalUpdateUIDDeviceID(acct, uid, deviceID); err != nil {
 		return err
 	}
 
@@ -55,7 +64,10 @@ func (a *ActiveDevice) setEncryptionKey(uid keybase1.UID, deviceID keybase1.Devi
 }
 
 // should only called by the functions in this type, with the write lock.
-func (a *ActiveDevice) internalUpdateUIDDeviceID(uid keybase1.UID, deviceID keybase1.DeviceID) error {
+func (a *ActiveDevice) internalUpdateUIDDeviceID(acct *Account, uid keybase1.UID, deviceID keybase1.DeviceID) error {
+	if acct == nil {
+		return errors.New("ActiveDevice.set funcs must be called from inside a LoginState account request")
+	}
 	if a.uid.IsNil() && a.deviceID.IsNil() {
 		a.uid = uid
 		a.deviceID = deviceID
@@ -68,28 +80,43 @@ func (a *ActiveDevice) internalUpdateUIDDeviceID(uid keybase1.UID, deviceID keyb
 	return nil
 }
 
-func (a *ActiveDevice) clear() {
+// clear acquires the write lock and resets all the fields to zero values.
+// The acct parameter is not used for anything except to help ensure
+// that this is called from inside a LogingState account request.
+func (a *ActiveDevice) clear(acct *Account) error {
 	a.Lock()
 	defer a.Unlock()
+
+	if acct == nil {
+		return errors.New("ActiveDevice.clear must be called from inside a LoginState account request")
+	}
 
 	a.uid = ""
 	a.deviceID = ""
 	a.signingKey = nil
 	a.encryptionKey = nil
+
+	return nil
 }
 
+// UID returns the user ID that was provided when the device keys were cached.
+// Safe for use by concurrent goroutines.
 func (a *ActiveDevice) UID() keybase1.UID {
 	a.RLock()
 	defer a.RUnlock()
 	return a.uid
 }
 
+// DeviceID returns the device ID that was provided when the device keys were cached.
+// Safe for use by concurrent goroutines.
 func (a *ActiveDevice) DeviceID() keybase1.DeviceID {
 	a.RLock()
 	defer a.RUnlock()
 	return a.deviceID
 }
 
+// SigningKey returns the signing key for the active device.
+// Safe for use by concurrent goroutines.
 func (a *ActiveDevice) SigningKey() (GenericKey, error) {
 	a.RLock()
 	defer a.RUnlock()
@@ -99,6 +126,8 @@ func (a *ActiveDevice) SigningKey() (GenericKey, error) {
 	return a.signingKey, nil
 }
 
+// EncryptionKey returns the signing key for the active device.
+// Safe for use by concurrent goroutines.
 func (a *ActiveDevice) EncryptionKey() (GenericKey, error) {
 	a.RLock()
 	defer a.RUnlock()
@@ -108,6 +137,8 @@ func (a *ActiveDevice) EncryptionKey() (GenericKey, error) {
 	return a.encryptionKey, nil
 }
 
+// KeyByType returns a cached key based on SecretKeyType.
+// Safe for use by concurrent goroutines.
 func (a *ActiveDevice) KeyByType(t SecretKeyType) (GenericKey, error) {
 	switch t {
 	case DeviceSigningKeyType:
@@ -119,6 +150,8 @@ func (a *ActiveDevice) KeyByType(t SecretKeyType) (GenericKey, error) {
 	}
 }
 
+// AllFields returns all the ActiveDevice fields via one lock for consistency.
+// Safe for use by concurrent goroutines.
 func (a *ActiveDevice) AllFields() (uid keybase1.UID, deviceID keybase1.DeviceID, sigKey GenericKey, encKey GenericKey) {
 	a.RLock()
 	defer a.RUnlock()
