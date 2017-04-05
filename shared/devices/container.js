@@ -48,7 +48,7 @@ const mapDispatchToProps = (dispatch: any, {routeState, setRouteState, navigateU
 })
 
 const menuItems = props => ([
-  ...flags.mobileAppsExist && [{onClick: props.addNewPhone, title: 'New phone'}] || [],
+  ...flags.mobileAppsExist && [{onClick: props.addNewPhone, title: 'New phone [in beta]'}] || [],
   {onClick: props.addNewComputer, title: 'New computer'},
   {onClick: props.addNewPaperKey, title: 'New paper key'},
 ])

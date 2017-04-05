@@ -4,10 +4,12 @@ import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
 import {clamp, invert} from 'lodash'
 import * as ChatTypes from './types/flow-types-chat'
-import {getPath} from '../route-tree'
+import {getPath, getPathState} from '../route-tree'
 import {chatTab} from './tabs'
+import {createSelector} from 'reselect'
 
 import type {UserListItem} from '../common-adapters/usernames'
+import type {Path} from '../route-tree'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
 import type {AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFinalizeInfo, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
@@ -342,7 +344,7 @@ export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conver
 export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
 export type MuteConversation = NoErrorTypedAction<'chat:muteConversation', {conversationIDKey: ConversationIDKey, muted: boolean}>
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
-export type OpenAttachmentPopup = NoErrorTypedAction<'chat:openAttachmentPopup', {message: AttachmentMessage}>
+export type OpenAttachmentPopup = NoErrorTypedAction<'chat:openAttachmentPopup', {message: AttachmentMessage, currentPath: Path}>
 export type OpenConversation = NoErrorTypedAction<'chat:openConversation', {conversationIDKey: ConversationIDKey}>
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
 export type OpenTlfInChat = NoErrorTypedAction<'chat:openTlfInChat', string>
@@ -604,9 +606,40 @@ const getSelectedConversation = (state: TypedState) => {
   return selected
 }
 
+const getSelectedRouteState = (state: TypedState) => {
+  const selected = getSelectedConversation(state)
+  if (!selected) return null
+  return getPathState(state.routeTree.routeState, [chatTab, selected])
+}
+
 function messageKey (kind: MessageKeyKind, value: string | number): MessageKey {
   return `${kind}:${value}`
 }
+
+const getYou = (state: TypedState) => state.config.username || ''
+const getFollowingMap = (state: TypedState) => state.config.following
+const getMetaDataMap = (state: TypedState) => state.chat.get('metaData')
+const getSelectedInbox = (state: TypedState) => {
+  const selected = getSelectedConversation(state)
+  return state.chat.get('inbox').find(inbox => inbox.get('conversationIDKey') === selected)
+}
+
+const getTLF = createSelector(
+  [getSelectedInbox, getSelectedConversation],
+  (selectedInbox, selected) => {
+    if (selected && isPendingConversationIDKey(selected)) {
+      return pendingConversationIDKeyToTlfName(selected) || ''
+    } else if (selected !== nothingSelected && selectedInbox) {
+      return selectedInbox.participants.join(',')
+    }
+    return ''
+  }
+)
+
+const getMuted = createSelector(
+  [getSelectedInbox],
+  (selectedInbox) => selectedInbox && selectedInbox.get('status') === 'muted',
+)
 
 export {
   getBrokenUsers,
@@ -628,4 +661,11 @@ export {
   pendingConversationIDKey,
   isPendingConversationIDKey,
   pendingConversationIDKeyToTlfName,
+  getSelectedRouteState,
+  getYou,
+  getFollowingMap,
+  getMetaDataMap,
+  getSelectedInbox,
+  getTLF,
+  getMuted,
 }

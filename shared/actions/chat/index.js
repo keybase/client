@@ -96,7 +96,9 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           return
         }
 
-        yield call(Inbox.processConversation, incomingMessage.conv)
+        if (incomingMessage.conv) {
+          yield call(Inbox.processConversation, incomingMessage.conv)
+        }
 
         const messageUnboxed: ChatTypes.MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
@@ -150,7 +152,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
         } else {
           // How long was it between the previous message and this one?
           if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
-            const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages, conversationState.messages.size - 1)
+            const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages.toArray(), conversationState.messages.size - 1)
             if (timestamp !== null) {
               yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, [timestamp]))
             }

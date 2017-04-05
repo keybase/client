@@ -543,14 +543,16 @@ func (m *ChatRemoteMock) GetInboxVersion(ctx context.Context, uid gregor1.UID) (
 
 func (m *ChatRemoteMock) SyncInbox(ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
 	if m.SyncInboxFunc == nil {
-		return chat1.SyncInboxRes{}, nil
+		return chat1.NewSyncInboxResWithClear(), nil
 	}
 	return m.SyncInboxFunc(m, ctx, vers)
 }
 
 func (m *ChatRemoteMock) SyncChat(ctx context.Context, vers chat1.InboxVers) (chat1.SyncChatRes, error) {
 	if m.SyncInboxFunc == nil {
-		return chat1.SyncChatRes{}, nil
+		return chat1.SyncChatRes{
+			InboxRes: chat1.NewSyncInboxResWithClear(),
+		}, nil
 	}
 
 	iboxRes, err := m.SyncInboxFunc(m, ctx, vers)

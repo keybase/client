@@ -564,15 +564,22 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	return res, rl, err
 }
 
-func (s *HybridInboxSource) handleInboxError(ctx context.Context, err storage.Error, uid gregor1.UID) error {
+func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid gregor1.UID) (ferr error) {
+	defer func() {
+		if ferr != nil {
+			s.Debug(ctx, "handleInboxError: failed to recover from inbox error, clearing: %s",
+				ferr.Error())
+			storage.NewInbox(s.G(), uid).Clear(ctx)
+		}
+	}()
+
 	if _, ok := err.(storage.MissError); ok {
 		return nil
 	}
 	if verr, ok := err.(storage.VersionMismatchError); ok {
 		s.Debug(ctx, "handleInboxError: version mismatch, syncing and sending stale notifications: %s",
 			verr.Error())
-		s.G().Syncer.Sync(ctx, s.getChatInterface(), uid, nil)
-		return nil
+		return s.G().Syncer.Sync(ctx, s.getChatInterface(), uid, nil)
 	}
 	return err
 }
