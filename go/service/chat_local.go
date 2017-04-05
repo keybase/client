@@ -201,7 +201,7 @@ func (h *chatLocalHandler) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAs
 		return res, err
 	}
 	return chat1.MarkAsReadLocalRes{
-		Offline:    h.G().Syncer.IsConnected(),
+		Offline:    h.G().Syncer.IsConnected(ctx),
 		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rres.RateLimit}),
 	}, nil
 }
@@ -1402,6 +1402,10 @@ func (h *chatLocalHandler) setTestRemoteClient(ri chat1.RemoteInterface) {
 func (h *chatLocalHandler) assertLoggedIn(ctx context.Context) error {
 	ok, err := h.G().LoginState().LoggedInProvisionedLoad()
 	if err != nil {
+		if _, ok := err.(libkb.APINetError); ok {
+			h.Debug(ctx, "assertLoggedIn: skipping API error and returning success")
+			return nil
+		}
 		return err
 	}
 	if !ok {
