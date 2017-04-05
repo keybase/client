@@ -876,6 +876,16 @@ func (_mr *_MockKBFSOpsRecorder) Sync(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Sync", arg0, arg1)
 }
 
+func (_m *MockKBFSOps) SyncAll(ctx context.Context, folderBranch FolderBranch) error {
+	ret := _m.ctrl.Call(_m, "SyncAll", ctx, folderBranch)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockKBFSOpsRecorder) SyncAll(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SyncAll", arg0, arg1)
+}
+
 func (_m *MockKBFSOps) FolderStatus(ctx context.Context, folderBranch FolderBranch) (FolderBranchStatus, <-chan StatusUpdate, error) {
 	ret := _m.ctrl.Call(_m, "FolderStatus", ctx, folderBranch)
 	ret0, _ := ret[0].(FolderBranchStatus)

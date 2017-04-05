@@ -393,6 +393,7 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 				leveledRWMutex: blockLockMu,
 			},
 			dirtyFiles: make(map[BlockPointer]*dirtyFile),
+			deferred:   make(map[BlockRef]deferredState),
 			unrefCache: make(map[BlockRef]*syncInfo),
 			deCache:    make(map[BlockRef]deCacheEntry),
 			nodeCache:  nodeCache,
@@ -3591,21 +3592,16 @@ func (fbo *folderBranchOps) SetMtime(
 		})
 }
 
-func (fbo *folderBranchOps) syncLocked(ctx context.Context,
-	lState *lockState, file path) (stillDirty bool, err error) {
+func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
+	lState *lockState, md *RootMetadata, file path) (
+	doSync bool, stillDirty bool, fblock *FileBlock, lbc localBcache,
+	bps *blockPutState, syncState fileSyncState,
+	cleanupFn func([]BlockPointer, error), err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	// if the cache for this file isn't dirty, we're done
 	if !fbo.blocks.IsDirty(lState, file) {
-		return false, nil
-	}
-
-	// Verify we have permission to write.  We do this after the dirty
-	// check because otherwise readers who sync clean files on close
-	// would get an error.
-	md, err := fbo.getMDForWriteLocked(ctx, lState)
-	if err != nil {
-		return true, err
+		return false, false, nil, nil, nil, fileSyncState{}, nil, nil
 	}
 
 	// If the MD doesn't match the MD expected by the path, that
@@ -3630,12 +3626,13 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		// perfectly accurate (but at the same time, we'd then have to
 		// fix up the intentional panic in the background flusher to
 		// be more tolerant of long-lived dirty, removed files).
-		return true, fbo.blocks.ClearCacheInfo(lState, file)
+		return false, true, nil, nil, nil, fileSyncState{}, nil,
+			fbo.blocks.ClearCacheInfo(lState, file)
 	}
 
 	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
-		return true, err
+		return false, true, nil, nil, nil, fileSyncState{}, nil, err
 	}
 
 	if file.isValidForNotification() {
@@ -3645,15 +3642,42 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	}
 
 	// Filled in by doBlockPuts below.
-	var blocksToRemove []BlockPointer
-	fblock, bps, lbc, syncState, err :=
+	fblock, bps, lbc, syncState, err =
 		fbo.blocks.StartSync(ctx, lState, md, session.UID, file)
-	defer func() {
+	cleanupFn = func(blocksToRemove []BlockPointer, err error) {
 		fbo.blocks.CleanupSyncState(
 			ctx, lState, md.ReadOnly(), file, blocksToRemove, syncState, err)
-	}()
+	}
 	if err != nil {
-		return true, err
+		return false, true, nil, nil, nil, fileSyncState{}, cleanupFn, err
+	}
+
+	return true, true, fblock, lbc, bps, syncState, cleanupFn, nil
+}
+
+func (fbo *folderBranchOps) syncLocked(ctx context.Context,
+	lState *lockState, file path) (stillDirty bool, err error) {
+	fbo.mdWriterLock.AssertLocked(lState)
+
+	// Verify we have permission to write.  We do this after the dirty
+	// check because otherwise readers who sync clean files on close
+	// would get an error.
+	md, err := fbo.getMDForWriteLocked(ctx, lState)
+	if err != nil {
+		return false, err
+	}
+
+	var blocksToRemove []BlockPointer
+	doSync, stillDirty, fblock, lbc, bps, syncState, cleanupFn, err :=
+		fbo.startSyncLocked(ctx, lState, md, file)
+	if cleanupFn != nil {
+		defer func() { cleanupFn(blocksToRemove, err) }()
+	}
+	if err != nil {
+		return stillDirty, err
+	}
+	if !doSync {
+		return stillDirty, nil
 	}
 
 	newPath, _, newBps, err :=
@@ -3730,6 +3754,191 @@ func (fbo *folderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 	return nil
 }
 
+func (fbo *folderBranchOps) syncAllLocked(
+	ctx context.Context, lState *lockState) (err error) {
+	fbo.mdWriterLock.AssertLocked(lState)
+
+	dirtyRefs := fbo.blocks.GetDirtyRefs(lState)
+	if len(dirtyRefs) == 0 {
+		return nil
+	}
+
+	// Verify we have permission to write.  We do this after the dirty
+	// check because otherwise readers who sync clean files on close
+	// would get an error.
+	md, err := fbo.getMDForWriteLocked(ctx, lState)
+	if err != nil {
+		return err
+	}
+
+	var cleanupFns []func(error)
+	defer func() {
+		for _, cf := range cleanupFns {
+			cf(err)
+		}
+	}()
+
+	fbo.log.CDebugf(ctx, "Syncing %d file(s)", len(dirtyRefs))
+	bps := newBlockPutState(0)
+	resolvedPaths := make(map[BlockPointer]path)
+	fileBlocks := make(fileBlockMap)
+	var blocksToRemove []BlockPointer
+	var afterUpdateFns []func() error
+	lbc := make(localBcache)
+	for _, ref := range dirtyRefs {
+		node := fbo.nodeCache.Get(ref)
+		if node == nil {
+			continue
+		}
+		file := fbo.nodeCache.PathFromNode(node)
+		fbo.log.CDebugf(ctx, "Syncing file %v (%s)", ref, file)
+
+		doSync, stillDirty, fblock, newLbc, newBps, syncState, cleanupFn, err :=
+			fbo.startSyncLocked(ctx, lState, md, file)
+		if cleanupFn != nil {
+			// XXX: This passes the same `blocksToRemove` into each cleanup
+			// function.  Is that ok?
+			cleanupFns = append(cleanupFns,
+				func(err error) { cleanupFn(blocksToRemove, err) })
+		}
+		if err != nil {
+			return err
+		}
+		if !doSync {
+			if !stillDirty {
+				fbo.status.rmDirtyNode(node)
+			}
+			continue
+		}
+
+		bps.mergeOtherBps(newBps)
+		resolvedPaths[file.tailPointer()] = file
+		parent := file.parentPath().tailPointer()
+
+		if _, ok := fileBlocks[parent]; !ok {
+			fileBlocks[parent] = make(map[string]*FileBlock)
+		}
+		fileBlocks[parent][file.tailName()] = fblock
+
+		afterUpdateFns = append(afterUpdateFns, func() error {
+			// This will be called after the node cache is updated, so
+			// this newPath will be correct.
+			newPath := fbo.nodeCache.PathFromNode(node)
+			stillDirty, err := fbo.blocks.FinishSyncLocked(
+				ctx, lState, file, newPath, md.ReadOnly(), syncState, fbo.fbm)
+			if !stillDirty {
+				fbo.status.rmDirtyNode(node)
+			}
+			return err
+		})
+
+		// Make each of the ops "self-updates" before making chains
+		// (they will be updated later to have the correct block
+		// pointers).  Add an update for each element in the path, so
+		// that the chains below are created correctly.
+		lastOp := md.Data().Changes.Ops[len(md.Data().Changes.Ops)-1]
+		for _, p := range file.path {
+			lastOp.AddUpdate(p.BlockPointer, p.BlockPointer)
+		}
+
+		// Update the combined local block cache with this file's
+		// dirty entry.
+		parentPtr := file.parentPath().tailPointer()
+		if _, ok := lbc[parentPtr]; ok {
+			lbc[parentPtr].Children[file.tailName()] =
+				newLbc[parentPtr].Children[file.tailName()]
+		} else {
+			lbc[parentPtr] = newLbc[parentPtr]
+		}
+	}
+
+	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return err
+	}
+	tempIRMD := ImmutableRootMetadata{
+		ReadOnlyRootMetadata:   md.ReadOnly(),
+		lastWriterVerifyingKey: session.VerifyingKey,
+	}
+
+	syncChains, err := newCRChains(
+		ctx, fbo.config.Codec(), []chainMetadata{tempIRMD}, &fbo.blocks, false)
+	if err != nil {
+		return err
+	}
+
+	head, _ := fbo.getHead(lState)
+	dummyHeadChains := newCRChainsEmpty()
+	dummyHeadChains.mostRecentChainMDInfo = mostRecentChainMetadataInfo{
+		head, head.Data().Dir.BlockInfo}
+
+	md.AddOp(newResolutionOp())
+	_, newBps, blocksToDelete, err := fbo.prepper.prepUpdateForPaths(
+		ctx, lState, md, syncChains, dummyHeadChains, tempIRMD, head,
+		resolvedPaths, lbc, fileBlocks, fbo.config.DirtyBlockCache())
+	if err != nil {
+		return err
+	}
+	if len(blocksToDelete) > 0 {
+		return errors.Errorf("Unexpectedly found unflushed blocks to delete "+
+			"during syncAllLocked: %v", blocksToDelete)
+	}
+	bps.mergeOtherBps(newBps)
+
+	defer func() {
+		if err != nil {
+			fbo.fbm.cleanUpBlockState(md.ReadOnly(), bps, blockDeleteOnMDFail)
+		}
+	}()
+
+	// Put all the blocks.
+	blocksToRemove, err = doBlockPuts(ctx, fbo.config.BlockServer(),
+		fbo.config.BlockCache(), fbo.config.Reporter(), fbo.log, md.TlfID(),
+		md.GetTlfHandle().GetCanonicalName(), *bps)
+	if err != nil {
+		return err
+	}
+
+	// Call this under the same blockLock as when the pointers are
+	// updated, so there's never any point in time where a read or
+	// write might slip in after the pointers are updated, but before
+	// the deferred writes are re-applied.
+	afterUpdateFn := func() error {
+		var errs []error
+		for _, auf := range afterUpdateFns {
+			err := auf()
+			if err != nil {
+				errs = append(errs, err)
+			}
+		}
+		if len(errs) == 1 {
+			return errs[0]
+		} else if len(errs) > 1 {
+			return errors.Errorf("Got errors %+v", errs)
+		}
+		return nil
+	}
+
+	return fbo.finalizeMDWriteLocked(
+		ctx, lState, md, bps, NoExcl, afterUpdateFn)
+}
+
+// Sync implements the KBFSOps interface for folderBranchOps.
+func (fbo *folderBranchOps) SyncAll(
+	ctx context.Context, folderBranch FolderBranch) (err error) {
+	fbo.log.CDebugf(ctx, "SyncAll")
+	defer func() { fbo.deferLog.CDebugf(ctx, "SyncAll done: %+v", err) }()
+
+	if folderBranch != fbo.folderBranch {
+		return WrongOpsError{fbo.folderBranch, folderBranch}
+	}
+
+	return fbo.doMDWriteWithRetryUnlessCanceled(ctx,
+		func(lState *lockState) error {
+			return fbo.syncAllLocked(ctx, lState)
+		})
+}
+
 func (fbo *folderBranchOps) FolderStatus(
 	ctx context.Context, folderBranch FolderBranch) (
 	fbs FolderBranchStatus, updateChan <-chan StatusUpdate, err error) {
@@ -3766,17 +3975,25 @@ func (fbo *folderBranchOps) UnregisterFromChanges(obs Observer) error {
 	return nil
 }
 
-// notifyBatchLocked sends out a notification for the most recent op
-// in md.
+// notifyBatchLocked sends out a notification for all the ops in md.
 func (fbo *folderBranchOps) notifyBatchLocked(
 	ctx context.Context, lState *lockState, md ImmutableRootMetadata,
 	afterUpdateFn func() error) error {
 	fbo.headLock.AssertLocked(lState)
 
-	lastOp := md.data.Changes.Ops[len(md.data.Changes.Ops)-1]
-	err := fbo.notifyOneOpLocked(ctx, lState, lastOp, md, false, afterUpdateFn)
-	if err != nil {
-		return err
+	for i, op := range md.data.Changes.Ops {
+		// Only supply the afterUpdateFn for the first notification,
+		// which, in a multi-update batch, should be the resolution op
+		// with all the new pointer updates.
+		if i > 0 && md.data.Changes.Ops[0].(*resolutionOp) == nil {
+			return errors.Errorf("First update in local batch is not a "+
+				"resolutionOp: %T", md.data.Changes.Ops[0])
+		}
+		err := fbo.notifyOneOpLocked(ctx, lState, op, md, false, afterUpdateFn)
+		if err != nil {
+			return err
+		}
+		afterUpdateFn = nil
 	}
 	fbo.editHistory.UpdateHistory(ctx, []ImmutableRootMetadata{md})
 	return nil

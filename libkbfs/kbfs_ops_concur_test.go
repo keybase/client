@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"runtime"
 	"sync"
 	"testing"
@@ -176,7 +177,7 @@ func testCalcNumFileBlocks(dataLen int, bsplitter *BlockSplitterSimple) int {
 
 // Test that writes can happen concurrently with a sync
 func testKBFSOpsConcurWritesDuringSync(t *testing.T,
-	initialWriteBytes int, nOneByteWrites int) {
+	initialWriteBytes int, nOneByteWrites int, nFiles int) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
@@ -193,49 +194,71 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
+	fileNodes := make([]Node, nFiles)
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+	for i := 0; i < nFiles; i++ {
+		name := fmt.Sprintf("file%d", i)
+		fileNode, _, err := kbfsOps.CreateFile(
+			ctx, rootNode, name, false, NoExcl)
+		if err != nil {
+			t.Fatalf("Couldn't create file %s: %v", name, err)
+		}
+		fileNodes[i] = fileNode
 	}
-	data := make([]byte, initialWriteBytes)
-	for i := 0; i < initialWriteBytes; i++ {
-		data[i] = 1
-	}
-	err = kbfsOps.Write(ctx, fileNode, data, 0)
-	if err != nil {
-		t.Errorf("Couldn't write file: %v", err)
+
+	expectedData := make([][]byte, len(fileNodes))
+	for i, fileNode := range fileNodes {
+		data := make([]byte, initialWriteBytes)
+		for j := 0; j < initialWriteBytes; j++ {
+			data[j] = byte(initialWriteBytes * (i + 1))
+		}
+		err = kbfsOps.Write(ctx, fileNode, data, 0)
+		if err != nil {
+			t.Errorf("Couldn't write file: %v", err)
+		}
+		expectedData[i] = make([]byte, len(data))
+		copy(expectedData[i], data)
 	}
 
 	// start the sync
 	errChan := make(chan error)
 	go func() {
-		errChan <- kbfsOps.Sync(putCtx, fileNode)
+		if len(fileNodes) == 1 {
+			errChan <- kbfsOps.Sync(putCtx, fileNodes[0])
+		} else {
+			errChan <- kbfsOps.SyncAll(putCtx, fileNodes[0].GetFolderBranch())
+		}
 	}()
 
 	// wait until Sync gets stuck at MDOps.Put()
-	<-onPutStalledCh
+	select {
+	case <-onPutStalledCh:
+	case <-ctx.Done():
+		t.Fatalf("Timeout waiting for stall")
+	}
 
-	expectedData := make([]byte, len(data))
-	copy(expectedData, data)
-	for i := 0; i < nOneByteWrites; i++ {
-		// now make sure we can write the file and see the new byte we wrote
-		newData := []byte{byte(i + 2)}
-		err = kbfsOps.Write(ctx, fileNode, newData, int64(i+initialWriteBytes))
-		if err != nil {
-			t.Errorf("Couldn't write data: %v\n", err)
-		}
+	for i, fileNode := range fileNodes {
+		for j := 0; j < nOneByteWrites; j++ {
+			// now make sure we can write the file and see the new
+			// byte we wrote
+			newData := []byte{byte(nOneByteWrites * (j + 2))}
+			err = kbfsOps.Write(ctx, fileNode, newData,
+				int64(j+initialWriteBytes))
+			if err != nil {
+				t.Errorf("Couldn't write data: %v\n", err)
+			}
 
-		// read the data back
-		buf := make([]byte, i+1+initialWriteBytes)
-		nr, err := kbfsOps.Read(ctx, fileNode, buf, 0)
-		if err != nil {
-			t.Errorf("Couldn't read data: %v\n", err)
-		}
-		expectedData = append(expectedData, newData...)
-		if nr != int64(i+1+initialWriteBytes) ||
-			!bytes.Equal(expectedData, buf) {
-			t.Errorf("Got wrong data %v; expected %v", buf, expectedData)
+			// read the data back
+			buf := make([]byte, j+1+initialWriteBytes)
+			nr, err := kbfsOps.Read(ctx, fileNode, buf, 0)
+			if err != nil {
+				t.Errorf("Couldn't read data: %v\n", err)
+			}
+			expectedData[i] = append(expectedData[i], newData...)
+			if nr != int64(j+1+initialWriteBytes) ||
+				!bytes.Equal(expectedData[i], buf) {
+				t.Errorf("Got wrong data %v; expected %v", buf, expectedData[i])
+			}
 		}
 	}
 
@@ -249,14 +272,17 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	// finally, make sure we can still read it after the sync too
 	// (even though the second write hasn't been sync'd yet)
 	totalSize := nOneByteWrites + initialWriteBytes
-	buf2 := make([]byte, totalSize)
-	nr, err := kbfsOps.Read(ctx, fileNode, buf2, 0)
-	if err != nil {
-		t.Errorf("Couldn't read data: %v\n", err)
-	}
-	if nr != int64(totalSize) ||
-		!bytes.Equal(expectedData, buf2) {
-		t.Errorf("2nd read: Got wrong data %v; expected %v", buf2, expectedData)
+	for i, fileNode := range fileNodes {
+		buf2 := make([]byte, totalSize)
+		nr, err := kbfsOps.Read(ctx, fileNode, buf2, 0)
+		if err != nil {
+			t.Errorf("Couldn't read data: %v\n", err)
+		}
+		if nr != int64(totalSize) ||
+			!bytes.Equal(expectedData[i], buf2) {
+			t.Errorf("2nd read: Got wrong data %v; expected %v",
+				buf2, expectedData[i])
+		}
 	}
 
 	// there should be 4+n clean blocks at this point: the original
@@ -265,20 +291,26 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	// applicable).
 	bcs := config.BlockCache().(*BlockCacheStandard)
 	numCleanBlocks := bcs.cleanTransient.Len()
-	nFileBlocks := testCalcNumFileBlocks(len(data), bsplitter)
+	nFileBlocks := testCalcNumFileBlocks(initialWriteBytes, bsplitter)
 	if g, e := numCleanBlocks, 4+nFileBlocks; g != e {
-		t.Errorf("Unexpected number of cached clean blocks: %d vs %d (%d vs %d)\n", g, e, totalSize, bsplitter.maxSize)
+		t.Logf("Unexpected number of cached clean blocks: %d vs %d (%d vs %d)", g, e, totalSize, bsplitter.maxSize)
 	}
 
-	err = kbfsOps.Sync(ctx, fileNode)
+	if len(fileNodes) == 1 {
+		err = kbfsOps.Sync(ctx, fileNodes[0])
+	} else {
+		err = kbfsOps.SyncAll(ctx, fileNodes[0].GetFolderBranch())
+	}
 	if err != nil {
 		t.Fatalf("Final sync failed: %v", err)
 	}
 
-	if ei, err := kbfsOps.Stat(ctx, fileNode); err != nil {
-		t.Fatalf("Couldn't stat: %v", err)
-	} else if g, e := ei.Size, uint64(totalSize); g != e {
-		t.Fatalf("Unexpected size: %d vs %d", g, e)
+	for _, fileNode := range fileNodes {
+		if ei, err := kbfsOps.Stat(ctx, fileNode); err != nil {
+			t.Fatalf("Couldn't stat: %v", err)
+		} else if g, e := ei.Size, uint64(totalSize); g != e {
+			t.Fatalf("Unexpected size: %d vs %d", g, e)
+		}
 	}
 
 	// Make sure there are no dirty blocks left at the end of the test.
@@ -291,19 +323,29 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 
 // Test that a write can happen concurrently with a sync
 func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
-	testKBFSOpsConcurWritesDuringSync(t, 1, 1)
+	testKBFSOpsConcurWritesDuringSync(t, 1, 1, 1)
 }
 
 // Test that multiple writes can happen concurrently with a sync
 // (regression for KBFS-616)
 func TestKBFSOpsConcurMultipleWritesDuringSync(t *testing.T) {
-	testKBFSOpsConcurWritesDuringSync(t, 1, 10)
+	testKBFSOpsConcurWritesDuringSync(t, 1, 10, 1)
 }
 
 // Test that multiple indirect writes can happen concurrently with a
 // sync (regression for KBFS-661)
 func TestKBFSOpsConcurMultipleIndirectWritesDuringSync(t *testing.T) {
-	testKBFSOpsConcurWritesDuringSync(t, 25, 50)
+	testKBFSOpsConcurWritesDuringSync(t, 25, 50, 1)
+}
+
+// Test that a write can happen concurrently with a sync all of two files.
+func TestKBFSOpsConcurWriteDuringSyncAllTwoFiles(t *testing.T) {
+	testKBFSOpsConcurWritesDuringSync(t, 1, 1, 2)
+}
+
+// Test that a write can happen concurrently with a sync all of ten files.
+func TestKBFSOpsConcurWriteDuringSyncAllTenFiles(t *testing.T) {
+	testKBFSOpsConcurWritesDuringSync(t, 1, 1, 10)
 }
 
 // Test that writes that happen concurrently with a sync, which write

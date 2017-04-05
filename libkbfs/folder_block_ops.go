@@ -136,6 +136,17 @@ type deCacheEntry struct {
 	dels map[string]bool
 }
 
+type deferredState struct {
+	// Writes and truncates for blocks that were being sync'd, and
+	// need to be replayed after the sync finishes on top of the new
+	// versions of the blocks.
+	writes []func(context.Context, *lockState, KeyMetadata, path) error
+	// Blocks that need to be deleted from the dirty cache before any
+	// deferred writes are replayed.
+	dirtyDeletes []BlockPointer
+	waitBytes    int64
+}
+
 // folderBlockOps contains all the fields that must be synchronized by
 // blockLock. It will eventually also contain all the methods that
 // must be synchronized by blockLock, so that folderBranchOps will
@@ -217,14 +228,8 @@ type folderBlockOps struct {
 	// modified entry.
 	deCache map[BlockRef]deCacheEntry
 
-	// Writes and truncates for blocks that were being sync'd, and
-	// need to be replayed after the sync finishes on top of the new
-	// versions of the blocks.
-	deferredWrites []func(context.Context, *lockState, KeyMetadata, path) error
-	// Blocks that need to be deleted from the dirty cache before any
-	// deferred writes are replayed.
-	deferredDirtyDeletes []BlockPointer
-	deferredWaitBytes    int64
+	// Track deferred operations on a per-file basis.
+	deferred map[BlockRef]deferredState
 
 	// set to true if this write or truncate should be deferred
 	doDeferWrite bool
@@ -1700,9 +1705,9 @@ func (fbo *folderBlockOps) Write(
 		copy(dataCopy, data)
 		fbo.log.CDebugf(ctx, "Deferring a write to file %v off=%d len=%d",
 			filePath.tailPointer(), off, len(data))
-		fbo.deferredDirtyDeletes = append(fbo.deferredDirtyDeletes,
-			dirtyPtrs...)
-		fbo.deferredWrites = append(fbo.deferredWrites,
+		ds := fbo.deferred[filePath.tailPointer().Ref()]
+		ds.dirtyDeletes = append(ds.dirtyDeletes, dirtyPtrs...)
+		ds.writes = append(ds.writes,
 			func(ctx context.Context, lState *lockState, kmd KeyMetadata, f path) error {
 				// We are about to re-dirty these bytes, so mark that
 				// they will no longer be synced via the old file.
@@ -1715,7 +1720,8 @@ func (fbo *folderBlockOps) Write(
 					ctx, lState, kmd, f, dataCopy, off)
 				return err
 			})
-		fbo.deferredWaitBytes += newlyDirtiedChildBytes
+		ds.waitBytes += newlyDirtiedChildBytes
+		fbo.deferred[filePath.tailPointer().Ref()] = ds
 	}
 
 	return nil
@@ -1905,9 +1911,9 @@ func (fbo *folderBlockOps) Truncate(
 		// using the new file path.
 		fbo.log.CDebugf(ctx, "Deferring a truncate to file %v",
 			filePath.tailPointer())
-		fbo.deferredDirtyDeletes = append(fbo.deferredDirtyDeletes,
-			dirtyPtrs...)
-		fbo.deferredWrites = append(fbo.deferredWrites,
+		ds := fbo.deferred[filePath.tailPointer().Ref()]
+		ds.dirtyDeletes = append(ds.dirtyDeletes, dirtyPtrs...)
+		ds.writes = append(ds.writes,
 			func(ctx context.Context, lState *lockState, kmd KeyMetadata, f path) error {
 				// We are about to re-dirty these bytes, so mark that
 				// they will no longer be synced via the old file.
@@ -1920,7 +1926,8 @@ func (fbo *folderBlockOps) Truncate(
 					ctx, lState, kmd, f, size)
 				return err
 			})
-		fbo.deferredWaitBytes += newlyDirtiedChildBytes
+		ds.waitBytes += newlyDirtiedChildBytes
+		fbo.deferred[filePath.tailPointer().Ref()] = ds
 	}
 
 	return nil
@@ -2383,8 +2390,9 @@ func (fbo *folderBlockOps) CleanupSyncState(
 	} else {
 		// Since the sync has errored out unrecoverably, the deferred
 		// bytes are already accounted for.
+		ds := fbo.deferred[file.tailPointer().Ref()]
 		if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
-			df.updateNotYetSyncingBytes(-fbo.deferredWaitBytes)
+			df.updateNotYetSyncingBytes(-ds.waitBytes)
 
 			// Some blocks that were dirty are now clean under their
 			// readied block ID, and now live in the bps rather than
@@ -2405,9 +2413,7 @@ func (fbo *folderBlockOps) CleanupSyncState(
 		// On an unrecoverable error, the deferred writes aren't
 		// needed anymore since they're already part of the
 		// (still-)dirty blocks.
-		fbo.deferredDirtyDeletes = nil
-		fbo.deferredWrites = nil
-		fbo.deferredWaitBytes = 0
+		delete(fbo.deferred, file.tailPointer().Ref())
 	}
 
 	// The sync is over, due to an error, so reset the map so that we
@@ -2487,30 +2493,27 @@ func (fbo *folderBlockOps) cleanUpUnusedBlocks(ctx context.Context,
 }
 
 func (fbo *folderBlockOps) doDeferredWritesLocked(ctx context.Context,
-	lState *lockState, kmd KeyMetadata, newPath path) (
+	lState *lockState, kmd KeyMetadata, oldPath, newPath path) (
 	stillDirty bool, err error) {
 	fbo.blockLock.AssertLocked(lState)
 
 	// Redo any writes or truncates that happened to our file while
 	// the sync was happening.
-	deletes := fbo.deferredDirtyDeletes
-	writes := fbo.deferredWrites
-	stillDirty = len(fbo.deferredWrites) != 0
-	fbo.deferredDirtyDeletes = nil
-	fbo.deferredWrites = nil
-	fbo.deferredWaitBytes = 0
+	ds := fbo.deferred[oldPath.tailPointer().Ref()]
+	stillDirty = len(ds.writes) != 0
+	delete(fbo.deferred, oldPath.tailPointer().Ref())
 
 	// Clear any dirty blocks that resulted from a write/truncate
 	// happening during the sync, since we're redoing them below.
 	dirtyBcache := fbo.config.DirtyBlockCache()
-	for _, ptr := range deletes {
+	for _, ptr := range ds.dirtyDeletes {
 		fbo.log.CDebugf(ctx, "Deleting deferred dirty ptr %v", ptr)
 		if err := dirtyBcache.Delete(fbo.id(), ptr, fbo.branch()); err != nil {
 			return true, err
 		}
 	}
 
-	for _, f := range writes {
+	for _, f := range ds.writes {
 		err = f(ctx, lState, kmd, newPath)
 		if err != nil {
 			// It's a little weird to return an error from a deferred
@@ -2548,7 +2551,8 @@ func (fbo *folderBlockOps) FinishSyncLocked(
 		}
 	}
 
-	stillDirty, err = fbo.doDeferredWritesLocked(ctx, lState, md, newPath)
+	stillDirty, err = fbo.doDeferredWritesLocked(
+		ctx, lState, md, oldPath, newPath)
 	if err != nil {
 		return true, err
 	}
@@ -2945,7 +2949,11 @@ func (fbo *folderBlockOps) UpdateCachedEntryAttributesOnRemovedFile(
 func (fbo *folderBlockOps) getDeferredWriteCountForTest(lState *lockState) int {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
-	return len(fbo.deferredWrites)
+	writes := 0
+	for _, ds := range fbo.deferred {
+		writes += len(ds.writes)
+	}
+	return writes
 }
 
 func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, newPtr BlockPointer, shouldPrefetch bool) {

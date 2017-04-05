@@ -640,6 +640,13 @@ func (fs *KBFSOpsStandard) Sync(ctx context.Context, file Node) error {
 	return ops.Sync(ctx, file)
 }
 
+// Sync implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) SyncAll(
+	ctx context.Context, folderBranch FolderBranch) error {
+	ops := fs.getOps(ctx, folderBranch, FavoritesOpAdd)
+	return ops.SyncAll(ctx, folderBranch)
+}
+
 // FolderStatus implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) FolderStatus(
 	ctx context.Context, folderBranch FolderBranch) (

@@ -5714,3 +5714,42 @@ func TestForceFastForwardOnEmptyTLF(t *testing.T) {
 		t.Fatalf("Couldn't wait for fast forward: %+v", err)
 	}
 }
+
+func TestKBFSOpsSyncAllTwoFiles(t *testing.T) {
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
+	// TODO: Use kbfsTestShutdownNoMocks.
+	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+
+	// create a file.
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
+
+	kbfsOps := config.KBFSOps()
+	nodeA, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %+v", err)
+	}
+	nodeB, _, err := kbfsOps.CreateFile(ctx, rootNode, "b", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %+v", err)
+	}
+
+	// Write to A.
+	data := []byte{1}
+	err = kbfsOps.Write(ctx, nodeA, data, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write to file: %+v", err)
+	}
+
+	// Write to B.
+	data = []byte{2}
+	err = kbfsOps.Write(ctx, nodeB, data, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write to file: %+v", err)
+	}
+
+	// Sync both.
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync; %+v", err)
+	}
+}
