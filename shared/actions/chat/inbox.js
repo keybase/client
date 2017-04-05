@@ -286,28 +286,25 @@ function _conversationLocalToInboxState (c: ?ChatTypes.ConversationLocal): ?Cons
   }
 
   const conversationIDKey = Constants.conversationIDToKey(c.info.id)
-  let time = c.readerInfo.mtime
-  let snippet
 
-  (c.maxMessages || [])
+  const toShow = List(c.maxMessages || [])
     .filter(m => m.valid && m.state === ChatTypes.LocalMessageUnboxedState.valid)
-    .map((m: any) => ({body: m.valid.messageBody, time: m.valid.serverHeader.ctime || time}))
+    .map((m: any) => ({body: m.valid.messageBody, time: m.valid.serverHeader.ctime}))
     .sort((a, b) => b.time - a.time)
-    .some((message: {time: number, body: ?ChatTypes.MessageBody}) => {
-      time = message.time
-      snippet = Constants.makeSnippet(message.body)
-      return !!snippet
-    })
+    .map((message: {time: number, body: ?ChatTypes.MessageBody}) => ({
+      snippet: Constants.makeSnippet(message.body),
+      time: message.time,
+    })).take(1)
 
   return new Constants.InboxStateRecord({
     conversationIDKey,
     info: c.info,
     isEmpty: c.isEmpty,
     participants: List(c.info.writerNames || []),
-    snippet,
+    snippet: toShow.get(0, {}).snippet,
     state: 'unboxed',
     status: Constants.ConversationStatusByEnum[c.info ? c.info.status : 0],
-    time,
+    time: toShow.get(0, {}).time || c.readerInfo.mtime,
   })
 }
 
