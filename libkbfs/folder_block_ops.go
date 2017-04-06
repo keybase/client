@@ -864,6 +864,18 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 	var dblockCopy *DirBlock
 	dirCacheEntry := fbo.deCache[dir.tailPointer().Ref()]
 
+	// TODO: We should get of deCache completely and use only
+	// DirtyBlockCache to store the dirtied version of the DirBlock.
+	// We can't do that yet, because there might be multiple
+	// outstanding dirty files in one directory, and the KBFSOps API
+	// allows for syncing one at a time, so keeping a single dirtied
+	// DirBlock would accidentally sync the DirEntry of file A when a
+	// sync of file B is requested.
+	//
+	// Soon a sync will sync everything that's dirty at once, and so
+	// we can remove deCache at that point.  Until then, we must
+	// incrementally build it up each time.
+
 	// Add cached additions to the copy.
 	for k, ptr := range dirCacheEntry.adds {
 		de, ok := fbo.deCache[ptr.Ref()]
