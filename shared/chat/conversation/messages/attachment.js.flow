@@ -24,7 +24,6 @@ export type Props = {
   isFirstNewMessage: boolean,
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
   onAction: (message: ServerMessage, event: any) => void,
-  onRetry: (message: ServerMessage) => void,
   onOpenInFileUI: (path: string) => void,
   onOpenInPopup: (message: AttachmentMessage) => void,
   style: Object,

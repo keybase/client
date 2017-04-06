@@ -18,7 +18,7 @@ export type Options = {
   onOpenInFileUI: (path: string) => void,
   onOpenInPopup: (message: AttachmentMessage) => void,
   onRetry: (outboxID: OutboxIDKey) => void,
-  onRetryAttachment: () => void,
+  onRetryAttachment: (message: AttachmentMessage) => void,
   onShowEditor: (message: Message, event: any) => void,
   you: string,
   metaDataMap: MetaDataMap,

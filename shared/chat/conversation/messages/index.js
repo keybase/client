@@ -77,7 +77,7 @@ const factory = (options: Options) => {
         metaDataMap={metaDataMap}
         followingMap={followingMap}
         message={message}
-        onRetry={onRetryAttachment}
+        onRetry={() => onRetryAttachment(message)}
         includeHeader={includeHeader}
         isFirstNewMessage={isFirstNewMessage}
         onLoadAttachment={onLoadAttachment}
