@@ -164,9 +164,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
     }
     case 'chat:appendMessages': {
       const appendAction: Constants.AppendMessages = action
-      const appendMessages = appendAction.payload.messages
-      const isSelected = action.payload.isSelected
-      const conversationIDKey = appendAction.payload.conversationIDKey
+      const {messages: appendMessages, isSelected, conversationIDKey, isAppFocused} = appendAction.payload
 
       const {messages, deletedIDs} = _filterTypes(appendMessages)
 
@@ -178,7 +176,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
           const {nextMessages, nextSeenMessages} = _processMessages(conversation.seenMessages, conversation.messages, List(), List(messages), nextDeletedIDs)
 
           const firstMessage = appendMessages[0]
-          const inConversationFocused = (isSelected && state.get('focused'))
+          const inConversationFocused = (isSelected && isAppFocused)
           if (!conversation.get('firstNewMessageID') && !inConversationFocused) {
             // Set first new message if we don't have one set, and are not in
             // the conversation with window focused
@@ -442,8 +440,6 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       console.warn("couldn't find conversation to upgrade", oldKey)
       break
     }
-    case 'app:changedFocus':
-      return state.set('focused', action.payload.focused)
     case 'chat:updateFinalizedState': {
       // $FlowIssue doesn't recognize updates
       return state.update('finalizedState', finalizedState => finalizedState.merge(action.payload.finalizedState))

@@ -5,6 +5,7 @@ import type {Reachability} from '../constants/types/flow-types'
 
 export type Props = {
   reachability: ?Reachability,
+  appFocused: boolean,
 }
 
 export default class Offline extends Component<void, Props, void> {}

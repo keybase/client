@@ -287,7 +287,6 @@ export type RekeyInfo = Record<{
 export const StateRecord = Record({
   inbox: List(),
   conversationStates: Map(),
-  focused: false,
   metaData: Map(),
   finalizedState: Map(),
   supersedesState: Map(),
@@ -309,7 +308,6 @@ export type State = Record<{
   finalizedState: FinalizedState,
   supersedesState: SupersedesState,
   supersededByState: SupersededByState,
-  focused: boolean,
   metaData: MetaDataMap,
   pendingFailures: Map<OutboxIDKey, ?string>,
   conversationUnreadCounts: Map<ConversationIDKey, number>,
@@ -330,7 +328,7 @@ export const maxMessagesToLoadAtATime = 50
 export const nothingSelected = 'chat:noneSelected'
 
 export type AddPendingConversation = NoErrorTypedAction<'chat:addPendingConversation', {participants: Array<string>}>
-export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<Message>}>
+export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isAppFocused: boolean, isSelected: boolean, messages: Array<Message>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeState>>
 export type BlockConversation = NoErrorTypedAction<'chat:blockConversation', {blocked: boolean, conversationIDKey: ConversationIDKey}>
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
@@ -492,7 +490,7 @@ function makeSnippet (messageBody: ?MessageBody): ?string {
     case ChatTypes.CommonMessageType.text:
       return textSnippet(messageBody.text && messageBody.text.body, 100)
     case ChatTypes.CommonMessageType.attachment:
-      return 'Attachment'
+      return messageBody.attachment ? textSnippet(messageBody.attachment.object.title, 100) : 'Attachment'
     default:
       return null
   }
