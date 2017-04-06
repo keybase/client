@@ -133,7 +133,7 @@ const _temporaryAttachmentMessageForUpload = (convID: Constants.ConversationIDKe
   outboxID,
   progress: 0,
   messageState: 'uploading',
-  key: Constants.messageKey('tempAttachment', outboxID),
+  key: Constants.messageKey(convID, 'tempAttachment', outboxID),
 })
 
 function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): Generator<any, any, any> {
@@ -226,12 +226,12 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
     } else {
       yield put(Creators.updateTempMessage(
         conversationIDKey,
-        {type: 'Attachment', messageState: 'sent', messageID, key: Constants.messageKey('messageID', messageID)},
+        {type: 'Attachment', messageState: 'sent', messageID, key: Constants.messageKey(conversationIDKey, 'messageIDAttachment', messageID)},
         outboxID,
       ))
     }
 
-    yield put(Creators.markSeenMessage(conversationIDKey, messageID))
+    yield put(Creators.markSeenMessage(conversationIDKey, Constants.messageKey(conversationIDKey, 'messageIDAttachment', messageID)))
   }
 }
 
