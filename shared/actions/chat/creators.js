@@ -358,6 +358,10 @@ function clearAttachmentPlaceholderPreview (outboxID: Constants.OutboxIDKey): Co
   return {payload: {outboxID}, type: 'chat:clearAttachmentPlaceholderPreview'}
 }
 
+function setInboxUntrustedState (inboxUntrustedState: Constants.UntrustedState): Constants.SetInboxUntrustedState {
+  return {payload: {inboxUntrustedState}, type: 'chat:inboxUntrustedState'}
+}
+
 export {
   addPending,
   appendMessages,
@@ -398,6 +402,7 @@ export {
   selectAttachment,
   selectConversation,
   setAttachmentPlaceholderPreview,
+  setInboxUntrustedState,
   setInitialConversation,
   setLoaded,
   setSelectedRouteState,

@@ -1,0 +1,8 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  style?: ?Object,
+}
+
+export default class LoadingLine extends Component<void, Props, void> { }

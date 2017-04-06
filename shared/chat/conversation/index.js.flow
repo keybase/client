@@ -6,6 +6,7 @@ import * as Constants from '../../constants/chat'
 import type {BannerMessage} from './banner'
 
 export type Props = {
+  showLoader: boolean,
   focusInputCounter: number,
   bannerMessage: ?BannerMessage,
   finalizeInfo: ?Constants.FinalizeInfo,

@@ -95,6 +95,11 @@ class ConversationInput extends Component<void, InputProps, void> {
 
   _onEnterKeyDown = (e: SyntheticKeyboardEvent) => {
     e.preventDefault()
+
+    if (this.props.isLoading) {
+      console.log('Ignoring chat submit while still loading')
+      return
+    }
     if (this.props.text) {
       this.props.onPostMessage(this.props.text)
       this.props.setText('')

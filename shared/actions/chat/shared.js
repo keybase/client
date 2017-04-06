@@ -48,6 +48,10 @@ function attachmentPlaceholderPreviewSelector (state: TypedState, outboxID: Cons
   return state.chat.get('attachmentPlaceholderPreviews', Map()).get(outboxID)
 }
 
+function inboxUntrustedStateSelector (state: TypedState) {
+  return state.chat.get('inboxUntrustedState')
+}
+
 function tmpFileName (isHdPreview: boolean, conversationID: Constants.ConversationIDKey, messageID: ?Constants.MessageID, filename: string) {
   return `kbchat-${isHdPreview ? 'hdPreview' : 'preview'}-${conversationID}-${messageID || ''}-${filename}`
 }
@@ -216,6 +220,7 @@ export {
   focusedSelector,
   followingSelector,
   getPostingIdentifyBehavior,
+  inboxUntrustedStateSelector,
   maybeAddTimestamp,
   messageOutboxIDSelector,
   messageSelector,

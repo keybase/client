@@ -9,7 +9,7 @@ import SidePanel from './side-panel/container'
 import YouRekey from './you-rekey'
 import hoc from './index-hoc'
 import Banner from './banner'
-import {Box} from '../../common-adapters'
+import {Box, LoadingLine} from '../../common-adapters'
 import {compose, branch, renderComponent} from 'recompose'
 import {globalStyles} from '../../styles'
 
@@ -20,6 +20,7 @@ const Conversation = (props: Props) => (
     <Header sidePanelOpen={props.sidePanelOpen} onToggleSidePanel={props.onToggleSidePanel} onBack={props.onBack} />
     <List {...props.listProps} />
     {props.bannerMessage && <Banner message={props.bannerMessage} />}
+    {props.showLoader && <LoadingLine />}
     {props.finalizeInfo
       ? <OldProfileResetNotice
         onOpenNewerConversation={props.onOpenNewerConversation}

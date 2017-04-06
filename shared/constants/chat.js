@@ -300,7 +300,10 @@ export const StateRecord = Record({
   editingMessage: null,
   initialConversation: null,
   attachmentPlaceholderPreviews: Map(),
+  inboxUntrustedState: 'unloaded',
 })
+
+export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
 
 export type State = Record<{
   inbox: List<InboxState>,
@@ -318,6 +321,7 @@ export type State = Record<{
   editingMessage: ?Message,
   initialConversation: ?ConversationIDKey,
   attachmentPlaceholderPreviews: Map<OutboxIDKey, string>,
+  inboxUntrustedState: UntrustedState,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -358,9 +362,10 @@ export type RemoveOutboxMessage = NoErrorTypedAction<'chat:removeOutboxMessage',
 export type RemovePendingFailure = NoErrorTypedAction<'chat:removePendingFailure', {outboxID: OutboxIDKey}>
 export type ReplaceConversation = NoErrorTypedAction<'chat:replaceConversation', {oldKey: ConversationIDKey, newKey: ConversationIDKey}>
 export type RetryMessage = NoErrorTypedAction<'chat:retryMessage', {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}>
-export type SetInitialConversation = NoErrorTypedAction<'chat:setInitialConversation', {conversationIDKey: ?ConversationIDKey}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ?ConversationIDKey, fromUser: boolean}>
 export type SetAttachmentPlaceholderPreview = NoErrorTypedAction<'chat:setAttachmentPlaceholderPreview', {previewPath: string, outboxID: OutboxIDKey}>
+export type SetInboxUntrustedState = NoErrorTypedAction<'chat:inboxUntrustedState', {inboxUntrustedState: UntrustedState}>
+export type SetInitialConversation = NoErrorTypedAction<'chat:setInitialConversation', {conversationIDKey: ?ConversationIDKey}>
 export type SetLoaded = NoErrorTypedAction<'chat:setLoaded', {conversationIDKey: ConversationIDKey, isLoaded: boolean}>
 export type SetUnboxing = NoErrorTypedAction<'chat:setUnboxing', {conversationIDKeys: Array<ConversationIDKey>}>
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
