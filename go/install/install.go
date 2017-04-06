@@ -92,7 +92,7 @@ func (c ComponentName) Description() string {
 	case ComponentNameHelper:
 		return "Privileged Helper Tool"
 	case ComponentNameKBNM:
-		return "Chrome Native Messaging"
+		return "Browser Native Messaging"
 	}
 	return "Unknown"
 }
