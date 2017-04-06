@@ -5,9 +5,7 @@
         entry: sh
         language: system
         files: \.js$
-        args:
-        - -c
-        - cd shared && yarn run lintone -- --debug
+        args: [-c, cd shared && yarn run lintone -- --debug]
     -   id: flow
         name: flow
         entry: sh
