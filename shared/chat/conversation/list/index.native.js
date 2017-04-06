@@ -1,14 +1,12 @@
 // @flow
-//
+import * as Constants from '../../../constants/chat'
 import React, {Component} from 'react'
-import {Box, Icon} from '../../common-adapters'
-import {NativeListView} from '../../common-adapters/index.native'
-import hoc from './list-hoc'
-import messageFactory from './messages'
+import messageFactory from '../messages'
 import shallowEqual from 'shallowequal'
+import {Box, Icon} from '../../../common-adapters'
+import {NativeListView} from '../../../common-adapters/index.native'
 
-import type {Props} from './list'
-import type {Message, ServerMessage} from '../../constants/chat'
+import type {Props} from '.'
 
 type State = {
   dataSource: NativeListView.DataSource,
@@ -79,7 +77,7 @@ class ConversationList extends Component <void, Props, State> {
   }
 
   componentWillReceiveProps (nextProps: Props) {
-    const willScrollDown = nextProps.listScrollDownState !== this.props.listScrollDownState
+    const willScrollDown = nextProps.listScrollDownCounter !== this.props.listScrollDownCounter
 
     if (willScrollDown) {
       this.setState({isLockedToBottom: true})
@@ -126,12 +124,12 @@ class ConversationList extends Component <void, Props, State> {
     return props.headerMessages.concat(props.messages)
   }
 
-  _onAction = (message: ServerMessage, event: any) => {
+  _onAction = (message: Constants.ServerMessage, event: any) => {
     this.props.onMessageAction(message)
   }
 
   // This is handled slightly differently on mobile, leave this blank
-  _onShowEditor = (message: Message, event: any) => { }
+  _onShowEditor = (message: Constants.Message, event: any) => { }
 
   _renderRow = (message, sectionID, rowID) => {
     const messages = this._allMessages(this.props)
@@ -181,4 +179,4 @@ class ConversationList extends Component <void, Props, State> {
   }
 }
 
-export default hoc(ConversationList)
+export default ConversationList
