@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -827,6 +828,21 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		Status:     conversationRemote.Metadata.Status,
 	}
 	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
+
+	// TODO @@@ DO NOT MERGE THIS FAKE ERROR
+	failThisConvID := make(chat1.ConversationID, 32)
+	// your convID here:
+	_, err2 := hex.Decode(failThisConvID, []byte("000055956bbba1ed8d3f8da5f474c7b2cbd1d6f60093851dcf62c4547579104b"))
+	if err2 != nil {
+		panic(err2)
+	}
+	if conversationLocal.Info.Id.Eq(failThisConvID) {
+		errMsg := "@@@ HOSED"
+		conversationLocal.Error = chat1.NewConversationErrorLocal(
+			errMsg, conversationRemote, false, unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
+		return conversationLocal
+	}
+
 	for _, super := range conversationRemote.Metadata.Supersedes {
 		conversationLocal.Supersedes = append(conversationLocal.Supersedes, super)
 	}
