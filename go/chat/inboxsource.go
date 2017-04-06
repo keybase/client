@@ -125,13 +125,6 @@ func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.I
 	for _, conv := range inbox.ConvsUnverified {
 		localConv := cmap[conv.GetConvID().String()]
 
-		if localConv.Error != nil &&
-			localConv.Error.Typ != chat1.ConversationErrorType_LOCALMAXMESSAGENOTFOUND {
-			b.Debug(ctx, "filterInboxRes: skipping because error: convID: %s err: %s", conv.GetConvID(),
-				localConv.Error.Message)
-			continue
-		}
-
 		if localConv.Error == nil && localConv.IsEmpty {
 			b.Debug(ctx, "filterInboxRes: skipping because empty: convID: %s", conv.GetConvID())
 			continue
