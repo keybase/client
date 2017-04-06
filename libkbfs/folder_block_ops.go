@@ -940,12 +940,7 @@ func (fbo *folderBlockOps) GetDirtyDirChildren(
 	dblock, err := func() (*DirBlock, error) {
 		fbo.blockLock.RLock(lState)
 		defer fbo.blockLock.RUnlock(lState)
-		dblock, err := fbo.getDirtyDirLocked(
-			ctx, lState, kmd, dir, blockRead)
-		if err != nil {
-			return nil, err
-		}
-		return dblock, nil
+		return fbo.getDirtyDirLocked(ctx, lState, kmd, dir, blockRead)
 	}()
 	if err != nil {
 		return nil, err
