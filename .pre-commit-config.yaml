@@ -7,7 +7,7 @@
         files: \.js$
         args:
         - -c
-        - cd shared && yarn run lint
+        - cd shared && yarn run lint --
     -   id: flow
         name: flow
         entry: sh
