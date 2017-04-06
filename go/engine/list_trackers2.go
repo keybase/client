@@ -67,7 +67,8 @@ func (e *ListTrackers2Engine) Run(ctx *Context) error {
 	if err := e.lookupUID(); err != nil {
 		return err
 	}
-	ts := libkb.NewTracker2Syncer(e.G())
+	callerUID := e.G().Env.GetUID()
+	ts := libkb.NewTracker2Syncer(e.G(), callerUID, e.arg.Reverse)
 	if err := libkb.RunSyncer(ts, e.uid, false, nil); err != nil {
 		return err
 	}
