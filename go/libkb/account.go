@@ -47,7 +47,9 @@ type Account struct {
 	loginSession *LoginSession
 	streamCache  *PassphraseStreamCache
 	skbKeyring   *SKBKeyringFile
-	lksec        *LKSec // local key security (this member not currently used)
+	secSigKey    GenericKey // cached secret signing key
+	secEncKey    GenericKey // cached secret encryption key
+	lksec        *LKSec     // local key security (this member not currently used)
 
 	paperSigKey *timedGenericKey // cached, unlocked paper signing key
 	paperEncKey *timedGenericKey // cached, unlocked paper encryption key
@@ -89,7 +91,7 @@ func (a *Account) LoggedIn() bool {
 	return a.LocalSession().IsLoggedIn()
 }
 
-func (a *Account) LoggedInAndProvisioned() bool {
+func (a *Account) LoggedInAndProvisioined() bool {
 	return a.LocalSession().IsLoggedInAndProvisioned()
 }
 
@@ -458,17 +460,35 @@ func (a *Account) Dump() {
 	a.streamCache.Dump()
 }
 
+func (a *Account) CachedSecretKey(ska SecretKeyArg) (GenericKey, error) {
+	if ska.KeyType == DeviceSigningKeyType {
+		if a.secSigKey != nil {
+			return a.secSigKey, nil
+		}
+		return nil, NotFoundError{}
+	}
+	if ska.KeyType == DeviceEncryptionKeyType {
+		if a.secEncKey != nil {
+			return a.secEncKey, nil
+		}
+		return nil, NotFoundError{}
+	}
+	return nil, fmt.Errorf("invalid key type for cached secret key: %d", ska.KeyType)
+}
+
 func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error {
 	if key == nil {
 		return errors.New("cache of nil secret key attempted")
 	}
 	if ska.KeyType == DeviceSigningKeyType {
-		a.G().Log.Debug("caching secret device signing key")
-		return a.G().ActiveDevice.setSigningKey(a, a.localSession.GetUID(), a.localSession.GetDeviceID(), key)
+		a.G().Log.Debug("caching secret key for %d", ska.KeyType)
+		a.secSigKey = key
+		return nil
 	}
 	if ska.KeyType == DeviceEncryptionKeyType {
-		a.G().Log.Debug("caching secret device encryption key")
-		return a.G().ActiveDevice.setEncryptionKey(a, a.localSession.GetUID(), a.localSession.GetDeviceID(), key)
+		a.G().Log.Debug("caching secret key for %d", ska.KeyType)
+		a.secEncKey = key
+		return nil
 	}
 	return fmt.Errorf("attempt to cache invalid key type: %d", ska.KeyType)
 }
@@ -495,10 +515,9 @@ func (a *Account) GetUnlockedPaperEncKey() GenericKey {
 
 func (a *Account) ClearCachedSecretKeys() {
 	a.G().Log.Debug("clearing cached secret keys")
+	a.secSigKey = nil
+	a.secEncKey = nil
 	a.ClearPaperKeys()
-	if err := a.G().ActiveDevice.clear(a); err != nil {
-		a.G().Log.Warning("error clearing ActiveDevice: %s", err)
-	}
 }
 
 func (a *Account) ClearPaperKeys() {

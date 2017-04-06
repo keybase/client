@@ -336,9 +336,18 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 
 	// check for preview
 	if len(opts.Preview) > 0 {
-		arg.Preview = &chat1.MakePreviewRes{
-			Filename: &opts.Preview,
+		pinfo, psource, err := c.fileInfo(opts.Preview)
+		if err != nil {
+			return c.errReply(err)
 		}
+		defer psource.Close()
+		psrc := c.G().XStreams.ExportReader(psource)
+		plocal := chat1.LocalSource{
+			Filename: pinfo.Name(),
+			Size:     int(pinfo.Size()),
+			Source:   psrc,
+		}
+		arg.Preview = &plocal
 	}
 
 	ui := &ChatUI{
@@ -408,9 +417,10 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 
 	// check for preview
 	if len(opts.Preview) > 0 {
-		arg.Preview = &chat1.MakePreviewRes{
-			Filename: &opts.Preview,
+		plocal := chat1.LocalFileSource{
+			Filename: opts.Preview,
 		}
+		arg.Preview = &plocal
 	}
 
 	ui := &ChatUI{
@@ -610,7 +620,11 @@ func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Rep
 		return c.errReply(err)
 	}
 
-	allLimits := append(rlimits, res.RateLimits...)
+	allLimits := rlimits
+	if res.RateLimit != nil {
+		allLimits = append(allLimits, *res.RateLimit)
+	}
+
 	cres := EmptyRes{
 		RateLimits: RateLimits{
 			c.aggRateLimits(allLimits),

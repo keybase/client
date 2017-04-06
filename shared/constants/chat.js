@@ -9,14 +9,26 @@ import {chatTab} from './tabs'
 import {createSelector} from 'reselect'
 
 import type {UserListItem} from '../common-adapters/usernames'
-import type {Path} from '../route-tree'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
-import type {Asset, AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFinalizeInfo, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
+import type {AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFinalizeInfo, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
 import type {TypedState} from './reducer'
 
-type MessageKey = string
-type MessageKeyKind = 'messageID' | 'outboxID' | 'tempAttachment' | 'timestamp' | 'error'
+export type MessageKey = string
+type MessageKeyKind = 'chatSecured'
+| 'error'
+| 'errorInvisible'
+| 'loadingMore'
+| 'messageIDAttachment'
+| 'messageIDDeleted'
+| 'messageIDEdit'
+| 'messageIDAttachmentUpdate'
+| 'messageIDError'
+| 'messageIDText'
+| 'messageIDUnhandled'
+| 'outboxID'
+| 'tempAttachment'
+| 'timestamp'
 
 export type MessageType = 'Text'
 export type FollowingMap = {[key: string]: boolean}
@@ -109,7 +121,7 @@ export type AttachmentMessage = {
   previewDurationMs: ?number,
   hdPreviewPath: ?string,
   downloadedPath: ?string,
-  outboxID?: ?OutboxIDKey,
+  outboxID?: OutboxIDKey,
   progress?: number, /* between 0 - 1 */
   messageState: AttachmentMessageState,
   senderDeviceRevokedAt: ?number,
@@ -166,12 +178,10 @@ export type UpdatingAttachment = {
   targetMessageID: MessageID,
   timestamp: number,
   updates: {
-    attachmentDurationMs: ?number,
     filename: ?string,
     messageState: 'sent',
     previewType: ?AttachmentType,
     previewSize: ?AttachmentSize,
-    previewDurationMs: ?number,
     title: ?string,
   },
 }
@@ -186,6 +196,7 @@ export type MaybeTimestamp = TimestampMessage | null
 export const ConversationStatusByEnum = invert(ChatTypes.CommonConversationStatus)
 
 export const ConversationStateRecord = Record({
+  messageKeys: List(),
   messages: List(),
   seenMessages: Set(),
   moreToLoad: true,
@@ -200,6 +211,8 @@ export const ConversationStateRecord = Record({
 })
 
 export type ConversationState = Record<{
+  messageKeys: List<MessageKey>,
+  // TODO del
   messages: List<Message>,
   seenMessages: Set<MessageID>,
   moreToLoad: boolean,
@@ -285,8 +298,10 @@ export type RekeyInfo = Record<{
 }>
 
 export const StateRecord = Record({
+  messageMap: Map(),
   inbox: List(),
   conversationStates: Map(),
+  focused: false,
   metaData: Map(),
   finalizedState: Map(),
   supersedesState: Map(),
@@ -299,18 +314,17 @@ export const StateRecord = Record({
   nowOverride: null,
   editingMessage: null,
   initialConversation: null,
-  attachmentPlaceholderPreviews: Map(),
-  inboxUntrustedState: 'unloaded',
 })
 
-export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
-
 export type State = Record<{
+  // TODO  move to entities
+  messageMap: Map<MessageKey, Message>,
   inbox: List<InboxState>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   finalizedState: FinalizedState,
   supersedesState: SupersedesState,
   supersededByState: SupersededByState,
+  focused: boolean,
   metaData: MetaDataMap,
   pendingFailures: Map<OutboxIDKey, ?string>,
   conversationUnreadCounts: Map<ConversationIDKey, number>,
@@ -320,8 +334,6 @@ export type State = Record<{
   nowOverride: ?Date,
   editingMessage: ?Message,
   initialConversation: ?ConversationIDKey,
-  attachmentPlaceholderPreviews: Map<OutboxIDKey, string>,
-  inboxUntrustedState: UntrustedState,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -332,12 +344,11 @@ export const maxMessagesToLoadAtATime = 50
 export const nothingSelected = 'chat:noneSelected'
 
 export type AddPendingConversation = NoErrorTypedAction<'chat:addPendingConversation', {participants: Array<string>}>
-export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isAppFocused: boolean, isSelected: boolean, messages: Array<Message>}>
+export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<Message>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeState>>
 export type BlockConversation = NoErrorTypedAction<'chat:blockConversation', {blocked: boolean, conversationIDKey: ConversationIDKey}>
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
-export type ClearAttachmentPlaceholderPreview = NoErrorTypedAction<'chat:clearAttachmentPlaceholderPreview', {outboxID: OutboxIDKey}>
 export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {failureDescription: string, outboxID: OutboxIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
@@ -351,7 +362,7 @@ export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conver
 export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
 export type MuteConversation = NoErrorTypedAction<'chat:muteConversation', {conversationIDKey: ConversationIDKey, muted: boolean}>
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
-export type OpenAttachmentPopup = NoErrorTypedAction<'chat:openAttachmentPopup', {message: AttachmentMessage, currentPath: Path}>
+export type OpenAttachmentPopup = NoErrorTypedAction<'chat:openAttachmentPopup', {message: AttachmentMessage}>
 export type OpenConversation = NoErrorTypedAction<'chat:openConversation', {conversationIDKey: ConversationIDKey}>
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
 export type OpenTlfInChat = NoErrorTypedAction<'chat:openTlfInChat', string>
@@ -362,10 +373,8 @@ export type RemoveOutboxMessage = NoErrorTypedAction<'chat:removeOutboxMessage',
 export type RemovePendingFailure = NoErrorTypedAction<'chat:removePendingFailure', {outboxID: OutboxIDKey}>
 export type ReplaceConversation = NoErrorTypedAction<'chat:replaceConversation', {oldKey: ConversationIDKey, newKey: ConversationIDKey}>
 export type RetryMessage = NoErrorTypedAction<'chat:retryMessage', {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}>
-export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ?ConversationIDKey, fromUser: boolean}>
-export type SetAttachmentPlaceholderPreview = NoErrorTypedAction<'chat:setAttachmentPlaceholderPreview', {previewPath: string, outboxID: OutboxIDKey}>
-export type SetInboxUntrustedState = NoErrorTypedAction<'chat:inboxUntrustedState', {inboxUntrustedState: UntrustedState}>
 export type SetInitialConversation = NoErrorTypedAction<'chat:setInitialConversation', {conversationIDKey: ?ConversationIDKey}>
+export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ?ConversationIDKey, fromUser: boolean}>
 export type SetLoaded = NoErrorTypedAction<'chat:setLoaded', {conversationIDKey: ConversationIDKey, isLoaded: boolean}>
 export type SetUnboxing = NoErrorTypedAction<'chat:setUnboxing', {conversationIDKeys: Array<ConversationIDKey>}>
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
@@ -393,7 +402,7 @@ export type ThreadLoadedOffline = NoErrorTypedAction<'chat:threadLoadedOffline',
 export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {input: AttachmentInput}>
 export type UpdateBrokenTracker = NoErrorTypedAction<'chat:updateBrokenTracker', {userToBroken: {[username: string]: boolean}}>
 export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
-  messageID: MessageID,
+  outboxID: OutboxIDKey,
   bytesComplete: number,
   bytesTotal: number,
   conversationIDKey: ConversationIDKey,
@@ -429,9 +438,14 @@ export type UpdateTempMessage = TypedAction<'chat:updateTempMessage', {
   error: Error,
 }>
 
+export type DeleteTempMessage = NoErrorTypedAction<'chat:deleteTempMessage', {
+  conversationIDKey: ConversationIDKey,
+  outboxID: OutboxIDKey,
+}>
+
 export type MarkSeenMessage = NoErrorTypedAction<'chat:markSeenMessage', {
   conversationIDKey: ConversationIDKey,
-  messageID: MessageID,
+  messageKey: MessageKey,
 }>
 
 export type SaveAttachment = NoErrorTypedAction<'chat:saveAttachmentNative', {
@@ -495,7 +509,7 @@ function makeSnippet (messageBody: ?MessageBody): ?string {
     case ChatTypes.CommonMessageType.text:
       return textSnippet(messageBody.text && messageBody.text.body, 100)
     case ChatTypes.CommonMessageType.attachment:
-      return messageBody.attachment ? textSnippet(messageBody.attachment.object.title, 100) : 'Attachment'
+      return 'Attachment'
     default:
       return null
   }
@@ -565,39 +579,6 @@ function parseMetadataPreviewSize (metadata: AssetMetadata): ?AttachmentSize {
   }
 }
 
-function getAssetDuration (assetMetadata: ?AssetMetadata): ?number {
-  const assetIsVideo = assetMetadata && assetMetadata.assetType === ChatTypes.LocalAssetMetadataType.video
-  if (assetIsVideo) {
-    const assetVideoMetadata = assetMetadata && assetMetadata.assetType === ChatTypes.LocalAssetMetadataType.video && assetMetadata.video
-    return assetVideoMetadata ? assetVideoMetadata.durationMs : null
-  }
-  return null
-}
-
-function getAttachmentInfo (preview: ?Asset, object: ?Asset) {
-  const filename = object && object.filename
-  const title = object && object.title
-
-  const mimeType = preview && preview.mimeType
-  const previewType = mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other'
-
-  const previewMetadata = preview && preview.metadata
-  const previewSize = previewMetadata && parseMetadataPreviewSize(previewMetadata)
-  const previewDurationMs = getAssetDuration(previewMetadata)
-
-  const objectMetadata = object && object.metadata
-  const attachmentDurationMs = getAssetDuration(objectMetadata)
-
-  return {
-    attachmentDurationMs,
-    filename,
-    title,
-    previewDurationMs,
-    previewSize,
-    previewType,
-  }
-}
-
 function pendingConversationIDKey (tlfName: string) {
   return `PendingConversation:${tlfName}`
 }
@@ -649,8 +630,36 @@ const getSelectedRouteState = (state: TypedState) => {
   return getPathState(state.routeTree.routeState, [chatTab, selected])
 }
 
-function messageKey (kind: MessageKeyKind, value: string | number): MessageKey {
-  return `${kind}:${value}`
+function messageKey (conversationIDKey: ConversationIDKey, kind: MessageKeyKind, value: string | number): MessageKey {
+  return `${conversationIDKey}:${kind}:${value}`
+}
+
+function messageKeyValue (key: MessageKey): string {
+  return key.split(':')[2]
+}
+
+function messageKeyConversationIDKey (key: MessageKey): ConversationIDKey {
+  return key.split(':')[0]
+}
+
+function messageKeyKind (key: MessageKey): MessageKeyKind {
+  const [_, kind] = key.split(':') // eslint-disable-line no-unused-vars
+  switch (kind) {
+    case 'error': return 'error'
+    case 'errorInvisible': return 'errorInvisible'
+    case 'loadingMore': return 'loadingMore'
+    case 'messageIDAttachment': return 'messageIDAttachment'
+    case 'messageIDAttachmentUpdate': return 'messageIDAttachmentUpdate'
+    case 'messageIDDeleted': return 'messageIDDeleted'
+    case 'messageIDEdit': return 'messageIDEdit'
+    case 'messageIDError': return 'messageIDError'
+    case 'messageIDText': return 'messageIDText'
+    case 'messageIDUnhandled': return 'messageIDUnhandled'
+    case 'outboxID': return 'outboxID'
+    case 'tempAttachment': return 'tempAttachment'
+    case 'timestamp': return 'timestamp'
+  }
+  throw new Error(`Invalid messageKeyKind passed key: ${key}`)
 }
 
 const getYou = (state: TypedState) => state.config.username || ''
@@ -688,6 +697,9 @@ export {
   keyToOutboxID,
   makeSnippet,
   messageKey,
+  messageKeyKind,
+  messageKeyValue,
+  messageKeyConversationIDKey,
   outboxIDToKey,
   participantFilter,
   serverMessageToMessageBody,
@@ -698,7 +710,6 @@ export {
   pendingConversationIDKey,
   isPendingConversationIDKey,
   pendingConversationIDKeyToTlfName,
-  getAttachmentInfo,
   getSelectedRouteState,
   getYou,
   getFollowingMap,

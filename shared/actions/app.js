@@ -1,6 +1,6 @@
 // @flow
 import type {ChangedFocus} from '../constants/app'
 
-export function changedFocus (appFocused: boolean): ChangedFocus {
-  return {payload: {appFocused}, type: 'app:changedFocus'}
+export function changedFocus (focused: boolean): ChangedFocus {
+  return {payload: {focused}, type: 'app:changedFocus'}
 }

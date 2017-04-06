@@ -17,11 +17,13 @@ PODS:
   - AFNetworking/Reachability (2.6.3)
   - AFNetworking/Security (2.6.3)
   - AFNetworking/Serialization (2.6.3)
-  - CocoaLumberjack (3.1.0):
-    - CocoaLumberjack/Default (= 3.1.0)
-    - CocoaLumberjack/Extensions (= 3.1.0)
-  - CocoaLumberjack/Default (3.1.0)
-  - CocoaLumberjack/Extensions (3.1.0):
+  - CocoaLumberjack (2.2.0):
+    - CocoaLumberjack/Default (= 2.2.0)
+    - CocoaLumberjack/Extensions (= 2.2.0)
+  - CocoaLumberjack/Core (2.2.0)
+  - CocoaLumberjack/Default (2.2.0):
+    - CocoaLumberjack/Core
+  - CocoaLumberjack/Extensions (2.2.0):
     - CocoaLumberjack/Default
   - GHKeychain (1.2.8)
   - GHKit (2.0.0)
@@ -33,15 +35,19 @@ PODS:
   - MPMessagePack (1.3.3):
     - GHODictionary
   - ObjectiveSugar (1.1.0)
-  - Slash (0.1.4)
-  - Tikppa (0.2.4):
+  - Slash (0.1.2):
+    - Slash/arc (= 0.1.2)
+    - Slash/no-arc (= 0.1.2)
+  - Slash/arc (0.1.2)
+  - Slash/no-arc (0.1.2)
+  - Tikppa (0.1.1):
     - AFNetworking
     - CocoaLumberjack
     - GHKit
     - ObjectiveSugar
     - Slash
     - YOLayout
-  - YOLayout (0.2.13)
+  - YOLayout (0.2.12)
 
 DEPENDENCIES:
   - AFNetworking (~> 2.0)
@@ -63,12 +69,12 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   Slash:
-    :commit: 1226fe873243a1100f328271263f2612f7095e6c
+    :commit: 7f50cd7825f57af22d82e99e0aeec5d82724eb13
     :git: https://github.com/chrisdevereux/Slash
 
 SPEC CHECKSUMS:
   AFNetworking: cb8d14a848e831097108418f5d49217339d4eb60
-  CocoaLumberjack: 8311463ddf9ee86a06ef92a071dd656c89244500
+  CocoaLumberjack: 17fe8581f84914d5d7e6360f7c70022b173c3ae0
   GHKeychain: 008cdb8bbab5b0dc1da3d0f06a67ce5203231e44
   GHKit: 29e5361c9d8a33343ae5ed4698057d1533ee590b
   GHODictionary: 1f7873492445e0f33ac19575a358c3c91926b564
@@ -76,10 +82,10 @@ SPEC CHECKSUMS:
   MDPSplitView: 127b4b371e813ec29333e515fb1c057126a75671
   MPMessagePack: 0de75102afb01a48cb312b9570336f46659b410f
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
-  Slash: 7184f2a98e13ad62303037db3a706c88e98b197e
-  Tikppa: 77ac88aa89814a5ae9d18a773b4436ebef2235b7
-  YOLayout: 6728d890bab9b9e4962efd554cba16d677b30b0f
+  Slash: fde91d6c2b9d985f50a00debffe804400dd9828c
+  Tikppa: 3d4fca3d897592397d33d28cf594a9ae53cf966e
+  YOLayout: 3f5b3ac64f9018f1e63a19223dbb8382c37d58cb
 
-PODFILE CHECKSUM: 63b8f4d71cbba2bc6adfb7e369a31a74bbbf7f8b
+PODFILE CHECKSUM: c9cf29c06b001e1ed3c226c1b3db4cf249ca5cd4
 
-COCOAPODS: 1.2.0
+COCOAPODS: 1.0.0.beta.2

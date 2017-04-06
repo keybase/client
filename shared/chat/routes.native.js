@@ -14,12 +14,7 @@ const conversationRoute = new RouteDefNode({
     attachment: {
       component: AttachmentPopup,
       tags: {hideStatusBar: true, fullscreen: true},
-      children: {
-        messageAction: {
-          component: MessagePopup,
-          tags: {layerOnTop: true},
-        },
-      },
+      children: {},
     },
     attachmentInput: {
       component: AttachmentInputPopup,

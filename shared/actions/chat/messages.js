@@ -113,7 +113,7 @@ function * postMessage (action: Constants.PostMessage): SagaGenerator<any, any> 
       deviceType: isMobile ? 'mobile' : 'desktop',
       editedCount: 0,
       failureDescription: hasPendingFailure,
-      key: Constants.messageKey('outboxID', outboxID),
+      key: Constants.messageKey(action.payload.conversationIDKey, 'outboxID', outboxID),
       message: new HiddenString(action.payload.text.stringValue()),
       messageState: hasPendingFailure ? 'failed' : 'pending',
       outboxID,
@@ -127,7 +127,7 @@ function * postMessage (action: Constants.PostMessage): SagaGenerator<any, any> 
     const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
     let messages = []
     if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
-      const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages.toArray(), conversationState.messages.size - 1)
+      const timestamp = Shared.maybeAddTimestamp(conversationIDKey, message, conversationState.messages.toArray(), conversationState.messages.size - 1)
       if (timestamp !== null) {
         messages.push(timestamp)
       }
@@ -135,9 +135,7 @@ function * postMessage (action: Constants.PostMessage): SagaGenerator<any, any> 
 
     messages.push(message)
     const selectedConversation = yield select(Constants.getSelectedConversation)
-    const appFocused = yield select(Shared.focusedSelector)
-
-    yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversation, appFocused, messages))
+    yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversation, messages))
     if (hasPendingFailure) {
       yield put(Creators.removePendingFailure(outboxID))
     }

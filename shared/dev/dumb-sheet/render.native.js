@@ -82,11 +82,10 @@ class DumbSheetRender extends Component<void, Props, any> {
     return total
   }
 
-  _getComponent (filter: ?string, renderIdx: number): {component: any, mock: any, key: any, mockKey: ?string} {
+  _getComponent (filter: ?string, renderIdx: number): {component: any, mock: any, key: any} {
     let component = null
-    let mock = {}
+    let mock = null
     let key = null
-    let mockKey = null
 
     let currentIdx = 0
     Object.keys(dumbComponentMap).forEach(k => {
@@ -97,13 +96,12 @@ class DumbSheetRender extends Component<void, Props, any> {
       const map = dumbComponentMap[k]
       const Component = map.component
 
-      Object.keys(map.mocks).forEach((_mockKey, idx) => {
+      Object.keys(map.mocks).forEach((mockKey, idx) => {
         if (renderIdx === currentIdx) {
           key = k
-          mockKey = _mockKey
-          mock = map.mocks[_mockKey]
-          component = <Component key={_mockKey} {...{
-            ...map.mocks[_mockKey],
+          mock = map.mocks[mockKey]
+          component = <Component key={mockKey} {...{
+            ...map.mocks[mockKey],
             mockStore: undefined,
             parentProps: undefined,
           }} />
@@ -116,7 +114,6 @@ class DumbSheetRender extends Component<void, Props, any> {
       component,
       key,
       mock,
-      mockKey,
     }
   }
 
@@ -151,7 +148,7 @@ class DumbSheetRender extends Component<void, Props, any> {
   renderSingle () {
     const filter = this.props.dumbFilter.toLowerCase()
     const total = this._getTotal(filter)
-    const {component, mock, key, mockKey} = this._getComponent(filter, this.props.dumbIndex % total)
+    const {component, mock, key} = this._getComponent(filter, this.props.dumbIndex % total)
 
     this._updateMockStore(mock.mockStore)
 
@@ -193,7 +190,7 @@ class DumbSheetRender extends Component<void, Props, any> {
         </Box>
         <NativeScrollView>
           <Box style={styleBox}>
-            <Text type='BodySmall'>{key}: {mockKey}</Text>
+            <Text type='BodySmall'>{key}: {mock.mockKey}</Text>
             <Box {...mock.parentProps}>
               {this._makeStoreWrapper(component)}
             </Box>

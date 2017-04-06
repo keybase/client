@@ -53,10 +53,6 @@ func (b *BufferSource) Open(sessionID int, cli *keybase1.StreamUiClient) (ReadRe
 	return newBufReadResetter(b.buf.Bytes()), nil
 }
 
-func (b *BufferSource) Bytes() []byte {
-	return b.buf.Bytes()
-}
-
 func (b *BufferSource) Close() error {
 	b.buf.Reset()
 	return nil

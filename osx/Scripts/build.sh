@@ -51,7 +51,7 @@ set -o pipefail && xcodebuild archive -scheme $scheme -workspace $dir/../Keybase
 rm -rf $app_path
 
 echo "Exporting..."
-set -o pipefail && xcodebuild -exportArchive -archivePath $archive_path -exportOptionsPlist export.plist -exportPath $app_path | xcpretty -c
+set -o pipefail && xcodebuild -exportArchive -archivePath $archive_path -exportFormat app -exportPath $app_path | xcpretty -c
 
 echo "Done"
 echo ""

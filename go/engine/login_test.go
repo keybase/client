@@ -2674,9 +2674,24 @@ func skipOldGPG(tc libkb.TestContext) {
 }
 
 func assertDeviceKeysCached(tc libkb.TestContext) {
-	_, _, sk, ek := tc.G.ActiveDevice.AllFields()
+	var sk, ek libkb.GenericKey
+	var skerr, ekerr error
+
+	aerr := tc.G.LoginState().Account(func(a *libkb.Account) {
+		sk, skerr = a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType})
+		ek, ekerr = a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType})
+	}, "assertDeviceKeysCached")
+	if aerr != nil {
+		tc.T.Fatal(aerr)
+	}
+	if skerr != nil {
+		tc.T.Fatalf("error getting cached signing key: %s", skerr)
+	}
 	if sk == nil {
 		tc.T.Error("cached signing key nil")
+	}
+	if ekerr != nil {
+		tc.T.Fatalf("error getting cached encryption key: %s", ekerr)
 	}
 	if ek == nil {
 		tc.T.Error("cached encryption key nil")

@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/keybase/protocol",
   "dependencies": {
-    "avdl-compiler": "1.3.12",
+    "avdl-compiler": "1.3.11",
     "avdl2json": "2.2.3",
     "bluebird": "^2.10.0",
     "camelcase": "^4.0.0",

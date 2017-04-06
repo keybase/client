@@ -14,10 +14,8 @@ import type {OwnProps} from './container'
 const mapStateToProps = (state: TypedState, {focusInputCounter}: OwnProps) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
 
-  let isLoading = true
-
-  if (!Constants.isPendingConversationIDKey(selectedConversationIDKey || '') &&
-    selectedConversationIDKey !== Constants.nothingSelected) {
+  let isLoading = false
+  if (selectedConversationIDKey !== Constants.nothingSelected) {
     const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
     if (conversationState) {
       isLoading = conversationState.isLoading

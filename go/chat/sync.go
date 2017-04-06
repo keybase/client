@@ -136,13 +136,6 @@ func (s *Syncer) isServerInboxClear(ctx context.Context, inbox *storage.Inbox, s
 	return false
 }
 
-func (s *Syncer) IsConnected(ctx context.Context) bool {
-	s.Lock()
-	defer s.Unlock()
-	defer s.Trace(ctx, func() error { return nil }, "IsConnected")()
-	return s.isConnected
-}
-
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
 	ctx = CtxAddLogTags(ctx)

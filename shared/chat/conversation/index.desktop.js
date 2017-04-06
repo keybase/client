@@ -9,7 +9,7 @@ import ParticipantRekey from './participant-rekey.desktop'
 import React, {Component} from 'react'
 import SidePanel from './side-panel/container'
 import YouRekey from './you-rekey.desktop.js'
-import {Box, Icon, Text, LoadingLine} from '../../common-adapters'
+import {Box, Icon, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
 import * as Constants from '../../constants/chat'
@@ -95,7 +95,6 @@ class Conversation extends Component<void, Props, State> {
           editLastMessageCounter={this.props.editLastMessageCounter}
         />
         <Banner />
-        {this.props.showLoader && <LoadingLine />}
         {this.props.finalizeInfo
           ? <OldProfileResetNotice
             onOpenNewerConversation={this.props.onOpenNewerConversation}

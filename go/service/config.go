@@ -154,16 +154,19 @@ func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (re
 		res.DeviceErr = &keybase1.LoadDeviceErr{Where: "libkb.LoadMe", Desc: err.Error()}
 	}
 
-	// cached device key status
-	_, _, sk, ek := h.G().ActiveDevice.AllFields()
-	res.DeviceSigKeyCached = sk != nil
-	res.DeviceEncKeyCached = ek != nil
-
 	h.G().LoginState().Account(func(a *libkb.Account) {
 		res.PassphraseStreamCached = a.PassphraseStreamCache().ValidPassphraseStream()
 		res.TsecCached = a.PassphraseStreamCache().ValidTsec()
 
-		// cached paper key status
+		// cached keys status
+		sk, err := a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType})
+		if err == nil && sk != nil {
+			res.DeviceSigKeyCached = true
+		}
+		ek, err := a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType})
+		if err == nil && ek != nil {
+			res.DeviceEncKeyCached = true
+		}
 		if a.GetUnlockedPaperSigKey() != nil {
 			res.PaperSigKeyCached = true
 		}

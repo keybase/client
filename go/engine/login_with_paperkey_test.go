@@ -191,14 +191,28 @@ func AssertLoggedInLPK(tc *libkb.TestContext, shouldBeLoggedIn bool) {
 }
 
 func AssertDeviceKeysLock(tc *libkb.TestContext, shouldBeUnlocked bool) {
-	_, _, sk, ek := tc.G.ActiveDevice.AllFields()
+	var err error
+	var err2 error
+	t := tc.T
 
+	err = tc.G.LoginState().Account(func(a *libkb.Account) {
+		_, err2 = a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType})
+	}, "test")
+	require.NoError(t, err)
 	if shouldBeUnlocked {
-		require.NotNil(tc.T, sk, "device signing key should be available")
-		require.NotNil(tc.T, ek, "device encryption key should be available")
+		require.NoError(t, err2, "device signing key should be available")
 	} else {
-		require.Nil(tc.T, sk, "device signing key should be unavailable")
-		require.Nil(tc.T, ek, "device encryption key should be unavailable")
+		require.Error(t, err2, "device signing key should be unavailable")
+	}
+
+	err = tc.G.LoginState().Account(func(a *libkb.Account) {
+		_, err2 = a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType})
+	}, "test")
+	require.NoError(t, err)
+	if shouldBeUnlocked {
+		require.NoError(t, err2, "device encryption key should be available")
+	} else {
+		require.Error(t, err2, "device encryption key should be unavailable")
 	}
 }
 

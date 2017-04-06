@@ -38,9 +38,6 @@ typedef NS_ENUM (NSInteger, KBExit) {
   if ([arguments containsObject:@"--debug"]) {
     debug = YES;
   }
-#if DEBUG
-  debug = YES;
-#endif
 
   [KBWorkspace setupLogging:debug];
 

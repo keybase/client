@@ -1668,10 +1668,6 @@
       "name": "DownloadAttachmentLocalRes",
       "fields": [
         {
-          "type": "boolean",
-          "name": "offline"
-        },
-        {
           "type": {
             "type": "array",
             "items": "RateLimit"
@@ -1684,54 +1680,6 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "MakePreviewRes",
-      "fields": [
-        {
-          "type": "string",
-          "name": "mimeType"
-        },
-        {
-          "type": [
-            null,
-            "string"
-          ],
-          "name": "filename"
-        },
-        {
-          "type": [
-            null,
-            "AssetMetadata"
-          ],
-          "name": "metadata"
-        },
-        {
-          "type": [
-            null,
-            "AssetMetadata"
-          ],
-          "name": "baseMetadata"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "MarkAsReadLocalRes",
-      "fields": [
-        {
-          "type": "boolean",
-          "name": "offline"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "RateLimit"
-          },
-          "name": "rateLimits"
         }
       ]
     },
@@ -2162,7 +2110,7 @@
           "name": "preview",
           "type": [
             null,
-            "MakePreviewRes"
+            "LocalSource"
           ]
         },
         {
@@ -2202,7 +2150,7 @@
           "name": "preview",
           "type": [
             null,
-            "MakePreviewRes"
+            "LocalFileSource"
           ]
         },
         {
@@ -2280,23 +2228,6 @@
       "response": "DownloadAttachmentLocalRes",
       "lint": "ignore"
     },
-    "makePreview": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "attachment",
-          "type": "LocalFileSource"
-        },
-        {
-          "name": "outputDir",
-          "type": "string"
-        }
-      ],
-      "response": "MakePreviewRes"
-    },
     "CancelPost": {
       "request": [
         {
@@ -2332,7 +2263,7 @@
           "type": "MessageID"
         }
       ],
-      "response": "MarkAsReadLocalRes"
+      "response": "MarkAsReadRes"
     },
     "findConversationsLocal": {
       "request": [

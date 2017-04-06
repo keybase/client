@@ -131,21 +131,8 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           })
         }
 
-        const messageFromYou = message.deviceName === yourDeviceName && message.author && yourName === message.author
-
-        if (message.type === 'Attachment' && messageFromYou) {
-          const outboxID = message.outboxID
-          if (outboxID) {  // const + inner if to satisfy flow
-            const previewPath = yield select(Shared.attachmentPlaceholderPreviewSelector, outboxID)
-            if (previewPath) {
-              message.previewPath = previewPath
-              yield put(Creators.clearAttachmentPlaceholderPreview(outboxID))
-            }
-          }
-        }
-
         const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
-        if (message.type === 'Text' && message.outboxID && messageFromYou) {
+        if (message.type === 'Text' && message.outboxID && message.deviceName === yourDeviceName && yourName === message.author) {
           // If the message has an outboxID and came from our device, then we
           // sent it and have already rendered it in the message list; we just
           // need to mark it as sent.
@@ -160,18 +147,28 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
 
           const messageID = message.messageID
           if (messageID) {
-            yield put(Creators.markSeenMessage(conversationIDKey, messageID))
+            yield put(Creators.markSeenMessage(conversationIDKey, Constants.messageKey(conversationIDKey, 'messageIDText', messageID)))
           }
         } else {
           // How long was it between the previous message and this one?
           if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
-            const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages.toArray(), conversationState.messages.size - 1)
+            const timestamp = Shared.maybeAddTimestamp(conversationIDKey, message, conversationState.messages.toArray(), conversationState.messages.size - 1)
             if (timestamp !== null) {
-              yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, appFocused, [timestamp]))
+              yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, [timestamp]))
             }
           }
 
-          yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, appFocused, [message]))
+          let existingMessage
+          if (message.messageID) {
+            existingMessage = yield select(Shared.messageSelector, conversationIDKey, message.messageID)
+          }
+
+          // If we already have an existing message (say for an attachment, let's reuse that)
+          if (existingMessage && existingMessage.outboxID && message.type === 'Attachment') {
+            yield put(Creators.updateTempMessage(conversationIDKey, message, existingMessage.outboxID))
+          } else {
+            yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, [message]))
+          }
 
           if ((message.type === 'Attachment' || message.type === 'UpdateAttachment') && !message.previewPath && message.messageID) {
             const messageID = message.type === 'UpdateAttachment' ? message.targetMessageID : message.messageID
@@ -323,7 +320,7 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
     let newMessages = []
     messages.forEach((message, idx) => {
       if (idx > 0) {
-        const timestamp = Shared.maybeAddTimestamp(messages[idx], messages, idx - 1)
+        const timestamp = Shared.maybeAddTimestamp(conversationIDKey, messages[idx], messages, idx - 1)
         if (timestamp !== null) {
           newMessages.push(timestamp)
         }
@@ -443,7 +440,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
       deviceType: isMobile ? 'mobile' : 'desktop',
       editedCount: 0,
       failureDescription,
-      key: Constants.messageKey('outboxID', payload.outboxID),
+      key: Constants.messageKey(conversationIDKey, 'outboxID', payload.outboxID),
       message: new HiddenString(messageText && messageText.body || ''),
       messageState,
       outboxID: Constants.outboxIDToKey(payload.outboxID),
@@ -479,16 +476,32 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
-            key: Constants.messageKey('messageID', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
           }
         case ChatTypes.CommonMessageType.attachment: {
-          const outboxID = payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
           if (!payload.messageBody.attachment) {
             throw new Error('empty attachment body')
           }
           const attachment: ChatTypes.MessageAttachment = payload.messageBody.attachment
-          const preview = attachment && (attachment.preview || attachment.previews && attachment.previews[0])
-          const attachmentInfo = Constants.getAttachmentInfo(preview, attachment && attachment.object)
+          const preview = attachment && attachment.preview
+          const mimeType = preview && preview.mimeType
+          const previewMetadata = preview && preview.metadata
+          const previewSize = previewMetadata && Constants.parseMetadataPreviewSize(previewMetadata)
+
+          const previewIsVideo = previewMetadata && previewMetadata.assetType === ChatTypes.LocalAssetMetadataType.video
+          let previewDurationMs = null
+          if (previewIsVideo) {
+            const previewVideoMetadata = previewMetadata && previewMetadata.assetType === ChatTypes.LocalAssetMetadataType.video && previewMetadata.video
+            previewDurationMs = previewVideoMetadata ? previewVideoMetadata.durationMs : null
+          }
+
+          const objectMetadata = attachment && attachment.object && attachment.object.metadata
+          const objectIsVideo = objectMetadata && objectMetadata.assetType === ChatTypes.LocalAssetMetadataType.video
+          let attachmentDurationMs = null
+          if (objectIsVideo) {
+            const objectVideoMetadata = objectMetadata && objectMetadata.assetType === ChatTypes.LocalAssetMetadataType.video && objectMetadata.video
+            attachmentDurationMs = objectVideoMetadata ? objectVideoMetadata.durationMs : null
+          }
 
           let messageState
           if (attachment.uploaded) {
@@ -500,13 +513,17 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
           return {
             type: 'Attachment',
             ...common,
-            ...attachmentInfo,
+            filename: attachment.object.filename,
+            title: attachment.object.title,
             messageState,
+            previewDurationMs,
+            attachmentDurationMs,
+            previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
             previewPath: null,
             hdPreviewPath: null,
+            previewSize,
             downloadedPath: null,
-            outboxID,
-            key: Constants.messageKey('messageID', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDAttachment', common.messageID),
           }
         }
         case ChatTypes.CommonMessageType.attachmentuploaded: {
@@ -516,17 +533,21 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
           const attachmentUploaded: ChatTypes.MessageAttachmentUploaded = payload.messageBody.attachmentuploaded
           const previews = attachmentUploaded && attachmentUploaded.previews
           const preview = previews && previews[0]
-          const attachmentInfo = Constants.getAttachmentInfo(preview, attachmentUploaded && attachmentUploaded.object)
+          const mimeType = preview && preview.mimeType
+          const previewSize = preview && preview.metadata && Constants.parseMetadataPreviewSize(preview.metadata)
 
           return {
-            key: Constants.messageKey('messageID', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDAttachmentUpdate', common.messageID),
             messageID: common.messageID,
             targetMessageID: attachmentUploaded.messageID,
             timestamp: common.timestamp,
             type: 'UpdateAttachment',
             updates: {
-              ...attachmentInfo,
+              filename: attachmentUploaded.object.filename,
               messageState: 'sent',
+              previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
+              previewSize,
+              title: attachmentUploaded.object.title,
             },
           }
         }
@@ -536,7 +557,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             type: 'Deleted',
             timestamp: payload.serverHeader.ctime,
             messageID: payload.serverHeader.messageID,
-            key: Constants.messageKey('messageID', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDDeleted', common.messageID),
             deletedIDs,
           }
         case ChatTypes.CommonMessageType.edit: {
@@ -544,7 +565,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
           const outboxID = payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
           const targetMessageID = payload.messageBody.edit ? payload.messageBody.edit.messageID : 0
           return {
-            key: Constants.messageKey('messageID', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDEdit', common.messageID),
             message,
             messageID: common.messageID,
             outboxID,
@@ -556,7 +577,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
         default:
           const unhandled: Constants.UnhandledMessage = {
             ...common,
-            key: Constants.messageKey('messageID', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDUnhandled', common.messageID),
             type: 'Unhandled',
           }
           return unhandled
@@ -573,7 +594,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
         case ChatTypes.LocalMessageUnboxedErrorType.identify: // fallthrough
           return {
             conversationIDKey,
-            key: Constants.messageKey('error', errorIdx++),
+            key: Constants.messageKey(conversationIDKey, 'messageIDError', errorIdx++),
             messageID: error.messageID,
             reason: error.errMsg || '',
             timestamp: error.ctime,
@@ -582,7 +603,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
         case ChatTypes.LocalMessageUnboxedErrorType.badversion:
           return {
             conversationIDKey,
-            key: Constants.messageKey('error', errorIdx++),
+            key: Constants.messageKey(conversationIDKey, 'errorInvisible', errorIdx++),
             data: message,
             messageID: error.messageID,
             timestamp: error.ctime,
@@ -594,7 +615,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
 
   return {
     type: 'Error',
-    key: Constants.messageKey('error', errorIdx++),
+    key: Constants.messageKey(conversationIDKey, 'error', errorIdx++),
     data: message,
     reason: "The message couldn't be loaded",
     conversationIDKey,
@@ -762,12 +783,12 @@ function * _updateBadging (action: Constants.UpdateBadging): SagaGenerator<any, 
 
 function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
   // Update badging and the latest message due to the refocus.
-  const {appFocused} = action.payload
+  const {focused} = action.payload
   const conversationIDKey = yield select(Constants.getSelectedConversation)
   const selectedTab = yield select(Shared.routeSelector)
   const chatTabSelected = (selectedTab === chatTab)
 
-  if (conversationIDKey && appFocused && chatTabSelected) {
+  if (conversationIDKey && focused && chatTabSelected) {
     yield put(Creators.updateBadging(conversationIDKey))
     yield put(Creators.updateLatestMessage(conversationIDKey))
   }
@@ -795,14 +816,7 @@ function * _badgeAppForChat (action: Constants.BadgeAppForChat): SagaGenerator<a
   conversations.map(conv => {
     conversationsWithKeys[Constants.conversationIDToKey(conv.get('convID'))] = conv.get('UnreadMessages')
   })
-  const conversationUnreadCounts = conversations.reduce((map, conv) => {
-    const count = conv.get('UnreadMessages')
-    if (!count) {
-      return map
-    } else {
-      return map.set(Constants.conversationIDToKey(conv.get('convID')), count)
-    }
-  }, Map())
+  const conversationUnreadCounts = Map(conversationsWithKeys)
   yield put(Creators.updateConversationUnreadCounts(conversationUnreadCounts))
 }
 

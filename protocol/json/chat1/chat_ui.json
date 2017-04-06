@@ -3,19 +3,6 @@
   "imports": [],
   "types": [],
   "messages": {
-    "chatAttachmentUploadOutboxID": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "outboxID",
-          "type": "OutboxID"
-        }
-      ],
-      "response": null
-    },
     "chatAttachmentUploadStart": {
       "request": [
         {
@@ -91,7 +78,8 @@
           "type": "int"
         }
       ],
-      "response": null
+      "response": null,
+      "oneway": true
     },
     "chatAttachmentDownloadProgress": {
       "request": [
@@ -118,7 +106,8 @@
           "type": "int"
         }
       ],
-      "response": null
+      "response": null,
+      "oneway": true
     },
     "chatInboxUnverified": {
       "request": [

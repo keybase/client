@@ -7,7 +7,7 @@ import {ignoreDisconnectOverlay} from '../local-debug.desktop.js'
 
 import type {Props} from './index'
 
-const Offline = ({reachability, appFocused}: Props) => {
+const Offline = ({reachability}: Props) => {
   if (reachability && reachability.reachable !== ReachabilityReachable.no) {
     return null
   }
@@ -24,7 +24,7 @@ const Offline = ({reachability, appFocused}: Props) => {
         <Text type='BodySemibold' style={textStyle}>{message}</Text>
       </Box>
       <Box style={overlayFillStyle}>
-        {appFocused && <Icon type='icon-loader-connecting-266' />}
+        <Icon type='icon-loader-connecting-266' />
       </Box>
     </Box>
   )

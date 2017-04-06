@@ -35,11 +35,8 @@ class Input extends Component<void, Props, State> {
   componentWillReceiveProps (nextProps: Props) {
     if (nextProps.hasOwnProperty('value')) {
       this.setState({value: nextProps.value || ''})
+      this._autoResize()
     }
-  }
-
-  componentDidUpdate () {
-    this._autoResize()
   }
 
   getValue (): string {

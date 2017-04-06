@@ -16,7 +16,6 @@ type StateProps = {
   rekeyInfo: ?Constants.RekeyInfo,
   participants: List<string>,
   selectedConversationIDKey: ?Constants.ConversationIDKey,
-  showLoader: boolean,
   supersededBy: ?Constants.SupersedeInfo,
   supersedes: ?Constants.SupersedeInfo,
 }
@@ -34,7 +33,6 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
   let rekeyInfo = null
   let supersedes = null
   let supersededBy = null
-  let showLoader = false
   let participants = List()
 
   if (selectedConversationIDKey !== Constants.nothingSelected) {
@@ -47,7 +45,6 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
       finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)
       supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
       supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
-      showLoader = !(selected && selected.state === 'unboxed') || conversationState.isRequesting
     }
   }
 
@@ -56,7 +53,6 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
     participants,
     rekeyInfo,
     selectedConversationIDKey,
-    showLoader,
     supersededBy,
     supersedes,
   }

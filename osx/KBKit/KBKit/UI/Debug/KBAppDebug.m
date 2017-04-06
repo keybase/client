@@ -10,7 +10,6 @@
 
 #import "KBStyleGuideView.h"
 #import "KBDefines.h"
-#import <CocoaLumberjack/CocoaLumberjack.h>
 
 @interface KBAppDebug ()
 @property BOOL running;
