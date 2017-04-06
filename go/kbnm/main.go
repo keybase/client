@@ -86,11 +86,6 @@ func main() {
 		out = nativemessaging.NewNativeJSONEncoder(os.Stdout)
 	}
 
-	if *versionFlag {
-		fmt.Printf("%s", Version)
-		return
-	}
-
 	h := Handler()
 
 	for {
