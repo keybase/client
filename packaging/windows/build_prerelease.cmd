@@ -69,7 +69,7 @@ popd
 
 :: Browser Extension
 pushd %GOPATH%\src\github.com\keybase\client\go\kbnm
-if _%KBNM_BUILD%_ EQ __ (
+if "%KBNM_BUILD%" == "" (
     KBNM_BUILD = %KEYBASE_BUILD%
 )
 echo KBNM_BUILD %KBNM_BUILD%
