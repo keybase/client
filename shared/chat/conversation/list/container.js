@@ -13,8 +13,8 @@ import {getPath} from '../../../route-tree'
 import {chatTab} from '../../../constants/tabs'
 
 import type {OpenInFileUI} from '../../../constants/kbfs'
-import type {Options} from '../messages'
-import type {Props, OptionsFn} from '.'
+// import type {Options} from '../messages'
+import type {Props} from '.'
 import type {OwnProps, StateProps, DispatchProps} from './container'
 import type {TypedState} from '../../../constants/reducer'
 
@@ -118,7 +118,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
   return {
     ...props,
     messages: decorateSupersedes(props.supersedes, props.moreToLoad, props.messages),
-    optionsFn: propsToMessageOptionsFn(props),
+    // optionsFn: propsToMessageOptionsFn(props),
   }
 }
 
@@ -139,28 +139,27 @@ function decorateSupersedes (supersedes, moreToLoad, messages): List<Constants.M
 }
 
 // TODO remove this. Not needed w/ connected messages
-// $FlowIssue wants props with optionsFn inside of it, which this thing itself is building. This'll all go away soon
-function propsToMessageOptionsFn (props: Props): OptionsFn {
-  return function (message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, onAction, onShowEditor, isEditing = false): Options {
-    const skipMsgHeader = (message.author != null && prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
-    const isFirstNewMessage = message.messageID != null && props.firstNewMessageID ? props.firstNewMessageID === message.messageID : false
-    return {
-      ...props,
-      includeHeader: isFirstMessage || !skipMsgHeader,
-      isEditing,
-      isFirstNewMessage,
-      isScrolling,
-      isSelected,
-      key,
-      message,
-      onAction,
-      onRetry: props.onRetryMessage,
-      onRetryAttachment: (message) => { message.type === 'Attachment' && props.onRetryAttachment(message) },
-      onShowEditor,
-      style,
-    }
-  }
-}
+// function propsToMessageOptionsFn (props: Props): OptionsFn {
+  // return function (message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, onAction, onShowEditor, isEditing = false): Options {
+    // const skipMsgHeader = (message.author != null && prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
+    // const isFirstNewMessage = message.messageID != null && props.firstNewMessageID ? props.firstNewMessageID === message.messageID : false
+    // return {
+      // ...props,
+      // includeHeader: isFirstMessage || !skipMsgHeader,
+      // isEditing,
+      // isFirstNewMessage,
+      // isScrolling,
+      // isSelected,
+      // key,
+      // message,
+      // onAction,
+      // onRetry: props.onRetryMessage,
+      // onRetryAttachment: (message) => { message.type === 'Attachment' && props.onRetryAttachment(message) },
+      // onShowEditor,
+      // style,
+    // }
+  // }
+// }
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
