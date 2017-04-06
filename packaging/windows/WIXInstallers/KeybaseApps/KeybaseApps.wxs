@@ -210,7 +210,7 @@
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="kbnmjson" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
-        <File Id="kbnm.json" Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbnm\kbnm.json.windows" Checksum="yes"/>
+        <File Id="kbnm.json" Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbnm\windows\kbnm.json" Checksum="yes"/>
       </Component>
       
       <Component Id="RegistryEntriesKbnm" Guid="{87D8FCB8-F6CE-4A24-A629-A382FAFCED76}">
