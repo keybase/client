@@ -14,6 +14,12 @@ var errMissingField = errors.New("missing field")
 
 var errUserNotFound = errors.New("user not found")
 
+// findKeybaseBinary returns the path to the Keybase binary, if it finds it.
+func findKeybaseBinary() (string, error) {
+	// FIXME: Get the absolute path without a filled PATH var somehow?
+	return "/usr/local/bin/keybase", nil
+}
+
 func execRunner(cmd *exec.Cmd) error {
 	return cmd.Run()
 }
