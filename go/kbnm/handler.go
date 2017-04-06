@@ -19,6 +19,10 @@ var errUserNotFound = errors.New("user not found")
 
 var errParsing = errors.New("failed to parse keybase output")
 
+var errKeybaseNotRunning = errors.New("keybase is not running")
+
+var errKeybaseNotLoggedIn = errors.New("keybase is not logged in")
+
 func execRunner(cmd *exec.Cmd) error {
 	return cmd.Run()
 }
@@ -64,6 +68,7 @@ func (h *handler) handleChat(req *Request) error {
 	cmd := exec.Command(binPath, "chat", "send", "--private", req.To)
 	cmd.Env = append(os.Environ(), "KEYBASE_LOG_FORMAT=plain")
 	cmd.Stdin = strings.NewReader(req.Body)
+	cmd.Stdout = &out
 	cmd.Stderr = &out
 
 	if err := h.Run(cmd); err != nil {
@@ -112,6 +117,16 @@ func parseError(r io.Reader, fallback error) error {
 	for scanner.Scan() {
 		// Should be of the form "[ERRO] 001 Not found"
 		line := strings.TrimSpace(scanner.Text())
+		if line == "" {
+			continue
+		}
+		// Check some error states we know about:
+		if strings.Contains(line, "Keybase isn't running.") {
+			return errKeybaseNotRunning
+		}
+		if strings.Contains(line, "You are not logged into Keybase.") {
+			return errKeybaseNotLoggedIn
+		}
 		parts := strings.SplitN(line, " ", 2)
 		if len(parts) < 3 {
 			continue
@@ -144,6 +159,7 @@ func (h *handler) handleQuery(req *Request) (*resultQuery, error) {
 	var out bytes.Buffer
 	cmd := exec.Command(binPath, "id", req.To)
 	cmd.Env = append(os.Environ(), "KEYBASE_LOG_FORMAT=plain")
+	cmd.Stdout = &out
 	cmd.Stderr = &out
 
 	if err := h.Run(cmd); err != nil {
