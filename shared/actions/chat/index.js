@@ -816,7 +816,14 @@ function * _badgeAppForChat (action: Constants.BadgeAppForChat): SagaGenerator<a
   conversations.map(conv => {
     conversationsWithKeys[Constants.conversationIDToKey(conv.get('convID'))] = conv.get('UnreadMessages')
   })
-  const conversationUnreadCounts = Map(conversationsWithKeys)
+  const conversationUnreadCounts = conversations.reduce((map, conv) => {
+    const count = conv.get('UnreadMessages')
+    if (!count) {
+      return map
+    } else {
+      return map.set(Constants.conversationIDToKey(conv.get('convID')), count)
+    }
+  }, Map())
   yield put(Creators.updateConversationUnreadCounts(conversationUnreadCounts))
 }
 
