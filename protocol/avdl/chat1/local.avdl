@@ -576,6 +576,7 @@ protocol local {
   PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalFileSource attachment, union { null, LocalFileSource } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record DownloadAttachmentLocalRes {
+    boolean offline;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
@@ -594,7 +595,11 @@ protocol local {
   @lint("ignore")
   void RetryPost(OutboxID outboxID);
 
-  MarkAsReadRes markAsReadLocal(int sessionID, ConversationID conversationID, MessageID msgID);
+  record MarkAsReadLocalRes {
+     boolean offline;
+     array<RateLimit> rateLimits;
+  }
+  MarkAsReadLocalRes markAsReadLocal(int sessionID, ConversationID conversationID, MessageID msgID);
 
   record FindConversationsLocalRes {
     array<ConversationLocal> conversations;

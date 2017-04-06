@@ -1668,6 +1668,10 @@
       "name": "DownloadAttachmentLocalRes",
       "fields": [
         {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
           "type": {
             "type": "array",
             "items": "RateLimit"
@@ -1680,6 +1684,23 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MarkAsReadLocalRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
         }
       ]
     },
@@ -2263,7 +2284,7 @@
           "type": "MessageID"
         }
       ],
-      "response": "MarkAsReadRes"
+      "response": "MarkAsReadLocalRes"
     },
     "findConversationsLocal": {
       "request": [
