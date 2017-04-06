@@ -81,6 +81,14 @@ build_one_architecture() {
     > "$cron_file"
   chmod 755 "$cron_file"
 
+  # Whitelist for NativeMessaging
+  kbnm_bin="/usr/bin/kbnm"
+  kbnm_file="/etc/opt/chrome/native-messaging-hosts/io.keybase.kbnm"
+  mkdir -p "$(dirname "$kbnm_file")"
+  cat "$here/host_json.template" \
+    | sed "s|@@HOST_PATH@@|/usr/local/bin/$kbnm_bin|g" \
+  chmod 644 "$kbnm_file"
+
   fakeroot dpkg-deb --build "$dest/build" "$dest/$name-$version-$debian_arch.deb"
 }
 
