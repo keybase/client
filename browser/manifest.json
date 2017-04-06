@@ -15,6 +15,9 @@
     "http://*.reddit.com/*",
     "https://*.reddit.com/*"
   ],
+  "web_accessible_resources": [
+    "images/*"
+  ],
   "content_scripts": [
     {
       "matches": [

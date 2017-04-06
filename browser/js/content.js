@@ -29,6 +29,7 @@ function injectThread() {
   // /r/<subreddit>/comments/<id>/<slug>
   for (let c of document.getElementsByClassName("comment")) {
     const author = safeHTML(c.getAttribute("data-author"));
+    if (author == "") continue; // Empty
     const buttons = c.getElementsByClassName("buttons")[0];
 
     renderChatButton(buttons, author);
@@ -78,12 +79,12 @@ function renderChat(parent, toUsername) {
   const f = document.createElement("form");
   f.action = "#"; // Avoid submitting even if we fail to preventDefault
   f.innerHTML = `
-    <h3>Keybase Chat <span class="keybase-close"> </span></h3>
+    <h3><img src="${chrome.runtime.getURL("images/icon-keybase-logo-48.png")}" />Keybase chat <span class="keybase-close"> </span></h3>
     <input type="hidden" name="keybase-to" value="${toUsername}" />
-    <p>Encrypt to <span class="keybase-username">${toUsername}</span><span class="keybase-service">@reddit</span>:</p>
-    <p><textarea name="keybase-chat" rows="6"></textarea></p>
+    <p>Encrypt to ${renderUser(toUsername, "reddit.com/u")}</span>:</p>
+    <p><textarea name="keybase-chat" rows="6" placeholder="Write a message"></textarea></p>
     <div class="keybase-nudge">
-      <p>Searching for <span class="keybase-username">${toUsername}</span><span class="keybase-service">@reddit</span>...</p>
+      <p>Checking Keybase...</p>
     </div>
     <p><input type="submit" value="Send" name="keybase-submit" /></p> 
   `;
@@ -98,8 +99,8 @@ function renderChat(parent, toUsername) {
   }, function(response) {
     if (response.status == "ok") {
       // Non-error response always returns at least one sig.
-      const keybaseUsername = safeHTML(response.result["sigs"][0]["statement"]);
-      nudgePlaceholder.innerHTML = `<p>Found proof linking to <a href="https://keybase.io/${keybaseUsername}">keybase.io/<span class="keybase-username">${keybaseUsername}</span></a></p>`;
+      const keybaseUsername = safeHTML(response.result["username"]);
+      nudgePlaceholder.innerHTML = `<p><img class="keybase-icon" src="https://keybase.io/${keybaseUsername}/picture" /> ${renderUser(toUsername, "reddit.com/u")} is ${renderUser(keybaseUsername, "keybase.io")}</p>`;
       return;
     }
     renderError(f, response.message);
@@ -122,6 +123,8 @@ function renderChat(parent, toUsername) {
     removeChat(f);
   });
 
+  // Focus the chat textarea
+  f["keybase-chat"].focus();
 
   // TODO: Also add an onbeforeunload check if chat has text written in it.
 }
@@ -191,6 +194,14 @@ function renderError(chatForm, msg) {
   chatForm.appendChild(p);
 }
 
+// Render a formatted user@service string.
+function renderUser(username, service) {
+  if (service=="undefined") {
+    service = "keybase.io";
+  }
+  return `<a class="keybase-user" href="https://${service}/${username}" target="_blank">${service}/<span>${username}</span></a>`;
+}
+
 // Post a Reddit thread reply on the given comment node.
 function postReply(commentNode, text) {
   // This will break if there is no reply button.
@@ -233,6 +244,7 @@ function findParentByClass(el, className) {
 
 // Convert a user input into a string that is safe for inlining into HTML.
 function safeHTML(s) {
+  if (s===undefined) return "";
   return s.replace(/[&'"<>\/]/g, function (c) {
     // Per https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content
     return {
