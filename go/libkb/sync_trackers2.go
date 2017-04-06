@@ -74,10 +74,9 @@ func (t *Tracker2Syncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err
 	}
 	var res *APIRes
 	res, err = t.G().API.Get(APIArg{
-		Endpoint:    "user/list_followers_for_display",
-		Args:        hargs,
-		SessionR:    sr,
-		NeedSession: true,
+		Endpoint: "user/list_followers_for_display",
+		Args:     hargs,
+		SessionR: sr,
 	})
 	t.G().Log.Debug("| syncFromServer() -> %s", ErrToOk(err))
 	if err != nil {
