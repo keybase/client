@@ -489,7 +489,7 @@ function makeSnippet (messageBody: ?MessageBody): ?string {
     case ChatTypes.CommonMessageType.text:
       return textSnippet(messageBody.text && messageBody.text.body, 100)
     case ChatTypes.CommonMessageType.attachment:
-      return 'Attachment'
+      return messageBody.attachment ? textSnippet(messageBody.attachment.object.title, 100) : 'Attachment'
     default:
       return null
   }
