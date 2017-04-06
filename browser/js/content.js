@@ -98,12 +98,12 @@ function renderChat(parent, toUsername) {
     "to": toUsername + "@reddit"
   }, function(response) {
     if (response.status == "ok") {
-      // Non-error response always returns at least one sig.
       const keybaseUsername = safeHTML(response.result["username"]);
       nudgePlaceholder.innerHTML = `<p><img class="keybase-icon" src="https://keybase.io/${keybaseUsername}/picture" /> ${renderUser(toUsername, "reddit.com/u")} is ${renderUser(keybaseUsername, "keybase.io")}</p>`;
       return;
+    } else if (response.message != "user not found") {
+      renderError(f, response.message);
     }
-    renderError(f, response.message);
     nudgePlaceholder.innerHTML = nudgeHTML;
   });
 
