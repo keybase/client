@@ -34,9 +34,17 @@ func TestHandlerChat(t *testing.T) {
 	}
 }
 
-const queryResponse = `2017-04-05T13:44:17.068898-04:00 ▶ [INFO keybase ui.go:64] 001 Identifying \x1b[1mshazow\x1b[22m\n`
+const queryResponse = `[INFO] 001 Identifying sometestuser
+✔ public key fingerprint: 9FCE A980 CCFD 3C13 E11E 88A9 3506 87D1 7E81 FD68
+✔ admin of sometestuser.net via HTTPS: https://sometestuser.net/keybase.txt
+✔ "sometestuser" on github: https://gist.github.com/10763855
+✔ "sometestuser" on twitter: https://twitter.com/sometestuser/status/456154521052274689 [cached 2017-04-06 10:20:10 EDT]
+✔ "sometestuser" on hackernews: https://news.ycombinator.com/user?id=sometestuser [cached 2017-04-06 10:20:09 EDT]
+✔ "sometestuser" on reddit: https://www.reddit.com/r/KeybaseProofs/comments/2o8dbv/my_keybase_proof_redditsometestuser_keybasesometestuser/ [cached 2017-04-06 10:20:10 EDT]
+`
 
-const queryResponseErr = `2017-04-05T12:48:09.203299-04:00 ‚M-^V∂ [ERRO keybase standard.go:230] 001 Not found$`
+const queryResponseErr = `[ERRO] 001 Not found
+`
 
 func TestHandlerQuery(t *testing.T) {
 	h := Handler()

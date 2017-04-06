@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -15,6 +16,8 @@ var errInvalidMethod = errors.New("invalid method")
 var errMissingField = errors.New("missing field")
 
 var errUserNotFound = errors.New("user not found")
+
+var errParsing = errors.New("failed to parse keybase output")
 
 func execRunner(cmd *exec.Cmd) error {
 	return cmd.Run()
@@ -57,39 +60,73 @@ func (h *handler) handleChat(req *Request) error {
 		return err
 	}
 
+	var out bytes.Buffer
 	cmd := exec.Command(binPath, "chat", "send", "--private", req.To)
+	cmd.Env = append(os.Environ(), "KEYBASE_LOG_FORMAT=plain")
 	cmd.Stdin = strings.NewReader(req.Body)
+	cmd.Stderr = &out
 
-	// TODO: Check/convert status code more precisely? Maybe return stdout as
-	// part of the error if there is one?
-	err = h.Run(cmd)
+	if err := h.Run(cmd); err != nil {
+		return parseError(&out, err)
+	}
 
-	return err
+	return nil
 }
 
 type resultQuery struct {
 	Username string `json:"username"`
 }
 
+// parseQuery reads the stderr from a keybase query command and returns a result
 func parseQuery(r io.Reader) (*resultQuery, error) {
-	br := bufio.NewReader(r)
-	line, err := br.ReadBytes('\n')
-	if err != nil {
-		return nil, err
+	scanner := bufio.NewScanner(r)
+
+	if !scanner.Scan() {
+		return nil, scanner.Err()
 	}
-	parts := bytes.Split([]byte(`001`), line)
-	if len(parts) != 2 {
-		fmt.Printf("%q\n%d: %q\n", line, len(parts), parts)
+
+	// Should be of the form "[INFO] 001 Identifying someuser"
+	line := strings.TrimSpace(scanner.Text())
+	parts := strings.Split(line, " ")
+	if len(parts) < 4 {
 		return nil, errParsing
 	}
 
-	if bytes.HasPrefix(parts[1], []byte(`Not found`)) {
+	if parts[2] != "Identifying" {
 		return nil, errUserNotFound
 	}
 
-	resp := &resultQuery{}
-	_, err = fmt.Sscanf(parts[1], "Identifying ^[[1m%s^[[22m$", &resp.Username)
-	return resp, err
+	resp := &resultQuery{
+		Username: parts[3],
+	}
+	return resp, nil
+}
+
+// parseError reads stderr output and returns an error made from it. If it
+// fails to parse an error, it returns the fallback error.
+func parseError(r io.Reader, fallback error) error {
+	scanner := bufio.NewScanner(r)
+
+	// Find the final error
+	var lastErr error
+	for scanner.Scan() {
+		// Should be of the form "[ERRO] 001 Not found"
+		line := strings.TrimSpace(scanner.Text())
+		parts := strings.SplitN(line, " ", 2)
+		if len(parts) < 3 {
+			continue
+		}
+		if parts[0] != "[ERRO]" {
+			continue
+		}
+		lastErr = fmt.Errorf(parts[2])
+	}
+
+	if lastErr != nil {
+		return lastErr
+	}
+
+	return fallback
 }
 
 // handleQuery searches whether a user is present in Keybase.
@@ -106,12 +143,11 @@ func (h *handler) handleQuery(req *Request) (*resultQuery, error) {
 	// Unfortunately `keybase id ...` does not support JSON output, so we parse the output
 	var out bytes.Buffer
 	cmd := exec.Command(binPath, "id", req.To)
+	cmd.Env = append(os.Environ(), "KEYBASE_LOG_FORMAT=plain")
 	cmd.Stderr = &out
 
-	err = h.Run(cmd)
-	if err != nil {
-		// TODO: Differentiate betewen failure and not matched
-		return nil, err
+	if err := h.Run(cmd); err != nil {
+		return nil, parseError(&out, err)
 	}
 
 	return parseQuery(&out)
