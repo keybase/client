@@ -22,7 +22,6 @@
     "inject-code-prod": "yarn run _helper inject-code-prod",
     "inject-sourcemaps-prod": "yarn run _helper inject-sourcemaps-prod",
     "lint": "./node_modules/.bin/eslint --quiet .",
-    "lintone": "./node_modules/.bin/eslint --quiet --debug ",
     "flow": "./node_modules/.bin/flow .",
     "local-visdiff": "yarn run _helper local-visdiff",
     "package": "yarn run _helper package --",

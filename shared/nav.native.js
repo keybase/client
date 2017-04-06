@@ -1,5 +1,5 @@
 // @flow
-import GlobalError from './global-errors/container';
+import GlobalError from './global-errors/container'
 import Offline from './offline'
 import React, {Component} from 'react'
 import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
