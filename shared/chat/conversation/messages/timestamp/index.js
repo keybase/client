@@ -10,7 +10,7 @@ export type Props = {
 
 const Timestamp = ({timestamp, style}: Props) => {
   // if (id === '1487729110517') {
-    // console.log('aaaa', id, style)
+  console.log('aaaRENDER', timestamp, style)
   // }
 
   return (
