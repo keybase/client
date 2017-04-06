@@ -11,7 +11,7 @@ import (
 )
 
 // Version is the build version of kbnm, overwritten during build.
-const Version = "dev"
+var Version = "dev"
 
 // Response from the kbnm service
 type Response struct {
@@ -84,6 +84,11 @@ func main() {
 		// Used as part of the NativeMessaging API
 		in = nativemessaging.NewNativeJSONDecoder(os.Stdin)
 		out = nativemessaging.NewNativeJSONEncoder(os.Stdout)
+	}
+
+	if *versionFlag {
+		fmt.Printf("%s", Version)
+		return
 	}
 
 	h := Handler()
