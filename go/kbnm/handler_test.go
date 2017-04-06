@@ -46,6 +46,31 @@ const queryResponse = `[INFO] 001 Identifying sometestuser
 const queryResponseErr = `[ERRO] 001 Not found
 `
 
+func TestHandlerQueryError(t *testing.T) {
+	h := Handler()
+
+	var ranCmd string
+	h.Run = func(cmd *exec.Cmd) error {
+		ranCmd = strings.Join(cmd.Args, " ")
+		io.WriteString(cmd.Stderr, queryResponseErr)
+		return nil
+	}
+
+	req := &Request{
+		Method: "query",
+		To:     "doesnotexist",
+	}
+
+	_, err := h.Handle(req)
+	if err == nil {
+		t.Fatal("request succeeded when failure was expected")
+	}
+
+	if got, want := err.Error(), "user not found"; got != want {
+		t.Errorf("incorrect error; got: %q, want %q", got, want)
+	}
+}
+
 func TestHandlerQuery(t *testing.T) {
 	h := Handler()
 
