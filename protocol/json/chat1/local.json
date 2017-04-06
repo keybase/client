@@ -1668,6 +1668,10 @@
       "name": "DownloadAttachmentLocalRes",
       "fields": [
         {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
           "type": {
             "type": "array",
             "items": "RateLimit"
@@ -1711,6 +1715,23 @@
             "AssetMetadata"
           ],
           "name": "baseMetadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MarkAsReadLocalRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
         }
       ]
     },
@@ -2311,7 +2332,7 @@
           "type": "MessageID"
         }
       ],
-      "response": "MarkAsReadRes"
+      "response": "MarkAsReadLocalRes"
     },
     "findConversationsLocal": {
       "request": [

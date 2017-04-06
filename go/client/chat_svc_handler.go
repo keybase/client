@@ -610,11 +610,7 @@ func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Rep
 		return c.errReply(err)
 	}
 
-	allLimits := rlimits
-	if res.RateLimit != nil {
-		allLimits = append(allLimits, *res.RateLimit)
-	}
-
+	allLimits := append(rlimits, res.RateLimits...)
 	cres := EmptyRes{
 		RateLimits: RateLimits{
 			c.aggRateLimits(allLimits),
