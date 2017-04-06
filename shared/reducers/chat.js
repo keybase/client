@@ -160,7 +160,8 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
             .set('deletedIDs', nextDeletedIDs)
         })
 
-      return state.set('conversationStates', newConversationStates)
+      const toMerge = newConversationStates.getIn([conversationIDKey, 'messages']).reduce((map, val) => map.set(val.key, val), Map())
+      return state.set('conversationStates', newConversationStates).set('messageMap', state.get('messageMap').merge(toMerge))
     }
     case 'chat:appendMessages': {
       const appendAction: Constants.AppendMessages = action
@@ -196,8 +197,8 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
             .set('deletedIDs', nextDeletedIDs)
         })
 
-      return state
-        .set('conversationStates', newConversationStates)
+      const toMerge = newConversationStates.getIn([conversationIDKey, 'messages']).reduce((map, val) => map.set(val.key, val), Map())
+      return state.set('conversationStates', newConversationStates).set('messageMap', state.get('messageMap').merge(toMerge))
     }
     case 'chat:deleteTempMessage': {
       const {conversationIDKey, outboxID} = action.payload
@@ -260,8 +261,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       ))
     }
     case 'chat:markSeenMessage': {
-      const {messageID, conversationIDKey} = action.payload
-      const messageKey = Constants.messageKey('messageID', messageID)
+      const {messageKey, conversationIDKey} = action.payload
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversation(
         conversationStates,

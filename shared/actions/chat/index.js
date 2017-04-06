@@ -147,12 +147,12 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
 
           const messageID = message.messageID
           if (messageID) {
-            yield put(Creators.markSeenMessage(conversationIDKey, messageID))
+            yield put(Creators.markSeenMessage(conversationIDKey, Constants.messageKey(conversationIDKey, 'messageIDText', messageID)))
           }
         } else {
           // How long was it between the previous message and this one?
           if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
-            const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages.toArray(), conversationState.messages.size - 1)
+            const timestamp = Shared.maybeAddTimestamp(conversationIDKey, message, conversationState.messages.toArray(), conversationState.messages.size - 1)
             if (timestamp !== null) {
               yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, [timestamp]))
             }
@@ -320,7 +320,7 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
     let newMessages = []
     messages.forEach((message, idx) => {
       if (idx > 0) {
-        const timestamp = Shared.maybeAddTimestamp(messages[idx], messages, idx - 1)
+        const timestamp = Shared.maybeAddTimestamp(conversationIDKey, messages[idx], messages, idx - 1)
         if (timestamp !== null) {
           newMessages.push(timestamp)
         }
@@ -440,7 +440,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
       deviceType: isMobile ? 'mobile' : 'desktop',
       editedCount: 0,
       failureDescription,
-      key: Constants.messageKey('outboxID', payload.outboxID),
+      key: Constants.messageKey(conversationIDKey, 'outboxID', payload.outboxID),
       message: new HiddenString(messageText && messageText.body || ''),
       messageState,
       outboxID: Constants.outboxIDToKey(payload.outboxID),
@@ -476,7 +476,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
-            key: Constants.messageKey('messageID', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
           }
         case ChatTypes.CommonMessageType.attachment: {
           if (!payload.messageBody.attachment) {
@@ -523,7 +523,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             hdPreviewPath: null,
             previewSize,
             downloadedPath: null,
-            key: Constants.messageKey('messageID', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDAttachment', common.messageID),
           }
         }
         case ChatTypes.CommonMessageType.attachmentuploaded: {
@@ -537,7 +537,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
           const previewSize = preview && preview.metadata && Constants.parseMetadataPreviewSize(preview.metadata)
 
           return {
-            key: Constants.messageKey('messageID', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDAttachmentUpdate', common.messageID),
             messageID: common.messageID,
             targetMessageID: attachmentUploaded.messageID,
             timestamp: common.timestamp,
@@ -557,7 +557,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             type: 'Deleted',
             timestamp: payload.serverHeader.ctime,
             messageID: payload.serverHeader.messageID,
-            key: Constants.messageKey('messageID', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDDeleted', common.messageID),
             deletedIDs,
           }
         case ChatTypes.CommonMessageType.edit: {
@@ -565,7 +565,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
           const outboxID = payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
           const targetMessageID = payload.messageBody.edit ? payload.messageBody.edit.messageID : 0
           return {
-            key: Constants.messageKey('messageID', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDEdit', common.messageID),
             message,
             messageID: common.messageID,
             outboxID,
@@ -577,7 +577,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
         default:
           const unhandled: Constants.UnhandledMessage = {
             ...common,
-            key: Constants.messageKey('messageID', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDUnhandled', common.messageID),
             type: 'Unhandled',
           }
           return unhandled
@@ -594,7 +594,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
         case ChatTypes.LocalMessageUnboxedErrorType.identify: // fallthrough
           return {
             conversationIDKey,
-            key: Constants.messageKey('error', errorIdx++),
+            key: Constants.messageKey(conversationIDKey, 'messageIDError', errorIdx++),
             messageID: error.messageID,
             reason: error.errMsg || '',
             timestamp: error.ctime,
@@ -603,7 +603,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
         case ChatTypes.LocalMessageUnboxedErrorType.badversion:
           return {
             conversationIDKey,
-            key: Constants.messageKey('error', errorIdx++),
+            key: Constants.messageKey(conversationIDKey, 'errorInvisible', errorIdx++),
             data: message,
             messageID: error.messageID,
             timestamp: error.ctime,
@@ -615,7 +615,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
 
   return {
     type: 'Error',
-    key: Constants.messageKey('error', errorIdx++),
+    key: Constants.messageKey(conversationIDKey, 'error', errorIdx++),
     data: message,
     reason: "The message couldn't be loaded",
     conversationIDKey,

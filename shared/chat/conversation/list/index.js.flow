@@ -3,18 +3,19 @@ import {Component} from 'react'
 import {List} from 'immutable'
 import * as Constants from '../../../constants/chat'
 
-import type {Options} from '../messages'
+// import type {Options} from '../messages'
 
-export type OptionsFn = (message: Constants.Message, prevMessage: Constants.Message, isFirstMessage: boolean, isSelected: boolean, isScrolling: boolean, key: any, style: Object, onAction: (message: Constants.ServerMessage, event: any) => void, onShowEditor: (message: Constants.Message, event: any) => void, isEditing: boolean) => Options
+// export type OptionsFn = (message: Constants.Message, prevMessage: Constants.Message, isFirstMessage: boolean, isSelected: boolean, isScrolling: boolean, key: any, style: Object, onAction: (message: Constants.ServerMessage, event: any) => void, onShowEditor: (message: Constants.Message, event: any) => void, isEditing: boolean) => Options
 
 export type Props = {
+  messageKeys: List<string>,
   editLastMessageCounter: number,
   editingMessage: ?Constants.Message,
   firstNewMessageID: ?Constants.MessageID,
   followingMap: Constants.FollowingMap,
-  headerMessages: List<Constants.Message>,
+  // headerMessages: List<Constants.Message>,
   listScrollDownCounter: number,
-  messages: List<Constants.Message>,
+  // messages: List<Constants.Message>,
   metaDataMap: Constants.MetaDataMap,
   moreToLoad: boolean,
   onDeleteMessage: (message: Constants.Message) => void,
@@ -28,7 +29,7 @@ export type Props = {
   onOpenInPopup: (message: Constants.AttachmentMessage) => void,
   onRetryAttachment: (message: Constants.AttachmentMessage) => void,
   onRetryMessage: (outboxID: string) => void,
-  optionsFn: OptionsFn,
+  // optionsFn: OptionsFn,
   selectedConversation: ?Constants.ConversationIDKey,
   supersededBy: ?Constants.SupersedeInfo,
   supersedes: ?Constants.SupersedeInfo,

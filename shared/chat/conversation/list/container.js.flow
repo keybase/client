@@ -9,6 +9,8 @@ export type StateProps = {
   firstNewMessageID: ?Constants.MessageID,
   followingMap: Constants.FollowingMap,
   listScrollDownCounter: number,
+  messageKeys: List<string>,
+  // TODO del
   messages: List<Constants.Message>,
   metaDataMap: Constants.MetaDataMap,
   moreToLoad: boolean,
