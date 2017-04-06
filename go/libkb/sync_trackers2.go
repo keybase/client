@@ -14,9 +14,10 @@ import (
 type Tracker2Syncer struct {
 	sync.Mutex
 	Contextified
-	res     *keybase1.UserSummary2Set
-	reverse bool
-	dirty   bool
+	res       *keybase1.UserSummary2Set
+	reverse   bool
+	dirty     bool
+	callerUID keybase1.UID
 }
 
 const cacheTimeout = 10 * time.Minute
@@ -64,9 +65,10 @@ func (t *Tracker2Syncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err
 	defer t.G().Trace(fmt.Sprintf("syncFromServer(%s)", uid), func() error { return err })()
 
 	hargs := HTTPArgs{
-		"uid":       UIDArg(uid),
-		"reverse":   B{t.reverse},
-		"autoCamel": B{true},
+		"uid":        UIDArg(uid),
+		"reverse":    B{t.reverse},
+		"autoCamel":  B{true},
+		"caller_uid": UIDArg(t.callerUID),
 	}
 	lv := t.getLoadedVersion()
 	if lv >= 0 {
@@ -123,9 +125,10 @@ func (t *Tracker2Syncer) Result() keybase1.UserSummary2Set {
 	return *t.res
 }
 
-func NewTracker2Syncer(g *GlobalContext, reverse bool) *Tracker2Syncer {
+func NewTracker2Syncer(g *GlobalContext, callerUID keybase1.UID, reverse bool) *Tracker2Syncer {
 	return &Tracker2Syncer{
 		Contextified: NewContextified(g),
 		reverse:      reverse,
+		callerUID:    callerUID,
 	}
 }
