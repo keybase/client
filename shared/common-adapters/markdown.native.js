@@ -49,9 +49,9 @@ function previewCreateComponent (style) {
       case 'markup':
         return <Text type='Body' key={key} lineClamp={1} style={style}>{children}</Text>
       case 'emoji':
-        return <EmojiIfExists emojiName={String(children)} size={16} key={key} />
+        return <EmojiIfExists emojiName={String(children)} size={12} key={key} />
       case 'native-emoji':
-        return <Emoji emojiName={String(children)} size={16} key={key} />
+        return <Emoji emojiName={String(children)} size={12} key={key} />
       default:
         return <Text type='Body' key={key} style={{...neutralStyle, ...style}}>{children}</Text>
     }
