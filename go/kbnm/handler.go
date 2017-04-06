@@ -115,7 +115,7 @@ func parseError(r io.Reader, fallback error) error {
 	// Find the final error
 	var lastErr error
 	for scanner.Scan() {
-		// Should be of the form "[ERRO] 001 Not found"
+		// Should be of the form "[ERRO] 001 Not found" or "...: No resolution found"
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
 			continue
@@ -127,12 +127,18 @@ func parseError(r io.Reader, fallback error) error {
 		if strings.Contains(line, "You are not logged into Keybase.") {
 			return errKeybaseNotLoggedIn
 		}
-		parts := strings.SplitN(line, " ", 2)
+		parts := strings.SplitN(line, " ", 3)
 		if len(parts) < 3 {
 			continue
 		}
 		if parts[0] != "[ERRO]" {
 			continue
+		}
+		if strings.HasSuffix(parts[2], "No resolution found") {
+			return errUserNotFound
+		}
+		if strings.HasPrefix(parts[2], "Not found") {
+			return errUserNotFound
 		}
 		lastErr = fmt.Errorf(parts[2])
 	}
