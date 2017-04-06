@@ -844,6 +844,26 @@ func (fbo *folderBlockOps) RemoveDirEntryInCache(lState *lockState, dir path,
 	fbo.deCache[dir.tailPointer().Ref()] = cacheEntry
 }
 
+func (fbo *folderBlockOps) ClearCachedAddsAndRemoves(
+	lState *lockState, dir path) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	cacheEntry, ok := fbo.deCache[dir.tailPointer().Ref()]
+	if !ok {
+		return
+	}
+
+	// If there's no dirEntry, we can just delete the whole thing.
+	if !cacheEntry.dirEntry.IsInitialized() {
+		delete(fbo.deCache, dir.tailPointer().Ref())
+	}
+
+	// Otherwise just nil out the adds and dels.
+	cacheEntry.adds = nil
+	cacheEntry.dels = nil
+	fbo.deCache[dir.tailPointer().Ref()] = cacheEntry
+}
+
 // updateWithDirtyEntriesLocked checks if the given DirBlock has any
 // entries that are in deCache (i.e., entries pointing to dirty
 // files). If so, it makes a copy with all such entries replaced with
