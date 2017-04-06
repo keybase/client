@@ -678,6 +678,9 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		if err != nil {
 			return KBFSStatus{}, nil, err
 		}
+		if usageBytes >= 0 {
+			usageBytes += status.UnflushedBytes
+		}
 	}
 
 	return KBFSStatus{
