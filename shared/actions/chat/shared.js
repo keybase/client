@@ -21,7 +21,7 @@ function followingSelector (state: TypedState) { return state.config.following }
 function alwaysShowSelector (state: TypedState) { return state.chat.get('alwaysShow') }
 function metaDataSelector (state: TypedState) { return state.chat.get('metaData') }
 function routeSelector (state: TypedState) { return state.routeTree.get('routeState').get('selected') }
-function focusedSelector (state: TypedState) { return state.chat.get('focused') }
+function focusedSelector (state: TypedState) { return state.config.appFocused }
 function pendingFailureSelector (state: TypedState, outboxID: Constants.OutboxIDKey) { return state.chat.get('pendingFailures').get(outboxID) }
 
 function conversationStateSelector (state: TypedState, conversationIDKey: Constants.ConversationIDKey) {

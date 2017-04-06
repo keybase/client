@@ -154,7 +154,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
             const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages.toArray(), conversationState.messages.size - 1)
             if (timestamp !== null) {
-              yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, [timestamp]))
+              yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, appFocused, [timestamp]))
             }
           }
 
@@ -167,7 +167,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           if (existingMessage && existingMessage.outboxID && message.type === 'Attachment') {
             yield put(Creators.updateTempMessage(conversationIDKey, message, existingMessage.outboxID))
           } else {
-            yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, [message]))
+            yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, appFocused, [message]))
           }
 
           if ((message.type === 'Attachment' || message.type === 'UpdateAttachment') && !message.previewPath && message.messageID) {
@@ -783,12 +783,12 @@ function * _updateBadging (action: Constants.UpdateBadging): SagaGenerator<any, 
 
 function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
   // Update badging and the latest message due to the refocus.
-  const {focused} = action.payload
+  const {appFocused} = action.payload
   const conversationIDKey = yield select(Constants.getSelectedConversation)
   const selectedTab = yield select(Shared.routeSelector)
   const chatTabSelected = (selectedTab === chatTab)
 
-  if (conversationIDKey && focused && chatTabSelected) {
+  if (conversationIDKey && appFocused && chatTabSelected) {
     yield put(Creators.updateBadging(conversationIDKey))
     yield put(Creators.updateLatestMessage(conversationIDKey))
   }

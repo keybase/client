@@ -185,8 +185,8 @@ function markSeenMessage (conversationIDKey: Constants.ConversationIDKey, messag
   return {payload: {conversationIDKey, messageID}, type: 'chat:markSeenMessage'}
 }
 
-function appendMessages (conversationIDKey: Constants.ConversationIDKey, isSelected: boolean, messages: Array<Constants.Message>): Constants.AppendMessages {
-  return {logTransformer: appendMessageActionTransformer, payload: {conversationIDKey, isSelected, messages}, type: 'chat:appendMessages'}
+function appendMessages (conversationIDKey: Constants.ConversationIDKey, isSelected: boolean, isAppFocused: boolean, messages: Array<Constants.Message>): Constants.AppendMessages {
+  return {logTransformer: appendMessageActionTransformer, payload: {conversationIDKey, isAppFocused, isSelected, messages}, type: 'chat:appendMessages'}
 }
 
 function getInboxAndUnbox (conversationIDKeys: Array<Constants.ConversationIDKey>): Constants.GetInboxAndUnbox {
