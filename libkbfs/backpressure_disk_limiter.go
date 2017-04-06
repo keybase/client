@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"math"
 	"sync"
 	"time"
@@ -239,6 +240,318 @@ func (bt *backpressureTracker) getStatus() backpressureTrackerStatus {
 	}
 }
 
+// quotaBackpressureTracker keeps track of the variables used to
+// calculate quota-related backpressure.
+//
+// Let U be the (approximate) unflushed bytes in the journal, R be the
+// remote quota usage, and Q be the quota. Then we want to set
+// thresholds 0 <= m <= M such that we apply proportional backpressure
+// (with a given maximum delay) when
+//
+//   m <= (U+R)/Q <= M.
+//
+// Note that this type doesn't do any locking, so it's the caller's
+// responsibility to do so.
+type quotaBackpressureTracker struct {
+	// minThreshold is m in the above.
+	minThreshold float64
+	// maxThreshold is M in the above.
+	maxThreshold float64
+
+	// unflushedBytes is U in the above.
+	unflushedBytes int64
+	// remoteUsedBytes is R in the above.
+	remoteUsedBytes int64
+	// quotaBytes is Q in the above.
+	quotaBytes int64
+}
+
+func newQuotaBackpressureTracker(minThreshold, maxThreshold float64) (
+	*quotaBackpressureTracker, error) {
+	if minThreshold < 0.0 {
+		return nil, errors.Errorf("minThreshold=%f < 0.0",
+			minThreshold)
+	}
+	if maxThreshold < minThreshold {
+		return nil, errors.Errorf(
+			"maxThreshold=%f < minThreshold=%f",
+			maxThreshold, minThreshold)
+	}
+	qbt := &quotaBackpressureTracker{
+		minThreshold, maxThreshold, 0, 0, math.MaxInt64,
+	}
+	return qbt, nil
+}
+
+func (qbt quotaBackpressureTracker) usedFrac() float64 {
+	return (float64(qbt.unflushedBytes) + float64(qbt.remoteUsedBytes)) /
+		float64(qbt.quotaBytes)
+}
+
+// delayScale returns a number between 0 and 1, which should be
+// multiplied with the maximum delay to get the backpressure delay to
+// apply.
+func (qbt quotaBackpressureTracker) delayScale() float64 {
+	usedFrac := qbt.usedFrac()
+
+	// We want the delay to be 0 if usedFrac <= m and the max
+	// delay if usedFrac >= M, so linearly interpolate the delay
+	// scale.
+	//
+	// TODO: Consider a scheme which applies backpressure
+	// differently if R/Q > m, but (U+R)/Q <= 1. In that case, we
+	// don't want to "permanently" apply backpressure before the
+	// quota is actually hit. In that case, the backpressure
+	// should probably be proportional to U/(Q-R) until (U+R)/Q =
+	// 1, at which point it should smoothly transition to a
+	// formula that is proportional to (U+R)/Q.
+	m := qbt.minThreshold
+	M := qbt.maxThreshold
+	return math.Min(1.0, math.Max(0.0, (usedFrac-m)/(M-m)))
+}
+
+func (qbt quotaBackpressureTracker) getQuotaInfo() (
+	usedQuotaBytes, quotaBytes int64) {
+	usedQuotaBytes = qbt.unflushedBytes + qbt.remoteUsedBytes
+	quotaBytes = qbt.quotaBytes
+	return usedQuotaBytes, quotaBytes
+}
+
+func (qbt *quotaBackpressureTracker) onJournalEnable(unflushedBytes int64) {
+	qbt.unflushedBytes += unflushedBytes
+}
+
+func (qbt *quotaBackpressureTracker) onJournalDisable(unflushedBytes int64) {
+	qbt.unflushedBytes -= unflushedBytes
+}
+
+func (qbt *quotaBackpressureTracker) updateRemote(
+	remoteUsedBytes, quotaBytes int64) {
+	qbt.remoteUsedBytes = remoteUsedBytes
+	qbt.quotaBytes = quotaBytes
+}
+
+func (qbt *quotaBackpressureTracker) afterBlockPut(
+	blockBytes int64, putData bool) {
+	if putData {
+		qbt.unflushedBytes += blockBytes
+	}
+}
+
+func (qbt *quotaBackpressureTracker) onBlocksFlush(blockBytes int64) {
+	qbt.unflushedBytes -= blockBytes
+}
+
+type quotaBackpressureTrackerStatus struct {
+	// Derived numbers.
+	UsedFrac   float64
+	DelayScale float64
+
+	// Constants.
+	MinThreshold float64
+	MaxThreshold float64
+
+	// Raw numbers.
+	UnflushedBytes  int64
+	RemoteUsedBytes int64
+	QuotaBytes      int64
+}
+
+func (qbt *quotaBackpressureTracker) getStatus() quotaBackpressureTrackerStatus {
+	return quotaBackpressureTrackerStatus{
+		UsedFrac:   qbt.usedFrac(),
+		DelayScale: qbt.delayScale(),
+
+		MinThreshold: qbt.minThreshold,
+		MaxThreshold: qbt.maxThreshold,
+
+		UnflushedBytes:  qbt.unflushedBytes,
+		RemoteUsedBytes: qbt.remoteUsedBytes,
+		QuotaBytes:      qbt.quotaBytes,
+	}
+}
+
+// journalTracker aggregates all the journal trackers. This type also
+// doesn't do any locking, so it's the caller's responsibility to do
+// so.
+type journalTracker struct {
+	byte, file *backpressureTracker
+	quota      *quotaBackpressureTracker
+}
+
+func newJournalTracker(
+	minThreshold, maxThreshold, quotaMinThreshold, quotaMaxThreshold, journalFrac float64,
+	byteLimit, fileLimit, freeBytes, freeFiles int64) (
+	journalTracker, error) {
+	// byteLimit and fileLimit must be scaled by the proportion of
+	// the limit that the journal should consume. Add 0.5 to round
+	// up.
+	journalByteLimit := int64((float64(byteLimit) * journalFrac) + 0.5)
+	byteTracker, err := newBackpressureTracker(
+		minThreshold, maxThreshold, journalFrac, journalByteLimit,
+		freeBytes)
+	if err != nil {
+		return journalTracker{}, err
+	}
+	// the fileLimit is only used by the journal, so in theory we
+	// don't have to scale it by journalFrac, but in the interest
+	// of consistency with how we treat the byteLimit, we do so
+	// anyway. Add 0.5 to round up.
+	journalFileLimit := int64((float64(fileLimit) * journalFrac) + 0.5)
+	fileTracker, err := newBackpressureTracker(
+		minThreshold, maxThreshold, journalFrac, journalFileLimit,
+		freeFiles)
+	if err != nil {
+		return journalTracker{}, err
+	}
+
+	journalQuotaTracker, err := newQuotaBackpressureTracker(
+		quotaMinThreshold, quotaMaxThreshold)
+	if err != nil {
+		return journalTracker{}, err
+	}
+
+	return journalTracker{byteTracker, fileTracker, journalQuotaTracker}, nil
+}
+
+type jtSnapshot struct {
+	used  int64
+	free  int64
+	max   int64
+	count int64
+}
+
+func (jt journalTracker) getSnapshotsForTest() (
+	byteSnapshot, fileSnapshot, quotaSnapshot jtSnapshot) {
+	byteSnapshot = jtSnapshot{jt.byte.used, jt.byte.free,
+		jt.byte.semaphoreMax, jt.byte.semaphore.Count()}
+	fileSnapshot = jtSnapshot{jt.file.used, jt.file.free,
+		jt.file.semaphoreMax, jt.file.semaphore.Count()}
+	usedQuotaBytes, quotaBytes := jt.quota.getQuotaInfo()
+	free := quotaBytes - usedQuotaBytes
+	quotaSnapshot = jtSnapshot{usedQuotaBytes, free, 0, 0}
+	return byteSnapshot, fileSnapshot, quotaSnapshot
+
+}
+
+func (jt journalTracker) onEnable(storedBytes, unflushedBytes, files int64) (
+	availableBytes, availableFiles int64) {
+	// storedBytes should be >= unflushedBytes. But it's not too
+	// bad to let it go through.
+	availableBytes = jt.byte.onEnable(storedBytes)
+	availableFiles = jt.file.onEnable(files)
+	jt.quota.onJournalEnable(unflushedBytes)
+	return availableBytes, availableFiles
+}
+
+func (jt journalTracker) onDisable(storedBytes, unflushedBytes, files int64) {
+	// As above, storedBytes should be >= unflushedBytes. Let it
+	// go through here, too.
+	jt.byte.onDisable(storedBytes)
+	jt.file.onDisable(files)
+	jt.quota.onJournalDisable(unflushedBytes)
+}
+
+func (jt journalTracker) getDelayScale() float64 {
+	byteDelayScale := jt.byte.delayScale()
+	fileDelayScale := jt.file.delayScale()
+	quotaDelayScale := jt.quota.delayScale()
+	delayScale := math.Max(
+		math.Max(byteDelayScale, fileDelayScale), quotaDelayScale)
+	return delayScale
+}
+
+func (jt journalTracker) updateFree(
+	freeBytes, otherUsedBytes, freeFiles int64) {
+	// We calculate the total free bytes by adding up the reported
+	// free bytes, the journal used bytes, *and* any other used
+	// bytes (e.g., the disk cache). For now, we hack this by
+	// lumping the other used bytes with the reported free bytes.
+	//
+	// TODO: Keep track of other used bytes separately.
+	jt.byte.updateFree(freeBytes + otherUsedBytes)
+	jt.file.updateFree(freeFiles)
+}
+
+func (jt journalTracker) updateRemote(remoteUsedBytes, quotaBytes int64) {
+	jt.quota.updateRemote(remoteUsedBytes, quotaBytes)
+}
+
+func (jt journalTracker) getSemaphoreCounts() (byteCount, fileCount int64) {
+	return jt.byte.semaphore.Count(), jt.file.semaphore.Count()
+}
+
+func (jt journalTracker) beforeBlockPut(
+	ctx context.Context, blockBytes, blockFiles int64) (
+	availableBytes, availableFiles int64, err error) {
+	availableBytes, err = jt.byte.beforeBlockPut(ctx, blockBytes)
+	if err != nil {
+		return availableBytes, jt.file.semaphore.Count(), err
+	}
+	defer func() {
+		if err != nil {
+			jt.byte.afterBlockPut(blockBytes, false)
+			availableBytes = jt.byte.semaphore.Count()
+		}
+	}()
+
+	availableFiles, err = jt.file.beforeBlockPut(ctx, blockFiles)
+	if err != nil {
+		return availableBytes, availableFiles, err
+	}
+
+	return availableBytes, availableFiles, nil
+}
+
+func (jt journalTracker) afterBlockPut(
+	blockBytes, blockFiles int64, putData bool) {
+	jt.byte.afterBlockPut(blockBytes, putData)
+	jt.file.afterBlockPut(blockFiles, putData)
+	jt.quota.afterBlockPut(blockBytes, putData)
+}
+
+func (jt journalTracker) onBlocksFlush(blockBytes int64) {
+	jt.quota.onBlocksFlush(blockBytes)
+}
+
+func (jt journalTracker) onBlocksDelete(blockBytes, blockFiles int64) {
+	jt.byte.onBlocksDelete(blockBytes)
+	jt.file.onBlocksDelete(blockFiles)
+}
+
+func (jt journalTracker) getUsedBytes() int64 {
+	return jt.byte.used
+}
+
+func (jt journalTracker) getStatusLine() string {
+	return fmt.Sprintf("journalBytes=%d, freeBytes=%d, "+
+		"journalFiles=%d, freeFiles=%d, "+
+		"quotaUnflushedBytes=%d, quotaRemoteUsedBytes=%d, "+
+		"quotaBytes=%d",
+		jt.byte.used, jt.byte.free,
+		jt.file.used, jt.file.free,
+		jt.quota.unflushedBytes, jt.quota.remoteUsedBytes,
+		jt.quota.quotaBytes)
+}
+
+func (jt journalTracker) getQuotaInfo() (usedQuotaBytes, quotaBytes int64) {
+	return jt.quota.getQuotaInfo()
+}
+
+type journalTrackerStatus struct {
+	ByteStatus  backpressureTrackerStatus
+	FileStatus  backpressureTrackerStatus
+	QuotaStatus quotaBackpressureTrackerStatus
+}
+
+func (jt journalTracker) getStatus() journalTrackerStatus {
+	return journalTrackerStatus{
+		ByteStatus:  jt.byte.getStatus(),
+		FileStatus:  jt.file.getStatus(),
+		QuotaStatus: jt.quota.getStatus(),
+	}
+}
+
 // backpressureDiskLimiter is an implementation of diskLimiter that
 // uses backpressure to slow down block puts before they hit the disk
 // limits.
@@ -248,13 +561,15 @@ type backpressureDiskLimiter struct {
 	maxDelay            time.Duration
 	delayFn             func(context.Context, time.Duration) error
 	freeBytesAndFilesFn func() (int64, int64, error)
+	quotaFn             func(ctx context.Context) (int64, int64)
 
-	// lock protects everything in the trackers, including the
-	// (implicit) maximum values of the semaphores, but not the
-	// actual semaphore itself.
-	lock                                   sync.RWMutex
-	journalByteTracker, journalFileTracker *backpressureTracker
-	diskCacheByteTracker                   *backpressureTracker
+	// lock protects everything in journalTracker and
+	// diskCacheByteTracker, including the (implicit) maximum
+	// values of the semaphores, but not the actual semaphores
+	// themselves.
+	lock                 sync.RWMutex
+	journalTracker       journalTracker
+	diskCacheByteTracker *backpressureTracker
 }
 
 var _ DiskLimiter = (*backpressureDiskLimiter)(nil)
@@ -266,6 +581,12 @@ type backpressureDiskLimiterParams struct {
 	// maxThreshold is the fraction of the free bytes/files at
 	// which we max out on backpressure.
 	maxThreshold float64
+	// quotaMinThreshold is the fraction of used quota at which we
+	// start to apply backpressure.
+	quotaMinThreshold float64
+	// quotaMaxThreshold is the fraction of used quota at which we
+	// max out on backpressure.
+	quotaMaxThreshold float64
 	// journalFrac is fraction of the free bytes/files that the
 	// journal is allowed to use.
 	journalFrac float64
@@ -293,6 +614,9 @@ type backpressureDiskLimiterParams struct {
 	// free bytes and files on the disk containing the
 	// journal/disk cache directory. Overridable for testing.
 	freeBytesAndFilesFn func() (int64, int64, error)
+	// quotaFn is a function that returns the current used and
+	// total quota bytes. Overridable for testing.
+	quotaFn func(context.Context) (int64, int64)
 }
 
 // defaultDiskLimitMaxDelay is the maximum amount to delay a block
@@ -301,7 +625,8 @@ type backpressureDiskLimiterParams struct {
 const defaultDiskLimitMaxDelay = 10 * time.Second
 
 func makeDefaultBackpressureDiskLimiterParams(
-	storageRoot string) backpressureDiskLimiterParams {
+	storageRoot string,
+	quotaUsage *EventuallyConsistentQuotaUsage) backpressureDiskLimiterParams {
 	return backpressureDiskLimiterParams{
 		// Start backpressure when 50% of free bytes or files
 		// are used...
@@ -309,6 +634,10 @@ func makeDefaultBackpressureDiskLimiterParams(
 		// ...and max it out at 95% (slightly less than 100%
 		// to allow for inaccuracies in estimates).
 		maxThreshold: 0.95,
+		// Start backpressure when we've used 80% of our quota...
+		quotaMinThreshold: 0.8,
+		// ...and max it out at 120% of quota.
+		quotaMaxThreshold: 1.2,
 		// Cap journal usage to 15% of free bytes and files...
 		journalFrac: 0.15,
 		// ...and cap disk cache usage to 10% of free
@@ -328,6 +657,19 @@ func makeDefaultBackpressureDiskLimiterParams(
 		freeBytesAndFilesFn: func() (int64, int64, error) {
 			return defaultGetFreeBytesAndFiles(storageRoot)
 		},
+		quotaFn: func(ctx context.Context) (int64, int64) {
+			timestamp, usageBytes, limitBytes, err :=
+				quotaUsage.Get(ctx, 1*time.Minute, math.MaxInt64)
+			if err != nil {
+				return 0, math.MaxInt64
+			}
+
+			if timestamp.IsZero() {
+				return 0, math.MaxInt64
+			}
+
+			return usageBytes, limitBytes
+		},
 	}
 }
 
@@ -340,30 +682,26 @@ func newBackpressureDiskLimiter(
 	if err != nil {
 		return nil, err
 	}
-	// byteLimit and fileLimit must be scaled by the proportion of
-	// the limit that the journal should consume.
-	journalByteLimit := int64((float64(params.byteLimit) * params.journalFrac) + 0.5)
-	byteTracker, err := newBackpressureTracker(
+
+	journalTracker, err := newJournalTracker(
 		params.minThreshold, params.maxThreshold,
-		params.journalFrac, journalByteLimit, freeBytes)
+		params.quotaMinThreshold, params.quotaMaxThreshold,
+		params.journalFrac, params.byteLimit, params.fileLimit,
+		freeBytes, freeFiles)
 	if err != nil {
 		return nil, err
 	}
-	// the fileLimit is only used here, but in the interest of consistency with
-	// how we treat the byteLimit, we multiply it by the journalFrac.
-	journalFileLimit := int64((float64(params.fileLimit) * params.journalFrac) + 0.5)
-	fileTracker, err := newBackpressureTracker(
-		params.minThreshold, params.maxThreshold,
-		params.journalFrac, journalFileLimit, freeFiles)
-	if err != nil {
-		return nil, err
-	}
+
+	// byteLimit must be scaled by the proportion of the limit
+	// that the disk journal should consume. Add 0.5 to round up.
 	diskCacheByteLimit := int64((float64(params.byteLimit) * params.diskCacheFrac) + 0.5)
 	diskCacheByteTracker, err := newBackpressureTracker(
 		1.0, 1.0, params.diskCacheFrac, diskCacheByteLimit, freeBytes)
+
 	bdl := &backpressureDiskLimiter{
-		log, params.maxDelay, params.delayFn, params.freeBytesAndFilesFn, sync.RWMutex{},
-		byteTracker, fileTracker, diskCacheByteTracker,
+		log, params.maxDelay, params.delayFn,
+		params.freeBytesAndFilesFn, params.quotaFn, sync.RWMutex{},
+		journalTracker, diskCacheByteTracker,
 	}
 	return bdl, nil
 }
@@ -402,41 +740,30 @@ func defaultGetFreeBytesAndFiles(path string) (int64, int64, error) {
 	return int64(freeBytes), int64(freeFiles), nil
 }
 
-type bdlSnapshot struct {
-	used  int64
-	free  int64
-	max   int64
-	count int64
-}
-
-func (bdl *backpressureDiskLimiter) getSnapshotsForTest() (
-	byteSnapshot, fileSnapshot bdlSnapshot) {
+func (bdl *backpressureDiskLimiter) getJournalSnapshotsForTest() (
+	byteSnapshot, fileSnapshot, quotaSnapshot jtSnapshot) {
 	bdl.lock.RLock()
 	defer bdl.lock.RUnlock()
-	return bdlSnapshot{bdl.journalByteTracker.used, bdl.journalByteTracker.free,
-			bdl.journalByteTracker.semaphoreMax,
-			bdl.journalByteTracker.semaphore.Count()},
-		bdlSnapshot{bdl.journalFileTracker.used, bdl.journalFileTracker.free,
-			bdl.journalFileTracker.semaphoreMax,
-			bdl.journalFileTracker.semaphore.Count()}
+	return bdl.journalTracker.getSnapshotsForTest()
 }
 
 func (bdl *backpressureDiskLimiter) onJournalEnable(
-	ctx context.Context, journalBytes, journalFiles int64) (
+	ctx context.Context,
+	journalStoredBytes, journalUnflushedBytes, journalFiles int64) (
 	availableBytes, availableFiles int64) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	availableBytes = bdl.journalByteTracker.onEnable(journalBytes)
-	availableFiles = bdl.journalFileTracker.onEnable(journalFiles)
-	return availableBytes, availableFiles
+	return bdl.journalTracker.onEnable(
+		journalStoredBytes, journalUnflushedBytes, journalFiles)
 }
 
 func (bdl *backpressureDiskLimiter) onJournalDisable(
-	ctx context.Context, journalBytes, journalFiles int64) {
+	ctx context.Context,
+	journalStoredBytes, journalUnflushedBytes, journalFiles int64) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	bdl.journalByteTracker.onDisable(journalBytes)
-	bdl.journalFileTracker.onDisable(journalFiles)
+	bdl.journalTracker.onDisable(
+		journalStoredBytes, journalUnflushedBytes, journalFiles)
 }
 
 func (bdl *backpressureDiskLimiter) onDiskBlockCacheEnable(ctx context.Context,
@@ -455,9 +782,7 @@ func (bdl *backpressureDiskLimiter) onDiskBlockCacheDisable(ctx context.Context,
 
 func (bdl *backpressureDiskLimiter) getDelayLocked(
 	ctx context.Context, now time.Time) time.Duration {
-	byteDelayScale := bdl.journalByteTracker.delayScale()
-	fileDelayScale := bdl.journalFileTracker.delayScale()
-	delayScale := math.Max(byteDelayScale, fileDelayScale)
+	delayScale := bdl.journalTracker.getDelayScale()
 
 	// Set maxDelay to min(bdl.maxDelay, time until deadline - 1s).
 	maxDelay := bdl.maxDelay
@@ -472,20 +797,11 @@ func (bdl *backpressureDiskLimiter) getDelayLocked(
 	return time.Duration(delayScale * float64(maxDelay))
 }
 
-func (bdl *backpressureDiskLimiter) updateFreeLocked() (
-	freeBytes, freeFiles int64, err error) {
-	// Call this under lock to avoid problems with its
-	// return values going stale while blocking on
-	// bdl.lock.
-	freeBytes, freeFiles, err = bdl.freeBytesAndFilesFn()
-	if err != nil {
-		return 0, 0, err
-	}
-
-	bdl.journalFileTracker.updateFree(freeFiles)
-	bdl.journalByteTracker.updateFree(freeBytes + bdl.diskCacheByteTracker.used)
-	bdl.diskCacheByteTracker.updateFree(freeBytes + bdl.journalByteTracker.used)
-	return freeBytes, freeFiles, nil
+func (bdl *backpressureDiskLimiter) onBeforeBlockPutError(err error) (
+	availableBytes, availableFiles int64, _ error) {
+	availableBytes, availableFiles =
+		bdl.journalTracker.getSemaphoreCounts()
+	return availableBytes, availableFiles, err
 }
 
 func (bdl *backpressureDiskLimiter) beforeBlockPut(
@@ -493,80 +809,75 @@ func (bdl *backpressureDiskLimiter) beforeBlockPut(
 	availableBytes, availableFiles int64, err error) {
 	if blockBytes == 0 {
 		// Better to return an error than to panic in Acquire.
-		return bdl.journalByteTracker.semaphore.Count(),
-			bdl.journalFileTracker.semaphore.Count(), errors.New(
-				"backpressureDiskLimiter.beforeBlockPut called with 0 blockBytes")
+		return bdl.onBeforeBlockPutError(errors.New(
+			"backpressureDiskLimiter.beforeBlockPut called with 0 blockBytes"))
 	}
 	if blockFiles == 0 {
 		// Better to return an error than to panic in Acquire.
-		return bdl.journalByteTracker.semaphore.Count(),
-			bdl.journalFileTracker.semaphore.Count(), errors.New(
-				"backpressureDiskLimiter.beforeBlockPut called with 0 blockFiles")
+		return bdl.onBeforeBlockPutError(errors.New(
+			"backpressureDiskLimiter.beforeBlockPut called with 0 blockFiles"))
 	}
 
 	delay, err := func() (time.Duration, error) {
 		bdl.lock.Lock()
 		defer bdl.lock.Unlock()
 
-		freeBytes, freeFiles, err := bdl.updateFreeLocked()
+		// Call this under lock to avoid problems with its
+		// return values going stale while blocking on
+		// bdl.lock.
+		freeBytes, freeFiles, err := bdl.freeBytesAndFilesFn()
 		if err != nil {
 			return 0, err
 		}
 
+		bdl.journalTracker.updateFree(
+			freeBytes, bdl.diskCacheByteTracker.used, freeFiles)
+
+		remoteUsedBytes, quotaBytes := bdl.quotaFn(ctx)
+		bdl.journalTracker.updateRemote(remoteUsedBytes, quotaBytes)
+
 		delay := bdl.getDelayLocked(ctx, time.Now())
 		if delay > 0 {
-			bdl.log.CDebugf(ctx, "Delaying block put of %d bytes and %d files by %f s ("+
-				"journalBytes=%d, freeBytes=%d, "+
-				"journalFiles=%d, freeFiles=%d)",
+			bdl.log.CDebugf(ctx, "Delaying block put of %d bytes and %d files by %f s (%s)",
 				blockBytes, blockFiles, delay.Seconds(),
-				bdl.journalByteTracker.used, freeBytes,
-				bdl.journalFileTracker.used, freeFiles)
+				bdl.journalTracker.getStatusLine())
 		}
 
 		return delay, nil
 	}()
 	if err != nil {
-		return bdl.journalByteTracker.semaphore.Count(),
-			bdl.journalFileTracker.semaphore.Count(), err
+		return bdl.onBeforeBlockPutError(err)
 	}
 
 	// TODO: Update delay if any variables change (i.e., we
 	// suddenly free up a lot of space).
 	err = bdl.delayFn(ctx, delay)
 	if err != nil {
-		return bdl.journalByteTracker.semaphore.Count(),
-			bdl.journalFileTracker.semaphore.Count(), err
+		return bdl.onBeforeBlockPutError(err)
 	}
 
-	availableBytes, err = bdl.journalByteTracker.beforeBlockPut(ctx, blockBytes)
-	if err != nil {
-		return availableFiles, bdl.journalFileTracker.semaphore.Count(), err
-	}
-	defer func() {
-		if err != nil {
-			bdl.journalByteTracker.afterBlockPut(blockBytes, false)
-			availableBytes = bdl.journalByteTracker.semaphore.Count()
-		}
-	}()
-
-	availableFiles, err = bdl.journalFileTracker.beforeBlockPut(ctx, blockFiles)
-	return availableBytes, availableFiles, err
+	return bdl.journalTracker.beforeBlockPut(ctx, blockBytes, blockFiles)
 }
 
 func (bdl *backpressureDiskLimiter) afterBlockPut(
 	ctx context.Context, blockBytes, blockFiles int64, putData bool) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	bdl.journalByteTracker.afterBlockPut(blockBytes, putData)
-	bdl.journalFileTracker.afterBlockPut(blockFiles, putData)
+	bdl.journalTracker.afterBlockPut(blockBytes, blockFiles, putData)
+}
+
+func (bdl *backpressureDiskLimiter) onBlocksFlush(
+	ctx context.Context, blockBytes int64) {
+	bdl.lock.Lock()
+	defer bdl.lock.Unlock()
+	bdl.journalTracker.onBlocksFlush(blockBytes)
 }
 
 func (bdl *backpressureDiskLimiter) onBlocksDelete(
 	ctx context.Context, blockBytes, blockFiles int64) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	bdl.journalByteTracker.onBlocksDelete(blockBytes)
-	bdl.journalFileTracker.onBlocksDelete(blockFiles)
+	bdl.journalTracker.onBlocksDelete(blockBytes, blockFiles)
 }
 
 func (bdl *backpressureDiskLimiter) onDiskBlockCacheDelete(
@@ -589,10 +900,22 @@ func (bdl *backpressureDiskLimiter) beforeDiskBlockCachePut(
 	}
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	_, _, err = bdl.updateFreeLocked()
+
+	// Call this under lock to avoid problems with its return
+	// values going stale while blocking on bdl.lock.
+	freeBytes, _, err := bdl.freeBytesAndFilesFn()
 	if err != nil {
 		return 0, err
 	}
+
+	// We calculate the total free bytes by adding up the reported
+	// free bytes, the disk cache used bytes, *and* any other used
+	// bytes (e.g., the journal cache). For now, we hack this by
+	// lumping the other used bytes with the reported free bytes.
+	//
+	// TODO: Keep track of other used bytes separately.
+	bdl.diskCacheByteTracker.updateFree(
+		freeBytes + bdl.journalTracker.getUsedBytes())
 
 	return bdl.diskCacheByteTracker.beforeDiskBlockCachePut(blockBytes), nil
 }
@@ -604,14 +927,21 @@ func (bdl *backpressureDiskLimiter) afterDiskBlockCachePut(
 	bdl.diskCacheByteTracker.afterBlockPut(blockBytes, putData)
 }
 
+func (bdl *backpressureDiskLimiter) getQuotaInfo() (
+	usedQuotaBytes, quotaBytes int64) {
+	bdl.lock.RLock()
+	defer bdl.lock.RUnlock()
+	return bdl.journalTracker.getQuotaInfo()
+}
+
 type backpressureDiskLimiterStatus struct {
 	Type string
 
-	// Derived numbers.
+	// Derived stats.
 	CurrentDelaySec float64
 
-	ByteTrackerStatus backpressureTrackerStatus
-	FileTrackerStatus backpressureTrackerStatus
+	JournalTrackerStatus journalTrackerStatus
+	DiskCacheByteStatus  backpressureTrackerStatus
 }
 
 func (bdl *backpressureDiskLimiter) getStatus() interface{} {
@@ -625,7 +955,7 @@ func (bdl *backpressureDiskLimiter) getStatus() interface{} {
 
 		CurrentDelaySec: currentDelay.Seconds(),
 
-		ByteTrackerStatus: bdl.journalByteTracker.getStatus(),
-		FileTrackerStatus: bdl.journalFileTracker.getStatus(),
+		JournalTrackerStatus: bdl.journalTracker.getStatus(),
+		DiskCacheByteStatus:  bdl.diskCacheByteTracker.getStatus(),
 	}
 }

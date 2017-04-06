@@ -660,7 +660,7 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	// requests at once.
 	if err == nil && fs.config.MDServer().IsConnected() {
 		var quErr error
-		usageBytes, limitBytes, quErr = fs.quotaUsage.Get(ctx, 0)
+		_, usageBytes, limitBytes, quErr = fs.quotaUsage.Get(ctx, 0, 0)
 		if quErr != nil {
 			// The error is ignored here so that other fields can still be populated
 			// even if this fails.

@@ -5,7 +5,7 @@
 package libkbfs
 
 import (
-	"context"
+	"math"
 	"testing"
 	"time"
 
@@ -16,6 +16,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -56,18 +57,23 @@ func newDiskBlockCacheStandardForTest(config *testDiskBlockCacheConfig,
 	cache.WaitUntilStarted()
 	if limiter == nil {
 		params := backpressureDiskLimiterParams{
-			minThreshold:  0.5,
-			maxThreshold:  0.95,
-			journalFrac:   0.25,
-			diskCacheFrac: 0.25,
-			byteLimit:     testDiskBlockCacheMaxBytes,
-			fileLimit:     maxFiles,
-			maxDelay:      time.Second,
-			delayFn:       defaultDoDelay,
+			minThreshold:      0.5,
+			maxThreshold:      0.95,
+			quotaMinThreshold: 0.8,
+			quotaMaxThreshold: 1.2,
+			journalFrac:       0.25,
+			diskCacheFrac:     0.25,
+			byteLimit:         testDiskBlockCacheMaxBytes,
+			fileLimit:         maxFiles,
+			maxDelay:          time.Second,
+			delayFn:           defaultDoDelay,
 			freeBytesAndFilesFn: func() (int64, int64, error) {
 				// hackity hackeroni: simulate the disk cache taking up space.
 				freeBytes := maxBytes - int64(cache.currBytes)
 				return freeBytes, maxFiles, nil
+			},
+			quotaFn: func(context.Context) (int64, int64) {
+				return 0, math.MaxInt64
 			},
 		}
 		limiter, err = newBackpressureDiskLimiter(

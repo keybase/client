@@ -36,13 +36,13 @@ type DiskLimiter interface {
 	// and journalFiles must be >= 0. The updated available byte
 	// and file count must be returned.
 	onJournalEnable(
-		ctx context.Context, journalBytes, journalFiles int64) (
+		ctx context.Context, journalStoredBytes, journalUnflushedBytes, journalFiles int64) (
 		availableBytes, availableFiles int64)
 
 	// onJournalDisable is called when shutting down a TLF journal
 	// with that journal's current disk usage. Both journalBytes
 	// and journalFiles must be >= 0.
-	onJournalDisable(ctx context.Context, journalBytes, journalFiles int64)
+	onJournalDisable(ctx context.Context, journalStoredBytes, journalUnflushedBytes, journalFiles int64)
 
 	// beforeBlockPut is called before putting a block of the
 	// given byte and file count, both of which must be > 0. It
@@ -62,11 +62,21 @@ type DiskLimiter interface {
 	afterBlockPut(ctx context.Context,
 		blockBytes, blockFiles int64, putData bool)
 
+	// onBlocksFlush is called after flushing blocks of the given
+	// byte count, which must be >= 0. (Flushing a block with a
+	// zero byte count shouldn't happen, but may as well let it go
+	// through.)
+	onBlocksFlush(ctx context.Context, blockBytes int64)
+
 	// onBlocksDelete is called after deleting blocks of the given
 	// byte and file count, both of which must be >= 0. (Deleting
 	// a block with either zero byte or zero file count shouldn't
 	// happen, but may as well let it go through.)
 	onBlocksDelete(ctx context.Context, blockBytes, blockFiles int64)
+
+	// getQuotaInfo returns the quota info as known by the disk
+	// limiter.
+	getQuotaInfo() (usedQuotaBytes, quotaBytes int64)
 
 	// getStatus returns an object that's marshallable into JSON
 	// for use in displaying status.

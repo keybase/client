@@ -93,6 +93,11 @@ func (j journalBlockServer) Put(
 		err := tlfJournal.putBlockData(ctx, id, context, buf, serverHalf)
 		switch errors.Cause(err).(type) {
 		case nil:
+			usedQuotaBytes, quotaBytes := tlfJournal.getQuotaInfo()
+			// TODO: Sometimes return an OverQuota error
+			// if usedQuotaBytes > quotaBytes.
+			_ = usedQuotaBytes
+			_ = quotaBytes
 			return nil
 		case errTLFJournalDisabled:
 			break

@@ -101,7 +101,7 @@ func (sc *StateChecker) getLastGCData(ctx context.Context,
 			latestRev = rev
 		}
 	}
-	if latestTime == (time.Time{}) {
+	if latestTime.IsZero() {
 		return latestTime, latestRev
 	}
 

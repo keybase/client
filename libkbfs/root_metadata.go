@@ -920,7 +920,7 @@ func MakeImmutableRootMetadata(
 	if mdID == (MdID{}) {
 		panic("zero mdID passed to MakeImmutableRootMetadata")
 	}
-	if localTimestamp == (time.Time{}) {
+	if localTimestamp.IsZero() {
 		panic("zero localTimestamp passed to MakeImmutableRootMetadata")
 	}
 	if bareMDV2, ok := rmd.bareMd.(*BareRootMetadataV2); ok {

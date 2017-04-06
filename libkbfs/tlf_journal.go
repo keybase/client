@@ -382,9 +382,10 @@ func makeTLFJournal(
 
 	// Do this only once we're sure we won't error.
 	storedBytes := j.blockJournal.getStoredBytes()
+	unflushedBytes := j.blockJournal.getUnflushedBytes()
 	storedFiles := j.blockJournal.getStoredFiles()
 	availableBytes, availableFiles := j.diskLimiter.onJournalEnable(
-		ctx, storedBytes, storedFiles)
+		ctx, storedBytes, unflushedBytes, storedFiles)
 
 	go j.doBackgroundWorkLoop(bws, backoff.NewExponentialBackOff())
 
@@ -838,7 +839,7 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 
 	// TODO: Check storedFiles also.
 
-	err := j.blockJournal.removeFlushedEntries(
+	flushedBytes, err := j.blockJournal.removeFlushedEntries(
 		ctx, entries, j.tlfID, j.config.Reporter())
 	if err != nil {
 		return err
@@ -851,6 +852,8 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 			"storedBytes unexpectedly changed from %d to %d",
 			storedBytesBefore, storedBytesAfter))
 	}
+
+	j.diskLimiter.onBlocksFlush(ctx, flushedBytes)
 
 	return nil
 }
@@ -1549,8 +1552,10 @@ func (j *tlfJournal) shutdown(ctx context.Context) {
 	// time other than during shutdown, we should still count
 	// shut-down journals against the disk limit.
 	storedBytes := j.blockJournal.getStoredBytes()
+	unflushedBytes := j.blockJournal.getUnflushedBytes()
 	storedFiles := j.blockJournal.getStoredFiles()
-	j.diskLimiter.onJournalDisable(ctx, storedBytes, storedFiles)
+	j.diskLimiter.onJournalDisable(
+		ctx, storedBytes, unflushedBytes, storedFiles)
 
 	// Make further accesses error out.
 	j.blockJournal = nil
@@ -1663,8 +1668,8 @@ func (e ErrDiskLimitTimeout) Error() string {
 func (j *tlfJournal) putBlockData(
 	ctx context.Context, id kbfsblock.ID, blockCtx kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
-	// Since Acquire can block, it should happen outside of the
-	// journal lock.
+	// Since beforeBlockPut can block, it should happen outside of
+	// the journal lock.
 
 	timeout := j.config.diskLimitTimeout()
 	acquireCtx, cancel := context.WithTimeout(ctx, timeout)
@@ -1733,6 +1738,10 @@ func (j *tlfJournal) putBlockData(
 	j.signalWork()
 
 	return nil
+}
+
+func (j *tlfJournal) getQuotaInfo() (usedQuotaBytes, quotaBytes int64) {
+	return j.diskLimiter.getQuotaInfo()
 }
 
 func (j *tlfJournal) addBlockReference(
@@ -1990,8 +1999,8 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 
 func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	bid BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
-	extra ExtraMetadata, mdInfo unflushedPathMDInfo,
-	perRevMap unflushedPathsPerRevMap) (mdID MdID, retry bool, err error) {
+	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
+	mdID MdID, retry bool, err error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2016,11 +2025,15 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	}
 
 	// Then go through and mark blocks and md rev markers for ignoring.
-	err = j.blockJournal.ignoreBlocksAndMDRevMarkers(ctx, blocksToDelete,
-		rmd.Revision())
+	totalIgnoredBytes, err := j.blockJournal.ignoreBlocksAndMDRevMarkers(
+		ctx, blocksToDelete, rmd.Revision())
 	if err != nil {
 		return MdID{}, false, err
 	}
+
+	// Treat ignored blocks as flushed for the purposes of
+	// accounting.
+	j.diskLimiter.onBlocksFlush(ctx, totalIgnoredBytes)
 
 	// Finally, append a new, non-ignored md rev marker for the new revision.
 	err = j.blockJournal.markMDRevision(
@@ -2039,14 +2052,14 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 }
 
 func (j *tlfJournal) resolveBranch(ctx context.Context,
-	bid BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
-	extra ExtraMetadata) (MdID, error) {
+	bid BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata) (
+	MdID, error) {
 	var mdID MdID
 	err := j.prepAndAddRMDWithRetry(ctx, rmd,
 		func(mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
 			retry bool, err error) {
 			mdID, retry, err = j.doResolveBranch(
-				ctx, bid, blocksToDelete, rmd, extra, mdInfo, perRevMap)
+				ctx, bid, blocksToDelete, rmd, mdInfo, perRevMap)
 			return retry, err
 		})
 	if err != nil {

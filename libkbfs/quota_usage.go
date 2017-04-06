@@ -82,16 +82,16 @@ func (q *EventuallyConsistentQuotaUsage) getAndCache(
 // accept stale LimitBytes and UsageBytes data. If tolerance is 0 or negative,
 // this always makes a blocking RPC to bserver and return latest quota usage.
 //
-// 1) If the age of cached data is less than half of tolerance, the cached
-// stale data is returned immediately.
-// 2) If the age of cached data is more than half of tolerance, but not more
-// than tolerance, a background RPC is spawned to refresh cached data, and the
-// stale data is returned immediately.
-// 3) If the age of cached data is more than tolerance, a blocking RPC is
+// 1) If the age of cached data is more than blockTolerance, a blocking RPC is
 // issued and the function only returns after RPC finishes, with the newest
 // data from RPC. The RPC causes cached data to be refreshed as well.
-func (q *EventuallyConsistentQuotaUsage) Get(ctx context.Context,
-	tolerance time.Duration) (usageBytes, limitBytes int64, err error) {
+// 2) Otherwise, if the age of cached data is more than bgTolerance,
+// a background RPC is spawned to refresh cached data, and the stale
+// data is returned immediately.
+// 3) Otherwise, the cached stale data is returned immediately.
+func (q *EventuallyConsistentQuotaUsage) Get(
+	ctx context.Context, bgTolerance, blockTolerance time.Duration) (
+	timestamp time.Time, usageBytes, limitBytes int64, err error) {
 	c := func() cachedQuotaUsage {
 		q.mu.RLock()
 		defer q.mu.RUnlock()
@@ -99,15 +99,15 @@ func (q *EventuallyConsistentQuotaUsage) Get(ctx context.Context,
 	}()
 	past := q.config.Clock().Now().Sub(c.timestamp)
 	switch {
-	case past > tolerance:
+	case past > blockTolerance:
 		q.log.CDebugf(ctx, "Blocking on getAndCache. Cached data is %s old.", past)
 		// TODO: optimize this to make sure there's only one outstanding RPC. In
 		// other words, wait for it to finish if one is already in progress.
 		c, err = q.getAndCache(ctx)
 		if err != nil {
-			return -1, -1, err
+			return time.Time{}, -1, -1, err
 		}
-	case past > tolerance/2:
+	case past > bgTolerance:
 		if atomic.CompareAndSwapInt32(&q.backgroundInProcess, 0, 1) {
 			id, err := MakeRandomRequestID()
 			if err != nil {
@@ -138,5 +138,5 @@ func (q *EventuallyConsistentQuotaUsage) Get(ctx context.Context,
 	default:
 		q.log.CDebugf(ctx, "Returning cached data from %s ago.", past)
 	}
-	return c.usageBytes, c.limitBytes, nil
+	return c.timestamp, c.usageBytes, c.limitBytes, nil
 }

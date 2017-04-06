@@ -430,7 +430,7 @@ func (j journalMDOps) ResolveBranch(
 	blocksToDelete []kbfsblock.ID, rmd *RootMetadata) (MdID, error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(id); ok {
 		mdID, err := tlfJournal.resolveBranch(
-			ctx, bid, blocksToDelete, rmd, rmd.extra)
+			ctx, bid, blocksToDelete, rmd)
 		switch errors.Cause(err).(type) {
 		case nil:
 			return mdID, nil

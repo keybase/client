@@ -949,11 +949,14 @@ func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
 
 // MakeDiskLimiter makes a DiskLimiter for use in journaling and disk caching.
 func (c *ConfigLocal) MakeDiskLimiter(configRoot string) (DiskLimiter, error) {
-	params := makeDefaultBackpressureDiskLimiterParams(configRoot)
+	// TODO: Ideally, we'd have a shared instance in the Config.
+	q := NewEventuallyConsistentQuotaUsage(c, "BDL")
+	params := makeDefaultBackpressureDiskLimiterParams(configRoot, q)
 	log := c.MakeLogger("")
 	log.Debug("Setting disk storage byte limit to %d and file limit to %d",
 		params.byteLimit, params.fileLimit)
 	os.MkdirAll(configRoot, 0700)
+
 	var err error
 	c.diskLimiter, err = newBackpressureDiskLimiter(log, params)
 	return c.diskLimiter, err
