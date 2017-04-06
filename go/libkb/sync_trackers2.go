@@ -76,7 +76,8 @@ func (t *Tracker2Syncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err
 	res, err = t.G().API.Get(APIArg{
 		Endpoint:    "user/list_followers_for_display",
 		Args:        hargs,
-		NeedSession: false,
+		SessionR:    sr,
+		NeedSession: true,
 	})
 	t.G().Log.Debug("| syncFromServer() -> %s", ErrToOk(err))
 	if err != nil {
@@ -123,8 +124,9 @@ func (t *Tracker2Syncer) Result() keybase1.UserSummary2Set {
 	return *t.res
 }
 
-func NewTracker2Syncer(g *GlobalContext) *Tracker2Syncer {
+func NewTracker2Syncer(g *GlobalContext, reverse bool) *Tracker2Syncer {
 	return &Tracker2Syncer{
 		Contextified: NewContextified(g),
+		reverse:      reverse,
 	}
 }

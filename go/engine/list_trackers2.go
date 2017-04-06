@@ -67,9 +67,13 @@ func (e *ListTrackers2Engine) Run(ctx *Context) error {
 	if err := e.lookupUID(); err != nil {
 		return err
 	}
-	ts := libkb.NewTracker2Syncer(e.G())
-	if err := libkb.RunSyncer(ts, e.uid, false, nil); err != nil {
-		return err
+	ts := libkb.NewTracker2Syncer(e.G(), e.arg.Reverse)
+	var err error
+	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
+		err = libkb.RunSyncer(ts, e.uid, a.LoggedIn(), a.LocalSession())
+	}, "ListTrackers2Engine - Run")
+	if aerr != nil {
+		return aerr
 	}
 	e.res = ts.Result()
 	return nil
