@@ -37,7 +37,7 @@ const factory = (messageKey: Constants.MessageKey, style: Object) => {
     default: {
       return (
         <Box key={messageKey} style={style}>
-          <Text type='BodySmall'>{kind}:{messageKey}</Text>
+          <Text type='BodySmall'>{kind}:{messageKey.substring(0, 5)}</Text>
         </Box>
       )
     }

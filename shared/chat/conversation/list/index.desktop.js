@@ -88,22 +88,22 @@ class ConversationList extends Component<void, Props, State> {
     // If a message has moved from pending to sent, tell the List to discard
     // heights for it (which will re-render it and everything after it)
     // TODO this doesn't work for things that take a bit to load (imgs)
-    if (this._toRemeasure.length) {
-      this._toRemeasure.forEach(item => {
-        this._cellCache.clearRowHeight(item)
-        if (this._listIsGood()) {
-          this._list.recomputeRowHeights(item)
-        }
-      })
-      this._toRemeasure = []
-    }
+    // if (this._toRemeasure.length) {
+      // this._toRemeasure.forEach(item => {
+        // this._cellCache.clearRowHeight(item)
+        // if (this._listIsGood()) {
+          // this._list.recomputeRowHeights(item)
+        // }
+      // })
+      // this._toRemeasure = []
+    // }
 
-    if (this._shouldForceUpdateGrid) {
-      this._shouldForceUpdateGrid = false
-      if (this._listIsGood()) {
-        this._list.forceUpdateGrid()
-      }
-    }
+    // if (this._shouldForceUpdateGrid) {
+      // this._shouldForceUpdateGrid = false
+      // if (this._listIsGood()) {
+        // this._list.forceUpdateGrid()
+      // }
+    // }
   }
 
   _listIsGood () {
@@ -319,11 +319,11 @@ class ConversationList extends Component<void, Props, State> {
   }, 300)
 
   _recomputeList () {
-    this._cellCache.clearAllRowHeights()
+    // this._cellCache.clearAllRowHeights()
 
-    if (this._listIsGood()) {
-      this._list && this._list.recomputeRowHeights()
-    }
+    // if (this._listIsGood()) {
+      // this._list && this._list.recomputeRowHeights()
+    // }
     this.state.isLockedToBottom && this._scrollToBottom()
   }
 

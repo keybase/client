@@ -160,7 +160,8 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
             .set('deletedIDs', nextDeletedIDs)
         })
 
-      return state.set('conversationStates', newConversationStates)
+      const toMerge = newConversationStates.getIn([conversationIDKey, 'messages']).reduce((map, val) => map.set(val.key, val), Map())
+      return state.set('conversationStates', newConversationStates).set('messageMap', state.get('messageMap').merge(toMerge))
     }
     case 'chat:appendMessages': {
       const appendAction: Constants.AppendMessages = action
@@ -194,8 +195,8 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
             .set('deletedIDs', nextDeletedIDs)
         })
 
-      return state
-        .set('conversationStates', newConversationStates)
+      const toMerge = newConversationStates.getIn([conversationIDKey, 'messages']).reduce((map, val) => map.set(val.key, val), Map())
+      return state.set('conversationStates', newConversationStates).set('messageMap', state.get('messageMap').merge(toMerge))
     }
     case 'chat:updateTempMessage': {
       if (action.error) {
