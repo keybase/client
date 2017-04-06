@@ -131,8 +131,21 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           })
         }
 
+        const messageFromYou = message.deviceName === yourDeviceName && message.author && yourName === message.author
+
+        if (message.type === 'Attachment' && messageFromYou) {
+          const outboxID = message.outboxID
+          if (outboxID) {  // const + inner if to satisfy flow
+            const previewPath = yield select(Shared.attachmentPlaceholderPreviewSelector, outboxID)
+            if (previewPath) {
+              message.previewPath = previewPath
+              yield put(Creators.clearAttachmentPlaceholderPreview(outboxID))
+            }
+          }
+        }
+
         const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
-        if (message.type === 'Text' && message.outboxID && message.deviceName === yourDeviceName && yourName === message.author) {
+        if (message.type === 'Text' && message.outboxID && messageFromYou) {
           // If the message has an outboxID and came from our device, then we
           // sent it and have already rendered it in the message list; we just
           // need to mark it as sent.
@@ -158,17 +171,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
             }
           }
 
-          let existingMessage
-          if (message.messageID) {
-            existingMessage = yield select(Shared.messageSelector, conversationIDKey, message.messageID)
-          }
-
-          // If we already have an existing message (say for an attachment, let's reuse that)
-          if (existingMessage && existingMessage.outboxID && message.type === 'Attachment') {
-            yield put(Creators.updateTempMessage(conversationIDKey, message, existingMessage.outboxID))
-          } else {
-            yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, appFocused, [message]))
-          }
+          yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, appFocused, [message]))
 
           if ((message.type === 'Attachment' || message.type === 'UpdateAttachment') && !message.previewPath && message.messageID) {
             const messageID = message.type === 'UpdateAttachment' ? message.targetMessageID : message.messageID
@@ -479,29 +482,13 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             key: Constants.messageKey('messageID', common.messageID),
           }
         case ChatTypes.CommonMessageType.attachment: {
+          const outboxID = payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
           if (!payload.messageBody.attachment) {
             throw new Error('empty attachment body')
           }
           const attachment: ChatTypes.MessageAttachment = payload.messageBody.attachment
-          const preview = attachment && attachment.preview
-          const mimeType = preview && preview.mimeType
-          const previewMetadata = preview && preview.metadata
-          const previewSize = previewMetadata && Constants.parseMetadataPreviewSize(previewMetadata)
-
-          const previewIsVideo = previewMetadata && previewMetadata.assetType === ChatTypes.LocalAssetMetadataType.video
-          let previewDurationMs = null
-          if (previewIsVideo) {
-            const previewVideoMetadata = previewMetadata && previewMetadata.assetType === ChatTypes.LocalAssetMetadataType.video && previewMetadata.video
-            previewDurationMs = previewVideoMetadata ? previewVideoMetadata.durationMs : null
-          }
-
-          const objectMetadata = attachment && attachment.object && attachment.object.metadata
-          const objectIsVideo = objectMetadata && objectMetadata.assetType === ChatTypes.LocalAssetMetadataType.video
-          let attachmentDurationMs = null
-          if (objectIsVideo) {
-            const objectVideoMetadata = objectMetadata && objectMetadata.assetType === ChatTypes.LocalAssetMetadataType.video && objectMetadata.video
-            attachmentDurationMs = objectVideoMetadata ? objectVideoMetadata.durationMs : null
-          }
+          const preview = attachment && (attachment.preview || attachment.previews && attachment.previews[0])
+          const attachmentInfo = Constants.getAttachmentInfo(preview, attachment && attachment.object)
 
           let messageState
           if (attachment.uploaded) {
@@ -513,16 +500,12 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
           return {
             type: 'Attachment',
             ...common,
-            filename: attachment.object.filename,
-            title: attachment.object.title,
+            ...attachmentInfo,
             messageState,
-            previewDurationMs,
-            attachmentDurationMs,
-            previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
             previewPath: null,
             hdPreviewPath: null,
-            previewSize,
             downloadedPath: null,
+            outboxID,
             key: Constants.messageKey('messageID', common.messageID),
           }
         }
@@ -533,8 +516,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
           const attachmentUploaded: ChatTypes.MessageAttachmentUploaded = payload.messageBody.attachmentuploaded
           const previews = attachmentUploaded && attachmentUploaded.previews
           const preview = previews && previews[0]
-          const mimeType = preview && preview.mimeType
-          const previewSize = preview && preview.metadata && Constants.parseMetadataPreviewSize(preview.metadata)
+          const attachmentInfo = Constants.getAttachmentInfo(preview, attachmentUploaded && attachmentUploaded.object)
 
           return {
             key: Constants.messageKey('messageID', common.messageID),
@@ -543,11 +525,8 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             timestamp: common.timestamp,
             type: 'UpdateAttachment',
             updates: {
-              filename: attachmentUploaded.object.filename,
+              ...attachmentInfo,
               messageState: 'sent',
-              previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
-              previewSize,
-              title: attachmentUploaded.object.title,
             },
           }
         }

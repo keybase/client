@@ -1487,6 +1487,13 @@ type DownloadAttachmentLocalRes struct {
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
+type MakePreviewRes struct {
+	MimeType     string         `codec:"mimeType" json:"mimeType"`
+	Filename     *string        `codec:"filename,omitempty" json:"filename,omitempty"`
+	Metadata     *AssetMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
+	BaseMetadata *AssetMetadata `codec:"baseMetadata,omitempty" json:"baseMetadata,omitempty"`
+}
+
 type MarkAsReadLocalRes struct {
 	Offline    bool        `codec:"offline" json:"offline"`
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
@@ -1613,7 +1620,7 @@ type PostAttachmentLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	ClientHeader     MessageClientHeader          `codec:"clientHeader" json:"clientHeader"`
 	Attachment       LocalSource                  `codec:"attachment" json:"attachment"`
-	Preview          *LocalSource                 `codec:"preview,omitempty" json:"preview,omitempty"`
+	Preview          *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
 	Title            string                       `codec:"title" json:"title"`
 	Metadata         []byte                       `codec:"metadata" json:"metadata"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
@@ -1624,7 +1631,7 @@ type PostFileAttachmentLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	ClientHeader     MessageClientHeader          `codec:"clientHeader" json:"clientHeader"`
 	Attachment       LocalFileSource              `codec:"attachment" json:"attachment"`
-	Preview          *LocalFileSource             `codec:"preview,omitempty" json:"preview,omitempty"`
+	Preview          *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
 	Title            string                       `codec:"title" json:"title"`
 	Metadata         []byte                       `codec:"metadata" json:"metadata"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
@@ -1646,6 +1653,12 @@ type DownloadFileAttachmentLocalArg struct {
 	Filename         string                       `codec:"filename" json:"filename"`
 	Preview          bool                         `codec:"preview" json:"preview"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type MakePreviewArg struct {
+	SessionID  int             `codec:"sessionID" json:"sessionID"`
+	Attachment LocalFileSource `codec:"attachment" json:"attachment"`
+	OutputDir  string          `codec:"outputDir" json:"outputDir"`
 }
 
 type CancelPostArg struct {
@@ -1691,6 +1704,7 @@ type LocalInterface interface {
 	PostFileAttachmentLocal(context.Context, PostFileAttachmentLocalArg) (PostLocalRes, error)
 	DownloadAttachmentLocal(context.Context, DownloadAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
+	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
 	CancelPost(context.Context, OutboxID) error
 	RetryPost(context.Context, OutboxID) error
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
@@ -2005,6 +2019,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"makePreview": {
+				MakeArg: func() interface{} {
+					ret := make([]MakePreviewArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]MakePreviewArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]MakePreviewArg)(nil), args)
+						return
+					}
+					ret, err = i.MakePreview(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"CancelPost": {
 				MakeArg: func() interface{} {
 					ret := make([]CancelPostArg, 1)
@@ -2171,6 +2201,11 @@ func (c LocalClient) DownloadAttachmentLocal(ctx context.Context, __arg Download
 
 func (c LocalClient) DownloadFileAttachmentLocal(ctx context.Context, __arg DownloadFileAttachmentLocalArg) (res DownloadAttachmentLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.DownloadFileAttachmentLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) MakePreview(ctx context.Context, __arg MakePreviewArg) (res MakePreviewRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.makePreview", []interface{}{__arg}, &res)
 	return
 }
 

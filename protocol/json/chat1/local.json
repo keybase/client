@@ -1689,6 +1689,37 @@
     },
     {
       "type": "record",
+      "name": "MakePreviewRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "mimeType"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "filename"
+        },
+        {
+          "type": [
+            null,
+            "AssetMetadata"
+          ],
+          "name": "metadata"
+        },
+        {
+          "type": [
+            null,
+            "AssetMetadata"
+          ],
+          "name": "baseMetadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MarkAsReadLocalRes",
       "fields": [
         {
@@ -2131,7 +2162,7 @@
           "name": "preview",
           "type": [
             null,
-            "LocalSource"
+            "MakePreviewRes"
           ]
         },
         {
@@ -2171,7 +2202,7 @@
           "name": "preview",
           "type": [
             null,
-            "LocalFileSource"
+            "MakePreviewRes"
           ]
         },
         {
@@ -2248,6 +2279,23 @@
       ],
       "response": "DownloadAttachmentLocalRes",
       "lint": "ignore"
+    },
+    "makePreview": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "attachment",
+          "type": "LocalFileSource"
+        },
+        {
+          "name": "outputDir",
+          "type": "string"
+        }
+      ],
+      "response": "MakePreviewRes"
     },
     "CancelPost": {
       "request": [

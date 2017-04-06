@@ -15,7 +15,7 @@ function _showProgressBar (messageState, progress) {
 }
 
 function _showPreviewProgress (messageState, progress) {
-  return !!progress && (messageState === 'downloading-preview')
+  return (!!progress && messageState === 'downloading-preview') || messageState === 'placeholder'
 }
 
 function AttachmentTitle ({messageState, title, onOpenInPopup}: {messageState: Constants.AttachmentMessageState, title: ?string, onOpenInPopup: ?() => void}) {
