@@ -73,6 +73,6 @@ if "%KBNM_BUILD%" == "" (
     KBNM_BUILD = %KEYBASE_BUILD%
 )
 echo KBNM_BUILD %KBNM_BUILD%
-go build -a -ldflags="-X Version=%KBNM_BUILD%"
+go build -a -ldflags="-X main.Version=%KBNM_BUILD%"
 popd
 
