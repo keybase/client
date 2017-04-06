@@ -8,6 +8,7 @@ import type {Options} from '../messages'
 export type OptionsFn = (message: Constants.Message, prevMessage: Constants.Message, isFirstMessage: boolean, isSelected: boolean, isScrolling: boolean, key: any, style: Object, onAction: (message: Constants.ServerMessage, event: any) => void, onShowEditor: (message: Constants.Message, event: any) => void, isEditing: boolean) => Options
 
 export type Props = {
+  messageKeys: List<string>,
   editLastMessageCounter: number,
   editingMessage: ?Constants.Message,
   firstNewMessageID: ?Constants.MessageID,

@@ -18,6 +18,8 @@ import type {Props, OptionsFn} from '.'
 import type {OwnProps, StateProps, DispatchProps} from './container'
 import type {TypedState} from '../../../constants/reducer'
 
+// TODO reselect
+
 const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollDownCounter, onFocusInput}: OwnProps): StateProps => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const routePath = getPath(state.routeTree.routeState, [chatTab])
@@ -35,6 +37,7 @@ const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollD
   let supersedes = null
   let supersededBy = null
   let validated = false
+  let messageKeys = List()
 
   if (selectedConversationIDKey && Constants.isPendingConversationIDKey(selectedConversationIDKey)) {
     const tlfName = Constants.pendingConversationIDKeyToTlfName(selectedConversationIDKey)
@@ -54,6 +57,7 @@ const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollD
       firstNewMessageID = conversationState.firstNewMessageID
       followingMap = pick(origFollowingMap, participants.toArray())
       messages = conversationState.messages
+      messageKeys = messages.map(m => m.key)
       metaDataMap = origMetaDataMap.filter((k, v) => participants.contains(v))
       moreToLoad = conversationState.moreToLoad
       editingMessage = state.chat.get('editingMessage')
@@ -69,6 +73,7 @@ const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollD
     firstNewMessageID,
     followingMap,
     listScrollDownCounter,
+    messageKeys,
     messages,
     metaDataMap,
     moreToLoad,
