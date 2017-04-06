@@ -183,6 +183,7 @@ export type MaybeTimestamp = TimestampMessage | null
 export const ConversationStatusByEnum = invert(ChatTypes.CommonConversationStatus)
 
 export const ConversationStateRecord = Record({
+  messageKeys: List(),
   messages: List(),
   seenMessages: Set(),
   moreToLoad: true,
@@ -197,6 +198,7 @@ export const ConversationStateRecord = Record({
 })
 
 export type ConversationState = Record<{
+  messageKeys: List<string>,
   messages: List<Message>,
   seenMessages: Set<MessageID>,
   moreToLoad: boolean,
