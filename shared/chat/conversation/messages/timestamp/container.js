@@ -10,12 +10,13 @@ import type {OwnProps} from './container'
 
 const mapStateToProps = (state: TypedState, {messageKey, style}: OwnProps) => {
   // $ForceType
-  const message: Constants.TimestampMessage = state.chat.getIn('messageMap', messageKey)
-  console.log('aaa', message)
+  const message: Constants.TimestampMessage = state.chat.getIn(['messageMap', messageKey])
+  const timestamp = formatTimeForMessages(message.timestamp)
+  console.log('aaa', timestamp, message)
 
   return {
     ...style,
-    timestamp: formatTimeForMessages(message.timestamp),
+    timestamp,
   }
 }
 
