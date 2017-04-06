@@ -13,7 +13,6 @@ import {makeEngine} from './engine'
 import {setup as setupLocalDebug, dumbSheetOnly, dumbChatOnly} from './local-debug'
 import routeDefs from './routes'
 import {setRouteDef} from './actions/route-tree'
-import {changedFocus} from './actions/app'
 import {setupSource} from './util/forward-logs'
 
 module.hot && module.hot.accept(() => {
@@ -53,9 +52,9 @@ class Keybase extends Component {
 
   _handleAppStateChange = (nextAppState: string) => {
     if (nextAppState === 'active') {
-      this.store.dispatch(changedFocus(true))
+      this.store.dispatch({payload: {focused: true}, type: 'app:changedFocus'})
     } else if (nextAppState === 'inactive') {
-      this.store.dispatch(changedFocus(false))
+      this.store.dispatch({payload: {focused: false}, type: 'app:changedFocus'})
     }
   }
 

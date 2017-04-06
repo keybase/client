@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
 import {Box, Icon, Text, ProgressIndicator, NativeImage} from '../../../common-adapters/index.native'
+import {MessagePopup} from '../messages/popup.native'
 import {ImageIcon as AttachmentStatusIcon} from '../messages/attachment'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {formatTimeForPopup} from '../../../util/timestamp'
@@ -19,7 +20,7 @@ const AttachmentView = ({isZoomed, onToggleZoom, messageState, path}: {isZoomed:
   }
 }
 
-const AttachmentPopup = ({message, isZoomed, onClose, onDownloadAttachment, onDeleteMessage, onMessageAction, onToggleZoom, onOpenInFileUI, you}: Props) => {
+const AttachmentPopup = ({message, detailsPopupShowing, isZoomed, onCloseDetailsPopup, onClose, onDownloadAttachment, onDeleteMessage, onOpenDetailsPopup, onToggleZoom, onOpenInFileUI, you}: Props) => {
   const {messageState, previewType, title, author, timestamp} = message
   let statusIcon
   if (messageState === 'downloading' || messageState === 'downloaded') {
@@ -45,9 +46,18 @@ const AttachmentPopup = ({message, isZoomed, onClose, onDownloadAttachment, onDe
           <Text type='BodySmall' style={{color: globalColors.black, marginTop: globalMargins.large}}>Your device can not preview this file.</Text>
         </Box>
         <Box style={styleHeaderFooter}>
-          <Icon type='iconfont-ellipsis' onClick={onMessageAction} />
+          <Icon type='iconfont-ellipsis' onClick={detailsPopupShowing ? onCloseDetailsPopup : onOpenDetailsPopup} />
         </Box>
         {statusIcon}
+        {// $FlowIssue
+          detailsPopupShowing && <MessagePopup
+            you={you}
+            message={message}
+            onDeleteMessage={onDeleteMessage}
+            onShowEditor={() => {}}
+            onHidden={onCloseDetailsPopup}
+            style={{position: 'absolute', right: globalMargins.xtiny, bottom: 28}}
+          />}
       </Box>
     )
   }
@@ -61,9 +71,18 @@ const AttachmentPopup = ({message, isZoomed, onClose, onDownloadAttachment, onDe
       <Text type='Body' onClick={onClose} style={{color: globalColors.white, marginLeft: globalMargins.small, marginTop: globalMargins.small}}>Close</Text>
       <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={message.hdPreviewPath} />
       <Box style={styleHeaderFooter}>
-        <Icon type='iconfont-ellipsis' style={{color: globalColors.white}} onClick={onMessageAction} />
+        <Icon type='iconfont-ellipsis' style={{color: globalColors.white}} onClick={detailsPopupShowing ? onCloseDetailsPopup : onOpenDetailsPopup} />
       </Box>
       {statusIcon}
+      {// $FlowIssue
+        detailsPopupShowing && <MessagePopup
+          you={you}
+          message={message}
+          onDeleteMessage={onDeleteMessage}
+          onShowEditor={() => {}}
+          onHidden={onCloseDetailsPopup}
+          style={{position: 'absolute', right: globalMargins.xtiny, bottom: 28}}
+        />}
     </Box>
   )
 }

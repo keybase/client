@@ -17,12 +17,6 @@ import (
 var getKeyMu sync.Mutex
 
 func GetMySecretKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, secretKeyType libkb.SecretKeyType, reason string) (libkb.GenericKey, error) {
-	// check ActiveDevice cache (it has its own lock)
-	key, err := g.ActiveDevice.KeyByType(secretKeyType)
-	if err == nil && key != nil {
-		g.Log.CDebugf(ctx, "found cached device key in ActiveDevice")
-		return key, nil
-	}
 
 	g.Log.CDebugf(ctx, "GetMySecretKey: acquiring lock")
 	getKeyMu.Lock()
@@ -31,6 +25,19 @@ func GetMySecretKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI fun
 		g.Log.CDebugf(ctx, "GetMySecretKey: lock released")
 	}()
 	g.Log.CDebugf(ctx, "GetMySecretKey: lock acquired")
+
+	// check cache after acquiring lock
+	var key libkb.GenericKey
+	var err error
+	aerr := g.LoginState().Account(func(a *libkb.Account) {
+		key, err = a.CachedSecretKey(libkb.SecretKeyArg{KeyType: secretKeyType})
+	}, "Keyrings - cachedSecretKey")
+	if key != nil && err == nil {
+		return key, nil
+	}
+	if aerr != nil {
+		g.Log.CDebugf(ctx, "error getting account for CachedSecretKey: %s", aerr)
+	}
 
 	var me *libkb.User
 	err = g.GetFullSelfer().WithSelf(ctx, func(tmp *libkb.User) error {
@@ -253,15 +260,17 @@ func getMatchingSecretKey(g *libkb.GlobalContext, getSecretUI func() libkb.Secre
 
 // check cached keys for arg.Bundles match.
 func matchingCachedKey(g *libkb.GlobalContext, arg keybase1.UnboxBytes32AnyArg) (key libkb.GenericKey, index int, err error) {
-	// check device key first
-	dkey, err := g.ActiveDevice.EncryptionKey()
-	if err == nil && dkey != nil {
-		if n, ok := kidMatch(dkey, arg.Bundles); ok {
-			return dkey, n, nil
-		}
-	}
-
 	err = g.LoginState().Account(func(a *libkb.Account) {
+		// check device key first
+		dkey, err := a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType})
+		if err == nil {
+			if n, ok := kidMatch(dkey, arg.Bundles); ok {
+				key = dkey
+				index = n
+				return
+			}
+		}
+
 		// check paper key
 		pkey := a.GetUnlockedPaperEncKey()
 		if n, ok := kidMatch(pkey, arg.Bundles); ok {

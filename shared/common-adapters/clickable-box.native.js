@@ -1,7 +1,6 @@
 // @flow
 import React from 'react'
 import type {Props} from './clickable-box'
-import Box from './box'
 import {TouchableHighlight, TouchableWithoutFeedback} from 'react-native'
 import {globalColors} from '../styles'
 
@@ -29,10 +28,7 @@ const ClickableBox = ({onClick, onLongPress, style, children, underlayColor, onP
       </TouchableWithoutFeedback>
     }
   } else {
-    return <Box
-      style={{...boxStyle, ...style}}>
-      {children}
-    </Box>
+    return children
   }
 }
 

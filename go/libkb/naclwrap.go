@@ -601,40 +601,28 @@ func KbOpenSig(armored string) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(armored)
 }
 
-func SigExtractKbPayloadAndKID(armored string) (payload []byte, kid keybase1.KID, sigID keybase1.SigID, err error) {
+func SigAssertKbPayload(armored string, expected []byte) (sigID keybase1.SigID, err error) {
 	var byt []byte
 	var packet *KeybasePacket
 	var sig *NaclSigInfo
 	var ok bool
 
 	if byt, err = KbOpenSig(armored); err != nil {
-		return nil, kid, sigID, err
+		return
 	}
 
 	if packet, err = DecodePacket(byt); err != nil {
-		return nil, kid, sigID, err
+		return
 	}
 	if sig, ok = packet.Body.(*NaclSigInfo); !ok {
 		err = UnmarshalError{"NaCl Signature"}
-		return nil, kid, sigID, err
+		return
+	}
+	if !FastByteArrayEq(expected, sig.Payload) {
+		err = BadSigError{"wrong payload"}
 	}
 	sigID = ComputeSigIDFromSigBody(byt)
-	kid = sig.Kid.ToKID()
-	payload = sig.Payload
-	return payload, kid, sigID, nil
-}
-
-func SigAssertKbPayload(armored string, expected []byte) (sigID keybase1.SigID, err error) {
-	var payload []byte
-	nilSigID := keybase1.SigID("")
-	payload, _, sigID, err = SigExtractKbPayloadAndKID(armored)
-	if err != nil {
-		return nilSigID, err
-	}
-	if !FastByteArrayEq(expected, payload) {
-		return nilSigID, BadSigError{"wrong payload"}
-	}
-	return sigID, nil
+	return
 }
 
 // EncryptToString fails for this type of key.

@@ -19,11 +19,6 @@ func NewRemoteChatUI(sessionID int, c *rpc.Client) *RemoteChatUI {
 	}
 }
 
-func (r *RemoteChatUI) ChatAttachmentUploadOutboxID(ctx context.Context, arg chat1.ChatAttachmentUploadOutboxIDArg) error {
-	arg.SessionID = r.sessionID
-	return r.cli.ChatAttachmentUploadOutboxID(ctx, arg)
-}
-
 func (r *RemoteChatUI) ChatAttachmentUploadStart(ctx context.Context, metadata chat1.AssetMetadata, placeholder chat1.MessageID) error {
 	arg := chat1.ChatAttachmentUploadStartArg{
 		SessionID:        r.sessionID,

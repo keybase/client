@@ -83,18 +83,23 @@ function renderMainStackRoute (route) {
 }
 
 function MainNavStack (props: Props) {
-  const screens = props.routeStack
+  const baseScreens = props.routeStack.filter(r => !r.tags.layerOnTop)
+  if (!baseScreens.size) {
+    throw new Error('no route component to render without layerOnTop tag')
+  }
+  const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
 
   return (
     <StackWrapper>
       <Box style={!props.hideNav ? styleScreenSpace : flexOne}>
         <CardStackShim
           key={props.routeSelected}  // don't transition when switching tabs
-          stack={screens}
+          stack={baseScreens}
           renderRoute={renderMainStackRoute}
           onNavigateBack={props.navigateUp}
         />
-        {![chatTab].includes(props.routeSelected) && <Offline reachability={props.reachability} appFocused={true} />}
+        {layerScreens.map(r => r.leafComponent)}
+        {![chatTab].includes(props.routeSelected) && <Offline reachability={props.reachability} />}
         <GlobalError />
       </Box>
       {!props.hideNav &&
@@ -123,32 +128,21 @@ function renderFullScreenStackRoute (route) {
 }
 
 function Nav (props: Props) {
-  const baseScreens = props.routeStack.filter(r => !r.tags.layerOnTop)
-  if (!baseScreens.size) {
-    throw new Error('no route component to render without layerOnTop tag')
-  }
-
-  const fullscreenPred = r => r.tags.fullscreen
-  const mainScreens = baseScreens.takeUntil(fullscreenPred)
-  const fullScreens = baseScreens.skipUntil(fullscreenPred)
+  const mainScreens = props.routeStack.filter(r => !r.tags.fullscreen)
+  const fullScreens = props.routeStack.filter(r => r.tags.fullscreen)
     .unshift({
       path: ['main'],
       component: <MainNavStack {...props} routeStack={mainScreens} />,
       tags: {},
     })
 
-  const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
-
   return (
-    <Box style={globalStyles.fillAbsolute}>
-      <CardStackShim
-        stack={fullScreens}
-        renderRoute={renderFullScreenStackRoute}
-        onNavigateBack={props.navigateUp}
-        mode='modal'
-      />
-      {layerScreens.map(r => r.leafComponent)}
-    </Box>
+    <CardStackShim
+      stack={fullScreens}
+      renderRoute={renderFullScreenStackRoute}
+      onNavigateBack={props.navigateUp}
+      mode='modal'
+    />
   )
 }
 

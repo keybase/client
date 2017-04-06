@@ -105,12 +105,6 @@ func (s *SignupEngine) Run(ctx *Context) error {
 			return nil
 		}
 
-		// only desktop potentially has gpg, so if not desktop then
-		// bail out
-		if s.arg.DeviceType != keybase1.DeviceType_DESKTOP {
-			return nil
-		}
-
 		if wantsGPG, err := s.checkGPG(ctx); err != nil {
 			return err
 		} else if wantsGPG {
@@ -200,7 +194,7 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 	case keybase1.DeviceType_MOBILE:
 		args.DeviceType = libkb.DeviceTypeMobile
 	default:
-		return fmt.Errorf("unknown device type: %v", s.arg.DeviceType)
+		return fmt.Errorf("unknown device type: %v", args.DeviceType)
 	}
 
 	eng := NewDeviceWrap(args, s.G())

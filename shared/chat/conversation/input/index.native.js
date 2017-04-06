@@ -31,11 +31,6 @@ class ConversationInput extends Component<void, Props, void> {
       return
     }
 
-    if (this.props.isLoading) {
-      console.log('Ignoring chat submit while still loading')
-      return
-    }
-
     if (this.props.editingMessage) {
       this.props.onEditMessage(this.props.editingMessage, this.props.text)
     } else {
@@ -84,17 +79,17 @@ class ConversationInput extends Component<void, Props, void> {
           value={this.props.text}
           {...multilineOpts}
         />
-        <Action text={this.props.text} onSubmit={this._onSubmit} editingMessage={this.props.editingMessage} openFilePicker={this._openFilePicker} isLoading={this.props.isLoading} />
+        <Action text={this.props.text} onSubmit={this._onSubmit} editingMessage={this.props.editingMessage} openFilePicker={this._openFilePicker} />
       </Box>
     )
   }
 }
 
-const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) => (
+const Action = ({text, onSubmit, editingMessage, openFilePicker}) => (
   text ? (
     <ClickableBox feedback={false} onClick={onSubmit}>
       <Box style={{padding: globalMargins.small}}>
-        <Text type='BodyBigLink' style={{...(isLoading ? {color: globalColors.grey} : {})}}>{editingMessage ? 'Save' : 'Send'}</Text>
+        <Text type='BodyBigLink'>{editingMessage ? 'Save' : 'Send'}</Text>
       </Box>
     </ClickableBox>
   ) : (

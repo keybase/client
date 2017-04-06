@@ -26,9 +26,8 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
   KBInstallOptionMountDir = 1 << 6,
   KBInstallOptionCLI = 1 << 10,
   KBInstallOptionAppBundle = 1 << 11,
-  KBInstallOptionKBNM = 1 << 12,
 
-  KBInstallOptionAll = KBInstallOptionService | KBInstallOptionHelper | KBInstallOptionFuse | KBInstallOptionMountDir | KBInstallOptionKBFS | KBInstallOptionUpdater | KBInstallOptionCLI | KBInstallOptionKBNM,
+  KBInstallOptionAll = KBInstallOptionService | KBInstallOptionHelper | KBInstallOptionFuse | KBInstallOptionMountDir | KBInstallOptionKBFS | KBInstallOptionUpdater | KBInstallOptionCLI,
 };
 
 @interface KBEnvConfig : NSObject

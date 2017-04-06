@@ -508,19 +508,6 @@ func (k *KID) MarshalJSON() ([]byte, error) {
 	return Quote(k.String()), nil
 }
 
-func (s *SigID) UnmarshalJSON(b []byte) error {
-	sigID, err := SigIDFromString(Unquote(b), true)
-	if err != nil {
-		return err
-	}
-	*s = sigID
-	return nil
-}
-
-func (s *SigID) MarshalJSON() ([]byte, error) {
-	return Quote(s.ToString(true)), nil
-}
-
 func (f Folder) ToString() string {
 	prefix := "public/"
 	if f.Private {

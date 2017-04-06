@@ -1,4 +1,5 @@
 platform :osx, "10.10"
+use_frameworks!
 
 target "KBKit" do
   pod "YOLayout"

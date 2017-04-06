@@ -160,11 +160,14 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
             .set('deletedIDs', nextDeletedIDs)
         })
 
-      return state.set('conversationStates', newConversationStates)
+      const toMerge = newConversationStates.getIn([conversationIDKey, 'messages']).reduce((map, val) => map.set(val.key, val), Map())
+      return state.set('conversationStates', newConversationStates).set('messageMap', state.get('messageMap').merge(toMerge))
     }
     case 'chat:appendMessages': {
       const appendAction: Constants.AppendMessages = action
-      const {messages: appendMessages, isSelected, conversationIDKey, isAppFocused} = appendAction.payload
+      const appendMessages = appendAction.payload.messages
+      const isSelected = action.payload.isSelected
+      const conversationIDKey = appendAction.payload.conversationIDKey
 
       const {messages, deletedIDs} = _filterTypes(appendMessages)
 
@@ -176,7 +179,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
           const {nextMessages, nextSeenMessages} = _processMessages(conversation.seenMessages, conversation.messages, List(), List(messages), nextDeletedIDs)
 
           const firstMessage = appendMessages[0]
-          const inConversationFocused = (isSelected && isAppFocused)
+          const inConversationFocused = (isSelected && state.get('focused'))
           if (!conversation.get('firstNewMessageID') && !inConversationFocused) {
             // Set first new message if we don't have one set, and are not in
             // the conversation with window focused
@@ -194,8 +197,18 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
             .set('deletedIDs', nextDeletedIDs)
         })
 
-      return state
-        .set('conversationStates', newConversationStates)
+      const toMerge = newConversationStates.getIn([conversationIDKey, 'messages']).reduce((map, val) => map.set(val.key, val), Map())
+      return state.set('conversationStates', newConversationStates).set('messageMap', state.get('messageMap').merge(toMerge))
+    }
+    case 'chat:deleteTempMessage': {
+      const {conversationIDKey, outboxID} = action.payload
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates => updateConversation(
+        conversationStates,
+        conversationIDKey,
+        // $FlowIssue
+        conv => conv.update('messages', messages => messages.filter(m => m.outboxID !== outboxID))
+      ))
     }
     case 'chat:updateTempMessage': {
       if (action.error) {
@@ -248,8 +261,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       ))
     }
     case 'chat:markSeenMessage': {
-      const {messageID, conversationIDKey} = action.payload
-      const messageKey = Constants.messageKey('messageID', messageID)
+      const {messageKey, conversationIDKey} = action.payload
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversation(
         conversationStates,
@@ -306,14 +318,14 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       ))
     }
     case 'chat:uploadProgress': {
-      const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
+      const {conversationIDKey, outboxID, bytesComplete, bytesTotal} = action.payload
       const progress = bytesComplete / bytesTotal
 
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversationMessage(
         conversationStates,
         conversationIDKey,
-        item => !!item.messageID && item.messageID === messageID,
+        item => !!item.outboxID && item.outboxID === outboxID,
         m => ({
           ...m,
           messageState: 'uploading',
@@ -440,6 +452,8 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       console.warn("couldn't find conversation to upgrade", oldKey)
       break
     }
+    case 'app:changedFocus':
+      return state.set('focused', action.payload.focused)
     case 'chat:updateFinalizedState': {
       // $FlowIssue doesn't recognize updates
       return state.update('finalizedState', finalizedState => finalizedState.merge(action.payload.finalizedState))
@@ -467,16 +481,6 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       )
       return state.set('conversationStates', newConversationStates)
     }
-    case 'chat:setAttachmentPlaceholderPreview': {
-      const {outboxID, previewPath} = action.payload
-      // $FlowIssue doesn't recognize updates
-      return state.update('attachmentPlaceholderPreviews', previews => previews.set(outboxID, previewPath))
-    }
-    case 'chat:clearAttachmentPlaceholderPreview': {
-      const {outboxID} = action.payload
-      // $FlowIssue doesn't recognize updates
-      return state.update('attachmentPlaceholderPreviews', previews => previews.delete(outboxID))
-    }
     case 'gregor:updateReachability': { // reset this when we go online
       if (action.payload.reachability.reachable === ReachabilityReachable.yes) {
         const newConversationStates = state.get('conversationStates').map(
@@ -485,9 +489,6 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
         return state.set('conversationStates', newConversationStates)
       }
       break
-    }
-    case 'chat:inboxUntrustedState': {
-      return state.set('inboxUntrustedState', action.payload.inboxUntrustedState)
     }
   }
 

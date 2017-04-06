@@ -72,11 +72,6 @@ func process(h *handler, in nativemessaging.JSONDecoder, out nativemessaging.JSO
 func main() {
 	flag.Parse()
 
-	if *versionFlag {
-		fmt.Println(Version)
-		os.Exit(0)
-	}
-
 	// Native messages include a prefix which describes the length of each message.
 	var in nativemessaging.JSONDecoder
 	var out nativemessaging.JSONEncoder

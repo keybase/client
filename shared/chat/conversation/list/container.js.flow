@@ -9,11 +9,12 @@ export type StateProps = {
   firstNewMessageID: ?Constants.MessageID,
   followingMap: Constants.FollowingMap,
   listScrollDownCounter: number,
+  messageKeys: List<string>,
+  // TODO del
   messages: List<Constants.Message>,
   metaDataMap: Constants.MetaDataMap,
   moreToLoad: boolean,
   onFocusInput: () => void,
-  routePath: List<string>,
   selectedConversation: ?Constants.ConversationIDKey,
   supersededBy: ?Constants.SupersedeInfo,
   supersedes: ?Constants.SupersedeInfo,
@@ -24,13 +25,13 @@ export type StateProps = {
 export type DispatchProps = {
   _onLoadAttachment: (selectedConversation: Constants.ConversationIDKey, messageID: Constants.MessageID, filename: string) => void,
   _onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => void,
-  _onOpenInPopup: (message: Constants.AttachmentMessage, routePath: List<string>) => void,
   _onRetryMessage: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => void,
   onDeleteMessage: (message: Constants.Message) => void,
   onEditMessage: (message: Constants.Message, body: string) => void,
   onMessageAction: (message: Constants.ServerMessage) => void,
   onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => void,
   onOpenInFileUI: (path: string) => void,
+  onOpenInPopup: (message: Constants.AttachmentMessage) => void,
   onRetryAttachment: (message: Constants.AttachmentMessage) => void,
 }
 

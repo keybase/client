@@ -4,7 +4,6 @@ import * as Constants from '../../constants/chat'
 
 export type Props = {
   editLastMessageCounter: number,
-  showLoader: boolean,
   finalizeInfo: ?Constants.FinalizeInfo,
   focusInputCounter: number,
   listScrollDownCounter: number,

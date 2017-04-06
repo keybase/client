@@ -564,7 +564,7 @@ protocol local {
   }
 
   // Post an attachment from stream source to conversationID.
-  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, MakePreviewRes} preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, LocalSource } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // LocalFileSource is a file attachment source.  Filename must be readable
   // by the service for the duration of the attachment upload.
@@ -573,10 +573,9 @@ protocol local {
   }
 
   // Post an attachment from file source to conversationID.
-  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalFileSource attachment, union { null, MakePreviewRes } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalFileSource attachment, union { null, LocalFileSource } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record DownloadAttachmentLocalRes {
-    boolean offline;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
@@ -589,25 +588,13 @@ protocol local {
   // Filename must be writable by the service.
   @lint("ignore")
   DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
- 
-  record MakePreviewRes {
-    string mimeType;        // this will always be populated 
-    union {null, string} filename;    // will exist if service is able to make a preview 
-    union {null, AssetMetadata} metadata; // will exist if service is able to make a preview
-    union {null, AssetMetadata} baseMetadata; // will exist if service is able to get base metadata
-  } 
-  MakePreviewRes makePreview(int sessionID, LocalFileSource attachment, string outputDir);
 
   @lint("ignore")
   void CancelPost(OutboxID outboxID);
   @lint("ignore")
   void RetryPost(OutboxID outboxID);
 
-  record MarkAsReadLocalRes {
-     boolean offline;
-     array<RateLimit> rateLimits;
-  }
-  MarkAsReadLocalRes markAsReadLocal(int sessionID, ConversationID conversationID, MessageID msgID);
+  MarkAsReadRes markAsReadLocal(int sessionID, ConversationID conversationID, MessageID msgID);
 
   record FindConversationsLocalRes {
     array<ConversationLocal> conversations;

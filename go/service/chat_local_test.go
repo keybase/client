@@ -5,7 +5,6 @@ package service
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 	"testing"
@@ -1173,63 +1172,4 @@ func TestGetThreadNonblock(t *testing.T) {
 	res = receiveThreadResult(t, threadCb)
 	require.Equal(t, numMsgs, len(res.Messages))
 
-}
-
-func TestMakePreview(t *testing.T) {
-	ctc := makeChatTestContext(t, "MakePreview", 1)
-	defer ctc.cleanup()
-	user := ctc.users()[0]
-
-	// make a preview of a jpg
-	arg := chat1.MakePreviewArg{
-		Attachment: chat1.LocalFileSource{
-			Filename: "testdata/ship.jpg",
-		},
-		OutputDir: os.TempDir(),
-	}
-	res, err := ctc.as(t, user).chatLocalHandler().MakePreview(context.TODO(), arg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.Filename == nil {
-		t.Fatal("expected filename")
-	}
-	if !strings.HasSuffix(*res.Filename, ".jpeg") {
-		t.Fatalf("expected .jpeg suffix, got %q", *res.Filename)
-	}
-	defer os.Remove(*res.Filename)
-	if res.Metadata == nil {
-		t.Fatal("expected metadata")
-	}
-	if res.MimeType != "image/jpeg" {
-		t.Fatalf("mime type: %q, expected image/jpeg", res.MimeType)
-	}
-	img := res.Metadata.Image()
-	if img.Width != 640 {
-		t.Errorf("width: %d, expected 640", img.Width)
-	}
-	if img.Height != 480 {
-		t.Errorf("height: %d, expected 480", img.Width)
-	}
-
-	// MakePreview(pdf) shouldn't generate a preview file, but should return mimetype
-	arg = chat1.MakePreviewArg{
-		Attachment: chat1.LocalFileSource{
-			Filename: "testdata/weather.pdf",
-		},
-		OutputDir: os.TempDir(),
-	}
-	res, err = ctc.as(t, user).chatLocalHandler().MakePreview(context.TODO(), arg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.Filename != nil {
-		t.Fatalf("expected no preview file, got %q", *res.Filename)
-	}
-	if res.Metadata != nil {
-		t.Fatalf("expected no metadata, got %+v", res.Metadata)
-	}
-	if res.MimeType != "application/pdf" {
-		t.Fatalf("mime type: %q, expected application/pdf", res.MimeType)
-	}
 }

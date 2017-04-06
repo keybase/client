@@ -671,10 +671,6 @@ func NewChatUI(inboxCb chan NonblockInboxResult, threadCb chan NonblockThreadRes
 	}
 }
 
-func (c *ChatUI) ChatAttachmentUploadOutboxID(ctx context.Context, arg chat1.ChatAttachmentUploadOutboxIDArg) error {
-	return nil
-}
-
 func (c *ChatUI) ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata, chat1.MessageID) error {
 	return nil
 }

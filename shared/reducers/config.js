@@ -9,7 +9,6 @@ import type {Action} from '../constants/types/flux'
 import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/types/flow-types'
 
 export type ConfigState = {
-  appFocused: boolean,
   bootStatus: BootStatus,
   bootstrapTriesRemaining: number,
   config: ?Config,
@@ -33,7 +32,6 @@ export type ConfigState = {
 const readyForBootstrap = isMobile
 
 const initialState: ConfigState = {
-  appFocused: false,
   bootStatus: 'bootStatusLoading',
   bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
   config: null,
@@ -191,12 +189,6 @@ export default function (state: ConfigState = initialState, action: Action): Con
         initialTab: action.payload.tab,
       }
     }
-
-    case 'app:changedFocus':
-      return {
-        ...state,
-        appFocused: action.payload.appFocused,
-      }
 
     default:
       return state

@@ -1,0 +1,12 @@
+// @flow
+import {Component} from 'react'
+import * as Constants from '../../../../constants/chat'
+
+import type {MessageStyle} from '../'
+
+export type OwnProps = {
+  messageKey: Constants.MessageKey,
+  style: ?MessageStyle,
+}
+
+export default class TimestampContainer extends Component<void, OwnProps, void> {}

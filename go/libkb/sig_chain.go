@@ -12,29 +12,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-//
-// As of Sigchain V2, there are 3 types of sigchain links you might
-// encounter.
-//
-//   V1 AKA Inner: The original sigchain link is a JSON blob describing
-//    the signer's eldest key, signing key, payload, and prev pointers,
-//    among other fields. As we migrate to sigchain V2, this is known as the
-//    "inner" link. It persists in some cases and is elided for bandwidth
-//    savings in others.
-//
-//   V2 AKA Outer/Inner Split: In V2, the signer computers a signature over
-//    a much smaller outer link (see OuterLinkV2 in chain_link_v2.go). The
-//    "curr" field in the outer link points to a V1 inner link by content hash.
-//    Essential fields from the V1 inner link are hoisted up into the V2 outer
-//    link and therefore must agree. Thus, the "prev" pointer in the V2 outer
-//    link is the same as the "prev" pointer in the V2 inner link; it equals
-//    the "curr" pointer of the previous outer link.
-//
-//   V2 Stubbed: To save bandwidth, the server is allowed to send over just
-//    the V2 Outer link, minus any signatures, minus an inner link, if the
-//    consuming client can safely ignore those details.
-//
-
 type SigChain struct {
 	Contextified
 
@@ -156,8 +133,6 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 	low := sc.GetLastLoadedSeqno()
 	sc.loadedFromLinkOne = (low == Seqno(0) || low == Seqno(-1))
 
-	isSelf := selfUID.Equal(sc.uid)
-
 	sc.G().Log.CDebugf(ctx, "+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
 	defer func() { sc.G().Log.CDebugf(ctx, "- Loaded SigChain -> %s", ErrToOk(err)) }()
 
@@ -165,10 +140,8 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 		Endpoint:    "sig/get",
 		NeedSession: false,
 		Args: HTTPArgs{
-			"uid":           UIDArg(sc.uid),
-			"low":           I{int(low)},
-			"v2_compressed": B{true},   // TODO: Change the server to honor this flag
-			"self":          B{isSelf}, // TODO: Change the server to honor this flag
+			"uid": UIDArg(sc.uid),
+			"low": I{int(low)},
 		},
 		NetContext: ctx,
 	})
@@ -247,7 +220,6 @@ func (sc *SigChain) VerifyChain(ctx context.Context) (err error) {
 	}()
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		curr := sc.chainLinks[i]
-		sc.G().VDL.CLogf(ctx, VLog1, "| verify link %d (%s)", i, curr.id)
 		if curr.chainVerified {
 			sc.G().Log.CDebugf(ctx, "| short-circuit at link %d", i)
 			break
@@ -371,15 +343,6 @@ func (sc *SigChain) GetCurrentSubchain(eldest keybase1.KID) (links []*ChainLink,
 	l := len(sc.chainLinks)
 	lastGood := l
 	for i := l - 1; i >= 0; i-- {
-
-		if sc.chainLinks[i].IsStubbed() {
-			lastGood = i
-			if sc.chainLinks[i].IsEldest() {
-				break
-			}
-			continue
-		}
-
 		// Check that the eldest KID hasn't changed.
 		if sc.chainLinks[i].ToEldestKID().Equal(eldest) {
 			lastGood = i
@@ -387,7 +350,7 @@ func (sc *SigChain) GetCurrentSubchain(eldest keybase1.KID) (links []*ChainLink,
 			break
 		}
 		// Also stop walking if the current link has type "eldest".
-		if sc.chainLinks[i].IsEldest() {
+		if sc.chainLinks[i].unpacked.typ == string(DelegationTypeEldest) {
 			break
 		}
 		// Or if the link is one of our hardcoded six that reuse an eldest key ambiguously.
@@ -427,14 +390,14 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links []*C
 
 	if len(links) == 0 {
 		err = InternalError{"verifySubchain should never get an empty chain."}
-		return cached, cki, err
+		return
 	}
 
 	last := links[len(links)-1]
 	if cki = last.GetSigCheckCache(); cki != nil {
 		cached = true
 		sc.G().Log.CDebugf(ctx, "Skipped verification (cached): %s", last.id)
-		return cached, cki, err
+		return
 	}
 
 	cki = NewComputedKeyInfos(sc.G())
@@ -448,16 +411,7 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links []*C
 			continue
 		}
 
-		if link.IsStubbed() {
-			if first {
-				return cached, cki, SigchainV2StubbedFirstLinkError{}
-			}
-			if link.NeedsSignature() {
-				return cached, cki, SigchainV2StubbedSignatureNeededError{}
-			}
-			sc.G().VDL.Log(VLog1, "| Skipping over stubbed-out link: %s", link.id)
-			continue
-		}
+		newKID := link.GetKID()
 
 		tcl, w := NewTypedChainLink(link)
 		if w != nil {
@@ -468,20 +422,21 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links []*C
 
 		if first {
 			if err = ckf.InsertEldestLink(tcl, un); err != nil {
-				return cached, cki, err
+				return
 			}
 			first = false
 		}
 
-		// Optimization: only check sigs on some links, like the final
-		// link, or those that delegate and revoke keys.
+		// Optimization: When several links in a row are signed by the same
+		// key, we only validate the signature of the last of that group.
+		// (Unless a link delegates new keys, in which case we always check.)
 		// Note that we do this *before* processing revocations in the key
 		// family. That's important because a chain link might revoke the same
 		// key that signed it.
 		isDelegating := (tcl.GetRole() != DLGNone)
 		isModifyingKeys := isDelegating || tcl.Type() == DelegationTypePGPUpdate
 		isFinalLink := (linkIndex == len(links)-1)
-		hasRevocations := link.HasRevocations()
+		isLastLinkInSameKeyRun := (isFinalLink || newKID != links[linkIndex+1].GetKID())
 
 		if pgpcl, ok := tcl.(*PGPUpdateChainLink); ok {
 			if hash := pgpcl.GetPGPFullHash(); hash != "" {
@@ -490,11 +445,11 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links []*C
 			}
 		}
 
-		if isModifyingKeys || isFinalLink || hasRevocations {
-			err = link.VerifySigWithKeyFamily(ckf)
+		if isModifyingKeys || isFinalLink || isLastLinkInSameKeyRun {
+			_, err = link.VerifySigWithKeyFamily(ckf)
 			if err != nil {
 				sc.G().Log.CDebugf(ctx, "| Failure in VerifySigWithKeyFamily: %s", err)
-				return cached, cki, err
+				return
 			}
 		}
 
@@ -502,31 +457,30 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links []*C
 			err = ckf.Delegate(tcl)
 			if err != nil {
 				sc.G().Log.CDebugf(ctx, "| Failure in Delegate: %s", err)
-				return cached, cki, err
+				return
 			}
 		}
 
 		if err = tcl.VerifyReverseSig(ckf); err != nil {
 			sc.G().Log.CDebugf(ctx, "| Failure in VerifyReverseSig: %s", err)
-			return cached, cki, err
+			return
 		}
 
 		if err = ckf.Revoke(tcl); err != nil {
-			return cached, cki, err
+			return
 		}
 
 		if err = ckf.UpdateDevices(tcl); err != nil {
-			return cached, cki, err
+			return
 		}
 
 		if err != nil {
-			sc.G().Log.CDebugf(ctx, "| bailing out on error: %s", err)
-			return cached, cki, err
+			return
 		}
 	}
 
 	last.PutSigCheckCache(cki)
-	return cached, cki, err
+	return
 }
 
 func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, err error) {
@@ -881,7 +835,7 @@ func (l *SigChainLoader) dbKey() DbKey {
 
 func (l *SigChainLoader) StoreTail() (err error) {
 	if l.dirtyTail == nil {
-		return nil
+		return
 	}
 	err = l.G().LocalDb.PutObj(l.dbKey(), nil, l.dirtyTail)
 	l.G().Log.CDebugf(l.ctx, "| Storing dirtyTail @ %d (%v)", l.dirtyTail.Seqno, l.dirtyTail)

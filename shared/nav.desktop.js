@@ -36,7 +36,7 @@ function Nav (props: Props) {
         {layerScreens.map(r => r.leafComponent)}
       </Box>
       <div id='popupContainer' />
-      {![chatTab, loginTab].includes(props.routeSelected) && <Offline reachability={props.reachability} appFocused={props.appFocused} />}
+      {![chatTab, loginTab].includes(props.routeSelected) && <Offline reachability={props.reachability} />}
       <GlobalError />
     </Box>
   )
@@ -49,7 +49,7 @@ const stylesTabsContainer = {
 
 export default connect(
   ({
-    config: {extendedConfig, username, appFocused},
+    config: {extendedConfig, username},
     notifications: {menuBadge, menuNotifications},
     gregor: {reachability},
   }) => ({
@@ -58,7 +58,6 @@ export default connect(
     folderBadge: menuNotifications.folderBadge,
     chatBadge: menuNotifications.chatBadge,
     reachability,
-    appFocused,
   }),
   (dispatch: any, {routeSelected, routePath}) => ({
     switchTab: (tab: Tab) => {

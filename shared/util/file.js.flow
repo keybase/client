@@ -1,6 +1,5 @@
 // @flow
 
-declare function tmpDir (): string;
 declare function tmpFile (suffix: string): string;
 declare function downloadFilePath (filename: string): string;
 declare function copy (from: string, to: string): void;
@@ -14,7 +13,6 @@ export {
   copy,
   exists,
   downloadFilePath,
-  tmpDir,
   tmpFile,
   writeFile,
 }

@@ -21,7 +21,7 @@ function followingSelector (state: TypedState) { return state.config.following }
 function alwaysShowSelector (state: TypedState) { return state.chat.get('alwaysShow') }
 function metaDataSelector (state: TypedState) { return state.chat.get('metaData') }
 function routeSelector (state: TypedState) { return state.routeTree.get('routeState').get('selected') }
-function focusedSelector (state: TypedState) { return state.config.appFocused }
+function focusedSelector (state: TypedState) { return state.chat.get('focused') }
 function pendingFailureSelector (state: TypedState, outboxID: Constants.OutboxIDKey) { return state.chat.get('pendingFailures').get(outboxID) }
 
 function conversationStateSelector (state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
@@ -42,14 +42,6 @@ function devicenameSelector (state: TypedState) {
 
 function selectedInboxSelector (state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
   return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
-}
-
-function attachmentPlaceholderPreviewSelector (state: TypedState, outboxID: Constants.OutboxIDKey) {
-  return state.chat.get('attachmentPlaceholderPreviews', Map()).get(outboxID)
-}
-
-function inboxUntrustedStateSelector (state: TypedState) {
-  return state.chat.get('inboxUntrustedState')
 }
 
 function tmpFileName (isHdPreview: boolean, conversationID: Constants.ConversationIDKey, messageID: ?Constants.MessageID, filename: string) {
@@ -193,18 +185,18 @@ function _previousTimestampableMessage (messages: Array<Constants.Message>, prev
   return findLast(messages, message => _isTimestampableMessage(message) ? message : null, prevIndex)
 }
 
-function maybeAddTimestamp (_message: Constants.Message, messages: Array<Constants.Message>, prevIndex: number): Constants.MaybeTimestamp {
+function maybeAddTimestamp (conversationIDKey: Constants.ConversationIDKey, message: Constants.Message, messages: Array<Constants.Message>, prevIndex: number): Constants.MaybeTimestamp {
   const prevMessage = _previousTimestampableMessage(messages, prevIndex)
-  const message = _filterTimestampableMessage(_message)
-  if (!message || !prevMessage) return null
+  const m = _filterTimestampableMessage(message)
+  if (!m || !prevMessage) return null
 
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
   // the first message, as well as between any two messages with long duration.
   // $FlowIssue with casting todo(mm) can we fix this?
-  if (prevMessage.messageID === 1 || message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
+  if (prevMessage.messageID === 1 || m.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
     return {
-      key: Constants.messageKey('timestamp', message.timestamp),
-      timestamp: message.timestamp,
+      key: Constants.messageKey(conversationIDKey, 'timestamp', m.timestamp),
+      timestamp: m.timestamp,
       type: 'Timestamp',
     }
   }
@@ -213,14 +205,12 @@ function maybeAddTimestamp (_message: Constants.Message, messages: Array<Constan
 
 export {
   alwaysShowSelector,
-  attachmentPlaceholderPreviewSelector,
   clientHeader,
   conversationStateSelector,
   devicenameSelector,
   focusedSelector,
   followingSelector,
   getPostingIdentifyBehavior,
-  inboxUntrustedStateSelector,
   maybeAddTimestamp,
   messageOutboxIDSelector,
   messageSelector,

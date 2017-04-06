@@ -8,12 +8,6 @@ import type {Props} from './clickable-box'
 const ClickableBox = (props: Props & {children: any}) => {
   const {style, children, ...otherProps} = props
 
-  // FlatButton on desktop doesn't support onLongPress, but we allow the common
-  // ClickableBox component to pass one down for mobile, so strip it out here.
-  if (otherProps.onLongPress) {
-    delete otherProps.onLongPress
-  }
-
   return (
     <FlatButton {...otherProps} rippleColor={'transparent'} hoverColor={'transparent'} style={styleFlatButton}>
       <Box style={style}>{children}</Box>

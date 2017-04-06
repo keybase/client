@@ -20,10 +20,6 @@ type ChatUI struct {
 	lastPercentReported int
 }
 
-func (c *ChatUI) ChatAttachmentUploadOutboxID(context.Context, chat1.ChatAttachmentUploadOutboxIDArg) error {
-	return nil
-}
-
 func (c *ChatUI) ChatAttachmentUploadStart(context.Context, chat1.ChatAttachmentUploadStartArg) error {
 	if c.noOutput {
 		return nil
