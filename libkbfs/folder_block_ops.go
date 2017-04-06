@@ -123,6 +123,19 @@ func (si *syncInfo) mergeUnrefCache(md *RootMetadata) {
 	}
 }
 
+type deCacheEntry struct {
+	// dirEntry is the dirty directory entry corresponding to the
+	// BlockPointer that maps to this struct.
+	dirEntry DirEntry
+	// adds is a map of the pointers for new entry names that have
+	// been added to the DirBlock for the BlockPointer that maps to
+	// this struct.
+	adds map[string]BlockPointer
+	// dels is a set of the name that have been removed from the
+	// DirBlock for the BlockPointer that maps to this struct.
+	dels map[string]bool
+}
+
 // folderBlockOps contains all the fields that must be synchronized by
 // blockLock. It will eventually also contain all the methods that
 // must be synchronized by blockLock, so that folderBranchOps will
@@ -202,7 +215,7 @@ type folderBlockOps struct {
 	// For writes and truncates, track the modified (but not yet
 	// committed) directory entries. Maps the entry BlockRef to a
 	// modified entry.
-	deCache map[BlockRef]DirEntry
+	deCache map[BlockRef]deCacheEntry
 
 	// Writes and truncates for blocks that were being sync'd, and
 	// need to be replayed after the sync finishes on top of the new
@@ -831,7 +844,7 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 			dblockCopy = block.DeepCopy()
 		}
 
-		dblockCopy.Children[k] = de
+		dblockCopy.Children[k] = de.dirEntry
 	}
 
 	if dblockCopy == nil {
@@ -1417,7 +1430,9 @@ func (fbo *folderBlockOps) writeDataLocked(
 	// the `deCache` is used to determine whether there are any dirty
 	// files.  TODO: combine `deCache` with `dirtyFiles` and
 	// `unrefCache`.
-	fbo.deCache[file.tailPointer().Ref()] = newDe
+	cacheEntry := fbo.deCache[file.tailPointer().Ref()]
+	cacheEntry.dirEntry = newDe
+	fbo.deCache[file.tailPointer().Ref()] = cacheEntry
 
 	if fbo.doDeferWrite {
 		df.addDeferredNewBytes(bytesExtended)
@@ -1526,7 +1541,9 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	if err != nil {
 		return WriteRange{}, nil, err
 	}
-	fbo.deCache[file.tailPointer().Ref()] = newDe
+	cacheEntry := fbo.deCache[file.tailPointer().Ref()]
+	cacheEntry.dirEntry = newDe
+	fbo.deCache[file.tailPointer().Ref()] = cacheEntry
 
 	si, err := fbo.getOrCreateSyncInfoLocked(lState, de)
 	if err != nil {
@@ -1624,7 +1641,9 @@ func (fbo *folderBlockOps) truncateLocked(
 	df.updateNotYetSyncingBytes(newlyDirtiedChildBytes)
 
 	latestWrite := si.op.addTruncate(size)
-	fbo.deCache[file.tailPointer().Ref()] = newDe
+	cacheEntry := fbo.deCache[file.tailPointer().Ref()]
+	cacheEntry.dirEntry = newDe
+	fbo.deCache[file.tailPointer().Ref()] = cacheEntry
 
 	return &latestWrite, dirtyPtrs, newlyDirtiedChildBytes, nil
 }
@@ -2020,7 +2039,7 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 	// Capture the current de before we release the block lock, so
 	// other deferred writes don't slip in.
 	if de, ok := fbo.deCache[fileRef]; ok {
-		dirtyDe = &de
+		dirtyDe = &(de.dirEntry)
 	}
 
 	// Leave a copy of the syncOp in `unrefCache`, since it may be
@@ -2675,16 +2694,16 @@ func (fbo *folderBlockOps) setCachedAttr(
 		if !doCreate {
 			return
 		}
-		fileEntry = *realEntry
+		fileEntry.dirEntry = *realEntry
 	}
 
 	switch op.Attr {
 	case exAttr:
-		fileEntry.Type = realEntry.Type
+		fileEntry.dirEntry.Type = realEntry.Type
 	case mtimeAttr:
-		fileEntry.Mtime = realEntry.Mtime
+		fileEntry.dirEntry.Mtime = realEntry.Mtime
 	}
-	fileEntry.Ctime = realEntry.Ctime
+	fileEntry.dirEntry.Ctime = realEntry.Ctime
 	fbo.deCache[ref] = fileEntry
 }
 
