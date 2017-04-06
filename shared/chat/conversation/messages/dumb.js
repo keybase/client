@@ -419,6 +419,7 @@ function baseAttachmentPopupMock (message) {
     onDownloadAttachment: () => console.log('onDownload'),
     onDeleteMessage: () => console.log('onDeleteMessage'),
     onOpenDetailsPopup: () => console.log('onOpenDetailsPopup'),
+    onMessageAction: () => console.log('onMessageAction'),
     onOpenInFileUI: () => console.log('onOpenInFileUI'),
     onToggleZoom: () => console.log('onToggleZoom'),
     parentProps: {

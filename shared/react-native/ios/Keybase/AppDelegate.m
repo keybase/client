@@ -126,20 +126,18 @@ const BOOL isDebug = NO;
   [RCTPushNotificationManager didReceiveLocalNotification:notification];
 }
 
-- (void)applicationDidEnterBackground:(UIApplication *)application
+- (void)applicationWillResignActive:(UIApplication *)application
 {
-  UIImageView *imageView = [[UIImageView alloc] initWithFrame:self.window.bounds];
-  imageView.contentMode = UIViewContentModeCenter;
-  imageView.tag = 42;    // Give some decent tagvalue or keep a reference of imageView in self
-  imageView.backgroundColor = [UIColor whiteColor];
-  [imageView setImage:[UIImage imageNamed:@"LaunchImage"]];
-  [UIApplication.sharedApplication.keyWindow.subviews.lastObject addSubview:imageView];
+  self.resignImageView = [[UIImageView alloc] initWithFrame:self.window.bounds];
+  self.resignImageView.contentMode = UIViewContentModeCenter;
+  self.resignImageView.backgroundColor = [UIColor whiteColor];
+  [self.resignImageView setImage:[UIImage imageNamed:@"LaunchImage"]];
+  [self.window addSubview:self.resignImageView];
 }
 
-- (void)applicationWillEnterForeground:(UIApplication *)application
- {
-  UIImageView *imageView = (UIImageView *)[UIApplication.sharedApplication.keyWindow.subviews.lastObject viewWithTag:42];   // search by the same tag value
-  [imageView removeFromSuperview];
+- (void)applicationDidBecomeActive:(UIApplication *)application
+{
+  [self.resignImageView removeFromSuperview];
 }
 
 @end

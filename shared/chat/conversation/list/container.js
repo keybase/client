@@ -9,6 +9,8 @@ import {downloadFilePath} from '../../../util/file'
 import {navigateAppend} from '../../../actions/route-tree'
 import {pick} from 'lodash'
 import {compose} from 'recompose'
+import {getPath} from '../../../route-tree'
+import {chatTab} from '../../../constants/tabs'
 
 import type {OpenInFileUI} from '../../../constants/kbfs'
 import type {Options} from '../messages'
@@ -18,6 +20,7 @@ import type {TypedState} from '../../../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollDownCounter, onFocusInput}: OwnProps): StateProps => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  const routePath = getPath(state.routeTree.routeState, [chatTab])
   const you = state.config.username || ''
   const origFollowingMap = state.config.following
   const origMetaDataMap = state.chat.get('metaData')
@@ -71,6 +74,7 @@ const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollD
     moreToLoad,
     onFocusInput,
     participants,
+    routePath,
     selectedConversation: selectedConversationIDKey,
     supersededBy,
     supersedes,
@@ -82,13 +86,13 @@ const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollD
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onLoadAttachment: (selectedConversation, messageID, filename) => { dispatch(Creators.loadAttachment(selectedConversation, messageID, downloadFilePath(filename), false, false)) },
   _onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => { dispatch(Creators.loadMoreMessages(conversationIDKey, false)) },
+  _onOpenInPopup: (message: Constants.AttachmentMessage, routePath: List<string>) => dispatch(Creators.openAttachmentPopup(message, routePath)),
   _onRetryMessage: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
   onDeleteMessage: (message: Constants.Message) => { dispatch(Creators.deleteMessage(message)) },
   onEditMessage: (message: Constants.Message, body: string) => { dispatch(Creators.editMessage(message, new HiddenString(body))) },
   onMessageAction: (message: Constants.ServerMessage) => dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
   onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => dispatch(Creators.openConversation(conversationIDKey)),
   onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
-  onOpenInPopup: (message: Constants.AttachmentMessage) => dispatch(Creators.openAttachmentPopup(message)),
   onRetryAttachment: (message: Constants.AttachmentMessage) => dispatch(Creators.retryAttachment(message)),
 })
 
@@ -102,6 +106,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     ]),
     onLoadAttachment: (messageID, filename) => { stateProps.selectedConversation && dispatchProps._onLoadAttachment(stateProps.selectedConversation, messageID, filename) },
     onLoadMoreMessages: () => { stateProps.selectedConversation && dispatchProps._onLoadMoreMessages(stateProps.selectedConversation) },
+    onOpenInPopup: (message: Constants.AttachmentMessage) => { dispatchProps._onOpenInPopup(message, stateProps.routePath) },
     onRetryMessage: (outboxID: Constants.OutboxIDKey) => { stateProps.selectedConversation && dispatchProps._onRetryMessage(stateProps.selectedConversation, outboxID) },
   }
 

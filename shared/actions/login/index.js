@@ -46,7 +46,7 @@ const navBasedOnLoginState = (): AsyncAction => (dispatch, getState) => {
         console.log('Loading overridden logged in tab')
         dispatch(navigateTo([overrideLoggedInTab]))
       } else if (initialTab && isValidInitialTab(initialTab)) {
-        /// only do this once
+        // only do this once
         dispatch(setInitialTab(null))
         dispatch(navigateTo([initialTab]))
       } else {
@@ -392,7 +392,16 @@ const makeKex2IncomingMap = (dispatch, getState, onBack: SimpleCB, onProvisioner
     'keybase.1.provisionUi.DisplayAndPromptSecret': ({phrase, secret}, response) => {
       dispatch({payload: {textCode: new HiddenString(phrase)}, type: Constants.setTextCode})
       generateQRCode(dispatch, getState)
-      dispatch(askForCodePage(phrase => { response.result({phrase, secret: null}) }, () => onBack(response)))
+      let codeSent = false
+      dispatch(askForCodePage(phrase => {
+        if (!codeSent) {
+          // Without this lock, we would send hundreds of RPC replies as each
+          // camera frame with a QR code present gets interpreted, and that
+          // causes a "waitingForResponse" spinner on the next screen.
+          codeSent = true
+          response.result({phrase, secret: null})
+        }
+      }, () => onBack(response)))
     },
     'keybase.1.provisionUi.DisplaySecretExchanged': (param, response) => response.result(),
     'keybase.1.provisionUi.PromptNewDeviceName': ({existingDevices, errorMessage}, response) => {

@@ -1,6 +1,7 @@
 @namespace("chat.1")
 
 protocol chatUi {
+  void chatAttachmentUploadOutboxID(int sessionID, OutboxID outboxID); 
   void chatAttachmentUploadStart(int sessionID, AssetMetadata metadata, MessageID placeholderMsgID) oneway; 
   void chatAttachmentUploadProgress(int sessionID, int bytesComplete, int bytesTotal) oneway;     
   void chatAttachmentUploadDone(int sessionID); 
@@ -8,9 +9,9 @@ protocol chatUi {
   void chatAttachmentPreviewUploadStart(int sessionID, AssetMetadata metadata) oneway;  
   void chatAttachmentPreviewUploadDone(int sessionID);  
 
-  void chatAttachmentDownloadStart(int sessionID) oneway; 
+  void chatAttachmentDownloadStart(int sessionID); 
   void chatAttachmentDownloadProgress(int sessionID, int bytesComplete, int bytesTotal) oneway;     
-  void chatAttachmentDownloadDone(int sessionID) oneway;  
+  void chatAttachmentDownloadDone(int sessionID);  
 
   void chatInboxUnverified(int sessionID, GetInboxLocalRes inbox); 
   void chatInboxConversation(int sessionID, ConversationLocal conv);

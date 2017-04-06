@@ -1127,7 +1127,9 @@ func (idt *IdentityTable) populate() (err error) {
 			idt.G().Log.Debug("Ignoring bad chain link with sig ID %s: %s", link.GetSigID(), reason)
 			continue
 		}
-
+		if link.IsStubbed() {
+			continue
+		}
 		tcl, w := NewTypedChainLink(link)
 		tcl.insertIntoTable(idt)
 		if w != nil {

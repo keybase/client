@@ -114,6 +114,8 @@ type GlobalContext struct {
 	// Options specified for testing only
 	TestOptions GlobalTestOptions
 
+	ActiveDevice *ActiveDevice
+
 	NetContext context.Context
 }
 
@@ -147,6 +149,7 @@ func NewGlobalContext() *GlobalContext {
 		lastUpgradeWarning: new(time.Time),
 		uchMu:              new(sync.Mutex),
 		NewTriplesec:       NewSecureTriplesec,
+		ActiveDevice:       new(ActiveDevice),
 		NetContext:         context.TODO(),
 	}
 }
@@ -207,6 +210,7 @@ func (g *GlobalContext) createLoginStateLocked() {
 		g.loginState.Shutdown()
 	}
 	g.loginState = NewLoginState(g)
+	g.ActiveDevice = new(ActiveDevice)
 }
 
 func (g *GlobalContext) createLoginState() {

@@ -135,7 +135,9 @@ function * postMessage (action: Constants.PostMessage): SagaGenerator<any, any> 
 
     messages.push(message)
     const selectedConversation = yield select(Constants.getSelectedConversation)
-    yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversation, messages))
+    const appFocused = yield select(Shared.focusedSelector)
+
+    yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversation, appFocused, messages))
     if (hasPendingFailure) {
       yield put(Creators.removePendingFailure(outboxID))
     }

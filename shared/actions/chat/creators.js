@@ -7,11 +7,17 @@ import {chatTab} from '../../constants/tabs'
 import {setRouteState} from '../route-tree'
 import {uniq} from 'lodash'
 
+import type {Path} from '../../route-tree'
 import type {SetRouteState} from '../../constants/route-tree'
 
 // Whitelisted action loggers
 const updateTempMessageTransformer = ({type, payload: {conversationIDKey, outboxID}}: Constants.UpdateTempMessage) => ({
   payload: {conversationIDKey, outboxID},
+  type,
+})
+
+const updateMessageTransformer = ({type, payload: {conversationIDKey, messageID}}: Constants.UpdateMessage) => ({
+  payload: {conversationIDKey, messageID},
   type,
 })
 
@@ -184,8 +190,8 @@ function markSeenMessage (conversationIDKey: Constants.ConversationIDKey, messag
   return {payload: {conversationIDKey, messageID}, type: 'chat:markSeenMessage'}
 }
 
-function appendMessages (conversationIDKey: Constants.ConversationIDKey, isSelected: boolean, messages: Array<Constants.Message>): Constants.AppendMessages {
-  return {logTransformer: appendMessageActionTransformer, payload: {conversationIDKey, isSelected, messages}, type: 'chat:appendMessages'}
+function appendMessages (conversationIDKey: Constants.ConversationIDKey, isSelected: boolean, isAppFocused: boolean, messages: Array<Constants.Message>): Constants.AppendMessages {
+  return {logTransformer: appendMessageActionTransformer, payload: {conversationIDKey, isAppFocused, isSelected, messages}, type: 'chat:appendMessages'}
 }
 
 function getInboxAndUnbox (conversationIDKeys: Array<Constants.ConversationIDKey>): Constants.GetInboxAndUnbox {
@@ -236,10 +242,6 @@ function loadingMessages (conversationIDKey: Constants.ConversationIDKey, isRequ
   return {payload: {conversationIDKey, isRequesting}, type: 'chat:loadingMessages'}
 }
 
-function deleteTempMessage (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey): Constants.DeleteTempMessage {
-  return {payload: {conversationIDKey, outboxID}, type: 'chat:deleteTempMessage'}
-}
-
 function retryAttachment (message: Constants.AttachmentMessage): Constants.SelectAttachment {
   const {conversationIDKey, filename, title, previewType, outboxID} = message
   if (!filename || !title || !previewType) {
@@ -271,8 +273,8 @@ function downloadProgress (conversationIDKey: Constants.ConversationIDKey, messa
   return {payload: {bytesComplete, bytesTotal, conversationIDKey, isPreview, messageID}, type: 'chat:downloadProgress'}
 }
 
-function uploadProgress (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey, bytesComplete: number, bytesTotal: number): Constants.UploadProgress {
-  return {payload: {bytesComplete, bytesTotal, conversationIDKey, outboxID}, type: 'chat:uploadProgress'}
+function uploadProgress (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, bytesComplete: number, bytesTotal: number): Constants.UploadProgress {
+  return {payload: {bytesComplete, bytesTotal, conversationIDKey, messageID}, type: 'chat:uploadProgress'}
 }
 
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
@@ -324,8 +326,8 @@ function openConversation (conversationIDKey: Constants.ConversationIDKey): Cons
   return {payload: {conversationIDKey}, type: 'chat:openConversation'}
 }
 
-function openAttachmentPopup (message: Constants.AttachmentMessage): Constants.OpenAttachmentPopup {
-  return {payload: {message}, type: 'chat:openAttachmentPopup'}
+function openAttachmentPopup (message: Constants.AttachmentMessage, currentPath: Path): Constants.OpenAttachmentPopup {
+  return {payload: {message, currentPath}, type: 'chat:openAttachmentPopup'}
 }
 
 function setInitialConversation (conversationIDKey: ?Constants.ConversationIDKey): Constants.SetInitialConversation {
@@ -336,8 +338,28 @@ function threadLoadedOffline (conversationIDKey: Constants.ConversationIDKey): C
   return {payload: {conversationIDKey}, type: 'chat:threadLoadedOffline'}
 }
 
+function updateMessage (conversationIDKey: Constants.ConversationIDKey, message: $Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>, messageID: Constants.MessageID): Constants.UpdateMessage {
+  return {
+    logTransformer: updateMessageTransformer,
+    payload: {conversationIDKey, messageID, message},
+    type: 'chat:updateMessage',
+  }
+}
+
 function setSelectedRouteState (selectedConversation: Constants.ConversationIDKey, partialState: Object): SetRouteState {
   return setRouteState(List([chatTab, selectedConversation]), partialState)
+}
+
+function setAttachmentPlaceholderPreview (outboxID: Constants.OutboxIDKey, previewPath: string): Constants.SetAttachmentPlaceholderPreview {
+  return {payload: {previewPath, outboxID}, type: 'chat:setAttachmentPlaceholderPreview'}
+}
+
+function clearAttachmentPlaceholderPreview (outboxID: Constants.OutboxIDKey): Constants.ClearAttachmentPlaceholderPreview {
+  return {payload: {outboxID}, type: 'chat:clearAttachmentPlaceholderPreview'}
+}
+
+function setInboxUntrustedState (inboxUntrustedState: Constants.UntrustedState): Constants.SetInboxUntrustedState {
+  return {payload: {inboxUntrustedState}, type: 'chat:inboxUntrustedState'}
 }
 
 export {
@@ -346,11 +368,11 @@ export {
   attachmentLoaded,
   badgeAppForChat,
   blockConversation,
+  clearAttachmentPlaceholderPreview,
   clearMessages,
   clearRekey,
   createPendingFailure,
   deleteMessage,
-  deleteTempMessage,
   downloadProgress,
   editMessage,
   getInboxAndUnbox,
@@ -379,6 +401,8 @@ export {
   retryMessage,
   selectAttachment,
   selectConversation,
+  setAttachmentPlaceholderPreview,
+  setInboxUntrustedState,
   setInitialConversation,
   setLoaded,
   setSelectedRouteState,
@@ -397,6 +421,7 @@ export {
   updateInboxRekeyOthers,
   updateInboxRekeySelf,
   updateLatestMessage,
+  updateMessage,
   updateMetadata,
   updatePaginationNext,
   updateSupersededByState,

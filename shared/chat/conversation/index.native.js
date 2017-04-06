@@ -8,7 +8,7 @@ import React from 'react'
 import SidePanel from './side-panel/container'
 import YouRekey from './you-rekey'
 import Banner from './banner/container'
-import {Box} from '../../common-adapters'
+import {Box, LoadingLine} from '../../common-adapters'
 import {compose, branch, renderComponent} from 'recompose'
 import {globalStyles} from '../../styles'
 
@@ -27,6 +27,7 @@ const Conversation = (props: Props) => (
       editLastMessageCounter={props.editLastMessageCounter}
     />
     <Banner />
+    {props.showLoader && <LoadingLine />}
     {props.finalizeInfo
       ? <OldProfileResetNotice
         onOpenNewerConversation={props.onOpenNewerConversation}
