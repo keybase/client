@@ -41,7 +41,6 @@ type DefaultCellRangeRendererParams = {
 type State = {
   isLockedToBottom: boolean,
   isScrolling: boolean,
-  messages: List<Constants.Message>,
   scrollTop: number,
   selectedMessageID?: Constants.MessageID,
 }
@@ -66,7 +65,6 @@ class ConversationList extends Component<void, Props, State> {
     this.state = {
       isLockedToBottom: true,
       isScrolling: false,
-      messages: props.messages,
       scrollTop: 0,
     }
 
@@ -76,23 +74,6 @@ class ConversationList extends Component<void, Props, State> {
     })
     this._toRemeasure = []
     this._shouldForceUpdateGrid = false
-
-    this._setupDebug()
-  }
-
-  _setupDebug () {
-    if (__DEV__ && typeof window !== 'undefined') {
-      window.dumpChat = (...columns) => {
-        console.table(this.state.messages.toJS().map(m => ({
-          ...m,
-          decoded: m.message && m.message.stringValue(),
-        })), columns.length && columns)
-      }
-    }
-  }
-
-  shouldComponentUpdate (nextProps: Props, nextState: State) {
-    return !shallowEqual(this.props, nextProps) || !shallowEqual(this.state, nextState)
   }
 
   componentWillUnmount () {
@@ -102,6 +83,7 @@ class ConversationList extends Component<void, Props, State> {
     this._onScrollSettled.cancel()
   }
 
+  // TODO keep a counter in the keys list to force these changes automatically. pass that itno the list
   componentWillUpdate (nextProps: Props, nextState: State) {
     // If a message has moved from pending to sent, tell the List to discard
     // heights for it (which will re-render it and everything after it)
@@ -130,7 +112,7 @@ class ConversationList extends Component<void, Props, State> {
 
   componentDidUpdate (prevProps: Props, prevState: State) {
     if ((this.props.selectedConversation !== prevProps.selectedConversation) ||
-        (this.state.messages !== prevState.messages)) {
+        (this.props.messageKeys !== prevProps.messageKeys)) {
       this.state.isLockedToBottom && this._scrollToBottom()
     }
 
@@ -138,12 +120,12 @@ class ConversationList extends Component<void, Props, State> {
       this.onEditLastMessage()
     }
 
-    if (this.state.messages !== prevState.messages && prevState.messages.count() > 1) {
-      const prependedCount = this.state.messages.indexOf(prevState.messages.first())
-      const headerCount = this.props.headerMessages.count()
+    if (this.props.messageKeys !== prevProps.messageKeys && prevProps.messageKeys.count() > 1) {
+      const prependedCount = this.props.messageKeys.indexOf(prevProps.messageKeys.first())
+      // const headerCount = this.props.headerMessages.count()
       if (prependedCount !== -1) {
         // Measure the new items so we can adjust our scrollTop so your position doesn't jump
-        const scrollTop = this.state.scrollTop + _.range(headerCount, headerCount + prependedCount)
+        const scrollTop = this.state.scrollTop + _.range(0, prependedCount)
           .map(index => this._cellMeasurer.getRowHeight({index}))
           .reduce((total, height) => total + height, 0)
 
@@ -161,10 +143,6 @@ class ConversationList extends Component<void, Props, State> {
 
     const willScrollDown = nextProps.listScrollDownCounter !== this.props.listScrollDownCounter
 
-    if (!this.state.isScrolling || willScrollDown || this.state.isLockedToBottom) {
-      this._updateInternalMessages(nextProps)
-    }
-
     if (willScrollDown) {
       this.setState({isLockedToBottom: true})
     }
@@ -174,38 +152,7 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
-  _invalidateChangedMessages (props: Props) {
-    const headerMessagesCount = props.headerMessages.count()
-    this.state.messages.forEach((item, index) => {
-      const oldMessage = props.messages.get(index, {})
-
-      if (item.type === 'Text' && oldMessage.type === 'Text' &&
-        (item.messageState !== oldMessage.messageState ||
-        item.editedCount !== oldMessage.editedCount)
-      ) {
-        this._toRemeasure.push(index + headerMessagesCount)
-      } else if (item.type === 'Attachment' && oldMessage.type === 'Attachment' &&
-                 (item.previewPath !== oldMessage.previewPath ||
-                  !shallowEqual(item.previewSize, oldMessage.previewSize))) {
-        this._toRemeasure.push(index + headerMessagesCount)
-      } else if (!shallowEqual(item, oldMessage)) {
-        this._shouldForceUpdateGrid = true
-      }
-    })
-  }
-
-  _updateInternalMessages = (props: Props) => {
-    if (props.messages !== this.state.messages) {
-      this._invalidateChangedMessages(props)
-      this.setState({
-        messages: props.messages,
-      })
-    }
-  }
-
   _onScrollSettled = _.debounce(() => {
-    // If we've stopped scrolling let's update our internal messages
-    this._updateInternalMessages(this.props)
     this.setState({
       isScrolling: false,
     })
@@ -355,23 +302,16 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
-    if (__DEV__ && DEBUG_ROW_RENDER && style) {
-      style = {
-        ...style,
-        backgroundColor: '#' + ((1 << 24) * Math.random() | 0).toString(16),
-        overflow: 'hidden',
-      }
-    }
+    return messageFactory(this.props.messageKeys.get(index), style)
+    // const message = this.props.messageKeys.get(index)
+    // const prevMessage = this.props.messages.get(index - 1)
+    // const isFirstMessage = index === 0
+    // const isSelected = false // TODO selectedKey instead
+    // // const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
 
-    const messages = this.props.headerMessages.concat(this.state.messages)
-    const message = messages.get(index)
-    const prevMessage = messages.get(index - 1)
-    const isFirstMessage = index === 0
-    const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
+    // const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, this._onAction, this._onShowEditor, false)
 
-    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, this._onAction, this._onShowEditor, false)
-
-    return messageFactory(options)
+    // return messageFactory(options)
   }
 
   _recomputeListDebounced = _.throttle(() => {
@@ -401,7 +341,8 @@ class ConversationList extends Component<void, Props, State> {
     this._list = r
   }
 
-  _rowCount = () => this.props.headerMessages.count() + this.state.messages.count()
+  _rowCount = () => this.props.messageKeys.count()
+  // _rowCount = () => this.props.headerMessages.count() + this.props.messages.count()
 
   _scrollToBottom = () => {
     const rowCount = this._rowCount()
@@ -432,36 +373,37 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   onEditLastMessage = () => {
-    if (!this._list) {
-      return
-    }
+    // if (!this._list) {
+      // return
+    // }
 
-    const entry: any = this.state.messages.findLastEntry(m => m.type === 'Text' && m.author === this.props.you)
-    if (entry) {
-      const idx: number = entry[0]
-      const message: Constants.TextMessage = entry[1]
+    // TODO put this back
+    // const entry: any = this.props.messageKeys.findLastEntry(m => m.type === 'Text' && m.author === this.props.you)
+    // if (entry) {
+      // const idx: number = entry[0]
+      // const message: Constants.TextMessage = entry[1]
 
-      if (this._listIsGood()) {
-        this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: idx})
-      }
-      const listNode = ReactDOM.findDOMNode(this._list)
-      if (listNode) {
-        const messageNodes = listNode.querySelectorAll(`[data-message-key="${message.key}"]`)
-        if (messageNodes) {
-          const messageNode = messageNodes[0]
-          if (messageNode) {
-            this._showEditor(message, this._domNodeToRect(messageNode))
-          }
-        }
-      }
-    }
+      // if (this._listIsGood()) {
+        // this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: idx})
+      // }
+      // const listNode = ReactDOM.findDOMNode(this._list)
+      // if (listNode) {
+        // const messageNodes = listNode.querySelectorAll(`[data-message-key="${message.key}"]`)
+        // if (messageNodes) {
+          // const messageNode = messageNodes[0]
+          // if (messageNode) {
+            // this._showEditor(message, this._domNodeToRect(messageNode))
+          // }
+        // }
+      // }
+    // }
   }
 
-  _cellRangeRenderer = options => {
-    const message = this.state.messages.get(0)
-    const firstKey = message && message.key || '0'
-    return chatCellRangeRenderer(firstKey, this._cellCache, options)
-  }
+  // _cellRangeRenderer = options => {
+    // const message = this.props.messages.get(0)
+    // const firstKey = message && message.key || '0'
+    // return chatCellRangeRenderer(firstKey, this._cellCache, options)
+  // }
 
   render () {
     if (!this.props.validated) {
@@ -491,7 +433,6 @@ class ConversationList extends Component<void, Props, State> {
               width={width - scrollbarWidth} >
               {({getRowHeight}) => (
                 <VirtualizedList
-                  cellRangeRenderer={this._cellRangeRenderer}
                   style={listStyle}
                   height={height}
                   ref={this._setListRef}
@@ -509,6 +450,7 @@ class ConversationList extends Component<void, Props, State> {
   }
 }
 
+                  // cellRangeRenderer={this._cellRangeRenderer}
 // We need to use both visibility and opacity css properties for the
 // action button hide/show on hover.
 // We use opacity because it shows/hides the button immediately on
@@ -545,111 +487,112 @@ const listStyle = {
   paddingBottom: listBottomMargin,
 }
 
-let lastFirstKey
-function chatCellRangeRenderer (firstKey: string, cellSizeCache: any, {
-  cellCache,
-  cellRenderer,
-  columnSizeAndPositionManager,
-  columnStartIndex,
-  columnStopIndex,
-  horizontalOffsetAdjustment,
-  isScrolling,
-  rowSizeAndPositionManager,
-  rowStartIndex,
-  rowStopIndex,
-  scrollLeft,
-  scrollTop,
-  styleCache,
-  verticalOffsetAdjustment,
-  visibleColumnIndices,
-  visibleRowIndices,
-}: DefaultCellRangeRendererParams) {
-  const renderedCells = []
-  const offsetAdjusted = verticalOffsetAdjustment || horizontalOffsetAdjustment
-  const canCacheStyle = !isScrolling || !offsetAdjusted
+// See if we really need this
+// let lastFirstKey
+// function chatCellRangeRenderer (firstKey: string, cellSizeCache: any, {
+  // cellCache,
+  // cellRenderer,
+  // columnSizeAndPositionManager,
+  // columnStartIndex,
+  // columnStopIndex,
+  // horizontalOffsetAdjustment,
+  // isScrolling,
+  // rowSizeAndPositionManager,
+  // rowStartIndex,
+  // rowStopIndex,
+  // scrollLeft,
+  // scrollTop,
+  // styleCache,
+  // verticalOffsetAdjustment,
+  // visibleColumnIndices,
+  // visibleRowIndices,
+// }: DefaultCellRangeRendererParams) {
+  // const renderedCells = []
+  // const offsetAdjusted = verticalOffsetAdjustment || horizontalOffsetAdjustment
+  // const canCacheStyle = !isScrolling || !offsetAdjusted
 
-  // Only if the list is prepended to does it cause all this redrawing
-  if (firstKey !== lastFirstKey) {
-    lastFirstKey = firstKey
-    rowSizeAndPositionManager.resetCell(0)
-    cellSizeCache.clearAllRowHeights()
-  }
+  // // Only if the list is prepended to does it cause all this redrawing
+  // if (firstKey !== lastFirstKey) {
+    // lastFirstKey = firstKey
+    // rowSizeAndPositionManager.resetCell(0)
+    // cellSizeCache.clearAllRowHeights()
+  // }
 
-  for (let rowIndex = rowStartIndex; rowIndex <= rowStopIndex; rowIndex++) {
-    let rowDatum = rowSizeAndPositionManager.getSizeAndPositionOfCell(rowIndex)
+  // for (let rowIndex = rowStartIndex; rowIndex <= rowStopIndex; rowIndex++) {
+    // let rowDatum = rowSizeAndPositionManager.getSizeAndPositionOfCell(rowIndex)
 
-    for (let columnIndex = columnStartIndex; columnIndex <= columnStopIndex; columnIndex++) {
-      let columnDatum = columnSizeAndPositionManager.getSizeAndPositionOfCell(columnIndex)
-      let isVisible = (
-        columnIndex >= visibleColumnIndices.start &&
-        columnIndex <= visibleColumnIndices.stop &&
-        rowIndex >= visibleRowIndices.start &&
-        rowIndex <= visibleRowIndices.stop
-      )
+    // for (let columnIndex = columnStartIndex; columnIndex <= columnStopIndex; columnIndex++) {
+      // let columnDatum = columnSizeAndPositionManager.getSizeAndPositionOfCell(columnIndex)
+      // let isVisible = (
+        // columnIndex >= visibleColumnIndices.start &&
+        // columnIndex <= visibleColumnIndices.stop &&
+        // rowIndex >= visibleRowIndices.start &&
+        // rowIndex <= visibleRowIndices.stop
+      // )
 
-      let key = `${rowIndex}-${firstKey}`
-      let style
+      // let key = `${rowIndex}-${firstKey}`
+      // let style
 
-      // Cache style objects so shallow-compare doesn't re-render unnecessarily.
-      if (canCacheStyle && styleCache[key]) {
-        style = styleCache[key]
-      } else {
-        style = {
-          height: rowDatum.size,
-          left: columnDatum.offset + horizontalOffsetAdjustment,
-          position: 'absolute',
-          top: rowDatum.offset + verticalOffsetAdjustment,
-          width: columnDatum.size,
-        }
+      // // Cache style objects so shallow-compare doesn't re-render unnecessarily.
+      // if (canCacheStyle && styleCache[key]) {
+        // style = styleCache[key]
+      // } else {
+        // style = {
+          // height: rowDatum.size,
+          // left: columnDatum.offset + horizontalOffsetAdjustment,
+          // position: 'absolute',
+          // top: rowDatum.offset + verticalOffsetAdjustment,
+          // width: columnDatum.size,
+        // }
 
-        styleCache[key] = style
-      }
+        // styleCache[key] = style
+      // }
 
-      let cellRendererParams = {
-        columnIndex,
-        isScrolling,
-        isVisible,
-        key,
-        rowIndex,
-        style,
-      }
+      // let cellRendererParams = {
+        // columnIndex,
+        // isScrolling,
+        // isVisible,
+        // key,
+        // rowIndex,
+        // style,
+      // }
 
-      let renderedCell
+      // let renderedCell
 
-      // Avoid re-creating cells while scrolling.
-      // This can lead to the same cell being created many times and can cause performance issues for "heavy" cells.
-      // If a scroll is in progress- cache and reuse cells.
-      // This cache will be thrown away once scrolling completes.
-      // However if we are scaling scroll positions and sizes, we should also avoid caching.
-      // This is because the offset changes slightly as scroll position changes and caching leads to stale values.
-      // For more info refer to issue #395
-      if (
-        isScrolling &&
-        !horizontalOffsetAdjustment &&
-        !verticalOffsetAdjustment
-      ) {
-        if (!cellCache[key]) {
-          cellCache[key] = cellRenderer(cellRendererParams)
-        }
+      // // Avoid re-creating cells while scrolling.
+      // // This can lead to the same cell being created many times and can cause performance issues for "heavy" cells.
+      // // If a scroll is in progress- cache and reuse cells.
+      // // This cache will be thrown away once scrolling completes.
+      // // However if we are scaling scroll positions and sizes, we should also avoid caching.
+      // // This is because the offset changes slightly as scroll position changes and caching leads to stale values.
+      // // For more info refer to issue #395
+      // if (
+        // isScrolling &&
+        // !horizontalOffsetAdjustment &&
+        // !verticalOffsetAdjustment
+      // ) {
+        // if (!cellCache[key]) {
+          // cellCache[key] = cellRenderer(cellRendererParams)
+        // }
 
-        renderedCell = cellCache[key]
+        // renderedCell = cellCache[key]
 
-      // If the user is no longer scrolling, don't cache cells.
-      // This makes dynamic cell content difficult for users and would also lead to a heavier memory footprint.
-      } else {
-        renderedCell = cellRenderer(cellRendererParams)
-      }
+      // // If the user is no longer scrolling, don't cache cells.
+      // // This makes dynamic cell content difficult for users and would also lead to a heavier memory footprint.
+      // } else {
+        // renderedCell = cellRenderer(cellRendererParams)
+      // }
 
-      if (renderedCell == null || renderedCell === false) {
-        continue
-      }
+      // if (renderedCell == null || renderedCell === false) {
+        // continue
+      // }
 
-      renderedCells.push(renderedCell)
-    }
-  }
+      // renderedCells.push(renderedCell)
+    // }
+  // }
 
-  return renderedCells
-}
+  // return renderedCells
+// }
 
 export default ConversationList
 

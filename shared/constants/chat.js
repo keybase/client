@@ -14,8 +14,21 @@ import type {AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFin
 import type {DeviceType} from './types/more'
 import type {TypedState} from './reducer'
 
-type MessageKey = string
-type MessageKeyKind = 'messageID' | 'outboxID' | 'tempAttachment' | 'timestamp' | 'error'
+export type MessageKey = string
+type MessageKeyKind = 'chatSecured'
+| 'error'
+| 'errorInvisible'
+| 'loadingMore'
+| 'messageIDAttachment'
+| 'messageIDDeleted'
+| 'messageIDEdit'
+| 'messageIDAttachmentUpdate'
+| 'messageIDError'
+| 'messageIDText'
+| 'messageIDUnhandled'
+| 'outboxID'
+| 'tempAttachment'
+| 'timestamp'
 
 export type MessageType = 'Text'
 export type FollowingMap = {[key: string]: boolean}
@@ -198,7 +211,8 @@ export const ConversationStateRecord = Record({
 })
 
 export type ConversationState = Record<{
-  messageKeys: List<string>,
+  messageKeys: List<MessageKey>,
+  // TODO del
   messages: List<Message>,
   seenMessages: Set<MessageID>,
   moreToLoad: boolean,
@@ -284,6 +298,7 @@ export type RekeyInfo = Record<{
 }>
 
 export const StateRecord = Record({
+  messageMap: Map(),
   inbox: List(),
   conversationStates: Map(),
   focused: false,
@@ -302,6 +317,8 @@ export const StateRecord = Record({
 })
 
 export type State = Record<{
+  // TODO  move to entities
+  messageMap: Map<MessageKey, Message>,
   inbox: List<InboxState>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   finalizedState: FinalizedState,
@@ -428,7 +445,7 @@ export type DeleteTempMessage = NoErrorTypedAction<'chat:deleteTempMessage', {
 
 export type MarkSeenMessage = NoErrorTypedAction<'chat:markSeenMessage', {
   conversationIDKey: ConversationIDKey,
-  messageID: MessageID,
+  messageKey: MessageKey,
 }>
 
 export type SaveAttachment = NoErrorTypedAction<'chat:saveAttachmentNative', {
@@ -613,8 +630,36 @@ const getSelectedRouteState = (state: TypedState) => {
   return getPathState(state.routeTree.routeState, [chatTab, selected])
 }
 
-function messageKey (kind: MessageKeyKind, value: string | number): MessageKey {
-  return `${kind}:${value}`
+function messageKey (conversationIDKey: ConversationIDKey, kind: MessageKeyKind, value: string | number): MessageKey {
+  return `${conversationIDKey}:${kind}:${value}`
+}
+
+function messageKeyValue (key: MessageKey): string {
+  return key.split(':')[2]
+}
+
+function messageKeyConversationIDKey (key: MessageKey): ConversationIDKey {
+  return key.split(':')[0]
+}
+
+function messageKeyKind (key: MessageKey): MessageKeyKind {
+  const [_, kind] = key.split(':') // eslint-disable-line no-unused-vars
+  switch (kind) {
+    case 'error': return 'error'
+    case 'errorInvisible': return 'errorInvisible'
+    case 'loadingMore': return 'loadingMore'
+    case 'messageIDAttachment': return 'messageIDAttachment'
+    case 'messageIDAttachmentUpdate': return 'messageIDAttachmentUpdate'
+    case 'messageIDDeleted': return 'messageIDDeleted'
+    case 'messageIDEdit': return 'messageIDEdit'
+    case 'messageIDError': return 'messageIDError'
+    case 'messageIDText': return 'messageIDText'
+    case 'messageIDUnhandled': return 'messageIDUnhandled'
+    case 'outboxID': return 'outboxID'
+    case 'tempAttachment': return 'tempAttachment'
+    case 'timestamp': return 'timestamp'
+  }
+  throw new Error(`Invalid messageKeyKind passed key: ${key}`)
 }
 
 const getYou = (state: TypedState) => state.config.username || ''
@@ -652,6 +697,9 @@ export {
   keyToOutboxID,
   makeSnippet,
   messageKey,
+  messageKeyKind,
+  messageKeyValue,
+  messageKeyConversationIDKey,
   outboxIDToKey,
   participantFilter,
   serverMessageToMessageBody,

@@ -260,8 +260,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       ))
     }
     case 'chat:markSeenMessage': {
-      const {messageID, conversationIDKey} = action.payload
-      const messageKey = Constants.messageKey('messageID', messageID)
+      const {messageKey, conversationIDKey} = action.payload
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversation(
         conversationStates,

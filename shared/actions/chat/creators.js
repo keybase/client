@@ -180,8 +180,8 @@ function updatePaginationNext (conversationIDKey: Constants.ConversationIDKey, p
   return {payload: {conversationIDKey, paginationNext}, type: 'chat:updatePaginationNext'}
 }
 
-function markSeenMessage (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID): Constants.MarkSeenMessage {
-  return {payload: {conversationIDKey, messageID}, type: 'chat:markSeenMessage'}
+function markSeenMessage (conversationIDKey: Constants.ConversationIDKey, messageKey: Constants.MessageKey): Constants.MarkSeenMessage {
+  return {payload: {conversationIDKey, messageKey}, type: 'chat:markSeenMessage'}
 }
 
 function appendMessages (conversationIDKey: Constants.ConversationIDKey, isSelected: boolean, messages: Array<Constants.Message>): Constants.AppendMessages {
