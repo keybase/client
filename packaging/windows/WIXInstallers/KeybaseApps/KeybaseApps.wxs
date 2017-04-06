@@ -193,7 +193,7 @@
   </Fragment>
   
   <Fragment>
-    <ComponentGroup Id="BrowserExtensionKbnm" Directory="GuiDir">
+    <ComponentGroup Id="BrowserExtensionKbnm" Directory="INSTALLFOLDER">
       
       <Component Id="kbnm.exe" Guid="{FE0C96E0-FFC8-4256-A600-50FFFCF58349}">
         <CreateFolder />
