@@ -24,7 +24,7 @@ for i in $DIRS; do
   fi
 
   echo -n "$i......."
-  if ! (cd $i && go test -timeout 50m) ; then
+  if ! (cd $i && go test -timeout 50m -ldflags -s) ; then
     failures+=("$i")
   fi
 done
