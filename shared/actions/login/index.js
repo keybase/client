@@ -6,7 +6,7 @@ import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import openURL from '../../util/open-url'
 import {RPCError} from '../../util/errors'
-import {bootstrap, setInitialTab} from '../config'
+import {bootstrap, setInitialTab, setLaunchedViaPush} from '../config'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {devicesTab, loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
@@ -34,7 +34,7 @@ const waitingForResponse = (waiting: boolean) : TypedAction<'login:waitingForRes
 )
 
 const navBasedOnLoginState = (): AsyncAction => (dispatch, getState) => {
-  const {config: {status, extendedConfig, initialTab}, login: {justDeletedSelf}} = getState()
+  const {config: {extendedConfig, initialTab, launchedViaPush, status}, login: {justDeletedSelf}} = getState()
 
   // No status?
   if (!status || !Object.keys(status).length || !extendedConfig || !Object.keys(extendedConfig).length ||
@@ -46,9 +46,11 @@ const navBasedOnLoginState = (): AsyncAction => (dispatch, getState) => {
         console.log('Loading overridden logged in tab')
         dispatch(navigateTo([overrideLoggedInTab]))
       } else if (initialTab && isValidInitialTab(initialTab)) {
-        /// only do this once
+        // only do this once
         dispatch(setInitialTab(null))
-        dispatch(navigateTo([initialTab]))
+        if (!launchedViaPush) {
+          dispatch(navigateTo([initialTab]))
+        }
       } else {
         dispatch(navigateTo([profileTab]))
       }

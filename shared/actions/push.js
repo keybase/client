@@ -6,7 +6,7 @@ import {call, put, take, select} from 'redux-saga/effects'
 import {chatTab} from '../constants/tabs'
 import {navigateTo} from './route-tree'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
-import {setInitialTab} from './config'
+import {setLaunchedViaPush} from './config'
 
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
@@ -68,10 +68,9 @@ function * pushNotificationSaga (notification: PushNotification): SagaGenerator<
       return
     }
 
-    // If we're going to a pressed push notification, we don't *also* want to
-    // restore the previous stored initial tab.
-    yield put(setInitialTab(null))
-
+    // Record that we're going to a push notification conversation, in order
+    // to avoid racing with restoring a saved initial tab.
+    yield put(setLaunchedViaPush(true))
     yield put(navigateTo([chatTab, convID]))
   }
 }
