@@ -144,6 +144,24 @@ func TestPrevOutOfOrder(t *testing.T) {
 	expectCode(t, err, OutOfOrderID)
 }
 
+func TestPrevOutOfOrderEq(t *testing.T) {
+	thread := threadViewFromDummies([]dummyMessage{
+		dummyMessage{
+			id:   1,
+			hash: []byte("placeholder"),
+			prevs: []chat1.MessagePreviousPointer{
+				chat1.MessagePreviousPointer{
+					Id:   1, // Points to self!
+					Hash: []byte("placeholder"),
+				},
+			},
+		},
+	})
+
+	_, err := CheckPrevPointersAndGetUnpreved(&thread)
+	expectCode(t, err, OutOfOrderID)
+}
+
 func TestPrevIncorrectHash(t *testing.T) {
 	thread := threadViewFromDummies([]dummyMessage{
 		dummyMessage{
