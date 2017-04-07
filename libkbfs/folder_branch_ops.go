@@ -3385,9 +3385,13 @@ func (fbo *folderBranchOps) Truncate(
 }
 
 func (fbo *folderBranchOps) setExLocked(
-	ctx context.Context, lState *lockState, file path,
-	ex bool) (err error) {
+	ctx context.Context, lState *lockState, file Node, ex bool) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
+
+	filePath, err := fbo.pathFromNodeForMDWriteLocked(lState, file)
+	if err != nil {
+		return err
+	}
 
 	// verify we have permission to write
 	md, err := fbo.getMDForWriteLocked(ctx, lState)
@@ -3396,7 +3400,7 @@ func (fbo *folderBranchOps) setExLocked(
 	}
 
 	dblock, de, err := fbo.blocks.GetDirtyParentAndEntry(
-		ctx, lState, md.ReadOnly(), file)
+		ctx, lState, md.ReadOnly(), filePath)
 	if err != nil {
 		return err
 	}
@@ -3422,9 +3426,9 @@ func (fbo *folderBranchOps) setExLocked(
 
 	de.Ctime = fbo.nowUnixNano()
 
-	parentPath := file.parentPath()
-	sao, err := newSetAttrOp(file.tailName(), parentPath.tailPointer(),
-		exAttr, file.tailPointer())
+	parentPath := filePath.parentPath()
+	sao, err := newSetAttrOp(filePath.tailName(), parentPath.tailPointer(),
+		exAttr, filePath.tailPointer())
 	if err != nil {
 		return err
 	}
@@ -3432,18 +3436,30 @@ func (fbo *folderBranchOps) setExLocked(
 	// If the MD doesn't match the MD expected by the path, that
 	// implies we are using a cached path, which implies the node has
 	// been unlinked.  In that case, we can safely ignore this setex.
-	if md.data.Dir.BlockPointer.ID != file.path[0].BlockPointer.ID {
+	if md.data.Dir.BlockPointer.ID != filePath.path[0].BlockPointer.ID {
 		fbo.log.CDebugf(ctx, "Skipping setex for a removed file %v",
-			file.tailPointer())
+			filePath.tailPointer())
 		fbo.blocks.UpdateCachedEntryAttributesOnRemovedFile(
 			ctx, lState, sao, de)
 		return nil
 	}
 
-	sao.setFinalPath(file)
+	sao.setFinalPath(filePath)
 	md.AddOp(sao)
 
-	dblock.Children[file.tailName()] = de
+	deleteTargetDirEntry := fbo.blocks.SetAttrInDirEntryInCache(
+		lState, de, sao.Attr)
+	fbo.dirOps = append(fbo.dirOps, cachedDirOp{sao, []Node{file}})
+
+	defer func() {
+		// Until KBFS-2076 is done, clear out the cached dir data manually.
+		fbo.dirOps = nil
+		if deleteTargetDirEntry {
+			fbo.blocks.ClearCacheInfo(lState, filePath)
+		}
+	}()
+
+	dblock.Children[filePath.tailName()] = de
 	_, err = fbo.syncBlockAndFinalizeLocked(
 		ctx, lState, md, dblock, *parentPath.parentPath(), parentPath.tailName(),
 		Dir, false, false, zeroPtr, NoExcl)
@@ -3465,12 +3481,7 @@ func (fbo *folderBranchOps) SetEx(
 
 	return fbo.doMDWriteWithRetryUnlessCanceled(ctx,
 		func(lState *lockState) error {
-			filePath, err := fbo.pathFromNodeForMDWriteLocked(lState, file)
-			if err != nil {
-				return err
-			}
-
-			return fbo.setExLocked(ctx, lState, filePath, ex)
+			return fbo.setExLocked(ctx, lState, file, ex)
 		})
 }
 
