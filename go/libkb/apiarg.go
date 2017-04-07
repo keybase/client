@@ -1,9 +1,10 @@
 package libkb
 
 import (
-	"golang.org/x/net/context"
 	"net/url"
 	"time"
+
+	"golang.org/x/net/context"
 )
 
 type APIArg struct {
@@ -12,6 +13,7 @@ type APIArg struct {
 	Args            HTTPArgs
 	JSONPayload     JSONPayload
 	NeedSession     bool
+	SessionOptional bool
 	SessionR        SessionReader
 	HTTPStatus      []int
 	AppStatusCodes  []int

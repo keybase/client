@@ -488,12 +488,12 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 		tok, csrf := a.sessionArgs(arg)
 		if len(tok) > 0 && a.G().Env.GetTorMode().UseSession() {
 			req.Header.Add("X-Keybase-Session", tok)
-		} else {
+		} else if arg.SessionOptional == false {
 			a.G().Log.Warning("fixHeaders: need session, but session token empty")
 		}
 		if len(csrf) > 0 && a.G().Env.GetTorMode().UseCSRF() {
 			req.Header.Add("X-CSRF-Token", csrf)
-		} else {
+		} else if arg.SessionOptional == false {
 			a.G().Log.Warning("fixHeaders: need session, but session csrf empty")
 		}
 	}
