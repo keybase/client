@@ -829,6 +829,10 @@ func (fbo *folderBlockOps) addDirEntryInCacheLocked(lState *lockState, dir path,
 	fbo.deCache[dir.tailPointer().Ref()] = cacheEntry
 }
 
+// AddDirEntryInCache adds a brand new entry to the given directory in
+// the cache, which will get applied to the dirty block on subsequent
+// fetches for the directory.  The new entry must not yet have a cache
+// entry itself.
 func (fbo *folderBlockOps) AddDirEntryInCache(lState *lockState, dir path,
 	newName string, newDe DirEntry) {
 	fbo.blockLock.Lock(lState)
@@ -836,9 +840,12 @@ func (fbo *folderBlockOps) AddDirEntryInCache(lState *lockState, dir path,
 	fbo.addDirEntryInCacheLocked(lState, dir, newName, newDe)
 	// Add target dir entry as well.
 	if newDe.IsInitialized() {
-		cacheEntry := fbo.deCache[newDe.BlockPointer.Ref()]
+		cacheEntry, ok := fbo.deCache[newDe.Ref()]
+		if ok {
+			panic("New entry shouldn't already exist")
+		}
 		cacheEntry.dirEntry = newDe
-		fbo.deCache[newDe.BlockPointer.Ref()] = cacheEntry
+		fbo.deCache[newDe.Ref()] = cacheEntry
 	}
 }
 
@@ -855,6 +862,9 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(lState *lockState,
 	fbo.deCache[dir.tailPointer().Ref()] = cacheEntry
 }
 
+// RemoveDirEntryInCache removes an entry fron the given directory in
+// the cache, which will get applied to the dirty block on subsequent
+// fetches for the directory.
 func (fbo *folderBlockOps) RemoveDirEntryInCache(lState *lockState, dir path,
 	oldName string) {
 	fbo.blockLock.Lock(lState)
@@ -862,6 +872,15 @@ func (fbo *folderBlockOps) RemoveDirEntryInCache(lState *lockState, dir path,
 	fbo.removeDirEntryInCacheLocked(lState, dir, oldName)
 }
 
+// RenameDirEntryInCache updates the entries of both the old and new
+// parent dirs for the given target dir atomically (with respect to
+// blockLock).  It also updates the cache entry for the target, which
+// would have its Ctime changed. The updates will get applied to the
+// dirty blocks on subsequent fetches.
+//
+// The returned bool indicates whether or not the caller should clean
+// up the target cache entry when the effects of the operation are no
+// longer needed.
 func (fbo *folderBlockOps) RenameDirEntryInCache(lState *lockState,
 	oldParent path, oldName string, newParent path, newName string,
 	newDe DirEntry) (deleteTargetDirEntry bool) {
@@ -871,15 +890,15 @@ func (fbo *folderBlockOps) RenameDirEntryInCache(lState *lockState,
 	fbo.removeDirEntryInCacheLocked(lState, oldParent, oldName)
 	// If there's already an entry for the target, only update the
 	// Ctime on a rename.
-	cacheEntry, ok := fbo.deCache[newDe.BlockPointer.Ref()]
+	cacheEntry, ok := fbo.deCache[newDe.Ref()]
 	if ok && cacheEntry.dirEntry.IsInitialized() {
 		cacheEntry.dirEntry.Ctime = newDe.Ctime
 	} else {
 		cacheEntry.dirEntry = newDe
-		fbo.deCache[newDe.BlockPointer.Ref()] = cacheEntry
+		fbo.deCache[newDe.Ref()] = cacheEntry
 		deleteTargetDirEntry = true
 	}
-	fbo.deCache[newDe.BlockPointer.Ref()] = cacheEntry
+	fbo.deCache[newDe.Ref()] = cacheEntry
 	return deleteTargetDirEntry
 }
 
@@ -905,6 +924,13 @@ func (fbo *folderBlockOps) setCachedAttrLocked(
 	fbo.deCache[ref] = fileEntry
 }
 
+// SetAttrInDirEntryInCache removes an entry fron the given directory
+// in the cache, which will get applied to the dirty block on
+// subsequent fetches for the directory.
+//
+// The returned bool indicates whether or not the caller should clean
+// up the cache entry when the effects of the operation are no longer
+// needed.
 func (fbo *folderBlockOps) SetAttrInDirEntryInCache(lState *lockState,
 	newDe DirEntry, attr attrChange) (deleteTargetDirEntry bool) {
 	fbo.blockLock.Lock(lState)
@@ -915,10 +941,14 @@ func (fbo *folderBlockOps) SetAttrInDirEntryInCache(lState *lockState,
 	if !ok {
 		deleteTargetDirEntry = true
 	}
-	fbo.setCachedAttrLocked(lState, newDe.Ref(), attr, &newDe, true)
+	fbo.setCachedAttrLocked(
+		lState, newDe.Ref(), attr, &newDe,
+		true /* create the deCache entry if it doesn't exist yet */)
 	return deleteTargetDirEntry
 }
 
+// ClearCachedAddsAndRemoves clears out any cached directory entry
+// adds and removes for the given dir.
 func (fbo *folderBlockOps) ClearCachedAddsAndRemoves(
 	lState *lockState, dir path) {
 	fbo.blockLock.Lock(lState)
