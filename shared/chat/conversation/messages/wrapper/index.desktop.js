@@ -2,7 +2,6 @@
 import React from 'react'
 import {Avatar, Icon, Text} from '../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../../styles'
-import {withHandlers} from 'recompose'
 import {marginColor, colorForAuthor} from '../shared'
 
 import type {Props} from '.'
@@ -23,10 +22,10 @@ const Username = ({author, isYou, isFollowing, isBroken, includeHeader}) => {
   return <Text type='BodySmallSemibold' style={style}>{author}</Text>
 }
 
-const ActionButton = ({isRevoked, onIconClick}) => (
+const ActionButton = ({isRevoked, onAction}) => (
   <div className='action-button'>
     {isRevoked && <Icon type='iconfont-exclamation' style={_exclamationStyle} />}
-    <Icon type='iconfont-ellipsis' style={_ellipsisStyle} onClick={onIconClick} />
+    <Icon type='iconfont-ellipsis' style={_ellipsisStyle} onClick={onAction} />
   </div>
 )
 
@@ -60,7 +59,7 @@ const MessageWrapper = (props: Props) => (
             {props.children}
             <EditedMark isEdited={props.isEdited} />
           </div>
-          <ActionButton isRevoked={props.isRevoked} onIconClick={props.onIconClick} />
+          <ActionButton isRevoked={props.isRevoked} onAction={props.onAction} />
         </div>
         <Failure failureDescription={props.failureDescription} onRetry={props.onRetry} onShowEditor={props.onShowEditor} />
       </div>
@@ -134,14 +133,15 @@ const _failStyleFace = {
   fontSize: 9,
 }
 
-export default withHandlers({
-  onIconClick: (props: Props) => event => {
-    props.onAction(props.message, event)
-  },
-  onRetry: (props: Props) => () => {
-    props.message.outboxID && props.onRetry(props.message.outboxID)
-  },
-  onShowEditor: (props: Props) => event => {
-    props.onShowEditor(props.message, event)
-  },
-})(MessageWrapper)
+export default MessageWrapper
+// export default withHandlers({
+  // onIconClick: (props: Props) => event => {
+    // props.onAction(props.message, event)
+  // },
+  // onRetry: (props: Props) => () => {
+    // props.message.outboxID && props.onRetry(props.message.outboxID)
+  // },
+  // onShowEditor: (props: Props) => event => {
+    // props.onShowEditor(props.message, event)
+  // },
+// })(MessageWrapper)

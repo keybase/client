@@ -9,12 +9,16 @@ import Wrapper from './wrapper/container'
 import TextMessage from './text/container'
 import ErrorMessage from './error/container'
 // import ProfileResetNotice from '../notices/profile-reset-notice'
-import {Box, Text /*, Icon */} from '../../../common-adapters'
+import {Box, Text} from '../../../common-adapters'
 // import {formatTimeForMessages} from '../../../util/timestamp'
-import {globalStyles /*, globalColors */} from '../../../styles'
+// import {globalStyles} from '../../../styles'
 // import {isMobile} from '../../../constants/platform'
 
-const factory = (messageKey: Constants.MessageKey, prevMessageKey: ?Constants.MessageKey) => {
+const factory = (messageKey: Constants.MessageKey,
+  prevMessageKey: ?Constants.MessageKey,
+  onAction: (message: Constants.ServerMessage, event: any) => void,
+  isSelected: boolean
+) => {
   const kind = Constants.messageKeyKind(messageKey)
   switch (kind) {
     // case 'invisibleError': {
@@ -28,15 +32,16 @@ const factory = (messageKey: Constants.MessageKey, prevMessageKey: ?Constants.Me
     case 'errorInvisible': // fallthrough
     case 'messageIDError': {
       return <ErrorMessage messageKey={messageKey} />
-        // <Box key={key} style={{...style, ...errorStyle}}>
-          // <Text type='BodySmallItalic' key={key} style={{color: globalColors.red}}>{message.reason}</Text>
-        // </Box>
-      // )
     }
     case 'messageIDText': {
-      return <Wrapper messageKey={messageKey} prevMessageKey={prevMessageKey}>
-        <TextMessage messageKey={messageKey} />
-      </Wrapper>
+      return (
+        <Wrapper
+          messageKey={messageKey}
+          prevMessageKey={prevMessageKey}
+          onAction={onAction}>
+          <TextMessage messageKey={messageKey} />
+        </Wrapper>
+      )
     }
     // case 'outboxID': {
     // }

@@ -6,6 +6,8 @@ export type OwnProps = {
   children?: React$Element<*>,
   messageKey: Constants.MessageKey,
   prevMessageKey: ?Constants.MessageKey,
+  onAction: (message: Constants.ServerMessage, event: any) => void,
+  isSelected: boolean,
 }
 
 export default class Wrapper extends Component<void, OwnProps, void> {}

@@ -16,13 +16,13 @@ const getMessage = createCachedSelector(
 
 // TODO more reselect?
 
-const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey, children}: OwnProps) => {
+const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey, children, isSelected}: OwnProps) => {
   const conversationState = Constants.getSelectedConversationStates(state)
 
   const message = getMessage(state, messageKey)
   const author = message.author
   const isEdited = message.type === 'Text' && message.editedCount > 0
-  const isRevoked = message.senderDeviceRevokedAt
+  const isRevoked = !!message.senderDeviceRevokedAt
   const failureDescription = message.messageState === 'failed' ? message.failureDescription : null
   const isYou = Constants.getYou(state) === author
   const isFollowing = Constants.getFollowingMap(state)[author]
@@ -33,9 +33,9 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey, childre
   const skipMsgHeader = prevMessage && prevMessage.type === 'Text' && prevMessage.author === author
   const includeHeader = isFirstNewMessage || !skipMsgHeader
   const isEditing = message === Constants.getEditingMessage(state)
-  const isSelected = false // TODO
 
   return {
+    _message: message, // Not for outside consumption
     author,
     children,
     failureDescription,
@@ -52,6 +52,19 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey, childre
   }
 }
 
+const mapDispatchToProps = (dispatch: Dispatch, {onAction}: OwnProps) => ({
+  _onAction: onAction,
+  // onRetry: (outboxID: Constants.OutboxIDKey) => void,
+  // onShowEditor: (message: Constants.Message, event: any) => void,
+  // onIconClick: (event: any) => void,
+})
+
+const mergeProps = (stateProps, dispatchProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+  onAction: (event: any) => dispatchProps._onAction(stateProps._message, event),
+})
+
 export default compose(
-  connect(mapStateToProps, () => ({})),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
 )(Wrapper)

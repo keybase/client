@@ -9,18 +9,18 @@
 //
 //
 //
-// import * as Constants from '../../../constants/chat'
+import * as Constants from '../../../constants/chat'
 import * as Virtualized from 'react-virtualized'
-// import EditPopup from '../edit-popup.desktop'
+import EditPopup from '../edit-popup.desktop'
 import React, {Component} from 'react'
-// import ReactDOM from 'react-dom'
+import ReactDOM from 'react-dom'
 // import _ from 'lodash'
 import messageFactory from '../messages'
 // import shallowEqual from 'shallowequal'
 import {Icon} from '../../../common-adapters'
-// import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
+import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
 // import {clipboard} from 'electron'
-// import {findDOMNode} from '../../../util/dom'
+import {findDOMNode} from '../../../util/dom'
 import {globalColors, globalStyles} from '../../../styles'
 
 // import type {List} from 'immutable'
@@ -49,7 +49,7 @@ type State = {
   // isLockedToBottom: boolean,
   // isScrolling: boolean,
   // scrollTop: number,
-  // selectedMessageID?: Constants.MessageID,
+  selectedMessageKey: ?Constants.MessageKey,
 }
 
 // const scrollbarWidth = 20
@@ -69,11 +69,12 @@ class ConversationList extends Component<void, Props, State> {
   constructor (props: Props) {
     super(props)
 
-    // this.state = {
+    this.state = {
+      selectedMessageKey: null,
       // isLockedToBottom: true,
       // isScrolling: false,
       // scrollTop: 0,
-    // }
+    }
 
     this._cellCache = new Virtualized.CellMeasurerCache({
       fixedWidth: true,
@@ -189,104 +190,104 @@ class ConversationList extends Component<void, Props, State> {
     // this._onScrollSettled()
   // }, 200)
 
-  // _hidePopup = () => {
-    // ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
-    // this.setState({
-      // selectedMessageID: undefined,
-    // })
-  // }
+  _hidePopup = () => {
+    ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
+    this.setState({
+      selectedMessageKey: null,
+    })
+  }
 
-  // _renderPopup (message: Constants.Message, style: Object, messageRect: any): ?React$Element<any> {
-    // switch (message.type) {
-      // case 'Text':
-        // return (
-          // <TextPopupMenu
-            // you={this.props.you}
-            // message={message}
-            // onShowEditor={(message: Constants.TextMessage) => this._showEditor(message, messageRect)}
-            // onDeleteMessage={this.props.onDeleteMessage}
-            // onLoadAttachment={this.props.onLoadAttachment}
-            // onOpenInFileUI={this.props.onOpenInFileUI}
-            // onHidden={this._hidePopup}
-            // style={style}
-          // />
-        // )
-      // case 'Attachment':
-        // const {downloadedPath, filename, messageID} = message
-        // return (
-          // <AttachmentPopupMenu
-            // you={this.props.you}
-            // message={message}
-            // onDeleteMessage={this.props.onDeleteMessage}
-            // onDownloadAttachment={() => { messageID && filename && this.props.onLoadAttachment(messageID, filename) }}
-            // onOpenInFileUI={() => { downloadedPath && this.props.onOpenInFileUI(downloadedPath) }}
-            // onHidden={this._hidePopup}
-            // style={style}
-          // />
-        // )
-    // }
-  // }
+  _renderPopup (message: Constants.Message, style: Object, messageRect: any): ?React$Element<any> {
+    switch (message.type) {
+      case 'Text':
+        return (
+          <TextPopupMenu
+            you={this.props.you}
+            message={message}
+            onShowEditor={(message: Constants.TextMessage) => this._showEditor(message, messageRect)}
+            onDeleteMessage={this.props.onDeleteMessage}
+            onLoadAttachment={this.props.onLoadAttachment}
+            onOpenInFileUI={this.props.onOpenInFileUI}
+            onHidden={this._hidePopup}
+            style={style}
+          />
+        )
+      case 'Attachment':
+        const {downloadedPath, filename, messageID} = message
+        return (
+          <AttachmentPopupMenu
+            you={this.props.you}
+            message={message}
+            onDeleteMessage={this.props.onDeleteMessage}
+            onDownloadAttachment={() => { messageID && filename && this.props.onLoadAttachment(messageID, filename) }}
+            onOpenInFileUI={() => { downloadedPath && this.props.onOpenInFileUI(downloadedPath) }}
+            onHidden={this._hidePopup}
+            style={style}
+          />
+        )
+    }
+  }
 
-  // _showEditor = (message: Constants.TextMessage, messageRect: any) => {
-    // const popupComponent = (
-      // <EditPopup
-        // messageRect={messageRect}
-        // onClose={this._hidePopup}
-        // message={message.message.stringValue()}
-        // onSubmit={text => { this.props.onEditMessage(message, text) }}
-      // />
-    // )
+  _showEditor = (message: Constants.TextMessage, messageRect: any) => {
+    const popupComponent = (
+      <EditPopup
+        messageRect={messageRect}
+        onClose={this._hidePopup}
+        message={message.message.stringValue()}
+        onSubmit={text => { this.props.onEditMessage(message, text) }}
+      />
+    )
 
-    // // Have to do this cause it's triggered from a popup that we're reusing else we'll get unmounted
-    // setImmediate(() => {
-      // const container = document.getElementById('popupContainer')
-      // // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
-      // ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
-    // })
-  // }
+    // Have to do this cause it's triggered from a popup that we're reusing else we'll get unmounted
+    setImmediate(() => {
+      const container = document.getElementById('popupContainer')
+      // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
+      ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
+    })
+  }
 
-  // _findMessageFromDOMNode (start: any) : any {
-    // const node = findDOMNode(start, '.message')
-    // if (node) return node
+  _findMessageFromDOMNode (start: any) : any {
+    const node = findDOMNode(start, '.message')
+    if (node) return node
 
-    // // If not found, try to find it in the message-wrapper
-    // const wrapper = findDOMNode(start, '.message-wrapper')
-    // if (wrapper) {
-      // const messageNodes = wrapper.getElementsByClassName('message')
-      // if (messageNodes.length > 0) return messageNodes[0]
-    // }
+    // If not found, try to find it in the message-wrapper
+    const wrapper = findDOMNode(start, '.message-wrapper')
+    if (wrapper) {
+      const messageNodes = wrapper.getElementsByClassName('message')
+      if (messageNodes.length > 0) return messageNodes[0]
+    }
 
-    // return null
-  // }
+    return null
+  }
 
-  // _showPopup (message: Constants.TextMessage | Constants.AttachmentMessage, event: any) {
-    // const clientRect = event.target.getBoundingClientRect()
+  _showPopup (message: Constants.TextMessage | Constants.AttachmentMessage, event: any) {
+    const clientRect = event.target.getBoundingClientRect()
 
-    // const messageNode = this._findMessageFromDOMNode(event.target)
-    // const messageRect = messageNode && this._domNodeToRect(messageNode)
-    // // Position next to button (client rect)
-    // // TODO: Measure instead of pixel math
-    // const x = clientRect.left - 205
-    // let y = clientRect.top - (message.author === this.props.you ? 200 : 116)
-    // if (y < 10) y = 10
+    const messageNode = this._findMessageFromDOMNode(event.target)
+    const messageRect = messageNode && this._domNodeToRect(messageNode)
+    // Position next to button (client rect)
+    // TODO: Measure instead of pixel math
+    const x = clientRect.left - 205
+    let y = clientRect.top - (message.author === this.props.you ? 200 : 116)
+    if (y < 10) y = 10
 
-    // const popupComponent = this._renderPopup(message, {left: x, position: 'absolute', top: y}, messageRect)
-    // if (!popupComponent) return
+    const popupComponent = this._renderPopup(message, {left: x, position: 'absolute', top: y}, messageRect)
+    if (!popupComponent) return
 
-    // this.setState({
-      // selectedMessageID: message.messageID,
-    // })
+    this.setState({
+      selectedMessageID: message.key,
+    })
 
-    // const container = document.getElementById('popupContainer')
-    // // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
-    // ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
-  // }
+    const container = document.getElementById('popupContainer')
+    // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
+    ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
+  }
 
-  // _onAction = (message: Constants.ServerMessage, event: any) => {
-    // if (message.type === 'Text' || message.type === 'Attachment') {
-      // this._showPopup(message, event)
-    // }
-  // }
+  _onAction = (message: Constants.ServerMessage, event: any) => {
+    if (message.type === 'Text' || message.type === 'Attachment') {
+      this._showPopup(message, event)
+    }
+  }
 
   // _onResize = ({width}) => {
     // if (width !== this._lastWidth) {
@@ -306,7 +307,10 @@ class ConversationList extends Component<void, Props, State> {
   // }
 
   _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
-    const message = messageFactory(this.props.messageKeys.get(index), this.props.messageKeys.get(index - 1))
+    const messageKey = this.props.messageKeys.get(index)
+    const prevMessageKey = this.props.messageKeys.get(index - 1)
+    const isSelected = messageKey === this.state.selectedMessageKey
+    const message = messageFactory(messageKey, prevMessageKey, this._onAction, isSelected)
     return (
       <Virtualized.CellMeasurer
         cache={this._cellCache}
@@ -325,7 +329,6 @@ class ConversationList extends Component<void, Props, State> {
     // const prevMessage = this.props.messages.get(index - 1)
     // const isFirstMessage = index === 0
     // const isSelected = false // TODO selectedKey instead
-    // // const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
 
     // const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, this._onAction, this._onShowEditor, false)
 
@@ -360,7 +363,6 @@ class ConversationList extends Component<void, Props, State> {
   // }
 
   _rowCount = () => this.props.messageKeys.count()
-  // _rowCount = () => this.props.headerMessages.count() + this.props.messages.count()
 
   // _scrollToBottom = () => {
     // const rowCount = this._rowCount()
@@ -375,20 +377,20 @@ class ConversationList extends Component<void, Props, State> {
     // }
   // }
 
-  // _domNodeToRect (element) {
-    // if (!document.body) {
-      // throw new Error('Body not ready')
-    // }
-    // const bodyRect = document.body.getBoundingClientRect()
-    // const elemRect = element.getBoundingClientRect()
+  _domNodeToRect (element) {
+    if (!document.body) {
+      throw new Error('Body not ready')
+    }
+    const bodyRect = document.body.getBoundingClientRect()
+    const elemRect = element.getBoundingClientRect()
 
-    // return {
-      // height: elemRect.height,
-      // left: elemRect.left - bodyRect.left,
-      // top: elemRect.top - bodyRect.top,
-      // width: elemRect.width,
-    // }
-  // }
+    return {
+      height: elemRect.height,
+      left: elemRect.left - bodyRect.left,
+      top: elemRect.top - bodyRect.top,
+      width: elemRect.width,
+    }
+  }
 
   // onEditLastMessage = () => {
     // if (!this._list) {

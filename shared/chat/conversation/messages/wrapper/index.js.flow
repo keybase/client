@@ -22,7 +22,6 @@ export type Props = {
   onAction: (message: Constants.ServerMessage, event: any) => void,
   onRetry: (outboxID: Constants.OutboxIDKey) => void,
   onShowEditor: (message: Constants.Message, event: any) => void,
-  // message: Constants.TextMessage | Constants.AttachmentMessage,
   onIconClick: (event: any) => void,
 }
 
