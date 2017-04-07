@@ -6,7 +6,9 @@ package libkbfs
 
 import (
 	"os"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
@@ -20,7 +22,8 @@ import (
 
 func setupJournalServerTest(t *testing.T) (
 	tempdir string, ctx context.Context, cancel context.CancelFunc,
-	config *ConfigLocal, jServer *JournalServer) {
+	config *ConfigLocal, quotaUsage *EventuallyConsistentQuotaUsage,
+	jServer *JournalServer) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
 
@@ -53,7 +56,7 @@ func setupJournalServerTest(t *testing.T) (
 		}
 	}()
 
-	_, err = config.MakeDiskLimiter(tempdir)
+	quotaUsage, err = config.EnableDiskLimiter(tempdir)
 	require.NoError(t, err)
 	err = config.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
@@ -62,7 +65,7 @@ func setupJournalServerTest(t *testing.T) (
 	require.NoError(t, err)
 
 	setupSucceeded = true
-	return tempdir, ctx, cancel, config, jServer
+	return tempdir, ctx, cancel, config, quotaUsage, jServer
 }
 
 func teardownJournalServerTest(
@@ -74,8 +77,94 @@ func teardownJournalServerTest(
 	assert.NoError(t, err)
 }
 
+type quotaBlockServer struct {
+	BlockServer
+
+	quotaInfoLock sync.Mutex
+	quotaInfo     kbfsblock.UserQuotaInfo
+}
+
+func (qbs *quotaBlockServer) setUserQuotaInfo(
+	remoteUsageBytes, limitBytes int64) {
+	qbs.quotaInfoLock.Lock()
+	defer qbs.quotaInfoLock.Unlock()
+	qbs.quotaInfo.Limit = limitBytes
+	qbs.quotaInfo.Total = &kbfsblock.UsageStat{
+		Bytes: map[kbfsblock.UsageType]int64{
+			kbfsblock.UsageWrite: remoteUsageBytes,
+		},
+	}
+}
+
+func (qbs *quotaBlockServer) GetUserQuotaInfo(ctx context.Context) (
+	info *kbfsblock.UserQuotaInfo, err error) {
+	qbs.quotaInfoLock.Lock()
+	defer qbs.quotaInfoLock.Unlock()
+	infoCopy := qbs.quotaInfo
+	return &infoCopy, nil
+}
+
+func TestJournalServerOverQuotaError(t *testing.T) {
+	tempdir, ctx, cancel, config, quotaUsage, jServer :=
+		setupJournalServerTest(t)
+	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+
+	qbs := &quotaBlockServer{BlockServer: config.BlockServer()}
+	config.SetBlockServer(qbs)
+
+	clock := newTestClockNow()
+	config.SetClock(clock)
+
+	// Set initial quota usage and refresh quotaUsage's cache.
+	qbs.setUserQuotaInfo(1010, 1000)
+	_, _, _, err := quotaUsage.Get(ctx, 0, 0)
+	require.NoError(t, err)
+
+	tlfID1 := tlf.FakeID(1, false)
+	err = jServer.Enable(ctx, tlfID1, TLFJournalBackgroundWorkPaused)
+	require.NoError(t, err)
+
+	blockServer := config.BlockServer()
+
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), "test_user1,test_user2", false)
+	require.NoError(t, err)
+	uid1 := h.ResolvedWriters()[0]
+
+	// Put a block, which should return with a quota error.
+
+	bCtx := kbfsblock.MakeFirstContext(uid1, keybase1.BlockType_DATA)
+	data := []byte{1, 2, 3, 4}
+	bID, err := kbfsblock.MakePermanentID(data)
+	require.NoError(t, err)
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
+	require.NoError(t, err)
+	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+	expectedQuotaError := kbfsblock.BServerErrorOverQuota{
+		Usage:     1014,
+		Limit:     1000,
+		Throttled: false,
+	}
+	require.Equal(t, expectedQuotaError, err)
+
+	// Putting it again shouldn't encounter an error.
+	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+	require.NoError(t, err)
+
+	// Advancing the time by overQuotaDuration should make it
+	// return another quota error.
+	clock.Add(time.Minute)
+	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+	require.Equal(t, expectedQuotaError, err)
+
+	// Putting it again shouldn't encounter an error.
+	clock.Add(30 * time.Second)
+	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+	require.NoError(t, err)
+}
+
 func TestJournalServerRestart(t *testing.T) {
-	tempdir, ctx, cancel, config, jServer := setupJournalServerTest(t)
+	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
 	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
 
 	// Use a shutdown-only BlockServer so that it errors if the
@@ -145,7 +234,7 @@ func TestJournalServerRestart(t *testing.T) {
 }
 
 func TestJournalServerLogOutLogIn(t *testing.T) {
-	tempdir, ctx, cancel, config, jServer := setupJournalServerTest(t)
+	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
 	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
 
 	// Use a shutdown-only BlockServer so that it errors if the
@@ -218,7 +307,7 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 }
 
 func TestJournalServerLogOutDirtyOp(t *testing.T) {
-	tempdir, ctx, cancel, config, jServer := setupJournalServerTest(t)
+	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
 	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
 
 	tlfID := tlf.FakeID(2, false)
@@ -247,7 +336,7 @@ func TestJournalServerLogOutDirtyOp(t *testing.T) {
 }
 
 func TestJournalServerMultiUser(t *testing.T) {
-	tempdir, ctx, cancel, config, jServer := setupJournalServerTest(t)
+	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
 	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
 
 	// Use a shutdown-only BlockServer so that it errors if the
@@ -400,7 +489,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 }
 
 func TestJournalServerEnableAuto(t *testing.T) {
-	tempdir, ctx, cancel, config, jServer := setupJournalServerTest(t)
+	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
 	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
 
 	tlfID := tlf.FakeID(2, false)

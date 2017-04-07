@@ -80,7 +80,7 @@ func (k *LibKBFS) InitTest(ver libkbfs.MetadataVer,
 		for name, c := range userMap {
 			config := c.(*libkbfs.ConfigLocal)
 			journalRoot := filepath.Join(jdir, name.String())
-			_, err = config.MakeDiskLimiter(journalRoot)
+			_, err = config.EnableDiskLimiter(journalRoot)
 			if err != nil {
 				panic(fmt.Sprintf("No disk limiter for %s: %+v", name, err))
 			}

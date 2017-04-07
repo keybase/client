@@ -9,10 +9,12 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
@@ -119,6 +121,10 @@ type JournalServer struct {
 	delegateMDOps           MDOps
 	onBranchChange          branchChangeListener
 	onMDFlush               mdFlushListener
+
+	// Just protects lastQuotaError.
+	lastQuotaErrorLock sync.Mutex
+	lastQuotaError     time.Time
 
 	// Protects all fields below.
 	lock                sync.RWMutex
@@ -647,6 +653,32 @@ func (j *JournalServer) blockServer() journalBlockServer {
 
 func (j *JournalServer) mdOps() journalMDOps {
 	return journalMDOps{j.delegateMDOps, j}
+}
+
+func (j *JournalServer) maybeReturnOverQuotaError(
+	usedQuotaBytes, quotaBytes int64) error {
+	if usedQuotaBytes <= quotaBytes {
+		return nil
+	}
+
+	j.lastQuotaErrorLock.Lock()
+	defer j.lastQuotaErrorLock.Unlock()
+
+	now := j.config.Clock().Now()
+	// Return OverQuota errors only occasionally, so we don't spam
+	// the keybase daemon with notifications. (See
+	// PutBlockCheckQuota in block_util.go.)
+	const overQuotaDuration = time.Minute
+	if now.Sub(j.lastQuotaError) < overQuotaDuration {
+		return nil
+	}
+
+	j.lastQuotaError = now
+	return kbfsblock.BServerErrorOverQuota{
+		Usage:     usedQuotaBytes,
+		Limit:     quotaBytes,
+		Throttled: false,
+	}
 }
 
 // Status returns a JournalServerStatus object suitable for

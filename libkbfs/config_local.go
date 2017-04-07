@@ -947,19 +947,30 @@ func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
 	return nil
 }
 
-// MakeDiskLimiter makes a DiskLimiter for use in journaling and disk caching.
-func (c *ConfigLocal) MakeDiskLimiter(configRoot string) (DiskLimiter, error) {
+// EnableDiskLimiter fills in c.ciskLimiter for use in journaling and
+// disk caching. It returns the EventuallyConsistentQuotaUsage object
+// used by the disk limiter.
+func (c *ConfigLocal) EnableDiskLimiter(configRoot string) (
+	*EventuallyConsistentQuotaUsage, error) {
+	if c.diskLimiter != nil {
+		return nil, errors.New("c.diskLimiter is already non-nil")
+	}
+
 	// TODO: Ideally, we'd have a shared instance in the Config.
-	q := NewEventuallyConsistentQuotaUsage(c, "BDL")
-	params := makeDefaultBackpressureDiskLimiterParams(configRoot, q)
+	quotaUsage := NewEventuallyConsistentQuotaUsage(c, "BDL")
+	params := makeDefaultBackpressureDiskLimiterParams(
+		configRoot, quotaUsage)
 	log := c.MakeLogger("")
 	log.Debug("Setting disk storage byte limit to %d and file limit to %d",
 		params.byteLimit, params.fileLimit)
 	os.MkdirAll(configRoot, 0700)
 
-	var err error
-	c.diskLimiter, err = newBackpressureDiskLimiter(log, params)
-	return c.diskLimiter, err
+	diskLimiter, err := newBackpressureDiskLimiter(log, params)
+	if err != nil {
+		return nil, err
+	}
+	c.diskLimiter = diskLimiter
+	return quotaUsage, err
 }
 
 // EnableJournaling creates a JournalServer and attaches it to

@@ -6,6 +6,7 @@ package kbfsblock
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/keybase/client/go/libkb"
@@ -98,7 +99,7 @@ func (e BServerErrorUnauthorized) Error() string {
 	return "BServerErrorUnauthorized{" + e.Msg + "}"
 }
 
-// BServerErrorOverQuota is a generic client-side error.
+// BServerErrorOverQuota is returned when a user is over quota.
 type BServerErrorOverQuota struct {
 	Msg string
 	// Usage indicates the current usage
@@ -131,10 +132,9 @@ func (e BServerErrorOverQuota) ToStatus() (s keybase1.Status) {
 
 // Error implements the Error interface for BServerErrorOverQuota.
 func (e BServerErrorOverQuota) Error() string {
-	if e.Msg == "" {
-		return "BServer: user has exceeded quota"
-	}
-	return "BServerErrorOverQuota{" + e.Msg + "}"
+	return fmt.Sprintf(
+		"BServerErrorOverQuota{Msg: %q, Usage: %d, Limit: %d, Throttled: %t}",
+		e.Msg, e.Usage, e.Limit, e.Throttled)
 }
 
 //BServerErrorBlockNonExistent is an exportable error from bserver
