@@ -883,6 +883,42 @@ func (fbo *folderBlockOps) RenameDirEntryInCache(lState *lockState,
 	return deleteTargetDirEntry
 }
 
+func (fbo *folderBlockOps) setCachedAttrLocked(
+	lState *lockState, ref BlockRef, attr attrChange, realEntry *DirEntry,
+	doCreate bool) {
+	fbo.blockLock.AssertLocked(lState)
+	fileEntry, ok := fbo.deCache[ref]
+	if !ok {
+		if !doCreate {
+			return
+		}
+		fileEntry.dirEntry = *realEntry
+	}
+
+	switch attr {
+	case exAttr:
+		fileEntry.dirEntry.Type = realEntry.Type
+	case mtimeAttr:
+		fileEntry.dirEntry.Mtime = realEntry.Mtime
+	}
+	fileEntry.dirEntry.Ctime = realEntry.Ctime
+	fbo.deCache[ref] = fileEntry
+}
+
+func (fbo *folderBlockOps) SetAttrInDirEntryInCache(lState *lockState,
+	newDe DirEntry, attr attrChange) (deleteTargetDirEntry bool) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	// If there's already an entry for the target, only update the
+	// Ctime on a rename.
+	_, ok := fbo.deCache[newDe.Ref()]
+	if !ok {
+		deleteTargetDirEntry = true
+	}
+	fbo.setCachedAttrLocked(lState, newDe.Ref(), attr, &newDe, true)
+	return deleteTargetDirEntry
+}
+
 func (fbo *folderBlockOps) ClearCachedAddsAndRemoves(
 	lState *lockState, dir path) {
 	fbo.blockLock.Lock(lState)
@@ -2812,27 +2848,11 @@ func (fbo *folderBlockOps) getUndirtiedEntry(
 }
 
 func (fbo *folderBlockOps) setCachedAttr(
-	ctx context.Context, lState *lockState,
-	ref BlockRef, op *setAttrOp, realEntry *DirEntry, doCreate bool) {
+	lState *lockState, ref BlockRef, attr attrChange, realEntry *DirEntry,
+	doCreate bool) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
-
-	fileEntry, ok := fbo.deCache[ref]
-	if !ok {
-		if !doCreate {
-			return
-		}
-		fileEntry.dirEntry = *realEntry
-	}
-
-	switch op.Attr {
-	case exAttr:
-		fileEntry.dirEntry.Type = realEntry.Type
-	case mtimeAttr:
-		fileEntry.dirEntry.Mtime = realEntry.Mtime
-	}
-	fileEntry.dirEntry.Ctime = realEntry.Ctime
-	fbo.deCache[ref] = fileEntry
+	fbo.setCachedAttrLocked(lState, ref, attr, realEntry, doCreate)
 }
 
 // UpdateCachedEntryAttributes updates any cached entry for the given
@@ -2867,7 +2887,7 @@ func (fbo *folderBlockOps) UpdateCachedEntryAttributes(
 	}
 
 	if cleanEntry != nil {
-		fbo.setCachedAttr(ctx, lState, de.Ref(), op, cleanEntry, false)
+		fbo.setCachedAttr(lState, de.Ref(), op.Attr, cleanEntry, false)
 	}
 
 	return childNode, nil
@@ -2880,7 +2900,7 @@ func (fbo *folderBlockOps) UpdateCachedEntryAttributes(
 // file handle, which will clear out the entry.
 func (fbo *folderBlockOps) UpdateCachedEntryAttributesOnRemovedFile(
 	ctx context.Context, lState *lockState, op *setAttrOp, de DirEntry) {
-	fbo.setCachedAttr(ctx, lState, de.Ref(), op, &de, true)
+	fbo.setCachedAttr(lState, de.Ref(), op.Attr, &de, true)
 }
 
 func (fbo *folderBlockOps) getDeferredWriteCountForTest(lState *lockState) int {
