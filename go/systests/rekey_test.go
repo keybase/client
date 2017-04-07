@@ -295,7 +295,7 @@ func (rkt *rekeyTester) changeKeysOnHomeTLF(kids []keybase1.KID) {
 			"folderRevision": libkb.I{Val: fakeTLF.nextRevision()},
 		},
 		Endpoint:    "test/fake_home_tlf",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 	}
 	_, err := g.API.Post(apiArg)
 	if err != nil {
@@ -317,7 +317,7 @@ func (rkt *rekeyTester) bumpTLF(kid keybase1.KID) {
 			"kid": libkb.S{Val: string(kid)},
 		},
 		Endpoint:    "kbfs/bump_rekey",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 	}
 
 	_, err := g.API.Post(apiArg)
@@ -337,7 +337,7 @@ func (rkt *rekeyTester) kickRekeyd() {
 		Args: libkb.HTTPArgs{
 			"timeout": libkb.I{Val: 2000},
 		},
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 	}
 
 	_, err := g.API.Post(apiArg)

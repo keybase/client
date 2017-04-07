@@ -7,13 +7,20 @@ import (
 	"golang.org/x/net/context"
 )
 
+type APISessionType int
+
+const (
+	APISessionTypeNONE     APISessionType = 0
+	APISessionTypeOPTIONAL APISessionType = 1
+	APISessionTypeREQUIRED APISessionType = 2
+)
+
 type APIArg struct {
 	Endpoint        string
 	uArgs           url.Values
 	Args            HTTPArgs
 	JSONPayload     JSONPayload
-	NeedSession     bool
-	SessionOptional bool
+	SessionType     APISessionType
 	SessionR        SessionReader
 	HTTPStatus      []int
 	AppStatusCodes  []int

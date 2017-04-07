@@ -130,7 +130,7 @@ func (ss *SecretSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err 
 	res, err = ss.G().API.Get(APIArg{
 		Endpoint:    "key/fetch_private",
 		Args:        hargs,
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		SessionR:    sr,
 		RetryCount:  5, // It's pretty bad to fail this, so retry.
 	})

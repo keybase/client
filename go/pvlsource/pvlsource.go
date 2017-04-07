@@ -197,7 +197,7 @@ func (s *PvlSourceImpl) fetch(ctx context.Context, hash libkb.PvlKitHash) (libkb
 	var res pvlServerRes
 	err := s.G().API.GetDecode(libkb.APIArg{
 		Endpoint:    "merkle/pvl",
-		NeedSession: false,
+		SessionType: libkb.APISessionTypeNONE,
 		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"hash": libkb.S{Val: string(hash)},

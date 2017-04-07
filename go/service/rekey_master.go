@@ -160,7 +160,7 @@ func queryAPIServerForRekeyInfo(g *libkb.GlobalContext) (keybase1.ProblemSet, er
 	var tmp rekeyQueryResult
 	err := g.API.PostDecode(libkb.APIArg{
 		Endpoint:    "kbfs/problem_sets",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        args,
 	}, &tmp)
 
@@ -607,7 +607,7 @@ func (r *RekeyHandler2) GetRevokeWarning(_ context.Context, arg keybase1.GetRevo
 
 	err = r.G().API.GetDecode(libkb.APIArg{
 		Endpoint:    "kbfs/unkeyed_tlfs_from_pair",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"self_device_id":   libkb.S{Val: string(actingDevice)},
 			"target_device_id": libkb.S{Val: string(arg.TargetDevice)},

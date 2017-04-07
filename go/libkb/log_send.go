@@ -97,9 +97,8 @@ func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, upd
 	l.G().Log.Debug("body size: %d\n", body.Len())
 
 	arg := APIArg{
-		Endpoint:        "logdump/send",
-		NeedSession:     true,
-		SessionOptional: true,
+		Endpoint:    "logdump/send",
+		SessionType: APISessionTypeREQUIRED,
 	}
 
 	resp, err := l.G().API.PostRaw(arg, mpart.FormDataContentType(), &body)

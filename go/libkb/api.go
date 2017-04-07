@@ -208,13 +208,17 @@ func (c *countingReader) numRead() int {
 // DiscardAndCloseBody() called on it.
 func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (
 	_ *http.Response, jw *jsonw.Wrapper, err error) {
-	if !api.G().Env.GetTorMode().UseSession() && arg.NeedSession {
+	if !api.G().Env.GetTorMode().UseSession() && arg.SessionType == APISessionTypeREQUIRED {
 		err = TorSessionRequiredError{}
 		return
 	}
 
 	api.fixHeaders(arg, req)
-	cli := api.getCli(arg.NeedSession)
+	needSession := false
+	if arg.SessionType != APISessionTypeNONE {
+		needSession = true
+	}
+	cli := api.getCli(needSession)
 
 	// Actually send the request via Go's libraries
 	timerType := TimerAPI
@@ -484,16 +488,16 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 }
 
 func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
-	if arg.NeedSession {
+	if arg.SessionType != APISessionTypeNONE {
 		tok, csrf := a.sessionArgs(arg)
 		if len(tok) > 0 && a.G().Env.GetTorMode().UseSession() {
 			req.Header.Add("X-Keybase-Session", tok)
-		} else if arg.SessionOptional == false {
+		} else if arg.SessionType == APISessionTypeREQUIRED {
 			a.G().Log.Warning("fixHeaders: need session, but session token empty")
 		}
 		if len(csrf) > 0 && a.G().Env.GetTorMode().UseCSRF() {
 			req.Header.Add("X-CSRF-Token", csrf)
-		} else if arg.SessionOptional == false {
+		} else if arg.SessionType == APISessionTypeREQUIRED {
 			a.G().Log.Warning("fixHeaders: need session, but session csrf empty")
 		}
 	}

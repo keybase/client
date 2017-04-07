@@ -73,7 +73,7 @@ func (e *UserConfigEngine) Run(ctx *Context) (err error) {
 		var err error
 		_, err = e.G().API.Post(libkb.APIArg{
 			Endpoint:    "image/set_preference",
-			NeedSession: true,
+			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
 				key: libkb.S{Val: value},
 			},

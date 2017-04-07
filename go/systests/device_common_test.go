@@ -518,7 +518,7 @@ func (d *testDevice) keyTLF(tlf *fakeTLF, uid keybase1.UID, writers []tlfUser, r
 		Args: libkb.HTTPArgs{
 			"tlf_info": libkb.S{Val: string(b)},
 		},
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 	}
 	_, err = g.API.Post(apiArg)
 	if err != nil {

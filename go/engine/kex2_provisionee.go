@@ -463,7 +463,7 @@ func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs) err
 
 	arg := libkb.APIArg{
 		Endpoint:    "key/multi",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
 		SessionR:    e,
 	}

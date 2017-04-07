@@ -81,7 +81,7 @@ func (b *bug3964Repairman) postToServer(lctx LoginContext, serverHalfSet *LKSecS
 	}
 	_, err = b.G().API.Post(APIArg{
 		Endpoint:    "user/bug_3964_repair",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"device_id":         S{Val: b.G().Env.GetDeviceIDForUsername(nun).String()},
 			"ppgen":             I{Val: int(ppgen)},
@@ -138,7 +138,7 @@ func (b *bug3964Repairman) fixLKSClientHalf(lctx LoginContext, lksec *LKSec, ppg
 
 	_, err = b.G().API.Post(APIArg{
 		Endpoint:    "device/update_lks_client_half",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"ppgen":           I{Val: int(ppgen)},
 			"kid":             S{Val: kid.String()},
