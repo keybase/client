@@ -42,7 +42,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.actionStatFrequency = 0.8
   config.allowMultipleInstances = true
   config.devStoreChangingFunctions = true
-  config.enableActionLogging = false
+  config.enableActionLogging = true
   config.enableStoreLogging = true
   config.forwardLogs = false
   config.logStatFrequency = 0.8
