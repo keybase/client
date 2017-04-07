@@ -16,7 +16,7 @@ function startLogin (): Constants.StartLogin {
 }
 
 function logout (): Constants.StartLogin {
-  return {type: Constants.startLogin, payload: null}
+  return {type: Constants.logout, payload: null}
 }
 
 function setTextCode (phrase: string): Constants.SetTextCode {
