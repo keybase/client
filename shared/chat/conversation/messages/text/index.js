@@ -6,7 +6,7 @@ import {isMobile} from '../../../../constants/platform'
 
 export type Props = {
   text: string,
-  type: 'failed' | 'pending' | 'send',
+  type: 'failed' | 'pending' | 'sent',
   isEditing: boolean,
 }
 
@@ -16,7 +16,7 @@ const MessageText = ({text, type, isEditing}: Props) => (
 
 // Encoding all 4 states as static objects so we don't re-render
 const getStyle = (type, isEditing) => {
-  if (type === 'send') {
+  if (type === 'sent') {
     return isEditing && isMobile ? sentEditingStyle : sentStyle
   } else {
     return isEditing && isMobile ? pendingFailEditingStyle : pendingFailStyle

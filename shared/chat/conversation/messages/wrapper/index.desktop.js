@@ -40,47 +40,30 @@ const Failure = ({failureDescription, onShowEditor, onRetry}) => {
   const resolveByEdit = failureDescription === 'message is too long'
   return (
     <Text type='BodySmall'>
-      <Text type='BodySmall' style={{color: globalColors.red, fontSize: 9}}>{'┏(>_<)┓'}</Text>
-      <Text type='BodySmall' style={{color: globalColors.red}}> {error}</Text>
-      {resolveByEdit &&
-        <Text type='BodySmall' style={{color: globalColors.red, ...globalStyles.textDecoration('underline')}} onClick={onShowEditor}>Edit</Text>}
-      {!resolveByEdit &&
-        <Text type='BodySmall' style={{color: globalColors.red, ...globalStyles.textDecoration('underline')}} onClick={onRetry}>Retry</Text>}
+      <Text type='BodySmall' style={_failStyleFace}>{'┏(>_<)┓'}</Text>
+      <Text type='BodySmall' style={_failStyle}> {error}</Text>
+      {resolveByEdit && <Text type='BodySmall' style={_failStyleUnderline} onClick={onShowEditor}>Edit</Text>}
+      {!resolveByEdit && <Text type='BodySmall' style={_failStyleUnderline} onClick={onRetry}>Retry</Text>}
     </Text>
   )
 }
 
-const Content = ({author, isYou, isFollowing, isBroken, messageKey, isEdited, message, includeHeader, children, onIconClick, onRetry, onShowEditor, isRevoked, failureDescription}) => (
-  <div style={_flexOneColumn} className='message-wrapper'>
-    <Username includeHeader={includeHeader} author={author} isYou={isYou} isFollowing={isFollowing} isBroken={isBroken} />
-    <div style={_textContainerStyle} className='message' data-message-key={messageKey}>
-      <div style={_flexOneColumn}>
-        {children}
-        <EditedMark isEdited={isEdited} />
-      </div>
-      <ActionButton isRevoked={isRevoked} onIconClick={onIconClick} />
-    </div>
-    <Failure failureDescription={failureDescription} onRetry={onRetry} onShowEditor={onShowEditor} />
-  </div>
-)
-
-const MessageWrapper = ({author, isYou, isFollowing, isBroken, includeHeader, messageKey, isEdited, isFirstNewMessage, isSelected, children, message, failureDescription}: Props) => (
-  <div style={{..._flexOneRow, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null)}}>
-    <LeftMarker author={author} isYou={isYou} isFollowing={isFollowing} isBroken={isBroken} />
+const MessageWrapper = (props: Props) => (
+  <div style={{..._flexOneRow, ...(props.isFirstNewMessage ? _stylesFirstNewMessage : null), ...(props.isSelected ? _stylesSelected : null)}}>
+    <LeftMarker author={props.author} isYou={props.isYou} isFollowing={props.isFollowing} isBroken={props.isBroken} />
     <div style={_flexOneRow}>
-      <UserAvatar author={author} showImage={includeHeader} />
-      <Content
-        message={message}
-        author={author}
-        isYou={isYou}
-        failureDescription={failureDescription}
-        isFollowing={isFollowing}
-        isBroken={isBroken}
-        messageKey={messageKey}
-        includeHeader={includeHeader}
-        isEdited={isEdited}>
-        {children}
-      </Content>
+      <UserAvatar author={props.author} showImage={props.includeHeader} />
+      <div style={_flexOneColumn} className='message-wrapper'>
+        <Username includeHeader={props.includeHeader} author={props.author} isYou={props.isYou} isFollowing={props.isFollowing} isBroken={props.isBroken} />
+        <div style={_textContainerStyle} className='message' data-message-key={props.messageKey}>
+          <div style={_flexOneColumn}>
+            {props.children}
+            <EditedMark isEdited={props.isEdited} />
+          </div>
+          <ActionButton isRevoked={props.isRevoked} onIconClick={props.onIconClick} />
+        </div>
+        <Failure failureDescription={props.failureDescription} onRetry={props.onRetry} onShowEditor={props.onShowEditor} />
+      </div>
     </div>
   </div>
 )
@@ -137,6 +120,18 @@ const _flexOneRow = {
 const _flexOneColumn = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
+}
+
+const _failStyle = {
+  color: globalColors.red,
+}
+const _failStyleUnderline = {
+  ..._failStyle,
+  ...globalStyles.textDecoration('underline'),
+}
+const _failStyleFace = {
+  ..._failStyle,
+  fontSize: 9,
 }
 
 export default withHandlers({

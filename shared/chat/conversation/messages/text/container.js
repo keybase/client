@@ -8,10 +8,8 @@ import {connect} from 'react-redux'
 import type {TypedState} from '../../../../constants/reducer'
 import type {OwnProps} from './container'
 
-const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
-
 const getProps = createCachedSelector(
-  [Constants.getMessageFromMessageKey, getEditingMessage],
+  [Constants.getMessageFromMessageKey, Constants.getEditingMessage],
   (message: Constants.TextMessage, editingMessage) => ({
     isEditing: message === editingMessage,
     text: message.message.stringValue(),

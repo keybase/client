@@ -9,7 +9,6 @@ import {Map} from 'immutable'
 import type {TypedState} from '../../../../constants/reducer'
 import type {OwnProps} from './container'
 
-// TODO don't send it all down
 const getMessage = createCachedSelector(
   [Constants.getMessageFromMessageKey],
   (message: Constants.TextMessage) => message,
@@ -33,6 +32,8 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey, childre
   const prevMessage = getMessage(state, prevMessageKey)
   const skipMsgHeader = prevMessage && prevMessage.type === 'Text' && prevMessage.author === author
   const includeHeader = isFirstNewMessage || !skipMsgHeader
+  const isEditing = message === Constants.getEditingMessage(state)
+  const isSelected = false // TODO
 
   return {
     author,
@@ -41,12 +42,12 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey, childre
     includeHeader,
     isBroken,
     isEdited,
+    isEditing,
     isFirstNewMessage,
     isFollowing,
     isRevoked,
-    isSelected: false, // TODO plumb this through
+    isSelected,
     isYou,
-    message, // TODO don't send directly
     messageKey,
   }
 }

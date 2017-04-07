@@ -3,26 +3,26 @@ import {Component} from 'react'
 import * as Constants from '../../../../constants/chat'
 
 export type Props = {
-  isSelected: boolean,
-  isFirstNewMessage: boolean,
-  children?: React$Element<*>,
   author: string,
-  isYou: boolean,
-  isFollowing: boolean,
+  children?: React$Element<*>,
+  failureDescription: ?string,
   includeHeader: boolean,
   isBroken: boolean,
-  messageKey: Constants.MessageKey,
   isEdited: boolean,
-  isRevoked: boolean,
-  failureDescription: ?string,
-
-
-
   isEditing: boolean,
+  isFirstNewMessage: boolean,
+  isFollowing: boolean,
+  isRevoked: boolean,
+  isSelected: boolean,
+  isYou: boolean,
+  messageKey: Constants.MessageKey,
+
+
+
   onAction: (message: Constants.ServerMessage, event: any) => void,
   onRetry: (outboxID: Constants.OutboxIDKey) => void,
   onShowEditor: (message: Constants.Message, event: any) => void,
-  message: Constants.TextMessage | Constants.AttachmentMessage,
+  // message: Constants.TextMessage | Constants.AttachmentMessage,
   onIconClick: (event: any) => void,
 }
 

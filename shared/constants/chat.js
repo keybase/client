@@ -707,6 +707,7 @@ const getSelectedInbox = (state: TypedState) => {
   const selected = getSelectedConversation(state)
   return state.chat.get('inbox').find(inbox => inbox.get('conversationIDKey') === selected)
 }
+const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
 
 const getTLF = createSelector(
   [getSelectedInbox, getSelectedConversation],
@@ -736,6 +737,7 @@ const getSelectedConversationStates = (state: TypedState): ?ConversationState =>
 
 export {
   getBrokenUsers,
+  getEditingMessage,
   getMessageFromMessageKey,
   getSelectedConversation,
   getSelectedConversationStates,
