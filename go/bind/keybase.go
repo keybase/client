@@ -29,9 +29,9 @@ var kbfsConfig libkbfs.Config
 
 // InitOnce runs the Keybase services (only runs one time)
 func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
-	dnsServers string) {
+	dnsServer string) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride, dnsServers); err != nil {
+		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride, dnsServer); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
