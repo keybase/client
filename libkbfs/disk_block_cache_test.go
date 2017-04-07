@@ -59,7 +59,7 @@ func newDiskBlockCacheStandardForTest(config *testDiskBlockCacheConfig,
 		params := backpressureDiskLimiterParams{
 			minThreshold:      0.5,
 			maxThreshold:      0.95,
-			quotaMinThreshold: 0.8,
+			quotaMinThreshold: 1.0,
 			quotaMaxThreshold: 1.2,
 			journalFrac:       0.25,
 			diskCacheFrac:     0.25,

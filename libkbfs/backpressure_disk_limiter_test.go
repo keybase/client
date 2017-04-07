@@ -199,7 +199,7 @@ func TestJournalTrackerCounters(t *testing.T) {
 	jt, err := newJournalTracker(
 		0.1,  // minThreshold
 		0.9,  // maxThreshold
-		0.8,  // quotaMinThreshold
+		1.0,  // quotaMinThreshold
 		1.2,  // quotaMaxThreshold
 		0.15, // journalFrac
 		400,  // byteLimit
@@ -427,7 +427,7 @@ func makeTestBackpressureDiskLimiterParams() backpressureDiskLimiterParams {
 	return backpressureDiskLimiterParams{
 		minThreshold:      0.1,
 		maxThreshold:      0.9,
-		quotaMinThreshold: 0.8,
+		quotaMinThreshold: 1.0,
 		quotaMaxThreshold: 1.2,
 		journalFrac:       0.25,
 		diskCacheFrac:     0.1,
@@ -553,11 +553,11 @@ func TestBackpressureDiskLimiterGetDelay(t *testing.T) {
 		// (0.5-0.1)/(0.9-0.1) = 0.5.
 		bdl.journalTracker.file.used = 50
 		bdl.journalTracker.file.free = 350
-		// quotaDelayScale should be (80+10)/100 = 0.9, which
-		// turns into a delay fraction of (0.9-0.8)/(1.2-0.8)
+		// quotaDelayScale should be (100+5)/100 = 1.05, which
+		// turns into a delay fraction of (1.05-1.0)/(1.2-1.0)
 		// = 0.25.
-		bdl.journalTracker.quota.unflushedBytes = 80
-		bdl.journalTracker.quota.remoteUsedBytes = 10
+		bdl.journalTracker.quota.unflushedBytes = 100
+		bdl.journalTracker.quota.remoteUsedBytes = 5
 		bdl.journalTracker.quota.quotaBytes = 100
 	}()
 
@@ -589,11 +589,11 @@ func TestBackpressureDiskLimiterGetDelay(t *testing.T) {
 		bdl.journalTracker.file.used = 25
 		bdl.journalTracker.file.free = 350
 
-		// quotaDelayScale should be (80+20)/100 = 1.0, which
-		// turns into a delay fraction of (0.9-0.8)/(1.2-0.8)
+		// quotaDelayScale should be (100+10)/100 = 1.1, which
+		// turns into a delay fraction of (1.1-1.0)/(1.2-1.0)
 		// = 0.5.
-		bdl.journalTracker.quota.unflushedBytes = 80
-		bdl.journalTracker.quota.remoteUsedBytes = 20
+		bdl.journalTracker.quota.unflushedBytes = 100
+		bdl.journalTracker.quota.remoteUsedBytes = 10
 		bdl.journalTracker.quota.quotaBytes = 100
 	}()
 
@@ -1201,7 +1201,7 @@ func TestBackpressureDiskLimiterNearQuota(t *testing.T) {
 	params := makeTestBackpressureDiskLimiterParams()
 	params.byteLimit = math.MaxInt64
 	params.fileLimit = math.MaxInt64
-	params.maxDelay = 4 * time.Second
+	params.maxDelay = 2 * time.Second
 	params.delayFn = delayFn
 	params.quotaFn = func(_ context.Context) (int64, int64) {
 		return remoteUsedBytes, quotaBytes
@@ -1228,9 +1228,9 @@ func TestBackpressureDiskLimiterNearQuota(t *testing.T) {
 		}, quotaSnapshot, "i=%d", i)
 	}
 
-	// The first five puts shouldn't encounter any backpressure...
+	// The first seven puts shouldn't encounter any backpressure...
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 7; i++ {
 		_, _, err := bdl.beforeBlockPut(ctx, blockBytes, blockFiles)
 		require.NoError(t, err)
 		require.Equal(t, 0*time.Second, lastDelay, "i=%d", i)
@@ -1241,10 +1241,10 @@ func TestBackpressureDiskLimiterNearQuota(t *testing.T) {
 		checkCounters(i)
 	}
 
-	// ...but the next four should encounter increasing
+	// ...but the next two should encounter increasing
 	// backpressure...
 
-	for i := 1; i <= 4; i++ {
+	for i := 1; i <= 2; i++ {
 		_, _, err := bdl.beforeBlockPut(ctx, blockBytes, blockFiles)
 		require.NoError(t, err)
 		require.InEpsilon(t, float64(i), lastDelay.Seconds(),
@@ -1260,6 +1260,6 @@ func TestBackpressureDiskLimiterNearQuota(t *testing.T) {
 
 	_, _, err = bdl.beforeBlockPut(ctx, blockBytes, blockFiles)
 	require.NoError(t, err)
-	require.Equal(t, 4*time.Second, lastDelay)
+	require.Equal(t, 2*time.Second, lastDelay)
 	checkCounters(0)
 }
