@@ -34,7 +34,7 @@ const waitingForResponse = (waiting: boolean) : TypedAction<'login:waitingForRes
 )
 
 const navBasedOnLoginState = (): AsyncAction => (dispatch, getState) => {
-  const {config: {status, extendedConfig, initialTab}, login: {justDeletedSelf}} = getState()
+  const {config: {extendedConfig, initialTab, launchedViaPush, status}, login: {justDeletedSelf}} = getState()
 
   // No status?
   if (!status || !Object.keys(status).length || !extendedConfig || !Object.keys(extendedConfig).length ||
@@ -48,7 +48,9 @@ const navBasedOnLoginState = (): AsyncAction => (dispatch, getState) => {
       } else if (initialTab && isValidInitialTab(initialTab)) {
         // only do this once
         dispatch(setInitialTab(null))
-        dispatch(navigateTo([initialTab]))
+        if (!launchedViaPush) {
+          dispatch(navigateTo([initialTab]))
+        }
       } else {
         dispatch(navigateTo([profileTab]))
       }
