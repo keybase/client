@@ -6,11 +6,6 @@ import HiddenString from '../../util/hidden-string'
 import {qrGenerate} from './provision-helpers'
 import type {Mode} from './login'
 
-// TODO get ride of some of these usernameOrEmail actions?
-function setUsernameOrEmail (usernameOrEmail: string): Constants.SetUsernameOrEmail {
-  return {type: Constants.setUsernameOrEmail, payload: {usernameOrEmail}}
-}
-
 function submitUsernameOrEmail (usernameOrEmail): Constants.SubmitUsernameOrEmail {
   return {type: Constants.submitUsernameOrEmail, payload: {usernameOrEmail}}
 }
@@ -150,38 +145,36 @@ function navBasedOnLoginState () {
 }
 
 export {
+  addNewComputer,
+  addNewDevice,
+  addNewPhone,
   chooseGPGMethod,
+  loginDone,
+  logout,
+  logoutDone,
+  navBasedOnLoginState,
   onBack,
   onFinish,
   onWont,
+  openAccountResetPage,
   provisionTextCodeEntered,
   qrScanned,
   relogin,
   selectDeviceId,
+  setCameraBrokenMode,
   setCodePageMode,
   setDeletedSelf,
   setLoginFromRevokedDevice,
-  setRevokedSelf,
-  someoneElse,
-  submitDeviceName,
-  submitPassphrase,
-
-  loginDone,
-  logoutDone,
-  startLogin,
-  submitUsernameOrEmail,
-  setTextCode,
-  setUsernameOrEmail,
-  setQRCode,
-  setOtherDeviceCodeState,
   setMyDeviceCodeState,
-  setCameraBrokenMode,
-  addNewDevice,
-  addNewPhone,
-  addNewComputer,
-  updateForgotPasswordEmail,
-  logout,
+  setOtherDeviceCodeState,
+  setQRCode,
+  setRevokedSelf,
+  setTextCode,
+  someoneElse,
+  startLogin,
+  submitDeviceName,
   submitForgotPassword,
-  openAccountResetPage,
-  navBasedOnLoginState,
+  submitPassphrase,
+  submitUsernameOrEmail,
+  updateForgotPasswordEmail,
 }

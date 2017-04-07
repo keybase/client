@@ -1,9 +1,12 @@
 // @flow
 import RenderGPGSign from './index.render'
 import {connect} from 'react-redux'
-
-import type {TypedState} from '../../../constants/reducer'
+import * as Creators from '../../../actions/login/creators'
 
 export default connect(
-  (state: TypedState, {routeProps}) => routeProps,
+  null,
+  (dispatch) => ({
+    onBack: () => dispatch(Creators.onBack()),
+    onSubmit: exportKey => dispatch(Creators.chooseGPGMethod(exportKey)),
+  })
 )(RenderGPGSign)

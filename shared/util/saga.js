@@ -66,22 +66,25 @@ function safeTakeEvery (pattern: string | Array<any> | Function, worker: Functio
   return takeEvery(pattern, wrappedWorker, ...args)
 }
 
-function safeTakeLatest (pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>) {
+function safeTakeLatestWithCatch (pattern: string | Array<any> | Function, catchHandler, worker: Function, ...args: Array<any>) {
   const wrappedWorker = function * (...args) {
     try {
       yield call(worker, ...args)
     } catch (error) {
       // Convert to global error so we don't kill the takeLatest loop
-      yield put((dispatch) => {
-        dispatch({
-          payload: convertToError(error),
-          type: globalError,
-        })
+      yield put({
+        payload: convertToError(error),
+        type: globalError,
       })
+      yield call(catchHandler, error)
     }
   }
 
   return takeLatest(pattern, wrappedWorker, ...args)
+}
+
+function safeTakeLatest (pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>) {
+  return safeTakeLatestWithCatch(pattern, () => {}, worker, ...args)
 }
 
 // take on pattern. If pattern happens while the original one is running just ignore it
@@ -133,6 +136,7 @@ export {
   putOnChannelMap,
   safeTakeEvery,
   safeTakeLatest,
+  safeTakeLatestWithCatch,
   safeTakeSerially,
   singleFixedChannelConfig,
   takeFromChannelMap,

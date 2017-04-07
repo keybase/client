@@ -3,6 +3,7 @@ import React, {Component} from 'react'
 import Render from './index.render'
 import type {Props} from './index.render'
 import {connect} from 'react-redux'
+import * as Creators from '../../../actions/login/creators'
 
 import type {RouteProps} from '../../../route-tree/render-route'
 import type {Connector} from 'react-redux'
@@ -14,16 +15,15 @@ class UsernameOrEmail extends Component<void, Props, void> {
   }
 }
 
-type OwnProps = {
-  onSubmit: (usernameOrEmail: string) => void,
-  onBack: () => void,
-}
+type OwnProps = {}
 
 const connector: Connector<RouteProps<OwnProps, {}>, {waitingForResponse: $PropertyType<Props, 'waitingForResponse'>} & OwnProps> = connect(
-  (state: TypedState, {routeProps: {onBack, onSubmit}}: RouteProps<OwnProps, {}>) => ({
-    onBack,
-    onSubmit,
+  (state: TypedState) => ({
     waitingForResponse: state.login.waitingForResponse,
+  }),
+  (dispatch) => ({
+    onBack: () => dispatch(Creators.onBack()),
+    onSubmit: (usernameOrEmail: string) => dispatch(Creators.submitUsernameOrEmail(usernameOrEmail)),
   })
 )
 

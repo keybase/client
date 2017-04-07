@@ -2,6 +2,8 @@
 import React, {Component} from 'react'
 import RenderPaperKey from './index.render'
 import {connect} from 'react-redux'
+import * as Creators from '../../../actions/login/creators'
+import HiddenString from '../../../util/hidden-string'
 
 import type {RouteProps} from '../../../route-tree/render-route'
 import type {Props, State} from './index'
@@ -34,13 +36,15 @@ class PaperKey extends Component<void, Props, State> {
 
 type OwnProps = RouteProps<{
   error: string,
-  onBack: () => void,
-  onSubmit: (paperkey: string) => void,
 }, {}>
 
 export default connect(
-  (state: TypedState, {routeProps}: OwnProps) => ({
-    ...routeProps,
+  (state: TypedState, {routeProps: {error}}: OwnProps) => ({
     waitingForResponse: state.login.waitingForResponse,
+    error,
+  }),
+  (dispatch) => ({
+    onBack: () => dispatch(Creators.onBack()),
+    onSubmit: (paperkey) => dispatch(Creators.submitPassphrase(new HiddenString(paperkey), false)),
   })
 )(PaperKey)

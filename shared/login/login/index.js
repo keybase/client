@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import Render from './index.render'
 import {connect} from 'react-redux'
-import {openAccountResetPage, relogin, login} from '../../actions/login'
+import * as Creators from '../../actions/login/creators'
 import {requestAutoInvite} from '../../actions/signup'
 
 import type {TypedState} from '../../constants/reducer'
@@ -64,9 +64,9 @@ export default connect(
     }
   },
   (dispatch: any) => ({
-    onForgotPassphrase: () => dispatch(openAccountResetPage()),
-    onLogin: (user, passphrase) => dispatch(relogin(user, passphrase)),
+    onForgotPassphrase: () => dispatch(Creators.openAccountResetPage()),
+    onLogin: (user, passphrase) => dispatch(Creators.relogin(user, passphrase)),
     onSignup: () => dispatch(requestAutoInvite()),
-    onSomeoneElse: () => { dispatch(login()) },
+    onSomeoneElse: () => { dispatch(Creators.startLogin()) },
   })
 )(Login)
