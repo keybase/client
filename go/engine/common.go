@@ -16,9 +16,9 @@ func IsLoggedIn(e Engine, ctx *Context) (ret bool, uid keybase1.UID, err error) 
 
 func IsProvisioned(e Engine, ctx *Context) (bool, error) {
 	if ctx.LoginContext != nil {
-		return ctx.LoginContext.LoggedInProvisionedLoad()
+		return ctx.LoginContext.LoggedInProvisionedCheck()
 	}
-	return e.G().LoginState().LoggedInProvisionedLoad()
+	return e.G().LoginState().LoggedInProvisionedCheck()
 }
 
 type keypair struct {

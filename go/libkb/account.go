@@ -89,16 +89,19 @@ func (a *Account) LoggedIn() bool {
 	return a.LocalSession().IsLoggedIn()
 }
 
+/*
 func (a *Account) LoggedInAndProvisioned() bool {
 	return a.LocalSession().IsLoggedInAndProvisioned()
 }
+*/
 
 // LoggedInLoad will load and check the session with the api server if necessary.
 func (a *Account) LoggedInLoad() (bool, error) {
 	return a.LocalSession().loadAndCheck()
 }
 
-func (a *Account) LoggedInProvisionedLoad() (bool, error) {
+// LoggedInProvisionedLoad will load and check the session with the api server if necessary.
+func (a *Account) LoggedInProvisionedCheck() (bool, error) {
 	return a.LocalSession().loadAndCheckProvisioned()
 }
 

@@ -65,7 +65,7 @@ func (e *LoginProvisionedDevice) Run(ctx *Context) error {
 
 func (e *LoginProvisionedDevice) run(ctx *Context) error {
 	// already logged in?
-	in, err := e.G().LoginState().LoggedInProvisionedLoad()
+	in, err := e.G().LoginState().LoggedInProvisionedCheck()
 	if err == nil && in {
 		if len(e.username) == 0 || e.G().Env.GetUsername() == libkb.NewNormalizedUsername(e.username) {
 			// already logged in, make sure to unlock device keys
