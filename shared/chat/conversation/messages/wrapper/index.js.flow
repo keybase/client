@@ -1,0 +1,26 @@
+// @flow
+import {Component} from 'react'
+import * as Constants from '../../../../constants/chat'
+
+export type Props = {
+  isSelected: boolean,
+  isFirstNewMessage: boolean,
+  children?: React$Element<*>,
+  author: string,
+  isYou: boolean,
+  isFollowing: boolean,
+  includeHeader: boolean,
+  isBroken: boolean,
+
+
+
+
+  isEditing: boolean,
+  onAction: (message: Constants.ServerMessage, event: any) => void,
+  onRetry: (outboxID: Constants.OutboxIDKey) => void,
+  onShowEditor: (message: Constants.Message, event: any) => void,
+  message: Constants.TextMessage | Constants.AttachmentMessage,
+  onIconClick: (event: any) => void,
+}
+
+export default class Wrapper extends Component<void, Props, void> {}

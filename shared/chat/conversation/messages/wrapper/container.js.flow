@@ -1,0 +1,10 @@
+// @flow
+import {Component} from 'react'
+import * as Constants from '../../../../constants/chat'
+
+export type OwnProps = {
+  messageKey: Constants.MessageKey,
+  children?: React$Element<*>,
+}
+
+export default class Wrapper extends Component<void, OwnProps, void> {}
