@@ -29,13 +29,5 @@ import * as Constants from '../../../constants/chat'
 // declare var factory: (options: Options) => React$Element<*>
 // export default factory
 
-export type MessageStyle = {
-  height: ?number,
-  left: ?number,
-  position: ?string,
-  top: ?number,
-  width: ?string,
-}
-
 declare function factory (messageKey: Constants.MessageKey, style: ?MessageStyle): React$Element<*>
 export default factory

@@ -1,23 +1,24 @@
 // @flow
 import * as Constants from '../../../constants/chat'
-import AttachmentMessageRender from './attachment'
-import MessageText from './text'
+// import AttachmentMessageRender from './attachment'
+// import MessageText from './text'
 import React from 'react'
 import Timestamp from './timestamp/container'
-import LoadingMore from './loading-more'
-import ProfileResetNotice from '../notices/profile-reset-notice'
-import {Box, Text, Icon} from '../../../common-adapters'
-import {formatTimeForMessages} from '../../../util/timestamp'
-import {globalStyles, globalColors} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import LoadingMore from './loading-more/container'
+// import ProfileResetNotice from '../notices/profile-reset-notice'
+import {Box, Text /*, Icon */} from '../../../common-adapters'
+// import {formatTimeForMessages} from '../../../util/timestamp'
+import {globalStyles /*, globalColors */} from '../../../styles'
+// import {isMobile} from '../../../constants/platform'
 
 const factory = (messageKey: Constants.MessageKey) => {
   const kind = Constants.messageKeyKind(messageKey)
   switch (kind) {
     // case 'invisibleError': {
     // }
-    // case 'loadingMore': {
-    // }
+    case 'loadingMore': {
+      return <LoadingMore messageKey={messageKey} />
+    }
     // case 'messageIDAttachment': {
     // }
     // case 'messageIDError': {
