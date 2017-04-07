@@ -479,12 +479,14 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             key: Constants.messageKey(common.conversationIDKey, 'messageIDError', common.messageID),
             reason: 'Whuatttttttt',
           } : {}
+          const p: any = payload
+          const message = new HiddenString(p.messageBody && p.messageBody.text && p.messageBody.text.body || '')
           // end to del
           return {
             type: 'Text',
             ...common,
             editedCount: payload.serverHeader.supersededBy ? 1 : 0, // mark it as edited if it's been superseded
-            message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
+            message,
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),

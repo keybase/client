@@ -25,7 +25,8 @@ function messageMock (messageState: MessageState, author: string, you: string, e
     timestamp: 1479764890000,
     conversationIDKey: 'cid1',
     messageID: 1,
-    key: messageKey('messageID', mockKey++),
+    // TEMP
+    // key: messageKey('messageID', mockKey++),
     ...otherProps,
   }
 }

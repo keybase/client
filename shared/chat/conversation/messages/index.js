@@ -41,6 +41,7 @@ const factory = (messageKey: Constants.MessageKey) => {
       return <Timestamp messageKey={messageKey} />
     }
     default: {
+      // to del
       return (
         <Box style={TEMP}>
           <Text type='BodySmall' style={TEMP}>{kind}:{messageKey.substring(0, 5)}</Text>
@@ -49,7 +50,8 @@ const factory = (messageKey: Constants.MessageKey) => {
     }
   }
 
-  return <Box data-messageKey={messageKey} />
+  // TODO put back
+  // return <Box data-messageKey={messageKey} />
 }
 
 const TEMP = {
