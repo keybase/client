@@ -449,6 +449,13 @@ func runDNS(g proofContextExt, userdomain string, scripts []scriptT, mknewstate 
 	return libkb.NewProofError(errs[0].GetProofStatus(), strings.Join(descs, "; "))
 }
 
+func formatDNSServer(srv string) string {
+	if strings.Contains(srv, ":") {
+		return fmt.Sprintf("[%s]:53", srv)
+	}
+	return srv + ":53"
+}
+
 func runDNSTXTQuery(g proofContextExt, domain string) (res []string, err error) {
 
 	// Attempt to use the built-in resolver first, but this might fail on mobile.
@@ -463,7 +470,16 @@ func runDNSTXTQuery(g proofContextExt, domain string) (res []string, err error) 
 	}
 
 	// Google, Level3, and Verisign public DNS servers
-	servers := []string{"8.8.8.8:53", "209.244.0.3:53", "64.6.64.6:53"}
+	servers := []string{
+		formatDNSServer("8.8.8.8"),
+		formatDNSServer("2001:4860:4860::8888"),
+		formatDNSServer("209.244.0.3"),
+		formatDNSServer("64.6.64.6"),
+	}
+	if len(g.GetEnv().GetDNSServer()) > 0 {
+		// If we have a DNS server in our config, try it first
+		servers = append([]string{formatDNSServer(g.GetEnv().GetDNSServer())}, servers...)
+	}
 	var r *dns.Msg
 	c := dns.Client{}
 	m := dns.Msg{}

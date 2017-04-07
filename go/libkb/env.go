@@ -136,6 +136,10 @@ func (n NullConfiguration) GetSecurityAccessGroupOverride() (bool, bool) {
 	return false, false
 }
 
+func (n NullConfiguration) GetDNSServer() string {
+	return ""
+}
+
 type TestParameters struct {
 	ConfigFilename string
 	Home           string
@@ -844,6 +848,13 @@ func (e *Env) GetFeatureFlags() FeatureFlags {
 	return ret
 }
 
+func (e *Env) GetDNSServer() string {
+	return e.GetString(
+		func() string { return e.cmd.GetDNSServer() },
+		func() string { return e.config.GetDNSServer() },
+	)
+}
+
 func (e *Env) GetUID() keybase1.UID { return e.config.GetUID() }
 
 func (e *Env) GetStringList(list ...(func() []string)) []string {
@@ -1076,6 +1087,7 @@ type AppConfig struct {
 	LocalRPCDebug               string
 	ServerURI                   string
 	SecurityAccessGroupOverride bool
+	DNSServer                   string
 }
 
 var _ CommandLine = AppConfig{}
@@ -1110,6 +1122,10 @@ func (c AppConfig) GetSecurityAccessGroupOverride() (bool, bool) {
 
 func (c AppConfig) GetAppType() AppType {
 	return MobileAppType
+}
+
+func (c AppConfig) GetDNSServer() string {
+	return c.DNSServer
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {

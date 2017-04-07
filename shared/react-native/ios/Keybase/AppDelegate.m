@@ -69,7 +69,7 @@ const BOOL isDebug = NO;
     }
   }
   res_nclose(res);
-  return @"127.0.0.1";
+  return @"";
 }
 
 - (void) setupGo

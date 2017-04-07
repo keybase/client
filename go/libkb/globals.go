@@ -130,6 +130,7 @@ func (g *GlobalContext) GetExternalAPI() ExternalAPI    { return g.XAPI }
 func (g *GlobalContext) GetServerURI() string           { return g.Env.GetServerURI() }
 func (g *GlobalContext) GetMerkleClient() *MerkleClient { return g.MerkleClient }
 func (g *GlobalContext) GetNetContext() context.Context { return g.NetContext }
+func (g *GlobalContext) GetEnv() *Env                   { return g.Env }
 
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")

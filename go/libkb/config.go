@@ -568,6 +568,10 @@ func (f JSONConfigFile) GetChatDelivererInterval() (time.Duration, bool) {
 	return f.GetDurationAtPath("chat.deliverer_interval")
 }
 
+func (f JSONConfigFile) GetDNSServer() string {
+	return ""
+}
+
 func (f JSONConfigFile) getCacheSize(w string) (int, bool) {
 	return f.jw.AtPathGetInt(w)
 }

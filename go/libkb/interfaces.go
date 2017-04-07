@@ -75,6 +75,7 @@ type configGetter interface {
 	GetVDebugSetting() string
 	GetChatDelivererInterval() (time.Duration, bool)
 	GetFeatureFlags() (FeatureFlags, error)
+	GetDNSServer() string
 }
 
 type CommandLine interface {
@@ -453,6 +454,10 @@ type GregorListener interface {
 	PushFirehoseHandler(handler GregorFirehoseHandler)
 }
 
+type EnvContext interface {
+	GetEnv() *Env
+}
+
 type LogContext interface {
 	GetLog() logger.Logger
 }
@@ -478,6 +483,7 @@ type ProofContext interface {
 	LogContext
 	APIContext
 	NetContext
+	EnvContext
 	GetPvlSource() PvlSource
 }
 

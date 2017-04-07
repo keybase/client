@@ -66,6 +66,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		Debug:                       true,
 		LocalRPCDebug:               "",
 		SecurityAccessGroupOverride: accessGroupOverride,
+		DNSServer:                   dnsServer,
 	}
 	err = kbCtx.Configure(config, usage)
 	if err != nil {
