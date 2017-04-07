@@ -470,16 +470,21 @@ func runDNSTXTQuery(g proofContextExt, domain string) (res []string, err error) 
 	}
 
 	// Google, Level3, and Verisign public DNS servers
-	servers := []string{
+	publicServers := []string{
 		formatDNSServer("8.8.8.8"),
 		formatDNSServer("2001:4860:4860::8888"),
 		formatDNSServer("209.244.0.3"),
 		formatDNSServer("64.6.64.6"),
 	}
-	if len(g.GetEnv().GetDNSServer()) > 0 {
-		// If we have a DNS server in our config, try it first
-		servers = append([]string{formatDNSServer(g.GetEnv().GetDNSServer())}, servers...)
+	var fetchedSrvs []string
+	if g.GetDNSNameServerFetcher() != nil {
+		fetchedSrvs = g.GetDNSNameServerFetcher().GetServers()
+		for i := 0; i < len(fetchedSrvs); i++ {
+			fetchedSrvs[i] = formatDNSServer(fetchedSrvs[i])
+		}
 	}
+	servers := append(fetchedSrvs, publicServers...)
+
 	var r *dns.Msg
 	c := dns.Client{}
 	m := dns.Msg{}

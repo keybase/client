@@ -117,20 +117,23 @@ type GlobalContext struct {
 	ActiveDevice *ActiveDevice
 
 	NetContext context.Context
+
+	DNSNSFetcher DNSNameServerFetcher
 }
 
 type GlobalTestOptions struct {
 	NoBug3964Repair bool
 }
 
-func (g *GlobalContext) GetLog() logger.Logger          { return g.Log }
-func (g *GlobalContext) GetVDebugLog() *VDebugLog       { return g.VDL }
-func (g *GlobalContext) GetAPI() API                    { return g.API }
-func (g *GlobalContext) GetExternalAPI() ExternalAPI    { return g.XAPI }
-func (g *GlobalContext) GetServerURI() string           { return g.Env.GetServerURI() }
-func (g *GlobalContext) GetMerkleClient() *MerkleClient { return g.MerkleClient }
-func (g *GlobalContext) GetNetContext() context.Context { return g.NetContext }
-func (g *GlobalContext) GetEnv() *Env                   { return g.Env }
+func (g *GlobalContext) GetLog() logger.Logger                         { return g.Log }
+func (g *GlobalContext) GetVDebugLog() *VDebugLog                      { return g.VDL }
+func (g *GlobalContext) GetAPI() API                                   { return g.API }
+func (g *GlobalContext) GetExternalAPI() ExternalAPI                   { return g.XAPI }
+func (g *GlobalContext) GetServerURI() string                          { return g.Env.GetServerURI() }
+func (g *GlobalContext) GetMerkleClient() *MerkleClient                { return g.MerkleClient }
+func (g *GlobalContext) GetNetContext() context.Context                { return g.NetContext }
+func (g *GlobalContext) GetEnv() *Env                                  { return g.Env }
+func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return g.DNSNSFetcher }
 
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
@@ -203,6 +206,10 @@ func (g *GlobalContext) SetService() {
 
 func (g *GlobalContext) SetUIRouter(u UIRouter) {
 	g.UIRouter = u
+}
+
+func (g *GlobalContext) SetDNSNameServerFetcher(d DNSNameServerFetcher) {
+	g.DNSNSFetcher = d
 }
 
 // requires lock on loginStateMu before calling

@@ -27,11 +27,36 @@ var startOnce sync.Once
 var logSendContext libkb.LogSendContext
 var kbfsConfig libkbfs.Config
 
+type ExternalDNSNSFetcher interface {
+	GetServers() []byte
+}
+
+type dnsNSFetcher struct {
+	externalFetcher ExternalDNSNSFetcher
+}
+
+func newDNSNSFetcher(d ExternalDNSNSFetcher) dnsNSFetcher {
+	return dnsNSFetcher{
+		externalFetcher: d,
+	}
+}
+
+func (d dnsNSFetcher) processExternalResult(raw []byte) []string {
+	return nil
+}
+
+func (d dnsNSFetcher) GetServers() []string {
+	if d.externalFetcher != nil {
+		return d.processExternalResult(d.externalFetcher.GetServers())
+	}
+	return getDNSServers()
+}
+
 // InitOnce runs the Keybase services (only runs one time)
 func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
-	dnsServer string) {
+	dnsNSFetcher ExternalDNSNSFetcher) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride, dnsServer); err != nil {
+		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride, dnsNSFetcher); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
@@ -39,12 +64,17 @@ func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOver
 
 // Init runs the Keybase services
 func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
-	dnsServer string) error {
+	externalDNSNSFetcher ExternalDNSNSFetcher) error {
 	fmt.Println("Go: Initializing")
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
 	}
-	fmt.Printf("Go: DNS Server: %s\n", dnsServer)
+
+	dnsNSFetcher := newDNSNSFetcher(externalDNSNSFetcher)
+	dnsServers := dnsNSFetcher.GetServers()
+	for _, srv := range dnsServers {
+		fmt.Printf("Go: DNS Server: %s\n", srv)
+	}
 
 	kbCtx = libkb.G
 	kbCtx.Init()
@@ -66,7 +96,6 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		Debug:                       true,
 		LocalRPCDebug:               "",
 		SecurityAccessGroupOverride: accessGroupOverride,
-		DNSServer:                   dnsServer,
 	}
 	err = kbCtx.Configure(config, usage)
 	if err != nil {
@@ -81,6 +110,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	kbCtx.SetService()
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
+	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
 	svc.RunBackgroundOperations(uir)
 
 	serviceLog := config.GetLogFile()

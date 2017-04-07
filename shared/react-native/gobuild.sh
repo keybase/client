@@ -75,7 +75,7 @@ rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
 
 if [ ! "$skip_gomobile_init" = "1" ]; then
   echo "Doing gomobile init (to skip, set SKIP_GOMOBILE_INIT=1)"
-  "$GOPATH/bin/gomobile" init
+  "$GOPATH/bin/gomobile" init 
 fi
 
 
@@ -92,10 +92,10 @@ ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build"
 if [ "$arg" = "ios" ]; then
   ios_dest="$dir/ios/keybase.framework"
   echo "Building for iOS ($ios_dest)..."
-  "$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package"
+  "$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -x -ldflags "$ldflags" -o "$ios_dest" "$package"
 elif [ "$arg" = "android" ]; then
   android_dest="$dir/android/keybaselib/keybaselib.aar"
-  echo "Building for Android ($android_dest)..."
+  echo "Building for Android ($android_dest)"
   "$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
 else
   echo "Nothing to build, you need to specify 'ios' or 'android'"

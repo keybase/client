@@ -75,7 +75,6 @@ type configGetter interface {
 	GetVDebugSetting() string
 	GetChatDelivererInterval() (time.Duration, bool)
 	GetFeatureFlags() (FeatureFlags, error)
-	GetDNSServer() string
 }
 
 type CommandLine interface {
@@ -478,12 +477,20 @@ type NetContext interface {
 	GetNetContext() context.Context
 }
 
+type DNSNameServerFetcher interface {
+	GetServers() []string
+}
+
+type DNSContext interface {
+	GetDNSNameServerFetcher() DNSNameServerFetcher
+}
+
 // ProofContext defines features needed by the proof system
 type ProofContext interface {
 	LogContext
 	APIContext
 	NetContext
-	EnvContext
+	DNSContext
 	GetPvlSource() PvlSource
 }
 
