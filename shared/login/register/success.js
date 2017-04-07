@@ -1,8 +1,6 @@
 // @flow
 import RenderSuccess from '../signup/success/index.render'
 import {connect} from 'react-redux'
-import {sawPaperKey} from '../../actions/signup'
-import {navigateUp} from '../../actions/route-tree'
 import HiddenString from '../../util/hidden-string'
 
 import * as Creators from '../../actions/login/creators'

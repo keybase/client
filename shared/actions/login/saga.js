@@ -358,7 +358,6 @@ function addDeviceRpc (channelConfig) {
 }
 
 function * finishLoginSaga ({error, params}) {
-  const status = params && params.status
   if (error) {
     console.log(error)
     yield put(Creators.loginDone(error))
@@ -370,7 +369,7 @@ function * finishLoginSaga ({error, params}) {
 
 function * loginFlowSaga (usernameOrEmail) {
   const loginSagas = kex2Sagas(cancelLogin, provisionerSuccessInLoginSaga, finishLoginSaga)
-  const catchError = function * (error) { yield call(cancelLogin) }
+  const catchError = function * () { yield call(cancelLogin) }
 
   const channelConfig = Saga.singleFixedChannelConfig(Object.keys(loginSagas))
   const loginChanMap = yield call(loginRpc, channelConfig, usernameOrEmail)
