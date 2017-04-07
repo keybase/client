@@ -2908,11 +2908,12 @@ func (fbo *folderBranchOps) unrefEntry(ctx context.Context,
 }
 
 func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, dir path, name string) error {
+	lState *lockState, md *RootMetadata, dir Node, dirPath path,
+	name string) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	pblock, err := fbo.blocks.GetDir(
-		ctx, lState, md.ReadOnly(), dir, blockWrite)
+		ctx, lState, md.ReadOnly(), dirPath, blockWrite)
 	if err != nil {
 		return err
 	}
@@ -2923,13 +2924,13 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 		return NoSuchNameError{name}
 	}
 
-	ro, err := newRmOp(name, dir.tailPointer())
+	ro, err := newRmOp(name, dirPath.tailPointer())
 	if err != nil {
 		return err
 	}
-	ro.setFinalPath(dir)
+	ro.setFinalPath(dirPath)
 	md.AddOp(ro)
-	err = fbo.unrefEntry(ctx, lState, md, dir, de, name)
+	err = fbo.unrefEntry(ctx, lState, md, dirPath, de, name)
 	if err != nil {
 		return err
 	}
@@ -2937,9 +2938,18 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 	// the actual unlink
 	delete(pblock.Children, name)
 
+	fbo.blocks.RemoveDirEntryInCache(lState, dirPath, name)
+	fbo.dirOps = append(fbo.dirOps, cachedDirOp{ro, []Node{dir}})
+
+	defer func() {
+		// Until KBFS-2076 is done, clear out the cached dir data manually.
+		fbo.dirOps = nil
+		fbo.blocks.ClearCachedAddsAndRemoves(lState, dirPath)
+	}()
+
 	// sync the parent directory
 	_, err = fbo.syncBlockAndFinalizeLocked(
-		ctx, lState, md, pblock, *dir.parentPath(), dir.tailName(),
+		ctx, lState, md, pblock, *dirPath.parentPath(), dirPath.tailName(),
 		Dir, true, true, zeroPtr, NoExcl)
 	if err != nil {
 		return err
@@ -2984,7 +2994,7 @@ func (fbo *folderBranchOps) removeDirLocked(ctx context.Context,
 		return DirNotEmptyError{dirName}
 	}
 
-	return fbo.removeEntryLocked(ctx, lState, md, dirPath, dirName)
+	return fbo.removeEntryLocked(ctx, lState, md, dir, dirPath, dirName)
 }
 
 func (fbo *folderBranchOps) RemoveDir(
@@ -3032,7 +3042,7 @@ func (fbo *folderBranchOps) RemoveEntry(ctx context.Context, dir Node,
 				return err
 			}
 
-			return fbo.removeEntryLocked(ctx, lState, md, dirPath, name)
+			return fbo.removeEntryLocked(ctx, lState, md, dir, dirPath, name)
 		})
 }
 
