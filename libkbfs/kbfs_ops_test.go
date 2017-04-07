@@ -5369,7 +5369,9 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't stat file: %+v", err)
 	}
-	if ei != newEi {
+	// CTime is allowed to change after a rename, but nothing else.
+	if ei.Type != newEi.Type || ei.Size != newEi.Size ||
+		ei.Mtime != newEi.Mtime {
 		t.Errorf("Entry info unexpectedly changed from %+v to %+v", ei, newEi)
 	}
 }
@@ -5415,7 +5417,9 @@ func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't stat file: %+v", err)
 	}
-	if ei != eis["b"] {
+	// CTime is allowed to change after a rename, but nothing else.
+	if newEi := eis["b"]; ei.Type != newEi.Type || ei.Size != newEi.Size ||
+		ei.Mtime != newEi.Mtime {
 		t.Errorf("Entry info unexpectedly changed from %+v to %+v",
 			ei, eis["b"])
 	}

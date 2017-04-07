@@ -3047,9 +3047,19 @@ func (fbo *folderBranchOps) RemoveEntry(ctx context.Context, dir Node,
 }
 
 func (fbo *folderBranchOps) renameLocked(
-	ctx context.Context, lState *lockState, oldParent path,
-	oldName string, newParent path, newName string) (err error) {
+	ctx context.Context, lState *lockState, oldParent Node, oldName string,
+	newParent Node, newName string) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
+
+	oldParentPath, err := fbo.pathFromNodeForMDWriteLocked(lState, oldParent)
+	if err != nil {
+		return err
+	}
+
+	newParentPath, err := fbo.pathFromNodeForMDWriteLocked(lState, newParent)
+	if err != nil {
+		return err
+	}
 
 	// verify we have permission to write
 	md, err := fbo.getMDForWriteLocked(ctx, lState)
@@ -3058,8 +3068,7 @@ func (fbo *folderBranchOps) renameLocked(
 	}
 
 	oldPBlock, newPBlock, newDe, lbc, err := fbo.blocks.PrepRename(
-		ctx, lState, md, oldParent, oldName, newParent, newName)
-
+		ctx, lState, md, oldParentPath, oldName, newParentPath, newName)
 	if err != nil {
 		return err
 	}
@@ -3068,28 +3077,28 @@ func (fbo *folderBranchOps) renameLocked(
 	if de, ok := newPBlock.Children[newName]; ok {
 		// Usually higher-level programs check these, but just in case.
 		if de.Type == Dir && newDe.Type != Dir {
-			return NotDirError{newParent.ChildPathNoPtr(newName)}
+			return NotDirError{newParentPath.ChildPathNoPtr(newName)}
 		} else if de.Type != Dir && newDe.Type == Dir {
-			return NotFileError{newParent.ChildPathNoPtr(newName)}
+			return NotFileError{newParentPath.ChildPathNoPtr(newName)}
 		}
 
 		if de.Type == Dir {
 			// The directory must be empty.
 			oldTargetDir, err := fbo.blocks.GetDirBlockForReading(ctx, lState,
-				md.ReadOnly(), de.BlockPointer, newParent.Branch,
-				newParent.ChildPathNoPtr(newName))
+				md.ReadOnly(), de.BlockPointer, newParentPath.Branch,
+				newParentPath.ChildPathNoPtr(newName))
 			if err != nil {
 				return err
 			}
 			if len(oldTargetDir.Children) != 0 {
 				fbo.log.CWarningf(ctx, "Renaming over a non-empty directory "+
-					" (%s/%s) not allowed.", newParent, newName)
+					" (%s/%s) not allowed.", newParentPath, newName)
 				return DirNotEmptyError{newName}
 			}
 		}
 
 		// Delete the old block pointed to by this direntry.
-		err := fbo.unrefEntry(ctx, lState, md, newParent, de, newName)
+		err := fbo.unrefEntry(ctx, lState, md, newParentPath, de, newName)
 		if err != nil {
 			return err
 		}
@@ -3100,12 +3109,34 @@ func (fbo *folderBranchOps) renameLocked(
 	newPBlock.Children[newName] = newDe
 	delete(oldPBlock.Children, oldName)
 
+	// XXX: do both of the below under the same lock, to avoid races
+	// with reads.
+	deleteTargetDirEntry := fbo.blocks.RenameDirEntryInCache(
+		lState, oldParentPath, oldName, newParentPath, newName, newDe)
+	ro := md.data.Changes.Ops[len(md.data.Changes.Ops)-1]
+	cdo := cachedDirOp{ro, []Node{oldParent}}
+	if oldParent.GetID() != newParent.GetID() {
+		cdo.nodes = append(cdo.nodes, newParent)
+	}
+	fbo.dirOps = append(fbo.dirOps, cdo)
+
+	defer func() {
+		// Until KBFS-2076 is done, clear out the cached dir data manually.
+		fbo.dirOps = nil
+		fbo.blocks.ClearCachedAddsAndRemoves(lState, newParentPath)
+		fbo.blocks.ClearCachedAddsAndRemoves(lState, oldParentPath)
+		if deleteTargetDirEntry {
+			fbo.blocks.ClearCacheInfo(
+				lState, newParentPath.ChildPath(newName, newDe.BlockPointer))
+		}
+	}()
+
 	// find the common ancestor
 	var i int
 	found := false
 	// the root block will always be the same, so start at number 1
-	for i = 1; i < len(oldParent.path) && i < len(newParent.path); i++ {
-		if oldParent.path[i].ID != newParent.path[i].ID {
+	for i = 1; i < len(oldParentPath.path) && i < len(newParentPath.path); i++ {
+		if oldParentPath.path[i].ID != newParentPath.path[i].ID {
 			found = true
 			i--
 			break
@@ -3114,17 +3145,17 @@ func (fbo *folderBranchOps) renameLocked(
 	if !found {
 		// if we couldn't find one, then the common ancestor is the
 		// last node in the shorter path
-		if len(oldParent.path) < len(newParent.path) {
-			i = len(oldParent.path) - 1
+		if len(oldParentPath.path) < len(newParentPath.path) {
+			i = len(oldParentPath.path) - 1
 		} else {
-			i = len(newParent.path) - 1
+			i = len(newParentPath.path) - 1
 		}
 	}
-	commonAncestor := oldParent.path[i].BlockPointer
-	oldIsCommon := oldParent.tailPointer() == commonAncestor
-	newIsCommon := newParent.tailPointer() == commonAncestor
+	commonAncestor := oldParentPath.path[i].BlockPointer
+	oldIsCommon := oldParentPath.tailPointer() == commonAncestor
+	newIsCommon := newParentPath.tailPointer() == commonAncestor
 
-	newOldPath := path{FolderBranch: oldParent.FolderBranch}
+	newOldPath := path{FolderBranch: oldParentPath.FolderBranch}
 	var oldBps *blockPutState
 	if oldIsCommon {
 		if newIsCommon {
@@ -3135,29 +3166,29 @@ func (fbo *folderBranchOps) renameLocked(
 			// not, then the last
 			// syncBlockAndCheckEmbedLocked call will need
 			// to access the old one.
-			lbc[oldParent.tailPointer()] = oldPBlock
+			lbc[oldParentPath.tailPointer()] = oldPBlock
 		}
 	} else {
 		if newIsCommon {
 			// If the new one is common, then the first
 			// syncBlockAndCheckEmbedLocked call will need to access
 			// it.
-			lbc[newParent.tailPointer()] = newPBlock
+			lbc[newParentPath.tailPointer()] = newPBlock
 		}
 
 		// The old one is not the common ancestor, so we need to sync it.
 		// TODO: optimize by pushing blocks from both paths in parallel
 		newOldPath, _, oldBps, err = fbo.syncBlockAndCheckEmbedLocked(
-			ctx, lState, md, oldPBlock, *oldParent.parentPath(), oldParent.tailName(),
-			Dir, true, true, commonAncestor, lbc)
+			ctx, lState, md, oldPBlock, *oldParentPath.parentPath(),
+			oldParentPath.tailName(), Dir, true, true, commonAncestor, lbc)
 		if err != nil {
 			return err
 		}
 	}
 
 	newNewPath, _, newBps, err := fbo.syncBlockAndCheckEmbedLocked(
-		ctx, lState, md, newPBlock, *newParent.parentPath(), newParent.tailName(),
-		Dir, true, true, zeroPtr, lbc)
+		ctx, lState, md, newPBlock, *newParentPath.parentPath(),
+		newParentPath.tailName(), Dir, true, true, zeroPtr, lbc)
 	if err != nil {
 		return err
 	}
@@ -3207,23 +3238,13 @@ func (fbo *folderBranchOps) Rename(
 
 	return fbo.doMDWriteWithRetryUnlessCanceled(ctx,
 		func(lState *lockState) error {
-			oldParentPath, err := fbo.pathFromNodeForMDWriteLocked(lState, oldParent)
-			if err != nil {
-				return err
-			}
-
-			newParentPath, err := fbo.pathFromNodeForMDWriteLocked(lState, newParent)
-			if err != nil {
-				return err
-			}
-
 			// only works for paths within the same topdir
-			if oldParentPath.FolderBranch != newParentPath.FolderBranch {
+			if oldParent.GetFolderBranch() != newParent.GetFolderBranch() {
 				return RenameAcrossDirsError{}
 			}
 
-			return fbo.renameLocked(ctx, lState, oldParentPath, oldName,
-				newParentPath, newName)
+			return fbo.renameLocked(ctx, lState, oldParent, oldName,
+				newParent, newName)
 		})
 }
 

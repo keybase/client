@@ -816,10 +816,9 @@ func (fbo *folderBlockOps) GetDir(
 	return fbo.getDirLocked(ctx, lState, kmd, dir, rtype)
 }
 
-func (fbo *folderBlockOps) AddDirEntryInCache(lState *lockState, dir path,
+func (fbo *folderBlockOps) addDirEntryInCacheLocked(lState *lockState, dir path,
 	newName string, newDe DirEntry) {
-	fbo.blockLock.Lock(lState)
-	defer fbo.blockLock.Unlock(lState)
+	fbo.blockLock.AssertLocked(lState)
 	cacheEntry := fbo.deCache[dir.tailPointer().Ref()]
 	if cacheEntry.adds == nil {
 		cacheEntry.adds = make(map[string]BlockPointer)
@@ -828,19 +827,24 @@ func (fbo *folderBlockOps) AddDirEntryInCache(lState *lockState, dir path,
 	// In case it was removed in the cache but not flushed yet.
 	delete(cacheEntry.dels, newName)
 	fbo.deCache[dir.tailPointer().Ref()] = cacheEntry
+}
 
+func (fbo *folderBlockOps) AddDirEntryInCache(lState *lockState, dir path,
+	newName string, newDe DirEntry) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	fbo.addDirEntryInCacheLocked(lState, dir, newName, newDe)
 	// Add target dir entry as well.
-	if newDe.Type != Sym {
-		cacheEntry = fbo.deCache[newDe.BlockPointer.Ref()]
+	if newDe.IsInitialized() {
+		cacheEntry := fbo.deCache[newDe.BlockPointer.Ref()]
 		cacheEntry.dirEntry = newDe
 		fbo.deCache[newDe.BlockPointer.Ref()] = cacheEntry
 	}
 }
 
-func (fbo *folderBlockOps) RemoveDirEntryInCache(lState *lockState, dir path,
-	oldName string) {
-	fbo.blockLock.Lock(lState)
-	defer fbo.blockLock.Unlock(lState)
+func (fbo *folderBlockOps) removeDirEntryInCacheLocked(lState *lockState,
+	dir path, oldName string) {
+	fbo.blockLock.AssertLocked(lState)
 	cacheEntry := fbo.deCache[dir.tailPointer().Ref()]
 	if cacheEntry.dels == nil {
 		cacheEntry.dels = make(map[string]bool)
@@ -849,6 +853,34 @@ func (fbo *folderBlockOps) RemoveDirEntryInCache(lState *lockState, dir path,
 	// In case it was added in the cache but not flushed yet.
 	delete(cacheEntry.adds, oldName)
 	fbo.deCache[dir.tailPointer().Ref()] = cacheEntry
+}
+
+func (fbo *folderBlockOps) RemoveDirEntryInCache(lState *lockState, dir path,
+	oldName string) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	fbo.removeDirEntryInCacheLocked(lState, dir, oldName)
+}
+
+func (fbo *folderBlockOps) RenameDirEntryInCache(lState *lockState,
+	oldParent path, oldName string, newParent path, newName string,
+	newDe DirEntry) (deleteTargetDirEntry bool) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	fbo.addDirEntryInCacheLocked(lState, newParent, newName, newDe)
+	fbo.removeDirEntryInCacheLocked(lState, oldParent, oldName)
+	// If there's already an entry for the target, only update the
+	// Ctime on a rename.
+	cacheEntry, ok := fbo.deCache[newDe.BlockPointer.Ref()]
+	if ok && cacheEntry.dirEntry.IsInitialized() {
+		cacheEntry.dirEntry.Ctime = newDe.Ctime
+	} else {
+		cacheEntry.dirEntry = newDe
+		fbo.deCache[newDe.BlockPointer.Ref()] = cacheEntry
+		deleteTargetDirEntry = true
+	}
+	fbo.deCache[newDe.BlockPointer.Ref()] = cacheEntry
+	return deleteTargetDirEntry
 }
 
 func (fbo *folderBlockOps) ClearCachedAddsAndRemoves(
