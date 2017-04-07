@@ -29,5 +29,5 @@ import * as Constants from '../../../constants/chat'
 // declare var factory: (options: Options) => React$Element<*>
 // export default factory
 
-declare function factory (messageKey: Constants.MessageKey): React$Element<*>
+declare function factory (messageKey: Constants.MessageKey, prevMessageKey: ?Constants.MessageKey): React$Element<*>
 export default factory

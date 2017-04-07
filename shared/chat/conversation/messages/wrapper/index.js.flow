@@ -11,6 +11,8 @@ export type Props = {
   isFollowing: boolean,
   includeHeader: boolean,
   isBroken: boolean,
+  messageKey: Constants.MessageKey,
+  isEdited: boolean,
 
 
 

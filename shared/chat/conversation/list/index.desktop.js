@@ -306,7 +306,7 @@ class ConversationList extends Component<void, Props, State> {
   // }
 
   _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
-    const message = messageFactory(this.props.messageKeys.get(index))
+    const message = messageFactory(this.props.messageKeys.get(index), this.props.messageKeys.get(index - 1))
     return (
       <Virtualized.CellMeasurer
         cache={this._cellCache}

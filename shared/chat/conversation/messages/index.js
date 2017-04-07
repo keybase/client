@@ -14,7 +14,7 @@ import {Box, Text /*, Icon */} from '../../../common-adapters'
 import {globalStyles /*, globalColors */} from '../../../styles'
 // import {isMobile} from '../../../constants/platform'
 
-const factory = (messageKey: Constants.MessageKey) => {
+const factory = (messageKey: Constants.MessageKey, prevMessageKey: ?Constants.MessageKey) => {
   const kind = Constants.messageKeyKind(messageKey)
   switch (kind) {
     // case 'invisibleError': {
@@ -34,7 +34,7 @@ const factory = (messageKey: Constants.MessageKey) => {
       // )
     }
     case 'messageIDText': {
-      return <Wrapper messageKey={messageKey}>
+      return <Wrapper messageKey={messageKey} prevMessageKey={prevMessageKey}>
         <TextMessage messageKey={messageKey} />
       </Wrapper>
     }

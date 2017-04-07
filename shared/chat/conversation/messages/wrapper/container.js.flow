@@ -3,8 +3,9 @@ import {Component} from 'react'
 import * as Constants from '../../../../constants/chat'
 
 export type OwnProps = {
-  messageKey: Constants.MessageKey,
   children?: React$Element<*>,
+  messageKey: Constants.MessageKey,
+  prevMessageKey: ?Constants.MessageKey,
 }
 
 export default class Wrapper extends Component<void, OwnProps, void> {}

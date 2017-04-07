@@ -17,29 +17,33 @@ const getMessage = createCachedSelector(
 
 // TODO more reselect?
 
-const mapStateToProps = (state: TypedState, {messageKey, children}: OwnProps) => {
+const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey, children}: OwnProps) => {
   const conversationState = Constants.getSelectedConversationStates(state)
 
   const message = getMessage(state, messageKey)
   const author = message.author
+  const isEdited = message.type === 'Text' && message.editedCount > 0
   const isYou = Constants.getYou(state) === author
   const isFollowing = Constants.getFollowingMap(state)[author]
   const isBroken = Constants.getMetaDataMap(state).get(author, Map()).get('brokenTracker', false)
 
   const isFirstNewMessage = conversationState && conversationState.get('firstNewMessageID')
-  const skipMsgHeader = false // TEMP author && prevMessage && prevMessage.type === 'Text' && prevMessage.author === author
+  const prevMessage = getMessage(state, prevMessageKey)
+  const skipMsgHeader = prevMessage && prevMessage.type === 'Text' && prevMessage.author === author
   const includeHeader = isFirstNewMessage || !skipMsgHeader
 
   return {
     author,
     children,
-    isBroken,
-    isFirstNewMessage,
     includeHeader,
+    isBroken,
+    isEdited,
+    isFirstNewMessage,
     isFollowing,
     isSelected: false, // TODO plumb this through
-    message,
     isYou,
+    message, // TODO don't send directly
+    messageKey,
   }
 }
 
