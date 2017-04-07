@@ -18,7 +18,7 @@ import {isMobile} from '../../constants/platform'
 import {load as loadDevices} from '../devices'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
-
+import {toDeviceType} from '../../constants/types/more'
 import {call, put, take, race, select} from 'redux-saga/effects'
 import * as Saga from '../../util/saga'
 
@@ -70,7 +70,14 @@ function * setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) {
     console.warn("my device role is null, can't setCodePageOtherDeviceRole. Bailing")
     return
   }
-  yield put(Creators.setCodePageMode(defaultModeForDeviceRoles(codePage.myDeviceRole, otherDeviceRole, false)))
+
+  const mode = defaultModeForDeviceRoles(codePage.myDeviceRole, otherDeviceRole, false)
+  if (!mode) {
+    console.warn("mode is null!, can't setCodePageMode. Bailing")
+    return
+  }
+
+  yield put(Creators.setCodePageMode(mode))
   yield put(Creators.setOtherDeviceCodeState(otherDeviceRole))
 }
 
@@ -270,7 +277,7 @@ const chooseDeviceSaga = (onBackSaga) => function * ({params: {devices}, respons
       const role = ({
         desktop: Constants.codePageDeviceRoleExistingComputer,
         mobile: Constants.codePageDeviceRoleExistingPhone,
-      }: {[key: DeviceType]: DeviceRole})[device.type]
+      }: {[key: DeviceType]: DeviceRole})[toDeviceType(device.type)]
       yield call(setCodePageOtherDeviceRole, role)
       yield result(response, deviceID)
     }
@@ -278,9 +285,7 @@ const chooseDeviceSaga = (onBackSaga) => function * ({params: {devices}, respons
 }
 
 const chooseGPGMethodSaga = (onBackSaga) => function * ({response}) {
-  yield put(navigateAppend([{
-    selected: 'gpgSign',
-  }], [loginTab, 'login']))
+  yield put(navigateAppend(['gpgSign'], [loginTab, 'login']))
 
   const {onBack, onSubmit} = yield race({
     onBack: take(Constants.onBack),
@@ -348,7 +353,7 @@ function loginRpc (channelConfig, usernameOrEmail) {
     {param: {
       deviceType,
       usernameOrEmail,
-      clientType: Types.CommonClientType.gui,
+      clientType: Types.CommonClientType.guiMain,
     }}
   )
 }
@@ -396,9 +401,7 @@ function * initalizeMyCodeStateForAddingADevice () {
 }
 
 function * startLoginSaga () {
-  yield put(navigateAppend([{
-    selected: 'usernameOrEmail',
-  }], [loginTab, 'login']))
+  yield put(navigateAppend(['usernameOrEmail'], [loginTab, 'login']))
 
   yield call(initalizeMyCodeStateForLogin)
 
@@ -426,7 +429,13 @@ function * cameraBrokenModeSaga ({payload: {broken}}) {
     console.warn("other device role is null, can't setCameraBrokenMode. Bailing")
     return
   }
-  yield put(Creators.setCodePageMode(defaultModeForDeviceRoles(codePage.myDeviceRole, codePage.otherDeviceRole, broken)))
+
+  const mode = defaultModeForDeviceRoles(codePage.myDeviceRole, codePage.otherDeviceRole, broken)
+  if (!mode) {
+    console.warn("mode is null!, can't setCodePageMode. Bailing")
+    return
+  }
+  yield put(Creators.setCodePageMode(mode))
 }
 
 function * loginSuccess () {
@@ -474,7 +483,7 @@ function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
   yield _.map(addDeviceSagas, (saga, methodName) => Saga.effectOnChannelMap(c => Saga.safeTakeLatestWithCatch(c, finishedSaga, saga), addDeviceChanMap, methodName))
 }
 
-function * reloginSaga ({payload: {username, passphrase}}: Constants.Relogin) {
+function * reloginSaga ({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
   const finishedSaga = function * ({error}) {
     if (error) {
       const message = 'This device is no longer provisioned.'
@@ -496,7 +505,7 @@ function * reloginSaga ({payload: {username, passphrase}}: Constants.Relogin) {
   const channelConfig = Saga.singleFixedChannelConfig(Object.keys(reloginSagas))
   const chanMap = Types.loginLoginProvisionedDeviceRpcChannelMap(
     channelConfig,
-    {param: {noPassphrasePrompt: false, username}},
+    {param: {noPassphrasePrompt: false, username: usernameOrEmail}},
   )
 
   yield _.map(reloginSagas, (saga, methodName) => Saga.effectOnChannelMap(c => Saga.safeTakeLatest(c, saga), chanMap, methodName))

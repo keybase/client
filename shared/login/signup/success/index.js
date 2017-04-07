@@ -12,6 +12,7 @@ type OwnProps = {
   },
 }
 
+// $FlowIssue with connect
 export default connect(
   (state: TypedState, {routeProps}: OwnProps) => ({
     paperkey: state.signup.paperkey,

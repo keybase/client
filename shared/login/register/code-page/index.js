@@ -37,6 +37,7 @@ class CodePage extends Component<void, Props, {enterText: string}> {
   }
 }
 
+// $FlowIssue
 export default connect(
   ({
     login: {

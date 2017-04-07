@@ -1,4 +1,5 @@
 // @flow
+import type {TypedState} from '../reducer'
 
 export type NodeCB = (err: ?any, result: ?any) => void
 

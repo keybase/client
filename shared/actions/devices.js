@@ -10,7 +10,7 @@ import {keyBy} from 'lodash'
 import {navigateTo} from './route-tree'
 import {replaceEntity} from './entities'
 import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
-import {setRevokedSelf} from './login'
+import {setRevokedSelf} from './login/creators'
 
 import type {DeviceDetail} from '../constants/types/flow-types'
 import type {Load, Loaded, Revoke, ShowRevokePage, PaperKeyMake, Waiting} from '../constants/devices'

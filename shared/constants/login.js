@@ -9,11 +9,16 @@ export type Mode = 'codePageModeScanCode'
 | 'codePageModeEnterText'
 | 'codePageModeShowText'
 
+export type DeviceRole = 'codePageDeviceRoleExistingPhone'
+| 'codePageDeviceRoleNewPhone'
+| 'codePageDeviceRoleExistingComputer'
+| 'codePageDeviceRoleNewComputer'
+
 export const startLogin = 'login:startLogin'
 export type StartLogin = NoErrorTypedAction<'login:startLogin', null>
 
 export const submitUsernameOrEmail = 'login:submitUsernameOrEmail'
-export type SubmitUsernameOrEmail = NoErrorTypedAction<'login:submitUsernameOrEmail', null>
+export type SubmitUsernameOrEmail = NoErrorTypedAction<'login:submitUsernameOrEmail', {usernameOrEmail: string}>
 
 export const relogin = 'login:relogin'
 export type Relogin = NoErrorTypedAction<'login:relogin', {usernameOrEmail: string, passphrase: HiddenString}>
@@ -58,13 +63,16 @@ export const setQRCode = 'login:setQRCode'
 export type SetQRCode = NoErrorTypedAction<'login:setQRCode', {qrCode: HiddenString}>
 
 export const setOtherDeviceCodeState = 'login:setOtherDeviceCodeState'
-export type SetOtherDeviceCodeState = NoErrorTypedAction<'login:setOtherDeviceCodeState', Mode>
+export type SetOtherDeviceCodeState = NoErrorTypedAction<'login:setOtherDeviceCodeState', DeviceRole>
 
 export const loginDone = 'login:loginDone'
 export type LoginDone = TypedAction<'login:relogin', {}, Error>
 
 export const submitForgotPassword = 'login:submitForgotPassword'
 export type SubmitForgotPassword = NoErrorTypedAction<'login:submitForgotPassword', {}>
+
+export const actionUpdateForgotPasswordEmailAddress = 'login:actionUpdateForgotPasswordEmailAddress'
+export type UpdateForgotPasswordEmail = NoErrorTypedAction<'login:actionUpdateForgotPasswordEmailAddress', string>
 
 export const codePageDeviceRoleExistingPhone = 'codePageDeviceRoleExistingPhone'
 export const codePageDeviceRoleNewPhone = 'codePageDeviceRoleNewPhone'
@@ -90,7 +98,6 @@ export const setRevokedSelf = 'login:setRevokedSelf'
 export const setDeletedSelf = 'login:setDeletedSelf'
 export const setLoginFromRevokedDevice = 'login:setLoginFromRevokedDevice'
 
-export const actionUpdateForgotPasswordEmailAddress = 'login:actionUpdateForgotPasswordEmailAddress'
 export const actionSetForgotPasswordSubmitting = 'login:actionSetForgotPasswordSubmitting'
 export const actionForgotPasswordDone = 'login:actionForgotPasswordDone'
 
@@ -99,8 +106,3 @@ export const actionRegisteredWithPaperKey = 'login:actionRegisteredWithPaperKey'
 export const actionRegisteredWithExistingDevice = 'login:actionRegisteredWithExistingDevice'
 export const openAccountResetPage = 'login:openAccountResetPage'
 export const navBasedOnLoginState = 'login:navBasedOnLoginState'
-
-export type DeviceRole = 'codePageDeviceRoleExistingPhone'
-| 'codePageDeviceRoleNewPhone'
-| 'codePageDeviceRoleExistingComputer'
-| 'codePageDeviceRoleNewComputer'

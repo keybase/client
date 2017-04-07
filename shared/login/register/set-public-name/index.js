@@ -46,6 +46,7 @@ type OwnProps = {
   },
 }
 
+// $FlowIssue
 export default connect(
   (state: TypedState, {routeProps: {existingDevices, deviceNameError}}: OwnProps) => ({
     existingDevices,

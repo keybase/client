@@ -38,6 +38,7 @@ type OwnProps = RouteProps<{
   error: string,
 }, {}>
 
+// $FlowIssue
 export default connect(
   (state: TypedState, {routeProps: {error}}: OwnProps) => ({
     waitingForResponse: state.login.waitingForResponse,

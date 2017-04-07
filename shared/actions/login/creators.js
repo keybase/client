@@ -4,9 +4,10 @@ import * as Constants from '../../constants/login'
 import * as DeviceConstants from '../../constants/devices'
 import HiddenString from '../../util/hidden-string'
 import {qrGenerate} from './provision-helpers'
-import type {Mode} from './login'
 
-function submitUsernameOrEmail (usernameOrEmail): Constants.SubmitUsernameOrEmail {
+import type {Action} from '../../constants/types/flux'
+
+function submitUsernameOrEmail (usernameOrEmail: string): Constants.SubmitUsernameOrEmail {
   return {type: Constants.submitUsernameOrEmail, payload: {usernameOrEmail}}
 }
 
@@ -30,7 +31,7 @@ function setQRCode (code: string): Constants.SetQRCode {
   return {type: Constants.setQRCode, payload: {qrCode: new HiddenString(qrGenerate(code))}}
 }
 
-function submitPassphrase (passphrase: HiddenString, storeSecret: boolean): Constants.SubmitPassphrase {
+function submitPassphrase (passphrase: HiddenString, storeSecret: boolean = false): Constants.SubmitPassphrase {
   if (typeof passphrase === 'string') {
     console.error('passphrase is a string, should be a hidden string!')
     throw new Error('DEV: passphrase is a string, should be a hidden string!')
@@ -90,11 +91,11 @@ function setCodePageMode (mode: Constants.Mode) {
   return {type: Constants.setCodeMode, payload: mode}
 }
 
-function setOtherDeviceCodeState (otherDeviceRole: Mode): Constants.setOtherDeviceCodeState {
+function setOtherDeviceCodeState (otherDeviceRole: Constants.DeviceRole): Constants.SetOtherDeviceCodeState {
   return {type: Constants.setOtherDeviceCodeState, payload: otherDeviceRole}
 }
 
-function loginDone (error?: ?Error) {
+function loginDone (error?: {message: string}) {
   if (error) {
     return {type: Constants.loginDone, error: true, payload: error}
   }
@@ -105,7 +106,7 @@ function logoutDone () {
   return {type: Constants.logoutDone, payload: null}
 }
 
-function setMyDeviceCodeState (role) {
+function setMyDeviceCodeState (role: Constants.DeviceRole) {
   return {
     payload: role,
     type: Constants.setMyDeviceCodeState,
@@ -128,7 +129,7 @@ function addNewComputer () {
   return addNewDevice(Constants.codePageDeviceRoleNewComputer)
 }
 
-function updateForgotPasswordEmail (email: string): NoErrorTypedAction<'login:actionUpdateForgotPasswordEmailAddress', string> {
+function updateForgotPasswordEmail (email: string): Constants.UpdateForgotPasswordEmail {
   return {payload: email, type: Constants.actionUpdateForgotPasswordEmailAddress}
 }
 
@@ -140,7 +141,7 @@ function openAccountResetPage () {
   return {payload: {}, type: Constants.openAccountResetPage}
 }
 
-function navBasedOnLoginState () {
+function navBasedOnLoginState (): Action {
   return {payload: {}, type: Constants.navBasedOnLoginState}
 }
 

@@ -66,7 +66,7 @@ function safeTakeEvery (pattern: string | Array<any> | Function, worker: Functio
   return takeEvery(pattern, wrappedWorker, ...args)
 }
 
-function safeTakeLatestWithCatch (pattern: string | Array<any> | Function, catchHandler, worker: Function, ...args: Array<any>) {
+function safeTakeLatestWithCatch (pattern: string | Array<any> | Function, catchHandler: Function, worker: Function, ...args: Array<any>) {
   const wrappedWorker = function * (...args) {
     try {
       yield call(worker, ...args)

@@ -12,6 +12,7 @@ type OwnProps = {
   },
 }
 
+// $FlowIssue
 export default connect(
   (s: TypedState, {routeProps: {devices}}: OwnProps) => ({devices}),
   (dispatch) => ({
