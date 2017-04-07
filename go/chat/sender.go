@@ -107,7 +107,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 	}
 
 	if len(prevs) == 0 {
-		return chat1.MessagePlaintext{}, fmt.Errorf("Could not find previous messsages for prev pointers")
+		return chat1.MessagePlaintext{}, fmt.Errorf("Could not find previous messsages for prev pointers (of %v)", len(res.Messages))
 	}
 
 	for _, msg2 := range res.Messages {

@@ -153,24 +153,43 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	return world, ri, sender, baseSender, &listener, tlf
 }
 
+func startConv(t *testing.T,
+	u *kbtest.FakeUser, trip chat1.ConversationIDTriple, blockingSender Sender,
+	ri chat1.RemoteInterface, tc *kbtest.ChatTestContext) chat1.NewConversationRemoteRes {
+
+	uid := u.User.GetUID().ToBytes()
+	m1box, _, err := blockingSender.Prepare(context.TODO(), chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_METADATA,
+			Prev:        nil,
+		},
+	}, nil)
+	require.NoError(t, err, "box initial failed")
+	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
+		IdTriple:   trip,
+		TLFMessage: *m1box,
+	})
+	require.NoError(t, err)
+
+	// Check that the initial message stored as a success.
+	tv, _, err := tc.G.ConvSource.Pull(context.TODO(), res.ConvID, uid, nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(tv.Messages))
+	require.True(t, tv.Messages[0].IsValid(), "initial message invalid")
+	return res
+}
+
 func TestNonblockChannel(t *testing.T) {
-	world, ri, sender, _, listener, tlf := setupTest(t, 1)
+	world, ri, sender, blockingSender, listener, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
 	trip := newConvTriple(t, tlf, u.Username)
-	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: trip,
-		TLFMessage: chat1.MessageBoxed{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:      trip,
-				TlfName:   u.Username,
-				TlfPublic: false,
-			},
-			KeyGeneration: 1,
-		},
-	})
-	require.NoError(t, err)
+	tc := userTc(t, world, u)
+	res := startConv(t, u, trip, blockingSender, ri, tc)
 
 	// Send nonblock
 	obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
@@ -431,20 +450,9 @@ func TestDisconnectedFailure(t *testing.T) {
 	u := world.GetUsers()[0]
 	cl := world.Fc
 	trip := newConvTriple(t, tlf, u.Username)
-	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: trip,
-		TLFMessage: chat1.MessageBoxed{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:      trip,
-				TlfName:   u.Username,
-				TlfPublic: false,
-			},
-			KeyGeneration: 1,
-		},
-	})
-	require.NoError(t, err)
-
 	tc := userTc(t, world, u)
+	res := startConv(t, u, trip, baseSender, ri, tc)
+
 	tc.G.MessageDeliverer.Disconnected(context.TODO())
 	tc.G.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
 
@@ -533,18 +541,8 @@ func TestDeletionHeaders(t *testing.T) {
 
 	u := world.GetUsers()[0]
 	trip := newConvTriple(t, tlf, u.Username)
-	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: trip,
-		TLFMessage: chat1.MessageBoxed{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:      trip,
-				TlfName:   u.Username,
-				TlfPublic: false,
-			},
-			KeyGeneration: 1,
-		},
-	})
-	require.NoError(t, err)
+	tc := userTc(t, world, u)
+	res := startConv(t, u, trip, blockingSender, ri, tc)
 
 	// Send a message and two edits.
 	_, firstMessageID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
@@ -621,18 +619,7 @@ func TestPrevPointerAddition(t *testing.T) {
 	uid := u.User.GetUID().ToBytes()
 	tc := userTc(t, world, u)
 	trip := newConvTriple(t, tlf, u.Username)
-	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: trip,
-		TLFMessage: chat1.MessageBoxed{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:      trip,
-				TlfName:   u.Username,
-				TlfPublic: false,
-			},
-			KeyGeneration: 1,
-		},
-	})
-	require.NoError(t, err)
+	res := startConv(t, u, trip, blockingSender, ri, tc)
 
 	// Send a bunch of messages on this convo
 	for i := 0; i < 10; i++ {
@@ -652,7 +639,7 @@ func TestPrevPointerAddition(t *testing.T) {
 	require.NoError(t, storage.New(tc.G).MaybeNuke(true, nil, res.ConvID, uid))
 
 	// Fetch a subset into the cache
-	_, _, err = tc.G.ConvSource.Pull(context.TODO(), res.ConvID, uid, nil, &chat1.Pagination{
+	_, _, err := tc.G.ConvSource.Pull(context.TODO(), res.ConvID, uid, nil, &chat1.Pagination{
 		Num: 2,
 	})
 	require.NoError(t, err)
@@ -670,7 +657,6 @@ func TestPrevPointerAddition(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, pendingAssetDeletes)
 	require.NotEmpty(t, boxed.ClientHeader.Prev, "empty prev pointers")
-
 }
 
 // Test a DELETE attempts to delete all associated assets.
@@ -681,18 +667,8 @@ func TestDeletionAssets(t *testing.T) {
 
 	u := world.GetUsers()[0]
 	trip := newConvTriple(t, tlf, u.Username)
-	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: trip,
-		TLFMessage: chat1.MessageBoxed{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:      trip,
-				TlfName:   u.Username,
-				TlfPublic: false,
-			},
-			KeyGeneration: 1,
-		},
-	})
-	require.NoError(t, err)
+	tc := userTc(t, world, u)
+	res := startConv(t, u, trip, blockingSender, ri, tc)
 
 	var doomedAssets []chat1.Asset
 	mkAsset := func() chat1.Asset {

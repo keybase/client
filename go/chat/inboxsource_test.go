@@ -20,19 +20,9 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
 	trip := newConvTriple(t, tlf, u.Username)
-	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: trip,
-		TLFMessage: chat1.MessageBoxed{
-			ClientHeader: chat1.MessageClientHeader{
-				TlfName:   u.Username,
-				TlfPublic: false,
-			},
-			KeyGeneration: 1,
-		},
-	})
-	require.NoError(t, err)
+	res := startConv(t, u, trip, sender, ri, tc)
 
-	_, _, _, err = sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -108,18 +98,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("new conv")
 	trip := newConvTriple(t, tlf, u.Username)
-	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: trip,
-		TLFMessage: chat1.MessageBoxed{
-			ClientHeader: chat1.MessageClientHeader{
-				TlfName:   u.Username,
-				TlfPublic: false,
-			},
-			KeyGeneration: 1,
-		},
-	})
-	_ = res
-	require.NoError(t, err)
+	res := startConv(t, u, trip, sender, ri, tc)
 
 	assertInboxVersion(0)
 
