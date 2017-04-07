@@ -9,6 +9,7 @@ import type {Action} from '../constants/types/flux'
 import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/types/flow-types'
 
 export type ConfigState = {
+  appFocused: boolean,
   bootStatus: BootStatus,
   bootstrapTriesRemaining: number,
   config: ?Config,
@@ -19,6 +20,7 @@ export type ConfigState = {
   following: {[key: string]: true},
   globalError: ?Error,
   kbfsPath: string,
+  launchedViaPush: boolean,
   loggedIn: boolean,
   readyForBootstrap: boolean,
   status: ?GetCurrentStatusRes,
@@ -32,6 +34,7 @@ export type ConfigState = {
 const readyForBootstrap = isMobile
 
 const initialState: ConfigState = {
+  appFocused: false,
   bootStatus: 'bootStatusLoading',
   bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
   config: null,
@@ -41,13 +44,14 @@ const initialState: ConfigState = {
   followers: {},
   following: {},
   globalError: null,
+  initialTab: null,
   kbfsPath: Constants.defaultKBFSPath,
+  launchedViaPush: false,
   loggedIn: false,
   readyForBootstrap,
   status: null,
   uid: null,
   username: null,
-  initialTab: null,
 }
 
 export default function (state: ConfigState = initialState, action: Action): ConfigState {
@@ -133,6 +137,13 @@ export default function (state: ConfigState = initialState, action: Action): Con
       }
     }
 
+    case Constants.setLaunchedViaPush: {
+      return {
+        ...state,
+        launchedViaPush: action.payload,
+      }
+    }
+
     case Constants.updateFollowing: {
       const {username, isTracking} = action.payload
       return {
@@ -189,6 +200,12 @@ export default function (state: ConfigState = initialState, action: Action): Con
         initialTab: action.payload.tab,
       }
     }
+
+    case 'app:changedFocus':
+      return {
+        ...state,
+        appFocused: action.payload.appFocused,
+      }
 
     default:
       return state

@@ -22,6 +22,10 @@ const setInitialTab = (tab: ?Tab): Constants.SetInitialTab => (
   {payload: {tab}, type: 'config:setInitialTab'}
 )
 
+const setLaunchedViaPush = (pushed: boolean): Constants.SetLaunchedViaPush => (
+  {payload: pushed, type: 'config:setLaunchedViaPush'}
+)
+
 const getConfig = (): AsyncAction => (dispatch, getState) => (
   new Promise((resolve, reject) => {
     configGetConfigRpc({
@@ -228,6 +232,7 @@ export {
   isFollowing,
   retryBootstrap,
   setInitialTab,
+  setLaunchedViaPush,
   updateFollowing,
   waitForKBFS,
 }

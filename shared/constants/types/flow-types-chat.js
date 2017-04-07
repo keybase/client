@@ -331,6 +331,18 @@ export function localGetThreadNonblockRpcPromise (request: $Exact<requestCommon 
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getThreadNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function localMakePreviewRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localMakePreviewResult) => void} & {param: localMakePreviewRpcParam}>) {
+  engineRpcOutgoing('chat.1.local.makePreview', request)
+}
+
+export function localMakePreviewRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localMakePreviewResult) => void} & {param: localMakePreviewRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.local.makePreview', request, callback, incomingCallMap) })
+}
+
+export function localMakePreviewRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localMakePreviewResult) => void} & {param: localMakePreviewRpcParam}>): Promise<localMakePreviewResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.makePreview', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function localMarkAsReadLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localMarkAsReadLocalResult) => void} & {param: localMarkAsReadLocalRpcParam}>) {
   engineRpcOutgoing('chat.1.local.markAsReadLocal', request)
 }
@@ -899,6 +911,7 @@ export type ConversationStatus =
   | 4 // MUTED_4
 
 export type DownloadAttachmentLocalRes = {
+  offline: boolean,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
@@ -1141,6 +1154,18 @@ export type LocalSource = {
   source: keybase1.Stream,
   filename: string,
   size: int,
+}
+
+export type MakePreviewRes = {
+  mimeType: string,
+  filename?: ?string,
+  metadata?: ?AssetMetadata,
+  baseMetadata?: ?AssetMetadata,
+}
+
+export type MarkAsReadLocalRes = {
+  offline: boolean,
+  rateLimits?: ?Array<RateLimit>,
 }
 
 export type MarkAsReadRes = {
@@ -1615,6 +1640,10 @@ export type chatUiChatAttachmentPreviewUploadStartRpcParam = Exact<{
   metadata: AssetMetadata
 }>
 
+export type chatUiChatAttachmentUploadOutboxIDRpcParam = Exact<{
+  outboxID: OutboxID
+}>
+
 export type chatUiChatAttachmentUploadProgressRpcParam = Exact<{
   bytesComplete: int,
   bytesTotal: int
@@ -1724,6 +1753,11 @@ export type localGetThreadNonblockRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localMakePreviewRpcParam = Exact<{
+  attachment: LocalFileSource,
+  outputDir: string
+}>
+
 export type localMarkAsReadLocalRpcParam = Exact<{
   conversationID: ConversationID,
   msgID: MessageID
@@ -1741,7 +1775,7 @@ export type localPostAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   clientHeader: MessageClientHeader,
   attachment: LocalSource,
-  preview?: ?LocalSource,
+  preview?: ?MakePreviewRes,
   title: string,
   metadata: bytes,
   identifyBehavior: keybase1.TLFIdentifyBehavior
@@ -1772,7 +1806,7 @@ export type localPostFileAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   clientHeader: MessageClientHeader,
   attachment: LocalFileSource,
-  preview?: ?LocalFileSource,
+  preview?: ?MakePreviewRes,
   title: string,
   metadata: bytes,
   identifyBehavior: keybase1.TLFIdentifyBehavior
@@ -1927,7 +1961,8 @@ type localGetInboxSummaryForCLILocalResult = GetInboxSummaryForCLILocalRes
 type localGetMessagesLocalResult = GetMessagesLocalRes
 type localGetThreadLocalResult = GetThreadLocalRes
 type localGetThreadNonblockResult = NonblockFetchRes
-type localMarkAsReadLocalResult = MarkAsReadRes
+type localMakePreviewResult = MakePreviewRes
+type localMarkAsReadLocalResult = MarkAsReadLocalRes
 type localNewConversationLocalResult = NewConversationLocalRes
 type localPostAttachmentLocalResult = PostLocalRes
 type localPostDeleteNonblockResult = PostLocalNonblockRes
@@ -1967,6 +2002,7 @@ export type rpc =
   | localGetMessagesLocalRpc
   | localGetThreadLocalRpc
   | localGetThreadNonblockRpc
+  | localMakePreviewRpc
   | localMarkAsReadLocalRpc
   | localNewConversationLocalRpc
   | localPostAttachmentLocalRpc
@@ -2000,6 +2036,13 @@ export type rpc =
   | remoteTlfResolveRpc
 
 export type incomingCallMapType = Exact<{
+  'keybase.1.chatUi.chatAttachmentUploadOutboxID'?: (
+    params: Exact<{
+      sessionID: int,
+      outboxID: OutboxID
+    }>,
+    response: CommonResponseHandler
+  ) => void,
   'keybase.1.chatUi.chatAttachmentUploadStart'?: (
     params: Exact<{
       sessionID: int,

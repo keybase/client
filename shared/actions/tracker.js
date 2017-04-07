@@ -4,7 +4,7 @@ import Session from '../engine/session'
 import _ from 'lodash'
 import engine from '../engine'
 import openUrl from '../util/open-url'
-import {apiserverGetRpc, delegateUiCtlRegisterIdentifyUIRpc, identifyIdentify2Rpc, trackCheckTrackingRpc, trackDismissWithTokenRpc, trackTrackWithTokenRpc, trackUntrackRpc, IdentifyCommonIdentifyReasonType} from '../constants/types/flow-types'
+import {delegateUiCtlRegisterIdentifyUIRpc, identifyIdentify2Rpc, trackCheckTrackingRpc, trackDismissWithTokenRpc, trackTrackWithTokenRpc, trackUntrackRpc, IdentifyCommonIdentifyReasonType, userListTrackers2Rpc} from '../constants/types/flow-types'
 import {requestIdleCallback} from '../util/idle-callback'
 import {showAllTrackers} from '../local-debug'
 
@@ -674,42 +674,40 @@ function _updateProof (remoteProof: RemoteProof, linkCheckResult: LinkCheckResul
 type APIFriendshipUserInfo = {
   uid: string,
   username: string,
-  full_name: string,
-  location: string,
-  bio: string,
+  fullName: string,
   thumbnail: string,
-  is_followee: boolean,
-  is_follower: boolean,
+  isFollowee: boolean,
+  isFollower: boolean,
 }
 
-function _parseFriendship ({is_followee, is_follower, username, uid, full_name, thumbnail}: APIFriendshipUserInfo): FriendshipUserInfo {
+function _parseFriendship ({isFollowee, isFollower, username, uid, fullName, thumbnail}: APIFriendshipUserInfo): FriendshipUserInfo {
   return {
     username,
     thumbnailUrl: thumbnail,
     uid,
-    fullname: full_name,
-    followsYou: is_follower,
-    following: is_followee,
+    fullname: fullName,
+    followsYou: isFollower,
+    following: isFollowee,
   }
 }
 
 function _listTrackersOrTracking (username: string, listTrackers: boolean): Promise<Array<FriendshipUserInfo>> {
   return new Promise((resolve, reject) => {
-    apiserverGetRpc({
+    userListTrackers2Rpc({
       param: {
-        endpoint: 'user/list_followers_for_display',
-        args: [
-          {key: 'username', value: username},
-          {key: 'reverse', value: String(!listTrackers)},
-        ],
+        assertion: username,
+        reverse: !listTrackers,
       },
-      callback: (error, results) => {
+      callback: (error, response) => {
         if (error) {
           console.log('err getting trackers', error)
           reject(error)
         } else {
-          const json = JSON.parse(results.body)
-          resolve(json.users.map(_parseFriendship))
+          if (response.users) {
+            resolve(response.users.map(_parseFriendship))
+          } else {
+            reject(new Error('invalid tracker result'))
+          }
         }
       },
     })

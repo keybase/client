@@ -5,6 +5,10 @@ import fsExtra from 'fs-extra'
 import os from 'os'
 import path from 'path'
 
+function tmpDir (): string {
+  return os.tmpdir()
+}
+
 function tmpFile (suffix: string): string {
   return path.join(os.tmpdir(), suffix)
 }
@@ -71,6 +75,7 @@ export {
   copy,
   downloadFilePath,
   exists,
+  tmpDir,
   tmpFile,
   tmpRandFile,
   writeFile,

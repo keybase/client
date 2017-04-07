@@ -80,6 +80,10 @@ func (s *Session) GetUID() keybase1.UID {
 	return s.uid
 }
 
+func (s *Session) GetDeviceID() keybase1.DeviceID {
+	return s.deviceID
+}
+
 func (s *Session) GetToken() string {
 	return s.token
 }

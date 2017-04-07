@@ -2,20 +2,15 @@
     hooks:
     -   id: eslint
         name: eslint
-        entry: sh
+        entry: shared/node_modules/.bin/eslint
         language: system
         files: \.js$
-        args:
-        - -c
-        - cd shared && yarn run lint
+        args: [--quiet]
     -   id: flow
         name: flow
-        entry: sh
+        entry: shared/node_modules/.bin/flow
         language: system
         files: \.js$
-        args:
-        - -c
-        - cd shared && yarn run flow
 -   repo: https://github.com/keybase/pre-commit-golang.git
     sha: 06cb541d5ec2ec6adc218f7862098c55b5b24fc1
     hooks:

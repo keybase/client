@@ -56,7 +56,7 @@ func (s *baseConversationSource) SetTLFInfoSource(tlfInfoSource types.TLFInfoSou
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
-	finalizeInfo *chat1.ConversationFinalizeInfo, checkPrev bool) (err error) {
+	finalizeInfo *chat1.ConversationFinalizeInfo, superXform supersedesTransform, checkPrev bool) (err error) {
 
 	// Sanity check the prev pointers in this thread.
 	// TODO: We'll do this against what's in the cache once that's ready,
@@ -71,8 +71,10 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 
 	// Resolve supersedes
 	if q == nil || !q.DisableResolveSupersedes {
-		transform := newBasicSupersedesTransform(s.G())
-		if thread.Messages, err = transform.Run(ctx, convID, uid, thread.Messages, finalizeInfo); err != nil {
+		if superXform == nil {
+			superXform = newBasicSupersedesTransform(s.G())
+		}
+		if thread.Messages, err = superXform.Run(ctx, convID, uid, thread.Messages, finalizeInfo); err != nil {
 			return err
 		}
 	}
@@ -156,7 +158,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Post process thread before returning
-	if err = s.postProcessThread(ctx, uid, convID, &thread, query, conv.Metadata.FinalizeInfo, true); err != nil {
+	if err = s.postProcessThread(ctx, uid, convID, &thread, query, conv.Metadata.FinalizeInfo, nil, true); err != nil {
 		return chat1.ThreadView{}, nil, err
 	}
 
@@ -191,6 +193,15 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 	}
 
 	return msgs, nil
+}
+
+func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
+	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+	if s.IsOffline() {
+		return nil, OfflineError{}
+	}
+	return s.boxer.UnboxMessages(ctx, msgs, convID, finalizeInfo)
 }
 
 type HybridConversationSource struct {
@@ -317,7 +328,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	defer func() {
 		if err == nil {
 			err = s.postProcessThread(ctx, uid, convID, &thread, query,
-				finalizeInfo, true)
+				finalizeInfo, nil, true)
 		}
 	}()
 
@@ -460,11 +471,26 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (tv chat1.ThreadView, err error) {
-
+	defer s.Trace(ctx, func() error { return err }, "PullLocalOnly")()
 	// Post process thread before returning
 	defer func() {
 		if err == nil {
-			err = s.postProcessThread(ctx, uid, convID, &tv, query, nil, false)
+			superXform := newBasicSupersedesTransform(s.G())
+			superXform.SetMessagesFunc(func(ctx context.Context, convID chat1.ConversationID,
+				uid gregor1.UID, msgIDs []chat1.MessageID,
+				finalizeInfo *chat1.ConversationFinalizeInfo) (res []chat1.MessageUnboxed, err error) {
+				msgs, err := storage.New(s.G()).FetchMessages(ctx, convID, uid, msgIDs)
+				if err != nil {
+					return nil, err
+				}
+				for _, msg := range msgs {
+					if msg != nil {
+						res = append(res, *msg)
+					}
+				}
+				return res, nil
+			})
+			err = s.postProcessThread(ctx, uid, convID, &tv, query, nil, superXform, false)
 		}
 	}()
 
@@ -563,6 +589,65 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 		return nil, ierr
 	}
 
+	return res, nil
+}
+
+func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
+	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+
+	var res []chat1.MessageUnboxed
+	var msgIDs []chat1.MessageID
+	for _, msg := range msgs {
+		msgIDs = append(msgIDs, msg.GetMessageID())
+	}
+
+	lmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
+
+	lmsgs, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, lmsg := range lmsgs {
+		if lmsg != nil {
+			lmsgsTab[lmsg.GetMessageID()] = *lmsg
+		}
+	}
+
+	s.Debug(ctx, "GetMessagesWithRemotes: convID: %s uid: %s total msgs: %d hits: %d", convID, uid,
+		len(msgs), len(lmsgsTab))
+	var merges []chat1.MessageUnboxed
+	for _, msg := range msgs {
+		if lmsg, ok := lmsgsTab[msg.GetMessageID()]; ok {
+			res = append(res, lmsg)
+		} else {
+			// Insta fail if we are offline
+			if s.IsOffline() {
+				return nil, OfflineError{}
+			}
+
+			unboxed, err := s.boxer.UnboxMessage(ctx, msg, convID, finalizeInfo)
+			if err != nil {
+				return res, err
+			}
+			merges = append(merges, unboxed)
+			res = append(res, unboxed)
+		}
+	}
+	if len(merges) > 0 {
+		sort.Sort(ByMsgID(merges))
+		if err = s.storage.Merge(ctx, convID, uid, merges); err != nil {
+			return res, err
+		}
+	}
+
+	// Identify this TLF by running crypt keys
+	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
+		s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
+		return res, ierr
+	}
+
+	sort.Sort(ByMsgID(res))
 	return res, nil
 }
 

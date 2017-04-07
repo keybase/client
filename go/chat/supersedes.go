@@ -1,12 +1,11 @@
 package chat
 
 import (
-	"context"
-
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	context "golang.org/x/net/context"
 )
 
 type supersedesTransform interface {
@@ -28,15 +27,21 @@ func newNullSupersedesTransform() nullSupersedesTransform {
 	return nullSupersedesTransform{}
 }
 
+type getMessagesFunc func(context.Context, chat1.ConversationID, gregor1.UID, []chat1.MessageID,
+	*chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
+
 type basicSupersedesTransform struct {
 	libkb.Contextified
 	utils.DebugLabeler
+
+	messagesFunc getMessagesFunc
 }
 
 func newBasicSupersedesTransform(g *libkb.GlobalContext) *basicSupersedesTransform {
 	return &basicSupersedesTransform{
 		Contextified: libkb.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "supersedesTransform", false),
+		messagesFunc: g.ConvSource.GetMessages,
 	}
 }
 
@@ -101,6 +106,10 @@ func (t *basicSupersedesTransform) transform(ctx context.Context, msg chat1.Mess
 	return &msg
 }
 
+func (t *basicSupersedesTransform) SetMessagesFunc(f getMessagesFunc) {
+	t.messagesFunc = f
+}
+
 func (t *basicSupersedesTransform) Run(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed,
 	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
@@ -124,7 +133,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 	}
 
 	// Get superseding messages
-	msgs, err := t.G().ConvSource.GetMessages(ctx, convID, uid, superMsgIDs, finalizeInfo)
+	msgs, err := t.messagesFunc(ctx, convID, uid, superMsgIDs, finalizeInfo)
 	if err != nil {
 		return nil, err
 	}

@@ -6,10 +6,11 @@ package libkb
 import (
 	"errors"
 	"fmt"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 	"runtime/debug"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 // PassphraseGeneration represents which generation of the passphrase is
@@ -61,7 +62,6 @@ type LoginContext interface {
 	SecretSyncer() *SecretSyncer
 	RunSecretSyncer(uid keybase1.UID) error
 
-	CachedSecretKey(ska SecretKeyArg) (GenericKey, error)
 	SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error
 	SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error
 
@@ -900,7 +900,7 @@ func (s *LoginState) loginHandle(f loginHandler, after afterFn, name string) err
 // acctHandle creates an acctReq from an acctHandler and puts it
 // in the acctReqs channel.  It waits for the request handler to
 // close the done channel in the acctReq before returning.
-// For debugging purposes, there is a 10s timeout to help find any
+// For debugging purposes, there is a 5s timeout to help find any
 // cases where an account or login request is attempted while
 // another account or login request is in process.
 func (s *LoginState) acctHandle(f acctHandler, name string) error {

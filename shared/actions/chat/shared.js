@@ -21,7 +21,7 @@ function followingSelector (state: TypedState) { return state.config.following }
 function alwaysShowSelector (state: TypedState) { return state.chat.get('alwaysShow') }
 function metaDataSelector (state: TypedState) { return state.chat.get('metaData') }
 function routeSelector (state: TypedState) { return state.routeTree.get('routeState').get('selected') }
-function focusedSelector (state: TypedState) { return state.chat.get('focused') }
+function focusedSelector (state: TypedState) { return state.config.appFocused }
 function pendingFailureSelector (state: TypedState, outboxID: Constants.OutboxIDKey) { return state.chat.get('pendingFailures').get(outboxID) }
 
 function conversationStateSelector (state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
@@ -42,6 +42,14 @@ function devicenameSelector (state: TypedState) {
 
 function selectedInboxSelector (state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
   return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
+}
+
+function attachmentPlaceholderPreviewSelector (state: TypedState, outboxID: Constants.OutboxIDKey) {
+  return state.chat.get('attachmentPlaceholderPreviews', Map()).get(outboxID)
+}
+
+function inboxUntrustedStateSelector (state: TypedState) {
+  return state.chat.get('inboxUntrustedState')
 }
 
 function tmpFileName (isHdPreview: boolean, conversationID: Constants.ConversationIDKey, messageID: ?Constants.MessageID, filename: string) {
@@ -205,12 +213,14 @@ function maybeAddTimestamp (_message: Constants.Message, messages: Array<Constan
 
 export {
   alwaysShowSelector,
+  attachmentPlaceholderPreviewSelector,
   clientHeader,
   conversationStateSelector,
   devicenameSelector,
   focusedSelector,
   followingSelector,
   getPostingIdentifyBehavior,
+  inboxUntrustedStateSelector,
   maybeAddTimestamp,
   messageOutboxIDSelector,
   messageSelector,

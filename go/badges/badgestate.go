@@ -129,6 +129,9 @@ func (b *BadgeState) UpdateWithChatFull(update chat1.UnreadUpdateFull) {
 }
 
 func (b *BadgeState) Clear() {
+	b.Lock()
+	defer b.Unlock()
+
 	b.state = keybase1.BadgeState{}
 	b.inboxVers = chat1.InboxVers(0)
 	b.chatUnreadMap = make(map[string]keybase1.BadgeConversationInfo)

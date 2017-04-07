@@ -82,11 +82,12 @@ function * setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) {
 }
 
 function * navBasedOnLoginState () {
-  const selector = ({config: {status, extendedConfig, initialTab}, login: {justDeletedSelf}}: TypedState) => ({
+  const selector = ({config: {extendedConfig, initialTab, launchedViaPush, status}, login: {justDeletedSelf}}: TypedState) => ({
     status,
     extendedConfig,
     initialTab,
     justDeletedSelf,
+    launchedViaPush,
   })
 
   const {
@@ -94,6 +95,7 @@ function * navBasedOnLoginState () {
     extendedConfig,
     initialTab,
     justDeletedSelf,
+    launchedViaPush,
   } = yield select(selector)
 
   // No status?
@@ -106,9 +108,11 @@ function * navBasedOnLoginState () {
         console.log('Loading overridden logged in tab')
         yield put(navigateTo([overrideLoggedInTab]))
       } else if (initialTab && isValidInitialTab(initialTab)) {
-        /// only do this once
+        // only do this once
         yield put(setInitialTab(null))
-        yield put(navigateTo([initialTab]))
+        if (!launchedViaPush) {
+          yield put(navigateTo([initialTab]))
+        }
       } else {
         yield put(navigateTo([profileTab]))
       }

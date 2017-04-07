@@ -16,6 +16,7 @@
 #import "KBUpdaterService.h"
 #import "KBMountDir.h"
 #import "KBAppBundle.h"
+#import "KBNM.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 
@@ -76,6 +77,11 @@
     if (config.installOptions&KBInstallOptionCLI) {
       KBCommandLine *cli = [[KBCommandLine alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
       [_installables addObject:cli];
+    }
+
+    if (config.installOptions&KBInstallOptionKBNM) {
+      KBNM *kbnm = [[KBNM alloc] initWithConfig:config servicePath:servicePath];
+      [_installables addObject:kbnm];
     }
 
     _services = [NSArray arrayWithObjects:_service, _kbfs, _updater, nil];

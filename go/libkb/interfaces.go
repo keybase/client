@@ -338,6 +338,7 @@ type ProvisionUI interface {
 }
 
 type ChatUI interface {
+	ChatAttachmentUploadOutboxID(context.Context, chat1.ChatAttachmentUploadOutboxIDArg) error
 	ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata, chat1.MessageID) error
 	ChatAttachmentUploadProgress(context.Context, chat1.ChatAttachmentUploadProgressArg) error
 	ChatAttachmentUploadDone(context.Context) error
