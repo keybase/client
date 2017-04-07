@@ -5684,6 +5684,10 @@ rcedit@^0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/rcedit/-/rcedit-0.7.0.tgz#560b2920165034a135316e6a111f8274b9cec521"
 
+re-reselect@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/re-reselect/-/re-reselect-0.2.0.tgz#57e55a2f8de1979ea03b5ce8a7f31c2b99aa5629"
+
 react-addons-create-fragment@^15.2.1:
   version "15.5.1"
   resolved "https://registry.yarnpkg.com/react-addons-create-fragment/-/react-addons-create-fragment-15.5.1.tgz#62c2427ee1e32fcd511f612cf3fe326ef9671b1c"

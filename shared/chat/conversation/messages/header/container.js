@@ -8,10 +8,7 @@ import type {TypedState} from '../../../../constants/reducer'
 import type {OwnProps} from './container'
 
 const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
-  const selectedConversationIDKey = Constants.getSelectedConversation(state)
-  // $ForceType
-  const conversationState: ?Constants.ConversationState = state.chat.getIn(['conversationStates', selectedConversationIDKey])
-
+  const conversationState = Constants.getSelectedConversationStates(state)
   const moreToLoad = conversationState && conversationState.get('moreToLoad')
 
   return {

@@ -725,9 +725,20 @@ const getMuted = createSelector(
   (selectedInbox) => selectedInbox && selectedInbox.get('status') === 'muted',
 )
 
+// $FlowIssue getIn
+const getMessageFromMessageKey = (state: TypedState, messageKey: MessageKey): ?Message => state.chat.getIn(['messageMap', messageKey])
+
+const getSelectedConversationStates = (state: TypedState): ?ConversationState => {
+  const selectedConversationIDKey = getSelectedConversation(state)
+// $FlowIssue getIn
+  return state.chat.getIn(['conversationStates', selectedConversationIDKey])
+}
+
 export {
   getBrokenUsers,
+  getMessageFromMessageKey,
   getSelectedConversation,
+  getSelectedConversationStates,
   conversationIDToKey,
   convSupersedesInfo,
   convSupersededByInfo,
