@@ -14,7 +14,7 @@ export type Props = {
   messageKey: Constants.MessageKey,
   isEdited: boolean,
   isRevoked: boolean,
-
+  failureDescription: ?string,
 
 
 

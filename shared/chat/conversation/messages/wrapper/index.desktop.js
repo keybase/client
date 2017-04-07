@@ -4,7 +4,6 @@ import {Avatar, Icon, Text} from '../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../../styles'
 import {withHandlers} from 'recompose'
 import {marginColor, colorForAuthor} from '../shared'
-import Failure from '../failure'
 
 import type {Props} from '.'
 
@@ -12,22 +11,11 @@ const LeftMarker = ({author, isYou, isFollowing, isBroken}) => (
   <div style={{..._leftMarkerStyle, backgroundColor: marginColor(author, isYou, isFollowing, isBroken)}} />
 )
 
-const _leftMarkerStyle = {
-  alignSelf: 'stretch',
-  marginRight: globalMargins.tiny,
-  width: 2,
-}
-
 const UserAvatar = ({author, showImage}) => (
   <div style={_userAvatarStyle}>
     {showImage && <Avatar size={24} username={author} />}
   </div>
 )
-
-const _userAvatarStyle = {
-  height: 1, // don't let avatar size push down the whole row
-  width: 32,
-}
 
 const Username = ({author, isYou, isFollowing, isBroken, includeHeader}) => {
   if (!includeHeader) return null
@@ -46,9 +34,25 @@ const EditedMark = ({isEdited}) => (
   isEdited ? <Text type='BodySmall' style={_editedStyle}>EDITED</Text> : null
 )
 
-const Content = ({author, isYou, isFollowing, isBroken, messageKey, isEdited, message, includeHeader, children, onIconClick, onRetry, onShowEditor, isRevoked}) => (
+const Failure = ({failureDescription, onShowEditor, onRetry}) => {
+  if (!failureDescription) return null
+  const error = `Failed to send${failureDescription ? ` -  ${failureDescription}` : ''}. `
+  const resolveByEdit = failureDescription === 'message is too long'
+  return (
+    <Text type='BodySmall'>
+      <Text type='BodySmall' style={{color: globalColors.red, fontSize: 9}}>{'┏(>_<)┓'}</Text>
+      <Text type='BodySmall' style={{color: globalColors.red}}> {error}</Text>
+      {resolveByEdit &&
+        <Text type='BodySmall' style={{color: globalColors.red, ...globalStyles.textDecoration('underline')}} onClick={onShowEditor}>Edit</Text>}
+      {!resolveByEdit &&
+        <Text type='BodySmall' style={{color: globalColors.red, ...globalStyles.textDecoration('underline')}} onClick={onRetry}>Retry</Text>}
+    </Text>
+  )
+}
+
+const Content = ({author, isYou, isFollowing, isBroken, messageKey, isEdited, message, includeHeader, children, onIconClick, onRetry, onShowEditor, isRevoked, failureDescription}) => (
   <div style={_flexOneColumn} className='message-wrapper'>
-    <Username author={author} isYou={isYou} isFollowing={isFollowing} isBroken={isBroken} />
+    <Username includeHeader={includeHeader} author={author} isYou={isYou} isFollowing={isFollowing} isBroken={isBroken} />
     <div style={_textContainerStyle} className='message' data-message-key={messageKey}>
       <div style={_flexOneColumn}>
         {children}
@@ -56,21 +60,11 @@ const Content = ({author, isYou, isFollowing, isBroken, messageKey, isEdited, me
       </div>
       <ActionButton isRevoked={isRevoked} onIconClick={onIconClick} />
     </div>
-    {message.messageState === 'failed' && <Failure failureDescription={message.failureDescription} onRetry={onRetry} onShowEditor={onShowEditor} />}
+    <Failure failureDescription={failureDescription} onRetry={onRetry} onShowEditor={onShowEditor} />
   </div>
 )
 
-const _flexOneRow = {
-  ...globalStyles.flexBoxRow,
-  flex: 1,
-}
-
-const _flexOneColumn = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
-}
-
-const MessageWrapper = ({author, isYou, isFollowing, isBroken, includeHeader, messageKey, isEdited, isFirstNewMessage, isSelected, children, message}: Props) => (
+const MessageWrapper = ({author, isYou, isFollowing, isBroken, includeHeader, messageKey, isEdited, isFirstNewMessage, isSelected, children, message, failureDescription}: Props) => (
   <div style={{..._flexOneRow, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null)}}>
     <LeftMarker author={author} isYou={isYou} isFollowing={isFollowing} isBroken={isBroken} />
     <div style={_flexOneRow}>
@@ -79,6 +73,7 @@ const MessageWrapper = ({author, isYou, isFollowing, isBroken, includeHeader, me
         message={message}
         author={author}
         isYou={isYou}
+        failureDescription={failureDescription}
         isFollowing={isFollowing}
         isBroken={isBroken}
         messageKey={messageKey}
@@ -121,6 +116,27 @@ const _textContainerStyle = {
 
 const _editedStyle = {
   color: globalColors.black_20,
+}
+
+const _leftMarkerStyle = {
+  alignSelf: 'stretch',
+  marginRight: globalMargins.tiny,
+  width: 2,
+}
+
+const _userAvatarStyle = {
+  height: 1, // don't let avatar size push down the whole row
+  width: 32,
+}
+
+const _flexOneRow = {
+  ...globalStyles.flexBoxRow,
+  flex: 1,
+}
+
+const _flexOneColumn = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
 }
 
 export default withHandlers({
