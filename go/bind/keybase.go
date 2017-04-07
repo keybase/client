@@ -28,20 +28,23 @@ var logSendContext libkb.LogSendContext
 var kbfsConfig libkbfs.Config
 
 // InitOnce runs the Keybase services (only runs one time)
-func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOverride bool) {
+func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
+	dnsServers string) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride); err != nil {
+		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride, dnsServers); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
 }
 
 // Init runs the Keybase services
-func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool) error {
+func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
+	dnsServer string) error {
 	fmt.Println("Go: Initializing")
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
 	}
+	fmt.Printf("Go: DNS Server: %s\n", dnsServer)
 
 	kbCtx = libkb.G
 	kbCtx.Init()

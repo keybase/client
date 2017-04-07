@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
 		251C385767D44A56B4C5FF05 /* libRNFS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ABD163941ED341428B028E6D /* libRNFS.a */; };
+		274AFB731E972F5300615A64 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
 		7608E936D0B84B4FB1849590 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D4D90F8FFC2D4682850A6803 /* libRCTCamera.a */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */; };
@@ -275,6 +276,7 @@
 		00E356F21AD99517003FC87E /* KeybaseTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KeybaseTests.m; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		225044C2BE0440539C5AB378 /* RNFS.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNFS.xcodeproj; path = "../../node_modules/react-native-fs/RNFS.xcodeproj"; sourceTree = "<group>"; };
+		274AFB721E972F5300615A64 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		8A6B0997A42F4CC08AE6F28F /* RCTCamera.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTCamera.xcodeproj; path = "../../node_modules/react-native-camera/ios/RCTCamera.xcodeproj"; sourceTree = "<group>"; };
 		A77BBAD7A94F4A2580CA3B23 /* libRNImagePicker.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNImagePicker.a; sourceTree = "<group>"; };
 		A969A4091CF65C9C00F273F2 /* LogSend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogSend.m; sourceTree = "<group>"; };
@@ -328,6 +330,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				274AFB731E972F5300615A64 /* libresolv.tbd in Frameworks */,
 				DB6D0B961E5B9ED200410F3C /* libRCTAnimation.a in Frameworks */,
 				DB2BD1E51DE7D9A600BB7989 /* libRCTActionSheet.a in Frameworks */,
 				DB2BD1E61DE7D9A600BB7989 /* libRCTGeolocation.a in Frameworks */,
@@ -432,6 +435,7 @@
 		8B23D2F59C5F2B2FA28E899F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				274AFB721E972F5300615A64 /* libresolv.tbd */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
