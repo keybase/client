@@ -3109,8 +3109,6 @@ func (fbo *folderBranchOps) renameLocked(
 	newPBlock.Children[newName] = newDe
 	delete(oldPBlock.Children, oldName)
 
-	// XXX: do both of the below under the same lock, to avoid races
-	// with reads.
 	deleteTargetDirEntry := fbo.blocks.RenameDirEntryInCache(
 		lState, oldParentPath, oldName, newParentPath, newName, newDe)
 	ro := md.data.Changes.Ops[len(md.data.Changes.Ops)-1]
