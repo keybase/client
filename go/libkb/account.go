@@ -79,6 +79,13 @@ func (a *Account) GetUID() (ret keybase1.UID) {
 	return ret
 }
 
+func (a *Account) GetDeviceID() (ret keybase1.DeviceID) {
+	if a.localSession != nil {
+		ret = a.localSession.GetDeviceID()
+	}
+	return ret
+}
+
 func (a *Account) UnloadLocalSession() {
 	a.localSession = newSession(a.G())
 }
@@ -89,20 +96,23 @@ func (a *Account) LoggedIn() bool {
 	return a.LocalSession().IsLoggedIn()
 }
 
-/*
-func (a *Account) LoggedInAndProvisioned() bool {
-	return a.LocalSession().IsLoggedInAndProvisioned()
-}
-*/
-
 // LoggedInLoad will load and check the session with the api server if necessary.
 func (a *Account) LoggedInLoad() (bool, error) {
 	return a.LocalSession().loadAndCheck()
 }
 
-// LoggedInProvisionedLoad will load and check the session with the api server if necessary.
+// LoggedInProvisionedCheck will load and check the session with the api server if necessary.
 func (a *Account) LoggedInProvisionedCheck() (bool, error) {
 	return a.LocalSession().loadAndCheckProvisioned()
+}
+
+// LoggedInProvisioned will load the session file if necessary and return true if the
+// device is provisioned.  It will *not* check the session with the api server.
+func (a *Account) LoggedInProvisioned() (bool, error) {
+	if err := a.LocalSession().Load(); err != nil {
+		return false, err
+	}
+	return a.LocalSession().IsLoggedInAndProvisioned(), nil
 }
 
 func (a *Account) LoadLoginSession(emailOrUsername string) error {

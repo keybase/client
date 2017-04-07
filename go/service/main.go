@@ -746,10 +746,18 @@ func (d *Service) configurePath() {
 // This should get around any issue where the session.json file is out of date
 // or missing since the last time the service started.
 func (d *Service) tryLogin() {
-	eng := engine.NewLoginProvisionedDevice(d.G(), "")
-	eng.SecretStoreOnly = true
+	/*
+		eng := engine.NewLoginProvisionedDevice(d.G(), "")
+		eng.SecretStoreOnly = true
+		ctx := &engine.Context{}
+		if err := engine.RunEngine(eng, ctx); err != nil {
+			d.G().Log.Debug("error running LoginProvisionedDevice on service startup: %s", err)
+		}
+	*/
+	eng := engine.NewLoginOffline(d.G())
 	ctx := &engine.Context{}
 	if err := engine.RunEngine(eng, ctx); err != nil {
-		d.G().Log.Debug("error running LoginProvisionedDevice on service startup: %s", err)
+		d.G().Log.Debug("error running LoginOffline on service startup: %s", err)
 	}
+	d.G().Log.Debug("success running LoginOffline on service startup")
 }

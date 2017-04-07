@@ -35,6 +35,7 @@ type LoginState struct {
 // the login process.
 type LoginContext interface {
 	LoggedInLoad() (bool, error)
+	LoggedInProvisioned() (bool, error)
 	LoggedInProvisionedCheck() (bool, error)
 	Logout() error
 
@@ -1176,6 +1177,16 @@ func (s *LoginState) LoggedInLoad() (lin bool, err error) {
 		return false, aerr
 	}
 	return lin, err
+}
+
+func (s *LoginState) LoggedInProvisioned() (lin bool, err error) {
+	aerr := s.Account(func(a *Account) {
+		lin, err = a.LoggedInProvisioned()
+	}, "LoggedInProvisioned")
+	if aerr != nil {
+		return false, aerr
+	}
+	return
 }
 
 func (s *LoginState) LoggedInProvisionedCheck() (lin bool, err error) {
