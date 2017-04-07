@@ -1416,10 +1416,16 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	var err error
 	switch entryType {
 	case File:
+		id := kbfsblock.FakeID(100)
+		config.mockCrypto.EXPECT().MakeTemporaryBlockID().Return(id, nil)
 		newN, _, err = config.KBFSOps().CreateFile(ctx, n, "b", false, NoExcl)
 	case Exec:
+		id := kbfsblock.FakeID(100)
+		config.mockCrypto.EXPECT().MakeTemporaryBlockID().Return(id, nil)
 		newN, _, err = config.KBFSOps().CreateFile(ctx, n, "b", true, NoExcl)
 	case Dir:
+		id := kbfsblock.FakeID(100)
+		config.mockCrypto.EXPECT().MakeTemporaryBlockID().Return(id, nil)
 		newN, _, err = config.KBFSOps().CreateDir(ctx, n, "b")
 	case Sym:
 		_, err = config.KBFSOps().CreateLink(ctx, n, "b", "c")

@@ -180,6 +180,11 @@ const (
 	headTrusted
 )
 
+type cachedDirOp struct {
+	dirOp op
+	nodes []Node
+}
+
 // folderBranchOps implements the KBFSOps interface for a specific
 // branch of a specific folder.  It is go-routine safe for operations
 // within the folder.
@@ -244,6 +249,7 @@ type folderBranchOps struct {
 	// these locks, when locked concurrently by the same goroutine,
 	// should only be taken in the following order to avoid deadlock:
 	mdWriterLock leveledMutex // taken by any method making MD modifications
+	dirOps       []cachedDirOp
 
 	// protects access to head, headStatus, latestMergedRevision,
 	// and hasBeenCleared.
@@ -2494,15 +2500,79 @@ func (fbo *folderBranchOps) createEntryLocked(
 		newBlock = &FileBlock{}
 	}
 
-	de, err := fbo.syncBlockAndFinalizeLocked(
-		ctx, lState, md, newBlock, dirPath, name, entryType,
-		true, true, zeroPtr, excl)
+	// Cache update and operations until batch happens.  Make a new
+	// temporary ID and directory entry.
+	newID, err := fbo.config.cryptoPure().MakeTemporaryBlockID()
 	if err != nil {
 		return nil, DirEntry{}, err
 	}
-	node, err := fbo.nodeCache.GetOrCreate(de.BlockPointer, name, dir)
+	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		return nil, DirEntry{}, err
+	}
+
+	newPtr := BlockPointer{
+		ID:         newID,
+		KeyGen:     md.LatestKeyGeneration(),
+		DataVer:    fbo.config.DataVersion(),
+		DirectType: DirectBlock,
+		Context: kbfsblock.MakeFirstContext(
+			session.UID, keybase1.BlockType_DATA),
+	}
+	node, err := fbo.nodeCache.GetOrCreate(newPtr, name, dir)
+	if err != nil {
+		return nil, DirEntry{}, err
+	}
+	de := DirEntry{
+		BlockInfo: BlockInfo{
+			BlockPointer: newPtr,
+			EncodedSize:  0,
+		},
+		EntryInfo: EntryInfo{
+			Type: entryType,
+			Size: 0,
+		},
+	}
+	fbo.blocks.AddDirEntryInCache(lState, dirPath, name, de)
+	fbo.dirOps = append(fbo.dirOps, cachedDirOp{co, []Node{dir, node}})
+
+	cleanupFn := func() {
+		// Until KBFS-2076 is done, clear out the cached dir data manually.
+		fbo.dirOps = nil
+		fbo.blocks.ClearCachedAddsAndRemoves(lState, dirPath)
+		fbo.blocks.ClearCacheInfo(lState, dirPath.ChildPath(name, newPtr))
+	}
+	defer cleanupFn()
+
+	de, err = fbo.syncBlockAndFinalizeLocked(
+		ctx, lState, md, newBlock, dirPath, name, entryType,
+		true, true, zeroPtr, excl)
+	if excl == WithExcl && errors.Cause(err) == errNoUpdatesWhileDirty {
+		// If an exclusive write hits a conflict, it will try to
+		// update, but won't be able to because of the dirty directory
+		// entries.  We need to clean up the dirty entries here first
+		// before trying to apply the updates again.
+		fbo.log.CDebugf(ctx, "Clearing dirty entries before applying new "+
+			"updates for exclusive write")
+		cleanupFn()
+		err = fbo.getAndApplyMDUpdates(ctx, lState, fbo.applyMDUpdatesLocked)
+		if err != nil {
+			return nil, DirEntry{}, err
+		}
+		return nil, DirEntry{}, ExclOnUnmergedError{}
+	} else if err != nil {
+		return nil, DirEntry{}, err
+	}
+
+	{
+		// Until KBFS-2076 is done, update the node cache for the
+		// newly created node manually.
+		updated := fbo.nodeCache.UpdatePointer(newPtr.Ref(), de.BlockPointer)
+		if !updated {
+			return nil, DirEntry{},
+				errors.Errorf("Couldn't update pointer for new node %s, %v",
+					name, newPtr)
+		}
 	}
 	return node, de, nil
 }
@@ -2748,7 +2818,7 @@ func (fbo *folderBranchOps) createLinkLocked(
 
 	// Create a direntry for the link, and then sync
 	now := fbo.nowUnixNano()
-	dblock.Children[fromName] = DirEntry{
+	de := DirEntry{
 		EntryInfo: EntryInfo{
 			Type:    Sym,
 			Size:    uint64(len(toPath)),
@@ -2757,6 +2827,16 @@ func (fbo *folderBranchOps) createLinkLocked(
 			Ctime:   now,
 		},
 	}
+	dblock.Children[fromName] = de
+
+	fbo.blocks.AddDirEntryInCache(lState, dirPath, fromName, de)
+	fbo.dirOps = append(fbo.dirOps, cachedDirOp{co, []Node{dir}})
+
+	defer func() {
+		// Until KBFS-2076 is done, clear out the cached dir data manually.
+		fbo.dirOps = nil
+		fbo.blocks.ClearCachedAddsAndRemoves(lState, dirPath)
+	}()
 
 	_, err = fbo.syncBlockAndFinalizeLocked(
 		ctx, lState, md, dblock, *dirPath.parentPath(),
@@ -3967,6 +4047,8 @@ func (fbo *folderBranchOps) getCurrMDRevision(
 
 type applyMDUpdatesFunc func(context.Context, *lockState, []ImmutableRootMetadata) error
 
+var errNoUpdatesWhileDirty = errors.New("Ignoring MD updates while writes are dirty")
+
 func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	lState *lockState, rmds []ImmutableRootMetadata) error {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -4035,7 +4117,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	// sync will put us into an unmerged state anyway and we'll
 	// require conflict resolution.
 	if fbo.blocks.GetState(lState) != cleanState {
-		return errors.New("Ignoring MD updates while writes are dirty")
+		return errors.WithStack(errNoUpdatesWhileDirty)
 	}
 
 	appliedRevs := make([]ImmutableRootMetadata, 0, len(rmds))

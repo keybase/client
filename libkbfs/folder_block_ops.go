@@ -817,17 +817,24 @@ func (fbo *folderBlockOps) GetDir(
 }
 
 func (fbo *folderBlockOps) AddDirEntryInCache(lState *lockState, dir path,
-	newName string, newPtr BlockPointer) {
+	newName string, newDe DirEntry) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	cacheEntry := fbo.deCache[dir.tailPointer().Ref()]
 	if cacheEntry.adds == nil {
 		cacheEntry.adds = make(map[string]BlockPointer)
 	}
-	cacheEntry.adds[newName] = newPtr
+	cacheEntry.adds[newName] = newDe.BlockPointer
 	// In case it was removed in the cache but not flushed yet.
 	delete(cacheEntry.dels, newName)
 	fbo.deCache[dir.tailPointer().Ref()] = cacheEntry
+
+	// Add target dir entry as well.
+	if newDe.Type != Sym {
+		cacheEntry = fbo.deCache[newDe.BlockPointer.Ref()]
+		cacheEntry.dirEntry = newDe
+		fbo.deCache[newDe.BlockPointer.Ref()] = cacheEntry
+	}
 }
 
 func (fbo *folderBlockOps) RemoveDirEntryInCache(lState *lockState, dir path,
@@ -856,6 +863,7 @@ func (fbo *folderBlockOps) ClearCachedAddsAndRemoves(
 	// If there's no dirEntry, we can just delete the whole thing.
 	if !cacheEntry.dirEntry.IsInitialized() {
 		delete(fbo.deCache, dir.tailPointer().Ref())
+		return
 	}
 
 	// Otherwise just nil out the adds and dels.
