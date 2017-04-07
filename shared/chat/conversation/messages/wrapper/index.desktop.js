@@ -29,18 +29,32 @@ const _userAvatarStyle = {
   width: 32,
 }
 
-const Content = ({author, isYou, isFollowing, isBroken, messageKey, isEdited, message, includeHeader, children, onIconClick, onRetry, onShowEditor}) => (
+const Username = ({author, isYou, isFollowing, isBroken, includeHeader}) => {
+  if (!includeHeader) return null
+  const style = {color: colorForAuthor(author, isYou, isFollowing, isBroken), ...(isYou ? globalStyles.italic : null), marginBottom: 2}
+  return <Text type='BodySmallSemibold' style={style}>{author}</Text>
+}
+
+const ActionButton = ({isRevoked, onIconClick}) => (
+  <div className='action-button'>
+    {isRevoked && <Icon type='iconfont-exclamation' style={_exclamationStyle} />}
+    <Icon type='iconfont-ellipsis' style={_ellipsisStyle} onClick={onIconClick} />
+  </div>
+)
+
+const EditedMark = ({isEdited}) => (
+  isEdited ? <Text type='BodySmall' style={_editedStyle}>EDITED</Text> : null
+)
+
+const Content = ({author, isYou, isFollowing, isBroken, messageKey, isEdited, message, includeHeader, children, onIconClick, onRetry, onShowEditor, isRevoked}) => (
   <div style={_flexOneColumn} className='message-wrapper'>
-    {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(author, isYou, isFollowing, isBroken), ...(isYou ? globalStyles.italic : null), marginBottom: 2}}>{author}</Text>}
+    <Username author={author} isYou={isYou} isFollowing={isFollowing} isBroken={isBroken} />
     <div style={_textContainerStyle} className='message' data-message-key={messageKey}>
       <div style={_flexOneColumn}>
         {children}
-        {isEdited && <Text type='BodySmall' style={_editedStyle}>EDITED</Text>}
+        <EditedMark isEdited={isEdited} />
       </div>
-      <div className='action-button'>
-        {message.senderDeviceRevokedAt && <Icon type='iconfont-exclamation' style={_exclamationStyle} />}
-        <Icon type='iconfont-ellipsis' style={_ellipsisStyle} onClick={onIconClick} />
-      </div>
+      <ActionButton isRevoked={isRevoked} onIconClick={onIconClick} />
     </div>
     {message.messageState === 'failed' && <Failure failureDescription={message.failureDescription} onRetry={onRetry} onShowEditor={onShowEditor} />}
   </div>

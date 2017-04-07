@@ -23,6 +23,7 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey, childre
   const message = getMessage(state, messageKey)
   const author = message.author
   const isEdited = message.type === 'Text' && message.editedCount > 0
+  const isRevoked = message.senderDeviceRevokedAt
   const isYou = Constants.getYou(state) === author
   const isFollowing = Constants.getFollowingMap(state)[author]
   const isBroken = Constants.getMetaDataMap(state).get(author, Map()).get('brokenTracker', false)
@@ -44,6 +45,7 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey, childre
     isYou,
     message, // TODO don't send directly
     messageKey,
+    isRevoked,
   }
 }
 

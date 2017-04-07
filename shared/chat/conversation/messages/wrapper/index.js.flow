@@ -13,6 +13,7 @@ export type Props = {
   isBroken: boolean,
   messageKey: Constants.MessageKey,
   isEdited: boolean,
+  isRevoked: boolean,
 
 
 
