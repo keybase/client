@@ -2,86 +2,94 @@
 // An infinite scrolling chat list. Using react-virtualized which doesn't really handle this case out of the box.
 // We control which set of messages we render in our state object.
 // We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling.
-import * as Constants from '../../../constants/chat'
-import EditPopup from '../edit-popup.desktop'
+//
+//
+// TODO: handle resize width
+// TODO:  hanle scroll stuff
+//
+//
+//
+// import * as Constants from '../../../constants/chat'
+import * as Virtualized from 'react-virtualized'
+// import EditPopup from '../edit-popup.desktop'
 import React, {Component} from 'react'
-import ReactDOM from 'react-dom'
-import _ from 'lodash'
+// import ReactDOM from 'react-dom'
+// import _ from 'lodash'
 import messageFactory from '../messages'
-import shallowEqual from 'shallowequal'
-import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache as DefaultCellMeasurerCellSizeCache} from 'react-virtualized'
+// import shallowEqual from 'shallowequal'
 import {Icon} from '../../../common-adapters'
-import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
-import {clipboard} from 'electron'
-import {findDOMNode} from '../../../util/dom'
+// import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
+// import {clipboard} from 'electron'
+// import {findDOMNode} from '../../../util/dom'
 import {globalColors, globalStyles} from '../../../styles'
 
-import type {List} from 'immutable'
+// import type {List} from 'immutable'
 import type {Props} from '.'
 
-type DefaultCellRangeRendererParams = {
-  cellCache: Object,
-  cellRenderer: Function,
-  columnSizeAndPositionManager: Object,
-  columnStartIndex: number,
-  columnStopIndex: number,
-  horizontalOffsetAdjustment: number,
-  isScrolling: boolean,
-  rowSizeAndPositionManager: Object,
-  rowStartIndex: number,
-  rowStopIndex: number,
-  scrollLeft: number,
-  scrollTop: number,
-  styleCache: Object,
-  verticalOffsetAdjustment: number,
-  visibleColumnIndices: Object,
-  visibleRowIndices: Object,
-}
+// type DefaultCellRangeRendererParams = {
+  // cellCache: Object,
+  // cellRenderer: Function,
+  // columnSizeAndPositionManager: Object,
+  // columnStartIndex: number,
+  // columnStopIndex: number,
+  // horizontalOffsetAdjustment: number,
+  // isScrolling: boolean,
+  // rowSizeAndPositionManager: Object,
+  // rowStartIndex: number,
+  // rowStopIndex: number,
+  // scrollLeft: number,
+  // scrollTop: number,
+  // styleCache: Object,
+  // verticalOffsetAdjustment: number,
+  // visibleColumnIndices: Object,
+  // visibleRowIndices: Object,
+// }
 
 type State = {
-  isLockedToBottom: boolean,
-  isScrolling: boolean,
-  scrollTop: number,
-  selectedMessageID?: Constants.MessageID,
+  // isLockedToBottom: boolean,
+  // isScrolling: boolean,
+  // scrollTop: number,
+  // selectedMessageID?: Constants.MessageID,
 }
 
-const scrollbarWidth = 20
-const lockedToBottomSlop = 20
+// const scrollbarWidth = 20
+// const lockedToBottomSlop = 20
 const listBottomMargin = 10
-const DEBUG_ROW_RENDER = __DEV__ && false
+// const DEBUG_ROW_RENDER = __DEV__ && false
 
 class ConversationList extends Component<void, Props, State> {
   _cellCache: any;
-  _cellMeasurer: any;
+  // _cellMeasurer: any;
   _list: any;
   state: State;
-  _toRemeasure: Array<number>;
-  _shouldForceUpdateGrid: boolean;
-  _lastWidth: ?number;
+  // _toRemeasure: Array<number>;
+  // _shouldForceUpdateGrid: boolean;
+  // _lastWidth: ?number;
 
   constructor (props: Props) {
     super(props)
 
-    this.state = {
-      isLockedToBottom: true,
-      isScrolling: false,
-      scrollTop: 0,
-    }
+    // this.state = {
+      // isLockedToBottom: true,
+      // isScrolling: false,
+      // scrollTop: 0,
+    // }
 
-    this._cellCache = new DefaultCellMeasurerCellSizeCache({
-      uniformColumnWidth: true,
-      uniformRowHeight: false,
+    this._cellCache = new Virtualized.CellMeasurerCache({
+      fixedWidth: true,
+      keyMapper: (rowIndex: number) => this.props.messageKeys.get(rowIndex),
     })
-    this._toRemeasure = []
-    this._shouldForceUpdateGrid = false
+
+    // this._toRemeasure = []
+    // this._shouldForceUpdateGrid = false
   }
 
-  componentWillUnmount () {
-    // Stop any throttled/debounced functions
-    this._onScroll.cancel()
-    this._recomputeListDebounced.cancel()
-    this._onScrollSettled.cancel()
-  }
+  // componentWillUnmount () {
+    // // Stop any throttled/debounced functions
+    // this._onScroll.cancel()
+    // this._recomputeListDebounced.cancel()
+    // this._onScrollSettled.cancel()
+  // }
 
   // TODO keep a counter in the keys list to force these changes automatically. pass that itno the list
   componentWillUpdate (nextProps: Props, nextState: State) {
@@ -110,199 +118,209 @@ class ConversationList extends Component<void, Props, State> {
     return this._list && this._list.Grid
   }
 
-  componentDidUpdate (prevProps: Props, prevState: State) {
-    if ((this.props.selectedConversation !== prevProps.selectedConversation) ||
-        (this.props.messageKeys !== prevProps.messageKeys)) {
-      this.state.isLockedToBottom && this._scrollToBottom()
-    }
+  // componentDidUpdate (prevProps: Props, prevState: State) {
+    // if ((this.props.selectedConversation !== prevProps.selectedConversation) ||
+        // (this.props.messageKeys !== prevProps.messageKeys)) {
+      // this.state.isLockedToBottom && this._scrollToBottom()
+    // }
 
-    if (this.props.editLastMessageCounter !== prevProps.editLastMessageCounter) {
-      this.onEditLastMessage()
-    }
+    // if (this.props.editLastMessageCounter !== prevProps.editLastMessageCounter) {
+      // this.onEditLastMessage()
+    // }
 
-    if (this.props.messageKeys !== prevProps.messageKeys && prevProps.messageKeys.count() > 1) {
-      const prependedCount = this.props.messageKeys.indexOf(prevProps.messageKeys.first())
-      // const headerCount = this.props.headerMessages.count()
-      if (prependedCount !== -1) {
-        // Measure the new items so we can adjust our scrollTop so your position doesn't jump
-        const scrollTop = this.state.scrollTop + _.range(0, prependedCount)
-          .map(index => this._cellMeasurer.getRowHeight({index}))
-          .reduce((total, height) => total + height, 0)
+    // if (this.props.messageKeys !== prevProps.messageKeys && prevProps.messageKeys.count() > 1) {
+      // const prependedCount = this.props.messageKeys.indexOf(prevProps.messageKeys.first())
+      // // const headerCount = this.props.headerMessages.count()
+      // if (prependedCount !== -1) {
+        // // Measure the new items so we can adjust our scrollTop so your position doesn't jump
+        // const scrollTop = this.state.scrollTop + _.range(0, prependedCount)
+          // .map(index => this._cellMeasurer.getRowHeight({index}))
+          // .reduce((total, height) => total + height, 0)
 
-        // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
-        this.setState({scrollTop}) // eslint-disable-line react/no-did-update-set-state
-      }
-    }
-  }
+        // // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
+        // this.setState({scrollTop}) // eslint-disable-line react/no-did-update-set-state
+      // }
+    // }
+  // }
 
-  componentWillReceiveProps (nextProps: Props) {
-    if (this.props.selectedConversation !== nextProps.selectedConversation) {
-      this.setState({isLockedToBottom: true})
-      this._recomputeList()
-    }
+  // componentWillReceiveProps (nextProps: Props) {
+    // if (this.props.selectedConversation !== nextProps.selectedConversation) {
+      // this.setState({isLockedToBottom: true})
+      // this._recomputeList()
+    // }
 
-    const willScrollDown = nextProps.listScrollDownCounter !== this.props.listScrollDownCounter
+    // const willScrollDown = nextProps.listScrollDownCounter !== this.props.listScrollDownCounter
 
-    if (willScrollDown) {
-      this.setState({isLockedToBottom: true})
-    }
+    // if (willScrollDown) {
+      // this.setState({isLockedToBottom: true})
+    // }
 
-    if (this.props.moreToLoad !== nextProps.moreToLoad) {
-      this._shouldForceUpdateGrid = true
-    }
-  }
+    // if (this.props.moreToLoad !== nextProps.moreToLoad) {
+      // this._shouldForceUpdateGrid = true
+    // }
+  // }
 
-  _onScrollSettled = _.debounce(() => {
-    this.setState({
-      isScrolling: false,
-    })
-  }, 1000)
+  // _onScrollSettled = _.debounce(() => {
+    // this.setState({
+      // isScrolling: false,
+    // })
+  // }, 1000)
 
-  _onScroll = _.throttle(({clientHeight, scrollHeight, scrollTop}) => {
-    // Do nothing if we haven't really loaded anything
-    if (!clientHeight) {
-      return
-    }
+  // _onScroll = _.throttle(({clientHeight, scrollHeight, scrollTop}) => {
+    // // Do nothing if we haven't really loaded anything
+    // if (!clientHeight) {
+      // return
+    // }
 
-    // At the top, load more messages. Action handles loading state and if there's actually any more
-    if (scrollTop === 0) {
-      this.props.onLoadMoreMessages()
-    }
+    // // At the top, load more messages. Action handles loading state and if there's actually any more
+    // if (scrollTop === 0) {
+      // this.props.onLoadMoreMessages()
+    // }
 
-    // Lock to bottom if we are close to the bottom
-    const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
-    this.setState({
-      isLockedToBottom,
-      isScrolling: true,
-      scrollTop,
-    })
+    // // Lock to bottom if we are close to the bottom
+    // const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
+    // this.setState({
+      // isLockedToBottom,
+      // isScrolling: true,
+      // scrollTop,
+    // })
 
-    // This is debounced so it resets the call
-    this._onScrollSettled()
-  }, 200)
+    // // This is debounced so it resets the call
+    // this._onScrollSettled()
+  // }, 200)
 
-  _hidePopup = () => {
-    ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
-    this.setState({
-      selectedMessageID: undefined,
-    })
-  }
+  // _hidePopup = () => {
+    // ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
+    // this.setState({
+      // selectedMessageID: undefined,
+    // })
+  // }
 
-  _renderPopup (message: Constants.Message, style: Object, messageRect: any): ?React$Element<any> {
-    switch (message.type) {
-      case 'Text':
-        return (
-          <TextPopupMenu
-            you={this.props.you}
-            message={message}
-            onShowEditor={(message: Constants.TextMessage) => this._showEditor(message, messageRect)}
-            onDeleteMessage={this.props.onDeleteMessage}
-            onLoadAttachment={this.props.onLoadAttachment}
-            onOpenInFileUI={this.props.onOpenInFileUI}
-            onHidden={this._hidePopup}
-            style={style}
-          />
-        )
-      case 'Attachment':
-        const {downloadedPath, filename, messageID} = message
-        return (
-          <AttachmentPopupMenu
-            you={this.props.you}
-            message={message}
-            onDeleteMessage={this.props.onDeleteMessage}
-            onDownloadAttachment={() => { messageID && filename && this.props.onLoadAttachment(messageID, filename) }}
-            onOpenInFileUI={() => { downloadedPath && this.props.onOpenInFileUI(downloadedPath) }}
-            onHidden={this._hidePopup}
-            style={style}
-          />
-        )
-    }
-  }
+  // _renderPopup (message: Constants.Message, style: Object, messageRect: any): ?React$Element<any> {
+    // switch (message.type) {
+      // case 'Text':
+        // return (
+          // <TextPopupMenu
+            // you={this.props.you}
+            // message={message}
+            // onShowEditor={(message: Constants.TextMessage) => this._showEditor(message, messageRect)}
+            // onDeleteMessage={this.props.onDeleteMessage}
+            // onLoadAttachment={this.props.onLoadAttachment}
+            // onOpenInFileUI={this.props.onOpenInFileUI}
+            // onHidden={this._hidePopup}
+            // style={style}
+          // />
+        // )
+      // case 'Attachment':
+        // const {downloadedPath, filename, messageID} = message
+        // return (
+          // <AttachmentPopupMenu
+            // you={this.props.you}
+            // message={message}
+            // onDeleteMessage={this.props.onDeleteMessage}
+            // onDownloadAttachment={() => { messageID && filename && this.props.onLoadAttachment(messageID, filename) }}
+            // onOpenInFileUI={() => { downloadedPath && this.props.onOpenInFileUI(downloadedPath) }}
+            // onHidden={this._hidePopup}
+            // style={style}
+          // />
+        // )
+    // }
+  // }
 
-  _showEditor = (message: Constants.TextMessage, messageRect: any) => {
-    const popupComponent = (
-      <EditPopup
-        messageRect={messageRect}
-        onClose={this._hidePopup}
-        message={message.message.stringValue()}
-        onSubmit={text => { this.props.onEditMessage(message, text) }}
-      />
+  // _showEditor = (message: Constants.TextMessage, messageRect: any) => {
+    // const popupComponent = (
+      // <EditPopup
+        // messageRect={messageRect}
+        // onClose={this._hidePopup}
+        // message={message.message.stringValue()}
+        // onSubmit={text => { this.props.onEditMessage(message, text) }}
+      // />
+    // )
+
+    // // Have to do this cause it's triggered from a popup that we're reusing else we'll get unmounted
+    // setImmediate(() => {
+      // const container = document.getElementById('popupContainer')
+      // // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
+      // ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
+    // })
+  // }
+
+  // _findMessageFromDOMNode (start: any) : any {
+    // const node = findDOMNode(start, '.message')
+    // if (node) return node
+
+    // // If not found, try to find it in the message-wrapper
+    // const wrapper = findDOMNode(start, '.message-wrapper')
+    // if (wrapper) {
+      // const messageNodes = wrapper.getElementsByClassName('message')
+      // if (messageNodes.length > 0) return messageNodes[0]
+    // }
+
+    // return null
+  // }
+
+  // _showPopup (message: Constants.TextMessage | Constants.AttachmentMessage, event: any) {
+    // const clientRect = event.target.getBoundingClientRect()
+
+    // const messageNode = this._findMessageFromDOMNode(event.target)
+    // const messageRect = messageNode && this._domNodeToRect(messageNode)
+    // // Position next to button (client rect)
+    // // TODO: Measure instead of pixel math
+    // const x = clientRect.left - 205
+    // let y = clientRect.top - (message.author === this.props.you ? 200 : 116)
+    // if (y < 10) y = 10
+
+    // const popupComponent = this._renderPopup(message, {left: x, position: 'absolute', top: y}, messageRect)
+    // if (!popupComponent) return
+
+    // this.setState({
+      // selectedMessageID: message.messageID,
+    // })
+
+    // const container = document.getElementById('popupContainer')
+    // // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
+    // ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
+  // }
+
+  // _onAction = (message: Constants.ServerMessage, event: any) => {
+    // if (message.type === 'Text' || message.type === 'Attachment') {
+      // this._showPopup(message, event)
+    // }
+  // }
+
+  // _onResize = ({width}) => {
+    // if (width !== this._lastWidth) {
+      // this._lastWidth = width
+      // this._recomputeListDebounced()
+    // }
+  // }
+
+  // _onShowEditor = (message: Constants.Message, event: any) => {
+    // if (message.type === 'Text') {
+      // const messageNode = this._findMessageFromDOMNode(event.target)
+      // const messageRect = messageNode && this._domNodeToRect(messageNode)
+      // if (messageRect) {
+        // this._showEditor(message, messageRect)
+      // }
+    // }
+  // }
+
+  _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
+    const message = messageFactory(this.props.messageKeys.get(index))
+    return (
+      <Virtualized.CellMeasurer
+        cache={this._cellCache}
+        columnIndex={0}
+        key={key}
+        parent={parent}
+        rowIndex={index}
+      >
+        <div style={style}>
+          {message}
+        </div>
+      </Virtualized.CellMeasurer>
     )
 
-    // Have to do this cause it's triggered from a popup that we're reusing else we'll get unmounted
-    setImmediate(() => {
-      const container = document.getElementById('popupContainer')
-      // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
-      ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
-    })
-  }
-
-  _findMessageFromDOMNode (start: any) : any {
-    const node = findDOMNode(start, '.message')
-    if (node) return node
-
-    // If not found, try to find it in the message-wrapper
-    const wrapper = findDOMNode(start, '.message-wrapper')
-    if (wrapper) {
-      const messageNodes = wrapper.getElementsByClassName('message')
-      if (messageNodes.length > 0) return messageNodes[0]
-    }
-
-    return null
-  }
-
-  _showPopup (message: Constants.TextMessage | Constants.AttachmentMessage, event: any) {
-    const clientRect = event.target.getBoundingClientRect()
-
-    const messageNode = this._findMessageFromDOMNode(event.target)
-    const messageRect = messageNode && this._domNodeToRect(messageNode)
-    // Position next to button (client rect)
-    // TODO: Measure instead of pixel math
-    const x = clientRect.left - 205
-    let y = clientRect.top - (message.author === this.props.you ? 200 : 116)
-    if (y < 10) y = 10
-
-    const popupComponent = this._renderPopup(message, {left: x, position: 'absolute', top: y}, messageRect)
-    if (!popupComponent) return
-
-    this.setState({
-      selectedMessageID: message.messageID,
-    })
-
-    const container = document.getElementById('popupContainer')
-    // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
-    ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
-  }
-
-  _onAction = (message: Constants.ServerMessage, event: any) => {
-    if (message.type === 'Text' || message.type === 'Attachment') {
-      this._showPopup(message, event)
-    }
-  }
-
-  _onResize = ({width}) => {
-    if (width !== this._lastWidth) {
-      this._lastWidth = width
-      this._recomputeListDebounced()
-    }
-  }
-
-  _cellRenderer = ({rowIndex, ...rest}) => {
-    return this._rowRenderer({index: rowIndex, ...rest})
-  }
-
-  _onShowEditor = (message: Constants.Message, event: any) => {
-    if (message.type === 'Text') {
-      const messageNode = this._findMessageFromDOMNode(event.target)
-      const messageRect = messageNode && this._domNodeToRect(messageNode)
-      if (messageRect) {
-        this._showEditor(message, messageRect)
-      }
-    }
-  }
-
-  _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
-    return messageFactory(this.props.messageKeys.get(index), style)
     // const message = this.props.messageKeys.get(index)
     // const prevMessage = this.props.messages.get(index - 1)
     // const isFirstMessage = index === 0
@@ -314,65 +332,65 @@ class ConversationList extends Component<void, Props, State> {
     // return messageFactory(options)
   }
 
-  _recomputeListDebounced = _.throttle(() => {
-    this._recomputeList()
-  }, 300)
+  // _recomputeListDebounced = _.throttle(() => {
+    // this._recomputeList()
+  // }, 300)
 
-  _recomputeList () {
-    // this._cellCache.clearAllRowHeights()
+  // _recomputeList () {
+    // // this._cellCache.clearAllRowHeights()
 
-    // if (this._listIsGood()) {
-      // this._list && this._list.recomputeRowHeights()
-    // }
-    this.state.isLockedToBottom && this._scrollToBottom()
-  }
+    // // if (this._listIsGood()) {
+      // // this._list && this._list.recomputeRowHeights()
+    // // }
+    // this.state.isLockedToBottom && this._scrollToBottom()
+  // }
 
-  _onCopyCapture (e) {
-    // Copy text only, not HTML/styling.
-    e.preventDefault()
-    clipboard.writeText(window.getSelection().toString())
-  }
+  // _onCopyCapture (e) {
+    // // Copy text only, not HTML/styling.
+    // e.preventDefault()
+    // clipboard.writeText(window.getSelection().toString())
+  // }
 
-  _setCellMeasurerRef = r => {
-    this._cellMeasurer = r
-  }
+  // _setCellMeasurerRef = r => {
+    // this._cellMeasurer = r
+  // }
 
-  _setListRef = r => {
-    this._list = r
-  }
+  // _setListRef = r => {
+    // this._list = r
+  // }
 
   _rowCount = () => this.props.messageKeys.count()
   // _rowCount = () => this.props.headerMessages.count() + this.props.messages.count()
 
-  _scrollToBottom = () => {
-    const rowCount = this._rowCount()
-    if (this._listIsGood()) {
-      this._list && this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: rowCount})
-    }
-  }
+  // _scrollToBottom = () => {
+    // const rowCount = this._rowCount()
+    // if (this._listIsGood()) {
+      // this._list && this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: rowCount})
+    // }
+  // }
 
-  _handleListClick = () => {
-    if (window.getSelection().isCollapsed) {
-      this.props.onFocusInput()
-    }
-  }
+  // _handleListClick = () => {
+    // if (window.getSelection().isCollapsed) {
+      // this.props.onFocusInput()
+    // }
+  // }
 
-  _domNodeToRect (element) {
-    if (!document.body) {
-      throw new Error('Body not ready')
-    }
-    const bodyRect = document.body.getBoundingClientRect()
-    const elemRect = element.getBoundingClientRect()
+  // _domNodeToRect (element) {
+    // if (!document.body) {
+      // throw new Error('Body not ready')
+    // }
+    // const bodyRect = document.body.getBoundingClientRect()
+    // const elemRect = element.getBoundingClientRect()
 
-    return {
-      height: elemRect.height,
-      left: elemRect.left - bodyRect.left,
-      top: elemRect.top - bodyRect.top,
-      width: elemRect.width,
-    }
-  }
+    // return {
+      // height: elemRect.height,
+      // left: elemRect.left - bodyRect.left,
+      // top: elemRect.top - bodyRect.top,
+      // width: elemRect.width,
+    // }
+  // }
 
-  onEditLastMessage = () => {
+  // onEditLastMessage = () => {
     // if (!this._list) {
       // return
     // }
@@ -397,7 +415,7 @@ class ConversationList extends Component<void, Props, State> {
         // }
       // }
     // }
-  }
+  // }
 
   // _cellRangeRenderer = options => {
     // const message = this.props.messages.get(0)
@@ -414,37 +432,31 @@ class ConversationList extends Component<void, Props, State> {
       )
     }
 
-    const rowCount = this._rowCount()
-    let scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
-    let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
+    // const rowCount = this._rowCount()
+    // let scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
+    // let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
+              // scrollToIndex={scrollToIndex}
+              // scrollTop={scrollTop}
     return (
-      <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
+      <div style={containerStyle} onClick={undefined/*this._handleListClick*/} onCopyCapture={undefined/*this._onCopyCapture*/}>
         <style>{realCSS}</style>
-        <AutoSizer onResize={this._onResize}>{
-          ({height, width}) => (
-            // width is adjusted to assume scrollbars, see https://github.com/bvaughn/react-virtualized/issues/401
-            <CellMeasurer
-              cellRenderer={this._cellRenderer}
-              columnCount={1}
-              ref={this._setCellMeasurerRef}
-              cellSizeCache={this._cellCache}
-              rowCount={rowCount}
-              width={width - scrollbarWidth} >
-              {({getRowHeight}) => (
-                <VirtualizedList
-                  style={listStyle}
-                  height={height}
-                  ref={this._setListRef}
-                  width={width}
-                  onScroll={this._onScroll}
-                  scrollTop={scrollTop}
-                  scrollToIndex={scrollToIndex}
-                  rowCount={rowCount}
-                  rowHeight={getRowHeight}
-                  columnWidth={width}
-                  rowRenderer={this._rowRenderer} />)}</CellMeasurer>)}
-        </AutoSizer>
+        <Virtualized.AutoSizer onResize={this._onResize}>
+          {({height, width}) => (
+            <Virtualized.List
+              columnWidth={width}
+              deferredMeasurementCache={this._cellCache}
+              height={height}
+              onScroll={this._onScroll}
+              ref={this._setListRef}
+              rowCount={this._rowCount()}
+              rowHeight={this._cellCache.rowHeight}
+              rowRenderer={this._rowRenderer}
+              style={listStyle}
+              width={width}
+            />
+          )}
+        </Virtualized.AutoSizer>
       </div>
     )
   }
@@ -595,14 +607,3 @@ const listStyle = {
 // }
 
 export default ConversationList
-
-if (__DEV__ && typeof window !== 'undefined') {
-  window.showReactVirtualListMeasurer = () => {
-    const holder = window.document.body.lastChild
-    holder.style.zIndex = 9999
-    holder.style.backgroundColor = 'red'
-    holder.style.visibility = 'visible'
-    holder.style.left = '320px'
-    holder.style.top = '320px'
-  }
-}

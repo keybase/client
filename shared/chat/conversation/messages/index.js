@@ -11,7 +11,7 @@ import {formatTimeForMessages} from '../../../util/timestamp'
 import {globalStyles, globalColors} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
-const factory = (messageKey: Constants.MessageKey, style: Object) => {
+const factory = (messageKey: Constants.MessageKey) => {
   const kind = Constants.messageKeyKind(messageKey)
   switch (kind) {
     // case 'invisibleError': {
@@ -29,19 +29,20 @@ const factory = (messageKey: Constants.MessageKey, style: Object) => {
     // case 'tempAttachment': {
     // }
     case 'timestamp': {
-      return <Timestamp
-        messageKey={messageKey}
-        style={style}
-        key={messageKey} />
+      return <Timestamp messageKey={messageKey} />
     }
     default: {
       return (
-        <Box key={messageKey} style={style}>
-          <Text type='BodySmall'>{kind}:{messageKey.substring(0, 5)}</Text>
+        <Box style={TEMP}>
+          <Text type='BodySmall' style={TEMP}>{kind}:{messageKey.substring(0, 5)}</Text>
         </Box>
       )
     }
   }
+}
+
+const TEMP = {
+  height: 50,
 }
 
 // import type {Options} from './index'
