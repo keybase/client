@@ -5,6 +5,7 @@ import * as Constants from '../../../constants/chat'
 import React from 'react'
 import Timestamp from './timestamp/container'
 import Header from './header/container'
+import TextMessage from './text/container'
 import ErrorMessage from './error/container'
 // import ProfileResetNotice from '../notices/profile-reset-notice'
 import {Box, Text /*, Icon */} from '../../../common-adapters'
@@ -31,8 +32,9 @@ const factory = (messageKey: Constants.MessageKey) => {
         // </Box>
       // )
     }
-    // case 'messageIDText': {
-    // }
+    case 'messageIDText': {
+      return <TextMessage messageKey={messageKey} />
+    }
     // case 'outboxID': {
     // }
     // case 'tempAttachment': {
