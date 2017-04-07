@@ -5,6 +5,7 @@ import * as Constants from '../../../constants/chat'
 import React from 'react'
 import Timestamp from './timestamp/container'
 import Header from './header/container'
+import ErrorMessage from './error/container'
 // import ProfileResetNotice from '../notices/profile-reset-notice'
 import {Box, Text /*, Icon */} from '../../../common-adapters'
 // import {formatTimeForMessages} from '../../../util/timestamp'
@@ -21,8 +22,15 @@ const factory = (messageKey: Constants.MessageKey) => {
     }
     // case 'messageIDAttachment': {
     // }
-    // case 'messageIDError': {
-    // }
+    case 'error': // fallthrough
+    case 'errorInvisible': // fallthrough
+    case 'messageIDError': {
+      return <ErrorMessage messageKey={messageKey} />
+        // <Box key={key} style={{...style, ...errorStyle}}>
+          // <Text type='BodySmallItalic' key={key} style={{color: globalColors.red}}>{message.reason}</Text>
+        // </Box>
+      // )
+    }
     // case 'messageIDText': {
     // }
     // case 'outboxID': {
@@ -40,6 +48,8 @@ const factory = (messageKey: Constants.MessageKey) => {
       )
     }
   }
+
+  return <Box data-messageKey={messageKey} />
 }
 
 const TEMP = {
@@ -96,31 +106,13 @@ const TEMP = {
         // messageID={message.messageID}
         // onAction={onAction}
         // />
-    // case 'LoadingMore':
-      // return <LoadingMore style={{...style}} key={key} hasMoreItems={moreToLoad} />
-    // case 'ChatSecuredHeader':
-      // return (
-        // <Box key={key} style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center', height: 116}}>
-          // {!moreToLoad && <Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />}
-        // </Box>
-      // )
-    // case 'Error':
-      // return (
-        // <Box key={key} style={{...style, ...errorStyle}}>
-          // <Text type='BodySmallItalic' key={key} style={{color: globalColors.red}}>{message.reason}</Text>
-        // </Box>
-      // )
-    // case 'InvisibleError':
-      // return <Box key={key} style={style} data-msgType={message.type} />
-    // default:
-      // return <Box key={key} style={style} data-msgType={message.type} />
   // }
 // }
 
-const errorStyle = {
-  ...globalStyles.flexBoxRow,
-  justifyContent: 'center',
-  padding: 5,
-}
+// const errorStyle = {
+  // ...globalStyles.flexBoxRow,
+  // justifyContent: 'center',
+  // padding: 5,
+// }
 
 export default factory

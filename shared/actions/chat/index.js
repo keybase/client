@@ -436,6 +436,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
     const failureDescription = messageState === 'failed' ? _decodeFailureDescription(payload.state.error.typ) : null
     // $FlowIssue
     const messageText: ChatTypes.MessageText = messageBody.text
+
     return {
       author: yourName,
       conversationIDKey,
@@ -472,6 +473,13 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
       switch (payload.messageBody.messageType) {
         case ChatTypes.CommonMessageType.text:
           const outboxID = payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
+
+          // TODO del this, just to emulate various message types
+          const TEMP = Math.random() > 999 ? {type: 'Error',
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDError', common.messageID),
+            reason: 'Whuatttttttt',
+          } : {}
+          // end to del
           return {
             type: 'Text',
             ...common,
@@ -480,6 +488,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
+            ...TEMP,
           }
         case ChatTypes.CommonMessageType.attachment: {
           const outboxID = payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
