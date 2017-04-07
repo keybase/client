@@ -98,8 +98,11 @@ func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, upd
 
 	arg := APIArg{
 		Endpoint:    "logdump/send",
-		SessionType: APISessionTypeREQUIRED,
+		SessionType: APISessionTypeOPTIONAL,
 	}
+
+	// Get the login session, if any
+	l.G().LoginState().LoggedInLoad()
 
 	resp, err := l.G().API.PostRaw(arg, mpart.FormDataContentType(), &body)
 	if err != nil {
