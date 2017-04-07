@@ -19,7 +19,7 @@ export type MessageKey = string
 type MessageKeyKind = 'chatSecured'
 | 'error'
 | 'errorInvisible'
-| 'loadingMore'
+| 'header'
 | 'messageIDAttachment'
 | 'messageIDDeleted'
 | 'messageIDEdit'
@@ -685,7 +685,7 @@ function messageKeyKind (key: MessageKey): MessageKeyKind {
   switch (kind) {
     case 'error': return 'error'
     case 'errorInvisible': return 'errorInvisible'
-    case 'loadingMore': return 'loadingMore'
+    case 'header': return 'header'
     case 'messageIDAttachment': return 'messageIDAttachment'
     case 'messageIDAttachmentUpdate': return 'messageIDAttachmentUpdate'
     case 'messageIDDeleted': return 'messageIDDeleted'

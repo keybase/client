@@ -4,7 +4,7 @@ import * as Constants from '../../../constants/chat'
 // import MessageText from './text'
 import React from 'react'
 import Timestamp from './timestamp/container'
-import LoadingMore from './loading-more/container'
+import Header from './header/container'
 // import ProfileResetNotice from '../notices/profile-reset-notice'
 import {Box, Text /*, Icon */} from '../../../common-adapters'
 // import {formatTimeForMessages} from '../../../util/timestamp'
@@ -16,8 +16,8 @@ const factory = (messageKey: Constants.MessageKey) => {
   switch (kind) {
     // case 'invisibleError': {
     // }
-    case 'loadingMore': {
-      return <LoadingMore messageKey={messageKey} />
+    case 'header': {
+      return <Header messageKey={messageKey} />
     }
     // case 'messageIDAttachment': {
     // }

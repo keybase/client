@@ -67,6 +67,10 @@ const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollD
     }
   }
 
+  if (selectedConversationIDKey) {
+    messageKeys = messageKeys.unshift(Constants.messageKey(selectedConversationIDKey, 'header', 0))
+  }
+
   return {
     editLastMessageCounter,
     editingMessage,
@@ -105,10 +109,10 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
   const props = {
     ...stateProps,
     ...dispatchProps,
-    headerMessages: List([
-      {key: `chatSecuredHeader-${stateProps.moreToLoad.toString()}`, type: 'ChatSecuredHeader'},
-      {key: `loadingMore-${stateProps.moreToLoad.toString()}`, type: 'LoadingMore'},
-    ]),
+    // headerMessages: List([
+      // {key: `chatSecuredHeader-${stateProps.moreToLoad.toString()}`, type: 'ChatSecuredHeader'},
+      // {key: `loadingMore-${stateProps.moreToLoad.toString()}`, type: 'LoadingMore'},
+    // ]),
     onLoadAttachment: (messageID, filename) => { stateProps.selectedConversation && dispatchProps._onLoadAttachment(stateProps.selectedConversation, messageID, filename) },
     onLoadMoreMessages: () => { stateProps.selectedConversation && dispatchProps._onLoadMoreMessages(stateProps.selectedConversation) },
     onOpenInPopup: (message: Constants.AttachmentMessage) => { dispatchProps._onOpenInPopup(message, stateProps.routePath) },
