@@ -170,6 +170,7 @@ const styleService = {
   color: globalColors.black_75,
   marginRight: globalMargins.tiny,
   textAlign: 'center',
+  fontSize: 16,
 }
 const styleStatusIconTouchable = {
   ...globalStyles.flexBoxRow,

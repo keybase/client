@@ -47,12 +47,15 @@ const styleClose = {
   color: globalColors.blue,
 }
 
-const MIN_BANNER_HEIGHT = 48
+const MIN_BANNER_HEIGHT = 40
 
 const styleBanner = (type) => ({
   ...globalStyles.flexBoxColumn,
   minHeight: MIN_BANNER_HEIGHT,
-  padding: globalMargins.tiny,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
   alignItems: 'center',
   justifyContent: 'center',
   backgroundColor: type === 'error' ? globalColors.red : globalColors.green,
@@ -71,9 +74,8 @@ const styleContentContainer = (isBannerShowing: boolean) => ({
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',
   flex: 1,
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
-  paddingBottom: globalMargins.small,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
   ...(isBannerShowing ? {} : {marginTop: MIN_BANNER_HEIGHT}),
 })
 

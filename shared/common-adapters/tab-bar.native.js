@@ -8,6 +8,7 @@ import Box from './box'
 import Icon from './icon'
 import Text from './text'
 import {globalStyles, globalColors} from '../styles'
+import {StyleSheet} from 'react-native'
 
 class TabBarItem extends Component<void, ItemProps, void> {
   render () {
@@ -89,6 +90,7 @@ class TabBar extends Component<void, Props, void> {
     return (
       <Box style={{...stylesContainer, ...this.props.style}}>
         {!this.props.tabBarOnBottom && tabBarButtons}
+        <Box style={{borderBottomColor: globalColors.black_05, borderBottomWidth: StyleSheet.hairlineWidth}} />
         {this._content()}
         {this.props.tabBarOnBottom && tabBarButtons}
       </Box>

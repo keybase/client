@@ -24,7 +24,7 @@ class QR extends Component<void, Props, State> {
 
   async requestCameraPermission () {
     try {
-      const granted = await PermissionsAndroid.requestPermission(
+      const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.CAMERA, {
           'title': 'Keybase Camera Permission',
           'message': 'Keybase needs access to your camera so we can scan your codes',
@@ -52,7 +52,11 @@ class QR extends Component<void, Props, State> {
         )
       } else {
         if (this.state.permissionGranted === false) {
-          return <Text type='Body'>Couldn't get camera permissions</Text>
+          return (
+            <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center'}}>
+              <Text type='BodyError' style={{textAlign: 'center'}}>Couldn't get camera permissions.</Text>
+            </Box>
+          )
         } else {
           return <Text type='Body'>Waiting for permissions</Text>
         }

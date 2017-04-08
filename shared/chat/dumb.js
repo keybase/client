@@ -247,7 +247,7 @@ const listParentProps = {
   style: {
     ...globalStyles.flexBoxColumn,
     minWidth: 300,
-    height: isMobile ? undefined : 500,
+    ...(isMobile ? {flex: 1} : {height: 500})
   },
 }
 
