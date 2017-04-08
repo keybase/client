@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
 		251C385767D44A56B4C5FF05 /* libRNFS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ABD163941ED341428B028E6D /* libRNFS.a */; };
-		274AFB731E972F5300615A64 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
+		2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
 		7608E936D0B84B4FB1849590 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D4D90F8FFC2D4682850A6803 /* libRCTCamera.a */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */; };
@@ -330,7 +330,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				274AFB731E972F5300615A64 /* libresolv.tbd in Frameworks */,
+				2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */,
 				DB6D0B961E5B9ED200410F3C /* libRCTAnimation.a in Frameworks */,
 				DB2BD1E51DE7D9A600BB7989 /* libRCTActionSheet.a in Frameworks */,
 				DB2BD1E61DE7D9A600BB7989 /* libRCTGeolocation.a in Frameworks */,

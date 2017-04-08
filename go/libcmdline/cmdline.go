@@ -294,10 +294,6 @@ func (p CommandLine) GetMountDir() string {
 	return p.GetGString("mountdir")
 }
 
-func (p CommandLine) GetDNSServer() string {
-	return ""
-}
-
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	var v bool
 	if glbl {

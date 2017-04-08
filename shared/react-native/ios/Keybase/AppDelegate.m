@@ -13,10 +13,6 @@
 #import "KeyListener.h"
 #import "Engine.h"
 #import "LogSend.h"
-#include <resolv.h>
-#include <dns.h>
-#include <arpa/inet.h>
-#include <ifaddrs.h>
 
 @interface AppDelegate ()
 @end
@@ -53,7 +49,7 @@ const BOOL isDebug = NO;
 #endif
 
   BOOL securityAccessGroupOverride = isSimulator;
-  BOOL skipLogFile = true;
+  BOOL skipLogFile = false;
 
   NSString * home = NSHomeDirectory();
 
