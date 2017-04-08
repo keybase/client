@@ -10,6 +10,8 @@ import (
 	"net"
 	"sync"
 
+	"strings"
+
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -42,7 +44,7 @@ func newDNSNSFetcher(d ExternalDNSNSFetcher) dnsNSFetcher {
 }
 
 func (d dnsNSFetcher) processExternalResult(raw []byte) []string {
-	return nil
+	return strings.Split(string(raw), ",")
 }
 
 func (d dnsNSFetcher) GetServers() []string {

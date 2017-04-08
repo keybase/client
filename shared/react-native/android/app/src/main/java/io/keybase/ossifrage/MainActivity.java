@@ -44,8 +44,7 @@ public class MainActivity extends ReactActivity {
             e.printStackTrace();
         }
 
-        String dnsServer = DNSNSFetcher.getDNSServer();
-        initOnce(this.getFilesDir().getPath(), null, "prod", false, dnsServer);
+        initOnce(this.getFilesDir().getPath(), null, "prod", false, new DNSNSFetcher());
 
         super.onCreate(savedInstanceState);
 
