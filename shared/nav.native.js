@@ -4,7 +4,7 @@ import Offline from './offline'
 import React, {Component} from 'react'
 import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
 import {Box, NativeKeyboardAvoidingView} from './common-adapters/index.native'
-import {Dimensions, StatusBar} from 'react-native'
+import {StatusBar} from 'react-native'
 import {CardStack, NavigationActions} from 'react-navigation'
 import {chatTab, loginTab, folderTab} from './constants/tabs'
 import {connect} from 'react-redux'
@@ -87,9 +87,9 @@ function MainNavStack (props: Props) {
 
   return (
     <StackWrapper>
-      <Box style={!props.hideNav ? styleScreenSpace : flexOne}>
+      <Box style={flexOne}>
         <CardStackShim
-          key={props.routeSelected}  // don't transition when switching tabs
+          key={props.routeSelected}
           stack={screens}
           renderRoute={renderMainStackRoute}
           onNavigateBack={props.navigateUp}
@@ -161,11 +161,6 @@ const sceneWrapStyleOver = {
   backgroundColor: globalColors.white,
   flex: 1,
   paddingTop: statusBarHeight,
-}
-
-const styleScreenSpace = {
-  flex: -1,
-  height: Dimensions.get('window').height - tabBarHeight,
 }
 
 const styleCollapsibleNav = {
