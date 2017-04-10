@@ -20,7 +20,6 @@ typedef struct _dnsRes {
 } dnsRes;
 
 dnsRes ios_getDNSServers() {
-  // free()'d in Go below
   res_state res = malloc(sizeof(struct __res_state));
   int result = res_ninit(res);
   dnsRes dnsSrvs;
