@@ -309,7 +309,7 @@ func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *
 	// connection. If that is the case, let's make these timeouts very aggressive, so we don't
 	// block up everything trying to succeed when we probably will not.
 	if !g.G().Syncer.IsConnected(ctx) {
-		arg.InitialTimeout = 2 * time.Second
+		arg.InitialTimeout = HTTPFastTimeout
 		arg.RetryCount = 0
 	}
 
