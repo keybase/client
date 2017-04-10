@@ -13,7 +13,7 @@ dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
 client_dir="$dir/../.."
-fuse_dir="$client_dir/osx/Fuse"
+fuse_dir="$client_dir/macos/Fuse"
 tmp_dir="/tmp/desktop-kbfuse"
 installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.52-darwin.tgz"
 

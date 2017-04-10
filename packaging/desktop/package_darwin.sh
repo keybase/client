@@ -201,7 +201,7 @@ package_app() {(
   echo "Copying icons"
   cp -R "$client_dir/media/icons/KeybaseFolder.icns" "$resources_dir/KeybaseFolder.icns"
   echo "Copying other resources"
-  cp -R "$client_dir/osx/Resources/ExtendedAttributeFinderInfo.bin" "$resources_dir/ExtendedAttributeFinderInfo.bin"
+  cp -R "$client_dir/macos/Resources/ExtendedAttributeFinderInfo.bin" "$resources_dir/ExtendedAttributeFinderInfo.bin"
   echo "Copying installer"
   cp -R "$installer_app" "$resources_dir/KeybaseInstaller.app"
   echo "Copying updater (app)"
@@ -239,9 +239,9 @@ package_dmg() {(
   cd "$out_dir"
   appdmg="appdmg.json"
 
-  osx_scripts="$client_dir/osx/Scripts"
-  cp "$osx_scripts/appdmg/$appdmg" .
-  cp "$osx_scripts/appdmg/Background.png" .
+  macos_scripts="$client_dir/macos/Scripts"
+  cp "$macos_scripts/appdmg/$appdmg" .
+  cp "$macos_scripts/appdmg/Background.png" .
   cp "$icon_path" .
 
   rm -rf "$dmg_name"
