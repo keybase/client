@@ -2551,7 +2551,9 @@ func (fbo *folderBranchOps) createEntryLocked(
 		// If an exclusive write hits a conflict, it will try to
 		// update, but won't be able to because of the dirty directory
 		// entries.  We need to clean up the dirty entries here first
-		// before trying to apply the updates again.
+		// before trying to apply the updates again.  By returning
+		// `ExclOnUnmergedError` below, we force the caller to retry
+		// the whole operation again.
 		fbo.log.CDebugf(ctx, "Clearing dirty entries before applying new "+
 			"updates for exclusive write")
 		cleanupFn()

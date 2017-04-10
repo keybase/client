@@ -862,7 +862,7 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(lState *lockState,
 	fbo.deCache[dir.tailPointer().Ref()] = cacheEntry
 }
 
-// RemoveDirEntryInCache removes an entry fron the given directory in
+// RemoveDirEntryInCache removes an entry from the given directory in
 // the cache, which will get applied to the dirty block on subsequent
 // fetches for the directory.
 func (fbo *folderBlockOps) RemoveDirEntryInCache(lState *lockState, dir path,
@@ -924,7 +924,7 @@ func (fbo *folderBlockOps) setCachedAttrLocked(
 	fbo.deCache[ref] = fileEntry
 }
 
-// SetAttrInDirEntryInCache removes an entry fron the given directory
+// SetAttrInDirEntryInCache removes an entry from the given directory
 // in the cache, which will get applied to the dirty block on
 // subsequent fetches for the directory.
 //
@@ -990,7 +990,7 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 	var dblockCopy *DirBlock
 	dirCacheEntry := fbo.deCache[dir.tailPointer().Ref()]
 
-	// TODO: We should get of deCache completely and use only
+	// TODO: We should get rid of deCache completely and use only
 	// DirtyBlockCache to store the dirtied version of the DirBlock.
 	// We can't do that yet, because there might be multiple
 	// outstanding dirty files in one directory, and the KBFSOps API
@@ -2233,7 +2233,7 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 	// Capture the current de before we release the block lock, so
 	// other deferred writes don't slip in.
 	if de, ok := fbo.deCache[fileRef]; ok {
-		dirtyDe = &(de.dirEntry)
+		dirtyDe = &de.dirEntry
 	}
 
 	// Leave a copy of the syncOp in `unrefCache`, since it may be
