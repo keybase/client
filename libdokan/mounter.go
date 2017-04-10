@@ -64,9 +64,13 @@ func (m *DefaultMounter) Mount(cfg *dokan.Config, log logger.Logger) error {
 	}
 
 	if err != nil {
-		return err
+		if m.force {
+			return err
+		}
+		log.Info("continuing after filesystem mount failure %+v", err)
+	} else {
+		log.Info("Mounting the filesystem was a success!")
 	}
-	log.Info("Mounting the filesystem was a success!")
 	return h.BlockTillDone()
 }
 
