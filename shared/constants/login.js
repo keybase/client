@@ -89,6 +89,7 @@ export const countDownTime = 5 * 60
 // actions
 export const login = 'login:login'
 export const logout = 'login:logout'
+export type Logout = NoErrorTypedAction<'login:logout', null>
 export const logoutDone = 'login:logoutDone'
 export const setMyDeviceCodeState = 'login:setMyDeviceCodeState'
 export const cameraBrokenMode = 'login:cameraBrokenMode'

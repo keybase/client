@@ -15,7 +15,7 @@ function startLogin (): Constants.StartLogin {
   return {type: Constants.startLogin, payload: null}
 }
 
-function logout (): Constants.StartLogin {
+function logout (): Constants.Logout {
   return {type: Constants.logout, payload: null}
 }
 
