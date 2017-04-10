@@ -308,7 +308,7 @@ func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *
 	// connected to Gregor, then it is likely the case we are totally offline, or on a very bad
 	// connection. If that is the case, let's make these timeouts very aggressive, so we don't
 	// block up everything trying to succeed when we probably will not.
-	if g.G().Syncer != nil && !g.G().Syncer.IsConnected(ctx) {
+	if !g.G().Syncer.IsConnected(ctx) {
 		arg.InitialTimeout = HTTPFastTimeout
 		arg.RetryCount = 0
 	}
@@ -346,7 +346,7 @@ func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *
 		timeout = time.Duration(float64(timeout) * multiplier)
 
 		// If chat goes offline during this retry loop, then let's bail out early
-		if g.G().Syncer != nil && !g.G().Syncer.IsConnected(ctx) {
+		if !g.G().Syncer.IsConnected(ctx) {
 			g.G().Log.CDebugf(ctx, "retry loop aborting since chat went offline")
 			break
 		}
