@@ -25,9 +25,9 @@ class Push extends Component<void, Props, void> {
   }
 
   render () {
-    // if (!this.props.prompt) {
-    //   return null
-    // }
+    if (!this.props.prompt) {
+      return null
+    }
     return (
       <Box style={{...globalStyles.flexBoxColumn, ...modal, flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: globalColors.white}}>
         <Box style={{margin: globalMargins.small}}>
