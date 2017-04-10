@@ -33,6 +33,7 @@ declare function factory (
   messageKey: Constants.MessageKey,
   prevMessageKey: ?Constants.MessageKey,
   onAction: (message: Constants.ServerMessage, event: any) => void,
-  isSelectd: boolean
+  isSelectd: boolean,
+  measure: () => void
 ): React$Element<*>
 export default factory

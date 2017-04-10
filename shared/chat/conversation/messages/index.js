@@ -14,10 +14,12 @@ import {Box, Text} from '../../../common-adapters'
 // import {globalStyles} from '../../../styles'
 // import {isMobile} from '../../../constants/platform'
 
-const factory = (messageKey: Constants.MessageKey,
+const factory = (
+  messageKey: Constants.MessageKey,
   prevMessageKey: ?Constants.MessageKey,
   onAction: (message: Constants.ServerMessage, event: any) => void,
-  isSelected: boolean
+  isSelected: boolean,
+  measure: () => void
 ) => {
   const kind = Constants.messageKeyKind(messageKey)
   switch (kind) {
@@ -36,10 +38,11 @@ const factory = (messageKey: Constants.MessageKey,
     case 'messageIDText': {
       return (
         <Wrapper
+          innerClass={TextMessage}
+          measure={measure}
           messageKey={messageKey}
-          prevMessageKey={prevMessageKey}
           onAction={onAction}
-          innerClass={TextMessage} />
+          prevMessageKey={prevMessageKey} />
       )
     }
     // case 'outboxID': {

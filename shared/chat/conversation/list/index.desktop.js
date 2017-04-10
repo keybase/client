@@ -214,7 +214,6 @@ class BaseList extends Component<void, Props, State> {
     const messageKey = this.props.messageKeys.get(index)
     const prevMessageKey = this.props.messageKeys.get(index - 1)
     const isSelected = messageKey === this.state.selectedMessageKey
-    const message = messageFactory(messageKey, prevMessageKey, this._onAction, isSelected)
     return (
       <Virtualized.CellMeasurer
         cache={this._cellCache}
@@ -222,9 +221,14 @@ class BaseList extends Component<void, Props, State> {
         key={key}
         parent={parent}
         rowIndex={index}>
-        <div style={style}>
-          {message}
-        </div>
+        {({measure}) => {
+          const message = messageFactory(messageKey, prevMessageKey, this._onAction, isSelected, measure)
+          return (
+            <div style={style}>
+              {message}
+            </div>
+          )
+        }}
       </Virtualized.CellMeasurer>
     )
 
