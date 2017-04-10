@@ -46,7 +46,7 @@ import type {Props} from '.'
 // }
 
 type State = {
-  isLockedToBottom: boolean,
+  // isLockedToBottom: boolean,
   // isScrolling: boolean,
   // scrollTop: number,
   selectedMessageKey: ?Constants.MessageKey,
@@ -62,8 +62,11 @@ class BaseList extends Component<void, Props, State> {
     keyMapper: (rowIndex: number) => this.props.messageKeys.get(rowIndex),
   })
 
+  // This is similar to a state but it changing value doesn't actually need to cause us to re-render.
+  // We're either locked at the bottom or not and it only affects when we get new messages which'll cause a render anyways
+  _isLockedToBottom = true
+
   state = {
-    isLockedToBottom: true,
     selectedMessageKey: null,
     // isScrolling: false,
     // scrollTop: 0,
@@ -133,7 +136,7 @@ class BaseList extends Component<void, Props, State> {
 
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.selectedConversation !== nextProps.selectedConversation) {
-      this.setState({isLockedToBottom: true})
+      this._isLockedToBottom = true
       // this._recomputeList()
     }
 
@@ -154,14 +157,16 @@ class BaseList extends Component<void, Props, State> {
     // })
   // }, 1000)
 
-  _updateBottomLock = _.debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
-    const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
-    this.setState({
-      isLockedToBottom,
+  _updateBottomLock = (clientHeight: number, scrollHeight: number, scrollTop: number) => {
+    // meaningless otherwise
+    if (clientHeight) {
+      this._isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
+    }
+    // this.setState({
       // isScrolling: true,
       // scrollTop,
-    })
-  }, 500)
+    // })
+  }
 
   // _onScroll = _.throttle(({clientHeight, scrollHeight, scrollTop}) => {
   _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
@@ -341,7 +346,7 @@ class BaseList extends Component<void, Props, State> {
               rowCount={rowCount}
               rowHeight={this._cellCache.rowHeight}
               rowRenderer={this._rowRenderer}
-              scrollToIndex={this.state.isLockedToBottom ? rowCount - 1 : undefined}
+              scrollToIndex={this._isLockedToBottom ? rowCount - 1 : undefined}
               style={listStyle}
               width={width}
             />
