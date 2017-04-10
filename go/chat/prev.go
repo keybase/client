@@ -35,13 +35,7 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessageP
 			// Check that each prev pointer (if any) is a lower ID than the
 			// message itself.
 			for _, prev := range msg.ClientHeader.Prev {
-				if prev.Id == id {
-					return nil, NewChatThreadConsistencyError(
-						OutOfOrderID,
-						"MessageID %d thinks its own id is previous.",
-						id)
-				}
-				if prev.Id > id {
+				if prev.Id >= id {
 					return nil, NewChatThreadConsistencyError(
 						OutOfOrderID,
 						"MessageID %d thinks that message %d is previous.",

@@ -116,6 +116,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 			if err != nil {
 				return chat1.MessagePlaintext{}, err
 			}
+			break
 		}
 	}
 
@@ -130,8 +131,13 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 	return updated, nil
 }
 
-// Check that the {ConvID,ConvTriple,TlfName} of msgToSend matches both the ConvID and a an existing message from the questionable ConvID.
-// This check is necessary because msgToSend may have been constructed with an untrusted Conv{ID,Triple}.
+// Check that the {ConvID,ConvTriple,TlfName} of msgToSend matches both the ConvID and an existing message from the questionable ConvID.
+// `convID` is the convID that `msgToSend` will be posted to.
+// `msgReference` is a validated message from `convID`.
+// The misstep that this method checks for is thus: The frontend may post a message while viewing an "untrusted inbox view".
+// That message (msgToSend) will have the header.{TlfName,TlfPublic} set to the user's intention.
+// But the header.Conv.{Tlfid,TopicType,TopicID} and the convID to post to may be erroneously set to a different conversation's values.
+// This method checks that all of those fields match. Using `msgReference` as the validated link from {TlfName,TlfPublic} <-> ConvTriple.
 func (s *BlockingSender) checkConvID(ctx context.Context, convID chat1.ConversationID,
 	msgToSend chat1.MessagePlaintext, msgReference chat1.MessageUnboxed) error {
 
