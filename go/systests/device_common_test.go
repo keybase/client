@@ -4,6 +4,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
+	"testing"
+	"time"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -12,9 +16,6 @@ import (
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"io"
-	"testing"
-	"time"
 )
 
 //
@@ -518,7 +519,7 @@ func (d *testDevice) keyTLF(tlf *fakeTLF, uid keybase1.UID, writers []tlfUser, r
 		Args: libkb.HTTPArgs{
 			"tlf_info": libkb.S{Val: string(b)},
 		},
-		SessionType: APISessionTypeREQUIRED,
+		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 	_, err = g.API.Post(apiArg)
 	if err != nil {
