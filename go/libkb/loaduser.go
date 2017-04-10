@@ -381,7 +381,7 @@ func LoadUserEmails(g *GlobalContext) (emails []keybase1.Email, err error) {
 	uid := g.GetMyUID()
 	res, err := g.API.Get(APIArg{
 		Endpoint:    "user/lookup",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"uid": UIDArg(uid),
 		},
@@ -411,7 +411,7 @@ func LoadUserFromServer(ctx context.Context, g *GlobalContext, uid keybase1.UID,
 	if body == nil {
 		res, err := g.API.Get(APIArg{
 			Endpoint:    "user/lookup",
-			NeedSession: false,
+			SessionType: APISessionTypeNONE,
 			Args: HTTPArgs{
 				"uid": UIDArg(uid),
 			},

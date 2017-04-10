@@ -24,7 +24,7 @@ func (e *ProfileEdit) Run(ctx *Context) (err error) {
 	defer e.G().CTrace(ctx.NetContext, "ProfileEdit#Run", func() error { return err })()
 	_, err = e.G().API.Post(libkb.APIArg{
 		Endpoint:    "profile-edit",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"bio":       libkb.S{Val: e.arg.Bio},
 			"full_name": libkb.S{Val: e.arg.FullName},

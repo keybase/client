@@ -96,7 +96,7 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 	kid := sigKey.GetKID()
 	_, err = e.G().API.Post(libkb.APIArg{
 		Endpoint:    "sig/post",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"sig":             libkb.S{Val: sig},
 			"signing_kid":     libkb.S{Val: kid.String()},

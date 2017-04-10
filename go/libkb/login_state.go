@@ -411,7 +411,7 @@ func (s *LoginState) ResetAccount(un string) (err error) {
 		}
 		arg := APIArg{
 			Endpoint:    "nuke",
-			NeedSession: true,
+			SessionType: APISessionTypeREQUIRED,
 			Args:        NewHTTPArgs(),
 			SessionR:    lctx.LocalSession(),
 		}
@@ -432,7 +432,7 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lp PDPKALo
 
 	arg := APIArg{
 		Endpoint:    "login",
-		NeedSession: false,
+		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"email_or_username": S{eOu},
 		},

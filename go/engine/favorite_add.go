@@ -66,7 +66,7 @@ func (e *FavoriteAdd) Run(ctx *Context) error {
 	}
 	_, err := e.G().API.Post(libkb.APIArg{
 		Endpoint:    "kbfs/favorite/add",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"tlf_name": libkb.S{Val: e.arg.Folder.Name},
 			"private":  libkb.B{Val: e.arg.Folder.Private},

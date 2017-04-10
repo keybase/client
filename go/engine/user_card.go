@@ -42,9 +42,13 @@ func getUserCard(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, 
 	}
 	g.Log.CDebugf(ctx, "CardCache.Get miss for %s", uid)
 
+	sessionType := libkb.APISessionTypeNONE
+	if useSession {
+		sessionType = libkb.APISessionTypeREQUIRED
+	}
 	arg := libkb.APIArg{
 		Endpoint:    "user/card",
-		NeedSession: useSession,
+		SessionType: sessionType,
 		Args:        libkb.HTTPArgs{"uid": libkb.S{Val: uid.String()}},
 		NetContext:  ctx,
 	}

@@ -77,7 +77,7 @@ func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libk
 		}
 		apiArg := libkb.APIArg{
 			Endpoint:    "rooter",
-			NeedSession: true,
+			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
 				"post": libkb.S{Val: sigID.ToMediumID()},
 			},
@@ -119,7 +119,7 @@ func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, error)
 	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
 		apiArg := libkb.APIArg{
 			Endpoint:    "rooter",
-			NeedSession: true,
+			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
 				"post": libkb.S{Val: "XXXXXXX"},
 			},
@@ -151,7 +151,7 @@ func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, error)
 func proveRooterRemove(g *libkb.GlobalContext, postID string) error {
 	apiArg := libkb.APIArg{
 		Endpoint:    "rooter/delete",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"post_id": libkb.S{Val: postID},
 		},
@@ -177,7 +177,7 @@ func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername strin
 		}
 		apiArg := libkb.APIArg{
 			Endpoint:    "rooter",
-			NeedSession: true,
+			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
 				"post":     libkb.S{Val: sigID.ToMediumID()},
 				"username": libkb.S{Val: rooterUsername},

@@ -257,7 +257,7 @@ func (s *Session) check() error {
 
 	arg := NewRetryAPIArg("sesscheck")
 	arg.SessionR = s
-	arg.NeedSession = true
+	arg.SessionType = APISessionTypeREQUIRED
 	arg.AppStatusCodes = []int{SCOk, SCBadSession}
 
 	res, err := s.G().API.Get(arg)
@@ -323,7 +323,7 @@ func (s *Session) postLogout() error {
 	_, err := s.G().API.Post(APIArg{
 		SessionR:    s,
 		Endpoint:    "logout",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 	})
 
 	// Invalidate even if we hit an error.

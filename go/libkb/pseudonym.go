@@ -137,7 +137,7 @@ func PostTlfPseudonyms(ctx context.Context, g *GlobalContext, pnymInfos []TlfPse
 	_, err := G.API.PostJSON(APIArg{
 		Endpoint:    "kbfs/pseudonym/put",
 		JSONPayload: payload,
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 	})
 	if err != nil {
 		return nil, err
@@ -162,7 +162,7 @@ func GetTlfPseudonyms(ctx context.Context, g *GlobalContext, pnyms []TlfPseudony
 	err := g.API.PostDecode(
 		APIArg{
 			Endpoint:    "kbfs/pseudonym/get",
-			NeedSession: true,
+			SessionType: APISessionTypeREQUIRED,
 			JSONPayload: payload,
 			NetContext:  ctx,
 		},

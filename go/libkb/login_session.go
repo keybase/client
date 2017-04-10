@@ -153,7 +153,7 @@ func (s *LoginSession) Load() error {
 
 	res, err := s.G().API.Get(APIArg{
 		Endpoint:    "getsalt",
-		NeedSession: false,
+		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"email_or_username": S{Val: s.sessionFor},
 			"pdpka_login":       B{Val: true},

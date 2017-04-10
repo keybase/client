@@ -32,7 +32,7 @@ func TestProveCheck(t *testing.T) {
 		}
 		apiArg := libkb.APIArg{
 			Endpoint:    "rooter",
-			NeedSession: true,
+			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
 				"post": libkb.S{Val: sigID.ToMediumID()},
 			},

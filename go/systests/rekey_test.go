@@ -2,6 +2,10 @@ package systests
 
 import (
 	"fmt"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -10,9 +14,6 @@ import (
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"strings"
-	"testing"
-	"time"
 )
 
 // deviceWrapper wraps a mock "device", meaning an independent running service and
@@ -295,7 +296,7 @@ func (rkt *rekeyTester) changeKeysOnHomeTLF(kids []keybase1.KID) {
 			"folderRevision": libkb.I{Val: fakeTLF.nextRevision()},
 		},
 		Endpoint:    "test/fake_home_tlf",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 	_, err := g.API.Post(apiArg)
 	if err != nil {
@@ -317,7 +318,7 @@ func (rkt *rekeyTester) bumpTLF(kid keybase1.KID) {
 			"kid": libkb.S{Val: string(kid)},
 		},
 		Endpoint:    "kbfs/bump_rekey",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
 	_, err := g.API.Post(apiArg)
@@ -337,7 +338,7 @@ func (rkt *rekeyTester) kickRekeyd() {
 		Args: libkb.HTTPArgs{
 			"timeout": libkb.I{Val: 2000},
 		},
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
 	_, err := g.API.Post(apiArg)
