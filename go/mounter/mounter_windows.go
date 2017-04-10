@@ -7,6 +7,11 @@ package mounter
 
 import "fmt"
 
+// IsMounted returns true if directory is mounted (by kbfuse)
+func IsMounted(dir string, log Log) (bool, error) {
+	return false, fmt.Errorf("IsMounted unsupported on this platform")
+}
+
 // Unmount tries to unmount normally and then if force if unsuccessful.
 func Unmount(dir string, force bool, log Log) error {
 	return fmt.Errorf("Unmount unsupported on this platform")
