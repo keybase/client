@@ -175,6 +175,7 @@ const Unfollow = {
 }
 const UnfollowLabel = {
   ...commonLabel,
+  color: globalColors.black_75,
 }
 
 const Custom = {}
