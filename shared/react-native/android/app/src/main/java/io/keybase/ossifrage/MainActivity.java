@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.lang.reflect.Method;
 
 import go.keybase.Keybase;
 
@@ -44,7 +43,7 @@ public class MainActivity extends ReactActivity {
             e.printStackTrace();
         }
 
-        initOnce(this.getFilesDir().getPath(), null, "prod", false, new DNSNSFetcher());
+        initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false, new DNSNSFetcher());
 
         super.onCreate(savedInstanceState);
 
