@@ -29,6 +29,7 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onOpenInPopup: (message: Constants.AttachmentMessage, routePath: List<string>) => dispatch(Creators.openAttachmentPopup(message, routePath)),
+  onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
 })
 
 const mergeProps = (stateProps, dispatchProps, {measure}, OwnProps) => ({
@@ -36,6 +37,7 @@ const mergeProps = (stateProps, dispatchProps, {measure}, OwnProps) => ({
   ...dispatchProps,
   measure,
   onOpenInPopup: () => { dispatchProps._onOpenInPopup(stateProps.message, stateProps.routePath) },
+  onOpenInFileUI: () => dispatch(({payload: {path: stateProps.message.downloadedPath}, type: 'fs:openInFileUI'}: OpenInFileUI)),
 })
 
 export default compose(

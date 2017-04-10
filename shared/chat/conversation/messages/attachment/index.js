@@ -216,11 +216,6 @@ function AttachmentMessagePreviewImage ({message, onMessageAction, onOpenInFileU
 }
 
 class AttachmentMessage extends PureComponent<void, Props, void> {
-  _onOpenInFileUI = () => {
-    const {downloadedPath} = this.props.message
-    downloadedPath && this.props.onOpenInFileUI(downloadedPath)
-  }
-
   _onLoadAttachment = () => {
     const {messageID, filename} = this.props.message
     messageID && filename && this.props.onLoadAttachment(messageID, filename)
@@ -234,9 +229,9 @@ class AttachmentMessage extends PureComponent<void, Props, void> {
     switch (this.props.message.previewType) {
       case 'Image':
       case 'Video':
-        return <AttachmentMessagePreviewImage message={this.props.message} onMessageAction={this._onMessageAction} onOpenInPopup={this.props.onOpenInPopup} onOpenInFileUI={this._onOpenInFileUI} />
+        return <AttachmentMessagePreviewImage message={this.props.message} onMessageAction={this._onMessageAction} onOpenInPopup={this.props.onOpenInPopup} onOpenInFileUI={this.props.onOpenInFileUI} />
       default:
-        return <AttachmentMessageGeneric message={this.props.message} onMessageAction={this._onMessageAction} onOpenInFileUI={this._onOpenInFileUI} onLoadAttachment={this._onLoadAttachment} onOpenInPopup={isMobile ? this.props.onOpenInPopup : null} />
+        return <AttachmentMessageGeneric message={this.props.message} onMessageAction={this._onMessageAction} onOpenInFileUI={this.props.onOpenInFileUI} onLoadAttachment={this._onLoadAttachment} onOpenInPopup={isMobile ? this.props.onOpenInPopup : null} />
     }
   }
 }
