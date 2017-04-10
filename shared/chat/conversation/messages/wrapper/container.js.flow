@@ -9,7 +9,7 @@ export type OwnProps = {
   onAction: (message: Constants.ServerMessage, event: any) => void,
   isSelected: boolean,
   innerClass: ReactClass<*>,
-  measure: () => void,
+  measure: ?() => void,
 }
 
 export default class Wrapper extends Component<void, OwnProps, void> {}

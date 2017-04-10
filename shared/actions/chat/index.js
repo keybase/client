@@ -444,7 +444,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
       deviceType: isMobile ? 'mobile' : 'desktop',
       editedCount: 0,
       failureDescription,
-      key: Constants.messageKey(conversationIDKey, 'outboxID', payload.outboxID),
+      key: Constants.messageKey(conversationIDKey, 'outboxIDText', payload.outboxID),
       message: new HiddenString(messageText && messageText.body || ''),
       messageState,
       outboxID: Constants.outboxIDToKey(payload.outboxID),

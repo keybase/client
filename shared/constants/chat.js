@@ -27,7 +27,7 @@ type MessageKeyKind = 'chatSecured'
 | 'messageIDError'
 | 'messageIDText'
 | 'messageIDUnhandled'
-| 'outboxID'
+| 'outboxIDText'
 | 'tempAttachment'
 | 'timestamp'
 
@@ -693,7 +693,7 @@ function messageKeyKind (key: MessageKey): MessageKeyKind {
     case 'messageIDError': return 'messageIDError'
     case 'messageIDText': return 'messageIDText'
     case 'messageIDUnhandled': return 'messageIDUnhandled'
-    case 'outboxID': return 'outboxID'
+    case 'outboxIDText': return 'outboxIDText'
     case 'tempAttachment': return 'tempAttachment'
     case 'timestamp': return 'timestamp'
   }

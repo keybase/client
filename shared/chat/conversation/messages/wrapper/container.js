@@ -21,6 +21,9 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey, childre
   const conversationState = Constants.getSelectedConversationStates(state)
 
   const message = getMessage(state, messageKey)
+  if (!message) {
+    throw new Error(`Can't find message for wrapper ${messageKey}`)
+  }
   const author = message.author
   const _editedCount = message.editedCount
   const isEdited = message.type === 'Text' && _editedCount > 0
@@ -72,7 +75,7 @@ export default compose(
   }),
   lifecycle({
     componentDidUpdate: function (prevProps: Props & {_editedCount: number}) {
-      if (this.props._editedCount !== prevProps._editedCount) {
+      if (this.props.measure && this.props._editedCount !== prevProps._editedCount) {
         this.props.measure()
       }
     },

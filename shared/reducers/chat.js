@@ -106,13 +106,14 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       return new Constants.StateRecord()
     case 'chat:removeOutboxMessage': {
       const {conversationIDKey, outboxID} = action.payload
+      const messageKey = Constants.messageKey(conversationIDKey, 'outboxIDText', outboxID)
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversation(
         conversationStates,
         conversationIDKey,
         // $FlowIssue
         conversation => conversation.update('messages', messages => messages.filter(m => m.outboxID !== outboxID)
-      )))
+      ))).set('messageMap', state.get('messageMap').filter((v, k) => k !== messageKey))
     }
     case 'chat:clearMessages': {
       const {conversationIDKey} = action.payload
@@ -202,6 +203,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       if (action.error) {
         console.warn('Error in updateTempMessage')
         const {conversationIDKey, outboxID} = action.payload
+
         // $FlowIssue
         return state.update('conversationStates', conversationStates => updateConversationMessage(
           conversationStates,
@@ -214,6 +216,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
         ))
       } else {
         const {outboxID, message, conversationIDKey} = action.payload
+
         // $FlowIssue
         return state.update('conversationStates', conversationStates => updateConversationMessage(
           conversationStates,
@@ -232,7 +235,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
           }
           return i
         })
-        )
+        ).set('messageMap', state.get('messageMap').set(message.key, message))
       }
     }
     case 'chat:updateMessage': {

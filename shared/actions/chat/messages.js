@@ -113,7 +113,7 @@ function * postMessage (action: Constants.PostMessage): SagaGenerator<any, any> 
       deviceType: isMobile ? 'mobile' : 'desktop',
       editedCount: 0,
       failureDescription: hasPendingFailure,
-      key: Constants.messageKey(action.payload.conversationIDKey, 'outboxID', outboxID),
+      key: Constants.messageKey(action.payload.conversationIDKey, 'outboxIDText', outboxID),
       message: new HiddenString(action.payload.text.stringValue()),
       messageState: hasPendingFailure ? 'failed' : 'pending',
       outboxID,

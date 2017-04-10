@@ -23,8 +23,6 @@ const factory = (
 ) => {
   const kind = Constants.messageKeyKind(messageKey)
   switch (kind) {
-    // case 'invisibleError': {
-    // }
     case 'header': {
       return <Header messageKey={messageKey} />
     }
@@ -35,6 +33,7 @@ const factory = (
     case 'messageIDError': {
       return <ErrorMessage messageKey={messageKey} />
     }
+    case 'outboxIDText': // fallthrough
     case 'messageIDText': {
       return (
         <Wrapper
@@ -45,10 +44,6 @@ const factory = (
           prevMessageKey={prevMessageKey} />
       )
     }
-    // case 'outboxID': {
-    // }
-    // case 'tempAttachment': {
-    // }
     case 'timestamp': {
       return <Timestamp messageKey={messageKey} />
     }
@@ -80,22 +75,6 @@ const TEMP = {
   // }
 
   // switch (message.type) {
-    // case 'Text':
-      // return <MessageText
-        // key={key}
-        // you={you}
-        // metaDataMap={metaDataMap}
-        // followingMap={followingMap}
-        // style={style}
-        // message={message}
-        // onRetry={onRetry}
-        // onShowEditor={onShowEditor}
-        // includeHeader={includeHeader}
-        // isFirstNewMessage={isFirstNewMessage}
-        // isSelected={isSelected}
-        // isEditing={isEditing}
-        // onAction={onAction}
-        // />
     // case 'Supersedes':
       // return <ProfileResetNotice
         // onOpenOlderConversation={() => onOpenConversation(message.supersedes)}
