@@ -15,7 +15,7 @@ mkdir -p $build_dest
 # Flirting with custom configuration but xcodebuild archive will only do Release
 # configuration.
 xcode_configuration="Release"
-code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
+code_sign_identity="98767D13871765E702355A74358822D31C0EF51A" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
 
 echo "Plist: $plist"
 app_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $plist`"
@@ -37,7 +37,7 @@ app_path="$build_dest/$app_name.app"
 rm -rf $archive_path
 
 echo "Archiving..."
-set -o pipefail && xcodebuild archive -scheme $scheme -workspace $dir/../Keybase.xcworkspace -configuration $xcode_configuration -archivePath $archive_path | xcpretty -c
+set -o pipefail && xcodebuild archive -scheme "$scheme" -workspace "$dir/../Keybase.xcworkspace" -configuration "$xcode_configuration" -archivePath "$archive_path" | xcpretty -c
 
 # echo "Copying to archive"
 # archive_hold_path="/Users/gabe/Library/Developer/Xcode/Archives/$archive_dir_day/$app_name $archive_postfix.xcarchive"
@@ -48,15 +48,16 @@ set -o pipefail && xcodebuild archive -scheme $scheme -workspace $dir/../Keybase
 # Export
 #
 
-rm -rf $app_path
+rm -rf "$app_path"
 
 echo "Exporting..."
-set -o pipefail && xcodebuild -exportArchive -archivePath $archive_path -exportOptionsPlist export.plist -exportPath $app_path | xcpretty -c
+set -o pipefail && xcodebuild -exportArchive -archivePath $archive_path -exportOptionsPlist export.plist -exportPath "$build_dest" | xcpretty -c
+mv "$build_dest/Keybase.app" "$app_path"
 
 echo "Done"
 echo ""
 
-cd $build_dest
+cd "$build_dest"
 
 helper="$app_name.app/Contents/Library/LaunchServices/keybase.Helper"
 
