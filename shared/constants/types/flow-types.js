@@ -4251,6 +4251,7 @@ export type SaltpackEncryptOptions = {
   noSelfEncrypt: boolean,
   binary: boolean,
   hideRecipients: boolean,
+  signcrypt: boolean,
 }
 
 export type SaltpackEncryptedMessageInfo = {
