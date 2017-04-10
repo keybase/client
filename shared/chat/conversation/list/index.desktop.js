@@ -16,7 +16,7 @@ import ReactDOM from 'react-dom'
 import EditPopup from '../edit-popup.desktop'
 import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
 import {findDOMNode} from '../../../util/dom'
-// import _ from 'lodash'
+import _ from 'lodash'
 import messageFactory from '../messages'
 // import shallowEqual from 'shallowequal'
 import {Icon} from '../../../common-adapters'
@@ -46,41 +46,27 @@ import type {Props} from '.'
 // }
 
 type State = {
-  // isLockedToBottom: boolean,
+  isLockedToBottom: boolean,
   // isScrolling: boolean,
   // scrollTop: number,
   selectedMessageKey: ?Constants.MessageKey,
 }
 
-// const lockedToBottomSlop = 20
+const lockedToBottomSlop = 20
 const listBottomMargin = 10
 // const DEBUG_ROW_RENDER = __DEV__ && false
 
 class BaseList extends Component<void, Props, State> {
-  _cellCache: any;
-  // _cellMeasurer: any;
-  _list: any;
-  state: State;
-  // _toRemeasure: Array<number>;
-  // _shouldForceUpdateGrid: boolean;
+  _cellCache = new Virtualized.CellMeasurerCache({
+    fixedWidth: true,
+    keyMapper: (rowIndex: number) => this.props.messageKeys.get(rowIndex),
+  })
 
-  constructor (props: Props) {
-    super(props)
-
-    this.state = {
-      selectedMessageKey: null,
-      // isLockedToBottom: true,
-      // isScrolling: false,
-      // scrollTop: 0,
-    }
-
-    this._cellCache = new Virtualized.CellMeasurerCache({
-      fixedWidth: true,
-      keyMapper: (rowIndex: number) => this.props.messageKeys.get(rowIndex),
-    })
-
-    // this._toRemeasure = []
-    // this._shouldForceUpdateGrid = false
+  state = {
+    isLockedToBottom: true,
+    selectedMessageKey: null,
+    // isScrolling: false,
+    // scrollTop: 0,
   }
 
   // componentWillUnmount () {
@@ -145,11 +131,11 @@ class BaseList extends Component<void, Props, State> {
     // }
   // }
 
-  // componentWillReceiveProps (nextProps: Props) {
-    // if (this.props.selectedConversation !== nextProps.selectedConversation) {
-      // this.setState({isLockedToBottom: true})
+  componentWillReceiveProps (nextProps: Props) {
+    if (this.props.selectedConversation !== nextProps.selectedConversation) {
+      this.setState({isLockedToBottom: true})
       // this._recomputeList()
-    // }
+    }
 
     // const willScrollDown = nextProps.listScrollDownCounter !== this.props.listScrollDownCounter
 
@@ -160,7 +146,7 @@ class BaseList extends Component<void, Props, State> {
     // if (this.props.moreToLoad !== nextProps.moreToLoad) {
       // this._shouldForceUpdateGrid = true
     // }
-  // }
+  }
 
   // _onScrollSettled = _.debounce(() => {
     // this.setState({
@@ -168,7 +154,17 @@ class BaseList extends Component<void, Props, State> {
     // })
   // }, 1000)
 
+  _updateBottomLock = _.debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
+    const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
+    this.setState({
+      isLockedToBottom,
+      // isScrolling: true,
+      // scrollTop,
+    })
+  }, 500)
+
   // _onScroll = _.throttle(({clientHeight, scrollHeight, scrollTop}) => {
+  _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
     // // Do nothing if we haven't really loaded anything
     // if (!clientHeight) {
       // return
@@ -179,17 +175,20 @@ class BaseList extends Component<void, Props, State> {
       // this.props.onLoadMoreMessages()
     // }
 
+    this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
+
     // // Lock to bottom if we are close to the bottom
     // const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
     // this.setState({
       // isLockedToBottom,
-      // isScrolling: true,
-      // scrollTop,
+      // // isScrolling: true,
+      // // scrollTop,
     // })
 
     // // This is debounced so it resets the call
     // this._onScrollSettled()
   // }, 200)
+  }
 
   _onResize = ({width}) => {
     if (this._cellCache.columnWidth({index: 0}) !== width) {
@@ -323,10 +322,12 @@ class BaseList extends Component<void, Props, State> {
       )
     }
 
+    const rowCount = this.props.messageKeys.count()
+
     // let scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
     // let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
-              // scrollToIndex={scrollToIndex}
               // scrollTop={scrollTop}
+              // ref={this._setListRef}
     return (
       <div style={containerStyle} onClick={undefined/*this._handleListClick*/} onCopyCapture={undefined/*this._onCopyCapture*/}>
         <style>{realCSS}</style>
@@ -337,10 +338,10 @@ class BaseList extends Component<void, Props, State> {
               deferredMeasurementCache={this._cellCache}
               height={height}
               onScroll={this._onScroll}
-              ref={this._setListRef}
-              rowCount={this.props.messageKeys.count()}
+              rowCount={rowCount}
               rowHeight={this._cellCache.rowHeight}
               rowRenderer={this._rowRenderer}
+              scrollToIndex={this.state.isLockedToBottom ? rowCount - 1 : undefined}
               style={listStyle}
               width={width}
             />
