@@ -1385,7 +1385,7 @@ func (h *chatLocalHandler) DownloadFileAttachmentLocal(ctx context.Context, arg 
 		Preview:          arg.Preview,
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
-	sink, err := os.Create(arg.Filename)
+	sink, err := os.OpenFile(arg.Filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
