@@ -56,7 +56,7 @@ const MessageWrapper = (props: Props) => (
         <Username includeHeader={props.includeHeader} author={props.author} isYou={props.isYou} isFollowing={props.isFollowing} isBroken={props.isBroken} />
         <div style={_textContainerStyle} className='message' data-message-key={props.messageKey}>
           <div style={_flexOneColumn}>
-            <props.innerClass messageKey={props.messageKey} />
+            <props.innerClass messageKey={props.messageKey} onAction={props.onAction} />
             <EditedMark isEdited={props.isEdited} />
           </div>
           <ActionButton isRevoked={props.isRevoked} onAction={props.onAction} />
