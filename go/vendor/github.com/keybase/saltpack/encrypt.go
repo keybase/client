@@ -53,7 +53,7 @@ func (es *encryptStream) encryptBlock() error {
 	var err error
 	n, err = es.buffer.Read(es.inblock[:])
 	if err != nil {
-		return nil
+		return err
 	}
 	return es.encryptBytes(es.inblock[0:n])
 }
@@ -151,7 +151,7 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey) err
 	eh.SenderSecretbox = secretbox.Seal([]byte{}, sender.GetPublicKey().ToKID(), (*[24]byte)(nonceForSenderKeySecretBox()), (*[32]byte)(&es.payloadKey))
 
 	for _, receiver := range receivers {
-		payloadKeyBox := ephemeralKey.Box(receiver, nonceForPayloadKeyBox(), es.payloadKey[:])
+		payloadKeyBox := ephemeralKey.Box(receiver, nonceForPayloadKeyBoxV1(), es.payloadKey[:])
 
 		keys := receiverKeys{PayloadKeyBox: payloadKeyBox}
 
