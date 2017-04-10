@@ -152,6 +152,15 @@ func (n naclKeyring) ImportBoxEphemeralKey(kid []byte) saltpack.BoxPublicKey {
 	return n.LookupBoxPublicKey(kid)
 }
 
+func (n naclKeyring) CreateEphemeralKey() (saltpack.BoxSecretKey, error) {
+	kp, err := GenerateNaclDHKeyPair()
+	if err != nil {
+		return nil, err
+	}
+
+	return naclBoxSecretKey(kp), nil
+}
+
 func BoxPublicKeyToKeybaseKID(k saltpack.BoxPublicKey) (ret keybase1.KID) {
 	if k == nil {
 		return ret
