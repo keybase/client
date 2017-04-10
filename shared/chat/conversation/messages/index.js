@@ -38,9 +38,8 @@ const factory = (messageKey: Constants.MessageKey,
         <Wrapper
           messageKey={messageKey}
           prevMessageKey={prevMessageKey}
-          onAction={onAction}>
-          <TextMessage messageKey={messageKey} />
-        </Wrapper>
+          onAction={onAction}
+          innerClass={TextMessage} />
       )
     }
     // case 'outboxID': {

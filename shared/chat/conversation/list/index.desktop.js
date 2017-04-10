@@ -221,8 +221,7 @@ class BaseList extends Component<void, Props, State> {
         columnIndex={0}
         key={key}
         parent={parent}
-        rowIndex={index}
-      >
+        rowIndex={index}>
         <div style={style}>
           {message}
         </div>

@@ -2,7 +2,7 @@
 import * as Constants from '../../../../constants/chat'
 import Wrapper from '.'
 import createCachedSelector from 're-reselect'
-import {compose} from 'recompose'
+import {compose, withHandlers} from 'recompose'
 import {connect} from 'react-redux'
 import {Map} from 'immutable'
 
@@ -16,7 +16,7 @@ const getMessage = createCachedSelector(
 
 // TODO more reselect?
 
-const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey, children, isSelected}: OwnProps) => {
+const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey, children, isSelected, innerClass}: OwnProps) => {
   const conversationState = Constants.getSelectedConversationStates(state)
 
   const message = getMessage(state, messageKey)
@@ -40,6 +40,7 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey, childre
     children,
     failureDescription,
     includeHeader,
+    innerClass,
     isBroken,
     isEdited,
     isEditing,
@@ -59,12 +60,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {onAction}: OwnProps) => ({
   // onIconClick: (event: any) => void,
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  onAction: (event: any) => dispatchProps._onAction(stateProps._message, event),
-})
-
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(mapStateToProps, mapDispatchToProps),
+  withHandlers({
+    onAction: props => event => props._onAction(props._message, event),
+  })
 )(Wrapper)
