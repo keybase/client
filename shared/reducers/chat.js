@@ -249,7 +249,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
           ...m,
           ...message,
         })
-      ))
+      )).set('messageMap', state.get('messageMap').set(message.key, message))
     }
     case 'chat:markSeenMessage': {
       const {messageKey, conversationIDKey} = action.payload
@@ -271,6 +271,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
     }
     case 'chat:attachmentLoaded': {
       const {conversationIDKey, messageID, path, isPreview, isHdPreview} = action.payload
+      const messageKey = Constants.messageKey(conversationIDKey, 'messageIDAttachment', messageID)
 
       let toMerge
       if (isPreview) {
@@ -290,11 +291,15 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
           ...m,
           ...toMerge,
         })
-      ))
+      )).set('messageMap', state.get('messageMap').update(messageKey, message => ({
+        ...message,
+        ...toMerge,
+      })))
     }
     case 'chat:downloadProgress': {
       const {conversationIDKey, messageID, isPreview, bytesComplete, bytesTotal} = action.payload
       const progress = bytesComplete / bytesTotal
+      const messageKey = Constants.messageKey(conversationIDKey, 'messageIDAttachment', messageID)
 
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversationMessage(
@@ -306,11 +311,16 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
           messageState: isPreview ? 'downloading-preview' : 'downloading',
           progress,
         })
-      ))
+      )).set('messageMap', state.get('messageMap').update(messageKey, message => ({
+        ...message,
+        messageState: isPreview ? 'downloading-preview' : 'downloading',
+        progress,
+      })))
     }
     case 'chat:uploadProgress': {
       const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
       const progress = bytesComplete / bytesTotal
+      const messageKey = Constants.messageKey(conversationIDKey, 'messageIDAttachment', messageID)
 
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversationMessage(
@@ -322,7 +332,11 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
           messageState: 'uploading',
           progress,
         })
-      ))
+      )).set('messageMap', state.get('messageMap').update(messageKey, message => ({
+        ...message,
+        messageState: 'uploading',
+        progress,
+      })))
     }
     case 'chat:markThreadsStale': {
       const {convIDs} = action.payload

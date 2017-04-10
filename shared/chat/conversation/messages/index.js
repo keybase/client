@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
+import Attachment from './attachment/container'
 // import AttachmentMessageRender from './attachment'
 // import MessageText from './text'
 import React from 'react'
@@ -23,42 +24,38 @@ const factory = (
 ) => {
   const kind = Constants.messageKeyKind(messageKey)
   switch (kind) {
-    case 'header': {
+    case 'header':
       return <Header messageKey={messageKey} />
-    }
-    // case 'messageIDAttachment': {
-    // }
+    case 'messageIDAttachment':
+      return <Wrapper
+        innerClass={Attachment}
+        measure={measure}
+        messageKey={messageKey}
+        onAction={onAction}
+        prevMessageKey={prevMessageKey} />
     case 'error': // fallthrough
     case 'errorInvisible': // fallthrough
-    case 'messageIDError': {
+    case 'messageIDError':
       return <ErrorMessage messageKey={messageKey} />
-    }
     case 'outboxIDText': // fallthrough
-    case 'messageIDText': {
-      return (
-        <Wrapper
-          innerClass={TextMessage}
-          measure={measure}
-          messageKey={messageKey}
-          onAction={onAction}
-          prevMessageKey={prevMessageKey} />
-      )
-    }
-    case 'timestamp': {
+    case 'messageIDText':
+      return <Wrapper
+        innerClass={TextMessage}
+        measure={measure}
+        messageKey={messageKey}
+        onAction={onAction}
+        prevMessageKey={prevMessageKey} />
+    case 'timestamp':
       return <Timestamp messageKey={messageKey} />
-    }
-    default: {
-      // to del
-      return (
-        <Box style={TEMP}>
-          <Text type='BodySmall' style={TEMP}>{kind}:{messageKey.substring(0, 5)}</Text>
-        </Box>
-      )
-    }
   }
 
-  // TODO put back
-  // return <Box data-messageKey={messageKey} />
+  // TEMP just to see them
+  return (
+    <Box style={TEMP}>
+      <Text type='BodySmall' style={TEMP}>{kind}:{messageKey.substring(0, 5)}</Text>
+    </Box>
+  )
+  return <Box data-messageKey={messageKey} />
 }
 
 const TEMP = {

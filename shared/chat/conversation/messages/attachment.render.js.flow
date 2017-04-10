@@ -1,9 +1,0 @@
-// @flow
-import {Component} from 'react'
-
-export type ImageRenderProps = {
-  src: string,
-  style: Object,
-}
-
-export class ImageRender extends Component<void, ImageRenderProps, void> {}
