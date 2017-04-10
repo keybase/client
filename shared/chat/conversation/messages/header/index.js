@@ -19,6 +19,7 @@ const MessageLoadingMore = ({moreToLoad}: Props) => (
 )
 
 const secureStyle = {
+  ...globalStyles.flexBoxCenter,
   height: 116,
 }
 
