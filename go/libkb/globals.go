@@ -187,6 +187,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
+	g.Syncer = NullChatSyncer{}
 	return g
 }
 
