@@ -161,6 +161,36 @@ func (n naclKeyring) CreateEphemeralKey() (saltpack.BoxSecretKey, error) {
 	return naclBoxSecretKey(kp), nil
 }
 
+// An empty keyring just for generating ephemeral keys.
+type emptyKeyring struct{}
+
+var _ saltpack.Keyring = emptyKeyring{}
+
+func (e emptyKeyring) LookupBoxSecretKey(kids [][]byte) (int, saltpack.BoxSecretKey) {
+	panic("unimplemented")
+}
+
+func (e emptyKeyring) LookupBoxPublicKey(kid []byte) saltpack.BoxPublicKey {
+	panic("unimplemented")
+}
+
+func (e emptyKeyring) GetAllBoxSecretKeys() []saltpack.BoxSecretKey {
+	panic("unimplemented")
+}
+
+func (e emptyKeyring) ImportBoxEphemeralKey(kid []byte) saltpack.BoxPublicKey {
+	panic("unimplemented")
+}
+
+func (e emptyKeyring) CreateEphemeralKey() (saltpack.BoxSecretKey, error) {
+	kp, err := GenerateNaclDHKeyPair()
+	if err != nil {
+		return nil, err
+	}
+
+	return naclBoxSecretKey(kp), nil
+}
+
 func BoxPublicKeyToKeybaseKID(k saltpack.BoxPublicKey) (ret keybase1.KID) {
 	if k == nil {
 		return ret

@@ -10,6 +10,8 @@ protocol saltpack {
     boolean noSelfEncrypt;
     boolean binary;
     boolean hideRecipients;
+    // TEMPORARY
+    boolean signcrypt;
   }
 
   record SaltpackDecryptOptions {
