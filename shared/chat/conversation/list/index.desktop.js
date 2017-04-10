@@ -52,7 +52,6 @@ type State = {
   selectedMessageKey: ?Constants.MessageKey,
 }
 
-// const scrollbarWidth = 20
 // const lockedToBottomSlop = 20
 const listBottomMargin = 10
 // const DEBUG_ROW_RENDER = __DEV__ && false
@@ -64,7 +63,6 @@ class BaseList extends Component<void, Props, State> {
   state: State;
   // _toRemeasure: Array<number>;
   // _shouldForceUpdateGrid: boolean;
-  // _lastWidth: ?number;
 
   constructor (props: Props) {
     super(props)
@@ -193,12 +191,11 @@ class BaseList extends Component<void, Props, State> {
     // this._onScrollSettled()
   // }, 200)
 
-  // _onResize = ({width}) => {
-    // if (width !== this._lastWidth) {
-      // this._lastWidth = width
-      // this._recomputeListDebounced()
-    // }
-  // }
+  _onResize = ({width}) => {
+    if (this._cellCache.columnWidth({index: 0}) !== width) {
+      this._cellCache.clearAll()
+    }
+  }
 
   // _onShowEditor = (message: Constants.Message, event: any) => {
     // if (message.type === 'Text') {
@@ -326,10 +323,8 @@ class BaseList extends Component<void, Props, State> {
       )
     }
 
-    // const rowCount = this._rowCount()
     // let scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
     // let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
-
               // scrollToIndex={scrollToIndex}
               // scrollTop={scrollTop}
     return (
