@@ -469,12 +469,10 @@ func runDNSTXTQuery(g proofContextExt, domain string) (res []string, err error) 
 		return res, nil
 	}
 
-	// Google, Level3, and Verisign public DNS servers
+	// Google IPv4 and IPV6 addresses
 	publicServers := []string{
 		formatDNSServer("8.8.8.8"),
 		formatDNSServer("2001:4860:4860::8888"),
-		formatDNSServer("209.244.0.3"),
-		formatDNSServer("64.6.64.6"),
 	}
 	var fetchedSrvs []string
 	if g.GetDNSNameServerFetcher() != nil {
