@@ -42,18 +42,19 @@ type LogoutHook interface {
 }
 
 type GlobalContext struct {
-	Log          logger.Logger // Handles all logging
-	VDL          *VDebugLog    // verbose debug log
-	Env          *Env          // Env variables, cmdline args & config
-	SKBKeyringMu *sync.Mutex   // Protects all attempts to mutate the SKBKeyringFile
-	Keyrings     *Keyrings     // Gpg Keychains holding keys
-	API          API           // How to make a REST call to the server
-	Resolver     *Resolver     // cache of resolve results
-	LocalDb      *JSONLocalDb  // Local DB for cache
-	LocalChatDb  *JSONLocalDb  // Local DB for cache
-	MerkleClient *MerkleClient // client for querying server's merkle sig tree
-	XAPI         ExternalAPI   // for contacting Twitter, Github, etc.
-	Output       io.Writer     // where 'Stdout'-style output goes
+	Log          logger.Logger        // Handles all logging
+	VDL          *VDebugLog           // verbose debug log
+	Env          *Env                 // Env variables, cmdline args & config
+	SKBKeyringMu *sync.Mutex          // Protects all attempts to mutate the SKBKeyringFile
+	Keyrings     *Keyrings            // Gpg Keychains holding keys
+	API          API                  // How to make a REST call to the server
+	Resolver     *Resolver            // cache of resolve results
+	LocalDb      *JSONLocalDb         // Local DB for cache
+	LocalChatDb  *JSONLocalDb         // Local DB for cache
+	MerkleClient *MerkleClient        // client for querying server's merkle sig tree
+	XAPI         ExternalAPI          // for contacting Twitter, Github, etc.
+	Output       io.Writer            // where 'Stdout'-style output goes
+	DNSNSFetcher DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
 
 	cacheMu        *sync.RWMutex   // protects all caches
 	ProofCache     *ProofCache     // where to cache proof results
@@ -117,8 +118,6 @@ type GlobalContext struct {
 	ActiveDevice *ActiveDevice
 
 	NetContext context.Context
-
-	DNSNSFetcher DNSNameServerFetcher
 }
 
 type GlobalTestOptions struct {

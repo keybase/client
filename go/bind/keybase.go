@@ -54,6 +54,8 @@ func (d dnsNSFetcher) GetServers() []string {
 	return getDNSServers()
 }
 
+var _ libkb.DNSNameServerFetcher = dnsNSFetcher{}
+
 // InitOnce runs the Keybase services (only runs one time)
 func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
 	dnsNSFetcher ExternalDNSNSFetcher) {
