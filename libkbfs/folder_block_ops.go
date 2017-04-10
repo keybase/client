@@ -976,7 +976,7 @@ func (fbo *folderBlockOps) ClearCachedAddsAndRemoves(
 // the ones in deCache and returns it. If not, it just returns the
 // given one.
 func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
-	lState *lockState, dir path, block *DirBlock) (*DirBlock, error) {
+	lState *lockState, dir path, dblock *DirBlock) (*DirBlock, error) {
 	fbo.blockLock.AssertAnyLocked(lState)
 	// see if this directory has any outstanding writes/truncates that
 	// require an updated DirEntry
@@ -984,7 +984,7 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 	// Save some time for the common case of having no dirty
 	// files.
 	if len(fbo.deCache) == 0 {
-		return block, nil
+		return dblock, nil
 	}
 
 	var dblockCopy *DirBlock
@@ -1011,7 +1011,7 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 		}
 
 		if dblockCopy == nil {
-			dblockCopy = block.DeepCopy()
+			dblockCopy = dblock.DeepCopy()
 		}
 
 		dblockCopy.Children[k] = de.dirEntry
@@ -1019,35 +1019,34 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 
 	// Remove cached removals from the copy.
 	for k := range dirCacheEntry.adds {
-		_, ok := block.Children[k]
+		_, ok := dblock.Children[k]
 		if !ok {
 			continue
 		}
 
 		if dblockCopy == nil {
-			dblockCopy = block.DeepCopy()
+			dblockCopy = dblock.DeepCopy()
 		}
 
 		delete(dblockCopy.Children, k)
-
 	}
 
 	// Update dir entries for any modified files.
-	for k, v := range block.Children {
+	for k, v := range dblock.Children {
 		de, ok := fbo.deCache[v.Ref()]
 		if !ok {
 			continue
 		}
 
 		if dblockCopy == nil {
-			dblockCopy = block.DeepCopy()
+			dblockCopy = dblock.DeepCopy()
 		}
 
 		dblockCopy.Children[k] = de.dirEntry
 	}
 
 	if dblockCopy == nil {
-		return block, nil
+		return dblock, nil
 	}
 
 	return dblockCopy, nil
