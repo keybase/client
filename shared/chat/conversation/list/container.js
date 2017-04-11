@@ -9,7 +9,6 @@ import {downloadFilePath} from '../../../util/file'
 import {compose} from 'recompose'
 
 import type {OpenInFileUI} from '../../../constants/kbfs'
-// import type {Options} from '../messages'
 import type {Props} from '.'
 import type {OwnProps, StateProps, DispatchProps} from './container'
 import type {TypedState} from '../../../constants/reducer'
@@ -20,7 +19,6 @@ const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollD
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const you = state.config.username || ''
 
-  let _messages = List()
   let validated = false
   let messageKeys = List()
 
@@ -35,8 +33,7 @@ const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollD
       const inbox = state.chat.get('inbox')
       const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
 
-      _messages = conversationState.messages
-      messageKeys = _messages.map(m => m.key)
+      messageKeys = conversationState.messages.map(m => m.key)
       validated = selected && selected.state === 'unboxed'
     }
   }
