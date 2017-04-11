@@ -86,8 +86,8 @@ build_one_architecture() {
   kbnm_file="$dest/etc/opt/chrome/native-messaging-hosts/io.keybase.kbnm"
   mkdir -p "$(dirname "$kbnm_file")"
   cat "$here/host_json.template" \
-    | sed "s|@@HOST_PATH@@|/usr/local/bin/$kbnm_bin|g"
-  chmod 644 "$kbnm_file"
+    | sed "s|@@HOST_PATH@@|$kbnm_bin|g" \
+    > "$kbnm_file"
 
   fakeroot dpkg-deb --build "$dest/build" "$dest/$name-$version-$debian_arch.deb"
 }
