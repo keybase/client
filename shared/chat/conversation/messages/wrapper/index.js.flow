@@ -16,7 +16,6 @@ export type Props = {|
   isYou: boolean,
   messageKey: Constants.MessageKey,
   onAction: (event: any) => void,
-  onIconClick: (event: any) => void,
   onRetry: () => void,
   onShowEditor: (event: any) => void,
 |}

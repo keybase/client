@@ -62,7 +62,6 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onRetryAttachment: (message: Constants.AttachmentMessage) => dispatch(Creators.retryAttachment(message)),
   _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
-  // onIconClick: (event: any) => void,
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => ({
@@ -91,7 +90,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
       dispatchProps._onRetryText(stateProps._selectedConversationIDKey, stateProps._message.outboxID)
     }
   },
-  // onIconClick: (event: any) => void,
 })
 
 export default compose(
