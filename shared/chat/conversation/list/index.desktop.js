@@ -305,12 +305,16 @@ class BaseList extends Component<void, Props, State> {
     // let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
               // scrollTop={scrollTop}
               // ref={this._setListRef}
+
+    // We pass additional props to Virtualized.List so we can force re-rendering when this state changes instead of
+    // having to explicitly call to force rendering
     return (
       <div style={containerStyle} onClick={undefined/*this._handleListClick*/} onCopyCapture={undefined/*this._onCopyCapture*/}>
         <style>{realCSS}</style>
         <Virtualized.AutoSizer onResize={this._onResize}>
           {({height, width}) => (
             <Virtualized.List
+              selectedMessageKey={this.state.selectedMessageKey}
               columnWidth={width}
               deferredMeasurementCache={this._cellCache}
               height={height}
@@ -451,9 +455,7 @@ class PopupEnabledList extends BaseList {
     const popupComponent = this._renderPopup(message, {left: x, position: 'absolute', top: y}, messageRect)
     if (!popupComponent) return
 
-    this.setState({
-      selectedMessageKey: message.key,
-    })
+    this.setState({selectedMessageKey: message.key})
 
     const container = document.getElementById('popupContainer')
     // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
