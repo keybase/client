@@ -100,7 +100,7 @@ type GlobalContext struct {
 
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
-	ConnectivityMonitor ConnectivityMonitor  // keeps various parts of chat system in sync
+	ConnectivityMonitor ConnectivityMonitor  // Detect whether we're connected or not.
 
 	// Chat globals
 	InboxSource         chattypes.InboxSource         // source of remote inbox entries for chat
