@@ -59,6 +59,9 @@ func TestHandlerQueryError(t *testing.T) {
 		io.WriteString(cmd.Stderr, queryResponseErr)
 		return nil
 	}
+	h.FindKeybaseBinary = func() (string, error) {
+		return "/mocked/test/path/keybase", nil
+	}
 
 	req := &Request{
 		Method: "query",
@@ -83,6 +86,9 @@ func TestHandlerQueryErrorUnexpected(t *testing.T) {
 		ranCmd = strings.Join(cmd.Args, " ")
 		io.WriteString(cmd.Stderr, queryResponseErrUnexpected)
 		return nil
+	}
+	h.FindKeybaseBinary = func() (string, error) {
+		return "/mocked/test/path/keybase", nil
 	}
 
 	req := &Request{
