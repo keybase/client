@@ -435,14 +435,14 @@ func (a *InternalAPIEngine) getURL(arg APIArg) url.URL {
 
 func (a *InternalAPIEngine) sessionArgs(arg APIArg) (tok, csrf string, err error) {
 	if arg.SessionR != nil {
-		// XXX change SessionR interface to have LoggedInProvisionedCheck
 		tok, csrf = arg.SessionR.APIArgs()
 		return tok, csrf, nil
 	}
 
 	a.G().LoginState().Account(func(a *Account) {
+		// since a session is required, try to load one:
 		var in bool
-		in, err = a.LoggedInProvisionedCheck()
+		in, err = a.LoggedInLoad()
 		if err != nil {
 			return
 		}

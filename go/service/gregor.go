@@ -1049,7 +1049,7 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 		token = s.GetToken()
 		uid = s.GetUID()
 	}, "gregor handler - login session")
-	if token == "" {
+	if token == "" || uid == "" {
 		return uid, token, ok
 	}
 	if aerr != nil {

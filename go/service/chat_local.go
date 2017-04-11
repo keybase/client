@@ -1540,7 +1540,7 @@ func (h *chatLocalHandler) setTestRemoteClient(ri chat1.RemoteInterface) {
 }
 
 func (h *chatLocalHandler) assertLoggedIn(ctx context.Context) error {
-	ok, err := h.G().LoginState().LoggedInProvisionedCheck()
+	ok, err := h.G().LoginState().LoggedInProvisioned()
 	if err != nil {
 		if _, ok := err.(libkb.APINetError); ok {
 			h.Debug(ctx, "assertLoggedIn: skipping API error and returning success")
