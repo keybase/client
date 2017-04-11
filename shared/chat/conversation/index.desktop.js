@@ -3,7 +3,7 @@ import Banner from './banner/container'
 import Header from './header/container'
 import Input from './input/container'
 import List from './list/container'
-import OldProfileResetNotice from './notices/old-profile-reset-notice'
+import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
 import NoConversation from './no-conversation.desktop'
 import ParticipantRekey from './participant-rekey.desktop'
 import React, {Component} from 'react'
@@ -97,14 +97,12 @@ class Conversation extends Component<void, Props, State> {
         <Banner />
         {this.props.showLoader && <LoadingLine />}
         {this.props.finalizeInfo
-          ? <OldProfileResetNotice
-            onOpenNewerConversation={this.props.onOpenNewerConversation}
-            username={this.props.finalizeInfo.resetUser} />
-            : <Input
-              focusInputCounter={this.props.focusInputCounter}
-              onEditLastMessage={this.props.onEditLastMessage}
-              onScrollDown={this.props.onScrollDown}
-            /> }
+          ? <OldProfileResetNotice />
+          : <Input
+            focusInputCounter={this.props.focusInputCounter}
+            onEditLastMessage={this.props.onEditLastMessage}
+            onScrollDown={this.props.onScrollDown}
+          /> }
         {this.props.sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>
           <SidePanel onToggleSidePanel={this.props.onToggleSidePanel} />
         </div>}

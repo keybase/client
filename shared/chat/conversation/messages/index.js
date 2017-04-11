@@ -9,7 +9,7 @@ import Header from './header/container'
 import Wrapper from './wrapper/container'
 import TextMessage from './text/container'
 import ErrorMessage from './error/container'
-// import ProfileResetNotice from '../notices/profile-reset-notice'
+import ProfileResetNotice from '../notices/profile-reset-notice/container'
 import {Box, Text} from '../../../common-adapters'
 // import {formatTimeForMessages} from '../../../util/timestamp'
 // import {globalStyles} from '../../../styles'
@@ -45,6 +45,13 @@ const factory = (
         messageKey={messageKey}
         onAction={onAction}
         prevMessageKey={prevMessageKey} />
+    case 'supersedes':
+      return <ProfileResetNotice />
+        // onOpenOlderConversation={() => onOpenConversation(message.supersedes)}
+        // username={message.username}
+        // style={style}
+        // key={`supersedes:${message.supersedes}`}
+        // />
     case 'timestamp':
       return <Timestamp messageKey={messageKey} />
     case 'messageIDUnhandled':

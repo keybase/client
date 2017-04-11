@@ -4,13 +4,13 @@ import * as Creators from '../../../actions/chat/creators'
 import HiddenString from '../../../util/hidden-string'
 import ListComponent from '.'
 import {List} from 'immutable'
+import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {downloadFilePath} from '../../../util/file'
-import {compose} from 'recompose'
 
 import type {OpenInFileUI} from '../../../constants/kbfs'
-import type {Props} from '.'
 import type {OwnProps, StateProps, DispatchProps} from './container'
+import type {Props} from '.'
 import type {TypedState} from '../../../constants/reducer'
 
 // TODO reselect
@@ -21,6 +21,7 @@ const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollD
 
   let validated = false
   let messageKeys = List()
+  let supersedes
 
   if (selectedConversationIDKey && Constants.isPendingConversationIDKey(selectedConversationIDKey)) {
     const tlfName = Constants.pendingConversationIDKeyToTlfName(selectedConversationIDKey)
@@ -33,13 +34,22 @@ const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollD
       const inbox = state.chat.get('inbox')
       const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
 
+      if (!conversationState.moreToLoad) {
+        supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
+      }
+
       messageKeys = conversationState.messages.map(m => m.key)
       validated = selected && selected.state === 'unboxed'
     }
   }
 
   if (selectedConversationIDKey) {
-    messageKeys = messageKeys.unshift(Constants.messageKey(selectedConversationIDKey, 'header', 0))
+    messageKeys = messageKeys.withMutations(l => {
+      if (supersedes) {
+        l.unshift(Constants.messageKey(selectedConversationIDKey, 'supersedes', 0))
+      }
+      l.unshift(Constants.messageKey(selectedConversationIDKey, 'header', 0))
+    })
   }
 
   return {
@@ -77,22 +87,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     you: stateProps.you,
   }
 }
-
-// function decorateSupersedes (supersedes, moreToLoad, messages): List<Constants.Message> {
-  // if (supersedes && !moreToLoad) {
-    // const {conversationIDKey, finalizeInfo: {resetUser}} = supersedes
-    // const supersedesMessage: Constants.SupersedesMessage = {
-      // key: `supersedes-${conversationIDKey}-${resetUser}`,
-      // supersedes: conversationIDKey,
-      // timestamp: Date.now(),
-      // type: 'Supersedes',
-      // username: resetUser,
-    // }
-    // return messages.unshift(supersedesMessage)
-  // }
-
-  // return messages
-// }
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),

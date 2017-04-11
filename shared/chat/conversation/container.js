@@ -1,8 +1,6 @@
 // @flow
 import * as Constants from '../../constants/chat'
-import * as Creators from '../../actions/chat/creators'
 import Conversation from './index'
-import {List} from 'immutable'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../actions/route-tree'
 import {withState, withHandlers, compose, branch, renderNothing, lifecycle} from 'recompose'
@@ -10,39 +8,33 @@ import {withState, withHandlers, compose, branch, renderNothing, lifecycle} from
 import type {Props} from '.'
 import type {TypedState} from '../../constants/reducer'
 
-type StateProps = {
+type StateProps = {|
   finalizeInfo: ?Constants.FinalizeInfo,
-  listScrollDownCounter: number,
   rekeyInfo: ?Constants.RekeyInfo,
-  participants: List<string>,
   selectedConversationIDKey: ?Constants.ConversationIDKey,
   showLoader: boolean,
   supersededBy: ?Constants.SupersedeInfo,
   supersedes: ?Constants.SupersedeInfo,
-}
+|}
 
-type DispatchProps = {
+type DispatchProps = {|
   _onAttach: (conversationIDKey: Constants.ConversationIDKey, inputs: Array<Constants.AttachmentInput>) => void,
   onBack: () => void,
-  onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => void,
-  startConversation: (users: Array<string>) => void,
-}
+|}
 
-const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
+const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps => {
   const selectedConversationIDKey = routePath.last()
   let finalizeInfo = null
   let rekeyInfo = null
   let supersedes = null
   let supersededBy = null
   let showLoader = false
-  let participants = List()
 
   if (selectedConversationIDKey !== Constants.nothingSelected) {
     const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
     if (conversationState) {
       const inbox = state.chat.get('inbox')
       const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
-      participants = selected && selected.participants || List()
       rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversationIDKey)
       finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)
       supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
@@ -53,7 +45,6 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
 
   return {
     finalizeInfo,
-    participants,
     rekeyInfo,
     selectedConversationIDKey,
     showLoader,
@@ -62,11 +53,9 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}): DispatchProps => ({
   _onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
   onBack: () => dispatch(navigateUp()),
-  onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => dispatch(Creators.openConversation(conversationIDKey)),
-  startConversation: (users: Array<string>) => dispatch(Creators.startConversation(users, true)),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
@@ -74,9 +63,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     ...stateProps,
     ...dispatchProps,
     onAttach: (inputs: Array<Constants.AttachmentInput>) => { stateProps.selectedConversationIDKey && dispatchProps._onAttach(stateProps.selectedConversationIDKey, inputs) },
-    onOpenNewerConversation: stateProps.supersededBy
-      ? () => { stateProps.supersededBy && stateProps.supersededBy.conversationIDKey && dispatchProps.onOpenConversation(stateProps.supersededBy.conversationIDKey) }
-      : () => dispatchProps.startConversation(stateProps.participants.toArray()),
   }
 }
 

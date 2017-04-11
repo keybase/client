@@ -15,9 +15,7 @@ import ReactDOM from 'react-dom'
 import EditPopup from '../edit-popup.desktop'
 import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
 import {findDOMNode} from '../../../util/dom'
-// import _ from 'lodash'
 import messageFactory from '../messages'
-// import shallowEqual from 'shallowequal'
 import {Icon} from '../../../common-adapters'
 // import {clipboard} from 'electron'
 import {globalColors, globalStyles} from '../../../styles'
@@ -59,7 +57,7 @@ class BaseList extends Component<void, Props, State> {
   // }
 
   // TODO keep a counter in the keys list to force these changes automatically. pass that itno the list
-  componentWillUpdate (nextProps: Props, nextState: State) {
+  // componentWillUpdate (nextProps: Props, nextState: State) {
     // If a message has moved from pending to sent, tell the List to discard
     // heights for it (which will re-render it and everything after it)
     // TODO this doesn't work for things that take a bit to load (imgs)
@@ -79,7 +77,7 @@ class BaseList extends Component<void, Props, State> {
         // this._list.forceUpdateGrid()
       // }
     // }
-  }
+  // }
 
   // _listIsGood () {
     // return this._list && this._list.Grid
@@ -336,7 +334,6 @@ class BaseList extends Component<void, Props, State> {
   }
 }
 
-                  // cellRangeRenderer={this._cellRangeRenderer}
 // We need to use both visibility and opacity css properties for the
 // action button hide/show on hover.
 // We use opacity because it shows/hides the button immediately on
@@ -360,126 +357,6 @@ const realCSS = `
   opacity: 1;
 }
 `
-
-const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
-  position: 'relative',
-}
-
-const listStyle = {
-  outline: 'none',
-  overflowX: 'hidden',
-  paddingBottom: listBottomMargin,
-}
-
-// See if we really need this
-// let lastFirstKey
-// function chatCellRangeRenderer (firstKey: string, cellSizeCache: any, {
-  // cellCache,
-  // cellRenderer,
-  // columnSizeAndPositionManager,
-  // columnStartIndex,
-  // columnStopIndex,
-  // horizontalOffsetAdjustment,
-  // isScrolling,
-  // rowSizeAndPositionManager,
-  // rowStartIndex,
-  // rowStopIndex,
-  // scrollLeft,
-  // scrollTop,
-  // styleCache,
-  // verticalOffsetAdjustment,
-  // visibleColumnIndices,
-  // visibleRowIndices,
-// }: DefaultCellRangeRendererParams) {
-  // const renderedCells = []
-  // const offsetAdjusted = verticalOffsetAdjustment || horizontalOffsetAdjustment
-  // const canCacheStyle = !isScrolling || !offsetAdjusted
-
-  // // Only if the list is prepended to does it cause all this redrawing
-  // if (firstKey !== lastFirstKey) {
-    // lastFirstKey = firstKey
-    // rowSizeAndPositionManager.resetCell(0)
-    // cellSizeCache.clearAllRowHeights()
-  // }
-
-  // for (let rowIndex = rowStartIndex; rowIndex <= rowStopIndex; rowIndex++) {
-    // let rowDatum = rowSizeAndPositionManager.getSizeAndPositionOfCell(rowIndex)
-
-    // for (let columnIndex = columnStartIndex; columnIndex <= columnStopIndex; columnIndex++) {
-      // let columnDatum = columnSizeAndPositionManager.getSizeAndPositionOfCell(columnIndex)
-      // let isVisible = (
-        // columnIndex >= visibleColumnIndices.start &&
-        // columnIndex <= visibleColumnIndices.stop &&
-        // rowIndex >= visibleRowIndices.start &&
-        // rowIndex <= visibleRowIndices.stop
-      // )
-
-      // let key = `${rowIndex}-${firstKey}`
-      // let style
-
-      // // Cache style objects so shallow-compare doesn't re-render unnecessarily.
-      // if (canCacheStyle && styleCache[key]) {
-        // style = styleCache[key]
-      // } else {
-        // style = {
-          // height: rowDatum.size,
-          // left: columnDatum.offset + horizontalOffsetAdjustment,
-          // position: 'absolute',
-          // top: rowDatum.offset + verticalOffsetAdjustment,
-          // width: columnDatum.size,
-        // }
-
-        // styleCache[key] = style
-      // }
-
-      // let cellRendererParams = {
-        // columnIndex,
-        // isScrolling,
-        // isVisible,
-        // key,
-        // rowIndex,
-        // style,
-      // }
-
-      // let renderedCell
-
-      // // Avoid re-creating cells while scrolling.
-      // // This can lead to the same cell being created many times and can cause performance issues for "heavy" cells.
-      // // If a scroll is in progress- cache and reuse cells.
-      // // This cache will be thrown away once scrolling completes.
-      // // However if we are scaling scroll positions and sizes, we should also avoid caching.
-      // // This is because the offset changes slightly as scroll position changes and caching leads to stale values.
-      // // For more info refer to issue #395
-      // if (
-        // isScrolling &&
-        // !horizontalOffsetAdjustment &&
-        // !verticalOffsetAdjustment
-      // ) {
-        // if (!cellCache[key]) {
-          // cellCache[key] = cellRenderer(cellRendererParams)
-        // }
-
-        // renderedCell = cellCache[key]
-
-      // // If the user is no longer scrolling, don't cache cells.
-      // // This makes dynamic cell content difficult for users and would also lead to a heavier memory footprint.
-      // } else {
-        // renderedCell = cellRenderer(cellRendererParams)
-      // }
-
-      // if (renderedCell == null || renderedCell === false) {
-        // continue
-      // }
-
-      // renderedCells.push(renderedCell)
-    // }
-  // }
-
-  // return renderedCells
-// }
-//
 
 // Adds in popup handling
 class PopupEnabledList extends BaseList {
@@ -593,6 +470,18 @@ class PopupEnabledList extends BaseList {
       this._showPopup(message, event)
     }
   }
+}
+
+const containerStyle = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+  position: 'relative',
+}
+
+const listStyle = {
+  outline: 'none',
+  overflowX: 'hidden',
+  paddingBottom: listBottomMargin,
 }
 
 export default PopupEnabledList

@@ -30,6 +30,7 @@ type MessageKeyKind = 'chatSecured'
 | 'outboxIDText'
 | 'tempAttachment'
 | 'timestamp'
+| 'supersedes'
 
 export type MessageType = 'Text'
 export type FollowingMap = {[key: string]: boolean}
@@ -696,6 +697,7 @@ function messageKeyKind (key: MessageKey): MessageKeyKind {
     case 'outboxIDText': return 'outboxIDText'
     case 'tempAttachment': return 'tempAttachment'
     case 'timestamp': return 'timestamp'
+    case 'supersedes': return 'supersedes'
   }
   throw new Error(`Invalid messageKeyKind passed key: ${key}`)
 }
