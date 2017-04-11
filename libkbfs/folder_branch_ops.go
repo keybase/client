@@ -1421,7 +1421,7 @@ func (fbo *folderBranchOps) initMDLocked(
 		return err
 	}
 
-	md.loadCachedBlockChanges(ctx, bps)
+	md.loadCachedBlockChanges(ctx, bps, fbo.log)
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
@@ -2132,7 +2132,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		}
 	}
 
-	md.loadCachedBlockChanges(ctx, bps)
+	md.loadCachedBlockChanges(ctx, bps, fbo.log)
 
 	rebased := (oldPrevRoot != md.PrevRoot())
 	if rebased {
@@ -2248,7 +2248,7 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 		fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
 	}
 
-	md.loadCachedBlockChanges(ctx, nil)
+	md.loadCachedBlockChanges(ctx, nil, fbo.log)
 
 	var key kbfscrypto.VerifyingKey
 	if md.IsWriterMetadataCopiedSet() {
@@ -2326,7 +2326,7 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 	}
 
 	fbo.setBranchIDLocked(lState, NullBranchID)
-	md.loadCachedBlockChanges(ctx, bps)
+	md.loadCachedBlockChanges(ctx, bps, fbo.log)
 
 	rebased := (oldPrevRoot != md.PrevRoot())
 	if rebased {
@@ -5188,7 +5188,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 		defer fbo.config.RekeyQueue().Enqueue(md.TlfID())
 	}
 
-	md.loadCachedBlockChanges(ctx, bps)
+	md.loadCachedBlockChanges(ctx, bps, fbo.log)
 
 	// Set the head to the new MD.
 	fbo.headLock.Lock(lState)

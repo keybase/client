@@ -256,6 +256,13 @@ func (fd *fileData) getBlocksForOffsetRange(ctx context.Context,
 		return [][]parentBlockAndChildIndex{nil}, nil, -1, nil
 	}
 
+	fd.log.CDebugf(ctx, "getBlocksForOffsetRange %v, startOff=%d, endOff=%d, "+
+		"prefixOk=%t, getDirect=%t", ptr, startOff, endOff, prefixOk, getDirect)
+	defer func() {
+		fd.log.CDebugf(ctx, "getBlocksForOffsetRange %v done, err=%+v",
+			ptr, err)
+	}()
+
 	type resp struct {
 		pathsFromRoot   [][]parentBlockAndChildIndex
 		blocks          map[BlockPointer]*FileBlock
@@ -290,7 +297,7 @@ func (fd *fileData) getBlocksForOffsetRange(ctx context.Context,
 			break
 		}
 
-		ptr := iptr.BlockPointer
+		childPtr := iptr.BlockPointer
 		childIndex := i
 		respCh := make(chan resp, 1)
 		respChans = append(respChans, respCh)
@@ -304,16 +311,20 @@ func (fd *fileData) getBlocksForOffsetRange(ctx context.Context,
 			// unknown, we can assume all the children are direct
 			// blocks, since there weren't multiple levels of
 			// indirection before the introduction of the flag.
-			if getDirect || ptr.DirectType == IndirectBlock {
+			if getDirect || childPtr.DirectType == IndirectBlock {
+				fd.log.CDebugf(groupCtx,
+					"Fetching child %d (%v) of parent %v",
+					childIndex, childPtr, ptr)
 				block, _, err := fd.getter(
-					groupCtx, fd.kmd, ptr, fd.file, blockReadParallel)
+					groupCtx, fd.kmd, childPtr, fd.file, blockReadParallel)
 				if err != nil {
 					return err
 				}
 
 				// Recurse down to the level of the child.
 				pfr, blocks, nextBlockOffset, err = fd.getBlocksForOffsetRange(
-					groupCtx, ptr, block, startOff, endOff, prefixOk, getDirect)
+					groupCtx, childPtr, block, startOff, endOff, prefixOk,
+					getDirect)
 				if err != nil {
 					return err
 				}
