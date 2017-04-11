@@ -23,6 +23,14 @@ var errKeybaseNotRunning = errors.New("keybase is not running")
 
 var errKeybaseNotLoggedIn = errors.New("keybase is not logged in")
 
+type errUnexpected struct {
+	value string
+}
+
+func (err *errUnexpected) Error() string {
+	return fmt.Sprintf("unexpected error: %s", err.value)
+}
+
 func execRunner(cmd *exec.Cmd) error {
 	return cmd.Run()
 }
@@ -86,11 +94,21 @@ type resultQuery struct {
 func parseQuery(r io.Reader) (*resultQuery, error) {
 	scanner := bufio.NewScanner(r)
 
+	var lastErrLine string
 	for scanner.Scan() {
 		// Find a line that looks like... "[INFO] 001 Identifying someuser"
 		line := strings.TrimSpace(scanner.Text())
 		parts := strings.Split(line, " ")
 		if len(parts) < 4 {
+			continue
+		}
+
+		// Short circuit errors
+		if parts[0] == "[ERRO]" {
+			lastErrLine = strings.Join(parts[2:], " ")
+			if lastErrLine == "Not found" {
+				return nil, errUserNotFound
+			}
 			continue
 		}
 
@@ -108,7 +126,8 @@ func parseQuery(r io.Reader) (*resultQuery, error) {
 		return nil, scanner.Err()
 	}
 
-	return nil, errUserNotFound
+	// This could happen if the keybase service is broken
+	return nil, &errUnexpected{lastErrLine}
 }
 
 // parseError reads stderr output and returns an error made from it. If it
