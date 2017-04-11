@@ -553,3 +553,7 @@ type UserChangedHandler interface {
 	// changed, either because of a sigchain change, or a profile change.
 	HandleUserChanged(uid keybase1.UID) error
 }
+
+type ConnectivityMonitor interface {
+	IsConnected(ctx context.Context) bool
+}
