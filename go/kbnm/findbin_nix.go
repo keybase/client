@@ -1,6 +1,6 @@
-package main
-
 // +build !windows
+
+package main
 
 import (
 	"path/filepath"
