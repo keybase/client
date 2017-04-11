@@ -23,7 +23,8 @@ const mapStateToProps = (state: TypedState, {focusInputCounter}: OwnProps) => {
         isLoading = !conversationState.isLoaded
       }
     } else {
-      // A conversation can't be loading if it's pending -- it doesn't exist yet and we need to allow creating it.
+      // A conversation can't be loading if it's pending -- it doesn't exist
+      // yet and we need to allow creating it.
       isLoading = false
     }
   }
