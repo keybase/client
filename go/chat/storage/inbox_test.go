@@ -105,6 +105,28 @@ func TestInboxBasic(t *testing.T) {
 	convListCompare(t, convs[:numConvs/2], res, "half")
 }
 
+func TestInboxSummarize(t *testing.T) {
+	_, inbox, _ := setupInboxTest(t, "summarize")
+
+	conv := makeConvo(gregor1.Time(1), 1, 1)
+	maxMsgID := chat1.MessageID(6)
+	conv.MaxMsgs = []chat1.MessageBoxed{chat1.MessageBoxed{
+		ClientHeader: chat1.MessageClientHeader{
+			MessageType: chat1.MessageType_TEXT,
+		},
+		ServerHeader: &chat1.MessageServerHeader{
+			MessageID: maxMsgID,
+		},
+	}}
+
+	require.NoError(t, inbox.Merge(context.TODO(), 1, []chat1.Conversation{conv}, nil, nil))
+	_, res, _, err := inbox.Read(context.TODO(), nil, nil)
+	require.NoError(t, err)
+	require.Zero(t, len(res[0].MaxMsgs))
+	require.Equal(t, 1, len(res[0].MaxMsgSummaries))
+	require.Equal(t, maxMsgID, res[0].MaxMsgSummaries[0].GetMessageID())
+}
+
 func TestInboxQueries(t *testing.T) {
 
 	_, inbox, _ := setupInboxTest(t, "queries")

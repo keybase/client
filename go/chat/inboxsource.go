@@ -453,7 +453,9 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 	} else {
 		rquery = *query
 		rquery.ComputeActiveList = true
-		rquery.SummarizeMaxMsgs = false
+		// If we have been given a fixed set of conversation IDs, then just return summary, since
+		// we likely have the messages cached locally.
+		rquery.SummarizeMaxMsgs = len(rquery.ConvIDs) > 0 || rquery.ConvID != nil
 	}
 
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
@@ -820,33 +822,8 @@ func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1
 	return foundMsgs, chat1.ConversationErrorType_MISC, nil
 }
 
-// fillSummaries uses MaxMsgs to fill in MaxMsgSummaries.
-// After this call MaxMsgSummaries is a superset of MaxMsgs.
-func (s *localizerPipeline) fillSummaries(ctx context.Context, conversationRemote *chat1.Conversation) {
-	summaries := make(map[chat1.MessageID]chat1.MessageSummary)
-
-	// Collect the existing summaries
-	for _, m := range conversationRemote.MaxMsgSummaries {
-		summaries[m.MsgID] = m
-	}
-
-	// Collect the locally-grown summaries
-	for _, m := range conversationRemote.MaxMsgs {
-		summaries[m.GetMessageID()] = m.Summary()
-	}
-
-	// Insert all the summaries
-	conversationRemote.MaxMsgSummaries = nil
-	for _, m := range summaries {
-		conversationRemote.MaxMsgSummaries = append(conversationRemote.MaxMsgSummaries, m)
-	}
-}
-
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
-
-	// Fill MaxMsgSummaries from MaxMsgs.
-	s.fillSummaries(ctx, &conversationRemote)
 
 	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
 	s.Debug(ctx, "localizing: TLF: %s convID: %s offline: %v", unverifiedTLFName,

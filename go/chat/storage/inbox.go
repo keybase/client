@@ -21,7 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const inboxVersion = 10
+const inboxVersion = 11
 
 type queryHash []byte
 
@@ -167,6 +167,35 @@ func (a ByDatabaseOrder) Less(i, j int) bool {
 	return dbConvLess(a[i], a[j])
 }
 
+func (i *Inbox) summarizeConv(conv *chat1.Conversation) {
+	summaries := make(map[chat1.MessageType]chat1.MessageSummary)
+
+	// Collect the existing summaries
+	for _, m := range conv.MaxMsgSummaries {
+		summaries[m.GetMessageType()] = m
+	}
+
+	// Collect the locally-grown summaries
+	for _, m := range conv.MaxMsgs {
+		summaries[m.GetMessageType()] = m.Summary()
+	}
+
+	// Insert all the summaries
+	conv.MaxMsgs = nil
+	conv.MaxMsgSummaries = nil
+	for _, m := range summaries {
+		conv.MaxMsgSummaries = append(conv.MaxMsgSummaries, m)
+	}
+}
+
+func (i *Inbox) summarizeConvs(convs []chat1.Conversation) (res []chat1.Conversation) {
+	for _, conv := range convs {
+		i.summarizeConv(&conv)
+		res = append(res, conv)
+	}
+	return res
+}
+
 func (i *Inbox) mergeConvs(l []chat1.Conversation, r []chat1.Conversation) (res []chat1.Conversation) {
 	m := make(map[string]bool)
 	for _, conv := range l {
@@ -231,7 +260,7 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1
 		data = inboxDiskData{
 			Version:       inboxVersion,
 			InboxVersion:  vers,
-			Conversations: convs,
+			Conversations: i.summarizeConvs(convs),
 			Queries:       []inboxDiskQuery{qp},
 		}
 	} else {
@@ -239,7 +268,7 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1
 		data = inboxDiskData{
 			Version:       inboxVersion,
 			InboxVersion:  vers,
-			Conversations: i.mergeConvs(convs, ibox.Conversations),
+			Conversations: i.summarizeConvs(i.mergeConvs(convs, ibox.Conversations)),
 			Queries:       append(ibox.Queries, qp),
 		}
 	}
