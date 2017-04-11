@@ -1,0 +1,17 @@
+// @flow
+import * as Constants from '../../../../constants/chat'
+import {Component} from 'react'
+import {List} from 'immutable'
+
+export type StateProps = {|
+  _participants: List<string>,
+  _supersededBy: ?Constants.SupersedeInfo,
+  username: string,
+|}
+
+export type DispatchProps = {|
+  onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => void,
+  startConversation: (users: Array<string>) => void,
+|}
+
+export default class OldProfileResetNotice extends Component<void, void, void> {}

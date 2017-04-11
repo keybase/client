@@ -1,0 +1,14 @@
+// @flow
+import {Component} from 'react'
+import * as Constants from '../../../../constants/chat'
+
+export type StateProps = {|
+  username: string,
+  prevConversationIDKey: Constants.ConversationIDKey,
+|}
+
+export type DispatchProps = {|
+  onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => void,
+|}
+
+export default class ProfileResetNotice extends Component<void, void, void> {}
