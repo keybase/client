@@ -16,11 +16,15 @@ const mapStateToProps = (state: TypedState, {focusInputCounter}: OwnProps) => {
 
   let isLoading = true
 
-  if (!Constants.isPendingConversationIDKey(selectedConversationIDKey || '') &&
-    selectedConversationIDKey !== Constants.nothingSelected) {
-    const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
-    if (conversationState) {
-      isLoading = conversationState.isLoading
+  if (selectedConversationIDKey !== Constants.nothingSelected) {
+    if (!Constants.isPendingConversationIDKey(selectedConversationIDKey || '')) {
+      const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
+      if (conversationState) {
+        isLoading = !conversationState.isLoaded
+      }
+    } else {
+      // A conversation can't be loading if it's pending -- it doesn't exist yet and we need to allow creating it.
+      isLoading = false
     }
   }
 
