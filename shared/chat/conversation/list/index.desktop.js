@@ -23,7 +23,6 @@ import {globalColors, globalStyles} from '../../../styles'
 import type {Props} from '.'
 
 type State = {
-  // isLockedToBottom: boolean,
   // isScrolling: boolean,
   // scrollTop: number,
   selectedMessageKey: ?Constants.MessageKey,
@@ -164,10 +163,7 @@ class BaseList extends Component<void, Props, State> {
 
     this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
 
-    // // Lock to bottom if we are close to the bottom
-    // const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
     // this.setState({
-      // isLockedToBottom,
       // // isScrolling: true,
       // // scrollTop,
     // })

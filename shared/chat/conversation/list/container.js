@@ -13,8 +13,6 @@ import type {OwnProps, StateProps, DispatchProps} from './container'
 import type {Props} from '.'
 import type {TypedState} from '../../../constants/reducer'
 
-// TODO reselect
-
 const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollDownCounter, onFocusInput}: OwnProps): StateProps => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const you = state.config.username || ''
