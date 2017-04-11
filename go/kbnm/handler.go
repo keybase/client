@@ -86,25 +86,29 @@ type resultQuery struct {
 func parseQuery(r io.Reader) (*resultQuery, error) {
 	scanner := bufio.NewScanner(r)
 
-	if !scanner.Scan() {
+	for scanner.Scan() {
+		// Find a line that looks like... "[INFO] 001 Identifying someuser"
+		line := strings.TrimSpace(scanner.Text())
+		parts := strings.Split(line, " ")
+		if len(parts) < 4 {
+			continue
+		}
+
+		if parts[2] != "Identifying" {
+			continue
+		}
+
+		resp := &resultQuery{
+			Username: parts[3],
+		}
+		return resp, nil
+	}
+
+	if err := scanner.Err(); err != nil {
 		return nil, scanner.Err()
 	}
 
-	// Should be of the form "[INFO] 001 Identifying someuser"
-	line := strings.TrimSpace(scanner.Text())
-	parts := strings.Split(line, " ")
-	if len(parts) < 4 {
-		return nil, errParsing
-	}
-
-	if parts[2] != "Identifying" {
-		return nil, errUserNotFound
-	}
-
-	resp := &resultQuery{
-		Username: parts[3],
-	}
-	return resp, nil
+	return nil, errUserNotFound
 }
 
 // parseError reads stderr output and returns an error made from it. If it
