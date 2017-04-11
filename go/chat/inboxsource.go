@@ -579,7 +579,7 @@ func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid
 	if verr, ok := err.(storage.VersionMismatchError); ok {
 		s.Debug(ctx, "handleInboxError: version mismatch, syncing and sending stale notifications: %s",
 			verr.Error())
-		return s.G().Syncer.Sync(ctx, s.getChatInterface(), uid, nil)
+		return s.G().ChatSyncer.Sync(ctx, s.getChatInterface(), uid, nil)
 	}
 	return err
 }

@@ -257,7 +257,6 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 		return
 	}
 
-	g.Syncer = NullChatSyncer{}
 	g.GregorDismisser = &FakeGregorDismisser{}
 
 	tc.PrevGlobal = G

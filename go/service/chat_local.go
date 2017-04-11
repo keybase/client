@@ -209,7 +209,7 @@ func (h *chatLocalHandler) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAs
 		return res, err
 	}
 	return chat1.MarkAsReadLocalRes{
-		Offline:    h.G().Syncer.IsConnected(ctx),
+		Offline:    h.G().ChatSyncer.IsConnected(ctx),
 		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rres.RateLimit}),
 	}, nil
 }
