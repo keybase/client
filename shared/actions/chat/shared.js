@@ -53,8 +53,9 @@ function inboxUntrustedStateSelector (state: TypedState) {
 }
 
 function tmpFileName (isHdPreview: boolean, conversationID: Constants.ConversationIDKey, messageID: ?Constants.MessageID, filename: string) {
-  if (!messageID)
+  if (!messageID) {
     throw new Error('tmpFileName called without messageID!')
+  }
 
   return `kbchat-${isHdPreview ? 'hdPreview' : 'preview'}-${conversationID}-${messageID}`
 }
