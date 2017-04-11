@@ -10,14 +10,14 @@
 //
 import * as Constants from '../../../constants/chat'
 import * as Virtualized from 'react-virtualized'
+import EditPopup from '../edit-popup.desktop'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
-import EditPopup from '../edit-popup.desktop'
-import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
-import {findDOMNode} from '../../../util/dom'
 import messageFactory from '../messages'
 import {Icon} from '../../../common-adapters'
-// import {clipboard} from 'electron'
+import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
+import {clipboard} from 'electron'
+import {findDOMNode} from '../../../util/dom'
 import {globalColors, globalStyles} from '../../../styles'
 
 import type {Props} from '.'
@@ -44,7 +44,6 @@ class BaseList extends Component<void, Props, State> {
 
   state = {
     selectedMessageKey: null,
-    // isScrolling: false,
     // scrollTop: 0,
   }
 
@@ -134,7 +133,6 @@ class BaseList extends Component<void, Props, State> {
 
   // _onScrollSettled = _.debounce(() => {
     // this.setState({
-      // isScrolling: false,
     // })
   // }, 1000)
 
@@ -144,7 +142,6 @@ class BaseList extends Component<void, Props, State> {
       this._isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
     }
     // this.setState({
-      // isScrolling: true,
       // scrollTop,
     // })
   }
@@ -164,7 +161,6 @@ class BaseList extends Component<void, Props, State> {
     this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
 
     // this.setState({
-      // // isScrolling: true,
       // // scrollTop,
     // })
 
@@ -200,15 +196,6 @@ class BaseList extends Component<void, Props, State> {
         }}
       </Virtualized.CellMeasurer>
     )
-
-    // const message = this.props.messageKeys.get(index)
-    // const prevMessage = this.props.messages.get(index - 1)
-    // const isFirstMessage = index === 0
-    // const isSelected = false // TODO selectedKey instead
-
-    // const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, this._onAction, this._onShowEditor, false)
-
-    // return messageFactory(options)
   }
 
   // _recomputeListDebounced = _.throttle(() => {
@@ -224,11 +211,11 @@ class BaseList extends Component<void, Props, State> {
     // this.state.isLockedToBottom && this._scrollToBottom()
   // }
 
-  // _onCopyCapture (e) {
-    // // Copy text only, not HTML/styling.
-    // e.preventDefault()
-    // clipboard.writeText(window.getSelection().toString())
-  // }
+  _onCopyCapture (e) {
+    // Copy text only, not HTML/styling.
+    e.preventDefault()
+    clipboard.writeText(window.getSelection().toString())
+  }
 
   // _setCellMeasurerRef = r => {
     // this._cellMeasurer = r
@@ -247,11 +234,11 @@ class BaseList extends Component<void, Props, State> {
     // }
   // }
 
-  // _handleListClick = () => {
-    // if (window.getSelection().isCollapsed) {
-      // this.props.onFocusInput()
-    // }
-  // }
+  _handleListClick = () => {
+    if (window.getSelection().isCollapsed) {
+      this.props.onFocusInput()
+    }
+  }
 
   // onEditLastMessage = () => {
     // if (!this._list) {
@@ -305,7 +292,7 @@ class BaseList extends Component<void, Props, State> {
     // We pass additional props to Virtualized.List so we can force re-rendering when this state changes instead of
     // having to explicitly call to force rendering
     return (
-      <div style={containerStyle} onClick={undefined/*this._handleListClick*/} onCopyCapture={undefined/*this._onCopyCapture*/}>
+      <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
         <style>{realCSS}</style>
         <Virtualized.AutoSizer onResize={this._onResize}>
           {({height, width}) => (
