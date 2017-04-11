@@ -99,10 +99,10 @@ build_one_architecture() {
 
   # Whitelist for NativeMessaging
   kbnm_bin="/usr/bin/kbnm"
-  kbnm_file="/etc/opt/chrome/native-messaging-hosts/io.keybase.kbnm"
+  kbnm_file="$dest/etc/opt/chrome/native-messaging-hosts/io.keybase.kbnm"
   mkdir -p "$(dirname "$kbnm_file")"
   cat "$here/host_json.template" \
-    | sed "s|@@HOST_PATH@@|/usr/local/bin/$kbnm_bin|g" \
+    | sed "s|@@HOST_PATH@@|/usr/local/bin/$kbnm_bin|g"
   chmod 644 "$kbnm_file"
 
   rpmbuild --define "_topdir $dest" --target "$rpm_arch" -bb "$spec"
