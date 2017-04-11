@@ -581,6 +581,7 @@ func (i *Inbox) NewConversation(ctx context.Context, vers chat1.InboxVers, conv 
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	i.Debug(ctx, "NewConversation: vers: %d convID: %s", vers, conv.GetConvID())
+	i.summarizeConv(&conv)
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
@@ -915,7 +916,7 @@ func (i *Inbox) ServerVersion(ctx context.Context) (vers int, err Error) {
 	return vers, nil
 }
 
-func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Conversation) (err Error) {
+func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, iconvs []chat1.Conversation) (err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, "Sync")()
@@ -931,6 +932,7 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	oldVers := ibox.InboxVersion
 	ibox.InboxVersion = vers
 	convMap := make(map[string]chat1.Conversation)
+	convs := i.summarizeConvs(iconvs)
 	for _, conv := range convs {
 		convMap[conv.GetConvID().String()] = conv
 	}
