@@ -1042,6 +1042,7 @@ func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat
 			if err != nil {
 				return res, err
 			}
+			defer parg.Preview.source.Close()
 		}
 		if arg.Preview.Metadata != nil {
 			parg.Preview.md = arg.Preview.Metadata
@@ -1050,7 +1051,6 @@ func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat
 			parg.Preview.baseMd = arg.Preview.BaseMetadata
 		}
 		parg.Preview.mimeType = arg.Preview.MimeType
-		defer parg.Preview.source.Close()
 	}
 
 	return h.postAttachmentLocal(ctx, parg)
