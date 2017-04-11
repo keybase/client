@@ -4,7 +4,6 @@
 // We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling.
 //
 //
-// TODO: handle resize width
 // TODO:  hanle scroll stuff
 //
 //
@@ -16,34 +15,14 @@ import ReactDOM from 'react-dom'
 import EditPopup from '../edit-popup.desktop'
 import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
 import {findDOMNode} from '../../../util/dom'
-import _ from 'lodash'
+// import _ from 'lodash'
 import messageFactory from '../messages'
 // import shallowEqual from 'shallowequal'
 import {Icon} from '../../../common-adapters'
 // import {clipboard} from 'electron'
 import {globalColors, globalStyles} from '../../../styles'
 
-// import type {List} from 'immutable'
 import type {Props} from '.'
-
-// type DefaultCellRangeRendererParams = {
-  // cellCache: Object,
-  // cellRenderer: Function,
-  // columnSizeAndPositionManager: Object,
-  // columnStartIndex: number,
-  // columnStopIndex: number,
-  // horizontalOffsetAdjustment: number,
-  // isScrolling: boolean,
-  // rowSizeAndPositionManager: Object,
-  // rowStartIndex: number,
-  // rowStopIndex: number,
-  // scrollLeft: number,
-  // scrollTop: number,
-  // styleCache: Object,
-  // verticalOffsetAdjustment: number,
-  // visibleColumnIndices: Object,
-  // visibleRowIndices: Object,
-// }
 
 type State = {
   // isLockedToBottom: boolean,
@@ -102,9 +81,9 @@ class BaseList extends Component<void, Props, State> {
     // }
   }
 
-  _listIsGood () {
-    return this._list && this._list.Grid
-  }
+  // _listIsGood () {
+    // return this._list && this._list.Grid
+  // }
 
   _onAction = (message: Constants.ServerMessage, event: any) => {
     throw new Error('Implemented in PopupEnabledList')

@@ -47,6 +47,8 @@ const factory = (
         prevMessageKey={prevMessageKey} />
     case 'timestamp':
       return <Timestamp messageKey={messageKey} />
+    case 'messageIDUnhandled':
+      return <Box data-unhandled={true} data-messageKey={messageKey} />
   }
 
   // TEMP just to see them
@@ -78,23 +80,6 @@ const TEMP = {
         // username={message.username}
         // style={style}
         // key={`supersedes:${message.supersedes}`}
-        // />
-    // case 'Attachment':
-      // return <AttachmentMessageRender
-        // key={key}
-        // style={style}
-        // you={you}
-        // metaDataMap={metaDataMap}
-        // followingMap={followingMap}
-        // message={message}
-        // onRetry={() => onRetryAttachment(message)}
-        // includeHeader={includeHeader}
-        // isFirstNewMessage={isFirstNewMessage}
-        // onLoadAttachment={onLoadAttachment}
-        // onOpenInFileUI={onOpenInFileUI}
-        // onOpenInPopup={onOpenInPopup}
-        // messageID={message.messageID}
-        // onAction={onAction}
         // />
   // }
 // }
