@@ -126,10 +126,10 @@ const StackedMessages = ({mock1, mock2}: any) => (
   </Box>
 )
 
-const textMap: DumbComponentMap<Text> = {
-  component: Text,
-  mocks,
-}
+// const textMap: DumbComponentMap<Text> = {
+  // component: Text,
+  // mocks,
+// }
 
 const attachmentBaseMessage = {
   type: 'Attachment',
@@ -212,8 +212,8 @@ const attachmentBaseMock = {
   onLoadAttachment: () => console.log('onLoadAttachment'),
   onAction: () => console.log('onAction'),
   onRetry: () => console.log('onRetry'),
-  onOpenInFileUI: (path: string) => console.log('on open in file ui'),
-  onOpenInPopup: (message: AttachmentMessage) => console.log('on open in popup'),
+  onOpenInFileUI: () => console.log('on open in file ui'),
+  onOpenInPopup: () => console.log('on open in popup'),
   style: {},
   you: 'marcopolo',
   followingMap,
@@ -469,7 +469,7 @@ const attachmentPopupMap: DumbComponentMap<AttachmentPopup> = {
 }
 
 export default {
-  'Text Message': textMap,
+  // 'Text Message': textMap,
   'Stacked Text Message': stackedMessagesMap,
   'Popup': textPopupMenuMap,
   'Popup - Attachment': attachmentPopupMenuMap,

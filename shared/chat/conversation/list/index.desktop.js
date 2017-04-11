@@ -84,8 +84,13 @@ class BaseList extends Component<void, Props, State> {
   // }
 
   _onAction = (message: Constants.ServerMessage, event: any) => {
-    throw new Error('Implemented in PopupEnabledList')
+    throw new Error('_onAction Implemented in PopupEnabledList')
   }
+
+  _onShowEditor = (message: Constants.Message, event: any) => {
+    throw new Error('_onShowEditor Implemented in PopupEnabledList')
+  }
+
   // componentDidUpdate (prevProps: Props, prevState: State) {
     // if ((this.props.selectedConversation !== prevProps.selectedConversation) ||
         // (this.props.messageKeys !== prevProps.messageKeys)) {
@@ -178,16 +183,6 @@ class BaseList extends Component<void, Props, State> {
     }
   }
 
-  // _onShowEditor = (message: Constants.Message, event: any) => {
-    // if (message.type === 'Text') {
-      // const messageNode = this._findMessageFromDOMNode(event.target)
-      // const messageRect = messageNode && this._domNodeToRect(messageNode)
-      // if (messageRect) {
-        // this._showEditor(message, messageRect)
-      // }
-    // }
-  // }
-
   _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
     const messageKey = this.props.messageKeys.get(index)
     const prevMessageKey = this.props.messageKeys.get(index - 1)
@@ -200,7 +195,7 @@ class BaseList extends Component<void, Props, State> {
         parent={parent}
         rowIndex={index}>
         {({measure}) => {
-          const message = messageFactory(messageKey, prevMessageKey, this._onAction, isSelected, measure)
+          const message = messageFactory(messageKey, prevMessageKey, this._onAction, this._onShowEditor, isSelected, measure)
           return (
             <div style={style}>
               {message}
@@ -468,6 +463,16 @@ class PopupEnabledList extends BaseList {
   _onAction = (message: Constants.ServerMessage, event: any) => {
     if (message.type === 'Text' || message.type === 'Attachment') {
       this._showPopup(message, event)
+    }
+  }
+
+  _onShowEditor = (message: Constants.Message, event: any) => {
+    if (message.type === 'Text') {
+      const messageNode = this._findMessageFromDOMNode(event.target)
+      const messageRect = messageNode && this._domNodeToRect(messageNode)
+      if (messageRect) {
+        this._showEditor(message, messageRect)
+      }
     }
   }
 }

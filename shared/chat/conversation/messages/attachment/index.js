@@ -128,7 +128,7 @@ const ShowInFileUi = ({onOpenInFileUI}) => (
   <Text type='BodySmallSecondaryLink' onClick={onOpenInFileUI}>Show in {fileUIName}</Text>
 )
 
-function PreviewImageWithInfo ({message, onMessageAction, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onMessageAction: ?() => void, onOpenInFileUI: (path: string) => void, onOpenInPopup: ?() => void}) {
+function PreviewImageWithInfo ({message, onMessageAction, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onMessageAction: ?() => void, onOpenInFileUI: () => void, onOpenInPopup: ?() => void}) {
   const {downloadedPath, messageState} = message
 
   const overlayProgressBarStyle = {

@@ -2,14 +2,35 @@
 import {Component} from 'react'
 import * as Constants from '../../../../constants/chat'
 
-export type OwnProps = {
-  children?: React$Element<*>,
+export type OwnProps = {|
   messageKey: Constants.MessageKey,
   prevMessageKey: ?Constants.MessageKey,
   onAction: (message: Constants.ServerMessage, event: any) => void,
+  onShowEditor: (message: Constants.ServerMessage, event: any) => void,
   isSelected: boolean,
   innerClass: ReactClass<*>,
   measure: ?() => void,
-}
+|}
+
+export type StateProps = {|
+  _editedCount: boolean,
+  _message: Constants.AttachmentMessage | Constants.TextMessage,
+  _selectedConversationIDKey: ?Constants.ConversationIDKey,
+  author: string,
+  failureDescription: ?string,
+  includeHeader: boolean,
+  isBroken: boolean,
+  isEdited: boolean,
+  isEditing: boolean,
+  isFirstNewMessage: boolean,
+  isFollowing: boolean,
+  isRevoked: boolean,
+  isYou: boolean,
+|}
+
+export type DispatchProps = {|
+  _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => void,
+  _onRetryAttachment: (message: Constants.AttachmentMessage) => void,
+|}
 
 export default class Wrapper extends Component<void, OwnProps, void> {}

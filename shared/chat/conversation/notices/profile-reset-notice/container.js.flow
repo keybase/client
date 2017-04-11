@@ -11,4 +11,4 @@ export type DispatchProps = {|
   onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => void,
 |}
 
-export default class ProfileResetNotice extends Component<void, void, void> {}
+export default class ProfileResetNotice extends Component<void, {}, void> {}

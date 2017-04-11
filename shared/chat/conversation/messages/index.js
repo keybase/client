@@ -14,6 +14,7 @@ const factory = (
   messageKey: Constants.MessageKey,
   prevMessageKey: ?Constants.MessageKey,
   onAction: (message: Constants.ServerMessage, event: any) => void,
+  onShowEditor: (message: Constants.ServerMessage, event: any) => void,
   isSelected: boolean,
   measure: () => void
 ) => {
@@ -24,9 +25,11 @@ const factory = (
     case 'messageIDAttachment':
       return <Wrapper
         innerClass={Attachment}
+        isSelected={isSelected}
         measure={measure}
         messageKey={messageKey}
         onAction={onAction}
+        onShowEditor={onShowEditor}
         prevMessageKey={prevMessageKey} />
     case 'error': // fallthrough
     case 'errorInvisible': // fallthrough
@@ -36,9 +39,11 @@ const factory = (
     case 'messageIDText':
       return <Wrapper
         innerClass={TextMessage}
+        isSelected={isSelected}
         measure={measure}
         messageKey={messageKey}
         onAction={onAction}
+        onShowEditor={onShowEditor}
         prevMessageKey={prevMessageKey} />
     case 'supersedes':
       return <ProfileResetNotice />

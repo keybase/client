@@ -14,4 +14,4 @@ export type DispatchProps = {|
   startConversation: (users: Array<string>) => void,
 |}
 
-export default class OldProfileResetNotice extends Component<void, void, void> {}
+export default class OldProfileResetNotice extends Component<void, {}, void> {}

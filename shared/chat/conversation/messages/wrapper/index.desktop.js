@@ -134,14 +134,3 @@ const _failStyleFace = {
 }
 
 export default MessageWrapper
-// export default withHandlers({
-  // onIconClick: (props: Props) => event => {
-    // props.onAction(props.message, event)
-  // },
-  // onRetry: (props: Props) => () => {
-    // props.message.outboxID && props.onRetry(props.message.outboxID)
-  // },
-  // onShowEditor: (props: Props) => event => {
-    // props.onShowEditor(props.message, event)
-  // },
-// })(MessageWrapper)
