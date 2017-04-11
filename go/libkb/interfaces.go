@@ -473,11 +473,20 @@ type NetContext interface {
 	GetNetContext() context.Context
 }
 
+type DNSNameServerFetcher interface {
+	GetServers() []string
+}
+
+type DNSContext interface {
+	GetDNSNameServerFetcher() DNSNameServerFetcher
+}
+
 // ProofContext defines features needed by the proof system
 type ProofContext interface {
 	LogContext
 	APIContext
 	NetContext
+	DNSContext
 	GetPvlSource() PvlSource
 }
 

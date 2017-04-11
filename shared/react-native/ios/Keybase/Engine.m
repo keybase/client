@@ -40,7 +40,7 @@ static NSString *const eventName = @"objc-engine-event";
 }
 
 - (void)setupKeybaseWithSettings:(NSDictionary *)settings error:(NSError **)error {
-  GoKeybaseInit(settings[@"homedir"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], error);
+  GoKeybaseInit(settings[@"homedir"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, error);
 }
 
 - (void)setupQueues {
