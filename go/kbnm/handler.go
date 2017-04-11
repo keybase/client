@@ -21,13 +21,16 @@ func execRunner(cmd *exec.Cmd) error {
 // Handler returns a request handler.
 func Handler() *handler {
 	return &handler{
-		Run: execRunner,
+		Run:               execRunner,
+		FindKeybaseBinary: findKeybaseBinary,
 	}
 }
 
 type handler struct {
 	// Run wraps the equivalent of cmd.Run(), allowing for mocking
 	Run func(cmd *exec.Cmd) error
+	// FindCmd returns the path of the keybase binary if it can find it
+	FindKeybaseBinary func() (string, error)
 }
 
 // Handle accepts a request, handles it, and returns an optional result if there was no error
@@ -47,7 +50,7 @@ func (h *handler) handleChat(req *Request) error {
 		return errMissingField
 	}
 
-	binPath, err := findKeybaseBinary()
+	binPath, err := h.FindKeybaseBinary()
 	if err != nil {
 		return err
 	}
@@ -74,7 +77,7 @@ func (h *handler) handleQuery(req *Request) (*resultQuery, error) {
 		return nil, errMissingField
 	}
 
-	binPath, err := findKeybaseBinary()
+	binPath, err := h.FindKeybaseBinary()
 	if err != nil {
 		return nil, err
 	}

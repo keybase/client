@@ -15,6 +15,9 @@ func TestHandlerChat(t *testing.T) {
 		ranCmd = strings.Join(cmd.Args, " ")
 		return nil
 	}
+	h.FindKeybaseBinary = func() (string, error) {
+		return "/mocked/test/path/keybase", nil
+	}
 
 	req := &Request{
 		Method: "chat",
@@ -26,7 +29,7 @@ func TestHandlerChat(t *testing.T) {
 		t.Errorf("request failed: %q", err)
 	}
 
-	if ranCmd != "/usr/local/bin/keybase chat send --private testkeybaseuser" {
+	if ranCmd != "/mocked/test/path/keybase chat send --private testkeybaseuser" {
 		t.Errorf("unexpected command: %q", ranCmd)
 	}
 }
@@ -53,6 +56,9 @@ func TestHandlerQuery(t *testing.T) {
 		io.WriteString(cmd.Stdout, queryResponse)
 		return nil
 	}
+	h.FindKeybaseBinary = func() (string, error) {
+		return "/mocked/test/path/keybase", nil
+	}
 
 	req := &Request{
 		Method: "query",
@@ -68,7 +74,7 @@ func TestHandlerQuery(t *testing.T) {
 		t.Errorf("result is not *resultQuery: %T", res)
 	}
 
-	if ranCmd != "/usr/local/bin/keybase sigs list --type=self --json testkeybaseuser" {
+	if ranCmd != "/mocked/test/path/keybase sigs list --type=self --json testkeybaseuser" {
 		t.Errorf("unexpected command: %q", ranCmd)
 	}
 
