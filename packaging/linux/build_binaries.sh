@@ -88,14 +88,9 @@ build_one_architecture() {
   go build -tags "$go_tags" -ldflags "$ldflags_client" -o \
     "$layout_dir/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
-  # Build the kbnm binary
-  echo "Building kbnm for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -o \
-    "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm
-
   # Short-circuit if we're not building electron.
   if ! should_build_kbfs ; then
-    echo "SKIPPING kbfs and electron."
+    echo "SKIPPING kbfs, kbnm, and electron."
     return
   fi
 
@@ -111,6 +106,19 @@ build_one_architecture() {
   ln -snf "$kbfs_repo" "$GOPATH/src/github.com/keybase/kbfs"
   go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -o \
     "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
+
+  # Build the kbnm binary
+  echo "Building kbnm for $GOARCH..."
+  go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -o \
+    "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm
+
+  # Whitelist for NativeMessaging
+  kbnm_bin="/usr/bin/kbnm"
+  kbnm_file="$layout_dir/etc/opt/chrome/native-messaging-hosts/io.keybase.kbnm"
+  mkdir -p "$(dirname "$kbnm_file")"
+  cat "$here/host_json.template" \
+    | sed "s|@@HOST_PATH@@|$kbnm_bin|g" \
+    > "$kbnm_file"
 
   # Build Electron.
   echo "Building Electron client for $electron_arch..."
