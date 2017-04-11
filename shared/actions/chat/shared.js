@@ -53,7 +53,10 @@ function inboxUntrustedStateSelector (state: TypedState) {
 }
 
 function tmpFileName (isHdPreview: boolean, conversationID: Constants.ConversationIDKey, messageID: ?Constants.MessageID, filename: string) {
-  return `kbchat-${isHdPreview ? 'hdPreview' : 'preview'}-${conversationID}-${messageID || ''}-${filename}`
+  if (!messageID)
+    throw new Error('tmpFileName called without messageID!')
+
+  return `kbchat-${isHdPreview ? 'hdPreview' : 'preview'}-${conversationID}-${messageID}`
 }
 
 function * clientHeader (messageType: ChatTypes.MessageType, conversationIDKey: Constants.ConversationIDKey): Generator<any, ?ChatTypes.MessageClientHeader, any> {

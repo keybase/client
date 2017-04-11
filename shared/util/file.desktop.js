@@ -5,7 +5,7 @@ import fsExtra from 'fs-extra'
 import os from 'os'
 import path from 'path'
 
-import {cacheRoot} from '../constants/platform'
+import {cacheRoot} from '../constants/platform.desktop'
 
 function tmpDir (): string {
   return cacheRoot
