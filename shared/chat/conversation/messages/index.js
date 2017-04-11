@@ -1,19 +1,14 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import Attachment from './attachment/container'
-// import AttachmentMessageRender from './attachment'
-// import MessageText from './text'
-import React from 'react'
-import Timestamp from './timestamp/container'
-import Header from './header/container'
-import Wrapper from './wrapper/container'
-import TextMessage from './text/container'
 import ErrorMessage from './error/container'
+import Header from './header/container'
 import ProfileResetNotice from '../notices/profile-reset-notice/container'
-import {Box, Text} from '../../../common-adapters'
-// import {formatTimeForMessages} from '../../../util/timestamp'
-// import {globalStyles} from '../../../styles'
-// import {isMobile} from '../../../constants/platform'
+import React from 'react'
+import TextMessage from './text/container'
+import Timestamp from './timestamp/container'
+import Wrapper from './wrapper/container'
+import {Box} from '../../../common-adapters'
 
 const factory = (
   messageKey: Constants.MessageKey,
@@ -47,54 +42,13 @@ const factory = (
         prevMessageKey={prevMessageKey} />
     case 'supersedes':
       return <ProfileResetNotice />
-        // onOpenOlderConversation={() => onOpenConversation(message.supersedes)}
-        // username={message.username}
-        // style={style}
-        // key={`supersedes:${message.supersedes}`}
-        // />
     case 'timestamp':
       return <Timestamp messageKey={messageKey} />
     case 'messageIDUnhandled':
       return <Box data-unhandled={true} data-messageKey={messageKey} />
   }
 
-  // TEMP just to see them
-  return (
-    <Box style={TEMP}>
-      <Text type='BodySmall' style={TEMP}>{kind}:{messageKey.substring(0, 5)}</Text>
-    </Box>
-  )
   return <Box data-messageKey={messageKey} />
 }
-
-const TEMP = {
-  height: 50,
-}
-
-// import type {Options} from './index'
-
-// const factory = (options: Options) => {
-  // const {message, includeHeader, key, isEditing, isFirstNewMessage, isSelected, onAction, onLoadAttachment, onOpenConversation, onOpenInFileUI, onOpenInPopup, onRetry, onRetryAttachment, onShowEditor, style, you, metaDataMap, followingMap, moreToLoad} = options
-
-  // if (!message) {
-    // return <Box key={key} style={style} />
-  // }
-
-  // switch (message.type) {
-    // case 'Supersedes':
-      // return <ProfileResetNotice
-        // onOpenOlderConversation={() => onOpenConversation(message.supersedes)}
-        // username={message.username}
-        // style={style}
-        // key={`supersedes:${message.supersedes}`}
-        // />
-  // }
-// }
-
-// const errorStyle = {
-  // ...globalStyles.flexBoxRow,
-  // justifyContent: 'center',
-  // padding: 5,
-// }
 
 export default factory
