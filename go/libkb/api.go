@@ -12,8 +12,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"runtime"
-	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -232,7 +232,18 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 	ctx = WithLogTag(ctx, "API")
 	api.G().Log.CDebugf(ctx, "+ API %s %s", req.Method, req.URL)
-	debug.PrintStack()
+
+	stack := func() []byte {
+		buf := make([]byte, 1024)
+		for {
+			n := runtime.Stack(buf, true)
+			if n < len(buf) {
+				return buf[:n]
+			}
+			buf = make([]byte, 2*len(buf))
+		}
+	}()
+	os.Stderr.Write(stack)
 
 	var jsonBytes int
 	var status string
@@ -422,14 +433,31 @@ func (a *InternalAPIEngine) getURL(arg APIArg) url.URL {
 	return u
 }
 
-func (a *InternalAPIEngine) sessionArgs(arg APIArg) (tok, csrf string) {
+func (a *InternalAPIEngine) sessionArgs(arg APIArg) (tok, csrf string, err error) {
 	if arg.SessionR != nil {
-		return arg.SessionR.APIArgs()
+		// XXX change SessionR interface to have LoggedInProvisionedCheck
+		tok, csrf = arg.SessionR.APIArgs()
+		return tok, csrf, nil
 	}
-	a.G().LoginState().LocalSession(func(s *Session) {
-		tok, csrf = s.APIArgs()
+
+	a.G().LoginState().Account(func(a *Account) {
+		var in bool
+		in, err = a.LoggedInProvisionedCheck()
+		if err != nil {
+			return
+		}
+		if !in {
+			err = LoginRequiredError{}
+			return
+		}
+		tok, csrf = a.LocalSession().APIArgs()
 	}, "sessionArgs")
-	return
+
+	if err != nil {
+		return "", "", err
+	}
+
+	return tok, csrf, nil
 }
 
 func (a *InternalAPIEngine) isExternal() bool { return false }
@@ -506,7 +534,10 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 
 func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 	if arg.SessionType != APISessionTypeNONE {
-		tok, csrf := a.sessionArgs(arg)
+		tok, csrf, err := a.sessionArgs(arg)
+		if err != nil {
+			a.G().Log.Warning("fixHeaders: need session, but error getting sessionArgs: %s", err)
+		}
 		if len(tok) > 0 && a.G().Env.GetTorMode().UseSession() {
 			req.Header.Add("X-Keybase-Session", tok)
 		} else if arg.SessionType == APISessionTypeREQUIRED {
