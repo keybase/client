@@ -52,7 +52,7 @@ function inboxUntrustedStateSelector (state: TypedState) {
   return state.chat.get('inboxUntrustedState')
 }
 
-function tmpFileName (isHdPreview: boolean, conversationID: Constants.ConversationIDKey, messageID: ?Constants.MessageID, filename: string) {
+function tmpFileName (isHdPreview: boolean, conversationID: Constants.ConversationIDKey, messageID: Constants.MessageID, filename: string) {
   if (!messageID) {
     throw new Error('tmpFileName called without messageID!')
   }

@@ -200,7 +200,7 @@ function * onOpenAttachmentPopup (action: Constants.OpenAttachmentPopup): SagaGe
   }
 
   yield put(putActionIfOnPath(currentPath, navigateAppend([{props: {messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}])))
-  if (!message.hdPreviewPath && message.filename) {
+  if (!message.hdPreviewPath && message.filename && message.messageID) {
     yield put(Creators.loadAttachment(message.conversationIDKey, messageID, tmpFile(Shared.tmpFileName(true, message.conversationIDKey, message.messageID, message.filename)), false, true))
   }
 }
