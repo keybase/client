@@ -494,65 +494,88 @@
 			"revisionTime": "2016-11-18T21:00:15Z"
 		},
 		{
+			"checksumSHA1": "TT1rac6kpQp2vz24m5yDGUNQ/QQ=",
 			"path": "golang.org/x/crypto/cast5",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
+			"revision": "9ef620b9ca2f82b55030ffd4f41327fa9e77a92c",
+			"revisionTime": "2017-01-13T04:52:50Z"
 		},
 		{
+			"checksumSHA1": "C1KKOxFoW7/W/NFNpiXK+boguNo=",
 			"path": "golang.org/x/crypto/curve25519",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
+			"revision": "9ef620b9ca2f82b55030ffd4f41327fa9e77a92c",
+			"revisionTime": "2017-01-13T04:52:50Z"
 		},
 		{
+			"checksumSHA1": "wGb//LjBPNxYHqk+dcLo7BjPXK8=",
+			"path": "golang.org/x/crypto/ed25519",
+			"revision": "9ef620b9ca2f82b55030ffd4f41327fa9e77a92c",
+			"revisionTime": "2017-01-13T04:52:50Z"
+		},
+		{
+			"checksumSHA1": "LXFcVx8I587SnWmKycSDEq9yvK8=",
+			"path": "golang.org/x/crypto/ed25519/internal/edwards25519",
+			"revision": "9ef620b9ca2f82b55030ffd4f41327fa9e77a92c",
+			"revisionTime": "2017-01-13T04:52:50Z"
+		},
+		{
+			"checksumSHA1": "LIOlUuwAjG4+meTovizhtsB+fTE=",
 			"path": "golang.org/x/crypto/nacl/box",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
+			"revision": "9ef620b9ca2f82b55030ffd4f41327fa9e77a92c",
+			"revisionTime": "2017-01-13T04:52:50Z"
 		},
 		{
+			"checksumSHA1": "Y/FcWB2/xSfX1rRp7HYhktHNw8s=",
 			"path": "golang.org/x/crypto/nacl/secretbox",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
+			"revision": "9ef620b9ca2f82b55030ffd4f41327fa9e77a92c",
+			"revisionTime": "2017-01-13T04:52:50Z"
 		},
 		{
+			"checksumSHA1": "1MGpGDQqnUoRpv7VEcQrXOBydXE=",
 			"path": "golang.org/x/crypto/pbkdf2",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
+			"revision": "9ef620b9ca2f82b55030ffd4f41327fa9e77a92c",
+			"revisionTime": "2017-01-13T04:52:50Z"
 		},
 		{
+			"checksumSHA1": "jyP8QOzvouqRy4o3MKNjBl/K3o8=",
 			"path": "golang.org/x/crypto/poly1305",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
+			"revision": "9ef620b9ca2f82b55030ffd4f41327fa9e77a92c",
+			"revisionTime": "2017-01-13T04:52:50Z"
 		},
 		{
 			"checksumSHA1": "y/oIaxq2d3WPizRZfVjo8RCRYTU=",
 			"path": "golang.org/x/crypto/ripemd160",
-			"revision": "bc89c496413265e715159bdc8478ee9a92fdc265",
-			"revisionTime": "2016-07-08T11:45:45Z"
+			"revision": "9ef620b9ca2f82b55030ffd4f41327fa9e77a92c",
+			"revisionTime": "2017-01-13T04:52:50Z"
 		},
 		{
+			"checksumSHA1": "o5QDZYQhyiEt2jg1Fot34mR1rBg=",
 			"path": "golang.org/x/crypto/salsa20",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
+			"revision": "9ef620b9ca2f82b55030ffd4f41327fa9e77a92c",
+			"revisionTime": "2017-01-13T04:52:50Z"
 		},
 		{
+			"checksumSHA1": "w8PESKJweP+BCAxCYPU1QC08qUU=",
 			"path": "golang.org/x/crypto/salsa20/salsa",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
+			"revision": "9ef620b9ca2f82b55030ffd4f41327fa9e77a92c",
+			"revisionTime": "2017-01-13T04:52:50Z"
 		},
 		{
+			"checksumSHA1": "E8pDMGySfy5Mw+jzXOkOxo35bww=",
 			"path": "golang.org/x/crypto/scrypt",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
+			"revision": "9ef620b9ca2f82b55030ffd4f41327fa9e77a92c",
+			"revisionTime": "2017-01-13T04:52:50Z"
 		},
 		{
+			"checksumSHA1": "FOqt69bjmyuhQLsTweZoPBLeobQ=",
 			"path": "golang.org/x/crypto/ssh/terminal",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
+			"revision": "9ef620b9ca2f82b55030ffd4f41327fa9e77a92c",
+			"revisionTime": "2017-01-13T04:52:50Z"
 		},
 		{
+			"checksumSHA1": "/qXTeb4Dp6W5qlttwaN+Yur36+A=",
 			"path": "golang.org/x/crypto/twofish",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
+			"revision": "9ef620b9ca2f82b55030ffd4f41327fa9e77a92c",
+			"revisionTime": "2017-01-13T04:52:50Z"
 		},
 		{
 			"checksumSHA1": "ycSeybvRGnVAhHo0nZug7qD3XXQ=",
