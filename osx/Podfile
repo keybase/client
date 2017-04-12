@@ -1,3 +1,9 @@
+# Do not set use_frameworks! globally otherwise the helper
+# tool target binary will silently fail to load since it
+# doesn't support dynamic frameworks (for security reasons).
+# Also probably not a good idea to set any global options
+# here at all.
+
 target "Installer" do
   use_frameworks!
   platform :osx, "10.10"
@@ -26,10 +32,10 @@ target "keybase.Helper" do
   pod "MPMessagePack"
 end
 
+# GBCli needs SWIFT_VERSION set
 # https://stackoverflow.com/questions/38446097/xcode-8-beta-3-use-legacy-swift-issue
 post_install do |installer|
   installer.pods_project.targets.each do |target|
-    # puts target.name.to_s
     if target.name.to_s == "GBCli" then
       puts "Fixing SWIFT_VERSION for #{target}"
       target.build_configurations.each do |config|
