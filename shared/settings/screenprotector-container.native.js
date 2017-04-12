@@ -1,5 +1,5 @@
 // @flow
-import Screenprotector from './screenprotector'
+import Screenprotector from './screenprotector.native'
 import {connect} from 'react-redux'
 
 import type {Dispatch} from '../constants/types/flux'
