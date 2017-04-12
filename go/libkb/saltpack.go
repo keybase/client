@@ -8,6 +8,7 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack"
+	"golang.org/x/crypto/ed25519"
 	"golang.org/x/crypto/nacl/box"
 )
 
@@ -159,6 +160,15 @@ func (n naclKeyring) CreateEphemeralKey() (saltpack.BoxSecretKey, error) {
 	}
 
 	return naclBoxSecretKey(kp), nil
+}
+
+func (n naclKeyring) LookupSigningPublicKey(kid []byte) saltpack.SigningPublicKey {
+	if len(kid) != ed25519.PublicKeySize {
+		return nil
+	}
+	keyBytes := [ed25519.PublicKeySize]byte{}
+	copy(keyBytes[:], kid)
+	return saltSignerPublic{NaclSigningKeyPublic(keyBytes)}
 }
 
 // An empty keyring just for generating ephemeral keys.
