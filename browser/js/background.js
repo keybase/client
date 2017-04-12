@@ -8,6 +8,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       return sendResponse(r);
     }
     const err = chrome.runtime.lastError;
+    debugger;
     if (err) {
       return sendResponse({
         "status": "error",

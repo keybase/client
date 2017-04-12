@@ -63,7 +63,7 @@ function renderChatButton(parent, toUsername) {
         }
       }
 
-      openChat = renderChat(e.currentTarget.parentNode, toUsername);
+      openChat = renderChat(chatParent, toUsername);
     });
 
     parent.appendChild(li);
@@ -154,7 +154,7 @@ function removeChat(chatForm, skipCheck) {
     // Already removed, skip.
     return true;
   }
-  if (!skipCheck && chatForm["keybase-chat"].value != "") {
+  if (!skipCheck && chatForm["keybase-chat"] !== undefined && chatForm["keybase-chat"].value != "") {
     if (!confirm("Discard your message?")) return false;
   }
   chatForm.parentNode.removeChild(chatForm);
@@ -209,15 +209,22 @@ function submitChat(e) {
 
 
 function renderErrorKeybaseMissing(el) {
+  renderErrorFull(el, `
+    <p>You need the Keybase app to send chat messages.</p>
+    <p style="margin: 2em;">
+      <a href="https://keybase.io/download" class="keybase-button" target="_blank">Install Keybase</a>
+    </p>
+  `);
+}
+
+// Render an error that replaces the body of the widget.
+function renderErrorFull(el, bodyHTML) {
   el.innerHTML = `
     <h3><span class="keybase-close"> </span></h3>
     <p>
       <img src="${chrome.runtime.getURL("images/icon-keybase-logo-128.png")}" style="height: 64px; width: 64px; margin: 0 0 1em 0;" />
     </p>
-    <p>You need the Keybase app to send chat messages.</p>
-    <p style="margin: 2em;">
-      <a href="https://keybase.io/download" class="keybase-button" target="_blank">Install Keybase</a>
-    </p>
+    ${bodyHTML}
   `;
   el.className = "keybase-error";
   //
