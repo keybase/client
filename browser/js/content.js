@@ -80,13 +80,19 @@ function renderChat(parent, toUsername) {
   f.action = "#"; // Avoid submitting even if we fail to preventDefault
   f.innerHTML = `
     <h3><img src="${chrome.runtime.getURL("images/icon-keybase-logo-48.png")}" />Keybase chat <span class="keybase-close"> </span></h3>
-    <input type="hidden" name="keybase-to" value="${toUsername}" />
-    <p>Encrypt to ${renderUser(toUsername, "reddit.com/u")}</span>:</p>
-    <p><textarea name="keybase-chat" rows="6" placeholder="Write a message"></textarea></p>
-    <div class="keybase-nudge">
-      <p>Checking Keybase...</p>
+    <div class="keybase-body">
+      <input type="hidden" name="keybase-to" value="${toUsername}" />
+      <label>
+        Encrypt to ${renderUser(toUsername, "reddit.com/u")}</span>:
+        <p>
+          <textarea name="keybase-chat" rows="6" placeholder="Write a message"></textarea>
+        </p>
+      </label>
+      <div class="keybase-nudge">
+        <p>Checking Keybase...</p>
+      </div>
+      <p style="text-align: center;"><input type="submit" value="Send" name="keybase-submit" /></p> 
     </div>
-    <p><input type="submit" value="Send" name="keybase-submit" /></p> 
   `;
   f.addEventListener("submit", submitChat);
   parent.insertBefore(f, parent.firstChild);
@@ -149,8 +155,9 @@ function submitChat(e) {
   const f = e.currentTarget; // The form.
   const to = f["keybase-to"].value;
   const body = f["keybase-chat"].value;
-  const nudgeDo = f["keybase-nudgecheck"].checked;
-  const nudgeText = f["keybase-nudgetext"].value;
+
+  const nudgeDo = f["keybase-nudgecheck"]!==undefined && f["keybase-nudgecheck"].checked;
+  const nudgeText = f["keybase-nudgetext"]!==undefined && f["keybase-nudgetext"].value;
 
   // TODO: Check that to/body are not empty.
 
@@ -186,12 +193,38 @@ function submitChat(e) {
   });
 }
 
+
+function renderErrorKeybaseMissing(el) {
+  el.innerHTML = `
+    <h3><span class="keybase-close"> </span></h3>
+    <p>
+      <img src="${chrome.runtime.getURL("images/icon-keybase-logo-128.png")}" style="height: 64px; width: 64px; margin: 0 0 1em 0;" />
+    </p>
+    <p>You need the Keybase app to send chat messages.</p>
+    <p style="margin: 2em;">
+      <a href="https://keybase.io/download" class="keybase-button" target="_blank">Install Keybase</a>
+    </p>
+  `;
+  el.className = "keybase-error";
+  //
+  // Install closing button (the "x" in the corner)
+  const closer = el.getElementsByClassName("keybase-close")[0];
+  closer.addEventListener("click", function(e) {
+    removeChat(el, true /* skipCheck */);
+  });
+}
+
 // Render error message inside our chat widget.
 function renderError(chatForm, msg) {
-  const p = document.createElement("p");
-  p.className = "keybase-error";
-  p.innerText = msg;
-  chatForm.appendChild(p);
+  const err = document.createElement("p");
+  err.className = "keybase-error-msg";
+
+  if (msg == "Specified native messaging host not found.") {
+    return renderErrorKeybaseMissing(chatForm);
+  }
+
+  err.innerText = msg;
+  chatForm.appendChild(err);
 }
 
 // Render a formatted user@service string.
