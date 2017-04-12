@@ -64,7 +64,7 @@ function renderChat(parent, toUsername) {
   const isLoggedIn = document.getElementsByClassName("logout").length > 0;
 
   let nudgeHTML = `
-    <p><label><input type="checkbox" name="keybase-nudgecheck" checked /> <em>public</em> nudge (so they know about Keybase)</label></p>
+    <p><label><input type="checkbox" name="keybase-nudgecheck" checked /> Nudge publicly (reply in thread so they know about Keybase)</label></p>
     <p><textarea name="keybase-nudgetext">/u/${toUsername} - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto</textarea></p>
   `;
   if (!isLoggedIn) {
@@ -111,17 +111,17 @@ function renderChat(parent, toUsername) {
       renderError(f, response.message);
     }
     nudgePlaceholder.innerHTML = nudgeHTML;
-  });
 
-  // Install nudge toggle
-  const nudgeCheck = f["keybase-nudgecheck"];
-  if (nudgeCheck !== undefined) {
-    // Select the <p><textarea>...</textarea></p>
-    const nudgeText = nudgeCheck.parentNode.parentNode.nextElementSibling;
-    nudgeCheck.addEventListener("change", function(e) {
-      nudgeText.hidden = !e.currentTarget.checked;
-    });
-  }
+    // Install nudge toggle
+    const nudgeCheck = f["keybase-nudgecheck"];
+    if (nudgeCheck !== undefined) {
+      // Select the <p><textarea>...</textarea></p>
+      const nudgeText = nudgeCheck.parentNode.parentNode.nextElementSibling;
+      nudgeCheck.addEventListener("change", function(e) {
+        nudgeText.hidden = !e.currentTarget.checked;
+      });
+    }
+  });
 
   // Install closing button (the "x" in the corner)
   const closer = f.getElementsByClassName("keybase-close")[0];

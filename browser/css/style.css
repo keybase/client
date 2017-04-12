@@ -5,20 +5,25 @@
 */
 
 .keybase-reply form {
+   overflow: hidden;
+   z-index: 9999;
    position: absolute;
    display: block !important;
-   margin-top: 2em;
    background: #fff;
+   margin-top: 2em;
    width: 500px;
-   white-space: normal !important;
-   font-size: 13px;
-   line-height: 1.5em;
    border-radius: 4px;
    background-color: #ffffff;
    box-shadow: 3px 3px 13px 0 #a29e9e;
-   overflow: hidden;
+   white-space: normal !important;
+   font-family: 'Open Sans', sans-serif !important;
+   font-size: 13px;
+   line-height: 1.5em;
 }
 
+.keybase-reply a {
+   font-size: inherit !important;
+}
 .keybase-reply a:hover {
    text-decoration: none !important;
 }
@@ -81,6 +86,7 @@ img.keybase-icon {
 }
 
 a.keybase-button {
+  font-size: 14px;
   height: 32px;
   border-radius: 50px;
   background-color: #33a0ff;
@@ -120,7 +126,7 @@ a.keybase-button {
    border-radius: 50px;
    background-color: #33a0ff;
    color: #fff;
-   font-size: 16px;
+   font-size: 14px;
    font-style: normal;
    font-stretch: normal;
    line-height: normal;
