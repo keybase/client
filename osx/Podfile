@@ -1,6 +1,5 @@
-use_frameworks!
-
 target "Installer" do
+  use_frameworks!
   platform :osx, "10.10"
   pod "ObjectiveSugar"
   pod "GBCli"
@@ -11,6 +10,7 @@ end
 
 
 target "Status" do
+  use_frameworks!
   platform :osx, "10.10"
   pod "ObjectiveSugar"
   pod "GBCli"
@@ -29,8 +29,12 @@ end
 # https://stackoverflow.com/questions/38446097/xcode-8-beta-3-use-legacy-swift-issue
 post_install do |installer|
   installer.pods_project.targets.each do |target|
-    target.build_configurations.each do |config|
-      config.build_settings['SWIFT_VERSION'] = '3.0'
+    # puts target.name.to_s
+    if target.name.to_s == "GBCli" then
+      puts "Fixing SWIFT_VERSION for #{target}"
+      target.build_configurations.each do |config|
+        config.build_settings['SWIFT_VERSION'] = '3.0'
+      end
     end
   end
 end
