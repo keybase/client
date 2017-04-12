@@ -266,9 +266,7 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
           break
         }
         default:
-          if (__DEV__) {
-            console.warn('Inbox error:', error)
-          }
+          throw new Error('Inbox error: ' + error.message)
       }
     } else if (incoming.finished || incoming.timeout) {
       break

@@ -10,6 +10,8 @@ import (
 	"net"
 	"sync"
 
+	"strings"
+
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -27,20 +29,55 @@ var startOnce sync.Once
 var logSendContext libkb.LogSendContext
 var kbfsConfig libkbfs.Config
 
+type ExternalDNSNSFetcher interface {
+	GetServers() []byte
+}
+
+type dnsNSFetcher struct {
+	externalFetcher ExternalDNSNSFetcher
+}
+
+func newDNSNSFetcher(d ExternalDNSNSFetcher) dnsNSFetcher {
+	return dnsNSFetcher{
+		externalFetcher: d,
+	}
+}
+
+func (d dnsNSFetcher) processExternalResult(raw []byte) []string {
+	return strings.Split(string(raw), ",")
+}
+
+func (d dnsNSFetcher) GetServers() []string {
+	if d.externalFetcher != nil {
+		return d.processExternalResult(d.externalFetcher.GetServers())
+	}
+	return getDNSServers()
+}
+
+var _ libkb.DNSNameServerFetcher = dnsNSFetcher{}
+
 // InitOnce runs the Keybase services (only runs one time)
-func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOverride bool) {
+func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
+	dnsNSFetcher ExternalDNSNSFetcher) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride); err != nil {
+		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride, dnsNSFetcher); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
 }
 
 // Init runs the Keybase services
-func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool) error {
+func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
+	externalDNSNSFetcher ExternalDNSNSFetcher) error {
 	fmt.Println("Go: Initializing")
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
+	}
+
+	dnsNSFetcher := newDNSNSFetcher(externalDNSNSFetcher)
+	dnsServers := dnsNSFetcher.GetServers()
+	for _, srv := range dnsServers {
+		fmt.Printf("Go: DNS Server: %s\n", srv)
 	}
 
 	kbCtx = libkb.G
@@ -77,6 +114,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	kbCtx.SetService()
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
+	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
 	svc.RunBackgroundOperations(uir)
 
 	serviceLog := config.GetLogFile()

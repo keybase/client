@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"sync"
@@ -73,7 +74,7 @@ func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.M
 	return updated, nil
 }
 
-func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1.MessagePlaintext,
+func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg chat1.MessagePlaintext,
 	convID chat1.ConversationID) (chat1.MessagePlaintext, error) {
 
 	// Make sure the caller hasn't already assembled this list. For now, this
@@ -86,26 +87,37 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 
 	var prevs []chat1.MessagePreviousPointer
 
-	res, err := s.G().ConvSource.PullLocalOnly(ctx, convID, msg.ClientHeader.Sender,
+	res, _, err := s.G().ConvSource.Pull(ctx, convID, msg.ClientHeader.Sender,
 		&chat1.GetThreadQuery{
 			DisableResolveSupersedes: true,
 		},
 		&chat1.Pagination{
-			Num: -1,
+			Num: 50,
 		})
-	switch err.(type) {
-	case storage.MissError:
-		s.Debug(ctx, "No local messages; skipping prev pointers")
-	case nil:
-		if len(res.Messages) == 0 {
-			s.Debug(ctx, "no local messages found for prev pointers")
-		}
-		prevs, err = CheckPrevPointersAndGetUnpreved(&res)
-		if err != nil {
-			return chat1.MessagePlaintext{}, err
-		}
-	default:
+	if err != nil {
 		return chat1.MessagePlaintext{}, err
+	}
+
+	if len(res.Messages) == 0 {
+		s.Debug(ctx, "no local messages found for prev pointers")
+	}
+	prevs, err = CheckPrevPointersAndGetUnpreved(&res)
+	if err != nil {
+		return chat1.MessagePlaintext{}, err
+	}
+
+	if len(prevs) == 0 {
+		return chat1.MessagePlaintext{}, fmt.Errorf("Could not find previous messsages for prev pointers (of %v)", len(res.Messages))
+	}
+
+	for _, msg2 := range res.Messages {
+		if msg2.IsValid() {
+			err = s.checkConvID(ctx, convID, msg, msg2)
+			if err != nil {
+				return chat1.MessagePlaintext{}, err
+			}
+			break
+		}
 	}
 
 	// Make an attempt to avoid changing anything in the input message. There
@@ -117,6 +129,50 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 		MessageBody:  msg.MessageBody,
 	}
 	return updated, nil
+}
+
+// Check that the {ConvID,ConvTriple,TlfName} of msgToSend matches both the ConvID and an existing message from the questionable ConvID.
+// `convID` is the convID that `msgToSend` will be posted to.
+// `msgReference` is a validated message from `convID`.
+// The misstep that this method checks for is thus: The frontend may post a message while viewing an "untrusted inbox view".
+// That message (msgToSend) will have the header.{TlfName,TlfPublic} set to the user's intention.
+// But the header.Conv.{Tlfid,TopicType,TopicID} and the convID to post to may be erroneously set to a different conversation's values.
+// This method checks that all of those fields match. Using `msgReference` as the validated link from {TlfName,TlfPublic} <-> ConvTriple.
+func (s *BlockingSender) checkConvID(ctx context.Context, convID chat1.ConversationID,
+	msgToSend chat1.MessagePlaintext, msgReference chat1.MessageUnboxed) error {
+
+	headerQ := msgToSend.ClientHeader
+	headerRef := msgReference.Valid().ClientHeader
+
+	fmtConv := func(conv chat1.ConversationIDTriple) string { return hex.EncodeToString(conv.Hash()) }
+
+	if !headerQ.Conv.Derivable(convID) {
+		s.Debug(ctx, "checkConvID: ConvID %s </- %s", fmtConv(headerQ.Conv), convID)
+		return fmt.Errorf("ConversationID does not match reference message")
+	}
+
+	if !headerQ.Conv.Eq(headerRef.Conv) {
+		s.Debug(ctx, "checkConvID: Conv %s != %s", fmtConv(headerQ.Conv), fmtConv(headerRef.Conv))
+		return fmt.Errorf("ConversationID does not match reference message")
+	}
+
+	if headerQ.TlfPublic != headerRef.TlfPublic {
+		s.Debug(ctx, "checkConvID: TlfPublic %s != %s", headerQ.TlfPublic, headerRef.TlfPublic)
+		return fmt.Errorf("Chat public-ness does not match reference message")
+	}
+	if headerQ.TlfName != headerRef.TlfName {
+		// Try normalizing both tlfnames if simple comparison fails because they may have resolved.
+		namesEq, err := s.boxer.CompareTlfNames(ctx, headerQ.TlfName, headerRef.TlfName, headerQ.TlfPublic)
+		if err != nil {
+			return err
+		}
+		if !namesEq {
+			s.Debug(ctx, "checkConvID: TlfName %s != %s", headerQ.TlfName, headerRef.TlfName)
+			return fmt.Errorf("TlfName does not match reference message")
+		}
+	}
+
+	return nil
 }
 
 // Get all messages to be deleted, and attachments to delete.
@@ -275,9 +331,9 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		return nil, nil, err
 	}
 
-	// convID will be nil in makeFirstMessage, for example
+	// convID will be nil in makeFirstMessage
 	if convID != nil {
-		msg, err = s.addPrevPointersToMessage(ctx, msg, *convID)
+		msg, err = s.addPrevPointersAndCheckConvID(ctx, msg, *convID)
 		if err != nil {
 			return nil, nil, err
 		}

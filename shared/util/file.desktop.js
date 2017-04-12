@@ -5,12 +5,14 @@ import fsExtra from 'fs-extra'
 import os from 'os'
 import path from 'path'
 
+import {cacheRoot} from '../constants/platform.desktop'
+
 function tmpDir (): string {
-  return os.tmpdir()
+  return cacheRoot
 }
 
 function tmpFile (suffix: string): string {
-  return path.join(os.tmpdir(), suffix)
+  return path.join(tmpDir(), suffix)
 }
 
 function tmpRandFile (suffix: string): Promise<string> {
@@ -20,7 +22,7 @@ function tmpRandFile (suffix: string): Promise<string> {
         reject(err)
         return
       }
-      resolve(path.join(os.tmpdir(), buf.toString('hex') + suffix))
+      resolve(path.join(tmpDir(), buf.toString('hex') + suffix))
     })
   })
 }

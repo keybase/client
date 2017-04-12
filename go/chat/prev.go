@@ -35,7 +35,7 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessageP
 			// Check that each prev pointer (if any) is a lower ID than the
 			// message itself.
 			for _, prev := range msg.ClientHeader.Prev {
-				if prev.Id > id {
+				if prev.Id >= id {
 					return nil, NewChatThreadConsistencyError(
 						OutOfOrderID,
 						"MessageID %d thinks that message %d is previous.",
@@ -52,7 +52,7 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessageP
 	// Using the index we built above, check each prev pointer on each message
 	// to make sure its hash is correct. Some prev pointers might refer to
 	// messages we don't have locally, and in that case we just check that all
-	// prev pointers to that message are *consistent*.
+	// prev pointers to that message are *consistent* with each other.
 	seenHashes := make(map[chat1.MessageID]chat1.Hash)
 	for id, msg := range knownMessages {
 		for _, prev := range msg.ClientHeader.Prev {
