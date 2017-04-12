@@ -25,7 +25,7 @@ import type {Props} from '.'
 
 type State = {
   isLockedToBottom: boolean,
-  // listRerender: number,
+  listRerender: number,
   // scrollTopOffset: number,
   // keepRowVisible: ?number,
   selectedMessageKey: ?Constants.MessageKey,
@@ -51,7 +51,7 @@ class BaseList extends Component<void, Props, State> {
   state = {
     // keepRowVisible: undefined,
     isLockedToBottom: true,
-    // listRerender: 0,
+    listRerender: 0,
     selectedMessageKey: null,
     // scrollTopOffset: 0,
   }
@@ -99,6 +99,13 @@ class BaseList extends Component<void, Props, State> {
   }
 
   componentDidUpdate (prevProps: Props, prevState: State) {
+    // Force a rerender if we passed a row to scroll to. If it's kept around the virutal list gets confused so we only want it to render once basically
+    if (this._keepIdxVisible !== -1) {
+      this.setState({listRerender: this.state.listRerender + 1}) // eslint-disable-line react/no-did-update-set-state
+      this._keepIdxVisible = -1
+    }
+    this._lastRowIdx = -1 // always reset this to be safe
+
     // if ((this.props.selectedConversation !== prevProps.selectedConversation) ||
         // (this.props.messageKeys !== prevProps.messageKeys)) {
       // this.state.isLockedToBottom && this._scrollToBottom()
@@ -347,19 +354,14 @@ class BaseList extends Component<void, Props, State> {
     // const scrollTop = this._scrollTop
     // console.log('aaaa RENDER', scrollTop, this.state.scrollTopOffset, this.props, this.state)
 
-              // listRerender={this.state.listRerender}
               // scrollTop={this.state.scrollTopOffset ? this._scrollTop + this.state.scrollTopOffset : undefined}
 
-    let scrollToIndex
+    let scrollToIndex = -1
     if (this.state.isLockedToBottom) {
       scrollToIndex = rowCount - 1
-    } else if (this._keepIdxVisible !== -1) {
+    } else {
       scrollToIndex = this._keepIdxVisible
-      this._keepIdxVisible = -1
     }
-    this._lastRowIdx = -1
-
-    console.log('aaa RENDER', scrollToIndex)
 
     return (
       <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
@@ -367,6 +369,7 @@ class BaseList extends Component<void, Props, State> {
         <Virtualized.AutoSizer onResize={this._onResize}>
           {({height, width}) => (
             <Virtualized.List
+              listRerender={this.state.listRerender}
               selectedMessageKey={this.state.selectedMessageKey}
               columnWidth={width}
               deferredMeasurementCache={this._cellCache}
@@ -376,6 +379,7 @@ class BaseList extends Component<void, Props, State> {
               rowCount={rowCount}
               rowHeight={this._cellCache.rowHeight}
               rowRenderer={this._rowRenderer}
+              scrollToAlignment='end'
               scrollToIndex={scrollToIndex}
               style={listStyle}
               width={width}
