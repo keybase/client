@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import _ from 'lodash'
-import type {Props, ItemProps, TabBadgeOverlay, TabBarButtonProps} from './tab-bar'
+import type {Props, ItemProps, TabBadgePosition, TabBarButtonProps} from './tab-bar'
 import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
 import Badge from './badge'
 import Box from './box'
@@ -29,7 +29,7 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
   }
 }
 
-const BadgeComponent = ({badgeNumber, badgePosition}: {badgeNumber: number, badgePosition: TabBadgeOverlay}) => {
+const BadgeComponent = ({badgeNumber, badgePosition}: {badgeNumber: number, badgePosition: TabBadgePosition}) => {
   if (badgeNumber <= 0) return null
   if (badgePosition === 'top-right') {
     return (
