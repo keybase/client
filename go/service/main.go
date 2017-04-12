@@ -758,6 +758,9 @@ func (d *Service) tryLogin() {
 	ctx := &engine.Context{}
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		d.G().Log.Debug("error running LoginOffline on service startup: %s", err)
+		return
 	}
 	d.G().Log.Debug("success running LoginOffline on service startup")
+	uid, deviceID, skey, ekey := d.G().ActiveDevice.AllFields()
+	d.G().Log.Warning("active device info: %v, %v, %+v, %+v", uid, deviceID, skey, ekey)
 }

@@ -50,19 +50,19 @@ func (e *LoginOffline) Run(ctx *Context) error {
 }
 
 func (e *LoginOffline) run(ctx *Context) error {
-	var err error
+	var gerr error
 	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
 		var in bool
-		in, err = a.LoggedInProvisioned()
-		if err != nil {
+		in, gerr = a.LoggedInProvisioned()
+		if gerr != nil {
 			// XXX better error?
-			e.G().Log.Debug("LoginOffline: LoggedInProvisioned error: %s", err)
+			e.G().Log.Debug("LoginOffline: LoggedInProvisioned error: %s", gerr)
 			return
 		}
 		if !in {
 			// XXX better error?
 			e.G().Log.Debug("LoginOffline: LoggedInProvisioned says not logged in")
-			err = libkb.LoginRequiredError{}
+			gerr = libkb.LoginRequiredError{}
 			return
 		}
 
@@ -83,10 +83,13 @@ func (e *LoginOffline) run(ctx *Context) error {
 		// need ComputedKeyFamily for user in order to find keys
 		user, err := libkb.LoadUserFromLocalStorage(ctx.NetContext, e.G(), a.GetUID())
 		if err != nil {
+			gerr = err
 			return
 		}
 		if user == nil {
 			err = errors.New("no user found in local storage")
+			// panic("a")
+			gerr = err
 			return
 		}
 		partialCopy := user.PartialCopy()
@@ -99,13 +102,16 @@ func (e *LoginOffline) run(ctx *Context) error {
 		}
 		skb, err := a.LockedLocalSecretKey(ska)
 		if err != nil {
+			gerr = err
 			return
 		}
 		sigKey, err = skb.UnlockNoPrompt(a, secretStore)
 		if err != nil {
+			gerr = err
 			return
 		}
 		if err = a.SetCachedSecretKey(ska, sigKey); err != nil {
+			gerr = err
 			return
 		}
 
@@ -115,13 +121,16 @@ func (e *LoginOffline) run(ctx *Context) error {
 		}
 		skb, err = a.LockedLocalSecretKey(ska)
 		if err != nil {
+			gerr = err
 			return
 		}
 		encKey, err = skb.UnlockNoPrompt(a, secretStore)
 		if err != nil {
+			gerr = err
 			return
 		}
 		if err = a.SetCachedSecretKey(ska, encKey); err != nil {
+			gerr = err
 			return
 		}
 
@@ -130,8 +139,8 @@ func (e *LoginOffline) run(ctx *Context) error {
 	if aerr != nil {
 		return aerr
 	}
-	if err != nil {
-		return err
+	if gerr != nil {
+		return gerr
 	}
 
 	return nil

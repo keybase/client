@@ -38,9 +38,11 @@ func (i *baseBox) readDiskBox(ctx context.Context, key libkb.DbKey, res interfac
 	var err error
 	b, found, err := i.G().LocalChatDb.GetRaw(key)
 	if err != nil {
+		i.G().Log.Warning("readDiskBox: GetRaw error: %s", err)
 		return false, err
 	}
 	if !found {
+		i.G().Log.Warning("readDiskBox: GetRaw not found: %+v", key)
 		return false, nil
 	}
 
@@ -73,12 +75,14 @@ func (i *baseBox) writeDiskBox(ctx context.Context, key libkb.DbKey, data interf
 	// Encode outbox
 	dat, err := encode(data)
 	if err != nil {
+		i.G().Log.Warning("writeDiskBox: %+v encode error: %s", key, err)
 		return err
 	}
 
 	// Encrypt outbox
 	enckey, err := getSecretBoxKey(ctx, i.G(), DefaultSecretUI)
 	if err != nil {
+		i.G().Log.Warning("writeDiskBox: %+v getSecretBoxKey error: %s", key, err)
 		return err
 	}
 	var nonce []byte
@@ -97,11 +101,13 @@ func (i *baseBox) writeDiskBox(ctx context.Context, key libkb.DbKey, data interf
 
 	// Encode encrypted outbox
 	if dat, err = encode(boxed); err != nil {
+		i.G().Log.Warning("writeDiskBox: %+v encode boxed error: %s", key, err)
 		return err
 	}
 
 	// Write out
 	if err = i.G().LocalChatDb.PutRaw(key, dat); err != nil {
+		i.G().Log.Warning("writeDiskBox: %+v put raw error: %s", key, err)
 		return err
 	}
 
