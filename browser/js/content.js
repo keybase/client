@@ -246,6 +246,9 @@ function renderError(chatForm, msg) {
           <a href="https://keybase.io/reddit-crypto" class="keybase-button" target="_blank">More details</a>
         </p>
       `);
+    case "keybase is not logged in":
+      msg = "You need to log into the Keybase app to send chat messages.";
+      break;
   }
 
   err.innerText = msg;
