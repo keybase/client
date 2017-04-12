@@ -36,6 +36,9 @@ function injectThread() {
   }
 }
 
+// Global state of which chat window is currently open.
+let openChat = null;
+
 // Render the "keybase chat reply" button with handlers.
 function renderChatButton(parent, toUsername) {
     const li = document.createElement("li");
@@ -44,14 +47,23 @@ function renderChatButton(parent, toUsername) {
 
     li.getElementsByTagName("a")[0].addEventListener('click', function(e) {
       e.preventDefault();
-      const forms = e.currentTarget.parentNode.getElementsByTagName("form");
-      if (forms.length > 0) {
-        // Chat widget already present, toggle it.
-        removeChat(forms[0]);
-        return;
+      const chatParent = e.currentTarget.parentNode;
+
+      if (chatParent.getElementsByTagName("form").length > 0) {
+        // Current chat widget is already open, toggle it and exit
+        if (removeChat(openChat)) {
+          openChat = null;
+        }
+        return
+      } else if (openChat) {
+        // A different chat widget is open, close it and open the new one
+        if (!removeChat(openChat)) {
+          // Aborted
+          return
+        }
       }
 
-      renderChat(e.currentTarget.parentNode, toUsername);
+      openChat = renderChat(e.currentTarget.parentNode, toUsername);
     });
 
     parent.appendChild(li);
@@ -133,18 +145,20 @@ function renderChat(parent, toUsername) {
   f["keybase-chat"].focus();
 
   // TODO: Also add an onbeforeunload check if chat has text written in it.
+  return f;
 }
 
 // Remove the chat widget from the DOM
 function removeChat(chatForm, skipCheck) {
   if (!chatForm.parentNode) {
     // Already removed, skip.
-    return;
+    return true;
   }
   if (!skipCheck && chatForm["keybase-chat"].value != "") {
-    if (!confirm("Discard your message?")) return;
+    if (!confirm("Discard your message?")) return false;
   }
   chatForm.parentNode.removeChild(chatForm);
+  return true;
 }
 
 

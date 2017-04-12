@@ -29,7 +29,7 @@
 }
 
 .keybase-body {
-   margin: 1.5em;
+   margin: 24px;
    color: rgba(0, 0, 0, 0.75);
 }
 
@@ -131,7 +131,6 @@ a.keybase-button {
    font-stretch: normal;
    line-height: normal;
    letter-spacing: 0.3px;
-   margin: 0.5em;
 }
 
 .keybase-reply input[type="submit"]:disabled {
@@ -143,8 +142,9 @@ a.keybase-button {
    font-size: 18px;
    font-weight: bold;
    position: absolute;
-   right: 0.25em;
-   top: -0.5em;
+   padding: 3px;
+   top: -10px;
+   right: 5px;
    color: rgba(0,0,0,0.2);
    cursor: pointer;
 }
