@@ -161,14 +161,30 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 		if e.GetTorMode().Enabled() {
 			dialSocksProxy := socks.DialSocksProxy(socks.SOCKS5, e.GetTorProxy())
 			xprt.Dial = dialSocksProxy
-		} else {
-			xprt.Proxy = http.ProxyFromEnvironment
 		}
 	}
 	if config == nil || config.Timeout == 0 {
 		timeout = HTTPDefaultTimeout
 	} else {
 		timeout = config.Timeout
+	}
+	if !e.GetTorMode().Enabled() {
+		if e.GetRunMode() != DevelRunMode {
+			xprt.Proxy = http.ProxyFromEnvironment
+		} else {
+			xprt.Proxy = func(req *http.Request) (*url.URL, error) {
+				// Make a fake copy request with the url set to keybase.io
+				// Because ProxyFromEnvironment refuses to proxy for localhost.
+				// This makes localhost requests get proxied.
+				// The Host can be anything and is only used to != "localhost".
+				url2 := *req.URL
+				url2.Host = "keybase.io"
+				req2 := req
+				req2.URL = &url2
+				u, err := http.ProxyFromEnvironment(req2)
+				return u, err
+			}
+		}
 	}
 
 	ret := &Client{
