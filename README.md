@@ -19,7 +19,7 @@ But - some of the things in this repo are explorations, and the app you build fr
 * **packaging**: Scripts for releasing packages across the various platforms.
 * **protocol**: Defines the protocol for communication for clients to the Keybase services. Uses [Avro](http://avro.apache.org/docs/1.7.7/). [Learn More](protocol/README.md)
 * **media**: Icons, graphics, media for Keybase apps.
-* **osx**: The macOS Keybase.app, development parallel to an Electron-based application above. [Learn More](osx/README.md)
+* **macos**: The macOS Keybase.app, development parallel to an Electron-based application above. [Learn More](macos/README.md)
 
 ### Problems?
 
