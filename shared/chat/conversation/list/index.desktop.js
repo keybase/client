@@ -9,7 +9,7 @@ import messageFactory from '../messages'
 import {Icon} from '../../../common-adapters'
 import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
 import {clipboard} from 'electron'
-import {debounce, range} from 'lodash'
+import {debounce} from 'lodash'
 import {findDOMNode} from '../../../util/dom'
 import {globalColors, globalStyles} from '../../../styles'
 
@@ -30,6 +30,7 @@ class BaseList extends Component<void, Props, State> {
     keyMapper: (rowIndex: number) => this.props.messageKeys.get(rowIndex),
   })
 
+  _list: any
   _keepIdxVisible: number = -1
   _lastRowIdx: number = -1
 
@@ -43,13 +44,9 @@ class BaseList extends Component<void, Props, State> {
     selectedMessageKey: null,
   }
 
-  _onAction = (message: Constants.ServerMessage, event: any) => {
-    throw new Error('_onAction Implemented in PopupEnabledList')
-  }
-
-  _onShowEditor = (message: Constants.Message, event: any) => {
-    throw new Error('_onShowEditor Implemented in PopupEnabledList')
-  }
+  _onAction = (message: Constants.ServerMessage, event: any) => { throw new Error('_onAction Implemented in PopupEnabledList') }
+  _onShowEditor = (message: Constants.Message, event: any) => { throw new Error('_onShowEditor Implemented in PopupEnabledList') }
+  _onEditLastMessage = () => { throw new Error('_onEditLastMessage Implemented in PopupEnabledList') }
 
   componentDidUpdate (prevProps: Props, prevState: State) {
     // Force a rerender if we passed a row to scroll to. If it's kept around the virutal list gets confused so we only want it to render once basically
@@ -59,9 +56,9 @@ class BaseList extends Component<void, Props, State> {
     }
     this._lastRowIdx = -1 // always reset this to be safe
 
-    // if (this.props.editLastMessageCounter !== prevProps.editLastMessageCounter) {
-      // this.onEditLastMessage()
-    // }
+    if (this.props.editLastMessageCounter !== prevProps.editLastMessageCounter) {
+      this._onEditLastMessage()
+    }
   }
 
   componentWillReceiveProps (nextProps: Props) {
@@ -146,35 +143,12 @@ class BaseList extends Component<void, Props, State> {
     }
   }
 
-  // onEditLastMessage = () => {
-    // if (!this._list) {
-      // return
-    // }
-
-    // TODO put this back
-    // const entry: any = this.props.messageKeys.findLastEntry(m => m.type === 'Text' && m.author === this.props.you)
-    // if (entry) {
-      // const idx: number = entry[0]
-      // const message: Constants.TextMessage = entry[1]
-
-      // if (this._listIsGood()) {
-        // this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: idx})
-      // }
-      // const listNode = ReactDOM.findDOMNode(this._list)
-      // if (listNode) {
-        // const messageNodes = listNode.querySelectorAll(`[data-message-key="${message.key}"]`)
-        // if (messageNodes) {
-          // const messageNode = messageNodes[0]
-          // if (messageNode) {
-            // this._showEditor(message, this._domNodeToRect(messageNode))
-          // }
-        // }
-      // }
-    // }
-  // }
-
   _onRowsRendered = ({stopIndex}: {stopIndex: number}) => {
     this._lastRowIdx = stopIndex
+  }
+
+  _setListRef = (r: any) => {
+    this._list = r
   }
 
   render () {
@@ -203,6 +177,7 @@ class BaseList extends Component<void, Props, State> {
               height={height}
               onScroll={this._onScroll}
               onRowsRendered={this._onRowsRendered}
+              ref={this._setListRef}
               rowCount={rowCount}
               rowHeight={this._cellCache.rowHeight}
               rowRenderer={this._rowRenderer}
@@ -244,6 +219,9 @@ const realCSS = `
 
 // Adds in popup handling
 class PopupEnabledList extends BaseList {
+  _keepIdxVisible: number = -1
+  _list: any
+
   _hidePopup = () => {
     ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
     this.setState({selectedMessageKey: null})
@@ -260,6 +238,35 @@ class PopupEnabledList extends BaseList {
       left: elemRect.left - bodyRect.left,
       top: elemRect.top - bodyRect.top,
       width: elemRect.width,
+    }
+  }
+
+  // How this works is kinda crappy. We have to plumb through this key => message helper and all this DOM stuff just to support this
+  _onEditLastMessage = () => {
+    const entry: any = this.props.messageKeys.findLastEntry(k => {
+      const m = this.props.getMessageFromMessageKey(k)
+      return !!(m && m.type === 'Text' && m.author === this.props.you)
+    })
+
+    if (entry) {
+      const idx: number = entry[0]
+      const messageKey: Constants.MessageKey = entry[1]
+      // $ForceType
+      const message: Constants.TextMessage = this.props.getMessageFromMessageKey(messageKey)
+
+      this._keepIdxVisible = idx
+      this.setState({listRerender: this.state.listRerender + 1})
+
+      const listNode = ReactDOM.findDOMNode(this._list)
+      if (listNode) {
+        const messageNodes = listNode.querySelectorAll(`[data-message-key="${messageKey}"]`)
+        if (messageNodes) {
+          const messageNode = messageNodes[0]
+          if (messageNode) {
+            this._showEditor(message, this._domNodeToRect(messageNode))
+          }
+        }
+      }
     }
   }
 

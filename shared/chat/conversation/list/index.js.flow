@@ -13,6 +13,7 @@ export type Props = {|
   onLoadAttachment: (messageID: Constants.MessageID, filename: string) => void, // maybe delete
   onLoadMoreMessages: () => void,
   onOpenInFileUI: (filename: string) => void, // maybe delete
+  getMessageFromMessageKey: (messageKey: Constants.MessageKey) => ?Constants.Message,
   selectedConversation: ?Constants.ConversationIDKey,
   validated: boolean,
   you: string,

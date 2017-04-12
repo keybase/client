@@ -14,6 +14,11 @@ import type {OwnProps, StateProps, DispatchProps} from './container'
 import type {Props} from '.'
 import type {TypedState} from '../../../constants/reducer'
 
+// TODO change this. This is a temporary store for the messages so we can have a function to map from
+// messageKey to Message to support the 'edit last message' functionality. We should change how this works
+let _messages: List<Constants.Message> = List()
+const _getMessageFromMessageKey = (messageKey: Constants.MessageKey): ?Constants.Message => _messages.find(m => m.key === messageKey)
+
 const getPropsFromConversationState = createSelector(
   [Constants.getSelectedConversationStates, Constants.getSelectedInbox, Constants.getSupersedes],
   (conversationState, inbox, _supersedes) => {
@@ -26,6 +31,7 @@ const getPropsFromConversationState = createSelector(
       }
 
       messageKeys = conversationState.messages.map(m => m.key)
+      _messages = conversationState.messages
       validated = inbox && inbox.state === 'unboxed'
     }
     return {
@@ -100,6 +106,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
 
   return {
     editLastMessageCounter: stateProps.editLastMessageCounter,
+    getMessageFromMessageKey: _getMessageFromMessageKey,
     listScrollDownCounter: stateProps.listScrollDownCounter,
     messageKeys: messageKeysWithHeaders,
     onDeleteMessage: dispatchProps.onDeleteMessage,
