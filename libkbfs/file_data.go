@@ -256,13 +256,6 @@ func (fd *fileData) getBlocksForOffsetRange(ctx context.Context,
 		return [][]parentBlockAndChildIndex{nil}, nil, -1, nil
 	}
 
-	fd.log.CDebugf(ctx, "getBlocksForOffsetRange %v, startOff=%d, endOff=%d, "+
-		"prefixOk=%t, getDirect=%t", ptr, startOff, endOff, prefixOk, getDirect)
-	defer func() {
-		fd.log.CDebugf(ctx, "getBlocksForOffsetRange %v done, err=%+v",
-			ptr, err)
-	}()
-
 	type resp struct {
 		pathsFromRoot   [][]parentBlockAndChildIndex
 		blocks          map[BlockPointer]*FileBlock
@@ -312,9 +305,6 @@ func (fd *fileData) getBlocksForOffsetRange(ctx context.Context,
 			// blocks, since there weren't multiple levels of
 			// indirection before the introduction of the flag.
 			if getDirect || childPtr.DirectType == IndirectBlock {
-				fd.log.CDebugf(groupCtx,
-					"Fetching child %d (%v) of parent %v",
-					childIndex, childPtr, ptr)
 				block, _, err := fd.getter(
 					groupCtx, fd.kmd, childPtr, fd.file, blockReadParallel)
 				if err != nil {
@@ -1671,10 +1661,14 @@ func (fd *fileData) getIndirectFileBlockInfosWithTopBlock(ctx context.Context,
 	var blockInfos []BlockInfo
 	infoSeen := make(map[BlockPointer]bool)
 	for _, path := range pfr {
+	pathLoop:
 		for _, pb := range path {
 			for _, iptr := range pb.pblock.IPtrs {
 				if infoSeen[iptr.BlockPointer] {
-					continue
+					// No need to iterate through this whole block
+					// again if we've already seen one of its children
+					// before.
+					continue pathLoop
 				}
 				infoSeen[iptr.BlockPointer] = true
 				blockInfos = append(blockInfos, iptr.BlockInfo)
