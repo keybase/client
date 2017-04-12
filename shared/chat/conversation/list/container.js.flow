@@ -19,6 +19,7 @@ export type DispatchProps = {|
   _onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => void,
   onDeleteMessage: (message: Constants.Message) => void,
   onEditMessage: (message: Constants.Message, body: string) => void,
+  onMessageAction: (message: Constants.Message) => void,
   onOpenInFileUI: (path: string) => void,
 |}
 

@@ -124,8 +124,7 @@ class ConversationList extends Component <void, Props, State> {
   // }
 
   _onAction = (message: Constants.ServerMessage, event: any) => {
-    // TODO
-    // this.props.onMessageAction(message)
+    this.props.onMessageAction(message)
   }
 
   // // This is handled slightly differently on mobile, leave this blank

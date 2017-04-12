@@ -7,12 +7,13 @@ export type Props = {|
   messageKeys: List<string>,
   editLastMessageCounter: number,
   listScrollDownCounter: number,
-  onDeleteMessage: (message: Constants.Message) => void, // maybe delete
-  onEditMessage: (message: Constants.Message, body: string) => void, // maybe delete
+  onDeleteMessage: (message: Constants.Message) => void,
+  onEditMessage: (message: Constants.Message, body: string) => void,
   onFocusInput: () => void,
-  onLoadAttachment: (messageID: Constants.MessageID, filename: string) => void, // maybe delete
+  onLoadAttachment: (messageID: Constants.MessageID, filename: string) => void,
   onLoadMoreMessages: () => void,
-  onOpenInFileUI: (filename: string) => void, // maybe delete
+  onMessageAction: (message: Constants.Message) => void,
+  onOpenInFileUI: (filename: string) => void,
   getMessageFromMessageKey: (messageKey: Constants.MessageKey) => ?Constants.Message,
   selectedConversation: ?Constants.ConversationIDKey,
   validated: boolean,
