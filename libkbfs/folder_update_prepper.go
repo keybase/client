@@ -1127,8 +1127,8 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 		}
 	}
 
-	newBlocks := make(map[BlockPointer]bool)
 	if len(unmergedChains.resOps) > 0 {
+		newBlocks := make(map[BlockPointer]bool)
 		for _, bs := range bps.blockStates {
 			newBlocks[bs.blockPtr] = true
 		}
@@ -1143,11 +1143,14 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 			// Updates go in the first one.
 			for _, update := range unmergedResOp.allUpdates() {
 				chain, isMostRecent := unmergedChains.byMostRecent[update.Ref]
+				isDeleted := false
 				alreadyUpdated := false
 				if isMostRecent {
+					isDeleted = unmergedChains.isDeleted(chain.original)
 					_, alreadyUpdated = updates[chain.original]
 				}
-				if newBlocks[update.Ref] || (isMostRecent && !alreadyUpdated) {
+				if newBlocks[update.Ref] ||
+					(isMostRecent && !isDeleted && !alreadyUpdated) {
 					fup.log.CDebugf(ctx, "Including update from old resOp: "+
 						"%v -> %v", update.Unref, update.Ref)
 					resOp.AddUpdate(update.Unref, update.Ref)
