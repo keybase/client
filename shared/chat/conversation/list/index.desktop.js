@@ -62,7 +62,8 @@ class BaseList extends Component<void, Props, State> {
   }
 
   componentWillReceiveProps (nextProps: Props) {
-    if (this.props.selectedConversation !== nextProps.selectedConversation) {
+    if (this.props.selectedConversation !== nextProps.selectedConversation ||
+      this.props.listScrollDownCounter !== nextProps.listScrollDownCounter) {
       this.setState({isLockedToBottom: true})
     }
 
@@ -72,12 +73,6 @@ class BaseList extends Component<void, Props, State> {
         this._keepIdxVisible = nextProps.messageKeys.indexOf(toFind)
       }
     }
-
-    // const willScrollDown = nextProps.listScrollDownCounter !== this.props.listScrollDownCounter
-
-    // if (willScrollDown) {
-      // this.setState({isLockedToBottom: true})
-    // }
   }
 
   _updateBottomLock = (clientHeight: number, scrollHeight: number, scrollTop: number) => {
