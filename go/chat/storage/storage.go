@@ -18,6 +18,7 @@ type ResultCollector interface {
 	Done() bool
 	Result() []chat1.MessageUnboxed
 	Error(err Error) Error
+	Name() string
 
 	String() string
 }
@@ -99,8 +100,12 @@ func (s *SimpleResultCollector) Result() []chat1.MessageUnboxed {
 	return s.res
 }
 
+func (s *SimpleResultCollector) Name() string {
+	return "simple"
+}
+
 func (s *SimpleResultCollector) String() string {
-	return fmt.Sprintf("[ simple: t: %d c: %d ]", s.target, len(s.res))
+	return fmt.Sprintf("[ %s: t: %d c: %d ]", s.Name(), s.target, len(s.res))
 }
 
 func (s *SimpleResultCollector) Error(err Error) Error {
@@ -155,8 +160,12 @@ func (t *TypedResultCollector) Result() []chat1.MessageUnboxed {
 	return t.res
 }
 
+func (t *TypedResultCollector) Name() string {
+	return "typed"
+}
+
 func (t *TypedResultCollector) String() string {
-	return fmt.Sprintf("[ typed: t: %d c: %d (%d types) ]", t.target, t.cur, len(t.typmap))
+	return fmt.Sprintf("[ %s: t: %d c: %d (%d types) ]", t.Name(), t.target, t.cur, len(t.typmap))
 }
 
 func (t *TypedResultCollector) Error(err Error) Error {

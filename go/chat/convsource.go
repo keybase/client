@@ -2,6 +2,7 @@ package chat
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 
 	"github.com/keybase/client/go/chat/storage"
@@ -471,9 +472,18 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 
 type pullLocalResultCollector struct {
 	*storage.SimpleResultCollector
+	num int
 }
 
-func (p *pullLocalResultCollector) error(err storage.Error) storage.Error {
+func (p *pullLocalResultCollector) Name() string {
+	return "pulllocal"
+}
+
+func (s *pullLocalResultCollector) String() string {
+	return fmt.Sprintf("[ %s: t: %d ]", s.Name(), s.num)
+}
+
+func (p *pullLocalResultCollector) Error(err storage.Error) storage.Error {
 	// Swallow this error, we know we can miss if we get anything at all
 	if _, ok := err.(storage.MissError); ok && len(p.Result()) > 0 {
 		return nil
@@ -483,6 +493,7 @@ func (p *pullLocalResultCollector) error(err storage.Error) storage.Error {
 
 func newPullLocalResultCollector(num int) *pullLocalResultCollector {
 	return &pullLocalResultCollector{
+		num: num,
 		SimpleResultCollector: storage.NewSimpleResultCollector(num),
 	}
 }
