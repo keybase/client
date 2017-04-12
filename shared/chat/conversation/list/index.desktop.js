@@ -1,13 +1,5 @@
 // @flow
 // An infinite scrolling chat list. Using react-virtualized which doesn't really handle this case out of the box.
-// We control which set of messages we render in our state object.
-// We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling.
-//
-//
-// TODO:  hanle scroll stuff
-//
-//
-//
 import * as Constants from '../../../constants/chat'
 import * as Virtualized from 'react-virtualized'
 import EditPopup from '../edit-popup.desktop'
@@ -26,14 +18,11 @@ import type {Props} from '.'
 type State = {
   isLockedToBottom: boolean,
   listRerender: number,
-  // scrollTopOffset: number,
-  // keepRowVisible: ?number,
   selectedMessageKey: ?Constants.MessageKey,
 }
 
 const lockedToBottomSlop = 20
 const listBottomMargin = 10
-// const DEBUG_ROW_RENDER = __DEV__ && false
 
 class BaseList extends Component<void, Props, State> {
   _cellCache = new Virtualized.CellMeasurerCache({
@@ -49,46 +38,10 @@ class BaseList extends Component<void, Props, State> {
   _scrollTop = 0
 
   state = {
-    // keepRowVisible: undefined,
     isLockedToBottom: true,
     listRerender: 0,
     selectedMessageKey: null,
-    // scrollTopOffset: 0,
   }
-
-  // componentWillUnmount () {
-    // // Stop any throttled/debounced functions
-    // this._onScroll.cancel()
-    // this._recomputeListDebounced.cancel()
-    // this._onScrollSettled.cancel()
-  // }
-
-  // TODO keep a counter in the keys list to force these changes automatically. pass that itno the list
-  // componentWillUpdate (nextProps: Props, nextState: State) {
-    // If a message has moved from pending to sent, tell the List to discard
-    // heights for it (which will re-render it and everything after it)
-    // TODO this doesn't work for things that take a bit to load (imgs)
-    // if (this._toRemeasure.length) {
-      // this._toRemeasure.forEach(item => {
-        // this._cellCache.clearRowHeight(item)
-        // if (this._listIsGood()) {
-          // this._list.recomputeRowHeights(item)
-        // }
-      // })
-      // this._toRemeasure = []
-    // }
-
-    // if (this._shouldForceUpdateGrid) {
-      // this._shouldForceUpdateGrid = false
-      // if (this._listIsGood()) {
-        // this._list.forceUpdateGrid()
-      // }
-    // }
-  // }
-
-  // _listIsGood () {
-    // return this._list && this._list.Grid
-  // }
 
   _onAction = (message: Constants.ServerMessage, event: any) => {
     throw new Error('_onAction Implemented in PopupEnabledList')
@@ -106,61 +59,21 @@ class BaseList extends Component<void, Props, State> {
     }
     this._lastRowIdx = -1 // always reset this to be safe
 
-    // if ((this.props.selectedConversation !== prevProps.selectedConversation) ||
-        // (this.props.messageKeys !== prevProps.messageKeys)) {
-      // this.state.isLockedToBottom && this._scrollToBottom()
-    // }
-
     // if (this.props.editLastMessageCounter !== prevProps.editLastMessageCounter) {
       // this.onEditLastMessage()
-    // }
-
-    // if (this.props.messageKeys !== prevProps.messageKeys && prevProps.messageKeys.count() > 1) {
-      // // console.log('aaa', this.props.messageKeys.toJS(), prevProps.messageKeys.toJS())
-      // const toFind = prevProps.messageKeys.find(k => !k.includes(':header:'))
-      // if (toFind) {
-        // const prependedCount = this.props.messageKeys.indexOf(toFind)
-        // // // const headerCount = this.props.headerMessages.count()
-        // if (prependedCount > 0) {
-          // //
-          // // // Measure the new items so we can adjust our scrollTop so your position doesn't jump
-          // const scrollTopOffset = range(0, prependedCount)
-            // .map(index => this._cellCache.rowHeight(index))
-            // .reduce((total, height) => total + height, 0)
-
-          // this.setState({scrollTopOffset}) // eslint-disable-line react/no-did-update-set-state
-          // // this.setState({listRerender: this.state.listRerender + 1}) // eslint-disable-line react/no-did-update-set-state
-
-          // // // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
-          // // this.setState({scrollTop})
-        // }
-      // }
-    // } else {
-      // // Only render this once
-      // if (this.state.scrollTopOffset) {
-        // this.setState({scrollTopOffset: 0}) // eslint-disable-line react/no-did-update-set-state
-      // }
     // }
   }
 
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.selectedConversation !== nextProps.selectedConversation) {
       this.setState({isLockedToBottom: true})
-      // this._isLockedToBottom = true
-      // this._recomputeList()
     }
 
     if (this.props.messageKeys.count() !== nextProps.messageKeys.count()) {
       if (this.props.messageKeys.count() > 1 && this._lastRowIdx !== -1) {
         const toFind = this.props.messageKeys.get(this._lastRowIdx)
         this._keepIdxVisible = nextProps.messageKeys.indexOf(toFind)
-        // this.setState({keepRowVisible: idx})
       }
-
-      // // const toFind = prevProps.messageKeys.find(k => !k.includes(':header:'))
-      // // if (toFind) {
-        // // const prependedCount = this.props.messageKeys.indexOf(toFind)
-      // this.setState({keepRowVisible:
     }
 
     // const willScrollDown = nextProps.listScrollDownCounter !== this.props.listScrollDownCounter
@@ -168,16 +81,7 @@ class BaseList extends Component<void, Props, State> {
     // if (willScrollDown) {
       // this.setState({isLockedToBottom: true})
     // }
-
-    // if (this.props.moreToLoad !== nextProps.moreToLoad) {
-      // this._shouldForceUpdateGrid = true
-    // }
   }
-
-  // _onScrollSettled = _.debounce(() => {
-    // this.setState({
-    // })
-  // }, 1000)
 
   _updateBottomLock = (clientHeight: number, scrollHeight: number, scrollTop: number) => {
     // meaningless otherwise
@@ -187,41 +91,18 @@ class BaseList extends Component<void, Props, State> {
         this.setState({isLockedToBottom})
       }
     }
-    // this.setState({
-      // scrollTop,
-    // })
   }
 
   _maybeLoadMoreMessages = debounce((clientHeight: number, scrollTop: number) => {
     if (clientHeight && scrollTop === 0) {
-      console.log('aaaa loadmore', clientHeight, scrollTop)
       this.props.onLoadMoreMessages()
     }
   }, 500)
 
-  // _onScroll = _.throttle(({clientHeight, scrollHeight, scrollTop}) => {
   _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
-    // // Do nothing if we haven't really loaded anything
-    // if (!clientHeight) {
-      // return
-    // }
-
-    // // At the top, load more messages. Action handles loading state and if there's actually any more
-    // if (scrollTop === 0) {
-      // this.props.onLoadMoreMessages()
-    // }
-
     this._scrollTop = scrollTop
     this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
     this._maybeLoadMoreMessages(clientHeight, scrollTop)
-
-    // this.setState({
-      // // scrollTop,
-    // })
-
-    // // This is debounced so it resets the call
-    // this._onScrollSettled()
-  // }, 200)
   }
 
   _onResize = ({width}) => {
@@ -253,41 +134,11 @@ class BaseList extends Component<void, Props, State> {
     )
   }
 
-  // _recomputeListDebounced = _.throttle(() => {
-    // this._recomputeList()
-  // }, 300)
-
-  // _recomputeList () {
-    // // this._cellCache.clearAllRowHeights()
-
-    // // if (this._listIsGood()) {
-      // // this._list && this._list.recomputeRowHeights()
-    // // }
-    // this.state.isLockedToBottom && this._scrollToBottom()
-  // }
-
   _onCopyCapture (e) {
     // Copy text only, not HTML/styling.
     e.preventDefault()
     clipboard.writeText(window.getSelection().toString())
   }
-
-  // _setCellMeasurerRef = r => {
-    // this._cellMeasurer = r
-  // }
-
-  // _setListRef = r => {
-    // this._list = r
-  // }
-
-  // _rowCount = () => this.props.messageKeys.count()
-
-  // _scrollToBottom = () => {
-    // const rowCount = this._rowCount()
-    // if (this._listIsGood()) {
-      // this._list && this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: rowCount})
-    // }
-  // }
 
   _handleListClick = () => {
     if (window.getSelection().isCollapsed) {
@@ -322,14 +173,8 @@ class BaseList extends Component<void, Props, State> {
     // }
   // }
 
-  // _cellRangeRenderer = options => {
-    // const message = this.props.messages.get(0)
-    // const firstKey = message && message.key || '0'
-    // return chatCellRangeRenderer(firstKey, this._cellCache, options)
-  // }
   _onRowsRendered = ({stopIndex}: {stopIndex: number}) => {
     this._lastRowIdx = stopIndex
-    console.log('aaa on row rendered last', stopIndex)
   }
 
   render () {
@@ -342,27 +187,9 @@ class BaseList extends Component<void, Props, State> {
     }
 
     const rowCount = this.props.messageKeys.count()
+    const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : this._keepIdxVisible
 
-    // let scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
-    // let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
-              // scrollTop={scrollTop}
-              // ref={this._setListRef}
-
-    // We pass additional props to Virtualized.List so we can force re-rendering when this state changes instead of
-
-    // having to explicitly call to force rendering
-    // const scrollTop = this._scrollTop
-    // console.log('aaaa RENDER', scrollTop, this.state.scrollTopOffset, this.props, this.state)
-
-              // scrollTop={this.state.scrollTopOffset ? this._scrollTop + this.state.scrollTopOffset : undefined}
-
-    let scrollToIndex = -1
-    if (this.state.isLockedToBottom) {
-      scrollToIndex = rowCount - 1
-    } else {
-      scrollToIndex = this._keepIdxVisible
-    }
-
+    // We pass additional props (listRerender, selectedMessageKey) to Virtualized.List so we can force re-rendering automatically
     return (
       <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
         <style>{realCSS}</style>
