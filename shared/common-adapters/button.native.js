@@ -59,6 +59,7 @@ class Button extends Component<void, Props, void> {
     // Need this nested view to get around this RN issue: https://github.com/facebook/react-native/issues/1040
     return (
       <ClickableBox
+        style={borderRadius}
         onClick={onPress}
         underlayColor={style.backgroundColor}>
         <Box style={{...style, ...this.props.style, alignItems: 'center', justifyContent: 'center'}}>
@@ -74,12 +75,16 @@ const smallHeight = 32
 const regularHeight = 40
 const fullWidthHeight = 48
 
+const borderRadius = {
+  borderRadius: 50,
+}
+
 const common = {
   ...globalStyles.flexBoxColumn,
+  ...borderRadius,
   alignItems: 'center',
   justifyContent: 'center',
   height: regularHeight,
-  borderRadius: 50,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   alignSelf: 'center',
