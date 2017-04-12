@@ -207,22 +207,12 @@ function submitChat(e) {
   });
 }
 
-
-function renderErrorKeybaseMissing(el) {
-  renderErrorFull(el, `
-    <p>You need the Keybase app to send chat messages.</p>
-    <p style="margin: 2em;">
-      <a href="https://keybase.io/download" class="keybase-button" target="_blank">Install Keybase</a>
-    </p>
-  `);
-}
-
 // Render an error that replaces the body of the widget.
 function renderErrorFull(el, bodyHTML) {
   el.innerHTML = `
     <h3><span class="keybase-close"> </span></h3>
     <p>
-      <img src="${chrome.runtime.getURL("images/icon-keybase-logo-128.png")}" style="height: 64px; width: 64px; margin: 0 0 1em 0;" />
+      <img src="${chrome.runtime.getURL("images/icon-keybase-logo-128.png")}" style="height: 64px; width: 64px;" />
     </p>
     ${bodyHTML}
   `;
@@ -240,8 +230,21 @@ function renderError(chatForm, msg) {
   const err = document.createElement("p");
   err.className = "keybase-error-msg";
 
-  if (msg == "Specified native messaging host not found.") {
-    return renderErrorKeybaseMissing(chatForm);
+  switch (msg) {
+    case "Specified native messaging host not found.":
+      return renderErrorFull(chatForm, `
+        <p>You need the Keybase app to send chat messages.</p>
+        <p>
+          <a href="https://keybase.io/download" class="keybase-button" target="_blank">Install Keybase</a>
+        </p>
+      `);
+    case "keybase is not running":
+      return renderErrorFull(chatForm, `
+        <p>Keybase needs to be running to send chat messages.</p>
+        <p>
+          <a href="https://keybase.io/reddit-crypto" class="keybase-button" target="_blank">More details</a>
+        </p>
+      `);
   }
 
   err.innerText = msg;

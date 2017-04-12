@@ -37,6 +37,14 @@
    text-align: center;
 }
 
+.keybase-error .keybase-button {
+    margin: 8px 0 54px 0;
+}
+
+.keybase-error img {
+    margin: 16px;
+}
+
 .keybase-error-msg {
    color: #ff4d61;
 }
@@ -82,20 +90,17 @@ img.keybase-icon {
 }
 
 .keybase-reply p {
-   margin: 0.5em 0 1.5em 0;
+   margin: 8px 0 16px 0;
 }
 
 a.keybase-button {
   font-size: 14px;
-  height: 32px;
+  display: inline-block;
   border-radius: 50px;
   background-color: #33a0ff;
   color: white !important;
   padding: 0.6em 1.5em !important;
   font-weight: normal !important;
-}
-
-.keybase-reply label {
 }
 
 .keybase-reply h3 {
@@ -107,7 +112,7 @@ a.keybase-button {
    font-weight: normal;
    font-size: 13px;
    letter-spacing: 0.3px;
-   margin-bottom: 1.5em;
+   margin-bottom: 16px;
 }
 
 .keybase-reply .keybase-error h3 {
