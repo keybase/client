@@ -6,7 +6,7 @@ import type {DumbComponentMap} from '../../../constants/types/more'
 const baseMock = {
   mode: 'codePageModeScanCode',
   textCode: 'derive jump shop federal member moral clip prevent vast wear critic purple mistake',
-  qrCode: 'derive jump shop federal',
+  qrCode: qrGenerate('derive jump shop federal'),
   myDeviceRole: 'codePageDeviceRoleNewPhone',
   cameraBrokenMode: false,
   setCodePageMode: () => {},
@@ -41,7 +41,6 @@ const showCodeDeviceMock = {
   ...baseMock,
   mode: 'codePageModeShowCode',
   otherDeviceRole: 'codePageDeviceRoleExistingPhone',
-  qrCode: qrGenerate(baseMock.qrCode),
 }
 
 const showCodeMock = {

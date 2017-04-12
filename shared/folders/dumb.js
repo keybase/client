@@ -12,30 +12,33 @@ function createFolder (partialFolder: $Shape<Folder>) {
   return {...partialFolder, ...pathFromFolder(partialFolder)}
 }
 
+
+const mockUsers  = [
+  {username: 'cecileb', you: true},
+  {username: 'jeresig', broken: true},
+  {username: 'throughnothing'},
+  {username: 'cdixon'},
+  {username: 'bob'},
+  {username: 'aliceb'},
+  {username: 'lmorchard'},
+  {username: 'chris'},
+  {username: 'chris1'},
+  {username: 'chris2'},
+  {username: 'chris3'},
+  {username: 'chris4'},
+  {username: 'chris5'},
+  {username: 'chris6'},
+  {username: 'chris7'},
+  {username: 'chris8'},
+  {username: 'chris9'},
+  {username: 'chris10'},
+  {username: 'chris11'},
+  {username: 'chris12'},
+  {username: 'chris13'},
+]
+
 const f1: Folder = createFolder({
-  users: [
-    {username: 'cecileb', you: true},
-    {username: 'jeresig', broken: true},
-    {username: 'throughnothing'},
-    {username: 'cdixon'},
-    {username: 'bob'},
-    {username: 'aliceb'},
-    {username: 'lmorchard'},
-    {username: 'chris'},
-    {username: 'chris1'},
-    {username: 'chris2'},
-    {username: 'chris3'},
-    {username: 'chris4'},
-    {username: 'chris5'},
-    {username: 'chris6'},
-    {username: 'chris7'},
-    {username: 'chris8'},
-    {username: 'chris9'},
-    {username: 'chris10'},
-    {username: 'chris11'},
-    {username: 'chris12'},
-    {username: 'chris13'},
-  ],
+  users: mockUsers,
   meta: 'new',
   ignored: false,
   isPublic: false,
@@ -195,6 +198,8 @@ const map: DumbComponentMap<Folders> = {
   component: Folders,
   mocks: {
     'Normal Private': {...commonFolders},
+    'Normal Private - Hide Ignored': {...commonFolders, showingIgnored: false},
+    'Normal Public - Hide Ignored': {...commonFolders, showingPrivate: false, showingIgnored: false},
     'Normal Public': {
       ...commonFolders,
       showingPrivate: false,
@@ -337,12 +342,30 @@ const files: DumbComponentMap<Files> = {
     'Normal - Public': {
       ...commonFiles(false),
     },
+    'Not Implemented - Public': {
+      ...commonFiles(false),
+      notImplemented: true,
+    },
+    'Not Implemented - Public - lotsa users': {
+      ...commonFiles(false),
+      notImplemented: true,
+      users: mockUsers,
+    },
     'Popup - Public': {
       ...commonFiles(false),
       visiblePopupMenu: true,
     },
     'Normal - Private': {
       ...commonFiles(true),
+    },
+    'Not Implemented - Private': {
+      ...commonFiles(true),
+      notImplemented: true,
+    },
+    'Not Implemented - Private - lotsa users': {
+      ...commonFiles(true),
+      users: mockUsers,
+      notImplemented: true,
     },
     'Popup - Private': {
       ...commonFiles(true),
@@ -393,9 +416,9 @@ const files: DumbComponentMap<Files> = {
 }
 
 export default {
-  'Folders TLF': map,
-  Files: files,
-  File: file,
+  'Folders: TLF': map,
+  'Folders: Files': files,
+  'Folders: File': file,
 }
 
 export {

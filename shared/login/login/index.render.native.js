@@ -54,7 +54,7 @@ const styles = {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
     flex: 1,
-    backgroundColor: globalColors.lightGrey,
+    backgroundColor: globalColors.white,
   },
   card: {
     marginTop: globalMargins.tiny,

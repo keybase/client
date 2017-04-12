@@ -10,10 +10,10 @@ import {globalColors, globalMargins, globalStyles} from '../styles'
 const StandardScreen = (props: Props) => {
   return (
     <Box style={{...styleContainer, ...props.styleOuter}}>
-      <Box style={styleCloseContainer}>
+      {(!!props.onClose || !!props.onBack) && <Box style={styleCloseContainer}>
         {!!props.onClose && <Text type='BodyBig' style={{...styleClose, ...props.styleClose}} onClick={props.onClose}>Cancel</Text>}
         {!!props.onBack && <Icon type='iconfont-back' style={{...styleClose, ...backArrowStyle, ...props.styleBack}} onClick={props.onBack} />}
-      </Box>
+      </Box>}
       <NativeScrollView style={styleScrollContainer} contentContainerStyle={styleScrollContainer}>
         {!!props.notification &&
           <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
@@ -52,10 +52,10 @@ const MIN_BANNER_HEIGHT = 40
 const styleBanner = (type) => ({
   ...globalStyles.flexBoxColumn,
   minHeight: MIN_BANNER_HEIGHT,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-  paddingTop: globalMargins.tiny,
-  paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.tiny,
+  paddingRight: globalMargins.tiny,
+  marginBottom: globalMargins.tiny,
+  marginTop: globalMargins.tiny,
   alignItems: 'center',
   justifyContent: 'center',
   backgroundColor: type === 'error' ? globalColors.red : globalColors.green,

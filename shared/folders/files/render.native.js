@@ -3,7 +3,7 @@ import File from './file/render'
 import React, {Component} from 'react'
 import type {FileSection} from '../../constants/folders'
 import type {Props} from './render'
-import {Box, Button, Text, BackButton, Avatar, Icon, Usernames, NativeScrollView} from '../../common-adapters/index.native'
+import {Box, Button, Text, BackButton, Avatar, Icon, Usernames, NativeScrollView, NativeStyleSheet} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
@@ -31,29 +31,39 @@ class FilesRender extends Component<void, Props, void> {
     const contents = (
       <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', ...styleHeaderThemed[this.props.theme], height: 48}}>
         <BackButton title={null} onClick={this.props.onBack} style={{marginLeft: globalMargins.small}} iconStyle={{color: backButtonColor}} textStyle={{color: backButtonColor}} />
-        <Icon
-          underlayColor={'transparent'}
-          style={{...styleMenu, color: menuColor, marginRight: globalMargins.small}}
-          type='iconfont-hamburger'
-          onClick={this.props.onTogglePopupMenu} />
       </Box>
     )
 
     return contents
   }
 
+  _renderIgnoreButton (isPrivate: boolean) {
+    return this.props.ignored
+      ? <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' />
+      : <Button backgroundMode={isPrivate ? 'Terminal' : 'Normal'} type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' />
+  }
+
   _renderContents (isPrivate: boolean, ignored: boolean, allowIgnore: boolean) {
     if (!this.props.recentFilesEnabled) {
       return (
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          {ignored
-          ? allowIgnore && <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' />
-          : allowIgnore && <Button backgroundMode={isPrivate ? 'Terminal' : 'Normal'} type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' />}
+          {allowIgnore && this._renderIgnoreButton(ignored)}
         </Box>
       )
     } else {
       return <NativeScrollView>{this.props.recentFilesSection.map(s => this._renderSection(s))}</NativeScrollView>
     }
+  }
+
+  _renderNotImplemented (isPrivate: boolean) {
+    const privateStyle = isPrivate ? {color: globalColors.blue3_40} : {}
+    return (
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center'}}>
+        <Text style={{...privateStyle, textAlign: 'center'}} type='BodySmall'>Mobile files coming soon!</Text>
+        <Text style={{...privateStyle, textAlign: 'center', marginBottom: globalMargins.large}} type='BodySmall'>For now you can browse this folder on your computer.</Text>
+        {this.props.allowIgnore && this._renderIgnoreButton(isPrivate)}
+      </Box>
+    )
   }
 
   render () {
@@ -64,15 +74,9 @@ class FilesRender extends Component<void, Props, void> {
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', backgroundColor: backgroundColorThemed[this.props.theme], paddingTop: statusBarHeight}}>
         {this._renderHeader()}
         <Box style={{...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}>
-          <Box style={{...globalStyles.flexBoxRow, position: 'relative', justifyContent: 'center', alignItems: 'flex-start', marginTop: -1 * globalMargins.small}}>
-            {this.props.users.map(u => <Box key={u.username} style={{height: 32, width: 28}}><Avatar username={u.username} size={32} /></Box>)}
-          </Box>
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', justifyContent: 'center', marginTop: 3, marginBottom: 12, flex: 1}}>
-            <Text type='BodySemibold' style={tlfTextStyle}>{isPrivate ? 'private/' : 'public/'}</Text>
-            <Usernames users={this.props.users} type='Header' style={tlfTextStyle} />
-          </Box>
+          <Usernames prefix={isPrivate ? 'private/' : 'public/'} users={this.props.users} type='BodySemibold' style={tlfTextStyle} containerStyle={{textAlign: 'center'}} />
         </Box>
-        {this._renderContents(isPrivate, this.props.ignored, this.props.allowIgnore)}
+        {this.props.notImplemented ? this._renderNotImplemented(isPrivate) : this._renderContents(isPrivate, this.props.ignored, this.props.allowIgnore)}
       </Box>
     )
   }
@@ -90,7 +94,16 @@ const styleHeaderThemed = {
 
 const styleTLFHeader = {
   ...globalStyles.flexBoxColumn,
-  minHeight: 48,
+  minHeight: 56,
+  alignItems: 'stretch',
+  justifyContent: 'center',
+  flexGrow: 0,
+  borderBottomColor: globalColors.black_05,
+  borderBottomWidth: NativeStyleSheet.hairlineWidth,
+  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
 }
 
 const styleTLFHeaderThemed = {
@@ -123,7 +136,7 @@ const styleSectionTextThemed = {
 }
 
 const backgroundColorThemed = {
-  'public': globalColors.lightGrey,
+  'public': globalColors.white,
   'private': globalColors.darkBlue3,
 }
 

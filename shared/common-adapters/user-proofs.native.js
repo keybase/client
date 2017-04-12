@@ -25,8 +25,8 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
         <Icon style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
         <Box style={styleProofNameSection}>
           <Box style={styleProofNameLabelContainer}>
-            <Text type='Body' style={styleProofName}>
-              <Text type='Body' style={{color: missingColor}}>{missingProof.message}</Text>
+            <Text type='Body' style={{...styleProofName, color: missingColor}}>
+              {missingProof.message}
             </Text>
           </Box>
         </Box>
@@ -51,7 +51,7 @@ function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: Proof
 
   return (
     <Box style={{...styleRow, ...style}} key={`${proof.id}${proof.type}`}>
-      <Box style={iconContainer}>
+      <Box style={{...iconContainer}}>
         <Icon style={styleService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={() => onClickProfile(proof)} />
       </Box>
       <Box style={styleProofNameSection}>
@@ -132,7 +132,7 @@ class ProofsRender extends Component<void, Props, void> {
             onClickStatus={onClickProofMenu ? () => onClickProofMenu(idx) : (p) => this._onClickProof(p)}
             onClickProfile={(p) => this._onClickProfile(p)}
             hasMenu={!!onClickProofMenu}
-            style={pad(idx)} />
+            style={{...pad(idx), minHeight: 24}} />
         )}
         {this.props.type === 'missingProofs' && this.props.missingProofs.map((mp, idx) =>
           <MissingProofRow
@@ -148,8 +148,7 @@ class ProofsRender extends Component<void, Props, void> {
 const iconContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  height: 24,
-  minHeight: 24,
+  minHeight: 32,
   minWidth: 24,
   width: 24,
 }
@@ -161,7 +160,7 @@ const styleContainer = {
 }
 const styleRow = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'flex-start',
+  alignItems: 'stretch',
   justifyContent: 'flex-start',
   // RN-BUG: set maxWidth once that prop is supported
 }

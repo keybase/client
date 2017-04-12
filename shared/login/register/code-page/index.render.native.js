@@ -62,7 +62,7 @@ class CodePageRender extends Component<void, Props, void> {
       <Box style={stylesEnterText}>
         <Icon type='icon-phone-text-code-32' style={{alignSelf: 'center'}} />
         <Input
-          hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
+          hintText=''
           floatingHintTextOverride=''
           multiline={true}
           rowsMin={3}
@@ -123,7 +123,7 @@ class CodePageRender extends Component<void, Props, void> {
           <Text type='Body'>In the Keybase App on your other phone,</Text>
           <Text type='Body'>{'go to Devices > Add a new device.'}</Text>
         </Box>
-        <TabBar style={{flex: 1}}>
+        <TabBar style={{flex: 1}} underlined={true}>
           <TabBarItem
             selected={this.props.mode === codePageModeShowCode}
             label='Display Code'
@@ -257,6 +257,7 @@ const stylesShowText = {
 const stylesTextCode = {
   ...globalStyles.selectable,
   ...globalStyles.fontTerminalSemibold,
+  paddingTop: globalMargins.tiny,
   fontSize: 18,
   color: globalColors.darkBlue,
   textAlign: 'center',

@@ -59,5 +59,5 @@ const map: DumbComponentMap<Render> = {
 }
 
 export default {
-  'Device Revoke': map,
+  'Devices: Device Revoke': map,
 }

@@ -32,7 +32,6 @@ function customError (error: string, code: ?number) {
       <Text style={{...styleErrorBannerText, marginLeft: globalMargins.small, marginRight: globalMargins.small}} type='BodySemibold'>You haven't set a public "Coinbase URL". You need to do that now.</Text>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}} onClick={() => openURL('https://www.coinbase.com/settings#payment_page')}>
         <Text style={styleErrorBannerText} type='BodySmallSemibold'>Go to Coinbase</Text>
-        <Icon type='iconfont-open-browser' style={{color: globalColors.white_40, marginLeft: 4}} />
       </Box>
     </Box>
   }
@@ -104,8 +103,13 @@ const styleInfoBanner = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
   backgroundColor: globalColors.yellow,
-  padding: globalMargins.small,
+  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
   marginTop: globalMargins.large,
+  marginLeft: -globalMargins.medium,
+  marginRight: -globalMargins.medium,
 }
 
 const styleButton = {

@@ -32,7 +32,7 @@ class InviteCodeRender extends Component<void, Props, State> {
       <Container onBack={this.props.onBack} style={stylesContainer}>
         <Text style={stylesHeader} type='Header'>Type in your invite code:</Text>
         <Icon style={stylesIcon} type='icon-invite-code-48' />
-        <Input autoFocus={true} style={stylesInput} hintText='goddess brown result reject' value={this.state.inviteCode} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={this._onSubmit} onChangeText={this._updateInviteCode} />
+        <Input autoFocus={true} style={stylesInput} hintText='' value={this.state.inviteCode} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={this._onSubmit} onChangeText={this._updateInviteCode} />
         <Button style={stylesButton} waiting={this.props.waiting} type='Primary' label='Continue' onClick={this._onSubmit} disabled={!this.state.inviteCode} />
         <Text type='BodySmall'>Not invited?</Text>
         <Text type='BodySmallSecondaryLink' onClick={this.props.onRequestInvite}>Request an invite</Text>

@@ -89,6 +89,7 @@ class Files extends Component<void, Props, State> {
         unIgnoreCurrentFolder={unIgnoreCurrentFolder}
         recentFilesSection={folder.recentFiles} // TODO (AW): integrate recent files once the service provides this data
         recentFilesEnabled={flags.recentFilesEnabled}
+        notImplemented={!flags.folderFilesEnabled}
       />
     )
   }

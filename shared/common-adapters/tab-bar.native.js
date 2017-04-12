@@ -69,7 +69,6 @@ class TabBar extends Component<void, Props, void> {
             <Box style={{...item.props.styleContainer}}>
               {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
             </Box>
-            {this.props.underlined && <Box style={stylesUnderline} />}
           </Box>
         </NativeTouchableWithoutFeedback>
       )
@@ -82,15 +81,17 @@ class TabBar extends Component<void, Props, void> {
 
   render () {
     const tabBarButtons = (
-      <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>
-        {this._labels()}
+      <Box style={{...globalStyles.flexBoxColumn}}>
+        <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>
+          {this._labels()}
+        </Box>
+        {this.props.underlined && <Box style={stylesUnderline} />}
       </Box>
     )
 
     return (
       <Box style={{...stylesContainer, ...this.props.style}}>
         {!this.props.tabBarOnBottom && tabBarButtons}
-        <Box style={{borderBottomColor: globalColors.black_05, borderBottomWidth: StyleSheet.hairlineWidth}} />
         {this._content()}
         {this.props.tabBarOnBottom && tabBarButtons}
       </Box>
@@ -132,7 +133,7 @@ const stylesSelectedUnderline = color => ({
 })
 
 const stylesUnderline = {
-  height: 1,
+  height: StyleSheet.hairlineWidth,
   alignSelf: 'stretch',
   backgroundColor: globalColors.black_05,
 }

@@ -8,11 +8,12 @@ import RequestInviteSuccess from './request-invite-success.render'
 import RequesteInvite from './request-invite.render'
 import Success from './success/index.render'
 import UsernameEmail from './username-email-form.render'
+import {isMobile} from '../../constants/platform'
 
 const nullFunc = () => {}
 
 const signupShared = {
-  parentProps: {
+  parentProps: isMobile ? {} : {
     style: {
       position: 'relative',
       width: 800,
@@ -76,7 +77,7 @@ const deviceNameShared = {
 }
 
 export default {
-  'Invite Code': {
+  'Signup: Invite Code': {
     component: InviteCode,
     mocks: {
       'Start': {
@@ -98,7 +99,7 @@ export default {
       },
     },
   },
-  'RequestInviteSuccess': {
+  'Signup: RequestInviteSuccess': {
     component: RequestInviteSuccess,
     mocks: {
       'Start': {
@@ -106,7 +107,7 @@ export default {
       },
     },
   },
-  'RequestInvite': {
+  'Signup: RequestInvite': {
     component: RequesteInvite,
     mocks: {
       'Start': {
@@ -143,7 +144,7 @@ export default {
       },
     },
   },
-  'UsernameEmail (Login)': {
+  'Signup: UsernameEmail (Login)': {
     component: UsernameEmail,
     mocks: {
       'Start': {
@@ -180,7 +181,7 @@ export default {
       },
     },
   },
-  'Error': {
+  'Signup: Error': {
     component: Error,
     mocks: {
       'Start': {
@@ -190,7 +191,7 @@ export default {
       },
     },
   },
-  'Passphrase': {
+  'Signup: Passphrase': {
     component: Passphrase,
     mocks: {
       'Start': {
@@ -202,7 +203,7 @@ export default {
       },
     },
   },
-  'Success': {
+  'Signup: Success': {
     component: Success,
     mocks: {
       'Start': {
@@ -214,7 +215,7 @@ export default {
       },
     },
   },
-  'Device Name': {
+  'Signup: Device Name': {
     component: DeviceName,
     mocks: {
       'Start': {

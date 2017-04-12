@@ -113,9 +113,9 @@ const ignoreMap: DumbComponentMap<ConfirmIgnore> = {
 }
 
 export default {
-  'Folders Clear History Confirmation': clearHistoryMap,
-  'Folders Delete Confirmation': deleteMap,
-  'Folders Ignore Confirmation': ignoreMap,
+  'Folders: Clear History Confirmation': clearHistoryMap,
+  'Folders: Delete Confirmation': deleteMap,
+  'Folders: Ignore Confirmation': ignoreMap,
 }
 
 export {

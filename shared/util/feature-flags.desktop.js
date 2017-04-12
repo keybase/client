@@ -20,6 +20,7 @@ const ff: FeatureFlags = {
   plansEnabled: featureOn('plansEnabled'),
   recentFilesEnabled: featureOn('recentFilesEnabled'),
   tabPeopleEnabled: featureOn('tabPeopleEnabled'),
+  folderFilesEnabled: true,
 }
 
 if (__DEV__) {
