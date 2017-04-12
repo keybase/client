@@ -139,7 +139,6 @@ func (s *Syncer) isServerInboxClear(ctx context.Context, inbox *storage.Inbox, s
 func (s *Syncer) IsConnected(ctx context.Context) bool {
 	s.Lock()
 	defer s.Unlock()
-	defer s.Trace(ctx, func() error { return nil }, "IsConnected")()
 	return s.isConnected
 }
 

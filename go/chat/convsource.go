@@ -334,7 +334,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 
 	if err == nil {
 		// Try locally first
-		thread, err = s.storage.Fetch(ctx, conv, uid, query, pagination)
+		thread, err = s.storage.Fetch(ctx, conv, uid, nil, query, pagination)
 		if err == nil {
 			// If found, then return the stuff
 			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s", convID, uid)
@@ -469,6 +469,24 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 	}
 }
 
+type pullLocalResultCollector struct {
+	*storage.SimpleResultCollector
+}
+
+func (p *pullLocalResultCollector) error(err storage.Error) storage.Error {
+	// Swallow this error, we know we can miss if we get anything at all
+	if _, ok := err.(storage.MissError); ok && len(p.Result()) > 0 {
+		return nil
+	}
+	return err
+}
+
+func newPullLocalResultCollector(num int) *pullLocalResultCollector {
+	return &pullLocalResultCollector{
+		SimpleResultCollector: storage.NewSimpleResultCollector(num),
+	}
+}
+
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (tv chat1.ThreadView, err error) {
 	defer s.Trace(ctx, func() error { return err }, "PullLocalOnly")()
@@ -494,7 +512,14 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 		}
 	}()
 
-	tv, err = s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, query, pagination)
+	// A number < 0 means it will fetch until it hits the end of the local copy. Our special
+	// result collector will suppress any miss errors
+	num := -1
+	if pagination != nil {
+		num = pagination.Num
+	}
+	tv, err = s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, newPullLocalResultCollector(num),
+		query, pagination)
 	if err != nil {
 		s.Debug(ctx, "PullLocalOnly: failed to fetch local messages: %s", err.Error())
 		return chat1.ThreadView{}, err
