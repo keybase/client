@@ -198,7 +198,8 @@ function submitChat(e) {
   }, function(response) {
     if (response.status != "ok") {
       renderError(f, response.message);
-      submitButton.value = "Error";
+      submitButton.value = "Try Again";
+      submitButton.disabled = false;
       return;
     }
 
@@ -248,7 +249,8 @@ function renderError(chatForm, msg) {
   }
 
   err.innerText = msg;
-  chatForm.appendChild(err);
+  const el = chatForm.getElementsByClassName("keybase-body")[0];
+  el.appendChild(err);
 }
 
 // Render a formatted user@service string.
