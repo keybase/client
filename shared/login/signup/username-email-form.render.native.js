@@ -2,7 +2,7 @@
 import Container from '../forms/container'
 import React, {Component} from 'react'
 import type {Props} from './username-email-form.render'
-import {Box, UserCard, Input, Button} from '../../common-adapters'
+import {UserCard, Input, Button} from '../../common-adapters'
 import {globalColors, globalMargins} from '../../styles'
 
 class UsernameEmailFormRender extends Component<void, Props, void> {

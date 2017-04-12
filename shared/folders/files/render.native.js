@@ -3,7 +3,7 @@ import File from './file/render'
 import React, {Component} from 'react'
 import type {FileSection} from '../../constants/folders'
 import type {Props} from './render'
-import {Box, Button, Text, BackButton, Avatar, Icon, Usernames, NativeScrollView, NativeStyleSheet} from '../../common-adapters/index.native'
+import {Box, Button, Text, BackButton, Icon, Usernames, NativeScrollView, NativeStyleSheet} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
@@ -25,7 +25,6 @@ class FilesRender extends Component<void, Props, void> {
 
   // TODO render checkerboard pattern for private mode
   _renderHeader () {
-    const menuColor = styleMenuColorThemed(this.props.theme, this.props.visiblePopupMenu)
     const backButtonColor = backButtonColorThemed[this.props.theme]
 
     const contents = (
@@ -140,20 +139,9 @@ const backgroundColorThemed = {
   'private': globalColors.darkBlue3,
 }
 
-const styleMenu = {
-  ...globalStyles.clickable,
-  alignSelf: 'center',
-}
-
 const backButtonColorThemed = {
   'private': globalColors.white,
   'public': globalColors.white,
-}
-
-function styleMenuColorThemed (theme, showingMenu): string {
-  return theme === 'public'
-    ? (showingMenu ? globalColors.black_40 : globalColors.white)
-    : (showingMenu ? globalColors.blue3 : globalColors.white)
 }
 
 export default FilesRender

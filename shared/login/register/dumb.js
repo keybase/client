@@ -34,7 +34,7 @@ const mockDevices = [
   ['Android Nexus 5x', 'mobile'],
 ].map(([name, type], i) => ({
   name,
-  deviceID: i,
+  deviceID: i.toString(),
   type,
   created: 0,
   currentDevice: false,

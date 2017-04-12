@@ -38,7 +38,7 @@ const Intro = (props: Props) => (
       <Text type='BodySemibold' style={{...stylesRevoked}}><Text type='BodySemiboldItalic' style={{color: globalColors.white}}>{props.justRevokedSelf}</Text>&nbsp;was revoked successfully</Text>
     }
     {!!props.justDeletedSelf &&
-      <Text type='BodySemibold' style={{...stylesRevoked}}>Your Keybase account <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>{props.justDeletedSelf}</Text>&nbsp;has been deleted.</Text>
+      <Text type='BodySemibold' style={{...stylesDeleted}}>Your Keybase account <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>{props.justDeletedSelf}</Text>&nbsp;has been deleted.</Text>
     }
     {!!props.justLoginFromRevokedDevice &&
       <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>has been revoked, please log in again.</Text>
@@ -97,7 +97,7 @@ const stylesRevoked = {
   textAlign: 'center',
 }
 
-const styleDeleted = {
+const stylesDeleted = {
   ...stylesRevoked,
   backgroundColor: globalColors.blue,
 }

@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import type {Props} from './ignore.render'
-import {Confirm, Box, Text, Icon, Avatar} from '../../common-adapters'
+import {Confirm, Box, Text, Icon} from '../../common-adapters'
 import {globalColors} from '../../styles'
 import {usernameText} from '../../common-adapters/usernames'
 
@@ -10,7 +10,7 @@ const Render = ({isPrivate, users, avatar, onSubmit, onCancel}: Props) => {
 
   const header = (
     <Box style={{opacity: 0.6}}>
-      <Icon type={iconThemed[theme]}/>
+      <Icon type={iconThemed[theme]} />
     </Box>
   )
 
@@ -28,15 +28,6 @@ const Render = ({isPrivate, users, avatar, onSubmit, onCancel}: Props) => {
   return <Confirm theme={theme} header={header} body={body} submitLabel='Yes, ignore this folder' onSubmit={onSubmit} onCancel={onCancel} />
 }
 
-const styleAvatar = {
-  borderWidth: 3,
-  borderStyle: 'solid',
-  borderRadius: 35,
-  position: 'absolute',
-  right: 0,
-  bottom: 0,
-}
-
 const textColorThemed = {
   'public': {
     color: globalColors.black_75,
@@ -44,11 +35,6 @@ const textColorThemed = {
   'private': {
     color: globalColors.white,
   },
-}
-
-const borderColorThemed = {
-  'public': globalColors.white,
-  'private': globalColors.darkBlue3,
 }
 
 const iconThemed = {

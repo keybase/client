@@ -39,7 +39,7 @@ const Wrapped = (props: Props) => {
   )
 
   return (
-    <StandardScreen styleOuter={{padding: 0, paddingTop: 0}} styleBanner={{marginTop: statusBarHeight, backgroundColor: titleColor}} padding notification={{message: notification}}>
+    <StandardScreen styleOuter={{padding: 0, paddingTop: 0}} styleBanner={{marginTop: statusBarHeight, backgroundColor: titleColor}} notification={{message: notification, type: 'success'}}>
       <Render {...props} />
     </StandardScreen>
   )

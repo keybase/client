@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {globalStyles, globalMargins} from '../styles'
-import {Box, Icon, Text, Checkbox, HeaderHoc} from '../common-adapters'
+import {Box, Text, Checkbox, HeaderHoc} from '../common-adapters'
 import {getSecureFlagSetting, setSecureFlagSetting} from '../native/screenprotector'
 import {isAndroid} from '../constants/platform'
 

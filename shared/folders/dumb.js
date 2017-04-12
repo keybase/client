@@ -12,8 +12,7 @@ function createFolder (partialFolder: $Shape<Folder>) {
   return {...partialFolder, ...pathFromFolder(partialFolder)}
 }
 
-
-const mockUsers  = [
+const mockUsers = [
   {username: 'cecileb', you: true},
   {username: 'jeresig', broken: true},
   {username: 'throughnothing'},
@@ -291,6 +290,7 @@ const filesMenuItems = [
 
 const commonFiles = (isPrivate): FilesProps => ({
   theme: isPrivate ? 'private' : 'public',
+  notImplemented: false,
   ignored: false,
   allowIgnore: true,
   hasReadOnlyUsers: false,

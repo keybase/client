@@ -17,7 +17,7 @@ import DeleteContainer from './delete/container'
 import RemoveDevice from '../devices/device-revoke/container'
 import DeleteConfirm from './delete-confirm/container'
 import DevMenu from '../dev/dev-menu'
-import Screenprotector from './screenprotector-container'
+import Screenprotector from './screenprotector-container.native'
 
 import * as Constants from '../constants/settings'
 

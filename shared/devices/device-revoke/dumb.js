@@ -1,6 +1,5 @@
 // @flow
 import Render from '.'
-import {isMobile} from '../../constants/platform'
 
 import type {DumbComponentMap} from '../../constants/types/more'
 
