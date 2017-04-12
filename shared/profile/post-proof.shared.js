@@ -109,7 +109,7 @@ export function propsForPlatform (props: Props): MoreProps {
         proofText: props.proofText,
         proofActionIcon: null,
         descriptionView: (
-          <Box>
+          <Box style={{...globalStyles.flexBoxColumn}}>
             <Text type='BodySemibold' {...styleCentered}>Please serve the text below <Text type='BodySemiboldItalic'>exactly as it appears</Text> at one of these URL's.</Text>
             <Text type='BodyPrimaryLink' onClick={() => openUrl(urlRoot)} style={{color: globalColors.blue, textAlign: 'center', marginTop: globalMargins.tiny}}>{urlRoot}</Text>
             <Text type='BodyPrimaryLink' onClick={() => openUrl(urlWellKnown)} style={{color: globalColors.blue, textAlign: 'center'}}>{urlWellKnown}</Text>
