@@ -257,7 +257,7 @@ func TestInboxEmptySuperseder(t *testing.T) {
 	var convs []chat1.Conversation
 	for i := 0; i < numConvs; i++ {
 		conv := makeConvo(gregor1.Time(i), 1, 1)
-		conv.MaxMsgSummaries = []chat1.MessageSummary{}
+		conv.MaxMsgSummaries = nil
 		convs = append(convs, conv)
 	}
 	var full, superseded []chat1.Conversation
