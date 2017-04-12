@@ -17,14 +17,17 @@ import messageFactory from '../messages'
 import {Icon} from '../../../common-adapters'
 import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
 import {clipboard} from 'electron'
+import {debounce, range} from 'lodash'
 import {findDOMNode} from '../../../util/dom'
 import {globalColors, globalStyles} from '../../../styles'
 
 import type {Props} from '.'
 
 type State = {
-  // isScrolling: boolean,
-  // scrollTop: number,
+  isLockedToBottom: boolean,
+  // listRerender: number,
+  // scrollTopOffset: number,
+  // keepRowVisible: ?number,
   selectedMessageKey: ?Constants.MessageKey,
 }
 
@@ -38,13 +41,19 @@ class BaseList extends Component<void, Props, State> {
     keyMapper: (rowIndex: number) => this.props.messageKeys.get(rowIndex),
   })
 
+  _keepIdxVisible: number = -1
+  _lastRowIdx: number = -1
+
   // This is similar to a state but it changing value doesn't actually need to cause us to re-render.
   // We're either locked at the bottom or not and it only affects when we get new messages which'll cause a render anyways
-  _isLockedToBottom = true
+  _scrollTop = 0
 
   state = {
+    // keepRowVisible: undefined,
+    isLockedToBottom: true,
+    // listRerender: 0,
     selectedMessageKey: null,
-    // scrollTop: 0,
+    // scrollTopOffset: 0,
   }
 
   // componentWillUnmount () {
@@ -89,7 +98,7 @@ class BaseList extends Component<void, Props, State> {
     throw new Error('_onShowEditor Implemented in PopupEnabledList')
   }
 
-  // componentDidUpdate (prevProps: Props, prevState: State) {
+  componentDidUpdate (prevProps: Props, prevState: State) {
     // if ((this.props.selectedConversation !== prevProps.selectedConversation) ||
         // (this.props.messageKeys !== prevProps.messageKeys)) {
       // this.state.isLockedToBottom && this._scrollToBottom()
@@ -100,24 +109,51 @@ class BaseList extends Component<void, Props, State> {
     // }
 
     // if (this.props.messageKeys !== prevProps.messageKeys && prevProps.messageKeys.count() > 1) {
-      // const prependedCount = this.props.messageKeys.indexOf(prevProps.messageKeys.first())
-      // // const headerCount = this.props.headerMessages.count()
-      // if (prependedCount !== -1) {
-        // // Measure the new items so we can adjust our scrollTop so your position doesn't jump
-        // const scrollTop = this.state.scrollTop + _.range(0, prependedCount)
-          // .map(index => this._cellMeasurer.getRowHeight({index}))
-          // .reduce((total, height) => total + height, 0)
+      // // console.log('aaa', this.props.messageKeys.toJS(), prevProps.messageKeys.toJS())
+      // const toFind = prevProps.messageKeys.find(k => !k.includes(':header:'))
+      // if (toFind) {
+        // const prependedCount = this.props.messageKeys.indexOf(toFind)
+        // // // const headerCount = this.props.headerMessages.count()
+        // if (prependedCount > 0) {
+          // //
+          // // // Measure the new items so we can adjust our scrollTop so your position doesn't jump
+          // const scrollTopOffset = range(0, prependedCount)
+            // .map(index => this._cellCache.rowHeight(index))
+            // .reduce((total, height) => total + height, 0)
 
-        // // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
-        // this.setState({scrollTop}) // eslint-disable-line react/no-did-update-set-state
+          // this.setState({scrollTopOffset}) // eslint-disable-line react/no-did-update-set-state
+          // // this.setState({listRerender: this.state.listRerender + 1}) // eslint-disable-line react/no-did-update-set-state
+
+          // // // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
+          // // this.setState({scrollTop})
+        // }
+      // }
+    // } else {
+      // // Only render this once
+      // if (this.state.scrollTopOffset) {
+        // this.setState({scrollTopOffset: 0}) // eslint-disable-line react/no-did-update-set-state
       // }
     // }
-  // }
+  }
 
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.selectedConversation !== nextProps.selectedConversation) {
-      this._isLockedToBottom = true
+      this.setState({isLockedToBottom: true})
+      // this._isLockedToBottom = true
       // this._recomputeList()
+    }
+
+    if (this.props.messageKeys.count() !== nextProps.messageKeys.count()) {
+      if (this.props.messageKeys.count() > 1 && this._lastRowIdx !== -1) {
+        const toFind = this.props.messageKeys.get(this._lastRowIdx)
+        this._keepIdxVisible = nextProps.messageKeys.indexOf(toFind)
+        // this.setState({keepRowVisible: idx})
+      }
+
+      // // const toFind = prevProps.messageKeys.find(k => !k.includes(':header:'))
+      // // if (toFind) {
+        // // const prependedCount = this.props.messageKeys.indexOf(toFind)
+      // this.setState({keepRowVisible:
     }
 
     // const willScrollDown = nextProps.listScrollDownCounter !== this.props.listScrollDownCounter
@@ -139,12 +175,22 @@ class BaseList extends Component<void, Props, State> {
   _updateBottomLock = (clientHeight: number, scrollHeight: number, scrollTop: number) => {
     // meaningless otherwise
     if (clientHeight) {
-      this._isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
+      const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
+      if (this.state.isLockedToBottom !== isLockedToBottom) {
+        this.setState({isLockedToBottom})
+      }
     }
     // this.setState({
       // scrollTop,
     // })
   }
+
+  _maybeLoadMoreMessages = debounce((clientHeight: number, scrollTop: number) => {
+    if (clientHeight && scrollTop === 0) {
+      console.log('aaaa loadmore', clientHeight, scrollTop)
+      this.props.onLoadMoreMessages()
+    }
+  }, 500)
 
   // _onScroll = _.throttle(({clientHeight, scrollHeight, scrollTop}) => {
   _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
@@ -158,7 +204,9 @@ class BaseList extends Component<void, Props, State> {
       // this.props.onLoadMoreMessages()
     // }
 
+    this._scrollTop = scrollTop
     this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
+    this._maybeLoadMoreMessages(clientHeight, scrollTop)
 
     // this.setState({
       // // scrollTop,
@@ -272,6 +320,10 @@ class BaseList extends Component<void, Props, State> {
     // const firstKey = message && message.key || '0'
     // return chatCellRangeRenderer(firstKey, this._cellCache, options)
   // }
+  _onRowsRendered = ({stopIndex}: {stopIndex: number}) => {
+    this._lastRowIdx = stopIndex
+    console.log('aaa on row rendered last', stopIndex)
+  }
 
   render () {
     if (!this.props.validated) {
@@ -290,7 +342,25 @@ class BaseList extends Component<void, Props, State> {
               // ref={this._setListRef}
 
     // We pass additional props to Virtualized.List so we can force re-rendering when this state changes instead of
+
     // having to explicitly call to force rendering
+    // const scrollTop = this._scrollTop
+    // console.log('aaaa RENDER', scrollTop, this.state.scrollTopOffset, this.props, this.state)
+
+              // listRerender={this.state.listRerender}
+              // scrollTop={this.state.scrollTopOffset ? this._scrollTop + this.state.scrollTopOffset : undefined}
+
+    let scrollToIndex
+    if (this.state.isLockedToBottom) {
+      scrollToIndex = rowCount - 1
+    } else if (this._keepIdxVisible !== -1) {
+      scrollToIndex = this._keepIdxVisible
+      this._keepIdxVisible = -1
+    }
+    this._lastRowIdx = -1
+
+    console.log('aaa RENDER', scrollToIndex)
+
     return (
       <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
         <style>{realCSS}</style>
@@ -302,10 +372,11 @@ class BaseList extends Component<void, Props, State> {
               deferredMeasurementCache={this._cellCache}
               height={height}
               onScroll={this._onScroll}
+              onRowsRendered={this._onRowsRendered}
               rowCount={rowCount}
               rowHeight={this._cellCache.rowHeight}
               rowRenderer={this._rowRenderer}
-              scrollToIndex={this._isLockedToBottom ? rowCount - 1 : undefined}
+              scrollToIndex={scrollToIndex}
               style={listStyle}
               width={width}
             />

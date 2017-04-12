@@ -737,12 +737,18 @@ const getSelectedConversationStates = (state: TypedState): ?ConversationState =>
   return state.chat.getIn(['conversationStates', selectedConversationIDKey])
 }
 
+const getSupersedes = (state: TypedState): ?SupersedeInfo => {
+  const selectedConversationIDKey = getSelectedConversation(state)
+  return selectedConversationIDKey ? convSupersedesInfo(selectedConversationIDKey, state.chat) : null
+}
+
 export {
   getBrokenUsers,
   getEditingMessage,
   getMessageFromMessageKey,
   getSelectedConversation,
   getSelectedConversationStates,
+  getSupersedes,
   conversationIDToKey,
   convSupersedesInfo,
   convSupersededByInfo,

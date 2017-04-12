@@ -17,6 +17,7 @@ function _processMessages (seenMessages: Set<any>, messages: List<Constants.Mess
   const updatedMessages = messages.map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m)
   // We have to check for m.messageID being falsey and set.has(undefined) is true!. We shouldn't ever have a zero messageID
   let nextMessages: List<Constants.Message> = filteredPrepend.concat(updatedMessages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
+  let didSomething = filteredPrepend.count() > 0 || filteredAppend.count() > 0
 
   filteredAppendGroups.get('Edit', List()).forEach(edit => {
     if (edit.type !== 'Edit') {
@@ -29,6 +30,7 @@ function _processMessages (seenMessages: Set<any>, messages: List<Constants.Mess
       const [idx: number, message: Constants.TextMessage] = entry
       // $FlowIssue doesn't like the intersection types
       nextMessages = nextMessages.set(idx, {...message, message: edit.message, editedCount: message.editedCount + 1})
+      didSomething = true
     }
   })
   filteredAppendGroups.get('UpdateAttachment', List()).forEach(update => {
@@ -42,13 +44,21 @@ function _processMessages (seenMessages: Set<any>, messages: List<Constants.Mess
       const [idx: number, message: AttachmentMessage] = entry
       // $FlowIssue doesn't like the intersection types
       nextMessages = nextMessages.set(idx, {...message, ...update.updates})
+      didSomething = true
     }
   })
 
-  const nextSeenMessages = Set(nextMessages.map(m => m.key))
-  return {
-    nextMessages,
-    nextSeenMessages,
+  if (didSomething) {
+    const nextSeenMessages = Set(nextMessages.map(m => m.key))
+    return {
+      nextMessages,
+      nextSeenMessages,
+    }
+  } else {
+    return {
+      nextMessages: messages,
+      nextSeenMessages: seenMessages,
+    }
   }
 }
 

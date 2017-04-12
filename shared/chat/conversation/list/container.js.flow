@@ -4,6 +4,7 @@ import {List} from 'immutable'
 import * as Constants from '../../../constants/chat'
 
 export type StateProps = {|
+  _supersedes: ?Constants.SupersedeInfo,
   editLastMessageCounter: number,
   listScrollDownCounter: number,
   messageKeys: List<string>,

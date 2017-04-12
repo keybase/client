@@ -7,11 +7,39 @@ import {List} from 'immutable'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {downloadFilePath} from '../../../util/file'
+import {createSelector} from 'reselect'
 
 import type {OpenInFileUI} from '../../../constants/kbfs'
 import type {OwnProps, StateProps, DispatchProps} from './container'
 import type {Props} from '.'
 import type {TypedState} from '../../../constants/reducer'
+
+const getPropsFromConversationState = createSelector(
+  [Constants.getSelectedConversationStates, Constants.getSelectedInbox, Constants.getSupersedes],
+  (conversationState, inbox, _supersedes) => {
+    let supersedes = null
+    let messageKeys = List()
+    let validated = false
+    if (conversationState) {
+      if (!conversationState.moreToLoad) {
+        supersedes = _supersedes
+      }
+
+      messageKeys = conversationState.messages.map(m => m.key)
+      validated = inbox && inbox.state === 'unboxed'
+    }
+    return {
+      messageKeys,
+      supersedes,
+      validated,
+    }
+  }
+)
+
+// This is a temporary solution until I can cleanup the reducer in a different PR
+// messageKeys is being derived so it can change even when nothing else is causing re-renders
+// As a short term 'cheat' i'm keeping the last copy and returning that if its equivalent. TODO take this out later
+let _lastMessasgeKeys = List()
 
 const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollDownCounter, onFocusInput}: OwnProps): StateProps => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
@@ -27,30 +55,19 @@ const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollD
       validated = true
     }
   } else if (selectedConversationIDKey && selectedConversationIDKey !== Constants.nothingSelected) {
-    const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
-    if (conversationState) {
-      const inbox = state.chat.get('inbox')
-      const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
-
-      if (!conversationState.moreToLoad) {
-        supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
-      }
-
-      messageKeys = conversationState.messages.map(m => m.key)
-      validated = selected && selected.state === 'unboxed'
+    const temp = getPropsFromConversationState(state)
+    supersedes = temp.supersedes
+    if (temp.messageKeys.join() === _lastMessasgeKeys.join()) {
+      messageKeys = _lastMessasgeKeys
+    } else {
+      messageKeys = temp.messageKeys
+      _lastMessasgeKeys = messageKeys
     }
-  }
-
-  if (selectedConversationIDKey) {
-    messageKeys = messageKeys.withMutations(l => {
-      if (supersedes) {
-        l.unshift(Constants.messageKey(selectedConversationIDKey, 'supersedes', 0))
-      }
-      l.unshift(Constants.messageKey(selectedConversationIDKey, 'header', 0))
-    })
+    validated = temp.validated
   }
 
   return {
+    _supersedes: supersedes,
     editLastMessageCounter,
     listScrollDownCounter,
     messageKeys,
@@ -70,10 +87,21 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => {
+  let messageKeysWithHeaders = stateProps.messageKeys
+  const selected = stateProps.selectedConversation
+  if (selected) {
+    messageKeysWithHeaders = messageKeysWithHeaders.withMutations(l => {
+      if (stateProps._supersedes) {
+        l.unshift(Constants.messageKey(selected, 'supersedes', 0))
+      }
+      l.unshift(Constants.messageKey(selected, 'header', 0))
+    })
+  }
+
   return {
     editLastMessageCounter: stateProps.editLastMessageCounter,
     listScrollDownCounter: stateProps.listScrollDownCounter,
-    messageKeys: stateProps.messageKeys,
+    messageKeys: messageKeysWithHeaders,
     onDeleteMessage: dispatchProps.onDeleteMessage,
     onEditMessage: dispatchProps.onEditMessage,
     onFocusInput: stateProps.onFocusInput,
