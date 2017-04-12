@@ -29,7 +29,7 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
   }
 }
 
-const BadgeComponent = ({badgeNumber, badgePosition}: {badgeNumber: number, badgePosition: TabBadgePosition}) => {
+const badgeComponent = (badgeNumber: number, badgePosition: TabBadgePosition) => {
   if (badgeNumber <= 0) return null
   if (badgePosition === 'top-right') {
     return (
@@ -44,7 +44,6 @@ const BadgeComponent = ({badgeNumber, badgePosition}: {badgeNumber: number, badg
 class TabBarButton extends Component<void, TabBarButtonProps, void> {
   render () {
     const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
-    const badgeNumber = this.props.badgeNumber || 0
 
     const content = (
       <Box style={{backgroundColor, ...stylesTabBarButtonIcon, ...this.props.style, flexGrow: 1}}>
@@ -52,7 +51,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
           ? <Icon type={this.props.source.icon} style={{fontSize: 32, width: 32, textAlign: 'center', color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40, ...this.props.styleIcon}} />
           : this.props.source.avatar}
         {!!this.props.label && <Text type='BodySemibold' style={{textAlign: 'center', ...this.props.styleLabel}}>{this.props.label}</Text>}
-        <BadgeComponent badgeNumber={badgeNumber} badgePosition={this.props.badgePosition} />
+        {badgeComponent(this.props.badgeNumber || 0, this.props.badgePosition)}
       </Box>
     )
 
