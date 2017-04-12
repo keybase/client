@@ -68,7 +68,6 @@ type DiskBlockCacheStandard struct {
 	metaDb  *leveldb.DB
 	tlfDb   *leveldb.DB
 
-	compactCh  chan struct{}
 	startedCh  chan struct{}
 	startErrCh chan struct{}
 	shutdownCh chan struct{}
@@ -136,7 +135,6 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 	if err != nil {
 		return nil, err
 	}
-	compactCh := make(chan struct{}, 1)
 	startedCh := make(chan struct{})
 	startErrCh := make(chan struct{})
 	cache = &DiskBlockCacheStandard{
@@ -148,7 +146,6 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		blockDb:    blockDb,
 		metaDb:     metaDb,
 		tlfDb:      tlfDb,
-		compactCh:  compactCh,
 		startedCh:  startedCh,
 		startErrCh: startErrCh,
 		shutdownCh: make(chan struct{}),
@@ -165,8 +162,13 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 				"block counts from DB: %+v", err)
 			return
 		}
-		// Only enable compaction after the block counts have been synced.
-		compactCh <- struct{}{}
+		diskLimiter := cache.config.DiskLimiter()
+		if diskLimiter != nil {
+			// Only enable compaction after the block counts have been synced.
+			ctx := context.Background()
+			cache.config.DiskLimiter().onDiskBlockCacheEnable(ctx,
+				int64(cache.currBytes))
+		}
 		close(startedCh)
 	}()
 	return cache, nil
@@ -525,10 +527,6 @@ func (cache *DiskBlockCacheStandard) UpdateLRUTime(ctx context.Context,
 		return DiskCacheStartingError{"UpdateLRUTime"}
 	}
 	var md diskBlockCacheMetadata
-	defer func() {
-		cache.log.CDebugf(ctx, "Cache UpdateLRUTime id=%s entrySize=%d "+
-			"err=%+v", blockID, md.BlockSize, err)
-	}()
 	// Only obtain a read lock because this happens on Get, not on Put.
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
@@ -667,9 +665,17 @@ func (*DiskBlockCacheStandard) getRandomBlockID(numElements,
 	return kbfsblock.MakeRandomIDInRange(0, pivot)
 }
 
+// evictSomeBlocks tries to evict <numBlocks> blocks from the cache. If
+// blockIDs doesn't have enough blocks, we evict them all and report how many
+// we evicted.
 func (cache *DiskBlockCacheStandard) evictSomeBlocks(ctx context.Context,
 	numBlocks int, blockIDs blockIDsByTime) (numRemoved int, sizeRemoved int64,
 	err error) {
+	defer func() {
+		cache.log.CDebugf(ctx, "Cache evictSomeBlocks numBlocksRequested=%d, "+
+			"numBlocksEvicted=%d sizeBlocksEvicted=%d", numBlocks, numRemoved,
+			sizeRemoved)
+	}()
 	if len(blockIDs) <= numBlocks {
 		numBlocks = len(blockIDs)
 	} else {
@@ -779,8 +785,6 @@ func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
 	case <-cache.startErrCh:
 		return
 	}
-	// Receive from the compactCh sentinel to wait for pending compactions.
-	<-cache.compactCh
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
 	// shutdownCh has to be checked under lock, otherwise we can race.
@@ -800,9 +804,14 @@ func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
 	cache.blockDb = nil
 	err = cache.metaDb.Close()
 	if err != nil {
-		cache.log.CWarningf(ctx, "Error closing blockDb: %+v", err)
+		cache.log.CWarningf(ctx, "Error closing metaDb: %+v", err)
 	}
 	cache.metaDb = nil
+	err = cache.tlfDb.Close()
+	if err != nil {
+		cache.log.CWarningf(ctx, "Error closing tlfDb: %+v", err)
+	}
+	cache.tlfDb = nil
 	cache.config.DiskLimiter().onDiskBlockCacheDisable(ctx,
 		int64(cache.currBytes))
 }

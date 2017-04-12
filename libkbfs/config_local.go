@@ -1044,5 +1044,4 @@ func (c *ConfigLocal) SetDiskBlockCache(dbc DiskBlockCache) {
 		c.diskBlockCache.Shutdown(ctx)
 	}
 	c.diskBlockCache = dbc
-	c.diskLimiter.onDiskBlockCacheEnable(ctx, dbc.Size())
 }
