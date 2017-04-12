@@ -75,7 +75,7 @@
     "react-addons-shallow-compare": "15.4.2",
     "react-dom": "15.4.2",
     "react-list": "0.8.0",
-    "react-native": "0.42.0",
+    "react-native": "0.42.3",
     "react-native-camera": "0.6.0",
     "react-native-fs": "2.1.0-rc.1",
     "react-native-image-picker": "0.25.7",

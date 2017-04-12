@@ -1,48 +1,40 @@
 // @flow
-// import * as Constants from '../../../constants/chat'
-// import React, {Component} from 'react'
-// import messageFactory from '../messages'
+import * as Constants from '../../../constants/chat'
+import React, {Component} from 'react'
+import messageFactory from '../messages'
 // import shallowEqual from 'shallowequal'
 // import {Box, Icon} from '../../../common-adapters'
-// import {NativeListView} from '../../../common-adapters/index.native'
+import {NativeListView} from '../../../common-adapters/index.native'
 
-// import type {Props} from '.'
+import type {Props} from '.'
 
-// type State = {
-  // dataSource: NativeListView.DataSource,
+type State = {
+  dataSource: NativeListView.DataSource,
   // isLockedToBottom: boolean,
   // scrollViewHeight: ?number,
   // contentHeight: ?number,
-// }
+}
 
 // const lockedToBottomSlop = 20
 
-// TODO just to turn off flow errors while devving desktop
-const ConversationList = () => null
-
-// class ConversationList extends Component <void, Props, State> {
-  // state: State;
+class ConversationList extends Component <void, Props, State> {
+  state: State;
   // _listRef: any;
+  _ds = new NativeListView.DataSource({
+    rowHasChanged: (r1, r2) => {
+      return r1 !== r2
+    },
+  })
 
-  // constructor (props: Props) {
-    // super(props)
-    // const ds = this._makeDataSource()
-    // this.state = {
+  constructor (props: Props) {
+    super(props)
+    this.state = {
       // contentHeight: null,
-      // dataSource: ds.cloneWithRows(this._allMessages(props).toArray()),
+      dataSource: this._ds.cloneWithRows(this.props.messageKeys.toArray()),
       // isLockedToBottom: true,
       // scrollViewHeight: null,
-    // }
-  // }
-
-  // // Have to remake this else it won't pick up changes. Hopefully ditch this with new flatlist
-  // _makeDataSource () {
-    // return new NativeListView.DataSource({
-      // rowHasChanged: (r1, r2) => {
-        // return r1 !== r2 || r1 === this.props.editingMessage || r2 === this.props.editingMessage
-      // },
-    // })
-  // }
+    }
+  }
 
   // _updateDataSource (nextProps) {
     // const ds = this._makeDataSource()
@@ -79,13 +71,17 @@ const ConversationList = () => null
     // }
   // }
 
-  // componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps (nextProps: Props) {
+    if (this.props.messageKeys !== nextProps.messageKeys) {
+      this.setState({dataSource: this._ds.cloneWithRows(nextProps.messageKeys.toArray())})
+    }
+
     // const willScrollDown = nextProps.listScrollDownCounter !== this.props.listScrollDownCounter
 
     // if (willScrollDown) {
       // this.setState({isLockedToBottom: true})
     // }
-  // }
+  }
 
   // componentDidUpdate (prevProps: Props, prevState: State) {
     // const {contentHeight: prevContentHeight, scrollViewHeight: prevScrollViewHeight} = prevState
@@ -127,13 +123,24 @@ const ConversationList = () => null
     // return props.headerMessages.concat(props.messages)
   // }
 
-  // _onAction = (message: Constants.ServerMessage, event: any) => {
+  _onAction = (message: Constants.ServerMessage, event: any) => {
+    // TODO
     // this.props.onMessageAction(message)
-  // }
+  }
 
   // // This is handled slightly differently on mobile, leave this blank
-  // _onShowEditor = (message: Constants.Message, event: any) => { }
+  _onShowEditor = (message: Constants.Message, event: any) => { }
 
+  // // This is handled slightly differently on mobile, leave this blank
+  _measure = () => {}
+
+  _renderRow = (rowData, sectionID, rowID, highlightRow) => {
+    const messageKey = rowData
+    const prevMessageKey = this.props.messageKeys.get(rowID - 1)
+    const isSelected = false
+
+    return messageFactory(messageKey, prevMessageKey, this._onAction, this._onShowEditor, isSelected, this._measure)
+  }
   // _renderRow = (message, sectionID, rowID) => {
     // const messages = this._allMessages(this.props)
     // const isFirstMessage = rowID === 0
@@ -145,6 +152,20 @@ const ConversationList = () => null
     // return messageFactory(options)
   // }
 
+  render () {
+    return (
+      <NativeListView
+        enableEmptySections={true}
+        dataSource={this.state.dataSource}
+        renderRow={this._renderRow}
+        initialListSize={10}
+      />
+    )
+  }
+        // ref={r => { this._listRef = r; window._listRef = r }}
+        // onScroll={this._onScroll}
+        // onContentSizeChange={this._onContentSizeChange}
+        // onLayout={this._onLayout}
   // render () {
     // const {
       // moreToLoad,
@@ -180,6 +201,6 @@ const ConversationList = () => null
       // />
     // )
   // }
-// }
+}
 
 export default ConversationList
