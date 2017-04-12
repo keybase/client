@@ -340,7 +340,7 @@ func (k *LibKBFS) WriteFile(u User, file Node, data []byte, off int64, sync bool
 	if sync {
 		ctx, cancel := k.newContext(u)
 		defer cancel()
-		err = kbfsOps.Sync(ctx, file.(libkbfs.Node))
+		err = kbfsOps.SyncAll(ctx, file.(libkbfs.Node).GetFolderBranch())
 	}
 	return err
 }
