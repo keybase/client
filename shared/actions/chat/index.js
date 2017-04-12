@@ -473,12 +473,6 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
       switch (payload.messageBody.messageType) {
         case ChatTypes.CommonMessageType.text:
           const outboxID = payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
-
-          // TODO del this, just to emulate various message types
-          const TEMP = Math.random() > 999 ? {type: 'Error',
-            key: Constants.messageKey(common.conversationIDKey, 'messageIDError', common.messageID),
-            reason: 'Whuatttttttt',
-          } : {}
           const p: any = payload
           const message = new HiddenString(p.messageBody && p.messageBody.text && p.messageBody.text.body || '')
           // end to del
@@ -490,7 +484,6 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
-            ...TEMP,
           }
         case ChatTypes.CommonMessageType.attachment: {
           const outboxID = payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
