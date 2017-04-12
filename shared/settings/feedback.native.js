@@ -2,7 +2,7 @@
 
 import React from 'react'
 import {globalStyles, globalMargins, globalColors} from '../styles'
-import {Box, Button, Checkbox, Icon, Text, Input, NativeScrollView} from '../common-adapters'
+import {Box, Button, Checkbox, Icon, Text, Input, NativeScrollView} from '../common-adapters/index.native'
 
 import type {Props} from './feedback'
 
