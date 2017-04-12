@@ -23,7 +23,6 @@
 		004624CE1B2A3BE300E218AC /* FinderSync.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 004624CD1B2A3BE300E218AC /* FinderSync.framework */; };
 		0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C21AE57A7A00BFB0E7 /* main.m */; };
 		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in Copy Files */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		00938E2F1D3D9938003BB1EC /* kbfuse.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 00938E2E1D3D9938003BB1EC /* kbfuse.bundle */; };
 		0097BA671DD2589C0047118C /* Options.m in Sources */ = {isa = PBXBuildFile; fileRef = 0097BA661DD2589C0047118C /* Options.m */; };
 		0097BA681DD259B90047118C /* Options.m in Sources */ = {isa = PBXBuildFile; fileRef = 0097BA661DD2589C0047118C /* Options.m */; };
 		009E135C1B27654200C72B28 /* ShareViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 009E135B1B27654200C72B28 /* ShareViewController.xib */; };
@@ -137,7 +136,6 @@
 		0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelper.m; sourceTree = "<group>"; };
 		0057B0C11AE57A7A00BFB0E7 /* keybase.Helper.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = keybase.Helper.plist; sourceTree = "<group>"; };
 		0057B0C21AE57A7A00BFB0E7 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		00938E2E1D3D9938003BB1EC /* kbfuse.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = kbfuse.bundle; path = Fuse/kbfuse.bundle; sourceTree = "<group>"; };
 		0097BA651DD2589C0047118C /* Options.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Options.h; sourceTree = "<group>"; };
 		0097BA661DD2589C0047118C /* Options.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Options.m; sourceTree = "<group>"; };
 		009E135B1B27654200C72B28 /* ShareViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ShareViewController.xib; sourceTree = "<group>"; };
@@ -371,7 +369,6 @@
 				00F808061A4A5F600038BC63 /* README.md */,
 				004D14961A3BCF1F0083888D /* Podfile */,
 				00CC434B1A3A9E6C006118A9 /* Installer */,
-				00938E2E1D3D9938003BB1EC /* kbfuse.bundle */,
 				0036080C1C442E6100B3300E /* Status */,
 				00734B291B263FB500F3B714 /* Extensions */,
 				0013926F1B06B18A0082DEA8 /* Resources */,
@@ -755,7 +752,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				001392751B06B18A0082DEA8 /* Fuse.icns in Resources */,
-				00938E2F1D3D9938003BB1EC /* kbfuse.bundle in Resources */,
 				00E1CEEF1C44313B00ED3A35 /* Media.xcassets in Resources */,
 				0005BCA01C445AFB0062EF1D /* MainMenu.xib in Resources */,
 			);
@@ -1384,6 +1380,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.Installer;
 				PRODUCT_NAME = Keybase;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Release;

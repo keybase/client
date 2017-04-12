@@ -59,39 +59,38 @@ echo ""
 
 cd "$build_dest"
 
+echo "Copying kbfuse.bundle..."
+ditto ../../Fuse/kbfuse.bundle $app_name.app/Contents/Resources/kbfuse.bundle
+
+echo "
+
+xCode has trouble signing with Developer IDs properly so we need to re-sign.
+
+NOTE: If codesigning fails (ambiguous certificate) you need to manually delete
+the (old) March 12th version of the certificate from your Keychain.
+
+Re-signing using identitiy:
+
+$code_sign_identity
+
+"
+
 helper="$app_name.app/Contents/Library/LaunchServices/keybase.Helper"
+codesign --verbose --force --preserve-metadata=identifier,entitlements --timestamp=none --sign "$code_sign_identity" "$helper"
 
-if [ -f "$helper" ]; then
-  echo "
+codesign --verbose --force --deep --timestamp=none --sign "$code_sign_identity" $app_name.app
+echo " "
 
-  xCode has trouble signing with Developer IDs properly so we need to re-sign.
-
-  NOTE: If codesigning fails (ambiguous certificate) you need to manually delete
-  the (old) March 12th version of the certificate from your Keychain.
-
-  Re-signing using identitiy:
-
-  $code_sign_identity
-
-  "
-
-  codesign --verbose --force --preserve-metadata=identifier,entitlements --timestamp=none --sign "$code_sign_identity" $app_name.app/Contents/Library/LaunchServices/keybase.Helper
-  codesign --verbose --force --deep --timestamp=none --sign "$code_sign_identity" $app_name.app
-
-  # Verify
-  #codesign --verify --verbose=4 Keybase.app
-  #spctl --assess --verbose=4 /Applications/Keybase.app/Contents/Library/LaunchServices/keybase.Helper
-
-  echo "Checking app..."
-  codesign -dvvvv $app_name.app
-  echo " "
-  spctl --assess --verbose=4 $app_name.app
-  echo "Checking Helper..."
-  codesign -dvvvv $app_name.app/Contents/Library/LaunchServices/keybase.Helper
-  # You don't spctl assess binaries anymore (only bundles)
-  # http://www.openradar.me/25618668
-  #spctl --assess --verbose=4 $app_name.app/Contents/Library/LaunchServices/keybase.Helper
-fi
+echo "Checking app..."
+codesign -dvvvv $app_name.app
+echo " "
+spctl --assess --verbose=4 $app_name.app
+echo "Checking Helper..."
+codesign -dvvvv $app_name.app/Contents/Library/LaunchServices/keybase.Helper
+# You don't spctl assess binaries anymore (only bundles)
+# http://www.openradar.me/25618668
+#spctl --assess --verbose=4 $app_name.app/Contents/Library/LaunchServices/keybase.Helper
+echo " "
 
 tar zcvpf $app_name-$app_version-darwin.tgz $app_name.app
 
