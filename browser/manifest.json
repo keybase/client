@@ -8,6 +8,9 @@
     "48": "images/icon-keybase-logo-48.png",
     "128": "images/icon-keybase-logo-128.png"
   },
+  "browser_action": {
+    "default_icon": "images/icon-keybase-logo-logged-out-64.png"
+  },
   "permissions": [
     "nativeMessaging",
     "http://reddit.com/*",
