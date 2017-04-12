@@ -11,7 +11,7 @@ import (
 )
 
 // Version is the build version of kbnm, overwritten during build.
-const Version = "dev"
+var Version = "dev"
 
 // Response from the kbnm service
 type Response struct {

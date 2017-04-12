@@ -406,3 +406,12 @@ func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
 	}
 	return res
 }
+
+func IsConvEmpty(conv chat1.Conversation) bool {
+	for _, msg := range conv.MaxMsgSummaries {
+		if IsVisibleChatMessageType(msg.GetMessageType()) {
+			return false
+		}
+	}
+	return true
+}

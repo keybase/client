@@ -28,8 +28,11 @@ import go.keybase.Keybase;
 import static go.keybase.Keybase.initOnce;
 import static go.keybase.Keybase.logSend;
 
+import io.keybase.ossifrage.util.DNSNSFetcher;
+
 public class MainActivity extends ReactActivity {
     private static final String TAG = MainActivity.class.getName();
+
 
     @Override
     @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -40,7 +43,7 @@ public class MainActivity extends ReactActivity {
             e.printStackTrace();
         }
 
-        initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false);
+        initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false, new DNSNSFetcher());
 
         super.onCreate(savedInstanceState);
 

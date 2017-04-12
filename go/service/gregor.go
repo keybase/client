@@ -560,7 +560,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	}
 
 	// Sync chat data using a Syncer object
-	if err := g.G().Syncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil {
+	if err := g.G().ChatSyncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil {
 		return fmt.Errorf("error running chat sync: %s", err.Error())
 	}
 
@@ -611,7 +611,7 @@ func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.Disconnec
 	g.Debug(context.Background(), "disconnected: %v", status)
 
 	// Alert chat syncer that we are now disconnected
-	g.G().Syncer.Disconnected(ctx)
+	g.G().ChatSyncer.Disconnected(ctx)
 
 	// Call out to reachability module if we have one
 	if g.reachability != nil {

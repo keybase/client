@@ -20,6 +20,7 @@ export type ConfigState = {
   following: {[key: string]: true},
   globalError: ?Error,
   kbfsPath: string,
+  launchedViaPush: boolean,
   loggedIn: boolean,
   readyForBootstrap: boolean,
   status: ?GetCurrentStatusRes,
@@ -43,13 +44,14 @@ const initialState: ConfigState = {
   followers: {},
   following: {},
   globalError: null,
+  initialTab: null,
   kbfsPath: Constants.defaultKBFSPath,
+  launchedViaPush: false,
   loggedIn: false,
   readyForBootstrap,
   status: null,
   uid: null,
   username: null,
-  initialTab: null,
 }
 
 export default function (state: ConfigState = initialState, action: Action): ConfigState {
@@ -132,6 +134,13 @@ export default function (state: ConfigState = initialState, action: Action): Con
         ...state,
         bootStatus: 'bootStatusLoading',
         bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
+      }
+    }
+
+    case Constants.setLaunchedViaPush: {
+      return {
+        ...state,
+        launchedViaPush: action.payload,
       }
     }
 

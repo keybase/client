@@ -204,7 +204,7 @@ func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err 
 
 	_, err = e.G().API.Post(libkb.APIArg{
 		Endpoint:    "follow",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"sig_id_base":  libkb.S{Val: sigid.ToString(false)},
 			"sig_id_short": libkb.S{Val: sigid.ToShortID()},

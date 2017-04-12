@@ -1,8 +1,6 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-// +build darwin
-
 package install
 
 import (
@@ -649,7 +647,7 @@ func UninstallKBNM(log Log) error {
 	hostsPath := kbnmManifestPath(u)
 	jsonPath := filepath.Join(hostsPath, kbnmHostName+".json")
 
-	log.Debug("Uninstalling KBNM host manifest: %s", jsonPath)
+	log.Info("Uninstalling KBNM host manifest: %s", jsonPath)
 	if err := os.Remove(jsonPath); err != nil && !os.IsNotExist(err) {
 		// We don't care if it doesn't exist, but other errors should escalate
 		return err
@@ -729,6 +727,14 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		componentResults = append(componentResults, componentResult(string(ComponentNameCLI), err))
 		if err != nil {
 			log.Errorf("Error uninstalling command line: %s", err)
+		}
+	}
+
+	if libkb.IsIn(string(ComponentNameKBNM), components, false) {
+		err = UninstallKBNM(log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameKBNM), err))
+		if err != nil {
+			log.Errorf("Error uninstalling kbmn: %s", err)
 		}
 	}
 

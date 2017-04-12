@@ -42,18 +42,19 @@ type LogoutHook interface {
 }
 
 type GlobalContext struct {
-	Log          logger.Logger // Handles all logging
-	VDL          *VDebugLog    // verbose debug log
-	Env          *Env          // Env variables, cmdline args & config
-	SKBKeyringMu *sync.Mutex   // Protects all attempts to mutate the SKBKeyringFile
-	Keyrings     *Keyrings     // Gpg Keychains holding keys
-	API          API           // How to make a REST call to the server
-	Resolver     *Resolver     // cache of resolve results
-	LocalDb      *JSONLocalDb  // Local DB for cache
-	LocalChatDb  *JSONLocalDb  // Local DB for cache
-	MerkleClient *MerkleClient // client for querying server's merkle sig tree
-	XAPI         ExternalAPI   // for contacting Twitter, Github, etc.
-	Output       io.Writer     // where 'Stdout'-style output goes
+	Log          logger.Logger        // Handles all logging
+	VDL          *VDebugLog           // verbose debug log
+	Env          *Env                 // Env variables, cmdline args & config
+	SKBKeyringMu *sync.Mutex          // Protects all attempts to mutate the SKBKeyringFile
+	Keyrings     *Keyrings            // Gpg Keychains holding keys
+	API          API                  // How to make a REST call to the server
+	Resolver     *Resolver            // cache of resolve results
+	LocalDb      *JSONLocalDb         // Local DB for cache
+	LocalChatDb  *JSONLocalDb         // Local DB for cache
+	MerkleClient *MerkleClient        // client for querying server's merkle sig tree
+	XAPI         ExternalAPI          // for contacting Twitter, Github, etc.
+	Output       io.Writer            // where 'Stdout'-style output goes
+	DNSNSFetcher DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
 
 	cacheMu        *sync.RWMutex   // protects all caches
 	ProofCache     *ProofCache     // where to cache proof results
@@ -100,13 +101,14 @@ type GlobalContext struct {
 
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
+	ConnectivityMonitor ConnectivityMonitor  // Detect whether we're connected or not.
 
 	// Chat globals
 	InboxSource         chattypes.InboxSource         // source of remote inbox entries for chat
 	ConvSource          chattypes.ConversationSource  // source of remote message bodies for chat
 	MessageDeliverer    chattypes.MessageDeliverer    // background message delivery service
 	ServerCacheVersions chattypes.ServerCacheVersions // server side versions for chat caches
-	Syncer              chattypes.Syncer              // keeps various parts of chat system in sync
+	ChatSyncer          chattypes.Syncer              // For syncing inbox with server
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -123,13 +125,15 @@ type GlobalTestOptions struct {
 	NoBug3964Repair bool
 }
 
-func (g *GlobalContext) GetLog() logger.Logger          { return g.Log }
-func (g *GlobalContext) GetVDebugLog() *VDebugLog       { return g.VDL }
-func (g *GlobalContext) GetAPI() API                    { return g.API }
-func (g *GlobalContext) GetExternalAPI() ExternalAPI    { return g.XAPI }
-func (g *GlobalContext) GetServerURI() string           { return g.Env.GetServerURI() }
-func (g *GlobalContext) GetMerkleClient() *MerkleClient { return g.MerkleClient }
-func (g *GlobalContext) GetNetContext() context.Context { return g.NetContext }
+func (g *GlobalContext) GetLog() logger.Logger                         { return g.Log }
+func (g *GlobalContext) GetVDebugLog() *VDebugLog                      { return g.VDL }
+func (g *GlobalContext) GetAPI() API                                   { return g.API }
+func (g *GlobalContext) GetExternalAPI() ExternalAPI                   { return g.XAPI }
+func (g *GlobalContext) GetServerURI() string                          { return g.Env.GetServerURI() }
+func (g *GlobalContext) GetMerkleClient() *MerkleClient                { return g.MerkleClient }
+func (g *GlobalContext) GetNetContext() context.Context                { return g.NetContext }
+func (g *GlobalContext) GetEnv() *Env                                  { return g.Env }
+func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return g.DNSNSFetcher }
 
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
@@ -187,6 +191,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
+	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	return g
 }
 
@@ -202,6 +207,10 @@ func (g *GlobalContext) SetService() {
 
 func (g *GlobalContext) SetUIRouter(u UIRouter) {
 	g.UIRouter = u
+}
+
+func (g *GlobalContext) SetDNSNameServerFetcher(d DNSNameServerFetcher) {
+	g.DNSNSFetcher = d
 }
 
 // requires lock on loginStateMu before calling
@@ -489,8 +498,8 @@ func (g *GlobalContext) Shutdown() error {
 		if g.MessageDeliverer != nil {
 			g.MessageDeliverer.Stop(context.Background())
 		}
-		if g.Syncer != nil {
-			g.Syncer.Shutdown()
+		if g.ChatSyncer != nil {
+			g.ChatSyncer.Shutdown()
 		}
 
 		for _, hook := range g.ShutdownHooks {

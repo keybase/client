@@ -48,7 +48,7 @@ func (e *HasServerKeys) Run(ctx *Context) error {
 	apiRes, err := e.G().API.Get(libkb.APIArg{
 		Endpoint:    "key/fetch_private",
 		Args:        libkb.HTTPArgs{},
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 	})
 	if err != nil {
 		return err

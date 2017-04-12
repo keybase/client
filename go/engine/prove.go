@@ -229,7 +229,7 @@ func (p *Prove) checkAutoPost(ctx *Context, txt string) error {
 	p.G().Log.Debug("making automatic post of proof to rooter")
 	apiArg := libkb.APIArg{
 		Endpoint:    "rooter",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"post":     libkb.S{Val: txt},
 			"username": libkb.S{Val: p.arg.Username},

@@ -86,7 +86,7 @@ func (c *EmailChange) Run(ctx *Context) (err error) {
 
 	_, err = c.G().API.Post(libkb.APIArg{
 		Endpoint:    "account/email_update_signed",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"sig":         libkb.S{Val: sig},
 			"signing_kid": libkb.S{Val: signingKey.GetKID().String()},

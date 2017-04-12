@@ -31,7 +31,7 @@ func NewSignupJoinEngine(g *libkb.GlobalContext) *SignupJoinEngine {
 func CheckUsernameAvailable(g *libkb.GlobalContext, s string) (err error) {
 	_, err = g.API.Get(libkb.APIArg{
 		Endpoint:    "user/lookup",
-		NeedSession: false,
+		SessionType: libkb.APISessionTypeNONE,
 		Args: libkb.HTTPArgs{
 			"username": libkb.S{Val: s},
 			"fields":   libkb.S{Val: "basics"},

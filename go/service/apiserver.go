@@ -66,7 +66,7 @@ func (a *APIServerHandler) setupArg(arg GenericArg) libkb.APIArg {
 	// Do the API call
 	kbarg := libkb.APIArg{
 		Endpoint:       arg.GetEndpoint(),
-		NeedSession:    true,
+		SessionType:    libkb.APISessionTypeREQUIRED,
 		Args:           kbargs,
 		HTTPStatus:     httpStatuses,
 		AppStatusCodes: appStatusCodes,

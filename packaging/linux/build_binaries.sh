@@ -39,6 +39,7 @@ echo "-tags '$go_tags'"
 # Determine the LD flags.
 ldflags_client=""
 ldflags_kbfs=""
+ldflags_kbnm=""
 if [ "$mode" != "production" ] ; then
   # The non-production build number is everything in the version after the hyphen.
   build_number="$(echo -n "$version" | sed 's/.*-//')"
@@ -46,9 +47,13 @@ if [ "$mode" != "production" ] ; then
   commit_short_kbfs="$(git -C "$kbfs_repo" rev-parse --short HEAD)"
   build_number_kbfs="$(echo -n "$build_number" | sed 's/+..*/+/')$commit_short_kbfs"
   ldflags_kbfs="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=$build_number_kbfs"
+  # kbnm version currently defaults to the keybase client version.
+  build_number_kbnm="$build_number"
+  ldflags_kbnm="-X main.Version=$build_number_kbnm"
 fi
 echo "-ldflags_client '$ldflags_client'"
 echo "-ldflags_kbfs '$ldflags_kbfs'"
+echo "-ldflags_kbnm '$ldflags_kbnm'"
 
 should_build_kbfs() {
   [ "$mode" != "production" ]
@@ -85,7 +90,7 @@ build_one_architecture() {
 
   # Short-circuit if we're not building electron.
   if ! should_build_kbfs ; then
-    echo "SKIPPING kbfs and electron."
+    echo "SKIPPING kbfs, kbnm, and electron."
     return
   fi
 
@@ -101,6 +106,19 @@ build_one_architecture() {
   ln -snf "$kbfs_repo" "$GOPATH/src/github.com/keybase/kbfs"
   go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -o \
     "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
+
+  # Build the kbnm binary
+  echo "Building kbnm for $GOARCH..."
+  go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -o \
+    "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm
+
+  # Whitelist for NativeMessaging
+  kbnm_bin="/usr/bin/kbnm"
+  kbnm_file="$layout_dir/etc/opt/chrome/native-messaging-hosts/io.keybase.kbnm"
+  mkdir -p "$(dirname "$kbnm_file")"
+  cat "$here/host_json.template" \
+    | sed "s|@@HOST_PATH@@|$kbnm_bin|g" \
+    > "$kbnm_file"
 
   # Build Electron.
   echo "Building Electron client for $electron_arch..."

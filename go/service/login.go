@@ -47,7 +47,7 @@ func (h *LoginHandler) Deprovision(_ context.Context, arg keybase1.DeprovisionAr
 func (h *LoginHandler) RecoverAccountFromEmailAddress(_ context.Context, email string) error {
 	res, err := h.G().API.Post(libkb.APIArg{
 		Endpoint:    "send-reset-pw",
-		NeedSession: false,
+		SessionType: libkb.APISessionTypeNONE,
 		Args: libkb.HTTPArgs{
 			"email_or_username": libkb.S{Val: email},
 		},

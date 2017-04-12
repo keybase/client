@@ -338,6 +338,7 @@ const (
 	HTTPDefaultTimeout        = 60 * time.Second
 	HTTPDefaultScraperTimeout = 10 * time.Second
 	HTTPPollMaximum           = 5 * time.Second
+	HTTPFastTimeout           = 2 * time.Second
 )
 
 // The following constants apply to APIArg parameters for

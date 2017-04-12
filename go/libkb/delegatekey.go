@@ -263,7 +263,7 @@ func (d *Delegator) post(lctx LoginContext) (err error) {
 
 	arg := APIArg{
 		Endpoint:    "key/add",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		Args:        hargs,
 	}
 	if lctx != nil {

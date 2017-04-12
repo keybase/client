@@ -42,7 +42,7 @@ func PostProof(arg PostProofArg) (*PostProofRes, error) {
 
 	res, err := G.API.Post(APIArg{
 		Endpoint:    "sig/post",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		Args:        hargs,
 	})
 
@@ -84,7 +84,7 @@ func PostAuthProof(arg PostAuthProofArg) (*PostAuthProofRes, error) {
 	}
 	res, err := G.API.Post(APIArg{
 		Endpoint:    "sig/post_auth",
-		NeedSession: false,
+		SessionType: APISessionTypeNONE,
 		Args:        hargs,
 	})
 	if err != nil {
@@ -119,7 +119,7 @@ func PostInviteRequest(arg InviteRequestArg) (err error) {
 func DeletePrimary() (err error) {
 	_, err = G.API.Post(APIArg{
 		Endpoint:    "key/revoke",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"revoke_primary":  I{1},
 			"revocation_type": I{RevSimpleDelete},
@@ -131,7 +131,7 @@ func DeletePrimary() (err error) {
 func CheckPosted(proofID string) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
 	res, e2 := G.API.Post(APIArg{
 		Endpoint:    "sig/posted",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"proof_id": S{proofID},
 		},
@@ -155,7 +155,7 @@ func CheckPosted(proofID string) (found bool, status keybase1.ProofStatus, state
 func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
 	res, e2 := G.API.Post(APIArg{
 		Endpoint:    "sig/posted",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"sig_id": S{sigID.ToString(true)},
 		},
@@ -190,7 +190,7 @@ func PostDeviceLKS(g *GlobalContext, sr SessionReader, deviceID keybase1.DeviceI
 	}
 	arg := APIArg{
 		Endpoint:    "device/update",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"device_id":       S{Val: deviceID.String()},
 			"type":            S{Val: deviceType},
@@ -208,7 +208,7 @@ func PostDeviceLKS(g *GlobalContext, sr SessionReader, deviceID keybase1.DeviceI
 func CheckInvitationCode(code string) error {
 	arg := APIArg{
 		Endpoint:    "invitation/check",
-		NeedSession: false,
+		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"invitation_id": S{Val: code},
 		},
@@ -220,7 +220,7 @@ func CheckInvitationCode(code string) error {
 func GetInvitationCode(net context.Context, g *GlobalContext) (string, error) {
 	arg := APIArg{
 		Endpoint:    "invitation_bypass_request",
-		NeedSession: false,
+		SessionType: APISessionTypeNONE,
 		NetContext:  net,
 	}
 	res, err := g.API.Get(arg)

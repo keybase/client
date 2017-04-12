@@ -162,7 +162,7 @@ func matchPaperKey(ctx *Context, g *libkb.GlobalContext, me *libkb.User, paper s
 func fetchLKS(ctx *Context, g *libkb.GlobalContext, encKey libkb.GenericKey) (libkb.PassphraseGeneration, libkb.LKSecClientHalf, error) {
 	arg := libkb.APIArg{
 		Endpoint:    "passphrase/recover",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"kid": encKey.GetKID(),
 		},
