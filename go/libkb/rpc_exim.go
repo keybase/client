@@ -927,6 +927,26 @@ func (ckf ComputedKeyFamily) ExportDeviceKeys() (exportedKeys []keybase1.PublicK
 	return exportedKeys, pgpKeyCount
 }
 
+type sharedDHKeyList []keybase1.SharedDHKey
+
+func (l sharedDHKeyList) Len() int { return len(l) }
+func (l sharedDHKeyList) Less(i, j int) bool {
+	return l[i].Gen < l[j].Gen
+}
+func (l sharedDHKeyList) Swap(i, j int) {
+	l[i], l[j] = l[j], l[i]
+}
+
+// ExportSharedDHKeys exports the Shared DH public KIDs.
+func (ckf ComputedKeyFamily) ExportSharedDHKeys() (ret []keybase1.SharedDHKey) {
+
+	for gen, kid := range ckf.cki.SharedDHKeys {
+		ret = append(ret, keybase1.SharedDHKey{Gen: int(gen), Kid: kid})
+	}
+	sort.Sort(sharedDHKeyList(ret))
+	return ret
+}
+
 // ExportDeletedDeviceKeys is used by ExportToUserPlusKeys.  The key list
 // only contains deleted device keys.
 func (ckf ComputedKeyFamily) ExportDeletedDeviceKeys() []keybase1.PublicKey {
@@ -1003,12 +1023,8 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 	if ckf != nil {
 		ret.DeviceKeys, ret.PGPKeyCount = ckf.ExportDeviceKeys()
 		ret.RevokedDeviceKeys = ckf.ExportRevokedDeviceKeys()
-
-		// PC WIP
-		// these will be added to UserPlusKeys
-		// deletedDeviceKeys := ckf.ExportDeletedDeviceKeys()
-		// u.G().Log.Warning("deleted device keys: %+v", deletedDeviceKeys)
 		ret.DeletedDeviceKeys = ckf.ExportDeletedDeviceKeys()
+		ret.SharedDHKeys = ckf.ExportSharedDHKeys()
 	}
 
 	ret.Uvv = u.ExportToVersionVector(idTime)

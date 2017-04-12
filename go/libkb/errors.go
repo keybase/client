@@ -1873,3 +1873,13 @@ func (e PseudonymGetError) Error() string {
 }
 
 var _ error = (*PseudonymGetError)(nil)
+
+//=============================================================================
+
+type SharedDHImportError struct {
+	msg string
+}
+
+func (e SharedDHImportError) Error() string {
+	return fmt.Sprintf("shared DH import error: %s", e.msg)
+}

@@ -721,6 +721,40 @@ func (s *SubkeyChainLink) insertIntoTable(tab *IdentityTable) {
 //=========================================================================
 
 //=========================================================================
+// SharedDHKeyChainLink
+
+type SharedDHKeyChainLink struct {
+	GenericChainLink
+	kid        keybase1.KID
+	parentKid  keybase1.KID
+	generation SharedDHKeyGeneration
+}
+
+func ParseSharedDHKeyChainLink(b GenericChainLink) (ret *SharedDHKeyChainLink, err error) {
+	var kid, pkid keybase1.KID
+	var g int
+	section := b.payloadJSON.AtPath("body.shared_dh_key")
+	if kid, err = GetKID(section.AtKey("kid")); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Can't get KID for shared_dh @%s: %s", b.ToDebugString(), err)}
+	} else if pkid, err = GetKID(section.AtKey("parent_kid")); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Can't get parent_kid for shared_dh_key @%s: %s", b.ToDebugString(), err)}
+	} else if g, err = b.payloadJSON.AtKey("generation").GetInt(); err != nil {
+		ret = &SharedDHKeyChainLink{b, kid, pkid, SharedDHKeyGeneration(g)}
+	}
+	return ret, err
+}
+
+func (s *SharedDHKeyChainLink) Type() string                  { return DelegationTypeSharedDHKey }
+func (s *SharedDHKeyChainLink) ToDisplayString() string       { return s.kid.String() }
+func (s *SharedDHKeyChainLink) GetRole() KeyRole              { return DLGSharedDHKey }
+func (s *SharedDHKeyChainLink) GetDelegatedKid() keybase1.KID { return s.kid }
+func (s *SharedDHKeyChainLink) GetParentKid() keybase1.KID    { return s.parentKid }
+func (s *SharedDHKeyChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(s)
+}
+
+//
+//=========================================================================
 // PGPUpdateChainLink
 //
 
@@ -1080,6 +1114,8 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseSubkeyChainLink(base)
 		case DelegationTypePGPUpdate:
 			ret, err = ParsePGPUpdateChainLink(base)
+		case DelegationTypeSharedDHKey:
+			ret, err = ParseSharedDHKeyChainLink(base)
 		case "device":
 			ret, err = ParseDeviceChainLink(base)
 		default:

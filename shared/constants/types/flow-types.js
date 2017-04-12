@@ -4374,6 +4374,11 @@ export type SessionStatus = {
 
 export type SessionToken = string
 
+export type SharedDHKey = {
+  gen: int,
+  kid: KID,
+}
+
 export type Sig = {
   seqno: int,
   sigID: SigID,
@@ -4773,6 +4778,7 @@ export type UserPlusKeys = {
   pgpKeyCount: int,
   uvv: UserVersionVector,
   deletedDeviceKeys?: ?Array<PublicKey>,
+  sharedDHKeys?: ?Array<SharedDHKey>,
 }
 
 export type UserResolution = {

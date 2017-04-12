@@ -187,6 +187,11 @@ type UserVersionVector struct {
 	LastIdentifiedAt Time  `codec:"lastIdentifiedAt" json:"lastIdentifiedAt"`
 }
 
+type SharedDHKey struct {
+	Gen int `codec:"gen" json:"gen"`
+	Kid KID `codec:"kid" json:"kid"`
+}
+
 type UserPlusKeys struct {
 	Uid               UID               `codec:"uid" json:"uid"`
 	Username          string            `codec:"username" json:"username"`
@@ -195,6 +200,7 @@ type UserPlusKeys struct {
 	PGPKeyCount       int               `codec:"pgpKeyCount" json:"pgpKeyCount"`
 	Uvv               UserVersionVector `codec:"uvv" json:"uvv"`
 	DeletedDeviceKeys []PublicKey       `codec:"deletedDeviceKeys" json:"deletedDeviceKeys"`
+	SharedDHKeys      []SharedDHKey     `codec:"sharedDHKeys" json:"sharedDHKeys"`
 }
 
 type RemoteTrack struct {

@@ -417,6 +417,7 @@ const (
 	DLGNone KeyRole = iota
 	DLGSibkey
 	DLGSubkey
+	DLGSharedDHKey
 )
 
 const (
