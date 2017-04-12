@@ -127,7 +127,7 @@ function * postMessage (action: Constants.PostMessage): SagaGenerator<any, any> 
     const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
     let messages = []
     if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
-      const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages, conversationState.messages.size - 1)
+      const timestamp = Shared.maybeAddTimestamp(message, conversationState.messages.toArray(), conversationState.messages.size - 1)
       if (timestamp !== null) {
         messages.push(timestamp)
       }
@@ -135,7 +135,9 @@ function * postMessage (action: Constants.PostMessage): SagaGenerator<any, any> 
 
     messages.push(message)
     const selectedConversation = yield select(Constants.getSelectedConversation)
-    yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversation, messages))
+    const appFocused = yield select(Shared.focusedSelector)
+
+    yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversation, appFocused, messages))
     if (hasPendingFailure) {
       yield put(Creators.removePendingFailure(outboxID))
     }

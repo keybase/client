@@ -59,7 +59,7 @@ func (e *AccountDelete) Run(ctx *Context) error {
 
 		arg := libkb.APIArg{
 			Endpoint:    "delete",
-			NeedSession: true,
+			SessionType: libkb.APISessionTypeREQUIRED,
 			SessionR:    a.LocalSession(),
 			Args:        libkb.NewHTTPArgs(),
 		}

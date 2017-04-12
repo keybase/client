@@ -2,6 +2,8 @@ package io.keybase.ossifrage;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -9,6 +11,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Window;
+import android.view.WindowManager;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactInstanceManager;
@@ -25,8 +28,11 @@ import go.keybase.Keybase;
 import static go.keybase.Keybase.initOnce;
 import static go.keybase.Keybase.logSend;
 
+import io.keybase.ossifrage.util.DNSNSFetcher;
+
 public class MainActivity extends ReactActivity {
     private static final String TAG = MainActivity.class.getName();
+
 
     @Override
     @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -37,7 +43,7 @@ public class MainActivity extends ReactActivity {
             e.printStackTrace();
         }
 
-        initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false);
+        initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false, new DNSNSFetcher());
 
         super.onCreate(savedInstanceState);
 
@@ -52,6 +58,11 @@ public class MainActivity extends ReactActivity {
                 }
             },
         3000);
+    }
+
+    @Override
+    public boolean onCreateThumbnail(final Bitmap outBitmap, final Canvas canvas) {
+        return super.onCreateThumbnail(outBitmap, canvas);
     }
 
     @Override

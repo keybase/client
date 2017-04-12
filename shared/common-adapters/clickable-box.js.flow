@@ -6,6 +6,7 @@ export type Props = {
   style?: Object,
   onClick?: ?(event: SyntheticEvent) => void,
   onPress?: void,
+  onLongPress?: ?(event: SyntheticEvent) => void,
   underlayColor?: any,
   onPressIn?: ?() => void,
   onPressOut?: ?() => void,

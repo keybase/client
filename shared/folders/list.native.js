@@ -4,60 +4,103 @@ import Row from './row'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './list'
 import {Box, Text, Icon, ClickableBox} from '../common-adapters/index'
+import {NativeListView} from '../common-adapters/index.native'
 import {globalStyles, globalColors} from '../styles'
 
 const rowKey = users => users && users.map(u => u.username).join('-')
 
-const Ignored = ({rows, showIgnored, ignored, styles, onToggle, isPublic}) => {
-  const caretIcon: IconType = showIgnored ? 'iconfont-caret-down' : 'iconfont-caret-right'
-
-  return (
-    <Box style={stylesIgnoreContainer}>
-      <ClickableBox onClick={onToggle}>
-        <Box style={styles.topBox}>
-          <Text type='BodySmallSemibold' style={styles.dividerText}>Ignored folders</Text>
-          <Icon type={caretIcon} style={{...stylesIgnoreCaret, color: isPublic ? globalColors.black_40 : globalColors.white_40}} />
-        </Box>
-      </ClickableBox>
-      {showIgnored && <Box style={styles.bottomBox}>
-        <Text type='BodySmallSemibold' style={styles.dividerBodyText}>Ignored folders won't show up on your computer and you won't receive alerts about them.</Text>
-      </Box>}
-      {showIgnored && rows}
-    </Box>
-  )
+type State = {
+  dataSource: NativeListView.DataSource,
+  showIgnored: boolean,
 }
 
-class ListRender extends Component<void, Props, void> {
-  render () {
-    const styles = this.props.isPublic ? stylesPublic : stylesPrivate
-    const ignoredRows = (this.props.ignored || []).map((i, idx) => (
-      <Row
-        {...i}
-        key={rowKey(i.users)}
-        users={i.users}
-        isPublic={this.props.isPublic}
-        ignored={true} />))
+class ListRender extends Component<void, Props, State> {
+  state: State;
 
+  constructor (props: Props) {
+    super(props)
+    this.state = {
+      dataSource: this._dataSourceForProps(props, false),
+      showIgnored: false,
+    }
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    if (this.props.tlfs !== nextProps.tlfs || this.props.ignored !== nextProps.ignored) {
+      this.setState({
+        dataSource: this._dataSourceForProps(nextProps, false),
+      })
+    }
+  }
+
+  _dataSourceForProps (props: Props, showIgnored: boolean) {
+    const ds = new NativeListView.DataSource({
+      rowHasChanged: (r1, r2) => r1 !== r2,
+      sectionHeaderHasChanged: (s1, s2) => s1 !== s2,
+    })
+    if (showIgnored) {
+      return ds.cloneWithRowsAndSections({
+        tlfs: props.tlfs || [],
+        ignoredToggle: [{enabled: true}],
+        ignored: props.ignored || [],
+      })
+    } else {
+      return ds.cloneWithRowsAndSections({
+        tlfs: props.tlfs || [],
+        ignoredToggle: [{enabled: false}],
+        ignored: [],
+      })
+    }
+  }
+
+  _onIgnoredToggle = () => {
+    const showIgnored = !this.state.showIgnored
+    this.setState({
+      dataSource: this._dataSourceForProps(this.props, showIgnored),
+      showIgnored,
+    })
+  }
+
+  _renderIgnoredToggleRow = (row: any) => {
+    const styles = this.props.isPublic ? stylesPublic : stylesPrivate
+    const caretIcon: IconType = row.enabled ? 'iconfont-caret-down' : 'iconfont-caret-right'
     return (
-      <Box style={stylesContainer}>
-        {this.props.tlfs && this.props.tlfs.map((t, idx) => (
-          <Row
-            key={rowKey(t.users)}
-            {...t}
-            isPublic={this.props.isPublic}
-            ignored={false}
-            onClick={this.props.onClick} />
-          ))}
-        <Ignored rows={ignoredRows} showIgnored={this.props.showIgnored} styles={styles}
-          isPublic={this.props.isPublic} onToggle={this.props.onToggleShowIgnored} />
+      <Box style={stylesIgnoreContainer}>
+        <ClickableBox onClick={this._onIgnoredToggle}>
+          <Box style={styles.topBox}>
+            <Text type='BodySmallSemibold' style={styles.dividerText}>Ignored folders</Text>
+            <Icon type={caretIcon} style={{...stylesIgnoreCaret, color: this.props.isPublic ? globalColors.black_40 : globalColors.white_40}} />
+          </Box>
+        </ClickableBox>
+        {row.enabled && <Box style={styles.bottomBox}>
+          <Text type='BodySmallSemibold' style={styles.dividerBodyText}>Ignored folders won't show up on your computer and you won't receive alerts about them.</Text>
+        </Box>}
       </Box>
     )
   }
-}
 
-const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
-  flexGrow: 1,
+  _renderRow = (row, sectionID, rowID) => {
+    if (sectionID === 'ignoredToggle') {
+      return this._renderIgnoredToggleRow(row)
+    }
+    return (
+      <Row
+        key={rowKey(row.users)}
+        {...row}
+        isPublic={this.props.isPublic}
+        ignored={sectionID === 'ignored'}
+        onClick={this.props.onClick} />
+    )
+  }
+
+  render () {
+    return (
+      <NativeListView
+        enableEmptySections={true}
+        dataSource={this.state.dataSource}
+        renderRow={this._renderRow} />
+    )
+  }
 }
 
 const stylesIgnoreContainer = {

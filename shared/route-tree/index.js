@@ -232,6 +232,26 @@ export function getPath (routeState: RouteStateNode, parentPath?: Path): I.List<
   return I.List(path)
 }
 
+export function getPathState (routeState: RouteStateNode, parentPath?: Path): ?I.Map<string, any> {
+  const path = []
+  let curState = routeState
+
+  if (parentPath) {
+    for (const next of parentPath) {
+      curState = curState && curState.getChild(next)
+      if (!curState) {
+        return null
+      }
+      path.push(next)
+    }
+  }
+
+  while (curState && curState.selected !== null) {
+    curState = curState.getChild(curState.selected)
+  }
+  return curState ? curState.state : null
+}
+
 export function pathToString (path: Array<string> | I.IndexedIterable<string>): string {
   return '/' + path.join('/')
 }

@@ -189,7 +189,7 @@ func (c *PassphraseChange) forceUpdatePassphrase(ctx *Context, sigKey libkb.Gene
 
 		postArg := libkb.APIArg{
 			Endpoint:    "passphrase/sign",
-			NeedSession: true,
+			SessionType: libkb.APISessionTypeREQUIRED,
 			JSONPayload: payload,
 			SessionR:    a.LocalSession(),
 		}
@@ -281,7 +281,7 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 
 		postArg := libkb.APIArg{
 			Endpoint:    "passphrase/replace",
-			NeedSession: true,
+			SessionType: libkb.APISessionTypeREQUIRED,
 			JSONPayload: payload,
 			SessionR:    a.LocalSession(),
 		}

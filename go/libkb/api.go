@@ -208,13 +208,17 @@ func (c *countingReader) numRead() int {
 // DiscardAndCloseBody() called on it.
 func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (
 	_ *http.Response, jw *jsonw.Wrapper, err error) {
-	if !api.G().Env.GetTorMode().UseSession() && arg.NeedSession {
+	if !api.G().Env.GetTorMode().UseSession() && arg.SessionType == APISessionTypeREQUIRED {
 		err = TorSessionRequiredError{}
 		return
 	}
 
 	api.fixHeaders(arg, req)
-	cli := api.getCli(arg.NeedSession)
+	needSession := false
+	if arg.SessionType != APISessionTypeNONE {
+		needSession = true
+	}
+	cli := api.getCli(needSession)
 
 	// Actually send the request via Go's libraries
 	timerType := TimerAPI
@@ -304,6 +308,15 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 // on this request; and an error. The canceler function is to clean up the timeout.
 func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.Response, func(), error) {
 
+	// This serves as a proxy for checking the status of the Gregor connection. If we are not
+	// connected to Gregor, then it is likely the case we are totally offline, or on a very bad
+	// connection. If that is the case, let's make these timeouts very aggressive, so we don't
+	// block up everything trying to succeed when we probably will not.
+	if !g.G().ConnectivityMonitor.IsConnected(ctx) {
+		arg.InitialTimeout = HTTPFastTimeout
+		arg.RetryCount = 0
+	}
+
 	if arg.InitialTimeout == 0 && arg.RetryCount == 0 {
 		resp, err := ctxhttp.Do(ctx, cli.cli, req)
 		return resp, nil, err
@@ -335,6 +348,12 @@ func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *
 		}
 		lastErr = err
 		timeout = time.Duration(float64(timeout) * multiplier)
+
+		// If chat goes offline during this retry loop, then let's bail out early
+		if !g.G().ConnectivityMonitor.IsConnected(ctx) {
+			g.G().Log.CDebugf(ctx, "retry loop aborting since chat went offline")
+			break
+		}
 	}
 
 	return nil, nil, fmt.Errorf("doRetry failed, attempts: %d, timeout %s, last err: %s", retries, timeout, lastErr)
@@ -484,16 +503,16 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 }
 
 func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
-	if arg.NeedSession {
+	if arg.SessionType != APISessionTypeNONE {
 		tok, csrf := a.sessionArgs(arg)
 		if len(tok) > 0 && a.G().Env.GetTorMode().UseSession() {
 			req.Header.Add("X-Keybase-Session", tok)
-		} else {
+		} else if arg.SessionType == APISessionTypeREQUIRED {
 			a.G().Log.Warning("fixHeaders: need session, but session token empty")
 		}
 		if len(csrf) > 0 && a.G().Env.GetTorMode().UseCSRF() {
 			req.Header.Add("X-CSRF-Token", csrf)
-		} else {
+		} else if arg.SessionType == APISessionTypeREQUIRED {
 			a.G().Log.Warning("fixHeaders: need session, but session csrf empty")
 		}
 	}

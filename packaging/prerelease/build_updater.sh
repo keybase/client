@@ -27,7 +27,7 @@ GO15VENDOREXPERIMENT=1 go build -a -ldflags "$ldflags" -o "$dest" "$package"
 
 if [ "$PLATFORM" = "darwin" ]; then
   echo "Signing binary..."
-  code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
+  code_sign_identity="98767D13871765E702355A74358822D31C0EF51A" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
   codesign --verbose --force --deep --sign "$code_sign_identity" "$dest"
 elif [ "$PLATFORM" = "linux" ]; then
   echo "No codesigning for linux"

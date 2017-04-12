@@ -1337,3 +1337,23 @@ func (b *Boxer) compareHeadersV1(ctx context.Context, hServer chat1.MessageClien
 
 	return nil
 }
+
+func (b *Boxer) CompareTlfNames(ctx context.Context, tlfName1, tlfName2 string, tlfPublic bool) (bool, error) {
+	get1 := func(tlfName string, tlfPublic bool) (string, error) {
+		cres, err := CtxKeyFinder(ctx).Find(ctx, b.tlfInfoSource, tlfName, tlfPublic)
+		if err != nil {
+			return "", err
+		}
+		return string(cres.NameIDBreaks.CanonicalName), nil
+	}
+
+	c1, err := get1(tlfName1, tlfPublic)
+	if err != nil {
+		return false, err
+	}
+	c2, err := get1(tlfName2, tlfPublic)
+	if err != nil {
+		return false, err
+	}
+	return c1 == c2, nil
+}

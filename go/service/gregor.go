@@ -430,6 +430,8 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 }
 
 func (g *gregorHandler) IsConnected() bool {
+	g.connMutex.Lock()
+	defer g.connMutex.Unlock()
 	return g.conn != nil && g.conn.IsConnected()
 }
 
@@ -558,7 +560,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	}
 
 	// Sync chat data using a Syncer object
-	if err := g.G().Syncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil {
+	if err := g.G().ChatSyncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil {
 		return fmt.Errorf("error running chat sync: %s", err.Error())
 	}
 
@@ -609,7 +611,7 @@ func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.Disconnec
 	g.Debug(context.Background(), "disconnected: %v", status)
 
 	// Alert chat syncer that we are now disconnected
-	g.G().Syncer.Disconnected(ctx)
+	g.G().ChatSyncer.Disconnected(ctx)
 
 	// Call out to reachability module if we have one
 	if g.reachability != nil {
@@ -1105,14 +1107,24 @@ func (g *gregorHandler) isReachable() bool {
 	}
 	if err != nil {
 		g.Debug(ctx, "isReachable: error: terminating connection: %s", err.Error())
-		g.Shutdown()
-		if err := g.Connect(g.uri); err != nil {
-			g.Debug(ctx, "isReachable: error connecting: %s", err.Error())
+		if err := g.Reconnect(ctx); err != nil {
+			g.Debug(ctx, "isReachable: error reconnecting: %s", err.Error())
 		}
 		return false
 	}
 
 	return true
+}
+
+func (g *gregorHandler) Reconnect(ctx context.Context) error {
+	if g.IsConnected() {
+		g.Debug(ctx, "Reconnect: reconnecting to server")
+		g.Shutdown()
+		return g.Connect(g.uri)
+	}
+
+	g.Debug(ctx, "Reconnect: skipping reconnect, already disconnected")
+	return nil
 }
 
 func (g *gregorHandler) pingLoop() {
@@ -1174,10 +1186,8 @@ func (g *gregorHandler) pingLoop() {
 				g.Debug(ctx, "ping loop: id: %x error: %s", id, err.Error())
 				if err == context.DeadlineExceeded {
 					g.Debug(ctx, "ping loop: timeout: terminating connection")
-					g.Shutdown()
-
-					if err := g.Connect(g.uri); err != nil {
-						g.Debug(ctx, "ping loop: id: %x error connecting: %s", id, err.Error())
+					if err := g.Reconnect(ctx); err != nil {
+						g.Debug(ctx, "ping loop: id: %x error reconnecting: %s", id, err.Error())
 					}
 					shutdownCancel()
 					return

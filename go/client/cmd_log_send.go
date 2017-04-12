@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"os"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
-	"os"
 )
 
 const (
@@ -47,11 +48,16 @@ type CmdLogSend struct {
 	libkb.Contextified
 	numBytes  int
 	noConfirm bool
+	feedback  string
 }
 
 func (c *CmdLogSend) Run() error {
+
 	if !c.noConfirm {
 		if err := c.confirm(); err != nil {
+			return err
+		}
+		if err := c.getFeedback(); err != nil {
 			return err
 		}
 	}
@@ -92,7 +98,7 @@ func (c *CmdLogSend) Run() error {
 		Logs:         logs,
 	}
 
-	id, err := logSendContext.LogSend(statusJSON, true, c.numBytes)
+	id, err := logSendContext.LogSend(statusJSON, c.feedback, true, c.numBytes)
 	if err != nil {
 		return err
 	}
@@ -117,6 +123,23 @@ func (c *CmdLogSend) confirm() error {
 	ui.Printf("but they will include filenames and other metadata keybase normally\n")
 	ui.Printf("can’t read, for debugging purposes.\n\n")
 	return ui.PromptForConfirmation("Continue sending logs to keybase.io?")
+}
+
+func (c *CmdLogSend) getFeedback() error {
+	ui := c.G().UI.GetTerminalUI()
+	var err error
+	for err == nil {
+		in, err := ui.Prompt(0, "Enter feedback (or ENTER to send): ")
+		if err != nil {
+			return err
+		}
+		if in != "" {
+			c.feedback = c.feedback + in + "\n"
+		} else {
+			break
+		}
+	}
+	return nil
 }
 
 func (c *CmdLogSend) outputInstructions(id string) {

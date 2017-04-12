@@ -338,6 +338,7 @@ type ProvisionUI interface {
 }
 
 type ChatUI interface {
+	ChatAttachmentUploadOutboxID(context.Context, chat1.ChatAttachmentUploadOutboxIDArg) error
 	ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata, chat1.MessageID) error
 	ChatAttachmentUploadProgress(context.Context, chat1.ChatAttachmentUploadProgressArg) error
 	ChatAttachmentUploadDone(context.Context) error
@@ -472,11 +473,20 @@ type NetContext interface {
 	GetNetContext() context.Context
 }
 
+type DNSNameServerFetcher interface {
+	GetServers() []string
+}
+
+type DNSContext interface {
+	GetDNSNameServerFetcher() DNSNameServerFetcher
+}
+
 // ProofContext defines features needed by the proof system
 type ProofContext interface {
 	LogContext
 	APIContext
 	NetContext
+	DNSContext
 	GetPvlSource() PvlSource
 }
 
@@ -551,4 +561,8 @@ type UserChangedHandler interface {
 	// HandlerUserChanged is called when the with User with the given UID has
 	// changed, either because of a sigchain change, or a profile change.
 	HandleUserChanged(uid keybase1.UID) error
+}
+
+type ConnectivityMonitor interface {
+	IsConnected(ctx context.Context) bool
 }

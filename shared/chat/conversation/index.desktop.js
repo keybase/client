@@ -1,19 +1,18 @@
 // @flow
-import Banner from './banner'
-import Header from './header.desktop'
-import Input from './input.desktop'
-import List from './list.desktop'
+import Banner from './banner/container'
+import Header from './header/container'
+import Input from './input/container'
+import List from './list/container'
 import OldProfileResetNotice from './notices/old-profile-reset-notice'
 import NoConversation from './no-conversation.desktop'
 import ParticipantRekey from './participant-rekey.desktop'
 import React, {Component} from 'react'
-import SidePanel from './side-panel'
+import SidePanel from './side-panel/container'
 import YouRekey from './you-rekey.desktop.js'
-import {Box, Icon, Text} from '../../common-adapters'
+import {Box, Icon, Text, LoadingLine} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
 import * as Constants from '../../constants/chat'
-import hoc from './index-hoc'
 import {compose, branch, renderComponent} from 'recompose'
 
 import type {Props} from '.'
@@ -29,8 +28,8 @@ class Conversation extends Component<void, Props, State> {
 
   _onDrop = e => {
     const fileList = e.dataTransfer.files
-    if (!this.props.selectedConversation) throw new Error('No conversation')
-    const conversationIDKey = this.props.selectedConversation
+    if (!this.props.selectedConversationIDKey) throw new Error('No conversation')
+    const conversationIDKey = this.props.selectedConversationIDKey
     // FileList, not an array
     const inputs = Array.prototype.map.call(fileList, file => ({
       conversationIDKey,
@@ -57,11 +56,11 @@ class Conversation extends Component<void, Props, State> {
       this.setState({showDropOverlay: true})
     }).then(clipboardData => {
       this.setState({showDropOverlay: false})
-      if (!this.props.selectedConversation) throw new Error('No conversation')
+      if (!this.props.selectedConversationIDKey) throw new Error('No conversation')
       if (clipboardData) {
         const {path, title} = clipboardData
         this.props.onAttach([{
-          conversationIDKey: this.props.selectedConversation,
+          conversationIDKey: this.props.selectedConversationIDKey,
           filename: path,
           title,
           type: 'Image',
@@ -71,23 +70,6 @@ class Conversation extends Component<void, Props, State> {
   }
 
   render () {
-    const {
-      bannerMessage,
-      followingMap,
-      metaDataMap,
-      onAddParticipant,
-      onMuteConversation,
-      onShowBlockConversationDialog,
-      onShowProfile,
-      onToggleSidePanel,
-      muted,
-      participants,
-      sidePanelOpen,
-      you,
-      finalizeInfo,
-    } = this.props
-
-    const banner = bannerMessage && <Banner message={bannerMessage} />
     const dropOverlay = this.state.showDropOverlay && (
       <Box style={dropOverlayStyle} onDragLeave={this._onDragLeave} onDrop={this._onDrop}>
         <Icon type='icon-file-dropping-48' />
@@ -103,26 +85,28 @@ class Conversation extends Component<void, Props, State> {
     return (
       <Box className='conversation' style={containerStyle} onDragEnter={this._onDragEnter} onPaste={this._onPaste}>
         {offline}
-        <Header {...this.props.headerProps} />
-        <List {...this.props.listProps} />
-        {banner}
-        {finalizeInfo
+        <Header sidePanelOpen={this.props.sidePanelOpen} onToggleSidePanel={this.props.onToggleSidePanel} onBack={this.props.onBack} />
+        <List
+          focusInputCounter={this.props.focusInputCounter}
+          listScrollDownCounter={this.props.listScrollDownCounter}
+          onEditLastMessage={this.props.onEditLastMessage}
+          onScrollDown={this.props.onScrollDown}
+          onFocusInput={this.props.onFocusInput}
+          editLastMessageCounter={this.props.editLastMessageCounter}
+        />
+        <Banner />
+        {this.props.showLoader && <LoadingLine />}
+        {this.props.finalizeInfo
           ? <OldProfileResetNotice
             onOpenNewerConversation={this.props.onOpenNewerConversation}
-            username={finalizeInfo.resetUser} />
-          : <Input {...this.props.inputProps} /> }
-        {sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>
-          <SidePanel
-            you={you}
-            metaDataMap={metaDataMap}
-            followingMap={followingMap}
-            muted={muted}
-            onAddParticipant={onAddParticipant}
-            onMuteConversation={onMuteConversation}
-            onShowBlockConversationDialog={onShowBlockConversationDialog}
-            onShowProfile={onShowProfile}
-            onToggleSidePanel={onToggleSidePanel}
-            participants={participants} />
+            username={this.props.finalizeInfo.resetUser} />
+            : <Input
+              focusInputCounter={this.props.focusInputCounter}
+              onEditLastMessage={this.props.onEditLastMessage}
+              onScrollDown={this.props.onScrollDown}
+            /> }
+        {this.props.sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>
+          <SidePanel onToggleSidePanel={this.props.onToggleSidePanel} />
         </div>}
         {dropOverlay}
       </Box>
@@ -151,16 +135,12 @@ const dropOverlayStyle = {
 
 export default compose(
   branch(
-    (props: Props) => props.selectedConversation === Constants.nothingSelected,
-    renderComponent(NoConversation)
-  ),
+    (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected,
+    renderComponent(NoConversation)),
   branch(
     (props: Props) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
-    renderComponent(ParticipantRekey)
-  ),
+    renderComponent(ParticipantRekey)),
   branch(
     (props: Props) => !!props.rekeyInfo && !props.finalizeInfo,
-    renderComponent(YouRekey)
-  ),
-  hoc
+    renderComponent(YouRekey)),
 )(Conversation)

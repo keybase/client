@@ -204,7 +204,7 @@ func TestInstallIDHeaders(t *testing.T) {
 	}
 	res, err := api.Get(APIArg{
 		Endpoint:    "pkg/show",
-		NeedSession: false,
+		SessionType: APISessionTypeNONE,
 		Args:        HTTPArgs{},
 	})
 	if err != nil {

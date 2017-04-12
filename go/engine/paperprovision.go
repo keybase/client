@@ -135,7 +135,7 @@ func (e *PaperProvisionEngine) uidByKID(kid keybase1.KID) (keybase1.UID, error) 
 	var nilUID keybase1.UID
 	arg := libkb.APIArg{
 		Endpoint:    "key/owner",
-		NeedSession: false,
+		SessionType: libkb.APISessionTypeNONE,
 		Args:        libkb.HTTPArgs{"kid": libkb.S{Val: kid.String()}},
 	}
 	res, err := e.G().API.Get(arg)

@@ -253,7 +253,7 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 func (e *Kex2Provisioner) sessionForY() (token, csrf string, err error) {
 	resp, err := e.G().API.Post(libkb.APIArg{
 		Endpoint:    "new_session",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 	})
 	if err != nil {
 		return "", "", err

@@ -9,7 +9,7 @@ import (
 func assertEmail(t *testing.T, g *libkb.GlobalContext, expected string) {
 	res, err := g.API.Get(libkb.APIArg{
 		Endpoint:    "me",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 	})
 	if err != nil {
 		t.Fatal(err)

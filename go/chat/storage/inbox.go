@@ -21,7 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const inboxVersion = 9
+const inboxVersion = 11
 
 type queryHash []byte
 
@@ -143,6 +143,7 @@ func (i *Inbox) writeDiskInbox(ctx context.Context, ibox inboxDiskData) Error {
 
 	ibox.ServerVersion = vers.InboxVers
 	ibox.Version = inboxVersion
+	ibox.Conversations = i.summarizeConvs(ibox.Conversations)
 	if ierr := i.writeDiskBox(ctx, i.dbKey(), ibox); ierr != nil {
 		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s",
 			i.uid, ierr.Error())
@@ -165,6 +166,35 @@ func (a ByDatabaseOrder) Len() int      { return len(a) }
 func (a ByDatabaseOrder) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a ByDatabaseOrder) Less(i, j int) bool {
 	return dbConvLess(a[i], a[j])
+}
+
+func (i *Inbox) summarizeConv(conv *chat1.Conversation) {
+	summaries := make(map[chat1.MessageType]chat1.MessageSummary)
+
+	// Collect the existing summaries
+	for _, m := range conv.MaxMsgSummaries {
+		summaries[m.GetMessageType()] = m
+	}
+
+	// Collect the locally-grown summaries
+	for _, m := range conv.MaxMsgs {
+		summaries[m.GetMessageType()] = m.Summary()
+	}
+
+	// Insert all the summaries
+	conv.MaxMsgs = nil
+	conv.MaxMsgSummaries = nil
+	for _, m := range summaries {
+		conv.MaxMsgSummaries = append(conv.MaxMsgSummaries, m)
+	}
+}
+
+func (i *Inbox) summarizeConvs(convs []chat1.Conversation) (res []chat1.Conversation) {
+	for _, conv := range convs {
+		i.summarizeConv(&conv)
+		res = append(res, conv)
+	}
+	return res
 }
 
 func (i *Inbox) mergeConvs(l []chat1.Conversation, r []chat1.Conversation) (res []chat1.Conversation) {
@@ -254,6 +284,21 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1
 	return nil
 }
 
+func (i *Inbox) supersedersNotEmpty(ctx context.Context, superseders []chat1.ConversationMetadata, convs []chat1.Conversation) bool {
+	for _, superseder := range superseders {
+		for _, conv := range convs {
+			if superseder.ConversationID.Eq(conv.Metadata.ConversationID) {
+				for _, msg := range conv.MaxMsgSummaries {
+					if utils.IsVisibleChatMessageType(msg.GetMessageType()) {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
 func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, convs []chat1.Conversation) []chat1.Conversation {
 	if query == nil {
 		query = &chat1.GetInboxQuery{}
@@ -319,7 +364,9 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, conv
 		if query.OneChatTypePerTLF == nil ||
 			(query.OneChatTypePerTLF != nil && *query.OneChatTypePerTLF) {
 			if conv.Metadata.FinalizeInfo != nil && len(conv.Metadata.SupersededBy) > 0 && len(query.ConvIDs) == 0 {
-				ok = false
+				if i.supersedersNotEmpty(ctx, conv.Metadata.SupersededBy, convs) {
+					ok = false
+				}
 			}
 		}
 
@@ -645,6 +692,12 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 		return err
 	}
 
+	// Check for a delete, if so just auto return a version mismatch to resync. The reason
+	// is it is tricky to update max messages in this case.
+	if msg.GetMessageType() == chat1.MessageType_DELETE {
+		return NewVersionMismatchError(ibox.InboxVersion, vers)
+	}
+
 	// Find conversation
 	index, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
@@ -875,7 +928,7 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 		return err
 	}
 
-	// Sync inbox with new conversations if we know about them already
+	// Sync inbox with new conversations
 	oldVers := ibox.InboxVersion
 	ibox.InboxVersion = vers
 	convMap := make(map[string]chat1.Conversation)
@@ -885,10 +938,16 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	for index, conv := range ibox.Conversations {
 		if newConv, ok := convMap[conv.GetConvID().String()]; ok {
 			ibox.Conversations[index] = newConv
+			delete(convMap, conv.GetConvID().String())
 		}
 	}
-	i.Debug(ctx, "Sync: old vers: %v new vers: %v convs: %d", oldVers, ibox.InboxVersion, len(convs))
+	i.Debug(ctx, "Sync: adding %d new conversations", len(convMap))
+	for _, conv := range convMap {
+		ibox.Conversations = append(ibox.Conversations, conv)
+	}
+	sort.Sort(ByDatabaseOrder(ibox.Conversations))
 
+	i.Debug(ctx, "Sync: old vers: %v new vers: %v convs: %d", oldVers, ibox.InboxVersion, len(convs))
 	if err = i.writeDiskInbox(ctx, ibox); err != nil {
 		return err
 	}

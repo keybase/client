@@ -1,5 +1,5 @@
 // @flow
-import ConversationBanner from './conversation/banner'
+import {BrokenTrackerBanner, ErrorBanner, InviteBanner, InfoBanner} from './conversation/banner'
 import ConversationHeader from './conversation/header'
 import ConversationInput from './conversation/input'
 import ConversationList from './conversation/list'
@@ -88,6 +88,9 @@ const metaData = {
 
 const followingMap = {
   oconnor663: true,
+  cjb: false,
+  chris: false,
+  chrisnojima: false,
 }
 
 const commonConvoProps = {
@@ -100,8 +103,8 @@ const commonConvoProps = {
   isRequesting: false,
   onPostMessage: (text: string) => console.log('on post', text),
   selectedConversation: 'convo1',
-  emojiPickerOpen: false,
   onShowProfile: (username: string) => console.log('on show profile', username),
+  onBack: () => console.log('back clicked'),
 }
 
 const emptyConvoProps = {
@@ -216,12 +219,10 @@ const header = {
   mocks: {
     'Normal': {
       ...commonConvoProps,
-      onBack: () => console.log('back clicked'),
     },
     'Muted': {
       ...commonConvoProps,
       muted: true,
-      onBack: () => console.log('back clicked'),
     },
   },
 }
@@ -305,28 +306,29 @@ const list = {
 }
 
 const commonSidePanel = {
-  followingMap,
-  metaDataMap: Map(metaData),
   parentProps: {
     style: {
       width: 320,
     },
   },
-  participants: List(participants),
-  you: 'chris',
+  participants: List(participants.map(p => ({
+    broken: metaData[p].get('brokenTracker'),
+    following: !!followingMap[p],
+    fullname: metaData[p].get('fullname'),
+    isYou: p === 'chris',
+    username: p,
+  }))),
 }
 
 const sidePanel = {
   component: ConversationSidePanel,
   mocks: {
     'Normal': {
-      ...commonConvoProps,
       ...commonSidePanel,
     },
     'Muted': {
-      ...emptyConvoProps,
       ...commonSidePanel,
-      status: 'muted',
+      muted: true,
     },
   },
 }
@@ -409,62 +411,65 @@ const conversationsList = {
   },
 }
 
-const conversationBanner = {
-  component: ConversationBanner,
+const brokenTrackerBanner = {
+  component: BrokenTrackerBanner,
   mocks: {
-    'Info': {
-      message: {
-        type: 'Info',
-        text: 'Some info',
-      },
-    },
-    'Invite': {
-      message: {
-        type: 'Invite',
-        users: ['malg@twitter'],
-        inviteLink: 'keybase.io/inv/9999999999',
-        onClickInviteLink: () => { console.log('Clicked the invite link') },
-      },
-    },
-    'Error': {
-      message: {
-        type: 'Error',
-        text: 'Some error',
-        textLink: 'Some link',
-        textLinkOnClick: () => { console.log('Clicked the text link') },
-      },
-    },
     'BrokenTracker 1': {
-      message: {
-        type: 'BrokenTracker',
-        users: ['jzila'],
-        onClick: (user: string) => { console.log('Clicked on ', user) },
-      },
+      users: ['jzila'],
+      onClick: (user: string) => { console.log('Clicked on ', user) },
     },
     'BrokenTracker 2': {
-      message: {
-        type: 'BrokenTracker',
-        users: ['jzila', 'cjb'],
-        onClick: (user: string) => { console.log('Clicked on ', user) },
-      },
+      users: ['jzila', 'cjb'],
+      onClick: (user: string) => { console.log('Clicked on ', user) },
     },
     'BrokenTracker 3': {
-      message: {
-        type: 'BrokenTracker',
-        users: ['jzila', 'cjb', 'bob'],
-        onClick: (user: string) => { console.log('Clicked on ', user) },
-      },
+      users: ['jzila', 'cjb', 'bob'],
+      onClick: (user: string) => { console.log('Clicked on ', user) },
+    },
+  },
+}
+
+const errorBanner = {
+  component: ErrorBanner,
+  mocks: {
+    'Error': {
+      text: 'Some error',
+      textLink: 'Some link',
+      textLinkOnClick: () => { console.log('Clicked the text link') },
+    },
+  },
+}
+
+const inviteBanner = {
+  component: InviteBanner,
+  mocks: {
+    'Invite': {
+      inviteLink: 'keybase.io/inv/9999999999',
+      onClickInviteLink: () => { console.log('Clicked the invite link') },
+      users: ['malg@twitter'],
+    },
+  },
+}
+
+const infoBanner = {
+  component: InfoBanner,
+  mocks: {
+    'Info': {
+      text: 'Some info',
     },
   },
 }
 
 export default {
+  'ChatBannerBroken': brokenTrackerBanner,
+  'ChatBannerError': errorBanner,
+  'ChatBannerInfo': infoBanner,
+  'ChatBannerInvite': inviteBanner,
+  'ChatConversationsList': conversationsList,
   'ChatHeader': header,
   'ChatInput': input,
   'ChatList': list,
-  'ChatSidePanel': sidePanel,
-  'ChatConversationsList': conversationsList,
-  'ChatBanner': conversationBanner,
   'ChatParticipantRekey': participantRekey,
+  'ChatSidePanel': sidePanel,
   'YouRekey': youRekey,
 }

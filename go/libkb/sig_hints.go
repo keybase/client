@@ -143,7 +143,7 @@ func (sh *SigHints) Refresh(ctx context.Context) (err error) {
 	defer sh.G().CTrace(ctx, fmt.Sprintf("Refresh SigHints for uid=%s", sh.uid), func() error { return err })()
 	res, err := sh.G().API.Get(APIArg{
 		Endpoint:    "sig/hints",
-		NeedSession: false,
+		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"uid": UIDArg(sh.uid),
 			"low": I{sh.version},

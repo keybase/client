@@ -259,10 +259,10 @@
 			"revisionTime": "2017-03-08T15:50:15Z"
 		},
 		{
-			"checksumSHA1": "h5M/0X8u48IKcVyFg/bTBt2Q/EY=",
+			"checksumSHA1": "d2oUixwR6P1/pDb7NEu/cFmCKJc=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "ed0755654131895e6bdaa3fbd828a35f4c8db799",
-			"revisionTime": "2017-03-30T19:15:56Z"
+			"revision": "68da9ff2336b22c496aa52a9e63f2589d7d4495e",
+			"revisionTime": "2017-04-03T19:16:51Z"
 		},
 		{
 			"path": "github.com/keybase/go-jsonw",
@@ -322,9 +322,10 @@
 			"revisionTime": "2016-06-28T16:50:19-07:00"
 		},
 		{
+			"checksumSHA1": "bRJXC0lav7R1wtOd+XR3YofEC7s=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "a5147a659b4a69f77e027e301e726e05492474d6",
-			"revisionTime": "2015-10-20T11:39:53-04:00"
+			"revision": "a9d1d7eccf30e2b04ba68f00f8d54bce509b9f0f",
+			"revisionTime": "2017-04-05T18:10:50Z"
 		},
 		{
 			"path": "github.com/keybase/npipe",

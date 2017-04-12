@@ -6,6 +6,7 @@ import UserGroup from './user-search/user-group'
 import UserSearch from './user-search/render'
 import {globalStyles} from '../styles'
 import {compose, withProps} from 'recompose'
+import {Keyboard} from 'react-native'
 
 import type {Props} from '.'
 import type {Props as UserSearchProps} from './user-search/render'
@@ -34,7 +35,10 @@ export default compose(
     headerStyle: {
       borderBottomWidth: 0,
     },
-    onCancel: ownProps.onReset,
+    onCancel: () => {
+      ownProps.onReset()
+      Keyboard.dismiss()
+    },
   })),
   HeaderHoc,
 )(SearchRender)

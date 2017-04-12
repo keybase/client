@@ -17,15 +17,13 @@ PODS:
   - AFNetworking/Reachability (2.6.3)
   - AFNetworking/Security (2.6.3)
   - AFNetworking/Serialization (2.6.3)
-  - CocoaLumberjack (2.4.0):
-    - CocoaLumberjack/Default (= 2.4.0)
-    - CocoaLumberjack/Extensions (= 2.4.0)
-  - CocoaLumberjack/Core (2.4.0)
-  - CocoaLumberjack/Default (2.4.0):
-    - CocoaLumberjack/Core
-  - CocoaLumberjack/Extensions (2.4.0):
+  - CocoaLumberjack (3.1.0):
+    - CocoaLumberjack/Default (= 3.1.0)
+    - CocoaLumberjack/Extensions (= 3.1.0)
+  - CocoaLumberjack/Default (3.1.0)
+  - CocoaLumberjack/Extensions (3.1.0):
     - CocoaLumberjack/Default
-  - GBCli (1.1)
+  - GBCli (1.2.1)
   - GHKeychain (1.2.8)
   - GHKit (2.0.3)
   - GHODictionary (1.1.0)
@@ -41,9 +39,9 @@ PODS:
     - ObjectiveSugar
     - Tikppa
     - YOLayout
-  - Mantle (2.0.7):
-    - Mantle/extobjc (= 2.0.7)
-  - Mantle/extobjc (2.0.7)
+  - Mantle (2.1.0):
+    - Mantle/extobjc (= 2.1.0)
+  - Mantle/extobjc (2.1.0)
   - MDPSplitView (1.0.2)
   - MPMessagePack (1.3.12):
     - GHODictionary
@@ -71,13 +69,13 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   AFNetworking: cb8d14a848e831097108418f5d49217339d4eb60
-  CocoaLumberjack: aa9dcab71bdf9eaf2a63bbd9ddc87863efe45457
-  GBCli: e5f988fadb68e1e3c01919f134009fed9796fde0
+  CocoaLumberjack: 8311463ddf9ee86a06ef92a071dd656c89244500
+  GBCli: 3af947f1793263cda07c220aed0b4af46034d94d
   GHKeychain: 008cdb8bbab5b0dc1da3d0f06a67ce5203231e44
   GHKit: 2a20b51df9ce8f4355b2af2821805d369d610546
   GHODictionary: 225e042596a4b3d5b66b2b24250086b2f95514af
   KBKit: 9f139696e2cd916f05ee603e33aabfd558ac8ccd
-  Mantle: bc40bb061d8c2c6fb48d5083e04d928c3b7f73d9
+  Mantle: 2fa750afa478cd625a94230fbf1c13462f29395b
   MDPSplitView: 127b4b371e813ec29333e515fb1c057126a75671
   MPMessagePack: 078f8c3aed25079bac89003391fdb71f44bcf37a
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
@@ -85,6 +83,6 @@ SPEC CHECKSUMS:
   Tikppa: 77ac88aa89814a5ae9d18a773b4436ebef2235b7
   YOLayout: 6728d890bab9b9e4962efd554cba16d677b30b0f
 
-PODFILE CHECKSUM: 254d09634e37270f76c88d82cab3a560a72b79ed
+PODFILE CHECKSUM: 8a1b9dc7eb6fd442d174ea229f6d94220c90f64f
 
 COCOAPODS: 1.2.0

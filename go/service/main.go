@@ -253,7 +253,7 @@ func (d *Service) createMessageDeliverer() {
 	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), d.attachmentstore, ri)
 	d.G().MessageDeliverer = chat.NewDeliverer(d.G(), sender)
 
-	d.G().Syncer.RegisterOfflinable(d.G().MessageDeliverer)
+	d.G().ChatSyncer.RegisterOfflinable(d.G().MessageDeliverer)
 }
 
 func (d *Service) startMessageDeliverer() {
@@ -272,11 +272,14 @@ func (d *Service) createChatSources() {
 	d.G().ConvSource = chat.NewConversationSource(d.G(), d.G().Env.GetConvSourceType(),
 		boxer, storage.New(d.G()), ri)
 	d.G().ServerCacheVersions = storage.NewServerVersions(d.G())
-	d.G().Syncer = chat.NewSyncer(d.G())
+
+	chatSyncer := chat.NewSyncer(d.G())
+	d.G().ChatSyncer = chatSyncer
+	d.G().ConnectivityMonitor = chatSyncer
 
 	// Set up Offlinables on Syncer
-	d.G().Syncer.RegisterOfflinable(d.G().InboxSource)
-	d.G().Syncer.RegisterOfflinable(d.G().ConvSource)
+	chatSyncer.RegisterOfflinable(d.G().InboxSource)
+	chatSyncer.RegisterOfflinable(d.G().ConvSource)
 
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh

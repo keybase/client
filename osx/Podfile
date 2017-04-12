@@ -1,3 +1,5 @@
+use_frameworks!
+
 target "Installer" do
   platform :osx, "10.10"
   pod "ObjectiveSugar"
@@ -22,4 +24,13 @@ end
 target "keybase.Helper" do
   platform :osx, "10.10"
   pod "MPMessagePack"
+end
+
+# https://stackoverflow.com/questions/38446097/xcode-8-beta-3-use-legacy-swift-issue
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['SWIFT_VERSION'] = '3.0'
+    end
+  end
 end

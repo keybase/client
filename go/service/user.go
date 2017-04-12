@@ -4,6 +4,8 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -193,6 +195,8 @@ func (h *UserHandler) LoadAllPublicKeysUnverified(ctx context.Context,
 }
 
 func (h *UserHandler) ListTrackers2(_ context.Context, arg keybase1.ListTrackers2Arg) (res keybase1.UserSummary2Set, err error) {
+	h.G().Trace(fmt.Sprintf("ListTrackers2(assertion=%s,reverse=%v)", arg.Assertion, arg.Reverse),
+		func() error { return err })()
 	eng := engine.NewListTrackers2(h.G(), arg)
 	ctx := &engine.Context{
 		LogUI:     h.getLogUI(arg.SessionID),
