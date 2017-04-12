@@ -51,7 +51,7 @@ const Failure = ({failureDescription, onShowEditor, onRetry}) => {
 const MessageWrapper = (props: Props) => (
   <Box style={{..._flexOneRow, ...(props.isFirstNewMessage ? _stylesFirstNewMessage : null), ...(props.isSelected ? _stylesSelected : null)}}>
     <LeftMarker author={props.author} isYou={props.isYou} isFollowing={props.isFollowing} isBroken={props.isBroken} />
-    <Box style={_flexOneRow}>
+    <Box style={_rightSideStyle}>
       <UserAvatar author={props.author} showImage={props.includeHeader} />
       <Box style={_flexOneColumn} className='message-wrapper'>
         <Username includeHeader={props.includeHeader} author={props.author} isYou={props.isYou} isFollowing={props.isFollowing} isBroken={props.isBroken} />
@@ -67,6 +67,23 @@ const MessageWrapper = (props: Props) => (
     </Box>
   </Box>
 )
+
+const _flexOneRow = {
+  ...globalStyles.flexBoxRow,
+  flex: 1,
+}
+
+const _flexOneColumn = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+}
+
+const _rightSideStyle = {
+  ..._flexOneRow,
+  paddingBottom: globalMargins.tiny,
+  paddingRight: globalMargins.tiny,
+  paddingTop: globalMargins.tiny,
+}
 
 const _stylesFirstNewMessage = {
   borderBottomWidth: 0,
@@ -115,16 +132,6 @@ const _leftMarkerStyle = {
 const _userAvatarStyle = {
   height: 1, // don't let avatar size push down the whole row
   width: 32,
-}
-
-const _flexOneRow = {
-  ...globalStyles.flexBoxRow,
-  flex: 1,
-}
-
-const _flexOneColumn = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
 }
 
 const _failStyle = {
