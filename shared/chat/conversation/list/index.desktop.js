@@ -165,6 +165,7 @@ class BaseList extends Component<void, Props, State> {
         <Virtualized.AutoSizer onResize={this._onResize}>
           {({height, width}) => (
             <Virtualized.List
+              messageKeys={this.props.messageKeys}
               listRerender={this.state.listRerender}
               selectedMessageKey={this.state.selectedMessageKey}
               columnWidth={width}
