@@ -302,7 +302,8 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return fullErr }, "GetThreadNonblock")()
+	defer h.Trace(ctx, func() error { return fullErr },
+		fmt.Sprintf("GetThreadNonblock(%s)", arg.ConversationID))()
 	defer func() { fullErr = h.handleOfflineError(ctx, fullErr, &res) }()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
