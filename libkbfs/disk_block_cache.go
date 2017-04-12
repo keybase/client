@@ -164,7 +164,8 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		}
 		diskLimiter := cache.config.DiskLimiter()
 		if diskLimiter != nil {
-			// Only enable compaction after the block counts have been synced.
+			// Notify the disk limiter of the disk cache's size once we've
+			// determined it.
 			ctx := context.Background()
 			cache.config.DiskLimiter().onDiskBlockCacheEnable(ctx,
 				int64(cache.currBytes))
@@ -665,16 +666,16 @@ func (*DiskBlockCacheStandard) getRandomBlockID(numElements,
 	return kbfsblock.MakeRandomIDInRange(0, pivot)
 }
 
-// evictSomeBlocks tries to evict <numBlocks> blocks from the cache. If
-// blockIDs doesn't have enough blocks, we evict them all and report how many
+// evictSomeBlocks tries to evict `numBlocks` blocks from the cache. If
+// `blockIDs` doesn't have enough blocks, we evict them all and report how many
 // we evicted.
 func (cache *DiskBlockCacheStandard) evictSomeBlocks(ctx context.Context,
 	numBlocks int, blockIDs blockIDsByTime) (numRemoved int, sizeRemoved int64,
 	err error) {
 	defer func() {
-		cache.log.CDebugf(ctx, "Cache evictSomeBlocks numBlocksRequested=%d, "+
-			"numBlocksEvicted=%d sizeBlocksEvicted=%d", numBlocks, numRemoved,
-			sizeRemoved)
+		cache.log.CDebugf(ctx, "Cache evictSomeBlocks numBlocksRequested=%d "+
+			"numBlocksEvicted=%d sizeBlocksEvicted=%d err=%+v", numBlocks,
+			numRemoved, sizeRemoved, err)
 	}()
 	if len(blockIDs) <= numBlocks {
 		numBlocks = len(blockIDs)
