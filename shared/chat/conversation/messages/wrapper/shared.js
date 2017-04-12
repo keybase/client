@@ -51,7 +51,7 @@ const Failure = ({failureDescription, onShowEditor, onRetry}) => {
 const MessageWrapper = (props: Props) => (
   <Box style={{..._flexOneRow, ...(props.isFirstNewMessage ? _stylesFirstNewMessage : null), ...(props.isSelected ? _stylesSelected : null)}}>
     <LeftMarker author={props.author} isYou={props.isYou} isFollowing={props.isFollowing} isBroken={props.isBroken} />
-    <Box style={_rightSideStyle}>
+    <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
       <UserAvatar author={props.author} showImage={props.includeHeader} />
       <Box style={_flexOneColumn} className='message-wrapper'>
         <Username includeHeader={props.includeHeader} author={props.author} isYou={props.isYou} isFollowing={props.isFollowing} isBroken={props.isBroken} />
@@ -78,10 +78,13 @@ const _flexOneColumn = {
   flex: 1,
 }
 
-const _rightSideStyle = {
+const _rightSideNoHeaderStyle = {
   ..._flexOneRow,
-  paddingBottom: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
+}
+
+const _rightSideWithHeaderStyle = {
+  ..._rightSideNoHeaderStyle,
   paddingTop: globalMargins.tiny,
 }
 

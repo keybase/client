@@ -10,7 +10,7 @@ import type {Props} from '.'
 
 type State = {
   dataSource: NativeListView.DataSource,
-  // isLockedToBottom: boolean,
+  isLockedToBottom: boolean,
   // scrollViewHeight: ?number,
   // contentHeight: ?number,
 }
@@ -19,7 +19,8 @@ type State = {
 
 class ConversationList extends Component <void, Props, State> {
   state: State;
-  // _listRef: any;
+  _list: any;
+
   _ds = new NativeListView.DataSource({
     rowHasChanged: (r1, r2) => {
       return r1 !== r2
@@ -31,7 +32,7 @@ class ConversationList extends Component <void, Props, State> {
     this.state = {
       // contentHeight: null,
       dataSource: this._ds.cloneWithRows(this.props.messageKeys.toArray()),
-      // isLockedToBottom: true,
+      isLockedToBottom: true,
       // scrollViewHeight: null,
     }
   }
@@ -72,24 +73,32 @@ class ConversationList extends Component <void, Props, State> {
   // }
 
   componentWillReceiveProps (nextProps: Props) {
+    if (this.props.selectedConversation !== nextProps.selectedConversation ||
+      this.props.listScrollDownCounter !== nextProps.listScrollDownCounter) {
+      this.setState({isLockedToBottom: true})
+    }
+
     if (this.props.messageKeys !== nextProps.messageKeys) {
       this.setState({dataSource: this._ds.cloneWithRows(nextProps.messageKeys.toArray())})
     }
-
-    // const willScrollDown = nextProps.listScrollDownCounter !== this.props.listScrollDownCounter
-
-    // if (willScrollDown) {
-      // this.setState({isLockedToBottom: true})
-    // }
   }
 
-  // componentDidUpdate (prevProps: Props, prevState: State) {
+  componentDidMount () {
+    if (this.state.isLockedToBottom) {
+      this._list && this._list.scrollToEnd({animated: false})
+    }
+  }
+
+  componentDidUpdate (prevProps: Props, prevState: State) {
     // const {contentHeight: prevContentHeight, scrollViewHeight: prevScrollViewHeight} = prevState
     // const {contentHeight, scrollViewHeight} = this.state
     // if (contentHeight && scrollViewHeight && (contentHeight !== prevContentHeight || scrollViewHeight !== prevScrollViewHeight)) {
       // this.state.isLockedToBottom && this._scrollToBottom()
     // }
-  // }
+    if (this.state.isLockedToBottom && this.props.messageKeys.count() !== prevProps.messageKeys.count()) {
+      this._list && this._list.scrollToEnd({animated: true})
+    }
+  }
 
   // _onLayout = ({nativeEvent: {layout: {height: scrollViewHeight}}}) => {
     // this.setState({scrollViewHeight: Math.floor(scrollViewHeight)})
@@ -133,6 +142,10 @@ class ConversationList extends Component <void, Props, State> {
   // // This is handled slightly differently on mobile, leave this blank
   _measure = () => {}
 
+  _setListRef = (r: any) => {
+    this._list = r
+  }
+
   _renderRow = (rowData, sectionID, rowID, highlightRow) => {
     const messageKey = rowData
     const prevMessageKey = this.props.messageKeys.get(rowID - 1)
@@ -140,52 +153,22 @@ class ConversationList extends Component <void, Props, State> {
 
     return messageFactory(messageKey, prevMessageKey, this._onAction, this._onShowEditor, isSelected, this._measure)
   }
-  // _renderRow = (message, sectionID, rowID) => {
-    // const messages = this._allMessages(this.props)
-    // const isFirstMessage = rowID === 0
-    // const prevMessage = messages.get(rowID - 1)
-    // const isSelected = false
-    // const isScrolling = false
-    // const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, message.key || `other-${rowID}`, {}, this._onAction, this._onShowEditor, this.props.editingMessage === message)
-
-    // return messageFactory(options)
-  // }
 
   render () {
     return (
       <NativeListView
-        enableEmptySections={true}
         dataSource={this.state.dataSource}
+        enableEmptySections={true}
+        initialListSize={20}
+        ref={this._setListRef}
         renderRow={this._renderRow}
-        initialListSize={10}
       />
     )
   }
-        // ref={r => { this._listRef = r; window._listRef = r }}
         // onScroll={this._onScroll}
         // onContentSizeChange={this._onContentSizeChange}
         // onLayout={this._onLayout}
-  // render () {
-    // const {
-      // moreToLoad,
-      // messages,
-    // } = this.props
 
-    // if (moreToLoad && messages.count() === 0) {
-      // return (
-        // <Box style={{alignItems: 'center', flexGrow: 1, justifyContent: 'flex-start'}}>
-          // <Icon type='icon-securing-static-266' />
-        // </Box>
-      // )
-    // }
-
-    // if (messages.count() === 0) {
-      // return (
-        // <Box style={{alignItems: 'center', flexGrow: 1, justifyContent: 'flex-start'}}>
-          // <Icon type='icon-secure-static-266' />
-        // </Box>
-      // )
-    // }
 
     // return (
       // <NativeListView
