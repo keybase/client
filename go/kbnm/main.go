@@ -10,7 +10,10 @@ import (
 	"github.com/qrtz/nativemessaging"
 )
 
-// Version is the build version of kbnm, overwritten during build.
+// internalVersion is the logical version of this code (rather than build).
+const internalVersion = "1.3"
+
+// Version is the build version of kbnm, overwritten during build with metadata.
 var Version = "dev"
 
 // Response from the kbnm service
@@ -73,7 +76,7 @@ func main() {
 	flag.Parse()
 
 	if *versionFlag {
-		fmt.Println(Version)
+		fmt.Printf("%s-%s\n", internalVersion, Version)
 		os.Exit(0)
 	}
 
