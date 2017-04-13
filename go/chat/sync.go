@@ -123,6 +123,7 @@ func (s *Syncer) AddStaleConversation(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID) {
 	s.Lock()
 	defer s.Unlock()
+	defer s.Trace(ctx, func() error { return nil }, fmt.Sprintf("AddStaleConversation(%s)", convID))()
 
 	// Read current data (if any)
 	var convIDs []chat1.ConversationID
@@ -174,7 +175,7 @@ func (s *Syncer) IsConnected(ctx context.Context) bool {
 func (s *Syncer) sendStoredStaleNotifications(ctx context.Context, uid gregor1.UID) {
 	var convIDs []chat1.ConversationID
 	key := s.dbKey(uid)
-	found, err := s.G().LocalChatDb.GetInto(convIDs, key)
+	found, err := s.G().LocalChatDb.GetInto(&convIDs, key)
 	if err != nil {
 		s.Debug(ctx, "sendStoredStaleNotifications: failed to read stale notifications: %s", err.Error())
 	}
@@ -201,6 +202,10 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 		o.Connected(ctx)
 	}
 
+	// Send stale notifications that have been registered with us
+	s.sendStoredStaleNotifications(ctx, uid)
+
+	// Run sync against the server
 	s.sync(ctx, cli, uid, syncRes)
 
 	return nil
