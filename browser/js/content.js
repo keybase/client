@@ -76,8 +76,10 @@ function renderChat(parent, toUsername) {
   const isLoggedIn = document.getElementsByClassName("logout").length > 0;
 
   let nudgeHTML = `
-    <p><label><input type="checkbox" name="keybase-nudgecheck" checked /> Nudge publicly (reply in thread so they know about Keybase)</label></p>
-    <p><textarea name="keybase-nudgetext">/u/${toUsername} - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto</textarea></p>
+    <p>
+      <label><input type="checkbox" name="keybase-nudgecheck" checked /> Nudge publicly (reply in thread so they know about Keybase)</label>
+      <textarea name="keybase-nudgetext">/u/${toUsername} - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto</textarea>
+    </p>
   `;
   if (!isLoggedIn) {
     // FIXME: Won't need this if we have a KeybaseBot PM'ing people?
@@ -96,9 +98,7 @@ function renderChat(parent, toUsername) {
       <input type="hidden" name="keybase-to" value="${toUsername}" />
       <label>
         Encrypt to ${renderUser(toUsername, "reddit.com/u")}</span>:
-        <p>
-          <textarea name="keybase-chat" rows="6" placeholder="Write a message"></textarea>
-        </p>
+        <textarea name="keybase-chat" rows="6" placeholder="Write a message"></textarea>
       </label>
       <div class="keybase-nudge">
         <p>Checking Keybase...</p>
@@ -127,10 +127,8 @@ function renderChat(parent, toUsername) {
     // Install nudge toggle
     const nudgeCheck = f["keybase-nudgecheck"];
     if (nudgeCheck !== undefined) {
-      // Select the <p><textarea>...</textarea></p>
-      const nudgeText = nudgeCheck.parentNode.parentNode.nextElementSibling;
       nudgeCheck.addEventListener("change", function(e) {
-        nudgeText.hidden = !e.currentTarget.checked;
+        f["keybase-nudgetext"].hidden = !e.currentTarget.checked;
       });
     }
   });
