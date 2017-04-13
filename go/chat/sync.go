@@ -185,7 +185,10 @@ func (s *Syncer) sendStoredStaleNotifications(ctx context.Context, uid gregor1.U
 	}
 	s.Debug(ctx, "sendStoredStaleNotifications: sending %d stale notifications", len(convIDs))
 	s.SendChatStaleNotifications(ctx, uid, convIDs, false)
-	s.G().LocalChatDb.Delete(key)
+
+	if err := s.G().LocalChatDb.Delete(key); err != nil {
+		s.Debug(ctx, "sendStoredStaleNotifications: error deleting record: %s", err.Error())
+	}
 }
 
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
