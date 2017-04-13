@@ -302,15 +302,23 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	uid := h.G().Env.GetUID()
 	defer h.Trace(ctx, func() error { return fullErr },
 		fmt.Sprintf("GetThreadNonblock(%s)", arg.ConversationID))()
-	defer func() { fullErr = h.handleOfflineError(ctx, fullErr, &res) }()
+	defer func() {
+		fullErr = h.handleOfflineError(ctx, fullErr, &res)
+
+		// If we are sending an offline result, then we should remember this conversation
+		// in ChatSyncer so that we can generate a stale message when we reconnect
+		if res.Offline {
+			h.G().ChatSyncer.AddStaleConversation(ctx, uid.ToBytes(), arg.ConversationID)
+		}
+	}()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
 
 	// Grab local copy first
-	uid := h.G().Env.GetUID()
 	chatUI := h.getChatUI(arg.SessionID)
 
 	// Race the full operation versus the local one, so we don't lose anytime grabbing the local
