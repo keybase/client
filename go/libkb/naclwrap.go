@@ -666,7 +666,7 @@ func (k NaclDHKeyPair) IsNil() bool {
 	return bytes.Equal(k.Public[:], empty[:])
 }
 
-// Encrypt a message for the given sender.  If sender is nil, an ephemeral
+// Encrypt a message to the key `k` from the given `sender`. If sender is nil, an ephemeral
 // keypair will be invented
 func (k NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (*NaclEncryptionInfo, error) {
 	if sender == nil {

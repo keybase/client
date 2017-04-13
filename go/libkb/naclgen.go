@@ -4,6 +4,8 @@
 package libkb
 
 import (
+	"fmt"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -14,15 +16,15 @@ type NaclKeyPair interface {
 type NaclGenerator func() (NaclKeyPair, error)
 
 type NaclKeyGenArg struct {
-	Signer      GenericKey // who is going to sign us into the Chain
-	ExpiresIn   int
-	Generator   NaclGenerator
-	Me          *User
-	Sibkey      bool
-	ExpireIn    int          // how long it lasts
-	EldestKeyID keybase1.KID // the eldest KID for this epoch
-	Device      *Device
-	RevSig      string // optional reverse sig.  set to nil for autogenerate.
+	Signer         GenericKey // who is going to sign us into the Chain
+	ExpiresIn      int
+	Generator      NaclGenerator
+	Me             *User
+	DelegationType DelegationType
+	ExpireIn       int          // how long it lasts
+	EldestKeyID    keybase1.KID // the eldest KID for this epoch
+	Device         *Device
+	RevSig         string // optional reverse sig.  set to nil for autogenerate.
 }
 
 type NaclKeyGen struct {
@@ -45,18 +47,15 @@ func (g *NaclKeyGen) SaveLKS(gc *GlobalContext, lks *LKSec, lctx LoginContext) e
 }
 
 func (g *NaclKeyGen) Push(lctx LoginContext, aggregated bool) (d Delegator, err error) {
-	var delegationType DelegationType
-	if g.arg.Sibkey {
-		delegationType = DelegationTypeSibkey
-	} else {
-		delegationType = DelegationTypeSubkey
+	if g.pair == nil {
+		return Delegator{}, fmt.Errorf("cannot Push delegator before Generate")
 	}
 	d = Delegator{
 		NewKey:         g.pair,
 		RevSig:         g.arg.RevSig,
 		Device:         g.arg.Device,
 		Expire:         g.arg.ExpireIn,
-		DelegationType: delegationType,
+		DelegationType: g.arg.DelegationType,
 		ExistingKey:    g.arg.Signer,
 		Me:             g.arg.Me,
 		EldestKID:      g.arg.EldestKeyID,
@@ -74,10 +73,10 @@ func (g *NaclKeyGen) GetKeyPair() NaclKeyPair {
 	return g.pair
 }
 
-func (g *NaclKeyGen) UpdateArg(signer GenericKey, eldestKID keybase1.KID, sibkey bool, user *User) {
+func (g *NaclKeyGen) UpdateArg(signer GenericKey, eldestKID keybase1.KID, delegationType DelegationType, user *User) {
 	g.arg.Signer = signer
 	g.arg.EldestKeyID = eldestKID
-	g.arg.Sibkey = sibkey
+	g.arg.DelegationType = delegationType
 	// if a user is passed in, then update the user pointer
 	// this is necessary if the sigchain changed between generation and push.
 	if user != nil {
