@@ -12,6 +12,7 @@
     "default_icon": "images/icon-keybase-logo-logged-out-64.png"
   },
   "permissions": [
+    "contextMenus",
     "nativeMessaging",
     "http://reddit.com/*",
     "https://reddit.com/*",

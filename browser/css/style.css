@@ -5,92 +5,92 @@
 */
 
 .keybase-reply form {
-   overflow: hidden;
-   z-index: 9999;
-   position: absolute;
-   display: block !important;
-   background: #fff;
-   margin-top: 2em;
-   width: 500px;
-   border-radius: 4px;
-   background-color: #ffffff;
-   box-shadow: 3px 3px 13px 0 #a29e9e;
-   white-space: normal !important;
-   font-family: 'Open Sans', sans-serif !important;
-   font-size: 13px;
-   line-height: 1.5em;
+  overflow: hidden;
+  z-index: 9999;
+  position: absolute;
+  display: block !important;
+  background: #fff;
+  margin-top: 2em;
+  width: 500px;
+  border-radius: 4px;
+  background-color: #ffffff;
+  box-shadow: 3px 3px 13px 0 #a29e9e;
+  white-space: normal !important;
+  font-family: 'Open Sans', sans-serif !important;
+  font-size: 13px;
+  line-height: 1.5em;
 }
 
 .keybase-reply a {
-   font-size: inherit !important;
+  font-size: inherit !important;
 }
 .keybase-reply a:hover {
-   text-decoration: none !important;
+  text-decoration: none !important;
 }
 
 .keybase-body {
-   margin: 24px;
-   color: rgba(0, 0, 0, 0.75);
+  margin: 24px;
+  color: rgba(0, 0, 0, 0.75);
 }
 
 .keybase-error {
-   text-align: center;
+  text-align: center;
 }
 
 .keybase-error .keybase-button {
-    margin: 8px 0 54px 0;
+   margin: 8px 0 54px 0;
 }
 
 .keybase-error img {
-    margin: 16px;
+   margin: 16px;
 }
 
 .keybase-error-msg {
-   color: #ff4d61;
+  color: #ff4d61;
 }
 
 .keybase-user {
-   font-weight: bold;
-   padding: 1px;
+  font-weight: bold;
+  padding: 1px;
 }
 img.keybase-icon {
-   height: 26px;
-   margin-bottom: -8px;
+  height: 26px;
+  margin-bottom: -8px;
 }
 .keybase-user span {
-   color: #33a0ff;
+  color: #33a0ff;
 }
 
 .keybase-reply .keybase-service {
-   font-weight: bold;
-   color: #888;
+  font-weight: bold;
+  color: #888;
 }
 
 .keybase-reply a.reddit-user {
-   /* Mimic normal reddit user tag */
-   color: #0079d3 !important;
-   padding: 0 !important;
-   font-weight: normal !important;
+  /* Mimic normal reddit user tag */
+  color: #0079d3 !important;
+  padding: 0 !important;
+  font-weight: normal !important;
 }
 
 .keybase-reply em {
-   font-weight: bold;
-   font-style: italic;
+  font-weight: bold;
+  font-style: italic;
 }
 
 .keybase-reply textarea {
-   width: 97%;
-   padding: 0.5em;
-   border-radius: 4px;
-   border: solid 1px rgba(0, 0, 0, 0.1);
+  width: 97%;
+  padding: 0.5em;
+  border-radius: 4px;
+  border: solid 1px rgba(0, 0, 0, 0.1);
 }
 
 .keybase-reply input {
-    margin: 0;
+   margin: 0;
 }
 
 .keybase-reply p {
-   margin: 8px 0 16px 0;
+  margin: 8px 0 16px 0;
 }
 
 a.keybase-button {
@@ -104,55 +104,55 @@ a.keybase-button {
 }
 
 .keybase-reply h3 {
-   text-align: center;
-   background: #33a0ff;
-   color: #fff;
-   height: 40px;
-   line-height: 40px;
-   font-weight: normal;
-   font-size: 13px;
-   letter-spacing: 0.3px;
-   margin-bottom: 16px;
+  text-align: center;
+  background: #33a0ff;
+  color: #fff;
+  height: 40px;
+  line-height: 40px;
+  font-weight: normal;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  margin-bottom: 16px;
 }
 
 .keybase-reply .keybase-error h3 {
-   background: inherit;
+  background: inherit;
 }
 
 .keybase-reply h3 img {
-   height: 16px;
-   margin: 0 6px -2px 0;
+  height: 16px;
+  margin: 0 6px -2px 0;
 }
 
 .keybase-reply input[type="submit"] {
-   width: 116px;
-   height: 32px;
-   border: 0;
-   border-radius: 50px;
-   background-color: #33a0ff;
-   color: #fff;
-   font-size: 14px;
-   font-style: normal;
-   font-stretch: normal;
-   line-height: normal;
-   letter-spacing: 0.3px;
+  width: 116px;
+  height: 32px;
+  border: 0;
+  border-radius: 50px;
+  background-color: #33a0ff;
+  color: #fff;
+  font-size: 14px;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: normal;
+  letter-spacing: 0.3px;
 }
 
 .keybase-reply input[type="submit"]:disabled {
-   background: #bbb;
+  background: #bbb;
 }
 
 .keybase-close {
-   display: inline-block;
-   font-size: 18px;
-   font-weight: bold;
-   position: absolute;
-   padding: 3px;
-   top: -10px;
-   right: 5px;
-   color: rgba(0,0,0,0.2);
-   cursor: pointer;
+  display: inline-block;
+  font-size: 18px;
+  font-weight: bold;
+  position: absolute;
+  padding: 3px;
+  top: -10px;
+  right: 5px;
+  color: rgba(0,0,0,0.2);
+  cursor: pointer;
 }
 .keybase-close::before {
-   content: "×";
+  content: "×";
 }

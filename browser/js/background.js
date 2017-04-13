@@ -28,3 +28,19 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   });
   return true; // Keep callback channel alive
 });
+
+// Add context menu options for the browser icon
+chrome.contextMenus.create({
+  title: "Getting started...",
+  contexts: ["browser_action"],
+  onclick: function() {
+    chrome.tabs.create({url: "https://keybase.io/reddit-crypto"});
+  }
+});
+chrome.contextMenus.create({
+  title: "Keybase.io",
+  contexts: ["browser_action"],
+  onclick: function() {
+    chrome.tabs.create({url: "https://keybase.io/"});
+  }
+});
