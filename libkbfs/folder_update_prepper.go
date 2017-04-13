@@ -1192,19 +1192,27 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 	// the bytes in the unref bytes count -- all of these pointers are
 	// guaranteed to have been created purely within the unmerged
 	// branch.
-	for _, unmergedResOp := range unmergedChains.resOps {
-		for i := len(unmergedResOp.Refs()) - 1; i >= 0; i-- {
-			ptr := unmergedResOp.Refs()[i]
-			if unmergedChains.blockChangePointers[ptr] {
-				fup.log.CDebugf(ctx, "Ignoring block change ptr %v", ptr)
-				unmergedResOp.DelRefBlock(ptr)
-				md.data.Changes.Ops =
-					addUnrefToFinalResOp(md.data.Changes.Ops, ptr)
-			}
+	if len(unmergedChains.resOps) > 0 {
+		toDeleteMap := make(map[kbfsblock.ID]bool)
+		for _, id := range blocksToDelete {
+			toDeleteMap[id] = true
 		}
-		for _, ptr := range unmergedResOp.Unrefs() {
-			fup.log.CDebugf(ctx, "Unref pointer from old resOp: %v", ptr)
-			md.data.Changes.Ops = addUnrefToFinalResOp(md.data.Changes.Ops, ptr)
+		for _, unmergedResOp := range unmergedChains.resOps {
+			for i := len(unmergedResOp.Refs()) - 1; i >= 0; i-- {
+				ptr := unmergedResOp.Refs()[i]
+				if unmergedChains.blockChangePointers[ptr] &&
+					!toDeleteMap[ptr.ID] {
+					fup.log.CDebugf(ctx, "Ignoring block change ptr %v", ptr)
+					unmergedResOp.DelRefBlock(ptr)
+					md.data.Changes.Ops =
+						addUnrefToFinalResOp(md.data.Changes.Ops, ptr)
+				}
+			}
+			for _, ptr := range unmergedResOp.Unrefs() {
+				fup.log.CDebugf(ctx, "Unref pointer from old resOp: %v", ptr)
+				md.data.Changes.Ops = addUnrefToFinalResOp(
+					md.data.Changes.Ops, ptr)
+			}
 		}
 	}
 
