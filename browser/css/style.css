@@ -152,7 +152,7 @@ a.keybase-button {
 }
 
 .keybase-reply input[type="submit"]:disabled {
-  background: #bbb;
+  opacity: 0.3;
 }
 
 .keybase-close {
