@@ -204,19 +204,20 @@ func (l *LevelDb) isCorrupt(err error) bool {
 	return false
 }
 
-func (l *LevelDb) Nuke() (string, error) {
+func (l *LevelDb) Nuke() (fn string, err error) {
 	l.Lock()
 	// We need to do defered Unlock here in Nuke rather than delegating to
 	// l.Close() because we'll be re-opening the database later, and it's
 	// necesary to block other doWhileOpenAndNukeIfCorrupted() calls.
 	defer l.Unlock()
+	defer l.G().Trace("LevelDb::Nuke", func() error { return err })()
 
-	err := l.closeLocked()
+	err = l.closeLocked()
 	if err != nil {
 		return "", err
 	}
 
-	fn := l.GetFilename()
+	fn = l.GetFilename()
 	err = os.RemoveAll(fn)
 	if err != nil {
 		return fn, err
