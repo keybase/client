@@ -726,12 +726,11 @@ func (s *SubkeyChainLink) insertIntoTable(tab *IdentityTable) {
 type SharedDHKeyChainLink struct {
 	GenericChainLink
 	kid        keybase1.KID
-	parentKid  keybase1.KID
 	generation SharedDHKeyGeneration
 }
 
 func ParseSharedDHKeyChainLink(b GenericChainLink) (ret *SharedDHKeyChainLink, err error) {
-	var kid, pkid keybase1.KID
+	var kid keybase1.KID
 	var g int
 	section := b.payloadJSON.AtPath("body.shared_dh_key")
 	if kid, err = GetKID(section.AtKey("kid")); err != nil {
@@ -739,7 +738,7 @@ func ParseSharedDHKeyChainLink(b GenericChainLink) (ret *SharedDHKeyChainLink, e
 	} else if g, err = section.AtKey("generation").GetInt(); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Can't get generation for shared_dh @%s: %s", b.ToDebugString(), err)}
 	} else {
-		ret = &SharedDHKeyChainLink{b, kid, pkid, SharedDHKeyGeneration(g)}
+		ret = &SharedDHKeyChainLink{b, kid, SharedDHKeyGeneration(g)}
 	}
 	return ret, err
 }
@@ -748,7 +747,6 @@ func (s *SharedDHKeyChainLink) Type() string                  { return Delegatio
 func (s *SharedDHKeyChainLink) ToDisplayString() string       { return s.kid.String() }
 func (s *SharedDHKeyChainLink) GetRole() KeyRole              { return DLGSharedDHKey }
 func (s *SharedDHKeyChainLink) GetDelegatedKid() keybase1.KID { return s.kid }
-func (s *SharedDHKeyChainLink) GetParentKid() keybase1.KID    { return s.parentKid }
 func (s *SharedDHKeyChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(s)
 }

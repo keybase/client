@@ -18,8 +18,13 @@ type SharedDHSecretKeyBox struct {
 	ReceiverKID keybase1.KID          `json:"receiver_kid"`
 }
 
-type sharedDHSecretKeyBoxes struct {
-	Boxes []SharedDHSecretKeyBox `json:"boxes"`
+type sharedDHSecretKeyBoxesResp struct {
+	Boxes  []SharedDHSecretKeyBox `json:"boxes"`
+	Status AppStatus              `json:"status"`
+}
+
+func (s *sharedDHSecretKeyBoxesResp) GetAppStatus() *AppStatus {
+	return &s.Status
 }
 
 // SharedDHKeyMap is a map of Generation numbers to
@@ -47,10 +52,18 @@ func NewSharedDHKeyring(g *GlobalContext, uid keybase1.UID) *SharedDHKeyring {
 // CurrentGeneration returns what generation we're on. The version possible
 // Version is 1. Version 0 implies no keys are available.
 func (s *SharedDHKeyring) CurrentGeneration() SharedDHKeyGeneration {
+	s.Lock()
+	defer s.Unlock()
+	return s.currentGenerationLocked()
+}
+
+func (s *SharedDHKeyring) currentGenerationLocked() SharedDHKeyGeneration {
 	return SharedDHKeyGeneration(len(s.generations))
 }
 
 func (s *SharedDHKeyring) SharedDHKey(g SharedDHKeyGeneration) *NaclDHKeyPair {
+	s.Lock()
+	defer s.Unlock()
 	key, found := s.generations[g]
 	if !found {
 		return nil
@@ -110,7 +123,7 @@ func (s *SharedDHKeyring) mergeLocked(m SharedDHKeyMap) (err error) {
 	return nil
 }
 
-func (s *SharedDHKeyring) fetchBoxesLocked(ctx context.Context) (ret *sharedDHSecretKeyBoxes, err error) {
+func (s *SharedDHKeyring) fetchBoxesLocked(ctx context.Context) (ret []SharedDHSecretKeyBox, err error) {
 	defer s.G().CTrace(ctx, "SharedDHKeyring#fetchBoxesLocked", func() error { return err })()
 
 	did := s.G().Env.GetDeviceIDForUID(s.uid)
@@ -118,25 +131,23 @@ func (s *SharedDHKeyring) fetchBoxesLocked(ctx context.Context) (ret *sharedDHSe
 		return nil, DeviceRequiredError{}
 	}
 
-	res, err := s.G().API.Get(APIArg{
+	var resp sharedDHSecretKeyBoxesResp
+	err = s.G().API.GetDecode(APIArg{
 		Endpoint: "key/fetch_shared_dh_secrets",
 		Args: HTTPArgs{
-			"generation": I{int(s.CurrentGeneration())},
+			"generation": I{int(s.currentGenerationLocked())},
 			"device_id":  S{did.String()},
 		},
 		SessionType: APISessionTypeREQUIRED,
 		RetryCount:  5, // It's pretty bad to fail this, so retry.
 		NetContext:  ctx,
-	})
+	}, &resp)
 	if err != nil {
 		return nil, err
 	}
-	var boxes sharedDHSecretKeyBoxes
-	if err = res.Body.UnmarshalAgain(&boxes); err != nil {
-		return nil, err
-	}
-	s.G().Log.CDebugf(ctx, "| Got back %d boxes from server", len(boxes.Boxes))
-	return &boxes, nil
+	ret = resp.Boxes
+	s.G().Log.CDebugf(ctx, "| Got back %d boxes from server", len(ret))
+	return ret, nil
 }
 
 // sharedDHChecker checks the secret boxes returned from the server
@@ -203,7 +214,7 @@ func importSharedDHKey(box *SharedDHSecretKeyBox, activeDecryptionKey GenericKey
 	return &key, nil
 }
 
-func (s *SharedDHKeyring) importLocked(ctx context.Context, boxes *sharedDHSecretKeyBoxes, checker *sharedDHChecker) (ret SharedDHKeyMap, err error) {
+func (s *SharedDHKeyring) importLocked(ctx context.Context, boxes []SharedDHSecretKeyBox, checker *sharedDHChecker) (ret SharedDHKeyMap, err error) {
 	defer s.G().CTrace(ctx, "SharedDHKeyring#importLocked", func() error { return err })()
 
 	ret = make(SharedDHKeyMap)
@@ -212,8 +223,8 @@ func (s *SharedDHKeyring) importLocked(ctx context.Context, boxes *sharedDHSecre
 	if err != nil {
 		return nil, err
 	}
-	nxt := s.CurrentGeneration() + 1
-	for _, box := range boxes.Boxes {
+	nxt := s.currentGenerationLocked() + 1
+	for _, box := range boxes {
 		naclDHKey, err := importSharedDHKey(&box, activeDecryptionKey, nxt, checker)
 		if err != nil {
 			return nil, err

@@ -10,11 +10,11 @@ import (
 	"testing"
 )
 
-func TestSignupEngineSDH(t *testing.T) {
+func TestSignupEngineSharedDH(t *testing.T) {
 	subTestSignupEngine(t, true)
 }
 
-func TestSDHSignupAndPullKeys(t *testing.T) {
+func TestSharedDHSignupAndPullKeys(t *testing.T) {
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
 	var err error
