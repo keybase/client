@@ -181,31 +181,19 @@ func (e *LoginOffline) run2(ctx *Context) error {
 		uid = e.G().Env.GetUID()
 		deviceID = e.G().Env.GetDeviceIDForUID(uid)
 
-		e.G().Log.Warning("UID: %s", uid)
-		e.G().Log.Warning("Device ID: %s", deviceID)
-
-		/*
-			upak, deviceKey, revoked, err := e.G().GetUPAKLoader().LoadDeviceKey(ctx.NetContext, uid, deviceID)
-			if err != nil {
-				e.G().Log.Warning("upak.LoadDeviceKey err: %s", err)
-				gerr = err
-				return
-			}
-		*/
+		// use the UPAKLoader with StaleOK in order to get cached upak
 		arg := libkb.NewLoadUserByUIDArg(ctx.NetContext, e.G(), uid)
 		arg.PublicKeyOptional = true
 		arg.StaleOK = true
 		arg.LoginContext = a
-		upak, user, err := e.G().GetUPAKLoader().Load(arg)
+		upak, _, err := e.G().GetUPAKLoader().Load(arg)
 		if err != nil {
 			e.G().Log.Warning("upak.Load err: %s", err)
 			gerr = err
 			return
 		}
 
-		e.G().Log.Warning("upak: %+v", upak)
-		e.G().Log.Warning("user: %+v", user)
-
+		// find the sibkey
 		var sibkey *keybase1.PublicKey
 		for _, key := range upak.Base.DeviceKeys {
 			e.G().Log.Warning("device key: %+v", key)
@@ -220,6 +208,7 @@ func (e *LoginOffline) run2(ctx *Context) error {
 			return
 		}
 
+		// find the subkey
 		var subkey *keybase1.PublicKey
 		for _, key := range upak.Base.DeviceKeys {
 			if !key.IsSibkey && key.ParentID == sibkey.KID.String() {
@@ -232,12 +221,15 @@ func (e *LoginOffline) run2(ctx *Context) error {
 			return
 		}
 
+		// load the keyring file
 		username := libkb.NewNormalizedUsername(upak.Base.Username)
 		kr, err := libkb.LoadSKBKeyring(username, e.G())
 		if err != nil {
 			gerr = err
 			return
 		}
+
+		// get the locked keys out of the keyring
 		lockedSibkey := kr.LookupByKid(sibkey.KID)
 		if lockedSibkey == nil {
 			gerr = errors.New("no locked sibkey found in keyring")
@@ -250,6 +242,7 @@ func (e *LoginOffline) run2(ctx *Context) error {
 		}
 		lockedSubkey.SetUID(uid)
 
+		// unlock the keys with the secret store
 		secretStore := libkb.NewSecretStore(e.G(), username)
 		unlockedSibkey, err := lockedSibkey.UnlockNoPrompt(a, secretStore)
 		if err != nil {
@@ -263,6 +256,7 @@ func (e *LoginOffline) run2(ctx *Context) error {
 			return
 		}
 
+		// cache the unlocked secret keys
 		ska := libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}
 		if err := a.SetCachedSecretKey(ska, unlockedSibkey); err != nil {
 			gerr = err
@@ -273,51 +267,6 @@ func (e *LoginOffline) run2(ctx *Context) error {
 			gerr = err
 			return
 		}
-		// e.G().Log.Warning("deviceKey: %+v", deviceKey)
-		// e.G().Log.Warning("revoked: %+v", revoked)
-
-		/*
-			secretStore := libkb.NewSecretStore(e.G(), partialCopy.GetNormalizedName())
-
-			ska := libkb.SecretKeyArg{
-				Me:      partialCopy,
-				KeyType: libkb.DeviceSigningKeyType,
-			}
-			skb, err := a.LockedLocalSecretKey(ska)
-			if err != nil {
-				gerr = err
-				return
-			}
-			sigKey, err = skb.UnlockNoPrompt(a, secretStore)
-			if err != nil {
-				gerr = err
-				return
-			}
-			if err = a.SetCachedSecretKey(ska, sigKey); err != nil {
-				gerr = err
-				return
-			}
-
-			ska = libkb.SecretKeyArg{
-				Me:      partialCopy,
-				KeyType: libkb.DeviceEncryptionKeyType,
-			}
-			skb, err = a.LockedLocalSecretKey(ska)
-			if err != nil {
-				gerr = err
-				return
-			}
-			encKey, err = skb.UnlockNoPrompt(a, secretStore)
-			if err != nil {
-				gerr = err
-				return
-			}
-			if err = a.SetCachedSecretKey(ska, encKey); err != nil {
-				gerr = err
-				return
-			}
-		*/
-
 	}, "LoginOffline")
 
 	if aerr != nil {
