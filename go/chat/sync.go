@@ -121,10 +121,12 @@ func (s *Syncer) dbKey(uid gregor1.UID) libkb.DbKey {
 
 func (s *Syncer) AddStaleConversation(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID) {
-	key := s.dbKey(uid)
+	s.Lock()
+	defer s.Unlock()
 
 	// Read current data (if any)
 	var convIDs []chat1.ConversationID
+	key := s.dbKey(uid)
 	_, err := s.G().LocalChatDb.GetInto(&convIDs, key)
 	if err != nil {
 		s.Debug(ctx, "AddStaleConversation: failed to get current stale list, using empty: %s",
@@ -171,7 +173,8 @@ func (s *Syncer) IsConnected(ctx context.Context) bool {
 
 func (s *Syncer) sendStoredStaleNotifications(ctx context.Context, uid gregor1.UID) {
 	var convIDs []chat1.ConversationID
-	found, err := s.G().LocalChatDb.GetInto(convIDs, s.dbKey(uid))
+	key := s.dbKey(uid)
+	found, err := s.G().LocalChatDb.GetInto(convIDs, key)
 	if err != nil {
 		s.Debug(ctx, "sendStoredStaleNotifications: failed to read stale notifications: %s", err.Error())
 	}
@@ -181,6 +184,7 @@ func (s *Syncer) sendStoredStaleNotifications(ctx context.Context, uid gregor1.U
 	}
 	s.Debug(ctx, "sendStoredStaleNotifications: sending %d stale notifications", len(convIDs))
 	s.SendChatStaleNotifications(ctx, uid, convIDs, false)
+	s.G().LocalChatDb.Delete(key)
 }
 
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
