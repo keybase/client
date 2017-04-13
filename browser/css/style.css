@@ -19,6 +19,10 @@
   font-family: 'Open Sans', sans-serif !important;
   font-size: 13px;
   line-height: 1.5em;
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .keybase-reply label {
@@ -61,6 +65,7 @@
 img.keybase-icon {
   height: 26px;
   margin-bottom: -8px;
+  border-radius: 13px;
 }
 .keybase-user span {
   color: #33a0ff;
