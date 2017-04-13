@@ -110,18 +110,18 @@ func (ms *msgEngine) WriteMessages(ctx context.Context, convID chat1.Conversatio
 	return nil
 }
 
-func (ms *msgEngine) ReadMessages(ctx context.Context, rc resultCollector,
+func (ms *msgEngine) ReadMessages(ctx context.Context, rc ResultCollector,
 	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) (err Error) {
 
 	// Run all errors through resultCollector
 	defer func() {
 		if err != nil {
-			err = rc.error(err)
+			err = rc.Error(err)
 		}
 	}()
 
 	// Read all msgs in reverse order
-	for msgID := maxID; !rc.done() && msgID > 0; msgID-- {
+	for msgID := maxID; !rc.Done() && msgID > 0; msgID-- {
 		raw, found, err := ms.G().LocalChatDb.GetRaw(ms.makeMsgKey(convID, uid, msgID))
 		if err != nil {
 			return NewInternalError(ctx, ms.DebugLabeler, "readMessages: failed to read msg: %s", err.Error())
@@ -158,7 +158,7 @@ func (ms *msgEngine) ReadMessages(ctx context.Context, rc resultCollector,
 			return NewInternalError(ctx, ms.DebugLabeler, "readMessages: failed to decode: %s", err.Error())
 		}
 
-		rc.push(msg)
+		rc.Push(msg)
 	}
 
 	return nil
