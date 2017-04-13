@@ -8,6 +8,7 @@ import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select, race, fork} from 'redux-saga/effects'
 import {chatTab} from '../../constants/tabs'
 import {delay} from 'redux-saga'
+import {globalError} from '../../constants/config'
 import {navigateTo} from '../route-tree'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {requestIdleCallback} from '../../util/idle-callback'
@@ -266,7 +267,10 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
           break
         }
         default:
-          throw new Error('Inbox error: ' + error.message)
+          yield put({
+            payload: error,
+            type: globalError,
+          })
       }
     } else if (incoming.finished || incoming.timeout) {
       break
