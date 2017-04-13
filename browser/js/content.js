@@ -103,7 +103,7 @@ function renderChat(parent, toUsername) {
       <div class="keybase-nudge">
         <p>Checking Keybase...</p>
       </div>
-      <p style="text-align: center;"><input type="submit" value="Send" name="keybase-submit" /></p> 
+      <p style="text-align: center;"><input type="submit" value="Send" name="keybase-submit" /></p>
     </div>
   `;
   f.addEventListener("submit", submitChat);
@@ -138,6 +138,16 @@ function renderChat(parent, toUsername) {
   closer.addEventListener("click", function(e) {
     removeChat(f);
   });
+
+  // Install submit button disabler/enabler
+  const chatBody = f["keybase-chat"];
+  const submitButton = f["keybase-submit"];
+  submitButton.disabled = true;
+  function chatChangeCallback(event) {
+    submitButton.disabled = event.target.value == "";
+  };
+  chatBody.addEventListener("change", chatChangeCallback);
+  chatBody.addEventListener("keyup", chatChangeCallback);
 
   // Focus the chat textarea
   f["keybase-chat"].focus();
