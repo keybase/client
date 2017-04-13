@@ -19,7 +19,7 @@ const UserAvatar = ({author, showImage}) => (
 
 const Username = ({author, isYou, isFollowing, isBroken, includeHeader}) => {
   if (!includeHeader) return null
-  const style = {color: colorForAuthor(author, isYou, isFollowing, isBroken), ...(isYou ? globalStyles.italic : null), marginBottom: 2}
+  const style = {color: colorForAuthor(author, isYou, isFollowing, isBroken), ...(isYou ? globalStyles.italic : null), ..._usernameStyle}
   return <Text type='BodySmallSemibold' style={style}>{author}</Text>
 }
 
@@ -135,6 +135,7 @@ const _leftMarkerStyle = {
 const _userAvatarStyle = {
   height: 1, // don't let avatar size push down the whole row
   width: 32,
+  paddingTop: globalMargins.tiny,
 }
 
 const _failStyle = {
