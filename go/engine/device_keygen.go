@@ -135,7 +135,7 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 			e.SharedDHKey(),   // inner key to be encrypted (shared dh key)
 			e.EncryptionKey(), // receiver key (device enc key)
 			e.EncryptionKey(), // sender key   (device enc key)
-			1)
+			libkb.SharedDHGeneration(1))
 		if err != nil {
 			return err
 		}
@@ -304,8 +304,8 @@ func (e *DeviceKeygen) appendSharedDHKey(ds []libkb.Delegator, ctx *Context, sig
 
 	var d libkb.Delegator
 	d, e.pushErr = e.naclSharedDHGen.Push(ctx.LoginContext, true)
-	gen := 1
-	d.SharedDHGeneration = &gen
+	generation := libkb.SharedDHGeneration(1)
+	d.SharedDHGeneration = &generation
 	if e.pushErr == nil {
 		d.SetGlobalContext(e.G())
 		return append(ds, d)

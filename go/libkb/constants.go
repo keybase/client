@@ -539,3 +539,5 @@ type PvlUnparsed struct {
 	Hash PvlKitHash
 	Pvl  PvlString
 }
+
+type SharedDHGeneration int

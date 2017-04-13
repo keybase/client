@@ -60,11 +60,11 @@ type SharedDHSecretBox struct {
 	// Base64 armored KeybasePacket of NaclEncryptionInfo
 	Box string `json:"box"`
 
-	ReceiverKID keybase1.KID `json:"receiver_kid"`
-	Generation  int          `json:"generation"`
+	ReceiverKID keybase1.KID       `json:"receiver_kid"`
+	Generation  SharedDHGeneration `json:"generation"`
 }
 
-func NewSharedDHSecretBox(innerKey *NaclDHKeyPair, receiverKey *NaclDHKeyPair, senderKey *NaclDHKeyPair, generation int) (SharedDHSecretBox, error) {
+func NewSharedDHSecretBox(innerKey *NaclDHKeyPair, receiverKey *NaclDHKeyPair, senderKey *NaclDHKeyPair, generation SharedDHGeneration) (SharedDHSecretBox, error) {
 	_, secret, err := innerKey.ExportPublicAndPrivate()
 	if err != nil {
 		return SharedDHSecretBox{}, err
