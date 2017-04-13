@@ -155,14 +155,17 @@ a.keybase-button {
 
 .keybase-close {
   display: inline-block;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   position: absolute;
-  padding: 3px;
+  padding: 5px;
   top: -10px;
   right: 5px;
   color: rgba(0,0,0,0.2);
   cursor: pointer;
+}
+.keybase-close:hover {
+  color: rgba(0,0,0,0.3);
 }
 .keybase-close::before {
   content: "×";
