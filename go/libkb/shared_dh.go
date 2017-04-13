@@ -12,14 +12,14 @@ import (
 // rotates, which is everytime a device is revoked.
 type SharedDHKeyGeneration int
 
-type sharedDHSecretKeyBox struct {
+type SharedDHSecretKeyBox struct {
 	Generation  SharedDHKeyGeneration `json:"generation"`
 	Box         string                `json:"box"`
-	ReceiverKid keybase1.KID          `json:"receiver_kid"`
+	ReceiverKID keybase1.KID          `json:"receiver_kid"`
 }
 
 type sharedDHSecretKeyBoxes struct {
-	Boxes []sharedDHSecretKeyBox `json:"boxes"`
+	Boxes []SharedDHSecretKeyBox `json:"boxes"`
 }
 
 // SharedDHKeyMap is a map of Generation numbers to
@@ -165,12 +165,12 @@ func newSharedDHChecker(upak *keybase1.UserPlusAllKeys) *sharedDHChecker {
 	return &ret
 }
 
-func importSharedDHKey(box *sharedDHSecretKeyBox, activeDecryptionKey GenericKey, wantedGeneration SharedDHKeyGeneration, checker *sharedDHChecker) (ret *NaclDHKeyPair, err error) {
+func importSharedDHKey(box *SharedDHSecretKeyBox, activeDecryptionKey GenericKey, wantedGeneration SharedDHKeyGeneration, checker *sharedDHChecker) (ret *NaclDHKeyPair, err error) {
 	if box.Generation != wantedGeneration {
 		return nil, SharedDHImportError{fmt.Sprintf("bad generation returned: %d", box.Generation)}
 	}
-	if !activeDecryptionKey.GetKID().Equal(box.ReceiverKid) {
-		return nil, SharedDHImportError{fmt.Sprintf("wrong encryption kid: %s", box.ReceiverKid.String())}
+	if !activeDecryptionKey.GetKID().Equal(box.ReceiverKID) {
+		return nil, SharedDHImportError{fmt.Sprintf("wrong encryption kid: %s", box.ReceiverKID.String())}
 	}
 	rawKey, encryptingKID, err := activeDecryptionKey.DecryptFromString(box.Box)
 	if err != nil {

@@ -127,7 +127,7 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 
 	ds := []libkb.Delegator{}
 
-	var sdhBoxes = []libkb.SharedDHSecretBox{}
+	var sdhBoxes = []libkb.SharedDHSecretKeyBox{}
 	if e.GetEnabledSharedDHStrict() {
 		sdh1, err := libkb.NewSharedDHSecretBox(
 			e.sharedDHKey(),   // inner key to be encrypted (shared dh key)
