@@ -954,9 +954,15 @@ func (ccs *crChains) copyOpAndRevertUnrefsToOriginals(currOp op) op {
 		newOp = realOp
 	}
 	for _, unref := range unrefs {
-		original, ok := ccs.originals[*unref]
-		if ok {
-			*unref = original
+		ok := true
+		// Loop over the originals, since if `changeOriginal` was
+		// called, there might be a path of them.
+		for ok {
+			var original BlockPointer
+			original, ok = ccs.originals[*unref]
+			if ok {
+				*unref = original
+			}
 		}
 	}
 	return newOp
