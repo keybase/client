@@ -253,10 +253,11 @@ const (
 	LinkTypeUpdateSettings             = "update_settings"
 	LinkTypeWebServiceBinding          = "web_service_binding"
 
-	DelegationTypeEldest    DelegationType = "eldest"
-	DelegationTypePGPUpdate                = "pgp_update"
-	DelegationTypeSibkey                   = "sibkey"
-	DelegationTypeSubkey                   = "subkey"
+	DelegationTypeEldest      DelegationType = "eldest"
+	DelegationTypePGPUpdate                  = "pgp_update"
+	DelegationTypeSibkey                     = "sibkey"
+	DelegationTypeSubkey                     = "subkey"
+	DelegationTypeSharedDHKey                = "shared_dh_key"
 )
 
 const (

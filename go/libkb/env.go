@@ -28,6 +28,7 @@ func (n NullConfiguration) GetChatDbFilename() string                           
 func (n NullConfiguration) GetPvlKitFilename() string                                      { return "" }
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
+func (n NullConfiguration) GetEnableSharedDH() (bool, bool)                                { return false, false }
 func (n NullConfiguration) GetProxy() string                                               { return "" }
 func (n NullConfiguration) GetGpgHome() string                                             { return "" }
 func (n NullConfiguration) GetBundledCA(h string) string                                   { return "" }
@@ -647,6 +648,14 @@ func (e *Env) GetPidFile() (ret string, err error) {
 func (e *Env) GetEmail() string {
 	return e.GetString(
 		func() string { return os.Getenv("KEYBASE_EMAIL") },
+	)
+}
+
+func (e *Env) GetEnableSharedDH() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_ENABLE_SHARED_DH") },
+		func() (bool, bool) { return e.config.GetEnableSharedDH() },
+		func() (bool, bool) { return e.cmd.GetEnableSharedDH() },
 	)
 }
 
