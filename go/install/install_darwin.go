@@ -638,7 +638,9 @@ func InstallKBNM(context Context, binPath string, log Log) error {
 	defer fp.Close()
 
 	// Truncate in case there is other stuff in the file already.
-	fp.Truncate(0)
+	// Unlikely error is ignored, let's try writing to it anyways.
+	_ = fp.Truncate(0)
+
 	encoder := json.NewEncoder(fp)
 	encoder.SetIndent("", "    ")
 	return encoder.Encode(&hostManifest)
