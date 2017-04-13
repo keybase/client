@@ -24,7 +24,6 @@ type KeyringFile struct {
 
 type Keyrings struct {
 	Contextified
-	SharedDHKeyring SharedDHKeyring
 }
 
 func NewKeyrings(g *GlobalContext) *Keyrings {
