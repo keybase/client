@@ -111,14 +111,12 @@ func (e *DeviceKeygen) SigningKey() libkb.NaclKeyPair {
 	return e.naclSignGen.GetKeyPair()
 }
 
-func (e DeviceKeygen) EncryptionKey() *libkb.NaclDHKeyPair {
-	k := e.naclEncGen.GetKeyPair().(libkb.NaclDHKeyPair)
-	return &k
+func (e *DeviceKeygen) EncryptionKey() libkb.NaclDHKeyPair {
+	return e.naclEncGen.GetKeyPair().(libkb.NaclDHKeyPair)
 }
 
-func (e *DeviceKeygen) SharedDHKey() *libkb.NaclDHKeyPair {
-	k := e.naclSharedDHGen.GetKeyPair().(libkb.NaclDHKeyPair)
-	return &k
+func (e *DeviceKeygen) SharedDHKey() libkb.NaclDHKeyPair {
+	return e.naclSharedDHGen.GetKeyPair().(libkb.NaclDHKeyPair)
 }
 
 // Push pushes the generated keys to the api server and stores the

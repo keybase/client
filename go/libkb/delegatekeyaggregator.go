@@ -64,13 +64,13 @@ type SharedDHSecretBox struct {
 	Generation  SharedDHGeneration `json:"generation"`
 }
 
-func NewSharedDHSecretBox(innerKey *NaclDHKeyPair, receiverKey *NaclDHKeyPair, senderKey *NaclDHKeyPair, generation SharedDHGeneration) (SharedDHSecretBox, error) {
+func NewSharedDHSecretBox(innerKey NaclDHKeyPair, receiverKey NaclDHKeyPair, senderKey NaclDHKeyPair, generation SharedDHGeneration) (SharedDHSecretBox, error) {
 	_, secret, err := innerKey.ExportPublicAndPrivate()
 	if err != nil {
 		return SharedDHSecretBox{}, err
 	}
 
-	encInfo, err := receiverKey.Encrypt(secret, senderKey)
+	encInfo, err := receiverKey.Encrypt(secret, &senderKey)
 	if err != nil {
 		return SharedDHSecretBox{}, err
 	}
