@@ -148,11 +148,12 @@ var _ libkb.GregorDismisser = (*gregorHandler)(nil)
 var _ libkb.GregorListener = (*gregorHandler)(nil)
 
 type gregorLocalDb struct {
+	libkb.Contextified
 	db *libkb.JSONLocalDb
 }
 
 func newLocalDB(g *libkb.GlobalContext) *gregorLocalDb {
-	return &gregorLocalDb{db: g.LocalDb}
+	return &gregorLocalDb{Contextified: libkb.NewContextified(g), db: g.LocalDb}
 }
 
 func dbKey(u gregor.UID) libkb.DbKey {
@@ -164,7 +165,11 @@ func (db *gregorLocalDb) Store(u gregor.UID, b []byte) error {
 }
 
 func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
-	res, _, err := db.db.GetRaw(dbKey(u))
+	key := dbKey(u)
+	res, _, err := db.db.GetRaw(key)
+	if err != nil {
+		db.G().Log.Info("Error in loading %s from local DB: %s", key, err)
+	}
 	return res, err
 }
 
