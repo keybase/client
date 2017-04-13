@@ -1297,6 +1297,7 @@ const (
 	ConversationErrorType_OTHERREKEYNEEDED        ConversationErrorType = 3
 	ConversationErrorType_IDENTIFY                ConversationErrorType = 4
 	ConversationErrorType_LOCALMAXMESSAGENOTFOUND ConversationErrorType = 5
+	ConversationErrorType_TRANSIENT               ConversationErrorType = 6
 )
 
 var ConversationErrorTypeMap = map[string]ConversationErrorType{
@@ -1306,6 +1307,7 @@ var ConversationErrorTypeMap = map[string]ConversationErrorType{
 	"OTHERREKEYNEEDED":        3,
 	"IDENTIFY":                4,
 	"LOCALMAXMESSAGENOTFOUND": 5,
+	"TRANSIENT":               6,
 }
 
 var ConversationErrorTypeRevMap = map[ConversationErrorType]string{
@@ -1315,6 +1317,7 @@ var ConversationErrorTypeRevMap = map[ConversationErrorType]string{
 	3: "OTHERREKEYNEEDED",
 	4: "IDENTIFY",
 	5: "LOCALMAXMESSAGENOTFOUND",
+	6: "TRANSIENT",
 }
 
 func (e ConversationErrorType) String() string {

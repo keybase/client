@@ -996,7 +996,8 @@
         "SELFREKEYNEEDED_2",
         "OTHERREKEYNEEDED_3",
         "IDENTIFY_4",
-        "LOCALMAXMESSAGENOTFOUND_5"
+        "LOCALMAXMESSAGENOTFOUND_5",
+        "TRANSIENT_6"
       ]
     },
     {

@@ -266,6 +266,10 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
           yield put(Creators.updateInboxRekeyOthers(conversationIDKey, rekeyers))
           break
         }
+        case ChatTypes.LocalConversationErrorType.localmaxmessagenotfound: {
+          // Just ignore these, it is a transient error
+          break
+        }
         default:
           yield put({
             payload: error,

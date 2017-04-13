@@ -121,6 +121,7 @@ export const LocalConversationErrorType = {
   otherrekeyneeded: 3,
   identify: 4,
   localmaxmessagenotfound: 5,
+  transient: 6,
 }
 
 export const LocalHeaderPlaintextVersion = {
@@ -843,6 +844,7 @@ export type ConversationErrorType =
   | 3 // OTHERREKEYNEEDED_3
   | 4 // IDENTIFY_4
   | 5 // LOCALMAXMESSAGENOTFOUND_5
+  | 6 // TRANSIENT_6
 
 export type ConversationFinalizeInfo = {
   resetUser: string,

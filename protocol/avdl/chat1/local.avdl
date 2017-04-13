@@ -347,7 +347,8 @@ protocol local {
     SELFREKEYNEEDED_2,
     OTHERREKEYNEEDED_3,
     IDENTIFY_4,
-    LOCALMAXMESSAGENOTFOUND_5 // special use-case internally
+    LOCALMAXMESSAGENOTFOUND_5, // special use-case internally
+    TRANSIENT_6
   }
 
   record ConversationErrorLocal {
