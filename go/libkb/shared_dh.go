@@ -50,6 +50,14 @@ func (s *SharedDHKeyring) CurrentGeneration() SharedDHKeyGeneration {
 	return SharedDHKeyGeneration(len(s.generations))
 }
 
+func (s *SharedDHKeyring) SharedDHKey(g SharedDHKeyGeneration) *NaclDHKeyPair {
+	key, found := s.generations[g]
+	if !found {
+		return nil
+	}
+	return &key
+}
+
 // Clone makes a deep copy of this DH keyring.
 func (s *SharedDHKeyring) Clone() *SharedDHKeyring {
 	s.Lock()
@@ -127,6 +135,7 @@ func (s *SharedDHKeyring) fetchBoxesLocked(ctx context.Context) (ret *sharedDHSe
 	if err = res.Body.UnmarshalAgain(&boxes); err != nil {
 		return nil, err
 	}
+	s.G().Log.CDebugf(ctx, "| Got back %d boxes from server", len(boxes.Boxes))
 	return &boxes, nil
 }
 

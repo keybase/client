@@ -736,9 +736,9 @@ func ParseSharedDHKeyChainLink(b GenericChainLink) (ret *SharedDHKeyChainLink, e
 	section := b.payloadJSON.AtPath("body.shared_dh_key")
 	if kid, err = GetKID(section.AtKey("kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Can't get KID for shared_dh @%s: %s", b.ToDebugString(), err)}
-	} else if pkid, err = GetKID(section.AtKey("parent_kid")); err != nil {
-		err = ChainLinkError{fmt.Sprintf("Can't get parent_kid for shared_dh_key @%s: %s", b.ToDebugString(), err)}
-	} else if g, err = b.payloadJSON.AtKey("generation").GetInt(); err != nil {
+	} else if g, err = section.AtKey("generation").GetInt(); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Can't get generation for shared_dh @%s: %s", b.ToDebugString(), err)}
+	} else {
 		ret = &SharedDHKeyChainLink{b, kid, pkid, SharedDHKeyGeneration(g)}
 	}
 	return ret, err

@@ -207,6 +207,7 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo, len(cki.Sigs)),
 		Devices:       make(map[keybase1.DeviceID]*Device, len(cki.Devices)),
 		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID, len(cki.KIDToDeviceID)),
+		SharedDHKeys:  make(map[SharedDHKeyGeneration]keybase1.KID),
 	}
 	for k, v := range cki.Infos {
 		ret.Infos[k] = v
@@ -222,6 +223,10 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 
 	for k, v := range cki.KIDToDeviceID {
 		ret.KIDToDeviceID[k] = v
+	}
+
+	for k, v := range cki.SharedDHKeys {
+		ret.SharedDHKeys[k] = v
 	}
 
 	return ret
@@ -280,6 +285,7 @@ func NewComputedKeyInfos(g *GlobalContext) *ComputedKeyInfos {
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo),
 		Devices:       make(map[keybase1.DeviceID]*Device),
 		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID),
+		SharedDHKeys:  make(map[SharedDHKeyGeneration]keybase1.KID),
 	}
 }
 
