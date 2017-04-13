@@ -540,4 +540,4 @@ type PvlUnparsed struct {
 	Pvl  PvlString
 }
 
-type SharedDHGeneration int
+type SharedDHKeyGeneration int

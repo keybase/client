@@ -148,8 +148,9 @@ type TestParameters struct {
 	Devel bool
 	// If we're in dev mode, the name for this test, with a random
 	// suffix.
-	DevelName  string
-	RuntimeDir string
+	DevelName      string
+	RuntimeDir     string
+	EnableSharedDH bool
 
 	// set to true to use production run mode in tests
 	UseProductionRunMode bool
@@ -653,6 +654,7 @@ func (e *Env) GetEmail() string {
 
 func (e *Env) GetEnableSharedDH() bool {
 	return e.GetBool(false,
+		func() (bool, bool) { return e.Test.EnableSharedDH, e.Test.EnableSharedDH },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_ENABLE_SHARED_DH") },
 		func() (bool, bool) { return e.config.GetEnableSharedDH() },
 		func() (bool, bool) { return e.cmd.GetEnableSharedDH() },

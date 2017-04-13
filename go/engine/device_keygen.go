@@ -115,7 +115,7 @@ func (e *DeviceKeygen) EncryptionKey() libkb.NaclDHKeyPair {
 	return e.naclEncGen.GetKeyPair().(libkb.NaclDHKeyPair)
 }
 
-func (e *DeviceKeygen) SharedDHKey() libkb.NaclDHKeyPair {
+func (e *DeviceKeygen) sharedDHKey() libkb.NaclDHKeyPair {
 	return e.naclSharedDHGen.GetKeyPair().(libkb.NaclDHKeyPair)
 }
 
@@ -130,10 +130,10 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 	var sdhBoxes = []libkb.SharedDHSecretBox{}
 	if e.GetEnabledSharedDHStrict() {
 		sdh1, err := libkb.NewSharedDHSecretBox(
-			e.SharedDHKey(),   // inner key to be encrypted (shared dh key)
+			e.sharedDHKey(),   // inner key to be encrypted (shared dh key)
 			e.EncryptionKey(), // receiver key (device enc key)
 			e.EncryptionKey(), // sender key   (device enc key)
-			libkb.SharedDHGeneration(1))
+			libkb.SharedDHKeyGeneration(1))
 		if err != nil {
 			return err
 		}
@@ -195,7 +195,7 @@ func (e *DeviceKeygen) setup(ctx *Context) {
 		return kp, nil
 	}, e.device(), libkb.NaclDHExpireIn)
 
-	if e.args.IsEldest {
+	if e.GetEnabledSharedDHStrict() && e.args.IsEldest {
 		e.naclSharedDHGen = e.newNaclKeyGen(ctx, func() (libkb.NaclKeyPair, error) {
 			kp, err := libkb.GenerateNaclDHKeyPair()
 			if err != nil {
@@ -236,11 +236,6 @@ func (e *DeviceKeygen) localSave(ctx *Context) {
 	}
 	if e.runErr = e.naclEncGen.SaveLKS(e.G(), e.args.Lks, ctx.LoginContext); e.runErr != nil {
 		return
-	}
-	if e.naclSharedDHGen != nil {
-		if e.runErr = e.naclSharedDHGen.SaveLKS(e.G(), e.args.Lks, ctx.LoginContext); e.runErr != nil {
-			return
-		}
 	}
 }
 
@@ -302,8 +297,7 @@ func (e *DeviceKeygen) appendSharedDHKey(ds []libkb.Delegator, ctx *Context, sig
 
 	var d libkb.Delegator
 	d, e.pushErr = e.naclSharedDHGen.Push(ctx.LoginContext, true)
-	generation := libkb.SharedDHGeneration(1)
-	d.SharedDHGeneration = &generation
+	d.SharedDHKeyGeneration = libkb.SharedDHKeyGeneration(1)
 	if e.pushErr == nil {
 		d.SetGlobalContext(e.G())
 		return append(ds, d)
