@@ -490,13 +490,6 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links []*C
 			}
 		}
 
-		if pgprev, ok := tcl.(*RevokeChainLink); ok {
-			for _, revokedKid := range pgprev.GetRevokeKids() {
-				sc.G().Log.CDebugf(ctx, "| Clearing active PGP hash for %s (RevokeChainLink)", revokedKid)
-				ckf.SetActivePGPHash(revokedKid, "")
-			}
-		}
-
 		if isModifyingKeys || isFinalLink || hasRevocations {
 			err = link.VerifySigWithKeyFamily(ckf)
 			if err != nil {

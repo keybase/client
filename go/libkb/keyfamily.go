@@ -624,12 +624,14 @@ func (ckf *ComputedKeyFamily) revokeKids(kids []keybase1.KID, tcl TypedChainLink
 
 func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) (err error) {
 	if info, found := ckf.cki.Sigs[sig]; !found {
-	} else if _, found = info.Delegations[sig]; !found {
-		err = BadRevocationError{fmt.Sprintf("Can't find sigID %s in delegation list", sig)}
-	} else {
+	} else if kid, found := info.Delegations[sig]; found {
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
 		info.RevokedBy = tcl.GetKID()
+
+		ckf.SetActivePGPHash(kid, "")
+	} else {
+		err = BadRevocationError{fmt.Sprintf("Can't find sigID %s in delegation list", sig)}
 	}
 	return
 }
@@ -639,6 +641,8 @@ func (ckf *ComputedKeyFamily) RevokeKid(kid keybase1.KID, tcl TypedChainLink) (e
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
 		info.RevokedBy = tcl.GetKID()
+
+		ckf.SetActivePGPHash(kid, "")
 	}
 	return
 }
