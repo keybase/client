@@ -344,7 +344,8 @@ type pathTreeNode struct {
 func (fup folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 	unmergedChains *crChains, newMD *RootMetadata, uid keybase1.UID,
 	node *pathTreeNode, stopAt BlockPointer, lbc localBcache,
-	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache) (
+	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache,
+	indirectFileBlocksNeedCopy bool) (
 	*blockPutState, error) {
 	// If this has no children, then sync it, as far back as stopAt.
 	if len(node.children) == 0 {
@@ -379,7 +380,7 @@ func (fup folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 		var childBps *blockPutState
 		// For an indirect file block, make sure a new
 		// reference is made for every child block.
-		if entryType != Dir && fblock.IsInd {
+		if indirectFileBlocksNeedCopy && entryType != Dir && fblock.IsInd {
 			childBps = newBlockPutState(1)
 			var infos []BlockInfo
 			var err error
@@ -452,7 +453,7 @@ func (fup folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 		}
 		childBps, err := fup.prepTree(
 			ctx, lState, unmergedChains, newMD, uid, child, localStopAt, lbc,
-			newFileBlocks, dirtyBcache)
+			newFileBlocks, dirtyBcache, indirectFileBlocksNeedCopy)
 		if err != nil {
 			return nil, err
 		}
@@ -919,7 +920,8 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 	lState *lockState, md *RootMetadata, unmergedChains, mergedChains *crChains,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
 	resolvedPaths map[BlockPointer]path, lbc localBcache,
-	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache) (
+	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache,
+	indirectFileBlocksNeedCopy bool) (
 	updates map[BlockPointer]BlockPointer, bps *blockPutState,
 	blocksToDelete []kbfsblock.ID, err error) {
 	updates = make(map[BlockPointer]BlockPointer)
@@ -960,7 +962,8 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 		if root != nil {
 			bps, err = fup.prepTree(ctx, lState, unmergedChains,
 				md, session.UID, root,
-				BlockPointer{}, lbc, newFileBlocks, dirtyBcache)
+				BlockPointer{}, lbc, newFileBlocks, dirtyBcache,
+				indirectFileBlocksNeedCopy)
 			if err != nil {
 				return nil, nil, nil, err
 			}

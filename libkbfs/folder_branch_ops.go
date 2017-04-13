@@ -3875,7 +3875,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 	md.AddOp(newResolutionOp())
 	_, newBps, blocksToDelete, err := fbo.prepper.prepUpdateForPaths(
 		ctx, lState, md, syncChains, dummyHeadChains, tempIRMD, head,
-		resolvedPaths, lbc, fileBlocks, fbo.config.DirtyBlockCache())
+		resolvedPaths, lbc, fileBlocks, fbo.config.DirtyBlockCache(), false)
 	if err != nil {
 		return err
 	}

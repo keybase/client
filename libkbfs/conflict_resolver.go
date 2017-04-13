@@ -2847,7 +2847,7 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	updates, bps, blocksToDelete, err := cr.prepper.prepUpdateForPaths(
 		ctx, lState, md, unmergedChains, mergedChains,
 		mostRecentUnmergedMD, mostRecentMergedMD, resolvedPaths, lbc,
-		newFileBlocks, dirtyBcache)
+		newFileBlocks, dirtyBcache, true /* copy indirect files */)
 	if err != nil {
 		return err
 	}
