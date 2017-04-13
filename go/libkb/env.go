@@ -169,7 +169,7 @@ type Env struct {
 	config        ConfigReader
 	homeFinder    HomeFinder
 	writer        ConfigWriter
-	Test          TestParameters
+	Test          *TestParameters
 	updaterConfig UpdaterConfigReader
 }
 
@@ -251,7 +251,7 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string) *Env {
 	if config == nil {
 		config = NullConfiguration{}
 	}
-	e := Env{cmd: cmd, config: config}
+	e := Env{cmd: cmd, config: config, Test: &TestParameters{}}
 
 	e.homeFinder = NewHomeFinder("keybase",
 		func() string { return e.getHomeFromCmdOrConfig() },
