@@ -2,6 +2,7 @@ package chat
 
 import (
 	"encoding/hex"
+	"fmt"
 	"sync"
 	"time"
 
@@ -111,6 +112,31 @@ func (s *Syncer) getConvIDs(convs []chat1.Conversation) (res []chat1.Conversatio
 	return res
 }
 
+func (s *Syncer) dbKey(uid gregor1.UID) libkb.DbKey {
+	return libkb.DbKey{
+		Typ: libkb.DBChatSyncer,
+		Key: fmt.Sprintf("%s", uid),
+	}
+}
+
+func (s *Syncer) AddStaleConversation(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) {
+	key := s.dbKey(uid)
+
+	// Read current data (if any)
+	var convIDs []chat1.ConversationID
+	_, err := s.G().LocalChatDb.GetInto(&convIDs, key)
+	if err != nil {
+		s.Debug(ctx, "AddStaleConversation: failed to get current stale list, using empty: %s",
+			err.Error())
+	}
+	convIDs = append(convIDs, convID)
+
+	if err := s.G().LocalChatDb.PutObj(key, nil, convIDs); err != nil {
+		s.Debug(ctx, "AddStaleConversation: failed to write stale list: %s", err.Error())
+	}
+}
+
 func (s *Syncer) SendChatStaleNotifications(ctx context.Context, uid gregor1.UID,
 	convIDs []chat1.ConversationID, immediate bool) {
 	if len(convIDs) == 0 {
@@ -141,6 +167,20 @@ func (s *Syncer) IsConnected(ctx context.Context) bool {
 	defer s.Unlock()
 	defer s.Trace(ctx, func() error { return nil }, "IsConnected")()
 	return s.isConnected
+}
+
+func (s *Syncer) sendStoredStaleNotifications(ctx context.Context, uid gregor1.UID) {
+	var convIDs []chat1.ConversationID
+	found, err := s.G().LocalChatDb.GetInto(convIDs, s.dbKey(uid))
+	if err != nil {
+		s.Debug(ctx, "sendStoredStaleNotifications: failed to read stale notifications: %s", err.Error())
+	}
+	if !found {
+		s.Debug(ctx, "sendStoredStaleNotifications: no notifications found, skipping")
+		return
+	}
+	s.Debug(ctx, "sendStoredStaleNotifications: sending %d stale notifications", len(convIDs))
+	s.SendChatStaleNotifications(ctx, uid, convIDs, false)
 }
 
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
