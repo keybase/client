@@ -141,6 +141,12 @@ protocol Common {
       Time lastIdentifiedAt;
   }
 
+  @lint("ignore")
+  record SharedDHKey {
+      int gen;
+      KID kid;
+  }
+
   record UserPlusKeys {
       UID uid;
       string username;
@@ -160,6 +166,11 @@ protocol Common {
       // deletedDeviceKeys is a list of deleted device keys.
       // (i.e. keys that were used before an account reset)
       array<PublicKey> deletedDeviceKeys;
+
+      // sharedDHKeys is the vector of shared DH public KIDs
+      // for this user, one for every generation.
+      @lint("ignore")
+      array<SharedDHKey> sharedDHKeys;
   }
 
   record RemoteTrack {

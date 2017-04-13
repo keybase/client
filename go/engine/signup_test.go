@@ -21,10 +21,6 @@ func TestSignupEngine(t *testing.T) {
 	subTestSignupEngine(t, false)
 }
 
-func TestSignupEngineSDH(t *testing.T) {
-	subTestSignupEngine(t, true)
-}
-
 func subTestSignupEngine(t *testing.T, enableSharedDH bool) {
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()

@@ -86,6 +86,11 @@ type ComputedKeyInfos struct {
 
 	// Map of KID -> DeviceID
 	KIDToDeviceID map[keybase1.KID]keybase1.DeviceID
+
+	// For each generation, the public KID that corresponds to the shared
+	// DH key. We're not keeping these in ComputedKeyFamily for now. For generation=0,
+	// we expect a nil KID
+	SharedDHKeys map[SharedDHKeyGeneration]keybase1.KID
 }
 
 // As returned by user/lookup.json
@@ -202,6 +207,7 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo, len(cki.Sigs)),
 		Devices:       make(map[keybase1.DeviceID]*Device, len(cki.Devices)),
 		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID, len(cki.KIDToDeviceID)),
+		SharedDHKeys:  make(map[SharedDHKeyGeneration]keybase1.KID),
 	}
 	for k, v := range cki.Infos {
 		ret.Infos[k] = v
@@ -217,6 +223,10 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 
 	for k, v := range cki.KIDToDeviceID {
 		ret.KIDToDeviceID[k] = v
+	}
+
+	for k, v := range cki.SharedDHKeys {
+		ret.SharedDHKeys[k] = v
 	}
 
 	return ret
@@ -275,6 +285,7 @@ func NewComputedKeyInfos(g *GlobalContext) *ComputedKeyInfos {
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo),
 		Devices:       make(map[keybase1.DeviceID]*Device),
 		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID),
+		SharedDHKeys:  make(map[SharedDHKeyGeneration]keybase1.KID),
 	}
 }
 
@@ -521,6 +532,11 @@ func NowAsKeybaseTime(seqno int) *KeybaseTime {
 // Delegate performs a delegation to the key described in the given TypedChainLink.
 // This maybe be a sub- or sibkey delegation.
 func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
+
+	if sdhk, ok := tcl.(*SharedDHKeyChainLink); ok {
+		return ckf.cki.DelegateSharedDHKey(sdhk)
+	}
+
 	kid := tcl.GetDelegatedKid()
 	sigid := tcl.GetSigID()
 	tm := TclToKeybaseTime(tcl)
@@ -560,8 +576,14 @@ func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid k
 			parent.Subkey = kid
 		}
 	}
-
 	return
+}
+
+// DelegateSharedDHKey inserts the new shared DH public key into the
+// list of known generations of DH public keys.
+func (cki *ComputedKeyInfos) DelegateSharedDHKey(s *SharedDHKeyChainLink) (err error) {
+	cki.SharedDHKeys[s.generation] = s.GetDelegatedKid()
+	return nil
 }
 
 // Revoke examines a TypeChainLink and applies any revocations in the link

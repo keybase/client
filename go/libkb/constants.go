@@ -417,6 +417,7 @@ const (
 	DLGNone KeyRole = iota
 	DLGSibkey
 	DLGSubkey
+	DLGSharedDHKey
 )
 
 const (
@@ -545,5 +546,3 @@ type PvlUnparsed struct {
 	Hash PvlKitHash
 	Pvl  PvlString
 }
-
-type SharedDHKeyGeneration int

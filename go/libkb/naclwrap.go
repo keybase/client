@@ -79,6 +79,15 @@ type NaclDHKeyPair struct {
 	Private *NaclDHKeyPrivate
 }
 
+func (n NaclDHKeyPair) Clone() (ret NaclDHKeyPair) {
+	ret.Public = n.Public
+	if n.Private != nil {
+		tmp := *n.Private
+		ret.Private = &tmp
+	}
+	return ret
+}
+
 var _ GenericKey = NaclDHKeyPair{}
 
 type NaclSecretBoxKey [NaclSecretBoxKeySize]byte
@@ -573,6 +582,15 @@ func makeNaclDHKeyPair(reader io.Reader) (NaclDHKeyPair, error) {
 		Public:  *pub,
 		Private: (*NaclDHKeyPrivate)(priv),
 	}, nil
+}
+
+func MakeNaclDHKeyPairFromSecretBytes(secret []byte) (NaclDHKeyPair, error) {
+	if len(secret) != NaclDHKeySecretSize {
+		return NaclDHKeyPair{}, fmt.Errorf("Bad NaCl DH key size: %d", len(secret))
+	}
+	var fixed [NaclDHKeySecretSize]byte
+	copy(fixed[:], secret)
+	return MakeNaclDHKeyPairFromSecret(fixed)
 }
 
 // MakeNaclDHKeyPairFromSecret makes a DH key pair given a secret. Of
