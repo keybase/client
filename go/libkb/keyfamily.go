@@ -598,6 +598,7 @@ func (ckf *ComputedKeyFamily) Revoke(tcl TypedChainLink) (err error) {
 
 // SetPGPHash sets the authoritative version (by hash) of a PGP key
 func (ckf *ComputedKeyFamily) SetActivePGPHash(kid keybase1.KID, hash string) {
+
 	found := false
 	if ks, ok := ckf.kf.PGPKeySets[kid]; ok && ks != nil && ks.KeysByHash[hash] != nil {
 		found = true
@@ -660,7 +661,9 @@ func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) 
 		info.RevokedAt = TclToKeybaseTime(tcl)
 		info.RevokedBy = tcl.GetKID()
 
-		ckf.ClearActivePGPHash(kid)
+		if KIDIsPGP(kid) {
+			ckf.ClearActivePGPHash(kid)
+		}
 	} else {
 		err = BadRevocationError{fmt.Sprintf("Can't find sigID %s in delegation list", sig)}
 	}
@@ -673,7 +676,9 @@ func (ckf *ComputedKeyFamily) RevokeKid(kid keybase1.KID, tcl TypedChainLink) (e
 		info.RevokedAt = TclToKeybaseTime(tcl)
 		info.RevokedBy = tcl.GetKID()
 
-		ckf.ClearActivePGPHash(kid)
+		if KIDIsPGP(kid) {
+			ckf.ClearActivePGPHash(kid)
+		}
 	}
 	return
 }
