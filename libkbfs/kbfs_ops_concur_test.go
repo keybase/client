@@ -1457,10 +1457,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	// leave ourselves in a dirty state.
 }
 
-// When writes happen on a multi-block file concurrently with a sync,
-// and the sync has to retry due to an archived block, test that
-// everything works correctly.  Regression test for KBFS-700.
-func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
+func testKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T, nFiles int) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
@@ -1480,27 +1477,32 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNodes := make([]Node, nFiles)
+
+	fileNodes[0], _, err = kbfsOps.CreateFile(
+		ctx, rootNode, "file0", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
-	var data []byte
+
+	firstData := make([]byte, 30)
 	// Write 2 blocks worth of data
 	for i := 0; i < 30; i++ {
-		data = append(data, byte(i))
+		firstData[i] = byte(i)
 	}
-	err = kbfsOps.Write(ctx, fileNode, data, 0)
+
+	err = kbfsOps.Write(ctx, fileNodes[0], firstData, 0)
 	if err != nil {
 		t.Errorf("Couldn't write file: %v", err)
 	}
 
-	err = kbfsOps.Sync(ctx, fileNode)
+	err = kbfsOps.Sync(ctx, fileNodes[0])
 	if err != nil {
 		t.Fatalf("First sync failed: %v", err)
 	}
 
-	// Remove that file, and wait for the archiving to complete
-	err = kbfsOps.RemoveEntry(ctx, rootNode, "a")
+	// Remove the first file, and wait for the archiving to complete.
+	err = kbfsOps.RemoveEntry(ctx, rootNode, "file0")
 	if err != nil {
 		t.Fatalf("Couldn't remove file: %v", err)
 	}
@@ -1510,27 +1512,57 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 
-	fileNode2, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode2, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, "file0", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
 	// Now write the identical first block and sync it.
-	err = kbfsOps.Write(ctx, fileNode2, data[:20], 0)
+	err = kbfsOps.Write(ctx, fileNode2, firstData[:20], 0)
 	if err != nil {
 		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// Write all the rest of the files to syn concurrently, if any.
+	for i := 1; i < nFiles; i++ {
+		name := fmt.Sprintf("file%d", i)
+		fileNode, _, err := kbfsOps.CreateFile(
+			ctx, rootNode, name, false, NoExcl)
+		if err != nil {
+			t.Fatalf("Couldn't create file: %v", err)
+		}
+		data := make([]byte, 30)
+		// Write 2 blocks worth of data
+		for j := 0; j < 30; j++ {
+			data[j] = byte(j + 30*i)
+		}
+		err = kbfsOps.Write(ctx, fileNode, data, 0)
+		if err != nil {
+			t.Errorf("Couldn't write file: %v", err)
+		}
+		fileNodes[i] = fileNode
 	}
 
 	// Sync the initial two data blocks
 	errChan := make(chan error)
 	// start the sync
 	go func() {
-		errChan <- kbfsOps.Sync(ctxStallSync, fileNode2)
+		if len(fileNodes) == 1 {
+			errChan <- kbfsOps.Sync(ctxStallSync, fileNode2)
+		} else {
+			errChan <- kbfsOps.SyncAll(
+				ctxStallSync, fileNode2.GetFolderBranch())
+		}
 	}()
-	<-onSyncStalledCh
+	select {
+	case <-onSyncStalledCh:
+	case <-ctx.Done():
+		t.Fatalf("Timeout waiting to stall")
+	}
 
 	// Now write the second block.
-	err = kbfsOps.Write(ctx, fileNode2, data[20:], 20)
+	err = kbfsOps.Write(ctx, fileNode2, firstData[20:], 20)
 	if err != nil {
 		t.Errorf("Couldn't write file: %v", err)
 	}
@@ -1543,7 +1575,11 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 	}
 
 	// Final sync
-	err = kbfsOps.Sync(ctx, fileNode2)
+	if len(fileNodes) == 1 {
+		err = kbfsOps.Sync(ctx, fileNode2)
+	} else {
+		err = kbfsOps.SyncAll(ctx, fileNode2.GetFolderBranch())
+	}
 	if err != nil {
 		t.Fatalf("Final sync failed: %v", err)
 	}
@@ -1556,8 +1592,8 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 	if nr != int64(len(gotData)) {
 		t.Errorf("Only read %d bytes", nr)
 	}
-	if !bytes.Equal(data, gotData) {
-		t.Errorf("Read wrong data.  Expected %v, got %v", data, gotData)
+	if !bytes.Equal(firstData, gotData) {
+		t.Errorf("Read wrong data.  Expected %v, got %v", firstData, gotData)
 	}
 
 	// Make sure there are no dirty blocks left at the end of the test.
@@ -1566,6 +1602,20 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 	if numDirtyBlocks != 0 {
 		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
 	}
+}
+
+// When writes happen on a multi-block file concurrently with a sync,
+// and the sync has to retry due to an archived block, test that
+// everything works correctly.  Regression test for KBFS-700.
+func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
+	testKBFSOpsMultiBlockWriteDuringRetriedSync(t, 1)
+}
+
+// When writes happen on a multi-block file concurrently with a
+// 2-file sync, and the sync has to retry due to an archived
+// block, test that everything works correctly.
+func TestKBFSOpsMultiBlockWriteDuringRetriedSyncAllTwoFiles(t *testing.T) {
+	testKBFSOpsMultiBlockWriteDuringRetriedSync(t, 2)
 }
 
 // Test that a sync of a multi-block file that hits both a retriable
