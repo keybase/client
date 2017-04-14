@@ -742,25 +742,25 @@ func (d *Service) configurePath() {
 	}
 }
 
-// tryLogin attempts to run LoginProvisionedDevice when the service starts up.
-// This should get around any issue where the session.json file is out of date
-// or missing since the last time the service started.
+// tryLogin runs LoginOffline which will load the local session file and unlock the
+// local device keys without making any network requests.
+//
+// If that fails for any reason, LoginProvisionedDevice is used, which should get
+// around any issue where the session.json file is out of date or missing since the
+// last time the service started.
 func (d *Service) tryLogin() {
-	/*
-		eng := engine.NewLoginProvisionedDevice(d.G(), "")
-		eng.SecretStoreOnly = true
-		ctx := &engine.Context{}
-		if err := engine.RunEngine(eng, ctx); err != nil {
-			d.G().Log.Debug("error running LoginProvisionedDevice on service startup: %s", err)
-		}
-	*/
 	eng := engine.NewLoginOffline(d.G())
 	ctx := &engine.Context{}
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		d.G().Log.Debug("error running LoginOffline on service startup: %s", err)
-		return
+		d.G().Log.Debug("trying LoginProvisionedDevice")
+		deng := engine.NewLoginProvisionedDevice(d.G(), "")
+		deng.SecretStoreOnly = true
+		ctx := &engine.Context{}
+		if err := engine.RunEngine(deng, ctx); err != nil {
+			d.G().Log.Debug("error running LoginProvisionedDevice on service startup: %s", err)
+		}
+	} else {
+		d.G().Log.Debug("success running LoginOffline on service startup")
 	}
-	d.G().Log.Debug("success running LoginOffline on service startup")
-	uid, deviceID, skey, ekey := d.G().ActiveDevice.AllFields()
-	d.G().Log.Warning("active device info: %v, %v, %+v, %+v", uid, deviceID, skey, ekey)
 }

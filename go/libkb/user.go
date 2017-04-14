@@ -137,16 +137,13 @@ func (u *User) GetSigHintsVersion() int {
 }
 
 func (u *User) GetComputedKeyFamily() (ret *ComputedKeyFamily) {
-	u.G().Log.Warning("%s: GetComputedKeyFamily", u.GetName())
 	if u.sigChain() != nil && u.keyFamily != nil {
 		cki := u.sigChain().GetComputedKeyInfos()
 		if cki == nil {
-			u.G().Log.Warning("%s: GetComputedKeyFamily cki nil", u.GetName())
 			return nil
 		}
 		ret = &ComputedKeyFamily{cki: cki, kf: u.keyFamily, Contextified: u.Contextified}
 	} else if u.ckfShallowCopy != nil {
-		u.G().Log.Warning("%s: GetComputedKeyFamily shallow: %+v", u.GetName(), u.ckfShallowCopy)
 		ret = u.ckfShallowCopy
 	}
 	return ret
