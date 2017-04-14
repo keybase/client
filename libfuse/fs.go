@@ -69,7 +69,8 @@ func makeTraceHandler(renderFn func(http.ResponseWriter, *http.Request, bool)) f
 	}
 }
 
-// NewFS creates an FS
+// NewFS creates an FS. Note that this isn't the only constructor; see
+// makeFS in libfuse/mount_test.go.
 func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool, platformParams PlatformParams) *FS {
 	log := config.MakeLogger("kbfsfuse")
 	// We need extra depth for errors, so that we can report the line
@@ -151,6 +152,9 @@ func (f *FS) enableDebugServer(ctx context.Context, port uint16) error {
 	f.debugServerLock.Lock()
 	defer f.debugServerLock.Unlock()
 
+	// Note that f.debugServer may be nil if f was created via
+	// makeFS. But in that case we shouldn't be calling this
+	// function then anyway.
 	if f.debugServer.Addr != "" {
 		return errors.Errorf("Debug server already enabled at %s",
 			f.debugServer.Addr)
@@ -182,6 +186,10 @@ func (f *FS) enableDebugServer(ctx context.Context, port uint16) error {
 		f.log.Debug("Debug http server ended with %+v", err)
 	}(f.debugServer, f.debugServerListener)
 
+	// TODO: Perhaps enable turning tracing on and off
+	// independently from the debug server.
+	f.config.SetTraceOptions(true)
+
 	return nil
 }
 
@@ -189,6 +197,9 @@ func (f *FS) disableDebugServer(ctx context.Context) error {
 	f.debugServerLock.Lock()
 	defer f.debugServerLock.Unlock()
 
+	// Note that f.debugServer may be nil if f was created via
+	// makeFS. But in that case we shouldn't be calling this
+	// function then anyway.
 	if f.debugServer.Addr == "" {
 		return errors.New("Debug server already disabled")
 	}
@@ -204,6 +215,8 @@ func (f *FS) disableDebugServer(ctx context.Context) error {
 	// it returns an error.
 	f.debugServer.Addr = ""
 	f.debugServerListener = nil
+
+	f.config.SetTraceOptions(false)
 
 	return err
 }
@@ -277,25 +290,6 @@ func (f *FS) WithContext(ctx context.Context) context.Context {
 	}
 
 	return ctx
-}
-
-func (f *FS) maybeStartTrace(
-	ctx context.Context, family, title string) context.Context {
-	// TODO: Add options to enable/disable tracing, or adjust
-	// trace detail.
-	tr := trace.New(family, title)
-	ctx = trace.NewContext(ctx, tr)
-	return ctx
-}
-
-func (f *FS) maybeFinishTrace(ctx context.Context, err error) {
-	if tr, ok := trace.FromContext(ctx); ok {
-		if err != nil {
-			tr.LazyPrintf("err=%+v", err)
-			tr.SetError()
-		}
-		tr.Finish()
-	}
 }
 
 // Serve FS. Will block.

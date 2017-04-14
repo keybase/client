@@ -1488,6 +1488,18 @@ type ConflictRenamer interface {
 		string, error)
 }
 
+// Tracer maybe adds traces to contexts.
+type Tracer interface {
+	// MaybeStartTrace, if tracing is on, returns a new context
+	// based on the given one with an attached trace made with the
+	// given family and title. Otherwise, it returns the given
+	// context unchanged.
+	MaybeStartTrace(ctx context.Context, family, title string) context.Context
+	// MaybeFinishTrace, finishes the trace attached to the given
+	// context, if any.
+	MaybeFinishTrace(ctx context.Context, err error)
+}
+
 // Config collects all the singleton instance instantiations needed to
 // run KBFS in one place.  The methods below are self-explanatory and
 // do not require comments.
@@ -1506,6 +1518,7 @@ type Config interface {
 	diskBlockCacheSetter
 	clockGetter
 	diskLimiterGetter
+	Tracer
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)
 	KBPKI() KBPKI
@@ -1611,6 +1624,10 @@ type Config interface {
 	// objects, which is to use the default registry.
 	MetricsRegistry() metrics.Registry
 	SetMetricsRegistry(metrics.Registry)
+
+	// SetTraceOptions set the options for tracing (via x/net/trace).
+	SetTraceOptions(enabled bool)
+
 	// TLFValidDuration is the time TLFs are valid before identification needs to be redone.
 	TLFValidDuration() time.Duration
 	// SetTLFValidDuration sets TLFValidDuration.

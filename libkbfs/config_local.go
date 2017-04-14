@@ -19,6 +19,7 @@ import (
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/shirou/gopsutil/mem"
 	"golang.org/x/net/context"
+	"golang.org/x/net/trace"
 )
 
 const (
@@ -82,6 +83,9 @@ type ConfigLocal struct {
 	maxDirBytes  uint64
 	rekeyQueue   RekeyQueue
 	storageRoot  string
+
+	traceLock    sync.RWMutex
+	traceEnabled bool
 
 	qrPeriod                       time.Duration
 	qrUnrefAge                     time.Duration
@@ -830,6 +834,41 @@ func (c *ConfigLocal) RekeyQueue() RekeyQueue {
 // SetMetricsRegistry implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) SetMetricsRegistry(r metrics.Registry) {
 	c.registry = r
+}
+
+// SetTraceOptions implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetTraceOptions(enabled bool) {
+	c.traceLock.Lock()
+	defer c.traceLock.Unlock()
+	c.traceEnabled = enabled
+}
+
+// MaybeStartTrace implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) MaybeStartTrace(
+	ctx context.Context, family, title string) context.Context {
+	traceEnabled := func() bool {
+		c.traceLock.RLock()
+		defer c.traceLock.RUnlock()
+		return c.traceEnabled
+	}()
+	if !traceEnabled {
+		return ctx
+	}
+
+	tr := trace.New(family, title)
+	ctx = trace.NewContext(ctx, tr)
+	return ctx
+}
+
+// MaybeFinishTrace implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) MaybeFinishTrace(ctx context.Context, err error) {
+	if tr, ok := trace.FromContext(ctx); ok {
+		if err != nil {
+			tr.LazyPrintf("err=%+v", err)
+			tr.SetError()
+		}
+		tr.Finish()
+	}
 }
 
 // SetTLFValidDuration implements the Config interface for ConfigLocal.

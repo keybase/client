@@ -17,7 +17,6 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfssync"
 	"golang.org/x/net/context"
-	"golang.org/x/net/trace"
 )
 
 // CtxCRTagKey is the type used for unique context tags related to
@@ -146,24 +145,6 @@ func (cr *ConflictResolver) cancelExistingLocked(ci conflictInput) bool {
 		cr.currCancel()
 	}
 	return true
-}
-
-func (cr *ConflictResolver) maybeStartTrace(
-	ctx context.Context, family, title string) context.Context {
-	// TODO: Obey tracing options when we add them.
-	tr := trace.New(family, title)
-	ctx = trace.NewContext(ctx, tr)
-	return ctx
-}
-
-func (cr *ConflictResolver) maybeFinishTrace(ctx context.Context, err error) {
-	if tr, ok := trace.FromContext(ctx); ok {
-		if err != nil {
-			tr.LazyPrintf("err=%+v", err)
-			tr.SetError()
-		}
-		tr.Finish()
-	}
 }
 
 // processInput processes conflict resolution jobs from the given
@@ -2965,9 +2946,9 @@ func (e CRWrapError) Error() string {
 
 func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	var err error
-	ctx = cr.maybeStartTrace(ctx, "CR.doResolve",
+	ctx = cr.config.MaybeStartTrace(ctx, "CR.doResolve",
 		fmt.Sprintf("%s %+v", cr.fbo.folderBranch, ci))
-	defer func() { cr.maybeFinishTrace(ctx, err) }()
+	defer func() { cr.config.MaybeFinishTrace(ctx, err) }()
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %+v", ci)
 	lState := makeFBOLockState()
 	defer func() {

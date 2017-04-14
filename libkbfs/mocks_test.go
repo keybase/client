@@ -4262,6 +4262,45 @@ func (_mr *_MockConflictRenamerRecorder) ConflictRename(arg0, arg1, arg2 interfa
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ConflictRename", arg0, arg1, arg2)
 }
 
+// Mock of Tracer interface
+type MockTracer struct {
+	ctrl     *gomock.Controller
+	recorder *_MockTracerRecorder
+}
+
+// Recorder for MockTracer (not exported)
+type _MockTracerRecorder struct {
+	mock *MockTracer
+}
+
+func NewMockTracer(ctrl *gomock.Controller) *MockTracer {
+	mock := &MockTracer{ctrl: ctrl}
+	mock.recorder = &_MockTracerRecorder{mock}
+	return mock
+}
+
+func (_m *MockTracer) EXPECT() *_MockTracerRecorder {
+	return _m.recorder
+}
+
+func (_m *MockTracer) MaybeStartTrace(ctx context.Context, family string, title string) context.Context {
+	ret := _m.ctrl.Call(_m, "MaybeStartTrace", ctx, family, title)
+	ret0, _ := ret[0].(context.Context)
+	return ret0
+}
+
+func (_mr *_MockTracerRecorder) MaybeStartTrace(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaybeStartTrace", arg0, arg1, arg2)
+}
+
+func (_m *MockTracer) MaybeFinishTrace(ctx context.Context, err error) {
+	_m.ctrl.Call(_m, "MaybeFinishTrace", ctx, err)
+}
+
+func (_mr *_MockTracerRecorder) MaybeFinishTrace(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaybeFinishTrace", arg0, arg1)
+}
+
 // Mock of Config interface
 type MockConfig struct {
 	ctrl     *gomock.Controller
@@ -4419,6 +4458,24 @@ func (_m *MockConfig) DiskLimiter() DiskLimiter {
 
 func (_mr *_MockConfigRecorder) DiskLimiter() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DiskLimiter")
+}
+
+func (_m *MockConfig) MaybeStartTrace(ctx context.Context, family string, title string) context.Context {
+	ret := _m.ctrl.Call(_m, "MaybeStartTrace", ctx, family, title)
+	ret0, _ := ret[0].(context.Context)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) MaybeStartTrace(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaybeStartTrace", arg0, arg1, arg2)
+}
+
+func (_m *MockConfig) MaybeFinishTrace(ctx context.Context, err error) {
+	_m.ctrl.Call(_m, "MaybeFinishTrace", ctx, err)
+}
+
+func (_mr *_MockConfigRecorder) MaybeFinishTrace(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaybeFinishTrace", arg0, arg1)
 }
 
 func (_m *MockConfig) KBFSOps() KBFSOps {
@@ -4961,6 +5018,14 @@ func (_m *MockConfig) SetMetricsRegistry(_param0 go_metrics.Registry) {
 
 func (_mr *_MockConfigRecorder) SetMetricsRegistry(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetMetricsRegistry", arg0)
+}
+
+func (_m *MockConfig) SetTraceOptions(enabled bool) {
+	_m.ctrl.Call(_m, "SetTraceOptions", enabled)
+}
+
+func (_mr *_MockConfigRecorder) SetTraceOptions(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetTraceOptions", arg0)
 }
 
 func (_m *MockConfig) TLFValidDuration() time.Duration {
