@@ -694,9 +694,7 @@ func (fup folderUpdatePrepper) updateResolutionUsageAndPointers(
 		}
 	}
 	for ptr := range unmergedChains.toUnrefPointers {
-		if !refs[ptr] && !unrefs[ptr] {
-			toUnref[ptr] = true
-		}
+		toUnref[ptr] = true
 	}
 	deletedBlocks := make(map[BlockPointer]bool)
 	for ptr := range toUnref {
