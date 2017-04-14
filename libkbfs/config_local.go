@@ -213,12 +213,13 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 	return localUsers
 }
 
-// getDefaultCleanBlockCacheCapacity returns the default clean block cache
-// capacity. If we can get total RAM of the system, we cap at the smaller of
-// <1/4 of available memory> and <MaxBlockSizeBytesDefault * 1024>; otherwise,
+// getDefaultCleanBlockCacheCapacity returns the default clean block
+// cache capacity. If we can get total RAM of the system, we cap at
+// the smaller of <1/4 of available memory> and
+// <MaxBlockSizeBytesDefault * DefaultBlocksInMemCache>; otherwise,
 // fallback to latter.
 func getDefaultCleanBlockCacheCapacity() uint64 {
-	capacity := uint64(MaxBlockSizeBytesDefault) * 1024
+	capacity := uint64(MaxBlockSizeBytesDefault) * DefaultBlocksInMemCache
 	vmstat, err := mem.VirtualMemory()
 	if err == nil {
 		ramBased := vmstat.Total / 8
