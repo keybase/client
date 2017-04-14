@@ -336,10 +336,6 @@ type prepFolderFlags byte
 const (
 	// The blocks of indirect files should be copied.
 	prepFolderCopyIndirectFileBlocks prepFolderFlags = 1 << iota
-	// Unflushed blocks that are made obsolete by this tree of updates
-	// should be explicitly unreferenced, instead of simply removed
-	// from the journal and never flushed.
-	prepFolderAlwaysUnrefUnflushedBlocks
 )
 
 // prepTree, given a node in part of the FS tree that needs to be
@@ -596,7 +592,7 @@ func (fup folderUpdatePrepper) updateResolutionUsageAndPointers(
 	ctx context.Context, lState *lockState, md *RootMetadata,
 	bps *blockPutState, unmergedChains, mergedChains *crChains,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
-	isLocalSquash bool, flags prepFolderFlags) (
+	isLocalSquash bool) (
 	blocksToDelete []kbfsblock.ID, err error) {
 
 	// Track the refs and unrefs in a set, to ensure no duplicates
@@ -698,7 +694,9 @@ func (fup folderUpdatePrepper) updateResolutionUsageAndPointers(
 		}
 	}
 	for ptr := range unmergedChains.toUnrefPointers {
-		toUnref[ptr] = true
+		if !refs[ptr] && !unrefs[ptr] {
+			toUnref[ptr] = true
+		}
 	}
 	deletedBlocks := make(map[BlockPointer]bool)
 	for ptr := range toUnref {
@@ -708,18 +706,16 @@ func (fup folderUpdatePrepper) updateResolutionUsageAndPointers(
 			// `unmergedChains.toUnrefPointers` after a chain collapse.
 			continue
 		}
-		if flags&prepFolderAlwaysUnrefUnflushedBlocks == 0 {
-			isUnflushed, err := fup.config.BlockServer().IsUnflushed(
-				ctx, fup.id(), ptr.ID)
-			if err != nil {
-				return nil, err
-			}
-			if isUnflushed {
-				blocksToDelete = append(blocksToDelete, ptr.ID)
-				deletedBlocks[ptr] = true
-				// No need to unreference this since we haven't flushed it yet.
-				continue
-			}
+		isUnflushed, err := fup.config.BlockServer().IsUnflushed(
+			ctx, fup.id(), ptr.ID)
+		if err != nil {
+			return nil, err
+		}
+		if isUnflushed {
+			blocksToDelete = append(blocksToDelete, ptr.ID)
+			deletedBlocks[ptr] = true
+			// No need to unreference this since we haven't flushed it yet.
+			continue
 		}
 
 		// Put the unrefs in a new resOp after the final operation, to
@@ -1194,7 +1190,7 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 
 	blocksToDelete, err = fup.updateResolutionUsageAndPointers(ctx, lState, md,
 		bps, unmergedChains, mergedChains, mostRecentUnmergedMD,
-		mostRecentMergedMD, isSquash, flags)
+		mostRecentMergedMD, isSquash)
 	if err != nil {
 		return nil, nil, nil, err
 	}
