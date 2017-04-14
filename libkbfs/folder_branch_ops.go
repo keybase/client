@@ -81,7 +81,7 @@ const (
 	maxMDsAtATime = 10
 	// Time between checks for dirty files to flush, in case Sync is
 	// never called.
-	secondsBetweenBackgroundFlushes = 10
+	secondsBetweenBackgroundFlushes = 1
 	// Cap the number of times we retry after a recoverable error
 	maxRetriesOnRecoverableErrors = 10
 	// When the number of dirty bytes exceeds this level, force a sync.
@@ -5232,7 +5232,7 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 					return context.WithValue(ctx, CtxBackgroundSyncKey, "1")
 				})
 
-			if sameDirtyRefCount >= 10 {
+			if sameDirtyRefCount >= 100 {
 				// If the local journal is full, we might not be able to
 				// make progress until more data is flushed to the
 				// servers, so just warn here rather than just an outright
