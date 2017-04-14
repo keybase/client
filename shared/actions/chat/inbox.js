@@ -248,15 +248,11 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
       // Valid inbox item for rekey errors only
       const conversation = new Constants.InboxStateRecord({
         conversationIDKey,
-        participants: List(error.unverifiedTLFName.split(',')),
+        participants: error.rekeyInfo ? List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean)) : List(error.unverifiedTLFName.split(',')),
         state: 'error',
         status: 'unfiled',
         time: error.remoteConv.readerInfo.mtime,
       })
-
-      if (error.rekeyInfo) {
-         conversation = conversation.set('participants', List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean)))
-      }
 
       yield put(Creators.updateInbox(conversation))
       switch (error.typ) {
