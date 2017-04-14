@@ -12,7 +12,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -232,18 +231,6 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 	ctx = WithLogTag(ctx, "API")
 	api.G().Log.CDebugf(ctx, "+ API %s %s", req.Method, req.URL)
-
-	stack := func() []byte {
-		buf := make([]byte, 1024)
-		for {
-			n := runtime.Stack(buf, true)
-			if n < len(buf) {
-				return buf[:n]
-			}
-			buf = make([]byte, 2*len(buf))
-		}
-	}()
-	os.Stderr.Write(stack)
 
 	var jsonBytes int
 	var status string

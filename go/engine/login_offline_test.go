@@ -45,7 +45,15 @@ func TestLoginOffline(t *testing.T) {
 		t.Errorf("uid: %q, expected %q", uid, u1.UID())
 	}
 
-	_ = deviceID
-	_ = skey
-	_ = ekey
+	if deviceID.IsNil() {
+		t.Errorf("deviceID is nil, expected it to exist")
+	}
+
+	if skey == nil {
+		t.Errorf("signing key is nil, expected it to exist")
+	}
+
+	if ekey == nil {
+		t.Errorf("encryption key is nil, expected it to exist")
+	}
 }
