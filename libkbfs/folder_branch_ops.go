@@ -3592,6 +3592,25 @@ func (fbo *folderBranchOps) SetMtime(
 		})
 }
 
+// startSyncLocked readies the blocks and other state needed to sync a
+// single file.  It returns:
+//
+// * `doSync`: Whether or not the sync should actually happen.
+// * `stillDirty`: Whether the file should still be considered dirty when
+//   this function returns.  (That is, if `doSync` is false, and `stillDirty`
+//   is true, then the file has outstanding changes but the sync was vetoed for
+//   some other reason.)
+// * `fblock`: the top file block for the file being sync'd.
+// * `lbc`: A local block cache consisting of a dirtied version of the parent
+//   directory for this file.
+// * `bps`: All the blocks that need to be put to the server.
+// * `syncState`: Must be passed to the `FinishSyncLocked` call after the
+//   update completes.
+// * `cleanupFn`: A function that, if non-nil, must be called after the sync
+//   is done.  `cleanupFn` should be passed the set of bad blocks that couldn't
+//   be sync'd (if any), and the error.
+// * `err`: The best, greatest return value, everyone says it's absolutely
+//   stunning.
 func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, file path) (
 	doSync bool, stillDirty bool, fblock *FileBlock, lbc localBcache,
@@ -3793,11 +3812,14 @@ func (fbo *folderBranchOps) syncAllLocked(
 		file := fbo.nodeCache.PathFromNode(node)
 		fbo.log.CDebugf(ctx, "Syncing file %v (%s)", ref, file)
 
+		// Start the sync for this dirty file.
 		doSync, stillDirty, fblock, newLbc, newBps, syncState, cleanupFn, err :=
 			fbo.startSyncLocked(ctx, lState, md, file)
 		if cleanupFn != nil {
-			// XXX: This passes the same `blocksToRemove` into each cleanup
-			// function.  Is that ok?
+			// Note: This passes the same `blocksToRemove` into each
+			// cleanup function.  That's ok, as only the ones
+			// pertaining to a particular syncing file will be acted
+			// on.
 			cleanupFns = append(cleanupFns,
 				func(err error) { cleanupFn(blocksToRemove, err) })
 		}
@@ -3811,15 +3833,18 @@ func (fbo *folderBranchOps) syncAllLocked(
 			continue
 		}
 
+		// Merge the per-file sync info into the batch sync info.
 		bps.mergeOtherBps(newBps)
 		resolvedPaths[file.tailPointer()] = file
 		parent := file.parentPath().tailPointer()
-
 		if _, ok := fileBlocks[parent]; !ok {
 			fileBlocks[parent] = make(map[string]*FileBlock)
 		}
 		fileBlocks[parent][file.tailName()] = fblock
 
+		// Collect its `afterUpdateFn` along with all the others, so
+		// they all get invoked under the same lock, to avoid any
+		// weird races.
 		afterUpdateFns = append(afterUpdateFns, func() error {
 			// This will be called after the node cache is updated, so
 			// this newPath will be correct.
@@ -3861,17 +3886,21 @@ func (fbo *folderBranchOps) syncAllLocked(
 		lastWriterVerifyingKey: session.VerifyingKey,
 	}
 
+	// Create a set of chains for this batch, a succinct summary of
+	// the file and directory blocks that need to change during this
+	// sync.
 	syncChains, err := newCRChains(
 		ctx, fbo.config.Codec(), []chainMetadata{tempIRMD}, &fbo.blocks, false)
 	if err != nil {
 		return err
 	}
-
 	head, _ := fbo.getHead(lState)
 	dummyHeadChains := newCRChainsEmpty()
 	dummyHeadChains.mostRecentChainMDInfo = mostRecentChainMetadataInfo{
 		head, head.Data().Dir.BlockInfo}
 
+	// Squash the batch of updates together into a set of blocks and
+	// ready `md` for putting to the server.
 	md.AddOp(newResolutionOp())
 	_, newBps, blocksToDelete, err := fbo.prepper.prepUpdateForPaths(
 		ctx, lState, md, syncChains, dummyHeadChains, tempIRMD, head,
