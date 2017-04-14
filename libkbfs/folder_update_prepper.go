@@ -1156,7 +1156,8 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 				isDeleted := false
 				alreadyUpdated := false
 				if isMostRecent {
-					isDeleted = unmergedChains.isDeleted(chain.original)
+					isDeleted = unmergedChains.isDeleted(chain.original) ||
+						unmergedChains.toUnrefPointers[update.Ref]
 					_, alreadyUpdated = updates[chain.original]
 				}
 				if newBlocks[update.Ref] ||
