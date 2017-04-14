@@ -617,6 +617,15 @@ func (ckf *ComputedKeyFamily) SetActivePGPHash(kid keybase1.KID, hash string) {
 	}
 }
 
+// ClearActivePGPHash clears authoritative hash of PGP key, after a revoke.
+func (ckf *ComputedKeyFamily) ClearActivePGPHash(kid keybase1.KID) {
+	if _, ok := ckf.cki.Infos[kid]; ok {
+		ckf.cki.Infos[kid].ActivePGPHash = ""
+	} else {
+		ckf.G().Log.Debug("| Skipped clearing active hash, since key was never delegated")
+	}
+}
+
 // revokeSigs operates on the per-signature revocations in the given
 // TypedChainLink and applies them accordingly.
 func (ckf *ComputedKeyFamily) revokeSigs(sigs []keybase1.SigID, tcl TypedChainLink) error {
@@ -651,7 +660,7 @@ func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) 
 		info.RevokedAt = TclToKeybaseTime(tcl)
 		info.RevokedBy = tcl.GetKID()
 
-		ckf.SetActivePGPHash(kid, "")
+		ckf.ClearActivePGPHash(kid)
 	} else {
 		err = BadRevocationError{fmt.Sprintf("Can't find sigID %s in delegation list", sig)}
 	}
@@ -664,7 +673,7 @@ func (ckf *ComputedKeyFamily) RevokeKid(kid keybase1.KID, tcl TypedChainLink) (e
 		info.RevokedAt = TclToKeybaseTime(tcl)
 		info.RevokedBy = tcl.GetKID()
 
-		ckf.SetActivePGPHash(kid, "")
+		ckf.ClearActivePGPHash(kid)
 	}
 	return
 }
