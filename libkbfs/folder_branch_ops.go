@@ -3952,7 +3952,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 		ctx, lState, md, bps, NoExcl, afterUpdateFn)
 }
 
-// Sync implements the KBFSOps interface for folderBranchOps.
+// SyncAll implements the KBFSOps interface for folderBranchOps.
 func (fbo *folderBranchOps) SyncAll(
 	ctx context.Context, folderBranch FolderBranch) (err error) {
 	fbo.log.CDebugf(ctx, "SyncAll")
@@ -4014,7 +4014,7 @@ func (fbo *folderBranchOps) notifyBatchLocked(
 		// Only supply the afterUpdateFn for the first notification,
 		// which, in a multi-update batch, should be the resolution op
 		// with all the new pointer updates.
-		if i > 0 && md.data.Changes.Ops[0].(*resolutionOp) == nil {
+		if i == 1 && md.data.Changes.Ops[0].(*resolutionOp) == nil {
 			return errors.Errorf("First update in local batch is not a "+
 				"resolutionOp: %T", md.data.Changes.Ops[0])
 		}
