@@ -27,6 +27,48 @@ type CmdEncrypt struct {
 }
 
 func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	flags := []cli.Flag{
+		cli.BoolFlag{
+			Name:  "b, binary",
+			Usage: "Output in binary (rather than ASCII/armored).",
+		},
+		cli.StringFlag{
+			Name:  "i, infile",
+			Usage: "Specify an input file.",
+		},
+		cli.StringFlag{
+			Name:  "m, message",
+			Usage: "Provide the message on the command line.",
+		},
+		cli.StringFlag{
+			Name:  "o, outfile",
+			Usage: "Specify an outfile (stdout by default).",
+		},
+		cli.BoolFlag{
+			Name:  "hide-recipients",
+			Usage: "Don't include recipients in metadata",
+		},
+		cli.BoolFlag{
+			Name: "anonymous",
+			Usage: "Don't include sender or recipients in metadata. " +
+				"Implies --hide-recipients.",
+		},
+		cli.BoolFlag{
+			Name:  "no-self",
+			Usage: "Don't encrypt for yourself",
+		},
+	}
+
+	// A temporary flag. Soon this will be the default. (Note that the regular
+	// RunMode() config has not yet been parsed from the command line, so we
+	// use DefaultRunMode instead.)
+	if libkb.DefaultRunMode == libkb.DevelRunMode {
+		flags = append(flags, cli.BoolFlag{
+			Name:  "signcrypt",
+			Usage: "TEMPORARY",
+		})
+	}
+
 	return cli.Command{
 		Name:         "encrypt",
 		ArgumentHelp: "<usernames...>",
@@ -36,42 +78,7 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Contextified: libkb.NewContextified(g),
 			}, "encrypt", c)
 		},
-		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "b, binary",
-				Usage: "Output in binary (rather than ASCII/armored).",
-			},
-			cli.StringFlag{
-				Name:  "i, infile",
-				Usage: "Specify an input file.",
-			},
-			cli.StringFlag{
-				Name:  "m, message",
-				Usage: "Provide the message on the command line.",
-			},
-			cli.StringFlag{
-				Name:  "o, outfile",
-				Usage: "Specify an outfile (stdout by default).",
-			},
-			cli.BoolFlag{
-				Name:  "hide-recipients",
-				Usage: "Don't include recipients in metadata",
-			},
-			cli.BoolFlag{
-				Name: "anonymous",
-				Usage: "Don't include sender or recipients in metadata. " +
-					"Implies --hide-recipients.",
-			},
-			cli.BoolFlag{
-				Name:  "no-self",
-				Usage: "Don't encrypt for yourself",
-			},
-			// A temporary flag. Soon this will be the default.
-			cli.BoolFlag{
-				Name:  "signcrypt",
-				Usage: "TEMPORARY",
-			},
-		},
+		Flags: flags,
 	}
 }
 
