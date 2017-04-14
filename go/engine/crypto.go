@@ -39,20 +39,6 @@ func GetMySecretKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI fun
 		return key, nil
 	}
 
-	eng := NewLoginOffline(g)
-	ectx := &Context{}
-	if err := RunEngine(eng, ectx); err != nil {
-		g.Log.Debug("error running LoginOffline in GetMySecretKey: %s", err)
-	}
-	g.Log.Debug("success running LoginOffline in GetMySecretKey")
-
-	// after login offline, check ActiveDevice cache
-	key, err = g.ActiveDevice.KeyByType(secretKeyType)
-	if err == nil && key != nil {
-		g.Log.CDebugf(ctx, "found cached device key in ActiveDevice")
-		return key, nil
-	}
-
 	var me *libkb.User
 	err = g.GetFullSelfer().WithSelf(ctx, func(tmp *libkb.User) error {
 		me = tmp.PartialCopy()
