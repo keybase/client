@@ -357,17 +357,9 @@ func (k *LibKBFS) TruncateFile(u User, file Node, size uint64, sync bool) (err e
 	if sync {
 		ctx, cancel := k.newContext(u)
 		defer cancel()
-		err = kbfsOps.Sync(ctx, file.(libkbfs.Node))
+		err = kbfsOps.SyncAll(ctx, file.(libkbfs.Node).GetFolderBranch())
 	}
 	return err
-}
-
-// Sync implements the Engine interface.
-func (k *LibKBFS) Sync(u User, file Node) (err error) {
-	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
-	ctx, cancel := k.newContext(u)
-	defer cancel()
-	return kbfsOps.Sync(ctx, file.(libkbfs.Node))
 }
 
 // ReadFile implements the Engine interface.

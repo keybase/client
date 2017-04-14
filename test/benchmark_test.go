@@ -254,3 +254,49 @@ func BenchmarkWriteMixedFilesNormalBandwidth(b *testing.B) {
 		),
 	)
 }
+
+func BenchmarkMultiFileSync(b *testing.B) {
+	numFiles := 20
+	fileSize := 5
+	benchmark(b, silentBenchmark{b},
+		journal(),
+		users("alice"),
+		as(alice,
+			enableJournal(),
+			custom(func(cb func(fileOp) error) error {
+				files := make([]string, numFiles*b.N)
+				bufs := make([][]byte, numFiles*b.N)
+				for i := 0; i < numFiles*b.N; i++ {
+					files[i] = fmt.Sprintf("a/b/c/file%d", i)
+					bufs[i] = make([]byte, fileSize)
+					for j := 0; j < fileSize; j++ {
+						bufs[i][j] = byte(i*fileSize + j)
+					}
+					err := cb(truncate(files[i], 0))
+					if err != nil {
+						return err
+					}
+				}
+				b.ResetTimer()
+				defer b.StopTimer()
+				for iter := 0; iter < b.N; iter++ {
+					// Write to each file without syncing.
+					for i := iter * numFiles; i < numFiles; i++ {
+						err := cb(pwriteBSSync(files[i], bufs[i], 0, false))
+						if err != nil {
+							return err
+						}
+					}
+					// Sync each file by doing a no-op truncate.
+					for i := iter * numFiles; i < numFiles; i++ {
+						err := cb(truncate(files[i], uint64(fileSize)))
+						if err != nil {
+							return err
+						}
+					}
+				}
+				return nil
+			}),
+		),
+	)
+}
