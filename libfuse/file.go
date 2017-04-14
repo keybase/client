@@ -247,29 +247,6 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest,
 	return nil
 }
 
-var _ fs.HandleFlusher = (*File)(nil)
-
-// Flush implements the fs.HandleFlusher interface for File.
-func (f *File) Flush(ctx context.Context, req *fuse.FlushRequest) (err error) {
-	ctx = f.folder.fs.config.MaybeStartTrace(
-		ctx, "File.Flush", f.node.GetBasename())
-	defer func() { f.folder.fs.config.MaybeFinishTrace(ctx, err) }()
-
-	f.folder.fs.log.CDebugf(ctx, "File Flush")
-	// I'm not sure about the guarantees from KBFSOps, so we don't
-	// differentiate between Flush and Fsync.
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
-
-	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
-	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
-		ctx, f.folder.fs.config.DelayedCancellationGracePeriod())
-	if err != nil {
-		return err
-	}
-
-	return f.sync(ctx)
-}
-
 var _ fs.NodeSetattrer = (*File)(nil)
 
 // Setattr implements the fs.NodeSetattrer interface for File.
@@ -289,15 +266,6 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 		if err := f.folder.fs.config.KBFSOps().Truncate(
 			ctx, f.node, req.Size); err != nil {
 			return err
-		}
-		if !req.Valid.Handle() {
-			// This is a truncate (as opposed to an ftruncate), and so
-			// we can't expect a later file close.  So just sync the
-			// file now.
-			if err := f.folder.fs.config.KBFSOps().Sync(
-				ctx, f.node); err != nil {
-				return err
-			}
 		}
 		valid &^= fuse.SetattrSize
 	}

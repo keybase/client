@@ -68,8 +68,6 @@ func (f *File) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 	if f.refcount.Decrease() {
 		f.folder.fs.log.CDebugf(ctx, "Forgetting file node")
 		f.folder.forgetNode(ctx, f.node)
-		// TODO this should not be needed in future.
-		f.folder.fs.config.KBFSOps().Sync(ctx, f.node)
 	}
 }
 
