@@ -231,9 +231,6 @@ func (s *Session) Load() error {
 			s.inFile = true
 			s.deviceID = did
 			s.mtime = time.Unix(mtime, 0)
-
-			// XXX set s.valid = true?
-			// XXX trying this...
 			s.valid = true
 		}
 	}
