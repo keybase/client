@@ -2547,7 +2547,8 @@ func (fbo *folderBranchOps) createEntryLocked(
 	de, err = fbo.syncBlockAndFinalizeLocked(
 		ctx, lState, md, newBlock, dirPath, name, entryType,
 		true, true, zeroPtr, excl)
-	if excl == WithExcl && errors.Cause(err) == errNoUpdatesWhileDirty {
+	_, isNoUpdatesWhileDirty := errors.Cause(err).(NoUpdatesWhileDirtyError)
+	if excl == WithExcl && isNoUpdatesWhileDirty {
 		// If an exclusive write hits a conflict, it will try to
 		// update, but won't be able to because of the dirty directory
 		// entries.  We need to clean up the dirty entries here first
@@ -4101,8 +4102,6 @@ func (fbo *folderBranchOps) getCurrMDRevision(
 
 type applyMDUpdatesFunc func(context.Context, *lockState, []ImmutableRootMetadata) error
 
-var errNoUpdatesWhileDirty = errors.New("Ignoring MD updates while writes are dirty")
-
 func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	lState *lockState, rmds []ImmutableRootMetadata) error {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -4171,7 +4170,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	// sync will put us into an unmerged state anyway and we'll
 	// require conflict resolution.
 	if fbo.blocks.GetState(lState) != cleanState {
-		return errors.WithStack(errNoUpdatesWhileDirty)
+		return errors.WithStack(NoUpdatesWhileDirtyError{})
 	}
 
 	appliedRevs := make([]ImmutableRootMetadata, 0, len(rmds))

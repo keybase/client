@@ -1270,3 +1270,12 @@ func (e DiskCacheStartingError) Error() string {
 	return fmt.Sprintf("Error performing %s operation: the disk cache is "+
 		"still starting", e.op)
 }
+
+// NoUpdatesWhileDirtyError indicates that updates aren't being
+// accepted while a TLF is locally dirty.
+type NoUpdatesWhileDirtyError struct{}
+
+// Error implements the error interface for NoUpdatesWhileDirtyError.
+func (e NoUpdatesWhileDirtyError) Error() string {
+	return "Ignoring MD updates while writes are dirty"
+}
