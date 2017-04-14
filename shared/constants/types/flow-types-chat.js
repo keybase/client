@@ -115,13 +115,13 @@ export const LocalBodyPlaintextVersion = {
 }
 
 export const LocalConversationErrorType = {
-  misc: 0,
+  permanent: 0,
   missinginfo: 1,
   selfrekeyneeded: 2,
   otherrekeyneeded: 3,
   identify: 4,
-  localmaxmessagenotfound: 5,
-  transient: 6,
+  transient: 5,
+  none: 6,
 }
 
 export const LocalHeaderPlaintextVersion = {
@@ -824,7 +824,6 @@ export type ConversationErrorLocal = {
   typ: ConversationErrorType,
   message: string,
   remoteConv: Conversation,
-  permanent: boolean,
   unverifiedTLFName: string,
   rekeyInfo?: ?ConversationErrorRekey,
 }
@@ -838,13 +837,13 @@ export type ConversationErrorRekey = {
 }
 
 export type ConversationErrorType =
-    0 // MISC_0
+    0 // PERMANENT_0
   | 1 // MISSINGINFO_1
   | 2 // SELFREKEYNEEDED_2
   | 3 // OTHERREKEYNEEDED_3
   | 4 // IDENTIFY_4
-  | 5 // LOCALMAXMESSAGENOTFOUND_5
-  | 6 // TRANSIENT_6
+  | 5 // TRANSIENT_5
+  | 6 // NONE_6
 
 export type ConversationFinalizeInfo = {
   resetUser: string,

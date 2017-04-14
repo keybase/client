@@ -178,7 +178,7 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 
 				// Log this guy into Syncer's stale store, so that we refresh it when we
 				// re-connect
-				if !convRes.Err.Permanent {
+				if convRes.Err.Typ == chat1.ConversationErrorType_TRANSIENT {
 					h.G().ChatSyncer.AddStaleConversation(ctx, uid.ToBytes(), convRes.ConvID)
 				}
 

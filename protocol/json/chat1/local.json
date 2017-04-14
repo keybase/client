@@ -991,13 +991,13 @@
       "type": "enum",
       "name": "ConversationErrorType",
       "symbols": [
-        "MISC_0",
+        "PERMANENT_0",
         "MISSINGINFO_1",
         "SELFREKEYNEEDED_2",
         "OTHERREKEYNEEDED_3",
         "IDENTIFY_4",
-        "LOCALMAXMESSAGENOTFOUND_5",
-        "TRANSIENT_6"
+        "TRANSIENT_5",
+        "NONE_6"
       ]
     },
     {
@@ -1015,10 +1015,6 @@
         {
           "type": "Conversation",
           "name": "remoteConv"
-        },
-        {
-          "type": "boolean",
-          "name": "permanent"
         },
         {
           "type": "string",
