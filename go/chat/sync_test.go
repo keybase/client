@@ -72,6 +72,7 @@ func TestSyncerConnected(t *testing.T) {
 	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
 	syncer := NewSyncer(tc.G)
+	syncer.isConnected = true
 	ibox := storage.NewInbox(tc.G, uid)
 	store := storage.New(tc.G)
 

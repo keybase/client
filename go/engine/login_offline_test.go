@@ -29,7 +29,9 @@ func TestLoginOffline(t *testing.T) {
 	tc.G.GetUPAKLoader().ClearMemory()
 
 	// set server uri to nonexistent ip so api calls will fail
+	prev := os.Getenv("KEYBASE_SERVER_URI")
 	os.Setenv("KEYBASE_SERVER_URI", "http://127.0.0.127:3333")
+	defer os.Setenv("KEYBASE_SERVER_URI", prev)
 	tc.G.ConfigureAPI()
 
 	eng := NewLoginOffline(tc.G)
