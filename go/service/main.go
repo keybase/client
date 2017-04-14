@@ -234,6 +234,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// These are all background-ish operations that the service performs.
 	// We should revisit these on mobile, or at least, when mobile apps are
 	// backgrounded.
+	d.tryLogin()
 	d.hourlyChecks()
 	d.createChatSources()
 	d.createMessageDeliverer()
@@ -242,7 +243,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
-	d.tryLogin()
 	d.runBackgroundIdentifier()
 }
 
