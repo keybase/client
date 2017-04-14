@@ -302,3 +302,13 @@ func (h ConfigHandler) CheckAPIServerOutOfDateWarning(_ context.Context) (keybas
 func (h ConfigHandler) WaitForClient(_ context.Context, arg keybase1.WaitForClientArg) (bool, error) {
 	return h.G().ConnectionManager.WaitForClientType(arg.ClientType, arg.Timeout.Duration()), nil
 }
+
+func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (keybase1.BootstrapStatus, error) {
+	eng := engine.NewBootstrap(h.G())
+	ectx := &engine.Context{NetContext: ctx}
+	if err := engine.RunEngine(eng, ectx); err != nil {
+		return keybase1.BootstrapStatus{}, err
+	}
+
+	return keybase1.BootstrapStatus{}, nil
+}

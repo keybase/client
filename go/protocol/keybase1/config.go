@@ -126,6 +126,16 @@ type OutOfDateInfo struct {
 	CriticalClockSkew int64  `codec:"criticalClockSkew" json:"criticalClockSkew"`
 }
 
+type BootstrapStatus struct {
+	Uid        UID           `codec:"uid" json:"uid"`
+	Username   string        `codec:"username" json:"username"`
+	DeviceID   DeviceID      `codec:"deviceID" json:"deviceID"`
+	DeviceName string        `codec:"deviceName" json:"deviceName"`
+	LoggedIn   bool          `codec:"loggedIn" json:"loggedIn"`
+	Following  []UserSummary `codec:"following" json:"following"`
+	Followers  []UserSummary `codec:"followers" json:"followers"`
+}
+
 type GetCurrentStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -175,6 +185,10 @@ type WaitForClientArg struct {
 	Timeout    DurationSec `codec:"timeout" json:"timeout"`
 }
 
+type GetBootstrapStatusArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (GetCurrentStatusRes, error)
 	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
@@ -192,6 +206,7 @@ type ConfigInterface interface {
 	CheckAPIServerOutOfDateWarning(context.Context) (OutOfDateInfo, error)
 	// Wait for client type to connect to service.
 	WaitForClient(context.Context, WaitForClientArg) (bool, error)
+	GetBootstrapStatus(context.Context, int) (BootstrapStatus, error)
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -369,6 +384,22 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getBootstrapStatus": {
+				MakeArg: func() interface{} {
+					ret := make([]GetBootstrapStatusArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetBootstrapStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetBootstrapStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.GetBootstrapStatus(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -440,5 +471,11 @@ func (c ConfigClient) CheckAPIServerOutOfDateWarning(ctx context.Context) (res O
 // Wait for client type to connect to service.
 func (c ConfigClient) WaitForClient(ctx context.Context, __arg WaitForClientArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.waitForClient", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ConfigClient) GetBootstrapStatus(ctx context.Context, sessionID int) (res BootstrapStatus, err error) {
+	__arg := GetBootstrapStatusArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.config.getBootstrapStatus", []interface{}{__arg}, &res)
 	return
 }
