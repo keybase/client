@@ -6,6 +6,7 @@ package libkb
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 
@@ -149,5 +150,40 @@ func peekTypeAndMakeDecoder(dearmored io.Reader, keyring naclKeyring) (io.Reader
 		return plainsource, nil, senderPublic, typ, err
 	default:
 		return nil, nil, nil, -1, fmt.Errorf("unexpected message mode when peeking: %d", typ)
+	}
+}
+
+type tlfKeyResolver struct {
+	Contextified
+}
+
+var _ saltpack.SymmetricKeyResolver = (*tlfKeyResolver)(nil)
+
+func NewTlfKeyResolver(g *GlobalContext) *tlfKeyResolver {
+	return &tlfKeyResolver{NewContextified(g)}
+}
+
+func (r *tlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.SymmetricKey, error) {
+	tlfPseudonyms := []TlfPseudonym{}
+	for _, identifier := range identifiers {
+		pseudonym := TlfPseudonym{}
+		if len(pseudonym) != len(identifier) {
+			return nil, fmt.Errorf("identifier is the wrong length for a TLF pseudonym (%d != %d)", len(pseudonym), len(identifier))
+		}
+		copy(pseudonym[:], identifier)
+		tlfPseudonyms = append(tlfPseudonyms, pseudonym)
+	}
+
+	results, err := GetTlfPseudonyms(context.TODO(), r.G(), tlfPseudonyms)
+	if err != nil {
+		return nil, err
+	}
+
+	symmetricKeys := []*saltpack.SymmetricKey{}
+	for _, result := range results {
+		if result.Err != nil {
+			continue
+		}
+		// LOOK UP TLF KEY
 	}
 }
