@@ -49,8 +49,9 @@ type BoxPublicKey interface {
 	// for use with nacl.box.Seal
 	ToRawBoxKeyPointer() *RawBoxKey
 
-	// CreateEmphemeralKey creates an ephemeral key of the same type,
-	// but totally random.
+	// CreateEmphemeralKey creates an ephemeral key of the same type, but
+	// totally random. The BoxPublicKey and the Keyring interfaces both support
+	// this method, for convenience.
 	CreateEphemeralKey() (BoxSecretKey, error)
 
 	// HideIdentity returns true if we should hide the identity of this
@@ -122,6 +123,11 @@ type Keyring interface {
 	// BoxPublicKey format. This key has never been seen before, so
 	// will be ephemeral.
 	ImportBoxEphemeralKey(kid []byte) BoxPublicKey
+
+	// CreateEmphemeralKey creates a random ephemeral key. It is not added to
+	// the keyring. The BoxPublicKey and Keyring interfaces both support this
+	// method, for convenience.
+	CreateEphemeralKey() (BoxSecretKey, error)
 }
 
 // SigKeyring is an interface used during verification to find
