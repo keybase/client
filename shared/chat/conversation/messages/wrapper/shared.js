@@ -19,7 +19,7 @@ const UserAvatar = ({author, showImage}) => (
 
 const Username = ({author, isYou, isFollowing, isBroken, includeHeader}) => {
   if (!includeHeader) return null
-  const style = {color: colorForAuthor(author, isYou, isFollowing, isBroken), ...(isYou ? globalStyles.italic : null), ..._usernameStyle}
+  const style = {color: colorForAuthor(author, isYou, isFollowing, isBroken), ...(isYou ? globalStyles.italic : null), marginBottom: 2}
   return <Text type='BodySmallSemibold' style={style}>{author}</Text>
 }
 
