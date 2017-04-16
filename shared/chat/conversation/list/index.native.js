@@ -51,6 +51,15 @@ class ConversationList extends Component <void, Props, State> {
     this.props.onLoadMoreMessages()
   }
 
+  componentDidUpdate (prevProps) {
+    // TODO do we need this? I think the list may work how we want w/o this
+    if (this.props.listScrollDownCounter !== prevProps.listScrollDownCounter && this._scrollRef) {
+      this._scrollRef.scrollTo({y: 0, animated: false})
+    }
+  }
+
+  _captureScrollRef = r => { this._scrollRef = r }
+
   render () {
     return (
       <FlatList
@@ -61,7 +70,7 @@ class ConversationList extends Component <void, Props, State> {
         onEndReached={this._onEndReached}
         onEndReachedThreshold={0}
         keyExtractor={this._keyExtractor}
-        renderScrollComponent={props => <InvertibleScrollView {...props} inverted={true} />}
+        renderScrollComponent={props => <InvertibleScrollView {...props} ref={this._captureScrollRef} inverted={true} />}
         initialNumToRender={30}
       />
     )
