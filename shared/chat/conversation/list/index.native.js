@@ -5,34 +5,37 @@ import messageFactory from '../messages'
 // import shallowEqual from 'shallowequal'
 // import {Box, Icon} from '../../../common-adapters'
 import {NativeListView} from '../../../common-adapters/index.native'
+import FlatList from '../../../fixme/Lists/FlatList'
+import {debounce} from 'lodash'
 
 import type {Props} from '.'
 
 type State = {
-  dataSource: NativeListView.DataSource,
   isLockedToBottom: boolean,
   // scrollViewHeight: ?number,
   // contentHeight: ?number,
 }
 
-// const lockedToBottomSlop = 20
-
 class ConversationList extends Component <void, Props, State> {
   state: State;
-  _list: any;
+  _listRef: ?any;
+  _viewableItems = [];
 
+  // _listRef: any;
   _ds = new NativeListView.DataSource({
     rowHasChanged: (r1, r2) => {
       return r1 !== r2
     },
   })
 
+  _initiallyScrolledToBottom = false;
+
   constructor (props: Props) {
     super(props)
     this.state = {
       // contentHeight: null,
-      dataSource: this._ds.cloneWithRows(this.props.messageKeys.toArray()),
       isLockedToBottom: true,
+      scrollToIndex: null,
       // scrollViewHeight: null,
     }
   }
@@ -72,21 +75,24 @@ class ConversationList extends Component <void, Props, State> {
     // }
   // }
 
-  componentWillReceiveProps (nextProps: Props) {
-    if (this.props.selectedConversation !== nextProps.selectedConversation ||
-      this.props.listScrollDownCounter !== nextProps.listScrollDownCounter) {
-      this.setState({isLockedToBottom: true})
-    }
-
-    if (this.props.messageKeys !== nextProps.messageKeys) {
-      this.setState({dataSource: this._ds.cloneWithRows(nextProps.messageKeys.toArray())})
+  componentDidUpdate (prevProps: Props, prevState: State) {
+    if (prevState.scrollToIndex !== this.state.scrollToIndex) {
+      console.log('My scroll to index is different, I\'m going to scroll to', this.state.scrollToIndex)
+      this._scrollToIndex(this.state.scrollToIndex)
     }
   }
 
-  componentDidMount () {
-    if (this.state.isLockedToBottom) {
-      this._list && this._list.scrollToEnd({animated: false})
+  componentWillReceiveProps (nextProps: Props) {
+    // const willScrollDown = nextProps.listScrollDownCounter !== this.props.listScrollDownCounter
+    if (this.props.messageKeys !== nextProps.messageKeys && this.state.isLockedToBottom) {
+      console.log('setting scrollToIndex to', nextProps.messageKeys.count() - 1)
+      this.setState({scrollToIndex: nextProps.messageKeys.count() - 1})
+      // this._scrollToEnd()
     }
+
+    // if (willScrollDown) {
+      // this.setState({isLockedToBottom: true})
+    // }
   }
 
   componentDidUpdate (prevProps: Props, prevState: State) {
@@ -136,10 +142,14 @@ class ConversationList extends Component <void, Props, State> {
     this.props.onMessageAction(message)
   }
 
-  // // This is handled slightly differently on mobile, leave this blank
+  _isIdxVisible = (viewableItems, idx) => {
+    return viewableItems && viewableItems.findIndex(({index}) => index === idx) !== -1
+  }
+
+  // This is handled slightly differently on mobile, leave this blank
   _onShowEditor = (message: Constants.Message, event: any) => { }
 
-  // // This is handled slightly differently on mobile, leave this blank
+  // This is handled slightly differently on mobile, leave this blank
   _measure = () => {}
 
   _setListRef = (r: any) => {
@@ -154,17 +164,108 @@ class ConversationList extends Component <void, Props, State> {
     return messageFactory(messageKey, prevMessageKey, this._onAction, this._onShowEditor, isSelected, this._measure)
   }
 
+  _renderItem = ({item: messageKey, index}) => {
+    const prevMessageKey = index !== 0 ? this.props.messageKeys.get(index - 1) : null
+    const isSelected = false
+
+    return messageFactory(messageKey, prevMessageKey, this._onAction, this._onShowEditor, isSelected, this._measure)
+  }
+
+  // _renderRow = (message, sectionID, rowID) => {
+    // const messages = this._allMessages(this.props)
+    // const isFirstMessage = rowID === 0
+    // const prevMessage = messages.get(rowID - 1)
+    // const isSelected = false
+    // const isScrolling = false
+    // const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, message.key || `other-${rowID}`, {}, this._onAction, this._onShowEditor, this.props.editingMessage === message)
+
+    // return messageFactory(options)
+  // }
+
+  _captureRef = (ref) => { this._listRef = ref }
+
+  _scrollToEnd = () => {
+    console.log('scrolling to the end!!', this.props.messageKeys)
+    this._listRef && this._listRef.scrollToEnd({animated: false})
+  }
+
+  _scrollToIndex = debounce((index) => {
+    console.log('Going to try to scroll', index)
+    console.log('isLastItemVisible?', index, this._isIdxVisible(this._viewableItems, index))
+    if (index) {
+      console.log('maybe scroll to ', index)
+      if (!this._isIdxVisible(this._viewableItems, index)) {
+        console.log('  scrolling to ', index)
+        // Need to do getItemLayout
+        console.log('  list ref is', this._listRef)
+        // this._listRef && this._listRef.scrollToIndex({animated: false, index})
+        this._listRef && this._listRef.scrollToEnd({animated: false, index})
+        this.setState({scrollToIndex: null})
+      } else {
+        console.log('  already there')
+        // this.setState({scrollToIndex: null})
+      }
+    }
+  }, 1000, {trailing: true})
+
+  _onLayout = ({nativeEvent: {layout: {x, y, width, height}}}) => {
+    console.log('layout', x, y, width, height)
+  }
+
+  _onViewableItemsChanged = ({viewableItems}) => {
+    console.log('viewable items', viewableItems)
+    this._viewableItems = viewableItems
+
+    // If the last item isn't visible we are not locked to the bottom
+    const lastIdx = this.props.messageKeys.count() - 1
+    if (!this._isIdxVisible(viewableItems, lastIdx)) {
+      // If we're scrolling to the bottom then we want to be locked to the bottom
+      // otherwise we are not locked
+      this.setState({isLockedToBottom: this.state.scrollToIndex === lastIdx})
+    }
+
+    if (this._isIdxVisible(viewableItems, 0) && !this.state.isLockedToBottom) {
+      this.props.onLoadMoreMessages()
+    }
+  }
+
+  _keyExtractor = messageKey => messageKey
+
+  _onEndReached = ({distanceFromEnd}) => {
+    console.log('onEndReached!')
+    this.setState({isLockedToBottom: true})
+  }
+
+  componentDidMount () {
+    console.log('mounted!', this._listRef)
+  }
+
   render () {
+    console.log('isLockedToBottom', this.state.isLockedToBottom)
+    console.log('scroll to index', this.state.scrollToIndex)
+
     return (
-      <NativeListView
-        dataSource={this.state.dataSource}
-        enableEmptySections={true}
-        initialListSize={20}
-        ref={this._setListRef}
-        renderRow={this._renderRow}
+      <FlatList
+        ref={this._captureRef}
+        data={this.props.messageKeys.toArray()}
+        renderItem={this._renderItem}
+        onViewableItemsChanged={this._onViewableItemsChanged}
+        onScroll={this._onScroll}
+        onEndReached={this._onEndReached}
+        onEndReachedThreshold={1}
+        keyExtractor={this._keyExtractor}
+        initialNumToRender={30}
       />
     )
   }
+        // onRefresh={() => {
+        //   console.log('refreshing')
+        //   this.setState({refreshing: true})
+        //   setTimeout(() => this.setState({refreshing: false}), 1e3)
+        // }}
+        // refreshing={this.state.refreshing || false}
+  //
+        // ref={r => { this._listRef = r; window._listRef = r }}
         // onScroll={this._onScroll}
         // onContentSizeChange={this._onContentSizeChange}
         // onLayout={this._onLayout}
