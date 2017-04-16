@@ -62,7 +62,7 @@ class ConversationList extends Component <void, Props, State> {
         onEndReachedThreshold={0}
         keyExtractor={this._keyExtractor}
         renderScrollComponent={props => <InvertibleScrollView {...props} inverted={true} />}
-        initialNumToRender={1}
+        initialNumToRender={30}
       />
     )
   }
