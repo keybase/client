@@ -471,10 +471,11 @@ func (e *loginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) erro
 	e.signingKey = eng.SigningKey()
 	e.encryptionKey = eng.EncryptionKey()
 
-	did := e.G().Env.GetDeviceID()
-
-	e.sharedDHKeyring = libkb.NewSharedDHKeyring(e.G(), e.arg.User.GetUID())
-	e.sharedDHKeyring.SetDeviceID(did)
+	var err error
+	e.sharedDHKeyring, err = libkb.NewSharedDHKeyring(e.G(), e.arg.User.GetUID(), e.G().Env.GetDeviceID())
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

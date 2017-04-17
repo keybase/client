@@ -80,7 +80,11 @@ func (e *PaperKeyGen) EncKey() libkb.GenericKey {
 func (e *PaperKeyGen) Run(ctx *Context) error {
 	if e.G().Env.GetEnableSharedDH() {
 		// Sync the sdh keyring before updating other things.
-		err := e.getSharedDHKeyring().SyncWithExtras(ctx.NetContext, e.arg.LoginContext, e.arg.Me)
+		sdhk, err := e.getSharedDHKeyring()
+		if err != nil {
+			return err
+		}
+		err = sdhk.SyncWithExtras(ctx.NetContext, e.arg.LoginContext, e.arg.Me)
 		if err != nil {
 			return err
 		}
@@ -282,10 +286,14 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 
 	var sdhBoxes = []libkb.SharedDHSecretKeyBox{}
 	if e.G().Env.GetEnableSharedDH() {
-		if e.getSharedDHKeyring().CurrentGeneration() == 0 {
+		sdhk, err := e.getSharedDHKeyring()
+		if err != nil {
+			return err
+		}
+		if sdhk.CurrentGeneration() == 0 {
 			// TODO if SDH_UPGRADE: may want to add a key here.
 		} else {
-			sdhBoxes, err = e.getSharedDHKeyring().PrepareBoxesForNewDevice(
+			sdhBoxes, err = sdhk.PrepareBoxesForNewDevice(
 				e.encKey,            // receiver key: new paper key enc
 				e.arg.EncryptionKey) // sender key: this device enc
 			if err != nil {
@@ -297,14 +305,11 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc}, sdhBoxes)
 }
 
-func (e *PaperKeyGen) getSharedDHKeyring() (ret *libkb.SharedDHKeyring) {
+func (e *PaperKeyGen) getSharedDHKeyring() (ret *libkb.SharedDHKeyring, err error) {
 	ret = e.arg.SharedDHKeyring
 	if ret != nil {
 		return
 	}
-	ret = e.G().GetSharedDHKeyring()
-	if ret != nil {
-		return
-	}
-	panic("no SharedDHKeyring")
+	ret, err = e.G().GetSharedDHKeyring()
+	return
 }

@@ -221,8 +221,11 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 		s.G().Log.Warning("error saving session file: %s", err)
 	}
 
-	s.sharedDHKeyring = libkb.NewSharedDHKeyring(s.G(), s.uid)
-	s.sharedDHKeyring.SetDeviceID(did)
+	var err error
+	s.sharedDHKeyring, err = libkb.NewSharedDHKeyring(s.G(), s.uid, did)
+	if err != nil {
+		return err
+	}
 
 	if s.arg.StoreSecret {
 		// Create the secret store as late as possible here

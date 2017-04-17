@@ -60,17 +60,24 @@ type SharedDHKeyring struct {
 	Contextified
 	sync.Mutex
 	uid         keybase1.UID
-	deviceID    keybase1.DeviceID // can be nil
+	deviceID    keybase1.DeviceID
 	generations SharedDHKeyMap
 }
 
 // NewSharedDHKeyring makes a new SharedDH keyring for a given UID.
-func NewSharedDHKeyring(g *GlobalContext, uid keybase1.UID) *SharedDHKeyring {
+func NewSharedDHKeyring(g *GlobalContext, uid keybase1.UID, deviceID keybase1.DeviceID) (*SharedDHKeyring, error) {
+	if uid.IsNil() {
+		return nil, fmt.Errorf("NewSharedDHKeyring called with nil uid")
+	}
+	if deviceID.IsNil() {
+		return nil, fmt.Errorf("NewSharedDHKeyring called with nil deviceID")
+	}
 	return &SharedDHKeyring{
 		Contextified: NewContextified(g),
 		uid:          uid,
+		deviceID:     deviceID,
 		generations:  make(SharedDHKeyMap),
-	}
+	}, nil
 }
 
 // PrepareBoxesForNewDevice encrypts the shared keys for a new device.
@@ -112,18 +119,24 @@ func (s *SharedDHKeyring) SharedDHKey(g SharedDHKeyGeneration) *NaclDHKeyPair {
 }
 
 // Clone makes a deep copy of this DH keyring.
-func (s *SharedDHKeyring) Clone() *SharedDHKeyring {
+func (s *SharedDHKeyring) Clone() (*SharedDHKeyring, error) {
 	s.Lock()
 	defer s.Unlock()
-	ret := NewSharedDHKeyring(s.G(), s.uid)
+	ret, err := NewSharedDHKeyring(s.G(), s.uid, s.deviceID)
+	if err != nil {
+		return nil, err
+	}
 	ret.mergeLocked(s.generations)
-	return ret
+	return ret, nil
 }
 
 // Update will take the existing SharedDHKeyring, and return an updated
 // copy, that will be synced with the server's version of our SharedDHKeyring.
 func (s *SharedDHKeyring) Update(ctx context.Context) (ret *SharedDHKeyring, err error) {
-	ret = s.Clone()
+	ret, err = s.Clone()
+	if err != nil {
+		return nil, err
+	}
 	err = ret.Sync(ctx)
 	return ret, err
 }
@@ -137,14 +150,6 @@ func (s *SharedDHKeyring) Sync(ctx context.Context) (err error) {
 
 func (s *SharedDHKeyring) SyncWithExtras(ctx context.Context, lctx LoginContext, me *User) (err error) {
 	return s.sync(ctx, lctx, me)
-}
-
-// Set the device id.
-// Needed in order to use the keyring before the device id has been written to conf.
-func (s *SharedDHKeyring) SetDeviceID(deviceID keybase1.DeviceID) {
-	s.Lock()
-	defer s.Unlock()
-	s.deviceID = deviceID
 }
 
 // `lctx` and `me` are optional
@@ -194,11 +199,6 @@ func (s *SharedDHKeyring) mergeLocked(m SharedDHKeyMap) (err error) {
 func (s *SharedDHKeyring) fetchBoxesLocked(ctx context.Context, lctx LoginContext) (ret []SharedDHSecretKeyBox, err error) {
 	defer s.G().CTrace(ctx, "SharedDHKeyring#fetchBoxesLocked", func() error { return err })()
 
-	did := s.getDeviceIDLocked()
-	if did.IsNil() {
-		return nil, DeviceRequiredError{}
-	}
-
 	var sessionR SessionReader
 	if lctx != nil {
 		sessionR = lctx.LocalSession()
@@ -209,7 +209,7 @@ func (s *SharedDHKeyring) fetchBoxesLocked(ctx context.Context, lctx LoginContex
 		Endpoint: "key/fetch_shared_dh_secrets",
 		Args: HTTPArgs{
 			"generation": I{int(s.currentGenerationLocked())},
-			"device_id":  S{did.String()},
+			"device_id":  S{s.deviceID.String()},
 		},
 		SessionType: APISessionTypeREQUIRED,
 		SessionR:    sessionR,
@@ -222,16 +222,6 @@ func (s *SharedDHKeyring) fetchBoxesLocked(ctx context.Context, lctx LoginContex
 	ret = resp.Boxes
 	s.G().Log.CDebugf(ctx, "| Got back %d boxes from server", len(ret))
 	return ret, nil
-}
-
-// Get the device id set locally or from the config.
-// Can return nil.
-func (s *SharedDHKeyring) getDeviceIDLocked() keybase1.DeviceID {
-	if !s.deviceID.IsNil() {
-		return s.deviceID
-	}
-	x := s.G().Env.GetDeviceIDForUID(s.uid)
-	return x
 }
 
 // sharedDHChecker checks the secret boxes returned from the server

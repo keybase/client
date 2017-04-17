@@ -759,7 +759,12 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 
 func (g *GlobalContext) CallLoginHooks() {
 
-	g.SetSharedDHKeyring(NewSharedDHKeyring(g, g.GetMyUID()))
+	sdhk, err := NewSharedDHKeyring(g, g.GetMyUID(), g.Env.GetDeviceID())
+	if err != nil {
+		g.Log.Warning("NewSharedDHKeyring failed: %s", err)
+	} else {
+		g.SetSharedDHKeyring(sdhk)
+	}
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin()
@@ -937,10 +942,13 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.uchMu.Unlock()
 }
 
-func (g *GlobalContext) GetSharedDHKeyring() *SharedDHKeyring {
+func (g *GlobalContext) GetSharedDHKeyring() (*SharedDHKeyring, error) {
 	g.sharedDHKeyringMu.Lock()
 	defer g.sharedDHKeyringMu.Unlock()
-	return g.sharedDHKeyring
+	if g.sharedDHKeyring == nil {
+		return nil, fmt.Errorf("SharedDHKeyring not present")
+	}
+	return g.sharedDHKeyring, nil
 }
 
 func (g *GlobalContext) SetSharedDHKeyring(k *SharedDHKeyring) {
