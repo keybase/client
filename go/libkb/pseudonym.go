@@ -5,7 +5,6 @@
 package libkb
 
 import (
-	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -32,6 +31,12 @@ type TlfPseudonymInfo struct {
 	ID      tlfID
 	KeyGen  keyGen
 	HmacKey [32]byte
+
+	// Ignored in requests. Set in server responses. Using untrusted data
+	// during decryption is safe because we don't rely on TLF keys for sender
+	// authenticity. (Note however that senders must not use untrusted keys, or
+	// else they'd lose all privacy.)
+	UntrustedCurrentName string
 }
 
 func (t TlfPseudonym) String() string {
@@ -39,10 +44,13 @@ func (t TlfPseudonym) String() string {
 }
 
 func (t *TlfPseudonym) Eq(r *TlfPseudonym) bool {
-	if t != nil && r != nil {
-		return bytes.Equal(t[:], r[:])
+	if t == nil || r == nil {
+		// It's unlikely that the caller wants to verify that two pseudonyms
+		// are both nil, and more likely that accepting nil values would cause
+		// a security bug.
+		return false
 	}
-	return (t == nil) && (r == nil)
+	return hmac.Equal(t[:], r[:])
 }
 
 // tlfPseudonymReq is what the server needs to store a pseudonym
@@ -75,10 +83,11 @@ func (r *getTlfPseudonymsRes) GetAppStatus() *AppStatus {
 type getTlfPseudonymRes struct {
 	Err  *PseudonymGetError `json:"err"`
 	Info *struct {
-		Name    string `json:"tlf_name"`
-		ID      string `json:"tlf_id"` // hex
-		KeyGen  int    `json:"tlf_key_gen"`
-		HmacKey string `json:"hmac_key"` // hex
+		OriginalName         string `json:"original_name"`
+		UntrustedCurrentName string `json:"untrusted_current_name"`
+		ID                   string `json:"tlf_id"` // hex
+		KeyGen               int    `json:"tlf_key_gen"`
+		HmacKey              string `json:"hmac_key"` // hex
 	} `json:"info"`
 }
 
@@ -206,7 +215,8 @@ func checkAndConvertTlfPseudonymFromServer(ctx context.Context, g *GlobalContext
 	if received.Info != nil {
 		info := TlfPseudonymInfo{}
 
-		info.Name = received.Info.Name
+		info.Name = received.Info.OriginalName
+		info.UntrustedCurrentName = received.Info.UntrustedCurrentName
 
 		n, err := hex.Decode(info.ID[:], []byte(received.Info.ID))
 		if err != nil {

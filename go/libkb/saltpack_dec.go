@@ -182,6 +182,7 @@ func (r *tlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Symmetri
 	symmetricKeys := []*saltpack.SymmetricKey{}
 	for _, result := range results {
 		if result.Err != nil {
+			g.Log.Debug("skipping unresolved pseudonym: %s", result.Err)
 			continue
 		}
 		// LOOK UP TLF KEY
