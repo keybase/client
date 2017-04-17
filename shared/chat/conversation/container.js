@@ -90,7 +90,6 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   branch((props: Props) => !props.selectedConversationIDKey, renderNothing()),
   branch((props: Props) => props.selectedConversationIDKey === Constants.nothingSelected, renderComponent(NoConversation)),
-  branch((props: Props) => !props.finalizeInfo && props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(), renderComponent(Rekey)),
   branch((props: Props) => !props.finalizeInfo && props.rekeyInfo, renderComponent(Rekey)),
   withState('sidePanelOpen', 'setSidePanelOpen', false),
   withState('focusInputCounter', 'setFocusInputCounter', 0),
