@@ -1121,6 +1121,9 @@ func (g *gregorHandler) isReachable() bool {
 func (g *gregorHandler) Reconnect(ctx context.Context) error {
 	if g.IsConnected() {
 		g.Debug(ctx, "Reconnect: reconnecting to server")
+		g.reachability.setReachability(keybase1.Reachability{
+			Reachable: keybase1.Reachable_NO,
+		})
 		g.Shutdown()
 		return g.Connect(g.uri)
 	}
