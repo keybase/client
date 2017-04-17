@@ -1,11 +1,12 @@
 // @flow
 import {Component} from 'react'
 
-import type {RekeyInfo} from '../../constants/chat'
+import type {RekeyInfo} from '../../../constants/chat'
 
 export type Props = {
-  rekeyInfo: RekeyInfo,
+  rekeyInfo: ?RekeyInfo,
   onShowProfile: (username: string) => void,
+  onBack: () => void,
 }
 
 export default class ParticipantRekey extends Component<void, Props, void> { }

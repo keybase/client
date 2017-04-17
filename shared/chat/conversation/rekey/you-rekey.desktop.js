@@ -1,9 +1,11 @@
 // @flow
 import React from 'react'
-import {Box, Button, Text} from '../../common-adapters'
-import {globalColors, globalStyles} from '../../styles'
+import {Box, Button, Text} from '../../../common-adapters'
+import {globalColors, globalStyles} from '../../../styles'
 
-const YouRekey = ({onRekey}: {onRekey: () => void}) => {
+import type {Props} from './you-rekey'
+
+const YouRekey = ({onRekey}: Props) => {
   return (
     <Box style={containerStyle}>
       <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>

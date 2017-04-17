@@ -1,10 +1,9 @@
 // @flow
-import EnterPaperkey from '../../login/register/paper-key/index.render'
-import HiddenString from '../../util/hidden-string'
-import {checkPaperKey} from '../../actions/unlock-folders'
-import {loadInbox} from '../../actions/chat/creators'
+import EnterPaperkey from '../../../login/register/paper-key/index.render'
+import HiddenString from '../../../util/hidden-string'
+import {checkPaperKey} from '../../../actions/unlock-folders'
 import {connect} from 'react-redux'
-import {navigateUp} from '../../actions/route-tree'
+import {navigateUp} from '../../../actions/route-tree'
 import {compose, withState, withHandlers} from 'recompose'
 
 export default compose(
@@ -17,7 +16,6 @@ export default compose(
       onBack: () => dispatch(navigateUp()),
       onEnterPaperkey: (key: string) => {
         dispatch(checkPaperKey(new HiddenString(key)))
-        dispatch(loadInbox(true))
         dispatch(navigateUp())
         dispatch(navigateUp())
       },

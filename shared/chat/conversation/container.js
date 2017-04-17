@@ -2,10 +2,12 @@
 import * as Constants from '../../constants/chat'
 import * as Creators from '../../actions/chat/creators'
 import Conversation from './index'
+import NoConversation from './no-conversation'
+import Rekey from './rekey/container'
 import {List} from 'immutable'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../actions/route-tree'
-import {withState, withHandlers, compose, branch, renderNothing, lifecycle} from 'recompose'
+import {withState, withHandlers, compose, branch, renderNothing, lifecycle, renderComponent} from 'recompose'
 
 import type {Props} from '.'
 import type {TypedState} from '../../constants/reducer'
@@ -86,6 +88,10 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  branch((props: Props) => !props.selectedConversationIDKey, renderNothing()),
+  branch((props: Props) => props.selectedConversationIDKey === Constants.nothingSelected, renderComponent(NoConversation)),
+  branch((props: Props) => !props.finalizeInfo && props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(), renderComponent(Rekey)),
+  branch((props: Props) => !props.finalizeInfo && props.rekeyInfo, renderComponent(Rekey)),
   withState('sidePanelOpen', 'setSidePanelOpen', false),
   withState('focusInputCounter', 'setFocusInputCounter', 0),
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
@@ -97,9 +103,6 @@ export default compose(
     onScrollDown: props => () => props.setListScrollDownCounter(props.listScrollDownCounter + 1),
     onToggleSidePanel: props => () => props.setSidePanelOpen(!props.sidePanelOpen),
   }),
-  branch(props => !props.selectedConversationIDKey,
-    renderNothing(),
-  ),
   lifecycle({
     componentWillReceiveProps: function (nextProps: Props) {
       if (this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {

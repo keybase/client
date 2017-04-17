@@ -1,9 +1,11 @@
 // @flow
 import React from 'react'
-import {Box, Text, Button, BackButton} from '../../common-adapters/index.native'
-import {globalColors, globalStyles} from '../../styles'
+import {Box, Text, Button, BackButton} from '../../../common-adapters/index.native'
+import {globalColors, globalStyles} from '../../../styles'
 
-const YouRekey = ({onEnterPaperkey, onBack}: {onEnterPaperkey: () => void, onBack: () => void}) => {
+import type {Props} from './you-rekey'
+
+const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
   return (
     <Box style={containerStyle}>
       <BackButton onClick={onBack} style={{alignSelf: 'flex-start', marginLeft: 16, marginBottom: 10, marginTop: 10}} iconStyle={{color: globalColors.white}} />

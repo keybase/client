@@ -32,14 +32,13 @@ const _getInboxQuery = {
 let _inboxUntrustedError = null
 
 // Load the inbox if we haven't yet, mostly done by the UI
-function * onInitialInboxLoad (action: Constants.LoadInbox): SagaGenerator<any, any> {
+function * onInitialInboxLoad (): SagaGenerator<any, any> {
   const inboxUntrustedState = yield select(Shared.inboxUntrustedStateSelector)
   if (inboxUntrustedState === 'loading') {
     return
   }
 
-  const {force} = action.payload
-  if (inboxUntrustedState === 'unloaded' || _inboxUntrustedError || force) {
+  if (inboxUntrustedState === 'unloaded' || _inboxUntrustedError) {
     yield put(Creators.setInboxUntrustedState('loading'))
     _inboxUntrustedError = null
     yield call(onInboxStale)
@@ -66,10 +65,9 @@ function * _backgroundUnboxLoop () {
 
 // Update inboxes that have been reset
 function * _updateFinalized (inbox: ChatTypes.GetInboxLocalRes) {
-  const finalizedState: Constants.FinalizedState = Map((inbox.conversationsUnverified || []).map(convoUnverified => [
-    Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
-    convoUnverified.metadata.finalizeInfo,
-  ]))
+  const finalizedState: Constants.FinalizedState = Map((inbox.conversationsUnverified || []).reduce((map, convoUnverified) => {
+    return map.set(Constants.conversationIDToKey(convoUnverified.metadata.conversationID), convoUnverified.metadata.finalizeInfo)
+  }, Map()))
 
   if (finalizedState.count()) {
     yield put(Creators.updateFinalizedState(finalizedState))

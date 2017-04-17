@@ -4,16 +4,11 @@ import Header from './header/container'
 import Input from './input/container'
 import List from './list/container'
 import OldProfileResetNotice from './notices/old-profile-reset-notice'
-import NoConversation from './no-conversation.desktop'
-import ParticipantRekey from './participant-rekey.desktop'
 import React, {Component} from 'react'
 import SidePanel from './side-panel/container'
-import YouRekey from './you-rekey.desktop.js'
 import {Box, Icon, Text, LoadingLine} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
-import * as Constants from '../../constants/chat'
-import {compose, branch, renderComponent} from 'recompose'
 
 import type {Props} from '.'
 
@@ -133,14 +128,4 @@ const dropOverlayStyle = {
   top: 0,
 }
 
-export default compose(
-  branch(
-    (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected,
-    renderComponent(NoConversation)),
-  branch(
-    (props: Props) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
-    renderComponent(ParticipantRekey)),
-  branch(
-    (props: Props) => !!props.rekeyInfo && !props.finalizeInfo,
-    renderComponent(YouRekey)),
-)(Conversation)
+export default Conversation
