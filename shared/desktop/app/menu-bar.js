@@ -2,7 +2,7 @@
 import hotPath from '../hot-path'
 import menubar from 'menubar'
 import {injectReactQueryParams} from '../../util/dev'
-import {ipcMain, systemPreferences, app} from 'electron'
+import electron, {ipcMain, systemPreferences, app} from 'electron'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {resolveImage, resolveRootAsURL} from '../resolve-root'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
@@ -126,6 +126,25 @@ export default function () {
     }
 
     mb.on('show', () => {
+      // Account for different taskbar positions on Windows
+      if (isWindows) {
+        const cursorPoint = electron.screen.getCursorScreenPoint()
+        const screenSize = electron.screen.getDisplayNearestPoint(cursorPoint).workArea
+        if (screenSize.x > 0) {
+          // start menu on left
+          mb.setOption('windowPosition', 'trayBottomLeft')
+        } else if (screenSize.y > 0) {
+          // start menu on top
+          mb.setOption('windowPosition', 'trayRight')
+        } else if (cursorPoint.x > screenSize.x) {
+          // start menu on right
+          mb.setOption('windowPosition', 'bottomRight')
+        } else {
+          // start menu on bottom
+          mb.setOption('windowPosition', 'trayBottomCenter')
+        }
+      }
+
       menubarListeners.forEach(l => l.send('menubarShow'))
       isDarwin && updateIcon(!isDarkMode())
     })
