@@ -148,7 +148,7 @@ func (s *SharedDHKeyring) Sync(ctx context.Context) (err error) {
 	return s.sync(ctx, nil, nil)
 }
 
-func (s *SharedDHKeyring) SyncWithExtras(ctx context.Context, lctx LoginContext, me *User) (err error) {
+func (s *SharedDHKeyring) SyncDuringSignup(ctx context.Context, lctx LoginContext, me *User) (err error) {
 	return s.sync(ctx, lctx, me)
 }
 

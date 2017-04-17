@@ -79,16 +79,10 @@ func (e *PaperKeyGen) EncKey() libkb.GenericKey {
 // Run starts the engine.
 func (e *PaperKeyGen) Run(ctx *Context) error {
 	if e.G().Env.GetEnableSharedDH() {
-		// Sync the sdh keyring before updating other things.
-		sdhk, err := e.getSharedDHKeyring()
+		err := e.syncSDH(ctx)
 		if err != nil {
 			return err
 		}
-		err = sdhk.SyncWithExtras(ctx.NetContext, e.arg.LoginContext, e.arg.Me)
-		if err != nil {
-			return err
-		}
-		// TODO if SDH_UPGRADE: may want to add a key here.
 	}
 
 	// make the passphrase stream
@@ -121,6 +115,20 @@ func (e *PaperKeyGen) Run(ctx *Context) error {
 
 	e.G().KeyfamilyChanged(e.arg.Me.GetUID())
 
+	return nil
+}
+
+func (e *PaperKeyGen) syncSDH(ctx *Context) error {
+	// Sync the sdh keyring before updating other things.
+	sdhk, err := e.getSharedDHKeyring()
+	if err != nil {
+		return err
+	}
+	err = sdhk.SyncDuringSignup(ctx.NetContext, e.arg.LoginContext, e.arg.Me)
+	if err != nil {
+		return err
+	}
+	// TODO if SDH_UPGRADE: may want to add a key here.
 	return nil
 }
 
@@ -284,11 +292,20 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 
+	sdhBoxes, err := e.makeSharedDHSecretKeyBoxes(ctx)
+	if err != nil {
+		return err
+	}
+
+	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc}, sdhBoxes)
+}
+
+func (e *PaperKeyGen) makeSharedDHSecretKeyBoxes(ctx *Context) ([]libkb.SharedDHSecretKeyBox, error) {
 	var sdhBoxes = []libkb.SharedDHSecretKeyBox{}
 	if e.G().Env.GetEnableSharedDH() {
 		sdhk, err := e.getSharedDHKeyring()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if sdhk.CurrentGeneration() == 0 {
 			// TODO if SDH_UPGRADE: may want to add a key here.
@@ -297,12 +314,11 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 				e.encKey,            // receiver key: new paper key enc
 				e.arg.EncryptionKey) // sender key: this device enc
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
-
-	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc}, sdhBoxes)
+	return sdhBoxes, nil
 }
 
 func (e *PaperKeyGen) getSharedDHKeyring() (ret *libkb.SharedDHKeyring, err error) {
