@@ -174,35 +174,38 @@ func (brq *blockRetrievalQueue) notifyWorker() {
 func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
 	lifetime BlockCacheLifetime, hasPrefetched bool) (err error) {
-	dbc := brq.config.DiskBlockCache()
-	if dbc != nil {
-		go func() {
-			if err := dbc.UpdateLRUTime(ctx, ptr.ID); err != nil {
-				brq.log.CWarningf(ctx, "Error updating metadata: %+v", err)
-			}
-		}()
-	}
 	defer func() {
 		if err != nil {
 			brq.log.CWarningf(ctx, "Error Putting into the block cache: %+v",
 				err)
 		}
+		dbc := brq.config.DiskBlockCache()
+		if dbc != nil {
+			go func() {
+				err := dbc.UpdateMetadata(ctx, ptr.ID, hasPrefetched)
+				if err != nil {
+					brq.log.CWarningf(ctx, "Error updating metadata: %+v", err)
+				}
+			}()
+		}
 	}()
 	if hasPrefetched {
 		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
-			lifetime, true)
+			lifetime, hasPrefetched)
 	}
 	if priority < defaultOnDemandRequestPriority {
 		// Only on-demand or higher priority requests can trigger prefetches.
+		hasPrefetched = false
 		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
-			lifetime, false)
+			lifetime, hasPrefetched)
 	}
 	// We must let the cache know at this point that we've prefetched.
 	// 1) To prevent any other Gets from prefetching.
 	// 2) To prevent prefetching if a cache Put fails, since prefetching if
 	//	  only useful when combined with the cache.
+	hasPrefetched = true
 	err = brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
-		lifetime, true)
+		lifetime, hasPrefetched)
 	switch err.(type) {
 	case nil:
 	case cachePutCacheFullError:
@@ -242,7 +245,8 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	if dbc == nil {
 		return NoSuchBlockError{ptr.ID}
 	}
-	blockBuf, serverHalf, err := dbc.Get(ctx, kmd.TlfID(), ptr.ID)
+	blockBuf, serverHalf, hasPrefetched, err := dbc.Get(ctx, kmd.TlfID(),
+		ptr.ID)
 	if err != nil {
 		return err
 	}
@@ -260,7 +264,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	// TODO: once the DiskBlockCache knows about hasPrefetched, pipe that
 	// through here.
 	return brq.CacheAndPrefetch(ctx, ptr, block, kmd, priority, lifetime,
-		false)
+		hasPrefetched)
 }
 
 // Request submits a block request to the queue.

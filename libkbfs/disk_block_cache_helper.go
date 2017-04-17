@@ -24,6 +24,8 @@ type diskBlockCacheMetadata struct {
 	LRUTime time.Time
 	// the size of the block
 	BlockSize uint32
+	// whether the block has triggered prefetches
+	HasPrefetched bool
 }
 
 // lruEntry is an entry for sorting LRU times
