@@ -96,6 +96,10 @@ func (s *SharedDHKeyring) PrepareBoxesForNewDevice(receiverKey NaclDHKeyPair, se
 	return boxes, nil
 }
 
+func (s *SharedDHKeyring) HasAnyKeys() bool {
+	return s.CurrentGeneration() > 0
+}
+
 // CurrentGeneration returns what generation we're on. The version possible
 // Version is 1. Version 0 implies no keys are available.
 func (s *SharedDHKeyring) CurrentGeneration() SharedDHKeyGeneration {

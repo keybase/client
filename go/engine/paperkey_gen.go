@@ -313,7 +313,7 @@ func (e *PaperKeyGen) makeSharedDHSecretKeyBoxes(ctx *Context) ([]libkb.SharedDH
 		if err != nil {
 			return nil, err
 		}
-		if sdhk.CurrentGeneration() == 0 {
+		if !sdhk.HasAnyKeys() {
 			// TODO if SDH_UPGRADE: may want to add a key here.
 		} else {
 			sdhBoxes, err = sdhk.PrepareBoxesForNewDevice(
