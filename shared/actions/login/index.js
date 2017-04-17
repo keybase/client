@@ -37,8 +37,7 @@ const navBasedOnLoginState = (): AsyncAction => (dispatch, getState) => {
   const {config: {extendedConfig, initialTab, launchedViaPush, status}, login: {justDeletedSelf}} = getState()
 
   // No status?
-  if (!status || !Object.keys(status).length || !extendedConfig || !Object.keys(extendedConfig).length ||
-    !extendedConfig.defaultDeviceID || justDeletedSelf) { // Not provisioned?
+  if (!status || !Object.keys(status).length || !extendedConfig || !Object.keys(extendedConfig).length || justDeletedSelf) { // Not provisioned?
     dispatch(navigateTo([loginTab]))
   } else {
     if (status.loggedIn) { // logged in

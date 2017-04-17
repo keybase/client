@@ -53,7 +53,6 @@ export default connect(
     notifications: {menuBadge, menuNotifications},
     gregor: {reachability},
   }) => ({
-    provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
     username,
     folderBadge: menuNotifications.folderBadge,
     chatBadge: menuNotifications.chatBadge,
