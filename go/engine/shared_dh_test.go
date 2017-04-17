@@ -34,10 +34,41 @@ func TestSharedDHSignupAndPullKeys(t *testing.T) {
 	require.NoError(t, err)
 	gen := libkb.SharedDHKeyGeneration(1)
 	require.Equal(t, kr.CurrentGeneration(), gen)
-	key := kr.SharedDHKey(gen)
+	key := kr.SharedDHKey(context.TODO(), gen)
 	require.NotNil(t, key)
 	require.NotNil(t, key.Private)
-	key2 := kr.SharedDHKey(libkb.SharedDHKeyGeneration(2))
+	key2 := kr.SharedDHKey(context.TODO(), libkb.SharedDHKeyGeneration(2))
+	require.Nil(t, key2)
+
+	kr2, err := kr.Update(context.Background())
+	require.Nil(t, err)
+	require.Equal(t, kr2.CurrentGeneration(), gen)
+
+}
+
+func TestSharedDHSignupPlusPaper(t *testing.T) {
+	tc := SetupEngineTest(t, "signup")
+	defer tc.Cleanup()
+	var err error
+
+	tc.Tp.EnableSharedDH = true
+
+	fu := CreateAndSignupFakeUserPaper(tc, "se")
+
+	if err = AssertLoggedIn(tc); err != nil {
+		t.Fatal(err)
+	}
+
+	kr, err := libkb.NewSharedDHKeyring(tc.G, fu.UID(), tc.G.Env.GetDeviceID())
+	require.NoError(t, err)
+	err = kr.Sync(context.Background())
+	require.NoError(t, err)
+	gen := libkb.SharedDHKeyGeneration(1)
+	require.Equal(t, kr.CurrentGeneration(), gen)
+	key := kr.SharedDHKey(context.TODO(), gen)
+	require.NotNil(t, key)
+	require.NotNil(t, key.Private)
+	key2 := kr.SharedDHKey(context.TODO(), libkb.SharedDHKeyGeneration(2))
 	require.Nil(t, key2)
 
 	kr2, err := kr.Update(context.Background())

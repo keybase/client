@@ -307,6 +307,7 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 }
 
 func (e *PaperKeyGen) makeSharedDHSecretKeyBoxes(ctx *Context) ([]libkb.SharedDHSecretKeyBox, error) {
+	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#makeSharedDHSecretKeyBoxes(enabled:%v)", e.G().Env.GetEnableSharedDH())
 	var sdhBoxes = []libkb.SharedDHSecretKeyBox{}
 	if e.G().Env.GetEnableSharedDH() {
 		sdhk, err := e.getSharedDHKeyring()
@@ -316,7 +317,7 @@ func (e *PaperKeyGen) makeSharedDHSecretKeyBoxes(ctx *Context) ([]libkb.SharedDH
 		if !sdhk.HasAnyKeys() {
 			// TODO if SDH_UPGRADE: may want to add a key here.
 		} else {
-			sdhBoxes, err = sdhk.PrepareBoxesForNewDevice(
+			sdhBoxes, err = sdhk.PrepareBoxesForNewDevice(ctx.NetContext,
 				e.encKey,            // receiver key: new paper key enc
 				e.arg.EncryptionKey) // sender key: this device enc
 			if err != nil {
@@ -324,6 +325,7 @@ func (e *PaperKeyGen) makeSharedDHSecretKeyBoxes(ctx *Context) ([]libkb.SharedDH
 			}
 		}
 	}
+	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#makeSharedDHSecretKeyBoxes -> %v", len(sdhBoxes))
 	return sdhBoxes, nil
 }
 

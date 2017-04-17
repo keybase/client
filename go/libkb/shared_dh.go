@@ -82,7 +82,7 @@ func NewSharedDHKeyring(g *GlobalContext, uid keybase1.UID, deviceID keybase1.De
 
 // PrepareBoxesForNewDevice encrypts the shared keys for a new device.
 // The result boxes will be pushed to the server.
-func (s *SharedDHKeyring) PrepareBoxesForNewDevice(receiverKey NaclDHKeyPair, senderKey NaclDHKeyPair) (boxes []SharedDHSecretKeyBox, err error) {
+func (s *SharedDHKeyring) PrepareBoxesForNewDevice(ctx context.Context, receiverKey NaclDHKeyPair, senderKey NaclDHKeyPair) (boxes []SharedDHSecretKeyBox, err error) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -93,6 +93,9 @@ func (s *SharedDHKeyring) PrepareBoxesForNewDevice(receiverKey NaclDHKeyPair, se
 		}
 		boxes = append(boxes, box)
 	}
+
+	s.G().Log.CDebugf(ctx, "SharedDHKeyring#PrepareBoxesForNewDevice(%s -> %s) ->",
+		senderKey.GetKID(), receiverKey.GetKID(), len(boxes))
 	return boxes, nil
 }
 
@@ -112,10 +115,11 @@ func (s *SharedDHKeyring) currentGenerationLocked() SharedDHKeyGeneration {
 	return SharedDHKeyGeneration(len(s.generations))
 }
 
-func (s *SharedDHKeyring) SharedDHKey(g SharedDHKeyGeneration) *NaclDHKeyPair {
+func (s *SharedDHKeyring) SharedDHKey(ctx context.Context, g SharedDHKeyGeneration) *NaclDHKeyPair {
 	s.Lock()
 	defer s.Unlock()
 	key, found := s.generations[g]
+	s.G().Log.CDebugf(ctx, "SharedDHKeyring#SharedDHKey %s -> %s", g, found)
 	if !found {
 		return nil
 	}
@@ -158,7 +162,9 @@ func (s *SharedDHKeyring) SyncDuringSignup(ctx context.Context, lctx LoginContex
 
 // `lctx` and `me` are optional
 func (s *SharedDHKeyring) sync(ctx context.Context, lctx LoginContext, upak *keybase1.UserPlusAllKeys) (err error) {
-	defer s.G().CTrace(ctx, "SharedDHKeyring#Sync", func() error { return err })()
+	defer s.G().CTrace(ctx, "SharedDHKeyring#sync", func() error { return err })()
+
+	s.G().Log.CDebugf(ctx, "SharedDHKeyring#sync(%v, %v)", lctx != nil, upak != nil)
 
 	s.Lock()
 	defer s.Unlock()
