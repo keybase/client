@@ -38,7 +38,7 @@ func NewSyncer(g *libkb.GlobalContext) *Syncer {
 	s := &Syncer{
 		Contextified:      libkb.NewContextified(g),
 		DebugLabeler:      utils.NewDebugLabeler(g, "Syncer", false),
-		isConnected:       false,
+		isConnected:       true,
 		clock:             clockwork.NewRealClock(),
 		shutdownCh:        make(chan struct{}),
 		fullReloadCh:      make(chan gregor1.UID),
