@@ -119,7 +119,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 		Me:      me,
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
-	encryptionKeyGeneric, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska2, "You must encrypted for your new paper key"))
+	encryptionKeyGeneric, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska2, "You must encrypt for your new paper key"))
 	if err != nil {
 		return err
 	}

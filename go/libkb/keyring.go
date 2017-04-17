@@ -8,7 +8,6 @@ import (
 	"io"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/keybase/go-crypto/openpgp"
@@ -25,7 +24,6 @@ type KeyringFile struct {
 
 type Keyrings struct {
 	Contextified
-	sync.Mutex
 }
 
 func NewKeyrings(g *GlobalContext) *Keyrings {

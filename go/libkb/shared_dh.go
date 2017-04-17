@@ -199,7 +199,7 @@ func (s *SharedDHKeyring) fetchBoxesLocked(ctx context.Context, lctx LoginContex
 		return nil, DeviceRequiredError{}
 	}
 
-	var sessionR *Session
+	var sessionR SessionReader
 	if lctx != nil {
 		sessionR = lctx.LocalSession()
 	}
