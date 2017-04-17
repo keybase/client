@@ -234,6 +234,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// These are all background-ish operations that the service performs.
 	// We should revisit these on mobile, or at least, when mobile apps are
 	// backgrounded.
+	d.tryLogin()
 	d.hourlyChecks()
 	d.createChatSources()
 	d.createMessageDeliverer()
@@ -242,7 +243,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
-	d.tryLogin()
 	d.runBackgroundIdentifier()
 }
 
@@ -742,14 +742,27 @@ func (d *Service) configurePath() {
 	}
 }
 
-// tryLogin attempts to run LoginProvisionedDevice when the service starts up.
-// This should get around any issue where the session.json file is out of date
-// or missing since the last time the service started.
+// tryLogin runs LoginOffline which will load the local session file and unlock the
+// local device keys without making any network requests.
+//
+// If that fails for any reason, LoginProvisionedDevice is used, which should get
+// around any issue where the session.json file is out of date or missing since the
+// last time the service started.
 func (d *Service) tryLogin() {
-	eng := engine.NewLoginProvisionedDevice(d.G(), "")
-	eng.SecretStoreOnly = true
+	eng := engine.NewLoginOffline(d.G())
 	ctx := &engine.Context{}
 	if err := engine.RunEngine(eng, ctx); err != nil {
-		d.G().Log.Debug("error running LoginProvisionedDevice on service startup: %s", err)
+		d.G().Log.Debug("error running LoginOffline on service startup: %s", err)
+		d.G().Log.Debug("trying LoginProvisionedDevice")
+		deng := engine.NewLoginProvisionedDevice(d.G(), "")
+		deng.SecretStoreOnly = true
+		ctx := &engine.Context{
+			NetContext: context.Background(),
+		}
+		if err := engine.RunEngine(deng, ctx); err != nil {
+			d.G().Log.Debug("error running LoginProvisionedDevice on service startup: %s", err)
+		}
+	} else {
+		d.G().Log.Debug("success running LoginOffline on service startup")
 	}
 }
