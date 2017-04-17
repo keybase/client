@@ -72,64 +72,56 @@ function renderMainStackRoute (route) {
   )
 }
 
-function MainNavStackIOS (props: Props) {
+function cardStackShim (props: Props) {
   const screens = props.routeStack
-
   return (
     <Box style={flexOne}>
-      <NativeKeyboardAvoidingView behavior={'padding'} style={sceneWrapStyleUnder}>
-        <Box style={flexOne}>
-          <CardStackShim
-            key={props.routeSelected}
-            stack={screens}
-            renderRoute={renderMainStackRoute}
-            onNavigateBack={props.navigateUp}
-          />
-          {![chatTab].includes(props.routeSelected) && <Offline reachability={props.reachability} appFocused={true} />}
-          <GlobalError />
-        </Box>
-      </NativeKeyboardAvoidingView>
-      {!props.hideNav &&
-        <TabBar
-          onTabClick={props.switchTab}
-          selectedTab={props.routeSelected}
-          username={props.username}
-          badgeNumbers={{
-            [chatTab]: props.chatBadge,
-            [folderTab]: props.folderBadge,
-          }}
-        />
-      }
+      <CardStackShim
+        key={props.routeSelected}
+        stack={screens}
+        renderRoute={renderMainStackRoute}
+        onNavigateBack={props.navigateUp}
+      />
+      {![chatTab].includes(props.routeSelected) && <Offline reachability={props.reachability} appFocused={true} />}
+      <GlobalError />
     </Box>
   )
 }
 
-function MainNavStackAndroid (props: Props) {
-  const screens = props.routeStack
+function tabBar (props: Props) {
+  return (
+    <TabBar
+      onTabClick={props.switchTab}
+      selectedTab={props.routeSelected}
+      username={props.username}
+      badgeNumbers={{
+        [chatTab]: props.chatBadge,
+        [folderTab]: props.folderBadge,
+      }}
+    />
+  )
+}
 
+function mainNavStackIOS (props: Props) {
+  return (
+    <Box style={flexOne}>
+      <NativeKeyboardAvoidingView behavior={'padding'} style={sceneWrapStyleUnder}>
+        {cardStackShim(props)}
+      </NativeKeyboardAvoidingView>
+      {!props.hideNav && tabBar(props)}
+    </Box>
+  )
+}
+
+function mainNavStackAndroid (props: Props) {
   return (
     <Box style={flexOne}>
       <Box style={!props.hideNav ? styleScreenSpaceAndroid : flexOne}>
-        <CardStackShim
-          key={props.routeSelected}
-          stack={screens}
-          renderRoute={renderMainStackRoute}
-          onNavigateBack={props.navigateUp}
-        />
-        {![chatTab].includes(props.routeSelected) && <Offline reachability={props.reachability} appFocused={true} />}
-        <GlobalError />
+        {cardStackShim(props)}
       </Box>
       {!props.hideNav &&
         <Box style={styleCollapsibleNavAndroid}>
-          <TabBar
-            onTabClick={props.switchTab}
-            selectedTab={props.routeSelected}
-            username={props.username}
-            badgeNumbers={{
-              [chatTab]: props.chatBadge,
-              [folderTab]: props.folderBadge,
-            }}
-          />
+          {tabBar(props)}
         </Box>
       }
     </Box>
@@ -137,7 +129,7 @@ function MainNavStackAndroid (props: Props) {
 }
 
 function MainNavStack (props: Props) {
-  return isAndroid ? MainNavStackAndroid(props) : MainNavStackIOS(props)
+  return isAndroid ? mainNavStackAndroid(props) : mainNavStackIOS(props)
 }
 
 function renderFullScreenStackRoute (route) {
