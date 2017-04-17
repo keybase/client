@@ -127,13 +127,13 @@ type OutOfDateInfo struct {
 }
 
 type BootstrapStatus struct {
-	Uid        UID           `codec:"uid" json:"uid"`
-	Username   string        `codec:"username" json:"username"`
-	DeviceID   DeviceID      `codec:"deviceID" json:"deviceID"`
-	DeviceName string        `codec:"deviceName" json:"deviceName"`
-	LoggedIn   bool          `codec:"loggedIn" json:"loggedIn"`
-	Following  []UserSummary `codec:"following" json:"following"`
-	Followers  []UserSummary `codec:"followers" json:"followers"`
+	Uid        UID      `codec:"uid" json:"uid"`
+	Username   string   `codec:"username" json:"username"`
+	DeviceID   DeviceID `codec:"deviceID" json:"deviceID"`
+	DeviceName string   `codec:"deviceName" json:"deviceName"`
+	LoggedIn   bool     `codec:"loggedIn" json:"loggedIn"`
+	Following  []string `codec:"following" json:"following"`
+	Followers  []string `codec:"followers" json:"followers"`
 }
 
 type GetCurrentStatusArg struct {

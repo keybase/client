@@ -381,14 +381,14 @@
         {
           "type": {
             "type": "array",
-            "items": "UserSummary"
+            "items": "string"
           },
           "name": "following"
         },
         {
           "type": {
             "type": "array",
-            "items": "UserSummary"
+            "items": "string"
           },
           "name": "followers"
         }

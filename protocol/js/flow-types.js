@@ -3179,8 +3179,8 @@ export type BootstrapStatus = {
   deviceID: DeviceID,
   deviceName: string,
   loggedIn: boolean,
-  following?: ?Array<UserSummary>,
-  followers?: ?Array<UserSummary>,
+  following?: ?Array<string>,
+  followers?: ?Array<string>,
 }
 
 export type BoxNonce = any

@@ -12,6 +12,7 @@ import (
 type Bootstrap struct {
 	libkb.Contextified
 	status keybase1.BootstrapStatus
+	usums  keybase1.UserSummary2Set
 }
 
 // NewBootstrap creates a Bootstrap engine.
@@ -41,18 +42,6 @@ func (e *Bootstrap) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-/*
-  record BootstrapStatus {
-    UID uid;
-    string username;
-    DeviceID deviceID;
-    string deviceName;
-    boolean loggedIn;
-    array<UserSummary> following;
-    array<UserSummary> followers;
-  }
-*/
-
 // Run starts the engine.
 func (e *Bootstrap) Run(ctx *Context) error {
 	var gerr error
@@ -65,15 +54,41 @@ func (e *Bootstrap) Run(ctx *Context) error {
 		}
 
 		e.status.LoggedIn = in
-
 		if !e.status.LoggedIn {
 			return
 		}
-	}, "Bootstrap")
 
+		e.status.Uid = a.GetUID()
+		unp := a.LocalSession().GetUsername()
+		if unp != nil {
+			e.status.Username = unp.String()
+		}
+
+		e.status.DeviceID = a.GetDeviceID()
+		// device name...get from ActiveDevice?
+
+		ts := libkb.NewTracker2Syncer(e.G(), e.status.Uid, true)
+		if err := libkb.RunSyncerCached(ts, e.status.Uid); err != nil {
+			gerr = err
+			return
+		}
+		e.usums = ts.Result()
+
+	}, "Bootstrap")
 	if gerr != nil {
 		return gerr
 	}
+
+	// filter usums into followers, following
+	for _, u := range e.usums.Users {
+		if u.IsFollower {
+			e.status.Followers = append(e.status.Followers, u.Username)
+		}
+		if u.IsFollowee {
+			e.status.Following = append(e.status.Following, u.Username)
+		}
+	}
+
 	return nil
 }
 

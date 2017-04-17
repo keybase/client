@@ -140,13 +140,13 @@ protocol config {
   boolean waitForClient(ClientType clientType, DurationSec timeout);
 
   record BootstrapStatus {
+    boolean loggedIn;
     UID uid;
     string username;
     DeviceID deviceID;
     string deviceName;
-    boolean loggedIn;
-    array<UserSummary> following;
-    array<UserSummary> followers;
+    array<string> following;
+    array<string> followers;
   }
   BootstrapStatus getBootstrapStatus(int sessionID);
 }
