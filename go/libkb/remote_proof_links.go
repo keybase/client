@@ -183,6 +183,10 @@ func (p ProofLinkWithState) ToIDString() string {
 	return p.link.ToIDString()
 }
 
+func (p ProofLinkWithState) ToImpliedIDStrings() []string {
+	return []string{}
+}
+
 func (p ProofLinkWithState) ToKeyValuePair() (string, string) {
 	return p.link.ToKeyValuePair()
 }

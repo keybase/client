@@ -306,6 +306,16 @@ func (sb ServiceBlock) ToIDString() string {
 	return sb.typ + "://" + sb.id
 }
 
+func (sb ServiceBlock) ToImpliedIDStrings() []string {
+	// This allows the existence of an HTTPS proof to suppress tracking errors
+	// caused by removing an HTTP proof. This comes up when a site that was
+	// HTTP becomes an HTTP->HTTPS redirect.
+	if sb.typ == "https" {
+		return []string{"http://" + sb.id}
+	}
+	return []string{}
+}
+
 func (sb ServiceBlock) ToKeyValuePair() (string, string) {
 	return sb.typ, sb.id
 }

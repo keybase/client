@@ -18,6 +18,7 @@ var ErrTrackingExpired = errors.New("Local track expired")
 // tracking statement, or a PGP Fingerprint!
 type TrackIDComponent interface {
 	ToIDString() string
+	ToImpliedIDStrings() []string
 	ToKeyValuePair() (string, string)
 	GetProofState() keybase1.ProofState
 	LastWriterWins() bool
@@ -38,6 +39,11 @@ func NewTrackSet() *TrackSet {
 
 func (ts TrackSet) Add(t TrackIDComponent) {
 	ts.ids[t.ToIDString()] = t
+	// One ID might also imply another for the purpose of TrackSet subtraction
+	// (namely, HTTPS implies HTTP).
+	for _, impliedID := range t.ToImpliedIDStrings() {
+		ts.services[impliedID] = true
+	}
 	if t.LastWriterWins() {
 		k, _ := t.ToKeyValuePair()
 		ts.services[k] = true
