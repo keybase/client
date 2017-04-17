@@ -41,9 +41,40 @@ func (e *Bootstrap) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
+/*
+  record BootstrapStatus {
+    UID uid;
+    string username;
+    DeviceID deviceID;
+    string deviceName;
+    boolean loggedIn;
+    array<UserSummary> following;
+    array<UserSummary> followers;
+  }
+*/
+
 // Run starts the engine.
 func (e *Bootstrap) Run(ctx *Context) error {
-	panic("Run not yet implemented")
+	var gerr error
+	e.G().LoginState().Account(func(a *libkb.Account) {
+		var in bool
+		in, gerr = a.LoggedInProvisioned()
+		if gerr != nil {
+			e.G().Log.Debug("Bootstrap: LoggedInProvisioned error: %s", gerr)
+			return
+		}
+
+		e.status.LoggedIn = in
+
+		if !e.status.LoggedIn {
+			return
+		}
+	}, "Bootstrap")
+
+	if gerr != nil {
+		return gerr
+	}
+	return nil
 }
 
 func (e *Bootstrap) Status() keybase1.BootstrapStatus {
