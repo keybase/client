@@ -4,10 +4,11 @@
 package engine
 
 import (
+	"testing"
+
 	libkb "github.com/keybase/client/go/libkb"
 	require "github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
-	"testing"
 )
 
 func TestSignupEngineSharedDH(t *testing.T) {
@@ -27,14 +28,10 @@ func TestSharedDHSignupAndPullKeys(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	kr := libkb.NewSharedDHKeyring(tc.G, fu.UID())
-	if kr == nil {
-		t.Fatal("got null shared DH keyring")
-	}
+	kr, err := libkb.NewSharedDHKeyring(tc.G, fu.UID(), tc.G.Env.GetDeviceID())
+	require.NoError(t, err)
 	err = kr.Sync(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	gen := libkb.SharedDHKeyGeneration(1)
 	require.Equal(t, kr.CurrentGeneration(), gen)
 	key := kr.SharedDHKey(gen)

@@ -21,8 +21,12 @@ type PaperKeyPrimary struct {
 }
 
 type PaperKeyPrimaryArgs struct {
-	SigningKey libkb.GenericKey
-	Me         *libkb.User
+	SigningKey    libkb.GenericKey
+	EncryptionKey libkb.NaclDHKeyPair
+	Me            *libkb.User
+
+	LoginContext    libkb.LoginContext     // optional
+	SharedDHKeyring *libkb.SharedDHKeyring // optional
 }
 
 // NewPaperKeyPrimary creates a PaperKeyPrimary engine.
@@ -66,9 +70,12 @@ func (e *PaperKeyPrimary) Run(ctx *Context) error {
 	}
 
 	kgarg := &PaperKeyGenArg{
-		Passphrase: e.passphrase,
-		Me:         e.args.Me,
-		SigningKey: e.args.SigningKey,
+		Passphrase:      e.passphrase,
+		Me:              e.args.Me,
+		SigningKey:      e.args.SigningKey,
+		EncryptionKey:   e.args.EncryptionKey,
+		LoginContext:    e.args.LoginContext,
+		SharedDHKeyring: e.args.SharedDHKeyring,
 	}
 	kgeng := NewPaperKeyGen(kgarg, e.G())
 	if err := RunEngine(kgeng, ctx); err != nil {
