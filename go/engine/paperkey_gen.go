@@ -16,17 +16,24 @@ import (
 )
 
 type PaperKeyGenArg struct {
-	Passphrase libkb.PaperKeyPhrase
-	SkipPush   bool
-	Me         *libkb.User
-	SigningKey libkb.GenericKey
+	Passphrase    libkb.PaperKeyPhrase
+	SkipPush      bool
+	Me            *libkb.User
+	SigningKey    libkb.GenericKey
+	EncryptionKey libkb.NaclDHKeyPair
+
+	LoginContext    libkb.LoginContext     // optional
+	SharedDHKeyring *libkb.SharedDHKeyring // optional
 }
 
 // PaperKeyGen is an engine.
 type PaperKeyGen struct {
-	arg    *PaperKeyGenArg
+	arg *PaperKeyGenArg
+
+	// keys of the generated paper key
 	sigKey libkb.GenericKey
-	encKey libkb.GenericKey
+	encKey libkb.NaclDHKeyPair
+
 	libkb.Contextified
 }
 
@@ -71,6 +78,15 @@ func (e *PaperKeyGen) EncKey() libkb.GenericKey {
 
 // Run starts the engine.
 func (e *PaperKeyGen) Run(ctx *Context) error {
+	if e.G().Env.GetEnableSharedDH() {
+		// Sync the sdh keyring before updating other things.
+		err := e.getSharedDHKeyring().SyncWithExtras(ctx.NetContext, e.arg.LoginContext, e.arg.Me)
+		if err != nil {
+			return err
+		}
+		// TODO if SDH_UPGRADE: may want to add a key here.
+	}
+
 	// make the passphrase stream
 	key, err := scrypt.Key(e.arg.Passphrase.Bytes(), nil,
 		libkb.PaperKeyScryptCost, libkb.PaperKeyScryptR, libkb.PaperKeyScryptP, libkb.PaperKeyScryptKeylen)
@@ -264,5 +280,31 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 
-	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc}, nil)
+	var sdhBoxes = []libkb.SharedDHSecretKeyBox{}
+	if e.G().Env.GetEnableSharedDH() {
+		if e.getSharedDHKeyring().CurrentGeneration() == 0 {
+			// TODO if SDH_UPGRADE: may want to add a key here.
+		} else {
+			sdhBoxes, err = e.getSharedDHKeyring().PrepareBoxesForNewDevice(
+				e.encKey,            // receiver key: new paper key enc
+				e.arg.EncryptionKey) // sender key: this device enc
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc}, sdhBoxes)
+}
+
+func (e *PaperKeyGen) getSharedDHKeyring() (ret *libkb.SharedDHKeyring) {
+	ret = e.arg.SharedDHKeyring
+	if ret != nil {
+		return
+	}
+	ret = e.G().GetSharedDHKeyring()
+	if ret != nil {
+		return
+	}
+	panic("no SharedDHKeyring")
 }

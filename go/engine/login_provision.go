@@ -19,16 +19,17 @@ import (
 // device.  Only the Login engine should run it.
 type loginProvision struct {
 	libkb.Contextified
-	arg           *loginProvisionArg
-	lks           *libkb.LKSec
-	signingKey    libkb.GenericKey
-	encryptionKey libkb.GenericKey
-	gpgCli        gpgInterface
-	username      string
-	devname       string
-	cleanupOnErr  bool
-	hasPGP        bool
-	hasDevice     bool
+	arg             *loginProvisionArg
+	lks             *libkb.LKSec
+	signingKey      libkb.GenericKey
+	encryptionKey   libkb.NaclDHKeyPair
+	gpgCli          gpgInterface
+	username        string
+	devname         string
+	cleanupOnErr    bool
+	hasPGP          bool
+	hasDevice       bool
+	sharedDHKeyring *libkb.SharedDHKeyring // Created after provisioning. Sent to paperkey gen.
 }
 
 // gpgInterface defines the portions of gpg client that provision
@@ -469,6 +470,12 @@ func (e *loginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) erro
 
 	e.signingKey = eng.SigningKey()
 	e.encryptionKey = eng.EncryptionKey()
+
+	did := e.G().Env.GetDeviceID()
+
+	e.sharedDHKeyring = libkb.NewSharedDHKeyring(e.G(), e.arg.User.GetUID())
+	e.sharedDHKeyring.SetDeviceID(did)
+
 	return nil
 }
 
@@ -911,8 +918,11 @@ func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 
 	// make one
 	args := &PaperKeyPrimaryArgs{
-		SigningKey: e.signingKey,
-		Me:         e.arg.User,
+		Me:              e.arg.User,
+		SigningKey:      e.signingKey,
+		EncryptionKey:   e.encryptionKey,
+		LoginContext:    nil,
+		SharedDHKeyring: e.sharedDHKeyring,
 	}
 	eng := NewPaperKeyPrimary(e.G(), args)
 	return RunEngine(eng, ctx)

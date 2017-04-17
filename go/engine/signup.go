@@ -12,16 +12,18 @@ import (
 )
 
 type SignupEngine struct {
-	pwsalt        []byte
-	ppStream      *libkb.PassphraseStream
-	tsec          libkb.Triplesec
-	uid           keybase1.UID
-	me            *libkb.User
-	signingKey    libkb.GenericKey
-	encryptionKey libkb.GenericKey
-	arg           *SignupEngineRunArg
-	lks           *libkb.LKSec
 	libkb.Contextified
+
+	pwsalt          []byte
+	ppStream        *libkb.PassphraseStream
+	tsec            libkb.Triplesec
+	uid             keybase1.UID
+	me              *libkb.User
+	signingKey      libkb.GenericKey
+	encryptionKey   libkb.NaclDHKeyPair
+	arg             *SignupEngineRunArg
+	lks             *libkb.LKSec
+	sharedDHKeyring *libkb.SharedDHKeyring // Created after provisioning. Sent to paperkey gen.
 }
 
 type SignupEngineRunArg struct {
@@ -87,7 +89,7 @@ func (s *SignupEngine) Run(ctx *Context) error {
 		}
 
 		if !s.arg.SkipPaper {
-			if err := s.genPaperKeys(ctx); err != nil {
+			if err := s.genPaperKeys(ctx, a); err != nil {
 				return err
 			}
 		}
@@ -181,6 +183,7 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 	if err != nil {
 		return err
 	}
+
 	s.me = user
 	return nil
 }
@@ -211,10 +214,15 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 	s.signingKey = eng.SigningKey()
 	s.encryptionKey = eng.EncryptionKey()
 
-	if err := ctx.LoginContext.LocalSession().SetDeviceProvisioned(s.G().Env.GetDeviceID()); err != nil {
+	did := s.G().Env.GetDeviceID()
+
+	if err := ctx.LoginContext.LocalSession().SetDeviceProvisioned(did); err != nil {
 		// this isn't a fatal error, session will stay in memory...
 		s.G().Log.Warning("error saving session file: %s", err)
 	}
+
+	s.sharedDHKeyring = libkb.NewSharedDHKeyring(s.G(), s.uid)
+	s.sharedDHKeyring.SetDeviceID(did)
 
 	if s.arg.StoreSecret {
 		// Create the secret store as late as possible here
@@ -239,11 +247,22 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 	return nil
 }
 
-func (s *SignupEngine) genPaperKeys(ctx *Context) error {
-	args := &PaperKeyPrimaryArgs{
-		Me:         s.me,
-		SigningKey: s.signingKey,
+func (s *SignupEngine) genPaperKeys(ctx *Context, lctx libkb.LoginContext) error {
+	// Load me again so that keys will be up to date.
+	var err error
+	s.me, err = libkb.LoadUser(libkb.LoadUserArg{Self: true, UID: s.me.GetUID(), PublicKeyOptional: true, Contextified: libkb.NewContextified(s.G())})
+	if err != nil {
+		return err
 	}
+
+	args := &PaperKeyPrimaryArgs{
+		Me:              s.me,
+		SigningKey:      s.signingKey,
+		EncryptionKey:   s.encryptionKey,
+		LoginContext:    lctx,
+		SharedDHKeyring: s.sharedDHKeyring,
+	}
+
 	eng := NewPaperKeyPrimary(s.G(), args)
 	return RunEngine(eng, ctx)
 }

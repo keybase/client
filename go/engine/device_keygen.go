@@ -128,8 +128,8 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 	ds := []libkb.Delegator{}
 
 	var sdhBoxes = []libkb.SharedDHSecretKeyBox{}
-	if e.GetEnabledSharedDHStrict() {
-		sdh1, err := libkb.NewSharedDHSecretBox(
+	if e.G().Env.GetEnableSharedDH() {
+		sdh1, err := libkb.NewSharedDHSecretKeyBox(
 			e.sharedDHKey(),   // inner key to be encrypted (shared dh key)
 			e.EncryptionKey(), // receiver key (device enc key)
 			e.EncryptionKey(), // sender key   (device enc key)
@@ -154,7 +154,7 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 
 	ds = e.appendEncKey(ds, ctx, encSigner, eldestKID, pargs.User)
 
-	if e.GetEnabledSharedDHStrict() && e.args.IsEldest {
+	if e.G().Env.GetEnableSharedDH() && e.args.IsEldest {
 		ds = e.appendSharedDHKey(ds, ctx, encSigner, eldestKID, pargs.User)
 	}
 
@@ -164,14 +164,6 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 	e.pushLKS(ctx)
 
 	return e.pushErr
-}
-
-func (e *DeviceKeygen) GetEnabledSharedDHStrict() bool {
-	if e.G().Env.GetRunMode() != libkb.DevelRunMode {
-		return false
-	}
-
-	return e.G().Env.GetEnableSharedDH()
 }
 
 func (e *DeviceKeygen) setup(ctx *Context) {
@@ -195,7 +187,7 @@ func (e *DeviceKeygen) setup(ctx *Context) {
 		return kp, nil
 	}, e.device(), libkb.NaclDHExpireIn)
 
-	if e.GetEnabledSharedDHStrict() && e.args.IsEldest {
+	if e.G().Env.GetEnableSharedDH() && e.args.IsEldest {
 		e.naclSharedDHGen = e.newNaclKeyGen(ctx, func() (libkb.NaclKeyPair, error) {
 			kp, err := libkb.GenerateNaclDHKeyPair()
 			if err != nil {

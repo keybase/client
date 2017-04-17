@@ -17,7 +17,7 @@ func TestPaperKeyPrimary(t *testing.T) {
 		arg.SkipPaper = true
 	}
 
-	fu, signingKey := CreateAndSignupFakeUserCustomArg(tc, "paper", f)
+	fu, signingKey, encryptionKey := CreateAndSignupFakeUserCustomArg(tc, "paper", f)
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	if err != nil {
@@ -28,8 +28,9 @@ func TestPaperKeyPrimary(t *testing.T) {
 		LoginUI: &libkb.TestLoginUI{},
 	}
 	args := &PaperKeyPrimaryArgs{
-		Me:         me,
-		SigningKey: signingKey,
+		Me:            me,
+		SigningKey:    signingKey,
+		EncryptionKey: encryptionKey,
 	}
 	eng := NewPaperKeyPrimary(tc.G, args)
 	if err := RunEngine(eng, ctx); err != nil {
