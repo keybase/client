@@ -4148,7 +4148,7 @@ export type PublicKey = {
   PGPIdentities?: ?Array<PGPIdentity>,
   isSibkey: boolean,
   isEldest: boolean,
-  parentID: string,
+  parentID: KID,
   deviceID: DeviceID,
   deviceDescription: string,
   deviceType: string,

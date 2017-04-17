@@ -112,7 +112,7 @@ func (e *LoginOffline) run(ctx *Context) error {
 		// find the subkey
 		var subkey *keybase1.PublicKey
 		for _, key := range upak.Base.DeviceKeys {
-			if !key.IsSibkey && key.ParentID == sibkey.KID.String() {
+			if !key.IsSibkey && key.ParentID.Equal(sibkey.KID) {
 				e.G().Log.Debug("LoginOffline: subkey match: %+v", key)
 				subkey = &key
 				break

@@ -46,7 +46,7 @@ type PublicKey struct {
 	PGPIdentities     []PGPIdentity `codec:"PGPIdentities" json:"PGPIdentities"`
 	IsSibkey          bool          `codec:"isSibkey" json:"isSibkey"`
 	IsEldest          bool          `codec:"isEldest" json:"isEldest"`
-	ParentID          string        `codec:"parentID" json:"parentID"`
+	ParentID          KID           `codec:"parentID" json:"parentID"`
 	DeviceID          DeviceID      `codec:"deviceID" json:"deviceID"`
 	DeviceDescription string        `codec:"deviceDescription" json:"deviceDescription"`
 	DeviceType        string        `codec:"deviceType" json:"deviceType"`

@@ -163,7 +163,7 @@
           "name": "isEldest"
         },
         {
-          "type": "string",
+          "type": "KID",
           "name": "parentID"
         },
         {
