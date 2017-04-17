@@ -310,5 +310,5 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 		return keybase1.BootstrapStatus{}, err
 	}
 
-	return keybase1.BootstrapStatus{}, nil
+	return eng.Status(), nil
 }
