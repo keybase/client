@@ -4,6 +4,8 @@
 package engine
 
 import (
+	"strings"
+
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -210,7 +212,14 @@ func (p *Prove) instructAction(ctx *Context) (err error) {
 	}
 	err = ctx.ProveUI.OutputInstructions(context.TODO(), keybase1.OutputInstructionsArg{
 		Instructions: mkp.Export(),
-		Proof:        txt,
+		// If we don't trim newlines here, we'll run into an issue where e.g.
+		// Facebook links get corrupted on iOS. See:
+		// - https://keybase.atlassian.net/browse/DESKTOP-3335
+		// - https://keybase.atlassian.net/browse/CORE-4941
+		// All of our proof verifying code (PVL) should already be flexible
+		// with surrounding whitespace, because users are pasting proofs by
+		// hand anyway.
+		Proof: strings.TrimSpace(txt),
 	})
 	if err != nil {
 		return err
