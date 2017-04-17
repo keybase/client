@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"errors"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -66,12 +64,14 @@ func (e *LoginOffline) run(ctx *Context) error {
 		}
 
 		// current user has a valid session file
+		e.G().Log.Debug("LoginOffline: current user has a valid session file")
 
 		// check ActiveDevice cache
 		uid, deviceID, sigKey, encKey := e.G().ActiveDevice.AllFields()
 		if sigKey != nil && encKey != nil {
 			if uid.Equal(a.GetUID()) && deviceID.Eq(a.GetDeviceID()) {
 				// since they match, good to go
+				e.G().Log.Debug("LoginOffline: found cached device keys in ActiveDevice")
 				return
 			}
 		}
@@ -89,7 +89,7 @@ func (e *LoginOffline) run(ctx *Context) error {
 		arg.LoginContext = a
 		upak, _, err := e.G().GetUPAKLoader().Load(arg)
 		if err != nil {
-			e.G().Log.Warning("upak.Load err: %s", err)
+			e.G().Log.Debug("LoginOffline: upak.Load err: %s", err)
 			gerr = err
 			return
 		}
@@ -97,15 +97,15 @@ func (e *LoginOffline) run(ctx *Context) error {
 		// find the sibkey
 		var sibkey *keybase1.PublicKey
 		for _, key := range upak.Base.DeviceKeys {
-			e.G().Log.Warning("device key: %+v", key)
 			if key.DeviceID.Eq(deviceID) && key.IsSibkey == true {
-				e.G().Log.Warning("device key match: %+v", key)
+				e.G().Log.Debug("LoginOffline: device sibkey match: %+v", key)
 				sibkey = &key
 				break
 			}
 		}
 		if sibkey == nil {
-			gerr = errors.New("no sibkey found")
+			e.G().Log.Debug("LoginOffline: no sibkey found in upak.Base.DeviceKeys")
+			gerr = libkb.NewLoginOfflineError("no sibkey found")
 			return
 		}
 
@@ -113,12 +113,14 @@ func (e *LoginOffline) run(ctx *Context) error {
 		var subkey *keybase1.PublicKey
 		for _, key := range upak.Base.DeviceKeys {
 			if !key.IsSibkey && key.ParentID == sibkey.KID.String() {
+				e.G().Log.Debug("LoginOffline: subkey match: %+v", key)
 				subkey = &key
 				break
 			}
 		}
 		if subkey == nil {
-			gerr = errors.New("no subkey found")
+			e.G().Log.Debug("LoginOffline: no subkey found in upak.Base.DeviceKeys")
+			gerr = libkb.NewLoginOfflineError("no subkey found")
 			return
 		}
 
@@ -126,6 +128,7 @@ func (e *LoginOffline) run(ctx *Context) error {
 		username := libkb.NewNormalizedUsername(upak.Base.Username)
 		kr, err := libkb.LoadSKBKeyring(username, e.G())
 		if err != nil {
+			e.G().Log.Debug("LoginOffline: error loading keyring for %s: %s", username, err)
 			gerr = err
 			return
 		}
@@ -133,13 +136,17 @@ func (e *LoginOffline) run(ctx *Context) error {
 		// get the locked keys out of the keyring
 		lockedSibkey := kr.LookupByKid(sibkey.KID)
 		if lockedSibkey == nil {
-			gerr = errors.New("no locked sibkey found in keyring")
+			e.G().Log.Debug("LoginOffline: no locked sibkey with KID %s", sibkey.KID)
+			gerr = libkb.NewLoginOfflineError("no locked sibkey found in keyring")
+			return
 		}
 		lockedSibkey.SetUID(uid)
 
 		lockedSubkey := kr.LookupByKid(subkey.KID)
 		if lockedSubkey == nil {
-			gerr = errors.New("no locked subkey found in keyring")
+			e.G().Log.Debug("LoginOffline: no locked subkey with KID %s", subkey.KID)
+			gerr = libkb.NewLoginOfflineError("no locked subkey found in keyring")
+			return
 		}
 		lockedSubkey.SetUID(uid)
 
@@ -147,12 +154,14 @@ func (e *LoginOffline) run(ctx *Context) error {
 		secretStore := libkb.NewSecretStore(e.G(), username)
 		unlockedSibkey, err := lockedSibkey.UnlockNoPrompt(a, secretStore)
 		if err != nil {
+			e.G().Log.Debug("LoginOffline: failed to unlock sibkey: %s", err)
 			gerr = err
 			return
 		}
 
 		unlockedSubkey, err := lockedSubkey.UnlockNoPrompt(a, secretStore)
 		if err != nil {
+			e.G().Log.Debug("LoginOffline: failed to unlock subkey: %s", err)
 			gerr = err
 			return
 		}
@@ -160,22 +169,27 @@ func (e *LoginOffline) run(ctx *Context) error {
 		// cache the unlocked secret keys
 		ska := libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}
 		if err := a.SetCachedSecretKey(ska, unlockedSibkey); err != nil {
+			e.G().Log.Debug("LoginOffline: failed to cache sibkey: %s", err)
 			gerr = err
 			return
 		}
 		ska = libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}
 		if err := a.SetCachedSecretKey(ska, unlockedSubkey); err != nil {
+			e.G().Log.Debug("LoginOffline: failed to cache subkey: %s", err)
 			gerr = err
 			return
 		}
 	}, "LoginOffline")
 
 	if aerr != nil {
+		e.G().Log.Debug("LoginOffline: LoginState account error: %s", aerr)
 		return aerr
 	}
 	if gerr != nil {
 		return gerr
 	}
+
+	e.G().Log.Debug("LoginOffline: run success")
 
 	return nil
 }

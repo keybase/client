@@ -756,7 +756,9 @@ func (d *Service) tryLogin() {
 		d.G().Log.Debug("trying LoginProvisionedDevice")
 		deng := engine.NewLoginProvisionedDevice(d.G(), "")
 		deng.SecretStoreOnly = true
-		ctx := &engine.Context{}
+		ctx := &engine.Context{
+			NetContext: context.Background(),
+		}
 		if err := engine.RunEngine(deng, ctx); err != nil {
 			d.G().Log.Debug("error running LoginProvisionedDevice on service startup: %s", err)
 		}

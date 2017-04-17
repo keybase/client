@@ -1883,3 +1883,17 @@ type SharedDHImportError struct {
 func (e SharedDHImportError) Error() string {
 	return fmt.Sprintf("shared DH import error: %s", e.msg)
 }
+
+//=============================================================================
+
+type LoginOfflineError struct {
+	msg string
+}
+
+func NewLoginOfflineError(msg string) LoginOfflineError {
+	return LoginOfflineError{msg: msg}
+}
+
+func (e LoginOfflineError) Error() string {
+	return "LoginOffline error: " + e.msg
+}
