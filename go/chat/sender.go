@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -722,7 +723,7 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 		ComposeTime: gregor1.ToTime(time.Now()),
 	}
 
-	identifyBehavior, _, _ := IdentifyMode(ctx)
+	identifyBehavior, _, _ := types.IdentifyMode(ctx)
 	obr, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, identifyBehavior)
 	return obr.OutboxID, 0, &chat1.RateLimit{}, err
 }

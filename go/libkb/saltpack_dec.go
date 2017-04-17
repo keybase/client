@@ -6,9 +6,12 @@ package libkb
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 
+	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack"
 )
 
@@ -45,7 +48,7 @@ func SaltpackDecrypt(
 	}
 
 	// mki will be set for DH mode, senderSigningKey will be set for signcryption mode
-	plainsource, mki, senderSigningKey, typ, err := peekTypeAndMakeDecoder(dearmored, naclKeyring(deviceEncryptionKey))
+	plainsource, mki, senderSigningKey, typ, err := peekTypeAndMakeDecoder(g, dearmored, naclKeyring(deviceEncryptionKey))
 
 	if err != nil {
 		return mki, err
@@ -88,7 +91,7 @@ func SaltpackDecrypt(
 	return mki, nil
 }
 
-func peekTypeAndMakeDecoder(dearmored io.Reader, keyring naclKeyring) (io.Reader, *saltpack.MessageKeyInfo, saltpack.SigningPublicKey, saltpack.MessageType, error) {
+func peekTypeAndMakeDecoder(g *GlobalContext, dearmored io.Reader, keyring naclKeyring) (io.Reader, *saltpack.MessageKeyInfo, saltpack.SigningPublicKey, saltpack.MessageType, error) {
 	// How much do we need to peek to get at the mode number?
 	// - bin tag (2, 3, or 5 bytes)
 	// - array tag (1 byte)
@@ -144,10 +147,74 @@ func peekTypeAndMakeDecoder(dearmored io.Reader, keyring naclKeyring) (io.Reader
 		mki, plainsource, err := saltpack.NewDecryptStream(peekable, keyring)
 		return plainsource, mki, nil, typ, err
 	case saltpack.MessageTypeSigncryption:
-		// TODO: need to plug in the resolver
-		senderPublic, plainsource, err := saltpack.NewSigncryptOpenStream(peekable, keyring, nil)
+		senderPublic, plainsource, err := saltpack.NewSigncryptOpenStream(peekable, keyring, NewTlfKeyResolver(g))
 		return plainsource, nil, senderPublic, typ, err
 	default:
 		return nil, nil, nil, -1, fmt.Errorf("unexpected message mode when peeking: %d", typ)
 	}
+}
+
+type TlfKeyResolver struct {
+	Contextified
+}
+
+var _ saltpack.SymmetricKeyResolver = (*TlfKeyResolver)(nil)
+
+func NewTlfKeyResolver(g *GlobalContext) *TlfKeyResolver {
+	return &TlfKeyResolver{NewContextified(g)}
+}
+
+func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.SymmetricKey, error) {
+	tlfPseudonyms := []TlfPseudonym{}
+	for _, identifier := range identifiers {
+		pseudonym := TlfPseudonym{}
+		if len(pseudonym) != len(identifier) {
+			return nil, fmt.Errorf("identifier is the wrong length for a TLF pseudonym (%d != %d)", len(pseudonym), len(identifier))
+		}
+		copy(pseudonym[:], identifier)
+		tlfPseudonyms = append(tlfPseudonyms, pseudonym)
+	}
+
+	results, err := GetTlfPseudonyms(context.TODO(), r.G(), tlfPseudonyms)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: Handle TLFs with finalized info.
+	symmetricKeys := []*saltpack.SymmetricKey{}
+	for _, result := range results {
+		if result.Err != nil {
+			r.G().Log.Debug("skipping unresolved pseudonym: %s", result.Err)
+			symmetricKeys = append(symmetricKeys, nil)
+			continue
+		}
+		r.G().Log.Debug("resolved pseudonym for %s, fetching key", result.Info.Name)
+		symmetricKey, err := r.getSymmetricKey(*result.Info)
+		if err != nil {
+			return nil, err
+		}
+		symmetricKeys = append(symmetricKeys, symmetricKey)
+	}
+	return symmetricKeys, nil
+}
+
+func (r *TlfKeyResolver) getSymmetricKey(info TlfPseudonymInfo) (*saltpack.SymmetricKey, error) {
+	// Strip "/keybase/private/" from the name.
+	if info.Name[:17] != "/keybase/private/" {
+		return nil, fmt.Errorf("unexpected prefix, expected %q, found %q", "/keybase/private/", info.Name[:17])
+	}
+	basename := info.Name[17:]
+	breaks := []keybase1.TLFIdentifyFailure{}
+	identifyCtx := types.IdentifyModeCtx(context.TODO(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks)
+	res, err := r.G().TlfInfoSource.CryptKeys(identifyCtx, basename)
+	if err != nil {
+		return nil, err
+	}
+	for _, key := range res.CryptKeys {
+		if key.KeyGeneration == info.KeyGen {
+			// Success!
+			return (*saltpack.SymmetricKey)(&key.Key), nil
+		}
+	}
+	return nil, fmt.Errorf("no keys in TLF %q matched generation %d", basename, info.KeyGen)
 }

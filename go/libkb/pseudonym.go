@@ -7,6 +7,7 @@ package libkb
 import (
 	"bytes"
 	"crypto/hmac"
+	cryptorand "crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -19,9 +20,6 @@ import (
 // TLFPseudonym is an identifier for a key in a tlf
 type TlfPseudonym [32]byte
 
-type keyGen int
-type tlfID [16]byte
-
 const tlfPseudonymVersion = 1
 
 // TlfPseudonymInfo is what a pseudonym represents
@@ -29,8 +27,8 @@ type TlfPseudonymInfo struct {
 	// TLF name like: /keybase/private/a,b
 	Name string
 	// TLF id
-	ID      tlfID
-	KeyGen  keyGen
+	ID      [16]byte
+	KeyGen  int
 	HmacKey [32]byte
 }
 
@@ -59,8 +57,8 @@ type tlfPseudonymContents struct {
 	_struct bool `codec:",toarray"`
 	Version int
 	Name    string
-	ID      tlfID
-	KeyGen  keyGen
+	ID      [16]byte
+	KeyGen  int
 }
 
 type getTlfPseudonymsRes struct {
@@ -216,7 +214,7 @@ func checkAndConvertTlfPseudonymFromServer(ctx context.Context, g *GlobalContext
 			return mkErr(fmt.Errorf("tlf id wrong length"))
 		}
 
-		info.KeyGen = keyGen(received.Info.KeyGen)
+		info.KeyGen = received.Info.KeyGen
 
 		n, err = hex.Decode(info.HmacKey[:], []byte(received.Info.HmacKey))
 		if err != nil {
@@ -259,4 +257,13 @@ func checkTlfPseudonymFromServer(ctx context.Context, g *GlobalContext, req TlfP
 	}
 
 	return nil
+}
+
+func RandomHmacKey() [32]byte {
+	key := [32]byte{}
+	n, err := cryptorand.Read(key[:])
+	if err != nil || n < len(key) {
+		panic(fmt.Sprintf("error reading randoms (%d < %d): %s", n, len(key), err))
+	}
+	return key
 }

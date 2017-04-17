@@ -4,10 +4,14 @@
 package engine
 
 import (
+	"encoding/hex"
+	"fmt"
 	"io"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/saltpack"
 )
 
 type SaltpackEncryptArg struct {
@@ -165,15 +169,95 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 		senderSigning = signingKeypair
 	}
 
+	var symmetricReceivers []saltpack.ReceiverSymmetricKey
+	if e.arg.Opts.Signcrypt && !e.arg.Opts.NoSelfEncrypt {
+		symmetricReceivers, err = e.makeSymmetricReceivers(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
 	encarg := libkb.SaltpackEncryptArg{
-		Source:         e.arg.Source,
-		Sink:           e.arg.Sink,
-		Receivers:      receivers,
-		Sender:         senderDH,
-		SenderSigning:  senderSigning,
-		Binary:         e.arg.Opts.Binary,
-		HideRecipients: e.arg.Opts.HideRecipients,
-		Signcrypt:      e.arg.Opts.Signcrypt,
+		Source:             e.arg.Source,
+		Sink:               e.arg.Sink,
+		Receivers:          receivers,
+		Sender:             senderDH,
+		SenderSigning:      senderSigning,
+		Binary:             e.arg.Opts.Binary,
+		HideRecipients:     e.arg.Opts.HideRecipients,
+		Signcrypt:          e.arg.Opts.Signcrypt,
+		SymmetricReceivers: symmetricReceivers,
 	}
 	return libkb.SaltpackEncrypt(e.G(), &encarg)
+}
+
+// TODO: Make sure messages that encrypt only to self are working properly.
+func (e *SaltpackEncrypt) makeSymmetricReceivers(ctx *Context) ([]saltpack.ReceiverSymmetricKey, error) {
+	breaks := []keybase1.TLFIdentifyFailure{}
+	identifyCtx := types.IdentifyModeCtx(ctx.GetNetContext(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks)
+
+	// Fetch the TLF keys and assemble the pseudonym info objects.
+	var cryptKeys []keybase1.CryptKey
+	var pseudonymInfos []libkb.TlfPseudonymInfo
+	for _, user := range e.arg.Opts.Recipients {
+		tlfName := fmt.Sprintf("%s,%s", e.G().Env.GetUsername(), user)
+		e.G().Log.Debug("saltpack signcryption fetching TLF key for %s", tlfName)
+		res, err := e.G().TlfInfoSource.CompleteAndCanonicalizePrivateTlfName(identifyCtx, tlfName)
+		if err != nil {
+			return nil, err
+		}
+		if len(res.TlfID) != 32 {
+			return nil, fmt.Errorf("TLF ID wrong length: %d", len(res.TlfID))
+		}
+		var tlfID [16]byte
+		tlfIDSlice, err := hex.DecodeString(string(res.TlfID))
+		if err != nil {
+			return nil, err
+		}
+		copy(tlfID[:], tlfIDSlice)
+		keys, err := e.G().TlfInfoSource.CryptKeys(identifyCtx, tlfName)
+		if err != nil {
+			return nil, err
+		}
+		maxKey := maxGenerationKey(keys.CryptKeys)
+		pseudonymInfo := libkb.TlfPseudonymInfo{
+			Name:    "/keybase/private/" + string(res.CanonicalName),
+			ID:      tlfID,
+			KeyGen:  maxKey.KeyGeneration,
+			HmacKey: libkb.RandomHmacKey(),
+		}
+		cryptKeys = append(cryptKeys, maxKey)
+		pseudonymInfos = append(pseudonymInfos, pseudonymInfo)
+	}
+
+	// Post the pseudonyms in a batch.
+	pseudonyms, err := libkb.PostTlfPseudonyms(ctx.GetNetContext(), e.G(), pseudonymInfos)
+	if err != nil {
+		return nil, err
+	}
+	if len(pseudonyms) != len(pseudonymInfos) {
+		return nil, fmt.Errorf("makeSymmetricReceivers got the wrong number of pseudonyms back")
+	}
+
+	// Assemble the receivers.
+	var receiverSymmetricKeys []saltpack.ReceiverSymmetricKey
+	for i, key := range cryptKeys {
+		receiverSymmetricKeys = append(receiverSymmetricKeys, saltpack.ReceiverSymmetricKey{
+			Key:        saltpack.SymmetricKey(key.Key),
+			Identifier: pseudonyms[i][:],
+		})
+	}
+	return receiverSymmetricKeys, nil
+}
+
+func maxGenerationKey(keys []keybase1.CryptKey) keybase1.CryptKey {
+	generation := -1
+	var maxKey keybase1.CryptKey
+	for _, key := range keys {
+		if key.KeyGeneration > generation {
+			generation = key.KeyGeneration
+			maxKey = key
+		}
+	}
+	return maxKey
 }

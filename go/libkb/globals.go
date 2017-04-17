@@ -111,6 +111,7 @@ type GlobalContext struct {
 	MessageDeliverer    chattypes.MessageDeliverer    // background message delivery service
 	ServerCacheVersions chattypes.ServerCacheVersions // server side versions for chat caches
 	ChatSyncer          chattypes.Syncer              // For syncing inbox with server
+	TlfInfoSource       chattypes.TLFInfoSource
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
