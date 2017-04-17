@@ -36,7 +36,7 @@ func (h *SessionHandler) CurrentSession(_ context.Context, sessionID int) (keyba
 	var err error
 
 	aerr := h.G().LoginState().Account(func(a *libkb.Account) {
-		_, err = a.LoggedInProvisionedLoad()
+		_, err = a.LoggedInProvisionedCheck()
 		if err != nil {
 			return
 		}

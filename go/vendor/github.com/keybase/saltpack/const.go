@@ -24,9 +24,13 @@ const MessageTypeAttachedSignature MessageType = 1
 // detached signature.
 const MessageTypeDetachedSignature MessageType = 2
 
-// SaltpackCurrentVersion is currently the only supported packet
-// version, 1.0.
-var SaltpackCurrentVersion = Version{Major: 1, Minor: 0}
+// MessageTypeSigncryption is a packet type to describe a
+// signcrypted message.
+const MessageTypeSigncryption MessageType = 3
+
+var SaltpackVersion1 = Version{Major: 1, Minor: 0}
+var SaltpackVersion2 = Version{Major: 2, Minor: 0}
+var SaltpackCurrentVersion = SaltpackVersion1
 
 // encryptionBlockSize is by default 1MB and can't currently be tweaked.
 const encryptionBlockSize int = 1048576
@@ -55,6 +59,14 @@ const signatureAttachedString = "saltpack attached signature\x00"
 // a detached signature.
 const signatureDetachedString = "saltpack detached signature\x00"
 
+// signatureEncryptedString is part of the data that is signed in
+// a signcryption signature.
+const signatureEncryptedString = "saltpack encrypted signature\x00"
+
+// signcryptionSymmetricKeyContext gets mixed in with the long term symmetric
+// key and ephemeral key inputs
+const signcryptionSymmetricKeyContext = "saltpack signcryption derived symmetric key\x00"
+
 // We truncate HMAC512 to the same link that NaCl's crypto_auth function does.
 const cryptoAuthBytes = 32
 
@@ -75,6 +87,8 @@ func (m MessageType) String() string {
 		return "a detached signature"
 	case MessageTypeAttachedSignature:
 		return "an attached signature"
+	case MessageTypeSigncryption:
+		return "a signed and encrypted message"
 	default:
 		return "an unknown message type"
 	}

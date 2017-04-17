@@ -21,7 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const inboxVersion = 10
+const inboxVersion = 11
 
 type queryHash []byte
 
@@ -143,6 +143,7 @@ func (i *Inbox) writeDiskInbox(ctx context.Context, ibox inboxDiskData) Error {
 
 	ibox.ServerVersion = vers.InboxVers
 	ibox.Version = inboxVersion
+	ibox.Conversations = i.summarizeConvs(ibox.Conversations)
 	if ierr := i.writeDiskBox(ctx, i.dbKey(), ibox); ierr != nil {
 		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s",
 			i.uid, ierr.Error())
@@ -165,6 +166,35 @@ func (a ByDatabaseOrder) Len() int      { return len(a) }
 func (a ByDatabaseOrder) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a ByDatabaseOrder) Less(i, j int) bool {
 	return dbConvLess(a[i], a[j])
+}
+
+func (i *Inbox) summarizeConv(conv *chat1.Conversation) {
+	summaries := make(map[chat1.MessageType]chat1.MessageSummary)
+
+	// Collect the existing summaries
+	for _, m := range conv.MaxMsgSummaries {
+		summaries[m.GetMessageType()] = m
+	}
+
+	// Collect the locally-grown summaries
+	for _, m := range conv.MaxMsgs {
+		summaries[m.GetMessageType()] = m.Summary()
+	}
+
+	// Insert all the summaries
+	conv.MaxMsgs = nil
+	conv.MaxMsgSummaries = nil
+	for _, m := range summaries {
+		conv.MaxMsgSummaries = append(conv.MaxMsgSummaries, m)
+	}
+}
+
+func (i *Inbox) summarizeConvs(convs []chat1.Conversation) (res []chat1.Conversation) {
+	for _, conv := range convs {
+		i.summarizeConv(&conv)
+		res = append(res, conv)
+	}
+	return res
 }
 
 func (i *Inbox) mergeConvs(l []chat1.Conversation, r []chat1.Conversation) (res []chat1.Conversation) {
@@ -443,7 +473,7 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 
 	// If the query is specifying a list of conversation IDs, just check to see if we have *all*
 	// of them on the disk
-	if query != nil && len(query.ConvIDs) > 0 {
+	if query != nil && (len(query.ConvIDs) > 0 || query.ConvID != nil) {
 		i.Debug(ctx, "Read: queryExists: convIDs query, checking list: len: %d", len(query.ConvIDs))
 		return i.queryConvIDsExist(ctx, ibox, query.ConvIDs)
 	}

@@ -13,11 +13,12 @@ import (
 	"golang.org/x/net/context"
 )
 
-type resultCollector interface {
-	push(msg chat1.MessageUnboxed)
-	done() bool
-	result() []chat1.MessageUnboxed
-	error(err Error) Error
+type ResultCollector interface {
+	Push(msg chat1.MessageUnboxed)
+	Done() bool
+	Result() []chat1.MessageUnboxed
+	Error(err Error) Error
+	Name() string
 
 	String() string
 }
@@ -36,7 +37,7 @@ type storageEngine interface {
 		uid gregor1.UID) (context.Context, Error)
 	WriteMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msgs []chat1.MessageUnboxed) Error
-	ReadMessages(ctx context.Context, res resultCollector,
+	ReadMessages(ctx context.Context, res ResultCollector,
 		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) Error
 }
 
@@ -79,31 +80,35 @@ func decode(data []byte, res interface{}) error {
 }
 
 // simpleResultCollector aggregates all results in a the basic way. It is not thread safe.
-type simpleResultCollector struct {
+type SimpleResultCollector struct {
 	res    []chat1.MessageUnboxed
 	target int
 }
 
-func (s *simpleResultCollector) push(msg chat1.MessageUnboxed) {
+func (s *SimpleResultCollector) Push(msg chat1.MessageUnboxed) {
 	s.res = append(s.res, msg)
 }
 
-func (s *simpleResultCollector) done() bool {
+func (s *SimpleResultCollector) Done() bool {
 	if s.target < 0 {
 		return false
 	}
 	return len(s.res) >= s.target
 }
 
-func (s *simpleResultCollector) result() []chat1.MessageUnboxed {
+func (s *SimpleResultCollector) Result() []chat1.MessageUnboxed {
 	return s.res
 }
 
-func (s *simpleResultCollector) String() string {
-	return fmt.Sprintf("[ simple: t: %d c: %d ]", s.target, len(s.res))
+func (s *SimpleResultCollector) Name() string {
+	return "simple"
 }
 
-func (s *simpleResultCollector) error(err Error) Error {
+func (s *SimpleResultCollector) String() string {
+	return fmt.Sprintf("[ %s: t: %d c: %d ]", s.Name(), s.target, len(s.res))
+}
+
+func (s *SimpleResultCollector) Error(err Error) Error {
 	if s.target < 0 {
 		// Swallow this error if we are not looking for a target
 		if _, ok := err.(MissError); ok {
@@ -113,21 +118,21 @@ func (s *simpleResultCollector) error(err Error) Error {
 	return err
 }
 
-func newSimpleResultCollector(num int) *simpleResultCollector {
-	return &simpleResultCollector{
+func NewSimpleResultCollector(num int) *SimpleResultCollector {
+	return &SimpleResultCollector{
 		target: num,
 	}
 }
 
 // typedResultCollector aggregates results with a type contraints. It is not thread safe.
-type typedResultCollector struct {
+type TypedResultCollector struct {
 	res         []chat1.MessageUnboxed
 	target, cur int
 	typmap      map[chat1.MessageType]bool
 }
 
-func newTypedResultCollector(num int, typs []chat1.MessageType) *typedResultCollector {
-	c := typedResultCollector{
+func NewTypedResultCollector(num int, typs []chat1.MessageType) *TypedResultCollector {
+	c := TypedResultCollector{
 		target: num,
 		typmap: make(map[chat1.MessageType]bool),
 	}
@@ -137,29 +142,33 @@ func newTypedResultCollector(num int, typs []chat1.MessageType) *typedResultColl
 	return &c
 }
 
-func (t *typedResultCollector) push(msg chat1.MessageUnboxed) {
+func (t *TypedResultCollector) Push(msg chat1.MessageUnboxed) {
 	t.res = append(t.res, msg)
 	if t.typmap[msg.GetMessageType()] {
 		t.cur++
 	}
 }
 
-func (t *typedResultCollector) done() bool {
+func (t *TypedResultCollector) Done() bool {
 	if t.target < 0 {
 		return false
 	}
 	return t.cur >= t.target
 }
 
-func (t *typedResultCollector) result() []chat1.MessageUnboxed {
+func (t *TypedResultCollector) Result() []chat1.MessageUnboxed {
 	return t.res
 }
 
-func (t *typedResultCollector) String() string {
-	return fmt.Sprintf("[ typed: t: %d c: %d (%d types) ]", t.target, t.cur, len(t.typmap))
+func (t *TypedResultCollector) Name() string {
+	return "typed"
 }
 
-func (t *typedResultCollector) error(err Error) Error {
+func (t *TypedResultCollector) String() string {
+	return fmt.Sprintf("[ %s: t: %d c: %d (%d types) ]", t.Name(), t.target, t.cur, len(t.typmap))
+}
+
+func (t *TypedResultCollector) Error(err Error) Error {
 	if t.target < 0 {
 		// Swallow this error if we are not looking for a target
 		if _, ok := err.(MissError); ok {
@@ -260,7 +269,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 			s.Debug(ctx, "updateSupersededBy: supersedes: id: %d supersedes: %d", msgid, superID)
 			// Read super msg
 			var superMsgs []chat1.MessageUnboxed
-			rc := newSimpleResultCollector(1)
+			rc := NewSimpleResultCollector(1)
 			err := s.engine.ReadMessages(ctx, rc, convID, uid, superID)
 			if err != nil {
 				// If we don't have the message, just keep going
@@ -269,7 +278,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 				}
 				return err
 			}
-			superMsgs = rc.result()
+			superMsgs = rc.Result()
 			if len(superMsgs) == 0 {
 				continue
 			}
@@ -299,8 +308,9 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	return nil
 }
 
-func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
+func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
+	convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery,
+	pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(ctx, s.G(), DefaultSecretUI)
 	if ierr != nil {
@@ -344,13 +354,14 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 	}
 	s.Debug(ctx, "Fetch: maxID: %d num: %d", maxID, num)
 
-	// Figure out how to determine we are done seeking
-	var rc resultCollector
-	if query != nil && len(query.MessageTypes) > 0 {
-		s.Debug(ctx, "Fetch: types: %v", query.MessageTypes)
-		rc = newTypedResultCollector(num, query.MessageTypes)
-	} else {
-		rc = newSimpleResultCollector(num)
+	// Figure out how to determine we are done seeking (unless client tells us how to)
+	if rc == nil {
+		if query != nil && len(query.MessageTypes) > 0 {
+			s.Debug(ctx, "Fetch: types: %v", query.MessageTypes)
+			rc = NewTypedResultCollector(num, query.MessageTypes)
+		} else {
+			rc = NewSimpleResultCollector(num)
+		}
 	}
 	s.Debug(ctx, "Fetch: using result collector: %s", rc)
 
@@ -359,7 +370,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 	if err = s.engine.ReadMessages(ctx, rc, convID, uid, maxID); err != nil {
 		return chat1.ThreadView{}, err
 	}
-	res = rc.result()
+	res = rc.Result()
 
 	// Form paged result
 	var tres chat1.ThreadView
@@ -377,8 +388,9 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 	return tres, nil
 }
 
-func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
+func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery,
+	pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	locks.Storage.Lock()
@@ -390,17 +402,18 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.Conve
 	}
 	s.Debug(ctx, "FetchUpToLocalMaxMsgID: using max msgID: %d", maxMsgID)
 
-	return s.fetchUpToMsgIDLocked(ctx, convID, uid, maxMsgID, query, pagination)
+	return s.fetchUpToMsgIDLocked(ctx, rc, convID, uid, maxMsgID, query, pagination)
 }
 
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
+	uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
 
-	return s.fetchUpToMsgIDLocked(ctx, conv.Metadata.ConversationID, uid, conv.ReaderInfo.MaxMsgid, query, pagination)
+	return s.fetchUpToMsgIDLocked(ctx, rc, conv.Metadata.ConversationID, uid, conv.ReaderInfo.MaxMsgid,
+		query, pagination)
 }
 
 func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID,
@@ -422,7 +435,7 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	// Run seek looking for each message
 	var res []*chat1.MessageUnboxed
 	for _, msgID := range msgIDs {
-		rc := newSimpleResultCollector(1)
+		rc := NewSimpleResultCollector(1)
 		var sres []chat1.MessageUnboxed
 		if err = s.engine.ReadMessages(ctx, rc, convID, uid, msgID); err != nil {
 			if _, ok := err.(MissError); ok {
@@ -432,7 +445,7 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 				return nil, s.MaybeNuke(false, err, convID, uid)
 			}
 		}
-		sres = rc.result()
+		sres = rc.Result()
 		res = append(res, &sres[0])
 	}
 

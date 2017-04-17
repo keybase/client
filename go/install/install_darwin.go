@@ -584,16 +584,15 @@ const kbnmHostName = "io.keybase.kbnm"
 // kbnmDescription is the description of the purpose for the manifest whitelist.
 const kbnmDescription = "Keybase Native Messaging API"
 
-// kbnmExtensionID is the
-const kbnmExtensionID = "chrome-extension://bddkhaigcjacfohdeklflaigfnebicfm/"
-
 // InstallKBNM installs the Keybase NativeMessaging whitelist
 func InstallKBNM(context Context, binPath string, log Log) error {
 	// Find path of the keybase binary
-	hostPath, err := chooseBinPath(binPath)
+	keybasePath, err := chooseBinPath(binPath)
 	if err != nil {
 		return err
 	}
+	// kbnm binary is next to the keybase binary, same dir
+	hostPath := filepath.Join(filepath.Dir(keybasePath), "kbnm")
 
 	// Host manifest, see: https://developer.chrome.com/extensions/nativeMessaging
 	hostManifest := struct {
@@ -608,7 +607,12 @@ func InstallKBNM(context Context, binPath string, log Log) error {
 		Path:        hostPath,
 		Type:        "stdio",
 		AllowedOrigins: []string{
-			kbnmExtensionID,
+			// Production public version in the store
+			"chrome-extension://ognfafcpbkogffpmmdglhbjboeojlefj/",
+			// Hard-coded key from the repo version
+			"chrome-extension://kockbbfoibcdfibclaojljblnhpnjndg/",
+			// Keybase-internal version
+			"chrome-extension://gnjkbjlgkpiaehpibpdefaieklbfljjm/",
 		},
 	}
 
@@ -633,7 +637,12 @@ func InstallKBNM(context Context, binPath string, log Log) error {
 	}
 	defer fp.Close()
 
+	// Truncate in case there is other stuff in the file already.
+	// Unlikely error is ignored, let's try writing to it anyways.
+	_ = fp.Truncate(0)
+
 	encoder := json.NewEncoder(fp)
+	encoder.SetIndent("", "    ")
 	return encoder.Encode(&hostManifest)
 }
 

@@ -25,3 +25,7 @@ func KIDIsDeviceVerify(kid keybase1.KID) bool {
 func KIDIsDeviceEncrypt(kid keybase1.KID) bool {
 	return kid.GetKeyType() == KIDNaclDH
 }
+
+func KIDIsPGP(kid keybase1.KID) bool {
+	return !KIDIsDeviceEncrypt(kid) && !KIDIsDeviceVerify(kid)
+}

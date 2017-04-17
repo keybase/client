@@ -6,6 +6,7 @@ import DumbSheet from './dev/dumb-sheet'
 import DumbChatOnly from './dev/chat-only.native'
 import Main from './main'
 import React, {Component} from 'react'
+import {Box} from './common-adapters'
 import configureStore from './store/configure-store'
 import {AppRegistry, AppState} from 'react-native'
 import {Provider} from 'react-redux'
@@ -63,7 +64,7 @@ class Keybase extends Component {
     let child
 
     if (dumbSheetOnly) {
-      child = <DumbSheet />
+      child = <Box style={{flex: 1, marginTop: 40}}><DumbSheet /></Box>
     } else if (dumbChatOnly) {
       child = <DumbChatOnly />
     } else {

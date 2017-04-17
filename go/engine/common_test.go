@@ -224,7 +224,7 @@ func (fu *FakeUser) NewSecretUI() *libkb.TestSecretUI {
 }
 
 func AssertProvisioned(tc libkb.TestContext) error {
-	prov, err := tc.G.LoginState().LoggedInProvisionedLoad()
+	prov, err := tc.G.LoginState().LoggedInProvisionedCheck()
 	if err != nil {
 		return err
 	}
@@ -235,7 +235,7 @@ func AssertProvisioned(tc libkb.TestContext) error {
 }
 
 func AssertNotProvisioned(tc libkb.TestContext) error {
-	prov, err := tc.G.LoginState().LoggedInProvisionedLoad()
+	prov, err := tc.G.LoginState().LoggedInProvisionedCheck()
 	if err != nil {
 		return err
 	}

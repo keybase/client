@@ -4251,6 +4251,7 @@ export type SaltpackEncryptOptions = {
   noSelfEncrypt: boolean,
   binary: boolean,
   hideRecipients: boolean,
+  signcrypt: boolean,
 }
 
 export type SaltpackEncryptedMessageInfo = {
@@ -4373,6 +4374,11 @@ export type SessionStatus = {
 }
 
 export type SessionToken = string
+
+export type SharedDHKey = {
+  gen: int,
+  kid: KID,
+}
 
 export type Sig = {
   seqno: int,
@@ -4773,6 +4779,7 @@ export type UserPlusKeys = {
   pgpKeyCount: int,
   uvv: UserVersionVector,
   deletedDeviceKeys?: ?Array<PublicKey>,
+  sharedDHKeys?: ?Array<SharedDHKey>,
 }
 
 export type UserResolution = {
