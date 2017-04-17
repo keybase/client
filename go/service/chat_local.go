@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -75,6 +76,8 @@ func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
 func (h *chatLocalHandler) isOfflineError(err error) bool {
 	// Check type
 	switch terr := err.(type) {
+	case net.Error:
+		return true
 	case libkb.APINetError:
 		return true
 	case chat.OfflineError:
