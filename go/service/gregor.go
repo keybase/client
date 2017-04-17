@@ -612,19 +612,15 @@ func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time
 func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
 	g.Debug(context.Background(), "disconnected: %v", status)
 
-	// We only want to run the reachability update if we are going offline, not just that the
-	// connection is starting up for the first time
-	connected := g.G().ChatSyncer.IsConnected(ctx)
-
-	// Alert chat syncer that we are now disconnected
-	g.G().ChatSyncer.Disconnected(ctx)
-
-	// Call out to reachability module if we have one
-	if connected && g.reachability != nil {
+	// Call out to reachability module if we have one (and we are currently connected)
+	if g.reachability != nil && status != rpc.StartingFirstConnection {
 		g.reachability.setReachability(keybase1.Reachability{
 			Reachable: keybase1.Reachable_NO,
 		})
 	}
+
+	// Alert chat syncer that we are now disconnected
+	g.G().ChatSyncer.Disconnected(ctx)
 }
 
 func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
