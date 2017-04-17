@@ -67,7 +67,7 @@ protocol Common {
     array<PGPIdentity> PGPIdentities; // same
     boolean isSibkey;
     boolean isEldest;
-    KID parentID;
+    string parentID;
     DeviceID deviceID;
     string deviceDescription;
     string deviceType;

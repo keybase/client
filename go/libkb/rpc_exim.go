@@ -882,7 +882,7 @@ func (ckf ComputedKeyFamily) exportPublicKey(key GenericKey) (pk keybase1.Public
 	cki, ok := ckf.cki.Infos[pk.KID]
 	if ok && cki != nil {
 		if cki.Parent.IsValid() {
-			pk.ParentID = cki.Parent
+			pk.ParentID = cki.Parent.String()
 		}
 		pk.IsSibkey = cki.Sibkey
 		pk.IsEldest = cki.Eldest

@@ -102,7 +102,7 @@ func (v *CmdDumpKeyfamily) Run() (err error) {
 func findSubkeys(parentID keybase1.KID, allKeys []keybase1.PublicKey) []keybase1.PublicKey {
 	ret := []keybase1.PublicKey{}
 	for _, key := range allKeys {
-		if key.ParentID.Equal(parentID) {
+		if keybase1.KIDFromString(key.ParentID).Equal(parentID) {
 			ret = append(ret, key)
 		}
 	}
