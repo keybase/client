@@ -127,6 +127,8 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 
 	ds := []libkb.Delegator{}
 
+	e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push SDH:%v", e.G().Env.GetEnableSharedDH())
+
 	var sdhBoxes = []libkb.SharedDHSecretKeyBox{}
 	if e.G().Env.GetEnableSharedDH() {
 		sdh1, err := libkb.NewSharedDHSecretKeyBox(

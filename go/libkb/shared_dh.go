@@ -148,12 +148,12 @@ func (s *SharedDHKeyring) Sync(ctx context.Context) (err error) {
 	return s.sync(ctx, nil, nil)
 }
 
-func (s *SharedDHKeyring) SyncDuringSignup(ctx context.Context, lctx LoginContext, me *User) (err error) {
-	return s.sync(ctx, lctx, me)
+func (s *SharedDHKeyring) SyncDuringSignup(ctx context.Context, lctx LoginContext, upak *keybase1.UserPlusAllKeys) (err error) {
+	return s.sync(ctx, lctx, upak)
 }
 
 // `lctx` and `me` are optional
-func (s *SharedDHKeyring) sync(ctx context.Context, lctx LoginContext, me *User) (err error) {
+func (s *SharedDHKeyring) sync(ctx context.Context, lctx LoginContext, upak *keybase1.UserPlusAllKeys) (err error) {
 	defer s.G().CTrace(ctx, "SharedDHKeyring#Sync", func() error { return err })()
 
 	s.Lock()
@@ -164,9 +164,11 @@ func (s *SharedDHKeyring) sync(ctx context.Context, lctx LoginContext, me *User)
 		return err
 	}
 
-	upak, err := s.getUPAK(ctx, lctx, me)
-	if err != nil {
-		return err
+	if upak == nil {
+		upak, err = s.getUPAK(ctx, lctx, upak)
+		if err != nil {
+			return err
+		}
 	}
 
 	newKeys, err := s.importLocked(ctx, boxes, newSharedDHChecker(upak))
@@ -178,10 +180,9 @@ func (s *SharedDHKeyring) sync(ctx context.Context, lctx LoginContext, me *User)
 	return nil
 }
 
-func (s *SharedDHKeyring) getUPAK(ctx context.Context, lctx LoginContext, me *User) (*keybase1.UserPlusAllKeys, error) {
-	if me != nil {
-		tmp := me.ExportToUserPlusAllKeys(keybase1.Time(0))
-		return &tmp, nil
+func (s *SharedDHKeyring) getUPAK(ctx context.Context, lctx LoginContext, upak *keybase1.UserPlusAllKeys) (*keybase1.UserPlusAllKeys, error) {
+	if upak != nil {
+		return upak, nil
 	}
 	upakArg := NewLoadUserByUIDArg(ctx, s.G(), s.uid)
 	upakArg.LoginContext = lctx

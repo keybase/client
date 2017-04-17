@@ -13,6 +13,7 @@ import (
 	"golang.org/x/crypto/scrypt"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type PaperKeyGenArg struct {
@@ -124,7 +125,12 @@ func (e *PaperKeyGen) syncSDH(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	err = sdhk.SyncDuringSignup(ctx.NetContext, e.arg.LoginContext, e.arg.Me)
+	var upak *keybase1.UserPlusAllKeys
+	if e.arg.Me != nil {
+		tmp := e.arg.Me.ExportToUserPlusAllKeys(keybase1.Time(0))
+		upak = &tmp
+	}
+	err = sdhk.SyncDuringSignup(ctx.NetContext, e.arg.LoginContext, upak)
 	if err != nil {
 		return err
 	}
