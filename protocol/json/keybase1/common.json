@@ -352,6 +352,21 @@
     },
     {
       "type": "record",
+      "name": "SharedDHKey",
+      "fields": [
+        {
+          "type": "int",
+          "name": "gen"
+        },
+        {
+          "type": "KID",
+          "name": "kid"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "UserPlusKeys",
       "fields": [
         {
@@ -390,6 +405,14 @@
             "items": "PublicKey"
           },
           "name": "deletedDeviceKeys"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SharedDHKey"
+          },
+          "name": "sharedDHKeys",
+          "lint": "ignore"
         }
       ]
     },

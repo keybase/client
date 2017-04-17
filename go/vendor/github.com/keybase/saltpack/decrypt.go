@@ -163,7 +163,7 @@ func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey
 		return nil, nil, -1, ErrBadLookup
 	}
 
-	payloadKeySlice, err := sk.Unbox(ephemeralKey, nonceForPayloadKeyBox(), hdr.Receivers[orig].PayloadKeyBox)
+	payloadKeySlice, err := sk.Unbox(ephemeralKey, nonceForPayloadKeyBoxV1(), hdr.Receivers[orig].PayloadKeyBox)
 	if err != nil {
 		return nil, nil, -1, err
 	}
@@ -191,7 +191,7 @@ func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, ephemeralKey 
 
 		for i, r := range hdr.Receivers {
 			if len(r.ReceiverKID) == 0 {
-				payloadKeySlice, err := shared.Unbox(nonceForPayloadKeyBox(), r.PayloadKeyBox)
+				payloadKeySlice, err := shared.Unbox(nonceForPayloadKeyBoxV1(), r.PayloadKeyBox)
 				if err != nil {
 					continue
 				}

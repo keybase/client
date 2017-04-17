@@ -72,6 +72,7 @@ func TestSyncerConnected(t *testing.T) {
 	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
 	syncer := NewSyncer(tc.G)
+	syncer.isConnected = true
 	ibox := storage.NewInbox(tc.G, uid)
 	store := storage.New(tc.G)
 
@@ -145,7 +146,7 @@ func TestSyncerConnected(t *testing.T) {
 	}
 	require.Equal(t, chat1.ConversationStatus_UNFILED, convs[1].Metadata.Status)
 	require.Equal(t, chat1.InboxVers(100), vers)
-	thread, cerr := store.Fetch(context.TODO(), mconv, uid, nil, nil)
+	thread, cerr := store.Fetch(context.TODO(), mconv, uid, nil, nil, nil)
 	require.NoError(t, cerr)
 	require.Equal(t, 2, len(thread.Messages))
 
@@ -173,7 +174,7 @@ func TestSyncerConnected(t *testing.T) {
 	_, _, err = ibox.ReadAll(context.TODO())
 	require.Error(t, err)
 	require.IsType(t, storage.MissError{}, err)
-	_, cerr = store.Fetch(context.TODO(), mconv, uid, nil, nil)
+	_, cerr = store.Fetch(context.TODO(), mconv, uid, nil, nil, nil)
 	require.Error(t, cerr)
 	require.IsType(t, storage.MissError{}, cerr)
 	_, _, serr = tc.G.InboxSource.Read(context.TODO(), uid, nil, true, nil, nil)

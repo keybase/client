@@ -84,7 +84,7 @@ func (to TestOutput) Write(p []byte) (n int, err error) {
 type TestContext struct {
 	G          *GlobalContext
 	PrevGlobal *GlobalContext
-	Tp         TestParameters
+	Tp         *TestParameters
 	// TODO: Rename this to TB.
 	T testing.TB
 }
@@ -187,6 +187,7 @@ var setupTestMu sync.Mutex
 func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestContext, err error) {
 	setupTestMu.Lock()
 	defer setupTestMu.Unlock()
+	tc.Tp = &TestParameters{}
 
 	g := NewGlobalContext()
 

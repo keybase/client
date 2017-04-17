@@ -23,7 +23,6 @@
 		004624CE1B2A3BE300E218AC /* FinderSync.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 004624CD1B2A3BE300E218AC /* FinderSync.framework */; };
 		0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C21AE57A7A00BFB0E7 /* main.m */; };
 		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in Copy Files */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		00938E2F1D3D9938003BB1EC /* kbfuse.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 00938E2E1D3D9938003BB1EC /* kbfuse.bundle */; };
 		0097BA671DD2589C0047118C /* Options.m in Sources */ = {isa = PBXBuildFile; fileRef = 0097BA661DD2589C0047118C /* Options.m */; };
 		0097BA681DD259B90047118C /* Options.m in Sources */ = {isa = PBXBuildFile; fileRef = 0097BA661DD2589C0047118C /* Options.m */; };
 		009E135C1B27654200C72B28 /* ShareViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 009E135B1B27654200C72B28 /* ShareViewController.xib */; };
@@ -36,8 +35,8 @@
 		00DAF5C01B2F8969000D7F9A /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00DAF5BE1B2F885D000D7F9A /* Social.framework */; };
 		00E1CEEF1C44313B00ED3A35 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E1CEEE1C44313B00ED3A35 /* Media.xcassets */; };
 		00E1CEF01C44313B00ED3A35 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E1CEEE1C44313B00ED3A35 /* Media.xcassets */; };
-		514F60CA609E25C04C72FFC3 /* Pods_keybase_Helper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 534190DA47FF7757FABCC0F1 /* Pods_keybase_Helper.framework */; };
 		5AAE4172EC33DA8F19F8A42E /* Pods_Installer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 69A6ACE60F73339BC6D789BA /* Pods_Installer.framework */; };
+		A41AA4F5D9C9A73A57136523 /* libPods-keybase.Helper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 647177609208B611C8346C28 /* libPods-keybase.Helper.a */; };
 		EAACDAA5E950F358EB5A14C6 /* Pods_Status.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B4795B58002E8F344AF75FF0 /* Pods_Status.framework */; };
 /* End PBXBuildFile section */
 
@@ -137,7 +136,6 @@
 		0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelper.m; sourceTree = "<group>"; };
 		0057B0C11AE57A7A00BFB0E7 /* keybase.Helper.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = keybase.Helper.plist; sourceTree = "<group>"; };
 		0057B0C21AE57A7A00BFB0E7 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		00938E2E1D3D9938003BB1EC /* kbfuse.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = kbfuse.bundle; path = Fuse/kbfuse.bundle; sourceTree = "<group>"; };
 		0097BA651DD2589C0047118C /* Options.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Options.h; sourceTree = "<group>"; };
 		0097BA661DD2589C0047118C /* Options.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Options.m; sourceTree = "<group>"; };
 		009E135B1B27654200C72B28 /* ShareViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ShareViewController.xib; sourceTree = "<group>"; };
@@ -165,7 +163,7 @@
 		10F5D4AFBFC1E22180FEFFCD /* Pods-Installer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Installer.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Installer/Pods-Installer.debug.xcconfig"; sourceTree = "<group>"; };
 		398CF2F9A9EB653FFE008EB6 /* Pods-Installer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Installer.release.xcconfig"; path = "Pods/Target Support Files/Pods-Installer/Pods-Installer.release.xcconfig"; sourceTree = "<group>"; };
 		50CECECF69AD315C4D376EB8 /* Pods-keybase.Helper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.release.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.release.xcconfig"; sourceTree = "<group>"; };
-		534190DA47FF7757FABCC0F1 /* Pods_keybase_Helper.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_keybase_Helper.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		647177609208B611C8346C28 /* libPods-keybase.Helper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-keybase.Helper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		69A6ACE60F73339BC6D789BA /* Pods_Installer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Installer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8A6B4620AD7904EFA1B59736 /* Pods-Status.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Status.release.xcconfig"; path = "Pods/Target Support Files/Pods-Status/Pods-Status.release.xcconfig"; sourceTree = "<group>"; };
 		A15A4EEA7C37D549AE45695A /* Pods-Status.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Status.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Status/Pods-Status.debug.xcconfig"; sourceTree = "<group>"; };
@@ -205,7 +203,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				514F60CA609E25C04C72FFC3 /* Pods_keybase_Helper.framework in Frameworks */,
+				A41AA4F5D9C9A73A57136523 /* libPods-keybase.Helper.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -371,7 +369,6 @@
 				00F808061A4A5F600038BC63 /* README.md */,
 				004D14961A3BCF1F0083888D /* Podfile */,
 				00CC434B1A3A9E6C006118A9 /* Installer */,
-				00938E2E1D3D9938003BB1EC /* kbfuse.bundle */,
 				0036080C1C442E6100B3300E /* Status */,
 				00734B291B263FB500F3B714 /* Extensions */,
 				0013926F1B06B18A0082DEA8 /* Resources */,
@@ -430,7 +427,7 @@
 				DA5BD47C7019FB979DD332FE /* libPods-Keybase.a */,
 				69A6ACE60F73339BC6D789BA /* Pods_Installer.framework */,
 				B4795B58002E8F344AF75FF0 /* Pods_Status.framework */,
-				534190DA47FF7757FABCC0F1 /* Pods_keybase_Helper.framework */,
+				647177609208B611C8346C28 /* libPods-keybase.Helper.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -755,7 +752,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				001392751B06B18A0082DEA8 /* Fuse.icns in Resources */,
-				00938E2F1D3D9938003BB1EC /* kbfuse.bundle in Resources */,
 				00E1CEEF1C44313B00ED3A35 /* Media.xcassets in Resources */,
 				0005BCA01C445AFB0062EF1D /* MainMenu.xib in Resources */,
 			);
@@ -1384,6 +1380,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.Installer;
 				PRODUCT_NAME = Keybase;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Release;

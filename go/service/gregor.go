@@ -148,11 +148,13 @@ var _ libkb.GregorDismisser = (*gregorHandler)(nil)
 var _ libkb.GregorListener = (*gregorHandler)(nil)
 
 type gregorLocalDb struct {
-	db *libkb.JSONLocalDb
+	libkb.Contextified
 }
 
 func newLocalDB(g *libkb.GlobalContext) *gregorLocalDb {
-	return &gregorLocalDb{db: g.LocalDb}
+	return &gregorLocalDb{
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func dbKey(u gregor.UID) libkb.DbKey {
@@ -160,11 +162,11 @@ func dbKey(u gregor.UID) libkb.DbKey {
 }
 
 func (db *gregorLocalDb) Store(u gregor.UID, b []byte) error {
-	return db.db.PutRaw(dbKey(u), b)
+	return db.G().LocalDb.PutRaw(dbKey(u), b)
 }
 
 func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
-	res, _, err := db.db.GetRaw(dbKey(u))
+	res, _, err := db.G().LocalDb.GetRaw(dbKey(u))
 	return res, err
 }
 
@@ -1047,7 +1049,7 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 		token = s.GetToken()
 		uid = s.GetUID()
 	}, "gregor handler - login session")
-	if token == "" {
+	if token == "" || uid == "" {
 		return uid, token, ok
 	}
 	if aerr != nil {
