@@ -9,11 +9,5 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
   const fromShared = shared(dispatch, getState, notify)
   return {
     ...fromShared,
-    'keybase.1.NotifyApp.exit': () => { },
-    'keybase.1.NotifyFS.FSActivity': ({notification}) => { },
-    'keybase.1.NotifyFS.FSSyncStatusResponse': () => { },
-    'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => { },
-    'keybase.1.NotifyService.shutdown': () => { },
-    'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => { },
   }
 }

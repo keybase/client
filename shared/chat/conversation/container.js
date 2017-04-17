@@ -39,15 +39,16 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}) => {
   let threadLoadedOffline = false
 
   if (selectedConversationIDKey !== Constants.nothingSelected) {
+    rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversationIDKey)
+    finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)
+    supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
+    supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
+
     const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
     if (conversationState) {
       const inbox = state.chat.get('inbox')
       const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
       participants = selected && selected.participants || List()
-      rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversationIDKey)
-      finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)
-      supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
-      supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
       showLoader = !(selected && selected.state === 'unboxed') || conversationState.isRequesting
       threadLoadedOffline = conversationState.loadedOffline
     }

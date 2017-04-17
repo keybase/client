@@ -8,6 +8,7 @@ import {badgeApp} from './notifications'
 import {navigateUp} from '../actions/route-tree'
 import {call, put, select} from 'redux-saga/effects'
 import {safeTakeLatest, safeTakeEvery} from '../util/saga'
+import {isMobile} from '../constants/platform'
 
 import type {Action} from '../constants/types/flux'
 import type {FavoriteAdd, FavoriteAdded, FavoriteList, FavoriteListed, FavoriteIgnore, FavoriteIgnored, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored, MarkTLFCreated, SetupKBFSChangedHandler} from '../constants/favorite'
@@ -275,18 +276,20 @@ function * _setupKBFSChangedHandler (): SagaGenerator<any, any> {
       }
     }, 2000)
 
-    engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncActivity', ({status}) => {
-      // This has a lot of missing data from the KBFS side so for now we just have a timeout that sets this to off
-      // ie. we don't get the syncingBytes or ops correctly (always zero)
-      if (_kbfsUploadingState === false) {
-        _kbfsUploadingState = true
-        const badgeAction: Action = badgeApp('kbfsUploading', true)
-        dispatch(badgeAction)
-        dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: true}})
-      }
-      // We have to debounce while the events are still happening no matter what
-      debouncedKBFSStopped()
-    })
+    if (!isMobile) {
+      engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncActivity', ({status}) => {
+        // This has a lot of missing data from the KBFS side so for now we just have a timeout that sets this to off
+        // ie. we don't get the syncingBytes or ops correctly (always zero)
+        if (_kbfsUploadingState === false) {
+          _kbfsUploadingState = true
+          const badgeAction: Action = badgeApp('kbfsUploading', true)
+          dispatch(badgeAction)
+          dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: true}})
+        }
+        // We have to debounce while the events are still happening no matter what
+        debouncedKBFSStopped()
+      })
+    }
   })
 
   yield call(NotifyFSRequestFSSyncStatusRequestRpcPromise, {param: {req: {requestID: 0}}})
