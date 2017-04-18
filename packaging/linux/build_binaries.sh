@@ -114,7 +114,7 @@ build_one_architecture() {
 
   # Whitelist for NativeMessaging
   kbnm_bin="/usr/bin/kbnm"
-  kbnm_file="$layout_dir/etc/opt/chrome/native-messaging-hosts/io.keybase.kbnm"
+  kbnm_file="$layout_dir/etc/opt/chrome/native-messaging-hosts/io.keybase.kbnm.json"
   mkdir -p "$(dirname "$kbnm_file")"
   cat "$here/host_json.template" \
     | sed "s|@@HOST_PATH@@|$kbnm_bin|g" \
