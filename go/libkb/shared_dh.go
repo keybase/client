@@ -41,6 +41,22 @@ func NewSharedDHSecretKeyBox(innerKey NaclDHKeyPair, receiverKey NaclDHKeyPair, 
 	}, nil
 }
 
+func NewSharedDHSecretKeyBoxFromKex(bk keybase1.SharedDhSecretKeyBox) SharedDHSecretKeyBox {
+	return SharedDHSecretKeyBox{
+		Box:         bk.Box,
+		ReceiverKID: bk.ReceiverKID,
+		Generation:  SharedDHKeyGeneration(bk.Generation),
+	}
+}
+
+func (b *SharedDHSecretKeyBox) ToKex() keybase1.SharedDhSecretKeyBox {
+	return keybase1.SharedDhSecretKeyBox{
+		Box:         b.Box,
+		ReceiverKID: b.ReceiverKID,
+		Generation:  int(b.Generation),
+	}
+}
+
 type sharedDHSecretKeyBoxesResp struct {
 	Boxes  []SharedDHSecretKeyBox `json:"boxes"`
 	Status AppStatus              `json:"status"`
@@ -94,7 +110,7 @@ func (s *SharedDHKeyring) PrepareBoxesForNewDevice(ctx context.Context, receiver
 		boxes = append(boxes, box)
 	}
 
-	s.G().Log.CDebugf(ctx, "SharedDHKeyring#PrepareBoxesForNewDevice(%s -> %s) ->",
+	s.G().Log.CDebugf(ctx, "SharedDHKeyring#PrepareBoxesForNewDevice(%s -> %s) -> %s boxes",
 		senderKey.GetKID(), receiverKey.GetKID(), len(boxes))
 	return boxes, nil
 }
@@ -293,7 +309,8 @@ func importSharedDHKey(box *SharedDHSecretKeyBox, activeDecryptionKey GenericKey
 	}
 	expectedKID, found := checker.expectedSharedDHKIDs[box.Generation]
 	if !found {
-		return nil, SharedDHImportError{fmt.Sprintf("No known generation: %d", box.Generation)}
+		// This error can mean the SDH keyring is behind and should be synced.
+		return nil, SharedDHImportError{fmt.Sprintf("No known SDH generation: %d", box.Generation)}
 	}
 	if !expectedKID.Equal(key.GetKID()) {
 		return nil, SharedDHImportError{fmt.Sprintf("Wrong public key for gen=%d; %s != %s", box.Generation, expectedKID, key.GetKID())}

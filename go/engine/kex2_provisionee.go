@@ -226,12 +226,16 @@ func (e *Kex2Provisionee) HandleDidCounterSign2(arg keybase1.DidCounterSign2Arg)
 		e.G().Log.Debug("| Failed to unpack pps: %s", err)
 		return err
 	}
-	return e.HandleDidCounterSign(arg.Sig)
+	return e.handleDidCounterSign(arg.Sig, arg.SdhBoxes)
 }
 
 // HandleDidCounterSign implements HandleDidCounterSign in
 // kex2.Provisionee interface.
 func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
+	return e.handleDidCounterSign(sig, nil)
+}
+
+func (e *Kex2Provisionee) handleDidCounterSign(sig []byte, sdhBoxes []keybase1.SharedDhSecretKeyBox) (err error) {
 	e.G().Log.Debug("+ HandleDidCounterSign()")
 	defer func() { e.G().Log.Debug("- HandleDidCounterSign() -> %s", libkb.ErrToOk(err)) }()
 
@@ -283,7 +287,7 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 	}
 
 	// post the key sigs to the api server
-	if err = e.postSigs(eddsaArgs, dhArgs); err != nil {
+	if err = e.postSigs(eddsaArgs, dhArgs, sdhBoxes); err != nil {
 		return err
 	}
 
@@ -457,9 +461,17 @@ func (e *Kex2Provisionee) reverseSig(jw *jsonw.Wrapper) error {
 
 // postSigs takes the HTTP args for the signing key and encrypt
 // key and posts them to the api server.
-func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs) error {
+func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs, sdhKexBoxes []keybase1.SharedDhSecretKeyBox) error {
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []map[string]string{firstValues(signingArgs.ToValues()), firstValues(encryptArgs.ToValues())}
+
+	sdhBoxes := e.convertBoxes(sdhKexBoxes)
+
+	// Post the shared dh keys encrypted for the provisionee device by the provisioner.
+	if len(sdhBoxes) > 0 {
+		payload["shared_dh_secret_boxes"] = sdhBoxes
+		payload["shared_dh_generation"] = sdhBoxes[0].Generation
+	}
 
 	arg := libkb.APIArg{
 		Endpoint:    "key/multi",
@@ -588,6 +600,13 @@ func (e *Kex2Provisionee) cacheKeys() (err error) {
 	}
 
 	return nil
+}
+
+func (e *Kex2Provisionee) convertBoxes(bks []keybase1.SharedDhSecretKeyBox) (res []libkb.SharedDHSecretKeyBox) {
+	for _, bk := range bks {
+		res = append(res, libkb.NewSharedDHSecretKeyBoxFromKex(bk))
+	}
+	return
 }
 
 func firstValues(vals url.Values) map[string]string {

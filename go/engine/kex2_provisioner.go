@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/keybase/client/go/kex2"
@@ -21,6 +22,7 @@ type Kex2Provisioner struct {
 	secretCh              chan kex2.Secret
 	me                    *libkb.User
 	signingKey            libkb.GenericKey
+	encryptionKey         libkb.NaclDHKeyPair
 	pps                   keybase1.PassphraseStream
 	provisioneeDeviceName string
 	provisioneeDeviceType string
@@ -78,12 +80,7 @@ func (e *Kex2Provisioner) Run(ctx *Context) error {
 		return err
 	}
 
-	// get signing key (including secret key):
-	ska := libkb.SecretKeyArg{
-		Me:      e.me,
-		KeyType: libkb.DeviceSigningKeyType,
-	}
-	e.signingKey, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "new device install"))
+	err = e.loadSecretKeys(ctx)
 	if err != nil {
 		return err
 	}
@@ -137,6 +134,34 @@ func (e *Kex2Provisioner) Run(ctx *Context) error {
 		return err
 	}
 
+	return nil
+}
+
+func (e *Kex2Provisioner) loadSecretKeys(ctx *Context) (err error) {
+	// get signing key (including secret key)
+	ska1 := libkb.SecretKeyArg{
+		Me:      e.me,
+		KeyType: libkb.DeviceSigningKeyType,
+	}
+	e.signingKey, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska1, "new device install"))
+	if err != nil {
+		return err
+	}
+
+	// get encryption key (including secret key)
+	ska2 := libkb.SecretKeyArg{
+		Me:      e.me,
+		KeyType: libkb.DeviceEncryptionKeyType,
+	}
+	encryptionKeyGeneric, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska2, "new device install"))
+	if err != nil {
+		return err
+	}
+	var ok bool
+	e.encryptionKey, ok = encryptionKeyGeneric.(libkb.NaclDHKeyPair)
+	if !ok {
+		return fmt.Errorf("Unexpected encryption key type")
+	}
 	return nil
 }
 
@@ -235,16 +260,28 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 	if err != nil {
 		return output, err
 	}
+
 	output.Sig, err = e.CounterSign(input.SigPayload)
 	if err != nil {
 		return output, err
 	}
+
 	var ppsPacked []byte
 	ppsPacked, err = libkb.MsgpackEncode(e.pps)
 	if err != nil {
 		return output, err
 	}
 	output.PpsEncrypted, err = key.EncryptToString(ppsPacked, nil)
+
+	if e.G().Env.GetEnableSharedDH() {
+		sdhBoxes, err := e.makeSdhBoxes(key)
+		if err != nil {
+			return output, err
+		}
+		output.SdhBoxes = sdhBoxes
+		// TODO if SDH_UPGRADE: may want to add a key here.
+	}
+
 	return output, err
 }
 
@@ -343,4 +380,35 @@ func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
 	e.provisioneeDeviceType = dtype
 
 	return nil
+}
+
+func (e *Kex2Provisioner) makeSdhBoxes(receiverKeyGeneric libkb.GenericKey) (res []keybase1.SharedDhSecretKeyBox, err error) {
+	receiverKey, ok := receiverKeyGeneric.(libkb.NaclDHKeyPair)
+	if !ok {
+		return res, fmt.Errorf("Unexpected receiver key type")
+	}
+
+	sdhk, err := e.G().GetSharedDHKeyring()
+	if err != nil {
+		return res, err
+	}
+	err = sdhk.Sync(e.ctx.NetContext)
+	if err != nil {
+		return res, err
+	}
+
+	sdhBoxes, err := sdhk.PrepareBoxesForNewDevice(e.ctx.NetContext,
+		receiverKey,     // receiver key: provisionee enc
+		e.encryptionKey) // sender key: this device enc
+	if err != nil {
+		return res, err
+	}
+	return e.convertBoxes(sdhBoxes), nil
+}
+
+func (e *Kex2Provisioner) convertBoxes(bs []libkb.SharedDHSecretKeyBox) (res []keybase1.SharedDhSecretKeyBox) {
+	for _, b := range bs {
+		res = append(res, b.ToKex())
+	}
+	return
 }
