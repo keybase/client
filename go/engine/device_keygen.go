@@ -130,7 +130,8 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 	e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push SDH:%v", e.G().Env.GetEnableSharedDH())
 
 	var sdhBoxes = []keybase1.SharedDHSecretKeyBox{}
-	if e.G().Env.GetEnableSharedDH() {
+	if e.G().Env.GetEnableSharedDH() && e.args.IsEldest {
+		// Encrypt the new sdh key for this eldest device.
 		sdh1, err := libkb.NewSharedDHSecretKeyBox(
 			e.sharedDHKey(),   // inner key to be encrypted (shared dh key)
 			e.EncryptionKey(), // receiver key (device enc key)
@@ -140,6 +141,16 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 			return err
 		}
 		sdhBoxes = append(sdhBoxes, sdh1)
+	} else {
+		// TODO
+		// sdhk := QQ
+		// err := sdhk.Sync()
+		// if err != nil {
+		// 	return err
+		// }
+		// sdhBoxes, err := sdhk.PrepareBoxesForNewDevice(e.ctx.NetContext,
+		// 	e.EncryptionKey(), // receiver key: provisionee enc
+		// 	e.encryptionKey)   // sender key: this device enc
 	}
 
 	// append the signing key

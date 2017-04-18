@@ -79,7 +79,7 @@ func (e *PaperKeyGen) EncKey() libkb.GenericKey {
 
 // Run starts the engine.
 func (e *PaperKeyGen) Run(ctx *Context) error {
-	if e.G().Env.GetEnableSharedDH() {
+	if e.G().Env.GetEnableSharedDH() && !e.arg.SkipPush {
 		err := e.syncSDH(ctx)
 		if err != nil {
 			return err
@@ -130,7 +130,7 @@ func (e *PaperKeyGen) syncSDH(ctx *Context) error {
 		tmp := e.arg.Me.ExportToUserPlusAllKeys(keybase1.Time(0))
 		upak = &tmp
 	}
-	err = sdhk.SyncDuringSignup(ctx.NetContext, e.arg.LoginContext, upak)
+	err = sdhk.SyncWithExtras(ctx.NetContext, e.arg.LoginContext, upak)
 	if err != nil {
 		return err
 	}
