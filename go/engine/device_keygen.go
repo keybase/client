@@ -16,6 +16,7 @@ type DeviceKeygenArgs struct {
 	DeviceName string
 	DeviceType string
 	Lks        *libkb.LKSec
+	IsEldest   bool
 }
 
 // DeviceKeygenPushArgs determines how the push will run.  There are
@@ -38,7 +39,6 @@ type DeviceKeygenArgs struct {
 // user's sigchain changes between key generation and key push.
 //
 type DeviceKeygenPushArgs struct {
-	IsEldest       bool
 	SkipSignerPush bool
 	Signer         libkb.GenericKey
 	EldestKID      keybase1.KID
@@ -53,6 +53,9 @@ type DeviceKeygen struct {
 
 	naclSignGen *libkb.NaclKeyGen
 	naclEncGen  *libkb.NaclKeyGen
+
+	// can be nil
+	naclSharedDHGen *libkb.NaclKeyGen
 
 	libkb.Contextified
 }
@@ -108,8 +111,12 @@ func (e *DeviceKeygen) SigningKey() libkb.NaclKeyPair {
 	return e.naclSignGen.GetKeyPair()
 }
 
-func (e *DeviceKeygen) EncryptionKey() libkb.NaclKeyPair {
-	return e.naclEncGen.GetKeyPair()
+func (e *DeviceKeygen) EncryptionKey() libkb.NaclDHKeyPair {
+	return e.naclEncGen.GetKeyPair().(libkb.NaclDHKeyPair)
+}
+
+func (e *DeviceKeygen) sharedDHKey() libkb.NaclDHKeyPair {
+	return e.naclSharedDHGen.GetKeyPair().(libkb.NaclDHKeyPair)
 }
 
 // Push pushes the generated keys to the api server and stores the
@@ -120,8 +127,23 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 
 	ds := []libkb.Delegator{}
 
+	e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push SDH:%v", e.G().Env.GetEnableSharedDH())
+
+	var sdhBoxes = []libkb.SharedDHSecretKeyBox{}
+	if e.G().Env.GetEnableSharedDH() {
+		sdh1, err := libkb.NewSharedDHSecretKeyBox(
+			e.sharedDHKey(),   // inner key to be encrypted (shared dh key)
+			e.EncryptionKey(), // receiver key (device enc key)
+			e.EncryptionKey(), // sender key   (device enc key)
+			libkb.SharedDHKeyGeneration(1))
+		if err != nil {
+			return err
+		}
+		sdhBoxes = append(sdhBoxes, sdh1)
+	}
+
 	// append the signing key
-	if pargs.IsEldest {
+	if e.args.IsEldest {
 		ds = e.appendEldest(ds, ctx, pargs)
 		encSigner = e.naclSignGen.GetKeyPair()
 		eldestKID = encSigner.GetKID()
@@ -134,7 +156,11 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 
 	ds = e.appendEncKey(ds, ctx, encSigner, eldestKID, pargs.User)
 
-	e.pushErr = libkb.DelegatorAggregator(ctx.LoginContext, ds)
+	if e.G().Env.GetEnableSharedDH() && e.args.IsEldest {
+		ds = e.appendSharedDHKey(ds, ctx, encSigner, eldestKID, pargs.User)
+	}
+
+	e.pushErr = libkb.DelegatorAggregator(ctx.LoginContext, ds, sdhBoxes)
 
 	// push the LKS server half
 	e.pushLKS(ctx)
@@ -147,23 +173,31 @@ func (e *DeviceKeygen) setup(ctx *Context) {
 		return
 	}
 
-	signArg := e.newNaclArg(ctx, func() (libkb.NaclKeyPair, error) {
+	e.naclSignGen = e.newNaclKeyGen(ctx, func() (libkb.NaclKeyPair, error) {
 		kp, err := libkb.GenerateNaclSigningKeyPair()
 		if err != nil {
 			return nil, err
 		}
 		return kp, nil
-	}, libkb.NaclEdDSAExpireIn)
-	e.naclSignGen = libkb.NewNaclKeyGen(signArg)
+	}, e.device(), libkb.NaclEdDSAExpireIn)
 
-	encArg := e.newNaclArg(ctx, func() (libkb.NaclKeyPair, error) {
+	e.naclEncGen = e.newNaclKeyGen(ctx, func() (libkb.NaclKeyPair, error) {
 		kp, err := libkb.GenerateNaclDHKeyPair()
 		if err != nil {
 			return nil, err
 		}
 		return kp, nil
-	}, libkb.NaclDHExpireIn)
-	e.naclEncGen = libkb.NewNaclKeyGen(encArg)
+	}, e.device(), libkb.NaclDHExpireIn)
+
+	if e.G().Env.GetEnableSharedDH() && e.args.IsEldest {
+		e.naclSharedDHGen = e.newNaclKeyGen(ctx, func() (libkb.NaclKeyPair, error) {
+			kp, err := libkb.GenerateNaclDHKeyPair()
+			if err != nil {
+				return nil, err
+			}
+			return kp, nil
+		}, nil, libkb.NaclDHExpireIn)
+	}
 }
 
 func (e *DeviceKeygen) generate() {
@@ -177,6 +211,12 @@ func (e *DeviceKeygen) generate() {
 
 	if e.runErr = e.naclEncGen.Generate(); e.runErr != nil {
 		return
+	}
+
+	if e.naclSharedDHGen != nil {
+		if e.runErr = e.naclSharedDHGen.Generate(); e.runErr != nil {
+			return
+		}
 	}
 }
 
@@ -215,7 +255,7 @@ func (e *DeviceKeygen) appendSibkey(ds []libkb.Delegator, ctx *Context, pargs *D
 
 	var d libkb.Delegator
 
-	e.naclSignGen.UpdateArg(pargs.Signer, pargs.EldestKID, true, pargs.User)
+	e.naclSignGen.UpdateArg(pargs.Signer, pargs.EldestKID, libkb.DelegationTypeSibkey, pargs.User)
 	d, e.pushErr = e.naclSignGen.Push(ctx.LoginContext, true)
 	if e.pushErr == nil {
 		d.SetGlobalContext(e.G())
@@ -230,10 +270,28 @@ func (e *DeviceKeygen) appendEncKey(ds []libkb.Delegator, ctx *Context, signer l
 		return ds
 	}
 
-	e.naclEncGen.UpdateArg(signer, eldestKID, false, user)
+	e.naclEncGen.UpdateArg(signer, eldestKID, libkb.DelegationTypeSubkey, user)
 
 	var d libkb.Delegator
 	d, e.pushErr = e.naclEncGen.Push(ctx.LoginContext, true)
+	if e.pushErr == nil {
+		d.SetGlobalContext(e.G())
+		return append(ds, d)
+	}
+
+	return ds
+}
+
+func (e *DeviceKeygen) appendSharedDHKey(ds []libkb.Delegator, ctx *Context, signer libkb.GenericKey, eldestKID keybase1.KID, user *libkb.User) []libkb.Delegator {
+	if e.pushErr != nil {
+		return ds
+	}
+
+	e.naclSharedDHGen.UpdateArg(signer, eldestKID, libkb.DelegationTypeSharedDHKey, user)
+
+	var d libkb.Delegator
+	d, e.pushErr = e.naclSharedDHGen.Push(ctx.LoginContext, true)
+	d.SharedDHKeyGeneration = libkb.SharedDHKeyGeneration(1)
 	if e.pushErr == nil {
 		d.SetGlobalContext(e.G())
 		return append(ds, d)
@@ -290,13 +348,13 @@ func (e *DeviceKeygen) pushLKS(ctx *Context) {
 	}
 }
 
-func (e *DeviceKeygen) newNaclArg(ctx *Context, gen libkb.NaclGenerator, expire int) libkb.NaclKeyGenArg {
-	return libkb.NaclKeyGenArg{
+func (e *DeviceKeygen) newNaclKeyGen(ctx *Context, gen libkb.NaclGenerator, device *libkb.Device, expire int) *libkb.NaclKeyGen {
+	return libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
 		Generator: gen,
-		Device:    e.device(),
+		Device:    device,
 		Me:        e.args.Me,
 		ExpireIn:  expire,
-	}
+	})
 }
 
 func (e *DeviceKeygen) device() *libkb.Device {

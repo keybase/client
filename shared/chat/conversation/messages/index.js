@@ -1,116 +1,59 @@
 // @flow
-import AttachmentMessageRender from './attachment'
-import MessageText from './text'
+import * as Constants from '../../../constants/chat'
+import Attachment from './attachment/container'
+import ErrorMessage from './error/container'
+import Header from './header/container'
+import ProfileResetNotice from '../notices/profile-reset-notice/container'
 import React from 'react'
-import Timestamp from './timestamp'
-import LoadingMore from './loading-more'
-import ProfileResetNotice from '../notices/profile-reset-notice'
-import {Box, Text, Icon} from '../../../common-adapters'
-import {formatTimeForMessages} from '../../../util/timestamp'
-import {globalStyles, globalColors} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import TextMessage from './text/container'
+import Timestamp from './timestamp/container'
+import Wrapper from './wrapper/container'
+import {Box} from '../../../common-adapters'
 
-import type {Options} from './index'
-
-const factory = (options: Options) => {
-  const {
-    message,
-    includeHeader,
-    key,
-    isEditing,
-    isFirstNewMessage,
-    isSelected,
-    onAction,
-    onLoadAttachment,
-    onOpenConversation,
-    onOpenInFileUI,
-    onOpenInPopup,
-    onRetry,
-    onRetryAttachment,
-    onShowEditor,
-    style,
-    you,
-    metaDataMap,
-    followingMap,
-    moreToLoad,
-  } = options
-
-  if (!message) {
-    return <Box key={key} style={style} />
-  }
-
-  switch (message.type) {
-    case 'Text':
-      return <MessageText
-        key={key}
-        you={you}
-        metaDataMap={metaDataMap}
-        followingMap={followingMap}
-        style={style}
-        message={message}
-        onRetry={onRetry}
-        onShowEditor={onShowEditor}
-        includeHeader={includeHeader}
-        isFirstNewMessage={isFirstNewMessage}
+const factory = (
+  messageKey: Constants.MessageKey,
+  prevMessageKey: ?Constants.MessageKey,
+  onAction: (message: Constants.ServerMessage, event: any) => void,
+  onShowEditor: (message: Constants.ServerMessage, event: any) => void,
+  isSelected: boolean,
+  measure: () => void
+) => {
+  const kind = Constants.messageKeyKind(messageKey)
+  switch (kind) {
+    case 'header':
+      return <Header messageKey={messageKey} />
+    case 'messageIDAttachment':
+      return <Wrapper
+        innerClass={Attachment}
         isSelected={isSelected}
-        isEditing={isEditing}
+        measure={measure}
+        messageKey={messageKey}
         onAction={onAction}
-        />
-    case 'Supersedes':
-      return <ProfileResetNotice
-        onOpenOlderConversation={() => onOpenConversation(message.supersedes)}
-        username={message.username}
-        style={style}
-        key={`supersedes:${message.supersedes}`}
-        />
-    case 'Timestamp':
-      return <Timestamp
-        timestamp={formatTimeForMessages(message.timestamp)}
-        key={message.key}
-        style={style}
-        />
-    case 'Attachment':
-      return <AttachmentMessageRender
-        key={key}
-        style={style}
-        you={you}
-        metaDataMap={metaDataMap}
-        followingMap={followingMap}
-        message={message}
-        onRetry={() => onRetryAttachment(message)}
-        includeHeader={includeHeader}
-        isFirstNewMessage={isFirstNewMessage}
-        onLoadAttachment={onLoadAttachment}
-        onOpenInFileUI={onOpenInFileUI}
-        onOpenInPopup={onOpenInPopup}
-        messageID={message.messageID}
+        onShowEditor={onShowEditor}
+        prevMessageKey={prevMessageKey} />
+    case 'error': // fallthrough
+    case 'errorInvisible': // fallthrough
+    case 'messageIDError':
+      return <ErrorMessage messageKey={messageKey} />
+    case 'outboxIDText': // fallthrough
+    case 'messageIDText':
+      return <Wrapper
+        innerClass={TextMessage}
+        isSelected={isSelected}
+        measure={measure}
+        messageKey={messageKey}
         onAction={onAction}
-        />
-    case 'LoadingMore':
-      return <LoadingMore style={{...style}} key={key} hasMoreItems={moreToLoad} />
-    case 'ChatSecuredHeader':
-      return (
-        <Box key={key} style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center', height: 116}}>
-          {!moreToLoad && <Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />}
-        </Box>
-      )
-    case 'Error':
-      return (
-        <Box key={key} style={{...style, ...errorStyle}}>
-          <Text type='BodySmallItalic' key={key} style={{color: globalColors.red}}>{message.reason}</Text>
-        </Box>
-      )
-    case 'InvisibleError':
-      return <Box key={key} style={style} data-msgType={message.type} />
-    default:
-      return <Box key={key} style={style} data-msgType={message.type} />
+        onShowEditor={onShowEditor}
+        prevMessageKey={prevMessageKey} />
+    case 'supersedes':
+      return <ProfileResetNotice />
+    case 'timestamp':
+      return <Timestamp messageKey={messageKey} />
+    case 'messageIDUnhandled':
+      return <Box data-unhandled={true} data-messageKey={messageKey} />
   }
-}
 
-const errorStyle = {
-  ...globalStyles.flexBoxRow,
-  justifyContent: 'center',
-  padding: 5,
+  return <Box data-messageKey={messageKey} />
 }
 
 export default factory

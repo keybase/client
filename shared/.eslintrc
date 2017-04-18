@@ -74,6 +74,7 @@
         "standard/array-bracket-even-spacing": ["error", "never"],
         "standard/computed-property-even-spacing": ["error", "never"],
         "standard/object-curly-even-spacing": ["error", "never"],
+        "standard/no-callback-literal": "off",
         "strict": ["error", "global"],
         "sort-keys": ["warn", "asc", {"caseSensitive": true, "natural": false}],
         "no-mixed-operators": "off",

@@ -70,7 +70,7 @@ func TestSaltpackEncDec(t *testing.T) {
 		buf.Reset()
 		_, err = SaltpackDecrypt(G,
 			strings.NewReader(ciphertext),
-			&buf, key, nil)
+			&buf, key, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -88,7 +88,7 @@ func TestSaltpackEncDec(t *testing.T) {
 	for _, kp := range nonReceiverKPs {
 		buf.Reset()
 		_, err = SaltpackDecrypt(G,
-			strings.NewReader(ciphertext), &buf, kp, nil)
+			strings.NewReader(ciphertext), &buf, kp, nil, nil)
 		if err != saltpack.ErrNoDecryptionKey {
 			t.Fatal(err)
 		}

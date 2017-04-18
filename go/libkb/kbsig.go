@@ -32,13 +32,14 @@ func merkleRootInfo(g *GlobalContext) (ret *jsonw.Wrapper) {
 }
 
 type KeySection struct {
-	Key            GenericKey
-	EldestKID      keybase1.KID
-	ParentKID      keybase1.KID
-	HasRevSig      bool
-	RevSig         string
-	SigningUser    UserBasic
-	IncludePGPHash bool
+	Key                   GenericKey
+	EldestKID             keybase1.KID
+	ParentKID             keybase1.KID
+	HasRevSig             bool
+	RevSig                string
+	SigningUser           UserBasic
+	IncludePGPHash        bool
+	SharedDHKeyGeneration SharedDHKeyGeneration
 }
 
 func (arg KeySection) ToJSON() (*jsonw.Wrapper, error) {
@@ -68,6 +69,10 @@ func (arg KeySection) ToJSON() (*jsonw.Wrapper, error) {
 		ret.SetKey("host", jsonw.NewString(CanonicalHost))
 		ret.SetKey("uid", UIDWrapper(arg.SigningUser.GetUID()))
 		ret.SetKey("username", jsonw.NewString(arg.SigningUser.GetName()))
+	}
+
+	if arg.SharedDHKeyGeneration != 0 {
+		ret.SetKey("generation", jsonw.NewInt(int(arg.SharedDHKeyGeneration)))
 	}
 
 	if pgp, ok := arg.Key.(*PGPKeyBundle); ok {
@@ -355,13 +360,16 @@ func KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 		keySection := KeySection{
 			Key: arg.NewKey,
 		}
-		if arg.DelegationType == DelegationTypePGPUpdate {
+		switch arg.DelegationType {
+		case DelegationTypePGPUpdate:
 			keySection.IncludePGPHash = true
-		} else if arg.DelegationType == DelegationTypeSibkey {
+		case DelegationTypeSibkey:
 			keySection.HasRevSig = true
 			keySection.RevSig = arg.RevSig
 			keySection.IncludePGPHash = true
-		} else {
+		case DelegationTypeSharedDHKey:
+			keySection.SharedDHKeyGeneration = arg.SharedDHKeyGeneration
+		default:
 			keySection.ParentKID = arg.ExistingKey.GetKID()
 		}
 

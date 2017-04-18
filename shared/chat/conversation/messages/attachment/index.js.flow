@@ -1,0 +1,30 @@
+// @flow
+import {Component} from 'react'
+import * as Constants from '../../../../constants/chat'
+
+export type ProgressBarProps = {
+  text: string,
+  progress: number,
+  style?: Object,
+}
+
+export class ProgressBar extends Component<void, ProgressBarProps, void> {}
+
+export type ImageIconProps = {
+  type: 'Downloaded' | 'Downloading',
+  style: Object,
+}
+
+export class ImageIcon extends Component<void, ImageIconProps, void> {}
+
+export type Props = {
+  message: Constants.AttachmentMessage,
+  includeHeader: boolean,
+  isFirstNewMessage: boolean,
+  onLoadAttachment: () => void,
+  onAction: (event: any) => void,
+  onOpenInFileUI: () => void,
+  onOpenInPopup: () => void,
+}
+
+export default class AttachmentMessageComponent extends Component<void, Props, void> { }

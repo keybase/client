@@ -99,6 +99,9 @@ func (p CommandLine) GetDebug() (bool, bool) {
 func (p CommandLine) GetVDebugSetting() string {
 	return p.GetGString("vdebug")
 }
+func (p CommandLine) GetEnableSharedDH() (bool, bool) {
+	return p.GetBool("enable-shared-dh", true)
+}
 func (p CommandLine) GetPGPFingerprint() *libkb.PGPFingerprint {
 	return libkb.PGPFingerprintFromHexNoError(p.GetGString("fingerprint"))
 }
@@ -387,6 +390,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "debug, d",
 			Usage: "Enable debugging mode.",
+		},
+		cli.BoolFlag{
+			Name:  "enable-shared-dh",
+			Usage: "Use a shared dh key. Experimental, will break sigchain.",
 		},
 		cli.StringFlag{
 			Name:  "features",

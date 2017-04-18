@@ -153,13 +153,20 @@ func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
 		return libkb.KeyCannotDecryptError{}
 	}
 
-	hook := func(mki *saltpack.MessageKeyInfo) error {
+	// For DH mode.
+	hookMki := func(mki *saltpack.MessageKeyInfo) error {
 		return e.promptForDecrypt(ctx, mki)
+	}
+
+	// For signcryption mode.
+	hookSenderSigningKey := func(senderSigningKey saltpack.SigningPublicKey) error {
+		// TODO: implement sender checking/prompting
+		return nil
 	}
 
 	e.G().Log.Debug("| SaltpackDecrypt")
 	var mki *saltpack.MessageKeyInfo
-	mki, err = libkb.SaltpackDecrypt(e.G(), e.arg.Source, e.arg.Sink, kp, hook)
+	mki, err = libkb.SaltpackDecrypt(e.G(), e.arg.Source, e.arg.Sink, kp, hookMki, hookSenderSigningKey)
 	if err == saltpack.ErrNoDecryptionKey {
 		err = libkb.NoDecryptionKeyError{Msg: "no suitable device key found"}
 	}

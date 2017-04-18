@@ -113,6 +113,10 @@ func (f JSONConfigFile) GetDurationAtPath(p string) (time.Duration, bool) {
 	return d, true
 }
 
+func (f JSONConfigFile) GetEnableSharedDH() (bool, bool) {
+	return false, false
+}
+
 func (f JSONConfigFile) GetTopLevelString(s string) (ret string) {
 	var e error
 	f.jw.AtKey(s).GetStringVoid(&ret, &e)

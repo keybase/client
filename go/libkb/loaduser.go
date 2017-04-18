@@ -304,7 +304,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 }
 
 func loadUser(ctx context.Context, g *GlobalContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHints *SigHints, force bool, leaf *MerkleUserLeaf) (*User, bool, error) {
-	local, err := loadUserFromLocalStorage(ctx, g, uid)
+	local, err := LoadUserFromLocalStorage(ctx, g, uid)
 	var refresh bool
 	if err != nil {
 		g.Log.CWarningf(ctx, "Failed to load %s from storage: %s", uid, err)
@@ -348,8 +348,8 @@ func loadUser(ctx context.Context, g *GlobalContext, uid keybase1.UID, resolveBo
 	return ret, refresh, nil
 }
 
-func loadUserFromLocalStorage(ctx context.Context, g *GlobalContext, uid keybase1.UID) (u *User, err error) {
-	g.Log.CDebugf(ctx, "+ loadUserFromLocalStorage(%s)", uid)
+func LoadUserFromLocalStorage(ctx context.Context, g *GlobalContext, uid keybase1.UID) (u *User, err error) {
+	g.Log.CDebugf(ctx, "+ LoadUserFromLocalStorage(%s)", uid)
 	jw, err := g.LocalDb.Get(DbKeyUID(DBUser, uid))
 	if err != nil {
 		return nil, err
@@ -371,7 +371,7 @@ func loadUserFromLocalStorage(ctx context.Context, g *GlobalContext, uid keybase
 	}
 
 	g.Log.CDebugf(ctx, "| Loaded username %s (uid=%s)", u.name, uid)
-	g.Log.CDebugf(ctx, "- loadUserFromLocalStorage(%s,%s)", u.name, uid)
+	g.Log.CDebugf(ctx, "- LoadUserFromLocalStorage(%s,%s)", u.name, uid)
 
 	return
 }

@@ -312,7 +312,7 @@ func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *
 	// connected to Gregor, then it is likely the case we are totally offline, or on a very bad
 	// connection. If that is the case, let's make these timeouts very aggressive, so we don't
 	// block up everything trying to succeed when we probably will not.
-	if !g.G().ConnectivityMonitor.IsConnected(ctx) {
+	if ConnectivityMonitorNo == g.G().ConnectivityMonitor.IsConnected(ctx) {
 		arg.InitialTimeout = HTTPFastTimeout
 		arg.RetryCount = 0
 	}
@@ -350,7 +350,7 @@ func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *
 		timeout = time.Duration(float64(timeout) * multiplier)
 
 		// If chat goes offline during this retry loop, then let's bail out early
-		if !g.G().ConnectivityMonitor.IsConnected(ctx) {
+		if ConnectivityMonitorNo == g.G().ConnectivityMonitor.IsConnected(ctx) {
 			g.G().Log.CDebugf(ctx, "retry loop aborting since chat went offline")
 			break
 		}
@@ -420,14 +420,31 @@ func (a *InternalAPIEngine) getURL(arg APIArg) url.URL {
 	return u
 }
 
-func (a *InternalAPIEngine) sessionArgs(arg APIArg) (tok, csrf string) {
+func (a *InternalAPIEngine) sessionArgs(arg APIArg) (tok, csrf string, err error) {
 	if arg.SessionR != nil {
-		return arg.SessionR.APIArgs()
+		tok, csrf = arg.SessionR.APIArgs()
+		return tok, csrf, nil
 	}
-	a.G().LoginState().LocalSession(func(s *Session) {
-		tok, csrf = s.APIArgs()
+
+	a.G().LoginState().Account(func(a *Account) {
+		// since a session is required, try to load one:
+		var in bool
+		in, err = a.LoggedInLoad()
+		if err != nil {
+			return
+		}
+		if !in {
+			err = LoginRequiredError{}
+			return
+		}
+		tok, csrf = a.LocalSession().APIArgs()
 	}, "sessionArgs")
-	return
+
+	if err != nil {
+		return "", "", err
+	}
+
+	return tok, csrf, nil
 }
 
 func (a *InternalAPIEngine) isExternal() bool { return false }
@@ -504,7 +521,10 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 
 func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 	if arg.SessionType != APISessionTypeNONE {
-		tok, csrf := a.sessionArgs(arg)
+		tok, csrf, err := a.sessionArgs(arg)
+		if err != nil {
+			a.G().Log.Warning("fixHeaders: need session, but error getting sessionArgs: %s", err)
+		}
 		if len(tok) > 0 && a.G().Env.GetTorMode().UseSession() {
 			req.Header.Add("X-Keybase-Session", tok)
 		} else if arg.SessionType == APISessionTypeREQUIRED {

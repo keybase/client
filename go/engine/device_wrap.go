@@ -4,6 +4,8 @@
 package engine
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -11,11 +13,13 @@ import (
 // DeviceWrap is an engine that wraps DeviceRegister and
 // DeviceKeygen.
 type DeviceWrap struct {
+	libkb.Contextified
+
 	args *DeviceWrapArgs
 
 	signingKey    libkb.GenericKey
-	encryptionKey libkb.GenericKey
-	libkb.Contextified
+	encryptionKey libkb.NaclDHKeyPair
+	sharedDHKey   libkb.GenericKey // can be nil
 }
 
 type DeviceWrapArgs struct {
@@ -79,6 +83,7 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 		DeviceName: e.args.DeviceName,
 		DeviceType: e.args.DeviceType,
 		Lks:        e.args.Lks,
+		IsEldest:   e.args.IsEldest,
 	}
 	kgEng := NewDeviceKeygen(kgArgs, e.G())
 	if err := RunEngine(kgEng, ctx); err != nil {
@@ -86,7 +91,6 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 	}
 
 	pargs := &DeviceKeygenPushArgs{
-		IsEldest:  e.args.IsEldest,
 		Signer:    e.args.Signer,
 		EldestKID: e.args.EldestKID,
 	}
@@ -96,6 +100,7 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 
 	e.signingKey = kgEng.SigningKey()
 	e.encryptionKey = kgEng.EncryptionKey()
+	// TODO get the shared dh key and save it if it was generated
 
 	if ctx.LoginContext != nil {
 		// cache the secret keys
@@ -110,6 +115,13 @@ func (e *DeviceWrap) SigningKey() libkb.GenericKey {
 	return e.signingKey
 }
 
-func (e *DeviceWrap) EncryptionKey() libkb.GenericKey {
+func (e *DeviceWrap) EncryptionKey() libkb.NaclDHKeyPair {
 	return e.encryptionKey
+}
+
+func (e *DeviceWrap) SharedDHKey() (libkb.GenericKey, error) {
+	if e.sharedDHKey == nil {
+		return nil, fmt.Errorf("DeviceWrap: no shared DH key")
+	}
+	return e.sharedDHKey, nil
 }

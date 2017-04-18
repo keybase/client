@@ -149,8 +149,9 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	tc.G.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
 	tc.G.MessageDeliverer.Connected(context.TODO())
 	chatSyncer := NewSyncer(tc.G)
+	chatSyncer.isConnected = true
 	tc.G.ChatSyncer = chatSyncer
-	tc.G.ConnectivityMonitor = chatSyncer
+	tc.G.ConnectivityMonitor = &libkb.NullConnectivityMonitor{}
 
 	return world, ri, sender, baseSender, &listener, tlf
 }

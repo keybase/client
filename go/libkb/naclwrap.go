@@ -79,6 +79,15 @@ type NaclDHKeyPair struct {
 	Private *NaclDHKeyPrivate
 }
 
+func (n NaclDHKeyPair) Clone() (ret NaclDHKeyPair) {
+	ret.Public = n.Public
+	if n.Private != nil {
+		tmp := *n.Private
+		ret.Private = &tmp
+	}
+	return ret
+}
+
 var _ GenericKey = NaclDHKeyPair{}
 
 type NaclSecretBoxKey [NaclSecretBoxKeySize]byte
@@ -575,6 +584,15 @@ func makeNaclDHKeyPair(reader io.Reader) (NaclDHKeyPair, error) {
 	}, nil
 }
 
+func MakeNaclDHKeyPairFromSecretBytes(secret []byte) (NaclDHKeyPair, error) {
+	if len(secret) != NaclDHKeySecretSize {
+		return NaclDHKeyPair{}, fmt.Errorf("Bad NaCl DH key size: %d", len(secret))
+	}
+	var fixed [NaclDHKeySecretSize]byte
+	copy(fixed[:], secret)
+	return MakeNaclDHKeyPairFromSecret(fixed)
+}
+
 // MakeNaclDHKeyPairFromSecret makes a DH key pair given a secret. Of
 // course, the security of depends entirely on the randomness of the
 // bytes in the secret.
@@ -666,7 +684,7 @@ func (k NaclDHKeyPair) IsNil() bool {
 	return bytes.Equal(k.Public[:], empty[:])
 }
 
-// Encrypt a message for the given sender.  If sender is nil, an ephemeral
+// Encrypt a message to the key `k` from the given `sender`. If sender is nil, an ephemeral
 // keypair will be invented
 func (k NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (*NaclEncryptionInfo, error) {
 	if sender == nil {

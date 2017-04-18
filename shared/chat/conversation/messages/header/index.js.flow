@@ -1,0 +1,8 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  moreToLoad: boolean,
+}
+
+export default class Header extends Component<void, Props, void> { }
