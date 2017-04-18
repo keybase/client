@@ -26,14 +26,6 @@ type Keyrings struct {
 	Contextified
 }
 
-func (k *Keyrings) MakeKeyrings(filenames []string, isPublic bool) []*KeyringFile {
-	v := make([]*KeyringFile, len(filenames), len(filenames))
-	for i, filename := range filenames {
-		v[i] = &KeyringFile{filename, openpgp.EntityList{}, isPublic, nil, nil, Contextified{g: k.G()}}
-	}
-	return v
-}
-
 func NewKeyrings(g *GlobalContext) *Keyrings {
 	ret := &Keyrings{
 		Contextified: Contextified{g: g},

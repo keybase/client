@@ -94,7 +94,6 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 	}()
 
 	var receivers []libkb.NaclDHKeyPublic
-	var sender libkb.NaclDHKeyPair
 
 	if err = e.loadMe(ctx); err != nil {
 		return err
@@ -132,29 +131,49 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 		}
 	}
 
+	var senderDH libkb.NaclDHKeyPair
 	if !e.arg.Opts.HideSelf && e.me != nil {
-		ska := libkb.SecretKeyArg{
+		secretKeyArgDH := libkb.SecretKeyArg{
 			Me:      e.me,
 			KeyType: libkb.DeviceEncryptionKeyType,
 		}
-		key, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "encrypting a message/file"))
+		dhKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(secretKeyArgDH, "encrypting a message/file"))
 		if err != nil {
 			return err
 		}
-		kp, ok := key.(libkb.NaclDHKeyPair)
-		if !ok || kp.Private == nil {
+		dhKeypair, ok := dhKey.(libkb.NaclDHKeyPair)
+		if !ok || dhKeypair.Private == nil {
 			return libkb.KeyCannotDecryptError{}
 		}
-		sender = kp
+		senderDH = dhKeypair
+	}
+
+	var senderSigning libkb.NaclSigningKeyPair
+	if e.arg.Opts.Signcrypt && e.me != nil {
+		secretKeyArgSigning := libkb.SecretKeyArg{
+			Me:      e.me,
+			KeyType: libkb.DeviceSigningKeyType,
+		}
+		signingKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(secretKeyArgSigning, "signing a message/file"))
+		if err != nil {
+			return err
+		}
+		signingKeypair, ok := signingKey.(libkb.NaclSigningKeyPair)
+		if !ok || signingKeypair.Private == nil {
+			return libkb.KeyCannotDecryptError{}
+		}
+		senderSigning = signingKeypair
 	}
 
 	encarg := libkb.SaltpackEncryptArg{
 		Source:         e.arg.Source,
 		Sink:           e.arg.Sink,
 		Receivers:      receivers,
-		Sender:         sender,
+		Sender:         senderDH,
+		SenderSigning:  senderSigning,
 		Binary:         e.arg.Opts.Binary,
 		HideRecipients: e.arg.Opts.HideRecipients,
+		Signcrypt:      e.arg.Opts.Signcrypt,
 	}
 	return libkb.SaltpackEncrypt(e.G(), &encarg)
 }

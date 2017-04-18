@@ -13,20 +13,28 @@ import (
 	"golang.org/x/crypto/scrypt"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type PaperKeyGenArg struct {
-	Passphrase libkb.PaperKeyPhrase
-	SkipPush   bool
-	Me         *libkb.User
-	SigningKey libkb.GenericKey
+	Passphrase    libkb.PaperKeyPhrase
+	SkipPush      bool
+	Me            *libkb.User
+	SigningKey    libkb.GenericKey
+	EncryptionKey libkb.NaclDHKeyPair
+
+	LoginContext    libkb.LoginContext     // optional
+	SharedDHKeyring *libkb.SharedDHKeyring // optional
 }
 
 // PaperKeyGen is an engine.
 type PaperKeyGen struct {
-	arg    *PaperKeyGenArg
+	arg *PaperKeyGenArg
+
+	// keys of the generated paper key
 	sigKey libkb.GenericKey
-	encKey libkb.GenericKey
+	encKey libkb.NaclDHKeyPair
+
 	libkb.Contextified
 }
 
@@ -71,6 +79,13 @@ func (e *PaperKeyGen) EncKey() libkb.GenericKey {
 
 // Run starts the engine.
 func (e *PaperKeyGen) Run(ctx *Context) error {
+	if e.G().Env.GetEnableSharedDH() {
+		err := e.syncSDH(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
 	// make the passphrase stream
 	key, err := scrypt.Key(e.arg.Passphrase.Bytes(), nil,
 		libkb.PaperKeyScryptCost, libkb.PaperKeyScryptR, libkb.PaperKeyScryptP, libkb.PaperKeyScryptKeylen)
@@ -101,6 +116,25 @@ func (e *PaperKeyGen) Run(ctx *Context) error {
 
 	e.G().KeyfamilyChanged(e.arg.Me.GetUID())
 
+	return nil
+}
+
+func (e *PaperKeyGen) syncSDH(ctx *Context) error {
+	// Sync the sdh keyring before updating other things.
+	sdhk, err := e.getSharedDHKeyring()
+	if err != nil {
+		return err
+	}
+	var upak *keybase1.UserPlusAllKeys
+	if e.arg.Me != nil {
+		tmp := e.arg.Me.ExportToUserPlusAllKeys(keybase1.Time(0))
+		upak = &tmp
+	}
+	err = sdhk.SyncDuringSignup(ctx.NetContext, e.arg.LoginContext, upak)
+	if err != nil {
+		return err
+	}
+	// TODO if SDH_UPGRADE: may want to add a key here.
 	return nil
 }
 
@@ -264,5 +298,40 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 
-	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc})
+	sdhBoxes, err := e.makeSharedDHSecretKeyBoxes(ctx)
+	if err != nil {
+		return err
+	}
+
+	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc}, sdhBoxes)
+}
+
+func (e *PaperKeyGen) makeSharedDHSecretKeyBoxes(ctx *Context) ([]libkb.SharedDHSecretKeyBox, error) {
+	var sdhBoxes = []libkb.SharedDHSecretKeyBox{}
+	if e.G().Env.GetEnableSharedDH() {
+		sdhk, err := e.getSharedDHKeyring()
+		if err != nil {
+			return nil, err
+		}
+		if !sdhk.HasAnyKeys() {
+			// TODO if SDH_UPGRADE: may want to add a key here.
+		} else {
+			sdhBoxes, err = sdhk.PrepareBoxesForNewDevice(
+				e.encKey,            // receiver key: new paper key enc
+				e.arg.EncryptionKey) // sender key: this device enc
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return sdhBoxes, nil
+}
+
+func (e *PaperKeyGen) getSharedDHKeyring() (ret *libkb.SharedDHKeyring, err error) {
+	ret = e.arg.SharedDHKeyring
+	if ret != nil {
+		return
+	}
+	ret, err = e.G().GetSharedDHKeyring()
+	return
 }

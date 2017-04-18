@@ -367,13 +367,13 @@ func (be *blockEngine) WriteMessages(ctx context.Context, convID chat1.Conversat
 	return nil
 }
 
-func (be *blockEngine) ReadMessages(ctx context.Context, res resultCollector,
+func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) (err Error) {
 
 	// Run all errors through resultCollector
 	defer func() {
 		if err != nil {
-			err = res.error(err)
+			err = res.Error(err)
 		}
 	}()
 
@@ -394,7 +394,7 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res resultCollector,
 	maxPos := be.getBlockPosition(maxID)
 
 	be.Debug(ctx, "readMessages: BID: %d maxPos: %d maxID: %d rc: %s", b.BlockID, maxPos, maxID, res)
-	for index := maxPos; !res.done() && index >= 0; index-- {
+	for index := maxPos; !res.Done() && index >= 0; index-- {
 		if b.BlockID == 0 && index == 0 {
 			// Short circuit out of here if we are on the null message
 			break
@@ -416,11 +416,11 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res resultCollector,
 		be.Debug(ctx, "readMessages: adding msg_id: %d (blockid: %d pos: %d)",
 			msg.GetMessageID(), b.BlockID, index)
 		lastAdded = msg.GetMessageID()
-		res.push(msg)
+		res.Push(msg)
 	}
 
 	// Check if we read anything, otherwise move to another block and try again
-	if !res.done() && b.BlockID > 0 {
+	if !res.Done() && b.BlockID > 0 {
 		return be.ReadMessages(ctx, res, convID, uid, lastAdded-1)
 	}
 	return nil

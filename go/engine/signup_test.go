@@ -18,9 +18,15 @@ func AssertDeviceID(g *libkb.GlobalContext) (err error) {
 }
 
 func TestSignupEngine(t *testing.T) {
+	subTestSignupEngine(t, false)
+}
+
+func subTestSignupEngine(t *testing.T, enableSharedDH bool) {
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
 	var err error
+
+	tc.Tp.EnableSharedDH = enableSharedDH
 
 	fu := CreateAndSignupFakeUser(tc, "se")
 

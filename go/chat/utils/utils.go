@@ -334,7 +334,7 @@ func GetUnverifiedConv(ctx context.Context, g *libkb.GlobalContext, uid gregor1.
 	convID chat1.ConversationID, useLocalData bool) (chat1.Conversation, *chat1.RateLimit, error) {
 
 	inbox, ratelim, err := g.InboxSource.ReadUnverified(ctx, uid, useLocalData, &chat1.GetInboxQuery{
-		ConvID: &convID,
+		ConvIDs: []chat1.ConversationID{convID},
 	}, nil)
 	if err != nil {
 		return chat1.Conversation{}, ratelim, fmt.Errorf("GetUnverifiedConv: %s", err.Error())

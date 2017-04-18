@@ -57,7 +57,7 @@ function tmpFileName (isHdPreview: boolean, conversationID: Constants.Conversati
     throw new Error('tmpFileName called without messageID!')
   }
 
-  return `kbchat-${isHdPreview ? 'hdPreview' : 'preview'}-${conversationID}-${messageID}`
+  return `kbchat-${conversationID}-${messageID}.${isHdPreview ? 'hdPreview' : 'preview'}`
 }
 
 function * clientHeader (messageType: ChatTypes.MessageType, conversationIDKey: Constants.ConversationIDKey): Generator<any, ?ChatTypes.MessageClientHeader, any> {

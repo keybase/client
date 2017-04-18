@@ -14,8 +14,11 @@ type SaltpackEncryptArg struct {
 	Sink           io.WriteCloser
 	Receivers      []NaclDHKeyPublic
 	Sender         NaclDHKeyPair
+	SenderSigning  NaclSigningKeyPair
 	Binary         bool
 	HideRecipients bool
+	// Temporary
+	Signcrypt bool
 }
 
 // SaltpackEncrypt reads from the given source, encrypts it for the given
@@ -38,10 +41,18 @@ func SaltpackEncrypt(g *GlobalContext, arg *SaltpackEncryptArg) error {
 
 	var plainsink io.WriteCloser
 	var err error
-	if arg.Binary {
-		plainsink, err = saltpack.NewEncryptStream(arg.Sink, bsk, receiverBoxKeys)
+	if arg.Signcrypt {
+		if arg.Binary {
+			plainsink, err = saltpack.NewSigncryptSealStream(arg.Sink, emptyKeyring{}, saltSigner{arg.SenderSigning}, receiverBoxKeys, nil)
+		} else {
+			plainsink, err = saltpack.NewSigncryptArmor62SealStream(arg.Sink, emptyKeyring{}, saltSigner{arg.SenderSigning}, receiverBoxKeys, nil, KeybaseSaltpackBrand)
+		}
 	} else {
-		plainsink, err = saltpack.NewEncryptArmor62Stream(arg.Sink, bsk, receiverBoxKeys, KeybaseSaltpackBrand)
+		if arg.Binary {
+			plainsink, err = saltpack.NewEncryptStream(arg.Sink, bsk, receiverBoxKeys)
+		} else {
+			plainsink, err = saltpack.NewEncryptArmor62Stream(arg.Sink, bsk, receiverBoxKeys, KeybaseSaltpackBrand)
+		}
 	}
 	if err != nil {
 		return err

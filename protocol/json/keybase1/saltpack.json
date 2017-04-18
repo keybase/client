@@ -37,6 +37,10 @@
         {
           "type": "boolean",
           "name": "hideRecipients"
+        },
+        {
+          "type": "boolean",
+          "name": "signcrypt"
         }
       ]
     },

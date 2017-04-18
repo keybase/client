@@ -29,6 +29,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
   let supersedes = null
   let supersededBy = null
   let showLoader = false
+  let threadLoadedOffline = false
 
   if (selectedConversationIDKey !== Constants.nothingSelected) {
     const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
@@ -40,6 +41,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
       supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
       supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
       showLoader = !(selected && selected.state === 'unboxed') || conversationState.isRequesting
+      threadLoadedOffline = conversationState.loadedOffline
     }
   }
 
@@ -50,6 +52,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
     showLoader,
     supersededBy,
     supersedes,
+    threadLoadedOffline,
   }
 }
 

@@ -822,7 +822,7 @@ function * _sendNotifications (action: Constants.AppendMessages): SagaGenerator<
     const message = (action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me))
     // Is this message part of a muted conversation? If so don't notify.
     const convo = yield select(Shared.selectedInboxSelector, action.payload.conversationIDKey)
-    if (convo && !convo.muted) {
+    if (convo && convo.get('status') !== 'muted') {
       if (message && message.type === 'Text') {
         const snippet = Constants.makeSnippet(Constants.serverMessageToMessageBody(message))
         yield put((dispatch: Dispatch) => {

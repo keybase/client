@@ -46,6 +46,7 @@
   [parser registerSwitch:@"uninstall"];
   [parser registerSwitch:@"install-fuse"];
   [parser registerSwitch:@"install-mountdir"];
+  [parser registerSwitch:@"install-helper"];
   [parser registerSwitch:@"install-app-bundle"];
   [parser registerOption:@"source-path" requirement:GBValueOptional]; // If using install-app-bundle
   [parser registerSwitch:@"debug"];
@@ -86,6 +87,9 @@
   }
   if ([[self.settings objectForKey:@"install-mountdir"] boolValue]) {
     self.installOptions |= KBInstallOptionMountDir;
+  }
+  if ([[self.settings objectForKey:@"install-helper"] boolValue]) {
+    self.installOptions |= KBInstallOptionHelper;
   }
   if ([[self.settings objectForKey:@"install-app-bundle"] boolValue]) {
     self.installOptions |= KBInstallOptionAppBundle;

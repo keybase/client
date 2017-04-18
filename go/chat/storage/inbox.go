@@ -473,7 +473,7 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 
 	// If the query is specifying a list of conversation IDs, just check to see if we have *all*
 	// of them on the disk
-	if query != nil && len(query.ConvIDs) > 0 {
+	if query != nil && (len(query.ConvIDs) > 0 || query.ConvID != nil) {
 		i.Debug(ctx, "Read: queryExists: convIDs query, checking list: len: %d", len(query.ConvIDs))
 		return i.queryConvIDsExist(ctx, ibox, query.ConvIDs)
 	}

@@ -17,9 +17,21 @@ func nonceForSenderKeySecretBox() *Nonce {
 	return &n
 }
 
-func nonceForPayloadKeyBox() *Nonce {
+func nonceForPayloadKeyBoxV1() *Nonce {
 	var n Nonce
 	copy(n[:], "saltpack_payload_key_box")
+	return &n
+}
+
+func nonceForPayloadKeyBoxV2(recip uint64) *Nonce {
+	var n Nonce
+	copy(n[:], "saltpack_recipsbXXXXXXXX")
+	return &n
+}
+
+func nonceForDerivedSharedKey() *Nonce {
+	var n Nonce
+	copy(n[:], "saltpack_derived_sboxkey")
 	return &n
 }
 
@@ -36,6 +48,17 @@ func nonceForMACKeyBox(headerHash []byte) *Nonce {
 func nonceForChunkSecretBox(i encryptionBlockNumber) *Nonce {
 	var n Nonce
 	copy(n[0:16], "saltpack_ploadsb")
+	binary.BigEndian.PutUint64(n[16:], uint64(i))
+	return &n
+}
+
+// Construct the nonce for the ith block of payload. Differs in one letter from
+// above. There's almost certainly no harm in using the same nonces here as
+// above, since the encryption keys are ephemeral and the signatures already
+// have their own context, but at the same time it's a good practice.
+func nonceForChunkSigncryption(i encryptionBlockNumber) *Nonce {
+	var n Nonce
+	copy(n[0:16], "saltpack_ploadsc")
 	binary.BigEndian.PutUint64(n[16:], uint64(i))
 	return &n
 }

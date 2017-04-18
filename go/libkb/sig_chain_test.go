@@ -4,8 +4,8 @@
 package libkb
 
 import (
-	// "fmt"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"sort"
 	"testing"
@@ -247,19 +247,25 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 			unrevokedCount++
 		}
 	}
+
+	fatalStr := ""
 	if unrevokedCount != testCase.Len {
-		t.Fatalf("Expected %d unrevoked links, but found %d.", testCase.Len, unrevokedCount)
+		fatalStr += fmt.Sprintf("Expected %d unrevoked links, but found %d.\n", testCase.Len, unrevokedCount)
 	}
 	// Don't use the current time to get keys, because that will cause test
 	// failures 5 years from now :-D
 	testTime := getCurrentTimeForTest(sigchain, keyFamily)
 	numSibkeys := len(ckf.GetAllActiveSibkeysAtTime(testTime))
 	if numSibkeys != testCase.Sibkeys {
-		t.Fatalf("Expected %d sibkeys, got %d", testCase.Sibkeys, numSibkeys)
+		fatalStr += fmt.Sprintf("Expected %d sibkeys, got %d\n", testCase.Sibkeys, numSibkeys)
 	}
 	numSubkeys := len(ckf.GetAllActiveSubkeysAtTime(testTime))
 	if numSubkeys != testCase.Subkeys {
-		t.Fatalf("Expected %d subkeys, got %d", testCase.Subkeys, numSubkeys)
+		fatalStr += fmt.Sprintf("Expected %d subkeys, got %d\n", testCase.Subkeys, numSubkeys)
+	}
+
+	if fatalStr != "" {
+		t.Fatal(fatalStr)
 	}
 
 	storeAndLoad(t, tc, &sigchain)

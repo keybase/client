@@ -4,6 +4,7 @@
 package saltpack
 
 import (
+	"regexp"
 	"strings"
 )
 
@@ -66,12 +67,17 @@ func getStringForType(typ MessageType) string {
 
 func parseFrame(m string, typ MessageType, hof headerOrFooterMarker) (brand string, err error) {
 
+	// replace blocks of characters in the set [>\n\r\t ] with a single space, so that Go
+	// can easily parse each piece
+	re := regexp.MustCompile("[>\n\r\t ]+")
+	s := strings.TrimSpace(re.ReplaceAllString(m, " "))
+
 	sffx := getStringForType(typ)
 	if len(sffx) == 0 {
 		err = makeErrBadFrame("Message type %v not found", typ)
 		return
 	}
-	v := strings.Split(m, " ")
+	v := strings.Split(s, " ")
 	if len(v) != 4 && len(v) != 5 {
 		err = makeErrBadFrame("wrong number of words (%d)", len(v))
 		return

@@ -42,19 +42,21 @@ type LogoutHook interface {
 }
 
 type GlobalContext struct {
-	Log          logger.Logger        // Handles all logging
-	VDL          *VDebugLog           // verbose debug log
-	Env          *Env                 // Env variables, cmdline args & config
-	SKBKeyringMu *sync.Mutex          // Protects all attempts to mutate the SKBKeyringFile
-	Keyrings     *Keyrings            // Gpg Keychains holding keys
-	API          API                  // How to make a REST call to the server
-	Resolver     *Resolver            // cache of resolve results
-	LocalDb      *JSONLocalDb         // Local DB for cache
-	LocalChatDb  *JSONLocalDb         // Local DB for cache
-	MerkleClient *MerkleClient        // client for querying server's merkle sig tree
-	XAPI         ExternalAPI          // for contacting Twitter, Github, etc.
-	Output       io.Writer            // where 'Stdout'-style output goes
-	DNSNSFetcher DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
+	Log               logger.Logger // Handles all logging
+	VDL               *VDebugLog    // verbose debug log
+	Env               *Env          // Env variables, cmdline args & config
+	SKBKeyringMu      *sync.Mutex   // Protects all attempts to mutate the SKBKeyringFile
+	Keyrings          *Keyrings     // Gpg Keychains holding keys
+	sharedDHKeyringMu *sync.Mutex
+	sharedDHKeyring   *SharedDHKeyring     // Keyring holding shared DH keypairs
+	API               API                  // How to make a REST call to the server
+	Resolver          *Resolver            // cache of resolve results
+	LocalDb           *JSONLocalDb         // Local DB for cache
+	LocalChatDb       *JSONLocalDb         // Local DB for cache
+	MerkleClient      *MerkleClient        // client for querying server's merkle sig tree
+	XAPI              ExternalAPI          // for contacting Twitter, Github, etc.
+	Output            io.Writer            // where 'Stdout'-style output goes
+	DNSNSFetcher      DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
 
 	cacheMu        *sync.RWMutex   // protects all caches
 	ProofCache     *ProofCache     // where to cache proof results
@@ -141,6 +143,7 @@ func NewGlobalContext() *GlobalContext {
 		Log:                log,
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
+		sharedDHKeyringMu:  new(sync.Mutex),
 		cacheMu:            new(sync.RWMutex),
 		socketWrapperMu:    new(sync.RWMutex),
 		shutdownOnce:       new(sync.Once),
@@ -251,6 +254,8 @@ func (g *GlobalContext) Logout() error {
 	}
 
 	g.CallLogoutHooks()
+
+	g.SetSharedDHKeyring(nil)
 
 	if g.TrackCache != nil {
 		g.TrackCache.Shutdown()
@@ -754,6 +759,13 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 
 func (g *GlobalContext) CallLoginHooks() {
 
+	sdhk, err := NewSharedDHKeyring(g, g.GetMyUID(), g.Env.GetDeviceID())
+	if err != nil {
+		g.Log.Warning("NewSharedDHKeyring failed: %s", err)
+	} else {
+		g.SetSharedDHKeyring(sdhk)
+	}
+
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin()
 
@@ -911,6 +923,8 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.Log.Debug("+ UserChanged(%s)", u)
 	defer g.Log.Debug("- UserChanged(%s)", u)
 
+	g.SetSharedDHKeyring(nil)
+
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
 		g.NotifyRouter.HandleUserChanged(u)
@@ -926,4 +940,19 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	}
 	g.UserChangedHandlers = newList
 	g.uchMu.Unlock()
+}
+
+func (g *GlobalContext) GetSharedDHKeyring() (*SharedDHKeyring, error) {
+	g.sharedDHKeyringMu.Lock()
+	defer g.sharedDHKeyringMu.Unlock()
+	if g.sharedDHKeyring == nil {
+		return nil, fmt.Errorf("SharedDHKeyring not present")
+	}
+	return g.sharedDHKeyring, nil
+}
+
+func (g *GlobalContext) SetSharedDHKeyring(k *SharedDHKeyring) {
+	g.sharedDHKeyringMu.Lock()
+	defer g.sharedDHKeyringMu.Unlock()
+	g.sharedDHKeyring = k
 }

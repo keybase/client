@@ -95,5 +95,6 @@ type Syncer interface {
 	RegisterOfflinable(offlinable Offlinable)
 	SendChatStaleNotifications(ctx context.Context, uid gregor1.UID, convIDs []chat1.ConversationID,
 		immediate bool)
+	AddStaleConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
 	Shutdown()
 }
