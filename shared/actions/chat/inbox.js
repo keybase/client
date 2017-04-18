@@ -295,9 +295,11 @@ function _conversationLocalToInboxState (c: ?ChatTypes.ConversationLocal): ?Cons
   const toShow = List(c.maxMessages || [])
     .filter(m => m.valid && m.state === ChatTypes.LocalMessageUnboxedState.valid)
     .map((m: any) => ({body: m.valid.messageBody, time: m.valid.serverHeader.ctime}))
-    .filter(m => m.body.messageType === ChatTypes.CommonMessageType.text ||
-      m.body.messageType === ChatTypes.CommonMessageType.attachment ||
-      m.body.messageType === ChatTypes.CommonMessageType.edit)
+    .filter(m => [
+      ChatTypes.CommonMessageType.attachment,
+      ChatTypes.CommonMessageType.edit,
+      ChatTypes.CommonMessageType.text,
+    ].includes(m.body.messageType))
     .sort((a, b) => b.time - a.time)
     .map((message: {time: number, body: ?ChatTypes.MessageBody}) => ({
       snippet: Constants.makeSnippet(message.body),
