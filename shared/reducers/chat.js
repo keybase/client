@@ -171,7 +171,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
             .set('deletedIDs', nextDeletedIDs)
         })
 
-      const toMerge = newConversationStates.getIn([conversationIDKey, 'messages']).reduce((map, val) => map.set(val.key, val), Map())
+      const toMerge = Map(newConversationStates.getIn([conversationIDKey, 'messages']).map((val) => [val.key, val]))
       return state.set('conversationStates', newConversationStates).set('messageMap', state.get('messageMap').merge(toMerge))
     }
     case 'chat:appendMessages': {
