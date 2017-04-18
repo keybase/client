@@ -318,6 +318,11 @@ type folderBranchOps struct {
 	// to know when it should sync immediately.
 	forceSyncChan <-chan struct{}
 
+	// syncNeededChan is signalled when a buffered write happens, and
+	// lets the background syncer wait rather than waking up all the
+	// time.
+	syncNeededChan chan struct{}
+
 	// How to resolve conflicts
 	cr *ConflictResolver
 
@@ -398,6 +403,7 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 		shutdownChan:    make(chan struct{}),
 		updatePauseChan: make(chan (<-chan struct{})),
 		forceSyncChan:   forceSyncChan,
+		syncNeededChan:  make(chan struct{}, 1),
 	}
 	fbo.prepper = folderUpdatePrepper{
 		config:       config,
@@ -3314,6 +3320,13 @@ func (fbo *folderBranchOps) Read(
 	return bytesRead, nil
 }
 
+func (fbo *folderBranchOps) signalWrite() {
+	select {
+	case fbo.syncNeededChan <- struct{}{}:
+	default:
+	}
+}
+
 func (fbo *folderBranchOps) Write(
 	ctx context.Context, file Node, data []byte, off int64) (err error) {
 	fbo.log.CDebugf(ctx, "Write %s %d %d", getNodeIDStr(file),
@@ -3346,6 +3359,7 @@ func (fbo *folderBranchOps) Write(
 		}
 
 		fbo.status.addDirtyNode(file)
+		fbo.signalWrite()
 		return nil
 	})
 }
@@ -3381,6 +3395,7 @@ func (fbo *folderBranchOps) Truncate(
 		}
 
 		fbo.status.addDirtyNode(file)
+		fbo.signalWrite()
 		return nil
 	})
 }
@@ -5198,11 +5213,23 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 		}
 
 		if doSelect {
+			// Wait until we really have a write waiting.
+			forced := false
 			select {
-			case <-ticker.C:
+			case <-fbo.syncNeededChan:
 			case <-fbo.forceSyncChan:
+				forced = true
 			case <-fbo.shutdownChan:
 				return
+			}
+
+			if !forced {
+				select {
+				case <-ticker.C:
+				case <-fbo.forceSyncChan:
+				case <-fbo.shutdownChan:
+					return
+				}
 			}
 		}
 

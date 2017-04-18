@@ -5307,7 +5307,11 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 	go ops.backgroundFlusher(1 * time.Millisecond)
 
 	// Make sure we get the notification
-	<-c
+	select {
+	case <-c:
+	case <-ctx.Done():
+		t.Fatalf("Timeout waiting for signal")
+	}
 
 	// Make sure we get a sync even if we overwrite (not extend) the file
 	data[1] = 0
