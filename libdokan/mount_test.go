@@ -403,6 +403,7 @@ func testOneCreateThenRead(t *testing.T, p string) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Call in a closure since `f` is overridden below.
 	defer func() { syncAndClose(t, f) }()
 	const input = "hello, world\n"
 	if _, err := io.WriteString(f, input); err != nil {
@@ -466,7 +467,7 @@ func TestReadUnflushed(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() { syncAndClose(t, f) }()
+	defer syncAndClose(t, f)
 	const input = "hello, world\n"
 	if _, err := io.WriteString(f, input); err != nil {
 		t.Fatalf("write error: %v", err)
@@ -841,7 +842,7 @@ func TestWriteThenRename(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
-	defer func() { syncAndClose(t, f) }()
+	defer syncAndClose(t, f)
 
 	// write to the file
 	const input = "hello, world\n"
@@ -903,7 +904,8 @@ func TestWriteThenRenameCrossDir(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
-	defer func() { syncAndClose(t, f) }()
+	// Call in a closure since `f` is overridden below.
+	defer syncAndClose(t, f)
 
 	// write to the file
 	const input = "hello, world\n"
@@ -1041,6 +1043,7 @@ func TestRemoveFileWhileOpenWriting(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
+	// Call in a closure since `f` is overridden below.
 	defer func() { syncAndClose(t, f) }()
 
 	if err := ioutil.Remove(p); err != nil {
@@ -1488,6 +1491,7 @@ func TestFsync(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Call in a closure since `f` is overridden below.
 	defer func() { syncAndClose(t, f) }()
 	const input = "hello, world\n"
 	if _, err := io.WriteString(f, input); err != nil {
@@ -2346,6 +2350,7 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Call in a closure since `f` is overridden below.
 	defer func() { syncAndClose(t, f) }()
 
 	{
@@ -2728,7 +2733,7 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() { syncAndClose(t, f1) }()
+	defer syncAndClose(t, f1)
 
 	const input1 = "hello"
 	{
@@ -2747,7 +2752,7 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() { syncAndClose(t, f2) }()
+	defer syncAndClose(t, f2)
 
 	const input2 = "ohell"
 	{
@@ -2917,7 +2922,7 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() { syncAndClose(t, f1) }()
+	defer syncAndClose(t, f1)
 
 	const input1 = "hello"
 	{
@@ -2940,7 +2945,7 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() { syncAndClose(t, f2) }()
+	defer syncAndClose(t, f2)
 
 	const input2 = "ohell"
 	{

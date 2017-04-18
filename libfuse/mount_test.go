@@ -570,6 +570,7 @@ func testOneCreateThenRead(t *testing.T, p string) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Call in a closure since `f` is overridden below.
 	defer func() { syncAndClose(t, f) }()
 	const input = "hello, world\n"
 	if _, err := io.WriteString(f, input); err != nil {
@@ -1226,6 +1227,7 @@ func TestRemoveFileWhileOpenSetEx(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
+	// Call in a closure since `f` is overridden below.
 	defer func() { syncAndClose(t, f) }()
 
 	if err := ioutil.Remove(p); err != nil {
@@ -1270,6 +1272,7 @@ func TestRemoveFileWhileOpenWritingInTLFRoot(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
+	// Call in a closure since `f` is overridden below.
 	defer func() { syncAndClose(t, f) }()
 
 	if err := ioutil.Remove(p); err != nil {
@@ -1310,6 +1313,7 @@ func TestRemoveFileWhileOpenWritingInSubDir(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
+	// Call in a closure since `f` is overridden below.
 	defer func() { syncAndClose(t, f) }()
 
 	if err := ioutil.Remove(p); err != nil {
@@ -1350,6 +1354,7 @@ func TestRenameOverFileWhileOpenWritingInDifferentDir(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
+	// Call in a closure since `f1` is overridden below.
 	defer func() { syncAndClose(t, f1) }()
 
 	p2 := path.Join(mnt.Dir, PrivateName, "jdoe", "mynewfile")
@@ -1401,6 +1406,7 @@ func TestRenameOverFileWhileOpenWritingInSameSubDir(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
+	// Call in a closure since `f1` is overridden below.
 	defer func() { syncAndClose(t, f1) }()
 
 	p2 := path.Join(dirPath, "mynewfile")
@@ -1453,6 +1459,7 @@ func TestRemoveFileWhileOpenReading(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot open file: %v", err)
 	}
+	// Call in a closure since `f` is overridden below.
 	defer func() { syncAndClose(t, f) }()
 
 	if err := ioutil.Remove(p); err != nil {
@@ -1508,6 +1515,7 @@ func TestRemoveFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot open file: %v", err)
 	}
+	// Call in a closure since `f` is overridden below.
 	defer func() { syncAndClose(t, f) }()
 
 	p2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "myfile")
@@ -1574,6 +1582,7 @@ func TestRenameOverFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot open file: %v", err)
 	}
+	// Call in a closure since `f` is overridden below.
 	defer func() { syncAndClose(t, f) }()
 
 	p2Other := path.Join(mnt2.Dir, PrivateName, "user1,user2", "other")
@@ -2052,6 +2061,7 @@ func TestFsync(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Call in a closure since `f` is overridden below.
 	defer func() { syncAndClose(t, f) }()
 	const input = "hello, world\n"
 	if _, err := io.WriteString(f, input); err != nil {
@@ -2952,6 +2962,7 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Call in a closure since `f` is overridden below.
 	defer func() { syncAndClose(t, f) }()
 
 	{
