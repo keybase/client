@@ -239,11 +239,11 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 	// This sends the client's PATH to the service so the service can update
 	// its PATH if necessary. This is called after FixVersionClash(), which
 	// happens above in configureProcesses().
-	if err = configurePath(g, cl); err != nil {
+	if pathErr := configurePath(g, cl); pathErr != nil {
 		// Further note -- don't die here.  It could be we're calling this method
 		// against an earlier version of the service that doesn't support it.
 		// It's not critical that it succeed, so continue on.
-		g.Log.Debug("Configure path failed: %v", err)
+		g.Log.Debug("Configure path failed: %v", pathErr)
 	}
 
 	return nil
