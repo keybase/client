@@ -84,10 +84,10 @@ func (h *reachability) check() (k keybase1.Reachability) {
 func (h *reachability) IsConnected(ctx context.Context) libkb.ConnectivityMonitorResult {
 	switch h.lastReachability.Reachable {
 	case keybase1.Reachable_YES:
-		return libkb.ConnectivityMonitor_YES
+		return libkb.ConnectivityMonitorYes
 	case keybase1.Reachable_NO:
-		return libkb.ConnectivityMonitor_NO
+		return libkb.ConnectivityMonitorNo
 	default:
-		return libkb.ConnectivityMonitor_UNKNOWN
+		return libkb.ConnectivityMonitorUnknown
 	}
 }

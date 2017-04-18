@@ -567,9 +567,9 @@ type UserChangedHandler interface {
 type ConnectivityMonitorResult int
 
 const (
-	ConnectivityMonitor_YES ConnectivityMonitorResult = iota
-	ConnectivityMonitor_NO
-	ConnectivityMonitor_UNKNOWN
+	ConnectivityMonitorYes ConnectivityMonitorResult = iota
+	ConnectivityMonitorNo
+	ConnectivityMonitorUnknown
 )
 
 type ConnectivityMonitor interface {

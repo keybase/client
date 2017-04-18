@@ -8,7 +8,7 @@ type NullConnectivityMonitor struct {
 }
 
 func (s NullConnectivityMonitor) IsConnected(ctx context.Context) ConnectivityMonitorResult {
-	return ConnectivityMonitor_YES
+	return ConnectivityMonitorYes
 }
 
 var _ ConnectivityMonitor = NullConnectivityMonitor{}
