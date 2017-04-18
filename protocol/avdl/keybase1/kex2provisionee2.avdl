@@ -13,9 +13,9 @@ protocol Kex2Provisionee2 {
   void didCounterSign2(bytes sig, string ppsEncrypted, array<SharedDhSecretKeyBox> sdhBoxes);
 
   record SharedDhSecretKeyBox {
-    int generation;
-    string                box;
-    KID                   receiverKID;
+    int    generation;
+    string box;
+    KID    receiverKID;
   }
 
 }
