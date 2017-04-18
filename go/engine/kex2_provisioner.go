@@ -382,7 +382,7 @@ func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
 	return nil
 }
 
-func (e *Kex2Provisioner) makeSdhBoxes(receiverKeyGeneric libkb.GenericKey) (res []keybase1.SharedDhSecretKeyBox, err error) {
+func (e *Kex2Provisioner) makeSdhBoxes(receiverKeyGeneric libkb.GenericKey) (res []keybase1.SharedDHSecretKeyBox, err error) {
 	receiverKey, ok := receiverKeyGeneric.(libkb.NaclDHKeyPair)
 	if !ok {
 		return res, fmt.Errorf("Unexpected receiver key type")
@@ -400,15 +400,5 @@ func (e *Kex2Provisioner) makeSdhBoxes(receiverKeyGeneric libkb.GenericKey) (res
 	sdhBoxes, err := sdhk.PrepareBoxesForNewDevice(e.ctx.NetContext,
 		receiverKey,     // receiver key: provisionee enc
 		e.encryptionKey) // sender key: this device enc
-	if err != nil {
-		return res, err
-	}
-	return e.convertBoxes(sdhBoxes), nil
-}
-
-func (e *Kex2Provisioner) convertBoxes(bs []libkb.SharedDHSecretKeyBox) (res []keybase1.SharedDhSecretKeyBox) {
-	for _, b := range bs {
-		res = append(res, b.ToKex())
-	}
-	return
+	return sdhBoxes, err
 }

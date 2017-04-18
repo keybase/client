@@ -306,9 +306,9 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc}, sdhBoxes)
 }
 
-func (e *PaperKeyGen) makeSharedDHSecretKeyBoxes(ctx *Context) ([]libkb.SharedDHSecretKeyBox, error) {
+func (e *PaperKeyGen) makeSharedDHSecretKeyBoxes(ctx *Context) ([]keybase1.SharedDHSecretKeyBox, error) {
 	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#makeSharedDHSecretKeyBoxes(enabled:%v)", e.G().Env.GetEnableSharedDH())
-	var sdhBoxes = []libkb.SharedDHSecretKeyBox{}
+	var sdhBoxes = []keybase1.SharedDHSecretKeyBox{}
 	if e.G().Env.GetEnableSharedDH() {
 		sdhk, err := e.getSharedDHKeyring()
 		if err != nil {

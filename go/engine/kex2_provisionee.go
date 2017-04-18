@@ -232,7 +232,7 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 	return e.handleDidCounterSign(sig, nil)
 }
 
-func (e *Kex2Provisionee) handleDidCounterSign(sig []byte, sdhBoxes []keybase1.SharedDhSecretKeyBox) (err error) {
+func (e *Kex2Provisionee) handleDidCounterSign(sig []byte, sdhBoxes []keybase1.SharedDHSecretKeyBox) (err error) {
 	e.G().Log.Debug("+ HandleDidCounterSign()")
 	defer func() { e.G().Log.Debug("- HandleDidCounterSign() -> %s", libkb.ErrToOk(err)) }()
 
@@ -458,11 +458,9 @@ func (e *Kex2Provisionee) reverseSig(jw *jsonw.Wrapper) error {
 
 // postSigs takes the HTTP args for the signing key and encrypt
 // key and posts them to the api server.
-func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs, sdhKexBoxes []keybase1.SharedDhSecretKeyBox) error {
+func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs, sdhBoxes []keybase1.SharedDHSecretKeyBox) error {
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []map[string]string{firstValues(signingArgs.ToValues()), firstValues(encryptArgs.ToValues())}
-
-	sdhBoxes := e.convertBoxes(sdhKexBoxes)
 
 	// Post the shared dh keys encrypted for the provisionee device by the provisioner.
 	if len(sdhBoxes) > 0 {
@@ -597,13 +595,6 @@ func (e *Kex2Provisionee) cacheKeys() (err error) {
 	}
 
 	return nil
-}
-
-func (e *Kex2Provisionee) convertBoxes(bks []keybase1.SharedDhSecretKeyBox) (res []libkb.SharedDHSecretKeyBox) {
-	for _, bk := range bks {
-		res = append(res, libkb.NewSharedDHSecretKeyBoxFromKex(bk))
-	}
-	return
 }
 
 func firstValues(vals url.Values) map[string]string {

@@ -8,58 +8,31 @@ import (
 	context "golang.org/x/net/context"
 )
 
-// SharedDHKeyGeneration describes which generation of DH key we're talking about.
-// The sequence starts at 1, and should increment every time the shared DH key
-// rotates, which is everytime a device is revoked.
-type SharedDHKeyGeneration int
-
-type SharedDHSecretKeyBox struct {
-	Generation  SharedDHKeyGeneration `json:"generation"`
-	Box         string                `json:"box"`
-	ReceiverKID keybase1.KID          `json:"receiver_kid"`
-}
-
-func NewSharedDHSecretKeyBox(innerKey NaclDHKeyPair, receiverKey NaclDHKeyPair, senderKey NaclDHKeyPair, generation SharedDHKeyGeneration) (SharedDHSecretKeyBox, error) {
+func NewSharedDHSecretKeyBox(innerKey NaclDHKeyPair, receiverKey NaclDHKeyPair, senderKey NaclDHKeyPair, generation keybase1.SharedDHKeyGeneration) (keybase1.SharedDHSecretKeyBox, error) {
 	_, secret, err := innerKey.ExportPublicAndPrivate()
 	if err != nil {
-		return SharedDHSecretKeyBox{}, err
+		return keybase1.SharedDHSecretKeyBox{}, err
 	}
 
 	encInfo, err := receiverKey.Encrypt(secret, &senderKey)
 	if err != nil {
-		return SharedDHSecretKeyBox{}, err
+		return keybase1.SharedDHSecretKeyBox{}, err
 	}
 	boxStr, err := PacketArmoredEncode(encInfo)
 	if err != nil {
-		return SharedDHSecretKeyBox{}, err
+		return keybase1.SharedDHSecretKeyBox{}, err
 	}
 
-	return SharedDHSecretKeyBox{
+	return keybase1.SharedDHSecretKeyBox{
 		Box:         boxStr,
 		ReceiverKID: receiverKey.GetKID(),
 		Generation:  generation,
 	}, nil
 }
 
-func NewSharedDHSecretKeyBoxFromKex(bk keybase1.SharedDhSecretKeyBox) SharedDHSecretKeyBox {
-	return SharedDHSecretKeyBox{
-		Box:         bk.Box,
-		ReceiverKID: bk.ReceiverKID,
-		Generation:  SharedDHKeyGeneration(bk.Generation),
-	}
-}
-
-func (b *SharedDHSecretKeyBox) ToKex() keybase1.SharedDhSecretKeyBox {
-	return keybase1.SharedDhSecretKeyBox{
-		Box:         b.Box,
-		ReceiverKID: b.ReceiverKID,
-		Generation:  int(b.Generation),
-	}
-}
-
 type sharedDHSecretKeyBoxesResp struct {
-	Boxes  []SharedDHSecretKeyBox `json:"boxes"`
-	Status AppStatus              `json:"status"`
+	Boxes  []keybase1.SharedDHSecretKeyBox `json:"boxes"`
+	Status AppStatus                       `json:"status"`
 }
 
 func (s *sharedDHSecretKeyBoxesResp) GetAppStatus() *AppStatus {
@@ -68,7 +41,7 @@ func (s *sharedDHSecretKeyBoxesResp) GetAppStatus() *AppStatus {
 
 // SharedDHKeyMap is a map of Generation numbers to
 // DH private keys, for decrypting data.
-type SharedDHKeyMap map[SharedDHKeyGeneration]NaclDHKeyPair
+type SharedDHKeyMap map[keybase1.SharedDHKeyGeneration]NaclDHKeyPair
 
 // SharedDHKeyring holds on to all versions of the Shared DH key.
 // Generation=0 should be nil, but all others should be present.
@@ -98,7 +71,7 @@ func NewSharedDHKeyring(g *GlobalContext, uid keybase1.UID, deviceID keybase1.De
 
 // PrepareBoxesForNewDevice encrypts the shared keys for a new device.
 // The result boxes will be pushed to the server.
-func (s *SharedDHKeyring) PrepareBoxesForNewDevice(ctx context.Context, receiverKey NaclDHKeyPair, senderKey NaclDHKeyPair) (boxes []SharedDHSecretKeyBox, err error) {
+func (s *SharedDHKeyring) PrepareBoxesForNewDevice(ctx context.Context, receiverKey NaclDHKeyPair, senderKey NaclDHKeyPair) (boxes []keybase1.SharedDHSecretKeyBox, err error) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -121,17 +94,17 @@ func (s *SharedDHKeyring) HasAnyKeys() bool {
 
 // CurrentGeneration returns what generation we're on. The version possible
 // Version is 1. Version 0 implies no keys are available.
-func (s *SharedDHKeyring) CurrentGeneration() SharedDHKeyGeneration {
+func (s *SharedDHKeyring) CurrentGeneration() keybase1.SharedDHKeyGeneration {
 	s.Lock()
 	defer s.Unlock()
 	return s.currentGenerationLocked()
 }
 
-func (s *SharedDHKeyring) currentGenerationLocked() SharedDHKeyGeneration {
-	return SharedDHKeyGeneration(len(s.generations))
+func (s *SharedDHKeyring) currentGenerationLocked() keybase1.SharedDHKeyGeneration {
+	return keybase1.SharedDHKeyGeneration(len(s.generations))
 }
 
-func (s *SharedDHKeyring) SharedDHKey(ctx context.Context, g SharedDHKeyGeneration) *NaclDHKeyPair {
+func (s *SharedDHKeyring) SharedDHKey(ctx context.Context, g keybase1.SharedDHKeyGeneration) *NaclDHKeyPair {
 	s.Lock()
 	defer s.Unlock()
 	key, found := s.generations[g]
@@ -223,7 +196,7 @@ func (s *SharedDHKeyring) mergeLocked(m SharedDHKeyMap) (err error) {
 	return nil
 }
 
-func (s *SharedDHKeyring) fetchBoxesLocked(ctx context.Context, lctx LoginContext) (ret []SharedDHSecretKeyBox, err error) {
+func (s *SharedDHKeyring) fetchBoxesLocked(ctx context.Context, lctx LoginContext) (ret []keybase1.SharedDHSecretKeyBox, err error) {
 	defer s.G().CTrace(ctx, "SharedDHKeyring#fetchBoxesLocked", func() error { return err })()
 
 	var sessionR SessionReader
@@ -259,13 +232,13 @@ func (s *SharedDHKeyring) fetchBoxesLocked(ctx context.Context, lctx LoginContex
 // shared_dh_key.
 type sharedDHChecker struct {
 	allowedEncryptingKIDs map[keybase1.KID]bool
-	expectedSharedDHKIDs  map[SharedDHKeyGeneration]keybase1.KID
+	expectedSharedDHKIDs  map[keybase1.SharedDHKeyGeneration]keybase1.KID
 }
 
 func newSharedDHChecker(upak *keybase1.UserPlusAllKeys) *sharedDHChecker {
 	ret := sharedDHChecker{
 		allowedEncryptingKIDs: make(map[keybase1.KID]bool),
-		expectedSharedDHKIDs:  make(map[SharedDHKeyGeneration]keybase1.KID),
+		expectedSharedDHKIDs:  make(map[keybase1.SharedDHKeyGeneration]keybase1.KID),
 	}
 	isEncryptionKey := func(k keybase1.PublicKey) bool {
 		return !k.IsSibkey && k.PGPFingerprint == ""
@@ -281,12 +254,12 @@ func newSharedDHChecker(upak *keybase1.UserPlusAllKeys) *sharedDHChecker {
 		}
 	}
 	for _, k := range upak.Base.SharedDHKeys {
-		ret.expectedSharedDHKIDs[SharedDHKeyGeneration(k.Gen)] = k.Kid
+		ret.expectedSharedDHKIDs[keybase1.SharedDHKeyGeneration(k.Gen)] = k.Kid
 	}
 	return &ret
 }
 
-func importSharedDHKey(box *SharedDHSecretKeyBox, activeDecryptionKey GenericKey, wantedGeneration SharedDHKeyGeneration, checker *sharedDHChecker) (ret *NaclDHKeyPair, err error) {
+func importSharedDHKey(box *keybase1.SharedDHSecretKeyBox, activeDecryptionKey GenericKey, wantedGeneration keybase1.SharedDHKeyGeneration, checker *sharedDHChecker) (ret *NaclDHKeyPair, err error) {
 	if box.Generation != wantedGeneration {
 		return nil, SharedDHImportError{fmt.Sprintf("bad generation returned: %d", box.Generation)}
 	}
@@ -319,7 +292,7 @@ func importSharedDHKey(box *SharedDHSecretKeyBox, activeDecryptionKey GenericKey
 	return &key, nil
 }
 
-func (s *SharedDHKeyring) importLocked(ctx context.Context, boxes []SharedDHSecretKeyBox, checker *sharedDHChecker) (ret SharedDHKeyMap, err error) {
+func (s *SharedDHKeyring) importLocked(ctx context.Context, boxes []keybase1.SharedDHSecretKeyBox, checker *sharedDHChecker) (ret SharedDHKeyMap, err error) {
 	defer s.G().CTrace(ctx, "SharedDHKeyring#importLocked", func() error { return err })()
 
 	ret = make(SharedDHKeyMap)
