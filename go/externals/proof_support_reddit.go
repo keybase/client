@@ -90,7 +90,7 @@ func (t RedditServiceType) PostInstructions(un string) *libkb.Markup {
 	return libkb.FmtMarkup(`Please click on the following link to post to Reddit:`)
 }
 
-func (t RedditServiceType) FormatProofText(ppr *libkb.PostProofRes) (res string, err error) {
+func (t RedditServiceType) FormatProofText(ctx libkb.ProofContext, ppr *libkb.PostProofRes) (res string, err error) {
 
 	var title string
 	if title, err = ppr.Metadata.AtKey("title").GetString(); err != nil {
@@ -99,9 +99,20 @@ func (t RedditServiceType) FormatProofText(ppr *libkb.PostProofRes) (res string,
 
 	q := urlReencode(libkb.HTTPArgs{"title": libkb.S{Val: title}, "text": libkb.S{Val: ppr.Text}}.EncodeToString())
 
+	// The new reddit mobile site doesn't respect the post-pre-populate query
+	// parameters. Use the old mobile site until they fix this.
+	var host string
+	if ctx.GetAppType() == libkb.MobileAppType {
+		host = "i.reddit.com"
+	} else {
+		// Note that this is commonly libkb.NoAppType. Don't assume that we get
+		// libkb.DesktopAppType in the non-mobile case.
+		host = "www.reddit.com"
+	}
+
 	u := url.URL{
 		Scheme:   "https",
-		Host:     "www.reddit.com",
+		Host:     host,
 		Path:     "/r/KeybaseProofs/submit",
 		RawQuery: q,
 	}
