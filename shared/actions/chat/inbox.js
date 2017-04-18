@@ -5,6 +5,7 @@ import * as Creators from './creators'
 import * as Shared from './shared'
 import {List, Map} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
+import {CommonMessageType} from '../../constants/types/flow-types-chat'
 import {call, put, select, race, fork} from 'redux-saga/effects'
 import {chatTab} from '../../constants/tabs'
 import {delay} from 'redux-saga'
@@ -295,6 +296,9 @@ function _conversationLocalToInboxState (c: ?ChatTypes.ConversationLocal): ?Cons
   const toShow = List(c.maxMessages || [])
     .filter(m => m.valid && m.state === ChatTypes.LocalMessageUnboxedState.valid)
     .map((m: any) => ({body: m.valid.messageBody, time: m.valid.serverHeader.ctime}))
+    .filter(m => m.body.messageType === CommonMessageType.text ||
+      m.body.messageType === CommonMessageType.attachment ||
+      m.body.messageType === CommonMessageType.edit)
     .sort((a, b) => b.time - a.time)
     .map((message: {time: number, body: ?ChatTypes.MessageBody}) => ({
       snippet: Constants.makeSnippet(message.body),
