@@ -14,9 +14,18 @@ import (
 )
 
 func TestKex2Provision(t *testing.T) {
+	subTestKex2Provision(t, false)
+}
+
+func TestKex2ProvisionSDH(t *testing.T) {
+	subTestKex2Provision(t, true)
+}
+
+func subTestKex2Provision(t *testing.T, enableSharedDH bool) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
+	tcX.Tp.EnableSharedDH = enableSharedDH
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")
@@ -24,6 +33,7 @@ func TestKex2Provision(t *testing.T) {
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "kex2provision")
 	defer tcY.Cleanup()
+	tcY.Tp.EnableSharedDH = enableSharedDH
 
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
