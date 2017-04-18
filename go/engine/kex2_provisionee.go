@@ -116,9 +116,6 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 		KexBaseArg:  karg,
 		Provisionee: e,
 	}
-	if e.v1Only {
-		parg.V1Only = true
-	}
 	if err := kex2.RunProvisionee(parg); err != nil {
 		return err
 	}
