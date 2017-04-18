@@ -85,12 +85,37 @@ type DiskBlockCacheStandard struct {
 
 var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
 
+// MeterStatus represents the status of a rate meter.
+type MeterStatus struct {
+	Minutes1  float64
+	Minutes5  float64
+	Minutes15 float64
+	Mean      float64
+}
+
+func rateMeterToStatus(m metrics.Meter) MeterStatus {
+	return MeterStatus{
+		m.Rate1(),
+		m.Rate5(),
+		m.Rate15(),
+		m.RateMean(),
+	}
+}
+
 // DiskBlockCacheStatus represents the status of the disk cache.
 type DiskBlockCacheStatus struct {
-	IsStarting    bool
-	NumBlocks     uint64
-	BlockBytes    uint64
-	CurrByteLimit uint64
+	IsStarting      bool
+	NumBlocks       uint64
+	BlockBytes      uint64
+	CurrByteLimit   uint64
+	Hits            MeterStatus
+	Misses          MeterStatus
+	Puts            MeterStatus
+	MetadataUpdates MeterStatus
+	NumEvicted      MeterStatus
+	SizeEvicted     MeterStatus
+	NumDeleted      MeterStatus
+	SizeDeleted     MeterStatus
 }
 
 // openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage
@@ -851,9 +876,17 @@ func (cache *DiskBlockCacheStandard) Status() *DiskBlockCacheStatus {
 	limiterStatus :=
 		cache.config.DiskLimiter().getStatus().(backpressureDiskLimiterStatus)
 	return &DiskBlockCacheStatus{
-		NumBlocks:     uint64(cache.numBlocks),
-		BlockBytes:    cache.currBytes,
-		CurrByteLimit: uint64(limiterStatus.DiskCacheByteStatus.Max),
+		NumBlocks:       uint64(cache.numBlocks),
+		BlockBytes:      cache.currBytes,
+		CurrByteLimit:   uint64(limiterStatus.DiskCacheByteStatus.Max),
+		Hits:            rateMeterToStatus(cache.hitMeter),
+		Misses:          rateMeterToStatus(cache.missMeter),
+		Puts:            rateMeterToStatus(cache.putMeter),
+		MetadataUpdates: rateMeterToStatus(cache.updateMeter),
+		NumEvicted:      rateMeterToStatus(cache.evictCountMeter),
+		SizeEvicted:     rateMeterToStatus(cache.evictSizeMeter),
+		NumDeleted:      rateMeterToStatus(cache.deleteCountMeter),
+		SizeDeleted:     rateMeterToStatus(cache.deleteSizeMeter),
 	}
 }
 
