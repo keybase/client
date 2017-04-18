@@ -26,41 +26,14 @@ func NewSessionHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SessionHandl
 }
 
 // CurrentSession uses the global session to find the session.  If
-// the user isn't logged in, it returns ErrNoSession.
+// the user isn't logged in, it returns libkb.NoSessionError.
+//
+// This function was modified to use cached information instead
+// of loading the full self user and possibliy running sesscheck.
+// The only potential problem with that is that the session token
+// could be stale.  However, KBFS reports that they don't use
+// the session token, so not an issue currently.
 func (h *SessionHandler) CurrentSession(_ context.Context, sessionID int) (keybase1.Session, error) {
-	/*
-		var s keybase1.Session
-		var token string
-		var username libkb.NormalizedUsername
-		var uid keybase1.UID
-		var deviceSubkey, deviceSibkey libkb.GenericKey
-		var err error
-
-		aerr := h.G().LoginState().Account(func(a *libkb.Account) {
-			_, err = a.LoggedInProvisionedCheck()
-			if err != nil {
-				return
-			}
-			uid, username, token, deviceSubkey, deviceSibkey, err = a.UserInfo()
-		}, "Service - SessionHandler - UserInfo")
-		if aerr != nil {
-			return s, aerr
-		}
-		if err != nil {
-			if _, ok := err.(libkb.LoginRequiredError); ok {
-				return s, libkb.NoSessionError{}
-			}
-			return s, err
-		}
-
-		s.Uid = uid
-		s.Username = username.String()
-		s.Token = token
-		s.DeviceSubkeyKid = deviceSubkey.GetKID()
-		s.DeviceSibkeyKid = deviceSibkey.GetKID()
-
-		return s, nil
-	*/
 	var s keybase1.Session
 	var uid keybase1.UID
 	var username libkb.NormalizedUsername
@@ -83,7 +56,7 @@ func (h *SessionHandler) CurrentSession(_ context.Context, sessionID int) (keyba
 		if err != nil {
 			return
 		}
-	}, "Service - SessionHandler - UserInfo")
+	}, "Service - SessionHandler - CurrentSession")
 	if aerr != nil {
 		return s, aerr
 	}
