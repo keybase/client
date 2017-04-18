@@ -6,7 +6,7 @@ import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import openURL from '../../util/open-url'
 import {RPCError} from '../../util/errors'
-import {bootstrap, setInitialTab} from '../config'
+import {bootstrap, getExtendedStatus, setInitialTab} from '../config'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {devicesTab, loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
@@ -52,25 +52,30 @@ const navBasedOnLoginState = (): AsyncAction => (dispatch, getState) => {
       dispatch(navigateTo([profileTab]))
     }
   } else if (registered) { // relogging in
-    dispatch(getAccounts())
-    dispatch(navigateTo(['login'], [loginTab]))
+    Promise.all([dispatch(getExtendedStatus()), dispatch(getAccounts())]).then(() => {
+      dispatch(navigateTo(['login'], [loginTab]))
+    })
   } else { // no idea
     dispatch(navigateTo([loginTab]))
   }
 }
 
-const getAccounts = (): AsyncAction => dispatch => {
-  Types.loginGetConfiguredAccountsRpc({
-    ...makeWaitingHandler(dispatch),
-    callback: (error, accounts) => {
-      if (error) {
-        dispatch({error: true, payload: error, type: Constants.configuredAccounts})
-      } else {
+const getAccounts = (): AsyncAction => dispatch => (
+  new Promise((resolve, reject) => {
+    Types.loginGetConfiguredAccountsRpc({
+      ...makeWaitingHandler(dispatch),
+      callback: (error, accounts) => {
+        if (error) {
+          dispatch({error: true, payload: error, type: Constants.configuredAccounts})
+          reject(error)
+          return
+        }
         dispatch({payload: {accounts}, type: Constants.configuredAccounts})
-      }
-    },
+        resolve()
+      },
+    })
   })
-}
+)
 
 // See FIXME about HMR at the bottom of this file
 const login = (): AsyncAction => (dispatch, getState) => {
