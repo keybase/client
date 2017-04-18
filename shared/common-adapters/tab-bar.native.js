@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import _ from 'lodash'
-import type {Props, ItemProps, TabBadgePosition, TabBarButtonProps} from './tab-bar'
+import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
 import Badge from './badge'
 import Box from './box'
@@ -29,21 +29,20 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
   }
 }
 
-const badgeComponent = (badgeNumber: number, badgePosition: TabBadgePosition) => {
-  if (badgeNumber <= 0) return null
-  if (badgePosition === 'top-right') {
-    return (
-      <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
-        <Badge badgeNumber={badgeNumber} badgeStyle={{marginRight: -40, marginTop: -20}} />
-      </Box>
-    )
-  }
-  return <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 5}} />
-}
-
 class TabBarButton extends Component<void, TabBarButtonProps, void> {
   render () {
     const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
+
+    let badgeComponent
+    if (this.props.badgePosition === 'top-right') {
+      badgeComponent = (
+        <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
+          <Badge badgeNumber={this.props.badgeNumber} badgeStyle={{marginRight: -40, marginTop: -20}} />
+        </Box>
+      )
+    } else {
+      badgeComponent = <Badge badgeNumber={this.props.badgeNumber} badgeStyle={{marginLeft: 5}} />
+    }
 
     const content = (
       <Box style={{backgroundColor, ...stylesTabBarButtonIcon, ...this.props.style, flexGrow: 1}}>
@@ -51,7 +50,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
           ? <Icon type={this.props.source.icon} style={{fontSize: 32, width: 32, textAlign: 'center', color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40, ...this.props.styleIcon}} />
           : this.props.source.avatar}
         {!!this.props.label && <Text type='BodySemibold' style={{textAlign: 'center', ...this.props.styleLabel}}>{this.props.label}</Text>}
-        {badgeComponent(this.props.badgeNumber || 0, this.props.badgePosition)}
+        {this.props.badgeNumber > 0 && badgeComponent}
       </Box>
     )
 
