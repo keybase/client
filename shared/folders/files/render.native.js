@@ -7,6 +7,23 @@ import {Box, Button, Text, BackButton, Icon, Usernames, NativeScrollView, Native
 import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
+const RenderIgnore = ({isPrivate, ignored, unIgnoreCurrentFolder, ignoreCurrentFolder}) => (
+  ignored
+  ? <Button type='Secondary' onClick={unIgnoreCurrentFolder} label='Unignore folder' />
+  : <Button backgroundMode={isPrivate ? 'Terminal' : 'Normal'} type='Secondary' onClick={ignoreCurrentFolder} label='Ignore folder' />
+)
+
+const RenderNotImplemented = ({isPrivate, allowIgnore, ignored, unIgnoreCurrentFolder, ignoreCurrentFolder}) => {
+  const privateStyle = isPrivate ? {color: globalColors.blue3_40} : {}
+  return (
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center'}}>
+      <Text style={{...privateStyle, textAlign: 'center'}} type='BodySmall'>Mobile files coming soon!</Text>
+      <Text style={{...privateStyle, textAlign: 'center', marginBottom: globalMargins.large}} type='BodySmall'>For now you can browse this folder on your computer.</Text>
+      {allowIgnore && <RenderIgnore isPrivate={isPrivate} ignored={ignored} unIgnoreCurrentFolder={unIgnoreCurrentFolder} ignoreCurrentFolder={ignoreCurrentFolder} />}
+    </Box>
+  )
+}
+
 class FilesRender extends Component<void, Props, void> {
   _renderSection (section: FileSection) {
     return (
@@ -36,33 +53,16 @@ class FilesRender extends Component<void, Props, void> {
     return contents
   }
 
-  _renderIgnoreButton (isPrivate: boolean) {
-    return this.props.ignored
-      ? <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' />
-      : <Button backgroundMode={isPrivate ? 'Terminal' : 'Normal'} type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' />
-  }
-
   _renderContents (isPrivate: boolean, ignored: boolean, allowIgnore: boolean) {
     if (!this.props.recentFilesEnabled) {
       return (
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          {allowIgnore && this._renderIgnoreButton(ignored)}
+          {allowIgnore && <RenderIgnore isPrivate={isPrivate} ignored={ignored} unIgnoreCurrentFolder={this.props.unIgnoreCurrentFolder} ignoreCurrentFolder={this.props.ignoreCurrentFolder} />}
         </Box>
       )
     } else {
       return <NativeScrollView>{this.props.recentFilesSection.map(s => this._renderSection(s))}</NativeScrollView>
     }
-  }
-
-  _renderNotImplemented (isPrivate: boolean) {
-    const privateStyle = isPrivate ? {color: globalColors.blue3_40} : {}
-    return (
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center'}}>
-        <Text style={{...privateStyle, textAlign: 'center'}} type='BodySmall'>Mobile files coming soon!</Text>
-        <Text style={{...privateStyle, textAlign: 'center', marginBottom: globalMargins.large}} type='BodySmall'>For now you can browse this folder on your computer.</Text>
-        {this.props.allowIgnore && this._renderIgnoreButton(isPrivate)}
-      </Box>
-    )
   }
 
   render () {
@@ -75,7 +75,9 @@ class FilesRender extends Component<void, Props, void> {
         <Box style={{...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}>
           <Usernames prefix={isPrivate ? 'private/' : 'public/'} users={this.props.users} type='BodySemibold' style={tlfTextStyle} containerStyle={{textAlign: 'center'}} />
         </Box>
-        {this.props.notImplemented ? this._renderNotImplemented(isPrivate) : this._renderContents(isPrivate, this.props.ignored, this.props.allowIgnore)}
+        {this.props.notImplemented
+          ? <RenderNotImplemented isPrivate={isPrivate} allowIgnore={this.props.allowIgnore} ignored={this.props.ignored} unIgnoreCurrentFolder={this.props.unIgnoreCurrentFolder} ignoreCurrentFolder={this.props.ignoreCurrentFolder} />
+          : this._renderContents(isPrivate, this.props.ignored, this.props.allowIgnore)}
       </Box>
     )
   }
