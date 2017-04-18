@@ -4,13 +4,19 @@ import AttachmentPopup from '../attachment-popup'
 import HiddenString from '../../../util/hidden-string'
 import React from 'react'
 import Text from './text'
+import TextContainer from './text/container'
+import Wrapper from './wrapper'
 import {Box} from '../../../common-adapters'
 import {Map} from 'immutable'
 import {TextPopupMenu, AttachmentPopupMenu} from './popup'
-import {messageStates, MetaDataRecord, clampAttachmentPreviewSize, messageKey} from '../../../constants/chat'
+import * as ChatConstants from '../../../constants/chat'
+import * as ChatCreators from '../../../actions/chat/creators'
+import chatReducer from '../../../reducers/chat'
 
 import type {MessageState, TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {DumbComponentMap} from '../../../constants/types/more'
+
+const convID = 'convID-0'
 
 let mockKey = 1
 function messageMock (messageState: MessageState, author: string, you: string, extraProps?: Object = {}) {
@@ -25,8 +31,7 @@ function messageMock (messageState: MessageState, author: string, you: string, e
     timestamp: 1479764890000,
     conversationIDKey: 'cid1',
     messageID: 1,
-    // TEMP
-    // key: messageKey('messageID', mockKey++),
+    key: ChatConstants.messageKey(convID, 'messageIDText', mockKey++),
     ...otherProps,
   }
 }
@@ -51,7 +56,7 @@ function attachmentMessageMock (messageState: MessageState, author: string, you:
     previewDurationMs: null,
     downloadedPath: require('../../../images/mock/yosemite.jpg'),
     hdPreviewPath: require('../../../images/mock/yosemite.jpg'),
-    previewSize: clampAttachmentPreviewSize({width: 375, height: 320}),
+    previewSize: ChatConstants.clampAttachmentPreviewSize({width: 375, height: 320}),
   }
 }
 
@@ -75,13 +80,13 @@ const followingMap = {
   other: true,
 }
 const metaDataMap = Map({
-  cecileb: new MetaDataRecord({fullname: 'Cecile Bee', brokenTracker: false}),
+  cecileb: new ChatConstants.MetaDataRecord({fullname: 'Cecile Bee', brokenTracker: false}),
 })
 
 const mocks = followStates.reduce((outerAcc, followState) => (
   {
     ...outerAcc,
-    ...messageStates.reduce((acc, messageState) => {
+    ...ChatConstants.messageStates.reduce((acc, messageState) => {
       switch (followState) {
         case 'You':
           return {
@@ -101,7 +106,7 @@ const mocks = followStates.reduce((outerAcc, followState) => (
               message: textMessageMock(messageState, 'other', 'cecileb'),
               you: 'cecileb',
               followingMap,
-              metaDataMap: Map({other: new MetaDataRecord({fullname: 'other person', brokenTracker: true})}),
+              metaDataMap: Map({other: new ChatConstants.MetaDataRecord({fullname: 'other person', brokenTracker: true})}),
             },
           }
         case 'NotFollowing':
@@ -121,15 +126,10 @@ mocks['failure reason'] = {...baseMock, message: textMessageMock('failed', 'ceci
 
 const StackedMessages = ({mock1, mock2}: any) => (
   <Box>
-    <Text {...mock1} />
-    <Text {...mock2} />
+    <Wrapper {...mock1} />
+    <Wrapper {...mock2} />
   </Box>
 )
-
-// const textMap: DumbComponentMap<Text> = {
-  // component: Text,
-  // mocks,
-// }
 
 const attachmentBaseMessage = {
   type: 'Attachment',
@@ -151,7 +151,7 @@ const attachmentBaseMessage = {
   key: 'foo',
   you: 'cecileb',
   senderDeviceRevokedAt: null,
-  previewSize: clampAttachmentPreviewSize({width: 375, height: 320}),
+  previewSize: ChatConstants.clampAttachmentPreviewSize({width: 375, height: 320}),
 }
 
 const attachmentMessageWithImg = {
@@ -174,7 +174,7 @@ const attachmentMessageWithImg = {
   key: 'foo',
   you: 'cecileb',
   senderDeviceRevokedAt: null,
-  previewSize: clampAttachmentPreviewSize({width: 375, height: 320}),
+  previewSize: ChatConstants.clampAttachmentPreviewSize({width: 375, height: 320}),
 }
 
 const attachmentMessageWithDuration = {
@@ -202,7 +202,7 @@ const attachmentMessageGeneric = {
   key: 'foo',
   you: 'cecileb',
   senderDeviceRevokedAt: null,
-  previewSize: clampAttachmentPreviewSize({width: 375, height: 320}),
+  previewSize: ChatConstants.clampAttachmentPreviewSize({width: 375, height: 320}),
 }
 
 const attachmentBaseMock = {
@@ -322,28 +322,81 @@ const attachmentMap: DumbComponentMap<AttachmentMessageComponent> = {
   },
 }
 
+let mockState = new ChatConstants.StateRecord()
+const firstMsg = textMessageMock('sent', 'cecileb', 'cecileb', {text: 'Can you bring the lentils tomorrow?'})
+const secondMsg = textMessageMock('sent', 'cecileb', 'cecileb', {text: 'Thanks!'})
+const pendingMessage = textMessageMock('pending', 'cecileb', 'cecileb', {text: 'Sorry, my internet is kinda slow.'})
+const failedMessage = textMessageMock('failed', 'cecileb', 'cecileb', {text: 'Sorry, my internet is kinda slow.'})
+mockState = chatReducer(mockState, ChatCreators.appendMessages(
+  convID, // conv id
+  true, // isSelected
+  true, // isAppFocused
+  [firstMsg, secondMsg, pendingMessage] //  messages: Array<Constants.Message>
+))
+
+const mockStore = {
+  chat: mockState,
+}
+
+window.ms = mockState
+window.firstMsg = firstMsg
+
+const textContainerMock = (messageKey, override) => ({
+  innerClass: TextContainer,
+  author: 'cecileb',
+  includeHeader: true,
+  isBroken: false,
+  isEditing: false,
+  isEdited: false,
+  isFirstNewMessage: false,
+  isFollowing: true,
+  isRevoked: false,
+  isSelected: false,
+  isYou: false,
+  messageKey,
+  onAction: () => console.log('onAction'),
+  onRetry: () => console.log('onRetry'),
+  onShowEditor: () => console.log('onShowEditor'),
+  ...override,
+})
+
+const textMap: DumbComponentMap<Text> = {
+  component: Wrapper,
+  mocks: {
+    'Normal - Text': {
+      mockStore,
+      ...textContainerMock(firstMsg.key),
+    },
+  },
+}
+
 const stackedMessagesMap = {
   component: StackedMessages,
   mocks: {
     'Stacked - two messages': {
-      mock1: {...baseMock, message: textMessageMock('sent', 'cecileb', 'cecileb'), includeHeader: true, visiblePopupMenu: true, you: 'cecileb', followingMap, metaDataMap},
-      mock2: {...baseMock, message: textMessageMock('sent', 'cecileb', 'cecileb'), includeHeader: false, you: 'cecileb', followingMap, metaDataMap},
+      mockStore,
+      mock1: textContainerMock(firstMsg.key, {isYou: true}),
+      mock2: textContainerMock(secondMsg.key, {includeHeader: false}),
     },
     'Stacked - two messages, one edited': {
-      mock1: {...baseMock, message: textMessageMock('sent', 'cecileb', 'cecileb'), includeHeader: true, visiblePopupMenu: true, you: 'cecileb', followingMap, metaDataMap},
-      mock2: {...baseMock, message: textMessageMock('sent', 'cecileb', 'cecileb', {editedCount: 1}), includeHeader: false, you: 'cecileb', followingMap, metaDataMap},
+      mockStore,
+      mock1: textContainerMock(firstMsg.key, {isYou: true}),
+      mock2: textContainerMock(secondMsg.key, {includeHeader: false, isEdited: true, isYou: true}),
     },
     'Stacked - one sent, one pending': {
-      mock1: {...baseMock, message: textMessageMock('sent', 'cecileb', 'cecileb'), includeHeader: true, you: 'cecileb', followingMap, metaDataMap},
-      mock2: {...baseMock, message: textMessageMock('pending', 'cecileb', 'cecileb'), includeHeader: false, you: 'cecileb', followingMap, metaDataMap},
+      mockStore,
+      mock1: textContainerMock(firstMsg.key, {isYou: true}),
+      mock2: textContainerMock(pendingMessage.key, {includeHeader: false, isEdited: false, isYou: true}),
     },
     'Stacked - one sent, one failed': {
-      mock1: {...baseMock, message: textMessageMock('sent', 'cecileb', 'cecileb', {text: 'Thanks!'}), includeHeader: true, you: 'cecileb', followingMap, metaDataMap},
-      mock2: {...baseMock, message: textMessageMock('failed', 'cecileb', 'cecileb', {text: 'Sorry my network connection is super bad…'}), includeHeader: false, you: 'cecileb', followingMap, metaDataMap},
+      mockStore,
+      mock1: textContainerMock(firstMsg.key, {isYou: true}),
+      mock2: textContainerMock(failedMessage.key, {includeHeader: false, isEdited: false, isYou: true}),
     },
     'Stacked - someone else. two sent': {
-      mock1: {...baseMock, message: textMessageMock('sent', 'cecileb', 'other'), includeHeader: true, you: 'other', followingMap: {cecileb: true}, metaDataMap},
-      mock2: {...baseMock, message: textMessageMock('sent', 'cecileb', 'other'), includeHeader: false, you: 'other', followingMap: {cecileb: true}, metaDataMap},
+      mockStore,
+      mock1: textContainerMock(firstMsg.key),
+      mock2: textContainerMock(secondMsg.key, {includeHeader: false}),
     },
   },
 }
@@ -378,6 +431,7 @@ const baseAttachmentPopupMenuMock = {
   onOpenInFileUI: (m: any) => console.log('on open in file ui'),
 }
 
+/*
 const textPopupMenuMap: DumbComponentMap<TextPopupMenu> = {
   component: TextPopupMenu,
   mocks: {
@@ -468,11 +522,13 @@ const attachmentPopupMap: DumbComponentMap<AttachmentPopup> = {
   },
 }
 
+*/
+
 export default {
-  // 'Text Message': textMap,
+  'Text Message': textMap,
   'Stacked Text Message': stackedMessagesMap,
-  'Popup': textPopupMenuMap,
-  'Popup - Attachment': attachmentPopupMenuMap,
-  'Attachment Popup': attachmentPopupMap,
-  'Attachment Message': attachmentMap,
+//   'Popup': textPopupMenuMap,
+//   'Popup - Attachment': attachmentPopupMenuMap,
+//   'Attachment Popup': attachmentPopupMap,
+//   'Attachment Message': attachmentMap,
 }
