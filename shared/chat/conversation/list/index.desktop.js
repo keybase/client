@@ -34,10 +34,6 @@ class BaseList extends Component<void, Props, State> {
   _keepIdxVisible: number = -1
   _lastRowIdx: number = -1
 
-  // This is similar to a state but it changing value doesn't actually need to cause us to re-render.
-  // We're either locked at the bottom or not and it only affects when we get new messages which'll cause a render anyways
-  _scrollTop = 0
-
   state = {
     isLockedToBottom: true,
     listRerender: 0,
@@ -92,7 +88,6 @@ class BaseList extends Component<void, Props, State> {
   }, 500)
 
   _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
-    this._scrollTop = scrollTop
     this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
     this._maybeLoadMoreMessages(clientHeight, scrollTop)
   }
