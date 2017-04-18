@@ -3,14 +3,14 @@ import * as Constants from '../../../constants/chat'
 import React, {Component} from 'react'
 import messageFactory from '../messages'
 import {Box} from '../../../common-adapters'
+// $FlowIssue
 import FlatList from '../../../fixme/Lists/FlatList'
 import InvertibleScrollView from 'react-native-invertible-scroll-view'
 
 import type {Props} from '.'
 
-class ConversationList extends Component <void, Props, State> {
-  state: State;
-  _viewableItems = [];
+class ConversationList extends Component <void, Props, void> {
+  _scrollRef: ?any;
 
   _onAction = (message: Constants.ServerMessage, event: any) => {
     this.props.onMessageAction(message)
@@ -21,10 +21,6 @@ class ConversationList extends Component <void, Props, State> {
 
   // This is handled slightly differently on mobile, leave this blank
   _measure = () => {}
-
-  _setListRef = (r: any) => {
-    this._list = r
-  }
 
   _renderRow = (rowData, sectionID, rowID, highlightRow) => {
     const messageKey = rowData
@@ -51,7 +47,7 @@ class ConversationList extends Component <void, Props, State> {
     this.props.onLoadMoreMessages()
   }
 
-  componentDidUpdate (prevProps) {
+  componentDidUpdate (prevProps: Props) {
     // TODO do we need this? I think the list may work how we want w/o this
     if (this.props.listScrollDownCounter !== prevProps.listScrollDownCounter && this._scrollRef) {
       this._scrollRef.scrollTo({y: 0, animated: false})
@@ -65,8 +61,6 @@ class ConversationList extends Component <void, Props, State> {
       <FlatList
         data={this.props.messageKeys.reverse().toArray()}
         renderItem={this._renderItem}
-        onViewableItemsChanged={this._onViewableItemsChanged}
-        onScroll={this._onScroll}
         onEndReached={this._onEndReached}
         onEndReachedThreshold={0}
         keyExtractor={this._keyExtractor}
