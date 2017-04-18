@@ -133,8 +133,14 @@ RCT_EXPORT_METHOD(start) {
   @"";
 #endif
 
+  NSString * appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+  NSString * appBuildString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+
+
   return @{ @"eventName": eventName,
             @"test": testVal,
+            @"appVersionName": appVersion,
+            @"appVersionCode": appBuildString,
             @"usingSimulator": simulatorVal,
             @"version": GoKeybaseVersion()};
 }
