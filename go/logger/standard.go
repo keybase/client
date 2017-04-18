@@ -226,8 +226,13 @@ func (log *Standard) Error(fmt string, arg ...interface{}) {
 	}
 }
 
+// Errorf is a deprecated method until all the formatting methods are fixed (use Error instead)
 func (log *Standard) Errorf(fmt string, arg ...interface{}) {
-	log.Error(fmt, arg...)
+	// Don't delegate to Error since we'll loose the calling line number
+	log.internal.Errorf(fmt, arg...)
+	if log.externalHandler != nil {
+		log.externalHandler.Log(keybase1.LogLevel_ERROR, fmt, arg)
+	}
 }
 
 func (log *Standard) CErrorf(ctx context.Context, fmt string,
