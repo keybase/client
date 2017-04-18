@@ -539,7 +539,7 @@ func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
 	// Grab the relevant byte slices from each block described by the
 	// indirect pointer, filling in holes as needed.
 	var bytes [][]byte
-	for _, iptr := range iptrs {
+	for i, iptr := range iptrs {
 		block := blockMap[iptr.BlockPointer]
 		blockLen := int64(len(block.Contents))
 		nextByte := nRead + startOff
@@ -547,9 +547,14 @@ func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
 		blockOff := iptr.Off
 		lastByteInBlock := blockOff + blockLen
 
+		nextIPtrOff := nextBlockOff
+		if i < len(iptrs)-1 {
+			nextIPtrOff = iptrs[i+1].Off
+		}
+
 		if nextByte >= lastByteInBlock {
-			if nextBlockOff > 0 {
-				fill := nextBlockOff - nextByte
+			if nextIPtrOff > 0 {
+				fill := nextIPtrOff - nextByte
 				if fill > toRead {
 					fill = toRead
 				}
@@ -859,7 +864,8 @@ func (fd *fileData) newRightBlock(
 func (fd *fileData) shiftBlocksToFillHole(
 	ctx context.Context, newTopBlock *FileBlock,
 	parents []parentBlockAndChildIndex) (
-	newDirtyPtrs []BlockPointer, newUnrefs []BlockInfo, err error) {
+	newDirtyPtrs []BlockPointer, newUnrefs []BlockInfo,
+	newlyDirtiedChildBytes int64, err error) {
 	// `parents` should represent the right side of the tree down to
 	// the new rightmost indirect pointer, the offset of which should
 	// match `newHoleStartOff`.  Keep swapping it with its sibling on
@@ -904,7 +910,7 @@ func (fd *fileData) shiftBlocksToFillHole(
 
 			if level < 0 {
 				// We are already all the way on the left, we're done!
-				return newDirtyPtrs, newUnrefs, nil
+				return newDirtyPtrs, newUnrefs, newlyDirtiedChildBytes, nil
 			}
 			newParents[level].childIndex--
 
@@ -914,7 +920,7 @@ func (fd *fileData) shiftBlocksToFillHole(
 				childBlock, _, err := fd.getter(
 					ctx, fd.kmd, nextChildPtr.BlockPointer, fd.file, blockWrite)
 				if err != nil {
-					return nil, nil, err
+					return nil, nil, 0, err
 				}
 
 				newParents[level+1].pblock = childBlock
@@ -925,7 +931,7 @@ func (fd *fileData) shiftBlocksToFillHole(
 
 		// We're done!
 		if leftOff < newBlockStartOff {
-			return newDirtyPtrs, newUnrefs, nil
+			return newDirtyPtrs, newUnrefs, newlyDirtiedChildBytes, nil
 		}
 
 		// Otherwise, we need to swap the indirect file pointers.
@@ -960,7 +966,7 @@ func (fd *fileData) shiftBlocksToFillHole(
 			iptr := newParents[i].childIPtr()
 			if err := fd.cacher(
 				iptr.BlockPointer, newImmedParent.pblock); err != nil {
-				return nil, nil, err
+				return nil, nil, 0, err
 			}
 			newDirtyPtrs = append(newDirtyPtrs, iptr.BlockPointer)
 
@@ -973,15 +979,16 @@ func (fd *fileData) shiftBlocksToFillHole(
 			leafBlock, _, err := fd.getter(
 				ctx, fd.kmd, rightLeafIPtr.BlockPointer, fd.file, blockWrite)
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, 0, err
 			}
 			if err := fd.cacher(
 				rightLeafIPtr.BlockPointer, leafBlock); err != nil {
-				return nil, nil, err
+				return nil, nil, 0, err
 			}
 			newDirtyPtrs = append(newDirtyPtrs, rightLeafIPtr.BlockPointer)
 			// Remember the size of the dirtied leaf.
 			if rightLeafIPtr.EncodedSize != 0 {
+				newlyDirtiedChildBytes += int64(len(leafBlock.Contents))
 				newUnrefs = append(newUnrefs, rightLeafIPtr.BlockInfo)
 				immedParent.pblock.IPtrs[len(immedParent.pblock.IPtrs)-1].
 					EncodedSize = 0
@@ -1002,9 +1009,15 @@ func (fd *fileData) shiftBlocksToFillHole(
 			childPtr := parents[level].childIPtr()
 			if err := fd.cacher(childPtr.BlockPointer,
 				parents[level+1].pblock); err != nil {
-				return nil, nil, err
+				return nil, nil, 0, err
 			}
 			newDirtyPtrs = append(newDirtyPtrs, childPtr.BlockPointer)
+			// Remember the size of the dirtied child.
+			index := parents[level].childIndex
+			if childPtr.EncodedSize != 0 {
+				newUnrefs = append(newUnrefs, childPtr.BlockInfo)
+				parents[level].pblock.IPtrs[index].EncodedSize = 0
+			}
 
 			// If we've reached a level where the child indirect
 			// offset wasn't affected, we're done.  If not, update the
@@ -1012,7 +1025,6 @@ func (fd *fileData) shiftBlocksToFillHole(
 			if parents[level+1].childIndex > 0 {
 				break
 			}
-			index := parents[level].childIndex
 			parents[level].pblock.IPtrs[index].Off = newRightOff
 		}
 		immedParent = newImmedParent
@@ -1152,7 +1164,7 @@ func (fd *fileData) write(ctx context.Context, data []byte, off int64,
 			// If we're filling a hole, swap the new right block into
 			// the hole and shift everything else over.
 			if needFillHole {
-				newDirtyPtrs, newUnrefs, err := fd.shiftBlocksToFillHole(
+				newDirtyPtrs, newUnrefs, bytes, err := fd.shiftBlocksToFillHole(
 					ctx, topBlock, rightParents)
 				if err != nil {
 					return newDe, nil, unrefs, newlyDirtiedChildBytes, 0, err
@@ -1161,6 +1173,7 @@ func (fd *fileData) write(ctx context.Context, data []byte, off int64,
 					dirtyMap[p] = true
 				}
 				unrefs = append(unrefs, newUnrefs...)
+				newlyDirtiedChildBytes += bytes
 				if oldSizeWithoutHoles == oldDe.Size {
 					// For the purposes of calculating the newly-dirtied
 					// bytes for the deferral calculation, disregard the
