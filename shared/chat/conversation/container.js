@@ -15,6 +15,7 @@ type StateProps = {|
   showLoader: boolean,
   supersededBy: ?Constants.SupersedeInfo,
   supersedes: ?Constants.SupersedeInfo,
+  threadLoadedOffline: boolean,
 |}
 
 type DispatchProps = {|
