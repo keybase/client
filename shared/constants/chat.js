@@ -193,7 +193,8 @@ export type UpdatingAttachment = {
 export type ClientMessage = TimestampMessage | SupersedesMessage | LoadingMoreMessage | ChatSecuredHeaderMessage
 export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage | UpdatingAttachment | InvisibleErrorMessage
 
-export type Message = ClientMessage | ServerMessage
+// TODO (mm) fix this
+export type Message = any // ClientMessage | ServerMessage
 
 export type MaybeTimestamp = TimestampMessage | null
 

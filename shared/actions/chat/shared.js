@@ -179,13 +179,13 @@ function * getPostingIdentifyBehavior (conversationIDKey: Constants.Conversation
 
 function _filterTimestampableMessage (message: Constants.Message): ?TimestampableMessage {
   if (message.messageID === 1) {
-    // $FlowIssue with casting todo(mm) can we fix this?
+    // $TemporarilyNotAFlowIssue with casting todo(mm) can we fix this?
     return message
   }
 
   if (!_isTimestampableMessage(message)) return null
 
-  // $FlowIssue with casting todo(mm) can we fix this?
+  // $TemporarilyNotAFlowIssue with casting todo(mm) can we fix this?
   return message
 }
 
@@ -204,7 +204,7 @@ function maybeAddTimestamp (conversationIDKey: Constants.ConversationIDKey, mess
 
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
   // the first message, as well as between any two messages with long duration.
-  // $FlowIssue with casting todo(mm) can we fix this?
+  // $TemporarilyNotAFlowIssue with casting todo(mm) can we fix this?
   if (prevMessage.messageID === 1 || m.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
     return {
       key: Constants.messageKey(conversationIDKey, 'timestamp', m.timestamp),

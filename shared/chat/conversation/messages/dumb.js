@@ -344,6 +344,7 @@ window.firstMsg = firstMsg
 const textContainerMock = (messageKey, override) => ({
   innerClass: TextContainer,
   author: 'cecileb',
+  failureDescription: null,
   includeHeader: true,
   isBroken: false,
   isEditing: false,
@@ -360,9 +361,10 @@ const textContainerMock = (messageKey, override) => ({
   ...override,
 })
 
-const textMap: DumbComponentMap<Text> = {
+const textMap: DumbComponentMap<Wrapper> = {
   component: Wrapper,
   mocks: {
+    // $FlowIssue with mockstore and innerclass
     'Normal - Text': {
       mockStore,
       ...textContainerMock(firstMsg.key),

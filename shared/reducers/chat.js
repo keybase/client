@@ -24,11 +24,11 @@ function _processMessages (seenMessages: Set<any>, messages: List<Constants.Mess
       return
     }
     const targetMessageID = edit.targetMessageID
-    // $FlowIssue TODO ServerMessage -> Message change
+    // $TemporarilyNotAFlowIssue TODO ServerMessage -> Message change
     const entry = nextMessages.findEntry(m => m.messageID === targetMessageID)
     if (entry) {
       const [idx: number, message: Constants.TextMessage] = entry
-      // $FlowIssue doesn't like the intersection types
+      // $TemporarilyNotAFlowIssue doesn't like the intersection types
       nextMessages = nextMessages.set(idx, {...message, message: edit.message, editedCount: message.editedCount + 1})
       didSomething = true
     }
@@ -38,11 +38,11 @@ function _processMessages (seenMessages: Set<any>, messages: List<Constants.Mess
       return
     }
     const targetMessageID = update.targetMessageID
-    // $FlowIssue TODO ServerMessage -> Message change
+    // $TemporarilyNotAFlowIssue TODO ServerMessage -> Message change
     const entry = nextMessages.findEntry(m => m.messageID === targetMessageID)
     if (entry) {
       const [idx: number, message: AttachmentMessage] = entry
-      // $FlowIssue doesn't like the intersection types
+      // $TemporarilyNotAFlowIssue doesn't like the intersection types
       nextMessages = nextMessages.set(idx, {...message, ...update.updates})
       didSomething = true
     }
@@ -192,7 +192,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
           if (!conversation.get('firstNewMessageID') && !inConversationFocused) {
             // Set first new message if we don't have one set, and are not in
             // the conversation with window focused
-            // $FlowIssue TODO ServerMessage -> Message change
+            // $TemporarilyNotAFlowIssue TODO ServerMessage -> Message change
             conversation = conversation.set('firstNewMessageID', firstMessage.messageID)
           } else if (inConversationFocused) {
             // Clear new message if we received a new message while in
