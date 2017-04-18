@@ -859,8 +859,7 @@ func (fd *fileData) newRightBlock(
 func (fd *fileData) shiftBlocksToFillHole(
 	ctx context.Context, newTopBlock *FileBlock,
 	parents []parentBlockAndChildIndex) (
-	newDirtyPtrs []BlockPointer, err error) {
-
+	newDirtyPtrs []BlockPointer, newUnrefs []BlockInfo, err error) {
 	// `parents` should represent the right side of the tree down to
 	// the new rightmost indirect pointer, the offset of which should
 	// match `newHoleStartOff`.  Keep swapping it with its sibling on
@@ -905,7 +904,7 @@ func (fd *fileData) shiftBlocksToFillHole(
 
 			if level < 0 {
 				// We are already all the way on the left, we're done!
-				return newDirtyPtrs, nil
+				return newDirtyPtrs, newUnrefs, nil
 			}
 			newParents[level].childIndex--
 
@@ -915,7 +914,7 @@ func (fd *fileData) shiftBlocksToFillHole(
 				childBlock, _, err := fd.getter(
 					ctx, fd.kmd, nextChildPtr.BlockPointer, fd.file, blockWrite)
 				if err != nil {
-					return nil, err
+					return nil, nil, err
 				}
 
 				newParents[level+1].pblock = childBlock
@@ -926,7 +925,7 @@ func (fd *fileData) shiftBlocksToFillHole(
 
 		// We're done!
 		if leftOff < newBlockStartOff {
-			return newDirtyPtrs, nil
+			return newDirtyPtrs, newUnrefs, nil
 		}
 
 		// Otherwise, we need to swap the indirect file pointers.
@@ -948,15 +947,45 @@ func (fd *fileData) shiftBlocksToFillHole(
 			immedParent.pblock.IPtrs[currIndex],
 			newImmedParent.pblock.IPtrs[newCurrIndex]
 
-		// Cache the new immediate parent as dirty.
+		// Cache the new immediate parent as dirty.  Also cache the
+		// old immediate parent's right-most leaf child as dirty, to
+		// make sure this path is captured in
+		// getNextDirtyFileBlockAtOffset calls.  TODO: this is
+		// inefficient since it might end up re-encoding and
+		// re-uploading a leaf block that wasn't actually dirty; we
+		// should find a better way to make sure ready() sees these
+		// parent blocks.
 		if len(newParents) > 1 {
 			i := len(newParents) - 2
 			iptr := newParents[i].childIPtr()
 			if err := fd.cacher(
 				iptr.BlockPointer, newImmedParent.pblock); err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			newDirtyPtrs = append(newDirtyPtrs, iptr.BlockPointer)
+
+			// Fetch the old parent's right leaf for writing, and mark
+			// it as dirty.
+			rightLeafIPtr :=
+				immedParent.pblock.IPtrs[len(immedParent.pblock.IPtrs)-1]
+			fd.log.CDebugf(ctx, "Forcing %v to be dirty",
+				rightLeafIPtr.BlockPointer)
+			leafBlock, _, err := fd.getter(
+				ctx, fd.kmd, rightLeafIPtr.BlockPointer, fd.file, blockWrite)
+			if err != nil {
+				return nil, nil, err
+			}
+			if err := fd.cacher(
+				rightLeafIPtr.BlockPointer, leafBlock); err != nil {
+				return nil, nil, err
+			}
+			newDirtyPtrs = append(newDirtyPtrs, rightLeafIPtr.BlockPointer)
+			// Remember the size of the dirtied leaf.
+			if rightLeafIPtr.EncodedSize != 0 {
+				newUnrefs = append(newUnrefs, rightLeafIPtr.BlockInfo)
+				immedParent.pblock.IPtrs[len(immedParent.pblock.IPtrs)-1].
+					EncodedSize = 0
+			}
 		}
 
 		// Now we need to update the parent offsets on the right side,
@@ -973,7 +1002,7 @@ func (fd *fileData) shiftBlocksToFillHole(
 			childPtr := parents[level].childIPtr()
 			if err := fd.cacher(childPtr.BlockPointer,
 				parents[level+1].pblock); err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			newDirtyPtrs = append(newDirtyPtrs, childPtr.BlockPointer)
 
@@ -1123,7 +1152,7 @@ func (fd *fileData) write(ctx context.Context, data []byte, off int64,
 			// If we're filling a hole, swap the new right block into
 			// the hole and shift everything else over.
 			if needFillHole {
-				newDirtyPtrs, err := fd.shiftBlocksToFillHole(
+				newDirtyPtrs, newUnrefs, err := fd.shiftBlocksToFillHole(
 					ctx, topBlock, rightParents)
 				if err != nil {
 					return newDe, nil, unrefs, newlyDirtiedChildBytes, 0, err
@@ -1131,6 +1160,7 @@ func (fd *fileData) write(ctx context.Context, data []byte, off int64,
 				for _, p := range newDirtyPtrs {
 					dirtyMap[p] = true
 				}
+				unrefs = append(unrefs, newUnrefs...)
 				if oldSizeWithoutHoles == oldDe.Size {
 					// For the purposes of calculating the newly-dirtied
 					// bytes for the deferral calculation, disregard the

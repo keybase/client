@@ -163,6 +163,12 @@ func testFileDataLevelFromData(t *testing.T, maxBlockSize int64,
 			// dirty, due to hole shifting.
 			if holeShiftAfter > 0 && off >= holeShiftAfter {
 				dirty = true
+				// If this is the bottom-most parent block after a
+				// hole shift, its rightmost child will also be marked
+				// dirty.
+				if newLevels == 1 {
+					children[len(children)-1].dirty = true
+				}
 			}
 			newChild := testFileDataLevel{dirty, children, off, 0}
 			level = append(level, newChild)
