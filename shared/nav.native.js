@@ -13,8 +13,12 @@ import {isAndroid, isIOS} from './constants/platform'
 import {navigateTo, navigateUp, switchTo} from './actions/route-tree'
 
 import type {Props} from './nav'
+import type {TypedState} from './constants/reducer'
 import type {Tab} from './constants/tabs'
 import type {NavigationAction} from 'react-navigation'
+import type {RouteProps} from './route-tree/render-route'
+
+type OwnProps = RouteProps<{}, {}>
 
 const StackWrapper = ({children}) => {
   // FIXME: KeyboardAvoidingView doubles the padding needed on Android. Remove
@@ -176,31 +180,30 @@ const flexOne = {
   flex: 1,
 }
 
-export default connect(
-  ({
-    config: {extendedConfig, username},
-    dev: {debugConfig: {dumbFullscreen}},
-    notifications: {menuBadge, menuNotifications},
-    gregor: {reachability},
-  }, {routeStack, routeSelected}) => ({
-    chatBadge: menuNotifications.chatBadge,
-    dumbFullscreen,
-    folderBadge: menuNotifications.folderBadge,
-    provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
-    username,
-    hideNav: routeSelected === loginTab,
-    reachability,
-  }),
-  (dispatch: any, {routeSelected, routePath}) => ({
-    navigateUp: () => dispatch(navigateUp()),
-    switchTab: (tab: Tab) => {
-      if (tab === chatTab && routeSelected === tab) {
-        dispatch(navigateTo(routePath.push(tab)))
-        return
-      }
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+  // $FlowIssue getIn
+  chatBadge: state.notifications.getIn('menuNotifications', 'chatBadge'),
+  dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
+  // $FlowIssue getIn
+  folderBadge: state.notifications.getIn('menuNotifications', 'folderBadge'),
+  hideNav: ownProps.routeSelected === loginTab,
+  provisioned: state.config.extendedConfig && !!state.config.extendedConfig.defaultDeviceID,
+  reachability: state.gregor.reachability,
+  username: state.config.username,
+})
 
-      const action = routeSelected === tab ? navigateTo : switchTo
-      dispatch(action(routePath.push(tab)))
-    },
-  })
-)(Nav)
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+  navigateUp: () => dispatch(navigateUp()),
+  switchTab: (tab: Tab) => {
+    if (tab === chatTab && ownProps.routeSelected === tab) {
+      dispatch(navigateTo(ownProps.routePath.push(tab)))
+      return
+    }
+
+    const action = ownProps.routeSelected === tab ? navigateTo : switchTo
+    // $FlowIssue TODO fix this
+    dispatch(action(ownProps.routePath.push(tab)))
+  },
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(Nav)

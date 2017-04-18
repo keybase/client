@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../constants/notifications'
 import * as CommonConstants from '../constants/common'
-import {isMobile} from '../constants/platform'
 import {Map} from 'immutable'
 
 const initialState: Constants.State = new Constants.StateRecord()
@@ -36,16 +35,16 @@ export default function (state: Constants.State = initialState, action: Constant
       }
 
       // Menu badge is chat only currently
-      const newMenuBadgeCount = isMobile
-        ? newMenuNotifications.get('chatBadge')
-        : newMenuNotifications.reduce((total, val) => total + val, 0)
+      const newDesktopAppBadgeCount = newMenuNotifications.reduce((total, val) => total + val, 0)
+      const newMobileAppBadgeCount = newMenuNotifications.get('chatBadge', 0)
 
       // $FlowIssue doesn't understand withMutations
       return state.withMutations(s => {
         s.set('keyState', newKeyState)
         s.set('widgetBadge', newWidgetBadge)
         s.set('menuNotifications', newMenuNotifications)
-        s.set('menuBadgeCount', newMenuBadgeCount)
+        s.set('desktopAppBadgeCount', newDesktopAppBadgeCount)
+        s.set('mobileAppBadgeCount', newMobileAppBadgeCount)
       })
     default:
       return state

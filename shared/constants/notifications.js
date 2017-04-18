@@ -16,16 +16,16 @@ export type ListenForKBFSNotifications = NoErrorTypedAction<'notifications:liste
 export type Actions = LogAction | BadgeAppAction | ListenForNotifications | ReceivedBadgeState
 
 export type State = Record<{
+  desktopAppBadgeCount: number,
   keyState: Map<NotificationKeys, boolean>,
-  menuBadgeCount: number,
   menuNotifications: Map<MenuStateKeys, number>,
   mobileAppBadgeCount: number,
   widgetBadge: BadgeType,
 }>
 
 export const StateRecord = Record({
+  desktopAppBadgeCount: 0,
   keyState: Map(),
-  menuBadgeCount: 0,
   menuNotifications: Map(),
   mobileAppBadgeCount: 0,
   widgetBadge: 'regular',

@@ -9,8 +9,8 @@ import type {RouteDefNode, RouteStateNode, Path} from './route-tree'
 import type {TypedState} from './constants/reducer'
 
 type Props = {
-  menuBadge: boolean,
-  menuBadgeCount: number,
+  widgetBadge: boolean,
+  desktopAppBadgeCount: number,
   provisioned: boolean,
   username: string,
   navigateUp: () => void,
@@ -20,15 +20,19 @@ type Props = {
 }
 
 class Main extends Component<void, Props, void> {
+  _updateBadges = () => {
+    ipcRenderer.send('showTray', this.props.widgetBadge, this.props.desktopAppBadgeCount)
+  }
+
   componentDidUpdate (prevProps) {
-    if (this.props.menuBadge !== prevProps.menuBadge ||
-      this.props.menuBadgeCount !== prevProps.menuBadgeCount) {
-      ipcRenderer.send('showTray', this.props.menuBadge, this.props.menuBadgeCount)
+    if (this.props.widgetBadge !== prevProps.widgetBadge ||
+      this.props.desktopAppBadgeCount !== prevProps.desktopAppBadgeCount) {
+      this._updateBadges()
     }
   }
 
   componentDidMount () {
-    ipcRenderer.send('showTray', this.props.menuBadge, this.props.menuBadgeCount)
+    this._updateBadges()
   }
 
   render () {
@@ -44,7 +48,7 @@ class Main extends Component<void, Props, void> {
 
 const mapStateToProps = (state: TypedState) => {
   return {
-    menuBadgeCount: state.notifications.get('menuBadgeCount'),
+    desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
     provisioned: state.config.extendedConfig && !!state.config.extendedConfig.defaultDeviceID,
     routeDef: state.routeTree.routeDef,
     routeState: state.routeTree.routeState,

@@ -21,7 +21,7 @@ import type {TypedState} from './constants/reducer'
 type Props = {
   dumbFullscreen: boolean,
   folderBadge: number,
-  menuBadgeCount: number,
+  mobileAppBadgeCount: number,
   mountPush: boolean,
   routeDef: any,
   routeState: any,
@@ -65,9 +65,13 @@ class Main extends Component<void, any, void> {
       this._persistRoute()
     }
 
-    if (this.props.menuBadgeCount !== nextProps.menuBadgeCount) {
-      RNPN.setApplicationIconBadgeNumber(nextProps.menuBadgeCount)
+    if (this.props.mobileAppBadgeCount !== nextProps.mobileAppBadgeCount) {
+      RNPN.setApplicationIconBadgeNumber(nextProps.mobileAppBadgeCount)
     }
+  }
+
+  componentDidMount () {
+    RNPN.setApplicationIconBadgeNumber(this.props.mobileAppBadgeCount)
   }
 
   render () {
@@ -98,7 +102,7 @@ const mapStateToProps = (state: TypedState) => {
   return {
     dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
     folderBadge: state.favorite.folderState.privateBadge + state.favorite.folderState.publicBadge,
-    menuBadgeCount: state.notifications.get('menuBadgeCount'),
+    mobileAppBadgeCount: state.notifications.get('mobileAppBadgeCount'),
     mountPush,
     routeDef: state.routeTree.routeDef,
     routeState: state.routeTree.routeState,
