@@ -6,7 +6,7 @@ import type {Props} from './index'
 import {NativeImage, Box, Text} from '../../../../common-adapters/index.native'
 import {globalStyles} from '../../../../styles'
 
-type PermissionStatus = 'granted' | 'denied' | 'never_ask_again';
+type PermissionStatus = 'granted' | 'denied' | 'never_ask_again'
 
 type State = {
   permissionGranted: ?boolean,
