@@ -22,7 +22,7 @@
         {
           "type": {
             "type": "array",
-            "items": "SharedDhSecretKeyBox"
+            "items": "SharedDHSecretKeyBox"
           },
           "name": "sdhBoxes"
         }
@@ -30,10 +30,17 @@
     },
     {
       "type": "record",
-      "name": "SharedDhSecretKeyBox",
+      "name": "SharedDHKeyGeneration",
+      "fields": [],
+      "typedef": "int",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "SharedDHSecretKeyBox",
       "fields": [
         {
-          "type": "int",
+          "type": "SharedDHKeyGeneration",
           "name": "generation"
         },
         {
@@ -42,9 +49,11 @@
         },
         {
           "type": "KID",
-          "name": "receiverKID"
+          "name": "receiverKID",
+          "jsonkey": "receiver_kid"
         }
-      ]
+      ],
+      "lint": "ignore"
     }
   ],
   "messages": {
@@ -83,7 +92,7 @@
           "name": "sdhBoxes",
           "type": {
             "type": "array",
-            "items": "SharedDhSecretKeyBox"
+            "items": "SharedDHSecretKeyBox"
           }
         }
       ],
