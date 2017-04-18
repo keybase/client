@@ -43,13 +43,7 @@ func (t TlfPseudonym) String() string {
 	return hex.EncodeToString(t[:])
 }
 
-func (t *TlfPseudonym) Eq(r *TlfPseudonym) bool {
-	if t == nil || r == nil {
-		// It's unlikely that the caller wants to verify that two pseudonyms
-		// are both nil, and more likely that accepting nil values would cause
-		// a security bug.
-		return false
-	}
+func (t TlfPseudonym) Eq(r TlfPseudonym) bool {
 	return hmac.Equal(t[:], r[:])
 }
 
@@ -263,7 +257,7 @@ func checkTlfPseudonymFromServer(ctx context.Context, g *GlobalContext, req TlfP
 		// Error creating pseudonym locally
 		return &PseudonymGetError{err.Error()}
 	}
-	if !req.Eq(&pn) {
+	if !req.Eq(pn) {
 		return &PseudonymGetError{fmt.Sprintf("returned data does not match pseudonym: %s != %s",
 			req, pn)}
 	}
