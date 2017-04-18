@@ -683,6 +683,12 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		}
 	}
 
+	dbc := fs.config.DiskBlockCache()
+	var dbcStatus *DiskBlockCacheStatus
+	if dbc != nil {
+		dbcStatus = dbc.Status()
+	}
+
 	return KBFSStatus{
 		CurrentUser:     session.Name.String(),
 		IsConnected:     fs.config.MDServer().IsConnected(),
@@ -690,6 +696,7 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		LimitBytes:      limitBytes,
 		FailingServices: failures,
 		JournalServer:   jServerStatus,
+		DiskCacheStatus: dbcStatus,
 	}, ch, err
 }
 

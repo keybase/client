@@ -2331,6 +2331,16 @@ func (_mr *_MockDiskBlockCacheRecorder) Size() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Size")
 }
 
+func (_m *MockDiskBlockCache) Status() *DiskBlockCacheStatus {
+	ret := _m.ctrl.Call(_m, "Status")
+	ret0, _ := ret[0].(*DiskBlockCacheStatus)
+	return ret0
+}
+
+func (_mr *_MockDiskBlockCacheRecorder) Status() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Status")
+}
+
 func (_m *MockDiskBlockCache) Shutdown(ctx context.Context) {
 	_m.ctrl.Call(_m, "Shutdown", ctx)
 }
