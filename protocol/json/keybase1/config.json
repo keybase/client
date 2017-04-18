@@ -359,6 +359,14 @@
       "name": "BootstrapStatus",
       "fields": [
         {
+          "type": "boolean",
+          "name": "registered"
+        },
+        {
+          "type": "boolean",
+          "name": "loggedIn"
+        },
+        {
           "type": "UID",
           "name": "uid"
         },
@@ -373,10 +381,6 @@
         {
           "type": "string",
           "name": "deviceName"
-        },
-        {
-          "type": "boolean",
-          "name": "loggedIn"
         },
         {
           "type": {

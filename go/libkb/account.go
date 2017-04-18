@@ -556,3 +556,7 @@ func (a *Account) SkipSecretPrompt() bool {
 func (a *Account) SecretPromptCanceled() {
 	a.secretPromptCanceledAt = a.G().Clock().Now()
 }
+
+func (a *Account) SetDeviceName(name string) error {
+	return a.G().ActiveDevice.setDeviceName(a, a.localSession.GetUID(), a.localSession.GetDeviceID(), name)
+}

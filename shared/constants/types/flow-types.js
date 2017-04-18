@@ -3174,11 +3174,12 @@ export type BlockType =
   | 1 // MD_1
 
 export type BootstrapStatus = {
+  registered: boolean,
+  loggedIn: boolean,
   uid: UID,
   username: string,
   deviceID: DeviceID,
   deviceName: string,
-  loggedIn: boolean,
   following?: ?Array<string>,
   followers?: ?Array<string>,
 }

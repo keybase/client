@@ -44,6 +44,8 @@ func (e *Bootstrap) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Bootstrap) Run(ctx *Context) error {
+	e.status.Registered = e.signedUp()
+
 	var gerr error
 	e.G().LoginState().Account(func(a *libkb.Account) {
 		var in bool
@@ -65,7 +67,7 @@ func (e *Bootstrap) Run(ctx *Context) error {
 		}
 
 		e.status.DeviceID = a.GetDeviceID()
-		// device name...get from ActiveDevice?
+		e.status.DeviceName = e.G().ActiveDevice.Name()
 
 		ts := libkb.NewTracker2Syncer(e.G(), e.status.Uid, true)
 		if err := libkb.RunSyncerCached(ts, e.status.Uid); err != nil {
@@ -90,6 +92,18 @@ func (e *Bootstrap) Run(ctx *Context) error {
 	}
 
 	return nil
+}
+
+// signedUp is true if there's a uid in config.json.
+func (e *Bootstrap) signedUp() bool {
+	cr := e.G().Env.GetConfig()
+	if cr == nil {
+		return false
+	}
+	if uid := cr.GetUID(); uid.Exists() {
+		return true
+	}
+	return false
 }
 
 func (e *Bootstrap) Status() keybase1.BootstrapStatus {
