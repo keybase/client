@@ -7,7 +7,6 @@ import {folderTab, profileTab, chatTab, devicesTab} from '../constants/tabs'
 import {globalStyles, globalColors} from '../styles'
 import {isWindows, isDarwin} from '../constants/platform'
 
-import type {MenuNotificationState} from '../constants/notifications'
 import type {Props} from './index.render'
 
 type State = {
@@ -173,7 +172,7 @@ const ArrowTick = () => (
 
 type BadgeIconType = 'folder' | 'people' | 'chat' | 'device'
 
-const BadgeIcon = ({type, countMap, openApp}: {type: BadgeIconType, countMap: MenuNotificationState, openApp: (tab: ?string) => void}) => {
+const BadgeIcon = ({type, countMap, openApp}: {type: BadgeIconType, countMap: Object, openApp: (tab: ?string) => void}) => {
   const count = {
     folder: countMap.folderBadge,
     people: countMap.peopleBadge,

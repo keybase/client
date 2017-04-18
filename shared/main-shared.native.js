@@ -98,7 +98,7 @@ const mapStateToProps = (state: TypedState) => {
   return {
     dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
     folderBadge: state.favorite.folderState.privateBadge + state.favorite.folderState.publicBadge,
-    menuBadgeCount: state.notifications.menuBadgeCount,
+    menuBadgeCount: state.notifications.get('menuBadgeCount'),
     mountPush,
     routeDef: state.routeTree.routeDef,
     routeState: state.routeTree.routeState,

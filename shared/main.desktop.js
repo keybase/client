@@ -44,12 +44,12 @@ class Main extends Component<void, Props, void> {
 
 const mapStateToProps = (state: TypedState) => {
   return {
-    menuBadge: state.notifications.menuBadge,
-    menuBadgeCount: state.notifications.menuBadgeCount,
+    menuBadgeCount: state.notifications.get('menuBadgeCount'),
     provisioned: state.config.extendedConfig && !!state.config.extendedConfig.defaultDeviceID,
     routeDef: state.routeTree.routeDef,
     routeState: state.routeTree.routeState,
     username: state.config.username,
+    widgetBadge: state.notifications.get('widgetBadge'),
   }
 }
 

@@ -2,73 +2,51 @@
 import * as Constants from '../constants/notifications'
 import * as CommonConstants from '../constants/common'
 import {isMobile} from '../constants/platform'
+import {Map} from 'immutable'
 
-import type {NotificationKeys, NotificationAction, BadgeType, MenuNotificationState} from '../constants/notifications'
+const initialState: Constants.State = new Constants.StateRecord()
 
-export type State = {
-  keyState: {
-    [key: NotificationKeys]: boolean,
-  },
-  menuBadge: BadgeType,
-  menuBadgeCount: number,
-  menuNotifications: MenuNotificationState,
+const widgetBadgeFromKeyState = (keyState: Map<Constants.NotificationKeys, boolean>) => {
+  let widgetBadge = 'regular'
+  if (keyState.kbfsUploading) {
+    widgetBadge = 'uploading'
+  } else if (keyState.newTLFs || keyState.chatInbox) {
+    widgetBadge = 'badged'
+  }
+
+  return widgetBadge
 }
 
-const initialState = {
-  keyState: {},
-  menuBadge: 'regular',
-  menuBadgeCount: 0,
-  menuNotifications: {
-    chatBadge: 0,
-    deviceBadge: 0,
-    folderBadge: 0,
-    peopleBadge: 0,
-  },
-}
-
-export default function (state: State = initialState, action: NotificationAction): State {
+export default function (state: Constants.State = initialState, action: Constants.Actions): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return {...initialState}
-    case Constants.badgeApp:
-      // $ForceType
-      const badgeAction: BadgeAppAction = action
+      return initialState
+    case 'notifications:badgeApp':
+      const badgeAction: Constants.BadgeAppAction = action
 
-      if (badgeAction.error) {
-        return state
-      }
-      let keyState = {
-        ...state.keyState,
-      }
+      const newKeyState = state.get('keyState').set(badgeAction.payload.key, badgeAction.payload.on)
+      const newWidgetBadge = widgetBadgeFromKeyState(newKeyState)
 
-      keyState[badgeAction.payload.key] = badgeAction.payload.on
-      const menuNotifications = {...state.menuNotifications}
-
-      let menuBadge = 'regular'
-      if (keyState.kbfsUploading) {
-        menuBadge = 'uploading'
-      } else if (keyState.newTLFs || keyState.chatInbox) {
-        menuBadge = 'badged'
-      }
+      let newMenuNotifications: Map<Constants.MenuStateKeys, number> = state.get('menuNotifications')
 
       if (badgeAction.payload.key === 'newTLFs') {
-        menuNotifications.folderBadge = badgeAction.payload.count || 0
+        newMenuNotifications = newMenuNotifications.set('folderBadge', badgeAction.payload.count || 0)
       } else if (badgeAction.payload.key === 'chatInbox') {
-        menuNotifications.chatBadge = badgeAction.payload.count || 0
+        newMenuNotifications = newMenuNotifications.set('chatBadge', badgeAction.payload.count || 0)
       }
 
       // Menu badge is chat only currently
-      const menuBadgeCount = isMobile
-        ? menuNotifications.chatBadge
-        : Object.keys(menuNotifications).reduce((total, n) => total + menuNotifications[n], 0)
+      const newMenuBadgeCount = isMobile
+        ? newMenuNotifications.get('chatBadge')
+        : newMenuNotifications.reduce((total, val) => total + val, 0)
 
-      return {
-        ...state,
-        keyState,
-        menuBadge,
-        menuBadgeCount,
-        menuNotifications,
-      }
+      // $FlowIssue doesn't understand withMutations
+      return state.withMutations(s => {
+        s.set('keyState', newKeyState)
+        s.set('widgetBadge', newWidgetBadge)
+        s.set('menuNotifications', newMenuNotifications)
+        s.set('menuBadgeCount', newMenuBadgeCount)
+      })
     default:
       return state
   }

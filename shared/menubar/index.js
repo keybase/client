@@ -14,8 +14,9 @@ import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
 import {openInKBFS} from '../actions/kbfs'
 import {shell, ipcRenderer} from 'electron'
 import {navigateTo, switchTo} from '../actions/route-tree'
+import {Map} from 'immutable'
 
-import type {MenuNotificationState} from '../constants/notifications'
+import type {MenuStateKeys} from '../constants/notifications'
 import type {KBFSStatus} from '../constants/favorite'
 import type {Props as FolderProps} from '../folders/render'
 import type {Tab} from '../constants/tabs'
@@ -30,7 +31,7 @@ export type Props = $Shape<{
   onShowLoginTab: () => void,
   folderProps: ?FolderProps,
   kbfsStatus: KBFSStatus,
-  badgeInfo: MenuNotificationState,
+  badgeInfo: Map<MenuStateKeys, number>,
 }>
 
 const REQUEST_DELAY = 5000
@@ -200,7 +201,7 @@ export default connect(
     loggedIn: state.config && state.config.loggedIn,
     folderProps: state.favorite && state.favorite.folderState,
     kbfsStatus: state.favorite && state.favorite.kbfsStatus,
-    badgeInfo: state.notifications && state.notifications.menuNotifications || {},
+    badgeInfo: (state.notifications && state.notifications.menuNotifications || Map()).toJS(),
   }),
   dispatch => ({
     ...bindActionCreators({...favoriteAction, openInKBFS, openRekeyDialog}, dispatch),
