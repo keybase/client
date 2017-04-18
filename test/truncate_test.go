@@ -6,7 +6,10 @@
 
 package test
 
-import "testing"
+import (
+	"runtime"
+	"testing"
+)
 
 // Test out various truncate scenarios.
 func TestSimpleTruncate(t *testing.T) {
@@ -89,6 +92,21 @@ func TestTruncateLargeThenWriteToSmallerOffset(t *testing.T) {
 
 // Regression for KBFS-2091.
 func TestTruncateLargeThenWriteToSmallerOffsetWithHoles(t *testing.T) {
+	if runtime.GOOS == "darwin" {
+		engine := createEngine(t)
+		// Use explicit engine check, rather than `skip()`, since we
+		// only care about skipping this on darwin.
+		if engine.Name() == "fuse" {
+			// On macOS, when we write 12 bytes through fuse to a file
+			// that's truncated, the OS ends up writing 4096 bytes
+			// (presumably zero-filled) instead, which creates too
+			// many blocks for the test to handle in a reasonable
+			// amount of time.  So skip it on that platform.
+			t.Skip("macOS writes blocks that are too large for the min " +
+				"block size")
+		}
+	}
+
 	testTruncateLargeThenWriteToSmallerOffset(
 		t, 1024*1024 /* above the holes threshold */)
 }
