@@ -477,7 +477,33 @@ func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error {
 	}
 	if ska.KeyType == DeviceSigningKeyType {
 		a.G().Log.Debug("caching secret device signing key")
-		return a.G().ActiveDevice.setSigningKey(a, a.localSession.GetUID(), a.localSession.GetDeviceID(), key)
+		if err := a.G().ActiveDevice.setSigningKey(a, a.localSession.GetUID(), a.localSession.GetDeviceID(), key); err != nil {
+			return err
+		}
+
+		if ska.Me == nil {
+			a.G().Log.Debug("ska.Me is nil, skipping device name lookup")
+			return nil
+
+		}
+		a.G().Log.Debug("looking for device name for device signing key")
+		ckf := ska.Me.GetComputedKeyFamily()
+		device, err := ckf.GetDeviceForKey(key)
+		if err != nil {
+			// not fatal
+			a.G().Log.Debug("error getting device for key: %s", err)
+			return nil
+		}
+		if device == nil {
+			a.G().Log.Debug("device for key is nil")
+			return nil
+		}
+		if device.Description == nil {
+			a.G().Log.Debug("device description is nil")
+			return nil
+		}
+		a.G().Log.Debug("caching device name %q", *device.Description)
+		return a.G().ActiveDevice.setDeviceName(a, a.localSession.GetUID(), device.ID, *device.Description)
 	}
 	if ska.KeyType == DeviceEncryptionKeyType {
 		a.G().Log.Debug("caching secret device encryption key")
