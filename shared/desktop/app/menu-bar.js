@@ -2,7 +2,7 @@
 import hotPath from '../hot-path'
 import menubar from 'menubar'
 import {injectReactQueryParams} from '../../util/dev'
-import electron, {ipcMain, systemPreferences, app} from 'electron'
+import {screen as electronScreen, ipcMain, systemPreferences, app} from 'electron'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {resolveImage, resolveRootAsURL} from '../resolve-root'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
@@ -128,8 +128,8 @@ export default function () {
     mb.on('show', () => {
       // Account for different taskbar positions on Windows
       if (isWindows) {
-        const cursorPoint = electron.screen.getCursorScreenPoint()
-        const screenSize = electron.screen.getDisplayNearestPoint(cursorPoint).workArea
+        const cursorPoint = electronScreen.getCursorScreenPoint()
+        const screenSize = electronScreen.getDisplayNearestPoint(cursorPoint).workArea
         if (screenSize.x > 0) {
           // start menu on left
           mb.setOption('windowPosition', 'trayBottomLeft')
