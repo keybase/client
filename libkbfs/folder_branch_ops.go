@@ -3592,6 +3592,8 @@ func (fbo *folderBranchOps) SetMtime(
 		})
 }
 
+type cleanupFn func(context.Context, *lockState, []BlockPointer, error)
+
 // startSyncLocked readies the blocks and other state needed to sync a
 // single file.  It returns:
 //
@@ -3613,9 +3615,9 @@ func (fbo *folderBranchOps) SetMtime(
 //   stunning.
 func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, file path) (
-	doSync bool, stillDirty bool, fblock *FileBlock, lbc localBcache,
+	doSync, stillDirty bool, fblock *FileBlock, lbc localBcache,
 	bps *blockPutState, syncState fileSyncState,
-	cleanupFn func([]BlockPointer, error), err error) {
+	cleanup cleanupFn, err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	// if the cache for this file isn't dirty, we're done
@@ -3663,15 +3665,16 @@ func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 	// Filled in by doBlockPuts below.
 	fblock, bps, lbc, syncState, err =
 		fbo.blocks.StartSync(ctx, lState, md, session.UID, file)
-	cleanupFn = func(blocksToRemove []BlockPointer, err error) {
+	cleanup = func(ctx context.Context, lState *lockState,
+		blocksToRemove []BlockPointer, err error) {
 		fbo.blocks.CleanupSyncState(
 			ctx, lState, md.ReadOnly(), file, blocksToRemove, syncState, err)
 	}
 	if err != nil {
-		return false, true, nil, nil, nil, fileSyncState{}, cleanupFn, err
+		return false, true, nil, nil, nil, fileSyncState{}, cleanup, err
 	}
 
-	return true, true, fblock, lbc, bps, syncState, cleanupFn, nil
+	return true, true, fblock, lbc, bps, syncState, cleanup, nil
 }
 
 func (fbo *folderBranchOps) syncLocked(ctx context.Context,
@@ -3687,10 +3690,10 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	}
 
 	var blocksToRemove []BlockPointer
-	doSync, stillDirty, fblock, lbc, bps, syncState, cleanupFn, err :=
+	doSync, stillDirty, fblock, lbc, bps, syncState, cleanup, err :=
 		fbo.startSyncLocked(ctx, lState, md, file)
-	if cleanupFn != nil {
-		defer func() { cleanupFn(blocksToRemove, err) }()
+	if cleanup != nil {
+		defer func() { cleanup(ctx, lState, blocksToRemove, err) }()
 	}
 	if err != nil {
 		return stillDirty, err
@@ -3790,10 +3793,10 @@ func (fbo *folderBranchOps) syncAllLocked(
 		return err
 	}
 
-	var cleanupFns []func(error)
+	var cleanups []func(context.Context, *lockState, error)
 	defer func() {
-		for _, cf := range cleanupFns {
-			cf(err)
+		for _, cf := range cleanups {
+			cf(ctx, lState, err)
 		}
 	}()
 
@@ -3813,15 +3816,17 @@ func (fbo *folderBranchOps) syncAllLocked(
 		fbo.log.CDebugf(ctx, "Syncing file %v (%s)", ref, file)
 
 		// Start the sync for this dirty file.
-		doSync, stillDirty, fblock, newLbc, newBps, syncState, cleanupFn, err :=
+		doSync, stillDirty, fblock, newLbc, newBps, syncState, cleanup, err :=
 			fbo.startSyncLocked(ctx, lState, md, file)
-		if cleanupFn != nil {
+		if cleanup != nil {
 			// Note: This passes the same `blocksToRemove` into each
 			// cleanup function.  That's ok, as only the ones
 			// pertaining to a particular syncing file will be acted
 			// on.
-			cleanupFns = append(cleanupFns,
-				func(err error) { cleanupFn(blocksToRemove, err) })
+			cleanups = append(cleanups,
+				func(ctx context.Context, lState *lockState, err error) {
+					cleanup(ctx, lState, blocksToRemove, err)
+				})
 		}
 		if err != nil {
 			return err
