@@ -236,7 +236,7 @@ func (e *SaltpackEncrypt) makeSymmetricReceivers(ctx *Context) ([]saltpack.Recei
 		return nil, err
 	}
 	if len(pseudonyms) != len(pseudonymInfos) {
-		return nil, fmt.Errorf("makeSymmetricReceivers got the wrong number of pseudonyms back")
+		return nil, fmt.Errorf("makeSymmetricReceivers got the wrong number of pseudonyms back (%d != %d)", len(pseudonyms), len(pseudonymInfos))
 	}
 
 	// Assemble the receivers.
