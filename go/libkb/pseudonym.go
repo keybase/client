@@ -20,6 +20,9 @@ import (
 // TLFPseudonym is an identifier for a key in a tlf
 type TlfPseudonym [32]byte
 
+type KeyGen int
+type tlfID [16]byte
+
 const tlfPseudonymVersion = 1
 
 // TlfPseudonymInfo is what a pseudonym represents
@@ -27,8 +30,8 @@ type TlfPseudonymInfo struct {
 	// TLF name like: /keybase/private/a,b
 	Name string
 	// TLF id
-	ID      [16]byte
-	KeyGen  int
+	ID      tlfID
+	KeyGen  KeyGen
 	HmacKey [32]byte
 }
 
@@ -57,8 +60,8 @@ type tlfPseudonymContents struct {
 	_struct bool `codec:",toarray"`
 	Version int
 	Name    string
-	ID      [16]byte
-	KeyGen  int
+	ID      tlfID
+	KeyGen  KeyGen
 }
 
 type getTlfPseudonymsRes struct {
@@ -214,7 +217,7 @@ func checkAndConvertTlfPseudonymFromServer(ctx context.Context, g *GlobalContext
 			return mkErr(fmt.Errorf("tlf id wrong length"))
 		}
 
-		info.KeyGen = received.Info.KeyGen
+		info.KeyGen = KeyGen(received.Info.KeyGen)
 
 		n, err = hex.Decode(info.HmacKey[:], []byte(received.Info.HmacKey))
 		if err != nil {

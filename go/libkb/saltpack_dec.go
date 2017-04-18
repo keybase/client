@@ -211,7 +211,7 @@ func (r *TlfKeyResolver) getSymmetricKey(info TlfPseudonymInfo) (*saltpack.Symme
 		return nil, err
 	}
 	for _, key := range res.CryptKeys {
-		if key.KeyGeneration == info.KeyGen {
+		if KeyGen(key.KeyGeneration) == info.KeyGen {
 			// Success!
 			return (*saltpack.SymmetricKey)(&key.Key), nil
 		}

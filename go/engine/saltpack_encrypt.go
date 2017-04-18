@@ -223,7 +223,7 @@ func (e *SaltpackEncrypt) makeSymmetricReceivers(ctx *Context) ([]saltpack.Recei
 		pseudonymInfo := libkb.TlfPseudonymInfo{
 			Name:    "/keybase/private/" + string(res.CanonicalName),
 			ID:      tlfID,
-			KeyGen:  maxKey.KeyGeneration,
+			KeyGen:  libkb.KeyGen(maxKey.KeyGeneration),
 			HmacKey: libkb.RandomHmacKey(),
 		}
 		cryptKeys = append(cryptKeys, maxKey)
