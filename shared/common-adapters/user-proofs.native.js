@@ -51,7 +51,7 @@ function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: Proof
 
   return (
     <Box style={{...styleRow, ...style}} key={`${proof.id}${proof.type}`}>
-      <Box style={{...iconContainer}}>
+      <Box style={iconContainer}>
         <Icon style={styleService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={() => onClickProfile(proof)} />
       </Box>
       <Box style={styleProofNameSection}>
