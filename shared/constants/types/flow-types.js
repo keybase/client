@@ -3619,6 +3619,7 @@ export type HasServerKeysRes = {
 export type Hello2Res = {
   encryptionKey: KID,
   sigPayload: HelloRes,
+  sdhBoxes?: ?Array<SharedDhSecretKeyBox>,
 }
 
 export type HelloRes = string
@@ -3724,7 +3725,8 @@ export type KID = string
 
 export type Kex2Provisionee2DidCounterSign2RpcParam = Exact<{
   sig: bytes,
-  ppsEncrypted: string
+  ppsEncrypted: string,
+  sdhBoxes?: ?Array<SharedDhSecretKeyBox>
 }>
 
 export type Kex2Provisionee2Hello2RpcParam = Exact<{
@@ -4401,6 +4403,12 @@ export type SessionToken = string
 export type SharedDHKey = {
   gen: int,
   kid: KID,
+}
+
+export type SharedDhSecretKeyBox = {
+  generation: int,
+  box: string,
+  receiverKID: KID,
 }
 
 export type Sig = {
