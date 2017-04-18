@@ -46,7 +46,7 @@ const getPropsFromConversationState = createSelector(
 // This is a temporary solution until I can cleanup the reducer in a different PR
 // messageKeys is being derived so it can change even when nothing else is causing re-renders
 // As a short term 'cheat' i'm keeping the last copy and returning that if its equivalent. TODO take this out later
-let _lastMessasgeKeys = List()
+let _lastMessageKeys = List()
 
 const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollDownCounter, onFocusInput}: OwnProps): StateProps => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
@@ -64,11 +64,11 @@ const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollD
   } else if (selectedConversationIDKey && selectedConversationIDKey !== Constants.nothingSelected) {
     const temp = getPropsFromConversationState(state)
     supersedes = temp.supersedes
-    if (temp.messageKeys.join() === _lastMessasgeKeys.join()) {
-      messageKeys = _lastMessasgeKeys
+    if (temp.messageKeys.equals(_lastMessageKeys)) {
+      messageKeys = _lastMessageKeys
     } else {
       messageKeys = temp.messageKeys
-      _lastMessasgeKeys = messageKeys
+      _lastMessageKeys = messageKeys
     }
     validated = temp.validated
   }
