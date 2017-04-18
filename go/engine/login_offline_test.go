@@ -26,6 +26,7 @@ func TestLoginOffline(t *testing.T) {
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
 		a.ClearCachedSecretKeys()
+		a.UnloadLocalSession()
 	}, "account - clear")
 	tc.G.GetUPAKLoader().ClearMemory()
 

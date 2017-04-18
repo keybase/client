@@ -59,8 +59,14 @@ func TestBootstrap(t *testing.T) {
 	if !status.LoggedIn {
 		t.Error("not logged in")
 	}
+	if status.Uid.IsNil() {
+		t.Errorf("uid nil")
+	}
 	if !status.Uid.Equal(uid) {
 		t.Errorf("uid: %s, expected %s", status.Uid, uid)
+	}
+	if status.Username == "" {
+		t.Errorf("username empty")
 	}
 	if status.Username != username.String() {
 		t.Errorf("username: %q, expected %q", status.Username, username)

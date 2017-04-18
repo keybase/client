@@ -57,14 +57,21 @@ func (e *Bootstrap) Run(ctx *Context) error {
 
 		e.status.LoggedIn = in
 		if !e.status.LoggedIn {
+			e.G().Log.Debug("Bootstrap: not logged in")
 			return
 		}
 
-		e.status.Uid = a.GetUID()
-		unp := a.LocalSession().GetUsername()
-		if unp != nil {
-			e.status.Username = unp.String()
-		}
+		// e.status.Uid = a.GetUID()
+		e.status.Uid = e.G().ActiveDevice.UID()
+		e.G().Log.Debug("Bootstrap: uid = %s", e.status.Uid)
+		/*
+			unp := a.LocalSession().GetUsername()
+			if unp != nil {
+				e.status.Username = unp.String()
+			}
+		*/
+		e.status.Username = e.G().Env.GetUsername().String()
+		e.G().Log.Debug("Bootstrap: username = %s", e.status.Username)
 
 		e.status.DeviceID = a.GetDeviceID()
 		e.status.DeviceName = e.G().ActiveDevice.Name()
