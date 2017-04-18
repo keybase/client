@@ -4015,19 +4015,35 @@ func (fbo *folderBranchOps) notifyBatchLocked(
 	afterUpdateFn func() error) error {
 	fbo.headLock.AssertLocked(lState)
 
-	for i, op := range md.data.Changes.Ops {
-		// Only supply the afterUpdateFn for the first notification,
-		// which, in a multi-update batch, should be the resolution op
-		// with all the new pointer updates.
-		if i == 1 && md.data.Changes.Ops[0].(*resolutionOp) == nil {
-			return errors.Errorf("First update in local batch is not a "+
-				"resolutionOp: %T", md.data.Changes.Ops[0])
-		}
-		err := fbo.notifyOneOpLocked(ctx, lState, op, md, false, afterUpdateFn)
+	switch len(md.data.Changes.Ops) {
+	case 0:
+		return nil
+	case 1:
+		err := fbo.notifyOneOpLocked(
+			ctx, lState, md.data.Changes.Ops[0], md, false, afterUpdateFn)
 		if err != nil {
 			return err
 		}
-		afterUpdateFn = nil
+	default:
+		// In a multi-update batch, the first op should be the
+		// resolution op with all the new pointer updates.  It's the
+		// one that gets the afterUpdateFn.
+		if md.data.Changes.Ops[0].(*resolutionOp) == nil {
+			return errors.Errorf("First update in local batch is not a "+
+				"resolutionOp: %T", md.data.Changes.Ops[0])
+		}
+		err := fbo.notifyOneOpLocked(
+			ctx, lState, md.data.Changes.Ops[0], md, false, afterUpdateFn)
+		if err != nil {
+			return err
+		}
+		for i := 1; i < len(md.data.Changes.Ops); i++ {
+			err := fbo.notifyOneOpLocked(
+				ctx, lState, md.data.Changes.Ops[i], md, false, nil)
+			if err != nil {
+				return err
+			}
+		}
 	}
 	fbo.editHistory.UpdateHistory(ctx, []ImmutableRootMetadata{md})
 	return nil
