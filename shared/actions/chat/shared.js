@@ -37,7 +37,7 @@ function messageOutboxIDSelector (state: TypedState, conversationIDKey: Constant
 }
 
 function devicenameSelector (state: TypedState) {
-  return state.config && state.config.extendedConfig && state.config.extendedConfig.device && state.config.extendedConfig.device.name
+  return state.config && state.config.deviceName
 }
 
 function selectedInboxSelector (state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
@@ -76,21 +76,7 @@ function * clientHeader (messageType: ChatTypes.MessageType, conversationIDKey: 
     return
   }
 
-  const configSelector = (state: TypedState) => {
-    try {
-      return {
-        // $FlowIssue doesn't understand try
-        deviceID: state.config.extendedConfig.device.deviceID,
-        uid: state.config.uid,
-      }
-    } catch (_) {
-      return {
-        deviceID: '',
-        uid: '',
-      }
-    }
-  }
-
+  const configSelector = ({config: {deviceID, uid}}: TypedState) => ({deviceID, uid})
   const {deviceID, uid}: {deviceID: string, uid: string} = ((yield select(configSelector)): any)
 
   if (!deviceID || !uid) {

@@ -34,31 +34,28 @@ const waitingForResponse = (waiting: boolean) : TypedAction<'login:waitingForRes
 )
 
 const navBasedOnLoginState = (): AsyncAction => (dispatch, getState) => {
-  const {config: {extendedConfig, initialTab, launchedViaPush, status}, login: {justDeletedSelf}} = getState()
+  const {config: {loggedIn, registered, initialTab, launchedViaPush}, login: {justDeletedSelf}} = getState()
 
-  // No status?
-  if (!status || !Object.keys(status).length || !extendedConfig || !Object.keys(extendedConfig).length || justDeletedSelf) { // Not provisioned?
+  if (justDeletedSelf) {
     dispatch(navigateTo([loginTab]))
-  } else {
-    if (status.loggedIn) { // logged in
-      if (overrideLoggedInTab) {
-        console.log('Loading overridden logged in tab')
-        dispatch(navigateTo([overrideLoggedInTab]))
-      } else if (initialTab && isValidInitialTab(initialTab)) {
-        // only do this once
-        dispatch(setInitialTab(null))
-        if (!launchedViaPush) {
-          dispatch(navigateTo([initialTab]))
-        }
-      } else {
-        dispatch(navigateTo([profileTab]))
+  } else if (loggedIn) {
+    if (overrideLoggedInTab) {
+      console.log('Loading overridden logged in tab')
+      dispatch(navigateTo([overrideLoggedInTab]))
+    } else if (initialTab && isValidInitialTab(initialTab)) {
+      // only do this once
+      dispatch(setInitialTab(null))
+      if (!launchedViaPush) {
+        dispatch(navigateTo([initialTab]))
       }
-    } else if (status.registered) { // relogging in
-      dispatch(getAccounts())
-      dispatch(navigateTo(['login'], [loginTab]))
-    } else { // no idea
-      dispatch(navigateTo([loginTab]))
+    } else {
+      dispatch(navigateTo([profileTab]))
     }
+  } else if (registered) { // relogging in
+    dispatch(getAccounts())
+    dispatch(navigateTo(['login'], [loginTab]))
+  } else { // no idea
+    dispatch(navigateTo([loginTab]))
   }
 }
 
