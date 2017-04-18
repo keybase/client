@@ -564,6 +564,14 @@ type UserChangedHandler interface {
 	HandleUserChanged(uid keybase1.UID) error
 }
 
+type ConnectivityMonitorResult int
+
+const (
+	ConnectivityMonitorYes ConnectivityMonitorResult = iota
+	ConnectivityMonitorNo
+	ConnectivityMonitorUnknown
+)
+
 type ConnectivityMonitor interface {
-	IsConnected(ctx context.Context) bool
+	IsConnected(ctx context.Context) ConnectivityMonitorResult
 }
