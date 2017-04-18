@@ -961,6 +961,13 @@ func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 		e.G().Log.CWarningf(ctx.NetContext, "missing encryption key for ensure paper key")
 	}
 
+	// Load me so that keys will be up to date.
+	var err error
+	e.arg.User, err = libkb.LoadUser(libkb.LoadUserArg{Self: true, UID: e.arg.User.GetUID(), PublicKeyOptional: true, Contextified: libkb.NewContextified(e.G())})
+	if err != nil {
+		return err
+	}
+
 	// make one
 	args := &PaperKeyPrimaryArgs{
 		Me:              e.arg.User,

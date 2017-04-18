@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"runtime/debug"
 	"sync"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -149,7 +150,7 @@ func (s *SharedDHKeyring) Sync(ctx context.Context) (err error) {
 	return s.sync(ctx, nil, nil)
 }
 
-func (s *SharedDHKeyring) SyncDuringSignup(ctx context.Context, lctx LoginContext, upak *keybase1.UserPlusAllKeys) (err error) {
+func (s *SharedDHKeyring) SyncWithExtras(ctx context.Context, lctx LoginContext, upak *keybase1.UserPlusAllKeys) (err error) {
 	return s.sync(ctx, lctx, upak)
 }
 
@@ -275,7 +276,8 @@ func importSharedDHKey(box *keybase1.SharedDHSecretKeyBox, activeDecryptionKey G
 		return nil, err
 	}
 	if len(checker.allowedEncryptingKIDs) == 0 {
-		return nil, SharedDHImportError{fmt.Sprintf("zero allowed encrypting kids")}
+		debug.PrintStack()
+		return nil, SharedDHImportError{fmt.Sprintf("no allowed encrypting kids")}
 	}
 	if !checker.allowedEncryptingKIDs[encryptingKID] {
 		return nil, SharedDHImportError{fmt.Sprintf("unexpected encrypting kid: %s", encryptingKID)}

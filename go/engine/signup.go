@@ -80,7 +80,7 @@ func (s *SignupEngine) Run(ctx *Context) error {
 			return err
 		}
 
-		if err := s.join(a, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
+		if err := s.join(ctx, a, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
 			return err
 		}
 
@@ -153,7 +153,8 @@ func (s *SignupEngine) genPassphraseStream(a libkb.LoginContext, passphrase stri
 	return nil
 }
 
-func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode string, skipMail bool) error {
+func (s *SignupEngine) join(ctx *Context, a libkb.LoginContext, username, email, inviteCode string, skipMail bool) error {
+	s.G().Log.CDebugf(ctx.NetContext, "SignupEngine#join")
 	joinEngine := NewSignupJoinEngine(s.G())
 
 	pdpkda5kid, err := s.ppStream.PDPKA5KID()
@@ -189,6 +190,7 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 }
 
 func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, deviceName string) error {
+	s.G().Log.CDebugf(ctx.NetContext, "SignupEngine#registerDevice")
 	s.lks = libkb.NewLKSec(s.ppStream, s.uid, s.G())
 	args := &DeviceWrapArgs{
 		Me:         s.me,
@@ -251,6 +253,7 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 }
 
 func (s *SignupEngine) genPaperKeys(ctx *Context, lctx libkb.LoginContext) error {
+	s.G().Log.CDebugf(ctx.NetContext, "SignupEngine#genPaperKeys")
 	// Load me again so that keys will be up to date.
 	var err error
 	s.me, err = libkb.LoadUser(libkb.LoadUserArg{Self: true, UID: s.me.GetUID(), PublicKeyOptional: true, Contextified: libkb.NewContextified(s.G())})
@@ -291,6 +294,7 @@ func (s *SignupEngine) addGPG(lctx libkb.LoginContext, ctx *Context, allowMulti 
 }
 
 func (s *SignupEngine) genPGPBatch(ctx *Context) error {
+	s.G().Log.CDebugf(ctx.NetContext, "SignupEngine#genPGPBatch")
 	gen := libkb.PGPGenArg{
 		PrimaryBits: 1024,
 		SubkeyBits:  1024,
