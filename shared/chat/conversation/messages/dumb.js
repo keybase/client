@@ -1,25 +1,23 @@
 // @flow
-import AttachmentMessageComponent from './attachment'
-import AttachmentPopup from '../attachment-popup'
+// import AttachmentMessageComponent from './attachment'
+// import AttachmentPopup from '../attachment-popup'
 import HiddenString from '../../../util/hidden-string'
 import React from 'react'
-import Text from './text'
 import TextContainer from './text/container'
 import Wrapper from './wrapper'
 import {Box} from '../../../common-adapters'
 import {Map} from 'immutable'
-import {TextPopupMenu, AttachmentPopupMenu} from './popup'
+// import {TextPopupMenu, AttachmentPopupMenu} from './popup'
 import * as ChatConstants from '../../../constants/chat'
 import * as ChatCreators from '../../../actions/chat/creators'
 import chatReducer from '../../../reducers/chat'
 
-import type {MessageState, TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {DumbComponentMap} from '../../../constants/types/more'
 
 const convID = 'convID-0'
 
 let mockKey = 1
-function messageMock (messageState: MessageState, author: string, you: string, extraProps?: Object = {}) {
+function messageMock (messageState: ChatConstants.MessageState, author: string, you: string, extraProps?: Object = {}) {
   const {text, ...otherProps} = extraProps
   return {
     author,
@@ -36,7 +34,7 @@ function messageMock (messageState: MessageState, author: string, you: string, e
   }
 }
 
-function textMessageMock (messageState: MessageState, author: string, you: string, extraProps?: Object): TextMessage {
+function textMessageMock (messageState: ChatConstants.MessageState, author: string, you: string, extraProps?: Object): ChatConstants.TextMessage {
   return {
     type: 'Text',
     editedCount: 0,
@@ -44,7 +42,8 @@ function textMessageMock (messageState: MessageState, author: string, you: strin
   }
 }
 
-function attachmentMessageMock (messageState: MessageState, author: string, you: string, extraProps?: Object): AttachmentMessage {
+/*
+function attachmentMessageMock (messageState: ChatConstants.MessageState, author: string, you: string, extraProps?: Object): ChatConstants.AttachmentMessage {
   return {
     type: 'Attachment',
     ...messageMock(messageState, author, you, extraProps),
@@ -59,6 +58,7 @@ function attachmentMessageMock (messageState: MessageState, author: string, you:
     previewSize: ChatConstants.clampAttachmentPreviewSize({width: 375, height: 320}),
   }
 }
+*/
 
 const baseMock = {
   includeHeader: true,
@@ -131,6 +131,7 @@ const StackedMessages = ({mock1, mock2}: any) => (
   </Box>
 )
 
+/*
 const attachmentBaseMessage = {
   type: 'Attachment',
   timestamp: 1479764890000,
@@ -219,7 +220,9 @@ const attachmentBaseMock = {
   followingMap,
   metaDataMap,
 }
+*/
 
+/*
 const attachmentMap: DumbComponentMap<AttachmentMessageComponent> = {
   component: AttachmentMessageComponent,
   mocks: {
@@ -321,6 +324,7 @@ const attachmentMap: DumbComponentMap<AttachmentMessageComponent> = {
     },
   },
 }
+*/
 
 let mockState = new ChatConstants.StateRecord()
 const firstMsg = textMessageMock('sent', 'cecileb', 'cecileb', {text: 'Can you bring the lentils tomorrow?'})
@@ -331,7 +335,7 @@ mockState = chatReducer(mockState, ChatCreators.appendMessages(
   convID, // conv id
   true, // isSelected
   true, // isAppFocused
-  [firstMsg, secondMsg, pendingMessage] //  messages: Array<Constants.Message>
+  [firstMsg, secondMsg, pendingMessage, failedMessage] //  messages: Array<Constants.Message>
 ))
 
 const mockStore = {
@@ -403,6 +407,7 @@ const stackedMessagesMap = {
   },
 }
 
+/*
 const basePopupMock = {
   onHidden: () => console.log('onHidden'),
   parentProps: {
@@ -432,6 +437,7 @@ const baseAttachmentPopupMenuMock = {
   onDeleteMessage: (m: any) => console.log('onDeleteMessage', m),
   onOpenInFileUI: (m: any) => console.log('on open in file ui'),
 }
+*/
 
 /*
 const textPopupMenuMap: DumbComponentMap<TextPopupMenu> = {

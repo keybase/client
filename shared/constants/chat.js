@@ -684,7 +684,7 @@ function messageKeyConversationIDKey (key: MessageKey): ConversationIDKey {
 }
 
 function messageKeyKind (key: MessageKey): MessageKeyKind {
-  const [_, kind] = key.split(':') // eslint-disable-line no-unused-vars
+  const [, kind] = key.split(':')
   switch (kind) {
     case 'error': return 'error'
     case 'errorInvisible': return 'errorInvisible'
