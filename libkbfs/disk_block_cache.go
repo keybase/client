@@ -76,7 +76,12 @@ type DiskBlockCacheStandard struct {
 var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
 
 // DiskBlockCacheStatus represents the status of the disk cache.
-type DiskBlockCacheStatus struct{}
+type DiskBlockCacheStatus struct {
+	IsStarting    bool
+	NumBlocks     uint64
+	BlockBytes    uint64
+	CurrByteLimit uint64
+}
 
 // openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage
 // as its underlying storage layer.
@@ -793,7 +798,20 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 
 // Status implements the DiskBlockCache interface for DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) Status() *DiskBlockCacheStatus {
-	return &DiskBlockCacheStatus{}
+	select {
+	case <-cache.startedCh:
+	default:
+		return &DiskBlockCacheStatus{IsStarting: true}
+	}
+	cache.lock.RLock()
+	defer cache.lock.RUnlock()
+	limiterStatus :=
+		cache.config.DiskLimiter().getStatus().(backpressureDiskLimiterStatus)
+	return &DiskBlockCacheStatus{
+		NumBlocks:     uint64(cache.numBlocks),
+		BlockBytes:    cache.currBytes,
+		CurrByteLimit: uint64(limiterStatus.DiskCacheByteStatus.Max),
+	}
 }
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheStandard.
