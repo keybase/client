@@ -693,3 +693,8 @@ func (md *MDServerDisk) GetKeyBundles(ctx context.Context,
 
 	return tlfStorage.getKeyBundles(tlfID, wkbID, rkbID)
 }
+
+// CheckReachability implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) CheckReachability(ctx context.Context) {
+
+}

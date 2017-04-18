@@ -1274,6 +1274,10 @@ type MDServer interface {
 	GetKeyBundles(ctx context.Context, tlfID tlf.ID,
 		wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
 		*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error)
+
+	// CheckReachability is called when the Keybase service sends a notification
+	// that network connectivity has changed.
+	CheckReachability(ctx context.Context)
 }
 
 type mdServerLocal interface {

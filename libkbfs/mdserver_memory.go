@@ -876,3 +876,8 @@ func (md *MDServerMemory) GetKeyBundles(ctx context.Context,
 	}
 	return wkb, rkb, nil
 }
+
+// CheckReachability implements the MDServer interface for MDServerMemory.
+func (md *MDServerMemory) CheckReachability(ctx context.Context) {
+
+}

@@ -248,6 +248,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 		keybase1.NotifyPaperKeyProtocol(k),
 		keybase1.NotifyFSRequestProtocol(k),
 		keybase1.TlfKeysProtocol(k),
+		keybase1.ReachabilityProtocol(k),
 	}
 
 	// Add simplefs if set
@@ -272,10 +273,11 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	// recursion.
 	c := keybase1.NotifyCtlClient{Cli: rawClient}
 	err := c.SetNotifications(ctx, keybase1.NotificationChannels{
-		Session:     true,
-		Paperkeys:   true,
-		Keyfamily:   true,
-		Kbfsrequest: true,
+		Session:      true,
+		Paperkeys:    true,
+		Keyfamily:    true,
+		Kbfsrequest:  true,
+		Reachability: true,
 	})
 	if err != nil {
 		return err

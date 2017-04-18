@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"net"
 	"sync"
 	"time"
 
@@ -385,6 +386,19 @@ func (md *MDServerRemote) ShouldRetry(name string, err error) bool {
 func (md *MDServerRemote) ShouldRetryOnConnect(err error) bool {
 	_, inputCanceled := err.(libkb.InputCanceledError)
 	return !inputCanceled
+}
+
+// CheckReachability implements the MDServer interface.
+func (md *MDServerRemote) CheckReachability(ctx context.Context) {
+	conn, err := net.DialTimeout("tcp", md.mdSrvAddr, MdServerPingTimeout)
+	if err != nil {
+		md.log.CDebugf(ctx,
+			"MDServerRemote: CheckReachability(): failed to connect, reconnecting: %s", err.Error())
+		md.initNewConnection()
+	}
+	if conn != nil {
+		conn.Close()
+	}
 }
 
 // Signal errors and clear any registered observers.

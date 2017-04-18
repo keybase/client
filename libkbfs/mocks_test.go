@@ -4,6 +4,8 @@
 package libkbfs
 
 import (
+	time "time"
+
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
@@ -14,7 +16,6 @@ import (
 	tlf "github.com/keybase/kbfs/tlf"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
-	time "time"
 )
 
 // Mock of dataVersioner interface
@@ -3436,8 +3437,16 @@ func (_m *MockMDServer) CheckForRekeys(ctx context.Context) <-chan error {
 	return ret0
 }
 
+func (_m *MockMDServer) CheckReachability(ctx context.Context) {
+
+}
+
 func (_mr *_MockMDServerRecorder) CheckForRekeys(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckForRekeys", arg0)
+}
+
+func (_m *_MockMDServerRecorder) CheckReachability(ctx context.Context) {
+
 }
 
 func (_m *MockMDServer) TruncateLock(ctx context.Context, id tlf.ID) (bool, error) {
@@ -3632,6 +3641,10 @@ func (_m *MockmdServerLocal) CheckForRekeys(ctx context.Context) <-chan error {
 
 func (_mr *_MockmdServerLocalRecorder) CheckForRekeys(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckForRekeys", arg0)
+}
+
+func (_m *_MockmdServerLocalRecorder) CheckReachability(ctx context.Context) {
+
 }
 
 func (_m *MockmdServerLocal) TruncateLock(ctx context.Context, id tlf.ID) (bool, error) {
