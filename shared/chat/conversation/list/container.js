@@ -3,81 +3,83 @@ import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
 import HiddenString from '../../../util/hidden-string'
 import ListComponent from '.'
-import {List, Map} from 'immutable'
+import {List} from 'immutable'
+import {compose} from 'recompose'
 import {connect} from 'react-redux'
+import {createSelector} from 'reselect'
 import {downloadFilePath} from '../../../util/file'
 import {navigateAppend} from '../../../actions/route-tree'
-import {pick} from 'lodash'
-import {compose} from 'recompose'
-import {getPath} from '../../../route-tree'
-import {chatTab} from '../../../constants/tabs'
 
 import type {OpenInFileUI} from '../../../constants/kbfs'
-import type {Options} from '../messages'
-import type {Props, OptionsFn} from '.'
 import type {OwnProps, StateProps, DispatchProps} from './container'
+import type {Props} from '.'
 import type {TypedState} from '../../../constants/reducer'
+
+// TODO change this. This is a temporary store for the messages so we can have a function to map from
+// messageKey to Message to support the 'edit last message' functionality. We should change how this works
+let _messages: List<Constants.Message> = List()
+const _getMessageFromMessageKey = (messageKey: Constants.MessageKey): ?Constants.Message => _messages.find(m => m.key === messageKey)
+
+const getPropsFromConversationState = createSelector(
+  [Constants.getSelectedConversationStates, Constants.getSelectedInbox, Constants.getSupersedes],
+  (conversationState, inbox, _supersedes) => {
+    let supersedes = null
+    let messageKeys = List()
+    let validated = false
+    if (conversationState) {
+      if (!conversationState.moreToLoad) {
+        supersedes = _supersedes
+      }
+
+      messageKeys = conversationState.messages.map(m => m.key)
+      _messages = conversationState.messages
+      validated = inbox && inbox.state === 'unboxed'
+    }
+    return {
+      messageKeys,
+      supersedes,
+      validated,
+    }
+  }
+)
+
+// This is a temporary solution until I can cleanup the reducer in a different PR
+// messageKeys is being derived so it can change even when nothing else is causing re-renders
+// As a short term 'cheat' i'm keeping the last copy and returning that if its equivalent. TODO take this out later
+let _lastMessageKeys = List()
 
 const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollDownCounter, onFocusInput}: OwnProps): StateProps => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
-  const routePath = getPath(state.routeTree.routeState, [chatTab])
   const you = state.config.username || ''
-  const origFollowingMap = state.config.following
-  const origMetaDataMap = state.chat.get('metaData')
 
-  let firstNewMessageID = null
-  let followingMap = Map()
-  let messages = List()
-  let metaDataMap = Map()
-  let moreToLoad = false
-  let participants = List()
-  let editingMessage = null
-  let supersedes = null
-  let supersededBy = null
   let validated = false
+  let messageKeys = List()
+  let supersedes
 
   if (selectedConversationIDKey && Constants.isPendingConversationIDKey(selectedConversationIDKey)) {
     const tlfName = Constants.pendingConversationIDKeyToTlfName(selectedConversationIDKey)
     if (tlfName) {
-      participants = List(tlfName.split(','))
-      followingMap = pick(origFollowingMap, participants.toArray())
-      metaDataMap = origMetaDataMap.filter((k, v) => participants.contains(v))
       validated = true
     }
   } else if (selectedConversationIDKey && selectedConversationIDKey !== Constants.nothingSelected) {
-    const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
-    if (conversationState) {
-      const inbox = state.chat.get('inbox')
-      const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
-
-      participants = selected && selected.participants || List()
-      firstNewMessageID = conversationState.firstNewMessageID
-      followingMap = pick(origFollowingMap, participants.toArray())
-      messages = conversationState.messages
-      metaDataMap = origMetaDataMap.filter((k, v) => participants.contains(v))
-      moreToLoad = conversationState.moreToLoad
-      editingMessage = state.chat.get('editingMessage')
-      supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
-      supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
-      validated = selected && selected.state === 'unboxed'
+    const temp = getPropsFromConversationState(state)
+    supersedes = temp.supersedes
+    if (temp.messageKeys.equals(_lastMessageKeys)) {
+      messageKeys = _lastMessageKeys
+    } else {
+      messageKeys = temp.messageKeys
+      _lastMessageKeys = messageKeys
     }
+    validated = temp.validated
   }
 
   return {
+    _supersedes: supersedes,
     editLastMessageCounter,
-    editingMessage,
-    firstNewMessageID,
-    followingMap,
     listScrollDownCounter,
-    messages,
-    metaDataMap,
-    moreToLoad,
+    messageKeys,
     onFocusInput,
-    participants,
-    routePath,
     selectedConversation: selectedConversationIDKey,
-    supersededBy,
-    supersedes,
     validated,
     you,
   }
@@ -86,74 +88,39 @@ const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollD
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onLoadAttachment: (selectedConversation, messageID, filename) => { dispatch(Creators.loadAttachment(selectedConversation, messageID, downloadFilePath(filename), false, false)) },
   _onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => { dispatch(Creators.loadMoreMessages(conversationIDKey, false)) },
-  _onOpenInPopup: (message: Constants.AttachmentMessage, routePath: List<string>) => dispatch(Creators.openAttachmentPopup(message, routePath)),
-  _onRetryMessage: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
   onDeleteMessage: (message: Constants.Message) => { dispatch(Creators.deleteMessage(message)) },
   onEditMessage: (message: Constants.Message, body: string) => { dispatch(Creators.editMessage(message, new HiddenString(body))) },
-  onMessageAction: (message: Constants.ServerMessage) => dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
-  onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => dispatch(Creators.openConversation(conversationIDKey)),
+  onMessageAction: (message: Constants.Message) => { dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])) },
   onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
-  onRetryAttachment: (message: Constants.AttachmentMessage) => dispatch(Creators.retryAttachment(message)),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => {
-  const props = {
-    ...stateProps,
-    ...dispatchProps,
-    headerMessages: List([
-      {key: `chatSecuredHeader-${stateProps.moreToLoad.toString()}`, type: 'ChatSecuredHeader'},
-      {key: `loadingMore-${stateProps.moreToLoad.toString()}`, type: 'LoadingMore'},
-    ]),
-    onLoadAttachment: (messageID, filename) => { stateProps.selectedConversation && dispatchProps._onLoadAttachment(stateProps.selectedConversation, messageID, filename) },
-    onLoadMoreMessages: () => { stateProps.selectedConversation && dispatchProps._onLoadMoreMessages(stateProps.selectedConversation) },
-    onOpenInPopup: (message: Constants.AttachmentMessage) => { dispatchProps._onOpenInPopup(message, stateProps.routePath) },
-    onRetryMessage: (outboxID: Constants.OutboxIDKey) => { stateProps.selectedConversation && dispatchProps._onRetryMessage(stateProps.selectedConversation, outboxID) },
+  let messageKeysWithHeaders = stateProps.messageKeys
+  const selected = stateProps.selectedConversation
+  if (selected) {
+    messageKeysWithHeaders = messageKeysWithHeaders.withMutations(l => {
+      if (stateProps._supersedes) {
+        l.unshift(Constants.messageKey(selected, 'supersedes', 0))
+      }
+      l.unshift(Constants.messageKey(selected, 'header', 0))
+    })
   }
 
   return {
-    ...props,
-    messages: decorateSupersedes(props.supersedes, props.moreToLoad, props.messages),
-    optionsFn: propsToMessageOptionsFn(props),
-  }
-}
-
-function decorateSupersedes (supersedes, moreToLoad, messages): List<Constants.Message> {
-  if (supersedes && !moreToLoad) {
-    const {conversationIDKey, finalizeInfo: {resetUser}} = supersedes
-    const supersedesMessage: Constants.SupersedesMessage = {
-      key: `supersedes-${conversationIDKey}-${resetUser}`,
-      supersedes: conversationIDKey,
-      timestamp: Date.now(),
-      type: 'Supersedes',
-      username: resetUser,
-    }
-    return messages.unshift(supersedesMessage)
-  }
-
-  return messages
-}
-
-// TODO remove this. Not needed w/ connected messages
-// $FlowIssue wants props with optionsFn inside of it, which this thing itself is building. This'll all go away soon
-function propsToMessageOptionsFn (props: Props): OptionsFn {
-  return function (message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, onAction, onShowEditor, isEditing = false): Options {
-    const skipMsgHeader = (message.author != null && prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
-    const isFirstNewMessage = message.messageID != null && props.firstNewMessageID ? props.firstNewMessageID === message.messageID : false
-    return {
-      ...props,
-      includeHeader: isFirstMessage || !skipMsgHeader,
-      isEditing,
-      isFirstNewMessage,
-      isScrolling,
-      isSelected,
-      key,
-      message,
-      onAction,
-      onRetry: props.onRetryMessage,
-      onRetryAttachment: (message) => { message.type === 'Attachment' && props.onRetryAttachment(message) },
-      onShowEditor,
-      style,
-    }
+    editLastMessageCounter: stateProps.editLastMessageCounter,
+    getMessageFromMessageKey: _getMessageFromMessageKey,
+    listScrollDownCounter: stateProps.listScrollDownCounter,
+    messageKeys: messageKeysWithHeaders,
+    onDeleteMessage: dispatchProps.onDeleteMessage,
+    onEditMessage: dispatchProps.onEditMessage,
+    onFocusInput: stateProps.onFocusInput,
+    onLoadAttachment: (messageID, filename) => { stateProps.selectedConversation && dispatchProps._onLoadAttachment(stateProps.selectedConversation, messageID, filename) },
+    onLoadMoreMessages: () => { stateProps.selectedConversation && dispatchProps._onLoadMoreMessages(stateProps.selectedConversation) },
+    onMessageAction: dispatchProps.onMessageAction,
+    onOpenInFileUI: dispatchProps.onOpenInFileUI,
+    selectedConversation: stateProps.selectedConversation,
+    validated: stateProps.validated,
+    you: stateProps.you,
   }
 }
 

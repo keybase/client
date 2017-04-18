@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import * as Constants from '../../constants/chat'
 
-export type Props = {
+export type Props = {|
   editLastMessageCounter: number,
   showLoader: boolean,
   finalizeInfo: ?Constants.FinalizeInfo,
@@ -13,7 +13,6 @@ export type Props = {
   onCloseSidePanel: () => void,
   onEditLastMessage: () => void,
   onFocusInput: () => void,
-  onOpenNewerConversation: () => void,
   onScrollDown: () => void,
   onToggleSidePanel: () => void,
   rekeyInfo: ?Constants.RekeyInfo,
@@ -22,6 +21,6 @@ export type Props = {
   supersededBy: ?Constants.SupersedeInfo,
   supersedes: ?Constants.SupersedeInfo,
   threadLoadedOffline: boolean,
-}
+|}
 
 export default class Conversation extends Component<void, Props, void> { }

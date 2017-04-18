@@ -15,8 +15,22 @@ import type {Asset, AssetMetadata, ChatActivity, ConversationInfoLocal, Conversa
 import type {DeviceType} from './types/more'
 import type {TypedState} from './reducer'
 
-type MessageKey = string
-type MessageKeyKind = 'messageID' | 'outboxID' | 'tempAttachment' | 'timestamp' | 'error'
+export type MessageKey = string
+type MessageKeyKind = 'chatSecured'
+| 'error'
+| 'errorInvisible'
+| 'header'
+| 'messageIDAttachment'
+| 'messageIDDeleted'
+| 'messageIDEdit'
+| 'messageIDAttachmentUpdate'
+| 'messageIDError'
+| 'messageIDText'
+| 'messageIDUnhandled'
+| 'outboxIDText'
+| 'tempAttachment'
+| 'timestamp'
+| 'supersedes'
 
 export type MessageType = 'Text'
 export type FollowingMap = {[key: string]: boolean}
@@ -179,13 +193,16 @@ export type UpdatingAttachment = {
 export type ClientMessage = TimestampMessage | SupersedesMessage | LoadingMoreMessage | ChatSecuredHeaderMessage
 export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage | UpdatingAttachment | InvisibleErrorMessage
 
-export type Message = ClientMessage | ServerMessage
+// TODO (mm) fix this
+export type Message = any // ClientMessage | ServerMessage
 
 export type MaybeTimestamp = TimestampMessage | null
 
 export const ConversationStatusByEnum = invert(ChatTypes.CommonConversationStatus)
 
 export const ConversationStateRecord = Record({
+  // Is this used?
+  messageKeys: List(),
   messages: List(),
   seenMessages: Set(),
   moreToLoad: true,
@@ -200,6 +217,8 @@ export const ConversationStateRecord = Record({
 })
 
 export type ConversationState = Record<{
+  messageKeys: List<MessageKey>,
+  // TODO del
   messages: List<Message>,
   seenMessages: Set<MessageID>,
   moreToLoad: boolean,
@@ -285,6 +304,7 @@ export type RekeyInfo = Record<{
 }>
 
 export const StateRecord = Record({
+  messageMap: Map(),
   inbox: List(),
   conversationStates: Map(),
   metaData: Map(),
@@ -306,6 +326,8 @@ export const StateRecord = Record({
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
 
 export type State = Record<{
+  // TODO  move to entities
+  messageMap: Map<MessageKey, Message>,
   inbox: List<InboxState>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   finalizedState: FinalizedState,
@@ -431,7 +453,7 @@ export type UpdateTempMessage = TypedAction<'chat:updateTempMessage', {
 
 export type MarkSeenMessage = NoErrorTypedAction<'chat:markSeenMessage', {
   conversationIDKey: ConversationIDKey,
-  messageID: MessageID,
+  messageKey: MessageKey,
 }>
 
 export type SaveAttachment = NoErrorTypedAction<'chat:saveAttachmentNative', {
@@ -651,8 +673,37 @@ const getSelectedRouteState = (state: TypedState) => {
   return getPathState(state.routeTree.routeState, [chatTab, selected])
 }
 
-function messageKey (kind: MessageKeyKind, value: string | number): MessageKey {
-  return `${kind}:${value}`
+function messageKey (conversationIDKey: ConversationIDKey, kind: MessageKeyKind, value: string | number): MessageKey {
+  return `${conversationIDKey}:${kind}:${value}`
+}
+
+function messageKeyValue (key: MessageKey): string {
+  return key.split(':')[2]
+}
+
+function messageKeyConversationIDKey (key: MessageKey): ConversationIDKey {
+  return key.split(':')[0]
+}
+
+function messageKeyKind (key: MessageKey): MessageKeyKind {
+  const [, kind] = key.split(':')
+  switch (kind) {
+    case 'error': return 'error'
+    case 'errorInvisible': return 'errorInvisible'
+    case 'header': return 'header'
+    case 'messageIDAttachment': return 'messageIDAttachment'
+    case 'messageIDAttachmentUpdate': return 'messageIDAttachmentUpdate'
+    case 'messageIDDeleted': return 'messageIDDeleted'
+    case 'messageIDEdit': return 'messageIDEdit'
+    case 'messageIDError': return 'messageIDError'
+    case 'messageIDText': return 'messageIDText'
+    case 'messageIDUnhandled': return 'messageIDUnhandled'
+    case 'outboxIDText': return 'outboxIDText'
+    case 'tempAttachment': return 'tempAttachment'
+    case 'timestamp': return 'timestamp'
+    case 'supersedes': return 'supersedes'
+  }
+  throw new Error(`Invalid messageKeyKind passed key: ${key}`)
 }
 
 const getYou = (state: TypedState) => state.config.username || ''
@@ -662,6 +713,7 @@ const getSelectedInbox = (state: TypedState) => {
   const selected = getSelectedConversation(state)
   return state.chat.get('inbox').find(inbox => inbox.get('conversationIDKey') === selected)
 }
+const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
 
 const getTLF = createSelector(
   [getSelectedInbox, getSelectedConversation],
@@ -680,9 +732,27 @@ const getMuted = createSelector(
   (selectedInbox) => selectedInbox && selectedInbox.get('status') === 'muted',
 )
 
+// $FlowIssue getIn
+const getMessageFromMessageKey = (state: TypedState, messageKey: MessageKey): ?Message => state.chat.getIn(['messageMap', messageKey])
+
+const getSelectedConversationStates = (state: TypedState): ?ConversationState => {
+  const selectedConversationIDKey = getSelectedConversation(state)
+// $FlowIssue getIn
+  return state.chat.getIn(['conversationStates', selectedConversationIDKey])
+}
+
+const getSupersedes = (state: TypedState): ?SupersedeInfo => {
+  const selectedConversationIDKey = getSelectedConversation(state)
+  return selectedConversationIDKey ? convSupersedesInfo(selectedConversationIDKey, state.chat) : null
+}
+
 export {
   getBrokenUsers,
+  getEditingMessage,
+  getMessageFromMessageKey,
   getSelectedConversation,
+  getSelectedConversationStates,
+  getSupersedes,
   conversationIDToKey,
   convSupersedesInfo,
   convSupersededByInfo,
@@ -690,6 +760,9 @@ export {
   keyToOutboxID,
   makeSnippet,
   messageKey,
+  messageKeyKind,
+  messageKeyValue,
+  messageKeyConversationIDKey,
   outboxIDToKey,
   participantFilter,
   serverMessageToMessageBody,

@@ -1,7 +1,6 @@
 // @flow
 import {Component} from 'react'
-
-import type {MessageID, AttachmentMessage, ServerMessage, FollowingMap, MetaDataMap} from '../../../constants/chat'
+import * as Constants from '../../../../constants/chat'
 
 export type ProgressBarProps = {
   text: string,
@@ -19,17 +18,13 @@ export type ImageIconProps = {
 export class ImageIcon extends Component<void, ImageIconProps, void> {}
 
 export type Props = {
-  message: AttachmentMessage,
+  message: Constants.AttachmentMessage,
   includeHeader: boolean,
   isFirstNewMessage: boolean,
-  onLoadAttachment: (messageID: MessageID, filename: string) => void,
-  onAction: (message: ServerMessage, event: any) => void,
-  onOpenInFileUI: (path: string) => void,
-  onOpenInPopup: (message: AttachmentMessage) => void,
-  style: Object,
-  you: string,
-  followingMap: FollowingMap,
-  metaDataMap: MetaDataMap,
+  onLoadAttachment: () => void,
+  onAction: (event: any) => void,
+  onOpenInFileUI: () => void,
+  onOpenInPopup: () => void,
 }
 
 export default class AttachmentMessageComponent extends Component<void, Props, void> { }

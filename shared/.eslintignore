@@ -8,6 +8,7 @@
 /desktop/release/**
 /desktop/renderer/renderer-load.js
 /flow-typed/**
+/fixme/**
 /libs/flow-interface.js
 /libs/immutable-interface.js
 /node_modules

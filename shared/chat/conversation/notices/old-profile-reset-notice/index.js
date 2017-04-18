@@ -1,13 +1,10 @@
 // @flow
 import React from 'react'
-import {Text} from '../../../common-adapters'
-import UserNotice from './user-notice'
-import {globalColors, globalMargins} from '../../../styles'
+import {Text} from '../../../../common-adapters'
+import UserNotice from '../../notices/user-notice'
+import {globalColors, globalMargins} from '../../../../styles'
 
-export type Props = {
-  username: string,
-  onOpenNewerConversation: () => void,
-}
+import type {Props} from '.'
 
 const OldProfileResetNotice = ({username, onOpenNewerConversation}: Props) => (
   <UserNotice style={{marginBottom: globalMargins.small}} username={username} bgColor={globalColors.red}>
