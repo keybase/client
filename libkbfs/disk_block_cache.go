@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
+	metrics "github.com/rcrowley/go-metrics"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -61,6 +62,15 @@ type DiskBlockCacheStandard struct {
 	// Track the aggregate size of blocks in the cache per TLF and overall.
 	tlfSizes  map[tlf.ID]uint64
 	currBytes uint64
+	// Track the cache hit rate and eviction rate
+	hitMeter         metrics.Meter
+	missMeter        metrics.Meter
+	putMeter         metrics.Meter
+	updateMeter      metrics.Meter
+	evictCountMeter  metrics.Meter
+	evictSizeMeter   metrics.Meter
+	deleteCountMeter metrics.Meter
+	deleteSizeMeter  metrics.Meter
 	// This protects the disk caches from being shutdown while they're being
 	// accessed.
 	lock    sync.RWMutex
@@ -146,17 +156,25 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 	startedCh := make(chan struct{})
 	startErrCh := make(chan struct{})
 	cache = &DiskBlockCacheStandard{
-		config:     config,
-		maxBlockID: maxBlockID.Bytes(),
-		tlfCounts:  map[tlf.ID]int{},
-		tlfSizes:   map[tlf.ID]uint64{},
-		log:        log,
-		blockDb:    blockDb,
-		metaDb:     metaDb,
-		tlfDb:      tlfDb,
-		startedCh:  startedCh,
-		startErrCh: startErrCh,
-		shutdownCh: make(chan struct{}),
+		config:           config,
+		maxBlockID:       maxBlockID.Bytes(),
+		tlfCounts:        map[tlf.ID]int{},
+		tlfSizes:         map[tlf.ID]uint64{},
+		hitMeter:         metrics.NewMeter(),
+		missMeter:        metrics.NewMeter(),
+		putMeter:         metrics.NewMeter(),
+		updateMeter:      metrics.NewMeter(),
+		evictCountMeter:  metrics.NewMeter(),
+		evictSizeMeter:   metrics.NewMeter(),
+		deleteCountMeter: metrics.NewMeter(),
+		deleteSizeMeter:  metrics.NewMeter(),
+		log:              log,
+		blockDb:          blockDb,
+		metaDb:           metaDb,
+		tlfDb:            tlfDb,
+		startedCh:        startedCh,
+		startErrCh:       startErrCh,
+		shutdownCh:       make(chan struct{}),
 	}
 	// Sync the block counts asynchronously so syncing doesn't block init.
 	// Since this method blocks, any Get or Put requests to the disk block
@@ -415,6 +433,11 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	defer func() {
 		cache.log.CDebugf(ctx, "Cache Get id=%s tlf=%s bSize=%d err=%+v",
 			blockID, tlfID, len(buf), err)
+		if err == nil {
+			cache.hitMeter.Mark(1)
+		} else {
+			cache.missMeter.Mark(1)
+		}
 	}()
 	blockKey := blockID.Bytes()
 	entry, err := cache.blockDb.Get(blockKey, nil)
@@ -465,6 +488,9 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	defer func() {
 		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d "+
 			"err=%+v", blockID, tlfID, blockLen, encodedLen, err)
+		if err == nil {
+			cache.putMeter.Mark(1)
+		}
 	}()
 	blockKey := blockID.Bytes()
 	hasKey, err := cache.blockDb.Has(blockKey, nil)
@@ -555,6 +581,11 @@ func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
 		return DiskCacheClosedError{"UpdateLRUTime"}
 	default:
 	}
+	defer func() {
+		if err == nil {
+			cache.updateMeter.Mark(1)
+		}
+	}()
 	md, err = cache.getMetadata(blockID)
 	if err != nil {
 		return NoSuchBlockError{blockID}
@@ -589,6 +620,12 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 	if len(blockEntries) == 0 {
 		return 0, 0, nil
 	}
+	defer func() {
+		if err == nil {
+			cache.deleteCountMeter.Mark(int64(numRemoved))
+			cache.deleteSizeMeter.Mark(sizeRemoved)
+		}
+	}()
 	blockBatch := new(leveldb.Batch)
 	metadataBatch := new(leveldb.Batch)
 	tlfBatch := new(leveldb.Batch)
@@ -761,6 +798,12 @@ func (cache *DiskBlockCacheStandard) evictFromTLFLocked(ctx context.Context,
 // on that list of block IDs.
 func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 	numBlocks int) (numRemoved int, sizeRemoved int64, err error) {
+	defer func() {
+		if err == nil {
+			cache.evictCountMeter.Mark(int64(numRemoved))
+			cache.evictSizeMeter.Mark(sizeRemoved)
+		}
+	}()
 	numElements := numBlocks * evictionConsiderationFactor
 	blockID, err := cache.getRandomBlockID(numElements, cache.numBlocks)
 	if err != nil {

@@ -375,9 +375,10 @@
 			"revisionTime": "2016-01-10T10:55:54Z"
 		},
 		{
+			"checksumSHA1": "KAzbLjI9MzW2tjfcAsK75lVRp6I=",
 			"path": "github.com/rcrowley/go-metrics",
-			"revision": "7839c01b09d2b1d7068034e5fe6e423f6ac5be22",
-			"revisionTime": "2015-11-29T16:13:40-08:00"
+			"revision": "1f30fe9094a513ce4c700b9a54458bbb0c96996c",
+			"revisionTime": "2016-11-28T21:05:44Z"
 		},
 		{
 			"checksumSHA1": "zJZyxS96XiEnDJSZkWwXtktziRY=",
