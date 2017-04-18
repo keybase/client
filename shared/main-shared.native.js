@@ -16,6 +16,8 @@ import {listenForNotifications} from './actions/notifications'
 import {persistRouteState, loadRouteState} from './actions/platform-specific.native'
 import {navigateUp, setRouteState} from './actions/route-tree'
 
+import type {TypedState} from './constants/reducer'
+
 type Props = {
   dumbFullscreen: boolean,
   folderBadge: number,
@@ -31,6 +33,11 @@ type Props = {
   persistRouteState: () => void,
   setRouteState: (path: any, partialState: any) => void,
   navigateUp: () => void,
+}
+
+type OwnProps = {
+  platform: string,
+  version: string,
 }
 
 class Main extends Component<void, any, void> {
@@ -85,34 +92,31 @@ class Main extends Component<void, any, void> {
   }
 }
 
-// $FlowIssue
-const connector = connect(
-  ({
-    config: {extendedConfig, bootStatus, loggedIn},
-    dev: {debugConfig: {dumbFullscreen}},
-    favorite: {privateBadge, publicBadge},
-    push: {permissionsPrompt},
-    routeTree: {routeDef, routeState},
-    notifications: {menuBadgeCount},
-  }) => ({
-    dumbFullscreen,
-    folderBadge: privateBadge + publicBadge,
-    menuBadgeCount,
-    mountPush: extendedConfig && !!extendedConfig.defaultDeviceID && loggedIn && bootStatus === 'bootStatusBootstrapped',
-    routeDef,
-    routeState,
-    showPushPrompt: permissionsPrompt,
-  }),
-  (dispatch, {platform, version}) => ({
-    bootstrap: () => dispatch(bootstrap()),
-    hello: () => hello(0, platform, [], version, true), // TODO real version
-    listenForNotifications: () => dispatch(listenForNotifications()),
-    loadRouteState: () => dispatch(loadRouteState()),
-    persistRouteState: () => dispatch(persistRouteState()),
-    setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
-    navigateUp: () => { dispatch(navigateUp()) },
-  })
-)
+const mapStateToProps = (state: TypedState) => {
+  const config = state.config
+  const mountPush = config.extendedConfig && !!config.extendedConfig.defaultDeviceID && config.loggedIn && config.bootStatus === 'bootStatusBootstrapped'
+  return {
+    dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
+    folderBadge: state.favorite.folderState.privateBadge + state.favorite.folderState.publicBadge,
+    menuBadgeCount: state.notifications.menuBadgeCount,
+    mountPush,
+    routeDef: state.routeTree.routeDef,
+    routeState: state.routeTree.routeState,
+    showPushPrompt: state.push.permissionsPrompt,
+  }
+}
+
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+  bootstrap: () => dispatch(bootstrap()),
+  hello: () => hello(0, ownProps.platform, [], ownProps.version, true), // TODO real version
+  listenForNotifications: () => dispatch(listenForNotifications()),
+  loadRouteState: () => dispatch(loadRouteState()),
+  navigateUp: () => { dispatch(navigateUp()) },
+  persistRouteState: () => dispatch(persistRouteState()),
+  setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
+})
+
+const connector = connect(mapStateToProps, mapDispatchToProps)
 
 export {
   connector,

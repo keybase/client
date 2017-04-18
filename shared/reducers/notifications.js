@@ -5,7 +5,7 @@ import {isMobile} from '../constants/platform'
 
 import type {NotificationKeys, NotificationAction, BadgeType, MenuNotificationState} from '../constants/notifications'
 
-type State = {
+export type State = {
   keyState: {
     [key: NotificationKeys]: boolean,
   },

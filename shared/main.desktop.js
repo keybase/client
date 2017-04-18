@@ -6,6 +6,7 @@ import {ipcRenderer} from 'electron'
 import {navigateUp, setRouteState} from './actions/route-tree'
 
 import type {RouteDefNode, RouteStateNode, Path} from './route-tree'
+import type {TypedState} from './constants/reducer'
 
 type Props = {
   menuBadge: boolean,
@@ -41,23 +42,20 @@ class Main extends Component<void, Props, void> {
   }
 }
 
-// $FlowIssue type this connector
-export default connect(
-  ({
-    routeTree: {routeDef, routeState},
-    config: {extendedConfig, username},
-    notifications: {menuBadge, menuBadgeCount}}) => ({
-      routeDef,
-      routeState,
-      provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
-      username,
-      menuBadge,
-      menuBadgeCount,
-    }),
-  dispatch => {
-    return {
-      navigateUp: () => dispatch(navigateUp()),
-      setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
-    }
+const mapStateToProps = (state: TypedState) => {
+  return {
+    menuBadge: state.notifications.menuBadge,
+    menuBadgeCount: state.notifications.menuBadgeCount,
+    provisioned: state.config.extendedConfig && !!state.config.extendedConfig.defaultDeviceID,
+    routeDef: state.routeTree.routeDef,
+    routeState: state.routeTree.routeState,
+    username: state.config.username,
   }
-)(Main)
+}
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  navigateUp: () => dispatch(navigateUp()),
+  setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(Main)
