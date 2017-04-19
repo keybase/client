@@ -113,13 +113,11 @@ function _RenderRoute ({routeDef, routeState, setRouteState, path}: _RenderRoute
 
     stack = childStack
     if (routeDef.containerComponent) {
-      const useKeys = stack.count() > 1 // Only use keys if we have siblings, else we'll render thrash if we keep unique state in here (like in chat)
       // If this route specifies a container component, compose it around every
       // view in the stack.
       stack = stack.map(r => (
         r.update('component', child => (
           <RenderRouteNode
-            key={useKeys ? pathToString(path) : undefined}
             isContainer={true}
             routeDef={routeDef}
             routeState={routeState}
