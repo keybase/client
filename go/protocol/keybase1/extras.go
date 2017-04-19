@@ -665,6 +665,22 @@ func (a PostJSONArg) GetAppStatusCodes() []int {
 	return a.AppStatusCode
 }
 
+func (a DeleteArg) GetEndpoint() string {
+	return a.Endpoint
+}
+
+func (a DeleteArg) GetHTTPArgs() []StringKVPair {
+	return a.Args
+}
+
+func (a DeleteArg) GetHttpStatuses() []int {
+	return a.HttpStatus
+}
+
+func (a DeleteArg) GetAppStatusCodes() []int {
+	return a.AppStatusCode
+}
+
 // ToStatusAble is something that can be coerced into a status. Some error types
 // in your application might want this.
 type ToStatusAble interface {
