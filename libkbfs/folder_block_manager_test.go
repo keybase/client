@@ -247,7 +247,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't write file: %+v", err)
 	}
-	err = kbfsOps1.Sync(ctx, aNode1)
+	err = kbfsOps1.SyncAll(ctx, aNode1.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync file: %+v", err)
 	}
@@ -264,7 +264,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Couldn't write file: %+v", err)
 		}
-		err = kbfsOps1.Sync(ctx, node)
+		err = kbfsOps1.SyncAll(ctx, node.GetFolderBranch())
 		if err != nil {
 			t.Fatalf("Couldn't sync file: %+v", err)
 		}
@@ -363,7 +363,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't write file: %+v", err)
 	}
-	err = kbfsOps2.Sync(ctx, dNode)
+	err = kbfsOps2.SyncAll(ctx, dNode.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't write file: %+v", err)
 	}
@@ -393,7 +393,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	// Start the sync and wait for it to stall twice only.
 	errChan := make(chan error)
 	go func() {
-		errChan <- kbfsOps2.Sync(ctxStall, eNode)
+		errChan <- kbfsOps2.SyncAll(ctxStall, eNode.GetFolderBranch())
 	}()
 	<-onWriteStalledCh
 	<-onWriteStalledCh

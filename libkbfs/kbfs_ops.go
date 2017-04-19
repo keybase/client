@@ -634,12 +634,6 @@ func (fs *KBFSOpsStandard) SetMtime(
 	return ops.SetMtime(ctx, file, mtime)
 }
 
-// Sync implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) Sync(ctx context.Context, file Node) error {
-	ops := fs.getOpsByNode(ctx, file)
-	return ops.Sync(ctx, file)
-}
-
 // SyncAll implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) SyncAll(
 	ctx context.Context, folderBranch FolderBranch) error {

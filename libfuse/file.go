@@ -173,7 +173,7 @@ var _ fs.NodeFsyncer = (*File)(nil)
 
 func (f *File) sync(ctx context.Context) error {
 	f.eiCache.destroy()
-	err := f.folder.fs.config.KBFSOps().Sync(ctx, f.node)
+	err := f.folder.fs.config.KBFSOps().SyncAll(ctx, f.node.GetFolderBranch())
 	if err != nil {
 		return err
 	}

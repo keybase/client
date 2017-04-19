@@ -2908,7 +2908,7 @@ func TestInvalidateAppendAcrossMounts(t *testing.T) {
 			ctx, myfile, []byte(input2), int64(len(input1))); err != nil {
 			t.Fatal(err)
 		}
-		if err := ops.Sync(ctx, myfile); err != nil {
+		if err := ops.SyncAll(ctx, myfile.GetFolderBranch()); err != nil {
 			t.Fatal(err)
 		}
 	}

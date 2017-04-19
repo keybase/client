@@ -149,7 +149,7 @@ func writeHelper(ctx context.Context, config libkbfs.Config, args []string) (err
 		if *verbose {
 			fmt.Fprintf(os.Stderr, "Syncing %s\n", p)
 		}
-		err := kbfsOps.Sync(ctx, fileNode)
+		err := kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch())
 		if err != nil {
 			return err
 		}

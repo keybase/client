@@ -76,7 +76,7 @@ func (f *File) FlushFileBuffers(ctx context.Context, fi *dokan.FileInfo) (err er
 	f.folder.fs.logEnter(ctx, "File FlushFileBuffers")
 	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
-	return f.folder.fs.config.KBFSOps().Sync(ctx, f.node)
+	return f.folder.fs.config.KBFSOps().SyncAll(ctx, f.node.GetFolderBranch())
 }
 
 // ReadFile for dokan reads.

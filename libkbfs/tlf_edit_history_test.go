@@ -133,7 +133,7 @@ func testDoTlfEdit(t *testing.T, ctx context.Context, tlfName string,
 	require.NoError(t, err)
 	err = kbfsOps.Write(ctx, fileNode, []byte{0}, 0)
 	require.NoError(t, err)
-	err = kbfsOps.Sync(ctx, fileNode)
+	err = kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch())
 	require.NoError(t, err)
 	if i >= 70 {
 		edits[uid] = append(edits[uid], TlfEdit{
@@ -284,7 +284,7 @@ func TestLongTlfEditHistory(t *testing.T) {
 	require.NoError(t, err)
 	err = kbfsOps2.Write(ctx, editNode, []byte{1}, 1)
 	require.NoError(t, err)
-	err = kbfsOps2.Sync(ctx, editNode)
+	err = kbfsOps2.SyncAll(ctx, editNode.GetFolderBranch())
 	require.NoError(t, err)
 
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())

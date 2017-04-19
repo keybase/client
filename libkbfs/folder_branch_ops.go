@@ -3677,103 +3677,6 @@ func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 	return true, true, fblock, lbc, bps, syncState, cleanup, nil
 }
 
-func (fbo *folderBranchOps) syncLocked(ctx context.Context,
-	lState *lockState, file path) (stillDirty bool, err error) {
-	fbo.mdWriterLock.AssertLocked(lState)
-
-	// Verify we have permission to write.
-	md, err := fbo.getMDForWriteLocked(ctx, lState)
-	if err != nil {
-		return false, err
-	}
-
-	var blocksToRemove []BlockPointer
-	doSync, stillDirty, fblock, lbc, bps, syncState, cleanup, err :=
-		fbo.startSyncLocked(ctx, lState, md, file)
-	if cleanup != nil {
-		defer func() { cleanup(ctx, lState, blocksToRemove, err) }()
-	}
-	if err != nil {
-		return stillDirty, err
-	}
-	if !doSync {
-		return stillDirty, nil
-	}
-
-	newPath, _, newBps, err :=
-		fbo.syncBlockAndCheckEmbedLocked(
-			ctx, lState, md, fblock, *file.parentPath(),
-			file.tailName(), File, true, true, zeroPtr, lbc)
-	if err != nil {
-		return true, err
-	}
-
-	bps.mergeOtherBps(newBps)
-
-	// Note: We explicitly don't call fbo.fbm.cleanUpBlockState here
-	// when there's an error, because it's possible some of the blocks
-	// will be reused in a future attempt at this same sync, and we
-	// don't want them cleaned up in that case.  Instead, the
-	// FinishSync call below will take care of that.
-
-	blocksToRemove, err = doBlockPuts(ctx, fbo.config.BlockServer(),
-		fbo.config.BlockCache(), fbo.config.Reporter(), fbo.log, md.TlfID(),
-		md.GetTlfHandle().GetCanonicalName(), *bps)
-	if err != nil {
-		return true, err
-	}
-
-	// Call this under the same blockLock as when the pointers are
-	// updated, so there's never any point in time where a read or
-	// write might slip in after the pointers are updated, but before
-	// the deferred writes are re-applied.
-	afterUpdateFn := func() error {
-		stillDirty, err = fbo.blocks.FinishSyncLocked(
-			ctx, lState, file, newPath, md.ReadOnly(), syncState, fbo.fbm)
-		return err
-	}
-
-	err = fbo.finalizeMDWriteLocked(ctx, lState, md, bps, NoExcl, afterUpdateFn)
-	if err != nil {
-		return true, err
-	}
-	return stillDirty, err
-}
-
-func (fbo *folderBranchOps) Sync(ctx context.Context, file Node) (err error) {
-	fbo.log.CDebugf(ctx, "Sync %s", getNodeIDStr(file))
-	defer func() {
-		fbo.deferLog.CDebugf(ctx, "Sync %s done: %+v",
-			getNodeIDStr(file), err)
-	}()
-
-	err = fbo.checkNode(file)
-	if err != nil {
-		return
-	}
-
-	var stillDirty bool
-	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx,
-		func(lState *lockState) error {
-			filePath, err := fbo.pathFromNodeForMDWriteLocked(lState, file)
-			if err != nil {
-				return err
-			}
-
-			stillDirty, err = fbo.syncLocked(ctx, lState, filePath)
-			return err
-		})
-	if err != nil {
-		return err
-	}
-
-	if !stillDirty {
-		fbo.status.rmDirtyNode(file)
-	}
-
-	return nil
-}
-
 func (fbo *folderBranchOps) syncAllLocked(
 	ctx context.Context, lState *lockState) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -5539,34 +5442,11 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 			longCtx, longCancel :=
 				context.WithTimeout(ctx, backgroundTaskTimeout)
 			defer longCancel()
-
-			// Make sure this loop doesn't starve user requests for
-			// too long.  But use the longer-timeout version in the
-			// actual Sync command, to avoid unnecessary errors.
-			shortCtx, shortCancel := context.WithTimeout(ctx, 1*time.Second)
-			defer shortCancel()
-			for _, ref := range dirtyRefs {
-				select {
-				case <-shortCtx.Done():
-					fbo.log.CDebugf(ctx,
-						"Stopping background sync early due to timeout")
-					return nil
-				default:
-				}
-
-				node := fbo.nodeCache.Get(ref)
-				if node == nil {
-					continue
-				}
-				err := fbo.Sync(longCtx, node)
-				if err != nil {
-					// Just log the warning and keep trying to
-					// sync the rest of the dirty files.
-					p := fbo.nodeCache.PathFromNode(node)
-					fbo.log.CWarningf(ctx, "Couldn't sync dirty file with "+
-						"ref=%v, nodeID=%s, and path=%v: %v",
-						ref, getNodeIDStr(node), p, err)
-				}
+			err = fbo.SyncAll(longCtx, fbo.folderBranch)
+			if err != nil {
+				// Just log the warning and keep trying to
+				// sync the rest of the dirty files.
+				fbo.log.CWarningf(ctx, "Couldn't sync all", err)
 			}
 			return nil
 		})

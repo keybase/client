@@ -136,7 +136,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	// start the sync
 	errChan := make(chan error)
 	go func() {
-		errChan <- kbfsOps.Sync(putCtx, fileNode)
+		errChan <- kbfsOps.SyncAll(putCtx, fileNode.GetFolderBranch())
 	}()
 
 	// wait until Sync gets stuck at MDOps.Put()
@@ -223,11 +223,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	// start the sync
 	errChan := make(chan error)
 	go func() {
-		if len(fileNodes) == 1 {
-			errChan <- kbfsOps.Sync(putCtx, fileNodes[0])
-		} else {
-			errChan <- kbfsOps.SyncAll(putCtx, fileNodes[0].GetFolderBranch())
-		}
+		errChan <- kbfsOps.SyncAll(putCtx, fileNodes[0].GetFolderBranch())
 	}()
 
 	// wait until Sync gets stuck at MDOps.Put()
@@ -296,11 +292,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 		t.Logf("Unexpected number of cached clean blocks: %d vs %d (%d vs %d)", g, e, totalSize, bsplitter.maxSize)
 	}
 
-	if len(fileNodes) == 1 {
-		err = kbfsOps.Sync(ctx, fileNodes[0])
-	} else {
-		err = kbfsOps.SyncAll(ctx, fileNodes[0].GetFolderBranch())
-	}
+	err = kbfsOps.SyncAll(ctx, fileNodes[0].GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Final sync failed: %v", err)
 	}
@@ -383,7 +375,7 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	}
 
 	// Sync the initial two data blocks
-	err = kbfsOps.Sync(ctx, fileNode)
+	err = kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Initial sync failed: %v", err)
 	}
@@ -399,7 +391,7 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	// start the sync
 	errChan := make(chan error)
 	go func() {
-		errChan <- kbfsOps.Sync(putCtx, fileNode)
+		errChan <- kbfsOps.SyncAll(putCtx, fileNode.GetFolderBranch())
 	}()
 
 	// wait until Sync gets stuck at MDOps.Put()
@@ -443,7 +435,7 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	}
 
 	// Final sync
-	err = kbfsOps.Sync(ctx, fileNode)
+	err = kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Final sync failed: %v", err)
 	}
@@ -638,7 +630,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	go func() {
 		defer wg.Done()
 
-		syncErr = kbfsOps.Sync(ctxStallSync, fileNode)
+		syncErr = kbfsOps.SyncAll(ctxStallSync, fileNode.GetFolderBranch())
 	}()
 	<-onSyncStalledCh
 
@@ -720,7 +712,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	// block).
 	syncErrCh := make(chan error, 1)
 	go func() {
-		syncErrCh <- kbfsOps.Sync(ctxStallSync, fileNode)
+		syncErrCh <- kbfsOps.SyncAll(ctxStallSync, fileNode.GetFolderBranch())
 	}()
 	select {
 	case <-onSyncStalledCh:
@@ -812,7 +804,7 @@ func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
 		t.Fatalf("Couldn't write file: %+v", err)
 	}
 
-	err = kbfsOps.Sync(ctx, fileNode)
+	err = kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync file: %+v", err)
 	}
@@ -824,7 +816,7 @@ func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
 		t.Fatalf("Couldn't write file: %+v", err)
 	}
 
-	err = kbfsOps.Sync(ctx, fileNode)
+	err = kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync file: %+v", err)
 	}
@@ -871,7 +863,7 @@ func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
 	// block).
 	syncErrCh := make(chan error, 1)
 	go func() {
-		syncErrCh <- kbfsOps.Sync(ctxStallSync, fileNode2)
+		syncErrCh <- kbfsOps.SyncAll(ctxStallSync, fileNode2.GetFolderBranch())
 	}()
 	select {
 	case <-onSyncStalledCh:
@@ -919,7 +911,7 @@ func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
 		t.Fatalf("Timeout waiting for write: %v", ctx.Err())
 	}
 
-	err = kbfsOps.Sync(ctx, fileNode2)
+	err = kbfsOps.SyncAll(ctx, fileNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync file: %+v", err)
 	}
@@ -982,7 +974,7 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 		}
 	}()
 
-	err = kbfsOps.Sync(ctx, fileNode)
+	err = kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
@@ -1017,7 +1009,7 @@ func TestKBFSOpsConcurWriteDuringFolderUpdate(t *testing.T) {
 	}
 
 	// Now sync the original file and see make sure the write survived
-	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
+	if err := kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch()); err != nil {
 		t.Fatalf("Couldn't sync: %v", err)
 	}
 
@@ -1062,7 +1054,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	}
 
 	// sync these initial blocks
-	err = kbfsOps.Sync(ctx, fileNode)
+	err = kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch())
 	if err != nil {
 		t.Errorf("Couldn't do the first sync: %v", err)
 	}
@@ -1086,7 +1078,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	// start the sync
 	errChan := make(chan error)
 	go func() {
-		errChan <- kbfsOps.Sync(putCtx, fileNode)
+		errChan <- kbfsOps.SyncAll(putCtx, fileNode.GetFolderBranch())
 	}()
 
 	// wait until Sync gets stuck at MDOps.Put()
@@ -1130,7 +1122,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	}
 
 	// Final sync to clean up
-	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
+	if err := kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch()); err != nil {
 		t.Errorf("Couldn't sync the final write")
 	}
 }
@@ -1320,7 +1312,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 		cancel2()
 	}()
 
-	err = kbfsOps.Sync(ctx2, fileNode)
+	err = kbfsOps.SyncAll(ctx2, fileNode.GetFolderBranch())
 	if err != ctx2.Err() {
 		t.Errorf("Sync did not get canceled error: %v", err)
 	}
@@ -1346,7 +1338,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	config.BlockServer().Shutdown(ctx)
 	b = newStallingBServer(log)
 	config.SetBlockServer(b)
-	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
+	if err := kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch()); err != nil {
 		t.Fatalf("Second sync failed: %v", err)
 	}
 
@@ -1429,6 +1421,8 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 			serverHalf kbfscrypto.BlockCryptKeyServerHalf) {
 			<-proceedChan
 		}).After(c).Return(nil)
+	b.EXPECT().RemoveBlockReferences(gomock.Any(), gomock.Any(), gomock.Any()).
+		AnyTimes().Return(nil, nil)
 	b.EXPECT().Shutdown(gomock.Any()).AnyTimes()
 
 	var errPtr BlockPointer
@@ -1437,7 +1431,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 		close(proceedChan)
 	}()
 
-	err = kbfsOps.Sync(ctx, fileNode)
+	err = kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch())
 	if err != putErr {
 		t.Errorf("Sync did not get the expected error: %v", err)
 	}
@@ -1496,7 +1490,7 @@ func testKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T, nFiles int) {
 		t.Errorf("Couldn't write file: %v", err)
 	}
 
-	err = kbfsOps.Sync(ctx, fileNodes[0])
+	err = kbfsOps.SyncAll(ctx, fileNodes[0].GetFolderBranch())
 	if err != nil {
 		t.Fatalf("First sync failed: %v", err)
 	}
@@ -1548,12 +1542,7 @@ func testKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T, nFiles int) {
 	errChan := make(chan error)
 	// start the sync
 	go func() {
-		if len(fileNodes) == 1 {
-			errChan <- kbfsOps.Sync(ctxStallSync, fileNode2)
-		} else {
-			errChan <- kbfsOps.SyncAll(
-				ctxStallSync, fileNode2.GetFolderBranch())
-		}
+		errChan <- kbfsOps.SyncAll(ctxStallSync, fileNode2.GetFolderBranch())
 	}()
 	select {
 	case <-onSyncStalledCh:
@@ -1575,11 +1564,7 @@ func testKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T, nFiles int) {
 	}
 
 	// Final sync
-	if len(fileNodes) == 1 {
-		err = kbfsOps.Sync(ctx, fileNode2)
-	} else {
-		err = kbfsOps.SyncAll(ctx, fileNode2.GetFolderBranch())
-	}
+	err = kbfsOps.SyncAll(ctx, fileNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Final sync failed: %v", err)
 	}
@@ -1661,7 +1646,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 		t.Errorf("Couldn't write file: %v", err)
 	}
 
-	err = kbfsOps.Sync(ctx, fileNodes[0])
+	err = kbfsOps.SyncAll(ctx, fileNodes[0].GetFolderBranch())
 	if err != nil {
 		t.Fatalf("First sync failed: %v", err)
 	}
@@ -1718,12 +1703,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	errChan := make(chan error, 1)
 	// start the sync
 	go func() {
-		if len(fileNodes) == 1 {
-			errChan <- kbfsOps.Sync(ctxStallSync, fileNode2)
-		} else {
-			errChan <- kbfsOps.SyncAll(
-				ctxStallSync, fileNode2.GetFolderBranch())
-		}
+		errChan <- kbfsOps.SyncAll(ctxStallSync, fileNode2.GetFolderBranch())
 	}()
 
 	// Wait for the first block to finish (before the retry)
@@ -1776,11 +1756,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	}
 
 	// Finish the sync
-	if len(fileNodes) == 1 {
-		err = kbfsOps.Sync(ctx, fileNode2)
-	} else {
-		err = kbfsOps.SyncAll(ctx, fileNode2.GetFolderBranch())
-	}
+	err = kbfsOps.SyncAll(ctx, fileNode2.GetFolderBranch())
 	if err != nil {
 		t.Errorf("Couldn't sync file after error: %v", err)
 	}
@@ -1994,7 +1970,7 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	errChan := make(chan error)
 	cancelCtx, cancel := context.WithCancel(putCtx)
 	go func() {
-		errChan <- kbfsOps.Sync(cancelCtx, fileNode)
+		errChan <- kbfsOps.SyncAll(cancelCtx, fileNode.GetFolderBranch())
 	}()
 
 	// wait until Sync gets stuck at MDOps.Put()
@@ -2010,7 +1986,7 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 
 	// Flush the file.  This will result in conflict resolution, and
 	// an extra copy of the file, but that's ok for now.
-	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
+	if err := kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch()); err != nil {
 		t.Fatalf("Couldn't sync: %v", err)
 	}
 	if len(ops.fbm.blocksToDeleteChan) == 0 {
@@ -2083,7 +2059,7 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 	errChan := make(chan error)
 	cancelCtx, cancel := context.WithCancel(putCtx)
 	go func() {
-		errChan <- kbfsOps.Sync(cancelCtx, fileNode)
+		errChan <- kbfsOps.SyncAll(cancelCtx, fileNode.GetFolderBranch())
 	}()
 
 	// wait until Sync gets stuck at MDOps.Put()
@@ -2105,7 +2081,7 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 	// which we will also cancel.
 	cancelCtx, cancel = context.WithCancel(putUnmergedCtx)
 	go func() {
-		errChan <- kbfsOps.Sync(cancelCtx, fileNode)
+		errChan <- kbfsOps.SyncAll(cancelCtx, fileNode.GetFolderBranch())
 	}()
 
 	// wait until Sync gets stuck at MDOps.Put()
@@ -2121,7 +2097,7 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 
 	// Now finally flush the file again, which will result in a
 	// conflict file.
-	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
+	if err := kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch()); err != nil {
 		t.Fatalf("Couldn't sync: %v", err)
 	}
 
@@ -2181,7 +2157,7 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 		t.Errorf("Couldn't write file: %v", err)
 	}
 
-	err = kbfsOps.Sync(ctx, fileNode2)
+	err = kbfsOps.SyncAll(ctx, fileNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("First sync failed: %v", err)
 	}
@@ -2203,7 +2179,7 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 		StallBlockOp(cancelCtx, config, StallableBlockPut, 1)
 
 	go func() {
-		errChan <- kbfsOps.Sync(ctxStallSync, fileNode2)
+		errChan <- kbfsOps.SyncAll(ctxStallSync, fileNode2.GetFolderBranch())
 	}()
 	<-onSyncStalledCh
 
@@ -2216,7 +2192,7 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 	}
 
 	// Final sync
-	err = kbfsOps.Sync(ctx, fileNode2)
+	err = kbfsOps.SyncAll(ctx, fileNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Final sync failed: %v", err)
 	}
@@ -2270,7 +2246,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	// Sync the initial two data blocks
 	syncErrCh := make(chan error)
 	go func() {
-		syncErrCh <- kbfsOps.Sync(ctxStallSync, fileNode)
+		syncErrCh <- kbfsOps.SyncAll(ctxStallSync, fileNode.GetFolderBranch())
 	}()
 	<-onSyncStalledCh
 
@@ -2320,7 +2296,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 
 	// Finish the sync to clear out the byte counts
 	config.SetBlockOps(realBlockOps)
-	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
+	if err := kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch()); err != nil {
 		t.Fatalf("Couldn't finish sync: %v", err)
 	}
 }
@@ -2427,7 +2403,7 @@ func TestKBFSOpsLookupSyncRace(t *testing.T) {
 	if err != nil {
 		t.Errorf("Couldn't write file: %v", err)
 	}
-	if err := kbfsOps1.Sync(ctx, fileNodeA1); err != nil {
+	if err := kbfsOps1.SyncAll(ctx, fileNodeA1.GetFolderBranch()); err != nil {
 		t.Fatalf("Couldn't finish sync: %v", err)
 	}
 

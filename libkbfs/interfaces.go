@@ -285,12 +285,6 @@ type KBFSOps interface {
 	// the top-level folder.  If mtime is nil, it is a noop.  This is
 	// a remote-sync operation.
 	SetMtime(ctx context.Context, file Node, mtime *time.Time) error
-	// Sync flushes all outstanding writes and truncates for the given
-	// file to the KBFS servers, if the logged-in user has write
-	// permissions to the top-level folder.  If done through a file
-	// system interface, this may include modifications done via
-	// multiple file handles.  This is a remote-sync operation.
-	Sync(ctx context.Context, file Node) error
 	// SyncAll flushes all outstanding writes and truncates for any
 	// dirty files to the KBFS servers within the given folder, if the
 	// logged-in user has write permissions to the top-level folder.

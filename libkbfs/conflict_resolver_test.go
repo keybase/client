@@ -1103,7 +1103,7 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't write: %v", err)
 	}
-	err = config2.KBFSOps().Sync(ctx, file2)
+	err = config2.KBFSOps().SyncAll(ctx, file2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync: %v", err)
 	}
@@ -1286,7 +1286,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't write file: %v", err)
 	}
-	err = config1.KBFSOps().Sync(ctx, file1)
+	err = config1.KBFSOps().SyncAll(ctx, file1.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
@@ -1297,7 +1297,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't write file: %v", err)
 	}
-	err = config2.KBFSOps().Sync(ctx, file2)
+	err = config2.KBFSOps().SyncAll(ctx, file2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}

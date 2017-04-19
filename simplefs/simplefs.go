@@ -544,7 +544,7 @@ func (k *SimpleFS) SimpleFSClose(ctx context.Context, opid keybase1.OpID) (err e
 	}
 	delete(k.handles, opid)
 	if h.node != nil {
-		err = k.config.KBFSOps().Sync(ctx, h.node)
+		err = k.config.KBFSOps().SyncAll(ctx, h.node.GetFolderBranch())
 	}
 	return err
 }
@@ -858,7 +858,7 @@ func (r *kbfsIO) Write(bs []byte) (int, error) {
 }
 
 func (r *kbfsIO) Close() error {
-	return r.sfs.config.KBFSOps().Sync(r.ctx, r.node)
+	return r.sfs.config.KBFSOps().SyncAll(r.ctx, r.node.GetFolderBranch())
 }
 
 func (r *kbfsIO) Type() keybase1.DirentType {
