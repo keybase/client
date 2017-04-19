@@ -32,13 +32,30 @@ class Icon extends Component<void, Exact<Props>, void> {
     const textAlign = this.props.style && this.props.style.textAlign
     const backgroundColor = this.props.style && {backgroundColor: this.props.style.backgroundColor} || {}
 
-    // Color is for our fontIcon and not the container
-    let containerProps = {...this.props.style}
-    delete containerProps.color
-    delete containerProps.width
-    delete containerProps.height
-    delete containerProps.textAlign
-    delete containerProps.fontSize
+    // Extract style props for our container and box
+    let containerProps = {
+      ...this.props.style,
+      bottom: undefined,
+      color: undefined,
+      fontSize: undefined,
+      height: undefined,
+      left: undefined,
+      position: undefined,
+      right: undefined,
+      textAlign: undefined,
+      top: undefined,
+      width: undefined,
+    }
+
+    const clickableBoxStyle = {
+      bottom: this.props.style && this.props.style.bottom,
+      height: this.props.style && this.props.style.height,
+      left: this.props.style && this.props.style.left,
+      position: this.props.style && this.props.style.position,
+      right: this.props.style && this.props.style.right,
+      top: this.props.style && this.props.style.top,
+      width: this.props.style && this.props.style.width,
+    }
 
     if (!iconMeta[iconType]) {
       console.warn(`Invalid icon type passed in: ${iconType}`)
@@ -54,7 +71,8 @@ class Icon extends Component<void, Exact<Props>, void> {
       <ClickableBox
         activeOpacity={0.8}
         underlayColor={this.props.underlayColor || globalColors.white}
-        onClick={this.props.onClick}>
+        onClick={this.props.onClick}
+        style={clickableBoxStyle}>
         <Box style={containerProps}>
           {icon}
         </Box>
