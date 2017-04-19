@@ -1,11 +1,11 @@
-'use strict' // eslint-disable-line
+/* eslint no-multi-spaces: "off", flowtype/require-valid-file-annotation: "off", strict: "off", key-spacing: "off", comma-spacing: "off" */
+'use strict'
 
 var promise = require('bluebird')
 var fs = promise.promisifyAll(require('fs'))
 var path = require('path')
 var codeGenerators = require('./js-code-generators.js')
-var colors = require('colors')
-var camelcase = require('camelcase');
+var camelcase = require('camelcase')
 
 var projects = {
   'chat1': {
@@ -379,7 +379,6 @@ function decapitalize (s) {
 }
 
 const shorthands = [
-
   {re:  /Tty([A-Zs]|$)/g, into: 'TTY$1', re2: /^TTY/, into2: 'tty'},
   {re:  /Tlf([A-Zs]|$)/g, into: 'TLF$1', re2: /^TLF/, into2: 'tlf'},
   {re:  /Uid([A-Zs]|$)/g, into: 'UID$1', re2: /^UID/, into2: 'uid'},
@@ -397,18 +396,18 @@ const shorthands = [
 
   {re:  /Ed25519([A-Z]|$)/g, into: 'ED25519$1', re2: /^ED25519/, into2: 'ed25519'},
 
-  {re:  /Id([A-Zs]|$)/g , into: 'ID$1' , re2: /^ID/,  into2: 'id' },
-  {re:  /Kv([A-Zs]|$)/g,  into: 'KV$1',  re2: /^KV/,  into2: 'kv' },
-  {re:  /Ui([A-Z]|$)/g,   into: 'UI$1',  re2: /^UI/,  into2: 'ui' }, // this has to be placed after the one for UID
-  {re:  /Fs([A-Z]|$)/g,   into: 'FS$1',  re2: /^FS/,  into2: 'fs' },
-  {re:  /Md([A-Z]|$)/g,   into: 'MD$1',  re2: /^MD/,  into2: 'md' },
-  {re:  /Ok([A-Z]|$)/g,   into: 'OK$1',  re2: /^OK/,  into2: 'ok' },
+  {re:  /Id([A-Zs]|$)/g , into: 'ID$1' , re2: /^ID/,  into2: 'id'},
+  {re:  /Kv([A-Zs]|$)/g,  into: 'KV$1',  re2: /^KV/,  into2: 'kv'},
+  {re:  /Ui([A-Z]|$)/g,   into: 'UI$1',  re2: /^UI/,  into2: 'ui'}, // this has to be placed after the one for UID
+  {re:  /Fs([A-Z]|$)/g,   into: 'FS$1',  re2: /^FS/,  into2: 'fs'},
+  {re:  /Md([A-Z]|$)/g,   into: 'MD$1',  re2: /^MD/,  into2: 'md'},
+  {re:  /Ok([A-Z]|$)/g,   into: 'OK$1',  re2: /^OK/,  into2: 'ok'},
 ]
 
-function camelcaseWithSpecialHandlings(s, shouldCapitalize) {
+function camelcaseWithSpecialHandlings (s, shouldCapitalize) {
   const capitalized = capitalize(camelcase(s))
   let specialized = capitalized
-  for ( let shorthand of shorthands ) {
+  for (let shorthand of shorthands) {
     specialized = specialized.replace(shorthand.re, shorthand.into)
   }
   specialized = specialized.replace(/[Tt][Ll][Ff][Ii][Dd]([A-Zs]|$)/g, 'TLFID$1')
@@ -420,7 +419,7 @@ function camelcaseWithSpecialHandlings(s, shouldCapitalize) {
     return specialized
   }
 
-  for ( let shorthand of shorthands ) {
+  for (let shorthand of shorthands) {
     specialized = specialized.replace(shorthand.re2, shorthand.into2)
   }
 
@@ -471,7 +470,7 @@ function lintMessage (name, message) {
   })
 }
 
-function lintJSON(json) {
+function lintJSON (json) {
   const pName = camelcaseWithSpecialHandlings(json.protocol, true)
   if (pName !== json.protocol) {
     // Ignore protocol name lint errors by default

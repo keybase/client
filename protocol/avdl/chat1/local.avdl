@@ -342,19 +342,19 @@ protocol local {
   }
 
   enum ConversationErrorType {
-    MISC_0,
+    PERMANENT_0,
     MISSINGINFO_1,
     SELFREKEYNEEDED_2,
     OTHERREKEYNEEDED_3,
     IDENTIFY_4,
-    LOCALMAXMESSAGENOTFOUND_5 // special use-case internally
+    TRANSIENT_5,
+    NONE_6
   }
 
   record ConversationErrorLocal {
     ConversationErrorType typ;
     string message;
     Conversation remoteConv;
-    boolean permanent;
     string unverifiedTLFName;
     // Only set if typ is for rekeying.
     union { null, ConversationErrorRekey} rekeyInfo;

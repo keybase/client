@@ -36,8 +36,8 @@ function downloadFilePath (suffix: string): string {
 
 function exists (filepath: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
-    fs.exists(filepath, exists => {
-      resolve(exists)
+    fs.access(filepath, fs.constants.F_OK, err => {
+      resolve(!err)
     })
   })
 }

@@ -1,27 +1,18 @@
 // @flow
 import {globalColors} from '../../../styles'
-import {Map} from 'immutable'
 
-import type {FollowingMap, MetaDataMap} from '../../../constants/chat'
-
-const marginColor = (user: string, you: string, followingMap: FollowingMap, metaDataMap: MetaDataMap) => {
-  if (user === you) {
+const marginColor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
+  if (isYou) {
     return globalColors.white
-  } else {
-    if (metaDataMap.get(user, Map()).get('brokenTracker', false)) {
-      return globalColors.red
-    }
-    return followingMap[user] ? globalColors.green2 : globalColors.blue
+  } else if (isBroken) {
+    return globalColors.red
   }
+  return isFollowing ? globalColors.green2 : globalColors.blue
 }
 
-const colorForAuthor = (user: string, you: string, followingMap: FollowingMap, metaDataMap: MetaDataMap) => {
-  if (user === you) {
-    return globalColors.black_75
-  } else {
-    return marginColor(user, you, followingMap, metaDataMap)
-  }
-}
+const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => (
+  isYou ? globalColors.black_75 : marginColor(user, isYou, isFollowing, isBroken)
+)
 
 export {
   marginColor,

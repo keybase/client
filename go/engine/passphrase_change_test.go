@@ -350,7 +350,7 @@ func TestPassphraseChangeUnknownNoPSCache(t *testing.T) {
 		arg.SkipPaper = true
 	}
 
-	u, _ := CreateAndSignupFakeUserCustomArg(tc, "paper", f)
+	u, _, _ := CreateAndSignupFakeUserCustomArg(tc, "paper", f)
 
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()

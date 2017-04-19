@@ -84,7 +84,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	tc.G.ServerCacheVersions = storage.NewServerVersions(tc.G)
 	chatSyncer := chat.NewSyncer(tc.G)
 	tc.G.ChatSyncer = chatSyncer
-	tc.G.ConnectivityMonitor = chatSyncer
+	tc.G.ConnectivityMonitor = &libkb.NullConnectivityMonitor{}
 
 	h.setTestRemoteClient(mockRemote)
 	h.gh = newGregorHandler(tc.G)

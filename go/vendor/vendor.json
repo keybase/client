@@ -343,9 +343,10 @@
 			"revisionTime": "2017-04-10T15:59:43Z"
 		},
 		{
+			"checksumSHA1": "+M7ZCwfOlTTydJiINKWOyzz/NSg=",
 			"path": "github.com/keybase/saltpack/encoding/basex",
-			"revision": "203e36cfb2c85e26a18d306f08fac0df64a38781",
-			"revisionTime": "2016-03-14T16:16:15-07:00"
+			"revision": "55b28da0fb8f9b1a0eae731c6105e03b48468e27",
+			"revisionTime": "2017-04-10T15:59:43Z"
 		},
 		{
 			"path": "github.com/kr/pty",

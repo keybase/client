@@ -1097,6 +1097,18 @@ export function configClearValueRpcPromise (request: $Exact<requestCommon & requ
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.config.clearValue', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function configGetBootstrapStatusRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: configGetBootstrapStatusResult) => void}>) {
+  engineRpcOutgoing('keybase.1.config.getBootstrapStatus', request)
+}
+
+export function configGetBootstrapStatusRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetBootstrapStatusResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.config.getBootstrapStatus', request, callback, incomingCallMap) })
+}
+
+export function configGetBootstrapStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetBootstrapStatusResult) => void}>): Promise<configGetBootstrapStatusResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.config.getBootstrapStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function configGetConfigRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: configGetConfigResult) => void}>) {
   engineRpcOutgoing('keybase.1.config.getConfig', request)
 }
@@ -3160,6 +3172,17 @@ export type BlockReferenceCount = {
 export type BlockType =
     0 // DATA_0
   | 1 // MD_1
+
+export type BootstrapStatus = {
+  registered: boolean,
+  loggedIn: boolean,
+  uid: UID,
+  username: string,
+  deviceID: DeviceID,
+  deviceName: string,
+  following?: ?Array<string>,
+  followers?: ?Array<string>,
+}
 
 export type BoxNonce = any
 
@@ -5810,6 +5833,7 @@ type blockGetBlockResult = GetBlockRes
 type blockGetSessionChallengeResult = ChallengeInfo
 type blockGetUserQuotaInfoResult = bytes
 type configCheckAPIServerOutOfDateWarningResult = OutOfDateInfo
+type configGetBootstrapStatusResult = BootstrapStatus
 type configGetConfigResult = Config
 type configGetCurrentStatusResult = GetCurrentStatusRes
 type configGetExtendedStatusResult = ExtendedStatus
@@ -5973,6 +5997,7 @@ export type rpc =
   | blockPutBlockRpc
   | configCheckAPIServerOutOfDateWarningRpc
   | configClearValueRpc
+  | configGetBootstrapStatusRpc
   | configGetConfigRpc
   | configGetCurrentStatusRpc
   | configGetExtendedStatusRpc

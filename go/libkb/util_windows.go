@@ -145,18 +145,19 @@ func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) (bool, e
 	if newSecretKeyfiles, _ := filepath.Glob(filepath.Join(currentHome, "*.ss")); len(newSecretKeyfiles) > 0 {
 		return false, nil
 	}
-	g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldHome, currentHome)
 
 	files, _ := filepath.Glob(filepath.Join(oldHome, "*.mpack"))
 	oldSecretKeyfiles, _ := filepath.Glob(filepath.Join(oldHome, "*.ss"))
 	files = append(files, oldSecretKeyfiles...)
 	var newFiles []string
+
 	for _, oldPathName := range files {
 		_, name := filepath.Split(oldPathName)
 		newPathName := filepath.Join(currentHome, name)
 
 		// If both copies exist, skip
 		if exists, _ := FileExists(newPathName); !exists {
+			g.Log.Error("RemoteSettingsRepairman copying %s to %s", oldPathName, newPathName)
 			err = copyFile(oldPathName, newPathName)
 			if err != nil {
 				g.Log.Error("RemoteSettingsRepairman fatal error copying %s to %s - %s", oldPathName, newPathName, err)

@@ -86,13 +86,12 @@ function * savePushTokenSaga (): SagaGenerator<any, any> {
     const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
     const {token, tokenType} = ((yield select(pushSelector)): any)
 
-    const extendedConfigSelector = ({config: {extendedConfig}}: TypedState) => extendedConfig
-    const extendedConfig = ((yield select(extendedConfigSelector)): any)
+    const deviceIDSelector = ({config: {deviceID}}: TypedState) => deviceID
+    const deviceID = ((yield select(deviceIDSelector)): any)
 
-    if (!extendedConfig || !extendedConfig.defaultDeviceID) {
-      throw new Error('No device available for saving push token:', extendedConfig)
+    if (!deviceID) {
+      throw new Error('No device available for saving push token')
     }
-    const deviceID = extendedConfig.defaultDeviceID
     if (!token) {
       throw new Error('No push token available to save')
     }
