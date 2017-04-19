@@ -16,16 +16,6 @@ import type {Props} from './nav'
 import type {Tab} from './constants/tabs'
 import type {NavigationAction} from 'react-navigation'
 
-const StackWrapper = ({children}) => {
-  // FIXME: KeyboardAvoidingView doubles the padding needed on Android. Remove
-  // this shim when it works consistently with iOS.
-  if (isAndroid) {
-    return <Box style={flexOne}>{children}</Box>
-  } else {
-    return <NativeKeyboardAvoidingView behavior={'padding'} style={sceneWrapStyleUnder} children={children} />
-  }
-}
-
 class CardStackShim extends Component {
   getScreenConfig = () => null
 
@@ -82,36 +72,54 @@ function renderMainStackRoute (route) {
   )
 }
 
+const forIOS = ({hideNav, shim, tabBar}) => (
+  <Box style={flexOne}>
+    <NativeKeyboardAvoidingView behavior={'padding'} style={sceneWrapStyleUnder}>
+      {shim}
+    </NativeKeyboardAvoidingView>
+    {!hideNav && tabBar}
+  </Box>
+)
+
+const forAndroid = ({hideNav, shim, tabBar}) => (
+  <Box style={flexOne}>
+    <Box style={!hideNav ? styleScreenSpaceAndroid : flexOne}>
+      {shim}
+    </Box>
+    {!hideNav &&
+      <Box style={styleCollapsibleNavAndroid}>
+        {tabBar}
+      </Box>}
+  </Box>
+)
+
 function MainNavStack (props: Props) {
   const screens = props.routeStack
-
-  return (
-    <StackWrapper>
-      <Box style={!props.hideNav ? styleScreenSpace : flexOne}>
-        <CardStackShim
-          key={props.routeSelected}  // don't transition when switching tabs
-          stack={screens}
-          renderRoute={renderMainStackRoute}
-          onNavigateBack={props.navigateUp}
-        />
-        {![chatTab].includes(props.routeSelected) && <Offline reachability={props.reachability} appFocused={true} />}
-        <GlobalError />
-      </Box>
-      {!props.hideNav &&
-        <Box style={styleCollapsibleNav}>
-          <TabBar
-            onTabClick={props.switchTab}
-            selectedTab={props.routeSelected}
-            username={props.username}
-            badgeNumbers={{
-              [chatTab]: props.chatBadge,
-              [folderTab]: props.folderBadge,
-            }}
-          />
-        </Box>
-      }
-    </StackWrapper>
+  const shim = (
+    <Box style={flexOne}>
+      <CardStackShim
+        key={props.routeSelected}
+        stack={screens}
+        renderRoute={renderMainStackRoute}
+        onNavigateBack={props.navigateUp}
+      />
+      {![chatTab].includes(props.routeSelected) && <Offline reachability={props.reachability} appFocused={true} />}
+      <GlobalError />
+    </Box>
   )
+
+  const tabBar = <TabBar
+    onTabClick={props.switchTab}
+    selectedTab={props.routeSelected}
+    username={props.username}
+    badgeNumbers={{
+      [chatTab]: props.chatBadge,
+      [folderTab]: props.folderBadge,
+    }}
+  />
+
+  const Container = isAndroid ? forAndroid : forIOS
+  return <Container hideNav={props.hideNav} shim={shim} tabBar={tabBar} />
 }
 
 function renderFullScreenStackRoute (route) {
@@ -163,12 +171,12 @@ const sceneWrapStyleOver = {
   paddingTop: statusBarHeight,
 }
 
-const styleScreenSpace = {
+const styleScreenSpaceAndroid = {
   flex: -1,
   height: Dimensions.get('window').height - tabBarHeight,
 }
 
-const styleCollapsibleNav = {
+const styleCollapsibleNavAndroid = {
   flexShrink: 999999,
 }
 
