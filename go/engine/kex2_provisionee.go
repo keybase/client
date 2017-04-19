@@ -116,9 +116,6 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 		KexBaseArg:  karg,
 		Provisionee: e,
 	}
-	if e.v1Only {
-		parg.V1Only = true
-	}
 	if err := kex2.RunProvisionee(parg); err != nil {
 		return err
 	}
@@ -226,12 +223,16 @@ func (e *Kex2Provisionee) HandleDidCounterSign2(arg keybase1.DidCounterSign2Arg)
 		e.G().Log.Debug("| Failed to unpack pps: %s", err)
 		return err
 	}
-	return e.HandleDidCounterSign(arg.Sig)
+	return e.handleDidCounterSign(arg.Sig, arg.SdhBoxes)
 }
 
 // HandleDidCounterSign implements HandleDidCounterSign in
 // kex2.Provisionee interface.
 func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
+	return e.handleDidCounterSign(sig, nil)
+}
+
+func (e *Kex2Provisionee) handleDidCounterSign(sig []byte, sdhBoxes []keybase1.SharedDHSecretKeyBox) (err error) {
 	e.G().Log.Debug("+ HandleDidCounterSign()")
 	defer func() { e.G().Log.Debug("- HandleDidCounterSign() -> %s", libkb.ErrToOk(err)) }()
 
@@ -283,7 +284,7 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 	}
 
 	// post the key sigs to the api server
-	if err = e.postSigs(eddsaArgs, dhArgs); err != nil {
+	if err = e.postSigs(eddsaArgs, dhArgs, sdhBoxes); err != nil {
 		return err
 	}
 
@@ -457,9 +458,15 @@ func (e *Kex2Provisionee) reverseSig(jw *jsonw.Wrapper) error {
 
 // postSigs takes the HTTP args for the signing key and encrypt
 // key and posts them to the api server.
-func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs) error {
+func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs, sdhBoxes []keybase1.SharedDHSecretKeyBox) error {
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []map[string]string{firstValues(signingArgs.ToValues()), firstValues(encryptArgs.ToValues())}
+
+	// Post the shared dh keys encrypted for the provisionee device by the provisioner.
+	if len(sdhBoxes) > 0 {
+		payload["shared_dh_secret_boxes"] = sdhBoxes
+		payload["shared_dh_generation"] = sdhBoxes[0].Generation
+	}
 
 	arg := libkb.APIArg{
 		Endpoint:    "key/multi",

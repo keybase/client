@@ -259,7 +259,7 @@ func (g *GlobalContext) Logout() error {
 
 	g.CallLogoutHooks()
 
-	g.SetSharedDHKeyring(nil)
+	g.ClearSharedDHKeyring()
 
 	if g.TrackCache != nil {
 		g.TrackCache.Shutdown()
@@ -768,13 +768,9 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 }
 
 func (g *GlobalContext) CallLoginHooks() {
+	g.Log.Debug("G#CallLoginHooks")
 
-	sdhk, err := NewSharedDHKeyring(g, g.GetMyUID(), g.Env.GetDeviceID())
-	if err != nil {
-		g.Log.Warning("NewSharedDHKeyring failed: %s", err)
-	} else {
-		g.SetSharedDHKeyring(sdhk)
-	}
+	g.BumpSharedDHKeyring()
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin()
@@ -933,7 +929,7 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.Log.Debug("+ UserChanged(%s)", u)
 	defer g.Log.Debug("- UserChanged(%s)", u)
 
-	g.SetSharedDHKeyring(nil)
+	g.BumpSharedDHKeyring()
 
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
@@ -961,8 +957,43 @@ func (g *GlobalContext) GetSharedDHKeyring() (*SharedDHKeyring, error) {
 	return g.sharedDHKeyring, nil
 }
 
-func (g *GlobalContext) SetSharedDHKeyring(k *SharedDHKeyring) {
+func (g *GlobalContext) ClearSharedDHKeyring() {
+	g.Log.Debug("G#ClearSharedDHKeyring")
 	g.sharedDHKeyringMu.Lock()
 	defer g.sharedDHKeyringMu.Unlock()
-	g.sharedDHKeyring = k
+	g.sharedDHKeyring = nil
+}
+
+// BumpSharedDHKeyring recreates SharedDHKeyring if the uid/did changes.
+func (g *GlobalContext) BumpSharedDHKeyring() error {
+	g.sharedDHKeyringMu.Lock()
+	defer g.sharedDHKeyringMu.Unlock()
+
+	uid := g.GetMyUID()
+	did := g.Env.GetDeviceID()
+
+	makeNew := func() error {
+		sdhk, err := NewSharedDHKeyring(g, uid, did)
+		if err != nil {
+			g.Log.Warning("G#BumpSharedDHKeyring -> failed: %s", err)
+			g.sharedDHKeyring = nil
+			return err
+		}
+		g.Log.Debug("G#BumpSharedDHKeyring -> new")
+		g.sharedDHKeyring = sdhk
+		return nil
+	}
+
+	if g.sharedDHKeyring == nil {
+		return makeNew()
+	} else {
+		eUid, eDid := g.sharedDHKeyring.GetOwner()
+		if eUid.Equal(uid) && eDid.Eq(did) {
+			// Leave the existing keyring in place for the same user
+			g.Log.Debug("G#BumpSharedDHKeyring -> ignore")
+			return nil
+		} else {
+			return makeNew()
+		}
+	}
 }

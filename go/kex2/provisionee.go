@@ -35,7 +35,6 @@ type Provisionee interface {
 type ProvisioneeArg struct {
 	KexBaseArg
 	Provisionee Provisionee
-	V1Only      bool
 }
 
 func newProvisionee(arg ProvisioneeArg) *provisionee {
@@ -134,11 +133,7 @@ func (p *provisionee) startServer(s Secret) (err error) {
 	prots := []rpc.Protocol{
 		keybase1.Kex2ProvisioneeProtocol(p),
 	}
-	if !p.arg.V1Only {
-		prots = append(prots, keybase1.Kex2Provisionee2Protocol(p))
-	} else {
-		p.debug("| provisionee#startServer: skipping protocol V2 support")
-	}
+	prots = append(prots, keybase1.Kex2Provisionee2Protocol(p))
 	p.xp = rpc.NewTransport(p.conn, p.arg.Provisionee.GetLogFactory(), nil)
 	srv := rpc.NewServer(p.xp, nil)
 	for _, prot := range prots {
