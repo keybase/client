@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -200,10 +201,10 @@ func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Symmetri
 
 func (r *TlfKeyResolver) getSymmetricKey(info TlfPseudonymInfo) (*saltpack.SymmetricKey, error) {
 	// Strip "/keybase/private/" from the name.
-	if info.Name[:17] != "/keybase/private/" {
-		return nil, fmt.Errorf("unexpected prefix, expected %q, found %q", "/keybase/private/", info.Name[:17])
+	basename := strings.TrimPrefix(info.Name, "/keybase/private/")
+	if len(basename) >= len(info.Name) {
+		return nil, fmt.Errorf("unexpected prefix, expected '/keybase/private/...', found %q", info.Name)
 	}
-	basename := info.Name[17:]
 	breaks := []keybase1.TLFIdentifyFailure{}
 	identifyCtx := types.IdentifyModeCtx(context.TODO(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks)
 	res, err := r.G().TlfInfoSource.CryptKeys(identifyCtx, basename)
