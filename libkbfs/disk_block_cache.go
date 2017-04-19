@@ -314,11 +314,12 @@ func (*DiskBlockCacheStandard) tlfKey(tlfID tlf.ID, blockKey []byte) []byte {
 // updateMetadataLocked updates the LRU time of a block in the LRU cache to
 // the current time.
 func (cache *DiskBlockCacheStandard) updateMetadataLocked(ctx context.Context,
-	tlfID tlf.ID, blockKey []byte, encodeLen int) error {
+	tlfID tlf.ID, blockKey []byte, encodeLen int, hasPrefetched bool) error {
 	metadata := diskBlockCacheMetadata{
-		TlfID:     tlfID,
-		LRUTime:   cache.config.Clock().Now(),
-		BlockSize: uint32(encodeLen),
+		TlfID:         tlfID,
+		LRUTime:       cache.config.Clock().Now(),
+		BlockSize:     uint32(encodeLen),
+		HasPrefetched: hasPrefetched,
 	}
 	encodedMetadata, err := cache.config.Codec().Encode(&metadata)
 	if err != nil {
@@ -381,12 +382,13 @@ func (cache *DiskBlockCacheStandard) encodeBlockCacheEntry(buf []byte,
 // Get implements the DiskBlockCache interface for DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID) (buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf, hasPrefetched bool,
+	err error) {
 	select {
 	case <-cache.startedCh:
 	default:
 		// If the cache hasn't started yet, pretend like no blocks exist.
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false,
 			DiskCacheStartingError{"Get"}
 	}
 	cache.lock.RLock()
@@ -394,12 +396,12 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	// shutdownCh has to be checked under lock, otherwise we can race.
 	select {
 	case <-cache.shutdownCh:
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false,
 			DiskCacheClosedError{"Get"}
 	default:
 	}
 	if cache.blockDb == nil {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false,
 			errors.WithStack(DiskCacheClosedError{"Get"})
 	}
 	defer func() {
@@ -409,14 +411,20 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	blockKey := blockID.Bytes()
 	entry, err := cache.blockDb.Get(blockKey, nil)
 	if err != nil {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false,
 			NoSuchBlockError{blockID}
 	}
-	err = cache.updateMetadataLocked(ctx, tlfID, blockKey, len(entry))
+	md, err := cache.getMetadata(blockID)
 	if err != nil {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, err
 	}
-	return cache.decodeBlockCacheEntry(entry)
+	err = cache.updateMetadataLocked(ctx, tlfID, blockKey, len(entry),
+		md.HasPrefetched)
+	if err != nil {
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, err
+	}
+	buf, serverHalf, err = cache.decodeBlockCacheEntry(entry)
+	return buf, serverHalf, md.HasPrefetched, err
 }
 
 // Put implements the DiskBlockCache interface for DiskBlockCacheStandard.
@@ -514,13 +522,15 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 				"Error writing to TLF cache database: %+v", err)
 		}
 	}
-	return cache.updateMetadataLocked(ctx, tlfID, blockKey, int(encodedLen))
+	// Initially set HasPrefetched to false; rely on UpdateMetadata to fix it.
+	return cache.updateMetadataLocked(ctx, tlfID, blockKey, int(encodedLen),
+		false)
 }
 
-// UpdateLRUTime implements the DiskBlockCache interface for
+// UpdateMetadata implements the DiskBlockCache interface for
 // DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) UpdateLRUTime(ctx context.Context,
-	blockID kbfsblock.ID) (err error) {
+func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
+	blockID kbfsblock.ID, hasPrefetched bool) (err error) {
 	select {
 	case <-cache.startedCh:
 	default:
@@ -542,7 +552,7 @@ func (cache *DiskBlockCacheStandard) UpdateLRUTime(ctx context.Context,
 		return NoSuchBlockError{blockID}
 	}
 	return cache.updateMetadataLocked(ctx, md.TlfID, blockID.Bytes(),
-		int(md.BlockSize))
+		int(md.BlockSize), hasPrefetched)
 }
 
 // Size implements the DiskBlockCache interface for DiskBlockCacheStandard.

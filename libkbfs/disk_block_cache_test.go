@@ -146,7 +146,7 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	config.TestClock().Add(time.Second)
 
 	t.Log("Get that block from the cache. Verify that it's the same.")
-	buf, serverHalf, err := cache.Get(ctx, tlf1, block1Ptr.ID)
+	buf, serverHalf, _, err := cache.Get(ctx, tlf1, block1Ptr.ID)
 	require.NoError(t, err)
 	require.Equal(t, block1ServerHalf, serverHalf)
 	require.Equal(t, block1Encoded, buf)
@@ -159,7 +159,7 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	t.Log("Attempt to Get a block from the cache that isn't there." +
 		" Verify that it fails.")
 	ptr2 := makeRandomBlockPointer(t)
-	buf, serverHalf, err = cache.Get(ctx, tlf1, ptr2.ID)
+	buf, serverHalf, _, err = cache.Get(ctx, tlf1, ptr2.ID)
 	require.EqualError(t, err, NoSuchBlockError{ptr2.ID}.Error())
 	require.Equal(t, kbfscrypto.BlockCryptKeyServerHalf{}, serverHalf)
 	require.Nil(t, buf)
@@ -206,11 +206,11 @@ func TestDiskBlockCacheDelete(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Verify that only the non-deleted block is still in the cache.")
-	_, _, err = cache.Get(ctx, tlf1, block1Ptr.ID)
+	_, _, _, err = cache.Get(ctx, tlf1, block1Ptr.ID)
 	require.EqualError(t, err, NoSuchBlockError{block1Ptr.ID}.Error())
-	_, _, err = cache.Get(ctx, tlf1, block2Ptr.ID)
+	_, _, _, err = cache.Get(ctx, tlf1, block2Ptr.ID)
 	require.EqualError(t, err, NoSuchBlockError{block2Ptr.ID}.Error())
-	_, _, err = cache.Get(ctx, tlf1, block3Ptr.ID)
+	_, _, _, err = cache.Get(ctx, tlf1, block3Ptr.ID)
 	require.NoError(t, err)
 
 	t.Log("Verify that the cache returns no LRU time for the missing blocks.")

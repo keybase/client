@@ -2276,12 +2276,13 @@ func (_m *MockDiskBlockCache) EXPECT() *_MockDiskBlockCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockDiskBlockCache) Get(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+func (_m *MockDiskBlockCache) Get(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, bool, error) {
 	ret := _m.ctrl.Call(_m, "Get", ctx, tlfID, blockID)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(kbfscrypto.BlockCryptKeyServerHalf)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret2, _ := ret[2].(bool)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 func (_mr *_MockDiskBlockCacheRecorder) Get(arg0, arg1, arg2 interface{}) *gomock.Call {
@@ -2310,14 +2311,14 @@ func (_mr *_MockDiskBlockCacheRecorder) Delete(arg0, arg1 interface{}) *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1)
 }
 
-func (_m *MockDiskBlockCache) UpdateLRUTime(ctx context.Context, blockID kbfsblock.ID) error {
-	ret := _m.ctrl.Call(_m, "UpdateLRUTime", ctx, blockID)
+func (_m *MockDiskBlockCache) UpdateMetadata(ctx context.Context, blockID kbfsblock.ID, hasPrefetched bool) error {
+	ret := _m.ctrl.Call(_m, "UpdateMetadata", ctx, blockID, hasPrefetched)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockDiskBlockCacheRecorder) UpdateLRUTime(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateLRUTime", arg0, arg1)
+func (_mr *_MockDiskBlockCacheRecorder) UpdateMetadata(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateMetadata", arg0, arg1, arg2)
 }
 
 func (_m *MockDiskBlockCache) Size() int64 {

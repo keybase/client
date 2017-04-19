@@ -836,15 +836,17 @@ type DirtyBlockCache interface {
 type DiskBlockCache interface {
 	// Get gets a block from the disk cache.
 	Get(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) (
-		[]byte, kbfscrypto.BlockCryptKeyServerHalf, error)
+		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+		hasPrefetched bool, err error)
 	// Put puts a block to the disk cache.
 	Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
 		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
 	// Delete deletes some blocks from the disk cache.
 	Delete(ctx context.Context, blockIDs []kbfsblock.ID) (numRemoved int,
 		sizeRemoved int64, err error)
-	// UpdateLRUTime updates the LRU time to Now() for a given block.
-	UpdateLRUTime(ctx context.Context, blockID kbfsblock.ID) error
+	// UpdateMetadata updates the LRU time to Now() for a given block.
+	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID,
+		hasPrefetched bool) error
 	// Size returns the size in bytes of the disk cache.
 	Size() int64
 	// Shutdown cleanly shuts down the disk block cache.
