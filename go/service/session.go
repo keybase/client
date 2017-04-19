@@ -4,6 +4,8 @@
 package service
 
 import (
+	"os"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -62,6 +64,12 @@ func (h *SessionHandler) CurrentSession(_ context.Context, sessionID int) (keyba
 	}
 	if err != nil {
 		if _, ok := err.(libkb.LoginRequiredError); ok {
+			return s, libkb.NoSessionError{}
+		}
+		if os.IsNotExist(err) {
+			return s, libkb.NoSessionError{}
+		}
+		if _, ok := err.(libkb.NotFoundError); ok {
 			return s, libkb.NoSessionError{}
 		}
 		return s, err
