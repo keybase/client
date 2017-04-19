@@ -7,7 +7,6 @@ package libkb
 import (
 	"bytes"
 	"crypto/hmac"
-	cryptorand "crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -263,10 +262,13 @@ func checkTlfPseudonymFromServer(ctx context.Context, g *GlobalContext, req TlfP
 }
 
 func RandomHmacKey() [32]byte {
-	key := [32]byte{}
-	n, err := cryptorand.Read(key[:])
-	if err != nil || n < len(key) {
-		panic(fmt.Sprintf("error reading randoms (%d < %d): %s", n, len(key), err))
+	slice, err := RandBytes(32)
+	if err != nil {
+		panic(err)
 	}
-	return key
+	array, err := MakeByte32(slice)
+	if err != nil {
+		panic(err)
+	}
+	return array
 }
