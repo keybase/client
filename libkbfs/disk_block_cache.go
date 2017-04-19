@@ -419,7 +419,7 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, err
 	}
 	err = cache.updateMetadataLocked(ctx, tlfID, blockKey, len(entry),
-		hasPrefetched)
+		md.HasPrefetched)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, err
 	}
