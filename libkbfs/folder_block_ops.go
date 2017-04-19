@@ -1264,6 +1264,17 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 	redirtyOnRecoverableError map[BlockPointer]BlockPointer) {
 	fbo.blockLock.AssertLocked(lState)
 
+	defer func() {
+		// Below, this function can end up writing dirty blocks back
+		// to the cache, which will set `doDeferWrite` to `true`.
+		// This leads to future writes being unnecessarily deferred
+		// when a Sync is not happening, and can lead to dirty data
+		// being synced twice and sticking around for longer than
+		// needed.  So just reset `doDeferWrite` once we're
+		// done. We're under `blockLock`, so this is safe.
+		fbo.doDeferWrite = false
+	}()
+
 	df := fbo.dirtyFiles[file.tailPointer()]
 	if df != nil {
 		// Un-orphan old blocks, since we are reverting back to the
