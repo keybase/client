@@ -14,7 +14,7 @@ export default function FacebookDescription () {
       <Box>
         <Text type='BodySemibold' {...styleCentered}>Click the link below and post. The text can be whatever you like, but make sure the post is <Text type='BodySemiboldItalic'>public</Text>, like this:</Text>
       </Box>
-      <Box style={{padding: 20}}>
+      <Box style={{alignItems: 'center', padding: 20}}>
         <Icon type='icon-facebook-visibility' />
       </Box>
     </Box>
