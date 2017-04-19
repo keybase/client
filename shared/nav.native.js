@@ -6,7 +6,7 @@ import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
 import {Box, NativeKeyboardAvoidingView} from './common-adapters/index.native'
 import {Dimensions, StatusBar} from 'react-native'
 import {CardStack, NavigationActions} from 'react-navigation'
-import {chatTab, loginTab, folderTab} from './constants/tabs'
+import {chatTab, loginTab} from './constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
 import {isAndroid, isIOS} from './constants/platform'
@@ -19,16 +19,6 @@ import type {NavigationAction} from 'react-navigation'
 import type {RouteProps} from './route-tree/render-route'
 
 type OwnProps = RouteProps<{}, {}>
-
-const StackWrapper = ({children}) => {
-  // FIXME: KeyboardAvoidingView doubles the padding needed on Android. Remove
-  // this shim when it works consistently with iOS.
-  if (isAndroid) {
-    return <Box style={flexOne}>{children}</Box>
-  } else {
-    return <NativeKeyboardAvoidingView behavior={'padding'} style={sceneWrapStyleUnder} children={children} />
-  }
-}
 
 class CardStackShim extends Component {
   getScreenConfig = () => null
@@ -86,33 +76,51 @@ function renderMainStackRoute (route) {
   )
 }
 
+const forIOS = ({hideNav, shim, tabBar}) => (
+  <Box style={flexOne}>
+    <NativeKeyboardAvoidingView behavior={'padding'} style={sceneWrapStyleUnder}>
+      {shim}
+    </NativeKeyboardAvoidingView>
+    {!hideNav && tabBar}
+  </Box>
+)
+
+const forAndroid = ({hideNav, shim, tabBar}) => (
+  <Box style={flexOne}>
+    <Box style={!hideNav ? styleScreenSpaceAndroid : flexOne}>
+      {shim}
+    </Box>
+    {!hideNav &&
+      <Box style={styleCollapsibleNavAndroid}>
+        {tabBar}
+      </Box>}
+  </Box>
+)
+
 function MainNavStack (props: Props) {
   const screens = props.routeStack
-
-  return (
-    <StackWrapper>
-      <Box style={!props.hideNav ? styleScreenSpace : flexOne}>
-        <CardStackShim
-          key={props.routeSelected}  // don't transition when switching tabs
-          stack={screens}
-          renderRoute={renderMainStackRoute}
-          onNavigateBack={props.navigateUp}
-        />
-        {![chatTab].includes(props.routeSelected) && <Offline reachability={props.reachability} appFocused={true} />}
-        <GlobalError />
-      </Box>
-      {!props.hideNav &&
-        <Box style={styleCollapsibleNav}>
-          <TabBar
-            onTabClick={props.switchTab}
-            selectedTab={props.routeSelected}
-            username={props.username}
-            badgeNumbers={props.navBadges.toJS()}
-          />
-        </Box>
-      }
-    </StackWrapper>
+  const shim = (
+    <Box style={flexOne}>
+      <CardStackShim
+        key={props.routeSelected}
+        stack={screens}
+        renderRoute={renderMainStackRoute}
+        onNavigateBack={props.navigateUp}
+      />
+      {![chatTab].includes(props.routeSelected) && <Offline reachability={props.reachability} appFocused={true} />}
+      <GlobalError />
+    </Box>
   )
+
+  const tabBar = <TabBar
+    onTabClick={props.switchTab}
+    selectedTab={props.routeSelected}
+    username={props.username}
+    badgeNumbers={props.navBadges.toJS()}
+  />
+
+  const Container = isAndroid ? forAndroid : forIOS
+  return <Container hideNav={props.hideNav} shim={shim} tabBar={tabBar} />
 }
 
 function renderFullScreenStackRoute (route) {
@@ -164,12 +172,12 @@ const sceneWrapStyleOver = {
   paddingTop: statusBarHeight,
 }
 
-const styleScreenSpace = {
+const styleScreenSpaceAndroid = {
   flex: -1,
   height: Dimensions.get('window').height - tabBarHeight,
 }
 
-const styleCollapsibleNav = {
+const styleCollapsibleNavAndroid = {
   flexShrink: 999999,
 }
 
@@ -181,7 +189,6 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   hideNav: ownProps.routeSelected === loginTab,
   navBadges: state.notifications.get('navBadges'),
-  provisioned: state.config.extendedConfig && !!state.config.extendedConfig.defaultDeviceID,
   reachability: state.gregor.reachability,
   username: state.config.username,
 })

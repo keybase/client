@@ -9,7 +9,6 @@ import type {Tab} from './constants/tabs'
 export type Props = {
   appFocused: boolean,
   menuBadge: boolean,
-  provisioned: boolean,
   username: string,
   switchTab: (tab: Tab) => void,
   navigateUp: () => void,

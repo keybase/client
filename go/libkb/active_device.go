@@ -3,6 +3,7 @@ package libkb
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -11,6 +12,7 @@ import (
 type ActiveDevice struct {
 	uid           keybase1.UID
 	deviceID      keybase1.DeviceID
+	deviceName    string
 	signingKey    GenericKey // cached secret signing key
 	encryptionKey GenericKey // cached secret encryption key
 	sync.RWMutex
@@ -19,7 +21,7 @@ type ActiveDevice struct {
 // Set acquires the write lock and sets all the fields in ActiveDevice.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
-func (a *ActiveDevice) set(acct *Account, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey, encKey GenericKey) error {
+func (a *ActiveDevice) set(acct *Account, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
 	a.Lock()
 	defer a.Unlock()
 
@@ -29,6 +31,7 @@ func (a *ActiveDevice) set(acct *Account, uid keybase1.UID, deviceID keybase1.De
 
 	a.signingKey = sigKey
 	a.encryptionKey = encKey
+	a.deviceName = deviceName
 
 	return nil
 }
@@ -60,6 +63,25 @@ func (a *ActiveDevice) setEncryptionKey(acct *Account, uid keybase1.UID, deviceI
 	}
 
 	a.encryptionKey = encKey
+	return nil
+}
+
+// setDeviceName acquires the write lock and sets the device name.
+// The acct parameter is not used for anything except to help ensure
+// that this is called from inside a LogingState account request.
+func (a *ActiveDevice) setDeviceName(acct *Account, uid keybase1.UID, deviceID keybase1.DeviceID, deviceName string) error {
+	a.Lock()
+	defer a.Unlock()
+
+	if strings.TrimSpace(deviceName) == "" {
+		return errors.New("no device name specified")
+	}
+
+	if err := a.internalUpdateUIDDeviceID(acct, uid, deviceID); err != nil {
+		return err
+	}
+
+	a.deviceName = deviceName
 	return nil
 }
 
@@ -157,4 +179,11 @@ func (a *ActiveDevice) AllFields() (uid keybase1.UID, deviceID keybase1.DeviceID
 	defer a.RUnlock()
 
 	return a.uid, a.deviceID, a.signingKey, a.encryptionKey
+}
+
+func (a *ActiveDevice) Name() string {
+	a.RLock()
+	defer a.RUnlock()
+
+	return a.deviceName
 }

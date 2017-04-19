@@ -23,7 +23,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
         <Box style={{marginTop: globalMargins.small, paddingLeft: globalMargins.small, paddingRight: globalMargins.small}}>
           {intersperseFn(i => <Divider key={i} color={isPrivate ? globalColors.black_10 : globalColors.black_05} backgroundColor={isPrivate ? globalColors.darkBlue3 : globalColors.lightGrey} />, waitingForParticipantUnlock.map(p => (
             <ListItem
-              key={p.name + Math.random()}
+              key={p.name}
               type='Large' action={<Box />} icon={<Avatar size={40} username={p.name} />}
               body={<Box style={{...globalStyles.flexBoxColumn}}>
                 <Text type='Body' backgroundMode={backgroundMode}>{p.name}</Text>

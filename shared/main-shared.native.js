@@ -96,19 +96,15 @@ class Main extends Component<void, any, void> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => {
-  const config = state.config
-  const mountPush = config.extendedConfig && !!config.extendedConfig.defaultDeviceID && config.loggedIn && config.bootStatus === 'bootStatusBootstrapped'
-  return {
-    dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
-    folderBadge: state.favorite.folderState.privateBadge + state.favorite.folderState.publicBadge,
-    mobileAppBadgeCount: state.notifications.get('mobileAppBadgeCount'),
-    mountPush,
-    routeDef: state.routeTree.routeDef,
-    routeState: state.routeTree.routeState,
-    showPushPrompt: state.push.permissionsPrompt,
-  }
-}
+const mapStateToProps = (state: TypedState) => ({
+  dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
+  folderBadge: state.favorite.folderState.privateBadge + state.favorite.folderState.publicBadge,
+  mobileAppBadgeCount: state.notifications.get('mobileAppBadgeCount'),
+  mountPush: state.config.loggedIn && state.config.bootStatus === 'bootStatusBootstrapped',
+  routeDef: state.routeTree.routeDef,
+  routeState: state.routeTree.routeState,
+  showPushPrompt: state.push.permissionsPrompt,
+})
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   bootstrap: () => dispatch(bootstrap()),

@@ -11,7 +11,6 @@ import type {TypedState} from './constants/reducer'
 type Props = {
   widgetBadge: boolean,
   desktopAppBadgeCount: number,
-  provisioned: boolean,
   username: string,
   navigateUp: () => void,
   routeDef: RouteDefNode,
@@ -49,7 +48,6 @@ class Main extends Component<void, Props, void> {
 const mapStateToProps = (state: TypedState) => {
   return {
     desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
-    provisioned: state.config.extendedConfig && !!state.config.extendedConfig.defaultDeviceID,
     routeDef: state.routeTree.routeDef,
     routeState: state.routeTree.routeState,
     username: state.config.username,

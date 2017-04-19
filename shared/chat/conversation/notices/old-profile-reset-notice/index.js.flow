@@ -1,0 +1,9 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  username: string,
+  onOpenNewerConversation: () => void,
+}
+
+export default class OldProfileResetNotice extends Component<void, Props, void> { }

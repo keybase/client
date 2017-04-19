@@ -6,7 +6,7 @@ import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import openURL from '../../util/open-url'
 import {RPCError} from '../../util/errors'
-import {bootstrap, setInitialTab} from '../config'
+import {bootstrap, getExtendedStatus, setInitialTab} from '../config'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {devicesTab, loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
@@ -34,47 +34,48 @@ const waitingForResponse = (waiting: boolean) : TypedAction<'login:waitingForRes
 )
 
 const navBasedOnLoginState = (): AsyncAction => (dispatch, getState) => {
-  const {config: {extendedConfig, initialTab, launchedViaPush, status}, login: {justDeletedSelf}} = getState()
+  const {config: {loggedIn, registered, initialTab, launchedViaPush}, login: {justDeletedSelf}} = getState()
 
-  // No status?
-  if (!status || !Object.keys(status).length || !extendedConfig || !Object.keys(extendedConfig).length ||
-    !extendedConfig.defaultDeviceID || justDeletedSelf) { // Not provisioned?
+  if (justDeletedSelf) {
     dispatch(navigateTo([loginTab]))
-  } else {
-    if (status.loggedIn) { // logged in
-      if (overrideLoggedInTab) {
-        console.log('Loading overridden logged in tab')
-        dispatch(navigateTo([overrideLoggedInTab]))
-      } else if (initialTab && isValidInitialTab(initialTab)) {
-        // only do this once
-        dispatch(setInitialTab(null))
-        if (!launchedViaPush) {
-          dispatch(navigateTo([initialTab]))
-        }
-      } else {
-        dispatch(navigateTo([profileTab]))
+  } else if (loggedIn) {
+    if (overrideLoggedInTab) {
+      console.log('Loading overridden logged in tab')
+      dispatch(navigateTo([overrideLoggedInTab]))
+    } else if (initialTab && isValidInitialTab(initialTab)) {
+      // only do this once
+      dispatch(setInitialTab(null))
+      if (!launchedViaPush) {
+        dispatch(navigateTo([initialTab]))
       }
-    } else if (status.registered) { // relogging in
-      dispatch(getAccounts())
-      dispatch(navigateTo(['login'], [loginTab]))
-    } else { // no idea
-      dispatch(navigateTo([loginTab]))
+    } else {
+      dispatch(navigateTo([profileTab]))
     }
+  } else if (registered) { // relogging in
+    Promise.all([dispatch(getExtendedStatus()), dispatch(getAccounts())]).then(() => {
+      dispatch(navigateTo(['login'], [loginTab]))
+    })
+  } else { // no idea
+    dispatch(navigateTo([loginTab]))
   }
 }
 
-const getAccounts = (): AsyncAction => dispatch => {
-  Types.loginGetConfiguredAccountsRpc({
-    ...makeWaitingHandler(dispatch),
-    callback: (error, accounts) => {
-      if (error) {
-        dispatch({error: true, payload: error, type: Constants.configuredAccounts})
-      } else {
+const getAccounts = (): AsyncAction => dispatch => (
+  new Promise((resolve, reject) => {
+    Types.loginGetConfiguredAccountsRpc({
+      ...makeWaitingHandler(dispatch),
+      callback: (error, accounts) => {
+        if (error) {
+          dispatch({error: true, payload: error, type: Constants.configuredAccounts})
+          reject(error)
+          return
+        }
         dispatch({payload: {accounts}, type: Constants.configuredAccounts})
-      }
-    },
+        resolve()
+      },
+    })
   })
-}
+)
 
 // See FIXME about HMR at the bottom of this file
 const login = (): AsyncAction => (dispatch, getState) => {

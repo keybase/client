@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import type {UserList} from '../../../common-adapters/usernames'
 
-export type Props = {
+export type Props = {|
   muted: boolean,
   onBack: () => void,
   onOpenFolder: () => void,
@@ -10,6 +10,6 @@ export type Props = {
   onToggleSidePanel: () => void,
   sidePanelOpen: boolean,
   users: UserList,
-}
+|}
 
 export default class Header extends Component<void, Props, void> { }

@@ -25,6 +25,7 @@ const styleBox = {
   marginTop: AVATAR_SIZE / 2,
   marginLeft: globalMargins.xlarge,
   marginRight: globalMargins.xlarge,
+  marginBottom: globalMargins.medium,
   padding: globalMargins.small,
   paddingBottom: globalMargins.tiny,
   borderRadius: globalMargins.xtiny,

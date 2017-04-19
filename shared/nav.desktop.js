@@ -51,7 +51,6 @@ const stylesTabsContainer = {
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   appFocused: state.config.appFocused,
   navBadges: state.notifications.get('navBadges'),
-  provisioned: state.config.extendedConfig && !!state.config.extendedConfig.defaultDeviceID,
   reachability: state.gregor.reachability,
   username: state.config.username,
 })

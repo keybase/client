@@ -187,7 +187,7 @@ class Profile extends Component<void, Props, State> {
           <Box style={styleProofsAndFolders}>
             <LoadingWrapper
               duration={500}
-              style={{minHeight: 100, marginTop: globalMargins.medium}}
+              style={{marginTop: globalMargins.medium}}
               loading={this.props.loading}
               loadingComponent={this._makeUserProofs(true)}
               doneLoadingComponent={this._makeUserProofs(false)} />

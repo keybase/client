@@ -353,6 +353,50 @@
           "name": "criticalClockSkew"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "BootstrapStatus",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "registered"
+        },
+        {
+          "type": "boolean",
+          "name": "loggedIn"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "deviceName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "following"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "followers"
+        }
+      ]
     }
   ],
   "messages": {
@@ -476,6 +520,15 @@
       ],
       "response": "boolean",
       "doc": "Wait for client type to connect to service."
+    },
+    "getBootstrapStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "BootstrapStatus"
     }
   },
   "namespace": "keybase.1"

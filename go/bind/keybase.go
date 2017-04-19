@@ -127,6 +127,12 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		Logs:         logs,
 	}
 
+	// open the connection
+	err = Reset()
+	if err != nil {
+		return err
+	}
+
 	go func() {
 		kbfsParams := libkbfs.DefaultInitParams(kbCtx)
 		// Setting this flag will enable KBFS debug logging to alway be
@@ -136,7 +142,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		kbfsConfig, _ = libkbfs.Init(kbCtx, kbfsParams, serviceCn{}, func() {}, kbCtx.Log)
 	}()
 
-	return Reset()
+	return nil
 }
 
 type serviceCn struct {
