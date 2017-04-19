@@ -95,6 +95,14 @@ type Syncer interface {
 	RegisterOfflinable(offlinable Offlinable)
 	SendChatStaleNotifications(ctx context.Context, uid gregor1.UID, convIDs []chat1.ConversationID,
 		immediate bool)
-	AddStaleConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
 	Shutdown()
+}
+
+type FetchRetrier interface {
+	Offlinable
+	Failure(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, kind FetchType) error
+	Success(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, kind FetchType) error
+
+	Start(ctx context.Context, uid gregor1.UID)
+	Stop(ctx context.Context) chan struct{}
 }

@@ -112,6 +112,7 @@ type GlobalContext struct {
 	ServerCacheVersions chattypes.ServerCacheVersions // server side versions for chat caches
 	ChatSyncer          chattypes.Syncer              // For syncing inbox with server
 	TlfInfoSource       chattypes.TLFInfoSource
+	ChatFetchRetrier    chattypes.FetchRetrier // For retrying failed fetch requests
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)

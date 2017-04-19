@@ -43,8 +43,7 @@ func (f *ConversationFailureBox) dbKey() libkb.DbKey {
 	}
 }
 
-func (f *ConversationFailureBox) Failure(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID) (err Error) {
+func (f *ConversationFailureBox) Failure(ctx context.Context, convID chat1.ConversationID) (err Error) {
 	locks.ConvFailures.Lock()
 	defer locks.ConvFailures.Unlock()
 	defer f.maybeNukeFn(func() Error { return err }, f.dbKey())
@@ -53,7 +52,7 @@ func (f *ConversationFailureBox) Failure(ctx context.Context, convID chat1.Conve
 	_, ierr := f.readDiskBox(ctx, f.dbKey(), &failures)
 	if ierr != nil {
 		return NewInternalError(ctx, f.DebugLabeler,
-			"failed to read conversation failure box: uid: %s err: %", uid, ierr.Error())
+			"failed to read conversation failure box: uid: %s err: %", f.uid, ierr.Error())
 	}
 
 	var newFailures []failureEntry
@@ -77,14 +76,13 @@ func (f *ConversationFailureBox) Failure(ctx context.Context, convID chat1.Conve
 
 	if err := f.writeDiskBox(ctx, f.dbKey(), newFailures); err != nil {
 		return NewInternalError(ctx, f.DebugLabeler,
-			"failed to write conversation failure box: uid: %s err: %s", uid, err.Error())
+			"failed to write conversation failure box: uid: %s err: %s", f.uid, err.Error())
 	}
 
 	return nil
 }
 
-func (f *ConversationFailureBox) Success(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID) (err Error) {
+func (f *ConversationFailureBox) Success(ctx context.Context, convID chat1.ConversationID) (err Error) {
 	locks.ConvFailures.Lock()
 	defer locks.ConvFailures.Unlock()
 	defer f.maybeNukeFn(func() Error { return err }, f.dbKey())
@@ -93,7 +91,7 @@ func (f *ConversationFailureBox) Success(ctx context.Context, convID chat1.Conve
 	_, ierr := f.readDiskBox(ctx, f.dbKey(), &failures)
 	if ierr != nil {
 		return NewInternalError(ctx, f.DebugLabeler,
-			"failed to read conversation failure box: uid: %s err: %", uid, ierr.Error())
+			"failed to read conversation failure box: uid: %s err: %", f.uid, ierr.Error())
 	}
 
 	var newFailures []failureEntry
@@ -107,8 +105,27 @@ func (f *ConversationFailureBox) Success(ctx context.Context, convID chat1.Conve
 
 	if err := f.writeDiskBox(ctx, f.dbKey(), newFailures); err != nil {
 		return NewInternalError(ctx, f.DebugLabeler,
-			"failed to write conversation failure box: uid: %s err: %s", uid, err.Error())
+			"failed to write conversation failure box: uid: %s err: %s", f.uid, err.Error())
 	}
 
 	return nil
+}
+
+func (f *ConversationFailureBox) Read(ctx context.Context) (res []chat1.ConversationID, err Error) {
+	locks.ConvFailures.Lock()
+	defer locks.ConvFailures.Unlock()
+	defer f.maybeNukeFn(func() Error { return err }, f.dbKey())
+
+	var failures []failureEntry
+	_, ierr := f.readDiskBox(ctx, f.dbKey(), &failures)
+	if ierr != nil {
+		return nil, NewInternalError(ctx, f.DebugLabeler,
+			"failed to read conversation failure box: uid: %s err: %s", f.uid, ierr.Error())
+	}
+
+	for _, failure := range failures {
+		res = append(res, failure.ConvID)
+	}
+
+	return res, nil
 }
