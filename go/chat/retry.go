@@ -16,6 +16,10 @@ import (
 	context "golang.org/x/net/context"
 )
 
+const fetchInitialInterval = 3 * time.Second
+const fetchMultiplier = 1.5
+const fetchMaxTime = 24 * time.Hour
+
 type FetchRetrier struct {
 	libkb.Contextified
 	utils.DebugLabeler
@@ -105,6 +109,28 @@ func (f *FetchRetrier) retryLoop(uid gregor1.UID) {
 	}
 }
 
+func (f *FetchRetrier) nextAttemptTime(attempts int, lastAttempt time.Time) time.Time {
+	wait := time.Duration(float64(attempts) * fetchMultiplier * float64(fetchInitialInterval))
+	return lastAttempt.Add(time.Duration(wait))
+}
+
+func (f *FetchRetrier) filterFailuresByTime(ctx context.Context,
+	convFailures []storage.ConversationFailureRecord) (res []chat1.ConversationID) {
+	now := f.clock.Now()
+	for _, conv := range convFailures {
+		next := f.nextAttemptTime(conv.Attempts, gregor1.FromTime(conv.LastAttempt))
+		if next.Before(now) {
+			res = append(res, conv.ConvID)
+
+			// Output debug info about next time
+			next = f.nextAttemptTime(conv.Attempts+1, f.clock.Now())
+			f.Debug(ctx, "filterFailuresByTime: including convID: %s attempts: %d next: %v",
+				conv.ConvID, conv.Attempts, next)
+		}
+	}
+	return res
+}
+
 func (f *FetchRetrier) retryInboxLoads(uid gregor1.UID) {
 	var err error
 	var breaks []keybase1.TLFIdentifyFailure
@@ -112,18 +138,19 @@ func (f *FetchRetrier) retryInboxLoads(uid gregor1.UID) {
 	ctx := Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks,
 		NewIdentifyNotifier(f.G()))
 
-	var convIDs []chat1.ConversationID
-	convIDs, err = box.Read(ctx)
+	var convFailures []storage.ConversationFailureRecord
+	convFailures, err = box.Read(ctx)
 	if err != nil {
 		f.Debug(ctx, "retryInboxLoads: failed to read failure box, giving up: %s", err.Error())
 		return
 	}
+	convIDs := f.filterFailuresByTime(ctx, convFailures)
 	if len(convIDs) == 0 {
 		return
 	}
 
 	// Reload these all conversations and hope they work
-	f.Debug(ctx, "retryInboxLoads: retrying %d conversations", len(convIDs))
+	f.Debug(ctx, "retryInboxLoads: retrying %d conversations", len(convFailures))
 	inbox, _, err := f.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
 		ConvIDs: convIDs,
 	}, nil)
@@ -159,12 +186,13 @@ func (f *FetchRetrier) retryThreadLoads(uid gregor1.UID) {
 	ctx := Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks,
 		NewIdentifyNotifier(f.G()))
 
-	var convIDs []chat1.ConversationID
-	convIDs, err = box.Read(ctx)
+	var convFailures []storage.ConversationFailureRecord
+	convFailures, err = box.Read(ctx)
 	if err != nil {
 		f.Debug(ctx, "retryThreadLoads: failed to read failure box, giving up: %s", err.Error())
 		return
 	}
+	convIDs := f.filterFailuresByTime(ctx, convFailures)
 	if len(convIDs) == 0 {
 		return
 	}

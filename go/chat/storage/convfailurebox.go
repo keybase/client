@@ -8,13 +8,13 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/clockwork"
 )
 
-const maxConvAttempts = 10
-
-type failureEntry struct {
-	ConvID   chat1.ConversationID `codec:"C"`
-	Attempts int                  `codec:"A"`
+type ConversationFailureRecord struct {
+	ConvID      chat1.ConversationID `codec:"C"`
+	Attempts    int                  `codec:"A"`
+	LastAttempt gregor1.Time         `codec:"T"`
 }
 
 type ConversationFailureBox struct {
@@ -22,17 +22,19 @@ type ConversationFailureBox struct {
 	*baseBox
 	utils.DebugLabeler
 
-	uid gregor1.UID
-	key string
+	uid   gregor1.UID
+	key   string
+	clock clockwork.Clock
 }
 
 func NewConversationFailureBox(g *libkb.GlobalContext, uid gregor1.UID, key string) *ConversationFailureBox {
 	return &ConversationFailureBox{
 		Contextified: libkb.NewContextified(g),
-		baseBox:      newBaseBox(g),
+		baseBox:      newBaseBox(g, false),
 		DebugLabeler: utils.NewDebugLabeler(g, "ConversationFailureBox", false),
 		uid:          uid,
 		key:          key,
+		clock:        clockwork.NewRealClock(),
 	}
 }
 
@@ -48,29 +50,31 @@ func (f *ConversationFailureBox) Failure(ctx context.Context, convID chat1.Conve
 	defer locks.ConvFailures.Unlock()
 	defer f.maybeNukeFn(func() Error { return err }, f.dbKey())
 
-	var failures []failureEntry
+	var failures []ConversationFailureRecord
 	_, ierr := f.readDiskBox(ctx, f.dbKey(), &failures)
 	if ierr != nil {
 		return NewInternalError(ctx, f.DebugLabeler,
 			"failed to read conversation failure box: uid: %s err: %", f.uid, ierr.Error())
 	}
 
-	var newFailures []failureEntry
+	var newFailures []ConversationFailureRecord
 	found := false
 	for _, failure := range failures {
 		if failure.ConvID.Eq(convID) {
 			found = true
 			failure.Attempts++
-			if failure.Attempts > maxConvAttempts {
-				f.Debug(ctx, "Failure: conversation: %s over max failures, dropping...", convID)
-				continue
-			}
+			failure.LastAttempt = gregor1.ToTime(f.clock.Now())
+			f.Debug(ctx, "Failure: incrementing failure: convID: %s attempt: %d time: %v",
+				failure.ConvID, failure.Attempts, gregor1.FromTime(failure.LastAttempt))
 		}
 		newFailures = append(newFailures, failure)
 	}
 	if !found {
-		newFailures = append(newFailures, failureEntry{
-			ConvID: convID,
+		f.Debug(ctx, "Failure: adding new conversation: convID: %s", convID)
+		newFailures = append(newFailures, ConversationFailureRecord{
+			ConvID:      convID,
+			LastAttempt: gregor1.ToTime(f.clock.Now()),
+			Attempts:    1,
 		})
 	}
 
@@ -87,17 +91,17 @@ func (f *ConversationFailureBox) Success(ctx context.Context, convID chat1.Conve
 	defer locks.ConvFailures.Unlock()
 	defer f.maybeNukeFn(func() Error { return err }, f.dbKey())
 
-	var failures []failureEntry
+	var failures []ConversationFailureRecord
 	_, ierr := f.readDiskBox(ctx, f.dbKey(), &failures)
 	if ierr != nil {
 		return NewInternalError(ctx, f.DebugLabeler,
 			"failed to read conversation failure box: uid: %s err: %", f.uid, ierr.Error())
 	}
 
-	var newFailures []failureEntry
+	var newFailures []ConversationFailureRecord
 	for _, failure := range failures {
 		if failure.ConvID.Eq(convID) {
-			f.Debug(ctx, "Success: removing conversation: %d from failure list", convID)
+			f.Debug(ctx, "Success: removing conversation: %s from failure list", convID)
 			continue
 		}
 		newFailures = append(newFailures, failure)
@@ -111,12 +115,12 @@ func (f *ConversationFailureBox) Success(ctx context.Context, convID chat1.Conve
 	return nil
 }
 
-func (f *ConversationFailureBox) Read(ctx context.Context) (res []chat1.ConversationID, err Error) {
+func (f *ConversationFailureBox) Read(ctx context.Context) (res []ConversationFailureRecord, err Error) {
 	locks.ConvFailures.Lock()
 	defer locks.ConvFailures.Unlock()
 	defer f.maybeNukeFn(func() Error { return err }, f.dbKey())
 
-	var failures []failureEntry
+	var failures []ConversationFailureRecord
 	_, ierr := f.readDiskBox(ctx, f.dbKey(), &failures)
 	if ierr != nil {
 		return nil, NewInternalError(ctx, f.DebugLabeler,
@@ -124,7 +128,7 @@ func (f *ConversationFailureBox) Read(ctx context.Context) (res []chat1.Conversa
 	}
 
 	for _, failure := range failures {
-		res = append(res, failure.ConvID)
+		res = append(res, failure)
 	}
 
 	return res, nil
