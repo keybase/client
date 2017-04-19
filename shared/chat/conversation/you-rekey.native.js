@@ -12,7 +12,7 @@ const YouRekey = ({onEnterPaperkey, onBack}: {onEnterPaperkey: () => void, onBac
         <Text backgroundMode='Terminal' style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}} type='BodySemibold'>This conversation needs to be rekeyed.</Text>
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'stretch', justifyContent: 'center'}}>
-        <Text type='Body' style={textStyle} backgroundMode='Terminal'>To unlock this conversation, open one of your other devices or enter a paperkey.</Text>
+        <Text type='BodySmall' style={textStyle} backgroundMode='Terminal'>To unlock this conversation, open one of your other devices or enter a paperkey.</Text>
         <Button type='Secondary' backgroundMode='Terminal' onClick={onEnterPaperkey} label='Enter a paper key' />
       </Box>
     </Box>

@@ -98,7 +98,7 @@ const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) => 
       </Box>
     </ClickableBox>
   ) : (
-    <Icon onClick={openFilePicker} type='iconfont-attachment' style={{padding: globalMargins.small}} />
+    <Icon onClick={openFilePicker} type='iconfont-camera' style={{padding: globalMargins.small}} />
   )
 )
 
