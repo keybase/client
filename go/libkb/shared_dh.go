@@ -69,6 +69,10 @@ func NewSharedDHKeyring(g *GlobalContext, uid keybase1.UID, deviceID keybase1.De
 	}, nil
 }
 
+func (s *SharedDHKeyring) GetOwner() (keybase1.UID, keybase1.DeviceID) {
+	return s.uid, s.deviceID
+}
+
 // PrepareBoxesForNewDevice encrypts the shared keys for a new device.
 // The result boxes will be pushed to the server.
 func (s *SharedDHKeyring) PrepareBoxesForNewDevice(ctx context.Context, receiverKey NaclDHKeyPair, senderKey NaclDHKeyPair) (boxes []keybase1.SharedDHSecretKeyBox, err error) {
