@@ -631,15 +631,11 @@ func InstallKBNM(context Context, binPath string, log Log) error {
 
 	// Write the file
 	log.Debug("Installing KBNM host manifest: %s", jsonPath)
-	fp, err := os.OpenFile(jsonPath, os.O_CREATE|os.O_WRONLY, 0644)
+	fp, err := os.OpenFile(jsonPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
 	defer fp.Close()
-
-	// Truncate in case there is other stuff in the file already.
-	// Unlikely error is ignored, let's try writing to it anyways.
-	_ = fp.Truncate(0)
 
 	encoder := json.NewEncoder(fp)
 	encoder.SetIndent("", "    ")

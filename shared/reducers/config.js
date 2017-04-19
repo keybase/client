@@ -1,12 +1,12 @@
 // @flow
 import * as Constants from '../constants/config'
-import type {BootStatus} from '../constants/config'
 import * as CommonConstants from '../constants/common'
 import {isMobile} from '../constants/platform'
 
 import type {Tab} from '../constants/tabs'
 import type {Action} from '../constants/types/flux'
-import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/types/flow-types'
+import type {BootStatus} from '../constants/config'
+import type {Config, DeviceID, GetCurrentStatusRes, ExtendedStatus} from '../constants/types/flow-types'
 
 export type ConfigState = {
   appFocused: boolean,
@@ -22,11 +22,14 @@ export type ConfigState = {
   kbfsPath: string,
   launchedViaPush: boolean,
   loggedIn: boolean,
+  registered: boolean,
   readyForBootstrap: boolean,
   status: ?GetCurrentStatusRes,
   uid: ?string,
   username: ?string,
   initialTab: ?Tab,
+  deviceID: ?DeviceID,
+  deviceName: ?string,
 }
 
 // Mobile is ready for bootstrap automatically, desktop needs to wait for
@@ -48,10 +51,24 @@ const initialState: ConfigState = {
   kbfsPath: Constants.defaultKBFSPath,
   launchedViaPush: false,
   loggedIn: false,
+  registered: false,
   readyForBootstrap,
   status: null,
   uid: null,
   username: null,
+  deviceID: null,
+  deviceName: null,
+}
+
+function arrayToObjectSet (arr) {
+  if (!arr) {
+    return {}
+  }
+
+  return arr.reduce((obj, key) => {
+    obj[key] = true
+    return obj
+  }, {})
 }
 
 export default function (state: ConfigState = initialState, action: Action): ConfigState {
@@ -100,13 +117,20 @@ export default function (state: ConfigState = initialState, action: Action): Con
         const status = action.payload.status
         return {
           ...state,
-          loggedIn: status.loggedIn,
           status,
-          uid: status.user && status.user.uid,
-          username: status.user && status.user.username,
         }
       }
       return state
+
+    case Constants.bootstrapLoaded:
+      const {bootstrapStatus} = action.payload
+      return {
+        ...state,
+        ...bootstrapStatus,
+        following: arrayToObjectSet(bootstrapStatus.following),
+        followers: arrayToObjectSet(bootstrapStatus.followers),
+        bootStatus: 'bootStatusBootstrapped',
+      }
 
     case Constants.bootstrapAttemptFailed: {
       return {
@@ -119,13 +143,6 @@ export default function (state: ConfigState = initialState, action: Action): Con
       return {
         ...state,
         bootStatus: 'bootStatusFailure',
-      }
-    }
-
-    case Constants.bootstrapped: {
-      return {
-        ...state,
-        bootStatus: 'bootStatusBootstrapped',
       }
     }
 
@@ -155,18 +172,6 @@ export default function (state: ConfigState = initialState, action: Action): Con
       }
     }
 
-    case Constants.setFollowing: {
-      return {
-        ...state,
-        following: action.payload.following,
-      }
-    }
-    case Constants.setFollowers: {
-      return {
-        ...state,
-        followers: action.payload.followers,
-      }
-    }
     case Constants.globalErrorDismiss: {
       return {
         ...state,

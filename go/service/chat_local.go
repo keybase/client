@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -75,6 +76,8 @@ func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
 func (h *chatLocalHandler) isOfflineError(err error) bool {
 	// Check type
 	switch terr := err.(type) {
+	case net.Error:
+		return true
 	case libkb.APINetError:
 		return true
 	case chat.OfflineError:
@@ -175,6 +178,13 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 					ConvID:    convRes.ConvID,
 					Error:     *convRes.Err,
 				})
+
+				// Log this guy into Syncer's stale store, so that we refresh it when we
+				// re-connect
+				if convRes.Err.Typ == chat1.ConversationErrorType_TRANSIENT {
+					h.G().ChatSyncer.AddStaleConversation(ctx, uid.ToBytes(), convRes.ConvID)
+				}
+
 			} else if convRes.ConvRes != nil {
 				h.Debug(ctx, "GetInboxNonblockLocal: verified conv: id: %s tlf: %s",
 					convRes.ConvID, convRes.ConvRes.Info.TLFNameExpanded())
@@ -1540,12 +1550,8 @@ func (h *chatLocalHandler) setTestRemoteClient(ri chat1.RemoteInterface) {
 }
 
 func (h *chatLocalHandler) assertLoggedIn(ctx context.Context) error {
-	ok, err := h.G().LoginState().LoggedInProvisionedLoad()
+	ok, err := h.G().LoginState().LoggedInProvisioned()
 	if err != nil {
-		if _, ok := err.(libkb.APINetError); ok {
-			h.Debug(ctx, "assertLoggedIn: skipping API error and returning success")
-			return nil
-		}
 		return err
 	}
 	if !ok {

@@ -18,7 +18,7 @@ type DeviceWrap struct {
 	args *DeviceWrapArgs
 
 	signingKey    libkb.GenericKey
-	encryptionKey libkb.GenericKey
+	encryptionKey libkb.NaclDHKeyPair
 	sharedDHKey   libkb.GenericKey // can be nil
 }
 
@@ -115,7 +115,7 @@ func (e *DeviceWrap) SigningKey() libkb.GenericKey {
 	return e.signingKey
 }
 
-func (e *DeviceWrap) EncryptionKey() libkb.GenericKey {
+func (e *DeviceWrap) EncryptionKey() libkb.NaclDHKeyPair {
 	return e.encryptionKey
 }
 

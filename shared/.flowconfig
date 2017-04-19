@@ -20,6 +20,8 @@
 .*/node_modules/ua-parser-js/.*
 .*/node_modules/y18n/.*
 .*/react/node_modules/.*
+.*/fixme/.*
+../protocol/.*
 ./desktop/build/.*
 ./desktop/release/.*
 
