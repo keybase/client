@@ -50,7 +50,8 @@ type KBFSStatus struct {
 	UsageBytes      int64
 	LimitBytes      int64
 	FailingServices map[string]error
-	JournalServer   *JournalServerStatus `json:",omitempty"`
+	JournalServer   *JournalServerStatus  `json:",omitempty"`
+	DiskCacheStatus *DiskBlockCacheStatus `json:",omitempty"`
 }
 
 // StatusUpdate is a dummy type used to indicate status has been updated.

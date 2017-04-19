@@ -849,6 +849,8 @@ type DiskBlockCache interface {
 		hasPrefetched bool) error
 	// Size returns the size in bytes of the disk cache.
 	Size() int64
+	// Status returns the current status of the disk cache.
+	Status() *DiskBlockCacheStatus
 	// Shutdown cleanly shuts down the disk block cache.
 	Shutdown(ctx context.Context)
 }
