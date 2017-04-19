@@ -7,17 +7,11 @@
 -- Use Windows' default console window (especially on Windows 10)  
 - Install [Go](https://golang.org/dl/) 1.5.3 (soon to switch to 1.6)  
 - Open a command console and make a directory for cloning the repo, e.g.:  
-`cd c:\`  
-`mkdir work`  
-`cd work`  
-`mkdir src`  
-`cd src`  
-`mkdir github.com`  
-`cd github.com`  
-`mkdir keybase`  
-`cd keybase`  
+`cd ~`  
+`mkdir -p work/src/github.com/keybase`  
+`cd work/src/github.com/keybase`  
 `git clone https://github.com/keybase/client.git`  
-- set GOPATH, e.g. `set GOPATH=c:\work`  
+- set GOPATH, e.g. `set GOPATH=~\work`  
 - set GO15VENDOREXPERIMENT=1 (not needed as of Go 1.6)  
 - `cd %GOPATH%\github.com\keybase\client\go\keybase`  
 - Find and set the address of your local server, e.g. set KEYBASE_SERVER_URI=http://172.16.199.5:3000 or use ci1.keybase.io  
@@ -30,7 +24,8 @@
 Switch to Node 5.7.0:  
 - [NVM for Windows](https://github.com/coreybutler/nvm-windows/releases/download/1.1.0/nvm-setup.zip)  
 Issue the commands "nvm install 5.7.0" and "nvm use 5.7.0"  
-- [VisualStudio 2013](https://go.microsoft.com/fwlink/?LinkId=532495&clcid=0x409) 
+- [VisualStudio 2015](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx) 
+  - Install the following options: <img width="343" alt="options" src="https://cloud.githubusercontent.com/assets/594035/16749512/a2249536-477f-11e6-92fe-59a4a82a90c9.PNG">
 - Update npm. In an elevated command prompt (right-click cmd icon and select "Run As Administrator"), issue these commands, and select 3.8.1:
     `npm install -g npm-windows-upgrade`  
     `npm-windows-upgrade`  
