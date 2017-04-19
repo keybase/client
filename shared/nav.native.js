@@ -77,7 +77,7 @@ const forIOS = ({hideNav, shim, tabBar}) => (
     <NativeKeyboardAvoidingView behavior={'padding'} style={sceneWrapStyleUnder}>
       {shim}
     </NativeKeyboardAvoidingView>
-    {tabBar}
+    {!hideNav && tabBar}
   </Box>
 )
 
