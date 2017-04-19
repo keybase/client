@@ -123,6 +123,10 @@ type GlobalContext struct {
 	NetContext context.Context
 }
 
+// There are many interfaces that slice and dice the GlobalContext to expose a
+// smaller API. TODO: Assert more of them here.
+var _ ProofContext = (*GlobalContext)(nil)
+
 type GlobalTestOptions struct {
 	NoBug3964Repair bool
 }
@@ -435,8 +439,14 @@ func (g *GlobalContext) GetFullSelfer() FullSelfer {
 	return g.fullSelfer
 }
 
+// to implement ProofContext
 func (g *GlobalContext) GetPvlSource() PvlSource {
 	return g.pvlSource
+}
+
+// to implement ProofContext
+func (g *GlobalContext) GetAppType() AppType {
+	return g.Env.GetAppType()
 }
 
 func (g *GlobalContext) ConfigureExportedStreams() error {

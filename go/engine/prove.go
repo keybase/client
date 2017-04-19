@@ -207,7 +207,7 @@ func (p *Prove) postProofToServer() (err error) {
 func (p *Prove) instructAction(ctx *Context) (err error) {
 	mkp := p.st.PostInstructions(p.remoteNameNormalized)
 	var txt string
-	if txt, err = p.st.FormatProofText(p.postRes); err != nil {
+	if txt, err = p.st.FormatProofText(p.G() /* as ProofContext */, p.postRes); err != nil {
 		return
 	}
 	err = ctx.ProveUI.OutputInstructions(context.TODO(), keybase1.OutputInstructionsArg{
