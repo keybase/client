@@ -129,6 +129,7 @@ type DisplayAndPromptSecretArg struct {
 	Secret          []byte     `codec:"secret" json:"secret"`
 	Phrase          string     `codec:"phrase" json:"phrase"`
 	OtherDeviceType DeviceType `codec:"otherDeviceType" json:"otherDeviceType"`
+	PreviousErr     string     `codec:"previousErr" json:"previousErr"`
 }
 
 type DisplaySecretExchangedArg struct {
@@ -184,6 +185,7 @@ type ProvisionUiInterface interface {
 	// DisplayAndPromptSecret displays a secret that the user can enter into the other device.
 	// It also can return a secret that the user enters into this device (from the other device).
 	// If it does not return a secret, it will be canceled when this device receives the secret via kex2.
+	// If there is an error in the phrase, then previousErr will be set when this is called again.
 	DisplayAndPromptSecret(context.Context, DisplayAndPromptSecretArg) (SecretResponse, error)
 	// DisplaySecretExchanged is called when the kex2 secret has successfully been exchanged by the two
 	// devices.
@@ -421,6 +423,7 @@ func (c ProvisionUiClient) ChooseDeviceType(ctx context.Context, __arg ChooseDev
 // DisplayAndPromptSecret displays a secret that the user can enter into the other device.
 // It also can return a secret that the user enters into this device (from the other device).
 // If it does not return a secret, it will be canceled when this device receives the secret via kex2.
+// If there is an error in the phrase, then previousErr will be set when this is called again.
 func (c ProvisionUiClient) DisplayAndPromptSecret(ctx context.Context, __arg DisplayAndPromptSecretArg) (res SecretResponse, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.provisionUi.DisplayAndPromptSecret", []interface{}{__arg}, &res)
 	return
