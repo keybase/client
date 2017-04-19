@@ -39,11 +39,11 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
-IF %ERRORLEVEL% NEQ 0 (k
+IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
-IF %ERRORLEVEL% NEQ 0 (k
+IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe

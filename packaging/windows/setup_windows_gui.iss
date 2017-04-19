@@ -80,10 +80,10 @@ Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\x64\Release\dokan.dll"; De
 Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\x64\Release\dokannp.dll"; DestDir: "{sys}"; Flags: 64bit; Check: IsX64 and IsDokanBeingInstalled
 ; install only 32 bit versions of dokanctl and mounter, otherwise we need 64 bit redistributables too
 Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\Win32\Release\dokanctl.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"; Check: IsDokanBeingInstalled
-Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\Win32\Release\mounter.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"; Check:  IsDokanBeingInstalled
+Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\Win32\Release\mounter.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"; Check: IsDokanBeingInstalled
 Source: "..\..\..\..\..\..\bin\vc_redist.x86.exe"; DestDir: "{tmp}"
 Source: "..\..\..\kbfs\kbfsdokan\kbfsdokan.exe"; DestDir: "{app}"; Flags: replacesameversion
-Source: "..\..\..\go-updater\service\upd.exe"; DestDir: "{app}"; Flags: replacesameversion
+Source: "..\..\..\go-updater\service\upd.exe"; DestDir: "{app}"
 
 [Icons]
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
@@ -98,10 +98,9 @@ WelcomeLabel2=This will install [name/ver] on your computer.
 
 [Run]
 Filename: "{tmp}\vc_redist.x86.exe"; Parameters: "/quiet /Q:a /c:""msiexec /qb /i vcredist.msi"""; StatusMsg: "Installing VisualStudio 2015 RunTime..."
-Filename: "{app}\{#MyExeName}"; Parameters: "ctl watchdog"; Flags: runasoriginaluser runhidden nowait
 Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/i a"; WorkingDir: "{pf32}\Dokan\DokanLibrary"; Flags: runhidden; Description: "Install Dokan Service"; Check: IsDokanBeingInstalled
+Filename: "{app}\{#MyExeName}"; Parameters: "--log-file={userappdata}\Keybase\keybase.start.log --log-format=file -d ctl watchdog2"; Flags: runasoriginaluser runhidden nowait
 Filename: "{app}\gui\Keybase.exe"; WorkingDir: "{app}\gui"; Flags: nowait runasoriginaluser
-Filename: "{app}\kbfsdokan.exe"; Parameters: "-log-to-file -debug k:"; Flags: runasoriginaluser runhidden nowait
 
 [UninstallDelete]
 Type: files; Name: "{userstartup}\{#MyAppName}.vbs"
@@ -112,6 +111,7 @@ Type: files; Name: "{userstartup}\{#MyAppName}.vbs"
 [UninstallRun]
 Filename: "taskkill"; Parameters: "/f /im Keybase.exe"; Flags: runhidden
 Filename: "taskkill"; Parameters: "/f /im kbfsdokan.exe"; Flags: runhidden
+Filename: "taskkill"; Parameters: "/f /im upd.exe"; Flags: runhidden
 Filename: "{app}\{#MyExeName}"; Parameters: "ctl stop"; WorkingDir: "{app}"; Flags: skipifdoesntexist runhidden
 Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/u k /f"; Flags: runhidden
 Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/r a"; Flags: runhidden
@@ -249,14 +249,13 @@ begin
   Result := true;
   fileName := ExpandConstant('{userstartup}\{#MyAppName}.vbs');
   Log('Created ' + fileName);
-  SetArrayLength(lines, 6);
+  SetArrayLength(lines, 5);
 
   lines[0] := 'Dim WinScriptHost';
   lines[1] := 'Set WinScriptHost = CreateObject("WScript.Shell")';
-  lines[2] := ExpandConstant('WinScriptHost.Run Chr(34) & "{app}\{#MyExeName}" & Chr(34) & " ctl watchdog", 0');
-  lines[3] := ExpandConstant('WinScriptHost.Run Chr(34) & "{app}\kbfsdokan.exe" & Chr(34) & " -log-to-file -debug k:", 0');
-  lines[4] := ExpandConstant('WinScriptHost.Run Chr(34) & "{app}\gui\Keybase.exe" & Chr(34), 0');
-  lines[5] := 'Set WinScriptHost = Nothing';
+  lines[2] := ExpandConstant('WinScriptHost.Run Chr(34) & "{app}\{#MyExeName}" & Chr(34) & "--log-file={userappdata}\Keybase\keybase.start.log --log-format=file -d  ctl watchdog2", 0');
+  lines[3] := ExpandConstant('WinScriptHost.Run Chr(34) & "{app}\gui\Keybase.exe" & Chr(34), 0');
+  lines[4] := 'Set WinScriptHost = Nothing';
 
   Result := SaveStringsToFile(filename,lines,true);
   exit;
@@ -316,6 +315,7 @@ begin
   Exec(CommandName, 'ctl stop', '', SW_HIDE,
     ewWaitUntilTerminated, ResultCode);
   Exec('taskkill.exe', '/f /im kbfsdokan.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('taskkill.exe', '/f /im upd.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   Sleep(100);
 end;
 
