@@ -107,10 +107,7 @@ function MainNavStack (props: Props) {
             onTabClick={props.switchTab}
             selectedTab={props.routeSelected}
             username={props.username}
-            badgeNumbers={{
-              [chatTab]: props.chatBadge,
-              [folderTab]: props.folderBadge,
-            }}
+            badgeNumbers={props.navBadges.toJS()}
           />
         </Box>
       }
@@ -181,12 +178,9 @@ const flexOne = {
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
-  // $FlowIssue getIn
-  chatBadge: state.notifications.getIn('menuNotifications', 'chatBadge'),
   dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
-  // $FlowIssue getIn
-  folderBadge: state.notifications.getIn('menuNotifications', 'folderBadge'),
   hideNav: ownProps.routeSelected === loginTab,
+  navBadges: state.notifications.get('navBadges'),
   provisioned: state.config.extendedConfig && !!state.config.extendedConfig.defaultDeviceID,
   reachability: state.gregor.reachability,
   username: state.config.username,

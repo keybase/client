@@ -1,51 +1,52 @@
 // @flow
 import * as Constants from '../constants/notifications'
 import * as CommonConstants from '../constants/common'
-import {Map} from 'immutable'
+import {chatTab, folderTab} from '../constants/tabs'
 
 const initialState: Constants.State = new Constants.StateRecord()
 
-const widgetBadgeFromKeyState = (keyState: Map<Constants.NotificationKeys, boolean>) => {
+const _updateWidgetBadge = (s: Constants.State): Constants.State => {
   let widgetBadge = 'regular'
-  if (keyState.kbfsUploading) {
+  // $FlowIssue getIn
+  if (s.getIn(['keyState', 'kbfsUploading'])) {
     widgetBadge = 'uploading'
-  } else if (keyState.newTLFs || keyState.chatInbox) {
+  } else if (s.desktopAppBadgeCount) {
     widgetBadge = 'badged'
   }
 
-  return widgetBadge
+  return s.set('widgetBadge', widgetBadge)
 }
 
 export default function (state: Constants.State = initialState, action: Constants.Actions): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return initialState
+    case 'notifications:receivedBadgeState': {
+      const {conversations, newTlfs, rekeysNeeded} = action.payload.badgeState
+
+      const navBadges = state.get('navBadges').withMutations(n => {
+        const totalMessages = (conversations || []).reduce((total, c) => total + c.UnreadMessages, 0)
+        n.set(chatTab, totalMessages)
+        n.set(folderTab, newTlfs + rekeysNeeded)
+      })
+
+      // $FlowIssue withMutations
+      let newState = state.withMutations(s => {
+        s.set('navBadges', navBadges)
+        s.set('desktopAppBadgeCount', navBadges.reduce((total, val) => total + val, 0))
+        s.set('mobileAppBadgeCount', navBadges.get(chatTab, 0))
+      })
+
+      newState = _updateWidgetBadge(newState)
+      return newState
+    }
     case 'notifications:badgeApp':
       const badgeAction: Constants.BadgeAppAction = action
 
-      const newKeyState = state.get('keyState').set(badgeAction.payload.key, badgeAction.payload.on)
-      const newWidgetBadge = widgetBadgeFromKeyState(newKeyState)
-
-      let newMenuNotifications: Map<Constants.MenuStateKeys, number> = state.get('menuNotifications')
-
-      if (badgeAction.payload.key === 'newTLFs') {
-        newMenuNotifications = newMenuNotifications.set('folderBadge', badgeAction.payload.count || 0)
-      } else if (badgeAction.payload.key === 'chatInbox') {
-        newMenuNotifications = newMenuNotifications.set('chatBadge', badgeAction.payload.count || 0)
-      }
-
-      // Menu badge is chat only currently
-      const newDesktopAppBadgeCount = newMenuNotifications.reduce((total, val) => total + val, 0)
-      const newMobileAppBadgeCount = newMenuNotifications.get('chatBadge', 0)
-
-      // $FlowIssue doesn't understand withMutations
-      return state.withMutations(s => {
-        s.set('keyState', newKeyState)
-        s.set('widgetBadge', newWidgetBadge)
-        s.set('menuNotifications', newMenuNotifications)
-        s.set('desktopAppBadgeCount', newDesktopAppBadgeCount)
-        s.set('mobileAppBadgeCount', newMobileAppBadgeCount)
-      })
+      // $FlowIssue update
+      let newState = state.update('keyState', ks => ks.set(badgeAction.payload.key, badgeAction.payload.on))
+      newState = _updateWidgetBadge(newState)
+      return newState
     default:
       return state
   }

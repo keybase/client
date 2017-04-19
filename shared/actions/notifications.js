@@ -82,9 +82,8 @@ function * _listenKBFSSaga (): SagaGenerator<any, any> {
 }
 
 function * _onRecievedBadgeState (action: Constants.ReceivedBadgeState): SagaGenerator<any, any> {
-  const {conversations, newTlfs} = action.payload.badgeState
+  const {conversations} = action.payload.badgeState
   yield put(badgeAppForChat(conversations))
-  yield put(badgeApp('newTLFs', newTlfs > 0, newTlfs))
 }
 
 function * _listenNotifications (): SagaGenerator<any, any> {

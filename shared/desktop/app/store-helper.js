@@ -47,6 +47,7 @@ export default function (mainWindow: any) {
     subscribeStoreSubscribers.forEach((sub, idx) => {
       try {
         const newStore = sub.selector(store)
+
         if (newStore) {
           sub.sender.send('stateChange', newStore)
         }
