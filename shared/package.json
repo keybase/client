@@ -84,7 +84,7 @@
     "react-navigation": "1.0.0-beta.7",
     "react-redux": "5.0.3",
     "react-tap-event-plugin": "2.0.1",
-    "react-virtualized": "9.7.0",
+    "react-virtualized": "9.7.3",
     "recompose": "0.22.0",
     "redux": "3.6.0",
     "redux-batched-subscribe": "0.1.6",
