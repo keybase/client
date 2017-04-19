@@ -18,7 +18,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	gocontext "golang.org/x/net/context"
 )
 
 const (
@@ -207,8 +206,8 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	flags.StringVar(&params.StorageRoot, "storage-root",
 		defaultParams.StorageRoot, "Specifies where Keybase will store its "+
 			"local databases for the journal and disk cache.")
-	flags.BoolVar(&params.EnableDiskCache, "enable-disk-cache", false,
-		"(EXPERIMENTAL) Enables the disk cache for the directory specified "+
+	flags.BoolVar(&params.EnableDiskCache, "enable-disk-cache", true,
+		"Enables the disk cache for the directory specified "+
 			"by -storage-root.")
 	flags.BoolVar(&params.EnableJournal, "enable-journal", true, "Enables "+
 		"write journaling for TLFs.")
@@ -611,8 +610,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 		}
 		log.Debug("Journaling enabled")
 	}
-	session, err := k.GetCurrentSession(gocontext.TODO())
-	if params.EnableDiskCache || (err == nil && adminFeatureList[session.UID]) {
+	if params.EnableDiskCache {
 		dbc, err := newDiskBlockCacheStandard(config,
 			diskBlockCacheRootFromStorageRoot(params.StorageRoot))
 		if err != nil {
