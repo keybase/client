@@ -72,9 +72,30 @@ function renderMainStackRoute (route) {
   )
 }
 
-function cardStackShim (props: Props) {
+const forIOS = ({hideNav, shim, tabBar}) => (
+  <Box style={flexOne}>
+    <NativeKeyboardAvoidingView behavior={'padding'} style={sceneWrapStyleUnder}>
+      {shim}
+    </NativeKeyboardAvoidingView>
+    {tabBar}
+  </Box>
+)
+
+const forAndroid = ({hideNav, shim, tabBar}) => (
+  <Box style={flexOne}>
+    <Box style={!hideNav ? styleScreenSpaceAndroid : flexOne}>
+      {shim}
+    </Box>
+    {!hideNav &&
+      <Box style={styleCollapsibleNavAndroid}>
+        {tabBar}
+      </Box>}
+  </Box>
+)
+
+function MainNavStack (props: Props) {
   const screens = props.routeStack
-  return (
+  const shim = (
     <Box style={flexOne}>
       <CardStackShim
         key={props.routeSelected}
@@ -86,50 +107,19 @@ function cardStackShim (props: Props) {
       <GlobalError />
     </Box>
   )
-}
 
-function tabBar (props: Props) {
-  return (
-    <TabBar
-      onTabClick={props.switchTab}
-      selectedTab={props.routeSelected}
-      username={props.username}
-      badgeNumbers={{
-        [chatTab]: props.chatBadge,
-        [folderTab]: props.folderBadge,
-      }}
-    />
-  )
-}
+  const tabBar = <TabBar
+    onTabClick={props.switchTab}
+    selectedTab={props.routeSelected}
+    username={props.username}
+    badgeNumbers={{
+      [chatTab]: props.chatBadge,
+      [folderTab]: props.folderBadge,
+    }}
+  />
 
-function mainNavStackIOS (props: Props) {
-  return (
-    <Box style={flexOne}>
-      <NativeKeyboardAvoidingView behavior={'padding'} style={sceneWrapStyleUnder}>
-        {cardStackShim(props)}
-      </NativeKeyboardAvoidingView>
-      {!props.hideNav && tabBar(props)}
-    </Box>
-  )
-}
-
-function mainNavStackAndroid (props: Props) {
-  return (
-    <Box style={flexOne}>
-      <Box style={!props.hideNav ? styleScreenSpaceAndroid : flexOne}>
-        {cardStackShim(props)}
-      </Box>
-      {!props.hideNav &&
-        <Box style={styleCollapsibleNavAndroid}>
-          {tabBar(props)}
-        </Box>
-      }
-    </Box>
-  )
-}
-
-function MainNavStack (props: Props) {
-  return isAndroid ? mainNavStackAndroid(props) : mainNavStackIOS(props)
+  const Container = isAndroid ? forAndroid : forIOS
+  return <Container hideNav={props.hideNav} shim={shim} tabBar={tabBar} />
 }
 
 function renderFullScreenStackRoute (route) {
