@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../constants/push'
 import {isMobile} from '../constants/platform'
-import {apiserverPostRpcPromise} from '../constants/types/flow-types'
+import {apiserverDeleteRpcPromise, apiserverPostRpcPromise} from '../constants/types/flow-types'
 import {call, put, take, select} from 'redux-saga/effects'
 import {chatTab} from '../constants/tabs'
 import {navigateTo} from './route-tree'
@@ -43,6 +43,10 @@ export function updatePushToken (token: string, tokenType: TokenType): UpdatePus
   return {type: Constants.updatePushToken, payload: {token, tokenType}}
 }
 
+const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
+
+const deviceIDSelector = ({config: {deviceID}}: TypedState) => deviceID
+
 function * permissionsRequestSaga (): SagaGenerator<any, any> {
   try {
     yield put({type: Constants.permissionsRequesting, payload: true})
@@ -83,12 +87,8 @@ function * pushTokenSaga (action: PushTokenAction): SagaGenerator<any, any> {
 
 function * savePushTokenSaga (): SagaGenerator<any, any> {
   try {
-    const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
     const {token, tokenType} = ((yield select(pushSelector)): any)
-
-    const deviceIDSelector = ({config: {deviceID}}: TypedState) => deviceID
     const deviceID = ((yield select(deviceIDSelector)): any)
-
     if (!deviceID) {
       throw new Error('No device available for saving push token')
     }
@@ -121,6 +121,36 @@ function * configurePushSaga (): SagaGenerator<any, any> {
       const action = yield take(chan)
       yield put(action)
     }
+  }
+}
+
+export function * deletePushTokenSaga (): SagaGenerator<any, any> {
+  try {
+    const {tokenType} = ((yield select(pushSelector)): any)
+    if (!tokenType) {
+      // No push token to remove.
+      console.log('Not deleting push token -- none to remove')
+      return
+    }
+
+    const deviceID = ((yield select(deviceIDSelector)): any)
+    if (!deviceID) {
+      throw new Error('No device id available for saving push token')
+    }
+
+    const args = [
+      {key: 'device_id', value: deviceID},
+      {key: 'token_type', value: tokenType},
+    ]
+
+    yield call(apiserverDeleteRpcPromise, {
+      param: {
+        endpoint: 'device/push_token',
+        args: args,
+      },
+    })
+  } catch (err) {
+    console.warn('Error trying to delete push token:', err)
   }
 }
 

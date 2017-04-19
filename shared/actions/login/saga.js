@@ -15,6 +15,7 @@ import openURL from '../../util/open-url'
 import {devicesTab, loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {load as loadDevices} from '../devices'
+import {deletePushTokenSaga} from '../push'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
 import {toDeviceType} from '../../constants/types/more'
@@ -561,6 +562,8 @@ function * logoutDoneSaga () {
 }
 
 function * logoutSaga () {
+  yield call(deletePushTokenSaga)
+
   const sagas = {
     finished: function * ({error}) {
       if (error) {
