@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	context "golang.org/x/net/context"
 )
@@ -56,7 +57,7 @@ func (f *FetchRetrier) Success(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (f *FetchRetrier) Connected(ctx context.Context) {
-	defer f.Trace(ctx, func() error { return nil }, "Reconnect")()
+	defer f.Trace(ctx, func() error { return nil }, "Connected")()
 	f.Lock()
 	f.offline = false
 	f.Unlock()
@@ -106,8 +107,10 @@ func (f *FetchRetrier) retryLoop(uid gregor1.UID) {
 
 func (f *FetchRetrier) retryInboxLoads(uid gregor1.UID) {
 	var err error
+	var breaks []keybase1.TLFIdentifyFailure
 	box := storage.NewConversationFailureBox(f.G(), uid, f.boxKey(types.InboxLoad))
-	ctx := context.Background()
+	ctx := Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks,
+		NewIdentifyNotifier(f.G()))
 
 	var convIDs []chat1.ConversationID
 	convIDs, err = box.Read(ctx)
@@ -115,8 +118,12 @@ func (f *FetchRetrier) retryInboxLoads(uid gregor1.UID) {
 		f.Debug(ctx, "retryInboxLoads: failed to read failure box, giving up: %s", err.Error())
 		return
 	}
+	if len(convIDs) == 0 {
+		return
+	}
 
 	// Reload these all conversations and hope they work
+	f.Debug(ctx, "retryInboxLoads: retrying %d conversations", len(convIDs))
 	inbox, _, err := f.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
 		ConvIDs: convIDs,
 	}, nil)
@@ -132,6 +139,12 @@ func (f *FetchRetrier) retryInboxLoads(uid gregor1.UID) {
 			if err := f.Success(ctx, conv.GetConvID(), uid, types.InboxLoad); err != nil {
 				f.Debug(ctx, "retryInboxLoads: failure running Success: %s", err.Error())
 			}
+		} else {
+			f.Debug(ctx, "retryInboxLoads: convID failed again: msg: %s typ: %v", conv.Error.Message,
+				conv.Error.Typ)
+			if err := box.Failure(ctx, conv.GetConvID()); err != nil {
+				f.Debug(ctx, "retryInboxLoads: failure running Failure: %s", err.Error())
+			}
 		}
 	}
 
@@ -141,8 +154,10 @@ func (f *FetchRetrier) retryInboxLoads(uid gregor1.UID) {
 
 func (f *FetchRetrier) retryThreadLoads(uid gregor1.UID) {
 	var err error
+	var breaks []keybase1.TLFIdentifyFailure
 	box := storage.NewConversationFailureBox(f.G(), uid, f.boxKey(types.ThreadLoad))
-	ctx := context.Background()
+	ctx := Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks,
+		NewIdentifyNotifier(f.G()))
 
 	var convIDs []chat1.ConversationID
 	convIDs, err = box.Read(ctx)
@@ -150,8 +165,12 @@ func (f *FetchRetrier) retryThreadLoads(uid gregor1.UID) {
 		f.Debug(ctx, "retryThreadLoads: failed to read failure box, giving up: %s", err.Error())
 		return
 	}
+	if len(convIDs) == 0 {
+		return
+	}
 
 	var fixed []chat1.ConversationID
+	f.Debug(ctx, "retryThreadLoads: retrying %d conversations", len(convIDs))
 	for _, convID := range convIDs {
 		_, _, err := f.G().ConvSource.Pull(ctx, convID, uid, nil, &chat1.Pagination{
 			Num: 50,
@@ -161,6 +180,10 @@ func (f *FetchRetrier) retryThreadLoads(uid gregor1.UID) {
 			fixed = append(fixed, convID)
 			if err := f.Success(ctx, convID, uid, types.ThreadLoad); err != nil {
 				f.Debug(ctx, "retryThreadLoads: failure running Success: %s", err.Error())
+			}
+		} else {
+			if err := box.Failure(ctx, convID); err != nil {
+				f.Debug(ctx, "retryThreadLoads: failure running Failure: %s", err.Error())
 			}
 		}
 	}
