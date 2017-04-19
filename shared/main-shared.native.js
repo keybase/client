@@ -98,7 +98,7 @@ const connector = connect(
     dumbFullscreen,
     folderBadge: privateBadge + publicBadge,
     menuBadgeCount,
-    mountPush: extendedConfig && !!extendedConfig.defaultDeviceID && loggedIn && bootStatus === 'bootStatusBootstrapped',
+    mountPush: loggedIn && bootStatus === 'bootStatusBootstrapped',
     routeDef,
     routeState,
     showPushPrompt: permissionsPrompt,

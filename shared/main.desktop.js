@@ -10,7 +10,6 @@ import type {RouteDefNode, RouteStateNode, Path} from './route-tree'
 type Props = {
   menuBadge: boolean,
   menuBadgeCount: number,
-  provisioned: boolean,
   username: string,
   navigateUp: () => void,
   routeDef: RouteDefNode,
@@ -49,7 +48,6 @@ export default connect(
     notifications: {menuBadge, menuBadgeCount}}) => ({
       routeDef,
       routeState,
-      provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
       username,
       menuBadge,
       menuBadgeCount,
