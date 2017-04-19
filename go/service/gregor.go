@@ -1045,9 +1045,19 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 	}
 
 	// Continue on and authenticate
-	aerr := g.G().LoginState().LocalSession(func(s *libkb.Session) {
-		token = s.GetToken()
-		uid = s.GetUID()
+	aerr := g.G().LoginState().Account(func(a *libkb.Account) {
+		in, err := a.LoggedInLoad()
+		if err != nil {
+			g.G().Log.Debug("gregorHandler loggedIn check: LoggedInLoad error: %s", err)
+			return
+		}
+		if !in {
+			g.G().Log.Debug("gregorHandler loggedIn check: not logged in")
+			return
+		}
+		g.G().Log.Debug("gregorHandler: logged in, getting token and uid")
+		token = a.LocalSession().GetToken()
+		uid = a.LocalSession().GetUID()
 	}, "gregor handler - login session")
 	if token == "" || uid == "" {
 		return uid, token, ok

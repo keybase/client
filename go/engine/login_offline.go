@@ -179,6 +179,13 @@ func (e *LoginOffline) run(ctx *Context) error {
 			gerr = err
 			return
 		}
+
+		// set the device name from the sibkey description
+		if err := a.SetDeviceName(sibkey.DeviceDescription); err != nil {
+			e.G().Log.Debug("LoginOffline: failed to set device name: %s", err)
+			gerr = err
+			return
+		}
 	}, "LoginOffline")
 
 	if aerr != nil {
