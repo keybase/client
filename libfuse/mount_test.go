@@ -5,6 +5,7 @@
 package libfuse
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -3771,5 +3772,51 @@ func TestKbfsFileInfo(t *testing.T) {
 	}
 	if dst.LastWriterUnverified != libkb.NormalizedUsername("user1") {
 		t.Fatalf("Expected user1, %v raw %X", dst, bs)
+	}
+}
+
+func TestDirSyncAll(t *testing.T) {
+	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	defer libkbfs.CleanupCancellationDelayer(ctx)
+	config1 := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
+	mnt1, fs1, cancelFn1 := makeFS(t, ctx, config1)
+	defer mnt1.Close()
+	defer cancelFn1()
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config1)
+
+	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	mnt2, _, cancelFn2 := makeFS(t, ctx, config2)
+	defer mnt2.Close()
+	defer cancelFn2()
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
+
+	mydir1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "mydir")
+	if err := ioutil.Mkdir(mydir1, 0755); err != nil {
+		t.Fatal(err)
+	}
+	myfile1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "mydir", "myfile")
+	data := []byte("foo")
+	if err := ioutil.WriteFile(myfile1, data, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	d, err := os.Open(mydir1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer d.Close()
+	err = d.Sync()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	syncFolderToServer(t, "user1,user2", fs1)
+	myfile2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "mydir", "myfile")
+	gotData, err := ioutil.ReadFile(myfile2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(data, gotData) {
+		t.Fatalf("Expected=%v, got=%v", data, gotData)
 	}
 }

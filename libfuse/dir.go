@@ -431,6 +431,7 @@ type DirInterface interface {
 	fs.HandleReadDirAller
 	fs.NodeForgetter
 	fs.NodeSetattrer
+	fs.NodeFsyncer
 }
 
 // Dir represents a subdirectory of a KBFS top-level folder (including
@@ -870,6 +871,25 @@ func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.
 		return err
 	}
 	return nil
+}
+
+// Fsync implements the fs.NodeFsyncer interface for Dir.
+func (d *Dir) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
+	ctx = d.folder.fs.config.MaybeStartTrace(
+		ctx, "Dir.Fsync", d.node.GetBasename())
+	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
+
+	d.folder.fs.log.CDebugf(ctx, "Dir Fsync")
+	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+
+	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
+	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
+		ctx, d.folder.fs.config.DelayedCancellationGracePeriod())
+	if err != nil {
+		return err
+	}
+
+	return d.folder.fs.config.KBFSOps().SyncAll(ctx, d.node.GetFolderBranch())
 }
 
 // isNoSuchNameError checks for libkbfs.NoSuchNameError.

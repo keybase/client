@@ -244,6 +244,15 @@ func (tlf *TLF) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fus
 	return dir.Setattr(ctx, req, resp)
 }
 
+// Fsync implements the fs.NodeFsyncer interface for TLF.
+func (tlf *TLF) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
+	dir, err := tlf.loadDir(ctx)
+	if err != nil {
+		return err
+	}
+	return dir.Fsync(ctx, req)
+}
+
 var _ fs.Handle = (*TLF)(nil)
 
 var _ fs.NodeOpener = (*TLF)(nil)
