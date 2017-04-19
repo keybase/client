@@ -106,13 +106,26 @@ func (e *PaperKey) Run(ctx *Context) error {
 		}
 	}
 
-	ska := libkb.SecretKeyArg{
+	ska1 := libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	signingKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "You must sign your new paper key"))
+	signingKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska1, "You must sign your new paper key"))
 	if err != nil {
 		return err
+	}
+
+	ska2 := libkb.SecretKeyArg{
+		Me:      me,
+		KeyType: libkb.DeviceEncryptionKeyType,
+	}
+	encryptionKeyGeneric, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska2, "You must encrypt for your new paper key"))
+	if err != nil {
+		return err
+	}
+	encryptionKey, ok := encryptionKeyGeneric.(libkb.NaclDHKeyPair)
+	if !ok {
+		return fmt.Errorf("Unexpected encryption key type")
 	}
 
 	e.passphrase, err = libkb.MakePaperKeyPhrase(libkb.PaperKeyVersion)
@@ -121,9 +134,12 @@ func (e *PaperKey) Run(ctx *Context) error {
 	}
 
 	kgarg := &PaperKeyGenArg{
-		Passphrase: e.passphrase,
-		Me:         me,
-		SigningKey: signingKey,
+		Passphrase:      e.passphrase,
+		Me:              me,
+		SigningKey:      signingKey,
+		EncryptionKey:   encryptionKey,
+		LoginContext:    nil,
+		SharedDHKeyring: nil,
 	}
 	e.gen = NewPaperKeyGen(kgarg, e.G())
 	if err := RunEngine(e.gen, ctx); err != nil {

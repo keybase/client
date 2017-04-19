@@ -459,7 +459,6 @@ func (d *SignEncryptedData) AsSealed() SealedData {
 func NewConversationErrorLocal(
 	message string,
 	remoteConv Conversation,
-	permanent bool,
 	unverifiedTLFName string,
 	typ ConversationErrorType,
 	rekeyInfo *ConversationErrorRekey,
@@ -468,7 +467,6 @@ func NewConversationErrorLocal(
 		Typ:               typ,
 		Message:           message,
 		RemoteConv:        remoteConv,
-		Permanent:         permanent,
 		UnverifiedTLFName: unverifiedTLFName,
 		RekeyInfo:         rekeyInfo,
 	}

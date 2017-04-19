@@ -653,6 +653,10 @@ func (e *Env) GetEmail() string {
 }
 
 func (e *Env) GetEnableSharedDH() bool {
+	if e.GetRunMode() != DevelRunMode {
+		return false
+	}
+
 	return e.GetBool(false,
 		func() (bool, bool) { return e.Test.EnableSharedDH, e.Test.EnableSharedDH },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_ENABLE_SHARED_DH") },

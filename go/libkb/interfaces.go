@@ -489,6 +489,7 @@ type ProofContext interface {
 	NetContext
 	DNSContext
 	GetPvlSource() PvlSource
+	GetAppType() AppType
 }
 
 type AssertionContext interface {
@@ -539,7 +540,7 @@ type ServiceType interface {
 	GetProofType() string
 	GetTypeName() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
-	FormatProofText(*PostProofRes) (string, error)
+	FormatProofText(ProofContext, *PostProofRes) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
 
@@ -564,6 +565,14 @@ type UserChangedHandler interface {
 	HandleUserChanged(uid keybase1.UID) error
 }
 
+type ConnectivityMonitorResult int
+
+const (
+	ConnectivityMonitorYes ConnectivityMonitorResult = iota
+	ConnectivityMonitorNo
+	ConnectivityMonitorUnknown
+)
+
 type ConnectivityMonitor interface {
-	IsConnected(ctx context.Context) bool
+	IsConnected(ctx context.Context) ConnectivityMonitorResult
 }

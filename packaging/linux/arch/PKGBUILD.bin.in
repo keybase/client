@@ -38,7 +38,7 @@ package() {
   tar xf data.tar.xz -C "$pkgdir"
 
   # Omit the cronjobs that the Debian package includes.
-  rm -rf "$pkgdir/etc"
+  rm -rf "$pkgdir/etc/cron.daily"
 }
 
 sha256sums_i686=(@@SUM_i686@@)
