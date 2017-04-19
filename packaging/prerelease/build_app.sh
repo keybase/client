@@ -74,14 +74,12 @@ if [ -n "$client_commit" ]; then
   cd "$client_dir"
   echo "Checking out $client_commit on client (will reset to $client_branch)"
   git checkout "$client_commit"
-  git pull
 fi
 
 if [ -n "$kbfs_commit" ]; then
   cd "$kbfs_dir"
   echo "Checking out $kbfs_commit on kbfs (will reset to $kbfs_branch)"
   git checkout "$kbfs_commit"
-  git pull
 fi
 
 # NB: This is duplicated in packaging/linux/build_and_push_packages.sh.
