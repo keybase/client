@@ -130,14 +130,23 @@ const BOOL isDebug = NO;
 {
   self.resignImageView = [[UIImageView alloc] initWithFrame:self.window.bounds];
   self.resignImageView.contentMode = UIViewContentModeCenter;
+  self.resignImageView.alpha = 0;
   self.resignImageView.backgroundColor = [UIColor whiteColor];
   [self.resignImageView setImage:[UIImage imageNamed:@"LaunchImage"]];
   [self.window addSubview:self.resignImageView];
+
+  [UIView animateWithDuration:0.5 delay:0.1 options:0 animations:^{
+    self.resignImageView.alpha = 1;
+  } completion:nil];
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
-  [self.resignImageView removeFromSuperview];
+  [UIView animateWithDuration:0.5 animations:^{
+    self.resignImageView.alpha = 0;
+  } completion:^(BOOL finished) {
+    [self.resignImageView removeFromSuperview];
+  }];
 }
 
 @end
