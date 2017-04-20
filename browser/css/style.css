@@ -1,20 +1,17 @@
-/* Consistent with keybase branding but maybe too obnoxious for reddit users?
-.entry .buttons .keybase-reply a {
-  color: #33a0ff;
-}
-*/
-
-.keybase-reply form {
+li.keybase-reply form {
   overflow: hidden;
   z-index: 9999;
   position: absolute;
+  box-shadow: 3px 3px 13px 0 #a29e9e;
+  border-radius: 4px;
+}
+
+.keybase-reply form {
   display: block !important;
   background: #fff;
   margin-top: 2em;
   width: 500px;
-  border-radius: 4px;
   background-color: #ffffff;
-  box-shadow: 3px 3px 13px 0 #a29e9e;
   white-space: normal !important;
   font-family: 'Open Sans', sans-serif !important;
   font-size: 13px;
@@ -31,7 +28,10 @@
 }
 
 .keybase-reply a {
+  text-decoration: none;
+  font-weight: 600;
   font-size: inherit !important;
+  color: rgba(0, 0, 0, 0.6);
 }
 .keybase-reply a:hover {
   text-decoration: none !important;

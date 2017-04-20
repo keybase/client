@@ -1,0 +1,15 @@
+body {
+  margin: 0;
+  padding: 0;
+  width: 500px;
+}
+
+.keybase-reply form {
+  padding-top: 16px;
+}
+.keybase-reply h3 {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  margin-top: 0;
+}
