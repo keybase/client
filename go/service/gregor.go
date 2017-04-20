@@ -148,11 +148,13 @@ var _ libkb.GregorDismisser = (*gregorHandler)(nil)
 var _ libkb.GregorListener = (*gregorHandler)(nil)
 
 type gregorLocalDb struct {
-	db *libkb.JSONLocalDb
+	libkb.Contextified
 }
 
 func newLocalDB(g *libkb.GlobalContext) *gregorLocalDb {
-	return &gregorLocalDb{db: g.LocalDb}
+	return &gregorLocalDb{
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func dbKey(u gregor.UID) libkb.DbKey {
@@ -160,11 +162,11 @@ func dbKey(u gregor.UID) libkb.DbKey {
 }
 
 func (db *gregorLocalDb) Store(u gregor.UID, b []byte) error {
-	return db.db.PutRaw(dbKey(u), b)
+	return db.G().LocalDb.PutRaw(dbKey(u), b)
 }
 
 func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
-	res, _, err := db.db.GetRaw(dbKey(u))
+	res, _, err := db.G().LocalDb.GetRaw(dbKey(u))
 	return res, err
 }
 
@@ -560,7 +562,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	}
 
 	// Sync chat data using a Syncer object
-	if err := g.G().Syncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil {
+	if err := g.G().ChatSyncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil {
 		return fmt.Errorf("error running chat sync: %s", err.Error())
 	}
 
@@ -610,15 +612,15 @@ func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time
 func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
 	g.Debug(context.Background(), "disconnected: %v", status)
 
-	// Alert chat syncer that we are now disconnected
-	g.G().Syncer.Disconnected(ctx)
-
-	// Call out to reachability module if we have one
-	if g.reachability != nil {
+	// Call out to reachability module if we have one (and we are currently connected)
+	if g.reachability != nil && status != rpc.StartingFirstConnection {
 		g.reachability.setReachability(keybase1.Reachability{
 			Reachable: keybase1.Reachable_NO,
 		})
 	}
+
+	// Alert chat syncer that we are now disconnected
+	g.G().ChatSyncer.Disconnected(ctx)
 }
 
 func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
@@ -1043,11 +1045,21 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 	}
 
 	// Continue on and authenticate
-	aerr := g.G().LoginState().LocalSession(func(s *libkb.Session) {
-		token = s.GetToken()
-		uid = s.GetUID()
+	aerr := g.G().LoginState().Account(func(a *libkb.Account) {
+		in, err := a.LoggedInLoad()
+		if err != nil {
+			g.G().Log.Debug("gregorHandler loggedIn check: LoggedInLoad error: %s", err)
+			return
+		}
+		if !in {
+			g.G().Log.Debug("gregorHandler loggedIn check: not logged in")
+			return
+		}
+		g.G().Log.Debug("gregorHandler: logged in, getting token and uid")
+		token = a.LocalSession().GetToken()
+		uid = a.LocalSession().GetUID()
 	}, "gregor handler - login session")
-	if token == "" {
+	if token == "" || uid == "" {
 		return uid, token, ok
 	}
 	if aerr != nil {
@@ -1119,6 +1131,9 @@ func (g *gregorHandler) isReachable() bool {
 func (g *gregorHandler) Reconnect(ctx context.Context) error {
 	if g.IsConnected() {
 		g.Debug(ctx, "Reconnect: reconnecting to server")
+		g.reachability.setReachability(keybase1.Reachability{
+			Reachable: keybase1.Reachable_NO,
+		})
 		g.Shutdown()
 		return g.Connect(g.uri)
 	}

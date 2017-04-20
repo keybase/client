@@ -22,6 +22,7 @@ const FeedbackWrapped = compose(
 type State = {
   sentFeedback: boolean,
   feedback: ?string,
+  sending: boolean,
 }
 
 class FeedbackContainer extends Component<void, {}, State> {
@@ -30,6 +31,7 @@ class FeedbackContainer extends Component<void, {}, State> {
   state = {
     sentFeedback: false,
     feedback: null,
+    sending: false,
   }
 
   _onChangeFeedback = (feedback) => {
@@ -47,21 +49,25 @@ class FeedbackContainer extends Component<void, {}, State> {
       const logs = []
       dumpLoggers((...args) => {
         try {
-          logs.push(JSON.stringify(args))
+          logs.push(JSON.stringify(args, null, 2))
         } catch (_) {}
       })
 
       const data = logs.join('\n')
       const path = `${cachesDirectoryPath}/Keybase/rn.log`
 
-      writeFile(path, data, 'utf8')
-        .then((success) => {
-          resolve(true)
-        })
-        .catch((err) => {
-          resolve(false)
-          console.warn(`Couldn't log send! ${err}`)
-        })
+      // Don't hose the UI thread, give ourselves some breathing room before we write else we
+      // won't see the Send spinner
+      setTimeout(() => {
+        writeFile(path, data, 'utf8')
+          .then((success) => {
+            resolve(true)
+          })
+          .catch((err) => {
+            resolve(false)
+            console.warn(`Couldn't log send! ${err}`)
+          })
+      }, 1000)
     } else {
       dumpLoggers()
       resolve(true)
@@ -78,6 +84,7 @@ class FeedbackContainer extends Component<void, {}, State> {
 
   render () {
     const onSendFeedback = (feedback, sendLogs) => {
+      this.setState({sending: true, sentFeedback: false})
       this._dumpLogs()
         .then(() => logSend(feedback, sendLogs))
         .then(logSendId => {
@@ -86,12 +93,13 @@ class FeedbackContainer extends Component<void, {}, State> {
             this.setState({
               sentFeedback: true,
               feedback: null,
+              sending: false,
             })
           }
         })
     }
 
-    return <FeedbackWrapped showSuccessBanner={this.state.sentFeedback} onSendFeedback={onSendFeedback} onChangeFeedback={this._onChangeFeedback} feedback={this.state.feedback} />
+    return <FeedbackWrapped showSuccessBanner={this.state.sentFeedback} onSendFeedback={onSendFeedback} onChangeFeedback={this._onChangeFeedback} feedback={this.state.feedback} sending={this.state.sending} />
   }
 }
 

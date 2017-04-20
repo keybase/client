@@ -538,7 +538,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequence(ctx context.Context, q HTTPArg
 
 	res, err = mc.G().API.Get(APIArg{
 		Endpoint:       "merkle/path",
-		NeedSession:    false,
+		SessionType:    APISessionTypeNONE,
 		Args:           q,
 		AppStatusCodes: []int{SCOk, SCNotFound, SCDeleted},
 		NetContext:     ctx,

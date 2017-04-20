@@ -3,12 +3,16 @@
 
 package libkb
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/keybase/client/go/protocol/keybase1"
+)
 
 // DelegatorAggregator manages delegating multiple keys in one post to the server
 
 // Run posts an array of delegations to the server. Keeping this simple as we don't need any state (yet)
-func DelegatorAggregator(lctx LoginContext, ds []Delegator) (err error) {
+func DelegatorAggregator(lctx LoginContext, ds []Delegator, sdhBoxes []keybase1.SharedDHSecretKeyBox) (err error) {
 	if len(ds) == 0 {
 		return errors.New("Empty delegators to aggregator")
 	}
@@ -27,14 +31,18 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator) (err error) {
 
 		flatArgs := d.postArg.flattenHTTPArgs(d.postArg.getHTTPArgs())
 		args = append(args, flatArgs)
+
+		if d.DelegationType == DelegationTypeSharedDHKey {
+		}
 	}
 
 	payload := make(JSONPayload)
 	payload["sigs"] = args
 
-	// XXX what's the purpose of this?
-	if err != nil {
-		return err
+	// Post the shared dh key encrypted for each active device.
+	if len(sdhBoxes) > 0 {
+		payload["shared_dh_secret_boxes"] = sdhBoxes
+		payload["shared_dh_generation"] = sdhBoxes[0].Generation
 	}
 
 	// Adopt most parameters from the first item

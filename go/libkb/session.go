@@ -53,6 +53,7 @@ func (s *Session) IsLoggedIn() bool {
 // true if user is logged in and has a device fully provisioned
 func (s *Session) IsLoggedInAndProvisioned() bool {
 	if !s.valid {
+		s.G().Log.Debug("session s.valid is false")
 		return false
 	}
 	if len(s.deviceID) == 0 {
@@ -230,6 +231,7 @@ func (s *Session) Load() error {
 			s.inFile = true
 			s.deviceID = did
 			s.mtime = time.Unix(mtime, 0)
+			s.valid = true
 		}
 	}
 	s.G().Log.Debug("- Loaded session")
@@ -257,7 +259,7 @@ func (s *Session) check() error {
 
 	arg := NewRetryAPIArg("sesscheck")
 	arg.SessionR = s
-	arg.NeedSession = true
+	arg.SessionType = APISessionTypeREQUIRED
 	arg.AppStatusCodes = []int{SCOk, SCBadSession}
 
 	res, err := s.G().API.Get(arg)
@@ -323,7 +325,7 @@ func (s *Session) postLogout() error {
 	_, err := s.G().API.Post(APIArg{
 		SessionR:    s,
 		Endpoint:    "logout",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 	})
 
 	// Invalidate even if we hit an error.

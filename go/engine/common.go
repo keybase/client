@@ -16,9 +16,9 @@ func IsLoggedIn(e Engine, ctx *Context) (ret bool, uid keybase1.UID, err error) 
 
 func IsProvisioned(e Engine, ctx *Context) (bool, error) {
 	if ctx.LoginContext != nil {
-		return ctx.LoginContext.LoggedInProvisionedLoad()
+		return ctx.LoginContext.LoggedInProvisionedCheck()
 	}
-	return e.G().LoginState().LoggedInProvisionedLoad()
+	return e.G().LoginState().LoggedInProvisionedCheck()
 }
 
 type keypair struct {
@@ -162,7 +162,7 @@ func matchPaperKey(ctx *Context, g *libkb.GlobalContext, me *libkb.User, paper s
 func fetchLKS(ctx *Context, g *libkb.GlobalContext, encKey libkb.GenericKey) (libkb.PassphraseGeneration, libkb.LKSecClientHalf, error) {
 	arg := libkb.APIArg{
 		Endpoint:    "passphrase/recover",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"kid": encKey.GetKID(),
 		},

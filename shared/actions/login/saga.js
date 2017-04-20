@@ -9,7 +9,7 @@ import * as Creators from './creators'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import {RPCError} from '../../util/errors'
-import {bootstrap, setInitialTab} from '../config'
+import {bootstrap, setInitialTab, getExtendedStatus} from '../config'
 import {defaultModeForDeviceRoles} from './provision-helpers'
 import openURL from '../../util/open-url'
 import {devicesTab, loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
@@ -50,18 +50,22 @@ const makeWaitingHandler = (dispatch: Dispatch): {waitingHandler: (waiting: bool
   {waitingHandler: (waiting: boolean) => { dispatch(waitingForResponse(waiting)) }}
 )
 
-const getAccounts = (): AsyncAction => dispatch => {
-  Types.loginGetConfiguredAccountsRpc({
-    ...makeWaitingHandler(dispatch),
-    callback: (error, accounts) => {
-      if (error) {
-        dispatch({error: true, payload: error, type: Constants.configuredAccounts})
-      } else {
+const getAccounts = (): AsyncAction => dispatch => (
+  new Promise((resolve, reject) => {
+    Types.loginGetConfiguredAccountsRpc({
+      ...makeWaitingHandler(dispatch),
+      callback: (error, accounts) => {
+        if (error) {
+          dispatch({error: true, payload: error, type: Constants.configuredAccounts})
+          reject(error)
+          return
+        }
         dispatch({payload: {accounts}, type: Constants.configuredAccounts})
-      }
-    },
+        resolve()
+      },
+    })
   })
-}
+)
 
 function * setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) {
   const codePage: AfterSelect<typeof codePageSelector> = yield select(codePageSelector)
@@ -81,46 +85,42 @@ function * setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) {
 }
 
 function * navBasedOnLoginState () {
-  const selector = ({config: {extendedConfig, initialTab, launchedViaPush, status}, login: {justDeletedSelf}}: TypedState) => ({
-    status,
-    extendedConfig,
+  const selector = ({config: {loggedIn, registered, initialTab, launchedViaPush}, login: {justDeletedSelf}}: TypedState) => ({
+    loggedIn,
+    registered,
     initialTab,
     justDeletedSelf,
     launchedViaPush,
   })
 
   const {
-    status,
-    extendedConfig,
+    loggedIn,
+    registered,
     initialTab,
     justDeletedSelf,
     launchedViaPush,
   } = yield select(selector)
 
-  // No status?
-  if (!status || !Object.keys(status).length || !extendedConfig || !Object.keys(extendedConfig).length ||
-    !extendedConfig.defaultDeviceID || justDeletedSelf) { // Not provisioned?
+  if (justDeletedSelf) {
     yield put(navigateTo([loginTab]))
-  } else {
-    if (status.loggedIn) { // logged in
-      if (overrideLoggedInTab) {
-        console.log('Loading overridden logged in tab')
-        yield put(navigateTo([overrideLoggedInTab]))
-      } else if (initialTab && isValidInitialTab(initialTab)) {
-        // only do this once
-        yield put(setInitialTab(null))
-        if (!launchedViaPush) {
-          yield put(navigateTo([initialTab]))
-        }
-      } else {
-        yield put(navigateTo([profileTab]))
+  } else if (loggedIn) {
+    if (overrideLoggedInTab) {
+      console.log('Loading overridden logged in tab')
+      yield put(navigateTo([overrideLoggedInTab]))
+    } else if (initialTab && isValidInitialTab(initialTab)) {
+      // only do this once
+      yield put(setInitialTab(null))
+      if (!launchedViaPush) {
+        yield put(navigateTo([initialTab]))
       }
-    } else if (status.registered) { // relogging in
-      yield put(getAccounts())
-      yield put(navigateTo(['login'], [loginTab]))
-    } else { // no idea
-      yield put(navigateTo([loginTab]))
+    } else {
+      yield put(navigateTo([profileTab]))
     }
+  } else if (registered) { // relogging in
+    yield [put.resolve(getExtendedStatus()), put.resolve(getAccounts())]
+    yield put(navigateTo(['login'], [loginTab]))
+  } else { // no idea
+    yield put(navigateTo([loginTab]))
   }
 }
 

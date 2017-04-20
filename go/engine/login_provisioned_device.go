@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-// loginProvisionedDevice is an engine that tries to login using the
+// LoginProvisionedDevice is an engine that tries to login using the
 // current device, if there is an existing provisioned device.
 type LoginProvisionedDevice struct {
 	libkb.Contextified
@@ -25,7 +25,7 @@ func NewLoginProvisionedDevice(g *libkb.GlobalContext, username string) *LoginPr
 
 // Name is the unique engine name.
 func (e *LoginProvisionedDevice) Name() string {
-	return "loginProvisionedDevice"
+	return "LoginProvisionedDevice"
 }
 
 // GetPrereqs returns the engine prereqs.
@@ -65,7 +65,7 @@ func (e *LoginProvisionedDevice) Run(ctx *Context) error {
 
 func (e *LoginProvisionedDevice) run(ctx *Context) error {
 	// already logged in?
-	in, err := e.G().LoginState().LoggedInProvisionedLoad()
+	in, err := e.G().LoginState().LoggedInProvisionedCheck()
 	if err == nil && in {
 		if len(e.username) == 0 || e.G().Env.GetUsername() == libkb.NewNormalizedUsername(e.username) {
 			// already logged in, make sure to unlock device keys

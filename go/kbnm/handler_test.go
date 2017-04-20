@@ -15,6 +15,9 @@ func TestHandlerChat(t *testing.T) {
 		ranCmd = strings.Join(cmd.Args, " ")
 		return nil
 	}
+	h.FindKeybaseBinary = func() (string, error) {
+		return "/mocked/test/path/keybase", nil
+	}
 
 	req := &Request{
 		Method: "chat",
@@ -26,23 +29,82 @@ func TestHandlerChat(t *testing.T) {
 		t.Errorf("request failed: %q", err)
 	}
 
-	if ranCmd != "/usr/local/bin/keybase chat send --private testkeybaseuser" {
+	if ranCmd != "/mocked/test/path/keybase chat send --private testkeybaseuser" {
 		t.Errorf("unexpected command: %q", ranCmd)
 	}
 }
 
-const queryResponse = `[
-	{
-		"seqno": 1,
-		"sig_id": "c3f2b7c2b92e7e53b8d67542695ec26f5a8ea3b3abaa07764b14e453434471180f",
-		"type": "self",
-		"ctime": 1394236029,
-		"revoked": false,
-		"active": true,
-		"key_fingerprint": "9fcea980ccfd3c13e11e88a9350687d17e81fd68",
-		"statement": "testkeybaseuser"
+const queryResponse = `[INFO] 001 Identifying sometestuser
+✔ public key fingerprint: 9FCE A980 CCFD 3C13 E11E 88A9 3506 87D1 7E81 FD68
+✔ admin of sometestuser.net via HTTPS: https://sometestuser.net/keybase.txt
+✔ "sometestuser" on github: https://gist.github.com/10763855
+✔ "sometestuser" on twitter: https://twitter.com/sometestuser/status/456154521052274689 [cached 2017-04-06 10:20:10 EDT]
+✔ "sometestuser" on hackernews: https://news.ycombinator.com/user?id=sometestuser [cached 2017-04-06 10:20:09 EDT]
+✔ "sometestuser" on reddit: https://www.reddit.com/r/KeybaseProofs/comments/2o8dbv/my_keybase_proof_redditsometestuser_keybasesometestuser/ [cached 2017-04-06 10:20:10 EDT]
+`
+
+const queryResponseErr = `[ERRO] 001 Not found
+`
+
+const queryResponseErrUnexpected = `[INFO] 001 Random progress message
+[ERRO] 002 Something unexpected happened
+`
+
+func TestHandlerQueryError(t *testing.T) {
+	h := Handler()
+
+	var ranCmd string
+	h.Run = func(cmd *exec.Cmd) error {
+		ranCmd = strings.Join(cmd.Args, " ")
+		io.WriteString(cmd.Stderr, queryResponseErr)
+		return nil
 	}
-]`
+	h.FindKeybaseBinary = func() (string, error) {
+		return "/mocked/test/path/keybase", nil
+	}
+
+	req := &Request{
+		Method: "query",
+		To:     "doesnotexist",
+	}
+
+	_, err := h.Handle(req)
+	if err == nil {
+		t.Fatal("request succeeded when failure was expected")
+	}
+
+	if got, want := err.Error(), "user not found"; got != want {
+		t.Errorf("incorrect error; got: %q, want %q", got, want)
+	}
+}
+
+func TestHandlerQueryErrorUnexpected(t *testing.T) {
+	h := Handler()
+
+	var ranCmd string
+	h.Run = func(cmd *exec.Cmd) error {
+		ranCmd = strings.Join(cmd.Args, " ")
+		io.WriteString(cmd.Stderr, queryResponseErrUnexpected)
+		return nil
+	}
+	h.FindKeybaseBinary = func() (string, error) {
+		return "/mocked/test/path/keybase", nil
+	}
+
+	req := &Request{
+		Method: "query",
+		To:     "doesnotexist",
+	}
+
+	_, err := h.Handle(req)
+	if err == nil {
+		t.Fatal("request succeeded when failure was expected")
+	}
+
+	if got, want := err.Error(), "unexpected error: Something unexpected happened"; got != want {
+		t.Errorf("incorrect error; got: %q, want %q", got, want)
+	}
+}
 
 func TestHandlerQuery(t *testing.T) {
 	h := Handler()
@@ -50,13 +112,16 @@ func TestHandlerQuery(t *testing.T) {
 	var ranCmd string
 	h.Run = func(cmd *exec.Cmd) error {
 		ranCmd = strings.Join(cmd.Args, " ")
-		io.WriteString(cmd.Stdout, queryResponse)
+		io.WriteString(cmd.Stderr, queryResponse)
 		return nil
+	}
+	h.FindKeybaseBinary = func() (string, error) {
+		return "/mocked/test/path/keybase", nil
 	}
 
 	req := &Request{
 		Method: "query",
-		To:     "testkeybaseuser",
+		To:     "sometestuser",
 	}
 
 	res, err := h.Handle(req)
@@ -68,7 +133,7 @@ func TestHandlerQuery(t *testing.T) {
 		t.Errorf("result is not *resultQuery: %T", res)
 	}
 
-	if ranCmd != "/usr/local/bin/keybase sigs list --type=self --json testkeybaseuser" {
+	if ranCmd != "/mocked/test/path/keybase id sometestuser" {
 		t.Errorf("unexpected command: %q", ranCmd)
 	}
 
@@ -76,7 +141,7 @@ func TestHandlerQuery(t *testing.T) {
 		t.Fatal("result is nil")
 	}
 
-	if len(result.Sigs) != 1 || result.Sigs[0].Statement != "testkeybaseuser" {
+	if result.Username != "sometestuser" {
 		t.Errorf("invalid result value: %q", result)
 	}
 }

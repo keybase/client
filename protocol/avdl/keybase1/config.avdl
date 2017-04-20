@@ -138,4 +138,16 @@ protocol config {
     Wait for client type to connect to service.
     */
   boolean waitForClient(ClientType clientType, DurationSec timeout);
+
+  record BootstrapStatus {
+    boolean registered;     // true if signed up at some point
+    boolean loggedIn;     // true if currently logged in
+    UID uid;        // current logged in user's UID
+    string username;      // current logged in user's username
+    DeviceID deviceID;      // current logged in user's device ID
+    string deviceName;      // current logged in user's device name
+    array<string> following;    // who current logged in user is following
+    array<string> followers;    // who follows current logged in user
+  }
+  BootstrapStatus getBootstrapStatus(int sessionID);
 }

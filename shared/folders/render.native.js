@@ -46,7 +46,6 @@ class FoldersRender extends Component<void, Props, void> {
                 onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(!isPublic) }}>
                 <List
                   {...(isPublic ? this.props.public : this.props.private)}
-                  style={this.props.listStyle}
                   smallMode={this.props.smallMode}
                   onClick={this.props.onClick}
                   isPublic={isPublic}

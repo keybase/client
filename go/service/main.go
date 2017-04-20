@@ -234,6 +234,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// These are all background-ish operations that the service performs.
 	// We should revisit these on mobile, or at least, when mobile apps are
 	// backgrounded.
+	d.tryLogin()
 	d.hourlyChecks()
 	d.createChatSources()
 	d.createMessageDeliverer()
@@ -242,7 +243,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
-	d.tryLogin()
 	d.runBackgroundIdentifier()
 }
 
@@ -253,7 +253,7 @@ func (d *Service) createMessageDeliverer() {
 	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), d.attachmentstore, ri)
 	d.G().MessageDeliverer = chat.NewDeliverer(d.G(), sender)
 
-	d.G().Syncer.RegisterOfflinable(d.G().MessageDeliverer)
+	d.G().ChatSyncer.RegisterOfflinable(d.G().MessageDeliverer)
 }
 
 func (d *Service) startMessageDeliverer() {
@@ -272,11 +272,13 @@ func (d *Service) createChatSources() {
 	d.G().ConvSource = chat.NewConversationSource(d.G(), d.G().Env.GetConvSourceType(),
 		boxer, storage.New(d.G()), ri)
 	d.G().ServerCacheVersions = storage.NewServerVersions(d.G())
-	d.G().Syncer = chat.NewSyncer(d.G())
+
+	chatSyncer := chat.NewSyncer(d.G())
+	d.G().ChatSyncer = chatSyncer
 
 	// Set up Offlinables on Syncer
-	d.G().Syncer.RegisterOfflinable(d.G().InboxSource)
-	d.G().Syncer.RegisterOfflinable(d.G().ConvSource)
+	chatSyncer.RegisterOfflinable(d.G().InboxSource)
+	chatSyncer.RegisterOfflinable(d.G().ConvSource)
 
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh
@@ -323,6 +325,8 @@ func (d *Service) startupGregor() {
 		d.gregor = newGregorHandler(d.G())
 		d.reachability = newReachability(d.G(), d.gregor)
 		d.gregor.setReachability(d.reachability)
+		d.G().ConnectivityMonitor = d.reachability
+
 		d.gregor.badger = d.badger
 		d.G().GregorDismisser = d.gregor
 		d.G().GregorListener = d.gregor
@@ -739,14 +743,27 @@ func (d *Service) configurePath() {
 	}
 }
 
-// tryLogin attempts to run LoginProvisionedDevice when the service starts up.
-// This should get around any issue where the session.json file is out of date
-// or missing since the last time the service started.
+// tryLogin runs LoginOffline which will load the local session file and unlock the
+// local device keys without making any network requests.
+//
+// If that fails for any reason, LoginProvisionedDevice is used, which should get
+// around any issue where the session.json file is out of date or missing since the
+// last time the service started.
 func (d *Service) tryLogin() {
-	eng := engine.NewLoginProvisionedDevice(d.G(), "")
-	eng.SecretStoreOnly = true
+	eng := engine.NewLoginOffline(d.G())
 	ctx := &engine.Context{}
 	if err := engine.RunEngine(eng, ctx); err != nil {
-		d.G().Log.Debug("error running LoginProvisionedDevice on service startup: %s", err)
+		d.G().Log.Debug("error running LoginOffline on service startup: %s", err)
+		d.G().Log.Debug("trying LoginProvisionedDevice")
+		deng := engine.NewLoginProvisionedDevice(d.G(), "")
+		deng.SecretStoreOnly = true
+		ctx := &engine.Context{
+			NetContext: context.Background(),
+		}
+		if err := engine.RunEngine(deng, ctx); err != nil {
+			d.G().Log.Debug("error running LoginProvisionedDevice on service startup: %s", err)
+		}
+	} else {
+		d.G().Log.Debug("success running LoginOffline on service startup")
 	}
 }

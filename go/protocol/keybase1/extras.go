@@ -849,6 +849,7 @@ func (u *UserPlusKeys) DeepCopy() UserPlusKeys {
 		PGPKeyCount:       u.PGPKeyCount,
 		Uvv:               u.Uvv,
 		DeletedDeviceKeys: append([]PublicKey{}, u.DeletedDeviceKeys...),
+		SharedDHKeys:      append([]SharedDHKey{}, u.SharedDHKeys...),
 	}
 }
 

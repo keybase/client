@@ -35,7 +35,8 @@ type LoginState struct {
 // the login process.
 type LoginContext interface {
 	LoggedInLoad() (bool, error)
-	LoggedInProvisionedLoad() (bool, error)
+	LoggedInProvisioned() (bool, error)
+	LoggedInProvisionedCheck() (bool, error)
 	Logout() error
 
 	CreateStreamCache(tsec Triplesec, pps *PassphraseStream)
@@ -411,7 +412,7 @@ func (s *LoginState) ResetAccount(un string) (err error) {
 		}
 		arg := APIArg{
 			Endpoint:    "nuke",
-			NeedSession: true,
+			SessionType: APISessionTypeREQUIRED,
 			Args:        NewHTTPArgs(),
 			SessionR:    lctx.LocalSession(),
 		}
@@ -432,7 +433,7 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lp PDPKALo
 
 	arg := APIArg{
 		Endpoint:    "login",
-		NeedSession: false,
+		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"email_or_username": S{eOu},
 		},
@@ -1178,10 +1179,20 @@ func (s *LoginState) LoggedInLoad() (lin bool, err error) {
 	return lin, err
 }
 
-func (s *LoginState) LoggedInProvisionedLoad() (lin bool, err error) {
+func (s *LoginState) LoggedInProvisioned() (lin bool, err error) {
 	aerr := s.Account(func(a *Account) {
-		lin, err = a.LoggedInProvisionedLoad()
-	}, "LoggedInProvisionedLoad")
+		lin, err = a.LoggedInProvisioned()
+	}, "LoggedInProvisioned")
+	if aerr != nil {
+		return false, aerr
+	}
+	return
+}
+
+func (s *LoginState) LoggedInProvisionedCheck() (lin bool, err error) {
+	aerr := s.Account(func(a *Account) {
+		lin, err = a.LoggedInProvisionedCheck()
+	}, "LoggedInProvisionedCheck")
 	if aerr != nil {
 		return false, aerr
 	}

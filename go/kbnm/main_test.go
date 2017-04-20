@@ -17,6 +17,9 @@ func TestProcess(t *testing.T) {
 		ranCmd = strings.Join(cmd.Args, " ")
 		return nil
 	}
+	h.FindKeybaseBinary = func() (string, error) {
+		return "/mocked/test/path/keybase", nil
+	}
 
 	var inBuf, outBuf bytes.Buffer
 	in := json.NewDecoder(&inBuf)

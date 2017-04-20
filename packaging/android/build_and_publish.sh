@@ -30,7 +30,6 @@ if [ -n "$client_commit" ]; then
   cd "$client_dir"
   echo "Checking out $client_commit on client (will reset to $client_branch)"
   git checkout "$client_commit"
-  git pull
 fi
 
 cd "$shared_dir"

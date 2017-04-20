@@ -25,24 +25,25 @@ const settingsNavMap: DumbComponentMap<SettingsNav> = {
   },
 }
 
+const feedbackCommon = {
+  onSendFeedbackContained: () => console.log('Sent Feedback'),
+  showSuccessBanner: false,
+  sendLogs: true,
+  sending: false,
+  feedback: null,
+  onChangeFeedback: () => {},
+  onChangeSendLogs: () => {},
+}
+
 const feedbackMap: DumbComponentMap<Feedback> = {
   component: Feedback,
   mocks: {
     'Normal': {
-      onSendFeedbackContained: () => console.log('Sent Feedback'),
-      showSuccessBanner: false,
-      sendLogs: true,
-      feedback: null,
-      onChangeFeedback: () => {},
-      onChangeSendLogs: () => {},
+      ...feedbackCommon,
     },
     'Success - Sent logs': {
-      onSendFeedbackContained: () => console.log('Sent Feedback'),
+      ...feedbackCommon,
       showSuccessBanner: true,
-      sendLogs: true,
-      feedback: null,
-      onChangeFeedback: () => {},
-      onChangeSendLogs: () => {},
     },
   },
 }

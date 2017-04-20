@@ -150,8 +150,21 @@ func (k *PGPKeyBundle) FullHash() (string, error) {
 
 // StripRevocations returns a copy of the key with revocations removed
 func (k *PGPKeyBundle) StripRevocations() (strippedKey *PGPKeyBundle) {
-	entityCopy := *k.Entity
-	strippedKey = &PGPKeyBundle{Entity: &entityCopy}
+	strippedKey = nil
+	if k.ArmoredPublicKey != "" {
+		// Re-read the key because we want to return a copy, that does
+		// not reference PGPKeyBundle `k` anywhere.
+		strippedKey, _, _ = ReadOneKeyFromString(k.ArmoredPublicKey)
+	}
+
+	if strippedKey == nil {
+		// Either Armored key was not saved or ReadOneKeyFromString
+		// failed. Do old behavior here - we won't have a proper copy
+		// of the key (there is a lot of pointers in the key structs),
+		// but at least we won't have to bail out completely.
+		entityCopy := *k.Entity
+		strippedKey = &PGPKeyBundle{Entity: &entityCopy}
+	}
 
 	strippedKey.Revocations = nil
 

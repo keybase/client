@@ -69,7 +69,7 @@ func (t DNSServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return ret
 }
 
-func (t DNSServiceType) FormatProofText(ppr *libkb.PostProofRes) (string, error) {
+func (t DNSServiceType) FormatProofText(ctx libkb.ProofContext, ppr *libkb.PostProofRes) (string, error) {
 	return (ppr.Text + "\n"), nil
 }
 

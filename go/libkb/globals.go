@@ -42,18 +42,21 @@ type LogoutHook interface {
 }
 
 type GlobalContext struct {
-	Log          logger.Logger // Handles all logging
-	VDL          *VDebugLog    // verbose debug log
-	Env          *Env          // Env variables, cmdline args & config
-	SKBKeyringMu *sync.Mutex   // Protects all attempts to mutate the SKBKeyringFile
-	Keyrings     *Keyrings     // Gpg Keychains holding keys
-	API          API           // How to make a REST call to the server
-	Resolver     *Resolver     // cache of resolve results
-	LocalDb      *JSONLocalDb  // Local DB for cache
-	LocalChatDb  *JSONLocalDb  // Local DB for cache
-	MerkleClient *MerkleClient // client for querying server's merkle sig tree
-	XAPI         ExternalAPI   // for contacting Twitter, Github, etc.
-	Output       io.Writer     // where 'Stdout'-style output goes
+	Log               logger.Logger // Handles all logging
+	VDL               *VDebugLog    // verbose debug log
+	Env               *Env          // Env variables, cmdline args & config
+	SKBKeyringMu      *sync.Mutex   // Protects all attempts to mutate the SKBKeyringFile
+	Keyrings          *Keyrings     // Gpg Keychains holding keys
+	sharedDHKeyringMu *sync.Mutex
+	sharedDHKeyring   *SharedDHKeyring     // Keyring holding shared DH keypairs
+	API               API                  // How to make a REST call to the server
+	Resolver          *Resolver            // cache of resolve results
+	LocalDb           *JSONLocalDb         // Local DB for cache
+	LocalChatDb       *JSONLocalDb         // Local DB for cache
+	MerkleClient      *MerkleClient        // client for querying server's merkle sig tree
+	XAPI              ExternalAPI          // for contacting Twitter, Github, etc.
+	Output            io.Writer            // where 'Stdout'-style output goes
+	DNSNSFetcher      DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
 
 	cacheMu        *sync.RWMutex   // protects all caches
 	ProofCache     *ProofCache     // where to cache proof results
@@ -100,13 +103,14 @@ type GlobalContext struct {
 
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
+	ConnectivityMonitor ConnectivityMonitor  // Detect whether we're connected or not.
 
 	// Chat globals
 	InboxSource         chattypes.InboxSource         // source of remote inbox entries for chat
 	ConvSource          chattypes.ConversationSource  // source of remote message bodies for chat
 	MessageDeliverer    chattypes.MessageDeliverer    // background message delivery service
 	ServerCacheVersions chattypes.ServerCacheVersions // server side versions for chat caches
-	Syncer              chattypes.Syncer              // keeps various parts of chat system in sync
+	ChatSyncer          chattypes.Syncer              // For syncing inbox with server
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -119,17 +123,23 @@ type GlobalContext struct {
 	NetContext context.Context
 }
 
+// There are many interfaces that slice and dice the GlobalContext to expose a
+// smaller API. TODO: Assert more of them here.
+var _ ProofContext = (*GlobalContext)(nil)
+
 type GlobalTestOptions struct {
 	NoBug3964Repair bool
 }
 
-func (g *GlobalContext) GetLog() logger.Logger          { return g.Log }
-func (g *GlobalContext) GetVDebugLog() *VDebugLog       { return g.VDL }
-func (g *GlobalContext) GetAPI() API                    { return g.API }
-func (g *GlobalContext) GetExternalAPI() ExternalAPI    { return g.XAPI }
-func (g *GlobalContext) GetServerURI() string           { return g.Env.GetServerURI() }
-func (g *GlobalContext) GetMerkleClient() *MerkleClient { return g.MerkleClient }
-func (g *GlobalContext) GetNetContext() context.Context { return g.NetContext }
+func (g *GlobalContext) GetLog() logger.Logger                         { return g.Log }
+func (g *GlobalContext) GetVDebugLog() *VDebugLog                      { return g.VDL }
+func (g *GlobalContext) GetAPI() API                                   { return g.API }
+func (g *GlobalContext) GetExternalAPI() ExternalAPI                   { return g.XAPI }
+func (g *GlobalContext) GetServerURI() string                          { return g.Env.GetServerURI() }
+func (g *GlobalContext) GetMerkleClient() *MerkleClient                { return g.MerkleClient }
+func (g *GlobalContext) GetNetContext() context.Context                { return g.NetContext }
+func (g *GlobalContext) GetEnv() *Env                                  { return g.Env }
+func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return g.DNSNSFetcher }
 
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
@@ -137,6 +147,7 @@ func NewGlobalContext() *GlobalContext {
 		Log:                log,
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
+		sharedDHKeyringMu:  new(sync.Mutex),
 		cacheMu:            new(sync.RWMutex),
 		socketWrapperMu:    new(sync.RWMutex),
 		shutdownOnce:       new(sync.Once),
@@ -187,6 +198,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
+	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	return g
 }
 
@@ -202,6 +214,10 @@ func (g *GlobalContext) SetService() {
 
 func (g *GlobalContext) SetUIRouter(u UIRouter) {
 	g.UIRouter = u
+}
+
+func (g *GlobalContext) SetDNSNameServerFetcher(d DNSNameServerFetcher) {
+	g.DNSNSFetcher = d
 }
 
 // requires lock on loginStateMu before calling
@@ -242,6 +258,8 @@ func (g *GlobalContext) Logout() error {
 	}
 
 	g.CallLogoutHooks()
+
+	g.ClearSharedDHKeyring()
 
 	if g.TrackCache != nil {
 		g.TrackCache.Shutdown()
@@ -421,8 +439,14 @@ func (g *GlobalContext) GetFullSelfer() FullSelfer {
 	return g.fullSelfer
 }
 
+// to implement ProofContext
 func (g *GlobalContext) GetPvlSource() PvlSource {
 	return g.pvlSource
+}
+
+// to implement ProofContext
+func (g *GlobalContext) GetAppType() AppType {
+	return g.Env.GetAppType()
 }
 
 func (g *GlobalContext) ConfigureExportedStreams() error {
@@ -489,8 +513,8 @@ func (g *GlobalContext) Shutdown() error {
 		if g.MessageDeliverer != nil {
 			g.MessageDeliverer.Stop(context.Background())
 		}
-		if g.Syncer != nil {
-			g.Syncer.Shutdown()
+		if g.ChatSyncer != nil {
+			g.ChatSyncer.Shutdown()
 		}
 
 		for _, hook := range g.ShutdownHooks {
@@ -744,6 +768,9 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 }
 
 func (g *GlobalContext) CallLoginHooks() {
+	g.Log.Debug("G#CallLoginHooks")
+
+	g.BumpSharedDHKeyring()
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin()
@@ -902,6 +929,8 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.Log.Debug("+ UserChanged(%s)", u)
 	defer g.Log.Debug("- UserChanged(%s)", u)
 
+	g.BumpSharedDHKeyring()
+
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
 		g.NotifyRouter.HandleUserChanged(u)
@@ -917,4 +946,54 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	}
 	g.UserChangedHandlers = newList
 	g.uchMu.Unlock()
+}
+
+func (g *GlobalContext) GetSharedDHKeyring() (*SharedDHKeyring, error) {
+	g.sharedDHKeyringMu.Lock()
+	defer g.sharedDHKeyringMu.Unlock()
+	if g.sharedDHKeyring == nil {
+		return nil, fmt.Errorf("SharedDHKeyring not present")
+	}
+	return g.sharedDHKeyring, nil
+}
+
+func (g *GlobalContext) ClearSharedDHKeyring() {
+	g.Log.Debug("G#ClearSharedDHKeyring")
+	g.sharedDHKeyringMu.Lock()
+	defer g.sharedDHKeyringMu.Unlock()
+	g.sharedDHKeyring = nil
+}
+
+// BumpSharedDHKeyring recreates SharedDHKeyring if the uid/did changes.
+func (g *GlobalContext) BumpSharedDHKeyring() error {
+	g.sharedDHKeyringMu.Lock()
+	defer g.sharedDHKeyringMu.Unlock()
+
+	uid := g.GetMyUID()
+	did := g.Env.GetDeviceID()
+
+	makeNew := func() error {
+		sdhk, err := NewSharedDHKeyring(g, uid, did)
+		if err != nil {
+			g.Log.Warning("G#BumpSharedDHKeyring -> failed: %s", err)
+			g.sharedDHKeyring = nil
+			return err
+		}
+		g.Log.Debug("G#BumpSharedDHKeyring -> new")
+		g.sharedDHKeyring = sdhk
+		return nil
+	}
+
+	if g.sharedDHKeyring == nil {
+		return makeNew()
+	} else {
+		eUid, eDid := g.sharedDHKeyring.GetOwner()
+		if eUid.Equal(uid) && eDid.Eq(did) {
+			// Leave the existing keyring in place for the same user
+			g.Log.Debug("G#BumpSharedDHKeyring -> ignore")
+			return nil
+		} else {
+			return makeNew()
+		}
+	}
 }

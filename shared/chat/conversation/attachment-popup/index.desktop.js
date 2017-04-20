@@ -78,11 +78,11 @@ const AttachmentPopup = ({message, detailsPopupShowing, isZoomed, onCloseDetails
 
 const styleHeaderFooter = {
   ...globalStyles.flexBoxRow,
-  height: 32,
   alignItems: 'center',
+  flexShrink: 0,
+  height: 32,
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
-  flexShrink: 0,
 }
 
 const styleContentsFit = {
@@ -98,22 +98,22 @@ const styleContentsCenter = {
 
 const styleContentsZoom = {
   display: 'block',
-  overflow: 'auto',
   flex: 1,
+  overflow: 'auto',
 }
 
 const styleImageFit = {
-  display: 'block',
   cursor: 'zoom-in',
+  display: 'block',
   objectFit: 'scale-down',
   width: '100%',
 }
 
 const styleImageZoom = {
-  display: 'block',
   cursor: 'zoom-out',
-  minWidth: '100%',
+  display: 'block',
   minHeight: '100%',
+  minWidth: '100%',
 }
 
 export default AttachmentPopup

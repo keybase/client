@@ -233,7 +233,7 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 	ha.Add("fields", S{fields})
 	ares, res.err = r.G().API.Get(APIArg{
 		Endpoint:       "user/lookup",
-		NeedSession:    false,
+		SessionType:    APISessionTypeNONE,
 		Args:           ha,
 		AppStatusCodes: []int{SCOk, SCNotFound, SCDeleted},
 		NetContext:     ctx,

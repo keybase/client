@@ -180,7 +180,7 @@ func CreateAndSigunpLPK(tc libkb.TestContext, prefix string) (*FakeUser, string)
 }
 
 func AssertLoggedInLPK(tc *libkb.TestContext, shouldBeLoggedIn bool) {
-	sessionIsValid, err := tc.G.LoginState().LoggedInProvisionedLoad()
+	sessionIsValid, err := tc.G.LoginState().LoggedInProvisionedCheck()
 	t := tc.T
 	require.NoError(t, err)
 	if shouldBeLoggedIn {

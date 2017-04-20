@@ -86,6 +86,11 @@ type ComputedKeyInfos struct {
 
 	// Map of KID -> DeviceID
 	KIDToDeviceID map[keybase1.KID]keybase1.DeviceID
+
+	// For each generation, the public KID that corresponds to the shared
+	// DH key. We're not keeping these in ComputedKeyFamily for now. For generation=0,
+	// we expect a nil KID
+	SharedDHKeys map[keybase1.SharedDHKeyGeneration]keybase1.KID
 }
 
 // As returned by user/lookup.json
@@ -202,6 +207,7 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo, len(cki.Sigs)),
 		Devices:       make(map[keybase1.DeviceID]*Device, len(cki.Devices)),
 		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID, len(cki.KIDToDeviceID)),
+		SharedDHKeys:  make(map[keybase1.SharedDHKeyGeneration]keybase1.KID),
 	}
 	for k, v := range cki.Infos {
 		ret.Infos[k] = v
@@ -217,6 +223,10 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 
 	for k, v := range cki.KIDToDeviceID {
 		ret.KIDToDeviceID[k] = v
+	}
+
+	for k, v := range cki.SharedDHKeys {
+		ret.SharedDHKeys[k] = v
 	}
 
 	return ret
@@ -275,6 +285,7 @@ func NewComputedKeyInfos(g *GlobalContext) *ComputedKeyInfos {
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo),
 		Devices:       make(map[keybase1.DeviceID]*Device),
 		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID),
+		SharedDHKeys:  make(map[keybase1.SharedDHKeyGeneration]keybase1.KID),
 	}
 }
 
@@ -521,6 +532,11 @@ func NowAsKeybaseTime(seqno int) *KeybaseTime {
 // Delegate performs a delegation to the key described in the given TypedChainLink.
 // This maybe be a sub- or sibkey delegation.
 func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
+
+	if sdhk, ok := tcl.(*SharedDHKeyChainLink); ok {
+		return ckf.cki.DelegateSharedDHKey(sdhk)
+	}
+
 	kid := tcl.GetDelegatedKid()
 	sigid := tcl.GetSigID()
 	tm := TclToKeybaseTime(tcl)
@@ -560,8 +576,14 @@ func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid k
 			parent.Subkey = kid
 		}
 	}
-
 	return
+}
+
+// DelegateSharedDHKey inserts the new shared DH public key into the
+// list of known generations of DH public keys.
+func (cki *ComputedKeyInfos) DelegateSharedDHKey(s *SharedDHKeyChainLink) (err error) {
+	cki.SharedDHKeys[s.generation] = s.GetDelegatedKid()
+	return nil
 }
 
 // Revoke examines a TypeChainLink and applies any revocations in the link
@@ -595,6 +617,15 @@ func (ckf *ComputedKeyFamily) SetActivePGPHash(kid keybase1.KID, hash string) {
 	}
 }
 
+// ClearActivePGPHash clears authoritative hash of PGP key, after a revoke.
+func (ckf *ComputedKeyFamily) ClearActivePGPHash(kid keybase1.KID) {
+	if _, ok := ckf.cki.Infos[kid]; ok {
+		ckf.cki.Infos[kid].ActivePGPHash = ""
+	} else {
+		ckf.G().Log.Debug("| Skipped clearing active hash, since key was never delegated")
+	}
+}
+
 // revokeSigs operates on the per-signature revocations in the given
 // TypedChainLink and applies them accordingly.
 func (ckf *ComputedKeyFamily) revokeSigs(sigs []keybase1.SigID, tcl TypedChainLink) error {
@@ -624,12 +655,16 @@ func (ckf *ComputedKeyFamily) revokeKids(kids []keybase1.KID, tcl TypedChainLink
 
 func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) (err error) {
 	if info, found := ckf.cki.Sigs[sig]; !found {
-	} else if _, found = info.Delegations[sig]; !found {
-		err = BadRevocationError{fmt.Sprintf("Can't find sigID %s in delegation list", sig)}
-	} else {
+	} else if kid, found := info.Delegations[sig]; found {
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
 		info.RevokedBy = tcl.GetKID()
+
+		if KIDIsPGP(kid) {
+			ckf.ClearActivePGPHash(kid)
+		}
+	} else {
+		err = BadRevocationError{fmt.Sprintf("Can't find sigID %s in delegation list", sig)}
 	}
 	return
 }
@@ -639,6 +674,10 @@ func (ckf *ComputedKeyFamily) RevokeKid(kid keybase1.KID, tcl TypedChainLink) (e
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
 		info.RevokedBy = tcl.GetKID()
+
+		if KIDIsPGP(kid) {
+			ckf.ClearActivePGPHash(kid)
+		}
 	}
 	return
 }

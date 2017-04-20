@@ -721,6 +721,38 @@ func (s *SubkeyChainLink) insertIntoTable(tab *IdentityTable) {
 //=========================================================================
 
 //=========================================================================
+// SharedDHKeyChainLink
+
+type SharedDHKeyChainLink struct {
+	GenericChainLink
+	kid        keybase1.KID
+	generation keybase1.SharedDHKeyGeneration
+}
+
+func ParseSharedDHKeyChainLink(b GenericChainLink) (ret *SharedDHKeyChainLink, err error) {
+	var kid keybase1.KID
+	var g int
+	section := b.payloadJSON.AtPath("body.shared_dh_key")
+	if kid, err = GetKID(section.AtKey("kid")); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Can't get KID for shared_dh @%s: %s", b.ToDebugString(), err)}
+	} else if g, err = section.AtKey("generation").GetInt(); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Can't get generation for shared_dh @%s: %s", b.ToDebugString(), err)}
+	} else {
+		ret = &SharedDHKeyChainLink{b, kid, keybase1.SharedDHKeyGeneration(g)}
+	}
+	return ret, err
+}
+
+func (s *SharedDHKeyChainLink) Type() string                  { return DelegationTypeSharedDHKey }
+func (s *SharedDHKeyChainLink) ToDisplayString() string       { return s.kid.String() }
+func (s *SharedDHKeyChainLink) GetRole() KeyRole              { return DLGSharedDHKey }
+func (s *SharedDHKeyChainLink) GetDelegatedKid() keybase1.KID { return s.kid }
+func (s *SharedDHKeyChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(s)
+}
+
+//
+//=========================================================================
 // PGPUpdateChainLink
 //
 
@@ -1080,6 +1112,8 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseSubkeyChainLink(base)
 		case DelegationTypePGPUpdate:
 			ret, err = ParsePGPUpdateChainLink(base)
+		case DelegationTypeSharedDHKey:
+			ret, err = ParseSharedDHKeyChainLink(base)
 		case "device":
 			ret, err = ParseDeviceChainLink(base)
 		default:

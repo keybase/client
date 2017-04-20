@@ -16,11 +16,16 @@ const mapStateToProps = (state: TypedState, {focusInputCounter}: OwnProps) => {
 
   let isLoading = true
 
-  if (!Constants.isPendingConversationIDKey(selectedConversationIDKey || '') &&
-    selectedConversationIDKey !== Constants.nothingSelected) {
-    const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
-    if (conversationState) {
-      isLoading = conversationState.isLoading
+  if (selectedConversationIDKey !== Constants.nothingSelected) {
+    if (!Constants.isPendingConversationIDKey(selectedConversationIDKey || '')) {
+      const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
+      if (conversationState) {
+        isLoading = !conversationState.isLoaded
+      }
+    } else {
+      // A conversation can't be loading if it's pending -- it doesn't exist
+      // yet and we need to allow creating it.
+      isLoading = false
     }
   }
 
@@ -53,7 +58,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     dispatchProps.onPostMessage(stateProps.selectedConversationIDKey, text)
     ownProps.onScrollDown()
   },
-  onStoreInputText: (inputText: string) => dispatchProps.onStoreInputText(stateProps.selectedConversationIDKey, inputText),
+  onStoreInputText: (inputText: string) => {
+    if (stateProps.selectedConversationIDKey) { // only write if we're in a convo
+      dispatchProps.onStoreInputText(stateProps.selectedConversationIDKey, inputText)
+    }
+  },
 })
 
 export default compose(
@@ -77,10 +86,15 @@ export default compose(
         this.props.inputFocus()
       }
     },
+    componentWillUnmount: function () {
+      this.props.onStoreInputText(this.props.inputValue())
+    },
     componentWillReceiveProps: function (nextProps) {
       if (this.props.selectedConversationIDKey &&
           this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {
         this.props.onStoreInputText(this.props.inputValue())
+        // withState won't get called again if props changes!
+        this.props.setText(nextProps.defaultText)
       }
     },
   })

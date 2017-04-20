@@ -37,7 +37,7 @@ function messageOutboxIDSelector (state: TypedState, conversationIDKey: Constant
 }
 
 function devicenameSelector (state: TypedState) {
-  return state.config && state.config.extendedConfig && state.config.extendedConfig.device && state.config.extendedConfig.device.name
+  return state.config && state.config.deviceName
 }
 
 function selectedInboxSelector (state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
@@ -52,8 +52,12 @@ function inboxUntrustedStateSelector (state: TypedState) {
   return state.chat.get('inboxUntrustedState')
 }
 
-function tmpFileName (isHdPreview: boolean, conversationID: Constants.ConversationIDKey, messageID: ?Constants.MessageID, filename: string) {
-  return `kbchat-${isHdPreview ? 'hdPreview' : 'preview'}-${conversationID}-${messageID || ''}-${filename}`
+function tmpFileName (isHdPreview: boolean, conversationID: Constants.ConversationIDKey, messageID: Constants.MessageID, filename: string) {
+  if (!messageID) {
+    throw new Error('tmpFileName called without messageID!')
+  }
+
+  return `kbchat-${conversationID}-${messageID}.${isHdPreview ? 'hdPreview' : 'preview'}`
 }
 
 function * clientHeader (messageType: ChatTypes.MessageType, conversationIDKey: Constants.ConversationIDKey): Generator<any, ?ChatTypes.MessageClientHeader, any> {
@@ -72,21 +76,7 @@ function * clientHeader (messageType: ChatTypes.MessageType, conversationIDKey: 
     return
   }
 
-  const configSelector = (state: TypedState) => {
-    try {
-      return {
-        // $FlowIssue doesn't understand try
-        deviceID: state.config.extendedConfig.device.deviceID,
-        uid: state.config.uid,
-      }
-    } catch (_) {
-      return {
-        deviceID: '',
-        uid: '',
-      }
-    }
-  }
-
+  const configSelector = ({config: {deviceID, uid}}: TypedState) => ({deviceID, uid})
   const {deviceID, uid}: {deviceID: string, uid: string} = ((yield select(configSelector)): any)
 
   if (!deviceID || !uid) {
@@ -175,13 +165,13 @@ function * getPostingIdentifyBehavior (conversationIDKey: Constants.Conversation
 
 function _filterTimestampableMessage (message: Constants.Message): ?TimestampableMessage {
   if (message.messageID === 1) {
-    // $FlowIssue with casting todo(mm) can we fix this?
+    // $TemporarilyNotAFlowIssue with casting todo(mm) can we fix this?
     return message
   }
 
   if (!_isTimestampableMessage(message)) return null
 
-  // $FlowIssue with casting todo(mm) can we fix this?
+  // $TemporarilyNotAFlowIssue with casting todo(mm) can we fix this?
   return message
 }
 
@@ -193,18 +183,18 @@ function _previousTimestampableMessage (messages: Array<Constants.Message>, prev
   return findLast(messages, message => _isTimestampableMessage(message) ? message : null, prevIndex)
 }
 
-function maybeAddTimestamp (_message: Constants.Message, messages: Array<Constants.Message>, prevIndex: number): Constants.MaybeTimestamp {
+function maybeAddTimestamp (conversationIDKey: Constants.ConversationIDKey, message: Constants.Message, messages: Array<Constants.Message>, prevIndex: number): Constants.MaybeTimestamp {
   const prevMessage = _previousTimestampableMessage(messages, prevIndex)
-  const message = _filterTimestampableMessage(_message)
-  if (!message || !prevMessage) return null
+  const m = _filterTimestampableMessage(message)
+  if (!m || !prevMessage) return null
 
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
   // the first message, as well as between any two messages with long duration.
-  // $FlowIssue with casting todo(mm) can we fix this?
-  if (prevMessage.messageID === 1 || message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
+  // $TemporarilyNotAFlowIssue with casting todo(mm) can we fix this?
+  if (prevMessage.messageID === 1 || m.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
     return {
-      key: Constants.messageKey('timestamp', message.timestamp),
-      timestamp: message.timestamp,
+      key: Constants.messageKey(conversationIDKey, 'timestamp', m.timestamp),
+      timestamp: m.timestamp,
       type: 'Timestamp',
     }
   }

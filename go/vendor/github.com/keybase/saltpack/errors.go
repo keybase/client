@@ -62,6 +62,10 @@ var (
 
 	// ErrDecryptionFailed is returned when a decryption fails
 	ErrDecryptionFailed = errors.New("decryption failed")
+
+	// ErrWrongNumberOfKeys is returned when the resolved list of keys isn't
+	// the same length as the identifiers list.
+	ErrWrongNumberOfKeys = errors.New("wrong number of resolved keys")
 )
 
 // ErrBadTag is generated when a payload hash doesn't match the hash

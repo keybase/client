@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -75,6 +76,8 @@ func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
 func (h *chatLocalHandler) isOfflineError(err error) bool {
 	// Check type
 	switch terr := err.(type) {
+	case net.Error:
+		return true
 	case libkb.APINetError:
 		return true
 	case chat.OfflineError:
@@ -175,6 +178,13 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 					ConvID:    convRes.ConvID,
 					Error:     *convRes.Err,
 				})
+
+				// Log this guy into Syncer's stale store, so that we refresh it when we
+				// re-connect
+				if convRes.Err.Typ == chat1.ConversationErrorType_TRANSIENT {
+					h.G().ChatSyncer.AddStaleConversation(ctx, uid.ToBytes(), convRes.ConvID)
+				}
+
 			} else if convRes.ConvRes != nil {
 				h.Debug(ctx, "GetInboxNonblockLocal: verified conv: id: %s tlf: %s",
 					convRes.ConvID, convRes.ConvRes.Info.TLFNameExpanded())
@@ -209,7 +219,7 @@ func (h *chatLocalHandler) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAs
 		return res, err
 	}
 	return chat1.MarkAsReadLocalRes{
-		Offline:    h.G().Syncer.IsConnected(ctx),
+		Offline:    h.G().ChatSyncer.IsConnected(ctx),
 		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rres.RateLimit}),
 	}, nil
 }
@@ -302,14 +312,23 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return fullErr }, "GetThreadNonblock")()
-	defer func() { fullErr = h.handleOfflineError(ctx, fullErr, &res) }()
+	uid := h.G().Env.GetUID()
+	defer h.Trace(ctx, func() error { return fullErr },
+		fmt.Sprintf("GetThreadNonblock(%s)", arg.ConversationID))()
+	defer func() {
+		fullErr = h.handleOfflineError(ctx, fullErr, &res)
+
+		// If we are sending an offline result, then we should remember this conversation
+		// in ChatSyncer so that we can generate a stale message when we reconnect
+		if res.Offline {
+			h.G().ChatSyncer.AddStaleConversation(ctx, uid.ToBytes(), arg.ConversationID)
+		}
+	}()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
 
 	// Grab local copy first
-	uid := h.G().Env.GetUID()
 	chatUI := h.getChatUI(arg.SessionID)
 
 	// Race the full operation versus the local one, so we don't lose anytime grabbing the local
@@ -868,6 +887,7 @@ func (h *chatLocalHandler) PostTextNonblock(ctx context.Context, arg chat1.PostT
 }
 
 func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocalNonblock")()
@@ -1034,13 +1054,14 @@ func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat
 
 	if arg.Preview != nil {
 		parg.Preview = new(attachmentPreview)
-		if arg.Preview.Filename != nil {
+		if arg.Preview.Filename != nil && *arg.Preview.Filename != "" {
 			parg.Preview.source, err = newFileSource(chat1.LocalFileSource{
 				Filename: *arg.Preview.Filename,
 			})
 			if err != nil {
 				return res, err
 			}
+			defer parg.Preview.source.Close()
 		}
 		if arg.Preview.Metadata != nil {
 			parg.Preview.md = arg.Preview.Metadata
@@ -1049,7 +1070,6 @@ func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat
 			parg.Preview.baseMd = arg.Preview.BaseMetadata
 		}
 		parg.Preview.mimeType = arg.Preview.MimeType
-		defer parg.Preview.source.Close()
 	}
 
 	return h.postAttachmentLocal(ctx, parg)
@@ -1098,7 +1118,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		return chat1.PostLocalRes{}, err
 	}
 	if pre.Preview != nil {
-		h.Debug(ctx, "created preview in preprocess")
+		h.Debug(ctx, "postAttachmentLocal: created preview in preprocess")
 		md := pre.PreviewMetadata()
 		baseMd := pre.BaseMetadata()
 		arg.Preview = &attachmentPreview{
@@ -1120,13 +1140,14 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	var preview *chat1.Asset
 	var g errgroup.Group
 
+	h.Debug(ctx, "postAttachmentLocal: uploading assets")
 	g.Go(func() error {
 		chatUI.ChatAttachmentUploadStart(ctx, pre.BaseMetadata(), 0)
 		var err error
 		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
 		chatUI.ChatAttachmentUploadDone(ctx)
 		if err != nil {
-			h.Debug(ctx, "error uploading primary asset to s3: %s", err)
+			h.Debug(ctx, "postAttachmentLocal: error uploading primary asset to s3: %s", err)
 		}
 		return err
 	})
@@ -1145,15 +1166,23 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 			if err == nil {
 				preview = &prev
 			} else {
-				h.Debug(ctx, "error uploading preview asset to s3: %s", err)
+				h.Debug(ctx, "postAttachmentLocal: error uploading preview asset to s3: %s", err)
 			}
 			return err
 		})
+	} else {
+		g.Go(func() error {
+			chatUI.ChatAttachmentPreviewUploadStart(ctx, chat1.AssetMetadata{})
+			chatUI.ChatAttachmentPreviewUploadDone(ctx)
+			return nil
+		})
 	}
 
+	h.Debug(ctx, "postAttachmentLocal: waiting for frontend")
 	if err := g.Wait(); err != nil {
 		return chat1.PostLocalRes{}, err
 	}
+	h.Debug(ctx, "postAttachmentLocal: frontend returned")
 
 	// note that we only want to set the Title to what the user entered,
 	// even if that is nothing.
@@ -1167,6 +1196,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		Uploaded: true,
 	}
 	if preview != nil {
+		h.Debug(ctx, "postAttachmentLocal: attachment preview asset added")
 		preview.Title = arg.Title
 		preview.MimeType = pre.PreviewContentType
 		preview.Metadata = pre.PreviewMetadata()
@@ -1190,19 +1220,19 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	postArg.Msg.ClientHeader.TlfName = arg.ClientHeader.TlfName
 	postArg.Msg.ClientHeader.TlfPublic = arg.ClientHeader.TlfPublic
 
-	h.Debug(ctx, "attachment assets uploaded, posting attachment message")
+	h.Debug(ctx, "postAttachmentLocal: attachment assets uploaded, posting attachment message")
 	plres, err := h.PostLocal(ctx, postArg)
 	if err != nil {
-		h.Debug(ctx, "error posting attachment message: %s", err)
+		h.Debug(ctx, "postAttachmentLocal: error posting attachment message: %s", err)
 	} else {
-		h.Debug(ctx, "posted attachment message successfully")
+		h.Debug(ctx, "postAttachmentLocal: posted attachment message successfully")
 	}
 
 	return plres, err
 }
 
 func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg postAttachmentArg) (res chat1.PostLocalRes, err error) {
-	h.Debug(ctx, "using postAttachmentLocalInOrder flow to upload attachment")
+	h.Debug(ctx, "postAttachmentLocalInOrder: using postAttachmentLocalInOrder flow to upload attachment")
 	if os.Getenv("CHAT_S3_FAKE") == "1" {
 		ctx = s3.NewFakeS3Context(ctx)
 	}
@@ -1222,7 +1252,7 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 		return chat1.PostLocalRes{}, err
 	}
 	if pre.Preview != nil {
-		h.Debug(ctx, "created preview in preprocess")
+		h.Debug(ctx, "postAttachmentLocalInOrder: created preview in preprocess")
 		md := pre.PreviewMetadata()
 		baseMd := pre.BaseMetadata()
 		arg.Preview = &attachmentPreview{
@@ -1240,7 +1270,7 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 	if err != nil {
 		return placeholder, err
 	}
-	h.Debug(ctx, "placeholder message id: %v", placeholder.MessageID)
+	h.Debug(ctx, "postAttachmentLocalInOrder: placeholder message id: %v", placeholder.MessageID)
 
 	// if there are any errors going forward, delete the placeholder message
 	defer func() {
@@ -1248,7 +1278,7 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 			return
 		}
 
-		h.Debug(ctx, "postAttachmentLocal error after placeholder message sent, deleting placeholder message")
+		h.Debug(ctx, "postAttachmentLocalInOrder: error after placeholder message sent, deleting placeholder message")
 		deleteArg := chat1.PostDeleteNonblockArg{
 			ConversationID:   arg.ConversationID,
 			IdentifyBehavior: arg.IdentifyBehavior,
@@ -1274,13 +1304,14 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 	var preview *chat1.Asset
 	var g errgroup.Group
 
+	h.Debug(ctx, "postAttachmentLocalInOrder: uploading assets")
 	g.Go(func() error {
 		chatUI.ChatAttachmentUploadStart(ctx, pre.BaseMetadata(), placeholder.MessageID)
 		var err error
 		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
 		chatUI.ChatAttachmentUploadDone(ctx)
 		if err != nil {
-			h.Debug(ctx, "error uploading primary asset to s3: %s", err)
+			h.Debug(ctx, "postAttachmentLocalInOrder: error uploading primary asset to s3: %s", err)
 		}
 		return err
 	})
@@ -1299,9 +1330,15 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 			if err == nil {
 				preview = &prev
 			} else {
-				h.Debug(ctx, "error uploading preview asset to s3: %s", err)
+				h.Debug(ctx, "postAttachmentLocalInOrder: error uploading preview asset to s3: %s", err)
 			}
 			return err
+		})
+	} else {
+		g.Go(func() error {
+			chatUI.ChatAttachmentPreviewUploadStart(ctx, chat1.AssetMetadata{})
+			chatUI.ChatAttachmentPreviewUploadDone(ctx)
+			return nil
 		})
 	}
 
@@ -1344,12 +1381,12 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 	postArg.Msg.ClientHeader.TlfName = arg.ClientHeader.TlfName
 	postArg.Msg.ClientHeader.TlfPublic = arg.ClientHeader.TlfPublic
 
-	h.Debug(ctx, "attachment assets uploaded, posting attachment message")
+	h.Debug(ctx, "postAttachmentLocalInOrder: attachment assets uploaded, posting attachment message")
 	plres, err := h.PostLocal(ctx, postArg)
 	if err != nil {
-		h.Debug(ctx, "error posting attachment message: %s", err)
+		h.Debug(ctx, "postAttachmentLocalInOrder: error posting attachment message: %s", err)
 	} else {
-		h.Debug(ctx, "posted attachment message successfully")
+		h.Debug(ctx, "postAttachmentLocalInOrder: posted attachment message successfully")
 	}
 
 	return plres, err
@@ -1385,7 +1422,7 @@ func (h *chatLocalHandler) DownloadFileAttachmentLocal(ctx context.Context, arg 
 		Preview:          arg.Preview,
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
-	sink, err := os.Create(arg.Filename)
+	sink, err := os.OpenFile(arg.Filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
@@ -1513,12 +1550,8 @@ func (h *chatLocalHandler) setTestRemoteClient(ri chat1.RemoteInterface) {
 }
 
 func (h *chatLocalHandler) assertLoggedIn(ctx context.Context) error {
-	ok, err := h.G().LoginState().LoggedInProvisionedLoad()
+	ok, err := h.G().LoginState().LoggedInProvisioned()
 	if err != nil {
-		if _, ok := err.(libkb.APINetError); ok {
-			h.Debug(ctx, "assertLoggedIn: skipping API error and returning success")
-			return nil
-		}
 		return err
 	}
 	if !ok {

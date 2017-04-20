@@ -8,6 +8,7 @@ import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select, race, fork} from 'redux-saga/effects'
 import {chatTab} from '../../constants/tabs'
 import {delay} from 'redux-saga'
+import {globalError} from '../../constants/config'
 import {navigateTo} from '../route-tree'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {requestIdleCallback} from '../../util/idle-callback'
@@ -247,28 +248,32 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
       // Valid inbox item for rekey errors only
       const conversation = new Constants.InboxStateRecord({
         conversationIDKey,
-        participants: List([].concat(error.rekeyInfo ? error.rekeyInfo.writerNames : [], error.rekeyInfo ? error.rekeyInfo.readerNames : []).filter(Boolean)),
+        participants: error.rekeyInfo ? List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean)) : List(error.unverifiedTLFName.split(',')),
         state: 'error',
         status: 'unfiled',
         time: error.remoteConv.readerInfo.mtime,
       })
 
+      yield put(Creators.updateInbox(conversation))
       switch (error.typ) {
         case ChatTypes.LocalConversationErrorType.selfrekeyneeded: {
-          yield put(Creators.updateInbox(conversation))
           yield put(Creators.updateInboxRekeySelf(conversationIDKey))
           break
         }
         case ChatTypes.LocalConversationErrorType.otherrekeyneeded: {
-          yield put(Creators.updateInbox(conversation))
           const rekeyers = error.rekeyInfo.rekeyers
           yield put(Creators.updateInboxRekeyOthers(conversationIDKey, rekeyers))
           break
         }
+        case ChatTypes.LocalConversationErrorType.transient: {
+          // Just ignore these, it is a transient error
+          break
+        }
         default:
-          if (__DEV__) {
-            console.warn('Inbox error:', error)
-          }
+          yield put({
+            payload: error,
+            type: globalError,
+          })
       }
     } else if (incoming.finished || incoming.timeout) {
       break
@@ -290,6 +295,11 @@ function _conversationLocalToInboxState (c: ?ChatTypes.ConversationLocal): ?Cons
   const toShow = List(c.maxMessages || [])
     .filter(m => m.valid && m.state === ChatTypes.LocalMessageUnboxedState.valid)
     .map((m: any) => ({body: m.valid.messageBody, time: m.valid.serverHeader.ctime}))
+    .filter(m => [
+      ChatTypes.CommonMessageType.attachment,
+      ChatTypes.CommonMessageType.edit,
+      ChatTypes.CommonMessageType.text,
+    ].includes(m.body.messageType))
     .sort((a, b) => b.time - a.time)
     .map((message: {time: number, body: ?ChatTypes.MessageBody}) => ({
       snippet: Constants.makeSnippet(message.body),
