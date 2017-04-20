@@ -89,6 +89,7 @@ var defaultInstallComponents = []string{
 	install.ComponentNameService.String(),
 	install.ComponentNameMountDir.String(),
 	install.ComponentNameKBFS.String(),
+	install.ComponentNameKBNM.String(),
 }
 
 func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
@@ -146,6 +147,7 @@ func (v *CmdInstall) Run() error {
 var defaultUninstallComponents = []string{
 	install.ComponentNameService.String(),
 	install.ComponentNameKBFS.String(),
+	install.ComponentNameKBNM.String(),
 	install.ComponentNameMountDir.String(),
 	install.ComponentNameUpdater.String(),
 	install.ComponentNameFuse.String(),

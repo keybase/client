@@ -578,6 +578,17 @@ func kbnmManifestPath(u *user.User) string {
 	return filepath.Join(u.HomeDir, homePath)
 }
 
+// kbnmWrapError adds additional instructions to errors when possible.
+func kbnmWrapError(err error, u *user.User) error {
+	if !os.IsPermission(err) {
+		return err
+	}
+	hostsPath := kbnmManifestPath(u)
+	return fmt.Errorf("%s: Make sure the directory is owned by %s. "+
+		"You can run:\n "+
+		"  sudo chown -R %s:staff %q", err, u.Username, u.Username, hostsPath)
+}
+
 // kbnmHostName is the name of the NativeMessage host that the extension communicates with.
 const kbnmHostName = "io.keybase.kbnm"
 
@@ -626,14 +637,14 @@ func InstallKBNM(context Context, binPath string, log Log) error {
 
 	// Make the path if it doesn't exist
 	if err := os.MkdirAll(hostsPath, os.ModePerm); err != nil {
-		return err
+		return kbnmWrapError(err, u)
 	}
 
 	// Write the file
 	log.Debug("Installing KBNM host manifest: %s", jsonPath)
 	fp, err := os.OpenFile(jsonPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
-		return err
+		return kbnmWrapError(err, u)
 	}
 	defer fp.Close()
 
