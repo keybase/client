@@ -15,7 +15,6 @@ import {
   Modal as NativeModal,
   Navigator as NativeNavigator,
   Picker as NativePicker,
-  ScrollView as NativeScrollView,
   StyleSheet as NativeStyleSheet,
   Switch as NativeSwitch,
   Text as NativeText,
@@ -24,6 +23,7 @@ import {
   TouchableWithoutFeedback as NativeTouchableWithoutFeedback,
   TouchableHighlight as NativeTouchableHighlight,
 } from 'react-native'
+import ScrollView from './scroll-view.native'
 
 export {
   NativeActivityIndicator,
@@ -41,7 +41,7 @@ export {
   NativeModal,
   NativeNavigator,
   NativePicker,
-  NativeScrollView,
+  ScrollView as NativeScrollView, // We set some useful default here
   NativeStyleSheet,
   NativeSwitch,
   NativeText,

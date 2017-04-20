@@ -8,7 +8,7 @@ import Box from './box'
 import {globalColors, globalStyles, globalMargins} from '../styles'
 
 const Progress = () => (
-  <Box style={{...progress}}>
+  <Box style={progress}>
     <ProgressIndicator />
   </Box>
 )
@@ -58,30 +58,34 @@ class Button extends Component<void, Props, void> {
 
     // Need this nested view to get around this RN issue: https://github.com/facebook/react-native/issues/1040
     return (
-      <ClickableBox
-        style={borderRadius}
-        onClick={onPress}
-        underlayColor={style.backgroundColor}>
-        <Box style={{...style, ...this.props.style, alignItems: 'center', justifyContent: 'center'}}>
-          <Text type={this.props.small ? 'BodySemibold' : 'BodyBig'} style={{...labelStyle, ...this.props.labelStyle}}>{this.props.label}</Text>
-          {this.props.waiting && <Progress />}
-        </Box>
-      </ClickableBox>
+      <Box style={_containerStyle}>
+        <ClickableBox style={_clickableBoxStyle} onClick={onPress}>
+          <Box style={{...style, ...this.props.style, alignItems: 'center', justifyContent: 'center'}}>
+            <Text type={this.props.small ? 'BodySemibold' : 'BodyBig'} style={{...labelStyle, ...this.props.labelStyle}}>{this.props.label}</Text>
+            {this.props.waiting && <Progress />}
+          </Box>
+        </ClickableBox>
+      </Box>
     )
   }
+}
+
+const _containerStyle = {
+  alignItems: 'center',
 }
 
 const smallHeight = 32
 const regularHeight = 40
 const fullWidthHeight = 48
+const borderRadius = 50
 
-const borderRadius = {
-  borderRadius: 50,
+const _clickableBoxStyle = {
+  borderRadius,
 }
 
 const common = {
   ...globalStyles.flexBoxColumn,
-  ...borderRadius,
+  borderRadius,
   alignItems: 'center',
   justifyContent: 'center',
   height: regularHeight,
