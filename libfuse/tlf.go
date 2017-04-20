@@ -246,10 +246,12 @@ func (tlf *TLF) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fus
 
 // Fsync implements the fs.NodeFsyncer interface for TLF.
 func (tlf *TLF) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
-	dir, err := tlf.loadDir(ctx)
-	if err != nil {
-		return err
+	dir := tlf.getStoredDir()
+	if dir == nil {
+		// The directory hasn't been loaded yet, so there's nothing to do.
+		return nil
 	}
+
 	return dir.Fsync(ctx, req)
 }
 
