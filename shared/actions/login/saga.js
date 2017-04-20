@@ -16,6 +16,7 @@ import {devicesTab, loginTab, profileTab, isValidInitialTab} from '../../constan
 import {isMobile} from '../../constants/platform'
 import {load as loadDevices} from '../devices'
 import {deletePushTokenSaga} from '../push'
+import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
 import {toDeviceType} from '../../constants/types/more'
@@ -448,6 +449,7 @@ function * cameraBrokenModeSaga ({payload: {broken}}) {
 
 function * loginSuccess () {
   yield put(Creators.loginDone())
+  yield put(configurePush())
   yield put(loadDevices())
   yield put(bootstrap())
 }
