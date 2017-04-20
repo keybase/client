@@ -1,7 +1,6 @@
 // @flow
 // Look at this doc: https://goo.gl/7B6p4H
 
-import _ from 'lodash'
 import * as CommonConstants from '../../constants/common'
 import * as Constants from '../../constants/login'
 import * as DeviceConstants from '../../constants/devices'
@@ -385,7 +384,11 @@ function * loginFlowSaga (usernameOrEmail) {
 
   // Returns an Array<Task>
   // If there are any unexpected errors let's cancel the login. The error will be shown as a global error
-  yield _.map(loginSagas, (saga, methodName) => Saga.effectOnChannelMap(c => Saga.safeTakeLatestWithCatch(c, catchError, saga), loginChanMap, methodName))
+  yield Saga.mapSagasToChanMap(
+    (c, saga) => Saga.safeTakeLatestWithCatch(c, catchError, saga),
+    loginSagas,
+    loginChanMap
+  )
 }
 
 function * initalizeMyCodeStateForLogin () {
@@ -484,7 +487,11 @@ function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
   const addDeviceChanMap = yield call(addDeviceRpc, channelConfig)
 
   // Returns an Array<Task>
-  yield _.map(addDeviceSagas, (saga, methodName) => Saga.effectOnChannelMap(c => Saga.safeTakeLatestWithCatch(c, finishedSaga, saga), addDeviceChanMap, methodName))
+  yield Saga.mapSagasToChanMap(
+    (c, saga) => Saga.safeTakeLatestWithCatch(c, finishedSaga, saga),
+    addDeviceSagas,
+    addDeviceChanMap
+  )
 }
 
 function * reloginSaga ({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
@@ -512,7 +519,7 @@ function * reloginSaga ({payload: {usernameOrEmail, passphrase}}: Constants.Relo
     {param: {noPassphrasePrompt: false, username: usernameOrEmail}},
   )
 
-  yield _.map(reloginSagas, (saga, methodName) => Saga.effectOnChannelMap(c => Saga.safeTakeLatest(c, saga), chanMap, methodName))
+  yield Saga.mapSagasToChanMap(Saga.safeTakeLatest, reloginSagas, chanMap)
 }
 
 function * submitForgotPasswordSaga () {
@@ -539,7 +546,7 @@ function * submitForgotPasswordSaga () {
   const email = yield select(state => state.login.forgotPasswordEmailAddress)
   const channelConfig = Saga.singleFixedChannelConfig(Object.keys(sagas))
   const chanMap = Types.loginRecoverAccountFromEmailAddressRpcChannelMap(channelConfig, {param: {email}})
-  yield _.map(sagas, (saga, methodName) => Saga.effectOnChannelMap(c => Saga.safeTakeLatest(c, saga), chanMap, methodName))
+  yield Saga.mapSagasToChanMap(Saga.safeTakeLatest, sagas, chanMap)
 }
 
 function * openAccountResetPageSaga () {
@@ -567,7 +574,7 @@ function * logoutSaga () {
   // Add waiting handler
   const channelConfig = Saga.singleFixedChannelConfig(Object.keys(sagas))
   const chanMap = Types.loginLogoutRpcChannelMap(channelConfig, {})
-  yield _.map(sagas, (saga, methodName) => Saga.effectOnChannelMap(c => Saga.safeTakeLatest(c, saga), chanMap, methodName))
+  yield Saga.mapSagasToChanMap(Saga.safeTakeLatest, sagas, chanMap)
 }
 
 function * loginSaga (): SagaGenerator<any, any> {

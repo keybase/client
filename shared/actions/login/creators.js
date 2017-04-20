@@ -33,7 +33,6 @@ function setQRCode (code: string): Constants.SetQRCode {
 
 function submitPassphrase (passphrase: HiddenString, storeSecret: boolean = false): Constants.SubmitPassphrase {
   if (typeof passphrase === 'string') {
-    console.error('passphrase is a string, should be a hidden string!')
     throw new Error('DEV: passphrase is a string, should be a hidden string!')
   }
   return {type: Constants.submitPassphrase, payload: {passphrase, storeSecret}}

@@ -16,7 +16,6 @@ const recursiveLazyRoutes = I.Seq({
   login: {
     component: Login,
   },
-  // TODO: update this component
   error: {
     component: RegisterError,
   },
