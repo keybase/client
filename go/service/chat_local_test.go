@@ -95,6 +95,10 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	tc.G.MessageDeliverer.Start(context.TODO(), user.User.GetUID().ToBytes())
 	tc.G.MessageDeliverer.Connected(context.TODO())
 
+	tc.G.ChatFetchRetrier = chat.NewFetchRetrier(tc.G)
+	tc.G.ChatFetchRetrier.Start(context.TODO(), user.User.GetUID().ToBytes())
+	tc.G.ChatFetchRetrier.Connected(context.TODO())
+
 	tuc := &chatTestUserContext{
 		h: h,
 		u: user,
