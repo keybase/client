@@ -124,6 +124,7 @@ func (c *CmdSimpleFSCopy) Run() error {
 
 		err = cli.SimpleFSWait(ctx, opid)
 		if err != nil {
+			c.G().Log.Debug("SimpleFSCopy got an error from Wait: %s", err)
 			break
 		}
 	}
