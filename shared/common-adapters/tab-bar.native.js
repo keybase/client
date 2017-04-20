@@ -40,7 +40,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
       <Box style={{...stylesTabBarButtonIcon, ...this.props.style, flexGrow: 1}}>
         {this.props.source.type === 'icon'
           ? <Icon type={this.props.source.icon} style={{color: iconColor, fontSize: 32, width: 32, textAlign: 'center', ...this.props.styleIcon}} />
-          : <Avatar size={24} username={this.props.username} borderColor={iconColor} />}
+          : <Avatar size={24} username={this.props.source.username} borderColor={iconColor} />}
         {!!this.props.label && <Text type='BodySemibold' style={{textAlign: 'center', ...this.props.styleLabel}}>{this.props.label}</Text>}
         {badgeNumber > 0 &&
           <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 5}} />
