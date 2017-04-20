@@ -14,8 +14,9 @@
     "default_popup": "html/popup.html"
   },
   "permissions": [
-    "declarativeContent",
+    "activeTab",
     "contextMenus",
+    "declarativeContent",
     "nativeMessaging",
     "http://reddit.com/*",
     "https://reddit.com/*",

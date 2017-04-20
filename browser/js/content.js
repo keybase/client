@@ -96,7 +96,7 @@ function renderChatContact(el, redditUsername, keybaseUsername) {
 }
 
 // Render the Keybase chat reply widget
-function renderChat(parent, toUsername) {
+function renderChat(parent, toUsername, closeCallback) {
   // TODO: Replace hardcoded HTML with some posh templating tech?
   // TODO: Prevent navigation?
   const isLoggedIn = document.getElementsByClassName("logout").length > 0;
@@ -137,7 +137,7 @@ function renderChat(parent, toUsername) {
       <p style="text-align: center;"><input type="submit" value="Send" name="keybase-submit" /></p>
     </div>
   `;
-  f.addEventListener("submit", submitChat);
+  f.addEventListener("submit", submitChat.bind(null, closeCallback));
   parent.insertBefore(f, parent.firstChild);
 
   const contactDiv = f.getElementsByClassName("keybase-contact")[0];
@@ -171,7 +171,9 @@ function renderChat(parent, toUsername) {
   // Install closing button (the "x" in the corner)
   const closer = f.getElementsByClassName("keybase-close")[0];
   closer.addEventListener("click", function(e) {
-    removeChat(f);
+    if (removeChat(f)) {
+      closeCallback !== undefined && closeCallback();
+    }
   });
 
   // Install submit button disabler/enabler
@@ -206,7 +208,7 @@ function removeChat(chatForm, skipCheck) {
 
 
 // Submit the chat widget
-function submitChat(e) {
+function submitChat(successCallback, e) {
   e.preventDefault();
 
   const f = e.currentTarget; // The form.
@@ -248,6 +250,7 @@ function submitChat(e) {
 
     removeChat(f, true /* skipCheck */);
     nudgeCallback();
+    successCallback !== undefined && successCallback();
   });
 }
 
