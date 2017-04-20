@@ -60,6 +60,7 @@ class BaseList extends Component<void, Props, State> {
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.selectedConversation !== nextProps.selectedConversation ||
       this.props.listScrollDownCounter !== nextProps.listScrollDownCounter) {
+      this._cellCache.clearAll()
       this.setState({isLockedToBottom: true})
     }
 

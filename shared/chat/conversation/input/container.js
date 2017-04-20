@@ -82,10 +82,15 @@ export default compose(
         this.props.inputFocus()
       }
     },
+    componentWillUnmount: function () {
+      this.props.onStoreInputText(this.props.inputValue())
+    },
     componentWillReceiveProps: function (nextProps) {
       if (this.props.selectedConversationIDKey &&
           this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {
         this.props.onStoreInputText(this.props.inputValue())
+        // withState won't get called again if props changes!
+        this.props.setText(nextProps.defaultText)
       }
     },
   })

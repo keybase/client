@@ -118,7 +118,6 @@ function _RenderRoute ({routeDef, routeState, setRouteState, path}: _RenderRoute
       stack = stack.map(r => (
         r.update('component', child => (
           <RenderRouteNode
-            key={pathToString(path)}
             isContainer={true}
             routeDef={routeDef}
             routeState={routeState}
@@ -138,7 +137,6 @@ function _RenderRoute ({routeDef, routeState, setRouteState, path}: _RenderRoute
     // If this path has a leaf component to render, add it to the stack.
     const routeComponent = (
       <RenderRouteNode
-        key={pathToString(path)}
         isContainer={false}
         routeDef={routeDef}
         routeState={routeState}
