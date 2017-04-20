@@ -42,6 +42,10 @@ func NewFetchRetrier(g *libkb.GlobalContext) *FetchRetrier {
 	return f
 }
 
+func (f *FetchRetrier) SetClock(clock clockwork.Clock) {
+	f.clock = clock
+}
+
 func (f *FetchRetrier) boxKey(kind types.FetchType) string {
 	return fmt.Sprintf("%v", kind)
 }
@@ -78,6 +82,11 @@ func (f *FetchRetrier) IsOffline() bool {
 	f.Lock()
 	defer f.Unlock()
 	return f.offline
+}
+
+func (f *FetchRetrier) Force(ctx context.Context) {
+	defer f.Trace(ctx, func() error { return nil }, "Force")()
+	f.forceCh <- struct{}{}
 }
 
 func (f *FetchRetrier) Start(ctx context.Context, uid gregor1.UID) {

@@ -293,7 +293,7 @@ func (d *Service) chatRemoteClient() chat1.RemoteInterface {
 		d.G().Log.Debug("service not connected to gregor, using errorClient for chat1.RemoteClient")
 		return chat1.RemoteClient{Cli: errorClient{}}
 	}
-	return chat1.RemoteClient{Cli: d.gregor.cli}
+	return chat1.RemoteClient{Cli: chat.NewRemoteClient(d.G(), d.gregor.cli)}
 }
 
 func (d *Service) configureRekey(uir *UIRouter) {

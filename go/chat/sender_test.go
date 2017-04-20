@@ -148,6 +148,10 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	tc.G.MessageDeliverer.(*Deliverer).SetClock(world.Fc)
 	tc.G.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
 	tc.G.MessageDeliverer.Connected(context.TODO())
+	tc.G.ChatFetchRetrier = NewFetchRetrier(tc.G)
+	tc.G.ChatFetchRetrier.(*FetchRetrier).SetClock(world.Fc)
+	tc.G.ChatFetchRetrier.Start(context.TODO(), u.User.GetUID().ToBytes())
+	tc.G.ChatFetchRetrier.Connected(context.TODO())
 	chatSyncer := NewSyncer(tc.G)
 	chatSyncer.isConnected = true
 	tc.G.ChatSyncer = chatSyncer
