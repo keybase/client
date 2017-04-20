@@ -2,7 +2,7 @@
 import SettingsContainer from './render'
 import {connect} from 'react-redux'
 import {switchTo} from '../actions/route-tree'
-import {logout} from '../actions/login'
+import {logout} from '../actions/login/creators'
 
 import type {RouteProps} from '../route-tree/render-route'
 

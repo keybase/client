@@ -4,7 +4,7 @@ import {List} from 'immutable'
 import {badgeAppForChat} from '../actions/chat'
 import {badgeApp} from '../actions/notifications'
 import {bootstrap, updateFollowing} from '../actions/config'
-import {logoutDone} from '../actions/login'
+import {logoutDone} from '../actions/login/creators'
 
 import type {Dispatch} from '../constants/types/flux'
 import type {incomingCallMapType} from '../constants/types/flow-types'

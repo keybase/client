@@ -4,7 +4,7 @@ import engine from '../../engine'
 import {CommonClientType, configGetBootstrapStatusRpc, configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, configWaitForClientRpc} from '../../constants/types/flow-types'
 import {isMobile} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
-import {navBasedOnLoginState} from '../../actions/login'
+import {navBasedOnLoginState} from '../../actions/login/creators'
 import {checkReachabilityOnConnect, registerGregorListeners, registerReachability, listenForNativeReachabilityEvents} from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
 
