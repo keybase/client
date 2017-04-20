@@ -73,7 +73,7 @@ func (e *PaperKeyGen) SigKey() libkb.GenericKey {
 	return e.sigKey
 }
 
-func (e *PaperKeyGen) EncKey() libkb.GenericKey {
+func (e *PaperKeyGen) EncKey() libkb.NaclDHKeyPair {
 	return e.encKey
 }
 

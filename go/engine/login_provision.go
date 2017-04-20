@@ -29,7 +29,7 @@ type loginProvision struct {
 	cleanupOnErr    bool
 	hasPGP          bool
 	hasDevice       bool
-	sharedDHKeyring *libkb.SharedDHKeyring // Created after provisioning. Sent to paperkey gen.
+	sharedDHKeyring *libkb.SharedDHKeyring
 }
 
 // gpgInterface defines the portions of gpg client that provision
@@ -100,6 +100,13 @@ func (e *loginProvision) Run(ctx *Context) error {
 			tx.Abort()
 		}
 	}()
+
+	if e.G().Env.GetEnableSharedDH() {
+		e.sharedDHKeyring, err = libkb.NewSharedDHKeyring(e.G(), e.arg.User.GetUID())
+		if err != nil {
+			return err
+		}
+	}
 
 	e.cleanupOnErr = true
 	// based on information in e.arg.User, route the user
@@ -418,10 +425,11 @@ func (e *loginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, erro
 	e.devname = devname
 
 	return &DeviceWrapArgs{
-		Me:         e.arg.User,
-		DeviceName: e.devname,
-		DeviceType: e.arg.DeviceType,
-		Lks:        e.lks,
+		Me:              e.arg.User,
+		DeviceName:      e.devname,
+		DeviceType:      e.arg.DeviceType,
+		Lks:             e.lks,
+		SharedDHKeyring: e.sharedDHKeyring,
 	}, nil
 }
 
@@ -501,12 +509,6 @@ func (e *loginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) erro
 
 	e.signingKey = eng.SigningKey()
 	e.encryptionKey = eng.EncryptionKey()
-
-	var err error
-	e.sharedDHKeyring, err = libkb.NewSharedDHKeyring(e.G(), e.arg.User.GetUID(), e.G().Env.GetDeviceID())
-	if err != nil {
-		return err
-	}
 
 	return nil
 }

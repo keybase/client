@@ -5,18 +5,20 @@ package engine
 
 import (
 	"fmt"
+	"runtime/debug"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type DeviceKeygenArgs struct {
-	Me         *libkb.User
-	DeviceID   keybase1.DeviceID
-	DeviceName string
-	DeviceType string
-	Lks        *libkb.LKSec
-	IsEldest   bool
+	Me              *libkb.User
+	DeviceID        keybase1.DeviceID
+	DeviceName      string
+	DeviceType      string
+	Lks             *libkb.LKSec
+	IsEldest        bool
+	SharedDHKeyring *libkb.SharedDHKeyring // optional in some cases
 }
 
 // DeviceKeygenPushArgs determines how the push will run.  There are
@@ -141,16 +143,13 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 			return err
 		}
 		sdhBoxes = append(sdhBoxes, sdh1)
-	} else {
-		// TODO
-		// sdhk := QQ
-		// err := sdhk.Sync()
-		// if err != nil {
-		// 	return err
-		// }
-		// sdhBoxes, err := sdhk.PrepareBoxesForNewDevice(e.ctx.NetContext,
-		// 	e.EncryptionKey(), // receiver key: provisionee enc
-		// 	e.encryptionKey)   // sender key: this device enc
+	}
+	if e.G().Env.GetEnableSharedDH() && !e.args.IsEldest {
+		boxes, err := e.prepareSDHBoxesFromPaperkey(ctx)
+		if err != nil {
+			return err
+		}
+		sdhBoxes = append(sdhBoxes, boxes...)
 	}
 
 	// append the signing key
@@ -376,4 +375,46 @@ func (e *DeviceKeygen) device() *libkb.Device {
 		Type:        e.args.DeviceType,
 		Status:      &s,
 	}
+}
+
+func (e *DeviceKeygen) prepareSDHBoxesFromPaperkey(ctx *Context) ([]keybase1.SharedDHSecretKeyBox, error) {
+	// Assuming this is a paperkey provision.
+
+	sdhk := e.args.SharedDHKeyring
+	if sdhk == nil {
+		debug.PrintStack()
+		return nil, fmt.Errorf("missing SharedDHKeyring")
+	}
+
+	if ctx.LoginContext == nil {
+		return nil, fmt.Errorf("no login context to push new device keys")
+	}
+
+	paperSigKey := ctx.LoginContext.GetUnlockedPaperSigKey()
+	paperEncKeyGeneric := ctx.LoginContext.GetUnlockedPaperEncKey()
+	if paperSigKey == nil {
+		return nil, fmt.Errorf("missing paper sig key")
+	}
+	if paperEncKeyGeneric == nil {
+		return nil, fmt.Errorf("missing paper enc key")
+	}
+	paperEncKey, ok := paperEncKeyGeneric.(libkb.NaclDHKeyPair)
+	if !ok {
+		return nil, fmt.Errorf("Unexpected encryption key type")
+	}
+
+	upak := e.args.Me.ExportToUserPlusAllKeys(keybase1.Time(0))
+	paperDeviceID, err := upak.GetDeviceID(paperSigKey.GetKID())
+	if err != nil {
+		return nil, err
+	}
+	err = sdhk.SyncAsPaperKey(ctx.NetContext, ctx.LoginContext, &upak, paperDeviceID, paperEncKey)
+	if err != nil {
+		return nil, err
+	}
+	sdhBoxes, err := sdhk.PrepareBoxesForNewDevice(ctx.NetContext,
+		e.EncryptionKey(), // receiver key: provisionee enc
+		paperEncKey,       // sender key: paper key enc
+	)
+	return sdhBoxes, err
 }

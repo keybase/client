@@ -84,6 +84,14 @@ func (s *SignupEngine) Run(ctx *Context) error {
 			return err
 		}
 
+		if s.G().Env.GetEnableSharedDH() {
+			var err error
+			s.sharedDHKeyring, err = libkb.NewSharedDHKeyring(s.G(), s.uid)
+			if err != nil {
+				return err
+			}
+		}
+
 		if err := s.registerDevice(a, ctx, s.arg.DeviceName); err != nil {
 			return err
 		}
@@ -221,12 +229,6 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 	if err := ctx.LoginContext.LocalSession().SetDeviceProvisioned(did); err != nil {
 		// this isn't a fatal error, session will stay in memory...
 		s.G().Log.Warning("error saving session file: %s", err)
-	}
-
-	var err error
-	s.sharedDHKeyring, err = libkb.NewSharedDHKeyring(s.G(), s.uid, did)
-	if err != nil {
-		return err
 	}
 
 	if s.arg.StoreSecret {
