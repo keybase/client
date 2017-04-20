@@ -23,6 +23,7 @@ const FeedbackWrapped = compose(
 type State = {
   sentFeedback: boolean,
   feedback: ?string,
+  sending: boolean,
 }
 
 class FeedbackContainer extends Component<void, {}, State> {
@@ -31,6 +32,7 @@ class FeedbackContainer extends Component<void, {}, State> {
   state = {
     sentFeedback: false,
     feedback: null,
+    sending: false,
   }
 
   _onChangeFeedback = (feedback) => {
@@ -50,11 +52,9 @@ class FeedbackContainer extends Component<void, {}, State> {
       dumpLoggers((...args) => {
         try {
           logs.push(args)
-          // logs.push(JSON.stringify(args))
         } catch (_) {}
       })
 
-      // const data = logs.join('\n')
       const path = `${cachesDirectoryPath}/Keybase/rn.log`
       console.log('Starting log write')
 
@@ -91,6 +91,7 @@ class FeedbackContainer extends Component<void, {}, State> {
 
   render () {
     const onSendFeedback = (feedback, sendLogs) => {
+      this.setState({sending: true, sentFeedback: false})
       this._dumpLogs()
         .then(() => {
           console.log('Sending log to daemon')
@@ -102,12 +103,13 @@ class FeedbackContainer extends Component<void, {}, State> {
             this.setState({
               sentFeedback: true,
               feedback: null,
+              sending: false,
             })
           }
         })
     }
 
-    return <FeedbackWrapped showSuccessBanner={this.state.sentFeedback} onSendFeedback={onSendFeedback} onChangeFeedback={this._onChangeFeedback} feedback={this.state.feedback} />
+    return <FeedbackWrapped showSuccessBanner={this.state.sentFeedback} onSendFeedback={onSendFeedback} onChangeFeedback={this._onChangeFeedback} feedback={this.state.feedback} sending={this.state.sending} />
   }
 }
 
