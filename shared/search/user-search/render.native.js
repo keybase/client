@@ -1,46 +1,40 @@
 // @flow
 import React from 'react'
-import {Avatar, Box, Icon, Text, ListItem, NativeScrollView} from '../../common-adapters/index.native'
+import {Avatar, Box, Icon, Text, ListItem, NativeScrollView, ProgressIndicator} from '../../common-adapters/index.native'
 import {globalStyles, globalColors} from '../../styles'
 
 import type {Props} from './render'
 import type {SearchResult} from '../../constants/search'
 
-function KeybaseResultBody ({username, searchText, isFollowing}) {
-  return <Text type='BodySemibold'
-    style={{color: isFollowing ? globalColors.green2 : globalColors.blue}}>{username}</Text>
-}
+const KeybaseResultBody = ({username, searchText, isFollowing}) => (
+  <Text type='BodySemibold' style={{color: isFollowing ? globalColors.green2 : globalColors.blue}}>{username}</Text>
+)
 
-function ExternalResultBody ({username, searchText}) {
-  return <Text type='BodySemibold'
-    style={{color: globalColors.black_75}}>{username}</Text>
-}
+const ExternalResultBody = ({username, searchText}) => (
+  <Text type='BodySemibold' style={{color: globalColors.black_75}}>{username}</Text>
+)
 
-function KeybaseExtraInfo ({username, fullName, isFollowing, searchText}) {
-  return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', justifyContent: 'center'}}>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-        <Avatar size={16} style={{width: 16, marginRight: 4}} username={username} />
-        <Text type='BodySmallSemibold'
-          style={{color: isFollowing ? globalColors.green2 : globalColors.blue}}>{username}</Text>
-      </Box>
-      {!!fullName && <Text type='BodySmall' style={{color: globalColors.black_40}}>{fullName}</Text>}
+const KeybaseExtraInfo = ({username, fullName, isFollowing, searchText}) => (
+  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', justifyContent: 'center'}}>
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+      <Avatar size={16} style={{width: 16, marginRight: 4}} username={username} />
+      <Text type='BodySmallSemibold'
+        style={{color: isFollowing ? globalColors.green2 : globalColors.blue}}>{username}</Text>
     </Box>
-  )
-}
+    {!!fullName && <Text type='BodySmall' style={{color: globalColors.black_40}}>{fullName}</Text>}
+  </Box>
+)
 
-function ExternalExtraInfo ({fullNameOnService, icon, serviceAvatar, serviceUsername, searchText}) {
-  return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', justifyContent: 'center'}}>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-        {!!icon && <Icon type={icon} style={{width: 17, marginRight: 4}} />}
-        {!icon && <Avatar size={16} url={serviceAvatar} style={{marginRight: 4}} />}
-        {!!serviceUsername && <Text type='BodySmallSemibold'>{serviceUsername}</Text>}
-      </Box>
-      {!!fullNameOnService && <Text type='BodySmall' style={{color: globalColors.black_40}}>{fullNameOnService}</Text>}
+const ExternalExtraInfo = ({fullNameOnService, icon, serviceAvatar, serviceUsername, searchText}) => (
+  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', justifyContent: 'center'}}>
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+      {!!icon && <Icon type={icon} style={{width: 17, marginRight: 4}} />}
+      {!icon && <Avatar size={16} url={serviceAvatar} style={{marginRight: 4}} />}
+      {!!serviceUsername && <Text type='BodySmallSemibold'>{serviceUsername}</Text>}
     </Box>
-  )
-}
+    {!!fullNameOnService && <Text type='BodySmall' style={{color: globalColors.black_40}}>{fullNameOnService}</Text>}
+  </Box>
+)
 
 function Result ({result, searchText, onClickResult}: {result: SearchResult, searchText: string, onClickResult: () => void}) {
   const iconStyle = {height: 32, width: 32}
@@ -93,8 +87,9 @@ function Result ({result, searchText, onClickResult}: {result: SearchResult, sea
   )
 }
 
-const UserSearchRender = ({results, onClickResult, searchText}: Props) => (
+const UserSearchRender = ({results, onClickResult, searchText, waiting}: Props) => (
   <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
+    {!!waiting && <ProgressIndicator white={false} />}
     {results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} onClickResult={() => onClickResult(r)} searchText={searchText || ''} />)}
   </NativeScrollView>
 )
