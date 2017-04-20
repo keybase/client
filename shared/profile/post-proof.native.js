@@ -26,7 +26,7 @@ const PostProof = (props: Props) => {
   return (
     <StandardScreen {...notification} onClose={onCancel}>
       <PlatformIcon style={stylePlatformIcon} platform={platform} overlay='icon-proof-unfinished' overlayColor={globalColors.grey} size={48} />
-      <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
+      <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.tiny})}} type='Header'>{platformUserName}</Text>
       {!!platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
       {descriptionView || (descriptionText && <Text style={styleDescriptionText} type='Body'>{descriptionText}</Text>)}
       {!!proofText && <CopyableText style={styleProofContainer} value={proofText} textStyle={styleProofText} />}
@@ -48,7 +48,7 @@ const stylePlatformUsername = {
 
 const stylePlatformSubtitle = {
   color: globalColors.black_20,
-  marginBottom: globalMargins.large,
+  marginBottom: globalMargins.small,
   textAlign: 'center',
 }
 
@@ -71,12 +71,12 @@ const styleNoteText = {
 }
 
 const styleProofAction = {
-  marginTop: globalMargins.medium,
+  marginTop: globalMargins.tiny,
 }
 
 const styleContinueButton = {
   ...globalStyles.flexBoxRow,
-  marginTop: globalMargins.medium,
+  marginTop: globalMargins.small,
 }
 
 export default PostProof

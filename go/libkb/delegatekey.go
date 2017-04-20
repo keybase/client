@@ -31,7 +31,7 @@ type Delegator struct {
 	Ctime                 int64
 	DelegationType        DelegationType
 	Aggregated            bool // During aggregation we skip some steps (posting, updating some state)
-	SharedDHKeyGeneration SharedDHKeyGeneration
+	SharedDHKeyGeneration keybase1.SharedDHKeyGeneration
 
 	// Optional precalculated values used by KeyProof
 	LastSeqno   Seqno     // kex2 HandleDidCounterSign needs to sign subkey without a user but we know what the last seqno was

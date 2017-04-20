@@ -16,15 +16,15 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func TestDeviceAddV1(t *testing.T) {
-	testDeviceAdd(t, true)
-}
-
-func TestDeviceAddV2(t *testing.T) {
+func TestDeviceAdd(t *testing.T) {
 	testDeviceAdd(t, false)
 }
 
-func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, secretY kex2.Secret, v1Only bool) {
+func TestDeviceAddSDH(t *testing.T) {
+	testDeviceAdd(t, true)
+}
+
+func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, secretY kex2.Secret) {
 	defer wg.Done()
 	f := func(lctx libkb.LoginContext) error {
 		ctx := &Context{
@@ -49,9 +49,6 @@ func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, 
 			Type:        libkb.DeviceTypeDesktop,
 		}
 		provisionee := NewKex2Provisionee(tcY.G, device, secretY)
-		if v1Only {
-			provisionee.v1Only = true
-		}
 		if err := RunEngine(provisionee, ctx); err != nil {
 			t.Errorf("provisionee error: %s", err)
 			return err
@@ -64,14 +61,16 @@ func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, 
 	}
 }
 
-func testDeviceAdd(t *testing.T, v1Only bool) {
+func testDeviceAdd(t *testing.T, enableSharedDH bool) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
+	tcX.Tp.EnableSharedDH = enableSharedDH
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "template")
 	defer tcY.Cleanup()
+	tcY.Tp.EnableSharedDH = enableSharedDH
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")
@@ -85,7 +84,7 @@ func testDeviceAdd(t *testing.T, v1Only bool) {
 
 	// start provisionee
 	wg.Add(1)
-	go runDeviceAddTest(t, &wg, &tcY, secretY, v1Only)
+	go runDeviceAddTest(t, &wg, &tcY, secretY)
 
 	// run DeviceAdd engine on device X
 	ctx := &Context{
@@ -122,7 +121,7 @@ func TestDeviceAddPhrase(t *testing.T) {
 
 	// start provisionee
 	wg.Add(1)
-	go runDeviceAddTest(t, &wg, &tcY, secretY.Secret(), false)
+	go runDeviceAddTest(t, &wg, &tcY, secretY.Secret())
 
 	// run DeviceAdd engine on device X
 	ctx := &Context{
@@ -159,7 +158,7 @@ func TestDeviceAddStoredSecret(t *testing.T) {
 
 	// start provisionee
 	wg.Add(1)
-	go runDeviceAddTest(t, &wg, &tcY, secretY, false)
+	go runDeviceAddTest(t, &wg, &tcY, secretY)
 
 	testSecretUI := userX.NewSecretUI()
 

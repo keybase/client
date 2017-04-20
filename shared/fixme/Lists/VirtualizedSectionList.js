@@ -13,13 +13,13 @@
 
 const React = require('React');
 const View = require('View');
-const VirtualizedList = require('VirtualizedList');
+const VirtualizedList = require('./VirtualizedList');
 
 const invariant = require('fbjs/lib/invariant');
 const warning = require('fbjs/lib/warning');
 
 import type {ViewToken} from './ViewabilityHelper';
-import type {Props as VirtualizedListProps} from 'VirtualizedList';
+import type {Props as VirtualizedListProps} from './VirtualizedList';
 
 type Item = any;
 type SectionItem = any;

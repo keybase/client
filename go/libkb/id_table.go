@@ -726,7 +726,7 @@ func (s *SubkeyChainLink) insertIntoTable(tab *IdentityTable) {
 type SharedDHKeyChainLink struct {
 	GenericChainLink
 	kid        keybase1.KID
-	generation SharedDHKeyGeneration
+	generation keybase1.SharedDHKeyGeneration
 }
 
 func ParseSharedDHKeyChainLink(b GenericChainLink) (ret *SharedDHKeyChainLink, err error) {
@@ -738,7 +738,7 @@ func ParseSharedDHKeyChainLink(b GenericChainLink) (ret *SharedDHKeyChainLink, e
 	} else if g, err = section.AtKey("generation").GetInt(); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Can't get generation for shared_dh @%s: %s", b.ToDebugString(), err)}
 	} else {
-		ret = &SharedDHKeyChainLink{b, kid, SharedDHKeyGeneration(g)}
+		ret = &SharedDHKeyChainLink{b, kid, keybase1.SharedDHKeyGeneration(g)}
 	}
 	return ret, err
 }

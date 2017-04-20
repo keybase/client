@@ -18,7 +18,8 @@ type SaltpackEncryptArg struct {
 	Binary         bool
 	HideRecipients bool
 	// Temporary
-	Signcrypt bool
+	Signcrypt          bool
+	SymmetricReceivers []saltpack.ReceiverSymmetricKey
 }
 
 // SaltpackEncrypt reads from the given source, encrypts it for the given
@@ -43,9 +44,9 @@ func SaltpackEncrypt(g *GlobalContext, arg *SaltpackEncryptArg) error {
 	var err error
 	if arg.Signcrypt {
 		if arg.Binary {
-			plainsink, err = saltpack.NewSigncryptSealStream(arg.Sink, emptyKeyring{}, saltSigner{arg.SenderSigning}, receiverBoxKeys, nil)
+			plainsink, err = saltpack.NewSigncryptSealStream(arg.Sink, emptyKeyring{}, saltSigner{arg.SenderSigning}, receiverBoxKeys, arg.SymmetricReceivers)
 		} else {
-			plainsink, err = saltpack.NewSigncryptArmor62SealStream(arg.Sink, emptyKeyring{}, saltSigner{arg.SenderSigning}, receiverBoxKeys, nil, KeybaseSaltpackBrand)
+			plainsink, err = saltpack.NewSigncryptArmor62SealStream(arg.Sink, emptyKeyring{}, saltSigner{arg.SenderSigning}, receiverBoxKeys, arg.SymmetricReceivers, KeybaseSaltpackBrand)
 		}
 	} else {
 		if arg.Binary {

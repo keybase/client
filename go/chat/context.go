@@ -3,39 +3,19 @@ package chat
 import (
 	"context"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type identifyModeKey int
 type keyfinderKey int
 type identifyNotifierKey int
 type chatTrace int
 
-var identModeKey identifyModeKey
 var kfKey keyfinderKey
 var inKey identifyNotifierKey
 var chatTraceKey chatTrace
-
-type identModeData struct {
-	mode   keybase1.TLFIdentifyBehavior
-	breaks *[]keybase1.TLFIdentifyFailure
-}
-
-func identifyModeCtx(ctx context.Context, mode keybase1.TLFIdentifyBehavior,
-	breaks *[]keybase1.TLFIdentifyFailure) context.Context {
-	return context.WithValue(ctx, identModeKey, identModeData{mode: mode, breaks: breaks})
-}
-
-func IdentifyMode(ctx context.Context) (ib keybase1.TLFIdentifyBehavior, breaks *[]keybase1.TLFIdentifyFailure, ok bool) {
-	var imd identModeData
-	val := ctx.Value(identModeKey)
-	if imd, ok = val.(identModeData); ok {
-		return imd.mode, imd.breaks, ok
-	}
-	return keybase1.TLFIdentifyBehavior_CHAT_CLI, nil, false
-}
 
 func CtxKeyFinder(ctx context.Context) KeyFinder {
 	var kf KeyFinder
@@ -72,7 +52,7 @@ func CtxAddLogTags(ctx context.Context) context.Context {
 
 func Context(ctx context.Context, mode keybase1.TLFIdentifyBehavior,
 	breaks *[]keybase1.TLFIdentifyFailure, notifier *IdentifyNotifier) context.Context {
-	res := identifyModeCtx(ctx, mode, breaks)
+	res := types.IdentifyModeCtx(ctx, mode, breaks)
 	res = context.WithValue(res, kfKey, NewKeyFinder())
 	res = context.WithValue(res, inKey, notifier)
 	res = CtxAddLogTags(res)
@@ -84,7 +64,7 @@ func BackgroundContext(sourceCtx context.Context) context.Context {
 	rctx := context.Background()
 
 	in := CtxIdentifyNotifier(sourceCtx)
-	if ident, breaks, ok := IdentifyMode(sourceCtx); ok {
+	if ident, breaks, ok := types.IdentifyMode(sourceCtx); ok {
 		rctx = Context(rctx, ident, breaks, in)
 	}
 

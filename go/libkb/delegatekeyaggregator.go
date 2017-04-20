@@ -5,12 +5,14 @@ package libkb
 
 import (
 	"errors"
+
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // DelegatorAggregator manages delegating multiple keys in one post to the server
 
 // Run posts an array of delegations to the server. Keeping this simple as we don't need any state (yet)
-func DelegatorAggregator(lctx LoginContext, ds []Delegator, sdhBoxes []SharedDHSecretKeyBox) (err error) {
+func DelegatorAggregator(lctx LoginContext, ds []Delegator, sdhBoxes []keybase1.SharedDHSecretKeyBox) (err error) {
 	if len(ds) == 0 {
 		return errors.New("Empty delegators to aggregator")
 	}

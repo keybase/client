@@ -90,7 +90,7 @@ type ComputedKeyInfos struct {
 	// For each generation, the public KID that corresponds to the shared
 	// DH key. We're not keeping these in ComputedKeyFamily for now. For generation=0,
 	// we expect a nil KID
-	SharedDHKeys map[SharedDHKeyGeneration]keybase1.KID
+	SharedDHKeys map[keybase1.SharedDHKeyGeneration]keybase1.KID
 }
 
 // As returned by user/lookup.json
@@ -207,7 +207,7 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo, len(cki.Sigs)),
 		Devices:       make(map[keybase1.DeviceID]*Device, len(cki.Devices)),
 		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID, len(cki.KIDToDeviceID)),
-		SharedDHKeys:  make(map[SharedDHKeyGeneration]keybase1.KID),
+		SharedDHKeys:  make(map[keybase1.SharedDHKeyGeneration]keybase1.KID),
 	}
 	for k, v := range cki.Infos {
 		ret.Infos[k] = v
@@ -285,7 +285,7 @@ func NewComputedKeyInfos(g *GlobalContext) *ComputedKeyInfos {
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo),
 		Devices:       make(map[keybase1.DeviceID]*Device),
 		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID),
-		SharedDHKeys:  make(map[SharedDHKeyGeneration]keybase1.KID),
+		SharedDHKeys:  make(map[keybase1.SharedDHKeyGeneration]keybase1.KID),
 	}
 }
 
