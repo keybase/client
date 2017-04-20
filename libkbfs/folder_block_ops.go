@@ -1247,14 +1247,16 @@ func (fbo *folderBlockOps) getOrCreateSyncInfoLocked(
 	return si, nil
 }
 
-// GetDirtyRefs returns a list of references of all known dirty
-// blocks.
-func (fbo *folderBlockOps) GetDirtyRefs(lState *lockState) []BlockRef {
+// GetDirtyFiles returns a list of references of all known dirty
+// files.
+func (fbo *folderBlockOps) GetDirtyFiles(lState *lockState) []BlockRef {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	var dirtyRefs []BlockRef
-	for ref := range fbo.deCache {
-		dirtyRefs = append(dirtyRefs, ref)
+	for ref, de := range fbo.deCache {
+		if de.dirEntry.IsInitialized() && de.dirEntry.Type.IsFile() {
+			dirtyRefs = append(dirtyRefs, ref)
+		}
 	}
 	return dirtyRefs
 }

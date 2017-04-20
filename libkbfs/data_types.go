@@ -539,6 +539,11 @@ func (et EntryType) String() string {
 	return "<invalid EntryType>"
 }
 
+// IsFile returns whether or not this entry points to a file.
+func (et EntryType) IsFile() bool {
+	return et == File || et == Exec
+}
+
 // Excl indicates whether O_EXCL is set on a fuse call
 type Excl bool
 
