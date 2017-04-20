@@ -5847,20 +5847,9 @@ react-native-image-picker@0.25.7:
   version "0.25.7"
   resolved "https://registry.yarnpkg.com/react-native-image-picker/-/react-native-image-picker-0.25.7.tgz#1475fd72111a74f434598f2c99453998ac21b599"
 
-react-native-invertible-scroll-view@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/react-native-invertible-scroll-view/-/react-native-invertible-scroll-view-1.0.0.tgz#60ceb384dc950c34eba3a5aeda39f97cdc7d4e23"
-  dependencies:
-    react-clone-referenced-element "^1.0.1"
-    react-native-scrollable-mixin "^1.0.1"
-
 "react-native-push-notification@git://github.com/keybase/react-native-push-notification#eedae53f4346223b5aee60ef2702ecc47a01fcd2":
   version "2.2.1"
   resolved "git://github.com/keybase/react-native-push-notification#eedae53f4346223b5aee60ef2702ecc47a01fcd2"
-
-react-native-scrollable-mixin@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/react-native-scrollable-mixin/-/react-native-scrollable-mixin-1.0.1.tgz#34a32167b64248594154fd0d6a8b03f22740548e"
 
 react-native-tab-view@^0.0.57:
   version "0.0.57"
