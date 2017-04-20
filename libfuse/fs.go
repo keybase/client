@@ -342,7 +342,7 @@ func (f *FS) Root() (fs.Node, error) {
 	return &f.root, nil
 }
 
-// QuotaUsageStaleTolerance is the lifespan of stale usage data that libfuse
+// quotaUsageStaleTolerance is the lifespan of stale usage data that libfuse
 // accepts in the Statfs handler. In other words, this causes libkbfs to issue
 // a fresh RPC call if cached usage data is older than 10s.
 const quotaUsageStaleTolerance = 10 * time.Second

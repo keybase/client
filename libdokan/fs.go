@@ -16,7 +16,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/dokan/winacl"
-	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -35,6 +34,8 @@ type FS struct {
 
 	// remoteStatus is the current status of remote connections.
 	remoteStatus libfs.RemoteStatus
+
+	quotaUsage *libkbfs.EventuallyConsistentQuotaUsage
 }
 
 // DefaultMountFlags are the default mount flags for libdokan.
@@ -54,6 +55,7 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 		config:        config,
 		log:           log,
 		notifications: libfs.NewFSNotifications(log),
+		quotaUsage:    libkbfs.NewEventuallyConsistentQuotaUsage(config, "FS"),
 	}
 
 	f.root = &Root{
@@ -130,6 +132,11 @@ func (f *FS) GetVolumeInformation(ctx context.Context) (dokan.VolumeInformation,
 
 const dummyFreeSpace = 10 * 1024 * 1024 * 1024
 
+// quotaUsageStaleTolerance is the lifespan of stale usage data that libfuse
+// accepts in the Statfs handler. In other words, this causes libkbfs to issue
+// a fresh RPC call if cached usage data is older than 10s.
+const quotaUsageStaleTolerance = 10 * time.Second
+
 // GetDiskFreeSpace returns information about free space on the volume for dokan.
 func (f *FS) GetDiskFreeSpace(ctx context.Context) (freeSpace dokan.FreeSpace, err error) {
 	// TODO should this be refused to other users?
@@ -145,16 +152,15 @@ func (f *FS) GetDiskFreeSpace(ctx context.Context) (freeSpace dokan.FreeSpace, e
 		}, nil
 	}
 	defer func() { f.reportErr(ctx, libkbfs.ReadMode, err) }()
-	uqi, err := f.config.BlockServer().GetUserQuotaInfo(ctx)
+	_, usageBytes, limitBytes, err := f.quotaUsage.Get(
+		ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
 	if err != nil {
+		f.log.CDebugf(ctx, "Getting quota usage error: %v", err)
 		return dokan.FreeSpace{}, errToDokan(err)
 	}
-	free := uint64(uqi.Limit)
-	if uqi.Total != nil {
-		free -= uint64(uqi.Total.Bytes[kbfsblock.UsageWrite])
-	}
+	free := uint64(limitBytes - usageBytes)
 	return dokan.FreeSpace{
-		TotalNumberOfBytes:     uint64(uqi.Limit),
+		TotalNumberOfBytes:     uint64(limitBytes),
 		TotalNumberOfFreeBytes: free,
 		FreeBytesAvailable:     free,
 	}, nil
