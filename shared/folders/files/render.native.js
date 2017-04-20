@@ -1,12 +1,75 @@
 // @flow
 import File from './file/render'
 import React, {Component} from 'react'
-import type {FileSection} from '../../constants/folders'
-import type {Props} from './render'
-import {Box, Button, Text, BackButton, Avatar, Icon, Usernames, NativeScrollView} from '../../common-adapters/index.native'
+import {Box, Button, Text, BackButton, Avatar, Icon, Usernames, NativeScrollView, ListItem} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
+import type {IconType} from '../../common-adapters/icon'
+import type {FileSection} from '../../constants/folders'
+import type {Props} from './render'
+
+const Divider = ({theme, backgroundColor, color}) => (
+  <Box style={{...globalStyles.flexBoxRow, height: 1, backgroundColor}}>
+    <Box style={{marginLeft: 48 + 8, backgroundColor: color, flex: 1}} />
+  </Box>
+)
+
+const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMode, theme}) => {
+  return (
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+      <Text type='BodySemibold' style={styleWarningBanner}>This folder is waiting for either participant to turn on a device.</Text>
+      <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
+        <Box style={{marginTop: globalMargins.small, paddingLeft: globalMargins.small, paddingRight: globalMargins.small}}>
+          {intersperseFn(i => <Divider key={i} color={isPrivate ? globalColors.black_10 : globalColors.black_05} backgroundColor={isPrivate ? globalColors.darkBlue3 : globalColors.lightGrey} />, waitingForParticipantUnlock.map(p => (
+            <ListItem
+              key={p.name}
+              type='Large' action={<Box />} icon={<Avatar size={40} username={p.name} />}
+              body={<Box style={{...globalStyles.flexBoxColumn}}>
+                <Text type='Body' backgroundMode={backgroundMode}>{p.name}</Text>
+                <Text type='BodySmall' backgroundMode={backgroundMode}>{p.devices}</Text>
+              </Box>} />
+          )))}
+        </Box>
+      </NativeScrollView>
+    </Box>
+  )
+}
+const deviceIcon: (isPrivate: boolean, type: string) => IconType = (isPrivate, type) => ({
+  'private': {
+    'backup': 'icon-paper-key-dark-blue-32',
+    'desktop': 'icon-computer-dark-blue-32',
+    'mobile': 'icon-phone-dark-blue-32',
+  },
+  'public': {
+    'backup': 'icon-paper-key-32',
+    'desktop': 'icon-computer-32',
+    'mobile': 'icon-phone-32',
+  },
+}[isPrivate ? 'private' : 'public'][type])
+
+const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey, theme}) => {
+  return (
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+      <Text type='BodySemibold' style={styleWarningBanner}>Until you take one of the steps below, you're at risk of losing data forever.</Text>
+      <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1, marginTop: globalMargins.small, paddingLeft: globalMargins.small, paddingRight: globalMargins.small}}>
+        {intersperseFn(i => <Divider key={i} theme={theme} />,
+        youCanUnlock.map(device => (
+          <ListItem
+            key={device.name}
+            type='Large' action={device.type === 'backup'
+              ? <Button label='Enter paper key' onClick={() => onClickPaperkey(device)} type='Secondary' backgroundMode={backgroundMode} />
+              : <Box />}
+            icon={<Icon type={deviceIcon(isPrivate, device.type)} />}
+            body={<Box style={{...globalStyles.flexBoxColumn}}>
+              <Text type='Body' backgroundMode={backgroundMode}>{device.name}</Text>
+              {device.type !== 'backup' && <Text type='BodySmall' backgroundMode={backgroundMode}>Open the Keybase app</Text>}
+            </Box>} />
+        )))}
+      </NativeScrollView>
+    </Box>
+  )
+}
 class FilesRender extends Component<void, Props, void> {
   _renderSection (section: FileSection) {
     return (
@@ -43,6 +106,25 @@ class FilesRender extends Component<void, Props, void> {
   }
 
   _renderContents (isPrivate: boolean, ignored: boolean, allowIgnore: boolean) {
+    const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
+
+    if (this.props.youCanUnlock.length) {
+      return <YouCanUnlock
+        youCanUnlock={this.props.youCanUnlock}
+        isPrivate={isPrivate}
+        backgroundMode={backgroundMode}
+        theme={this.props.theme}
+        onClickPaperkey={this.props.onClickPaperkey} />
+    }
+
+    if (this.props.waitingForParticipantUnlock.length) {
+      return <ParticipantUnlock
+        waitingForParticipantUnlock={this.props.waitingForParticipantUnlock}
+        isPrivate={isPrivate}
+        theme={this.props.theme}
+        backgroundMode={backgroundMode} />
+    }
+
     if (!this.props.recentFilesEnabled) {
       return (
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
@@ -135,6 +217,16 @@ const styleMenu = {
 const backButtonColorThemed = {
   'private': globalColors.white,
   'public': globalColors.white,
+}
+
+const styleWarningBanner = {
+  backgroundColor: globalColors.red,
+  color: globalColors.white,
+  paddingTop: 13,
+  paddingBottom: 13,
+  paddingLeft: globalMargins.xlarge,
+  paddingRight: globalMargins.xlarge,
+  textAlign: 'center',
 }
 
 function styleMenuColorThemed (theme, showingMenu): string {

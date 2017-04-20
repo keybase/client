@@ -50,13 +50,7 @@ const Rows = ({tlfs = [], isIgnored, isPublic, onOpen, onChat, onClick, onRekey,
 )
 
 class ListRender extends Component<void, Props, void> {
-  _scrollContainer: ?Object;
-
-  constructor (props: Props) {
-    super(props)
-
-    this._scrollContainer = null
-  }
+  _scrollContainer = null
 
   componentDidUpdate (prevProps: Props) {
     if (prevProps.showIgnored !== this.props.showIgnored &&
@@ -64,6 +58,10 @@ class ListRender extends Component<void, Props, void> {
       this.props.showIgnored) {
       ReactDOM.findDOMNode(this._scrollContainer).scrollTop += 100
     }
+  }
+
+  _setRef = (r) => {
+    this._scrollContainer = r
   }
 
   render () {
@@ -77,7 +75,7 @@ class ListRender extends Component<void, Props, void> {
     const ignoredRows = <Rows {...this.props} isIgnored={true} tlfs={this.props.ignored || []} />
 
     return (
-      <Box style={{...stylesContainer, ...this.props.style}} ref={r => { this._scrollContainer = r }}>
+      <Box style={{...stylesContainer, ...this.props.style}} ref={this._setRef}>
         <style>{realCSS}</style>
         {this.props.extraRows}
         <Rows

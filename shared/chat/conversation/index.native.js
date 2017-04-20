@@ -3,14 +3,11 @@ import Header from './header/container'
 import Input from './input/container'
 import List from './list/container'
 import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
-import ParticipantRekey from './participant-rekey'
 import React from 'react'
 import SidePanel from './side-panel/container'
-import YouRekey from './you-rekey'
 import Banner from './banner/container'
 import {Box, LoadingLine, Text} from '../../common-adapters'
-import {compose, branch, renderComponent} from 'recompose'
-import {globalColors, globalMargins, globalStyles} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from './index'
 
@@ -44,11 +41,4 @@ const Conversation = (props: Props) => (
   </Box>
 )
 
-export default compose(
-  branch(
-    (props: Props) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
-    renderComponent(ParticipantRekey)),
-  branch(
-    (props: Props) => !!props.rekeyInfo && !props.finalizeInfo,
-    renderComponent(YouRekey)),
-)(Conversation)
+export default Conversation

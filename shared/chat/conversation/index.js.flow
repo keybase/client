@@ -18,8 +18,6 @@ export type Props = {|
   rekeyInfo: ?Constants.RekeyInfo,
   selectedConversationIDKey: ?Constants.ConversationIDKey,
   sidePanelOpen: boolean,
-  supersededBy: ?Constants.SupersedeInfo,
-  supersedes: ?Constants.SupersedeInfo,
   threadLoadedOffline: boolean,
 |}
 
