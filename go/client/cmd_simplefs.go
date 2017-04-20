@@ -287,7 +287,10 @@ func doSimpleFSRemoteGlob(ctx context.Context, g *libkb.GlobalContext, cli keyba
 	for {
 		listResult, err2 := cli.SimpleFSReadList(ctx, opid)
 		if err2 != nil {
-			err = err2
+			// If we have some results, eat this error
+			if len(returnPaths) == 0 {
+				err = err2
+			}
 			break
 		}
 		for _, entry := range listResult.Entries {
