@@ -9,13 +9,13 @@ import type {Props} from './feedback'
 const Feedback = ({onSendFeedbackContained, showSuccessBanner, sendLogs, onChangeSendLogs, feedback, onChangeFeedback, sending}: Props) => (
   <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
     {showSuccessBanner &&
-      <Box style={{flex: 0, height: 40, ...globalStyles.flexBoxRow, backgroundColor: globalColors.green, alignItems: 'center'}}>
+      <Box style={{flex: 0, height: globalMargins.large, ...globalStyles.flexBoxRow, backgroundColor: globalColors.green, alignItems: 'center'}}>
         <Text type='BodySemibold' backgroundMode='Success' style={{flex: 1, textAlign: 'center'}}>Thanks! Your feedback was sent.</Text>
       </Box>}
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'stretch', justifyContent: 'flex-start', marginLeft: globalMargins.small, marginRight: globalMargins.small, padding: 8}}>
-      <Icon type='icon-fancy-feedback-96' style={{height: 96, width: 96, alignSelf: 'center', marginBottom: 8}} />
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'stretch', justifyContent: 'flex-start', marginLeft: globalMargins.small, marginRight: globalMargins.small, padding: globalMargins.tiny}}>
+      <Icon type='icon-fancy-feedback-96' style={{height: 96, width: 96, alignSelf: 'center', marginBottom: globalMargins.tiny}} />
       <Text style={{textAlign: 'center'}} type='Body'>Please send us any feedback or describe any bugs you’ve encountered.</Text>
-      <Box style={{flex: 1, ...globalStyles.flexBoxRow, paddingTop: 8}}>
+      <Box style={{flex: 1, ...globalStyles.flexBoxRow, paddingTop: globalMargins.tiny}}>
         <Input
           autoCapitalize='sentences'
           autoCorrect={true}
