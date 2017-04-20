@@ -66,7 +66,7 @@ func TestFetchRetry(t *testing.T) {
 	select {
 	case cids := <-list.threadsStale:
 		require.Equal(t, 1, len(cids))
-	case <-time.After(5 * time.Second):
+	case <-time.After(20 * time.Second):
 		require.Fail(t, "timeout on inbox stale")
 	}
 	world.Fc.Advance(time.Hour)
@@ -82,7 +82,7 @@ func TestFetchRetry(t *testing.T) {
 	select {
 	case cids := <-list.threadsStale:
 		require.Equal(t, 1, len(cids))
-	case <-time.After(5 * time.Second):
+	case <-time.After(20 * time.Second):
 		require.Fail(t, "timeout on inbox stale")
 	}
 

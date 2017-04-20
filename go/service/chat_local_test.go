@@ -1177,10 +1177,6 @@ func TestGetThreadNonblock(t *testing.T) {
 
 }
 
-func TestFetchRetry(t *testing.T) {
-
-}
-
 func TestMakePreview(t *testing.T) {
 	ctc := makeChatTestContext(t, "MakePreview", 1)
 	defer ctc.cleanup()
