@@ -5,7 +5,7 @@ import engine from '../engine'
 import {BackButton, Box} from '../common-adapters'
 import {connect} from 'react-redux'
 import {globalStyles} from '../styles'
-import {logout} from '../actions/login'
+import {logout} from '../actions/login/creators'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 
 function DevMenu (props) {

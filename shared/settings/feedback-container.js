@@ -8,7 +8,8 @@ import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
 import {isElectron, isIOS} from '../constants/platform'
 import {dumpLoggers} from '../util/periodic-logger'
-import {writeFile, cachesDirectoryPath} from '../util/file'
+import {writeStream, cachesDirectoryPath} from '../util/file'
+import {serialPromises} from '../util/promise'
 
 import type {Dispatch} from '../constants/types/flux'
 
@@ -47,27 +48,33 @@ class FeedbackContainer extends Component<void, {}, State> {
     if (isIOS) {
       // We don't get the notification from the daemon so we have to do this ourselves
       const logs = []
+      console.log('Starting log dump')
       dumpLoggers((...args) => {
         try {
-          logs.push(JSON.stringify(args, null, 2))
+          logs.push(args)
         } catch (_) {}
       })
 
-      const data = logs.join('\n')
       const path = `${cachesDirectoryPath}/Keybase/rn.log`
+      console.log('Starting log write')
 
-      // Don't hose the UI thread, give ourselves some breathing room before we write else we
-      // won't see the Send spinner
-      setTimeout(() => {
-        writeFile(path, data, 'utf8')
-          .then((success) => {
-            resolve(true)
-          })
-          .catch((err) => {
-            resolve(false)
-            console.warn(`Couldn't log send! ${err}`)
-          })
-      }, 1000)
+      writeStream(path, 'utf8').then(stream => {
+        const writeLogsPromises = logs.map((log, idx) => {
+          return () => {
+            console.log(`Writing log # ${idx + 1}`)
+            return stream.write(JSON.stringify(log, null, 2))
+          }
+        })
+
+        return serialPromises(writeLogsPromises).then(() => stream.close())
+      }).then((success) => {
+        console.log('Log write done')
+        resolve(true)
+      })
+      .catch((err) => {
+        resolve(false)
+        console.warn(`Couldn't log send! ${err}`)
+      })
     } else {
       dumpLoggers()
       resolve(true)
@@ -86,7 +93,10 @@ class FeedbackContainer extends Component<void, {}, State> {
     const onSendFeedback = (feedback, sendLogs) => {
       this.setState({sending: true, sentFeedback: false})
       this._dumpLogs()
-        .then(() => logSend(feedback, sendLogs))
+        .then(() => {
+          console.log('Sending log to daemon')
+          return logSend(feedback, sendLogs)
+        })
         .then(logSendId => {
           console.warn('logSendId is', logSendId)
           if (this.mounted) {

@@ -9,7 +9,7 @@ import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 import com.facebook.soloader.SoLoader;
 import com.lwansbrough.RCTCamera.RCTCameraPackage;
 import com.imagepicker.ImagePickerPackage;
-import com.rnfs.RNFSPackage;
+import com.RNFetchBlob.RNFetchBlobPackage;
 
 import java.io.File;
 import java.util.Arrays;
@@ -41,7 +41,7 @@ public class MainApplication extends Application implements ReactApplication {
               new ReactNativePushNotificationPackage(),
               new RCTCameraPackage(),
               new ImagePickerPackage(),
-              new RNFSPackage()
+              new RNFetchBlobPackage()
       );
     }
 

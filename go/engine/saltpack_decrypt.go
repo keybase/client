@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"bytes"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
@@ -58,12 +59,12 @@ func (e *SaltpackDecrypt) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (e *SaltpackDecrypt) promptForDecrypt(ctx *Context, mki *saltpack.MessageKeyInfo) (err error) {
+func (e *SaltpackDecrypt) promptForDecrypt(ctx *Context, publicKey keybase1.KID, isAnon bool) (err error) {
 	defer e.G().Trace("SaltpackDecrypt::promptForDecrypt", func() error { return err })()
 
 	spsiArg := SaltpackSenderIdentifyArg{
-		isAnon:           mki.SenderIsAnon,
-		publicKey:        libkb.BoxPublicKeyToKeybaseKID(mki.SenderKey),
+		isAnon:           isAnon,
+		publicKey:        publicKey,
 		interactive:      e.arg.Opts.Interactive,
 		forceRemoteCheck: e.arg.Opts.ForceRemoteCheck,
 		reason: keybase1.IdentifyReason{
@@ -155,18 +156,21 @@ func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
 
 	// For DH mode.
 	hookMki := func(mki *saltpack.MessageKeyInfo) error {
-		return e.promptForDecrypt(ctx, mki)
+		kidToIdentify := libkb.BoxPublicKeyToKeybaseKID(mki.SenderKey)
+		return e.promptForDecrypt(ctx, kidToIdentify, mki.SenderIsAnon)
 	}
 
 	// For signcryption mode.
 	hookSenderSigningKey := func(senderSigningKey saltpack.SigningPublicKey) error {
-		// TODO: implement sender checking/prompting
-		return nil
+		kidToIdentify := libkb.SigningPublicKeyToKeybaseKID(senderSigningKey)
+		// See if the sender signing key is all zeroes.
+		isAnon := bytes.Equal(senderSigningKey.ToKID(), make([]byte, len(senderSigningKey.ToKID())))
+		return e.promptForDecrypt(ctx, kidToIdentify, isAnon)
 	}
 
 	e.G().Log.Debug("| SaltpackDecrypt")
 	var mki *saltpack.MessageKeyInfo
-	mki, err = libkb.SaltpackDecrypt(e.G(), e.arg.Source, e.arg.Sink, kp, hookMki, hookSenderSigningKey)
+	mki, err = libkb.SaltpackDecrypt(ctx.GetNetContext(), e.G(), e.arg.Source, e.arg.Sink, kp, hookMki, hookSenderSigningKey)
 	if err == saltpack.ErrNoDecryptionKey {
 		err = libkb.NoDecryptionKeyError{Msg: "no suitable device key found"}
 	}
