@@ -11,7 +11,7 @@ import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../../native/notifications'
-import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
+import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior, ConstantsStatusCode} from '../../constants/types/flow-types'
 import {badgeApp} from '../notifications'
 import {call, put, take, select, race, fork, join} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
@@ -679,25 +679,33 @@ function * _updateMetadata (action: Constants.UpdateMetadata): SagaGenerator<any
     return
   }
 
-  const results: any = yield call(apiserverGetRpcPromise, {
-    param: {
-      endpoint: 'user/lookup',
-      args: [
-        {key: 'usernames', value: usernames.join(',')},
-        {key: 'fields', value: 'profile'},
-      ],
-    },
-  })
+  try {
+    const results: any = yield call(apiserverGetRpcPromise, {
+      param: {
+        endpoint: 'user/lookup',
+        args: [
+          {key: 'usernames', value: usernames.join(',')},
+          {key: 'fields', value: 'profile'},
+        ],
+      },
+    })
 
-  const parsed = JSON.parse(results.body)
-  const payload = {}
-  usernames.forEach((username, idx) => {
-    const record = parsed.them[idx]
-    const fullname = (record && record.profile && record.profile.full_name) || ''
-    payload[username] = new Constants.MetaDataRecord({fullname})
-  })
+    const parsed = JSON.parse(results.body)
+    const payload = {}
+    usernames.forEach((username, idx) => {
+      const record = parsed.them[idx]
+      const fullname = (record && record.profile && record.profile.full_name) || ''
+      payload[username] = new Constants.MetaDataRecord({fullname})
+    })
 
-  yield put(Creators.updatedMetadata(payload))
+    yield put(Creators.updatedMetadata(payload))
+  } catch (err) {
+    if (err && err.code === ConstantsStatusCode.scapinetworkerror) {
+      // Ignore api errors due to offline
+    } else {
+      throw err
+    }
+  }
 }
 
 function * _selectConversation (action: Constants.SelectConversation): SagaGenerator<any, any> {

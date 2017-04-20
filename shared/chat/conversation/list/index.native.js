@@ -2,10 +2,9 @@
 import * as Constants from '../../../constants/chat'
 import React, {Component} from 'react'
 import messageFactory from '../messages'
-import {Box} from '../../../common-adapters'
+import {Box, NativeScrollView} from '../../../common-adapters/index.native'
 // $FlowIssue
 import FlatList from '../../../fixme/Lists/FlatList'
-import InvertibleScrollView from 'react-native-invertible-scroll-view'
 
 import type {Props} from '.'
 
@@ -21,14 +20,6 @@ class ConversationList extends Component <void, Props, void> {
 
   // This is handled slightly differently on mobile, leave this blank
   _measure = () => {}
-
-  _renderRow = (rowData, sectionID, rowID, highlightRow) => {
-    const messageKey = rowData
-    const prevMessageKey = this.props.messageKeys.get(rowID - 1)
-    const isSelected = false
-
-    return messageFactory(messageKey, prevMessageKey, this._onAction, this._onShowEditor, isSelected, this._measure)
-  }
 
   _renderItem = ({item: messageKey, index}) => {
     const prevMessageKey = index !== 0 ? this.props.messageKeys.get(index - 1) : null
@@ -50,9 +41,17 @@ class ConversationList extends Component <void, Props, void> {
   componentDidUpdate (prevProps: Props) {
     // TODO do we need this? I think the list may work how we want w/o this
     if (this.props.listScrollDownCounter !== prevProps.listScrollDownCounter && this._scrollRef) {
-      this._scrollRef.scrollTo({y: 0, animated: false})
+      this._scrollRef.scrollTo({animated: false, y: 0})
     }
   }
+
+  _renderScrollComponent = (props) => (
+    <NativeScrollView
+      {...props}
+      ref={this._captureScrollRef}
+      style={[verticallyInvertedStyle, props.style]}
+    />
+  )
 
   _captureScrollRef = r => { this._scrollRef = r }
 
@@ -61,11 +60,10 @@ class ConversationList extends Component <void, Props, void> {
       <FlatList
         data={this.props.messageKeys.reverse().toArray()}
         renderItem={this._renderItem}
+        renderScrollComponent={this._renderScrollComponent}
         onEndReached={this._onEndReached}
         onEndReachedThreshold={0}
         keyExtractor={this._keyExtractor}
-        renderScrollComponent={props => <InvertibleScrollView {...props} ref={this._captureScrollRef} inverted={true} />}
-        initialNumToRender={30}
       />
     )
   }

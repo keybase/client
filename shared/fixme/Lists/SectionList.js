@@ -11,13 +11,13 @@
  */
 'use strict';
 
-const MetroListView = require('MetroListView');
+const MetroListView = require('./MetroListView');
 const Platform = require('Platform');
 const React = require('React');
-const VirtualizedSectionList = require('VirtualizedSectionList');
+const VirtualizedSectionList = require('./VirtualizedSectionList');
 
 import type {ViewToken} from './ViewabilityHelper';
-import type {Props as VirtualizedSectionListProps} from 'VirtualizedSectionList';
+import type {Props as VirtualizedSectionListProps} from './VirtualizedSectionList';
 
 type Item = any;
 

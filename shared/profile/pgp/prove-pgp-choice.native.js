@@ -5,7 +5,8 @@ import {globalMargins} from '../../styles'
 import type {Props} from './prove-pgp-choice'
 
 class ProvePgpChoice extends Component<void, Props, void> {
-  render () {
+  provePgpChoice () {
+    // PGP generation is disabled on native for now.
     return (
       <StandardScreen style={styleContainer} onClose={this.props.onCancel}>
         <Text style={styleTitle} type='Header'>Add a PGP key</Text>
@@ -25,6 +26,15 @@ class ProvePgpChoice extends Component<void, Props, void> {
             },
           ]}
         />
+      </StandardScreen>
+    )
+  }
+
+  render () {
+    return (
+      <StandardScreen style={styleContainer} onClose={this.props.onCancel}>
+        <Text style={styleTitle} type='Header'>Add a PGP key</Text>
+        <Text type='Body'>For now, please use our desktop app to create PGP keys.</Text>
       </StandardScreen>
     )
   }

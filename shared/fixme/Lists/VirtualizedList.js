@@ -23,7 +23,7 @@ const ViewabilityHelper = require('./ViewabilityHelper');
 const infoLog = require('infoLog');
 const invariant = require('fbjs/lib/invariant');
 
-const {computeWindowedRenderLimits} = require('VirtualizeUtils');
+const {computeWindowedRenderLimits} = require('./VirtualizeUtils');
 
 import type {ViewabilityConfig, ViewToken} from './ViewabilityHelper';
 
