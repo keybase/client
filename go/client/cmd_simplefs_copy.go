@@ -99,9 +99,9 @@ func (c *CmdSimpleFSCopy) Run() error {
 			break
 		}
 
-		opid, err := cli.SimpleFSMakeOpid(ctx)
-		if err != nil {
-			return err
+		opid, err2 := cli.SimpleFSMakeOpid(ctx)
+		if err2 != nil {
+			return err2
 		}
 		c.opCanceler.AddOp(opid)
 
@@ -124,7 +124,6 @@ func (c *CmdSimpleFSCopy) Run() error {
 
 		err = cli.SimpleFSWait(ctx, opid)
 		if err != nil {
-			c.G().Log.Debug("SimpleFSCopy got an error from Wait: %s", err)
 			break
 		}
 	}
