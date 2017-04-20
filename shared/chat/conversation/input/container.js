@@ -58,7 +58,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     dispatchProps.onPostMessage(stateProps.selectedConversationIDKey, text)
     ownProps.onScrollDown()
   },
-  onStoreInputText: (inputText: string) => dispatchProps.onStoreInputText(stateProps.selectedConversationIDKey, inputText),
+  onStoreInputText: (inputText: string) => {
+    if (stateProps.selectedConversationIDKey) { // only write if we're in a convo
+      dispatchProps.onStoreInputText(stateProps.selectedConversationIDKey, inputText)
+    }
+  },
 })
 
 export default compose(
