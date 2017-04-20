@@ -14,8 +14,7 @@ export default function TabBarRender ({selectedTab, onTabClick, username, badgeN
         selected={selectedTab === profileTab}
         onClick={() => onTabClick(profileTab)}
         badgeNumber={badgeNumbers[profileTab]}
-        source={{type: 'avatar'}}
-        username={username}
+        source={{type: 'avatar', username}}
         style={stylesTabButton}
       />
       <TabBarButton

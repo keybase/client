@@ -1,7 +1,7 @@
 // @flow
 
 import React, {PureComponent} from 'react'
-import {Box, Avatar} from '../common-adapters'
+import {Box} from '../common-adapters'
 import {TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles'
 import flags from '../util/feature-flags'
@@ -35,16 +35,6 @@ class TabBar extends PureComponent<void, Props, void> {
 
   render () {
     const {selectedTab, username, badgeNumbers} = this.props
-    const avatar = (
-      <Avatar
-        size={32}
-        onClick={this._onProfile}
-        username={username}
-        borderColor={selectedTab === profileTab ? globalColors.white : globalColors.blue3_40}
-        loadingColor={globalColors.blue3_40}
-        backgroundColor={selectedTab === profileTab ? globalColors.white : globalColors.blue3_40}
-      />
-    )
 
     return (
       <Box style={stylesTabBar}>
@@ -97,7 +87,7 @@ class TabBar extends PureComponent<void, Props, void> {
           selected={selectedTab === profileTab}
           onClick={this._onProfile}
           badgeNumber={badgeNumbers[profileTab]}
-          source={{type: 'avatar', avatar}} />
+          source={{type: 'avatar', username}} />
       </Box>
     )
   }
