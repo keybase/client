@@ -182,7 +182,6 @@ func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Symmetri
 		return nil, err
 	}
 
-	// TODO: Handle TLFs with finalized info.
 	symmetricKeys := []*saltpack.SymmetricKey{}
 	for _, result := range results {
 		if result.Err != nil {
@@ -200,11 +199,25 @@ func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Symmetri
 	return symmetricKeys, nil
 }
 
-func (r *TlfKeyResolver) getSymmetricKey(info TlfPseudonymInfo) (*saltpack.SymmetricKey, error) {
+func (r *TlfKeyResolver) getSymmetricKey(info TlfPseudonymServerInfo) (*saltpack.SymmetricKey, error) {
+	// NOTE: In order to handle finalized TLFs (which is one of the main
+	// benefits of using TLF keys to begin with, for forward readability), we
+	// need the server to tell us what the current, potentially-finalized name
+	// of the TLF is. If that's not the same as what the name was when the
+	// message was sent, we can't necessarily check that the server is being
+	// honest. That's ok insofar as we're not relying on these keys for
+	// authenticity, but it's a drag to not be able to use the pseudonym
+	// machinery.
+
+	// TODO: Check as much as we can, if the original TLF was fully resolved.
+	// This is a little tricky, because the current TLF name parsing code lives
+	// in chat and depends on externals, and it would create a circular
+	// dependency if we pulled it directly into libkb.
+
 	// Strip "/keybase/private/" from the name.
-	basename := strings.TrimPrefix(info.Name, "/keybase/private/")
-	if len(basename) >= len(info.Name) {
-		return nil, fmt.Errorf("unexpected prefix, expected '/keybase/private/...', found %q", info.Name)
+	basename := strings.TrimPrefix(info.UntrustedCurrentName, "/keybase/private/")
+	if len(basename) >= len(info.UntrustedCurrentName) {
+		return nil, fmt.Errorf("unexpected prefix, expected '/keybase/private', found %q", info.UntrustedCurrentName)
 	}
 	breaks := []keybase1.TLFIdentifyFailure{}
 	identifyCtx := types.IdentifyModeCtx(r.ctx, keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks)
