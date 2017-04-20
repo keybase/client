@@ -1,47 +1,18 @@
 // @flow
-import * as Constants from '../constants/push'
-import {isMobile} from '../constants/platform'
-import {apiserverDeleteRpcPromise, apiserverPostRpcPromise} from '../constants/types/flow-types'
+import * as Constants from '../../constants/push'
+import * as Creators from './creators'
+import {isMobile} from '../../constants/platform'
+import {apiserverDeleteRpcPromise, apiserverPostRpcPromise} from '../../constants/types/flow-types'
 import {call, put, take, select} from 'redux-saga/effects'
-import {chatTab} from '../constants/tabs'
-import {navigateTo} from './route-tree'
-import {safeTakeEvery, safeTakeLatest} from '../util/saga'
-import {setLaunchedViaPush} from './config'
+import {chatTab} from '../../constants/tabs'
+import {navigateTo} from '../route-tree'
+import {safeTakeEvery, safeTakeLatest} from '../../util/saga'
+import {setLaunchedViaPush} from '../config'
 
-import type {SagaGenerator} from '../constants/types/saga'
-import type {TypedState} from '../constants/reducer'
+import type {SagaGenerator} from '../../constants/types/saga'
+import type {TypedState} from '../../constants/reducer'
 
-import type {PushNotification, PushNotificationAction, PushPermissionsPromptAction, PushPermissionsRequestAction, PushPermissionsRequestingAction, PushTokenAction, SavePushTokenAction, TokenType, UpdatePushTokenAction} from '../constants/push'
-
-import {requestPushPermissions, configurePush} from './platform-specific'
-
-export function permissionsRequest (): PushPermissionsRequestAction {
-  return {type: Constants.permissionsRequest, payload: undefined}
-}
-
-export function permissionsRequesting (enabled: boolean): PushPermissionsRequestingAction {
-  return {type: Constants.permissionsRequesting, payload: enabled}
-}
-
-export function permissionsPrompt (enabled: boolean): PushPermissionsPromptAction {
-  return {type: Constants.permissionsPrompt, payload: enabled}
-}
-
-export function pushNotification (notification: PushNotification): PushNotificationAction {
-  return {type: Constants.pushNotification, payload: notification}
-}
-
-export function pushToken (token: string, tokenType: TokenType): PushTokenAction {
-  return {type: Constants.pushToken, payload: {token, tokenType}}
-}
-
-export function savePushToken (): SavePushTokenAction {
-  return {type: Constants.savePushToken, payload: undefined}
-}
-
-export function updatePushToken (token: string, tokenType: TokenType): UpdatePushTokenAction {
-  return {type: Constants.updatePushToken, payload: {token, tokenType}}
-}
+import {requestPushPermissions, configurePush} from '../platform-specific'
 
 const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
 
@@ -61,7 +32,7 @@ function * permissionsRequestSaga (): SagaGenerator<any, any> {
   }
 }
 
-function * pushNotificationSaga (notification: PushNotification): SagaGenerator<any, any> {
+function * pushNotificationSaga (notification: Constants.PushNotification): SagaGenerator<any, any> {
   console.warn('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
@@ -79,10 +50,10 @@ function * pushNotificationSaga (notification: PushNotification): SagaGenerator<
   }
 }
 
-function * pushTokenSaga (action: PushTokenAction): SagaGenerator<any, any> {
+function * pushTokenSaga (action: Constants.PushToken): SagaGenerator<any, any> {
   const {token, tokenType} = action.payload
-  yield put(updatePushToken(token, tokenType))
-  yield put(savePushToken())
+  yield put(Creators.updatePushToken(token, tokenType))
+  yield put(Creators.savePushToken())
 }
 
 function * savePushTokenSaga (): SagaGenerator<any, any> {
