@@ -6,7 +6,7 @@ import {Box, Button, Checkbox, Icon, Text, Input, NativeScrollView} from '../com
 
 import type {Props} from './feedback'
 
-const Feedback = ({onSendFeedbackContained, showSuccessBanner, sendLogs, onChangeSendLogs, feedback, onChangeFeedback}: Props) => (
+const Feedback = ({onSendFeedbackContained, showSuccessBanner, sendLogs, onChangeSendLogs, feedback, onChangeFeedback, sending}: Props) => (
   <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
     {showSuccessBanner &&
       <Box style={{flex: 0, height: 40, ...globalStyles.flexBoxRow, backgroundColor: globalColors.green, alignItems: 'center'}}>
@@ -40,7 +40,7 @@ const Feedback = ({onSendFeedbackContained, showSuccessBanner, sendLogs, onChang
         </Box>
       </Box>
       <Box style={{alignSelf: 'center', marginTop: globalMargins.small}}>
-        <Button label='Send' type='Primary' onClick={onSendFeedbackContained} />
+        <Button label='Send' type='Primary' onClick={onSendFeedbackContained} waiting={sending} />
       </Box>
     </Box>
   </NativeScrollView>
