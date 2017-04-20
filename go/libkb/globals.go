@@ -952,19 +952,20 @@ func (g *GlobalContext) ClearSharedDHKeyring() {
 	g.sharedDHKeyring = nil
 }
 
-// BumpSharedDHKeyring recreates SharedDHKeyring if the uid/did changes.
+// BumpSharedDHKeyring recreates SharedDHKeyring if the uid changes.
+// Using this during provisioning is nigh impossible because GetMyUID
+// routes through LoginSession and deadlocks.
 func (g *GlobalContext) BumpSharedDHKeyring() error {
 	g.Log.Debug("G#BumpSharedDHKeyring")
 	uid := g.GetMyUID()
-	did := g.Env.GetDeviceID()
 
 	// Don't do any operations under these locks that could come back and hit them again.
-	// That's why uid/did up above are not under this lock.
+	// That's why GetMyUID up above is not under this lock.
 	g.sharedDHKeyringMu.Lock()
 	defer g.sharedDHKeyringMu.Unlock()
 
 	makeNew := func() error {
-		sdhk, err := NewSharedDHKeyring(g, uid, did)
+		sdhk, err := NewSharedDHKeyring(g, uid)
 		if err != nil {
 			g.Log.Warning("G#BumpSharedDHKeyring -> failed: %s", err)
 			g.sharedDHKeyring = nil
@@ -978,8 +979,8 @@ func (g *GlobalContext) BumpSharedDHKeyring() error {
 	if g.sharedDHKeyring == nil {
 		return makeNew()
 	}
-	eUID, eDid := g.sharedDHKeyring.GetOwner()
-	if eUID.Equal(uid) && eDid.Eq(did) {
+	UID := g.sharedDHKeyring.GetUID()
+	if UID.Equal(uid) {
 		// Leave the existing keyring in place for the same user
 		g.Log.Debug("G#BumpSharedDHKeyring -> ignore")
 		return nil

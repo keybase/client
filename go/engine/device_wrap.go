@@ -23,13 +23,14 @@ type DeviceWrap struct {
 }
 
 type DeviceWrapArgs struct {
-	Me         *libkb.User
-	DeviceName string
-	DeviceType string
-	Lks        *libkb.LKSec
-	IsEldest   bool
-	Signer     libkb.GenericKey
-	EldestKID  keybase1.KID
+	Me              *libkb.User
+	DeviceName      string
+	DeviceType      string
+	Lks             *libkb.LKSec
+	IsEldest        bool
+	Signer          libkb.GenericKey
+	EldestKID       keybase1.KID
+	SharedDHKeyring *libkb.SharedDHKeyring // optional in some cases
 }
 
 // NewDeviceWrap creates a DeviceWrap engine.
@@ -78,12 +79,13 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 	deviceID := regEng.DeviceID()
 
 	kgArgs := &DeviceKeygenArgs{
-		Me:         e.args.Me,
-		DeviceID:   deviceID,
-		DeviceName: e.args.DeviceName,
-		DeviceType: e.args.DeviceType,
-		Lks:        e.args.Lks,
-		IsEldest:   e.args.IsEldest,
+		Me:              e.args.Me,
+		DeviceID:        deviceID,
+		DeviceName:      e.args.DeviceName,
+		DeviceType:      e.args.DeviceType,
+		Lks:             e.args.Lks,
+		IsEldest:        e.args.IsEldest,
+		SharedDHKeyring: e.args.SharedDHKeyring,
 	}
 	kgEng := NewDeviceKeygen(kgArgs, e.G())
 	if err := RunEngine(kgEng, ctx); err != nil {
