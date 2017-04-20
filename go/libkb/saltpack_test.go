@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"bytes"
+	"context"
 	"strings"
 	"testing"
 
@@ -68,7 +69,7 @@ func TestSaltpackEncDec(t *testing.T) {
 
 	for _, key := range receiverKPs {
 		buf.Reset()
-		_, err = SaltpackDecrypt(G,
+		_, err = SaltpackDecrypt(context.TODO(), G,
 			strings.NewReader(ciphertext),
 			&buf, key, nil, nil)
 		if err != nil {
@@ -87,7 +88,7 @@ func TestSaltpackEncDec(t *testing.T) {
 
 	for _, kp := range nonReceiverKPs {
 		buf.Reset()
-		_, err = SaltpackDecrypt(G,
+		_, err = SaltpackDecrypt(context.TODO(), G,
 			strings.NewReader(ciphertext), &buf, kp, nil, nil)
 		if err != saltpack.ErrNoDecryptionKey {
 			t.Fatal(err)

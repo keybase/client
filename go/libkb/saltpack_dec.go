@@ -17,7 +17,7 @@ import (
 )
 
 func SaltpackDecrypt(
-	g *GlobalContext, source io.Reader, sink io.WriteCloser,
+	ctx context.Context, g *GlobalContext, source io.Reader, sink io.WriteCloser,
 	deviceEncryptionKey NaclDHKeyPair,
 	checkSenderMki func(*saltpack.MessageKeyInfo) error,
 	checkSenderSigningKey func(saltpack.SigningPublicKey) error) (*saltpack.MessageKeyInfo, error) {
@@ -49,7 +49,7 @@ func SaltpackDecrypt(
 	}
 
 	// mki will be set for DH mode, senderSigningKey will be set for signcryption mode
-	plainsource, mki, senderSigningKey, typ, err := peekTypeAndMakeDecoder(g, dearmored, naclKeyring(deviceEncryptionKey))
+	plainsource, mki, senderSigningKey, typ, err := peekTypeAndMakeDecoder(ctx, g, dearmored, naclKeyring(deviceEncryptionKey))
 
 	if err != nil {
 		return mki, err
@@ -84,7 +84,7 @@ func SaltpackDecrypt(
 		}
 	}
 
-	g.Log.Debug("Decrypt: read %d bytes", n)
+	g.Log.CDebugf(ctx, "Decrypt: read %d bytes", n)
 
 	if err := sink.Close(); err != nil {
 		return mki, err
@@ -92,7 +92,7 @@ func SaltpackDecrypt(
 	return mki, nil
 }
 
-func peekTypeAndMakeDecoder(g *GlobalContext, dearmored io.Reader, keyring naclKeyring) (io.Reader, *saltpack.MessageKeyInfo, saltpack.SigningPublicKey, saltpack.MessageType, error) {
+func peekTypeAndMakeDecoder(ctx context.Context, g *GlobalContext, dearmored io.Reader, keyring naclKeyring) (io.Reader, *saltpack.MessageKeyInfo, saltpack.SigningPublicKey, saltpack.MessageType, error) {
 	// How much do we need to peek to get at the mode number?
 	// - bin tag (2, 3, or 5 bytes)
 	// - array tag (1 byte)
@@ -148,7 +148,7 @@ func peekTypeAndMakeDecoder(g *GlobalContext, dearmored io.Reader, keyring naclK
 		mki, plainsource, err := saltpack.NewDecryptStream(peekable, keyring)
 		return plainsource, mki, nil, typ, err
 	case saltpack.MessageTypeSigncryption:
-		senderPublic, plainsource, err := saltpack.NewSigncryptOpenStream(peekable, keyring, NewTlfKeyResolver(g))
+		senderPublic, plainsource, err := saltpack.NewSigncryptOpenStream(peekable, keyring, NewTlfKeyResolver(ctx, g))
 		return plainsource, nil, senderPublic, typ, err
 	default:
 		return nil, nil, nil, -1, fmt.Errorf("unexpected message mode when peeking: %d", typ)
@@ -157,12 +157,13 @@ func peekTypeAndMakeDecoder(g *GlobalContext, dearmored io.Reader, keyring naclK
 
 type TlfKeyResolver struct {
 	Contextified
+	ctx context.Context
 }
 
 var _ saltpack.SymmetricKeyResolver = (*TlfKeyResolver)(nil)
 
-func NewTlfKeyResolver(g *GlobalContext) *TlfKeyResolver {
-	return &TlfKeyResolver{NewContextified(g)}
+func NewTlfKeyResolver(ctx context.Context, g *GlobalContext) *TlfKeyResolver {
+	return &TlfKeyResolver{NewContextified(g), ctx}
 }
 
 func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.SymmetricKey, error) {
@@ -176,7 +177,7 @@ func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Symmetri
 		tlfPseudonyms = append(tlfPseudonyms, pseudonym)
 	}
 
-	results, err := GetTlfPseudonyms(context.TODO(), r.G(), tlfPseudonyms)
+	results, err := GetTlfPseudonyms(r.ctx, r.G(), tlfPseudonyms)
 	if err != nil {
 		return nil, err
 	}
@@ -185,11 +186,11 @@ func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Symmetri
 	symmetricKeys := []*saltpack.SymmetricKey{}
 	for _, result := range results {
 		if result.Err != nil {
-			r.G().Log.Debug("skipping unresolved pseudonym: %s", result.Err)
+			r.G().Log.CDebugf(r.ctx, "skipping unresolved pseudonym: %s", result.Err)
 			symmetricKeys = append(symmetricKeys, nil)
 			continue
 		}
-		r.G().Log.Debug("resolved pseudonym for %s, fetching key", result.Info.Name)
+		r.G().Log.CDebugf(r.ctx, "resolved pseudonym for %s, fetching key", result.Info.Name)
 		symmetricKey, err := r.getSymmetricKey(*result.Info)
 		if err != nil {
 			return nil, err
@@ -206,7 +207,7 @@ func (r *TlfKeyResolver) getSymmetricKey(info TlfPseudonymInfo) (*saltpack.Symme
 		return nil, fmt.Errorf("unexpected prefix, expected '/keybase/private/...', found %q", info.Name)
 	}
 	breaks := []keybase1.TLFIdentifyFailure{}
-	identifyCtx := types.IdentifyModeCtx(context.TODO(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks)
+	identifyCtx := types.IdentifyModeCtx(r.ctx, keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks)
 	res, err := r.G().TlfInfoSource.CryptKeys(identifyCtx, basename)
 	if err != nil {
 		return nil, err
