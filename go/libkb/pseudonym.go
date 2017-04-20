@@ -31,11 +31,15 @@ type TlfPseudonymInfo struct {
 	ID      tlfID
 	KeyGen  KeyGen
 	HmacKey [32]byte
+}
 
-	// Ignored in requests. Set in server responses. Using untrusted data
-	// during decryption is safe because we don't rely on TLF keys for sender
-	// authenticity. (Note however that senders must not use untrusted keys, or
-	// else they'd lose all privacy.)
+// The server returns the current full name of the TLF, in addition to the TlfPseudonymInfo above.
+type TlfPseudonymServerInfo struct {
+	TlfPseudonymInfo
+
+	// Using untrusted data during decryption is safe because we don't rely on
+	// TLF keys for sender authenticity. (Note however that senders must not
+	// use untrusted keys, or else they'd lose all privacy.)
 	UntrustedCurrentName string
 }
 
@@ -88,7 +92,7 @@ type getTlfPseudonymRes struct {
 type GetTlfPseudonymEither struct {
 	// Exactly one of these 2 fields is nil.
 	Err  error
-	Info *TlfPseudonymInfo
+	Info *TlfPseudonymServerInfo
 }
 
 // MakePseudonym makes a TLF pseudonym from the given input.
@@ -207,7 +211,7 @@ func checkAndConvertTlfPseudonymFromServer(ctx context.Context, g *GlobalContext
 	}
 
 	if received.Info != nil {
-		info := TlfPseudonymInfo{}
+		info := TlfPseudonymServerInfo{}
 
 		info.Name = received.Info.Name
 		info.UntrustedCurrentName = received.Info.UntrustedCurrentName
@@ -252,7 +256,7 @@ func checkTlfPseudonymFromServer(ctx context.Context, g *GlobalContext, req TlfP
 	}
 
 	// Check that the pseudonym info matches the query.
-	pn, err := MakePseudonym(*received.Info)
+	pn, err := MakePseudonym(received.Info.TlfPseudonymInfo)
 	if err != nil {
 		// Error creating pseudonym locally
 		return &PseudonymGetError{err.Error()}

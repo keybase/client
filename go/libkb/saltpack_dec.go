@@ -199,7 +199,7 @@ func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Symmetri
 	return symmetricKeys, nil
 }
 
-func (r *TlfKeyResolver) getSymmetricKey(info TlfPseudonymInfo) (*saltpack.SymmetricKey, error) {
+func (r *TlfKeyResolver) getSymmetricKey(info TlfPseudonymServerInfo) (*saltpack.SymmetricKey, error) {
 	// NOTE: In order to handle finalized TLFs (which is one of the main
 	// benefits of using TLF keys to begin with, for forward readability), we
 	// need the server to tell us what the current, potentially-finalized name
