@@ -387,7 +387,9 @@ func makeTLFJournal(
 	availableBytes, availableFiles := j.diskLimiter.onJournalEnable(
 		ctx, storedBytes, unflushedBytes, storedFiles)
 
-	go j.doBackgroundWorkLoop(bws, backoff.NewExponentialBackOff())
+	retry := backoff.NewExponentialBackOff()
+	retry.MaxElapsedTime = 0
+	go j.doBackgroundWorkLoop(bws, retry)
 
 	// Signal work to pick up any existing journal entries.
 	j.signalWork()
