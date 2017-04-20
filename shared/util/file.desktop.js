@@ -69,6 +69,10 @@ function writeFile (filepath: string, contents: string, encoding?: string): Prom
   return Promise.reject(new Error('not implemented'))
 }
 
+function writeStream (filepath: string, encoding: string, append?: boolean): Promise<*> {
+  return Promise.reject(new Error('not implemented'))
+}
+
 // TODO implemented for mobile, not here
 const cachesDirectoryPath = ''
 
@@ -81,4 +85,5 @@ export {
   tmpFile,
   tmpRandFile,
   writeFile,
+  writeStream,
 }
