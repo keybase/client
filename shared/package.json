@@ -79,7 +79,6 @@
     "react-native-camera": "0.6.0",
     "react-native-fs": "2.1.0-rc.1",
     "react-native-image-picker": "0.25.7",
-    "react-native-invertible-scroll-view": "^1.0.0",
     "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#eedae53f4346223b5aee60ef2702ecc47a01fcd2",
     "react-navigation": "1.0.0-beta.7",
     "react-redux": "5.0.3",
