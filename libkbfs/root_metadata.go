@@ -359,13 +359,11 @@ func (md *RootMetadata) AddUnrefBlock(info BlockInfo) {
 
 // AddUpdate adds the newly-updated block to the add block change list.
 func (md *RootMetadata) AddUpdate(oldInfo BlockInfo, newInfo BlockInfo) {
-	if oldInfo.EncodedSize > 0 {
-		md.AddUnrefBytes(uint64(oldInfo.EncodedSize))
-		md.AddRefBytes(uint64(newInfo.EncodedSize))
-		md.AddDiskUsage(uint64(newInfo.EncodedSize))
-		md.SetDiskUsage(md.DiskUsage() - uint64(oldInfo.EncodedSize))
-		md.data.Changes.AddUpdate(oldInfo.BlockPointer, newInfo.BlockPointer)
-	}
+	md.AddUnrefBytes(uint64(oldInfo.EncodedSize))
+	md.AddRefBytes(uint64(newInfo.EncodedSize))
+	md.AddDiskUsage(uint64(newInfo.EncodedSize))
+	md.SetDiskUsage(md.DiskUsage() - uint64(oldInfo.EncodedSize))
+	md.data.Changes.AddUpdate(oldInfo.BlockPointer, newInfo.BlockPointer)
 }
 
 // AddOp starts a new operation for this MD update.  Subsequent

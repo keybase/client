@@ -698,7 +698,7 @@ func (fup folderUpdatePrepper) updateResolutionUsageAndPointers(
 	}
 	deletedBlocks := make(map[BlockPointer]bool)
 	for ptr := range toUnref {
-		if ptr == zeroPtr {
+		if ptr == zeroPtr || unmergedChains.doNotUnrefPointers[ptr] {
 			// A zero pointer can sneak in from the unrefs field of a
 			// syncOp following a failed syncOp, via
 			// `unmergedChains.toUnrefPointers` after a chain collapse.
@@ -1095,7 +1095,8 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 		// Ignore it if it doesn't descend from an original block
 		// pointer or one created in the merged branch.
 		if _, ok := unmergedChains.originals[update.Unref]; !ok &&
-			unmergedChains.byOriginal[update.Unref] == nil &&
+			(unmergedChains.byOriginal[update.Unref] == nil ||
+				unmergedChains.isCreated(update.Unref)) &&
 			mergedChains.byMostRecent[update.Unref] == nil {
 			fup.log.CDebugf(ctx,
 				"Turning update from %v into just a ref for %v",

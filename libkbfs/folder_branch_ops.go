@@ -3465,7 +3465,7 @@ func (fbo *folderBranchOps) setExLocked(
 	md.AddOp(sao)
 
 	deleteTargetDirEntry := fbo.blocks.SetAttrInDirEntryInCache(
-		lState, de, sao.Attr)
+		lState, filePath, de, sao.Attr)
 	fbo.dirOps = append(fbo.dirOps, cachedDirOp{sao, []Node{file}})
 
 	defer func() {
@@ -3474,6 +3474,7 @@ func (fbo *folderBranchOps) setExLocked(
 		if deleteTargetDirEntry {
 			fbo.blocks.ClearCacheInfo(lState, filePath)
 		}
+		fbo.blocks.ClearCachedAddsAndRemoves(lState, *parentPath)
 	}()
 
 	dblock.Children[filePath.tailName()] = de
@@ -3550,7 +3551,7 @@ func (fbo *folderBranchOps) setMtimeLocked(
 	md.AddOp(sao)
 
 	deleteTargetDirEntry := fbo.blocks.SetAttrInDirEntryInCache(
-		lState, de, sao.Attr)
+		lState, filePath, de, sao.Attr)
 	fbo.dirOps = append(fbo.dirOps, cachedDirOp{sao, []Node{file}})
 
 	defer func() {
@@ -3559,6 +3560,7 @@ func (fbo *folderBranchOps) setMtimeLocked(
 		if deleteTargetDirEntry {
 			fbo.blocks.ClearCacheInfo(lState, filePath)
 		}
+		fbo.blocks.ClearCachedAddsAndRemoves(lState, *parentPath)
 	}()
 
 	dblock.Children[filePath.tailName()] = de
@@ -3682,7 +3684,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	dirtyFiles := fbo.blocks.GetDirtyFiles(lState)
-	if len(dirtyFiles) == 0 {
+	dirtyDirs := fbo.blocks.GetDirtyDirs(lState)
+	if len(dirtyFiles) == 0 && len(dirtyDirs) == 0 {
 		return nil
 	}
 
@@ -3694,6 +3697,10 @@ func (fbo *folderBranchOps) syncAllLocked(
 		return err
 	}
 
+	bps := newBlockPutState(0)
+	resolvedPaths := make(map[BlockPointer]path)
+	lbc := make(localBcache)
+
 	var cleanups []func(context.Context, *lockState, error)
 	defer func() {
 		for _, cf := range cleanups {
@@ -3701,13 +3708,67 @@ func (fbo *folderBranchOps) syncAllLocked(
 		}
 	}()
 
-	fbo.log.CDebugf(ctx, "Syncing %d file(s)", len(dirtyFiles))
-	bps := newBlockPutState(0)
-	resolvedPaths := make(map[BlockPointer]path)
+	// First prep all the directories.
+	fbo.log.CDebugf(ctx, "Syncing %d dirs(s)", len(dirtyDirs))
+	for _, ref := range dirtyDirs {
+		node := fbo.nodeCache.Get(ref)
+		if node == nil {
+			continue
+		}
+
+		dir := fbo.nodeCache.PathFromNode(node)
+		dblock, err := fbo.blocks.GetDirtyDir(ctx, lState, md, dir)
+		if err != nil {
+			return err
+		}
+
+		lbc[dir.tailPointer()] = dblock
+		resolvedPaths[dir.tailPointer()] = dir
+
+		// On a successful sync, clean up the cached entries and the
+		// dirty blocks.
+		cleanups = append(cleanups,
+			func(ctx context.Context, lState *lockState, err error) {
+				if err != nil {
+					return
+				}
+				fbo.blocks.ClearCachedDirEntry(lState, dir)
+				fbo.status.rmDirtyNode(node)
+			})
+	}
+	defer func() {
+		if err == nil {
+			fbo.dirOps = nil
+		}
+	}()
+	for _, op := range fbo.dirOps {
+		md.AddOp(op.dirOp)
+		var ref BlockRef
+		switch realOp := op.dirOp.(type) {
+		case *renameOp:
+			ref = realOp.Renamed.Ref()
+		case *setAttrOp:
+			ref = realOp.File.Ref()
+		default:
+			continue
+		}
+
+		// For rename and setattr ops, the target file will have a
+		// dirty entry, but may not have any outstanding writes, so it
+		// needs to be cleaned up manually.
+		defer func() {
+			if err != nil {
+				return
+			}
+			fbo.blocks.ClearCachedRef(lState, ref)
+		}()
+	}
+
 	fileBlocks := make(fileBlockMap)
 	var blocksToRemove []BlockPointer
 	var afterUpdateFns []func() error
-	lbc := make(localBcache)
+
+	fbo.log.CDebugf(ctx, "Syncing %d file(s)", len(dirtyFiles))
 	for _, ref := range dirtyFiles {
 		node := fbo.nodeCache.Get(ref)
 		if node == nil {
@@ -3734,6 +3795,10 @@ func (fbo *folderBranchOps) syncAllLocked(
 		}
 		if !doSync {
 			if !stillDirty {
+				// TODO(KBFS-2076): delete blocks from the dirty block
+				// cache on a successful sync (in a defer).  Only
+				// newly-created, empty file blocks won't be cleaned
+				// up by the normal file-syncing process.
 				fbo.status.rmDirtyNode(node)
 			}
 			continue
@@ -3800,6 +3865,9 @@ func (fbo *folderBranchOps) syncAllLocked(
 	if err != nil {
 		return err
 	}
+	// All originals never made it to the server, so don't unmerged
+	// them.
+	syncChains.doNotUnrefPointers = syncChains.createdOriginals
 	head, _ := fbo.getHead(lState)
 	dummyHeadChains := newCRChainsEmpty()
 	dummyHeadChains.mostRecentChainMDInfo = mostRecentChainMetadataInfo{

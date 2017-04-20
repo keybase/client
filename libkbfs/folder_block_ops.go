@@ -936,9 +936,14 @@ func (fbo *folderBlockOps) setCachedAttrLocked(
 // up the cache entry when the effects of the operation are no longer
 // needed.
 func (fbo *folderBlockOps) SetAttrInDirEntryInCache(lState *lockState,
-	newDe DirEntry, attr attrChange) (deleteTargetDirEntry bool) {
+	p path, newDe DirEntry, attr attrChange) (deleteTargetDirEntry bool) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
+
+	// Pretend this is a directory add, to ensure the directory is
+	// synced.
+	fbo.addDirEntryInCacheLocked(lState, *p.parentPath(), p.tailName(), newDe)
+
 	// If there's already an entry for the target, only update the
 	// Ctime on a rename.
 	_, ok := fbo.deCache[newDe.Ref()]
@@ -972,6 +977,28 @@ func (fbo *folderBlockOps) ClearCachedAddsAndRemoves(
 	cacheEntry.adds = nil
 	cacheEntry.dels = nil
 	fbo.deCache[dir.tailPointer().Ref()] = cacheEntry
+}
+
+// ClearCachedRef clears any info from the cache for the given block
+// reference.
+func (fbo *folderBlockOps) ClearCachedRef(lState *lockState, ref BlockRef) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	delete(fbo.deCache, ref)
+}
+
+// ClearCachedDirEntry clears any info from the cache for the given
+// directory.
+func (fbo *folderBlockOps) ClearCachedDirEntry(lState *lockState, dir path) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	delete(fbo.deCache, dir.tailPointer().Ref())
+
+	// TODO(KBFS-2076): delete the corresponding from the dirty block
+	// cache.  Only newly-created, empty dir blocks will be in the
+	// dirty block cache, but for now let's just try to delete all
+	// dirty dirs.  (In the future, modified directories should live
+	// in there as well.)
 }
 
 // updateWithDirtyEntriesLocked checks if the given DirBlock has any
@@ -1058,8 +1085,8 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 
 // getDirtyDirLocked composes getDirLocked and
 // updatedWithDirtyEntriesLocked. Note that a dirty dir means that it
-// has entries possibly pointing to dirty files, not that it's dirty
-// itself.
+// has entries possibly pointing to dirty files, and/or that its
+// children list is dirty.
 func (fbo *folderBlockOps) getDirtyDirLocked(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, dir path, rtype blockReqType) (
 	*DirBlock, error) {
@@ -1071,6 +1098,16 @@ func (fbo *folderBlockOps) getDirtyDirLocked(ctx context.Context,
 	}
 
 	return fbo.updateWithDirtyEntriesLocked(ctx, lState, dir, dblock)
+}
+
+// GetDirtyDir returns the directory block for a dirty directory,
+// updated with all cached dirty entries.
+func (fbo *folderBlockOps) GetDirtyDir(
+	ctx context.Context, lState *lockState, kmd KeyMetadata, dir path) (
+	*DirBlock, error) {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+	return fbo.getDirtyDirLocked(ctx, lState, kmd, dir, blockRead)
 }
 
 // GetDirtyDirChildren returns a map of EntryInfos for the (possibly
@@ -1253,8 +1290,26 @@ func (fbo *folderBlockOps) GetDirtyFiles(lState *lockState) []BlockRef {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	var dirtyRefs []BlockRef
+	for ref := range fbo.deCache {
+		if _, ok := fbo.unrefCache[ref]; ok {
+			dirtyRefs = append(dirtyRefs, ref)
+		}
+	}
+	return dirtyRefs
+}
+
+// GetDirtyDirs returns a list of references of all known dirty
+// directories.
+func (fbo *folderBlockOps) GetDirtyDirs(lState *lockState) []BlockRef {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+	var dirtyRefs []BlockRef
 	for ref, de := range fbo.deCache {
-		if de.dirEntry.IsInitialized() && de.dirEntry.Type.IsFile() {
+		// It's a directory if there's either no entry, or if the
+		// entry is explicitly typed as a directory.  (A directory
+		// should only have a dirEntry in the cache if it's newly
+		// created.)
+		if !de.dirEntry.IsInitialized() || de.dirEntry.Type == Dir {
 			dirtyRefs = append(dirtyRefs, ref)
 		}
 	}

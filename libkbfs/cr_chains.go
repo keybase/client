@@ -387,6 +387,10 @@ type crChains struct {
 	// Pointers that should be explicitly cleaned up in the resolution.
 	toUnrefPointers map[BlockPointer]bool
 
+	// Pointers that should be explicitly *not* be cleaned up in the
+	// resolution.
+	doNotUnrefPointers map[BlockPointer]bool
+
 	// Also keep the info for the most recent chain MD used to
 	// build these chains.
 	mostRecentChainMDInfo mostRecentChainMetadataInfo
@@ -731,6 +735,7 @@ func newCRChainsEmpty() *crChains {
 		renamedOriginals:    make(map[BlockPointer]renameInfo),
 		blockChangePointers: make(map[BlockPointer]bool),
 		toUnrefPointers:     make(map[BlockPointer]bool),
+		doNotUnrefPointers:  make(map[BlockPointer]bool),
 		originals:           make(map[BlockPointer]BlockPointer),
 	}
 }
