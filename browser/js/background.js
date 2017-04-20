@@ -2,6 +2,7 @@
 
 const KBNM_HOST = "io.keybase.kbnm";
 
+// Relay extension messages to native messages.
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   chrome.runtime.sendNativeMessage(KBNM_HOST, msg, function(r) {
     if (r) {
@@ -44,3 +45,32 @@ chrome.contextMenus.create({
     chrome.tabs.create({url: "https://keybase.io/"});
   }
 });
+
+
+// Register browser_action icon state
+// Via: https://developer.chrome.com/extensions/examples/api/pageAction/pageaction_by_url/background.js
+const pageMatchRules = [
+  {
+    conditions: [
+      // Match user pages that Keybase recognizes
+      new chrome.declarativeContent.PageStateMatcher({
+          pageUrl: { urlMatches: '.reddit.com\/user\/[\\w-]+$' },
+      }),
+      new chrome.declarativeContent.PageStateMatcher({
+          pageUrl: { urlMatches: 'twitter.com/[\\w]+$' },
+      })
+    ],
+    actions: [
+      new chrome.declarativeContent.ShowPageAction(),
+      new chrome.declarativeContent.SetIcon({
+        path: "images/icon-keybase-logo-16@2x.png"
+      })
+    ]
+  }
+];
+chrome.runtime.onInstalled.addListener(function() {
+  chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
+    chrome.declarativeContent.onPageChanged.addRules(pageMatchRules);
+  });
+});
+
