@@ -1241,7 +1241,7 @@ func TestGetThreadNonblockError(t *testing.T) {
 	select {
 	case cids := <-listener.threadsStale:
 		require.Equal(t, 1, len(cids))
-	case <-time.After(5 * time.Second):
+	case <-time.After(20 * time.Second):
 		require.Fail(t, "no threads stale message received")
 	}
 }
@@ -1285,14 +1285,14 @@ func TestGetInboxNonblockError(t *testing.T) {
 	// Eat untrusted CB
 	select {
 	case <-inboxCb:
-	case <-time.After(5 * time.Second):
+	case <-time.After(20 * time.Second):
 		require.Fail(t, "no untrusted inbox")
 	}
 
 	select {
 	case nbres := <-inboxCb:
 		require.Error(t, nbres.Err)
-	case <-time.After(5 * time.Second):
+	case <-time.After(20 * time.Second):
 		require.Fail(t, "no inbox load event")
 	}
 
@@ -1305,7 +1305,7 @@ func TestGetInboxNonblockError(t *testing.T) {
 	select {
 	case cids := <-listener.threadsStale:
 		require.Equal(t, 1, len(cids))
-	case <-time.After(5 * time.Second):
+	case <-time.After(20 * time.Second):
 		require.Fail(t, "no threads stale message received")
 	}
 }

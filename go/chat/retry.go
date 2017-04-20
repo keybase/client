@@ -23,8 +23,8 @@ const fetchMaxTime = 24 * time.Hour
 type FetchRetrier struct {
 	libkb.Contextified
 	utils.DebugLabeler
-	sync.Mutex
 
+	offlineMu  sync.Mutex
 	forceCh    chan struct{}
 	shutdownCh chan chan struct{}
 	clock      clockwork.Clock
@@ -66,21 +66,21 @@ func (f *FetchRetrier) Success(ctx context.Context, convID chat1.ConversationID,
 
 func (f *FetchRetrier) Connected(ctx context.Context) {
 	defer f.Trace(ctx, func() error { return nil }, "Connected")()
-	f.Lock()
+	f.offlineMu.Lock()
 	f.offline = false
-	f.Unlock()
+	f.offlineMu.Unlock()
 	f.forceCh <- struct{}{}
 }
 
 func (f *FetchRetrier) Disconnected(ctx context.Context) {
-	f.Lock()
-	defer f.Unlock()
+	f.offlineMu.Lock()
+	defer f.offlineMu.Unlock()
 	f.offline = true
 }
 
 func (f *FetchRetrier) IsOffline() bool {
-	f.Lock()
-	defer f.Unlock()
+	f.offlineMu.Lock()
+	defer f.offlineMu.Unlock()
 	return f.offline
 }
 
@@ -141,7 +141,8 @@ func (f *FetchRetrier) filterFailuresByTime(ctx context.Context,
 	return res
 }
 
-func (f *FetchRetrier) retryInboxLoads(uid gregor1.UID, force bool) {
+func (f *FetchRetrier) retryFetch(uid gregor1.UID, force bool,
+	fixFn func(context.Context, gregor1.UID, []chat1.ConversationID) []chat1.ConversationID) {
 	var err error
 	var breaks []keybase1.TLFIdentifyFailure
 	box := storage.NewConversationFailureBox(f.G(), uid, f.boxKey(types.InboxLoad))
@@ -151,7 +152,7 @@ func (f *FetchRetrier) retryInboxLoads(uid gregor1.UID, force bool) {
 	var convFailures []storage.ConversationFailureRecord
 	convFailures, err = box.Read(ctx)
 	if err != nil {
-		f.Debug(ctx, "retryInboxLoads: failed to read failure box, giving up: %s", err.Error())
+		f.Debug(ctx, "retryFetch: failed to read failure box, giving up: %s", err.Error())
 		return
 	}
 	convIDs := f.filterFailuresByTime(ctx, convFailures, force)
@@ -159,37 +160,42 @@ func (f *FetchRetrier) retryInboxLoads(uid gregor1.UID, force bool) {
 		return
 	}
 
+	f.Debug(ctx, "retryFetch: attempt to fix %d conversations", len(convIDs))
+	fixed := fixFn(ctx, uid, convIDs)
+	f.Debug(ctx, "retryFetch: sending %d stale notifications", len(fixed))
+	f.G().ChatSyncer.SendChatStaleNotifications(ctx, uid, fixed, false)
+}
+
+func (f *FetchRetrier) fixInboxFetches(ctx context.Context, uid gregor1.UID,
+	convIDs []chat1.ConversationID) (fixed []chat1.ConversationID) {
 	// Reload these all conversations and hope they work
-	f.Debug(ctx, "retryInboxLoads: retrying %d conversations", len(convFailures))
 	inbox, _, err := f.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
 		ConvIDs: convIDs,
 	}, nil)
 	if err != nil {
-		f.Debug(ctx, "retryInboxLoads: failed to read inbox: %s", err.Error())
-		return
+		f.Debug(ctx, "fixInboxFetches: failed to read inbox: %s", err.Error())
+		return fixed
 	}
-	var fixed []chat1.ConversationID
 	for _, conv := range inbox.Convs {
 		if conv.Error == nil {
-			f.Debug(ctx, "retryInboxLoads: fixed convID: %s", conv.GetConvID())
+			f.Debug(ctx, "fixInboxFetches: fixed convID: %s", conv.GetConvID())
 			fixed = append(fixed, conv.GetConvID())
 			if err := f.Success(ctx, conv.GetConvID(), uid, types.InboxLoad); err != nil {
-				f.Debug(ctx, "retryInboxLoads: failure running Success: %s", err.Error())
+				f.Debug(ctx, "fixInboxFetches: failure running Success: %s", err.Error())
 			}
 		} else {
-			f.Debug(ctx, "retryInboxLoads: convID failed again: msg: %s typ: %v", conv.Error.Message,
+			f.Debug(ctx, "fixInboxFetches: convID failed again: msg: %s typ: %v", conv.Error.Message,
 				conv.Error.Typ)
-			if err := box.Failure(ctx, conv.GetConvID()); err != nil {
-				f.Debug(ctx, "retryInboxLoads: failure running Failure: %s", err.Error())
+			if err := f.Failure(ctx, conv.GetConvID(), uid, types.InboxLoad); err != nil {
+				f.Debug(ctx, "fixInboxFetches: failure running Failure: %s", err.Error())
 			}
 		}
 	}
 
-	f.Debug(ctx, "retryInboxLoads: sending %d stale notifications", len(fixed))
-	f.G().ChatSyncer.SendChatStaleNotifications(ctx, uid, fixed, false)
+	return fixed
 }
 
-func (f *FetchRetrier) retryThreadLoads(uid gregor1.UID, force bool) {
+func (f *FetchRetrier) fixThreadFetches(uid gregor1.UID, force bool) {
 	var err error
 	var breaks []keybase1.TLFIdentifyFailure
 	box := storage.NewConversationFailureBox(f.G(), uid, f.boxKey(types.ThreadLoad))
