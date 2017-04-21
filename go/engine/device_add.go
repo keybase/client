@@ -100,7 +100,7 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 				break
 			} else if len(receivedSecret.Phrase) > 0 {
 				e.G().Log.Debug("received secret phrase, checking validity")
-				for !libkb.CheckKex2SecretPhrase.F(receivedSecret.Phrase) {
+				if !libkb.CheckKex2SecretPhrase.F(receivedSecret.Phrase) {
 					e.G().Log.Debug("secret phrase failed validity check (attempt %d)", i+1)
 					arg.PreviousErr = libkb.CheckKex2SecretPhrase.Hint
 					continue
