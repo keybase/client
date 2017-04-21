@@ -6,6 +6,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 
 import go.keybase.Keybase;
+import io.keybase.ossifrage.BuildConfig;
 
 public class LogSend extends ReactContextBaseJavaModule {
     private static final String NAME = "KBLogSend";
@@ -23,8 +24,11 @@ public class LogSend extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void logSend(String feedback, boolean sendLogs, Promise promise) {
+        String versionCode = String.valueOf(BuildConfig.VERSION_CODE);
+        String versionName = BuildConfig.VERSION_NAME;
+
         try {
-            final String logID = Keybase.logSend(feedback, sendLogs, logFilePath);
+            final String logID = Keybase.logSend(feedback, versionName, versionCode, sendLogs, logFilePath);
             promise.resolve(logID);
         } catch (Exception e) {
             promise.reject(e);

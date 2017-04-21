@@ -55,7 +55,7 @@ func addFile(mpart *multipart.Writer, param, filename, data string) error {
 	return nil
 }
 
-func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog string) (string, error) {
+func (l *LogSendContext) post(status, feedback, mobileVersionName, mobileVersionCode, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog string) (string, error) {
 	l.G().Log.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
@@ -63,6 +63,14 @@ func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, upd
 
 	if feedback != "" {
 		mpart.WriteField("feedback", feedback)
+	}
+
+	if mobileVersionName != "" {
+		mpart.WriteField("mobile_version_name", mobileVersionName)
+	}
+
+	if mobileVersionCode != "" {
+		mpart.WriteField("mobile_version_code", mobileVersionCode)
 	}
 
 	if err := addFile(mpart, "status_gz", "status.gz", status); err != nil {
@@ -283,7 +291,7 @@ func tailFile(log logger.Logger, which string, filename string, numBytes int) (r
 }
 
 // LogSend sends the the tails of log files to kb
-func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, numBytes int) (string, error) {
+func (l *LogSendContext) LogSend(statusJSON, feedback string, mobileVersionName string, mobileVersionCode string, sendLogs bool, numBytes int) (string, error) {
 	logs := l.Logs
 	var kbfsLog string
 	var svcLog string
@@ -311,5 +319,5 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		systemLog = ""
 	}
 
-	return l.post(statusJSON, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog)
+	return l.post(statusJSON, feedback, mobileVersionName, mobileVersionCode, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog)
 }

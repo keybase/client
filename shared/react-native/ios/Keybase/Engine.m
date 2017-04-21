@@ -139,7 +139,7 @@ RCT_EXPORT_METHOD(start) {
 
   return @{ @"eventName": eventName,
             @"test": testVal,
-            @"appVersionName": appVersion,
+            @"appVersionName": appVersionString,
             @"appVersionCode": appBuildString,
             @"usingSimulator": simulatorVal,
             @"version": GoKeybaseVersion()};
