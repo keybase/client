@@ -869,7 +869,7 @@ func (ckf ComputedKeyFamily) exportPublicKey(key GenericKey) (pk keybase1.Public
 			i++
 		}
 		pk.PGPIdentities = ids
-		pk.IsRevoked = len(pgpBundle.Revocations) > 0
+		pk.IsRevoked = len(pgpBundle.Revocations)+len(pgpBundle.UnverifiedRevocations) > 0
 	}
 	pk.DeviceID = ckf.cki.KIDToDeviceID[pk.KID]
 	device := ckf.cki.Devices[pk.DeviceID]

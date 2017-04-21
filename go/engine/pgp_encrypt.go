@@ -136,6 +136,21 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 	}
 
 	ks := newKeyset()
+
+	for _, up := range uplus {
+		for _, k := range up.Keys {
+			if len(k.Entity.Revocations)+len(k.Entity.UnverifiedRevocations) > 0 {
+				continue
+			}
+
+			ks.Add(k)
+		}
+	}
+
+	if len(ks.keys) == 0 {
+		return errors.New("Cannot encrypt - recipient does not have a non-revoked key.")
+	}
+
 	if !e.arg.NoSelf {
 		if mykey == nil {
 			// need to load the public key for the logged in user
@@ -148,12 +163,6 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		// mykey could still be nil
 		if mykey != nil {
 			ks.Add(mykey)
-		}
-	}
-
-	for _, up := range uplus {
-		for _, k := range up.Keys {
-			ks.Add(k)
 		}
 	}
 
