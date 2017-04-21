@@ -144,7 +144,7 @@ func (f *FetchRetrier) retryLoop(uid gregor1.UID) {
 		case <-f.forceCh:
 			f.retryOnce(uid, true)
 		case cb := <-f.shutdownCh:
-			f.Debug(context.Background(), "shutting down retryLook: uid: %s", uid)
+			f.Debug(context.Background(), "shutting down retryLoop: uid: %s", uid)
 			defer close(cb)
 			return
 		}

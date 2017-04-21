@@ -400,7 +400,7 @@ type HybridInboxSource struct {
 	*baseInboxSource
 }
 
-var _ types.InboxSource = (*RemoteInboxSource)(nil)
+var _ types.InboxSource = (*HybridInboxSource)(nil)
 
 func NewHybridInboxSource(g *libkb.GlobalContext,
 	getChatInterface func() chat1.RemoteInterface,
