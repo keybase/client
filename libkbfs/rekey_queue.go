@@ -121,6 +121,8 @@ func (rkq *RekeyQueueStandard) IsRekeyPending(id tlf.ID) bool {
 func (rkq *RekeyQueueStandard) Shutdown() {
 	rkq.mu.Lock()
 	defer rkq.mu.Unlock()
-	rkq.cancel()
-	rkq.cancel = nil
+	if rkq.cancel != nil {
+		rkq.cancel()
+		rkq.cancel = nil
+	}
 }

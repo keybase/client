@@ -57,6 +57,7 @@ var _ fs.Node = (*FolderList)(nil)
 // Attr implements the fs.Node interface.
 func (*FolderList) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Mode = os.ModeDir | 0500
+	a.Uid = uint32(os.Getuid())
 	return nil
 }
 

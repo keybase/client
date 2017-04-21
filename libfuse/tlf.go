@@ -148,6 +148,7 @@ func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 		// dir.
 		a.Valid = 1 * time.Second
 		a.Mode = os.ModeDir | 0500
+		a.Uid = uint32(os.Getuid())
 		return nil
 	}
 
