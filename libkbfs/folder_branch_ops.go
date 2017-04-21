@@ -4016,7 +4016,7 @@ func (fbo *folderBranchOps) notifyBatchLocked(
 
 	switch len(md.data.Changes.Ops) {
 	case 0:
-		return nil
+		panic("Unexpected empty ops change list in notifyBatchLocked")
 	case 1:
 		err := fbo.notifyOneOpLocked(
 			ctx, lState, md.data.Changes.Ops[0], md, false, afterUpdateFn)
