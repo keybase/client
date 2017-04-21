@@ -19,8 +19,8 @@ function logout (): Constants.Logout {
   return {type: Constants.logout, payload: null}
 }
 
-function setTextCode (phrase: string): Constants.SetTextCode {
-  return {type: Constants.setTextCode, payload: {textCode: new HiddenString(phrase)}}
+function setTextCode (phrase: string, previousErr: string): Constants.SetTextCode {
+  return {type: Constants.setTextCode, payload: {enterCodeErrorText: previousErr, textCode: new HiddenString(phrase)}}
 }
 
 function relogin (usernameOrEmail: string, passphrase: string): Constants.Relogin {

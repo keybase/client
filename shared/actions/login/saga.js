@@ -209,8 +209,8 @@ function * passthroughResponseSaga ({response}) {
 
 // TODO type this
 type DisplayAndPromptSecretArgs = any
-const displayAndPromptSecretSaga = (onBackSaga) => function * ({params: {phrase}, response}: DisplayAndPromptSecretArgs) {
-  yield put(Creators.setTextCode(phrase))
+const displayAndPromptSecretSaga = (onBackSaga) => function * ({params: {phrase, previousErr}, response}: DisplayAndPromptSecretArgs) {
+  yield put(Creators.setTextCode(phrase, previousErr))
   yield call(generateQRCode)
   yield put(navigateAppend(['codePage']))
 
