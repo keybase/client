@@ -308,7 +308,10 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
     }
     case 'chat:downloadProgress': {
       const {conversationIDKey, messageID, isPreview, bytesComplete, bytesTotal} = action.payload
-      const progress = bytesComplete / bytesTotal
+      let progress = 0
+      if (bytesTotal) {
+        progress = bytesComplete / bytesTotal
+      }
       const messageKey = Constants.messageKey(conversationIDKey, 'messageIDAttachment', messageID)
 
       // $FlowIssue

@@ -267,11 +267,15 @@ function loadAttachment (conversationIDKey: Constants.ConversationIDKey, message
   return {payload: {conversationIDKey, filename, isHdPreview, loadPreview, messageID}, type: 'chat:loadAttachment'}
 }
 
-function attachmentLoaded (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, path: string, isPreview: boolean, isHdPreview: boolean): Constants.AttachmentLoaded {
+function loadAttachmentPreview (message: Constants.AttachmentMessage): Constants.LoadAttachmentPreview {
+  return {payload: {message}, type: 'chat:loadAttachmentPreview'}
+}
+
+function attachmentLoaded (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, path: ?string, isPreview: boolean, isHdPreview: boolean): Constants.AttachmentLoaded {
   return {payload: {conversationIDKey, isHdPreview, isPreview, messageID, path}, type: 'chat:attachmentLoaded'}
 }
 
-function downloadProgress (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, isPreview: boolean, bytesComplete: number, bytesTotal: number): Constants.DownloadProgress {
+function downloadProgress (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, isPreview: boolean, bytesComplete?: number, bytesTotal?: number): Constants.DownloadProgress {
   return {payload: {bytesComplete, bytesTotal, conversationIDKey, isPreview, messageID}, type: 'chat:downloadProgress'}
 }
 
@@ -381,6 +385,7 @@ export {
   inboxStale,
   incomingMessage,
   loadAttachment,
+  loadAttachmentPreview,
   loadInbox,
   loadMoreMessages,
   loadedInbox,
