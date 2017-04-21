@@ -10,3 +10,10 @@ type TLFInfo struct {
 	CanonicalName    string
 	IdentifyFailures []keybase1.TLFIdentifyFailure
 }
+
+type FetchType int
+
+const (
+	InboxLoad FetchType = iota
+	ThreadLoad
+)

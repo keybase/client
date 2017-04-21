@@ -179,12 +179,10 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 					Error:     *convRes.Err,
 				})
 
-				// Log this guy into Syncer's stale store, so that we refresh it when we
-				// re-connect
+				// If we get a transient failure, add this to the retrier queue
 				if convRes.Err.Typ == chat1.ConversationErrorType_TRANSIENT {
-					h.G().ChatSyncer.AddStaleConversation(ctx, uid.ToBytes(), convRes.ConvID)
+					h.G().ChatFetchRetrier.Failure(ctx, convRes.ConvID, uid.ToBytes(), types.InboxLoad)
 				}
-
 			} else if convRes.ConvRes != nil {
 				h.Debug(ctx, "GetInboxNonblockLocal: verified conv: id: %s tlf: %s",
 					convRes.ConvID, convRes.ConvRes.Info.TLFNameExpanded())
@@ -192,6 +190,9 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 					SessionID: arg.SessionID,
 					Conv:      *convRes.ConvRes,
 				})
+
+				// Send a note to the retrier that we actually loaded this guy successfully
+				h.G().ChatFetchRetrier.Success(ctx, convRes.ConvID, uid.ToBytes(), types.InboxLoad)
 			}
 			wg.Done()
 		}(convRes)
@@ -318,10 +319,12 @@ func (h *chatLocalHandler) GetThreadNonblock(ctx context.Context, arg chat1.GetT
 	defer func() {
 		fullErr = h.handleOfflineError(ctx, fullErr, &res)
 
-		// If we are sending an offline result, then we should remember this conversation
-		// in ChatSyncer so that we can generate a stale message when we reconnect
-		if res.Offline {
-			h.G().ChatSyncer.AddStaleConversation(ctx, uid.ToBytes(), arg.ConversationID)
+		// Detect any problem loading the thread, and queue it up in the retrier if there is a problem.
+		// Otherwise, send notice that we successfully loaded the conversation.
+		if res.Offline || fullErr != nil {
+			h.G().ChatFetchRetrier.Failure(ctx, arg.ConversationID, uid.ToBytes(), types.ThreadLoad)
+		} else {
+			h.G().ChatFetchRetrier.Success(ctx, arg.ConversationID, uid.ToBytes(), types.ThreadLoad)
 		}
 	}()
 	if err := h.assertLoggedIn(ctx); err != nil {

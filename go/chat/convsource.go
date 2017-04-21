@@ -104,6 +104,8 @@ type RemoteConversationSource struct {
 	libkb.Contextified
 }
 
+var _ types.ConversationSource = (*RemoteConversationSource)(nil)
+
 func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri func() chat1.RemoteInterface) *RemoteConversationSource {
 	return &RemoteConversationSource{
 		Contextified:           libkb.NewContextified(g),
@@ -212,6 +214,8 @@ type HybridConversationSource struct {
 
 	storage *storage.Storage
 }
+
+var _ types.ConversationSource = (*HybridConversationSource)(nil)
 
 func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *storage.Storage,
 	ri func() chat1.RemoteInterface) *HybridConversationSource {

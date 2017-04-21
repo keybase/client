@@ -34,7 +34,7 @@ func NewOutbox(g *libkb.GlobalContext, uid gregor1.UID) *Outbox {
 	return &Outbox{
 		Contextified: libkb.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "Outbox", false),
-		baseBox:      newBaseBox(g),
+		baseBox:      newBaseBox(g, true),
 		uid:          uid,
 		clock:        clockwork.NewRealClock(),
 	}
