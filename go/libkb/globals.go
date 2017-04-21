@@ -17,6 +17,7 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -252,7 +253,9 @@ func (g *GlobalContext) Logout() error {
 
 	g.CallLogoutHooks()
 
-	g.ClearSharedDHKeyring()
+	if g.Env.GetEnableSharedDH() {
+		g.ClearSharedDHKeyring()
+	}
 
 	if g.TrackCache != nil {
 		g.TrackCache.Shutdown()
@@ -757,7 +760,9 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 func (g *GlobalContext) CallLoginHooks() {
 	g.Log.Debug("G#CallLoginHooks")
 
-	g.BumpSharedDHKeyring()
+	if g.Env.GetEnableSharedDH() {
+		_ = g.BumpSharedDHKeyring()
+	}
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin()
@@ -937,6 +942,9 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 
 func (g *GlobalContext) GetSharedDHKeyring() (ret *SharedDHKeyring, err error) {
 	defer g.Trace("G#GetSharedDHKeyring", func() error { return err })()
+	if !g.Env.GetEnableSharedDH() {
+		return nil, errors.New("shared dh disabled")
+	}
 	g.sharedDHKeyringMu.Lock()
 	defer g.sharedDHKeyringMu.Unlock()
 	if g.sharedDHKeyring == nil {
@@ -947,6 +955,9 @@ func (g *GlobalContext) GetSharedDHKeyring() (ret *SharedDHKeyring, err error) {
 
 func (g *GlobalContext) ClearSharedDHKeyring() {
 	defer g.Trace("G#ClearSharedDHKeyring", func() error { return nil })()
+	if !g.Env.GetEnableSharedDH() {
+		return
+	}
 	g.sharedDHKeyringMu.Lock()
 	defer g.sharedDHKeyringMu.Unlock()
 	g.sharedDHKeyring = nil
@@ -957,7 +968,10 @@ func (g *GlobalContext) ClearSharedDHKeyring() {
 // routes through LoginSession and deadlocks.
 func (g *GlobalContext) BumpSharedDHKeyring() error {
 	g.Log.Debug("G#BumpSharedDHKeyring")
-	uid := g.GetMyUID()
+	if !g.Env.GetEnableSharedDH() {
+		return errors.New("shared dh disabled")
+	}
+	myUID := g.GetMyUID()
 
 	// Don't do any operations under these locks that could come back and hit them again.
 	// That's why GetMyUID up above is not under this lock.
@@ -965,7 +979,7 @@ func (g *GlobalContext) BumpSharedDHKeyring() error {
 	defer g.sharedDHKeyringMu.Unlock()
 
 	makeNew := func() error {
-		sdhk, err := NewSharedDHKeyring(g, uid)
+		sdhk, err := NewSharedDHKeyring(g, myUID)
 		if err != nil {
 			g.Log.Warning("G#BumpSharedDHKeyring -> failed: %s", err)
 			g.sharedDHKeyring = nil
@@ -979,8 +993,8 @@ func (g *GlobalContext) BumpSharedDHKeyring() error {
 	if g.sharedDHKeyring == nil {
 		return makeNew()
 	}
-	UID := g.sharedDHKeyring.GetUID()
-	if UID.Equal(uid) {
+	sdhUID := g.sharedDHKeyring.GetUID()
+	if sdhUID.Equal(myUID) {
 		// Leave the existing keyring in place for the same user
 		g.Log.Debug("G#BumpSharedDHKeyring -> ignore")
 		return nil

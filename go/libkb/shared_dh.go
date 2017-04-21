@@ -2,7 +2,6 @@ package libkb
 
 import (
 	"fmt"
-	"runtime/debug"
 	"sync"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -156,6 +155,9 @@ func (s *SharedDHKeyring) syncAsConfiguredDevice(ctx context.Context, lctx Login
 	if !s.uid.Equal(uid) {
 		return fmt.Errorf("UID changed on SharedDHKeyring")
 	}
+	if deviceID.IsNil() {
+		return fmt.Errorf("missing configured deviceID")
+	}
 	return s.sync(ctx, lctx, upak, deviceID, activeDecryptionKey)
 }
 
@@ -293,7 +295,6 @@ func importSharedDHKey(box *keybase1.SharedDHSecretKeyBox, activeDecryptionKey G
 		return nil, err
 	}
 	if len(checker.allowedEncryptingKIDs) == 0 {
-		debug.PrintStack()
 		return nil, SharedDHImportError{fmt.Sprintf("no allowed encrypting kids")}
 	}
 	if !checker.allowedEncryptingKIDs[encryptingKID] {

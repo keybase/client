@@ -942,6 +942,7 @@ func (e *loginProvision) makeEldestDevice(ctx *Context) error {
 // ensurePaperKey checks to see if e.user has any paper keys.  If
 // not, it makes one.
 func (e *loginProvision) ensurePaperKey(ctx *Context) error {
+	e.G().Log.CDebugf(ctx.NetContext, "loginProvision#ensurePaperKey")
 	// see if they have a paper key already
 	cki := e.arg.User.GetComputedKeyInfos()
 	if cki != nil {
@@ -968,6 +969,12 @@ func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 	e.arg.User, err = libkb.LoadUser(libkb.LoadUserArg{Self: true, UID: e.arg.User.GetUID(), PublicKeyOptional: true, Contextified: libkb.NewContextified(e.G())})
 	if err != nil {
 		return err
+	}
+
+	if e.G().Env.GetEnableSharedDH() {
+		if e.encryptionKey.IsNil() {
+			return errors.New("missing encryption key for creating paper key")
+		}
 	}
 
 	// make one

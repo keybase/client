@@ -29,7 +29,7 @@ func TestSharedDHSignupAndPullKeys(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	kr, err := libkb.NewSharedDHKeyring(tc.G, fu.UID(), tc.G.Env.GetDeviceID())
+	kr, err := libkb.NewSharedDHKeyring(tc.G, fu.UID())
 	require.NoError(t, err)
 	err = kr.Sync(context.Background())
 	require.NoError(t, err)
@@ -60,7 +60,7 @@ func TestSharedDHSignupPlusPaper(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	kr, err := libkb.NewSharedDHKeyring(tc.G, fu.UID(), tc.G.Env.GetDeviceID())
+	kr, err := libkb.NewSharedDHKeyring(tc.G, fu.UID())
 	require.NoError(t, err)
 	err = kr.Sync(context.Background())
 	require.NoError(t, err)
