@@ -20,6 +20,8 @@ const fetchInitialInterval = 5 * time.Second
 const fetchMultiplier = 1.5
 const fetchMaxTime = 24 * time.Hour
 
+// FetchRetrier is responsible for tracking any nonblock fetch failures, and retrying
+// them automatically.
 type FetchRetrier struct {
 	libkb.Contextified
 	utils.DebugLabeler
@@ -42,6 +44,7 @@ func NewFetchRetrier(g *libkb.GlobalContext) *FetchRetrier {
 	return f
 }
 
+// SetClock sets a custom clock for testing.
 func (f *FetchRetrier) SetClock(clock clockwork.Clock) {
 	f.clock = clock
 }
@@ -50,6 +53,7 @@ func (f *FetchRetrier) boxKey(kind types.FetchType) string {
 	return fmt.Sprintf("%v", kind)
 }
 
+// Failure indicates a failure of type kind has happened when loading a conversation.
 func (f *FetchRetrier) Failure(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	kind types.FetchType) (err error) {
 	defer f.Trace(ctx, func() error { return err }, fmt.Sprintf("Failure(%s)", convID))()
@@ -57,6 +61,8 @@ func (f *FetchRetrier) Failure(ctx context.Context, convID chat1.ConversationID,
 	return storage.NewConversationFailureBox(f.G(), uid, f.boxKey(kind)).Failure(ctx, convID)
 }
 
+// Success indicates a success of type kind loading a conversation. This effectively removes
+// that conversation from the retry queue.
 func (f *FetchRetrier) Success(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	kind types.FetchType) (err error) {
 	defer f.Trace(ctx, func() error { return err }, fmt.Sprintf("Success(%s)", convID))()
@@ -64,6 +70,8 @@ func (f *FetchRetrier) Success(ctx context.Context, convID chat1.ConversationID,
 	return storage.NewConversationFailureBox(f.G(), uid, f.boxKey(kind)).Success(ctx, convID)
 }
 
+// Connected is called when a connection to the chat server is established, and forces a
+// pass over the retry queue
 func (f *FetchRetrier) Connected(ctx context.Context) {
 	defer f.Trace(ctx, func() error { return nil }, "Connected")()
 	f.offlineMu.Lock()
@@ -72,28 +80,34 @@ func (f *FetchRetrier) Connected(ctx context.Context) {
 	f.forceCh <- struct{}{}
 }
 
+// Disconnected is called when we lose connection to the chat server, and pauses attempts
+// on the retry queue.
 func (f *FetchRetrier) Disconnected(ctx context.Context) {
 	f.offlineMu.Lock()
 	defer f.offlineMu.Unlock()
 	f.offline = true
 }
 
+// IsOffline returns if the module thinks we are connected to the chat server.
 func (f *FetchRetrier) IsOffline() bool {
 	f.offlineMu.Lock()
 	defer f.offlineMu.Unlock()
 	return f.offline
 }
 
+// Force forces a run of the retry loop.
 func (f *FetchRetrier) Force(ctx context.Context) {
 	defer f.Trace(ctx, func() error { return nil }, "Force")()
 	f.forceCh <- struct{}{}
 }
 
+// Start initiates the retry loop thread.
 func (f *FetchRetrier) Start(ctx context.Context, uid gregor1.UID) {
 	defer f.Trace(ctx, func() error { return nil }, "Start")()
 	go f.retryLoop(uid)
 }
 
+// Stop suspends the retry loop thread.
 func (f *FetchRetrier) Stop(ctx context.Context) chan struct{} {
 	defer f.Trace(ctx, func() error { return nil }, "Stop")()
 	cb := make(chan struct{})
@@ -115,6 +129,8 @@ func (f *FetchRetrier) retryLoop(uid gregor1.UID) {
 	}
 }
 
+// nextAttemptTime calculates the next try for a given retry item. It uses an exponential
+// decay calculation.
 func (f *FetchRetrier) nextAttemptTime(attempts int, lastAttempt time.Time) time.Time {
 	wait := time.Duration(float64(attempts) * fetchMultiplier * float64(fetchInitialInterval))
 	return lastAttempt.Add(time.Duration(wait))
@@ -125,6 +141,7 @@ func (f *FetchRetrier) filterFailuresByTime(ctx context.Context,
 	now := f.clock.Now()
 	for _, conv := range convFailures {
 		next := f.nextAttemptTime(conv.Attempts, gregor1.FromTime(conv.LastAttempt))
+		// Filter out any items whose next time is greater than now
 		if force || next.Before(now) {
 			res = append(res, conv.ConvID)
 
@@ -149,6 +166,7 @@ func (f *FetchRetrier) retryFetch(uid gregor1.UID, force bool, kind types.FetchT
 	ctx := Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks,
 		NewIdentifyNotifier(f.G()))
 
+	// Get all items that are ready to be retried.
 	var convFailures []storage.ConversationFailureRecord
 	convFailures, err = box.Read(ctx)
 	if err != nil {
@@ -160,10 +178,14 @@ func (f *FetchRetrier) retryFetch(uid gregor1.UID, force bool, kind types.FetchT
 		return
 	}
 
+	// Run the fix function on the list of fixable fetches, and notifiy with stale
+	// messages if any now work.
 	f.Debug(ctx, "retryFetch: attempt to fix %d conversations", len(convIDs))
 	fixed := fixFn(ctx, uid, convIDs)
-	f.Debug(ctx, "retryFetch: sending %d stale notifications", len(fixed))
-	f.G().ChatSyncer.SendChatStaleNotifications(ctx, uid, fixed, false)
+	if len(fixed) > 0 {
+		f.Debug(ctx, "retryFetch: sending %d stale notifications", len(fixed))
+		f.G().ChatSyncer.SendChatStaleNotifications(ctx, uid, fixed, false)
+	}
 }
 
 func (f *FetchRetrier) fixInboxFetches(ctx context.Context, uid gregor1.UID,
@@ -199,6 +221,8 @@ func (f *FetchRetrier) fixThreadFetches(ctx context.Context, uid gregor1.UID,
 	convIDs []chat1.ConversationID) (fixed []chat1.ConversationID) {
 	f.Debug(ctx, "fixThreadFetches: retrying %d conversations", len(convIDs))
 	for _, convID := range convIDs {
+		// Attempt a pull of 50 messages to simulate whatever request got the
+		// conversation in this queue.
 		_, _, err := f.G().ConvSource.Pull(ctx, convID, uid, nil, &chat1.Pagination{
 			Num: 50,
 		})
@@ -209,6 +233,7 @@ func (f *FetchRetrier) fixThreadFetches(ctx context.Context, uid gregor1.UID,
 				f.Debug(ctx, "fixThreadFetches: failure running Success: %s", err.Error())
 			}
 		} else {
+			f.Debug(ctx, "fixThreadFetches: convID failed again: msg: %s", err.Error())
 			if err := f.Failure(ctx, convID, uid, types.ThreadLoad); err != nil {
 				f.Debug(ctx, "fixThreadFetches: failure running Failure: %s", err.Error())
 			}
