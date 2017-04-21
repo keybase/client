@@ -1241,7 +1241,7 @@ func TestGetThreadNonblockError(t *testing.T) {
 	select {
 	case cids := <-listener.threadsStale:
 		require.Equal(t, 1, len(cids))
-	case <-time.After(20 * time.Second):
+	case <-time.After(2 * time.Second):
 		require.Fail(t, "no threads stale message received")
 	}
 }

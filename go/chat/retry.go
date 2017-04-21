@@ -141,11 +141,11 @@ func (f *FetchRetrier) filterFailuresByTime(ctx context.Context,
 	return res
 }
 
-func (f *FetchRetrier) retryFetch(uid gregor1.UID, force bool,
+func (f *FetchRetrier) retryFetch(uid gregor1.UID, force bool, kind types.FetchType,
 	fixFn func(context.Context, gregor1.UID, []chat1.ConversationID) []chat1.ConversationID) {
 	var err error
 	var breaks []keybase1.TLFIdentifyFailure
-	box := storage.NewConversationFailureBox(f.G(), uid, f.boxKey(types.InboxLoad))
+	box := storage.NewConversationFailureBox(f.G(), uid, f.boxKey(kind))
 	ctx := Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks,
 		NewIdentifyNotifier(f.G()))
 
@@ -195,45 +195,27 @@ func (f *FetchRetrier) fixInboxFetches(ctx context.Context, uid gregor1.UID,
 	return fixed
 }
 
-func (f *FetchRetrier) fixThreadFetches(uid gregor1.UID, force bool) {
-	var err error
-	var breaks []keybase1.TLFIdentifyFailure
-	box := storage.NewConversationFailureBox(f.G(), uid, f.boxKey(types.ThreadLoad))
-	ctx := Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks,
-		NewIdentifyNotifier(f.G()))
-
-	var convFailures []storage.ConversationFailureRecord
-	convFailures, err = box.Read(ctx)
-	if err != nil {
-		f.Debug(ctx, "retryThreadLoads: failed to read failure box, giving up: %s", err.Error())
-		return
-	}
-	convIDs := f.filterFailuresByTime(ctx, convFailures, force)
-	if len(convIDs) == 0 {
-		return
-	}
-
-	var fixed []chat1.ConversationID
-	f.Debug(ctx, "retryThreadLoads: retrying %d conversations", len(convIDs))
+func (f *FetchRetrier) fixThreadFetches(ctx context.Context, uid gregor1.UID,
+	convIDs []chat1.ConversationID) (fixed []chat1.ConversationID) {
+	f.Debug(ctx, "fixThreadFetches: retrying %d conversations", len(convIDs))
 	for _, convID := range convIDs {
 		_, _, err := f.G().ConvSource.Pull(ctx, convID, uid, nil, &chat1.Pagination{
 			Num: 50,
 		})
 		if err == nil {
-			f.Debug(ctx, "retryThreadLoads: fixed convID: %s", convID)
+			f.Debug(ctx, "fixThreadFetches: fixed convID: %s", convID)
 			fixed = append(fixed, convID)
 			if err := f.Success(ctx, convID, uid, types.ThreadLoad); err != nil {
-				f.Debug(ctx, "retryThreadLoads: failure running Success: %s", err.Error())
+				f.Debug(ctx, "fixThreadFetches: failure running Success: %s", err.Error())
 			}
 		} else {
-			if err := box.Failure(ctx, convID); err != nil {
-				f.Debug(ctx, "retryThreadLoads: failure running Failure: %s", err.Error())
+			if err := f.Failure(ctx, convID, uid, types.ThreadLoad); err != nil {
+				f.Debug(ctx, "fixThreadFetches: failure running Failure: %s", err.Error())
 			}
 		}
 	}
 
-	f.Debug(ctx, "retryThreadLoads: sending %d stale notifications", len(fixed))
-	f.G().ChatSyncer.SendChatStaleNotifications(ctx, uid, fixed, false)
+	return fixed
 }
 
 func (f *FetchRetrier) retryOnce(uid gregor1.UID, force bool) {
@@ -244,11 +226,11 @@ func (f *FetchRetrier) retryOnce(uid gregor1.UID, force bool) {
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
-		f.retryInboxLoads(uid, force)
+		f.retryFetch(uid, force, types.InboxLoad, f.fixInboxFetches)
 		wg.Done()
 	}()
 	go func() {
-		f.retryThreadLoads(uid, force)
+		f.retryFetch(uid, force, types.ThreadLoad, f.fixThreadFetches)
 		wg.Done()
 	}()
 	wg.Wait()
