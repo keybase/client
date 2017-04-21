@@ -15,6 +15,18 @@ const RenderIgnore = ({isPrivate, ignored, unIgnoreCurrentFolder, ignoreCurrentF
   : <Button backgroundMode={isPrivate ? 'Terminal' : 'Normal'} type='Secondary' onClick={ignoreCurrentFolder} label='Ignore folder' />
 )
 
+const RenderNotImplemented = ({isPrivate, allowIgnore, ignored, unIgnoreCurrentFolder, ignoreCurrentFolder}) => {
+  const privateStyle = isPrivate ? {color: globalColors.blue3_40} : {}
+  return (
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center'}}>
+      <Text style={{...privateStyle, textAlign: 'center'}} type='BodySmall'>Mobile files coming soon!</Text>
+      <Text style={{...privateStyle, textAlign: 'center', marginBottom: globalMargins.large}} type='BodySmall'>For now you can browse this folder on your computer.</Text>
+      {allowIgnore && <RenderIgnore isPrivate={isPrivate} ignored={ignored} unIgnoreCurrentFolder={unIgnoreCurrentFolder} ignoreCurrentFolder={ignoreCurrentFolder} />}
+    </Box>
+  )
+}
+
+
 const Divider = ({theme, backgroundColor, color}) => (
   <Box style={{...globalStyles.flexBoxRow, height: 1, backgroundColor}}>
     <Box style={{marginLeft: 48 + 8, backgroundColor: color, flex: 1}} />
@@ -129,7 +141,12 @@ class FilesRender extends Component<void, Props, void> {
     if (!this.props.recentFilesEnabled) {
       return (
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          {allowIgnore && <RenderIgnore isPrivate={isPrivate} ignored={ignored} unIgnoreCurrentFolder={this.props.unIgnoreCurrentFolder} ignoreCurrentFolder={this.props.ignoreCurrentFolder} />}
+          {<RenderNotImplemented
+            isPrivate={isPrivate}
+            allowIgnore={allowIgnore}
+            ignored={ignored}
+            unIgnoreCurrentFolder={this.props.unIgnoreCurrentFolder}
+            ignoreCurrentFolder={this.props.ignoreCurrentFolder} />}
         </Box>
       )
     } else {
