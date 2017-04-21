@@ -9,6 +9,7 @@ import {notifyCtlSetNotificationsRpc} from '../constants/types/flow-types'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
 import {setupKBFSChangedHandler} from './favorite'
 import {setupChatHandlers} from './chat'
+import {isMobile} from '../constants/platform'
 
 import type {LogAction, NotificationKeys, ListenForNotifications, ListenForKBFSNotifications, BadgeAppAction} from '../constants/notifications'
 import type {SagaGenerator} from '../constants/types/saga'
@@ -33,8 +34,8 @@ function * _listenSaga (): SagaGenerator<any, any> {
     badges: true,
     chat: true,
     favorites: false,
-    kbfs: true,
-    kbfsrequest: true,
+    kbfs: !isMobile,
+    kbfsrequest: !isMobile,
     keyfamily: false,
     paperkeys: false,
     pgp: true,

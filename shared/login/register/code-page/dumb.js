@@ -14,7 +14,6 @@ const baseMock = {
   setCameraBrokenMode: () => {},
   textEntered: () => console.log('textEntered'),
   onChangeText: () => console.log('onChangeText'),
-  doneRegistering: () => console.log('doneRegistering'),
   onBack: () => console.log('onBack'),
   enterText: 'Foo Enter Text',
 }

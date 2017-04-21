@@ -36,8 +36,8 @@ function downloadFilePath (suffix: string): string {
 
 function exists (filepath: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
-    fs.exists(filepath, exists => {
-      resolve(exists)
+    fs.access(filepath, fs.constants.F_OK, err => {
+      resolve(!err)
     })
   })
 }
@@ -69,6 +69,10 @@ function writeFile (filepath: string, contents: string, encoding?: string): Prom
   return Promise.reject(new Error('not implemented'))
 }
 
+function writeStream (filepath: string, encoding: string, append?: boolean): Promise<*> {
+  return Promise.reject(new Error('not implemented'))
+}
+
 // TODO implemented for mobile, not here
 const cachesDirectoryPath = ''
 
@@ -81,4 +85,5 @@ export {
   tmpFile,
   tmpRandFile,
   writeFile,
+  writeStream,
 }

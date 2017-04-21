@@ -64,6 +64,29 @@ func TestLoginUnlocksDeviceKeys(t *testing.T) {
 	assertDeviceKeysCached(tc)
 }
 
+func TestLoginActiveDevice(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "login")
+	Logout(tc)
+	u1.LoginOrBust(tc)
+
+	assertDeviceKeysCached(tc)
+
+	if tc.G.ActiveDevice.Name() != defaultDeviceName {
+		t.Errorf("active device name: %q, expected %q", tc.G.ActiveDevice.Name(), defaultDeviceName)
+	}
+
+	simulateServiceRestart(t, tc, u1)
+
+	assertDeviceKeysCached(tc)
+
+	if tc.G.ActiveDevice.Name() != defaultDeviceName {
+		t.Errorf("after restart, active device name: %q, expected %q", tc.G.ActiveDevice.Name(), defaultDeviceName)
+	}
+}
+
 func TestCreateFakeUserNoKeys(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()

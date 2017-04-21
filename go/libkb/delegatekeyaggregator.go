@@ -5,12 +5,14 @@ package libkb
 
 import (
 	"errors"
+
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // DelegatorAggregator manages delegating multiple keys in one post to the server
 
 // Run posts an array of delegations to the server. Keeping this simple as we don't need any state (yet)
-func DelegatorAggregator(lctx LoginContext, ds []Delegator, sdhBoxes []SharedDHSecretKeyBox) (err error) {
+func DelegatorAggregator(lctx LoginContext, ds []Delegator, sdhBoxes []keybase1.SharedDHSecretKeyBox) (err error) {
 	if len(ds) == 0 {
 		return errors.New("Empty delegators to aggregator")
 	}
@@ -40,6 +42,7 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator, sdhBoxes []SharedDHS
 	// Post the shared dh key encrypted for each active device.
 	if len(sdhBoxes) > 0 {
 		payload["shared_dh_secret_boxes"] = sdhBoxes
+		payload["shared_dh_generation"] = sdhBoxes[0].Generation
 	}
 
 	// Adopt most parameters from the first item
@@ -52,26 +55,4 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator, sdhBoxes []SharedDHS
 
 	_, err = apiArgBase.G().API.PostJSON(apiArg)
 	return err
-}
-
-func NewSharedDHSecretBox(innerKey NaclDHKeyPair, receiverKey NaclDHKeyPair, senderKey NaclDHKeyPair, generation SharedDHKeyGeneration) (SharedDHSecretKeyBox, error) {
-	_, secret, err := innerKey.ExportPublicAndPrivate()
-	if err != nil {
-		return SharedDHSecretKeyBox{}, err
-	}
-
-	encInfo, err := receiverKey.Encrypt(secret, &senderKey)
-	if err != nil {
-		return SharedDHSecretKeyBox{}, err
-	}
-	boxStr, err := PacketArmoredEncode(encInfo)
-	if err != nil {
-		return SharedDHSecretKeyBox{}, err
-	}
-
-	return SharedDHSecretKeyBox{
-		Box:         boxStr,
-		ReceiverKID: receiverKey.GetKID(),
-		Generation:  generation,
-	}, nil
 }

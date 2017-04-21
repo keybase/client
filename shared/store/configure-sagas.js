@@ -5,6 +5,7 @@ import deviceSaga from '../actions/devices'
 import favoriteSaga from '../actions/favorite'
 import gregorSaga from '../actions/gregor'
 import kbfsSaga from '../actions/kbfs'
+import loginSaga from '../actions/login/saga'
 import notificationsSaga from '../actions/notifications'
 import pgpSaga from '../actions/pgp'
 import planBillingSaga from '../actions/plan-billing'
@@ -23,6 +24,7 @@ function * mainSaga (): SagaGenerator<any, any> {
     call(favoriteSaga),
     call(gregorSaga),
     call(kbfsSaga),
+    call(loginSaga),
     call(notificationsSaga),
     call(pgpSaga),
     call(planBillingSaga),

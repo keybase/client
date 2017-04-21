@@ -272,10 +272,10 @@ func (d *Service) createChatSources() {
 	d.G().ConvSource = chat.NewConversationSource(d.G(), d.G().Env.GetConvSourceType(),
 		boxer, storage.New(d.G()), ri)
 	d.G().ServerCacheVersions = storage.NewServerVersions(d.G())
+	d.G().TlfInfoSource = tlf
 
 	chatSyncer := chat.NewSyncer(d.G())
 	d.G().ChatSyncer = chatSyncer
-	d.G().ConnectivityMonitor = chatSyncer
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(d.G().InboxSource)
@@ -326,6 +326,8 @@ func (d *Service) startupGregor() {
 		d.gregor = newGregorHandler(d.G())
 		d.reachability = newReachability(d.G(), d.gregor)
 		d.gregor.setReachability(d.reachability)
+		d.G().ConnectivityMonitor = d.reachability
+
 		d.gregor.badger = d.badger
 		d.G().GregorDismisser = d.gregor
 		d.G().GregorListener = d.gregor

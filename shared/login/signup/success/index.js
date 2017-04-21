@@ -4,22 +4,23 @@ import {connect} from 'react-redux'
 import {sawPaperKey} from '../../../actions/signup'
 import {navigateUp} from '../../../actions/route-tree'
 
-// This component's a bit special.
-//
-// It's using `state.signup` values when called from the signup path, and
-// routeTree state generated from RPC action payloads when called from either
-// the provisioning/login path or the "Devices->Add new paper key" path.
+import type {TypedState} from '../../../constants/reducer'
 
-type OwnProps = any
+type OwnProps = {
+  routeProps: {
+    title?: ?string,
+  },
+}
 
+// $FlowIssue with connect
 export default connect(
-  (state: any, {routeProps}: OwnProps) => ({
+  (state: TypedState, {routeProps}: OwnProps) => ({
     paperkey: state.signup.paperkey,
     waiting: state.signup.waiting,
     ...routeProps,
   }),
-  (dispatch, {routeProps}: OwnProps) => ({
-    onFinish: routeProps.onFinish ? routeProps.onFinish : () => { dispatch(sawPaperKey()) },
-    onBack: routeProps.onBack ? routeProps.onBack : () => { dispatch(navigateUp()) },
+  (dispatch) => ({
+    onFinish: () => { dispatch(sawPaperKey()) },
+    onBack: () => { dispatch(navigateUp()) },
   })
 )(RenderSuccess)

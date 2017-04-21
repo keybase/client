@@ -130,8 +130,8 @@ function retryMessage (conversationIDKey: Constants.ConversationIDKey, outboxIDK
   return {logTransformer: retryMessageActionTransformer, payload: {conversationIDKey, outboxIDKey}, type: 'chat:retryMessage'}
 }
 
-function loadInbox (force?: boolean = false): Constants.LoadInbox {
-  return {payload: {force}, type: 'chat:loadInbox'}
+function loadInbox (): Constants.LoadInbox {
+  return {payload: undefined, type: 'chat:loadInbox'}
 }
 
 function loadMoreMessages (conversationIDKey: Constants.ConversationIDKey, onlyIfUnloaded: boolean): Constants.LoadMoreMessages {
@@ -186,8 +186,8 @@ function updatePaginationNext (conversationIDKey: Constants.ConversationIDKey, p
   return {payload: {conversationIDKey, paginationNext}, type: 'chat:updatePaginationNext'}
 }
 
-function markSeenMessage (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID): Constants.MarkSeenMessage {
-  return {payload: {conversationIDKey, messageID}, type: 'chat:markSeenMessage'}
+function markSeenMessage (conversationIDKey: Constants.ConversationIDKey, messageKey: Constants.MessageKey): Constants.MarkSeenMessage {
+  return {payload: {conversationIDKey, messageKey}, type: 'chat:markSeenMessage'}
 }
 
 function appendMessages (conversationIDKey: Constants.ConversationIDKey, isSelected: boolean, isAppFocused: boolean, messages: Array<Constants.Message>): Constants.AppendMessages {

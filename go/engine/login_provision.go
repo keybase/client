@@ -19,16 +19,17 @@ import (
 // device.  Only the Login engine should run it.
 type loginProvision struct {
 	libkb.Contextified
-	arg           *loginProvisionArg
-	lks           *libkb.LKSec
-	signingKey    libkb.GenericKey
-	encryptionKey libkb.GenericKey
-	gpgCli        gpgInterface
-	username      string
-	devname       string
-	cleanupOnErr  bool
-	hasPGP        bool
-	hasDevice     bool
+	arg             *loginProvisionArg
+	lks             *libkb.LKSec
+	signingKey      libkb.GenericKey
+	encryptionKey   libkb.NaclDHKeyPair
+	gpgCli          gpgInterface
+	username        string
+	devname         string
+	cleanupOnErr    bool
+	hasPGP          bool
+	hasDevice       bool
+	sharedDHKeyring *libkb.SharedDHKeyring // Created after provisioning. Sent to paperkey gen.
 }
 
 // gpgInterface defines the portions of gpg client that provision
@@ -191,23 +192,34 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		}
 		var contxt context.Context
 		contxt, canceler = context.WithCancel(context.Background())
-		receivedSecret, err := ctx.ProvisionUI.DisplayAndPromptSecret(contxt, arg)
-		if err != nil {
-			// cancel provisionee run:
-			provisionee.Cancel()
-			e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
-		} else if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
-			e.G().Log.Debug("received secret, adding to provisionee")
-			var ks kex2.Secret
-			copy(ks[:], receivedSecret.Secret)
-			provisionee.AddSecret(ks)
-		} else if len(receivedSecret.Phrase) > 0 {
-			e.G().Log.Debug("received secret phrase, adding to provisionee")
-			ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
+		for i := 0; i < 10; i++ {
+			receivedSecret, err := ctx.ProvisionUI.DisplayAndPromptSecret(contxt, arg)
 			if err != nil {
+				// cancel provisionee run:
+				provisionee.Cancel()
 				e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
-			} else {
-				provisionee.AddSecret(ks.Secret())
+				break
+			} else if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
+				e.G().Log.Debug("received secret, adding to provisionee")
+				var ks kex2.Secret
+				copy(ks[:], receivedSecret.Secret)
+				provisionee.AddSecret(ks)
+				break
+			} else if len(receivedSecret.Phrase) > 0 {
+				e.G().Log.Debug("received secret phrase, checking validity")
+				if !libkb.CheckKex2SecretPhrase.F(receivedSecret.Phrase) {
+					e.G().Log.Debug("secret phrase failed validity check (attempt %d)", i)
+					arg.PreviousErr = libkb.CheckKex2SecretPhrase.Hint
+					continue
+				}
+				e.G().Log.Debug("received secret phrase, adding to provisionee")
+				ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
+				if err != nil {
+					e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
+				} else {
+					provisionee.AddSecret(ks.Secret())
+				}
+				break
 			}
 		}
 	}()
@@ -469,6 +481,13 @@ func (e *loginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) erro
 
 	e.signingKey = eng.SigningKey()
 	e.encryptionKey = eng.EncryptionKey()
+
+	var err error
+	e.sharedDHKeyring, err = libkb.NewSharedDHKeyring(e.G(), e.arg.User.GetUID(), e.G().Env.GetDeviceID())
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -911,8 +930,11 @@ func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 
 	// make one
 	args := &PaperKeyPrimaryArgs{
-		SigningKey: e.signingKey,
-		Me:         e.arg.User,
+		Me:              e.arg.User,
+		SigningKey:      e.signingKey,
+		EncryptionKey:   e.encryptionKey,
+		LoginContext:    nil,
+		SharedDHKeyring: e.sharedDHKeyring,
 	}
 	eng := NewPaperKeyPrimary(e.G(), args)
 	return RunEngine(eng, ctx)

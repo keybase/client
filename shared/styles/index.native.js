@@ -25,6 +25,9 @@ const fontIOS = {
     fontFamily: 'OpenSans',
     fontWeight: '700',
   },
+  italic: {
+    fontStyle: 'italic',
+  },
   fontTerminal: {
     fontFamily: 'Source Code Pro',
   },

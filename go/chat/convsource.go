@@ -276,7 +276,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 		return nil
 	}
 
-	idMode, _, haveMode := IdentifyMode(ctx)
+	idMode, _, haveMode := types.IdentifyMode(ctx)
 	for _, msg := range msgs {
 		if msg.IsValid() {
 
@@ -479,8 +479,8 @@ func (p *pullLocalResultCollector) Name() string {
 	return "pulllocal"
 }
 
-func (s *pullLocalResultCollector) String() string {
-	return fmt.Sprintf("[ %s: t: %d ]", s.Name(), s.num)
+func (p *pullLocalResultCollector) String() string {
+	return fmt.Sprintf("[ %s: t: %d ]", p.Name(), p.num)
 }
 
 func (p *pullLocalResultCollector) Error(err storage.Error) storage.Error {

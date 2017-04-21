@@ -7,8 +7,8 @@ import (
 type NullConnectivityMonitor struct {
 }
 
-func (s NullConnectivityMonitor) IsConnected(ctx context.Context) bool {
-	return true
+func (s NullConnectivityMonitor) IsConnected(ctx context.Context) ConnectivityMonitorResult {
+	return ConnectivityMonitorYes
 }
 
 var _ ConnectivityMonitor = NullConnectivityMonitor{}

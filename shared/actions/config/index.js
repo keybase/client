@@ -1,10 +1,10 @@
 // @flow
 import * as Constants from '../../constants/config'
 import engine from '../../engine'
-import {CommonClientType, configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, configWaitForClientRpc, userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
+import {CommonClientType, configGetBootstrapStatusRpc, configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, configWaitForClientRpc} from '../../constants/types/flow-types'
 import {isMobile} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
-import {navBasedOnLoginState} from '../../actions/login'
+import {navBasedOnLoginState} from '../../actions/login/creators'
 import {checkReachabilityOnConnect, registerGregorListeners, registerReachability, listenForNativeReachabilityEvents} from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
 
@@ -46,56 +46,8 @@ function isFollower (getState: any, username: string): boolean {
   return !!getState().config.followers[username]
 }
 
-const getMyFollowers = (username: string): AsyncAction => dispatch => {
-  userListTrackersByNameRpc({
-    callback: (error, trackers) => {
-      if (error) {
-        return
-      }
-
-      if (trackers && trackers.length) {
-        const uids = trackers.map(t => t.tracker)
-        userLoadUncheckedUserSummariesRpc({
-          callback: (error, summaries) => {
-            if (error) {
-              return
-            }
-
-            const followers = {}
-            summaries && summaries.forEach(s => { followers[s.username] = true })
-            dispatch({
-              payload: {followers},
-              type: Constants.setFollowers,
-            })
-          },
-          param: {uids},
-        })
-      }
-    },
-    param: {username},
-  })
-}
-
 function isFollowing (getState: () => any, username: string) : boolean {
   return !!getState().config.following[username]
-}
-
-const getMyFollowing = (username: string): AsyncAction => dispatch => {
-  userListTrackingRpc({
-    callback: (error, summaries) => {
-      if (error) {
-        return
-      }
-
-      const following = {}
-      summaries && summaries.forEach(s => { following[s.username] = true })
-      dispatch({
-        payload: {following},
-        type: Constants.setFollowing,
-      })
-    },
-    param: {assertion: username, filter: ''},
-  })
 }
 
 const waitForKBFS = (): AsyncAction => dispatch => (
@@ -174,12 +126,7 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
   } else {
     console.log('[bootstrap] performing bootstrap...')
     Promise.all(
-      [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig()), dispatch(waitForKBFS())]).then(([username]) => {
-        if (username) {
-          dispatch(getMyFollowers(username))
-          dispatch(getMyFollowing(username))
-        }
-        dispatch({payload: null, type: Constants.bootstrapped})
+      [dispatch(getBootstrapStatus()), dispatch(waitForKBFS())]).then(() => {
         dispatch(listenForKBFSNotifications())
         if (!opts.isReconnect) {
           dispatch(navBasedOnLoginState())
@@ -200,6 +147,26 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
       })
   }
 }
+
+const getBootstrapStatus = (): AsyncAction => dispatch => (
+  new Promise((resolve, reject) => {
+    configGetBootstrapStatusRpc({
+      callback: (error, bootstrapStatus) => {
+        if (error) {
+          reject(error)
+          return
+        }
+
+        dispatch({
+          payload: {bootstrapStatus},
+          type: Constants.bootstrapLoaded,
+        })
+
+        resolve(bootstrapStatus)
+      },
+    })
+  })
+)
 
 const getCurrentStatus = (): AsyncAction => dispatch => (
   new Promise((resolve, reject) => {
@@ -227,6 +194,8 @@ const updateFollowing = (username: string, isTracking: boolean): UpdateFollowing
 
 export {
   bootstrap,
+  getConfig,
+  getCurrentStatus,
   getExtendedStatus,
   isFollower,
   isFollowing,

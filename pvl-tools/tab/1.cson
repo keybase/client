@@ -170,6 +170,11 @@ services:
       , from: "hint_url"
       , into: ["subreddit_from_url", "path_remainder"]
       , error: ["BAD_API_URL", "URL should start with 'https://www.reddit.com/r/keybaseproofs'"] } },
+    # this assertion is just here to test the pvl updater
+    { assert_regex_match: {
+      , pattern: "^.*reddit.*$"
+      , from: "hint_url"
+      , error: ["BAD_API_URL", "URL should contain 'reddit'"] } },
     { assert_regex_match: {
       , pattern: "^keybaseproofs$"
       , case_insensitive: true
@@ -233,7 +238,7 @@ services:
     { assert_find_base64: {
       , needle: "sig"
       , haystack: "selftext"
-      , error: ["TEXT_NOT_FOUND", "signature not found in body"] } },
+      , error: ["TEXT_NOT_FOUND", "Signature not found in body"] } },
   ]]
   rooter: [[
     # URL validation.
@@ -330,5 +335,5 @@ services:
     { assert_find_base64: {
       , needle: "sig"
       , haystack: "blob"
-      , error: ["TEXT_NOT_FOUND", "signature not found in body"] } },
+      , error: ["TEXT_NOT_FOUND", "Signature not found in body"] } },
   ]]

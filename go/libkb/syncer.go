@@ -48,3 +48,24 @@ func RunSyncer(s Syncer, uid keybase1.UID, loggedIn bool, sr SessionReader) (err
 
 	return
 }
+
+func RunSyncerCached(s Syncer, uid keybase1.UID) (err error) {
+	if uid.IsNil() {
+		return NotFoundError{"No UID given to syncer"}
+	}
+
+	// unnecessary for secret syncer, but possibly useful for tracker syncer.
+	s.Lock()
+	defer s.Unlock()
+
+	s.G().Log.Debug("+ Syncer.Load(%s)", uid)
+	defer func() {
+		s.G().Log.Debug("- Syncer.Load(%s) -> %s", uid, ErrToOk(err))
+	}()
+
+	if err = s.loadFromStorage(uid); err != nil {
+		return err
+	}
+
+	return nil
+}

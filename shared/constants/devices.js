@@ -2,8 +2,10 @@
 import {List, Record} from 'immutable'
 
 import type {Device} from './types/more'
+import type {DeviceRole} from './login.js'
 import type {NoErrorTypedAction} from './types/flux'
 
+export type AddNewDevice = NoErrorTypedAction<'device:addNewDevice', {role: DeviceRole}>
 export type Load = NoErrorTypedAction<'devices:load', void>
 export type Loaded = NoErrorTypedAction<'devices:loaded', {deviceIDs: Array<string>}>
 export type PaperKeyMake = NoErrorTypedAction<'devices:paperKeyMake', void>
