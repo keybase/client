@@ -7,8 +7,8 @@ import {folderTab, profileTab, chatTab, devicesTab} from '../constants/tabs'
 import {globalStyles, globalColors} from '../styles'
 import {isWindows, isDarwin} from '../constants/platform'
 
-import type {MenuNotificationState} from '../constants/notifications'
 import type {Props} from './index.render'
+import type {Tab} from '../constants/tabs'
 
 type State = {
   showingPrivate: boolean,
@@ -115,11 +115,11 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
       onRekey: this.props.onRekey,
     }
 
-    const badgeTypes: Array<BadgeIconType> = [
-      'folder',
-      'people',
-      'chat',
-      'device',
+    const badgeTypes: Array<Tab> = [
+      folderTab,
+      profileTab,
+      chatTab,
+      devicesTab,
     ]
 
     return (
@@ -128,7 +128,7 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
         {isDarwin && <ArrowTick />}
         <Box style={{...stylesTopRow, borderBottom: `1px solid ${globalColors.black_05}`}}>
           <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'center', alignItems: 'center', marginLeft: 24 + 8}}>
-            {badgeTypes.map(type => <BadgeIcon key={type} type={type} countMap={this.props.badgeInfo} openApp={this.props.openApp} />)}
+            {badgeTypes.map(tab => <BadgeIcon key={tab} tab={tab} countMap={this.props.badgeInfo} openApp={this.props.openApp} />)}
           </Box>
           <Icon
             style={{...globalStyles.clickable, color: globalColors.black_40, hoverColor: globalColors.black, width: 24, marginLeft: 8}}
@@ -171,33 +171,20 @@ const ArrowTick = () => (
   }} />
 )
 
-type BadgeIconType = 'folder' | 'people' | 'chat' | 'device'
+const BadgeIcon = ({tab, countMap, openApp}: {tab: Tab, countMap: Object, openApp: (tab: ?string) => void}) => {
+  const count = countMap[tab]
 
-const BadgeIcon = ({type, countMap, openApp}: {type: BadgeIconType, countMap: MenuNotificationState, openApp: (tab: ?string) => void}) => {
-  const count = {
-    folder: countMap.folderBadge,
-    people: countMap.peopleBadge,
-    chat: countMap.chatBadge,
-    device: countMap.deviceBadge,
-  }[type]
-
-  if (type === 'device' && !count) {
+  if (tab === devicesTab && !count) {
     return null
   }
 
   const iconType = {
-    folder: 'iconfont-folder',
-    people: 'iconfont-people',
-    chat: 'iconfont-chat',
-    device: 'iconfont-device',
-  }[type]
-
-  const tab = {
-    folder: folderTab,
-    people: profileTab,
-    chat: chatTab,
-    device: devicesTab,
-  }[type]
+    [folderTab]: 'iconfont-folder',
+    [profileTab]: 'iconfont-people',
+    [chatTab]: 'iconfont-chat',
+    [devicesTab]: 'iconfont-device',
+    // $FlowIssue TODO
+  }[tab]
 
   return (
     <Box style={{...globalStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}} onClick={() => openApp(tab)}>

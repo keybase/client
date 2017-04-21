@@ -236,34 +236,30 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// backgrounded.
 	d.tryLogin()
 	d.hourlyChecks()
-	d.createChatSources()
-	d.createMessageDeliverer()
+	d.createChatModules()
 	d.startupGregor()
-	d.startMessageDeliverer()
+	d.startChatModules()
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
 	d.runBackgroundIdentifier()
 }
 
-func (d *Service) createMessageDeliverer() {
-	ri := d.chatRemoteClient
-	tlf := chat.NewKBFSTLFInfoSource(d.G())
-
-	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), d.attachmentstore, ri)
-	d.G().MessageDeliverer = chat.NewDeliverer(d.G(), sender)
-
-	d.G().ChatSyncer.RegisterOfflinable(d.G().MessageDeliverer)
-}
-
-func (d *Service) startMessageDeliverer() {
+func (d *Service) startChatModules() {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
-		d.G().MessageDeliverer.Start(context.Background(), d.G().Env.GetUID().ToBytes())
+		uid := d.G().Env.GetUID().ToBytes()
+		d.G().MessageDeliverer.Start(context.Background(), uid)
+		d.G().ChatFetchRetrier.Start(context.Background(), uid)
 	}
 }
 
-func (d *Service) createChatSources() {
+func (d *Service) stopChatModules() {
+	<-d.G().MessageDeliverer.Stop(context.Background())
+	<-d.G().ChatFetchRetrier.Stop(context.Background())
+}
+
+func (d *Service) createChatModules() {
 	ri := d.chatRemoteClient
 	tlf := chat.NewKBFSTLFInfoSource(d.G())
 
@@ -276,10 +272,16 @@ func (d *Service) createChatSources() {
 
 	chatSyncer := chat.NewSyncer(d.G())
 	d.G().ChatSyncer = chatSyncer
+	d.G().ChatFetchRetrier = chat.NewFetchRetrier(d.G())
+
+	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), d.attachmentstore, ri)
+	d.G().MessageDeliverer = chat.NewDeliverer(d.G(), sender)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(d.G().InboxSource)
 	chatSyncer.RegisterOfflinable(d.G().ConvSource)
+	chatSyncer.RegisterOfflinable(d.G().ChatFetchRetrier)
+	chatSyncer.RegisterOfflinable(d.G().MessageDeliverer)
 
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh
@@ -291,7 +293,7 @@ func (d *Service) chatRemoteClient() chat1.RemoteInterface {
 		d.G().Log.Debug("service not connected to gregor, using errorClient for chat1.RemoteClient")
 		return chat1.RemoteClient{Cli: errorClient{}}
 	}
-	return chat1.RemoteClient{Cli: d.gregor.cli}
+	return chat1.RemoteClient{Cli: chat.NewRemoteClient(d.G(), d.gregor.cli)}
 }
 
 func (d *Service) configureRekey(uir *UIRouter) {
@@ -459,7 +461,7 @@ func (d *Service) OnLogin() error {
 	}
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
-		d.G().MessageDeliverer.Start(context.Background(), d.G().Env.GetUID().ToBytes())
+		d.startChatModules()
 		d.runBackgroundIdentifierWithUID(uid)
 	}
 	return nil
@@ -477,8 +479,8 @@ func (d *Service) OnLogout() (err error) {
 		d.gregor.Shutdown()
 	}
 
-	log("shutting down message deliverer")
-	d.G().MessageDeliverer.Stop(context.Background())
+	log("shutting down chat modules")
+	d.stopChatModules()
 
 	log("shutting down rekeyMaster")
 	d.rekeyMaster.Logout()

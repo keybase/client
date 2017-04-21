@@ -209,10 +209,14 @@ function * passthroughResponseSaga ({response}) {
 
 // TODO type this
 type DisplayAndPromptSecretArgs = any
-const displayAndPromptSecretSaga = (onBackSaga) => function * ({params: {phrase}, response}: DisplayAndPromptSecretArgs) {
-  yield put(Creators.setTextCode(phrase))
+const displayAndPromptSecretSaga = (onBackSaga) => function * ({params: {phrase, previousErr}, response}: DisplayAndPromptSecretArgs) {
+  yield put(Creators.setTextCode(phrase, previousErr))
   yield call(generateQRCode)
-  yield put(navigateAppend(['codePage']))
+
+  // If we have an error, we're already on the right page.
+  if (!previousErr) {
+    yield put(navigateAppend(['codePage']))
+  }
 
   const {textEntered, qrScanned, onBack} = yield race({
     onBack: take(Constants.onBack),

@@ -6,15 +6,19 @@ import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
 import {Box, NativeKeyboardAvoidingView} from './common-adapters/index.native'
 import {Dimensions, StatusBar} from 'react-native'
 import {CardStack, NavigationActions} from 'react-navigation'
-import {chatTab, loginTab, folderTab} from './constants/tabs'
+import {chatTab, loginTab} from './constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
 import {isAndroid, isIOS} from './constants/platform'
 import {navigateTo, navigateUp, switchTo} from './actions/route-tree'
 
 import type {Props} from './nav'
+import type {TypedState} from './constants/reducer'
 import type {Tab} from './constants/tabs'
 import type {NavigationAction} from 'react-navigation'
+import type {RouteProps} from './route-tree/render-route'
+
+type OwnProps = RouteProps<{}, {}>
 
 class CardStackShim extends Component {
   getScreenConfig = () => null
@@ -112,10 +116,7 @@ function MainNavStack (props: Props) {
     onTabClick={props.switchTab}
     selectedTab={props.routeSelected}
     username={props.username}
-    badgeNumbers={{
-      [chatTab]: props.chatBadge,
-      [folderTab]: props.folderBadge,
-    }}
+    badgeNumbers={props.navBadges.toJS()}
   />
 
   const Container = isAndroid ? forAndroid : forIOS
@@ -184,30 +185,26 @@ const flexOne = {
   flex: 1,
 }
 
-export default connect(
-  ({
-    config: {extendedConfig, username},
-    dev: {debugConfig: {dumbFullscreen}},
-    notifications: {menuBadge, menuNotifications},
-    gregor: {reachability},
-  }, {routeStack, routeSelected}) => ({
-    chatBadge: menuNotifications.chatBadge,
-    dumbFullscreen,
-    folderBadge: menuNotifications.folderBadge,
-    username,
-    hideNav: routeSelected === loginTab,
-    reachability,
-  }),
-  (dispatch: any, {routeSelected, routePath}) => ({
-    navigateUp: () => dispatch(navigateUp()),
-    switchTab: (tab: Tab) => {
-      if (tab === chatTab && routeSelected === tab) {
-        dispatch(navigateTo(routePath.push(tab)))
-        return
-      }
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+  dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
+  hideNav: ownProps.routeSelected === loginTab,
+  navBadges: state.notifications.get('navBadges'),
+  reachability: state.gregor.reachability,
+  username: state.config.username,
+})
 
-      const action = routeSelected === tab ? navigateTo : switchTo
-      dispatch(action(routePath.push(tab)))
-    },
-  })
-)(Nav)
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+  navigateUp: () => dispatch(navigateUp()),
+  switchTab: (tab: Tab) => {
+    if (tab === chatTab && ownProps.routeSelected === tab) {
+      dispatch(navigateTo(ownProps.routePath.push(tab)))
+      return
+    }
+
+    const action = ownProps.routeSelected === tab ? navigateTo : switchTo
+    // $FlowIssue TODO fix this
+    dispatch(action(ownProps.routePath.push(tab)))
+  },
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(Nav)

@@ -16,7 +16,8 @@ export type Props = {
   textEntered: Function,
   onChangeText: Function,
   onBack: Function,
-  enterText: string
+  enterText: string,
+  enterCodeErrorText: string,
 }
 
 export default class CodePageRender extends Component<void, Props, void> {}

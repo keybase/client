@@ -295,6 +295,8 @@ type RemoteInboxSource struct {
 	*baseInboxSource
 }
 
+var _ types.InboxSource = (*RemoteInboxSource)(nil)
+
 func NewRemoteInboxSource(g *libkb.GlobalContext, ri func() chat1.RemoteInterface,
 	tlfInfoSource types.TLFInfoSource) *RemoteInboxSource {
 	return &RemoteInboxSource{
@@ -397,6 +399,8 @@ type HybridInboxSource struct {
 	utils.DebugLabeler
 	*baseInboxSource
 }
+
+var _ types.InboxSource = (*HybridInboxSource)(nil)
 
 func NewHybridInboxSource(g *libkb.GlobalContext,
 	getChatInterface func() chat1.RemoteInterface,
