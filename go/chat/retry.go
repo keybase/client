@@ -26,11 +26,12 @@ type FetchRetrier struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
-	offlineMu  sync.Mutex
-	forceCh    chan struct{}
-	shutdownCh chan chan struct{}
-	clock      clockwork.Clock
-	offline    bool
+	offlineMu        sync.Mutex
+	runningMu        sync.Mutex
+	forceCh          chan struct{}
+	shutdownCh       chan chan struct{}
+	clock            clockwork.Clock
+	offline, running bool
 }
 
 func NewFetchRetrier(g *libkb.GlobalContext) *FetchRetrier {
@@ -103,15 +104,25 @@ func (f *FetchRetrier) Force(ctx context.Context) {
 
 // Start initiates the retry loop thread.
 func (f *FetchRetrier) Start(ctx context.Context, uid gregor1.UID) {
+	f.runningMu.Lock()
+	defer f.runningMu.Unlock()
 	defer f.Trace(ctx, func() error { return nil }, "Start")()
+	f.running = true
 	go f.retryLoop(uid)
 }
 
 // Stop suspends the retry loop thread.
 func (f *FetchRetrier) Stop(ctx context.Context) chan struct{} {
+	f.runningMu.Lock()
+	defer f.runningMu.Unlock()
 	defer f.Trace(ctx, func() error { return nil }, "Stop")()
 	cb := make(chan struct{})
-	f.shutdownCh <- cb
+	if f.running {
+		f.running = false
+		f.shutdownCh <- cb
+	} else {
+		close(cb)
+	}
 	return cb
 }
 

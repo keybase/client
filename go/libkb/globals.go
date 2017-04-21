@@ -515,6 +515,9 @@ func (g *GlobalContext) Shutdown() error {
 		if g.MessageDeliverer != nil {
 			g.MessageDeliverer.Stop(context.Background())
 		}
+		if g.ChatFetchRetrier != nil {
+			g.ChatFetchRetrier.Stop(context.Background())
+		}
 		if g.ChatSyncer != nil {
 			g.ChatSyncer.Shutdown()
 		}
