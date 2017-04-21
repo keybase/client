@@ -292,7 +292,11 @@ function * _setupKBFSChangedHandler (): SagaGenerator<any, any> {
     }
   })
 
-  yield call(NotifyFSRequestFSSyncStatusRequestRpcPromise, {param: {req: {requestID: 0}}})
+  try {
+    yield call(NotifyFSRequestFSSyncStatusRequestRpcPromise, {param: {req: {requestID: 0}}})
+  } catch (e) {
+    console.log('error in getting NotifyFSRequestFSSyncStatusRequestRpcPromise', e)
+  }
 }
 
 function * favoriteSaga (): SagaGenerator<any, any> {
