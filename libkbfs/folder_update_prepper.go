@@ -272,14 +272,11 @@ func (fup folderUpdatePrepper) prepUpdateForPath(
 		}
 
 		if prevIdx < 0 {
-			fup.log.CDebugf(ctx, "update: %d -> %d", md.data.Dir.EncodedSize, info.EncodedSize)
 			md.AddUpdate(md.data.Dir.BlockInfo, info)
 		} else if prevDe, ok := prevDblock.Children[currName]; ok {
-			fup.log.CDebugf(ctx, "update: %d -> %d", prevDe.EncodedSize, info.EncodedSize)
 			md.AddUpdate(prevDe.BlockInfo, info)
 		} else {
 			// this is a new block
-			fup.log.CDebugf(ctx, "add: %d", info.EncodedSize)
 			md.AddRefBlock(info)
 		}
 
