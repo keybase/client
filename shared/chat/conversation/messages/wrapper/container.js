@@ -35,7 +35,7 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
   const isFollowing = !!Constants.getFollowingMap(state)[author]
   const isBroken = Constants.getMetaDataMap(state).get(author, Map()).get('brokenTracker', false)
 
-  const isFirstNewMessage = !!(conversationState && message && conversationState.get('firstNewMessageID') === message.messageID)
+  const isFirstNewMessage = !!(conversationState && message && message.messageID && conversationState.get('firstNewMessageID') === message.messageID)
   const prevMessage = getMessage(state, prevMessageKey)
   const skipMsgHeader = prevMessage && prevMessage.type === 'Text' && prevMessage.author === author
   const includeHeader = isFirstNewMessage || !skipMsgHeader
