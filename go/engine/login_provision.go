@@ -192,23 +192,34 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		}
 		var contxt context.Context
 		contxt, canceler = context.WithCancel(context.Background())
-		receivedSecret, err := ctx.ProvisionUI.DisplayAndPromptSecret(contxt, arg)
-		if err != nil {
-			// cancel provisionee run:
-			provisionee.Cancel()
-			e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
-		} else if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
-			e.G().Log.Debug("received secret, adding to provisionee")
-			var ks kex2.Secret
-			copy(ks[:], receivedSecret.Secret)
-			provisionee.AddSecret(ks)
-		} else if len(receivedSecret.Phrase) > 0 {
-			e.G().Log.Debug("received secret phrase, adding to provisionee")
-			ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
+		for i := 0; i < 10; i++ {
+			receivedSecret, err := ctx.ProvisionUI.DisplayAndPromptSecret(contxt, arg)
 			if err != nil {
+				// cancel provisionee run:
+				provisionee.Cancel()
 				e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
-			} else {
-				provisionee.AddSecret(ks.Secret())
+				break
+			} else if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
+				e.G().Log.Debug("received secret, adding to provisionee")
+				var ks kex2.Secret
+				copy(ks[:], receivedSecret.Secret)
+				provisionee.AddSecret(ks)
+				break
+			} else if len(receivedSecret.Phrase) > 0 {
+				e.G().Log.Debug("received secret phrase, checking validity")
+				if !libkb.CheckKex2SecretPhrase.F(receivedSecret.Phrase) {
+					e.G().Log.Debug("secret phrase failed validity check (attempt %d)", i)
+					arg.PreviousErr = libkb.CheckKex2SecretPhrase.Hint
+					continue
+				}
+				e.G().Log.Debug("received secret phrase, adding to provisionee")
+				ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
+				if err != nil {
+					e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
+				} else {
+					provisionee.AddSecret(ks.Secret())
+				}
+				break
 			}
 		}
 	}()
