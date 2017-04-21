@@ -62,6 +62,7 @@ class CodePageRender extends Component<void, Props, void> {
       <Box style={stylesEnterText}>
         <Icon type='icon-phone-text-code-32' style={{alignSelf: 'center'}} />
         <Input
+          errorText={this.props.enterCodeErrorText}
           hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
           floatingHintTextOverride='Text code'
           multiline={true}

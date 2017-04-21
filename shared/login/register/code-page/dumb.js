@@ -14,6 +14,7 @@ const baseMock = {
   textEntered: () => console.log('textEntered'),
   onChangeText: () => console.log('onChangeText'),
   onBack: () => console.log('onBack'),
+  enterCodeErrorText: '',
   enterText: 'Foo Enter Text',
 }
 
