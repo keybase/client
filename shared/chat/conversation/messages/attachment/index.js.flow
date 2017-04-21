@@ -23,6 +23,7 @@ export type Props = {
   isFirstNewMessage: boolean,
   onLoadAttachment: () => void,
   onAction: (event: any) => void,
+  onEnsurePreviewLoaded: () => void,
   onOpenInFileUI: () => void,
   onOpenInPopup: () => void,
 }

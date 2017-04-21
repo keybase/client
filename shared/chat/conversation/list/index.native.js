@@ -65,6 +65,8 @@ class ConversationList extends Component <void, Props, void> {
         onEndReached={this._onEndReached}
         onEndReachedThreshold={0}
         keyExtractor={this._keyExtractor}
+        // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
+        windowSize={5}
       />
     )
   }
