@@ -19,6 +19,7 @@ type Props = {
   children: any,
   followIconStyle: ?Object,
   followIconType: ?IconType,
+  followIconSize: number,
   loadingColor: ?string,
   onClick?: ?(() => void),
   opacity: ?number,
@@ -116,7 +117,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
   }
 
   render () {
-    const {url, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle, children} = this.props
+    const {url, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle, followIconSize, children} = this.props
 
     return (
       <ClickableBox onClick={onClick} feedback={false}>
@@ -124,7 +125,8 @@ class AvatarRender extends PureComponent<void, Props, State> {
           height: size,
           position: 'relative',
           width: size,
-          ...style}}>
+          ...style,
+        }}>
           <Background loaded={this.state.loaded} loadingColor={loadingColor} size={size} />
           {!!url && <UserImage
             opacity={opacity}
@@ -133,7 +135,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
             url={url}
           /> }
           {!!borderColor && <Border borderColor={borderColor} size={size} />}
-          {followIconType && <Icon type={followIconType} style={followIconStyle} />}
+          {followIconType && <Icon type={followIconType} style={{...followIconStyle, width: followIconSize, height: followIconSize}} />}
           {children}
         </Box>
       </ClickableBox>

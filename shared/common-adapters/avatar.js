@@ -51,6 +51,29 @@ const followStateToType = I.fromJS({
   },
 })
 
+const followStateToSize = I.fromJS({
+  '112': {
+    'theyNo': {'youYes': 28},
+    'theyYes': {'youNo': 28, 'youYes': 28},
+  },
+  '176': {
+    'theyNo': {'youYes': 32},
+    'theyYes': {'youNo': 32, 'youYes': 32},
+  },
+  '48': {
+    'theyNo': {'youYes': 21},
+    'theyYes': {'youNo': 21, 'youYes': 21},
+  },
+  '64': {
+    'theyNo': {'youYes': 21},
+    'theyYes': {'youNo': 21, 'youYes': 21},
+  },
+  '80': {
+    'theyNo': {'youYes': 21},
+    'theyYes': {'youNo': 21, 'youYes': 21},
+  },
+})
+
 const followSizeToStyle = {
   '112': {bottom: 0, left: 80, position: 'absolute'},
   '176': {bottom: 6, left: 132, position: 'absolute'},
@@ -155,6 +178,10 @@ class Avatar extends Component<void, Props, State> {
     return followStateToType.getIn([String(this.props.size), `they${this.props.followsYou ? 'Yes' : 'No'}`, `you${this.props.following ? 'Yes' : 'No'}`])
   }
 
+  _followIconSize () {
+    return followStateToSize.getIn([String(this.props.size), `they${this.props.followsYou ? 'Yes' : 'No'}`, `you${this.props.following ? 'Yes' : 'No'}`])
+  }
+
   shouldComponentUpdate (nextProps: Props, nextState: any): boolean {
     return (this.state.url !== nextState.url) ||
       !shallowEqual(this.props, nextProps, (obj, oth, key) => {
@@ -172,6 +199,7 @@ class Avatar extends Component<void, Props, State> {
       borderColor={this.props.borderColor}
       children={this.props.children}
       followIconType={this._followIconType()}
+      followIconSize={this._followIconSize()}
       followIconStyle={followSizeToStyle[this.props.size]}
       loadingColor={this.props.loadingColor}
       onClick={this.props.onClick}
