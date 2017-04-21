@@ -25,14 +25,15 @@ const fetchMaxTime = 24 * time.Hour
 type FetchRetrier struct {
 	libkb.Contextified
 	utils.DebugLabeler
+	sync.Mutex
 
-	offlineMu        sync.Mutex
-	runningMu        sync.Mutex
 	forceCh          chan struct{}
 	shutdownCh       chan chan struct{}
 	clock            clockwork.Clock
 	offline, running bool
 }
+
+var _ types.FetchRetrier = (*FetchRetrier)(nil)
 
 func NewFetchRetrier(g *libkb.GlobalContext) *FetchRetrier {
 	f := &FetchRetrier{
@@ -74,25 +75,25 @@ func (f *FetchRetrier) Success(ctx context.Context, convID chat1.ConversationID,
 // Connected is called when a connection to the chat server is established, and forces a
 // pass over the retry queue
 func (f *FetchRetrier) Connected(ctx context.Context) {
+	f.Lock()
+	defer f.Unlock()
 	defer f.Trace(ctx, func() error { return nil }, "Connected")()
-	f.offlineMu.Lock()
 	f.offline = false
-	f.offlineMu.Unlock()
 	f.forceCh <- struct{}{}
 }
 
 // Disconnected is called when we lose connection to the chat server, and pauses attempts
 // on the retry queue.
 func (f *FetchRetrier) Disconnected(ctx context.Context) {
-	f.offlineMu.Lock()
-	defer f.offlineMu.Unlock()
+	f.Lock()
+	defer f.Unlock()
 	f.offline = true
 }
 
 // IsOffline returns if the module thinks we are connected to the chat server.
 func (f *FetchRetrier) IsOffline() bool {
-	f.offlineMu.Lock()
-	defer f.offlineMu.Unlock()
+	f.Lock()
+	defer f.Unlock()
 	return f.offline
 }
 
@@ -104,25 +105,34 @@ func (f *FetchRetrier) Force(ctx context.Context) {
 
 // Start initiates the retry loop thread.
 func (f *FetchRetrier) Start(ctx context.Context, uid gregor1.UID) {
-	f.runningMu.Lock()
-	defer f.runningMu.Unlock()
+	f.Lock()
+	defer f.Unlock()
 	defer f.Trace(ctx, func() error { return nil }, "Start")()
+
+	<-f.doStop(ctx)
+
 	f.running = true
 	go f.retryLoop(uid)
 }
 
 // Stop suspends the retry loop thread.
 func (f *FetchRetrier) Stop(ctx context.Context) chan struct{} {
-	f.runningMu.Lock()
-	defer f.runningMu.Unlock()
+	f.Lock()
+	defer f.Unlock()
 	defer f.Trace(ctx, func() error { return nil }, "Stop")()
+	return f.doStop(ctx)
+}
+
+func (f *FetchRetrier) doStop(ctx context.Context) chan struct{} {
 	cb := make(chan struct{})
 	if f.running {
-		f.running = false
+		f.Debug(ctx, "stopping")
 		f.shutdownCh <- cb
-	} else {
-		close(cb)
+		f.running = false
+		return cb
 	}
+
+	close(cb)
 	return cb
 }
 
@@ -134,6 +144,7 @@ func (f *FetchRetrier) retryLoop(uid gregor1.UID) {
 		case <-f.forceCh:
 			f.retryOnce(uid, true)
 		case cb := <-f.shutdownCh:
+			f.Debug(context.Background(), "shutting down retryLook: uid: %s", uid)
 			defer close(cb)
 			return
 		}

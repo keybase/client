@@ -489,6 +489,8 @@ type Deliverer struct {
 	clock         clockwork.Clock
 }
 
+var _ types.MessageDeliverer = (*Deliverer)(nil)
+
 func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 	d := &Deliverer{
 		Contextified:  libkb.NewContextified(g),
