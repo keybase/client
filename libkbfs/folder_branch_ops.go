@@ -3602,7 +3602,7 @@ type cleanupFn func(context.Context, *lockState, []BlockPointer, error)
 //   this function returns.  (That is, if `doSync` is false, and `stillDirty`
 //   is true, then the file has outstanding changes but the sync was vetoed for
 //   some other reason.)
-// * `fblock`: the top file block for the file being sync'd.
+// * `fblock`: the root file block for the file being sync'd.
 // * `lbc`: A local block cache consisting of a dirtied version of the parent
 //   directory for this file.
 // * `bps`: All the blocks that need to be put to the server.
@@ -3681,9 +3681,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	lState *lockState, file path) (stillDirty bool, err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
-	// Verify we have permission to write.  We do this after the dirty
-	// check because otherwise readers who sync clean files on close
-	// would get an error.
+	// Verify we have permission to write.
 	md, err := fbo.getMDForWriteLocked(ctx, lState)
 	if err != nil {
 		return false, err
@@ -3786,8 +3784,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 	}
 
 	// Verify we have permission to write.  We do this after the dirty
-	// check because otherwise readers who sync clean files on close
-	// would get an error.
+	// check because otherwise readers who call syncAll would get an
+	// error.
 	md, err := fbo.getMDForWriteLocked(ctx, lState)
 	if err != nil {
 		return err
