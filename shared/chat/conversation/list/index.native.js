@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import React, {Component} from 'react'
-import {mapProps} from 'recompose'
+import {withPropsOnChange} from 'recompose'
 import messageFactory from '../messages'
 import {Box, NativeScrollView} from '../../../common-adapters/index.native'
 // $FlowIssue
@@ -78,7 +78,8 @@ const verticallyInvertedStyle = {
 }
 
 // Reverse the order of messageKeys to compensate for vertically reversed display
-const withReversedMessageKeys = mapProps(
+const withReversedMessageKeys = withPropsOnChange(
+  ['messageKeys'],
   ({messageKeys, ...rest}) => ({messageKeys: messageKeys.reverse(), ...rest})
 )
 
