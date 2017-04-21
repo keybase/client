@@ -123,7 +123,7 @@ func (a *APIServerHandler) doPostJSON(rawarg keybase1.PostJSONArg) (res keybase1
 }
 
 func (a *APIServerHandler) doDelete(arg keybase1.DeleteArg) (res keybase1.APIRes, err error) {
-	a.G().Trace("APIServerHandler::Post", func() error { return err })()
+	a.G().Trace("APIServerHandler::Delete", func() error { return err })()
 	var ires *libkb.APIRes
 	ires, err = a.G().API.Delete(a.setupArg(arg))
 	if err != nil {
