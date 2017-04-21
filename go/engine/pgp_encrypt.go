@@ -147,7 +147,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		}
 	}
 
-	if len(ks.keys) == 0 {
+	if len(e.arg.Recips) > 0 && len(ks.keys) == 0 {
 		return errors.New("Cannot encrypt - recipient does not have a non-revoked key.")
 	}
 
