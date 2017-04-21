@@ -331,11 +331,11 @@ type pathTreeNode struct {
 	mergedPath path
 }
 
-type prepFolderFlags byte
+type prepFolderCopyBehavior int
 
 const (
-	// The blocks of indirect files should be copied.
-	prepFolderCopyIndirectFileBlocks prepFolderFlags = 1 << iota
+	prepFolderCopyIndirectFileBlocks     prepFolderCopyBehavior = 1
+	prepFolderDontCopyIndirectFileBlocks prepFolderCopyBehavior = 2
 )
 
 // prepTree, given a node in part of the FS tree that needs to be
@@ -352,7 +352,7 @@ func (fup folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 	unmergedChains *crChains, newMD *RootMetadata, uid keybase1.UID,
 	node *pathTreeNode, stopAt BlockPointer, lbc localBcache,
 	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache,
-	flags prepFolderFlags) (
+	copyBehavior prepFolderCopyBehavior) (
 	*blockPutState, error) {
 	// If this has no children, then sync it, as far back as stopAt.
 	if len(node.children) == 0 {
@@ -387,7 +387,7 @@ func (fup folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 		var childBps *blockPutState
 		// For an indirect file block, make sure a new
 		// reference is made for every child block.
-		if flags&prepFolderCopyIndirectFileBlocks != 0 &&
+		if copyBehavior == prepFolderCopyIndirectFileBlocks &&
 			entryType != Dir && fblock.IsInd {
 			childBps = newBlockPutState(1)
 			var infos []BlockInfo
@@ -461,7 +461,7 @@ func (fup folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 		}
 		childBps, err := fup.prepTree(
 			ctx, lState, unmergedChains, newMD, uid, child, localStopAt, lbc,
-			newFileBlocks, dirtyBcache, flags)
+			newFileBlocks, dirtyBcache, copyBehavior)
 		if err != nil {
 			return nil, err
 		}
@@ -929,7 +929,7 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
 	resolvedPaths map[BlockPointer]path, lbc localBcache,
 	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache,
-	flags prepFolderFlags) (
+	copyBehavior prepFolderCopyBehavior) (
 	updates map[BlockPointer]BlockPointer, bps *blockPutState,
 	blocksToDelete []kbfsblock.ID, err error) {
 	updates = make(map[BlockPointer]BlockPointer)
@@ -970,7 +970,7 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 		if root != nil {
 			bps, err = fup.prepTree(ctx, lState, unmergedChains,
 				md, session.UID, root, BlockPointer{}, lbc, newFileBlocks,
-				dirtyBcache, flags)
+				dirtyBcache, copyBehavior)
 			if err != nil {
 				return nil, nil, nil, err
 			}
