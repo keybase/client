@@ -623,16 +623,16 @@ function getAttachmentInfo (preview: ?Asset, object: ?Asset) {
 }
 
 function pendingConversationIDKey (tlfName: string) {
-  return `PendingConversation:${tlfName}`
+  return `__PendingConversation__${tlfName}`
 }
 
 function isPendingConversationIDKey (conversationIDKey: string) {
-  return conversationIDKey.startsWith('PendingConversation:')
+  return conversationIDKey.startsWith('__PendingConversation__')
 }
 
 function pendingConversationIDKeyToTlfName (conversationIDKey: string) {
   if (isPendingConversationIDKey(conversationIDKey)) {
-    return conversationIDKey.substring('PendingConversation:'.length)
+    return conversationIDKey.substring('__PendingConversation__'.length)
   }
 
   return null
