@@ -26,7 +26,6 @@ const RenderNotImplemented = ({isPrivate, allowIgnore, ignored, unIgnoreCurrentF
   )
 }
 
-
 const Divider = ({theme, backgroundColor, color}) => (
   <Box style={{...globalStyles.flexBoxRow, height: 1, backgroundColor}}>
     <Box style={{marginLeft: 48 + 8, backgroundColor: color, flex: 1}} />

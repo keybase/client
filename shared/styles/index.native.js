@@ -35,9 +35,6 @@ const fontIOS = {
     fontFamily: 'Source Code Pro',
     fontWeight: '600',
   },
-  italic: {
-    fontStyle: 'italic',
-  },
 }
 
 const fontAndroid = {
