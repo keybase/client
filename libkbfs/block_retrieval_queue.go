@@ -183,8 +183,10 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 		if dbc != nil {
 			go func() {
 				err := dbc.UpdateMetadata(ctx, ptr.ID, hasPrefetched)
-				_, isNoSuchBlockError := err.(NoSuchBlockError)
-				if !isNoSuchBlockError {
+				switch err.(type) {
+				case nil:
+				case NoSuchBlockError:
+				default:
 					brq.log.CWarningf(ctx, "Error updating metadata: %+v", err)
 				}
 			}()
