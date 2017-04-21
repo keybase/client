@@ -272,6 +272,7 @@ func (d *Service) createChatSources() {
 	d.G().ConvSource = chat.NewConversationSource(d.G(), d.G().Env.GetConvSourceType(),
 		boxer, storage.New(d.G()), ri)
 	d.G().ServerCacheVersions = storage.NewServerVersions(d.G())
+	d.G().TlfInfoSource = tlf
 
 	chatSyncer := chat.NewSyncer(d.G())
 	d.G().ChatSyncer = chatSyncer

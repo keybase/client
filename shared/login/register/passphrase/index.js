@@ -2,7 +2,9 @@
 import React, {Component} from 'react'
 import RenderPassphrase from './index.render'
 import {connect} from 'react-redux'
-import {openAccountResetPage} from '../../../actions/login'
+import * as Creators from '../../../actions/login/creators'
+import HiddenString from '../../../util/hidden-string'
+import type {TypedState} from '../../../constants/reducer'
 
 type State = {
   showTyping: boolean,
@@ -51,9 +53,11 @@ class Passphrase extends Component<void, Props, State> {
 }
 
 export default connect(
-  (state: any, op: any) => ({waitingForResponse: state.login.waitingForResponse}),
-  (dispatch: any, op: any) => ({
-    onForgotPassphrase: () => { dispatch(openAccountResetPage()) },
+  (state: TypedState) => ({waitingForResponse: state.login.waitingForResponse}),
+  (dispatch: any) => ({
+    onForgotPassphrase: () => { dispatch(Creators.openAccountResetPage()) },
+    onBack: () => dispatch(Creators.onBack()),
+    onSubmit: passphrase => dispatch(Creators.submitPassphrase(new HiddenString(passphrase, false))),
   }),
   (stateProps, dispatchProps, {routeProps}) => ({...stateProps, ...dispatchProps, ...routeProps}),
 )(Passphrase)

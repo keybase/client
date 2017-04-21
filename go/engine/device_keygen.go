@@ -129,13 +129,13 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 
 	e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push SDH:%v", e.G().Env.GetEnableSharedDH())
 
-	var sdhBoxes = []libkb.SharedDHSecretKeyBox{}
+	var sdhBoxes = []keybase1.SharedDHSecretKeyBox{}
 	if e.G().Env.GetEnableSharedDH() {
 		sdh1, err := libkb.NewSharedDHSecretKeyBox(
 			e.sharedDHKey(),   // inner key to be encrypted (shared dh key)
 			e.EncryptionKey(), // receiver key (device enc key)
 			e.EncryptionKey(), // sender key   (device enc key)
-			libkb.SharedDHKeyGeneration(1))
+			keybase1.SharedDHKeyGeneration(1))
 		if err != nil {
 			return err
 		}
@@ -291,7 +291,7 @@ func (e *DeviceKeygen) appendSharedDHKey(ds []libkb.Delegator, ctx *Context, sig
 
 	var d libkb.Delegator
 	d, e.pushErr = e.naclSharedDHGen.Push(ctx.LoginContext, true)
-	d.SharedDHKeyGeneration = libkb.SharedDHKeyGeneration(1)
+	d.SharedDHKeyGeneration = keybase1.SharedDHKeyGeneration(1)
 	if e.pushErr == nil {
 		d.SetGlobalContext(e.G())
 		return append(ds, d)

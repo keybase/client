@@ -12,12 +12,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testPseudonymName(name, idStr string, keyGen keyGen,
+func testPseudonymName(name, idStr string, keyGen KeyGen,
 	keyStr, expectedPseudonymStr string) string {
 	return fmt.Sprintf("%s,%s,%d,%s,%s", name, idStr, keyGen, keyStr, expectedPseudonymStr)
 }
 
-func testMakePseudonym(t *testing.T, name, idStr string, keyGen keyGen,
+func testMakePseudonym(t *testing.T, name, idStr string, keyGen KeyGen,
 	keyStr, expectedPseudonymStr string) {
 	idBytes, err := hex.DecodeString(idStr)
 	require.NoError(t, err)
@@ -47,7 +47,7 @@ func TestMakePseudonym(t *testing.T) {
 		"b070f968fdc9d1c8827d7e4953659416",
 		"0d399cb03bd1b59a07f92fffaaffa516",
 	}
-	keyGens := []keyGen{1, 50}
+	keyGens := []KeyGen{1, 50}
 	keyStrs := []string{
 		"9d13584d962bf1acebd1ccee109c8bb5d4a014e77f125302455477c53307cc14",
 		"ca7014befa7470d87129841c0f41c5b6ed548b9a6431d205b4ff44556bd51a42",

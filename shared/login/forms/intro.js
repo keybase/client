@@ -4,7 +4,7 @@ import {connect} from 'react-redux'
 import {loginTab} from '../../constants/tabs'
 import {navigateTo} from '../../actions/route-tree'
 import {retryBootstrap} from '../../actions/config'
-import {setRevokedSelf, setDeletedSelf, setLoginFromRevokedDevice, login} from '../../actions/login'
+import * as Creators from '../../actions/login/creators'
 import {requestAutoInvite} from '../../actions/signup'
 import {compose, branch, renderComponent} from 'recompose'
 
@@ -20,19 +20,19 @@ export default compose(
     }),
     (dispatch: Dispatch) => ({
       onLogin: () => {
-        dispatch(setLoginFromRevokedDevice(''))
-        dispatch(setRevokedSelf(''))
-        dispatch(setDeletedSelf(''))
+        dispatch(Creators.setLoginFromRevokedDevice(''))
+        dispatch(Creators.setRevokedSelf(''))
+        dispatch(Creators.setDeletedSelf(''))
         dispatch(navigateTo([loginTab, 'login']))
-        dispatch(login())
+        dispatch(Creators.startLogin())
       },
       onRetry: () => {
         dispatch(retryBootstrap())
       },
       onSignup: () => {
-        dispatch(setLoginFromRevokedDevice(''))
-        dispatch(setRevokedSelf(''))
-        dispatch(setDeletedSelf(''))
+        dispatch(Creators.setLoginFromRevokedDevice(''))
+        dispatch(Creators.setRevokedSelf(''))
+        dispatch(Creators.setDeletedSelf(''))
         dispatch(requestAutoInvite())
       },
     })

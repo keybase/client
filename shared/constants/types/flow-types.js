@@ -3619,6 +3619,7 @@ export type HasServerKeysRes = {
 export type Hello2Res = {
   encryptionKey: KID,
   sigPayload: HelloRes,
+  sdhBoxes?: ?Array<SharedDHSecretKeyBox>,
 }
 
 export type HelloRes = string
@@ -3724,7 +3725,8 @@ export type KID = string
 
 export type Kex2Provisionee2DidCounterSign2RpcParam = Exact<{
   sig: bytes,
-  ppsEncrypted: string
+  ppsEncrypted: string,
+  sdhBoxes?: ?Array<SharedDHSecretKeyBox>
 }>
 
 export type Kex2Provisionee2Hello2RpcParam = Exact<{
@@ -4401,6 +4403,14 @@ export type SessionToken = string
 export type SharedDHKey = {
   gen: int,
   kid: KID,
+}
+
+export type SharedDHKeyGeneration = int
+
+export type SharedDHSecretKeyBox = {
+  generation: SharedDHKeyGeneration,
+  box: string,
+  receiverKID: KID,
 }
 
 export type Sig = {
@@ -5534,7 +5544,8 @@ export type provisionUiChooseProvisioningMethodRpcParam = Exact<{
 export type provisionUiDisplayAndPromptSecretRpcParam = Exact<{
   secret: bytes,
   phrase: string,
-  otherDeviceType: DeviceType
+  otherDeviceType: DeviceType,
+  previousErr: string
 }>
 
 export type provisionUiPromptNewDeviceNameRpcParam = Exact<{
@@ -6668,7 +6679,8 @@ export type incomingCallMapType = Exact<{
       sessionID: int,
       secret: bytes,
       phrase: string,
-      otherDeviceType: DeviceType
+      otherDeviceType: DeviceType,
+      previousErr: string
     }>,
     response: {
       error: RPCErrorHandler,

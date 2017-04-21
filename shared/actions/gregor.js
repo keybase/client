@@ -8,6 +8,7 @@ import {favoriteList, markTLFCreated} from './favorite'
 import {folderFromPath} from '../constants/favorite.js'
 import {bootstrap} from '../actions/config'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
+import {clearErrors} from '../util/pictures'
 import {usernameSelector} from '../constants/selectors'
 import {nativeReachabilityEvents} from '../util/reachability'
 
@@ -69,6 +70,7 @@ function registerReachability () {
         // without re-bootstrapping. Originally we used to do this on HTML5
         // 'online' event, but reachability is more precise.
         dispatch(bootstrap({isReconnect: true}))
+        clearErrors()
       }
     })
 

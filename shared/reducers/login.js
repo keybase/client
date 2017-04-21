@@ -119,17 +119,6 @@ export default function (state: LoginState = initialState, action: any): LoginSt
     case Constants.cameraBrokenMode:
       toMerge = {codePage: {cameraBrokenMode: action.payload}}
       break
-    case Constants.doneRegistering: {
-      toMerge = {
-        codePage: {
-          codeCountDown: 0,
-          qrCode: null,
-          qrScanned: null,
-          textCode: null,
-        },
-      }
-      break
-    }
     case Constants.configuredAccounts:
       if (action.payload.error) {
         toMerge = {configuredAccounts: []}

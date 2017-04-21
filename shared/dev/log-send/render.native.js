@@ -1,8 +1,9 @@
 // @flow
-import RNFS from 'react-native-fs'
+import RNFetchBlob from 'react-native-fetch-blob'
 import React, {Component} from 'react'
 import {Box, Text, Button, NativeLinking, NativeClipboard} from '../../common-adapters/index.native'
 import {dumpLoggers} from '../../util/periodic-logger'
+import {tmpFile} from '../../util/file'
 import {globalStyles} from '../../styles'
 import {isIOS} from '../../constants/platform'
 
@@ -29,9 +30,9 @@ class LogSendRender extends Component<void, Props, {copiedToClipboard: boolean}>
       })
 
       const data = logs.join('\n')
-      const path = `${RNFS.CachesDirectoryPath}/Keybase/rn.log`
+      const path = tmpFile('/Keybase/rn.log')
 
-      RNFS.writeFile(path, data, 'utf8')
+      RNFetchBlob.fs.writeFile(path, data, 'utf8')
         .then((success) => {
           this.props.onLogSend()
         })

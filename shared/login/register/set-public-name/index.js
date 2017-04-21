@@ -3,6 +3,9 @@ import React, {Component} from 'react'
 import RenderSetPublicName from './index.render'
 import type {Props, State} from './index.render'
 import {connect} from 'react-redux'
+import * as Creators from '../../../actions/login/creators'
+
+import type {TypedState} from '../../../constants/reducer'
 
 class SetPublicName extends Component<void, Props, State> {
   props: Props;
@@ -36,11 +39,22 @@ class SetPublicName extends Component<void, Props, State> {
   }
 }
 
-type OwnProps = any
+type OwnProps = {
+  routeProps: {
+    deviceNameError?: ?string,
+    existingDevices?: ?Array<string>,
+  },
+}
 
+// $FlowIssue
 export default connect(
-  (state: any, {routeProps}: OwnProps) => ({
-    ...routeProps,
+  (state: TypedState, {routeProps: {existingDevices, deviceNameError}}: OwnProps) => ({
+    existingDevices,
+    deviceNameError,
     waiting: state.login.waitingForResponse,
+  }),
+  (dispatch) => ({
+    onBack: () => dispatch(Creators.onBack()),
+    onSubmit: (deviceName) => dispatch(Creators.submitDeviceName(deviceName)),
   })
 )(SetPublicName)

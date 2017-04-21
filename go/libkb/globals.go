@@ -111,6 +111,7 @@ type GlobalContext struct {
 	MessageDeliverer    chattypes.MessageDeliverer    // background message delivery service
 	ServerCacheVersions chattypes.ServerCacheVersions // server side versions for chat caches
 	ChatSyncer          chattypes.Syncer              // For syncing inbox with server
+	TlfInfoSource       chattypes.TLFInfoSource
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -259,7 +260,7 @@ func (g *GlobalContext) Logout() error {
 
 	g.CallLogoutHooks()
 
-	g.SetSharedDHKeyring(nil)
+	g.ClearSharedDHKeyring()
 
 	if g.TrackCache != nil {
 		g.TrackCache.Shutdown()
@@ -768,13 +769,9 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 }
 
 func (g *GlobalContext) CallLoginHooks() {
+	g.Log.Debug("G#CallLoginHooks")
 
-	sdhk, err := NewSharedDHKeyring(g, g.GetMyUID(), g.Env.GetDeviceID())
-	if err != nil {
-		g.Log.Warning("NewSharedDHKeyring failed: %s", err)
-	} else {
-		g.SetSharedDHKeyring(sdhk)
-	}
+	g.BumpSharedDHKeyring()
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin()
@@ -933,7 +930,7 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.Log.Debug("+ UserChanged(%s)", u)
 	defer g.Log.Debug("- UserChanged(%s)", u)
 
-	g.SetSharedDHKeyring(nil)
+	g.BumpSharedDHKeyring()
 
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
@@ -952,7 +949,8 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.uchMu.Unlock()
 }
 
-func (g *GlobalContext) GetSharedDHKeyring() (*SharedDHKeyring, error) {
+func (g *GlobalContext) GetSharedDHKeyring() (ret *SharedDHKeyring, err error) {
+	defer g.Trace("G#GetSharedDHKeyring", func() error { return err })()
 	g.sharedDHKeyringMu.Lock()
 	defer g.sharedDHKeyringMu.Unlock()
 	if g.sharedDHKeyring == nil {
@@ -961,8 +959,44 @@ func (g *GlobalContext) GetSharedDHKeyring() (*SharedDHKeyring, error) {
 	return g.sharedDHKeyring, nil
 }
 
-func (g *GlobalContext) SetSharedDHKeyring(k *SharedDHKeyring) {
+func (g *GlobalContext) ClearSharedDHKeyring() {
+	defer g.Trace("G#ClearSharedDHKeyring", func() error { return nil })()
 	g.sharedDHKeyringMu.Lock()
 	defer g.sharedDHKeyringMu.Unlock()
-	g.sharedDHKeyring = k
+	g.sharedDHKeyring = nil
+}
+
+// BumpSharedDHKeyring recreates SharedDHKeyring if the uid/did changes.
+func (g *GlobalContext) BumpSharedDHKeyring() error {
+	g.Log.Debug("G#BumpSharedDHKeyring")
+	uid := g.GetMyUID()
+	did := g.Env.GetDeviceID()
+
+	// Don't do any operations under these locks that could come back and hit them again.
+	// That's why uid/did up above are not under this lock.
+	g.sharedDHKeyringMu.Lock()
+	defer g.sharedDHKeyringMu.Unlock()
+
+	makeNew := func() error {
+		sdhk, err := NewSharedDHKeyring(g, uid, did)
+		if err != nil {
+			g.Log.Warning("G#BumpSharedDHKeyring -> failed: %s", err)
+			g.sharedDHKeyring = nil
+			return err
+		}
+		g.Log.Debug("G#BumpSharedDHKeyring -> new")
+		g.sharedDHKeyring = sdhk
+		return nil
+	}
+
+	if g.sharedDHKeyring == nil {
+		return makeNew()
+	}
+	eUID, eDid := g.sharedDHKeyring.GetOwner()
+	if eUID.Equal(uid) && eDid.Eq(did) {
+		// Leave the existing keyring in place for the same user
+		g.Log.Debug("G#BumpSharedDHKeyring -> ignore")
+		return nil
+	}
+	return makeNew()
 }
