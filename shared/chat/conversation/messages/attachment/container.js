@@ -40,7 +40,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onOpenInPopup: (message: Constants.AttachmentMessage, routePath: List<string>) => dispatch(Creators.openAttachmentPopup(message, routePath)),
 })
 
-const mergeProps = (stateProps, dispatchProps, {measure, onAction}, OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps, {measure, onAction}: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
   measure,
