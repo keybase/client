@@ -23,7 +23,7 @@ class ConversationList extends Component <void, Props, void> {
   _measure = () => {}
 
   _renderItem = ({item: messageKey, index}) => {
-    const prevMessageKey = this.props.messageKeys.get(index + 1)
+    const prevMessageKey = this.props.messageKeys.get(index + 1)  // adding instead of subtracting because of reversed index
     const isSelected = false
     return (
       // We ahve to invert transform the message or else it will look flipped
