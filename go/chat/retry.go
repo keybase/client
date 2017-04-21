@@ -246,6 +246,7 @@ func (f *FetchRetrier) fixThreadFetches(ctx context.Context, uid gregor1.UID,
 func (f *FetchRetrier) retryOnce(uid gregor1.UID, force bool) {
 	if f.IsOffline() {
 		f.Debug(context.Background(), "retryOnce: currently offline, not attempting to fix errors")
+		return
 	}
 
 	var wg sync.WaitGroup
