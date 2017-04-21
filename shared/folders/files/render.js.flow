@@ -26,7 +26,6 @@ export type Props = {
   youCanUnlock: Array<Device>,
   onClickPaperkey: (device: Device) => void,
   hasReadOnlyUsers: boolean,
-  notImplemented: boolean,
 }
 
 export default class Render extends Component<void, Props, void> { }

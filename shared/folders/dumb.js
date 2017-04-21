@@ -290,7 +290,6 @@ const filesMenuItems = [
 
 const commonFiles = (isPrivate): FilesProps => ({
   theme: isPrivate ? 'private' : 'public',
-  notImplemented: false,
   ignored: false,
   allowIgnore: true,
   hasReadOnlyUsers: false,
@@ -344,11 +343,9 @@ const files: DumbComponentMap<Files> = {
     },
     'Not Implemented - Public': {
       ...commonFiles(false),
-      notImplemented: true,
     },
     'Not Implemented - Public - lotsa users': {
       ...commonFiles(false),
-      notImplemented: true,
       users: mockUsers,
     },
     'Popup - Public': {
@@ -360,12 +357,10 @@ const files: DumbComponentMap<Files> = {
     },
     'Not Implemented - Private': {
       ...commonFiles(true),
-      notImplemented: true,
     },
     'Not Implemented - Private - lotsa users': {
       ...commonFiles(true),
       users: mockUsers,
-      notImplemented: true,
     },
     'Popup - Private': {
       ...commonFiles(true),
