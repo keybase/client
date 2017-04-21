@@ -113,7 +113,7 @@ function setupApp (store) {
   const subsetsRemotesCareAbout = (store) => {
     return {
       tracker: store.tracker,
-      menu: _menubarSelector(store),
+      menubar: _menubarSelector(store),
       unlockFolder: _unlockFoldersSelector(store),
       pinentry: _pineentrySelector(store),
       pgpPurgeMessage: _remotePurgeMessageSelector(store),
@@ -126,7 +126,12 @@ function setupApp (store) {
     _currentStore = subsetsRemotesCareAbout(store.getState())
 
     if (JSON.stringify(previousStore) !== JSON.stringify(_currentStore)) {
-      ipcRenderer.send('stateChange', store.getState())
+      ipcRenderer.send('stateChange', {
+        ...store.getState(),
+        // this is a HACK workaround where we can't send immutable over the wire to the main thread (and out again).
+        // I have a much better way to handle this we can prioritize post-mobile launch (CN)
+        notifications: _currentStore.menubar.notifications,
+      })
     }
   }, 1000))
 

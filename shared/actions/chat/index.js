@@ -12,7 +12,6 @@ import engine from '../../engine'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior, ConstantsStatusCode} from '../../constants/types/flow-types'
-import {badgeApp} from '../notifications'
 import {call, put, take, select, race, fork, join} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {isMobile} from '../../constants/platform'
@@ -787,22 +786,6 @@ function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
 
 function * _badgeAppForChat (action: Constants.BadgeAppForChat): SagaGenerator<any, any> {
   const conversations = action.payload
-  const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
-  const appFocused = yield select(Shared.focusedSelector)
-
-  const newConversations = conversations.reduce((acc, conv) => {
-    // Badge this conversation if it's unread and either the app doesn't have
-    // focus (so the user didn't see the message) or the conversation isn't
-    // selected (same).
-    const unread = conv.get('UnreadMessages') > 0
-    const selected = (Constants.conversationIDToKey(conv.get('convID')) === selectedConversationIDKey)
-    const addThisConv = (unread && (!selected || !appFocused))
-    // Desktop shows number of thread unread. Mobile shows number of messages unread
-    const toAdd = isMobile ? conv.get('UnreadMessages') : 1
-    return addThisConv ? acc + toAdd : acc
-  }, 0)
-  yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
-
   let conversationsWithKeys = {}
   conversations.map(conv => {
     conversationsWithKeys[Constants.conversationIDToKey(conv.get('convID'))] = conv.get('UnreadMessages')

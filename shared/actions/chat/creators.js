@@ -1,5 +1,6 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
+import * as RPCTypes from '../../constants/types/flow-types'
 import * as Constants from '../../constants/chat'
 import HiddenString from '../../util/hidden-string'
 import {List, Map} from 'immutable'
@@ -98,8 +99,9 @@ function updateLatestMessage (conversationIDKey: Constants.ConversationIDKey): C
   return {payload: {conversationIDKey}, type: 'chat:updateLatestMessage'}
 }
 
-function badgeAppForChat (conversations: List<Constants.ConversationBadgeState>): Constants.BadgeAppForChat {
-  return {payload: conversations, type: 'chat:badgeAppForChat'}
+function badgeAppForChat (conversations: ?Array<RPCTypes.BadgeConversationInfo>): Constants.BadgeAppForChat {
+  const convos = List((conversations || []).map(conversation => Constants.ConversationBadgeStateRecord(conversation)))
+  return {payload: convos, type: 'chat:badgeAppForChat'}
 }
 
 function openFolder (): Constants.OpenFolder {
