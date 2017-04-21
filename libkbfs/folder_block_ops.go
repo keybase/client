@@ -1022,7 +1022,7 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 	}
 
 	// Remove cached removals from the copy.
-	for k := range dirCacheEntry.adds {
+	for k := range dirCacheEntry.dels {
 		_, ok := dblock.Children[k]
 		if !ok {
 			continue
