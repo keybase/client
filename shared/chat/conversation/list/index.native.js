@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import React, {Component} from 'react'
+import {mapProps} from 'recompose'
 import messageFactory from '../messages'
 import {Box, NativeScrollView} from '../../../common-adapters/index.native'
 // $FlowIssue
@@ -22,7 +23,7 @@ class ConversationList extends Component <void, Props, void> {
   _measure = () => {}
 
   _renderItem = ({item: messageKey, index}) => {
-    const prevMessageKey = index !== 0 ? this.props.messageKeys.get(index - 1) : null
+    const prevMessageKey = this.props.messageKeys.get(index + 1)
     const isSelected = false
     return (
       // We ahve to invert transform the message or else it will look flipped
@@ -58,7 +59,7 @@ class ConversationList extends Component <void, Props, void> {
   render () {
     return (
       <FlatList
-        data={this.props.messageKeys.reverse().toArray()}
+        data={this.props.messageKeys.toArray()}
         renderItem={this._renderItem}
         renderScrollComponent={this._renderScrollComponent}
         onEndReached={this._onEndReached}
@@ -76,4 +77,9 @@ const verticallyInvertedStyle = {
   ],
 }
 
-export default ConversationList
+// Reverse the order of messageKeys to compensate for vertically reversed display
+const withReversedMessageKeys = mapProps(
+  ({messageKeys, ...rest}) => ({messageKeys: messageKeys.reverse(), ...rest})
+)
+
+export default withReversedMessageKeys(ConversationList)
