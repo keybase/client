@@ -80,7 +80,7 @@ func (s *SignupEngine) Run(ctx *Context) error {
 			return err
 		}
 
-		if err := s.join(ctx, a, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
+		if err := s.join(a, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
 			return err
 		}
 
@@ -161,8 +161,8 @@ func (s *SignupEngine) genPassphraseStream(a libkb.LoginContext, passphrase stri
 	return nil
 }
 
-func (s *SignupEngine) join(ctx *Context, a libkb.LoginContext, username, email, inviteCode string, skipMail bool) error {
-	s.G().Log.CDebugf(ctx.NetContext, "SignupEngine#join")
+func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode string, skipMail bool) error {
+	s.G().Log.Debug("SignupEngine#join")
 	joinEngine := NewSignupJoinEngine(s.G())
 
 	pdpkda5kid, err := s.ppStream.PDPKA5KID()

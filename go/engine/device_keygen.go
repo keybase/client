@@ -4,8 +4,8 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
-	"runtime/debug"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -129,7 +129,9 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 
 	ds := []libkb.Delegator{}
 
-	e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push SDH:%v", e.G().Env.GetEnableSharedDH())
+	if e.G().Env.GetEnableSharedDH() {
+		e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push SDH:%v", e.G().Env.GetEnableSharedDH())
+	}
 
 	var sdhBoxes = []keybase1.SharedDHSecretKeyBox{}
 	if e.G().Env.GetEnableSharedDH() && e.args.IsEldest {
@@ -323,13 +325,13 @@ func (e *DeviceKeygen) pushLKS(ctx *Context) {
 	}
 
 	if e.args.Lks == nil {
-		e.pushErr = fmt.Errorf("no local key security set")
+		e.pushErr = errors.New("no local key security set")
 		return
 	}
 
 	serverHalf := e.args.Lks.GetServerHalf()
 	if serverHalf.IsNil() {
-		e.pushErr = fmt.Errorf("LKS server half is empty, and should not be")
+		e.pushErr = errors.New("LKS server half is empty, and should not be")
 		return
 	}
 
@@ -378,29 +380,31 @@ func (e *DeviceKeygen) device() *libkb.Device {
 }
 
 func (e *DeviceKeygen) prepareSDHBoxesFromPaperkey(ctx *Context) ([]keybase1.SharedDHSecretKeyBox, error) {
+	if !e.G().Env.GetEnableSharedDH() {
+		return nil, errors.New("shared dh disabled")
+	}
 	// Assuming this is a paperkey provision.
 
 	sdhk := e.args.SharedDHKeyring
 	if sdhk == nil {
-		debug.PrintStack()
-		return nil, fmt.Errorf("missing SharedDHKeyring")
+		return nil, errors.New("missing SharedDHKeyring")
 	}
 
 	if ctx.LoginContext == nil {
-		return nil, fmt.Errorf("no login context to push new device keys")
+		return nil, errors.New("no login context to push new device keys")
 	}
 
 	paperSigKey := ctx.LoginContext.GetUnlockedPaperSigKey()
 	paperEncKeyGeneric := ctx.LoginContext.GetUnlockedPaperEncKey()
 	if paperSigKey == nil {
-		return nil, fmt.Errorf("missing paper sig key")
+		return nil, errors.New("missing paper sig key")
 	}
 	if paperEncKeyGeneric == nil {
-		return nil, fmt.Errorf("missing paper enc key")
+		return nil, errors.New("missing paper enc key")
 	}
 	paperEncKey, ok := paperEncKeyGeneric.(libkb.NaclDHKeyPair)
 	if !ok {
-		return nil, fmt.Errorf("Unexpected encryption key type")
+		return nil, errors.New("Unexpected encryption key type")
 	}
 
 	upak := e.args.Me.ExportToUserPlusAllKeys(keybase1.Time(0))

@@ -105,6 +105,14 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 	// TODO get the shared dh key and save it if it was generated
 
 	if ctx.LoginContext != nil {
+
+		// Set the device id so that SetCachedSecretKey picks it up.
+		// Signup does this too, but by then it's too late.
+		if err := ctx.LoginContext.LocalSession().SetDeviceProvisioned(deviceID); err != nil {
+			// Not fatal. Because, um, it was working ok before.
+			e.G().Log.Warning("error saving session file: %s", err)
+		}
+
 		// cache the secret keys
 		ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}, e.signingKey)
 		ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}, e.encryptionKey)

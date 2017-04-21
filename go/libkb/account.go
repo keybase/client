@@ -478,7 +478,13 @@ func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error {
 	uid := a.G().Env.GetUID()
 	if ska.KeyType == DeviceSigningKeyType {
 		a.G().Log.Debug("caching secret device signing key")
-		if err := a.G().ActiveDevice.setSigningKey(a, uid, a.localSession.GetDeviceID(), key); err != nil {
+
+		deviceID := a.localSession.GetDeviceID()
+		if deviceID.IsNil() {
+			a.G().Log.Debug("SetCachedSecretKey with nil deviceID (sig)")
+		}
+
+		if err := a.G().ActiveDevice.setSigningKey(a, uid, deviceID, key); err != nil {
 			return err
 		}
 
@@ -507,8 +513,14 @@ func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error {
 		return a.G().ActiveDevice.setDeviceName(a, uid, device.ID, *device.Description)
 	}
 	if ska.KeyType == DeviceEncryptionKeyType {
+
+		deviceID := a.localSession.GetDeviceID()
+		if deviceID.IsNil() {
+			a.G().Log.Debug("SetCachedSecretKey with nil deviceID (enc)")
+		}
+
 		a.G().Log.Debug("caching secret device encryption key")
-		return a.G().ActiveDevice.setEncryptionKey(a, uid, a.localSession.GetDeviceID(), key)
+		return a.G().ActiveDevice.setEncryptionKey(a, uid, deviceID, key)
 	}
 	return fmt.Errorf("attempt to cache invalid key type: %d", ska.KeyType)
 }
