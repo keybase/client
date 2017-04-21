@@ -594,7 +594,7 @@ func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
 	case <-cache.startedCh:
 	default:
 		// If the cache hasn't started yet, return an error.
-		return DiskCacheStartingError{"UpdateLRUTime"}
+		return DiskCacheStartingError{"UpdateMetadata"}
 	}
 	var md diskBlockCacheMetadata
 	// Only obtain a read lock because this happens on Get, not on Put.
@@ -603,7 +603,7 @@ func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
 	// shutdownCh has to be checked under lock, otherwise we can race.
 	select {
 	case <-cache.shutdownCh:
-		return DiskCacheClosedError{"UpdateLRUTime"}
+		return DiskCacheClosedError{"UpdateMetadata"}
 	default:
 	}
 	defer func() {
