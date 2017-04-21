@@ -235,7 +235,6 @@ func (f *FetchRetrier) fixInboxFetches(ctx context.Context, uid gregor1.UID,
 			}
 		}
 	}
-
 	return fixed
 }
 
@@ -261,7 +260,6 @@ func (f *FetchRetrier) fixThreadFetches(ctx context.Context, uid gregor1.UID,
 			}
 		}
 	}
-
 	return fixed
 }
 

@@ -1218,8 +1218,8 @@ func TestGetThreadNonblockError(t *testing.T) {
 		mustPostLocalForTest(t, ctc, users[0], conv, msg)
 	}
 	require.NoError(t, ctc.world.Tcs[users[0].Username].G.ConvSource.Clear(conv.Id, uid))
-	G := ctc.world.Tcs[users[0].Username].G
-	G.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+	g := ctc.world.Tcs[users[0].Username].G
+	g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
 		return chat1.RemoteClient{Cli: errorClient{}}
 	})
 
@@ -1233,7 +1233,7 @@ func TestGetThreadNonblockError(t *testing.T) {
 	require.Error(t, err)
 
 	// Advance clock and look for stale
-	G.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+	g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
 		return kbtest.NewChatRemoteMock(ctc.world)
 	})
 	ctc.world.Fc.Advance(time.Hour)
@@ -1268,8 +1268,8 @@ func TestGetInboxNonblockError(t *testing.T) {
 		mustPostLocalForTest(t, ctc, users[0], conv, msg)
 	}
 	require.NoError(t, ctc.world.Tcs[users[0].Username].G.ConvSource.Clear(conv.Id, uid))
-	G := ctc.world.Tcs[users[0].Username].G
-	G.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+	g := ctc.world.Tcs[users[0].Username].G
+	g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
 		return chat1.RemoteClient{Cli: errorClient{}}
 	})
 
@@ -1297,7 +1297,7 @@ func TestGetInboxNonblockError(t *testing.T) {
 	}
 
 	// Advance clock and look for stale
-	G.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+	g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
 		return kbtest.NewChatRemoteMock(ctc.world)
 	})
 	ctc.world.Fc.Advance(time.Hour)

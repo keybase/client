@@ -95,7 +95,7 @@ func (f *ConversationFailureBox) Success(ctx context.Context, convID chat1.Conve
 	_, ierr := f.readDiskBox(ctx, f.dbKey(), &failures)
 	if ierr != nil {
 		return NewInternalError(ctx, f.DebugLabeler,
-			"failed to read conversation failure box: uid: %s err: %", f.uid, ierr.Error())
+			"failed to read conversation failure box: uid: %s err: %s", f.uid, ierr.Error())
 	}
 
 	var newFailures []ConversationFailureRecord
