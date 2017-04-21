@@ -136,6 +136,12 @@ func (e *PGPVerify) runDetached(ctx *Context) error {
 	e.signStatus = &libkb.SignatureStatus{IsSigned: true}
 
 	if signer != nil {
+		if len(signer.UnverifiedRevocations) > 0 {
+			return libkb.BadSigError{
+				E: fmt.Sprintf("Key %x belonging to %q has been revoked by its designated revoker.", signer.PrimaryKey.KeyId, e.signer.GetName()),
+			}
+		}
+
 		e.signStatus.Verified = true
 		e.signStatus.Entity = signer
 		if err := e.checkSignedBy(ctx); err != nil {
