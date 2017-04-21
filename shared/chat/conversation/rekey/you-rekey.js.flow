@@ -1,10 +1,10 @@
 // @flow
 import {Component} from 'react'
 
-import type {RekeyInfo} from '../../constants/chat'
-
 export type Props = {
-  onRekey: () => void
+  onEnterPaperkey: () => void,
+  onBack: () => void,
+  onRekey: () => void,
 }
 
 export default class YouRekey extends Component<void, Props, void> { }

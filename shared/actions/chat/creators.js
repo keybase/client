@@ -130,8 +130,8 @@ function retryMessage (conversationIDKey: Constants.ConversationIDKey, outboxIDK
   return {logTransformer: retryMessageActionTransformer, payload: {conversationIDKey, outboxIDKey}, type: 'chat:retryMessage'}
 }
 
-function loadInbox (force?: boolean = false): Constants.LoadInbox {
-  return {payload: {force}, type: 'chat:loadInbox'}
+function loadInbox (): Constants.LoadInbox {
+  return {payload: undefined, type: 'chat:loadInbox'}
 }
 
 function loadMoreMessages (conversationIDKey: Constants.ConversationIDKey, onlyIfUnloaded: boolean): Constants.LoadMoreMessages {

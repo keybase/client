@@ -1,9 +1,9 @@
 // @flow
 import React from 'react'
-import {Box, Avatar, Usernames, Text} from '../../common-adapters'
-import {globalColors, globalStyles} from '../../styles'
+import {Box, Avatar, Usernames, Text} from '../../../common-adapters'
+import {globalColors, globalStyles} from '../../../styles'
 
-import type {RekeyInfo} from '../../constants/chat'
+import type {Props} from './participant-rekey'
 
 const Row = ({username, onUsernameClicked}) => (
   <Box style={rowStyle} onClick={() => onUsernameClicked(username)}>
@@ -15,7 +15,7 @@ const Row = ({username, onUsernameClicked}) => (
   </Box>
 )
 
-const ParticipantRekey = ({rekeyInfo, onShowProfile: onUsernameClicked}: {rekeyInfo: RekeyInfo, onShowProfile: (username: string) => void}) => {
+const ParticipantRekey = ({rekeyInfo, onShowProfile: onUsernameClicked}: Props) => {
   return (
     <Box style={containerStyle}>
       <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>
@@ -23,7 +23,7 @@ const ParticipantRekey = ({rekeyInfo, onShowProfile: onUsernameClicked}: {rekeyI
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', marginLeft: 8, overflow: 'auto'}}>
         <Box>
-          {rekeyInfo.get('rekeyParticipants').map(username => <Row key={username} username={username} onUsernameClicked={onUsernameClicked} />)}
+          {rekeyInfo && rekeyInfo.get('rekeyParticipants').map(username => <Row key={username} username={username} onUsernameClicked={onUsernameClicked} />)}
         </Box>
       </Box>
     </Box>
