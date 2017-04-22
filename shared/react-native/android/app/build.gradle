@@ -85,13 +85,13 @@ def Integer timestamp() {
 }
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion 25
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         applicationId "io.keybase.ossifrage"
         minSdkVersion 16
-        targetSdkVersion 23
+        targetSdkVersion 25
         versionCode timestamp()
         versionName "1.0.0-alpha-2"
         ndk {
