@@ -1639,6 +1639,9 @@ func (fbo *folderBlockOps) writeDataLocked(
 	// files.  TODO: combine `deCache` with `dirtyFiles` and
 	// `unrefCache`.
 	cacheEntry := fbo.deCache[file.tailPointer().Ref()]
+	now := fbo.nowUnixNano()
+	newDe.Mtime = now
+	newDe.Ctime = now
 	cacheEntry.dirEntry = newDe
 	fbo.deCache[file.tailPointer().Ref()] = cacheEntry
 
@@ -1751,6 +1754,9 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 		return WriteRange{}, nil, err
 	}
 	cacheEntry := fbo.deCache[file.tailPointer().Ref()]
+	now := fbo.nowUnixNano()
+	newDe.Mtime = now
+	newDe.Ctime = now
 	cacheEntry.dirEntry = newDe
 	fbo.deCache[file.tailPointer().Ref()] = cacheEntry
 
@@ -1851,6 +1857,9 @@ func (fbo *folderBlockOps) truncateLocked(
 
 	latestWrite := si.op.addTruncate(size)
 	cacheEntry := fbo.deCache[file.tailPointer().Ref()]
+	now := fbo.nowUnixNano()
+	newDe.Mtime = now
+	newDe.Ctime = now
 	cacheEntry.dirEntry = newDe
 	fbo.deCache[file.tailPointer().Ref()] = cacheEntry
 
