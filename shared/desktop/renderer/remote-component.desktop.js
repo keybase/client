@@ -47,6 +47,7 @@ class RemoteComponent extends Component {
       ...this.props.windowsOpts}
 
     this.remoteWindow = new BrowserWindow(windowsOpts)
+    this.remoteWindow.setAlwaysOnTop(true)
 
     if (this.props.positionBottomRight && electron.screen.getPrimaryDisplay()) {
       const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
