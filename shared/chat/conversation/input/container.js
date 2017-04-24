@@ -81,8 +81,7 @@ export default compose(
   ),
   lifecycle({
     componentDidUpdate: function (prevProps) {
-      if (!this.props.isLoading && prevProps.isLoading ||
-        this.props.focusInputCounter !== prevProps.focusInputCounter) {
+      if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
         this.props.inputFocus()
       }
     },
