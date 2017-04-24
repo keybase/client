@@ -89,27 +89,29 @@ class FeedbackContainer extends Component<void, {}, State> {
     this.mounted = true
   }
 
-  render () {
-    const onSendFeedback = (feedback, sendLogs) => {
-      this.setState({sending: true, sentFeedback: false})
-      this._dumpLogs()
-        .then(() => {
-          console.log('Sending log to daemon')
-          return logSend(feedback, sendLogs)
-        })
-        .then(logSendId => {
-          console.warn('logSendId is', logSendId)
-          if (this.mounted) {
-            this.setState({
-              sentFeedback: true,
-              feedback: null,
-              sending: false,
-            })
-          }
-        })
-    }
+  _onSendFeedback = (feedback, sendLogs) => {
+    this.setState({sending: true, sentFeedback: false})
 
-    return <FeedbackWrapped showSuccessBanner={this.state.sentFeedback} onSendFeedback={onSendFeedback} onChangeFeedback={this._onChangeFeedback} feedback={this.state.feedback} sending={this.state.sending} />
+    const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve()
+
+    maybeDump.then(() => {
+      console.log(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
+      return logSend(feedback, sendLogs)
+    })
+    .then(logSendId => {
+      console.warn('logSendId is', logSendId)
+      if (this.mounted) {
+        this.setState({
+          sentFeedback: true,
+          feedback: null,
+          sending: false,
+        })
+      }
+    })
+  }
+
+  render () {
+    return <FeedbackWrapped showSuccessBanner={this.state.sentFeedback} onSendFeedback={this._onSendFeedback} onChangeFeedback={this._onChangeFeedback} feedback={this.state.feedback} sending={this.state.sending} />
   }
 }
 
