@@ -106,9 +106,8 @@ type ConfigLocal struct {
 	// tlfValidDuration is the time TLFs are valid before redoing identification.
 	tlfValidDuration time.Duration
 
-	// bgFlushDirOpBatchSizeDefault indicates how many directory
-	// operations should be batched together in a single background
-	// flush.
+	// bgFlushDirOpBatchSize indicates how many directory operations
+	// should be batched together in a single background flush.
 	bgFlushDirOpBatchSize int
 
 	// bgFlushPeriod indicates how long to wait for a batch to fill up

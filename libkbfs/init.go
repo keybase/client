@@ -93,6 +93,15 @@ type InitParams struct {
 	// databases for things like the journal or disk cache.
 	StorageRoot string
 
+	// BGFlushPeriod indicates how long to wait for a batch to fill up
+	// before syncing a set of changes on a TLF to the servers.
+	BGFlushPeriod time.Duration
+
+	// BGFlushDirOpBatchSize indicates how many directory operations
+	// in a TLF should be batched together in a single background
+	// flush.
+	BGFlushDirOpBatchSize int
+
 	// Mode describes how KBFS should initialize itself.
 	Mode string
 }
@@ -158,7 +167,9 @@ func DefaultInitParams(ctx Context) InitParams {
 		},
 		TLFJournalBackgroundWorkStatus: TLFJournalBackgroundWorkEnabled,
 		StorageRoot:                    ctx.GetDataDir(),
-		Mode:                           InitDefaultString,
+		BGFlushPeriod:                  1 * time.Second,
+		BGFlushDirOpBatchSize:          20,
+		Mode: InitDefaultString,
 	}
 }
 
@@ -216,6 +227,15 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	// params.TLFJournalBackgroundWorkStatus via a flag.
 	params.TLFJournalBackgroundWorkStatus =
 		defaultParams.TLFJournalBackgroundWorkStatus
+
+	flags.DurationVar(&params.BGFlushPeriod, "sync-batch-period",
+		defaultParams.BGFlushPeriod,
+		"The amount of time to wait before syncing data in a TLF, if the "+
+			"batch size doesn't fill up.")
+	flags.IntVar((*int)(&params.BGFlushDirOpBatchSize), "sync-batch-size",
+		int(defaultParams.BGFlushDirOpBatchSize),
+		"The number of unflushed directory operations in a TLF that will "+
+			"trigger an immediate data sync.")
 
 	flags.IntVar((*int)(&params.MetadataVersion), "md-version",
 		int(defaultParams.MetadataVersion),
@@ -521,6 +541,8 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 
 	config.SetMetadataVersion(MetadataVer(params.MetadataVersion))
 	config.SetTLFValidDuration(params.TLFValidDuration)
+	config.SetBGFlushPeriod(params.BGFlushPeriod)
+	config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
 
 	kbfsOps := NewKBFSOpsStandard(config)
 	config.SetKBFSOps(kbfsOps)
