@@ -62,7 +62,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		logForwarder:     newLogFwd(),
 		rekeyMaster:      newRekeyMaster(g),
 		attachmentstore:  chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
-		badger:           badges.NewBadger(globals.NewContext(g, chatG.ChatG())),
+		badger:           badges.NewBadger(g, chatG.ChatG()),
 	}
 }
 
