@@ -804,6 +804,18 @@ func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 	}
 }
 
+// SkipExternalChecks indicates we do not want to run any external proof checkers in
+// identify modes that yield true.
+func (b TLFIdentifyBehavior) SkipExternalChecks() bool {
+	switch b {
+	case TLFIdentifyBehavior_KBFS_QR,
+		TLFIdentifyBehavior_KBFS_REKEY:
+		return true
+	default:
+		return false
+	}
+}
+
 func (c CanonicalTLFNameAndIDWithBreaks) Eq(r CanonicalTLFNameAndIDWithBreaks) bool {
 	if c.CanonicalName != r.CanonicalName {
 		return false
