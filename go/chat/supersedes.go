@@ -1,8 +1,8 @@
 package chat
 
 import (
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	context "golang.org/x/net/context"
@@ -31,15 +31,15 @@ type getMessagesFunc func(context.Context, chat1.ConversationID, gregor1.UID, []
 	*chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
 
 type basicSupersedesTransform struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 
 	messagesFunc getMessagesFunc
 }
 
-func newBasicSupersedesTransform(g *libkb.GlobalContext) *basicSupersedesTransform {
+func newBasicSupersedesTransform(g *globals.Context) *basicSupersedesTransform {
 	return &basicSupersedesTransform{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "supersedesTransform", false),
 		messagesFunc: g.ConvSource.GetMessages,
 	}

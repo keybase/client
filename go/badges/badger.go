@@ -6,8 +6,8 @@ package badges
 import (
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -20,13 +20,13 @@ import (
 // - All chat.activity gregor OOBMs
 // - Logout
 type Badger struct {
-	libkb.Contextified
+	globals.Contextified
 	badgeState *BadgeState
 }
 
-func NewBadger(g *libkb.GlobalContext) *Badger {
+func NewBadger(g *globals.Context) *Badger {
 	return &Badger{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		badgeState:   NewBadgeState(g.Log),
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -34,6 +35,8 @@ func (a uidSet) subtract(b uidSet) uidSet {
 
 type BackgroundIdentifier struct {
 	libkb.Contextified
+	globals.ChatContextified
+
 	sync.Mutex
 	uid             keybase1.UID
 	engine          *engine.BackgroundIdentifier
@@ -43,17 +46,18 @@ type BackgroundIdentifier struct {
 	snooperCh       chan<- engine.IdentifyJob
 }
 
-func newBackgroundIdentifier(g *libkb.GlobalContext, u keybase1.UID) (*BackgroundIdentifier, error) {
+func newBackgroundIdentifier(g *libkb.GlobalContext, cg *globals.ChatContext, u keybase1.UID) (*BackgroundIdentifier, error) {
 
 	ch := make(chan struct{})
 	sch := make(chan engine.IdentifyJob, 100)
 	eng := engine.NewBackgroundIdentifier(g, ch)
 	ret := &BackgroundIdentifier{
-		Contextified:    libkb.NewContextified(g),
-		uid:             u,
-		engine:          eng,
-		stopCh:          ch,
-		lastFollowerSet: newUIDSet(nil),
+		Contextified:     libkb.NewContextified(g),
+		ChatContextified: globals.NewChatContextified(cg),
+		uid:              u,
+		engine:           eng,
+		stopCh:           ch,
+		lastFollowerSet:  newUIDSet(nil),
 	}
 
 	err := ret.populateWithFollowees()
@@ -79,9 +83,10 @@ func newBackgroundIdentifier(g *libkb.GlobalContext, u keybase1.UID) (*Backgroun
 	return ret, nil
 }
 
-func StartOrReuseBackgroundIdentifier(b *BackgroundIdentifier, g *libkb.GlobalContext, u keybase1.UID) (*BackgroundIdentifier, error) {
+func StartOrReuseBackgroundIdentifier(b *BackgroundIdentifier, g *libkb.GlobalContext,
+	cg *globals.ChatContext, u keybase1.UID) (*BackgroundIdentifier, error) {
 	if b == nil {
-		return newBackgroundIdentifier(g, u)
+		return newBackgroundIdentifier(g, cg, u)
 	}
 	return b.reuse(u)
 }
@@ -93,7 +98,8 @@ func (b *BackgroundIdentifier) completedIdentifyJob(ij engine.IdentifyJob) {
 	b.G().Log.Debug("| Identify(%s) changed: %v -> %v", ij.UID(), ij.ThisError(), ij.LastError())
 
 	// Let the chat system know about this identify change
-	chat.NewIdentifyChangedHandler(b.G(), chat.NewKBFSTLFInfoSource(b.G())).BackgroundIdentifyChanged(context.Background(), ij)
+	cg := globals.NewContext(b.G(), b.ChatG())
+	chat.NewIdentifyChangedHandler(cg, chat.NewKBFSTLFInfoSource(cg)).BackgroundIdentifyChanged(context.Background(), ij)
 }
 
 func (b *BackgroundIdentifier) populateWithFollowees() (err error) {
@@ -156,7 +162,7 @@ func (b *BackgroundIdentifier) reuse(u keybase1.UID) (bgi *BackgroundIdentifier,
 		return nil, nil
 	}
 	b.shutdownLocked()
-	return newBackgroundIdentifier(b.G(), u)
+	return newBackgroundIdentifier(b.G(), b.ChatG(), u)
 }
 
 func (b *BackgroundIdentifier) HandleUserChanged(uid keybase1.UID) (err error) {

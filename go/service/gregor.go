@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/globals"
 	chatstorage "github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
@@ -32,9 +33,6 @@ import (
 )
 
 const GregorRequestTimeout time.Duration = 30 * time.Second
-
-var ErrGregorTimeout = errors.New("Network request timed out.")
-
 const GregorConnectionRetryInterval time.Duration = 2 * time.Second
 
 type IdentifyUIHandler struct {
@@ -108,8 +106,8 @@ func newTestingEvents() *testingEvents {
 }
 
 type gregorHandler struct {
+	globals.Contextified
 	utils.DebugLabeler
-	libkb.Contextified
 
 	// This lock is to protect ibmHandlers and gregorCli and firehoseHandlers. Only public methods
 	// should grab it.
@@ -170,9 +168,9 @@ func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
 	return res, err
 }
 
-func newGregorHandler(g *libkb.GlobalContext) *gregorHandler {
+func newGregorHandler(g *globals.Context) *gregorHandler {
 	gh := &gregorHandler{
-		Contextified:    libkb.NewContextified(g),
+		Contextified:    globals.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g, "PushHandler", false),
 		freshReplay:     true,
 		pushStateFilter: func(m gregor.Message) bool { return true },
@@ -191,6 +189,10 @@ func newGregorHandler(g *libkb.GlobalContext) *gregorHandler {
 	go gh.broadcastMessageHandler()
 
 	return gh
+}
+
+func (g *gregorHandler) GetClient() rpc.GenericClient {
+	return g.cli
 }
 
 func (g *gregorHandler) resetGregorClient() (err error) {
@@ -229,7 +231,8 @@ func (g *gregorHandler) resetGregorClient() (err error) {
 	}
 
 	// Create client object
-	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g.G()), g.G().Env.GetGregorSaveInterval(), g.G().Log)
+	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g.G().ExternalG()),
+		g.G().Env.GetGregorSaveInterval(), g.G().Log)
 
 	// Bring up local state
 	g.Debug(ctx, "restoring state from leveldb")
@@ -522,7 +525,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	g.Lock()
 	defer g.Unlock()
 
-	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, ErrGregorTimeout)
+	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, chat.ErrChatServerTimeout)
 	chatCli := chat1.RemoteClient{Cli: cli}
 
 	g.Debug(ctx, "connected")
@@ -562,7 +565,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	}
 
 	// Sync chat data using a Syncer object
-	if err := g.G().ChatSyncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil {
+	if err := g.G().Syncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil {
 		return fmt.Errorf("error running chat sync: %s", err.Error())
 	}
 
@@ -620,7 +623,7 @@ func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.Disconnec
 	}
 
 	// Alert chat syncer that we are now disconnected
-	g.G().ChatSyncer.Disconnected(ctx)
+	g.G().Syncer.Disconnected(ctx)
 }
 
 func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
@@ -1241,14 +1244,15 @@ func (g *gregorHandler) connectTLS() error {
 		WrapErrorFunc:    libkb.WrapError,
 		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
 	}
-	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{}, g, libkb.NewRPCLogFactory(g.G()), g.G().Log, opts)
+	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{}, g, libkb.NewRPCLogFactory(g.G().ExternalG()), g.G().Log, opts)
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
 	// We should grab it here instead of in OnConnect, since the connection is not
 	// fully established in OnConnect. Anything that wants to make calls outside
 	// of OnConnect should use g.cli, everything else should the client that is
 	// a paramater to OnConnect
-	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, ErrGregorTimeout)
+	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout,
+		chat.ErrChatServerTimeout)
 	g.pingCli = g.conn.GetClient() // Don't want this to have a timeout from here
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
@@ -1269,7 +1273,7 @@ func (g *gregorHandler) connectNoTLS() error {
 	}
 	uri := g.uri
 	g.Debug(ctx, "connecting to gregord without TLS at %s", uri)
-	t := newConnTransport(g.G(), uri.HostPort)
+	t := newConnTransport(g.G().ExternalG(), uri.HostPort)
 	g.transportForTesting = t
 
 	constBackoff := backoff.NewConstantBackOff(GregorConnectionRetryInterval)
@@ -1280,7 +1284,8 @@ func (g *gregorHandler) connectNoTLS() error {
 	}
 	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, g.G().Log, opts)
 
-	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, ErrGregorTimeout)
+	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout,
+		chat.ErrChatServerTimeout)
 	g.pingCli = g.conn.GetClient()
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick

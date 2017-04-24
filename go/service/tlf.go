@@ -9,9 +9,9 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -19,15 +19,15 @@ import (
 type tlfHandler struct {
 	*BaseHandler
 	utils.DebugLabeler
-	libkb.Contextified
+	globals.Contextified
 
 	tlfInfoSource types.TLFInfoSource
 }
 
-func newTlfHandler(xp rpc.Transporter, g *libkb.GlobalContext) *tlfHandler {
+func newTlfHandler(xp rpc.Transporter, g *globals.Context) *tlfHandler {
 	return &tlfHandler{
 		BaseHandler:   NewBaseHandler(xp),
-		Contextified:  libkb.NewContextified(g),
+		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g, "TlfHandler", false),
 		tlfInfoSource: chat.NewKBFSTLFInfoSource(g),
 	}
