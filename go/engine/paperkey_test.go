@@ -58,7 +58,7 @@ func TestPaperKey(t *testing.T) {
 		arg.SkipPaper = true
 	}
 
-	fu, _ := CreateAndSignupFakeUserCustomArg(tc, "login", f)
+	fu, _, _ := CreateAndSignupFakeUserCustomArg(tc, "login", f)
 
 	userDeviceID := tc.G.Env.GetDeviceID()
 

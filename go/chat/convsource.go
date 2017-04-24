@@ -104,6 +104,8 @@ type RemoteConversationSource struct {
 	libkb.Contextified
 }
 
+var _ types.ConversationSource = (*RemoteConversationSource)(nil)
+
 func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri func() chat1.RemoteInterface) *RemoteConversationSource {
 	return &RemoteConversationSource{
 		Contextified:           libkb.NewContextified(g),
@@ -213,6 +215,8 @@ type HybridConversationSource struct {
 	storage *storage.Storage
 }
 
+var _ types.ConversationSource = (*HybridConversationSource)(nil)
+
 func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *storage.Storage,
 	ri func() chat1.RemoteInterface) *HybridConversationSource {
 	return &HybridConversationSource{
@@ -276,7 +280,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 		return nil
 	}
 
-	idMode, _, haveMode := IdentifyMode(ctx)
+	idMode, _, haveMode := types.IdentifyMode(ctx)
 	for _, msg := range msgs {
 		if msg.IsValid() {
 
@@ -479,8 +483,8 @@ func (p *pullLocalResultCollector) Name() string {
 	return "pulllocal"
 }
 
-func (s *pullLocalResultCollector) String() string {
-	return fmt.Sprintf("[ %s: t: %d ]", s.Name(), s.num)
+func (p *pullLocalResultCollector) String() string {
+	return fmt.Sprintf("[ %s: t: %d ]", p.Name(), p.num)
 }
 
 func (p *pullLocalResultCollector) Error(err storage.Error) storage.Error {

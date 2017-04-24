@@ -2,23 +2,24 @@
 import Header from './header/container'
 import Input from './input/container'
 import List from './list/container'
-import OldProfileResetNotice from './notices/old-profile-reset-notice'
-import ParticipantRekey from './participant-rekey'
+import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
 import React from 'react'
 import SidePanel from './side-panel/container'
-import YouRekey from './you-rekey'
 import Banner from './banner/container'
-import {Box, LoadingLine} from '../../common-adapters'
-import {compose, branch, renderComponent} from 'recompose'
-import {globalStyles} from '../../styles'
+import {Box, LoadingLine, Text} from '../../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from './index'
 
 const Conversation = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+    {props.threadLoadedOffline && (
+      <Box style={{...globalStyles.flexBoxCenter, backgroundColor: globalColors.black_10, flex: 1, maxHeight: globalMargins.large}}>
+        <Text style={{textAlign: 'center'}} type='BodySmallSemibold'>Couldn't load all chat messages due to network connectivity. Retrying...</Text>
+      </Box>
+    )}
     <Header sidePanelOpen={props.sidePanelOpen} onToggleSidePanel={props.onToggleSidePanel} onBack={props.onBack} />
     <List
-      selectedConversationIDKey={props.selectedConversationIDKey}
       focusInputCounter={props.focusInputCounter}
       listScrollDownCounter={props.listScrollDownCounter}
       onEditLastMessage={props.onEditLastMessage}
@@ -29,9 +30,7 @@ const Conversation = (props: Props) => (
     <Banner />
     {props.showLoader && <LoadingLine />}
     {props.finalizeInfo
-      ? <OldProfileResetNotice
-        onOpenNewerConversation={props.onOpenNewerConversation}
-        username={props.finalizeInfo.resetUser} />
+      ? <OldProfileResetNotice />
       : <Input
         focusInputCounter={props.focusInputCounter}
         onEditLastMessage={props.onEditLastMessage}
@@ -42,11 +41,4 @@ const Conversation = (props: Props) => (
   </Box>
 )
 
-export default compose(
-  branch(
-    (props: Props) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
-    renderComponent(ParticipantRekey)),
-  branch(
-    (props: Props) => !!props.rekeyInfo && !props.finalizeInfo,
-    renderComponent(YouRekey)),
-)(Conversation)
+export default Conversation

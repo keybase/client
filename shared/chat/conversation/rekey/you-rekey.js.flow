@@ -1,0 +1,10 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  onEnterPaperkey: () => void,
+  onBack: () => void,
+  onRekey: () => void,
+}
+
+export default class YouRekey extends Component<void, Props, void> { }

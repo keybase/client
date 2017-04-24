@@ -14,6 +14,7 @@ export type Props = {
   children?: any,
   following?: ?boolean,
   followsYou?: ?boolean,
+  followIconSize: number,
   loadingColor?: string,
   onAvatarLoaded?: () => void,
   onClick?: ?(() => void),

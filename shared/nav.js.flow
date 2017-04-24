@@ -1,5 +1,6 @@
 // @flow
 import {Component} from 'react'
+import {Map} from 'immutable'
 
 import type {RouteRenderStack} from './route-tree/render-route'
 import type {Reachability} from './constants/types/flow-types'
@@ -8,17 +9,15 @@ import type {Tab} from './constants/tabs'
 export type Props = {
   appFocused: boolean,
   menuBadge: boolean,
-  provisioned: boolean,
   username: string,
   switchTab: (tab: Tab) => void,
   navigateUp: () => void,
-  folderBadge: number,
-  chatBadge: number,
   children: React$Element<*>,
   routeSelected: Tab,
   routeStack: RouteRenderStack,
   hideNav: boolean,
   reachability: ?Reachability,
+  navBadges: Map<Tab, number>,
 }
 
 export default class Nav extends Component<void, Props, void> {}

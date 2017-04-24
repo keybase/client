@@ -1,31 +1,35 @@
 // @flow
-import RNFS from 'react-native-fs'
+import RNFetchBlob from 'react-native-fetch-blob'
 
 function tmpDir (): string {
-  return RNFS.CachesDirectoryPath
+  return RNFetchBlob.fs.dirs.CacheDir
 }
 
 function tmpFile (suffix: string): string {
-  return `${RNFS.CachesDirectoryPath}/${suffix}`
+  return `${tmpDir()}/${suffix}`
 }
 
 function downloadFilePath (suffix: string): string {
-  return `${RNFS.CachesDirectoryPath}/${suffix}`
+  return `${tmpDir()}/${suffix}`
 }
 
-function copy (from: string, to: string) {
-  throw new Error('Unimplemented')
+function copy (from: string, to: string): Promise<void> {
+  return RNFetchBlob.fs.cp(from, to)
 }
 
 function exists (filepath: string): Promise<boolean> {
-  return RNFS.exists(filepath)
+  return RNFetchBlob.fs.exists(filepath)
 }
 
 function writeFile (filepath: string, contents: string, encoding?: string): Promise<void> {
-  return RNFS.writeFile(filepath, contents, encoding)
+  return RNFetchBlob.fs.createFile(filepath, '', encoding).then(() => RNFetchBlob.fs.writeFile(filepath, contents, encoding))
 }
 
-const cachesDirectoryPath = RNFS.CachesDirectoryPath
+function writeStream (filepath: string, encoding: string, append?: boolean): Promise<*> {
+  return RNFetchBlob.fs.createFile(filepath, '', encoding).then(() => RNFetchBlob.fs.writeStream(filepath, encoding, append))
+}
+
+const cachesDirectoryPath = tmpDir()
 
 export {
   cachesDirectoryPath,
@@ -35,4 +39,5 @@ export {
   tmpDir,
   tmpFile,
   writeFile,
+  writeStream,
 }

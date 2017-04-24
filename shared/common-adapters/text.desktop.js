@@ -11,12 +11,6 @@ import type {Props, TextType, Background} from './text'
 class Text extends Component<void, Props, void> {
   _span: any
 
-  focus () {
-    if (this._span) {
-      this._span.focus()
-    }
-  }
-
   highlightText () {
     const el = findDOMNode(this._span)
     const range = document.createRange()
@@ -56,7 +50,7 @@ class Text extends Component<void, Props, void> {
       meta.isLink ? 'hover-underline' : null,
     ].filter(Boolean).join(' ')
 
-    return className
+    return className || undefined
   }
 
   _urlClick = () => {
@@ -69,10 +63,10 @@ class Text extends Component<void, Props, void> {
 
     return <span
       title={this.props.title}
-      ref={this._setRef}
+      ref={this.props.allowHighlightText ? this._setRef : undefined}
       className={className}
       style={style}
-      onClick={this.props.onClick || this._urlClick}>{this.props.children}</span>
+      onClick={this.props.onClick || (this.props.onClickURL && this._urlClick)}>{this.props.children}</span>
   }
 }
 

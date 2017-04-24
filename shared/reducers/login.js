@@ -14,6 +14,7 @@ export type LoginState = {
   codePage: {
     cameraBrokenMode: boolean,
     codeCountDown: number,
+    enterCodeErrorText: string,
     mode: ?Mode,
     myDeviceRole: ?DeviceRole,
     otherDeviceRole: ?DeviceRole,
@@ -39,6 +40,7 @@ const initialState: LoginState = {
   codePage: {
     cameraBrokenMode: false,
     codeCountDown: 0,
+    enterCodeErrorText: '',
     mode: null,
     myDeviceRole: null,
     otherDeviceRole: null,
@@ -87,7 +89,7 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       toMerge = {codePage: {mode: action.payload}}
       break
     case Constants.setTextCode:
-      toMerge = {codePage: {textCode: action.payload.textCode}}
+      toMerge = {codePage: {enterCodeErrorText: action.payload.enterCodeErrorText, textCode: action.payload.textCode}}
       break
     case Constants.setQRCode:
       toMerge = {codePage: {qrCode: action.payload.qrCode}}
@@ -119,17 +121,6 @@ export default function (state: LoginState = initialState, action: any): LoginSt
     case Constants.cameraBrokenMode:
       toMerge = {codePage: {cameraBrokenMode: action.payload}}
       break
-    case Constants.doneRegistering: {
-      toMerge = {
-        codePage: {
-          codeCountDown: 0,
-          qrCode: null,
-          qrScanned: null,
-          textCode: null,
-        },
-      }
-      break
-    }
     case Constants.configuredAccounts:
       if (action.payload.error) {
         toMerge = {configuredAccounts: []}

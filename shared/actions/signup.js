@@ -6,7 +6,7 @@ import {CommonDeviceType, signupGetInvitationCodeRpc, signupSignupRpc, signupChe
 import {isMobile} from '../constants/platform'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 import {loginTab} from '../constants/tabs'
-import {navBasedOnLoginState} from './login'
+import {navBasedOnLoginState} from './login/creators'
 import {navigateAppend, navigateTo} from '../actions/route-tree'
 
 import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RestartSignup, RequestInvite, StartRequestInvite, SignupWaiting} from '../constants/signup'

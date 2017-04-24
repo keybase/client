@@ -28,6 +28,9 @@ func (c ChatTestContext) Cleanup() {
 	if c.G.MessageDeliverer != nil {
 		<-c.G.MessageDeliverer.Stop(context.TODO())
 	}
+	if c.G.ChatFetchRetrier != nil {
+		<-c.G.ChatFetchRetrier.Stop(context.TODO())
+	}
 	c.TestContext.Cleanup()
 }
 

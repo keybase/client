@@ -39,7 +39,7 @@ type KeySection struct {
 	RevSig                string
 	SigningUser           UserBasic
 	IncludePGPHash        bool
-	SharedDHKeyGeneration SharedDHKeyGeneration
+	SharedDHKeyGeneration keybase1.SharedDHKeyGeneration
 }
 
 func (arg KeySection) ToJSON() (*jsonw.Wrapper, error) {

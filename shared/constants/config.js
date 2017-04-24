@@ -3,15 +3,16 @@ import {uniq} from 'lodash'
 import {runMode} from './platform'
 
 import type {Tab} from './tabs'
+import type {BootstrapStatus} from './types/flow-types'
 import type {NoErrorTypedAction} from './types/flux'
 
 // TODO remove action type constants. Type actions
 const MAX_BOOTSTRAP_TRIES = 3
 const bootstrapAttemptFailed = 'config:bootstrapAttemptFailed'
 const bootstrapFailed = 'config:bootstrapFailed'
+const bootstrapLoaded = 'config:bootstrapLoaded'
 const bootstrapRetry = 'config:bootstrapRetry'
 const bootstrapRetryDelay = 10 * 1000
-const bootstrapped = 'config:bootstrapped'
 const changeKBFSPath = 'config:changeKBFSPath'
 const configLoaded = 'config:configLoaded'
 const daemonError = 'config:daemonError'
@@ -28,6 +29,7 @@ const setLaunchedViaPush = 'config:setLaunchedViaPush'
 const statusLoaded = 'config:statusLoaded'
 const updateFollowing = 'config:updateFollowing'
 
+export type BootstrapLoaded = NoErrorTypedAction<'config:bootstrapLoaded', {bootstrapStatus: BootstrapStatus}>
 export type DaemonError = NoErrorTypedAction<'config:daemonError', {daemonError: ?Error}>
 export type UpdateFollowing = NoErrorTypedAction<'config:updateFollowing', {username: string, isTracking: boolean}>
 export type SetInitialTab = NoErrorTypedAction<'config:setInitialTab', {tab: ?Tab}>
@@ -49,9 +51,9 @@ export {
   MAX_BOOTSTRAP_TRIES,
   bootstrapAttemptFailed,
   bootstrapFailed,
+  bootstrapLoaded,
   bootstrapRetry,
   bootstrapRetryDelay,
-  bootstrapped,
   changeKBFSPath,
   configLoaded,
   daemonError,

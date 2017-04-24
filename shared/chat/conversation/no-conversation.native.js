@@ -1,3 +1,3 @@
 // @flow
-const TODO = () => null
-export default TODO
+const Impossible = () => null
+export default Impossible

@@ -32,14 +32,13 @@ const _getInboxQuery = {
 let _inboxUntrustedError = null
 
 // Load the inbox if we haven't yet, mostly done by the UI
-function * onInitialInboxLoad (action: Constants.LoadInbox): SagaGenerator<any, any> {
+function * onInitialInboxLoad (): SagaGenerator<any, any> {
   const inboxUntrustedState = yield select(Shared.inboxUntrustedStateSelector)
   if (inboxUntrustedState === 'loading') {
     return
   }
 
-  const {force} = action.payload
-  if (inboxUntrustedState === 'unloaded' || _inboxUntrustedError || force) {
+  if (inboxUntrustedState === 'unloaded' || _inboxUntrustedError) {
     yield put(Creators.setInboxUntrustedState('loading'))
     _inboxUntrustedError = null
     yield call(onInboxStale)
@@ -66,10 +65,9 @@ function * _backgroundUnboxLoop () {
 
 // Update inboxes that have been reset
 function * _updateFinalized (inbox: ChatTypes.GetInboxLocalRes) {
-  const finalizedState: Constants.FinalizedState = Map((inbox.conversationsUnverified || []).map(convoUnverified => [
-    Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
-    convoUnverified.metadata.finalizeInfo,
-  ]))
+  const finalizedState: Constants.FinalizedState = Map((inbox.conversationsUnverified || []).reduce((map, convoUnverified) => {
+    return map.set(Constants.conversationIDToKey(convoUnverified.metadata.conversationID), convoUnverified.metadata.finalizeInfo)
+  }, Map()))
 
   if (finalizedState.count()) {
     yield put(Creators.updateFinalizedState(finalizedState))
@@ -248,22 +246,25 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
       // Valid inbox item for rekey errors only
       const conversation = new Constants.InboxStateRecord({
         conversationIDKey,
-        participants: List([].concat(error.rekeyInfo ? error.rekeyInfo.writerNames : [], error.rekeyInfo ? error.rekeyInfo.readerNames : []).filter(Boolean)),
+        participants: error.rekeyInfo ? List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean)) : List(error.unverifiedTLFName.split(',')),
         state: 'error',
         status: 'unfiled',
         time: error.remoteConv.readerInfo.mtime,
       })
 
+      yield put(Creators.updateInbox(conversation))
       switch (error.typ) {
         case ChatTypes.LocalConversationErrorType.selfrekeyneeded: {
-          yield put(Creators.updateInbox(conversation))
           yield put(Creators.updateInboxRekeySelf(conversationIDKey))
           break
         }
         case ChatTypes.LocalConversationErrorType.otherrekeyneeded: {
-          yield put(Creators.updateInbox(conversation))
           const rekeyers = error.rekeyInfo.rekeyers
           yield put(Creators.updateInboxRekeyOthers(conversationIDKey, rekeyers))
+          break
+        }
+        case ChatTypes.LocalConversationErrorType.transient: {
+          // Just ignore these, it is a transient error
           break
         }
         default:
@@ -292,6 +293,11 @@ function _conversationLocalToInboxState (c: ?ChatTypes.ConversationLocal): ?Cons
   const toShow = List(c.maxMessages || [])
     .filter(m => m.valid && m.state === ChatTypes.LocalMessageUnboxedState.valid)
     .map((m: any) => ({body: m.valid.messageBody, time: m.valid.serverHeader.ctime}))
+    .filter(m => [
+      ChatTypes.CommonMessageType.attachment,
+      ChatTypes.CommonMessageType.edit,
+      ChatTypes.CommonMessageType.text,
+    ].includes(m.body.messageType))
     .sort((a, b) => b.time - a.time)
     .map((message: {time: number, body: ?ChatTypes.MessageBody}) => ({
       snippet: Constants.makeSnippet(message.body),

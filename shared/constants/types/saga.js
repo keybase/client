@@ -1,4 +1,5 @@
 // @flow
+import type {TypedState} from '../reducer'
 
 export type NodeCB = (err: ?any, result: ?any) => void
 
@@ -24,3 +25,6 @@ export type ChannelConfig<T> = {
 export type ChannelMap<T> = {
   [key: string]: Channel<T>,
 }
+
+type _AfterSelect<Out, SelectorFn: (state: TypedState) => Out> = Out // eslint-disable-line
+export type AfterSelect<SelectorFn: (state: TypedState) => *> = _AfterSelect<*, SelectorFn>

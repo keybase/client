@@ -3,17 +3,12 @@ import Banner from './banner/container'
 import Header from './header/container'
 import Input from './input/container'
 import List from './list/container'
-import OldProfileResetNotice from './notices/old-profile-reset-notice'
-import NoConversation from './no-conversation.desktop'
-import ParticipantRekey from './participant-rekey.desktop'
+import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
 import React, {Component} from 'react'
 import SidePanel from './side-panel/container'
-import YouRekey from './you-rekey.desktop.js'
 import {Box, Icon, Text, LoadingLine} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
-import * as Constants from '../../constants/chat'
-import {compose, branch, renderComponent} from 'recompose'
 
 import type {Props} from '.'
 
@@ -97,14 +92,12 @@ class Conversation extends Component<void, Props, State> {
         <Banner />
         {this.props.showLoader && <LoadingLine />}
         {this.props.finalizeInfo
-          ? <OldProfileResetNotice
-            onOpenNewerConversation={this.props.onOpenNewerConversation}
-            username={this.props.finalizeInfo.resetUser} />
-            : <Input
-              focusInputCounter={this.props.focusInputCounter}
-              onEditLastMessage={this.props.onEditLastMessage}
-              onScrollDown={this.props.onScrollDown}
-            /> }
+          ? <OldProfileResetNotice />
+          : <Input
+            focusInputCounter={this.props.focusInputCounter}
+            onEditLastMessage={this.props.onEditLastMessage}
+            onScrollDown={this.props.onScrollDown}
+          /> }
         {this.props.sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>
           <SidePanel onToggleSidePanel={this.props.onToggleSidePanel} />
         </div>}
@@ -133,14 +126,4 @@ const dropOverlayStyle = {
   top: 0,
 }
 
-export default compose(
-  branch(
-    (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected,
-    renderComponent(NoConversation)),
-  branch(
-    (props: Props) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
-    renderComponent(ParticipantRekey)),
-  branch(
-    (props: Props) => !!props.rekeyInfo && !props.finalizeInfo,
-    renderComponent(YouRekey)),
-)(Conversation)
+export default Conversation

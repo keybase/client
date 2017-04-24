@@ -178,8 +178,8 @@ func SignupFakeUserStoreSecret(tc libkb.TestContext, prefix string) *FakeUser {
 	return fu
 }
 
-func CreateAndSignupFakeUserCustomArg(tc libkb.TestContext, prefix string, fmod func(*SignupEngineRunArg)) (*FakeUser, libkb.GenericKey) {
-	fu := NewFakeUserOrBust(tc.T, prefix)
+func CreateAndSignupFakeUserCustomArg(tc libkb.TestContext, prefix string, fmod func(*SignupEngineRunArg)) (fu *FakeUser, signingKey libkb.GenericKey, encryptionKey libkb.NaclDHKeyPair) {
+	fu = NewFakeUserOrBust(tc.T, prefix)
 	arg := MakeTestSignupEngineRunArg(fu)
 	fmod(&arg)
 	ctx := &Context{
@@ -193,7 +193,7 @@ func CreateAndSignupFakeUserCustomArg(tc libkb.TestContext, prefix string, fmod 
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	return fu, s.signingKey
+	return fu, s.signingKey, s.encryptionKey
 }
 
 func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI, g *libkb.GlobalContext) error {

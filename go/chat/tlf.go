@@ -53,7 +53,7 @@ func (t *KBFSTLFInfoSource) Lookup(ctx context.Context, tlfName string,
 }
 
 func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, ferr error) {
-	identBehavior, breaks, ok := IdentifyMode(ctx)
+	identBehavior, breaks, ok := types.IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
@@ -106,7 +106,7 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 }
 
 func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, ferr error) {
-	identBehavior, breaks, ok := IdentifyMode(ctx)
+	identBehavior, breaks, ok := types.IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}

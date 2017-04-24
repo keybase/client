@@ -18,8 +18,42 @@
         {
           "type": "HelloRes",
           "name": "sigPayload"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SharedDHSecretKeyBox"
+          },
+          "name": "sdhBoxes"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SharedDHKeyGeneration",
+      "fields": [],
+      "typedef": "int",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "SharedDHSecretKeyBox",
+      "fields": [
+        {
+          "type": "SharedDHKeyGeneration",
+          "name": "generation"
+        },
+        {
+          "type": "string",
+          "name": "box"
+        },
+        {
+          "type": "KID",
+          "name": "receiverKID",
+          "jsonkey": "receiver_kid"
+        }
+      ],
+      "lint": "ignore"
     }
   ],
   "messages": {
@@ -53,6 +87,13 @@
         {
           "name": "ppsEncrypted",
           "type": "string"
+        },
+        {
+          "name": "sdhBoxes",
+          "type": {
+            "type": "array",
+            "items": "SharedDHSecretKeyBox"
+          }
         }
       ],
       "response": null

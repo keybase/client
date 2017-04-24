@@ -25,15 +25,15 @@ const fontIOS = {
     fontFamily: 'OpenSans',
     fontWeight: '700',
   },
+  italic: {
+    fontStyle: 'italic',
+  },
   fontTerminal: {
     fontFamily: 'Source Code Pro',
   },
   fontTerminalSemibold: {
     fontFamily: 'Source Code Pro',
     fontWeight: '600',
-  },
-  italic: {
-    fontStyle: 'italic',
   },
 }
 

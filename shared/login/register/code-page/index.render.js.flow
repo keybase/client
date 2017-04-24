@@ -15,9 +15,9 @@ export type Props = {
   setCameraBrokenMode: Function,
   textEntered: Function,
   onChangeText: Function,
-  doneRegistering: Function,
   onBack: Function,
-  enterText: string
+  enterText: string,
+  enterCodeErrorText: string,
 }
 
 export default class CodePageRender extends Component<void, Props, void> {}

@@ -62,8 +62,7 @@ class CodePageRender extends Component<void, Props, void> {
       <Box style={stylesEnterText}>
         <Icon type='icon-phone-text-code-32' style={{alignSelf: 'center'}} />
         <Input
-          hintText=''
-          floatingHintTextOverride=''
+          errorText={this.props.enterCodeErrorText}
           multiline={true}
           rowsMin={3}
           value={this.props.enterText}

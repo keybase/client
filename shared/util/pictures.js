@@ -91,12 +91,12 @@ function validUsername (name: ?string) {
   return !!name.match(/^([a-z0-9][a-z0-9_]{1,15})$/i)
 }
 
-export function getUserImageMap (username: string): ?URLMap {
+function getUserImageMap (username: string): ?URLMap {
   const info = _usernameToURL[username]
   return info ? info.urlMap : null
 }
 
-export function loadUserImageMap (username: string, callback: (username: string, urlMap: ?URLMap) => void) {
+function loadUserImageMap (username: string, callback: (username: string, urlMap: ?URLMap) => void) {
   const info = _usernameToURL[username] || _pendingUsernameToURL[username]
   if (info) {
     if (!info.done) {
@@ -116,4 +116,18 @@ export function loadUserImageMap (username: string, callback: (username: string,
     }
     _getUserImages()
   }
+}
+
+function clearErrors () {
+  Object.keys(_usernameToURL).forEach(k => {
+    if (_usernameToURL[k] && _usernameToURL[k].error) {
+      delete _usernameToURL[k]
+    }
+  })
+}
+
+export {
+  getUserImageMap,
+  loadUserImageMap,
+  clearErrors,
 }

@@ -5,7 +5,6 @@
 package libkb
 
 import (
-	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -19,7 +18,7 @@ import (
 // TLFPseudonym is an identifier for a key in a tlf
 type TlfPseudonym [32]byte
 
-type keyGen int
+type KeyGen int
 type tlfID [16]byte
 
 const tlfPseudonymVersion = 1
@@ -30,19 +29,26 @@ type TlfPseudonymInfo struct {
 	Name string
 	// TLF id
 	ID      tlfID
-	KeyGen  keyGen
+	KeyGen  KeyGen
 	HmacKey [32]byte
+}
+
+// The server returns the current full name of the TLF, in addition to the TlfPseudonymInfo above.
+type TlfPseudonymServerInfo struct {
+	TlfPseudonymInfo
+
+	// Using untrusted data during decryption is safe because we don't rely on
+	// TLF keys for sender authenticity. (Note however that senders must not
+	// use untrusted keys, or else they'd lose all privacy.)
+	UntrustedCurrentName string
 }
 
 func (t TlfPseudonym) String() string {
 	return hex.EncodeToString(t[:])
 }
 
-func (t *TlfPseudonym) Eq(r *TlfPseudonym) bool {
-	if t != nil && r != nil {
-		return bytes.Equal(t[:], r[:])
-	}
-	return (t == nil) && (r == nil)
+func (t TlfPseudonym) Eq(r TlfPseudonym) bool {
+	return hmac.Equal(t[:], r[:])
 }
 
 // tlfPseudonymReq is what the server needs to store a pseudonym
@@ -60,7 +66,7 @@ type tlfPseudonymContents struct {
 	Version int
 	Name    string
 	ID      tlfID
-	KeyGen  keyGen
+	KeyGen  KeyGen
 }
 
 type getTlfPseudonymsRes struct {
@@ -75,17 +81,18 @@ func (r *getTlfPseudonymsRes) GetAppStatus() *AppStatus {
 type getTlfPseudonymRes struct {
 	Err  *PseudonymGetError `json:"err"`
 	Info *struct {
-		Name    string `json:"tlf_name"`
-		ID      string `json:"tlf_id"` // hex
-		KeyGen  int    `json:"tlf_key_gen"`
-		HmacKey string `json:"hmac_key"` // hex
+		Name                 string `json:"tlf_name"`
+		UntrustedCurrentName string `json:"untrusted_current_name"`
+		ID                   string `json:"tlf_id"` // hex
+		KeyGen               int    `json:"tlf_key_gen"`
+		HmacKey              string `json:"hmac_key"` // hex
 	} `json:"info"`
 }
 
 type GetTlfPseudonymEither struct {
 	// Exactly one of these 2 fields is nil.
 	Err  error
-	Info *TlfPseudonymInfo
+	Info *TlfPseudonymServerInfo
 }
 
 // MakePseudonym makes a TLF pseudonym from the given input.
@@ -204,9 +211,10 @@ func checkAndConvertTlfPseudonymFromServer(ctx context.Context, g *GlobalContext
 	}
 
 	if received.Info != nil {
-		info := TlfPseudonymInfo{}
+		info := TlfPseudonymServerInfo{}
 
 		info.Name = received.Info.Name
+		info.UntrustedCurrentName = received.Info.UntrustedCurrentName
 
 		n, err := hex.Decode(info.ID[:], []byte(received.Info.ID))
 		if err != nil {
@@ -216,7 +224,7 @@ func checkAndConvertTlfPseudonymFromServer(ctx context.Context, g *GlobalContext
 			return mkErr(fmt.Errorf("tlf id wrong length"))
 		}
 
-		info.KeyGen = keyGen(received.Info.KeyGen)
+		info.KeyGen = KeyGen(received.Info.KeyGen)
 
 		n, err = hex.Decode(info.HmacKey[:], []byte(received.Info.HmacKey))
 		if err != nil {
@@ -248,15 +256,27 @@ func checkTlfPseudonymFromServer(ctx context.Context, g *GlobalContext, req TlfP
 	}
 
 	// Check that the pseudonym info matches the query.
-	pn, err := MakePseudonym(*received.Info)
+	pn, err := MakePseudonym(received.Info.TlfPseudonymInfo)
 	if err != nil {
 		// Error creating pseudonym locally
 		return &PseudonymGetError{err.Error()}
 	}
-	if !req.Eq(&pn) {
+	if !req.Eq(pn) {
 		return &PseudonymGetError{fmt.Sprintf("returned data does not match pseudonym: %s != %s",
 			req, pn)}
 	}
 
 	return nil
+}
+
+func RandomHmacKey() [32]byte {
+	slice, err := RandBytes(32)
+	if err != nil {
+		panic(err)
+	}
+	array, err := MakeByte32(slice)
+	if err != nil {
+		panic(err)
+	}
+	return array
 }

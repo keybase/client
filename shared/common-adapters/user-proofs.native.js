@@ -21,7 +21,7 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
   // TODO (AW): this is copied from desktop as a starting point for mobile
   return (
     <ClickableBox style={{...styleRow, flex: 1, ...style}} key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
-      <Box style={styleRow}>
+      <Box style={{...styleRow, flex: 1}}>
         <Icon style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
         <Box style={styleProofNameSection}>
           <Box style={styleProofNameLabelContainer}>

@@ -3,44 +3,33 @@ import {Component} from 'react'
 import {List} from 'immutable'
 import * as Constants from '../../../constants/chat'
 
-export type StateProps = {
+export type StateProps = {|
+  _supersedes: ?Constants.SupersedeInfo,
   editLastMessageCounter: number,
-  editingMessage: ?Constants.Message,
-  firstNewMessageID: ?Constants.MessageID,
-  followingMap: Constants.FollowingMap,
   listScrollDownCounter: number,
-  messages: List<Constants.Message>,
-  metaDataMap: Constants.MetaDataMap,
-  moreToLoad: boolean,
+  messageKeys: List<string>,
   onFocusInput: () => void,
-  routePath: List<string>,
   selectedConversation: ?Constants.ConversationIDKey,
-  supersededBy: ?Constants.SupersedeInfo,
-  supersedes: ?Constants.SupersedeInfo,
   validated: boolean,
   you: string,
-}
+|}
 
-export type DispatchProps = {
+export type DispatchProps = {|
   _onLoadAttachment: (selectedConversation: Constants.ConversationIDKey, messageID: Constants.MessageID, filename: string) => void,
   _onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => void,
-  _onOpenInPopup: (message: Constants.AttachmentMessage, routePath: List<string>) => void,
-  _onRetryMessage: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => void,
   onDeleteMessage: (message: Constants.Message) => void,
   onEditMessage: (message: Constants.Message, body: string) => void,
-  onMessageAction: (message: Constants.ServerMessage) => void,
-  onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => void,
+  onMessageAction: (message: Constants.Message) => void,
   onOpenInFileUI: (path: string) => void,
-  onRetryAttachment: (message: Constants.AttachmentMessage) => void,
-}
+|}
 
-export type OwnProps = {
+export type OwnProps = {|
   focusInputCounter: number,
   listScrollDownCounter: number,
   onEditLastMessage: () => void,
   onScrollDown: () => void,
   onFocusInput: () => void,
   editLastMessageCounter: number,
-}
+|}
 
 export default class ListContainer extends Component<void, OwnProps, void> {}

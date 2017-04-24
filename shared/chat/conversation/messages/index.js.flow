@@ -1,30 +1,12 @@
 // @flow
+import * as Constants from '../../../constants/chat'
 
-import * as ChatConstants from '../../../constants/chat'
-import type {Message, AttachmentMessage, ConversationIDKey, ServerMessage, MetaDataMap, FollowingMap, OutboxIDKey} from '../../../constants/chat'
-
-export type Options = {
-  message: Message,
-  includeHeader: boolean,
-  key: string,
-  isEditing: boolean,
-  isFirstNewMessage: boolean,
-  style: Object,
-  isScrolling: boolean,
-  onAction: (message: ServerMessage, event: any) => void,
-  isSelected: boolean,
-  onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void,
-  onOpenConversation: (conversationIDKey: ConversationIDKey) => void,
-  onOpenInFileUI: (path: string) => void,
-  onOpenInPopup: (message: AttachmentMessage) => void,
-  onRetry: (outboxID: OutboxIDKey) => void,
-  onRetryAttachment: (message: AttachmentMessage) => void,
-  onShowEditor: (message: Message, event: any) => void,
-  you: string,
-  metaDataMap: MetaDataMap,
-  followingMap: FollowingMap,
-  moreToLoad: boolean,
-}
-
-declare var factory: (options: Options) => React$Element<*>
+declare function factory (
+  messageKey: Constants.MessageKey,
+  prevMessageKey: ?Constants.MessageKey,
+  onAction: (message: Constants.ServerMessage, event: any) => void,
+  onShowEditor: (message: Constants.ServerMessage, event: any) => void,
+  isSelectd: boolean,
+  measure: () => void
+): React$Element<*>
 export default factory

@@ -21,7 +21,7 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
         <Text type='Body' style={{...stylesMessage, ...(inviteLink ? {} : {marginBottom: 16})}}>{message}</Text>
         {inviteLink && <Box style={stylesLinkBox}>
           <Icon style={{color: globalColors.black_10, marginTop: 3}} type='iconfont-link' onClick={() => textRef && textRef.highlightText()} />
-          <Text ref={r => { textRef = r }} style={stylesLink} type='BodySemibold'>{inviteLink}</Text>
+          <Text allowHighlightText={true} ref={r => { textRef = r }} style={stylesLink} type='BodySemibold'>{inviteLink}</Text>
         </Box>}
       </Box>
     </Box>

@@ -6,6 +6,7 @@ declare function downloadFilePath (filename: string): string;
 declare function copy (from: string, to: string): void;
 declare function exists (filename: string): Promise<boolean>;
 declare function writeFile (filepath: string, contents: string, encoding?: string): Promise<void>;
+declare function writeStream (filepath: string, encoding: string, append?: boolean): Promise<*>;
 
 declare var cachesDirectoryPath: string
 
@@ -17,4 +18,5 @@ export {
   tmpDir,
   tmpFile,
   writeFile,
+  writeStream,
 }

@@ -13,6 +13,11 @@ type Offlinable interface {
 	Disconnected(ctx context.Context)
 }
 
+type Resumable interface {
+	Start(ctx context.Context, uid gregor1.UID)
+	Stop(ctx context.Context) chan struct{}
+}
+
 type TLFInfoSource interface {
 	Lookup(ctx context.Context, tlfName string, vis chat1.TLFVisibility) (*TLFInfo, error)
 	CryptKeys(ctx context.Context, tlfName string) (keybase1.GetTLFCryptKeysRes, error)
@@ -41,11 +46,10 @@ type ConversationSource interface {
 
 type MessageDeliverer interface {
 	Offlinable
+	Resumable
 
 	Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 		identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error)
-	Start(ctx context.Context, uid gregor1.UID)
-	Stop(ctx context.Context) chan struct{}
 	ForceDeliverLoop(ctx context.Context)
 }
 
@@ -95,6 +99,14 @@ type Syncer interface {
 	RegisterOfflinable(offlinable Offlinable)
 	SendChatStaleNotifications(ctx context.Context, uid gregor1.UID, convIDs []chat1.ConversationID,
 		immediate bool)
-	AddStaleConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
 	Shutdown()
+}
+
+type FetchRetrier interface {
+	Offlinable
+	Resumable
+
+	Failure(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, kind FetchType) error
+	Success(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, kind FetchType) error
+	Force(ctx context.Context)
 }

@@ -1,5 +1,6 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
+import * as RPCTypes from '../../constants/types/flow-types'
 import * as Constants from '../../constants/chat'
 import HiddenString from '../../util/hidden-string'
 import {List, Map} from 'immutable'
@@ -98,8 +99,9 @@ function updateLatestMessage (conversationIDKey: Constants.ConversationIDKey): C
   return {payload: {conversationIDKey}, type: 'chat:updateLatestMessage'}
 }
 
-function badgeAppForChat (conversations: List<Constants.ConversationBadgeState>): Constants.BadgeAppForChat {
-  return {payload: conversations, type: 'chat:badgeAppForChat'}
+function badgeAppForChat (conversations: ?Array<RPCTypes.BadgeConversationInfo>): Constants.BadgeAppForChat {
+  const convos = List((conversations || []).map(conversation => Constants.ConversationBadgeStateRecord(conversation)))
+  return {payload: convos, type: 'chat:badgeAppForChat'}
 }
 
 function openFolder (): Constants.OpenFolder {
@@ -130,8 +132,8 @@ function retryMessage (conversationIDKey: Constants.ConversationIDKey, outboxIDK
   return {logTransformer: retryMessageActionTransformer, payload: {conversationIDKey, outboxIDKey}, type: 'chat:retryMessage'}
 }
 
-function loadInbox (force?: boolean = false): Constants.LoadInbox {
-  return {payload: {force}, type: 'chat:loadInbox'}
+function loadInbox (): Constants.LoadInbox {
+  return {payload: undefined, type: 'chat:loadInbox'}
 }
 
 function loadMoreMessages (conversationIDKey: Constants.ConversationIDKey, onlyIfUnloaded: boolean): Constants.LoadMoreMessages {
@@ -186,8 +188,8 @@ function updatePaginationNext (conversationIDKey: Constants.ConversationIDKey, p
   return {payload: {conversationIDKey, paginationNext}, type: 'chat:updatePaginationNext'}
 }
 
-function markSeenMessage (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID): Constants.MarkSeenMessage {
-  return {payload: {conversationIDKey, messageID}, type: 'chat:markSeenMessage'}
+function markSeenMessage (conversationIDKey: Constants.ConversationIDKey, messageKey: Constants.MessageKey): Constants.MarkSeenMessage {
+  return {payload: {conversationIDKey, messageKey}, type: 'chat:markSeenMessage'}
 }
 
 function appendMessages (conversationIDKey: Constants.ConversationIDKey, isSelected: boolean, isAppFocused: boolean, messages: Array<Constants.Message>): Constants.AppendMessages {

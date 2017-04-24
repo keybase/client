@@ -637,7 +637,8 @@ func (p ProveUI) OutputInstructions(_ context.Context, arg keybase1.OutputInstru
 	if p.outputHook != nil {
 		err = p.outputHook(arg.Proof)
 	} else {
-		p.parent.Output("\n" + arg.Proof + "\n")
+		// Whitespace is trimmed from proof text before it gets here.
+		p.parent.Output("\n" + arg.Proof + "\n\n")
 	}
 	return
 }

@@ -1,9 +1,10 @@
 package engine
 
 import (
-	"context"
 	"os"
 	"testing"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 )
@@ -25,6 +26,7 @@ func TestLoginOffline(t *testing.T) {
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
 		a.ClearCachedSecretKeys()
+		a.UnloadLocalSession()
 	}, "account - clear")
 	tc.G.GetUPAKLoader().ClearMemory()
 
@@ -35,7 +37,7 @@ func TestLoginOffline(t *testing.T) {
 	tc.G.ConfigureAPI()
 
 	eng := NewLoginOffline(tc.G)
-	ctx := &Context{}
+	ctx := &Context{NetContext: context.Background()}
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}

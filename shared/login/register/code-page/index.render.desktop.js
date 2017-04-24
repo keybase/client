@@ -21,7 +21,7 @@ const SubTitle = ({usePhone}) => (
   </p>
 )
 
-const CodePageText = ({onBack, textCode}) => (
+const CodePageText = ({onBack, textCode, otherDeviceRole, setCodePageMode}) => (
   <Container style={stylesContainer} onBack={onBack}>
     <Text type='Header' style={{marginTop: 60}}>Type in text code</Text>
     <p style={{marginTop: 10}}>
@@ -29,6 +29,11 @@ const CodePageText = ({onBack, textCode}) => (
     </p>
     <Icon type='icon-computer-text-code-48' style={{marginTop: 28}} />
     <Text type='Body' style={stylesPaperkey}>{textCode}</Text>
+    {_otherIsPhone(otherDeviceRole) && <p style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}} onClick={() => setCodePageMode(codePageModeShowCode)}>
+      <Icon style={{marginRight: globalMargins.xtiny}} type='icon-phone-qr-code-32' />
+      <Text type='BodyPrimaryLink' onClick={() => setCodePageMode(codePageModeShowCode)}>Scan QR code instead</Text>
+    </p>
+    }
   </Container>
 )
 
@@ -50,7 +55,7 @@ const CodePageCode = ({onBack, otherDeviceRole, setCodePageMode, qrCode}) => (
   </Container>
 )
 
-const CodePageEnterText = ({onBack, otherDeviceRole, enterText, onChangeText, textEntered, setCodePageMode}) => (
+const CodePageEnterText = ({enterCodeErrorText, onBack, otherDeviceRole, enterText, onChangeText, textEntered, setCodePageMode}) => (
   <Container
     style={stylesContainer}
     onBack={onBack}>
@@ -58,6 +63,7 @@ const CodePageEnterText = ({onBack, otherDeviceRole, enterText, onChangeText, te
     <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
     <Icon style={{marginBottom: 40, marginTop: 30}} type='icon-phone-text-code-32' />
     <Input
+      errorText={enterCodeErrorText}
       hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
       floatingHintTextOverride='Text code'
       multiline={true}

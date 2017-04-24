@@ -1,10 +1,10 @@
 // @flow
 import {Component} from 'react'
 
-export type OwnProps = {
+export type OwnProps = {|
   onBack: () => void,
   onToggleSidePanel: () => void,
   sidePanelOpen: boolean,
-}
+|}
 
 export default class HeaderContainer extends Component<void, OwnProps, void> {}

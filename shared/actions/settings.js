@@ -4,7 +4,7 @@ import HiddenString from '../util/hidden-string'
 import {apiserverGetRpcPromise, apiserverPostRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise, accountEmailChangeRpcPromise, accountPassphraseChangeRpcPromise, accountHasServerKeysRpcPromise, userLoadMySettingsRpcPromise} from '../constants/types/flow-types'
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
-import {setDeletedSelf} from '../actions/login'
+import {setDeletedSelf} from '../actions/login/creators'
 import {delay} from 'redux-saga'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 

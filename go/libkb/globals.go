@@ -42,19 +42,21 @@ type LogoutHook interface {
 }
 
 type GlobalContext struct {
-	Log          logger.Logger        // Handles all logging
-	VDL          *VDebugLog           // verbose debug log
-	Env          *Env                 // Env variables, cmdline args & config
-	SKBKeyringMu *sync.Mutex          // Protects all attempts to mutate the SKBKeyringFile
-	Keyrings     *Keyrings            // Gpg Keychains holding keys
-	API          API                  // How to make a REST call to the server
-	Resolver     *Resolver            // cache of resolve results
-	LocalDb      *JSONLocalDb         // Local DB for cache
-	LocalChatDb  *JSONLocalDb         // Local DB for cache
-	MerkleClient *MerkleClient        // client for querying server's merkle sig tree
-	XAPI         ExternalAPI          // for contacting Twitter, Github, etc.
-	Output       io.Writer            // where 'Stdout'-style output goes
-	DNSNSFetcher DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
+	Log               logger.Logger // Handles all logging
+	VDL               *VDebugLog    // verbose debug log
+	Env               *Env          // Env variables, cmdline args & config
+	SKBKeyringMu      *sync.Mutex   // Protects all attempts to mutate the SKBKeyringFile
+	Keyrings          *Keyrings     // Gpg Keychains holding keys
+	sharedDHKeyringMu *sync.Mutex
+	sharedDHKeyring   *SharedDHKeyring     // Keyring holding shared DH keypairs
+	API               API                  // How to make a REST call to the server
+	Resolver          *Resolver            // cache of resolve results
+	LocalDb           *JSONLocalDb         // Local DB for cache
+	LocalChatDb       *JSONLocalDb         // Local DB for cache
+	MerkleClient      *MerkleClient        // client for querying server's merkle sig tree
+	XAPI              ExternalAPI          // for contacting Twitter, Github, etc.
+	Output            io.Writer            // where 'Stdout'-style output goes
+	DNSNSFetcher      DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
 
 	cacheMu        *sync.RWMutex   // protects all caches
 	ProofCache     *ProofCache     // where to cache proof results
@@ -109,6 +111,8 @@ type GlobalContext struct {
 	MessageDeliverer    chattypes.MessageDeliverer    // background message delivery service
 	ServerCacheVersions chattypes.ServerCacheVersions // server side versions for chat caches
 	ChatSyncer          chattypes.Syncer              // For syncing inbox with server
+	TlfInfoSource       chattypes.TLFInfoSource
+	ChatFetchRetrier    chattypes.FetchRetrier // For retrying failed fetch requests
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -120,6 +124,10 @@ type GlobalContext struct {
 
 	NetContext context.Context
 }
+
+// There are many interfaces that slice and dice the GlobalContext to expose a
+// smaller API. TODO: Assert more of them here.
+var _ ProofContext = (*GlobalContext)(nil)
 
 type GlobalTestOptions struct {
 	NoBug3964Repair bool
@@ -141,6 +149,7 @@ func NewGlobalContext() *GlobalContext {
 		Log:                log,
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
+		sharedDHKeyringMu:  new(sync.Mutex),
 		cacheMu:            new(sync.RWMutex),
 		socketWrapperMu:    new(sync.RWMutex),
 		shutdownOnce:       new(sync.Once),
@@ -251,6 +260,8 @@ func (g *GlobalContext) Logout() error {
 	}
 
 	g.CallLogoutHooks()
+
+	g.ClearSharedDHKeyring()
 
 	if g.TrackCache != nil {
 		g.TrackCache.Shutdown()
@@ -430,8 +441,14 @@ func (g *GlobalContext) GetFullSelfer() FullSelfer {
 	return g.fullSelfer
 }
 
+// to implement ProofContext
 func (g *GlobalContext) GetPvlSource() PvlSource {
 	return g.pvlSource
+}
+
+// to implement ProofContext
+func (g *GlobalContext) GetAppType() AppType {
+	return g.Env.GetAppType()
 }
 
 func (g *GlobalContext) ConfigureExportedStreams() error {
@@ -497,6 +514,9 @@ func (g *GlobalContext) Shutdown() error {
 		}
 		if g.MessageDeliverer != nil {
 			g.MessageDeliverer.Stop(context.Background())
+		}
+		if g.ChatFetchRetrier != nil {
+			g.ChatFetchRetrier.Stop(context.Background())
 		}
 		if g.ChatSyncer != nil {
 			g.ChatSyncer.Shutdown()
@@ -753,6 +773,9 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 }
 
 func (g *GlobalContext) CallLoginHooks() {
+	g.Log.Debug("G#CallLoginHooks")
+
+	g.BumpSharedDHKeyring()
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin()
@@ -911,6 +934,8 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.Log.Debug("+ UserChanged(%s)", u)
 	defer g.Log.Debug("- UserChanged(%s)", u)
 
+	g.BumpSharedDHKeyring()
+
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
 		g.NotifyRouter.HandleUserChanged(u)
@@ -926,4 +951,56 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	}
 	g.UserChangedHandlers = newList
 	g.uchMu.Unlock()
+}
+
+func (g *GlobalContext) GetSharedDHKeyring() (ret *SharedDHKeyring, err error) {
+	defer g.Trace("G#GetSharedDHKeyring", func() error { return err })()
+	g.sharedDHKeyringMu.Lock()
+	defer g.sharedDHKeyringMu.Unlock()
+	if g.sharedDHKeyring == nil {
+		return nil, fmt.Errorf("SharedDHKeyring not present")
+	}
+	return g.sharedDHKeyring, nil
+}
+
+func (g *GlobalContext) ClearSharedDHKeyring() {
+	defer g.Trace("G#ClearSharedDHKeyring", func() error { return nil })()
+	g.sharedDHKeyringMu.Lock()
+	defer g.sharedDHKeyringMu.Unlock()
+	g.sharedDHKeyring = nil
+}
+
+// BumpSharedDHKeyring recreates SharedDHKeyring if the uid/did changes.
+func (g *GlobalContext) BumpSharedDHKeyring() error {
+	g.Log.Debug("G#BumpSharedDHKeyring")
+	uid := g.GetMyUID()
+	did := g.Env.GetDeviceID()
+
+	// Don't do any operations under these locks that could come back and hit them again.
+	// That's why uid/did up above are not under this lock.
+	g.sharedDHKeyringMu.Lock()
+	defer g.sharedDHKeyringMu.Unlock()
+
+	makeNew := func() error {
+		sdhk, err := NewSharedDHKeyring(g, uid, did)
+		if err != nil {
+			g.Log.Warning("G#BumpSharedDHKeyring -> failed: %s", err)
+			g.sharedDHKeyring = nil
+			return err
+		}
+		g.Log.Debug("G#BumpSharedDHKeyring -> new")
+		g.sharedDHKeyring = sdhk
+		return nil
+	}
+
+	if g.sharedDHKeyring == nil {
+		return makeNew()
+	}
+	eUID, eDid := g.sharedDHKeyring.GetOwner()
+	if eUID.Equal(uid) && eDid.Eq(did) {
+		// Leave the existing keyring in place for the same user
+		g.Log.Debug("G#BumpSharedDHKeyring -> ignore")
+		return nil
+	}
+	return makeNew()
 }
