@@ -16,7 +16,7 @@ cd "$src_dir"
 mkdir -p "$build_dir"
 
 echo "Building $build_dir/updater"
-GO15VENDOREXPERIMENT=1 go build -a -o "$dest" "$package"
+go build -a -o "$dest" "$package"
 
 if [ "$PLATFORM" = "darwin" ]; then
   echo "Signing binary..."
