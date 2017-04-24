@@ -174,7 +174,7 @@ class ConversationList extends PureComponent<void, Props, {dataSource: any}> {
   }
 
   _onChangeVisibleRows = debounce((visibleRows) => {
-    const idxs = Object.keys(visibleRows.s1)
+    const idxs = Object.keys(visibleRows && visibleRows.s1 || {})
 
     if (idxs.length) {
       const idx = parseInt(idxs[0], 10)
