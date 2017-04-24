@@ -3,7 +3,7 @@ import * as Constants from '../../../../constants/chat'
 import * as Creators from '../../../../actions/chat/creators'
 import OldProfileResetNotice from '.'
 import {List} from 'immutable'
-import {compose} from 'recompose'
+import {compose, branch, renderNothing} from 'recompose'
 import {connect} from 'react-redux'
 
 import type {TypedState} from '../../../../constants/reducer'
@@ -12,7 +12,7 @@ import type {StateProps, DispatchProps} from './container'
 const mapStateToProps = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   if (!selectedConversationIDKey) {
-    throw new Error('no selected conversation')
+    return {}
   }
   const finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)
   const _supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
@@ -41,5 +41,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps)
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  branch(props => !props.username, renderNothing)
 )(OldProfileResetNotice)
