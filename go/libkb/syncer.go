@@ -38,7 +38,7 @@ func RunSyncer(s Syncer, uid keybase1.UID, loggedIn bool, sr SessionReader) (err
 		return
 	}
 
-	if s.G().ConnectivityMonitor.IsConnected(context.Background()) != ConnectivityMonitorYes {
+	if s.G().ConnectivityMonitor.IsConnected(context.Background()) == ConnectivityMonitorNo {
 		s.G().Log.Debug("| not connected, won't sync with server")
 		return
 	}
