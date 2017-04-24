@@ -124,7 +124,6 @@ const _Row = (props: RowProps) => {
         <Box style={{
           ...conversationRowStyle,
           backgroundColor: props.backgroundColor,
-          borderBottomColor: !props.isSelected ? globalColors.black_10 : props.backgroundColor,
         }}>
           <TopLine
             hasUnread={props.hasUnread}
@@ -239,11 +238,10 @@ const avatarLockIconStyle = {
 
 const conversationRowStyle = {
   ...globalStyles.flexBoxColumn,
-  borderBottomWidth: 1,
   flexGrow: 1,
   justifyContent: 'center',
-  maxHeight: 56,
-  minHeight: 56,
+  maxHeight: 64,
+  minHeight: 64,
   paddingRight: 8,
 }
 
@@ -252,8 +250,8 @@ const rowContainerStyle = {
   ...globalStyles.clickable,
   alignItems: 'center',
   flexGrow: 1,
-  maxHeight: 56,
-  minHeight: 56,
+  maxHeight: 64,
+  minHeight: 64,
 }
 
 export default ConversationList

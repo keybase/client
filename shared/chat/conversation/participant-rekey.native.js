@@ -43,13 +43,15 @@ const containerStyle = {
 const rowStyle = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
-  minHeight: 48,
+  minHeight: 56,
+  alignItems: 'center',
 }
 
 const innerRowStyle = {
   ...globalStyles.flexBoxColumn,
   borderBottomWidth: 1,
   borderBottomColor: globalColors.black_10,
+  minHeight: 56,
   flex: 1,
   justifyContent: 'center',
 }

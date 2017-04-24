@@ -4,6 +4,7 @@ import _ from 'lodash'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
 import Badge from './badge'
+import Avatar from './avatar'
 import Box from './box'
 import Icon from './icon'
 import Text from './text'
@@ -32,7 +33,7 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
 
 class TabBarButton extends Component<void, TabBarButtonProps, void> {
   render () {
-    const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
+    const iconColor = this.props.selected ? globalColors.white : globalColors.blue3_40
     const badgeNumber = this.props.badgeNumber || 0
 
     let badgeComponent
@@ -47,10 +48,10 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
     }
 
     const content = (
-      <Box style={{backgroundColor, ...stylesTabBarButtonIcon, ...this.props.style, flexGrow: 1}}>
+      <Box style={{...stylesTabBarButtonIcon, ...this.props.style, flexGrow: 1}}>
         {this.props.source.type === 'icon'
-          ? <Icon type={this.props.source.icon} style={{fontSize: 32, width: 32, textAlign: 'center', color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40, ...this.props.styleIcon}} />
-          : this.props.source.avatar}
+          ? <Icon type={this.props.source.icon} style={{color: iconColor, fontSize: 32, width: 32, textAlign: 'center', ...this.props.styleIcon}} />
+          : <Avatar size={24} username={this.props.source.username} borderColor={iconColor} />}
         {!!this.props.label && <Text type='BodySemibold' style={{textAlign: 'center', ...this.props.styleLabel}}>{this.props.label}</Text>}
         {badgeNumber > 0 && badgeComponent}
       </Box>
