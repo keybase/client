@@ -1649,6 +1649,13 @@ type Config interface {
 	// background flushes.
 	SetBGFlushDirOpBatchSize(s int)
 
+	// BGFlushPeriod returns how long to wait for a batch to fill up
+	// before syncing a set of changes to the servers.
+	BGFlushPeriod() time.Duration
+	// SetBGFlushPeriod sets how long to wait for a batch to fill up
+	// before syncing a set of changes to the servers.
+	SetBGFlushPeriod(p time.Duration)
+
 	// Shutdown is called to free config resources.
 	Shutdown(context.Context) error
 	// CheckStateOnShutdown tells the caller whether or not it is safe

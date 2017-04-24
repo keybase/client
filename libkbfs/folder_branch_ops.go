@@ -79,9 +79,6 @@ const (
 	maxParallelBlockGets = 10
 	// Max response size for a single DynamoDB query is 1MB.
 	maxMDsAtATime = 10
-	// Time between checks for dirty files to flush, in case Sync is
-	// never called.
-	secondsBetweenBackgroundFlushes = 1
 	// Cap the number of times we retry after a recoverable error
 	maxRetriesOnRecoverableErrors = 10
 	// When the number of dirty bytes exceeds this level, force a sync.
@@ -417,7 +414,7 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 	fbo.editHistory = NewTlfEditHistory(config, fbo, log)
 	fbo.rekeyFSM = NewRekeyFSM(fbo)
 	if config.DoBackgroundFlushes() {
-		go fbo.backgroundFlusher(secondsBetweenBackgroundFlushes * time.Second)
+		go fbo.backgroundFlusher()
 	}
 
 	return fbo
@@ -5440,9 +5437,7 @@ func (fbo *folderBranchOps) getCachedDirOpsCount(lState *lockState) int {
 	return len(fbo.dirOps)
 }
 
-func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
-	ticker := time.NewTicker(betweenFlushes)
-	defer ticker.Stop()
+func (fbo *folderBranchOps) backgroundFlusher() {
 	lState := makeFBOLockState()
 	var prevDirtyFileMap map[BlockRef]bool
 	sameDirtyFileCount := 0
@@ -5476,13 +5471,14 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 			}
 
 			if !forced {
+				timer := time.NewTimer(fbo.config.BGFlushPeriod())
 				// Loop until either a tick's worth of time passes,
 				// the batch size of directory ops is full, a sync is
 				// forced, or a shutdown happens.
 			loop:
 				for {
 					select {
-					case <-ticker.C:
+					case <-timer.C:
 						break loop
 					case <-fbo.syncNeededChan:
 						if fbo.getCachedDirOpsCount(lState) >=
@@ -5495,6 +5491,7 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 						return
 					}
 				}
+				timer.Stop()
 			}
 		}
 

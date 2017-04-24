@@ -4479,7 +4479,8 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 
 	// start the background flusher
 	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
-	go ops.backgroundFlusher(1 * time.Millisecond)
+	config.SetBGFlushPeriod(1 * time.Millisecond)
+	go ops.backgroundFlusher()
 
 	// Make sure we get the notification
 	select {

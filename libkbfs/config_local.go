@@ -48,6 +48,9 @@ const (
 	// directory operations should be batched together in a single
 	// background flush.
 	bgFlushDirOpBatchSizeDefault = 20
+	// bgFlushPeriodDefault is the default for how long to wait for a
+	// batch to fill up before syncing a set of changes to the servers.
+	bgFlushPeriodDefault = 1 * time.Second
 )
 
 // ConfigLocal implements the Config interface using purely local
@@ -107,6 +110,10 @@ type ConfigLocal struct {
 	// operations should be batched together in a single background
 	// flush.
 	bgFlushDirOpBatchSize int
+
+	// bgFlushPeriod indicates how long to wait for a batch to fill up
+	// before syncing a set of changes to the servers.
+	bgFlushPeriod time.Duration
 
 	// metadataVersion is the version to use when creating new metadata.
 	metadataVersion MetadataVer
@@ -281,6 +288,7 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 
 	config.tlfValidDuration = tlfValidDurationDefault
 	config.bgFlushDirOpBatchSize = bgFlushDirOpBatchSizeDefault
+	config.bgFlushPeriod = bgFlushPeriodDefault
 	config.metadataVersion = defaultClientMetadataVer
 
 	return config
@@ -903,6 +911,20 @@ func (c *ConfigLocal) BGFlushDirOpBatchSize() int {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.bgFlushDirOpBatchSize
+}
+
+// SetBGFlushPeriod implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetBGFlushPeriod(p time.Duration) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.bgFlushPeriod = p
+}
+
+// BGFlushPeriod implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) BGFlushPeriod() time.Duration {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.bgFlushPeriod
 }
 
 // Shutdown implements the Config interface for ConfigLocal.
