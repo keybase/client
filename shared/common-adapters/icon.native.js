@@ -6,6 +6,7 @@ import React, {Component} from 'react'
 import {NativeText, NativeImage} from './native-wrappers.native'
 import {globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
+import {omit} from 'lodash'
 
 import type {Exact} from '../constants/types/more'
 import type {IconType, Props} from './icon'
@@ -33,19 +34,18 @@ class Icon extends Component<void, Exact<Props>, void> {
     const backgroundColor = this.props.style && {backgroundColor: this.props.style.backgroundColor} || {}
 
     // Extract style props for our container and box
-    let containerProps = {
-      ...this.props.style,
-      bottom: undefined,
-      color: undefined,
-      fontSize: undefined,
-      height: undefined,
-      left: undefined,
-      position: undefined,
-      right: undefined,
-      textAlign: undefined,
-      top: undefined,
-      width: undefined,
-    }
+    let containerProps = omit(this.props.style, [
+      'bottom',
+      'color',
+      'fontSize',
+      'height',
+      'left',
+      'position',
+      'right',
+      'textAlign',
+      'top',
+      'width',
+    ])
 
     const clickableBoxStyle = {
       bottom: this.props.style && this.props.style.bottom,
