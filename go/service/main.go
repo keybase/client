@@ -415,7 +415,7 @@ func (d *Service) tryGregordConnect() error {
 	// is down, it will still return false, along with the network error. We
 	// need to handle that case specifically, so that we still start the gregor
 	// connect loop.
-	loggedIn, err := d.G().LoginState().LoggedInLoad()
+	loggedIn, err := d.G().LoginState().LoggedInProvisioned()
 	if err != nil {
 		// A network error means we *think* we're logged in, and we tried to
 		// confirm with the API server. In that case we'll swallow the error
