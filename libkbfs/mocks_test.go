@@ -5073,6 +5073,24 @@ func (_mr *_MockConfigRecorder) SetTLFValidDuration(arg0 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetTLFValidDuration", arg0)
 }
 
+func (_m *MockConfig) BGFlushDirOpBatchSize() int {
+	ret := _m.ctrl.Call(_m, "BGFlushDirOpBatchSize")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) BGFlushDirOpBatchSize() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "BGFlushDirOpBatchSize")
+}
+
+func (_m *MockConfig) SetBGFlushDirOpBatchSize(s int) {
+	_m.ctrl.Call(_m, "SetBGFlushDirOpBatchSize", s)
+}
+
+func (_mr *_MockConfigRecorder) SetBGFlushDirOpBatchSize(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetBGFlushDirOpBatchSize", arg0)
+}
+
 func (_m *MockConfig) Shutdown(_param0 context.Context) error {
 	ret := _m.ctrl.Call(_m, "Shutdown", _param0)
 	ret0, _ := ret[0].(error)

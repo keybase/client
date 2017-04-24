@@ -44,6 +44,10 @@ const (
 	qrMinHeadAgeDefault = 24 * time.Hour
 	// tlfValidDurationDefault is the default for tlf validity before redoing identify.
 	tlfValidDurationDefault = 6 * time.Hour
+	// bgFlushDirOpThresholdDefault is the default for how many
+	// directory operations should be batched together in a single
+	// background flush.
+	bgFlushDirOpBatchSizeDefault = 20
 )
 
 // ConfigLocal implements the Config interface using purely local
@@ -98,6 +102,11 @@ type ConfigLocal struct {
 
 	// tlfValidDuration is the time TLFs are valid before redoing identification.
 	tlfValidDuration time.Duration
+
+	// bgFlushDirOpBatchSizeDefault indicates how many directory
+	// operations should be batched together in a single background
+	// flush.
+	bgFlushDirOpBatchSize int
 
 	// metadataVersion is the version to use when creating new metadata.
 	metadataVersion MetadataVer
@@ -271,6 +280,7 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 	}
 
 	config.tlfValidDuration = tlfValidDurationDefault
+	config.bgFlushDirOpBatchSize = bgFlushDirOpBatchSizeDefault
 	config.metadataVersion = defaultClientMetadataVer
 
 	return config
@@ -879,6 +889,20 @@ func (c *ConfigLocal) SetTLFValidDuration(r time.Duration) {
 // TLFValidDuration implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) TLFValidDuration() time.Duration {
 	return c.tlfValidDuration
+}
+
+// SetBGFlushDirOpBatchSize implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetBGFlushDirOpBatchSize(s int) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.bgFlushDirOpBatchSize = s
+}
+
+// BGFlushDirOpBatchSize implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) BGFlushDirOpBatchSize() int {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.bgFlushDirOpBatchSize
 }
 
 // Shutdown implements the Config interface for ConfigLocal.

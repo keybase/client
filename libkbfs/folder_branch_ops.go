@@ -5434,6 +5434,12 @@ func (fbo *folderBranchOps) waitForAndProcessUpdates(
 	}
 }
 
+func (fbo *folderBranchOps) getCachedDirOpsCount(lState *lockState) int {
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+	return len(fbo.dirOps)
+}
+
 func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 	ticker := time.NewTicker(betweenFlushes)
 	defer ticker.Stop()
@@ -5449,6 +5455,9 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 			// so don't bother waiting for a signal, just get right to
 			// the main attraction.
 			doSelect = false
+		} else if fbo.getCachedDirOpsCount(lState) >=
+			fbo.config.BGFlushDirOpBatchSize() {
+			doSelect = false
 		}
 
 		if doSelect {
@@ -5456,6 +5465,10 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 			forced := false
 			select {
 			case <-fbo.syncNeededChan:
+				if fbo.getCachedDirOpsCount(lState) >=
+					fbo.config.BGFlushDirOpBatchSize() {
+					forced = true
+				}
 			case <-fbo.forceSyncChan:
 				forced = true
 			case <-fbo.shutdownChan:
@@ -5463,17 +5476,31 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 			}
 
 			if !forced {
-				select {
-				case <-ticker.C:
-				case <-fbo.forceSyncChan:
-				case <-fbo.shutdownChan:
-					return
+				// Loop until either a tick's worth of time passes,
+				// the batch size of directory ops is full, a sync is
+				// forced, or a shutdown happens.
+			loop:
+				for {
+					select {
+					case <-ticker.C:
+						break loop
+					case <-fbo.syncNeededChan:
+						if fbo.getCachedDirOpsCount(lState) >=
+							fbo.config.BGFlushDirOpBatchSize() {
+							break loop
+						}
+					case <-fbo.forceSyncChan:
+						break loop
+					case <-fbo.shutdownChan:
+						return
+					}
 				}
 			}
 		}
 
 		dirtyFiles := fbo.blocks.GetDirtyFileBlockRefs(lState)
-		if len(dirtyFiles) == 0 {
+		dirOpsCount := fbo.getCachedDirOpsCount(lState)
+		if len(dirtyFiles) == 0 && dirOpsCount == 0 {
 			sameDirtyFileCount = 0
 			continue
 		}
@@ -5497,6 +5524,9 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 				func(ctx context.Context) context.Context {
 					return context.WithValue(ctx, CtxBackgroundSyncKey, "1")
 				})
+
+			fbo.log.CDebugf(ctx, "Background sync triggered: %d dirty files, "+
+				"%d dir ops in batch", len(dirtyFiles), dirOpsCount)
 
 			if sameDirtyFileCount >= 100 {
 				// If the local journal is full, we might not be able to

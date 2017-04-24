@@ -1641,6 +1641,14 @@ type Config interface {
 	TLFValidDuration() time.Duration
 	// SetTLFValidDuration sets TLFValidDuration.
 	SetTLFValidDuration(time.Duration)
+
+	// BGFlushDirOpBatchSize returns the directory op batch size for
+	// background flushes.
+	BGFlushDirOpBatchSize() int
+	// SetBGFlushDirOpBatchSize sets the directory op batch size for
+	// background flushes.
+	SetBGFlushDirOpBatchSize(s int)
+
 	// Shutdown is called to free config resources.
 	Shutdown(context.Context) error
 	// CheckStateOnShutdown tells the caller whether or not it is safe
