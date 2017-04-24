@@ -119,13 +119,6 @@ func (e *loginProvision) Run(ctx *Context) error {
 	// exit.
 	tx = nil
 
-	// TODO Can this be solved with local updates instead?
-	// Reload me so that keys will be up to date.
-	e.arg.User, err = libkb.LoadUser(libkb.LoadUserArg{Self: true, UID: e.arg.User.GetUID(), PublicKeyOptional: true, Contextified: libkb.NewContextified(e.G())})
-	if err != nil {
-		return err
-	}
-
 	if err := e.ensurePaperKey(ctx); err != nil {
 		return err
 	}
@@ -257,6 +250,9 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		if err != nil {
 			return err
 		}
+
+		// Update our user object with the new sigchain links
+		provisionee.updateUser(e.arg.User)
 
 		return nil
 	}

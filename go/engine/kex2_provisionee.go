@@ -21,20 +21,21 @@ import (
 // Kex2Provisionee is an engine.
 type Kex2Provisionee struct {
 	libkb.Contextified
-	device       *libkb.Device
-	secret       kex2.Secret
-	secretCh     chan kex2.Secret
-	eddsa        libkb.NaclKeyPair
-	dh           libkb.NaclKeyPair
-	uid          keybase1.UID
-	username     string
-	sessionToken keybase1.SessionToken
-	csrfToken    keybase1.CsrfToken
-	pps          keybase1.PassphraseStream
-	lks          *libkb.LKSec
-	kex2Cancel   func()
-	ctx          *Context
-	v1Only       bool // only support protocol v1 (for testing)
+	device          *libkb.Device
+	secret          kex2.Secret
+	secretCh        chan kex2.Secret
+	eddsa           libkb.NaclKeyPair
+	dh              libkb.NaclKeyPair
+	uid             keybase1.UID
+	username        string
+	sessionToken    keybase1.SessionToken
+	csrfToken       keybase1.CsrfToken
+	pps             keybase1.PassphraseStream
+	lks             *libkb.LKSec
+	kex2Cancel      func()
+	ctx             *Context
+	v1Only          bool                    // only support protocol v1 (for testing)
+	localDelegateFn func(*libkb.User) error // closure created after success to update a local user
 }
 
 // Kex2Provisionee implements kex2.Provisionee, libkb.UserBasic,
@@ -253,7 +254,7 @@ func (e *Kex2Provisionee) handleDidCounterSign(sig []byte, sdhBoxes []keybase1.S
 	}
 
 	// make a keyproof for the dh key, signed w/ e.eddsa
-	dhSig, dhSigID, err := e.dhKeyProof(e.dh, decSig.eldestKID, decSig.seqno, decSig.linkID)
+	dhSig, dhSigID, dhLinkID, err := e.dhKeyProof(e.dh, decSig.eldestKID, decSig.seqno, decSig.linkID)
 	if err != nil {
 		return err
 	}
@@ -286,6 +287,21 @@ func (e *Kex2Provisionee) handleDidCounterSign(sig []byte, sdhBoxes []keybase1.S
 
 	// post the key sigs to the api server
 	if err = e.postSigs(eddsaArgs, dhArgs, sdhBoxes); err != nil {
+		return err
+	}
+
+	// remember how to update a user with the new links
+	e.localDelegateFn = func(u *libkb.User) (err error) {
+		// Signing sibkey link
+		u.SigChainBump(decSig.linkID, decSig.sigID)
+		err = u.LocalDelegateKey(e.eddsa, decSig.sigID, decSig.signingKID, true /*isSibkey*/, false /*isEldest*/)
+		if err != nil {
+			return err
+		}
+
+		// Encryption subkey link
+		u.SigChainBump(dhLinkID, dhSigID)
+		err = u.LocalDelegateKey(e.dh, dhSigID, e.eddsa.GetKID(), false /*isSibkey*/, false /*isEldest*/)
 		return err
 	}
 
@@ -498,7 +514,7 @@ func makeKeyArgs(sigID keybase1.SigID, sig []byte, delType libkb.DelegationType,
 	return &args, nil
 }
 
-func (e *Kex2Provisionee) dhKeyProof(dh libkb.GenericKey, eldestKID keybase1.KID, seqno int, linkID libkb.LinkID) (sig string, sigID keybase1.SigID, err error) {
+func (e *Kex2Provisionee) dhKeyProof(dh libkb.GenericKey, eldestKID keybase1.KID, seqno int, linkID libkb.LinkID) (sig string, sigID keybase1.SigID, outLinkID libkb.LinkID, err error) {
 	delg := libkb.Delegator{
 		ExistingKey:    e.eddsa,
 		NewKey:         dh,
@@ -514,17 +530,17 @@ func (e *Kex2Provisionee) dhKeyProof(dh libkb.GenericKey, eldestKID keybase1.KID
 
 	jw, err := libkb.KeyProof(delg)
 	if err != nil {
-		return "", "", err
+		return "", "", libkb.LinkID{}, err
 	}
 
 	e.G().Log.Debug("dh key proof: %s", jw.MarshalPretty())
 
-	dhSig, dhSigID, _, err := libkb.SignJSON(jw, e.eddsa)
+	dhSig, dhSigID, dhLinkID, err := libkb.SignJSON(jw, e.eddsa)
 	if err != nil {
-		return "", "", err
+		return "", "", libkb.LinkID{}, err
 	}
 
-	return dhSig, dhSigID, nil
+	return dhSig, dhSigID, dhLinkID, nil
 
 }
 
@@ -600,20 +616,29 @@ func (e *Kex2Provisionee) cacheKeys() (err error) {
 
 func (e *Kex2Provisionee) SigningKey() (libkb.GenericKey, error) {
 	if e.eddsa == nil {
-		return nil, fmt.Errorf("provisionee missing signing key")
+		return nil, errors.New("provisionee missing signing key")
 	}
 	return e.eddsa, nil
 }
 
 func (e *Kex2Provisionee) EncryptionKey() (libkb.NaclDHKeyPair, error) {
 	if e.dh == nil {
-		return libkb.NaclDHKeyPair{}, fmt.Errorf("provisionee missing encryption key")
+		return libkb.NaclDHKeyPair{}, errors.New("provisionee missing encryption key")
 	}
 	ret, ok := e.dh.(libkb.NaclDHKeyPair)
 	if !ok {
-		return libkb.NaclDHKeyPair{}, fmt.Errorf("provisionee encryption key unexpected type")
+		return libkb.NaclDHKeyPair{}, fmt.Errorf("provisionee encryption key unexpected type %T", e.dh)
 	}
 	return ret, nil
+}
+
+// updateUser calls LocalDelegateKey on the local user.
+// Use it on a user right after successful provisioning to avoid a roundtrip for a full re-load.
+func (e *Kex2Provisionee) updateUser(u *libkb.User) error {
+	if e.localDelegateFn == nil {
+		return errors.New("updateUser called before successful provision")
+	}
+	return e.localDelegateFn(u)
 }
 
 func firstValues(vals url.Values) map[string]string {

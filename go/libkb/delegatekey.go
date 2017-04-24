@@ -224,7 +224,7 @@ func (d *Delegator) updateLocalState(linkid LinkID) (err error) {
 	d.Me.SigChainBump(linkid, d.sigID)
 	d.merkleTriple = MerkleTriple{LinkID: linkid, SigID: d.sigID}
 
-	return d.Me.localDelegateKey(d.NewKey, d.sigID, d.getExistingKID(), d.IsSibkeyOrEldest(), d.IsEldest())
+	return d.Me.LocalDelegateKey(d.NewKey, d.sigID, d.getExistingKID(), d.IsSibkeyOrEldest(), d.IsEldest())
 }
 
 func (d *Delegator) post(lctx LoginContext) (err error) {
