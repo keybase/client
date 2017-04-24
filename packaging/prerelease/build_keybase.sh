@@ -16,11 +16,6 @@ keybase_build=${KEYBASE_BUILD:-$build}
 tags=${TAGS:-"prerelease production"}
 ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build"
 
-if [ "$PLATFORM" = "darwin" ]; then
-  # To get codesign to work you have to use -ldflags "-s ...", see https://github.com/golang/go/issues/11887
-  ldflags="-s $ldflags"
-fi
-
 echo "Building $build_dir/keybase ($keybase_build)"
 GO15VENDOREXPERIMENT=1 go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase" "github.com/keybase/client/go/keybase"
 

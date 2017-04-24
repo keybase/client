@@ -17,11 +17,6 @@ tags=${TAGS:-"prerelease production"}
 ldflags="-X main.Version=$kbnm_build"
 pkg="github.com/keybase/client/go/kbnm"
 
-if [ "$PLATFORM" = "darwin" ]; then
-  # To get codesign to work you have to use -ldflags "-s ...", see https://github.com/golang/go/issues/11887
-  ldflags="-s $ldflags"
-fi
-
 echo "Building $build_dir/kbnm ($kbnm_build)"
 go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/kbnm" "$pkg"
 
