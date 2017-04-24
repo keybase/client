@@ -51,8 +51,4 @@ export const profileRoute = new RouteDefNode({
   },
 })
 
-const routeTree = new RouteDefNode({
-  ...profileRoute.toJS(),
-})
-
-export default routeTree
+export default profileRoute
