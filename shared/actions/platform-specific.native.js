@@ -8,6 +8,7 @@ import {isDevApplePushToken} from '../local-debug'
 import {chatTab} from '../constants/tabs'
 import {setInitialTab, setInitialLink} from './config'
 import {setInitialConversation} from './chat'
+import {validAppLink} from '../constants/app'
 
 import type {AsyncAction} from '../constants/types/flux'
 
@@ -147,7 +148,7 @@ function loadRouteState (): AsyncAction {
   return (dispatch, getState) => {
     let foundLink = false
     Linking.getInitialURL().then((url) => {
-      if (url) {
+      if (url && validAppLink(url)) {
         foundLink = true
         dispatch(setInitialLink(url))
       }

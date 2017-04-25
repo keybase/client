@@ -10,6 +10,7 @@ import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
 import {profileTab} from '../../constants/tabs'
 import {revokeRevokeSigsRpcPromise, userProfileEditRpcPromise} from '../../constants/types/flow-types'
 import {safeTakeEvery} from '../../util/saga'
+import {validAppLink} from '../../constants/app'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
@@ -163,6 +164,9 @@ function outputInstructionsActionLink (): Constants.OutputInstructionsActionLink
 }
 
 function * _onAppLink (action: AppLink): SagaGenerator<any, any> {
+  if (!validAppLink(action.payload.link)) {
+    return
+  }
   const match = action.payload.link.match(/^https:\/\/keybase\.io\/(\w+)$/)
   const username = match && match[1]
   if (username) {

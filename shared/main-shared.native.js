@@ -66,7 +66,7 @@ class Main extends Component<void, any, void> {
       this._persistRoute()
     }
 
-    if (this.props.menuBadgeCount !== nextProps.menuBadgeCount) {
+    if (nextProps.menuBadgeCount && (this.props.menuBadgeCount !== nextProps.menuBadgeCount)) {
       RNPN.setApplicationIconBadgeNumber(nextProps.menuBadgeCount)
     }
   }
