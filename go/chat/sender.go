@@ -451,7 +451,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// Log some useful information about the message we are sending
 	obidstr := "(none)"
 	if boxed.ClientHeader.OutboxID != nil {
-		obidstr = fmt.Sprintf("%s", boxed.ClientHeader.OutboxID)
+		obidstr = fmt.Sprintf("%s", *boxed.ClientHeader.OutboxID)
 	}
 	s.Debug(ctx, "sending message: convID: %s outboxID: %s", convID, obidstr)
 
