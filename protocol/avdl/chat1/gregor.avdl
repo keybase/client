@@ -41,6 +41,15 @@ protocol gregor {
         union { null, UnreadUpdate } unreadUpdate;
     }
 
+    record SetSettingsPayload {
+        @lint("ignore")
+        string Action;
+        union { null, ConversationID } convID;
+        array<SettingKV> settings;
+        InboxVers inboxVers;
+        union { null, UnreadUpdate } unreadUpdate;
+    }
+
     record UnreadUpdate {
         ConversationID convID;
         // The count of unread messages to display

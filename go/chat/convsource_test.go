@@ -126,6 +126,8 @@ type failingRemote struct {
 	t *testing.T
 }
 
+var _ chat1.RemoteInterface = (*failingRemote)(nil)
+
 func newFailingRemote(t *testing.T) failingRemote {
 	return failingRemote{
 		t: t,
@@ -174,6 +176,11 @@ func (f failingRemote) SetConversationStatus(context.Context, chat1.SetConversat
 
 	require.Fail(f.t, "SetConversationStatus call")
 	return chat1.SetConversationStatusRes{}, nil
+}
+func (f failingRemote) SetSettings(context.Context, chat1.SetSettingsArg) (chat1.SetSettingsRes, error) {
+
+	require.Fail(f.t, "SetSettings call")
+	return chat1.SetSettingsRes{}, nil
 }
 func (f failingRemote) GetUnreadUpdateFull(context.Context, chat1.InboxVers) (chat1.UnreadUpdateFull, error) {
 

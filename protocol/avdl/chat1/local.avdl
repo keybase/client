@@ -333,6 +333,7 @@ protocol local {
     string topicName;
     TLFVisibility visibility;
     ConversationStatus status;
+    array<SettingKV> settings;
 
     // Lists of usernames, always complete, optionally sorted by activity.
     array<string> writerNames;
@@ -490,6 +491,12 @@ protocol local {
   @lint("ignore")
   SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status, keybase1.TLFIdentifyBehavior identifyBehavior);
   record SetConversationStatusLocalRes {
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+
+  SetConversationSettingLocalRes setConversationSettingLocal(ConversationID conversationID, SettingKV setting, keybase1.TLFIdentifyBehavior identifyBehavior);
+  record SetConversationSettingLocalRes {
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }

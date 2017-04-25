@@ -121,6 +121,7 @@ protocol common {
     ConversationID conversationID;
     TLFVisibility visibility;
     ConversationStatus status;
+    array<SettingKV> settings;
 
     // Finalize info for underlying TLF
     union { null, ConversationFinalizeInfo } finalizeInfo;

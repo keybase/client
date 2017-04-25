@@ -797,6 +797,30 @@ func (h *chatLocalHandler) SetConversationStatusLocal(ctx context.Context, arg c
 	}, nil
 }
 
+func (h *chatLocalHandler) SetConversationSettingLocal(ctx context.Context, arg chat1.SetConversationSettingLocalArg) (res chat1.SetConversationSettingLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetConversationSettingLocal")()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return chat1.SetConversationSettingLocalRes{}, err
+	}
+
+	remoteArg := chat1.SetSettingsArg{
+		ConvID:   &arg.ConversationID,
+		DeviceID: nil,
+		Settings: []chat1.SettingKV{arg.Setting},
+	}
+	scsres, err := h.remoteClient().SetSettings(ctx, remoteArg)
+	if err != nil {
+		return chat1.SetConversationSettingLocalRes{}, err
+	}
+
+	return chat1.SetConversationSettingLocalRes{
+		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{scsres.RateLimit}),
+		IdentifyFailures: identBreaks,
+	}, nil
+}
+
 // PostLocal implements keybase.chatLocal.postLocal protocol.
 func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res chat1.PostLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure

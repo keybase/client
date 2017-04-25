@@ -169,12 +169,30 @@ export const NotifyChatChatActivityType = {
   newConversation: 3,
   setStatus: 4,
   failedMessage: 5,
+  setSettings: 6,
 }
 
 export const RemoteMessageBoxedVersion = {
   vnone: 0,
   v1: 1,
   v2: 2,
+}
+
+export const RemoteSettingEmailNotificationValue = {
+  default: 0,
+  all: 1,
+  disabled: 2,
+}
+
+export const RemoteSettingKey = {
+  mobileNotification: 1,
+  emailNotification: 2,
+}
+
+export const RemoteSettingMobileNotificationValue = {
+  default: 0,
+  all: 1,
+  disabled: 2,
 }
 
 export const RemoteSyncAllNotificationType = {
@@ -464,6 +482,18 @@ export function localRetryPostRpcPromise (request: $Exact<requestCommon & reques
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.RetryPost', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function localSetConversationSettingLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localSetConversationSettingLocalResult) => void} & {param: localSetConversationSettingLocalRpcParam}>) {
+  engineRpcOutgoing('chat.1.local.setConversationSettingLocal', request)
+}
+
+export function localSetConversationSettingLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localSetConversationSettingLocalResult) => void} & {param: localSetConversationSettingLocalRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.local.setConversationSettingLocal', request, callback, incomingCallMap) })
+}
+
+export function localSetConversationSettingLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localSetConversationSettingLocalResult) => void} & {param: localSetConversationSettingLocalRpcParam}>): Promise<localSetConversationSettingLocalResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.setConversationSettingLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function localSetConversationStatusLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localSetConversationStatusLocalResult) => void} & {param: localSetConversationStatusLocalRpcParam}>) {
   engineRpcOutgoing('chat.1.local.SetConversationStatusLocal', request)
 }
@@ -656,6 +686,18 @@ export function remoteSetConversationStatusRpcPromise (request: $Exact<requestCo
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.SetConversationStatus', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function remoteSetSettingsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSetSettingsResult) => void} & {param: remoteSetSettingsRpcParam}>) {
+  engineRpcOutgoing('chat.1.remote.setSettings', request)
+}
+
+export function remoteSetSettingsRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSetSettingsResult) => void} & {param: remoteSetSettingsRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.remote.setSettings', request, callback, incomingCallMap) })
+}
+
+export function remoteSetSettingsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSetSettingsResult) => void} & {param: remoteSetSettingsRpcParam}>): Promise<remoteSetSettingsResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.setSettings', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function remoteSyncAllRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncAllResult) => void} & {param: remoteSyncAllRpcParam}>) {
   engineRpcOutgoing('chat.1.remote.syncAll', request)
 }
@@ -804,6 +846,7 @@ export type ChatActivity =
   | { activityType: 3, newConversation: ?NewConversationInfo }
   | { activityType: 4, setStatus: ?SetStatusInfo }
   | { activityType: 5, failedMessage: ?FailedMessageInfo }
+  | { activityType: 6, setSettings: ?SetSettingsInfo }
 
 export type ChatActivityType =
     0 // RESERVED_0
@@ -812,6 +855,7 @@ export type ChatActivityType =
   | 3 // NEW_CONVERSATION_3
   | 4 // SET_STATUS_4
   | 5 // FAILED_MESSAGE_5
+  | 6 // SET_SETTINGS_6
 
 export type Conversation = {
   metadata: ConversationMetadata,
@@ -867,6 +911,7 @@ export type ConversationInfoLocal = {
   topicName: string,
   visibility: TLFVisibility,
   status: ConversationStatus,
+  settings?: ?Array<SettingKV>,
   writerNames?: ?Array<string>,
   readerNames?: ?Array<string>,
   finalizeInfo?: ?ConversationFinalizeInfo,
@@ -888,6 +933,7 @@ export type ConversationMetadata = {
   conversationID: ConversationID,
   visibility: TLFVisibility,
   status: ConversationStatus,
+  settings?: ?Array<SettingKV>,
   finalizeInfo?: ?ConversationFinalizeInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -1508,12 +1554,35 @@ export type ServerCacheVers = {
   bodiesVers: int,
 }
 
+export type SetConversationSettingLocalRes = {
+  rateLimits?: ?Array<RateLimit>,
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
+}
+
 export type SetConversationStatusLocalRes = {
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
 export type SetConversationStatusRes = {
+  rateLimit?: ?RateLimit,
+}
+
+export type SetSettingsInfo = {
+  convID?: ?ConversationID,
+  settings?: ?Array<SettingKV>,
+  conv?: ?ConversationLocal,
+}
+
+export type SetSettingsPayload = {
+  Action: string,
+  convID?: ?ConversationID,
+  settings?: ?Array<SettingKV>,
+  inboxVers: InboxVers,
+  unreadUpdate?: ?UnreadUpdate,
+}
+
+export type SetSettingsRes = {
   rateLimit?: ?RateLimit,
 }
 
@@ -1530,6 +1599,24 @@ export type SetStatusPayload = {
   inboxVers: InboxVers,
   unreadUpdate?: ?UnreadUpdate,
 }
+
+export type SettingEmailNotificationValue =
+    0 // DEFAULT_0
+  | 1 // ALL_1
+  | 2 // DISABLED_2
+
+export type SettingKV =
+    { setting: 1, mobileNotification: ?SettingMobileNotificationValue }
+  | { setting: 2, emailNotification: ?SettingEmailNotificationValue }
+
+export type SettingKey =
+    1 // MOBILE_NOTIFICATION_1
+  | 2 // EMAIL_NOTIFICATION_2
+
+export type SettingMobileNotificationValue =
+    0 // DEFAULT_0
+  | 1 // ALL_1
+  | 2 // DISABLED_2
 
 export type SignEncryptedData = {
   v: int,
@@ -1840,6 +1927,12 @@ export type localRetryPostRpcParam = Exact<{
   outboxID: OutboxID
 }>
 
+export type localSetConversationSettingLocalRpcParam = Exact<{
+  conversationID: ConversationID,
+  setting: SettingKV,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
 export type localSetConversationStatusLocalRpcParam = Exact<{
   conversationID: ConversationID,
   status: ConversationStatus,
@@ -1922,6 +2015,12 @@ export type remoteSetConversationStatusRpcParam = Exact<{
   status: ConversationStatus
 }>
 
+export type remoteSetSettingsRpcParam = Exact<{
+  convID?: ?ConversationID,
+  deviceID?: ?gregor1.DeviceID,
+  settings?: ?Array<SettingKV>
+}>
+
 export type remoteSyncAllRpcParam = Exact<{
   uid: gregor1.UID,
   deviceID: gregor1.DeviceID,
@@ -1972,6 +2071,7 @@ type localPostFileAttachmentLocalResult = PostLocalRes
 type localPostLocalNonblockResult = PostLocalNonblockRes
 type localPostLocalResult = PostLocalRes
 type localPostTextNonblockResult = PostLocalNonblockRes
+type localSetConversationSettingLocalResult = SetConversationSettingLocalRes
 type localSetConversationStatusLocalResult = SetConversationStatusLocalRes
 type remoteGetInboxRemoteResult = GetInboxRemoteRes
 type remoteGetInboxVersionResult = InboxVers
@@ -1986,6 +2086,7 @@ type remoteNewConversationRemoteResult = NewConversationRemoteRes
 type remotePostRemoteResult = PostRemoteRes
 type remoteS3SignResult = bytes
 type remoteSetConversationStatusResult = SetConversationStatusRes
+type remoteSetSettingsResult = SetSettingsRes
 type remoteSyncAllResult = SyncAllResult
 type remoteSyncChatResult = SyncChatRes
 type remoteSyncInboxResult = SyncInboxRes
@@ -2014,6 +2115,7 @@ export type rpc =
   | localPostLocalRpc
   | localPostTextNonblockRpc
   | localRetryPostRpc
+  | localSetConversationSettingLocalRpc
   | localSetConversationStatusLocalRpc
   | remoteGetInboxRemoteRpc
   | remoteGetInboxVersionRpc
@@ -2030,6 +2132,7 @@ export type rpc =
   | remotePublishSetConversationStatusRpc
   | remoteS3SignRpc
   | remoteSetConversationStatusRpc
+  | remoteSetSettingsRpc
   | remoteSyncAllRpc
   | remoteSyncChatRpc
   | remoteSyncInboxRpc
