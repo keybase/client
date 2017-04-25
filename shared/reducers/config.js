@@ -37,7 +37,7 @@ export type ConfigState = {
 const readyForBootstrap = isMobile
 
 const initialState: ConfigState = {
-  appFocused: false,
+  appFocused: true,
   bootStatus: 'bootStatusLoading',
   bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
   config: null,
