@@ -59,10 +59,6 @@ function * onLoadAttachment ({payload: {conversationIDKey, messageID, loadPrevie
 
   // See if we already have this image cached
   if (loadPreview || isHdPreview) {
-    if (existingMessageState === 'downloading-preview') {
-      return
-    }
-
     if (existingMessage && (loadPreview && existingMessage.previewPath || isHdPreview && existingMessage.hdPreviewPath)) {
       return
     }
