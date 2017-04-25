@@ -14,6 +14,7 @@ import {safeTakeEvery} from '../../util/saga'
 import type {BackToProfile, EditProfile, FinishRevokeProof, FinishRevoking, OnClickAvatar, OnClickFollowers, OnClickFollowing, OnUserClick, OutputInstructionsActionLink, State, SubmitRevokeProof, UpdateUsername, WaitingRevokeProof} from '../../constants/profile'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
+import type {AppLink} from '../../constants/app'
 
 function editProfile (bio: string, fullName: string, location: string): EditProfile {
   return {payload: {bio, fullName, location}, type: Constants.editProfile}
@@ -162,6 +163,11 @@ function outputInstructionsActionLink (): OutputInstructionsActionLink {
   return {payload: undefined, type: Constants.outputInstructionsActionLink}
 }
 
+function * _onAppLink (action: AppLink): SagaGenerator<any, any> {
+  // if (action.payload.link
+  console.log('bbb', action)
+}
+
 function * _outputInstructionsActionLink (): SagaGenerator<any, any> {
   const getProfile = (state: TypedState) => state.profile
   const profile: State = ((yield select(getProfile)): any)
@@ -210,6 +216,7 @@ function * _profileSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.onUserClick, _onUserClick),
     safeTakeEvery(Constants.outputInstructionsActionLink, _outputInstructionsActionLink),
     safeTakeEvery(Constants.submitRevokeProof, _submitRevokeProof),
+    safeTakeEvery('app:link', _onAppLink),
   ]
 }
 

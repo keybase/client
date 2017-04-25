@@ -53,7 +53,7 @@ function createClient (incomingRPCCallback: incomingRPCCallbackType, connectCall
 
   // This is how the RN side writes back to us
   RNEmitter.addListener(
-    nativeBridge.eventName,
+    nativeBridge.msgpackEvent,
     payload => client.transport.packetize_data(Buffer.from(payload, 'base64')),
   )
 

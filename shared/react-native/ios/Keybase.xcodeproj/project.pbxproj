@@ -204,6 +204,20 @@
 			remoteGlobalIDString = A15C300E1CD25C330074CB35;
 			remoteInfo = RNFetchBlob;
 		};
+		DB610D5F1EAF99AD0094BC70 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB610D521EAF99AD0094BC70 /* RCTLinking.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 134814201AA4EA6300B7C361;
+			remoteInfo = RCTLinking;
+		};
+		DB610D611EAF99AD0094BC70 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB610D521EAF99AD0094BC70 /* RCTLinking.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 2D2A28471D9B043800D4039D;
+			remoteInfo = "RCTLinking-tvOS";
+		};
 		DB6D0B791E5B9EB400410F3C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DB6D0B731E5B9EB400410F3C /* RCTAnimation.xcodeproj */;
@@ -299,6 +313,7 @@
 		DB2BD1AC1DE7D97900BB7989 /* RCTText.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTText.xcodeproj; path = "../../node_modules/react-native/Libraries/Text/RCTText.xcodeproj"; sourceTree = "<group>"; };
 		DB2BD1AF1DE7D97900BB7989 /* RCTVibration.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTVibration.xcodeproj; path = "../../node_modules/react-native/Libraries/Vibration/RCTVibration.xcodeproj"; sourceTree = "<group>"; };
 		DB2BD1B21DE7D97900BB7989 /* RCTWebSocket.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTWebSocket.xcodeproj; path = "../../node_modules/react-native/Libraries/WebSocket/RCTWebSocket.xcodeproj"; sourceTree = "<group>"; };
+		DB610D521EAF99AD0094BC70 /* RCTLinking.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTLinking.xcodeproj; path = "../../node_modules/react-native/Libraries/LinkingIOS/RCTLinking.xcodeproj"; sourceTree = "<group>"; };
 		DB6D0B731E5B9EB400410F3C /* RCTAnimation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTAnimation.xcodeproj; path = "../../node_modules/react-native/Libraries/NativeAnimation/RCTAnimation.xcodeproj"; sourceTree = "<group>"; };
 		DB7539221D776CC400AFA61B /* Keybase For Tests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Keybase For Tests.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB7539311D77753600AFA61B /* Keybase_For_Tests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase_For_Tests-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -389,6 +404,7 @@
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				DB610D521EAF99AD0094BC70 /* RCTLinking.xcodeproj */,
 				A9BB30BC1E6A273A00E713E5 /* RCTCameraRoll.xcodeproj */,
 				DB6D0B731E5B9EB400410F3C /* RCTAnimation.xcodeproj */,
 				DB2BD19A1DE7D97900BB7989 /* RCTGeolocation.xcodeproj */,
@@ -574,6 +590,15 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		DB610D531EAF99AD0094BC70 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DB610D601EAF99AD0094BC70 /* libRCTLinking.a */,
+				DB610D621EAF99AD0094BC70 /* libRCTLinking-tvOS.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		DB6D0B741E5B9EB400410F3C /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -738,6 +763,10 @@
 				{
 					ProductGroup = DB2BD19E1DE7D97900BB7989 /* Products */;
 					ProjectRef = DB2BD19D1DE7D97900BB7989 /* RCTImage.xcodeproj */;
+				},
+				{
+					ProductGroup = DB610D531EAF99AD0094BC70 /* Products */;
+					ProjectRef = DB610D521EAF99AD0094BC70 /* RCTLinking.xcodeproj */;
 				},
 				{
 					ProductGroup = DB2BD1A11DE7D97900BB7989 /* Products */;
@@ -941,6 +970,20 @@
 			fileType = archive.ar;
 			path = libRNFetchBlob.a;
 			remoteRef = DB311B721EA90680005513D2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB610D601EAF99AD0094BC70 /* libRCTLinking.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRCTLinking.a;
+			remoteRef = DB610D5F1EAF99AD0094BC70 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB610D621EAF99AD0094BC70 /* libRCTLinking-tvOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libRCTLinking-tvOS.a";
+			remoteRef = DB610D611EAF99AD0094BC70 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		DB6D0B7A1E5B9EB400410F3C /* libRCTAnimation.a */ = {
