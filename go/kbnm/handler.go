@@ -42,6 +42,10 @@ func execRunner(cmd *exec.Cmd) error {
 var reUsernameQuery = regexp.MustCompile(`^[a-zA-Z0-9_\-.:@]{1,256}$`)
 
 // checkUsernameQuery returns the query if it's valid to use
+// We return the valid string so that it can be used as a separate
+// pre-validated variable which makes it less likely that the validation will
+// be accidentally removed in the future, as opposed to if we just continued
+// using the input variable after validating it.
 func checkUsernameQuery(s string) (string, error) {
 	if s == "" {
 		return "", errMissingField
