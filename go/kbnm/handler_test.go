@@ -145,3 +145,22 @@ func TestHandlerQuery(t *testing.T) {
 		t.Errorf("invalid result value: %q", result)
 	}
 }
+
+func TestCleanCmdArg(t *testing.T) {
+	testcases := []struct {
+		Input string
+		Want  string
+	}{
+		{"shazow@reddit", `shazow@reddit`},
+		{"shazow:twitter.com", `shazow:twitter.com`},
+		{`abcABC123_@.`, `abcABC123_@.`},
+		{`a-bc${foo} bar`, `a-bcfoobar`},
+		{"foo\nbar", `foobar`},
+	}
+
+	for i, test := range testcases {
+		if got, want := cleanCmdArg(test.Input), test.Want; got != want {
+			t.Errorf("case %d: got %q; want %q", i, got, want)
+		}
+	}
+}

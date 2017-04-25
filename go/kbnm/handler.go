@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 )
 
@@ -33,6 +34,14 @@ func (err *errUnexpected) Error() string {
 
 func execRunner(cmd *exec.Cmd) error {
 	return cmd.Run()
+}
+
+// reCmdArgStrip is a regexp which matches substrings that we want to strip from command argument input.
+var reCmdArgStrip = regexp.MustCompile(`[^a-zA-Z0-9_\-.:@]`)
+
+// cleanCmdArg strips any characters we want to avoid in command arguments.
+func cleanCmdArg(s string) string {
+	return reCmdArgStrip.ReplaceAllString(s, "")
 }
 
 // Handler returns a request handler.
@@ -73,7 +82,7 @@ func (h *handler) handleChat(req *Request) error {
 	}
 
 	var out bytes.Buffer
-	cmd := exec.Command(binPath, "chat", "send", "--private", req.To)
+	cmd := exec.Command(binPath, "chat", "send", "--private", cleanCmdArg(req.To))
 	cmd.Env = append(os.Environ(), "KEYBASE_LOG_FORMAT=plain")
 	cmd.Stdin = strings.NewReader(req.Body)
 	cmd.Stdout = &out
@@ -186,7 +195,7 @@ func (h *handler) handleQuery(req *Request) (*resultQuery, error) {
 
 	// Unfortunately `keybase id ...` does not support JSON output, so we parse the output
 	var out bytes.Buffer
-	cmd := exec.Command(binPath, "id", req.To)
+	cmd := exec.Command(binPath, "id", cleanCmdArg(req.To))
 	cmd.Env = append(os.Environ(), "KEYBASE_LOG_FORMAT=plain")
 	cmd.Stdout = &out
 	cmd.Stderr = &out
