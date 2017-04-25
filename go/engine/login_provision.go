@@ -251,8 +251,12 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 			return err
 		}
 
-		// Update our user object with the new sigchain links
-		provisionee.updateUser(e.arg.User)
+		// Load me again so that keys will be up to date.
+		loadArg := libkb.NewLoadUserArgBase(e.G()).WithSelf(true).WithUID(e.arg.User.GetUID()).WithNetContext(ctx.NetContext)
+		e.arg.User, err = libkb.LoadUser(*loadArg)
+		if err != nil {
+			return err
+		}
 
 		return nil
 	}
@@ -947,12 +951,12 @@ func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 	// Check that there is a signing key present.
 	// If it were nil, PaperKeyGen would try to make an eldest sigchain link.
 	if e.signingKey == nil {
-		return fmt.Errorf("missing signing key for ensure paper key")
+		return errors.New("missing signing key for ensure paper key")
 	}
 
 	if e.encryptionKey.IsNil() {
 		if e.G().Env.GetEnableSharedDH() {
-			return fmt.Errorf("missing encryption key for ensure paper key")
+			return errors.New("missing encryption key for ensure paper key")
 		}
 		e.G().Log.CWarningf(ctx.NetContext, "missing encryption key for ensure paper key")
 	}

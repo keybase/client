@@ -90,6 +90,11 @@ func NewLoadUserArgBase(g *GlobalContext) *LoadUserArg {
 	return &LoadUserArg{Contextified: NewContextified(g)}
 }
 
+func (arg *LoadUserArg) WithSelf(self bool) *LoadUserArg {
+	arg.Self = self
+	return arg
+}
+
 func (arg *LoadUserArg) WithNetContext(ctx context.Context) *LoadUserArg {
 	arg.NetContext = ctx
 	return arg
