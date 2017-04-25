@@ -69,6 +69,32 @@ function renderChatButton(parent, toUsername) {
     parent.appendChild(li);
 }
 
+// Render the "Encrypt to..." contact header for the chat widget.
+function renderChatContact(el, redditUsername, keybaseUsername) {
+  const asset = chrome.runtime.getURL;
+  let queryStatus, iconSrc;
+  if (keybaseUsername) {
+    queryStatus = `<a class="keybase-user" href="https://keybase.io/${keybaseUsername}" target="_blank"><span>${keybaseUsername}</span></a> on Keybase`;
+    iconSrc = `<img class="keybase-icon" src="https://keybase.io/${keybaseUsername}/picture" />`;
+  } else {
+    queryStatus = "Searching...";
+    if (keybaseUsername == null) {
+      queryStatus = "(Not yet on Keybase)";
+    }
+    iconSrc = `
+      <img class="keybase-icon"
+           src="${asset("images/icon-placeholder-avatar-32.png")}"
+           srcset="${asset("images/icon-placeholder-avatar-32@2x.png")} 2x, ${asset("images/icon-placeholder-avatar-32@3x.png")} 3x"
+           />
+    `;
+  }
+  el.innerHTML = `
+    <div>${iconSrc}</div>
+    Encrypt to <a class="keybase-user reddit" href="https://reddit.com/u/${redditUsername}" target="_blank">/u/${redditUsername}</a>
+    <small>${queryStatus}</small>
+  `;
+}
+
 // Render the Keybase chat reply widget
 function renderChat(parent, toUsername) {
   // TODO: Replace hardcoded HTML with some posh templating tech?
@@ -77,7 +103,7 @@ function renderChat(parent, toUsername) {
 
   let nudgeHTML = `
     <p>
-      <label><input type="checkbox" name="keybase-nudgecheck" checked /> Nudge publicly (reply in thread so they know about Keybase)</label>
+      <label><input type="checkbox" name="keybase-nudgecheck" checked /> <strong>Nudge publicly</strong> (reply in thread so they know about Keybase)</label>
       <textarea name="keybase-nudgetext">/u/${toUsername} - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto</textarea>
     </p>
   `;
@@ -90,24 +116,32 @@ function renderChat(parent, toUsername) {
   }
 
   // The chat widget is enclosed in the form element.
+  const asset = chrome.runtime.getURL;
   const f = document.createElement("form");
   f.action = "#"; // Avoid submitting even if we fail to preventDefault
   f.innerHTML = `
-    <h3><img src="${chrome.runtime.getURL("images/icon-keybase-logo-48.png")}" />Keybase chat <span class="keybase-close"> </span></h3>
+    <h3>
+      <img src="${asset("images/icon-keybase-logo-16.png")}"
+           srcset="${asset("images/icon-keybase-logo-16@2x.png")} 2x, ${asset("images/icon-keybase-logo-16@3x.png")} 3x"
+           />
+      Keybase chat <span class="keybase-close">
+      </span>
+    </h3>
     <div class="keybase-body">
+      <div class="keybase-contact"></div>
       <input type="hidden" name="keybase-to" value="${toUsername}" />
       <label>
-        Encrypt to ${renderUser(toUsername, "reddit.com/u")}</span>:
         <textarea name="keybase-chat" rows="6" placeholder="Write a message"></textarea>
       </label>
-      <div class="keybase-nudge">
-        <p>Checking Keybase...</p>
-      </div>
+      <div class="keybase-nudge"></div>
       <p style="text-align: center;"><input type="submit" value="Send" name="keybase-submit" /></p>
     </div>
   `;
   f.addEventListener("submit", submitChat);
   parent.insertBefore(f, parent.firstChild);
+
+  const contactDiv = f.getElementsByClassName("keybase-contact")[0];
+  renderChatContact(contactDiv, toUsername, undefined);
 
   // Find user
   const nudgePlaceholder = f.getElementsByClassName("keybase-nudge")[0];
@@ -117,11 +151,12 @@ function renderChat(parent, toUsername) {
   }, function(response) {
     if (response.status == "ok") {
       const keybaseUsername = safeHTML(response.result["username"]);
-      nudgePlaceholder.innerHTML = `<p><img class="keybase-icon" src="https://keybase.io/${keybaseUsername}/picture" /> ${renderUser(toUsername, "reddit.com/u")} is ${renderUser(keybaseUsername, "keybase.io")}</p>`;
+      renderChatContact(contactDiv, toUsername, keybaseUsername);
       return;
     } else if (response.message != "user not found") {
       renderError(f, response.message);
     }
+    renderChatContact(contactDiv, toUsername, null);
     nudgePlaceholder.innerHTML = nudgeHTML;
 
     // Install nudge toggle
@@ -262,14 +297,6 @@ function renderError(chatForm, msg) {
   err.innerText = msg;
   const el = chatForm.getElementsByClassName("keybase-body")[0];
   el.appendChild(err);
-}
-
-// Render a formatted user@service string.
-function renderUser(username, service) {
-  if (service=="undefined") {
-    service = "keybase.io";
-  }
-  return `<a class="keybase-user" href="https://${service}/${username}" target="_blank">${service}/<span>${username}</span></a>`;
 }
 
 // Post a Reddit thread reply on the given comment node.
