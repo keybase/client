@@ -67,16 +67,17 @@ type GlobalContext struct {
 	fullSelfer     FullSelfer      // a loader that gets the full self object
 	pvlSource      PvlSource       // a cache and fetcher for pvl
 
-	GpgClient         *GpgCLI        // A standard GPG-client (optional)
-	ShutdownHooks     []ShutdownHook // on shutdown, fire these...
-	SocketInfo        Socket         // which socket to bind/connect to
-	socketWrapperMu   *sync.RWMutex
-	SocketWrapper     *SocketWrapper     // only need one connection per
-	LoopbackListener  *LoopbackListener  // If we're in loopback mode, we'll connect through here
-	XStreams          *ExportedStreams   // a table of streams we've exported to the daemon (or vice-versa)
-	Timers            *TimerSet          // Which timers are currently configured on
-	UI                UI                 // Interact with the UI
-	Service           bool               // whether we're in server mode
+	GpgClient        *GpgCLI        // A standard GPG-client (optional)
+	ShutdownHooks    []ShutdownHook // on shutdown, fire these...
+	SocketInfo       Socket         // which socket to bind/connect to
+	socketWrapperMu  *sync.RWMutex
+	SocketWrapper    *SocketWrapper    // only need one connection per
+	LoopbackListener *LoopbackListener // If we're in loopback mode, we'll connect through here
+	XStreams         *ExportedStreams  // a table of streams we've exported to the daemon (or vice-versa)
+	Timers           *TimerSet         // Which timers are currently configured on
+	UI               UI                // Interact with the UI
+	Service          bool              // whether we're in server mode
+
 	shutdownOnce      *sync.Once         // whether we've shut down or not
 	loginStateMu      *sync.RWMutex      // protects loginState pointer, which gets destroyed on logout
 	loginState        *LoginState        // What phase of login the user's in
