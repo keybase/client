@@ -27,9 +27,7 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
       lastLoggedInNotifyUsername = null
 
       // Do we actually think we're logged in?
-      if (getState().config &&
-        getState().config.status &&
-        getState().config.status.loggedIn) {
+      if (getState().config && getState().config.loggedIn) {
         notify('Logged out of Keybase')
         dispatch(logoutDone())
       }
