@@ -58,6 +58,7 @@ const styles = {
   },
   card: {
     marginTop: globalMargins.tiny,
+    width: '100%',
   },
 }
 
