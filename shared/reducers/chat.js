@@ -289,7 +289,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       } else if (isHdPreview) {
         toMerge = {hdPreviewPath: path, messageState: 'sent'}
       } else {
-        toMerge = {downloadedPath: path, messageState: 'downloaded'}
+        toMerge = {downloadedPath: path, messageState: path ? 'downloaded' : 'sent'}
       }
 
       // $FlowIssue
