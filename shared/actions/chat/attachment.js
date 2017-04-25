@@ -5,13 +5,14 @@ import * as Creators from './creators'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Shared from './shared'
-import {call, put, select, cancel, fork, join} from 'redux-saga/effects'
+import {call, put, select, cancel, fork, join, take} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
 import {saveAttachment, showShareActionSheet} from '../platform-specific'
 import {tmpDir, tmpFile, downloadFilePath, copy, exists} from '../../util/file'
 
 import type {SagaGenerator} from '../../constants/types/saga'
+import type {TypedAction} from '../../constants/types/flux'
 
 function * onShareAttachment ({payload: {message}}: Constants.ShareAttachment): SagaGenerator<any, any> {
   const {filename, messageID, conversationIDKey} = message
@@ -53,16 +54,28 @@ function * _isCached (conversationIDKey, messageID): Generator<any, ?string, any
   }
 }
 
+function actionIsForMessage (type: string, conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID): (action: TypedAction<*, *, *>) => boolean {
+  return action => (
+    action.type === type &&
+    action.payload.conversationIDKey === conversationIDKey &&
+    action.payload.messageID === messageID
+  )
+}
+
 function * onLoadAttachment ({payload: {conversationIDKey, messageID, loadPreview, isHdPreview, filename}}: Constants.LoadAttachment): SagaGenerator<any, any> {
   const existingMessage = yield select(Shared.messageSelector, conversationIDKey, messageID)
   const existingMessageState = existingMessage && existingMessage.messageState
 
+  // Wait for an existing load task on the same message to complete.
+  // This prevents an hdPreview from loading concurrently (and redundantly) to a download.
+  if (existingMessageState === 'downloading' || existingMessageState === 'downloading-preview') {
+    console.log('waiting for prior download to finish:', conversationIDKey, messageID, existingMessageState)
+    yield take(actionIsForMessage('chat:attachmentLoaded', conversationIDKey, messageID))
+    console.log('continuing after download finished:', conversationIDKey, messageID, existingMessageState)
+  }
+
   // See if we already have this image cached
   if (loadPreview || isHdPreview) {
-    if (existingMessageState === 'downloading-preview') {
-      return
-    }
-
     if (existingMessage && (loadPreview && existingMessage.previewPath || isHdPreview && existingMessage.hdPreviewPath)) {
       return
     }
@@ -77,10 +90,6 @@ function * onLoadAttachment ({payload: {conversationIDKey, messageID, loadPrevie
   // If we are loading the actual attachment,
   // let's see if we've already downloaded it as an hdPreview
   if (!loadPreview && !isHdPreview) {
-    if (existingMessageState === 'downloading') {
-      return
-    }
-
     const cachedPath = yield call(_isCached, conversationIDKey, messageID)
 
     if (cachedPath) {
