@@ -831,6 +831,15 @@ func (fbo *folderBlockOps) addDirEntryInCacheLocked(lState *lockState, dir path,
 	cacheEntry.adds[newName] = newDe.BlockPointer
 	// In case it was removed in the cache but not flushed yet.
 	delete(cacheEntry.dels, newName)
+
+	// Update just the mtime/ctime on the directory.
+	now := fbo.nowUnixNano()
+	cacheEntry.dirEntry.Mtime = now
+	cacheEntry.dirEntry.Ctime = now
+
+	// TODO: is there anyway we can update the directory size without
+	// encoding the whole block?
+
 	fbo.deCache[dir.tailPointer().Ref()] = cacheEntry
 }
 
@@ -864,6 +873,12 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(lState *lockState,
 	cacheEntry.dels[oldName] = true
 	// In case it was added in the cache but not flushed yet.
 	delete(cacheEntry.adds, oldName)
+
+	// Update just the mtime/ctime on the directory.
+	now := fbo.nowUnixNano()
+	cacheEntry.dirEntry.Mtime = now
+	cacheEntry.dirEntry.Ctime = now
+
 	fbo.deCache[dir.tailPointer().Ref()] = cacheEntry
 }
 
@@ -1001,6 +1016,37 @@ func (fbo *folderBlockOps) ClearCachedDirEntry(lState *lockState, dir path) {
 	// in there as well.)
 }
 
+func (fbo *folderBlockOps) updateDirtyEntryLocked(
+	ctx context.Context, lState *lockState, de DirEntry) (
+	updated bool, newDe DirEntry) {
+	fbo.blockLock.AssertAnyLocked(lState)
+
+	refDe, ok := fbo.deCache[de.Ref()]
+	if !ok {
+		return false, de
+	}
+
+	// Only update the entry if there's a full directory update,
+	// or a mtime/ctime update.
+	if !refDe.dirEntry.IsInitialized() && refDe.dirEntry.Mtime == 0 &&
+		refDe.dirEntry.Ctime == 0 {
+		return false, de
+	}
+
+	if refDe.dirEntry.IsInitialized() {
+		return true, refDe.dirEntry
+	}
+
+	// Just update the times.
+	if refDe.dirEntry.Mtime > 0 {
+		de.Mtime = refDe.dirEntry.Mtime
+	}
+	if refDe.dirEntry.Ctime > 0 {
+		de.Ctime = refDe.dirEntry.Ctime
+	}
+	return true, de
+}
+
 // updateWithDirtyEntriesLocked checks if the given DirBlock has any
 // entries that are in deCache (i.e., entries pointing to dirty
 // files). If so, it makes a copy with all such entries replaced with
@@ -1064,16 +1110,15 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 
 	// Update dir entries for any modified files.
 	for k, v := range dblock.Children {
-		de, ok := fbo.deCache[v.Ref()]
-		if !ok {
+		doUpdate, newDe := fbo.updateDirtyEntryLocked(ctx, lState, v)
+		if !doUpdate {
 			continue
 		}
 
 		if dblockCopy == nil {
 			dblockCopy = dblock.DeepCopy()
 		}
-
-		dblockCopy.Children[k] = de.dirEntry
+		dblockCopy.Children[k] = newDe
 	}
 
 	if dblockCopy == nil {
@@ -1190,6 +1235,17 @@ func (fbo *folderBlockOps) GetDirtyEntry(
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	return fbo.getDirtyEntryLocked(ctx, lState, kmd, file)
+}
+
+// UpdateDirtyEntry returns the possibly-dirty DirEntry of the given
+// file in its parent DirBlock. file doesn't need to have a valid
+// parent (i.e., it could be the root dir).
+func (fbo *folderBlockOps) UpdateDirtyEntry(
+	ctx context.Context, lState *lockState, de DirEntry) DirEntry {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+	_, newDe := fbo.updateDirtyEntryLocked(ctx, lState, de)
+	return newDe
 }
 
 // Lookup returns the possibly-dirty DirEntry of the given file in its

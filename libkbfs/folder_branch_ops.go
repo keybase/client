@@ -1818,6 +1818,7 @@ func (fbo *folderBranchOps) statEntry(ctx context.Context, node Node) (
 	} else {
 		// nodePath is just the root.
 		de = md.data.Dir
+		de = fbo.blocks.UpdateDirtyEntry(ctx, lState, de)
 	}
 
 	return de, nil
@@ -2555,14 +2556,18 @@ func (fbo *folderBranchOps) createEntryLocked(
 	if err != nil {
 		return nil, DirEntry{}, err
 	}
+
+	now := fbo.nowUnixNano()
 	de := DirEntry{
 		BlockInfo: BlockInfo{
 			BlockPointer: newPtr,
 			EncodedSize:  0,
 		},
 		EntryInfo: EntryInfo{
-			Type: entryType,
-			Size: 0,
+			Type:  entryType,
+			Size:  0,
+			Mtime: now,
+			Ctime: now,
 		},
 	}
 	fbo.blocks.AddDirEntryInCache(lState, dirPath, name, de)
