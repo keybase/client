@@ -17,9 +17,9 @@ const ConversationHeader = ({muted, onBack, onOpenFolder, onShowProfile, onToggl
         users={users}
         containerStyle={styleCenter}
         onUsernameClicked={onShowProfile} />
-      {muted && <Icon type='iconfont-shh' style={{...styleCenter, ...styleLeft}} />}
+      {muted && <Icon type='iconfont-shh' style={{...styleCenter, ...styleLeft, color: globalColors.black_20, fontSize: 22}} />}
     </Box>
-    <Icon type={sidePanelOpen ? 'iconfont-close' : 'iconfont-info'} style={{...styleLeft, flexShrink: 0, padding: globalMargins.xtiny}} onClick={onToggleSidePanel} />
+    <Icon type={sidePanelOpen ? 'iconfont-close' : 'iconfont-info'} style={{...styleLeft, flexShrink: 0, padding: globalMargins.xtiny, fontSize: 21}} onClick={onToggleSidePanel} />
   </Box>
 )
 
@@ -37,7 +37,7 @@ const styleCenter = {
 }
 
 const styleLeft = {
-  marginLeft: globalMargins.tiny,
+  marginLeft: globalMargins.xtiny,
 }
 
 export default ConversationHeader

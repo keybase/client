@@ -1,10 +1,11 @@
 // @flow
 import React from 'react'
 import {Box, Text, Icon, Button, BackButton, Meta} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from '.'
 
+// TODO remove this for a common banner
 const Banner = ({color, backgroundColor, desc}) => (
   <Text type='BodySemibold' style={{...stylesBanner, backgroundColor, color}}>{desc}</Text>
 )
@@ -12,8 +13,8 @@ const Banner = ({color, backgroundColor, desc}) => (
 const Header = ({name, isCurrent, isRevoked}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginBottom: 20, marginTop: 10}}>
     <Text type='Header' style={isRevoked
-        ? {color: globalColors.black_40, fontStyle: 'italic', textDecorationLine: 'line-through'}
-        : {fontStyle: 'italic'}}>{name}</Text>
+        ? {...stylesHeader, color: globalColors.black_40, textDecorationLine: 'line-through'}
+        : stylesHeader}>{name}</Text>
     {isRevoked && <Meta title='REVOKED' styel={stylesMeta} />}
     {isRevoked && <Text type='Header' style={stylesMeta}>REVOKED</Text>}
     <Box style={{...globalStyles.flexBoxRow}}>
@@ -61,10 +62,18 @@ const Render = ({
   </Box>
 )
 
+const stylesHeader = {
+  textAlign: 'center',
+  fontStyle: 'italic',
+}
+
 const stylesBanner = {
   alignSelf: 'stretch',
   minHeight: 48,
-  padding: 8,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
   textAlign: 'center',
 }
 

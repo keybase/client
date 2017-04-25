@@ -157,11 +157,35 @@ class DumbSheetRender extends Component<void, Props, any> {
 
     if (this.props.dumbFullscreen) {
       return (
-        <Box style={{flex: 1}} {...mock.parentProps}>
-          {this._makeStoreWrapper(component)}
-          <Icon type='iconfont-import' style={{position: 'absolute', top: 20, right: 0}} onClick={() => {
-            this.props.onDebugConfigChange({dumbFullscreen: !this.props.dumbFullscreen})
-          }} />
+        <Box style={{flex: 1}}>
+          <Box style={{position: 'absolute', top: 0, bottom: 20, right: 0, left: 0}}>
+            <Box style={{flex: 1}} {...mock.parentProps}>
+              {this._makeStoreWrapper(component)}
+            </Box>
+          </Box>
+          <Box style={{position: 'absolute', bottom: 0, right: 0, ...globalStyles.flexBoxRow}}>
+            <Input
+              small={true}
+              smallLabel='Filter:'
+              onChangeText={filter => this._onFilterChange(filter.toLowerCase())}
+              autoCapitalize='none'
+              value={this.state.localFilter} />
+            <Button type='Primary' style={stylesButton} label='-' onClick={() => { this._incremement(false) }} />
+            <Input
+              small={true}
+              inputStyle={{textAlign: 'center'}}
+              style={{flex: 0, width: 50}}
+              value={String(this.props.dumbIndex)}
+              onChangeText={filter => this.props.onDebugConfigChange({
+                dumbIndex: parseInt(filter, 10) || 0,
+              })}
+              autoCapitalize='none'
+            />
+            <Button type='Primary' style={stylesButton} label='+' onClick={() => { this._incremement(true) }} />
+            <Icon type='iconfont-import' onClick={() => {
+              this.props.onDebugConfigChange({dumbFullscreen: !this.props.dumbFullscreen})
+            }} />
+          </Box>
         </Box>
       )
     }

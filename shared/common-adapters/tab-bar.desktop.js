@@ -4,6 +4,7 @@ import Icon from './icon'
 import React, {Component} from 'react'
 import Text from './text'
 import Badge from './badge'
+import Avatar from './avatar'
 import _ from 'lodash'
 import shallowEqual from 'shallowequal'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
@@ -67,7 +68,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
     return (
       <Box style={{...globalStyles.flexBoxColumn, paddingBottom: 21, paddingTop: 21, ...this.props.style}} onClick={this.props.onClick}>
         <Box style={{...stylesTabBarButtonIcon, paddingLeft: 0, height: undefined, justifyContent: 'center', ...this.props.styleContainer}}>
-          {this.props.source.avatar}
+          <Avatar size={32} onClick={this.props.onClick} username={this.props.source.username} borderColor={this.props.selected ? globalColors.white : globalColors.blue3_40} loadingColor={globalColors.blue3_40} backgroundColor={this.props.selected ? globalColors.white : globalColors.blue3_40} />
           {badgeNumber > 0 &&
             <Box style={{width: 0, display: 'flex'}}>
               <Box style={{...styleBadgeAvatar}}>

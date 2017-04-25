@@ -84,7 +84,7 @@ const mockStore = {
 }
 
 export default {
-  'Devices List': {
+  'Devices: Devices List': {
     component: Devices,
     mocks: {
       'Devices': {mockStore, routeState: {showingRevoked: true}, setRouteState: () => {}},

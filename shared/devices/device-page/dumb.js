@@ -115,5 +115,5 @@ const map: DumbComponentMap<Render> = {
 }
 
 export default {
-  'Device Page': map,
+  'Devices: Device Page': map,
 }

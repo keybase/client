@@ -637,7 +637,7 @@ const inputMap: DumbComponentMap<Input> = {
 
 const tabBarCustomButtons = selectedIndex => {
   const IconButton = ({selected, icon, badgeNumber, label}: any) => <TabBarButton label={label} source={{type: 'icon', icon}} selected={selected} badgeNumber={badgeNumber} style={{height: 40}} />
-  const AvatarButton = ({selected, avatar, badgeNumber}: any) => <TabBarButton source={{type: 'avatar', avatar}} selected={selected} badgeNumber={badgeNumber} style={{flex: 1}} styleContainer={{height: 40}} />
+  const AvatarButton = ({selected, avatar, badgeNumber}: any) => <TabBarButton source={{type: 'avatar', username: 'max'}} selected={selected} badgeNumber={badgeNumber} style={{flex: 1}} styleContainer={{height: 40}} />
 
   return {
     style: {flex: 1, ...display('flex'), ...globalStyles.flexBoxRow, height: 580},
@@ -799,7 +799,7 @@ const choiceListMap: DumbComponentMap<ChoiceList> = {
 
 const standardScreenProps = {
   onClose: () => console.log('StandardScreen: onClose'),
-  children: <Text type='Header'>Whoa, look at this centered thing</Text>,
+  children: <Text type='Header' style={{textAlign: 'center'}}>Whoa, look at this centered thing</Text>,
   parentProps: {style: {...display('flex'), height: 578}},
 }
 

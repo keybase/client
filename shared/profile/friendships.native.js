@@ -150,14 +150,17 @@ const tabItemContainerUsers = {
   ...globalStyles.flexBoxRow,
   flexWrap: 'wrap',
   justifyContent: 'space-around',
-  paddingTop: 8,
+  paddingTop: globalMargins.tiny,
+  minHeight: 160,
 }
 
 const tabItemEmptyStyle = {
   ...globalStyles.flexBoxColumn,
+  justifyContent: 'center',
   alignItems: 'center',
   paddingBottom: globalMargins.tiny,
   paddingTop: globalMargins.tiny,
+  minHeight: 160,
 }
 
 export default FriendshipsRender
