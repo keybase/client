@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 )
@@ -26,7 +27,7 @@ func makeBodyHashIndexValue(convID chat1.ConversationID, msgID chat1.MessageID) 
 
 // Check the current message's body hash against all the body hashes we've
 // seen, to prevent replays. If the header hash is new, add it to the set.
-func CheckAndRecordBodyHash(g *libkb.GlobalContext, bodyHash chat1.Hash, uniqueMsgID chat1.MessageID, uniqueConvID chat1.ConversationID) error {
+func CheckAndRecordBodyHash(g *globals.Context, bodyHash chat1.Hash, uniqueMsgID chat1.MessageID, uniqueConvID chat1.ConversationID) error {
 	bodyHashKey := makeBodyHashIndexKey(bodyHash)
 	bodyHashValue := []byte(fmt.Sprintf("%s:%s", uniqueConvID, uniqueMsgID))
 	existingVal, found, err := g.LocalChatDb.GetRaw(bodyHashKey)
@@ -66,7 +67,7 @@ func makePrevIndexValue(headerHash chat1.Hash) []byte {
 
 // Check the current message's header hash against all the prev pointers we've
 // ever seen. If the current message is new, add it to the set.
-func CheckAndRecordPrevPointer(g *libkb.GlobalContext, msgID chat1.MessageID, convID chat1.ConversationID, uniqueHeaderHash chat1.Hash) error {
+func CheckAndRecordPrevPointer(g *globals.Context, msgID chat1.MessageID, convID chat1.ConversationID, uniqueHeaderHash chat1.Hash) error {
 	prevKey := makePrevIndexKey(convID, msgID)
 	headerHashVal := makePrevIndexValue(uniqueHeaderHash)
 	existingVal, found, err := g.LocalChatDb.GetRaw(prevKey)

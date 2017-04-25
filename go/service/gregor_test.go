@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/badges"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/gregor/storage"
 	"github.com/keybase/client/go/kbtest"
@@ -47,7 +48,7 @@ func TestGregorHandler(t *testing.T) {
 	require.NoError(t, err)
 
 	var h *gregorHandler
-	h = newGregorHandler(tc.G)
+	h = newGregorHandler(globals.NewContext(tc.G, nil))
 	h.testingEvents = newTestingEvents()
 	require.Equal(t, "keybase service", h.HandlerName(), "wrong name")
 
@@ -181,7 +182,7 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 	require.NoError(t, err)
 
 	var h *gregorHandler
-	h = newGregorHandler(tc.G)
+	h = newGregorHandler(globals.NewContext(tc.G, nil))
 	h.testingEvents = newTestingEvents()
 
 	h.PushHandler(idhandler)
@@ -376,7 +377,7 @@ func setupSyncTests(t *testing.T, tc libkb.TestContext) (*gregorHandler, mockGre
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
 
 	var h *gregorHandler
-	h = newGregorHandler(tc.G)
+	h = newGregorHandler(globals.NewContext(tc.G, nil))
 	h.testingEvents = newTestingEvents()
 
 	server := newGregordMock(tc.G.Log)
@@ -518,7 +519,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 	}
 
 	// Create a new gregor handler, this will restore our saved state
-	h = newGregorHandler(tc.G)
+	h = newGregorHandler(globals.NewContext(tc.G, nil))
 
 	// Sync from the server
 	replayedMessages, consumedMessages := doServerSync(t, h, server)
@@ -562,7 +563,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 	}
 
 	// Create a new gregor handler, this will restore our saved state
-	h = newGregorHandler(tc.G)
+	h = newGregorHandler(globals.NewContext(tc.G, nil))
 
 	// Turn off fresh replay
 	h.freshReplay = false
@@ -605,7 +606,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
-	h.badger = badges.NewBadger(tc.G)
+	h.badger = badges.NewBadger(tc.G, nil)
 	t.Logf("client setup complete")
 
 	t.Logf("server message")
@@ -649,7 +650,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 
 	// Set up client and server
 	h, _, _ := setupSyncTests(t, tc)
-	h.badger = badges.NewBadger(tc.G)
+	h.badger = badges.NewBadger(tc.G, nil)
 	t.Logf("client setup complete")
 
 	t.Logf("sending first chat update")
@@ -774,7 +775,7 @@ func TestBroadcastRepeat(t *testing.T) {
 	}
 
 	var h *gregorHandler
-	h = newGregorHandler(tc.G)
+	h = newGregorHandler(globals.NewContext(tc.G, nil))
 	h.testingEvents = newTestingEvents()
 
 	m, err := h.templateMessage()

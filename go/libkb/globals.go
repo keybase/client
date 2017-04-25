@@ -24,7 +24,6 @@ import (
 	"sync"
 	"time"
 
-	chattypes "github.com/keybase/client/go/chat/types"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	clockwork "github.com/keybase/clockwork"
@@ -68,16 +67,17 @@ type GlobalContext struct {
 	fullSelfer     FullSelfer      // a loader that gets the full self object
 	pvlSource      PvlSource       // a cache and fetcher for pvl
 
-	GpgClient         *GpgCLI        // A standard GPG-client (optional)
-	ShutdownHooks     []ShutdownHook // on shutdown, fire these...
-	SocketInfo        Socket         // which socket to bind/connect to
-	socketWrapperMu   *sync.RWMutex
-	SocketWrapper     *SocketWrapper     // only need one connection per
-	LoopbackListener  *LoopbackListener  // If we're in loopback mode, we'll connect through here
-	XStreams          *ExportedStreams   // a table of streams we've exported to the daemon (or vice-versa)
-	Timers            *TimerSet          // Which timers are currently configured on
-	UI                UI                 // Interact with the UI
-	Service           bool               // whether we're in server mode
+	GpgClient        *GpgCLI        // A standard GPG-client (optional)
+	ShutdownHooks    []ShutdownHook // on shutdown, fire these...
+	SocketInfo       Socket         // which socket to bind/connect to
+	socketWrapperMu  *sync.RWMutex
+	SocketWrapper    *SocketWrapper    // only need one connection per
+	LoopbackListener *LoopbackListener // If we're in loopback mode, we'll connect through here
+	XStreams         *ExportedStreams  // a table of streams we've exported to the daemon (or vice-versa)
+	Timers           *TimerSet         // Which timers are currently configured on
+	UI               UI                // Interact with the UI
+	Service          bool              // whether we're in server mode
+
 	shutdownOnce      *sync.Once         // whether we've shut down or not
 	loginStateMu      *sync.RWMutex      // protects loginState pointer, which gets destroyed on logout
 	loginState        *LoginState        // What phase of login the user's in
@@ -104,15 +104,6 @@ type GlobalContext struct {
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
 	ConnectivityMonitor ConnectivityMonitor  // Detect whether we're connected or not.
-
-	// Chat globals
-	InboxSource         chattypes.InboxSource         // source of remote inbox entries for chat
-	ConvSource          chattypes.ConversationSource  // source of remote message bodies for chat
-	MessageDeliverer    chattypes.MessageDeliverer    // background message delivery service
-	ServerCacheVersions chattypes.ServerCacheVersions // server side versions for chat caches
-	ChatSyncer          chattypes.Syncer              // For syncing inbox with server
-	TlfInfoSource       chattypes.TLFInfoSource
-	ChatFetchRetrier    chattypes.FetchRetrier // For retrying failed fetch requests
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -511,15 +502,6 @@ func (g *GlobalContext) Shutdown() error {
 		}
 		if g.Resolver != nil {
 			g.Resolver.Shutdown()
-		}
-		if g.MessageDeliverer != nil {
-			g.MessageDeliverer.Stop(context.Background())
-		}
-		if g.ChatFetchRetrier != nil {
-			g.ChatFetchRetrier.Stop(context.Background())
-		}
-		if g.ChatSyncer != nil {
-			g.ChatSyncer.Shutdown()
 		}
 
 		for _, hook := range g.ShutdownHooks {

@@ -8,10 +8,10 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/badges"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/gregor"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -19,15 +19,15 @@ import (
 )
 
 type PushHandler struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 
 	identNotifier *IdentifyNotifier
 }
 
-func NewPushHandler(g *libkb.GlobalContext) *PushHandler {
+func NewPushHandler(g *globals.Context) *PushHandler {
 	return &PushHandler{
-		Contextified:  libkb.NewContextified(g),
+		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g, "PushHandler", false),
 		identNotifier: NewIdentifyNotifier(g),
 	}
@@ -195,7 +195,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 			if pushErr != nil {
 				g.Debug(ctx, "chat activity: newMessage: push error, alerting")
 			}
-			g.G().ChatSyncer.SendChatStaleNotifications(context.Background(), m.UID().Bytes(),
+			g.G().Syncer.SendChatStaleNotifications(context.Background(), m.UID().Bytes(),
 				[]chat1.ConversationID{nm.ConvID}, true)
 		}
 

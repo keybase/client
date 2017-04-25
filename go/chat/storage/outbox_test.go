@@ -6,9 +6,9 @@ import (
 
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -16,13 +16,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupOutboxTest(t testing.TB, name string) (libkb.TestContext, *Outbox, gregor1.UID, clockwork.FakeClock) {
-	tc := externals.SetupTest(t, name, 2)
-	u, err := kbtest.CreateAndSignupFakeUser("ob", tc.G)
+func setupOutboxTest(t testing.TB, name string) (kbtest.ChatTestContext, *Outbox, gregor1.UID, clockwork.FakeClock) {
+	ltc := externals.SetupTest(t, name, 2)
+	tc := kbtest.ChatTestContext{
+		TestContext: ltc,
+		ChatG:       &globals.ChatContext{},
+	}
+	u, err := kbtest.CreateAndSignupFakeUser("ob", ltc.G)
 	require.NoError(t, err)
 	uid := gregor1.UID(u.User.GetUID().ToBytes())
 	cl := clockwork.NewFakeClock()
-	ob := NewOutbox(tc.G, uid)
+	ob := NewOutbox(tc.Context(), uid)
 	ob.SetClock(cl)
 	return tc, ob, uid, cl
 }

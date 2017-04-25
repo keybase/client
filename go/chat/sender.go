@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -26,7 +27,7 @@ type Sender interface {
 }
 
 type BlockingSender struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 
 	boxer *Boxer
@@ -34,10 +35,10 @@ type BlockingSender struct {
 	getRi func() chat1.RemoteInterface
 }
 
-func NewBlockingSender(g *libkb.GlobalContext, boxer *Boxer, store *AttachmentStore,
+func NewBlockingSender(g *globals.Context, boxer *Boxer, store *AttachmentStore,
 	getRi func() chat1.RemoteInterface) *BlockingSender {
 	return &BlockingSender{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "BlockingSender", false),
 		getRi:        getRi,
 		boxer:        boxer,
@@ -368,7 +369,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 func (s *BlockingSender) getSigningKeyPair(ctx context.Context) (kp libkb.NaclSigningKeyPair, err error) {
 	// get device signing key for this user
-	signingKey, err := engine.GetMySecretKey(ctx, s.G(), storage.DefaultSecretUI,
+	signingKey, err := engine.GetMySecretKey(ctx, s.G().ExternalG(), storage.DefaultSecretUI,
 		libkb.DeviceSigningKeyType, "sign chat message")
 	if err != nil {
 		return libkb.NaclSigningKeyPair{}, err
@@ -474,7 +475,7 @@ type DelivererInfoError interface {
 }
 
 type Deliverer struct {
-	libkb.Contextified
+	globals.Contextified
 	sync.Mutex
 	utils.DebugLabeler
 
@@ -491,9 +492,9 @@ type Deliverer struct {
 
 var _ types.MessageDeliverer = (*Deliverer)(nil)
 
-func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
+func NewDeliverer(g *globals.Context, sender Sender) *Deliverer {
 	d := &Deliverer{
-		Contextified:  libkb.NewContextified(g),
+		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g, "Deliverer", false),
 		shutdownCh:    make(chan chan struct{}, 1),
 		msgSentCh:     make(chan struct{}, 100),
@@ -701,13 +702,13 @@ func (s *Deliverer) deliverLoop() {
 }
 
 type NonblockingSender struct {
-	libkb.Contextified
+	globals.Contextified
 	sender Sender
 }
 
-func NewNonblockingSender(g *libkb.GlobalContext, sender Sender) *NonblockingSender {
+func NewNonblockingSender(g *globals.Context, sender Sender) *NonblockingSender {
 	s := &NonblockingSender{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		sender:       sender,
 	}
 	return s
@@ -725,7 +726,7 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 		ComposeTime: gregor1.ToTime(time.Now()),
 	}
 
-	identifyBehavior, _, _ := types.IdentifyMode(ctx)
+	identifyBehavior, _, _ := IdentifyMode(ctx)
 	obr, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, identifyBehavior)
 	return obr.OutboxID, 0, &chat1.RateLimit{}, err
 }
