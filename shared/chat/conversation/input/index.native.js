@@ -37,7 +37,6 @@ class ConversationInput extends Component<void, Props, void> {
       return
     }
 
-    console.log('aaa submit text', text)
     this.props.setText('')
     this.props.inputClear()
     if (this.props.editingMessage) {
