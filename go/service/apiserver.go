@@ -5,7 +5,6 @@ package service
 
 import (
 	"encoding/json"
-	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -82,12 +81,10 @@ func (a *APIServerHandler) setupArg(arg GenericArg) libkb.APIArg {
 
 func (a *APIServerHandler) doGet(arg GenericArg, sessionRequired bool) (res keybase1.APIRes, err error) {
 	defer a.G().Trace("APIServerHandler::Get", func() error { return err })()
-	// turn off session requirement
+	// turn off session requirement if not needed
 	kbarg := a.setupArg(arg)
 	if !sessionRequired {
-		if !strings.Contains(kbarg.Endpoint, "kbfs/favorite/list") {
-			kbarg.SessionType = libkb.APISessionTypeNONE
-		}
+		kbarg.SessionType = libkb.APISessionTypeNONE
 	}
 	var ires *libkb.APIRes
 	ires, err = a.G().API.Get(kbarg)
