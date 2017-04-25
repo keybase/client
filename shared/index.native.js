@@ -8,7 +8,7 @@ import Main from './main'
 import React, {Component} from 'react'
 import {Box} from './common-adapters'
 import configureStore from './store/configure-store'
-import {AppRegistry, AppState, NativeModules, NativeEventEmitter} from 'react-native'
+import {AppRegistry, AppState, Linking} from 'react-native'
 import {Provider} from 'react-redux'
 import {makeEngine} from './engine'
 import {setup as setupLocalDebug, dumbSheetOnly, dumbChatOnly} from './local-debug'
@@ -16,9 +16,6 @@ import routeDefs from './routes'
 import {setRouteDef} from './actions/route-tree'
 import {changedFocus, appLink} from './actions/app'
 import {setupSource} from './util/forward-logs'
-
-const nativeBridge = NativeModules.KeybaseEngine
-const RNEmitter = new NativeEventEmitter(nativeBridge)
 
 module.hot && module.hot.accept(() => {
   console.log('accepted update in shared/index.native')
@@ -44,7 +41,6 @@ class Keybase extends Component {
       setupLocalDebug(this.store)
       this.store.dispatch(setRouteDef(routeDefs))
       makeEngine()
-      RNEmitter.addListener(nativeBridge.linkEvent, link => this.store.dispatch(appLink(link)))
     } else {
       this.store = global.store
     }
@@ -52,8 +48,23 @@ class Keybase extends Component {
     AppState.addEventListener('change', this._handleAppStateChange)
   }
 
+  componentDidMount () {
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        console.log('aaa Initial url is: ' + url)
+      }
+    }).catch(_ => {})
+    Linking.addEventListener('url', this._handleOpenURL)
+  }
+
   componentWillUnmount () {
     AppState.removeEventListener('change', this._handleAppStateChange)
+    Linking.removeEventListener('url', this._handleOpenURL)
+  }
+
+  _handleOpenURL (event: {url: string}) {
+    console.log('aaaa got url', event.url)
+    this.store.dispatch(appLink(event.url))
   }
 
   _handleAppStateChange = (nextAppState: string) => {

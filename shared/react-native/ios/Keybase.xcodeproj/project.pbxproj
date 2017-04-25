@@ -27,6 +27,7 @@
 		DB2BD1ED1DE7D9A600BB7989 /* libRCTVibration.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1DE1DE7D97900BB7989 /* libRCTVibration.a */; };
 		DB2BD1EE1DE7D9A600BB7989 /* libRCTWebSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1E21DE7D97900BB7989 /* libRCTWebSocket.a */; };
 		DB2BD1EF1DE7D9A600BB7989 /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB2BD1841DE7D81C00BB7989 /* libReact.a */; };
+		DB610D7B1EAF9C480094BC70 /* libRCTLinking.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB610D601EAF99AD0094BC70 /* libRCTLinking.a */; };
 		DB6D0B961E5B9ED200410F3C /* libRCTAnimation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB6D0B7A1E5B9EB400410F3C /* libRCTAnimation.a */; };
 		DB7538FD1D776CC400AFA61B /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
 		DB75391B1D776CC400AFA61B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
@@ -346,6 +347,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */,
+				DB610D7B1EAF9C480094BC70 /* libRCTLinking.a in Frameworks */,
 				DB6D0B961E5B9ED200410F3C /* libRCTAnimation.a in Frameworks */,
 				DB2BD1E51DE7D9A600BB7989 /* libRCTActionSheet.a in Frameworks */,
 				DB2BD1E61DE7D9A600BB7989 /* libRCTGeolocation.a in Frameworks */,
@@ -1207,8 +1209,8 @@
 					"$(SRCROOT)/../../node_modules/react-native/Libraries/PushNotificationIOS",
 					"$(SRCROOT)/../../node_modules/react-native-camera/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native-image-picker/ios",
-					"$(SRCROOT)/../../node_modules/react-native-fs/**",
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
+					"$(SRCROOT)/../../node_modules/react-native/Libraries/LinkingIOS",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -1258,8 +1260,8 @@
 					"$(SRCROOT)/../../node_modules/react-native/Libraries/PushNotificationIOS",
 					"$(SRCROOT)/../../node_modules/react-native-camera/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native-image-picker/ios",
-					"$(SRCROOT)/../../node_modules/react-native-fs/**",
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
+					"$(SRCROOT)/../../node_modules/react-native/Libraries/LinkingIOS",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;

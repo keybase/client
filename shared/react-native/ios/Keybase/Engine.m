@@ -29,8 +29,7 @@
 
 @implementation Engine
 
-static NSString *const msgPackEventName = @"objc-engine-msgpack";
-static NSString *const universalLinkEventName = @"objc-engine-universal";
+static NSString *const eventName = @"objc-engine-event";
 
 - (instancetype)initWithSettings:(NSDictionary *)settings error:(NSError **)error {
   if ((self = [super init])) {
@@ -62,7 +61,7 @@ static NSString *const universalLinkEventName = @"objc-engine-universal";
         if (!self.keybaseEngine) {
           NSLog(@"NO ENGINE");
         }
-        [self.keybaseEngine sendEventWithName:msgPackEventName body:data];
+        [self.keybaseEngine sendEventWithName:eventName body:data];
       }
     }
   });
@@ -91,10 +90,6 @@ static NSString *const universalLinkEventName = @"objc-engine-universal";
   }
 }
 
-- (void) universalLink: (NSString*) url {
-  [self.keybaseEngine sendEventWithName:universalLinkEventName body:url];
-}
-
 @end
 
 #pragma mark - Engine exposed to react
@@ -109,7 +104,7 @@ RCT_EXPORT_MODULE();
 
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[msgPackEventName, universalLinkEventName];
+  return @[eventName];
 }
 
 - (Engine *)engine {
@@ -138,8 +133,7 @@ RCT_EXPORT_METHOD(start) {
   @"";
 #endif
 
-  return @{ @"msgpackEvent": msgPackEventName,
-            @"linkEvent": universalLinkEventName,
+  return @{ @"eventName": eventName,
             @"test": testVal,
             @"usingSimulator": simulatorVal,
             @"version": GoKeybaseVersion()};

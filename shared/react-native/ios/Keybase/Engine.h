@@ -12,7 +12,6 @@
 
 @interface Engine : NSObject
 - (instancetype)initWithSettings:(NSDictionary *)settings error:(NSError **)error;
-- (void) universalLink: (NSString*) url;
 @end
 
 @interface KeybaseEngine : RCTEventEmitter <RCTBridgeModule>
