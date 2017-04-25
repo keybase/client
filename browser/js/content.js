@@ -72,6 +72,10 @@ User.prototype.href = function(service) {
       return `https://www.reddit.com/user/${name}`;
     case "twitter":
       return `https://twitter.com/${name}`;
+    case "github":
+      return `https://github.com/${name}`;
+    case "hackernews":
+      return `https://news.ycombinator.com/user?id=${name}`;
     default:
       throw `unknown service: ${this.origin}`;
   }

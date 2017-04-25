@@ -58,6 +58,12 @@ const pageMatchRules = [
       }),
       new chrome.declarativeContent.PageStateMatcher({
           pageUrl: { urlMatches: 'twitter.com/[\\w]+$' },
+      }),
+      new chrome.declarativeContent.PageStateMatcher({
+          pageUrl: { urlMatches: 'github.com/[\\w]+$' },
+      }),
+      new chrome.declarativeContent.PageStateMatcher({
+          pageUrl: { urlMatches: 'news.ycombinator.com/user' },
       })
     ],
     actions: [
