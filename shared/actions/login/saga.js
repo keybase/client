@@ -9,7 +9,8 @@ import * as Creators from './creators'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import {RPCError} from '../../util/errors'
-import {bootstrap, setInitialTab, getExtendedStatus} from '../config'
+import {bootstrap, setInitialTab, getExtendedStatus, setInitialLink} from '../config'
+import {appLink} from '../app'
 import {defaultModeForDeviceRoles} from './provision-helpers'
 import openURL from '../../util/open-url'
 import {devicesTab, loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
@@ -85,10 +86,11 @@ function * setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) {
 }
 
 function * navBasedOnLoginState () {
-  const selector = ({config: {loggedIn, registered, initialTab, launchedViaPush}, login: {justDeletedSelf}}: TypedState) => ({
+  const selector = ({config: {loggedIn, registered, initialTab, initialLink, launchedViaPush}, login: {justDeletedSelf}}: TypedState) => ({
     loggedIn,
     registered,
     initialTab,
+    initialLink,
     justDeletedSelf,
     launchedViaPush,
   })
@@ -97,6 +99,7 @@ function * navBasedOnLoginState () {
     loggedIn,
     registered,
     initialTab,
+    initialLink,
     justDeletedSelf,
     launchedViaPush,
   } = yield select(selector)
@@ -107,6 +110,9 @@ function * navBasedOnLoginState () {
     if (overrideLoggedInTab) {
       console.log('Loading overridden logged in tab')
       yield put(navigateTo([overrideLoggedInTab]))
+    } else if (initialLink) {
+      yield put(setInitialLink(''))
+      yield put(appLink(initialLink))
     } else if (initialTab && isValidInitialTab(initialTab)) {
       // only do this once
       yield put(setInitialTab(null))

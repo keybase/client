@@ -22,6 +22,10 @@ const setInitialTab = (tab: ?Tab): Constants.SetInitialTab => (
   {payload: {tab}, type: 'config:setInitialTab'}
 )
 
+const setInitialLink = (url: string): Constants.SetInitialLink => (
+  {payload: {url}, type: 'config:setInitialLink'}
+)
+
 const setLaunchedViaPush = (pushed: boolean): Constants.SetLaunchedViaPush => (
   {payload: pushed, type: 'config:setLaunchedViaPush'}
 )
@@ -201,6 +205,7 @@ export {
   isFollowing,
   retryBootstrap,
   setInitialTab,
+  setInitialLink,
   setLaunchedViaPush,
   updateFollowing,
   waitForKBFS,

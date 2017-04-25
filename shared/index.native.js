@@ -49,11 +49,6 @@ class Keybase extends Component {
   }
 
   componentDidMount () {
-    Linking.getInitialURL().then((url) => {
-      if (url) {
-        console.log('aaa Initial url is: ' + url)
-      }
-    }).catch(_ => {})
     Linking.addEventListener('url', this._handleOpenURL)
   }
 
