@@ -942,6 +942,8 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		return chat1.PostLocalNonblockRes{},
 			fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
 	}
+	h.Debug(ctx, "PostLocalNonblock: using outboxID: %s", obid)
+
 	return chat1.PostLocalNonblockRes{
 		OutboxID:         obid,
 		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{rl}),

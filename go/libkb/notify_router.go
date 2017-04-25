@@ -477,7 +477,7 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 
 	var wg sync.WaitGroup
 
-	n.G().Log.Debug("+ Sending NewChatActivity notification")
+	n.G().Log.CDebugf(ctx, "+ Sending NewChatActivity notification")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Chat` notification type
@@ -502,7 +502,7 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 	if n.listener != nil {
 		n.listener.NewChatActivity(uid, *activity)
 	}
-	n.G().Log.Debug("- Sent NewChatActivity notification")
+	n.G().Log.CDebugf(ctx, "- Sent NewChatActivity notification")
 }
 
 func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
@@ -510,7 +510,7 @@ func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keyb
 		return
 	}
 	var wg sync.WaitGroup
-	n.G().Log.Debug("+ Sending ChatIdentifyUpdate notification")
+	n.G().Log.CDebugf(ctx, "+ Sending ChatIdentifyUpdate notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Chat {
 			wg.Add(1)
@@ -527,7 +527,7 @@ func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keyb
 	if n.listener != nil {
 		n.listener.ChatIdentifyUpdate(update)
 	}
-	n.G().Log.Debug("- Sent ChatIdentifyUpdate notification")
+	n.G().Log.CDebugf(ctx, "- Sent ChatIdentifyUpdate notification")
 }
 
 func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo, conv *chat1.ConversationLocal) {
@@ -535,7 +535,7 @@ func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.U
 		return
 	}
 	var wg sync.WaitGroup
-	n.G().Log.Debug("+ Sending ChatTLFFinalize notification")
+	n.G().Log.CDebugf(ctx, "+ Sending ChatTLFFinalize notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Chat {
 			wg.Add(1)
@@ -557,7 +557,7 @@ func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.U
 	if n.listener != nil {
 		n.listener.ChatTLFFinalize(uid, convID, finalizeInfo)
 	}
-	n.G().Log.Debug("- Sent ChatTLFFinalize notification")
+	n.G().Log.CDebugf(ctx, "- Sent ChatTLFFinalize notification")
 }
 
 func (n *NotifyRouter) HandleChatTLFResolve(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, resolveInfo chat1.ConversationResolveInfo) {
@@ -565,7 +565,7 @@ func (n *NotifyRouter) HandleChatTLFResolve(ctx context.Context, uid keybase1.UI
 		return
 	}
 	var wg sync.WaitGroup
-	n.G().Log.Debug("+ Sending ChatTLFResolve notification")
+	n.G().Log.CDebugf(ctx, "+ Sending ChatTLFResolve notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Chat {
 			wg.Add(1)
@@ -586,7 +586,7 @@ func (n *NotifyRouter) HandleChatTLFResolve(ctx context.Context, uid keybase1.UI
 	if n.listener != nil {
 		n.listener.ChatTLFResolve(uid, convID, resolveInfo)
 	}
-	n.G().Log.Debug("- Sent ChatTLFResolve notification")
+	n.G().Log.CDebugf(ctx, "- Sent ChatTLFResolve notification")
 }
 
 func (n *NotifyRouter) HandleChatInboxStale(ctx context.Context, uid keybase1.UID) {
@@ -594,7 +594,7 @@ func (n *NotifyRouter) HandleChatInboxStale(ctx context.Context, uid keybase1.UI
 		return
 	}
 	var wg sync.WaitGroup
-	n.G().Log.Debug("+ Sending ChatInboxStale notification")
+	n.G().Log.CDebugf(ctx, "+ Sending ChatInboxStale notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Chat {
 			wg.Add(1)
@@ -611,7 +611,7 @@ func (n *NotifyRouter) HandleChatInboxStale(ctx context.Context, uid keybase1.UI
 	if n.listener != nil {
 		n.listener.ChatInboxStale(uid)
 	}
-	n.G().Log.Debug("- Sent ChatInboxStale notification")
+	n.G().Log.CDebugf(ctx, "- Sent ChatInboxStale notification")
 }
 
 func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.UID,
@@ -620,7 +620,7 @@ func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.
 		return
 	}
 	var wg sync.WaitGroup
-	n.G().Log.Debug("+ Sending ChatThreadsStale notification")
+	n.G().Log.CDebugf(ctx, "+ Sending ChatThreadsStale notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Chat {
 			wg.Add(1)
@@ -640,7 +640,7 @@ func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.
 	if n.listener != nil {
 		n.listener.ChatThreadsStale(uid, threads)
 	}
-	n.G().Log.Debug("- Sent ChatThreadsStale notification")
+	n.G().Log.CDebugf(ctx, "- Sent ChatThreadsStale notification")
 }
 
 // HandlePaperKeyCached is called whenever a paper key is cached

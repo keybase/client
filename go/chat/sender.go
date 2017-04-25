@@ -424,7 +424,8 @@ func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
 }
 
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (obid chat1.OutboxID, msgID chat1.MessageID, rl *chat1.RateLimit, err error) {
+	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
 
 	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
 	boxed, pendingAssetDeletes, err := s.Prepare(ctx, msg, &convID)
@@ -447,6 +448,13 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		}
 	}
 
+	// Log some useful information about the message we are sending
+	obidstr := "(none)"
+	if boxed.ClientHeader.OutboxID != nil {
+		obidstr = fmt.Sprintf("%s", boxed.ClientHeader.OutboxID)
+	}
+	s.Debug(ctx, "sending message: convID: %s outboxID: %s", convID, obidstr)
+
 	rarg := chat1.PostRemoteArg{
 		ConversationID: convID,
 		MessageBoxed:   *boxed,
@@ -458,6 +466,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	boxed.ServerHeader = &plres.MsgHeader
 
 	// Write new message out to cache
+	s.Debug(ctx, "sending local updates to chat sources")
 	if _, _, err = s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
 		return chat1.OutboxID{}, 0, nil, err
 	}
@@ -575,16 +584,16 @@ func (s *Deliverer) IsOffline() bool {
 }
 
 func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
-	identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error) {
-
-	s.Debug(ctx, "queued new message: convID: %s uid: %s ident: %v", convID, s.outbox.GetUID(),
-		identifyBehavior)
+	identifyBehavior keybase1.TLFIdentifyBehavior) (obr chat1.OutboxRecord, err error) {
+	defer s.Trace(ctx, func() error { return err }, "Queue")()
 
 	// Push onto outbox and immediatley return
-	obr, err := s.outbox.PushMessage(ctx, convID, msg, identifyBehavior)
+	obr, err = s.outbox.PushMessage(ctx, convID, msg, identifyBehavior)
 	if err != nil {
 		return obr, err
 	}
+	s.Debug(ctx, "queued new message: convID: %s outboxID: %s uid: %s ident: %v", convID,
+		obr.OutboxID, s.outbox.GetUID(), identifyBehavior)
 
 	// Alert the deliver loop it should wake up
 	s.msgSentCh <- struct{}{}
