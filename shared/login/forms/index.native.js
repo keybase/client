@@ -7,15 +7,15 @@ import type {Props} from '.'
 
 const Splash = () => (
   <Box style={stylesLoginForm}>
-    <Icon type='icon-keybase-logo-128' />
+    <Icon type='icon-keybase-logo-80' />
     <Text style={stylesHeader} type='HeaderBig'>Keybase</Text>
-    <Text style={stylesHeaderSub} type='BodySmall'>Loading…</Text>
+    <Text style={{...stylesHeaderSub, marginTop: globalMargins.small}} type='BodySmall'>Loading…</Text>
   </Box>
 )
 
 const Failure = (props: Props) => (
   <Box style={stylesLoginForm}>
-    <Icon type='icon-keybase-logo-128' />
+    <Icon type='icon-keybase-logo-80' />
     <Text style={stylesHeader} type='HeaderBig'>Keybase</Text>
     <Text style={stylesMessage} type='Body'>
       <Text style={stylesMessage} type='Body'>
@@ -33,15 +33,17 @@ const Failure = (props: Props) => (
 )
 
 const Intro = (props: Props) => (
-  <Box style={{...stylesLoginForm, marginTop: props.justRevokedSelf || props.justDeletedSelf ? 0 : 55}}>
+  <Box style={{...stylesLoginForm, marginTop: props.justRevokedSelf || props.justDeletedSelf ? 0 : 128}}>
     {!!props.justRevokedSelf &&
       <Text type='BodySemibold' style={{...stylesRevoked}}><Text type='BodySemiboldItalic' style={{color: globalColors.white}}>{props.justRevokedSelf}</Text>&nbsp;was revoked successfully</Text>
+
     }
     {!!props.justDeletedSelf &&
       <Text type='BodySemibold' style={{...stylesDeleted}}>Your Keybase account <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>{props.justDeletedSelf}</Text>&nbsp;has been deleted.</Text>
+
     }
     {!!props.justLoginFromRevokedDevice &&
-      <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>has been revoked, please log in again.</Text>
+      <Text type='BodySemibold' style={{color: globalColors.white}}>has been revoked, please log in again.</Text>
     }
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
       <Icon type='icon-keybase-logo-80' />
