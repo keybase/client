@@ -24,13 +24,16 @@ chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     // the URL.
     if (location.hostname.endsWith('reddit.com')) {
         const username = location.pathname.split('/')[2];
-        return renderPopup(document.body, username, 'twitter');
+        return renderPopup(document.body, username, 'reddit');
+
     } else if (location.hostname.endsWith('twitter.com')) {
         const username = location.pathname.split('/')[1];
         return renderPopup(document.body, username, 'twitter');
+
     } else if (location.hostname.endsWith('github.com')) {
         const username = location.pathname.split('/')[1];
         return renderPopup(document.body, username, 'github');
+
     } else if (location.hostname == "news.ycombinator.com") {
         const qs = parseLocationQuery(location.search);
         const username = qs["id"];
