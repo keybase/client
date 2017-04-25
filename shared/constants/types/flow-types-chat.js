@@ -722,7 +722,7 @@ export type Asset = {
   endpoint: string,
   bucket: string,
   path: string,
-  size: int,
+  size: long,
   mimeType: string,
   encHash: Hash,
   key: bytes,
@@ -1633,8 +1633,8 @@ export type UnreadUpdateFull = {
 }
 
 export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{
-  bytesComplete: int,
-  bytesTotal: int
+  bytesComplete: long,
+  bytesTotal: long
 }>
 
 export type chatUiChatAttachmentPreviewUploadStartRpcParam = Exact<{
@@ -1646,8 +1646,8 @@ export type chatUiChatAttachmentUploadOutboxIDRpcParam = Exact<{
 }>
 
 export type chatUiChatAttachmentUploadProgressRpcParam = Exact<{
-  bytesComplete: int,
-  bytesTotal: int
+  bytesComplete: long,
+  bytesTotal: long
 }>
 
 export type chatUiChatAttachmentUploadStartRpcParam = Exact<{
@@ -2055,8 +2055,8 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatAttachmentUploadProgress'?: (
     params: Exact<{
       sessionID: int,
-      bytesComplete: int,
-      bytesTotal: int
+      bytesComplete: long,
+      bytesTotal: long
     }>,
     response: CommonResponseHandler
   ) => void,
@@ -2088,8 +2088,8 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatAttachmentDownloadProgress'?: (
     params: Exact<{
       sessionID: int,
-      bytesComplete: int,
-      bytesTotal: int
+      bytesComplete: long,
+      bytesTotal: long
     }>,
     response: CommonResponseHandler
   ) => void,

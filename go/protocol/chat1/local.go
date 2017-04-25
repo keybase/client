@@ -169,7 +169,7 @@ type Asset struct {
 	Endpoint  string        `codec:"endpoint" json:"endpoint"`
 	Bucket    string        `codec:"bucket" json:"bucket"`
 	Path      string        `codec:"path" json:"path"`
-	Size      int           `codec:"size" json:"size"`
+	Size      int64         `codec:"size" json:"size"`
 	MimeType  string        `codec:"mimeType" json:"mimeType"`
 	EncHash   Hash          `codec:"encHash" json:"encHash"`
 	Key       []byte        `codec:"key" json:"key"`

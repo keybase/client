@@ -66,7 +66,7 @@ protocol local {
     string endpoint;           // storage endpoint
     string bucket;             // storage bucket
     string path;               // path to the object in bucket
-    int size;                  // size of the object
+    long size;                 // size of the object
     string mimeType;           // mime type of the object
     Hash encHash;              // hash of ciphertext object
     bytes key;                 // encryption key
