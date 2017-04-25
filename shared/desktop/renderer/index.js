@@ -101,7 +101,6 @@ function setupApp (store) {
   })
   ipcRenderer.send('install-check')
 
-  const currentWindow = electron.remote.getCurrentWindow()
   window.addEventListener('focus', () => { store.dispatch(changedFocus(true)) })
   window.addEventListener('blur', () => { store.dispatch(changedFocus(false)) })
 
