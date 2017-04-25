@@ -56,7 +56,6 @@ const styleErrorBanner = {
   zIndex: 1,
   minHeight: globalMargins.large,
   padding: globalMargins.tiny,
-  marginTop: -globalMargins.large,
   backgroundColor: globalColors.red,
 }
 
