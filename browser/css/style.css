@@ -80,8 +80,7 @@ img.keybase-icon {
   color: #888;
 }
 
-.keybase-reply a.reddit-user {
-  /* Mimic normal reddit user tag */
+.keybase-reply a.external-user {
   color: #0079d3 !important;
   padding: 0 !important;
   font-weight: normal !important;
