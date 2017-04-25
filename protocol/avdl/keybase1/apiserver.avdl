@@ -12,6 +12,8 @@ protocol apiserver {
     @lint("ignore")
     APIRes Get(string endpoint, array<StringKVPair> args, array<int> httpStatus, array<int> appStatusCode);
     @lint("ignore")
+    APIRes GetWithSession(string endpoint, array<StringKVPair> args, array<int> httpStatus, array<int> appStatusCode);
+    @lint("ignore")
     APIRes Post(string endpoint, array<StringKVPair> args, array<int> httpStatus, array<int> appStatusCode);
     @lint("ignore")
     APIRes PostJSON(string endpoint, array<StringKVPair> args, array<StringKVPair> JSONPayload, array<int> httpStatus, array<int> appStatusCode);

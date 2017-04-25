@@ -3,7 +3,7 @@ import * as Constants from '../constants/favorite'
 import _ from 'lodash'
 import engine from '../engine'
 import {NotifyPopup} from '../native/notifications'
-import {apiserverGetRpcPromise, favoriteFavoriteAddRpcPromise, favoriteFavoriteIgnoreRpcPromise, NotifyFSRequestFSSyncStatusRequestRpcPromise} from '../constants/types/flow-types'
+import {apiserverGetWithSessionRpcPromise, favoriteFavoriteAddRpcPromise, favoriteFavoriteIgnoreRpcPromise, NotifyFSRequestFSSyncStatusRequestRpcPromise} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {navigateUp} from '../actions/route-tree'
 import {call, put, select} from 'redux-saga/effects'
@@ -217,7 +217,7 @@ function * _listSaga (): SagaGenerator<any, any> {
   }
 
   try {
-    const results = yield call(apiserverGetRpcPromise, {
+    const results = yield call(apiserverGetWithSessionRpcPromise, {
       param: {
         endpoint: 'kbfs/favorite/list',
         args: [{key: 'problems', value: '1'}],

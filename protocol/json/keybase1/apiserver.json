@@ -62,6 +62,37 @@
       "response": "APIRes",
       "lint": "ignore"
     },
+    "GetWithSession": {
+      "request": [
+        {
+          "name": "endpoint",
+          "type": "string"
+        },
+        {
+          "name": "args",
+          "type": {
+            "type": "array",
+            "items": "StringKVPair"
+          }
+        },
+        {
+          "name": "httpStatus",
+          "type": {
+            "type": "array",
+            "items": "int"
+          }
+        },
+        {
+          "name": "appStatusCode",
+          "type": {
+            "type": "array",
+            "items": "int"
+          }
+        }
+      ],
+      "response": "APIRes",
+      "lint": "ignore"
+    },
     "Post": {
       "request": [
         {
