@@ -5,23 +5,27 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
-func setupStorageTest(t testing.TB, name string) (libkb.TestContext, *Storage, gregor1.UID) {
-	tc := externals.SetupTest(t, name, 2)
-	u, err := kbtest.CreateAndSignupFakeUser("cs", tc.G)
-	tc.G.ServerCacheVersions = NewServerVersions(tc.G)
+func setupStorageTest(t testing.TB, name string) (kbtest.ChatTestContext, *Storage, gregor1.UID) {
+	ltc := externals.SetupTest(t, name, 2)
+	u, err := kbtest.CreateAndSignupFakeUser("cs", ltc.G)
+	tc := kbtest.ChatTestContext{
+		TestContext: ltc,
+		ChatG:       &globals.ChatContext{},
+	}
+	tc.Context().ServerCacheVersions = NewServerVersions(tc.Context())
 	require.NoError(t, err)
-	return tc, New(tc.G), gregor1.UID(u.User.GetUID().ToBytes())
+	return tc, New(tc.Context()), gregor1.UID(u.User.GetUID().ToBytes())
 }
 
 func randBytes(n int) []byte {
@@ -188,49 +192,49 @@ func doRandomBench(b *testing.B, storage *Storage, uid gregor1.UID, num, len int
 
 func BenchmarkStorageSimpleBlockEngine(b *testing.B) {
 	tc, storage, uid := setupStorageTest(b, "basic")
-	storage.setEngine(newBlockEngine(tc.G))
+	storage.setEngine(newBlockEngine(tc.Context()))
 	doSimpleBench(b, storage, uid)
 }
 
 func BenchmarkStorageSimpleMsgEngine(b *testing.B) {
 	tc, storage, uid := setupStorageTest(b, "basic")
-	storage.setEngine(newMsgEngine(tc.G))
+	storage.setEngine(newMsgEngine(tc.Context()))
 	doSimpleBench(b, storage, uid)
 }
 
 func BenchmarkStorageCommonBlockEngine(b *testing.B) {
 	tc, storage, uid := setupStorageTest(b, "basic")
-	storage.setEngine(newBlockEngine(tc.G))
+	storage.setEngine(newBlockEngine(tc.Context()))
 	doCommonBench(b, storage, uid)
 }
 
 func BenchmarkStorageCommonMsgEngine(b *testing.B) {
 	tc, storage, uid := setupStorageTest(b, "basic")
-	storage.setEngine(newMsgEngine(tc.G))
+	storage.setEngine(newMsgEngine(tc.Context()))
 	doCommonBench(b, storage, uid)
 }
 
 func BenchmarkStorageRandomBlockEngine(b *testing.B) {
 	tc, storage, uid := setupStorageTest(b, "basic")
-	storage.setEngine(newBlockEngine(tc.G))
+	storage.setEngine(newBlockEngine(tc.Context()))
 	doRandomBench(b, storage, uid, 127, 1)
 }
 
 func BenchmarkStorageRandomMsgEngine(b *testing.B) {
 	tc, storage, uid := setupStorageTest(b, "basic")
-	storage.setEngine(newMsgEngine(tc.G))
+	storage.setEngine(newMsgEngine(tc.Context()))
 	doRandomBench(b, storage, uid, 127, 1)
 }
 
 func BenchmarkStorageRandomLongBlockEngine(b *testing.B) {
 	tc, storage, uid := setupStorageTest(b, "basic")
-	storage.setEngine(newBlockEngine(tc.G))
+	storage.setEngine(newBlockEngine(tc.Context()))
 	doRandomBench(b, storage, uid, 127, 1)
 }
 
 func BenchmarkStorageRandomLongMsgEngine(b *testing.B) {
 	tc, storage, uid := setupStorageTest(b, "basic")
-	storage.setEngine(newMsgEngine(tc.G))
+	storage.setEngine(newMsgEngine(tc.Context()))
 	doRandomBench(b, storage, uid, 1757, 50)
 }
 
@@ -474,7 +478,7 @@ func TestStorageServerVersion(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages))
 
-	cerr := tc.G.ServerCacheVersions.Set(context.TODO(), chat1.ServerCacheVers{
+	cerr := tc.Context().ServerCacheVersions.Set(context.TODO(), chat1.ServerCacheVers{
 		BodiesVers: 5,
 	})
 	require.NoError(t, cerr)
@@ -493,19 +497,19 @@ func TestStorageDetectBodyHashReplay(t *testing.T) {
 	tc, _, _ := setupStorageTest(t, "fetchMessages")
 
 	// The first time we encounter a body hash it's stored.
-	err := CheckAndRecordBodyHash(tc.G, chat1.Hash("foo"), 1, chat1.ConversationID("bar"))
+	err := CheckAndRecordBodyHash(tc.Context(), chat1.Hash("foo"), 1, chat1.ConversationID("bar"))
 	require.NoError(t, err)
 
 	// Seeing the same body hash again in the same message is fine. That just
 	// means we uboxed it twice.
-	err = CheckAndRecordBodyHash(tc.G, chat1.Hash("foo"), 1, chat1.ConversationID("bar"))
+	err = CheckAndRecordBodyHash(tc.Context(), chat1.Hash("foo"), 1, chat1.ConversationID("bar"))
 	require.NoError(t, err)
 
 	// But seeing the hash again with a different convID/msgID is a replay, and
 	// it must trigger an error.
-	err = CheckAndRecordBodyHash(tc.G, chat1.Hash("foo"), 1, chat1.ConversationID("bar2"))
+	err = CheckAndRecordBodyHash(tc.Context(), chat1.Hash("foo"), 1, chat1.ConversationID("bar2"))
 	require.Error(t, err)
-	err = CheckAndRecordBodyHash(tc.G, chat1.Hash("foo"), 2, chat1.ConversationID("bar"))
+	err = CheckAndRecordBodyHash(tc.Context(), chat1.Hash("foo"), 2, chat1.ConversationID("bar"))
 	require.Error(t, err)
 }
 
@@ -514,16 +518,16 @@ func TestStorageDetectPrevPtrInconsistency(t *testing.T) {
 
 	// The first time we encounter a message ID (either in unboxing or in
 	// another message's prev pointer) its header hash is stored.
-	err := CheckAndRecordPrevPointer(tc.G, 1, chat1.ConversationID("bar"), chat1.Hash("foo"))
+	err := CheckAndRecordPrevPointer(tc.Context(), 1, chat1.ConversationID("bar"), chat1.Hash("foo"))
 	require.NoError(t, err)
 
 	// Seeing the same header hash again in the same message is fine. That just
 	// means we uboxed it twice.
-	err = CheckAndRecordPrevPointer(tc.G, 1, chat1.ConversationID("bar"), chat1.Hash("foo"))
+	err = CheckAndRecordPrevPointer(tc.Context(), 1, chat1.ConversationID("bar"), chat1.Hash("foo"))
 	require.NoError(t, err)
 
 	// But seeing the same convID/msgID with a different header hash is a
 	// consistency violation, and it must trigger an error.
-	err = CheckAndRecordPrevPointer(tc.G, 1, chat1.ConversationID("bar"), chat1.Hash("foo2"))
+	err = CheckAndRecordPrevPointer(tc.Context(), 1, chat1.ConversationID("bar"), chat1.Hash("foo2"))
 	require.Error(t, err)
 }

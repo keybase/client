@@ -55,6 +55,17 @@ func (c *chatTestContext) advanceFakeClock(d time.Duration) {
 	c.world.Fc.Advance(d)
 }
 
+type testUISource struct {
+}
+
+func (t testUISource) GetChatUI(sessionID int) libkb.ChatUI {
+	return nil
+}
+
+func (t testUISource) GetStreamUICli() *keybase1.StreamUiClient {
+	return &keybase1.StreamUiClient{Cli: nil}
+}
+
 func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserContext {
 	if user == nil {
 		t.Fatalf("user is nil")
@@ -69,7 +80,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		t.Fatalf("user %s is not found", user.Username)
 	}
 	g := globals.NewContext(tc.G, tc.ChatG)
-	h := NewServer(g, nil, nil, nil)
+	h := NewServer(g, nil, nil, testUISource{})
 	mockRemote := kbtest.NewChatRemoteMock(c.world)
 	mockRemote.SetCurrentUser(user.User.GetUID().ToBytes())
 
