@@ -917,6 +917,18 @@ export function apiserverGetRpcPromise (request: $Exact<requestCommon & {callbac
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.apiserver.Get', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function apiserverGetWithSessionRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetWithSessionResult) => void} & {param: apiserverGetWithSessionRpcParam}>) {
+  engineRpcOutgoing('keybase.1.apiserver.GetWithSession', request)
+}
+
+export function apiserverGetWithSessionRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetWithSessionResult) => void} & {param: apiserverGetWithSessionRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.apiserver.GetWithSession', request, callback, incomingCallMap) })
+}
+
+export function apiserverGetWithSessionRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetWithSessionResult) => void} & {param: apiserverGetWithSessionRpcParam}>): Promise<apiserverGetWithSessionResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.apiserver.GetWithSession', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function apiserverPostJSONRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostJSONResult) => void} & {param: apiserverPostJSONRpcParam}>) {
   engineRpcOutgoing('keybase.1.apiserver.PostJSON', request)
 }
@@ -4898,6 +4910,13 @@ export type apiserverGetRpcParam = Exact<{
   appStatusCode?: ?Array<int>
 }>
 
+export type apiserverGetWithSessionRpcParam = Exact<{
+  endpoint: string,
+  args?: ?Array<StringKVPair>,
+  httpStatus?: ?Array<int>,
+  appStatusCode?: ?Array<int>
+}>
+
 export type apiserverPostJSONRpcParam = Exact<{
   endpoint: string,
   args?: ?Array<StringKVPair>,
@@ -5834,6 +5853,7 @@ type SimpleFSSimpleFSStatResult = Dirent
 type accountHasServerKeysResult = HasServerKeysRes
 type accountPassphrasePromptResult = GetPassphraseRes
 type apiserverGetResult = APIRes
+type apiserverGetWithSessionResult = APIRes
 type apiserverPostJSONResult = APIRes
 type apiserverPostResult = APIRes
 type blockArchiveReferenceResult = ?Array<BlockReference>
@@ -5993,6 +6013,7 @@ export type rpc =
   | accountPassphrasePromptRpc
   | accountResetAccountRpc
   | apiserverGetRpc
+  | apiserverGetWithSessionRpc
   | apiserverPostJSONRpc
   | apiserverPostRpc
   | blockAddReferenceRpc

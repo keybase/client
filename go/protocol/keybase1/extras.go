@@ -633,6 +633,22 @@ func (a GetArg) GetAppStatusCodes() []int {
 	return a.AppStatusCode
 }
 
+func (a GetWithSessionArg) GetEndpoint() string {
+	return a.Endpoint
+}
+
+func (a GetWithSessionArg) GetHTTPArgs() []StringKVPair {
+	return a.Args
+}
+
+func (a GetWithSessionArg) GetHttpStatuses() []int {
+	return a.HttpStatus
+}
+
+func (a GetWithSessionArg) GetAppStatusCodes() []int {
+	return a.AppStatusCode
+}
+
 func (a PostArg) GetEndpoint() string {
 	return a.Endpoint
 }

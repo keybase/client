@@ -5,6 +5,7 @@ package service
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -26,7 +27,11 @@ func NewAPIServerHandler(xp rpc.Transporter, g *libkb.GlobalContext) *APIServerH
 }
 
 func (a *APIServerHandler) Get(_ context.Context, arg keybase1.GetArg) (keybase1.APIRes, error) {
-	return a.doGet(arg)
+	return a.doGet(arg, false)
+}
+
+func (a *APIServerHandler) GetWithSession(_ context.Context, arg keybase1.GetWithSessionArg) (keybase1.APIRes, error) {
+	return a.doGet(arg, true)
 }
 
 func (a *APIServerHandler) Post(_ context.Context, arg keybase1.PostArg) (keybase1.APIRes, error) {
@@ -75,10 +80,17 @@ func (a *APIServerHandler) setupArg(arg GenericArg) libkb.APIArg {
 	return kbarg
 }
 
-func (a *APIServerHandler) doGet(arg keybase1.GetArg) (res keybase1.APIRes, err error) {
-	a.G().Trace("APIServerHandler::Get", func() error { return err })()
+func (a *APIServerHandler) doGet(arg GenericArg, sessionRequired bool) (res keybase1.APIRes, err error) {
+	defer a.G().Trace("APIServerHandler::Get", func() error { return err })()
+	// turn off session requirement
+	kbarg := a.setupArg(arg)
+	if !sessionRequired {
+		if !strings.Contains(kbarg.Endpoint, "kbfs/favorite/list") {
+			kbarg.SessionType = libkb.APISessionTypeNONE
+		}
+	}
 	var ires *libkb.APIRes
-	ires, err = a.G().API.Get(a.setupArg(arg))
+	ires, err = a.G().API.Get(kbarg)
 	if err != nil {
 		return res, err
 	}
@@ -86,7 +98,7 @@ func (a *APIServerHandler) doGet(arg keybase1.GetArg) (res keybase1.APIRes, err 
 }
 
 func (a *APIServerHandler) doPost(arg keybase1.PostArg) (res keybase1.APIRes, err error) {
-	a.G().Trace("APIServerHandler::Post", func() error { return err })()
+	defer a.G().Trace("APIServerHandler::Post", func() error { return err })()
 	var ires *libkb.APIRes
 	ires, err = a.G().API.Post(a.setupArg(arg))
 	if err != nil {
@@ -96,7 +108,7 @@ func (a *APIServerHandler) doPost(arg keybase1.PostArg) (res keybase1.APIRes, er
 }
 
 func (a *APIServerHandler) doPostJSON(rawarg keybase1.PostJSONArg) (res keybase1.APIRes, err error) {
-	a.G().Trace("APIServerHandler::PostJSON", func() error { return err })()
+	defer a.G().Trace("APIServerHandler::PostJSON", func() error { return err })()
 	var ires *libkb.APIRes
 	arg := a.setupArg(rawarg)
 	jsonPayload := make(libkb.JSONPayload)
