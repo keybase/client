@@ -235,10 +235,30 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		// run provisionee
 		ctx.LoginContext = lctx
 		err := RunEngine(provisionee, ctx)
-		if err == nil {
-			saveToSecretStore(e.G(), lctx, e.arg.User.GetNormalizedName(), provisionee.GetLKSec())
+		if err != nil {
+			return err
 		}
-		return err
+
+		// TODO this error is being ignored... k?
+		saveToSecretStore(e.G(), lctx, e.arg.User.GetNormalizedName(), provisionee.GetLKSec())
+
+		e.signingKey, err = provisionee.SigningKey()
+		if err != nil {
+			return err
+		}
+		e.encryptionKey, err = provisionee.EncryptionKey()
+		if err != nil {
+			return err
+		}
+
+		// Load me again so that keys will be up to date.
+		loadArg := libkb.NewLoadUserArgBase(e.G()).WithSelf(true).WithUID(e.arg.User.GetUID()).WithNetContext(ctx.NetContext)
+		e.arg.User, err = libkb.LoadUser(*loadArg)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 	if err := e.G().LoginState().ExternalFunc(f, "loginProvision.device - Run provisionee"); err != nil {
 		return err
@@ -926,6 +946,19 @@ func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 		if len(cki.PaperDevices()) > 0 {
 			return nil
 		}
+	}
+
+	// Check that there is a signing key present.
+	// If it were nil, PaperKeyGen would try to make an eldest sigchain link.
+	if e.signingKey == nil {
+		return errors.New("missing signing key for ensure paper key")
+	}
+
+	if e.encryptionKey.IsNil() {
+		if e.G().Env.GetEnableSharedDH() {
+			return errors.New("missing encryption key for ensure paper key")
+		}
+		e.G().Log.CWarningf(ctx.NetContext, "missing encryption key for ensure paper key")
 	}
 
 	// make one

@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kex2"
@@ -241,6 +242,8 @@ func TestProvisionDesktop(t *testing.T) {
 
 	wg.Wait()
 
+	require.False(t, t.Failed(), "prior failure in a goroutine")
+
 	if err := AssertProvisioned(tcY); err != nil {
 		t.Fatal(err)
 	}
@@ -390,6 +393,8 @@ func TestProvisionPassphraseNoKeysSolo(t *testing.T) {
 	username, passphrase := createFakeUserWithNoKeys(tcWeb)
 
 	Logout(tcWeb)
+
+	hasZeroPaperDev(tcWeb, &FakeUser{Username: username, Passphrase: passphrase})
 
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -2473,6 +2478,141 @@ func TestProvisionGPGMobile(t *testing.T) {
 	if _, ok := err.(libkb.GPGUnavailableError); !ok {
 		t.Errorf("error type: %T, expected libkb.GPGUnavailableError", err)
 	}
+}
+
+// Provisioning a new device when the user has no paper keys should work
+// and generate a paper key.
+func TestProvisionEnsurePaperKey(t *testing.T) {
+	// This test is based on TestProvisionDesktop.
+
+	t.Logf("create 2 users")
+
+	// device X (provisioner) context:
+	tcX := SetupEngineTest(t, "kex2provision")
+	defer tcX.Cleanup()
+
+	// device Y (provisionee) context:
+	tcY := SetupEngineTest(t, "template")
+	defer tcY.Cleanup()
+
+	// provisioner needs to be logged in
+	userX := CreateAndSignupFakeUserPaper(tcX, "login")
+	var secretX kex2.Secret
+	if _, err := rand.Read(secretX[:]); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("check for initial paper key")
+	originalPaperKey := hasOnePaperDev(tcY, userX)
+
+	t.Logf("revoke paper keys")
+	{
+		ctx := &Context{
+			LoginUI:  &libkb.TestLoginUI{Username: userX.Username},
+			LogUI:    tcY.G.UI.GetLogUI(),
+			SecretUI: &libkb.TestSecretUI{},
+		}
+		eng := NewRevokeDeviceEngine(RevokeDeviceEngineArgs{
+			ID:    originalPaperKey,
+			Force: false,
+		}, tcX.G)
+		err := RunEngine(eng, ctx)
+		require.NoError(t, err, "revoke original paper key")
+	}
+
+	t.Logf("check for no paper key")
+	hasZeroPaperDev(tcX, userX)
+
+	t.Logf("do kex provision")
+
+	secretCh := make(chan kex2.Secret)
+
+	// provisionee calls login:
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUISecretCh(secretCh),
+		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+
+	var wg sync.WaitGroup
+
+	// start provisionee
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Errorf("provisionee login error: %s", err)
+			return
+		}
+	}()
+
+	// start provisioner
+	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		ctx := &Context{
+			SecretUI:    userX.NewSecretUI(),
+			ProvisionUI: newTestProvisionUI(),
+		}
+		if err := RunEngine(provisioner, ctx); err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
+	}()
+	secretFromY := <-secretCh
+	provisioner.AddSecret(secretFromY)
+
+	wg.Wait()
+
+	require.False(t, t.Failed(), "prior failure in a goroutine")
+
+	if err := AssertProvisioned(tcY); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("kex finished")
+
+	// after provisioning, the passphrase stream should be cached
+	// (note that this just checks the passphrase stream, not 3sec)
+	assertPassphraseStreamCache(tcY)
+
+	// after provisioning, the device keys should be cached
+	assertDeviceKeysCached(tcY)
+
+	testTrack := func(whom string) {
+
+		// make sure that the provisioned device can use
+		// the passphrase stream cache (use an empty secret ui)
+		arg := &TrackEngineArg{
+			UserAssertion: whom,
+			Options:       keybase1.TrackOptions{BypassConfirm: true},
+		}
+		ctx = &Context{
+			LogUI:      tcY.G.UI.GetLogUI(),
+			IdentifyUI: &FakeIdentifyUI{},
+			SecretUI:   &libkb.TestSecretUI{},
+		}
+
+		teng := NewTrackEngine(arg, tcY.G)
+		if err := RunEngine(teng, ctx); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Make sure that we can still track without a passphrase
+	// after a similated service restart.  In other words, that
+	// the full LKSec secret was written to the secret store.
+	simulateServiceRestart(t, tcY, userX)
+	testTrack("t_bob")
+
+	t.Logf("check for paper key")
+	hasOnePaperDev(tcY, userX)
+	hasOnePaperDev(tcX, userX)
 }
 
 type testProvisionUI struct {
