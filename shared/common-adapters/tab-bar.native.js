@@ -2,14 +2,13 @@
 import React, {Component} from 'react'
 import _ from 'lodash'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
-import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
+import {NativeTouchableWithoutFeedback, NativeStyleSheet} from './native-wrappers.native'
 import Badge from './badge'
 import Avatar from './avatar'
 import Box from './box'
 import Icon from './icon'
 import Text from './text'
 import {globalStyles, globalColors} from '../styles'
-import {StyleSheet} from 'react-native'
 
 class TabBarItem extends Component<void, ItemProps, void> {
   render () {
@@ -143,7 +142,7 @@ const stylesSelectedUnderline = color => ({
 })
 
 const stylesUnderline = {
-  height: StyleSheet.hairlineWidth,
+  height: NativeStyleSheet.hairlineWidth,
   alignSelf: 'stretch',
   backgroundColor: globalColors.black_05,
 }
