@@ -74,6 +74,7 @@ function * onLoadAttachment ({payload: {conversationIDKey, messageID, loadPrevie
   // let's see if we've already downloaded it as an hdPreview
   if (!loadPreview && !isHdPreview) {
     if (existingMessageState === 'downloading') {
+      console.log('onLoadAttachment: already downloading attachment, bailing:', conversationIDKey, messageID, filename)
       return
     }
 
