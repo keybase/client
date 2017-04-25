@@ -64,6 +64,7 @@ class ConversationList extends Component <void, Props, void> {
         renderScrollComponent={this._renderScrollComponent}
         onEndReached={this._onEndReached}
         onEndReachedThreshold={0}
+        initialNumToRender={30}
         keyExtractor={this._keyExtractor}
       />
     )
