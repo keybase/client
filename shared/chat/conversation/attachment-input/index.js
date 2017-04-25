@@ -38,38 +38,17 @@ class RenderAttachmentInput extends Component<void, Props, State> {
     this.setState({title})
   }
 
-  // Temporary until we implement new mobile attachment design
-  renderMobile () {
-    const count = this.props.inputs.length
-    const currentTitle = this.props.inputs[this.state.index].title
-    return (
-      <PopupDialog onClose={this.props.onClose}>
-        <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'flex-start', marginTop: 40}}>
-          <Icon type='icon-file-uploading-48' />
-          {count > 0 && <Text type='BodySmall' style={{color: globalColors.black_40, marginTop: 5}}>{currentTitle} ({this.state.index + 1} of {count})</Text>}
-          <Input style={{marginTop: 40, minWidth: 320, paddingLeft: 20, paddingRight: 20}} autoFocus={true} floatingHintTextOverride='Title' value={this.state.title} onEnterKeyDown={this._onSelect} onChangeText={this._updateTitle} />
-          <Box style={{...globalStyles.flexBoxRow, marginTop: 40}}>
-            <Button type='Secondary' onClick={this.props.onClose} label='Cancel' />
-            <Button type='Primary' style={{marginLeft: globalMargins.tiny}} onClick={this._onSelect} label='Send' />
-          </Box>
-        </Box>
-      </PopupDialog>
-    )
-  }
-
   render () {
-    // Temporary until we implement new mobile attachment design
-    if (isMobile) return this.renderMobile()
-
     const count = this.props.inputs.length
     const currentTitle = this.props.inputs[this.state.index].title
+
     return (
       <PopupDialog onClose={this.props.onClose}>
-        <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center', marginBottom: 80, marginLeft: 80, marginRight: 80, marginTop: 90}}>
+        <Box style={isMobile ? stylesMobile : stylesDesktop}>
           <Icon type='icon-file-uploading-48' />
           {count > 0 && <Text type='BodySmall' style={{color: globalColors.black_40, marginTop: 5}}>{currentTitle} ({this.state.index + 1} of {count})</Text>}
-          <Input style={{marginTop: 70, width: 460}} autoFocus={true} floatingHintTextOverride='Title' value={this.state.title} onEnterKeyDown={this._onSelect} onChangeText={this._updateTitle} />
-          <Box style={{...globalStyles.flexBoxRow, marginTop: 100}}>
+          <Input style={isMobile ? stylesInputMobile : stylesInputDesktop} autoFocus={true} floatingHintTextOverride='Title' value={this.state.title} onEnterKeyDown={this._onSelect} onChangeText={this._updateTitle} />
+          <Box style={isMobile ? stylesButtonGroupMobile : stylesButtonGroupDesktop}>
             <Button type='Secondary' onClick={this.props.onClose} label='Cancel' />
             <Button type='Primary' style={{marginLeft: globalMargins.tiny}} onClick={this._onSelect} label='Send' />
           </Box>
@@ -77,6 +56,47 @@ class RenderAttachmentInput extends Component<void, Props, State> {
       </PopupDialog>
     )
   }
+}
+
+const stylesDesktop = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  flex: 1,
+  justifyContent: 'center',
+  marginBottom: 80,
+  marginLeft: 80,
+  marginRight: 80,
+  marginTop: 90,
+}
+
+const stylesInputDesktop = {
+  marginTop: 70,
+  width: 460,
+}
+
+const stylesButtonGroupDesktop = {
+  ...globalStyles.flexBoxRow,
+  marginTop: 100,
+}
+
+const stylesMobile = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  flex: 1,
+  justifyContent: 'flex-start',
+  marginTop: 40,
+}
+
+const stylesInputMobile = {
+  marginTop: 40,
+  minWidth: 320,
+  paddingLeft: 20,
+  paddingRight: 20,
+}
+
+const stylesButtonGroupMobile = {
+  ...globalStyles.flexBoxRow,
+  marginTop: 40,
 }
 
 export default RenderAttachmentInput
