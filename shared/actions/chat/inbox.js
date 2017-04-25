@@ -273,7 +273,10 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
             type: globalError,
           })
       }
-    } else if (incoming.finished || incoming.timeout) {
+    } else if (incoming.timeout) {
+      console.warn('timed out request for unboxConversations, bailing')
+      break
+    } else if (incoming.finished) {
       break
     }
   }
