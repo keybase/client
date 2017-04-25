@@ -131,7 +131,7 @@ function * startNewConversation (oldConversationIDKey: Constants.ConversationIDK
   // Replace any existing convo
   if (pendingTlfName) {
     yield put(pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
-  } else {
+  } else if (oldConversationIDKey !== newConversationIDKey) {
     yield put(replaceConversation(oldConversationIDKey, newConversationIDKey))
   }
 

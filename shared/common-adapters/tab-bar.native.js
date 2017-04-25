@@ -38,7 +38,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
     if (this.props.badgePosition === 'top-right') {
       badgeComponent = (
         <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
-          <Badge badgeNumber={badgeNumber} badgeStyle={{marginRight: -40, marginTop: -20}} />
+          <Badge badgeNumber={badgeNumber} badgeStyle={{marginRight: -30, marginTop: -20}} outlineColor={globalColors.midnightBlue} />
         </Box>
       )
     } else {

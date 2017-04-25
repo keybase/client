@@ -6,6 +6,8 @@ package libkb
 import (
 	"sync"
 
+	"golang.org/x/net/context"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -35,6 +37,12 @@ func RunSyncer(s Syncer, uid keybase1.UID, loggedIn bool, sr SessionReader) (err
 	if err = s.loadFromStorage(uid); err != nil {
 		return
 	}
+
+	if s.G().ConnectivityMonitor.IsConnected(context.Background()) == ConnectivityMonitorNo {
+		s.G().Log.Debug("| not connected, won't sync with server")
+		return
+	}
+
 	if s.needsLogin() && !loggedIn {
 		s.G().Log.Debug("| Won't sync with server since we're not logged in")
 		return
@@ -58,9 +66,9 @@ func RunSyncerCached(s Syncer, uid keybase1.UID) (err error) {
 	s.Lock()
 	defer s.Unlock()
 
-	s.G().Log.Debug("+ Syncer.Load(%s)", uid)
+	s.G().Log.Debug("+ SyncerCached.Load(%s)", uid)
 	defer func() {
-		s.G().Log.Debug("- Syncer.Load(%s) -> %s", uid, ErrToOk(err))
+		s.G().Log.Debug("- SyncerCached.Load(%s) -> %s", uid, ErrToOk(err))
 	}()
 
 	if err = s.loadFromStorage(uid); err != nil {

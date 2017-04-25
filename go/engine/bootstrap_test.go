@@ -39,6 +39,7 @@ func TestBootstrap(t *testing.T) {
 	os.Setenv("KEYBASE_SERVER_URI", "http://127.0.0.127:3333")
 	defer os.Setenv("KEYBASE_SERVER_URI", prev)
 	tc.G.ConfigureAPI()
+	tc.G.ConnectivityMonitor = OfflineConnectivityMonitor{}
 
 	eng := NewLoginOffline(tc.G)
 	ctx := &Context{NetContext: context.Background()}
@@ -78,3 +79,12 @@ func TestBootstrap(t *testing.T) {
 		t.Errorf("device name: %q, expected %q", status.DeviceName, defaultDeviceName)
 	}
 }
+
+type OfflineConnectivityMonitor struct {
+}
+
+func (s OfflineConnectivityMonitor) IsConnected(ctx context.Context) libkb.ConnectivityMonitorResult {
+	return libkb.ConnectivityMonitorNo
+}
+
+var _ libkb.ConnectivityMonitor = OfflineConnectivityMonitor{}

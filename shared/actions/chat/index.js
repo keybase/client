@@ -626,7 +626,8 @@ function * _startConversation (action: Constants.StartConversation): SagaGenerat
   const existing = yield select(inboxSelector, tlfName)
 
   if (forceImmediate && existing) {
-    yield call(Shared.startNewConversation, existing.get('conversationIDKey'))
+    const newID = yield call(Shared.startNewConversation, existing.get('conversationIDKey'))
+    yield put(Creators.selectConversation(newID, false))
   } else if (existing) { // Select existing conversations
     yield put(Creators.selectConversation(existing.get('conversationIDKey'), false))
     yield put(switchTo([chatTab]))
