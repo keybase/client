@@ -783,6 +783,7 @@ function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
     if (appFocused) {
       yield put(Creators.updateBadging(conversationIDKey))
     } else {
+      // Reset the orange line when focus leaves the app.
       yield put(Creators.updateLatestMessage(conversationIDKey))
     }
   }
