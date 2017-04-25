@@ -2,7 +2,9 @@
 import DumbSheet from './dev/dumb-sheet'
 import Push from './push/push.native'
 import RNPN from 'react-native-push-notification'
+import {Linking} from 'react-native'
 import React, {Component} from 'react'
+import {appLink} from './actions/app'
 import RenderRoute from './route-tree/render-route'
 import loadPerf from './util/load-perf'
 import hello from './util/hello'
@@ -15,8 +17,10 @@ import {initAvatarLookup, initAvatarLoad} from './common-adapters'
 import {listenForNotifications} from './actions/notifications'
 import {persistRouteState, loadRouteState} from './actions/platform-specific.native'
 import {navigateUp, setRouteState} from './actions/route-tree'
+import {isAndroid} from './constants/platform'
 
 type Props = {
+  appLink: (url: string) => void,
   dumbFullscreen: boolean,
   folderBadge: number,
   menuBadgeCount: number,
@@ -46,6 +50,10 @@ class Main extends Component<void, any, void> {
       this.props.listenForNotifications()
       this.props.hello()
       loadPerf()
+    } else if (isAndroid) { // Android comes in here when loaded from another app sometimes so we need this. TODO clean up these flows
+      Linking.getInitialURL().then((url) => {
+        this.props.appLink(url)
+      })
     }
   }
 
@@ -58,7 +66,7 @@ class Main extends Component<void, any, void> {
       this._persistRoute()
     }
 
-    if (this.props.menuBadgeCount !== nextProps.menuBadgeCount) {
+    if (nextProps.menuBadgeCount && (this.props.menuBadgeCount !== nextProps.menuBadgeCount)) {
       RNPN.setApplicationIconBadgeNumber(nextProps.menuBadgeCount)
     }
   }
@@ -104,6 +112,7 @@ const connector = connect(
     showPushPrompt: permissionsPrompt,
   }),
   (dispatch, {platform, version}) => ({
+    appLink: (url: string) => dispatch(appLink(url)),
     bootstrap: () => dispatch(bootstrap()),
     hello: () => hello(0, platform, [], version, true), // TODO real version
     listenForNotifications: () => dispatch(listenForNotifications()),
