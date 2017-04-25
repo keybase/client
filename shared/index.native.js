@@ -58,7 +58,6 @@ class Keybase extends Component {
   }
 
   _handleOpenURL (event: {url: string}) {
-    console.log('aaaa got url', event.url)
     this.store.dispatch(appLink(event.url))
   }
 
