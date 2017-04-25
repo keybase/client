@@ -187,3 +187,10 @@ func (a *ActiveDevice) Name() string {
 
 	return a.deviceName
 }
+
+func (a *ActiveDevice) HaveKeys() bool {
+	a.RLock()
+	defer a.RUnlock()
+
+	return a.signingKey != nil && a.encryptionKey != nil
+}
