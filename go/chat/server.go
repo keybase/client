@@ -1540,7 +1540,7 @@ func (h *Server) remoteClient() chat1.RemoteInterface {
 	if h.rc != nil {
 		return h.rc
 	}
-	return &chat1.RemoteClient{Cli: h.serverConn.GetClient()}
+	return chat1.RemoteClient{Cli: NewRemoteClient(h.G(), h.serverConn.GetClient())}
 }
 
 func (h *Server) setTestRemoteClient(ri chat1.RemoteInterface) {
