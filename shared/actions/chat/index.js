@@ -779,9 +779,12 @@ function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
   const selectedTab = yield select(Shared.routeSelector)
   const chatTabSelected = (selectedTab === chatTab)
 
-  if (conversationIDKey && appFocused && chatTabSelected) {
-    yield put(Creators.updateBadging(conversationIDKey))
-    yield put(Creators.updateLatestMessage(conversationIDKey))
+  if (conversationIDKey && chatTabSelected) {
+    if (appFocused) {
+      yield put(Creators.updateBadging(conversationIDKey))
+    } else {
+      yield put(Creators.updateLatestMessage(conversationIDKey))
+    }
   }
 }
 
