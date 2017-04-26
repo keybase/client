@@ -2,14 +2,16 @@ body {
   margin: 0;
   padding: 0;
   width: 500px;
+  overflow: hidden;
 }
 
 .keybase-reply form {
-  padding-top: 16px;
+  margin-top: 0;
 }
 .keybase-reply h3 {
-  position: absolute;
-  top: 0;
   width: 100%;
   margin-top: 0;
+}
+.keybase-nudge {
+  min-height: 40px;
 }

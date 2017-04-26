@@ -156,8 +156,10 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
     `;
   } else {
     nudgeHTML = `
-      <p>You will need to let <a target="_blank" href="${user.href()}" class="external-user">${user.display()}</a> know that they have a Keybase message waiting for them.</p>
-      <p>Share this handy link: <a target="_blank" href="https://keybase.io/reddit-crypto">https://keybase.io/reddit-crypto</a></p>
+      <p>
+        You will need to let <a target="_blank" href="${user.href()}" class="external-user">${user.display()}</a> know that they have a Keybase message waiting for them.
+        Share this handy link: <a target="_blank" href="https://keybase.io/reddit-crypto">https://keybase.io/reddit-crypto</a>
+      </p>
     `;
   }
 
@@ -177,10 +179,10 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
       <div class="keybase-contact"></div>
       <input type="hidden" name="keybase-to" value="${user.query()}" />
       <label>
-        <textarea name="keybase-chat" rows="6" placeholder="Write a message"></textarea>
+        <textarea name="keybase-chat" rows="6" placeholder="Write a message" autofocus></textarea>
       </label>
-      <div class="keybase-nudge"></div>
-      <p style="text-align: center;"><input type="submit" value="Send" name="keybase-submit" /></p>
+      <div class="keybase-nudge" style="display: none;"></div>
+      <p style="text-align: center; clear: both;"><input type="submit" value="Send" name="keybase-submit" /></p>
     </div>
   `;
   f.addEventListener("submit", submitChat.bind(null, closeCallback));
@@ -205,6 +207,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
     user.services["keybase"] = null;
     renderChatContact(contactDiv, user);
     nudgePlaceholder.innerHTML = nudgeHTML;
+    nudgePlaceholder.style = "display: block;";
 
     // Install nudge toggle
     const nudgeCheck = f["keybase-nudgecheck"];
@@ -233,7 +236,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
   chatBody.addEventListener("change", chatChangeCallback);
   chatBody.addEventListener("keyup", chatChangeCallback);
 
-  // Focus the chat textarea
+  // Force focus the chat textarea (should already be done by autofocus)
   f["keybase-chat"].focus();
 
   // TODO: Also add an onbeforeunload check if chat has text written in it.

@@ -18,30 +18,38 @@ function parseLocationQuery(s) {
 
 chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     const location = new URL(tabs[0].url);
+    const el = document.body;
 
+    // Clear children
+    while (el.firstChild) el.removeChild(el.firstChild);
+
+    routePopup(el, location);
+});
+
+function routePopup(el, location) {
     // This query will only enter if the appropriate URL structure has already
     // been matched, so we can make some assumptions about the structure of
     // the URL.
     if (location.hostname.endsWith('reddit.com')) {
         const username = location.pathname.split('/')[2];
-        return renderPopup(document.body, username, 'reddit');
+        return renderPopup(el, username, 'reddit');
 
     } else if (location.hostname.endsWith('twitter.com')) {
         const username = location.pathname.split('/')[1];
-        return renderPopup(document.body, username, 'twitter');
+        return renderPopup(el, username, 'twitter');
 
     } else if (location.hostname.endsWith('github.com')) {
         const username = location.pathname.split('/')[1];
-        return renderPopup(document.body, username, 'github');
+        return renderPopup(el, username, 'github');
 
     } else if (location.hostname == "news.ycombinator.com") {
         const qs = parseLocationQuery(location.search);
         const username = qs["id"];
         if (username) {
-            return renderPopup(document.body, username, 'hackernews');
+            return renderPopup(el, username, 'hackernews');
         }
     }
-})
+}
 
 function renderPopup(el, username, service) {
     const div = document.createElement("div");
