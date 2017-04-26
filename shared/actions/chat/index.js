@@ -90,6 +90,7 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
         // If it's a public chat, the GUI (currently) wants no part of it. We
         // especially don't want to surface the conversation as if it were a
         // private one, which is what we were doing before this change.
+        console.log('Received incoming message')
         if (incomingMessage.conv && incomingMessage.conv.info && incomingMessage.conv.info.visibility !== ChatTypes.CommonTLFVisibility.private) {
           return
         }
@@ -143,7 +144,10 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
         }
 
         const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
+
+        console.log('type', message.type, 'outboxID', message.outboxID, 'messageFromYou', messageFromYou)
         if (message.type === 'Text' && message.outboxID && messageFromYou) {
+          console.log('updating pending message to sent')
           // If the message has an outboxID and came from our device, then we
           // sent it and have already rendered it in the message list; we just
           // need to mark it as sent.
