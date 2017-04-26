@@ -64,6 +64,7 @@ class FeedbackContainer extends Component<void, {}, State> {
       logs.push(['=============CONSOLE.LOG START============='])
       const logger = getLogger('iosConsoleLog')
       logger && logger.dumpAll((...args) => {
+        // Skip the extra prefixes that period-logger uses.
         logs.push([args[1], ...args.slice(2)])
       })
       logs.push(['=============CONSOLE.LOG END============='])
