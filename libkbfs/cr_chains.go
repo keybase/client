@@ -387,7 +387,7 @@ type crChains struct {
 	// Pointers that should be explicitly cleaned up in the resolution.
 	toUnrefPointers map[BlockPointer]bool
 
-	// Pointers that should be explicitly *not* be cleaned up in the
+	// Pointers that should explicitly *not* be cleaned up in the
 	// resolution.
 	doNotUnrefPointers map[BlockPointer]bool
 

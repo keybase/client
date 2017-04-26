@@ -3683,8 +3683,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 	ctx context.Context, lState *lockState) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
-	dirtyFiles := fbo.blocks.GetDirtyFiles(lState)
-	dirtyDirs := fbo.blocks.GetDirtyDirs(lState)
+	dirtyFiles := fbo.blocks.GetDirtyFileBlockRefs(lState)
+	dirtyDirs := fbo.blocks.GetDirtyDirBlockRefs(lState)
 	if len(dirtyFiles) == 0 && len(dirtyDirs) == 0 {
 		return nil
 	}
@@ -3737,6 +3737,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 			})
 	}
 	defer func() {
+		// If the sync is successful, we can clear out all buffered
+		// directory operations.
 		if err == nil {
 			fbo.dirOps = nil
 		}
@@ -5007,7 +5009,7 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 			}
 		}
 
-		dirtyFiles := fbo.blocks.GetDirtyFiles(lState)
+		dirtyFiles := fbo.blocks.GetDirtyFileBlockRefs(lState)
 		if len(dirtyFiles) > 0 {
 			for _, ref := range dirtyFiles {
 				fbo.log.CDebugf(ctx, "DeCache entry left: %v", ref)
@@ -5470,7 +5472,7 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 			}
 		}
 
-		dirtyFiles := fbo.blocks.GetDirtyFiles(lState)
+		dirtyFiles := fbo.blocks.GetDirtyFileBlockRefs(lState)
 		if len(dirtyFiles) == 0 {
 			sameDirtyFileCount = 0
 			continue

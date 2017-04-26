@@ -1284,13 +1284,15 @@ func (fbo *folderBlockOps) getOrCreateSyncInfoLocked(
 	return si, nil
 }
 
-// GetDirtyFiles returns a list of references of all known dirty
+// GetDirtyFileBlockRefs returns a list of references of all known dirty
 // files.
-func (fbo *folderBlockOps) GetDirtyFiles(lState *lockState) []BlockRef {
+func (fbo *folderBlockOps) GetDirtyFileBlockRefs(lState *lockState) []BlockRef {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	var dirtyRefs []BlockRef
 	for ref := range fbo.deCache {
+		// A file is only dirty if it's been written to (and hence
+		// caused some block unrefs) but not been synced yet.
 		if _, ok := fbo.unrefCache[ref]; ok {
 			dirtyRefs = append(dirtyRefs, ref)
 		}
@@ -1298,9 +1300,9 @@ func (fbo *folderBlockOps) GetDirtyFiles(lState *lockState) []BlockRef {
 	return dirtyRefs
 }
 
-// GetDirtyDirs returns a list of references of all known dirty
+// GetDirtyDirBlockRefs returns a list of references of all known dirty
 // directories.
-func (fbo *folderBlockOps) GetDirtyDirs(lState *lockState) []BlockRef {
+func (fbo *folderBlockOps) GetDirtyDirBlockRefs(lState *lockState) []BlockRef {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	var dirtyRefs []BlockRef
