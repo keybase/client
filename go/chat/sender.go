@@ -676,7 +676,8 @@ func (s *Deliverer) deliverLoop() {
 		var breaks []keybase1.TLFIdentifyFailure
 		for _, obr := range obrs {
 
-			bctx := Context(context.Background(), obr.IdentifyBehavior, &breaks, s.identNotifier)
+			bctx := Context(context.Background(), s.G().GetEnv(), obr.IdentifyBehavior, &breaks,
+				s.identNotifier)
 			if !s.connected {
 				err = errors.New("disconnected from chat server")
 			} else {

@@ -6,6 +6,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type keyfinderKey int
@@ -57,7 +58,7 @@ func CtxIdentifyNotifier(ctx context.Context) *IdentifyNotifier {
 	return nil
 }
 
-func CtxAddLogTags(ctx context.Context) context.Context {
+func CtxAddLogTags(ctx context.Context, env *libkb.Env) context.Context {
 
 	// Add trace context value
 	ctx = context.WithValue(ctx, chatTraceKey, libkb.RandStringB64(3))
@@ -67,25 +68,31 @@ func CtxAddLogTags(ctx context.Context) context.Context {
 	tags[chatTraceKey] = "chat-trace"
 	ctx = logger.NewContextWithLogTags(ctx, tags)
 
+	rpcTags := make(map[string]interface{})
+	rpcTags["user-agent"] = libkb.UserAgent
+	rpcTags["platform"] = libkb.GetPlatformString()
+	rpcTags["apptype"] = env.GetAppType()
+	ctx = rpc.AddRpcTagsToContext(ctx, rpcTags)
+
 	return ctx
 }
 
-func Context(ctx context.Context, mode keybase1.TLFIdentifyBehavior,
+func Context(ctx context.Context, env *libkb.Env, mode keybase1.TLFIdentifyBehavior,
 	breaks *[]keybase1.TLFIdentifyFailure, notifier *IdentifyNotifier) context.Context {
 	res := IdentifyModeCtx(ctx, mode, breaks)
 	res = context.WithValue(res, kfKey, NewKeyFinder())
 	res = context.WithValue(res, inKey, notifier)
-	res = CtxAddLogTags(res)
+	res = CtxAddLogTags(res, env)
 	return res
 }
 
-func BackgroundContext(sourceCtx context.Context) context.Context {
+func BackgroundContext(sourceCtx context.Context, env *libkb.Env) context.Context {
 
 	rctx := context.Background()
 
 	in := CtxIdentifyNotifier(sourceCtx)
 	if ident, breaks, ok := IdentifyMode(sourceCtx); ok {
-		rctx = Context(rctx, ident, breaks, in)
+		rctx = Context(rctx, env, ident, breaks, in)
 	}
 
 	// Overwrite trace tag
