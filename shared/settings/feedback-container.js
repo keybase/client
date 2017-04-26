@@ -7,7 +7,7 @@ import logSend from '../native/log-send'
 import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
 import {isElectron, isIOS} from '../constants/platform'
-import {dumpLoggers} from '../util/periodic-logger'
+import {dumpLoggers, getLogger} from '../util/periodic-logger'
 import {writeStream, cachesDirectoryPath} from '../util/file'
 import {serialPromises} from '../util/promise'
 
@@ -49,11 +49,24 @@ class FeedbackContainer extends Component<void, {}, State> {
       // We don't get the notification from the daemon so we have to do this ourselves
       const logs = []
       console.log('Starting log dump')
-      dumpLoggers((...args) => {
+
+      const logNames = ['actionLogger', 'storeLogger']
+
+      logNames.forEach(name => {
         try {
-          logs.push(args)
+          const logger = getLogger(name)
+          logger && logger.dumpAll((...args) => {
+            logs.push(args)
+          })
         } catch (_) {}
       })
+
+      logs.push(['=============CONSOLE.LOG START============='])
+      const logger = getLogger('iosConsoleLog')
+      logger && logger.dumpAll((...args) => {
+        logs.push([args[1], ...args.slice(2)])
+      })
+      logs.push(['=============CONSOLE.LOG END============='])
 
       const path = `${cachesDirectoryPath}/Keybase/rn.log`
       console.log('Starting log write')
@@ -61,7 +74,6 @@ class FeedbackContainer extends Component<void, {}, State> {
       writeStream(path, 'utf8').then(stream => {
         const writeLogsPromises = logs.map((log, idx) => {
           return () => {
-            console.log(`Writing log # ${idx + 1}`)
             return stream.write(JSON.stringify(log, null, 2))
           }
         })
