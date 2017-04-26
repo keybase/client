@@ -390,6 +390,10 @@ func as(user username, fops ...fileOp) optionOp {
 			desc, err := runFileOp(ctx, fop)
 			ctx.expectSuccess(desc, err)
 		}
+
+		// Sync everything to disk after this round of operations.
+		err := ctx.engine.SyncAll(ctx.user, ctx.tlfName, ctx.tlfIsPublic)
+		ctx.expectSuccess("SyncAll", err)
 	}
 }
 

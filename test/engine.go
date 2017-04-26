@@ -87,6 +87,9 @@ type Engine interface {
 	// GetMtime is called by the test harness as the given user to get
 	// the mtime of the given file.
 	GetMtime(u User, file Node) (mtime time.Time, err error)
+	// SyncAll is called by the test harness as the given user to
+	// flush all writes buffered in memory to disk.
+	SyncAll(u User, tlfName string, isPublic bool) (err error)
 
 	// All functions below don't take nodes so that they can be
 	// run before any real FS operations.

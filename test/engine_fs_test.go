@@ -501,6 +501,19 @@ func (*fsEngine) GetMtime(u User, file Node) (mtime time.Time, err error) {
 	return fi.ModTime(), err
 }
 
+// SyncAll implements the Engine interface.
+func (e *fsEngine) SyncAll(
+	user User, tlfName string, isPublic bool) (err error) {
+	u := user.(*fsUser)
+	path := buildTlfPath(u, tlfName, isPublic)
+	f, err := os.OpenFile(path, os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return f.Sync()
+}
+
 func fiTypeString(fi os.FileInfo) string {
 	m := fi.Mode()
 	switch {

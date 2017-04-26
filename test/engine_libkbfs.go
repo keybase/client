@@ -439,6 +439,21 @@ func (k *LibKBFS) SetMtime(u User, file Node, mtime time.Time) (err error) {
 	return kbfsOps.SetMtime(ctx, file.(libkbfs.Node), &mtime)
 }
 
+// SyncAll implements the Engine interface.
+func (k *LibKBFS) SyncAll(
+	u User, tlfName string, isPublic bool) (err error) {
+	config := u.(*libkbfs.ConfigLocal)
+
+	ctx, cancel := k.newContext(u)
+	defer cancel()
+	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	if err != nil {
+		return err
+	}
+
+	return config.KBFSOps().SyncAll(ctx, dir.GetFolderBranch())
+}
+
 // GetMtime implements the Engine interface.
 func (k *LibKBFS) GetMtime(u User, file Node) (mtime time.Time, err error) {
 	config := u.(*libkbfs.ConfigLocal)
