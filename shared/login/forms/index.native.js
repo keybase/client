@@ -21,7 +21,7 @@ const Failure = (props: Props) => (
         type='Primary'
         label='Reload'
         onClick={props.onRetry}
-        style={{marginTop: globalMargins.large}} />
+        style={{marginTop: 96}} />
     </Box>
   </Box>
 )
