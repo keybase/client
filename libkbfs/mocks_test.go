@@ -5201,6 +5201,16 @@ func (_mr *_MockNodeCacheRecorder) Unlink(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Unlink", arg0, arg1)
 }
 
+func (_m *MockNodeCache) IsUnlinked(node Node) bool {
+	ret := _m.ctrl.Call(_m, "IsUnlinked", node)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockNodeCacheRecorder) IsUnlinked(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsUnlinked", arg0)
+}
+
 func (_m *MockNodeCache) PathFromNode(node Node) path {
 	ret := _m.ctrl.Call(_m, "PathFromNode", node)
 	ret0, _ := ret[0].(path)

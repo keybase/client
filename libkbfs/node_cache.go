@@ -232,10 +232,29 @@ func (ncs *nodeCacheStandard) Unlink(ref BlockRef, oldPath path) bool {
 		return false
 	}
 
+	if entry.core.cachedPath.isValid() {
+		// Already unlinked!
+		return true
+	}
+
 	entry.core.cachedPath = oldPath
 	entry.core.parent = nil
 	entry.core.pathNode.Name = ""
 	return true
+}
+
+// IsUnlinked implements the NodeCache interface for
+// nodeCacheStandard.
+func (ncs *nodeCacheStandard) IsUnlinked(node Node) bool {
+	ncs.lock.RLock()
+	defer ncs.lock.RUnlock()
+
+	ns, ok := node.(*nodeStandard)
+	if !ok {
+		return false
+	}
+
+	return ns.core.cachedPath.isValid()
 }
 
 // PathFromNode implements the NodeCache interface for nodeCacheStandard.

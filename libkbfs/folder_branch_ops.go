@@ -1710,27 +1710,20 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 		var err error
 		lState := makeFBOLockState()
 
-		md, err := fbo.getMDForReadNeedIdentify(ctx, lState)
-		if err != nil {
-			return err
-		}
-
 		dirPath, err := fbo.pathFromNodeForRead(dir)
 		if err != nil {
 			return err
 		}
 
-		// If the MD doesn't match the MD expected by the path, that
-		// implies we are using a cached path, which implies the node
-		// has been unlinked.  Probably we have fast-forwarded, and
-		// missed all the updates deleting the children in this
-		// directory.  In that case, just return an empty set of
-		// children so we don't return an incorrect set from the
-		// cache.
-		if md.data.Dir.BlockPointer.ID != dirPath.path[0].BlockPointer.ID {
+		if fbo.nodeCache.IsUnlinked(dir) {
 			fbo.log.CDebugf(ctx, "Returning an empty children set for "+
 				"unlinked directory %v", dirPath.tailPointer())
 			return nil
+		}
+
+		md, err := fbo.getMDForReadNeedIdentify(ctx, lState)
+		if err != nil {
+			return err
 		}
 
 		children, err = fbo.blocks.GetDirtyDirChildren(
@@ -3001,7 +2994,8 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 	// the actual unlink
 	delete(pblock.Children, name)
 
-	fbo.blocks.RemoveDirEntryInCache(lState, dirPath, name)
+	_ = fbo.nodeCache.Unlink(de.Ref(), dirPath.ChildPath(name, de.BlockPointer))
+	fbo.blocks.RemoveDirEntryInCache(lState, dirPath, name, de)
 	fbo.dirOps = append(fbo.dirOps, cachedDirOp{ro, []Node{dir}})
 
 	defer func() {
@@ -3505,10 +3499,8 @@ func (fbo *folderBranchOps) setExLocked(
 		return err
 	}
 
-	// If the MD doesn't match the MD expected by the path, that
-	// implies we are using a cached path, which implies the node has
-	// been unlinked.  In that case, we can safely ignore this setex.
-	if md.data.Dir.BlockPointer.ID != filePath.path[0].BlockPointer.ID {
+	// If the node has been unlinked, we can safely ignore this setex.
+	if fbo.nodeCache.IsUnlinked(file) {
 		fbo.log.CDebugf(ctx, "Skipping setex for a removed file %v",
 			filePath.tailPointer())
 		fbo.blocks.UpdateCachedEntryAttributesOnRemovedFile(
@@ -3590,11 +3582,9 @@ func (fbo *folderBranchOps) setMtimeLocked(
 		return err
 	}
 
-	// If the MD doesn't match the MD expected by the path, that
-	// implies we are using a cached path, which implies the node has
-	// been unlinked.  In that case, we can safely ignore this
+	// If the node has been unlinked, we can safely ignore this
 	// setmtime.
-	if md.data.Dir.BlockPointer.ID != filePath.path[0].BlockPointer.ID {
+	if fbo.nodeCache.IsUnlinked(file) {
 		fbo.log.CDebugf(ctx, "Skipping setmtime for a removed file %v",
 			filePath.tailPointer())
 		fbo.blocks.UpdateCachedEntryAttributesOnRemovedFile(
@@ -3671,7 +3661,7 @@ type cleanupFn func(context.Context, *lockState, []BlockPointer, error)
 // * `err`: The best, greatest return value, everyone says it's absolutely
 //   stunning.
 func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, file path) (
+	lState *lockState, md *RootMetadata, node Node, file path) (
 	doSync, stillDirty bool, fblock *FileBlock, lbc localBcache,
 	bps *blockPutState, syncState fileSyncState,
 	cleanup cleanupFn, err error) {
@@ -3685,7 +3675,7 @@ func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 	// If the MD doesn't match the MD expected by the path, that
 	// implies we are using a cached path, which implies the node has
 	// been unlinked.  In that case, we can safely ignore this sync.
-	if md.data.Dir.BlockPointer.ID != file.path[0].BlockPointer.ID {
+	if fbo.nodeCache.IsUnlinked(node) {
 		fbo.log.CDebugf(ctx, "Skipping sync for a removed file %v",
 			file.tailPointer())
 		// Removing the cached info here is a little sketchy,
@@ -3840,7 +3830,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 
 		// Start the sync for this dirty file.
 		doSync, stillDirty, fblock, newLbc, newBps, syncState, cleanup, err :=
-			fbo.startSyncLocked(ctx, lState, md, file)
+			fbo.startSyncLocked(ctx, lState, md, node, file)
 		if cleanup != nil {
 			// Note: This passes the same `blocksToRemove` into each
 			// cleanup function.  That's ok, as only the ones
@@ -4350,8 +4340,6 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 		// implied rmOp (see KBFS-1424).
 		reverseUpdates := make(map[BlockPointer]BlockPointer)
 		for _, unref := range op.Unrefs() {
-			// TODO: I will add logic here to unlink and invalidate any
-			// corresponding unref'd nodes.
 			node := fbo.nodeCache.Get(unref.Ref())
 			if node == nil {
 				// TODO: even if we don't have the node that was

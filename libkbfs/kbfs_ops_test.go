@@ -3545,7 +3545,7 @@ func TestKBFSOpsRemoveSyncAll(t *testing.T) {
 		ro.AddUnrefBlock(filePath.tailPointer())
 
 		lState := makeFBOLockState()
-		ops.blocks.RemoveDirEntryInCache(lState, rootDir, name)
+		ops.blocks.RemoveDirEntryInCache(lState, rootDir, name, DirEntry{})
 		ops.dirOps = append(ops.dirOps, cachedDirOp{ro, []Node{rootNode}})
 	}
 

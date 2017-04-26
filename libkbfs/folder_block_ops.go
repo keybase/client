@@ -131,9 +131,9 @@ type deCacheEntry struct {
 	// been added to the DirBlock for the BlockPointer that maps to
 	// this struct.
 	adds map[string]BlockPointer
-	// dels is a set of the names that have been removed from the
-	// DirBlock for the BlockPointer that maps to this struct.
-	dels map[string]bool
+	// dels are the DirEntrys that have been removed from the DirBlock
+	// for the BlockPointer that maps to this struct, index by name.
+	dels map[string]DirEntry
 }
 
 type deferredState struct {
@@ -864,13 +864,13 @@ func (fbo *folderBlockOps) AddDirEntryInCache(lState *lockState, dir path,
 }
 
 func (fbo *folderBlockOps) removeDirEntryInCacheLocked(lState *lockState,
-	dir path, oldName string) {
+	dir path, oldName string, oldDe DirEntry) {
 	fbo.blockLock.AssertLocked(lState)
 	cacheEntry := fbo.deCache[dir.tailPointer().Ref()]
 	if cacheEntry.dels == nil {
-		cacheEntry.dels = make(map[string]bool)
+		cacheEntry.dels = make(map[string]DirEntry)
 	}
-	cacheEntry.dels[oldName] = true
+	cacheEntry.dels[oldName] = oldDe
 	// In case it was added in the cache but not flushed yet.
 	delete(cacheEntry.adds, oldName)
 
@@ -886,10 +886,10 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(lState *lockState,
 // the cache, which will get applied to the dirty block on subsequent
 // fetches for the directory.
 func (fbo *folderBlockOps) RemoveDirEntryInCache(lState *lockState, dir path,
-	oldName string) {
+	oldName string, oldDe DirEntry) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
-	fbo.removeDirEntryInCacheLocked(lState, dir, oldName)
+	fbo.removeDirEntryInCacheLocked(lState, dir, oldName, oldDe)
 }
 
 // RenameDirEntryInCache updates the entries of both the old and new
@@ -912,7 +912,7 @@ func (fbo *folderBlockOps) RenameDirEntryInCache(lState *lockState,
 		return false
 	}
 	fbo.addDirEntryInCacheLocked(lState, newParent, newName, newDe)
-	fbo.removeDirEntryInCacheLocked(lState, oldParent, oldName)
+	fbo.removeDirEntryInCacheLocked(lState, oldParent, oldName, DirEntry{})
 	// If there's already an entry for the target, only update the
 	// Ctime on a rename.
 	cacheEntry, ok := fbo.deCache[newDe.Ref()]
@@ -1115,6 +1115,18 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 
 	// Update dir entries for any modified files.
 	for k, v := range dblock.Children {
+		_, added := dirCacheEntry.adds[k]
+		if added {
+			// Already processed above.
+			continue
+		}
+
+		_, deleted := dirCacheEntry.dels[k]
+		if deleted {
+			// Already processed above.
+			continue
+		}
+
 		doUpdate, newDe := fbo.updateDirtyEntryLocked(ctx, lState, v)
 		if !doUpdate {
 			continue
@@ -1202,7 +1214,16 @@ func (fbo *folderBlockOps) getDirtyParentAndEntryLocked(ctx context.Context,
 	name := file.tailName()
 	de, ok := dblock.Children[name]
 	if !ok {
-		return nil, DirEntry{}, NoSuchNameError{name}
+		// Has the file been removed?
+		cacheEntry := fbo.deCache[parentPath.tailPointer().Ref()]
+		var ok bool
+		de, ok = cacheEntry.dels[name]
+		if !ok || !de.IsInitialized() {
+			// The file hasn't been removed, so this is a real error.
+			return nil, DirEntry{}, NoSuchNameError{name}
+		}
+		// It's possible the unlinked file has been updated.
+		_, de = fbo.updateDirtyEntryLocked(ctx, lState, de)
 	}
 
 	return dblock, de, err
