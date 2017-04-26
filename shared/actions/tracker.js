@@ -619,6 +619,7 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
         identityConfirmed: false,
         remoteConfirmed: false,
         expiringLocal: false,
+        autoConfirmed: false,
       })
     },
     'keybase.1.identifyUi.cancel': ({sessionID}, response) => {

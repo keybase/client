@@ -121,6 +121,7 @@ type ConfirmResult struct {
 	IdentityConfirmed bool `codec:"identityConfirmed" json:"identityConfirmed"`
 	RemoteConfirmed   bool `codec:"remoteConfirmed" json:"remoteConfirmed"`
 	ExpiringLocal     bool `codec:"expiringLocal" json:"expiringLocal"`
+	AutoConfirmed     bool `codec:"autoConfirmed" json:"autoConfirmed"`
 }
 
 type DismissReasonType int

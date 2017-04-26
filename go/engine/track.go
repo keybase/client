@@ -22,6 +22,7 @@ type TrackEngine struct {
 	arg  *TrackEngineArg
 	them *libkb.User
 	libkb.Contextified
+	confirmResult keybase1.ConfirmResult
 }
 
 // NewTrackEngine creates a default TrackEngine for tracking theirName.
@@ -77,19 +78,19 @@ func (e *TrackEngine) Run(ctx *Context) error {
 		return err
 	}
 
-	confirmResult := ieng.ConfirmResult()
-	if !confirmResult.IdentityConfirmed {
-		e.G().Log.Debug("confirmResult: %+v", confirmResult)
+	e.confirmResult = ieng.ConfirmResult()
+	if !e.confirmResult.IdentityConfirmed {
+		e.G().Log.Debug("confirmResult: %+v", e.confirmResult)
 		return errors.New("Follow not confirmed")
 	}
 
 	// if they didn't specify local only on the command line, then if they answer no to posting
 	// the tracking statement publicly to keybase, change LocalOnly to true here:
-	if !e.arg.Options.LocalOnly && !confirmResult.RemoteConfirmed {
+	if !e.arg.Options.LocalOnly && !e.confirmResult.RemoteConfirmed {
 		e.arg.Options.LocalOnly = true
 	}
 
-	if !e.arg.Options.ExpiringLocal && confirmResult.ExpiringLocal {
+	if !e.arg.Options.ExpiringLocal && e.confirmResult.ExpiringLocal {
 		e.G().Log.Debug("-ExpiringLocal-")
 		e.arg.Options.ExpiringLocal = true
 	}
@@ -105,4 +106,8 @@ func (e *TrackEngine) Run(ctx *Context) error {
 
 func (e *TrackEngine) User() *libkb.User {
 	return e.them
+}
+
+func (e *TrackEngine) ConfirmResult() keybase1.ConfirmResult {
+	return e.confirmResult
 }
