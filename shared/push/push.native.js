@@ -4,7 +4,7 @@ import {Image, NativeModules} from 'react-native'
 import {connect} from 'react-redux'
 import {Box, Button, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-import {permissionsRequest} from '../actions/push'
+import {permissionsRequest} from '../actions/push/creators'
 
 import type {Props} from './push'
 import * as Constants from '../constants/push'
