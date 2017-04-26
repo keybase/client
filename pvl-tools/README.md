@@ -15,7 +15,7 @@ For other stuff try:
 ./tool.iced --help
 ```
 
-Exampe `pvl_kit`:
+Example `pvl_kit`:
 ```
 {
   "kit_version": 1,
