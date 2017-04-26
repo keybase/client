@@ -32,7 +32,7 @@ function injectThread() {
     if (author == "") continue; // Empty
     const buttons = c.getElementsByClassName("buttons")[0];
 
-    renderChatButton(buttons, author);
+    renderRedditChatButton(buttons, author);
   }
 }
 
@@ -127,7 +127,7 @@ function renderChatContact(el, user) {
     iconSrc = `<img class="keybase-icon" src="https://keybase.io/${keybaseUsername}/picture" />`;
   } else {
     queryStatus = "Searching...";
-    if (keybaseUsername == null) {
+    if (keybaseUsername === null) {
       queryStatus = "(Not yet on Keybase)";
     }
     iconSrc = `
