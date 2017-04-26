@@ -7,10 +7,10 @@ package logger
 
 import (
 	"os"
-	"syscall"
+	"golang.org/x/sys/unix"
 )
 
 func tryRedirectStderrTo(f *os.File) error {
 	// Calling dup2 first closes the current stderr and then dups the new handle there.
-	return syscall.Dup2(int(f.Fd()), 2)
+	return unix.Dup2(int(f.Fd()), 2)
 }
