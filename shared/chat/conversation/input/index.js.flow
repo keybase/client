@@ -6,6 +6,7 @@ export type Props = {
   defaultText: string,
   editingMessage: ?Constants.Message,
   focusInputCounter: number,
+  inputClear: () => void,
   inputFocus: () => void,
   inputSetRef: (r: any) => void,
   inputValue: () => string,

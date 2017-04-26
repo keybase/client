@@ -27,7 +27,8 @@ class ConversationInput extends Component<void, Props, void> {
   }
 
   _onSubmit = () => {
-    if (!this.props.text) {
+    const text = this.props.text
+    if (!text) {
       return
     }
 
@@ -36,12 +37,13 @@ class ConversationInput extends Component<void, Props, void> {
       return
     }
 
-    if (this.props.editingMessage) {
-      this.props.onEditMessage(this.props.editingMessage, this.props.text)
-    } else {
-      this.props.onPostMessage(this.props.text)
-    }
     this.props.setText('')
+    this.props.inputClear()
+    if (this.props.editingMessage) {
+      this.props.onEditMessage(this.props.editingMessage, text)
+    } else {
+      this.props.onPostMessage(text)
+    }
   }
 
   _openFilePicker = () => {
