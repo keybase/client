@@ -22,6 +22,13 @@ type GetArg struct {
 	AppStatusCode []int          `codec:"appStatusCode" json:"appStatusCode"`
 }
 
+type GetWithSessionArg struct {
+	Endpoint      string         `codec:"endpoint" json:"endpoint"`
+	Args          []StringKVPair `codec:"args" json:"args"`
+	HttpStatus    []int          `codec:"httpStatus" json:"httpStatus"`
+	AppStatusCode []int          `codec:"appStatusCode" json:"appStatusCode"`
+}
+
 type PostArg struct {
 	Endpoint      string         `codec:"endpoint" json:"endpoint"`
 	Args          []StringKVPair `codec:"args" json:"args"`
@@ -39,6 +46,7 @@ type PostJSONArg struct {
 
 type ApiserverInterface interface {
 	Get(context.Context, GetArg) (APIRes, error)
+	GetWithSession(context.Context, GetWithSessionArg) (APIRes, error)
 	Post(context.Context, PostArg) (APIRes, error)
 	PostJSON(context.Context, PostJSONArg) (APIRes, error)
 }
@@ -59,6 +67,22 @@ func ApiserverProtocol(i ApiserverInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.Get(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"GetWithSession": {
+				MakeArg: func() interface{} {
+					ret := make([]GetWithSessionArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetWithSessionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetWithSessionArg)(nil), args)
+						return
+					}
+					ret, err = i.GetWithSession(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -105,6 +129,11 @@ type ApiserverClient struct {
 
 func (c ApiserverClient) Get(ctx context.Context, __arg GetArg) (res APIRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.apiserver.Get", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ApiserverClient) GetWithSession(ctx context.Context, __arg GetWithSessionArg) (res APIRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.apiserver.GetWithSession", []interface{}{__arg}, &res)
 	return
 }
 

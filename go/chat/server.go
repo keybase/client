@@ -1550,11 +1550,7 @@ func (h *Server) setTestRemoteClient(ri chat1.RemoteInterface) {
 }
 
 func (h *Server) assertLoggedIn(ctx context.Context) error {
-	ok, err := h.G().LoginState().LoggedInProvisioned()
-	if err != nil {
-		return err
-	}
-	if !ok {
+	if !h.G().ActiveDevice.HaveKeys() {
 		return libkb.LoginRequiredError{}
 	}
 	return nil
