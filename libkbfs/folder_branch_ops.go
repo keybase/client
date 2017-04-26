@@ -5457,20 +5457,20 @@ func (fbo *folderBranchOps) backgroundFlusher() {
 
 		if doSelect {
 			// Wait until we really have a write waiting.
-			forced := false
+			doWait := true
 			select {
 			case <-fbo.syncNeededChan:
 				if fbo.getCachedDirOpsCount(lState) >=
 					fbo.config.BGFlushDirOpBatchSize() {
-					forced = true
+					doWait = false
 				}
 			case <-fbo.forceSyncChan:
-				forced = true
+				doWait = false
 			case <-fbo.shutdownChan:
 				return
 			}
 
-			if !forced {
+			if doWait {
 				timer := time.NewTimer(fbo.config.BGFlushPeriod())
 				// Loop until either a tick's worth of time passes,
 				// the batch size of directory ops is full, a sync is
