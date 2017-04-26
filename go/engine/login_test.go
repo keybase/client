@@ -183,13 +183,23 @@ func TestUserEmails(t *testing.T) {
 }
 
 func TestProvisionDesktop(t *testing.T) {
+	testProvisionDesktop(t, false)
+}
+
+func TestProvisionDesktopSDH(t *testing.T) {
+	testProvisionDesktop(t, true)
+}
+
+func testProvisionDesktop(t *testing.T, enableSharedDH bool) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
+	tcX.Tp.EnableSharedDH = enableSharedDH
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "template")
 	defer tcY.Cleanup()
+	tcY.Tp.EnableSharedDH = enableSharedDH
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUserPaper(tcX, "login")
@@ -385,10 +395,19 @@ func TestProvisionChooseNoDeviceWithoutPGP(t *testing.T) {
 	}
 }
 
-// If a user has no keys, provision via passphrase should work.
 func TestProvisionPassphraseNoKeysSolo(t *testing.T) {
+	testProvisionPassphraseNoKeysSolo(t, false)
+}
+
+func TestProvisionPassphraseNoKeysSoloSDH(t *testing.T) {
+	testProvisionPassphraseNoKeysSolo(t, true)
+}
+
+// If a user has no keys, provision via passphrase should work.
+func testProvisionPassphraseNoKeysSolo(t *testing.T, enableSharedDH bool) {
 	tcWeb := SetupEngineTest(t, "web")
 	defer tcWeb.Cleanup()
+	tcWeb.Tp.EnableSharedDH = enableSharedDH
 
 	username, passphrase := createFakeUserWithNoKeys(tcWeb)
 
@@ -398,6 +417,7 @@ func TestProvisionPassphraseNoKeysSolo(t *testing.T) {
 
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
+	tc.Tp.EnableSharedDH = enableSharedDH
 
 	ctx := &Context{
 		ProvisionUI: newTestProvisionUIPassphrase(),

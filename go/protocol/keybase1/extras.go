@@ -910,6 +910,15 @@ func (u UserPlusAllKeys) GetName() string {
 	return u.Base.GetName()
 }
 
+func (u UserPlusAllKeys) GetDeviceID(kid KID) (ret DeviceID, err error) {
+	for _, dk := range u.Base.DeviceKeys {
+		if dk.KID.Equal(kid) {
+			return dk.DeviceID, nil
+		}
+	}
+	return ret, fmt.Errorf("no device key for kid")
+}
+
 func (u UserPlusAllKeys) Export() *User {
 	return &User{Uid: u.GetUID(), Username: u.GetName()}
 }

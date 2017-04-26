@@ -93,6 +93,7 @@ func (a *ActiveDevice) internalUpdateUIDDeviceID(acct *Account, uid keybase1.UID
 	if a.uid.IsNil() && a.deviceID.IsNil() {
 		a.uid = uid
 		a.deviceID = deviceID
+
 	} else if a.uid.NotEqual(uid) {
 		return errors.New("ActiveDevice.setEncryptionKey uid mismatch")
 	} else if !a.deviceID.Eq(deviceID) {
