@@ -58,13 +58,7 @@ const stylesHeader = {
   color: globalColors.orange,
   marginTop: globalMargins.small,
 }
-const stylesMessage = {
-  marginBottom: globalMargins.large,
-  marginLeft: globalMargins.large,
-  marginRight: globalMargins.large,
-  marginTop: globalMargins.large,
-  textAlign: 'center',
-}
+
 const stylesHeaderSub = {
   marginTop: globalMargins.tiny,
 }
