@@ -20,17 +20,17 @@ function setupSource () {
 
   window.console.log = (...args) => {
     localLog(...args)
-    logger.info(args.join(', '))
+    logger.info(...args)
   }
 
   window.console.warn = (...args) => {
     localWarn(...args)
-    logger.warn(args.join(', '))
+    logger.warn(...args)
   }
 
   window.console.error = (...args) => {
     localError(...args)
-    logger.error(args.join(', '))
+    logger.error(...args)
   }
 }
 
