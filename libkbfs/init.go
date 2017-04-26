@@ -167,8 +167,8 @@ func DefaultInitParams(ctx Context) InitParams {
 		},
 		TLFJournalBackgroundWorkStatus: TLFJournalBackgroundWorkEnabled,
 		StorageRoot:                    ctx.GetDataDir(),
-		BGFlushPeriod:                  1 * time.Second,
-		BGFlushDirOpBatchSize:          20,
+		BGFlushPeriod:                  bgFlushPeriodDefault,
+		BGFlushDirOpBatchSize:          bgFlushDirOpBatchSizeDefault,
 		Mode: InitDefaultString,
 	}
 }
