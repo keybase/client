@@ -16,12 +16,12 @@ const Failure = (props: Props) => (
   <Box style={{...stylesLoginForm, marginTop: 0}}>
     <Box style={{...stylesBannerRed}}><Text type='BodySemibold' style={stylesTextBanner}>Oops, we had a problem communicating with our services. This might be because you lost connectivity.</Text></Box>
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Icon type='icon-keybase-logo-logged-out-64' />
+      <Icon type='icon-keybase-logo-logged-out-80' />
       <Button
         type='Primary'
         label='Reload'
         onClick={props.onRetry}
-        style={{marginTop: 128}} />
+        style={{marginTop: globalMargins.large}} />
     </Box>
   </Box>
 )
