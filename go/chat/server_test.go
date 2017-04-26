@@ -1,7 +1,7 @@
 // Copyright 2016 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package service
+package chat
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/kbtest"
@@ -27,7 +27,7 @@ import (
 
 type chatTestUserContext struct {
 	u *kbtest.FakeUser
-	h *chatLocalHandler
+	h *Server
 }
 
 func (tuc *chatTestUserContext) user() *kbtest.FakeUser {
@@ -55,6 +55,17 @@ func (c *chatTestContext) advanceFakeClock(d time.Duration) {
 	c.world.Fc.Advance(d)
 }
 
+type testUISource struct {
+}
+
+func (t testUISource) GetChatUI(sessionID int) libkb.ChatUI {
+	return nil
+}
+
+func (t testUISource) GetStreamUICli() *keybase1.StreamUiClient {
+	return &keybase1.StreamUiClient{Cli: nil}
+}
+
 func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserContext {
 	if user == nil {
 		t.Fatalf("user is nil")
@@ -68,32 +79,40 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	if !ok {
 		t.Fatalf("user %s is not found", user.Username)
 	}
-	h := newChatLocalHandler(nil, tc.G, nil, nil)
+	g := globals.NewContext(tc.G, tc.ChatG)
+	h := NewServer(g, nil, nil, testUISource{})
 	mockRemote := kbtest.NewChatRemoteMock(c.world)
 	mockRemote.SetCurrentUser(user.User.GetUID().ToBytes())
 
 	h.tlfInfoSource = kbtest.NewTlfMock(c.world)
-	h.boxer = chat.NewBoxer(tc.G, h.tlfInfoSource)
+	h.boxer = NewBoxer(g, h.tlfInfoSource)
 
-	chatStorage := storage.New(tc.G)
-	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, chatStorage,
+	chatStorage := storage.New(g)
+	g.ConvSource = NewHybridConversationSource(g, h.boxer, chatStorage,
 		func() chat1.RemoteInterface { return mockRemote })
-	tc.G.InboxSource = chat.NewHybridInboxSource(tc.G,
+	g.InboxSource = NewHybridInboxSource(g,
 		func() chat1.RemoteInterface { return mockRemote },
 		h.tlfInfoSource)
-	tc.G.ServerCacheVersions = storage.NewServerVersions(tc.G)
-	chatSyncer := chat.NewSyncer(tc.G)
-	tc.G.ChatSyncer = chatSyncer
-	tc.G.ConnectivityMonitor = &libkb.NullConnectivityMonitor{}
+	g.ServerCacheVersions = storage.NewServerVersions(g)
+	chatSyncer := NewSyncer(g)
+	g.Syncer = chatSyncer
+	g.ConnectivityMonitor = &libkb.NullConnectivityMonitor{}
 
 	h.setTestRemoteClient(mockRemote)
-	h.gh = newGregorHandler(tc.G)
 
-	baseSender := chat.NewBlockingSender(tc.G, h.boxer, nil,
+	baseSender := NewBlockingSender(g, h.boxer, nil,
 		func() chat1.RemoteInterface { return mockRemote })
-	tc.G.MessageDeliverer = chat.NewDeliverer(tc.G, baseSender)
-	tc.G.MessageDeliverer.Start(context.TODO(), user.User.GetUID().ToBytes())
-	tc.G.MessageDeliverer.Connected(context.TODO())
+	deliverer := NewDeliverer(g, baseSender)
+	deliverer.SetClock(c.world.Fc)
+	g.MessageDeliverer = deliverer
+	g.MessageDeliverer.Start(context.TODO(), user.User.GetUID().ToBytes())
+	g.MessageDeliverer.Connected(context.TODO())
+
+	retrier := NewFetchRetrier(g)
+	retrier.SetClock(c.world.Fc)
+	g.FetchRetrier = retrier
+	g.FetchRetrier.Start(context.TODO(), user.User.GetUID().ToBytes())
+	g.FetchRetrier.Connected(context.TODO())
 
 	tuc := &chatTestUserContext{
 		h: h,
@@ -583,7 +602,7 @@ func TestChatGracefulUnboxing(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "evil hello"}))
 
 	// make evil hello evil
-	ctc.world.Tcs[users[0].Username].G.ConvSource.Clear(created.Id, users[0].User.GetUID().ToBytes())
+	ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(created.Id, users[0].User.GetUID().ToBytes())
 	ctc.world.Msgs[created.Id.String()][0].BodyCiphertext.E[0]++
 
 	tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
@@ -778,7 +797,7 @@ func TestGetOutbox(t *testing.T) {
 	u := users[0]
 	h := ctc.as(t, users[0]).h
 	tc := ctc.world.Tcs[ctc.as(t, users[0]).user().Username]
-	outbox := storage.NewOutbox(tc.G, users[0].User.GetUID().ToBytes())
+	outbox := storage.NewOutbox(tc.Context(), users[0].User.GetUID().ToBytes())
 
 	obr, err := outbox.PushMessage(context.TODO(), created.Id, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
@@ -841,7 +860,7 @@ func TestChatGap(t *testing.T) {
 		Message: ooMsg,
 	}
 
-	listener := newNlistener(t)
+	listener := newServerChatListener()
 	tc.G.SetService()
 	tc.G.NotifyRouter.SetListener(listener)
 
@@ -849,16 +868,15 @@ func TestChatGap(t *testing.T) {
 	var data []byte
 	enc := codec.NewEncoderBytes(&data, &mh)
 	require.NoError(t, enc.Encode(payload))
-	h.gh.BroadcastMessage(context.TODO(), gregor1.Message{
-		Oobm_: &gregor1.OutOfBandMessage{
-			Uid_:    u.User.GetUID().ToBytes(),
-			System_: "chat.activity",
-			Body_:   data,
-		},
-	})
+	ph := NewPushHandler(tc.Context())
+	require.NoError(t, ph.Activity(context.TODO(), &gregor1.OutOfBandMessage{
+		Uid_:    u.User.GetUID().ToBytes(),
+		System_: "chat.activity",
+		Body_:   data,
+	}, nil))
 
 	select {
-	case cids := <-listener.threadStale:
+	case cids := <-listener.threadsStale:
 		require.Equal(t, []chat1.ConversationID{created.Id}, cids, "wrong cids")
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "failed to receive stale event")
@@ -872,52 +890,60 @@ func TestChatGap(t *testing.T) {
 	}
 	enc = codec.NewEncoderBytes(&data, &mh)
 	require.NoError(t, enc.Encode(payload))
-	h.gh.BroadcastMessage(context.TODO(), gregor1.Message{
-		Oobm_: &gregor1.OutOfBandMessage{
-			Uid_:    u.User.GetUID().ToBytes(),
-			System_: "chat.activity",
-			Body_:   data,
-		},
-	})
+	require.NoError(t, ph.Activity(context.TODO(), &gregor1.OutOfBandMessage{
+		Uid_:    u.User.GetUID().ToBytes(),
+		System_: "chat.activity",
+		Body_:   data,
+	}, nil))
 
 	select {
-	case <-listener.threadStale:
+	case <-listener.threadsStale:
 		require.Fail(t, "should not get stale event here")
 	default:
 	}
 }
 
-type chatListener struct {
-	newMessage chan chat1.MessageUnboxed
+type serverChatListener struct {
+	newMessage   chan chat1.MessageUnboxed
+	threadsStale chan []chat1.ConversationID
 }
 
-func (n *chatListener) Logout()                                                             {}
-func (n *chatListener) Login(username string)                                               {}
-func (n *chatListener) ClientOutOfDate(to, uri, msg string)                                 {}
-func (n *chatListener) UserChanged(uid keybase1.UID)                                        {}
-func (n *chatListener) TrackingChanged(uid keybase1.UID, username libkb.NormalizedUsername) {}
-func (n *chatListener) FSActivity(activity keybase1.FSNotification)                         {}
-func (n *chatListener) FSEditListResponse(arg keybase1.FSEditListArg)                       {}
-func (n *chatListener) FSEditListRequest(arg keybase1.FSEditListRequest)                    {}
-func (n *chatListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)                   {}
-func (n *chatListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                           {}
-func (n *chatListener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID)        {}
-func (n *chatListener) FavoritesChanged(uid keybase1.UID)                                   {}
-func (n *chatListener) KeyfamilyChanged(uid keybase1.UID)                                   {}
-func (n *chatListener) PGPKeyInSecretStoreFile()                                            {}
-func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                           {}
-func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                         {}
-func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks)  {}
-func (n *chatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
+func (n *serverChatListener) Logout()                                                             {}
+func (n *serverChatListener) Login(username string)                                               {}
+func (n *serverChatListener) ClientOutOfDate(to, uri, msg string)                                 {}
+func (n *serverChatListener) UserChanged(uid keybase1.UID)                                        {}
+func (n *serverChatListener) TrackingChanged(uid keybase1.UID, username libkb.NormalizedUsername) {}
+func (n *serverChatListener) FSActivity(activity keybase1.FSNotification)                         {}
+func (n *serverChatListener) FSEditListResponse(arg keybase1.FSEditListArg)                       {}
+func (n *serverChatListener) FSEditListRequest(arg keybase1.FSEditListRequest)                    {}
+func (n *serverChatListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)                   {}
+func (n *serverChatListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                           {}
+func (n *serverChatListener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID)        {}
+func (n *serverChatListener) FavoritesChanged(uid keybase1.UID)                                   {}
+func (n *serverChatListener) KeyfamilyChanged(uid keybase1.UID)                                   {}
+func (n *serverChatListener) PGPKeyInSecretStoreFile()                                            {}
+func (n *serverChatListener) BadgeState(badgeState keybase1.BadgeState)                           {}
+func (n *serverChatListener) ReachabilityChanged(r keybase1.Reachability)                         {}
+func (n *serverChatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks)  {}
+func (n *serverChatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
 }
-func (n *chatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
+func (n *serverChatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
 }
-func (n *chatListener) ChatInboxStale(uid keybase1.UID)                                {}
-func (n *chatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {}
-func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
+func (n *serverChatListener) ChatInboxStale(uid keybase1.UID) {}
+func (n *serverChatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {
+	n.threadsStale <- cids
+}
+func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	typ, _ := activity.ActivityType()
 	if typ == chat1.ChatActivityType_INCOMING_MESSAGE {
 		n.newMessage <- activity.IncomingMessage().Message
+	}
+}
+
+func newServerChatListener() *serverChatListener {
+	return &serverChatListener{
+		newMessage:   make(chan chat1.MessageUnboxed, 100),
+		threadsStale: make(chan []chat1.ConversationID, 100),
 	}
 }
 
@@ -929,11 +955,9 @@ func TestPostLocalNonblock(t *testing.T) {
 	var err error
 	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 
-	listener := chatListener{
-		newMessage: make(chan chat1.MessageUnboxed),
-	}
+	listener := newServerChatListener()
 	ctc.as(t, users[0]).h.G().SetService()
-	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(&listener)
+	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
 
 	t.Logf("send a text message")
 	arg := chat1.PostTextNonblockArg{
@@ -1175,6 +1199,123 @@ func TestGetThreadNonblock(t *testing.T) {
 	res = receiveThreadResult(t, threadCb)
 	require.Equal(t, numMsgs, len(res.Messages))
 
+}
+
+func TestGetThreadNonblockError(t *testing.T) {
+	ctc := makeChatTestContext(t, "GetThreadNonblock", 1)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	listener := newServerChatListener()
+	ctc.as(t, users[0]).h.G().SetService()
+	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
+
+	uid := users[0].User.GetUID().ToBytes()
+	inboxCb := make(chan kbtest.NonblockInboxResult, 100)
+	threadCb := make(chan kbtest.NonblockThreadResult, 100)
+	ui := kbtest.NewChatUI(inboxCb, threadCb)
+	ctc.as(t, users[0]).h.mockChatUI = ui
+
+	query := chat1.GetThreadQuery{
+		MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+	}
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, users[0].Username)
+	numMsgs := 20
+	msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
+	for i := 0; i < numMsgs; i++ {
+		mustPostLocalForTest(t, ctc, users[0], conv, msg)
+	}
+	require.NoError(t, ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(conv.Id, uid))
+	g := ctc.world.Tcs[users[0].Username].ChatG
+	g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+		return chat1.RemoteClient{Cli: errorClient{}}
+	})
+
+	_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(context.TODO(),
+		chat1.GetThreadNonblockArg{
+			ConversationID:   conv.Id,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			Query:            &query,
+		},
+	)
+	require.Error(t, err)
+
+	// Advance clock and look for stale
+	g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+		return kbtest.NewChatRemoteMock(ctc.world)
+	})
+	ctc.world.Fc.Advance(time.Hour)
+
+	select {
+	case cids := <-listener.threadsStale:
+		require.Equal(t, 1, len(cids))
+	case <-time.After(2 * time.Second):
+		require.Fail(t, "no threads stale message received")
+	}
+}
+
+func TestGetInboxNonblockError(t *testing.T) {
+	ctc := makeChatTestContext(t, "GetInboxNonblockLocal", 1)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	listener := newServerChatListener()
+	ctc.as(t, users[0]).h.G().SetService()
+	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
+
+	uid := users[0].User.GetUID().ToBytes()
+	inboxCb := make(chan kbtest.NonblockInboxResult, 100)
+	threadCb := make(chan kbtest.NonblockThreadResult, 100)
+	ui := kbtest.NewChatUI(inboxCb, threadCb)
+	ctc.as(t, users[0]).h.mockChatUI = ui
+
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, users[0].Username)
+	numMsgs := 20
+	msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
+	for i := 0; i < numMsgs; i++ {
+		mustPostLocalForTest(t, ctc, users[0], conv, msg)
+	}
+	require.NoError(t, ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(conv.Id, uid))
+	g := ctc.world.Tcs[users[0].Username].ChatG
+	g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+		return chat1.RemoteClient{Cli: errorClient{}}
+	})
+
+	_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(context.TODO(),
+		chat1.GetInboxNonblockLocalArg{
+			Query: &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{conv.Id},
+			},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+	require.NoError(t, err)
+
+	// Eat untrusted CB
+	select {
+	case <-inboxCb:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no untrusted inbox")
+	}
+
+	select {
+	case nbres := <-inboxCb:
+		require.Error(t, nbres.Err)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no inbox load event")
+	}
+
+	// Advance clock and look for stale
+	g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+		return kbtest.NewChatRemoteMock(ctc.world)
+	})
+	ctc.world.Fc.Advance(time.Hour)
+
+	select {
+	case cids := <-listener.threadsStale:
+		require.Equal(t, 1, len(cids))
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no threads stale message received")
+	}
 }
 
 func TestMakePreview(t *testing.T) {

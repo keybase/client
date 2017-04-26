@@ -633,6 +633,22 @@ func (a GetArg) GetAppStatusCodes() []int {
 	return a.AppStatusCode
 }
 
+func (a GetWithSessionArg) GetEndpoint() string {
+	return a.Endpoint
+}
+
+func (a GetWithSessionArg) GetHTTPArgs() []StringKVPair {
+	return a.Args
+}
+
+func (a GetWithSessionArg) GetHttpStatuses() []int {
+	return a.HttpStatus
+}
+
+func (a GetWithSessionArg) GetAppStatusCodes() []int {
+	return a.AppStatusCode
+}
+
 func (a PostArg) GetEndpoint() string {
 	return a.Endpoint
 }
@@ -820,6 +836,18 @@ func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 	}
 }
 
+// SkipExternalChecks indicates we do not want to run any external proof checkers in
+// identify modes that yield true.
+func (b TLFIdentifyBehavior) SkipExternalChecks() bool {
+	switch b {
+	case TLFIdentifyBehavior_KBFS_QR,
+		TLFIdentifyBehavior_KBFS_REKEY:
+		return true
+	default:
+		return false
+	}
+}
+
 func (c CanonicalTLFNameAndIDWithBreaks) Eq(r CanonicalTLFNameAndIDWithBreaks) bool {
 	if c.CanonicalName != r.CanonicalName {
 		return false
@@ -896,6 +924,15 @@ func (u UserPlusAllKeys) GetUID() UID {
 
 func (u UserPlusAllKeys) GetName() string {
 	return u.Base.GetName()
+}
+
+func (u UserPlusAllKeys) GetDeviceID(kid KID) (ret DeviceID, err error) {
+	for _, dk := range u.Base.DeviceKeys {
+		if dk.KID.Equal(kid) {
+			return dk.DeviceID, nil
+		}
+	}
+	return ret, fmt.Errorf("no device key for kid")
 }
 
 func (u UserPlusAllKeys) Export() *User {

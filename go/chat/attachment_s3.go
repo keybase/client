@@ -81,7 +81,7 @@ func (a *AttachmentStore) putSingle(ctx context.Context, r io.Reader, size int64
 	}
 	sr := bytes.NewReader(buf)
 
-	progWriter := newProgressWriter(progress, int(size))
+	progWriter := newProgressWriter(progress, size)
 	tee := io.TeeReader(sr, progWriter)
 
 	var lastErr error
@@ -103,7 +103,7 @@ func (a *AttachmentStore) putSingle(ctx context.Context, r io.Reader, size int64
 
 		// move back to beginning of sr buffer for retry
 		sr.Seek(0, io.SeekStart)
-		progWriter = newProgressWriter(progress, int(size))
+		progWriter = newProgressWriter(progress, size)
 		tee = io.TeeReader(sr, progWriter)
 	}
 	return NewErrorWrapper("failed putSingle, last error", lastErr)
@@ -169,7 +169,7 @@ func (a *AttachmentStore) putMultiPipeline(ctx context.Context, r io.Reader, siz
 	}()
 
 	var parts []s3.Part
-	progWriter := newProgressWriter(task.Progress, int(size))
+	progWriter := newProgressWriter(task.Progress, size)
 	for p := range retCh {
 		parts = append(parts, p)
 		progWriter.Update(int(p.Size))

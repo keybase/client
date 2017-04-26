@@ -182,7 +182,7 @@ func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc
 		Endpoint:  upRes.Endpoint,
 		Bucket:    upRes.Bucket,
 		Path:      upRes.Path,
-		Size:      int(upRes.Size),
+		Size:      upRes.Size,
 		Key:       enc.EncryptKey(),
 		VerifyKey: enc.VerifyKey(),
 		EncHash:   hash.Sum(nil),

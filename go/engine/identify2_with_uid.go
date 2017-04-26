@@ -437,6 +437,13 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return nil
 	}
 
+	// If we are rekeying or reclaiming quota from KBFS, then let's
+	// skip the external checks.
+	if e.arg.IdentifyBehavior.SkipExternalChecks() {
+		e.G().Log.CDebugf(netCtx, "| skip external checks specified, short-circuiting")
+		return nil
+	}
+
 	if !e.useRemoteAssertions() && e.allowEarlyOuts() {
 
 		if e.untrackedFastPath(ctx) {

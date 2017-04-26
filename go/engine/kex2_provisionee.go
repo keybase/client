@@ -6,6 +6,7 @@ package engine
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/url"
 	"time"
 
@@ -595,6 +596,24 @@ func (e *Kex2Provisionee) cacheKeys() (err error) {
 	}
 
 	return nil
+}
+
+func (e *Kex2Provisionee) SigningKey() (libkb.GenericKey, error) {
+	if e.eddsa == nil {
+		return nil, errors.New("provisionee missing signing key")
+	}
+	return e.eddsa, nil
+}
+
+func (e *Kex2Provisionee) EncryptionKey() (libkb.NaclDHKeyPair, error) {
+	if e.dh == nil {
+		return libkb.NaclDHKeyPair{}, errors.New("provisionee missing encryption key")
+	}
+	ret, ok := e.dh.(libkb.NaclDHKeyPair)
+	if !ok {
+		return libkb.NaclDHKeyPair{}, fmt.Errorf("provisionee encryption key unexpected type %T", e.dh)
+	}
+	return ret, nil
 }
 
 func firstValues(vals url.Values) map[string]string {

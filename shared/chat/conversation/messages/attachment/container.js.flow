@@ -6,6 +6,7 @@ export type OwnProps = {
   messageKey: Constants.MessageKey,
   measure: ?() => void,
   onAction: () => void,
+  onEnsurePreviewLoaded: () => void,
 }
 
 export default class Attachment extends Component<void, OwnProps, void> {}

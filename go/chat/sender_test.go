@@ -8,6 +8,7 @@ import (
 
 	"encoding/hex"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -129,10 +130,11 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
 	tc.G.SetService()
-	boxer := NewBoxer(tc.G, tlf)
+	g := globals.NewContext(tc.G, tc.ChatG)
+	boxer := NewBoxer(g, tlf)
 	getRI := func() chat1.RemoteInterface { return ri }
-	baseSender := NewBlockingSender(tc.G, boxer, nil, getRI)
-	sender := NewNonblockingSender(tc.G, baseSender)
+	baseSender := NewBlockingSender(g, boxer, nil, getRI)
+	sender := NewNonblockingSender(g, baseSender)
 	listener := chatListener{
 		incoming:       make(chan int),
 		failing:        make(chan []chat1.OutboxRecord),
@@ -140,18 +142,22 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 		inboxStale:     make(chan struct{}, 1),
 		threadsStale:   make(chan []chat1.ConversationID, 1),
 	}
-	tc.G.ConvSource = NewHybridConversationSource(tc.G, boxer, storage.New(tc.G), getRI)
-	tc.G.InboxSource = NewHybridInboxSource(tc.G, getRI, tlf)
-	tc.G.ServerCacheVersions = storage.NewServerVersions(tc.G)
-	tc.G.NotifyRouter.SetListener(&listener)
-	tc.G.MessageDeliverer = NewDeliverer(tc.G, baseSender)
-	tc.G.MessageDeliverer.(*Deliverer).SetClock(world.Fc)
-	tc.G.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
-	tc.G.MessageDeliverer.Connected(context.TODO())
-	chatSyncer := NewSyncer(tc.G)
+	g.ConvSource = NewHybridConversationSource(g, boxer, storage.New(g), getRI)
+	g.InboxSource = NewHybridInboxSource(g, getRI, tlf)
+	g.ServerCacheVersions = storage.NewServerVersions(g)
+	g.NotifyRouter.SetListener(&listener)
+	g.MessageDeliverer = NewDeliverer(g, baseSender)
+	g.MessageDeliverer.(*Deliverer).SetClock(world.Fc)
+	g.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
+	g.MessageDeliverer.Connected(context.TODO())
+	g.FetchRetrier = NewFetchRetrier(g)
+	g.FetchRetrier.(*FetchRetrier).SetClock(world.Fc)
+	g.FetchRetrier.Start(context.TODO(), u.User.GetUID().ToBytes())
+	g.FetchRetrier.Connected(context.TODO())
+	chatSyncer := NewSyncer(g)
 	chatSyncer.isConnected = true
-	tc.G.ChatSyncer = chatSyncer
-	tc.G.ConnectivityMonitor = &libkb.NullConnectivityMonitor{}
+	g.Syncer = chatSyncer
+	g.ConnectivityMonitor = &libkb.NullConnectivityMonitor{}
 
 	return world, ri, sender, baseSender, &listener, tlf
 }
@@ -178,7 +184,7 @@ func startConv(t *testing.T,
 	require.NoError(t, err)
 
 	// Check that the initial message stored as a success.
-	tv, _, err := tc.G.ConvSource.Pull(context.TODO(), res.ConvID, uid, nil, nil)
+	tv, _, err := tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, uid, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(tv.Messages))
 	require.True(t, tv.Messages[0].IsValid(), "initial message invalid")
@@ -287,7 +293,7 @@ func TestNonblockTimer(t *testing.T) {
 	}
 
 	tc := userTc(t, world, u)
-	outbox := storage.NewOutbox(tc.G, u.User.GetUID().ToBytes())
+	outbox := storage.NewOutbox(tc.Context(), u.User.GetUID().ToBytes())
 	var obids []chat1.OutboxID
 	msgID := *sentRef[len(sentRef)-1].msgID
 	for i := 0; i < 5; i++ {
@@ -337,7 +343,7 @@ func TestNonblockTimer(t *testing.T) {
 
 	// Check get thread, make sure it makes sense
 	typs := []chat1.MessageType{chat1.MessageType_TEXT}
-	tres, _, err := tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	tres, _, err := tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{MessageTypes: typs}, nil)
 	tres.Messages = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs}, true)
 	t.Logf("source size: %d", len(tres.Messages))
@@ -408,7 +414,7 @@ func TestFailingSender(t *testing.T) {
 	require.NoError(t, err)
 
 	tc := userTc(t, world, u)
-	tc.G.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
+	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
 
 	// Send nonblock
 	var obids []chat1.OutboxID
@@ -425,7 +431,7 @@ func TestFailingSender(t *testing.T) {
 		obids = append(obids, obid)
 	}
 	for i := 0; i < deliverMaxAttempts; i++ {
-		tc.G.MessageDeliverer.ForceDeliverLoop(context.TODO())
+		tc.ChatG.MessageDeliverer.ForceDeliverLoop(context.TODO())
 	}
 
 	var recvd []chat1.OutboxRecord
@@ -456,8 +462,8 @@ func TestDisconnectedFailure(t *testing.T) {
 	tc := userTc(t, world, u)
 	res := startConv(t, u, trip, baseSender, ri, tc)
 
-	tc.G.MessageDeliverer.Disconnected(context.TODO())
-	tc.G.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
+	tc.ChatG.MessageDeliverer.Disconnected(context.TODO())
+	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
 
 	// Send nonblock
 	obids := []chat1.OutboxID{}
@@ -509,15 +515,15 @@ func TestDisconnectedFailure(t *testing.T) {
 	recordCompare(t, obids, allrecvd)
 
 	t.Logf("reconnecting and checking for successes")
-	<-tc.G.MessageDeliverer.Stop(context.TODO())
-	<-tc.G.MessageDeliverer.Stop(context.TODO())
-	tc.G.MessageDeliverer.(*Deliverer).SetSender(baseSender)
-	outbox := storage.NewOutbox(tc.G, u.User.GetUID().ToBytes())
+	<-tc.ChatG.MessageDeliverer.Stop(context.TODO())
+	<-tc.ChatG.MessageDeliverer.Stop(context.TODO())
+	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(baseSender)
+	outbox := storage.NewOutbox(tc.Context(), u.User.GetUID().ToBytes())
 	for _, obid := range obids {
 		require.NoError(t, outbox.RetryMessage(context.TODO(), obid))
 	}
-	tc.G.MessageDeliverer.Connected(context.TODO())
-	tc.G.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
+	tc.ChatG.MessageDeliverer.Connected(context.TODO())
+	tc.ChatG.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
 
 	for {
 		select {
@@ -639,10 +645,10 @@ func TestPrevPointerAddition(t *testing.T) {
 	}
 
 	// Nuke the body cache
-	require.NoError(t, storage.New(tc.G).MaybeNuke(true, nil, res.ConvID, uid))
+	require.NoError(t, storage.New(tc.Context()).MaybeNuke(true, nil, res.ConvID, uid))
 
 	// Fetch a subset into the cache
-	_, _, err := tc.G.ConvSource.Pull(context.TODO(), res.ConvID, uid, nil, &chat1.Pagination{
+	_, _, err := tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, uid, nil, &chat1.Pagination{
 		Num: 2,
 	})
 	require.NoError(t, err)

@@ -34,7 +34,9 @@ class SuccessRender extends Component<void, Props, State> {
 
         <Box style={paperKeyContainerStyle}>
           <Text type='Header' style={paperkeyStyle}>{this.props.paperkey.stringValue()}</Text>
-          <Icon type='icon-paper-key-corner' style={paperCornerStyle} />
+          <Box style={paperCornerStyle}>
+            <Icon type='icon-paper-key-corner' />
+          </Box>
         </Box>
 
         <Box style={confirmCheckboxStyle}>
@@ -69,7 +71,6 @@ const textCenter = {
 }
 
 const paperKeyContainerStyle = {
-  position: 'relative',
   alignSelf: 'center',
   marginTop: globalMargins.large,
   marginBottom: globalMargins.large,

@@ -84,11 +84,12 @@ func (v *CmdTrack) Run() error {
 		return err
 	}
 
-	return cli.Track(context.TODO(), keybase1.TrackArg{
+	_, err = cli.Track(context.TODO(), keybase1.TrackArg{
 		UserAssertion:    v.user,
 		Options:          v.options,
 		ForceRemoteCheck: v.skipProofCache,
 	})
+	return err
 }
 
 func (v *CmdTrack) GetUsage() libkb.Usage {

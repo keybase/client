@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -15,13 +16,13 @@ const blockIndexVersion = 6
 const blockSize = 100
 
 type blockEngine struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 }
 
-func newBlockEngine(g *libkb.GlobalContext) *blockEngine {
+func newBlockEngine(g *globals.Context) *blockEngine {
 	return &blockEngine{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "BlockEngine", true),
 	}
 }

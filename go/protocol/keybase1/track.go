@@ -45,7 +45,7 @@ type TrackInterface interface {
 	// This will perform identify and track.
 	// If forceRemoteCheck is true, we force all remote proofs to be checked
 	// (otherwise a cache is used).
-	Track(context.Context, TrackArg) error
+	Track(context.Context, TrackArg) (ConfirmResult, error)
 	// Track with token returned from identify.
 	TrackWithToken(context.Context, TrackWithTokenArg) error
 	// Called by the UI when the user decides *not* to track, to e.g. dismiss gregor items.
@@ -70,7 +70,7 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TrackArg)(nil), args)
 						return
 					}
-					err = i.Track(ctx, (*typedArgs)[0])
+					ret, err = i.Track(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -166,8 +166,8 @@ type TrackClient struct {
 // This will perform identify and track.
 // If forceRemoteCheck is true, we force all remote proofs to be checked
 // (otherwise a cache is used).
-func (c TrackClient) Track(ctx context.Context, __arg TrackArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.track.track", []interface{}{__arg}, nil)
+func (c TrackClient) Track(ctx context.Context, __arg TrackArg) (res ConfirmResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.track.track", []interface{}{__arg}, &res)
 	return
 }
 

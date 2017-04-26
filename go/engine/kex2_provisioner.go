@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -383,6 +384,9 @@ func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
 }
 
 func (e *Kex2Provisioner) makeSdhBoxes(receiverKeyGeneric libkb.GenericKey) (res []keybase1.SharedDHSecretKeyBox, err error) {
+	if !e.G().Env.GetEnableSharedDH() {
+		return nil, errors.New("shared dh disabled")
+	}
 	receiverKey, ok := receiverKeyGeneric.(libkb.NaclDHKeyPair)
 	if !ok {
 		return res, fmt.Errorf("Unexpected receiver key type")

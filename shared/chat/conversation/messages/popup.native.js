@@ -13,20 +13,24 @@ import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
 import type {ServerMessage, TextMessage} from '../../../constants/chat'
 
-function _textMessagePopupHelper ({message, type, onDeleteMessage, onHidden, onShowEditor}: TextProps) {
-  return [{
+function _textMessagePopupHelper ({message, type, onDeleteMessage, onHidden, onShowEditor, you}: TextProps) {
+  const edit = message.author === you ? [{
     onClick: () => {
       onShowEditor(message)
       onHidden()
     },
     title: 'Edit',
-  }, {
+  }] : []
+
+  const copy = [{
     onClick: () => {
       NativeClipboard.setString(message.message.stringValue())
       onHidden()
     },
     title: 'Copy Text',
   }]
+
+  return [...edit, ...copy]
 }
 
 function _attachmentMessagePopupHelper ({message, onSaveAttachment, onShareAttachment, onHidden}: AttachmentProps) {
@@ -54,7 +58,7 @@ function _attachmentMessagePopupHelper ({message, onSaveAttachment, onShareAttac
 }
 
 function MessagePopup (props: TextProps | AttachmentProps) {
-  const {message, onDeleteMessage, onHidden} = props
+  const {message, onDeleteMessage, onHidden, you} = props
   if (message.type !== 'Text' && message.type !== 'Attachment') return null
 
   let items = []
@@ -71,14 +75,16 @@ function MessagePopup (props: TextProps | AttachmentProps) {
     items = items.concat(_attachmentMessagePopupHelper(aProps))
   }
 
-  items.push({
-    danger: true,
-    onClick: () => {
-      onDeleteMessage(message)
-      onHidden()
-    },
-    title: 'Delete',
-  })
+  if (message.author === you) {
+    items.push({
+      danger: true,
+      onClick: () => {
+        onDeleteMessage(message)
+        onHidden()
+      },
+      title: 'Delete',
+    })
+  }
 
   const menuProps = {
     header: {
@@ -103,8 +109,10 @@ type OwnProps = MessagePopupRouteProps & {}
 export default connect(
   (state: TypedState, {routeProps}: OwnProps) => {
     const {message} = routeProps
+    const you = state.config.username
     return {
       message,
+      you,
     }
   },
   (dispatch: Dispatch, {routeProps}: OwnProps) => ({

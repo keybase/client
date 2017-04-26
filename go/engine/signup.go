@@ -84,6 +84,14 @@ func (s *SignupEngine) Run(ctx *Context) error {
 			return err
 		}
 
+		if s.G().Env.GetEnableSharedDH() {
+			var err error
+			s.sharedDHKeyring, err = libkb.NewSharedDHKeyring(s.G(), s.uid)
+			if err != nil {
+				return err
+			}
+		}
+
 		if err := s.registerDevice(a, ctx, s.arg.DeviceName); err != nil {
 			return err
 		}
@@ -154,6 +162,7 @@ func (s *SignupEngine) genPassphraseStream(a libkb.LoginContext, passphrase stri
 }
 
 func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode string, skipMail bool) error {
+	s.G().Log.Debug("SignupEngine#join")
 	joinEngine := NewSignupJoinEngine(s.G())
 
 	pdpkda5kid, err := s.ppStream.PDPKA5KID()
@@ -189,6 +198,7 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 }
 
 func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, deviceName string) error {
+	s.G().Log.CDebugf(ctx.NetContext, "SignupEngine#registerDevice")
 	s.lks = libkb.NewLKSec(s.ppStream, s.uid, s.G())
 	args := &DeviceWrapArgs{
 		Me:         s.me,
@@ -221,12 +231,6 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 		s.G().Log.Warning("error saving session file: %s", err)
 	}
 
-	var err error
-	s.sharedDHKeyring, err = libkb.NewSharedDHKeyring(s.G(), s.uid, did)
-	if err != nil {
-		return err
-	}
-
 	if s.arg.StoreSecret {
 		// Create the secret store as late as possible here
 		// (instead of when we first get the value of
@@ -251,6 +255,7 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 }
 
 func (s *SignupEngine) genPaperKeys(ctx *Context, lctx libkb.LoginContext) error {
+	s.G().Log.CDebugf(ctx.NetContext, "SignupEngine#genPaperKeys")
 	// Load me again so that keys will be up to date.
 	var err error
 	s.me, err = libkb.LoadUser(libkb.LoadUserArg{Self: true, UID: s.me.GetUID(), PublicKeyOptional: true, Contextified: libkb.NewContextified(s.G())})
@@ -291,6 +296,7 @@ func (s *SignupEngine) addGPG(lctx libkb.LoginContext, ctx *Context, allowMulti 
 }
 
 func (s *SignupEngine) genPGPBatch(ctx *Context) error {
+	s.G().Log.CDebugf(ctx.NetContext, "SignupEngine#genPGPBatch")
 	gen := libkb.PGPGenArg{
 		PrimaryBits: 1024,
 		SubkeyBits:  1024,

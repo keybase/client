@@ -15,13 +15,13 @@ const Header = ({name, icon}) => (
 const Body = ({endangeredTLFs, name, currentDevice}) => (
   <Box>
     <Box style={styleHeader}>
-      <Text type='BodySemibold' style={styleText}>Are you sure you want to revoke {currentDevice ? 'your current device' : name}?</Text>
+      <Text type='Header' style={styleText}>Are you sure you want to revoke {currentDevice ? 'your current device' : name}?</Text>
     </Box>
 
     {endangeredTLFs.length > 0 &&
       <Box>
         <Box>
-          <Text type='BodySmallSemibold' style={styleText}>You may lose access to these folders forever:</Text>
+          <Text type='Body' style={styleText}>You may lose access to these folders forever:</Text>
         </Box>
 
         <Box style={styleDevicesContainer}>
@@ -53,8 +53,8 @@ const styleHeader = {
 }
 
 const styleTLF = {
-  marginBottom: globalMargins.small,
-  marginTop: globalMargins.tiny,
+  marginBottom: globalMargins.xtiny,
+  marginTop: globalMargins.xtiny,
 }
 
 const styleText = {
@@ -77,12 +77,8 @@ const styleDevicesContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
   alignSelf: 'center',
-  backgroundColor: globalColors.lightGrey,
-  height: 200,
   marginBottom: globalMargins.small,
-  marginTop: globalMargins.small,
   padding: globalMargins.small,
-  width: 300,
 }
 
 export default Render

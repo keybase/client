@@ -1,11 +1,12 @@
 // @flow
 import Render from './index.render'
+import {qrGenerate} from '../../../actions/login/provision-helpers'
 import type {DumbComponentMap} from '../../../constants/types/more'
 
 const baseMock = {
   mode: 'codePageModeScanCode',
   textCode: 'derive jump shop federal member moral clip prevent vast wear critic purple mistake',
-  qrCode: 'derive jump shop federal member moral clip prevent vast wear critic purple mistake',
+  qrCode: qrGenerate('derive jump shop federal'),
   myDeviceRole: 'codePageDeviceRoleNewPhone',
   cameraBrokenMode: false,
   setCodePageMode: () => {},
@@ -14,6 +15,7 @@ const baseMock = {
   textEntered: () => console.log('textEntered'),
   onChangeText: () => console.log('onChangeText'),
   onBack: () => console.log('onBack'),
+  enterCodeErrorText: '',
   enterText: 'Foo Enter Text',
 }
 

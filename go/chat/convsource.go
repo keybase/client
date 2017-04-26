@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -16,7 +17,7 @@ import (
 )
 
 type baseConversationSource struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 
 	boxer   *Boxer
@@ -24,9 +25,9 @@ type baseConversationSource struct {
 	offline bool
 }
 
-func newBaseConversationSource(g *libkb.GlobalContext, ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
+func newBaseConversationSource(g *globals.Context, ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
 	return &baseConversationSource{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "baseConversationSource", false),
 		ri:           ri,
 		boxer:        boxer,
@@ -100,13 +101,15 @@ func (s *baseConversationSource) TransformSupersedes(ctx context.Context, convID
 }
 
 type RemoteConversationSource struct {
+	globals.Contextified
 	*baseConversationSource
-	libkb.Contextified
 }
 
-func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri func() chat1.RemoteInterface) *RemoteConversationSource {
+var _ types.ConversationSource = (*RemoteConversationSource)(nil)
+
+func NewRemoteConversationSource(g *globals.Context, b *Boxer, ri func() chat1.RemoteInterface) *RemoteConversationSource {
 	return &RemoteConversationSource{
-		Contextified:           libkb.NewContextified(g),
+		Contextified:           globals.NewContextified(g),
 		baseConversationSource: newBaseConversationSource(g, ri, b),
 	}
 }
@@ -206,17 +209,19 @@ func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 }
 
 type HybridConversationSource struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 	*baseConversationSource
 
 	storage *storage.Storage
 }
 
-func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *storage.Storage,
+var _ types.ConversationSource = (*HybridConversationSource)(nil)
+
+func NewHybridConversationSource(g *globals.Context, b *Boxer, storage *storage.Storage,
 	ri func() chat1.RemoteInterface) *HybridConversationSource {
 	return &HybridConversationSource{
-		Contextified:           libkb.NewContextified(g),
+		Contextified:           globals.NewContextified(g),
 		DebugLabeler:           utils.NewDebugLabeler(g, "HybridConversationSource", false),
 		baseConversationSource: newBaseConversationSource(g, ri, b),
 		storage:                storage,
@@ -276,7 +281,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 		return nil
 	}
 
-	idMode, _, haveMode := types.IdentifyMode(ctx)
+	idMode, _, haveMode := IdentifyMode(ctx)
 	for _, msg := range msgs {
 		if msg.IsValid() {
 
@@ -687,7 +692,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	return res, nil
 }
 
-func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer, storage *storage.Storage,
+func NewConversationSource(g *globals.Context, typ string, boxer *Boxer, storage *storage.Storage,
 	ri func() chat1.RemoteInterface) types.ConversationSource {
 	if typ == "hybrid" {
 		return NewHybridConversationSource(g, boxer, storage, ri)

@@ -92,9 +92,9 @@ func (c *CmdSimpleFSMove) Run() error {
 			break
 		}
 
-		opid, err := cli.SimpleFSMakeOpid(ctx)
-		if err != nil {
-			return err
+		opid, err2 := cli.SimpleFSMakeOpid(ctx)
+		if err2 != nil {
+			return err2
 		}
 		c.opCanceler.AddOp(opid)
 		defer cli.SimpleFSClose(ctx, opid)

@@ -147,6 +147,12 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 		return libkb.NoKeyError{Msg: fmt.Sprintf("In signature verification: no public key found for PGP ID %x", e.signStatus.KeyID)}
 	}
 
+	if entity := e.signStatus.Entity; len(entity.UnverifiedRevocations) > 0 {
+		return libkb.BadSigError{
+			E: fmt.Sprintf("Key %x belonging to %q has been revoked by its designated revoker.", entity.PrimaryKey.KeyId, e.signer.GetName()),
+		}
+	}
+
 	bundle := libkb.NewPGPKeyBundle(e.signStatus.Entity)
 	OutputSignatureSuccess(ctx, bundle.GetFingerprint(), e.signer, e.signStatus.SignatureTime)
 	return nil

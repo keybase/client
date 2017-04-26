@@ -14,6 +14,7 @@ import (
 
 	"encoding/hex"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -75,18 +76,18 @@ type inboxDiskData struct {
 }
 
 type Inbox struct {
-	libkb.Contextified
+	globals.Contextified
 	*baseBox
 	utils.DebugLabeler
 
 	uid gregor1.UID
 }
 
-func NewInbox(g *libkb.GlobalContext, uid gregor1.UID) *Inbox {
+func NewInbox(g *globals.Context, uid gregor1.UID) *Inbox {
 	return &Inbox{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "Inbox", false),
-		baseBox:      newBaseBox(g),
+		baseBox:      newBaseBox(g, true),
 		uid:          uid,
 	}
 }

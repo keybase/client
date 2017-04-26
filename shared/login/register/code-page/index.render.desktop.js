@@ -55,7 +55,7 @@ const CodePageCode = ({onBack, otherDeviceRole, setCodePageMode, qrCode}) => (
   </Container>
 )
 
-const CodePageEnterText = ({onBack, otherDeviceRole, enterText, onChangeText, textEntered, setCodePageMode}) => (
+const CodePageEnterText = ({enterCodeErrorText, onBack, otherDeviceRole, enterText, onChangeText, textEntered, setCodePageMode}) => (
   <Container
     style={stylesContainer}
     onBack={onBack}>
@@ -63,6 +63,7 @@ const CodePageEnterText = ({onBack, otherDeviceRole, enterText, onChangeText, te
     <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
     <Icon style={{marginBottom: 40, marginTop: 30}} type='icon-phone-text-code-32' />
     <Input
+      errorText={enterCodeErrorText}
       hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
       floatingHintTextOverride='Text code'
       multiline={true}

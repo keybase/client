@@ -22,7 +22,7 @@ export default connect(
     waiting,
   }),
   (dispatch) => ({
-    onFinish: dispatch(Creators.onFinish()),
+    onFinish: () => dispatch(Creators.onFinish()),
     onBack: () => dispatch(Creators.onBack()),
   })
 )(RenderSuccess)

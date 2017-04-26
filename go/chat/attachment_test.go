@@ -267,7 +267,7 @@ func (u *uploader) UploadResume() chat1.Asset {
 	if err != nil {
 		u.t.Fatalf("expected second UploadAsset call to work, got: %s", err)
 	}
-	if a.Size != signencrypt.GetSealedSize(len(u.plaintext)) {
+	if a.Size != int64(signencrypt.GetSealedSize(len(u.plaintext))) {
 		u.t.Errorf("uploaded asset size: %d, expected %d", a.Size, signencrypt.GetSealedSize(len(u.plaintext)))
 	}
 	u.fullEncKey = u.encKey

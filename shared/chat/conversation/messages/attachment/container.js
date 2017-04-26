@@ -36,15 +36,22 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       dispatch(Creators.loadAttachment(selectedConversation, messageID, downloadFilePath(filename), false, false))
     }
   },
+  _onEnsurePreviewLoaded: (message: Constants.AttachmentMessage) => dispatch(Creators.loadAttachmentPreview(message)),
   _onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
   _onOpenInPopup: (message: Constants.AttachmentMessage, routePath: List<string>) => dispatch(Creators.openAttachmentPopup(message, routePath)),
 })
 
-const mergeProps = (stateProps, dispatchProps, {measure, onAction}, OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps, {measure, onAction}: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
   measure,
   onAction,
+  onEnsurePreviewLoaded: () => {
+    const {message} = stateProps
+    if (message && message.filename && !message.previewPath) {
+      setImmediate(() => dispatchProps._onEnsurePreviewLoaded(stateProps.message))
+    }
+  },
   onLoadAttachment: () => { dispatchProps._onLoadAttachment(stateProps.selectedConversation, stateProps.message.messageID, stateProps.message.filename) },
   onOpenInFileUI: () => { dispatchProps._onOpenInFileUI(stateProps.message.downloadedPath) },
   onOpenInPopup: () => { dispatchProps._onOpenInPopup(stateProps.message, stateProps.routePath) },
@@ -53,11 +60,19 @@ const mergeProps = (stateProps, dispatchProps, {measure, onAction}, OwnProps) =>
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
+    componentDidMount: function () {
+      this.props.onEnsurePreviewLoaded()
+    },
+
     componentDidUpdate: function (prevProps: Props & {_editedCount: number}) {
       if (this.props.measure &&
         this.props.message.previewPath !== prevProps.message.previewPath &&
         !shallowEqual(this.props.message.previewSize !== prevProps.message.previewSize)) {
         this.props.measure()
+      }
+
+      if (this.props.message && prevProps.message && prevProps.message.filename !== this.props.message.filename) {
+        this.props.onEnsurePreviewLoaded()
       }
     },
   })

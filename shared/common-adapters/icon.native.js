@@ -1,66 +1,56 @@
 // @flow
 import * as shared from './icon.shared'
-import Box from './box'
 import ClickableBox from './clickable-box'
-import React, {Component} from 'react'
+import React from 'react'
 import {NativeText, NativeImage} from './native-wrappers.native'
 import {globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
+import {omit} from 'lodash'
 
 import type {Exact} from '../constants/types/more'
 import type {IconType, Props} from './icon'
 
-class Icon extends Component<void, Exact<Props>, void> {
-  render () {
-    let color = shared.defaultColor(this.props.type)
-    let iconType = shared.typeToIconMapper(this.props.type)
+const Icon = (props: Exact<Props>) => {
+  let iconType = shared.typeToIconMapper(props.type)
 
-    if (!iconType) {
-      console.warn('Null iconType passed')
-      return null
-    }
-
-    color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.black_40)
-
-    const styleWidth = this.props.style && this.props.style.width
-
-    const width = styleWidth && {width: this.props.style.width}
-    const height = this.props.style && this.props.style.height && {height: this.props.style.height}
-
-    const fontSizeHint = shared.fontSize(iconType)
-    const fontSize = (this.props.style && (this.props.style.fontSize || styleWidth) && {fontSize: this.props.style.fontSize || styleWidth}) || fontSizeHint
-    const textAlign = this.props.style && this.props.style.textAlign
-    const backgroundColor = this.props.style && {backgroundColor: this.props.style.backgroundColor} || {}
-
-    // Color is for our fontIcon and not the container
-    let containerProps = {...this.props.style}
-    delete containerProps.color
-    delete containerProps.width
-    delete containerProps.height
-    delete containerProps.textAlign
-    delete containerProps.fontSize
-
-    if (!iconMeta[iconType]) {
-      console.warn(`Invalid icon type passed in: ${iconType}`)
-      return null
-    }
-
-    const icon = iconMeta[iconType].isFont
-      ? <NativeText style={{color, textAlign, fontFamily: 'kb', ...fontSize, ...width, ...backgroundColor}}>{
-        String.fromCharCode(iconMeta[iconType].charCode || 0)}</NativeText>
-      : <NativeImage source={iconMeta[iconType].require} style={{resizeMode: 'contain', ...width, ...height, ...backgroundColor}} />
-
-    return (
-      <ClickableBox
-        activeOpacity={0.8}
-        underlayColor={this.props.underlayColor || globalColors.white}
-        onClick={this.props.onClick}>
-        <Box style={containerProps}>
-          {icon}
-        </Box>
-      </ClickableBox>
-    )
+  if (!iconType) {
+    console.warn('Null iconType passed')
+    return null
   }
+  if (!iconMeta[iconType]) {
+    console.warn(`Invalid icon type passed in: ${iconType}`)
+    return null
+  }
+
+  const color = props.style && props.style.color || shared.defaultColor(props.type) || (props.opacity ? globalColors.lightGrey : globalColors.black_40)
+  const styleWidth = props.style && props.style.width
+  const width = styleWidth && {width: props.style.width}
+  const backgroundColor = props.style && {backgroundColor: props.style.backgroundColor} || {}
+
+  let icon
+
+  if (iconMeta[iconType].isFont) {
+    const fontSizeHint = shared.fontSize(iconType)
+    const fontSize = (props.style && (props.style.fontSize || styleWidth) && {fontSize: props.style.fontSize || styleWidth}) || fontSizeHint
+    const textAlign = props.style && props.style.textAlign
+    const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
+
+    icon = <NativeText style={{color, textAlign, fontFamily: 'kb', ...fontSize, ...width, ...backgroundColor}}>{code}</NativeText>
+  } else {
+    const height = props.style && props.style.height && {height: props.style.height}
+    icon = <NativeImage source={iconMeta[iconType].require} style={{resizeMode: 'contain', ...width, ...height, ...backgroundColor}} />
+  }
+
+  const boxStyle = omit(props.style || {}, ['color', 'fontSize', 'textAlign'])
+  return (
+    <ClickableBox
+      activeOpacity={0.8}
+      underlayColor={props.underlayColor || globalColors.white}
+      onClick={props.onClick}
+      style={boxStyle}>
+      {icon}
+    </ClickableBox>
+  )
 }
 
 export function iconTypeToImgSet (type: IconType) {

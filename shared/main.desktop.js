@@ -6,10 +6,11 @@ import {ipcRenderer} from 'electron'
 import {navigateUp, setRouteState} from './actions/route-tree'
 
 import type {RouteDefNode, RouteStateNode, Path} from './route-tree'
+import type {TypedState} from './constants/reducer'
 
 type Props = {
-  menuBadge: boolean,
-  menuBadgeCount: number,
+  widgetBadge: boolean,
+  desktopAppBadgeCount: number,
   username: string,
   navigateUp: () => void,
   routeDef: RouteDefNode,
@@ -18,15 +19,19 @@ type Props = {
 }
 
 class Main extends Component<void, Props, void> {
+  _updateBadges = () => {
+    ipcRenderer.send('showTray', this.props.widgetBadge, this.props.desktopAppBadgeCount)
+  }
+
   componentDidUpdate (prevProps) {
-    if (this.props.menuBadge !== prevProps.menuBadge ||
-      this.props.menuBadgeCount !== prevProps.menuBadgeCount) {
-      ipcRenderer.send('showTray', this.props.menuBadge, this.props.menuBadgeCount)
+    if (this.props.widgetBadge !== prevProps.widgetBadge ||
+      this.props.desktopAppBadgeCount !== prevProps.desktopAppBadgeCount) {
+      this._updateBadges()
     }
   }
 
   componentDidMount () {
-    ipcRenderer.send('showTray', this.props.menuBadge, this.props.menuBadgeCount)
+    this._updateBadges()
   }
 
   render () {
@@ -40,22 +45,19 @@ class Main extends Component<void, Props, void> {
   }
 }
 
-// $FlowIssue type this connector
-export default connect(
-  ({
-    routeTree: {routeDef, routeState},
-    config: {extendedConfig, username},
-    notifications: {menuBadge, menuBadgeCount}}) => ({
-      routeDef,
-      routeState,
-      username,
-      menuBadge,
-      menuBadgeCount,
-    }),
-  dispatch => {
-    return {
-      navigateUp: () => dispatch(navigateUp()),
-      setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
-    }
+const mapStateToProps = (state: TypedState) => {
+  return {
+    desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
+    routeDef: state.routeTree.routeDef,
+    routeState: state.routeTree.routeState,
+    username: state.config.username,
+    widgetBadge: state.notifications.get('widgetBadge'),
   }
-)(Main)
+}
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  navigateUp: () => dispatch(navigateUp()),
+  setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(Main)

@@ -165,7 +165,6 @@ const styleContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   borderRadius: 100,
-  width: 329,
   height: 40,
   paddingLeft: 17,
   paddingRight: 17,

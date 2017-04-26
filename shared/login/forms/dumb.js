@@ -38,7 +38,7 @@ const failure: DumbComponentMap<Failure> = {
 }
 
 export default {
-  'Failure': failure,
-  'Intro': intro,
-  'Splash': splash,
+  'Login: Failure': failure,
+  'Login: Intro': intro,
+  'Login: Splash': splash,
 }

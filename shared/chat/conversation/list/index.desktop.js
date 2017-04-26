@@ -69,6 +69,10 @@ class BaseList extends Component<void, Props, State> {
         const toFind = this.props.messageKeys.get(this._lastRowIdx)
         this._keepIdxVisible = nextProps.messageKeys.indexOf(toFind)
       }
+      // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
+      // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
+      // another cache from row -> style which is out of sync
+      this._list && this._list.Grid && this._list.recomputeRowHeights(0)
     }
   }
 
