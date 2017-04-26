@@ -3,13 +3,14 @@
 protocol track {
   import idl "common.avdl";
   import idl "identify_common.avdl";
+  import idl "identify_ui.avdl";
 
   /**
     This will perform identify and track.
     If forceRemoteCheck is true, we force all remote proofs to be checked
     (otherwise a cache is used).
     */
-  void track(int sessionID, string userAssertion, TrackOptions options, boolean forceRemoteCheck);
+  ConfirmResult track(int sessionID, string userAssertion, TrackOptions options, boolean forceRemoteCheck);
 
   /**
     Track with token returned from identify.

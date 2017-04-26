@@ -47,9 +47,9 @@ func (c *CmdSimpleFSRemove) Run() error {
 	}
 
 	for _, path := range paths {
-		opid, err := cli.SimpleFSMakeOpid(ctx)
-		if err != nil {
-			return err
+		opid, err2 := cli.SimpleFSMakeOpid(ctx)
+		if err2 != nil {
+			return err2
 		}
 		defer cli.SimpleFSClose(ctx, opid)
 		c.G().Log.Debug("SimpleFSRemove %s", path.Kbfs())
@@ -57,6 +57,13 @@ func (c *CmdSimpleFSRemove) Run() error {
 			OpID: opid,
 			Path: path,
 		})
+		if err != nil {
+			break
+		}
+		err = cli.SimpleFSWait(ctx, opid)
+		if err != nil {
+			break
+		}
 	}
 	return err
 }

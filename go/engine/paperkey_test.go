@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func paperDevs(tc libkb.TestContext, fu *FakeUser) (*libkb.User, []*libkb.Device) {
@@ -24,12 +25,15 @@ func paperDevs(tc libkb.TestContext, fu *FakeUser) (*libkb.User, []*libkb.Device
 	return u, cki.PaperDevices()
 }
 
+func hasZeroPaperDev(tc libkb.TestContext, fu *FakeUser) {
+	_, bdevs := paperDevs(tc, fu)
+	require.Equal(tc.T, 0, len(bdevs), "num backup devices")
+}
+
 func hasOnePaperDev(tc libkb.TestContext, fu *FakeUser) keybase1.DeviceID {
 	u, bdevs := paperDevs(tc, fu)
 
-	if len(bdevs) != 1 {
-		tc.T.Fatalf("num backup devices: %d, expected 1", len(bdevs))
-	}
+	require.Equal(tc.T, 1, len(bdevs), "num backup devices")
 
 	devid := bdevs[0].ID
 	sibkey, err := u.GetComputedKeyFamily().GetSibkeyForDevice(devid)

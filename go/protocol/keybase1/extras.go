@@ -633,6 +633,22 @@ func (a GetArg) GetAppStatusCodes() []int {
 	return a.AppStatusCode
 }
 
+func (a GetWithSessionArg) GetEndpoint() string {
+	return a.Endpoint
+}
+
+func (a GetWithSessionArg) GetHTTPArgs() []StringKVPair {
+	return a.Args
+}
+
+func (a GetWithSessionArg) GetHttpStatuses() []int {
+	return a.HttpStatus
+}
+
+func (a GetWithSessionArg) GetAppStatusCodes() []int {
+	return a.AppStatusCode
+}
+
 func (a PostArg) GetEndpoint() string {
 	return a.Endpoint
 }
@@ -662,6 +678,22 @@ func (a PostJSONArg) GetHttpStatuses() []int {
 }
 
 func (a PostJSONArg) GetAppStatusCodes() []int {
+	return a.AppStatusCode
+}
+
+func (a DeleteArg) GetEndpoint() string {
+	return a.Endpoint
+}
+
+func (a DeleteArg) GetHTTPArgs() []StringKVPair {
+	return a.Args
+}
+
+func (a DeleteArg) GetHttpStatuses() []int {
+	return a.HttpStatus
+}
+
+func (a DeleteArg) GetAppStatusCodes() []int {
 	return a.AppStatusCode
 }
 
@@ -892,6 +924,15 @@ func (u UserPlusAllKeys) GetUID() UID {
 
 func (u UserPlusAllKeys) GetName() string {
 	return u.Base.GetName()
+}
+
+func (u UserPlusAllKeys) GetDeviceID(kid KID) (ret DeviceID, err error) {
+	for _, dk := range u.Base.DeviceKeys {
+		if dk.KID.Equal(kid) {
+			return dk.DeviceID, nil
+		}
+	}
+	return ret, fmt.Errorf("no device key for kid")
 }
 
 func (u UserPlusAllKeys) Export() *User {

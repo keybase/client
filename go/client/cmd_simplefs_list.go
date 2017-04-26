@@ -172,9 +172,9 @@ func (c *CmdSimpleFSList) Run() error {
 		path := paths[0]
 		c.G().Log.Debug("SimpleFSList %s", pathToString(path))
 
-		opid, err := cli.SimpleFSMakeOpid(ctx)
-		if err != nil {
-			return err
+		opid, err2 := cli.SimpleFSMakeOpid(ctx)
+		if err2 != nil {
+			return err2
 		}
 		defer cli.SimpleFSClose(ctx, opid)
 		if c.recurse {

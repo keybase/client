@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
@@ -34,7 +35,7 @@ func TestFetchRetry(t *testing.T) {
 	u2 := world.GetUsers()[2]
 	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
-	store := storage.New(tc.G)
+	store := storage.New(globals.NewContext(tc.G, tc.ChatG))
 
 	var convIDs []chat1.ConversationID
 	var convs []chat1.Conversation
@@ -49,19 +50,19 @@ func TestFetchRetry(t *testing.T) {
 	require.NoError(t, store.MaybeNuke(true, nil, convs[0].GetConvID(), uid))
 
 	errorRI := func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: errorClient{}} }
-	tc.G.ConvSource.SetRemoteInterface(errorRI)
+	tc.ChatG.ConvSource.SetRemoteInterface(errorRI)
 
-	inbox, _, err := tc.G.InboxSource.Read(context.TODO(), uid, nil, true, &chat1.GetInboxLocalQuery{
+	inbox, _, err := tc.ChatG.InboxSource.Read(context.TODO(), uid, nil, true, &chat1.GetInboxLocalQuery{
 		ConvIDs: convIDs,
 	}, nil)
 	require.NoError(t, err)
 	require.NotNil(t, inbox.Convs[2].Error)
 	require.Nil(t, inbox.Convs[0].Error)
-	tc.G.ChatFetchRetrier.Failure(context.TODO(), inbox.Convs[2].GetConvID(), uid, types.ThreadLoad)
+	tc.ChatG.FetchRetrier.Failure(context.TODO(), inbox.Convs[2].GetConvID(), uid, types.ThreadLoad)
 
 	// Advance clock and check for errors on all conversations
 	t.Logf("advancing clock and checking for stale")
-	tc.G.ConvSource.SetRemoteInterface(rifunc)
+	tc.ChatG.ConvSource.SetRemoteInterface(rifunc)
 	world.Fc.Advance(time.Hour)
 	select {
 	case cids := <-list.threadsStale:
@@ -77,8 +78,8 @@ func TestFetchRetry(t *testing.T) {
 	}
 
 	t.Logf("trying to use Force")
-	tc.G.ChatFetchRetrier.Failure(context.TODO(), inbox.Convs[2].GetConvID(), uid, types.ThreadLoad)
-	tc.G.ChatFetchRetrier.Force(context.TODO())
+	tc.ChatG.FetchRetrier.Failure(context.TODO(), inbox.Convs[2].GetConvID(), uid, types.ThreadLoad)
+	tc.ChatG.FetchRetrier.Force(context.TODO())
 	select {
 	case cids := <-list.threadsStale:
 		require.Equal(t, 1, len(cids))

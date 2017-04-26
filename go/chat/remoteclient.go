@@ -1,8 +1,8 @@
 package chat
 
 import (
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -13,7 +13,7 @@ type RemoteClient struct {
 	cli rpc.GenericClient
 }
 
-func NewRemoteClient(g *libkb.GlobalContext, cli rpc.GenericClient) *RemoteClient {
+func NewRemoteClient(g *globals.Context, cli rpc.GenericClient) *RemoteClient {
 	return &RemoteClient{
 		DebugLabeler: utils.NewDebugLabeler(g, "RemoteClient", false),
 		cli:          cli,

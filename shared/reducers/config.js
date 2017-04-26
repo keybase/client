@@ -6,7 +6,7 @@ import {isMobile} from '../constants/platform'
 import type {Tab} from '../constants/tabs'
 import type {Action} from '../constants/types/flux'
 import type {BootStatus} from '../constants/config'
-import type {Config, DeviceID, GetCurrentStatusRes, ExtendedStatus} from '../constants/types/flow-types'
+import type {Config, DeviceID, ExtendedStatus} from '../constants/types/flow-types'
 
 export type ConfigState = {
   appFocused: boolean,
@@ -24,7 +24,6 @@ export type ConfigState = {
   loggedIn: boolean,
   registered: boolean,
   readyForBootstrap: boolean,
-  status: ?GetCurrentStatusRes,
   uid: ?string,
   username: ?string,
   initialTab: ?Tab,
@@ -37,7 +36,7 @@ export type ConfigState = {
 const readyForBootstrap = isMobile
 
 const initialState: ConfigState = {
-  appFocused: false,
+  appFocused: true,
   bootStatus: 'bootStatusLoading',
   bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
   config: null,
@@ -53,7 +52,6 @@ const initialState: ConfigState = {
   loggedIn: false,
   registered: false,
   readyForBootstrap,
-  status: null,
   uid: null,
   username: null,
   deviceID: null,
@@ -112,15 +110,6 @@ export default function (state: ConfigState = initialState, action: Action): Con
         readyForBootstrap: true,
       }
     }
-    case Constants.statusLoaded:
-      if (action.payload && action.payload.status) {
-        const status = action.payload.status
-        return {
-          ...state,
-          status,
-        }
-      }
-      return state
 
     case Constants.bootstrapLoaded:
       const {bootstrapStatus} = action.payload

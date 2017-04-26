@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Avatar} from '../common-adapters'
+import {Box} from '../common-adapters'
 import {TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles'
 import {profileTab, folderTab, chatTab, settingsTab, searchTab} from '../constants/tabs'
@@ -8,12 +8,6 @@ import {profileTab, folderTab, chatTab, settingsTab, searchTab} from '../constan
 import type {Props} from './index.render'
 
 export default function TabBarRender ({selectedTab, onTabClick, username, badgeNumbers}: Props) {
-  const avatar = <Avatar
-    size={32}
-    onClick={() => onTabClick(profileTab)}
-    username={username}
-  />
-
   return (
     <Box style={stylesTabBar}>
       <TabBarButton
@@ -21,7 +15,7 @@ export default function TabBarRender ({selectedTab, onTabClick, username, badgeN
         onClick={() => onTabClick(profileTab)}
         badgeNumber={badgeNumbers[profileTab]}
         badgePosition='top-right'
-        source={{type: 'avatar', avatar}}
+        source={{type: 'avatar', username}}
         style={stylesTabButton}
       />
       <TabBarButton
@@ -38,6 +32,7 @@ export default function TabBarRender ({selectedTab, onTabClick, username, badgeN
         badgeNumber={badgeNumbers[searchTab]}
         badgePosition='top-right'
         source={{type: 'icon', icon: 'iconfont-nav-search'}}
+        styleIcon={{fontSize: 34}}
         style={stylesTabButton}
       />
       <TabBarButton
@@ -46,6 +41,7 @@ export default function TabBarRender ({selectedTab, onTabClick, username, badgeN
         badgeNumber={badgeNumbers[chatTab]}
         badgePosition='top-right'
         source={{type: 'icon', icon: 'iconfont-chat'}}
+        styleIcon={{fontSize: 30, marginTop: -2}}
         style={stylesTabButton}
       />
       <TabBarButton
@@ -60,7 +56,7 @@ export default function TabBarRender ({selectedTab, onTabClick, username, badgeN
   )
 }
 
-export const tabBarHeight = 56
+export const tabBarHeight = 48
 
 const stylesTabBar = {
   ...globalStyles.flexBoxRow,

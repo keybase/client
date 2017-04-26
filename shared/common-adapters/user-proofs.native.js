@@ -20,12 +20,12 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
   // TODO (AW): this is copied from desktop as a starting point for mobile
   return (
     <ClickableBox style={{...styleRow, flex: 1, ...style}} key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
-      <Box style={styleRow}>
+      <Box style={{...styleRow, flex: 1}}>
         <Icon style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
         <Box style={styleProofNameSection}>
           <Box style={styleProofNameLabelContainer}>
-            <Text type='Body' style={styleProofName}>
-              <Text type='Body' style={{color: missingColor}}>{missingProof.message}</Text>
+            <Text type='Body' style={{...styleProofName, color: missingColor}}>
+              {missingProof.message}
             </Text>
           </Box>
         </Box>
@@ -131,7 +131,7 @@ class ProofsRender extends Component<void, Props, void> {
             onClickStatus={onClickProofMenu ? () => onClickProofMenu(idx) : (p) => this._onClickProof(p)}
             onClickProfile={(p) => this._onClickProfile(p)}
             hasMenu={!!onClickProofMenu}
-            style={pad(idx)} />
+            style={{...pad(idx), minHeight: 24}} />
         )}
         {this.props.type === 'missingProofs' && this.props.missingProofs.map((mp, idx) =>
           <MissingProofRow
@@ -160,7 +160,7 @@ const styleContainer = {
 }
 const styleRow = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'flex-start',
+  alignItems: 'stretch',
   justifyContent: 'flex-start',
   // RN-BUG: set maxWidth once that prop is supported
 }
@@ -169,6 +169,7 @@ const styleService = {
   color: globalColors.black_75,
   marginRight: globalMargins.tiny,
   textAlign: 'center',
+  fontSize: 16,
 }
 const styleStatusIconTouchable = {
   ...globalStyles.flexBoxRow,

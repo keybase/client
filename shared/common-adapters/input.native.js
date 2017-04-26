@@ -30,6 +30,10 @@ class Input extends Component<void, Props, State> {
     }
   }
 
+  setNativeProps (props: Object) {
+    this._input && this._input.setNativeProps(props)
+  }
+
   componentWillReceiveProps (nextProps: Props) {
     if (nextProps.hasOwnProperty('value')) {
       this.setState({value: nextProps.value || ''})
@@ -247,7 +251,7 @@ class Input extends Component<void, Props, State> {
         <Box style={this.props.small ? {flex: 1} : {borderBottomWidth: 1, borderBottomColor: underlineColor}}>
           <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
         </Box>
-        {!!this.props.errorText && !this.props.small && <Text type='BodyError' style={{..._errorStyle, ...this.props.errorStyle}}>{this.props.errorText}</Text>}
+        {!this.props.small && <Text type='BodyError' style={{..._errorStyle, ...this.props.errorStyle}}>{this.props.errorText || ''}</Text>}
       </Box>
     )
   }
@@ -256,8 +260,10 @@ class Input extends Component<void, Props, State> {
 const _lineHeight = 28
 const _headerTextStyle = getTextStyle('Header')
 const _bodySmallTextStyle = getTextStyle('BodySmall')
+const _bodyErrorTextStyle = getTextStyle('BodyError')
 
 const _errorStyle = {
+  minHeight: _bodyErrorTextStyle.lineHeight,
   textAlign: 'center',
 }
 

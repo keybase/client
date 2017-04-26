@@ -191,7 +191,7 @@
           "name": "path"
         },
         {
-          "type": "int",
+          "type": "long",
           "name": "size"
         },
         {

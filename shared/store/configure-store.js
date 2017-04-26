@@ -32,7 +32,7 @@ const crashHandler = (error) => {
 let loggerMiddleware: any
 
 if (enableStoreLogging) {
-  const logger = setupLogger('storeLogger', 100, immediateStateLogging, immutableToJS, 50)
+  const logger = setupLogger('storeLogger', 100, immediateStateLogging, immutableToJS, 50, true)
   loggerMiddleware = createLogger({
     actionTransformer: (...args) => {
       console.log('Action:', ...args)

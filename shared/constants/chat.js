@@ -421,8 +421,8 @@ export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
   conversationIDKey: ConversationIDKey,
 }>
 export type DownloadProgress = NoErrorTypedAction<'chat:downloadProgress', {
-  bytesComplete: number,
-  bytesTotal: number,
+  bytesComplete?: number,
+  bytesTotal?: number,
   conversationIDKey: ConversationIDKey,
   isPreview: boolean,
   messageID: MessageID,
@@ -434,12 +434,15 @@ export type LoadAttachment = NoErrorTypedAction<'chat:loadAttachment', {
   isHdPreview: boolean,
   filename: string,
 }>
+export type LoadAttachmentPreview = NoErrorTypedAction<'chat:loadAttachmentPreview', {
+  message: AttachmentMessage,
+}>
 export type AttachmentLoaded = NoErrorTypedAction<'chat:attachmentLoaded', {
   messageID: MessageID,
   conversationIDKey: ConversationIDKey,
   isPreview: boolean,
   isHdPreview: boolean,
-  path: string,
+  path: ?string,
 }>
 export type UpdateTempMessage = TypedAction<'chat:updateTempMessage', {
   conversationIDKey: ConversationIDKey,

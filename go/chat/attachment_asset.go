@@ -1,4 +1,4 @@
-package service
+package chat
 
 import (
 	"bufio"
@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -15,7 +14,7 @@ import (
 type assetSource interface {
 	FileSize() int
 	Basename() string
-	Open(sessionID int, cli *keybase1.StreamUiClient) (chat.ReadResetter, error)
+	Open(sessionID int, cli *keybase1.StreamUiClient) (ReadResetter, error)
 	Close() error
 }
 
@@ -36,7 +35,7 @@ func (s *streamSource) Basename() string {
 	return filepath.Base(s.Filename)
 }
 
-func (s *streamSource) Open(sessionID int, cli *keybase1.StreamUiClient) (chat.ReadResetter, error) {
+func (s *streamSource) Open(sessionID int, cli *keybase1.StreamUiClient) (ReadResetter, error) {
 	s.buf = libkb.NewRemoteStreamBuffered(s.Source, cli, sessionID)
 	return s.buf, nil
 }
@@ -70,7 +69,7 @@ func (f *fileSource) Basename() string {
 	return f.info.Name()
 }
 
-func (f *fileSource) Open(sessionID int, cli *keybase1.StreamUiClient) (chat.ReadResetter, error) {
+func (f *fileSource) Open(sessionID int, cli *keybase1.StreamUiClient) (ReadResetter, error) {
 	buf, err := newFileReadResetter(f.Filename)
 	if err != nil {
 		return nil, err

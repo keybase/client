@@ -5,6 +5,7 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from '.'
 
+// TODO remove this for a common banner
 const Banner = ({color, backgroundColor, desc}) => (
   <Text type='BodySemibold' style={{...stylesBanner, backgroundColor, color}}>{desc}</Text>
 )
@@ -60,10 +61,18 @@ const Render = ({
   </Box>
 )
 
+const stylesHeader = {
+  textAlign: 'center',
+  fontStyle: 'italic',
+}
+
 const stylesBanner = {
   alignSelf: 'stretch',
   minHeight: 48,
-  padding: 8,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
   textAlign: 'center',
 }
 

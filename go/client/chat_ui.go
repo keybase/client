@@ -37,7 +37,7 @@ func (c *ChatUI) ChatAttachmentUploadProgress(ctx context.Context, arg chat1.Cha
 	if c.noOutput {
 		return nil
 	}
-	percent := (100 * arg.BytesComplete) / arg.BytesTotal
+	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
 	if c.lastPercentReported == 0 || percent == 100 || percent-c.lastPercentReported >= 10 {
 		w := c.terminal.ErrorWriter()
 		fmt.Fprintf(w, "Attachment upload progress %d%% (%d of %d bytes uploaded)\n", percent, arg.BytesComplete, arg.BytesTotal)
@@ -86,7 +86,7 @@ func (c *ChatUI) ChatAttachmentDownloadProgress(ctx context.Context, arg chat1.C
 	if c.noOutput {
 		return nil
 	}
-	percent := (100 * arg.BytesComplete) / arg.BytesTotal
+	percent := int((100 * arg.BytesComplete) / arg.BytesTotal)
 	if c.lastPercentReported == 0 || percent == 100 || percent-c.lastPercentReported >= 10 {
 		w := c.terminal.ErrorWriter()
 		fmt.Fprintf(w, "Attachment download progress %d%% (%d of %d bytes downloaded)\n", percent, arg.BytesComplete, arg.BytesTotal)

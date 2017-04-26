@@ -73,13 +73,13 @@ func (e *PaperKeyGen) SigKey() libkb.GenericKey {
 	return e.sigKey
 }
 
-func (e *PaperKeyGen) EncKey() libkb.GenericKey {
+func (e *PaperKeyGen) EncKey() libkb.NaclDHKeyPair {
 	return e.encKey
 }
 
 // Run starts the engine.
 func (e *PaperKeyGen) Run(ctx *Context) error {
-	if e.G().Env.GetEnableSharedDH() {
+	if e.G().Env.GetEnableSharedDH() && !e.arg.SkipPush {
 		err := e.syncSDH(ctx)
 		if err != nil {
 			return err
@@ -130,7 +130,7 @@ func (e *PaperKeyGen) syncSDH(ctx *Context) error {
 		tmp := e.arg.Me.ExportToUserPlusAllKeys(keybase1.Time(0))
 		upak = &tmp
 	}
-	err = sdhk.SyncDuringSignup(ctx.NetContext, e.arg.LoginContext, upak)
+	err = sdhk.SyncWithExtras(ctx.NetContext, e.arg.LoginContext, upak)
 	if err != nil {
 		return err
 	}
@@ -212,6 +212,7 @@ func (e *PaperKeyGen) getClientHalfFromSecretStore() (libkb.LKSecClientHalf, lib
 }
 
 func (e *PaperKeyGen) push(ctx *Context) error {
+	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#push")
 	if e.arg.SkipPush {
 		return nil
 	}
@@ -298,11 +299,16 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 
-	sdhBoxes, err := e.makeSharedDHSecretKeyBoxes(ctx)
-	if err != nil {
-		return err
+	var sdhBoxes = []keybase1.SharedDHSecretKeyBox{}
+	if e.G().Env.GetEnableSharedDH() {
+		boxes, err := e.makeSharedDHSecretKeyBoxes(ctx)
+		if err != nil {
+			return err
+		}
+		sdhBoxes = boxes
 	}
 
+	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#push running delegators")
 	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc}, sdhBoxes)
 }
 
@@ -317,6 +323,9 @@ func (e *PaperKeyGen) makeSharedDHSecretKeyBoxes(ctx *Context) ([]keybase1.Share
 		if !sdhk.HasAnyKeys() {
 			// TODO if SDH_UPGRADE: may want to add a key here.
 		} else {
+			if e.arg.EncryptionKey.IsNil() {
+				return nil, errors.New("missing encryption key for creating paper key")
+			}
 			sdhBoxes, err = sdhk.PrepareBoxesForNewDevice(ctx.NetContext,
 				e.encKey,            // receiver key: new paper key enc
 				e.arg.EncryptionKey) // sender key: this device enc
@@ -330,6 +339,9 @@ func (e *PaperKeyGen) makeSharedDHSecretKeyBoxes(ctx *Context) ([]keybase1.Share
 }
 
 func (e *PaperKeyGen) getSharedDHKeyring() (ret *libkb.SharedDHKeyring, err error) {
+	if !e.G().Env.GetEnableSharedDH() {
+		return nil, errors.New("shared dh disabled")
+	}
 	ret = e.arg.SharedDHKeyring
 	if ret != nil {
 		return

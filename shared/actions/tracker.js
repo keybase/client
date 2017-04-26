@@ -92,8 +92,7 @@ function getProfile (username: string, ignoreCache: boolean = false, forceDispla
 
 function getMyProfile (ignoreCache?: boolean): TrackerActionCreator {
   return (dispatch, getState) => {
-    const status = getState().config.status
-    const username = status && status.user && status.user.username
+    const username = getState().config.username
     if (username) {
       dispatch(getProfile(username, ignoreCache || false))
     }
@@ -619,6 +618,7 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
         identityConfirmed: false,
         remoteConfirmed: false,
         expiringLocal: false,
+        autoConfirmed: false,
       })
     },
     'keybase.1.identifyUi.cancel': ({sessionID}, response) => {

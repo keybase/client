@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -12,7 +13,7 @@ import (
 )
 
 type msgEngine struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 }
 
@@ -32,9 +33,9 @@ func (b boxedLocalMessage) GetMessageType() chat1.MessageType {
 	return b.MsgType
 }
 
-func newMsgEngine(g *libkb.GlobalContext) *msgEngine {
+func newMsgEngine(g *globals.Context) *msgEngine {
 	return &msgEngine{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "MessageEngine", true),
 	}
 }

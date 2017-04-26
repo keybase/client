@@ -77,6 +77,7 @@ const styleContentContainer = {
 
 const stylePlatformUsername = {
   ...globalStyles.textDecoration('line-through'),
+  textAlign: 'center',
   color: globalColors.red,
 }
 

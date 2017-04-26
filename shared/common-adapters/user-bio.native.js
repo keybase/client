@@ -66,7 +66,7 @@ class BioRender extends Component<void, Props, void> {
         <Box style={stylesAvatarWrapper(avatarSize)}>
           <Avatar
             style={stylesAvatar}
-            onClick={() => this.props.onClickAvatar(username)}
+            onClick={() => editFns ? editFns.onEditAvatarClick() : this.props.onClickAvatar(username)}
             username={username}
             size={avatarSize}
             following={currentlyFollowing}

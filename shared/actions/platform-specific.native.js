@@ -55,7 +55,7 @@ function configurePush () {
               tokenType,
             },
             type: 'push:pushToken',
-          }: PushConstants.PushTokenAction))
+          }: PushConstants.PushToken))
         } else {
           emitter(({
             payload: {
@@ -105,14 +105,14 @@ function configurePush () {
               payload: action.payload,
               type: action.type,
             }),
-          }: PushConstants.PushPermissionsPromptAction))
+          }: PushConstants.PushPermissionsPrompt))
         } else {
           // We have permissions, this triggers a token registration in
           // case it changed.
           emitter(({
             payload: undefined,
             type: 'push:permissionsRequest',
-          }: PushConstants.PushPermissionsRequestAction))
+          }: PushConstants.PushPermissionsRequest))
         }
       })
     }

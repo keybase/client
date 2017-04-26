@@ -72,6 +72,7 @@ export default compose(
     props => {
       let input
       return {
+        inputClear: props => () => { input && input.setNativeProps({text: ''}) },
         inputFocus: props => () => input && input.focus(),
         inputSelections: props => () => input && input.selections() || {},
         inputSetRef: props => i => { input = i },
@@ -81,8 +82,7 @@ export default compose(
   ),
   lifecycle({
     componentDidUpdate: function (prevProps) {
-      if (!this.props.isLoading && prevProps.isLoading ||
-        this.props.focusInputCounter !== prevProps.focusInputCounter) {
+      if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
         this.props.inputFocus()
       }
     },

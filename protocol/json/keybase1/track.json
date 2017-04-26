@@ -8,6 +8,10 @@
     {
       "path": "identify_common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "identify_ui.avdl",
+      "type": "idl"
     }
   ],
   "types": [],
@@ -31,7 +35,7 @@
           "type": "boolean"
         }
       ],
-      "response": null,
+      "response": "ConfirmResult",
       "doc": "This will perform identify and track.\n    If forceRemoteCheck is true, we force all remote proofs to be checked\n    (otherwise a cache is used)."
     },
     "trackWithToken": {

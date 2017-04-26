@@ -67,6 +67,9 @@ type LoginContext interface {
 	SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error
 
 	SetLKSec(lksec *LKSec)
+
+	GetUnlockedPaperEncKey() GenericKey
+	GetUnlockedPaperSigKey() GenericKey
 }
 
 type LoggedInHelper interface {

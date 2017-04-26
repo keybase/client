@@ -1,16 +1,7 @@
 // @flow
 import Render from '.'
-import {isMobile} from '../../constants/platform'
 
 import type {DumbComponentMap} from '../../constants/types/more'
-
-const parent = isMobile ? {
-  parentProps: {
-    style: {
-      height: 667,
-    },
-  },
-} : {}
 
 const common = {
   created: 1444423192000,
@@ -25,7 +16,6 @@ const common = {
   provisioner: null,
   revokedAt: null,
   type: 'desktop',
-  ...parent,
 }
 
 const endangeredTLFs = [
@@ -68,5 +58,5 @@ const map: DumbComponentMap<Render> = {
 }
 
 export default {
-  'Device Revoke': map,
+  'Devices: Device Revoke': map,
 }
