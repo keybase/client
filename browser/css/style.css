@@ -177,5 +177,5 @@ a.keybase-button {
   color: rgba(0,0,0,0.3);
 }
 .keybase-close::before {
-  content: "×";
+  content: "\00d7";
 }
