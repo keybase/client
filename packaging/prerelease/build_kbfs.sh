@@ -21,10 +21,7 @@ tags=${TAGS:-"prerelease production"}
 ldflags="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=$kbfs_build"
 pkg="github.com/keybase/kbfs/kbfsfuse"
 
-if [ "$PLATFORM" = "darwin" ]; then
-  # To get codesign to work you have to use -ldflags "-s ...", see https://github.com/golang/go/issues/11887
-  ldflags="-s $ldflags"
-elif [ "$PLATFORM" = "windows" ]; then
+if [ "$PLATFORM" = "windows" ]; then
   pkg="github.com/keybase/kbfs/kbfsdokan"
 fi
 

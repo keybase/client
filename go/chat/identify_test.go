@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbtest"
@@ -23,7 +24,8 @@ func TestChatBackgroundIdentify(t *testing.T) {
 	u1 := world.GetUsers()[1]
 	tc := world.Tcs[u.Username]
 
-	inbox := storage.NewInbox(tc.G, u.User.GetUID().ToBytes())
+	g := globals.NewContext(tc.G, tc.ChatG)
+	inbox := storage.NewInbox(g, u.User.GetUID().ToBytes())
 
 	tlfName := u.Username
 	msg := chat1.MessageBoxed{
@@ -45,7 +47,7 @@ func TestChatBackgroundIdentify(t *testing.T) {
 	}
 	require.NoError(t, inbox.Merge(context.TODO(), 1, []chat1.Conversation{conv}, nil, nil))
 
-	handler := NewIdentifyChangedHandler(tc.G, kbtest.NewTlfMock(world))
+	handler := NewIdentifyChangedHandler(g, kbtest.NewTlfMock(world))
 	require.NotNil(t, handler.G().NotifyRouter, "notify router")
 
 	t.Logf("new error job in inbox")

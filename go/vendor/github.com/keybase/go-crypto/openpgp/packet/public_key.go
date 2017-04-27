@@ -72,6 +72,11 @@ func (e *edDSAkey) Verify(payload []byte, r parsedMPI, s parsedMPI) bool {
 	// reading and keep only actual number in p field. Find out how
 	// other MPIs are stored.
 	key := e.p.bytes[1:]
+
+	// Note: it may happen that R + S do not form 64-byte signature buffer that
+	// ed25519 expects, but because we copy it over to an array of exact size,
+	// we will always pass correctly sized slice to Verify. Slice too short
+	// would make ed25519 panic().
 	n := copy(sig[:], r.bytes)
 	copy(sig[n:], s.bytes)
 
@@ -782,8 +787,8 @@ func keyRevocationHash(pk signingKey, hashFunc crypto.Hash) (h hash.Hash, err er
 
 // VerifyRevocationSignature returns nil iff sig is a valid signature, made by this
 // public key.
-func (pk *PublicKey) VerifyRevocationSignature(sig *Signature) (err error) {
-	h, err := keyRevocationHash(pk, sig.Hash)
+func (pk *PublicKey) VerifyRevocationSignature(revokedKey *PublicKey, sig *Signature) (err error) {
+	h, err := keyRevocationHash(revokedKey, sig.Hash)
 	if err != nil {
 		return err
 	}

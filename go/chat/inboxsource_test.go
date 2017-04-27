@@ -36,7 +36,7 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	}, 0)
 	require.NoError(t, err)
 
-	ib, _, err := tc.G.InboxSource.Read(context.TODO(), u.User.GetUID().ToBytes(), nil, true, nil, nil)
+	ib, _, err := tc.ChatG.InboxSource.Read(context.TODO(), u.User.GetUID().ToBytes(), nil, true, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(0), ib.Version, "wrong version")
 
@@ -47,21 +47,21 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 
 	wg.Add(1)
 	go func() {
-		_, err = tc.G.InboxSource.SetStatus(context.TODO(), u.User.GetUID().ToBytes(), 0, res.ConvID,
+		_, err = tc.ChatG.InboxSource.SetStatus(context.TODO(), u.User.GetUID().ToBytes(), 0, res.ConvID,
 			chat1.ConversationStatus_UNFILED)
 		require.NoError(t, err)
 		wg.Done()
 	}()
 	wg.Add(1)
 	go func() {
-		_, err = tc.G.InboxSource.SetStatus(context.TODO(), u.User.GetUID().ToBytes(), 1, res.ConvID,
+		_, err = tc.ChatG.InboxSource.SetStatus(context.TODO(), u.User.GetUID().ToBytes(), 1, res.ConvID,
 			chat1.ConversationStatus_UNFILED)
 		require.NoError(t, err)
 		wg.Done()
 	}()
 	wg.Wait()
 
-	ib, _, err = tc.G.InboxSource.Read(context.TODO(), u.User.GetUID().ToBytes(), nil, true, nil, nil)
+	ib, _, err = tc.ChatG.InboxSource.Read(context.TODO(), u.User.GetUID().ToBytes(), nil, true, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(1), ib.Version, "wrong version")
 }
@@ -79,7 +79,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 	tc := world.Tcs[u.Username]
 
 	assertInboxVersion := func(v int) {
-		ib, _, err := tc.G.InboxSource.Read(context.TODO(), u.User.GetUID().ToBytes(), nil, true, nil, nil)
+		ib, _, err := tc.ChatG.InboxSource.Read(context.TODO(), u.User.GetUID().ToBytes(), nil, true, nil, nil)
 		require.Equal(t, chat1.InboxVers(v), ib.Version, "wrong version")
 		require.NoError(t, err)
 	}
@@ -147,7 +147,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 	}
 
 	t.Logf("receive oobm with version light years ahead of its current one")
-	_, err = tc.G.InboxSource.NewMessage(context.TODO(), u.User.GetUID().ToBytes(), chat1.InboxVers(100),
+	_, err = tc.ChatG.InboxSource.NewMessage(context.TODO(), u.User.GetUID().ToBytes(), chat1.InboxVers(100),
 		res.ConvID, *boxed)
 	require.NoError(t, err)
 	assertInboxVersion(100)

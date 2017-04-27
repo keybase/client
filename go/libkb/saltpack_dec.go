@@ -11,8 +11,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/saltpack"
 )
 
@@ -199,6 +199,20 @@ func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Symmetri
 	return symmetricKeys, nil
 }
 
+func (r *TlfKeyResolver) getCryptKeys(ctx context.Context, name string) (keybase1.GetTLFCryptKeysRes, error) {
+	xp := r.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
+	if xp == nil {
+		return keybase1.GetTLFCryptKeysRes{}, fmt.Errorf("KBFS client wasn't found")
+	}
+	cli := &keybase1.TlfKeysClient{
+		Cli: rpc.NewClient(xp, ErrorUnwrapper{}, LogTagsFromContext),
+	}
+	return cli.GetTLFCryptKeys(ctx, keybase1.TLFQuery{
+		TlfName:          name,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	})
+}
+
 func (r *TlfKeyResolver) getSymmetricKey(info TlfPseudonymServerInfo) (*saltpack.SymmetricKey, error) {
 	// NOTE: In order to handle finalized TLFs (which is one of the main
 	// benefits of using TLF keys to begin with, for forward readability), we
@@ -219,9 +233,7 @@ func (r *TlfKeyResolver) getSymmetricKey(info TlfPseudonymServerInfo) (*saltpack
 	if len(basename) >= len(info.UntrustedCurrentName) {
 		return nil, fmt.Errorf("unexpected prefix, expected '/keybase/private', found %q", info.UntrustedCurrentName)
 	}
-	breaks := []keybase1.TLFIdentifyFailure{}
-	identifyCtx := types.IdentifyModeCtx(r.ctx, keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks)
-	res, err := r.G().TlfInfoSource.CryptKeys(identifyCtx, basename)
+	res, err := r.getCryptKeys(r.ctx, basename)
 	if err != nil {
 		return nil, err
 	}

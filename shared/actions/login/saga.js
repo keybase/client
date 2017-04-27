@@ -16,6 +16,8 @@ import openURL from '../../util/open-url'
 import {devicesTab, loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {load as loadDevices} from '../devices'
+import {deletePushTokenSaga} from '../push'
+import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
 import {toDeviceType} from '../../constants/types/more'
@@ -215,10 +217,14 @@ function * passthroughResponseSaga ({response}) {
 
 // TODO type this
 type DisplayAndPromptSecretArgs = any
-const displayAndPromptSecretSaga = (onBackSaga) => function * ({params: {phrase}, response}: DisplayAndPromptSecretArgs) {
-  yield put(Creators.setTextCode(phrase))
+const displayAndPromptSecretSaga = (onBackSaga) => function * ({params: {phrase, previousErr}, response}: DisplayAndPromptSecretArgs) {
+  yield put(Creators.setTextCode(phrase, previousErr))
   yield call(generateQRCode)
-  yield put(navigateAppend(['codePage']))
+
+  // If we have an error, we're already on the right page.
+  if (!previousErr) {
+    yield put(navigateAppend(['codePage']))
+  }
 
   const {textEntered, qrScanned, onBack} = yield race({
     onBack: take(Constants.onBack),
@@ -453,6 +459,7 @@ function * cameraBrokenModeSaga ({payload: {broken}}) {
 
 function * loginSuccess () {
   yield put(Creators.loginDone())
+  yield put(configurePush())
   yield put(loadDevices())
   yield put(bootstrap())
 }
@@ -503,10 +510,12 @@ function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
 function * reloginSaga ({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
   const finishedSaga = function * ({error}) {
     if (error) {
-      const message = 'This device is no longer provisioned.'
+      const message = error.toString()
       yield put(Creators.loginDone({message}))
-      yield put(Creators.setLoginFromRevokedDevice(message))
-      yield put(navigateTo([loginTab]))
+      if (error.desc === 'No device provisioned locally for this user') {
+        yield put(Creators.setLoginFromRevokedDevice(message))
+        yield put(navigateTo([loginTab]))
+      }
     } else {
       yield call(loginSuccess)
     }
@@ -567,6 +576,8 @@ function * logoutDoneSaga () {
 }
 
 function * logoutSaga () {
+  yield call(deletePushTokenSaga)
+
   const sagas = {
     finished: function * ({error}) {
       if (error) {

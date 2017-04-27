@@ -6,6 +6,7 @@ import (
 
 	"sort"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -15,7 +16,7 @@ import (
 )
 
 type Outbox struct {
-	libkb.Contextified
+	globals.Contextified
 	*baseBox
 	utils.DebugLabeler
 
@@ -30,11 +31,11 @@ type diskOutbox struct {
 	Records []chat1.OutboxRecord `codec:"O"`
 }
 
-func NewOutbox(g *libkb.GlobalContext, uid gregor1.UID) *Outbox {
+func NewOutbox(g *globals.Context, uid gregor1.UID) *Outbox {
 	return &Outbox{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "Outbox", false),
-		baseBox:      newBaseBox(g),
+		baseBox:      newBaseBox(g, true),
 		uid:          uid,
 		clock:        clockwork.NewRealClock(),
 	}

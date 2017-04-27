@@ -6,21 +6,25 @@ import (
 
 	"encoding/hex"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
 )
 
-func setupInboxTest(t testing.TB, name string) (libkb.TestContext, *Inbox, gregor1.UID) {
-	tc := externals.SetupTest(t, name, 2)
-	tc.G.ServerCacheVersions = NewServerVersions(tc.G)
-	u, err := kbtest.CreateAndSignupFakeUser("ib", tc.G)
+func setupInboxTest(t testing.TB, name string) (kbtest.ChatTestContext, *Inbox, gregor1.UID) {
+	ltc := externals.SetupTest(t, name, 2)
+	tc := kbtest.ChatTestContext{
+		TestContext: ltc,
+		ChatG:       &globals.ChatContext{},
+	}
+	tc.Context().ServerCacheVersions = NewServerVersions(tc.Context())
+	u, err := kbtest.CreateAndSignupFakeUser("ib", ltc.G)
 	require.NoError(t, err)
 	uid := gregor1.UID(u.User.GetUID().ToBytes())
-	return tc, NewInbox(tc.G, uid), uid
+	return tc, NewInbox(tc.Context(), uid), uid
 }
 
 func makeTlfID() chat1.TLFID {
@@ -690,7 +694,7 @@ func TestInboxServerVersion(t *testing.T) {
 	require.Equal(t, numConvs, len(res))
 
 	// Increase server version
-	cerr := tc.G.ServerCacheVersions.Set(context.TODO(), chat1.ServerCacheVers{
+	cerr := tc.Context().ServerCacheVersions.Set(context.TODO(), chat1.ServerCacheVers{
 		InboxVers: 5,
 	})
 	require.NoError(t, cerr)

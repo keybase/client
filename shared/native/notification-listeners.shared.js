@@ -1,8 +1,5 @@
 // @flow
-import {ConversationBadgeStateRecord} from '../constants/chat'
-import {List} from 'immutable'
-import {badgeAppForChat} from '../actions/chat'
-import {badgeApp} from '../actions/notifications'
+import {receivedBadgeState} from '../actions/notifications'
 import {bootstrap, updateFollowing} from '../actions/config'
 import {logoutDone} from '../actions/login/creators'
 
@@ -15,10 +12,7 @@ let lastLoggedInNotifyUsername = null
 export default function (dispatch: Dispatch, getState: () => Object, notify: any): incomingCallMapType {
   return {
     'keybase.1.NotifyBadges.badgeState': ({badgeState}) => {
-      const {conversations, newTlfs} = badgeState
-      const convos = List(conversations.map(conversation => ConversationBadgeStateRecord(conversation)))
-      dispatch(badgeAppForChat(convos))
-      dispatch(badgeApp('newTLFs', newTlfs > 0, newTlfs))
+      dispatch(receivedBadgeState(badgeState))
     },
     'keybase.1.NotifySession.loggedIn': ({username}, response) => {
       if (lastLoggedInNotifyUsername !== username) {
@@ -33,9 +27,7 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
       lastLoggedInNotifyUsername = null
 
       // Do we actually think we're logged in?
-      if (getState().config &&
-        getState().config.status &&
-        getState().config.status.loggedIn) {
+      if (getState().config.loggedIn) {
         notify('Logged out of Keybase')
         dispatch(logoutDone())
       }

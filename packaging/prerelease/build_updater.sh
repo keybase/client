@@ -15,15 +15,8 @@ cd "$src_dir"
 
 mkdir -p "$build_dir"
 
-ldflags=""
-
-if [ "$PLATFORM" = "darwin" ]; then
-  # To get codesign to work you have to use -ldflags "-s ...", see https://github.com/golang/go/issues/11887
-  ldflags="-s $ldflags"
-fi
-
 echo "Building $build_dir/updater"
-GO15VENDOREXPERIMENT=1 go build -a -ldflags "$ldflags" -o "$dest" "$package"
+go build -a -o "$dest" "$package"
 
 if [ "$PLATFORM" = "darwin" ]; then
   echo "Signing binary..."

@@ -19,7 +19,7 @@ const transform = (o: Array<any>) => {
   return [JSON.stringify(immutableToJS(o), null, 2)]
 }
 
-const logger = enableActionLogging ? setupLogger('actionLogger', 100, immediateStateLogging, transform, 50) : {log: () => {}}
+const logger = enableActionLogging ? setupLogger('actionLogger', 100, immediateStateLogging, transform, 50, true) : {log: () => {}}
 
 export const actionLogger = (store: any) => (next: any) => (action: any) => {
   const oldState = store.getState()

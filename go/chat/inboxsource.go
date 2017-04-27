@@ -6,6 +6,7 @@ import (
 
 	"strings"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -18,7 +19,7 @@ import (
 )
 
 type localizerPipeline struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 
 	offline       bool
@@ -26,10 +27,10 @@ type localizerPipeline struct {
 	tlfInfoSource types.TLFInfoSource
 }
 
-func newLocalizerPipeline(g *libkb.GlobalContext, superXform supersedesTransform,
+func newLocalizerPipeline(g *globals.Context, superXform supersedesTransform,
 	tlfInfoSource types.TLFInfoSource) *localizerPipeline {
 	return &localizerPipeline{
-		Contextified:  libkb.NewContextified(g),
+		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g, "localizerPipeline", false),
 		superXform:    superXform,
 		tlfInfoSource: tlfInfoSource,
@@ -37,15 +38,15 @@ func newLocalizerPipeline(g *libkb.GlobalContext, superXform supersedesTransform
 }
 
 type BlockingLocalizer struct {
-	libkb.Contextified
+	globals.Contextified
 	pipeline *localizerPipeline
 
 	tlfInfoSource types.TLFInfoSource
 }
 
-func NewBlockingLocalizer(g *libkb.GlobalContext, tlfInfoSource types.TLFInfoSource) *BlockingLocalizer {
+func NewBlockingLocalizer(g *globals.Context, tlfInfoSource types.TLFInfoSource) *BlockingLocalizer {
 	return &BlockingLocalizer{
-		Contextified:  libkb.NewContextified(g),
+		Contextified:  globals.NewContextified(g),
 		pipeline:      newLocalizerPipeline(g, newBasicSupersedesTransform(g), tlfInfoSource),
 		tlfInfoSource: tlfInfoSource,
 	}
@@ -77,7 +78,7 @@ type NonblockInboxResult struct {
 }
 
 type NonblockingLocalizer struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 
 	tlfInfoSource types.TLFInfoSource
@@ -86,10 +87,10 @@ type NonblockingLocalizer struct {
 	maxUnbox      *int
 }
 
-func NewNonblockingLocalizer(g *libkb.GlobalContext, localizeCb chan NonblockInboxResult,
+func NewNonblockingLocalizer(g *globals.Context, localizeCb chan NonblockInboxResult,
 	maxUnbox *int, tlfInfoSource types.TLFInfoSource) *NonblockingLocalizer {
 	return &NonblockingLocalizer{
-		Contextified:  libkb.NewContextified(g),
+		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g, "NonblockingLocalizer", false),
 		pipeline:      newLocalizerPipeline(g, newBasicSupersedesTransform(g), tlfInfoSource),
 		localizeCb:    localizeCb,
@@ -135,7 +136,7 @@ func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 	}
 
 	// Spawn off localization into its own goroutine and use cb to communicate with outside world
-	bctx := BackgroundContext(ctx)
+	bctx := BackgroundContext(ctx, b.G().GetEnv())
 	go func() {
 		b.Debug(bctx, "Localize: starting background localization: convs: %d",
 			len(inbox.ConvsUnverified))
@@ -195,7 +196,7 @@ func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInb
 }
 
 type baseInboxSource struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 
 	tlfInfoSource    types.TLFInfoSource
@@ -203,10 +204,10 @@ type baseInboxSource struct {
 	offline          bool
 }
 
-func newBaseInboxSource(g *libkb.GlobalContext, getChatInterface func() chat1.RemoteInterface,
+func newBaseInboxSource(g *globals.Context, getChatInterface func() chat1.RemoteInterface,
 	tlfInfoSource types.TLFInfoSource) *baseInboxSource {
 	return &baseInboxSource{
-		Contextified:     libkb.NewContextified(g),
+		Contextified:     globals.NewContextified(g),
 		DebugLabeler:     utils.NewDebugLabeler(g, "baseInboxSource", false),
 		getChatInterface: getChatInterface,
 		tlfInfoSource:    tlfInfoSource,
@@ -290,15 +291,17 @@ func GetInboxQueryTLFInfo(ctx context.Context, tlfInfo types.TLFInfoSource,
 }
 
 type RemoteInboxSource struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 	*baseInboxSource
 }
 
-func NewRemoteInboxSource(g *libkb.GlobalContext, ri func() chat1.RemoteInterface,
+var _ types.InboxSource = (*RemoteInboxSource)(nil)
+
+func NewRemoteInboxSource(g *globals.Context, ri func() chat1.RemoteInterface,
 	tlfInfoSource types.TLFInfoSource) *RemoteInboxSource {
 	return &RemoteInboxSource{
-		Contextified:    libkb.NewContextified(g),
+		Contextified:    globals.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g, "RemoteInboxSource", false),
 		baseInboxSource: newBaseInboxSource(g, ri, tlfInfoSource),
 	}
@@ -393,17 +396,19 @@ func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 }
 
 type HybridInboxSource struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 	*baseInboxSource
 }
 
-func NewHybridInboxSource(g *libkb.GlobalContext,
+var _ types.InboxSource = (*HybridInboxSource)(nil)
+
+func NewHybridInboxSource(g *globals.Context,
 	getChatInterface func() chat1.RemoteInterface,
 	tlfInfoSource types.TLFInfoSource,
 ) *HybridInboxSource {
 	return &HybridInboxSource{
-		Contextified:    libkb.NewContextified(g),
+		Contextified:    globals.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g, "HybridInboxSource", false),
 		baseInboxSource: newBaseInboxSource(g, getChatInterface, tlfInfoSource),
 	}
@@ -556,7 +561,7 @@ func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid
 	if verr, ok := err.(storage.VersionMismatchError); ok {
 		s.Debug(ctx, "handleInboxError: version mismatch, syncing and sending stale notifications: %s",
 			verr.Error())
-		return s.G().ChatSyncer.Sync(ctx, s.getChatInterface(), uid, nil)
+		return s.G().Syncer.Sync(ctx, s.getChatInterface(), uid, nil)
 	}
 	return err
 }
@@ -1075,7 +1080,7 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 	return convErrorLocal, nil
 }
 
-func NewInboxSource(g *libkb.GlobalContext, typ string, ri func() chat1.RemoteInterface,
+func NewInboxSource(g *globals.Context, typ string, ri func() chat1.RemoteInterface,
 	tlfInfoSource types.TLFInfoSource) types.InboxSource {
 	remoteInbox := NewRemoteInboxSource(g, ri, tlfInfoSource)
 	switch typ {

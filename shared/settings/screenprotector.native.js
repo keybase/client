@@ -1,8 +1,8 @@
 // @flow
 
 import React, {Component} from 'react'
-import {globalStyles} from '../styles'
-import {Box, Icon, Text, Checkbox} from '../common-adapters'
+import {globalStyles, globalMargins} from '../styles'
+import {Box, Text, Checkbox, HeaderHoc} from '../common-adapters'
 import {getSecureFlagSetting, setSecureFlagSetting} from '../native/screenprotector'
 import {isAndroid} from '../constants/platform'
 
@@ -42,12 +42,9 @@ class Screenprotector extends Component {
     }
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-        <Icon type='icon-keybase-logo-128' />
-        <Text style={{textAlign: 'center'}} type='Body'>By default, we prevent android from showing the screen on the App Switcher and we prevent screenshots.</Text>
-        <Text type='Body' style={{textAlign: 'center'}}>You can change this below</Text>
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'stretch', justifyContent: 'flex-start', marginLeft: globalMargins.medium, marginRight: globalMargins.medium, marginTop: globalMargins.medium}}>
         <Checkbox
-          label='Disable App switcher preview and screenshots.'
+          label='Disable App switcher preview and screenshots'
           onCheck={this._changeSecureFlagOption}
           checked={this.state.secureFlag} />
       </Box>
@@ -55,4 +52,4 @@ class Screenprotector extends Component {
   }
 }
 
-export default Screenprotector
+export default HeaderHoc(Screenprotector)

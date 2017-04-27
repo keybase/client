@@ -23,13 +23,14 @@ type DeviceWrap struct {
 }
 
 type DeviceWrapArgs struct {
-	Me         *libkb.User
-	DeviceName string
-	DeviceType string
-	Lks        *libkb.LKSec
-	IsEldest   bool
-	Signer     libkb.GenericKey
-	EldestKID  keybase1.KID
+	Me              *libkb.User
+	DeviceName      string
+	DeviceType      string
+	Lks             *libkb.LKSec
+	IsEldest        bool
+	Signer          libkb.GenericKey
+	EldestKID       keybase1.KID
+	SharedDHKeyring *libkb.SharedDHKeyring // optional in some cases
 }
 
 // NewDeviceWrap creates a DeviceWrap engine.
@@ -78,12 +79,13 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 	deviceID := regEng.DeviceID()
 
 	kgArgs := &DeviceKeygenArgs{
-		Me:         e.args.Me,
-		DeviceID:   deviceID,
-		DeviceName: e.args.DeviceName,
-		DeviceType: e.args.DeviceType,
-		Lks:        e.args.Lks,
-		IsEldest:   e.args.IsEldest,
+		Me:              e.args.Me,
+		DeviceID:        deviceID,
+		DeviceName:      e.args.DeviceName,
+		DeviceType:      e.args.DeviceType,
+		Lks:             e.args.Lks,
+		IsEldest:        e.args.IsEldest,
+		SharedDHKeyring: e.args.SharedDHKeyring,
 	}
 	kgEng := NewDeviceKeygen(kgArgs, e.G())
 	if err := RunEngine(kgEng, ctx); err != nil {
@@ -103,9 +105,19 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 	// TODO get the shared dh key and save it if it was generated
 
 	if ctx.LoginContext != nil {
+
+		// Set the device id so that SetCachedSecretKey picks it up.
+		// Signup does this too, but by then it's too late.
+		if err := ctx.LoginContext.LocalSession().SetDeviceProvisioned(deviceID); err != nil {
+			// Not fatal. Because, um, it was working ok before.
+			e.G().Log.Warning("error saving session file: %s", err)
+		}
+
+		device := kgEng.device()
+
 		// cache the secret keys
-		ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}, e.signingKey)
-		ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}, e.encryptionKey)
+		ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{Me: e.args.Me, KeyType: libkb.DeviceSigningKeyType}, e.signingKey, device)
+		ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{Me: e.args.Me, KeyType: libkb.DeviceEncryptionKeyType}, e.encryptionKey, device)
 	}
 
 	return nil

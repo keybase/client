@@ -342,9 +342,6 @@ const mockStore = {
   chat: mockState,
 }
 
-window.ms = mockState
-window.firstMsg = firstMsg
-
 const textContainerMock = (messageKey, override) => ({
   innerClass: TextContainer,
   author: 'cecileb',

@@ -71,10 +71,10 @@ func TestSyncerConnected(t *testing.T) {
 	u2 := world.GetUsers()[2]
 	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
-	syncer := NewSyncer(tc.G)
+	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
-	ibox := storage.NewInbox(tc.G, uid)
-	store := storage.New(tc.G)
+	ibox := storage.NewInbox(tc.Context(), uid)
+	store := storage.New(tc.Context())
 
 	var convs []chat1.Conversation
 	convs = append(convs, newConv(t, uid, ri, sender, tlf, u.Username+","+u1.Username))
@@ -109,9 +109,9 @@ func TestSyncerConnected(t *testing.T) {
 
 	t.Logf("test incremental")
 	mconv := convs[1]
-	_, _, cerr := tc.G.ConvSource.Pull(context.TODO(), mconv.GetConvID(), uid, nil, nil)
+	_, _, cerr := tc.ChatG.ConvSource.Pull(context.TODO(), mconv.GetConvID(), uid, nil, nil)
 	require.NoError(t, cerr)
-	_, _, serr := tc.G.InboxSource.Read(context.TODO(), uid, nil, true, nil, nil)
+	_, _, serr := tc.ChatG.InboxSource.Read(context.TODO(), uid, nil, true, nil, nil)
 	require.NoError(t, serr)
 	_, iconvs, err := ibox.ReadAll(context.TODO())
 	require.NoError(t, err)
@@ -177,7 +177,7 @@ func TestSyncerConnected(t *testing.T) {
 	_, cerr = store.Fetch(context.TODO(), mconv, uid, nil, nil, nil)
 	require.Error(t, cerr)
 	require.IsType(t, storage.MissError{}, cerr)
-	_, _, serr = tc.G.InboxSource.Read(context.TODO(), uid, nil, true, nil, nil)
+	_, _, serr = tc.Context().InboxSource.Read(context.TODO(), uid, nil, true, nil, nil)
 	require.NoError(t, serr)
 	_, iconvs, err = ibox.ReadAll(context.TODO())
 	require.NoError(t, err)

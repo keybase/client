@@ -20,9 +20,9 @@ type ChatAttachmentUploadStartArg struct {
 }
 
 type ChatAttachmentUploadProgressArg struct {
-	SessionID     int `codec:"sessionID" json:"sessionID"`
-	BytesComplete int `codec:"bytesComplete" json:"bytesComplete"`
-	BytesTotal    int `codec:"bytesTotal" json:"bytesTotal"`
+	SessionID     int   `codec:"sessionID" json:"sessionID"`
+	BytesComplete int64 `codec:"bytesComplete" json:"bytesComplete"`
+	BytesTotal    int64 `codec:"bytesTotal" json:"bytesTotal"`
 }
 
 type ChatAttachmentUploadDoneArg struct {
@@ -43,9 +43,9 @@ type ChatAttachmentDownloadStartArg struct {
 }
 
 type ChatAttachmentDownloadProgressArg struct {
-	SessionID     int `codec:"sessionID" json:"sessionID"`
-	BytesComplete int `codec:"bytesComplete" json:"bytesComplete"`
-	BytesTotal    int `codec:"bytesTotal" json:"bytesTotal"`
+	SessionID     int   `codec:"sessionID" json:"sessionID"`
+	BytesComplete int64 `codec:"bytesComplete" json:"bytesComplete"`
+	BytesTotal    int64 `codec:"bytesTotal" json:"bytesTotal"`
 }
 
 type ChatAttachmentDownloadDoneArg struct {

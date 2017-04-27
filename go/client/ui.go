@@ -92,7 +92,7 @@ func (ui BaseIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmR
 	}
 
 	if o.TrackOptions.BypassConfirm {
-		return keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true}, nil
+		return keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}, nil
 	}
 
 	if len(o.Revoked) > 0 {
@@ -234,9 +234,16 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	}
 
 	// Tracking statement doesn't exist or changed, lets prompt them with the details
-	if result.IdentityConfirmed, err = ui.parent.PromptYesNo(PromptDescriptorTrackAction, prompt, promptDefault); err != nil {
-		return
+	if o.TrackOptions.BypassConfirm && promptDefault == libkb.PromptDefaultYes {
+		result.IdentityConfirmed = true
+		result.AutoConfirmed = true
+		ui.G().Log.Info("Identity auto-confirmed via command-line flag")
+	} else {
+		if result.IdentityConfirmed, err = ui.parent.PromptYesNo(PromptDescriptorTrackAction, prompt, promptDefault); err != nil {
+			return
+		}
 	}
+
 	if !result.IdentityConfirmed {
 		return
 	}
@@ -245,6 +252,8 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	if !o.TrackOptions.LocalOnly {
 		if o.TrackOptions.BypassConfirm {
 			result.RemoteConfirmed = true
+			result.AutoConfirmed = true
+			ui.G().Log.Info("User auto-remote-followed via command-line flag")
 			return
 		}
 		prompt = "Publicly follow?"

@@ -25,7 +25,7 @@ function readImage (): Promise<?ClipboardData> {
           reject(err)
           return
         }
-        resolve({path, title: 'image.png'})
+        resolve({path, title: 'Pasted image'})
       })
     })
   })

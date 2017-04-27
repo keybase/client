@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../constants/config'
 import engine from '../../engine'
-import {CommonClientType, configGetBootstrapStatusRpc, configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, configWaitForClientRpc} from '../../constants/types/flow-types'
+import {CommonClientType, configGetBootstrapStatusRpc, configGetConfigRpc, configGetExtendedStatusRpc, configWaitForClientRpc} from '../../constants/types/flow-types'
 import {isMobile} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
 import {navBasedOnLoginState} from '../../actions/login/creators'
@@ -172,26 +172,6 @@ const getBootstrapStatus = (): AsyncAction => dispatch => (
   })
 )
 
-const getCurrentStatus = (): AsyncAction => dispatch => (
-  new Promise((resolve, reject) => {
-    configGetCurrentStatusRpc({
-      callback: (error, status) => {
-        if (error) {
-          reject(error)
-          return
-        }
-
-        dispatch({
-          payload: {status},
-          type: Constants.statusLoaded,
-        })
-
-        resolve(status && status.user && status.user.username)
-      },
-    })
-  })
-)
-
 const updateFollowing = (username: string, isTracking: boolean): UpdateFollowing => (
   {payload: {username, isTracking}, type: Constants.updateFollowing}
 )
@@ -199,7 +179,6 @@ const updateFollowing = (username: string, isTracking: boolean): UpdateFollowing
 export {
   bootstrap,
   getConfig,
-  getCurrentStatus,
   getExtendedStatus,
   isFollower,
   isFollowing,

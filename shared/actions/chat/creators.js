@@ -1,5 +1,6 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
+import * as RPCTypes from '../../constants/types/flow-types'
 import * as Constants from '../../constants/chat'
 import HiddenString from '../../util/hidden-string'
 import {List, Map} from 'immutable'
@@ -98,8 +99,9 @@ function updateLatestMessage (conversationIDKey: Constants.ConversationIDKey): C
   return {payload: {conversationIDKey}, type: 'chat:updateLatestMessage'}
 }
 
-function badgeAppForChat (conversations: List<Constants.ConversationBadgeState>): Constants.BadgeAppForChat {
-  return {payload: conversations, type: 'chat:badgeAppForChat'}
+function badgeAppForChat (conversations: ?Array<RPCTypes.BadgeConversationInfo>): Constants.BadgeAppForChat {
+  const convos = List((conversations || []).map(conversation => Constants.ConversationBadgeStateRecord(conversation)))
+  return {payload: convos, type: 'chat:badgeAppForChat'}
 }
 
 function openFolder (): Constants.OpenFolder {
@@ -265,11 +267,15 @@ function loadAttachment (conversationIDKey: Constants.ConversationIDKey, message
   return {payload: {conversationIDKey, filename, isHdPreview, loadPreview, messageID}, type: 'chat:loadAttachment'}
 }
 
-function attachmentLoaded (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, path: string, isPreview: boolean, isHdPreview: boolean): Constants.AttachmentLoaded {
+function loadAttachmentPreview (message: Constants.AttachmentMessage): Constants.LoadAttachmentPreview {
+  return {payload: {message}, type: 'chat:loadAttachmentPreview'}
+}
+
+function attachmentLoaded (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, path: ?string, isPreview: boolean, isHdPreview: boolean): Constants.AttachmentLoaded {
   return {payload: {conversationIDKey, isHdPreview, isPreview, messageID, path}, type: 'chat:attachmentLoaded'}
 }
 
-function downloadProgress (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, isPreview: boolean, bytesComplete: number, bytesTotal: number): Constants.DownloadProgress {
+function downloadProgress (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, isPreview: boolean, bytesComplete?: number, bytesTotal?: number): Constants.DownloadProgress {
   return {payload: {bytesComplete, bytesTotal, conversationIDKey, isPreview, messageID}, type: 'chat:downloadProgress'}
 }
 
@@ -379,6 +385,7 @@ export {
   inboxStale,
   incomingMessage,
   loadAttachment,
+  loadAttachmentPreview,
   loadInbox,
   loadMoreMessages,
   loadedInbox,

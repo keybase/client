@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
@@ -29,6 +30,8 @@ import (
 
 type Service struct {
 	libkb.Contextified
+	globals.ChatContextified
+
 	isDaemon             bool
 	chdirTo              string
 	lockPid              *libkb.LockPIDFile
@@ -49,15 +52,17 @@ type Shutdowner interface {
 }
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
+	chatG := globals.NewChatContextified(&globals.ChatContext{})
 	return &Service{
-		Contextified:    libkb.NewContextified(g),
-		isDaemon:        isDaemon,
-		startCh:         make(chan struct{}),
-		stopCh:          make(chan keybase1.ExitCode),
-		logForwarder:    newLogFwd(),
-		rekeyMaster:     newRekeyMaster(g),
-		attachmentstore: chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
-		badger:          badges.NewBadger(g),
+		Contextified:     libkb.NewContextified(g),
+		ChatContextified: chatG,
+		isDaemon:         isDaemon,
+		startCh:          make(chan struct{}),
+		stopCh:           make(chan keybase1.ExitCode),
+		logForwarder:     newLogFwd(),
+		rekeyMaster:      newRekeyMaster(g),
+		attachmentstore:  chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
+		badger:           badges.NewBadger(g, chatG.ChatG()),
 	}
 }
 
@@ -65,7 +70,9 @@ func (d *Service) GetStartChannel() <-chan struct{} {
 	return d.startCh
 }
 
-func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister, g *libkb.GlobalContext) (shutdowners []Shutdowner, err error) {
+func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister) (shutdowners []Shutdowner, err error) {
+	g := d.G()
+	cg := globals.NewContext(g, d.ChatG())
 	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp, g)),
 		keybase1.BTCProtocol(NewCryptocurrencyHandler(xp, g)),
@@ -77,9 +84,9 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.DelegateUiCtlProtocol(NewDelegateUICtlHandler(xp, connID, g, d.rekeyMaster)),
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
-		keybase1.TlfProtocol(newTlfHandler(xp, g)),
+		keybase1.TlfProtocol(newTlfHandler(xp, cg)),
 		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g)),
-		keybase1.KbfsProtocol(NewKBFSHandler(xp, g)),
+		keybase1.KbfsProtocol(NewKBFSHandler(xp, g, d.ChatG())),
 		keybase1.KbfsMountProtocol(NewKBFSMountHandler(xp, g)),
 		keybase1.LogProtocol(NewLogHandler(xp, logReg, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
@@ -102,7 +109,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
 		keybase1.NotifyFSRequestProtocol(newNotifyFSRequestHandler(xp, g)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
-		chat1.LocalProtocol(newChatLocalHandler(xp, g, d.attachmentstore, d.gregor)),
+		chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.attachmentstore, d.gregor)),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 	}
@@ -130,7 +137,7 @@ func (d *Service) Handle(c net.Conn) {
 		logReg = newLogRegister(d.logForwarder, d.G().Log)
 		defer logReg.UnregisterLogger()
 	}
-	shutdowners, err := d.RegisterProtocols(server, xp, connID, logReg, d.G())
+	shutdowners, err := d.RegisterProtocols(server, xp, connID, logReg)
 
 	var shutdownOnce sync.Once
 	shutdown := func() error {
@@ -236,54 +243,58 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// backgrounded.
 	d.tryLogin()
 	d.hourlyChecks()
-	d.createChatSources()
-	d.createMessageDeliverer()
+	d.createChatModules()
 	d.startupGregor()
-	d.startMessageDeliverer()
+	d.startChatModules()
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
 	d.runBackgroundIdentifier()
 }
 
-func (d *Service) createMessageDeliverer() {
-	ri := d.chatRemoteClient
-	tlf := chat.NewKBFSTLFInfoSource(d.G())
-
-	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), d.attachmentstore, ri)
-	d.G().MessageDeliverer = chat.NewDeliverer(d.G(), sender)
-
-	d.G().ChatSyncer.RegisterOfflinable(d.G().MessageDeliverer)
-}
-
-func (d *Service) startMessageDeliverer() {
+func (d *Service) startChatModules() {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
-		d.G().MessageDeliverer.Start(context.Background(), d.G().Env.GetUID().ToBytes())
+		uid := d.G().Env.GetUID().ToBytes()
+		g := globals.NewContext(d.G(), d.ChatG())
+		g.MessageDeliverer.Start(context.Background(), uid)
+		g.FetchRetrier.Start(context.Background(), uid)
 	}
 }
 
-func (d *Service) createChatSources() {
+func (d *Service) stopChatModules() {
+	<-d.ChatG().MessageDeliverer.Stop(context.Background())
+	<-d.ChatG().FetchRetrier.Stop(context.Background())
+}
+
+func (d *Service) createChatModules() {
+	g := globals.NewContext(d.G(), d.ChatG())
 	ri := d.chatRemoteClient
-	tlf := chat.NewKBFSTLFInfoSource(d.G())
+	tlf := chat.NewKBFSTLFInfoSource(g)
 
-	boxer := chat.NewBoxer(d.G(), tlf)
-	d.G().InboxSource = chat.NewInboxSource(d.G(), d.G().Env.GetInboxSourceType(), ri, tlf)
-	d.G().ConvSource = chat.NewConversationSource(d.G(), d.G().Env.GetConvSourceType(),
-		boxer, storage.New(d.G()), ri)
-	d.G().ServerCacheVersions = storage.NewServerVersions(d.G())
-	d.G().TlfInfoSource = tlf
+	boxer := chat.NewBoxer(g, tlf)
+	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri, tlf)
+	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
+		boxer, storage.New(g), ri)
+	g.ServerCacheVersions = storage.NewServerVersions(g)
 
-	chatSyncer := chat.NewSyncer(d.G())
-	d.G().ChatSyncer = chatSyncer
+	chatSyncer := chat.NewSyncer(g)
+	g.Syncer = chatSyncer
+	g.FetchRetrier = chat.NewFetchRetrier(g)
+
+	sender := chat.NewBlockingSender(g, chat.NewBoxer(g, tlf), d.attachmentstore, ri)
+	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
 	// Set up Offlinables on Syncer
-	chatSyncer.RegisterOfflinable(d.G().InboxSource)
-	chatSyncer.RegisterOfflinable(d.G().ConvSource)
+	chatSyncer.RegisterOfflinable(g.InboxSource)
+	chatSyncer.RegisterOfflinable(g.ConvSource)
+	chatSyncer.RegisterOfflinable(g.FetchRetrier)
+	chatSyncer.RegisterOfflinable(g.MessageDeliverer)
 
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh
-	d.G().AddUserChangedHandler(chat.NewIdentifyChangedHandler(d.G(), tlf))
+	g.AddUserChangedHandler(chat.NewIdentifyChangedHandler(g, tlf))
+
 }
 
 func (d *Service) chatRemoteClient() chat1.RemoteInterface {
@@ -291,7 +302,8 @@ func (d *Service) chatRemoteClient() chat1.RemoteInterface {
 		d.G().Log.Debug("service not connected to gregor, using errorClient for chat1.RemoteClient")
 		return chat1.RemoteClient{Cli: errorClient{}}
 	}
-	return chat1.RemoteClient{Cli: d.gregor.cli}
+	return chat1.RemoteClient{Cli: chat.NewRemoteClient(globals.NewContext(d.G(), d.ChatG()),
+		d.gregor.cli)}
 }
 
 func (d *Service) configureRekey(uir *UIRouter) {
@@ -323,7 +335,7 @@ func (d *Service) startupGregor() {
 		// Create gregorHandler instance first so any handlers can connect
 		// to it before we actually connect to gregor (either gregor is down
 		// or we aren't logged in)
-		d.gregor = newGregorHandler(d.G())
+		d.gregor = newGregorHandler(globals.NewContext(d.G(), d.ChatG()))
 		d.reachability = newReachability(d.G(), d.gregor)
 		d.gregor.setReachability(d.reachability)
 		d.G().ConnectivityMonitor = d.reachability
@@ -413,7 +425,7 @@ func (d *Service) tryGregordConnect() error {
 	// is down, it will still return false, along with the network error. We
 	// need to handle that case specifically, so that we still start the gregor
 	// connect loop.
-	loggedIn, err := d.G().LoginState().LoggedInLoad()
+	loggedIn, err := d.G().LoginState().LoggedInProvisioned()
 	if err != nil {
 		// A network error means we *think* we're logged in, and we tried to
 		// confirm with the API server. In that case we'll swallow the error
@@ -439,7 +451,7 @@ func (d *Service) runBackgroundIdentifierWithUID(u keybase1.UID) {
 		return
 	}
 
-	newBgi, err := StartOrReuseBackgroundIdentifier(d.backgroundIdentifier, d.G(), u)
+	newBgi, err := StartOrReuseBackgroundIdentifier(d.backgroundIdentifier, d.G(), d.ChatG(), u)
 	if err != nil {
 		d.G().Log.Warning("Problem running new background identifier: %s", err)
 		return
@@ -459,7 +471,7 @@ func (d *Service) OnLogin() error {
 	}
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
-		d.G().MessageDeliverer.Start(context.Background(), d.G().Env.GetUID().ToBytes())
+		d.startChatModules()
 		d.runBackgroundIdentifierWithUID(uid)
 	}
 	return nil
@@ -477,8 +489,8 @@ func (d *Service) OnLogout() (err error) {
 		d.gregor.Shutdown()
 	}
 
-	log("shutting down message deliverer")
-	d.G().MessageDeliverer.Stop(context.Background())
+	log("shutting down chat modules")
+	d.stopChatModules()
 
 	log("shutting down rekeyMaster")
 	d.rekeyMaster.Logout()

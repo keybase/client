@@ -2,14 +2,13 @@ package chat
 
 import (
 	"encoding/hex"
-	"fmt"
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -18,7 +17,7 @@ import (
 )
 
 type Syncer struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 	sync.Mutex
 
@@ -34,9 +33,9 @@ type Syncer struct {
 	notificationQueue map[string][]chat1.ConversationID
 }
 
-func NewSyncer(g *libkb.GlobalContext) *Syncer {
+func NewSyncer(g *globals.Context) *Syncer {
 	s := &Syncer{
-		Contextified:      libkb.NewContextified(g),
+		Contextified:      globals.NewContextified(g),
 		DebugLabeler:      utils.NewDebugLabeler(g, "Syncer", false),
 		isConnected:       false,
 		clock:             clockwork.NewRealClock(),
@@ -112,34 +111,6 @@ func (s *Syncer) getConvIDs(convs []chat1.Conversation) (res []chat1.Conversatio
 	return res
 }
 
-func (s *Syncer) dbKey(uid gregor1.UID) libkb.DbKey {
-	return libkb.DbKey{
-		Typ: libkb.DBChatSyncer,
-		Key: fmt.Sprintf("%s", uid),
-	}
-}
-
-func (s *Syncer) AddStaleConversation(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID) {
-	s.Lock()
-	defer s.Unlock()
-	defer s.Trace(ctx, func() error { return nil }, fmt.Sprintf("AddStaleConversation(%s)", convID))()
-
-	// Read current data (if any)
-	var convIDs []chat1.ConversationID
-	key := s.dbKey(uid)
-	_, err := s.G().LocalChatDb.GetInto(&convIDs, key)
-	if err != nil {
-		s.Debug(ctx, "AddStaleConversation: failed to get current stale list, using empty: %s",
-			err.Error())
-	}
-	convIDs = append(convIDs, convID)
-
-	if err := s.G().LocalChatDb.PutObj(key, nil, convIDs); err != nil {
-		s.Debug(ctx, "AddStaleConversation: failed to write stale list: %s", err.Error())
-	}
-}
-
 func (s *Syncer) SendChatStaleNotifications(ctx context.Context, uid gregor1.UID,
 	convIDs []chat1.ConversationID, immediate bool) {
 	if len(convIDs) == 0 {
@@ -171,28 +142,9 @@ func (s *Syncer) IsConnected(ctx context.Context) bool {
 	return s.isConnected
 }
 
-func (s *Syncer) sendStoredStaleNotifications(ctx context.Context, uid gregor1.UID) {
-	var convIDs []chat1.ConversationID
-	key := s.dbKey(uid)
-	found, err := s.G().LocalChatDb.GetInto(&convIDs, key)
-	if err != nil {
-		s.Debug(ctx, "sendStoredStaleNotifications: failed to read stale notifications: %s", err.Error())
-	}
-	if !found {
-		s.Debug(ctx, "sendStoredStaleNotifications: no notifications found, skipping")
-		return
-	}
-	s.Debug(ctx, "sendStoredStaleNotifications: sending %d stale notifications", len(convIDs))
-	s.SendChatStaleNotifications(ctx, uid, convIDs, false)
-
-	if err := s.G().LocalChatDb.Delete(key); err != nil {
-		s.Debug(ctx, "sendStoredStaleNotifications: error deleting record: %s", err.Error())
-	}
-}
-
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
-	ctx = CtxAddLogTags(ctx)
+	ctx = CtxAddLogTags(ctx, s.G().GetEnv())
 	s.Lock()
 	defer s.Unlock()
 	defer s.Trace(ctx, func() error { return err }, "Connected")()
@@ -203,9 +155,6 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 	for _, o := range s.offlinables {
 		o.Connected(ctx)
 	}
-
-	// Send stale notifications that have been registered with us
-	s.sendStoredStaleNotifications(ctx, uid)
 
 	// Run sync against the server
 	s.sync(ctx, cli, uid, syncRes)

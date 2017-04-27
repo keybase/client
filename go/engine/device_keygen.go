@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -11,12 +12,13 @@ import (
 )
 
 type DeviceKeygenArgs struct {
-	Me         *libkb.User
-	DeviceID   keybase1.DeviceID
-	DeviceName string
-	DeviceType string
-	Lks        *libkb.LKSec
-	IsEldest   bool
+	Me              *libkb.User
+	DeviceID        keybase1.DeviceID
+	DeviceName      string
+	DeviceType      string
+	Lks             *libkb.LKSec
+	IsEldest        bool
+	SharedDHKeyring *libkb.SharedDHKeyring // optional in some cases
 }
 
 // DeviceKeygenPushArgs determines how the push will run.  There are
@@ -127,10 +129,13 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 
 	ds := []libkb.Delegator{}
 
-	e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push SDH:%v", e.G().Env.GetEnableSharedDH())
+	if e.G().Env.GetEnableSharedDH() {
+		e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push SDH:%v", e.G().Env.GetEnableSharedDH())
+	}
 
 	var sdhBoxes = []keybase1.SharedDHSecretKeyBox{}
-	if e.G().Env.GetEnableSharedDH() {
+	if e.G().Env.GetEnableSharedDH() && e.args.IsEldest {
+		// Encrypt the new sdh key for this eldest device.
 		sdh1, err := libkb.NewSharedDHSecretKeyBox(
 			e.sharedDHKey(),   // inner key to be encrypted (shared dh key)
 			e.EncryptionKey(), // receiver key (device enc key)
@@ -140,6 +145,13 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 			return err
 		}
 		sdhBoxes = append(sdhBoxes, sdh1)
+	}
+	if e.G().Env.GetEnableSharedDH() && !e.args.IsEldest {
+		boxes, err := e.prepareSDHBoxesFromPaperkey(ctx)
+		if err != nil {
+			return err
+		}
+		sdhBoxes = append(sdhBoxes, boxes...)
 	}
 
 	// append the signing key
@@ -313,13 +325,13 @@ func (e *DeviceKeygen) pushLKS(ctx *Context) {
 	}
 
 	if e.args.Lks == nil {
-		e.pushErr = fmt.Errorf("no local key security set")
+		e.pushErr = errors.New("no local key security set")
 		return
 	}
 
 	serverHalf := e.args.Lks.GetServerHalf()
 	if serverHalf.IsNil() {
-		e.pushErr = fmt.Errorf("LKS server half is empty, and should not be")
+		e.pushErr = errors.New("LKS server half is empty, and should not be")
 		return
 	}
 
@@ -365,4 +377,48 @@ func (e *DeviceKeygen) device() *libkb.Device {
 		Type:        e.args.DeviceType,
 		Status:      &s,
 	}
+}
+
+func (e *DeviceKeygen) prepareSDHBoxesFromPaperkey(ctx *Context) ([]keybase1.SharedDHSecretKeyBox, error) {
+	if !e.G().Env.GetEnableSharedDH() {
+		return nil, errors.New("shared dh disabled")
+	}
+	// Assuming this is a paperkey provision.
+
+	sdhk := e.args.SharedDHKeyring
+	if sdhk == nil {
+		return nil, errors.New("missing SharedDHKeyring")
+	}
+
+	if ctx.LoginContext == nil {
+		return nil, errors.New("no login context to push new device keys")
+	}
+
+	paperSigKey := ctx.LoginContext.GetUnlockedPaperSigKey()
+	paperEncKeyGeneric := ctx.LoginContext.GetUnlockedPaperEncKey()
+	if paperSigKey == nil {
+		return nil, errors.New("missing paper sig key")
+	}
+	if paperEncKeyGeneric == nil {
+		return nil, errors.New("missing paper enc key")
+	}
+	paperEncKey, ok := paperEncKeyGeneric.(libkb.NaclDHKeyPair)
+	if !ok {
+		return nil, errors.New("Unexpected encryption key type")
+	}
+
+	upak := e.args.Me.ExportToUserPlusAllKeys(keybase1.Time(0))
+	paperDeviceID, err := upak.GetDeviceID(paperSigKey.GetKID())
+	if err != nil {
+		return nil, err
+	}
+	err = sdhk.SyncAsPaperKey(ctx.NetContext, ctx.LoginContext, &upak, paperDeviceID, paperEncKey)
+	if err != nil {
+		return nil, err
+	}
+	sdhBoxes, err := sdhk.PrepareBoxesForNewDevice(ctx.NetContext,
+		e.EncryptionKey(), // receiver key: provisionee enc
+		paperEncKey,       // sender key: paper key enc
+	)
+	return sdhBoxes, err
 }

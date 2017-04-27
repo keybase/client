@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -26,7 +27,7 @@ type Sender interface {
 }
 
 type BlockingSender struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 
 	boxer *Boxer
@@ -34,10 +35,10 @@ type BlockingSender struct {
 	getRi func() chat1.RemoteInterface
 }
 
-func NewBlockingSender(g *libkb.GlobalContext, boxer *Boxer, store *AttachmentStore,
+func NewBlockingSender(g *globals.Context, boxer *Boxer, store *AttachmentStore,
 	getRi func() chat1.RemoteInterface) *BlockingSender {
 	return &BlockingSender{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "BlockingSender", false),
 		getRi:        getRi,
 		boxer:        boxer,
@@ -368,7 +369,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 func (s *BlockingSender) getSigningKeyPair(ctx context.Context) (kp libkb.NaclSigningKeyPair, err error) {
 	// get device signing key for this user
-	signingKey, err := engine.GetMySecretKey(ctx, s.G(), storage.DefaultSecretUI,
+	signingKey, err := engine.GetMySecretKey(ctx, s.G().ExternalG(), storage.DefaultSecretUI,
 		libkb.DeviceSigningKeyType, "sign chat message")
 	if err != nil {
 		return libkb.NaclSigningKeyPair{}, err
@@ -423,7 +424,8 @@ func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
 }
 
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (obid chat1.OutboxID, msgID chat1.MessageID, rl *chat1.RateLimit, err error) {
+	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
 
 	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
 	boxed, pendingAssetDeletes, err := s.Prepare(ctx, msg, &convID)
@@ -446,6 +448,13 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		}
 	}
 
+	// Log some useful information about the message we are sending
+	obidstr := "(none)"
+	if boxed.ClientHeader.OutboxID != nil {
+		obidstr = fmt.Sprintf("%s", *boxed.ClientHeader.OutboxID)
+	}
+	s.Debug(ctx, "sending message: convID: %s outboxID: %s", convID, obidstr)
+
 	rarg := chat1.PostRemoteArg{
 		ConversationID: convID,
 		MessageBoxed:   *boxed,
@@ -457,6 +466,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	boxed.ServerHeader = &plres.MsgHeader
 
 	// Write new message out to cache
+	s.Debug(ctx, "sending local updates to chat sources")
 	if _, _, err = s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
 		return chat1.OutboxID{}, 0, nil, err
 	}
@@ -474,7 +484,7 @@ type DelivererInfoError interface {
 }
 
 type Deliverer struct {
-	libkb.Contextified
+	globals.Contextified
 	sync.Mutex
 	utils.DebugLabeler
 
@@ -489,9 +499,11 @@ type Deliverer struct {
 	clock         clockwork.Clock
 }
 
-func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
+var _ types.MessageDeliverer = (*Deliverer)(nil)
+
+func NewDeliverer(g *globals.Context, sender Sender) *Deliverer {
 	d := &Deliverer{
-		Contextified:  libkb.NewContextified(g),
+		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g, "Deliverer", false),
 		shutdownCh:    make(chan chan struct{}, 1),
 		msgSentCh:     make(chan struct{}, 100),
@@ -572,16 +584,16 @@ func (s *Deliverer) IsOffline() bool {
 }
 
 func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
-	identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error) {
-
-	s.Debug(ctx, "queued new message: convID: %s uid: %s ident: %v", convID, s.outbox.GetUID(),
-		identifyBehavior)
+	identifyBehavior keybase1.TLFIdentifyBehavior) (obr chat1.OutboxRecord, err error) {
+	defer s.Trace(ctx, func() error { return err }, "Queue")()
 
 	// Push onto outbox and immediatley return
-	obr, err := s.outbox.PushMessage(ctx, convID, msg, identifyBehavior)
+	obr, err = s.outbox.PushMessage(ctx, convID, msg, identifyBehavior)
 	if err != nil {
 		return obr, err
 	}
+	s.Debug(ctx, "queued new message: convID: %s outboxID: %s uid: %s ident: %v", convID,
+		obr.OutboxID, s.outbox.GetUID(), identifyBehavior)
 
 	// Alert the deliver loop it should wake up
 	s.msgSentCh <- struct{}{}
@@ -664,7 +676,8 @@ func (s *Deliverer) deliverLoop() {
 		var breaks []keybase1.TLFIdentifyFailure
 		for _, obr := range obrs {
 
-			bctx := Context(context.Background(), obr.IdentifyBehavior, &breaks, s.identNotifier)
+			bctx := Context(context.Background(), s.G().GetEnv(), obr.IdentifyBehavior, &breaks,
+				s.identNotifier)
 			if !s.connected {
 				err = errors.New("disconnected from chat server")
 			} else {
@@ -699,13 +712,13 @@ func (s *Deliverer) deliverLoop() {
 }
 
 type NonblockingSender struct {
-	libkb.Contextified
+	globals.Contextified
 	sender Sender
 }
 
-func NewNonblockingSender(g *libkb.GlobalContext, sender Sender) *NonblockingSender {
+func NewNonblockingSender(g *globals.Context, sender Sender) *NonblockingSender {
 	s := &NonblockingSender{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		sender:       sender,
 	}
 	return s
@@ -723,7 +736,7 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 		ComposeTime: gregor1.ToTime(time.Now()),
 	}
 
-	identifyBehavior, _, _ := types.IdentifyMode(ctx)
+	identifyBehavior, _, _ := IdentifyMode(ctx)
 	obr, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, identifyBehavior)
 	return obr.OutboxID, 0, &chat1.RateLimit{}, err
 }

@@ -50,12 +50,12 @@ const Names = ({styles, users, nameColor, redColor}) => {
 }
 
 const Modified = ({styles, modified}) => {
-  const iconColor = {color: getStyle('BodySmallInlineLink', styles.modifiedMode).color}
+  const iconColor = {color: getStyle('BodySmall', styles.modifiedMode).color}
   return (
     <Box style={stylesModified}>
       <Icon type='iconfont-thunderbolt' style={{alignSelf: 'center', marginLeft: -2, marginRight: 2, fontSize: 10, ...iconColor}} hint='Modified' />
       <Text type='BodySmall' backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
-      <Text type='BodySmallInlineLink' backgroundMode={styles.modifiedMode}>{modified.username}</Text>
+      <Text type='BodySmall' backgroundMode={styles.modifiedMode}>{modified.username}</Text>
     </Box>
   )
 }

@@ -2,15 +2,14 @@
 import * as CommonConstants from '../constants/common'
 import {updateDebugConfig, updateReloading} from '../constants/dev'
 
-import type {State} from '../constants/reducer'
-import type {DebugConfig, DevAction} from '../constants/dev'
+import type {DebugConfig, Actions} from '../constants/dev'
 
-type DevState = {
+export type State = {
   debugConfig: DebugConfig,
   hmrReloading: boolean,
 }
 
-const initialState: DevState = {
+const initialState: State = {
   debugConfig: {
     dumbFilter: '',
     dumbFullscreen: false,
@@ -19,7 +18,7 @@ const initialState: DevState = {
   hmrReloading: false,
 }
 
-export default function (state: DevState = initialState, action: DevAction): State {
+export default function (state: State = initialState, action: Actions) {
   if (action.type === CommonConstants.resetStore) {
     return {...initialState}
   }

@@ -55,7 +55,7 @@ function configurePush () {
               tokenType,
             },
             type: 'push:pushToken',
-          }: PushConstants.PushTokenAction))
+          }: PushConstants.PushToken))
         } else {
           emitter(({
             payload: {
@@ -105,14 +105,14 @@ function configurePush () {
               payload: action.payload,
               type: action.type,
             }),
-          }: PushConstants.PushPermissionsPromptAction))
+          }: PushConstants.PushPermissionsPrompt))
         } else {
           // We have permissions, this triggers a token registration in
           // case it changed.
           emitter(({
             payload: undefined,
             type: 'push:permissionsRequest',
-          }: PushConstants.PushPermissionsRequestAction))
+          }: PushConstants.PushPermissionsRequest))
         }
       })
     }
@@ -157,6 +157,15 @@ function loadRouteState (): AsyncAction {
           if (!err && s) {
             try {
               const item = JSON.parse(s)
+                //
+              // Before we actually nav to the saved routeState, we should clear
+              // it for future runs of the app.  That way, if the act of navigating
+              // to this route causes a crash for some reason, we won't get stuck
+              // in a loop of trying to restore the bad state every time we launch.
+              AsyncStorage.setItem('routeState', '', err => {
+                err && console.warn('Error clearing routeState:', err)
+              })
+
               if (item.tab) {
                 dispatch(setInitialTab(item.tab))
               }

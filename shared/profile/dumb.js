@@ -319,7 +319,7 @@ const dumbMap: DumbComponentMap<Profile> = {
 
 const confirmBase = {
   platform: 'twitter',
-  title: 'Your proof is verified!',
+  title: 'Verified!',
   titleColor: globalColors.green,
   platformIcon: 'icon-twitter-logo-48',
   platformIconOverlay: 'icon-proof-success',

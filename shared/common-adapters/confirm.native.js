@@ -15,9 +15,11 @@ class Confirm extends Component<void, Props, void> {
             {this.props.header}
           </Box>
           {this.props.body}
+          <Box style={{alignSelf: 'stretch', ...globalStyles.flexBoxColumn, justifyContent: 'flex-end', flex: 1, marginBottom: globalMargins.medium}}>
+            <Button fullWidth={true} type={this.props.danger ? 'Danger' : 'Primary'} onClick={this.props.onSubmit} label={this.props.submitLabel} style={{...styleButton, marginBottom: globalMargins.small}} />
+            <Button fullWidth={true} type='Secondary' onClick={this.props.onCancel} label='Cancel' style={{...styleButton, ...cancelButtonThemed[this.props.theme]}} labelStyle={cancelButtonLabelThemed[this.props.theme]} />
+          </Box>
         </Box>
-        <Button fullWidth={true} type={this.props.danger ? 'Danger' : 'Primary'} onClick={this.props.onSubmit} label={this.props.submitLabel} style={{...styleButton, marginBottom: globalMargins.small}} />
-        <Button fullWidth={true} type='Secondary' onClick={this.props.onCancel} label='Cancel' style={{...styleButton, ...cancelButtonThemed[this.props.theme]}} labelStyle={cancelButtonLabelThemed[this.props.theme]} />
       </StandardScreen>
     )
   }

@@ -76,6 +76,9 @@ func (a *FakeAPI) PostRaw(APIArg, string, io.Reader) (*APIRes, error) {
 func (a *FakeAPI) PostDecode(APIArg, APIResponseWrapper) error {
 	return fmt.Errorf("GetDecode is phony")
 }
+func (a *FakeAPI) Delete(APIArg) (*APIRes, error) {
+	return nil, fmt.Errorf("Delete is phony")
+}
 
 func TestLoginSessionTimeout(t *testing.T) {
 	tc := SetupTest(t, "login_session_test", 1)

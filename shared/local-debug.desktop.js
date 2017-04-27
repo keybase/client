@@ -32,6 +32,7 @@ let config: {[key: string]: any} = {
   redirectOnLogout: true,
   reduxDevToolsEnable: false,
   reduxDevToolsSelect: state => state, // only watch a subset of the store
+  reduxSagaLogger: false,
   resetEngineOnHMR: false,
   showAllTrackers: false,
   showDevTools: false,
@@ -51,6 +52,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.printRPC = true
   config.printRoutes = true
   config.redirectOnLogout = false
+  config.reduxSagaLogger = true
 
   const envJson = envVarDebugJson()
   config = {...config, ...envJson}
@@ -104,6 +106,7 @@ export const {
   reactPerf,
   reduxDevToolsEnable,
   reduxDevToolsSelect,
+  reduxSagaLogger,
   resetEngineOnHMR,
   showAllTrackers,
   showDevTools,

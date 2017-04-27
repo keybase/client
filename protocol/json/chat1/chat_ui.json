@@ -42,11 +42,11 @@
         },
         {
           "name": "bytesComplete",
-          "type": "int"
+          "type": "long"
         },
         {
           "name": "bytesTotal",
-          "type": "int"
+          "type": "long"
         }
       ],
       "response": null,
@@ -101,11 +101,11 @@
         },
         {
           "name": "bytesComplete",
-          "type": "int"
+          "type": "long"
         },
         {
           "name": "bytesTotal",
-          "type": "int"
+          "type": "long"
         }
       ],
       "response": null,

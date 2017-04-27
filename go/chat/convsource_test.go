@@ -50,7 +50,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 		}),
 	}, 0)
 	require.NoError(t, err)
-	thread, _, err := tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	thread, _, err := tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -75,7 +75,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("testing an edit")
-	thread, _, err = tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	thread, _, err = tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -100,7 +100,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 		}),
 	}, 0)
 	require.NoError(t, err)
-	thread, _, err = tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	thread, _, err = tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -108,7 +108,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 	require.Equal(t, 0, len(thread.Messages), "wrong length")
 
 	t.Logf("testing disabling resolve")
-	thread, _, err = tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	thread, _, err = tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{
 				chat1.MessageType_TEXT,
@@ -347,11 +347,11 @@ func TestGetThreadCaching(t *testing.T) {
 	}, 0)
 	require.NoError(t, err)
 
-	tc.G.ConvSource.Clear(res.ConvID, u.User.GetUID().ToBytes())
-	tc.G.ConvSource.Disconnected(context.TODO())
-	tc.G.InboxSource.Disconnected(context.TODO())
+	tc.ChatG.ConvSource.Clear(res.ConvID, u.User.GetUID().ToBytes())
+	tc.ChatG.ConvSource.Disconnected(context.TODO())
+	tc.ChatG.InboxSource.Disconnected(context.TODO())
 	t.Logf("make sure we get offline error")
-	thread, _, err := tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	thread, _, err := tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -359,9 +359,9 @@ func TestGetThreadCaching(t *testing.T) {
 	require.IsType(t, OfflineError{}, err, "wrong error type")
 
 	t.Logf("read to populate caches")
-	tc.G.ConvSource.Connected(context.TODO())
-	tc.G.InboxSource.Connected(context.TODO())
-	thread, _, err = tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	tc.ChatG.ConvSource.Connected(context.TODO())
+	tc.ChatG.InboxSource.Connected(context.TODO())
+	thread, _, err = tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -372,16 +372,16 @@ func TestGetThreadCaching(t *testing.T) {
 	t.Logf("reading thread again for total cache hit")
 	failingRI := newFailingRemote(t)
 	failingTI := newFailingTlf(t)
-	tc.G.ConvSource.Disconnected(context.TODO())
-	tc.G.InboxSource.Disconnected(context.TODO())
-	tc.G.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface { return failingRI })
-	tc.G.ConvSource.SetTLFInfoSource(failingTI)
-	tc.G.InboxSource.SetRemoteInterface(func() chat1.RemoteInterface { return failingRI })
-	tc.G.InboxSource.SetTLFInfoSource(failingTI)
+	tc.ChatG.ConvSource.Disconnected(context.TODO())
+	tc.ChatG.InboxSource.Disconnected(context.TODO())
+	tc.ChatG.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface { return failingRI })
+	tc.ChatG.ConvSource.SetTLFInfoSource(failingTI)
+	tc.ChatG.InboxSource.SetRemoteInterface(func() chat1.RemoteInterface { return failingRI })
+	tc.ChatG.InboxSource.SetTLFInfoSource(failingTI)
 
 	tc.G.OverrideUPAKLoader(newFailingUpak(t))
 
-	thread, _, err = tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	thread, _, err = tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
