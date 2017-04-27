@@ -144,7 +144,7 @@ function * handleTLFUpdate (items: Array<NonNullGregorItem>): SagaGenerator<any,
   }
 }
 
-function * _handlePushState (pushAction: PushState): SagaGenerator<any, any> {
+function * handlePushState (pushAction: PushState): SagaGenerator<any, any> {
   if (!pushAction.error) {
     const {payload: {state}} = pushAction
     const nonNullItems = toNonNullGregorItems(state)
@@ -172,7 +172,7 @@ function * handleKbfsFavoritesOOBM (kbfsFavoriteMessages: Array<OutOfBandMessage
   }).filter(i => !!i)
 }
 
-function * _handlePushOOBM (pushOOBM: pushOOBM) {
+function * handlePushOOBM (pushOOBM: pushOOBM) {
   if (!pushOOBM.error) {
     const {payload: {messages}} = pushOOBM
     yield call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites'))
@@ -187,8 +187,8 @@ function * handleCheckReachability (): SagaGenerator<any, any> {
 }
 
 function * gregorSaga (): SagaGenerator<any, any> {
-  yield safeTakeEvery(Constants.pushState, _handlePushState)
-  yield safeTakeEvery(Constants.pushOOBM, _handlePushOOBM)
+  yield safeTakeEvery(Constants.pushState, handlePushState)
+  yield safeTakeEvery(Constants.pushOOBM, handlePushOOBM)
   yield safeTakeLatest(Constants.checkReachability, handleCheckReachability)
 }
 

@@ -5,7 +5,7 @@ import * as Creators from './creators'
 import * as Shared from './shared'
 import {List, Map} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
-import {call, put, select, race, fork, cancel, cancelled, take} from 'redux-saga/effects'
+import {call, put, select, race, fork, cancelled, take} from 'redux-saga/effects'
 import {chatTab} from '../../constants/tabs'
 import {delay} from 'redux-saga'
 import {globalError} from '../../constants/config'
@@ -45,11 +45,10 @@ function * onInitialInboxLoad (): SagaGenerator<any, any> {
     yield put(Creators.inboxStale())
     if (!isMobile) {
       // Only allow one loop at a time
-      if (_backgroundLoopTask) {
-        yield cancel(_backgroundLoopTask)
+      if (!_backgroundLoopTask) {
+        yield take('chat:loadedInbox')
+        _backgroundLoopTask = yield fork(_backgroundUnboxLoop)
       }
-      yield take('chat:loadedInbox')
-      _backgroundLoopTask = yield fork(_backgroundUnboxLoop)
     }
   }
 }
