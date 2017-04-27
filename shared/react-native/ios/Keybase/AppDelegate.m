@@ -50,7 +50,7 @@ const BOOL isDebug = NO;
 #endif
 
   BOOL securityAccessGroupOverride = isSimulator;
-  BOOL skipLogFile = false;
+  BOOL skipLogFile = true;
 
   NSString * home = NSHomeDirectory();
 
@@ -130,6 +130,12 @@ const BOOL isDebug = NO;
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification
 {
   [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+}
+// fetch notifications in the background and foreground
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
+  [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+  completionHandler(UIBackgroundFetchResultNewData);
+  NSLog(@"Silent Notification Body %@", notification);
 }
 // Required for the localNotification event.
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
