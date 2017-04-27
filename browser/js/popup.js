@@ -1,3 +1,6 @@
+// This code gets included just for the popup when the extension icon is clicked.
+"use strict";
+
 // Parse the location.search query string
 function parseLocationQuery(s) {
     if (s.startsWith("?")) s = s.substr(1);
@@ -14,7 +17,7 @@ function parseLocationQuery(s) {
         }
     }
     return params;
-};
+}
 
 chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     const location = new URL(tabs[0].url);

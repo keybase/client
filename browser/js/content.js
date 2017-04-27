@@ -1,3 +1,5 @@
+// This code gets included just for when the extension injects the
+// widget-rendering code into some page.
 "use strict";
 
 function init() {
@@ -36,6 +38,8 @@ function injectThread() {
   }
 }
 
+// User keeps track of the original query and which services we resolved for
+// this user. It also handles formatting strings for each service.
 function User(username, service) {
   if (service === undefined) service = "keybase";
   this.origin = service;
