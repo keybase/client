@@ -144,7 +144,7 @@ func (s *Syncer) IsConnected(ctx context.Context) bool {
 
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
-	ctx = CtxAddLogTags(ctx)
+	ctx = CtxAddLogTags(ctx, s.G().GetEnv())
 	s.Lock()
 	defer s.Unlock()
 	defer s.Trace(ctx, func() error { return err }, "Connected")()
