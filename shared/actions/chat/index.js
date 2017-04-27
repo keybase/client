@@ -377,6 +377,15 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
       break
     }
   }
+
+  // Do this here because it's possible loading messages takes a while
+  // If this is the selected conversation and this was a result of user action
+  // We can assume the messages we've loaded have been seen.
+  const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
+  if (selectedConversationIDKey === conversationIDKey && action.payload.fromUser) {
+    yield put(Creators.updateBadging(conversationIDKey))
+    yield put(Creators.updateLatestMessage(conversationIDKey))
+  }
 }
 
 function _threadToPagination (thread): {last: any, next: any} {
@@ -697,7 +706,7 @@ function * _selectConversation (action: Constants.SelectConversation): SagaGener
   }
 
   if (conversationIDKey) {
-    yield put(Creators.loadMoreMessages(conversationIDKey, true))
+    yield put(Creators.loadMoreMessages(conversationIDKey, true, fromUser))
     yield put(navigateTo([conversationIDKey], [chatTab]))
   } else {
     yield put(navigateTo([], [chatTab]))
@@ -708,6 +717,8 @@ function * _selectConversation (action: Constants.SelectConversation): SagaGener
     yield put(Creators.updateMetadata(inbox.get('participants').toArray()))
   }
 
+  // Do this here because it's possible loadMoreMessages bails early
+  // but there are still unread messages that need to be marked as read
   if (fromUser && conversationIDKey) {
     yield put(Creators.updateBadging(conversationIDKey))
     yield put(Creators.updateLatestMessage(conversationIDKey))
