@@ -60,7 +60,14 @@ function renderPopup(el, username, service) {
     el.appendChild(div);
 
     const user = new User(username, service)
-    renderChat(div, user, false /* nudgeSupported */, function closeCallback() {
+    const f = renderChat(div, user, false /* nudgeSupported */, function closeCallback() {
         window.close();
     });
+
+    // Sigh: This is a sad hack because the popup's DOM state seems to be
+    // unpredictable and our normal imperative focus call doesn't work so we
+    // do it again here.
+    setTimeout(function() {
+        f["keybase-chat"].focus();
+    }, 200);
 }
