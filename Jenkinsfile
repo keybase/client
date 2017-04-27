@@ -141,13 +141,13 @@ helpers.rootLinuxNode(env, {
                             sh "rm private.txt"
                         }
                         parallel (
-                            test_linux: {
-                                withEnv([
-                                    "PATH=${env.PATH}:${env.GOPATH}/bin",
-                                ]) {
-                                    runNixTest('linux_')
-                                }
-                            },
+                            //test_linux: {
+                            //    withEnv([
+                            //        "PATH=${env.PATH}:${env.GOPATH}/bin",
+                            //    ]) {
+                            //        runNixTest('linux_')
+                            //    }
+                            //},
                             //test_windows: {
                             //    helpers.nodeWithCleanup('windows', {}, {}) {
                             //    withEnv([
@@ -167,7 +167,7 @@ helpers.rootLinuxNode(env, {
                             //    }}}
                             //},
                             test_osx: {
-                                helpers.nodeWithCleanup('osx', {}, {}) {
+                                helpers.nodeWithCleanup('macstadium-test', {}, {}) {
                                     def BASEDIR=pwd()
                                     def GOPATH="${BASEDIR}/go"
                                     withEnv([
@@ -188,17 +188,17 @@ helpers.rootLinuxNode(env, {
                             },
                         )
                     },
-                    integrate: {
-                        build([
-                            job: "/kbfs-server/master",
-                            parameters: [
-                                [$class: 'StringParameterValue',
-                                    name: 'kbfsProjectName',
-                                    value: env.JOB_NAME,
-                                ],
-                            ]
-                        ])
-                    },
+                    //integrate: {
+                    //    build([
+                    //        job: "/kbfs-server/master",
+                    //        parameters: [
+                    //            [$class: 'StringParameterValue',
+                    //                name: 'kbfsProjectName',
+                    //                value: env.JOB_NAME,
+                    //            ],
+                    //        ]
+                    //    ])
+                    //},
                 )
             } catch (ex) {
                 println "Gregor logs:"
