@@ -9,6 +9,10 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
+type appTypeSource interface {
+	GetAppType() libkb.AppType
+}
+
 type keyfinderKey int
 type identifyNotifierKey int
 type chatTrace int
@@ -58,7 +62,7 @@ func CtxIdentifyNotifier(ctx context.Context) *IdentifyNotifier {
 	return nil
 }
 
-func CtxAddLogTags(ctx context.Context, env *libkb.Env) context.Context {
+func CtxAddLogTags(ctx context.Context, env appTypeSource) context.Context {
 
 	// Add trace context value
 	ctx = context.WithValue(ctx, chatTraceKey, libkb.RandStringB64(3))
@@ -77,7 +81,7 @@ func CtxAddLogTags(ctx context.Context, env *libkb.Env) context.Context {
 	return ctx
 }
 
-func Context(ctx context.Context, env *libkb.Env, mode keybase1.TLFIdentifyBehavior,
+func Context(ctx context.Context, env appTypeSource, mode keybase1.TLFIdentifyBehavior,
 	breaks *[]keybase1.TLFIdentifyFailure, notifier *IdentifyNotifier) context.Context {
 	res := IdentifyModeCtx(ctx, mode, breaks)
 	res = context.WithValue(res, kfKey, NewKeyFinder())
@@ -86,7 +90,7 @@ func Context(ctx context.Context, env *libkb.Env, mode keybase1.TLFIdentifyBehav
 	return res
 }
 
-func BackgroundContext(sourceCtx context.Context, env *libkb.Env) context.Context {
+func BackgroundContext(sourceCtx context.Context, env appTypeSource) context.Context {
 
 	rctx := context.Background()
 
