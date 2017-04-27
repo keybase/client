@@ -8,44 +8,39 @@ import {globalMargins, globalStyles} from '../../../styles'
 class PaperKeyRender extends Component<void, Props, void> {
   render () {
     return (
-      <Box style={stylesBox}>
-        <Container
-          style={stylesContainer}
-          onBack={this.props.onBack}>
-          <Text type='Header' style={stylesHeader}>Type in your paper key:</Text>
-          <Icon type='icon-paper-key-48' />
-          <Input
-            multiline={true}
-            rowsMin={3}
-            autoFocus={true}
-            style={stylesInput}
-            floatingHintTextOverride='Paper key'
-            hintText='opp blezzard tofi pando'
-            errorText={this.props.error}
-            onEnterKeyDown={() => this.props.onSubmit()}
-            onChangeText={paperKey => this.props.onChangePaperKey(paperKey)}
-            type='passwordVisible'
-            value={this.props.paperKey ? this.props.paperKey : null} />
-          <Button
-            style={stylesButton}
-            type='Primary'
-            enabled={this.props.paperKey}
-            label='Continue'
-            waiting={this.props.waitingForResponse}
-            onClick={() => this.props.onSubmit()} />
-        </Container>
-      </Box>
+    <Container
+        style={stylesContainer}
+        onBack={this.props.onBack}>
+        <Text type='Header' style={stylesHeader}>Type in your paper key:</Text>
+        <Icon type='icon-paper-key-48' />
+        <Input
+          multiline={true}
+          rowsMin={3}
+          autoFocus={true}
+          style={stylesInput}
+          floatingHintTextOverride='Paper key'
+          hintText='opp blezzard tofi pando'
+          errorText={this.props.error}
+          onEnterKeyDown={() => this.props.onSubmit()}
+          onChangeText={paperKey => this.props.onChangePaperKey(paperKey)}
+          type='passwordVisible'
+          value={this.props.paperKey ? this.props.paperKey : null} />
+        <Button
+          style={stylesButton}
+          type='Primary'
+          enabled={this.props.paperKey}
+          label='Continue'
+          waiting={this.props.waitingForResponse}
+          onClick={() => this.props.onSubmit()} />
+      </Container>
     )
   }
 }
 
-const stylesBox = {
-  ...globalStyles.flexBoxColumn,
-  padding: 10,
-}
-
 const stylesContainer = {
   alignItems: 'center',
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
 }
 
 const stylesButton = {
@@ -57,6 +52,7 @@ const stylesInput = {
 }
 
 const stylesHeader = {
+  marginBottom: globalMargins.small,
   marginTop: globalMargins.small,
 }
 

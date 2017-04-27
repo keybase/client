@@ -16,7 +16,7 @@ class PassphraseRender extends Component<void, Props, void> {
         outerStyle={{backgroundColor: globalColors.white, padding: 0}}
         onBack={this.props.onBack}>
         <UserCard style={stylesCard} username={this.props.username}>
-          <Text type='HeaderBig' style={{color: globalColors.orange, ...usernameStyle}}>{this.props.username}</Text>
+          <Text type='Header' style={{color: globalColors.orange, ...usernameStyle}}>{this.props.username}</Text>
           <FormWithCheckbox
             inputProps={{
               autoFocus: true,
