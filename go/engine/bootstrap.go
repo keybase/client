@@ -79,7 +79,7 @@ func (e *Bootstrap) Run(ctx *Context) error {
 	ts := libkb.NewTracker2Syncer(e.G(), e.status.Uid, true)
 	if e.G().ConnectivityMonitor.IsConnected(context.Background()) == libkb.ConnectivityMonitorYes {
 		e.G().Log.Debug("connected, running full tracker2 syncer")
-		if err := libkb.RunSyncer(ts, e.status.Uid, true, a.LocalSession()); err != nil {
+		if err := libkb.RunSyncer(ts, e.status.Uid, false, nil); err != nil {
 			return err
 		}
 	} else {
