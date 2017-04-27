@@ -8,76 +8,87 @@ import { is, asEffect } from 'redux-saga/utils'
 const effectTriggeredTransform = (obj) => {
   let toLog
 
-  if (obj.effect.saga) {
-    toLog = {
-      ...obj,
-      effect: {
-        ...obj.effect,
-        saga: obj.effect && obj.effect.saga && obj.effect.saga.name,
-        args: 'masked',
+  try {
+    if (obj.effect.constructor.name === 'GeneratorFunctionPrototype') {
+      toLog ={
+        effect: {
+          generator: 'masked',
+        },
       }
     }
-  } else if (Array.isArray(obj.effect)) {
-    toLog = {
-      ...obj,
-      effect: obj.effect.map(e => effectTriggeredTransform({
-        effect: {...e},
-      }))
-    }
-  } else if (obj.effect.FORK) {
-    toLog = {
-      ...obj,
-      effect: {
-        FORK: {
-          fn: obj.effect.FORK.fn && obj.effect.FORK.fn.name,
-          argsType: obj.effect.FORK.args && obj.effect.FORK.args[0] && obj.effect.FORK.args[0].type,
+    else if (obj.effect.saga) {
+      toLog = {
+        ...obj,
+        effect: {
+          ...obj.effect,
+          saga: obj.effect && obj.effect.saga && obj.effect.saga.name,
+          args: 'masked',
+        }
+      }
+    } else if (Array.isArray(obj.effect)) {
+      toLog = {
+        ...obj,
+        effect: obj.effect.map(e => effectTriggeredTransform({
+          effect: e,
+        }))
+      }
+    } else if (obj.effect.FORK) {
+      toLog = {
+        ...obj,
+        effect: {
+          FORK: {
+            fn: obj.effect.FORK.fn && obj.effect.FORK.fn.name,
+            argsType: obj.effect.FORK.args && obj.effect.FORK.args[0] && obj.effect.FORK.args[0].type,
+          },
         },
-      },
-    }
-  } else if (obj.effect.CALL) {
-    toLog = {
-      ...obj,
-      effect: {
-        CALL: {
-          fn: obj.effect.CALL.fn && obj.effect.CALL.fn.name,
-          argsType: obj.effect.CALL.args && obj.effect.CALL.args[0] && obj.effect.CALL.args[0].type,
+      }
+    } else if (obj.effect.CALL) {
+      toLog = {
+        ...obj,
+        effect: {
+          CALL: {
+            fn: obj.effect.CALL.fn && obj.effect.CALL.fn.name,
+            argsType: obj.effect.CALL.args && obj.effect.CALL.args[0] && obj.effect.CALL.args[0].type,
+          },
         },
-      },
-    }
-  } else if (obj.effect.SELECT) {
-    toLog = {
-      effect: {
-        SELECT: {
-          selector: obj.effect.SELECT.selector.name,
+      }
+    } else if (obj.effect.SELECT) {
+      toLog = {
+        effect: {
+          SELECT: {
+            selector: obj.effect.SELECT.selector.name,
+          },
         },
-      },
-    }
-  } else if (obj.effect.TAKE) {
-    toLog = {
-      effect: {
-        TAKE: {
-          pattern: obj.effect.TAKE.pattern,
+      }
+    } else if (obj.effect.TAKE) {
+      toLog = {
+        effect: {
+          TAKE: {
+            pattern: obj.effect.TAKE.pattern,
+          },
         },
-      },
-    }
-  } else if (obj.effect.CANCEL) {
-    toLog = {
-      effect: {
-        CANCEL: {
-          name: obj.effect.CANCEL.name,
+      }
+    } else if (obj.effect.CANCEL) {
+      toLog = {
+        effect: {
+          CANCEL: {
+            name: obj.effect.CANCEL.name,
+          },
         },
-      },
-    }
-  } else if (obj.effect.PUT) {
-    toLog = {
-      effect: {
-        PUT: {
-          type: obj.effect.PUT.action && obj.effect.PUT.action.payload && obj.effect.PUT.action.payload.type,
+      }
+    } else if (obj.effect.PUT) {
+      toLog = {
+        effect: {
+          PUT: {
+            type: obj.effect.PUT.action && obj.effect.PUT.action.payload && obj.effect.PUT.action.payload.type,
+          },
         },
-      },
+      }
+    } else {
+      toLog = 'unhandled'
     }
-  } else {
-    toLog = 'unhandled'
+  } catch (err) {
+    console.log('Err effectTriggeredTransform', err)
   }
 
   return toLog
