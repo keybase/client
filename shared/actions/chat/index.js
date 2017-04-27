@@ -696,9 +696,8 @@ function * _selectConversation (action: Constants.SelectConversation): SagaGener
     yield put(Creators.clearMessages(conversationIDKey))
   }
 
-  let loadMoreTask
   if (conversationIDKey) {
-    loadMoreTask = yield fork(Saga.cancelWhen(_threadIsCleared, _loadMoreMessages), Creators.loadMoreMessages(conversationIDKey, true))
+    yield put(Creators.loadMoreMessages(conversationIDKey, true))
     yield put(navigateTo([conversationIDKey], [chatTab]))
   } else {
     yield put(navigateTo([], [chatTab]))
@@ -709,12 +708,7 @@ function * _selectConversation (action: Constants.SelectConversation): SagaGener
     yield put(Creators.updateMetadata(inbox.get('participants').toArray()))
   }
 
-  if (inbox && inbox.get('state') !== 'unboxed') {
-    return
-  }
-
   if (fromUser && conversationIDKey) {
-    yield join(loadMoreTask)
     yield put(Creators.updateBadging(conversationIDKey))
     yield put(Creators.updateLatestMessage(conversationIDKey))
   }
@@ -866,6 +860,7 @@ function * chatSaga (): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:newChat', _newChat)
   yield Saga.safeTakeEvery('chat:openAttachmentPopup', Attachment.onOpenAttachmentPopup)
   yield Saga.safeTakeEvery('chat:openConversation', _openConversation)
+  yield Saga.safeTakeEvery('chat:openFolder', _openFolder)
   yield Saga.safeTakeEvery('chat:openTlfInChat', _openTlfInChat)
   yield Saga.safeTakeEvery('chat:postMessage', Messages.postMessage)
   yield Saga.safeTakeEvery('chat:retryMessage', Messages.retryMessage)
@@ -881,7 +876,6 @@ function * chatSaga (): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
   yield Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale)
   yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInitialInboxLoad)
-  yield Saga.safeTakeLatest('chat:openFolder', _openFolder)
   yield Saga.safeTakeLatest('chat:selectConversation', _selectConversation)
 }
 
