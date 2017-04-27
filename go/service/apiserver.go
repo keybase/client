@@ -41,6 +41,10 @@ func (a *APIServerHandler) PostJSON(_ context.Context, arg keybase1.PostJSONArg)
 	return a.doPostJSON(arg)
 }
 
+func (a *APIServerHandler) Delete(_ context.Context, arg keybase1.DeleteArg) (keybase1.APIRes, error) {
+	return a.doDelete(arg)
+}
+
 type GenericArg interface {
 	GetEndpoint() string
 	GetHTTPArgs() []keybase1.StringKVPair
@@ -124,6 +128,16 @@ func (a *APIServerHandler) doPostJSON(rawarg keybase1.PostJSONArg) (res keybase1
 		return keybase1.APIRes{}, err
 	}
 
+	return a.convertRes(ires), nil
+}
+
+func (a *APIServerHandler) doDelete(arg keybase1.DeleteArg) (res keybase1.APIRes, err error) {
+	a.G().Trace("APIServerHandler::Delete", func() error { return err })()
+	var ires *libkb.APIRes
+	ires, err = a.G().API.Delete(a.setupArg(arg))
+	if err != nil {
+		return res, err
+	}
 	return a.convertRes(ires), nil
 }
 

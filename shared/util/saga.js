@@ -1,7 +1,7 @@
 // @flow
 import _ from 'lodash'
 import {buffers, channel} from 'redux-saga'
-import {take, call, put, race, takeEvery, takeLatest, fork, cancelled} from 'redux-saga/effects'
+import {take, call, put, race, takeEvery, takeLatest, cancelled} from 'redux-saga/effects'
 import {globalError} from '../constants/config'
 import {convertToError} from '../util/errors'
 

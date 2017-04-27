@@ -906,6 +906,18 @@ export function accountResetAccountRpcPromise (request: $Exact<requestCommon & r
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.account.resetAccount', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function apiserverDeleteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverDeleteResult) => void} & {param: apiserverDeleteRpcParam}>) {
+  engineRpcOutgoing('keybase.1.apiserver.Delete', request)
+}
+
+export function apiserverDeleteRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverDeleteResult) => void} & {param: apiserverDeleteRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.apiserver.Delete', request, callback, incomingCallMap) })
+}
+
+export function apiserverDeleteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverDeleteResult) => void} & {param: apiserverDeleteRpcParam}>): Promise<apiserverDeleteResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.apiserver.Delete', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function apiserverGetRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetResult) => void} & {param: apiserverGetRpcParam}>) {
   engineRpcOutgoing('keybase.1.apiserver.Get', request)
 }
@@ -4905,6 +4917,13 @@ export type accountPassphrasePromptRpcParam = Exact<{
   guiArg: GUIEntryArg
 }>
 
+export type apiserverDeleteRpcParam = Exact<{
+  endpoint: string,
+  args?: ?Array<StringKVPair>,
+  httpStatus?: ?Array<int>,
+  appStatusCode?: ?Array<int>
+}>
+
 export type apiserverGetRpcParam = Exact<{
   endpoint: string,
   args?: ?Array<StringKVPair>,
@@ -5854,6 +5873,7 @@ type SimpleFSSimpleFSReadResult = FileContent
 type SimpleFSSimpleFSStatResult = Dirent
 type accountHasServerKeysResult = HasServerKeysRes
 type accountPassphrasePromptResult = GetPassphraseRes
+type apiserverDeleteResult = APIRes
 type apiserverGetResult = APIRes
 type apiserverGetWithSessionResult = APIRes
 type apiserverPostJSONResult = APIRes
@@ -6015,6 +6035,7 @@ export type rpc =
   | accountPassphraseChangeRpc
   | accountPassphrasePromptRpc
   | accountResetAccountRpc
+  | apiserverDeleteRpc
   | apiserverGetRpc
   | apiserverGetWithSessionRpc
   | apiserverPostJSONRpc

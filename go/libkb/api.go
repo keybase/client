@@ -141,7 +141,7 @@ func (api *BaseAPIEngine) PrepareGet(url1 url.URL, arg APIArg) (*http.Request, e
 	return http.NewRequest("GET", ruri, nil)
 }
 
-func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg) (*http.Request, error) {
+func (api *BaseAPIEngine) PrepareMethodWithBody(method string, url1 url.URL, arg APIArg) (*http.Request, error) {
 	ruri := url1.String()
 	var body io.Reader
 
@@ -149,7 +149,7 @@ func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg) (*http.Request, 
 	useJSON := len(arg.JSONPayload) > 0
 
 	if useHTTPArgs && useJSON {
-		panic("PreparePost: Malformed APIArg: Both HTTP args and JSONPayload set on request.")
+		panic("PrepareMethodWithBody: Malformed APIArg: Both HTTP args and JSONPayload set on request.")
 	}
 
 	if useJSON {
@@ -162,7 +162,7 @@ func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg) (*http.Request, 
 		body = ioutil.NopCloser(strings.NewReader(arg.getHTTPArgs().Encode()))
 	}
 
-	req, err := http.NewRequest("POST", ruri, body)
+	req, err := http.NewRequest(method, ruri, body)
 	if err != nil {
 		return nil, err
 	}
@@ -647,7 +647,7 @@ func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
 
 func (a *InternalAPIEngine) Post(arg APIArg) (*APIRes, error) {
 	url1 := a.getURL(arg)
-	req, err := a.PreparePost(url1, arg)
+	req, err := a.PrepareMethodWithBody("POST", url1, arg)
 	if err != nil {
 		return nil, err
 	}
@@ -665,7 +665,7 @@ func (a *InternalAPIEngine) PostJSON(arg APIArg) (*APIRes, error) {
 // DiscardAndCloseBody() called on it.
 func (a *InternalAPIEngine) postResp(arg APIArg) (*http.Response, error) {
 	url1 := a.getURL(arg)
-	req, err := a.PreparePost(url1, arg)
+	req, err := a.PrepareMethodWithBody("POST", url1, arg)
 	if err != nil {
 		return nil, err
 	}
@@ -697,6 +697,15 @@ func (a *InternalAPIEngine) PostRaw(arg APIArg, ctype string, r io.Reader) (*API
 	if len(ctype) > 0 {
 		req.Header.Set("Content-Type", ctype)
 	}
+	if err != nil {
+		return nil, err
+	}
+	return a.DoRequest(arg, req)
+}
+
+func (a *InternalAPIEngine) Delete(arg APIArg) (*APIRes, error) {
+	url1 := a.getURL(arg)
+	req, err := a.PrepareMethodWithBody("DELETE", url1, arg)
 	if err != nil {
 		return nil, err
 	}
@@ -854,7 +863,7 @@ func (api *ExternalAPIEngine) postCommon(arg APIArg, restype XAPIResType) (
 	if err != nil {
 		return
 	}
-	req, err = api.PreparePost(*url1, arg)
+	req, err = api.PrepareMethodWithBody("POST", *url1, arg)
 	if err != nil {
 		return
 	}

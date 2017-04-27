@@ -587,11 +587,11 @@ func (e *Kex2Provisionee) cacheKeys() (err error) {
 		return errors.New("cacheKeys called, but dh key is nil")
 	}
 
-	if err = e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}, e.eddsa); err != nil {
+	if err = e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}, e.eddsa, e.device); err != nil {
 		return err
 	}
 
-	if err = e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}, e.dh); err != nil {
+	if err = e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}, e.dh, e.device); err != nil {
 		return err
 	}
 

@@ -134,7 +134,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 	g.Debug(ctx, "chat activity: action %s", gm.Action)
 
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, g.identNotifier)
+	ctx = Context(ctx, g.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		g.identNotifier)
 
 	action := gm.Action
 	reader.Reset(m.Body().Bytes())

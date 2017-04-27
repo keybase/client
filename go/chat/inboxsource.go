@@ -136,7 +136,7 @@ func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 	}
 
 	// Spawn off localization into its own goroutine and use cb to communicate with outside world
-	bctx := BackgroundContext(ctx)
+	bctx := BackgroundContext(ctx, b.G().GetEnv())
 	go func() {
 		b.Debug(bctx, "Localize: starting background localization: convs: %d",
 			len(inbox.ConvsUnverified))

@@ -185,7 +185,7 @@ func (f *FetchRetrier) retryFetch(uid gregor1.UID, force bool, kind types.FetchT
 	var err error
 	var breaks []keybase1.TLFIdentifyFailure
 	box := storage.NewConversationFailureBox(f.G(), uid, f.boxKey(kind))
-	ctx := Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks,
+	ctx := Context(context.Background(), f.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks,
 		NewIdentifyNotifier(f.G()))
 
 	// Get all items that are ready to be retried.

@@ -15,6 +15,8 @@ import openURL from '../../util/open-url'
 import {devicesTab, loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {load as loadDevices} from '../devices'
+import {deletePushTokenSaga} from '../push'
+import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
 import {toDeviceType} from '../../constants/types/more'
@@ -451,6 +453,7 @@ function * cameraBrokenModeSaga ({payload: {broken}}) {
 
 function * loginSuccess () {
   yield put(Creators.loginDone())
+  yield put(configurePush())
   yield put(loadDevices())
   yield put(bootstrap())
 }
@@ -565,6 +568,8 @@ function * logoutDoneSaga () {
 }
 
 function * logoutSaga () {
+  yield call(deletePushTokenSaga)
+
   const sagas = {
     finished: function * ({error}) {
       if (error) {
