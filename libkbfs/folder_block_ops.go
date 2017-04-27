@@ -1195,7 +1195,8 @@ func (fbo *folderBlockOps) GetDirtyDirChildren(
 
 // file must have a valid parent.
 func (fbo *folderBlockOps) getDirtyParentAndEntryLocked(ctx context.Context,
-	lState *lockState, kmd KeyMetadata, file path, rtype blockReqType) (
+	lState *lockState, kmd KeyMetadata, file path, rtype blockReqType,
+	includeDeleted bool) (
 	*DirBlock, DirEntry, error) {
 	fbo.blockLock.AssertAnyLocked(lState)
 
@@ -1214,16 +1215,20 @@ func (fbo *folderBlockOps) getDirtyParentAndEntryLocked(ctx context.Context,
 	name := file.tailName()
 	de, ok := dblock.Children[name]
 	if !ok {
-		// Has the file been removed?
-		cacheEntry := fbo.deCache[parentPath.tailPointer().Ref()]
-		var ok bool
-		de, ok = cacheEntry.dels[name]
-		if !ok || !de.IsInitialized() {
-			// The file hasn't been removed, so this is a real error.
+		if includeDeleted {
+			// Has the file been removed?
+			cacheEntry := fbo.deCache[parentPath.tailPointer().Ref()]
+			var ok bool
+			de, ok = cacheEntry.dels[name]
+			if !ok || !de.IsInitialized() {
+				// The file hasn't been removed, so this is a real error.
+				return nil, DirEntry{}, NoSuchNameError{name}
+			}
+			// It's possible the unlinked file has been updated.
+			_, de = fbo.updateDirtyEntryLocked(ctx, lState, de)
+		} else {
 			return nil, DirEntry{}, NoSuchNameError{name}
 		}
-		// It's possible the unlinked file has been updated.
-		_, de = fbo.updateDirtyEntryLocked(ctx, lState, de)
 	}
 
 	return dblock, de, err
@@ -1240,16 +1245,18 @@ func (fbo *folderBlockOps) GetDirtyParentAndEntry(
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	return fbo.getDirtyParentAndEntryLocked(
-		ctx, lState, kmd, file, blockWrite)
+		ctx, lState, kmd, file, blockWrite,
+		true /* TODO(KBFS-2076) make this false */)
 }
 
 // file must have a valid parent.
 func (fbo *folderBlockOps) getDirtyEntryLocked(ctx context.Context,
-	lState *lockState, kmd KeyMetadata, file path) (DirEntry, error) {
+	lState *lockState, kmd KeyMetadata, file path, includeDeleted bool) (
+	DirEntry, error) {
 	// TODO: Since we only need a single DirEntry, avoid having to
 	// look up every entry in the DirBlock.
 	_, de, err := fbo.getDirtyParentAndEntryLocked(
-		ctx, lState, kmd, file, blockLookup)
+		ctx, lState, kmd, file, blockLookup, includeDeleted)
 	return de, err
 }
 
@@ -1260,7 +1267,20 @@ func (fbo *folderBlockOps) GetDirtyEntry(
 	file path) (DirEntry, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
-	return fbo.getDirtyEntryLocked(ctx, lState, kmd, file)
+	return fbo.getDirtyEntryLocked(ctx, lState, kmd, file,
+		true /* TODO(KBFS-2076) make this false */)
+}
+
+// GetDirtyEntryEvenIfDeleted returns the possibly-dirty DirEntry of
+// the given file in its parent DirBlock, even if it's already been
+// deleted (e.g., because an unlinked file is being accessed through
+// an existing file handle). file must have a valid parent.
+func (fbo *folderBlockOps) GetDirtyEntryEvenIfDeleted(
+	ctx context.Context, lState *lockState, kmd KeyMetadata,
+	file path) (DirEntry, error) {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+	return fbo.getDirtyEntryLocked(ctx, lState, kmd, file, true)
 }
 
 // UpdateDirtyEntry returns the possibly-dirty DirEntry of the given
@@ -1290,7 +1310,7 @@ func (fbo *folderBlockOps) Lookup(
 	}
 
 	childPath := dirPath.ChildPathNoPtr(name)
-	de, err := fbo.getDirtyEntryLocked(ctx, lState, kmd, childPath)
+	de, err := fbo.getDirtyEntryLocked(ctx, lState, kmd, childPath, false)
 	if err != nil {
 		return nil, DirEntry{}, err
 	}
@@ -1752,7 +1772,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 		}
 	}()
 
-	de, err := fbo.getDirtyEntryLocked(ctx, lState, kmd, file)
+	de, err := fbo.getDirtyEntryLocked(ctx, lState, kmd, file, true)
 	if err != nil {
 		return WriteRange{}, nil, 0, err
 	}
@@ -1884,7 +1904,7 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 
 	fd := fbo.newFileData(lState, file, uid, kmd)
 
-	de, err := fbo.getDirtyEntryLocked(ctx, lState, kmd, file)
+	de, err := fbo.getDirtyEntryLocked(ctx, lState, kmd, file, true)
 	if err != nil {
 		return WriteRange{}, nil, err
 	}
@@ -1973,7 +1993,7 @@ func (fbo *folderBlockOps) truncateLocked(
 	}
 
 	// update the local entry size
-	de, err := fbo.getDirtyEntryLocked(ctx, lState, kmd, file)
+	de, err := fbo.getDirtyEntryLocked(ctx, lState, kmd, file, true)
 	if err != nil {
 		return nil, nil, 0, err
 	}
@@ -3058,7 +3078,7 @@ func (fbo *folderBlockOps) UpdateCachedEntryAttributes(
 
 	// find the node for the actual change; requires looking up
 	// the child entry to get the BlockPointer, unfortunately.
-	de, err := fbo.GetDirtyEntry(ctx, lState, kmd, childPath)
+	de, err := fbo.GetDirtyEntryEvenIfDeleted(ctx, lState, kmd, childPath)
 	if err != nil {
 		return nil, err
 	}

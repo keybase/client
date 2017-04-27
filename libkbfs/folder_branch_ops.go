@@ -1802,7 +1802,7 @@ func (fbo *folderBranchOps) statEntry(ctx context.Context, node Node) (
 	}
 
 	if nodePath.hasValidParent() {
-		de, err = fbo.blocks.GetDirtyEntry(
+		de, err = fbo.blocks.GetDirtyEntryEvenIfDeleted(
 			ctx, lState, md.ReadOnly(), nodePath)
 		if err != nil {
 			return DirEntry{}, err
