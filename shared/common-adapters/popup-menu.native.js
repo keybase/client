@@ -50,7 +50,7 @@ const styleRowText = ({isHeader, danger, disabled}: {isHeader?: boolean, danger?
   const color = isHeader ? globalColors.white : dangerColor
   return {
     color,
-    ...(disabled ? {opacity: .6} : {}),
+    ...(disabled ? {opacity: 0.6} : {}),
     ...(isHeader ? {textAlign: 'center'} : {}),
   }
 }
