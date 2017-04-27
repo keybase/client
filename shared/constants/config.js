@@ -10,7 +10,8 @@ import type {NoErrorTypedAction} from './types/flux'
 const MAX_BOOTSTRAP_TRIES = 3
 const bootstrapAttemptFailed = 'config:bootstrapAttemptFailed'
 const bootstrapFailed = 'config:bootstrapFailed'
-const bootstrapLoaded = 'config:bootstrapLoaded'
+const bootstrapSuccess = 'config:bootstrapSuccess'
+const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 const bootstrapRetry = 'config:bootstrapRetry'
 const bootstrapRetryDelay = 10 * 1000
 const changeKBFSPath = 'config:changeKBFSPath'
@@ -29,7 +30,7 @@ const setLaunchedViaPush = 'config:setLaunchedViaPush'
 const statusLoaded = 'config:statusLoaded'
 const updateFollowing = 'config:updateFollowing'
 
-export type BootstrapLoaded = NoErrorTypedAction<'config:bootstrapLoaded', {bootstrapStatus: BootstrapStatus}>
+export type BootstrapStatusLoaded = NoErrorTypedAction<'config:bootstrapStatusLoaded', {bootstrapStatus: BootstrapStatus}>
 export type DaemonError = NoErrorTypedAction<'config:daemonError', {daemonError: ?Error}>
 export type UpdateFollowing = NoErrorTypedAction<'config:updateFollowing', {username: string, isTracking: boolean}>
 export type SetInitialTab = NoErrorTypedAction<'config:setInitialTab', {tab: ?Tab}>
@@ -51,7 +52,8 @@ export {
   MAX_BOOTSTRAP_TRIES,
   bootstrapAttemptFailed,
   bootstrapFailed,
-  bootstrapLoaded,
+  bootstrapSuccess,
+  bootstrapStatusLoaded,
   bootstrapRetry,
   bootstrapRetryDelay,
   changeKBFSPath,

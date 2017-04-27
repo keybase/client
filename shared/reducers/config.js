@@ -111,14 +111,20 @@ export default function (state: ConfigState = initialState, action: Action): Con
       }
     }
 
-    case Constants.bootstrapLoaded:
+    case Constants.bootstrapSuccess: {
+      return {
+        ...state,
+        bootStatus: 'bootStatusBootstrapped',
+      }
+    }
+
+    case Constants.bootstrapStatusLoaded:
       const {bootstrapStatus} = action.payload
       return {
         ...state,
         ...bootstrapStatus,
         following: arrayToObjectSet(bootstrapStatus.following),
         followers: arrayToObjectSet(bootstrapStatus.followers),
-        bootStatus: 'bootStatusBootstrapped',
       }
 
     case Constants.bootstrapAttemptFailed: {
