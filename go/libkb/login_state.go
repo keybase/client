@@ -63,7 +63,7 @@ type LoginContext interface {
 	SecretSyncer() *SecretSyncer
 	RunSecretSyncer(uid keybase1.UID) error
 
-	SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error
+	SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error
 	SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error
 
 	SetLKSec(lksec *LKSec)

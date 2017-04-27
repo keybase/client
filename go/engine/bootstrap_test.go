@@ -93,6 +93,9 @@ func TestBootstrapAfterSignup(t *testing.T) {
 	}
 	status := beng.Status()
 
+	uid := tc.G.Env.GetUID()
+	deviceID := tc.G.Env.GetDeviceID()
+
 	if !status.Registered {
 		t.Error("registered false")
 	}
@@ -102,22 +105,18 @@ func TestBootstrapAfterSignup(t *testing.T) {
 	if status.Uid.IsNil() {
 		t.Errorf("uid nil")
 	}
-	/*
-		if !status.Uid.Equal(u1.Uid) {
-			t.Errorf("uid: %s, expected %s", status.Uid, u1.uid)
-		}
-	*/
+	if !status.Uid.Equal(uid) {
+		t.Errorf("uid: %s, expected %s", status.Uid, uid)
+	}
 	if status.Username == "" {
 		t.Errorf("username empty")
 	}
 	if status.Username != u1.Username {
 		t.Errorf("username: %q, expected %q", status.Username, u1.Username)
 	}
-	/*
-		if !status.DeviceID.Eq(deviceID) {
-			t.Errorf("device id: %q, expected %q", status.DeviceID, deviceID)
-		}
-	*/
+	if !status.DeviceID.Eq(deviceID) {
+		t.Errorf("device id: %q, expected %q", status.DeviceID, deviceID)
+	}
 	if status.DeviceName != defaultDeviceName {
 		t.Errorf("device name: %q, expected %q", status.DeviceName, defaultDeviceName)
 	}

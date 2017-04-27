@@ -166,23 +166,22 @@ func (e *LoginOffline) run(ctx *Context) error {
 			return
 		}
 
+		device := &libkb.Device{
+			ID:          deviceID,
+			Kid:         sibkey.KID,
+			Description: &sibkey.DeviceDescription,
+		}
+
 		// cache the unlocked secret keys
 		ska := libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}
-		if err := a.SetCachedSecretKey(ska, unlockedSibkey); err != nil {
+		if err := a.SetCachedSecretKey(ska, unlockedSibkey, device); err != nil {
 			e.G().Log.Debug("LoginOffline: failed to cache sibkey: %s", err)
 			gerr = err
 			return
 		}
 		ska = libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}
-		if err := a.SetCachedSecretKey(ska, unlockedSubkey); err != nil {
+		if err := a.SetCachedSecretKey(ska, unlockedSubkey, device); err != nil {
 			e.G().Log.Debug("LoginOffline: failed to cache subkey: %s", err)
-			gerr = err
-			return
-		}
-
-		// set the device name from the sibkey description
-		if err := a.SetDeviceName(sibkey.DeviceDescription); err != nil {
-			e.G().Log.Debug("LoginOffline: failed to set device name: %s", err)
 			gerr = err
 			return
 		}
