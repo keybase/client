@@ -113,9 +113,11 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 			e.G().Log.Warning("error saving session file: %s", err)
 		}
 
+		device := kgEng.device()
+
 		// cache the secret keys
-		ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}, e.signingKey)
-		ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}, e.encryptionKey)
+		ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{Me: e.args.Me, KeyType: libkb.DeviceSigningKeyType}, e.signingKey, device)
+		ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{Me: e.args.Me, KeyType: libkb.DeviceEncryptionKeyType}, e.encryptionKey, device)
 	}
 
 	return nil
