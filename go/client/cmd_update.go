@@ -154,7 +154,8 @@ func (v *cmdUpdateNotify) Run() error {
 	v.G().Log.Debug("Received event: %s", v.event)
 	switch v.event {
 	case "after-apply":
-		return install.AfterUpdateApply(v.G(), true, v.force, v.G().Log)
+		// Deprecated (no longer called by go-updater)
+		return nil
 	default:
 		return fmt.Errorf("Unrecognized event: %s", v.event)
 	}
