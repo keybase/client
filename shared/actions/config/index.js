@@ -22,7 +22,7 @@ const setInitialTab = (tab: ?Tab): Constants.SetInitialTab => (
   {payload: {tab}, type: 'config:setInitialTab'}
 )
 
-const setInitialLink = (url: string): Constants.SetInitialLink => (
+const setInitialLink = (url: ?string): Constants.SetInitialLink => (
   {payload: {url}, type: 'config:setInitialLink'}
 )
 

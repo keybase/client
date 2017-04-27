@@ -32,6 +32,7 @@ const updateFollowing = 'config:updateFollowing'
 export type BootstrapLoaded = NoErrorTypedAction<'config:bootstrapLoaded', {bootstrapStatus: BootstrapStatus}>
 export type DaemonError = NoErrorTypedAction<'config:daemonError', {daemonError: ?Error}>
 export type UpdateFollowing = NoErrorTypedAction<'config:updateFollowing', {username: string, isTracking: boolean}>
+export type SetInitialLink = NoErrorTypedAction<'config:setInitialLink', {url: ?string}>
 export type SetInitialTab = NoErrorTypedAction<'config:setInitialTab', {tab: ?Tab}>
 export type SetLaunchedViaPush = NoErrorTypedAction<'config:setLaunchedViaPush', boolean>
 

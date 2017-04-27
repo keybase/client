@@ -111,7 +111,7 @@ function * navBasedOnLoginState () {
       console.log('Loading overridden logged in tab')
       yield put(navigateTo([overrideLoggedInTab]))
     } else if (initialLink) {
-      yield put(setInitialLink(''))
+      yield put(setInitialLink(null))
       yield put(appLink(initialLink))
     } else if (initialTab && isValidInitialTab(initialTab)) {
       // only do this once
