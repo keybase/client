@@ -43,7 +43,7 @@ function takeFromChannelMap<T> (channelMap: ChannelMap<T>, k: string): any {
 // Map a chanmap method -> channel to a saga map method -> saga using the given effectFn
 function mapSagasToChanMap<T> (effectFn: (c: Channel<T>, saga: SagaGenerator<any, any>) => any, sagaMap: SagaMap, channelMap: ChannelMap<T>): Array<Effect> {
   // Check that all method names are accounted for
-  if (!_.isEqual(Object.keys(channelMap).sort(), Object.keys(sagaMap))) {
+  if (!_.isEqual(Object.keys(channelMap).sort(), Object.keys(sagaMap).sort())) {
     console.warn('Missing or extraneous saga handlers')
   }
   return _.map(sagaMap, (saga, methodName) => effectOnChannelMap(c => effectFn(c, saga), channelMap, methodName))
