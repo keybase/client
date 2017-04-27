@@ -504,10 +504,12 @@ function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
 function * reloginSaga ({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
   const finishedSaga = function * ({error}) {
     if (error) {
-      const message = 'This device is no longer provisioned.'
+      const message = error.toString()
       yield put(Creators.loginDone({message}))
-      yield put(Creators.setLoginFromRevokedDevice(message))
-      yield put(navigateTo([loginTab]))
+      if (error.desc === 'No device provisioned locally for this user') {
+        yield put(Creators.setLoginFromRevokedDevice(message))
+        yield put(navigateTo([loginTab]))
+      }
     } else {
       yield call(loginSuccess)
     }
