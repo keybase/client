@@ -246,8 +246,8 @@ helpers.rootLinuxNode(env, {
                                 "GOPATH=${GOPATH}",
                                 "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
                                 "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
-                                "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
-                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
+                                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                             ]) {
                             ws("$GOPATH/src/github.com/keybase/client") {
                                 println "Checkout OS X"
