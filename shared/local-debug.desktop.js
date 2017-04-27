@@ -33,6 +33,7 @@ let config: {[key: string]: any} = {
   reduxDevToolsEnable: false,
   reduxDevToolsSelect: state => state, // only watch a subset of the store
   reduxSagaLogger: false,
+  reduxSagaLoggerMasked: true,
   resetEngineOnHMR: false,
   showAllTrackers: false,
   showDevTools: false,
@@ -53,6 +54,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.printRoutes = true
   config.redirectOnLogout = false
   config.reduxSagaLogger = true
+  config.reduxSagaLoggerMasked = false
 
   const envJson = envVarDebugJson()
   config = {...config, ...envJson}
@@ -107,6 +109,7 @@ export const {
   reduxDevToolsEnable,
   reduxDevToolsSelect,
   reduxSagaLogger,
+  reduxSagaLoggerMasked,
   resetEngineOnHMR,
   showAllTrackers,
   showDevTools,

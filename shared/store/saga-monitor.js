@@ -1,6 +1,9 @@
 // Based off of. Keybase stuff marked with KB START/END
 // https://github.com/redux-saga/redux-saga/blob/master/examples/sagaMonitor/index.js
 /*eslint-disable*/
+// KB START
+import {reduxSagaLoggerMasked} from '../local-debug'
+// KB END
 
 import { is, asEffect } from 'redux-saga/utils'
 
@@ -121,7 +124,11 @@ function effectTriggered(desc) {
   if (VERBOSE) {
     // console.log('Saga monitor: effectTriggered:', desc)
     // KB START
-    console.log('Saga monitor: effectTriggered:', effectTriggeredTransform(desc))
+    if (reduxSagaLoggerMasked) {
+      console.log('Saga monitor masked: effectTriggered:', effectTriggeredTransform(desc))
+    } else {
+      console.log('Saga monitor: effectTriggered:', desc)
+    }
     // KB END
   }
   effectsById[desc.effectId] = Object.assign({},
@@ -140,7 +147,11 @@ function effectResolved(effectId, result) {
   if (VERBOSE) {
     // console.log('Saga monitor: effectResolved:', effectId, result)
     // KB START
-    console.log('Saga monitor: effectResolved:', effectId, 'masked')
+    if (reduxSagaLoggerMasked) {
+      console.log('Saga monitor masked: effectResolved:', effectId, 'masked')
+    } else {
+      console.log('Saga monitor: effectResolved:', effectId, result)
+    }
     // KB END
   }
   resolveEffect(effectId, result)
@@ -150,7 +161,11 @@ function effectRejected(effectId, error) {
   if (VERBOSE) {
     // console.log('Saga monitor: effectRejected:', effectId, error)
     // KB START
-    console.log('Saga monitor: effectRejected:', effectId, 'masked')
+    if (reduxSagaLoggerMasked) {
+      console.log('Saga monitor masked: effectRejected:', effectId, 'masked')
+    } else {
+      console.log('Saga monitor: effectRejected:', effectId, error)
+    }
     // KB END
   }
   rejectEffect(effectId, error)

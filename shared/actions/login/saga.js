@@ -582,18 +582,16 @@ function * logoutSaga () {
 }
 
 function * loginSaga (): SagaGenerator<any, any> {
-  yield [
-    Saga.safeTakeLatest(Constants.startLogin, startLoginSaga),
-    Saga.safeTakeLatest(Constants.cameraBrokenMode, cameraBrokenModeSaga),
-    Saga.safeTakeLatest(Constants.setCodeMode, generateQRCode),
-    Saga.safeTakeLatest(Constants.relogin, reloginSaga),
-    Saga.safeTakeLatest(Constants.submitForgotPassword, submitForgotPasswordSaga),
-    Saga.safeTakeLatest(Constants.openAccountResetPage, openAccountResetPageSaga),
-    Saga.safeTakeLatest(Constants.navBasedOnLoginState, navBasedOnLoginState),
-    Saga.safeTakeLatest(Constants.logoutDone, logoutDoneSaga),
-    Saga.safeTakeLatest(Constants.logout, logoutSaga),
-    Saga.safeTakeLatest('device:addNewDevice', addNewDeviceSaga),
-  ]
+  yield Saga.safeTakeLatest(Constants.startLogin, startLoginSaga)
+  yield Saga.safeTakeLatest(Constants.cameraBrokenMode, cameraBrokenModeSaga)
+  yield Saga.safeTakeLatest(Constants.setCodeMode, generateQRCode)
+  yield Saga.safeTakeLatest(Constants.relogin, reloginSaga)
+  yield Saga.safeTakeLatest(Constants.submitForgotPassword, submitForgotPasswordSaga)
+  yield Saga.safeTakeLatest(Constants.openAccountResetPage, openAccountResetPageSaga)
+  yield Saga.safeTakeLatest(Constants.navBasedOnLoginState, navBasedOnLoginState)
+  yield Saga.safeTakeLatest(Constants.logoutDone, logoutDoneSaga)
+  yield Saga.safeTakeLatest(Constants.logout, logoutSaga)
+  yield Saga.safeTakeLatest('device:addNewDevice', addNewDeviceSaga)
 }
 
 export default loginSaga

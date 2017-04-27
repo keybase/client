@@ -33,11 +33,9 @@ function * _listSaga (action: FSList): SagaGenerator<any, any> {
 }
 
 function * kbfsSaga (): SagaGenerator<any, any> {
-  yield [
-    safeTakeLatest(Constants.fsList, _listSaga),
-    safeTakeEvery(Constants.fsOpen, openSaga),
-    safeTakeEvery('fs:openInFileUI', openInFileUISaga),
-  ]
+  yield safeTakeLatest(Constants.fsList, _listSaga)
+  yield safeTakeEvery(Constants.fsOpen, openSaga)
+  yield safeTakeEvery('fs:openInFileUI', openInFileUISaga)
 }
 
 export default kbfsSaga

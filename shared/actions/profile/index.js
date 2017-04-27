@@ -3,7 +3,7 @@ import * as Constants from '../../constants/profile'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
 import {addProof, checkProof, cancelAddProof, submitUsername, submitBTCAddress, proofsSaga, submitZcashAddress} from './proofs'
-import {call, put, select} from 'redux-saga/effects'
+import {call, put, select, fork} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
 import {navigateAppend, navigateTo, navigateUp, switchTo} from '../../actions/route-tree'
 import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
@@ -200,25 +200,21 @@ function * _backToProfile (): SagaGenerator<any, any> {
 }
 
 function * _profileSaga (): SagaGenerator<any, any> {
-  yield [
-    safeTakeEvery(Constants.backToProfile, _backToProfile),
-    safeTakeEvery(Constants.editProfile, _editProfile),
-    safeTakeEvery(Constants.finishRevoking, _finishRevoking),
-    safeTakeEvery(Constants.onClickAvatar, _onClickAvatar),
-    safeTakeEvery(Constants.onClickFollowers, _onClickFollowers),
-    safeTakeEvery(Constants.onClickFollowing, _onClickFollowing),
-    safeTakeEvery(Constants.onUserClick, _onUserClick),
-    safeTakeEvery(Constants.outputInstructionsActionLink, _outputInstructionsActionLink),
-    safeTakeEvery(Constants.submitRevokeProof, _submitRevokeProof),
-  ]
+  yield safeTakeEvery(Constants.backToProfile, _backToProfile)
+  yield safeTakeEvery(Constants.editProfile, _editProfile)
+  yield safeTakeEvery(Constants.finishRevoking, _finishRevoking)
+  yield safeTakeEvery(Constants.onClickAvatar, _onClickAvatar)
+  yield safeTakeEvery(Constants.onClickFollowers, _onClickFollowers)
+  yield safeTakeEvery(Constants.onClickFollowing, _onClickFollowing)
+  yield safeTakeEvery(Constants.onUserClick, _onUserClick)
+  yield safeTakeEvery(Constants.outputInstructionsActionLink, _outputInstructionsActionLink)
+  yield safeTakeEvery(Constants.submitRevokeProof, _submitRevokeProof)
 }
 
 function * profileSaga (): SagaGenerator<any, any> {
-  yield [
-    call(_profileSaga),
-    call(pgpSaga),
-    call(proofsSaga),
-  ]
+  yield fork(_profileSaga)
+  yield fork(pgpSaga)
+  yield fork(proofsSaga)
 }
 
 export {

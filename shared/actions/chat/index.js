@@ -850,41 +850,39 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
 }
 
 function * chatSaga (): SagaGenerator<any, any> {
-  yield [
-    Saga.safeTakeSerially('chat:loadInbox', Inbox.onInitialInboxLoad),
-    Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale),
-    Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages)),
-    Saga.safeTakeLatest('chat:selectConversation', _selectConversation),
-    Saga.safeTakeEvery('chat:untrustedInboxVisible', Inbox.untrustedInboxVisible),
-    Saga.safeTakeEvery('chat:updateBadging', _updateBadging),
-    Saga.safeTakeEvery('chat:setupChatHandlers', _setupChatHandlers),
-    Saga.safeTakeEvery('chat:incomingMessage', _incomingMessage),
-    Saga.safeTakeEvery('chat:markThreadsStale', _markThreadsStale),
-    Saga.safeTakeEvery('chat:muteConversation', _muteConversation),
-    Saga.safeTakeEvery('chat:blockConversation', _blockConversation),
-    Saga.safeTakeEvery('chat:newChat', _newChat),
-    Saga.safeTakeEvery('chat:postMessage', Messages.postMessage),
-    Saga.safeTakeEvery('chat:editMessage', Messages.editMessage),
-    Saga.safeTakeEvery('chat:retryMessage', Messages.retryMessage),
-    Saga.safeTakeEvery('chat:startConversation', _startConversation),
-    Saga.safeTakeEvery('chat:updateMetadata', _updateMetadata),
-    Saga.safeTakeEvery('chat:appendMessages', _sendNotifications),
-    Saga.safeTakeEvery('chat:selectAttachment', Attachment.onSelectAttachment),
-    Saga.safeTakeEvery('chat:openConversation', _openConversation),
-    Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox),
-    Saga.safeTakeEvery('chat:loadAttachment', Attachment.onLoadAttachment),
-    Saga.safeTakeEvery('chat:loadAttachmentPreview', Attachment.onLoadAttachmentPreview),
-    Saga.safeTakeEvery('chat:openAttachmentPopup', Attachment.onOpenAttachmentPopup),
-    Saga.safeTakeLatest('chat:openFolder', _openFolder),
-    Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat),
-    Saga.safeTakeEvery('app:changedFocus', _changedFocus),
-    Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage),
-    Saga.safeTakeEvery('chat:openTlfInChat', _openTlfInChat),
-    Saga.safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false),
-    Saga.safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false),
-    Saga.safeTakeEvery('chat:saveAttachmentNative', Attachment.onSaveAttachmentNative),
-    Saga.safeTakeEvery('chat:shareAttachment', Attachment.onShareAttachment),
-  ]
+  yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
+  yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
+  yield Saga.safeTakeEvery('chat:blockConversation', _blockConversation)
+  yield Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage)
+  yield Saga.safeTakeEvery('chat:editMessage', Messages.editMessage)
+  yield Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox)
+  yield Saga.safeTakeEvery('chat:incomingMessage', _incomingMessage)
+  yield Saga.safeTakeEvery('chat:loadAttachment', Attachment.onLoadAttachment)
+  yield Saga.safeTakeEvery('chat:loadAttachmentPreview', Attachment.onLoadAttachmentPreview)
+  yield Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
+  yield Saga.safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false)
+  yield Saga.safeTakeEvery('chat:markThreadsStale', _markThreadsStale)
+  yield Saga.safeTakeEvery('chat:muteConversation', _muteConversation)
+  yield Saga.safeTakeEvery('chat:newChat', _newChat)
+  yield Saga.safeTakeEvery('chat:openAttachmentPopup', Attachment.onOpenAttachmentPopup)
+  yield Saga.safeTakeEvery('chat:openConversation', _openConversation)
+  yield Saga.safeTakeEvery('chat:openTlfInChat', _openTlfInChat)
+  yield Saga.safeTakeEvery('chat:postMessage', Messages.postMessage)
+  yield Saga.safeTakeEvery('chat:retryMessage', Messages.retryMessage)
+  yield Saga.safeTakeEvery('chat:saveAttachmentNative', Attachment.onSaveAttachmentNative)
+  yield Saga.safeTakeEvery('chat:selectAttachment', Attachment.onSelectAttachment)
+  yield Saga.safeTakeEvery('chat:setupChatHandlers', _setupChatHandlers)
+  yield Saga.safeTakeEvery('chat:shareAttachment', Attachment.onShareAttachment)
+  yield Saga.safeTakeEvery('chat:startConversation', _startConversation)
+  yield Saga.safeTakeEvery('chat:untrustedInboxVisible', Inbox.untrustedInboxVisible)
+  yield Saga.safeTakeEvery('chat:updateBadging', _updateBadging)
+  yield Saga.safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false)
+  yield Saga.safeTakeEvery('chat:updateMetadata', _updateMetadata)
+  yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
+  yield Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale)
+  yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInitialInboxLoad)
+  yield Saga.safeTakeLatest('chat:openFolder', _openFolder)
+  yield Saga.safeTakeLatest('chat:selectConversation', _selectConversation)
 }
 
 export default chatSaga

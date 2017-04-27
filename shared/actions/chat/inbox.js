@@ -5,7 +5,7 @@ import * as Creators from './creators'
 import * as Shared from './shared'
 import {List, Map} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
-import {call, put, select, race, fork} from 'redux-saga/effects'
+import {call, put, select, race, fork, cancel, cancelled, take} from 'redux-saga/effects'
 import {chatTab} from '../../constants/tabs'
 import {delay} from 'redux-saga'
 import {globalError} from '../../constants/config'
@@ -29,7 +29,8 @@ const _getInboxQuery = {
   unreadOnly: false,
 }
 
-let _inboxUntrustedError = null
+let _inboxUntrustedError
+let _backgroundLoopTask
 
 // Load the inbox if we haven't yet, mostly done by the UI
 function * onInitialInboxLoad (): SagaGenerator<any, any> {
@@ -41,9 +42,14 @@ function * onInitialInboxLoad (): SagaGenerator<any, any> {
   if (inboxUntrustedState === 'unloaded' || _inboxUntrustedError) {
     yield put(Creators.setInboxUntrustedState('loading'))
     _inboxUntrustedError = null
-    yield call(onInboxStale)
+    yield put(Creators.inboxStale())
     if (!isMobile) {
-      yield fork(_backgroundUnboxLoop)
+      // Only allow one loop at a time
+      if (_backgroundLoopTask) {
+        yield cancel(_backgroundLoopTask)
+      }
+      yield take('chat:loadedInbox')
+      _backgroundLoopTask = yield fork(_backgroundUnboxLoop)
     }
   }
 }
@@ -76,57 +82,63 @@ function * _updateFinalized (inbox: ChatTypes.GetInboxLocalRes) {
 
 // Loads the untrusted inbox only
 function * onInboxStale (): SagaGenerator<any, any> {
-  yield put(Creators.setInboxUntrustedState('loading'))
-  _inboxUntrustedError = null
+  try {
+    yield put(Creators.setInboxUntrustedState('loading'))
+    _inboxUntrustedError = null
 
-  const channelConfig = singleFixedChannelConfig(['chat.1.chatUi.chatInboxUnverified', 'finished'])
-  const loadInboxChanMap: ChannelMap<any> = ChatTypes.localGetInboxNonblockLocalRpcChannelMap(channelConfig, {
-    param: {
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-      maxUnbox: 0,
-      query: _getInboxQuery,
-    },
-  })
-
-  const chatInboxUnverified = yield takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxUnverified')
-
-  if (!chatInboxUnverified) {
-    throw new Error("Can't load inbox")
-  }
-
-  const inbox: ChatTypes.GetInboxLocalRes = chatInboxUnverified.params.inbox
-  yield call(_updateFinalized, inbox)
-
-  const author = yield select(usernameSelector)
-  const conversations: List<Constants.InboxState> = List((inbox.conversationsUnverified || []).map(c => {
-    if (c.metadata.visibility !== ChatTypes.CommonTLFVisibility.private) { // private chats only
-      return null
-    }
-
-    const msgMax = c.maxMsgSummaries && c.maxMsgSummaries.length && c.maxMsgSummaries[0]
-    if (!msgMax || msgMax.tlfName.includes('#')) { // We don't support mixed reader/writers
-      return null
-    }
-
-    return new Constants.InboxStateRecord({
-      conversationIDKey: Constants.conversationIDToKey(c.metadata.conversationID),
-      info: null,
-      participants: List(parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username)),
-      snippet: ' ',
-      state: 'untrusted',
-      status: Constants.ConversationStatusByEnum[c.metadata.status || 0],
-      time: c.readerInfo && c.readerInfo.mtime,
+    const channelConfig = singleFixedChannelConfig(['chat.1.chatUi.chatInboxUnverified', 'finished'])
+    const loadInboxChanMap: ChannelMap<any> = ChatTypes.localGetInboxNonblockLocalRpcChannelMap(channelConfig, {
+      param: {
+        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+        maxUnbox: 0,
+        query: _getInboxQuery,
+      },
     })
-  }).filter(Boolean))
 
-  yield put(Creators.setInboxUntrustedState('loaded'))
-  yield put(Creators.loadedInbox(conversations))
-  chatInboxUnverified.response.result()
+    const chatInboxUnverified = yield takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxUnverified')
+    chatInboxUnverified.response.result()
 
-  const initialConversation = yield select(state => state.chat.get('initialConversation'))
-  if (initialConversation) {
-    yield put(Creators.setInitialConversation(null))
-    yield put(navigateTo([initialConversation], [chatTab]))
+    if (!chatInboxUnverified) {
+      throw new Error("Can't load inbox")
+    }
+
+    const inbox: ChatTypes.GetInboxLocalRes = chatInboxUnverified.params.inbox
+    yield call(_updateFinalized, inbox)
+
+    const author = yield select(usernameSelector)
+    const conversations: List<Constants.InboxState> = List((inbox.conversationsUnverified || []).map(c => {
+      if (c.metadata.visibility !== ChatTypes.CommonTLFVisibility.private) { // private chats only
+        return null
+      }
+
+      const msgMax = c.maxMsgSummaries && c.maxMsgSummaries.length && c.maxMsgSummaries[0]
+      if (!msgMax || msgMax.tlfName.includes('#')) { // We don't support mixed reader/writers
+        return null
+      }
+
+      return new Constants.InboxStateRecord({
+        conversationIDKey: Constants.conversationIDToKey(c.metadata.conversationID),
+        info: null,
+        participants: List(parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username)),
+        snippet: ' ',
+        state: 'untrusted',
+        status: Constants.ConversationStatusByEnum[c.metadata.status || 0],
+        time: c.readerInfo && c.readerInfo.mtime,
+      })
+    }).filter(Boolean))
+
+    yield put(Creators.setInboxUntrustedState('loaded'))
+    yield put(Creators.loadedInbox(conversations))
+
+    const initialConversation = yield select(state => state.chat.get('initialConversation'))
+    if (initialConversation) {
+      yield put(Creators.setInitialConversation(null))
+      yield put(navigateTo([initialConversation], [chatTab]))
+    }
+  } finally {
+    if (yield cancelled()) {
+      yield put(Creators.setInboxUntrustedState('unloaded'))
+    }
   }
 }
 

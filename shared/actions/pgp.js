@@ -21,8 +21,8 @@ function * pgpSecurityModelChangeMessageSaga ({payload: {hitOk}}: PgpAckedMessag
   pgpStorageDismiss()
 }
 
-function * saga (): any {
+function * pgpSaga (): any {
   yield safeTakeEvery(Constants.pgpAckedMessage, pgpSecurityModelChangeMessageSaga)
 }
 
-export default saga
+export default pgpSaga

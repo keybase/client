@@ -373,18 +373,16 @@ function * loadSettingsSaga (): SagaGenerator<any, any> {
 }
 
 function * settingsSaga (): SagaGenerator<any, any> {
-  yield [
-    safeTakeEvery(Constants.invitesReclaim, reclaimInviteSaga),
-    safeTakeLatest(Constants.invitesRefresh, refreshInvitesSaga),
-    safeTakeEvery(Constants.invitesSend, sendInviteSaga),
-    safeTakeLatest(Constants.notificationsRefresh, refreshNotificationsSaga),
-    safeTakeLatest(Constants.notificationsSave, saveNotificationsSaga),
-    safeTakeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga),
-    safeTakeLatest(Constants.loadSettings, loadSettingsSaga),
-    safeTakeEvery(Constants.onSubmitNewEmail, _onSubmitNewEmail),
-    safeTakeEvery(Constants.onSubmitNewPassphrase, _onSubmitNewPassphrase),
-    safeTakeEvery(Constants.onUpdatePGPSettings, _onUpdatePGPSettings),
-  ]
+  yield safeTakeEvery(Constants.invitesReclaim, reclaimInviteSaga)
+  yield safeTakeLatest(Constants.invitesRefresh, refreshInvitesSaga)
+  yield safeTakeEvery(Constants.invitesSend, sendInviteSaga)
+  yield safeTakeLatest(Constants.notificationsRefresh, refreshNotificationsSaga)
+  yield safeTakeLatest(Constants.notificationsSave, saveNotificationsSaga)
+  yield safeTakeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga)
+  yield safeTakeLatest(Constants.loadSettings, loadSettingsSaga)
+  yield safeTakeEvery(Constants.onSubmitNewEmail, _onSubmitNewEmail)
+  yield safeTakeEvery(Constants.onSubmitNewPassphrase, _onSubmitNewPassphrase)
+  yield safeTakeEvery(Constants.onUpdatePGPSettings, _onUpdatePGPSettings)
 }
 
 export {

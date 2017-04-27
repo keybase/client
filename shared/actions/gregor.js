@@ -144,7 +144,7 @@ function * handleTLFUpdate (items: Array<NonNullGregorItem>): SagaGenerator<any,
   }
 }
 
-function * handlePushState (pushAction: PushState): SagaGenerator<any, any> {
+function * _handlePushState (pushAction: PushState): SagaGenerator<any, any> {
   if (!pushAction.error) {
     const {payload: {state}} = pushAction
     const nonNullItems = toNonNullGregorItems(state)
@@ -152,9 +152,7 @@ function * handlePushState (pushAction: PushState): SagaGenerator<any, any> {
       console.warn('Lost some messages in filtering out nonNull gregor items')
     }
 
-    yield [
-      call(handleTLFUpdate, nonNullItems),
-    ]
+    yield call(handleTLFUpdate, nonNullItems)
   } else {
     console.log('Error in gregor pushState', pushAction.payload)
   }
@@ -174,13 +172,10 @@ function * handleKbfsFavoritesOOBM (kbfsFavoriteMessages: Array<OutOfBandMessage
   }).filter(i => !!i)
 }
 
-function * handlePushOOBM (pushOOBM: pushOOBM) {
+function * _handlePushOOBM (pushOOBM: pushOOBM) {
   if (!pushOOBM.error) {
     const {payload: {messages}} = pushOOBM
-
-    yield [
-      call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites')),
-    ]
+    yield call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites'))
   } else {
     console.log('Error in gregor oobm', pushOOBM.payload)
   }
@@ -192,11 +187,9 @@ function * handleCheckReachability (): SagaGenerator<any, any> {
 }
 
 function * gregorSaga (): SagaGenerator<any, any> {
-  yield [
-    safeTakeEvery(Constants.pushState, handlePushState),
-    safeTakeEvery(Constants.pushOOBM, handlePushOOBM),
-    safeTakeLatest(Constants.checkReachability, handleCheckReachability),
-  ]
+  yield safeTakeEvery(Constants.pushState, _handlePushState)
+  yield safeTakeEvery(Constants.pushOOBM, _handlePushOOBM)
+  yield safeTakeLatest(Constants.checkReachability, handleCheckReachability)
 }
 
 export {
