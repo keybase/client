@@ -7,20 +7,15 @@ import {formatTimeForPopup} from '../../../util/timestamp'
 
 import type {Props} from './'
 
-const AttachmentView = ({isZoomed, onToggleZoom, messageState, path}: {isZoomed: boolean, onToggleZoom: () => void, path: ?string}) => {
-  if (path) {
-    return <NativeImage resizeMode='contain' source={{uri: `file://${path}`}} style={{alignItems: 'center', flexGrow: 1, justifyContent: 'center'}} />
-  } else {
-    return (
-      <Box style={styleContentsCenter}>
-        <ProgressIndicator style={{width: 48}} white={true} />
-      </Box>
-    )
-  }
-}
+const AttachmentView = ({isZoomed, onToggleZoom, messageState, path, previewSize}: {isZoomed: boolean, onToggleZoom: () => void, path: ?string, previewSize: ?{width: number, height: number}}) => (
+  <Box style={{...globalStyles.flexBoxCenter, flex: 1}}>
+    {!!path && <NativeImage resizeMode='contain' source={{uri: `file://${path}`}} style={{alignItems: 'center', flexGrow: 1, justifyContent: 'center', width: previewSize ? previewSize.width : 100, height: previewSize ? previewSize.height : 100}} />}
+    {!path && <ProgressIndicator style={{width: 48}} white={true} />}
+  </Box>
+)
 
 const AttachmentPopup = ({message, isZoomed, onClose, onDownloadAttachment, onDeleteMessage, onMessageAction, onToggleZoom, onOpenInFileUI, you}: Props) => {
-  const {messageState, previewType, title, author, timestamp} = message
+  const {messageState, previewType, title, author, timestamp, previewSize} = message
   let statusIcon
   if (messageState === 'downloading' || messageState === 'downloaded') {
     statusIcon = <AttachmentStatusIcon
@@ -59,7 +54,7 @@ const AttachmentPopup = ({message, isZoomed, onClose, onDownloadAttachment, onDe
       backgroundColor: globalColors.black,
     }}>
       <Text type='Body' onClick={onClose} style={{color: globalColors.white, marginLeft: globalMargins.small, marginTop: globalMargins.small}}>Close</Text>
-      <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={message.hdPreviewPath} />
+      <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={message.hdPreviewPath} previewSize={previewSize} />
       <Box style={styleHeaderFooter}>
         <Icon type='iconfont-ellipsis' style={{color: globalColors.white}} onClick={onMessageAction} />
       </Box>
@@ -75,17 +70,6 @@ const styleHeaderFooter = {
   height: 32,
   marginLeft: globalMargins.small,
   marginBottom: globalMargins.small,
-}
-
-const styleContentsFit = {
-  ...globalStyles.flexBoxRow,
-  flex: 1,
-}
-
-const styleContentsCenter = {
-  ...styleContentsFit,
-  alignItems: 'center',
-  justifyContent: 'center',
 }
 
 export default AttachmentPopup
