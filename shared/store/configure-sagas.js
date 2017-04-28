@@ -13,28 +13,26 @@ import profileSaga from '../actions/profile'
 import routeSaga from '../actions/route-tree'
 import settingsSaga from '../actions/settings'
 import pushSaga from '../actions/push'
-import {call} from 'redux-saga/effects'
+import {fork} from 'redux-saga/effects'
 import sagaMonitor from './saga-monitor'
 import {reduxSagaLogger} from '../local-debug'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
 function * mainSaga (): SagaGenerator<any, any> {
-  yield [
-    call(chatSaga),
-    call(deviceSaga),
-    call(favoriteSaga),
-    call(gregorSaga),
-    call(kbfsSaga),
-    call(loginSaga),
-    call(notificationsSaga),
-    call(pgpSaga),
-    call(planBillingSaga),
-    call(profileSaga),
-    call(pushSaga),
-    call(routeSaga),
-    call(settingsSaga),
-  ]
+  yield fork(chatSaga)
+  yield fork(deviceSaga)
+  yield fork(favoriteSaga)
+  yield fork(gregorSaga)
+  yield fork(kbfsSaga)
+  yield fork(loginSaga)
+  yield fork(notificationsSaga)
+  yield fork(pgpSaga)
+  yield fork(planBillingSaga)
+  yield fork(profileSaga)
+  yield fork(pushSaga)
+  yield fork(routeSaga)
+  yield fork(settingsSaga)
 }
 
 let middleWare

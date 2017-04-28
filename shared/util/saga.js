@@ -1,7 +1,7 @@
 // @flow
 import _ from 'lodash'
 import {buffers, channel} from 'redux-saga'
-import {take, call, put, race, takeEvery, takeLatest, fork} from 'redux-saga/effects'
+import {take, call, put, race, takeEvery, takeLatest, cancelled} from 'redux-saga/effects'
 import {globalError} from '../constants/config'
 import {convertToError} from '../util/errors'
 
@@ -72,6 +72,10 @@ function safeTakeEvery (pattern: string | Array<any> | Function, worker: Functio
           type: globalError,
         })
       })
+    } finally {
+      if (yield cancelled()) {
+        console.log('safeTakeEvery cancelled')
+      }
     }
   }
 
@@ -89,6 +93,10 @@ function safeTakeLatestWithCatch (pattern: string | Array<any> | Function | Chan
         type: globalError,
       })
       yield call(catchHandler, error)
+    } finally {
+      if (yield cancelled()) {
+        console.log('safeTakeLatestWithCatch cancelled')
+      }
     }
   }
 
@@ -97,36 +105,6 @@ function safeTakeLatestWithCatch (pattern: string | Array<any> | Function | Chan
 
 function safeTakeLatest (pattern: string | Array<any> | Function | Channel<any>, worker: Function | SagaGenerator<any, any>, ...args: Array<any>) {
   return safeTakeLatestWithCatch(pattern, () => {}, worker, ...args)
-}
-
-// take on pattern. If pattern happens while the original one is running just ignore it
-function * safeTakeSerially (pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>): any {
-  const wrappedWorker = function * (...args) {
-    try {
-      yield call(worker, ...args)
-    } catch (error) {
-      // Convert to global error so we don't kill the takeSerially while loop
-      yield put((dispatch) => {
-        dispatch({
-          payload: convertToError(error),
-          type: globalError,
-        })
-      })
-    }
-  }
-
-  const task = yield fork(function * () {
-    let lastTask
-    while (true) {
-      const action = yield take(pattern)
-      if (!lastTask || !lastTask.isRunning()) {
-        lastTask = yield fork(wrappedWorker, ...args.concat(action))
-      } else if (__DEV__) {
-        lastTask && console.log('safeTakeSerially ignoring incoming due to running existing task: ', pattern, args)
-      }
-    }
-  })
-  return task
 }
 
 function cancelWhen (predicate: (originalAction: Action, checkAction: Action) => boolean, worker: Function) {
@@ -150,7 +128,6 @@ export {
   safeTakeEvery,
   safeTakeLatest,
   safeTakeLatestWithCatch,
-  safeTakeSerially,
   singleFixedChannelConfig,
   takeFromChannelMap,
 }
