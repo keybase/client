@@ -329,8 +329,8 @@
 		},
 		{
 			"path": "github.com/keybase/npipe",
-			"revision": "1f399aeffbab7364397986a1b531b6f02b15cd3e",
-			"revisionTime": "2016-07-08T16:39:56-04:00"
+			"revision": "fcc44a83dcb12dae0f3f325c449bef3e1f38892b",
+			"revisionTime": "2017-04-28T11:20:20-07:00"
 		},
 		{
 			"path": "github.com/keybase/ps-go",
