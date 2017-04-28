@@ -492,8 +492,11 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             ...attachmentInfo,
             messageState,
             previewPath: null,
-            hdPreviewPath: null,
             downloadedPath: null,
+            savedPath: null,
+            previewProgress: null,
+            downloadProgress: null,
+            uploadProgress: null,
             outboxID,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDAttachment', common.messageID),
           }
@@ -515,6 +518,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             type: 'UpdateAttachment',
             updates: {
               ...attachmentInfo,
+              uploadProgress: null,
               messageState: 'sent',
             },
           }
@@ -873,6 +877,7 @@ function * chatSaga (): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:openTlfInChat', _openTlfInChat)
   yield Saga.safeTakeEvery('chat:postMessage', Messages.postMessage)
   yield Saga.safeTakeEvery('chat:retryMessage', Messages.retryMessage)
+  yield Saga.safeTakeEvery('chat:saveAttachment', Attachment.onSaveAttachment)
   yield Saga.safeTakeEvery('chat:saveAttachmentNative', Attachment.onSaveAttachmentNative)
   yield Saga.safeTakeEvery('chat:selectAttachment', Attachment.onSelectAttachment)
   yield Saga.safeTakeEvery('chat:setupChatHandlers', _setupChatHandlers)

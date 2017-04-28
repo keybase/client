@@ -35,7 +35,7 @@ function showShareActionSheet (options: {url?: ?any, message?: ?any}): Promise<{
 }
 
 type NextURI = string
-function saveAttachment (filePath: string): Promise<NextURI> {
+function saveAttachmentDialog (filePath: string): Promise<NextURI> {
   return CameraRoll.saveToCameraRoll(filePath)
 }
 
@@ -187,6 +187,6 @@ export {
   requestPushPermissions,
   showMainWindow,
   configurePush,
-  saveAttachment,
+  saveAttachmentDialog,
   showShareActionSheet,
 }

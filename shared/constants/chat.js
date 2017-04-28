@@ -38,7 +38,7 @@ export type FollowingMap = {[key: string]: boolean}
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
-export type AttachmentMessageState = MessageState | 'placeholder' | 'downloading-preview' | 'downloading' | 'uploading' | 'downloaded'
+export type AttachmentMessageState = MessageState | 'placeholder' | 'uploading'
 export type AttachmentType = 'Image' | 'Video' | 'Other'
 
 export type ConversationID = RPCConversationID
@@ -121,10 +121,12 @@ export type AttachmentMessage = {
   previewPath: ?string,
   previewSize: ?AttachmentSize,
   previewDurationMs: ?number,
-  hdPreviewPath: ?string,
   downloadedPath: ?string,
+  savedPath: string | null | false,
   outboxID?: ?OutboxIDKey,
-  progress?: number, /* between 0 - 1 */
+  previewProgress: number | null, /* between 0 - 1 */
+  downloadProgress: number | null, /* between 0 - 1 */
+  uploadProgress: number | null, /* between 0 - 1 */
   messageState: AttachmentMessageState,
   senderDeviceRevokedAt: ?number,
   key: MessageKey,
@@ -431,8 +433,10 @@ export type LoadAttachment = NoErrorTypedAction<'chat:loadAttachment', {
   messageID: MessageID,
   conversationIDKey: ConversationIDKey,
   loadPreview: boolean,
-  isHdPreview: boolean,
-  filename: string,
+}>
+export type SaveAttachment = NoErrorTypedAction<'chat:saveAttachment', {
+  messageID: MessageID,
+  conversationIDKey: ConversationIDKey,
 }>
 export type LoadAttachmentPreview = NoErrorTypedAction<'chat:loadAttachmentPreview', {
   message: AttachmentMessage,
@@ -441,7 +445,11 @@ export type AttachmentLoaded = NoErrorTypedAction<'chat:attachmentLoaded', {
   messageID: MessageID,
   conversationIDKey: ConversationIDKey,
   isPreview: boolean,
-  isHdPreview: boolean,
+  path: ?string,
+}>
+export type AttachmentSaved = NoErrorTypedAction<'chat:attachmentSaved', {
+  messageID: MessageID,
+  conversationIDKey: ConversationIDKey,
   path: ?string,
 }>
 export type UpdateTempMessage = TypedAction<'chat:updateTempMessage', {
@@ -459,7 +467,7 @@ export type MarkSeenMessage = NoErrorTypedAction<'chat:markSeenMessage', {
   messageKey: MessageKey,
 }>
 
-export type SaveAttachment = NoErrorTypedAction<'chat:saveAttachmentNative', {
+export type SaveAttachmentNative = NoErrorTypedAction<'chat:saveAttachmentNative', {
   message: AttachmentMessage,
 }>
 

@@ -4,7 +4,7 @@ import fs from 'fs'
 import fsExtra from 'fs-extra'
 import os from 'os'
 import path from 'path'
-
+import {findAvailableFilename} from './file.shared'
 import {cacheRoot} from '../constants/platform.desktop'
 
 function tmpDir (): string {
@@ -30,8 +30,8 @@ function tmpRandFile (suffix: string): Promise<string> {
 // TODO make this a user setting
 const downloadFolder = path.join(os.homedir(), 'Downloads')
 
-function downloadFilePath (suffix: string): string {
-  return _findAvailableFilename(path.join(downloadFolder, suffix))
+function downloadFilePath (suffix: string): Promise<string> {
+  return findAvailableFilename(exists, path.join(downloadFolder, suffix))
 }
 
 function exists (filepath: string): Promise<boolean> {
@@ -40,24 +40,6 @@ function exists (filepath: string): Promise<boolean> {
       resolve(!err)
     })
   })
-}
-
-function _findAvailableFilename (filepath: string): string {
-  const {name, ext, dir} = path.parse(filepath)
-  for (let i = 1; i < 1000; i++) {
-    if (fs.existsSync(filepath)) {
-      filepath = path.format({
-        dir,
-        ext,
-        name: `${name} (${i})`,
-      })
-    } else {
-      return filepath
-    }
-  }
-
-  // They have more than 1k of the same file??
-  return filepath
 }
 
 function copy (from: string, to: string) {

@@ -104,6 +104,33 @@ function updateConversationMessage (conversationStates: ConversationsStates, con
   )
 }
 
+function updateStateWithMessageChanged (state: Constants.State, conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, toMerge: $Shape<Constants.Message>) {
+  let messageKey
+
+  // $FlowIssue
+  let newState = state.update('conversationStates', conversationStates => updateConversationMessage(
+    conversationStates,
+    conversationIDKey,
+    item => !!item.messageID && item.messageID === messageID,
+    m => {
+      messageKey = m.key
+      return {
+        ...m,
+        ...toMerge,
+      }
+    }
+  ))
+
+  if (messageKey) {
+    newState = newState.set('messageMap', state.get('messageMap').update(messageKey, message => ({
+      ...message,
+      ...toMerge,
+    })))
+  }
+
+  return newState
+}
+
 function sortInbox (inbox: List<Constants.InboxState>): List<Constants.InboxState> {
   return inbox.sort((a, b) => {
     return b.get('time') - a.get('time')
@@ -250,16 +277,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
     }
     case 'chat:updateMessage': {
       const {messageID, message, conversationIDKey} = action.payload
-      // $FlowIssue
-      return state.update('conversationStates', conversationStates => updateConversationMessage(
-        conversationStates,
-        conversationIDKey,
-        item => !!item.messageID && item.messageID === messageID,
-        m => ({
-          ...m,
-          ...message,
-        })
-      )).set('messageMap', state.get('messageMap').set(message.key, message))
+      return updateStateWithMessageChanged(state, conversationIDKey, messageID, message)
     }
     case 'chat:markSeenMessage': {
       const {messageKey, conversationIDKey} = action.payload
@@ -280,31 +298,19 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       return state.set('pendingFailures', state.get('pendingFailures').delete(outboxID))
     }
     case 'chat:attachmentLoaded': {
-      const {conversationIDKey, messageID, path, isPreview, isHdPreview} = action.payload
-      const messageKey = Constants.messageKey(conversationIDKey, 'messageIDAttachment', messageID)
-
+      const {conversationIDKey, messageID, path, isPreview} = action.payload
       let toMerge
       if (isPreview) {
-        toMerge = {previewPath: path, messageState: 'sent'}
-      } else if (isHdPreview) {
-        toMerge = {hdPreviewPath: path, messageState: 'sent'}
+        toMerge = {previewPath: path, previewProgress: null}
       } else {
-        toMerge = {downloadedPath: path, messageState: path ? 'downloaded' : 'sent'}
+        toMerge = {downloadedPath: path, downloadProgress: null}
       }
-
-      // $FlowIssue
-      return state.update('conversationStates', conversationStates => updateConversationMessage(
-        conversationStates,
-        conversationIDKey,
-        item => !!item.messageID && item.messageID === messageID,
-        m => ({
-          ...m,
-          ...toMerge,
-        })
-      )).set('messageMap', state.get('messageMap').update(messageKey, message => ({
-        ...message,
-        ...toMerge,
-      })))
+      return updateStateWithMessageChanged(state, conversationIDKey, messageID, toMerge)
+    }
+    case 'chat:attachmentSaved': {
+      const {conversationIDKey, messageID, path} = action.payload
+      const toMerge = {savedPath: path}
+      return updateStateWithMessageChanged(state, conversationIDKey, messageID, toMerge)
     }
     case 'chat:downloadProgress': {
       const {conversationIDKey, messageID, isPreview, bytesComplete, bytesTotal} = action.payload
@@ -312,44 +318,20 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       if (bytesTotal) {
         progress = bytesComplete / bytesTotal
       }
-      const messageKey = Constants.messageKey(conversationIDKey, 'messageIDAttachment', messageID)
-
-      // $FlowIssue
-      return state.update('conversationStates', conversationStates => updateConversationMessage(
-        conversationStates,
-        conversationIDKey,
-        item => !!item.messageID && item.messageID === messageID,
-        m => ({
-          ...m,
-          messageState: isPreview ? 'downloading-preview' : 'downloading',
-          progress,
-        })
-      )).set('messageMap', state.get('messageMap').update(messageKey, message => ({
-        ...message,
-        messageState: isPreview ? 'downloading-preview' : 'downloading',
-        progress,
-      })))
+      const progressField = isPreview ? 'previewProgress' : 'downloadProgress'
+      const toMerge = {
+        [progressField]: progress,
+      }
+      return updateStateWithMessageChanged(state, conversationIDKey, messageID, toMerge)
     }
     case 'chat:uploadProgress': {
       const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
-      const progress = bytesComplete / bytesTotal
-      const messageKey = Constants.messageKey(conversationIDKey, 'messageIDAttachment', messageID)
-
-      // $FlowIssue
-      return state.update('conversationStates', conversationStates => updateConversationMessage(
-        conversationStates,
-        conversationIDKey,
-        item => !!item.messageID && item.messageID === messageID,
-        m => ({
-          ...m,
-          messageState: 'uploading',
-          progress,
-        })
-      )).set('messageMap', state.get('messageMap').update(messageKey, message => ({
-        ...message,
+      const uploadProgress = bytesComplete / bytesTotal
+      const toMerge = {
         messageState: 'uploading',
-        progress,
-      })))
+        uploadProgress,
+      }
+      return updateStateWithMessageChanged(state, conversationIDKey, messageID, toMerge)
     }
     case 'chat:markThreadsStale': {
       const {convIDs} = action.payload

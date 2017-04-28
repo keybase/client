@@ -7,13 +7,13 @@ declare function showMainWindow (): AsyncAction
 declare function showShareActionSheet (options: {url?: ?any, message?: ?any}): Promise<{completed: boolean, method: string}>
 
 type NextURI = string
-declare function saveAttachment (filePath: string): Promise<NextURI>
+declare function saveAttachmentDialog (filePath: string): Promise<NextURI>
 
 
 export {
   requestPushPermissions,
   showMainWindow,
   configurePush,
-  saveAttachment,
+  saveAttachmentDialog,
   showShareActionSheet,
 }

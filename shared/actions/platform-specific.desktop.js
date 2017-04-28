@@ -8,7 +8,7 @@ function showShareActionSheet (options: {url?: ?any, message?: ?any}): Promise<{
 }
 
 type NextURI = string
-function saveAttachment (filePath: string): Promise<NextURI> {
+function saveAttachmentDialog (filePath: string): Promise<NextURI> {
   throw new Error('Save Attachment - unsupported on this platform')
 }
 
@@ -30,6 +30,6 @@ export {
   requestPushPermissions,
   showMainWindow,
   configurePush,
-  saveAttachment,
+  saveAttachmentDialog,
   showShareActionSheet,
 }

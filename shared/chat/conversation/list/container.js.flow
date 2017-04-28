@@ -15,7 +15,7 @@ export type StateProps = {|
 |}
 
 export type DispatchProps = {|
-  _onLoadAttachment: (selectedConversation: Constants.ConversationIDKey, messageID: Constants.MessageID, filename: string) => void,
+  _onDownloadAttachment: (selectedConversation: Constants.ConversationIDKey, messageID: Constants.MessageID) => void,
   _onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => void,
   onDeleteMessage: (message: Constants.Message) => void,
   onEditMessage: (message: Constants.Message, body: string) => void,

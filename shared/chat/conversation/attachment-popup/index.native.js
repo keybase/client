@@ -28,7 +28,7 @@ const AttachmentView = ({isZoomed, onToggleZoom, path}: {isZoomed: boolean, onTo
 )
 
 const AttachmentPopup = ({message, isZoomed, onClose, onDownloadAttachment, onDeleteMessage, onMessageAction, onToggleZoom, onOpenInFileUI, you}: Props) => {
-  const {previewType, title, author, timestamp} = message
+  const {previewType, title, author, timestamp, downloadedPath} = message
 
   if (!previewType || previewType === 'Other') {
     return (
@@ -59,7 +59,7 @@ const AttachmentPopup = ({message, isZoomed, onClose, onDownloadAttachment, onDe
       backgroundColor: globalColors.black,
     }}>
       <Text type='Body' onClick={onClose} style={{color: globalColors.white, marginLeft: globalMargins.small, marginTop: globalMargins.small}}>Close</Text>
-      <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={message.hdPreviewPath} />
+      <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={downloadedPath} />
       <Box style={styleHeaderFooter}>
         <Icon type='iconfont-ellipsis' style={{color: globalColors.white}} onClick={onMessageAction} />
       </Box>

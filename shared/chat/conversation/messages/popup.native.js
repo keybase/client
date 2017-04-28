@@ -119,7 +119,7 @@ export default connect(
     onDeleteMessage: (message: ServerMessage) => { dispatch(deleteMessage(message)) },
     onHidden: () => dispatch(navigateUp()),
     onShowEditor: () => dispatch(showEditor(routeProps.message)),
-    onSaveAttachment: (message) => dispatch(({type: 'chat:saveAttachmentNative', payload: {message}}: ChatConstants.SaveAttachment)),
+    onSaveAttachment: (message) => dispatch(({type: 'chat:saveAttachmentNative', payload: {message}}: ChatConstants.SaveAttachmentNative)),
     onShareAttachment: (message) => dispatch(({type: 'chat:shareAttachment', payload: {message}}: ChatConstants.ShareAttachment)),
   })
 )(MessagePopup)

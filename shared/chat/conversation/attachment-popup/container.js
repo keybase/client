@@ -3,12 +3,11 @@ import {compose, withState, withProps} from 'recompose'
 import RenderAttachmentPopup from './'
 import {connect} from 'react-redux'
 import {deleteMessage} from '../../../actions/chat/creators'
-import {downloadFilePath} from '../../../util/file'
 import * as Constants from '../../../constants/chat'
 
 import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
-import type {ConversationIDKey, LoadAttachment, AttachmentMessage, MessageID} from '../../../constants/chat'
+import type {ConversationIDKey, SaveAttachment, AttachmentMessage, MessageID} from '../../../constants/chat'
 import type {OpenInFileUI} from '../../../constants/kbfs'
 
 type AttachmentPopupRouteProps = RouteProps<{
@@ -61,15 +60,12 @@ export default compose(
           throw new Error('Cannot download attachment with missing messageID or filename')
         }
         dispatch(({
-          type: 'chat:loadAttachment',
+          type: 'chat:saveAttachment',
           payload: {
             conversationIDKey: message.conversationIDKey,
-            filename: downloadFilePath(message.filename),
-            loadPreview: false,
-            isHdPreview: false,
             messageID,
           },
-        }: LoadAttachment))
+        }: SaveAttachment))
       },
       onOpenInFileUI: (path: string) => dispatch(({
         type: 'fs:openInFileUI',
@@ -87,7 +83,7 @@ export default compose(
         },
         onMessageAction: () => dispatchProps._onMessageAction(message),
         onDownloadAttachment: () => dispatchProps.onDownloadAttachment(message),
-        onOpenInFileUI: () => dispatchProps.onOpenInFileUI(message.downloadedPath),
+        onOpenInFileUI: () => dispatchProps.onOpenInFileUI(message.savedPath),
       }
     },
   ),

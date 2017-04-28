@@ -8,7 +8,6 @@ import {List} from 'immutable'
 import {chatTab} from '../../../../constants/tabs'
 import {compose, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
-import {downloadFilePath} from '../../../../util/file'
 import {getPath} from '../../../../route-tree'
 
 import type {OpenInFileUI} from '../../../../constants/kbfs'
@@ -31,9 +30,9 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onLoadAttachment: (selectedConversation, messageID, filename) => {
-    if (selectedConversation && messageID && filename) {
-      dispatch(Creators.loadAttachment(selectedConversation, messageID, downloadFilePath(filename), false, false))
+  _onDownloadAttachment: (selectedConversation, messageID) => {
+    if (selectedConversation && messageID) {
+      dispatch(Creators.saveAttachment(selectedConversation, messageID))
     }
   },
   _onEnsurePreviewLoaded: (message: Constants.AttachmentMessage) => dispatch(Creators.loadAttachmentPreview(message)),
@@ -52,7 +51,7 @@ const mergeProps = (stateProps, dispatchProps, {measure, onAction}: OwnProps) =>
       setImmediate(() => dispatchProps._onEnsurePreviewLoaded(stateProps.message))
     }
   },
-  onLoadAttachment: () => { dispatchProps._onLoadAttachment(stateProps.selectedConversation, stateProps.message.messageID, stateProps.message.filename) },
+  onDownloadAttachment: () => { dispatchProps._onDownloadAttachment(stateProps.selectedConversation, stateProps.message.messageID) },
   onOpenInFileUI: () => { dispatchProps._onOpenInFileUI(stateProps.message.downloadedPath) },
   onOpenInPopup: () => { dispatchProps._onOpenInPopup(stateProps.message, stateProps.routePath) },
 })
