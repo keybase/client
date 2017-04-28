@@ -320,7 +320,7 @@ def runNixTest(prefix) {
         dir('test') {
             println "Test with Fuse but no Race"
             sh 'go test -c -tags fuse -o test.fuse'
-            sh './test.fuse -test.timeout 7m'
+            sh './test.fuse -test.timeout 10m'
         }
     }
     parallel (tests)
