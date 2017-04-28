@@ -35,7 +35,6 @@ helpers.rootLinuxNode(env, {
         ]),
     ])
     def kbwebNodePrivateIP = params.kbwebNodePrivateIP
-    def kbwebNodePublicIP = params.kbwebNodePublicIP
     def clientProjectName = params.clientProjectName
 
     env.BASEDIR=pwd()
@@ -52,7 +51,7 @@ helpers.rootLinuxNode(env, {
         println "Setting up build: ${env.BUILD_TAG}"
         def cause = helpers.getCauseString(currentBuild)
         println "Cause: ${cause}"
-        def startKbweb = kbwebNodePrivateIP == '' || kbwebNodePublicIP == ''
+        def startKbweb = kbwebNodePrivateIP == ''
 
         stage("Setup") {
             sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
@@ -133,39 +132,36 @@ helpers.rootLinuxNode(env, {
                                 sh "docker-compose up -d mysql.local"
                             }
                             sh "docker-compose up -d kbweb.local"
-                            sh "curl -s http://169.254.169.254/latest/meta-data/public-ipv4 > public.txt"
                             sh "curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > private.txt"
-                            kbwebNodePublicIP = readFile('public.txt')
                             kbwebNodePrivateIP = readFile('private.txt')
-                            sh "rm public.txt"
                             sh "rm private.txt"
                         }
                         parallel (
-                            //test_linux: {
-                            //    withEnv([
-                            //        "PATH=${env.PATH}:${env.GOPATH}/bin",
-                            //    ]) {
-                            //        runNixTest('linux_')
-                            //    }
-                            //},
-                            //test_windows: {
-                            //    helpers.nodeWithCleanup('windows', {}, {}) {
-                            //    withEnv([
-                            //        'GOROOT=C:\\tools\\go',
-                            //        "GOPATH=\"${pwd()}\\go\"",
-                            //        'PATH+TOOLS="C:\\tools\\go\\bin";"C:\\Program Files (x86)\\GNU\\GnuPG";',
-                            //        "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                            //        "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
-                            //    ]) {
-                            //    deleteDir()
-                            //    ws("${pwd()}/src/github.com/keybase/client") {
-                            //        println "Checkout Windows"
-                            //        checkout scm
+                            test_linux: {
+                                withEnv([
+                                    "PATH=${env.PATH}:${env.GOPATH}/bin",
+                                ]) {
+                                    runNixTest('linux_')
+                                }
+                            },
+                            test_windows: {
+                                helpers.nodeWithCleanup('windows', {}, {}) {
+                                withEnv([
+                                    'GOROOT=C:\\tools\\go',
+                                    "GOPATH=\"${pwd()}\\go\"",
+                                    'PATH+TOOLS="C:\\tools\\go\\bin";"C:\\Program Files (x86)\\GNU\\GnuPG";',
+                                    "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                                ]) {
+                                deleteDir()
+                                ws("${pwd()}/src/github.com/keybase/client") {
+                                    println "Checkout Windows"
+                                    checkout scm
 
-                            //        println "Test Windows"
-                            //        // TODO Implement Windows test
-                            //    }}}
-                            //},
+                                    println "Test Windows"
+                                    // TODO Implement Windows test
+                                }}}
+                            },
                             test_osx: {
                                 helpers.nodeWithCleanup('macstadium', {}, {}) {
                                     def BASEDIR=pwd()
@@ -173,8 +169,8 @@ helpers.rootLinuxNode(env, {
                                     withEnv([
                                         "PATH=${env.PATH}:${GOPATH}/bin",
                                         "GOPATH=${GOPATH}",
-                                        "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
-                                        "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
+                                        "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                        "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                     ]) {
                                         ws("${GOPATH}/src/github.com/keybase/kbfs") {
                                             println "Checkout OS X"
@@ -188,17 +184,17 @@ helpers.rootLinuxNode(env, {
                             },
                         )
                     },
-                    //integrate: {
-                    //    build([
-                    //        job: "/kbfs-server/master",
-                    //        parameters: [
-                    //            [$class: 'StringParameterValue',
-                    //                name: 'kbfsProjectName',
-                    //                value: env.JOB_NAME,
-                    //            ],
-                    //        ]
-                    //    ])
-                    //},
+                    integrate: {
+                        build([
+                            job: "/kbfs-server/master",
+                            parameters: [
+                                [$class: 'StringParameterValue',
+                                    name: 'kbfsProjectName',
+                                    value: env.JOB_NAME,
+                                ],
+                            ]
+                        ])
+                    },
                 )
             } catch (ex) {
                 println "Gregor logs:"
