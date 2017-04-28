@@ -4884,7 +4884,6 @@ func TestForceFastForwardOnEmptyTLF(t *testing.T) {
 
 func TestKBFSOpsSyncAllTwoFiles(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
-	// TODO: Use kbfsTestShutdownNoMocks.
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
 	// create a file.
@@ -4923,7 +4922,6 @@ func TestKBFSOpsSyncAllTwoFiles(t *testing.T) {
 
 func TestKBFSOpsCreateSyncAll(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice", "bob")
-	// TODO: Use kbfsTestShutdownNoMocks.
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
 	// Manually create a file without actually syncing it.
@@ -5031,7 +5029,6 @@ func TestKBFSOpsCreateSyncAll(t *testing.T) {
 
 func TestKBFSOpsRemoveSyncAll(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice", "bob")
-	// TODO: Use kbfsTestShutdownNoMocks.
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
 	rootNode := GetRootNodeOrBust(ctx, t, config, "alice,bob", false)
@@ -5084,7 +5081,6 @@ func TestKBFSOpsRemoveSyncAll(t *testing.T) {
 
 func TestKBFSOpsRenameSameDirSyncAll(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice", "bob")
-	// TODO: Use kbfsTestShutdownNoMocks.
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
 	rootNode := GetRootNodeOrBust(ctx, t, config, "alice,bob", false)
@@ -5157,7 +5153,6 @@ func TestKBFSOpsRenameSameDirSyncAll(t *testing.T) {
 
 func TestKBFSOpsSetExSyncAll(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice", "bob")
-	// TODO: Use kbfsTestShutdownNoMocks.
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
 	rootNode := GetRootNodeOrBust(ctx, t, config, "alice,bob", false)
@@ -5221,8 +5216,8 @@ func TestKBFSOpsSetExSyncAll(t *testing.T) {
 	config2 := ConfigAsUser(config, "bob")
 	defer CheckConfigAndShutdown(ctx, t, config2)
 
-	//rootNodeBob := GetRootNodeOrBust(ctx, t, config2, "alice,bob", false)
-	//checkChild(config2, rootNodeBob)
+	rootNodeBob := GetRootNodeOrBust(ctx, t, config2, "alice,bob", false)
+	checkChild(config2, rootNodeBob)
 
 	if len(ops.blocks.deCache) > 0 {
 		t.Fatalf("%d unexpected deCache entries leftover",
