@@ -110,3 +110,12 @@ type FetchRetrier interface {
 	Success(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, kind FetchType) error
 	Force(ctx context.Context)
 }
+
+type ConvLoader interface {
+	Offlinable
+	Resumable
+
+	// Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
+	//	identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error)
+	// ForceDeliverLoop(ctx context.Context)
+}

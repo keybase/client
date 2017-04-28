@@ -285,11 +285,14 @@ func (d *Service) createChatModules() {
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g, tlf), d.attachmentstore, ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
+	g.ConvLoader = chat.NewBackgroundConvLoader(g)
+
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
 	chatSyncer.RegisterOfflinable(g.ConvSource)
 	chatSyncer.RegisterOfflinable(g.FetchRetrier)
 	chatSyncer.RegisterOfflinable(g.MessageDeliverer)
+	chatSyncer.RegisterOfflinable(g.ConvLoader)
 
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh
