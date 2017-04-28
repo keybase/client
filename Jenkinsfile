@@ -227,6 +227,10 @@ helpers.rootLinuxNode(env, {
 }
 
 def runNixTest(prefix) {
+    // Dependencies
+    dir('test') {
+        sh 'go test -i -tags fuse'
+    }
     tests = [:]
     // Run libkbfs tests with an in-memory bserver and mdserver, and run
     // all other tests with the tempdir bserver and mdserver.
@@ -311,7 +315,6 @@ def runNixTest(prefix) {
     }
     tests[prefix+'test'] = {
         dir('test') {
-            sh 'go test -i -tags fuse'
             println "Test Dir with Race but no Fuse"
             sh 'go test -race -c'
             sh './test.test -test.timeout 7m'
