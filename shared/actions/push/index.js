@@ -4,6 +4,7 @@ import * as Creators from './creators'
 import {isMobile} from '../../constants/platform'
 import {apiserverDeleteRpcPromise, apiserverPostRpcPromise} from '../../constants/types/flow-types'
 import {call, put, take, select} from 'redux-saga/effects'
+import {delay} from 'redux-saga'
 import {chatTab} from '../../constants/tabs'
 import {navigateTo} from '../route-tree'
 import {safeTakeEvery, safeTakeLatest} from '../../util/saga'
@@ -37,8 +38,10 @@ function * pushNotificationSaga (notification: Constants.PushNotification): Saga
   const payload = notification.payload
   if (payload && payload.userInteraction) {
     const convID = payload.data ? payload.data.convID : payload.convID
-    if (payload.data && payload.data.U) {
-      console.info('Skipping silent notification')
+    if (payload.data && payload.data.silent) {
+      console.info('Push notification: pausing on silent notification')
+      yield call(delay, 10 * 1000);
+      console.info('Push notification: pause complete, returning')
       return
     }
     if (!convID) {

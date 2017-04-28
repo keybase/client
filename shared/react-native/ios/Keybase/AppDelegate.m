@@ -32,6 +32,8 @@ const BOOL isDebug = NO;
 
 @implementation AppDelegate
 
+UIBackgroundTaskIdentifier backgroundTask;
+
 - (BOOL)addSkipBackupAttributeToItemAtPath:(NSString *) filePathString
 {
   NSURL * URL = [NSURL fileURLWithPath: filePathString];
@@ -41,6 +43,16 @@ const BOOL isDebug = NO;
     NSLog(@"Error excluding %@ from backup %@", [URL lastPathComponent], error);
   }
   return success;
+}
+
+- (void) createLevelDBDir:(NSString*) path
+{
+  NSFileManager* fm = [NSFileManager defaultManager];
+  NSDictionary* noProt = [NSDictionary dictionaryWithObject:NSFileProtectionCompleteUnlessOpen forKey:NSFileProtectionKey];
+  [fm createDirectoryAtPath:path withIntermediateDirectories:YES
+                 attributes:noProt
+                      error:nil];
+  [fm setAttributes:noProt ofItemAtPath:path error:nil];
 }
 
 - (void) setupGo
@@ -55,16 +67,22 @@ const BOOL isDebug = NO;
   NSString * home = NSHomeDirectory();
 
   NSString * keybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
+  NSString * levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
+  NSString * chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
   NSString * serviceLogFile = skipLogFile ? @"" : [@"~/Library/Caches/Keybase/ios.log" stringByExpandingTildeInPath];
   NSString * rnLogFile = [@"~/Library/Caches/Keybase/rn.log" stringByExpandingTildeInPath];
-
+  NSFileManager* fm = [NSFileManager defaultManager];
+  
   // Make keybasePath if it doesn't exist
-  [[NSFileManager defaultManager] createDirectoryAtPath:keybasePath
+  [fm createDirectoryAtPath:keybasePath
                             withIntermediateDirectories:YES
-                                             attributes:nil
-                                                  error:nil];
+                            attributes:nil
+                            error:nil];
   [self addSkipBackupAttributeToItemAtPath:keybasePath];
-
+  
+  // Create LevelDB directories with a slightly lower data protection mode so we can use them in the background
+  [self createLevelDBDir:chatLevelDBPath];
+  [self createLevelDBDir:levelDBPath];
 
   NSError * err;
   self.engine = [[Engine alloc] initWithSettings:@{
@@ -133,10 +151,18 @@ const BOOL isDebug = NO;
 }
 // fetch notifications in the background and foreground
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
+
+  // Mark a background task so we don't get insta killed by the OS
+  if (!backgroundTask || backgroundTask == UIBackgroundTaskInvalid) {
+    backgroundTask = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
+      [[UIApplication sharedApplication] endBackgroundTask:backgroundTask];
+      backgroundTask = UIBackgroundTaskInvalid;
+    }];
+  }
+  
   [RCTPushNotificationManager didReceiveRemoteNotification:notification];
   completionHandler(UIBackgroundFetchResultNewData);
-  NSLog(@"Silent Notification Body %@", notification);
-}
+  }
 // Required for the localNotification event.
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
 {
