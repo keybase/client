@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../constants/settings'
 import HiddenString from '../util/hidden-string'
-import {apiserverGetRpcPromise, apiserverGetWithSessionRpcPromise, apiserverPostRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise, accountEmailChangeRpcPromise, accountPassphraseChangeRpcPromise, accountHasServerKeysRpcPromise, userLoadMySettingsRpcPromise} from '../constants/types/flow-types'
+import {apiserverGetWithSessionRpcPromise, apiserverPostRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise, accountEmailChangeRpcPromise, accountPassphraseChangeRpcPromise, accountHasServerKeysRpcPromise, userLoadMySettingsRpcPromise} from '../constants/types/flow-types'
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {setDeletedSelf} from '../actions/login/creators'
@@ -312,7 +312,7 @@ function * refreshNotificationsSaga (): SagaGenerator<any, any> {
       }})
   })
 
-  const json: ?{body: string} = yield call(apiserverGetRpcPromise, {
+  const json: ?{body: string} = yield call(apiserverGetWithSessionRpcPromise, {
     param: {
       endpoint: 'account/subscriptions',
       args: [],
