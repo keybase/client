@@ -23,12 +23,12 @@ public class LogSend extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void logSend(String feedback, boolean sendLogs, Promise promise) {
+    public void logSend(String status, String feedback, boolean sendLogs, Promise promise) {
         String versionCode = String.valueOf(BuildConfig.VERSION_CODE);
         String versionName = BuildConfig.VERSION_NAME;
 
         try {
-            final String logID = Keybase.logSend(feedback, versionName, versionCode, sendLogs, logFilePath);
+            final String logID = Keybase.logSend(status, feedback, versionName, versionCode, sendLogs, logFilePath);
             promise.resolve(logID);
         } catch (Exception e) {
             promise.reject(e);

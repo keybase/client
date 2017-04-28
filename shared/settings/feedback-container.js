@@ -6,12 +6,13 @@ import Feedback from './feedback'
 import logSend from '../native/log-send'
 import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
-import {isElectron, isIOS} from '../constants/platform'
+import {isElectron, isIOS, isAndroid, appVersionName, appVersionCode, version} from '../constants/platform'
 import {dumpLoggers} from '../util/periodic-logger'
 import {writeStream, cachesDirectoryPath} from '../util/file'
 import {serialPromises} from '../util/promise'
 
 import type {Dispatch} from '../constants/types/flux'
+import type {TypedState} from '../constants/reducer'
 
 const FeedbackWrapped = compose(
   withState('sendLogs', 'onChangeSendLogs', true),
@@ -95,7 +96,7 @@ class FeedbackContainer extends Component<void, {}, State> {
       this._dumpLogs()
         .then(() => {
           console.log('Sending log to daemon')
-          return logSend(feedback, sendLogs)
+          return logSend(this.props.status, feedback, sendLogs)
         })
         .then(logSendId => {
           console.warn('logSendId is', logSendId)
@@ -115,7 +116,21 @@ class FeedbackContainer extends Component<void, {}, State> {
 
 export default compose(
   connect(
-  null,
+  (state: TypedState) => {
+    return {
+      status: JSON.stringify({
+        username: state.config.username,
+        uid: state.config.uid,
+        deviceID: state.config.deviceID,
+        status: state.config.status,
+        extendedStatus: state.config.extendedConfig,
+        platform: isAndroid ? 'android' : isIOS ? 'ios' : 'desktop',
+        version,
+        appVersionName,
+        appVersionCode,
+      }),
+    }
+  },
   (dispatch: Dispatch, {navigateUp}) => ({
     title: 'Feedback',
     onBack: () => dispatch(navigateUp()),
