@@ -144,24 +144,24 @@ helpers.rootLinuxNode(env, {
                                     runNixTest('linux_')
                                 }
                             },
-                            test_windows: {
-                                helpers.nodeWithCleanup('windows', {}, {}) {
-                                withEnv([
-                                    'GOROOT=C:\\tools\\go',
-                                    "GOPATH=\"${pwd()}\\go\"",
-                                    'PATH+TOOLS="C:\\tools\\go\\bin";"C:\\Program Files (x86)\\GNU\\GnuPG";',
-                                    "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                                ]) {
-                                deleteDir()
-                                ws("${pwd()}/src/github.com/keybase/client") {
-                                    println "Checkout Windows"
-                                    checkout scm
+                            //test_windows: {
+                            //    helpers.nodeWithCleanup('windows', {}, {}) {
+                            //    withEnv([
+                            //        'GOROOT=C:\\tools\\go',
+                            //        "GOPATH=\"${pwd()}\\go\"",
+                            //        'PATH+TOOLS="C:\\tools\\go\\bin";"C:\\Program Files (x86)\\GNU\\GnuPG";',
+                            //        "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                            //        "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                            //    ]) {
+                            //    deleteDir()
+                            //    ws("${pwd()}/src/github.com/keybase/client") {
+                            //        println "Checkout Windows"
+                            //        checkout scm
 
-                                    println "Test Windows"
-                                    // TODO Implement Windows test
-                                }}}
-                            },
+                            //        println "Test Windows"
+                            //        // TODO Implement Windows test
+                            //    }}}
+                            //},
                             test_osx: {
                                 helpers.nodeWithCleanup('macstadium', {}, {}) {
                                     def BASEDIR=pwd()
