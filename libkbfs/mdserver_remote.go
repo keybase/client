@@ -707,10 +707,11 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id tlf.ID,
 
 	// register
 	var c chan error
-	err := md.getConn().DoCommand(ctx, "register", func(rawClient rpc.GenericClient) error {
+	conn := md.getConn()
+	err := conn.DoCommand(ctx, "register", func(rawClient rpc.GenericClient) error {
 		// set up the server to receive updates, since we may
 		// get disconnected between retries.
-		server := md.getConn().GetServer()
+		server := conn.GetServer()
 		err := server.Register(keybase1.MetadataUpdateProtocol(md))
 		if err != nil {
 			if _, ok := err.(rpc.AlreadyRegisteredError); !ok {
