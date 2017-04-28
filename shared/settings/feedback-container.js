@@ -27,7 +27,7 @@ type State = {
   sending: boolean,
 }
 
-class FeedbackContainer extends Component<void, {}, State> {
+class FeedbackContainer extends Component<void, {status: string}, State> {
   mounted = false
 
   state = {
@@ -137,7 +137,7 @@ export default compose(
         username: state.config.username,
         uid: state.config.uid,
         deviceID: state.config.deviceID,
-        status: state.config.status,
+        config: state.config.config,
         extendedStatus: state.config.extendedConfig,
         platform: isAndroid ? 'android' : isIOS ? 'ios' : 'desktop',
         version,
