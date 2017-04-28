@@ -309,14 +309,18 @@ def runNixTest(prefix) {
             sh './simplefs.test -test.timeout 2m'
         }
     }
-    tests[prefix+'test'] = {
+    tests[prefix+'test_race'] = {
         dir('test') {
-            println "Test Dir with Race but no Fuse"
-            sh 'go test -race -c'
-            sh './test.test -test.timeout 10m'
-            println "Test Dir with Fuse but no Race"
-            sh 'go test -c -tags fuse'
-            sh './test.test -test.timeout 7m'
+            println "Test with Race but no Fuse"
+            sh 'go test -race -c -o test.race'
+            sh './test.race -test.timeout 10m'
+        }
+    }
+    tests[prefix+'test_fuse'] = {
+        dir('test') {
+            println "Test with Fuse but no Race"
+            sh 'go test -c -tags fuse -o test.fuse'
+            sh './test.fuse -test.timeout 7m'
         }
     }
     parallel (tests)
