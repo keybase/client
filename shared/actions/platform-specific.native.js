@@ -1,12 +1,12 @@
 // @flow
 import * as PushNotifications from 'react-native-push-notification'
-import {PushNotificationIOS, CameraRoll, ActionSheetIOS, AsyncStorage} from 'react-native'
+import {PushNotificationIOS, CameraRoll, ActionSheetIOS, AsyncStorage, Linking} from 'react-native'
 import * as PushConstants from '../constants/push'
 import {eventChannel} from 'redux-saga'
 import {isIOS} from '../constants/platform'
 import {isDevApplePushToken} from '../local-debug'
 import {chatTab} from '../constants/tabs'
-import {setInitialTab} from './config'
+import {setInitialTab, setInitialLink} from './config'
 import {setInitialConversation} from './chat'
 
 import type {AsyncAction} from '../constants/types/flux'
@@ -145,27 +145,37 @@ function persistRouteState (): AsyncAction {
 
 function loadRouteState (): AsyncAction {
   return (dispatch, getState) => {
-    AsyncStorage.getItem('routeState', (err, s) => {
-      if (!err && s) {
-        try {
-          const item = JSON.parse(s)
+    let foundLink = false
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        foundLink = true
+        dispatch(setInitialLink(url))
+      }
+    }).catch(_ => {}).finally(() => {
+      if (!foundLink) {
+        AsyncStorage.getItem('routeState', (err, s) => {
+          if (!err && s) {
+            try {
+              const item = JSON.parse(s)
+                //
+              // Before we actually nav to the saved routeState, we should clear
+              // it for future runs of the app.  That way, if the act of navigating
+              // to this route causes a crash for some reason, we won't get stuck
+              // in a loop of trying to restore the bad state every time we launch.
+              AsyncStorage.setItem('routeState', '', err => {
+                err && console.warn('Error clearing routeState:', err)
+              })
 
-          // Before we actually nav to the saved routeState, we should clear
-          // it for future runs of the app.  That way, if the act of navigating
-          // to this route causes a crash for some reason, we won't get stuck
-          // in a loop of trying to restore the bad state every time we launch.
-          AsyncStorage.setItem('routeState', '', err => {
-            err && console.warn('Error clearing routeState:', err)
-          })
+              if (item.tab) {
+                dispatch(setInitialTab(item.tab))
+              }
 
-          if (item.tab) {
-            dispatch(setInitialTab(item.tab))
+              if (item.selectedConversationIDKey) {
+                dispatch(setInitialConversation(item.selectedConversationIDKey))
+              }
+            } catch (_) { }
           }
-
-          if (item.selectedConversationIDKey) {
-            dispatch(setInitialConversation(item.selectedConversationIDKey))
-          }
-        } catch (_) { }
+        })
       }
     })
   }

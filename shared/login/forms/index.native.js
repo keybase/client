@@ -6,42 +6,36 @@ import {globalColors, globalStyles, globalMargins} from '../../styles'
 import type {Props} from '.'
 
 const Splash = () => (
-  <Box style={stylesLoginForm}>
-    <Icon type='icon-keybase-logo-128' />
+  <Box style={{...stylesLoginForm, justifyContent: 'center'}}>
+    <Icon type='icon-keybase-logo-80' />
     <Text style={stylesHeader} type='HeaderBig'>Keybase</Text>
-    <Text style={stylesHeaderSub} type='BodySmall'>Loading…</Text>
   </Box>
 )
 
 const Failure = (props: Props) => (
-  <Box style={stylesLoginForm}>
-    <Icon type='icon-keybase-logo-128' />
-    <Text style={stylesHeader} type='HeaderBig'>Keybase</Text>
-    <Text style={stylesMessage} type='Body'>
-      <Text style={stylesMessage} type='Body'>
-        Oops, we had a problem communicating with our services.
-      </Text>
-      <Text style={stylesMessage} type='Body'>
-        This might be because you lost connectivity.
-      </Text>
-    </Text>
-    <Button
-      type='Primary'
-      label='Reload'
-      onClick={props.onRetry} />
+  <Box style={{...stylesLoginForm, marginTop: 0}}>
+    <Box style={{...stylesBannerRed}}><Text type='BodySemibold' style={stylesTextBanner}>Oops, we had a problem communicating with our services. This might be because you lost connectivity.</Text></Box>
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <Icon type='icon-keybase-logo-logged-out-80' />
+      <Button
+        type='Primary'
+        label='Reload'
+        onClick={props.onRetry}
+        style={{marginTop: 96}} />
+    </Box>
   </Box>
 )
 
 const Intro = (props: Props) => (
-  <Box style={{...stylesLoginForm, marginTop: props.justRevokedSelf || props.justDeletedSelf ? 0 : 55}}>
+  <Box style={{...stylesLoginForm, marginTop: props.justRevokedSelf || props.justDeletedSelf || props.justLoginFromRevokedDevice ? 0 : 55}}>
     {!!props.justRevokedSelf &&
-      <Text type='BodySemibold' style={{...stylesRevoked}}><Text type='BodySemiboldItalic' style={{color: globalColors.white}}>{props.justRevokedSelf}</Text>&nbsp;was revoked successfully</Text>
+      <Box style={{...stylesBannerGreen}}><Text type='BodySemibold' style={stylesTextBanner}><Text type='BodySemiboldItalic' style={stylesTextBanner}>{props.justRevokedSelf}</Text>&nbsp;was revoked successfully.</Text></Box>
     }
     {!!props.justDeletedSelf &&
-      <Text type='BodySemibold' style={{...stylesDeleted}}>Your Keybase account <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>{props.justDeletedSelf}</Text>&nbsp;has been deleted.</Text>
+      <Box style={{...stylesBannerBlue}}><Text type='BodySemibold' style={stylesTextBanner}>Your Keybase account <Text type='BodySemiboldItalic' style={stylesTextBanner}>{props.justDeletedSelf}</Text>&nbsp;has been deleted.</Text></Box>
     }
     {!!props.justLoginFromRevokedDevice &&
-      <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>has been revoked, please log in again.</Text>
+      <Box style={{...stylesBannerBlue}}><Text type='BodySemibold' style={stylesTextBanner}>Your device has been revoked, please log in again.</Text></Box>
     }
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
       <Icon type='icon-keybase-logo-80' />
@@ -49,7 +43,7 @@ const Intro = (props: Props) => (
       <Text style={stylesHeaderSub} type='Body'>Folders for anyone in the world.</Text>
       <Button style={stylesButton} type='Primary' onClick={props.onSignup} label='Create an account' />
       <Text style={stylesLoginHeader} type='Body' onClick={props.onLogin}>Already on Keybase?</Text>
-      <Button style={stylesButton} type='Secondary' onClick={props.onLogin} label='Log in' />
+      <Text type='BodyBigLink' style={{marginTop: globalMargins.tiny}} onClick={props.onLogin}>Log in</Text>
     </Box>
   </Box>
 )
@@ -62,31 +56,26 @@ const stylesLoginForm = {
 }
 const stylesHeader = {
   color: globalColors.orange,
-  marginTop: 27,
-}
-const stylesMessage = {
-  marginBottom: globalMargins.large,
-  marginLeft: globalMargins.large,
-  marginRight: globalMargins.large,
   marginTop: globalMargins.small,
-  textAlign: 'center',
 }
+
 const stylesHeaderSub = {
-  marginTop: 10,
+  marginTop: globalMargins.tiny,
 }
 const stylesLoginHeader = {
-  marginTop: 91,
+  marginTop: 176,
   textAlign: 'center',
 }
 const stylesButton = {
-  marginTop: 15,
+  marginTop: globalMargins.medium,
 }
 
-const stylesRevoked = {
+const stylesBannerBlue = {
   ...globalStyles.flexBoxRow,
+  alignItems: 'center',
   alignSelf: 'stretch',
-  backgroundColor: globalColors.green,
-  color: globalColors.white,
+  backgroundColor: globalColors.blue,
+  justifyContent: 'center',
   marginBottom: 40,
   marginTop: 20,
   minHeight: 40,
@@ -97,9 +86,18 @@ const stylesRevoked = {
   textAlign: 'center',
 }
 
-const stylesDeleted = {
-  ...stylesRevoked,
-  backgroundColor: globalColors.blue,
+const stylesBannerGreen = {
+  ...stylesBannerBlue,
+  backgroundColor: globalColors.green,
+}
+
+const stylesBannerRed = {
+  ...stylesBannerBlue,
+  backgroundColor: globalColors.red,
+}
+
+const stylesTextBanner = {
+  color: globalColors.white,
 }
 
 export {
