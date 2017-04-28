@@ -37,12 +37,11 @@ function * pushNotificationSaga (notification: Constants.PushNotification): Saga
   console.warn('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
-    
     // If we have received a silent notification, then just sit around for a bit
-    // so that Go can sync from the server. 
+    // so that Go can sync from the server.
     if (payload.data && payload.data.silent) {
       console.info('Push notification: pausing on silent notification')
-      yield call(delay, 15 * 1000);
+      yield call(delay, 15 * 1000)
       console.info('Push notification: pause complete, returning')
       return
     }
