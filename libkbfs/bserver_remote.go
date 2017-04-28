@@ -272,8 +272,8 @@ type blockServerRemoteConfig interface {
 type BlockServerRemote struct {
 	config     blockServerRemoteConfig
 	shutdownFn func()
-	log        logger.Logger
-	deferLog   logger.Logger
+	log        traceLogger
+	deferLog   traceLogger
 	blkSrvAddr string
 
 	putConn *blockServerRemoteClientHandler
@@ -291,8 +291,8 @@ func NewBlockServerRemote(config blockServerRemoteConfig,
 	deferLog := log.CloneWithAddedDepth(1)
 	bs := &BlockServerRemote{
 		config:     config,
-		log:        log,
-		deferLog:   deferLog,
+		log:        traceLogger{log},
+		deferLog:   traceLogger{deferLog},
 		blkSrvAddr: blkSrvAddr,
 	}
 	// Use two separate auth clients -- one for writes and one for
@@ -320,8 +320,8 @@ func newBlockServerRemoteWithClient(config blockServerRemoteConfig,
 	deferLog := log.CloneWithAddedDepth(1)
 	bs := &BlockServerRemote{
 		config:   config,
-		log:      log,
-		deferLog: deferLog,
+		log:      traceLogger{log},
+		deferLog: traceLogger{deferLog},
 		putConn: &blockServerRemoteClientHandler{
 			log:      log,
 			deferLog: deferLog,
@@ -377,7 +377,9 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 	context kbfsblock.Context) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	size := -1
+	b.log.LazyTrace(ctx, "BServer: Get %s", id)
 	defer func() {
+		b.log.LazyTrace(ctx, "BServer: Get %s done (err=%v)", id, err)
 		if err != nil {
 			b.deferLog.CWarningf(
 				ctx, "Get id=%s tlf=%s context=%s sz=%d err=%v",
@@ -420,7 +422,9 @@ func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 		go dbc.Put(ctx, tlfID, id, buf, serverHalf)
 	}
 	size := len(buf)
+	b.log.LazyTrace(ctx, "BServer: Put %s", id)
 	defer func() {
+		b.log.LazyTrace(ctx, "BServer: Put %s done (err=%v)", id, err)
 		if err != nil {
 			b.deferLog.CWarningf(
 				ctx, "Put id=%s tlf=%s context=%s sz=%d err=%v",
@@ -448,7 +452,9 @@ func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 // AddBlockReference implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 	id kbfsblock.ID, context kbfsblock.Context) (err error) {
+	b.log.LazyTrace(ctx, "BServer: AddRef %s", id)
 	defer func() {
+		b.log.LazyTrace(ctx, "BServer: AddRef %s done (err=%v)", id, err)
 		if err != nil {
 			b.deferLog.CWarningf(
 				ctx, "AddBlockReference id=%s tlf=%s context=%s err=%v",
@@ -471,7 +477,10 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 // BlockServerRemote
 func (b *BlockServerRemote) RemoveBlockReferences(ctx context.Context,
 	tlfID tlf.ID, contexts kbfsblock.ContextMap) (liveCounts map[kbfsblock.ID]int, err error) {
+	// TODO: Define a more compact printout of contexts.
+	b.log.LazyTrace(ctx, "BServer: RemRef %v", contexts)
 	defer func() {
+		b.log.LazyTrace(ctx, "BServer: RemRef %v done (err=%v)", contexts, err)
 		if err != nil {
 			b.deferLog.CWarningf(ctx, "RemoveBlockReferences batch size=%d err=%v", len(contexts), err)
 		} else {
@@ -495,7 +504,9 @@ func (b *BlockServerRemote) RemoveBlockReferences(ctx context.Context,
 // BlockServerRemote
 func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
 	tlfID tlf.ID, contexts kbfsblock.ContextMap) (err error) {
+	b.log.LazyTrace(ctx, "BServer: ArchiveRef %v", contexts)
 	defer func() {
+		b.log.LazyTrace(ctx, "BServer: ArchiveRef %v done (err=%v)", contexts, err)
 		if err != nil {
 			b.deferLog.CWarningf(ctx, "ArchiveBlockReferences batch size=%d err=%v", len(contexts), err)
 		} else {
@@ -616,6 +627,10 @@ func (b *BlockServerRemote) getNotDone(all kbfsblock.ContextMap, doneRefs map[kb
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.UserQuotaInfo, err error) {
+	b.log.LazyTrace(ctx, "BServer: GetQuotaInfo")
+	defer func() {
+		b.log.LazyTrace(ctx, "BServer: GetQuotaInfo done (err=%v)", err)
+	}()
 	res, err := b.getConn.getClient().GetUserQuotaInfo(ctx)
 	if err != nil {
 		return nil, err

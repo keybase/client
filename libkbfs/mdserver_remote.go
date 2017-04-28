@@ -12,7 +12,6 @@ import (
 
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -41,7 +40,8 @@ const (
 // MDServerRemote is an implementation of the MDServer interface.
 type MDServerRemote struct {
 	config        Config
-	log           logger.Logger
+	log           traceLogger
+	deferLog      traceLogger
 	mdSrvAddr     string
 	connOpts      rpc.ConnectionOpts
 	rpcLogFactory *libkb.RPCLogFactory
@@ -87,10 +87,13 @@ var _ rpc.ConnectionHandler = (*MDServerRemote)(nil)
 // NewMDServerRemote returns a new instance of MDServerRemote.
 func NewMDServerRemote(config Config, srvAddr string,
 	rpcLogFactory *libkb.RPCLogFactory) *MDServerRemote {
+	log := config.MakeLogger("")
+	deferLog := log.CloneWithAddedDepth(1)
 	mdServer := &MDServerRemote{
 		config:        config,
 		observers:     make(map[tlf.ID]chan<- error),
-		log:           config.MakeLogger(""),
+		log:           traceLogger{log},
+		deferLog:      traceLogger{deferLog},
 		mdSrvAddr:     srvAddr,
 		rpcLogFactory: rpcLogFactory,
 		rekeyTimer:    time.NewTimer(MdServerBackgroundRekeyPeriod),
@@ -243,7 +246,7 @@ func (md *MDServerRemote) resetAuth(
 			if err := md.getFoldersForRekey(ctx, c); err != nil {
 				md.log.CWarningf(ctx, "getFoldersForRekey failed with %v", err)
 			}
-			md.log.CDebugf(ctx,
+			md.deferLog.CDebugf(ctx,
 				"requested list of folders for rekey")
 		}()
 	}
@@ -438,14 +441,35 @@ func (md *MDServerRemote) signalObserverLocked(observerChan chan<- error, id tlf
 	delete(md.observers, id)
 }
 
+// idOrHandle is a helper struct to pass into LazyTrace, so that the
+// stringification isn't done unless needed.
+type idOrHandle struct {
+	id     tlf.ID
+	handle *tlf.Handle
+}
+
+func (ioh idOrHandle) String() string {
+	if ioh.id != tlf.NullID {
+		return ioh.id.String()
+	}
+	// TODO: Ideally, *tlf.Handle would have a nicer String() function.
+	return fmt.Sprintf("%+v", ioh.handle)
+}
+
 // Helper used to retrieve metadata blocks from the MD server.
 func (md *MDServerRemote) get(ctx context.Context, id tlf.ID,
 	handle *tlf.Handle, bid BranchID, mStatus MergeStatus,
-	start, stop MetadataRevision) (tlf.ID, []*RootMetadataSigned, error) {
+	start, stop MetadataRevision) (tlfID tlf.ID, rmdses []*RootMetadataSigned, err error) {
 	// figure out which args to send
 	if id == tlf.NullID && handle == nil {
 		panic("nil tlf.ID and handle passed into MDServerRemote.get")
 	}
+	ioh := idOrHandle{id, handle}
+	md.log.LazyTrace(ctx, "MDServer: get %s %s %d-%d", ioh, bid, start, stop)
+	defer func() {
+		md.deferLog.LazyTrace(ctx, "MDServer: get %s %s %d-%d done (err=%v)", ioh, bid, start, stop, err)
+	}()
+
 	arg := keybase1.GetMetadataArg{
 		StartRevision: start.Number(),
 		StopRevision:  stop.Number(),
@@ -454,7 +478,6 @@ func (md *MDServerRemote) get(ctx context.Context, id tlf.ID,
 		LogTags:       nil,
 	}
 
-	var err error
 	if id == tlf.NullID {
 		arg.FolderHandle, err = md.config.Codec().Encode(handle)
 		if err != nil {
@@ -477,7 +500,7 @@ func (md *MDServerRemote) get(ctx context.Context, id tlf.ID,
 	}
 
 	// deserialize blocks
-	rmdses := make([]*RootMetadataSigned, len(response.MdBlocks))
+	rmdses = make([]*RootMetadataSigned, len(response.MdBlocks))
 	for i, block := range response.MdBlocks {
 		ver, max := MetadataVer(block.Version), md.config.MetadataVersion()
 		rmds, err := DecodeRootMetadataSigned(
@@ -531,7 +554,12 @@ func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
 
 // Put implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
-	extra ExtraMetadata) error {
+	extra ExtraMetadata) (err error) {
+	md.log.LazyTrace(ctx, "MDServer: put %s %d", rmds.MD.TlfID(), rmds.MD.RevisionNumber())
+	defer func() {
+		md.deferLog.LazyTrace(ctx, "MDServer: put %s %d done (err=%v)", rmds.MD.TlfID(), rmds.MD.RevisionNumber(), err)
+	}()
+
 	// encode MD block
 	rmdsBytes, err := EncodeRootMetadataSigned(md.config.Codec(), rmds)
 	if err != nil {
@@ -587,7 +615,11 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 }
 
 // PruneBranch implements the MDServer interface for MDServerRemote.
-func (md *MDServerRemote) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) error {
+func (md *MDServerRemote) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) (err error) {
+	md.log.LazyTrace(ctx, "MDServer: prune %s %s", id, bid)
+	defer func() {
+		md.deferLog.LazyTrace(ctx, "MDServer: prune %s %s (err=%v)", id, bid, err)
+	}()
 	arg := keybase1.PruneBranchArg{
 		FolderID: id.String(),
 		BranchID: bid.String(),
@@ -736,24 +768,35 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id tlf.ID,
 
 // TruncateLock implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) TruncateLock(ctx context.Context, id tlf.ID) (
-	bool, error) {
+	locked bool, err error) {
+	md.log.LazyTrace(ctx, "MDServer: TruncateLock %s", id)
+	defer func() {
+		md.deferLog.LazyTrace(ctx, "MDServer: TruncateLock %s (err=%v)", id, err)
+	}()
 	return md.getClient().TruncateLock(ctx, id.String())
 }
 
 // TruncateUnlock implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) TruncateUnlock(ctx context.Context, id tlf.ID) (
-	bool, error) {
+	unlocked bool, err error) {
+	md.log.LazyTrace(ctx, "MDServer: TruncateLock %s", id)
+	defer func() {
+		md.deferLog.LazyTrace(ctx, "MDServer: TruncateLock %s (err=%v)", id, err)
+	}()
 	return md.getClient().TruncateUnlock(ctx, id.String())
 }
 
 // GetLatestHandleForTLF implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
-	tlf.Handle, error) {
+	handle tlf.Handle, err error) {
+	md.log.LazyTrace(ctx, "MDServer: GetLatestHandle %s", id)
+	defer func() {
+		md.deferLog.LazyTrace(ctx, "MDServer: GetLatestHandle %s (err=%v)", id, err)
+	}()
 	buf, err := md.getClient().GetLatestFolderHandle(ctx, id.String())
 	if err != nil {
 		return tlf.Handle{}, err
 	}
-	var handle tlf.Handle
 	if err := md.config.Codec().Decode(buf, &handle); err != nil {
 		return tlf.Handle{}, err
 	}
@@ -844,6 +887,11 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 	serverHalfID TLFCryptKeyServerHalfID,
 	cryptKey kbfscrypto.CryptPublicKey) (
 	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error) {
+	md.log.LazyTrace(ctx, "KeyServer: GetTLFCryptKeyServerHalf %s", serverHalfID)
+	defer func() {
+		md.deferLog.LazyTrace(ctx, "KeyServer: GetTLFCryptKeyServerHalf %s (err=%v)", serverHalfID, err)
+	}()
+
 	// encode the ID
 	idBytes, err := md.config.Codec().Encode(serverHalfID)
 	if err != nil {
@@ -872,7 +920,12 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 
 // PutTLFCryptKeyServerHalves is an implementation of the KeyServer interface.
 func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
-	keyServerHalves UserDeviceKeyServerHalves) error {
+	keyServerHalves UserDeviceKeyServerHalves) (err error) {
+	md.log.LazyTrace(ctx, "KeyServer: PutTLFCryptKeyServerHalves %v", keyServerHalves)
+	defer func() {
+		md.deferLog.LazyTrace(ctx, "KeyServer: PutTLFCryptKeyServerHalves %v (err=%v)", keyServerHalves, err)
+	}()
+
 	// flatten out the map into an array
 	var keyHalves []keybase1.KeyHalf
 	for user, deviceMap := range keyServerHalves {
@@ -900,7 +953,12 @@ func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
 // DeleteTLFCryptKeyServerHalf is an implementation of the KeyServer interface.
 func (md *MDServerRemote) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.CryptPublicKey,
-	serverHalfID TLFCryptKeyServerHalfID) error {
+	serverHalfID TLFCryptKeyServerHalfID) (err error) {
+	md.log.LazyTrace(ctx, "KeyServer: DeleteTLFCryptKeyServerHalf %s %s", uid, serverHalfID)
+	defer func() {
+		md.deferLog.LazyTrace(ctx, "KeyServer: DeleteTLFCryptKeyServerHalf %s %s done (err=%v)", uid, serverHalfID, err)
+	}()
+
 	// encode the ID
 	idBytes, err := md.config.Codec().Encode(serverHalfID)
 	if err != nil {
@@ -969,7 +1027,11 @@ func (md *MDServerRemote) backgroundRekeyChecker(ctx context.Context) {
 // GetKeyBundles implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 	tlf tlf.ID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
-	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
+	wkb *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV3, err error) {
+	md.log.LazyTrace(ctx, "KeyServer: GetKeyBundles %s %s %s", tlf, wkbID, rkbID)
+	defer func() {
+		md.deferLog.LazyTrace(ctx, "KeyServer: GetKeyBundles %s %s %s done (err=%v)", tlf, wkbID, rkbID, err)
+	}()
 
 	arg := keybase1.GetKeyBundlesArg{
 		FolderID:       tlf.String(),
@@ -982,7 +1044,6 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 		return nil, nil, err
 	}
 
-	var wkb *TLFWriterKeyBundleV3
 	if response.WriterBundle.Bundle != nil {
 		if response.WriterBundle.Version != int(SegregatedKeyBundlesVer) {
 			err = fmt.Errorf("Unsupported writer bundle version: %d",
@@ -1006,7 +1067,6 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 		}
 	}
 
-	var rkb *TLFReaderKeyBundleV3
 	if response.ReaderBundle.Bundle != nil {
 		if response.ReaderBundle.Version != int(SegregatedKeyBundlesVer) {
 			err = fmt.Errorf("Unsupported reader bundle version: %d",

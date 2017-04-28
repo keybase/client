@@ -26,6 +26,7 @@ type blockOpsConfig interface {
 // requests to the block server.
 type BlockOpsStandard struct {
 	config blockOpsConfig
+	log    traceLogger
 	queue  *blockRetrievalQueue
 }
 
@@ -42,6 +43,7 @@ func NewBlockOpsStandard(config blockOpsConfig,
 	q := newBlockRetrievalQueue(queueSize, qConfig)
 	bops := &BlockOpsStandard{
 		config: config,
+		log:    traceLogger{config.MakeLogger("")},
 		queue:  q,
 	}
 	return bops
@@ -65,8 +67,14 @@ func (b *BlockOpsStandard) Get(ctx context.Context, kmd KeyMetadata,
 		}
 	}
 
+	b.log.LazyTrace(ctx, "BOps: Requesting %s", blockPtr.ID)
+
 	errCh := b.queue.Request(ctx, defaultOnDemandRequestPriority, kmd, blockPtr, block, lifetime)
-	return <-errCh
+	err := <-errCh
+
+	b.log.LazyTrace(ctx, "BOps: Request fulfilled for %s (err=%v)", blockPtr.ID, err)
+
+	return err
 }
 
 // GetEncodedSize implements the BlockOps interface for
