@@ -6,7 +6,7 @@ import {globalColors, globalStyles, globalMargins} from '../../styles'
 import type {Props} from '.'
 
 const Splash = () => (
-  <Box style={stylesLoginForm}>
+  <Box style={{...globalStyles.flexBoxCenter, flex: 1}}>
     <Icon type='icon-keybase-logo-128' />
     <Text style={stylesHeader} type='HeaderBig'>Keybase</Text>
     <Text style={stylesHeaderSub} type='BodySmall'>Loading…</Text>
