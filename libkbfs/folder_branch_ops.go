@@ -5491,7 +5491,6 @@ func (fbo *folderBranchOps) backgroundFlusher() {
 						return
 					}
 				}
-				timer.Stop()
 			}
 		}
 
