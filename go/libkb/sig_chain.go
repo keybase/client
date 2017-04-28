@@ -57,6 +57,12 @@ type SigChain struct {
 
 	// When the local chain was updated.
 	localChainUpdateTime time.Time
+
+	// The sequence number of the first chain link in the current subchain. For
+	// a user who has never done a reset, this is 1. Note that if the user has
+	// done a reset (or just created a fresh account) but not yet made any
+	// signatures, this seqno refers to a link that doesn't yet exist.
+	currentSubchainStart Seqno
 }
 
 func (sc SigChain) Len() int {
@@ -257,6 +263,8 @@ func (sc *SigChain) VerifyChain(ctx context.Context) (err error) {
 		}
 		if i > 0 {
 			prev := sc.chainLinks[i-1]
+			// NB: In a sigchain v2 link, `id` refers to the hash of the
+			// *outer* link, not the hash of the v1-style inner payload.
 			if !prev.id.Eq(curr.GetPrev()) {
 				return ChainLinkPrevHashMismatchError{fmt.Sprintf("Chain mismatch at seqno=%d", curr.GetSeqno())}
 			}
@@ -557,6 +565,19 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase
 	links, err := sc.GetCurrentSubchain(eldest)
 	if err != nil {
 		return
+	}
+
+	// Record the start of the current subchain. If the current subchain is
+	// empty, then either the user is totally new, or they just did a reset.
+	if len(links) > 0 {
+		sc.currentSubchainStart = links[0].GetSeqno()
+	} else if len(sc.chainLinks) > 0 {
+		// There's been a reset. The next link the user makes will start the
+		// new subchain.
+		sc.currentSubchainStart = last(sc.chainLinks).GetSeqno()
+	} else {
+		// The user is totally new.
+		sc.currentSubchainStart = 1
 	}
 
 	if len(links) == 0 {

@@ -103,6 +103,14 @@ func (u *User) GetSigChainLastKnownSeqno() Seqno {
 	return u.sigChain().GetLastKnownSeqno()
 }
 
+func (u *User) GetCurrentEldestSeqno() Seqno {
+	if u.sigChain() == nil {
+		// Note that NameWithEldestSeqno will return an error if you call it with zero.
+		return 0
+	}
+	return u.sigChain().currentSubchainStart
+}
+
 func (u *User) IsNewerThan(v *User) (bool, error) {
 	var idvU, idvV int64
 	var err error
@@ -767,4 +775,15 @@ func (u User) PartialCopy() *User {
 		ret.keyFamily = u.keyFamily.ShallowCopy()
 	}
 	return ret
+}
+
+func NameWithEldestSeqno(name string, seqno Seqno) (string, error) {
+	if seqno < 1 {
+		return "", EldestSeqnoMissingError{}
+	} else if seqno == 1 {
+		// For users that have never reset, we use their name unmodified.
+		return name, nil
+	} else {
+		return fmt.Sprintf("%s%%%d", name, seqno), nil
+	}
 }

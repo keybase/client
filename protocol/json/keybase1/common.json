@@ -359,6 +359,10 @@
           "name": "gen"
         },
         {
+          "type": "int",
+          "name": "seqno"
+        },
+        {
           "type": "KID",
           "name": "kid"
         }
@@ -376,6 +380,10 @@
         {
           "type": "string",
           "name": "username"
+        },
+        {
+          "type": "int",
+          "name": "eldestSeqno"
         },
         {
           "type": {

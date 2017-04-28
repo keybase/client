@@ -144,12 +144,14 @@ protocol Common {
   @lint("ignore")
   record SharedDHKey {
       int gen;
+      int seqno;
       KID kid;
   }
 
   record UserPlusKeys {
       UID uid;
       string username;
+      int eldestSeqno;
 
       // deviceKeys is a list of active device keys.  It does
       // not include PGP keys.

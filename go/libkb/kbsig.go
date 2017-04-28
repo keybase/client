@@ -9,8 +9,10 @@ package libkb
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -240,7 +242,7 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 type ProofMetadata struct {
 	Me             *User
 	SigningUser    UserBasic
-	LastSeqno      Seqno
+	Seqno          Seqno
 	PrevLinkID     LinkID
 	LinkType       LinkType
 	SigningKey     GenericKey
@@ -248,6 +250,7 @@ type ProofMetadata struct {
 	CreationTime   int64
 	ExpireIn       int
 	IncludePGPHash bool
+	SigVersion     SigVersion
 }
 
 func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error) {
@@ -259,9 +262,18 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 	var seqno int
 	var prev *jsonw.Wrapper
 
-	if arg.LastSeqno > 0 {
-		seqno = int(arg.LastSeqno) + 1
-		prev = jsonw.NewString(arg.PrevLinkID.String())
+	// sanity check the seqno and prev relationship
+	if arg.Seqno > 1 && len(arg.PrevLinkID) == 0 {
+		return nil, fmt.Errorf("can't have a seqno > 1 without a prev value")
+	}
+
+	if arg.Seqno > 0 {
+		seqno = int(arg.Seqno)
+		if arg.Seqno == 1 {
+			prev = jsonw.NewNil()
+		} else {
+			prev = jsonw.NewString(arg.PrevLinkID.String())
+		}
 	} else {
 		lastSeqno := arg.Me.sigChain().GetLastKnownSeqno()
 		lastLink := arg.Me.sigChain().GetLastKnownID()
@@ -298,7 +310,12 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 
 	body := jsonw.NewDictionary()
 
-	body.SetKey("version", jsonw.NewInt(KeybaseSignatureV1))
+	if arg.SigVersion != 0 {
+		body.SetKey("version", jsonw.NewInt(int(arg.SigVersion)))
+	} else {
+		body.SetKey("version", jsonw.NewInt(int(KeybaseSignatureV1)))
+	}
+
 	body.SetKey("type", jsonw.NewString(string(arg.LinkType)))
 
 	key, err := KeySection{
@@ -349,7 +366,7 @@ func (u *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.W
 }
 
 // arg.Me user is used to get the last known seqno in ProofMetadata.
-// If arg.Me == nil, set arg.LastSeqno.
+// If arg.Me == nil, set arg.Seqno.
 func KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 	var kp *jsonw.Wrapper
 	includePGPHash := false
@@ -387,7 +404,7 @@ func KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 		Eldest:         arg.EldestKID,
 		CreationTime:   arg.Ctime,
 		IncludePGPHash: includePGPHash,
-		LastSeqno:      arg.LastSeqno,
+		Seqno:          arg.Seqno,
 		PrevLinkID:     arg.PrevLinkID,
 	}.ToJSON(arg.G())
 
@@ -566,4 +583,34 @@ func (u *User) UpdateEmailProof(key GenericKey, newEmail string) (*jsonw.Wrapper
 	settings.SetKey("email", jsonw.NewString(newEmail))
 	body.SetKey("update_settings", settings)
 	return ret, nil
+}
+
+func (u *User) TeamRootSig(key GenericKey, teamSection *jsonw.Wrapper) (*jsonw.Wrapper, error) {
+	ret, err := ProofMetadata{
+		Me:         u,
+		LinkType:   LinkTypeTeamRoot,
+		SigningKey: key,
+		Seqno:      1,
+		SigVersion: KeybaseSignatureV2,
+	}.ToJSON(u.G())
+	if err != nil {
+		return nil, err
+	}
+	body := ret.AtKey("body")
+	body.SetKey("team", teamSection)
+	return ret, nil
+}
+
+// the first 15 bytes of the sha256 of the lowercase team name, followed by the byte 0x24, encoded as hex
+func RootTeamIDFromName(name string) string {
+	sum := sha256.Sum256([]byte(strings.ToLower(name)))
+	return hex.EncodeToString(sum[0:15]) + "24"
+}
+
+type SigMultiItem struct {
+	Sig        string `json:"sig"`
+	SigningKID string `json:"signing_kid"`
+	Type       string `json:"type"`
+	SigInner   string `json:"sig_inner"`
+	TeamID     string `json:"team_id"`
 }

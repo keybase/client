@@ -34,7 +34,7 @@ type Delegator struct {
 	SharedDHKeyGeneration keybase1.SharedDHKeyGeneration
 
 	// Optional precalculated values used by KeyProof
-	LastSeqno   Seqno     // kex2 HandleDidCounterSign needs to sign subkey without a user but we know what the last seqno was
+	Seqno       Seqno     // kex2 HandleDidCounterSign needs to sign subkey without a user but we know what the last seqno was
 	PrevLinkID  LinkID    // kex2 HandleDidCounterSign calculates previous link id without a user
 	SigningUser UserBasic // kex2 doesn't have a full user, but does have basic user info
 

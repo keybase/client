@@ -1897,3 +1897,11 @@ func NewLoginOfflineError(msg string) LoginOfflineError {
 func (e LoginOfflineError) Error() string {
 	return "LoginOffline error: " + e.msg
 }
+
+//=============================================================================
+
+type EldestSeqnoMissingError struct{}
+
+func (e EldestSeqnoMissingError) Error() string {
+	return "user's eldest seqno has not been loaded"
+}
