@@ -40,7 +40,7 @@ function * pushNotificationSaga (notification: Constants.PushNotification): Saga
     const convID = payload.data ? payload.data.convID : payload.convID
     if (payload.data && payload.data.silent) {
       console.info('Push notification: pausing on silent notification')
-      yield call(delay, 10 * 1000);
+      yield call(delay, 15 * 1000);
       console.info('Push notification: pause complete, returning')
       return
     }
