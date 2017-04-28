@@ -13,7 +13,7 @@ let config: {[key: string]: any} = {
   devStoreChangingFunctions: false,
   dumbChatOnly: false,
   dumbSheetOnly: false,
-  enableActionLogging: true,
+  enableActionLogging: false,
   enableStoreLogging: false,
   featureFlagsOverride: null,
   forceImmediateLogging: false,

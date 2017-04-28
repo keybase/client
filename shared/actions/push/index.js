@@ -37,7 +37,10 @@ function * pushNotificationSaga (notification: Constants.PushNotification): Saga
   const payload = notification.payload
   if (payload && payload.userInteraction) {
     const convID = payload.data ? payload.data.convID : payload.convID
-
+    if (payload.data && payload.data.U) {
+      console.info('Skipping silent notification')
+      return
+    }
     if (!convID) {
       console.error('Push notification payload missing conversation ID')
       return
