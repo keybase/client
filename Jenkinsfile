@@ -313,7 +313,7 @@ def runNixTest(prefix) {
         dir('test') {
             println "Test Dir with Race but no Fuse"
             sh 'go test -race -c'
-            sh './test.test -test.timeout 7m'
+            sh './test.test -test.timeout 10m'
             println "Test Dir with Fuse but no Race"
             sh 'go test -c -tags fuse'
             sh './test.test -test.timeout 7m'
