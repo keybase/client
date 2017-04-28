@@ -167,7 +167,7 @@ helpers.rootLinuxNode(env, {
                             //    }}}
                             //},
                             test_osx: {
-                                helpers.nodeWithCleanup('macstadium-test', {}, {}) {
+                                helpers.nodeWithCleanup('macstadium', {}, {}) {
                                     def BASEDIR=pwd()
                                     def GOPATH="${BASEDIR}/go"
                                     withEnv([
