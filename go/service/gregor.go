@@ -128,7 +128,7 @@ type gregorHandler struct {
 	pingCli          rpc.GenericClient
 	sessionID        gregor1.SessionID
 	skipRetryConnect bool
-	freshReplay      bool
+	firstConnect     bool
 
 	// Function for determining if a new BroadcastMessage should trigger
 	// a pushState call to firehose handlers
@@ -172,7 +172,7 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 	gh := &gregorHandler{
 		Contextified:    globals.NewContextified(g),
 		chatLog:         utils.NewDebugLabeler(g, "PushHandler", false),
-		freshReplay:     true,
+		firstConnect:    true,
 		pushStateFilter: func(m gregor.Message) bool { return true },
 		badger:          nil,
 		chatHandler:     chat.NewPushHandler(g),
@@ -452,7 +452,7 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 
 	// Get time of the last message we synced (unless this is our first time syncing)
 	var t time.Time
-	if !g.freshReplay {
+	if !g.firstConnect {
 		pt := gcli.StateMachineLatestCTime()
 		if pt != nil {
 			t = *pt
@@ -475,9 +475,6 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 		g.Errorf(ctx, "serverSync: replay messages failed: %s", err)
 		return nil, nil, err
 	}
-
-	// All done with fresh replays
-	g.freshReplay = false
 
 	g.pushState(keybase1.PushReason_RECONNECTED)
 	return replayedMsgs, consumedMsgs, nil
@@ -558,6 +555,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		Session:   token,
 		InboxVers: iboxVers,
 		Ctime:     latestCtime,
+		Fresh:     g.firstConnect,
 	})
 	if err != nil {
 		return fmt.Errorf("error running SyncAll: %s", err.Error())
@@ -578,7 +576,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: timeoutCli}, gcli,
 		&syncAllRes.Notification)
 	if err != nil {
-		g.chatLog.Debug(ctx, "sync failure: %s", err)
+		g.chatLog.Debug(ctx, "sync failure: %s", err.Error())
 	} else {
 		g.chatLog.Debug(ctx, "sync success: replayed: %d consumed: %d", len(replayedMsgs),
 			len(consumedMsgs))
@@ -586,9 +584,9 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 
 	// Sync badge state in the background
 	if g.badger != nil {
-		go func(badger *badges.Badger) {
-			badger.Resync(context.Background(), &chat1.RemoteClient{Cli: g.cli}, &syncAllRes.Badge)
-		}(g.badger)
+		if err := g.badger.Resync(ctx, &chat1.RemoteClient{Cli: g.cli}, &syncAllRes.Badge); err != nil {
+			g.chatLog.Debug(ctx, "badger failure: %s", err.Error())
+		}
 	}
 
 	// Call out to reachability module if we have one
@@ -603,6 +601,9 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	go func(m gregor1.Message) {
 		g.BroadcastMessage(context.Background(), m)
 	}(g.makeReconnectOobm())
+
+	// No longer first connect if we are now connected
+	g.firstConnect = false
 
 	return nil
 }

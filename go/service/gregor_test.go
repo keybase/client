@@ -476,7 +476,7 @@ func TestSyncNonFresh(t *testing.T) {
 	}
 
 	// Turn off fresh replay
-	h.freshReplay = false
+	h.firstConnect = false
 
 	// We should only get half of the messages on a non-fresh sync
 	replayedMessages, consumedMessages := doServerSync(t, h, server)
@@ -566,7 +566,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 	h = newGregorHandler(globals.NewContext(tc.G, nil))
 
 	// Turn off fresh replay
-	h.freshReplay = false
+	h.firstConnect = false
 
 	// Sync from the server
 	replayedMessages, consumedMessages := doServerSync(t, h, server)
@@ -721,7 +721,7 @@ func TestSyncDismissalExistingState(t *testing.T) {
 	refConsumeMsgs = append(refConsumeMsgs, dismissal.ToInBandMessage())
 
 	// Sync from the server
-	h.freshReplay = false
+	h.firstConnect = false
 	replayedMessages, consumedMessages := doServerSync(t, h, server)
 	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
@@ -756,7 +756,7 @@ func TestSyncFutureDismissals(t *testing.T) {
 	server.ConsumeMessage(context.TODO(), dismissal)
 
 	// Sync from the server
-	h.freshReplay = false
+	h.firstConnect = false
 	replayedMessages, consumedMessages := doServerSync(t, h, server)
 	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)

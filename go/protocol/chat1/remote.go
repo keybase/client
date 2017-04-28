@@ -368,6 +368,7 @@ type SyncAllArg struct {
 	Session   gregor1.SessionToken `codec:"session" json:"session"`
 	InboxVers InboxVers            `codec:"inboxVers" json:"inboxVers"`
 	Ctime     gregor1.Time         `codec:"ctime" json:"ctime"`
+	Fresh     bool                 `codec:"fresh" json:"fresh"`
 }
 
 type TlfFinalizeArg struct {
