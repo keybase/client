@@ -51,9 +51,9 @@ func (c *CmdSimpleFSRead) Run() error {
 
 	ctx := context.TODO()
 
-	opid, err := cli.SimpleFSMakeOpid(ctx)
-	if err != nil {
-		return err
+	opid, err2 := cli.SimpleFSMakeOpid(ctx)
+	if err2 != nil {
+		return err2
 	}
 	err = cli.SimpleFSOpen(ctx, keybase1.SimpleFSOpenArg{
 		OpID:  opid,

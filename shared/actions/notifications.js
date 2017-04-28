@@ -5,7 +5,7 @@ import * as Saga from '../util/saga'
 import ListenerCreator from '../native/notification-listeners'
 import engine, {Engine} from '../engine'
 import {NotifyPopup} from '../native/notifications'
-import {call, put, take} from 'redux-saga/effects'
+import {call, put, take, fork} from 'redux-saga/effects'
 import {isMobile} from '../constants/platform'
 import {log} from '../native/log/logui'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
@@ -97,11 +97,9 @@ function * _listenForKBFSNotifications (): SagaGenerator<any, any> {
 }
 
 function * notificationsSaga (): SagaGenerator<any, any> {
-  yield [
-    call(_listenNotifications),
-    call(_listenForKBFSNotifications),
-    Saga.safeTakeLatest('notifications:receivedBadgeState', _onRecievedBadgeState),
-  ]
+  yield fork(_listenNotifications)
+  yield fork(_listenForKBFSNotifications)
+  yield Saga.safeTakeLatest('notifications:receivedBadgeState', _onRecievedBadgeState)
 }
 
 export {

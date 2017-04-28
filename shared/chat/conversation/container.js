@@ -75,7 +75,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch((props: Props) => !props.selectedConversationIDKey, renderNothing()),
+  branch((props: Props) => !props.selectedConversationIDKey, renderNothing),
   branch((props: Props) => props.selectedConversationIDKey === Constants.nothingSelected, renderComponent(NoConversation)),
   branch((props: Props) => !props.finalizeInfo && props.rekeyInfo, renderComponent(Rekey)),
   withState('sidePanelOpen', 'setSidePanelOpen', false),

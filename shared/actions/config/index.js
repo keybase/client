@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../constants/config'
 import engine from '../../engine'
-import {CommonClientType, configGetBootstrapStatusRpc, configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, configWaitForClientRpc} from '../../constants/types/flow-types'
+import {CommonClientType, configGetBootstrapStatusRpc, configGetConfigRpc, configGetExtendedStatusRpc, configWaitForClientRpc} from '../../constants/types/flow-types'
 import {isMobile} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
 import {navBasedOnLoginState} from '../../actions/login/creators'
@@ -20,6 +20,10 @@ isMobile && module.hot && module.hot.accept(() => {
 
 const setInitialTab = (tab: ?Tab): Constants.SetInitialTab => (
   {payload: {tab}, type: 'config:setInitialTab'}
+)
+
+const setInitialLink = (url: ?string): Constants.SetInitialLink => (
+  {payload: {url}, type: 'config:setInitialLink'}
 )
 
 const setLaunchedViaPush = (pushed: boolean): Constants.SetLaunchedViaPush => (
@@ -52,8 +56,22 @@ function isFollowing (getState: () => any, username: string) : boolean {
 
 const waitForKBFS = (): AsyncAction => dispatch => (
   new Promise((resolve, reject) => {
+    let timedOut = false
+
+    // The rpc timeout doesn't seem to work correctly (not that we should trust that anyways) so we have our own local timeout
+    // TODO clean this up with sagas!
+    let timer = setTimeout(() => {
+      timedOut = true
+      reject(new Error('Waited for KBFS client, but it wasn\'t not found'))
+    }, 10 * 1000)
+
     configWaitForClientRpc({
       callback: (error, found) => {
+        clearTimeout(timer)
+
+        if (timedOut) {
+          return
+        }
         if (error) {
           reject(error)
           return
@@ -103,6 +121,8 @@ const daemonError = (error: ?string): Constants.DaemonError => (
 let bootstrapSetup = false
 type BootstrapOptions = {isReconnect?: boolean}
 
+// TODO: We REALLY need to saga-ize this.
+
 const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getState) => {
   const readyForBootstrap = getState().config.readyForBootstrap
   if (!readyForBootstrap) {
@@ -119,14 +139,15 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
       console.log('[bootstrap] bootstrapping on connect')
       dispatch(bootstrap())
     })
-    engine().listenOnDisconnect('daemonError', () => {
-      dispatch(daemonError('Disconnected'))
-    })
     dispatch(registerListeners())
   } else {
     console.log('[bootstrap] performing bootstrap...')
     Promise.all(
       [dispatch(getBootstrapStatus()), dispatch(waitForKBFS())]).then(() => {
+        dispatch({type: 'config:bootstrapSuccess', payload: undefined})
+        engine().listenOnDisconnect('daemonError', () => {
+          dispatch(daemonError('Disconnected'))
+        })
         dispatch(listenForKBFSNotifications())
         if (!opts.isReconnect) {
           dispatch(navBasedOnLoginState())
@@ -159,30 +180,10 @@ const getBootstrapStatus = (): AsyncAction => dispatch => (
 
         dispatch({
           payload: {bootstrapStatus},
-          type: Constants.bootstrapLoaded,
+          type: Constants.bootstrapStatusLoaded,
         })
 
         resolve(bootstrapStatus)
-      },
-    })
-  })
-)
-
-const getCurrentStatus = (): AsyncAction => dispatch => (
-  new Promise((resolve, reject) => {
-    configGetCurrentStatusRpc({
-      callback: (error, status) => {
-        if (error) {
-          reject(error)
-          return
-        }
-
-        dispatch({
-          payload: {status},
-          type: Constants.statusLoaded,
-        })
-
-        resolve(status && status.user && status.user.username)
       },
     })
   })
@@ -195,12 +196,12 @@ const updateFollowing = (username: string, isTracking: boolean): UpdateFollowing
 export {
   bootstrap,
   getConfig,
-  getCurrentStatus,
   getExtendedStatus,
   isFollower,
   isFollowing,
   retryBootstrap,
   setInitialTab,
+  setInitialLink,
   setLaunchedViaPush,
   updateFollowing,
   waitForKBFS,

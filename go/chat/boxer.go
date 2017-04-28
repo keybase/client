@@ -17,6 +17,7 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -43,7 +44,7 @@ func init() {
 
 type Boxer struct {
 	utils.DebugLabeler
-	libkb.Contextified
+	globals.Contextified
 
 	boxWithVersion chat1.MessageBoxedVersion
 
@@ -62,12 +63,12 @@ type Boxer struct {
 	testingSignatureMangle func([]byte) []byte
 }
 
-func NewBoxer(g *libkb.GlobalContext, tlfInfoSource types.TLFInfoSource) *Boxer {
+func NewBoxer(g *globals.Context, tlfInfoSource types.TLFInfoSource) *Boxer {
 	return &Boxer{
 		DebugLabeler:   utils.NewDebugLabeler(g, "Boxer", false),
 		boxWithVersion: chat1.MessageBoxedVersion_V1,
 		hashV1:         hashSha256V1,
-		Contextified:   libkb.NewContextified(g),
+		Contextified:   globals.NewContextified(g),
 		tlfInfoSource:  tlfInfoSource,
 	}
 }

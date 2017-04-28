@@ -60,4 +60,8 @@ func TestLoginOffline(t *testing.T) {
 	if ekey == nil {
 		t.Errorf("encryption key is nil, expected it to exist")
 	}
+
+	if tc.G.ActiveDevice.Name() != defaultDeviceName {
+		t.Errorf("device name: %q, expected %q", tc.G.ActiveDevice.Name(), defaultDeviceName)
+	}
 }

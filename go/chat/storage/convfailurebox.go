@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -18,7 +19,7 @@ type ConversationFailureRecord struct {
 }
 
 type ConversationFailureBox struct {
-	libkb.Contextified
+	globals.Contextified
 	*baseBox
 	utils.DebugLabeler
 
@@ -27,9 +28,9 @@ type ConversationFailureBox struct {
 	clock clockwork.Clock
 }
 
-func NewConversationFailureBox(g *libkb.GlobalContext, uid gregor1.UID, key string) *ConversationFailureBox {
+func NewConversationFailureBox(g *globals.Context, uid gregor1.UID, key string) *ConversationFailureBox {
 	return &ConversationFailureBox{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		baseBox:      newBaseBox(g, false),
 		DebugLabeler: utils.NewDebugLabeler(g, "ConversationFailureBox", false),
 		uid:          uid,

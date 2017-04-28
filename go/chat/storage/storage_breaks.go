@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -11,13 +12,13 @@ import (
 )
 
 type breakTracker struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 }
 
-func newBreakTracker(g *libkb.GlobalContext) *breakTracker {
+func newBreakTracker(g *globals.Context) *breakTracker {
 	return &breakTracker{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "BreakTracker", false),
 	}
 }

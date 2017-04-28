@@ -6,18 +6,18 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type IdentifyNotifier struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 
 	sync.RWMutex
@@ -25,9 +25,9 @@ type IdentifyNotifier struct {
 	identCache map[string]keybase1.CanonicalTLFNameAndIDWithBreaks
 }
 
-func NewIdentifyNotifier(g *libkb.GlobalContext) *IdentifyNotifier {
+func NewIdentifyNotifier(g *globals.Context) *IdentifyNotifier {
 	return &IdentifyNotifier{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "IdentifyNotifier", false),
 		identCache:   make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
 		storage:      storage.New(g),
@@ -63,15 +63,15 @@ func (i *IdentifyNotifier) Send(update keybase1.CanonicalTLFNameAndIDWithBreaks)
 }
 
 type IdentifyChangedHandler struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 
 	tlfInfoSource types.TLFInfoSource
 }
 
-func NewIdentifyChangedHandler(g *libkb.GlobalContext, tlfInfoSource types.TLFInfoSource) *IdentifyChangedHandler {
+func NewIdentifyChangedHandler(g *globals.Context, tlfInfoSource types.TLFInfoSource) *IdentifyChangedHandler {
 	return &IdentifyChangedHandler{
-		Contextified:  libkb.NewContextified(g),
+		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g, "IdentifyChangedHandler", false),
 		tlfInfoSource: tlfInfoSource,
 	}
@@ -170,7 +170,7 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 	var breaks []keybase1.TLFIdentifyFailure
 	ident := keybase1.TLFIdentifyBehavior_CHAT_GUI
 	notifier := NewIdentifyNotifier(h.G())
-	ctx := Context(context.Background(), ident, &breaks, notifier)
+	ctx := Context(context.Background(), h.G().Env, ident, &breaks, notifier)
 
 	// Find a TLF name from the local inbox that includes the user sent to us
 	tlfName, _, err := h.getTLFtoCrypt(ctx, uid.ToBytes())

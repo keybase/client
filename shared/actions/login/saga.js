@@ -9,12 +9,15 @@ import * as Creators from './creators'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import {RPCError} from '../../util/errors'
-import {bootstrap, setInitialTab, getExtendedStatus} from '../config'
+import {bootstrap, setInitialTab, getExtendedStatus, setInitialLink} from '../config'
+import {appLink} from '../app'
 import {defaultModeForDeviceRoles} from './provision-helpers'
 import openURL from '../../util/open-url'
 import {devicesTab, loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {load as loadDevices} from '../devices'
+import {deletePushTokenSaga} from '../push'
+import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
 import {toDeviceType} from '../../constants/types/more'
@@ -85,10 +88,11 @@ function * setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) {
 }
 
 function * navBasedOnLoginState () {
-  const selector = ({config: {loggedIn, registered, initialTab, launchedViaPush}, login: {justDeletedSelf}}: TypedState) => ({
+  const selector = ({config: {loggedIn, registered, initialTab, initialLink, launchedViaPush}, login: {justDeletedSelf}}: TypedState) => ({
     loggedIn,
     registered,
     initialTab,
+    initialLink,
     justDeletedSelf,
     launchedViaPush,
   })
@@ -97,6 +101,7 @@ function * navBasedOnLoginState () {
     loggedIn,
     registered,
     initialTab,
+    initialLink,
     justDeletedSelf,
     launchedViaPush,
   } = yield select(selector)
@@ -107,6 +112,9 @@ function * navBasedOnLoginState () {
     if (overrideLoggedInTab) {
       console.log('Loading overridden logged in tab')
       yield put(navigateTo([overrideLoggedInTab]))
+    } else if (initialLink) {
+      yield put(setInitialLink(null))
+      yield put(appLink(initialLink))
     } else if (initialTab && isValidInitialTab(initialTab)) {
       // only do this once
       yield put(setInitialTab(null))
@@ -451,6 +459,7 @@ function * cameraBrokenModeSaga ({payload: {broken}}) {
 
 function * loginSuccess () {
   yield put(Creators.loginDone())
+  yield put(configurePush())
   yield put(loadDevices())
   yield put(bootstrap())
 }
@@ -501,10 +510,12 @@ function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
 function * reloginSaga ({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
   const finishedSaga = function * ({error}) {
     if (error) {
-      const message = 'This device is no longer provisioned.'
+      const message = error.toString()
       yield put(Creators.loginDone({message}))
-      yield put(Creators.setLoginFromRevokedDevice(message))
-      yield put(navigateTo([loginTab]))
+      if (error.desc === 'No device provisioned locally for this user') {
+        yield put(Creators.setLoginFromRevokedDevice(message))
+        yield put(navigateTo([loginTab]))
+      }
     } else {
       yield call(loginSuccess)
     }
@@ -565,6 +576,8 @@ function * logoutDoneSaga () {
 }
 
 function * logoutSaga () {
+  yield call(deletePushTokenSaga)
+
   const sagas = {
     finished: function * ({error}) {
       if (error) {
@@ -582,18 +595,16 @@ function * logoutSaga () {
 }
 
 function * loginSaga (): SagaGenerator<any, any> {
-  yield [
-    Saga.safeTakeLatest(Constants.startLogin, startLoginSaga),
-    Saga.safeTakeLatest(Constants.cameraBrokenMode, cameraBrokenModeSaga),
-    Saga.safeTakeLatest(Constants.setCodeMode, generateQRCode),
-    Saga.safeTakeLatest(Constants.relogin, reloginSaga),
-    Saga.safeTakeLatest(Constants.submitForgotPassword, submitForgotPasswordSaga),
-    Saga.safeTakeLatest(Constants.openAccountResetPage, openAccountResetPageSaga),
-    Saga.safeTakeLatest(Constants.navBasedOnLoginState, navBasedOnLoginState),
-    Saga.safeTakeLatest(Constants.logoutDone, logoutDoneSaga),
-    Saga.safeTakeLatest(Constants.logout, logoutSaga),
-    Saga.safeTakeLatest('device:addNewDevice', addNewDeviceSaga),
-  ]
+  yield Saga.safeTakeLatest(Constants.startLogin, startLoginSaga)
+  yield Saga.safeTakeLatest(Constants.cameraBrokenMode, cameraBrokenModeSaga)
+  yield Saga.safeTakeLatest(Constants.setCodeMode, generateQRCode)
+  yield Saga.safeTakeLatest(Constants.relogin, reloginSaga)
+  yield Saga.safeTakeLatest(Constants.submitForgotPassword, submitForgotPasswordSaga)
+  yield Saga.safeTakeLatest(Constants.openAccountResetPage, openAccountResetPageSaga)
+  yield Saga.safeTakeLatest(Constants.navBasedOnLoginState, navBasedOnLoginState)
+  yield Saga.safeTakeLatest(Constants.logoutDone, logoutDoneSaga)
+  yield Saga.safeTakeLatest(Constants.logout, logoutSaga)
+  yield Saga.safeTakeLatest('device:addNewDevice', addNewDeviceSaga)
 }
 
 export default loginSaga

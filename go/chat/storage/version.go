@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -10,15 +11,15 @@ import (
 )
 
 type ServerVersions struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 
 	cached *chat1.ServerCacheVers
 }
 
-func NewServerVersions(g *libkb.GlobalContext) *ServerVersions {
+func NewServerVersions(g *globals.Context) *ServerVersions {
 	return &ServerVersions{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "ServerVersions", false),
 	}
 }

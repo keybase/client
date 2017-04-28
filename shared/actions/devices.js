@@ -163,16 +163,16 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
   } catch (e) {
     closeChannelMap(generatePaperKeyChanMap)
     throw new Error(`Error in generating paper key ${e}`)
+  } finally {
+    yield put(setWaiting(false))
   }
 }
 
 function * deviceSaga (): SagaGenerator<any, any> {
-  yield [
-    safeTakeLatest('devices:load', _deviceListSaga),
-    safeTakeEvery('devices:revoke', _deviceRevokedSaga),
-    safeTakeEvery('devices:paperKeyMake', _devicePaperKeySaga),
-    safeTakeEvery('devices:showRevokePage', _deviceShowRevokePageSaga),
-  ]
+  yield safeTakeLatest('devices:load', _deviceListSaga)
+  yield safeTakeEvery('devices:revoke', _deviceRevokedSaga)
+  yield safeTakeEvery('devices:paperKeyMake', _devicePaperKeySaga)
+  yield safeTakeEvery('devices:showRevokePage', _deviceShowRevokePageSaga)
 }
 
 export default deviceSaga

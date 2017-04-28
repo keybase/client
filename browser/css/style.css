@@ -58,13 +58,17 @@
   color: #ff4d61;
 }
 
-.keybase-user {
-  font-weight: bold;
-  padding: 1px;
+.keybase-contact {
+  font-weight: 600;
+  text-align: center;
+}
+.keybase-contact small {
+  display: block;
+  font-weight: inherit;
+  color: rgba(0, 0, 0, 0.4);
 }
 img.keybase-icon {
   height: 32px;
-  margin-bottom: -11px;
   border-radius: 16px;
 }
 .keybase-user span {
@@ -86,6 +90,10 @@ img.keybase-icon {
 .keybase-reply em {
   font-weight: bold;
   font-style: italic;
+}
+
+.keybase-reply strong {
+  font-weight: 600;
 }
 
 .keybase-reply textarea {
@@ -122,9 +130,8 @@ a.keybase-button {
   color: #fff;
   height: 40px;
   line-height: 40px;
-  font-weight: normal;
+  font-weight: 600;
   font-size: 13px;
-  letter-spacing: 0.3px;
   margin-bottom: 16px;
 }
 
@@ -134,6 +141,7 @@ a.keybase-button {
 
 .keybase-reply h3 img {
   height: 16px;
+  width: 16px;
   margin: 0 6px -2px 0;
 }
 
@@ -147,8 +155,8 @@ a.keybase-button {
   font-size: 14px;
   font-style: normal;
   font-stretch: normal;
+  font-weight: 600;
   line-height: normal;
-  letter-spacing: 0.3px;
 }
 
 .keybase-reply input[type="submit"]:disabled {

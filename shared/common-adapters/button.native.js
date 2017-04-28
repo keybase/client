@@ -20,7 +20,7 @@ class Button extends Component<void, Props, void> {
       Normal: '',
     }[this.props.backgroundMode] : ''
 
-    let style = {
+    let containerStyle = {
       Primary,
       Secondary,
       SecondaryOnTerminal,
@@ -43,45 +43,36 @@ class Button extends Component<void, Props, void> {
     }[this.props.type + 'Label' + backgroundModeName]
 
     if (this.props.fullWidth) {
-      style = {...style, ...fullWidth}
+      containerStyle = {...containerStyle, ...fullWidth}
     }
 
     if (this.props.small) {
-      style = {...style, ...smallStyle}
+      containerStyle = {...containerStyle, ...smallStyle}
     }
 
     if (this.props.disabled || this.props.waiting) {
-      style = {...style, ...disabled[this.props.type]}
+      containerStyle = {...containerStyle, ...disabled[this.props.type]}
     }
+
+    containerStyle = {...containerStyle, ...this.props.style}
 
     const onPress = (!this.props.disabled && !this.props.waiting && this.props.onClick) || null
 
-    // Need this nested view to get around this RN issue: https://github.com/facebook/react-native/issues/1040
     return (
-      <Box style={_containerStyle}>
-        <ClickableBox style={_clickableBoxStyle} onClick={onPress}>
-          <Box style={{...style, ...this.props.style, alignItems: 'center', justifyContent: 'center'}}>
-            <Text type={this.props.small ? 'BodySemibold' : 'BodyBig'} style={{...labelStyle, ...this.props.labelStyle}}>{this.props.label}</Text>
-            {this.props.waiting && <Progress />}
-          </Box>
-        </ClickableBox>
-      </Box>
+      <ClickableBox style={containerStyle} onClick={onPress}>
+        <Box>
+          <Text type={this.props.small ? 'BodySemibold' : 'BodyBig'} style={{...labelStyle, ...this.props.labelStyle}}>{this.props.label}</Text>
+          {this.props.waiting && <Progress />}
+        </Box>
+      </ClickableBox>
     )
   }
-}
-
-const _containerStyle = {
-  alignItems: 'center',
 }
 
 const smallHeight = 32
 const regularHeight = 40
 const fullWidthHeight = 48
 const borderRadius = 50
-
-const _clickableBoxStyle = {
-  borderRadius,
-}
 
 const common = {
   ...globalStyles.flexBoxColumn,
@@ -184,6 +175,7 @@ const Unfollow = {
 }
 const UnfollowLabel = {
   ...commonLabel,
+  color: globalColors.black_75,
 }
 
 const Custom = {}

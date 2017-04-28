@@ -663,6 +663,10 @@
         {
           "name": "ctime",
           "type": "gregor1.Time"
+        },
+        {
+          "name": "fresh",
+          "type": "boolean"
         }
       ],
       "response": "SyncAllResult"

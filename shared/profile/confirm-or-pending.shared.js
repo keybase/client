@@ -2,7 +2,7 @@
 import type {Props} from './confirm-or-pending'
 
 const commonConfirm = ({platform, isPending}) => ({
-  title: isPending ? 'Your proof is pending.' : 'Your proof is verified!',
+  title: isPending ? 'Your proof is pending.' : 'Verified!',
   platformIcon: `icon-${platform}-logo-48`,
   platformIconOverlay: isPending ? 'icon-proof-pending' : 'icon-proof-success',
   usernameSubtitle: `@${platform}`,

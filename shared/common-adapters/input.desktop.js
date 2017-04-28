@@ -28,6 +28,10 @@ class Input extends Component<void, Props, State> {
     }
   }
 
+  setNativeProps (props: Object) {
+    throw new Error('Only implemented on RN')
+  }
+
   componentDidMount () {
     this._autoResize()
   }

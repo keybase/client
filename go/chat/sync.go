@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -17,7 +17,7 @@ import (
 )
 
 type Syncer struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 	sync.Mutex
 
@@ -33,9 +33,9 @@ type Syncer struct {
 	notificationQueue map[string][]chat1.ConversationID
 }
 
-func NewSyncer(g *libkb.GlobalContext) *Syncer {
+func NewSyncer(g *globals.Context) *Syncer {
 	s := &Syncer{
-		Contextified:      libkb.NewContextified(g),
+		Contextified:      globals.NewContextified(g),
 		DebugLabeler:      utils.NewDebugLabeler(g, "Syncer", false),
 		isConnected:       false,
 		clock:             clockwork.NewRealClock(),
@@ -144,7 +144,7 @@ func (s *Syncer) IsConnected(ctx context.Context) bool {
 
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
-	ctx = CtxAddLogTags(ctx)
+	ctx = CtxAddLogTags(ctx, s.G().GetEnv())
 	s.Lock()
 	defer s.Unlock()
 	defer s.Trace(ctx, func() error { return err }, "Connected")()

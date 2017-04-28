@@ -4,13 +4,14 @@
 package engine
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"io"
 
-	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/saltpack"
 )
 
@@ -191,10 +192,44 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 	return libkb.SaltpackEncrypt(e.G(), &encarg)
 }
 
+func (e *SaltpackEncrypt) getCryptKeys(ctx context.Context, name string) (keybase1.GetTLFCryptKeysRes, error) {
+	xp := e.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
+	if xp == nil {
+		return keybase1.GetTLFCryptKeysRes{}, fmt.Errorf("KBFS client wasn't found")
+	}
+	cli := &keybase1.TlfKeysClient{
+		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, libkb.LogTagsFromContext),
+	}
+	return cli.GetTLFCryptKeys(ctx, keybase1.TLFQuery{
+		TlfName:          name,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	})
+}
+
+func (e SaltpackEncrypt) completeAndCanonicalize(ctx context.Context, tlfName string) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
+	username := e.G().Env.GetUsername()
+	if len(username) == 0 {
+		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, libkb.LoginRequiredError{}
+	}
+
+	// Prepend username in case it's not present. We don't need to check if it
+	// exists already since CryptKeys calls below transforms the TLF name into a
+	// canonical one.
+	//
+	// This makes username a writer on this TLF, which might be unexpected.
+	// TODO: We should think about how to handle read-only TLFs.
+	tlfName = string(username) + "," + tlfName
+
+	resp, err := e.getCryptKeys(ctx, tlfName)
+	if err != nil {
+		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
+	}
+
+	return resp.NameIDBreaks, nil
+}
+
 // TODO: Make sure messages that encrypt only to self are working properly.
 func (e *SaltpackEncrypt) makeSymmetricReceivers(ctx *Context) ([]saltpack.ReceiverSymmetricKey, error) {
-	breaks := []keybase1.TLFIdentifyFailure{}
-	identifyCtx := types.IdentifyModeCtx(ctx.GetNetContext(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks)
 
 	// Fetch the TLF keys and assemble the pseudonym info objects.
 	var cryptKeys []keybase1.CryptKey
@@ -202,7 +237,7 @@ func (e *SaltpackEncrypt) makeSymmetricReceivers(ctx *Context) ([]saltpack.Recei
 	for _, user := range e.arg.Opts.Recipients {
 		tlfName := fmt.Sprintf("%s,%s", e.G().Env.GetUsername(), user)
 		e.G().Log.Debug("saltpack signcryption fetching TLF key for %s", tlfName)
-		res, err := e.G().TlfInfoSource.CompleteAndCanonicalizePrivateTlfName(identifyCtx, tlfName)
+		res, err := e.completeAndCanonicalize(ctx.GetNetContext(), tlfName)
 		if err != nil {
 			return nil, err
 		}
@@ -215,7 +250,7 @@ func (e *SaltpackEncrypt) makeSymmetricReceivers(ctx *Context) ([]saltpack.Recei
 			return nil, err
 		}
 		copy(tlfID[:], tlfIDSlice)
-		keys, err := e.G().TlfInfoSource.CryptKeys(identifyCtx, tlfName)
+		keys, err := e.getCryptKeys(ctx.GetNetContext(), tlfName)
 		if err != nil {
 			return nil, err
 		}

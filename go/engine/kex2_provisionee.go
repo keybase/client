@@ -6,6 +6,7 @@ package engine
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/url"
 	"time"
 
@@ -586,15 +587,33 @@ func (e *Kex2Provisionee) cacheKeys() (err error) {
 		return errors.New("cacheKeys called, but dh key is nil")
 	}
 
-	if err = e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}, e.eddsa); err != nil {
+	if err = e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}, e.eddsa, e.device); err != nil {
 		return err
 	}
 
-	if err = e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}, e.dh); err != nil {
+	if err = e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}, e.dh, e.device); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (e *Kex2Provisionee) SigningKey() (libkb.GenericKey, error) {
+	if e.eddsa == nil {
+		return nil, errors.New("provisionee missing signing key")
+	}
+	return e.eddsa, nil
+}
+
+func (e *Kex2Provisionee) EncryptionKey() (libkb.NaclDHKeyPair, error) {
+	if e.dh == nil {
+		return libkb.NaclDHKeyPair{}, errors.New("provisionee missing encryption key")
+	}
+	ret, ok := e.dh.(libkb.NaclDHKeyPair)
+	if !ok {
+		return libkb.NaclDHKeyPair{}, fmt.Errorf("provisionee encryption key unexpected type %T", e.dh)
+	}
+	return ret, nil
 }
 
 func firstValues(vals url.Values) map[string]string {

@@ -145,3 +145,24 @@ func TestHandlerQuery(t *testing.T) {
 		t.Errorf("invalid result value: %q", result)
 	}
 }
+
+func TestCleanCmdArg(t *testing.T) {
+	testcases := []struct {
+		Input string
+		Err   error
+	}{
+		{"shazow@reddit", nil},
+		{"shazow:twitter.com", nil},
+		{`abcABC123_@.`, nil},
+		{``, errMissingField},
+		{`a-bc${foo} bar`, errInvalidInput},
+		{"foo\nbar", errInvalidInput},
+		{"foo ", errInvalidInput},
+	}
+
+	for i, test := range testcases {
+		if _, err := checkUsernameQuery(test.Input); err != test.Err {
+			t.Errorf("case %d: got %q; want %q", i, err, test.Err)
+		}
+	}
+}

@@ -29,7 +29,7 @@ type loginProvision struct {
 	cleanupOnErr    bool
 	hasPGP          bool
 	hasDevice       bool
-	sharedDHKeyring *libkb.SharedDHKeyring // Created after provisioning. Sent to paperkey gen.
+	sharedDHKeyring *libkb.SharedDHKeyring
 }
 
 // gpgInterface defines the portions of gpg client that provision
@@ -100,6 +100,13 @@ func (e *loginProvision) Run(ctx *Context) error {
 			tx.Abort()
 		}
 	}()
+
+	if e.G().Env.GetEnableSharedDH() {
+		e.sharedDHKeyring, err = libkb.NewSharedDHKeyring(e.G(), e.arg.User.GetUID())
+		if err != nil {
+			return err
+		}
+	}
 
 	e.cleanupOnErr = true
 	// based on information in e.arg.User, route the user
@@ -235,10 +242,30 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		// run provisionee
 		ctx.LoginContext = lctx
 		err := RunEngine(provisionee, ctx)
-		if err == nil {
-			saveToSecretStore(e.G(), lctx, e.arg.User.GetNormalizedName(), provisionee.GetLKSec())
+		if err != nil {
+			return err
 		}
-		return err
+
+		// TODO this error is being ignored... k?
+		saveToSecretStore(e.G(), lctx, e.arg.User.GetNormalizedName(), provisionee.GetLKSec())
+
+		e.signingKey, err = provisionee.SigningKey()
+		if err != nil {
+			return err
+		}
+		e.encryptionKey, err = provisionee.EncryptionKey()
+		if err != nil {
+			return err
+		}
+
+		// Load me again so that keys will be up to date.
+		loadArg := libkb.NewLoadUserArgBase(e.G()).WithSelf(true).WithUID(e.arg.User.GetUID()).WithNetContext(ctx.NetContext)
+		e.arg.User, err = libkb.LoadUser(*loadArg)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 	if err := e.G().LoginState().ExternalFunc(f, "loginProvision.device - Run provisionee"); err != nil {
 		return err
@@ -398,10 +425,11 @@ func (e *loginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, erro
 	e.devname = devname
 
 	return &DeviceWrapArgs{
-		Me:         e.arg.User,
-		DeviceName: e.devname,
-		DeviceType: e.arg.DeviceType,
-		Lks:        e.lks,
+		Me:              e.arg.User,
+		DeviceName:      e.devname,
+		DeviceType:      e.arg.DeviceType,
+		Lks:             e.lks,
+		SharedDHKeyring: e.sharedDHKeyring,
 	}, nil
 }
 
@@ -481,12 +509,6 @@ func (e *loginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) erro
 
 	e.signingKey = eng.SigningKey()
 	e.encryptionKey = eng.EncryptionKey()
-
-	var err error
-	e.sharedDHKeyring, err = libkb.NewSharedDHKeyring(e.G(), e.arg.User.GetUID(), e.G().Env.GetDeviceID())
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
@@ -920,11 +942,38 @@ func (e *loginProvision) makeEldestDevice(ctx *Context) error {
 // ensurePaperKey checks to see if e.user has any paper keys.  If
 // not, it makes one.
 func (e *loginProvision) ensurePaperKey(ctx *Context) error {
+	e.G().Log.CDebugf(ctx.NetContext, "loginProvision#ensurePaperKey")
 	// see if they have a paper key already
 	cki := e.arg.User.GetComputedKeyInfos()
 	if cki != nil {
 		if len(cki.PaperDevices()) > 0 {
 			return nil
+		}
+	}
+
+	// Check that there is a signing key present.
+	// If it were nil, PaperKeyGen would try to make an eldest sigchain link.
+	if e.signingKey == nil {
+		return errors.New("missing signing key for ensure paper key")
+	}
+
+	if e.encryptionKey.IsNil() {
+		if e.G().Env.GetEnableSharedDH() {
+			return errors.New("missing encryption key for ensure paper key")
+		}
+		e.G().Log.CWarningf(ctx.NetContext, "missing encryption key for ensure paper key")
+	}
+
+	// Load me so that keys will be up to date.
+	var err error
+	e.arg.User, err = libkb.LoadUser(libkb.LoadUserArg{Self: true, UID: e.arg.User.GetUID(), PublicKeyOptional: true, Contextified: libkb.NewContextified(e.G())})
+	if err != nil {
+		return err
+	}
+
+	if e.G().Env.GetEnableSharedDH() {
+		if e.encryptionKey.IsNil() {
+			return errors.New("missing encryption key for creating paper key")
 		}
 	}
 

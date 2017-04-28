@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -12,11 +13,15 @@ import (
 )
 
 func TestConvFailureBox(t *testing.T) {
-	tc := externals.SetupTest(t, "ConvFailureBox", 2)
-	u, err := kbtest.CreateAndSignupFakeUser("cf", tc.G)
+	ltc := externals.SetupTest(t, "ConvFailureBox", 2)
+	tc := kbtest.ChatTestContext{
+		TestContext: ltc,
+		ChatG:       &globals.ChatContext{},
+	}
+	u, err := kbtest.CreateAndSignupFakeUser("cf", ltc.G)
 	require.NoError(t, err)
 	uid := gregor1.UID(u.User.GetUID().ToBytes())
-	cfb := NewConversationFailureBox(tc.G, uid, "mike")
+	cfb := NewConversationFailureBox(tc.Context(), uid, "mike")
 
 	convID := randBytes(8)
 	require.NoError(t, cfb.Failure(context.TODO(), convID))

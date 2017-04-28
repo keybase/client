@@ -12,10 +12,14 @@ type MenuItemProps = MenuItem & {
   isHeader?: boolean,
   index: number,
   numItems: number,
+  onHidden: () => void,
 }
 
 const MenuRow = (props: MenuItemProps) => (
-  <TouchableOpacity disabled={!props.onClick} onPress={props.onClick} style={{...styleRow(props), ...props.style}}>
+  <TouchableOpacity disabled={!props.onClick} onPress={() => {
+    props.onClick && props.onClick()
+    props.onHidden() // auto hide after a selection
+  }} style={{...styleRow(props), ...props.style}}>
     {props.view || <Text type={'BodyBig'} style={styleRowText(props)}>{props.title}</Text>}
   </TouchableOpacity>
 )
@@ -64,10 +68,10 @@ class PopupMenu extends Component<void, Props, void> {
         <Box style={styleOverlay}>
           <Box style={{...styleMenu, ...this.props.style}}>
             <Box style={styleMenuGroup}>
-              {menuItemsWithHeader.map((mi, idx) => <MenuRow key={mi.title} {...mi} index={idx} numItems={menuItemsWithHeader.length} />)}
+              {menuItemsWithHeader.map((mi, idx) => <MenuRow key={mi.title} {...mi} index={idx} numItems={menuItemsWithHeader.length} onHidden={this.props.onHidden} />)}
             </Box>
             <Box style={{...styleMenuGroup, borderColor: '#d7d7d7', borderTopWidth: 1}}>
-              <MenuRow title='Cancel' onClick={this.props.onHidden} index={0} numItems={1} />
+              <MenuRow title='Cancel' index={0} numItems={1} onHidden={this.props.onHidden} />
             </Box>
           </Box>
         </Box>

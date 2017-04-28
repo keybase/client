@@ -100,7 +100,8 @@ protocol identifyUi {
   record ConfirmResult {
     boolean identityConfirmed; // true if the user answers yes to "Is this the user you wanted?"
     boolean remoteConfirmed;   // true if the user answers yes to "Publicly write tracking statement to server?"
-    boolean expiringLocal;   // true if the user answers yes to "Expire local tracking statement after X?"
+    boolean expiringLocal;    // true if the user answers yes to "Expire local tracking statement after X?"
+    boolean autoConfirmed;    // true if autoconfirmed
   }
 
   enum DismissReasonType {

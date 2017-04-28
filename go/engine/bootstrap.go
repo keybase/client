@@ -4,6 +4,8 @@
 package engine
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -68,18 +70,30 @@ func (e *Bootstrap) Run(ctx *Context) error {
 
 		e.status.DeviceID = a.GetDeviceID()
 		e.status.DeviceName = e.G().ActiveDevice.Name()
-
-		ts := libkb.NewTracker2Syncer(e.G(), e.status.Uid, true)
-		if err := libkb.RunSyncerCached(ts, e.status.Uid); err != nil {
-			gerr = err
-			return
-		}
-		e.usums = ts.Result()
-
 	}, "Bootstrap")
 	if gerr != nil {
 		return gerr
 	}
+
+	if !e.status.LoggedIn {
+		e.G().Log.Debug("not logged in, not running syncer")
+		return nil
+	}
+
+	// get user summaries
+	ts := libkb.NewTracker2Syncer(e.G(), e.status.Uid, true)
+	if e.G().ConnectivityMonitor.IsConnected(context.Background()) == libkb.ConnectivityMonitorYes {
+		e.G().Log.Debug("connected, running full tracker2 syncer")
+		if err := libkb.RunSyncer(ts, e.status.Uid, false, nil); err != nil {
+			return err
+		}
+	} else {
+		e.G().Log.Debug("not connected, running cached tracker2 syncer")
+		if err := libkb.RunSyncerCached(ts, e.status.Uid); err != nil {
+			return err
+		}
+	}
+	e.usums = ts.Result()
 
 	// filter usums into followers, following
 	for _, u := range e.usums.Users {

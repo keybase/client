@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -23,7 +23,7 @@ const fetchMaxTime = 24 * time.Hour
 // FetchRetrier is responsible for tracking any nonblock fetch failures, and retrying
 // them automatically.
 type FetchRetrier struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 	sync.Mutex
 
@@ -35,9 +35,9 @@ type FetchRetrier struct {
 
 var _ types.FetchRetrier = (*FetchRetrier)(nil)
 
-func NewFetchRetrier(g *libkb.GlobalContext) *FetchRetrier {
+func NewFetchRetrier(g *globals.Context) *FetchRetrier {
 	f := &FetchRetrier{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "FetchRetrier", false),
 		clock:        clockwork.NewRealClock(),
 		forceCh:      make(chan struct{}, 10),
@@ -185,7 +185,7 @@ func (f *FetchRetrier) retryFetch(uid gregor1.UID, force bool, kind types.FetchT
 	var err error
 	var breaks []keybase1.TLFIdentifyFailure
 	box := storage.NewConversationFailureBox(f.G(), uid, f.boxKey(kind))
-	ctx := Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks,
+	ctx := Context(context.Background(), f.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks,
 		NewIdentifyNotifier(f.G()))
 
 	// Get all items that are ready to be retried.
@@ -206,7 +206,7 @@ func (f *FetchRetrier) retryFetch(uid gregor1.UID, force bool, kind types.FetchT
 	fixed := fixFn(ctx, uid, convIDs)
 	if len(fixed) > 0 {
 		f.Debug(ctx, "retryFetch: sending %d stale notifications", len(fixed))
-		f.G().ChatSyncer.SendChatStaleNotifications(ctx, uid, fixed, false)
+		f.G().Syncer.SendChatStaleNotifications(ctx, uid, fixed, false)
 	}
 }
 
