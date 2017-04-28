@@ -37,13 +37,18 @@ function * pushNotificationSaga (notification: Constants.PushNotification): Saga
   console.warn('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
-    const convID = payload.data ? payload.data.convID : payload.convID
+    
+    // If we have received a silent notification, then just sit around for a bit
+    // so that Go can sync from the server. 
     if (payload.data && payload.data.silent) {
       console.info('Push notification: pausing on silent notification')
       yield call(delay, 15 * 1000);
       console.info('Push notification: pause complete, returning')
       return
     }
+
+    // Check for conversation ID so we know where to navigate to
+    const convID = payload.data ? payload.data.convID : payload.convID
     if (!convID) {
       console.error('Push notification payload missing conversation ID')
       return
