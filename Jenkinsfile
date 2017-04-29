@@ -310,14 +310,14 @@ def runNixTest(prefix) {
         dir('test') {
             println "Test with Race but no Fuse"
             sh 'go test -race -c -o test.race'
-            sh './test.race -test.timeout 10m'
+            sh './test.race -test.timeout 12m'
         }
     }
     tests[prefix+'test_fuse'] = {
         dir('test') {
             println "Test with Fuse but no Race"
             sh 'go test -c -tags fuse -o test.fuse'
-            sh './test.fuse -test.timeout 10m'
+            sh './test.fuse -test.timeout 12m'
         }
     }
     parallel (tests)
