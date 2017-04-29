@@ -19,10 +19,8 @@ RCT_REMAP_METHOD(logSend,
 
   NSString *logId = nil;
   NSError *err = nil;
-  NSString * appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
-  NSString * appBuildString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
 
-  GoKeybaseLogSend(status, feedback, appVersionString, appBuildString, sendLogs, logPath, &logId, &err);
+  GoKeybaseLogSend(status, feedback, sendLogs, logPath, &logId, &err);
   if (err == nil) {
     resolve(logId);
   } else {
