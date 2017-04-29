@@ -19,7 +19,6 @@ RCT_REMAP_METHOD(logSend,
 
   NSString *logId = nil;
   NSError *err = nil;
-
   GoKeybaseLogSend(status, feedback, sendLogs, logPath, &logId, &err);
   if (err == nil) {
     resolve(logId);
