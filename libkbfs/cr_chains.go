@@ -991,11 +991,6 @@ func (ccs *crChains) changeOriginal(oldOriginal BlockPointer,
 	chain.original = newOriginal
 	ccs.byOriginal[newOriginal] = chain
 	ccs.originals[oldOriginal] = newOriginal
-	if chain.mostRecent == oldOriginal {
-		chain.mostRecent = newOriginal
-		delete(ccs.byMostRecent, oldOriginal)
-		ccs.byMostRecent[newOriginal] = chain
-	}
 
 	if _, ok := ccs.deletedOriginals[oldOriginal]; ok {
 		delete(ccs.deletedOriginals, oldOriginal)
