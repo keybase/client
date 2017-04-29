@@ -975,7 +975,8 @@ func (ccs *crChains) copyOpAndRevertUnrefsToOriginals(currOp op) op {
 	return newOp
 }
 
-// changeOriginal converts the original of a chain to a different original.
+// changeOriginal converts the original of a chain to a different
+// original, which originated in some other branch.
 func (ccs *crChains) changeOriginal(oldOriginal BlockPointer,
 	newOriginal BlockPointer) error {
 	chain, ok := ccs.byOriginal[oldOriginal]
@@ -998,7 +999,8 @@ func (ccs *crChains) changeOriginal(oldOriginal BlockPointer,
 	}
 	if _, ok := ccs.createdOriginals[oldOriginal]; ok {
 		delete(ccs.createdOriginals, oldOriginal)
-		ccs.createdOriginals[newOriginal] = true
+		// We're swapping in an original made on some other branch, so
+		// it shouldn't go in the `createdOriginals` map.
 	}
 	if ri, ok := ccs.renamedOriginals[oldOriginal]; ok {
 		delete(ccs.renamedOriginals, oldOriginal)
