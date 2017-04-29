@@ -137,8 +137,6 @@ export default compose(
         username: state.config.username,
         uid: state.config.uid,
         deviceID: state.config.deviceID,
-        config: state.config.config,
-        extendedStatus: state.config.extendedConfig,
         platform: isAndroid ? 'android' : isIOS ? 'ios' : 'desktop',
         version,
         appVersionName,
