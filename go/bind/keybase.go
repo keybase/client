@@ -162,9 +162,9 @@ func (s serviceCn) NewCrypto(config libkbfs.Config, params libkbfs.InitParams, c
 }
 
 // LogSend sends a log to Keybase
-func LogSend(status string, feedback string, mobileVersionName string, mobileVersionCode string, sendLogs bool, uiLogPath string) (string, error) {
+func LogSend(status string, feedback string, sendLogs bool, uiLogPath string) (string, error) {
 	logSendContext.Logs.Desktop = uiLogPath
-	return logSendContext.LogSend(status, feedback, mobileVersionName, mobileVersionCode, sendLogs, 5*1024*1024)
+	return logSendContext.LogSend(status, feedback, sendLogs, 5*1024*1024)
 }
 
 // WriteB64 sends a base64 encoded msgpack rpc payload

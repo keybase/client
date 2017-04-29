@@ -98,7 +98,7 @@ func (c *CmdLogSend) Run() error {
 		Logs:         logs,
 	}
 
-	id, err := logSendContext.LogSend(statusJSON, c.feedback, "", "", true, c.numBytes)
+	id, err := logSendContext.LogSend(statusJSON, c.feedback, true, c.numBytes)
 	if err != nil {
 		return err
 	}
