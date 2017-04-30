@@ -2889,6 +2889,10 @@ func (fbo *folderBranchOps) CreateLink(
 func (fbo *folderBranchOps) unrefEntry(ctx context.Context,
 	lState *lockState, md *RootMetadata, dir path, de DirEntry,
 	name string) error {
+	if de.Type == Sym {
+		return nil
+	}
+
 	md.AddUnrefBlock(de.BlockInfo)
 	// construct a path for the child so we can unlink with it.
 	childPath := dir.ChildPath(name, de.BlockPointer)
