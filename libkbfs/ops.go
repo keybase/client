@@ -867,10 +867,7 @@ func addToCollapsedWriteRange(writes []WriteRange,
 			// Truncate past the last write.
 			return append(head, wNew)
 		} else if mid[0].isTruncate() {
-			// Min truncate wins
-			if mid[0].Off < wNew.Off {
-				return append(head, mid[0])
-			}
+			// Later truncates always win.
 			return append(head, wNew)
 		} else if mid[0].Off < wNew.Off {
 			return append(head, WriteRange{

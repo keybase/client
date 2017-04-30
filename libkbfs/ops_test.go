@@ -706,6 +706,15 @@ func TestOpsCollapseWriteRange(t *testing.T) {
 	}
 }
 
+func TestCollapseWriteRangeWithLaterTruncate(t *testing.T) {
+	so := &syncOp{}
+	so.Writes = []WriteRange{{Off: 400, Len: 0}}
+	got := so.collapseWriteRange([]WriteRange{{Off: 0, Len: 0}})
+	expected := []WriteRange{{Off: 400, Len: 0}}
+	require.True(t, reflect.DeepEqual(got, expected),
+		"Bad write collapse, got=%v, expected=%v", got, expected)
+}
+
 func ExamplecoalesceWrites() {
 	fmt.Println(coalesceWrites(
 		[]WriteRange{{Off: 7, Len: 5}, {Off: 18, Len: 10},
