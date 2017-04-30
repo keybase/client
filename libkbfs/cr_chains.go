@@ -135,6 +135,39 @@ func (cc *crChain) getCollapsedWriteRange() []WriteRange {
 	return wr
 }
 
+func writeRangesEquivalent(
+	wr1 []WriteRange, wr2 []WriteRange) bool {
+	// Both empty?
+	if len(wr1) == 0 && len(wr2) == 0 {
+		return true
+	}
+
+	// If both branches contain no writes, and their truncation
+	// points are the same, then there are no unmerged actions to
+	// take.
+	if len(wr1) == 1 && wr1[0].isTruncate() &&
+		len(wr2) == 1 && wr2[0].isTruncate() &&
+		wr1[0].Off == wr2[0].Off {
+		return true
+	}
+
+	// TODO: In the future we may be able to do smarter merging
+	// here if the write ranges don't overlap, though maybe only
+	// for certain file types?
+	return false
+}
+
+func (cc *crChain) removeSyncOps() {
+	var newOps []op
+	for _, op := range cc.ops {
+		if _, ok := op.(*syncOp); !ok {
+			newOps = append(newOps, op)
+		}
+	}
+
+	cc.ops = newOps
+}
+
 func (cc *crChain) getActionsToMerge(
 	ctx context.Context, renamer ConflictRenamer, mergedPath path,
 	mergedChain *crChain) (crActionList, error) {
@@ -145,30 +178,15 @@ func (cc *crChain) getActionsToMerge(
 	// hasn't already been changed.  For example, if they both
 	// truncate the file to the same length, and there are no
 	// other writes, we can just drop the unmerged syncs.
-	toSkip := make(map[int]bool)
 	if cc.isFile() && mergedChain != nil {
 		// The write ranges should already be collapsed into a single
 		// syncOp, these calls just find that one remaining syncOp.
 		myWriteRange := cc.getCollapsedWriteRange()
 		mergedWriteRange := mergedChain.getCollapsedWriteRange()
 
-		// If both branches contain no writes, and their truncation
-		// points are the same, then there are no unmerged actions to
-		// take.
-		//
-		// TODO: In the future we may be able to do smarter merging
-		// here if the write ranges don't overlap, though maybe only
-		// for certain file types?
-		if len(myWriteRange) == 1 && myWriteRange[0].isTruncate() &&
-			len(mergedWriteRange) == 1 && mergedWriteRange[0].isTruncate() &&
-			myWriteRange[0].Off == mergedWriteRange[0].Off {
+		if writeRangesEquivalent(myWriteRange, mergedWriteRange) {
 			// drop all sync ops
-			for i, op := range cc.ops {
-				if _, ok := op.(*syncOp); ok {
-					actions = append(actions, &dropUnmergedAction{op})
-					toSkip[i] = true
-				}
-			}
+			cc.removeSyncOps()
 		}
 	}
 
@@ -176,10 +194,7 @@ func (cc *crChain) getActionsToMerge(
 	// chain, looking for conflicts.  If there is a conflict, return
 	// it as part of the action list.  If there are no conflicts for
 	// that op, return the op's default actions.
-	for i, unmergedOp := range cc.ops {
-		if toSkip[i] {
-			continue
-		}
+	for _, unmergedOp := range cc.ops {
 		conflict := false
 		if mergedChain != nil {
 			for _, mergedOp := range mergedChain.ops {

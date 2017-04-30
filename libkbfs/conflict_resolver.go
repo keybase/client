@@ -442,28 +442,39 @@ func (sp crSortedPaths) Swap(i, j int) {
 	sp[j], sp[i] = sp[i], sp[j]
 }
 
-func fileWithConflictingWrite(unmergedChains, mergedChains *crChains,
+func createdFileWithConflictingWrite(unmergedChains, mergedChains *crChains,
 	unmergedOriginal, mergedOriginal BlockPointer) bool {
 	mergedChain := mergedChains.byOriginal[mergedOriginal]
 	unmergedChain := unmergedChains.byOriginal[unmergedOriginal]
-	if mergedChain != nil && unmergedChain != nil {
-		mergedSync := false
-		unmergedSync := false
-		for _, op := range mergedChain.ops {
-			if _, ok := op.(*syncOp); ok {
-				mergedSync = true
-				break
-			}
-		}
-		for _, op := range unmergedChain.ops {
-			if _, ok := op.(*syncOp); ok {
-				unmergedSync = true
-				break
-			}
-		}
-		return mergedSync && unmergedSync
+	if mergedChain == nil || unmergedChain == nil {
+		return false
 	}
-	return false
+
+	unmergedWriteRange := unmergedChain.getCollapsedWriteRange()
+	mergedWriteRange := mergedChain.getCollapsedWriteRange()
+	// Are they exactly equivalent?
+	if writeRangesEquivalent(unmergedWriteRange, mergedWriteRange) {
+		unmergedChain.removeSyncOps()
+		return false
+	}
+
+	// If the unmerged one is just a truncate, we can safely ignore
+	// the unmerged chain.
+	if len(unmergedWriteRange) == 1 && unmergedWriteRange[0].isTruncate() &&
+		unmergedWriteRange[0].Off == 0 {
+		unmergedChain.removeSyncOps()
+		return false
+	}
+
+	// If the merged one is just a truncate, we can safely ignore
+	// the unmerged chain.
+	if len(mergedWriteRange) == 1 && mergedWriteRange[0].isTruncate() &&
+		mergedWriteRange[0].Off == 0 {
+		mergedChain.removeSyncOps()
+		return false
+	}
+
+	return true
 }
 
 // checkPathForMerge checks whether the given unmerged chain and path
@@ -517,7 +528,7 @@ func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 		mergedOriginal := mergedCop.Refs()[0]
 		if cop.Type != Dir {
 			// Only merge files if they don't both have writes.
-			if fileWithConflictingWrite(unmergedChains, mergedChains,
+			if createdFileWithConflictingWrite(unmergedChains, mergedChains,
 				unmergedOriginal, mergedOriginal) {
 				continue
 			}
