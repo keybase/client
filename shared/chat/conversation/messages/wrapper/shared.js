@@ -133,7 +133,6 @@ const _leftMarkerStyle = {
 }
 
 const _userAvatarStyle = {
-  height: 1, // don't let avatar size push down the whole row
   width: 32,
   paddingTop: globalMargins.tiny,
 }

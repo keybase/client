@@ -9,6 +9,7 @@ export type Props = {
   justRevokedSelf: ?string,
   bootStatus: BootStatus,
   justDeletedSelf: ?string,
+  retrying: boolean,
 }
 
 export class Intro extends Component<void, Props, void> { }

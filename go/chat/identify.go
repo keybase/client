@@ -170,7 +170,7 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 	var breaks []keybase1.TLFIdentifyFailure
 	ident := keybase1.TLFIdentifyBehavior_CHAT_GUI
 	notifier := NewIdentifyNotifier(h.G())
-	ctx := Context(context.Background(), ident, &breaks, notifier)
+	ctx := Context(context.Background(), h.G().Env, ident, &breaks, notifier)
 
 	// Find a TLF name from the local inbox that includes the user sent to us
 	tlfName, _, err := h.getTLFtoCrypt(ctx, uid.ToBytes())

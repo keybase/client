@@ -1,4 +1,5 @@
 // @flow
+import * as Constants from '../../constants/config'
 import {Splash, Intro, Failure} from '.'
 import {connect} from 'react-redux'
 import {loginTab} from '../../constants/tabs'
@@ -17,6 +18,7 @@ export default compose(
       justDeletedSelf: state.login.justDeletedSelf,
       justLoginFromRevokedDevice: state.login.justLoginFromRevokedDevice,
       justRevokedSelf: state.login.justRevokedSelf,
+      retrying: state.config.bootstrapTriesRemaining !== Constants.MAX_BOOTSTRAP_TRIES,
     }),
     (dispatch: Dispatch) => ({
       onLogin: () => {

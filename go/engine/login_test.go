@@ -440,6 +440,15 @@ func testProvisionPassphraseNoKeysSolo(t *testing.T, enableSharedDH bool) {
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
+
+	// secret should be stored
+	secret, err := tc.G.SecretStoreAll.RetrieveSecret(libkb.NewNormalizedUsername(username))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if secret.IsNil() {
+		t.Fatal("secret in secret store was nil")
+	}
 }
 
 // Test bad name input (not valid username or email address).
@@ -2633,6 +2642,103 @@ func TestProvisionEnsurePaperKey(t *testing.T) {
 	t.Logf("check for paper key")
 	hasOnePaperDev(tcY, userX)
 	hasOnePaperDev(tcX, userX)
+}
+
+// Test bootstrap, login offline after service restart when provisioned via
+// GPG sign.
+func TestBootstrapAfterGPGSign(t *testing.T) {
+	// use tcCheck just to check gpg version
+	tcCheck := SetupEngineTest(t, "check")
+	defer tcCheck.Cleanup()
+	skipOldGPG(tcCheck)
+
+	// this test sometimes fails at the GPG level with a "Bad signature" error,
+	// so we're going to retry it several times to hopefully get past it.
+	attempts := 10
+	for i := 0; i < attempts; i++ {
+		tc := SetupEngineTest(t, "login")
+		defer tc.Cleanup()
+
+		u1 := createFakeUserWithPGPPubOnly(t, tc)
+		Logout(tc)
+
+		// redo SetupEngineTest to get a new home directory...should look like a new device.
+		tc2 := SetupEngineTest(t, "login")
+		defer tc2.Cleanup()
+
+		// we need the gpg keyring that's in the first homedir
+		if err := tc.MoveGpgKeyringTo(tc2); err != nil {
+			t.Fatal(err)
+		}
+
+		// now safe to cleanup first home
+		tc.Cleanup()
+
+		// run login on new device
+		ctx := &Context{
+			ProvisionUI: newTestProvisionUIGPGSign(),
+			LogUI:       tc2.G.UI.GetLogUI(),
+			SecretUI:    u1.NewSecretUI(),
+			LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+			GPGUI:       &gpgtestui{},
+		}
+		eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Logf("test run %d:  RunEngine(Login) error: %s", i+1, err)
+			continue
+		}
+
+		t.Logf("test run %d: RunEngine(Login) succeeded", i+1)
+
+		testUserHasDeviceKey(tc2)
+
+		// highly possible they didn't have a paper key, so make sure they have one now:
+		hasOnePaperDev(tc2, u1)
+
+		if err := AssertProvisioned(tc2); err != nil {
+			t.Fatal(err)
+		}
+
+		// Simulate restarting the service by wiping out the
+		// passphrase stream cache and cached secret keys
+		tc2.G.LoginState().Account(func(a *libkb.Account) {
+			a.ClearStreamCache()
+			a.ClearCachedSecretKeys()
+			a.UnloadLocalSession()
+		}, "account - clear")
+		tc2.G.GetUPAKLoader().ClearMemory()
+
+		// LoginOffline will run when service restarts.
+		// Since this was GPG sign, there will be no secret stored.
+		oeng := NewLoginOffline(tc2.G)
+		octx := &Context{NetContext: context.Background()}
+		oerr := RunEngine(oeng, octx)
+		if oerr == nil {
+			t.Fatalf("LoginOffline worked after gpg sign + svc restart")
+		}
+		if oerr != libkb.ErrUnlockNotPossible {
+			t.Fatalf("LoginOffline error: %s, expected libkb.ErrUnlockNotPossible", oerr)
+		}
+
+		// GetBootstrapStatus should return without error and with LoggedIn set to false.
+		beng := NewBootstrap(tc2.G)
+		bctx := &Context{NetContext: context.Background()}
+		if err := RunEngine(beng, bctx); err != nil {
+			t.Fatal(err)
+		}
+		status := beng.Status()
+		if status.LoggedIn != false {
+			t.Error("bootstrap status -> logged in, expected logged out")
+		}
+		if !status.Registered {
+			t.Error("registered false")
+		}
+
+		t.Logf("test run %d: all checks passed, returning", i+1)
+		return
+	}
+
+	t.Fatalf("TestProvisionGPGSign failed %d times", attempts)
 }
 
 type testProvisionUI struct {

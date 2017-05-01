@@ -181,12 +181,10 @@ function * bootstrapDataSaga (): SagaGenerator<any, any> {
 }
 
 function * billingSaga (): SagaGenerator<any, any> {
-  yield [
-    safeTakeLatest(Constants.updateBilling, updateBillingSaga),
-    safeTakeLatest(Constants.fetchBillingAndQuota, fetchBillingAndQuotaSaga),
-    safeTakeLatest(Constants.fetchBillingOverview, fetchBillingOverviewSaga),
-    safeTakeLatest(Constants.bootstrapData, bootstrapDataSaga),
-  ]
+  yield safeTakeLatest(Constants.updateBilling, updateBillingSaga)
+  yield safeTakeLatest(Constants.fetchBillingAndQuota, fetchBillingAndQuotaSaga)
+  yield safeTakeLatest(Constants.fetchBillingOverview, fetchBillingOverviewSaga)
+  yield safeTakeLatest(Constants.bootstrapData, bootstrapDataSaga)
 }
 
 export {

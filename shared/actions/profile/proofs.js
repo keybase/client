@@ -288,13 +288,11 @@ function * _submitCryptoAddress (action: SubmitBTCAddress | SubmitZcashAddress):
 }
 
 function * proofsSaga (): SagaGenerator<any, any> {
-  yield [
-    safeTakeEvery(Constants.submitBTCAddress, _submitCryptoAddress),
-    safeTakeEvery(Constants.submitZcashAddress, _submitCryptoAddress),
-    safeTakeEvery(Constants.cancelAddProof, _cancelAddProof),
-    safeTakeEvery(Constants.addProof, _addProof),
-    safeTakeEvery(Constants.checkProof, _checkProof),
-  ]
+  yield safeTakeEvery(Constants.submitBTCAddress, _submitCryptoAddress)
+  yield safeTakeEvery(Constants.submitZcashAddress, _submitCryptoAddress)
+  yield safeTakeEvery(Constants.cancelAddProof, _cancelAddProof)
+  yield safeTakeEvery(Constants.addProof, _addProof)
+  yield safeTakeEvery(Constants.checkProof, _checkProof)
 }
 
 export {

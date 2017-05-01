@@ -27,6 +27,7 @@ export type ConfigState = {
   uid: ?string,
   username: ?string,
   initialTab: ?Tab,
+  initialLink: ?string,
   deviceID: ?DeviceID,
   deviceName: ?string,
 }
@@ -47,6 +48,7 @@ const initialState: ConfigState = {
   following: {},
   globalError: null,
   initialTab: null,
+  initialLink: null,
   kbfsPath: Constants.defaultKBFSPath,
   launchedViaPush: false,
   loggedIn: false,
@@ -111,14 +113,20 @@ export default function (state: ConfigState = initialState, action: Action): Con
       }
     }
 
-    case Constants.bootstrapLoaded:
+    case Constants.bootstrapSuccess: {
+      return {
+        ...state,
+        bootStatus: 'bootStatusBootstrapped',
+      }
+    }
+
+    case Constants.bootstrapStatusLoaded:
       const {bootstrapStatus} = action.payload
       return {
         ...state,
         ...bootstrapStatus,
         following: arrayToObjectSet(bootstrapStatus.following),
         followers: arrayToObjectSet(bootstrapStatus.followers),
-        bootStatus: 'bootStatusBootstrapped',
       }
 
     case Constants.bootstrapAttemptFailed: {
@@ -192,6 +200,13 @@ export default function (state: ConfigState = initialState, action: Action): Con
       return {
         ...state,
         initialTab: action.payload.tab,
+      }
+    }
+
+    case 'config:setInitialLink': {
+      return {
+        ...state,
+        initialLink: action.payload.url,
       }
     }
 

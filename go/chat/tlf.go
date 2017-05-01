@@ -62,7 +62,7 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
 	// call identifyTLF and GetTLFCryptKeys concurrently:
-	group, ectx := errgroup.WithContext(BackgroundContext(ctx))
+	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G().GetEnv()))
 
 	var ib []keybase1.TLFIdentifyFailure
 	group.Go(func() error {
@@ -115,7 +115,7 @@ func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlf
 		fmt.Sprintf("PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
 	// call identifyTLF and CanonicalTLFNameAndIDWithBreaks concurrently:
-	group, ectx := errgroup.WithContext(BackgroundContext(ctx))
+	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G().GetEnv()))
 
 	var ib []keybase1.TLFIdentifyFailure
 	group.Go(func() error {
@@ -186,7 +186,7 @@ func (t *KBFSTLFInfoSource) CompleteAndCanonicalizePrivateTlfName(ctx context.Co
 
 func (t *KBFSTLFInfoSource) identifyTLF(ctx context.Context, arg keybase1.TLFQuery, private bool) ([]keybase1.TLFIdentifyFailure, error) {
 	// need new context as errgroup will cancel it.
-	group, ectx := errgroup.WithContext(BackgroundContext(ctx))
+	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G().GetEnv()))
 	assertions := make(chan string)
 
 	group.Go(func() error {
