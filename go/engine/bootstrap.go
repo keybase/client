@@ -85,12 +85,14 @@ func (e *Bootstrap) Run(ctx *Context) error {
 	if e.G().ConnectivityMonitor.IsConnected(context.Background()) == libkb.ConnectivityMonitorYes {
 		e.G().Log.Debug("connected, running full tracker2 syncer")
 		if err := libkb.RunSyncer(ts, e.status.Uid, false, nil); err != nil {
-			return err
+			e.G().Log.Warning("error running Tracker2Syncer: %s", err)
+			return nil
 		}
 	} else {
 		e.G().Log.Debug("not connected, running cached tracker2 syncer")
 		if err := libkb.RunSyncerCached(ts, e.status.Uid); err != nil {
-			return err
+			e.G().Log.Warning("error running Tracker2Syncer (cached): %s", err)
+			return nil
 		}
 	}
 	e.usums = ts.Result()

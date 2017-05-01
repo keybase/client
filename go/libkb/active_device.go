@@ -91,6 +91,12 @@ func (a *ActiveDevice) internalUpdateUIDDeviceID(acct *Account, uid keybase1.UID
 		return errors.New("ActiveDevice.set funcs must be called from inside a LoginState account request")
 	}
 	if a.uid.IsNil() && a.deviceID.IsNil() {
+		/*
+			if uid.IsNil() {
+				panic("uid is nil")
+				// XXX return error
+			}
+		*/
 		a.uid = uid
 		a.deviceID = deviceID
 
