@@ -32,12 +32,23 @@ class EngineChannel {
     return this.map
   }
 
-  * race (options: ?{timeout?: number}) {
+  close () {
+    Saga.closeChannelMap(this._map)
+    getEngine().cancelSession(this._sessionID)
+  }
+
+  * take (key: string): Generator {
+    return Saga.takeFromChannelMap(this._map, key)
+  }
+
+  * race (options: ?{timeout?: number, racers?: Object}): Generator {
     const timeout = options && options.timeout
+    const otherRacers = options && options.racers || {}
     const initMap = {
       ...(timeout ? {
         timeout: call(delay, timeout),
       } : {}),
+      ...otherRacers,
     }
 
     const raceMap = this._configKeys.reduce((map, key) => {
@@ -50,9 +61,7 @@ class EngineChannel {
     const result = yield race(raceMap)
 
     if (result.timeout) {
-      console.log('aaaa GOT TIMEOUT in helper')
-      Saga.closeChannelMap(this._map)
-      getEngine().cancelSession(this._sessionID)
+      this.close()
     }
 
     return result
@@ -471,4 +480,5 @@ export {
   getEngine,
   makeEngine,
   Engine,
+  EngineChannel,
 }

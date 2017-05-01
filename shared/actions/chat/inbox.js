@@ -84,7 +84,6 @@ function * onInboxStale (): SagaGenerator<any, any> {
     yield put(Creators.setInboxUntrustedState('loading'))
     _inboxUntrustedError = null
 
-    // const channelConfig = singleFixedChannelConfig(['chat.1.chatUi.chatInboxUnverified', 'finished'])
     const loadInboxChanMap = ChatTypes.localGetInboxNonblockLocalRpcChannelMap([
       'chat.1.chatUi.chatInboxUnverified',
       'finished',
@@ -96,8 +95,6 @@ function * onInboxStale (): SagaGenerator<any, any> {
       },
     })
 
-    // const chatInboxUnverified = yield takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxUnverified')
-    // const incoming = yield call([loadInboxChanMap, 'race'])
     const incoming = yield loadInboxChanMap.race()
     incoming.chatInboxUnverified.response.result()
 

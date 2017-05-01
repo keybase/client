@@ -2,22 +2,20 @@
 import * as I from 'immutable'
 import HiddenString from '../util/hidden-string'
 import {DeviceDetailRecord} from '../constants/devices'
-import {call, put, select, fork} from 'redux-saga/effects'
+import {call, put, select} from 'redux-saga/effects'
 import {deviceDeviceHistoryListRpcPromise, loginDeprovisionRpcPromise, loginPaperKeyRpcChannelMap, revokeRevokeDeviceRpcPromise, rekeyGetRevokeWarningRpcPromise} from '../constants/types/flow-types'
 import {devicesTab, loginTab} from '../constants/tabs'
 import {isMobile} from '../constants/platform'
 import {keyBy} from 'lodash'
 import {navigateTo} from './route-tree'
 import {replaceEntity} from './entities'
-import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
+import {safeTakeEvery, safeTakeLatest, closeChannelMap} from '../util/saga'
 import {setRevokedSelf} from './login/creators'
 
 import type {DeviceDetail} from '../constants/types/flow-types'
 import type {Load, Loaded, Revoke, ShowRevokePage, PaperKeyMake, Waiting} from '../constants/devices'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
-
-type IncomingDisplayPaperKeyPhrase = {params: {phrase: string}, response: {result: () => void}}
 
 isMobile && module.hot && module.hot.accept(() => {
   console.log('accepted update in actions/devices')
@@ -139,29 +137,26 @@ function * _deviceRevokedSaga (action: Revoke): SagaGenerator<any, any> {
   }
 }
 
-function _generatePaperKey (channelConfig) {
-  return loginPaperKeyRpcChannelMap(channelConfig, {})
-}
-
-function * _handlePromptRevokePaperKeys (chanMap): SagaGenerator<any, any> {
-  yield effectOnChannelMap(c => safeTakeEvery(c, ({response}) => response.result(false)), chanMap, 'keybase.1.loginUi.promptRevokePaperKeys')
-}
-
 function * _devicePaperKeySaga (): SagaGenerator<any, any> {
-  const channelConfig = singleFixedChannelConfig(['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'])
-
-  const generatePaperKeyChanMap = ((yield call(_generatePaperKey, channelConfig)): any)
   try {
     yield put(setWaiting(true))
-    yield fork(_handlePromptRevokePaperKeys, generatePaperKeyChanMap)
-    const displayPaperKeyPhrase: IncomingDisplayPaperKeyPhrase = ((yield takeFromChannelMap(generatePaperKeyChanMap, 'keybase.1.loginUi.displayPaperKeyPhrase')): any)
-    displayPaperKeyPhrase.response.result()
-    yield put(setWaiting(false))
+    const channelMap = loginPaperKeyRpcChannelMap(['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'])
 
-    const paperKey = new HiddenString(displayPaperKeyPhrase.params.phrase)
-    yield put(navigateTo([devicesTab, {props: {paperKey}, selected: 'genPaperKey'}]))
+    while (true) {
+      const incoming = yield channelMap.race()
+
+      if (incoming.promptRevokePaperKeys) {
+        incoming.promptRevokePaperKeys.response.result(false)
+      } else if (incoming.displayPaperKeyPhrase) {
+        incoming.displayPaperKeyPhrase.response.result()
+        yield put(setWaiting(false))
+        const paperKey = new HiddenString(incoming.displayPaperKeyPhrase.params.phrase)
+        yield put(navigateTo([devicesTab, {props: {paperKey}, selected: 'genPaperKey'}]))
+        break
+      }
+    }
   } catch (e) {
-    closeChannelMap(generatePaperKeyChanMap)
+    closeChannelMap(channelMap.map)
     throw new Error(`Error in generating paper key ${e}`)
   } finally {
     yield put(setWaiting(false))
