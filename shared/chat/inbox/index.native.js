@@ -1,21 +1,22 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeListView} from '../../common-adapters/index.native'
+import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeListView, LoadingLine} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, statusBarHeight} from '../../styles'
 import {RowConnector} from './row'
 import {debounce} from 'lodash'
 
 import type {Props, RowProps} from './'
 
-const AddNewRow = ({onNewChat}: {onNewChat: () => void}) => (
+const AddNewRow = ({onNewChat, isLoading}: {onNewChat: () => void, isLoading: boolean}) => (
   <Box
-    style={{...globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 0, justifyContent: 'center', minHeight: 48}}>
-    <ClickableBox style={{...globalStyles.flexBoxColumn, padding: 8}} onClick={onNewChat}>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', justifyContent: 'center'}}>
+    style={{...globalStyles.flexBoxColumn, minHeight: 48}}>
+    <ClickableBox style={{...globalStyles.flexBoxColumn, flex: 1, flexShrink: 0}} onClick={onNewChat}>
+      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', justifyContent: 'center', flex: 1}}>
         <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
         <Text type='BodyBigLink'>New chat</Text>
       </Box>
     </ClickableBox>
+    {isLoading && <LoadingLine />}
   </Box>
 )
 
@@ -153,20 +154,25 @@ const Row = RowConnector(_Row)
 class ConversationList extends PureComponent<void, Props, {dataSource: any}> {
   state = {dataSource: null}
 
-  _itemRenderer = conversationIDKey => <Row conversationIDKey={conversationIDKey} key={conversationIDKey} />
+  _itemRenderer = (conversationIDKey, _, sidx) => {
+    const idx = parseInt(sidx, 10)
+    return idx
+      ? <Row conversationIDKey={conversationIDKey} key={conversationIDKey} />
+      : <AddNewRow onNewChat={this.props.onNewChat} isLoading={this.props.isLoading} />
+  }
 
   _ds = new NativeListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
   _setupDataSource = (props: Props) => {
-    this.setState({dataSource: this._ds.cloneWithRows(props.rows.toArray())})
+    this.setState({dataSource: this._ds.cloneWithRows([0].concat(props.rows.toArray()))})
   }
 
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.rows !== nextProps.rows) {
       this._setupDataSource(nextProps)
 
-      if (nextProps.rows.count()) {
-        const conversationIDKey = nextProps.rows.get(0)
+      if (nextProps.rows.count() > 1) {
+        const conversationIDKey = nextProps.rows.get(1)
         this.props.onUntrustedInboxVisible(conversationIDKey, 20)
       }
     }
@@ -175,8 +181,8 @@ class ConversationList extends PureComponent<void, Props, {dataSource: any}> {
   _onChangeVisibleRows = debounce((visibleRows) => {
     const idxs = Object.keys(visibleRows && visibleRows.s1 || {})
 
-    if (idxs.length) {
-      const idx = parseInt(idxs[0], 10)
+    if (idxs.length > 1) {
+      const idx = parseInt(idxs[1], 10)
       const conversationIDKey = this.props.rows.get(idx)
       this.props.onUntrustedInboxVisible(conversationIDKey, idxs.length)
     }
@@ -190,7 +196,6 @@ class ConversationList extends PureComponent<void, Props, {dataSource: any}> {
   render () {
     return (
       <Box style={boxStyle}>
-        <AddNewRow onNewChat={this.props.onNewChat} />
         <NativeListView
           enableEmptySections={true}
           style={listStyle}
@@ -207,6 +212,7 @@ const boxStyle = {
   backgroundColor: globalColors.darkBlue4,
   flex: 1,
   paddingTop: statusBarHeight,
+  position: 'relative',
 }
 
 const listStyle = {
