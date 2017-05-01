@@ -2,13 +2,13 @@
 import Container from '../../forms/container'
 import React, {Component} from 'react'
 import type {Props} from './index.render'
-import {Box, Button, Icon, Input, Text} from '../../../common-adapters'
-import {globalMargins, globalStyles} from '../../../styles'
+import {Button, Icon, Input, Text} from '../../../common-adapters'
+import {globalMargins} from '../../../styles'
 
 class PaperKeyRender extends Component<void, Props, void> {
   render () {
     return (
-    <Container
+      <Container
         style={stylesContainer}
         onBack={this.props.onBack}>
         <Text type='Header' style={stylesHeader}>Type in your paper key:</Text>
