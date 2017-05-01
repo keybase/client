@@ -5,19 +5,18 @@ import * as Creators from './creators'
 import * as Shared from './shared'
 import {List, Map} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
-import {call, put, select, race, fork, cancelled, take} from 'redux-saga/effects'
+import {call, put, select, fork, cancelled, take} from 'redux-saga/effects'
 import {chatTab} from '../../constants/tabs'
 import {delay} from 'redux-saga'
 import {globalError} from '../../constants/config'
 import {navigateTo} from '../route-tree'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {requestIdleCallback} from '../../util/idle-callback'
-// import {singleFixedChannelConfig, takeFromChannelMap, closeChannelMap} from '../../util/saga'
 import {unsafeUnwrap} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
 
-import type {SagaGenerator/*, ChannelMap*/} from '../../constants/types/saga'
+import type {SagaGenerator} from '../../constants/types/saga'
 
 // Common props for getting the inbox
 const _getInboxQuery = {
@@ -214,27 +213,15 @@ function * untrustedInboxVisible (action: Constants.UntrustedInboxVisible): Saga
   }
 }
 
+const TEMP = {}
 // Loads the trusted inbox segments
 function * unboxConversations (conversationIDKeys: Array<Constants.ConversationIDKey>, ttl?: number = 1): Generator<any, any, any> {
-  console.log('aaa my ttl is', ttl)
-  yield put(Creators.setUnboxing(conversationIDKeys))
 
-  // const channelConfig = singleFixedChannelConfig([
-    // 'chat.1.chatUi.chatInboxUnverified',
-    // 'chat.1.chatUi.chatInboxConversation',
-    // 'chat.1.chatUi.chatInboxFailed',
-    // 'finished',
-  // ])
+conversationIDKeys.forEach(k => TEMP[k] = true)
 
-  // const loadInboxChanMap: ChannelMap<any> = ChatTypes.localGetInboxNonblockLocalRpcChannelMap(channelConfig, {
-    // param: {
-      // identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-      // query: {
-        // ..._getInboxQuery,
-        // convIDs: conversationIDKeys.map(Constants.keyToConversationID),
-      // },
-    // },
-  // })
+
+  yield put(Creators.setUnboxing(conversationIDKeys, false))
+
   const loadInboxChanMap = ChatTypes.localGetInboxNonblockLocalRpcChannelMap([
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
@@ -251,16 +238,9 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
   })
 
   while (true) {
-    const incoming = yield loadInboxChanMap.race({timeout: ttl})
-
-    // const incoming = yield race(loadInboxChanMap.raceMap({timeout: ttl}))
-    // const incoming: {[key: string]: any} = yield race({
-      // chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
-      // chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
-      // chatInboxUnverified: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxUnverified'),
-      // finished: takeFromChannelMap(loadInboxChanMap, 'finished'),
-      // timeout: call(delay, ttl),
-    // })
+    const timeout = Math.random() > 0.5 ? 3000 : 3
+    console.log('aaaa timeout', timeout)
+    const incoming = yield loadInboxChanMap.race({timeout})
 
     // Ignore untrusted version
     if (incoming.chatInboxUnverified) {
@@ -308,10 +288,9 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
           })
       }
     } else if (incoming.timeout) {
+      console.log('aaaa GOT TIMEOUT')
       console.warn('timed out request for unboxConversations, bailing')
-      console.warn('aaaa trying again')
-      // closeChannelMap(loadInboxChanMap)
-      yield call(unboxConversations, conversationIDKeys, ttl * 2)
+      yield put(Creators.setUnboxing(conversationIDKeys, true))
       break
     } else if (incoming.finished) {
       break

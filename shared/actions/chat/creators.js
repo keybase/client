@@ -300,8 +300,8 @@ function untrustedInboxVisible (conversationIDKey: Constants.ConversationIDKey, 
   return {payload: {conversationIDKey, rowsVisible}, type: 'chat:untrustedInboxVisible'}
 }
 
-function setUnboxing (conversationIDKeys: Array<Constants.ConversationIDKey>): Constants.SetUnboxing {
-  return {payload: {conversationIDKeys}, type: 'chat:setUnboxing'}
+function setUnboxing (conversationIDKeys: Array<Constants.ConversationIDKey>, errored: boolean): Constants.SetUnboxing {
+  return {error: errored, payload: {conversationIDKeys}, type: 'chat:setUnboxing'}
 }
 
 function clearRekey (conversationIDKey: Constants.ConversationIDKey): Constants.ClearRekey {
