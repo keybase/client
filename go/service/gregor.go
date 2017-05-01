@@ -489,11 +489,11 @@ func (g *gregorHandler) makeReconnectOobm() gregor1.Message {
 }
 
 func (g *gregorHandler) authParams(ctx context.Context) (uid gregor1.UID, token gregor1.SessionToken, err error) {
-	var ok bool
+	var res loggedInRes
 	var stoken string
 	var kuid keybase1.UID
-	if kuid, stoken, ok = g.loggedIn(ctx); !ok {
-		g.skipRetryConnect = true
+	if kuid, stoken, res = g.loggedIn(ctx); res != loggedInYes {
+		g.skipRetryConnect = res == loggedInNo
 		return uid, token, errors.New("not logged in for auth")
 	}
 	return kuid.ToBytes(), gregor1.SessionToken(stoken), nil
@@ -1043,49 +1043,60 @@ func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.U
 	return nil
 }
 
-func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token string, ok bool) {
-	ok = false
+type loggedInRes int
+
+const (
+	loggedInYes loggedInRes = iota
+	loggedInNo
+	loggedInMaybe
+)
+
+func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token string, res loggedInRes) {
 
 	// Check to see if we have been shutdown,
 	select {
 	case <-g.shutdownCh:
-		return uid, token, ok
+		return uid, token, loggedInMaybe
 	default:
 		// if we were going to block, then that means we are still alive
 	}
 
 	// Continue on and authenticate
+	res = loggedInMaybe
 	aerr := g.G().LoginState().Account(func(a *libkb.Account) {
 		in, err := a.LoggedInLoad()
 		if err != nil {
 			g.G().Log.Debug("gregorHandler loggedIn check: LoggedInLoad error: %s", err)
+			res = loggedInMaybe
 			return
 		}
 		if !in {
 			g.G().Log.Debug("gregorHandler loggedIn check: not logged in")
+			res = loggedInNo
 			return
 		}
 		g.G().Log.Debug("gregorHandler: logged in, getting token and uid")
 		token = a.LocalSession().GetToken()
 		uid = a.LocalSession().GetUID()
+		res = loggedInYes
 	}, "gregor handler - login session")
 	if token == "" || uid == "" {
-		return uid, token, ok
+		return uid, token, res
 	}
 	if aerr != nil {
-		return uid, token, ok
+		return uid, token, res
 	}
 
-	return uid, token, true
+	return uid, token, res
 }
 
 func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient, auth *gregor1.AuthResult) (err error) {
 	var token string
-	var ok bool
+	var res loggedInRes
 	var uid keybase1.UID
 
-	if uid, token, ok = g.loggedIn(ctx); !ok {
-		g.skipRetryConnect = true
+	if uid, token, res = g.loggedIn(ctx); res != loggedInYes {
+		g.skipRetryConnect = res == loggedInNo
 		return errors.New("not logged in for auth")
 	}
 
