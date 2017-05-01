@@ -309,7 +309,6 @@ function _conversationLocalToInboxState (c: ?ChatTypes.ConversationLocal): ?Cons
     .map((m: any) => ({body: m.valid.messageBody, time: m.valid.serverHeader.ctime}))
     .filter(m => [
       ChatTypes.CommonMessageType.attachment,
-      ChatTypes.CommonMessageType.edit,
       ChatTypes.CommonMessageType.text,
     ].includes(m.body.messageType))
     .sort((a, b) => b.time - a.time)
