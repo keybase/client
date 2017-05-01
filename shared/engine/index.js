@@ -32,7 +32,8 @@ class EngineChannel {
     return this.map
   }
 
-  * race ({timeout}: ?{timeout?: number} = {}) {
+  * race (options: ?{timeout?: number}) {
+    const timeout = options && options.timeout
     const initMap = {
       ...(timeout ? {
         timeout: call(delay, timeout),
