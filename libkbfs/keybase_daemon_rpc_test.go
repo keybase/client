@@ -391,12 +391,16 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	kbfsOps1 := config1.KBFSOps()
 	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	require.NoError(t, err)
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	require.NoError(t, err)
 
 	kbfsOps2 := config2.KBFSOps()
 	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())

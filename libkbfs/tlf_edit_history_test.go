@@ -53,12 +53,16 @@ func TestBasicTlfEditHistory(t *testing.T) {
 	kbfsOps1 := config1.KBFSOps()
 	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	require.NoError(t, err)
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	require.NoError(t, err)
 
 	kbfsOps2 := config2.KBFSOps()
 	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
@@ -109,6 +113,8 @@ func testDoTlfEdit(t *testing.T, ctx context.Context, tlfName string,
 	if i%(len(createRemainders)*2) == createRemainders[uid] {
 		_, _, err := kbfsOps.CreateDir(ctx, rootNode, fmt.Sprintf("dir%d", i))
 		require.NoError(t, err)
+		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+		require.NoError(t, err)
 	}
 
 	if i%len(createRemainders) == createRemainders[uid] {
@@ -116,6 +122,8 @@ func testDoTlfEdit(t *testing.T, ctx context.Context, tlfName string,
 		fileName := fmt.Sprintf("file%d", i)
 		_, _, err := kbfsOps.CreateFile(ctx, rootNode,
 			fileName, false, NoExcl)
+		require.NoError(t, err)
+		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 		require.NoError(t, err)
 		if i >= 70 {
 			edits[uid] = append(edits[uid], TlfEdit{
@@ -182,6 +190,8 @@ func TestLongTlfEditHistory(t *testing.T) {
 	for ; i < 50; i++ {
 		_, _, err := kbfsOps1.CreateFile(ctx, rootNode1,
 			fmt.Sprintf("file%d", i), false, NoExcl)
+		require.NoError(t, err)
+		err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 		require.NoError(t, err)
 	}
 

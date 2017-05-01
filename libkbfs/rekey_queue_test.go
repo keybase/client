@@ -60,6 +60,10 @@ func TestRekeyQueueBasic(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Couldn't create file: %v", err)
 		}
+		err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+		if err != nil {
+			t.Fatalf("Couldn't sync all: %v", err)
+		}
 	}
 
 	// Create a new device for user 2

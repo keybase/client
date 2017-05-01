@@ -912,6 +912,10 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
+	}
 
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
@@ -921,6 +925,10 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
+	}
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
 	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
@@ -982,6 +990,10 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
+	}
 
 	// add a third device for user 2
 	config2Dev3 := ConfigAsUser(config1, u2)
@@ -1028,6 +1040,10 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "d", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
+	}
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
 	}
 
 	// this device should be able to read now
@@ -1146,6 +1162,10 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver MetadataVer) 
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
+	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
@@ -1235,6 +1255,10 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver MetadataVer) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
+	}
 
 	t.Log("User 2 adds a device")
 	// The configs don't share a Keybase Daemon so we have to do it in all
@@ -1279,6 +1303,10 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver MetadataVer) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
+	err = kbfsOps2Dev2.SyncAll(ctx, root2dev2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
+	}
 
 	t.Log("User 1 syncs from the server")
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
@@ -1320,6 +1348,10 @@ func testKeyManagerReaderRekey(t *testing.T, ver MetadataVer) {
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
+	}
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
 	}
 
 	t.Log("User 1 adds a device")
@@ -1413,6 +1445,10 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver MetadataVer) {
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
+	}
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
 	}
 
 	t.Log("User 2 adds a device")
@@ -1517,6 +1553,10 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
+	}
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
 	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
@@ -1683,6 +1723,10 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver Metadat
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
+	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
@@ -1764,6 +1808,10 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver Metadat
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
+	err = kbfsOps2Dev2.SyncAll(ctx, root2Dev2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
+	}
 
 	// device 1 should still work
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
@@ -1828,6 +1876,10 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
+	}
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
 	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
@@ -1909,6 +1961,10 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
+	err = kbfsOps2.SyncAll(ctx, rootNode2Dev2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
+	}
 
 	// device 1 should be able to read the new file
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
@@ -1949,6 +2005,10 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
+	}
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
 	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
@@ -2045,6 +2105,10 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2Dev2, "b", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
+	}
+	err = kbfsOps2.SyncAll(ctx, rootNode2Dev2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
 	}
 }
 
@@ -2189,6 +2253,10 @@ func testKeyManagerRekeyMinimal(t *testing.T, ver MetadataVer) {
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
+	}
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
 	}
 
 	// Device 2 is in default mode, so we can check that the rekey
