@@ -20,7 +20,7 @@ class AutoMaxSizeImage extends Component<void, any, {width: number, height: numb
   }
 }
 
-const AttachmentView = ({isZoomed, onToggleZoom, messageState, path}: {isZoomed: boolean, onToggleZoom: () => void, path: ?string}) => (
+const AttachmentView = ({isZoomed, onToggleZoom, path}: {isZoomed: boolean, onToggleZoom: () => void, path: ?string}) => (
   <Box style={{...globalStyles.flexBoxCenter, flex: 1}}>
     {!!path && <AutoMaxSizeImage source={{uri: `file://${path}`}} style={{flex: 1, width: '100%', height: '100%', resizeMode: 'contain'}} />}
     {!path && <ProgressIndicator style={{width: 48}} white={true} />}
