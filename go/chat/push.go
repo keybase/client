@@ -53,7 +53,7 @@ func (g *gregorMessageOrderer) latestInboxVersion(ctx context.Context, uid grego
 	return vers, nil
 }
 
-func (g *gregorMessageOrderer) addToWaiters(ctx context.Context, msgVers, storedVers chat1.InboxVers) (res []messageWaiterEntry) {
+func (g *gregorMessageOrderer) addToWaiters(ctx context.Context, storedVers, msgVers chat1.InboxVers) (res []messageWaiterEntry) {
 	for i := storedVers + 1; i < msgVers; i++ {
 		entry := messageWaiterEntry{
 			vers: msgVers,
@@ -103,8 +103,7 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 	// ordered update
 	go func() {
 		waiters := g.addToWaiters(ctx, vers, newVers)
-		g.Debug(ctx, "WaitForTurn: out of order update received, waiting on %d updates: vers: %d",
-			len(waiters), newVers)
+		g.Debug(ctx, "WaitForTurn: out of order update received, waiting on %d updates: vers: %d newVers: %d", len(waiters), vers, newVers)
 		wctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 		select {
