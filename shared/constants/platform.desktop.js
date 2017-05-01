@@ -132,6 +132,8 @@ const dataRoot = findDataRoot()
 const cacheRoot = findCacheRoot()
 
 const version = 'TODO'
+const appVersionName = 'Not Implemented - Mobile only'
+const appVersionCode = 'Not Implemented - Mobile only'
 
 export {
   cacheRoot,
@@ -149,4 +151,6 @@ export {
   runMode,
   socketPath,
   version,
+  appVersionName,
+  appVersionCode,
 }

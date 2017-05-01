@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import go.keybase.Keybase;
+import io.keybase.ossifrage.BuildConfig;
 
 import static go.keybase.Keybase.readB64;
 import static go.keybase.Keybase.writeB64;
@@ -97,8 +98,13 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     @Override
     public Map<String, Object> getConstants() {
+        String versionCode = String.valueOf(BuildConfig.VERSION_CODE);
+        String versionName = BuildConfig.VERSION_NAME;
+
         final Map<String, Object> constants = new HashMap<>();
         constants.put("eventName", RPC_EVENT_NAME);
+        constants.put("appVersionName", versionName);
+        constants.put("appVersionCode", versionCode);
         constants.put("version", version());
         return constants;
     }

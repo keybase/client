@@ -169,11 +169,9 @@ function * _generatePgpSaga (): SagaGenerator<any, any> {
 }
 
 function * pgpSaga (): SagaGenerator<any, any> {
-  yield [
-    safeTakeLatest(a => (a && a.type === Constants.updatePgpInfo && !a.error), _checkPgpInfo),
-    safeTakeLatest(Constants.generatePgp, _generatePgpSaga),
-    safeTakeEvery(Constants.dropPgp, _dropPgpSaga),
-  ]
+  yield safeTakeLatest(a => (a && a.type === Constants.updatePgpInfo && !a.error), _checkPgpInfo)
+  yield safeTakeLatest(Constants.generatePgp, _generatePgpSaga)
+  yield safeTakeEvery(Constants.dropPgp, _dropPgpSaga)
 }
 
 export {

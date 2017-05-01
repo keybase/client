@@ -75,6 +75,11 @@ func (e *Bootstrap) Run(ctx *Context) error {
 		return gerr
 	}
 
+	if !e.status.LoggedIn {
+		e.G().Log.Debug("not logged in, not running syncer")
+		return nil
+	}
+
 	// get user summaries
 	ts := libkb.NewTracker2Syncer(e.G(), e.status.Uid, true)
 	if e.G().ConnectivityMonitor.IsConnected(context.Background()) == libkb.ConnectivityMonitorYes {

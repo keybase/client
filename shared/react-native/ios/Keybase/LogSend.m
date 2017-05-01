@@ -10,6 +10,7 @@ static NSString * logPath = @"";
 RCT_EXPORT_MODULE();
 
 RCT_REMAP_METHOD(logSend,
+                 status:(NSString*)status
                  feedback:(NSString*)feedback
                  sendLogs:(BOOL)sendLogs
                  resolver:(RCTPromiseResolveBlock)resolve
@@ -18,7 +19,7 @@ RCT_REMAP_METHOD(logSend,
 
   NSString *logId = nil;
   NSError *err = nil;
-  GoKeybaseLogSend(feedback, sendLogs, logPath, &logId, &err);
+  GoKeybaseLogSend(status, feedback, sendLogs, logPath, &logId, &err);
   if (err == nil) {
     resolve(logId);
   } else {

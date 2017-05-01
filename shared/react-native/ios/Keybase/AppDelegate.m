@@ -13,6 +13,7 @@
 #import "KeyListener.h"
 #import "Engine.h"
 #import "LogSend.h"
+#import "RCTLinkingManager.h"
 
 @interface AppDelegate ()
 @end
@@ -147,6 +148,21 @@ const BOOL isDebug = NO;
   } completion:^(BOOL finished) {
     [self.resignImageView removeFromSuperview];
   }];
+}
+
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url
+  sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
+{
+  return [RCTLinkingManager application:application openURL:url
+                      sourceApplication:sourceApplication annotation:annotation];
+}
+
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity
+ restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler
+{
+  return [RCTLinkingManager application:application
+                   continueUserActivity:userActivity
+                     restorationHandler:restorationHandler];
 }
 
 @end
