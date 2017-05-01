@@ -209,10 +209,18 @@ func (cr *ConflictResolver) processInput(baseCtx context.Context,
 
 // Resolve takes the latest known unmerged and merged revision
 // numbers, and kicks off the resolution process.
-func (cr *ConflictResolver) Resolve(unmerged MetadataRevision,
-	merged MetadataRevision) {
+func (cr *ConflictResolver) Resolve(ctx context.Context,
+	unmerged MetadataRevision, merged MetadataRevision) {
 	cr.inputChanLock.RLock()
 	defer cr.inputChanLock.RUnlock()
+
+	// CR can end up trying to cancel itself via the SyncAll call, so
+	// prevent that from happening.
+	if crOpID := ctx.Value(CtxCRIDKey); crOpID != nil {
+		cr.log.CDebugf(ctx, "Ignoring self-resolve during CR")
+		return
+	}
+
 	if cr.inputChan == nil {
 		return
 	}

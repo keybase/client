@@ -704,7 +704,7 @@ func (fbo *folderBranchOps) setHeadLocked(
 		fbo.setBranchIDLocked(lState, md.BID())
 		// Use uninitialized for the merged branch; the unmerged
 		// revision is enough to trigger conflict resolution.
-		fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
+		fbo.cr.Resolve(ctx, md.Revision(), MetadataRevisionUninitialized)
 	} else if md.MergedStatus() == Merged {
 		journalEnabled := TLFJournalEnabled(fbo.config, fbo.id())
 		if journalEnabled {
@@ -2196,7 +2196,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	// Call Resolve() after the head is set, to make sure it fetches
 	// the correct unmerged MD range during resolution.
 	if doResolve {
-		fbo.cr.Resolve(md.Revision(), resolveMergedRev)
+		fbo.cr.Resolve(ctx, md.Revision(), resolveMergedRev)
 	}
 	return nil
 }
@@ -2277,7 +2277,7 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 	if rebased {
 		bid := md.BID()
 		fbo.setBranchIDLocked(lState, bid)
-		fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
+		fbo.cr.Resolve(ctx, md.Revision(), MetadataRevisionUninitialized)
 	}
 
 	md.loadCachedBlockChanges(ctx, nil, fbo.log)
@@ -2364,7 +2364,7 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 	if rebased {
 		bid := md.BID()
 		fbo.setBranchIDLocked(lState, bid)
-		fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
+		fbo.cr.Resolve(ctx, md.Revision(), MetadataRevisionUninitialized)
 	}
 
 	fbo.headLock.Lock(lState)
@@ -4508,7 +4508,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 			if fbo.head != (ImmutableRootMetadata{}) {
 				unmergedRev = fbo.head.Revision()
 			}
-			fbo.cr.Resolve(unmergedRev, latestMerged.Revision())
+			fbo.cr.Resolve(ctx, unmergedRev, latestMerged.Revision())
 		}
 		return UnmergedError{}
 	}
@@ -5805,7 +5805,7 @@ func (fbo *folderBranchOps) handleTLFBranchChange(ctx context.Context,
 
 	// Kick off conflict resolution and set the head to the correct branch.
 	fbo.setBranchIDLocked(lState, newBID)
-	fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
+	fbo.cr.Resolve(ctx, md.Revision(), MetadataRevisionUninitialized)
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)

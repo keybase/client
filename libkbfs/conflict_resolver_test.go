@@ -104,7 +104,8 @@ func TestCRInput(t *testing.T) {
 	defer crTestShutdown(ctx, cancel, mockCtrl, config, cr)
 
 	// First try a completely unknown revision
-	cr.Resolve(MetadataRevisionUninitialized, MetadataRevisionUninitialized)
+	cr.Resolve(
+		ctx, MetadataRevisionUninitialized, MetadataRevisionUninitialized)
 	// This should return without doing anything (i.e., without
 	// calling any mock methods)
 	cr.Wait(ctx)
@@ -153,7 +154,7 @@ func TestCRInput(t *testing.T) {
 		gomock.Any(), gomock.Any(), gomock.Any())
 
 	// First try a completely unknown revision
-	cr.Resolve(unmergedHead, MetadataRevisionUninitialized)
+	cr.Resolve(ctx, unmergedHead, MetadataRevisionUninitialized)
 	cr.Wait(ctx)
 	// Make sure sure the input is up-to-date
 	if cr.currInput.merged != mergedHead {
@@ -161,7 +162,7 @@ func TestCRInput(t *testing.T) {
 	}
 
 	// Now make sure we ignore future inputs with lesser MDs
-	cr.Resolve(MetadataRevisionUninitialized, mergedHead-1)
+	cr.Resolve(ctx, MetadataRevisionUninitialized, mergedHead-1)
 	// This should return without doing anything (i.e., without
 	// calling any mock methods)
 	cr.Wait(ctx)
@@ -226,7 +227,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 		gomock.Any(), gomock.Any(), gomock.Any())
 
 	// Resolve the fractured revision list
-	cr.Resolve(unmergedHead, MetadataRevisionUninitialized)
+	cr.Resolve(ctx, unmergedHead, MetadataRevisionUninitialized)
 	cr.Wait(ctx)
 	// Make sure sure the input is up-to-date
 	if cr.currInput.merged != mergedHead {
@@ -254,6 +255,10 @@ func testCRSharedFolderForUsers(
 			t.Fatalf("Couldn't create dir: %v", err)
 		}
 		dir = dirNext
+	}
+	err := kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
 	}
 	nodes[createAs] = dir
 
@@ -418,6 +423,10 @@ func TestCRMergedChainsSimple(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
+	err = config1.KBFSOps().SyncAll(ctx, dir1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
+	}
 
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
@@ -427,6 +436,10 @@ func TestCRMergedChainsSimple(t *testing.T) {
 	_, _, err = config2.KBFSOps().CreateFile(ctx, dir2, "file2", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
+	}
+	err = config2.KBFSOps().SyncAll(ctx, dir2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
 	}
 
 	// Now step through conflict resolution manually for user 2
@@ -481,6 +494,10 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
+	err = config1.KBFSOps().SyncAll(ctx, dirA1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
+	}
 
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
@@ -490,6 +507,10 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	_, _, err = config2.KBFSOps().CreateFile(ctx, dirB2, "file2", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
+	}
+	err = config2.KBFSOps().SyncAll(ctx, dirB2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
 	}
 
 	// Now step through conflict resolution manually for user 2
@@ -559,11 +580,19 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't remove dir: %v", err)
 	}
+	err = config1.KBFSOps().SyncAll(ctx, dirB1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
+	}
 
 	// user2 makes a file in dir C
 	_, _, err = config2.KBFSOps().CreateFile(ctx, dirC2, "file2", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
+	}
+	err = config2.KBFSOps().SyncAll(ctx, dirC2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
 	}
 
 	// Now step through conflict resolution manually for user 2
@@ -656,11 +685,19 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't remove dir: %v", err)
 	}
+	err = config1.KBFSOps().SyncAll(ctx, dirA1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
+	}
 
 	// user2 makes a file in dir C
 	_, _, err = config2.KBFSOps().CreateFile(ctx, dirC2, "file2", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
+	}
+	err = config2.KBFSOps().SyncAll(ctx, dirC2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
 	}
 
 	// Now step through conflict resolution manually for user 2
@@ -750,6 +787,11 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
+	err = config1.KBFSOps().SyncAll(ctx, dirD1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
+	}
+
 	config2.KBFSOps().SyncFromServerForTesting(ctx, fb)
 
 	// pause user 2
@@ -785,6 +827,10 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't remove dir: %v", err)
 	}
+	err = config1.KBFSOps().SyncAll(ctx, dirA1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
+	}
 
 	// user2
 	dirJ2, _, err := config2.KBFSOps().CreateDir(ctx, dirA2, "dirJ")
@@ -814,6 +860,10 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	err = config2.KBFSOps().RemoveDir(ctx, dirB2, "dirD")
 	if err != nil {
 		t.Fatalf("Couldn't remove dir: %v", err)
+	}
+	err = config2.KBFSOps().SyncAll(ctx, dirB2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
 	}
 
 	// Now step through conflict resolution manually for user 2
@@ -922,11 +972,19 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't make dir: %v", err)
 	}
+	err = config1.KBFSOps().SyncAll(ctx, dirRoot1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
+	}
 
 	// user2 moves dirA into dirB
 	err = config2.KBFSOps().Rename(ctx, dirRoot2, "dirA", dirB2, "dirA")
 	if err != nil {
 		t.Fatalf("Couldn't make dir: %v", err)
+	}
+	err = config2.KBFSOps().SyncAll(ctx, dirRoot2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
 	}
 
 	// Now step through conflict resolution manually for user 2
@@ -997,15 +1055,25 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 	}
 
 	// user1 creates file1
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dirRoot1, "file1", false, NoExcl)
+	_, _, err = config1.KBFSOps().CreateFile(
+		ctx, dirRoot1, "file1", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't make file: %v", err)
 	}
+	err = config1.KBFSOps().SyncAll(ctx, dirRoot1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
+	}
 
 	// user2 also create file1, but makes it executable
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dirRoot2, "file1", true, NoExcl)
+	_, _, err = config2.KBFSOps().CreateFile(
+		ctx, dirRoot2, "file1", true, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't make dir: %v", err)
+	}
+	err = config2.KBFSOps().SyncAll(ctx, dirRoot2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
 	}
 
 	// Now step through conflict resolution manually for user 2
@@ -1060,9 +1128,14 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	cr2.Shutdown()
 
 	// user1 creates file
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dirRoot1, "file", false, NoExcl)
+	_, _, err = config1.KBFSOps().CreateFile(
+		ctx, dirRoot1, "file", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't make file: %v", err)
+	}
+	err = config1.KBFSOps().SyncAll(ctx, dirRoot1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
 	}
 
 	// user2 lookup
@@ -1089,9 +1162,14 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't remove file: %v", err)
 	}
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dirRoot1, "file", false, NoExcl)
+	_, _, err = config1.KBFSOps().CreateFile(
+		ctx, dirRoot1, "file", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't re-make file: %v", err)
+	}
+	err = config1.KBFSOps().SyncAll(ctx, dirRoot1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
 	}
 
 	// user2 updates the file attribute and writes too.
@@ -1173,6 +1251,10 @@ func TestCRDoActionsSimple(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
+	err = config1.KBFSOps().SyncAll(ctx, dir1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
+	}
 
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
@@ -1182,6 +1264,10 @@ func TestCRDoActionsSimple(t *testing.T) {
 	_, _, err = config2.KBFSOps().CreateFile(ctx, dir2, "file2", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
+	}
+	err = config2.KBFSOps().SyncAll(ctx, dir2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
 	}
 
 	lState := makeFBOLockState()
@@ -1256,9 +1342,14 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	fb := dir1.GetFolderBranch()
 
 	// user1 makes a file
-	file1, _, err := config1.KBFSOps().CreateFile(ctx, dir1, "file", false, NoExcl)
+	file1, _, err := config1.KBFSOps().CreateFile(
+		ctx, dir1, "file", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
+	}
+	err = config1.KBFSOps().SyncAll(ctx, dir1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
 	}
 
 	// user2 lookup
