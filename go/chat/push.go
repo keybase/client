@@ -30,8 +30,10 @@ type messageWaiterEntry struct {
 type gregorMessageOrderer struct {
 	globals.Contextified
 	utils.DebugLabeler
+	sync.Mutex
 
-	clock   clockwork.Clock
+	clock clockwork.Clock
+	//TODO: parameterize by uid
 	waiters map[chat1.InboxVers][]messageWaiterEntry
 }
 
@@ -53,7 +55,8 @@ func (g *gregorMessageOrderer) latestInboxVersion(ctx context.Context, uid grego
 	return vers, nil
 }
 
-func (g *gregorMessageOrderer) addToWaiters(ctx context.Context, storedVers, msgVers chat1.InboxVers) (res []messageWaiterEntry) {
+func (g *gregorMessageOrderer) addToWaitersLocked(ctx context.Context, storedVers,
+	msgVers chat1.InboxVers) (res []messageWaiterEntry) {
 	for i := storedVers + 1; i < msgVers; i++ {
 		entry := messageWaiterEntry{
 			vers: msgVers,
@@ -102,12 +105,15 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 	// Out of order update, we are going to wait a fixed amount of time for the correctly
 	// ordered update
 	go func() {
-		waiters := g.addToWaiters(ctx, vers, newVers)
+		g.Lock()
+		waiters := g.addToWaitersLocked(ctx, vers, newVers)
+		g.Unlock()
 		g.Debug(ctx, "WaitForTurn: out of order update received, waiting on %d updates: vers: %d newVers: %d", len(waiters), vers, newVers)
 		wctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 		select {
 		case <-g.waitOnWaiters(wctx, newVers, waiters):
+			g.Debug(ctx, "WaitForTurn: cleared by earlier messages: vers: %d", newVers)
 		case <-g.clock.After(time.Second):
 			g.Debug(ctx, "WaitForTurn: timeout reached, charging forward: vers: %d", newVers)
 		}
@@ -117,6 +123,8 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 }
 
 func (g *gregorMessageOrderer) CompleteTurn(ctx context.Context, vers chat1.InboxVers) {
+	g.Lock()
+	defer g.Unlock()
 	waiters := g.waiters[vers]
 	for _, w := range waiters {
 		close(w.cb)
@@ -150,6 +158,7 @@ func (g *PushHandler) SetClock(clock clockwork.Clock) {
 	g.orderer.SetClock(clock)
 }
 
+// TODO hook uper to orderer
 func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage) error {
 	g.Lock()
 	defer g.Unlock()
@@ -195,6 +204,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 	return nil
 }
 
+// TODO hook uper to orderer
 func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage) error {
 	g.Lock()
 	defer g.Unlock()
