@@ -4,7 +4,6 @@ import * as Creators from './creators'
 import {isMobile} from '../../constants/platform'
 import {apiserverDeleteRpcPromise, apiserverPostRpcPromise} from '../../constants/types/flow-types'
 import {call, put, take, select} from 'redux-saga/effects'
-import {delay} from 'redux-saga'
 import {chatTab} from '../../constants/tabs'
 import {navigateTo} from '../route-tree'
 import {safeTakeEvery, safeTakeLatest} from '../../util/saga'
@@ -37,12 +36,10 @@ function * pushNotificationSaga (notification: Constants.PushNotification): Saga
   console.warn('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
-    // If we have received a silent notification, then just sit around for a bit
-    // so that Go can sync from the server.
+    // If we have received a silent notification, then just bail out of here, the service will
+    // wake up and do what it needs to do.
     if (payload.data && payload.data.silent) {
-      console.info('Push notification: pausing on silent notification')
-      yield call(delay, 15 * 1000)
-      console.info('Push notification: pause complete, returning')
+      console.info('Push notification: silent notification received')
       return
     }
 
