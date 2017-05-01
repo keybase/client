@@ -243,6 +243,11 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 
 	parentOriginal, ok := chains.originals[parentDir]
 	if !ok {
+		if chains.isDeleted(parentDir) {
+			// If the parent's been deleted, it doesn't matter whether
+			// we find the type or not.
+			return nil
+		}
 		return NoChainFoundError{parentDir}
 	}
 
