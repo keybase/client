@@ -18,6 +18,8 @@ import (
 
 	"github.com/kardianos/osext"
 
+	"unicode/utf16"
+
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
 )
@@ -31,12 +33,12 @@ type GUID struct {
 
 // 3EB685DB-65F9-4CF6-A03A-E3EF65729F3D
 var (
-	FOLDERID_RoamingAppData = GUID{0x3EB685DB, 0x65F9, 0x4CF6, [8]byte{0xA0, 0x3A, 0xE3, 0xEF, 0x65, 0x72, 0x9F, 0x3D}}
+	FOLDERIDRoamingAppData = GUID{0x3EB685DB, 0x65F9, 0x4CF6, [8]byte{0xA0, 0x3A, 0xE3, 0xEF, 0x65, 0x72, 0x9F, 0x3D}}
 )
 
 // F1B32785-6FBA-4FCF-9D55-7B8E7F157091
 var (
-	FOLDERID_LocalAppData = GUID{0xF1B32785, 0x6FBA, 0x4FCF, [8]byte{0x9D, 0x55, 0x7B, 0x8E, 0x7F, 0x15, 0x70, 0x91}}
+	FOLDERIDLocalAppData = GUID{0xF1B32785, 0x6FBA, 0x4FCF, [8]byte{0x9D, 0x55, 0x7B, 0x8E, 0x7F, 0x15, 0x70, 0x91}}
 )
 
 var (
@@ -72,14 +74,25 @@ func GetDataDir(id GUID) (string, error) {
 
 	var pszPath uintptr
 	r0, _, _ := procSHGetKnownFolderPath.Call(uintptr(unsafe.Pointer(&id)), uintptr(0), uintptr(0), uintptr(unsafe.Pointer(&pszPath)))
-	if r0 != 0 {
-		return "", errors.New("can't get FOLDERID_RoamingAppData")
+	if r0 != 0 || pszPath == 0 {
+		return "", errors.New("can't get FOLDERIDRoamingAppData")
 	}
 
 	defer coTaskMemFree(pszPath)
 
 	// go vet: "possible misuse of unsafe.Pointer"
-	folder := syscall.UTF16ToString((*[1 << 16]uint16)(unsafe.Pointer(pszPath))[:])
+	rawUnicode := (*[1 << 16]uint16)(unsafe.Pointer(pszPath))[:]
+
+	// utf16.Decode crashes without adjusting the slice length
+	pathLen := 0
+	for i, r := range rawUnicode {
+		if r == 0 {
+			pathLen = i
+			break
+		}
+	}
+
+	folder := string(utf16.Decode(rawUnicode[:pathLen]))
 
 	if len(folder) == 0 {
 		return "", errors.New("can't get AppData directory")
@@ -89,11 +102,11 @@ func GetDataDir(id GUID) (string, error) {
 }
 
 func AppDataDir() (string, error) {
-	return GetDataDir(FOLDERID_RoamingAppData)
+	return GetDataDir(FOLDERIDRoamingAppData)
 }
 
 func LocalDataDir() (string, error) {
-	return GetDataDir(FOLDERID_LocalAppData)
+	return GetDataDir(FOLDERIDLocalAppData)
 }
 
 // SafeWriteToFile retries safeWriteToFileOnce a few times on Windows,
@@ -264,11 +277,14 @@ func RemoteSettingsRepairman(g *GlobalContext) error {
 
 // Notify the shell that the thing located at path has changed
 func notifyShell(path string) {
-	shChangeNotifyProc.Call(
-		uintptr(0x00002000), // SHCNE_UPDATEITEM
-		uintptr(0x0005),     // SHCNF_PATHW
-		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(path))),
-		0)
+	pathEncoded := utf16.Encode([]rune(path))
+	if len(pathEncoded) > 0 {
+		shChangeNotifyProc.Call(
+			uintptr(0x00002000), // SHCNE_UPDATEITEM
+			uintptr(0x0005),     // SHCNF_PATHW
+			uintptr(unsafe.Pointer(&pathEncoded[0])),
+			0)
+	}
 }
 
 // Manipulate registry entries to reflect the mount point icon in the shell
