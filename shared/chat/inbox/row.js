@@ -74,7 +74,7 @@ const makeSelector = (conversationIDKey) => {
         rekeyInfo,
         snippet: conversation.get('snippet'),
         timestamp: formatTimeForConversationList(conversation.get('time'), nowOverride),
-        unreadCount,
+        unreadCount: unreadCount || 0,
         ..._rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isSelected),
       })
     )
