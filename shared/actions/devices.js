@@ -9,7 +9,7 @@ import {isMobile} from '../constants/platform'
 import {keyBy} from 'lodash'
 import {navigateTo} from './route-tree'
 import {replaceEntity} from './entities'
-import {safeTakeEvery, safeTakeLatest, closeChannelMap} from '../util/saga'
+import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {setRevokedSelf} from './login/creators'
 
 import type {DeviceDetail} from '../constants/types/flow-types'
@@ -138,9 +138,10 @@ function * _deviceRevokedSaga (action: Revoke): SagaGenerator<any, any> {
 }
 
 function * _devicePaperKeySaga (): SagaGenerator<any, any> {
+  let channelMap
   try {
     yield put(setWaiting(true))
-    const channelMap = loginPaperKeyRpcChannelMap(['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'])
+    channelMap = loginPaperKeyRpcChannelMap(['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'], {})
 
     while (true) {
       const incoming = yield channelMap.race()
@@ -156,7 +157,7 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
       }
     }
   } catch (e) {
-    closeChannelMap(channelMap.map)
+    channelMap && channelMap.close()
     throw new Error(`Error in generating paper key ${e}`)
   } finally {
     yield put(setWaiting(false))

@@ -326,13 +326,11 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
     yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
   }
 
-  const channelConfig = Saga.singleFixedChannelConfig([
+  const loadThreadChanMap = ChatTypes.localGetThreadNonblockRpcChannelMap([
     'chat.1.chatUi.chatThreadCached',
     'chat.1.chatUi.chatThreadFull',
     'finished',
-  ])
-
-  const loadThreadChanMap: ChannelMap<any> = ChatTypes.localGetThreadNonblockRpcChannelMap(channelConfig, {
+  ], {
     param: {
       conversationID,
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
@@ -351,11 +349,7 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
   })
 
   while (true) {
-    const incoming: {[key: string]: any} = yield race({
-      chatThreadCached: Saga.takeFromChannelMap(loadThreadChanMap, 'chat.1.chatUi.chatThreadCached'),
-      chatThreadFull: Saga.takeFromChannelMap(loadThreadChanMap, 'chat.1.chatUi.chatThreadFull'),
-      finished: Saga.takeFromChannelMap(loadThreadChanMap, 'finished'),
-    })
+    const incoming = yield loadThreadChanMap.race()
 
     if (incoming.chatThreadCached) {
       incoming.chatThreadCached.response.result()

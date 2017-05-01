@@ -37,11 +37,11 @@ class EngineChannel {
     getEngine().cancelSession(this._sessionID)
   }
 
-  * take (key: string): Generator {
+  * take (key: string): Generator<any, any, any> {
     return Saga.takeFromChannelMap(this._map, key)
   }
 
-  * race (options: ?{timeout?: number, racers?: Object}): Generator {
+  * race (options: ?{timeout?: number, racers?: Object}): Generator<any, any, any> {
     const timeout = options && options.timeout
     const otherRacers = options && options.racers || {}
     const initMap = {
@@ -427,7 +427,7 @@ class FakeEngine {
   createSession () {
     return new Session(0, {}, null, () => {}, () => {})
   }
-  _channelMapRpcHelper (configKeys: Array<string>, method: string, params: any) {}
+  _channelMapRpcHelper (configKeys: Array<string>, method: string, params: any): EngineChannel { return new EngineChannel({}, 0, []) }
   _rpcOutgoing (
     method: string,
     params: {

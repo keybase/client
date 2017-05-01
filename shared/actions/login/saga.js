@@ -508,60 +508,52 @@ function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
 }
 
 function * reloginSaga ({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
-  const finishedSaga = function * ({error}) {
-    if (error) {
-      const message = error.toString()
-      yield put(Creators.loginDone({message}))
-      if (error.desc === 'No device provisioned locally for this user') {
-        yield put(Creators.setLoginFromRevokedDevice(message))
-        yield put(navigateTo([loginTab]))
+  const chanMap = Types.loginLoginProvisionedDeviceRpcChannelMap([
+    'keybase.1.secretUi.getPassphrase',
+    'finished',
+  ], {param: {noPassphrasePrompt: false, username: usernameOrEmail}})
+
+  while (true) {
+    const incoming = yield chanMap.race()
+    if (incoming.getPassphrase) {
+      const {response} = (incoming.getPassphrase: any)
+      response.result({passphrase: passphrase.stringValue(), storeSecret: true})
+    } else if (incoming.finished) {
+      const {error} = (incoming.finished: any)
+      if (error) {
+        const message = error.toString()
+        yield put(Creators.loginDone({message}))
+        if (error.desc === 'No device provisioned locally for this user') {
+          yield put(Creators.setLoginFromRevokedDevice(message))
+          yield put(navigateTo([loginTab]))
+        }
+      } else {
+        yield call(loginSuccess)
       }
-    } else {
-      yield call(loginSuccess)
+      break
     }
   }
-
-  const reloginSagas = {
-    'keybase.1.secretUi.getPassphrase': function * ({response}) {
-      yield result(response, {passphrase: passphrase.stringValue(), storeSecret: true})
-    },
-    'finished': finishedSaga,
-  }
-
-  const channelConfig = Saga.singleFixedChannelConfig(Object.keys(reloginSagas))
-  const chanMap = Types.loginLoginProvisionedDeviceRpcChannelMap(
-    channelConfig,
-    {param: {noPassphrasePrompt: false, username: usernameOrEmail}},
-  )
-
-  yield Saga.mapSagasToChanMap(Saga.safeTakeLatest, reloginSagas, chanMap)
 }
 
 function * submitForgotPasswordSaga () {
   yield put({payload: undefined, type: Constants.actionSetForgotPasswordSubmitting})
 
-  const sagas = {
-    finished: function * ({error}) {
-      if (error) {
-        yield put({
-          error: true,
-          payload: error,
-          type: Constants.actionForgotPasswordDone,
-        })
-      } else {
-        yield put({
-          error: false,
-          payload: undefined,
-          type: Constants.actionForgotPasswordDone,
-        })
-      }
-    },
-  }
-
   const email = yield select(state => state.login.forgotPasswordEmailAddress)
-  const channelConfig = Saga.singleFixedChannelConfig(Object.keys(sagas))
-  const chanMap = Types.loginRecoverAccountFromEmailAddressRpcChannelMap(channelConfig, {param: {email}})
-  yield Saga.mapSagasToChanMap(Saga.safeTakeLatest, sagas, chanMap)
+  const chanMap = Types.loginRecoverAccountFromEmailAddressRpcChannelMap(['finished'], {param: {email}})
+  const incoming = yield chanMap.take('finished')
+  if (incoming.error) {
+    yield put({
+      error: true,
+      payload: incoming.error,
+      type: Constants.actionForgotPasswordDone,
+    })
+  } else {
+    yield put({
+      error: false,
+      payload: undefined,
+      type: Constants.actionForgotPasswordDone,
+    })
+  }
 }
 
 function * openAccountResetPageSaga () {
@@ -578,20 +570,14 @@ function * logoutDoneSaga () {
 function * logoutSaga () {
   yield call(deletePushTokenSaga)
 
-  const sagas = {
-    finished: function * ({error}) {
-      if (error) {
-        console.log(error)
-      } else {
-        yield put(Creators.logoutDone())
-      }
-    },
-  }
-
   // Add waiting handler
-  const channelConfig = Saga.singleFixedChannelConfig(Object.keys(sagas))
-  const chanMap = Types.loginLogoutRpcChannelMap(channelConfig, {})
-  yield Saga.mapSagasToChanMap(Saga.safeTakeLatest, sagas, chanMap)
+  const chanMap = Types.loginLogoutRpcChannelMap(['finished'], {})
+  const incoming = yield chanMap.take('finished')
+  if (incoming.error) {
+    console.log(incoming.error)
+  } else {
+    yield put(Creators.logoutDone())
+  }
 }
 
 function * loginSaga (): SagaGenerator<any, any> {

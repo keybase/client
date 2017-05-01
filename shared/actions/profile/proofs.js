@@ -142,7 +142,9 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
   let _promptUsernameResponse: ?Object = null
   let _outputInstructionsResponse: ?Object = null
 
-  const channelConfig = singleFixedChannelConfig([
+  yield put(_updateSigID(null))
+
+  const proveStartProofChanMap = proveStartProofRpcChannelMap([
     'keybase.1.proveUi.promptUsername',
     'keybase.1.proveUi.outputInstructions',
     'keybase.1.proveUi.promptOverwrite',
@@ -151,11 +153,7 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
     'keybase.1.proveUi.okToCheck',
     'keybase.1.proveUi.displayRecheckWarning',
     'finished',
-  ])
-
-  yield put(_updateSigID(null))
-
-  const proveStartProofChanMap: ChannelMap<any> = proveStartProofRpcChannelMap(channelConfig, {
+  ], {
     param: {
       auto: false,
       force: true,
@@ -166,23 +164,18 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
   })
 
   while (true) {
-    const incoming: {[key: string]: any} = yield race({
-      cancel: take(Constants.cancelAddProof),
-      checkProof: take(Constants.checkProof),
-      displayRecheckWarning: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.displayRecheckWarning'),
-      finished: takeFromChannelMap(proveStartProofChanMap, 'finished'),
-      okToCheck: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.okToCheck'),
-      outputInstructions: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.outputInstructions'),
-      outputPrechecks: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.outputPrechecks'),
-      preProofWarning: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.preProofWarning'),
-      promptOverwrite: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.promptOverwrite'),
-      promptUsername: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.promptUsername'),
-      submitUsername: take(Constants.submitUsername),
+    const incoming = yield proveStartProofChanMap.race({
+      racers: {
+        cancel: take(Constants.cancelAddProof),
+        checkProof: take(Constants.checkProof),
+        submitUsername: take(Constants.submitUsername),
+      },
     })
+
     yield put(_waitingForResponse(false))
 
     if (incoming.cancel) {
-      closeChannelMap(proveStartProofChanMap)
+      proveStartProofChanMap.close()
 
       const engineInst: Engine = yield call(engine)
 
