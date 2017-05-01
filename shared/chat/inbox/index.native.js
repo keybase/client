@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeListView, LoadingLine} from '../../common-adapters/index.native'
-import {globalStyles, globalColors, statusBarHeight} from '../../styles'
+import {globalStyles, globalColors, statusBarHeight, globalMargins} from '../../styles'
 import {RowConnector} from './row'
 import {debounce} from 'lodash'
 
@@ -151,6 +151,19 @@ const _Row = (props: RowProps) => {
 
 const Row = RowConnector(_Row)
 
+const NoChats = () => (
+  <Box style={{
+    ...globalStyles.flexBoxColumn,
+    ...globalStyles.fillAbsolute,
+    alignItems: 'center',
+    justifyContent: 'center',
+    top: 48,
+  }}>
+    <Icon type='icon-fancy-chat-72-x-52' style={{marginBottom: globalMargins.small}} />
+    <Text type='BodySmallSemibold' backgroundMode='Terminal' style={{color: globalColors.blue3_40}}>All conversations are end-to-end encrypted.</Text>
+  </Box>
+)
+
 class ConversationList extends PureComponent<void, Props, {dataSource: any}> {
   state = {dataSource: null}
 
@@ -202,6 +215,7 @@ class ConversationList extends PureComponent<void, Props, {dataSource: any}> {
           dataSource={this.state.dataSource}
           onChangeVisibleRows={this._onChangeVisibleRows}
           renderRow={this._itemRenderer} />
+        {!this.props.isLoading && !this.props.rows.count() && <NoChats />}
       </Box>
     )
   }
