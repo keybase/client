@@ -23,6 +23,7 @@ func TestTlfNameChangePrivate(t *testing.T) {
 		),
 		as(charlie,
 			expectError(initRoot(), "charlie does not have read access to directory /keybase/private/alice,bob,charlie@twitter"),
+			noSync(),
 		),
 
 		addNewAssertion("charlie", "charlie@twitter"),
@@ -54,6 +55,7 @@ func TestTlfNameChangePrivateWithoutObservation(t *testing.T) {
 		inPrivateTlf("alice,bob@twitter"),
 		as(bob,
 			expectError(initRoot(), "bob does not have read access to directory /keybase/private/alice,bob@twitter"),
+			noSync(),
 		),
 
 		addNewAssertion("bob", "bob@twitter"),
@@ -77,6 +79,7 @@ func TestSBSNewlyResolvedWritersPrivate(t *testing.T) {
 		as(bob,
 			expectError(mkfile("foo.txt", "hello world"),
 				"bob does not have read access to directory /keybase/private/alice,bob@twitter"),
+			noSync(),
 		),
 
 		addNewAssertion("bob", "bob@twitter"),
@@ -106,11 +109,13 @@ func TestTlfNameChangePublic(t *testing.T) {
 			read("alice.txt", "hello charlie"),
 			expectError(mkfile("bob.txt", "hello alice & charlie"),
 				"bob does not have write access to directory /keybase/public/alice,charlie@twitter"),
+			noSync(),
 		),
 		as(charlie,
 			read("alice.txt", "hello charlie"),
 			expectError(mkfile("charlie.txt", "hello alice"),
 				"charlie does not have write access to directory /keybase/public/alice,charlie@twitter"),
+			noSync(),
 			disableUpdates(),
 		),
 
@@ -170,7 +175,7 @@ func TestTlfNameChangePublicWithoutObservation(t *testing.T) {
 	test(t,
 		users("alice", "bob", "charlie"),
 		inPublicTlf("alice,charlie@twitter"),
-		as(charlie), // no-op to initialize the SBS folder
+		as(charlie, noSync()), // no-op to initialize the SBS folder
 		addNewAssertion("charlie", "charlie@twitter"),
 
 		inPublicTlfNonCanonical(
@@ -196,6 +201,7 @@ func TestSBSNewlyResolvedWritersPublic(t *testing.T) {
 		as(charlie,
 			expectError(mkfile("foo.txt", "hello world"),
 				"charlie does not have write access to directory /keybase/public/alice,charlie@twitter"),
+			noSync(),
 		),
 
 		addNewAssertion("charlie", "charlie@twitter"),
@@ -278,6 +284,7 @@ func TestSBSPromoteReaderToWriter(t *testing.T) {
 			read("alice.txt", "hello bob"),
 			expectError(mkfile("bob.txt", "hello alice"),
 				"bob does not have write access to directory /keybase/private/alice,bob@twitter#bob"),
+			noSync(),
 		),
 
 		addNewAssertion("bob", "bob@twitter"),
@@ -320,6 +327,7 @@ func TestSBSOnlyUnresolvedWriter(t *testing.T) {
 		as(alice,
 			expectError(mkfile("foo.txt", "hello world"),
 				"alice does not have read access to directory /keybase/private/alice@twitter"),
+			noSync(),
 		),
 
 		addNewAssertion("alice", "alice@twitter"),
@@ -348,9 +356,11 @@ func TestSBSMultipleResolutions(t *testing.T) {
 		),
 		as(bob,
 			expectError(initRoot(), "bob does not have read access to directory /keybase/private/alice,bob@twitter,charlie@twitter"),
+			noSync(),
 		),
 		as(charlie,
 			expectError(initRoot(), "charlie does not have read access to directory /keybase/private/alice,bob@twitter,charlie@twitter"),
+			noSync(),
 		),
 
 		addNewAssertion("bob", "bob@twitter"),
@@ -371,6 +381,7 @@ func TestSBSMultipleResolutions(t *testing.T) {
 		),
 		as(charlie,
 			expectError(initRoot(), "charlie does not have read access to directory /keybase/private/alice,bob,charlie@twitter"),
+			noSync(),
 		),
 
 		inPrivateTlf("alice,bob,charlie@twitter"),
@@ -386,6 +397,7 @@ func TestSBSMultipleResolutions(t *testing.T) {
 		),
 		as(charlie,
 			expectError(initRoot(), "charlie does not have read access to directory /keybase/private/alice,bob,charlie@twitter"),
+			noSync(),
 		),
 
 		addNewAssertion("charlie", "charlie@twitter"),
@@ -455,6 +467,7 @@ func TestSBSConflicts(t *testing.T) {
 		),
 		as(charlie,
 			expectError(initRoot(), "charlie does not have read access to directory /keybase/private/alice,bob,charlie@twitter"),
+			noSync(),
 		),
 
 		inPrivateTlf("alice,bob@twitter,charlie@twitter"),
@@ -463,9 +476,11 @@ func TestSBSConflicts(t *testing.T) {
 		),
 		as(bob,
 			expectError(initRoot(), "bob does not have read access to directory /keybase/private/alice,bob@twitter,charlie@twitter"),
+			noSync(),
 		),
 		as(charlie,
 			expectError(initRoot(), "charlie does not have read access to directory /keybase/private/alice,bob@twitter,charlie@twitter"),
+			noSync(),
 		),
 
 		inPrivateTlf("alice,bob,charlie"),
