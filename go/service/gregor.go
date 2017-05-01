@@ -105,6 +105,26 @@ func newTestingEvents() *testingEvents {
 	}
 }
 
+type connectionAuthError struct {
+	msg         string
+	shouldRetry bool
+}
+
+func newConnectionAuthError(msg string, shouldRetry bool) connectionAuthError {
+	return connectionAuthError{
+		msg:         msg,
+		shouldRetry: shouldRetry,
+	}
+}
+
+func (c connectionAuthError) ShouldRetry() bool {
+	return c.shouldRetry
+}
+
+func (c connectionAuthError) Error() string {
+	return fmt.Sprintf("connection auth error: msg: %s shouldRetry: %v", c.msg, c.shouldRetry)
+}
+
 type gregorHandler struct {
 	globals.Contextified
 
@@ -124,11 +144,10 @@ type gregorHandler struct {
 	conn      *rpc.Connection
 	uri       *rpc.FMPURI
 
-	cli              rpc.GenericClient
-	pingCli          rpc.GenericClient
-	sessionID        gregor1.SessionID
-	skipRetryConnect bool
-	firstConnect     bool
+	cli          rpc.GenericClient
+	pingCli      rpc.GenericClient
+	sessionID    gregor1.SessionID
+	firstConnect bool
 
 	// Function for determining if a new BroadcastMessage should trigger
 	// a pushState call to firehose handlers
@@ -493,8 +512,8 @@ func (g *gregorHandler) authParams(ctx context.Context) (uid gregor1.UID, token 
 	var stoken string
 	var kuid keybase1.UID
 	if kuid, stoken, res = g.loggedIn(ctx); res != loggedInYes {
-		g.skipRetryConnect = res == loggedInNo
-		return uid, token, errors.New("not logged in for auth")
+		return uid, token,
+			newConnectionAuthError("failed to check logged in status", res == loggedInMaybe)
 	}
 	return kuid.ToBytes(), gregor1.SessionToken(stoken), nil
 }
@@ -542,7 +561,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	}
 	uid, token, err := g.authParams(ctx)
 	if err != nil {
-		return fmt.Errorf("unable to obtain auth params: %s", err.Error())
+		return err
 	}
 	iboxVers := g.inboxParams(ctx, uid)
 	latestCtime := g.notificationParams(ctx, gcli)
@@ -649,9 +668,8 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 
 	ctx := context.Background()
 	g.chatLog.Debug(ctx, "should retry on connect, err %v", err)
-	if g.skipRetryConnect {
-		g.chatLog.Debug(ctx, "should retry on connect, skip retry flag set, returning false")
-		g.skipRetryConnect = false
+	if cerr, ok := err.(connectionAuthError); ok && !cerr.ShouldRetry() {
+		g.chatLog.Debug(ctx, "should retry on connect, non-retry error, ending: %s", err.Error())
 		return false
 	}
 
@@ -1096,8 +1114,7 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient, auth *g
 	var uid keybase1.UID
 
 	if uid, token, res = g.loggedIn(ctx); res != loggedInYes {
-		g.skipRetryConnect = res == loggedInNo
-		return errors.New("not logged in for auth")
+		return newConnectionAuthError("not logged in for auth", res == loggedInMaybe)
 	}
 
 	if auth == nil {
@@ -1115,8 +1132,8 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient, auth *g
 
 	g.chatLog.Debug(ctx, "auth result: %+v", *auth)
 	if !bytes.Equal(auth.Uid, uid.ToBytes()) {
-		g.skipRetryConnect = true
-		return fmt.Errorf("auth result uid %x doesn't match session uid %q", auth.Uid, uid)
+		msg := fmt.Sprintf("auth result uid %x doesn't match session uid %q", auth.Uid, uid)
+		return newConnectionAuthError(msg, false)
 	}
 	g.sessionID = auth.Sid
 
