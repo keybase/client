@@ -50,14 +50,17 @@ func (e *Bootstrap) Run(ctx *Context) error {
 
 	var gerr error
 	e.G().LoginState().Account(func(a *libkb.Account) {
-		var in bool
-		in, gerr = a.LoggedInProvisioned()
+		var sessionOk bool
+		sessionOk, gerr = a.LoggedInProvisioned()
 		if gerr != nil {
 			e.G().Log.Debug("Bootstrap: LoggedInProvisioned error: %s", gerr)
 			return
 		}
 
-		e.status.LoggedIn = in
+		// if any Login engine  worked, then ActiveDevice will be valid:
+		validActiveDevice := e.G().ActiveDevice.Valid()
+
+		e.status.LoggedIn = sessionOk && validActiveDevice
 		if !e.status.LoggedIn {
 			e.G().Log.Debug("Bootstrap: not logged in")
 			return
