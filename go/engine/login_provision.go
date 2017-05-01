@@ -933,7 +933,8 @@ func (e *loginProvision) makeEldestDevice(ctx *Context) error {
 			return
 		}
 
-		// store the secret
+		// Store the secret.
+		// It is not stored in login_state.go/passphraseLogin because there is no device id at that time.
 		pps := a.PassphraseStreamCache().PassphraseStream()
 		if pps == nil {
 			err = errors.New("nil passphrase stream")
