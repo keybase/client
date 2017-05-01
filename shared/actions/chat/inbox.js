@@ -98,7 +98,8 @@ function * onInboxStale (): SagaGenerator<any, any> {
     })
 
     // const chatInboxUnverified = yield takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxUnverified')
-    const incoming = yield race(loadInboxChanMap.raceMap)
+    // const incoming = yield call([loadInboxChanMap, 'race'])
+    const incoming = yield loadInboxChanMap.race()
     incoming.chatInboxUnverified.response.result()
 
     if (!incoming.chatInboxUnverified) {
@@ -250,7 +251,9 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
   })
 
   while (true) {
-    const incoming = yield race(loadInboxChanMap.raceMap({timeout: ttl}))
+    const incoming = yield loadInboxChanMap.race({timeout: ttl})
+
+    // const incoming = yield race(loadInboxChanMap.raceMap({timeout: ttl}))
     // const incoming: {[key: string]: any} = yield race({
       // chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
       // chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),

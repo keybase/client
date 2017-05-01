@@ -13,7 +13,7 @@ import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {convertToError} from '../util/errors'
 import * as Saga from '../util/saga'
 import {delay} from 'redux-saga'
-import {call} from 'redux-saga/effects'
+import {call, race} from 'redux-saga/effects'
 
 import type {ChannelMap} from '../constants/types/saga'
 
@@ -32,23 +32,35 @@ class EngineChannel {
     return this.map
   }
 
-  raceMap ({timeout}: {timeout?: number}) {
+  * race ({timeout}: ?{timeout?: number} = {}) {
     const initMap = {
       ...(timeout ? {
         timeout: call(delay, timeout),
       } : {}),
     }
 
-    return this._configKeys.reduce((map, key) => {
+    const raceMap = this._configKeys.reduce((map, key) => {
       const parts = key.split('.')
       const name = parts[parts.length - 1]
       map[name] = Saga.takeFromChannelMap(this._map, key)
       return map
     }, initMap)
+
+    const result = yield race(raceMap)
+
+    if (result.timeout) {
+      console.log('aaaa GOT TIMEOUT in helper')
+      Saga.closeChannelMap(this._map)
+      getEngine().cancelSession(this._sessionID)
+    }
+
+    return result
   }
 }
 
 class Engine {
+  // Bookkeep old sessions
+  _deadSessionsMap: {[key: SessionIDKey]: true} = {}
   // Tracking outstanding sessions
   _sessionsMap: {[key: SessionIDKey]: Session} = {}
   // Helper we delegate actual calls to
@@ -159,18 +171,22 @@ class Engine {
 
   // Got an incoming request with no handler
   _handleUnhandled (sessionID: number, method: MethodKey, seqid: number, param: Object, response: ?Object) {
+    const isDead = !!this._deadSessionsMap[String(sessionID)]
+
+    const prefix = isDead ? 'Dead session' : 'Unknown'
+
     if (__DEV__) {
-      localLog(`Unknown incoming rpc: ${sessionID} ${method} ${seqid} ${JSON.stringify(param)}${response ? ': Sending back error' : ''}`)
+      localLog(`${prefix} incoming rpc: ${sessionID} ${method} ${seqid} ${JSON.stringify(param)}${response ? ': Sending back error' : ''}`)
     }
-    console.warn(`Unknown incoming rpc: ${sessionID} ${method}`)
+    console.warn(`${prefix} incoming rpc: ${sessionID} ${method}`)
 
     if (__DEV__ && this._failOnError) {
-      throw new Error(`unhandled incoming rpc: ${sessionID} ${method} ${JSON.stringify(param)}${response ? '. has response' : ''}`)
+      throw new Error(`${prefix} incoming rpc: ${sessionID} ${method} ${JSON.stringify(param)}${response ? '. has response' : ''}`)
     }
 
     response && response.error && response.error({
       code: ConstantsStatusCode.scgeneric,
-      desc: `Unhandled incoming RPC ${sessionID} ${method}`,
+      desc: `${prefix} incoming RPC ${sessionID} ${method}`,
     })
   }
 
@@ -298,6 +314,7 @@ class Engine {
   _sessionEnded (session: Session) {
     rpcLog('engineInternal', 'session end', {sessionID: session.id})
     delete this._sessionsMap[String(session.id)]
+    this._deadSessionsMap[String(session.id)] = true
   }
 
   // Cancel an rpc
@@ -383,6 +400,7 @@ class Engine {
 
 // Dummy engine for snapshotting
 class FakeEngine {
+  _deadSessionsMap: {[key: SessionIDKey]: Session}; // just to bookkeep
   _sessionsMap: {[key: SessionIDKey]: Session};
   constructor () {
     console.log('Engine disabled!')
