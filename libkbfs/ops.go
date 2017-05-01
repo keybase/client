@@ -1248,9 +1248,9 @@ func invertOpForLocalNotifications(oldOp op) (newOp op, err error) {
 			return nil, err
 		}
 	case *GCOp:
-		newOp = op
+		newOp = newGCOp(op.LatestRev)
 	case *resolutionOp:
-		newOp = op
+		newOp = newResolutionOp()
 	}
 
 	// Now reverse all the block updates.  Don't bother with bare Refs
