@@ -162,30 +162,11 @@ func TestLoginOfflineNoUpak(t *testing.T) {
 
 	eng := NewLoginOffline(tc.G)
 	ctx := &Context{NetContext: context.Background()}
-	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Fatal("LoginOffline worked after upak cache invalidation")
 	}
-	uid, deviceID, skey, ekey := tc.G.ActiveDevice.AllFields()
-	if uid.IsNil() {
-		t.Errorf("uid is nil, expected it to exist")
-	}
-	if !uid.Equal(u1.UID()) {
-		t.Errorf("uid: %q, expected %q", uid, u1.UID())
-	}
-
-	if deviceID.IsNil() {
-		t.Errorf("deviceID is nil, expected it to exist")
-	}
-
-	if skey == nil {
-		t.Errorf("signing key is nil, expected it to exist")
-	}
-
-	if ekey == nil {
-		t.Errorf("encryption key is nil, expected it to exist")
-	}
-
-	if tc.G.ActiveDevice.Name() != defaultDeviceName {
-		t.Errorf("device name: %q, expected %q", tc.G.ActiveDevice.Name(), defaultDeviceName)
+	if _, ok := err.(libkb.LoginRequiredError); !ok {
+		t.Fatalf("LoginOffline error: %s (%T) expected libkb.LoginRequiredError", err, err)
 	}
 }
