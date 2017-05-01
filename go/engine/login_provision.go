@@ -929,6 +929,18 @@ func (e *loginProvision) makeEldestDevice(ctx *Context) error {
 
 		// save provisioned device id in the session
 		err = a.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceIDForUsername(e.arg.User.GetNormalizedName()))
+		if err != nil {
+			return
+		}
+
+		// store the secret
+		pps := a.PassphraseStreamCache().PassphraseStream()
+		if pps == nil {
+			err = errors.New("nil passphrase stream")
+			return
+		}
+		lks := libkb.NewLKSec(pps, e.arg.User.GetUID(), e.G())
+		err = saveToSecretStore(e.G(), a, e.arg.User.GetNormalizedName(), lks)
 	}, "makeEldestDevice")
 	if err != nil {
 		return err
