@@ -440,6 +440,15 @@ func testProvisionPassphraseNoKeysSolo(t *testing.T, enableSharedDH bool) {
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
+
+	// secret should be stored
+	secret, err := tc.G.SecretStoreAll.RetrieveSecret(libkb.NewNormalizedUsername(username))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if secret.IsNil() {
+		t.Fatal("secret in secret store was nil")
+	}
 }
 
 // Test bad name input (not valid username or email address).
