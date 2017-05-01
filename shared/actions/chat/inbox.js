@@ -213,13 +213,8 @@ function * untrustedInboxVisible (action: Constants.UntrustedInboxVisible): Saga
   }
 }
 
-const TEMP = {}
 // Loads the trusted inbox segments
 function * unboxConversations (conversationIDKeys: Array<Constants.ConversationIDKey>, ttl?: number = 1): Generator<any, any, any> {
-
-conversationIDKeys.forEach(k => TEMP[k] = true)
-
-
   yield put(Creators.setUnboxing(conversationIDKeys, false))
 
   const loadInboxChanMap = ChatTypes.localGetInboxNonblockLocalRpcChannelMap([
@@ -238,9 +233,7 @@ conversationIDKeys.forEach(k => TEMP[k] = true)
   })
 
   while (true) {
-    const timeout = Math.random() > 0.5 ? 3000 : 3
-    console.log('aaaa timeout', timeout)
-    const incoming = yield loadInboxChanMap.race({timeout})
+    const incoming = yield loadInboxChanMap.race({timeout: 30 * 1000})
 
     // Ignore untrusted version
     if (incoming.chatInboxUnverified) {
@@ -288,7 +281,6 @@ conversationIDKeys.forEach(k => TEMP[k] = true)
           })
       }
     } else if (incoming.timeout) {
-      console.log('aaaa GOT TIMEOUT')
       console.warn('timed out request for unboxConversations, bailing')
       yield put(Creators.setUnboxing(conversationIDKeys, true))
       break
