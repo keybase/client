@@ -11,6 +11,34 @@ import {log} from '../native/log/logui'
 import {resetClient, createClient, rpcLog} from './index.platform'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {convertToError} from '../util/errors'
+import * as Saga from '../util/saga'
+
+import type {ChannelMap} from '../constants/types/saga'
+
+class EngineChannel {
+  _map: ChannelMap<*>
+  _sessionID: SessionIDKey
+  _configKeys: Array<string>
+
+  constructor (map: ChannelMap<*>, sessionID: SessionIDKey, configKeys: Array<string>) {
+    this._map = map
+    this._sessionID = sessionID
+    this._configKeys = configKeys
+  }
+
+  get map (): ChannelMap<*> {
+    return this.map
+  }
+
+  get raceMap () {
+    return this._configKeys.reduce((map, key) => {
+      const parts = key.split('.')
+      const name = parts[parts.length - 1]
+      map[name] = Saga.takeFromChannelMap(this._map, key)
+      return map
+    }, {})
+  }
+}
 
 class Engine {
   // Tracking outstanding sessions
@@ -158,6 +186,24 @@ class Engine {
         this._handleUnhandled(sessionID, method, seqid, param, response)
       }
     }
+  }
+
+  // An outgoing call. ONLY called by the flow-type rpc helpers
+  _channelMapRpcHelper (configKeys: Array<string>, method: string, params: any): EngineChannel {
+    const channelConfig = Saga.singleFixedChannelConfig(configKeys)
+    const channelMap = Saga.createChannelMap(channelConfig)
+    const incomingCallMap = Object.keys(channelMap).reduce((acc, k) => {
+      acc[k] = (params, response) => {
+        Saga.putOnChannelMap(channelMap, k, {params, response})
+      }
+      return acc
+    }, {})
+    const callback = (error, params) => {
+      channelMap['finished'] && Saga.putOnChannelMap(channelMap, 'finished', {error, params})
+      Saga.closeChannelMap(channelMap)
+    }
+    const sid = this._rpcOutgoing(method, params, callback, incomingCallMap)
+    return new EngineChannel(channelMap, sid, configKeys)
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
@@ -345,6 +391,7 @@ class FakeEngine {
   createSession () {
     return new Session(0, {}, null, () => {}, () => {})
   }
+  _channelMapRpcHelper (configKeys: Array<string>, method: string, params: any) {}
   _rpcOutgoing (
     method: string,
     params: {

@@ -277,8 +277,9 @@ export function localGetInboxNonblockLocalRpc (request: Exact<requestCommon & {c
   engineRpcOutgoing('chat.1.local.getInboxNonblockLocal', request)
 }
 
-export function localGetInboxNonblockLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxNonblockLocalResult) => void} & {param: localGetInboxNonblockLocalRpcParam}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.local.getInboxNonblockLocal', request, callback, incomingCallMap) })
+export function localGetInboxNonblockLocalRpcChannelMap (configKeys: Array<string>, /*channelConfig: ChannelConfig<*>, */request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxNonblockLocalResult) => void} & {param: localGetInboxNonblockLocalRpcParam}>): any {
+  // return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.local.getInboxNonblockLocal', request, callback, incomingCallMap) })
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxNonblockLocal', request)
 }
 
 export function localGetInboxNonblockLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxNonblockLocalResult) => void} & {param: localGetInboxNonblockLocalRpcParam}>): Promise<localGetInboxNonblockLocalResult> {
