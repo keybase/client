@@ -29,7 +29,7 @@ import {usernameSelector} from '../../constants/selectors'
 import type {Action} from '../../constants/types/flux'
 import type {ChangedFocus} from '../../constants/app'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
-import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
+import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
 function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<any, any> {

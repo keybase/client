@@ -1,16 +1,16 @@
 // @flow
 import * as Constants from '../../constants/profile'
 import engine, {Engine} from '../../engine'
-import {call, put, select, race, take} from 'redux-saga/effects'
+import {call, put, select, take} from 'redux-saga/effects'
 import {cryptocurrencyRegisterAddressRpcPromise, proveStartProofRpcChannelMap, ConstantsStatusCode, ProveCommonProofStatus, proveCheckProofRpcPromise} from '../../constants/types/flow-types'
 import {navigateTo, navigateAppend} from '../route-tree'
 import {profileTab} from '../../constants/tabs'
-import {singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, safeTakeEvery} from '../../util/saga'
+import {closeChannelMap, safeTakeEvery} from '../../util/saga'
 
 import type {AddProof, CancelAddProof, CheckProof, CleanupUsername, SubmitBTCAddress, SubmitUsername, UpdateErrorText, UpdatePlatform, UpdateProofStatus, UpdateProofText, UpdateSigID, Waiting, SubmitZcashAddress} from '../../constants/profile'
 import type {NavigateTo} from '../../constants/route-tree'
 import type {PlatformsExpandedType, ProvablePlatformsType} from '../../constants/types/more'
-import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
+import type {SagaGenerator} from '../../constants/types/saga'
 import type {SigID} from '../../constants/types/flow-types'
 import type {TypedState} from '../../constants/reducer'
 

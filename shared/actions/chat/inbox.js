@@ -211,7 +211,7 @@ function * untrustedInboxVisible (action: Constants.UntrustedInboxVisible): Saga
 }
 
 // Loads the trusted inbox segments
-function * unboxConversations (conversationIDKeys: Array<Constants.ConversationIDKey>, ttl?: number = 1): Generator<any, any, any> {
+function * unboxConversations (conversationIDKeys: Array<Constants.ConversationIDKey>): Generator<any, any, any> {
   yield put(Creators.setUnboxing(conversationIDKeys, false))
 
   const loadInboxChanMap = ChatTypes.localGetInboxNonblockLocalRpcChannelMap([
