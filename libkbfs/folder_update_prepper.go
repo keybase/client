@@ -572,7 +572,18 @@ func (fup folderUpdatePrepper) updateResolutionUsage(ctx context.Context,
 // addUnrefToFinalResOp makes a resolutionOp at the end of opsList if
 // one doesn't exist yet, and then adds the given pointer as an unref
 // block to it.
-func addUnrefToFinalResOp(ops opsList, ptr BlockPointer) opsList {
+func addUnrefToFinalResOp(ops opsList, ptr BlockPointer,
+	doNotUnref map[BlockPointer]bool) opsList {
+	// Make sure the block ID we want to unref isn't in the "do not
+	// unref" list -- it could mean that block has already been GC'd
+	// by the merged branch.  We can't compare pointers directly
+	// because GC'd pointers contain no block context.
+	for noUnref := range doNotUnref {
+		if ptr.ID == noUnref.ID {
+			return ops
+		}
+	}
+
 	resOp, ok := ops[len(ops)-1].(*resolutionOp)
 	if !ok {
 		resOp = newResolutionOp()
@@ -625,7 +636,8 @@ func (fup folderUpdatePrepper) updateResolutionUsageAndPointers(
 				// resolutions.
 				op.DelUnrefBlock(ptr)
 				md.data.Changes.Ops =
-					addUnrefToFinalResOp(md.data.Changes.Ops, ptr)
+					addUnrefToFinalResOp(
+						md.data.Changes.Ops, ptr, unmergedChains.doNotUnrefPointers)
 			}
 		}
 		for _, update := range op.allUpdates() {
@@ -719,7 +731,8 @@ func (fup folderUpdatePrepper) updateResolutionUsageAndPointers(
 		// Put the unrefs in a new resOp after the final operation, to
 		// cancel out any stray refs in earlier ops.
 		fup.log.CDebugf(ctx, "Unreferencing dropped block %v", ptr)
-		md.data.Changes.Ops = addUnrefToFinalResOp(md.data.Changes.Ops, ptr)
+		md.data.Changes.Ops = addUnrefToFinalResOp(
+			md.data.Changes.Ops, ptr, unmergedChains.doNotUnrefPointers)
 	}
 
 	// Scrub all unrefs of blocks that never made it to the server,
@@ -1133,7 +1146,8 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 					ptr = unrefOrig
 				}
 
-				newOps = addUnrefToFinalResOp(newOps, ptr)
+				newOps = addUnrefToFinalResOp(
+					newOps, ptr, unmergedChains.doNotUnrefPointers)
 			}
 		}
 	}
@@ -1169,7 +1183,8 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 				} else if !isMostRecent {
 					fup.log.CDebugf(ctx, "Unrefing an update from old resOp: "+
 						"%v (original=%v)", update.Ref, update.Unref)
-					newOps = addUnrefToFinalResOp(newOps, update.Ref)
+					newOps = addUnrefToFinalResOp(
+						newOps, update.Ref, unmergedChains.doNotUnrefPointers)
 				}
 			}
 		}
@@ -1214,13 +1229,14 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 					fup.log.CDebugf(ctx, "Ignoring block change ptr %v", ptr)
 					unmergedResOp.DelRefBlock(ptr)
 					md.data.Changes.Ops =
-						addUnrefToFinalResOp(md.data.Changes.Ops, ptr)
+						addUnrefToFinalResOp(md.data.Changes.Ops, ptr,
+							unmergedChains.doNotUnrefPointers)
 				}
 			}
 			for _, ptr := range unmergedResOp.Unrefs() {
 				fup.log.CDebugf(ctx, "Unref pointer from old resOp: %v", ptr)
 				md.data.Changes.Ops = addUnrefToFinalResOp(
-					md.data.Changes.Ops, ptr)
+					md.data.Changes.Ops, ptr, unmergedChains.doNotUnrefPointers)
 			}
 		}
 	}

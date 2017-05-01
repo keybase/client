@@ -398,6 +398,20 @@ func (cr *ConflictResolver) makeChains(ctx context.Context,
 		return nil, nil, err
 	}
 
+	// Make sure we don't try to unref any blocks that have already
+	// been GC'd in the merged branch.
+	for _, md := range merged {
+		for _, op := range md.data.Changes.Ops {
+			_, isGCOp := op.(*GCOp)
+			if !isGCOp {
+				continue
+			}
+			for _, ptr := range op.Unrefs() {
+				unmergedChains.doNotUnrefPointers[ptr] = true
+			}
+		}
+	}
+
 	// If there are no new merged changes, don't make any merged
 	// chains.
 	if len(merged) == 0 {
