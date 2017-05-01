@@ -50,14 +50,17 @@ func (e *Bootstrap) Run(ctx *Context) error {
 
 	var gerr error
 	e.G().LoginState().Account(func(a *libkb.Account) {
-		var in bool
-		in, gerr = a.LoggedInProvisioned()
+		var sessionOk bool
+		sessionOk, gerr = a.LoggedInProvisioned()
 		if gerr != nil {
 			e.G().Log.Debug("Bootstrap: LoggedInProvisioned error: %s", gerr)
 			return
 		}
 
-		e.status.LoggedIn = in
+		// if any Login engine  worked, then ActiveDevice will be valid:
+		validActiveDevice := e.G().ActiveDevice.Valid()
+
+		e.status.LoggedIn = sessionOk && validActiveDevice
 		if !e.status.LoggedIn {
 			e.G().Log.Debug("Bootstrap: not logged in")
 			return
@@ -85,12 +88,14 @@ func (e *Bootstrap) Run(ctx *Context) error {
 	if e.G().ConnectivityMonitor.IsConnected(context.Background()) == libkb.ConnectivityMonitorYes {
 		e.G().Log.Debug("connected, running full tracker2 syncer")
 		if err := libkb.RunSyncer(ts, e.status.Uid, false, nil); err != nil {
-			return err
+			e.G().Log.Warning("error running Tracker2Syncer: %s", err)
+			return nil
 		}
 	} else {
 		e.G().Log.Debug("not connected, running cached tracker2 syncer")
 		if err := libkb.RunSyncerCached(ts, e.status.Uid); err != nil {
-			return err
+			e.G().Log.Warning("error running Tracker2Syncer (cached): %s", err)
+			return nil
 		}
 	}
 	e.usums = ts.Result()
