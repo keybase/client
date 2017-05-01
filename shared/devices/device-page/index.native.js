@@ -61,11 +61,6 @@ const Render = ({
   </Box>
 )
 
-const stylesHeader = {
-  textAlign: 'center',
-  fontStyle: 'italic',
-}
-
 const stylesBanner = {
   alignSelf: 'stretch',
   minHeight: 48,
