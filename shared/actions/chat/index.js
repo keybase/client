@@ -794,6 +794,7 @@ function * _sendNotifications (action: Constants.AppendMessages): SagaGenerator<
   const chatTabSelected = (selectedTab === chatTab)
   const convoIsSelected = action.payload.isSelected
 
+  console.log('Deciding whether to notify new message:', convoIsSelected, appFocused, chatTabSelected)
   // Only send if you're not looking at it
   if (!convoIsSelected || !appFocused || !chatTabSelected) {
     const me = yield select(usernameSelector)
@@ -802,6 +803,7 @@ function * _sendNotifications (action: Constants.AppendMessages): SagaGenerator<
     const convo = yield select(Shared.selectedInboxSelector, action.payload.conversationIDKey)
     if (convo && convo.get('status') !== 'muted') {
       if (message && message.type === 'Text') {
+        console.log('Sending Chat notification')
         const snippet = Constants.makeSnippet(Constants.serverMessageToMessageBody(message))
         yield put((dispatch: Dispatch) => {
           NotifyPopup(message.author, {body: snippet}, -1, message.author, () => {
