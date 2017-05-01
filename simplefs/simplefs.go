@@ -420,6 +420,27 @@ func (k *SimpleFS) SimpleFSSetStat(ctx context.Context, arg keybase1.SimpleFSSet
 	return nil
 }
 
+func (k *SimpleFS) startReadWriteOp(ctx context.Context, opid keybase1.OpID, desc keybase1.OpDescription) (context.Context, error) {
+	ctx, err := k.startSyncOp(ctx, desc.AsyncOp__.String(), desc)
+	if err != nil {
+		return nil, err
+	}
+	k.lock.RLock()
+	k.inProgress[opid] = &inprogress{desc, func() {}, make(chan error, 1)}
+	k.lock.RUnlock()
+	return ctx, err
+}
+
+func (k *SimpleFS) doneReadWriteOp(ctx context.Context, opID keybase1.OpID, err error) {
+	k.lock.RLock()
+	delete(k.inProgress, opID)
+	k.lock.RUnlock()
+	k.log.CDebugf(ctx, "doneReadWriteOp, status=%v", err)
+	if ctx != nil {
+		libkbfs.CleanupCancellationDelayer(ctx)
+	}
+}
+
 // SimpleFSRead - Read (possibly partial) contents of open file,
 // up to the amount specified by size.
 // Repeat until zero bytes are returned or error.
@@ -432,17 +453,19 @@ func (k *SimpleFS) SimpleFSRead(ctx context.Context,
 	if !ok {
 		return keybase1.FileContent{}, errNoSuchHandle
 	}
-	ctx, err = k.startSyncOp(ctx, "Read", keybase1.NewOpDescriptionWithRead(
+	opDesc := keybase1.NewOpDescriptionWithRead(
 		keybase1.ReadArgs{
 			OpID:   arg.OpID,
 			Path:   h.path,
 			Offset: arg.Offset,
 			Size:   arg.Size,
-		}))
+		})
+	ctx, err = k.startReadWriteOp(ctx, arg.OpID, opDesc)
 	if err != nil {
 		return keybase1.FileContent{}, err
 	}
-	defer func() { k.doneSyncOp(ctx, err) }()
+
+	defer func() { k.doneReadWriteOp(ctx, arg.OpID, err) }()
 
 	bs := make([]byte, arg.Size)
 	n, err := k.config.KBFSOps().Read(ctx, h.node, bs, arg.Offset)
@@ -462,14 +485,16 @@ func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWrite
 		return errNoSuchHandle
 	}
 
-	ctx, err := k.startSyncOp(ctx, "Write", keybase1.NewOpDescriptionWithWrite(
+	opDesc := keybase1.NewOpDescriptionWithWrite(
 		keybase1.WriteArgs{
 			OpID: arg.OpID, Path: h.path, Offset: arg.Offset,
-		}))
+		})
+
+	ctx, err := k.startReadWriteOp(ctx, arg.OpID, opDesc)
 	if err != nil {
 		return err
 	}
-	defer func() { k.doneSyncOp(ctx, err) }()
+	defer func() { k.doneReadWriteOp(ctx, arg.OpID, err) }()
 
 	err = k.config.KBFSOps().Write(ctx, h.node, arg.Content, arg.Offset)
 	return err
@@ -538,6 +563,7 @@ func (k *SimpleFS) SimpleFSClose(ctx context.Context, opid keybase1.OpID) (err e
 
 	k.lock.Lock()
 	defer k.lock.Unlock()
+	delete(k.inProgress, opid)
 	h, ok := k.handles[opid]
 	if !ok {
 		return errNoSuchHandle
