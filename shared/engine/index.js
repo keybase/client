@@ -12,15 +12,17 @@ import {resetClient, createClient, rpcLog} from './index.platform'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {convertToError} from '../util/errors'
 import * as Saga from '../util/saga'
+import {delay} from 'redux-saga'
+import {call} from 'redux-saga/effects'
 
 import type {ChannelMap} from '../constants/types/saga'
 
 class EngineChannel {
   _map: ChannelMap<*>
-  _sessionID: SessionIDKey
+  _sessionID: SessionID
   _configKeys: Array<string>
 
-  constructor (map: ChannelMap<*>, sessionID: SessionIDKey, configKeys: Array<string>) {
+  constructor (map: ChannelMap<*>, sessionID: SessionID, configKeys: Array<string>) {
     this._map = map
     this._sessionID = sessionID
     this._configKeys = configKeys
@@ -30,13 +32,19 @@ class EngineChannel {
     return this.map
   }
 
-  get raceMap () {
+  raceMap ({timeout}: {timeout?: number}) {
+    const initMap = {
+      ...(timeout ? {
+        timeout: call(delay, timeout),
+      } : {}),
+    }
+
     return this._configKeys.reduce((map, key) => {
       const parts = key.split('.')
       const name = parts[parts.length - 1]
       map[name] = Saga.takeFromChannelMap(this._map, key)
       return map
-    }, {})
+    }, initMap)
   }
 }
 

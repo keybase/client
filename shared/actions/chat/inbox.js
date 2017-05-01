@@ -12,12 +12,12 @@ import {globalError} from '../../constants/config'
 import {navigateTo} from '../route-tree'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {requestIdleCallback} from '../../util/idle-callback'
-import {singleFixedChannelConfig, takeFromChannelMap, closeChannelMap} from '../../util/saga'
+// import {singleFixedChannelConfig, takeFromChannelMap, closeChannelMap} from '../../util/saga'
 import {unsafeUnwrap} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
 
-import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
+import type {SagaGenerator/*, ChannelMap*/} from '../../constants/types/saga'
 
 // Common props for getting the inbox
 const _getInboxQuery = {
@@ -250,7 +250,7 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
   })
 
   while (true) {
-    const incoming = yield race(loadInboxChanMap.raceMap)
+    const incoming = yield race(loadInboxChanMap.raceMap({timeout: ttl}))
     // const incoming: {[key: string]: any} = yield race({
       // chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
       // chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
@@ -307,7 +307,7 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
     } else if (incoming.timeout) {
       console.warn('timed out request for unboxConversations, bailing')
       console.warn('aaaa trying again')
-      closeChannelMap(loadInboxChanMap)
+      // closeChannelMap(loadInboxChanMap)
       yield call(unboxConversations, conversationIDKeys, ttl * 2)
       break
     } else if (incoming.finished) {
