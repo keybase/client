@@ -338,7 +338,7 @@ func TestNonblockTimer(t *testing.T) {
 			}),
 		}, 0)
 		require.NoError(t, err)
-		msgID = msgBoxed.GetMessageID()
+		msgID := msgBoxed.GetMessageID()
 		t.Logf("generated msgID: %d", msgID)
 		sentRef = append(sentRef, sentRecord{msgID: &msgID})
 	}
