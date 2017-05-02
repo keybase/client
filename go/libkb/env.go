@@ -1198,3 +1198,10 @@ func (e *Env) GetKBFSInfoPath() string {
 func (e *Env) GetUpdateDefaultInstructions() (string, error) {
 	return PlatformSpecificUpgradeInstructionsString()
 }
+
+func GetPlatformString() string {
+	if isIOS {
+		return "ios"
+	}
+	return runtime.GOOS
+}

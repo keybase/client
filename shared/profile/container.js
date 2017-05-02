@@ -29,12 +29,13 @@ type EitherProps<P> = {
 } | {
   type: 'error',
   propError: string,
+  onBack: ?() => void,
 }
 
 class ProfileContainer extends PureComponent<void, EitherProps<Props>, void> {
   render () {
     if (this.props.type === 'error') {
-      return <ErrorComponent error={this.props.propError} />
+      return <ErrorComponent error={this.props.propError} onBack={this.props.onBack} />
     }
 
     const props = this.props.okProps
@@ -99,7 +100,11 @@ export default connect(
     if (stateProps.trackerState && stateProps.trackerState.type !== 'tracker') {
       const propError = 'Expected a tracker type, trying to show profile for non user'
       console.warn(propError)
-      return {propError, type: 'error'}
+      return {
+        propError,
+        type: 'error',
+        onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
+      }
     }
 
     const okProps = {

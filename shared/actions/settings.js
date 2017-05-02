@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../constants/settings'
 import HiddenString from '../util/hidden-string'
-import {apiserverGetRpcPromise, apiserverPostRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise, accountEmailChangeRpcPromise, accountPassphraseChangeRpcPromise, accountHasServerKeysRpcPromise, userLoadMySettingsRpcPromise} from '../constants/types/flow-types'
+import {apiserverGetWithSessionRpcPromise, apiserverPostRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise, accountEmailChangeRpcPromise, accountPassphraseChangeRpcPromise, accountHasServerKeysRpcPromise, userLoadMySettingsRpcPromise} from '../constants/types/flow-types'
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {setDeletedSelf} from '../actions/login/creators'
@@ -198,7 +198,7 @@ function * reclaimInviteSaga (invitesReclaimAction: InvitesReclaim): SagaGenerat
 }
 
 function * refreshInvitesSaga (): SagaGenerator<any, any> {
-  const json: ?{body: string} = yield call(apiserverGetRpcPromise, {
+  const json: ?{body: string} = yield call(apiserverGetWithSessionRpcPromise, {
     param: {
       endpoint: 'invitations_sent',
       args: [],
@@ -312,7 +312,7 @@ function * refreshNotificationsSaga (): SagaGenerator<any, any> {
       }})
   })
 
-  const json: ?{body: string} = yield call(apiserverGetRpcPromise, {
+  const json: ?{body: string} = yield call(apiserverGetWithSessionRpcPromise, {
     param: {
       endpoint: 'account/subscriptions',
       args: [],
@@ -373,18 +373,16 @@ function * loadSettingsSaga (): SagaGenerator<any, any> {
 }
 
 function * settingsSaga (): SagaGenerator<any, any> {
-  yield [
-    safeTakeEvery(Constants.invitesReclaim, reclaimInviteSaga),
-    safeTakeLatest(Constants.invitesRefresh, refreshInvitesSaga),
-    safeTakeEvery(Constants.invitesSend, sendInviteSaga),
-    safeTakeLatest(Constants.notificationsRefresh, refreshNotificationsSaga),
-    safeTakeLatest(Constants.notificationsSave, saveNotificationsSaga),
-    safeTakeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga),
-    safeTakeLatest(Constants.loadSettings, loadSettingsSaga),
-    safeTakeEvery(Constants.onSubmitNewEmail, _onSubmitNewEmail),
-    safeTakeEvery(Constants.onSubmitNewPassphrase, _onSubmitNewPassphrase),
-    safeTakeEvery(Constants.onUpdatePGPSettings, _onUpdatePGPSettings),
-  ]
+  yield safeTakeEvery(Constants.invitesReclaim, reclaimInviteSaga)
+  yield safeTakeLatest(Constants.invitesRefresh, refreshInvitesSaga)
+  yield safeTakeEvery(Constants.invitesSend, sendInviteSaga)
+  yield safeTakeLatest(Constants.notificationsRefresh, refreshNotificationsSaga)
+  yield safeTakeLatest(Constants.notificationsSave, saveNotificationsSaga)
+  yield safeTakeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga)
+  yield safeTakeLatest(Constants.loadSettings, loadSettingsSaga)
+  yield safeTakeEvery(Constants.onSubmitNewEmail, _onSubmitNewEmail)
+  yield safeTakeEvery(Constants.onSubmitNewPassphrase, _onSubmitNewPassphrase)
+  yield safeTakeEvery(Constants.onUpdatePGPSettings, _onUpdatePGPSettings)
 }
 
 export {

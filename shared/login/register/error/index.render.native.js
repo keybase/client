@@ -23,7 +23,7 @@ const styles = {
 }
 
 const renderError = error => {
-  return <Text type='Body'>Unknown error: {error.message}</Text>
+  return <Text type='Body' style={{textAlign: 'center'}}>Unknown error: {error.message}</Text>
 }
 
 export default Render

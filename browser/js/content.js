@@ -1,3 +1,5 @@
+// This code gets included just for when the extension injects the
+// widget-rendering code into some page.
 "use strict";
 
 function init() {
@@ -32,7 +34,54 @@ function injectThread() {
     if (author == "") continue; // Empty
     const buttons = c.getElementsByClassName("buttons")[0];
 
-    renderChatButton(buttons, author);
+    renderRedditChatButton(buttons, author);
+  }
+}
+
+// User keeps track of the original query and which services we resolved for
+// this user. It also handles formatting strings for each service.
+function User(username, service) {
+  if (service === undefined) service = "keybase";
+  this.origin = service;
+  this.services = {};
+  this.services[service] = username;
+}
+
+User.prototype.query = function() {
+  const name = this.services[this.origin];
+  if (this.origin === "keybase") {
+    return name;
+  }
+  return `${name}@${this.origin}`;
+}
+
+User.prototype.display = function(service) {
+  if (service === undefined) service = this.origin;
+  const name = this.services[this.origin];
+  switch (this.origin) {
+    case "reddit":
+      return `/u/${name}`;
+    case "twitter":
+      return `@${name}`;
+    default:
+      return name;
+  }
+}
+
+User.prototype.href = function(service) {
+  if (service === undefined) service = this.origin;
+  const name = this.services[this.origin];
+  switch (this.origin) {
+    case "reddit":
+      return `https://www.reddit.com/user/${name}`;
+    case "twitter":
+      return `https://twitter.com/${name}`;
+    case "github":
+      return `https://github.com/${name}`;
+    case "hackernews":
+      return `https://news.ycombinator.com/user?id=${name}`;
+    default:
+      throw `unknown service: ${this.origin}`;
   }
 }
 
@@ -40,45 +89,49 @@ function injectThread() {
 let openChat = null;
 
 // Render the "keybase chat reply" button with handlers.
-function renderChatButton(parent, toUsername) {
-    const li = document.createElement("li");
-    li.className = "keybase-reply";
-    li.innerHTML = `<a href="keybase://${toUsername}@reddit/">keybase chat reply</a>`;
+function renderRedditChatButton(parent, toUsername) {
+  const isLoggedIn = document.getElementsByClassName("logout").length > 0;
+  const user = new User(toUsername, "reddit");
+  const li = document.createElement("li");
+  li.className = "keybase-reply";
+  li.innerHTML = `<a href="keybase://${user.query()}/">keybase chat reply</a>`;
 
-    li.getElementsByTagName("a")[0].addEventListener('click', function(e) {
-      e.preventDefault();
-      const chatParent = e.currentTarget.parentNode;
 
-      if (chatParent.getElementsByTagName("form").length > 0) {
-        // Current chat widget is already open, toggle it and exit
-        if (removeChat(openChat)) {
-          openChat = null;
-        }
-        return
-      } else if (openChat) {
-        // A different chat widget is open, close it and open the new one
-        if (!removeChat(openChat)) {
-          // Aborted
-          return
-        }
+  li.getElementsByTagName("a")[0].addEventListener('click', function(e) {
+    e.preventDefault();
+    const chatParent = e.currentTarget.parentNode;
+
+    if (chatParent.getElementsByTagName("form").length > 0) {
+      // Current chat widget is already open, toggle it and exit
+      if (removeChat(openChat)) {
+        openChat = null;
       }
+      return
+    } else if (openChat) {
+      // A different chat widget is open, close it and open the new one
+      if (!removeChat(openChat)) {
+        // Aborted
+        return
+      }
+    }
 
-      openChat = renderChat(chatParent, toUsername);
-    });
+    openChat = renderChat(chatParent, user, isLoggedIn /* nudgeSupported */);
+  });
 
-    parent.appendChild(li);
+  parent.appendChild(li);
 }
 
 // Render the "Encrypt to..." contact header for the chat widget.
-function renderChatContact(el, redditUsername, keybaseUsername) {
+function renderChatContact(el, user) {
   const asset = chrome.runtime.getURL;
+  const keybaseUsername = user.services["keybase"];
   let queryStatus, iconSrc;
   if (keybaseUsername) {
     queryStatus = `<a class="keybase-user" href="https://keybase.io/${keybaseUsername}" target="_blank"><span>${keybaseUsername}</span></a> on Keybase`;
     iconSrc = `<img class="keybase-icon" src="https://keybase.io/${keybaseUsername}/picture" />`;
   } else {
     queryStatus = "Searching...";
-    if (keybaseUsername == null) {
+    if (keybaseUsername === null) {
       queryStatus = "(Not yet on Keybase)";
     }
     iconSrc = `
@@ -90,28 +143,27 @@ function renderChatContact(el, redditUsername, keybaseUsername) {
   }
   el.innerHTML = `
     <div>${iconSrc}</div>
-    Encrypt to <a class="keybase-user reddit" href="https://reddit.com/u/${redditUsername}" target="_blank">/u/${redditUsername}</a>
+    Encrypt to <a class="keybase-user ${user.origin}" href="${user.href()}" target="_blank">${user.display()}</a>
     <small>${queryStatus}</small>
   `;
 }
 
 // Render the Keybase chat reply widget
-function renderChat(parent, toUsername) {
-  // TODO: Replace hardcoded HTML with some posh templating tech?
-  // TODO: Prevent navigation?
-  const isLoggedIn = document.getElementsByClassName("logout").length > 0;
-
-  let nudgeHTML = `
-    <p>
-      <label><input type="checkbox" name="keybase-nudgecheck" checked /> <strong>Nudge publicly</strong> (reply in thread so they know about Keybase)</label>
-      <textarea name="keybase-nudgetext">/u/${toUsername} - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto</textarea>
-    </p>
-  `;
-  if (!isLoggedIn) {
-    // FIXME: Won't need this if we have a KeybaseBot PM'ing people?
+function renderChat(parent, user, nudgeSupported, closeCallback) {
+  let nudgeHTML;
+  if (nudgeSupported) {
     nudgeHTML = `
-      <p>You will need to let <a target="_blank" href="/u/${toUsername}" class="reddit-user">/u/${toUsername}</a> know that they have a Keybase message waiting for them.</p>
-      <p>Share this handy link: <a target="_blank" href="https://keybase.io/reddit-crypto">https://keybase.io/reddit-crypto</a></p>
+      <p>
+        <label><input type="checkbox" name="keybase-nudgecheck" checked /> <strong>Nudge publicly</strong> (reply in thread so they know about Keybase)</label>
+        <textarea name="keybase-nudgetext">${user.display()} - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto</textarea>
+      </p>
+    `;
+  } else {
+    nudgeHTML = `
+      <p>
+        You will need to let <a target="_blank" href="${user.href()}" class="external-user">${user.display()}</a> know that they have a Keybase message waiting for them.
+        Share this handy link: <a target="_blank" href="https://keybase.io/reddit-crypto">https://keybase.io/reddit-crypto</a>
+      </p>
     `;
   }
 
@@ -129,35 +181,37 @@ function renderChat(parent, toUsername) {
     </h3>
     <div class="keybase-body">
       <div class="keybase-contact"></div>
-      <input type="hidden" name="keybase-to" value="${toUsername}" />
+      <input type="hidden" name="keybase-to" value="${user.query()}" />
       <label>
-        <textarea name="keybase-chat" rows="6" placeholder="Write a message"></textarea>
+        <textarea name="keybase-chat" rows="6" placeholder="Write a message" autofocus></textarea>
       </label>
-      <div class="keybase-nudge"></div>
-      <p style="text-align: center;"><input type="submit" value="Send" name="keybase-submit" /></p>
+      <div class="keybase-nudge" style="display: none;"></div>
+      <p style="text-align: center; clear: both;"><input type="submit" value="Send" name="keybase-submit" /></p>
     </div>
   `;
-  f.addEventListener("submit", submitChat);
+  f.addEventListener("submit", submitChat.bind(null, closeCallback));
   parent.insertBefore(f, parent.firstChild);
 
   const contactDiv = f.getElementsByClassName("keybase-contact")[0];
-  renderChatContact(contactDiv, toUsername, undefined);
+  renderChatContact(contactDiv, user);
 
   // Find user
   const nudgePlaceholder = f.getElementsByClassName("keybase-nudge")[0];
   chrome.runtime.sendMessage({
     "method": "query",
-    "to": toUsername + "@reddit"
+    "to": user.query(),
   }, function(response) {
     if (response.status == "ok") {
-      const keybaseUsername = safeHTML(response.result["username"]);
-      renderChatContact(contactDiv, toUsername, keybaseUsername);
+      user.services["keybase"] = safeHTML(response.result["username"]);
+      renderChatContact(contactDiv, user);
       return;
     } else if (response.message != "user not found") {
       renderError(f, response.message);
     }
-    renderChatContact(contactDiv, toUsername, null);
+    user.services["keybase"] = null;
+    renderChatContact(contactDiv, user);
     nudgePlaceholder.innerHTML = nudgeHTML;
+    nudgePlaceholder.style = "display: block;";
 
     // Install nudge toggle
     const nudgeCheck = f["keybase-nudgecheck"];
@@ -171,7 +225,9 @@ function renderChat(parent, toUsername) {
   // Install closing button (the "x" in the corner)
   const closer = f.getElementsByClassName("keybase-close")[0];
   closer.addEventListener("click", function(e) {
-    removeChat(f);
+    if (removeChat(f)) {
+      closeCallback !== undefined && closeCallback();
+    }
   });
 
   // Install submit button disabler/enabler
@@ -184,7 +240,7 @@ function renderChat(parent, toUsername) {
   chatBody.addEventListener("change", chatChangeCallback);
   chatBody.addEventListener("keyup", chatChangeCallback);
 
-  // Focus the chat textarea
+  // Force focus the chat textarea (should already be done by autofocus)
   f["keybase-chat"].focus();
 
   // TODO: Also add an onbeforeunload check if chat has text written in it.
@@ -206,7 +262,7 @@ function removeChat(chatForm, skipCheck) {
 
 
 // Submit the chat widget
-function submitChat(e) {
+function submitChat(successCallback, e) {
   e.preventDefault();
 
   const f = e.currentTarget; // The form.
@@ -227,7 +283,7 @@ function submitChat(e) {
     const commentNode = findParentByClass(originalParent, "comment");
     if (!commentNode) return; // Not found
 
-    postReply(commentNode, nudgeText);
+    postRedditReply(commentNode, nudgeText);
   }
 
   const submitButton = f["keybase-submit"];
@@ -236,7 +292,7 @@ function submitChat(e) {
 
   chrome.runtime.sendMessage({
     "method": "chat",
-    "to": to + "@reddit",
+    "to": to,
     "body": body
   }, function(response) {
     if (response.status != "ok") {
@@ -248,6 +304,7 @@ function submitChat(e) {
 
     removeChat(f, true /* skipCheck */);
     nudgeCallback();
+    successCallback !== undefined && successCallback();
   });
 }
 
@@ -300,7 +357,7 @@ function renderError(chatForm, msg) {
 }
 
 // Post a Reddit thread reply on the given comment node.
-function postReply(commentNode, text) {
+function postRedditReply(commentNode, text) {
   // This will break if there is no reply button.
   const commentID = commentNode.getAttribute("data-fullname");
   const replyLink = commentNode.getElementsByClassName("reply-button")[0].firstChild;

@@ -1,33 +1,34 @@
 // @flow
-import React from 'react'
+import React, {Component} from 'react'
 import {Box, Icon, Text, ProgressIndicator, NativeImage} from '../../../common-adapters/index.native'
-import {ImageIcon as AttachmentStatusIcon} from '../messages/attachment'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {formatTimeForPopup} from '../../../util/timestamp'
 
 import type {Props} from './'
 
-const AttachmentView = ({isZoomed, onToggleZoom, messageState, path}: {isZoomed: boolean, onToggleZoom: () => void, path: ?string}) => {
-  if (path) {
-    return <NativeImage resizeMode='contain' source={{uri: `file://${path}`}} style={{alignItems: 'center', flexGrow: 1, justifyContent: 'center'}} />
-  } else {
-    return (
-      <Box style={styleContentsCenter}>
-        <ProgressIndicator style={{width: 48}} white={true} />
-      </Box>
-    )
+class AutoMaxSizeImage extends Component<void, any, {width: number, height: number}> {
+  state = {height: 0, width: 0}
+
+  componentDidMount () {
+    NativeImage.getSize(this.props.source.uri, (width, height) => {
+      this.setState({height, width})
+    })
+  }
+
+  render () {
+    return <NativeImage {...this.props} style={{...this.props.style, maxHeight: this.state.height, maxWidth: this.state.width}} />
   }
 }
 
+const AttachmentView = ({isZoomed, onToggleZoom, path}: {isZoomed: boolean, onToggleZoom: () => void, path: ?string}) => (
+  <Box style={{...globalStyles.flexBoxCenter, flex: 1}}>
+    {!!path && <AutoMaxSizeImage source={{uri: `file://${path}`}} style={{flex: 1, width: '100%', height: '100%', resizeMode: 'contain', position: 'relative'}} />}
+    {!path && <ProgressIndicator style={{width: 48}} white={true} />}
+  </Box>
+)
+
 const AttachmentPopup = ({message, isZoomed, onClose, onDownloadAttachment, onDeleteMessage, onMessageAction, onToggleZoom, onOpenInFileUI, you}: Props) => {
-  const {messageState, previewType, title, author, timestamp} = message
-  let statusIcon
-  if (messageState === 'downloading' || messageState === 'downloaded') {
-    statusIcon = <AttachmentStatusIcon
-      style={{position: 'absolute', bottom: -3, right: -3}}
-      type={messageState === 'downloading' ? 'Downloading' : 'Downloaded'}
-    />
-  }
+  const {previewType, title, author, timestamp} = message
 
   if (!previewType || previewType === 'Other') {
     return (
@@ -47,7 +48,6 @@ const AttachmentPopup = ({message, isZoomed, onClose, onDownloadAttachment, onDe
         <Box style={styleHeaderFooter}>
           <Icon type='iconfont-ellipsis' onClick={onMessageAction} />
         </Box>
-        {statusIcon}
       </Box>
     )
   }
@@ -63,7 +63,6 @@ const AttachmentPopup = ({message, isZoomed, onClose, onDownloadAttachment, onDe
       <Box style={styleHeaderFooter}>
         <Icon type='iconfont-ellipsis' style={{color: globalColors.white}} onClick={onMessageAction} />
       </Box>
-      {statusIcon}
     </Box>
   )
 }
@@ -75,17 +74,6 @@ const styleHeaderFooter = {
   height: 32,
   marginLeft: globalMargins.small,
   marginBottom: globalMargins.small,
-}
-
-const styleContentsFit = {
-  ...globalStyles.flexBoxRow,
-  flex: 1,
-}
-
-const styleContentsCenter = {
-  ...styleContentsFit,
-  alignItems: 'center',
-  justifyContent: 'center',
 }
 
 export default AttachmentPopup

@@ -580,7 +580,7 @@ func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid keybas
 		err = NoSigChainError{}
 		return
 	}
-	u.G().Log.Debug("User localDelegateKey signing kid: %s", kid)
+	u.G().Log.Debug("User LocalDelegateKey kid: %s", kid)
 	err = u.sigChain().LocalDelegate(u.keyFamily, key, sigID, kid, isSibkey)
 	if isEldest {
 		eldestKID := key.GetKID()

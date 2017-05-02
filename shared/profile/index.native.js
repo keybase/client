@@ -127,7 +127,7 @@ class Profile extends Component<void, Props, State> {
 
   render () {
     if (this.props.error) {
-      return <ErrorComponent error={this.props.error} />
+      return <ErrorComponent error={this.props.error} onBack={this.props.onBack} />
     }
 
     const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
@@ -239,8 +239,8 @@ const styleActions = {
 }
 
 const styleProofsAndFolders = {
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
+  paddingLeft: globalMargins.large,
+  paddingRight: globalMargins.large,
   paddingBottom: globalMargins.medium,
 }
 
@@ -263,11 +263,10 @@ const styleFolderText = {
 
 const styleFolderIcon = {
   ...globalStyles.clickable,
-  fontSize: 20,
-  width: 22,
+  fontSize: 16,
+  marginRight: globalMargins.tiny,
   textAlign: 'center',
   color: globalColors.black_75,
-  marginRight: globalMargins.small,
 }
 
 export default Profile

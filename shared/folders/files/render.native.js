@@ -1,13 +1,30 @@
 // @flow
 import File from './file/render'
 import React, {Component} from 'react'
-import {Box, Button, Text, BackButton, Avatar, Icon, Usernames, NativeScrollView, ListItem} from '../../common-adapters/index.native'
+import {Box, Button, Text, BackButton, Avatar, Icon, Usernames, NativeScrollView, ListItem, NativeStyleSheet} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
 import type {IconType} from '../../common-adapters/icon'
 import type {FileSection} from '../../constants/folders'
 import type {Props} from './render'
+
+const RenderIgnore = ({isPrivate, ignored, unIgnoreCurrentFolder, ignoreCurrentFolder}) => (
+  ignored
+  ? <Button type='Secondary' onClick={unIgnoreCurrentFolder} label='Unignore folder' />
+  : <Button backgroundMode={isPrivate ? 'Terminal' : 'Normal'} type='Secondary' onClick={ignoreCurrentFolder} label='Ignore folder' />
+)
+
+const RenderNotImplemented = ({isPrivate, allowIgnore, ignored, unIgnoreCurrentFolder, ignoreCurrentFolder}) => {
+  const privateStyle = isPrivate ? {color: globalColors.blue3_40} : {}
+  return (
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center'}}>
+      <Text style={{...privateStyle, textAlign: 'center'}} type='BodySmall'>Mobile files coming soon!</Text>
+      <Text style={{...privateStyle, textAlign: 'center', marginBottom: globalMargins.large}} type='BodySmall'>For now you can browse this folder on your computer.</Text>
+      {allowIgnore && <RenderIgnore isPrivate={isPrivate} ignored={ignored} unIgnoreCurrentFolder={unIgnoreCurrentFolder} ignoreCurrentFolder={ignoreCurrentFolder} />}
+    </Box>
+  )
+}
 
 const Divider = ({theme, backgroundColor, color}) => (
   <Box style={{...globalStyles.flexBoxRow, height: 1, backgroundColor}}>
@@ -70,6 +87,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
     </Box>
   )
 }
+
 class FilesRender extends Component<void, Props, void> {
   _renderSection (section: FileSection) {
     return (
@@ -88,17 +106,11 @@ class FilesRender extends Component<void, Props, void> {
 
   // TODO render checkerboard pattern for private mode
   _renderHeader () {
-    const menuColor = styleMenuColorThemed(this.props.theme, this.props.visiblePopupMenu)
     const backButtonColor = backButtonColorThemed[this.props.theme]
 
     const contents = (
       <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', ...styleHeaderThemed[this.props.theme], height: 48}}>
         <BackButton title={null} onClick={this.props.onBack} style={{marginLeft: globalMargins.small}} iconStyle={{color: backButtonColor}} textStyle={{color: backButtonColor}} />
-        <Icon
-          underlayColor={'transparent'}
-          style={{...styleMenu, color: menuColor, marginRight: globalMargins.small}}
-          type='iconfont-hamburger'
-          onClick={this.props.onTogglePopupMenu} />
       </Box>
     )
 
@@ -128,9 +140,12 @@ class FilesRender extends Component<void, Props, void> {
     if (!this.props.recentFilesEnabled) {
       return (
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          {ignored
-          ? allowIgnore && <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' />
-          : allowIgnore && <Button backgroundMode={isPrivate ? 'Terminal' : 'Normal'} type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' />}
+          {<RenderNotImplemented
+            isPrivate={isPrivate}
+            allowIgnore={allowIgnore}
+            ignored={ignored}
+            unIgnoreCurrentFolder={this.props.unIgnoreCurrentFolder}
+            ignoreCurrentFolder={this.props.ignoreCurrentFolder} />}
         </Box>
       )
     } else {
@@ -146,13 +161,7 @@ class FilesRender extends Component<void, Props, void> {
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', backgroundColor: backgroundColorThemed[this.props.theme], paddingTop: statusBarHeight}}>
         {this._renderHeader()}
         <Box style={{...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}>
-          <Box style={{...globalStyles.flexBoxRow, position: 'relative', justifyContent: 'center', alignItems: 'flex-start', marginTop: -1 * globalMargins.small}}>
-            {this.props.users.map(u => <Box key={u.username} style={{height: 32, width: 28}}><Avatar username={u.username} size={32} /></Box>)}
-          </Box>
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', justifyContent: 'center', marginTop: 3, marginBottom: 12, flex: 1}}>
-            <Text type='BodySemibold' style={tlfTextStyle}>{isPrivate ? 'private/' : 'public/'}</Text>
-            <Usernames users={this.props.users} type='Header' style={tlfTextStyle} />
-          </Box>
+          <Usernames prefix={isPrivate ? 'private/' : 'public/'} users={this.props.users} type='BodySemibold' style={tlfTextStyle} containerStyle={{textAlign: 'center'}} />
         </Box>
         {this._renderContents(isPrivate, this.props.ignored, this.props.allowIgnore)}
       </Box>
@@ -172,7 +181,16 @@ const styleHeaderThemed = {
 
 const styleTLFHeader = {
   ...globalStyles.flexBoxColumn,
-  minHeight: 48,
+  minHeight: 56,
+  alignItems: 'stretch',
+  justifyContent: 'center',
+  flexGrow: 0,
+  borderBottomColor: globalColors.black_05,
+  borderBottomWidth: NativeStyleSheet.hairlineWidth,
+  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
 }
 
 const styleTLFHeaderThemed = {
@@ -205,13 +223,8 @@ const styleSectionTextThemed = {
 }
 
 const backgroundColorThemed = {
-  'public': globalColors.lightGrey,
+  'public': globalColors.white,
   'private': globalColors.darkBlue3,
-}
-
-const styleMenu = {
-  ...globalStyles.clickable,
-  alignSelf: 'center',
 }
 
 const backButtonColorThemed = {
@@ -227,12 +240,6 @@ const styleWarningBanner = {
   paddingLeft: globalMargins.xlarge,
   paddingRight: globalMargins.xlarge,
   textAlign: 'center',
-}
-
-function styleMenuColorThemed (theme, showingMenu): string {
-  return theme === 'public'
-    ? (showingMenu ? globalColors.black_40 : globalColors.white)
-    : (showingMenu ? globalColors.blue3 : globalColors.white)
 }
 
 export default FilesRender

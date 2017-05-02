@@ -44,7 +44,7 @@ type ExternalAPIEngine struct {
 // allowing us to share the request-making code below in doRequest
 type Requester interface {
 	Contextifier
-	fixHeaders(arg APIArg, req *http.Request)
+	fixHeaders(arg APIArg, req *http.Request) error
 	getCli(needSession bool) *Client
 	consumeHeaders(resp *http.Response) error
 	isExternal() bool
@@ -141,7 +141,7 @@ func (api *BaseAPIEngine) PrepareGet(url1 url.URL, arg APIArg) (*http.Request, e
 	return http.NewRequest("GET", ruri, nil)
 }
 
-func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg) (*http.Request, error) {
+func (api *BaseAPIEngine) PrepareMethodWithBody(method string, url1 url.URL, arg APIArg) (*http.Request, error) {
 	ruri := url1.String()
 	var body io.Reader
 
@@ -149,7 +149,7 @@ func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg) (*http.Request, 
 	useJSON := len(arg.JSONPayload) > 0
 
 	if useHTTPArgs && useJSON {
-		panic("PreparePost: Malformed APIArg: Both HTTP args and JSONPayload set on request.")
+		panic("PrepareMethodWithBody: Malformed APIArg: Both HTTP args and JSONPayload set on request.")
 	}
 
 	if useJSON {
@@ -162,7 +162,7 @@ func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg) (*http.Request, 
 		body = ioutil.NopCloser(strings.NewReader(arg.getHTTPArgs().Encode()))
 	}
 
-	req, err := http.NewRequest("POST", ruri, body)
+	req, err := http.NewRequest(method, ruri, body)
 	if err != nil {
 		return nil, err
 	}
@@ -206,14 +206,23 @@ func (c *countingReader) numRead() int {
 
 // The returned response, if non-nil, should have
 // DiscardAndCloseBody() called on it.
-func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (
-	_ *http.Response, jw *jsonw.Wrapper, err error) {
+func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (_ *http.Response, jw *jsonw.Wrapper, err error) {
 	if !api.G().Env.GetTorMode().UseSession() && arg.SessionType == APISessionTypeREQUIRED {
 		err = TorSessionRequiredError{}
 		return
 	}
 
-	api.fixHeaders(arg, req)
+	ctx := arg.NetContext
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	ctx = WithLogTag(ctx, "API")
+	api.G().Log.CDebugf(ctx, "+ API %s %s", req.Method, req.URL)
+
+	if err = api.fixHeaders(arg, req); err != nil {
+		api.G().Log.CDebugf(ctx, "- API %s %s: fixHeaders error: %s", req.Method, req.URL, err)
+		return
+	}
 	needSession := false
 	if arg.SessionType != APISessionTypeNONE {
 		needSession = true
@@ -225,12 +234,6 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	if api.isExternal() {
 		timerType = TimerXAPI
 	}
-	ctx := arg.NetContext
-	if ctx == nil {
-		ctx = context.Background()
-	}
-	ctx = WithLogTag(ctx, "API")
-	api.G().Log.CDebugf(ctx, "+ API %s %s", req.Method, req.URL)
 
 	var jsonBytes int
 	var status string
@@ -519,23 +522,34 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 	return
 }
 
-func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
+func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) error {
 	if arg.SessionType != APISessionTypeNONE {
 		tok, csrf, err := a.sessionArgs(arg)
 		if err != nil {
-			a.G().Log.Warning("fixHeaders: need session, but error getting sessionArgs: %s", err)
+			if arg.SessionType == APISessionTypeREQUIRED {
+				a.G().Log.Warning("fixHeaders: session required, but error getting sessionArgs: %s", err)
+				return err
+			}
+			a.G().Log.Debug("fixHeaders: session optional, error getting sessionArgs: %s", err)
 		}
-		if len(tok) > 0 && a.G().Env.GetTorMode().UseSession() {
-			req.Header.Add("X-Keybase-Session", tok)
-		} else if arg.SessionType == APISessionTypeREQUIRED {
-			a.G().Log.Warning("fixHeaders: need session, but session token empty")
+		if a.G().Env.GetTorMode().UseSession() {
+			if len(tok) > 0 {
+				req.Header.Add("X-Keybase-Session", tok)
+			} else if arg.SessionType == APISessionTypeREQUIRED {
+				a.G().Log.Warning("fixHeaders: need session, but session token empty")
+				return InternalError{Msg: "API request requires session, but session token empty"}
+			}
 		}
-		if len(csrf) > 0 && a.G().Env.GetTorMode().UseCSRF() {
-			req.Header.Add("X-CSRF-Token", csrf)
-		} else if arg.SessionType == APISessionTypeREQUIRED {
-			a.G().Log.Warning("fixHeaders: need session, but session csrf empty")
+		if a.G().Env.GetTorMode().UseCSRF() {
+			if len(csrf) > 0 {
+				req.Header.Add("X-CSRF-Token", csrf)
+			} else if arg.SessionType == APISessionTypeREQUIRED {
+				a.G().Log.Warning("fixHeaders: need session, but session csrf empty")
+				return InternalError{Msg: "API request requires session, but session csrf empty"}
+			}
 		}
 	}
+
 	if a.G().Env.GetTorMode().UseHeaders() {
 		req.Header.Set("User-Agent", UserAgent)
 		identifyAs := GoClientID + " v" + VersionString() + " " + runtime.GOOS
@@ -550,6 +564,8 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 			req.Header.Set("X-Keybase-Log-Tags", tags)
 		}
 	}
+
+	return nil
 }
 
 func (a *InternalAPIEngine) checkAppStatusFromJSONWrapper(arg APIArg, jw *jsonw.Wrapper) (*AppStatus, error) {
@@ -647,7 +663,7 @@ func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
 
 func (a *InternalAPIEngine) Post(arg APIArg) (*APIRes, error) {
 	url1 := a.getURL(arg)
-	req, err := a.PreparePost(url1, arg)
+	req, err := a.PrepareMethodWithBody("POST", url1, arg)
 	if err != nil {
 		return nil, err
 	}
@@ -665,7 +681,7 @@ func (a *InternalAPIEngine) PostJSON(arg APIArg) (*APIRes, error) {
 // DiscardAndCloseBody() called on it.
 func (a *InternalAPIEngine) postResp(arg APIArg) (*http.Response, error) {
 	url1 := a.getURL(arg)
-	req, err := a.PreparePost(url1, arg)
+	req, err := a.PrepareMethodWithBody("POST", url1, arg)
 	if err != nil {
 		return nil, err
 	}
@@ -697,6 +713,15 @@ func (a *InternalAPIEngine) PostRaw(arg APIArg, ctype string, r io.Reader) (*API
 	if len(ctype) > 0 {
 		req.Header.Set("Content-Type", ctype)
 	}
+	if err != nil {
+		return nil, err
+	}
+	return a.DoRequest(arg, req)
+}
+
+func (a *InternalAPIEngine) Delete(arg APIArg) (*APIRes, error) {
+	url1 := a.getURL(arg)
+	req, err := a.PrepareMethodWithBody("DELETE", url1, arg)
 	if err != nil {
 		return nil, err
 	}
@@ -743,7 +768,7 @@ const (
 	XAPIResText
 )
 
-func (api *ExternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
+func (api *ExternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) error {
 	// TODO (here and in the internal API engine implementation): If we don't
 	// set the User-Agent, it will default to http.defaultUserAgent
 	// ("Go-http-client/1.1"). We should think about whether that's what we
@@ -763,6 +788,8 @@ func (api *ExternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 	if api.G().Env.GetTorMode().UseHeaders() {
 		req.Header.Set("User-Agent", userAgent)
 	}
+
+	return nil
 }
 
 func isReddit(req *http.Request) bool {
@@ -854,7 +881,7 @@ func (api *ExternalAPIEngine) postCommon(arg APIArg, restype XAPIResType) (
 	if err != nil {
 		return
 	}
-	req, err = api.PreparePost(*url1, arg)
+	req, err = api.PrepareMethodWithBody("POST", *url1, arg)
 	if err != nil {
 		return
 	}

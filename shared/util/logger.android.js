@@ -1,3 +1,10 @@
 // @flow
 import {NativeModules} from 'react-native'
-export default NativeModules.FileLogger
+
+const logger = {
+  info: (...args: Array<any>) => NativeModules.FileLogger.info(args.join(',')),
+  warn: (...args: Array<any>) => NativeModules.FileLogger.warn(args.join(',')),
+  error: (...args: Array<any>) => NativeModules.FileLogger.error(args.join(',')),
+}
+
+export default logger

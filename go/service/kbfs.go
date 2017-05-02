@@ -112,8 +112,8 @@ func (h *KBFSHandler) conversationIDs(uid keybase1.UID, tlf string, public bool)
 	}
 
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx := chat.Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
-		chat.NewIdentifyNotifier(globals.NewContext(h.G(), h.ChatG())))
+	ctx := chat.Context(context.Background(), h.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		&identBreaks, chat.NewIdentifyNotifier(globals.NewContext(h.G(), h.ChatG())))
 	ib, _, err := h.ChatG().InboxSource.Read(ctx, uid.ToBytes(), nil, true, &query, nil)
 	if err != nil {
 		return nil, err

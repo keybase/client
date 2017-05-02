@@ -9,10 +9,10 @@ import * as Shared from './shared'
 import * as Saga from '../../util/saga'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
-import {List, Map} from 'immutable'
+import {Map} from 'immutable'
 import {NotifyPopup} from '../../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior, ConstantsStatusCode} from '../../constants/types/flow-types'
-import {call, put, take, select, race, fork, join} from 'redux-saga/effects'
+import {call, put, take, select, race} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, switchTo} from '../route-tree'
@@ -23,7 +23,6 @@ import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from '..
 import {searchTab, chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
 import {some} from 'lodash'
-import {tmpFile} from '../../util/file'
 import {toDeviceType} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 
@@ -171,14 +170,6 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           }
 
           yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, appFocused, [message]))
-
-          if ((message.type === 'Attachment' || message.type === 'UpdateAttachment') && !message.previewPath && message.messageID) {
-            const messageID = message.type === 'UpdateAttachment' ? message.targetMessageID : message.messageID
-            const filename = message.type === 'UpdateAttachment' ? message.updates.filename : message.filename
-            if (filename) {
-              yield put(Creators.loadAttachment(conversationIDKey, messageID, tmpFile(Shared.tmpFileName(false, conversationIDKey, messageID, filename)), true, false))
-            }
-          }
         }
       }
       break
@@ -333,20 +324,6 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
     const pagination = _threadToPagination(thread)
 
     yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
-
-    // Load previews for attachments
-    const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' && m.messageID ? acc.push(m) : acc, new List())
-    yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => {
-      if (messageID && filename) {
-        return put(Creators.loadAttachment(
-          conversationIDKey,
-          messageID,
-          tmpFile(Shared.tmpFileName(false, conversationIDKey, messageID, filename)),
-          true,
-          false)
-        )
-      }
-    }).toArray().filter(Boolean)
   }
 
   const channelConfig = Saga.singleFixedChannelConfig([
@@ -395,6 +372,15 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
       yield put(Creators.setLoaded(conversationIDKey, !incoming.finished.error)) // reset isLoaded on error
       break
     }
+  }
+
+  // Do this here because it's possible loading messages takes a while
+  // If this is the selected conversation and this was a result of user action
+  // We can assume the messages we've loaded have been seen.
+  const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
+  if (selectedConversationIDKey === conversationIDKey && action.payload.fromUser) {
+    yield put(Creators.updateBadging(conversationIDKey))
+    yield put(Creators.updateLatestMessage(conversationIDKey))
   }
 }
 
@@ -715,9 +701,8 @@ function * _selectConversation (action: Constants.SelectConversation): SagaGener
     yield put(Creators.clearMessages(conversationIDKey))
   }
 
-  let loadMoreTask
   if (conversationIDKey) {
-    loadMoreTask = yield fork(Saga.cancelWhen(_threadIsCleared, _loadMoreMessages), Creators.loadMoreMessages(conversationIDKey, true))
+    yield put(Creators.loadMoreMessages(conversationIDKey, true, fromUser))
     yield put(navigateTo([conversationIDKey], [chatTab]))
   } else {
     yield put(navigateTo([], [chatTab]))
@@ -728,12 +713,9 @@ function * _selectConversation (action: Constants.SelectConversation): SagaGener
     yield put(Creators.updateMetadata(inbox.get('participants').toArray()))
   }
 
-  if (inbox && inbox.get('state') !== 'unboxed') {
-    return
-  }
-
+  // Do this here because it's possible loadMoreMessages bails early
+  // but there are still unread messages that need to be marked as read
   if (fromUser && conversationIDKey) {
-    yield join(loadMoreTask)
     yield put(Creators.updateBadging(conversationIDKey))
     yield put(Creators.updateLatestMessage(conversationIDKey))
   }
@@ -779,9 +761,13 @@ function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
   const selectedTab = yield select(Shared.routeSelector)
   const chatTabSelected = (selectedTab === chatTab)
 
-  if (conversationIDKey && appFocused && chatTabSelected) {
-    yield put(Creators.updateBadging(conversationIDKey))
-    yield put(Creators.updateLatestMessage(conversationIDKey))
+  if (conversationIDKey && chatTabSelected) {
+    if (appFocused) {
+      yield put(Creators.updateBadging(conversationIDKey))
+    } else {
+      // Reset the orange line when focus leaves the app.
+      yield put(Creators.updateLatestMessage(conversationIDKey))
+    }
   }
 }
 
@@ -808,6 +794,7 @@ function * _sendNotifications (action: Constants.AppendMessages): SagaGenerator<
   const chatTabSelected = (selectedTab === chatTab)
   const convoIsSelected = action.payload.isSelected
 
+  console.log('Deciding whether to notify new message:', convoIsSelected, appFocused, chatTabSelected)
   // Only send if you're not looking at it
   if (!convoIsSelected || !appFocused || !chatTabSelected) {
     const me = yield select(usernameSelector)
@@ -816,6 +803,7 @@ function * _sendNotifications (action: Constants.AppendMessages): SagaGenerator<
     const convo = yield select(Shared.selectedInboxSelector, action.payload.conversationIDKey)
     if (convo && convo.get('status') !== 'muted') {
       if (message && message.type === 'Text') {
+        console.log('Sending Chat notification')
         const snippet = Constants.makeSnippet(Constants.serverMessageToMessageBody(message))
         yield put((dispatch: Dispatch) => {
           NotifyPopup(message.author, {body: snippet}, -1, message.author, () => {
@@ -865,40 +853,39 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
 }
 
 function * chatSaga (): SagaGenerator<any, any> {
-  yield [
-    Saga.safeTakeSerially('chat:loadInbox', Inbox.onInitialInboxLoad),
-    Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale),
-    Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages)),
-    Saga.safeTakeLatest('chat:selectConversation', _selectConversation),
-    Saga.safeTakeEvery('chat:untrustedInboxVisible', Inbox.untrustedInboxVisible),
-    Saga.safeTakeEvery('chat:updateBadging', _updateBadging),
-    Saga.safeTakeEvery('chat:setupChatHandlers', _setupChatHandlers),
-    Saga.safeTakeEvery('chat:incomingMessage', _incomingMessage),
-    Saga.safeTakeEvery('chat:markThreadsStale', _markThreadsStale),
-    Saga.safeTakeEvery('chat:muteConversation', _muteConversation),
-    Saga.safeTakeEvery('chat:blockConversation', _blockConversation),
-    Saga.safeTakeEvery('chat:newChat', _newChat),
-    Saga.safeTakeEvery('chat:postMessage', Messages.postMessage),
-    Saga.safeTakeEvery('chat:editMessage', Messages.editMessage),
-    Saga.safeTakeEvery('chat:retryMessage', Messages.retryMessage),
-    Saga.safeTakeEvery('chat:startConversation', _startConversation),
-    Saga.safeTakeEvery('chat:updateMetadata', _updateMetadata),
-    Saga.safeTakeEvery('chat:appendMessages', _sendNotifications),
-    Saga.safeTakeEvery('chat:selectAttachment', Attachment.onSelectAttachment),
-    Saga.safeTakeEvery('chat:openConversation', _openConversation),
-    Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox),
-    Saga.safeTakeEvery('chat:loadAttachment', Attachment.onLoadAttachment),
-    Saga.safeTakeEvery('chat:openAttachmentPopup', Attachment.onOpenAttachmentPopup),
-    Saga.safeTakeLatest('chat:openFolder', _openFolder),
-    Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat),
-    Saga.safeTakeEvery('app:changedFocus', _changedFocus),
-    Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage),
-    Saga.safeTakeEvery('chat:openTlfInChat', _openTlfInChat),
-    Saga.safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false),
-    Saga.safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false),
-    Saga.safeTakeEvery('chat:saveAttachmentNative', Attachment.onSaveAttachmentNative),
-    Saga.safeTakeEvery('chat:shareAttachment', Attachment.onShareAttachment),
-  ]
+  yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
+  yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
+  yield Saga.safeTakeEvery('chat:blockConversation', _blockConversation)
+  yield Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage)
+  yield Saga.safeTakeEvery('chat:editMessage', Messages.editMessage)
+  yield Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox)
+  yield Saga.safeTakeEvery('chat:incomingMessage', _incomingMessage)
+  yield Saga.safeTakeEvery('chat:loadAttachment', Attachment.onLoadAttachment)
+  yield Saga.safeTakeEvery('chat:loadAttachmentPreview', Attachment.onLoadAttachmentPreview)
+  yield Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
+  yield Saga.safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false)
+  yield Saga.safeTakeEvery('chat:markThreadsStale', _markThreadsStale)
+  yield Saga.safeTakeEvery('chat:muteConversation', _muteConversation)
+  yield Saga.safeTakeEvery('chat:newChat', _newChat)
+  yield Saga.safeTakeEvery('chat:openAttachmentPopup', Attachment.onOpenAttachmentPopup)
+  yield Saga.safeTakeEvery('chat:openConversation', _openConversation)
+  yield Saga.safeTakeEvery('chat:openFolder', _openFolder)
+  yield Saga.safeTakeEvery('chat:openTlfInChat', _openTlfInChat)
+  yield Saga.safeTakeEvery('chat:postMessage', Messages.postMessage)
+  yield Saga.safeTakeEvery('chat:retryMessage', Messages.retryMessage)
+  yield Saga.safeTakeEvery('chat:saveAttachmentNative', Attachment.onSaveAttachmentNative)
+  yield Saga.safeTakeEvery('chat:selectAttachment', Attachment.onSelectAttachment)
+  yield Saga.safeTakeEvery('chat:setupChatHandlers', _setupChatHandlers)
+  yield Saga.safeTakeEvery('chat:shareAttachment', Attachment.onShareAttachment)
+  yield Saga.safeTakeEvery('chat:startConversation', _startConversation)
+  yield Saga.safeTakeEvery('chat:untrustedInboxVisible', Inbox.untrustedInboxVisible)
+  yield Saga.safeTakeEvery('chat:updateBadging', _updateBadging)
+  yield Saga.safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false)
+  yield Saga.safeTakeEvery('chat:updateMetadata', _updateMetadata)
+  yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
+  yield Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale)
+  yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInitialInboxLoad)
+  yield Saga.safeTakeLatest('chat:selectConversation', _selectConversation)
 }
 
 export default chatSaga

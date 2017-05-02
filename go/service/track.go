@@ -32,7 +32,7 @@ func NewTrackHandler(xp rpc.Transporter, g *libkb.GlobalContext) *TrackHandler {
 }
 
 // Track creates a TrackEngine and runs it.
-func (h *TrackHandler) Track(_ context.Context, arg keybase1.TrackArg) error {
+func (h *TrackHandler) Track(_ context.Context, arg keybase1.TrackArg) (keybase1.ConfirmResult, error) {
 	earg := engine.TrackEngineArg{
 		UserAssertion:    arg.UserAssertion,
 		Options:          arg.Options,
@@ -44,7 +44,9 @@ func (h *TrackHandler) Track(_ context.Context, arg keybase1.TrackArg) error {
 		SessionID:  arg.SessionID,
 	}
 	eng := engine.NewTrackEngine(&earg, h.G())
-	return engine.RunEngine(eng, &ctx)
+	err := engine.RunEngine(eng, &ctx)
+	res := eng.ConfirmResult()
+	return res, err
 }
 
 func (h *TrackHandler) TrackWithToken(_ context.Context, arg keybase1.TrackWithTokenArg) error {

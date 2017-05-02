@@ -3,7 +3,7 @@
 import {call, put, select} from 'redux-saga/effects'
 import {safeTakeLatest} from '../util/saga'
 import * as Constants from '../constants/plan-billing'
-import {apiserverGetRpcPromise, apiserverPostRpcPromise} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise, apiserverGetWithSessionRpcPromise, apiserverPostRpcPromise} from '../constants/types/flow-types'
 
 import type {UpdateBillingArgs, UpdateBilling, FetchBillingAndQuota, FetchBillingOverview, UpdateBillingAndQuota, UpdateAvailablePlans, BillingState, BootstrapData, UpdatePaymentInfo, BillingError} from '../constants/plan-billing'
 import type {SagaGenerator} from '../constants/types/saga'
@@ -101,7 +101,7 @@ function * updateBillingSaga ({payload}: UpdateBilling): SagaGenerator<any, any>
 
 function * fetchBillingOverviewSaga (): SagaGenerator<any, any> {
   try {
-    const results: any = yield call(apiserverGetRpcPromise, {
+    const results: any = yield call(apiserverGetWithSessionRpcPromise, {
       param: {
         endpoint: 'account/billing_overview',
       },
@@ -181,12 +181,10 @@ function * bootstrapDataSaga (): SagaGenerator<any, any> {
 }
 
 function * billingSaga (): SagaGenerator<any, any> {
-  yield [
-    safeTakeLatest(Constants.updateBilling, updateBillingSaga),
-    safeTakeLatest(Constants.fetchBillingAndQuota, fetchBillingAndQuotaSaga),
-    safeTakeLatest(Constants.fetchBillingOverview, fetchBillingOverviewSaga),
-    safeTakeLatest(Constants.bootstrapData, bootstrapDataSaga),
-  ]
+  yield safeTakeLatest(Constants.updateBilling, updateBillingSaga)
+  yield safeTakeLatest(Constants.fetchBillingAndQuota, fetchBillingAndQuotaSaga)
+  yield safeTakeLatest(Constants.fetchBillingOverview, fetchBillingOverviewSaga)
+  yield safeTakeLatest(Constants.bootstrapData, bootstrapDataSaga)
 }
 
 export {

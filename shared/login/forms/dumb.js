@@ -9,9 +9,11 @@ const props: Props = {
   justDeletedSelf: null,
   justLoginFromRevokedDevice: null,
   justRevokedSelf: null,
+  onFeedback: () => {},
   onLogin: () => {},
   onRetry: () => {},
   onSignup: () => {},
+  retrying: false,
 }
 
 const intro: DumbComponentMap<Intro> = {
@@ -38,7 +40,7 @@ const failure: DumbComponentMap<Failure> = {
 }
 
 export default {
-  'Failure': failure,
-  'Intro': intro,
-  'Splash': splash,
+  'Login: Failure': failure,
+  'Login: Intro': intro,
+  'Login: Splash': splash,
 }

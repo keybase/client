@@ -6,12 +6,13 @@ import Feedback from './feedback'
 import logSend from '../native/log-send'
 import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
-import {isElectron, isIOS} from '../constants/platform'
-import {dumpLoggers} from '../util/periodic-logger'
+import {isElectron, isIOS, isAndroid, appVersionName, appVersionCode, version} from '../constants/platform'
+import {dumpLoggers, getLogger} from '../util/periodic-logger'
 import {writeStream, cachesDirectoryPath} from '../util/file'
 import {serialPromises} from '../util/promise'
 
 import type {Dispatch} from '../constants/types/flux'
+import type {TypedState} from '../constants/reducer'
 
 const FeedbackWrapped = compose(
   withState('sendLogs', 'onChangeSendLogs', true),
@@ -26,7 +27,7 @@ type State = {
   sending: boolean,
 }
 
-class FeedbackContainer extends Component<void, {}, State> {
+class FeedbackContainer extends Component<void, {status: string}, State> {
   mounted = false
 
   state = {
@@ -49,11 +50,25 @@ class FeedbackContainer extends Component<void, {}, State> {
       // We don't get the notification from the daemon so we have to do this ourselves
       const logs = []
       console.log('Starting log dump')
-      dumpLoggers((...args) => {
+
+      const logNames = ['actionLogger', 'storeLogger']
+
+      logNames.forEach(name => {
         try {
-          logs.push(args)
+          const logger = getLogger(name)
+          logger && logger.dumpAll((...args) => {
+            logs.push(args)
+          })
         } catch (_) {}
       })
+
+      logs.push(['=============CONSOLE.LOG START============='])
+      const logger = getLogger('iosConsoleLog')
+      logger && logger.dumpAll((...args) => {
+        // Skip the extra prefixes that period-logger uses.
+        logs.push([args[1], ...args.slice(2)])
+      })
+      logs.push(['=============CONSOLE.LOG END============='])
 
       const path = `${cachesDirectoryPath}/Keybase/rn.log`
       console.log('Starting log write')
@@ -61,7 +76,6 @@ class FeedbackContainer extends Component<void, {}, State> {
       writeStream(path, 'utf8').then(stream => {
         const writeLogsPromises = logs.map((log, idx) => {
           return () => {
-            console.log(`Writing log # ${idx + 1}`)
             return stream.write(JSON.stringify(log, null, 2))
           }
         })
@@ -96,7 +110,7 @@ class FeedbackContainer extends Component<void, {}, State> {
 
     maybeDump.then(() => {
       console.log(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
-      return logSend(feedback, sendLogs)
+      return logSend(this.props.status, feedback, sendLogs)
     })
     .then(logSendId => {
       console.warn('logSendId is', logSendId)
@@ -117,7 +131,19 @@ class FeedbackContainer extends Component<void, {}, State> {
 
 export default compose(
   connect(
-  null,
+  (state: TypedState) => {
+    return {
+      status: JSON.stringify({
+        username: state.config.username,
+        uid: state.config.uid,
+        deviceID: state.config.deviceID,
+        platform: isAndroid ? 'android' : isIOS ? 'ios' : 'desktop',
+        version,
+        appVersionName,
+        appVersionCode,
+      }),
+    }
+  },
   (dispatch: Dispatch, {navigateUp}) => ({
     title: 'Feedback',
     onBack: () => dispatch(navigateUp()),

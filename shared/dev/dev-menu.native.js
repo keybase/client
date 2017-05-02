@@ -4,10 +4,9 @@ import React, {Component} from 'react'
 import engine from '../engine'
 import {connect} from 'react-redux'
 import {logout} from '../actions/login/creators'
-import {navigateAppend, switchTo} from '../actions/route-tree'
+import {navigateAppend} from '../actions/route-tree'
 import {Box} from '../common-adapters'
 import {globalStyles} from '../styles'
-import {devicesTab} from '../constants/tabs'
 
 class DevMenu extends Component {
   render () {
@@ -18,7 +17,6 @@ class DevMenu extends Component {
       {name: 'Log Send', onClick: this.props.onLogSend},
       {name: 'Push Debug', onClick: this.props.onPushDebug},
       {name: 'Test Popup', onClick: this.props.onTestPopup},
-      {name: 'Devices', onClick: this.props.onDevices},
     ]
     return (
       <Box style={{...globalStyles.flexBoxRow}}>
@@ -37,5 +35,4 @@ export default connect(
     onPushDebug: () => dispatch(navigateAppend(['push'])),
     onTestPopup: () => dispatch(navigateAppend(['testPopup'])),
     logout: () => dispatch(logout()),
-    onDevices: () => dispatch(switchTo([devicesTab])),
   }))(DevMenu)

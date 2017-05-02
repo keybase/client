@@ -34,7 +34,8 @@ class FoldersRender extends Component<void, Props, void> {
 
   render () {
     return (
-      <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.lightGrey}}>
+      <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue3 : globalColors.lightGrey}}>
+        <Box style={{backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.lightGrey, height: statusBarHeight}} />
         <TabBar styleTabBar={{...tabBarStyle, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white}}>
           {
             [false, true].map(isPublic => (
@@ -62,7 +63,6 @@ class FoldersRender extends Component<void, Props, void> {
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
-  paddingTop: statusBarHeight,
 }
 
 const styleBadge = {

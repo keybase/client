@@ -5,11 +5,11 @@ import {globalColors, globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from '.'
 
-const Splash = () => (
+const Splash = (props: Props) => (
   <Box style={stylesLoginForm}>
     <Icon type='icon-keybase-logo-128' />
     <Text style={stylesHeader} type='HeaderBig'>Keybase</Text>
-    <Text style={stylesHeaderSub} type='BodySmall'>Loading…</Text>
+    <Text style={stylesHeaderSub} type='BodySmall'>Loading…{props.retrying ? ' (still trying)' : ''}</Text>
   </Box>
 )
 

@@ -8,7 +8,7 @@ import Passphrase from '../register/passphrase'
 import PaperKey from '../register/paper-key'
 import CodePage from '../register/code-page'
 import SetPublicName from '../register/set-public-name'
-import Success from '../signup/success'
+import Success from '../register/success'
 import RegisterError from '../register/error'
 import GPGSign from '../register/gpg-sign'
 

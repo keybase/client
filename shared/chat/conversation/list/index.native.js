@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/chat'
 import React, {Component} from 'react'
 import {withPropsOnChange} from 'recompose'
 import messageFactory from '../messages'
-import {Box, NativeScrollView} from '../../../common-adapters/index.native'
+import {Box, NativeScrollView, NativeKeyboard} from '../../../common-adapters/index.native'
 // $FlowIssue
 import FlatList from '../../../fixme/Lists/FlatList'
 
@@ -13,6 +13,7 @@ class ConversationList extends Component <void, Props, void> {
   _scrollRef: ?any;
 
   _onAction = (message: Constants.ServerMessage, event: any) => {
+    NativeKeyboard.dismiss()
     this.props.onMessageAction(message)
   }
 
@@ -64,7 +65,10 @@ class ConversationList extends Component <void, Props, void> {
         renderScrollComponent={this._renderScrollComponent}
         onEndReached={this._onEndReached}
         onEndReachedThreshold={0}
+        initialNumToRender={30}
         keyExtractor={this._keyExtractor}
+        // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
+        windowSize={5}
       />
     )
   }

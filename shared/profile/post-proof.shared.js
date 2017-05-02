@@ -2,7 +2,7 @@
 import FacebookDescription from './facebook-description'
 import React from 'react'
 import openUrl from '../util/open-url'
-import {Box, LinkWithIcon, Text} from '../common-adapters'
+import {Box, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {subtitle} from '../util/platforms'
 
@@ -109,10 +109,10 @@ export function propsForPlatform (props: Props): MoreProps {
         proofText: props.proofText,
         proofActionIcon: null,
         descriptionView: (
-          <Box>
+          <Box style={{...globalStyles.flexBoxColumn}}>
             <Text type='BodySemibold' {...styleCentered}>Please serve the text below <Text type='BodySemiboldItalic'>exactly as it appears</Text> at one of these URL's.</Text>
-            <LinkWithIcon icon='iconfont-open-browser' onClick={() => openUrl(urlRoot)} label={urlRoot} color={globalColors.blue} style={{marginTop: globalMargins.tiny}} />
-            <LinkWithIcon icon='iconfont-open-browser' onClick={() => openUrl(urlWellKnown)} label={urlWellKnown} color={globalColors.blue} />
+            <Text type='BodyPrimaryLink' onClick={() => openUrl(urlRoot)} style={{color: globalColors.blue, textAlign: 'center', marginTop: globalMargins.tiny}}>{urlRoot}</Text>
+            <Text type='BodyPrimaryLink' onClick={() => openUrl(urlWellKnown)} style={{color: globalColors.blue, textAlign: 'center'}}>{urlWellKnown}</Text>
           </Box>
         ),
         noteText: 'Note: If someone already verified this domain, just append to the existing keybase.txt file.',

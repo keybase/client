@@ -32,7 +32,9 @@ export type Props = {
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
   autoCorrect?: bool,
   keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'ascii-capable' | 'numbers-and-punctuation' | 'url' | 'number-pad' | 'name-phone-pad' | 'decimal-pad' | 'twitter' | 'web-search',
-  returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send'
+  returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
 }
 
-declare export default class Input extends Component<void, Props, void> { }
+declare export default class Input extends Component<void, Props, void> {
+  setNativeProps (props: Object): {}
+}

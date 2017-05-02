@@ -57,7 +57,7 @@ const MessageWrapper = (props: Props) => (
         <Username includeHeader={props.includeHeader} author={props.author} isYou={props.isYou} isFollowing={props.isFollowing} isBroken={props.isBroken} />
         <Box style={_textContainerStyle} className='message' data-message-key={props.messageKey}>
           <Box style={_flexOneColumn}>
-            <props.innerClass messageKey={props.messageKey} onAction={props.onAction} />
+            <props.innerClass messageKey={props.messageKey} measure={props.measure} onAction={props.onAction} />
             <EditedMark isEdited={props.isEdited} />
           </Box>
           <ActionButton isRevoked={props.isRevoked} onAction={props.onAction} />
@@ -133,7 +133,6 @@ const _leftMarkerStyle = {
 }
 
 const _userAvatarStyle = {
-  height: 1, // don't let avatar size push down the whole row
   width: 32,
   paddingTop: globalMargins.tiny,
 }
