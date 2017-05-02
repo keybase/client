@@ -351,6 +351,18 @@ func TestReaddirMyFolderEmpty(t *testing.T) {
 	checkDir(t, filepath.Join(mnt.Dir, PrivateName, "jdoe"), map[string]fileInfoCheck{})
 }
 
+func syncAll(t *testing.T, tlf string, public bool, fs *FS) {
+	// golang doesn't let us sync on a directory handle, so if we need
+	// to sync all without a file, go through libkbfs directly.
+	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	defer libkbfs.CleanupCancellationDelayer(ctx)
+	root := libkbfs.GetRootNodeOrBust(ctx, t, fs.config, tlf, public)
+	err := fs.config.KBFSOps().SyncAll(ctx, root.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
+	}
+}
+
 func syncAndClose(t *testing.T, f *os.File) {
 	if f == nil {
 		return
@@ -1124,7 +1136,7 @@ func TestRemoveFileWhileOpenReadingAcrossMounts(t *testing.T) {
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer config2.Shutdown(ctx)
-	mnt2, _, cancelFn2 := makeFSE(t, ctx, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -1145,6 +1157,7 @@ func TestRemoveFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	if err := ioutil.Remove(p2); err != nil {
 		t.Fatalf("cannot delete file: %v", err)
 	}
+	syncAll(t, "user1,user2", false, fs2)
 
 	syncFolderToServer(t, "user1,user2", fs1)
 
@@ -1180,7 +1193,7 @@ func TestRenameOverFileWhileOpenReadingAcrossMounts(t *testing.T) {
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer config2.Shutdown(ctx)
-	mnt2, _, cancelFn2 := makeFSE(t, ctx, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -1209,6 +1222,7 @@ func TestRenameOverFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	if err := ioutil.Rename(p2Other, p2); err != nil {
 		t.Fatalf("cannot rename file: %v", err)
 	}
+	syncAll(t, "user1,user2", false, fs2)
 
 	syncFolderToServer(t, "user1,user2", fs1)
 
@@ -1812,7 +1826,7 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 	defer libkbfs.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt1, _, cancelFn1 := makeFS(t, ctx, config)
+	mnt1, fs1, cancelFn1 := makeFS(t, ctx, config)
 	defer mnt1.Close()
 	defer cancelFn1()
 	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config, 'U')
@@ -2222,6 +2236,7 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 	if err := ioutil.Rename(mydira1, mydirb1); err != nil {
 		t.Fatal(err)
 	}
+	syncAll(t, "user1,user2", false, fs1)
 
 	syncFolderToServer(t, "user1,user2", fs2)
 
@@ -2368,6 +2383,7 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 	if err := ioutil.Rename(myfile1, mydirfile1); err != nil {
 		t.Fatal(err)
 	}
+	syncAll(t, "user1,user2", false, fs1)
 
 	syncFolderToServer(t, "user1,user2", fs2)
 
@@ -2483,6 +2499,7 @@ func TestUnstageFile(t *testing.T) {
 	if err := ioutil.Mkdir(mysubdir1, 0755); err != nil {
 		t.Fatal(err)
 	}
+	syncAll(t, "user1,user2", false, fs1)
 
 	// user2 does similar
 	const input2 = "input round two"
@@ -2500,6 +2517,7 @@ func TestUnstageFile(t *testing.T) {
 	if err := ioutil.Mkdir(myothersubdir2, 0755); err != nil {
 		t.Fatal(err)
 	}
+	syncAll(t, "user1,user2", false, fs2)
 
 	// verify that they don't see each other's files
 	checkDir(t, mydir1, map[string]fileInfoCheck{
@@ -2584,6 +2602,7 @@ func TestSimpleCRNoConflict(t *testing.T) {
 	if err := ioutil.Mkdir(subdir1, 0755); err != nil {
 		t.Fatal(err)
 	}
+	syncAll(t, "user1,user2", false, fs1)
 
 	// user2 does similar
 	const input2 = "input round two two two"
@@ -2600,6 +2619,7 @@ func TestSimpleCRNoConflict(t *testing.T) {
 	if err := ioutil.Mkdir(subdir2, 0755); err != nil {
 		t.Fatal(err)
 	}
+	syncAll(t, "user1,user2", false, fs2)
 
 	// verify that they don't see each other's files
 	checkDir(t, root1, map[string]fileInfoCheck{
