@@ -521,8 +521,6 @@ function makeSnippet (messageBody: ?MessageBody): ?string {
       return textSnippet(messageBody.text && messageBody.text.body, 100)
     case ChatTypes.CommonMessageType.attachment:
       return messageBody.attachment ? textSnippet(messageBody.attachment.object.title, 100) : 'Attachment'
-    case ChatTypes.CommonMessageType.edit:
-      return textSnippet(messageBody.edit && messageBody.edit.body, 100)
     default:
       return null
   }

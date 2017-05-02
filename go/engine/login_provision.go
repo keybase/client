@@ -139,17 +139,6 @@ func (e *loginProvision) Run(ctx *Context) error {
 	return nil
 }
 
-func saveToSecretStoreWithPassphrase(g *libkb.GlobalContext, lctx libkb.LoginContext, nun libkb.NormalizedUsername, uid keybase1.UID) (err error) {
-	lksec, err := lctx.PassphraseStreamCache().PassphraseStream().ToLKSec(g, uid)
-	if err != nil {
-		return err
-	}
-	if lksec == nil {
-		return errors.New("empty LKSec after login")
-	}
-	return saveToSecretStore(g, lctx, nun, lksec)
-}
-
 func saveToSecretStore(g *libkb.GlobalContext, lctx libkb.LoginContext, nun libkb.NormalizedUsername, lks *libkb.LKSec) (err error) {
 	defer g.Trace(fmt.Sprintf("saveToSecretStore(%s)", nun), func() error { return err })()
 	var secret libkb.LKSecFullSecret
@@ -385,7 +374,7 @@ func (e *loginProvision) pgpProvision(ctx *Context) error {
 		}
 
 		u := e.arg.User
-		tmpErr := saveToSecretStoreWithPassphrase(e.G(), lctx, u.GetNormalizedName(), u.GetUID())
+		tmpErr := saveToSecretStore(e.G(), lctx, u.GetNormalizedName(), e.lks)
 		if tmpErr != nil {
 			e.G().Log.Warning("pgpProvision: %s", tmpErr)
 		}
@@ -730,6 +719,8 @@ func (e *loginProvision) tryGPG(ctx *Context) error {
 			}
 		}
 
+		saveToSecretStore(e.G(), lctx, e.arg.User.GetNormalizedName(), e.lks)
+
 		return nil
 	}
 
@@ -929,6 +920,13 @@ func (e *loginProvision) makeEldestDevice(ctx *Context) error {
 
 		// save provisioned device id in the session
 		err = a.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceIDForUsername(e.arg.User.GetNormalizedName()))
+		if err != nil {
+			return
+		}
+
+		// Store the secret.
+		// It is not stored in login_state.go/passphraseLogin because there is no device id at that time.
+		saveToSecretStore(e.G(), a, e.arg.User.GetNormalizedName(), e.lks)
 	}, "makeEldestDevice")
 	if err != nil {
 		return err

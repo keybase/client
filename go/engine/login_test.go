@@ -63,6 +63,7 @@ func TestLoginUnlocksDeviceKeys(t *testing.T) {
 
 	assertPassphraseStreamCache(tc)
 	assertDeviceKeysCached(tc)
+	assertSecretStored(tc, u1.Username)
 }
 
 func TestLoginActiveDevice(t *testing.T) {
@@ -265,6 +266,9 @@ func testProvisionDesktop(t *testing.T, enableSharedDH bool) {
 	// after provisioning, the device keys should be cached
 	assertDeviceKeysCached(tcY)
 
+	// after provisioning, the secret should be stored
+	assertSecretStored(tcY, userX.Username)
+
 	testTrack := func(whom string) {
 
 		// make sure that the provisioned device can use
@@ -440,6 +444,9 @@ func testProvisionPassphraseNoKeysSolo(t *testing.T, enableSharedDH bool) {
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
+
+	// secret should be stored
+	assertSecretStored(tc, username)
 }
 
 // Test bad name input (not valid username or email address).
@@ -506,6 +513,9 @@ func TestProvisionPassphraseSyncedPGP(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// after provisioning, the secret should be stored
+	assertSecretStored(tc, u1.Username)
+
 	// should be able to sign and to track someone (no passphrase prompt)
 	testSign(t, tc)
 	simulateServiceRestart(t, tc, u1)
@@ -545,6 +555,9 @@ func TestProvisionPassphraseSyncedPGPEmail(t *testing.T) {
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
+
+	// after provisioning, the secret should be stored
+	assertSecretStored(tc, u1.Username)
 }
 
 // Check that a bad passphrase fails to unlock a synced pgp key
@@ -616,6 +629,9 @@ func TestProvisionPassphraseNoKeysSwitchUser(t *testing.T) {
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
+
+	// after provisioning, the secret should be stored
+	assertSecretStored(tc, username)
 }
 
 func testSign(t *testing.T, tc libkb.TestContext) {
@@ -896,6 +912,9 @@ func TestProvisionGPGImportOK(t *testing.T) {
 		t.Error("pgp sign failed after gpg provision w/ import")
 		t.Fatal(err)
 	}
+
+	// after provisioning, the secret should be stored
+	assertSecretStored(tc2, u1.Username)
 }
 
 // Provision device using a private GPG key (not synced to keybase
@@ -947,6 +966,9 @@ func TestProvisionGPGImportMultiple(t *testing.T) {
 		t.Error("pgp sign failed after gpg provision w/ import")
 		t.Fatal(err)
 	}
+
+	// after provisioning, the secret should be stored
+	assertSecretStored(tc2, u1.Username)
 }
 
 // Provision device using a private GPG key (not synced to keybase
@@ -1003,6 +1025,9 @@ func TestProvisionGPGSign(t *testing.T) {
 		if err := AssertProvisioned(tc2); err != nil {
 			t.Fatal(err)
 		}
+
+		// after provisioning, the secret should be stored
+		assertSecretStored(tc2, u1.Username)
 
 		// since they *did not* import a pgp key, they should *not* be able to pgp sign something:
 		if err := signString(tc2, "sign me", u1.NewSecretUI()); err == nil {
@@ -1119,6 +1144,9 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		// after provisioning, the secret should be stored
+		assertSecretStored(tc2, u1.Username)
+
 		t.Logf("test run %d: all checks passed, returning", i+1)
 		return
 	}
@@ -1186,6 +1214,9 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 	if err := AssertProvisioned(tc2); err != nil {
 		t.Fatal(err)
 	}
+
+	// after provisioning, the secret should be stored
+	assertSecretStored(tc2, u1.Username)
 
 	// since they did not import their pgp key, they should not be able
 	// to pgp sign something:
@@ -1482,6 +1513,9 @@ func TestProvisionPassphraseNoKeysMultipleAccounts(t *testing.T) {
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
+
+	// after provisioning, the secret should be stored
+	assertSecretStored(tc, username)
 }
 
 // We have obviated the unlock command by combining it with login.
@@ -1511,6 +1545,7 @@ func TestLoginStreamCache(t *testing.T) {
 		t.Fatal("expected valid stream cache after login")
 	}
 	assertDeviceKeysCached(tc)
+	assertSecretStored(tc, u1.Username)
 }
 
 // Check the device type
@@ -2635,6 +2670,104 @@ func TestProvisionEnsurePaperKey(t *testing.T) {
 	hasOnePaperDev(tcX, userX)
 }
 
+// Test bootstrap, login offline after service restart when provisioned via
+// GPG sign.
+func TestBootstrapAfterGPGSign(t *testing.T) {
+	// use tcCheck just to check gpg version
+	tcCheck := SetupEngineTest(t, "check")
+	defer tcCheck.Cleanup()
+	skipOldGPG(tcCheck)
+
+	// this test sometimes fails at the GPG level with a "Bad signature" error,
+	// so we're going to retry it several times to hopefully get past it.
+	attempts := 10
+	for i := 0; i < attempts; i++ {
+		tc := SetupEngineTest(t, "login")
+		defer tc.Cleanup()
+
+		u1 := createFakeUserWithPGPPubOnly(t, tc)
+		Logout(tc)
+
+		// redo SetupEngineTest to get a new home directory...should look like a new device.
+		tc2 := SetupEngineTest(t, "login")
+		defer tc2.Cleanup()
+
+		// we need the gpg keyring that's in the first homedir
+		if err := tc.MoveGpgKeyringTo(tc2); err != nil {
+			t.Fatal(err)
+		}
+
+		// now safe to cleanup first home
+		tc.Cleanup()
+
+		// run login on new device
+		ctx := &Context{
+			ProvisionUI: newTestProvisionUIGPGSign(),
+			LogUI:       tc2.G.UI.GetLogUI(),
+			SecretUI:    u1.NewSecretUI(),
+			LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+			GPGUI:       &gpgtestui{},
+		}
+		eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Logf("test run %d:  RunEngine(Login) error: %s", i+1, err)
+			continue
+		}
+
+		t.Logf("test run %d: RunEngine(Login) succeeded", i+1)
+
+		testUserHasDeviceKey(tc2)
+
+		// highly possible they didn't have a paper key, so make sure they have one now:
+		hasOnePaperDev(tc2, u1)
+
+		if err := AssertProvisioned(tc2); err != nil {
+			t.Fatal(err)
+		}
+
+		// do a upak load to make sure it is cached
+		arg := libkb.NewLoadUserByUIDArg(context.TODO(), tc2.G, u1.UID())
+		tc2.G.GetUPAKLoader().Load(arg)
+
+		// Simulate restarting the service by wiping out the
+		// passphrase stream cache and cached secret keys
+		tc2.G.LoginState().Account(func(a *libkb.Account) {
+			a.ClearStreamCache()
+			a.ClearCachedSecretKeys()
+			a.UnloadLocalSession()
+		}, "account - clear")
+		tc2.G.GetUPAKLoader().ClearMemory()
+
+		// LoginOffline will run when service restarts.
+		// Since this was GPG sign, there will be no secret stored.
+		oeng := NewLoginOffline(tc2.G)
+		octx := &Context{NetContext: context.Background()}
+		oerr := RunEngine(oeng, octx)
+		if oerr != nil {
+			t.Fatalf("LoginOffline failed after gpg sign + svc restart: %s", oerr)
+		}
+
+		// GetBootstrapStatus should return without error and with LoggedIn set to true.
+		beng := NewBootstrap(tc2.G)
+		bctx := &Context{NetContext: context.Background()}
+		if err := RunEngine(beng, bctx); err != nil {
+			t.Fatal(err)
+		}
+		status := beng.Status()
+		if status.LoggedIn != true {
+			t.Error("bootstrap status -> logged out, expected logged in")
+		}
+		if !status.Registered {
+			t.Error("registered false")
+		}
+
+		t.Logf("test run %d: all checks passed, returning", i+1)
+		return
+	}
+
+	t.Fatalf("TestBootstrapAfterGPGSign failed %d times", attempts)
+}
+
 type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod
@@ -2907,5 +3040,15 @@ func assertPassphraseStreamCache(tc libkb.TestContext) {
 
 	if !ppsValid {
 		tc.T.Fatal("passphrase stream not cached")
+	}
+}
+
+func assertSecretStored(tc libkb.TestContext, username string) {
+	secret, err := tc.G.SecretStoreAll.RetrieveSecret(libkb.NewNormalizedUsername(username))
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	if secret.IsNil() {
+		tc.T.Fatal("secret in secret store was nil")
 	}
 }

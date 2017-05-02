@@ -88,13 +88,14 @@ function * setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) {
 }
 
 function * navBasedOnLoginState () {
-  const selector = ({config: {loggedIn, registered, initialTab, initialLink, launchedViaPush}, login: {justDeletedSelf}}: TypedState) => ({
+  const selector = ({config: {loggedIn, registered, initialTab, initialLink, launchedViaPush}, login: {justDeletedSelf, loginError}}: TypedState) => ({
     loggedIn,
     registered,
     initialTab,
     initialLink,
     justDeletedSelf,
     launchedViaPush,
+    loginError,
   })
 
   const {
@@ -104,6 +105,7 @@ function * navBasedOnLoginState () {
     initialLink,
     justDeletedSelf,
     launchedViaPush,
+    loginError,
   } = yield select(selector)
 
   if (justDeletedSelf) {
@@ -126,6 +128,8 @@ function * navBasedOnLoginState () {
     }
   } else if (registered) { // relogging in
     yield [put.resolve(getExtendedStatus()), put.resolve(getAccounts())]
+    yield put(navigateTo(['login'], [loginTab]))
+  } else if (loginError) { // show error on login screen
     yield put(navigateTo(['login'], [loginTab]))
   } else { // no idea
     yield put(navigateTo([loginTab]))

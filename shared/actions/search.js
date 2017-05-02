@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../constants/search'
 import type {TypedAsyncAction} from '../constants/types/flux'
-import {apiserverGetRpc} from '../constants/types/flow-types'
+import {apiserverGetWithSessionRpc} from '../constants/types/flow-types'
 import {capitalize, trim} from 'lodash'
 import {filterNull} from '../util/arrays'
 import {isFollowing as isFollowing_} from './config'
@@ -160,7 +160,7 @@ function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncActi
     const limit = 20
 
     const requestTimestamp = new Date()
-    apiserverGetRpc({
+    apiserverGetWithSessionRpc({
       callback: (error, results) => {
         if (error) {
           console.log('Error searching. Not handling this error')
