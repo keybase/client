@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Text, PopupMenu, Icon, ClickableBox, NativeScrollView, HeaderHoc} from '../common-adapters/index.native'
+import {Box, Text, PopupMenu, Icon, ClickableBox, NativeActivityIndicator, NativeScrollView, HeaderHoc} from '../common-adapters/index.native'
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
@@ -50,14 +50,23 @@ const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDeviceP
 
 const DeviceRow = RowConnector(_DeviceRow)
 
-const DeviceHeader = ({onAddNew}) => (
-  <ClickableBox onClick={onAddNew}>
-    <Box style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
-      <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 5}} />
-      <Text type='HeaderLink' style={{padding: 5}}>Add new...</Text>
-    </Box>
-  </ClickableBox>
-)
+const DeviceHeader = ({onAddNew, waitingForServer}) => {
+  if (waitingForServer) {
+    return (
+      <Box style={{height: 64, justifyContent: 'center'}}>
+        <NativeActivityIndicator />
+      </Box>
+    )
+  }
+  return (
+    <ClickableBox onClick={onAddNew}>
+      <Box style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
+        <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 5}} />
+        <Text type='HeaderLink' style={{padding: 5}}>Add new...</Text>
+      </Box>
+    </ClickableBox>
+  )
+}
 
 const RevokedDescription = () => (
   <Box style={stylesRevokedDescription}>
@@ -65,9 +74,9 @@ const RevokedDescription = () => (
   </Box>
 )
 
-const DevicesRender = ({deviceIDs, revokedDeviceIDs, showingRevoked, onToggleShowRevoked, menuItems, showingMenu, setShowingMenu}: Props) => (
+const DevicesRender = ({deviceIDs, revokedDeviceIDs, showingRevoked, onToggleShowRevoked, menuItems, showingMenu, setShowingMenu, waitingForServer}: Props) => (
   <Box style={stylesContainer}>
-    <DeviceHeader onAddNew={() => setShowingMenu(true)} />
+    <DeviceHeader onAddNew={() => setShowingMenu(true)} waitingForServer={waitingForServer} />
     <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
       {deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
       {!!revokedDeviceIDs.length && (
