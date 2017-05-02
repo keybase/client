@@ -55,7 +55,14 @@ func newConv(t *testing.T, uid gregor1.UID, ri chat1.RemoteInterface, sender Sen
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
 	}, 0)
 	require.NoError(t, err)
-	return conv
+	convID := conv.GetConvID()
+	ires, err := ri.GetInboxRemote(context.TODO(), chat1.GetInboxRemoteArg{
+		Query: &chat1.GetInboxQuery{
+			ConvID: &convID,
+		},
+	})
+	require.NoError(t, err)
+	return ires.Inbox.Full().Conversations[0]
 }
 
 func doSync(t *testing.T, syncer types.Syncer, ri chat1.RemoteInterface, uid gregor1.UID) {
