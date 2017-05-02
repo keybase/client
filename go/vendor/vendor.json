@@ -727,6 +727,11 @@
 			"revisionTime": "2016-07-15T18:54:39Z"
 		},
 		{
+			"path": "golang.org/x/sys/unix",
+			"revision": "9f30dcbe5be197894515a338a9bda9253567ea8f",
+			"revisionTime": "2017-04-24T21:17:24-07:00"
+		},
+		{
 			"path": "golang.org/x/sys/windows",
 			"revision": "f64b50fbea64174967a8882830d621a18ee1548e",
 			"revisionTime": "2016-04-14T16:31:22+03:00"
