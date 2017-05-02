@@ -1,0 +1,17 @@
+body {
+  margin: 0;
+  padding: 0;
+  width: 500px;
+  overflow: hidden;
+}
+
+.keybase-reply form {
+  margin-top: 0;
+}
+.keybase-reply h3 {
+  width: 100%;
+  margin-top: 0;
+}
+.keybase-nudge {
+  min-height: 40px;
+}
