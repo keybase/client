@@ -208,6 +208,7 @@ function * untrustedInboxVisible (action: Constants.UntrustedInboxVisible): Saga
 
 // Loads the trusted inbox segments
 function * unboxConversations (conversationIDKeys: Array<Constants.ConversationIDKey>): Generator<any, any, any> {
+  conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
   yield put(Creators.setUnboxing(conversationIDKeys))
 
   const channelConfig = singleFixedChannelConfig([
