@@ -117,7 +117,7 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 		select {
 		case <-g.waitOnWaiters(ctx, newVers, waiters):
 			g.Debug(ctx, "WaitForTurn: cleared by earlier messages: vers: %d", newVers)
-		case <-g.clock.After(time.Second):
+		case <-g.clock.AfterTime(g.clock.Now().Add(time.Second)):
 			g.Debug(ctx, "WaitForTurn: timeout reached, charging forward: vers: %d", newVers)
 		}
 		close(res)
@@ -130,6 +130,9 @@ func (g *gregorMessageOrderer) CompleteTurn(ctx context.Context, uid gregor1.UID
 	defer g.Unlock()
 	key := g.msgKey(uid, vers)
 	waiters := g.waiters[key]
+	if len(waiters) > 0 {
+		g.Debug(ctx, "CompleteTurn: clearing %d messages on vers %d", len(waiters), vers)
+	}
 	for _, w := range waiters {
 		close(w.cb)
 	}

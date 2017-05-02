@@ -37,7 +37,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("basic test")
-	_, msgID, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, msgBoxed, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -50,6 +50,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 		}),
 	}, 0)
 	require.NoError(t, err)
+	msgID := msgBoxed.GetMessageID()
 	thread, _, err := tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -58,7 +59,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 	require.Equal(t, 1, len(thread.Messages), "wrong length")
 	require.Equal(t, msgID, thread.Messages[0].GetMessageID(), "wrong msgID")
 
-	_, editMsgID, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, editMsgBoxed, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -73,6 +74,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 		}),
 	}, 0)
 	require.NoError(t, err)
+	editMsgID := editMsgBoxed.GetMessageID()
 
 	t.Logf("testing an edit")
 	thread, _, err = tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),

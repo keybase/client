@@ -13,8 +13,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-func newConv(t *testing.T, uid gregor1.UID, ri chat1.RemoteInterface, sender Sender, tlf kbtest.TlfMock,
-	tlfName string) chat1.Conversation {
+func newBlankConv(t *testing.T, uid gregor1.UID, ri chat1.RemoteInterface, sender Sender,
+	tlf kbtest.TlfMock, tlfName string) chat1.Conversation {
 	trip := newConvTriple(t, tlf, tlfName)
 	firstMessagePlaintext := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
@@ -33,17 +33,6 @@ func newConv(t *testing.T, uid gregor1.UID, ri chat1.RemoteInterface, sender Sen
 	})
 	require.NoError(t, err)
 
-	_, _, _, err = sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
-			Sender:      uid,
-			TlfName:     tlfName,
-			MessageType: chat1.MessageType_TEXT,
-		},
-		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
-	}, 0)
-	require.NoError(t, err)
-
 	ires, err := ri.GetInboxRemote(context.TODO(), chat1.GetInboxRemoteArg{
 		Query: &chat1.GetInboxQuery{
 			ConvID: &res.ConvID,
@@ -51,6 +40,22 @@ func newConv(t *testing.T, uid gregor1.UID, ri chat1.RemoteInterface, sender Sen
 	})
 	require.NoError(t, err)
 	return ires.Inbox.Full().Conversations[0]
+}
+
+func newConv(t *testing.T, uid gregor1.UID, ri chat1.RemoteInterface, sender Sender, tlf kbtest.TlfMock,
+	tlfName string) chat1.Conversation {
+	conv := newBlankConv(t, uid, ri, sender, tlf, tlfName)
+	_, _, _, err := sender.Send(context.TODO(), conv.GetConvID(), chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        conv.Metadata.IdTriple,
+			Sender:      uid,
+			TlfName:     tlfName,
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
+	}, 0)
+	require.NoError(t, err)
+	return conv
 }
 
 func doSync(t *testing.T, syncer types.Syncer, ri chat1.RemoteInterface, uid gregor1.UID) {
