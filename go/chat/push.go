@@ -112,10 +112,10 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
 		g.Unlock()
 		g.Debug(ctx, "WaitForTurn: out of order update received, waiting on %d updates: vers: %d newVers: %d", len(waiters), vers, newVers)
-		wctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 		select {
-		case <-g.waitOnWaiters(wctx, newVers, waiters):
+		case <-g.waitOnWaiters(ctx, newVers, waiters):
 			g.Debug(ctx, "WaitForTurn: cleared by earlier messages: vers: %d", newVers)
 		case <-g.clock.After(time.Second):
 			g.Debug(ctx, "WaitForTurn: timeout reached, charging forward: vers: %d", newVers)
@@ -181,8 +181,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
 	bctx := BackgroundContext(ctx, g.G().GetEnv())
-	go func() {
-		ctx := bctx
+	go func(ctx context.Context) {
 		<-cb
 		g.Lock()
 		defer g.Unlock()
@@ -210,7 +209,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 			g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
 				convID, update.FinalizeInfo, conv)
 		}
-	}()
+	}(bctx)
 
 	return nil
 }
@@ -234,8 +233,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
 	bctx := BackgroundContext(ctx, g.G().GetEnv())
-	go func() {
-		ctx := bctx
+	go func(ctx context.Context) {
 		<-cb
 		g.Lock()
 		defer g.Unlock()
@@ -260,7 +258,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 
 		g.G().NotifyRouter.HandleChatTLFResolve(ctx, keybase1.UID(uid.String()),
 			update.ConvID, resolveInfo)
-	}()
+	}(bctx)
 
 	return nil
 }
@@ -290,8 +288,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, gm.InboxVers)
 	bctx := BackgroundContext(ctx, g.G().GetEnv())
-	go func() {
-		ctx := bctx
+	go func(ctx context.Context) {
 		<-cb
 		g.Lock()
 		defer g.Unlock()
@@ -451,7 +448,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 		}
 
 		g.notifyNewChatActivity(ctx, m.UID(), &activity)
-	}()
+	}(bctx)
 	return nil
 }
 
