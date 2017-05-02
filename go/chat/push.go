@@ -32,18 +32,21 @@ type gregorMessageOrderer struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	clock clockwork.Clock
-	//TODO: parameterize by uid
-	waiters map[chat1.InboxVers][]messageWaiterEntry
+	clock   clockwork.Clock
+	waiters map[string][]messageWaiterEntry
 }
 
 func newGregorMessageOrderer(g *globals.Context) *gregorMessageOrderer {
 	return &gregorMessageOrderer{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "gregorMessageOrderer", false),
-		waiters:      make(map[chat1.InboxVers][]messageWaiterEntry),
+		waiters:      make(map[string][]messageWaiterEntry),
 		clock:        clockwork.NewRealClock(),
 	}
+}
+
+func (g *gregorMessageOrderer) msgKey(uid gregor1.UID, vers chat1.InboxVers) string {
+	return fmt.Sprintf("%s:%d", uid, vers)
 }
 
 func (g *gregorMessageOrderer) latestInboxVersion(ctx context.Context, uid gregor1.UID) (chat1.InboxVers, error) {
@@ -55,7 +58,7 @@ func (g *gregorMessageOrderer) latestInboxVersion(ctx context.Context, uid grego
 	return vers, nil
 }
 
-func (g *gregorMessageOrderer) addToWaitersLocked(ctx context.Context, storedVers,
+func (g *gregorMessageOrderer) addToWaitersLocked(ctx context.Context, uid gregor1.UID, storedVers,
 	msgVers chat1.InboxVers) (res []messageWaiterEntry) {
 	for i := storedVers + 1; i < msgVers; i++ {
 		entry := messageWaiterEntry{
@@ -63,7 +66,8 @@ func (g *gregorMessageOrderer) addToWaitersLocked(ctx context.Context, storedVer
 			cb:   make(chan struct{}),
 		}
 		res = append(res, entry)
-		g.waiters[i] = append(g.waiters[i], entry)
+		key := g.msgKey(uid, i)
+		g.waiters[key] = append(g.waiters[key], entry)
 	}
 	return res
 }
@@ -85,7 +89,7 @@ func (g *gregorMessageOrderer) waitOnWaiters(ctx context.Context, vers chat1.Inb
 }
 
 func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
-	payload chat1.GenericPayload) (res chan struct{}) {
+	newVers chat1.InboxVers) (res chan struct{}) {
 	res = make(chan struct{})
 	// Grab latest inbox version if we can
 	vers, err := g.latestInboxVersion(ctx, uid)
@@ -95,7 +99,6 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 		return res
 	}
 
-	newVers := payload.InboxVers
 	// Check for an in-order update
 	if newVers <= vers+1 {
 		close(res)
@@ -106,7 +109,7 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 	// ordered update
 	go func() {
 		g.Lock()
-		waiters := g.addToWaitersLocked(ctx, vers, newVers)
+		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
 		g.Unlock()
 		g.Debug(ctx, "WaitForTurn: out of order update received, waiting on %d updates: vers: %d newVers: %d", len(waiters), vers, newVers)
 		wctx, cancel := context.WithCancel(ctx)
@@ -122,14 +125,15 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 	return res
 }
 
-func (g *gregorMessageOrderer) CompleteTurn(ctx context.Context, vers chat1.InboxVers) {
+func (g *gregorMessageOrderer) CompleteTurn(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers) {
 	g.Lock()
 	defer g.Unlock()
-	waiters := g.waiters[vers]
+	key := g.msgKey(uid, vers)
+	waiters := g.waiters[key]
 	for _, w := range waiters {
 		close(w.cb)
 	}
-	delete(g.waiters, vers)
+	delete(g.waiters, key)
 }
 
 func (g *gregorMessageOrderer) SetClock(clock clockwork.Clock) {
@@ -158,10 +162,7 @@ func (g *PushHandler) SetClock(clock clockwork.Clock) {
 	g.orderer.SetClock(clock)
 }
 
-// TODO hook uper to orderer
 func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage) error {
-	g.Lock()
-	defer g.Unlock()
 	if m.Body() == nil {
 		return errors.New("gregor handler for chat.tlffinalize: nil message body")
 	}
@@ -175,39 +176,46 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 	if err != nil {
 		return err
 	}
+	uid := gregor1.UID(m.UID().Bytes())
 
-	// Update inbox
-	var convs []chat1.ConversationLocal
-	if convs, err = g.G().InboxSource.TlfFinalize(ctx, m.UID().Bytes(), update.InboxVers,
-		update.ConvIDs, update.FinalizeInfo); err != nil {
-		g.Debug(ctx, "tlf finalize: unable to update inbox: %s", err.Error())
-	}
-	convMap := make(map[string]chat1.ConversationLocal)
-	for _, conv := range convs {
-		convMap[conv.GetConvID().String()] = conv
-	}
+	// Order updates based on inbox version of the update from the server
+	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
+	bctx := BackgroundContext(ctx, g.G().GetEnv())
+	go func() {
+		ctx := bctx
+		<-cb
+		g.Lock()
+		defer g.Unlock()
+		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
 
-	// Send notify for each conversation ID
-	uid := m.UID().String()
-	for _, convID := range update.ConvIDs {
-		var conv *chat1.ConversationLocal
-		if mapConv, ok := convMap[convID.String()]; ok {
-			conv = &mapConv
-		} else {
-			conv = nil
+		// Update inbox
+		var convs []chat1.ConversationLocal
+		if convs, err = g.G().InboxSource.TlfFinalize(ctx, m.UID().Bytes(), update.InboxVers,
+			update.ConvIDs, update.FinalizeInfo); err != nil {
+			g.Debug(ctx, "tlf finalize: unable to update inbox: %s", err.Error())
+		}
+		convMap := make(map[string]chat1.ConversationLocal)
+		for _, conv := range convs {
+			convMap[conv.GetConvID().String()] = conv
 		}
 
-		g.G().NotifyRouter.HandleChatTLFFinalize(context.Background(), keybase1.UID(uid), convID, update.FinalizeInfo, conv)
-
-	}
+		// Send notify for each conversation ID
+		for _, convID := range update.ConvIDs {
+			var conv *chat1.ConversationLocal
+			if mapConv, ok := convMap[convID.String()]; ok {
+				conv = &mapConv
+			} else {
+				conv = nil
+			}
+			g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
+				convID, update.FinalizeInfo, conv)
+		}
+	}()
 
 	return nil
 }
 
-// TODO hook uper to orderer
 func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage) error {
-	g.Lock()
-	defer g.Unlock()
 	if m.Body() == nil {
 		return errors.New("gregor handler for chat.tlfresolve: nil message body")
 	}
@@ -221,28 +229,38 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 	if err != nil {
 		return err
 	}
+	uid := gregor1.UID(m.UID().Bytes())
 
-	uid := m.UID().String()
+	// Order updates based on inbox version of the update from the server
+	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
+	bctx := BackgroundContext(ctx, g.G().GetEnv())
+	go func() {
+		ctx := bctx
+		<-cb
+		g.Lock()
+		defer g.Unlock()
+		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
+		// Get and localize the conversation to get the new tlfname.
+		inbox, _, err := g.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{update.ConvID},
+		}, nil)
+		if err != nil {
+			g.Debug(ctx, "resolve: unable to read conversation: %s", err.Error())
+			return
+		}
+		if len(inbox.Convs) != 1 {
+			g.Debug(ctx, "resolve: unable to find conversation")
+			return
+		}
+		updateConv := inbox.Convs[0]
 
-	// Get and localize the conversation to get the new tlfname.
-	inbox, _, err := g.G().InboxSource.Read(ctx, m.UID().Bytes(), nil, true, &chat1.GetInboxLocalQuery{
-		ConvIDs: []chat1.ConversationID{update.ConvID},
-	}, nil)
-	if err != nil {
-		g.Debug(ctx, "resolve: unable to read conversation: %s", err.Error())
-		return err
-	}
-	if len(inbox.Convs) != 1 {
-		g.Debug(ctx, "resolve: unable to find conversation")
-		return fmt.Errorf("unable to find conversation")
-	}
-	updateConv := inbox.Convs[0]
+		resolveInfo := chat1.ConversationResolveInfo{
+			NewTLFName: updateConv.Info.TlfName,
+		}
 
-	resolveInfo := chat1.ConversationResolveInfo{
-		NewTLFName: updateConv.Info.TlfName,
-	}
-
-	g.G().NotifyRouter.HandleChatTLFResolve(context.Background(), keybase1.UID(uid), update.ConvID, resolveInfo)
+		g.G().NotifyRouter.HandleChatTLFResolve(ctx, keybase1.UID(uid.String()),
+			update.ConvID, resolveInfo)
+	}()
 
 	return nil
 }
@@ -270,14 +288,14 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 	g.Debug(ctx, "chat activity: action %s vers: %d", gm.Action, gm.InboxVers)
 
 	// Order updates based on inbox version of the update from the server
-	cb := g.orderer.WaitForTurn(ctx, uid, gm)
+	cb := g.orderer.WaitForTurn(ctx, uid, gm.InboxVers)
 	bctx := BackgroundContext(ctx, g.G().GetEnv())
 	go func() {
 		ctx := bctx
 		<-cb
 		g.Lock()
 		defer g.Unlock()
-		defer g.orderer.CompleteTurn(ctx, gm.InboxVers)
+		defer g.orderer.CompleteTurn(ctx, uid, gm.InboxVers)
 
 		action := gm.Action
 		reader.Reset(m.Body().Bytes())
