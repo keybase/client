@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"strings"
+
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
@@ -47,6 +49,11 @@ func newGregorMessageOrderer(g *globals.Context) *gregorMessageOrderer {
 
 func (g *gregorMessageOrderer) msgKey(uid gregor1.UID, vers chat1.InboxVers) string {
 	return fmt.Sprintf("%s:%d", uid, vers)
+}
+
+func (g *gregorMessageOrderer) isUIDKey(key string, uid gregor1.UID) bool {
+	toks := strings.Split(key, ":")
+	return toks[0] == uid.String()
 }
 
 func (g *gregorMessageOrderer) latestInboxVersion(ctx context.Context, uid gregor1.UID) (chat1.InboxVers, error) {
@@ -88,6 +95,24 @@ func (g *gregorMessageOrderer) waitOnWaiters(ctx context.Context, vers chat1.Inb
 	return res
 }
 
+func (g *gregorMessageOrderer) cleanupAfterTimeoutLocked(uid gregor1.UID, vers chat1.InboxVers) {
+	for k, v := range g.waiters {
+		if g.isUIDKey(k, uid) {
+			var newv []messageWaiterEntry
+			for _, w := range v {
+				if w.vers != vers {
+					newv = append(newv, w)
+				}
+			}
+			if len(newv) == 0 {
+				delete(g.waiters, k)
+			} else {
+				g.waiters[k] = newv
+			}
+		}
+	}
+}
+
 func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 	newVers chat1.InboxVers) (res chan struct{}) {
 	res = make(chan struct{})
@@ -119,6 +144,9 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 			g.Debug(ctx, "WaitForTurn: cleared by earlier messages: vers: %d", newVers)
 		case <-g.clock.AfterTime(g.clock.Now().Add(time.Second)):
 			g.Debug(ctx, "WaitForTurn: timeout reached, charging forward: vers: %d", newVers)
+			g.Lock()
+			g.cleanupAfterTimeoutLocked(uid, newVers)
+			g.Unlock()
 		}
 		close(res)
 	}()

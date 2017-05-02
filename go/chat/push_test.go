@@ -105,6 +105,7 @@ func TestPushOrdering(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no notification received")
 	}
+	require.Zero(t, len(handler.orderer.waiters))
 
 	sendSimple(t, tc, handler, sender, conv, u,
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 2 })
