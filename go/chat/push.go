@@ -132,6 +132,7 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 
 	// Out of order update, we are going to wait a fixed amount of time for the correctly
 	// ordered update
+	deadline := g.clock.Now().Add(time.Second)
 	go func() {
 		g.Lock()
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
@@ -142,7 +143,7 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 		select {
 		case <-g.waitOnWaiters(ctx, newVers, waiters):
 			g.Debug(ctx, "WaitForTurn: cleared by earlier messages: vers: %d", newVers)
-		case <-g.clock.AfterTime(g.clock.Now().Add(time.Second)):
+		case <-g.clock.AfterTime(deadline):
 			g.Debug(ctx, "WaitForTurn: timeout reached, charging forward: vers: %d", newVers)
 			g.Lock()
 			g.cleanupAfterTimeoutLocked(uid, newVers)

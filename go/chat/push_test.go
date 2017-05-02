@@ -122,4 +122,5 @@ func TestPushOrdering(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no notification received")
 	}
+	require.Zero(t, len(handler.orderer.waiters))
 }
