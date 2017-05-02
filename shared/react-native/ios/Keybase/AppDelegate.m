@@ -45,7 +45,7 @@ const BOOL isDebug = NO;
   return success;
 }
 
-- (void) createLevelDBDir:(NSString*) path
+- (void) createBkgReadableDir:(NSString*) path
 {
   NSFileManager* fm = [NSFileManager defaultManager];
   // Setting NSFileProtectionCompleteUnlessOpen makes the directory accessible as long as the user has
@@ -72,8 +72,9 @@ const BOOL isDebug = NO;
   NSString * keybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
   NSString * levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
   NSString * chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
-  NSString * serviceLogFile = skipLogFile ? @"" : [@"~/Library/Caches/Keybase/ios.log" stringByExpandingTildeInPath];
-  NSString * rnLogFile = [@"~/Library/Caches/Keybase/rn.log" stringByExpandingTildeInPath];
+  NSString * logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
+  NSString * serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
+  NSString * rnLogFile = [logPath stringByAppendingString:@"/rn.log"];
   NSFileManager* fm = [NSFileManager defaultManager];
   
   // Make keybasePath if it doesn't exist
@@ -83,9 +84,10 @@ const BOOL isDebug = NO;
                             error:nil];
   [self addSkipBackupAttributeToItemAtPath:keybasePath];
   
-  // Create LevelDB directories with a slightly lower data protection mode so we can use them in the background
-  [self createLevelDBDir:chatLevelDBPath];
-  [self createLevelDBDir:levelDBPath];
+  // Create LevelDB and log directories with a slightly lower data protection mode so we can use them in the background
+  [self createBkgReadableDir:chatLevelDBPath];
+  [self createBkgReadableDir:levelDBPath];
+  [self createBkgReadableDir:logPath];
 
   NSError * err;
   self.engine = [[Engine alloc] initWithSettings:@{
