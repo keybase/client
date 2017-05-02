@@ -10,6 +10,7 @@ import type {Config, DeviceID, GetCurrentStatusRes, ExtendedStatus} from '../con
 
 export type ConfigState = {
   appFocused: boolean,
+  hideKeyboard: number,
   bootStatus: BootStatus,
   bootstrapTriesRemaining: number,
   config: ?Config,
@@ -37,7 +38,8 @@ export type ConfigState = {
 const readyForBootstrap = isMobile
 
 const initialState: ConfigState = {
-  appFocused: false,
+  appFocused: true,
+  hideKeyboard: 1,
   bootStatus: 'bootStatusLoading',
   bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
   config: null,
@@ -210,6 +212,12 @@ export default function (state: ConfigState = initialState, action: Action): Con
       return {
         ...state,
         appFocused: action.payload.appFocused,
+      }
+
+    case 'app:hideKeyboard':
+      return {
+        ...state,
+        hideKeyboard: state.hideKeyboard + 1,
       }
 
     default:

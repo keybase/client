@@ -29,7 +29,7 @@ const SidePanel = (props: Props) => (
       </Box>
 
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-        <Button type='Danger' label='Block this conversation' onClick={() => props.onShowBlockConversationDialog()} />
+        <Button type='Danger' label='Block this conversation' onClick={props.onShowBlockConversationDialog} />
       </Box>
 
       <Box style={{...globalStyles.flexBoxRow}}>
