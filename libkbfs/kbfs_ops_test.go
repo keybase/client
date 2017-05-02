@@ -3584,7 +3584,7 @@ func TestKBFSOpsRenameSameDirSyncAll(t *testing.T) {
 
 	// Manually rename a file without actually syncing it.
 	// TODO(KBFS-2076) remove all this duplicated code.
-	newName := "myfile"
+	newName := "myfile2"
 	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
 	{
 		rootDir := ops.nodeCache.PathFromNode(rootNode)

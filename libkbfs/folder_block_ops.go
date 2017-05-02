@@ -906,6 +906,11 @@ func (fbo *folderBlockOps) RenameDirEntryInCache(lState *lockState,
 	newDe DirEntry) (deleteTargetDirEntry bool) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
+	if newParent.tailPointer() == oldParent.tailPointer() &&
+		oldName == newName {
+		// Noop
+		return false
+	}
 	fbo.addDirEntryInCacheLocked(lState, newParent, newName, newDe)
 	fbo.removeDirEntryInCacheLocked(lState, oldParent, oldName)
 	// If there's already an entry for the target, only update the
