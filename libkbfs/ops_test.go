@@ -659,6 +659,11 @@ func TestOpsCollapseWriteRange(t *testing.T) {
 				}
 			} else {
 				op.addTruncate(off)
+				if lastByteIsTruncate && lastByte < off {
+					for k := lastByte; k < off; k++ {
+						file[k] = true // zero-fill
+					}
+				}
 				for k := off; k < fileSize; k++ {
 					file[k] = false
 				}
@@ -710,7 +715,7 @@ func TestCollapseWriteRangeWithLaterTruncate(t *testing.T) {
 	so := &syncOp{}
 	so.Writes = []WriteRange{{Off: 400, Len: 0}}
 	got := so.collapseWriteRange([]WriteRange{{Off: 0, Len: 0}})
-	expected := []WriteRange{{Off: 400, Len: 0}}
+	expected := []WriteRange{{Off: 0, Len: 400}, {Off: 400, Len: 0}}
 	require.True(t, reflect.DeepEqual(got, expected),
 		"Bad write collapse, got=%v, expected=%v", got, expected)
 }

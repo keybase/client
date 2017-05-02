@@ -867,7 +867,20 @@ func addToCollapsedWriteRange(writes []WriteRange,
 			// Truncate past the last write.
 			return append(head, wNew)
 		} else if mid[0].isTruncate() {
-			// Later truncates always win.
+			if mid[0].Off < wNew.Off {
+				// A larger new truncate causes zero-fill.
+				zeroLen := wNew.Off - mid[0].Off
+				if len(head) > 0 {
+					lastHead := head[len(head)-1]
+					if lastHead.Off+lastHead.Len == mid[0].Off {
+						// Combine this zero-fill with the previous write.
+						head[len(head)-1].Len += zeroLen
+						return append(head, wNew)
+					}
+				}
+				return append(head,
+					WriteRange{Off: mid[0].Off, Len: zeroLen}, wNew)
+			}
 			return append(head, wNew)
 		} else if mid[0].Off < wNew.Off {
 			return append(head, WriteRange{
