@@ -194,17 +194,16 @@ func (g *PushHandler) SetClock(clock clockwork.Clock) {
 	g.orderer.SetClock(clock)
 }
 
-func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage) error {
+func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+	defer g.Trace(ctx, func() error { return err }, "TlfFinalize")()
 	if m.Body() == nil {
 		return errors.New("gregor handler for chat.tlffinalize: nil message body")
 	}
 
-	g.Debug(ctx, "tlf finalize received")
-
 	var update chat1.TLFFinalizeUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err := dec.Decode(&update)
+	err = dec.Decode(&update)
 	if err != nil {
 		return err
 	}
@@ -214,6 +213,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
 	bctx := BackgroundContext(ctx, g.G().GetEnv())
 	go func(ctx context.Context) {
+		defer g.Trace(ctx, func() error { return err }, "TlfFinalize(goroutine)")()
 		<-cb
 		g.Lock()
 		defer g.Unlock()
@@ -246,17 +246,16 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 	return nil
 }
 
-func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage) error {
+func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+	defer g.Trace(ctx, func() error { return err }, "TlfResolve")()
 	if m.Body() == nil {
 		return errors.New("gregor handler for chat.tlfresolve: nil message body")
 	}
 
-	g.Debug(ctx, "tlf resolve received")
-
 	var update chat1.TLFResolveUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err := dec.Decode(&update)
+	err = dec.Decode(&update)
 	if err != nil {
 		return err
 	}
@@ -266,6 +265,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
 	bctx := BackgroundContext(ctx, g.G().GetEnv())
 	go func(ctx context.Context) {
+		defer g.Trace(ctx, func() error { return nil }, "TlfResolve(goroutine)")()
 		<-cb
 		g.Lock()
 		defer g.Unlock()
@@ -321,6 +321,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 	cb := g.orderer.WaitForTurn(ctx, uid, gm.InboxVers)
 	bctx := BackgroundContext(ctx, g.G().GetEnv())
 	go func(ctx context.Context) {
+		defer g.Trace(ctx, func() error { return nil }, "Activity(goroutine)")()
 		<-cb
 		g.Lock()
 		defer g.Unlock()
