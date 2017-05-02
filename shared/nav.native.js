@@ -2,8 +2,9 @@
 import GlobalError from './global-errors/container'
 import Offline from './offline'
 import React, {Component} from 'react'
+import {compose, lifecycle} from 'recompose'
 import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
-import {Box, NativeKeyboardAvoidingView} from './common-adapters/index.native'
+import {Box, NativeKeyboard, NativeKeyboardAvoidingView} from './common-adapters/index.native'
 import {Dimensions, StatusBar} from 'react-native'
 import {CardStack, NavigationActions} from 'react-navigation'
 import {chatTab, loginTab} from './constants/tabs'
@@ -207,4 +208,17 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Nav)
+const dismissKeyboardOnPathChange = lifecycle({
+  componentWillReceiveProps (nextProps) {
+    const nextPath = nextProps.routeStack.last().path
+    const curPath = this.props.routeStack.last().path
+    if (!nextPath.equals(curPath)) {
+      NativeKeyboard.dismiss()
+    }
+  },
+})
+
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  dismissKeyboardOnPathChange,
+)(Nav)
