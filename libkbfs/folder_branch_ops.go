@@ -2886,14 +2886,16 @@ func (fbo *folderBranchOps) CreateLink(
 
 // unrefEntry modifies md to unreference all relevant blocks for the
 // given entry.
-func (fbo *folderBranchOps) unrefEntry(ctx context.Context,
+func (fbo *folderBranchOps) unrefEntryLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, dir path, de DirEntry,
 	name string) error {
+	fbo.mdWriterLock.AssertLocked(lState)
 	if de.Type == Sym {
 		return nil
 	}
 
-	md.AddUnrefBlock(de.BlockInfo)
+	unrefsToAdd := make(map[BlockPointer]BlockInfo)
+	unrefsToAdd[de.BlockPointer] = de.BlockInfo
 	// construct a path for the child so we can unlink with it.
 	childPath := dir.ChildPath(name, de.BlockPointer)
 
@@ -2912,9 +2914,26 @@ func (fbo *folderBranchOps) unrefEntry(ctx context.Context,
 			return err
 		}
 		for _, blockInfo := range blockInfos {
-			md.AddUnrefBlock(blockInfo)
+			unrefsToAdd[blockInfo.BlockPointer] = blockInfo
 		}
 	}
+
+	// Any referenced blocks that were unreferenced since the last
+	// sync can just be forgotten about.  Note that any updated
+	// pointers that are unreferenced will be fixed up during syncing.
+	for _, dirOp := range fbo.dirOps {
+		for i := len(dirOp.dirOp.Refs()) - 1; i >= 0; i-- {
+			ref := dirOp.dirOp.Refs()[i]
+			if _, ok := unrefsToAdd[ref]; ok {
+				dirOp.dirOp.DelRefBlock(ref)
+				delete(unrefsToAdd, ref)
+			}
+		}
+	}
+	for _, unref := range unrefsToAdd {
+		md.AddUnrefBlock(unref)
+	}
+
 	return nil
 }
 
@@ -2941,7 +2960,7 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 	}
 	ro.setFinalPath(dirPath)
 	md.AddOp(ro)
-	err = fbo.unrefEntry(ctx, lState, md, dirPath, de, name)
+	err = fbo.unrefEntryLocked(ctx, lState, md, dirPath, de, name)
 	if err != nil {
 		return err
 	}
@@ -3085,18 +3104,19 @@ func (fbo *folderBranchOps) renameLocked(
 	}
 
 	// does name exist?
-	if de, ok := newPBlock.Children[newName]; ok {
+	replacedDe, ok := newPBlock.Children[newName]
+	if ok {
 		// Usually higher-level programs check these, but just in case.
-		if de.Type == Dir && newDe.Type != Dir {
+		if replacedDe.Type == Dir && newDe.Type != Dir {
 			return NotDirError{newParentPath.ChildPathNoPtr(newName)}
-		} else if de.Type != Dir && newDe.Type == Dir {
+		} else if replacedDe.Type != Dir && newDe.Type == Dir {
 			return NotFileError{newParentPath.ChildPathNoPtr(newName)}
 		}
 
-		if de.Type == Dir {
+		if replacedDe.Type == Dir {
 			// The directory must be empty.
 			oldTargetDir, err := fbo.blocks.GetDirBlockForReading(ctx, lState,
-				md.ReadOnly(), de.BlockPointer, newParentPath.Branch,
+				md.ReadOnly(), replacedDe.BlockPointer, newParentPath.Branch,
 				newParentPath.ChildPathNoPtr(newName))
 			if err != nil {
 				return err
@@ -3109,7 +3129,8 @@ func (fbo *folderBranchOps) renameLocked(
 		}
 
 		// Delete the old block pointed to by this direntry.
-		err := fbo.unrefEntry(ctx, lState, md, newParentPath, de, newName)
+		err := fbo.unrefEntryLocked(
+			ctx, lState, md, newParentPath, replacedDe, newName)
 		if err != nil {
 			return err
 		}
