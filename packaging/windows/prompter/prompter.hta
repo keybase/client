@@ -1,0 +1,159 @@
+<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<meta http-equiv="X-UA-Compatible" content="IE=9">
+<html>
+    <head>
+        <HTA:APPLICATION 
+            ID="app" APPLICATIONNAME="Keybase Update" SYSMENU="yes" SINGLEINSTANCE="yes" MAXIMIZEBUTTON="no" MINIMIZEBUTTON="no"
+            SCROLL="no" SINGLEINSTANCE="no" icon="keybase.ico" />
+        <title>Keybase Update</title>
+        <style type="text/css">
+body {
+    font-family: Lato,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: #002a3d;
+    background-color: #ececec;
+}
+.container {
+    padding: 0px;
+    padding-right: 5px;
+    display: block;
+    height: auto;
+    width: auto;
+}
+.left {
+    float: left;
+    width: 15%;
+}
+.logo {
+    width: 80px;
+}
+.right {
+    float: left;
+    width: 85%;
+}
+h1 {
+    font-size: 14px;
+}
+h2 {
+    font-size: 12px;
+}
+textarea {
+    display: block;
+    width: 100%;
+    height: 150px;
+    margin-bottom: 10px;
+}
+label {
+    display: block;
+}
+.actions {
+    float: right;
+}
+       </style>
+       <script>
+// From: http://ntt.cc/2008/01/19/base64-encoder-decoder-with-javascript.html 
+var keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+
+function decode64(input) {
+   var output = "";
+   var chr1, chr2, chr3 = "";
+   var enc1, enc2, enc3, enc4 = "";
+   var i = 0;
+   // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
+   var base64test = /[^A-Za-z0-9\+\/\=]/g;
+   if (base64test.exec(input)) {
+      alert("There were invalid base64 characters in the input text.\n" +
+            "Valid base64 characters are A-Z, a-z, 0-9, '+', '/',and '='\n" +
+            "Expect errors in decoding.");
+   }
+   input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+   do {
+      enc1 = keyStr.indexOf(input.charAt(i++));
+      enc2 = keyStr.indexOf(input.charAt(i++));
+      enc3 = keyStr.indexOf(input.charAt(i++));
+      enc4 = keyStr.indexOf(input.charAt(i++));
+      chr1 = (enc1 << 2) | (enc2 >> 4);
+      chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+      chr3 = ((enc3 & 3) << 6) | enc4;
+      output = output + String.fromCharCode(chr1);
+      if (enc3 != 64) {
+         output = output + String.fromCharCode(chr2);
+      }
+      if (enc4 != 64) {
+         output = output + String.fromCharCode(chr3);
+      }
+      chr1 = chr2 = chr3 = "";
+      enc1 = enc2 = enc3 = enc4 = "";
+   } while (i < input.length);
+   return unescape(output);
+}
+
+function applyUpdate() {
+    writeAndClose('apply')
+}
+
+function snoozeUpdate() {
+    writeAndClose('snooze')
+}
+
+function writeAndClose(result){
+try{
+    var result = {
+       action: result,
+       autoUpdate: autoUpdate.checked
+    };
+    var fso = new ActiveXObject("Scripting.FileSystemObject");
+    var fileObject = fso.OpenTextFile("response.txt", 2, true,0);
+    fileObject.Write(JSON.stringify(result));
+    fileObject.close();
+    window.close();
+}catch(ex){
+    alert(ex);
+}
+}
+
+function parseParams () {
+    var parts = app.commandLine.split(' ');
+    var part = parts[parts.length-1];
+    return JSON.parse(decode64(part));
+}
+
+function loadElements (params) {
+    document.getElementById('title').innerHTML = params.title;
+    document.getElementById('message').innerHTML = params.message;
+    document.getElementById('description').innerHTML =  params.description;
+    document.getElementById('autoUpdate').checked = !!params.autoUpdate;
+}
+
+function reposition () {
+    var w = 624
+    var h = 340
+    window.resizeTo(w, h);
+    window.moveTo(screen.availWidth/2 - w/2, screen.availHeight/2 - h/2);
+}
+
+reposition();
+
+window.onload = function readInput() {
+    var params = parseParams();
+    loadElements(params);
+};
+      </script>
+   </head>
+   <body>
+       <div class="container">
+           <div class="left">
+               <img class="logo" src="icon_128x128.png" />
+           </div>
+           <div class="right">
+               <h1 id="title">Keybase Update</h1>
+               <h2 id="message">Keybase Update</h2>
+               <textarea id="description" readonly></textarea>
+               <label><input type="checkbox"  name="checkbox"  class ="checkbox" id="autoUpdate" >Update automatically</label>
+               <div class="actions">
+                   <button onclick="applyUpdate();">Apply</button>
+                   <button onclick="snoozeUpdate();">Snooze</button>
+               </div>
+           </div>
+       </div>
+   </body>
+</html>
