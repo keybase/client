@@ -15,6 +15,10 @@ const actionStyle = isMobile
   ? {...globalStyles.flexBoxColumn}
   : {...globalStyles.flexBoxRow}
 
+const dangerStyle = isMobile
+  ? {marginTop: globalMargins.small}
+  : {}
+
 const _Contents = ({conversationIDKey, onBack, participants, onBlock}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center', ...contentStyle}}>
     <Text type='Header'>Block the conversation with {participants}?</Text>
@@ -24,7 +28,7 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock}: Props) =>
     <Text type='Body' style={{marginTop: globalMargins.small}}>in the terminal{isMobile && ' on a desktop computer'}.</Text>
     <Box style={{...actionStyle, marginTop: globalMargins.xlarge}}>
       <Button type='Secondary' onClick={onBack} label="No, don't block them" />
-      <Button type='Danger' style={{marginLeft: globalMargins.tiny, marginTop: globalMargins.small}} onClick={onBlock} label='Yes, block them' />
+      <Button type='Danger' style={{marginLeft: globalMargins.tiny, ...dangerStyle}} onClick={onBlock} label='Yes, block them' />
     </Box>
   </Box>
 )
