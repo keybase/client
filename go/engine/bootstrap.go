@@ -86,6 +86,12 @@ func (e *Bootstrap) Run(ctx *Context) error {
 	// get user summaries
 	ts := libkb.NewTracker2Syncer(e.G(), e.status.Uid, true)
 	if e.G().ConnectivityMonitor.IsConnected(context.Background()) == libkb.ConnectivityMonitorYes {
+		e.G().Log.Debug("connected, loading self user upak for cache")
+		arg := libkb.NewLoadUserByUIDArg(context.Background(), e.G(), e.status.Uid)
+		if _, _, err := e.G().GetUPAKLoader().Load(arg); err != nil {
+			e.G().Log.Debug("Bootstrap: error loading upak user for cache priming: %s", err)
+		}
+
 		e.G().Log.Debug("connected, running full tracker2 syncer")
 		if err := libkb.RunSyncer(ts, e.status.Uid, false, nil); err != nil {
 			e.G().Log.Warning("error running Tracker2Syncer: %s", err)
