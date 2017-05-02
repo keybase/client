@@ -126,13 +126,11 @@ export function * deletePushTokenSaga (): SagaGenerator<any, any> {
 }
 
 function * pushSaga (): SagaGenerator<any, any> {
-  yield [
-    safeTakeLatest(Constants.permissionsRequest, permissionsRequestSaga),
-    safeTakeLatest(Constants.pushToken, pushTokenSaga),
-    safeTakeLatest(Constants.savePushToken, savePushTokenSaga),
-    safeTakeLatest(Constants.configurePush, configurePushSaga),
-    safeTakeEvery(Constants.pushNotification, pushNotificationSaga),
-  ]
+  yield safeTakeLatest(Constants.permissionsRequest, permissionsRequestSaga)
+  yield safeTakeLatest(Constants.pushToken, pushTokenSaga)
+  yield safeTakeLatest(Constants.savePushToken, savePushTokenSaga)
+  yield safeTakeLatest(Constants.configurePush, configurePushSaga)
+  yield safeTakeEvery(Constants.pushNotification, pushNotificationSaga)
 }
 
 export default pushSaga

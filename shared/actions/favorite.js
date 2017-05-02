@@ -296,12 +296,10 @@ function * _setupKBFSChangedHandler (): SagaGenerator<any, any> {
 }
 
 function * favoriteSaga (): SagaGenerator<any, any> {
-  yield [
-    safeTakeLatest(Constants.favoriteList, _listSaga),
-    safeTakeEvery(Constants.favoriteAdd, _addSaga),
-    safeTakeEvery(Constants.favoriteIgnore, _ignoreSaga),
-    safeTakeEvery(Constants.setupKBFSChangedHandler, _setupKBFSChangedHandler),
-  ]
+  yield safeTakeLatest(Constants.favoriteList, _listSaga)
+  yield safeTakeEvery(Constants.favoriteAdd, _addSaga)
+  yield safeTakeEvery(Constants.favoriteIgnore, _ignoreSaga)
+  yield safeTakeEvery(Constants.setupKBFSChangedHandler, _setupKBFSChangedHandler)
 }
 
 export {

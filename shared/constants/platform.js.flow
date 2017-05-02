@@ -11,3 +11,5 @@ export const isWindows: boolean = false
 export const isLinux: boolean = false
 declare export var fileUIName: string
 declare export var version: string
+declare export var appVersionName: string
+declare export var appVersionCode: string

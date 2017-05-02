@@ -8,13 +8,13 @@ import Main from './main'
 import React, {Component} from 'react'
 import {Box} from './common-adapters'
 import configureStore from './store/configure-store'
-import {AppRegistry, AppState} from 'react-native'
+import {AppRegistry, AppState, Linking} from 'react-native'
 import {Provider} from 'react-redux'
 import {makeEngine} from './engine'
 import {setup as setupLocalDebug, dumbSheetOnly, dumbChatOnly} from './local-debug'
 import routeDefs from './routes'
 import {setRouteDef} from './actions/route-tree'
-import {changedFocus} from './actions/app'
+import {changedFocus, appLink} from './actions/app'
 import {setupSource} from './util/forward-logs'
 
 module.hot && module.hot.accept(() => {
@@ -48,8 +48,17 @@ class Keybase extends Component {
     AppState.addEventListener('change', this._handleAppStateChange)
   }
 
+  componentDidMount () {
+    Linking.addEventListener('url', this._handleOpenURL)
+  }
+
   componentWillUnmount () {
     AppState.removeEventListener('change', this._handleAppStateChange)
+    Linking.removeEventListener('url', this._handleOpenURL)
+  }
+
+  _handleOpenURL (event: {url: string}) {
+    this.store.dispatch(appLink(event.url))
   }
 
   _handleAppStateChange = (nextAppState: string) => {
@@ -80,6 +89,13 @@ class Keybase extends Component {
 }
 
 function load () {
+  // Native String.startswith() sometimes incorrectly returns false on Android!
+  // $FlowIssue redefining startsWith
+  String.prototype.startsWith = function (searchString, position) { // eslint-disable-line no-extend-native
+    position = position || 0
+    return this.substr(position, searchString.length) === searchString
+  }
+
   AppRegistry.registerComponent('Keybase', () => Keybase)
 }
 

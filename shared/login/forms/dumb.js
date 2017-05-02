@@ -12,6 +12,7 @@ const props: Props = {
   onLogin: () => {},
   onRetry: () => {},
   onSignup: () => {},
+  retrying: false,
 }
 
 const intro: DumbComponentMap<Intro> = {

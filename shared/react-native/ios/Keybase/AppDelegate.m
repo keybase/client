@@ -13,6 +13,7 @@
 #import "KeyListener.h"
 #import "Engine.h"
 #import "LogSend.h"
+#import "RCTLinkingManager.h"
 
 @interface AppDelegate ()
 @end
@@ -96,7 +97,17 @@ const BOOL isDebug = NO;
   rootViewController.bridge = rootView.bridge;
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
+
   [self.window makeKeyAndVisible];
+
+  // To simplify the cover animation raciness
+  self.resignImageView = [[UIImageView alloc] initWithFrame:self.window.bounds];
+  self.resignImageView.contentMode = UIViewContentModeCenter;
+  self.resignImageView.alpha = 0;
+  self.resignImageView.backgroundColor = [UIColor whiteColor];
+  [self.resignImageView setImage:[UIImage imageNamed:@"LaunchImage"]];
+  [self.window addSubview:self.resignImageView];
+
   return YES;
 }
 
@@ -126,27 +137,58 @@ const BOOL isDebug = NO;
   [RCTPushNotificationManager didReceiveLocalNotification:notification];
 }
 
-- (void)applicationWillResignActive:(UIApplication *)application
-{
-  self.resignImageView = [[UIImageView alloc] initWithFrame:self.window.bounds];
-  self.resignImageView.contentMode = UIViewContentModeCenter;
-  self.resignImageView.alpha = 0;
-  self.resignImageView.backgroundColor = [UIColor whiteColor];
-  [self.resignImageView setImage:[UIImage imageNamed:@"LaunchImage"]];
-  [self.window addSubview:self.resignImageView];
+- (void)applicationWillTerminate:(UIApplication *)application {
+  self.window.rootViewController.view.hidden = YES;
+}
 
-  [UIView animateWithDuration:0.5 delay:0.1 options:0 animations:^{
+- (void) hideCover {
+  // Always cancel outstanding animations else they can fight and the timing is very weird
+  [self.resignImageView.layer removeAllAnimations];
+  [UIView animateWithDuration:0.3 delay:0.3 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
+    self.resignImageView.alpha = 0;
+  } completion:nil];
+}
+
+- (void)applicationWillResignActive:(UIApplication *)application {
+  // Always cancel outstanding animations else they can fight and the timing is very weird
+  [self.resignImageView.layer removeAllAnimations];
+  // Try a nice animation out
+  [UIView animateWithDuration:0.3 delay:0.1 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
     self.resignImageView.alpha = 1;
   } completion:nil];
 }
 
-- (void)applicationDidBecomeActive:(UIApplication *)application
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+  // Throw away any saved screenshot just in case anyways
+  [application ignoreSnapshotOnNextApplicationLaunch];
+  // Always cancel outstanding animations else they can fight and the timing is very weird
+  [self.resignImageView.layer removeAllAnimations];
+  // Snapshot happens right after this call, force alpha immediately w/o animation else you'll get a half animated overlay
+  self.resignImageView.alpha = 1;
+}
+
+// Sometimes these lifecycle calls can be skipped so try and catch them all
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+  [self hideCover];
+}
+
+- (void)applicationWillEnterForeground:(UIApplication *)application {
+  [self hideCover];
+}
+
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url
+  sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
 {
-  [UIView animateWithDuration:0.5 animations:^{
-    self.resignImageView.alpha = 0;
-  } completion:^(BOOL finished) {
-    [self.resignImageView removeFromSuperview];
-  }];
+  return [RCTLinkingManager application:application openURL:url
+                      sourceApplication:sourceApplication annotation:annotation];
+}
+
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity
+ restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler
+{
+  return [RCTLinkingManager application:application
+                   continueUserActivity:userActivity
+                     restorationHandler:restorationHandler];
 }
 
 @end

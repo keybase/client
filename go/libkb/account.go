@@ -471,58 +471,82 @@ func (a *Account) Dump() {
 	a.streamCache.Dump()
 }
 
-func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error {
+func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error {
 	if key == nil {
 		return errors.New("cache of nil secret key attempted")
 	}
-	uid := a.G().Env.GetUID()
-	if ska.KeyType == DeviceSigningKeyType {
-		a.G().Log.Debug("caching secret device signing key")
 
-		deviceID := a.localSession.GetDeviceID()
-		if deviceID.IsNil() {
-			a.G().Log.Debug("SetCachedSecretKey with nil deviceID (sig)")
-		}
+	uid := a.G().Env.GetUID()
+	deviceID := a.deviceIDFromDevice(device)
+	if deviceID.IsNil() {
+		a.G().Log.Debug("SetCachedSecretKey with nil deviceID (%+v)", ska)
+	}
+
+	switch ska.KeyType {
+	case DeviceSigningKeyType:
+		a.G().Log.Debug("caching secret device signing key")
 
 		if err := a.G().ActiveDevice.setSigningKey(a, uid, deviceID, key); err != nil {
 			return err
 		}
 
-		if ska.Me == nil {
-			a.G().Log.Debug("ska.Me is nil, skipping device name lookup")
+		deviceName := a.deviceNameLookup(device, ska.Me, key)
+		if deviceName == "" {
+			a.G().Log.Debug("no device name found for signing key")
 			return nil
-
-		}
-		a.G().Log.Debug("looking for device name for device signing key")
-		ckf := ska.Me.GetComputedKeyFamily()
-		device, err := ckf.GetDeviceForKey(key)
-		if err != nil {
-			// not fatal
-			a.G().Log.Debug("error getting device for key: %s", err)
-			return nil
-		}
-		if device == nil {
-			a.G().Log.Debug("device for key is nil")
-			return nil
-		}
-		if device.Description == nil {
-			a.G().Log.Debug("device description is nil")
-			return nil
-		}
-		a.G().Log.Debug("caching device name %q", *device.Description)
-		return a.G().ActiveDevice.setDeviceName(a, uid, device.ID, *device.Description)
-	}
-	if ska.KeyType == DeviceEncryptionKeyType {
-
-		deviceID := a.localSession.GetDeviceID()
-		if deviceID.IsNil() {
-			a.G().Log.Debug("SetCachedSecretKey with nil deviceID (enc)")
 		}
 
+		a.G().Log.Debug("caching device name %q", deviceName)
+		return a.G().ActiveDevice.setDeviceName(a, uid, deviceID, deviceName)
+	case DeviceEncryptionKeyType:
 		a.G().Log.Debug("caching secret device encryption key")
 		return a.G().ActiveDevice.setEncryptionKey(a, uid, deviceID, key)
+	default:
+		return fmt.Errorf("attempt to cache invalid key type: %d", ska.KeyType)
 	}
-	return fmt.Errorf("attempt to cache invalid key type: %d", ska.KeyType)
+}
+
+func (a *Account) deviceIDFromDevice(device *Device) keybase1.DeviceID {
+	if device != nil {
+		return device.ID
+	}
+	return a.localSession.GetDeviceID()
+}
+
+func (a *Account) deviceNameLookup(device *Device, me *User, key GenericKey) string {
+	if device != nil {
+		if device.Description != nil && *device.Description != "" {
+			a.G().Log.Debug("deviceNameLookup: using device name from device: %q", *device.Description)
+			return *device.Description
+		}
+	}
+
+	a.G().Log.Debug("deviceNameLookup: no device name passed in, checking user")
+
+	if me == nil {
+		a.G().Log.Debug("deviceNameLookup: me is nil, skipping device name lookup")
+		return ""
+	}
+	a.G().Log.Debug("deviceNameLookup: looking for device name for device signing key")
+	ckf := me.GetComputedKeyFamily()
+	device, err := ckf.GetDeviceForKey(key)
+	if err != nil {
+		// not fatal
+		a.G().Log.Debug("deviceNameLookup: error getting device for key: %s", err)
+		return ""
+	}
+	if device == nil {
+		a.G().Log.Debug("deviceNameLookup: device for key is nil")
+		return ""
+	}
+	if device.Description == nil {
+		a.G().Log.Debug("deviceNameLookup: device description is nil")
+		return ""
+	}
+
+	a.G().Log.Debug("deviceNameLookup: found device name %q", *device.Description)
+
+	return *device.Description
 }
 
 func (a *Account) SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error {

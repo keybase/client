@@ -138,9 +138,7 @@ function * _putActionIfOnPath ({payload: {otherAction, expectedPath}}: Constants
 }
 
 function * routeSaga (): any {
-  yield [
-    safeTakeEvery('routeTree:putActionIfOnPath', _putActionIfOnPath),
-  ]
+  yield safeTakeEvery('routeTree:putActionIfOnPath', _putActionIfOnPath)
 }
 
 export default routeSaga

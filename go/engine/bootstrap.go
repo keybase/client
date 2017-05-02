@@ -50,14 +50,17 @@ func (e *Bootstrap) Run(ctx *Context) error {
 
 	var gerr error
 	e.G().LoginState().Account(func(a *libkb.Account) {
-		var in bool
-		in, gerr = a.LoggedInProvisioned()
+		var sessionOk bool
+		sessionOk, gerr = a.LoggedInProvisioned()
 		if gerr != nil {
 			e.G().Log.Debug("Bootstrap: LoggedInProvisioned error: %s", gerr)
 			return
 		}
 
-		e.status.LoggedIn = in
+		// if any Login engine  worked, then ActiveDevice will be valid:
+		validActiveDevice := e.G().ActiveDevice.Valid()
+
+		e.status.LoggedIn = sessionOk && validActiveDevice
 		if !e.status.LoggedIn {
 			e.G().Log.Debug("Bootstrap: not logged in")
 			return
@@ -70,27 +73,38 @@ func (e *Bootstrap) Run(ctx *Context) error {
 
 		e.status.DeviceID = a.GetDeviceID()
 		e.status.DeviceName = e.G().ActiveDevice.Name()
-
-		ts := libkb.NewTracker2Syncer(e.G(), e.status.Uid, true)
-		if e.G().ConnectivityMonitor.IsConnected(context.Background()) == libkb.ConnectivityMonitorYes {
-			e.G().Log.Debug("connected, running full tracker2 syncer")
-			if err := libkb.RunSyncer(ts, e.status.Uid, true, a.LocalSession()); err != nil {
-				gerr = err
-				return
-			}
-		} else {
-			e.G().Log.Debug("not connected, running cached tracker2 syncer")
-			if err := libkb.RunSyncerCached(ts, e.status.Uid); err != nil {
-				gerr = err
-				return
-			}
-		}
-		e.usums = ts.Result()
-
 	}, "Bootstrap")
 	if gerr != nil {
 		return gerr
 	}
+
+	if !e.status.LoggedIn {
+		e.G().Log.Debug("not logged in, not running syncer")
+		return nil
+	}
+
+	// get user summaries
+	ts := libkb.NewTracker2Syncer(e.G(), e.status.Uid, true)
+	if e.G().ConnectivityMonitor.IsConnected(context.Background()) == libkb.ConnectivityMonitorYes {
+		e.G().Log.Debug("connected, loading self user upak for cache")
+		arg := libkb.NewLoadUserByUIDArg(context.Background(), e.G(), e.status.Uid)
+		if _, _, err := e.G().GetUPAKLoader().Load(arg); err != nil {
+			e.G().Log.Debug("Bootstrap: error loading upak user for cache priming: %s", err)
+		}
+
+		e.G().Log.Debug("connected, running full tracker2 syncer")
+		if err := libkb.RunSyncer(ts, e.status.Uid, false, nil); err != nil {
+			e.G().Log.Warning("error running Tracker2Syncer: %s", err)
+			return nil
+		}
+	} else {
+		e.G().Log.Debug("not connected, running cached tracker2 syncer")
+		if err := libkb.RunSyncerCached(ts, e.status.Uid); err != nil {
+			e.G().Log.Warning("error running Tracker2Syncer (cached): %s", err)
+			return nil
+		}
+	}
+	e.usums = ts.Result()
 
 	// filter usums into followers, following
 	for _, u := range e.usums.Users {

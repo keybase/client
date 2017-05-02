@@ -85,6 +85,7 @@ const Border = ({borderColor, size}) => (
       position: 'absolute',
       right: borderOffset,
       top: borderOffset,
+      margin: borderSize / 2,
     }}
   />
 )

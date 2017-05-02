@@ -76,22 +76,14 @@ function * clientHeader (messageType: ChatTypes.MessageType, conversationIDKey: 
     return
   }
 
-  const configSelector = ({config: {deviceID, uid}}: TypedState) => ({deviceID, uid})
-  const {deviceID, uid}: {deviceID: string, uid: string} = ((yield select(configSelector)): any)
-
-  if (!deviceID || !uid) {
-    console.warn('No deviceid/uid to postmessage!')
-    return
-  }
-
   return {
     conv: info.triple,
     tlfName: info.tlfName,
     tlfPublic: info.visibility === ChatTypes.CommonTLFVisibility.public,
     messageType,
     supersedes: 0,
-    sender: Buffer.from(uid, 'hex'),
-    senderDevice: Buffer.from(deviceID, 'hex'),
+    sender: null,
+    senderDevice: null,
   }
 }
 

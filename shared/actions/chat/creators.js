@@ -136,8 +136,8 @@ function loadInbox (): Constants.LoadInbox {
   return {payload: undefined, type: 'chat:loadInbox'}
 }
 
-function loadMoreMessages (conversationIDKey: Constants.ConversationIDKey, onlyIfUnloaded: boolean): Constants.LoadMoreMessages {
-  return {payload: {conversationIDKey, onlyIfUnloaded}, type: 'chat:loadMoreMessages'}
+function loadMoreMessages (conversationIDKey: Constants.ConversationIDKey, onlyIfUnloaded: boolean, fromUser?: boolean = false): Constants.LoadMoreMessages {
+  return {payload: {conversationIDKey, onlyIfUnloaded, fromUser}, type: 'chat:loadMoreMessages'}
 }
 
 function showEditor (message: ?Constants.Message): Constants.ShowEditor {

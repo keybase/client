@@ -275,10 +275,10 @@ func (k *Keyrings) setCachedSecretKey(lctx LoginContext, ska SecretKeyArg, key G
 	k.G().Log.Debug("caching secret key for ska: %+v", ska)
 	var setErr error
 	if lctx != nil {
-		setErr = lctx.SetCachedSecretKey(ska, key)
+		setErr = lctx.SetCachedSecretKey(ska, key, nil)
 	} else {
 		aerr := k.G().LoginState().Account(func(a *Account) {
-			setErr = a.SetCachedSecretKey(ska, key)
+			setErr = a.SetCachedSecretKey(ska, key, nil)
 		}, "GetSecretKeyWithPrompt - SetCachedSecretKey")
 		if aerr != nil {
 			k.G().Log.Debug("Account error: %s", aerr)

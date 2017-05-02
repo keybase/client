@@ -1928,7 +1928,8 @@ export type remoteSyncAllRpcParam = Exact<{
   deviceID: gregor1.DeviceID,
   session: gregor1.SessionToken,
   inboxVers: InboxVers,
-  ctime: gregor1.Time
+  ctime: gregor1.Time,
+  fresh: boolean
 }>
 
 export type remoteSyncChatRpcParam = Exact<{
