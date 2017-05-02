@@ -98,6 +98,7 @@ const stylesBannerRed = {
 
 const stylesTextBanner = {
   color: globalColors.white,
+  textAlign: 'center',
 }
 
 export {
