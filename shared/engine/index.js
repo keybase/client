@@ -38,7 +38,7 @@ class EngineChannel {
   }
 
   * take (key: string): Generator<any, any, any> {
-    return Saga.takeFromChannelMap(this._map, key)
+    return yield Saga.takeFromChannelMap(this._map, key)
   }
 
   * race (options: ?{timeout?: number, racers?: Object}): Generator<any, any, any> {

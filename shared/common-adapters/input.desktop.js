@@ -152,7 +152,6 @@ class Input extends Component<void, Props, State> {
     ? {
       ...globalStyles.flexBoxRow,
       borderBottom: `1px solid ${underlineColor}`,
-      flex: 1,
     }
     : {
       ...globalStyles.flexBoxColumn,
