@@ -45,7 +45,7 @@ const BOOL isDebug = NO;
   return success;
 }
 
-- (void) createBkgReadableDir:(NSString*) path
+- (void) createBackgroundReadableDirectory:(NSString*) path
 {
   NSFileManager* fm = [NSFileManager defaultManager];
   // Setting NSFileProtectionCompleteUnlessOpen makes the directory accessible as long as the user has
@@ -85,9 +85,9 @@ const BOOL isDebug = NO;
   [self addSkipBackupAttributeToItemAtPath:keybasePath];
   
   // Create LevelDB and log directories with a slightly lower data protection mode so we can use them in the background
-  [self createBkgReadableDir:chatLevelDBPath];
-  [self createBkgReadableDir:levelDBPath];
-  [self createBkgReadableDir:logPath];
+  [self createBackgroundReadableDirectory:chatLevelDBPath];
+  [self createBackgroundReadableDirectory:levelDBPath];
+  [self createBackgroundReadableDirectory:logPath];
 
   NSError * err;
   self.engine = [[Engine alloc] initWithSettings:@{
