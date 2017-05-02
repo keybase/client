@@ -505,13 +505,21 @@ func (*fsEngine) GetMtime(u User, file Node) (mtime time.Time, err error) {
 func (e *fsEngine) SyncAll(
 	user User, tlfName string, isPublic bool) (err error) {
 	u := user.(*fsUser)
-	path := buildTlfPath(u, tlfName, isPublic)
-	f, err := os.OpenFile(path, os.O_WRONLY, 0644)
+	ctx := context.Background()
+	ctx, err = libkbfs.NewContextWithCancellationDelayer(
+		libkbfs.NewContextReplayable(
+			ctx, func(ctx context.Context) context.Context { return ctx }))
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-	return f.Sync()
+	dir, err := getRootNode(ctx, u.config, tlfName, isPublic)
+	if err != nil {
+		return err
+	}
+	// Sadly golang doesn't support syncing on a directory handle, so
+	// we have to hack it by syncing directly with the KBFSOps
+	// instance.
+	return u.config.KBFSOps().SyncAll(ctx, dir.GetFolderBranch())
 }
 
 func fiTypeString(fi os.FileInfo) string {
