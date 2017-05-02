@@ -131,8 +131,8 @@ type deCacheEntry struct {
 	// been added to the DirBlock for the BlockPointer that maps to
 	// this struct.
 	adds map[string]BlockPointer
-	// dels are the name that have been removed from the DirBlock
-	// for the BlockPointer that maps to this struct.
+	// dels is a set of the names that have been removed from the
+	// DirBlock for the BlockPointer that maps to this struct.
 	dels map[string]bool
 }
 
