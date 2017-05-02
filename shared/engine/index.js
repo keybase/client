@@ -29,7 +29,7 @@ class EngineChannel {
   }
 
   get map (): ChannelMap<*> {
-    return this.map
+    return this._map
   }
 
   close () {

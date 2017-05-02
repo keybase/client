@@ -234,7 +234,6 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
         console.log('Start Proof done: ', incoming.finished.params.sigID)
         yield put(checkProof())
       }
-      closeChannelMap(proveStartProofChanMap)
       break
     } else if (incoming.promptOverwrite) {
       incoming.promptOverwrite.response.result(true)
@@ -272,7 +271,7 @@ function * _submitCryptoAddress (action: SubmitBTCAddress | SubmitZcashAddress):
     yield call(cryptocurrencyRegisterAddressRpcPromise, {param: {address, force: true, wantedFamily}})
     yield put(_waitingForResponse(false))
     yield put(_updateProofStatus(true, ProveCommonProofStatus.ok))
-    yield put(navigateAppend(['postProof', 'confirmOrPending'], [profileTab]))
+    yield put(navigateAppend(['confirmOrPending'], [profileTab]))
   } catch (error) {
     console.warn('Error making proof')
     yield put(_waitingForResponse(false))

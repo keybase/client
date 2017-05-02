@@ -535,27 +535,6 @@ function * reloginSaga ({payload: {usernameOrEmail, passphrase}}: Constants.Relo
   }
 }
 
-function * submitForgotPasswordSaga () {
-  yield put({payload: undefined, type: Constants.actionSetForgotPasswordSubmitting})
-
-  const email = yield select(state => state.login.forgotPasswordEmailAddress)
-  const chanMap = Types.loginRecoverAccountFromEmailAddressRpcChannelMap(['finished'], {param: {email}})
-  const incoming = yield chanMap.take('finished')
-  if (incoming.error) {
-    yield put({
-      error: true,
-      payload: incoming.error,
-      type: Constants.actionForgotPasswordDone,
-    })
-  } else {
-    yield put({
-      error: false,
-      payload: undefined,
-      type: Constants.actionForgotPasswordDone,
-    })
-  }
-}
-
 function * openAccountResetPageSaga () {
   yield call(openURL, 'https://keybase.io/#password-reset')
 }
@@ -585,7 +564,6 @@ function * loginSaga (): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(Constants.cameraBrokenMode, cameraBrokenModeSaga)
   yield Saga.safeTakeLatest(Constants.setCodeMode, generateQRCode)
   yield Saga.safeTakeLatest(Constants.relogin, reloginSaga)
-  yield Saga.safeTakeLatest(Constants.submitForgotPassword, submitForgotPasswordSaga)
   yield Saga.safeTakeLatest(Constants.openAccountResetPage, openAccountResetPageSaga)
   yield Saga.safeTakeLatest(Constants.navBasedOnLoginState, navBasedOnLoginState)
   yield Saga.safeTakeLatest(Constants.logoutDone, logoutDoneSaga)

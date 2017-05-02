@@ -5,6 +5,7 @@ import {Box, Text, Icon, Button, PlatformIcon} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {formatMessage, formatConfirmButton} from './index.shared'
 import {subtitle as platformSubtitle} from '../../util/platforms'
+import {isMobile} from '../../constants/platform'
 
 import type {Props} from './index'
 
@@ -63,7 +64,7 @@ const styleErrorBanner = {
 const styleErrorBannerText = {
   color: globalColors.white,
   maxWidth: 512,
-  textAlign: 'center',
+  ...(isMobile ? {} : {textAlign: 'center'}),
 }
 
 const styleContentContainer = {
@@ -73,7 +74,7 @@ const styleContentContainer = {
   alignItems: 'center',
   margin: globalMargins.large,
   maxWidth: 512,
-  textAlign: 'center',
+  ...(isMobile ? {} : {textAlign: 'center'}),
 }
 
 const stylePlatformUsername = {
