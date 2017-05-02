@@ -4,7 +4,8 @@ import HiddenString from '../util/hidden-string'
 import {DeviceDetailRecord} from '../constants/devices'
 import {call, put, select} from 'redux-saga/effects'
 import {deviceDeviceHistoryListRpcPromise, loginDeprovisionRpcPromise, loginPaperKeyRpcChannelMap, revokeRevokeDeviceRpcPromise, rekeyGetRevokeWarningRpcPromise} from '../constants/types/flow-types'
-import {devicesTab, loginTab} from '../constants/tabs'
+import {devicesTab, loginTab, settingsTab} from '../constants/tabs'
+import {devicesTab as settingsDevicesTab} from '../constants/settings'
 import {isMobile} from '../constants/platform'
 import {keyBy} from 'lodash'
 import {navigateTo} from './route-tree'
@@ -30,6 +31,8 @@ const showRevokePage: (deviceID: string) => ShowRevokePage = deviceID => ({paylo
 
 const _loggedInSelector = (state: TypedState) => state.config.loggedIn
 
+const devicesTabLocation = isMobile ? [settingsTab, settingsDevicesTab] : [devicesTab]
+
 function * _deviceShowRevokePageSaga (action: ShowRevokePage): SagaGenerator<any, any> {
   const {deviceID} = action.payload
   let endangeredTLFs = {endangeredTLFs: []}
@@ -38,7 +41,7 @@ function * _deviceShowRevokePageSaga (action: ShowRevokePage): SagaGenerator<any
   } catch (e) {
     console.warn('Error getting endangered TLFs:', e)
   }
-  yield put(navigateTo([devicesTab,
+  yield put(navigateTo([...devicesTabLocation,
     {props: {deviceID, endangeredTLFs}, selected: 'devicePage'},
     {props: {deviceID, endangeredTLFs}, selected: 'revokeDevice'},
   ]))
@@ -133,7 +136,7 @@ function * _deviceRevokedSaga (action: Revoke): SagaGenerator<any, any> {
 
   const afterRouteState = yield select(state => state.routeTree.routeState)
   if (I.is(beforeRouteState, afterRouteState)) {
-    yield put(navigateTo([devicesTab]))
+    yield put(navigateTo([...devicesTabLocation]))
   }
 }
 
@@ -152,7 +155,7 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
         incoming.displayPaperKeyPhrase.response.result()
         yield put(setWaiting(false))
         const paperKey = new HiddenString(incoming.displayPaperKeyPhrase.params.phrase)
-        yield put(navigateTo([devicesTab, {props: {paperKey}, selected: 'genPaperKey'}]))
+        yield put(navigateTo([...devicesTabLocation, {props: {paperKey}, selected: 'genPaperKey'}]))
         break
       }
     }
@@ -178,4 +181,5 @@ export {
   paperKeyMake,
   revoke,
   showRevokePage,
+  devicesTabLocation,
 }

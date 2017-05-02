@@ -15,7 +15,7 @@ import {defaultModeForDeviceRoles} from './provision-helpers'
 import openURL from '../../util/open-url'
 import {devicesTab, loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
-import {load as loadDevices} from '../devices'
+import {load as loadDevices, devicesTabLocation} from '../devices'
 import {deletePushTokenSaga} from '../push'
 import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
@@ -363,7 +363,7 @@ const getPassphraseSaga = (onBackSaga) => function * ({params: {pinentry: {type,
 }
 
 function loginRpc (channelConfig, usernameOrEmail) {
-  return Types.loginLoginRpcChannelMap(
+  return Types.loginLoginRpcChannelMapOld(
     channelConfig,
     {param: {
       deviceType,
@@ -374,7 +374,7 @@ function loginRpc (channelConfig, usernameOrEmail) {
 }
 
 function addDeviceRpc (channelConfig) {
-  return Types.deviceDeviceAddRpcChannelMap(channelConfig, {})
+  return Types.deviceDeviceAddRpcChannelMapOld(channelConfig, {})
 }
 
 function * finishLoginSaga ({error, params}) {
@@ -469,7 +469,7 @@ function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
 
   const onBackSaga = function * (response) {
     yield put(loadDevices())
-    yield put(navigateTo([devicesTab]))
+    yield put(navigateTo(devicesTabLocation))
     if (response) {
       const engineInst = yield call(engine)
       yield call([engine, engineInst.cancelRPC], response, InputCancelError)

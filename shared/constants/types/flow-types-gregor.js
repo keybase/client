@@ -5,6 +5,7 @@
 
 import engine, {EngineChannel} from '../../engine'
 import {RPCError} from '../../util/errors'
+import {putOnChannelMap, createChannelMap, closeChannelMap} from '../../util/saga'
 import {Buffer} from 'buffer'
 
 import type {Exact} from './more'
@@ -35,12 +36,32 @@ type CommonResponseHandler = {
   result: (...rest: Array<void>) => void,
 }
 
+function _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (incomingCallMap: any, callback: Function) => void): ChannelMap<*> {
+  const channelMap = createChannelMap(channelConfig)
+  const incomingCallMap = Object.keys(channelMap).reduce((acc, k) => {
+    acc[k] = (params, response) => {
+      putOnChannelMap(channelMap, k, {params, response})
+    }
+    return acc
+  }, {})
+  const callback = (error, params) => {
+    channelMap['finished'] && putOnChannelMap(channelMap, 'finished', {error, params})
+    closeChannelMap(channelMap)
+  }
+  partialRpcCall(incomingCallMap, callback)
+  return channelMap
+}
+
+
 export function authAuthenticateSessionTokenRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: authAuthenticateSessionTokenResult) => void} & {param: authAuthenticateSessionTokenRpcParam}>) {
   engineRpcOutgoing('gregor.1.auth.authenticateSessionToken', request)
 }
 
 export function authAuthenticateSessionTokenRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: authAuthenticateSessionTokenResult) => void} & {param: authAuthenticateSessionTokenRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'gregor.1.auth.authenticateSessionToken', request)
+}
+export function authAuthenticateSessionTokenRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: authAuthenticateSessionTokenResult) => void} & {param: authAuthenticateSessionTokenRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('gregor.1.auth.authenticateSessionToken', request, callback, incomingCallMap) })
 }
 
 export function authAuthenticateSessionTokenRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: authAuthenticateSessionTokenResult) => void} & {param: authAuthenticateSessionTokenRpcParam}>): Promise<authAuthenticateSessionTokenResult> {
@@ -54,6 +75,9 @@ export function authInternalCreateGregorSuperUserSessionTokenRpc (request: Exact
 export function authInternalCreateGregorSuperUserSessionTokenRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: authInternalCreateGregorSuperUserSessionTokenResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'gregor.1.authInternal.createGregorSuperUserSessionToken', request)
 }
+export function authInternalCreateGregorSuperUserSessionTokenRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: authInternalCreateGregorSuperUserSessionTokenResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('gregor.1.authInternal.createGregorSuperUserSessionToken', request, callback, incomingCallMap) })
+}
 
 export function authInternalCreateGregorSuperUserSessionTokenRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: authInternalCreateGregorSuperUserSessionTokenResult) => void}>): Promise<authInternalCreateGregorSuperUserSessionTokenResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('gregor.1.authInternal.createGregorSuperUserSessionToken', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -65,6 +89,9 @@ export function authUpdateRevokeSessionIDsRpc (request: Exact<requestCommon & re
 
 export function authUpdateRevokeSessionIDsRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: authUpdateRevokeSessionIDsRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'gregor.1.authUpdate.revokeSessionIDs', request)
+}
+export function authUpdateRevokeSessionIDsRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: authUpdateRevokeSessionIDsRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('gregor.1.authUpdate.revokeSessionIDs', request, callback, incomingCallMap) })
 }
 
 export function authUpdateRevokeSessionIDsRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: authUpdateRevokeSessionIDsRpcParam}>): Promise<void> {
@@ -78,6 +105,9 @@ export function incomingConsumeMessageRpc (request: Exact<requestCommon & reques
 export function incomingConsumeMessageRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: incomingConsumeMessageRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.consumeMessage', request)
 }
+export function incomingConsumeMessageRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: incomingConsumeMessageRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('gregor.1.incoming.consumeMessage', request, callback, incomingCallMap) })
+}
 
 export function incomingConsumeMessageRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: incomingConsumeMessageRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('gregor.1.incoming.consumeMessage', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -89,6 +119,9 @@ export function incomingConsumePublishMessageRpc (request: Exact<requestCommon &
 
 export function incomingConsumePublishMessageRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: incomingConsumePublishMessageRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.consumePublishMessage', request)
+}
+export function incomingConsumePublishMessageRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: incomingConsumePublishMessageRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('gregor.1.incoming.consumePublishMessage', request, callback, incomingCallMap) })
 }
 
 export function incomingConsumePublishMessageRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: incomingConsumePublishMessageRpcParam}>): Promise<void> {
@@ -102,6 +135,9 @@ export function incomingPingRpc (request: Exact<requestCommon & {callback?: ?(er
 export function incomingPingRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingPingResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.ping', request)
 }
+export function incomingPingRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingPingResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('gregor.1.incoming.ping', request, callback, incomingCallMap) })
+}
 
 export function incomingPingRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingPingResult) => void}>): Promise<incomingPingResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('gregor.1.incoming.ping', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -113,6 +149,9 @@ export function incomingStateByCategoryPrefixRpc (request: Exact<requestCommon &
 
 export function incomingStateByCategoryPrefixRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingStateByCategoryPrefixResult) => void} & {param: incomingStateByCategoryPrefixRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.stateByCategoryPrefix', request)
+}
+export function incomingStateByCategoryPrefixRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingStateByCategoryPrefixResult) => void} & {param: incomingStateByCategoryPrefixRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('gregor.1.incoming.stateByCategoryPrefix', request, callback, incomingCallMap) })
 }
 
 export function incomingStateByCategoryPrefixRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingStateByCategoryPrefixResult) => void} & {param: incomingStateByCategoryPrefixRpcParam}>): Promise<incomingStateByCategoryPrefixResult> {
@@ -126,6 +165,9 @@ export function incomingStateRpc (request: Exact<requestCommon & {callback?: ?(e
 export function incomingStateRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingStateResult) => void} & {param: incomingStateRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.state', request)
 }
+export function incomingStateRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingStateResult) => void} & {param: incomingStateRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('gregor.1.incoming.state', request, callback, incomingCallMap) })
+}
 
 export function incomingStateRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingStateResult) => void} & {param: incomingStateRpcParam}>): Promise<incomingStateResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('gregor.1.incoming.state', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -137,6 +179,9 @@ export function incomingSyncRpc (request: Exact<requestCommon & {callback?: ?(er
 
 export function incomingSyncRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingSyncResult) => void} & {param: incomingSyncRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.sync', request)
+}
+export function incomingSyncRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingSyncResult) => void} & {param: incomingSyncRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('gregor.1.incoming.sync', request, callback, incomingCallMap) })
 }
 
 export function incomingSyncRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingSyncResult) => void} & {param: incomingSyncRpcParam}>): Promise<incomingSyncResult> {
@@ -150,6 +195,9 @@ export function incomingVersionRpc (request: Exact<requestCommon & {callback?: ?
 export function incomingVersionRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingVersionResult) => void} & {param: incomingVersionRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.version', request)
 }
+export function incomingVersionRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingVersionResult) => void} & {param: incomingVersionRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('gregor.1.incoming.version', request, callback, incomingCallMap) })
+}
 
 export function incomingVersionRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingVersionResult) => void} & {param: incomingVersionRpcParam}>): Promise<incomingVersionResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('gregor.1.incoming.version', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -161,6 +209,9 @@ export function outgoingBroadcastMessageRpc (request: Exact<requestCommon & requ
 
 export function outgoingBroadcastMessageRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: outgoingBroadcastMessageRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'gregor.1.outgoing.broadcastMessage', request)
+}
+export function outgoingBroadcastMessageRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: outgoingBroadcastMessageRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('gregor.1.outgoing.broadcastMessage', request, callback, incomingCallMap) })
 }
 
 export function outgoingBroadcastMessageRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: outgoingBroadcastMessageRpcParam}>): Promise<void> {
@@ -174,6 +225,9 @@ export function remindDeleteRemindersRpc (request: Exact<requestCommon & request
 export function remindDeleteRemindersRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: remindDeleteRemindersRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'gregor.1.remind.deleteReminders', request)
 }
+export function remindDeleteRemindersRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: remindDeleteRemindersRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('gregor.1.remind.deleteReminders', request, callback, incomingCallMap) })
+}
 
 export function remindDeleteRemindersRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remindDeleteRemindersRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('gregor.1.remind.deleteReminders', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -185,6 +239,9 @@ export function remindGetRemindersRpc (request: Exact<requestCommon & {callback?
 
 export function remindGetRemindersRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remindGetRemindersResult) => void} & {param: remindGetRemindersRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'gregor.1.remind.getReminders', request)
+}
+export function remindGetRemindersRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remindGetRemindersResult) => void} & {param: remindGetRemindersRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('gregor.1.remind.getReminders', request, callback, incomingCallMap) })
 }
 
 export function remindGetRemindersRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remindGetRemindersResult) => void} & {param: remindGetRemindersRpcParam}>): Promise<remindGetRemindersResult> {

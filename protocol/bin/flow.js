@@ -339,6 +339,7 @@ function write (typeDefs, project) {
 ${project.import || ''}
 import engine, {EngineChannel} from '../../engine'
 import {RPCError} from '../../util/errors'
+import {putOnChannelMap, createChannelMap, closeChannelMap} from '../../util/saga'
 import {Buffer} from 'buffer'
 
 import type {Exact} from './more'
@@ -371,7 +372,7 @@ type CommonResponseHandler = {
 
   const incomingMap = `\nexport type incomingCallMapType = Exact<{\n` +
   Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',\n') + '\n}>\n'
-  const toWrite = [typePrelude, typeDefs.join('\n'), incomingMap].join('\n')
+  const toWrite = [typePrelude, codeGenerators.channelMapPrelude, typeDefs.join('\n'), incomingMap].join('\n')
   fs.writeFileSync(project.out, toWrite)
 }
 

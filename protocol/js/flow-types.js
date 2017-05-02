@@ -6,6 +6,7 @@ import * as gregor1 from './flow-types-gregor'
 
 import engine, {EngineChannel} from '../../engine'
 import {RPCError} from '../../util/errors'
+import {putOnChannelMap, createChannelMap, closeChannelMap} from '../../util/saga'
 import {Buffer} from 'buffer'
 
 import type {Exact} from './more'
@@ -35,6 +36,23 @@ type CommonResponseHandler = {
   error: RPCErrorHandler,
   result: (...rest: Array<void>) => void,
 }
+
+function _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (incomingCallMap: any, callback: Function) => void): ChannelMap<*> {
+  const channelMap = createChannelMap(channelConfig)
+  const incomingCallMap = Object.keys(channelMap).reduce((acc, k) => {
+    acc[k] = (params, response) => {
+      putOnChannelMap(channelMap, k, {params, response})
+    }
+    return acc
+  }, {})
+  const callback = (error, params) => {
+    channelMap['finished'] && putOnChannelMap(channelMap, 'finished', {error, params})
+    closeChannelMap(channelMap)
+  }
+  partialRpcCall(incomingCallMap, callback)
+  return channelMap
+}
+
 
 export const BackendCommonBlockType = {
   data: 0,
@@ -487,6 +505,9 @@ export function BTCRegisterBTCRpc (request: Exact<requestCommon & requestErrorCa
 export function BTCRegisterBTCRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: BTCRegisterBTCRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.BTC.registerBTC', request)
 }
+export function BTCRegisterBTCRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: BTCRegisterBTCRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.BTC.registerBTC', request, callback, incomingCallMap) })
+}
 
 export function BTCRegisterBTCRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: BTCRegisterBTCRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.BTC.registerBTC', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -498,6 +519,9 @@ export function Kex2Provisionee2DidCounterSign2Rpc (request: Exact<requestCommon
 
 export function Kex2Provisionee2DidCounterSign2RpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee2.didCounterSign2', request)
+}
+export function Kex2Provisionee2DidCounterSign2RpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.Kex2Provisionee2.didCounterSign2', request, callback, incomingCallMap) })
 }
 
 export function Kex2Provisionee2DidCounterSign2RpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}>): Promise<void> {
@@ -511,6 +535,9 @@ export function Kex2Provisionee2Hello2Rpc (request: Exact<requestCommon & {callb
 export function Kex2Provisionee2Hello2RpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2Provisionee2Hello2Result) => void} & {param: Kex2Provisionee2Hello2RpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee2.hello2', request)
 }
+export function Kex2Provisionee2Hello2RpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2Provisionee2Hello2Result) => void} & {param: Kex2Provisionee2Hello2RpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.Kex2Provisionee2.hello2', request, callback, incomingCallMap) })
+}
 
 export function Kex2Provisionee2Hello2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2Provisionee2Hello2Result) => void} & {param: Kex2Provisionee2Hello2RpcParam}>): Promise<Kex2Provisionee2Hello2Result> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.Kex2Provisionee2.hello2', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -522,6 +549,9 @@ export function Kex2ProvisioneeDidCounterSignRpc (request: Exact<requestCommon &
 
 export function Kex2ProvisioneeDidCounterSignRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: Kex2ProvisioneeDidCounterSignRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee.didCounterSign', request)
+}
+export function Kex2ProvisioneeDidCounterSignRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: Kex2ProvisioneeDidCounterSignRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.Kex2Provisionee.didCounterSign', request, callback, incomingCallMap) })
 }
 
 export function Kex2ProvisioneeDidCounterSignRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: Kex2ProvisioneeDidCounterSignRpcParam}>): Promise<void> {
@@ -535,6 +565,9 @@ export function Kex2ProvisioneeHelloRpc (request: Exact<requestCommon & {callbac
 export function Kex2ProvisioneeHelloRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2ProvisioneeHelloResult) => void} & {param: Kex2ProvisioneeHelloRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee.hello', request)
 }
+export function Kex2ProvisioneeHelloRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2ProvisioneeHelloResult) => void} & {param: Kex2ProvisioneeHelloRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.Kex2Provisionee.hello', request, callback, incomingCallMap) })
+}
 
 export function Kex2ProvisioneeHelloRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2ProvisioneeHelloResult) => void} & {param: Kex2ProvisioneeHelloRpcParam}>): Promise<Kex2ProvisioneeHelloResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.Kex2Provisionee.hello', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -546,6 +579,9 @@ export function Kex2ProvisionerKexStartRpc (request: Exact<requestCommon & reque
 
 export function Kex2ProvisionerKexStartRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisioner.kexStart', request)
+}
+export function Kex2ProvisionerKexStartRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.Kex2Provisioner.kexStart', request, callback, incomingCallMap) })
 }
 
 export function Kex2ProvisionerKexStartRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
@@ -559,6 +595,9 @@ export function NotifyFSRequestFSEditListRequestRpc (request: Exact<requestCommo
 export function NotifyFSRequestFSEditListRequestRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSEditListRequestRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.NotifyFSRequest.FSEditListRequest', request)
 }
+export function NotifyFSRequestFSEditListRequestRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSEditListRequestRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.NotifyFSRequest.FSEditListRequest', request, callback, incomingCallMap) })
+}
 
 export function NotifyFSRequestFSEditListRequestRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSEditListRequestRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.NotifyFSRequest.FSEditListRequest', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -570,6 +609,9 @@ export function NotifyFSRequestFSSyncStatusRequestRpc (request: Exact<requestCom
 
 export function NotifyFSRequestFSSyncStatusRequestRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSSyncStatusRequestRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.NotifyFSRequest.FSSyncStatusRequest', request)
+}
+export function NotifyFSRequestFSSyncStatusRequestRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSSyncStatusRequestRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.NotifyFSRequest.FSSyncStatusRequest', request, callback, incomingCallMap) })
 }
 
 export function NotifyFSRequestFSSyncStatusRequestRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSSyncStatusRequestRpcParam}>): Promise<void> {
@@ -583,6 +625,9 @@ export function ScanProofsScanProofsRpc (request: Exact<requestCommon & requestE
 export function ScanProofsScanProofsRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: ScanProofsScanProofsRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.ScanProofs.scanProofs', request)
 }
+export function ScanProofsScanProofsRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: ScanProofsScanProofsRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.ScanProofs.scanProofs', request, callback, incomingCallMap) })
+}
 
 export function ScanProofsScanProofsRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: ScanProofsScanProofsRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.ScanProofs.scanProofs', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -594,6 +639,9 @@ export function SecretKeysGetSecretKeysRpc (request: Exact<requestCommon & {call
 
 export function SecretKeysGetSecretKeysRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SecretKeysGetSecretKeysResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SecretKeys.getSecretKeys', request)
+}
+export function SecretKeysGetSecretKeysRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SecretKeysGetSecretKeysResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SecretKeys.getSecretKeys', request, callback, incomingCallMap) })
 }
 
 export function SecretKeysGetSecretKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SecretKeysGetSecretKeysResult) => void}>): Promise<SecretKeysGetSecretKeysResult> {
@@ -607,6 +655,9 @@ export function SimpleFSSimpleFSCancelRpc (request: Exact<requestCommon & reques
 export function SimpleFSSimpleFSCancelRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSCancelRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCancel', request)
 }
+export function SimpleFSSimpleFSCancelRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSCancelRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSCancel', request, callback, incomingCallMap) })
+}
 
 export function SimpleFSSimpleFSCancelRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSCancelRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.SimpleFS.simpleFSCancel', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -618,6 +669,9 @@ export function SimpleFSSimpleFSCheckRpc (request: Exact<requestCommon & {callba
 
 export function SimpleFSSimpleFSCheckRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSCheckResult) => void} & {param: SimpleFSSimpleFSCheckRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCheck', request)
+}
+export function SimpleFSSimpleFSCheckRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSCheckResult) => void} & {param: SimpleFSSimpleFSCheckRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSCheck', request, callback, incomingCallMap) })
 }
 
 export function SimpleFSSimpleFSCheckRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSCheckResult) => void} & {param: SimpleFSSimpleFSCheckRpcParam}>): Promise<SimpleFSSimpleFSCheckResult> {
@@ -631,6 +685,9 @@ export function SimpleFSSimpleFSCloseRpc (request: Exact<requestCommon & request
 export function SimpleFSSimpleFSCloseRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSCloseRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSClose', request)
 }
+export function SimpleFSSimpleFSCloseRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSCloseRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSClose', request, callback, incomingCallMap) })
+}
 
 export function SimpleFSSimpleFSCloseRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSCloseRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.SimpleFS.simpleFSClose', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -642,6 +699,9 @@ export function SimpleFSSimpleFSCopyRecursiveRpc (request: Exact<requestCommon &
 
 export function SimpleFSSimpleFSCopyRecursiveRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSCopyRecursiveRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCopyRecursive', request)
+}
+export function SimpleFSSimpleFSCopyRecursiveRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSCopyRecursiveRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSCopyRecursive', request, callback, incomingCallMap) })
 }
 
 export function SimpleFSSimpleFSCopyRecursiveRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSCopyRecursiveRpcParam}>): Promise<void> {
@@ -655,6 +715,9 @@ export function SimpleFSSimpleFSCopyRpc (request: Exact<requestCommon & requestE
 export function SimpleFSSimpleFSCopyRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSCopyRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSCopy', request)
 }
+export function SimpleFSSimpleFSCopyRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSCopyRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSCopy', request, callback, incomingCallMap) })
+}
 
 export function SimpleFSSimpleFSCopyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSCopyRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.SimpleFS.simpleFSCopy', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -666,6 +729,9 @@ export function SimpleFSSimpleFSGetOpsRpc (request: Exact<requestCommon & {callb
 
 export function SimpleFSSimpleFSGetOpsRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSGetOpsResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSGetOps', request)
+}
+export function SimpleFSSimpleFSGetOpsRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSGetOpsResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSGetOps', request, callback, incomingCallMap) })
 }
 
 export function SimpleFSSimpleFSGetOpsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSGetOpsResult) => void}>): Promise<SimpleFSSimpleFSGetOpsResult> {
@@ -679,6 +745,9 @@ export function SimpleFSSimpleFSListRecursiveRpc (request: Exact<requestCommon &
 export function SimpleFSSimpleFSListRecursiveRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSListRecursiveRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSListRecursive', request)
 }
+export function SimpleFSSimpleFSListRecursiveRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSListRecursiveRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSListRecursive', request, callback, incomingCallMap) })
+}
 
 export function SimpleFSSimpleFSListRecursiveRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSListRecursiveRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.SimpleFS.simpleFSListRecursive', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -690,6 +759,9 @@ export function SimpleFSSimpleFSListRpc (request: Exact<requestCommon & requestE
 
 export function SimpleFSSimpleFSListRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSListRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSList', request)
+}
+export function SimpleFSSimpleFSListRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSListRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSList', request, callback, incomingCallMap) })
 }
 
 export function SimpleFSSimpleFSListRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSListRpcParam}>): Promise<void> {
@@ -703,6 +775,9 @@ export function SimpleFSSimpleFSMakeOpidRpc (request: Exact<requestCommon & {cal
 export function SimpleFSSimpleFSMakeOpidRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSMakeOpidResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSMakeOpid', request)
 }
+export function SimpleFSSimpleFSMakeOpidRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSMakeOpidResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSMakeOpid', request, callback, incomingCallMap) })
+}
 
 export function SimpleFSSimpleFSMakeOpidRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSMakeOpidResult) => void}>): Promise<SimpleFSSimpleFSMakeOpidResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.SimpleFS.simpleFSMakeOpid', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -714,6 +789,9 @@ export function SimpleFSSimpleFSMoveRpc (request: Exact<requestCommon & requestE
 
 export function SimpleFSSimpleFSMoveRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSMoveRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSMove', request)
+}
+export function SimpleFSSimpleFSMoveRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSMoveRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSMove', request, callback, incomingCallMap) })
 }
 
 export function SimpleFSSimpleFSMoveRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSMoveRpcParam}>): Promise<void> {
@@ -727,6 +805,9 @@ export function SimpleFSSimpleFSOpenRpc (request: Exact<requestCommon & requestE
 export function SimpleFSSimpleFSOpenRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSOpenRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSOpen', request)
 }
+export function SimpleFSSimpleFSOpenRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSOpenRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSOpen', request, callback, incomingCallMap) })
+}
 
 export function SimpleFSSimpleFSOpenRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSOpenRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.SimpleFS.simpleFSOpen', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -738,6 +819,9 @@ export function SimpleFSSimpleFSReadListRpc (request: Exact<requestCommon & {cal
 
 export function SimpleFSSimpleFSReadListRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSReadListResult) => void} & {param: SimpleFSSimpleFSReadListRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSReadList', request)
+}
+export function SimpleFSSimpleFSReadListRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSReadListResult) => void} & {param: SimpleFSSimpleFSReadListRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSReadList', request, callback, incomingCallMap) })
 }
 
 export function SimpleFSSimpleFSReadListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSReadListResult) => void} & {param: SimpleFSSimpleFSReadListRpcParam}>): Promise<SimpleFSSimpleFSReadListResult> {
@@ -751,6 +835,9 @@ export function SimpleFSSimpleFSReadRpc (request: Exact<requestCommon & {callbac
 export function SimpleFSSimpleFSReadRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSReadResult) => void} & {param: SimpleFSSimpleFSReadRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSRead', request)
 }
+export function SimpleFSSimpleFSReadRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSReadResult) => void} & {param: SimpleFSSimpleFSReadRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSRead', request, callback, incomingCallMap) })
+}
 
 export function SimpleFSSimpleFSReadRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSReadResult) => void} & {param: SimpleFSSimpleFSReadRpcParam}>): Promise<SimpleFSSimpleFSReadResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.SimpleFS.simpleFSRead', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -762,6 +849,9 @@ export function SimpleFSSimpleFSRemoveRpc (request: Exact<requestCommon & reques
 
 export function SimpleFSSimpleFSRemoveRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSRemoveRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSRemove', request)
+}
+export function SimpleFSSimpleFSRemoveRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSRemoveRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSRemove', request, callback, incomingCallMap) })
 }
 
 export function SimpleFSSimpleFSRemoveRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSRemoveRpcParam}>): Promise<void> {
@@ -775,6 +865,9 @@ export function SimpleFSSimpleFSRenameRpc (request: Exact<requestCommon & reques
 export function SimpleFSSimpleFSRenameRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSRenameRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSRename', request)
 }
+export function SimpleFSSimpleFSRenameRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSRenameRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSRename', request, callback, incomingCallMap) })
+}
 
 export function SimpleFSSimpleFSRenameRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSRenameRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.SimpleFS.simpleFSRename', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -786,6 +879,9 @@ export function SimpleFSSimpleFSSetStatRpc (request: Exact<requestCommon & reque
 
 export function SimpleFSSimpleFSSetStatRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSSetStatRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSSetStat', request)
+}
+export function SimpleFSSimpleFSSetStatRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSSetStatRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSSetStat', request, callback, incomingCallMap) })
 }
 
 export function SimpleFSSimpleFSSetStatRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSSetStatRpcParam}>): Promise<void> {
@@ -799,6 +895,9 @@ export function SimpleFSSimpleFSStatRpc (request: Exact<requestCommon & {callbac
 export function SimpleFSSimpleFSStatRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSStatResult) => void} & {param: SimpleFSSimpleFSStatRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSStat', request)
 }
+export function SimpleFSSimpleFSStatRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSStatResult) => void} & {param: SimpleFSSimpleFSStatRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSStat', request, callback, incomingCallMap) })
+}
 
 export function SimpleFSSimpleFSStatRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSStatResult) => void} & {param: SimpleFSSimpleFSStatRpcParam}>): Promise<SimpleFSSimpleFSStatResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.SimpleFS.simpleFSStat', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -810,6 +909,9 @@ export function SimpleFSSimpleFSWaitRpc (request: Exact<requestCommon & requestE
 
 export function SimpleFSSimpleFSWaitRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSWaitRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSWait', request)
+}
+export function SimpleFSSimpleFSWaitRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSWaitRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSWait', request, callback, incomingCallMap) })
 }
 
 export function SimpleFSSimpleFSWaitRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSWaitRpcParam}>): Promise<void> {
@@ -823,6 +925,9 @@ export function SimpleFSSimpleFSWriteRpc (request: Exact<requestCommon & request
 export function SimpleFSSimpleFSWriteRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSWriteRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSWrite', request)
 }
+export function SimpleFSSimpleFSWriteRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSWriteRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.SimpleFS.simpleFSWrite', request, callback, incomingCallMap) })
+}
 
 export function SimpleFSSimpleFSWriteRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSWriteRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.SimpleFS.simpleFSWrite', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -834,6 +939,9 @@ export function accountEmailChangeRpc (request: Exact<requestCommon & requestErr
 
 export function accountEmailChangeRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: accountEmailChangeRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.emailChange', request)
+}
+export function accountEmailChangeRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: accountEmailChangeRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.account.emailChange', request, callback, incomingCallMap) })
 }
 
 export function accountEmailChangeRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: accountEmailChangeRpcParam}>): Promise<void> {
@@ -847,6 +955,9 @@ export function accountHasServerKeysRpc (request: Exact<requestCommon & {callbac
 export function accountHasServerKeysRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountHasServerKeysResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.hasServerKeys', request)
 }
+export function accountHasServerKeysRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountHasServerKeysResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.account.hasServerKeys', request, callback, incomingCallMap) })
+}
 
 export function accountHasServerKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountHasServerKeysResult) => void}>): Promise<accountHasServerKeysResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.account.hasServerKeys', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -858,6 +969,9 @@ export function accountPassphraseChangeRpc (request: Exact<requestCommon & reque
 
 export function accountPassphraseChangeRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: accountPassphraseChangeRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.passphraseChange', request)
+}
+export function accountPassphraseChangeRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: accountPassphraseChangeRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.account.passphraseChange', request, callback, incomingCallMap) })
 }
 
 export function accountPassphraseChangeRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: accountPassphraseChangeRpcParam}>): Promise<void> {
@@ -871,6 +985,9 @@ export function accountPassphrasePromptRpc (request: Exact<requestCommon & {call
 export function accountPassphrasePromptRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountPassphrasePromptResult) => void} & {param: accountPassphrasePromptRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.passphrasePrompt', request)
 }
+export function accountPassphrasePromptRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountPassphrasePromptResult) => void} & {param: accountPassphrasePromptRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.account.passphrasePrompt', request, callback, incomingCallMap) })
+}
 
 export function accountPassphrasePromptRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountPassphrasePromptResult) => void} & {param: accountPassphrasePromptRpcParam}>): Promise<accountPassphrasePromptResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.account.passphrasePrompt', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -882,6 +999,9 @@ export function accountResetAccountRpc (request: Exact<requestCommon & requestEr
 
 export function accountResetAccountRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.account.resetAccount', request)
+}
+export function accountResetAccountRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.account.resetAccount', request, callback, incomingCallMap) })
 }
 
 export function accountResetAccountRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
@@ -895,6 +1015,9 @@ export function apiserverDeleteRpc (request: Exact<requestCommon & {callback?: ?
 export function apiserverDeleteRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverDeleteResult) => void} & {param: apiserverDeleteRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.Delete', request)
 }
+export function apiserverDeleteRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverDeleteResult) => void} & {param: apiserverDeleteRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.apiserver.Delete', request, callback, incomingCallMap) })
+}
 
 export function apiserverDeleteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverDeleteResult) => void} & {param: apiserverDeleteRpcParam}>): Promise<apiserverDeleteResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.apiserver.Delete', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -906,6 +1029,9 @@ export function apiserverGetRpc (request: Exact<requestCommon & {callback?: ?(er
 
 export function apiserverGetRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetResult) => void} & {param: apiserverGetRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.Get', request)
+}
+export function apiserverGetRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetResult) => void} & {param: apiserverGetRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.apiserver.Get', request, callback, incomingCallMap) })
 }
 
 export function apiserverGetRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetResult) => void} & {param: apiserverGetRpcParam}>): Promise<apiserverGetResult> {
@@ -919,6 +1045,9 @@ export function apiserverGetWithSessionRpc (request: Exact<requestCommon & {call
 export function apiserverGetWithSessionRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetWithSessionResult) => void} & {param: apiserverGetWithSessionRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.GetWithSession', request)
 }
+export function apiserverGetWithSessionRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetWithSessionResult) => void} & {param: apiserverGetWithSessionRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.apiserver.GetWithSession', request, callback, incomingCallMap) })
+}
 
 export function apiserverGetWithSessionRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetWithSessionResult) => void} & {param: apiserverGetWithSessionRpcParam}>): Promise<apiserverGetWithSessionResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.apiserver.GetWithSession', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -930,6 +1059,9 @@ export function apiserverPostJSONRpc (request: Exact<requestCommon & {callback?:
 
 export function apiserverPostJSONRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostJSONResult) => void} & {param: apiserverPostJSONRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.PostJSON', request)
+}
+export function apiserverPostJSONRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostJSONResult) => void} & {param: apiserverPostJSONRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.apiserver.PostJSON', request, callback, incomingCallMap) })
 }
 
 export function apiserverPostJSONRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostJSONResult) => void} & {param: apiserverPostJSONRpcParam}>): Promise<apiserverPostJSONResult> {
@@ -943,6 +1075,9 @@ export function apiserverPostRpc (request: Exact<requestCommon & {callback?: ?(e
 export function apiserverPostRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostResult) => void} & {param: apiserverPostRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.apiserver.Post', request)
 }
+export function apiserverPostRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostResult) => void} & {param: apiserverPostRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.apiserver.Post', request, callback, incomingCallMap) })
+}
 
 export function apiserverPostRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostResult) => void} & {param: apiserverPostRpcParam}>): Promise<apiserverPostResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.apiserver.Post', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -954,6 +1089,9 @@ export function blockAddReferenceRpc (request: Exact<requestCommon & requestErro
 
 export function blockAddReferenceRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: blockAddReferenceRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.addReference', request)
+}
+export function blockAddReferenceRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: blockAddReferenceRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.addReference', request, callback, incomingCallMap) })
 }
 
 export function blockAddReferenceRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: blockAddReferenceRpcParam}>): Promise<void> {
@@ -967,6 +1105,9 @@ export function blockArchiveReferenceRpc (request: Exact<requestCommon & {callba
 export function blockArchiveReferenceRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceResult) => void} & {param: blockArchiveReferenceRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.archiveReference', request)
 }
+export function blockArchiveReferenceRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceResult) => void} & {param: blockArchiveReferenceRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.archiveReference', request, callback, incomingCallMap) })
+}
 
 export function blockArchiveReferenceRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceResult) => void} & {param: blockArchiveReferenceRpcParam}>): Promise<blockArchiveReferenceResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.block.archiveReference', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -978,6 +1119,9 @@ export function blockArchiveReferenceWithCountRpc (request: Exact<requestCommon 
 
 export function blockArchiveReferenceWithCountRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceWithCountResult) => void} & {param: blockArchiveReferenceWithCountRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.archiveReferenceWithCount', request)
+}
+export function blockArchiveReferenceWithCountRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceWithCountResult) => void} & {param: blockArchiveReferenceWithCountRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.archiveReferenceWithCount', request, callback, incomingCallMap) })
 }
 
 export function blockArchiveReferenceWithCountRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceWithCountResult) => void} & {param: blockArchiveReferenceWithCountRpcParam}>): Promise<blockArchiveReferenceWithCountResult> {
@@ -991,6 +1135,9 @@ export function blockAuthenticateSessionRpc (request: Exact<requestCommon & requ
 export function blockAuthenticateSessionRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: blockAuthenticateSessionRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.authenticateSession', request)
 }
+export function blockAuthenticateSessionRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: blockAuthenticateSessionRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.authenticateSession', request, callback, incomingCallMap) })
+}
 
 export function blockAuthenticateSessionRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: blockAuthenticateSessionRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.block.authenticateSession', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1002,6 +1149,9 @@ export function blockBlockPingRpc (request: Exact<requestCommon & {callback?: ?(
 
 export function blockBlockPingRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockBlockPingResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.blockPing', request)
+}
+export function blockBlockPingRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockBlockPingResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.blockPing', request, callback, incomingCallMap) })
 }
 
 export function blockBlockPingRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockBlockPingResult) => void}>): Promise<blockBlockPingResult> {
@@ -1015,6 +1165,9 @@ export function blockDelReferenceRpc (request: Exact<requestCommon & requestErro
 export function blockDelReferenceRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: blockDelReferenceRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.delReference', request)
 }
+export function blockDelReferenceRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: blockDelReferenceRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.delReference', request, callback, incomingCallMap) })
+}
 
 export function blockDelReferenceRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: blockDelReferenceRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.block.delReference', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1026,6 +1179,9 @@ export function blockDelReferenceWithCountRpc (request: Exact<requestCommon & {c
 
 export function blockDelReferenceWithCountRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockDelReferenceWithCountResult) => void} & {param: blockDelReferenceWithCountRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.delReferenceWithCount', request)
+}
+export function blockDelReferenceWithCountRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockDelReferenceWithCountResult) => void} & {param: blockDelReferenceWithCountRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.delReferenceWithCount', request, callback, incomingCallMap) })
 }
 
 export function blockDelReferenceWithCountRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockDelReferenceWithCountResult) => void} & {param: blockDelReferenceWithCountRpcParam}>): Promise<blockDelReferenceWithCountResult> {
@@ -1039,6 +1195,9 @@ export function blockGetBlockRpc (request: Exact<requestCommon & {callback?: ?(e
 export function blockGetBlockRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetBlockResult) => void} & {param: blockGetBlockRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getBlock', request)
 }
+export function blockGetBlockRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetBlockResult) => void} & {param: blockGetBlockRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.getBlock', request, callback, incomingCallMap) })
+}
 
 export function blockGetBlockRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetBlockResult) => void} & {param: blockGetBlockRpcParam}>): Promise<blockGetBlockResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.block.getBlock', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1050,6 +1209,9 @@ export function blockGetSessionChallengeRpc (request: Exact<requestCommon & {cal
 
 export function blockGetSessionChallengeRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetSessionChallengeResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getSessionChallenge', request)
+}
+export function blockGetSessionChallengeRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetSessionChallengeResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.getSessionChallenge', request, callback, incomingCallMap) })
 }
 
 export function blockGetSessionChallengeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetSessionChallengeResult) => void}>): Promise<blockGetSessionChallengeResult> {
@@ -1063,6 +1225,9 @@ export function blockGetUserQuotaInfoRpc (request: Exact<requestCommon & {callba
 export function blockGetUserQuotaInfoRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetUserQuotaInfoResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getUserQuotaInfo', request)
 }
+export function blockGetUserQuotaInfoRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetUserQuotaInfoResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.getUserQuotaInfo', request, callback, incomingCallMap) })
+}
 
 export function blockGetUserQuotaInfoRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetUserQuotaInfoResult) => void}>): Promise<blockGetUserQuotaInfoResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.block.getUserQuotaInfo', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1074,6 +1239,9 @@ export function blockPutBlockRpc (request: Exact<requestCommon & requestErrorCal
 
 export function blockPutBlockRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: blockPutBlockRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.putBlock', request)
+}
+export function blockPutBlockRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: blockPutBlockRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.putBlock', request, callback, incomingCallMap) })
 }
 
 export function blockPutBlockRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: blockPutBlockRpcParam}>): Promise<void> {
@@ -1087,6 +1255,9 @@ export function configCheckAPIServerOutOfDateWarningRpc (request: Exact<requestC
 export function configCheckAPIServerOutOfDateWarningRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.checkAPIServerOutOfDateWarning', request)
 }
+export function configCheckAPIServerOutOfDateWarningRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.config.checkAPIServerOutOfDateWarning', request, callback, incomingCallMap) })
+}
 
 export function configCheckAPIServerOutOfDateWarningRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void}>): Promise<configCheckAPIServerOutOfDateWarningResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.config.checkAPIServerOutOfDateWarning', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1098,6 +1269,9 @@ export function configClearValueRpc (request: Exact<requestCommon & requestError
 
 export function configClearValueRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: configClearValueRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.clearValue', request)
+}
+export function configClearValueRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: configClearValueRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.config.clearValue', request, callback, incomingCallMap) })
 }
 
 export function configClearValueRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configClearValueRpcParam}>): Promise<void> {
@@ -1111,6 +1285,9 @@ export function configGetBootstrapStatusRpc (request: Exact<requestCommon & {cal
 export function configGetBootstrapStatusRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetBootstrapStatusResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getBootstrapStatus', request)
 }
+export function configGetBootstrapStatusRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetBootstrapStatusResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.config.getBootstrapStatus', request, callback, incomingCallMap) })
+}
 
 export function configGetBootstrapStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetBootstrapStatusResult) => void}>): Promise<configGetBootstrapStatusResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.config.getBootstrapStatus', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1122,6 +1299,9 @@ export function configGetConfigRpc (request: Exact<requestCommon & {callback?: ?
 
 export function configGetConfigRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetConfigResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getConfig', request)
+}
+export function configGetConfigRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetConfigResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.config.getConfig', request, callback, incomingCallMap) })
 }
 
 export function configGetConfigRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetConfigResult) => void}>): Promise<configGetConfigResult> {
@@ -1135,6 +1315,9 @@ export function configGetCurrentStatusRpc (request: Exact<requestCommon & {callb
 export function configGetCurrentStatusRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetCurrentStatusResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getCurrentStatus', request)
 }
+export function configGetCurrentStatusRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetCurrentStatusResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.config.getCurrentStatus', request, callback, incomingCallMap) })
+}
 
 export function configGetCurrentStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetCurrentStatusResult) => void}>): Promise<configGetCurrentStatusResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.config.getCurrentStatus', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1146,6 +1329,9 @@ export function configGetExtendedStatusRpc (request: Exact<requestCommon & {call
 
 export function configGetExtendedStatusRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetExtendedStatusResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getExtendedStatus', request)
+}
+export function configGetExtendedStatusRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetExtendedStatusResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.config.getExtendedStatus', request, callback, incomingCallMap) })
 }
 
 export function configGetExtendedStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetExtendedStatusResult) => void}>): Promise<configGetExtendedStatusResult> {
@@ -1159,6 +1345,9 @@ export function configGetValueRpc (request: Exact<requestCommon & {callback?: ?(
 export function configGetValueRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetValueResult) => void} & {param: configGetValueRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.getValue', request)
 }
+export function configGetValueRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetValueResult) => void} & {param: configGetValueRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.config.getValue', request, callback, incomingCallMap) })
+}
 
 export function configGetValueRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetValueResult) => void} & {param: configGetValueRpcParam}>): Promise<configGetValueResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.config.getValue', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1170,6 +1359,9 @@ export function configHelloIAmRpc (request: Exact<requestCommon & requestErrorCa
 
 export function configHelloIAmRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: configHelloIAmRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.helloIAm', request)
+}
+export function configHelloIAmRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: configHelloIAmRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.config.helloIAm', request, callback, incomingCallMap) })
 }
 
 export function configHelloIAmRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configHelloIAmRpcParam}>): Promise<void> {
@@ -1183,6 +1375,9 @@ export function configSetPathRpc (request: Exact<requestCommon & requestErrorCal
 export function configSetPathRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: configSetPathRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setPath', request)
 }
+export function configSetPathRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: configSetPathRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.config.setPath', request, callback, incomingCallMap) })
+}
 
 export function configSetPathRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configSetPathRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.config.setPath', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1194,6 +1389,9 @@ export function configSetUserConfigRpc (request: Exact<requestCommon & requestEr
 
 export function configSetUserConfigRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: configSetUserConfigRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setUserConfig', request)
+}
+export function configSetUserConfigRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: configSetUserConfigRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.config.setUserConfig', request, callback, incomingCallMap) })
 }
 
 export function configSetUserConfigRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configSetUserConfigRpcParam}>): Promise<void> {
@@ -1207,6 +1405,9 @@ export function configSetValueRpc (request: Exact<requestCommon & requestErrorCa
 export function configSetValueRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: configSetValueRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.setValue', request)
 }
+export function configSetValueRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: configSetValueRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.config.setValue', request, callback, incomingCallMap) })
+}
 
 export function configSetValueRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configSetValueRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.config.setValue', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1218,6 +1419,9 @@ export function configWaitForClientRpc (request: Exact<requestCommon & {callback
 
 export function configWaitForClientRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configWaitForClientResult) => void} & {param: configWaitForClientRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.config.waitForClient', request)
+}
+export function configWaitForClientRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configWaitForClientResult) => void} & {param: configWaitForClientRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.config.waitForClient', request, callback, incomingCallMap) })
 }
 
 export function configWaitForClientRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configWaitForClientResult) => void} & {param: configWaitForClientRpcParam}>): Promise<configWaitForClientResult> {
@@ -1231,6 +1435,9 @@ export function cryptoSignED25519ForKBFSRpc (request: Exact<requestCommon & {cal
 export function cryptoSignED25519ForKBFSRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519ForKBFSResult) => void} & {param: cryptoSignED25519ForKBFSRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signED25519ForKBFS', request)
 }
+export function cryptoSignED25519ForKBFSRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519ForKBFSResult) => void} & {param: cryptoSignED25519ForKBFSRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.crypto.signED25519ForKBFS', request, callback, incomingCallMap) })
+}
 
 export function cryptoSignED25519ForKBFSRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519ForKBFSResult) => void} & {param: cryptoSignED25519ForKBFSRpcParam}>): Promise<cryptoSignED25519ForKBFSResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.crypto.signED25519ForKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1242,6 +1449,9 @@ export function cryptoSignED25519Rpc (request: Exact<requestCommon & {callback?:
 
 export function cryptoSignED25519RpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519Result) => void} & {param: cryptoSignED25519RpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signED25519', request)
+}
+export function cryptoSignED25519RpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519Result) => void} & {param: cryptoSignED25519RpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.crypto.signED25519', request, callback, incomingCallMap) })
 }
 
 export function cryptoSignED25519RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519Result) => void} & {param: cryptoSignED25519RpcParam}>): Promise<cryptoSignED25519Result> {
@@ -1255,6 +1465,9 @@ export function cryptoSignToStringRpc (request: Exact<requestCommon & {callback?
 export function cryptoSignToStringRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignToStringResult) => void} & {param: cryptoSignToStringRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signToString', request)
 }
+export function cryptoSignToStringRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignToStringResult) => void} & {param: cryptoSignToStringRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.crypto.signToString', request, callback, incomingCallMap) })
+}
 
 export function cryptoSignToStringRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignToStringResult) => void} & {param: cryptoSignToStringRpcParam}>): Promise<cryptoSignToStringResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.crypto.signToString', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1266,6 +1479,9 @@ export function cryptoUnboxBytes32AnyRpc (request: Exact<requestCommon & {callba
 
 export function cryptoUnboxBytes32AnyRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32AnyResult) => void} & {param: cryptoUnboxBytes32AnyRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.unboxBytes32Any', request)
+}
+export function cryptoUnboxBytes32AnyRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32AnyResult) => void} & {param: cryptoUnboxBytes32AnyRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.crypto.unboxBytes32Any', request, callback, incomingCallMap) })
 }
 
 export function cryptoUnboxBytes32AnyRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32AnyResult) => void} & {param: cryptoUnboxBytes32AnyRpcParam}>): Promise<cryptoUnboxBytes32AnyResult> {
@@ -1279,6 +1495,9 @@ export function cryptoUnboxBytes32Rpc (request: Exact<requestCommon & {callback?
 export function cryptoUnboxBytes32RpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32Result) => void} & {param: cryptoUnboxBytes32RpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.unboxBytes32', request)
 }
+export function cryptoUnboxBytes32RpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32Result) => void} & {param: cryptoUnboxBytes32RpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.crypto.unboxBytes32', request, callback, incomingCallMap) })
+}
 
 export function cryptoUnboxBytes32RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32Result) => void} & {param: cryptoUnboxBytes32RpcParam}>): Promise<cryptoUnboxBytes32Result> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.crypto.unboxBytes32', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1290,6 +1509,9 @@ export function cryptocurrencyRegisterAddressRpc (request: Exact<requestCommon &
 
 export function cryptocurrencyRegisterAddressRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptocurrencyRegisterAddressResult) => void} & {param: cryptocurrencyRegisterAddressRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.cryptocurrency.registerAddress', request)
+}
+export function cryptocurrencyRegisterAddressRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptocurrencyRegisterAddressResult) => void} & {param: cryptocurrencyRegisterAddressRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.cryptocurrency.registerAddress', request, callback, incomingCallMap) })
 }
 
 export function cryptocurrencyRegisterAddressRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptocurrencyRegisterAddressResult) => void} & {param: cryptocurrencyRegisterAddressRpcParam}>): Promise<cryptocurrencyRegisterAddressResult> {
@@ -1303,6 +1525,9 @@ export function ctlAppExitRpc (request: Exact<requestCommon & requestErrorCallba
 export function ctlAppExitRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.appExit', request)
 }
+export function ctlAppExitRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.ctl.appExit', request, callback, incomingCallMap) })
+}
 
 export function ctlAppExitRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.ctl.appExit', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1314,6 +1539,9 @@ export function ctlDbDeleteRpc (request: Exact<requestCommon & requestErrorCallb
 
 export function ctlDbDeleteRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: ctlDbDeleteRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbDelete', request)
+}
+export function ctlDbDeleteRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: ctlDbDeleteRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.ctl.dbDelete', request, callback, incomingCallMap) })
 }
 
 export function ctlDbDeleteRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: ctlDbDeleteRpcParam}>): Promise<void> {
@@ -1327,6 +1555,9 @@ export function ctlDbGetRpc (request: Exact<requestCommon & {callback?: ?(err: ?
 export function ctlDbGetRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: ctlDbGetResult) => void} & {param: ctlDbGetRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbGet', request)
 }
+export function ctlDbGetRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: ctlDbGetResult) => void} & {param: ctlDbGetRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.ctl.dbGet', request, callback, incomingCallMap) })
+}
 
 export function ctlDbGetRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: ctlDbGetResult) => void} & {param: ctlDbGetRpcParam}>): Promise<ctlDbGetResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.ctl.dbGet', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1338,6 +1569,9 @@ export function ctlDbNukeRpc (request: Exact<requestCommon & requestErrorCallbac
 
 export function ctlDbNukeRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbNuke', request)
+}
+export function ctlDbNukeRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.ctl.dbNuke', request, callback, incomingCallMap) })
 }
 
 export function ctlDbNukeRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
@@ -1351,6 +1585,9 @@ export function ctlDbPutRpc (request: Exact<requestCommon & requestErrorCallback
 export function ctlDbPutRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: ctlDbPutRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.dbPut', request)
 }
+export function ctlDbPutRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: ctlDbPutRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.ctl.dbPut', request, callback, incomingCallMap) })
+}
 
 export function ctlDbPutRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: ctlDbPutRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.ctl.dbPut', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1362,6 +1599,9 @@ export function ctlLogRotateRpc (request: Exact<requestCommon & requestErrorCall
 
 export function ctlLogRotateRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.logRotate', request)
+}
+export function ctlLogRotateRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.ctl.logRotate', request, callback, incomingCallMap) })
 }
 
 export function ctlLogRotateRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
@@ -1375,6 +1615,9 @@ export function ctlReloadRpc (request: Exact<requestCommon & requestErrorCallbac
 export function ctlReloadRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.reload', request)
 }
+export function ctlReloadRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.ctl.reload', request, callback, incomingCallMap) })
+}
 
 export function ctlReloadRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.ctl.reload', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1386,6 +1629,9 @@ export function ctlStopRpc (request: Exact<requestCommon & requestErrorCallback 
 
 export function ctlStopRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: ctlStopRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.ctl.stop', request)
+}
+export function ctlStopRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: ctlStopRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.ctl.stop', request, callback, incomingCallMap) })
 }
 
 export function ctlStopRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: ctlStopRpcParam}>): Promise<void> {
@@ -1399,6 +1645,9 @@ export function debuggingFirstStepRpc (request: Exact<requestCommon & {callback?
 export function debuggingFirstStepRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingFirstStepResult) => void} & {param: debuggingFirstStepRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.firstStep', request)
 }
+export function debuggingFirstStepRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingFirstStepResult) => void} & {param: debuggingFirstStepRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.debugging.firstStep', request, callback, incomingCallMap) })
+}
 
 export function debuggingFirstStepRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingFirstStepResult) => void} & {param: debuggingFirstStepRpcParam}>): Promise<debuggingFirstStepResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.debugging.firstStep', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1410,6 +1659,9 @@ export function debuggingIncrementRpc (request: Exact<requestCommon & {callback?
 
 export function debuggingIncrementRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingIncrementResult) => void} & {param: debuggingIncrementRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.increment', request)
+}
+export function debuggingIncrementRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingIncrementResult) => void} & {param: debuggingIncrementRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.debugging.increment', request, callback, incomingCallMap) })
 }
 
 export function debuggingIncrementRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingIncrementResult) => void} & {param: debuggingIncrementRpcParam}>): Promise<debuggingIncrementResult> {
@@ -1423,6 +1675,9 @@ export function debuggingSecondStepRpc (request: Exact<requestCommon & {callback
 export function debuggingSecondStepRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingSecondStepResult) => void} & {param: debuggingSecondStepRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.secondStep', request)
 }
+export function debuggingSecondStepRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingSecondStepResult) => void} & {param: debuggingSecondStepRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.debugging.secondStep', request, callback, incomingCallMap) })
+}
 
 export function debuggingSecondStepRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingSecondStepResult) => void} & {param: debuggingSecondStepRpcParam}>): Promise<debuggingSecondStepResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.debugging.secondStep', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1434,6 +1689,9 @@ export function delegateUiCtlRegisterGregorFirehoseRpc (request: Exact<requestCo
 
 export function delegateUiCtlRegisterGregorFirehoseRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerGregorFirehose', request)
+}
+export function delegateUiCtlRegisterGregorFirehoseRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.delegateUiCtl.registerGregorFirehose', request, callback, incomingCallMap) })
 }
 
 export function delegateUiCtlRegisterGregorFirehoseRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
@@ -1447,6 +1705,9 @@ export function delegateUiCtlRegisterIdentifyUIRpc (request: Exact<requestCommon
 export function delegateUiCtlRegisterIdentifyUIRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerIdentifyUI', request)
 }
+export function delegateUiCtlRegisterIdentifyUIRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.delegateUiCtl.registerIdentifyUI', request, callback, incomingCallMap) })
+}
 
 export function delegateUiCtlRegisterIdentifyUIRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.delegateUiCtl.registerIdentifyUI', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1458,6 +1719,9 @@ export function delegateUiCtlRegisterRekeyUIRpc (request: Exact<requestCommon & 
 
 export function delegateUiCtlRegisterRekeyUIRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerRekeyUI', request)
+}
+export function delegateUiCtlRegisterRekeyUIRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.delegateUiCtl.registerRekeyUI', request, callback, incomingCallMap) })
 }
 
 export function delegateUiCtlRegisterRekeyUIRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
@@ -1471,6 +1735,9 @@ export function delegateUiCtlRegisterSecretUIRpc (request: Exact<requestCommon &
 export function delegateUiCtlRegisterSecretUIRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerSecretUI', request)
 }
+export function delegateUiCtlRegisterSecretUIRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.delegateUiCtl.registerSecretUI', request, callback, incomingCallMap) })
+}
 
 export function delegateUiCtlRegisterSecretUIRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.delegateUiCtl.registerSecretUI', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1482,6 +1749,9 @@ export function delegateUiCtlRegisterUpdateUIRpc (request: Exact<requestCommon &
 
 export function delegateUiCtlRegisterUpdateUIRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerUpdateUI', request)
+}
+export function delegateUiCtlRegisterUpdateUIRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.delegateUiCtl.registerUpdateUI', request, callback, incomingCallMap) })
 }
 
 export function delegateUiCtlRegisterUpdateUIRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
@@ -1495,6 +1765,9 @@ export function deviceCheckDeviceNameForUserRpc (request: Exact<requestCommon & 
 export function deviceCheckDeviceNameForUserRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: deviceCheckDeviceNameForUserRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.checkDeviceNameForUser', request)
 }
+export function deviceCheckDeviceNameForUserRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: deviceCheckDeviceNameForUserRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.device.checkDeviceNameForUser', request, callback, incomingCallMap) })
+}
 
 export function deviceCheckDeviceNameForUserRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: deviceCheckDeviceNameForUserRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.device.checkDeviceNameForUser', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1506,6 +1779,9 @@ export function deviceCheckDeviceNameFormatRpc (request: Exact<requestCommon & {
 
 export function deviceCheckDeviceNameFormatRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceCheckDeviceNameFormatResult) => void} & {param: deviceCheckDeviceNameFormatRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.checkDeviceNameFormat', request)
+}
+export function deviceCheckDeviceNameFormatRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceCheckDeviceNameFormatResult) => void} & {param: deviceCheckDeviceNameFormatRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.device.checkDeviceNameFormat', request, callback, incomingCallMap) })
 }
 
 export function deviceCheckDeviceNameFormatRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceCheckDeviceNameFormatResult) => void} & {param: deviceCheckDeviceNameFormatRpcParam}>): Promise<deviceCheckDeviceNameFormatResult> {
@@ -1519,6 +1795,9 @@ export function deviceDeviceAddRpc (request: Exact<requestCommon & requestErrorC
 export function deviceDeviceAddRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceAdd', request)
 }
+export function deviceDeviceAddRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.device.deviceAdd', request, callback, incomingCallMap) })
+}
 
 export function deviceDeviceAddRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.device.deviceAdd', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1530,6 +1809,9 @@ export function deviceDeviceHistoryListRpc (request: Exact<requestCommon & {call
 
 export function deviceDeviceHistoryListRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceHistoryListResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceHistoryList', request)
+}
+export function deviceDeviceHistoryListRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceHistoryListResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.device.deviceHistoryList', request, callback, incomingCallMap) })
 }
 
 export function deviceDeviceHistoryListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceHistoryListResult) => void}>): Promise<deviceDeviceHistoryListResult> {
@@ -1543,6 +1825,9 @@ export function deviceDeviceListRpc (request: Exact<requestCommon & {callback?: 
 export function deviceDeviceListRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceListResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.device.deviceList', request)
 }
+export function deviceDeviceListRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceListResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.device.deviceList', request, callback, incomingCallMap) })
+}
 
 export function deviceDeviceListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceListResult) => void}>): Promise<deviceDeviceListResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.device.deviceList', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1554,6 +1839,9 @@ export function favoriteFavoriteAddRpc (request: Exact<requestCommon & requestEr
 
 export function favoriteFavoriteAddRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteAddRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.favorite.favoriteAdd', request)
+}
+export function favoriteFavoriteAddRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteAddRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.favorite.favoriteAdd', request, callback, incomingCallMap) })
 }
 
 export function favoriteFavoriteAddRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteAddRpcParam}>): Promise<void> {
@@ -1567,6 +1855,9 @@ export function favoriteFavoriteIgnoreRpc (request: Exact<requestCommon & reques
 export function favoriteFavoriteIgnoreRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteIgnoreRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.favorite.favoriteIgnore', request)
 }
+export function favoriteFavoriteIgnoreRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteIgnoreRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.favorite.favoriteIgnore', request, callback, incomingCallMap) })
+}
 
 export function favoriteFavoriteIgnoreRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteIgnoreRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.favorite.favoriteIgnore', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1578,6 +1869,9 @@ export function favoriteGetFavoritesRpc (request: Exact<requestCommon & {callbac
 
 export function favoriteGetFavoritesRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: favoriteGetFavoritesResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.favorite.getFavorites', request)
+}
+export function favoriteGetFavoritesRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: favoriteGetFavoritesResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.favorite.getFavorites', request, callback, incomingCallMap) })
 }
 
 export function favoriteGetFavoritesRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: favoriteGetFavoritesResult) => void}>): Promise<favoriteGetFavoritesResult> {
@@ -1591,6 +1885,9 @@ export function fsListRpc (request: Exact<requestCommon & {callback?: ?(err: ?an
 export function fsListRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: fsListResult) => void} & {param: fsListRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.fs.List', request)
 }
+export function fsListRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: fsListResult) => void} & {param: fsListRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.fs.List', request, callback, incomingCallMap) })
+}
 
 export function fsListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: fsListResult) => void} & {param: fsListRpcParam}>): Promise<fsListResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.fs.List', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1602,6 +1899,9 @@ export function gregorGetStateRpc (request: Exact<requestCommon & {callback?: ?(
 
 export function gregorGetStateRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.getState', request)
+}
+export function gregorGetStateRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.gregor.getState', request, callback, incomingCallMap) })
 }
 
 export function gregorGetStateRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}>): Promise<gregorGetStateResult> {
@@ -1615,6 +1915,9 @@ export function identifyIdentify2Rpc (request: Exact<requestCommon & {callback?:
 export function identifyIdentify2RpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentify2Result) => void} & {param: identifyIdentify2RpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.identify2', request)
 }
+export function identifyIdentify2RpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentify2Result) => void} & {param: identifyIdentify2RpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.identify.identify2', request, callback, incomingCallMap) })
+}
 
 export function identifyIdentify2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentify2Result) => void} & {param: identifyIdentify2RpcParam}>): Promise<identifyIdentify2Result> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.identify2', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1626,6 +1929,9 @@ export function identifyIdentifyRpc (request: Exact<requestCommon & {callback?: 
 
 export function identifyIdentifyRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.identify', request)
+}
+export function identifyIdentifyRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.identify.identify', request, callback, incomingCallMap) })
 }
 
 export function identifyIdentifyRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam}>): Promise<identifyIdentifyResult> {
@@ -1639,6 +1945,9 @@ export function identifyResolve2Rpc (request: Exact<requestCommon & {callback?: 
 export function identifyResolve2RpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve2Result) => void} & {param: identifyResolve2RpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.Resolve2', request)
 }
+export function identifyResolve2RpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve2Result) => void} & {param: identifyResolve2RpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.identify.Resolve2', request, callback, incomingCallMap) })
+}
 
 export function identifyResolve2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve2Result) => void} & {param: identifyResolve2RpcParam}>): Promise<identifyResolve2Result> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve2', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1650,6 +1959,9 @@ export function identifyResolveRpc (request: Exact<requestCommon & {callback?: ?
 
 export function identifyResolveRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.Resolve', request)
+}
+export function identifyResolveRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.identify.Resolve', request, callback, incomingCallMap) })
 }
 
 export function identifyResolveRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam}>): Promise<identifyResolveResult> {
@@ -1663,6 +1975,9 @@ export function kbfsFSEditListRpc (request: Exact<requestCommon & requestErrorCa
 export function kbfsFSEditListRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSEditList', request)
 }
+export function kbfsFSEditListRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.kbfs.FSEditList', request, callback, incomingCallMap) })
+}
 
 export function kbfsFSEditListRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.kbfs.FSEditList', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1674,6 +1989,9 @@ export function kbfsFSEventRpc (request: Exact<requestCommon & requestErrorCallb
 
 export function kbfsFSEventRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEventRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSEvent', request)
+}
+export function kbfsFSEventRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEventRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.kbfs.FSEvent', request, callback, incomingCallMap) })
 }
 
 export function kbfsFSEventRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEventRpcParam}>): Promise<void> {
@@ -1687,6 +2005,9 @@ export function kbfsFSSyncEventRpc (request: Exact<requestCommon & requestErrorC
 export function kbfsFSSyncEventRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncEventRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSSyncEvent', request)
 }
+export function kbfsFSSyncEventRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncEventRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.kbfs.FSSyncEvent', request, callback, incomingCallMap) })
+}
 
 export function kbfsFSSyncEventRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncEventRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.kbfs.FSSyncEvent', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1698,6 +2019,9 @@ export function kbfsFSSyncStatusRpc (request: Exact<requestCommon & requestError
 
 export function kbfsFSSyncStatusRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncStatusRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSSyncStatus', request)
+}
+export function kbfsFSSyncStatusRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncStatusRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.kbfs.FSSyncStatus', request, callback, incomingCallMap) })
 }
 
 export function kbfsFSSyncStatusRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncStatusRpcParam}>): Promise<void> {
@@ -1711,6 +2035,9 @@ export function kbfsMountGetAllAvailableMountDirsRpc (request: Exact<requestComm
 export function kbfsMountGetAllAvailableMountDirsRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetAllAvailableMountDirsResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfsMount.GetAllAvailableMountDirs', request)
 }
+export function kbfsMountGetAllAvailableMountDirsRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetAllAvailableMountDirsResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.kbfsMount.GetAllAvailableMountDirs', request, callback, incomingCallMap) })
+}
 
 export function kbfsMountGetAllAvailableMountDirsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetAllAvailableMountDirsResult) => void}>): Promise<kbfsMountGetAllAvailableMountDirsResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.kbfsMount.GetAllAvailableMountDirs', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1722,6 +2049,9 @@ export function kbfsMountGetCurrentMountDirRpc (request: Exact<requestCommon & {
 
 export function kbfsMountGetCurrentMountDirRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetCurrentMountDirResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfsMount.GetCurrentMountDir', request)
+}
+export function kbfsMountGetCurrentMountDirRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetCurrentMountDirResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.kbfsMount.GetCurrentMountDir', request, callback, incomingCallMap) })
 }
 
 export function kbfsMountGetCurrentMountDirRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetCurrentMountDirResult) => void}>): Promise<kbfsMountGetCurrentMountDirResult> {
@@ -1735,6 +2065,9 @@ export function kbfsMountSetCurrentMountDirRpc (request: Exact<requestCommon & r
 export function kbfsMountSetCurrentMountDirRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: kbfsMountSetCurrentMountDirRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfsMount.SetCurrentMountDir', request)
 }
+export function kbfsMountSetCurrentMountDirRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: kbfsMountSetCurrentMountDirRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.kbfsMount.SetCurrentMountDir', request, callback, incomingCallMap) })
+}
 
 export function kbfsMountSetCurrentMountDirRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsMountSetCurrentMountDirRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.kbfsMount.SetCurrentMountDir', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1746,6 +2079,9 @@ export function logRegisterLoggerRpc (request: Exact<requestCommon & requestErro
 
 export function logRegisterLoggerRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: logRegisterLoggerRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.log.registerLogger', request)
+}
+export function logRegisterLoggerRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: logRegisterLoggerRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.log.registerLogger', request, callback, incomingCallMap) })
 }
 
 export function logRegisterLoggerRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: logRegisterLoggerRpcParam}>): Promise<void> {
@@ -1759,6 +2095,9 @@ export function loginAccountDeleteRpc (request: Exact<requestCommon & requestErr
 export function loginAccountDeleteRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.accountDelete', request)
 }
+export function loginAccountDeleteRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.login.accountDelete', request, callback, incomingCallMap) })
+}
 
 export function loginAccountDeleteRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.login.accountDelete', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1770,6 +2109,9 @@ export function loginClearStoredSecretRpc (request: Exact<requestCommon & reques
 
 export function loginClearStoredSecretRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: loginClearStoredSecretRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.clearStoredSecret', request)
+}
+export function loginClearStoredSecretRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: loginClearStoredSecretRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.login.clearStoredSecret', request, callback, incomingCallMap) })
 }
 
 export function loginClearStoredSecretRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginClearStoredSecretRpcParam}>): Promise<void> {
@@ -1783,6 +2125,9 @@ export function loginDeprovisionRpc (request: Exact<requestCommon & requestError
 export function loginDeprovisionRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: loginDeprovisionRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.deprovision', request)
 }
+export function loginDeprovisionRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: loginDeprovisionRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.login.deprovision', request, callback, incomingCallMap) })
+}
 
 export function loginDeprovisionRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginDeprovisionRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.login.deprovision', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1794,6 +2139,9 @@ export function loginGetConfiguredAccountsRpc (request: Exact<requestCommon & {c
 
 export function loginGetConfiguredAccountsRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: loginGetConfiguredAccountsResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.getConfiguredAccounts', request)
+}
+export function loginGetConfiguredAccountsRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: loginGetConfiguredAccountsResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.login.getConfiguredAccounts', request, callback, incomingCallMap) })
 }
 
 export function loginGetConfiguredAccountsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: loginGetConfiguredAccountsResult) => void}>): Promise<loginGetConfiguredAccountsResult> {
@@ -1807,6 +2155,9 @@ export function loginLoginProvisionedDeviceRpc (request: Exact<requestCommon & r
 export function loginLoginProvisionedDeviceRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginProvisionedDeviceRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.loginProvisionedDevice', request)
 }
+export function loginLoginProvisionedDeviceRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginProvisionedDeviceRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.login.loginProvisionedDevice', request, callback, incomingCallMap) })
+}
 
 export function loginLoginProvisionedDeviceRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginProvisionedDeviceRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.login.loginProvisionedDevice', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1818,6 +2169,9 @@ export function loginLoginRpc (request: Exact<requestCommon & requestErrorCallba
 
 export function loginLoginRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.login', request)
+}
+export function loginLoginRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.login.login', request, callback, incomingCallMap) })
 }
 
 export function loginLoginRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginRpcParam}>): Promise<void> {
@@ -1831,6 +2185,9 @@ export function loginLoginWithPaperKeyRpc (request: Exact<requestCommon & reques
 export function loginLoginWithPaperKeyRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.loginWithPaperKey', request)
 }
+export function loginLoginWithPaperKeyRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.login.loginWithPaperKey', request, callback, incomingCallMap) })
+}
 
 export function loginLoginWithPaperKeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.login.loginWithPaperKey', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1842,6 +2199,9 @@ export function loginLogoutRpc (request: Exact<requestCommon & requestErrorCallb
 
 export function loginLogoutRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.logout', request)
+}
+export function loginLogoutRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.login.logout', request, callback, incomingCallMap) })
 }
 
 export function loginLogoutRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
@@ -1855,6 +2215,9 @@ export function loginPaperKeyRpc (request: Exact<requestCommon & requestErrorCal
 export function loginPaperKeyRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.paperKey', request)
 }
+export function loginPaperKeyRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.login.paperKey', request, callback, incomingCallMap) })
+}
 
 export function loginPaperKeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.login.paperKey', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1866,6 +2229,9 @@ export function loginPaperKeySubmitRpc (request: Exact<requestCommon & requestEr
 
 export function loginPaperKeySubmitRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: loginPaperKeySubmitRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.paperKeySubmit', request)
+}
+export function loginPaperKeySubmitRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: loginPaperKeySubmitRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.login.paperKeySubmit', request, callback, incomingCallMap) })
 }
 
 export function loginPaperKeySubmitRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginPaperKeySubmitRpcParam}>): Promise<void> {
@@ -1879,6 +2245,9 @@ export function loginPgpProvisionRpc (request: Exact<requestCommon & requestErro
 export function loginPgpProvisionRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: loginPgpProvisionRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.pgpProvision', request)
 }
+export function loginPgpProvisionRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: loginPgpProvisionRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.login.pgpProvision', request, callback, incomingCallMap) })
+}
 
 export function loginPgpProvisionRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginPgpProvisionRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.login.pgpProvision', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1890,6 +2259,9 @@ export function loginRecoverAccountFromEmailAddressRpc (request: Exact<requestCo
 
 export function loginRecoverAccountFromEmailAddressRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: loginRecoverAccountFromEmailAddressRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.recoverAccountFromEmailAddress', request)
+}
+export function loginRecoverAccountFromEmailAddressRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: loginRecoverAccountFromEmailAddressRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.login.recoverAccountFromEmailAddress', request, callback, incomingCallMap) })
 }
 
 export function loginRecoverAccountFromEmailAddressRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginRecoverAccountFromEmailAddressRpcParam}>): Promise<void> {
@@ -1903,6 +2275,9 @@ export function loginUnlockRpc (request: Exact<requestCommon & requestErrorCallb
 export function loginUnlockRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.unlock', request)
 }
+export function loginUnlockRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.login.unlock', request, callback, incomingCallMap) })
+}
 
 export function loginUnlockRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.login.unlock', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1914,6 +2289,9 @@ export function loginUnlockWithPassphraseRpc (request: Exact<requestCommon & req
 
 export function loginUnlockWithPassphraseRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: loginUnlockWithPassphraseRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.unlockWithPassphrase', request)
+}
+export function loginUnlockWithPassphraseRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: loginUnlockWithPassphraseRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.login.unlockWithPassphrase', request, callback, incomingCallMap) })
 }
 
 export function loginUnlockWithPassphraseRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginUnlockWithPassphraseRpcParam}>): Promise<void> {
@@ -1927,6 +2305,9 @@ export function metadataAuthenticateRpc (request: Exact<requestCommon & {callbac
 export function metadataAuthenticateRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataAuthenticateResult) => void} & {param: metadataAuthenticateRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.authenticate', request)
 }
+export function metadataAuthenticateRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataAuthenticateResult) => void} & {param: metadataAuthenticateRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.authenticate', request, callback, incomingCallMap) })
+}
 
 export function metadataAuthenticateRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataAuthenticateResult) => void} & {param: metadataAuthenticateRpcParam}>): Promise<metadataAuthenticateResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.authenticate', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1938,6 +2319,9 @@ export function metadataDeleteKeyRpc (request: Exact<requestCommon & requestErro
 
 export function metadataDeleteKeyRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataDeleteKeyRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.deleteKey', request)
+}
+export function metadataDeleteKeyRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataDeleteKeyRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.deleteKey', request, callback, incomingCallMap) })
 }
 
 export function metadataDeleteKeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataDeleteKeyRpcParam}>): Promise<void> {
@@ -1951,6 +2335,9 @@ export function metadataGetChallengeRpc (request: Exact<requestCommon & {callbac
 export function metadataGetChallengeRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetChallengeResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getChallenge', request)
 }
+export function metadataGetChallengeRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetChallengeResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.getChallenge', request, callback, incomingCallMap) })
+}
 
 export function metadataGetChallengeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetChallengeResult) => void}>): Promise<metadataGetChallengeResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.getChallenge', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1962,6 +2349,9 @@ export function metadataGetFolderHandleRpc (request: Exact<requestCommon & {call
 
 export function metadataGetFolderHandleRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetFolderHandleResult) => void} & {param: metadataGetFolderHandleRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getFolderHandle', request)
+}
+export function metadataGetFolderHandleRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetFolderHandleResult) => void} & {param: metadataGetFolderHandleRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.getFolderHandle', request, callback, incomingCallMap) })
 }
 
 export function metadataGetFolderHandleRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetFolderHandleResult) => void} & {param: metadataGetFolderHandleRpcParam}>): Promise<metadataGetFolderHandleResult> {
@@ -1975,6 +2365,9 @@ export function metadataGetFoldersForRekeyRpc (request: Exact<requestCommon & re
 export function metadataGetFoldersForRekeyRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataGetFoldersForRekeyRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getFoldersForRekey', request)
 }
+export function metadataGetFoldersForRekeyRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataGetFoldersForRekeyRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.getFoldersForRekey', request, callback, incomingCallMap) })
+}
 
 export function metadataGetFoldersForRekeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataGetFoldersForRekeyRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.getFoldersForRekey', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1986,6 +2379,9 @@ export function metadataGetKeyBundlesRpc (request: Exact<requestCommon & {callba
 
 export function metadataGetKeyBundlesRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyBundlesResult) => void} & {param: metadataGetKeyBundlesRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getKeyBundles', request)
+}
+export function metadataGetKeyBundlesRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyBundlesResult) => void} & {param: metadataGetKeyBundlesRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.getKeyBundles', request, callback, incomingCallMap) })
 }
 
 export function metadataGetKeyBundlesRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyBundlesResult) => void} & {param: metadataGetKeyBundlesRpcParam}>): Promise<metadataGetKeyBundlesResult> {
@@ -1999,6 +2395,9 @@ export function metadataGetKeyRpc (request: Exact<requestCommon & {callback?: ?(
 export function metadataGetKeyRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyResult) => void} & {param: metadataGetKeyRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getKey', request)
 }
+export function metadataGetKeyRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyResult) => void} & {param: metadataGetKeyRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.getKey', request, callback, incomingCallMap) })
+}
 
 export function metadataGetKeyRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyResult) => void} & {param: metadataGetKeyRpcParam}>): Promise<metadataGetKeyResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.getKey', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2010,6 +2409,9 @@ export function metadataGetLatestFolderHandleRpc (request: Exact<requestCommon &
 
 export function metadataGetLatestFolderHandleRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetLatestFolderHandleResult) => void} & {param: metadataGetLatestFolderHandleRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getLatestFolderHandle', request)
+}
+export function metadataGetLatestFolderHandleRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetLatestFolderHandleResult) => void} & {param: metadataGetLatestFolderHandleRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.getLatestFolderHandle', request, callback, incomingCallMap) })
 }
 
 export function metadataGetLatestFolderHandleRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetLatestFolderHandleResult) => void} & {param: metadataGetLatestFolderHandleRpcParam}>): Promise<metadataGetLatestFolderHandleResult> {
@@ -2023,6 +2425,9 @@ export function metadataGetMerkleNodeRpc (request: Exact<requestCommon & {callba
 export function metadataGetMerkleNodeRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleNodeResult) => void} & {param: metadataGetMerkleNodeRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleNode', request)
 }
+export function metadataGetMerkleNodeRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleNodeResult) => void} & {param: metadataGetMerkleNodeRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.getMerkleNode', request, callback, incomingCallMap) })
+}
 
 export function metadataGetMerkleNodeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleNodeResult) => void} & {param: metadataGetMerkleNodeRpcParam}>): Promise<metadataGetMerkleNodeResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.getMerkleNode', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2034,6 +2439,9 @@ export function metadataGetMerkleRootLatestRpc (request: Exact<requestCommon & {
 
 export function metadataGetMerkleRootLatestRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootLatestResult) => void} & {param: metadataGetMerkleRootLatestRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleRootLatest', request)
+}
+export function metadataGetMerkleRootLatestRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootLatestResult) => void} & {param: metadataGetMerkleRootLatestRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.getMerkleRootLatest', request, callback, incomingCallMap) })
 }
 
 export function metadataGetMerkleRootLatestRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootLatestResult) => void} & {param: metadataGetMerkleRootLatestRpcParam}>): Promise<metadataGetMerkleRootLatestResult> {
@@ -2047,6 +2455,9 @@ export function metadataGetMerkleRootRpc (request: Exact<requestCommon & {callba
 export function metadataGetMerkleRootRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootResult) => void} & {param: metadataGetMerkleRootRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleRoot', request)
 }
+export function metadataGetMerkleRootRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootResult) => void} & {param: metadataGetMerkleRootRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.getMerkleRoot', request, callback, incomingCallMap) })
+}
 
 export function metadataGetMerkleRootRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootResult) => void} & {param: metadataGetMerkleRootRpcParam}>): Promise<metadataGetMerkleRootResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.getMerkleRoot', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2058,6 +2469,9 @@ export function metadataGetMerkleRootSinceRpc (request: Exact<requestCommon & {c
 
 export function metadataGetMerkleRootSinceRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootSinceResult) => void} & {param: metadataGetMerkleRootSinceRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMerkleRootSince', request)
+}
+export function metadataGetMerkleRootSinceRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootSinceResult) => void} & {param: metadataGetMerkleRootSinceRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.getMerkleRootSince', request, callback, incomingCallMap) })
 }
 
 export function metadataGetMerkleRootSinceRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootSinceResult) => void} & {param: metadataGetMerkleRootSinceRpcParam}>): Promise<metadataGetMerkleRootSinceResult> {
@@ -2071,6 +2485,9 @@ export function metadataGetMetadataRpc (request: Exact<requestCommon & {callback
 export function metadataGetMetadataRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMetadataResult) => void} & {param: metadataGetMetadataRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getMetadata', request)
 }
+export function metadataGetMetadataRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMetadataResult) => void} & {param: metadataGetMetadataRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.getMetadata', request, callback, incomingCallMap) })
+}
 
 export function metadataGetMetadataRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMetadataResult) => void} & {param: metadataGetMetadataRpcParam}>): Promise<metadataGetMetadataResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.getMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2082,6 +2499,9 @@ export function metadataPing2Rpc (request: Exact<requestCommon & {callback?: ?(e
 
 export function metadataPing2RpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataPing2Result) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.ping2', request)
+}
+export function metadataPing2RpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataPing2Result) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.ping2', request, callback, incomingCallMap) })
 }
 
 export function metadataPing2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataPing2Result) => void}>): Promise<metadataPing2Result> {
@@ -2095,6 +2515,9 @@ export function metadataPingRpc (request: Exact<requestCommon & requestErrorCall
 export function metadataPingRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.ping', request)
 }
+export function metadataPingRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.ping', request, callback, incomingCallMap) })
+}
 
 export function metadataPingRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.ping', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2106,6 +2529,9 @@ export function metadataPruneBranchRpc (request: Exact<requestCommon & requestEr
 
 export function metadataPruneBranchRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataPruneBranchRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.pruneBranch', request)
+}
+export function metadataPruneBranchRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataPruneBranchRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.pruneBranch', request, callback, incomingCallMap) })
 }
 
 export function metadataPruneBranchRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPruneBranchRpcParam}>): Promise<void> {
@@ -2119,6 +2545,9 @@ export function metadataPutKeysRpc (request: Exact<requestCommon & requestErrorC
 export function metadataPutKeysRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutKeysRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.putKeys', request)
 }
+export function metadataPutKeysRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutKeysRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.putKeys', request, callback, incomingCallMap) })
+}
 
 export function metadataPutKeysRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutKeysRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.putKeys', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2130,6 +2559,9 @@ export function metadataPutMetadataRpc (request: Exact<requestCommon & requestEr
 
 export function metadataPutMetadataRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.putMetadata', request)
+}
+export function metadataPutMetadataRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.putMetadata', request, callback, incomingCallMap) })
 }
 
 export function metadataPutMetadataRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataRpcParam}>): Promise<void> {
@@ -2143,6 +2575,9 @@ export function metadataRegisterForUpdatesRpc (request: Exact<requestCommon & re
 export function metadataRegisterForUpdatesRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataRegisterForUpdatesRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.registerForUpdates', request)
 }
+export function metadataRegisterForUpdatesRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataRegisterForUpdatesRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.registerForUpdates', request, callback, incomingCallMap) })
+}
 
 export function metadataRegisterForUpdatesRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataRegisterForUpdatesRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.registerForUpdates', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2154,6 +2589,9 @@ export function metadataTruncateLockRpc (request: Exact<requestCommon & {callbac
 
 export function metadataTruncateLockRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateLockResult) => void} & {param: metadataTruncateLockRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.truncateLock', request)
+}
+export function metadataTruncateLockRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateLockResult) => void} & {param: metadataTruncateLockRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.truncateLock', request, callback, incomingCallMap) })
 }
 
 export function metadataTruncateLockRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateLockResult) => void} & {param: metadataTruncateLockRpcParam}>): Promise<metadataTruncateLockResult> {
@@ -2167,6 +2605,9 @@ export function metadataTruncateUnlockRpc (request: Exact<requestCommon & {callb
 export function metadataTruncateUnlockRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateUnlockResult) => void} & {param: metadataTruncateUnlockRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.truncateUnlock', request)
 }
+export function metadataTruncateUnlockRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateUnlockResult) => void} & {param: metadataTruncateUnlockRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadata.truncateUnlock', request, callback, incomingCallMap) })
+}
 
 export function metadataTruncateUnlockRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateUnlockResult) => void} & {param: metadataTruncateUnlockRpcParam}>): Promise<metadataTruncateUnlockResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.truncateUnlock', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2178,6 +2619,9 @@ export function metadataUpdateFolderNeedsRekeyRpc (request: Exact<requestCommon 
 
 export function metadataUpdateFolderNeedsRekeyRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateFolderNeedsRekeyRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadataUpdate.folderNeedsRekey', request)
+}
+export function metadataUpdateFolderNeedsRekeyRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateFolderNeedsRekeyRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadataUpdate.folderNeedsRekey', request, callback, incomingCallMap) })
 }
 
 export function metadataUpdateFolderNeedsRekeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateFolderNeedsRekeyRpcParam}>): Promise<void> {
@@ -2191,6 +2635,9 @@ export function metadataUpdateFoldersNeedRekeyRpc (request: Exact<requestCommon 
 export function metadataUpdateFoldersNeedRekeyRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateFoldersNeedRekeyRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadataUpdate.foldersNeedRekey', request)
 }
+export function metadataUpdateFoldersNeedRekeyRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateFoldersNeedRekeyRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadataUpdate.foldersNeedRekey', request, callback, incomingCallMap) })
+}
 
 export function metadataUpdateFoldersNeedRekeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateFoldersNeedRekeyRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadataUpdate.foldersNeedRekey', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2202,6 +2649,9 @@ export function metadataUpdateMetadataUpdateRpc (request: Exact<requestCommon & 
 
 export function metadataUpdateMetadataUpdateRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateMetadataUpdateRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadataUpdate.metadataUpdate', request)
+}
+export function metadataUpdateMetadataUpdateRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateMetadataUpdateRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.metadataUpdate.metadataUpdate', request, callback, incomingCallMap) })
 }
 
 export function metadataUpdateMetadataUpdateRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateMetadataUpdateRpcParam}>): Promise<void> {
@@ -2215,6 +2665,9 @@ export function notifyCtlSetNotificationsRpc (request: Exact<requestCommon & req
 export function notifyCtlSetNotificationsRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: notifyCtlSetNotificationsRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.notifyCtl.setNotifications', request)
 }
+export function notifyCtlSetNotificationsRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: notifyCtlSetNotificationsRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.notifyCtl.setNotifications', request, callback, incomingCallMap) })
+}
 
 export function notifyCtlSetNotificationsRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: notifyCtlSetNotificationsRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.notifyCtl.setNotifications', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2226,6 +2679,9 @@ export function paperprovisionPaperProvisionRpc (request: Exact<requestCommon & 
 
 export function paperprovisionPaperProvisionRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: paperprovisionPaperProvisionRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.paperprovision.paperProvision', request)
+}
+export function paperprovisionPaperProvisionRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: paperprovisionPaperProvisionRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.paperprovision.paperProvision', request, callback, incomingCallMap) })
 }
 
 export function paperprovisionPaperProvisionRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: paperprovisionPaperProvisionRpcParam}>): Promise<void> {
@@ -2239,6 +2695,9 @@ export function pgpPgpDecryptRpc (request: Exact<requestCommon & {callback?: ?(e
 export function pgpPgpDecryptRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpDecryptResult) => void} & {param: pgpPgpDecryptRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpDecrypt', request)
 }
+export function pgpPgpDecryptRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpDecryptResult) => void} & {param: pgpPgpDecryptRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpDecrypt', request, callback, incomingCallMap) })
+}
 
 export function pgpPgpDecryptRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpDecryptResult) => void} & {param: pgpPgpDecryptRpcParam}>): Promise<pgpPgpDecryptResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.pgp.pgpDecrypt', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2250,6 +2709,9 @@ export function pgpPgpDeletePrimaryRpc (request: Exact<requestCommon & requestEr
 
 export function pgpPgpDeletePrimaryRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpDeletePrimary', request)
+}
+export function pgpPgpDeletePrimaryRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpDeletePrimary', request, callback, incomingCallMap) })
 }
 
 export function pgpPgpDeletePrimaryRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
@@ -2263,6 +2725,9 @@ export function pgpPgpEncryptRpc (request: Exact<requestCommon & requestErrorCal
 export function pgpPgpEncryptRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpEncryptRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpEncrypt', request)
 }
+export function pgpPgpEncryptRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpEncryptRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpEncrypt', request, callback, incomingCallMap) })
+}
 
 export function pgpPgpEncryptRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpEncryptRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.pgp.pgpEncrypt', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2274,6 +2739,9 @@ export function pgpPgpExportByFingerprintRpc (request: Exact<requestCommon & {ca
 
 export function pgpPgpExportByFingerprintRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByFingerprintResult) => void} & {param: pgpPgpExportByFingerprintRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpExportByFingerprint', request)
+}
+export function pgpPgpExportByFingerprintRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByFingerprintResult) => void} & {param: pgpPgpExportByFingerprintRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpExportByFingerprint', request, callback, incomingCallMap) })
 }
 
 export function pgpPgpExportByFingerprintRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByFingerprintResult) => void} & {param: pgpPgpExportByFingerprintRpcParam}>): Promise<pgpPgpExportByFingerprintResult> {
@@ -2287,6 +2755,9 @@ export function pgpPgpExportByKIDRpc (request: Exact<requestCommon & {callback?:
 export function pgpPgpExportByKIDRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByKIDResult) => void} & {param: pgpPgpExportByKIDRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpExportByKID', request)
 }
+export function pgpPgpExportByKIDRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByKIDResult) => void} & {param: pgpPgpExportByKIDRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpExportByKID', request, callback, incomingCallMap) })
+}
 
 export function pgpPgpExportByKIDRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByKIDResult) => void} & {param: pgpPgpExportByKIDRpcParam}>): Promise<pgpPgpExportByKIDResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.pgp.pgpExportByKID', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2298,6 +2769,9 @@ export function pgpPgpExportRpc (request: Exact<requestCommon & {callback?: ?(er
 
 export function pgpPgpExportRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportResult) => void} & {param: pgpPgpExportRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpExport', request)
+}
+export function pgpPgpExportRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportResult) => void} & {param: pgpPgpExportRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpExport', request, callback, incomingCallMap) })
 }
 
 export function pgpPgpExportRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportResult) => void} & {param: pgpPgpExportRpcParam}>): Promise<pgpPgpExportResult> {
@@ -2311,6 +2785,9 @@ export function pgpPgpImportRpc (request: Exact<requestCommon & requestErrorCall
 export function pgpPgpImportRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpImportRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpImport', request)
 }
+export function pgpPgpImportRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpImportRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpImport', request, callback, incomingCallMap) })
+}
 
 export function pgpPgpImportRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpImportRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.pgp.pgpImport', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2322,6 +2799,9 @@ export function pgpPgpKeyGenDefaultRpc (request: Exact<requestCommon & requestEr
 
 export function pgpPgpKeyGenDefaultRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenDefaultRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpKeyGenDefault', request)
+}
+export function pgpPgpKeyGenDefaultRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenDefaultRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpKeyGenDefault', request, callback, incomingCallMap) })
 }
 
 export function pgpPgpKeyGenDefaultRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenDefaultRpcParam}>): Promise<void> {
@@ -2335,6 +2815,9 @@ export function pgpPgpKeyGenRpc (request: Exact<requestCommon & requestErrorCall
 export function pgpPgpKeyGenRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpKeyGen', request)
 }
+export function pgpPgpKeyGenRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpKeyGen', request, callback, incomingCallMap) })
+}
 
 export function pgpPgpKeyGenRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.pgp.pgpKeyGen', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2346,6 +2829,9 @@ export function pgpPgpPullRpc (request: Exact<requestCommon & requestErrorCallba
 
 export function pgpPgpPullRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpPullRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpPull', request)
+}
+export function pgpPgpPullRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpPullRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpPull', request, callback, incomingCallMap) })
 }
 
 export function pgpPgpPullRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpPullRpcParam}>): Promise<void> {
@@ -2359,6 +2845,9 @@ export function pgpPgpPurgeRpc (request: Exact<requestCommon & {callback?: ?(err
 export function pgpPgpPurgeRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpPurgeResult) => void} & {param: pgpPgpPurgeRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpPurge', request)
 }
+export function pgpPgpPurgeRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpPurgeResult) => void} & {param: pgpPgpPurgeRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpPurge', request, callback, incomingCallMap) })
+}
 
 export function pgpPgpPurgeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpPurgeResult) => void} & {param: pgpPgpPurgeRpcParam}>): Promise<pgpPgpPurgeResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.pgp.pgpPurge', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2370,6 +2859,9 @@ export function pgpPgpSelectRpc (request: Exact<requestCommon & requestErrorCall
 
 export function pgpPgpSelectRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSelectRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpSelect', request)
+}
+export function pgpPgpSelectRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSelectRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpSelect', request, callback, incomingCallMap) })
 }
 
 export function pgpPgpSelectRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSelectRpcParam}>): Promise<void> {
@@ -2383,6 +2875,9 @@ export function pgpPgpSignRpc (request: Exact<requestCommon & requestErrorCallba
 export function pgpPgpSignRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSignRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpSign', request)
 }
+export function pgpPgpSignRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSignRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpSign', request, callback, incomingCallMap) })
+}
 
 export function pgpPgpSignRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSignRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.pgp.pgpSign', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2394,6 +2889,9 @@ export function pgpPgpStorageDismissRpc (request: Exact<requestCommon & requestE
 
 export function pgpPgpStorageDismissRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpStorageDismiss', request)
+}
+export function pgpPgpStorageDismissRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpStorageDismiss', request, callback, incomingCallMap) })
 }
 
 export function pgpPgpStorageDismissRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
@@ -2407,6 +2905,9 @@ export function pgpPgpUpdateRpc (request: Exact<requestCommon & requestErrorCall
 export function pgpPgpUpdateRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpUpdateRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpUpdate', request)
 }
+export function pgpPgpUpdateRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpUpdateRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpUpdate', request, callback, incomingCallMap) })
+}
 
 export function pgpPgpUpdateRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpUpdateRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.pgp.pgpUpdate', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2418,6 +2919,9 @@ export function pgpPgpVerifyRpc (request: Exact<requestCommon & {callback?: ?(er
 
 export function pgpPgpVerifyRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpVerifyResult) => void} & {param: pgpPgpVerifyRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.pgp.pgpVerify', request)
+}
+export function pgpPgpVerifyRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpVerifyResult) => void} & {param: pgpPgpVerifyRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.pgp.pgpVerify', request, callback, incomingCallMap) })
 }
 
 export function pgpPgpVerifyRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpVerifyResult) => void} & {param: pgpPgpVerifyRpcParam}>): Promise<pgpPgpVerifyResult> {
@@ -2431,6 +2935,9 @@ export function proveCheckProofRpc (request: Exact<requestCommon & {callback?: ?
 export function proveCheckProofRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveCheckProofResult) => void} & {param: proveCheckProofRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.prove.checkProof', request)
 }
+export function proveCheckProofRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveCheckProofResult) => void} & {param: proveCheckProofRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.prove.checkProof', request, callback, incomingCallMap) })
+}
 
 export function proveCheckProofRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveCheckProofResult) => void} & {param: proveCheckProofRpcParam}>): Promise<proveCheckProofResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.prove.checkProof', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2442,6 +2949,9 @@ export function proveStartProofRpc (request: Exact<requestCommon & {callback?: ?
 
 export function proveStartProofRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveStartProofResult) => void} & {param: proveStartProofRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.prove.startProof', request)
+}
+export function proveStartProofRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveStartProofResult) => void} & {param: proveStartProofRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.prove.startProof', request, callback, incomingCallMap) })
 }
 
 export function proveStartProofRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveStartProofResult) => void} & {param: proveStartProofRpcParam}>): Promise<proveStartProofResult> {
@@ -2455,6 +2965,9 @@ export function quotaVerifySessionRpc (request: Exact<requestCommon & {callback?
 export function quotaVerifySessionRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: quotaVerifySessionResult) => void} & {param: quotaVerifySessionRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.quota.verifySession', request)
 }
+export function quotaVerifySessionRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: quotaVerifySessionResult) => void} & {param: quotaVerifySessionRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.quota.verifySession', request, callback, incomingCallMap) })
+}
 
 export function quotaVerifySessionRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: quotaVerifySessionResult) => void} & {param: quotaVerifySessionRpcParam}>): Promise<quotaVerifySessionResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.quota.verifySession', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2466,6 +2979,9 @@ export function reachabilityCheckReachabilityRpc (request: Exact<requestCommon &
 
 export function reachabilityCheckReachabilityRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: reachabilityCheckReachabilityResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.reachability.checkReachability', request)
+}
+export function reachabilityCheckReachabilityRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: reachabilityCheckReachabilityResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.reachability.checkReachability', request, callback, incomingCallMap) })
 }
 
 export function reachabilityCheckReachabilityRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: reachabilityCheckReachabilityResult) => void}>): Promise<reachabilityCheckReachabilityResult> {
@@ -2479,6 +2995,9 @@ export function reachabilityReachabilityChangedRpc (request: Exact<requestCommon
 export function reachabilityReachabilityChangedRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: reachabilityReachabilityChangedRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.reachability.reachabilityChanged', request)
 }
+export function reachabilityReachabilityChangedRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: reachabilityReachabilityChangedRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.reachability.reachabilityChanged', request, callback, incomingCallMap) })
+}
 
 export function reachabilityReachabilityChangedRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: reachabilityReachabilityChangedRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.reachability.reachabilityChanged', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2490,6 +3009,9 @@ export function reachabilityStartReachabilityRpc (request: Exact<requestCommon &
 
 export function reachabilityStartReachabilityRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: reachabilityStartReachabilityResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.reachability.startReachability', request)
+}
+export function reachabilityStartReachabilityRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: reachabilityStartReachabilityResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.reachability.startReachability', request, callback, incomingCallMap) })
 }
 
 export function reachabilityStartReachabilityRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: reachabilityStartReachabilityResult) => void}>): Promise<reachabilityStartReachabilityResult> {
@@ -2503,6 +3025,9 @@ export function rekeyDebugShowRekeyStatusRpc (request: Exact<requestCommon & req
 export function rekeyDebugShowRekeyStatusRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.debugShowRekeyStatus', request)
 }
+export function rekeyDebugShowRekeyStatusRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.rekey.debugShowRekeyStatus', request, callback, incomingCallMap) })
+}
 
 export function rekeyDebugShowRekeyStatusRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.rekey.debugShowRekeyStatus', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2514,6 +3039,9 @@ export function rekeyGetPendingRekeyStatusRpc (request: Exact<requestCommon & {c
 
 export function rekeyGetPendingRekeyStatusRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyGetPendingRekeyStatusResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.getPendingRekeyStatus', request)
+}
+export function rekeyGetPendingRekeyStatusRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyGetPendingRekeyStatusResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.rekey.getPendingRekeyStatus', request, callback, incomingCallMap) })
 }
 
 export function rekeyGetPendingRekeyStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyGetPendingRekeyStatusResult) => void}>): Promise<rekeyGetPendingRekeyStatusResult> {
@@ -2527,6 +3055,9 @@ export function rekeyGetRevokeWarningRpc (request: Exact<requestCommon & {callba
 export function rekeyGetRevokeWarningRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyGetRevokeWarningResult) => void} & {param: rekeyGetRevokeWarningRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.getRevokeWarning', request)
 }
+export function rekeyGetRevokeWarningRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyGetRevokeWarningResult) => void} & {param: rekeyGetRevokeWarningRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.rekey.getRevokeWarning', request, callback, incomingCallMap) })
+}
 
 export function rekeyGetRevokeWarningRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyGetRevokeWarningResult) => void} & {param: rekeyGetRevokeWarningRpcParam}>): Promise<rekeyGetRevokeWarningResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.rekey.getRevokeWarning', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2538,6 +3069,9 @@ export function rekeyRekeyStatusFinishRpc (request: Exact<requestCommon & {callb
 
 export function rekeyRekeyStatusFinishRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyRekeyStatusFinishResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.rekeyStatusFinish', request)
+}
+export function rekeyRekeyStatusFinishRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyRekeyStatusFinishResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.rekey.rekeyStatusFinish', request, callback, incomingCallMap) })
 }
 
 export function rekeyRekeyStatusFinishRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyRekeyStatusFinishResult) => void}>): Promise<rekeyRekeyStatusFinishResult> {
@@ -2551,6 +3085,9 @@ export function rekeyRekeySyncRpc (request: Exact<requestCommon & requestErrorCa
 export function rekeyRekeySyncRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: rekeyRekeySyncRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.rekeySync', request)
 }
+export function rekeyRekeySyncRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: rekeyRekeySyncRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.rekey.rekeySync', request, callback, incomingCallMap) })
+}
 
 export function rekeyRekeySyncRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: rekeyRekeySyncRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.rekey.rekeySync', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2562,6 +3099,9 @@ export function rekeyShowPendingRekeyStatusRpc (request: Exact<requestCommon & r
 
 export function rekeyShowPendingRekeyStatusRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.rekey.showPendingRekeyStatus', request)
+}
+export function rekeyShowPendingRekeyStatusRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.rekey.showPendingRekeyStatus', request, callback, incomingCallMap) })
 }
 
 export function rekeyShowPendingRekeyStatusRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
@@ -2575,6 +3115,9 @@ export function revokeRevokeDeviceRpc (request: Exact<requestCommon & requestErr
 export function revokeRevokeDeviceRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeDeviceRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.revoke.revokeDevice', request)
 }
+export function revokeRevokeDeviceRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeDeviceRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.revoke.revokeDevice', request, callback, incomingCallMap) })
+}
 
 export function revokeRevokeDeviceRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeDeviceRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.revoke.revokeDevice', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2586,6 +3129,9 @@ export function revokeRevokeKeyRpc (request: Exact<requestCommon & requestErrorC
 
 export function revokeRevokeKeyRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeKeyRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.revoke.revokeKey', request)
+}
+export function revokeRevokeKeyRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeKeyRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.revoke.revokeKey', request, callback, incomingCallMap) })
 }
 
 export function revokeRevokeKeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeKeyRpcParam}>): Promise<void> {
@@ -2599,6 +3145,9 @@ export function revokeRevokeSigsRpc (request: Exact<requestCommon & requestError
 export function revokeRevokeSigsRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeSigsRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.revoke.revokeSigs', request)
 }
+export function revokeRevokeSigsRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeSigsRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.revoke.revokeSigs', request, callback, incomingCallMap) })
+}
 
 export function revokeRevokeSigsRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeSigsRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.revoke.revokeSigs', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2610,6 +3159,9 @@ export function saltpackSaltpackDecryptRpc (request: Exact<requestCommon & {call
 
 export function saltpackSaltpackDecryptRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: saltpackSaltpackDecryptResult) => void} & {param: saltpackSaltpackDecryptRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackDecrypt', request)
+}
+export function saltpackSaltpackDecryptRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: saltpackSaltpackDecryptResult) => void} & {param: saltpackSaltpackDecryptRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.saltpack.saltpackDecrypt', request, callback, incomingCallMap) })
 }
 
 export function saltpackSaltpackDecryptRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: saltpackSaltpackDecryptResult) => void} & {param: saltpackSaltpackDecryptRpcParam}>): Promise<saltpackSaltpackDecryptResult> {
@@ -2623,6 +3175,9 @@ export function saltpackSaltpackEncryptRpc (request: Exact<requestCommon & reque
 export function saltpackSaltpackEncryptRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackEncryptRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackEncrypt', request)
 }
+export function saltpackSaltpackEncryptRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackEncryptRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.saltpack.saltpackEncrypt', request, callback, incomingCallMap) })
+}
 
 export function saltpackSaltpackEncryptRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackEncryptRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.saltpack.saltpackEncrypt', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2634,6 +3189,9 @@ export function saltpackSaltpackSignRpc (request: Exact<requestCommon & requestE
 
 export function saltpackSaltpackSignRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackSignRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackSign', request)
+}
+export function saltpackSaltpackSignRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackSignRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.saltpack.saltpackSign', request, callback, incomingCallMap) })
 }
 
 export function saltpackSaltpackSignRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackSignRpcParam}>): Promise<void> {
@@ -2647,6 +3205,9 @@ export function saltpackSaltpackVerifyRpc (request: Exact<requestCommon & reques
 export function saltpackSaltpackVerifyRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackVerifyRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.saltpack.saltpackVerify', request)
 }
+export function saltpackSaltpackVerifyRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackVerifyRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.saltpack.saltpackVerify', request, callback, incomingCallMap) })
+}
 
 export function saltpackSaltpackVerifyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackVerifyRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.saltpack.saltpackVerify', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2658,6 +3219,9 @@ export function sessionCurrentSessionRpc (request: Exact<requestCommon & {callba
 
 export function sessionCurrentSessionRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sessionCurrentSessionResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.session.currentSession', request)
+}
+export function sessionCurrentSessionRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sessionCurrentSessionResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.session.currentSession', request, callback, incomingCallMap) })
 }
 
 export function sessionCurrentSessionRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sessionCurrentSessionResult) => void}>): Promise<sessionCurrentSessionResult> {
@@ -2671,6 +3235,9 @@ export function sessionSessionPingRpc (request: Exact<requestCommon & requestErr
 export function sessionSessionPingRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.session.sessionPing', request)
 }
+export function sessionSessionPingRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.session.sessionPing', request, callback, incomingCallMap) })
+}
 
 export function sessionSessionPingRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.session.sessionPing', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2682,6 +3249,9 @@ export function signupCheckInvitationCodeRpc (request: Exact<requestCommon & req
 
 export function signupCheckInvitationCodeRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckInvitationCodeRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.checkInvitationCode', request)
+}
+export function signupCheckInvitationCodeRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckInvitationCodeRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.signup.checkInvitationCode', request, callback, incomingCallMap) })
 }
 
 export function signupCheckInvitationCodeRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckInvitationCodeRpcParam}>): Promise<void> {
@@ -2695,6 +3265,9 @@ export function signupCheckUsernameAvailableRpc (request: Exact<requestCommon & 
 export function signupCheckUsernameAvailableRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckUsernameAvailableRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.checkUsernameAvailable', request)
 }
+export function signupCheckUsernameAvailableRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckUsernameAvailableRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.signup.checkUsernameAvailable', request, callback, incomingCallMap) })
+}
 
 export function signupCheckUsernameAvailableRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckUsernameAvailableRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.signup.checkUsernameAvailable', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2706,6 +3279,9 @@ export function signupGetInvitationCodeRpc (request: Exact<requestCommon & {call
 
 export function signupGetInvitationCodeRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: signupGetInvitationCodeResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.getInvitationCode', request)
+}
+export function signupGetInvitationCodeRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: signupGetInvitationCodeResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.signup.getInvitationCode', request, callback, incomingCallMap) })
 }
 
 export function signupGetInvitationCodeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: signupGetInvitationCodeResult) => void}>): Promise<signupGetInvitationCodeResult> {
@@ -2719,6 +3295,9 @@ export function signupInviteRequestRpc (request: Exact<requestCommon & requestEr
 export function signupInviteRequestRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: signupInviteRequestRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.inviteRequest', request)
 }
+export function signupInviteRequestRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: signupInviteRequestRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.signup.inviteRequest', request, callback, incomingCallMap) })
+}
 
 export function signupInviteRequestRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: signupInviteRequestRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.signup.inviteRequest', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2730,6 +3309,9 @@ export function signupSignupRpc (request: Exact<requestCommon & {callback?: ?(er
 
 export function signupSignupRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: signupSignupResult) => void} & {param: signupSignupRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.signup.signup', request)
+}
+export function signupSignupRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: signupSignupResult) => void} & {param: signupSignupRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.signup.signup', request, callback, incomingCallMap) })
 }
 
 export function signupSignupRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: signupSignupResult) => void} & {param: signupSignupRpcParam}>): Promise<signupSignupResult> {
@@ -2743,6 +3325,9 @@ export function sigsSigListJSONRpc (request: Exact<requestCommon & {callback?: ?
 export function sigsSigListJSONRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListJSONResult) => void} & {param: sigsSigListJSONRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.sigs.sigListJSON', request)
 }
+export function sigsSigListJSONRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListJSONResult) => void} & {param: sigsSigListJSONRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.sigs.sigListJSON', request, callback, incomingCallMap) })
+}
 
 export function sigsSigListJSONRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListJSONResult) => void} & {param: sigsSigListJSONRpcParam}>): Promise<sigsSigListJSONResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.sigs.sigListJSON', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2754,6 +3339,9 @@ export function sigsSigListRpc (request: Exact<requestCommon & {callback?: ?(err
 
 export function sigsSigListRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListResult) => void} & {param: sigsSigListRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.sigs.sigList', request)
+}
+export function sigsSigListRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListResult) => void} & {param: sigsSigListRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.sigs.sigList', request, callback, incomingCallMap) })
 }
 
 export function sigsSigListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListResult) => void} & {param: sigsSigListRpcParam}>): Promise<sigsSigListResult> {
@@ -2767,6 +3355,9 @@ export function testPanicRpc (request: Exact<requestCommon & requestErrorCallbac
 export function testPanicRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.test.panic', request)
 }
+export function testPanicRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.test.panic', request, callback, incomingCallMap) })
+}
 
 export function testPanicRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.test.panic', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2778,6 +3369,9 @@ export function testTestCallbackRpc (request: Exact<requestCommon & {callback?: 
 
 export function testTestCallbackRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestCallbackResult) => void} & {param: testTestCallbackRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.test.testCallback', request)
+}
+export function testTestCallbackRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestCallbackResult) => void} & {param: testTestCallbackRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.test.testCallback', request, callback, incomingCallMap) })
 }
 
 export function testTestCallbackRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestCallbackResult) => void} & {param: testTestCallbackRpcParam}>): Promise<testTestCallbackResult> {
@@ -2791,6 +3385,9 @@ export function testTestRpc (request: Exact<requestCommon & {callback?: ?(err: ?
 export function testTestRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestResult) => void} & {param: testTestRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.test.test', request)
 }
+export function testTestRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestResult) => void} & {param: testTestRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.test.test', request, callback, incomingCallMap) })
+}
 
 export function testTestRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestResult) => void} & {param: testTestRpcParam}>): Promise<testTestResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.test.test', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2802,6 +3399,9 @@ export function tlfCompleteAndCanonicalizePrivateTlfNameRpc (request: Exact<requ
 
 export function tlfCompleteAndCanonicalizePrivateTlfNameRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizePrivateTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizePrivateTlfNameRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlf.completeAndCanonicalizePrivateTlfName', request)
+}
+export function tlfCompleteAndCanonicalizePrivateTlfNameRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizePrivateTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizePrivateTlfNameRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.tlf.completeAndCanonicalizePrivateTlfName', request, callback, incomingCallMap) })
 }
 
 export function tlfCompleteAndCanonicalizePrivateTlfNameRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizePrivateTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizePrivateTlfNameRpcParam}>): Promise<tlfCompleteAndCanonicalizePrivateTlfNameResult> {
@@ -2815,6 +3415,9 @@ export function tlfCryptKeysRpc (request: Exact<requestCommon & {callback?: ?(er
 export function tlfCryptKeysRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCryptKeysResult) => void} & {param: tlfCryptKeysRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlf.CryptKeys', request)
 }
+export function tlfCryptKeysRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCryptKeysResult) => void} & {param: tlfCryptKeysRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.tlf.CryptKeys', request, callback, incomingCallMap) })
+}
 
 export function tlfCryptKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCryptKeysResult) => void} & {param: tlfCryptKeysRpcParam}>): Promise<tlfCryptKeysResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.tlf.CryptKeys', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2826,6 +3429,9 @@ export function tlfKeysGetPublicCanonicalTLFNameAndIDRpc (request: Exact<request
 
 export function tlfKeysGetPublicCanonicalTLFNameAndIDRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetPublicCanonicalTLFNameAndIDResult) => void} & {param: tlfKeysGetPublicCanonicalTLFNameAndIDRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID', request)
+}
+export function tlfKeysGetPublicCanonicalTLFNameAndIDRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetPublicCanonicalTLFNameAndIDResult) => void} & {param: tlfKeysGetPublicCanonicalTLFNameAndIDRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID', request, callback, incomingCallMap) })
 }
 
 export function tlfKeysGetPublicCanonicalTLFNameAndIDRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetPublicCanonicalTLFNameAndIDResult) => void} & {param: tlfKeysGetPublicCanonicalTLFNameAndIDRpcParam}>): Promise<tlfKeysGetPublicCanonicalTLFNameAndIDResult> {
@@ -2839,6 +3445,9 @@ export function tlfKeysGetTLFCryptKeysRpc (request: Exact<requestCommon & {callb
 export function tlfKeysGetTLFCryptKeysRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void} & {param: tlfKeysGetTLFCryptKeysRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlfKeys.getTLFCryptKeys', request)
 }
+export function tlfKeysGetTLFCryptKeysRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void} & {param: tlfKeysGetTLFCryptKeysRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.tlfKeys.getTLFCryptKeys', request, callback, incomingCallMap) })
+}
 
 export function tlfKeysGetTLFCryptKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void} & {param: tlfKeysGetTLFCryptKeysRpcParam}>): Promise<tlfKeysGetTLFCryptKeysResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.tlfKeys.getTLFCryptKeys', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2850,6 +3459,9 @@ export function tlfPublicCanonicalTLFNameAndIDRpc (request: Exact<requestCommon 
 
 export function tlfPublicCanonicalTLFNameAndIDRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfPublicCanonicalTLFNameAndIDResult) => void} & {param: tlfPublicCanonicalTLFNameAndIDRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlf.publicCanonicalTLFNameAndID', request)
+}
+export function tlfPublicCanonicalTLFNameAndIDRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfPublicCanonicalTLFNameAndIDResult) => void} & {param: tlfPublicCanonicalTLFNameAndIDRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.tlf.publicCanonicalTLFNameAndID', request, callback, incomingCallMap) })
 }
 
 export function tlfPublicCanonicalTLFNameAndIDRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfPublicCanonicalTLFNameAndIDResult) => void} & {param: tlfPublicCanonicalTLFNameAndIDRpcParam}>): Promise<tlfPublicCanonicalTLFNameAndIDResult> {
@@ -2863,6 +3475,9 @@ export function trackCheckTrackingRpc (request: Exact<requestCommon & requestErr
 export function trackCheckTrackingRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.checkTracking', request)
 }
+export function trackCheckTrackingRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.track.checkTracking', request, callback, incomingCallMap) })
+}
 
 export function trackCheckTrackingRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.track.checkTracking', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2874,6 +3489,9 @@ export function trackDismissWithTokenRpc (request: Exact<requestCommon & request
 
 export function trackDismissWithTokenRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: trackDismissWithTokenRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.dismissWithToken', request)
+}
+export function trackDismissWithTokenRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: trackDismissWithTokenRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.track.dismissWithToken', request, callback, incomingCallMap) })
 }
 
 export function trackDismissWithTokenRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: trackDismissWithTokenRpcParam}>): Promise<void> {
@@ -2887,6 +3505,9 @@ export function trackFakeTrackingChangedRpc (request: Exact<requestCommon & requ
 export function trackFakeTrackingChangedRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: trackFakeTrackingChangedRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.fakeTrackingChanged', request)
 }
+export function trackFakeTrackingChangedRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: trackFakeTrackingChangedRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.track.fakeTrackingChanged', request, callback, incomingCallMap) })
+}
 
 export function trackFakeTrackingChangedRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: trackFakeTrackingChangedRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.track.fakeTrackingChanged', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2898,6 +3519,9 @@ export function trackTrackRpc (request: Exact<requestCommon & {callback?: ?(err:
 
 export function trackTrackRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: trackTrackResult) => void} & {param: trackTrackRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.track', request)
+}
+export function trackTrackRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: trackTrackResult) => void} & {param: trackTrackRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.track.track', request, callback, incomingCallMap) })
 }
 
 export function trackTrackRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: trackTrackResult) => void} & {param: trackTrackRpcParam}>): Promise<trackTrackResult> {
@@ -2911,6 +3535,9 @@ export function trackTrackWithTokenRpc (request: Exact<requestCommon & requestEr
 export function trackTrackWithTokenRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: trackTrackWithTokenRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.trackWithToken', request)
 }
+export function trackTrackWithTokenRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: trackTrackWithTokenRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.track.trackWithToken', request, callback, incomingCallMap) })
+}
 
 export function trackTrackWithTokenRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: trackTrackWithTokenRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.track.trackWithToken', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2922,6 +3549,9 @@ export function trackUntrackRpc (request: Exact<requestCommon & requestErrorCall
 
 export function trackUntrackRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: trackUntrackRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.track.untrack', request)
+}
+export function trackUntrackRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: trackUntrackRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.track.untrack', request, callback, incomingCallMap) })
 }
 
 export function trackUntrackRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: trackUntrackRpcParam}>): Promise<void> {
@@ -2935,6 +3565,9 @@ export function userListTrackers2Rpc (request: Exact<requestCommon & {callback?:
 export function userListTrackers2RpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackers2Result) => void} & {param: userListTrackers2RpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackers2', request)
 }
+export function userListTrackers2RpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackers2Result) => void} & {param: userListTrackers2RpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.listTrackers2', request, callback, incomingCallMap) })
+}
 
 export function userListTrackers2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackers2Result) => void} & {param: userListTrackers2RpcParam}>): Promise<userListTrackers2Result> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.listTrackers2', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2946,6 +3579,9 @@ export function userListTrackersByNameRpc (request: Exact<requestCommon & {callb
 
 export function userListTrackersByNameRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersByNameResult) => void} & {param: userListTrackersByNameRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackersByName', request)
+}
+export function userListTrackersByNameRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersByNameResult) => void} & {param: userListTrackersByNameRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.listTrackersByName', request, callback, incomingCallMap) })
 }
 
 export function userListTrackersByNameRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersByNameResult) => void} & {param: userListTrackersByNameRpcParam}>): Promise<userListTrackersByNameResult> {
@@ -2959,6 +3595,9 @@ export function userListTrackersRpc (request: Exact<requestCommon & {callback?: 
 export function userListTrackersRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersResult) => void} & {param: userListTrackersRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackers', request)
 }
+export function userListTrackersRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersResult) => void} & {param: userListTrackersRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.listTrackers', request, callback, incomingCallMap) })
+}
 
 export function userListTrackersRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersResult) => void} & {param: userListTrackersRpcParam}>): Promise<userListTrackersResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.listTrackers', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2970,6 +3609,9 @@ export function userListTrackersSelfRpc (request: Exact<requestCommon & {callbac
 
 export function userListTrackersSelfRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersSelfResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackersSelf', request)
+}
+export function userListTrackersSelfRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersSelfResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.listTrackersSelf', request, callback, incomingCallMap) })
 }
 
 export function userListTrackersSelfRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersSelfResult) => void}>): Promise<userListTrackersSelfResult> {
@@ -2983,6 +3625,9 @@ export function userListTrackingJSONRpc (request: Exact<requestCommon & {callbac
 export function userListTrackingJSONRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingJSONResult) => void} & {param: userListTrackingJSONRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTrackingJSON', request)
 }
+export function userListTrackingJSONRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingJSONResult) => void} & {param: userListTrackingJSONRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.listTrackingJSON', request, callback, incomingCallMap) })
+}
 
 export function userListTrackingJSONRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingJSONResult) => void} & {param: userListTrackingJSONRpcParam}>): Promise<userListTrackingJSONResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.listTrackingJSON', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -2994,6 +3639,9 @@ export function userListTrackingRpc (request: Exact<requestCommon & {callback?: 
 
 export function userListTrackingRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingResult) => void} & {param: userListTrackingRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.listTracking', request)
+}
+export function userListTrackingRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingResult) => void} & {param: userListTrackingRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.listTracking', request, callback, incomingCallMap) })
 }
 
 export function userListTrackingRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingResult) => void} & {param: userListTrackingRpcParam}>): Promise<userListTrackingResult> {
@@ -3007,6 +3655,9 @@ export function userLoadAllPublicKeysUnverifiedRpc (request: Exact<requestCommon
 export function userLoadAllPublicKeysUnverifiedRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadAllPublicKeysUnverifiedResult) => void} & {param: userLoadAllPublicKeysUnverifiedRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadAllPublicKeysUnverified', request)
 }
+export function userLoadAllPublicKeysUnverifiedRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadAllPublicKeysUnverifiedResult) => void} & {param: userLoadAllPublicKeysUnverifiedRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.loadAllPublicKeysUnverified', request, callback, incomingCallMap) })
+}
 
 export function userLoadAllPublicKeysUnverifiedRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadAllPublicKeysUnverifiedResult) => void} & {param: userLoadAllPublicKeysUnverifiedRpcParam}>): Promise<userLoadAllPublicKeysUnverifiedResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.loadAllPublicKeysUnverified', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -3018,6 +3669,9 @@ export function userLoadMyPublicKeysRpc (request: Exact<requestCommon & {callbac
 
 export function userLoadMyPublicKeysRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadMyPublicKeysResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadMyPublicKeys', request)
+}
+export function userLoadMyPublicKeysRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadMyPublicKeysResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.loadMyPublicKeys', request, callback, incomingCallMap) })
 }
 
 export function userLoadMyPublicKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadMyPublicKeysResult) => void}>): Promise<userLoadMyPublicKeysResult> {
@@ -3031,6 +3685,9 @@ export function userLoadMySettingsRpc (request: Exact<requestCommon & {callback?
 export function userLoadMySettingsRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadMySettingsResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadMySettings', request)
 }
+export function userLoadMySettingsRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadMySettingsResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.loadMySettings', request, callback, incomingCallMap) })
+}
 
 export function userLoadMySettingsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadMySettingsResult) => void}>): Promise<userLoadMySettingsResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.loadMySettings', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -3042,6 +3699,9 @@ export function userLoadPublicKeysRpc (request: Exact<requestCommon & {callback?
 
 export function userLoadPublicKeysRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadPublicKeysResult) => void} & {param: userLoadPublicKeysRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadPublicKeys', request)
+}
+export function userLoadPublicKeysRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadPublicKeysResult) => void} & {param: userLoadPublicKeysRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.loadPublicKeys', request, callback, incomingCallMap) })
 }
 
 export function userLoadPublicKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadPublicKeysResult) => void} & {param: userLoadPublicKeysRpcParam}>): Promise<userLoadPublicKeysResult> {
@@ -3055,6 +3715,9 @@ export function userLoadUncheckedUserSummariesRpc (request: Exact<requestCommon 
 export function userLoadUncheckedUserSummariesRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUncheckedUserSummariesResult) => void} & {param: userLoadUncheckedUserSummariesRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUncheckedUserSummaries', request)
 }
+export function userLoadUncheckedUserSummariesRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUncheckedUserSummariesResult) => void} & {param: userLoadUncheckedUserSummariesRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.loadUncheckedUserSummaries', request, callback, incomingCallMap) })
+}
 
 export function userLoadUncheckedUserSummariesRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUncheckedUserSummariesResult) => void} & {param: userLoadUncheckedUserSummariesRpcParam}>): Promise<userLoadUncheckedUserSummariesResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.loadUncheckedUserSummaries', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -3066,6 +3729,9 @@ export function userLoadUserByNameRpc (request: Exact<requestCommon & {callback?
 
 export function userLoadUserByNameRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserByNameResult) => void} & {param: userLoadUserByNameRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUserByName', request)
+}
+export function userLoadUserByNameRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserByNameResult) => void} & {param: userLoadUserByNameRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.loadUserByName', request, callback, incomingCallMap) })
 }
 
 export function userLoadUserByNameRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserByNameResult) => void} & {param: userLoadUserByNameRpcParam}>): Promise<userLoadUserByNameResult> {
@@ -3079,6 +3745,9 @@ export function userLoadUserPlusKeysRpc (request: Exact<requestCommon & {callbac
 export function userLoadUserPlusKeysRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserPlusKeysResult) => void} & {param: userLoadUserPlusKeysRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUserPlusKeys', request)
 }
+export function userLoadUserPlusKeysRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserPlusKeysResult) => void} & {param: userLoadUserPlusKeysRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.loadUserPlusKeys', request, callback, incomingCallMap) })
+}
 
 export function userLoadUserPlusKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserPlusKeysResult) => void} & {param: userLoadUserPlusKeysRpcParam}>): Promise<userLoadUserPlusKeysResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.loadUserPlusKeys', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -3090,6 +3759,9 @@ export function userLoadUserRpc (request: Exact<requestCommon & {callback?: ?(er
 
 export function userLoadUserRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserResult) => void} & {param: userLoadUserRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUser', request)
+}
+export function userLoadUserRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserResult) => void} & {param: userLoadUserRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.loadUser', request, callback, incomingCallMap) })
 }
 
 export function userLoadUserRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserResult) => void} & {param: userLoadUserRpcParam}>): Promise<userLoadUserResult> {
@@ -3103,6 +3775,9 @@ export function userProfileEditRpc (request: Exact<requestCommon & requestErrorC
 export function userProfileEditRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: userProfileEditRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.profileEdit', request)
 }
+export function userProfileEditRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: userProfileEditRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.profileEdit', request, callback, incomingCallMap) })
+}
 
 export function userProfileEditRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: userProfileEditRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.profileEdit', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -3114,6 +3789,9 @@ export function userSearchRpc (request: Exact<requestCommon & {callback?: ?(err:
 
 export function userSearchRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userSearchResult) => void} & {param: userSearchRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.search', request)
+}
+export function userSearchRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userSearchResult) => void} & {param: userSearchRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.search', request, callback, incomingCallMap) })
 }
 
 export function userSearchRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userSearchResult) => void} & {param: userSearchRpcParam}>): Promise<userSearchResult> {
