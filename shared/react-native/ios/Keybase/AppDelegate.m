@@ -16,6 +16,7 @@
 #import "RCTLinkingManager.h"
 
 @interface AppDelegate ()
+@property UIBackgroundTaskIdentifier backgroundTask;
 @end
 
 #if TARGET_OS_SIMULATOR
@@ -32,7 +33,6 @@ const BOOL isDebug = NO;
 
 @implementation AppDelegate
 
-UIBackgroundTaskIdentifier backgroundTask;
 
 - (BOOL)addSkipBackupAttributeToItemAtPath:(NSString *) filePathString
 {
@@ -152,14 +152,14 @@ UIBackgroundTaskIdentifier backgroundTask;
 {
   [RCTPushNotificationManager didReceiveRemoteNotification:notification];
 }
-// fetch notifications in the background and foreground
+// Require for handling silent notifications
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
 
   // Mark a background task so we don't get insta killed by the OS
-  if (!backgroundTask || backgroundTask == UIBackgroundTaskInvalid) {
-    backgroundTask = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
-      [[UIApplication sharedApplication] endBackgroundTask:backgroundTask];
-      backgroundTask = UIBackgroundTaskInvalid;
+  if (!self.backgroundTask || self.backgroundTask == UIBackgroundTaskInvalid) {
+    self.backgroundTask = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
+      [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTask];
+      self.backgroundTask = UIBackgroundTaskInvalid;
     }];
   }
   
