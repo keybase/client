@@ -4,17 +4,17 @@ import {PrivateFolders, PublicFolders} from './'
 import Files from './files'
 import PaperKey from './files/paperkey'
 
-const filesSubTree = {
+const filesSubTree = (darkStatusBarContent = false) => ({
   files: {
     component: Files,
-    tags: {underStatusBar: true},
+    tags: {showStatusBarDarkContent: darkStatusBarContent, underStatusBar: true},
     children: {
       paperkey: {
         component: PaperKey,
       },
     },
   },
-}
+})
 
 const routeTree = new RouteDefNode({
   defaultSelected: 'private',
@@ -23,13 +23,13 @@ const routeTree = new RouteDefNode({
       component: PrivateFolders,
       initialState: {showingIgnored: false},
       tags: {underStatusBar: true},
-      children: filesSubTree,
+      children: filesSubTree(),
     },
     public: {
       component: PublicFolders,
       initialState: {showingIgnored: false},
-      tags: {underStatusBar: true, showStatusBarDarkContent: true},
-      children: filesSubTree,
+      tags: {showStatusBarDarkContent: true, underStatusBar: true},
+      children: filesSubTree(true),
     },
   },
 })
