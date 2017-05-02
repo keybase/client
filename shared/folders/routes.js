@@ -28,7 +28,7 @@ const routeTree = new RouteDefNode({
     public: {
       component: PublicFolders,
       initialState: {showingIgnored: false},
-      tags: {underStatusBar: true},
+      tags: {underStatusBar: true, showStatusBarDarkContent: true},
       children: filesSubTree,
     },
   },
