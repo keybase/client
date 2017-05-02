@@ -131,9 +131,9 @@ type deCacheEntry struct {
 	// been added to the DirBlock for the BlockPointer that maps to
 	// this struct.
 	adds map[string]BlockPointer
-	// dels are the DirEntrys that have been removed from the DirBlock
-	// for the BlockPointer that maps to this struct, index by name.
-	dels map[string]DirEntry
+	// dels are the name that have been removed from the DirBlock
+	// for the BlockPointer that maps to this struct.
+	dels map[string]bool
 }
 
 type deferredState struct {
@@ -868,9 +868,9 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(lState *lockState,
 	fbo.blockLock.AssertLocked(lState)
 	cacheEntry := fbo.deCache[dir.tailPointer().Ref()]
 	if cacheEntry.dels == nil {
-		cacheEntry.dels = make(map[string]DirEntry)
+		cacheEntry.dels = make(map[string]bool)
 	}
-	cacheEntry.dels[oldName] = oldDe
+	cacheEntry.dels[oldName] = true
 	// In case it was added in the cache but not flushed yet.
 	delete(cacheEntry.adds, oldName)
 
@@ -890,6 +890,8 @@ func (fbo *folderBlockOps) RemoveDirEntryInCache(lState *lockState, dir path,
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	fbo.removeDirEntryInCacheLocked(lState, dir, oldName, oldDe)
+	_ = fbo.nodeCache.Unlink(
+		oldDe.Ref(), dir.ChildPath(oldName, oldDe.BlockPointer), oldDe)
 }
 
 // RenameDirEntryInCache updates the entries of both the old and new
@@ -903,7 +905,7 @@ func (fbo *folderBlockOps) RemoveDirEntryInCache(lState *lockState, dir path,
 // longer needed.
 func (fbo *folderBlockOps) RenameDirEntryInCache(lState *lockState,
 	oldParent path, oldName string, newParent path, newName string,
-	newDe DirEntry) (deleteTargetDirEntry bool) {
+	newDe DirEntry, replacedDe DirEntry) (deleteTargetDirEntry bool) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	if newParent.tailPointer() == oldParent.tailPointer() &&
@@ -913,6 +915,10 @@ func (fbo *folderBlockOps) RenameDirEntryInCache(lState *lockState,
 	}
 	fbo.addDirEntryInCacheLocked(lState, newParent, newName, newDe)
 	fbo.removeDirEntryInCacheLocked(lState, oldParent, oldName, DirEntry{})
+	_ = fbo.nodeCache.Unlink(
+		replacedDe.Ref(), newParent.ChildPath(newName, replacedDe.BlockPointer),
+		replacedDe)
+
 	// If there's already an entry for the target, only update the
 	// Ctime on a rename.
 	cacheEntry, ok := fbo.deCache[newDe.Ref()]
@@ -1214,16 +1220,18 @@ func (fbo *folderBlockOps) getDirtyParentAndEntryLocked(ctx context.Context,
 	// make sure it exists
 	name := file.tailName()
 	de, ok := dblock.Children[name]
-	if !ok {
+	if !ok || (file.tailPointer().IsValid() &&
+		de.BlockPointer != file.tailPointer()) {
 		if includeDeleted {
 			// Has the file been removed?
-			cacheEntry := fbo.deCache[parentPath.tailPointer().Ref()]
-			var ok bool
-			de, ok = cacheEntry.dels[name]
-			if !ok || !de.IsInitialized() {
-				// The file hasn't been removed, so this is a real error.
+			node := fbo.nodeCache.Get(file.tailPointer().Ref())
+			if node == nil {
 				return nil, DirEntry{}, NoSuchNameError{name}
 			}
+			if !fbo.nodeCache.IsUnlinked(node) {
+				return nil, DirEntry{}, NoSuchNameError{name}
+			}
+			de = fbo.nodeCache.UnlinkedDirEntry(node)
 			// It's possible the unlinked file has been updated.
 			_, de = fbo.updateDirtyEntryLocked(ctx, lState, de)
 		} else {
@@ -3176,7 +3184,7 @@ func (fbo *folderBlockOps) UpdatePointers(kmd KeyMetadata, lState *lockState,
 }
 
 func (fbo *folderBlockOps) unlinkDuringFastForwardLocked(ctx context.Context,
-	lState *lockState, ref BlockRef) {
+	lState *lockState, kmd KeyMetadata, ref BlockRef) {
 	fbo.blockLock.AssertLocked(lState)
 	oldNode := fbo.nodeCache.Get(ref)
 	if oldNode == nil {
@@ -3185,7 +3193,12 @@ func (fbo *folderBlockOps) unlinkDuringFastForwardLocked(ctx context.Context,
 	oldPath := fbo.nodeCache.PathFromNode(oldNode)
 	fbo.log.CDebugf(ctx, "Unlinking missing node %s/%v during "+
 		"fast-forward", oldPath, ref)
-	fbo.nodeCache.Unlink(ref, oldPath)
+	de, err := fbo.getDirtyEntryLocked(ctx, lState, kmd, oldPath, true)
+	if err != nil {
+		fbo.log.CDebugf(ctx, "Couldn't find old dir entry for %s/%v: %+v",
+			oldPath, ref, err)
+	}
+	fbo.nodeCache.Unlink(ref, oldPath, de)
 }
 
 func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
@@ -3205,7 +3218,7 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 		entry, ok := dirBlock.Children[child.Name]
 		if !ok {
 			fbo.unlinkDuringFastForwardLocked(
-				ctx, lState, child.BlockPointer.Ref())
+				ctx, lState, kmd, child.BlockPointer.Ref())
 			continue
 		}
 
@@ -3316,7 +3329,7 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 	for _, childPNs := range children {
 		for child := range childPNs {
 			fbo.unlinkDuringFastForwardLocked(
-				ctx, lState, child.BlockPointer.Ref())
+				ctx, lState, md, child.BlockPointer.Ref())
 		}
 	}
 	return changes, nil

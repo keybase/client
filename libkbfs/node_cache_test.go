@@ -278,7 +278,8 @@ func TestNodeCacheUnlink(t *testing.T) {
 	childPtr2 := path2[2].BlockPointer
 
 	// unlink child2
-	found := ncs.Unlink(childPtr2.Ref(), ncs.PathFromNode(childNode2))
+	found := ncs.Unlink(
+		childPtr2.Ref(), ncs.PathFromNode(childNode2), DirEntry{})
 	if !found {
 		t.Fatalf("Couldn't unlink")
 	}
@@ -301,7 +302,8 @@ func TestNodeCacheUnlinkParent(t *testing.T) {
 	childPtr1 := path2[1].BlockPointer
 
 	// unlink node 2's parent
-	found := ncs.Unlink(childPtr1.Ref(), ncs.PathFromNode(childNode1))
+	found := ncs.Unlink(
+		childPtr1.Ref(), ncs.PathFromNode(childNode1), DirEntry{})
 	if !found {
 		t.Fatalf("Couldn't unlink")
 	}
@@ -325,7 +327,8 @@ func TestNodeCacheUnlinkThenRelink(t *testing.T) {
 	childPtr2 := path2[2].BlockPointer
 
 	// unlink child2
-	found := ncs.Unlink(childPtr2.Ref(), ncs.PathFromNode(childNode2))
+	found := ncs.Unlink(
+		childPtr2.Ref(), ncs.PathFromNode(childNode2), DirEntry{})
 	if !found {
 		t.Fatalf("Couldn't unlink")
 	}

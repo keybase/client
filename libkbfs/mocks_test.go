@@ -5191,14 +5191,14 @@ func (_mr *_MockNodeCacheRecorder) Move(arg0, arg1, arg2 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Move", arg0, arg1, arg2)
 }
 
-func (_m *MockNodeCache) Unlink(ref BlockRef, oldPath path) bool {
-	ret := _m.ctrl.Call(_m, "Unlink", ref, oldPath)
+func (_m *MockNodeCache) Unlink(ref BlockRef, oldPath path, oldDe DirEntry) bool {
+	ret := _m.ctrl.Call(_m, "Unlink", ref, oldPath, oldDe)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
-func (_mr *_MockNodeCacheRecorder) Unlink(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Unlink", arg0, arg1)
+func (_mr *_MockNodeCacheRecorder) Unlink(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Unlink", arg0, arg1, arg2)
 }
 
 func (_m *MockNodeCache) IsUnlinked(node Node) bool {
@@ -5209,6 +5209,16 @@ func (_m *MockNodeCache) IsUnlinked(node Node) bool {
 
 func (_mr *_MockNodeCacheRecorder) IsUnlinked(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsUnlinked", arg0)
+}
+
+func (_m *MockNodeCache) UnlinkedDirEntry(node Node) DirEntry {
+	ret := _m.ctrl.Call(_m, "UnlinkedDirEntry", node)
+	ret0, _ := ret[0].(DirEntry)
+	return ret0
+}
+
+func (_mr *_MockNodeCacheRecorder) UnlinkedDirEntry(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnlinkedDirEntry", arg0)
 }
 
 func (_m *MockNodeCache) PathFromNode(node Node) path {

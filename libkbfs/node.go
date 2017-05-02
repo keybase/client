@@ -16,6 +16,7 @@ type nodeCore struct {
 	cache    *nodeCacheStandard
 	// used only when parent is nil (the object has been unlinked)
 	cachedPath path
+	cachedDe   DirEntry
 }
 
 func newNodeCore(ptr BlockPointer, name string, parent *nodeStandard,

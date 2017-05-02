@@ -214,7 +214,8 @@ func (ncs *nodeCacheStandard) Move(
 }
 
 // Unlink implements the NodeCache interface for nodeCacheStandard.
-func (ncs *nodeCacheStandard) Unlink(ref BlockRef, oldPath path) bool {
+func (ncs *nodeCacheStandard) Unlink(
+	ref BlockRef, oldPath path, oldDe DirEntry) bool {
 	if ref == (BlockRef{}) {
 		return false
 	}
@@ -238,6 +239,7 @@ func (ncs *nodeCacheStandard) Unlink(ref BlockRef, oldPath path) bool {
 	}
 
 	entry.core.cachedPath = oldPath
+	entry.core.cachedDe = oldDe
 	entry.core.parent = nil
 	entry.core.pathNode.Name = ""
 	return true
@@ -255,6 +257,20 @@ func (ncs *nodeCacheStandard) IsUnlinked(node Node) bool {
 	}
 
 	return ns.core.cachedPath.isValid()
+}
+
+// UnlinkedDirEntry implements the NodeCache interface for
+// nodeCacheStandard.
+func (ncs *nodeCacheStandard) UnlinkedDirEntry(node Node) DirEntry {
+	ncs.lock.RLock()
+	defer ncs.lock.RUnlock()
+
+	ns, ok := node.(*nodeStandard)
+	if !ok {
+		return DirEntry{}
+	}
+
+	return ns.core.cachedDe
 }
 
 // PathFromNode implements the NodeCache interface for nodeCacheStandard.

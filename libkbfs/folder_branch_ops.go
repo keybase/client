@@ -2994,7 +2994,6 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 	// the actual unlink
 	delete(pblock.Children, name)
 
-	_ = fbo.nodeCache.Unlink(de.Ref(), dirPath.ChildPath(name, de.BlockPointer))
 	fbo.blocks.RemoveDirEntryInCache(lState, dirPath, name, de)
 	fbo.dirOps = append(fbo.dirOps, cachedDirOp{ro, []Node{dir}})
 
@@ -3169,7 +3168,8 @@ func (fbo *folderBranchOps) renameLocked(
 	delete(oldPBlock.Children, oldName)
 
 	deleteTargetDirEntry := fbo.blocks.RenameDirEntryInCache(
-		lState, oldParentPath, oldName, newParentPath, newName, newDe)
+		lState, oldParentPath, oldName, newParentPath, newName, newDe,
+		replacedDe)
 	ro := md.data.Changes.Ops[len(md.data.Changes.Ops)-1]
 	cdo := cachedDirOp{ro, []Node{oldParent}}
 	if oldParent.GetID() != newParent.GetID() {
@@ -4108,53 +4108,92 @@ func (fbo *folderBranchOps) searchForNode(ctx context.Context,
 	return n, nil
 }
 
-func (fbo *folderBranchOps) unlinkFromCache(op op, unlinkPath path) error {
-	// The entry could be under any one of the unref'd blocks, and
-	// it's safe to perform this when the pointer isn't real, so just
-	// try them all to avoid the overhead of looking up the right
-	// pointer in the old version of the block.
-	for _, ptr := range op.Unrefs() {
-		// It's ok to modify this path, since we break as soon as the
-		// node cache takes a reference to it.
-		unlinkPath.path[len(unlinkPath.path)-1].BlockPointer = ptr
-		found := fbo.nodeCache.Unlink(ptr.Ref(), unlinkPath)
-		if found {
-			break
-		}
-	}
+func (fbo *folderBranchOps) unlinkFromCache(
+	op op, unlinkPath path, unlinkDe DirEntry) error {
 
 	return nil
 }
 
 func (fbo *folderBranchOps) getUnlinkPathBeforeUpdatingPointers(
-	ctx context.Context, op op) (unlinkPath path, toUnlink bool, err error) {
+	ctx context.Context, lState *lockState, md ReadOnlyRootMetadata, op op) (
+	unlinkPath path, unlinkDe DirEntry, toUnlink bool, err error) {
 	var node Node
 	var childName string
 
+	requireResFix := false
 	switch realOp := op.(type) {
 	case *rmOp:
+		if realOp.Dir.Ref == realOp.Dir.Unref {
+			requireResFix = true
+		}
 		node = fbo.nodeCache.Get(realOp.Dir.Unref.Ref())
 		childName = realOp.OldName
 	case *renameOp:
 		if realOp.NewDir.Unref != zeroPtr {
 			// moving to a new dir
+			if realOp.NewDir.Ref == realOp.NewDir.Unref {
+				requireResFix = true
+			}
 			node = fbo.nodeCache.Get(realOp.NewDir.Unref.Ref())
 		} else {
 			// moving to the same dir
+			if realOp.OldDir.Ref == realOp.OldDir.Unref {
+				requireResFix = true
+			}
 			node = fbo.nodeCache.Get(realOp.OldDir.Unref.Ref())
 		}
 		childName = realOp.NewName
 	}
 	if node == nil {
-		return path{}, false, nil
+		return path{}, DirEntry{}, false, nil
 	}
 
 	p, err := fbo.pathFromNodeForRead(node)
 	if err != nil {
-		return path{}, false, err
+		return path{}, DirEntry{}, false, err
 	}
 
-	return p.ChildPathNoPtr(childName), true, nil
+	// If the first op in this MD update is a resolutionOp, we need to
+	// inspect it to look for the *real* original pointer for this
+	// node.
+	if resOp, ok := md.data.Changes.Ops[0].(*resolutionOp); ok {
+		for _, update := range resOp.allUpdates() {
+			if update.Ref == p.tailPointer() {
+				fbo.log.CDebugf(ctx,
+					"Backing up ptr %v in op %s to original pointer %v",
+					p.tailPointer(), op, update.Unref)
+				p.path[len(p.path)-1].BlockPointer = update.Unref
+				requireResFix = false
+				break
+			}
+		}
+	}
+
+	if requireResFix {
+		// If we didn't fix up the pointer using a resolutionOp, the
+		// directory was likely created during this md update, and so
+		// no unlinking is needed.
+		fbo.log.CDebugf(ctx,
+			"Ignoring unlink when resolutionOp never fixed up %v",
+			p.tailPointer())
+		return path{}, DirEntry{}, false, nil
+	}
+
+	// If the original (clean) parent block is already GC'd from the
+	// server, this might not work, but hopefully we'd be
+	// fast-forwarding in that case anyway.
+	dblock, err := fbo.blocks.GetDir(ctx, lState, md, p, blockRead)
+	if err != nil {
+		fbo.log.CDebugf(ctx, "Couldn't get the dir entry for %s in %v: %+v",
+			childName, p.tailPointer(), err)
+		return path{}, DirEntry{}, false, nil
+	}
+	de, ok := dblock.Children[childName]
+	if !ok {
+		return path{}, DirEntry{}, false, nil
+	}
+	childPath := p.ChildPath(childName, de.BlockPointer)
+	return childPath, de, true, nil
 }
 
 func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
@@ -4170,7 +4209,8 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 
 	// We need to get unlinkPath before calling UpdatePointers so that
 	// nodeCache.Unlink can properly update cachedPath.
-	unlinkPath, toUnlink, err := fbo.getUnlinkPathBeforeUpdatingPointers(ctx, op)
+	unlinkPath, unlinkDe, toUnlink, err :=
+		fbo.getUnlinkPathBeforeUpdatingPointers(ctx, lState, md.ReadOnly(), op)
 	if err != nil {
 		return err
 	}
@@ -4212,10 +4252,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 		// If this node exists, then the child node might exist too,
 		// and we need to unlink it in the node cache.
 		if toUnlink {
-			err := fbo.unlinkFromCache(op, unlinkPath)
-			if err != nil {
-				return err
-			}
+			_ = fbo.nodeCache.Unlink(unlinkDe.Ref(), unlinkPath, unlinkDe)
 		}
 	case *renameOp:
 		oldNode := fbo.nodeCache.Get(realOp.OldDir.Ref.Ref())
@@ -4269,10 +4306,8 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 
 			if newNode != nil {
 				if toUnlink {
-					err := fbo.unlinkFromCache(op, unlinkPath)
-					if err != nil {
-						return err
-					}
+					_ = fbo.nodeCache.Unlink(
+						unlinkDe.Ref(), unlinkPath, unlinkDe)
 				}
 				err := fbo.nodeCache.Move(
 					realOp.Renamed.Ref(), newNode, realOp.NewName)
@@ -4381,7 +4416,13 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 					p.path[i].BlockPointer = oldPtr
 				}
 			}
-			fbo.nodeCache.Unlink(p.tailPointer().Ref(), p)
+			de, err := fbo.blocks.GetDirtyEntry(ctx, lState, md, p)
+			if err != nil {
+				fbo.log.CDebugf(ctx,
+					"Couldn't get the dir entry for %s/%v: %+v",
+					p, p.tailPointer(), err)
+			}
+			_ = fbo.nodeCache.Unlink(p.tailPointer().Ref(), p, de)
 		}
 		if len(changes) == 0 {
 			return nil

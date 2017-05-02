@@ -1049,7 +1049,7 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
-	bNode := pathNode{makeBP(bID, rmd, config, u), "b"}
+	bNode := pathNode{dirBlock.Children["b"].BlockPointer, "b"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode, bNode}}
 	n := nodeFromPath(t, ops, p)
 
@@ -3604,7 +3604,8 @@ func TestKBFSOpsRenameSameDirSyncAll(t *testing.T) {
 		}
 
 		_ = ops.blocks.RenameDirEntryInCache(
-			lState, rootDir, name, rootDir, newName, dblock.Children[name])
+			lState, rootDir, name, rootDir, newName, dblock.Children[name],
+			DirEntry{})
 		ops.dirOps = append(ops.dirOps, cachedDirOp{ro, []Node{rootNode}})
 	}
 

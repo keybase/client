@@ -1693,10 +1693,14 @@ type NodeCache interface {
 	// because the caller may have made changes to the parent nodes
 	// already that shouldn't be reflected in the cached path.
 	// Returns whether a node was actually updated.
-	Unlink(ref BlockRef, oldPath path) bool
+	Unlink(ref BlockRef, oldPath path, oldDe DirEntry) bool
 	// IsUnlinked returns whether `Unlink` has been called for the
 	// reference behind this node.
 	IsUnlinked(node Node) bool
+	// UnlinkedDirEntry returns a pointer to a modifiable directory
+	// entry if `Unlink` has been called for the reference behind this
+	// node.
+	UnlinkedDirEntry(node Node) DirEntry
 	// PathFromNode creates the path up to a given Node.
 	PathFromNode(node Node) path
 	// AllNodes returns the complete set of nodes currently in the cache.
