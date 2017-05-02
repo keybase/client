@@ -9,6 +9,7 @@ const props: Props = {
   justDeletedSelf: null,
   justLoginFromRevokedDevice: null,
   justRevokedSelf: null,
+  onFeedback: () => {},
   onLogin: () => {},
   onRetry: () => {},
   onSignup: () => {},
