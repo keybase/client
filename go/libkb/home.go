@@ -208,7 +208,7 @@ func (w Win32) Home(emptyOk bool) string {
 		last := strings.ToLower(v[len(v)-1])
 		rest := v[0 : len(v)-1]
 		if last != "temp" && last != "tmp" {
-			G.Log.Fatalf("TEMP directory didn't end in \\Temp: %s", last)
+			G.Log.Warning("TEMP directory didn't end in \\Temp: %s", last)
 		}
 		if strings.ToLower(rest[len(rest)-1]) == "local" {
 			rest[len(rest)-1] = "Roaming"
