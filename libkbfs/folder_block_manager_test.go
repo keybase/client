@@ -37,9 +37,17 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %+v", err)
 	}
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
+	}
 	err = kbfsOps.RemoveDir(ctx, rootNode, "a")
 	if err != nil {
 		t.Fatalf("Couldn't remove dir: %+v", err)
+	}
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
 	}
 
 	// Wait for outstanding archives
@@ -83,6 +91,10 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "b")
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %+v", err)
+	}
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync all: %v", err)
 	}
 
 	preQR2Blocks, err := bserverLocal.getAllRefsForTest(
@@ -165,9 +177,17 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Couldn't create dir: %+v", err)
 		}
+		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+		if err != nil {
+			t.Fatalf("Couldn't sync all: %v", err)
+		}
 		err = kbfsOps.RemoveDir(ctx, rootNode, "a")
 		if err != nil {
 			t.Fatalf("Couldn't remove dir: %+v", err)
+		}
+		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+		if err != nil {
+			t.Fatalf("Couldn't sync all: %v", err)
 		}
 	}
 
@@ -307,6 +327,10 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't remove file: %+v", err)
 	}
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
+	}
 
 	// Wait for outstanding archives
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
@@ -359,6 +383,10 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
+	}
 	err = kbfsOps2.Write(ctx, dNode, otherData, 0)
 	if err != nil {
 		t.Fatalf("Couldn't write file: %+v", err)
@@ -378,6 +406,10 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	eNode, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "e", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %+v", err)
+	}
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
 	}
 	err = kbfsOps2.Write(ctx, eNode, data, 0)
 	if err != nil {
@@ -697,9 +729,17 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Couldn't create dir: %+v", err)
 		}
+		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+		if err != nil {
+			t.Fatalf("Couldn't sync all: %v", err)
+		}
 		err = kbfsOps.RemoveDir(ctx, rootNode, "a")
 		if err != nil {
 			t.Fatalf("Couldn't remove dir: %+v", err)
+		}
+		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+		if err != nil {
+			t.Fatalf("Couldn't sync all: %v", err)
 		}
 	}
 	clock.Add(2 * config.QuotaReclamationMinUnrefAge())
