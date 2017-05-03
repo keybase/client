@@ -2540,7 +2540,7 @@ func TestProvisionGPGMobile(t *testing.T) {
 func TestProvisionEnsurePaperKey(t *testing.T) {
 	// This test is based on TestProvisionDesktop.
 
-	t.Logf("create 2 users")
+	t.Logf("create 2 contexts")
 
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
@@ -2560,11 +2560,11 @@ func TestProvisionEnsurePaperKey(t *testing.T) {
 	t.Logf("check for initial paper key")
 	originalPaperKey := hasOnePaperDev(tcY, userX)
 
-	t.Logf("revoke paper keys")
+	t.Logf("revoke paper keys from X")
 	{
 		ctx := &Context{
 			LoginUI:  &libkb.TestLoginUI{Username: userX.Username},
-			LogUI:    tcY.G.UI.GetLogUI(),
+			LogUI:    tcX.G.UI.GetLogUI(),
 			SecretUI: &libkb.TestSecretUI{},
 		}
 		eng := NewRevokeDeviceEngine(RevokeDeviceEngineArgs{
@@ -2670,6 +2670,141 @@ func TestProvisionEnsurePaperKey(t *testing.T) {
 	hasOnePaperDev(tcX, userX)
 }
 
+// Device X provisions device Y, then device Y revokes X.
+func TestProvisionAndRevoke(t *testing.T) {
+	// This test is based on TestProvisionDesktop.
+
+	t.Logf("create 2 contexts")
+
+	// device X (provisioner) context:
+	tcX := SetupEngineTest(t, "kex2provision")
+	defer tcX.Cleanup()
+
+	// device Y (provisionee) context:
+	tcY := SetupEngineTest(t, "template")
+	defer tcY.Cleanup()
+
+	// provisioner needs to be logged in
+	userX := CreateAndSignupFakeUserPaper(tcX, "login")
+	var secretX kex2.Secret
+	if _, err := rand.Read(secretX[:]); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("check for initial paper key")
+	_ = hasOnePaperDev(tcY, userX)
+
+	t.Logf("do kex provision")
+
+	secretCh := make(chan kex2.Secret)
+
+	// provisionee calls login:
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUISecretCh(secretCh),
+		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+
+	var wg sync.WaitGroup
+
+	// start provisionee
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Errorf("provisionee login error: %s", err)
+			return
+		}
+	}()
+
+	// start provisioner
+	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		ctx := &Context{
+			SecretUI:    userX.NewSecretUI(),
+			ProvisionUI: newTestProvisionUI(),
+		}
+		if err := RunEngine(provisioner, ctx); err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
+	}()
+	secretFromY := <-secretCh
+	provisioner.AddSecret(secretFromY)
+
+	wg.Wait()
+
+	require.False(t, t.Failed(), "prior failure in a goroutine")
+
+	if err := AssertProvisioned(tcY); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("kex finished")
+
+	// after provisioning, the passphrase stream should be cached
+	// (note that this just checks the passphrase stream, not 3sec)
+	assertPassphraseStreamCache(tcY)
+
+	// after provisioning, the device keys should be cached
+	assertDeviceKeysCached(tcY)
+
+	t.Logf("revoke device X from Y")
+
+	// require.NoError(t, doRevokeDevice(tcY, userX, tcX.G.ActiveDevice.DeviceID(), false))
+	{
+		ctx := &Context{
+			LoginUI:  &libkb.TestLoginUI{Username: userX.Username},
+			LogUI:    tcY.G.UI.GetLogUI(),
+			SecretUI: &libkb.TestSecretUI{},
+		}
+		eng := NewRevokeDeviceEngine(RevokeDeviceEngineArgs{
+			ID:    tcX.G.ActiveDevice.DeviceID(),
+			Force: false,
+		}, tcY.G)
+		err := RunEngine(eng, ctx)
+		require.NoError(t, err, "revoke original paper key")
+	}
+
+	t.Logf("revoke finished")
+
+	testTrack := func(whom string) {
+
+		// make sure that the provisioned device can use
+		// the passphrase stream cache (use an empty secret ui)
+		arg := &TrackEngineArg{
+			UserAssertion: whom,
+			Options:       keybase1.TrackOptions{BypassConfirm: true},
+		}
+		ctx = &Context{
+			LogUI:      tcY.G.UI.GetLogUI(),
+			IdentifyUI: &FakeIdentifyUI{},
+			SecretUI:   &libkb.TestSecretUI{},
+		}
+
+		teng := NewTrackEngine(arg, tcY.G)
+		if err := RunEngine(teng, ctx); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Make sure that we can still track without a passphrase
+	// after a similated service restart.  In other words, that
+	// the full LKSec secret was written to the secret store.
+	simulateServiceRestart(t, tcY, userX)
+	testTrack("t_bob")
+
+	t.Logf("check for paper key")
+	hasOnePaperDev(tcY, userX)
+	hasOnePaperDev(tcX, userX)
+}
+
 // Test bootstrap, login offline after service restart when provisioned via
 // GPG sign.
 func TestBootstrapAfterGPGSign(t *testing.T) {
@@ -2724,6 +2859,10 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 		if err := AssertProvisioned(tc2); err != nil {
 			t.Fatal(err)
 		}
+
+		// do a upak load to make sure it is cached
+		arg := libkb.NewLoadUserByUIDArg(context.TODO(), tc2.G, u1.UID())
+		tc2.G.GetUPAKLoader().Load(arg)
 
 		// Simulate restarting the service by wiping out the
 		// passphrase stream cache and cached secret keys

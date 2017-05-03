@@ -1,5 +1,6 @@
 // @flow
 import React, {Component} from 'react'
+import Container from '../../forms/container'
 import type {Props} from './index.render'
 import {Box, Checkbox, Button, Text, Icon} from '../../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../../styles'
@@ -28,7 +29,7 @@ class SuccessRender extends Component<void, Props, State> {
 
   render () {
     return (
-      <Box style={{padding: globalMargins.large, flex: 1}}>
+      <Container style={{padding: globalMargins.large, flex: 1}}>
         <Text type='Header' style={textCenter}>{this.props.title || "Congratulations, you've just joined Keybase!"}</Text>
         <Text type='Body' style={{...textCenter, marginTop: globalMargins.medium}}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you'll see this so be sure to write it down.</Text>
 
@@ -53,7 +54,7 @@ class SuccessRender extends Component<void, Props, State> {
             label='Done'
             type='Primary' />
         </Box>
-      </Box>
+      </Container>
     )
   }
 }

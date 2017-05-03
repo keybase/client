@@ -28,6 +28,7 @@ const getRows = createImmutableEqualSelector(
 
 export default connect(
   (state: TypedState) => ({
+    isLoading: state.chat.get('inboxUntrustedState') === 'loading',
     rows: getRows(state),
   }),
   (dispatch: Dispatch) => ({
