@@ -121,7 +121,7 @@ func (b *BackgroundConvLoader) Queue(ctx context.Context, convID chat1.Conversat
 
 	select {
 	case b.queue <- convID:
-		b.Debug(ctx, "added %s to queue")
+		b.Debug(ctx, "added %s to queue", convID)
 	default:
 		b.Debug(ctx, "queue is full, not adding %s", convID)
 		return errors.New("queue is full")
