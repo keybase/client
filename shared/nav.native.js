@@ -181,6 +181,7 @@ const flexOne = {
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   hideNav: ownProps.routeSelected === loginTab,
+  hideKeyboard: state.config.hideKeyboard,
   navBadges: state.notifications.get('navBadges'),
   reachability: state.gregor.reachability,
   username: state.config.username,
@@ -200,17 +201,17 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
 })
 
-const dismissKeyboardOnPathChange = lifecycle({
-  componentWillReceiveProps (nextProps) {
-    const nextPath = nextProps.routeStack.last().path
-    const curPath = this.props.routeStack.last().path
-    if (!nextPath.equals(curPath)) {
-      NativeKeyboard.dismiss()
-    }
-  },
-})
-
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  dismissKeyboardOnPathChange,
+  lifecycle({
+    componentWillReceiveProps (nextProps) {
+      const nextPath = nextProps.routeStack.last().path
+      const curPath = this.props.routeStack.last().path
+      if (!nextPath.equals(curPath)) {
+        NativeKeyboard.dismiss()
+      } else if (this.props.hideKeyboard !== nextProps.hideKeyboard) {
+        NativeKeyboard.dismiss()
+      }
+    },
+  })
 )(Nav)

@@ -18,7 +18,7 @@ function HeaderHoc<P> (WrappedComponent: ReactClass<P>) {
         {onCancel && <Text type='BodyBigLink' onClick={onCancel}>Cancel</Text>}
         {onBack && <BackButton iconStyle={_backButtonIconStyle} onClick={onBack} />}
       </Box>
-      <WrappedComponent {...restProps} />
+      <WrappedComponent {...restProps} onBack={onBack} onCancel={onCancel} />
     </Box>
   )
 }

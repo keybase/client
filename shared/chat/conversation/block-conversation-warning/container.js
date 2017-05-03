@@ -13,18 +13,27 @@ type RenderBlockConversationWarningRouteProps = RouteProps<{
 }, {}>
 type OwnProps = RenderBlockConversationWarningRouteProps & {}
 
-export default connect(
-  (state: TypedState, {routeProps}: OwnProps) => {
-    const {conversationIDKey, participants} = routeProps
-    return {
-      conversationIDKey,
-      participants,
-    }
+const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
+  const {conversationIDKey, participants} = routeProps
+  return {
+    conversationIDKey,
+    participants,
+  }
+}
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onBlock: (conversationIDKey: ConversationIDKey) => dispatch(({payload: {blocked: true, conversationIDKey}, type: 'chat:blockConversation'}: BlockConversation)),
+  onBack: () => dispatch(navigateUp()),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+  ...ownProps,
+  onBlock: () => {
+    dispatchProps.onBlock(stateProps.conversationIDKey)
+    dispatchProps.onBack()
   },
-  (dispatch: Dispatch) => ({
-    onBlock: (conversationIDKey: ConversationIDKey) => {
-      dispatch(({payload: {blocked: true, conversationIDKey}, type: 'chat:blockConversation'}: BlockConversation))
-    },
-    onClose: () => dispatch(navigateUp()),
-  })
-)(RenderBlockConversationWarning)
+})
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(RenderBlockConversationWarning)
