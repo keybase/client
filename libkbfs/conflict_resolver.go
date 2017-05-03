@@ -2345,6 +2345,7 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 				"for %v", ptr)
 		}
 
+	chainLoop:
 		for _, op := range chain.ops {
 			// Skip any rms that were part of a rename
 			if rop, ok := op.(*rmOp); ok && len(rop.Unrefs()) == 0 {
@@ -2418,6 +2419,23 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 						rop.AddUnrefBlock(origPtr)
 					}
 					op = rop
+
+					// If this renames from a destination that's been
+					// deleted by a previous op, we should replace the
+					// delete with this.
+					for i, prevOp := range ops {
+						rmop, ok := prevOp.(*rmOp)
+						if !ok {
+							continue
+						}
+
+						if rop.OldDir.Unref == rmop.Dir.Unref &&
+							rop.OldName == rmop.OldName {
+							ops[i] = op
+							continue chainLoop
+						}
+					}
+
 				}
 			} else {
 				op = chains.copyOpAndRevertUnrefsToOriginals(op)
