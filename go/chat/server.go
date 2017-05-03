@@ -835,14 +835,14 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 
 	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
 
-	_, msgID, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0)
+	_, msgBoxed, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0)
 	if err != nil {
 		return chat1.PostLocalRes{}, fmt.Errorf("PostLocal: unable to send message: %s", err.Error())
 	}
 
 	return chat1.PostLocalRes{
 		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
-		MessageID:        msgID,
+		MessageID:        msgBoxed.GetMessageID(),
 		IdentifyFailures: identBreaks,
 	}, nil
 }

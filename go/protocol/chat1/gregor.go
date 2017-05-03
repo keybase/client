@@ -8,7 +8,8 @@ import (
 )
 
 type GenericPayload struct {
-	Action string `codec:"Action" json:"Action"`
+	Action    string    `codec:"Action" json:"Action"`
+	InboxVers InboxVers `codec:"inboxVers" json:"inboxVers"`
 }
 
 type NewConversationPayload struct {

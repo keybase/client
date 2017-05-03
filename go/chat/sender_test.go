@@ -76,7 +76,7 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 	defer n.Unlock()
 	typ, err := activity.ActivityType()
 	if err == nil {
-		if typ == chat1.ChatActivityType_INCOMING_MESSAGE {
+		if typ == chat1.ChatActivityType_INCOMING_MESSAGE && activity.IncomingMessage().Message.IsValid() {
 			header := activity.IncomingMessage().Message.Valid().ClientHeader
 			if header.OutboxID != nil {
 				n.obids = append(n.obids, *activity.IncomingMessage().Message.Valid().ClientHeader.OutboxID)
@@ -136,7 +136,7 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	baseSender := NewBlockingSender(g, boxer, nil, getRI)
 	sender := NewNonblockingSender(g, baseSender)
 	listener := chatListener{
-		incoming:       make(chan int),
+		incoming:       make(chan int, 100),
 		failing:        make(chan []chat1.OutboxRecord),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks),
 		inboxStale:     make(chan struct{}, 1),
@@ -275,7 +275,7 @@ func TestNonblockTimer(t *testing.T) {
 	// Send a bunch of nonblocking messages
 	var sentRef []sentRecord
 	for i := 0; i < 5; i++ {
-		_, msgID, _, err := baseSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		_, msgBoxed, _, err := baseSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        trip,
 				Sender:      u.User.GetUID().ToBytes(),
@@ -287,8 +287,9 @@ func TestNonblockTimer(t *testing.T) {
 				Body: "hi",
 			}),
 		}, 0)
-		t.Logf("generated msgID: %d", msgID)
 		require.NoError(t, err)
+		msgID := msgBoxed.GetMessageID()
+		t.Logf("generated msgID: %d", msgID)
 		sentRef = append(sentRef, sentRecord{msgID: &msgID})
 	}
 
@@ -324,7 +325,7 @@ func TestNonblockTimer(t *testing.T) {
 
 	// Send a bunch of nonblocking messages
 	for i := 0; i < 5; i++ {
-		_, msgID, _, err := baseSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		_, msgBoxed, _, err := baseSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        trip,
 				Sender:      u.User.GetUID().ToBytes(),
@@ -336,9 +337,10 @@ func TestNonblockTimer(t *testing.T) {
 				Body: "hi",
 			}),
 		}, 0)
+		require.NoError(t, err)
+		msgID := msgBoxed.GetMessageID()
 		t.Logf("generated msgID: %d", msgID)
 		sentRef = append(sentRef, sentRecord{msgID: &msgID})
-		require.NoError(t, err)
 	}
 
 	// Check get thread, make sure it makes sense
@@ -378,8 +380,8 @@ type FailingSender struct {
 }
 
 func (f FailingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error) {
-	return chat1.OutboxID{}, 0, nil, fmt.Errorf("I always fail!!!!")
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error) {
+	return chat1.OutboxID{}, nil, nil, fmt.Errorf("I always fail!!!!")
 }
 
 func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, []chat1.Asset, error) {
@@ -554,7 +556,7 @@ func TestDeletionHeaders(t *testing.T) {
 	res := startConv(t, u, trip, blockingSender, ri, tc)
 
 	// Send a message and two edits.
-	_, firstMessageID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, firstMessageBoxed, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -564,7 +566,8 @@ func TestDeletionHeaders(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
 	}, 0)
 	require.NoError(t, err)
-	_, editID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	firstMessageID := firstMessageBoxed.GetMessageID()
+	_, editBoxed, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -575,7 +578,8 @@ func TestDeletionHeaders(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: firstMessageID, Body: "bar"}),
 	}, 0)
 	require.NoError(t, err)
-	_, editID2, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	editID := editBoxed.GetMessageID()
+	_, editBoxed2, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -586,6 +590,7 @@ func TestDeletionHeaders(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: firstMessageID, Body: "baz"}),
 	}, 0)
 	require.NoError(t, err)
+	editID2 := editBoxed2.GetMessageID()
 
 	// Now prepare a deletion.
 	deletion := chat1.MessagePlaintext{
@@ -691,7 +696,7 @@ func TestDeletionAssets(t *testing.T) {
 
 	// Send an attachment message and 3 MessageAttachUploaded's.
 	tmp1 := mkAsset()
-	_, firstMessageID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, firstMessageBoxed, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -706,6 +711,8 @@ func TestDeletionAssets(t *testing.T) {
 		}),
 	}, 0)
 	require.NoError(t, err)
+	firstMessageID := firstMessageBoxed.GetMessageID()
+
 	editHeader := chat1.MessageClientHeader{
 		Conv:        trip,
 		Sender:      u.User.GetUID().ToBytes(),
@@ -713,7 +720,7 @@ func TestDeletionAssets(t *testing.T) {
 		MessageType: chat1.MessageType_ATTACHMENTUPLOADED,
 		Supersedes:  firstMessageID,
 	}
-	_, edit1ID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, edit1Boxed, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: editHeader,
 		MessageBody: chat1.NewMessageBodyWithAttachmentuploaded(chat1.MessageAttachmentUploaded{
 			MessageID: firstMessageID,
@@ -722,7 +729,8 @@ func TestDeletionAssets(t *testing.T) {
 		}),
 	}, 0)
 	require.NoError(t, err)
-	_, edit2ID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	edit1ID := edit1Boxed.GetMessageID()
+	_, edit2Boxed, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: editHeader,
 		MessageBody: chat1.NewMessageBodyWithAttachmentuploaded(chat1.MessageAttachmentUploaded{
 			MessageID: firstMessageID,
@@ -730,7 +738,8 @@ func TestDeletionAssets(t *testing.T) {
 			Previews:  []chat1.Asset{mkAsset(), mkAsset()},
 		}),
 	}, 0)
-	_, edit3ID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	edit2ID := edit2Boxed.GetMessageID()
+	_, edit3Boxed, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: editHeader,
 		MessageBody: chat1.NewMessageBodyWithAttachmentuploaded(chat1.MessageAttachmentUploaded{
 			MessageID: firstMessageID,
@@ -739,6 +748,7 @@ func TestDeletionAssets(t *testing.T) {
 		}),
 	}, 0)
 	require.NoError(t, err)
+	edit3ID := edit3Boxed.GetMessageID()
 
 	require.Equal(t, len(doomedAssets), 10, "wrong number of assets created")
 

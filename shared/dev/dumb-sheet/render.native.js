@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import debounce from 'lodash/debounce'
 import dumbComponentMap from './component-map.native'
-import {Box, Text, Input, Button, NativeScrollView, Icon} from '../../common-adapters/index.native'
+import {Box, Button, Icon, Input, Text} from '../../common-adapters/index.native'
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import {globalStyles, globalColors} from '../../styles'
@@ -215,14 +215,12 @@ class DumbSheetRender extends Component<void, Props, any> {
             this.props.onDebugConfigChange({dumbFullscreen: !this.props.dumbFullscreen})
           }} />
         </Box>
-        <NativeScrollView>
-          <Box style={styleBox}>
-            <Text type='BodySmall'>{key}: {mockKey}</Text>
-            <Box {...mock.parentProps}>
-              {this._makeStoreWrapper(component)}
-            </Box>
+        <Box style={styleBox}>
+          <Text type='BodySmall'>{key}: {mockKey}</Text>
+          <Box {...mock.parentProps}>
+            {this._makeStoreWrapper(component)}
           </Box>
-        </NativeScrollView>
+        </Box>
       </Box>
     )
   }

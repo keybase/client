@@ -16,6 +16,7 @@
 #import "RCTLinkingManager.h"
 
 @interface AppDelegate ()
+@property UIBackgroundTaskIdentifier backgroundTask;
 @end
 
 #if TARGET_OS_SIMULATOR
@@ -32,6 +33,7 @@ const BOOL isDebug = NO;
 
 @implementation AppDelegate
 
+
 - (BOOL)addSkipBackupAttributeToItemAtPath:(NSString *) filePathString
 {
   NSURL * URL = [NSURL fileURLWithPath: filePathString];
@@ -41,6 +43,19 @@ const BOOL isDebug = NO;
     NSLog(@"Error excluding %@ from backup %@", [URL lastPathComponent], error);
   }
   return success;
+}
+
+- (void) createBackgroundReadableDirectory:(NSString*) path
+{
+  NSFileManager* fm = [NSFileManager defaultManager];
+  // Setting NSFileProtectionCompleteUnlessOpen makes the directory accessible as long as the user has
+  // opened it once unlocked. The files are still stored on the disk encrypted (note for the chat database, it
+  // means we are encrypting it twice), and are inaccessible otherwise.
+  NSDictionary* noProt = [NSDictionary dictionaryWithObject:NSFileProtectionCompleteUnlessOpen forKey:NSFileProtectionKey];
+  [fm createDirectoryAtPath:path withIntermediateDirectories:YES
+                 attributes:noProt
+                      error:nil];
+  [fm setAttributes:noProt ofItemAtPath:path error:nil];
 }
 
 - (void) setupGo
@@ -55,16 +70,24 @@ const BOOL isDebug = NO;
   NSString * home = NSHomeDirectory();
 
   NSString * keybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
-  NSString * serviceLogFile = skipLogFile ? @"" : [@"~/Library/Caches/Keybase/ios.log" stringByExpandingTildeInPath];
-  NSString * rnLogFile = [@"~/Library/Caches/Keybase/rn.log" stringByExpandingTildeInPath];
-
+  NSString * levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
+  NSString * chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
+  NSString * logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
+  NSString * serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
+  NSString * rnLogFile = [logPath stringByAppendingString:@"/rn.log"];
+  NSFileManager* fm = [NSFileManager defaultManager];
+  
   // Make keybasePath if it doesn't exist
-  [[NSFileManager defaultManager] createDirectoryAtPath:keybasePath
+  [fm createDirectoryAtPath:keybasePath
                             withIntermediateDirectories:YES
-                                             attributes:nil
-                                                  error:nil];
+                            attributes:nil
+                            error:nil];
   [self addSkipBackupAttributeToItemAtPath:keybasePath];
-
+  
+  // Create LevelDB and log directories with a slightly lower data protection mode so we can use them in the background
+  [self createBackgroundReadableDirectory:chatLevelDBPath];
+  [self createBackgroundReadableDirectory:levelDBPath];
+  [self createBackgroundReadableDirectory:logPath];
 
   NSError * err;
   self.engine = [[Engine alloc] initWithSettings:@{
@@ -131,6 +154,20 @@ const BOOL isDebug = NO;
 {
   [RCTPushNotificationManager didReceiveRemoteNotification:notification];
 }
+// Require for handling silent notifications
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
+
+  // Mark a background task so we don't get insta killed by the OS
+  if (!self.backgroundTask || self.backgroundTask == UIBackgroundTaskInvalid) {
+    self.backgroundTask = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
+      [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTask];
+      self.backgroundTask = UIBackgroundTaskInvalid;
+    }];
+  }
+  
+  [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+  completionHandler(UIBackgroundFetchResultNewData);
+  }
 // Required for the localNotification event.
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
 {

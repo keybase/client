@@ -36,8 +36,15 @@ function * pushNotificationSaga (notification: Constants.PushNotification): Saga
   console.warn('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
-    const convID = payload.data ? payload.data.convID : payload.convID
+    // If we have received a silent notification, then just bail out of here, the service will
+    // wake up and do what it needs to do.
+    if (payload.data && payload.data.silent) {
+      console.info('Push notification: silent notification received')
+      return
+    }
 
+    // Check for conversation ID so we know where to navigate to
+    const convID = payload.data ? payload.data.convID : payload.convID
     if (!convID) {
       console.error('Push notification payload missing conversation ID')
       return

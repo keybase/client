@@ -937,6 +937,7 @@ export type FindConversationsLocalRes = {
 
 export type GenericPayload = {
   Action: string,
+  inboxVers: InboxVers,
 }
 
 export type GetConversationForCLILocalQuery = {

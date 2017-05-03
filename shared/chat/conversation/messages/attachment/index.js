@@ -25,6 +25,7 @@ const AttachmentTitle = ({messageState, title, onOpenInPopup}: {messageState: Co
     case 'uploading':
     case 'pending':
     case 'failed':
+    case 'placeholder':
       style = {backgroundColor: globalColors.white, color: globalColors.black_40}
       break
   }

@@ -34,9 +34,19 @@ class PopupMenu extends Component<void, Props, void> {
                     return <Divider key={idx} />
                   }
 
+                  let hoverClassName
+                  let styleDisabled = {}
+                  if (!i.disabled) {
+                    hoverClassName = i.danger ? 'menu-hover-danger' : 'menu-hover'
+                  } else {
+                    styleDisabled = {opacity: 0.4}
+                  }
+
+                  const styleClickable = i.disabled ? {} : globalStyles.clickable
+
                   return (
-                    <Box key={i.title} className={i.danger ? 'menu-hover-danger' : 'menu-hover'} style={stylesRow} onClick={i.onClick}>
-                      <Text className='title' type='Body' style={{...stylesMenuText, ...i.style}}>{i.title}</Text>
+                    <Box key={i.title} className={hoverClassName} style={{...stylesRow, ...styleClickable}} onClick={i.onClick}>
+                      <Text className='title' type='Body' style={{...stylesMenuText, ...i.style, ...styleDisabled}}>{i.title}</Text>
                       {i.subTitle && <Text className='subtitle' key={i.subTitle} type='BodySmall' style={{...stylesMenuText, ...i.style}}>{i.subTitle}</Text>}
                     </Box>
                   )
@@ -89,7 +99,6 @@ const stylesMenuCatcher = {
 
 const stylesMenu = {
   ...globalStyles.flexBoxColumn,
-  ...globalStyles.clickable,
   minWidth: 200,
   justifyContent: 'flex-start',
   alignItems: 'stretch',
