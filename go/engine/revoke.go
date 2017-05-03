@@ -108,7 +108,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	if e.mode == RevokeDevice {
 		deviceID = e.deviceID
 		if e.deviceID == currentDevice && !e.force {
-			return fmt.Errorf("Can't revoke the current device.")
+			return errors.New("Can't revoke the current device.")
 		}
 	}
 
@@ -133,7 +133,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 
 	if e.G().Env.GetEnableSharedDH() {
 		if encKey == nil {
-			return fmt.Errorf("Missing encryption key")
+			return errors.New("Missing encryption key")
 		}
 	}
 
@@ -152,7 +152,6 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	var newSdhKeyPair libkb.NaclDHKeyPair
 
 	if e.G().Env.GetEnableSharedDH() {
-		// Sync the SDH keyring
 		err = e.G().BumpSharedDHKeyring()
 		if err != nil {
 			return err
@@ -198,7 +197,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 
 	// Push the sdh sig
 	if e.G().Env.GetEnableSharedDH() && addingNewSDH {
-		sig1, err := e.makeSdhSig(ctx, me, sdhGen, newSdhGeneration, sigKey)
+		sig1, err := e.makeSharedDHSig(ctx, me, sdhGen, newSdhGeneration, sigKey)
 		if err != nil {
 			return err
 		}
@@ -289,7 +288,7 @@ func (e *RevokeEngine) getDeviceSecretKeys(ctx *Context, me *libkb.User) (libkb.
 	return sigKey, encKey, err
 }
 
-func (e *RevokeEngine) makeSdhSig(ctx *Context, me *libkb.User, sdhGen *libkb.NaclKeyGen,
+func (e *RevokeEngine) makeSharedDHSig(ctx *Context, me *libkb.User, sdhGen *libkb.NaclKeyGen,
 	sdhKeyGeneration keybase1.SharedDHKeyGeneration, sigKey libkb.GenericKey) (map[string]string, error) {
 
 	sdhGen.UpdateArg(sigKey, me.GetEldestKID(), libkb.DelegationTypeSharedDHKey, me)

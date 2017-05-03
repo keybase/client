@@ -141,16 +141,19 @@ func testRevokePaperDevice(t *testing.T, enableSharedDH bool) {
 
 	assertNumDevicesAndKeys(tc, u, 1, 2)
 
-	checkSharedDHKeyring(t, tc.G)
+	if tc.G.Env.GetEnableSharedDH() {
+		checkSharedDHKeyring(t, tc.G, 2)
+	}
 }
 
-func checkSharedDHKeyring(t *testing.T, g *libkb.GlobalContext) {
+func checkSharedDHKeyring(t *testing.T, g *libkb.GlobalContext, expectedCurrentGeneration int) {
 	// double check that the sdh keyring is correct
 	g.ClearSharedDHKeyring()
 	require.NoError(t, g.BumpSharedDHKeyring())
 	sdhk, err := g.GetSharedDHKeyring()
 	require.NoError(t, err)
 	require.NoError(t, sdhk.Sync(context.TODO()))
+	require.Equal(t, expectedCurrentGeneration, sdhk.CurrentGeneration())
 }
 
 func TestRevokeKey(t *testing.T) {

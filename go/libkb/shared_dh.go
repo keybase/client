@@ -84,7 +84,7 @@ func (s *SharedDHKeyring) PrepareBoxesForNewDevice(ctx context.Context, receiver
 		boxes = append(boxes, box)
 	}
 
-	s.G().Log.CDebugf(ctx, "SharedDHKeyring#PrepareBoxesForNewDevice(%s -> %s) -> %s boxes",
+	s.G().Log.CDebugf(ctx, "SharedDHKeyring#PrepareBoxesForNewDevice(%s -> %s) -> %v boxes",
 		senderKey.GetKID(), receiverKey.GetKID(), len(boxes))
 	return boxes, nil
 }
