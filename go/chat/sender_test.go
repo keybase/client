@@ -160,7 +160,6 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	bgLoader.loads = listener.bgConvLoads
 	g.ConvLoader = bgLoader
 	g.ConvLoader.Start(context.TODO(), u.User.GetUID().ToBytes())
-	g.ConvLoader.Connected(context.TODO())
 	chatSyncer := NewSyncer(g)
 	chatSyncer.isConnected = true
 	g.Syncer = chatSyncer

@@ -294,7 +294,6 @@ func (d *Service) createChatModules() {
 	chatSyncer.RegisterOfflinable(g.ConvSource)
 	chatSyncer.RegisterOfflinable(g.FetchRetrier)
 	chatSyncer.RegisterOfflinable(g.MessageDeliverer)
-	chatSyncer.RegisterOfflinable(g.ConvLoader)
 
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh

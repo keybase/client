@@ -37,40 +37,13 @@ func setupLoaderTest(t *testing.T) (*kbtest.ChatTestContext, *kbtest.ChatMockWor
 	return tc, world, listener, res
 }
 
-func TestConvLoaderOnline(t *testing.T) {
+func TestConvLoader(t *testing.T) {
 	tc, world, listener, res := setupLoaderTest(t)
 	defer world.Cleanup()
 
 	if err := tc.Context().ConvLoader.Queue(context.TODO(), res.ConvID); err != nil {
 		t.Fatal(err)
 	}
-
-	select {
-	case convID := <-listener.bgConvLoads:
-		if !convID.Eq(res.ConvID) {
-			t.Errorf("loaded conv id: %s, expected %s", convID, res.ConvID)
-		}
-	case <-time.After(20 * time.Second):
-		t.Fatal("timeout waiting for conversation load")
-	}
-}
-
-func TestConvLoaderOffline(t *testing.T) {
-	tc, world, listener, res := setupLoaderTest(t)
-	defer world.Cleanup()
-	tc.Context().ConvLoader.Disconnected(context.TODO())
-
-	if err := tc.Context().ConvLoader.Queue(context.TODO(), res.ConvID); err != nil {
-		t.Fatal(err)
-	}
-
-	select {
-	case <-listener.bgConvLoads:
-		t.Fatal("conversation loaded offline")
-	case <-time.After(1 * time.Second):
-	}
-
-	tc.Context().ConvLoader.Connected(context.TODO())
 
 	select {
 	case convID := <-listener.bgConvLoads:

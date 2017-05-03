@@ -112,7 +112,6 @@ type FetchRetrier interface {
 }
 
 type ConvLoader interface {
-	Offlinable
 	Resumable
 
 	Queue(ctx context.Context, convID chat1.ConversationID) error

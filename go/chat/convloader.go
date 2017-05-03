@@ -3,7 +3,6 @@ package chat
 import (
 	"errors"
 	"sync"
-	"time"
 
 	"golang.org/x/net/context"
 
@@ -19,12 +18,9 @@ type BackgroundConvLoader struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	connected     bool
 	started       bool
 	queue         chan chat1.ConversationID
 	stop          chan bool
-	online        chan bool
-	offline       chan chan struct{}
 	identNotifier *IdentifyNotifier
 
 	loads chan chat1.ConversationID // for testing, make this and can check conv load successes
@@ -39,56 +35,12 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g, "BackgroundConvLoader", false),
 		stop:          make(chan bool),
-		online:        make(chan bool, 1),
-		offline:       make(chan chan struct{}, 1),
 		identNotifier: NewIdentifyNotifier(g),
 	}
-
-	// start offline
-	b.offline <- make(chan struct{})
 
 	b.newQueue()
 
 	return b
-}
-
-func (b *BackgroundConvLoader) Connected(ctx context.Context) {
-	b.Lock()
-	defer b.Unlock()
-
-	if b.connected {
-		return
-	}
-
-	b.connected = true
-	b.online <- true
-}
-
-func (b *BackgroundConvLoader) Disconnected(ctx context.Context) {
-	b.Lock()
-	defer b.Unlock()
-
-	if !b.connected {
-		return
-	}
-
-	b.connected = false
-	ch := make(chan struct{})
-	b.offline <- ch
-
-	// wait for loop to go offline
-	select {
-	case <-ch:
-	case <-time.After(3 * time.Second):
-		b.Debug(ctx, "timeout waiting for loop to go offline")
-	}
-}
-
-func (b *BackgroundConvLoader) IsOffline() bool {
-	b.Lock()
-	defer b.Unlock()
-
-	return !b.connected
 }
 
 func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
@@ -137,20 +89,10 @@ func (b *BackgroundConvLoader) loop(uid gregor1.UID) {
 	bgctx := context.Background()
 	b.Debug(bgctx, "starting conv loader loop for %s", uid)
 	for {
-		// get a convID from queue, go offline, or stop
+		// get a convID from queue, or stop
 		select {
 		case convID := <-b.queue:
 			b.load(bgctx, convID, uid)
-		case x := <-b.offline:
-			b.Debug(bgctx, "loop went offline")
-			close(x)
-			select {
-			case <-b.online:
-				b.Debug(bgctx, "loop came online")
-			case <-b.stop:
-				b.Debug(bgctx, "shutting down (offline) conv loader loop for %s", uid)
-				return
-			}
 		case <-b.stop:
 			b.Debug(bgctx, "shutting down conv loader loop for %s", uid)
 			return
