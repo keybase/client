@@ -305,6 +305,27 @@ func (cuea *copyUnmergedEntryAction) trackSyncPtrChangesInCreate(
 		mostRecentTargetPtr, unmergedChain, unmergedChains, cuea.toName)
 }
 
+func makeLocalRenameOpForCopyAction(
+	mergedMostRecent BlockPointer, mergedBlock *DirBlock,
+	mergedChains *crChains, fromName, toName string) error {
+	newMergedEntry, ok := mergedBlock.Children[toName]
+	if !ok {
+		return NoSuchNameError{toName}
+	}
+
+	rop, err := newRenameOp(fromName, mergedMostRecent, toName,
+		mergedMostRecent, newMergedEntry.BlockPointer,
+		newMergedEntry.Type)
+	if err != nil {
+		return err
+	}
+	err = prependOpsToChain(mergedMostRecent, mergedChains, rop)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (cuea *copyUnmergedEntryAction) updateOps(unmergedMostRecent BlockPointer,
 	mergedMostRecent BlockPointer, unmergedBlock *DirBlock,
 	mergedBlock *DirBlock, unmergedChains *crChains,
@@ -331,6 +352,10 @@ func (cuea *copyUnmergedEntryAction) updateOps(unmergedMostRecent BlockPointer,
 		unmergedChain.ops =
 			fixupNamesInOps(cuea.fromName, cuea.toName, unmergedChain.ops,
 				unmergedChains)
+
+		// We need a local rename notification if the name changed.
+		makeLocalRenameOpForCopyAction(mergedMostRecent, mergedBlock,
+			mergedChains, cuea.fromName, cuea.toName)
 	}
 
 	// If the target is a file that had child blocks, we need to
@@ -415,6 +440,10 @@ func (cuaa *copyUnmergedAttrAction) updateOps(unmergedMostRecent BlockPointer,
 		unmergedChain.ops =
 			fixupNamesInOps(cuaa.fromName, cuaa.toName, unmergedChain.ops,
 				unmergedChains)
+
+		// We need a local rename notification if the name changed.
+		makeLocalRenameOpForCopyAction(mergedMostRecent, mergedBlock,
+			mergedChains, cuaa.fromName, cuaa.toName)
 	}
 	return nil
 }
