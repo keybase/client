@@ -150,19 +150,18 @@ function renderChatContact(el, user) {
 
 // Render the Keybase chat reply widget
 function renderChat(parent, user, nudgeSupported, closeCallback) {
-  let nudgeHTML;
+  const oobNudgeHTML = `
+      <p>
+        You will need to let <a target="_blank" href="${user.href()}" class="external-user">${user.display()}</a> know that they have a Keybase message waiting for them.
+        Share this handy link: <a target="_blank" href="https://keybase.io/reddit-crypto">https://keybase.io/reddit-crypto</a>
+      </p>
+  `;
+  let nudgeHTML = oobNudgeHTML;
   if (nudgeSupported) {
     nudgeHTML = `
       <p>
         <label><input type="checkbox" name="keybase-nudgecheck" checked /> <strong>Nudge publicly</strong> (reply in thread so they know about Keybase)</label>
         <textarea name="keybase-nudgetext">${user.display()} - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto</textarea>
-      </p>
-    `;
-  } else {
-    nudgeHTML = `
-      <p>
-        You will need to let <a target="_blank" href="${user.href()}" class="external-user">${user.display()}</a> know that they have a Keybase message waiting for them.
-        Share this handy link: <a target="_blank" href="https://keybase.io/reddit-crypto">https://keybase.io/reddit-crypto</a>
       </p>
     `;
   }
@@ -189,7 +188,11 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
   `;
 
   function successCallback() {
-    renderSuccess(f, closeCallback, !nudgeSupported && !user.services["keybase"] && nudgeHTML);
+    let successHTML;
+    if (!nudgeSupported && !user.services["keybase"]) {
+      successHTML = oobNudgeHTML;
+    }
+    renderSuccess(f, closeCallback, successHTML);
   }
 
   f.addEventListener("submit", submitChat.bind(null, successCallback));
