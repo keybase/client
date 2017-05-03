@@ -568,7 +568,10 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 
 	// Run SyncAll to both authenticate, and grab all the data we will need to run the
 	// various resync procedures for chat and notifications
-	syncAllRes, err := chatCli.SyncAll(ctx, chat1.SyncAllArg{
+	var identBreaks []keybase1.TLFIdentifyFailure
+	cctx := chat.Context(ctx, g.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		chat.NewIdentifyNotifier(g.G()))
+	syncAllRes, err := chatCli.SyncAll(cctx, chat1.SyncAllArg{
 		Uid:       uid,
 		DeviceID:  gcli.Device.(gregor1.DeviceID),
 		Session:   token,
