@@ -190,8 +190,12 @@ const styleStatusIcon = (statusIcon: IconType) => ({
   fontSize: 32,
 })
 const styleSpinner = {
-  height: 20,
-  width: 20,
+  height: 32,
+  paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.tiny,
+  paddingRight: globalMargins.tiny,
+  paddingTop: globalMargins.tiny,
+  width: 32,
 }
 const styleProofNameSection = {
   ...globalStyles.flexBoxRow,
