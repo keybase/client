@@ -305,7 +305,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 	}
 
 	// Decode into generic form
-	var activity chat1.ChatActivity
 	var gm chat1.GenericPayload
 	uid := m.UID().Bytes()
 	reader := bytes.NewReader(m.Body().Bytes())
@@ -327,6 +326,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, gm.InboxVers)
 
+		var activity chat1.ChatActivity
+		var err error
 		action := gm.Action
 		reader.Reset(m.Body().Bytes())
 		switch action {
