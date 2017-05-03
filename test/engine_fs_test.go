@@ -518,7 +518,8 @@ func (e *fsEngine) SyncAll(
 	}
 	// Sadly golang doesn't support syncing on a directory handle, so
 	// we have to hack it by syncing directly with the KBFSOps
-	// instance.
+	// instance.  TODO: implement a `.kbfs_sync_all` file to be used
+	// here, or maybe use a direct OS syscall?
 	return u.config.KBFSOps().SyncAll(ctx, dir.GetFolderBranch())
 }
 
