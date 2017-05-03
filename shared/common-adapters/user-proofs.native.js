@@ -20,9 +20,11 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
   const missingColor = globalColors.black_20
   // TODO (AW): this is copied from desktop as a starting point for mobile
   return (
-    <ClickableBox style={{...styleRow, flex: 1, ...style}} key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
-      <Box style={{...styleRow, flex: 1}}>
-        <Icon style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
+    <ClickableBox style={{...styleRow, ...style}} key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
+      <Box style={styleRow}>
+        <Box style={iconContainer}>
+          <Icon style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
+        </Box>
         <Box style={styleProofNameSection}>
           <Box style={styleProofNameLabelContainer}>
             <Text type='Body' style={{...styleProofName, color: missingColor}}>
@@ -65,7 +67,7 @@ function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: Proof
       </Box>
       <ClickableBox style={styleStatusIconTouchable} activeOpacity={0.8} underlayColor={globalColors.white} onClick={() => onClickStatus(proof)}>
         <Box style={styleStatusIconContainer} onClick={() => onClickStatus(proof)}>
-          {proofStatusIconType && (proof.state === proofChecking ? <ProgressIndicator style={styleSpinner} /> : <Icon type={proofStatusIconType} />)}
+          {proofStatusIconType && (proof.state === proofChecking ? <ProgressIndicator style={styleSpinner} /> : <Icon type={proofStatusIconType} style={{fontSize: 32}} />)}
           {hasMenu && <Icon type='iconfont-caret-down' />}
         </Box>
       </ClickableBox>
@@ -82,7 +84,9 @@ function LoadingProofRow ({width, style}: {width: number, style: Object}): React
           <Box style={{...globalStyles.loadingTextStyle, width, marginTop: 8, height: 16}} />
         </Box>
       </Box>
-      <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon('iconfont-proof-placeholder'), color: globalColors.lightGrey}} />
+      <Box style={styleStatusIconContainer}>
+        <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon('iconfont-proof-placeholder'), color: globalColors.lightGrey}} />
+      </Box>
     </Box>
   )
 }
@@ -114,7 +118,7 @@ class ProofsRender extends Component<void, Props, void> {
 
   render () {
     const {onClickProofMenu} = this.props
-    const pad = idx => idx > 0 ? {paddingTop: globalMargins.tiny} : {}
+    const pad = idx => idx > 0 ? {paddingTop: globalMargins.xtiny} : {}
     if (this.props.loading) {
       return (
         <Box style={{...styleContainer, backgroundColor: 'transparent', ...this.props.style}}>
@@ -132,13 +136,13 @@ class ProofsRender extends Component<void, Props, void> {
             onClickStatus={onClickProofMenu ? () => onClickProofMenu(idx) : (p) => this._onClickProof(p)}
             onClickProfile={(p) => this._onClickProfile(p)}
             hasMenu={!!onClickProofMenu}
-            style={{...pad(idx), minHeight: 24}} />
+            style={{minHeight: 32}} />
         )}
         {this.props.type === 'missingProofs' && this.props.missingProofs.map((mp, idx) =>
           <MissingProofRow
             key={mp.type}
             missingProof={mp}
-            style={pad(idx)} />
+            style={{minHeight: 32}} />
         )}
       </Box>
     )
@@ -149,50 +153,54 @@ const iconContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   minHeight: 32,
-  minWidth: 24,
-  width: 24,
+  minWidth: 32,
 }
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',
-  backgroundColor: globalColors.white,
 }
 const styleRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'stretch',
+  flex: 1,
   justifyContent: 'flex-start',
   // RN-BUG: set maxWidth once that prop is supported
 }
 const styleService = {
   ...globalStyles.clickable,
+  alignSelf: 'flex-start',
   color: globalColors.black_75,
+  fontSize: 20,
   marginRight: globalMargins.tiny,
+  marginTop: globalMargins.tiny,
   textAlign: 'center',
-  fontSize: 16,
 }
 const styleStatusIconTouchable = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  justifyContent: 'flex-end',
+  justifyContent: 'flex-start',
 }
 const styleStatusIconContainer = {
   ...styleStatusIconTouchable,
+  alignSelf: 'flex-start',
+  marginLeft: globalMargins.tiny,
+  minWidth: 40,
 }
 const styleStatusIcon = (statusIcon: IconType) => ({
   color: defaultColor(statusIcon),
-  marginLeft: globalMargins.xtiny,
-  fontSize: 24,
+  fontSize: 32,
 })
 const styleSpinner = {
-  width: 20,
   height: 20,
+  width: 20,
 }
 const styleProofNameSection = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   alignSelf: 'flex-start',
   flex: 1,
+  paddingTop: globalMargins.tiny,
 }
 const styleProofNameLabelContainer = {
   ...globalStyles.flexBoxColumn,

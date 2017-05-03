@@ -21,7 +21,7 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
     const selectedColor = this.props.selectedColor || globalColors.blue
     return (
       <Box style={{...stylesTab, ...this.props.style}}>
-        <Text type='BodySemibold' style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_60}}>
+        <Text type='BodySmallSemibold' style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_60}}>
           {!!this.props.label && this.props.label.toUpperCase()}
         </Text>
         {this.props.selected && <Box style={stylesSelectedUnderline(selectedColor)} />}
@@ -129,8 +129,6 @@ const stylesTabBarButtonIcon = {
 }
 
 const stylesLabel = {
-  fontSize: 14,
-  lineHeight: 20,
   marginTop: 11,
   marginBottom: 11,
 }

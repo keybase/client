@@ -194,7 +194,6 @@ class Profile extends Component<void, Props, State> {
             {!this.props.loading &&
               <UserProofs
                 type={'missingProofs'}
-                style={styleMissingProofs}
                 username={this.props.username}
                 missingProofs={missingProofs}
                 currentlyFollowing={false} />}
@@ -242,10 +241,6 @@ const styleProofsAndFolders = {
   paddingLeft: globalMargins.large,
   paddingRight: globalMargins.large,
   paddingBottom: globalMargins.medium,
-}
-
-const styleMissingProofs = {
-  marginTop: globalMargins.tiny,
 }
 
 const styleFolderLine = {
