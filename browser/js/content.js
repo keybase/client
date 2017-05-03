@@ -8,25 +8,9 @@ function init() {
   // Only do work on reddit.
   if (!location.hostname.endsWith('.reddit.com')) return;
 
-  // FIXME: This can be more declarative in the future.
-  if (checkCompose.test(location.pathname)) injectCompose();
-  else if (checkProfile.test(location.pathname)) injectProfile();
-  else if (checkThread.test(location.pathname)) injectThread();
+  if (checkThread.test(location.pathname)) injectThread();
 }
 window.addEventListener('load', init);
-
-
-const checkCompose = /^\/message\/compose$/
-function injectCompose() {
-  // /message/compose
-  // TODO: ...
-}
-
-const checkProfile = /^\/user\//;
-function injectProfile() {
-  // /user/<user>
-  // TODO: ...
-}
 
 const checkThread = /^\/r\/\w+\/comments\/\w+\//;
 function injectThread() {
