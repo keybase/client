@@ -14,7 +14,6 @@ import type {Props, MissingProof} from './user-proofs'
 import {defaultColor} from './icon.shared'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
-import {omit} from 'lodash'
 
 function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, style: Object}): React$Element<*> {
   const missingColor = globalColors.black_20
@@ -33,7 +32,7 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
           </Box>
         </Box>
         <Box style={styleStatusIconContainer}>
-          <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon('iconfont-proof-placeholder'), color: missingColor}} />
+          <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon('iconfont-proof-placeholder'), color: globalColors.lightGrey}} />
         </Box>
       </Box>
     </ClickableBox>
@@ -75,13 +74,12 @@ function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: Proof
   )
 }
 
-function LoadingProofRow ({width, style}: {width: number, style: Object}): React$Element<*> {
+function LoadingProofRow ({width}: {width: number}): React$Element<*> {
   return (
-    <Box style={{...styleRow, ...style}}>
-      <Box style={{...(omit(styleService, ['fontSize', 'textAlign', 'color']))}} />
+    <Box style={styleRow}>
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
-          <Box style={{...globalStyles.loadingTextStyle, width, marginTop: 8, height: 16}} />
+          <Box style={{...globalStyles.loadingTextStyle, width, height: 16}} />
         </Box>
       </Box>
       <Box style={styleStatusIconContainer}>
@@ -94,7 +92,7 @@ function LoadingProofRow ({width, style}: {width: number, style: Object}): React
 function LoadingProofs ({pad}: {pad: (i: number) => Object}) {
   return (
     <Box>
-      {[117, 147, 97].map((width, idx) => <LoadingProofRow key={idx} width={width} style={pad(idx)} />)}
+      {[117, 147, 97].map((width, idx) => <LoadingProofRow key={idx} width={width} />)}
     </Box>
   )
 }
