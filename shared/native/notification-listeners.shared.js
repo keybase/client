@@ -17,7 +17,7 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
       const totalChats = (badgeState.conversations || []).reduce((total, c) => total + c.UnreadMessages, 0)
 
       const action = receivedBadgeState(badgeState)
-      if (totalChats) {
+      if (totalChats > 0) {
         // Defer this slightly so we don't get flashing if we're quickly receiving and reading
         throttledDispatch(action)
       } else { // If clearing go immediately
