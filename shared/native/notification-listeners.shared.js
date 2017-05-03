@@ -2,6 +2,7 @@
 import {receivedBadgeState} from '../actions/notifications'
 import {bootstrap, updateFollowing} from '../actions/config'
 import {logoutDone} from '../actions/login/creators'
+import {throttle} from 'lodash'
 
 import type {Dispatch} from '../constants/types/flux'
 import type {incomingCallMapType} from '../constants/types/flow-types'
@@ -10,9 +11,19 @@ import type {incomingCallMapType} from '../constants/types/flow-types'
 let lastLoggedInNotifyUsername = null
 
 export default function (dispatch: Dispatch, getState: () => Object, notify: any): incomingCallMapType {
+  const throttledDispatch = throttle(action => dispatch(action), 1000, {leading: false, trailing: true})
   return {
     'keybase.1.NotifyBadges.badgeState': ({badgeState}) => {
-      dispatch(receivedBadgeState(badgeState))
+      const totalChats = (badgeState.conversations || []).reduce((total, c) => total + c.UnreadMessages, 0)
+
+      const action = receivedBadgeState(badgeState)
+      if (totalChats) {
+        // Defer this slightly so we don't get flashing if we're quickly receiving and reading
+        throttledDispatch(action)
+      } else { // If clearing go immediately
+        throttledDispatch.cancel()
+        dispatch(action)
+      }
     },
     'keybase.1.NotifySession.loggedIn': ({username}, response) => {
       if (lastLoggedInNotifyUsername !== username) {
