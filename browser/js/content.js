@@ -222,26 +222,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
     nudgePlaceholder.style = "display: block;";
 
     // Install copypasta selector
-    for (let el of f.getElementsByClassName("keybase-copy")) {
-      el.addEventListener("click", function(e) {
-        const target = e.currentTarget;
-        const range = document.createRange();
-        range.selectNode(target);
-
-        // Apply range selection
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-
-        // Attempt to copy to clipboard
-        if(document.execCommand("copy")) {
-          target.classList.add("copied");
-          setTimeout(function() {
-            target.classList.remove("copied");
-          }, 500);
-        }
-      });
-    }
+    installCopypasta(f.getElementsByClassName("keybase-copy"));
 
     // Install nudge toggle
     const nudgeCheck = f["keybase-nudgecheck"];
@@ -335,6 +316,7 @@ function submitChat(successCallback, e) {
     // Success!
     nudgeCallback();
     successCallback !== undefined && successCallback();
+    installCopypasta(f.getElementsByClassName("keybase-copy"));
   });
 }
 
@@ -436,7 +418,6 @@ function postRedditReply(commentNode, text) {
 // Install closing button (usually the little "x" in the corner)
 function installCloser(buttons, closeTarget, skipCheck, closeCallback) {
   for (let closer of buttons) {
-    const closer = buttons[i];
     closer.addEventListener("click", function(e) {
       e.preventDefault();
       if (removeChat(closeTarget, skipCheck)) {
@@ -444,6 +425,31 @@ function installCloser(buttons, closeTarget, skipCheck, closeCallback) {
       }
     });
   };
+}
+
+// Install select-and-copy functionality for elements. If successfully copied,
+// the element will get the CSS class "copied" briefly.
+function installCopypasta(elements) {
+  for (let el of elements) {
+    el.addEventListener("click", function(e) {
+      const target = e.currentTarget;
+      const range = document.createRange();
+      range.selectNode(target);
+
+      // Apply range selection
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      // Attempt to copy to clipboard
+      if(document.execCommand("copy")) {
+        target.classList.add("copied");
+        setTimeout(function() {
+          target.classList.remove("copied");
+        }, 500);
+      }
+    });
+  }
 }
 
 
