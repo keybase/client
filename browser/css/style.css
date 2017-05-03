@@ -192,5 +192,18 @@ span.keybase-close {
   cursor: pointer;
 }
 span.keybase-close::before {
-  content: "\00d7";
+  content: "\00d7"; /* multiply sign */
+}
+
+.keybase-copy {
+  font-family: monospace;
+  white-space: pre;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 2px 2px;
+  cursor: pointer;
+}
+.keybase-copy.copied::after {
+  position: absolute;
+  margin: 3px 0 0 2px;
+  content: "\1f4cb"; /* clipboard */
 }

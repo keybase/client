@@ -153,7 +153,9 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
   const oobNudgeHTML = `
       <p>
         You will need to let <a target="_blank" href="${user.href()}" class="external-user">${user.display()}</a> know that they have a Keybase message waiting for them.
-        Share this handy link: <a target="_blank" href="https://keybase.io/reddit-crypto">https://keybase.io/reddit-crypto</a>
+      </p>
+      <p>
+        Share this handy link: <span class="keybase-copy">https://keybase.io/reddit-crypto</span>
       </p>
   `;
   let nudgeHTML = oobNudgeHTML;
@@ -218,6 +220,28 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
     renderChatContact(contactDiv, user);
     nudgePlaceholder.innerHTML = nudgeHTML;
     nudgePlaceholder.style = "display: block;";
+
+    // Install copypasta selector
+    for (let el of f.getElementsByClassName("keybase-copy")) {
+      el.addEventListener("click", function(e) {
+        const target = e.currentTarget;
+        const range = document.createRange();
+        range.selectNode(target);
+
+        // Apply range selection
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+
+        // Attempt to copy to clipboard
+        if(document.execCommand("copy")) {
+          target.classList.add("copied");
+          setTimeout(function() {
+            target.classList.remove("copied");
+          }, 500);
+        }
+      });
+    }
 
     // Install nudge toggle
     const nudgeCheck = f["keybase-nudgecheck"];
@@ -411,7 +435,7 @@ function postRedditReply(commentNode, text) {
 
 // Install closing button (usually the little "x" in the corner)
 function installCloser(buttons, closeTarget, skipCheck, closeCallback) {
-  for (let i = 0; i < buttons.length; i++) {
+  for (let closer of buttons) {
     const closer = buttons[i];
     closer.addEventListener("click", function(e) {
       e.preventDefault();
