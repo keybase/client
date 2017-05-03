@@ -761,7 +761,7 @@ func TestCrConflictMergedRenameSetMtimeFile(t *testing.T) {
 	)
 }
 
-// alice and both both rename(the same file, causing a copy.),
+// alice and both both rename the same file, causing a copy.,
 func TestCrConflictRenameSameFile(t *testing.T) {
 	test(t,
 		users("alice", "bob"),
@@ -794,7 +794,7 @@ func TestCrConflictRenameSameFile(t *testing.T) {
 	)
 }
 
-// alice and both both rename(the same executable file, causing a copy.),
+// alice and both both rename the same executable file, causing a copy.
 func TestCrConflictRenameSameEx(t *testing.T) {
 	test(t,
 		users("alice", "bob"),
@@ -828,7 +828,7 @@ func TestCrConflictRenameSameEx(t *testing.T) {
 	)
 }
 
-// alice and both both rename(the same symlink.),
+// alice and both both rename the same symlink.
 func TestCrConflictRenameSameSymlink(t *testing.T) {
 	test(t,
 		skip("dokan", "Does not work with Dokan."),
@@ -863,7 +863,7 @@ func TestCrConflictRenameSameSymlink(t *testing.T) {
 	)
 }
 
-// alice and bob both rename(the same directory, causing a symlink to),
+// alice and bob both rename the same directory, causing a symlink to
 // be created.
 func TestCrConflictRenameSameDir(t *testing.T) {
 	test(t,
@@ -897,7 +897,7 @@ func TestCrConflictRenameSameDir(t *testing.T) {
 	)
 }
 
-// alice and bob both rename(the same directory, causing a symlink to),
+// alice and bob both rename the same directory, causing a symlink to
 // be created.
 func TestCrConflictRenameSameDirUpward(t *testing.T) {
 	test(t,
@@ -936,7 +936,7 @@ func TestCrConflictRenameSameDirUpward(t *testing.T) {
 	)
 }
 
-// alice and bob both rename(the same directory, causing a symlink to),
+// alice and bob both rename the same directory, causing a symlink to
 // be created.
 func TestCrConflictRenameSameDirMergedUpward(t *testing.T) {
 	test(t,
@@ -1203,7 +1203,7 @@ func TestCrConflictWriteFileDoubleWithExtensions(t *testing.T) {
 	)
 }
 
-// bob causes a rename(cycle with a conflict while unstaged),
+// bob causes a rename cycle with a conflict while unstaged.
 func TestCrRenameCycleWithConflict(t *testing.T) {
 	test(t,
 		users("alice", "bob"),
@@ -1242,7 +1242,7 @@ func TestCrRenameCycleWithConflict(t *testing.T) {
 	)
 }
 
-// bob causes a rename(cycle with two conflicts while unstaged),
+// bob causes a rename cycle with two conflicts while unstaged.
 func TestCrRenameCycleWithTwoConflicts(t *testing.T) {
 	test(t,
 		users("alice", "bob"),
@@ -1282,7 +1282,7 @@ func TestCrRenameCycleWithTwoConflicts(t *testing.T) {
 	)
 }
 
-// bob causes a rename(cycle with two conflicts while unstaged),
+// bob causes a rename cycle with two conflicts while unstaged.
 func TestCrRenameCycleWithConflictAndMergedDir(t *testing.T) {
 	test(t,
 		users("alice", "bob"),
