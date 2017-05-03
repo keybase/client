@@ -3,6 +3,7 @@ package chat
 import (
 	"errors"
 	"sync"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -21,8 +22,8 @@ type BackgroundConvLoader struct {
 	started   bool
 	queue     chan chat1.ConversationID
 	stop      chan bool
-	online    chan struct{} // closed when online
-	offline   chan struct{} // closed when offline
+	online    chan bool
+	offline   chan chan struct{}
 
 	loads chan chat1.ConversationID // for testing, make this and can check conv load successes
 
@@ -36,12 +37,12 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "BackgroundConvLoader", false),
 		stop:         make(chan bool),
-		online:       make(chan struct{}),
-		offline:      make(chan struct{}),
+		online:       make(chan bool, 1),
+		offline:      make(chan chan struct{}, 1),
 	}
 
 	// start offline
-	close(b.offline)
+	b.offline <- make(chan struct{})
 
 	b.newQueue()
 
@@ -57,9 +58,7 @@ func (b *BackgroundConvLoader) Connected(ctx context.Context) {
 	}
 
 	b.connected = true
-
-	b.offline = make(chan struct{})
-	close(b.online)
+	b.online <- true
 }
 
 func (b *BackgroundConvLoader) Disconnected(ctx context.Context) {
@@ -71,9 +70,15 @@ func (b *BackgroundConvLoader) Disconnected(ctx context.Context) {
 	}
 
 	b.connected = false
+	ch := make(chan struct{})
+	b.offline <- ch
 
-	b.online = make(chan struct{})
-	close(b.offline)
+	// wait for loop to go offline
+	select {
+	case <-ch:
+	case <-time.After(3 * time.Second):
+		b.Debug(ctx, "timeout waiting for loop to go offline")
+	}
 }
 
 func (b *BackgroundConvLoader) IsOffline() bool {
@@ -129,20 +134,20 @@ func (b *BackgroundConvLoader) loop(uid gregor1.UID) {
 	bgctx := context.Background()
 	b.Debug(bgctx, "starting conv loader loop for %s", uid)
 	for {
-		// wait to come online (or stop)
-		select {
-		case <-b.online:
-		case <-b.stop:
-			b.Debug(bgctx, "shutting down (offline) conv loader loop for %s", uid)
-			return
-		}
-
 		// get a convID from queue, go offline, or stop
 		select {
 		case convID := <-b.queue:
 			b.load(bgctx, convID, uid)
-		case <-b.offline:
+		case x := <-b.offline:
 			b.Debug(bgctx, "loop went offline")
+			close(x)
+			select {
+			case <-b.online:
+				b.Debug(bgctx, "loop came online")
+			case <-b.stop:
+				b.Debug(bgctx, "shutting down (offline) conv loader loop for %s", uid)
+				return
+			}
 		case <-b.stop:
 			b.Debug(bgctx, "shutting down conv loader loop for %s", uid)
 			return

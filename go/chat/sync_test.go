@@ -136,6 +136,12 @@ func TestSyncerConnected(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no threads stale received")
 	}
+	select {
+	case cid := <-list.bgConvLoads:
+		require.Equal(t, convs[1].GetConvID(), cid)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no background conv loaded")
+	}
 	vers, iconvs, err := ibox.ReadAll(context.TODO())
 	require.NoError(t, err)
 	require.Equal(t, len(convs), len(iconvs))
