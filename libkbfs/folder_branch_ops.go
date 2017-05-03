@@ -5679,9 +5679,19 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 		fbo.fbm.archiveUnrefBlocks(irmd.ReadOnly())
 	}
 
+	mdCopyWithLocalOps, err := md.deepCopy(fbo.config.Codec())
+	if err != nil {
+		return err
+	}
+	mdCopyWithLocalOps.data.Changes.Ops = newOps
+	irmdCopyWithLocalOps := MakeImmutableRootMetadata(
+		mdCopyWithLocalOps, session.VerifyingKey, mdID,
+		fbo.config.Clock().Now())
+
 	// notifyOneOp for every fixed-up merged op.
 	for _, op := range newOps {
-		err := fbo.notifyOneOpLocked(ctx, lState, op, irmd, false, nil)
+		err := fbo.notifyOneOpLocked(
+			ctx, lState, op, irmdCopyWithLocalOps, false, nil)
 		if err != nil {
 			return err
 		}
