@@ -168,7 +168,7 @@ class Profile extends Component<void, Props, State> {
             </Box>
           )}
           <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
-            <Box style={{position: 'absolute', backgroundColor: trackerStateColors.header.background, top: 0, left: 0, right: 0, height: 64}} />
+            <Box style={{position: 'absolute', backgroundColor: trackerStateColors.header.background, top: 0, left: 0, right: 0, height: 56}} />
             <LoadingWrapper
               style={{minHeight: 220}}
               duration={500}
