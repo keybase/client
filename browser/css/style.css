@@ -42,6 +42,14 @@ li.keybase-reply form {
   color: rgba(0, 0, 0, 0.75);
 }
 
+.keybase-success {
+  text-align: center;
+}
+
+.keybase-reply .keybase-success h3 {
+  background: #3dcc8e;
+}
+
 .keybase-error {
   text-align: center;
 }
@@ -144,7 +152,7 @@ a.keybase-button {
   margin: 0 6px -2px 0;
 }
 
-.keybase-reply input[type="submit"] {
+.keybase-reply input[type="submit"], .keybase-reply input[type="button"] {
   width: 116px;
   height: 32px;
   border: 0;
@@ -156,26 +164,33 @@ a.keybase-button {
   font-stretch: normal;
   font-weight: 600;
   line-height: normal;
+  cursor: pointer;
 }
 
 .keybase-reply input[type="submit"]:disabled {
   opacity: 0.3;
 }
 
-.keybase-close {
-  display: inline-block;
-  font-size: 20px;
-  font-weight: bold;
+.keybase-reply input[type="button"] {
+  background: #e6e6e6;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+span.keybase-close:hover {
+  color: rgba(0,0,0,0.3);
+}
+span.keybase-close {
   position: absolute;
   padding: 5px;
   top: -10px;
   right: 5px;
+  display: inline-block;
+  font-size: 20px;
+  font-weight: bold;
+  padding: 5px;
   color: rgba(0,0,0,0.2);
   cursor: pointer;
 }
-.keybase-close:hover {
-  color: rgba(0,0,0,0.3);
-}
-.keybase-close::before {
+span.keybase-close::before {
   content: "\00d7";
 }
