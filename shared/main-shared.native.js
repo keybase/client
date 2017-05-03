@@ -60,18 +60,25 @@ class Main extends Component<void, any, void> {
     this.props.persistRouteState()
   }, 200)
 
+  _setIconBadgeNumber (count: number) {
+    RNPN.setApplicationIconBadgeNumber(count)
+    if (count === 0) {
+      RNPN.clearLocalPushNotifications()
+    }
+  }
+
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.routeState !== nextProps.routeState) {
       this._persistRoute()
     }
 
     if (this.props.mobileAppBadgeCount !== nextProps.mobileAppBadgeCount) {
-      RNPN.setApplicationIconBadgeNumber(nextProps.mobileAppBadgeCount)
+      this._setIconBadgeNumber(nextProps.mobileAppBadgeCount)
     }
   }
 
   componentDidMount () {
-    RNPN.setApplicationIconBadgeNumber(this.props.mobileAppBadgeCount)
+    this._setIconBadgeNumber(this.props.mobileAppBadgeCount)
   }
 
   render () {
