@@ -218,29 +218,18 @@ func prependOpsToChain(mostRecent BlockPointer, chains *crChains,
 func crActionConvertSymlink(unmergedMostRecent BlockPointer,
 	mergedMostRecent BlockPointer, unmergedChain *crChain,
 	mergedChains *crChains, fromName string, toName string) error {
-	// If this was turned into a symlink, then we have to simulate
-	// rm/create at the beginning of the mergedOps list.
-	ro, err := newRmOp(fromName, mergedMostRecent)
-	if err != nil {
-		return err
-	}
-	// Add a fake unref so this rm doesn't get mistaken for one
-	// half of a rename operation.
-	ro.AddUnrefBlock(zeroPtr)
 	co, err := newCreateOp(toName, mergedMostRecent, Sym)
 	if err != nil {
 		return err
 	}
 
-	// If the chain already exists, just append the operations instead
-	// of prepending them.  We don't want to do any rms of nodes that
-	// the merged chain might also touch (e.g., a double rename
-	// situation).
+	// If the chain already exists, just append the operation instead
+	// of prepending them.
 	chain, ok := mergedChains.byMostRecent[mergedMostRecent]
 	if ok {
-		chain.ops = append(chain.ops, ro, co)
+		chain.ops = append(chain.ops, co)
 	} else {
-		err := prependOpsToChain(mergedMostRecent, mergedChains, ro, co)
+		err := prependOpsToChain(mergedMostRecent, mergedChains, co)
 		if err != nil {
 			return err
 		}
