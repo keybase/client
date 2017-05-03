@@ -70,9 +70,16 @@ function MessagePopup (props: TextProps | AttachmentProps) {
   }
 
   if (message.type === 'Attachment') {
-    // $FlowIssue can't figure out variants from variant in the .message field
-    const aProps: AttachmentProps = props
-    items = items.concat(_attachmentMessagePopupHelper(aProps))
+    if (message.messageState === 'placeholder') {
+      items = [{
+        disabled: true,
+        title: `${message.author} is uploading…`,
+      }]
+    } else {
+      // $FlowIssue can't figure out variants from variant in the .message field
+      const aProps: AttachmentProps = props
+      items = items.concat(_attachmentMessagePopupHelper(aProps))
+    }
   }
 
   if (message.author === you) {

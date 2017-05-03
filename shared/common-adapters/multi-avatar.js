@@ -40,7 +40,9 @@ class MultiAvatar extends Component<void, Props, void> {
     return (
       <Box style={{...containerStyle, ...style}}>
         <Avatar {...leftProps} style={{...leftAvatar, ...leftProps.style}} size={multiSize} />
-        <Avatar {...rightProps} style={{...rightAvatar, ...rightProps.style}} size={multiSize} />
+        <Box style={rightAvatarContainer}>
+          <Avatar {...rightProps} style={rightProps.style} size={multiSize} />
+        </Box>
       </Box>
     )
   }
@@ -53,7 +55,7 @@ const containerStyle = {
 const leftAvatar = {
 }
 
-const rightAvatar = {
+const rightAvatarContainer = {
   marginLeft: 8,
   marginTop: -16,
 }

@@ -305,6 +305,8 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		}
 		arg.SigHints = sigHints
 		arg.MerkleLeaf = leaf
+	} else if arg.CachedOnly {
+		return nil, nil, UserNotFoundError{UID: arg.UID, Msg: "no cached user found"}
 	}
 
 	g.Log.CDebugf(ctx, "%s: LoadUser", culDebug(arg.UID))

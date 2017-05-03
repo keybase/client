@@ -700,6 +700,12 @@ function * _updateMetadata (action: Constants.UpdateMetadata): SagaGenerator<any
 
 function * _selectConversation (action: Constants.SelectConversation): SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
+
+  // Load the inbox item always
+  if (conversationIDKey) {
+    yield put(Creators.getInboxAndUnbox([conversationIDKey]))
+  }
+
   const oldConversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
   if (oldConversationState && oldConversationState.get('isStale') && conversationIDKey) {
     yield put(Creators.clearMessages(conversationIDKey))

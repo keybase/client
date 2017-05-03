@@ -682,7 +682,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		var mountDir string
 		mountDir, err = context.GetMountDir()
 		if err == nil {
-			err = UninstallKBFS(context.GetRunMode(), mountDir, true, false, log)
+			err = UninstallKBFS(context.GetRunMode(), mountDir, true, log)
 		}
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 		if err != nil {
@@ -764,11 +764,21 @@ func UninstallKBFSOnStop(context Context, log Log) error {
 	if err != nil {
 		return err
 	}
-	return UninstallKBFS(runMode, mountDir, false, true, log)
+
+	if err := UninstallKBFS(runMode, mountDir, false, log); err != nil {
+		return err
+	}
+
+	log.Info("Uninstall mount: %s", mountDir)
+	if err := uninstallMountDir(runMode, log); err != nil {
+		return fmt.Errorf("Error uninstalling mount: %s", err)
+	}
+
+	return nil
 }
 
 // UninstallKBFS uninstalls all KBFS services, unmounts and optionally removes the mount directory
-func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, removeMountDir bool, log Log) error {
+func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, log Log) error {
 	err := UninstallKBFSServices(runMode, log)
 	if err != nil {
 		return err
@@ -795,13 +805,6 @@ func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, re
 	}
 	if !empty {
 		return fmt.Errorf("Mount has files after unmounting: %s", mountDir)
-	}
-
-	if removeMountDir {
-		log.Info("Removing %s", mountDir)
-		if err := uninstallMountDir(runMode, log); err != nil {
-			return fmt.Errorf("Error removing mount dir: %s", err)
-		}
 	}
 
 	return nil
@@ -855,7 +858,7 @@ func execNativeInstallerWithArg(args []string, runMode libkb.RunMode, log Log) e
 	if err != nil {
 		return err
 	}
-	includeArgs := []string{fmt.Sprintf("--run-mode=%s", runMode), fmt.Sprintf("--app-path=%s", appPath), fmt.Sprintf("--timeout=10")}
+	includeArgs := []string{"--debug", fmt.Sprintf("--run-mode=%s", runMode), fmt.Sprintf("--app-path=%s", appPath), fmt.Sprintf("--timeout=10")}
 	args = append(includeArgs, args...)
 	cmd := exec.Command(nativeInstallerAppBundleExecPath(appPath), args...)
 	output, err := cmd.CombinedOutput()

@@ -3,12 +3,13 @@ import {Component} from 'react'
 import type {BootStatus} from '../../constants/config'
 
 export type Props = {
-  onSignup: () => void,
+  bootStatus: BootStatus,
+  onFeedback: () => void,
   onLogin: () => void,
   onRetry: () => void,
-  justRevokedSelf: ?string,
-  bootStatus: BootStatus,
+  onSignup: () => void,
   justDeletedSelf: ?string,
+  justRevokedSelf: ?string,
   retrying: boolean,
 }
 

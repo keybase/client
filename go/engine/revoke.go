@@ -143,17 +143,25 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 		return err
 	}
 	kid := sigKey.GetKID()
-	_, err = e.G().API.Post(libkb.APIArg{
-		Endpoint:    "sig/revoke",
+
+	sig1 := make(map[string]string)
+	sig1["sig"] = sig
+	sig1["signing_kid"] = kid.String()
+	sig1["type"] = libkb.LinkTypeRevoke
+
+	sigsList := []map[string]string{sig1}
+	payload := make(libkb.JSONPayload)
+	payload["sigs"] = sigsList
+
+	_, err = e.G().API.PostJSON(libkb.APIArg{
+		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"signing_kid": libkb.S{Val: kid.String()},
-			"sig":         libkb.S{Val: sig},
-		},
+		JSONPayload: payload,
 	})
 	if err != nil {
 		return err
 	}
+
 	e.G().UserChanged(me.GetUID())
 	return nil
 }
