@@ -3,6 +3,7 @@ package chat
 import (
 	"errors"
 	"sync"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -14,12 +15,23 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+const (
+	bgLoaderMaxAttempts = 4
+	bgLoaderDelay       = 300 * time.Millisecond
+)
+
+type clTask struct {
+	convID        chat1.ConversationID
+	attempt       int
+	lastAttemptAt time.Time
+}
+
 type BackgroundConvLoader struct {
 	globals.Contextified
 	utils.DebugLabeler
 
 	started       bool
-	queue         chan chat1.ConversationID
+	queue         chan clTask
 	stop          chan bool
 	identNotifier *IdentifyNotifier
 
@@ -71,14 +83,18 @@ func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
 }
 
 func (b *BackgroundConvLoader) Queue(ctx context.Context, convID chat1.ConversationID) error {
+	return b.enqueue(ctx, clTask{convID: convID})
+}
+
+func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 	b.Lock()
 	defer b.Unlock()
 
 	select {
-	case b.queue <- convID:
-		b.Debug(ctx, "added %s to queue", convID)
+	case b.queue <- task:
+		b.Debug(ctx, "added %s to queue", task.convID)
 	default:
-		b.Debug(ctx, "queue is full, not adding %s", convID)
+		b.Debug(ctx, "queue is full, not adding %s", task.convID)
 		return errors.New("queue is full")
 	}
 
@@ -91,8 +107,11 @@ func (b *BackgroundConvLoader) loop(uid gregor1.UID) {
 	for {
 		// get a convID from queue, or stop
 		select {
-		case convID := <-b.queue:
-			b.load(bgctx, convID, uid)
+		case task := <-b.queue:
+			if task.attempt > 0 {
+				time.Sleep(bgLoaderDelay - time.Since(task.lastAttemptAt))
+			}
+			b.load(bgctx, task, uid)
 		case <-b.stop:
 			b.Debug(bgctx, "shutting down conv loader loop for %s", uid)
 			return
@@ -104,27 +123,39 @@ func (b *BackgroundConvLoader) newQueue() {
 	if b.queue != nil {
 		close(b.queue)
 	}
-	b.queue = make(chan chat1.ConversationID, 200)
+	b.queue = make(chan clTask, 200)
 }
 
-func (b *BackgroundConvLoader) load(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) {
-	b.Debug(ctx, "loading conversation %s", convID)
+func (b *BackgroundConvLoader) load(ctx context.Context, task clTask, uid gregor1.UID) {
+	b.Debug(ctx, "loading conversation %s", task.convID)
 
 	var breaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, b.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks, b.identNotifier)
 
 	query := &chat1.GetThreadQuery{MarkAsRead: false}
 	pagination := &chat1.Pagination{Num: 50}
-	_, _, err := b.G().ConvSource.Pull(ctx, convID, uid, query, pagination)
+	_, _, err := b.G().ConvSource.Pull(ctx, task.convID, uid, query, pagination)
 	if err != nil {
-		b.Debug(ctx, "ConvSource.Pull error: %s", err)
-	} else {
-		b.Debug(ctx, "loaded conversation %s", convID)
-
-		// if testing, put the convID on the loads channel
-		if b.loads != nil {
-			b.Debug(ctx, "putting convID %s on loads chan", convID)
-			b.loads <- convID
+		b.Debug(ctx, "ConvSource.Pull error: %s (%T)", err, err)
+		if _, ok := err.(*TransientUnboxingError); ok && task.attempt+1 < bgLoaderMaxAttempts {
+			b.Debug(ctx, "transient error, retrying")
+			task.attempt++
+			task.lastAttemptAt = time.Now()
+			b.enqueue(ctx, task)
+			return
 		}
+
+		b.Debug(ctx, "sending conv %s to FetchRetrier", task.convID)
+		b.G().FetchRetrier.Failure(ctx, task.convID, uid, types.ThreadLoad)
+
+		return
+	}
+
+	b.Debug(ctx, "loaded conversation %s", task.convID)
+
+	// if testing, put the convID on the loads channel
+	if b.loads != nil {
+		b.Debug(ctx, "putting convID %s on loads chan", task.convID)
+		b.loads <- task.convID
 	}
 }
