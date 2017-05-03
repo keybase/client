@@ -5,7 +5,7 @@ import {call, put, select, take} from 'redux-saga/effects'
 import {cryptocurrencyRegisterAddressRpcPromise, proveStartProofRpcChannelMap, ConstantsStatusCode, ProveCommonProofStatus, proveCheckProofRpcPromise} from '../../constants/types/flow-types'
 import {navigateTo, navigateAppend} from '../route-tree'
 import {profileTab} from '../../constants/tabs'
-import {closeChannelMap, safeTakeEvery} from '../../util/saga'
+import {safeTakeEvery} from '../../util/saga'
 
 import type {AddProof, CancelAddProof, CheckProof, CleanupUsername, SubmitBTCAddress, SubmitUsername, UpdateErrorText, UpdatePlatform, UpdateProofStatus, UpdateProofText, UpdateSigID, Waiting, SubmitZcashAddress} from '../../constants/profile'
 import type {NavigateTo} from '../../constants/route-tree'

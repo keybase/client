@@ -13,7 +13,7 @@ class PgpAdd extends Component<void, Props, void> {
         onClose={this.props.onCancel}>
         {/* TODO(MM) when we get the pgp icon, put it in here */}
         <PlatformIcon platform='pgp' overlay='icon-proof-unfinished' style={styleIcon} />
-        <Text style={styleHeader} type='BodySemibold'> Fill in your public info.  </Text>
+        <Text style={styleHeader} type='BodySemibold'> Fill in your public info.</Text>
         <Input hintText='Your full name' value={this.props.fullName} onChangeText={this.props.onChangeFullName} />
         <Input
           small={true}
