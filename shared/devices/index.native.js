@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Text, PopupMenu, Icon, ClickableBox, NativeActivityIndicator, NativeScrollView, HeaderHoc} from '../common-adapters/index.native'
+import {Box, Text, PopupMenu, Icon, ClickableBox, ProgressIndicator, NativeScrollView, HeaderHoc} from '../common-adapters/index.native'
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
@@ -54,7 +54,7 @@ const DeviceHeader = ({onAddNew, waitingForServer}) => {
   if (waitingForServer) {
     return (
       <Box style={{height: 64, justifyContent: 'center'}}>
-        <NativeActivityIndicator />
+        <ProgressIndicator />
       </Box>
     )
   }
