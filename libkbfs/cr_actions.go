@@ -353,9 +353,16 @@ func (cuea *copyUnmergedEntryAction) updateOps(unmergedMostRecent BlockPointer,
 			fixupNamesInOps(cuea.fromName, cuea.toName, unmergedChain.ops,
 				unmergedChains)
 
-		// We need a local rename notification if the name changed.
-		makeLocalRenameOpForCopyAction(mergedMostRecent, mergedBlock,
-			mergedChains, cuea.fromName, cuea.toName)
+		if cuea.unique || cuea.symPath != "" {
+			// If a directory was renamed locally, either because of a
+			// direct conflict or because it was turned into a
+			// symlink, we need to fake a merged rename op from the
+			// unmerged name to the merged name, before creating the
+			// symlink, so the local Node objects are updated
+			// correctly.
+			makeLocalRenameOpForCopyAction(mergedMostRecent, mergedBlock,
+				mergedChains, cuea.fromName, cuea.toName)
+		}
 	}
 
 	// If the target is a file that had child blocks, we need to
@@ -440,10 +447,6 @@ func (cuaa *copyUnmergedAttrAction) updateOps(unmergedMostRecent BlockPointer,
 		unmergedChain.ops =
 			fixupNamesInOps(cuaa.fromName, cuaa.toName, unmergedChain.ops,
 				unmergedChains)
-
-		// We need a local rename notification if the name changed.
-		makeLocalRenameOpForCopyAction(mergedMostRecent, mergedBlock,
-			mergedChains, cuaa.fromName, cuaa.toName)
 	}
 	return nil
 }
