@@ -26,7 +26,9 @@ const getProps = createCachedSelector(
 const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
   return {
     ...getProps(state, messageKey),
-    routePath: getPath(state.routeTree.routeState, [chatTab]),
+    // We derive the route path instead of having it passed in. We have to ensure its the path of this chat view and not any children so
+    // lets just extract the root path. This makes sure the openInPopup doesn't try and push multiple attachment views if you click quickly
+    routePath: getPath(state.routeTree.routeState, [chatTab]).slice(0, 2),
   }
 }
 

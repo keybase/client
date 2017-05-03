@@ -121,7 +121,7 @@
 - (NSDictionary *)appConfig:(NSError **)error {
   // TODO: We should detect if changed and reload
   if (!_appConfig) {
-    NSData *data = [NSData dataWithContentsOfFile:[_config appPath:@"config.json" options:0]];
+    NSData *data = [NSData dataWithContentsOfFile:[_config dataPath:@"config.json" options:0]];
     if (!data) {
       return nil;
     }

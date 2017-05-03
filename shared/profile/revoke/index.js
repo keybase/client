@@ -79,7 +79,7 @@ const styleContentContainer = {
 
 const stylePlatformUsername = {
   ...globalStyles.textDecoration('line-through'),
-  textAlign: 'center',
+  ...(isMobile ? {} : {textAlign: 'center'}),
   color: globalColors.red,
 }
 
@@ -89,12 +89,12 @@ const stylePlatformSubtitle = {
 
 const styleDescriptionText = {
   marginTop: globalMargins.medium,
-  textAlign: 'center',
+  ...(isMobile ? {} : {textAlign: 'center'}),
 }
 
 const styleReminderText = {
   marginTop: globalMargins.tiny,
-  textAlign: 'center',
+  ...(isMobile ? {} : {textAlign: 'center'}),
 }
 
 const styleButtonsContainer = {

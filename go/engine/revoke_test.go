@@ -6,6 +6,7 @@ package engine
 import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 	"testing"
 )
@@ -94,6 +95,28 @@ func TestRevokeDevice(t *testing.T) {
 	if err != nil {
 		tc.T.Fatal(err)
 	}
+
+	assertNumDevicesAndKeys(tc, u, 1, 2)
+}
+
+func TestRevokePaperDevice(t *testing.T) {
+	tc := SetupEngineTest(t, "rev")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUserPaper(tc, "rev")
+
+	assertNumDevicesAndKeys(tc, u, 2, 4)
+
+	devices, _ := getActiveDevicesAndKeys(tc, u)
+	var thisDevice *libkb.Device
+	for _, device := range devices {
+		if device.Type == libkb.DeviceTypePaper {
+			thisDevice = device
+		}
+	}
+
+	err := doRevokeDevice(tc, u, thisDevice.ID, false)
+	require.NoError(t, err)
 
 	assertNumDevicesAndKeys(tc, u, 1, 2)
 }

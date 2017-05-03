@@ -13,9 +13,9 @@ import {bootstrap, setInitialTab, getExtendedStatus, setInitialLink} from '../co
 import {appLink} from '../app'
 import {defaultModeForDeviceRoles} from './provision-helpers'
 import openURL from '../../util/open-url'
-import {devicesTab, loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
+import {loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
-import {load as loadDevices, devicesTabLocation} from '../devices'
+import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from '../devices'
 import {deletePushTokenSaga} from '../push'
 import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
@@ -469,6 +469,7 @@ function * loginSuccess () {
 }
 
 function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
+  yield put(setDevicesWaiting(true))
   yield call(initalizeMyCodeStateForAddingADevice)
 
   const onBackSaga = function * (response) {
@@ -509,6 +510,8 @@ function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
     addDeviceSagas,
     addDeviceChanMap
   )
+
+  yield put(setDevicesWaiting(false))
 }
 
 function * reloginSaga ({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {

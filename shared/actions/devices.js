@@ -180,6 +180,7 @@ export {
   load,
   paperKeyMake,
   revoke,
+  setWaiting,
   showRevokePage,
   devicesTabLocation,
 }

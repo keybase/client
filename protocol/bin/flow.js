@@ -342,6 +342,7 @@ import {RPCError} from '../../util/errors'
 import {putOnChannelMap, createChannelMap, closeChannelMap} from '../../util/saga'
 import {Buffer} from 'buffer'
 
+import type {ChannelConfig, ChannelMap} from './saga'
 import type {Exact} from './more'
 export type int = number
 export type int64 = number
