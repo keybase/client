@@ -17,7 +17,7 @@ function HeaderHoc<P> (WrappedComponent: ReactClass<P>) {
           <Text type='Header'>{title}</Text>
         </Box>
       </Box>
-      {<WrappedComponent {...restProps} />}
+      <WrappedComponent {...restProps} />
     </Box>
   )
 }

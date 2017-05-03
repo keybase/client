@@ -6,6 +6,7 @@ export type MenuItem = {
   view?: React$Element<*>, // Only used for Header
   subTitle?: string, // subTitle is not used on native
   danger?: boolean,
+  disabled?: boolean,
   onClick?: () => void,
   onPress?: void,
   style?: Object,

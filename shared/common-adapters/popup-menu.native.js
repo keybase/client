@@ -45,11 +45,12 @@ const styleRow = ({isHeader, danger, index, numItems}: {isHeader?: boolean, dang
   }
 }
 
-const styleRowText = ({isHeader, danger}: {isHeader?: boolean, danger?: boolean}) => {
+const styleRowText = ({isHeader, danger, disabled}: {isHeader?: boolean, danger?: boolean, disabled?: boolean}) => {
   const dangerColor = danger ? globalColors.red : globalColors.blue
   const color = isHeader ? globalColors.white : dangerColor
   return {
     color,
+    ...(disabled ? {opacity: 0.6} : {}),
     ...(isHeader ? {textAlign: 'center'} : {}),
   }
 }

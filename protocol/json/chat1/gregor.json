@@ -10,6 +10,10 @@
           "type": "string",
           "name": "Action",
           "lint": "ignore"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
         }
       ]
     },

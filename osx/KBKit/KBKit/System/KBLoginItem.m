@@ -37,7 +37,7 @@
 }
 
 - (BOOL)setEnabled:(BOOL)loginEnabled error:(NSError **)error {
-  return [KBSharedFileList setEnabled:loginEnabled URL:self.URL name:@"Keybase" type:kLSSharedFileListSessionLoginItems insertAfter:kLSSharedFileListItemLast error:error];
+  return [KBSharedFileList setEnabled:loginEnabled URL:self.URL name:@"Keybase" type:kLSSharedFileListSessionLoginItems position:NSIntegerMax error:error];
 }
 
 @end

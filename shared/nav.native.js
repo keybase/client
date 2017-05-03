@@ -2,8 +2,9 @@
 import GlobalError from './global-errors/container'
 import Offline from './offline'
 import React, {Component} from 'react'
+import {compose, lifecycle} from 'recompose'
 import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
-import {Box, NativeKeyboardAvoidingView} from './common-adapters/index.native'
+import {Box, NativeKeyboard, NativeKeyboardAvoidingView} from './common-adapters/index.native'
 import {Dimensions, StatusBar} from 'react-native'
 import {CardStack, NavigationActions} from 'react-navigation'
 import {chatTab, loginTab} from './constants/tabs'
@@ -81,7 +82,7 @@ const barStyle = ({showStatusBarDarkContent, underStatusBar}) => {
   return 'dark-content'
 }
 
-function renderMainStackRoute (route) {
+function renderStackRoute (route) {
   const {underStatusBar, hideStatusBar, showStatusBarDarkContent} = route.tags
   return (
     <Box style={route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
@@ -124,7 +125,7 @@ function MainNavStack (props: Props) {
       <CardStackShim
         key={props.routeSelected}
         stack={screens}
-        renderRoute={renderMainStackRoute}
+        renderRoute={renderStackRoute}
         onNavigateBack={props.navigateUp}
       />
       {![chatTab].includes(props.routeSelected) && <Offline reachability={props.reachability} appFocused={true} />}
@@ -143,14 +144,6 @@ function MainNavStack (props: Props) {
   return <Container hideNav={props.hideNav} shim={shim} tabBar={tabBar} />
 }
 
-function renderFullScreenStackRoute (route) {
-  return (
-    <Box style={globalStyles.fillAbsolute}>
-      {route.component}
-    </Box>
-  )
-}
-
 function Nav (props: Props) {
   const baseScreens = props.routeStack.filter(r => !r.tags.layerOnTop)
   if (!baseScreens.size) {
@@ -163,7 +156,7 @@ function Nav (props: Props) {
     .unshift({
       path: ['main'],
       component: <MainNavStack {...props} routeStack={mainScreens} />,
-      tags: {},
+      tags: {underStatusBar: true},  // don't pad nav stack (child screens have own padding)
     })
 
   const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
@@ -172,7 +165,7 @@ function Nav (props: Props) {
     <Box style={globalStyles.fillAbsolute}>
       <CardStackShim
         stack={fullScreens}
-        renderRoute={renderFullScreenStackRoute}
+        renderRoute={renderStackRoute}
         onNavigateBack={props.navigateUp}
         mode='modal'
       />
@@ -227,4 +220,17 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Nav)
+const dismissKeyboardOnPathChange = lifecycle({
+  componentWillReceiveProps (nextProps) {
+    const nextPath = nextProps.routeStack.last().path
+    const curPath = this.props.routeStack.last().path
+    if (!nextPath.equals(curPath)) {
+      NativeKeyboard.dismiss()
+    }
+  },
+})
+
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  dismissKeyboardOnPathChange,
+)(Nav)

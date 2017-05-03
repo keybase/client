@@ -4,6 +4,7 @@ protocol gregor {
     record GenericPayload {
         @lint("ignore")
         string Action;
+        InboxVers inboxVers;
     }
 
     record NewConversationPayload {

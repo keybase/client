@@ -75,6 +75,10 @@ func (o OuterLinkV2WithMetadata) EncodeStubbed() string {
 	return base64.StdEncoding.EncodeToString(o.raw)
 }
 
+func (o OuterLinkV2WithMetadata) LinkID() LinkID {
+	return ComputeLinkID(o.raw)
+}
+
 func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 	payload, kid, sigID, err := SigExtractPayloadAndKID(armored)
 	if err != nil {

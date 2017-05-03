@@ -29,11 +29,13 @@ const getDevicesAndRevokedDevicesSelector = createSelector(
 const mapStateToProps = (state: TypedState, {routeState}) => {
   const {showingRevoked} = routeState
   const {deviceIDs, revokedDeviceIDs} = getDevicesAndRevokedDevicesSelector(state)
+  const waitingForServer = state.devices.get('waitingForServer')
 
   return {
     deviceIDs,
     revokedDeviceIDs,
     showingRevoked,
+    waitingForServer,
   }
 }
 
