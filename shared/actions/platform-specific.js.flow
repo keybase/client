@@ -2,6 +2,7 @@
 import type {AsyncAction} from '../constants/types/flux'
 
 declare function requestPushPermissions (): Promise<*>
+declare function clearLocalPushNotifications (): void
 declare function configurePush (): void
 declare function showMainWindow (): AsyncAction
 declare function showShareActionSheet (options: {url?: ?any, message?: ?any}): Promise<{completed: boolean, method: string}>
@@ -11,6 +12,7 @@ declare function saveAttachment (filePath: string): Promise<NextURI>
 
 
 export {
+  clearLocalPushNotifications,
   requestPushPermissions,
   showMainWindow,
   configurePush,

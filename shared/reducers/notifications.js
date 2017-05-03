@@ -2,6 +2,7 @@
 import * as Constants from '../constants/notifications'
 import * as CommonConstants from '../constants/common'
 import {chatTab, folderTab} from '../constants/tabs'
+import {badgeStateToUnreadMessages} from '../actions/chat/shared'
 
 const initialState: Constants.State = new Constants.StateRecord()
 
@@ -22,10 +23,10 @@ export default function (state: Constants.State = initialState, action: Constant
     case CommonConstants.resetStore:
       return initialState
     case 'notifications:receivedBadgeState': {
-      const {conversations, newTlfs, rekeysNeeded} = action.payload.badgeState
-
+      const {badgeState} = action.payload
+      const {newTlfs, rekeysNeeded} = badgeState
       const navBadges = state.get('navBadges').withMutations(n => {
-        const totalMessages = (conversations || []).reduce((total, c) => total + c.UnreadMessages, 0)
+        const totalMessages = badgeStateToUnreadMessages(badgeState)
         n.set(chatTab, totalMessages)
         n.set(folderTab, newTlfs + rekeysNeeded)
       })
