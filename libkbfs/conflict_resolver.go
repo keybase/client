@@ -2722,7 +2722,16 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 	[]op, error) {
 	dummyOp := newResolutionOp()
 	newPtrs := make(map[BlockPointer]bool)
-	for original, newMostRecent := range updates {
+	for mergedMostRecent, newMostRecent := range updates {
+		// `updates` contains the pointer updates needed for devices
+		// on the merged branch to update; we have to find the
+		// original of the entire branch to find the corresponding
+		// unmerged most recent.
+		original, err :=
+			mergedChains.originalFromMostRecentOrSame(mergedMostRecent)
+		if err != nil {
+			return nil, err
+		}
 		chain, ok := unmergedChains.byOriginal[original]
 		if ok {
 			// If this unmerged node was updated in the resolution,
