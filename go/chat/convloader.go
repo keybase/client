@@ -12,18 +12,20 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type BackgroundConvLoader struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	connected bool
-	started   bool
-	queue     chan chat1.ConversationID
-	stop      chan bool
-	online    chan bool
-	offline   chan chan struct{}
+	connected     bool
+	started       bool
+	queue         chan chat1.ConversationID
+	stop          chan bool
+	online        chan bool
+	offline       chan chan struct{}
+	identNotifier *IdentifyNotifier
 
 	loads chan chat1.ConversationID // for testing, make this and can check conv load successes
 
@@ -34,11 +36,12 @@ var _ types.ConvLoader = (*BackgroundConvLoader)(nil)
 
 func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 	b := &BackgroundConvLoader{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "BackgroundConvLoader", false),
-		stop:         make(chan bool),
-		online:       make(chan bool, 1),
-		offline:      make(chan chan struct{}, 1),
+		Contextified:  globals.NewContextified(g),
+		DebugLabeler:  utils.NewDebugLabeler(g, "BackgroundConvLoader", false),
+		stop:          make(chan bool),
+		online:        make(chan bool, 1),
+		offline:       make(chan chan struct{}, 1),
+		identNotifier: NewIdentifyNotifier(g),
 	}
 
 	// start offline
@@ -164,6 +167,9 @@ func (b *BackgroundConvLoader) newQueue() {
 
 func (b *BackgroundConvLoader) load(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) {
 	b.Debug(ctx, "loading conversation %s", convID)
+
+	var breaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, b.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks, b.identNotifier)
 
 	query := &chat1.GetThreadQuery{MarkAsRead: false}
 	pagination := &chat1.Pagination{Num: 50}
