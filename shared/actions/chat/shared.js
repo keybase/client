@@ -9,7 +9,6 @@ import {unboxConversations} from './inbox'
 import {pendingToRealConversation, replaceConversation, selectConversation} from './creators'
 import {usernameSelector} from '../../constants/selectors'
 
-import type {BadgeState} from '../../constants/types/flow-types'
 import type {TypedState} from '../../constants/reducer'
 
 type TimestampableMessage = {
@@ -59,11 +58,6 @@ function tmpFileName (isHdPreview: boolean, conversationID: Constants.Conversati
   }
 
   return `kbchat-${conversationID}-${messageID}.${isHdPreview ? 'hdPreview' : 'preview'}`
-}
-
-function badgeStateToUnreadMessages (badgeState: BadgeState): number {
-  const {conversations} = badgeState
-  return (conversations || []).reduce((total, c) => total + c.UnreadMessages, 0)
 }
 
 function * clientHeader (messageType: ChatTypes.MessageType, conversationIDKey: Constants.ConversationIDKey): Generator<any, ?ChatTypes.MessageClientHeader, any> {
@@ -202,7 +196,6 @@ function maybeAddTimestamp (conversationIDKey: Constants.ConversationIDKey, mess
 export {
   alwaysShowSelector,
   attachmentPlaceholderPreviewSelector,
-  badgeStateToUnreadMessages,
   clientHeader,
   conversationStateSelector,
   devicenameSelector,

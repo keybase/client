@@ -16,10 +16,6 @@ function requestPushPermissions (): Promise<*> {
   throw new Error('Push permissions unsupported on this platform')
 }
 
-function clearLocalPushNotifications () {
-  throw new Error('Clear local push notifications not needed on this platform')
-}
-
 function configurePush () {
   throw new Error('Configure Push not needed on this platform')
 }
@@ -31,7 +27,6 @@ function showMainWindow (): AsyncAction {
 }
 
 export {
-  clearLocalPushNotifications,
   requestPushPermissions,
   showMainWindow,
   configurePush,

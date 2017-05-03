@@ -11,10 +11,6 @@ import {setInitialConversation} from './chat'
 
 import type {AsyncAction} from '../constants/types/flux'
 
-function clearLocalPushNotifications (): Promise<*> {
-  return PushNotifications.cancelAllLocalNotifications()
-}
-
 function requestPushPermissions (): Promise<*> {
   return PushNotifications.requestPermissions()
 }
@@ -186,7 +182,6 @@ function loadRouteState (): AsyncAction {
 }
 
 export {
-  clearLocalPushNotifications,
   loadRouteState,
   persistRouteState,
   requestPushPermissions,

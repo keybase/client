@@ -10,9 +10,7 @@ import {isMobile} from '../constants/platform'
 import {log} from '../native/log/logui'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
 import {setupChatHandlers, badgeAppForChat} from './chat'
-import {badgeStateToUnreadMessages} from './chat/shared'
 import {setupKBFSChangedHandler} from './favorite'
-import {clearLocalPushNotifications} from './platform-specific'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
@@ -83,14 +81,9 @@ function * _listenKBFSSaga (): SagaGenerator<any, any> {
   yield put(setupChatHandlers())
 }
 
-function * _onReceivedBadgeState (action: Constants.ReceivedBadgeState): SagaGenerator<any, any> {
-  const {badgeState} = action.payload
-  const {conversations} = badgeState
+function * _onRecievedBadgeState (action: Constants.ReceivedBadgeState): SagaGenerator<any, any> {
+  const {conversations} = action.payload.badgeState
   yield put(badgeAppForChat(conversations))
-  const newMessages = badgeStateToUnreadMessages(badgeState)
-  if (newMessages === 0) {
-    yield put(clearLocalPushNotifications)
-  }
 }
 
 function * _listenNotifications (): SagaGenerator<any, any> {
@@ -106,7 +99,7 @@ function * _listenForKBFSNotifications (): SagaGenerator<any, any> {
 function * notificationsSaga (): SagaGenerator<any, any> {
   yield fork(_listenNotifications)
   yield fork(_listenForKBFSNotifications)
-  yield Saga.safeTakeLatest('notifications:receivedBadgeState', _onReceivedBadgeState)
+  yield Saga.safeTakeLatest('notifications:receivedBadgeState', _onRecievedBadgeState)
 }
 
 export {
