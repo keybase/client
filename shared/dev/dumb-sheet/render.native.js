@@ -217,8 +217,10 @@ class DumbSheetRender extends Component<void, Props, any> {
         </Box>
         <Box style={styleBox}>
           <Text type='BodySmall'>{key}: {mockKey}</Text>
-          <Box {...mock.parentProps}>
-            {this._makeStoreWrapper(component)}
+          <Box style={styleSmallScreen}>
+            <Box style={{flex: 1}} {...mock.parentProps}>
+              {this._makeStoreWrapper(component)}
+            </Box>
           </Box>
         </Box>
       </Box>
@@ -241,6 +243,14 @@ class DumbSheetRender extends Component<void, Props, any> {
 const styleBox = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
+}
+
+const styleSmallScreen = {
+  ...globalStyles.flexBoxColumn,
+  borderColor: 'black',
+  borderWidth: 1,
+  flex: 1,
+  maxHeight: 528, // Wrap in max height, so we'll know if things get clipped on iPhone SE
 }
 const stylesButton = {
   borderRadius: 10,
