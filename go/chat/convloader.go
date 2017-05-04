@@ -17,7 +17,8 @@ import (
 
 const (
 	bgLoaderMaxAttempts = 4
-	bgLoaderDelay       = 300 * time.Millisecond
+	bgLoaderInitDelay   = 100 * time.Millisecond
+	bgLoaderErrDelay    = 300 * time.Millisecond
 )
 
 type clTask struct {
@@ -108,9 +109,16 @@ func (b *BackgroundConvLoader) loop(uid gregor1.UID) {
 		// get a convID from queue, or stop
 		select {
 		case task := <-b.queue:
+			// always wait a short amount of time to avoid
+			// flood of conversation loads
+			duration := bgLoaderInitDelay
 			if task.attempt > 0 {
-				time.Sleep(bgLoaderDelay - time.Since(task.lastAttemptAt))
+				duration = bgLoaderErrDelay - time.Since(task.lastAttemptAt)
+				if duration < bgLoaderInitDelay {
+					duration = bgLoaderInitDelay
+				}
 			}
+			time.Sleep(duration)
 			b.load(bgctx, task, uid)
 		case <-b.stop:
 			b.Debug(bgctx, "shutting down conv loader loop for %s", uid)
@@ -145,8 +153,7 @@ func (b *BackgroundConvLoader) load(ctx context.Context, task clTask, uid gregor
 			return
 		}
 
-		b.Debug(ctx, "sending conv %s to FetchRetrier", task.convID)
-		b.G().FetchRetrier.Failure(ctx, task.convID, uid, types.ThreadLoad)
+		b.Debug(ctx, "failed to load conv %s", task.convID)
 
 		return
 	}
