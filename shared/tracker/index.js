@@ -105,6 +105,7 @@ export default connect(
   },
   (stateProps, dispatchProps, ownProps) => {
     const {username} = stateProps
+
     return {
       ...ownProps,
       ...stateProps,
