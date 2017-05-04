@@ -189,6 +189,7 @@ func TestProvisionDesktop(t *testing.T) {
 
 func TestProvisionDesktopSDH(t *testing.T) {
 	t.Skip("TODO waiting for PerUserSecretRewrite")
+
 	testProvisionDesktop(t, true)
 }
 
@@ -2537,9 +2538,19 @@ func TestProvisionGPGMobile(t *testing.T) {
 	}
 }
 
+func TestProvisionEnsurePaperKey(t *testing.T) {
+	testProvisionEnsurePaperKey(t, false)
+}
+
+func TestProvisionEnsurePaperKeySDH(t *testing.T) {
+	t.Skip("TODO waiting for PerUserSecretRewrite")
+
+	testProvisionEnsurePaperKey(t, true)
+}
+
 // Provisioning a new device when the user has no paper keys should work
 // and generate a paper key.
-func TestProvisionEnsurePaperKey(t *testing.T) {
+func testProvisionEnsurePaperKey(t *testing.T, enableSharedDH bool) {
 	// This test is based on TestProvisionDesktop.
 
 	t.Logf("create 2 contexts")
@@ -2547,10 +2558,12 @@ func TestProvisionEnsurePaperKey(t *testing.T) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
+	tcX.Tp.EnableSharedDH = enableSharedDH
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "template")
 	defer tcY.Cleanup()
+	tcY.Tp.EnableSharedDH = enableSharedDH
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUserPaper(tcX, "login")
