@@ -110,6 +110,48 @@ func TestPaperKey(t *testing.T) {
 	}
 }
 
+func TestPaperKeyMulti(t *testing.T) {
+	testPaperKeyMulti(t, false)
+}
+
+func TestPaperKeyMultiSDH(t *testing.T) {
+	t.Skip("TODO waiting for PerUserSecretRewrite")
+
+	testPaperKeyMulti(t, true)
+}
+
+// Generate multiple paper keys
+func testPaperKeyMulti(t *testing.T, enableSharedDH bool) {
+	tc := SetupEngineTest(t, "backup")
+	defer tc.Cleanup()
+	tc.Tp.EnableSharedDH = enableSharedDH
+
+	f := func(arg *SignupEngineRunArg) {
+		arg.SkipPaper = true
+	}
+
+	fu, _, _ := CreateAndSignupFakeUserCustomArg(tc, "login", f)
+
+	for i := 0; i < 3; i++ {
+		ctx := &Context{
+			LogUI:    tc.G.UI.GetLogUI(),
+			LoginUI:  &libkb.TestLoginUI{},
+			SecretUI: &libkb.TestSecretUI{},
+		}
+		eng := NewPaperKey(tc.G)
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Fatal(err)
+		}
+		if len(eng.Passphrase()) == 0 {
+			t.Fatal("empty passphrase")
+		}
+
+		// check for the backup key
+		_, bdevs := paperDevs(tc, fu)
+		require.Equal(tc.T, i+1, len(bdevs), "num backup devices")
+	}
+}
+
 // tests revoking of existing backup keys
 func TestPaperKeyRevoke(t *testing.T) {
 	tc := SetupEngineTest(t, "backup")
@@ -151,6 +193,42 @@ func TestPaperKeyRevoke(t *testing.T) {
 	if len(bdevs) != 1 {
 		t.Errorf("num backup devices: %d, expected 1", len(bdevs))
 	}
+}
+
+// make a paperkey after revoking a previous one
+func TestPaperKeyAfterRevokeSDH(t *testing.T) {
+	t.Skip("TODO waiting for PerUserSecretRewrite")
+
+	tc := SetupEngineTest(t, "backup")
+	defer tc.Cleanup()
+	tc.Tp.EnableSharedDH = true
+
+	fu := CreateAndSignupFakeUser(tc, "login")
+
+	gen := func() {
+		ctx := &Context{
+			LogUI:    tc.G.UI.GetLogUI(),
+			LoginUI:  &libkb.TestLoginUI{},
+			SecretUI: &libkb.TestSecretUI{},
+		}
+		eng := NewPaperKey(tc.G)
+		err := RunEngine(eng, ctx)
+		require.NoError(t, err)
+		require.NotEqual(t, 0, len(eng.Passphrase()), "empty passphrase")
+	}
+
+	revoke := func(devid keybase1.DeviceID) {
+		err := doRevokeDevice(tc, fu, devid, false)
+		require.NoError(t, err)
+	}
+
+	hasZeroPaperDev(tc, fu)
+	gen()
+	devid := hasOnePaperDev(tc, fu)
+	revoke(devid)
+	hasZeroPaperDev(tc, fu)
+	gen()
+	hasOnePaperDev(tc, fu)
 }
 
 // tests not revoking existing backup keys

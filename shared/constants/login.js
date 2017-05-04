@@ -68,9 +68,6 @@ export type SetOtherDeviceCodeState = NoErrorTypedAction<'login:setOtherDeviceCo
 export const loginDone = 'login:loginDone'
 export type LoginDone = TypedAction<'login:relogin', {}, Error>
 
-export const submitForgotPassword = 'login:submitForgotPassword'
-export type SubmitForgotPassword = NoErrorTypedAction<'login:submitForgotPassword', {}>
-
 export const actionUpdateForgotPasswordEmailAddress = 'login:actionUpdateForgotPasswordEmailAddress'
 export type UpdateForgotPasswordEmail = NoErrorTypedAction<'login:actionUpdateForgotPasswordEmailAddress', string>
 

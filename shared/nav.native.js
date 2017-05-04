@@ -62,15 +62,35 @@ class CardStackShim extends Component {
   }
 }
 
+const barStyle = ({showStatusBarDarkContent, underStatusBar}) => {
+  // android always uses light-content
+  if (!isIOS) {
+    return 'light-content'
+  }
+  // allow an override when underStatusBar is true, but
+  // the content being displayed has a light background
+  if (showStatusBarDarkContent) {
+    return 'dark-content'
+  }
+  // replicates original behaviour of showing light text
+  // in the status bar when 'underStatusBar' is set to true
+  if (underStatusBar) {
+    return 'light-content'
+  }
+  // default to showing dark-content (dark text/icons) when
+  // on iOS
+  return 'dark-content'
+}
+
 function renderStackRoute (route) {
-  const {underStatusBar, hideStatusBar} = route.tags
+  const {underStatusBar, hideStatusBar, showStatusBarDarkContent} = route.tags
   return (
     <Box style={route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
       <StatusBar
         hidden={hideStatusBar}
         translucent={true}
         backgroundColor='rgba(0, 26, 51, 0.25)'
-        barStyle={!underStatusBar && isIOS ? 'dark-content' : 'light-content'}
+        barStyle={barStyle({showStatusBarDarkContent, underStatusBar})}
       />
       {route.component}
     </Box>

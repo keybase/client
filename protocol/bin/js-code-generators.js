@@ -18,7 +18,10 @@ const channelMapPrelude = `\nfunction _channelMapRpcHelper(channelConfig: Channe
 `
 
 function rpcChannelMap (methodName, name, callbackType, innerParamType, responseType) {
-  return `\nexport function ${name}RpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>): ChannelMap<*> {
+  return `\nexport function ${name}RpcChannelMap (configKeys: Array<string>, request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, ${methodName}, request)
+}
+export function ${name}RpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>): ChannelMap<*> {
   return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing(${methodName}, request, callback, incomingCallMap) })
 }`
 }

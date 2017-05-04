@@ -116,7 +116,7 @@ function * onLoadAttachment ({payload: {conversationIDKey, messageID, loadPrevie
   ])
 
   try {
-    const channelMap = ((yield call(ChatTypes.localDownloadFileAttachmentLocalRpcChannelMap, channelConfig, {param})): any)
+    const channelMap = ((yield call(ChatTypes.localDownloadFileAttachmentLocalRpcChannelMapOld, channelConfig, {param})): any)
 
     const progressTask = yield Saga.effectOnChannelMap(c => Saga.safeTakeEvery(c, function * ({response}) {
       const {bytesComplete, bytesTotal} = response.param
@@ -179,7 +179,7 @@ function * onSelectAttachment ({payload: {input}}: Constants.SelectAttachment): 
     'finished',
   ])
 
-  const channelMap = ((yield call(ChatTypes.localPostFileAttachmentLocalRpcChannelMap, channelConfig, {param})): any)
+  const channelMap = ((yield call(ChatTypes.localPostFileAttachmentLocalRpcChannelMapOld, channelConfig, {param})): any)
 
   const outboxIDResp = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadOutboxID')
   const {outboxID} = outboxIDResp.params

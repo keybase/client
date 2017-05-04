@@ -12,19 +12,9 @@ class PgpAdd extends Component<void, Props, void> {
         style={styleContainer}
         onClose={this.props.onCancel}>
         {/* TODO(MM) when we get the pgp icon, put it in here */}
-        <PlatformIcon
-          platform='pgp'
-          overlay='icon-proof-unfinished'
-          style={styleIcon} />
-        <Text
-          style={styleHeader}
-          type='BodySemibold'>
-          Fill in your public info.
-        </Text>
-        <Input
-          hintText='Your full name'
-          value={this.props.fullName}
-          onChangeText={this.props.onChangeFullName} />
+        <PlatformIcon platform='pgp' overlay='icon-proof-unfinished' style={styleIcon} />
+        <Text style={styleHeader} type='BodySemibold'> Fill in your public info.</Text>
+        <Input hintText='Your full name' value={this.props.fullName} onChangeText={this.props.onChangeFullName} />
         <Input
           small={true}
           smallLabel='Email 1:'
@@ -52,16 +42,8 @@ class PgpAdd extends Component<void, Props, void> {
           {this.props.errorText || 'Include any addresses you plan to use for PGP encrypted email.'}
         </Text>
         <Box style={styleActions}>
-          <Button
-            type='Secondary'
-            label='Cancel'
-            onClick={this.props.onCancel} />
-          <Button
-            type='Primary'
-            label='Let the math begin'
-            disabled={nextDisabled}
-            onClick={this.props.onNext} />
-        </Box>
+          <Button type='Secondary' label='Cancel' onClick={this.props.onCancel} />
+          <Button type='Primary' label='Let the math begin' disabled={nextDisabled} onClick={this.props.onNext} /> </Box>
       </StandardScreen>
     )
   }

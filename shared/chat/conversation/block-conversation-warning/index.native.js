@@ -14,8 +14,8 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAnd
     <Text type='Body' style={{marginTop: globalMargins.small}}>in the terminal on a desktop computer.</Text>
     <Box style={{...globalStyles.flexBoxColum, marginTop: globalMargins.xlarge}}>
       <Button type='Secondary' onClick={onBack} label="No, don't block them" />
-      <Button type='Danger' style={{marginTop: globalMargins.medium}} onClick={onBlock} label='Yes, block them' />
-      <Button type='Danger' style={{marginTop: globalMargins.small}} onClick={onBlockAndReport} label='Yes, block and report them' />
+      <Button type='Danger' style={{marginLeft: globalMargins.tiny, marginTop: globalMargins.medium}} onClick={onBlock} label='Yes, block them' />
+      <Button type='Danger' style={{marginLeft: globalMargins.small, marginTop: globalMargins.small}} onClick={onBlockAndReport} label='Yes, block them and report abuse' />
     </Box>
   </Box>
 )
