@@ -55,25 +55,22 @@ const pageMatchRules = [
       // Match user pages that Keybase recognizes
       // Extra css matchers added to avoid matching on non-profile URLs like /about or 404's
       new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { urlMatches: 'keybase.io\/[\\w]+$' },
+          pageUrl: { originAndPathMatches: '\.keybase\.(io|pub)/[\\w]+/?' },
           css: ['a[rel="me"]']
       }),
       new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { urlMatches: 'keybase.pub\/[\\w]+\/?' },
+          pageUrl: { originAndPathMatches: '\.reddit.com/user/[\\w-]+$' },
       }),
       new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { urlMatches: '\.reddit.com\/user\/[\\w-]+$' },
-      }),
-      new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { urlMatches: 'twitter.com/[\\w]+$' },
+          pageUrl: { originAndPathMatches: '\.twitter\.com/[\\w]+$' },
           css: ['body.ProfilePage']
       }),
       new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { urlMatches: 'github.com/[\\w]+$' },
+          pageUrl: { originAndPathMatches: '\.github\.com/[\\w]+$' },
           css: ['body.page-profile']
       }),
       new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { urlMatches: 'news.ycombinator.com/user' },
+          pageUrl: { originAndPathMatches: 'news\.ycombinator\.com/user' },
           css: ['html[op="user"]']
       })
     ],
