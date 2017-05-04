@@ -1824,6 +1824,7 @@ type blockState struct {
 	block          Block
 	readyBlockData ReadyBlockData
 	syncedCb       func() error
+	oldPtr         BlockPointer
 }
 
 func (fbo *folderBranchOps) Stat(ctx context.Context, node Node) (
@@ -1891,10 +1892,15 @@ func newBlockPutState(length int) *blockPutState {
 // complete (whether or not the put resulted in an error).  Currently
 // it will not be called if the block is never put (due to an earlier
 // error).
-func (bps *blockPutState) addNewBlock(blockPtr BlockPointer, block Block,
+func (bps *blockPutState) addNewBlock(
+	blockPtr BlockPointer, block Block,
 	readyBlockData ReadyBlockData, syncedCb func() error) {
 	bps.blockStates = append(bps.blockStates,
-		blockState{blockPtr, block, readyBlockData, syncedCb})
+		blockState{blockPtr, block, readyBlockData, syncedCb, zeroPtr})
+}
+
+func (bps *blockPutState) saveOldPtr(oldPtr BlockPointer) {
+	bps.blockStates[len(bps.blockStates)-1].oldPtr = oldPtr
 }
 
 func (bps *blockPutState) mergeOtherBps(other *blockPutState) {

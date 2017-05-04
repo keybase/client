@@ -1684,6 +1684,7 @@ func (fd *fileData) readyHelper(ctx context.Context, id tlf.ID,
 
 			bps.addNewBlock(
 				newInfo.BlockPointer, pb.pblock, readyBlockData, syncFunc)
+			bps.saveOldPtr(ptr)
 
 			parentPB.pblock.IPtrs[parentPB.childIndex].BlockInfo = newInfo
 			oldPtrs[newInfo] = ptr

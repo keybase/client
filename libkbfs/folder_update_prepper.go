@@ -273,8 +273,10 @@ func (fup folderUpdatePrepper) prepUpdateForPath(
 
 		if prevIdx < 0 {
 			md.AddUpdate(md.data.Dir.BlockInfo, info)
+			bps.saveOldPtr(md.data.Dir.BlockPointer)
 		} else if prevDe, ok := prevDblock.Children[currName]; ok {
 			md.AddUpdate(prevDe.BlockInfo, info)
+			bps.saveOldPtr(prevDe.BlockPointer)
 		} else {
 			// this is a new block
 			md.AddRefBlock(info)
@@ -433,7 +435,8 @@ func (fup folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 			}
 		}
 
-		// TODO: fix mtime and ctime?
+		// Assume the mtime/ctime are already fixed up in the blocks
+		// in the lbc.
 		_, _, bps, err := fup.prepUpdateForPath(
 			ctx, lState, uid, newMD, block,
 			*node.mergedPath.parentPath(), node.mergedPath.tailName(),
