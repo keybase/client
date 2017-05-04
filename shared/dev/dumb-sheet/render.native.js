@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import debounce from 'lodash/debounce'
 import dumbComponentMap from './component-map.native'
-import {Box, Button, Icon, Input, Text} from '../../common-adapters/index.native'
+import {Box, Button, Icon, Input, NativeScrollView, Text} from '../../common-adapters/index.native'
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import {globalStyles, globalColors} from '../../styles'
@@ -190,9 +190,6 @@ class DumbSheetRender extends Component<void, Props, any> {
       )
     }
 
-    // Default parent props style should be flex: 1
-    if (!mock.parentProps) mock.parentProps = {style: {flex: 1}}
-
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <Box style={globalStyles.flexBoxRow}>
@@ -218,12 +215,14 @@ class DumbSheetRender extends Component<void, Props, any> {
             this.props.onDebugConfigChange({dumbFullscreen: !this.props.dumbFullscreen})
           }} />
         </Box>
-        <Box style={styleBox}>
-          <Text type='BodySmall'>{key}: {mockKey}</Text>
-          <Box {...mock.parentProps}>
-            {this._makeStoreWrapper(component)}
+        <NativeScrollView>
+          <Box style={styleBox}>
+            <Text type='BodySmall'>{key}: {mockKey}</Text>
+            <Box {...mock.parentProps}>
+              {this._makeStoreWrapper(component)}
+            </Box>
           </Box>
-        </Box>
+        </NativeScrollView>
       </Box>
     )
   }
