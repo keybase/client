@@ -1683,10 +1683,12 @@ type NodeCache interface {
 	UpdatePointer(oldRef BlockRef, newPtr BlockPointer) bool
 	// Move swaps the parent node for the corresponding Node, and
 	// updates the node's name.  NodeCache ignores the call when ptr
-	// is not cached.  Returns an error if newParent cannot be found.
-	// If newParent is nil, it treats the ptr's corresponding node as
-	// being unlinked from the old parent completely.
-	Move(ref BlockRef, newParent Node, newName string) error
+	// is not cached.  If newParent is nil, it treats the ptr's
+	// corresponding node as being unlinked from the old parent
+	// completely. If successful, it returns a function that can be
+	// called to undo the effect of the move; if newParent cannot be
+	// found, it returns an error.
+	Move(ref BlockRef, newParent Node, newName string) (func(), error)
 	// Unlink set the corresponding node's parent to nil and caches
 	// the provided path in case the node is still open. NodeCache
 	// ignores the call when ptr is not cached.  The path is required

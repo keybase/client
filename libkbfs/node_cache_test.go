@@ -205,7 +205,7 @@ func TestNodeCacheMoveSuccess(t *testing.T) {
 	childPtr2 := path2[1].BlockPointer
 
 	// now move child2 under child1
-	err := ncs.Move(childPtr2.Ref(), childNode1, "child3")
+	undoMove, err := ncs.Move(childPtr2.Ref(), childNode1, "child3")
 	if err != nil {
 		t.Errorf("Couldn't update parent: %v", err)
 	}
@@ -229,6 +229,12 @@ func TestNodeCacheMoveSuccess(t *testing.T) {
 	if ncs.nodes[childPtr2.Ref()].refCount != 1 {
 		t.Errorf("Child1 has wrong refcount: %d", ncs.nodes[childPtr2.Ref()].refCount)
 	}
+
+	undoMove()
+	if childNode2.GetBasename() != "child2" {
+		t.Errorf("Child2 has the wrong name after move: %s",
+			childNode2.GetBasename())
+	}
 }
 
 // Tests that a child can't be updated with an unknown parent
@@ -242,7 +248,7 @@ func TestNodeCacheMoveNoParent(t *testing.T) {
 	simulateGC(ncs, []Node{childNode2})
 
 	// now move child2 under child1
-	err := ncs.Move(childPtr2.Ref(), childNode1, "child3")
+	_, err := ncs.Move(childPtr2.Ref(), childNode1, "child3")
 	expectedErr := ParentNodeNotFoundError{childPtr1.Ref()}
 	if err != expectedErr {
 		t.Errorf("Got unexpected error when updating parent: %v", err)

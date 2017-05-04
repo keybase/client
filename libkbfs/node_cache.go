@@ -181,9 +181,9 @@ func (ncs *nodeCacheStandard) UpdatePointer(
 
 // Move implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) Move(
-	ref BlockRef, newParent Node, newName string) error {
+	ref BlockRef, newParent Node, newName string) (func(), error) {
 	if ref == (BlockRef{}) {
-		return nil
+		return nil, nil
 	}
 
 	// Temporary code to track down bad block pointers. Remove (or
@@ -193,24 +193,31 @@ func (ncs *nodeCacheStandard) Move(
 	}
 
 	if newName == "" {
-		return EmptyNameError{ref}
+		return nil, EmptyNameError{ref}
 	}
 
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
 	entry, ok := ncs.nodes[ref]
 	if !ok {
-		return nil
+		return nil, nil
 	}
 
 	newParentNS, err := ncs.newChildForParentLocked(newParent)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	oldParent := entry.core.parent
+	oldName := entry.core.pathNode.Name
 
 	entry.core.parent = newParentNS
 	entry.core.pathNode.Name = newName
-	return nil
+
+	return func() {
+		entry.core.parent = oldParent
+		entry.core.pathNode.Name = oldName
+	}, nil
 }
 
 // Unlink implements the NodeCache interface for nodeCacheStandard.

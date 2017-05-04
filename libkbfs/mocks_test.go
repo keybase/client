@@ -5181,10 +5181,11 @@ func (_mr *_MockNodeCacheRecorder) UpdatePointer(arg0, arg1 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdatePointer", arg0, arg1)
 }
 
-func (_m *MockNodeCache) Move(ref BlockRef, newParent Node, newName string) error {
+func (_m *MockNodeCache) Move(ref BlockRef, newParent Node, newName string) (func(), error) {
 	ret := _m.ctrl.Call(_m, "Move", ref, newParent, newName)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(func())
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 func (_mr *_MockNodeCacheRecorder) Move(arg0, arg1, arg2 interface{}) *gomock.Call {

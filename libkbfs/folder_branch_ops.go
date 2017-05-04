@@ -4307,7 +4307,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 					_ = fbo.nodeCache.Unlink(
 						unlinkDe.Ref(), unlinkPath, unlinkDe)
 				}
-				err := fbo.nodeCache.Move(
+				_, err := fbo.nodeCache.Move(
 					realOp.Renamed.Ref(), newNode, realOp.NewName)
 				if err != nil {
 					return err
