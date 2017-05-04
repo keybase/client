@@ -1074,15 +1074,22 @@ func (fbo *folderBlockOps) SetAttrInDirEntryInCache(lState *lockState,
 	undoAdd := fbo.addDirEntryInCacheLocked(
 		lState, *p.parentPath(), p.tailName(), newDe)
 
+	// TODO(KBFS-2076): Uncomment below (see comment in undo function).
 	// Update the actual attribute in the deCache.
-	cacheEntry, ok := fbo.deCache[newDe.Ref()]
-	cacheEntryCopy := cacheEntry.deepCopy()
+	// cacheEntry, ok := fbo.deCache[newDe.Ref()]
+	_, ok := fbo.deCache[newDe.Ref()]
+	// cacheEntryCopy := cacheEntry.deepCopy()
 	fbo.setCachedAttrLocked(
 		lState, newDe.Ref(), attr, &newDe,
 		true /* create the deCache entry if it doesn't exist yet */)
 	return fbo.wrapWithBlockLock(func() {
 		if ok {
-			fbo.deCache[newDe.Ref()] = cacheEntryCopy
+			// TODO(KBFS-2076): Uncomment below.  Before KBFS-2076,
+			// the undo shouldn't restore attributes that are set in
+			// an entry that was created by a write, since it is
+			// always called even after a successfully-synced setattr
+			// call.
+			//fbo.deCache[newDe.Ref()] = cacheEntryCopy
 		} else {
 			delete(fbo.deCache, newDe.Ref())
 		}

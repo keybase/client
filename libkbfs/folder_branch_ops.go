@@ -1807,7 +1807,6 @@ func (fbo *folderBranchOps) statEntry(ctx context.Context, node Node) (
 		if err != nil {
 			return DirEntry{}, err
 		}
-
 	} else {
 		// nodePath is just the root.
 		de = md.data.Dir
