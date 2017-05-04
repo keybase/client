@@ -17,7 +17,6 @@ function _textMessagePopupHelper ({message, type, onDeleteMessage, onHidden, onS
   const edit = message.author === you ? [{
     onClick: () => {
       onShowEditor(message)
-      onHidden()
     },
     title: 'Edit',
   }] : []
@@ -25,7 +24,6 @@ function _textMessagePopupHelper ({message, type, onDeleteMessage, onHidden, onS
   const copy = [{
     onClick: () => {
       NativeClipboard.setString(message.message.stringValue())
-      onHidden()
     },
     title: 'Copy Text',
   }]
@@ -39,7 +37,6 @@ function _attachmentMessagePopupHelper ({message, onSaveAttachment, onShareAttac
   items.push({
     onClick: () => {
       onSaveAttachment && onSaveAttachment(attachment)
-      onHidden()
     },
     title: 'Save Image',
   })
@@ -48,7 +45,6 @@ function _attachmentMessagePopupHelper ({message, onSaveAttachment, onShareAttac
     items.push({
       onClick: () => {
         onShareAttachment && onShareAttachment(attachment)
-        onHidden()
       },
       title: 'Share Image',
     })
@@ -87,7 +83,6 @@ function MessagePopup (props: TextProps | AttachmentProps) {
       danger: true,
       onClick: () => {
         onDeleteMessage(message)
-        onHidden()
       },
       title: 'Delete',
     })

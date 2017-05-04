@@ -5,6 +5,7 @@ import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../actions/route-tree'
+import {hideKeyboard} from '../../actions/app'
 import {withState, withHandlers, compose, branch, renderNothing, lifecycle, renderComponent} from 'recompose'
 
 import type {Props} from '.'
@@ -22,6 +23,7 @@ type StateProps = {|
 
 type DispatchProps = {|
   _onAttach: (conversationIDKey: Constants.ConversationIDKey, inputs: Array<Constants.AttachmentInput>) => void,
+  _hideKeyboard: () => void,
   onBack: () => void,
 |}
 
@@ -62,6 +64,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
 
 const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}): DispatchProps => ({
   _onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
+  _hideKeyboard: () => dispatch(hideKeyboard()),
   onBack: () => dispatch(navigateUp()),
 })
 
@@ -87,7 +90,10 @@ export default compose(
     onEditLastMessage: props => () => props.setEditLastMessageCounter(props.editLastMessageCounter + 1),
     onFocusInput: props => () => props.setFocusInputCounter(props.focusInputCounter + 1),
     onScrollDown: props => () => props.setListScrollDownCounter(props.listScrollDownCounter + 1),
-    onToggleSidePanel: props => () => props.setSidePanelOpen(!props.sidePanelOpen),
+    onToggleSidePanel: props => () => {
+      !props.sidePanelOpen && props._hideKeyboard()
+      props.setSidePanelOpen(!props.sidePanelOpen)
+    },
   }),
   lifecycle({
     componentWillReceiveProps: function (nextProps: Props) {

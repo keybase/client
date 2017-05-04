@@ -62,15 +62,35 @@ class CardStackShim extends Component {
   }
 }
 
+const barStyle = ({showStatusBarDarkContent, underStatusBar}) => {
+  // android always uses light-content
+  if (!isIOS) {
+    return 'light-content'
+  }
+  // allow an override when underStatusBar is true, but
+  // the content being displayed has a light background
+  if (showStatusBarDarkContent) {
+    return 'dark-content'
+  }
+  // replicates original behaviour of showing light text
+  // in the status bar when 'underStatusBar' is set to true
+  if (underStatusBar) {
+    return 'light-content'
+  }
+  // default to showing dark-content (dark text/icons) when
+  // on iOS
+  return 'dark-content'
+}
+
 function renderStackRoute (route) {
-  const {underStatusBar, hideStatusBar} = route.tags
+  const {underStatusBar, hideStatusBar, showStatusBarDarkContent} = route.tags
   return (
     <Box style={route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
       <StatusBar
         hidden={hideStatusBar}
         translucent={true}
         backgroundColor='rgba(0, 26, 51, 0.25)'
-        barStyle={!underStatusBar && isIOS ? 'dark-content' : 'light-content'}
+        barStyle={barStyle({showStatusBarDarkContent, underStatusBar})}
       />
       {route.component}
     </Box>
@@ -181,6 +201,7 @@ const flexOne = {
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   hideNav: ownProps.routeSelected === loginTab,
+  hideKeyboard: state.config.hideKeyboard,
   navBadges: state.notifications.get('navBadges'),
   reachability: state.gregor.reachability,
   username: state.config.username,
@@ -200,17 +221,17 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
 })
 
-const dismissKeyboardOnPathChange = lifecycle({
-  componentWillReceiveProps (nextProps) {
-    const nextPath = nextProps.routeStack.last().path
-    const curPath = this.props.routeStack.last().path
-    if (!nextPath.equals(curPath)) {
-      NativeKeyboard.dismiss()
-    }
-  },
-})
-
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  dismissKeyboardOnPathChange,
+  lifecycle({
+    componentWillReceiveProps (nextProps) {
+      const nextPath = nextProps.routeStack.last().path
+      const curPath = this.props.routeStack.last().path
+      if (!nextPath.equals(curPath)) {
+        NativeKeyboard.dismiss()
+      } else if (this.props.hideKeyboard !== nextProps.hideKeyboard) {
+        NativeKeyboard.dismiss()
+      }
+    },
+  })
 )(Nav)
