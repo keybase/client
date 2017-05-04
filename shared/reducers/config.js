@@ -10,6 +10,7 @@ import type {Config, DeviceID, ExtendedStatus} from '../constants/types/flow-typ
 
 export type ConfigState = {
   appFocused: boolean,
+  hideKeyboard: number,
   bootStatus: BootStatus,
   bootstrapTriesRemaining: number,
   config: ?Config,
@@ -38,6 +39,7 @@ const readyForBootstrap = isMobile
 
 const initialState: ConfigState = {
   appFocused: true,
+  hideKeyboard: 1,
   bootStatus: 'bootStatusLoading',
   bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
   config: null,
@@ -214,6 +216,12 @@ export default function (state: ConfigState = initialState, action: Action): Con
       return {
         ...state,
         appFocused: action.payload.appFocused,
+      }
+
+    case 'app:hideKeyboard':
+      return {
+        ...state,
+        hideKeyboard: state.hideKeyboard + 1,
       }
 
     default:

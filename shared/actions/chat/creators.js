@@ -300,7 +300,11 @@ function untrustedInboxVisible (conversationIDKey: Constants.ConversationIDKey, 
   return {payload: {conversationIDKey, rowsVisible}, type: 'chat:untrustedInboxVisible'}
 }
 
-function setUnboxing (conversationIDKeys: Array<Constants.ConversationIDKey>): Constants.SetUnboxing {
+function setUnboxing (conversationIDKeys: Array<Constants.ConversationIDKey>, errored: boolean): Constants.SetUnboxing {
+  // Just to make flow happy
+  if (errored) {
+    return {error: true, payload: {conversationIDKeys}, type: 'chat:setUnboxing'}
+  }
   return {payload: {conversationIDKeys}, type: 'chat:setUnboxing'}
 }
 

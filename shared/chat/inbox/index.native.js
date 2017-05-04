@@ -184,8 +184,8 @@ class ConversationList extends PureComponent<void, Props, {dataSource: any}> {
     if (this.props.rows !== nextProps.rows) {
       this._setupDataSource(nextProps)
 
-      if (nextProps.rows.count() > 1) {
-        const conversationIDKey = nextProps.rows.get(1)
+      if (nextProps.rows.count()) {
+        const conversationIDKey = nextProps.rows.get(0)
         this.props.onUntrustedInboxVisible(conversationIDKey, 20)
       }
     }

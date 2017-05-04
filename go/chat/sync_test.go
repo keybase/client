@@ -13,8 +13,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-func newConv(t *testing.T, uid gregor1.UID, ri chat1.RemoteInterface, sender Sender, tlf kbtest.TlfMock,
-	tlfName string) chat1.Conversation {
+func newBlankConv(t *testing.T, uid gregor1.UID, ri chat1.RemoteInterface, sender Sender,
+	tlf kbtest.TlfMock, tlfName string) chat1.Conversation {
 	trip := newConvTriple(t, tlf, tlfName)
 	firstMessagePlaintext := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
@@ -33,9 +33,21 @@ func newConv(t *testing.T, uid gregor1.UID, ri chat1.RemoteInterface, sender Sen
 	})
 	require.NoError(t, err)
 
-	_, _, _, err = sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	ires, err := ri.GetInboxRemote(context.TODO(), chat1.GetInboxRemoteArg{
+		Query: &chat1.GetInboxQuery{
+			ConvID: &res.ConvID,
+		},
+	})
+	require.NoError(t, err)
+	return ires.Inbox.Full().Conversations[0]
+}
+
+func newConv(t *testing.T, uid gregor1.UID, ri chat1.RemoteInterface, sender Sender, tlf kbtest.TlfMock,
+	tlfName string) chat1.Conversation {
+	conv := newBlankConv(t, uid, ri, sender, tlf, tlfName)
+	_, _, _, err := sender.Send(context.TODO(), conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
+			Conv:        conv.Metadata.IdTriple,
 			Sender:      uid,
 			TlfName:     tlfName,
 			MessageType: chat1.MessageType_TEXT,
@@ -43,10 +55,10 @@ func newConv(t *testing.T, uid gregor1.UID, ri chat1.RemoteInterface, sender Sen
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
 	}, 0)
 	require.NoError(t, err)
-
+	convID := conv.GetConvID()
 	ires, err := ri.GetInboxRemote(context.TODO(), chat1.GetInboxRemoteArg{
 		Query: &chat1.GetInboxQuery{
-			ConvID: &res.ConvID,
+			ConvID: &convID,
 		},
 	})
 	require.NoError(t, err)
@@ -135,6 +147,12 @@ func TestSyncerConnected(t *testing.T) {
 		require.Equal(t, convs[1].GetConvID(), cids[0])
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no threads stale received")
+	}
+	select {
+	case cid := <-list.bgConvLoads:
+		require.Equal(t, convs[1].GetConvID(), cid)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no background conv loaded")
 	}
 	vers, iconvs, err := ibox.ReadAll(context.TODO())
 	require.NoError(t, err)

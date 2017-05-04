@@ -109,7 +109,7 @@
   else return NSStringWithFormat(@"Keybase%@", NSStringFromKBRunMode(_runMode, NO));
 }
 
-- (NSString *)appPath:(NSString *)filename options:(KBPathOptions)options {
+- (NSString *)dataPath:(NSString *)filename options:(KBPathOptions)options {
   NSString *homeDir = self.homeDir;
   NSString *appPath = NSStringWithFormat(@"Library/Application Support/%@", [self appName]);
   if (filename) appPath = [appPath stringByAppendingPathComponent:filename];

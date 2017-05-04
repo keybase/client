@@ -32,7 +32,7 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
           </Box>
         </Box>
         <Box style={styleStatusIconContainer}>
-          <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon('iconfont-proof-placeholder'), color: globalColors.lightGrey}} />
+          <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon('iconfont-proof-placeholder'), color: globalColors.black_10}} />
         </Box>
       </Box>
     </ClickableBox>
@@ -66,7 +66,7 @@ function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: Proof
       </Box>
       <ClickableBox style={styleStatusIconTouchable} activeOpacity={0.8} underlayColor={globalColors.white} onClick={() => onClickStatus(proof)}>
         <Box style={styleStatusIconContainer} onClick={() => onClickStatus(proof)}>
-          {proofStatusIconType && (proof.state === proofChecking ? <ProgressIndicator style={styleSpinner} /> : <Icon type={proofStatusIconType} style={{fontSize: 32}} />)}
+          {proofStatusIconType && (proof.state === proofChecking ? <ProgressIndicator style={styleSpinner} /> : <Icon type={proofStatusIconType} style={{fontSize: 28}} />)}
           {hasMenu && <Icon type='iconfont-caret-down' />}
         </Box>
       </ClickableBox>
@@ -79,7 +79,7 @@ function LoadingProofRow ({width}: {width: number}): React$Element<*> {
     <Box style={styleRow}>
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
-          <Box style={{...globalStyles.loadingTextStyle, width, height: 16}} />
+          <Box style={{...globalStyles.loadingTextStyle, width, height: 16, borderRadius: 2}} />
         </Box>
       </Box>
       <Box style={styleStatusIconContainer}>
@@ -150,6 +150,7 @@ class ProofsRender extends Component<void, Props, void> {
 const iconContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  height: 32,
   minHeight: 32,
   minWidth: 32,
 }
@@ -190,6 +191,7 @@ const styleStatusIcon = (statusIcon: IconType) => ({
   color: defaultColor(statusIcon),
   fontSize: 32,
 })
+
 const styleSpinner = {
   height: 32,
   paddingBottom: globalMargins.tiny,
@@ -198,6 +200,7 @@ const styleSpinner = {
   paddingTop: globalMargins.tiny,
   width: 32,
 }
+
 const styleProofNameSection = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',

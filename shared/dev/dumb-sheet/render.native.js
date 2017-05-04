@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import debounce from 'lodash/debounce'
 import dumbComponentMap from './component-map.native'
-import {Box, Text, Input, Button, NativeScrollView, Icon} from '../../common-adapters/index.native'
+import {Box, Button, Icon, Input, Text} from '../../common-adapters/index.native'
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import {globalStyles, globalColors} from '../../styles'
@@ -215,14 +215,14 @@ class DumbSheetRender extends Component<void, Props, any> {
             this.props.onDebugConfigChange({dumbFullscreen: !this.props.dumbFullscreen})
           }} />
         </Box>
-        <NativeScrollView>
-          <Box style={styleBox}>
-            <Text type='BodySmall'>{key}: {mockKey}</Text>
-            <Box {...mock.parentProps}>
+        <Box style={styleBox}>
+          <Text type='BodySmall'>{key}: {mockKey}</Text>
+          <Box style={styleSmallScreen}>
+            <Box style={{flex: 1}} {...mock.parentProps}>
               {this._makeStoreWrapper(component)}
             </Box>
           </Box>
-        </NativeScrollView>
+        </Box>
       </Box>
     )
   }
@@ -243,6 +243,14 @@ class DumbSheetRender extends Component<void, Props, any> {
 const styleBox = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
+}
+
+const styleSmallScreen = {
+  ...globalStyles.flexBoxColumn,
+  borderColor: 'black',
+  borderWidth: 1,
+  flex: 1,
+  maxHeight: 528, // Wrap in max height, so we'll know if things get clipped on iPhone SE
 }
 const stylesButton = {
   borderRadius: 10,

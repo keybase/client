@@ -5,10 +5,21 @@ import {globalColors, globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from '.'
 
-const Splash = () => (
+const Splash = (props: Props) => (
   <Box style={{...stylesLoginForm, justifyContent: 'center'}}>
     <Icon type='icon-keybase-logo-80' />
     <Text style={stylesHeader} type='HeaderBig'>Keybase</Text>
+    <Box style={globalStyles.flexBoxColumn}>
+      <Text style={{marginTop: globalMargins.large}} type='BodySmall'>
+        Keybase not starting up?
+      </Text>
+      <Button
+        label='Let us know'
+        onClick={props.onFeedback}
+        small={true}
+        style={{marginTop: globalMargins.small}}
+        type='Primary' />
+    </Box>
   </Box>
 )
 
@@ -17,11 +28,18 @@ const Failure = (props: Props) => (
     <Box style={{...stylesBannerRed}}><Text type='BodySemibold' style={stylesTextBanner}>Oops, we had a problem communicating with our services. This might be because you lost connectivity.</Text></Box>
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
       <Icon type='icon-keybase-logo-logged-out-80' />
-      <Button
-        type='Primary'
-        label='Reload'
-        onClick={props.onRetry}
-        style={{marginTop: 96}} />
+      <Box style={globalStyles.flexBoxRow}>
+        <Button
+          type='Primary'
+          label='Reload'
+          onClick={props.onRetry}
+          style={{marginTop: globalMargins.xlarge}} />
+        <Button
+          type='Secondary'
+          label='Send us feedback'
+          onClick={props.onFeedback}
+          style={{marginLeft: globalMargins.small, marginTop: globalMargins.xlarge}} />
+      </Box>
     </Box>
   </Box>
 )
