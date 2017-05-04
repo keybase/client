@@ -154,6 +154,7 @@ const stylesFollowing = {
   ...globalStyles.clickable,
   color: globalColors.black_40,
   marginBottom: globalMargins.xtiny,
+  marginTop: globalMargins.xtiny,
 }
 const stylesFollowingLabel = {
   color: globalColors.black_40,
