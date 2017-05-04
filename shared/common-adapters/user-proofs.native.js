@@ -119,7 +119,7 @@ class ProofsRender extends Component<void, Props, void> {
     const pad = idx => idx > 0 ? {paddingTop: globalMargins.xtiny} : {}
     if (this.props.loading) {
       return (
-        <Box style={{...styleContainer, backgroundColor: 'transparent', ...this.props.style}}>
+        <Box style={{...styleContainer, ...this.props.style}}>
           <LoadingProofs pad={pad} />
         </Box>
       )
