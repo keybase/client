@@ -42,7 +42,14 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator, sdhBoxes []keybase1.
 	// Post the shared dh key encrypted for each active device.
 	if len(sdhBoxes) > 0 {
 		payload["shared_dh_secret_boxes"] = sdhBoxes
-		payload["shared_dh_generation"] = sdhBoxes[0].Generation
+		// payload["shared_dh_generation"] = sdhBoxes[0].Generation
+		maxGen := keybase1.SharedDHKeyGeneration(0)
+		for _, b := range sdhBoxes {
+			if b.Generation > maxGen {
+				maxGen = b.Generation
+			}
+		}
+		payload["shared_dh_generation"] = maxGen
 	}
 
 	// Adopt most parameters from the first item

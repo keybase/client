@@ -974,9 +974,7 @@ func (ckf *ComputedKeyFamily) GetCurrentDevice(g *GlobalContext) (*Device, error
 	return dev, nil
 }
 
-// GetEncryptionSubkeyForDevice gets the current encryption subkey for the given
-// device.  Note that many devices might share an encryption public key but
-// might have different secret keys.
+// GetEncryptionSubkeyForDevice gets the current encryption subkey for the given device.
 func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did keybase1.DeviceID) (key GenericKey, err error) {
 	var kid keybase1.KID
 	if kid, err = ckf.getSibkeyKidForDevice(did); err != nil {

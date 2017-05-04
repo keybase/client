@@ -4,11 +4,12 @@
 package engine
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
-	"testing"
 )
 
 func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
@@ -67,8 +68,17 @@ func assertNumDevicesAndKeys(tc libkb.TestContext, u *FakeUser, numDevices, numK
 }
 
 func TestRevokeDevice(t *testing.T) {
+	testRevokeDevice(t, false)
+}
+
+func TestRevokeDeviceSDH(t *testing.T) {
+	testRevokeDevice(t, true)
+}
+
+func testRevokeDevice(t *testing.T, enableSharedDH bool) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
+	tc.Tp.EnableSharedDH = enableSharedDH
 
 	u := CreateAndSignupFakeUserPaper(tc, "rev")
 
@@ -100,10 +110,21 @@ func TestRevokeDevice(t *testing.T) {
 }
 
 func TestRevokePaperDevice(t *testing.T) {
+	testRevokePaperDevice(t, false)
+}
+
+func TestRevokePaperDeviceSDH(t *testing.T) {
+	testRevokePaperDevice(t, true)
+}
+
+func testRevokePaperDevice(t *testing.T, enableSharedDH bool) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
+	tc.Tp.EnableSharedDH = enableSharedDH
 
 	u := CreateAndSignupFakeUserPaper(tc, "rev")
+
+	t.Logf("username: %s", u.Username)
 
 	assertNumDevicesAndKeys(tc, u, 2, 4)
 
@@ -119,6 +140,20 @@ func TestRevokePaperDevice(t *testing.T) {
 	require.NoError(t, err)
 
 	assertNumDevicesAndKeys(tc, u, 1, 2)
+
+	if tc.G.Env.GetEnableSharedDH() {
+		checkSharedDHKeyring(t, tc.G, 2)
+	}
+}
+
+func checkSharedDHKeyring(t *testing.T, g *libkb.GlobalContext, expectedCurrentGeneration int) {
+	// double check that the sdh keyring is correct
+	g.ClearSharedDHKeyring()
+	require.NoError(t, g.BumpSharedDHKeyring())
+	sdhk, err := g.GetSharedDHKeyring()
+	require.NoError(t, err)
+	require.NoError(t, sdhk.Sync(context.TODO()))
+	require.Equal(t, expectedCurrentGeneration, sdhk.CurrentGeneration())
 }
 
 func TestRevokeKey(t *testing.T) {

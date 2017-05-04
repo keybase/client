@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
@@ -68,7 +69,8 @@ func (s *SharedDHKeyring) GetUID() keybase1.UID {
 	return s.uid
 }
 
-// PrepareBoxesForNewDevice encrypts the shared keys for a new device.
+// PrepareBoxesForNewDevice encrypts all known shared keys for receiverKey.
+// Used for giving keys to a new device.
 // The result boxes will be pushed to the server.
 func (s *SharedDHKeyring) PrepareBoxesForNewDevice(ctx context.Context, receiverKey NaclDHKeyPair, senderKey NaclDHKeyPair) (boxes []keybase1.SharedDHSecretKeyBox, err error) {
 	s.Lock()
@@ -82,8 +84,24 @@ func (s *SharedDHKeyring) PrepareBoxesForNewDevice(ctx context.Context, receiver
 		boxes = append(boxes, box)
 	}
 
-	s.G().Log.CDebugf(ctx, "SharedDHKeyring#PrepareBoxesForNewDevice(%s -> %s) -> %s boxes",
+	s.G().Log.CDebugf(ctx, "SharedDHKeyring#PrepareBoxesForNewDevice(%s -> %s) -> %v boxes",
 		senderKey.GetKID(), receiverKey.GetKID(), len(boxes))
+	return boxes, nil
+}
+
+// Encrypt fullSharedDHKey for receiverKeys. Use senderKey to encrypt.
+// Does not use the keyring at all. Attached for organizational purposes.
+// Used when creating a new key after revocation
+func (s *SharedDHKeyring) PrepareBoxesForDevices(ctx context.Context, fullSharedDHKey NaclDHKeyPair,
+	generation keybase1.SharedDHKeyGeneration, receiverKeys []NaclDHKeyPair,
+	senderKey NaclDHKeyPair) (boxes []keybase1.SharedDHSecretKeyBox, err error) {
+	for _, receiverKey := range receiverKeys {
+		box, err := NewSharedDHSecretKeyBox(fullSharedDHKey, receiverKey, senderKey, generation)
+		if err != nil {
+			return nil, err
+		}
+		boxes = append(boxes, box)
+	}
 	return boxes, nil
 }
 
@@ -112,6 +130,26 @@ func (s *SharedDHKeyring) SharedDHKey(ctx context.Context, g keybase1.SharedDHKe
 		return nil
 	}
 	return &key
+}
+
+// AddKey registers a full key locally.
+func (s *SharedDHKeyring) AddKey(ctx context.Context,
+	generation keybase1.SharedDHKeyGeneration, key NaclDHKeyPair) error {
+
+	s.Lock()
+	defer s.Unlock()
+	if key.IsNil() {
+		return errors.New("AddKey nil key")
+	}
+	if !key.CanDecrypt() {
+		return errors.New("AddKey key cannot decrypt")
+	}
+	_, exists := s.generations[generation]
+	if exists {
+		return fmt.Errorf("AddKey duplicate for generation: %v", generation)
+	}
+	s.generations[generation] = key
+	return nil
 }
 
 // Clone makes a deep copy of this DH keyring.

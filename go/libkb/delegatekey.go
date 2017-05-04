@@ -199,6 +199,22 @@ func (d *Delegator) Run(lctx LoginContext) (err error) {
 	return d.SignAndPost(lctx, jw)
 }
 
+// Run the Delegator, performing all necessary internal operations.
+// Does not post to the api server. Instead returns the post args map.
+// Which is the right format to into "sigs" list in a "key/multi" post.
+func (d *Delegator) RunNoPost(lctx LoginContext) (map[string]string, error) {
+
+	d.Aggregated = true
+
+	err := d.Run(lctx)
+	if err != nil {
+		return nil, err
+	}
+
+	flatArgs := d.postArg.flattenHTTPArgs(d.postArg.getHTTPArgs())
+	return flatArgs, nil
+}
+
 func (d *Delegator) SignAndPost(lctx LoginContext, jw *jsonw.Wrapper) (err error) {
 
 	var linkid LinkID
