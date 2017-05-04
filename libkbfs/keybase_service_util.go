@@ -54,7 +54,7 @@ func serviceLoggedIn(ctx context.Context, config Config, name string,
 				"Failed to enable existing journals: %v", err)
 		}
 	}
-	if config.DiskBlockCache() == nil && adminFeatureList[session.UID] {
+	if config.DiskBlockCache() == nil {
 		dbc, err := newDiskBlockCacheStandard(config,
 			diskBlockCacheRootFromStorageRoot(config.StorageRoot()))
 		if err == nil {
