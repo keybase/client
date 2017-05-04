@@ -188,6 +188,7 @@ func TestProvisionDesktop(t *testing.T) {
 }
 
 func TestProvisionDesktopSDH(t *testing.T) {
+	t.Skip("TODO waiting for PerUserSecretRewrite")
 	testProvisionDesktop(t, true)
 }
 
@@ -404,6 +405,7 @@ func TestProvisionPassphraseNoKeysSolo(t *testing.T) {
 }
 
 func TestProvisionPassphraseNoKeysSoloSDH(t *testing.T) {
+	t.Skip("TODO waiting for PerUserSecretRewrite")
 	testProvisionPassphraseNoKeysSolo(t, true)
 }
 
