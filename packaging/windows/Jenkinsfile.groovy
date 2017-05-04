@@ -82,7 +82,7 @@ def doBuild() {
     }
 
     stage('RunQuiet Utility') {
-        dir('src\\github.com\\keybase\\client\\go\\tools\\ruquiet') {
+        dir('src\\github.com\\keybase\\client\\go\\tools\\runquiet') {
             def oldHash = new URL('https://s3.amazonaws.com/prerelease.keybase.io/windows-support/runquiet/runquiet.hash').getText()
             def currentHash = bat(returnStdout: true, script: '@echo off && git log -1 -- runquiet.go')
             if (oldHash == currentHash){
@@ -92,8 +92,9 @@ def doBuild() {
                 file << new URL(url).openStream()  
                 file.close() 
             } else {
-                echo "runquiet hashes differ, building keybaserq: "
+                echo "--- runquiet hashes differ, building keybaserq. Server hash: ---"
                 echo oldHash
+                echo "--- Current hash: ---"
                 echo currentHash
                 bat 'src\\github.com\\keybase\\client\\packaging\\windows\\buildrq.bat'
             }
