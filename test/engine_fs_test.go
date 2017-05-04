@@ -539,7 +539,7 @@ func fiTypeString(fi os.FileInfo) string {
 }
 
 func (e *fsEngine) InitTest(ver libkbfs.MetadataVer,
-	blockSize int64, blockChangeSize int64, bwKBps int,
+	blockSize int64, blockChangeSize int64, batchSize int, bwKBps int,
 	opTimeout time.Duration, users []libkb.NormalizedUsername,
 	clock libkbfs.Clock, journal bool) map[libkb.NormalizedUsername]User {
 	res := map[libkb.NormalizedUsername]User{}
@@ -563,6 +563,9 @@ func (e *fsEngine) InitTest(ver libkbfs.MetadataVer,
 	config0.SetClock(clock)
 
 	setBlockSizes(e.tb, config0, blockSize, blockChangeSize)
+	if batchSize > 0 {
+		config0.SetBGFlushDirOpBatchSize(batchSize)
+	}
 	maybeSetBw(e.tb, config0, bwKBps)
 	uids := make([]keybase1.UID, len(users))
 	cfgs := make([]*libkbfs.ConfigLocal, len(users))
@@ -571,6 +574,9 @@ func (e *fsEngine) InitTest(ver libkbfs.MetadataVer,
 	for i, name := range users[1:] {
 		c := libkbfs.ConfigAsUser(config0, name)
 		setBlockSizes(e.tb, c, blockSize, blockChangeSize)
+		if batchSize > 0 {
+			c.SetBGFlushDirOpBatchSize(batchSize)
+		}
 		c.SetClock(clock)
 		cfgs[i+1] = c
 		uids[i+1] = nameToUID(e.tb, c)

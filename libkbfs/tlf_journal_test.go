@@ -144,6 +144,10 @@ func (c testTLFJournalConfig) diskLimitTimeout() time.Duration {
 	return c.dlTimeout
 }
 
+func (c testTLFJournalConfig) BGFlushDirOpBatchSize() int {
+	return 1
+}
+
 func (c testTLFJournalConfig) makeBlock(data []byte) (
 	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf) {
 	id, err := kbfsblock.MakePermanentID(data)

@@ -42,6 +42,7 @@ type tlfJournalConfig interface {
 	usernameGetter() normalizedUsernameGetter
 	MakeLogger(module string) logger.Logger
 	diskLimitTimeout() time.Duration
+	BGFlushDirOpBatchSize() int
 }
 
 // tlfJournalConfigWrapper is an adapter for Config objects to the
@@ -1045,11 +1046,19 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 		return false, nil
 	}
 
-	squashByRev, err :=
-		j.mdJournal.atLeastNNonLocalSquashes(ForcedBranchSquashRevThreshold)
-	if err != nil {
-		return false, err
+	squashByRev := false
+	if j.config.BGFlushDirOpBatchSize() == 1 {
+		squashByRev, err =
+			j.mdJournal.atLeastNNonLocalSquashes(ForcedBranchSquashRevThreshold)
+		if err != nil {
+			return false, err
+		}
+	} else {
+		// Squashing is already done in folderBranchOps, so just mark
+		// this revision as squashed, so simply turn it off here.
+		j.unsquashedBytes = 0
 	}
+
 	// Note that j.unsquashedBytes is just an estimate -- it doesn't
 	// account for blocks that will be eliminated as part of the
 	// squash, and it doesn't count unsquashed bytes that were written

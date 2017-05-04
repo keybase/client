@@ -43,7 +43,7 @@ func (k *LibKBFS) Name() string {
 
 // InitTest implements the Engine interface.
 func (k *LibKBFS) InitTest(ver libkbfs.MetadataVer,
-	blockSize int64, blockChangeSize int64, bwKBps int,
+	blockSize int64, blockChangeSize int64, batchSize int, bwKBps int,
 	opTimeout time.Duration, users []libkb.NormalizedUsername,
 	clock libkbfs.Clock, journal bool) map[libkb.NormalizedUsername]User {
 	userMap := make(map[libkb.NormalizedUsername]User)
@@ -52,6 +52,9 @@ func (k *LibKBFS) InitTest(ver libkbfs.MetadataVer,
 	config.SetMetadataVersion(ver)
 
 	setBlockSizes(k.tb, config, blockSize, blockChangeSize)
+	if batchSize > 0 {
+		config.SetBGFlushDirOpBatchSize(batchSize)
+	}
 	maybeSetBw(k.tb, config, bwKBps)
 	k.opTimeout = opTimeout
 
@@ -64,6 +67,9 @@ func (k *LibKBFS) InitTest(ver libkbfs.MetadataVer,
 	for _, name := range users[1:] {
 		c := libkbfs.ConfigAsUser(config, name)
 		setBlockSizes(k.tb, c, blockSize, blockChangeSize)
+		if batchSize > 0 {
+			c.SetBGFlushDirOpBatchSize(batchSize)
+		}
 		c.SetClock(clock)
 		userMap[name] = c
 		k.refs[c] = make(map[libkbfs.Node]bool)

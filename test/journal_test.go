@@ -404,7 +404,7 @@ func TestJournalCoalescingBasicCreates(t *testing.T) {
 		unflushedPaths = append(unflushedPaths, "alice,bob/"+name)
 	}
 
-	test(t, journal(),
+	test(t, journal(), batchSize(1),
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
@@ -459,7 +459,7 @@ func TestJournalCoalescingCreatesPlusCR(t *testing.T) {
 		reads = append(reads, read(name, contents))
 	}
 
-	test(t, journal(),
+	test(t, journal(), batchSize(1),
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
@@ -527,7 +527,7 @@ func TestJournalCoalescingCreatesPlusMultiCR(t *testing.T) {
 	}
 	busyWork = append(busyWork, setmtime("a", targetMtime))
 
-	test(t, journal(),
+	test(t, journal(), batchSize(1),
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
@@ -610,7 +610,7 @@ func TestJournalCoalescingWrites(t *testing.T) {
 		busyWork = append(busyWork, write("a/b", contents))
 	}
 
-	test(t, journal(), blockSize(100), blockChangeSize(5),
+	test(t, journal(), blockSize(100), blockChangeSize(5), batchSize(1),
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
@@ -650,7 +650,7 @@ func TestJournalCoalescingMixedOperations(t *testing.T) {
 	busyWork := makeBusyWork("hi", libkbfs.ForcedBranchSquashRevThreshold+1)
 
 	targetMtime := time.Now().Add(1 * time.Minute)
-	test(t, journal(), blockSize(100), blockChangeSize(5),
+	test(t, journal(), blockSize(100), blockChangeSize(5), batchSize(1),
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
@@ -727,7 +727,7 @@ func TestJournalCoalescingMixedOperations(t *testing.T) {
 func TestJournalCoalescingNoChanges(t *testing.T) {
 	busyWork := makeBusyWork("hi", libkbfs.ForcedBranchSquashRevThreshold+1)
 
-	test(t, journal(),
+	test(t, journal(), batchSize(1),
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),

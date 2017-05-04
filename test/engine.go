@@ -37,9 +37,9 @@ type Engine interface {
 	// specifies a per-operation timeout; if it is more than the
 	// default engine timeout, or if it is zero, it has no effect.
 	InitTest(ver libkbfs.MetadataVer, blockSize int64,
-		blockChangeSize int64, bwKBps int, opTimeout time.Duration,
-		users []libkb.NormalizedUsername, clock libkbfs.Clock,
-		journal bool) map[libkb.NormalizedUsername]User
+		blockChangeSize int64, batchSize int, bwKBps int,
+		opTimeout time.Duration, users []libkb.NormalizedUsername,
+		clock libkbfs.Clock, journal bool) map[libkb.NormalizedUsername]User
 	// GetUID is called by the test harness to retrieve a user instance's UID.
 	GetUID(u User) keybase1.UID
 	// GetFavorites returns the set of all public or private

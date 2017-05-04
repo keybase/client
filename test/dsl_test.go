@@ -43,6 +43,7 @@ type opt struct {
 	engine                   Engine
 	blockSize                int64
 	blockChangeSize          int64
+	batchSize                int
 	bwKBps                   int
 	timeout                  time.Duration
 	clock                    *libkbfs.TestClock
@@ -167,7 +168,7 @@ func (o *opt) runInitOnce() {
 		o.clock = &libkbfs.TestClock{}
 		o.clock.Set(time.Unix(0, 0))
 		o.users = o.engine.InitTest(o.ver, o.blockSize,
-			o.blockChangeSize, o.bwKBps, o.timeout, o.usernames,
+			o.blockChangeSize, o.batchSize, o.bwKBps, o.timeout, o.usernames,
 			o.clock, o.journal)
 		o.stallers = o.makeStallers()
 	})
@@ -201,6 +202,12 @@ func blockSize(n int64) optionOp {
 func blockChangeSize(n int64) optionOp {
 	return func(o *opt) {
 		o.blockChangeSize = n
+	}
+}
+
+func batchSize(n int) optionOp {
+	return func(o *opt) {
+		o.batchSize = n
 	}
 }
 
