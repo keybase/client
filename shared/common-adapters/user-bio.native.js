@@ -122,7 +122,6 @@ const stylesHeaderBar = (avatarSize: number, color: string) => ({
 const stylesAvatarWrapper = (avatarSize: number) => ({
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  flex: 1,
   height: avatarSize,
   marginTop: -avatarSize / 2,
 })
