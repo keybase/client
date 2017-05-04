@@ -7,12 +7,13 @@ import FollowButton from './follow-button'
 import {globalMargins} from '../styles'
 import {normal as proofNormal} from '../constants/tracker'
 
-function UserActions ({trackerState, currentlyFollowing, style, onFollow, onUnfollow, onAcceptProofs}: Props) {
+function UserActions ({trackerState, currentlyFollowing, style, onChat, onFollow, onUnfollow, onAcceptProofs}: Props) {
   if (currentlyFollowing) {
     if (trackerState === proofNormal) {
       return (
         <Box style={style}>
-          <FollowButton following={true} onUnfollow={onUnfollow} style={{marginRight: 0}} />
+          <FollowButton following={true} onUnfollow={onUnfollow} style={{marginRight: globalMargins.xtiny}} />
+          <Button type='Primary' label='Start a Chat' onClick={onChat} style={{marginRight: 0}} />
         </Box>
       )
     } else {
@@ -26,7 +27,8 @@ function UserActions ({trackerState, currentlyFollowing, style, onFollow, onUnfo
   } else {
     return (
       <Box style={style}>
-        <FollowButton following={false} onFollow={onFollow} style={{marginRight: 0}} />
+        <FollowButton following={false} onFollow={onFollow} style={{marginRight: globalMargins.xtiny}} />
+        <Button type='Primary' label='Start a Chat' onClick={onChat} style={{marginRight: 0}} />
       </Box>
     )
   }

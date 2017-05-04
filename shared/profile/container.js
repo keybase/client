@@ -10,6 +10,7 @@ import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {openInKBFS} from '../actions/kbfs'
 import {profileTab} from '../constants/tabs'
+import {startConversation} from '../actions/chat'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Proof} from '../constants/tracker'
@@ -65,6 +66,7 @@ export default connect(
     onAcceptProofs: username => { dispatch(onFollow(username, false)) },
     onBack: () => { dispatch(navigateUp()) },
     onChangeFriendshipsTab: currentFriendshipsTab => { setRouteState({currentFriendshipsTab}) },
+    onChat: (myUsername, username) => { console.warn('in onChat', myUsername, username); dispatch(startConversation([username, myUsername])) },
     onClickAvatar: username => { dispatch(onClickAvatar(username)) },
     onClickFollowers: username => { dispatch(onClickFollowers(username)) },
     onClickFollowing: username => { dispatch(onClickFollowing(username)) },
@@ -118,6 +120,7 @@ export default connect(
       loading: isLoading(stateProps.trackerState) && !isTesting,
       onAcceptProofs: () => dispatchProps.onFollow(username),
       onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
+      onChat: () => dispatchProps.onChat(stateProps.myUsername, username),
       onClickAvatar: () => dispatchProps.onClickAvatar(username),
       onClickFollowers: () => dispatchProps.onClickFollowers(username),
       onClickFollowing: () => dispatchProps.onClickFollowing(username),
