@@ -23,7 +23,7 @@ func newCmdChatReport(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		Usage:        "Report a conversation (also blocks it)",
 		ArgumentHelp: "[<conversation>]",
 		Action: func(c *cli.Context) {
-			cmd := &CmdChatHide{Contextified: libkb.NewContextified(g)}
+			cmd := &CmdChatReport{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "report", c)
 		},
 		Flags: getConversationResolverFlags(),

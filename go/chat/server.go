@@ -807,6 +807,8 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 
 	// Send word to API server about the report
 	if arg.Status == chat1.ConversationStatus_REPORTED {
+		h.Debug(ctx, "SetConversationStatusLocal: sending report to server")
+
 		tlfname := "<error fetching TLF name>"
 
 		// Get TLF name to post
@@ -828,8 +830,9 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 		args := libkb.NewHTTPArgs()
 		args.Add("tlfname", libkb.S{Val: tlfname})
 		_, err = h.G().API.Post(libkb.APIArg{
-			Endpoint: "report/conversation",
-			Args:     args,
+			Endpoint:    "report/conversation",
+			SessionType: libkb.APISessionTypeREQUIRED,
+			Args:        args,
 		})
 		if err != nil {
 			h.Debug(ctx, "SetConversationStatusLocal: failed to post report: %s", err.Error())
