@@ -19,7 +19,7 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
   const missingColor = globalColors.black_20
   // TODO (AW): this is copied from desktop as a starting point for mobile
   return (
-    <ClickableBox style={{...styleRow, ...style}} key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
+    <ClickableBox style={style} key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
       <Box style={styleRow}>
         <Box style={iconContainer}>
           <Icon style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
@@ -163,6 +163,7 @@ const styleRow = {
   alignItems: 'stretch',
   flex: 1,
   justifyContent: 'flex-start',
+  marginTop: globalMargins.xtiny,
   // RN-BUG: set maxWidth once that prop is supported
 }
 const styleService = {
