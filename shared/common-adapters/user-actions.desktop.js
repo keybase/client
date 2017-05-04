@@ -10,8 +10,8 @@ function UserActions ({trackerState, currentlyFollowing, style, onChat, onFollow
     if (trackerState === proofNormal) {
       return (
         <Box style={style}>
-          <FollowButton following={true} onUnfollow={onUnfollow} style={{marginRight: globalMargins.small}} />
-          <Button type='Secondary' label='Start a Chat' onClick={onChat} style={{marginRight: 0}} />
+          <FollowButton following={true} onUnfollow={onUnfollow} style={{marginRight: globalMargins.xtiny}} />
+          <Button type='Primary' label='Start a Chat' onClick={onChat} style={{marginRight: 0}} />
         </Box>
       )
     } else {
@@ -25,8 +25,8 @@ function UserActions ({trackerState, currentlyFollowing, style, onChat, onFollow
   } else {
     return (
       <Box style={style}>
-        <FollowButton following={false} onFollow={onFollow} style={{marginRight: globalMargins.small}} />
-        <Button type='Secondary' label='Start a Chat' style={{marginRight: 0}} onClick={onChat} />
+        <FollowButton following={false} onFollow={onFollow} style={{marginRight: globalMargins.xtiny}} />
+        <Button type='Primary' label='Start a Chat' onClick={onChat} style={{marginRight: 0}} />
       </Box>
     )
   }
