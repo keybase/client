@@ -38,7 +38,7 @@ export default connector.connect(
             isYou: username === myUsername,
             loading: loading,
             onAcceptProofs: () => { dispatch(onFollow(username, false)) },
-            onChat: () => { username && myUsername && dispatch(startConversation([username, myUsername])) },
+            onChat: () => { dispatch(startConversation([username])) },
             onClickAvatar: () => { dispatch(onClickAvatar(username)) },
             onClickFollowers: () => { dispatch(onClickFollowers(username)) },
             onClickFollowing: () => { dispatch(onClickFollowing(username)) },

@@ -86,6 +86,7 @@ const propsBase = {
   closed: false,
   parentProps: {},
   currentlyFollowing: false,
+  onChat: () => {},
   onFollow: () => {},
   onRefollow: () => {},
   onUnfollow: () => {},

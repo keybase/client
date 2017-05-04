@@ -43,6 +43,7 @@ const propsBase = {
   onFollow: () => {},
   onRefollow: () => {},
   onUnfollow: () => {},
+  onChat: () => {},
   onClose: () => {},
   startTimer: () => {},
   stopTimer: () => {},
