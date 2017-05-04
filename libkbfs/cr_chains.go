@@ -433,6 +433,23 @@ func (ccs *crChains) addOp(ptr BlockPointer, op op) error {
 	return nil
 }
 
+// addNoopChain adds a new chain with no ops to the chains struct, if
+// that pointer isn't involved in any chains yet.
+func (ccs *crChains) addNoopChain(ptr BlockPointer) {
+	if _, ok := ccs.byMostRecent[ptr]; ok {
+		return
+	}
+	if _, ok := ccs.byOriginal[ptr]; ok {
+		return
+	}
+	if _, ok := ccs.originals[ptr]; ok {
+		return
+	}
+	chain := &crChain{original: ptr, mostRecent: ptr}
+	ccs.byOriginal[ptr] = chain
+	ccs.byMostRecent[ptr] = chain
+}
+
 func (ccs *crChains) makeChainForOp(op op) error {
 	// Ignore gc ops -- their unref semantics differ from the other
 	// ops.  Note that this only matters for old gcOps: new gcOps
