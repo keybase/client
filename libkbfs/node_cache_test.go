@@ -278,9 +278,9 @@ func TestNodeCacheUnlink(t *testing.T) {
 	childPtr2 := path2[2].BlockPointer
 
 	// unlink child2
-	found := ncs.Unlink(
+	undoFn := ncs.Unlink(
 		childPtr2.Ref(), ncs.PathFromNode(childNode2), DirEntry{})
-	if !found {
+	if undoFn == nil {
 		t.Fatalf("Couldn't unlink")
 	}
 
@@ -289,6 +289,13 @@ func TestNodeCacheUnlink(t *testing.T) {
 
 	if childNode2.GetBasename() != "" {
 		t.Errorf("Expected empty basename, got %s", childNode2.GetBasename())
+	}
+
+	// Undo
+	undoFn()
+	if childNode2.GetBasename() != path2[2].Name {
+		t.Errorf("Expected basename %s, got %s",
+			path2[2].Name, childNode2.GetBasename())
 	}
 }
 
@@ -302,9 +309,9 @@ func TestNodeCacheUnlinkParent(t *testing.T) {
 	childPtr1 := path2[1].BlockPointer
 
 	// unlink node 2's parent
-	found := ncs.Unlink(
+	undoFn := ncs.Unlink(
 		childPtr1.Ref(), ncs.PathFromNode(childNode1), DirEntry{})
-	if !found {
+	if undoFn == nil {
 		t.Fatalf("Couldn't unlink")
 	}
 
@@ -327,9 +334,9 @@ func TestNodeCacheUnlinkThenRelink(t *testing.T) {
 	childPtr2 := path2[2].BlockPointer
 
 	// unlink child2
-	found := ncs.Unlink(
+	undoFn := ncs.Unlink(
 		childPtr2.Ref(), ncs.PathFromNode(childNode2), DirEntry{})
-	if !found {
+	if undoFn == nil {
 		t.Fatalf("Couldn't unlink")
 	}
 

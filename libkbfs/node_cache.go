@@ -215,9 +215,9 @@ func (ncs *nodeCacheStandard) Move(
 
 // Unlink implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) Unlink(
-	ref BlockRef, oldPath path, oldDe DirEntry) bool {
+	ref BlockRef, oldPath path, oldDe DirEntry) func() {
 	if ref == (BlockRef{}) {
-		return false
+		return nil
 	}
 
 	// Temporary code to track down bad block pointers. Remove (or
@@ -230,19 +230,28 @@ func (ncs *nodeCacheStandard) Unlink(
 	defer ncs.lock.Unlock()
 	entry, ok := ncs.nodes[ref]
 	if !ok {
-		return false
+		return nil
 	}
 
 	if entry.core.cachedPath.isValid() {
 		// Already unlinked!
-		return true
+		return nil
 	}
+
+	oldParent := entry.core.parent
+	oldName := entry.core.pathNode.Name
 
 	entry.core.cachedPath = oldPath
 	entry.core.cachedDe = oldDe
 	entry.core.parent = nil
 	entry.core.pathNode.Name = ""
-	return true
+
+	return func() {
+		entry.core.cachedPath = path{}
+		entry.core.cachedDe = DirEntry{}
+		entry.core.parent = oldParent
+		entry.core.pathNode.Name = oldName
+	}
 }
 
 // IsUnlinked implements the NodeCache interface for

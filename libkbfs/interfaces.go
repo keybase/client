@@ -1692,8 +1692,9 @@ type NodeCache interface {
 	// ignores the call when ptr is not cached.  The path is required
 	// because the caller may have made changes to the parent nodes
 	// already that shouldn't be reflected in the cached path.
-	// Returns whether a node was actually updated.
-	Unlink(ref BlockRef, oldPath path, oldDe DirEntry) bool
+	// Returns whether a node was actually updated.  It returns a
+	// function that can be called to undo the effect of the unlink.
+	Unlink(ref BlockRef, oldPath path, oldDe DirEntry) func()
 	// IsUnlinked returns whether `Unlink` has been called for the
 	// reference behind this node.
 	IsUnlinked(node Node) bool
