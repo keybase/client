@@ -83,7 +83,7 @@ function LoadingProofRow ({width}: {width: number}): React$Element<*> {
         </Box>
       </Box>
       <Box style={styleStatusIconContainer}>
-        <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon('iconfont-proof-placeholder'), color: globalColors.lightGrey}} />
+        <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon('iconfont-proof-placeholder'), color: globalColors.black_10}} />
       </Box>
     </Box>
   )
