@@ -1386,12 +1386,13 @@ func (fbo *folderBlockOps) getDirtyParentAndEntryLocked(ctx context.Context,
 // directory. file must have a valid parent. Use GetDirtyEntry() if
 // you only need the DirEntry.
 func (fbo *folderBlockOps) GetDirtyParentAndEntry(
-	ctx context.Context, lState *lockState, kmd KeyMetadata, file path) (
+	ctx context.Context, lState *lockState, kmd KeyMetadata, file path,
+	rtype blockReqType) (
 	*DirBlock, DirEntry, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	return fbo.getDirtyParentAndEntryLocked(
-		ctx, lState, kmd, file, blockRead, false)
+		ctx, lState, kmd, file, rtype, false)
 }
 
 // file must have a valid parent.

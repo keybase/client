@@ -3494,7 +3494,7 @@ func (fbo *folderBranchOps) setExLocked(
 	}
 
 	dblock, de, err := fbo.blocks.GetDirtyParentAndEntry(
-		ctx, lState, md.ReadOnly(), filePath)
+		ctx, lState, md.ReadOnly(), filePath, blockWrite)
 	if err != nil {
 		return err
 	}
@@ -3596,7 +3596,7 @@ func (fbo *folderBranchOps) setMtimeLocked(
 	}
 
 	dblock, de, err := fbo.blocks.GetDirtyParentAndEntry(
-		ctx, lState, md.ReadOnly(), filePath)
+		ctx, lState, md.ReadOnly(), filePath, blockWrite)
 	if err != nil {
 		return err
 	}
