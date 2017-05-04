@@ -467,7 +467,7 @@ func createdFileWithConflictingWrite(unmergedChains, mergedChains *crChains,
 	}
 
 	// If the merged one is just a truncate, we can safely ignore
-	// the unmerged chain.
+	// the merged chain.
 	if len(mergedWriteRange) == 1 && mergedWriteRange[0].isTruncate() &&
 		mergedWriteRange[0].Off == 0 {
 		mergedChain.removeSyncOps()
