@@ -226,19 +226,12 @@ func GetConversationStatusBehavior(s chat1.ConversationStatus) ConversationStatu
 			PushNotifications:     true,
 			ShowBadges:            true,
 		}
+	case chat1.ConversationStatus_REPORTED:
+		fallthrough
 	case chat1.ConversationStatus_BLOCKED:
 		return ConversationStatusBehavior{
 			ShowInInbox:           false,
 			SendingRemovesStatus:  true,
-			ActivityRemovesStatus: false,
-			DesktopNotifications:  false,
-			PushNotifications:     false,
-			ShowBadges:            false,
-		}
-	case chat1.ConversationStatus_REPORTED:
-		return ConversationStatusBehavior{
-			ShowInInbox:           false,
-			SendingRemovesStatus:  false,
 			ActivityRemovesStatus: false,
 			DesktopNotifications:  false,
 			PushNotifications:     false,
