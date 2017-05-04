@@ -793,6 +793,7 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 		return chat1.SetConversationStatusLocalRes{}, err
 	}
 
+	var rlimits []chat1.RateLimit
 	scsres, err := h.remoteClient().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
 		ConversationID: arg.ConversationID,
 		Status:         arg.Status,
@@ -800,9 +801,43 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 	if err != nil {
 		return chat1.SetConversationStatusLocalRes{}, err
 	}
+	if scsres.RateLimit != nil {
+		rlimits = append(rlimits, *scsres.RateLimit)
+	}
+
+	// Send word to API server about the report
+	if arg.Status == chat1.ConversationStatus_REPORTED {
+		tlfname := "<error fetching TLF name>"
+
+		// Get TLF name to post
+		uid := h.G().Env.GetUID()
+		ib, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), nil, true, &chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{arg.ConversationID},
+		}, nil)
+		if err != nil {
+			h.Debug(ctx, "SetConversationStatusLocal: failed to fetch conversation: %s", err.Error())
+		} else {
+			if len(ib.Convs) > 0 {
+				tlfname = ib.Convs[0].Info.TLFNameExpanded()
+			}
+			if rl != nil {
+				rlimits = append(rlimits, *rl)
+			}
+		}
+
+		args := libkb.NewHTTPArgs()
+		args.Add("tlfname", libkb.S{Val: tlfname})
+		_, err = h.G().API.Post(libkb.APIArg{
+			Endpoint: "report/conversation",
+			Args:     args,
+		})
+		if err != nil {
+			h.Debug(ctx, "SetConversationStatusLocal: failed to post report: %s", err.Error())
+		}
+	}
 
 	return chat1.SetConversationStatusLocalRes{
-		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{scsres.RateLimit}),
+		RateLimits:       rlimits,
 		IdentifyFailures: identBreaks,
 	}, nil
 }
