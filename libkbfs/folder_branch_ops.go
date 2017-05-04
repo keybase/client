@@ -2579,7 +2579,7 @@ func (fbo *folderBranchOps) createEntryLocked(
 	}
 
 	// It's safe to notify before we've synced, since it is only
-	// sending inavlidation notifications.  At worst the upper layer
+	// sending invalidation notifications.  At worst the upper layer
 	// will just have to refresh its cache needlessly.
 	err = fbo.notifyOneOp(ctx, lState, co, md.ReadOnly(), false)
 	if err != nil {
@@ -2908,7 +2908,7 @@ func (fbo *folderBranchOps) createLinkLocked(
 	}()
 
 	// It's safe to notify before we've synced, since it is only
-	// sending inavlidation notifications.  At worst the upper layer
+	// sending invalidation notifications.  At worst the upper layer
 	// will just have to refresh its cache needlessly.
 	err = fbo.notifyOneOp(ctx, lState, co, md.ReadOnly(), false)
 	if err != nil {
@@ -3054,7 +3054,7 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 	}()
 
 	// It's safe to notify before we've synced, since it is only
-	// sending inavlidation notifications.  At worst the upper layer
+	// sending invalidation notifications.  At worst the upper layer
 	// will just have to refresh its cache needlessly.
 	err = fbo.notifyOneOp(ctx, lState, ro, md.ReadOnly(), false)
 	if err != nil {
@@ -3253,7 +3253,7 @@ func (fbo *folderBranchOps) renameLocked(
 	}()
 
 	// It's safe to notify before we've synced, since it is only
-	// sending inavlidation notifications.  At worst the upper layer
+	// sending invalidation notifications.  At worst the upper layer
 	// will just have to refresh its cache needlessly.
 	err = fbo.notifyOneOp(ctx, lState, ro, md.ReadOnly(), false)
 	if err != nil {
@@ -3508,7 +3508,7 @@ func (fbo *folderBranchOps) setExLocked(
 	}()
 
 	// It's safe to notify before we've synced, since it is only
-	// sending inavlidation notifications.  At worst the upper layer
+	// sending invalidation notifications.  At worst the upper layer
 	// will just have to refresh its cache needlessly.
 	err = fbo.notifyOneOp(ctx, lState, sao, md.ReadOnly(), false)
 	if err != nil {
@@ -3601,7 +3601,7 @@ func (fbo *folderBranchOps) setMtimeLocked(
 	}()
 
 	// It's safe to notify before we've synced, since it is only
-	// sending inavlidation notifications.  At worst the upper layer
+	// sending invalidation notifications.  At worst the upper layer
 	// will just have to refresh its cache needlessly.
 	err = fbo.notifyOneOp(ctx, lState, sao, md.ReadOnly(), false)
 	if err != nil {
