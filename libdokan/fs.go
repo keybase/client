@@ -151,7 +151,16 @@ func (f *FS) GetDiskFreeSpace(ctx context.Context) (freeSpace dokan.FreeSpace, e
 			FreeBytesAvailable:     dummyFreeSpace,
 		}, nil
 	}
-	defer func() { f.reportErr(ctx, libkbfs.ReadMode, err) }()
+	defer func() {
+		if err == nil {
+			f.log.CDebugf(ctx, "Request complete")
+		} else {
+			// Don't report the error (perhaps resulting in a user
+			// notification) since this method is mostly called by the
+			// OS and not because of a user action.
+			f.log.CDebugf(ctx, err.Error())
+		}
+	}()
 	_, usageBytes, limitBytes, err := f.quotaUsage.Get(
 		ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
 	if err != nil {
