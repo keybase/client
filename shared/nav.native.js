@@ -6,7 +6,8 @@ import {compose, lifecycle} from 'recompose'
 import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
 import {Box, NativeKeyboard, NativeKeyboardAvoidingView} from './common-adapters/index.native'
 import {Dimensions, StatusBar} from 'react-native'
-import {CardStack, NavigationActions} from 'react-navigation'
+import {NavigationActions} from 'react-navigation'
+import CardStackTransitioner from 'react-navigation/lib/views/CardStackTransitioner'
 import {chatTab, loginTab} from './constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
@@ -22,7 +23,11 @@ import type {RouteProps} from './route-tree/render-route'
 type OwnProps = RouteProps<{}, {}>
 
 class CardStackShim extends Component {
-  getScreenConfig = () => null
+  getScreenOptions = () => ({})
+  getStateForAction = () => ({})
+  getActionForPathAndParams = () => ({})
+  getPathAndParamsForState = () => ({})
+  getComponentForState = () => ({})
 
   getComponentForRouteName = () => this.RenderRouteShim
 
@@ -49,10 +54,13 @@ class CardStackShim extends Component {
         }).toArray(),
       },
       dispatch: this._dispatchShim,
+      navigate: () => {},
+      goBack: () => {},
+      setParams: () => {},
     }
 
     return (
-      <CardStack
+      <CardStackTransitioner
         navigation={navigation}
         router={this}
         headerMode='none'
