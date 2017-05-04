@@ -604,6 +604,12 @@ function * _openTlfInChat (action: Constants.OpenTlfInChat): SagaGenerator<any, 
 
 function * _startConversation (action: Constants.StartConversation): SagaGenerator<any, any> {
   const {users, forceImmediate} = action.payload
+  const me = yield select(usernameSelector)
+
+  // A chat TLF without our username in wouldn't be one we can participate in.
+  if (!users.includes(me)) {
+    users.push(me)
+  }
 
   const inboxSelector = (state: TypedState, tlfName: string) => {
     return state.chat.get('inbox').find(convo => convo.get('participants').sort().join(',') === tlfName)
