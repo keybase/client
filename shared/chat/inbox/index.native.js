@@ -178,6 +178,8 @@ class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
       : <AddNewRow onNewChat={this.props.onNewChat} isLoading={this.props.isLoading} />
   }
 
+  _keyExtractor = (item, index) => item
+
   _setupDataSource = (props) => {
     this.setState({rows: [{}].concat(props.rows.toArray())})
   }
@@ -193,16 +195,23 @@ class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
     }
   }
 
+  _askForUnboxing = (id: any, count: number) => {
+    this.props.onUntrustedInboxVisible(id, count)
+  }
+
   _onViewChanged = debounce(({viewableItems}) => {
     const item = viewableItems && viewableItems[0]
     if (item && item.index) {
-      this.props.onUntrustedInboxVisible(item.item, viewableItems.length)
+      this._askForUnboxing(item.item, viewableItems.length)
     }
   }, 1000)
 
   componentWillMount () {
     this.props.loadInbox()
     this._setupDataSource(this.props)
+    if (this.props.rows.count()) {
+      this._askForUnboxing(this.props.rows.first(), 30)
+    }
   }
 
   render () {
@@ -211,6 +220,7 @@ class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
         <FlatList
           loading={this.props.isLoading/* force loading to update */}
           data={this.state.rows}
+          keyExtractor={this._keyExtractor}
           renderItem={this._renderItem}
           initialNumToRender={30}
           onViewableItemsChanged={this._onViewChanged} />
