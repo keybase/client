@@ -645,10 +645,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	}
 
 	session, err := config.KBPKI().GetCurrentSession(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	if adminFeatureList[session.UID] {
+	if err == nil && adminFeatureList[session.UID] {
 		log.Debug("Enabling a dir op batch size of %d",
 			params.BGFlushDirOpBatchSize)
 		config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
