@@ -77,6 +77,7 @@ const styleProofAction = {
 const styleContinueButton = {
   ...globalStyles.flexBoxRow,
   marginTop: globalMargins.small,
+  marginBottom: globalMargins.small,
 }
 
 export default PostProof
