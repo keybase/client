@@ -63,7 +63,7 @@ class Main extends Component<void, any, void> {
   _setIconBadgeNumber (count: number) {
     RNPN.setApplicationIconBadgeNumber(count)
     if (count === 0) {
-      RNPN.clearLocalPushNotifications()
+      RNPN.cancelAllLocalNotifications()
     }
   }
 
