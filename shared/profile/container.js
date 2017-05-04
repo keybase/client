@@ -66,7 +66,7 @@ export default connect(
     onAcceptProofs: username => { dispatch(onFollow(username, false)) },
     onBack: () => { dispatch(navigateUp()) },
     onChangeFriendshipsTab: currentFriendshipsTab => { setRouteState({currentFriendshipsTab}) },
-    onChat: (myUsername, username) => { console.warn('in onChat', myUsername, username); dispatch(startConversation([username, myUsername])) },
+    onChat: (myUsername, username) => { dispatch(startConversation([username, myUsername])) },
     onClickAvatar: username => { dispatch(onClickAvatar(username)) },
     onClickFollowers: username => { dispatch(onClickFollowers(username)) },
     onClickFollowing: username => { dispatch(onClickFollowing(username)) },
