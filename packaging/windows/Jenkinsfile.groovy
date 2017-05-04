@@ -96,7 +96,7 @@ def doBuild() {
                 echo oldHash
                 echo "--- Current hash: ---"
                 echo currentHash
-                bat 'src\\github.com\\keybase\\client\\packaging\\windows\\buildrq.bat'
+                bat '..\\..\\..\\packaging\\windows\\buildrq.bat'
             }
         }
     }
