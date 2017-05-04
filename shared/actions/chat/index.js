@@ -722,13 +722,17 @@ function * _selectConversation (action: Constants.SelectConversation): SagaGener
 }
 
 function * _blockConversation (action: Constants.BlockConversation): SagaGenerator<any, any> {
-  const {blocked, conversationIDKey} = action.payload
+  const {blocked, conversationIDKey, reportUser} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
-  const status = blocked ? ChatTypes.CommonConversationStatus.blocked : ChatTypes.CommonConversationStatus.unfiled
-  const identifyBehavior: TLFIdentifyBehavior = TlfKeysTLFIdentifyBehavior.chatGui
-  yield call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
-    param: {conversationID, identifyBehavior, status},
-  })
+  if (blocked) {
+    const status = reportUser
+      ? ChatTypes.CommonConversationStatus.reported
+      : ChatTypes.CommonConversationStatus.blocked
+    const identifyBehavior: TLFIdentifyBehavior = TlfKeysTLFIdentifyBehavior.chatGui
+    yield call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
+      param: {conversationID, identifyBehavior, status},
+    })
+  }
 }
 
 function * _muteConversation (action: Constants.MuteConversation): SagaGenerator<any, any> {
