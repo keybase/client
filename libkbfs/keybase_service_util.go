@@ -62,6 +62,19 @@ func serviceLoggedIn(ctx context.Context, config Config, name string,
 		}
 	}
 
+	if adminFeatureList[session.UID] {
+		log.CDebugf(ctx, "Enabling a dir op batch size of %d",
+			bgFlushDirOpBatchSizeDefault)
+		// NOTE: This overrides any command-line parameter.  It only
+		// matters until we un-feature-flag this, I think it's ok for
+		// now.
+		config.SetBGFlushDirOpBatchSize(bgFlushDirOpBatchSizeDefault)
+	} else {
+		// TODO: let non-admins have a non-1 batch size once admins
+		// test it enough.
+		config.SetBGFlushDirOpBatchSize(1)
+	}
+
 	config.MDServer().RefreshAuthToken(ctx)
 	config.BlockServer().RefreshAuthToken(ctx)
 	config.KBFSOps().RefreshCachedFavorites(ctx)

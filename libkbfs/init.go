@@ -235,7 +235,8 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	flags.IntVar((*int)(&params.BGFlushDirOpBatchSize), "sync-batch-size",
 		int(defaultParams.BGFlushDirOpBatchSize),
 		"The number of unflushed directory operations in a TLF that will "+
-			"trigger an immediate data sync.")
+			"trigger an immediate data sync.  EXPERIMENTAL, only "+
+			"available for Keybase admins")
 
 	flags.IntVar((*int)(&params.MetadataVersion), "md-version",
 		int(defaultParams.MetadataVersion),
@@ -542,7 +543,6 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	config.SetMetadataVersion(MetadataVer(params.MetadataVersion))
 	config.SetTLFValidDuration(params.TLFValidDuration)
 	config.SetBGFlushPeriod(params.BGFlushPeriod)
-	config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
 
 	kbfsOps := NewKBFSOpsStandard(config)
 	config.SetKBFSOps(kbfsOps)
@@ -642,6 +642,20 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 		}
 		config.SetDiskBlockCache(dbc)
 		log.Debug("Disk cache enabled")
+	}
+
+	session, err := config.KBPKI().GetCurrentSession(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	if adminFeatureList[session.UID] {
+		log.Debug("Enabling a dir op batch size of %d",
+			params.BGFlushDirOpBatchSize)
+		config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
+	} else {
+		// TODO: let non-admins have a non-1 batch size once admins
+		// test it enough.
+		config.SetBGFlushDirOpBatchSize(1)
 	}
 
 	return config, nil
