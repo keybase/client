@@ -55,6 +55,13 @@ const pageMatchRules = [
       // Match user pages that Keybase recognizes
       // Extra css matchers added to avoid matching on non-profile URLs like /about or 404's
       new chrome.declarativeContent.PageStateMatcher({
+          pageUrl: { urlMatches: 'keybase.io\/[\\w]+$' },
+          css: ['a[rel="me"]']
+      }),
+      new chrome.declarativeContent.PageStateMatcher({
+          pageUrl: { urlMatches: 'keybase.pub\/[\\w]+\/?' },
+      }),
+      new chrome.declarativeContent.PageStateMatcher({
           pageUrl: { urlMatches: '\.reddit.com\/user\/[\\w-]+$' },
       }),
       new chrome.declarativeContent.PageStateMatcher({

@@ -33,7 +33,12 @@ function routePopup(el, location) {
     // This query will only enter if the appropriate URL structure has already
     // been matched, so we can make some assumptions about the structure of
     // the URL.
-    if (location.hostname.endsWith('reddit.com')) {
+    if (location.hostname.startsWith('keybase.')) {
+        // For keybase.io and keybase.pub
+        const username = location.pathname.split('/')[1];
+        return renderPopup(el, username, 'keybase');
+
+    } else if (location.hostname.endsWith('reddit.com')) {
         const username = location.pathname.split('/')[2];
         return renderPopup(el, username, 'reddit');
 

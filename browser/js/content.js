@@ -58,6 +58,8 @@ User.prototype.href = function(service) {
   if (service === undefined) service = this.origin;
   const name = this.services[this.origin];
   switch (this.origin) {
+    case "keybase":
+      return `https://keybase.io/${name}`;
     case "reddit":
       return `https://www.reddit.com/user/${name}`;
     case "twitter":
