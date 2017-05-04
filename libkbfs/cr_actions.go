@@ -224,7 +224,10 @@ func crActionConvertSymlink(unmergedMostRecent BlockPointer,
 	}
 
 	// If the chain already exists, just append the operation instead
-	// of prepending them.
+	// of prepending them.  If there was something else at that
+	// location in the unmerged branch, it should be moved out of the
+	// way first by a `renameOp` (see
+	// `makeLocalRenameOpForCopyAction()`).
 	chain, ok := mergedChains.byMostRecent[mergedMostRecent]
 	if ok {
 		chain.ops = append(chain.ops, co)
