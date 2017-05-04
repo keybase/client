@@ -236,7 +236,9 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 		int(defaultParams.BGFlushDirOpBatchSize),
 		"The number of unflushed directory operations in a TLF that will "+
 			"trigger an immediate data sync.  EXPERIMENTAL, only "+
-			"available for Keybase admins")
+			"available for Keybase admins, and only works if you're already "+
+			"logged into Keybase before starting KBFS (it is reverted to the "+
+			"default on logout.")
 
 	flags.IntVar((*int)(&params.MetadataVersion), "md-version",
 		int(defaultParams.MetadataVersion),
