@@ -478,6 +478,10 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
 
 	onReadStalledCh, readUnstallCh, ctxStallRead :=
 		StallBlockOp(ctx, config, StallableBlockGet, 1)
@@ -1046,6 +1050,11 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
 	// 2 blocks worth of data
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
@@ -1953,6 +1962,11 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
 	data := make([]byte, 30)
 	for i := 0; i < 30; i++ {
 		data[i] = 1
@@ -2046,6 +2060,11 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
 	data := make([]byte, 30)
 	for i := 0; i < 30; i++ {
 		data[i] = 1
@@ -2073,9 +2092,9 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 		t.Fatalf("No expected canceled error: %v", err)
 	}
 
-	// Cancel this one before it succeeds.
+	// Cancel this one after it succeeds.
 	onUnmergedPutStalledCh, unmergedPutUnstallCh, putUnmergedCtx :=
-		StallMDOp(ctx, config, StallableMDPutUnmerged, 1)
+		StallMDOp(ctx, config, StallableMDAfterPutUnmerged, 1)
 
 	// Flush the file again, which will result in an unmerged put,
 	// which we will also cancel.
@@ -2084,14 +2103,15 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 		errChan <- kbfsOps.SyncAll(cancelCtx, fileNode.GetFolderBranch())
 	}()
 
-	// wait until Sync gets stuck at MDOps.Put()
+	// wait until Sync gets stuck at MDOps.PutUnmerged()
 	<-onUnmergedPutStalledCh
 	cancel()
 	close(unmergedPutUnstallCh)
 
-	// We expect a canceled error
+	// We expect a canceled error, or possibly a nil error since we
+	// ignore the PutUnmerged error internally.
 	err = <-errChan
-	if err != context.Canceled {
+	if err != context.Canceled && err != nil {
 		t.Fatalf("No expected canceled error: %v", err)
 	}
 
@@ -2130,11 +2150,19 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
 
 	// Remove that file, and wait for the archiving to complete
 	err = kbfsOps.RemoveEntry(ctx, rootNode, "a")
 	if err != nil {
 		t.Fatalf("Couldn't remove file: %v", err)
+	}
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
 	}
 
 	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
@@ -2385,6 +2413,10 @@ func TestKBFSOpsLookupSyncRace(t *testing.T) {
 		ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
+	}
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
 	}
 
 	// u2 syncs and then disables updates.

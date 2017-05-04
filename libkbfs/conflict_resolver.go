@@ -147,6 +147,16 @@ func (cr *ConflictResolver) cancelExistingLocked(ci conflictInput) bool {
 	return true
 }
 
+// ForceCancel cancels any currently-running CR, regardless of what
+// its inputs were.
+func (cr *ConflictResolver) ForceCancel() {
+	cr.inputLock.Lock()
+	defer cr.inputLock.Unlock()
+	if cr.currCancel != nil {
+		cr.currCancel()
+	}
+}
+
 // processInput processes conflict resolution jobs from the given
 // channel until it is closed. This function uses a parameter for the
 // channel instead of accessing cr.inputChan directly so that it
@@ -3071,11 +3081,23 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 			return
 		}
 
+		// Sync everything from memory to the journal.
+		err = cr.fbo.syncAllLocked(ctx, lState, NoExcl)
+		if err != nil {
+			return
+		}
+
 		// Don't let us hold the lock for too long though
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, crMaxWriteLockTime)
 		defer cancel()
 		cr.log.CDebugf(ctx, "Unmerged writes blocked")
+	} else {
+		// Sync everything from memory to the journal.
+		err = cr.fbo.syncAllUnlocked(ctx, lState)
+		if err != nil {
+			return
+		}
 	}
 
 	// Step 1: Build the chains for each branch, as well as the paths

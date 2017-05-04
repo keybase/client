@@ -33,6 +33,9 @@ func TestJournalSimple(t *testing.T) {
 			// it hasn't flushed yet.
 			lsdir("a/", m{"b$": "FILE"}),
 			read("a/b", "hello"),
+		),
+		// Force a SyncAll to the journal.
+		as(bob,
 			resumeJournal(),
 			flushJournal(),
 			checkUnflushedPaths(nil),
@@ -62,6 +65,9 @@ func TestJournalExclWrite(t *testing.T) {
 				"alice,bob/a/c",
 			}),
 			lsdir("a/", m{"b$": "FILE", "c$": "FILE"}),
+		),
+		// Force a SyncAll to the journal.
+		as(bob,
 			resumeJournal(),
 			flushJournal(),
 			checkUnflushedPaths(nil),

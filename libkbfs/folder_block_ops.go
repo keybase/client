@@ -993,7 +993,16 @@ func (fbo *folderBlockOps) RemoveDirEntryInCache(lState *lockState, dir path,
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	undoFn := fbo.removeDirEntryInCacheLocked(lState, dir, oldName, oldDe)
-	return fbo.wrapWithBlockLock(func() { undoFn() })
+	unlinkUndoFn := fbo.nodeCache.Unlink(
+		oldDe.Ref(), dir.ChildPath(oldName, oldDe.BlockPointer), oldDe)
+	return fbo.wrapWithBlockLock(func() {
+		if undoFn != nil {
+			undoFn()
+		}
+		if unlinkUndoFn != nil {
+			unlinkUndoFn()
+		}
+	})
 }
 
 // RenameDirEntryInCache updates the entries of both the old and new
@@ -1007,17 +1016,35 @@ func (fbo *folderBlockOps) RemoveDirEntryInCache(lState *lockState, dir path,
 // longer needed.
 func (fbo *folderBlockOps) RenameDirEntryInCache(lState *lockState,
 	oldParent path, oldName string, newParent path, newName string,
-	newDe DirEntry, replacedDe DirEntry) dirCacheUndoFn {
+	newDe DirEntry, replacedDe DirEntry) (dirCacheUndoFn, error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	if newParent.tailPointer() == oldParent.tailPointer() &&
 		oldName == newName {
 		// Noop
-		return nil
+		return nil, nil
 	}
 	undoAdd := fbo.addDirEntryInCacheLocked(lState, newParent, newName, newDe)
 	undoRm := fbo.removeDirEntryInCacheLocked(
-		lState, oldParent, oldName, replacedDe)
+		lState, oldParent, oldName, DirEntry{})
+	undoUnlink := fbo.nodeCache.Unlink(
+		replacedDe.Ref(), newParent.ChildPath(newName, replacedDe.BlockPointer),
+		replacedDe)
+
+	newParentNode := fbo.nodeCache.Get(newParent.tailRef())
+	undoMove, err := fbo.nodeCache.Move(newDe.Ref(), newParentNode, newName)
+	if err != nil {
+		if undoUnlink != nil {
+			undoUnlink()
+		}
+		if undoRm != nil {
+			undoRm()
+		}
+		if undoAdd != nil {
+			undoAdd()
+		}
+		return nil, err
+	}
 
 	// If there's already an entry for the target, only update the
 	// Ctime on a rename.
@@ -1035,9 +1062,15 @@ func (fbo *folderBlockOps) RenameDirEntryInCache(lState *lockState,
 		} else {
 			delete(fbo.deCache, newDe.Ref())
 		}
+		if undoMove != nil {
+			undoMove()
+		}
+		if undoUnlink != nil {
+			undoUnlink()
+		}
 		undoRm()
 		undoAdd()
-	})
+	}), nil
 }
 
 func (fbo *folderBlockOps) setCachedAttrLocked(
@@ -1079,22 +1112,14 @@ func (fbo *folderBlockOps) SetAttrInDirEntryInCache(lState *lockState,
 	undoAdd := fbo.addDirEntryInCacheLocked(
 		lState, *p.parentPath(), p.tailName(), newDe)
 
-	// TODO(KBFS-2076): Uncomment below (see comment in undo function).
-	// Update the actual attribute in the deCache.
-	// cacheEntry, ok := fbo.deCache[newDe.Ref()]
-	_, ok := fbo.deCache[newDe.Ref()]
-	// cacheEntryCopy := cacheEntry.deepCopy()
+	cacheEntry, ok := fbo.deCache[newDe.Ref()]
+	cacheEntryCopy := cacheEntry.deepCopy()
 	fbo.setCachedAttrLocked(
 		lState, newDe.Ref(), attr, &newDe,
 		true /* create the deCache entry if it doesn't exist yet */)
 	return fbo.wrapWithBlockLock(func() {
 		if ok {
-			// TODO(KBFS-2076): Uncomment below.  Before KBFS-2076,
-			// the undo shouldn't restore attributes that are set in
-			// an entry that was created by a write, since it is
-			// always called even after a successfully-synced setattr
-			// call.
-			//fbo.deCache[newDe.Ref()] = cacheEntryCopy
+			fbo.deCache[newDe.Ref()] = cacheEntryCopy
 		} else {
 			delete(fbo.deCache, newDe.Ref())
 		}
@@ -1647,21 +1672,20 @@ func (fbo *folderBlockOps) nowUnixNano() int64 {
 	return fbo.config.Clock().Now().UnixNano()
 }
 
-// PrepRename prepares the given rename operation. It returns copies
-// of the old and new parent block (which may be the same), what is to
-// be the new DirEntry, and a local block cache. It also modifies md,
-// which must be a copy.
+// PrepRename prepares the given rename operation. It returns the old
+// and new parent block (which may be the same,and which shouldn't be
+// modified), and what is to be the new DirEntry.
 func (fbo *folderBlockOps) PrepRename(
-	ctx context.Context, lState *lockState, md *RootMetadata,
+	ctx context.Context, lState *lockState, kmd KeyMetadata,
 	oldParent path, oldName string, newParent path, newName string) (
-	oldPBlock, newPBlock *DirBlock, newDe DirEntry, lbc localBcache,
+	oldPBlock, newPBlock *DirBlock, newDe DirEntry, ro *renameOp,
 	err error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 
-	// look up in the old path
-	oldPBlock, err = fbo.getDirLocked(
-		ctx, lState, md, oldParent, blockWrite)
+	// Look up in the old path. Won't be modified, so only fetch for reading.
+	oldPBlock, err = fbo.getDirtyDirLocked(
+		ctx, lState, kmd, oldParent, blockRead)
 	if err != nil {
 		return nil, nil, DirEntry{}, nil, err
 	}
@@ -1671,56 +1695,34 @@ func (fbo *folderBlockOps) PrepRename(
 		return nil, nil, DirEntry{}, nil, NoSuchNameError{oldName}
 	}
 
-	ro, err := newRenameOp(oldName, oldParent.tailPointer(), newName,
-		newParent.tailPointer(), newDe.BlockPointer, newDe.Type)
+	oldParentPtr := oldParent.tailPointer()
+	newParentPtr := newParent.tailPointer()
+	ro, err = newRenameOp(oldName, oldParentPtr, newName, newParentPtr,
+		newDe.BlockPointer, newDe.Type)
 	if err != nil {
 		return nil, nil, DirEntry{}, nil, err
 	}
+	ro.AddUpdate(oldParentPtr, oldParentPtr)
+
 	// A renameOp doesn't have a single path to represent it, so we
 	// can't call setFinalPath here unfortunately.  That means any
 	// rename may force a manual paths population at other layers
 	// (e.g., for journal statuses).  TODO: allow a way to set more
 	// than one final path for renameOps?
-	md.AddOp(ro)
 
-	lbc = make(localBcache)
 	// TODO: Write a SameBlock() function that can deal properly with
 	// dedup'd blocks that share an ID but can be updated separately.
-	if oldParent.tailPointer().ID == newParent.tailPointer().ID {
+	if oldParentPtr.ID == newParentPtr.ID {
 		newPBlock = oldPBlock
 	} else {
-		newPBlock, err = fbo.getDirLocked(
-			ctx, lState, md, newParent, blockWrite)
+		newPBlock, err = fbo.getDirtyDirLocked(
+			ctx, lState, kmd, newParent, blockRead)
 		if err != nil {
 			return nil, nil, DirEntry{}, nil, err
 		}
-		now := fbo.nowUnixNano()
-
-		oldGrandparent := *oldParent.parentPath()
-		if len(oldGrandparent.path) > 0 {
-			// Update the old parent's mtime/ctime, unless the
-			// oldGrandparent is the same as newParent (in which
-			// case, the syncBlockAndCheckEmbedLocked call by the
-			// caller will take care of it).
-			if oldGrandparent.tailPointer().ID != newParent.tailPointer().ID {
-				b, err := fbo.getDirLocked(ctx, lState, md, oldGrandparent, blockWrite)
-				if err != nil {
-					return nil, nil, DirEntry{}, nil, err
-				}
-				if de, ok := b.Children[oldParent.tailName()]; ok {
-					de.Ctime = now
-					de.Mtime = now
-					b.Children[oldParent.tailName()] = de
-					// Put this block back into the local cache as dirty
-					lbc[oldGrandparent.tailPointer()] = b
-				}
-			}
-		} else {
-			md.data.Dir.Ctime = now
-			md.data.Dir.Mtime = now
-		}
+		ro.AddUpdate(newParentPtr, newParentPtr)
 	}
-	return oldPBlock, newPBlock, newDe, lbc, nil
+	return oldPBlock, newPBlock, newDe, ro, nil
 }
 
 func (fbo *folderBlockOps) newFileData(lState *lockState,
