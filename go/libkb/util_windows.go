@@ -70,14 +70,14 @@ func coTaskMemFree(pv uintptr) {
 	return
 }
 
-func GetDataDir(id GUID) (string, error) {
+func GetDataDir(id GUID, envname string) (string, error) {
 
 	var pszPath uintptr
 	// https://msdn.microsoft.com/en-us/library/windows/desktop/bb762188(v=vs.85).aspx
 	// When this method returns, contains the address of a pointer to a null-terminated
 	// Unicode string that specifies the path of the known folder. The calling process
-	// is responsible for freeing this resource once it is no longer needed by calling 
-	// CoTaskMemFree. 
+	// is responsible for freeing this resource once it is no longer needed by calling
+	// CoTaskMemFree.
 	r0, _, _ := procSHGetKnownFolderPath.Call(uintptr(unsafe.Pointer(&id)), uintptr(0), uintptr(0), uintptr(unsafe.Pointer(&pszPath)))
 	// Sometimes r0 == 0 and there still isn't a valid string returned
 	if r0 != 0 || pszPath == 0 {
@@ -87,7 +87,7 @@ func GetDataDir(id GUID) (string, error) {
 	defer coTaskMemFree(pszPath)
 
 	// go vet: "possible misuse of unsafe.Pointer"
-	// Have to cast this Windows string to 
+	// Have to cast this Windows string to
 	// a Go array of uint16 here, but we don't yet know the length.
 	rawUnicode := (*[1 << 16]uint16)(unsafe.Pointer(pszPath))[:]
 
@@ -103,18 +103,22 @@ func GetDataDir(id GUID) (string, error) {
 	folder := string(utf16.Decode(rawUnicode[:pathLen]))
 
 	if len(folder) == 0 {
-		return "", errors.New("can't get AppData directory")
+		// Try the environment as a backup
+		folder = os.Getenv(envname)
+		if len(folder) == 0 {
+			return "", errors.New("can't get AppData directory")
+		}
 	}
 
 	return folder, nil
 }
 
 func AppDataDir() (string, error) {
-	return GetDataDir(FOLDERIDRoamingAppData)
+	return GetDataDir(FOLDERIDRoamingAppData, "APPDATA")
 }
 
 func LocalDataDir() (string, error) {
-	return GetDataDir(FOLDERIDLocalAppData)
+	return GetDataDir(FOLDERIDLocalAppData, "LOCALAPPDATA")
 }
 
 // SafeWriteToFile retries safeWriteToFileOnce a few times on Windows,
@@ -265,6 +269,10 @@ func RemoteSettingsRepairman(g *GlobalContext) error {
 	w := Win32{Base{"keybase",
 		func() string { return g.Env.getHomeFromCmdOrConfig() },
 		func() RunMode { return g.Env.GetRunMode() }}}
+
+	if g.Env.GetRunMode() != ProductionRunMode {
+		return nil
+	}
 
 	currentHome := w.Home(false)
 	kbDir := filepath.Base(currentHome)
