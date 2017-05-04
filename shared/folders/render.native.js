@@ -35,7 +35,7 @@ class FoldersRender extends Component<void, Props, void> {
   render () {
     return (
       <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue3 : globalColors.lightGrey}}>
-        <Box style={{backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.lightGrey, height: statusBarHeight}} />
+        <Box style={{backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white, height: statusBarHeight}} />
         <TabBar styleTabBar={{...tabBarStyle, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white}}>
           {
             [false, true].map(isPublic => (
