@@ -83,6 +83,7 @@ const (
 	ConversationStatus_IGNORED  ConversationStatus = 2
 	ConversationStatus_BLOCKED  ConversationStatus = 3
 	ConversationStatus_MUTED    ConversationStatus = 4
+	ConversationStatus_REPORTED ConversationStatus = 5
 )
 
 var ConversationStatusMap = map[string]ConversationStatus{
@@ -91,6 +92,7 @@ var ConversationStatusMap = map[string]ConversationStatus{
 	"IGNORED":  2,
 	"BLOCKED":  3,
 	"MUTED":    4,
+	"REPORTED": 5,
 }
 
 var ConversationStatusRevMap = map[ConversationStatus]string{
@@ -99,6 +101,7 @@ var ConversationStatusRevMap = map[ConversationStatus]string{
 	2: "IGNORED",
 	3: "BLOCKED",
 	4: "MUTED",
+	5: "REPORTED",
 }
 
 func (e ConversationStatus) String() string {

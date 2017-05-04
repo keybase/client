@@ -53,7 +53,12 @@ protocol common {
 
     // The conversation appears in the inbox with no snippet,
     // and does not emit notifications nor badges.
-    MUTED_4
+    MUTED_4,
+
+    // The conversation has been reported by the user, behaves essentially the same
+    // as blocked.
+    REPORTED_5
+
   }
 
   record Pagination {
