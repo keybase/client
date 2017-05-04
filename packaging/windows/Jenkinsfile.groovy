@@ -87,7 +87,7 @@ def doBuild() {
             def currentHash = bat(returnStdout: true, script: '@echo off && git log -1 -- runquiet.go')
             if (oldHash == currentHash){
                 echo "downloading keybaserq"
-                withAWS(region:'us-east-1', credentials:'AKIAIGZMQHU4JRI6U2KQ') {
+                withAWS(region:'us-east-1', credentials:'amazon_s3_user_pw') {
                     s3Download(file:'keybaserq.exe', bucket:'prerelease.keybase.io', path:'/windows-support/runquiet/keybaserq.exe', force:true)
                 }
             } else {
