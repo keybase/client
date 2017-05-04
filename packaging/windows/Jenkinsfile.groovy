@@ -87,11 +87,9 @@ def doBuild() {
             def currentHash = bat(returnStdout: true, script: '@echo off && git log -1 -- runquiet.go')
             if (oldHash == currentHash){
                 echo "downloading keybaserq"
-                def url = 'https://s3.amazonaws.com/prerelease.keybase.io/windows-support/runquiet/keybaserq.exe'
-                def file = new FileOutputStream('keybaserq.exe')
-                def out = new BufferedOutputStream(file)
-                out << new URL(url).openStream()
-                out.close() 
+                withAWS(region:'us-east-1') {
+                    s3Download(file:'keybaserq.exe', bucket:'prerelease.keybase.io', path:'/windows-support/runquiet/keybaserq.exe', force:true)
+                }
             } else {
                 echo "--- runquiet hashes differ, building keybaserq. Server hash: ---"
                 echo oldHash
