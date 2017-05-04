@@ -21,7 +21,7 @@ import type {SagaGenerator} from '../../constants/types/saga'
 const _getInboxQuery = {
   computeActiveList: true,
   readOnly: false,
-  status: Object.keys(ChatTypes.CommonConversationStatus).filter(k => !['ignored', 'blocked'].includes(k)).map(k => ChatTypes.CommonConversationStatus[k]),
+  status: Object.keys(ChatTypes.CommonConversationStatus).filter(k => !['ignored', 'blocked', 'reported'].includes(k)).map(k => ChatTypes.CommonConversationStatus[k]),
   tlfVisibility: ChatTypes.CommonTLFVisibility.private,
   topicType: ChatTypes.CommonTopicType.chat,
   unreadOnly: false,
