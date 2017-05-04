@@ -250,7 +250,7 @@ const styleSmallScreen = {
   borderColor: 'black',
   borderWidth: 1,
   flex: 1,
-  maxHeight: 528, // Wrap in max height screen, so we'll know if things get clipped on iPhone SE
+  maxHeight: 528, // Wrap in max height, so we'll know if things get clipped on iPhone SE
 }
 const stylesButton = {
   borderRadius: 10,
