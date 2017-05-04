@@ -125,16 +125,17 @@ func (fbsk *folderBranchStatusKeeper) setPermErr(err error) {
 	fbsk.signalChangeLocked()
 }
 
-func (fbsk *folderBranchStatusKeeper) addNode(m map[NodeID]Node, n Node) {
+func (fbsk *folderBranchStatusKeeper) addNode(m map[NodeID]Node, n Node) bool {
 	fbsk.dataMutex.Lock()
 	defer fbsk.dataMutex.Unlock()
 	id := n.GetID()
 	_, ok := m[id]
 	if ok {
-		return
+		return false
 	}
 	m[id] = n
 	fbsk.signalChangeLocked()
+	return true
 }
 
 func (fbsk *folderBranchStatusKeeper) rmNode(m map[NodeID]Node, n Node) {
@@ -149,8 +150,8 @@ func (fbsk *folderBranchStatusKeeper) rmNode(m map[NodeID]Node, n Node) {
 	fbsk.signalChangeLocked()
 }
 
-func (fbsk *folderBranchStatusKeeper) addDirtyNode(n Node) {
-	fbsk.addNode(fbsk.dirtyNodes, n)
+func (fbsk *folderBranchStatusKeeper) addDirtyNode(n Node) bool {
+	return fbsk.addNode(fbsk.dirtyNodes, n)
 }
 
 func (fbsk *folderBranchStatusKeeper) rmDirtyNode(n Node) {

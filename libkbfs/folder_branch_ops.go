@@ -2571,16 +2571,20 @@ func (fbo *folderBranchOps) createEntryLocked(
 			Ctime: now,
 		},
 	}
-	fbo.blocks.AddDirEntryInCache(lState, dirPath, name, de)
+
+	dirCacheUndoFn := fbo.blocks.AddDirEntryInCache(lState, dirPath, name, de)
 	fbo.dirOps = append(fbo.dirOps, cachedDirOp{co, []Node{dir, node}})
+	added := fbo.status.addDirtyNode(dir)
 
 	cleanupFn := func() {
-		// Until KBFS-2076 is done, clear out the cached dir data manually.
-		fbo.dirOps = nil
-		fbo.blocks.ClearCachedAddsAndRemoves(lState, dirPath)
-		fbo.blocks.ClearCacheInfo(lState, dirPath.ChildPath(name, newPtr))
+		if added {
+			fbo.status.rmDirtyNode(dir)
+		}
+		fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
+		dirCacheUndoFn(lState)
 	}
-	defer cleanupFn()
+	// Until KBFS-2076 is done, always clear out the cached dir data.
+	defer func() { cleanupFn() }()
 
 	de, err = fbo.syncBlockAndFinalizeLocked(
 		ctx, lState, md, newBlock, dirPath, name, entryType,
@@ -2596,6 +2600,7 @@ func (fbo *folderBranchOps) createEntryLocked(
 		fbo.log.CDebugf(ctx, "Clearing dirty entries before applying new "+
 			"updates for exclusive write")
 		cleanupFn()
+		cleanupFn = func() {}
 		err = fbo.getAndApplyMDUpdates(ctx, lState, fbo.applyMDUpdatesLocked)
 		if err != nil {
 			return nil, DirEntry{}, err
@@ -2870,13 +2875,18 @@ func (fbo *folderBranchOps) createLinkLocked(
 	}
 	dblock.Children[fromName] = de
 
-	fbo.blocks.AddDirEntryInCache(lState, dirPath, fromName, de)
+	dirCacheUndoFn := fbo.blocks.AddDirEntryInCache(
+		lState, dirPath, fromName, de)
 	fbo.dirOps = append(fbo.dirOps, cachedDirOp{co, []Node{dir}})
+	added := fbo.status.addDirtyNode(dir)
 
 	defer func() {
-		// Until KBFS-2076 is done, clear out the cached dir data manually.
-		fbo.dirOps = nil
-		fbo.blocks.ClearCachedAddsAndRemoves(lState, dirPath)
+		// Until KBFS-2076 is done, always clear out the cached dir data.
+		if added {
+			fbo.status.rmDirtyNode(dir)
+		}
+		fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
+		dirCacheUndoFn(lState)
 	}()
 
 	_, err = fbo.syncBlockAndFinalizeLocked(
@@ -3002,13 +3012,18 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 	// the actual unlink
 	delete(pblock.Children, name)
 
-	fbo.blocks.RemoveDirEntryInCache(lState, dirPath, name, de)
+	dirCacheUndoFn := fbo.blocks.RemoveDirEntryInCache(
+		lState, dirPath, name, de)
 	fbo.dirOps = append(fbo.dirOps, cachedDirOp{ro, []Node{dir}})
+	added := fbo.status.addDirtyNode(dir)
 
 	defer func() {
-		// Until KBFS-2076 is done, clear out the cached dir data manually.
-		fbo.dirOps = nil
-		fbo.blocks.ClearCachedAddsAndRemoves(lState, dirPath)
+		// Until KBFS-2076 is done, always clear out the cached dir data.
+		if added {
+			fbo.status.rmDirtyNode(dir)
+		}
+		fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
+		dirCacheUndoFn(lState)
 	}()
 
 	// sync the parent directory
@@ -3175,7 +3190,7 @@ func (fbo *folderBranchOps) renameLocked(
 	newPBlock.Children[newName] = newDe
 	delete(oldPBlock.Children, oldName)
 
-	deleteTargetDirEntry := fbo.blocks.RenameDirEntryInCache(
+	dirCacheUndoFn := fbo.blocks.RenameDirEntryInCache(
 		lState, oldParentPath, oldName, newParentPath, newName, newDe,
 		replacedDe)
 	ro := md.data.Changes.Ops[len(md.data.Changes.Ops)-1]
@@ -3184,16 +3199,21 @@ func (fbo *folderBranchOps) renameLocked(
 		cdo.nodes = append(cdo.nodes, newParent)
 	}
 	fbo.dirOps = append(fbo.dirOps, cdo)
+	var addedNodes []Node
+	for _, n := range cdo.nodes {
+		added := fbo.status.addDirtyNode(n)
+		if added {
+			addedNodes = append(addedNodes, n)
+		}
+	}
 
 	defer func() {
-		// Until KBFS-2076 is done, clear out the cached dir data manually.
-		fbo.dirOps = nil
-		fbo.blocks.ClearCachedAddsAndRemoves(lState, newParentPath)
-		fbo.blocks.ClearCachedAddsAndRemoves(lState, oldParentPath)
-		if deleteTargetDirEntry {
-			fbo.blocks.ClearCacheInfo(
-				lState, newParentPath.ChildPath(newName, newDe.BlockPointer))
+		// Until KBFS-2076 is done, always clear out the cached dir data.
+		for _, n := range addedNodes {
+			fbo.status.rmDirtyNode(n)
 		}
+		fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
+		dirCacheUndoFn(lState)
 	}()
 
 	// find the common ancestor
@@ -3519,17 +3539,18 @@ func (fbo *folderBranchOps) setExLocked(
 	sao.setFinalPath(filePath)
 	md.AddOp(sao)
 
-	deleteTargetDirEntry := fbo.blocks.SetAttrInDirEntryInCache(
+	dirCacheUndoFn := fbo.blocks.SetAttrInDirEntryInCache(
 		lState, filePath, de, sao.Attr)
 	fbo.dirOps = append(fbo.dirOps, cachedDirOp{sao, []Node{file}})
+	added := fbo.status.addDirtyNode(file)
 
 	defer func() {
 		// Until KBFS-2076 is done, clear out the cached dir data manually.
-		fbo.dirOps = nil
-		if deleteTargetDirEntry {
-			fbo.blocks.ClearCacheInfo(lState, filePath)
+		if added {
+			fbo.status.rmDirtyNode(file)
 		}
-		fbo.blocks.ClearCachedAddsAndRemoves(lState, *parentPath)
+		fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
+		dirCacheUndoFn(lState)
 	}()
 
 	dblock.Children[filePath.tailName()] = de
@@ -3603,17 +3624,18 @@ func (fbo *folderBranchOps) setMtimeLocked(
 	sao.setFinalPath(filePath)
 	md.AddOp(sao)
 
-	deleteTargetDirEntry := fbo.blocks.SetAttrInDirEntryInCache(
+	dirCacheUndoFn := fbo.blocks.SetAttrInDirEntryInCache(
 		lState, filePath, de, sao.Attr)
 	fbo.dirOps = append(fbo.dirOps, cachedDirOp{sao, []Node{file}})
+	added := fbo.status.addDirtyNode(file)
 
 	defer func() {
-		// Until KBFS-2076 is done, clear out the cached dir data manually.
-		fbo.dirOps = nil
-		if deleteTargetDirEntry {
-			fbo.blocks.ClearCacheInfo(lState, filePath)
+		// Until KBFS-2076 is done, always clear out the cached dir data.
+		if added {
+			fbo.status.rmDirtyNode(file)
 		}
-		fbo.blocks.ClearCachedAddsAndRemoves(lState, *parentPath)
+		fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
+		dirCacheUndoFn(lState)
 	}()
 
 	dblock.Children[filePath.tailName()] = de
@@ -3773,7 +3795,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 		}
 
 		dir := fbo.nodeCache.PathFromNode(node)
-		dblock, err := fbo.blocks.GetDirtyDir(ctx, lState, md, dir)
+		dblock, err := fbo.blocks.GetDirtyDir(ctx, lState, md, dir, blockWrite)
 		if err != nil {
 			return err
 		}
