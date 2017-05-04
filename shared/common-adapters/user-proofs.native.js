@@ -66,7 +66,7 @@ function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: Proof
       </Box>
       <ClickableBox style={styleStatusIconTouchable} activeOpacity={0.8} underlayColor={globalColors.white} onClick={() => onClickStatus(proof)}>
         <Box style={styleStatusIconContainer} onClick={() => onClickStatus(proof)}>
-          {proofStatusIconType && (proof.state === proofChecking ? <ProgressIndicator style={styleSpinner} /> : <Icon type={proofStatusIconType} style={{fontSize: 28}} />)}
+          {proofStatusIconType && (proof.state === proofChecking ? <ProgressIndicator style={styleSpinner} /> : <Icon type={proofStatusIconType} style={{fontSize: 32}} />)}
           {hasMenu && <Icon type='iconfont-caret-down' />}
         </Box>
       </ClickableBox>
