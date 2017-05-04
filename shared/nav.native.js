@@ -2,8 +2,9 @@
 import GlobalError from './global-errors/container'
 import Offline from './offline'
 import React, {Component} from 'react'
+import {compose, lifecycle} from 'recompose'
 import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
-import {Box, NativeKeyboardAvoidingView} from './common-adapters/index.native'
+import {Box, NativeKeyboard, NativeKeyboardAvoidingView} from './common-adapters/index.native'
 import {Dimensions, StatusBar} from 'react-native'
 import {CardStack, NavigationActions} from 'react-navigation'
 import {chatTab, loginTab} from './constants/tabs'
@@ -61,15 +62,35 @@ class CardStackShim extends Component {
   }
 }
 
-function renderMainStackRoute (route) {
-  const {underStatusBar, hideStatusBar} = route.tags
+const barStyle = ({showStatusBarDarkContent, underStatusBar}) => {
+  // android always uses light-content
+  if (!isIOS) {
+    return 'light-content'
+  }
+  // allow an override when underStatusBar is true, but
+  // the content being displayed has a light background
+  if (showStatusBarDarkContent) {
+    return 'dark-content'
+  }
+  // replicates original behaviour of showing light text
+  // in the status bar when 'underStatusBar' is set to true
+  if (underStatusBar) {
+    return 'light-content'
+  }
+  // default to showing dark-content (dark text/icons) when
+  // on iOS
+  return 'dark-content'
+}
+
+function renderStackRoute (route) {
+  const {underStatusBar, hideStatusBar, showStatusBarDarkContent} = route.tags
   return (
     <Box style={route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
       <StatusBar
         hidden={hideStatusBar}
         translucent={true}
         backgroundColor='rgba(0, 26, 51, 0.25)'
-        barStyle={!underStatusBar && isIOS ? 'dark-content' : 'light-content'}
+        barStyle={barStyle({showStatusBarDarkContent, underStatusBar})}
       />
       {route.component}
     </Box>
@@ -104,7 +125,7 @@ function MainNavStack (props: Props) {
       <CardStackShim
         key={props.routeSelected}
         stack={screens}
-        renderRoute={renderMainStackRoute}
+        renderRoute={renderStackRoute}
         onNavigateBack={props.navigateUp}
       />
       {![chatTab].includes(props.routeSelected) && <Offline reachability={props.reachability} appFocused={true} />}
@@ -123,14 +144,6 @@ function MainNavStack (props: Props) {
   return <Container hideNav={props.hideNav} shim={shim} tabBar={tabBar} />
 }
 
-function renderFullScreenStackRoute (route) {
-  return (
-    <Box style={globalStyles.fillAbsolute}>
-      {route.component}
-    </Box>
-  )
-}
-
 function Nav (props: Props) {
   const baseScreens = props.routeStack.filter(r => !r.tags.layerOnTop)
   if (!baseScreens.size) {
@@ -143,7 +156,7 @@ function Nav (props: Props) {
     .unshift({
       path: ['main'],
       component: <MainNavStack {...props} routeStack={mainScreens} />,
-      tags: {},
+      tags: {underStatusBar: true},  // don't pad nav stack (child screens have own padding)
     })
 
   const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
@@ -152,7 +165,7 @@ function Nav (props: Props) {
     <Box style={globalStyles.fillAbsolute}>
       <CardStackShim
         stack={fullScreens}
-        renderRoute={renderFullScreenStackRoute}
+        renderRoute={renderStackRoute}
         onNavigateBack={props.navigateUp}
         mode='modal'
       />
@@ -188,6 +201,7 @@ const flexOne = {
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   hideNav: ownProps.routeSelected === loginTab,
+  hideKeyboard: state.config.hideKeyboard,
   navBadges: state.notifications.get('navBadges'),
   reachability: state.gregor.reachability,
   username: state.config.username,
@@ -207,4 +221,17 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Nav)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  lifecycle({
+    componentWillReceiveProps (nextProps) {
+      const nextPath = nextProps.routeStack.last().path
+      const curPath = this.props.routeStack.last().path
+      if (!nextPath.equals(curPath)) {
+        NativeKeyboard.dismiss()
+      } else if (this.props.hideKeyboard !== nextProps.hideKeyboard) {
+        NativeKeyboard.dismiss()
+      }
+    },
+  })
+)(Nav)

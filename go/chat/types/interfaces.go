@@ -110,3 +110,9 @@ type FetchRetrier interface {
 	Success(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, kind FetchType) error
 	Force(ctx context.Context)
 }
+
+type ConvLoader interface {
+	Resumable
+
+	Queue(ctx context.Context, convID chat1.ConversationID) error
+}

@@ -3,14 +3,15 @@ import React from 'react'
 import type {Props} from './container'
 import {Box, HeaderHoc} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
+import {NativeScrollView} from '../../common-adapters/index.native'
 
 const Container = ({children, onBack, style, outerStyle}: Props) => {
   return (
-    <Box style={{...styles.container, ...outerStyle}}>
+    <NativeScrollView style={{...styles.container, ...outerStyle}}>
       <Box style={{...styles.innerContainer, ...style}}>
         {children}
       </Box>
-    </Box>
+    </NativeScrollView>
   )
 }
 

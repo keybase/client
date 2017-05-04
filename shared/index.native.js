@@ -66,6 +66,8 @@ class Keybase extends Component {
       this.store.dispatch(changedFocus(true))
     } else if (nextAppState === 'inactive') {
       this.store.dispatch(changedFocus(false))
+    } else if (nextAppState === 'background') {
+      this.store.dispatch(changedFocus(false))
     }
   }
 

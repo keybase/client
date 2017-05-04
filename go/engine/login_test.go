@@ -188,6 +188,8 @@ func TestProvisionDesktop(t *testing.T) {
 }
 
 func TestProvisionDesktopSDH(t *testing.T) {
+	t.Skip("TODO waiting for PerUserSecretRewrite")
+
 	testProvisionDesktop(t, true)
 }
 
@@ -404,6 +406,7 @@ func TestProvisionPassphraseNoKeysSolo(t *testing.T) {
 }
 
 func TestProvisionPassphraseNoKeysSoloSDH(t *testing.T) {
+	t.Skip("TODO waiting for PerUserSecretRewrite")
 	testProvisionPassphraseNoKeysSolo(t, true)
 }
 
@@ -1158,71 +1161,86 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 // server). Import private key to lksec fails, switches to gpg
 // sign, which works.
 func TestProvisionGPGSwitchToSign(t *testing.T) {
-	tc := SetupEngineTest(t, "login")
-	defer tc.Cleanup()
-	skipOldGPG(tc)
+	tcCheck := SetupEngineTest(t, "check")
+	defer tcCheck.Cleanup()
+	skipOldGPG(tcCheck)
 
-	u1 := createFakeUserWithPGPPubOnly(t, tc)
-	Logout(tc)
+	// this test sometimes fails at the GPG level with a "Bad signature" error,
+	// so we're going to retry it several times to hopefully get past it.
+	attempts := 10
+	for i := 0; i < attempts; i++ {
+		tc := SetupEngineTest(t, "login")
+		defer tc.Cleanup()
 
-	// redo SetupEngineTest to get a new home directory...should look like a new device.
-	tc2 := SetupEngineTest(t, "login")
-	defer tc2.Cleanup()
+		u1 := createFakeUserWithPGPPubOnly(t, tc)
+		Logout(tc)
 
-	// we need the gpg keyring that's in the first homedir
-	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-		t.Fatal(err)
+		// redo SetupEngineTest to get a new home directory...should look like a new device.
+		tc2 := SetupEngineTest(t, "login")
+		defer tc2.Cleanup()
+
+		// we need the gpg keyring that's in the first homedir
+		if err := tc.MoveGpgKeyringTo(tc2); err != nil {
+			t.Fatal(err)
+		}
+
+		// now safe to cleanup first home
+		tc.Cleanup()
+
+		// load the user (bypassing LoginUsername for this test...)
+		user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc2.G, u1.Username))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// run login on new device
+		ctx := &Context{
+			ProvisionUI: newTestProvisionUIGPGImport(),
+			LogUI:       tc2.G.UI.GetLogUI(),
+			SecretUI:    u1.NewSecretUI(),
+			LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+			GPGUI:       &gpgtestui{},
+		}
+
+		arg := loginProvisionArg{
+			DeviceType: libkb.DeviceTypeDesktop,
+			ClientType: keybase1.ClientType_CLI,
+			User:       user,
+		}
+
+		eng := newLoginProvision(tc2.G, &arg)
+		// use a gpg client that will fail to import any gpg key
+		eng.gpgCli = newGPGImportFailer(tc2.G)
+
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Logf("test run %d:  RunEngine(Login) error: %s", i+1, err)
+			continue
+		}
+
+		t.Logf("test run %d: RunEngine(Login) succeeded", i+1)
+
+		testUserHasDeviceKey(tc2)
+
+		// highly possible they didn't have a paper key, so make sure they have one now:
+		hasOnePaperDev(tc2, u1)
+
+		if err := AssertProvisioned(tc2); err != nil {
+			t.Fatal(err)
+		}
+
+		// after provisioning, the secret should be stored
+		assertSecretStored(tc2, u1.Username)
+
+		// since they did not import their pgp key, they should not be able
+		// to pgp sign something:
+		if err := signString(tc2, "sign me", u1.NewSecretUI()); err == nil {
+			t.Fatal("pgp sign worked after gpg sign provisioning")
+		}
+		t.Logf("test run %d: all checks passed, returning", i+1)
+		return
 	}
 
-	// now safe to cleanup first home
-	tc.Cleanup()
-
-	// load the user (bypassing LoginUsername for this test...)
-	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc2.G, u1.Username))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// run login on new device
-	ctx := &Context{
-		ProvisionUI: newTestProvisionUIGPGImport(),
-		LogUI:       tc2.G.UI.GetLogUI(),
-		SecretUI:    u1.NewSecretUI(),
-		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-		GPGUI:       &gpgtestui{},
-	}
-
-	arg := loginProvisionArg{
-		DeviceType: libkb.DeviceTypeDesktop,
-		ClientType: keybase1.ClientType_CLI,
-		User:       user,
-	}
-
-	eng := newLoginProvision(tc2.G, &arg)
-	// use a gpg client that will fail to import any gpg key
-	eng.gpgCli = newGPGImportFailer(tc2.G)
-
-	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
-	}
-
-	testUserHasDeviceKey(tc2)
-
-	// highly possible they didn't have a paper key, so make sure they have one now:
-	hasOnePaperDev(tc2, u1)
-
-	if err := AssertProvisioned(tc2); err != nil {
-		t.Fatal(err)
-	}
-
-	// after provisioning, the secret should be stored
-	assertSecretStored(tc2, u1.Username)
-
-	// since they did not import their pgp key, they should not be able
-	// to pgp sign something:
-	if err := signString(tc2, "sign me", u1.NewSecretUI()); err == nil {
-		t.Fatal("pgp sign worked after gpg sign provisioning")
-	}
+	t.Fatalf("TestProvisionGPGSwitchToSign failed %d times", attempts)
 }
 
 // Try provision device using a private GPG key (not synced to keybase
@@ -2535,9 +2553,19 @@ func TestProvisionGPGMobile(t *testing.T) {
 	}
 }
 
+func TestProvisionEnsurePaperKey(t *testing.T) {
+	testProvisionEnsurePaperKey(t, false)
+}
+
+func TestProvisionEnsurePaperKeySDH(t *testing.T) {
+	t.Skip("TODO waiting for PerUserSecretRewrite")
+
+	testProvisionEnsurePaperKey(t, true)
+}
+
 // Provisioning a new device when the user has no paper keys should work
 // and generate a paper key.
-func TestProvisionEnsurePaperKey(t *testing.T) {
+func testProvisionEnsurePaperKey(t *testing.T, enableSharedDH bool) {
 	// This test is based on TestProvisionDesktop.
 
 	t.Logf("create 2 contexts")
@@ -2545,10 +2573,12 @@ func TestProvisionEnsurePaperKey(t *testing.T) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
+	tcX.Tp.EnableSharedDH = enableSharedDH
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "template")
 	defer tcY.Cleanup()
+	tcY.Tp.EnableSharedDH = enableSharedDH
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUserPaper(tcX, "login")

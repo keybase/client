@@ -12,6 +12,7 @@ type ChatContext struct {
 	ServerCacheVersions types.ServerCacheVersions // server side versions for chat caches
 	Syncer              types.Syncer              // For syncing inbox with server
 	FetchRetrier        types.FetchRetrier        // For retrying failed fetch requests
+	ConvLoader          types.ConvLoader          // background conversation loader
 }
 
 type Context struct {

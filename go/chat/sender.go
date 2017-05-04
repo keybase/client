@@ -22,7 +22,7 @@ import (
 )
 
 type Sender interface {
-	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error)
+	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error)
 	Prepare(ctx context.Context, msg chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, []chat1.Asset, error)
 }
 
@@ -424,19 +424,19 @@ func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
 }
 
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (obid chat1.OutboxID, msgID chat1.MessageID, rl *chat1.RateLimit, err error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, rl *chat1.RateLimit, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
 
 	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
 	boxed, pendingAssetDeletes, err := s.Prepare(ctx, msg, &convID)
 	if err != nil {
 		s.Debug(ctx, "error in Prepare: %s", err.Error())
-		return chat1.OutboxID{}, 0, nil, err
+		return chat1.OutboxID{}, nil, nil, err
 	}
 
 	ri := s.getRi()
 	if ri == nil {
-		return chat1.OutboxID{}, 0, nil, fmt.Errorf("Send(): no remote client found")
+		return chat1.OutboxID{}, nil, nil, fmt.Errorf("Send(): no remote client found")
 	}
 
 	// Delete assets associated with a delete operation.
@@ -444,7 +444,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	if len(pendingAssetDeletes) > 0 {
 		err = s.deleteAssets(ctx, convID, pendingAssetDeletes)
 		if err != nil {
-			return chat1.OutboxID{}, 0, nil, err
+			return chat1.OutboxID{}, nil, nil, err
 		}
 	}
 
@@ -461,20 +461,20 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 	plres, err := ri.PostRemote(ctx, rarg)
 	if err != nil {
-		return chat1.OutboxID{}, 0, nil, err
+		return chat1.OutboxID{}, nil, nil, err
 	}
 	boxed.ServerHeader = &plres.MsgHeader
 
 	// Write new message out to cache
 	s.Debug(ctx, "sending local updates to chat sources")
 	if _, _, err = s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
-		return chat1.OutboxID{}, 0, nil, err
+		return chat1.OutboxID{}, nil, nil, err
 	}
 	if _, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID, *boxed); err != nil {
-		return chat1.OutboxID{}, 0, nil, err
+		return chat1.OutboxID{}, nil, nil, err
 	}
 
-	return []byte{}, plres.MsgHeader.MessageID, plres.RateLimit, nil
+	return []byte{}, boxed, plres.RateLimit, nil
 }
 
 const deliverMaxAttempts = 5
@@ -729,7 +729,7 @@ func (s *NonblockingSender) Prepare(ctx context.Context, plaintext chat1.Message
 }
 
 func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error) {
 
 	msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{
 		Prev:        clientPrev,
@@ -738,5 +738,5 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 
 	identifyBehavior, _, _ := IdentifyMode(ctx)
 	obr, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, identifyBehavior)
-	return obr.OutboxID, 0, &chat1.RateLimit{}, err
+	return obr.OutboxID, nil, &chat1.RateLimit{}, err
 }

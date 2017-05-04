@@ -2,22 +2,21 @@
 import * as I from 'immutable'
 import HiddenString from '../util/hidden-string'
 import {DeviceDetailRecord} from '../constants/devices'
-import {call, put, select, fork} from 'redux-saga/effects'
+import {call, put, select} from 'redux-saga/effects'
 import {deviceDeviceHistoryListRpcPromise, loginDeprovisionRpcPromise, loginPaperKeyRpcChannelMap, revokeRevokeDeviceRpcPromise, rekeyGetRevokeWarningRpcPromise} from '../constants/types/flow-types'
-import {devicesTab, loginTab} from '../constants/tabs'
+import {devicesTab, loginTab, settingsTab} from '../constants/tabs'
+import {devicesTab as settingsDevicesTab} from '../constants/settings'
 import {isMobile} from '../constants/platform'
 import {keyBy} from 'lodash'
 import {navigateTo} from './route-tree'
 import {replaceEntity} from './entities'
-import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
+import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {setRevokedSelf} from './login/creators'
 
 import type {DeviceDetail} from '../constants/types/flow-types'
 import type {Load, Loaded, Revoke, ShowRevokePage, PaperKeyMake, Waiting} from '../constants/devices'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
-
-type IncomingDisplayPaperKeyPhrase = {params: {phrase: string}, response: {result: () => void}}
 
 isMobile && module.hot && module.hot.accept(() => {
   console.log('accepted update in actions/devices')
@@ -32,6 +31,8 @@ const showRevokePage: (deviceID: string) => ShowRevokePage = deviceID => ({paylo
 
 const _loggedInSelector = (state: TypedState) => state.config.loggedIn
 
+const devicesTabLocation = isMobile ? [settingsTab, settingsDevicesTab] : [devicesTab]
+
 function * _deviceShowRevokePageSaga (action: ShowRevokePage): SagaGenerator<any, any> {
   const {deviceID} = action.payload
   let endangeredTLFs = {endangeredTLFs: []}
@@ -40,7 +41,7 @@ function * _deviceShowRevokePageSaga (action: ShowRevokePage): SagaGenerator<any
   } catch (e) {
     console.warn('Error getting endangered TLFs:', e)
   }
-  yield put(navigateTo([devicesTab,
+  yield put(navigateTo([...devicesTabLocation,
     {props: {deviceID, endangeredTLFs}, selected: 'devicePage'},
     {props: {deviceID, endangeredTLFs}, selected: 'revokeDevice'},
   ]))
@@ -135,33 +136,31 @@ function * _deviceRevokedSaga (action: Revoke): SagaGenerator<any, any> {
 
   const afterRouteState = yield select(state => state.routeTree.routeState)
   if (I.is(beforeRouteState, afterRouteState)) {
-    yield put(navigateTo([devicesTab]))
+    yield put(navigateTo([...devicesTabLocation]))
   }
 }
 
-function _generatePaperKey (channelConfig) {
-  return loginPaperKeyRpcChannelMap(channelConfig, {})
-}
-
-function * _handlePromptRevokePaperKeys (chanMap): SagaGenerator<any, any> {
-  yield effectOnChannelMap(c => safeTakeEvery(c, ({response}) => response.result(false)), chanMap, 'keybase.1.loginUi.promptRevokePaperKeys')
-}
-
 function * _devicePaperKeySaga (): SagaGenerator<any, any> {
-  const channelConfig = singleFixedChannelConfig(['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'])
-
-  const generatePaperKeyChanMap = ((yield call(_generatePaperKey, channelConfig)): any)
+  let channelMap
   try {
     yield put(setWaiting(true))
-    yield fork(_handlePromptRevokePaperKeys, generatePaperKeyChanMap)
-    const displayPaperKeyPhrase: IncomingDisplayPaperKeyPhrase = ((yield takeFromChannelMap(generatePaperKeyChanMap, 'keybase.1.loginUi.displayPaperKeyPhrase')): any)
-    displayPaperKeyPhrase.response.result()
-    yield put(setWaiting(false))
+    channelMap = loginPaperKeyRpcChannelMap(['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'], {})
 
-    const paperKey = new HiddenString(displayPaperKeyPhrase.params.phrase)
-    yield put(navigateTo([devicesTab, {props: {paperKey}, selected: 'genPaperKey'}]))
+    while (true) {
+      const incoming = yield channelMap.race()
+
+      if (incoming.promptRevokePaperKeys) {
+        incoming.promptRevokePaperKeys.response.result(false)
+      } else if (incoming.displayPaperKeyPhrase) {
+        incoming.displayPaperKeyPhrase.response.result()
+        yield put(setWaiting(false))
+        const paperKey = new HiddenString(incoming.displayPaperKeyPhrase.params.phrase)
+        yield put(navigateTo([...devicesTabLocation, {props: {paperKey}, selected: 'genPaperKey'}]))
+        break
+      }
+    }
   } catch (e) {
-    closeChannelMap(generatePaperKeyChanMap)
+    channelMap && channelMap.close()
     throw new Error(`Error in generating paper key ${e}`)
   } finally {
     yield put(setWaiting(false))
@@ -181,5 +180,7 @@ export {
   load,
   paperKeyMake,
   revoke,
+  setWaiting,
   showRevokePage,
+  devicesTabLocation,
 }

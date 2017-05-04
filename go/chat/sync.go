@@ -255,6 +255,13 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			// Send notifications for a successful partial sync
 			s.SendChatStaleNotifications(ctx, uid, s.getConvIDs(incr.Convs), true)
 		}
+
+		// Queue background conversation loads
+		for _, convID := range s.getConvIDs(incr.Convs) {
+			if err := s.G().ConvLoader.Queue(ctx, convID); err != nil {
+				s.Debug(ctx, "Sync: failed to queue conversation load: %s", err)
+			}
+		}
 	}
 
 	return nil

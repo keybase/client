@@ -405,7 +405,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       return state.set('inbox', newInbox).set('rekeyInfos', Map())
     case 'chat:setUnboxing':
       const {conversationIDKeys} = action.payload
-      return state.set('inbox', state.get('inbox').map(i => conversationIDKeys.includes(i.conversationIDKey) ? i.set('state', 'unboxing') : i))
+      return state.set('inbox', state.get('inbox').map(i => conversationIDKeys.includes(i.conversationIDKey) ? i.set('state', action.error ? 'untrusted' : 'unboxing') : i))
     case 'chat:updateInbox':
       const convo: Constants.InboxState = action.payload.conversation
       const toFind = convo.get('conversationIDKey')

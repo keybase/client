@@ -14,10 +14,11 @@ type Props = {
     broken: boolean,
     isYou: boolean,
   }>,
+  style?: ?Object,
 }
 
-const Participants = ({participants, onShowProfile, onAddParticipant}: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
+const Participants = ({participants, onShowProfile, onAddParticipant, style}: Props) => (
+  <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny, ...style}}>
     {participants.map(info => {
       const {username, following, fullname, broken, isYou} = info
       return (

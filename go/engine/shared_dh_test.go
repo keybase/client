@@ -13,10 +13,14 @@ import (
 )
 
 func TestSignupEngineSharedDH(t *testing.T) {
+	t.Skip("TODO waiting for PerUserSecretRewrite")
+
 	subTestSignupEngine(t, true)
 }
 
 func TestSharedDHSignupAndPullKeys(t *testing.T) {
+	t.Skip("TODO waiting for PerUserSecretRewrite")
+
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
 	var err error
@@ -48,6 +52,8 @@ func TestSharedDHSignupAndPullKeys(t *testing.T) {
 }
 
 func TestSharedDHSignupPlusPaper(t *testing.T) {
+	t.Skip("TODO waiting for PerUserSecretRewrite")
+
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
 	var err error

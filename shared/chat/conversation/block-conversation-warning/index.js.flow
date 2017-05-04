@@ -5,7 +5,7 @@ import type {ConversationIDKey} from '../../../constants/chat'
 
 export type Props = {
   conversationIDKey: ConversationIDKey,
-  onClose: () => void,
+  onBack: () => void,
   onBlock: () => void,
   participants: string,
 }
