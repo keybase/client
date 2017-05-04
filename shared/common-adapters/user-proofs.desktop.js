@@ -5,7 +5,7 @@ import * as shared from './user-proofs.shared'
 import openUrl from '../util/open-url'
 import type {Props, MissingProof} from './user-proofs'
 import type {Proof} from '../constants/tracker'
-import {Box, Icon, Text, Meta, ProgressIndicator} from '../common-adapters/index'
+import {Box, Icon, Text, Meta} from '../common-adapters/index'
 import {defaultColor} from '../common-adapters/icon.shared'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
@@ -79,7 +79,7 @@ class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
           </Box>
         </Box>
         <Box style={styleProofMenuButton} onClick={() => onClickStatus(proof)}>
-          {proofStatusIconType && (proof.state === proofChecking ? <ProgressIndicator style={styleSpinner} /> : <Icon type={proofStatusIconType} />)}
+          {proofStatusIconType && <Icon type={proofStatusIconType} />}
           {hasMenu &&
             <Icon
               type='iconfont-caret-down'
@@ -186,11 +186,6 @@ const styleContainer = (loading) => ({
   position: 'relative',
   minHeight: loading ? 120 : 0,
 })
-
-const styleSpinner = {
-  width: 20,
-  height: 20,
-}
 
 const styleLoading = {
   position: 'absolute',

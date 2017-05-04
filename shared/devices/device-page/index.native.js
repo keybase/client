@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Text, Icon, Button, BackButton, Meta} from '../../common-adapters'
+import {Box, Text, Icon, Button, BackButton} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from '.'
@@ -13,9 +13,8 @@ const Banner = ({color, backgroundColor, desc}) => (
 const Header = ({name, isCurrent, isRevoked}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginBottom: 20, marginTop: 10}}>
     <Text type='Header' style={isRevoked
-        ? {...stylesHeader, color: globalColors.black_40, textDecorationLine: 'line-through'}
-        : stylesHeader}>{name}</Text>
-    {isRevoked && <Meta title='REVOKED' styel={stylesMeta} />}
+        ? {color: globalColors.black_40, fontStyle: 'italic', textDecorationLine: 'line-through'}
+        : {fontStyle: 'italic'}}>{name}</Text>
     {isRevoked && <Text type='Header' style={stylesMeta}>REVOKED</Text>}
     <Box style={{...globalStyles.flexBoxRow}}>
       {isCurrent && <Text type='BodySmall'>Current device</Text>}
@@ -23,10 +22,10 @@ const Header = ({name, isCurrent, isRevoked}) => (
   </Box>
 )
 
-const TimelineMarker = ({idx, max}) => (
+const TimelineMarker = ({idx, max, type}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginRight: 16}}>
     <Box style={{...stylesLine, height: 8, opacity: idx ? 1 : 0}} />
-    <Box style={stylesCircle} />
+    {type === 'Revoked' ? <Box style={stylesCircleClosed} /> : <Box style={stylesCircleOpen} />}
     <Box style={{...stylesLine, flex: 1, opacity: idx < max ? 1 : 0}} />
   </Box>
 )
@@ -35,7 +34,7 @@ const Timeline = ({timeline}) => (
   <Box style={{marginTop: 30}}>
     {timeline.map(({type, desc, subDesc}, idx) => (
       <Box key={desc} style={{...globalStyles.flexBoxRow}}>
-        <TimelineMarker idx={idx} max={timeline.length - 1} />
+        <TimelineMarker idx={idx} max={timeline.length - 1} type={type} />
         <Box style={{...globalStyles.flexBoxColumn}}>
           <Text type='Body'>{desc}</Text>
           {(subDesc && (type === 'Added' || type === 'Revoked'))
@@ -62,11 +61,6 @@ const Render = ({
   </Box>
 )
 
-const stylesHeader = {
-  textAlign: 'center',
-  fontStyle: 'italic',
-}
-
 const stylesBanner = {
   alignSelf: 'stretch',
   minHeight: 48,
@@ -79,12 +73,18 @@ const stylesBanner = {
 
 const circleSize = 8
 
-const stylesCircle = {
+const stylesCircleOpen = {
   borderColor: globalColors.lightGrey2,
   borderRadius: circleSize / 2,
   borderWidth: 2,
   height: circleSize,
   width: circleSize,
+}
+
+const stylesCircleClosed = {
+  ...stylesCircleOpen,
+  backgroundColor: globalColors.lightGrey2,
+  borderColor: globalColors.white,
 }
 
 const stylesLine = {
@@ -94,11 +94,12 @@ const stylesLine = {
 
 const stylesMeta = {
   backgroundColor: globalColors.red,
-  borderRadius: 1,
+  borderRadius: 2,
   color: globalColors.white,
   fontSize: 10,
-  height: 11,
-  lineHeight: 11,
+  height: 12,
+  lineHeight: 12,
+  marginTop: globalMargins.xtiny,
   paddingLeft: 2,
   paddingRight: 2,
 }

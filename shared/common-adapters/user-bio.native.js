@@ -26,10 +26,9 @@ class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize,
           }} />
         </Box>
         <Box style={{...stylesContent, opacity: this.props.loading ? 1 : 0}}>
-          <Box style={{...globalStyles.loadingTextStyle, width: 157, marginTop: 10, height: 26}} />
-          <Box style={{...globalStyles.loadingTextStyle, width: 100, marginTop: 12, height: 18}} />
-          <Box style={{...globalStyles.loadingTextStyle, width: 117, marginTop: globalMargins.tiny, marginBottom: 0}} />
-          <Box style={{...globalStyles.loadingTextStyle, width: 247, marginTop: 6, marginBottom: 0}} />
+          <Box style={{...globalStyles.loadingTextStyle, width: 160, marginTop: globalMargins.small, height: 16, borderRadius: 2}} />
+          <Box style={{...globalStyles.loadingTextStyle, width: 160, marginTop: globalMargins.small, height: 16, borderRadius: 2}} />
+          <Box style={{...globalStyles.loadingTextStyle, width: 160, marginTop: globalMargins.small, height: 16, borderRadius: 2}} />
         </Box>
       </Box>
     )

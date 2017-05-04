@@ -21,10 +21,10 @@ const Header = ({name, currentDevice, revokedAt}) => (
   </Box>
 )
 
-const TimelineMarker = ({idx, max}) => (
+const TimelineMarker = ({idx, max, type}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginRight: 16}}>
     <Box style={{...stylesLine, height: 5, opacity: idx ? 1 : 0}} />
-    <Box style={stylesCircle} />
+    {type === 'Revoked' ? <Box style={stylesCircleClosed} /> : <Box style={stylesCircleOpen} />}
     <Box style={{...stylesLine, flex: 1, opacity: idx < max ? 1 : 0}} />
   </Box>
 )
@@ -33,7 +33,7 @@ const Timeline = ({timeline}) => (
   <Box style={{marginTop: 30}}>
     {timeline.map(({type, desc, subDesc}, idx) => (
       <Box key={desc} style={{...globalStyles.flexBoxRow}}>
-        <TimelineMarker idx={idx} max={timeline.length - 1} />
+        <TimelineMarker idx={idx} max={timeline.length - 1} type={type} />
         <Box style={{...globalStyles.flexBoxColumn}}>
           <Text type='Body'>{desc}</Text>
           {subDesc && (type === 'Added' || type === 'Revoked'
@@ -78,11 +78,17 @@ const stylesBanner = {
 
 const circleSize = 8
 
-const stylesCircle = {
+const stylesCircleOpen = {
   border: `solid 2px ${globalColors.lightGrey2}`,
   borderRadius: circleSize / 2,
   height: circleSize,
   width: circleSize,
+}
+
+const stylesCircleClosed = {
+  ...stylesCircleOpen,
+  backgroundColor: globalColors.lightGrey2,
+  border: `solid 2px ${globalColors.white}`,
 }
 
 const stylesLine = {
