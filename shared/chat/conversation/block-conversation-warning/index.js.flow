@@ -7,6 +7,7 @@ export type Props = {
   conversationIDKey: ConversationIDKey,
   onBack: () => void,
   onBlock: () => void,
+  onBlockAndReport: () => void,
   participants: string,
 }
 

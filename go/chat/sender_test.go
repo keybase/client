@@ -28,6 +28,7 @@ type chatListener struct {
 	identifyUpdate chan keybase1.CanonicalTLFNameAndIDWithBreaks
 	inboxStale     chan struct{}
 	threadsStale   chan []chat1.ConversationID
+	bgConvLoads    chan chat1.ConversationID
 }
 
 var _ libkb.NotifyListener = (*chatListener)(nil)
@@ -141,6 +142,7 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks),
 		inboxStale:     make(chan struct{}, 1),
 		threadsStale:   make(chan []chat1.ConversationID, 1),
+		bgConvLoads:    make(chan chat1.ConversationID, 10),
 	}
 	g.ConvSource = NewHybridConversationSource(g, boxer, storage.New(g), getRI)
 	g.InboxSource = NewHybridInboxSource(g, getRI, tlf)
@@ -154,6 +156,10 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	g.FetchRetrier.(*FetchRetrier).SetClock(world.Fc)
 	g.FetchRetrier.Start(context.TODO(), u.User.GetUID().ToBytes())
 	g.FetchRetrier.Connected(context.TODO())
+	bgLoader := NewBackgroundConvLoader(g)
+	bgLoader.loads = listener.bgConvLoads
+	g.ConvLoader = bgLoader
+	g.ConvLoader.Start(context.TODO(), u.User.GetUID().ToBytes())
 	chatSyncer := NewSyncer(g)
 	chatSyncer.isConnected = true
 	g.Syncer = chatSyncer

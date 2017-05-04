@@ -9,6 +9,7 @@ type LeafTagsParams = {
   modal: boolean,
   layerOnTop: boolean,
   underStatusBar: boolean,
+  showStatusBarDarkContent: boolean,
   hideStatusBar: boolean,
   fullscreen: boolean,
 }
@@ -19,6 +20,7 @@ export const LeafTags: (spec?: LeafTagsParams) => LeafTagsParams & I.Record<Leaf
   layerOnTop: false,
   underStatusBar: false,
   hideStatusBar: false,
+  showStatusBarDarkContent: false,
   fullscreen: false,
 })
 

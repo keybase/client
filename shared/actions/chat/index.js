@@ -29,7 +29,7 @@ import {usernameSelector} from '../../constants/selectors'
 import type {Action} from '../../constants/types/flux'
 import type {ChangedFocus} from '../../constants/app'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
-import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
+import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
 function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<any, any> {
@@ -326,13 +326,11 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
     yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
   }
 
-  const channelConfig = Saga.singleFixedChannelConfig([
+  const loadThreadChanMap = ChatTypes.localGetThreadNonblockRpcChannelMap([
     'chat.1.chatUi.chatThreadCached',
     'chat.1.chatUi.chatThreadFull',
     'finished',
-  ])
-
-  const loadThreadChanMap: ChannelMap<any> = ChatTypes.localGetThreadNonblockRpcChannelMap(channelConfig, {
+  ], {
     param: {
       conversationID,
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
@@ -351,11 +349,7 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
   })
 
   while (true) {
-    const incoming: {[key: string]: any} = yield race({
-      chatThreadCached: Saga.takeFromChannelMap(loadThreadChanMap, 'chat.1.chatUi.chatThreadCached'),
-      chatThreadFull: Saga.takeFromChannelMap(loadThreadChanMap, 'chat.1.chatUi.chatThreadFull'),
-      finished: Saga.takeFromChannelMap(loadThreadChanMap, 'finished'),
-    })
+    const incoming = yield loadThreadChanMap.race()
 
     if (incoming.chatThreadCached) {
       incoming.chatThreadCached.response.result()
@@ -728,13 +722,17 @@ function * _selectConversation (action: Constants.SelectConversation): SagaGener
 }
 
 function * _blockConversation (action: Constants.BlockConversation): SagaGenerator<any, any> {
-  const {blocked, conversationIDKey} = action.payload
+  const {blocked, conversationIDKey, reportUser} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
-  const status = blocked ? ChatTypes.CommonConversationStatus.blocked : ChatTypes.CommonConversationStatus.unfiled
-  const identifyBehavior: TLFIdentifyBehavior = TlfKeysTLFIdentifyBehavior.chatGui
-  yield call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
-    param: {conversationID, identifyBehavior, status},
-  })
+  if (blocked) {
+    const status = reportUser
+      ? ChatTypes.CommonConversationStatus.reported
+      : ChatTypes.CommonConversationStatus.blocked
+    const identifyBehavior: TLFIdentifyBehavior = TlfKeysTLFIdentifyBehavior.chatGui
+    yield call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
+      param: {conversationID, identifyBehavior, status},
+    })
+  }
 }
 
 function * _muteConversation (action: Constants.MuteConversation): SagaGenerator<any, any> {

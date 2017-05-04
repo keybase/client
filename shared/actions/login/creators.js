@@ -132,10 +132,6 @@ function updateForgotPasswordEmail (email: string): Constants.UpdateForgotPasswo
   return {payload: email, type: Constants.actionUpdateForgotPasswordEmailAddress}
 }
 
-function submitForgotPassword () {
-  return {payload: {}, type: Constants.submitForgotPassword}
-}
-
 function openAccountResetPage () {
   return {payload: {}, type: Constants.openAccountResetPage}
 }
@@ -173,7 +169,6 @@ export {
   someoneElse,
   startLogin,
   submitDeviceName,
-  submitForgotPassword,
   submitPassphrase,
   submitUsernameOrEmail,
   updateForgotPasswordEmail,

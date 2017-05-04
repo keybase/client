@@ -11,8 +11,66 @@ import {log} from '../native/log/logui'
 import {resetClient, createClient, rpcLog} from './index.platform'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {convertToError} from '../util/errors'
+import * as Saga from '../util/saga'
+import {delay} from 'redux-saga'
+import {call, race} from 'redux-saga/effects'
+
+import type {ChannelMap} from '../constants/types/saga'
+
+class EngineChannel {
+  _map: ChannelMap<*>
+  _sessionID: SessionID
+  _configKeys: Array<string>
+
+  constructor (map: ChannelMap<*>, sessionID: SessionID, configKeys: Array<string>) {
+    this._map = map
+    this._sessionID = sessionID
+    this._configKeys = configKeys
+  }
+
+  get map (): ChannelMap<*> {
+    return this._map
+  }
+
+  close () {
+    Saga.closeChannelMap(this._map)
+    getEngine().cancelSession(this._sessionID)
+  }
+
+  * take (key: string): Generator<any, any, any> {
+    return yield Saga.takeFromChannelMap(this._map, key)
+  }
+
+  * race (options: ?{timeout?: number, racers?: Object}): Generator<any, any, any> {
+    const timeout = options && options.timeout
+    const otherRacers = options && options.racers || {}
+    const initMap = {
+      ...(timeout ? {
+        timeout: call(delay, timeout),
+      } : {}),
+      ...otherRacers,
+    }
+
+    const raceMap = this._configKeys.reduce((map, key) => {
+      const parts = key.split('.')
+      const name = parts[parts.length - 1]
+      map[name] = Saga.takeFromChannelMap(this._map, key)
+      return map
+    }, initMap)
+
+    const result = yield race(raceMap)
+
+    if (result.timeout) {
+      this.close()
+    }
+
+    return result
+  }
+}
 
 class Engine {
+  // Bookkeep old sessions
+  _deadSessionsMap: {[key: SessionIDKey]: true} = {}
   // Tracking outstanding sessions
   _sessionsMap: {[key: SessionIDKey]: Session} = {}
   // Helper we delegate actual calls to
@@ -123,18 +181,22 @@ class Engine {
 
   // Got an incoming request with no handler
   _handleUnhandled (sessionID: number, method: MethodKey, seqid: number, param: Object, response: ?Object) {
+    const isDead = !!this._deadSessionsMap[String(sessionID)]
+
+    const prefix = isDead ? 'Dead session' : 'Unknown'
+
     if (__DEV__) {
-      localLog(`Unknown incoming rpc: ${sessionID} ${method} ${seqid} ${JSON.stringify(param)}${response ? ': Sending back error' : ''}`)
+      localLog(`${prefix} incoming rpc: ${sessionID} ${method} ${seqid} ${JSON.stringify(param)}${response ? ': Sending back error' : ''}`)
     }
-    console.warn(`Unknown incoming rpc: ${sessionID} ${method}`)
+    console.warn(`${prefix} incoming rpc: ${sessionID} ${method}`)
 
     if (__DEV__ && this._failOnError) {
-      throw new Error(`unhandled incoming rpc: ${sessionID} ${method} ${JSON.stringify(param)}${response ? '. has response' : ''}`)
+      throw new Error(`${prefix} incoming rpc: ${sessionID} ${method} ${JSON.stringify(param)}${response ? '. has response' : ''}`)
     }
 
     response && response.error && response.error({
       code: ConstantsStatusCode.scgeneric,
-      desc: `Unhandled incoming RPC ${sessionID} ${method}`,
+      desc: `${prefix} incoming RPC ${sessionID} ${method}`,
     })
   }
 
@@ -158,6 +220,24 @@ class Engine {
         this._handleUnhandled(sessionID, method, seqid, param, response)
       }
     }
+  }
+
+  // An outgoing call. ONLY called by the flow-type rpc helpers
+  _channelMapRpcHelper (configKeys: Array<string>, method: string, params: any): EngineChannel {
+    const channelConfig = Saga.singleFixedChannelConfig(configKeys)
+    const channelMap = Saga.createChannelMap(channelConfig)
+    const incomingCallMap = Object.keys(channelMap).reduce((acc, k) => {
+      acc[k] = (params, response) => {
+        Saga.putOnChannelMap(channelMap, k, {params, response})
+      }
+      return acc
+    }, {})
+    const callback = (error, params) => {
+      channelMap['finished'] && Saga.putOnChannelMap(channelMap, 'finished', {error, params})
+      Saga.closeChannelMap(channelMap)
+    }
+    const sid = this._rpcOutgoing(method, params, callback, incomingCallMap)
+    return new EngineChannel(channelMap, sid, configKeys)
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
@@ -244,6 +324,7 @@ class Engine {
   _sessionEnded (session: Session) {
     rpcLog('engineInternal', 'session end', {sessionID: session.id})
     delete this._sessionsMap[String(session.id)]
+    this._deadSessionsMap[String(session.id)] = true
   }
 
   // Cancel an rpc
@@ -329,6 +410,7 @@ class Engine {
 
 // Dummy engine for snapshotting
 class FakeEngine {
+  _deadSessionsMap: {[key: SessionIDKey]: Session}; // just to bookkeep
   _sessionsMap: {[key: SessionIDKey]: Session};
   constructor () {
     console.log('Engine disabled!')
@@ -345,6 +427,7 @@ class FakeEngine {
   createSession () {
     return new Session(0, {}, null, () => {}, () => {})
   }
+  _channelMapRpcHelper (configKeys: Array<string>, method: string, params: any): EngineChannel { return new EngineChannel({}, 0, []) }
   _rpcOutgoing (
     method: string,
     params: {
@@ -397,4 +480,5 @@ export {
   getEngine,
   makeEngine,
   Engine,
+  EngineChannel,
 }

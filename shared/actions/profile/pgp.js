@@ -1,14 +1,15 @@
 // @flow
 import * as Constants from '../../constants/profile'
-import {call, put, take, race, select} from 'redux-saga/effects'
-import {singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, safeTakeLatest, safeTakeEvery} from '../../util/saga'
+import {call, put, take, select} from 'redux-saga/effects'
+import {safeTakeLatest, safeTakeEvery} from '../../util/saga'
 import {isValidEmail, isValidName} from '../../util/simple-validators'
 import {navigateTo, navigateAppend} from '../../actions/route-tree'
 import {pgpPgpKeyGenDefaultRpcChannelMap, revokeRevokeKeyRpcPromise} from '../../constants/types/flow-types'
 import {profileTab} from '../../constants/tabs'
 
 import type {KID} from '../../constants/types/flow-types'
-import type {SagaGenerator, ChannelConfig, ChannelMap} from '../../constants/types/saga'
+import type {TypedState} from '../../constants/reducer'
+import type {SagaGenerator} from '../../constants/types/saga'
 import type {WaitingRevokeProof, FinishRevokeProof, UpdatePgpInfo, PgpInfo, GeneratePgp, FinishedWithKeyGen, DropPgp} from '../../constants/profile'
 
 type PgpInfoError = {
@@ -73,30 +74,9 @@ function _checkPgpInfoForErrors (pgpInfo: PgpInfo): PgpInfoError {
   }
 }
 
-// Returns a channel that represents the feedback from the rpc service
-// Things in the channel look like actions
-// If the service expects a reply, a response will be attached to the payload
-function _generatePgpKey (channelConfig: ChannelConfig<*>, pgpInfo: PgpInfo): any {
-  const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3].filter(email => !!email).map(email => ({
-    comment: '',
-    email: email || '',
-    username: pgpInfo.fullName || '',
-  }))
-
-  return pgpPgpKeyGenDefaultRpcChannelMap(channelConfig, {
-    param: {
-      createUids: {
-        ids: identities,
-        useDefault: false,
-      },
-    },
-  })
-}
-
 function * _checkPgpInfo (action: UpdatePgpInfo): SagaGenerator<any, any> {
   if (action.error) { return }
 
-  // $ForceType
   const pgpInfo: PgpInfo = yield select(({profile: {pgpInfo}}: TypedState) => pgpInfo)
 
   const errorUpdateAction: UpdatePgpInfo = {
@@ -128,26 +108,40 @@ function * _dropPgpSaga (action: DropPgp): SagaGenerator<any, any> {
 function * _generatePgpSaga (): SagaGenerator<any, any> {
   yield put(navigateAppend(['generate'], [profileTab, 'pgp']))
 
-  const channelConfig = singleFixedChannelConfig(['keybase.1.pgpUi.keyGenerated', 'keybase.1.pgpUi.shouldPushPrivate', 'keybase.1.pgpUi.finished', 'finished'])
-
-  // $ForceType
   const pgpInfo: PgpInfo = yield select(({profile: {pgpInfo}}: TypedState) => pgpInfo)
-  const generatePgpKeyChanMap: ChannelMap<any> = yield call(_generatePgpKey, channelConfig, pgpInfo)
+  const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3].filter(email => !!email).map(email => ({
+    comment: '',
+    email: email || '',
+    username: pgpInfo.fullName || '',
+  }))
+
+  const generatePgpKeyChanMap = pgpPgpKeyGenDefaultRpcChannelMap([
+    'keybase.1.pgpUi.keyGenerated',
+    'keybase.1.pgpUi.shouldPushPrivate',
+    'keybase.1.pgpUi.finished',
+    'finished',
+  ], {
+    param: {
+      createUids: {
+        ids: identities,
+        useDefault: false,
+      },
+    },
+  })
 
   try {
-    const {cancel, keyGenerated}: {keyGenerated: any, cancel: ?any} = yield race({
+    const incoming = yield generatePgpKeyChanMap.race({racers: {
       cancel: take(Constants.cancelPgpGen),
-      keyGenerated: takeFromChannelMap(generatePgpKeyChanMap, 'keybase.1.pgpUi.keyGenerated'),
-    })
+    }})
 
-    if (cancel) {
-      closeChannelMap(generatePgpKeyChanMap)
+    if (incoming.cancel) {
+      generatePgpKeyChanMap.close()
       yield put(navigateTo([], [profileTab]))
       return
     }
 
-    yield call([keyGenerated.response, keyGenerated.response.result])
-    const publicKey = keyGenerated.params.key.key
+    yield call([incoming.keyGenerated.response, incoming.keyGenerated.response.result])
+    const publicKey = incoming.keyGenerated.params.key.key
 
     yield put({payload: {publicKey}, type: Constants.updatePgpPublicKey})
     yield put(navigateAppend(['finished'], [profileTab, 'pgp']))
@@ -155,15 +149,15 @@ function * _generatePgpSaga (): SagaGenerator<any, any> {
     const finishedAction: FinishedWithKeyGen = yield take(Constants.finishedWithKeyGen)
     const {shouldStoreKeyOnServer} = finishedAction.payload
 
-    const {response} = yield takeFromChannelMap(generatePgpKeyChanMap, 'keybase.1.pgpUi.shouldPushPrivate')
+    const {response} = yield generatePgpKeyChanMap.take('keybase.1.pgpUi.shouldPushPrivate')
     yield call([response, response.result], shouldStoreKeyOnServer)
 
-    const {response: finishedResponse} = yield takeFromChannelMap(generatePgpKeyChanMap, 'keybase.1.pgpUi.finished')
+    const {response: finishedResponse} = yield generatePgpKeyChanMap.take('keybase.1.pgpUi.finished')
     yield call([finishedResponse, finishedResponse.result])
 
     yield put(navigateTo([], [profileTab]))
   } catch (e) {
-    closeChannelMap(generatePgpKeyChanMap)
+    generatePgpKeyChanMap.close()
     console.log('error in generating pgp key', e)
   }
 }

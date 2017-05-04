@@ -405,7 +405,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       return state.set('inbox', newInbox).set('rekeyInfos', Map())
     case 'chat:setUnboxing':
       const {conversationIDKeys} = action.payload
-      return state.set('inbox', state.get('inbox').map(i => conversationIDKeys.includes(i.conversationIDKey) ? i.set('state', 'unboxing') : i))
+      return state.set('inbox', state.get('inbox').map(i => conversationIDKeys.includes(i.conversationIDKey) ? i.set('state', action.error ? 'untrusted' : 'unboxing') : i))
     case 'chat:updateInbox':
       const convo: Constants.InboxState = action.payload.conversation
       const toFind = convo.get('conversationIDKey')
@@ -413,7 +413,7 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       const existing = oldInbox.findEntry(i => i.get('conversationIDKey') === toFind)
       let updatedInbox = existing ? oldInbox.set(existing[0], convo) : oldInbox.push(convo)
       // If the convo's just been blocked, delete it from the inbox.
-      if (existing && convo.get('status') === 'blocked') {
+      if (existing && ['blocked','reported'].includes(convo.get('status'))) {
         updatedInbox = updatedInbox.delete(existing[0])
       }
       // time changed so we need to sort

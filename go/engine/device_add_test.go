@@ -21,6 +21,7 @@ func TestDeviceAdd(t *testing.T) {
 }
 
 func TestDeviceAddSDH(t *testing.T) {
+	t.Skip("TODO waiting for PerUserSecretRewrite")
 	testDeviceAdd(t, true)
 }
 

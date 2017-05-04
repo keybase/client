@@ -13,9 +13,9 @@ import {bootstrap, setInitialTab, getExtendedStatus, setInitialLink} from '../co
 import {appLink} from '../app'
 import {defaultModeForDeviceRoles} from './provision-helpers'
 import openURL from '../../util/open-url'
-import {devicesTab, loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
+import {loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
-import {load as loadDevices, setWaiting as setDevicesWaiting} from '../devices'
+import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from '../devices'
 import {deletePushTokenSaga} from '../push'
 import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
@@ -367,7 +367,7 @@ const getPassphraseSaga = (onBackSaga) => function * ({params: {pinentry: {type,
 }
 
 function loginRpc (channelConfig, usernameOrEmail) {
-  return Types.loginLoginRpcChannelMap(
+  return Types.loginLoginRpcChannelMapOld(
     channelConfig,
     {param: {
       deviceType,
@@ -378,7 +378,7 @@ function loginRpc (channelConfig, usernameOrEmail) {
 }
 
 function addDeviceRpc (channelConfig) {
-  return Types.deviceDeviceAddRpcChannelMap(channelConfig, {})
+  return Types.deviceDeviceAddRpcChannelMapOld(channelConfig, {})
 }
 
 function * finishLoginSaga ({error, params}) {
@@ -474,7 +474,7 @@ function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
 
   const onBackSaga = function * (response) {
     yield put(loadDevices())
-    yield put(navigateTo([devicesTab]))
+    yield put(navigateTo(devicesTabLocation))
     if (response) {
       const engineInst = yield call(engine)
       yield call([engine, engineInst.cancelRPC], response, InputCancelError)
@@ -515,60 +515,31 @@ function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
 }
 
 function * reloginSaga ({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
-  const finishedSaga = function * ({error}) {
-    if (error) {
-      const message = error.toString()
-      yield put(Creators.loginDone({message}))
-      if (error.desc === 'No device provisioned locally for this user') {
-        yield put(Creators.setLoginFromRevokedDevice(message))
-        yield put(navigateTo([loginTab]))
+  const chanMap = Types.loginLoginProvisionedDeviceRpcChannelMap([
+    'keybase.1.secretUi.getPassphrase',
+    'finished',
+  ], {param: {noPassphrasePrompt: false, username: usernameOrEmail}})
+
+  while (true) {
+    const incoming = yield chanMap.race()
+    if (incoming.getPassphrase) {
+      const {response} = (incoming.getPassphrase: any)
+      response.result({passphrase: passphrase.stringValue(), storeSecret: true})
+    } else if (incoming.finished) {
+      const {error} = (incoming.finished: any)
+      if (error) {
+        const message = error.toString()
+        yield put(Creators.loginDone({message}))
+        if (error.desc === 'No device provisioned locally for this user') {
+          yield put(Creators.setLoginFromRevokedDevice(message))
+          yield put(navigateTo([loginTab]))
+        }
+      } else {
+        yield call(loginSuccess)
       }
-    } else {
-      yield call(loginSuccess)
+      break
     }
   }
-
-  const reloginSagas = {
-    'keybase.1.secretUi.getPassphrase': function * ({response}) {
-      yield result(response, {passphrase: passphrase.stringValue(), storeSecret: true})
-    },
-    'finished': finishedSaga,
-  }
-
-  const channelConfig = Saga.singleFixedChannelConfig(Object.keys(reloginSagas))
-  const chanMap = Types.loginLoginProvisionedDeviceRpcChannelMap(
-    channelConfig,
-    {param: {noPassphrasePrompt: false, username: usernameOrEmail}},
-  )
-
-  yield Saga.mapSagasToChanMap(Saga.safeTakeLatest, reloginSagas, chanMap)
-}
-
-function * submitForgotPasswordSaga () {
-  yield put({payload: undefined, type: Constants.actionSetForgotPasswordSubmitting})
-
-  const sagas = {
-    finished: function * ({error}) {
-      if (error) {
-        yield put({
-          error: true,
-          payload: error,
-          type: Constants.actionForgotPasswordDone,
-        })
-      } else {
-        yield put({
-          error: false,
-          payload: undefined,
-          type: Constants.actionForgotPasswordDone,
-        })
-      }
-    },
-  }
-
-  const email = yield select(state => state.login.forgotPasswordEmailAddress)
-  const channelConfig = Saga.singleFixedChannelConfig(Object.keys(sagas))
-  const chanMap = Types.loginRecoverAccountFromEmailAddressRpcChannelMap(channelConfig, {param: {email}})
-  yield Saga.mapSagasToChanMap(Saga.safeTakeLatest, sagas, chanMap)
 }
 
 function * openAccountResetPageSaga () {
@@ -585,20 +556,14 @@ function * logoutDoneSaga () {
 function * logoutSaga () {
   yield call(deletePushTokenSaga)
 
-  const sagas = {
-    finished: function * ({error}) {
-      if (error) {
-        console.log(error)
-      } else {
-        yield put(Creators.logoutDone())
-      }
-    },
-  }
-
   // Add waiting handler
-  const channelConfig = Saga.singleFixedChannelConfig(Object.keys(sagas))
-  const chanMap = Types.loginLogoutRpcChannelMap(channelConfig, {})
-  yield Saga.mapSagasToChanMap(Saga.safeTakeLatest, sagas, chanMap)
+  const chanMap = Types.loginLogoutRpcChannelMap(['finished'], {})
+  const incoming = yield chanMap.take('finished')
+  if (incoming.error) {
+    console.log(incoming.error)
+  } else {
+    yield put(Creators.logoutDone())
+  }
 }
 
 function * loginSaga (): SagaGenerator<any, any> {
@@ -606,7 +571,6 @@ function * loginSaga (): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(Constants.cameraBrokenMode, cameraBrokenModeSaga)
   yield Saga.safeTakeLatest(Constants.setCodeMode, generateQRCode)
   yield Saga.safeTakeLatest(Constants.relogin, reloginSaga)
-  yield Saga.safeTakeLatest(Constants.submitForgotPassword, submitForgotPasswordSaga)
   yield Saga.safeTakeLatest(Constants.openAccountResetPage, openAccountResetPageSaga)
   yield Saga.safeTakeLatest(Constants.navBasedOnLoginState, navBasedOnLoginState)
   yield Saga.safeTakeLatest(Constants.logoutDone, logoutDoneSaga)
