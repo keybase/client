@@ -2420,7 +2420,7 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 					}
 					op = rop
 
-					// If this renames from a destination that's been
+					// If this renames from a source that's been
 					// deleted by a previous op, we should replace the
 					// delete with this.
 					for i, prevOp := range ops {
