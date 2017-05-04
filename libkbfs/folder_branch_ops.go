@@ -3796,7 +3796,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 		// and we have to retry with the original ops.  TODO: make a
 		// better way of copying a single op.
 		ops := make(opsList, 1)
-		err := kbfscodec.Update(
+		err = kbfscodec.Update(
 			fbo.config.Codec(), &ops, opsList([]op{dop.dirOp}))
 		if err != nil {
 			return err
