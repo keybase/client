@@ -21,6 +21,9 @@ const proveEnterUsername = new RouteDefNode({
         },
       },
     },
+    confirmOrPending: {
+      component: ConfirmOrPending,
+    },
   },
 })
 
