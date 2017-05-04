@@ -1899,6 +1899,8 @@ func (bps *blockPutState) addNewBlock(
 		blockState{blockPtr, block, readyBlockData, syncedCb, zeroPtr})
 }
 
+// saveOldPtr stores the given BlockPointer as the old (pre-readied)
+// pointer for the most recent blockState.
 func (bps *blockPutState) saveOldPtr(oldPtr BlockPointer) {
 	bps.blockStates[len(bps.blockStates)-1].oldPtr = oldPtr
 }
