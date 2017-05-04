@@ -1,6 +1,5 @@
 :: Build keybase.exe with prerelease options
 set GOARCH=386
-set GO15VENDOREXPERIMENT=1
 
 if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4.2
 echo DOKAN_PATH %DOKAN_PATH%
@@ -49,12 +48,6 @@ popd
 :: Updater
 pushd %GOPATH%\src\github.com\keybase\go-updater\service
 go build -a -o upd.exe
-popd
-
-:: Runquiet
-pushd %GOPATH%\src\github.com\keybase\client\go\tools\runquiet
-..\..\keybase\winresource.exe  -d "Keybase quiet start utility" -n "runquiet.exe" -i ../../../media/icons/Keybase.ico
-go build -ldflags "-H windowsgui"
 popd
 
 :: dokanclean

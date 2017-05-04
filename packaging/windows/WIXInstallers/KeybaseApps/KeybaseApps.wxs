@@ -89,13 +89,13 @@
         </RegistryKey>
         <File Id="keybase.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\keybase\keybase.exe" Checksum="yes"/>
 			</Component>
-      <Component Id="runquiet.exe" Guid="{1265F74B-0775-4522-A67D-25422D1984A3}">
+      <Component Id="keybaserq.exe" Guid="{4A8A451F-973A-4E59-AC42-A8A9878FC94B}">
         <CreateFolder />
-        <RemoveFolder Id="RemoveMyAppRunner" On="uninstall" />
+        <RemoveFolder Id="RemoveMyKeybaseRQ" On="uninstall" />
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="runquietexe" Value="1" KeyPath="yes" Type="integer" />
+          <RegistryValue Name="keybaserqexe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
-        <File Id="runquiet.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe" Checksum="yes"/>
+        <File Id="keybaserq.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe" Checksum="yes"/>
       </Component>
 
       <Component Id="KbfsDokanExe" Guid="{98A16FB9-D314-495A-806C-B75DCB74CF9D}">
@@ -160,7 +160,7 @@
       <Component Id="AppShortCutStartUpComponent" Guid="{2EE65854-7CA1-4010-B62B-780F1C39ED0A}">
         <Shortcut Id="AppShortCutStartUp" Name="KeybaseStartup"
                   Description="Start Keybase at boot"
-                  Target="[INSTALLFOLDER]runquiet.exe"
+                  Target="[INSTALLFOLDER]keybaserq.exe"
                   Arguments="keybase.exe ctl watchdog2"
                   WorkingDirectory="INSTALLFOLDER"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
@@ -170,7 +170,7 @@
       <Component Id="GUIShortCutStartUpComponent" Guid="{4AC98412-7636-4727-AB39-44A98E25249A}">
         <Shortcut Id="GUIShortCutStartUp" Name="GUIStartup"
                   Description="Start GUI at boot"
-                  Target="[INSTALLFOLDER]runquiet.exe"
+                  Target="[INSTALLFOLDER]keybaserq.exe"
                   Arguments="&quot;[GuiDir]Keybase.exe&quot;"
                   WorkingDirectory="INSTALLFOLDER"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
@@ -256,42 +256,42 @@
     <!-- This has to be run so the repairman can finish moving files before upd.exe is run by watchdog2 -->
     <CustomAction Id="RunMainAppDummyForRepair"
               Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; --standalone ping"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; --standalone ping"
               Execute="commit"
               Return="ignore"/>
   </Fragment>
   <Fragment>
     <CustomAction Id="RunMainApp"
               Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]runquiet.exe &quot;[INSTALLFOLDER]keybase.exe&quot; ctl watchdog2"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe &quot;[INSTALLFOLDER]keybase.exe&quot; ctl watchdog2"
               Execute="commit"
               Return="ignore"/>    
   </Fragment>
   <Fragment>
     <CustomAction Id="StopMainApp"
               Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
   <Fragment>
     <CustomAction Id="StopUpdater"
               Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
   <Fragment>
     <CustomAction Id="StopMainAppRoaming"
               Directory="ROAMINGINSTALLFOLDER"
-              ExeCommand="[ROAMINGINSTALLFOLDER]runquiet.exe -wait &quot;[ROAMINGINSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
+              ExeCommand="[ROAMINGINSTALLFOLDER]keybaserq.exe -wait &quot;[ROAMINGINSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
   <Fragment>
     <CustomAction Id="StopUpdaterRoaming"
               Directory="ROAMINGINSTALLFOLDER"
-              ExeCommand="[ROAMINGINSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
+              ExeCommand="[ROAMINGINSTALLFOLDER]keybaserq.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
@@ -299,14 +299,14 @@
   <Fragment>
     <CustomAction Id="RunGUI"
               Directory="GuiDir"
-              ExeCommand="[INSTALLFOLDER]runquiet.exe &quot;[GuiDir]Keybase.exe&quot;"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe &quot;[GuiDir]Keybase.exe&quot;"
               Execute="commit"
               Return="ignore"/>
   </Fragment>
   <Fragment>
     <CustomAction Id="StopGUI"
               Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM Keybase.exe"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM Keybase.exe"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
