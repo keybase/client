@@ -18,6 +18,7 @@ export type Props = {
   refresh: () => void,
   onAvatarLoaded?: () => void,
   onBack: ?() => void,
+  onChat: () => void,
   onFollow: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,

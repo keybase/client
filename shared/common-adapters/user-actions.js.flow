@@ -6,6 +6,7 @@ export type Props = {
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,
   style: Object,
+  onChat: () => void,
   onFollow: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,

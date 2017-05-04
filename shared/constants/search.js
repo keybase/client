@@ -2,6 +2,7 @@
 import type {IconType} from '../common-adapters/icon'
 import type {TypedAction} from '../constants/types/flux'
 import type {OnClickFollowers, OnClickFollowing, OnClickAvatar} from './profile'
+import type {StartConversation} from './chat'
 
 export type SearchPlatforms = 'Keybase'
 | 'Twitter'
@@ -106,7 +107,7 @@ export const waiting = 'search:waiting'
 export type Waiting = TypedAction<'search:waiting', {waiting: boolean}, void>
 
 export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUsersToGroup
-  | RemoveUserFromGroup | ToggleUserGroup | Reset | Waiting | OnClickFollowers | OnClickFollowing | OnClickAvatar
+  | RemoveUserFromGroup | ToggleUserGroup | Reset | Waiting | OnClickFollowers | OnClickFollowing | OnClickAvatar | StartConversation
 
 export function platformToIcon (platform: SearchPlatforms): IconType {
   return {

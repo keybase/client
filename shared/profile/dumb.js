@@ -155,6 +155,7 @@ const propsBase: RenderProps = {
   onPushProfile: username => console.log('onpush', username),
   reason: '',
   onBack: () => console.log('onBack'),
+  onChat: () => console.log('onChat'),
   refresh: () => console.log('refresh'),
   onFollow: () => console.log('onFollow'),
   onUnfollow: () => console.log('onUnfollow'),
