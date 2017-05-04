@@ -164,7 +164,7 @@ class Profile extends Component<void, Props, State> {
         <NativeScrollView style={{flex: 1, backgroundColor: trackerStateColors.header.background}} contentContainerStyle={{backgroundColor: globalColors.white}}>
           {proofNotice && (
             <Box style={{...styleProofNotice, backgroundColor: trackerStateColors.header.background}}>
-              <Text type='BodySemibold' style={{color: globalColors.white}}>{proofNotice}</Text>
+              <Text type='BodySemibold' style={{color: globalColors.white, textAlign: 'center'}}>{proofNotice}</Text>
             </Box>
           )}
           <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
@@ -194,7 +194,6 @@ class Profile extends Component<void, Props, State> {
             {!this.props.loading &&
               <UserProofs
                 type={'missingProofs'}
-                style={styleMissingProofs}
                 username={this.props.username}
                 missingProofs={missingProofs}
                 currentlyFollowing={false} />}
@@ -229,6 +228,8 @@ const styleProofNotice = {
   ...globalStyles.flexBoxRow,
   justifyContent: 'center',
   paddingBottom: globalMargins.small,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
 }
 
 const styleActions = {
@@ -242,10 +243,6 @@ const styleProofsAndFolders = {
   paddingLeft: globalMargins.large,
   paddingRight: globalMargins.large,
   paddingBottom: globalMargins.medium,
-}
-
-const styleMissingProofs = {
-  marginTop: globalMargins.tiny,
 }
 
 const styleFolderLine = {
