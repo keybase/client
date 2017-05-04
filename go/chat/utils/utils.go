@@ -195,6 +195,7 @@ type ConversationStatusBehavior struct {
 	ShowBadges bool
 }
 
+// GetConversationStatusBehavior gives information about what is allowed for a conversation status.
 // When changing these, be sure to update gregor's postMessage as well
 func GetConversationStatusBehavior(s chat1.ConversationStatus) ConversationStatusBehavior {
 	switch s {
@@ -229,6 +230,15 @@ func GetConversationStatusBehavior(s chat1.ConversationStatus) ConversationStatu
 		return ConversationStatusBehavior{
 			ShowInInbox:           false,
 			SendingRemovesStatus:  true,
+			ActivityRemovesStatus: false,
+			DesktopNotifications:  false,
+			PushNotifications:     false,
+			ShowBadges:            false,
+		}
+	case chat1.ConversationStatus_REPORTED:
+		return ConversationStatusBehavior{
+			ShowInInbox:           false,
+			SendingRemovesStatus:  false,
 			ActivityRemovesStatus: false,
 			DesktopNotifications:  false,
 			PushNotifications:     false,

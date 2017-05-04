@@ -61,6 +61,7 @@ export const CommonConversationStatus = {
   ignored: 2,
   blocked: 3,
   muted: 4,
+  reported: 5,
 }
 
 export const CommonInboxResType = {
@@ -1044,6 +1045,7 @@ export type ConversationStatus =
   | 2 // IGNORED_2
   | 3 // BLOCKED_3
   | 4 // MUTED_4
+  | 5 // REPORTED_5
 
 export type DownloadAttachmentLocalRes = {
   offline: boolean,
