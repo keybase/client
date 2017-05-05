@@ -73,6 +73,7 @@ class ConversationInput extends Component<void, Props, void> {
       <Box style={styleContainer}>
         <Input
           autoCorrect={true}
+          autoCapitalize='sentences'
           autoFocus={false}
           hideUnderline={true}
           hintText='Write a message'
@@ -94,15 +95,33 @@ class ConversationInput extends Component<void, Props, void> {
 
 const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) => (
   text ? (
-    <ClickableBox feedback={false} onClick={onSubmit}>
-      <Box style={{padding: globalMargins.small}}>
+    <ClickableBox feedback={false} onClick={onSubmit} style={{}}>
+      <Box style={styleActionText}>
         <Text type='BodyBigLink' style={{...(isLoading ? {color: globalColors.grey} : {})}}>{editingMessage ? 'Save' : 'Send'}</Text>
       </Box>
     </ClickableBox>
   ) : (
-    <Icon onClick={openFilePicker} type='iconfont-camera' style={{padding: globalMargins.small}} />
+    <Icon onClick={openFilePicker} type='iconfont-camera' style={styleActionButton} />
   )
 )
+
+const styleActionText = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  alignSelf: 'flex-end',
+  justifyContent: 'center',
+  paddingBottom: 5,
+  paddingLeft: globalMargins.tiny,
+  paddingRight: globalMargins.small,
+  paddingTop: 5,
+}
+
+const styleActionButton = {
+  alignSelf: 'flex-end',
+  paddingBottom: 5,
+  paddingLeft: globalMargins.tiny,
+  paddingRight: globalMargins.small,
+}
 
 const styleInputText = {
   ...globalStyles.fontRegular,
@@ -115,13 +134,13 @@ const styleContainer = {
   alignItems: 'center',
   borderTopColor: globalColors.black_05,
   borderTopWidth: 1,
-  minHeight: 48,
+  paddingBottom: 10,
+  paddingTop: 10,
 }
 
 const styleInput = {
   flex: 1,
   marginLeft: globalMargins.tiny,
-  marginRight: globalMargins.tiny,
 }
 
 export default ConversationInput
