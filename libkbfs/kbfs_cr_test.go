@@ -907,6 +907,9 @@ func TestCRDouble(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		err = kbfsOps2.SyncAll(syncCtx, fileNodeC.GetFolderBranch())
+		// Even though internally folderBranchOps ignores the
+		// cancellation error when putting on an unmerged branch, the
+		// wrapper function *might* still return it.
 		if err != nil {
 			assert.Equal(t, context.Canceled, err)
 		}
