@@ -301,6 +301,7 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
 
   yield put(Creators.loadingMessages(conversationIDKey, true))
 
+  const appFocused = yield select(Shared.focusedSelector)
   const yourName = yield select(usernameSelector)
   const yourDeviceName = yield select(Shared.devicenameSelector)
 
@@ -342,7 +343,7 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
       },
       query: {
         disableResolveSupersedes: false,
-        markAsRead: true,
+        markAsRead: appFocused,
         messageTypes,
       },
     },
