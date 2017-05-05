@@ -134,8 +134,8 @@ const styleContainer = {
   alignItems: 'center',
   borderTopColor: globalColors.black_05,
   borderTopWidth: 1,
-  paddingBottom: 10,
-  paddingTop: 10,
+  paddingBottom: globalMargins.tiny,
+  paddingTop: globalMargins.tiny,
 }
 
 const styleInput = {
