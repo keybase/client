@@ -198,7 +198,7 @@ func TestNodeCacheUpdatePointer(t *testing.T) {
 
 // Tests that Move works as expected
 func TestNodeCacheMoveSuccess(t *testing.T) {
-	ncs, _, childNode1, childNode2, path1, path2 :=
+	ncs, parentNode, childNode1, childNode2, path1, path2 :=
 		setupNodeCache(t, tlf.FakeID(0, false), MasterBranch, true)
 	parentPtr := path1[0].BlockPointer
 	childPtr1 := path1[1].BlockPointer
@@ -235,6 +235,10 @@ func TestNodeCacheMoveSuccess(t *testing.T) {
 		t.Errorf("Child2 has the wrong name after move: %s",
 			childNode2.GetBasename())
 	}
+	if childNode2.(*nodeStandard).core.parent != parentNode {
+		t.Errorf("UpdateParent didn't work")
+	}
+
 }
 
 // Tests that a child can't be updated with an unknown parent
