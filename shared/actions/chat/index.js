@@ -606,9 +606,8 @@ function * _startConversation (action: Constants.StartConversation): SagaGenerat
   const {users, forceImmediate} = action.payload
   const me = yield select(usernameSelector)
 
-  // A chat TLF without our username in wouldn't be one we can participate in.
   if (!users.includes(me)) {
-    users.push(me)
+    throw new Error('Attempted to start a chat without the current user')
   }
 
   const inboxSelector = (state: TypedState, tlfName: string) => {
