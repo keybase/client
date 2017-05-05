@@ -181,6 +181,7 @@ class Profile extends Component<void, Props, State> {
               style={styleActions}
               trackerState={this.props.trackerState}
               currentlyFollowing={this.props.currentlyFollowing}
+              onChat={this.props.onChat}
               onFollow={this.props.onFollow}
               onUnfollow={this.props.onUnfollow}
               onAcceptProofs={this.props.onAcceptProofs} />}

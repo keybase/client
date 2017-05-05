@@ -601,6 +601,14 @@ func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, ast *AppStatus) erro
 	if ast.Code != SCBadSession {
 		return nil
 	}
+
+	// if SCBadSession comes back, but no session was provided, then the session isn't invalid,
+	// the requesting code is broken.
+	if arg.SessionType == APISessionTypeNONE {
+		a.G().Log.CDebugf(arg.NetContext, "api request to %q was made with session type NONE, but api server responded with bad sesion", arg.Endpoint)
+		return fmt.Errorf("api endpoint %q requires session, APIArg for this request had session type NONE", arg.Endpoint)
+	}
+
 	var loggedIn bool
 	if arg.SessionR != nil {
 		loggedIn = arg.SessionR.IsLoggedIn()

@@ -5089,6 +5089,7 @@ export type SessionToken = string
 
 export type SharedDHKey = {
   gen: int,
+  seqno: int,
   kid: KID,
 }
 
@@ -5494,6 +5495,7 @@ export type UserPlusAllKeys = {
 export type UserPlusKeys = {
   uid: UID,
   username: string,
+  eldestSeqno: int,
   deviceKeys?: ?Array<PublicKey>,
   revokedDeviceKeys?: ?Array<RevokedKey>,
   pgpKeyCount: int,

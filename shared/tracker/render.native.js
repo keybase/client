@@ -49,6 +49,7 @@ export default class TrackerRender extends Component<void, RenderProps, void> {
           currentlyFollowing={this.props.currentlyFollowing}
           username={this.props.username}
           lastAction={this.props.lastAction}
+          onChat={this.props.onChat}
           onClose={this.props.onClose}
           onIgnore={this.props.onIgnore}
           onFollow={this.props.onFollow}

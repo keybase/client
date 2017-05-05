@@ -112,10 +112,7 @@ func MakePseudonym(info TlfPseudonymInfo) (TlfPseudonym, error) {
 	}
 	mac := hmac.New(sha256.New, info.HmacKey[:])
 	mac.Write(buf)
-	hmac, err := MakeByte32(mac.Sum(nil))
-	if err != nil {
-		return [32]byte{}, err
-	}
+	hmac := MakeByte32(mac.Sum(nil))
 	return hmac, nil
 }
 
@@ -274,9 +271,5 @@ func RandomHmacKey() [32]byte {
 	if err != nil {
 		panic(err)
 	}
-	array, err := MakeByte32(slice)
-	if err != nil {
-		panic(err)
-	}
-	return array
+	return MakeByte32(slice)
 }

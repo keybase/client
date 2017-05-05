@@ -22,6 +22,7 @@ const userPaneBase: UserRenderProps = {
   proofs: proofsDefault,
   trackerState: normal,
   currentlyFollowing: false,
+  onChat: () => console.log('onChat'),
   onFollow: () => console.log('onFollow'),
   onUnfollow: () => console.log('onUnfollow'),
   onAcceptProofs: () => console.log('onAcceptProofs'),

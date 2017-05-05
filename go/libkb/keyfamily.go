@@ -90,7 +90,7 @@ type ComputedKeyInfos struct {
 	// For each generation, the public KID that corresponds to the shared
 	// DH key. We're not keeping these in ComputedKeyFamily for now. For generation=0,
 	// we expect a nil KID
-	SharedDHKeys map[keybase1.SharedDHKeyGeneration]keybase1.KID
+	SharedDHKeys map[keybase1.SharedDHKeyGeneration]keybase1.SharedDHKey
 }
 
 // As returned by user/lookup.json
@@ -207,7 +207,7 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo, len(cki.Sigs)),
 		Devices:       make(map[keybase1.DeviceID]*Device, len(cki.Devices)),
 		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID, len(cki.KIDToDeviceID)),
-		SharedDHKeys:  make(map[keybase1.SharedDHKeyGeneration]keybase1.KID),
+		SharedDHKeys:  make(map[keybase1.SharedDHKeyGeneration]keybase1.SharedDHKey),
 	}
 	for k, v := range cki.Infos {
 		ret.Infos[k] = v
@@ -285,7 +285,7 @@ func NewComputedKeyInfos(g *GlobalContext) *ComputedKeyInfos {
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo),
 		Devices:       make(map[keybase1.DeviceID]*Device),
 		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID),
-		SharedDHKeys:  make(map[keybase1.SharedDHKeyGeneration]keybase1.KID),
+		SharedDHKeys:  make(map[keybase1.SharedDHKeyGeneration]keybase1.SharedDHKey),
 	}
 }
 
@@ -582,7 +582,11 @@ func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid k
 // DelegateSharedDHKey inserts the new shared DH public key into the
 // list of known generations of DH public keys.
 func (cki *ComputedKeyInfos) DelegateSharedDHKey(s *SharedDHKeyChainLink) (err error) {
-	cki.SharedDHKeys[s.generation] = s.GetDelegatedKid()
+	cki.SharedDHKeys[s.generation] = keybase1.SharedDHKey{
+		Gen:   int(s.generation),
+		Kid:   s.GetDelegatedKid(),
+		Seqno: int(s.GetSeqno()),
+	}
 	return nil
 }
 
@@ -1094,4 +1098,19 @@ func (ckf ComputedKeyFamily) GetSaltpackSenderTypeIfInactive(kid keybase1.KID) (
 	// This also shouldn't happen without a server bug or a very unlikely race
 	// condition.
 	return nil, fmt.Errorf("Key %s neither active nor revoked (%d)", kid.String(), info.Status)
+}
+
+// If there aren't any shared DH keys in the current generation, return nil.
+func (ckf *ComputedKeyFamily) GetLatestSharedDHKey() *keybase1.SharedDHKey {
+	var currentGeneration keybase1.SharedDHKeyGeneration
+	var ret *keybase1.SharedDHKey
+	for generation, key := range ckf.cki.SharedDHKeys {
+		if generation > currentGeneration {
+			currentGeneration = generation
+			// Avoid taking references to the loop variable.
+			currentKey := key
+			ret = &currentKey
+		}
+	}
+	return ret
 }

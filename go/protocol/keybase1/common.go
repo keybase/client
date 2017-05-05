@@ -188,13 +188,15 @@ type UserVersionVector struct {
 }
 
 type SharedDHKey struct {
-	Gen int `codec:"gen" json:"gen"`
-	Kid KID `codec:"kid" json:"kid"`
+	Gen   int `codec:"gen" json:"gen"`
+	Seqno int `codec:"seqno" json:"seqno"`
+	Kid   KID `codec:"kid" json:"kid"`
 }
 
 type UserPlusKeys struct {
 	Uid               UID               `codec:"uid" json:"uid"`
 	Username          string            `codec:"username" json:"username"`
+	EldestSeqno       int               `codec:"eldestSeqno" json:"eldestSeqno"`
 	DeviceKeys        []PublicKey       `codec:"deviceKeys" json:"deviceKeys"`
 	RevokedDeviceKeys []RevokedKey      `codec:"revokedDeviceKeys" json:"revokedDeviceKeys"`
 	PGPKeyCount       int               `codec:"pgpKeyCount" json:"pgpKeyCount"`

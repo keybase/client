@@ -5,6 +5,7 @@ import Render from './render'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 import {isLoading} from '../constants/tracker'
+import {startConversation} from '../actions/chat'
 import {onClickAvatar, onClickFollowers, onClickFollowing} from '../actions/profile'
 
 import type {ErrorProps} from './error'
@@ -21,8 +22,10 @@ export type TrackerProps = {
   lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
   loading: boolean,
   loggedIn: boolean,
+  myUsername: string,
   name?: string,
   nonUser: ?boolean,
+  onChat: () => void,
   onClose: () => void,
   onFollow: () => void,
   onIgnore: () => void,
@@ -80,6 +83,7 @@ export default connect(
       errorMessage: trackerState.error,
       loading: isLoading(trackerState),
       loggedIn: state.config && state.config.loggedIn,
+      myUsername: state.config && state.config.username,
       nonUser: trackerState && trackerState.type === 'nonUser',
       ...trackerState,
       ...ownProps,
@@ -89,6 +93,7 @@ export default connect(
     const actions = bindActionCreators(trackerActions, dispatch)
     return {
       errorRetry: ownProps.errorRetry || (() => { actions.getProfile(ownProps.username, true) }),
+      onChat: (username, myUsername) => { username && myUsername && dispatch(startConversation([username, myUsername])) },
       onClickAvatar: (username) => { dispatch(onClickAvatar(username, true)) },
       onClickFollowers: (username) => { dispatch(onClickFollowers(username, true)) },
       onClickFollowing: (username) => { dispatch(onClickFollowing(username, true)) },
@@ -101,8 +106,7 @@ export default connect(
     }
   },
   (stateProps, dispatchProps, ownProps) => {
-    const {username} = stateProps
-
+    const {myUsername, username} = stateProps
     return {
       ...ownProps,
       ...stateProps,
@@ -113,6 +117,7 @@ export default connect(
         onRetry: dispatchProps.errorRetry,
       }
       : null,
+      onChat: () => dispatchProps.onChat(username, myUsername),
       onClickAvatar: () => dispatchProps.onClickAvatar(username),
       onClickFollowers: () => dispatchProps.onClickFollowers(username),
       onClickFollowing: () => dispatchProps.onClickFollowing(username),
@@ -126,6 +131,7 @@ export function selector (username: string): (store: Object) => ?Object {
       return {
         config: {
           loggedIn: store.config.loggedIn,
+          username: store.config.username,
         },
         tracker: {
           trackers: {

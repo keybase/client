@@ -100,7 +100,10 @@ export default compose(
   }),
   lifecycle({
     componentDidUpdate: function (prevProps: Props & {_editedCount: number}) {
-      if (this.props.measure && this.props._editedCount !== prevProps._editedCount) {
+      if (this.props.measure &&
+        (this.props._editedCount !== prevProps._editedCount) ||
+        (this.props.isFirstNewMessage !== prevProps.isFirstNewMessage)
+      ) {
         this.props.measure()
       }
     },
