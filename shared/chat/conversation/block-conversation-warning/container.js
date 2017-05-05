@@ -22,7 +22,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onBlock: (conversationIDKey: ConversationIDKey) => dispatch(({payload: {blocked: true, conversationIDKey}, type: 'chat:blockConversation'}: BlockConversation)),
+  onBlock: (conversationIDKey: ConversationIDKey, reportUser: boolean) => dispatch(({payload: {blocked: true, conversationIDKey, reportUser}, type: 'chat:blockConversation'}: BlockConversation)),
   onBack: () => dispatch(navigateUp()),
 })
 
@@ -30,8 +30,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
   ...ownProps,
+  onBlockAndReport: () => {
+    dispatchProps.onBlock(stateProps.conversationIDKey, true)
+    dispatchProps.onBack()
+  },
   onBlock: () => {
-    dispatchProps.onBlock(stateProps.conversationIDKey)
+    dispatchProps.onBlock(stateProps.conversationIDKey, false)
     dispatchProps.onBack()
   },
 })
