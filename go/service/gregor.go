@@ -224,6 +224,7 @@ func (g *gregorHandler) setAppState(appState *appState) {
 				return
 			case state := <-g.appState.NextUpdate():
 				if state == keybase1.AppState_FOREGROUND {
+					g.chatLog.Debug(context.Background(), "foregrounded, forcing ping loop")
 					g.forcePingCh <- struct{}{}
 				}
 			}

@@ -34,7 +34,7 @@ function * mainSaga (): SagaGenerator<any, any> {
   yield fork(pushSaga)
   yield fork(routeSaga)
   yield fork(settingsSaga)
-  //yield fork(appStateSaga)
+  yield fork(appStateSaga)
 }
 
 let middleWare
