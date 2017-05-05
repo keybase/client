@@ -1826,7 +1826,7 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 	defer libkbfs.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt1, fs1, cancelFn1 := makeFS(t, ctx, config)
+	mnt1, _, cancelFn1 := makeFS(t, ctx, config)
 	defer mnt1.Close()
 	defer cancelFn1()
 	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config, 'U')
@@ -2182,7 +2182,7 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
 		"user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config1)
-	mnt1, _, cancelFn1 := makeFS(t, ctx, config1)
+	mnt1, fs1, cancelFn1 := makeFS(t, ctx, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
@@ -2455,7 +2455,7 @@ func TestUnstageFile(t *testing.T) {
 	defer libkbfs.CleanupCancellationDelayer(ctx)
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config1)
-	mnt1, _, cancelFn1 := makeFS(t, ctx, config1)
+	mnt1, fs1, cancelFn1 := makeFS(t, ctx, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
