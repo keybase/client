@@ -55,6 +55,12 @@ function _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (
 }
 
 
+export const AppStateAppState = {
+  foreground: 0,
+  background: 1,
+  inactive: 2,
+}
+
 export const BackendCommonBlockType = {
   data: 0,
   md: 1,
@@ -1082,6 +1088,21 @@ export function apiserverPostRpcChannelMapOld (channelConfig: ChannelConfig<*>, 
 
 export function apiserverPostRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostResult) => void} & {param: apiserverPostRpcParam}>): Promise<apiserverPostResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.apiserver.Post', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function appStateUpdateAppStateRpc (request: Exact<requestCommon & requestErrorCallback & {param: appStateUpdateAppStateRpcParam}>) {
+  engineRpcOutgoing('keybase.1.appState.updateAppState', request)
+}
+
+export function appStateUpdateAppStateRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: appStateUpdateAppStateRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.appState.updateAppState', request)
+}
+export function appStateUpdateAppStateRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: appStateUpdateAppStateRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.appState.updateAppState', request, callback, incomingCallMap) })
+}
+
+export function appStateUpdateAppStateRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: appStateUpdateAppStateRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.appState.updateAppState', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function blockAddReferenceRpc (request: Exact<requestCommon & requestErrorCallback & {param: blockAddReferenceRpcParam}>) {
@@ -3806,6 +3827,11 @@ export type APIRes = {
   appStatus: string,
 }
 
+export type AppState =
+    0 // FOREGROUND_0
+  | 1 // BACKGROUND_1
+  | 2 // INACTIVE_2
+
 export type AsyncOps =
     0 // LIST_0
   | 1 // LIST_RECURSIVE_1
@@ -5616,6 +5642,10 @@ export type apiserverPostRpcParam = Exact<{
   appStatusCode?: ?Array<int>
 }>
 
+export type appStateUpdateAppStateRpcParam = Exact<{
+  state: AppState
+}>
+
 export type blockAddReferenceRpcParam = Exact<{
   folder: string,
   ref: BlockReference
@@ -6703,6 +6733,7 @@ export type rpc =
   | apiserverGetWithSessionRpc
   | apiserverPostJSONRpc
   | apiserverPostRpc
+  | appStateUpdateAppStateRpc
   | blockAddReferenceRpc
   | blockArchiveReferenceRpc
   | blockArchiveReferenceWithCountRpc

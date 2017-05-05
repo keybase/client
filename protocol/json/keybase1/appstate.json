@@ -1,0 +1,27 @@
+{
+  "protocol": "appState",
+  "imports": [],
+  "types": [
+    {
+      "type": "enum",
+      "name": "AppState",
+      "symbols": [
+        "FOREGROUND_0",
+        "BACKGROUND_1",
+        "INACTIVE_2"
+      ]
+    }
+  ],
+  "messages": {
+    "updateAppState": {
+      "request": [
+        {
+          "name": "state",
+          "type": "AppState"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

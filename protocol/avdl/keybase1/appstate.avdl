@@ -1,0 +1,12 @@
+@namespace("keybase.1")
+protocol appState {
+
+    enum AppState {
+        FOREGROUND_0,
+        BACKGROUND_1,
+        INACTIVE_2
+    }
+
+    void updateAppState(AppState state);
+    
+}
