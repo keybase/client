@@ -4051,7 +4051,8 @@ func (fbo *folderBranchOps) notifyBatchLocked(
 		panic("Unexpected empty ops change list in notifyBatchLocked")
 	case 1:
 		err := fbo.notifyOneOpLocked(
-			ctx, lState, md.data.Changes.Ops[0], md, false, afterUpdateFn)
+			ctx, lState, md.data.Changes.Ops[0], md.ReadOnly(), false,
+			afterUpdateFn)
 		if err != nil {
 			return err
 		}
@@ -4064,13 +4065,14 @@ func (fbo *folderBranchOps) notifyBatchLocked(
 				"resolutionOp: %T", md.data.Changes.Ops[0])
 		}
 		err := fbo.notifyOneOpLocked(
-			ctx, lState, md.data.Changes.Ops[0], md, false, afterUpdateFn)
+			ctx, lState, md.data.Changes.Ops[0], md.ReadOnly(), false,
+			afterUpdateFn)
 		if err != nil {
 			return err
 		}
 		for i := 1; i < len(md.data.Changes.Ops); i++ {
 			err := fbo.notifyOneOpLocked(
-				ctx, lState, md.data.Changes.Ops[i], md, false, nil)
+				ctx, lState, md.data.Changes.Ops[i], md.ReadOnly(), false, nil)
 			if err != nil {
 				return err
 			}
@@ -4161,7 +4163,7 @@ func (fbo *folderBranchOps) getUnlinkPathBeforeUpdatingPointers(
 }
 
 func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
-	lState *lockState, op op, md ImmutableRootMetadata, shouldPrefetch bool,
+	lState *lockState, op op, md ReadOnlyRootMetadata, shouldPrefetch bool,
 	afterUpdateFn func() error) error {
 	fbo.headLock.AssertLocked(lState)
 
@@ -4506,7 +4508,8 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 			continue
 		}
 		for _, op := range rmd.data.Changes.Ops {
-			err := fbo.notifyOneOpLocked(ctx, lState, op, rmd, true, nil)
+			err := fbo.notifyOneOpLocked(
+				ctx, lState, op, rmd.ReadOnly(), true, nil)
 			if err != nil {
 				return err
 			}
@@ -4572,7 +4575,8 @@ func (fbo *folderBranchOps) undoMDUpdatesLocked(ctx context.Context,
 					err, ops[j])
 				continue
 			}
-			err = fbo.notifyOneOpLocked(ctx, lState, io, rmd, false, nil)
+			err = fbo.notifyOneOpLocked(
+				ctx, lState, io, rmd.ReadOnly(), false, nil)
 			if err != nil {
 				return err
 			}
@@ -5684,14 +5688,11 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 		return err
 	}
 	mdCopyWithLocalOps.data.Changes.Ops = newOps
-	irmdCopyWithLocalOps := MakeImmutableRootMetadata(
-		mdCopyWithLocalOps, session.VerifyingKey, mdID,
-		fbo.config.Clock().Now())
 
 	// notifyOneOp for every fixed-up merged op.
 	for _, op := range newOps {
 		err := fbo.notifyOneOpLocked(
-			ctx, lState, op, irmdCopyWithLocalOps, false, nil)
+			ctx, lState, op, mdCopyWithLocalOps.ReadOnly(), false, nil)
 		if err != nil {
 			return err
 		}
