@@ -2580,10 +2580,16 @@ func (fbo *folderBranchOps) createEntryLocked(
 			fbo.status.rmDirtyNode(dir)
 		}
 		fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
-		dirCacheUndoFn(lState)
+		if dirCacheUndoFn != nil {
+			dirCacheUndoFn(lState)
+		}
 	}
 	// Until KBFS-2076 is done, always clear out the cached dir data.
-	defer func() { cleanupFn() }()
+	defer func() {
+		if cleanupFn != nil {
+			cleanupFn()
+		}
+	}()
 
 	de, err = fbo.syncBlockAndFinalizeLocked(
 		ctx, lState, md, newBlock, dirPath, name, entryType,
@@ -2599,7 +2605,7 @@ func (fbo *folderBranchOps) createEntryLocked(
 		fbo.log.CDebugf(ctx, "Clearing dirty entries before applying new "+
 			"updates for exclusive write")
 		cleanupFn()
-		cleanupFn = func() {}
+		cleanupFn = nil
 		err = fbo.getAndApplyMDUpdates(ctx, lState, fbo.applyMDUpdatesLocked)
 		if err != nil {
 			return nil, DirEntry{}, err
@@ -2885,7 +2891,9 @@ func (fbo *folderBranchOps) createLinkLocked(
 			fbo.status.rmDirtyNode(dir)
 		}
 		fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
-		dirCacheUndoFn(lState)
+		if dirCacheUndoFn != nil {
+			dirCacheUndoFn(lState)
+		}
 	}()
 
 	_, err = fbo.syncBlockAndFinalizeLocked(
@@ -3022,7 +3030,9 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 			fbo.status.rmDirtyNode(dir)
 		}
 		fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
-		dirCacheUndoFn(lState)
+		if dirCacheUndoFn != nil {
+			dirCacheUndoFn(lState)
+		}
 	}()
 
 	// sync the parent directory
@@ -3212,7 +3222,9 @@ func (fbo *folderBranchOps) renameLocked(
 			fbo.status.rmDirtyNode(n)
 		}
 		fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
-		dirCacheUndoFn(lState)
+		if dirCacheUndoFn != nil {
+			dirCacheUndoFn(lState)
+		}
 	}()
 
 	// find the common ancestor
@@ -3549,7 +3561,9 @@ func (fbo *folderBranchOps) setExLocked(
 			fbo.status.rmDirtyNode(file)
 		}
 		fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
-		dirCacheUndoFn(lState)
+		if dirCacheUndoFn != nil {
+			dirCacheUndoFn(lState)
+		}
 	}()
 
 	dblock.Children[filePath.tailName()] = de
@@ -3634,7 +3648,9 @@ func (fbo *folderBranchOps) setMtimeLocked(
 			fbo.status.rmDirtyNode(file)
 		}
 		fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
-		dirCacheUndoFn(lState)
+		if dirCacheUndoFn != nil {
+			dirCacheUndoFn(lState)
+		}
 	}()
 
 	dblock.Children[filePath.tailName()] = de

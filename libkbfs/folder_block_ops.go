@@ -851,6 +851,9 @@ type dirCacheUndoFn func(lState *lockState)
 
 func (fbo *folderBlockOps) wrapWithBlockLock(fn func()) dirCacheUndoFn {
 	return func(lState *lockState) {
+		if fn == nil {
+			return
+		}
 		fbo.blockLock.Lock(lState)
 		defer fbo.blockLock.Unlock(lState)
 		fn()
@@ -953,7 +956,7 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(lState *lockState,
 	// entry for it as well, since there won't be any open handles to
 	// it.  We don't want this to show up as a dirty dir during
 	// syncing later.
-	restoreDirFn := func() {}
+	var restoreDirFn func()
 	if oldDe.Type == Dir {
 		dece, ok := fbo.deCache[oldDe.Ref()]
 		if ok {
@@ -967,13 +970,17 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(lState *lockState,
 	// even after giving up `blockLock`.
 	if dirEntryExisted {
 		return func() {
-			restoreDirFn()
+			if restoreDirFn != nil {
+				restoreDirFn()
+			}
 			fbo.deCache[dir.tailRef()] = cacheEntryCopy
 		}
 	}
 	// It wasn't cached yet, so an undo just deletes the entry.
 	return func() {
-		restoreDirFn()
+		if restoreDirFn != nil {
+			restoreDirFn()
+		}
 		delete(fbo.deCache, dir.tailRef())
 	}
 }
@@ -986,9 +993,7 @@ func (fbo *folderBlockOps) RemoveDirEntryInCache(lState *lockState, dir path,
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	undoFn := fbo.removeDirEntryInCacheLocked(lState, dir, oldName, oldDe)
-	return fbo.wrapWithBlockLock(func() {
-		undoFn()
-	})
+	return fbo.wrapWithBlockLock(func() { undoFn() })
 }
 
 // RenameDirEntryInCache updates the entries of both the old and new
@@ -1008,7 +1013,7 @@ func (fbo *folderBlockOps) RenameDirEntryInCache(lState *lockState,
 	if newParent.tailPointer() == oldParent.tailPointer() &&
 		oldName == newName {
 		// Noop
-		return fbo.wrapWithBlockLock(func() {})
+		return nil
 	}
 	undoAdd := fbo.addDirEntryInCacheLocked(lState, newParent, newName, newDe)
 	undoRm := fbo.removeDirEntryInCacheLocked(
