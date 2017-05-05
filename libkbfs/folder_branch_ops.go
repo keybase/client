@@ -1907,6 +1907,34 @@ func (bps *blockPutState) mergeOtherBps(other *blockPutState) {
 	bps.blockStates = append(bps.blockStates, other.blockStates...)
 }
 
+func (bps *blockPutState) removeOtherBps(other *blockPutState) {
+	if len(other.blockStates) == 0 {
+		return
+	}
+
+	otherPtrs := make(map[BlockPointer]bool, len(other.blockStates))
+	for _, bs := range other.blockStates {
+		otherPtrs[bs.blockPtr] = true
+	}
+
+	// Assume that `other` is a subset of `bps` when initializing the
+	// slice length.
+	newLen := len(bps.blockStates) - len(other.blockStates)
+	if newLen <= 0 {
+		newLen = 1
+	}
+
+	// Remove any blocks that appear in `other`.
+	newBlockStates := make([]blockState, 0, newLen)
+	for _, bs := range bps.blockStates {
+		if otherPtrs[bs.blockPtr] {
+			continue
+		}
+		newBlockStates = append(newBlockStates, bs)
+	}
+	bps.blockStates = newBlockStates
+}
+
 func (bps *blockPutState) DeepCopy() *blockPutState {
 	newBps := &blockPutState{}
 	newBps.blockStates = make([]blockState, len(bps.blockStates))
@@ -3686,7 +3714,6 @@ func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 		defer fbo.config.Reporter().Notify(ctx, writeNotification(file, true))
 	}
 
-	// Filled in by doBlockPuts below.
 	fblock, bps, lbc, syncState, err =
 		fbo.blocks.StartSync(ctx, lState, md, session.UID, file)
 	cleanup = func(ctx context.Context, lState *lockState,
@@ -3793,6 +3820,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 	var afterUpdateFns []func() error
 
 	fbo.log.CDebugf(ctx, "Syncing %d file(s)", len(dirtyFiles))
+	fileSyncBlocks := newBlockPutState(1)
 	for _, ref := range dirtyFiles {
 		node := fbo.nodeCache.Get(ref)
 		if node == nil {
@@ -3830,6 +3858,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 
 		// Merge the per-file sync info into the batch sync info.
 		bps.mergeOtherBps(newBps)
+		fileSyncBlocks.mergeOtherBps(newBps)
 		resolvedPaths[file.tailPointer()] = file
 		parent := file.parentPath().tailPointer()
 		if _, ok := fileBlocks[parent]; !ok {
@@ -3915,6 +3944,10 @@ func (fbo *folderBranchOps) syncAllLocked(
 
 	defer func() {
 		if err != nil {
+			// Remove any blocks that are covered by file syncs --
+			// those might get reused upon sync retry.  All other
+			// blocks are fair game for cleanup though.
+			bps.removeOtherBps(fileSyncBlocks)
 			fbo.fbm.cleanUpBlockState(md.ReadOnly(), bps, blockDeleteOnMDFail)
 		}
 	}()
