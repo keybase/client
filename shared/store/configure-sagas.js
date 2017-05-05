@@ -16,6 +16,7 @@ import pushSaga from '../actions/push'
 import {fork} from 'redux-saga/effects'
 import sagaMonitor from './saga-monitor'
 import {reduxSagaLogger} from '../local-debug'
+import appStateSaga from '../actions/app'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
@@ -33,6 +34,7 @@ function * mainSaga (): SagaGenerator<any, any> {
   yield fork(pushSaga)
   yield fork(routeSaga)
   yield fork(settingsSaga)
+  //yield fork(appStateSaga)
 }
 
 let middleWare

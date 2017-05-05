@@ -138,6 +138,7 @@ type gregorHandler struct {
 	chatHandler      *chat.PushHandler
 	reachability     *reachability
 	chatLog          utils.DebugLabeler
+	appState         *appState
 
 	// This mutex protects the con object
 	connMutex sync.Mutex
@@ -155,6 +156,7 @@ type gregorHandler struct {
 
 	shutdownCh  chan struct{}
 	broadcastCh chan gregor1.Message
+	forcePingCh chan struct{}
 
 	// Testing
 	testingEvents       *testingEvents
@@ -196,6 +198,7 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		badger:          nil,
 		chatHandler:     chat.NewPushHandler(g),
 		broadcastCh:     make(chan gregor1.Message, 10000),
+		forcePingCh:     make(chan struct{}),
 	}
 
 	// Attempt to create a gregor client initially, if we are not logged in
@@ -208,6 +211,24 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 	go gh.broadcastMessageHandler()
 
 	return gh
+}
+
+func (g *gregorHandler) setAppState(appState *appState) {
+	g.appState = appState
+
+	// Wait for state updates and send them to the ping loop
+	go func() {
+		for {
+			select {
+			case <-g.shutdownCh:
+				return
+			case state := <-g.appState.NextUpdate():
+				if state == keybase1.AppState_FOREGROUND {
+					g.forcePingCh <- struct{}{}
+				}
+			}
+		}
+	}()
 }
 
 func (g *gregorHandler) GetClient() rpc.GenericClient {
@@ -1183,6 +1204,18 @@ func (g *gregorHandler) Reconnect(ctx context.Context) error {
 	return nil
 }
 
+func (g *gregorHandler) dispatchPingOnce(duration time.Duration) chan struct{} {
+	ch := make(chan struct{})
+	go func() {
+		select {
+		case <-g.G().Clock().After(duration):
+		case <-g.forcePingCh:
+		}
+		close(ch)
+	}()
+	return ch
+}
+
 func (g *gregorHandler) pingLoop() {
 
 	ctx := context.Background()
@@ -1202,7 +1235,7 @@ func (g *gregorHandler) pingLoop() {
 	for {
 		ctx, shutdownCancel := context.WithCancel(context.Background())
 		select {
-		case <-g.G().Clock().After(duration):
+		case <-g.dispatchPingOnce(duration):
 			var err error
 
 			doneCh := make(chan error)

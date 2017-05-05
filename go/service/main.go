@@ -45,6 +45,7 @@ type Service struct {
 	badger               *badges.Badger
 	reachability         *reachability
 	backgroundIdentifier *BackgroundIdentifier
+	appState             *appState
 }
 
 type Shutdowner interface {
@@ -63,6 +64,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		rekeyMaster:      newRekeyMaster(g),
 		attachmentstore:  chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
 		badger:           badges.NewBadger(g, chatG.ChatG()),
+		appState:         newAppState(g),
 	}
 }
 
@@ -112,6 +114,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.attachmentstore, d.gregor)),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
+		keybase1.AppStateProtocol(newAppStateHandler(xp, g, d.appState)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
@@ -342,6 +345,7 @@ func (d *Service) startupGregor() {
 		d.gregor = newGregorHandler(globals.NewContext(d.G(), d.ChatG()))
 		d.reachability = newReachability(d.G(), d.gregor)
 		d.gregor.setReachability(d.reachability)
+		d.gregor.setAppState(d.appState)
 		d.G().ConnectivityMonitor = d.reachability
 
 		d.gregor.badger = d.badger

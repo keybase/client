@@ -4,12 +4,13 @@
 package service
 
 import (
-	"context"
+	"fmt"
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"golang.org/x/net/context"
 )
 
 type appState struct {
@@ -67,7 +68,7 @@ func newAppStateHandler(xp rpc.Transporter, g *libkb.GlobalContext, appState *ap
 }
 
 func (a *appStateHandler) UpdateAppState(ctx context.Context, state keybase1.AppState) (err error) {
-	a.G().Trace("UpdateAppState", func() error { return err })()
+	a.G().Trace(fmt.Sprintf("UpdateAppState(%v)", state), func() error { return err })()
 
 	// Update app state
 	a.appState.Update(state)
