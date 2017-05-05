@@ -134,7 +134,7 @@ type deCacheEntry struct {
 	// dels is a set of the names that have been removed from the
 	// DirBlock for the BlockPointer that maps to this struct.
 	dels map[string]bool
-	// addedSyms is a map of the dir entries for added sym links.
+	// addedSyms is a map of the dir entries for added symlinks.
 	addedSyms map[string]DirEntry
 }
 
