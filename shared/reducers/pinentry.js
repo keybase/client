@@ -2,40 +2,14 @@
 import * as Constants from '../constants/pinentry'
 import * as CommonConstants from '../constants/common'
 
-import type {Feature, GUIEntryFeatures, PassphraseType} from '../constants/types/flow-types'
-import type {PinentryActions} from '../constants/pinentry'
-
 // TODO: have a root state that maps session id to pinentry popup
 
-export type PinentryState = {
-  closed: boolean,
-  sessionID: number,
-  features: GUIEntryFeatures,
-  type: PassphraseType,
-  prompt: string,
-  windowTitle: string,
-  canceled: boolean,
-  submitted: boolean,
-  submitLabel: ?string,
-  cancelLabel: ?string,
-  retryLabel: ?string,
-}
-
-export type RootPinentryState = {
-  started: boolean,
-  pinentryStates: {
-    [key: string]: PinentryState,
-  },
-}
-
-type EnabledFeatures = {[key: string]: Feature}
-
-const initialState: RootPinentryState = {
+const initialState: Constants.State = {
   pinentryStates: {},
   started: false,
 }
 
-export default function (state: RootPinentryState = initialState, action: PinentryActions): RootPinentryState {
+export default function (state: Constants.State = initialState, action: Constants.Actions): Constants.State {
   const sessionID: ?number = (action.payload && action.payload.sessionID != null) ? action.payload.sessionID : null
   switch (action.type) {
     case CommonConstants.resetStore:
@@ -55,12 +29,12 @@ export default function (state: RootPinentryState = initialState, action: Pinent
       if (state.started && action.payload && sessionID != null) {
         const features = action.payload.features
         // Long form function to add annotation to help flow
-        const reducer = function (m: EnabledFeatures, f: string): EnabledFeatures {
+        const reducer = function (m: Constants.EnabledFeatures, f: string): Constants.EnabledFeatures {
           return {...m, [f]: features[f]}
         }
-        const enabledFeatures = Object.keys(features).filter((f: string) => features[f].allow).reduce(reducer, ({}: EnabledFeatures))
+        const enabledFeatures = Object.keys(features).filter((f: string) => features[f].allow).reduce(reducer, ({}: Constants.EnabledFeatures))
 
-        const newPinentryState: PinentryState = {
+        const newPinentryState: Constants.PinentryState = {
           canceled: false,
           closed: false,
           submitted: false,
@@ -90,7 +64,7 @@ export default function (state: RootPinentryState = initialState, action: Pinent
   }
 }
 
-function isPinentryAction (action: Object | PinentryActions): boolean {
+function isPinentryAction (action: Object | Constants.Actions): boolean {
   switch (action.type) {
     case Constants.onCancel:
     case Constants.onSubmit:
@@ -100,7 +74,7 @@ function isPinentryAction (action: Object | PinentryActions): boolean {
   }
 }
 
-function updatePinentryState (state: PinentryState, action: PinentryActions): PinentryState {
+function updatePinentryState (state: Constants.PinentryState, action: Constants.Actions): Constants.PinentryState {
   switch (action.type) {
     case Constants.onCancel:
       return {...state, canceled: true, closed: true}

@@ -3,19 +3,7 @@ import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/unlock-folders'
 import {toDeviceType} from '../constants/types/more'
 
-import type {UnlockFolderActions, Device} from '../constants/unlock-folders'
-
-export type State = {
-  closed: boolean,
-  devices: ?Array<Device>,
-  paperkeyError: ?string,
-  phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
-  sessionID: ?number,
-  started: boolean,
-  waiting: boolean,
-}
-
-const initialState: State = {
+const initialState: Constants.State = {
   closed: true,
   devices: null,
   paperkeyError: null,
@@ -25,7 +13,7 @@ const initialState: State = {
   waiting: false,
 }
 
-export default function (state: State = initialState, action: UnlockFolderActions): State {
+export default function (state: Constants.State = initialState, action: Constants.Actions): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {

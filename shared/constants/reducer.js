@@ -1,46 +1,46 @@
 // @flow
-import type {BillingState} from '../constants/plan-billing'
-import type {ConfigState} from '../reducers/config'
-import type {FavoriteState} from '../constants/favorite'
-import type {LoginState} from '../reducers/login'
-import type {RootPinentryState} from '../reducers/pinentry'
-import type {SignupState} from '../reducers/signup'
-import type {State as ChatState} from '../constants/chat'
-import type {State as DevState} from '../reducers/dev'
-import type {State as DevicesState} from '../constants/devices'
-import type {State as EntityState} from '../constants/entities'
-import type {State as GregorState} from '../reducers/gregor'
-import type {State as NotificationState} from '../constants/notifications'
-import type {State as PgpState} from '../reducers/pgp'
-import type {State as ProfileState} from '../constants/profile'
-import type {State as PushState} from '../constants/push'
-import type {State as RouteTreeState} from '../reducers/route-tree'
-import type {State as SearchState} from '../reducers/search'
-import type {State as SettingsState} from '../constants/settings'
-import type {State as TotalTrackerState} from '../reducers/tracker'
-import type {State as UnlockFoldersState} from '../reducers/unlock-folders'
+import * as Billing from '../constants/plan-billing'
+import * as Chat from '../constants/chat'
+import * as Config from '../constants/config'
+import * as Dev from '../constants/dev'
+import * as Devices from '../constants/devices'
+import * as Entity from '../constants/entities'
+import * as Favorite from '../constants/favorite'
+import * as Gregor from '../constants/gregor'
+import * as Login from '../constants/login'
+import * as Notification from '../constants/notifications'
+import * as Pgp from '../constants/pgp'
+import * as Pinentry from '../constants/pinentry'
+import * as Profile from '../constants/profile'
+import * as Push from '../constants/push'
+import * as RouteTree from '../constants/route-tree'
+import * as Search from '../constants/search'
+import * as Settings from '../constants/settings'
+import * as Signup from '../constants/signup'
+import * as TotalTracker from '../constants/tracker'
+import * as UnlockFolders from '../constants/unlock-folders'
 
 export type TypedState = {
-  config: ConfigState,
-  chat: ChatState,
-  dev: DevState,
-  devices: DevicesState,
-  entities: EntityState,
-  favorite: FavoriteState,
-  gregor: GregorState,
-  login: LoginState,
-  notifications: NotificationState,
-  pgp: PgpState,
-  pinentry: RootPinentryState,
-  planBilling: BillingState,
-  profile: ProfileState,
-  push: PushState,
-  routeTree: RouteTreeState,
-  search: SearchState,
-  settings: SettingsState,
-  signup: SignupState,
-  tracker: TotalTrackerState,
-  unlockFolders: UnlockFoldersState,
+  config: Config.State,
+  chat: Chat.State,
+  dev: Dev.State,
+  devices: Devices.State,
+  entities: Entity.State,
+  favorite: Favorite.State,
+  gregor: Gregor.State,
+  login: Login.State,
+  notifications: Notification.State,
+  pgp: Pgp.State,
+  pinentry: Pinentry.State,
+  planBilling: Billing.State,
+  profile: Profile.State,
+  push: Push.State,
+  routeTree: RouteTree.State,
+  search: Search.State,
+  settings: Settings.State,
+  signup: Signup.State,
+  tracker: TotalTracker.State,
+  unlockFolders: UnlockFolders.State,
 }
 
 export type StateLogTransformer = (state: TypedState) => Object
@@ -49,7 +49,6 @@ export type StateLogTransformer = (state: TypedState) => Object
 export type State = {[key: string]: any}
 export const stateKey = 'reducer:stateKey'
 
-// TODO expand this
 export const stateLogTransformer: StateLogTransformer = (state) => {
   const {
     config: {
@@ -63,7 +62,7 @@ export const stateLogTransformer: StateLogTransformer = (state) => {
     config: {
       username, uid, loggedIn, error, bootstrapTriesRemaining, bootStatus,
     },
-    routeTree,
+    routeTree: RouteTree.actionLoggerTransform(routeTree),
     tracker,
   }
 }

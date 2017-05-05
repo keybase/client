@@ -9,3 +9,7 @@ export const pgpAckedMessage = 'pgp:pgpAckedMessage'
 export type PgpAckedMessage = TypedAction<'pgp:pgpAckedMessage', {hitOk: boolean}, {hitOk: boolean}>
 
 export type Actions = PgpKeyInSecretStoreFile | PgpAckedMessage
+
+export type State = {
+  open: boolean,
+}

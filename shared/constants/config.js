@@ -3,7 +3,7 @@ import {uniq} from 'lodash'
 import {runMode} from './platform'
 
 import type {Tab} from './tabs'
-import type {BootstrapStatus} from './types/flow-types'
+import type {BootstrapStatus, Config, DeviceID, ExtendedStatus} from './types/flow-types'
 import type {NoErrorTypedAction} from './types/flux'
 
 // TODO remove action type constants. Type actions
@@ -47,6 +47,31 @@ export function privateFolderWithUsers (users: Array<string>): string {
 
 export function publicFolderWithUsers (users: Array<string>): string {
   return `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
+}
+
+export type State = {
+  appFocused: boolean,
+  hideKeyboard: number,
+  bootStatus: BootStatus,
+  bootstrapTriesRemaining: number,
+  config: ?Config,
+  daemonError: ?Error,
+  error: ?any,
+  extendedConfig: ?ExtendedStatus,
+  followers: {[key: string]: true},
+  following: {[key: string]: true},
+  globalError: ?Error,
+  kbfsPath: string,
+  launchedViaPush: boolean,
+  loggedIn: boolean,
+  registered: boolean,
+  readyForBootstrap: boolean,
+  uid: ?string,
+  username: ?string,
+  initialTab: ?Tab,
+  initialLink: ?string,
+  deviceID: ?DeviceID,
+  deviceName: ?string,
 }
 
 export {

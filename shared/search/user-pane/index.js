@@ -1,5 +1,5 @@
 // @flow
-import {fullName} from '../../constants/search'
+import * as Constants from '../../constants/search'
 import keybaseUrl from '../../constants/urls'
 import {TypedConnector} from '../../util/typed-connect'
 import {getProfile, onFollow, onUnfollow} from '../../actions/tracker'
@@ -9,12 +9,11 @@ import Render from './render'
 
 import type {Props} from './render'
 import type {TypedState} from '../../constants/reducer'
-import type {SearchActions} from '../../constants/search'
 import type {TypedDispatch} from '../../constants/types/flux'
 
 type OwnProps = { }
 
-const connector: TypedConnector<TypedState, TypedDispatch<SearchActions>, OwnProps, Props> = new TypedConnector()
+const connector: TypedConnector<TypedState, TypedDispatch<Constants.Actions>, OwnProps, Props> = new TypedConnector()
 
 export default connector.connect(
   ({search: {userForInfoPane}, tracker: {trackers}, config: {username: myUsername}}, dispatch, ownProps) => {
@@ -65,7 +64,7 @@ export default connector.connect(
         mode: 'external',
         nonUserInfoProps: {
           avatar: userForInfoPane.serviceAvatar || '',
-          fullName: fullName(userForInfoPane.extraInfo),
+          fullName: Constants.fullName(userForInfoPane.extraInfo),
           inviteLink: null,
           onSendInvite: () => { openURL(`${keybaseUrl}/account/invitations`) },
           outOfInvites: null,

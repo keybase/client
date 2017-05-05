@@ -5,7 +5,7 @@ import {connect} from 'react-redux'
 import {registerPinentryListener, onCancel, onSubmit} from '../../actions/pinentry'
 
 import type {TypedState} from '../../constants/reducer'
-import type {PinentryState} from '../../reducers/pinentry'
+import type {PinentryState} from '../../constants/pinentry'
 import type {GUIEntryFeatures} from '../../constants/types/flow-types'
 
 type Props = {

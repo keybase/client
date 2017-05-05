@@ -189,3 +189,17 @@ export {
   bufferToNiceHexString,
   isLoading,
 }
+
+export type State = {
+  cachedIdentifies: {[key: string]: number}, // good until unix timestamp
+  pendingIdentifies: {[key: string]: boolean},
+  serverStarted: boolean,
+  timerActive: number,
+  trackers: {[key: string]: TrackerOrNonUserState},
+  tracking: Array<{
+    username: string,
+    fullname: string,
+    followsYou: boolean,
+    following: boolean,
+  }>,
+}

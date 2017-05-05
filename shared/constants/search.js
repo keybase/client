@@ -105,7 +105,7 @@ export type Reset = TypedAction<'search:reset', {}, void>
 export const waiting = 'search:waiting'
 export type Waiting = TypedAction<'search:waiting', {waiting: boolean}, void>
 
-export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUsersToGroup
+export type Actions = Search | Results | SelectPlatform | SelectUserForInfo | AddUsersToGroup
   | RemoveUserFromGroup | ToggleUserGroup | Reset | Waiting | OnClickFollowers | OnClickFollowing | OnClickAvatar
 
 export function platformToIcon (platform: SearchPlatforms): IconType {
@@ -171,3 +171,18 @@ export function platformToNiceName (platform: SearchPlatforms): string {
 export function equalSearchResult (a: SearchResult, b: SearchResult): boolean {
   return a.service === b.service && a.username === b.username
 }
+
+export type State = {
+  requestTimestamp: ?Date,
+  results: Array<SearchResult>,
+  searchHintText: string,
+  searchIcon: IconType,
+  searchPlatform: SearchPlatforms,
+  searchText: ?string,
+  searchTextClearTrigger: number,
+  selectedUsers: Array<SearchResult>,
+  showUserGroup: boolean,
+  userForInfoPane: ?SearchResult,
+  waiting: boolean,
+}
+

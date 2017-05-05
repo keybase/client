@@ -2,41 +2,9 @@
 import * as CommonConstants from '../constants/common'
 import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/login'
-import HiddenString from '../util/hidden-string'
-import type {DeviceRole, Mode} from '../constants/login'
 import {fromJS} from 'immutable'
 
-// It's the b64 encoded value used to render the image
-type QRCode = HiddenString
-type Error = string
-
-export type LoginState = {
-  codePage: {
-    cameraBrokenMode: boolean,
-    codeCountDown: number,
-    enterCodeErrorText: string,
-    mode: ?Mode,
-    myDeviceRole: ?DeviceRole,
-    otherDeviceRole: ?DeviceRole,
-    qrCode: ?QRCode,
-    qrScanned: ?QRCode,
-    textCode: ?HiddenString,
-  },
-  configuredAccounts: ?Array<{hasStoredSecret: bool, username: string}>,
-  forgotPasswordEmailAddress: string | '',
-  forgotPasswordError: ?Error,
-  forgotPasswordSubmitting: boolean,
-  forgotPasswordSuccess: boolean,
-  justDeletedSelf: ?string,
-  justLoginFromRevokedDevice: ?boolean,
-  justRevokedSelf: ?string,
-  loginError: ?string,
-  registerUserPassError: ?Error,
-  registerUserPassLoading: boolean,
-  waitingForResponse: boolean,
-}
-
-const initialState: LoginState = {
+const initialState: Constants.State = {
   codePage: {
     cameraBrokenMode: false,
     codeCountDown: 0,
@@ -67,7 +35,7 @@ const initialState: LoginState = {
   waitingForResponse: false,
 }
 
-export default function (state: LoginState = initialState, action: any): LoginState {
+export default function (state: Constants.State = initialState, action: any): Constants.State {
   let toMerge = null
 
   switch (action.type) {

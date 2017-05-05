@@ -26,3 +26,8 @@ export const updateSeenMsgs = 'gregor:updateSeenMsgs'
 export type UpdateSeenMsgs = TypedAction<'gregor:updateSeenMsgs', {seenMsgs: Array<NonNullGregorItem>}, void>
 
 export type GregorActions = PushState | UpdateSeenMsgs
+
+export type State = {
+  reachability: Reachability,
+  seenMsgs: MsgMap,
+}

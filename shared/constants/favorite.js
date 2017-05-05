@@ -37,7 +37,7 @@ export type KBFSStatus = {
   isAsyncWriteHappening: boolean,
 }
 
-export type FavoriteState = Exact<{
+export type State = Exact<{
   folderState: FolderState,
   viewState: ViewState,
   kbfsStatus: KBFSStatus,

@@ -37,7 +37,7 @@ export type NewRekeyPopupAction = TypedAction<'notifications:newRekeyPopup', {
   problemSet: ProblemSet}, void>
 export const newRekeyPopup = 'notifications:newRekeyPopup'
 
-export type UnlockFolderActions = ToPaperKeyInput
+export type Actions = ToPaperKeyInput
 | OnBackFromPaperKey
 | CheckPaperKey
 | Finish
@@ -45,3 +45,13 @@ export type UnlockFolderActions = ToPaperKeyInput
 | Waiting
 | RegisterRekeyListenerAction
 | NewRekeyPopupAction
+
+export type State = {
+  closed: boolean,
+  devices: ?Array<Device>,
+  paperkeyError: ?string,
+  phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
+  sessionID: ?number,
+  started: boolean,
+  waiting: boolean,
+}

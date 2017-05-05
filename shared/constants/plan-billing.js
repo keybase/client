@@ -82,7 +82,7 @@ type AvailablePlanAPI = {
 }
 
 // TODO: handle apple pay payment info
-export type BillingState = {
+export type State = {
   availablePlans: ?AvailablePlans,
   plan: ?PlanInfo,
   usage: ?UsageInfo,

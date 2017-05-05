@@ -4,26 +4,18 @@ import * as CommonConstants from '../constants/common'
 import {keyBy} from 'lodash'
 import {ReachabilityReachable} from '../constants/types/flow-types'
 
-import type {GregorActions, MsgMap} from '../constants/gregor'
-import type {Reachability} from '../constants/types/flow-types'
-
-export type State = {
-  reachability: Reachability,
-  seenMsgs: MsgMap,
-}
-
-const initialState: State = {
+const initialState: Constants.State = {
   reachability: {reachable: ReachabilityReachable.unknown},
   seenMsgs: {},
 }
 
-export default function (state: State = initialState, action: GregorActions): State {
+export default function (state: Constants.State = initialState, action: Constants.GregorActions): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}
     case Constants.updateSeenMsgs:
       if (!action.error) {
-        const newMsgs: MsgMap = keyBy(action.payload.seenMsgs, m => m.md.msgID.toString('base64'))
+        const newMsgs: Constants.MsgMap = keyBy(action.payload.seenMsgs, m => m.md.msgID.toString('base64'))
         return {
           ...state,
           seenMsgs: {

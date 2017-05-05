@@ -21,3 +21,8 @@ export const updateReloading = 'dev:updatehmrReloading'
 export type UpdateReloading = TypedAction<'dev:updatehmrReloading', {reloading: boolean}, void>
 
 export type Actions = UpdateDebugConfig | UpdateReloading
+
+export type State = {
+  debugConfig: DebugConfig,
+  hmrReloading: boolean,
+}

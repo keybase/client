@@ -1,9 +1,8 @@
 // @flow
 import * as Constants from '../constants/favorite'
 import * as CommonConstants from '../constants/common'
-import type {FavoriteAction, FavoriteState} from '../constants/favorite'
 
-const initialState: FavoriteState = {
+const initialState: Constants.State = {
   folderState: {
     private: {
       isPublic: false,
@@ -26,7 +25,7 @@ const initialState: FavoriteState = {
   },
 }
 
-export default function (state: FavoriteState = initialState, action: FavoriteAction): FavoriteState {
+export default function (state: Constants.State = initialState, action: Constants.FavoriteAction): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}

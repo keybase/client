@@ -1,7 +1,8 @@
 // @flow
 /* eslint-env jest */
 
-import routeTreeReducer, {State} from '../route-tree'
+import routeTreeReducer from '../route-tree'
+import {State} from '../../constants/route-tree'
 import {RouteDefNode, routeSetProps, routeNavigate} from '../../route-tree'
 import {
   navigateAppend,
