@@ -89,7 +89,7 @@ function LoadingProofRow ({width}: {width: number}): React$Element<*> {
   )
 }
 
-function LoadingProofs ({pad}: {pad: (i: number) => Object}) {
+function LoadingProofs () {
   return (
     <Box>
       {[117, 147, 97].map((width, idx) => <LoadingProofRow key={idx} width={width} />)}
@@ -116,11 +116,10 @@ class ProofsRender extends Component<void, Props, void> {
 
   render () {
     const {onClickProofMenu} = this.props
-    const pad = idx => idx > 0 ? {paddingTop: globalMargins.xtiny} : {}
     if (this.props.loading) {
       return (
         <Box style={{...styleContainer, ...this.props.style}}>
-          <LoadingProofs pad={pad} />
+          <LoadingProofs />
         </Box>
       )
     }
@@ -162,7 +161,6 @@ const styleContainer = {
 const styleRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'stretch',
-  flex: 1,
   justifyContent: 'flex-start',
   marginTop: globalMargins.xtiny,
   // RN-BUG: set maxWidth once that prop is supported
