@@ -50,7 +50,7 @@ const mergeProps = (stateProps, dispatchProps, {measure, onAction}: OwnProps) =>
   onEnsurePreviewLoaded: () => {
     const {message} = stateProps
     if (message && message.filename && !message.previewPath) {
-      setImmediate(() => dispatchProps._onEnsurePreviewLoaded(stateProps.message))
+      setImmediate(() => dispatchProps._onEnsurePreviewLoaded(message))
     }
   },
   onDownloadAttachment: () => { dispatchProps._onDownloadAttachment(stateProps.selectedConversation, stateProps.message.messageID) },
@@ -65,16 +65,14 @@ export default compose(
       this.props.onEnsurePreviewLoaded()
     },
 
-    componentDidUpdate: function (prevProps: Props & {_editedCount: number}) {
+    componentDidUpdate: function (prevProps: Props) {
       if (this.props.measure &&
         this.props.message.previewPath !== prevProps.message.previewPath &&
         !shallowEqual(this.props.message.previewSize !== prevProps.message.previewSize)) {
         this.props.measure()
       }
 
-      if (this.props.message && prevProps.message && prevProps.message.filename !== this.props.message.filename) {
-        this.props.onEnsurePreviewLoaded()
-      }
+      this.props.onEnsurePreviewLoaded()
     },
   })
 )(Attachment)
