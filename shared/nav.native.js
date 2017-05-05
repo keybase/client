@@ -227,7 +227,8 @@ export default compose(
     componentWillReceiveProps (nextProps) {
       const nextPath = nextProps.routeStack.last().path
       const curPath = this.props.routeStack.last().path
-      if (!nextPath.equals(curPath)) {
+      const lastTags = this.props.routeStack.last().tags
+      if (!nextPath.equals(curPath) && !lastTags.keepKeyboard) {
         NativeKeyboard.dismiss()
       } else if (this.props.hideKeyboard !== nextProps.hideKeyboard) {
         NativeKeyboard.dismiss()
