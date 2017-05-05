@@ -31,7 +31,7 @@ const conversationRoute = new RouteDefNode({
     },
     messageAction: {
       component: MessagePopup,
-      tags: {keepKeyboard: true, layerOnTop: true},
+      tags: {keepKeyboardOnLeave: true, layerOnTop: true},
     },
     showBlockConversationDialog: {
       component: BlockConversationWarning,

@@ -12,7 +12,7 @@ type LeafTagsParams = {
   showStatusBarDarkContent: boolean,
   hideStatusBar: boolean,
   fullscreen: boolean,
-  keepKeyboard: boolean,
+  keepKeyboardOnLeave: boolean,
 }
 
 export const LeafTags: (spec?: LeafTagsParams) => LeafTagsParams & I.Record<LeafTagsParams> = I.Record({
@@ -23,7 +23,7 @@ export const LeafTags: (spec?: LeafTagsParams) => LeafTagsParams & I.Record<Leaf
   hideStatusBar: false,
   showStatusBarDarkContent: false,
   fullscreen: false,
-  keepKeyboard: false,
+  keepKeyboardOnLeave: false,
 })
 
 const _RouteDefNode = I.Record({
