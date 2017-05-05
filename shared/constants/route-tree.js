@@ -34,11 +34,3 @@ export const State = I.Record({
   routeDef: null,
   routeState: null,
 })
-
-const actionLoggerTransform = (state: State) => {
-  return 'MASKED'
-}
-
-export {
-  actionLoggerTransform,
-}

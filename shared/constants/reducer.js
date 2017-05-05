@@ -62,7 +62,7 @@ export const stateLogTransformer: StateLogTransformer = (state) => {
     config: {
       username, uid, loggedIn, error, bootstrapTriesRemaining, bootStatus,
     },
-    routeTree: RouteTree.actionLoggerTransform(routeTree),
+    routeTree,
     tracker,
   }
 }
