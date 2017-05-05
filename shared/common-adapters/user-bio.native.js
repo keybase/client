@@ -138,6 +138,7 @@ const stylesContent = {
 const stylesUsername = {
   ...globalStyles.selectable,
   marginTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
 }
 const stylesFullname = {
   ...globalStyles.selectable,
