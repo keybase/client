@@ -212,7 +212,6 @@ const styleProofNameLabelContainer = {
 }
 const styleProofName = {
   ...globalStyles.clickable,
-  flex: 1,
 }
 const styleProofType = {
   color: globalColors.black_20,
