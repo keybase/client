@@ -139,6 +139,23 @@ func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 	return err
 }
 
+// renameFile performs some retries on Windows,
+// similar to SafeWriteToFile
+func renameFile(g *GlobalContext, src string, dest string) error {
+	var err error
+	for i := 0; i < 5; i++ {
+		if err != nil {
+			g.Log.Debug("Retrying failed os.Rename - %s", err)
+			time.Sleep(10 * time.Millisecond)
+		}
+		err = os.Rename(src, dest)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
 func copyFile(src string, dest string) error {
 	srcFile, err := os.Open(src)
 	if err != nil {

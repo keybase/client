@@ -56,6 +56,10 @@ func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 	return safeWriteToFileOnce(g, t, mode)
 }
 
+func renameFile(_ *GlobalContext, src string, dest string) error {
+	return os.Rename(src, dest)
+}
+
 func RemoteSettingsRepairman(g *GlobalContext) error {
 	return nil
 }

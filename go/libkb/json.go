@@ -245,7 +245,7 @@ func (f *jsonFileTransaction) Commit() (err error) {
 		return err
 	}
 	f.f.G().Log.Debug("| Commit : renaming %q => %q", f.tmpname, f.f.filename)
-	err = os.Rename(f.tmpname, f.f.filename)
+	err = renameFile(f.f.G(), f.tmpname, f.f.filename)
 	f.f.setTx(nil)
 	return err
 }
