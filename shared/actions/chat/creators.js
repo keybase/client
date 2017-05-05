@@ -152,8 +152,8 @@ function muteConversation (conversationIDKey: Constants.ConversationIDKey, muted
   return {payload: {conversationIDKey, muted}, type: 'chat:muteConversation'}
 }
 
-function blockConversation (blocked: boolean, conversationIDKey: Constants.ConversationIDKey): Constants.BlockConversation {
-  return {payload: {blocked, conversationIDKey}, type: 'chat:blockConversation'}
+function blockConversation (blocked: boolean, conversationIDKey: Constants.ConversationIDKey, reportUser: boolean): Constants.BlockConversation {
+  return {payload: {blocked, conversationIDKey, reportUser}, type: 'chat:blockConversation'}
 }
 
 function deleteMessage (message: Constants.Message): Constants.DeleteMessage {
