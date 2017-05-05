@@ -42,6 +42,7 @@ export default class UserRender extends Component<void, Props, void> {
             style={styleActionBox}
             trackerState={this.props.trackerState}
             currentlyFollowing={this.props.currentlyFollowing}
+            onChat={this.props.onChat}
             onFollow={this.props.onFollow}
             onUnfollow={this.props.onUnfollow}
             onAcceptProofs={this.props.onAcceptProofs} />}

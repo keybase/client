@@ -4,6 +4,7 @@ import keybaseUrl from '../../constants/urls'
 import {TypedConnector} from '../../util/typed-connect'
 import {getProfile, onFollow, onUnfollow} from '../../actions/tracker'
 import {onClickAvatar, onClickFollowers, onClickFollowing} from '../../actions/profile'
+import {startConversation} from '../../actions/chat'
 import openURL from '../../util/open-url'
 import Render from './render'
 
@@ -37,6 +38,7 @@ export default connector.connect(
             isYou: username === myUsername,
             loading: loading,
             onAcceptProofs: () => { dispatch(onFollow(username, false)) },
+            onChat: () => { username && myUsername && dispatch(startConversation([username, myUsername])) },
             onClickAvatar: () => { dispatch(onClickAvatar(username)) },
             onClickFollowers: () => { dispatch(onClickFollowers(username)) },
             onClickFollowing: () => { dispatch(onClickFollowing(username)) },

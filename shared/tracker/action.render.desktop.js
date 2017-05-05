@@ -61,6 +61,7 @@ export default class ActionRender extends PureComponent<void, ActionProps, void>
           <Button waiting={this.props.waiting} style={styleActionButton} type='Follow' label='Follow' onClick={() => this.props.onFollow()} />}
         {this.props.currentlyFollowing &&
           <Button style={styleActionButton} type='Secondary' label='Close' onClick={() => this.props.onClose()} />}
+        <Button style={styleChatButton} type='Primary' label='Start a Chat' onClick={() => this.props.onChat()} />
       </div>
     )
   }
@@ -97,6 +98,10 @@ const styleActionButton = {
   width: 102,
   minWidth: 102,
   marginRight: 0,
+}
+
+const styleChatButton = {
+  marginLeft: globalMargins.xtiny,
 }
 
 const styleLoggedOutContainer = {

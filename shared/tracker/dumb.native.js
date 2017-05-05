@@ -43,6 +43,7 @@ const propsBase = {
   onFollow: () => {},
   onRefollow: () => {},
   onUnfollow: () => {},
+  onChat: () => {},
   onClose: () => {},
   startTimer: () => {},
   stopTimer: () => {},
@@ -56,6 +57,7 @@ const propsBase = {
   onClickFollowers: console.log('on click followers'),
   onClickFollowing: console.log('on click following'),
   error: null,
+  myUsername: 'bob',
 }
 
 const propsDefault: TrackerProps = {

@@ -15,6 +15,7 @@ export type RenderPropsUnshaped = {
   loggedIn: boolean,
   name?: string,
   nonUser?: ?boolean,
+  onChat: () => void,
   onClose: () => void,
   onFollow: () => void,
   onIgnore: () => void,

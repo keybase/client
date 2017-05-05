@@ -12,6 +12,7 @@ export type Props = {
   proofs: Array<Proof>,
   currentlyFollowing: boolean,
   trackerState: SimpleProofState,
+  onChat: () => void,
   onFollow: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,
