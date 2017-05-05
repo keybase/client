@@ -1,22 +1,27 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeListView, LoadingLine} from '../../common-adapters/index.native'
+import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, LoadingLine} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, statusBarHeight, globalMargins} from '../../styles'
 import {RowConnector} from './row'
 import {debounce} from 'lodash'
+// $FlowIssue
+import FlatList from '../../fixme/Lists/FlatList'
 
 import type {Props, RowProps} from './'
 
 const AddNewRow = ({onNewChat, isLoading}: {onNewChat: () => void, isLoading: boolean}) => (
   <Box
-    style={{...globalStyles.flexBoxColumn, minHeight: 48}}>
+    style={{...globalStyles.flexBoxColumn, minHeight: 48, position: 'relative'}}>
     <ClickableBox style={{...globalStyles.flexBoxColumn, flex: 1, flexShrink: 0}} onClick={onNewChat}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', justifyContent: 'center', flex: 1}}>
         <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
         <Text type='BodyBigLink'>New chat</Text>
       </Box>
     </ClickableBox>
-    {isLoading && <LoadingLine />}
+    {isLoading && (
+      <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0}}>
+        <LoadingLine />
+      </Box>)}
   </Box>
 )
 
@@ -164,20 +169,19 @@ const NoChats = () => (
   </Box>
 )
 
-class ConversationList extends PureComponent<void, Props, {dataSource: any}> {
-  state = {dataSource: null}
+class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
+  state = {rows: []}
 
-  _itemRenderer = (conversationIDKey, _, sidx) => {
-    const idx = parseInt(sidx, 10)
-    return idx
-      ? <Row conversationIDKey={conversationIDKey} key={conversationIDKey} />
+  _renderItem = ({item, index}) => {
+    return index
+      ? <Row conversationIDKey={item} key={item} />
       : <AddNewRow onNewChat={this.props.onNewChat} isLoading={this.props.isLoading} />
   }
 
-  _ds = new NativeListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+  _keyExtractor = (item, index) => item
 
-  _setupDataSource = (props: Props) => {
-    this.setState({dataSource: this._ds.cloneWithRows([0].concat(props.rows.toArray()))})
+  _setupDataSource = (props) => {
+    this.setState({rows: [{}].concat(props.rows.toArray())})
   }
 
   componentWillReceiveProps (nextProps: Props) {
@@ -191,30 +195,35 @@ class ConversationList extends PureComponent<void, Props, {dataSource: any}> {
     }
   }
 
-  _onChangeVisibleRows = debounce((visibleRows) => {
-    const idxs = Object.keys(visibleRows && visibleRows.s1 || {})
+  _askForUnboxing = (id: any, count: number) => {
+    this.props.onUntrustedInboxVisible(id, count)
+  }
 
-    if (idxs.length > 1) {
-      const idx = parseInt(idxs[1], 10)
-      const conversationIDKey = this.props.rows.get(idx)
-      this.props.onUntrustedInboxVisible(conversationIDKey, idxs.length)
+  _onViewChanged = debounce(({viewableItems}) => {
+    const item = viewableItems && viewableItems[0]
+    if (item && item.index) {
+      this._askForUnboxing(item.item, viewableItems.length)
     }
   }, 1000)
 
   componentWillMount () {
     this.props.loadInbox()
     this._setupDataSource(this.props)
+    if (this.props.rows.count()) {
+      this._askForUnboxing(this.props.rows.first(), 30)
+    }
   }
 
   render () {
     return (
       <Box style={boxStyle}>
-        <NativeListView
-          enableEmptySections={true}
-          style={listStyle}
-          dataSource={this.state.dataSource}
-          onChangeVisibleRows={this._onChangeVisibleRows}
-          renderRow={this._itemRenderer} />
+        <FlatList
+          loading={this.props.isLoading/* force loading to update */}
+          data={this.state.rows}
+          keyExtractor={this._keyExtractor}
+          renderItem={this._renderItem}
+          initialNumToRender={30}
+          onViewableItemsChanged={this._onViewChanged} />
         {!this.props.isLoading && !this.props.rows.count() && <NoChats />}
       </Box>
     )
@@ -227,11 +236,6 @@ const boxStyle = {
   flex: 1,
   paddingTop: statusBarHeight,
   position: 'relative',
-}
-
-const listStyle = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
 }
 
 const unreadDotStyle = {

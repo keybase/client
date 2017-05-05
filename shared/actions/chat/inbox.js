@@ -32,7 +32,6 @@ let _backgroundLoopTask
 // Load the inbox if we haven't yet, mostly done by the UI
 function * onInitialInboxLoad (): SagaGenerator<any, any> {
   try {
-    yield put(Creators.setInboxUntrustedState('loading'))
     yield put(Creators.inboxStale())
     if (!isMobile) {
       // Only allow one loop at a time
