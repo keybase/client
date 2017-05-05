@@ -2422,7 +2422,7 @@ func (fbo *folderBranchOps) signalWrite() {
 
 func (fbo *folderBranchOps) syncDirUpdateOrSignal(
 	ctx context.Context, lState *lockState) error {
-	if fbo.config.BGFlushDirOpBatchSize() == 1 {
+	if fbo.config.BGFlushDirOpBatchSize() <= 1 {
 		return fbo.syncAllLocked(ctx, lState, NoExcl)
 	}
 	fbo.signalWrite()
