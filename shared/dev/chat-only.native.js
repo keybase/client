@@ -53,7 +53,7 @@ const mockListProps = (messages, metaDataMap, you, authorSeeds, moreToLoad) => (
   onDeleteMessage: (message: ChatConstants.Message) => console.log('on delete message'),
   onEditMessage: (message: ChatConstants.Message, body: string) => console.log('on edit message'),
   onFocusInput: () => console.log('on focus input'),
-  onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => console.log('on load attachment'),
+  onDownloadAttachment: (messageID: ChatConstants.MessageID) => console.log('on load attachment'),
   onLoadMoreMessages: () => console.log('on load more message'),
   onOpenConversation: (conversationIDKey: ChatConstants.ConversationIDKey) => console.log('on open conv'),
   onOpenInFileUI: (filename: string) => console.log('on open in file ui'),

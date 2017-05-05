@@ -52,12 +52,12 @@ function inboxUntrustedStateSelector (state: TypedState) {
   return state.chat.get('inboxUntrustedState')
 }
 
-function tmpFileName (isHdPreview: boolean, conversationID: Constants.ConversationIDKey, messageID: Constants.MessageID, filename: string) {
+function tmpFileName (isPreview: boolean, conversationID: Constants.ConversationIDKey, messageID: Constants.MessageID) {
   if (!messageID) {
     throw new Error('tmpFileName called without messageID!')
   }
 
-  return `kbchat-${conversationID}-${messageID}.${isHdPreview ? 'hdPreview' : 'preview'}`
+  return `kbchat-${conversationID}-${messageID}.${isPreview ? 'preview' : 'download'}`
 }
 
 function * clientHeader (messageType: ChatTypes.MessageType, conversationIDKey: Constants.ConversationIDKey): Generator<any, ?ChatTypes.MessageClientHeader, any> {

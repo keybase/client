@@ -7,7 +7,6 @@ import {List} from 'immutable'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
-import {downloadFilePath} from '../../../util/file'
 import {navigateAppend} from '../../../actions/route-tree'
 
 import type {OpenInFileUI} from '../../../constants/kbfs'
@@ -86,7 +85,7 @@ const mapStateToProps = (state: TypedState, {editLastMessageCounter, listScrollD
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
-  _onLoadAttachment: (selectedConversation, messageID, filename) => { dispatch(Creators.loadAttachment(selectedConversation, messageID, downloadFilePath(filename), false, false)) },
+  _onDownloadAttachment: (selectedConversation, messageID) => { dispatch(Creators.saveAttachment(selectedConversation, messageID)) },
   _onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => { dispatch(Creators.loadMoreMessages(conversationIDKey, false)) },
   onDeleteMessage: (message: Constants.Message) => { dispatch(Creators.deleteMessage(message)) },
   onEditMessage: (message: Constants.Message, body: string) => { dispatch(Creators.editMessage(message, new HiddenString(body))) },
@@ -114,7 +113,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     onDeleteMessage: dispatchProps.onDeleteMessage,
     onEditMessage: dispatchProps.onEditMessage,
     onFocusInput: stateProps.onFocusInput,
-    onLoadAttachment: (messageID, filename) => { stateProps.selectedConversation && dispatchProps._onLoadAttachment(stateProps.selectedConversation, messageID, filename) },
+    onDownloadAttachment: (messageID) => { stateProps.selectedConversation && dispatchProps._onDownloadAttachment(stateProps.selectedConversation, messageID) },
     onLoadMoreMessages: () => { stateProps.selectedConversation && dispatchProps._onLoadMoreMessages(stateProps.selectedConversation) },
     onMessageAction: dispatchProps.onMessageAction,
     onOpenInFileUI: dispatchProps.onOpenInFileUI,

@@ -275,21 +275,21 @@ class PopupEnabledList extends BaseList {
             message={message}
             onShowEditor={(message: Constants.TextMessage) => this._showEditor(message, messageRect)}
             onDeleteMessage={this.props.onDeleteMessage}
-            onLoadAttachment={this.props.onLoadAttachment}
+            onDownloadAttachment={this.props.onDownloadAttachment}
             onOpenInFileUI={this.props.onOpenInFileUI}
             onHidden={this._hidePopup}
             style={style}
           />
         )
       case 'Attachment':
-        const {downloadedPath, filename, messageID} = message
+        const {savedPath, messageID} = message
         return (
           <AttachmentPopupMenu
             you={this.props.you}
             message={message}
             onDeleteMessage={this.props.onDeleteMessage}
-            onDownloadAttachment={() => { messageID && filename && this.props.onLoadAttachment(messageID, filename) }}
-            onOpenInFileUI={() => { downloadedPath && this.props.onOpenInFileUI(downloadedPath) }}
+            onDownloadAttachment={() => { messageID && this.props.onDownloadAttachment(messageID) }}
+            onOpenInFileUI={() => { savedPath && this.props.onOpenInFileUI(savedPath) }}
             onHidden={this._hidePopup}
             style={style}
           />

@@ -263,16 +263,24 @@ function selectAttachment (input: Constants.AttachmentInput): Constants.SelectAt
   return {payload: {input}, type: 'chat:selectAttachment'}
 }
 
-function loadAttachment (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, filename: string, loadPreview: boolean, isHdPreview: boolean): Constants.LoadAttachment {
-  return {payload: {conversationIDKey, filename, isHdPreview, loadPreview, messageID}, type: 'chat:loadAttachment'}
+function loadAttachment (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean): Constants.LoadAttachment {
+  return {payload: {conversationIDKey, loadPreview, messageID}, type: 'chat:loadAttachment'}
 }
 
 function loadAttachmentPreview (message: Constants.AttachmentMessage): Constants.LoadAttachmentPreview {
   return {payload: {message}, type: 'chat:loadAttachmentPreview'}
 }
 
-function attachmentLoaded (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, path: ?string, isPreview: boolean, isHdPreview: boolean): Constants.AttachmentLoaded {
-  return {payload: {conversationIDKey, isHdPreview, isPreview, messageID, path}, type: 'chat:attachmentLoaded'}
+function saveAttachment (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID): Constants.SaveAttachment {
+  return {payload: {conversationIDKey, messageID}, type: 'chat:saveAttachment'}
+}
+
+function attachmentLoaded (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, path: ?string, isPreview: boolean): Constants.AttachmentLoaded {
+  return {payload: {conversationIDKey, isPreview, messageID, path}, type: 'chat:attachmentLoaded'}
+}
+
+function attachmentSaved (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, path: ?string): Constants.AttachmentSaved {
+  return {payload: {conversationIDKey, messageID, path}, type: 'chat:attachmentSaved'}
 }
 
 function downloadProgress (conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID, isPreview: boolean, bytesComplete?: number, bytesTotal?: number): Constants.DownloadProgress {
@@ -376,6 +384,7 @@ export {
   addPending,
   appendMessages,
   attachmentLoaded,
+  attachmentSaved,
   badgeAppForChat,
   blockConversation,
   clearAttachmentPlaceholderPreview,
@@ -410,6 +419,7 @@ export {
   replaceConversation,
   retryAttachment,
   retryMessage,
+  saveAttachment,
   selectAttachment,
   selectConversation,
   setAttachmentPlaceholderPreview,

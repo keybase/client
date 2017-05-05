@@ -10,12 +10,12 @@ import type {Props} from './'
 import type {AttachmentMessage} from '../../../constants/chat'
 
 const AttachmentStatusFooter = ({message, onDownloadAttachment, onOpenInFileUI}: {message: AttachmentMessage, onDownloadAttachment: () => void, onOpenInFileUI: () => void}) => {
-  const {messageState} = message
+  const {downloadProgress, savedPath} = message
 
   let contents
-  if (messageState === 'downloading') {
-    contents = <AttachmentProgressBar text='Downloading' progress={message.progress} />
-  } else if (messageState === 'downloaded') {
+  if (savedPath === false && downloadProgress !== null) {
+    contents = <AttachmentProgressBar text='Downloading' progress={downloadProgress} />
+  } else if (savedPath) {
     contents = <Text type='BodySmall' style={{color: globalColors.black_60, cursor: 'pointer'}} onClick={onOpenInFileUI}>Show in {fileUIName}</Text>
   } else {
     contents = <Text type='BodySmall' style={{color: globalColors.black_60, cursor: 'pointer'}} onClick={onDownloadAttachment}>Download</Text>
@@ -45,12 +45,12 @@ const AttachmentView = ({isZoomed, onToggleZoom, messageState, path}: {isZoomed:
 }
 
 const AttachmentPopup = ({message, detailsPopupShowing, isZoomed, onCloseDetailsPopup, onClose, onDownloadAttachment, onDeleteMessage, onOpenDetailsPopup, onToggleZoom, onOpenInFileUI, you}: Props) => {
-  const {messageState} = message
+  const {savedPath, downloadProgress, downloadedPath} = message
   let statusIcon
-  if (messageState === 'downloading' || messageState === 'downloaded') {
+  if (savedPath || (savedPath === false && downloadProgress !== null)) {
     statusIcon = <AttachmentStatusIcon
       style={{position: 'absolute', bottom: -3, right: -3}}
-      type={messageState === 'downloading' ? 'Downloading' : 'Downloaded'}
+      type={savedPath ? 'Downloaded' : 'Downloading'}
     />
   }
 
@@ -69,7 +69,7 @@ const AttachmentPopup = ({message, detailsPopupShowing, isZoomed, onCloseDetails
         <Text type='BodySemibold' style={{color: globalColors.black_75, flex: 1}}>{message.title}</Text>
         <Icon type='iconfont-ellipsis' style={{color: globalColors.black_40, cursor: 'pointer'}} onClick={detailsPopupShowing ? onCloseDetailsPopup : onOpenDetailsPopup} />
       </Box>
-      <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={message.hdPreviewPath} />
+      <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={downloadedPath} />
       <AttachmentStatusFooter message={message} onDownloadAttachment={onDownloadAttachment} onOpenInFileUI={onOpenInFileUI} />
       {statusIcon}
     </PopupDialog>
