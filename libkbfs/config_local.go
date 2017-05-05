@@ -47,7 +47,7 @@ const (
 	// bgFlushDirOpThresholdDefault is the default for how many
 	// directory operations should be batched together in a single
 	// background flush.
-	bgFlushDirOpBatchSizeDefault = 20
+	bgFlushDirOpBatchSizeDefault = 100
 	// bgFlushPeriodDefault is the default for how long to wait for a
 	// batch to fill up before syncing a set of changes to the servers.
 	bgFlushPeriodDefault = 1 * time.Second
