@@ -377,6 +377,8 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 					}
 
 					rl = append(rl, res.RateLimit)
+				} else {
+					s.Debug(ctx, "Pull: skipping mark as read call")
 				}
 			}
 

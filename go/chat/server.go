@@ -215,7 +215,8 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "MarkAsReadLocal")()
+	defer h.Trace(ctx, func() error { return err },
+		fmt.Sprintf("MarkAsReadLocal(%s)", arg.ConversationID))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.MarkAsReadLocalRes{}, err
