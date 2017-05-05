@@ -115,6 +115,12 @@ func (p path) tailPointer() BlockPointer {
 	return p.path[len(p.path)-1].BlockPointer
 }
 
+// tailRef returns the BlockRef of the final node in the Path.  Must
+// be called with a valid path.
+func (p path) tailRef() BlockRef {
+	return p.path[len(p.path)-1].Ref()
+}
+
 // DebugString returns a string representation of the path with all
 // branch and pointer information.
 func (p path) DebugString() string {

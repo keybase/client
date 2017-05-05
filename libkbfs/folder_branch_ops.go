@@ -4421,7 +4421,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 				continue
 			}
 			parentPath := p.parentPath()
-			parentNode := fbo.nodeCache.Get(parentPath.tailPointer().Ref())
+			parentNode := fbo.nodeCache.Get(parentPath.tailRef())
 			if parentNode != nil {
 				changes = append(changes, NodeChange{
 					Node:       parentNode,
@@ -4449,7 +4449,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 					"Couldn't get the dir entry for %s/%v: %+v",
 					p, p.tailPointer(), err)
 			}
-			_ = fbo.nodeCache.Unlink(p.tailPointer().Ref(), p, de)
+			_ = fbo.nodeCache.Unlink(p.tailRef(), p, de)
 		}
 		if len(changes) == 0 {
 			return nil
