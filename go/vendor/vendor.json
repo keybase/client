@@ -265,9 +265,10 @@
 			"revisionTime": "2017-04-26T21:05:15Z"
 		},
 		{
+			"checksumSHA1": "rvlJlCMLMSpfITBgFv6OdWxlhco=",
 			"path": "github.com/keybase/go-jsonw",
-			"revision": "49900b186f7c75688c880fec4a1c0f20d9209e2a",
-			"revisionTime": "2016-02-18T22:29:06-05:00"
+			"revision": "00453078e41acf361fe389d04cb94ffc65a70173",
+			"revisionTime": "2017-05-05T14:59:40Z"
 		},
 		{
 			"path": "github.com/keybase/go-kext",
