@@ -1017,7 +1017,7 @@ func (fbo *folderBlockOps) RenameDirEntryInCache(lState *lockState,
 	}
 	undoAdd := fbo.addDirEntryInCacheLocked(lState, newParent, newName, newDe)
 	undoRm := fbo.removeDirEntryInCacheLocked(
-		lState, oldParent, oldName, DirEntry{})
+		lState, oldParent, oldName, replacedDe)
 
 	// If there's already an entry for the target, only update the
 	// Ctime on a rename.
