@@ -47,11 +47,12 @@ IF %DOKANVER%=="" (
 call:dosignexe %PathName%
 call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
-call:dosignexe %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
 :: Browser Extension
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
+
+if not EXIST %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe call %GOPATH%\src\github.com\keybase\packaging\windows\buildrq.bat
 
 :: Double check that keybase is codesigned
 signtool verify /pa %PathName%

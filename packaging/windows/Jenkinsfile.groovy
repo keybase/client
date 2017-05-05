@@ -79,7 +79,27 @@ def doBuild() {
     }                
     stage('Build Client') {
         bat '"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && src\\github.com\\keybase\\client\\packaging\\windows\\build_prerelease.cmd'
-    } 
+    }
+
+    stage('RunQuiet Utility') {
+        dir('src\\github.com\\keybase\\client\\go\\tools\\runquiet') {
+            def oldHash = new URL('https://s3.amazonaws.com/prerelease.keybase.io/windows-support/runquiet/runquiet.hash').getText()
+            def currentHash = bat(returnStdout: true, script: '@echo off && git log -1 -- runquiet.go')
+            if (oldHash == currentHash){
+                echo "downloading keybaserq"
+                withAWS(region:'us-east-1', credentials:'amazon_s3_user_pw') {
+                    s3Download(file:'keybaserq.exe', bucket:'prerelease.keybase.io', path:'windows-support/runquiet/keybaserq.exe', force:true)
+                }
+            } else {
+                echo "--- runquiet hashes differ, building keybaserq. Server hash: ---"
+                echo oldHash
+                echo "--- Current hash: ---"
+                echo currentHash
+                bat '..\\..\\..\\packaging\\windows\\buildrq.bat'
+            }
+        }
+    }
+
     stage('Build UI') {
         withEnv(["PATH=${env.PATH};C:\\Program Files (x86)\\yarn\\bin"]) {
             bat 'path'
