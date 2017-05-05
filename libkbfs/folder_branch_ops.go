@@ -4108,15 +4108,13 @@ func (fbo *folderBranchOps) searchForNode(ctx context.Context,
 	return n, nil
 }
 
-func (fbo *folderBranchOps) unlinkFromCache(
-	op op, unlinkPath path, unlinkDe DirEntry) error {
-
-	return nil
-}
-
 func (fbo *folderBranchOps) getUnlinkPathBeforeUpdatingPointers(
 	ctx context.Context, lState *lockState, md ReadOnlyRootMetadata, op op) (
 	unlinkPath path, unlinkDe DirEntry, toUnlink bool, err error) {
+	if len(md.data.Changes.Ops) == 0 {
+		return path{}, DirEntry{}, false, errors.New("md needs at least one op")
+	}
+
 	var node Node
 	var childName string
 

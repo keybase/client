@@ -1027,7 +1027,7 @@ func (fbo *folderBlockOps) ClearCachedDirEntry(lState *lockState, dir path) {
 	// in there as well.)
 }
 
-func (fbo *folderBlockOps) updateDirtyEntryLocked(
+func (fbo *folderBlockOps) updateDirtyEntryFromCacheLocked(
 	ctx context.Context, lState *lockState, de DirEntry) (
 	updated bool, newDe DirEntry) {
 	fbo.blockLock.AssertAnyLocked(lState)
@@ -1133,7 +1133,7 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 			continue
 		}
 
-		doUpdate, newDe := fbo.updateDirtyEntryLocked(ctx, lState, v)
+		doUpdate, newDe := fbo.updateDirtyEntryFromCacheLocked(ctx, lState, v)
 		if !doUpdate {
 			continue
 		}
@@ -1233,7 +1233,7 @@ func (fbo *folderBlockOps) getDirtyParentAndEntryLocked(ctx context.Context,
 			}
 			de = fbo.nodeCache.UnlinkedDirEntry(node)
 			// It's possible the unlinked file has been updated.
-			_, de = fbo.updateDirtyEntryLocked(ctx, lState, de)
+			_, de = fbo.updateDirtyEntryFromCacheLocked(ctx, lState, de)
 		} else {
 			return nil, DirEntry{}, NoSuchNameError{name}
 		}
@@ -1298,7 +1298,7 @@ func (fbo *folderBlockOps) UpdateDirtyEntry(
 	ctx context.Context, lState *lockState, de DirEntry) DirEntry {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
-	_, newDe := fbo.updateDirtyEntryLocked(ctx, lState, de)
+	_, newDe := fbo.updateDirtyEntryFromCacheLocked(ctx, lState, de)
 	return newDe
 }
 
