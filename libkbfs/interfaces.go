@@ -1689,7 +1689,8 @@ type NodeCache interface {
 	// called to undo the effect of the move (or `nil` if nothing
 	// needs to be done); if newParent cannot be found, it returns an
 	// error.
-	Move(ref BlockRef, newParent Node, newName string) (func(), error)
+	Move(ref BlockRef, newParent Node, newName string) (
+		undoFn func(), err error)
 	// Unlink set the corresponding node's parent to nil and caches
 	// the provided path in case the node is still open. NodeCache
 	// ignores the call when ptr is not cached.  The path is required
@@ -1697,7 +1698,7 @@ type NodeCache interface {
 	// already that shouldn't be reflected in the cached path.  It
 	// returns a function that can be called to undo the effect of the
 	// unlink (or `nil` if nothing needs to be done).
-	Unlink(ref BlockRef, oldPath path, oldDe DirEntry) func()
+	Unlink(ref BlockRef, oldPath path, oldDe DirEntry) (undoFn func())
 	// IsUnlinked returns whether `Unlink` has been called for the
 	// reference behind this node.
 	IsUnlinked(node Node) bool

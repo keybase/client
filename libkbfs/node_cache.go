@@ -181,7 +181,7 @@ func (ncs *nodeCacheStandard) UpdatePointer(
 
 // Move implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) Move(
-	ref BlockRef, newParent Node, newName string) (func(), error) {
+	ref BlockRef, newParent Node, newName string) (undoFn func(), err error) {
 	if ref == (BlockRef{}) {
 		return nil, nil
 	}
@@ -222,7 +222,7 @@ func (ncs *nodeCacheStandard) Move(
 
 // Unlink implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) Unlink(
-	ref BlockRef, oldPath path, oldDe DirEntry) func() {
+	ref BlockRef, oldPath path, oldDe DirEntry) (undoFn func()) {
 	if ref == (BlockRef{}) {
 		return nil
 	}
