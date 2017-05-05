@@ -3738,6 +3738,10 @@ func (fbo *folderBranchOps) syncAllLocked(
 		return nil
 	}
 
+	ctx = fbo.config.MaybeStartTrace(ctx, "FBO.SyncAll",
+		fmt.Sprintf("%d files, %d dirs", len(dirtyFiles), len(dirtyDirs)))
+	defer func() { fbo.config.MaybeFinishTrace(ctx, err) }()
+
 	// Verify we have permission to write.  We do this after the dirty
 	// check because otherwise readers who call syncAll would get an
 	// error.
