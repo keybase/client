@@ -14,7 +14,7 @@ const StandardScreen = (props: Props) => {
         {!!props.onClose && <Text type='BodyBig' style={{...styleClose, ...props.styleClose}} onClick={props.onClose}>Cancel</Text>}
         {!!props.onBack && <Icon type='iconfont-back' style={{...styleClose, ...backArrowStyle, ...props.styleBack}} onClick={props.onBack} />}
       </Box>}
-      <NativeScrollView style={styleScrollContainer} contentContainerStyle={styleScrollContainer}>
+      <NativeScrollView>
         {!!props.notification &&
           <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
             {typeof props.notification.message === 'string' ? <Text style={styleBannerText} type='BodySemibold'>{props.notification.message}</Text> : props.notification.message}
@@ -64,10 +64,6 @@ const styleBanner = (type) => ({
 const styleBannerText = {
   color: globalColors.white,
   textAlign: 'center',
-}
-
-const styleScrollContainer = {
-  flex: 1,
 }
 
 const styleContentContainer = (isBannerShowing: boolean) => ({
