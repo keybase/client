@@ -219,25 +219,21 @@ func (g *gregorHandler) setAppState(appState *appState) {
 	// Wait for state updates and send them to the ping loop
 	go func() {
 		for {
-			select {
-			case <-g.shutdownCh:
-				return
-			case state := <-g.appState.NextUpdate():
-				switch state {
-				case keybase1.AppState_FOREGROUND:
-					if g.IsConnected() {
-						g.chatLog.Debug(context.Background(), "foregrounded, forcing ping loop")
-						g.forcePingCh <- struct{}{}
-					} else {
-						g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
-						if err := g.Connect(g.uri); err != nil {
-							g.chatLog.Debug(context.Background(), "error reconnecting")
-						}
+			state := <-g.appState.NextUpdate()
+			switch state {
+			case keybase1.AppState_FOREGROUND:
+				if g.IsConnected() {
+					g.chatLog.Debug(context.Background(), "foregrounded, forcing ping loop")
+					g.forcePingCh <- struct{}{}
+				} else {
+					g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
+					if err := g.Connect(g.uri); err != nil {
+						g.chatLog.Debug(context.Background(), "error reconnecting")
 					}
-				case keybase1.AppState_INACTIVE:
-					g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
-					g.Shutdown()
 				}
+			case keybase1.AppState_INACTIVE:
+				g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
+				g.Shutdown()
 			}
 		}
 	}()
