@@ -761,7 +761,7 @@ func TestCrConflictMergedRenameSetMtimeFile(t *testing.T) {
 	)
 }
 
-// alice and both both rename the same file, causing a copy.,
+// alice and both both rename the same file, causing a copy.
 func TestCrConflictRenameSameFile(t *testing.T) {
 	test(t,
 		users("alice", "bob"),
