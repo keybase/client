@@ -47,6 +47,10 @@ class LoadingWrapper extends Component<void, Props, State> {
           <Animated.View
             style={{
               opacity: this.state.opacity,
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              right: 0,
             }}>
             {this.props.loadingComponent}
           </ Animated.View>}

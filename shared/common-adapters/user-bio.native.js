@@ -79,7 +79,8 @@ class BioRender extends Component<void, Props, void> {
             onClick={() => this.props.onClickAvatar(username)}>
             {username}
           </Text>
-          <Text type='BodySemibold' style={stylesFullname}>{userInfo.fullname}</Text>
+          {!!userInfo.fullname &&
+          <Text type='BodySemibold' style={stylesFullname}>{userInfo.fullname}</Text>}
           {!!followLabel &&
             <Text type='BodySmall' style={stylesFollowLabel}>{followLabel.toUpperCase()}</Text>}
           <Text type='BodySmall' style={stylesFollowing}>
@@ -103,7 +104,6 @@ class BioRender extends Component<void, Props, void> {
             <Button
               label='Edit profile'
               onClick={editFns.onEditProfile}
-              small={true}
               style={{marginTop: globalMargins.small}}
               type='Primary' />}
         </Box>

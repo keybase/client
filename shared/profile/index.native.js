@@ -17,7 +17,7 @@ import type {Props} from './index'
 import type {Tab as FriendshipsTab} from './friendships'
 
 export const AVATAR_SIZE = 112
-export const HEADER_TOP_SPACE = 48
+export const HEADER_TOP_SPACE = 64
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 
 type State = {
@@ -161,7 +161,7 @@ class Profile extends Component<void, Props, State> {
         <Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background, paddingTop: statusBarHeight}}>
           {this.props.onBack && <BackButton title={null} onClick={this.props.onBack} style={{marginLeft: 16}} iconStyle={{color: globalColors.white}} />}
         </Box>
-        <NativeScrollView style={{flex: 1, backgroundColor: trackerStateColors.header.background}} contentContainerStyle={{backgroundColor: globalColors.white}}>
+        <NativeScrollView style={{flex: 1, backgroundColor: trackerStateColors.header.background}} contentContainerStyle={{height: this.props.loading ? '100%' : undefined, backgroundColor: globalColors.white}}>
           {proofNotice && (
             <Box style={{...styleProofNotice, backgroundColor: trackerStateColors.header.background}}>
               <Text type='BodySemibold' style={{color: globalColors.white, textAlign: 'center'}}>{proofNotice}</Text>
@@ -170,7 +170,7 @@ class Profile extends Component<void, Props, State> {
           <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
             <Box style={{position: 'absolute', backgroundColor: trackerStateColors.header.background, top: 0, left: 0, right: 0, height: 56}} />
             <LoadingWrapper
-              style={{minHeight: 220}}
+              style={{minHeight: this.props.loading ? 220 : 0}}
               duration={500}
               loading={this.props.loading}
               loadingComponent={this._makeUserBio(true)}
@@ -201,6 +201,7 @@ class Profile extends Component<void, Props, State> {
           </Box>
           {!this.props.loading &&
             <Friendships
+              username={this.props.username}
               isYou={this.props.isYou}
               currentTab={this.state.currentFriendshipsTab}
               onSwitchTab={currentFriendshipsTab => this.setState({currentFriendshipsTab})}
@@ -240,8 +241,7 @@ const styleActions = {
 }
 
 const styleProofsAndFolders = {
-  backgroundColor: 'white',
-  height: '100%',
+  flex: 1,
   paddingLeft: globalMargins.large,
   paddingRight: globalMargins.large,
   paddingBottom: globalMargins.medium,

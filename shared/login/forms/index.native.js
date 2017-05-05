@@ -16,7 +16,6 @@ const Splash = (props: Props) => (
       <Button
         label='Let us know'
         onClick={props.onFeedback}
-        small={true}
         style={{marginTop: globalMargins.small}}
         type='Primary' />
     </Box>

@@ -115,7 +115,7 @@ export default connect(
       followers: stateProps.trackerState ? stateProps.trackerState.trackers : [],
       following: stateProps.trackerState ? stateProps.trackerState.tracking : [],
       isYou,
-      loading: true, // isLoading(stateProps.trackerState) && !isTesting,
+      loading: isLoading(stateProps.trackerState) && !isTesting,
       onAcceptProofs: () => dispatchProps.onFollow(username),
       onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
       onClickAvatar: () => dispatchProps.onClickAvatar(username),

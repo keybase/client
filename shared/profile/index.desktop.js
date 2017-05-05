@@ -250,6 +250,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
           </Box>
           {!loading && !!this.props.followers && !!this.props.following &&
             <Friendships
+              username={this.props.username}
               isYou={this.props.isYou}
               style={styleFriendships}
               currentTab={this.props.currentFriendshipsTab}

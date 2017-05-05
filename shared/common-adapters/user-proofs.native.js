@@ -61,7 +61,7 @@ function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: Proof
             <Text type='Body' style={shared.proofNameStyle(proof)}>{proof.name}</Text>
             {!!proof.id && <Text type='Body' style={styleProofType}>@{proof.type}</Text>}
           </Text>
-          {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
+          {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{marginTop: 1, backgroundColor: shared.metaColor(proof)}} />}
         </Box>
       </Box>
       <ClickableBox style={styleStatusIconTouchable} activeOpacity={0.8} underlayColor={globalColors.white} onClick={() => onClickStatus(proof)}>
@@ -83,7 +83,7 @@ function LoadingProofRow ({width}: {width: number}): React$Element<*> {
         </Box>
       </Box>
       <Box style={styleStatusIconContainer}>
-        <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon('iconfont-proof-placeholder'), color: globalColors.black_10}} />
+        <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon('iconfont-proof-placeholder'), color: globalColors.lightGrey}} />
       </Box>
     </Box>
   )
@@ -153,7 +153,6 @@ const iconContainer = {
   minHeight: 32,
   minWidth: 32,
 }
-
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',
@@ -162,7 +161,8 @@ const styleRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'stretch',
   justifyContent: 'flex-start',
-  marginTop: globalMargins.xtiny,
+  marginBottom: 2,
+  marginTop: 2,
   // RN-BUG: set maxWidth once that prop is supported
 }
 const styleService = {
@@ -189,7 +189,6 @@ const styleStatusIcon = (statusIcon: IconType) => ({
   color: defaultColor(statusIcon),
   fontSize: 32,
 })
-
 const styleSpinner = {
   height: 32,
   paddingBottom: globalMargins.tiny,
@@ -198,7 +197,6 @@ const styleSpinner = {
   paddingTop: globalMargins.tiny,
   width: 32,
 }
-
 const styleProofNameSection = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
