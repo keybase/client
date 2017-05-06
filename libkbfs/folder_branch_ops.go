@@ -2117,6 +2117,12 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 			// still gets an error returned by the wrapper function
 			// that calls us (in the event of a user cancellation)?
 			fbo.log.CInfof(ctx, "Ignoring a PutUnmerged error: %+v", err)
+			err = encryptMDPrivateData(
+				ctx, fbo.config.Codec(), fbo.config.Crypto(),
+				fbo.config.Crypto(), fbo.config.KeyManager(), session.UID, md)
+			if err != nil {
+				return err
+			}
 			mdID, err = fbo.config.cryptoPure().MakeMdID(md.bareMd)
 			if err != nil {
 				return err

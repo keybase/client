@@ -1640,8 +1640,8 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// Test that an umerged put can be canceled, and the next put will
-// force itself into sync with the server on a retry and succeed.
+// Test that an umerged put can be canceled, and the conflict
+// resolution will fix the resulting weird state.
 func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
@@ -1693,7 +1693,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 	require.NoError(t, err)
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config2, StallableMDAfterPutUnmerged, 1)
+		StallMDOp(ctx, config2, StallableMDPutUnmerged, 1)
 
 	var wg sync.WaitGroup
 	putCtx, cancel2 := context.WithCancel(putCtx)
@@ -1709,17 +1709,15 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 		if err != nil {
 			assert.Equal(t, context.Canceled, err)
 		}
+
 	}()
 	<-onPutStalledCh
 	cancel2()
 	close(putUnstallCh)
 	wg.Wait()
 
-	// Now try another create.  This should succeed without a revision conflict.
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "d", false, NoExcl)
-	require.NoError(t, err)
-	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
-	require.NoError(t, err)
+	// At this point, the local unmerged head doesn't match the
+	// server's unmerged head, but CR will fix it up.
 
 	c <- struct{}{}
 	err = RestartCRForTesting(
@@ -1734,7 +1732,6 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 		"a",
 		"b",
 		"c",
-		"d",
 	}
 	children2, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
 	require.NoError(t, err)
