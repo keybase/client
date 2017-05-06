@@ -650,6 +650,10 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	if err == nil && adminFeatureList[session.UID] {
 		log.Debug("Enabling a dir op batch size of %d",
 			params.BGFlushDirOpBatchSize)
+		if params.BGFlushDirOpBatchSize < 1 {
+			return nil, fmt.Errorf(
+				"Illegal sync batch size: %d", params.BGFlushDirOpBatchSize)
+		}
 		config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
 	} else {
 		// TODO: let non-admins have a non-1 batch size once admins
