@@ -33,15 +33,15 @@ let config: {[key: string]: any} = {
   showAllTrackers: false,
 }
 
-  config.isDevApplePushToken = true
 if (__DEV__ && true) {
+  config.isDevApplePushToken = true
   config.devStoreChangingFunctions = true
   config.dumbChatOnly = false
   config.dumbSheetOnly = false
   config.enableActionLogging = false
-  config.enableStoreLogging = false
+  config.enableStoreLogging = true
   config.forwardLogs = true
-  config.immediateStateLogging = false
+  config.immediateStateLogging = true
   config.printOutstandingRPCs = true
   config.printRPC = true
   config.printRoutes = true
