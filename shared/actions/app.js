@@ -21,7 +21,7 @@ function hideKeyboard (): Constants.HideKeyboard {
 }
 
 function mobileAppStateChanged (nextAppState: string): Constants.MobileAppState {
-  return {payload: {nextAppState}, type: "app:mobileAppState"}
+  return {payload: {nextAppState}, type: 'app:mobileAppState'}
 }
 
 function * _onMobileAppStateChanged (action : Constants.MobileAppState): SagaGenerator<any, any> {
