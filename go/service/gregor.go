@@ -219,15 +219,13 @@ func (g *gregorHandler) setAppState(appState *appState) {
 		for {
 			state := <-g.appState.NextUpdate()
 			switch state {
+			case keybase1.AppState_BACKGROUNDACTIVE:
+				fallthrough
 			case keybase1.AppState_FOREGROUND:
-				if g.IsConnected() {
-					g.chatLog.Debug(context.Background(), "foregrounded, forcing ping loop")
-					g.forcePingCh <- struct{}{}
-				} else {
-					g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
-					if err := g.Connect(g.uri); err != nil {
-						g.chatLog.Debug(context.Background(), "error reconnecting")
-					}
+				g.Shutdown()
+				g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
+				if err := g.Connect(g.uri); err != nil {
+					g.chatLog.Debug(context.Background(), "error reconnecting")
 				}
 			case keybase1.AppState_INACTIVE:
 				g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
@@ -1210,18 +1208,6 @@ func (g *gregorHandler) Reconnect(ctx context.Context) error {
 	return nil
 }
 
-func (g *gregorHandler) dispatchPingOnce(duration time.Duration) chan struct{} {
-	ch := make(chan struct{})
-	go func() {
-		select {
-		case <-g.G().Clock().After(duration):
-		case <-g.forcePingCh:
-		}
-		close(ch)
-	}()
-	return ch
-}
-
 func (g *gregorHandler) pingLoop() {
 
 	ctx := context.Background()
@@ -1241,7 +1227,7 @@ func (g *gregorHandler) pingLoop() {
 	for {
 		ctx, shutdownCancel := context.WithCancel(context.Background())
 		select {
-		case <-g.dispatchPingOnce(duration):
+		case <-g.G().Clock().After(duration):
 			var err error
 
 			doneCh := make(chan error)

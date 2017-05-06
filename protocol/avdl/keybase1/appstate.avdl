@@ -4,7 +4,8 @@ protocol appState {
     enum AppState {
         FOREGROUND_0,
         BACKGROUND_1,
-        INACTIVE_2
+        INACTIVE_2,
+        BACKGROUNDACTIVE_3
     }
 
     void updateAppState(AppState state);

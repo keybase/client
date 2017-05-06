@@ -59,6 +59,7 @@ export const AppStateAppState = {
   foreground: 0,
   background: 1,
   inactive: 2,
+  backgroundactive: 3,
 }
 
 export const BackendCommonBlockType = {
@@ -3831,6 +3832,7 @@ export type AppState =
     0 // FOREGROUND_0
   | 1 // BACKGROUND_1
   | 2 // INACTIVE_2
+  | 3 // BACKGROUNDACTIVE_3
 
 export type AsyncOps =
     0 // LIST_0

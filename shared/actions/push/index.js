@@ -1,6 +1,8 @@
 // @flow
 import * as Constants from '../../constants/push'
+import * as Types from '../../constants/types/flow-types'
 import * as Creators from './creators'
+import * as Shared from './shared'
 import {isMobile} from '../../constants/platform'
 import {apiserverDeleteRpcPromise, apiserverPostRpcPromise} from '../../constants/types/flow-types'
 import {call, put, take, select} from 'redux-saga/effects'
@@ -40,6 +42,15 @@ function * pushNotificationSaga (notification: Constants.PushNotification): Saga
     // wake up and do what it needs to do.
     if (payload.data && payload.data.silent) {
       console.info('Push notification: silent notification received')
+      const appFocused = yield select(Shared.focusedSelector)
+      if (!appFocused) {
+        console.info('Push notification: sending state update to service')
+        yield call(Types.appStateUpdateAppStateRpc, {
+          param: {
+            state: Types.AppStateAppState.backgroundactive,
+          },
+        })
+      }
       return
     }
 

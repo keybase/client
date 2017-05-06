@@ -11,21 +11,24 @@ import (
 type AppState int
 
 const (
-	AppState_FOREGROUND AppState = 0
-	AppState_BACKGROUND AppState = 1
-	AppState_INACTIVE   AppState = 2
+	AppState_FOREGROUND       AppState = 0
+	AppState_BACKGROUND       AppState = 1
+	AppState_INACTIVE         AppState = 2
+	AppState_BACKGROUNDACTIVE AppState = 3
 )
 
 var AppStateMap = map[string]AppState{
-	"FOREGROUND": 0,
-	"BACKGROUND": 1,
-	"INACTIVE":   2,
+	"FOREGROUND":       0,
+	"BACKGROUND":       1,
+	"INACTIVE":         2,
+	"BACKGROUNDACTIVE": 3,
 }
 
 var AppStateRevMap = map[AppState]string{
 	0: "FOREGROUND",
 	1: "BACKGROUND",
 	2: "INACTIVE",
+	3: "BACKGROUNDACTIVE",
 }
 
 func (e AppState) String() string {
