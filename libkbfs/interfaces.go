@@ -1688,7 +1688,7 @@ type NodeCache interface {
 	// completely. If successful, it returns a function that can be
 	// called to undo the effect of the move (or `nil` if nothing
 	// needs to be done); if newParent cannot be found, it returns an
-	// error.
+	// error and a `nil` undo function.
 	Move(ref BlockRef, newParent Node, newName string) (
 		undoFn func(), err error)
 	// Unlink set the corresponding node's parent to nil and caches
