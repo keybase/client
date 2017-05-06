@@ -214,7 +214,7 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 }
 
 func (g *gregorHandler) monitorAppState() {
-	// Wait for state updates and send them to the ping loop
+	// Wait for state updates and react accordingly
 	for {
 		state := <-g.G().AppState.NextUpdate()
 		switch state {
