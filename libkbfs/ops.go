@@ -36,6 +36,7 @@ type op interface {
 	setLocalTimestamp(t time.Time)
 	getLocalTimestamp() time.Time
 	checkValid() error
+	deepCopy() op
 	// checkConflict compares the function's target op with the given
 	// op, and returns a resolution if one is needed (or nil
 	// otherwise).  The resulting action (if any) assumes that this
@@ -148,6 +149,28 @@ type OpCommon struct {
 	// corresponding ImmutableRootMetadata when ops need individual
 	// timestamps.  Not exported; only used locally.
 	localTimestamp time.Time
+}
+
+func (oc OpCommon) deepCopy() OpCommon {
+	ocCopy := OpCommon{}
+
+	ocCopy.RefBlocks = make([]BlockPointer, len(oc.RefBlocks))
+	copy(ocCopy.RefBlocks, oc.RefBlocks)
+	ocCopy.UnrefBlocks = make([]BlockPointer, len(oc.UnrefBlocks))
+	copy(ocCopy.UnrefBlocks, oc.UnrefBlocks)
+	ocCopy.Updates = make([]blockUpdate, len(oc.Updates))
+	copy(ocCopy.Updates, oc.Updates)
+
+	// TODO: if we ever need to copy the unknown fields in this
+	// method, we'll have to change the codec interface to make it
+	// possible.
+
+	ocCopy.writerInfo = oc.writerInfo
+	ocCopy.finalPath = oc.finalPath
+	ocCopy.finalPath.path = make([]pathNode, len(oc.finalPath.path))
+	copy(ocCopy.finalPath.path, oc.finalPath.path)
+	ocCopy.localTimestamp = oc.localTimestamp
+	return ocCopy
 }
 
 // AddRefBlock adds this block to the list of newly-referenced blocks
@@ -294,6 +317,12 @@ func newCreateOp(name string, oldDir BlockPointer, t EntryType) (*createOp, erro
 	}
 	co.Type = t
 	return co, nil
+}
+
+func (co *createOp) deepCopy() op {
+	coCopy := *co
+	coCopy.OpCommon = co.OpCommon.deepCopy()
+	return &coCopy
 }
 
 func newCreateOpForRootDir() *createOp {
@@ -464,6 +493,12 @@ func newRmOp(name string, oldDir BlockPointer) (*rmOp, error) {
 	return ro, nil
 }
 
+func (ro *rmOp) deepCopy() op {
+	roCopy := *ro
+	roCopy.OpCommon = ro.OpCommon.deepCopy()
+	return &roCopy
+}
+
 func (ro *rmOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 	if oldPtr == ro.Dir.Unref {
 		err := ro.Dir.setRef(newPtr)
@@ -576,6 +611,12 @@ func newRenameOp(oldName string, oldOldDir BlockPointer,
 		}
 	}
 	return ro, nil
+}
+
+func (ro *renameOp) deepCopy() op {
+	roCopy := *ro
+	roCopy.OpCommon = ro.OpCommon.deepCopy()
+	return &roCopy
 }
 
 func (ro *renameOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
@@ -730,6 +771,14 @@ func newSyncOp(oldFile BlockPointer) (*syncOp, error) {
 	}
 	so.resetUpdateState()
 	return so, nil
+}
+
+func (so *syncOp) deepCopy() op {
+	soCopy := *so
+	soCopy.OpCommon = so.OpCommon.deepCopy()
+	soCopy.Writes = make([]WriteRange, len(so.Writes))
+	copy(soCopy.Writes, so.Writes)
+	return &soCopy
 }
 
 func (so *syncOp) resetUpdateState() {
@@ -1016,6 +1065,12 @@ func newSetAttrOp(name string, oldDir BlockPointer,
 	return sao, nil
 }
 
+func (sao *setAttrOp) deepCopy() op {
+	saoCopy := *sao
+	saoCopy.OpCommon = sao.OpCommon.deepCopy()
+	return &saoCopy
+}
+
 func (sao *setAttrOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 	if oldPtr == sao.Dir.Unref {
 		err := sao.Dir.setRef(newPtr)
@@ -1125,6 +1180,12 @@ func newResolutionOp() *resolutionOp {
 	return ro
 }
 
+func (ro *resolutionOp) deepCopy() op {
+	roCopy := *ro
+	roCopy.OpCommon = ro.OpCommon.deepCopy()
+	return &roCopy
+}
+
 func (ro *resolutionOp) SizeExceptUpdates() uint64 {
 	return 0
 }
@@ -1165,6 +1226,12 @@ type rekeyOp struct {
 func newRekeyOp() *rekeyOp {
 	ro := &rekeyOp{}
 	return ro
+}
+
+func (ro *rekeyOp) deepCopy() op {
+	roCopy := *ro
+	roCopy.OpCommon = ro.OpCommon.deepCopy()
+	return &roCopy
 }
 
 func (ro *rekeyOp) SizeExceptUpdates() uint64 {
@@ -1219,6 +1286,12 @@ func newGCOp(latestRev MetadataRevision) *GCOp {
 		LatestRev: latestRev,
 	}
 	return gco
+}
+
+func (gco *GCOp) deepCopy() op {
+	gcoCopy := *gco
+	gcoCopy.OpCommon = gco.OpCommon.deepCopy()
+	return &gcoCopy
 }
 
 // SizeExceptUpdates implements op.

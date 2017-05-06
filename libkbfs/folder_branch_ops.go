@@ -17,7 +17,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
@@ -3723,16 +3722,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 	parentsToAddChainsFor := make(map[BlockPointer]bool)
 	for _, dop := range fbo.dirOps {
 		// Copy the op before modifying it, in case there's an error
-		// and we have to retry with the original ops.  TODO: make a
-		// better way of copying a single op.
-		ops := make(opsList, 1)
-		err = kbfscodec.Update(
-			fbo.config.Codec(), &ops, opsList([]op{dop.dirOp}))
-		if err != nil {
-			return err
-		}
-		newOp := ops[0]
-
+		// and we have to retry with the original ops.
+		newOp := dop.dirOp.deepCopy()
 		md.AddOp(newOp)
 
 		// Add "updates" for all the op updates, and make chains for
