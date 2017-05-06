@@ -277,20 +277,28 @@ func (d *Service) createChatModules() {
 	ri := d.chatRemoteClient
 	tlf := chat.NewKBFSTLFInfoSource(g)
 
+	// Set up main chat data sources
 	boxer := chat.NewBoxer(g, tlf)
 	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri, tlf)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, storage.New(g), ri)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
+	// Syncer and retriers
 	chatSyncer := chat.NewSyncer(g)
 	g.Syncer = chatSyncer
 	g.FetchRetrier = chat.NewFetchRetrier(g)
+	g.ConvLoader = chat.NewBackgroundConvLoader(g)
 
+	// Set up push handler with the badger
+	pushHandler := chat.NewPushHandler(g)
+	pushHandler.SetBadger(d.badger)
+	pushHandler.SetAppState(d.appState)
+	g.PushHandler = pushHandler
+
+	// Message sending apparatus
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g, tlf), d.attachmentstore, ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
-
-	g.ConvLoader = chat.NewBackgroundConvLoader(g)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
@@ -301,7 +309,6 @@ func (d *Service) createChatModules() {
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh
 	g.AddUserChangedHandler(chat.NewIdentifyChangedHandler(g, tlf))
-
 }
 
 func (d *Service) chatRemoteClient() chat1.RemoteInterface {

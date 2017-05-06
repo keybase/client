@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -115,4 +116,15 @@ type ConvLoader interface {
 	Resumable
 
 	Queue(ctx context.Context, convID chat1.ConversationID) error
+}
+
+type PushHandler interface {
+	TlfFinalize(context.Context, gregor.OutOfBandMessage) error
+	TlfResolve(context.Context, gregor.OutOfBandMessage) error
+	Activity(context.Context, gregor.OutOfBandMessage) error
+}
+
+type AppState interface {
+	State() keybase1.AppState
+	NextUpdate() chan keybase1.AppState
 }

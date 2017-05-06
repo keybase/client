@@ -135,7 +135,6 @@ type gregorHandler struct {
 	gregorCli        *grclient.Client
 	firehoseHandlers []libkb.GregorFirehoseHandler
 	badger           *badges.Badger
-	chatHandler      *chat.PushHandler
 	reachability     *reachability
 	chatLog          utils.DebugLabeler
 	appState         *appState
@@ -196,7 +195,6 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		firstConnect:    true,
 		pushStateFilter: func(m gregor.Message) bool { return true },
 		badger:          nil,
-		chatHandler:     chat.NewPushHandler(g),
 		broadcastCh:     make(chan gregor1.Message, 10000),
 		forcePingCh:     make(chan struct{}),
 	}
@@ -1031,11 +1029,11 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 	case "kbfs.favorites":
 		return g.kbfsFavorites(ctx, obm)
 	case "chat.activity":
-		return g.chatHandler.Activity(ctx, obm, g.badger)
+		return g.G().PushHandler.Activity(ctx, obm)
 	case "chat.tlffinalize":
-		return g.chatHandler.TlfFinalize(ctx, obm)
+		return g.G().PushHandler.TlfFinalize(ctx, obm)
 	case "chat.tlfresolve":
-		return g.chatHandler.TlfResolve(ctx, obm)
+		return g.G().PushHandler.TlfResolve(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
 		return nil

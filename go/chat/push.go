@@ -2,7 +2,6 @@ package chat
 
 import (
 	"bytes"
-	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -15,6 +14,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
+	"golang.org/x/net/context"
 )
 
 type messageWaiterEntry struct {
@@ -172,13 +173,26 @@ func (g *gregorMessageOrderer) SetClock(clock clockwork.Clock) {
 	g.clock = clock
 }
 
+type nullAppState struct {
+}
+
+func (d nullAppState) State() keybase1.AppState {
+	return keybase1.AppState_FOREGROUND
+}
+
+func (d nullAppState) NextUpdate() chan keybase1.AppState {
+	return make(chan keybase1.AppState)
+}
+
 type PushHandler struct {
 	globals.Contextified
 	utils.DebugLabeler
 	sync.Mutex
 
+	badger        *badges.Badger
 	identNotifier *IdentifyNotifier
 	orderer       *gregorMessageOrderer
+	appState      types.AppState
 }
 
 func NewPushHandler(g *globals.Context) *PushHandler {
@@ -187,17 +201,34 @@ func NewPushHandler(g *globals.Context) *PushHandler {
 		DebugLabeler:  utils.NewDebugLabeler(g, "PushHandler", false),
 		identNotifier: NewIdentifyNotifier(g),
 		orderer:       newGregorMessageOrderer(g),
+		appState:      nullAppState{},
 	}
+}
+
+func (g *PushHandler) SetAppState(appState types.AppState) {
+	g.appState = appState
+}
+
+func (g *PushHandler) SetBadger(badger *badges.Badger) {
+	g.badger = badger
 }
 
 func (g *PushHandler) SetClock(clock clockwork.Clock) {
 	g.orderer.SetClock(clock)
 }
 
+func (g *PushHandler) shouldProcessMsg(m gregor.OutOfBandMessage) bool {
+	return g.appState.State() == keybase1.AppState_FOREGROUND
+}
+
 func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	defer g.Trace(ctx, func() error { return err }, "TlfFinalize")()
 	if m.Body() == nil {
 		return errors.New("gregor handler for chat.tlffinalize: nil message body")
+	}
+	if !g.shouldProcessMsg(m) {
+		g.Debug(ctx, "TlfFinalize: skipping message, shouldProcessMsg false")
+		return nil
 	}
 
 	var update chat1.TLFFinalizeUpdate
@@ -251,6 +282,10 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 	if m.Body() == nil {
 		return errors.New("gregor handler for chat.tlfresolve: nil message body")
 	}
+	if !g.shouldProcessMsg(m) {
+		g.Debug(ctx, "TlfResolve: skipping message, shouldProcessMsg false")
+		return nil
+	}
 
 	var update chat1.TLFResolveUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
@@ -295,13 +330,17 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 	return nil
 }
 
-func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, badger *badges.Badger) (err error) {
+func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, g.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
 	defer g.Trace(ctx, func() error { return err }, "Activity")()
 	if m.Body() == nil {
 		return errors.New("gregor handler for chat.activity: nil message body")
+	}
+	if !g.shouldProcessMsg(m) {
+		g.Debug(ctx, "Activity: skipping message, shouldProcessMsg false")
+		return nil
 	}
 
 	// Decode into generic form
@@ -390,8 +429,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 					[]chat1.ConversationID{nm.ConvID}, true)
 			}
 
-			if badger != nil && nm.UnreadUpdate != nil {
-				badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
+			if g.badger != nil && nm.UnreadUpdate != nil {
+				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
 		case "readMessage":
 			var nm chat1.ReadMessagePayload
@@ -415,8 +454,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 				Conv:   conv,
 			})
 
-			if badger != nil && nm.UnreadUpdate != nil {
-				badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
+			if g.badger != nil && nm.UnreadUpdate != nil {
+				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
 		case "setStatus":
 			var nm chat1.SetStatusPayload
@@ -439,8 +478,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 				Conv:   conv,
 			})
 
-			if badger != nil && nm.UnreadUpdate != nil {
-				badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
+			if g.badger != nil && nm.UnreadUpdate != nil {
+				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
 		case "newConversation":
 			var nm chat1.NewConversationPayload
@@ -474,8 +513,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 				Conv: inbox.Convs[0],
 			})
 
-			if badger != nil && nm.UnreadUpdate != nil {
-				badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
+			if g.badger != nil && nm.UnreadUpdate != nil {
+				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
 		default:
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
