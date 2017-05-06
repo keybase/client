@@ -15,7 +15,7 @@ const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}: Use
   <ClickableBox onClick={() => { onClick && onClick(username) }} style={userEntryContainerStyle}>
     <Box style={userEntryInnerContainerStyle}>
       <Avatar style={userEntryAvatarStyle} size={64} url={thumbnailUrl} followsYou={followsYou} following={following} />
-      <Text type='BodySemibold' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
+      <Text type='BodySemibold' style={userEntryUsernameStyle(following)}>{username}</Text>
     </Box>
   </ClickableBox>
 )
@@ -25,8 +25,8 @@ const userEntryContainerStyle = {
   alignItems: 'center',
   height: 96,
   justifyContent: 'flex-start',
-  paddingBottom: globalMargins.tiny,
-  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.small,
+  paddingTop: globalMargins.small,
   width: 105,
 }
 
@@ -38,12 +38,12 @@ const userEntryInnerContainerStyle = {
 }
 
 const userEntryAvatarStyle = {
-  marginBottom: 2,
+  marginBottom: globalMargins.xtiny,
   marginTop: 2,
 }
 
-const userEntryUsernameStyle = followsYou => ({
-  color: followsYou ? globalColors.green : globalColors.blue,
+const userEntryUsernameStyle = following => ({
+  color: following ? globalColors.green : globalColors.blue,
   textAlign: 'center',
 })
 
