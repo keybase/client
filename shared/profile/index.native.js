@@ -236,7 +236,6 @@ const styleProofNotice = {
 const styleActions = {
   ...globalStyles.flexBoxRow,
   marginTop: globalMargins.small,
-  marginBottom: globalMargins.small,
   justifyContent: 'center',
 }
 

@@ -170,8 +170,8 @@ const styleService = {
   alignSelf: 'flex-start',
   color: globalColors.black_75,
   fontSize: 20,
-  marginRight: globalMargins.tiny,
-  marginTop: globalMargins.tiny,
+  marginRight: globalMargins.xtiny,
+  marginTop: globalMargins.tiny - 2,
   textAlign: 'center',
 }
 const styleStatusIconTouchable = {
