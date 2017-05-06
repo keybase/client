@@ -3648,6 +3648,17 @@ func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 	return true, true, fblock, lbc, bps, syncState, cleanup, nil
 }
 
+func addSelfUpdatesAndParent(
+	p path, op op, parentsToAddChainsFor map[BlockPointer]bool) {
+	for i, pn := range p.path {
+		if i == len(p.path)-1 {
+			op.AddSelfUpdate(pn.BlockPointer)
+		} else {
+			parentsToAddChainsFor[pn.BlockPointer] = true
+		}
+	}
+}
+
 func (fbo *folderBranchOps) syncAllLocked(
 	ctx context.Context, lState *lockState, excl Excl) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -3738,13 +3749,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 				p = *p.parentPath()
 			}
 
-			for i, pn := range p.path {
-				if i == len(p.path)-1 {
-					newOp.AddSelfUpdate(pn.BlockPointer)
-				} else {
-					parentsToAddChainsFor[pn.BlockPointer] = true
-				}
-			}
+			addSelfUpdatesAndParent(p, newOp, parentsToAddChainsFor)
 		}
 
 		var ref BlockRef
@@ -3754,19 +3759,20 @@ func (fbo *folderBranchOps) syncAllLocked(
 				continue
 			}
 
-			// New files and directories need explicitly
+			// New files and directories explicitly need
 			// pointer-updating, because the sync process will turn
 			// them into simple refs and will forget about the local,
 			// temporary ID.
 			newNode := dop.nodes[1]
 			newPath := fbo.nodeCache.PathFromNode(newNode)
-			newBlocks[newPath.tailPointer()] = true
+			newPointer := newPath.tailPointer()
+			newBlocks[newPointer] = true
 
 			if realOp.Type != Dir {
 				continue
 			}
 
-			dblock, ok := lbc[newPath.tailPointer()]
+			dblock, ok := lbc[newPointer]
 			if !ok {
 				// New directories that aren't otherwise dirty need to
 				// be added to both the `lbc` and `resolvedPaths` so
@@ -3776,8 +3782,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 				if err != nil {
 					return err
 				}
-				lbc[newPath.tailPointer()] = dblock
-				resolvedPaths[newPath.tailPointer()] = newPath
+				lbc[newPointer] = dblock
+				resolvedPaths[newPointer] = newPath
 			}
 
 			if len(dblock.Children) > 0 {
@@ -3813,6 +3819,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 	}
 
 	var blocksToRemove []BlockPointer
+	// TODO: find a way to avoid so many dynamic closure dispatches.
 	var afterUpdateFns []func() error
 
 	afterUpdateFns = append(afterUpdateFns, func() error {
@@ -3890,17 +3897,11 @@ func (fbo *folderBranchOps) syncAllLocked(
 			return err
 		})
 
-		// Add an "update" for all the file update, and make chains
-		// for the rest of the parent directories, so they're treated
-		// like updates during the prepping.
+		// Add an "update" for all the parent directory updates, and
+		// make a chain for the file itself, so they're treated like
+		// updates during the prepping.
 		lastOp := md.Data().Changes.Ops[len(md.Data().Changes.Ops)-1]
-		for i, pn := range file.path {
-			if i == len(file.path)-1 {
-				lastOp.AddSelfUpdate(pn.BlockPointer)
-			} else {
-				parentsToAddChainsFor[pn.BlockPointer] = true
-			}
-		}
+		addSelfUpdatesAndParent(file, lastOp, parentsToAddChainsFor)
 
 		// Update the combined local block cache with this file's
 		// dirty entry.
