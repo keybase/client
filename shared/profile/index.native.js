@@ -135,7 +135,8 @@ class Profile extends Component<void, Props, State> {
     let proofNotice
     if (!this.props.loading &&
         this.props.trackerState !== proofChecking &&
-        this.props.trackerState !== proofNormal) {
+        this.props.trackerState !== proofNormal &&
+        this.props.currentlyFollowing) {
       proofNotice = `Some of ${this.props.isYou ? 'your' : this.props.username + "'s"} proofs are broken.`
     }
 
