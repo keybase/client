@@ -23,7 +23,6 @@ type Syncer struct {
 
 	isConnected bool
 	offlinables []types.Offlinable
-	appState    types.AppState
 
 	notificationLock  sync.Mutex
 	clock             clockwork.Clock
@@ -47,15 +46,10 @@ func NewSyncer(g *globals.Context) *Syncer {
 		notificationQueue: make(map[string][]chat1.ConversationID),
 		fullReload:        make(map[string]bool),
 		sendDelay:         time.Millisecond * 1000,
-		appState:          nullAppState{},
 	}
 
 	go s.sendNotificationLoop()
 	return s
-}
-
-func (s *Syncer) SetAppState(appState types.AppState) {
-	s.appState = appState
 }
 
 func (s *Syncer) SetClock(clock clockwork.Clock) {
@@ -82,7 +76,9 @@ func (s *Syncer) dedupConvIDs(convIDs []chat1.ConversationID) (res []chat1.Conve
 func (s *Syncer) sendNotificationsOnce() {
 	s.notificationLock.Lock()
 	defer s.notificationLock.Unlock()
-	state := s.appState.State()
+	state := s.G().AppState.State()
+	// Only actually flush notifications if the state of the app is in the foreground. In the desktop
+	// app this is always true, but on the mobile app this might not be.
 	if state == keybase1.AppState_FOREGROUND {
 		// Broadcast full reloads
 		for uid := range s.fullReload {
@@ -120,7 +116,9 @@ func (s *Syncer) sendNotificationLoop() {
 			s.sendNotificationsOnce()
 		case <-s.flushCh:
 			s.sendNotificationsOnce()
-		case state := <-s.appState.NextUpdate():
+		case state := <-s.G().AppState.NextUpdate():
+			// If we receive an update that app state has moved to the foreground, then trigger
+			// flushing these notifications
 			if state == keybase1.AppState_FOREGROUND {
 				s.sendNotificationsOnce()
 			}

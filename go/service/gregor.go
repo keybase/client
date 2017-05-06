@@ -154,7 +154,6 @@ type gregorHandler struct {
 
 	shutdownCh  chan struct{}
 	broadcastCh chan gregor1.Message
-	forcePingCh chan struct{}
 
 	// Testing
 	testingEvents       *testingEvents
@@ -195,7 +194,6 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		pushStateFilter: func(m gregor.Message) bool { return true },
 		badger:          nil,
 		broadcastCh:     make(chan gregor1.Message, 10000),
-		forcePingCh:     make(chan struct{}),
 	}
 
 	// Attempt to create a gregor client initially, if we are not logged in

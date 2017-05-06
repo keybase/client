@@ -172,17 +172,6 @@ func (g *gregorMessageOrderer) SetClock(clock clockwork.Clock) {
 	g.clock = clock
 }
 
-type nullAppState struct {
-}
-
-func (d nullAppState) State() keybase1.AppState {
-	return keybase1.AppState_FOREGROUND
-}
-
-func (d nullAppState) NextUpdate() chan keybase1.AppState {
-	return make(chan keybase1.AppState)
-}
-
 type PushHandler struct {
 	globals.Contextified
 	utils.DebugLabeler
