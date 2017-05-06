@@ -1673,7 +1673,7 @@ func (fbo *folderBlockOps) nowUnixNano() int64 {
 }
 
 // PrepRename prepares the given rename operation. It returns the old
-// and new parent block (which may be the same,and which shouldn't be
+// and new parent block (which may be the same, and which shouldn't be
 // modified), and what is to be the new DirEntry.
 func (fbo *folderBlockOps) PrepRename(
 	ctx context.Context, lState *lockState, kmd KeyMetadata,
