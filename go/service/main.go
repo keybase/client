@@ -286,6 +286,7 @@ func (d *Service) createChatModules() {
 
 	// Syncer and retriers
 	chatSyncer := chat.NewSyncer(g)
+	chatSyncer.SetAppState(d.appState)
 	g.Syncer = chatSyncer
 	g.FetchRetrier = chat.NewFetchRetrier(g)
 	g.ConvLoader = chat.NewBackgroundConvLoader(g)

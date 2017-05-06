@@ -2,7 +2,7 @@
 import * as Constants from '../../constants/push'
 import * as Types from '../../constants/types/flow-types'
 import * as Creators from './creators'
-import * as Shared from './shared'
+import * as Shared from '../chat/shared'
 import {isMobile} from '../../constants/platform'
 import {apiserverDeleteRpcPromise, apiserverPostRpcPromise} from '../../constants/types/flow-types'
 import {call, put, take, select} from 'redux-saga/effects'
