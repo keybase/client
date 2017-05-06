@@ -137,7 +137,6 @@ type gregorHandler struct {
 	badger           *badges.Badger
 	reachability     *reachability
 	chatLog          utils.DebugLabeler
-	appState         *appState
 
 	// This mutex protects the con object
 	connMutex sync.Mutex
@@ -208,31 +207,30 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 	// Start broadcast handler goroutine
 	go gh.broadcastMessageHandler()
 
+	// Start the app state monitor thread
+	go gh.monitorAppState()
+
 	return gh
 }
 
-func (g *gregorHandler) setAppState(appState *appState) {
-	g.appState = appState
-
+func (g *gregorHandler) monitorAppState() {
 	// Wait for state updates and send them to the ping loop
-	go func() {
-		for {
-			state := <-g.appState.NextUpdate()
-			switch state {
-			case keybase1.AppState_BACKGROUNDACTIVE:
-				fallthrough
-			case keybase1.AppState_FOREGROUND:
-				g.Shutdown()
-				g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
-				if err := g.Connect(g.uri); err != nil {
-					g.chatLog.Debug(context.Background(), "error reconnecting")
-				}
-			case keybase1.AppState_INACTIVE:
-				g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
-				g.Shutdown()
+	for {
+		state := <-g.G().AppState.NextUpdate()
+		switch state {
+		case keybase1.AppState_BACKGROUNDACTIVE:
+			fallthrough
+		case keybase1.AppState_FOREGROUND:
+			g.Shutdown()
+			g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
+			if err := g.Connect(g.uri); err != nil {
+				g.chatLog.Debug(context.Background(), "error reconnecting")
 			}
+		case keybase1.AppState_INACTIVE:
+			g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
+			g.Shutdown()
 		}
-	}()
+	}
 }
 
 func (g *gregorHandler) GetClient() rpc.GenericClient {

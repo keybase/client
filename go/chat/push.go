@@ -14,7 +14,6 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -192,7 +191,6 @@ type PushHandler struct {
 	badger        *badges.Badger
 	identNotifier *IdentifyNotifier
 	orderer       *gregorMessageOrderer
-	appState      types.AppState
 }
 
 func NewPushHandler(g *globals.Context) *PushHandler {
@@ -201,12 +199,7 @@ func NewPushHandler(g *globals.Context) *PushHandler {
 		DebugLabeler:  utils.NewDebugLabeler(g, "PushHandler", false),
 		identNotifier: NewIdentifyNotifier(g),
 		orderer:       newGregorMessageOrderer(g),
-		appState:      nullAppState{},
 	}
-}
-
-func (g *PushHandler) SetAppState(appState types.AppState) {
-	g.appState = appState
 }
 
 func (g *PushHandler) SetBadger(badger *badges.Badger) {
@@ -218,7 +211,7 @@ func (g *PushHandler) SetClock(clock clockwork.Clock) {
 }
 
 func (g *PushHandler) shouldProcessMsg(m gregor.OutOfBandMessage) bool {
-	return g.appState.State() == keybase1.AppState_FOREGROUND
+	return g.G().AppState.State() == keybase1.AppState_FOREGROUND
 }
 
 func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage) (err error) {

@@ -61,7 +61,7 @@ func sendSimple(t *testing.T, tc *kbtest.ChatTestContext, ph *PushHandler,
 	}
 
 	tc.G.NotifyRouter = nr
-	require.NoError(t, ph.Activity(context.TODO(), m, nil))
+	require.NoError(t, ph.Activity(context.TODO(), m))
 }
 
 func TestPushOrdering(t *testing.T) {

@@ -113,7 +113,7 @@ func (s *Syncer) sendNotificationLoop() {
 		case uid := <-s.fullReloadCh:
 			s.notificationLock.Lock()
 			s.fullReload[uid.String()] = true
-			s.notificationQueue[uid.String()] = nil
+			delete(s.notificationQueue, uid.String())
 			s.notificationLock.Unlock()
 			s.sendNotificationsOnce()
 		case <-s.clock.After(s.sendDelay):
