@@ -2827,6 +2827,46 @@ func (fbo *folderBranchOps) CreateFile(
 	return retNode, retEntryInfo, nil
 }
 
+// notifyAndSyncOrSignal caches an op in memory and dirties the
+// relevant node, and then sends a notification for it.  If batching
+// is on, it signals the write; otherwise it syncs the change.  It
+// should only be called as the final instruction that can fail in a
+// method.
+func (fbo *folderBranchOps) notifyAndSyncOrSignal(
+	ctx context.Context, lState *lockState, undoFn dirCacheUndoFn,
+	nodesToDirty []Node, op op, md ReadOnlyRootMetadata) (err error) {
+	fbo.dirOps = append(fbo.dirOps, cachedDirOp{op, nodesToDirty})
+	var addedNodes []Node
+	for _, n := range nodesToDirty {
+		added := fbo.status.addDirtyNode(n)
+		if added {
+			addedNodes = append(addedNodes, n)
+		}
+	}
+
+	defer func() {
+		if err != nil {
+			for _, n := range addedNodes {
+				fbo.status.rmDirtyNode(n)
+			}
+			fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
+			if undoFn != nil {
+				undoFn(lState)
+			}
+		}
+	}()
+
+	// It's safe to notify before we've synced, since it is only
+	// sending invalidation notifications.  At worst the upper layer
+	// will just have to refresh its cache needlessly.
+	err = fbo.notifyOneOp(ctx, lState, op, md, false)
+	if err != nil {
+		return err
+	}
+
+	return fbo.syncDirUpdateOrSignal(ctx, lState)
+}
+
 func (fbo *folderBranchOps) createLinkLocked(
 	ctx context.Context, lState *lockState, dir Node, fromName string,
 	toPath string) (DirEntry, error) {
@@ -2898,34 +2938,12 @@ func (fbo *folderBranchOps) createLinkLocked(
 
 	dirCacheUndoFn := fbo.blocks.AddDirEntryInCache(
 		lState, dirPath, fromName, de)
-	fbo.dirOps = append(fbo.dirOps, cachedDirOp{co, []Node{dir}})
-	added := fbo.status.addDirtyNode(dir)
 
-	defer func() {
-		if err != nil {
-			if added {
-				fbo.status.rmDirtyNode(dir)
-			}
-			fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
-			if dirCacheUndoFn != nil {
-				dirCacheUndoFn(lState)
-			}
-		}
-	}()
-
-	// It's safe to notify before we've synced, since it is only
-	// sending invalidation notifications.  At worst the upper layer
-	// will just have to refresh its cache needlessly.
-	err = fbo.notifyOneOp(ctx, lState, co, md.ReadOnly(), false)
+	err = fbo.notifyAndSyncOrSignal(
+		ctx, lState, dirCacheUndoFn, []Node{dir}, co, md.ReadOnly())
 	if err != nil {
 		return DirEntry{}, err
 	}
-
-	err = fbo.syncDirUpdateOrSignal(ctx, lState)
-	if err != nil {
-		return DirEntry{}, err
-	}
-
 	return de, nil
 }
 
@@ -3044,30 +3062,8 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 
 	dirCacheUndoFn := fbo.blocks.RemoveDirEntryInCache(
 		lState, dirPath, name, de)
-	fbo.dirOps = append(fbo.dirOps, cachedDirOp{ro, []Node{dir}})
-	added := fbo.status.addDirtyNode(dir)
-
-	defer func() {
-		if err != nil {
-			if added {
-				fbo.status.rmDirtyNode(dir)
-			}
-			fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
-			if dirCacheUndoFn != nil {
-				dirCacheUndoFn(lState)
-			}
-		}
-	}()
-
-	// It's safe to notify before we've synced, since it is only
-	// sending invalidation notifications.  At worst the upper layer
-	// will just have to refresh its cache needlessly.
-	err = fbo.notifyOneOp(ctx, lState, ro, md.ReadOnly(), false)
-	if err != nil {
-		return err
-	}
-
-	return fbo.syncDirUpdateOrSignal(ctx, lState)
+	return fbo.notifyAndSyncOrSignal(
+		ctx, lState, dirCacheUndoFn, []Node{dir}, ro, md.ReadOnly())
 }
 
 func (fbo *folderBranchOps) removeDirLocked(ctx context.Context,
@@ -3233,40 +3229,13 @@ func (fbo *folderBranchOps) renameLocked(
 	if err != nil {
 		return err
 	}
-	cdo := cachedDirOp{ro, []Node{oldParent}}
+
+	nodesToDirty := []Node{oldParent}
 	if oldParent.GetID() != newParent.GetID() {
-		cdo.nodes = append(cdo.nodes, newParent)
+		nodesToDirty = append(nodesToDirty, newParent)
 	}
-	fbo.dirOps = append(fbo.dirOps, cdo)
-	var addedNodes []Node
-	for _, n := range cdo.nodes {
-		added := fbo.status.addDirtyNode(n)
-		if added {
-			addedNodes = append(addedNodes, n)
-		}
-	}
-
-	defer func() {
-		if err != nil {
-			for _, n := range addedNodes {
-				fbo.status.rmDirtyNode(n)
-			}
-			fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
-			if dirCacheUndoFn != nil {
-				dirCacheUndoFn(lState)
-			}
-		}
-	}()
-
-	// It's safe to notify before we've synced, since it is only
-	// sending invalidation notifications.  At worst the upper layer
-	// will just have to refresh its cache needlessly.
-	err = fbo.notifyOneOp(ctx, lState, ro, md.ReadOnly(), false)
-	if err != nil {
-		return err
-	}
-
-	return fbo.syncDirUpdateOrSignal(ctx, lState)
+	return fbo.notifyAndSyncOrSignal(
+		ctx, lState, dirCacheUndoFn, nodesToDirty, ro, md.ReadOnly())
 }
 
 func (fbo *folderBranchOps) Rename(
@@ -3498,30 +3467,8 @@ func (fbo *folderBranchOps) setExLocked(
 
 	dirCacheUndoFn := fbo.blocks.SetAttrInDirEntryInCache(
 		lState, filePath, de, sao.Attr)
-	fbo.dirOps = append(fbo.dirOps, cachedDirOp{sao, []Node{file}})
-	added := fbo.status.addDirtyNode(file)
-
-	defer func() {
-		if err != nil {
-			if added {
-				fbo.status.rmDirtyNode(file)
-			}
-			fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
-			if dirCacheUndoFn != nil {
-				dirCacheUndoFn(lState)
-			}
-		}
-	}()
-
-	// It's safe to notify before we've synced, since it is only
-	// sending invalidation notifications.  At worst the upper layer
-	// will just have to refresh its cache needlessly.
-	err = fbo.notifyOneOp(ctx, lState, sao, md.ReadOnly(), false)
-	if err != nil {
-		return err
-	}
-
-	return fbo.syncDirUpdateOrSignal(ctx, lState)
+	return fbo.notifyAndSyncOrSignal(
+		ctx, lState, dirCacheUndoFn, []Node{file}, sao, md.ReadOnly())
 }
 
 func (fbo *folderBranchOps) SetEx(
@@ -3590,31 +3537,8 @@ func (fbo *folderBranchOps) setMtimeLocked(
 
 	dirCacheUndoFn := fbo.blocks.SetAttrInDirEntryInCache(
 		lState, filePath, de, sao.Attr)
-	fbo.dirOps = append(fbo.dirOps, cachedDirOp{sao, []Node{file}})
-	added := fbo.status.addDirtyNode(file)
-
-	defer func() {
-		if err != nil {
-			if added {
-				fbo.status.rmDirtyNode(file)
-			}
-			fbo.dirOps = fbo.dirOps[:len(fbo.dirOps)-1]
-			if dirCacheUndoFn != nil {
-				dirCacheUndoFn(lState)
-			}
-			dirCacheUndoFn(lState)
-		}
-	}()
-
-	// It's safe to notify before we've synced, since it is only
-	// sending invalidation notifications.  At worst the upper layer
-	// will just have to refresh its cache needlessly.
-	err = fbo.notifyOneOp(ctx, lState, sao, md.ReadOnly(), false)
-	if err != nil {
-		return err
-	}
-
-	return fbo.syncDirUpdateOrSignal(ctx, lState)
+	return fbo.notifyAndSyncOrSignal(
+		ctx, lState, dirCacheUndoFn, []Node{file}, sao, md.ReadOnly())
 }
 
 func (fbo *folderBranchOps) SetMtime(
