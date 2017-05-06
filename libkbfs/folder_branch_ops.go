@@ -2514,7 +2514,7 @@ func (fbo *folderBranchOps) createEntryLocked(
 			session.UID, keybase1.BlockType_DATA),
 	}
 	co.AddRefBlock(newPtr)
-	co.AddUpdate(parentPtr, parentPtr)
+	co.AddSelfUpdate(parentPtr)
 
 	node, err := fbo.nodeCache.GetOrCreate(newPtr, name, dir)
 	if err != nil {
@@ -2872,7 +2872,7 @@ func (fbo *folderBranchOps) createLinkLocked(
 		return DirEntry{}, err
 	}
 	co.setFinalPath(dirPath)
-	co.AddUpdate(parentPtr, parentPtr)
+	co.AddSelfUpdate(parentPtr)
 
 	// Nothing below here can fail, so no need to clean up the dir
 	// entry cache on a failure.  If this ever panics, we need to add
@@ -3030,7 +3030,7 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 		return err
 	}
 	ro.setFinalPath(dirPath)
-	ro.AddUpdate(parentPtr, parentPtr)
+	ro.AddSelfUpdate(parentPtr)
 	err = fbo.unrefEntryLocked(ctx, lState, md, ro, dirPath, de, name)
 	if err != nil {
 		return err
@@ -3477,7 +3477,7 @@ func (fbo *folderBranchOps) setExLocked(
 	if err != nil {
 		return err
 	}
-	sao.AddUpdate(parentPtr, parentPtr)
+	sao.AddSelfUpdate(parentPtr)
 
 	// If the node has been unlinked, we can safely ignore this setex.
 	if fbo.nodeCache.IsUnlinked(file) {
@@ -3568,7 +3568,7 @@ func (fbo *folderBranchOps) setMtimeLocked(
 	if err != nil {
 		return err
 	}
-	sao.AddUpdate(parentPtr, parentPtr)
+	sao.AddSelfUpdate(parentPtr)
 
 	// If the node has been unlinked, we can safely ignore this
 	// setmtime.
@@ -3819,7 +3819,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 
 			for i, pn := range p.path {
 				if i == len(p.path)-1 {
-					newOp.AddUpdate(pn.BlockPointer, pn.BlockPointer)
+					newOp.AddSelfUpdate(pn.BlockPointer)
 				} else {
 					parentsToAddChainsFor[pn.BlockPointer] = true
 				}
@@ -3975,7 +3975,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 		lastOp := md.Data().Changes.Ops[len(md.Data().Changes.Ops)-1]
 		for i, pn := range file.path {
 			if i == len(file.path)-1 {
-				lastOp.AddUpdate(pn.BlockPointer, pn.BlockPointer)
+				lastOp.AddSelfUpdate(pn.BlockPointer)
 			} else {
 				parentsToAddChainsFor[pn.BlockPointer] = true
 			}

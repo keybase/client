@@ -49,6 +49,14 @@ type op interface {
 	// and it returns the action to take against the merged branch
 	// given that there are no conflicts.
 	getDefaultAction(mergedPath path) crAction
+
+	// AddSelfUpdate adds an update from the given pointer to itself.
+	// This should be used when the caller doesn't yet know what the
+	// new block ID will be, but wants to "complete" the update as a
+	// signal to a future prepping process that the block needs to be
+	// processed/readied, at which point the real new pointer will be
+	// filled in.
+	AddSelfUpdate(ptr BlockPointer)
 }
 
 // op codes
@@ -185,6 +193,12 @@ func (oc *OpCommon) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 	oc.Updates = append(oc.Updates, bu)
 }
 
+// AddSelfUpdate implements the op interface for OpCommon -- see the
+// comment in op.
+func (oc *OpCommon) AddSelfUpdate(ptr BlockPointer) {
+	oc.AddUpdate(ptr, ptr)
+}
+
 // Refs returns a slice containing all the blocks that were initially
 // referenced during this op.
 func (oc *OpCommon) Refs() []BlockPointer {
@@ -301,6 +315,12 @@ func (co *createOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 		return
 	}
 	co.OpCommon.AddUpdate(oldPtr, newPtr)
+}
+
+// AddSelfUpdate implements the op interface for createOp -- see the
+// comment in op.
+func (co *createOp) AddSelfUpdate(ptr BlockPointer) {
+	co.AddUpdate(ptr, ptr)
 }
 
 func (co *createOp) SizeExceptUpdates() uint64 {
@@ -455,6 +475,12 @@ func (ro *rmOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 	ro.OpCommon.AddUpdate(oldPtr, newPtr)
 }
 
+// AddSelfUpdate implements the op interface for rmOp -- see the
+// comment in op.
+func (ro *rmOp) AddSelfUpdate(ptr BlockPointer) {
+	ro.AddUpdate(ptr, ptr)
+}
+
 func (ro *rmOp) SizeExceptUpdates() uint64 {
 	return uint64(len(ro.OldName))
 }
@@ -568,6 +594,12 @@ func (ro *renameOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 		return
 	}
 	ro.OpCommon.AddUpdate(oldPtr, newPtr)
+}
+
+// AddSelfUpdate implements the op interface for renameOp -- see the
+// comment in op.
+func (ro *renameOp) AddSelfUpdate(ptr BlockPointer) {
+	ro.AddUpdate(ptr, ptr)
 }
 
 func (ro *renameOp) SizeExceptUpdates() uint64 {
@@ -713,6 +745,12 @@ func (so *syncOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 		return
 	}
 	so.OpCommon.AddUpdate(oldPtr, newPtr)
+}
+
+// AddSelfUpdate implements the op interface for syncOp -- see the
+// comment in op.
+func (so *syncOp) AddSelfUpdate(ptr BlockPointer) {
+	so.AddUpdate(ptr, ptr)
 }
 
 func (so *syncOp) addWrite(off uint64, length uint64) WriteRange {
@@ -987,6 +1025,12 @@ func (sao *setAttrOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
 		return
 	}
 	sao.OpCommon.AddUpdate(oldPtr, newPtr)
+}
+
+// AddSelfUpdate implements the op interface for setAttrOp -- see the
+// comment in op.
+func (sao *setAttrOp) AddSelfUpdate(ptr BlockPointer) {
+	sao.AddUpdate(ptr, ptr)
 }
 
 func (sao *setAttrOp) SizeExceptUpdates() uint64 {

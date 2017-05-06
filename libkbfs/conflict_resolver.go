@@ -804,7 +804,7 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 		if err != nil {
 			return path{}, BlockPointer{}, nil, err
 		}
-		co.AddUpdate(parentOriginal, parentOriginal)
+		co.AddSelfUpdate(parentOriginal)
 		co.setFinalPath(parentPath)
 		co.AddRefBlock(currOriginal)
 		co.setWriterInfo(currUnmergedWriterInfo)
@@ -2424,10 +2424,9 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 					}
 					// Set the Dir.Ref fields to be the same as the Unref
 					// -- they will be fixed up later.
-					rop.AddUpdate(ri.originalOldParent, ri.originalOldParent)
+					rop.AddSelfUpdate(ri.originalOldParent)
 					if ri.originalNewParent != ri.originalOldParent {
-						rop.AddUpdate(ri.originalNewParent,
-							ri.originalNewParent)
+						rop.AddSelfUpdate(ri.originalNewParent)
 					}
 					for _, ptr := range cop.Unrefs() {
 						origPtr, err := chains.originalFromMostRecentOrSame(ptr)
