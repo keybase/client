@@ -63,6 +63,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		rekeyMaster:      newRekeyMaster(g),
 		attachmentstore:  chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
 		badger:           badges.NewBadger(g, chatG.ChatG()),
+		gregor:           newGregorHandler(globals.NewContext(g, chatG.ChatG())),
 	}
 }
 
@@ -272,7 +273,7 @@ func (d *Service) stopChatModules() {
 
 func (d *Service) createChatModules() {
 	g := globals.NewContext(d.G(), d.ChatG())
-	ri := d.chatRemoteClient
+	ri := d.gregor.GetClient
 	tlf := chat.NewKBFSTLFInfoSource(g)
 
 	// Set up main chat data sources
@@ -308,15 +309,6 @@ func (d *Service) createChatModules() {
 	g.AddUserChangedHandler(chat.NewIdentifyChangedHandler(g, tlf))
 }
 
-func (d *Service) chatRemoteClient() chat1.RemoteInterface {
-	if d.gregor.cli == nil {
-		d.G().Log.Debug("service not connected to gregor, using errorClient for chat1.RemoteClient")
-		return chat1.RemoteClient{Cli: errorClient{}}
-	}
-	return chat1.RemoteClient{Cli: chat.NewRemoteClient(globals.NewContext(d.G(), d.ChatG()),
-		d.gregor.cli)}
-}
-
 func (d *Service) configureRekey(uir *UIRouter) {
 	rkm := d.rekeyMaster
 	rkm.uiRouter = uir
@@ -346,7 +338,6 @@ func (d *Service) startupGregor() {
 		// Create gregorHandler instance first so any handlers can connect
 		// to it before we actually connect to gregor (either gregor is down
 		// or we aren't logged in)
-		d.gregor = newGregorHandler(globals.NewContext(d.G(), d.ChatG()))
 		d.reachability = newReachability(d.G(), d.gregor)
 		d.gregor.setReachability(d.reachability)
 		d.G().ConnectivityMonitor = d.reachability
