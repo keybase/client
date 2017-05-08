@@ -2,29 +2,15 @@
 // widget-rendering code into some page.
 "use strict";
 
+const asset = chrome.runtime.getURL;
+
 function init() {
   // Only do work on reddit.
   if (!location.hostname.endsWith('.reddit.com')) return;
 
-  // FIXME: This can be more declarative in the future.
-  if (checkCompose.test(location.pathname)) injectCompose();
-  else if (checkProfile.test(location.pathname)) injectProfile();
-  else if (checkThread.test(location.pathname)) injectThread();
+  if (checkThread.test(location.pathname)) injectThread();
 }
 window.addEventListener('load', init);
-
-
-const checkCompose = /^\/message\/compose$/
-function injectCompose() {
-  // /message/compose
-  // TODO: ...
-}
-
-const checkProfile = /^\/user\//;
-function injectProfile() {
-  // /user/<user>
-  // TODO: ...
-}
 
 const checkThread = /^\/r\/\w+\/comments\/\w+\//;
 function injectThread() {
@@ -72,6 +58,8 @@ User.prototype.href = function(service) {
   if (service === undefined) service = this.origin;
   const name = this.services[this.origin];
   switch (this.origin) {
+    case "keybase":
+      return `https://keybase.io/${name}`;
     case "reddit":
       return `https://www.reddit.com/user/${name}`;
     case "twitter":
@@ -95,7 +83,6 @@ function renderRedditChatButton(parent, toUsername) {
   const li = document.createElement("li");
   li.className = "keybase-reply";
   li.innerHTML = `<a href="keybase://${user.query()}/">keybase chat reply</a>`;
-
 
   li.getElementsByTagName("a")[0].addEventListener('click', function(e) {
     e.preventDefault();
@@ -123,7 +110,6 @@ function renderRedditChatButton(parent, toUsername) {
 
 // Render the "Encrypt to..." contact header for the chat widget.
 function renderChatContact(el, user) {
-  const asset = chrome.runtime.getURL;
   const keybaseUsername = user.services["keybase"];
   let queryStatus, iconSrc;
   if (keybaseUsername) {
@@ -150,7 +136,15 @@ function renderChatContact(el, user) {
 
 // Render the Keybase chat reply widget
 function renderChat(parent, user, nudgeSupported, closeCallback) {
-  let nudgeHTML;
+  const oobNudgeHTML = `
+      <p>
+        You will need to let <a target="_blank" href="${user.href()}" class="external-user">${user.display()}</a> know that they have a Keybase message waiting for them.
+      </p>
+      <p>
+        Share this handy link: <span class="keybase-copy">https://keybase.io/reddit-crypto</span>
+      </p>
+  `;
+  let nudgeHTML = oobNudgeHTML;
   if (nudgeSupported) {
     nudgeHTML = `
       <p>
@@ -158,17 +152,9 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
         <textarea name="keybase-nudgetext">${user.display()} - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto</textarea>
       </p>
     `;
-  } else {
-    nudgeHTML = `
-      <p>
-        You will need to let <a target="_blank" href="${user.href()}" class="external-user">${user.display()}</a> know that they have a Keybase message waiting for them.
-        Share this handy link: <a target="_blank" href="https://keybase.io/reddit-crypto">https://keybase.io/reddit-crypto</a>
-      </p>
-    `;
   }
 
   // The chat widget is enclosed in the form element.
-  const asset = chrome.runtime.getURL;
   const f = document.createElement("form");
   f.action = "#"; // Avoid submitting even if we fail to preventDefault
   f.innerHTML = `
@@ -176,8 +162,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
       <img src="${asset("images/icon-keybase-logo-16.png")}"
            srcset="${asset("images/icon-keybase-logo-16@2x.png")} 2x, ${asset("images/icon-keybase-logo-16@3x.png")} 3x"
            />
-      Keybase chat <span class="keybase-close">
-      </span>
+      Keybase chat <span class="keybase-close"> </span>
     </h3>
     <div class="keybase-body">
       <div class="keybase-contact"></div>
@@ -189,7 +174,16 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
       <p style="text-align: center; clear: both;"><input type="submit" value="Send" name="keybase-submit" /></p>
     </div>
   `;
-  f.addEventListener("submit", submitChat.bind(null, closeCallback));
+
+  function successCallback() {
+    let successHTML;
+    if (!nudgeSupported && !user.services["keybase"]) {
+      successHTML = oobNudgeHTML;
+    }
+    renderSuccess(f, closeCallback, successHTML);
+  }
+
+  f.addEventListener("submit", submitChat.bind(null, successCallback));
   parent.insertBefore(f, parent.firstChild);
 
   const contactDiv = f.getElementsByClassName("keybase-contact")[0];
@@ -213,6 +207,9 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
     nudgePlaceholder.innerHTML = nudgeHTML;
     nudgePlaceholder.style = "display: block;";
 
+    // Install copypasta selector
+    installCopypasta(f.getElementsByClassName("keybase-copy"));
+
     // Install nudge toggle
     const nudgeCheck = f["keybase-nudgecheck"];
     if (nudgeCheck !== undefined) {
@@ -226,7 +223,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
   const closer = f.getElementsByClassName("keybase-close")[0];
   closer.addEventListener("click", function(e) {
     if (removeChat(f)) {
-      closeCallback !== undefined && closeCallback();
+      typeof closeCallback === "function" && closeCallback();
     }
   });
 
@@ -302,10 +299,40 @@ function submitChat(successCallback, e) {
       return;
     }
 
-    removeChat(f, true /* skipCheck */);
+    // Success!
     nudgeCallback();
-    successCallback !== undefined && successCallback();
+    typeof successCallback === "function" && successCallback();
+    installCopypasta(f.getElementsByClassName("keybase-copy"));
   });
+}
+
+// Render a success screen which replaces the body of the widget.
+function renderSuccess(el, closeCallback, extraHTML) {
+  el.innerHTML = `
+    <h3>
+      <img src="${asset("images/icon-keybase-logo-16.png")}"
+           srcset="${asset("images/icon-keybase-logo-16@2x.png")} 2x, ${asset("images/icon-keybase-logo-16@3x.png")} 3x"
+           />
+      Keybase chat <span class="keybase-close"> </span>
+    </h3>
+    <div class="keybase-body">
+      <p>
+        <img src="${asset("images/icon-fancy-chat-72-x-52.png")}" style="width: 72px; height: 52px;"
+             srcset="${asset("images/icon-fancy-chat-72-x-52@2x.png")} 2x, ${asset("images/icon-fancy-chat-72-x-52@3x.png")} 3x"
+             />
+      </p>
+      <p>
+        Chat sent! You can continue the coversation in your Keybase app.
+      </p>
+      ${extraHTML || ""}
+      <p>
+        <input type="button" class="keybase-close" value="Close" />
+      </p>
+    </div>
+  `;
+  el.className = "keybase-success";
+
+  installCloser(el.getElementsByClassName("keybase-close"), el, true /* skipCheck */, closeCallback);
 }
 
 // Render an error that replaces the body of the widget.
@@ -313,17 +340,13 @@ function renderErrorFull(el, bodyHTML) {
   el.innerHTML = `
     <h3><span class="keybase-close"> </span></h3>
     <p>
-      <img src="${chrome.runtime.getURL("images/icon-keybase-logo-128.png")}" style="height: 64px; width: 64px;" />
+      <img src="${asset("images/icon-keybase-logo-128.png")}" style="height: 64px; width: 64px;" />
     </p>
     ${bodyHTML}
   `;
   el.className = "keybase-error";
-  //
-  // Install closing button (the "x" in the corner)
-  const closer = el.getElementsByClassName("keybase-close")[0];
-  closer.addEventListener("click", function(e) {
-    removeChat(el, true /* skipCheck */);
-  });
+
+  installCloser(el.getElementsByClassName("keybase-close"), el, true /* skipCheck */);
 }
 
 // Render error message inside our chat widget.
@@ -376,6 +399,43 @@ function postRedditReply(commentNode, text) {
   // Note: Calling replyForm.submit() bypasses the onsubmit handler, so we
   // need to dispatch an event or click a submit button.
   replyForm.dispatchEvent(new Event("submit"));
+}
+
+// Install closing button (usually the little "x" in the corner)
+function installCloser(buttons, closeTarget, skipCheck, closeCallback) {
+  for (let closer of buttons) {
+    closer.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (removeChat(closeTarget, skipCheck)) {
+        typeof closeCallback === "function" && closeCallback();
+      }
+    });
+  };
+}
+
+// Install select-and-copy functionality for elements. If successfully copied,
+// the element will get the CSS class "copied" briefly.
+function installCopypasta(elements) {
+  for (let el of elements) {
+    el.addEventListener("click", function(e) {
+      const target = e.currentTarget;
+      const range = document.createRange();
+      range.selectNode(target);
+
+      // Apply range selection
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      // Attempt to copy to clipboard
+      if(document.execCommand("copy")) {
+        target.classList.add("copied");
+        setTimeout(function() {
+          target.classList.remove("copied");
+        }, 500);
+      }
+    });
+  }
 }
 
 
