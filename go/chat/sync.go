@@ -76,6 +76,7 @@ func (s *Syncer) dedupConvIDs(convIDs []chat1.ConversationID) (res []chat1.Conve
 func (s *Syncer) sendNotificationsOnce() {
 	s.notificationLock.Lock()
 	defer s.notificationLock.Unlock()
+
 	state := s.G().AppState.State()
 	// Only actually flush notifications if the state of the app is in the foreground. In the desktop
 	// app this is always true, but on the mobile app this might not be.

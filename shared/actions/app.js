@@ -23,24 +23,23 @@ function mobileAppStateChanged (nextAppState: string): Constants.MobileAppState 
 }
 
 function * _onMobileAppStateChanged (action : Constants.MobileAppState): SagaGenerator<any, any> {
-  let appState = Types.AppStateAppState.foreground
   const nextAppState = action.payload.nextAppState
-  if (nextAppState === 'active') {
-    appState = Types.AppStateAppState.foreground
-    yield put(changedFocus(true))
-  } else if (nextAppState === 'inactive') {
-    appState = Types.AppStateAppState.inactive
-    yield put(changedFocus(false))
-  } else if (nextAppState === 'background') {
-    appState = Types.AppStateAppState.background
-    yield put(changedFocus(false))
-  }
 
-  yield call(Types.appStateUpdateAppStateRpc, {
-    param: {
-      state: appState,
-    },
-  })
+  const focusState = {
+    active: true,
+    inactive: false,
+    background: false,
+  }[nextAppState]
+
+  yield put(changedFocus(focusState))
+
+  const state = {
+    active: Types.AppStateAppState.foreground,
+    inactive: Types.AppStateAppState.inactive,
+    background: Types.AppStateAppState.background,
+  }[nextAppState] || Types.AppStateAppState.foreground
+
+  yield call(Types.appStateUpdateAppStateRpc, {param: {state}})
 }
 
 function * appStateSaga (): SagaGenerator<any, any> {

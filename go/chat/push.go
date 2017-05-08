@@ -327,7 +327,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 	// Decode into generic form
 	var gm chat1.GenericPayload
 	uid := m.UID().Bytes()
-	convID := gm.ConvID
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
 	err = dec.Decode(&gm)
@@ -335,7 +334,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 		g.Debug(ctx, "chat activity: failed to decode into generic payload: %s", err.Error())
 		return err
 	}
-	g.Debug(ctx, "chat activity: action %s vers: %d", gm.Action, gm.InboxVers)
+	convID := gm.ConvID
+	g.Debug(ctx, "chat activity: action %s vers: %d convID: %s", gm.Action, gm.InboxVers, convID)
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, gm.InboxVers)
@@ -407,7 +407,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				if pushErr != nil {
 					g.Debug(ctx, "chat activity: newMessage: push error, alerting")
 				}
-				g.G().Syncer.SendChatStaleNotifications(context.Background(), m.UID().Bytes(),
+				g.G().Syncer.SendChatStaleNotifications(ctx, m.UID().Bytes(),
 					[]chat1.ConversationID{nm.ConvID}, true)
 			}
 

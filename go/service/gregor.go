@@ -236,7 +236,7 @@ func (g *gregorHandler) monitorAppState() {
 func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 	if g.IsShutdown() || g.cli == nil {
 		g.chatLog.Debug(context.Background(), "GetClient: shutdown, using errorClient for chat1.RemoteClient")
-		return chat1.RemoteClient{Cli: errorClient{}}
+		return chat1.RemoteClient{Cli: chat.OfflineClient{}}
 	}
 	return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
 }
@@ -1555,16 +1555,4 @@ func (t *timeoutClient) Notify(ctx context.Context, method string, arg interface
 		return t.timeoutErr
 	}
 	return err
-}
-
-type errorClient struct{}
-
-var _ rpc.GenericClient = errorClient{}
-
-func (e errorClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
-	return fmt.Errorf("errorClient: Call %s", method)
-}
-
-func (e errorClient) Notify(ctx context.Context, method string, arg interface{}) error {
-	return fmt.Errorf("errorClient: Notify %s", method)
 }
