@@ -95,8 +95,6 @@ func (s *Syncer) sendNotificationsOnce() {
 			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), keybase1.UID(uid), convIDs)
 		}
 		s.notificationQueue = make(map[string][]chat1.ConversationID)
-	} else {
-		s.Debug(context.Background(), "skipping flush, wrong app state: %v", state)
 	}
 }
 
