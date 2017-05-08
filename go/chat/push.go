@@ -199,7 +199,7 @@ func (g *PushHandler) SetClock(clock clockwork.Clock) {
 	g.orderer.SetClock(clock)
 }
 
-func (g *PushHandler) shouldProcessMsg(m gregor.OutOfBandMessage) bool {
+func (g *PushHandler) shouldSendNotifications() bool {
 	return g.G().AppState.State() == keybase1.AppState_FOREGROUND
 }
 
@@ -207,10 +207,6 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 	defer g.Trace(ctx, func() error { return err }, "TlfFinalize")()
 	if m.Body() == nil {
 		return errors.New("gregor handler for chat.tlffinalize: nil message body")
-	}
-	if !g.shouldProcessMsg(m) {
-		g.Debug(ctx, "TlfFinalize: skipping message, shouldProcessMsg false")
-		return nil
 	}
 
 	var update chat1.TLFFinalizeUpdate
@@ -251,8 +247,14 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 			} else {
 				conv = nil
 			}
-			g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
-				convID, update.FinalizeInfo, conv)
+
+			if g.shouldSendNotifications() {
+				g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
+					convID, update.FinalizeInfo, conv)
+			} else {
+				g.G().Syncer.SendChatStaleNotifications(ctx, uid,
+					[]chat1.ConversationID{convID}, false)
+			}
 		}
 	}(bctx)
 
@@ -263,10 +265,6 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 	defer g.Trace(ctx, func() error { return err }, "TlfResolve")()
 	if m.Body() == nil {
 		return errors.New("gregor handler for chat.tlfresolve: nil message body")
-	}
-	if !g.shouldProcessMsg(m) {
-		g.Debug(ctx, "TlfResolve: skipping message, shouldProcessMsg false")
-		return nil
 	}
 
 	var update chat1.TLFResolveUpdate
@@ -305,8 +303,13 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 			NewTLFName: updateConv.Info.TlfName,
 		}
 
-		g.G().NotifyRouter.HandleChatTLFResolve(ctx, keybase1.UID(uid.String()),
-			update.ConvID, resolveInfo)
+		if g.shouldSendNotifications() {
+			g.G().NotifyRouter.HandleChatTLFResolve(ctx, keybase1.UID(uid.String()),
+				update.ConvID, resolveInfo)
+		} else {
+			g.G().Syncer.SendChatStaleNotifications(ctx, uid,
+				[]chat1.ConversationID{update.ConvID}, false)
+		}
 	}(bctx)
 
 	return nil
@@ -320,14 +323,11 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 	if m.Body() == nil {
 		return errors.New("gregor handler for chat.activity: nil message body")
 	}
-	if !g.shouldProcessMsg(m) {
-		g.Debug(ctx, "Activity: skipping message, shouldProcessMsg false")
-		return nil
-	}
 
 	// Decode into generic form
 	var gm chat1.GenericPayload
 	uid := m.UID().Bytes()
+	convID := gm.ConvID
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
 	err = dec.Decode(&gm)
@@ -502,16 +502,26 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
 		}
 
-		g.notifyNewChatActivity(ctx, m.UID(), &activity)
+		g.notifyNewChatActivity(ctx, m.UID(), convID, &activity)
 	}(bctx)
 	return nil
 }
 
-func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID, activity *chat1.ChatActivity) error {
+func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
+	convID chat1.ConversationID, activity *chat1.ChatActivity) error {
 	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(uid.Bytes()))
 	if err != nil {
 		return err
 	}
-	g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, activity)
+
+	if g.shouldSendNotifications() {
+		g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, activity)
+	} else {
+		// If we are not in send notifications mode, then just label this conversation
+		// as stale, and we can reload the thread.
+		g.G().Syncer.SendChatStaleNotifications(ctx, uid.(gregor1.UID),
+			[]chat1.ConversationID{convID}, false)
+	}
+
 	return nil
 }

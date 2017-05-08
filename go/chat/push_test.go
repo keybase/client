@@ -140,19 +140,30 @@ func TestPushAppState(t *testing.T) {
 	tc := world.Tcs[u.Username]
 	handler := NewPushHandler(tc.Context())
 	handler.SetClock(world.Fc)
-
 	conv := newBlankConv(t, uid, ri, sender, tlf, u.Username)
-	sendSimple(t, tc, handler, sender, conv, u,
-		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
 
 	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
+	sendSimple(t, tc, handler, sender, conv, u,
+		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
 	select {
 	case <-list.incoming:
 		require.Fail(t, "not message should be sent")
 	default:
 	}
 
+	select {
+	case <-handler.orderer.WaitForTurn(context.TODO(), uid, 2):
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "turn never happened")
+	}
+
 	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
+	select {
+	case <-list.threadsStale:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no stale message")
+	}
+
 	sendSimple(t, tc, handler, sender, conv, u,
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
 	select {
