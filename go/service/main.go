@@ -338,6 +338,7 @@ func (d *Service) startupGregor() {
 		// Create gregorHandler instance first so any handlers can connect
 		// to it before we actually connect to gregor (either gregor is down
 		// or we aren't logged in)
+		d.gregor.Init()
 		d.reachability = newReachability(d.G(), d.gregor)
 		d.gregor.setReachability(d.reachability)
 		d.G().ConnectivityMonitor = d.reachability

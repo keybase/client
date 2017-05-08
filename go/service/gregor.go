@@ -138,9 +138,6 @@ type gregorHandler struct {
 	reachability     *reachability
 	chatLog          utils.DebugLabeler
 
-	currentCallsMutex sync.Mutex
-	currentCalls      map[string]context.CancelFunc
-
 	// This mutex protects the con object
 	connMutex sync.Mutex
 	conn      *rpc.Connection
@@ -197,22 +194,23 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		pushStateFilter: func(m gregor.Message) bool { return true },
 		badger:          nil,
 		broadcastCh:     make(chan gregor1.Message, 10000),
-		currentCalls:    make(map[string]context.CancelFunc),
 	}
+	return gh
+}
 
+// Init starts all the background services for managing connection to Gregor
+func (g *gregorHandler) Init() {
 	// Attempt to create a gregor client initially, if we are not logged in
 	// or don't have user/device info in G, then this won't work
-	if err := gh.resetGregorClient(); err != nil {
-		g.Log.Warning("unable to create push service client: %s", err)
+	if err := g.resetGregorClient(); err != nil {
+		g.Warning(context.Background(), "unable to create push service client: %s", err.Error())
 	}
 
 	// Start broadcast handler goroutine
-	go gh.broadcastMessageHandler()
+	go g.broadcastMessageHandler()
 
 	// Start the app state monitor thread
-	go gh.monitorAppState()
-
-	return gh
+	go g.monitorAppState()
 }
 
 func (g *gregorHandler) monitorAppState() {
@@ -240,19 +238,7 @@ func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 		g.chatLog.Debug(context.Background(), "GetClient: shutdown, using errorClient for chat1.RemoteClient")
 		return chat1.RemoteClient{Cli: errorClient{}}
 	}
-	return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli, g)}
-}
-
-func (g *gregorHandler) RemoteCallBegin(cancel context.CancelFunc, id string) {
-	g.currentCallsMutex.Lock()
-	defer g.currentCallsMutex.Unlock()
-	g.currentCalls[id] = cancel
-}
-
-func (g *gregorHandler) RemoteCallFinished(id string) {
-	g.currentCallsMutex.Lock()
-	defer g.currentCallsMutex.Unlock()
-	delete(g.currentCalls, id)
+	return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
 }
 
 func (g *gregorHandler) resetGregorClient() (err error) {
@@ -594,7 +580,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	defer g.Unlock()
 
 	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, chat.ErrChatServerTimeout)
-	chatCli := chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), cli, g)}
+	chatCli := chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), cli)}
 
 	g.chatLog.Debug(ctx, "connected")
 	if err := srv.Register(gregor1.OutgoingProtocol(g)); err != nil {
@@ -1062,21 +1048,11 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 	}
 }
 
-func (g *gregorHandler) cancelCurrentCalls() {
-	for _, cancel := range g.currentCalls {
-		cancel()
-	}
-	g.currentCalls = make(map[string]context.CancelFunc)
-}
-
 func (g *gregorHandler) Shutdown() {
 	g.Debug(context.Background(), "shutdown")
 	g.connMutex.Lock()
-	g.currentCallsMutex.Lock()
 	defer g.connMutex.Unlock()
-	defer g.currentCallsMutex.Unlock()
 
-	g.cancelCurrentCalls()
 	if g.conn == nil {
 		return
 	}
