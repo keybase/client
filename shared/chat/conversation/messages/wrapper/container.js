@@ -114,12 +114,6 @@ export default compose(
   }),
   lifecycle({
     componentDidUpdate: function (prevProps: Props & {_editedCount: number}) {
-      if (this.props.messageKey === '0000a59283d07a54cf4be77e760ecc2d7306f4aa07c8d472444456f22311dded:messageIDText:1226') {
-        console.log(`aaa1 ${this.props.messageKey} ${prevProps.messageKey}`)
-      }
-      if (prevProps.messageKey === '0000a59283d07a54cf4be77e760ecc2d7306f4aa07c8d472444456f22311dded:messageIDText:1226') {
-        console.log(`aaa2 ${this.props.messageKey} ${prevProps.messageKey}`)
-      }
       if (this.props.measure && (
         (this.props._editedCount !== prevProps._editedCount) ||
         (this.props.isFirstNewMessage !== prevProps.isFirstNewMessage) ||
