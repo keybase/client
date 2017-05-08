@@ -50,9 +50,9 @@ func SaltpackEncrypt(g *GlobalContext, arg *SaltpackEncryptArg) error {
 		}
 	} else {
 		if arg.Binary {
-			plainsink, err = saltpack.NewEncryptStream(arg.Sink, bsk, receiverBoxKeys)
+			plainsink, err = saltpack.NewEncryptStream(CurrentSaltpackVersion(), arg.Sink, bsk, receiverBoxKeys)
 		} else {
-			plainsink, err = saltpack.NewEncryptArmor62Stream(arg.Sink, bsk, receiverBoxKeys, KeybaseSaltpackBrand)
+			plainsink, err = saltpack.NewEncryptArmor62Stream(CurrentSaltpackVersion(), arg.Sink, bsk, receiverBoxKeys, KeybaseSaltpackBrand)
 		}
 	}
 	if err != nil {

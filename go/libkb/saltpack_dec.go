@@ -145,7 +145,7 @@ func peekTypeAndMakeDecoder(ctx context.Context, g *GlobalContext, dearmored io.
 	typ := saltpack.MessageType(peekedBytes[modeOffset])
 	switch typ {
 	case saltpack.MessageTypeEncryption:
-		mki, plainsource, err := saltpack.NewDecryptStream(peekable, keyring)
+		mki, plainsource, err := saltpack.NewDecryptStream(saltpack.CheckKnownMajorVersion, peekable, keyring)
 		return plainsource, mki, nil, typ, err
 	case saltpack.MessageTypeSigncryption:
 		senderPublic, plainsource, err := saltpack.NewSigncryptOpenStream(peekable, keyring, NewTlfKeyResolver(ctx, g))

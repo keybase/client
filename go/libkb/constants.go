@@ -9,6 +9,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/saltpack"
 )
 
 const (
@@ -555,3 +556,7 @@ type PvlUnparsed struct {
 }
 
 const SharedTeamKeyBoxVersion1 = 1
+
+func CurrentSaltpackVersion() saltpack.Version {
+	return saltpack.Version1()
+}
