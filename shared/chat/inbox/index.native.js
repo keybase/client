@@ -199,7 +199,11 @@ class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
     this.props.onUntrustedInboxVisible(id, count)
   }
 
-  _onViewChanged = debounce(({viewableItems}) => {
+  _onViewChanged = debounce((data) => {
+    if (!data) {
+      return
+    }
+    const {viewableItems} = data
     const item = viewableItems && viewableItems[0]
     if (item && item.index) {
       this._askForUnboxing(item.item, viewableItems.length)

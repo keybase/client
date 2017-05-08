@@ -2,44 +2,37 @@
 import Container from '../../forms/container'
 import React from 'react'
 import type {Props} from './index.render'
-import {Box, Button, Icon, Input, Text} from '../../../common-adapters'
-import {globalMargins, globalStyles} from '../../../styles'
+import {Button, Icon, Input, Text} from '../../../common-adapters'
+import {globalMargins} from '../../../styles'
 
 const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting, submitEnabled}: Props) => {
   submitEnabled = submitEnabled == null ? true : submitEnabled
   return (
-    <Box style={stylesBox}>
-      <Container
-        style={stylesContainer}
-        onBack={onBack}>
-        <Text type='Header' style={stylesHeader}>Set a public name for this device:</Text>
-        <Icon type='icon-phone-32' style={stylesIcon} />
-        <Input
-          autoFocus={true}
-          style={stylesInput}
-          errorText={deviceNameError}
-          floatingHintTextOverride='Device name'
-          hintText='Device name'
-          onEnterKeyDown={() => onSubmit()}
-          onChangeText={deviceName => onChange(deviceName)}
-          value={deviceName} />
-        <Button
-          style={stylesButton}
-          type='Primary'
-          fullWidth={true}
-          enabled={deviceName}
-          disabled={!submitEnabled}
-          waiting={waiting}
-          label='Continue'
-          onClick={() => onSubmit()} />
-      </Container>
-    </Box>
+    <Container
+      style={stylesContainer}
+      onBack={onBack}>
+      <Text type='Header' style={stylesHeader}>Set a public name for this device:</Text>
+      <Icon type='icon-phone-32' style={stylesIcon} />
+      <Input
+        autoFocus={true}
+        style={stylesInput}
+        errorText={deviceNameError}
+        floatingHintTextOverride='Device name'
+        hintText='Device name'
+        onEnterKeyDown={() => onSubmit()}
+        onChangeText={deviceName => onChange(deviceName)}
+        value={deviceName} />
+      <Button
+        style={stylesButton}
+        type='Primary'
+        fullWidth={true}
+        enabled={deviceName}
+        disabled={!submitEnabled}
+        waiting={waiting}
+        label='Continue'
+        onClick={() => onSubmit()} />
+    </Container>
   )
-}
-
-const stylesBox = {
-  ...globalStyles.flexBoxColumn,
-  padding: 10,
 }
 
 const stylesContainer = {
