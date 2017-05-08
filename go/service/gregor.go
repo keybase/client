@@ -35,6 +35,8 @@ import (
 const GregorRequestTimeout time.Duration = 30 * time.Second
 const GregorConnectionRetryInterval time.Duration = 2 * time.Second
 
+var errDuplicateConnection = errors.New("OnConnect called from duplicate connection, failing")
+
 type IdentifyUIHandler struct {
 	libkb.Contextified
 	connID      libkb.ConnectionID
@@ -135,7 +137,6 @@ type gregorHandler struct {
 	gregorCli        *grclient.Client
 	firehoseHandlers []libkb.GregorFirehoseHandler
 	badger           *badges.Badger
-	chatHandler      *chat.PushHandler
 	reachability     *reachability
 	chatLog          utils.DebugLabeler
 
@@ -194,24 +195,51 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		firstConnect:    true,
 		pushStateFilter: func(m gregor.Message) bool { return true },
 		badger:          nil,
-		chatHandler:     chat.NewPushHandler(g),
 		broadcastCh:     make(chan gregor1.Message, 10000),
 	}
-
-	// Attempt to create a gregor client initially, if we are not logged in
-	// or don't have user/device info in G, then this won't work
-	if err := gh.resetGregorClient(); err != nil {
-		g.Log.Warning("unable to create push service client: %s", err)
-	}
-
-	// Start broadcast handler goroutine
-	go gh.broadcastMessageHandler()
-
 	return gh
 }
 
-func (g *gregorHandler) GetClient() rpc.GenericClient {
-	return g.cli
+// Init starts all the background services for managing connection to Gregor
+func (g *gregorHandler) Init() {
+	// Attempt to create a gregor client initially, if we are not logged in
+	// or don't have user/device info in G, then this won't work
+	if err := g.resetGregorClient(); err != nil {
+		g.Warning(context.Background(), "unable to create push service client: %s", err.Error())
+	}
+
+	// Start broadcast handler goroutine
+	go g.broadcastMessageHandler()
+
+	// Start the app state monitor thread
+	go g.monitorAppState()
+}
+
+func (g *gregorHandler) monitorAppState() {
+	// Wait for state updates and react accordingly
+	for {
+		state := <-g.G().AppState.NextUpdate()
+		switch state {
+		case keybase1.AppState_BACKGROUNDACTIVE:
+			fallthrough
+		case keybase1.AppState_FOREGROUND:
+			g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
+			if err := g.Connect(g.uri); err != nil {
+				g.chatLog.Debug(context.Background(), "error reconnecting")
+			}
+		case keybase1.AppState_INACTIVE:
+			g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
+			g.Shutdown()
+		}
+	}
+}
+
+func (g *gregorHandler) GetClient() chat1.RemoteInterface {
+	if g.IsShutdown() || g.cli == nil {
+		g.chatLog.Debug(context.Background(), "GetClient: shutdown, using errorClient for chat1.RemoteClient")
+		return chat1.RemoteClient{Cli: chat.OfflineClient{}}
+	}
+	return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
 }
 
 func (g *gregorHandler) resetGregorClient() (err error) {
@@ -457,6 +485,12 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 	return msgs, nil
 }
 
+func (g *gregorHandler) IsShutdown() bool {
+	g.connMutex.Lock()
+	defer g.connMutex.Unlock()
+	return g.conn == nil
+}
+
 func (g *gregorHandler) IsConnected() bool {
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
@@ -545,6 +579,12 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	cli rpc.GenericClient, srv *rpc.Server) error {
 	g.Lock()
 	defer g.Unlock()
+
+	// If we get a random OnConnect on some other connection that is not g.conn, then
+	// just reject it.
+	if conn != g.conn {
+		return errDuplicateConnection
+	}
 
 	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, chat.ErrChatServerTimeout)
 	chatCli := chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), cli)}
@@ -671,6 +711,10 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 
 	ctx := context.Background()
 	g.chatLog.Debug(ctx, "should retry on connect, err %v", err)
+	if err == errDuplicateConnection {
+		g.chatLog.Debug(ctx, "duplicate connection error, not retrying")
+		return false
+	}
 	if cerr, ok := err.(connectionAuthError); ok && !cerr.ShouldRetry() {
 		g.chatLog.Debug(ctx, "should retry on connect, non-retry error, ending: %s", err.Error())
 		return false
@@ -1002,11 +1046,11 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 	case "kbfs.favorites":
 		return g.kbfsFavorites(ctx, obm)
 	case "chat.activity":
-		return g.chatHandler.Activity(ctx, obm, g.badger)
+		return g.G().PushHandler.Activity(ctx, obm)
 	case "chat.tlffinalize":
-		return g.chatHandler.TlfFinalize(ctx, obm)
+		return g.G().PushHandler.TlfFinalize(ctx, obm)
 	case "chat.tlfresolve":
-		return g.chatHandler.TlfResolve(ctx, obm)
+		return g.G().PushHandler.TlfResolve(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
 		return nil
@@ -1023,9 +1067,14 @@ func (g *gregorHandler) Shutdown() {
 	if g.conn == nil {
 		return
 	}
+
+	// Alert chat syncer that we are now disconnected
+	g.G().Syncer.Disconnected(context.Background())
+
 	close(g.shutdownCh)
 	g.conn.Shutdown()
 	g.conn = nil
+	g.cli = nil
 }
 
 func (g *gregorHandler) Reset() error {
@@ -1517,16 +1566,4 @@ func (t *timeoutClient) Notify(ctx context.Context, method string, arg interface
 		return t.timeoutErr
 	}
 	return err
-}
-
-type errorClient struct{}
-
-var _ rpc.GenericClient = errorClient{}
-
-func (e errorClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
-	return fmt.Errorf("errorClient: Call %s", method)
-}
-
-func (e errorClient) Notify(ctx context.Context, method string, arg interface{}) error {
-	return fmt.Errorf("errorClient: Notify %s", method)
 }

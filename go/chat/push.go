@@ -2,7 +2,6 @@ package chat
 
 import (
 	"bytes"
-	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -22,6 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
+	"golang.org/x/net/context"
 )
 
 type messageWaiterEntry struct {
@@ -177,6 +177,7 @@ type PushHandler struct {
 	utils.DebugLabeler
 	sync.Mutex
 
+	badger        *badges.Badger
 	identNotifier *IdentifyNotifier
 	orderer       *gregorMessageOrderer
 }
@@ -190,8 +191,16 @@ func NewPushHandler(g *globals.Context) *PushHandler {
 	}
 }
 
+func (g *PushHandler) SetBadger(badger *badges.Badger) {
+	g.badger = badger
+}
+
 func (g *PushHandler) SetClock(clock clockwork.Clock) {
 	g.orderer.SetClock(clock)
+}
+
+func (g *PushHandler) shouldSendNotifications() bool {
+	return g.G().AppState.State() == keybase1.AppState_FOREGROUND
 }
 
 func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
@@ -238,8 +247,14 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 			} else {
 				conv = nil
 			}
-			g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
-				convID, update.FinalizeInfo, conv)
+
+			if g.shouldSendNotifications() {
+				g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
+					convID, update.FinalizeInfo, conv)
+			} else {
+				g.G().Syncer.SendChatStaleNotifications(ctx, uid,
+					[]chat1.ConversationID{convID}, false)
+			}
 		}
 	}(bctx)
 
@@ -288,14 +303,19 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 			NewTLFName: updateConv.Info.TlfName,
 		}
 
-		g.G().NotifyRouter.HandleChatTLFResolve(ctx, keybase1.UID(uid.String()),
-			update.ConvID, resolveInfo)
+		if g.shouldSendNotifications() {
+			g.G().NotifyRouter.HandleChatTLFResolve(ctx, keybase1.UID(uid.String()),
+				update.ConvID, resolveInfo)
+		} else {
+			g.G().Syncer.SendChatStaleNotifications(ctx, uid,
+				[]chat1.ConversationID{update.ConvID}, false)
+		}
 	}(bctx)
 
 	return nil
 }
 
-func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, badger *badges.Badger) (err error) {
+func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, g.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
@@ -314,7 +334,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 		g.Debug(ctx, "chat activity: failed to decode into generic payload: %s", err.Error())
 		return err
 	}
-	g.Debug(ctx, "chat activity: action %s vers: %d", gm.Action, gm.InboxVers)
+	convID := gm.ConvID
+	g.Debug(ctx, "chat activity: action %s vers: %d convID: %s", gm.Action, gm.InboxVers, convID)
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, gm.InboxVers)
@@ -386,12 +407,12 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 				if pushErr != nil {
 					g.Debug(ctx, "chat activity: newMessage: push error, alerting")
 				}
-				g.G().Syncer.SendChatStaleNotifications(context.Background(), m.UID().Bytes(),
+				g.G().Syncer.SendChatStaleNotifications(ctx, m.UID().Bytes(),
 					[]chat1.ConversationID{nm.ConvID}, true)
 			}
 
-			if badger != nil && nm.UnreadUpdate != nil {
-				badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
+			if g.badger != nil && nm.UnreadUpdate != nil {
+				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
 		case "readMessage":
 			var nm chat1.ReadMessagePayload
@@ -415,8 +436,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 				Conv:   conv,
 			})
 
-			if badger != nil && nm.UnreadUpdate != nil {
-				badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
+			if g.badger != nil && nm.UnreadUpdate != nil {
+				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
 		case "setStatus":
 			var nm chat1.SetStatusPayload
@@ -439,8 +460,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 				Conv:   conv,
 			})
 
-			if badger != nil && nm.UnreadUpdate != nil {
-				badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
+			if g.badger != nil && nm.UnreadUpdate != nil {
+				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
 		case "newConversation":
 			var nm chat1.NewConversationPayload
@@ -474,23 +495,33 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 				Conv: inbox.Convs[0],
 			})
 
-			if badger != nil && nm.UnreadUpdate != nil {
-				badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
+			if g.badger != nil && nm.UnreadUpdate != nil {
+				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
 		default:
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
 		}
 
-		g.notifyNewChatActivity(ctx, m.UID(), &activity)
+		g.notifyNewChatActivity(ctx, m.UID(), convID, &activity)
 	}(bctx)
 	return nil
 }
 
-func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID, activity *chat1.ChatActivity) error {
+func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
+	convID chat1.ConversationID, activity *chat1.ChatActivity) error {
 	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(uid.Bytes()))
 	if err != nil {
 		return err
 	}
-	g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, activity)
+
+	if g.shouldSendNotifications() {
+		g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, activity)
+	} else {
+		// If we are not in send notifications mode, then just label this conversation
+		// as stale, and we can reload the thread.
+		g.G().Syncer.SendChatStaleNotifications(ctx, uid.(gregor1.UID),
+			[]chat1.ConversationID{convID}, false)
+	}
+
 	return nil
 }

@@ -63,6 +63,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		rekeyMaster:      newRekeyMaster(g),
 		attachmentstore:  chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
 		badger:           badges.NewBadger(g, chatG.ChatG()),
+		gregor:           newGregorHandler(globals.NewContext(g, chatG.ChatG())),
 	}
 }
 
@@ -112,6 +113,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.attachmentstore, d.gregor)),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
+		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
@@ -271,23 +273,30 @@ func (d *Service) stopChatModules() {
 
 func (d *Service) createChatModules() {
 	g := globals.NewContext(d.G(), d.ChatG())
-	ri := d.chatRemoteClient
+	ri := d.gregor.GetClient
 	tlf := chat.NewKBFSTLFInfoSource(g)
 
+	// Set up main chat data sources
 	boxer := chat.NewBoxer(g, tlf)
 	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri, tlf)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, storage.New(g), ri)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
+	// Syncer and retriers
 	chatSyncer := chat.NewSyncer(g)
 	g.Syncer = chatSyncer
 	g.FetchRetrier = chat.NewFetchRetrier(g)
+	g.ConvLoader = chat.NewBackgroundConvLoader(g)
 
+	// Set up push handler with the badger
+	pushHandler := chat.NewPushHandler(g)
+	pushHandler.SetBadger(d.badger)
+	g.PushHandler = pushHandler
+
+	// Message sending apparatus
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g, tlf), d.attachmentstore, ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
-
-	g.ConvLoader = chat.NewBackgroundConvLoader(g)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
@@ -298,16 +307,6 @@ func (d *Service) createChatModules() {
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh
 	g.AddUserChangedHandler(chat.NewIdentifyChangedHandler(g, tlf))
-
-}
-
-func (d *Service) chatRemoteClient() chat1.RemoteInterface {
-	if d.gregor.cli == nil {
-		d.G().Log.Debug("service not connected to gregor, using errorClient for chat1.RemoteClient")
-		return chat1.RemoteClient{Cli: errorClient{}}
-	}
-	return chat1.RemoteClient{Cli: chat.NewRemoteClient(globals.NewContext(d.G(), d.ChatG()),
-		d.gregor.cli)}
 }
 
 func (d *Service) configureRekey(uir *UIRouter) {
@@ -339,7 +338,7 @@ func (d *Service) startupGregor() {
 		// Create gregorHandler instance first so any handlers can connect
 		// to it before we actually connect to gregor (either gregor is down
 		// or we aren't logged in)
-		d.gregor = newGregorHandler(globals.NewContext(d.G(), d.ChatG()))
+		d.gregor.Init()
 		d.reachability = newReachability(d.G(), d.gregor)
 		d.gregor.setReachability(d.reachability)
 		d.G().ConnectivityMonitor = d.reachability

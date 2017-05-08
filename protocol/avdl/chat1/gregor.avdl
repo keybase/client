@@ -5,6 +5,7 @@ protocol gregor {
         @lint("ignore")
         string Action;
         InboxVers inboxVers;
+        ConversationID convID;
     }
 
     record NewConversationPayload {

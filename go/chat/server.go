@@ -22,14 +22,13 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
 
 type ServerConnection interface {
 	Reconnect(context.Context) error
-	GetClient() rpc.GenericClient
+	GetClient() chat1.RemoteInterface
 }
 
 type UISource interface {
@@ -1584,7 +1583,7 @@ func (h *Server) remoteClient() chat1.RemoteInterface {
 	if h.rc != nil {
 		return h.rc
 	}
-	return chat1.RemoteClient{Cli: NewRemoteClient(h.G(), h.serverConn.GetClient())}
+	return h.serverConn.GetClient()
 }
 
 func (h *Server) setTestRemoteClient(ri chat1.RemoteInterface) {
