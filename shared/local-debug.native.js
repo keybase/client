@@ -16,11 +16,11 @@ let config: {[key: string]: any} = {
   enableActionLogging: true,
   enableStoreLogging: false,
   featureFlagsOverride: null,
-  forceImmediateLogging: true,
+  forceImmediateLogging: false,
   forwardLogs: true,
   isDevApplePushToken: false,
   isTesting: nativeBridge.test === '1',
-  immediateStateLogging: true,
+  immediateStateLogging: false,
   logStatFrequency: 0,
   overrideLoggedInTab: null,
   printOutstandingRPCs: false,
@@ -33,24 +33,24 @@ let config: {[key: string]: any} = {
   showAllTrackers: false,
 }
 
-// if (__DEV__ && true) {
-  // config.isDevApplePushToken = true
-  // config.devStoreChangingFunctions = true
-  // config.dumbChatOnly = false
-  // config.dumbSheetOnly = false
-  // config.enableActionLogging = false
-  // config.enableStoreLogging = true
-  // config.forwardLogs = true
-  // config.immediateStateLogging = true
-  // config.printOutstandingRPCs = true
-  // config.printRPC = true
-  // config.printRoutes = true
-  // config.reactPerf = false
-  // config.redirectOnLogout = false
-  // config.reduxSagaLogger = true
-  // config.reduxSagaLoggerMasked = false
-  // config.showAllTrackers = false
-// }
+if (__DEV__ && true) {
+  config.isDevApplePushToken = true
+  config.devStoreChangingFunctions = true
+  config.dumbChatOnly = false
+  config.dumbSheetOnly = false
+  config.enableActionLogging = false
+  config.enableStoreLogging = true
+  config.forwardLogs = true
+  config.immediateStateLogging = true
+  config.printOutstandingRPCs = true
+  config.printRPC = true
+  config.printRoutes = true
+  config.reactPerf = false
+  config.redirectOnLogout = false
+  config.reduxSagaLogger = true
+  config.reduxSagaLoggerMasked = false
+  config.showAllTrackers = false
+}
 
 export const {
   actionStatFrequency,
