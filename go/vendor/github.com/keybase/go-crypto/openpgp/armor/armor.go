@@ -67,7 +67,7 @@ type lineReader struct {
 	in  *bufio.Reader
 	buf []byte
 	eof bool
-	crc uint32
+	crc *uint32
 }
 
 func (l *lineReader) Read(p []byte) (n int, err error) {
@@ -81,12 +81,9 @@ func (l *lineReader) Read(p []byte) (n int, err error) {
 		return
 	}
 
-	line, isPrefix, err := l.in.ReadLine()
+	line, _, err := l.in.ReadLine()
 	if err != nil {
 		return
-	}
-	if isPrefix {
-		return 0, ArmorCorrupt
 	}
 
 	if len(line) == 5 && line[0] == '=' {
@@ -97,9 +94,10 @@ func (l *lineReader) Read(p []byte) (n int, err error) {
 		if m != 3 || err != nil {
 			return
 		}
-		l.crc = uint32(expectedBytes[0])<<16 |
+		crc := uint32(expectedBytes[0])<<16 |
 			uint32(expectedBytes[1])<<8 |
 			uint32(expectedBytes[2])
+		l.crc = &crc
 
 		for {
 			line, _, err = l.in.ReadLine()
@@ -118,8 +116,11 @@ func (l *lineReader) Read(p []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 
-	if len(line) > 96 {
-		return 0, ArmorCorrupt
+	if bytes.HasPrefix(line, armorEnd) {
+		// Unexpected ending, there was no checksum.
+		l.eof = true
+		l.crc = nil
+		return 0, io.EOF
 	}
 
 	n = copy(p, line)
@@ -149,7 +150,7 @@ func (r *openpgpReader) Read(p []byte) (n int, err error) {
 	r.currentCRC = crc24(r.currentCRC, p[:n])
 
 	if err == io.EOF {
-		if r.lReader.crc != uint32(r.currentCRC&crc24Mask) {
+		if r.lReader.crc != nil && *r.lReader.crc != uint32(r.currentCRC&crc24Mask) {
 			return 0, ArmorCorrupt
 		}
 	}

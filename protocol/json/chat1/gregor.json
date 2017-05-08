@@ -14,6 +14,10 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
         }
       ]
     },

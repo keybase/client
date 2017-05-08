@@ -31,6 +31,7 @@ type Syncer struct {
 	fullReloadCh      chan gregor1.UID
 	flushCh           chan struct{}
 	notificationQueue map[string][]chat1.ConversationID
+	fullReload        map[string]bool
 }
 
 func NewSyncer(g *globals.Context) *Syncer {
@@ -43,6 +44,7 @@ func NewSyncer(g *globals.Context) *Syncer {
 		fullReloadCh:      make(chan gregor1.UID),
 		flushCh:           make(chan struct{}),
 		notificationQueue: make(map[string][]chat1.ConversationID),
+		fullReload:        make(map[string]bool),
 		sendDelay:         time.Millisecond * 1000,
 	}
 
@@ -74,12 +76,27 @@ func (s *Syncer) dedupConvIDs(convIDs []chat1.ConversationID) (res []chat1.Conve
 func (s *Syncer) sendNotificationsOnce() {
 	s.notificationLock.Lock()
 	defer s.notificationLock.Unlock()
-	for uid, convIDs := range s.notificationQueue {
-		convIDs = s.dedupConvIDs(convIDs)
-		s.Debug(context.Background(), "flushing notifications: uid: %s len: %d", uid, len(convIDs))
-		s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), keybase1.UID(uid), convIDs)
+
+	state := s.G().AppState.State()
+	// Only actually flush notifications if the state of the app is in the foreground. In the desktop
+	// app this is always true, but on the mobile app this might not be.
+	if state == keybase1.AppState_FOREGROUND {
+		// Broadcast full reloads
+		for uid := range s.fullReload {
+			s.Debug(context.Background(), "flushing full reload: uid: %s", uid)
+			s.G().NotifyRouter.HandleChatInboxStale(context.Background(), keybase1.UID(uid))
+			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), keybase1.UID(uid), nil)
+		}
+		s.fullReload = make(map[string]bool)
+
+		// Broadcast conversation stales
+		for uid, convIDs := range s.notificationQueue {
+			convIDs = s.dedupConvIDs(convIDs)
+			s.Debug(context.Background(), "flushing notifications: uid: %s len: %d", uid, len(convIDs))
+			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), keybase1.UID(uid), convIDs)
+		}
+		s.notificationQueue = make(map[string][]chat1.ConversationID)
 	}
-	s.notificationQueue = make(map[string][]chat1.ConversationID)
 }
 
 func (s *Syncer) sendNotificationLoop() {
@@ -90,15 +107,20 @@ func (s *Syncer) sendNotificationLoop() {
 			return
 		case uid := <-s.fullReloadCh:
 			s.notificationLock.Lock()
-			kuid := keybase1.UID(uid.String())
-			s.G().NotifyRouter.HandleChatInboxStale(context.Background(), kuid)
-			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid, nil)
-			s.notificationQueue[uid.String()] = nil
+			s.fullReload[uid.String()] = true
+			delete(s.notificationQueue, uid.String())
 			s.notificationLock.Unlock()
+			s.sendNotificationsOnce()
 		case <-s.clock.After(s.sendDelay):
 			s.sendNotificationsOnce()
 		case <-s.flushCh:
 			s.sendNotificationsOnce()
+		case state := <-s.G().AppState.NextUpdate():
+			// If we receive an update that app state has moved to the foreground, then trigger
+			// flushing these notifications
+			if state == keybase1.AppState_FOREGROUND {
+				s.sendNotificationsOnce()
+			}
 		}
 	}
 
@@ -119,7 +141,9 @@ func (s *Syncer) SendChatStaleNotifications(ctx context.Context, uid gregor1.UID
 	} else {
 		s.Debug(ctx, "sending threads stale message: len: %d", len(convIDs))
 		s.notificationLock.Lock()
-		s.notificationQueue[uid.String()] = append(s.notificationQueue[uid.String()], convIDs...)
+		if !s.fullReload[uid.String()] {
+			s.notificationQueue[uid.String()] = append(s.notificationQueue[uid.String()], convIDs...)
+		}
 		s.notificationLock.Unlock()
 		if immediate {
 			s.flushCh <- struct{}{}

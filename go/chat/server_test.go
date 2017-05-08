@@ -873,7 +873,7 @@ func TestChatGap(t *testing.T) {
 		Uid_:    u.User.GetUID().ToBytes(),
 		System_: "chat.activity",
 		Body_:   data,
-	}, nil))
+	}))
 
 	select {
 	case cids := <-listener.threadsStale:
@@ -894,7 +894,7 @@ func TestChatGap(t *testing.T) {
 		Uid_:    u.User.GetUID().ToBytes(),
 		System_: "chat.activity",
 		Body_:   data,
-	}, nil))
+	}))
 
 	select {
 	case <-listener.threadsStale:

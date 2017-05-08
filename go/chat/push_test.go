@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/stretchr/testify/require"
 )
@@ -61,7 +62,7 @@ func sendSimple(t *testing.T, tc *kbtest.ChatTestContext, ph *PushHandler,
 	}
 
 	tc.G.NotifyRouter = nr
-	require.NoError(t, ph.Activity(context.TODO(), m, nil))
+	require.NoError(t, ph.Activity(context.TODO(), m))
 }
 
 func TestPushOrdering(t *testing.T) {
@@ -127,4 +128,47 @@ func TestPushOrdering(t *testing.T) {
 	handler.orderer.Lock()
 	require.Zero(t, len(handler.orderer.waiters))
 	handler.orderer.Unlock()
+}
+
+func TestPushAppState(t *testing.T) {
+	world, ri2, _, sender, list, tlf := setupTest(t, 1)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	handler := NewPushHandler(tc.Context())
+	handler.SetClock(world.Fc)
+	conv := newBlankConv(t, uid, ri, sender, tlf, u.Username)
+
+	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
+	sendSimple(t, tc, handler, sender, conv, u,
+		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
+	select {
+	case <-list.incoming:
+		require.Fail(t, "not message should be sent")
+	default:
+	}
+
+	select {
+	case <-handler.orderer.WaitForTurn(context.TODO(), uid, 2):
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "turn never happened")
+	}
+
+	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
+	select {
+	case <-list.threadsStale:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no stale message")
+	}
+
+	sendSimple(t, tc, handler, sender, conv, u,
+		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
+	select {
+	case <-list.incoming:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no message received")
+	}
 }

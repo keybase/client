@@ -565,25 +565,31 @@ func InstallKBFS(context Context, binPath string, force bool, timeout time.Durat
 	return nil
 }
 
-// kbnmManifestPath returns where the NativeMessaging host manifest lives on this platform.
-func kbnmManifestPath(u *user.User) string {
-	const rootPath = "/Library/Google/Chrome/NativeMessagingHosts"
-	const homePath = "Library/Application Support/Google/Chrome/NativeMessagingHosts"
+// kbnmManifestPath returns where the NativeMessaging host manifest lives on
+// this platform. Will return paths for both Chrome and Chromium.
+func kbnmManifestPaths(u *user.User) []string {
+	// Paths per https://developer.chrome.com/extensions/nativeMessaging#native-messaging-host-location-nix
 
 	if u.Uid == "0" {
 		// Installing as root
-		return rootPath
+		return []string{
+			"/Library/Google/Chrome/NativeMessagingHosts",
+			"/Library/Application Support/Chromium/NativeMessagingHosts",
+		}
 	}
 
-	return filepath.Join(u.HomeDir, homePath)
+	// Install as local user
+	return []string{
+		filepath.Join(u.HomeDir, "Library/Application Support/Google/Chrome/NativeMessagingHosts"),
+		filepath.Join(u.HomeDir, "Library/Application Support/Chromium/NativeMessagingHosts"),
+	}
 }
 
 // kbnmWrapError adds additional instructions to errors when possible.
-func kbnmWrapError(err error, u *user.User) error {
+func kbnmWrapError(err error, u *user.User, hostsPath string) error {
 	if !os.IsPermission(err) {
 		return err
 	}
-	hostsPath := kbnmManifestPath(u)
 	return fmt.Errorf("%s: Make sure the directory is owned by %s. "+
 		"You can run:\n "+
 		"  sudo chown -R %s:staff %q", err, u.Username, u.Username, hostsPath)
@@ -632,25 +638,30 @@ func InstallKBNM(context Context, binPath string, log Log) error {
 		return err
 	}
 
-	hostsPath := kbnmManifestPath(u)
-	jsonPath := filepath.Join(hostsPath, kbnmHostName+".json")
+	hostsPaths := kbnmManifestPaths(u)
+	for _, hostsPath := range hostsPaths {
+		jsonPath := filepath.Join(hostsPath, kbnmHostName+".json")
 
-	// Make the path if it doesn't exist
-	if err := os.MkdirAll(hostsPath, os.ModePerm); err != nil {
-		return kbnmWrapError(err, u)
+		// Make the path if it doesn't exist
+		if err := os.MkdirAll(hostsPath, os.ModePerm); err != nil {
+			return kbnmWrapError(err, u, hostsPath)
+		}
+
+		// Write the file
+		log.Debug("Installing KBNM host manifest: %s", jsonPath)
+		fp, err := os.OpenFile(jsonPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+		if err != nil {
+			return kbnmWrapError(err, u, hostsPath)
+		}
+		defer fp.Close()
+
+		encoder := json.NewEncoder(fp)
+		encoder.SetIndent("", "    ")
+		if err := encoder.Encode(&hostManifest); err != nil {
+			return kbnmWrapError(err, u, hostsPath)
+		}
 	}
-
-	// Write the file
-	log.Debug("Installing KBNM host manifest: %s", jsonPath)
-	fp, err := os.OpenFile(jsonPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-	if err != nil {
-		return kbnmWrapError(err, u)
-	}
-	defer fp.Close()
-
-	encoder := json.NewEncoder(fp)
-	encoder.SetIndent("", "    ")
-	return encoder.Encode(&hostManifest)
+	return nil
 }
 
 // UninstallKBNM removes the Keybase NativeMessaging whitelist
@@ -660,13 +671,15 @@ func UninstallKBNM(log Log) error {
 		return err
 	}
 
-	hostsPath := kbnmManifestPath(u)
-	jsonPath := filepath.Join(hostsPath, kbnmHostName+".json")
+	hostsPaths := kbnmManifestPaths(u)
+	for _, hostsPath := range hostsPaths {
+		jsonPath := filepath.Join(hostsPath, kbnmHostName+".json")
 
-	log.Info("Uninstalling KBNM host manifest: %s", jsonPath)
-	if err := os.Remove(jsonPath); err != nil && !os.IsNotExist(err) {
-		// We don't care if it doesn't exist, but other errors should escalate
-		return err
+		log.Info("Uninstalling KBNM host manifest: %s", jsonPath)
+		if err := os.Remove(jsonPath); err != nil && !os.IsNotExist(err) {
+			// We don't care if it doesn't exist, but other errors should escalate
+			return err
+		}
 	}
 	return nil
 }

@@ -13,6 +13,7 @@ type ChatContext struct {
 	Syncer              types.Syncer              // For syncing inbox with server
 	FetchRetrier        types.FetchRetrier        // For retrying failed fetch requests
 	ConvLoader          types.ConvLoader          // background conversation loader
+	PushHandler         types.PushHandler         // for handling push notifications from chat server
 }
 
 type Context struct {
