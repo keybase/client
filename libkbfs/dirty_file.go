@@ -101,6 +101,10 @@ func (df *dirtyFile) updateNotYetSyncingBytes(newBytes int64) {
 	defer df.lock.Unlock()
 	df.notYetSyncingBytes += newBytes
 	if df.notYetSyncingBytes < 0 {
+		// It would be better if we didn't have this check, but it's
+		// hard for folderBlockOps to account correctly when bytes in
+		// a syncing block are overwritten, and then the write is
+		// deferred (see KBFS-2157).
 		df.notYetSyncingBytes = 0
 	}
 	df.dirtyBcache.UpdateUnsyncedBytes(df.path.Tlf, newBytes, false)
