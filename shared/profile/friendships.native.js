@@ -15,7 +15,7 @@ const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}: Use
   <ClickableBox onClick={() => { onClick && onClick(username) }} style={userEntryContainerStyle}>
     <Box style={userEntryInnerContainerStyle}>
       <Avatar style={userEntryAvatarStyle} size={64} url={thumbnailUrl} followsYou={followsYou} following={following} />
-      <Text type='BodySemibold' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
+      <Text type='BodySemibold' style={userEntryUsernameStyle(following)}>{username}</Text>
     </Box>
   </ClickableBox>
 )
@@ -23,9 +23,10 @@ const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}: Use
 const userEntryContainerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  height: 108,
+  height: 96,
   justifyContent: 'flex-start',
-  margin: 2,
+  paddingBottom: globalMargins.small,
+  paddingTop: globalMargins.small,
   width: 105,
 }
 
@@ -37,12 +38,12 @@ const userEntryInnerContainerStyle = {
 }
 
 const userEntryAvatarStyle = {
-  marginBottom: 2,
+  marginBottom: globalMargins.xtiny,
   marginTop: 2,
 }
 
-const userEntryUsernameStyle = followsYou => ({
-  color: followsYou ? globalColors.green : globalColors.blue,
+const userEntryUsernameStyle = following => ({
+  color: following ? globalColors.green : globalColors.blue,
   textAlign: 'center',
 })
 
@@ -94,9 +95,13 @@ class FriendshipsRender extends Component<void, Props, State> {
   render () {
     const {height, width} = NativeDimensions.get('window')
     const {isYou} = this.props
-    const textWhenEmpty = {
+    const textWhenEmptyYou = {
       Followers: 'You have no followers.',
       Following: 'You are not following anyone.',
+    }
+    const textWhenEmpty = {
+      Followers: this.props.username + ' has no followers.',
+      Following: this.props.username + ' is not following anyone.',
     }
     const counts = {
       Followers: this.props.followers.length,
@@ -113,8 +118,8 @@ class FriendshipsRender extends Component<void, Props, State> {
             onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(tab) }}>
             <Box style={{...tabItemContainerStyle, maxHeight: height - 160, width: width}}>
               <Box style={tabItemContainerTopBorder} />
-              {isYou && counts[tab] === 0 && <Box style={tabItemEmptyStyle}>
-                <Text type='Body' style={{color: globalColors.black_40}}>{textWhenEmpty[tab]}</Text>
+              {counts[tab] === 0 && <Box style={tabItemEmptyStyle}>
+                <Text type='BodySmall' style={{color: globalColors.black_40}}>{isYou ? textWhenEmptyYou[tab] : textWhenEmpty[tab]}</Text>
               </Box>}
               <Box style={tabItemContainerUsers}>
                 {this.props.currentTab === tab && !!this.state.dataSource &&
@@ -150,7 +155,6 @@ const tabItemContainerUsers = {
   ...globalStyles.flexBoxRow,
   flexWrap: 'wrap',
   justifyContent: 'space-around',
-  paddingTop: globalMargins.tiny,
   minHeight: 160,
 }
 

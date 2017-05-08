@@ -13,6 +13,7 @@ export type FriendshipUserInfo = {
 export type Tab = 'Followers' | 'Following'
 
 export type Props = {
+  username: string,
   isYou: boolean,
   style?: ?Object,
   currentTab: Tab,

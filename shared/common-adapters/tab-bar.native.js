@@ -8,7 +8,7 @@ import Avatar from './avatar'
 import Box from './box'
 import Icon from './icon'
 import Text from './text'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 class TabBarItem extends Component<void, ItemProps, void> {
   render () {
@@ -24,7 +24,7 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
         <Text type='BodySmallSemibold' style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_60}}>
           {!!this.props.label && this.props.label.toUpperCase()}
         </Text>
-        {this.props.selected && <Box style={stylesSelectedUnderline(selectedColor)} />}
+        <Box style={this.props.selected ? stylesSelectedUnderline(selectedColor) : stylesUnselected} />
       </Box>
     )
   }
@@ -131,13 +131,19 @@ const stylesTabBarButtonIcon = {
 const stylesLabel = {
   marginTop: 11,
   marginBottom: 11,
+  height: globalMargins.small,
 }
 
 const stylesSelectedUnderline = color => ({
   height: 3,
+  marginBottom: -1,
   alignSelf: 'stretch',
   backgroundColor: color,
 })
+
+const stylesUnselected = {
+  height: 2,
+}
 
 const stylesUnderline = {
   height: NativeStyleSheet.hairlineWidth,
