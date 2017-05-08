@@ -9,7 +9,13 @@ import type {DumbComponentMap} from '../constants/types/more'
 const aboutMap: DumbComponentMap<About> = {
   component: About,
   mocks: {
-    'Normal': {version: '1.0.18-20161107120015+aee424b.'},
+    'Normal': {
+      version: '1.0.18-20161107120015+aee424b.',
+      onBack: () => {},
+      onShowPrivacyPolicy: () => {},
+      onShowTerms: () => {},
+      title: 'About',
+    },
   },
 }
 
