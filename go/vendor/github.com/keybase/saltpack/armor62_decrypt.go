@@ -12,12 +12,12 @@ import (
 // NewDearmor62DecryptStream makes a new stream that dearmors and decrypts the given
 // Reader stream. Pass it a keyring so that it can lookup private and public keys
 // as necessary
-func NewDearmor62DecryptStream(ciphertext io.Reader, kr Keyring) (*MessageKeyInfo, io.Reader, Frame, error) {
+func NewDearmor62DecryptStream(versionValidator VersionValidator, ciphertext io.Reader, kr Keyring) (*MessageKeyInfo, io.Reader, Frame, error) {
 	dearmored, frame, err := NewArmor62DecoderStream(ciphertext)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	mki, r, err := NewDecryptStream(dearmored, kr)
+	mki, r, err := NewDecryptStream(versionValidator, dearmored, kr)
 	if err != nil {
 		return mki, nil, nil, err
 	}
@@ -29,9 +29,9 @@ func NewDearmor62DecryptStream(ciphertext io.Reader, kr Keyring) (*MessageKeyInf
 // armor are as expected. Returns the MessageKeyInfo recovered during message
 // processing, the plaintext (if decryption succeeded), the armor branding, and
 // maybe an error if there was a failure.
-func Dearmor62DecryptOpen(ciphertext string, kr Keyring) (*MessageKeyInfo, []byte, string, error) {
+func Dearmor62DecryptOpen(versionValidator VersionValidator, ciphertext string, kr Keyring) (*MessageKeyInfo, []byte, string, error) {
 	buf := bytes.NewBufferString(ciphertext)
-	mki, s, frame, err := NewDearmor62DecryptStream(buf, kr)
+	mki, s, frame, err := NewDearmor62DecryptStream(versionValidator, buf, kr)
 	if err != nil {
 		return mki, nil, "", err
 	}

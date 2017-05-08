@@ -338,16 +338,16 @@
 			"revision": ""
 		},
 		{
-			"checksumSHA1": "S2JuEsiNh7yrmjnB9Y92xxs5na0=",
+			"checksumSHA1": "Duc20TmnXwW5yPF92LMOMKWuB0c=",
 			"path": "github.com/keybase/saltpack",
-			"revision": "55b28da0fb8f9b1a0eae731c6105e03b48468e27",
-			"revisionTime": "2017-04-10T15:59:43Z"
+			"revision": "a64888f73967e479064b4a80cc65ae4c3829ab07",
+			"revisionTime": "2017-05-01T17:44:31Z"
 		},
 		{
-			"checksumSHA1": "+M7ZCwfOlTTydJiINKWOyzz/NSg=",
+			"checksumSHA1": "J5D2TJ+bjeSpUvJMPPvW3/BrOiY=",
 			"path": "github.com/keybase/saltpack/encoding/basex",
-			"revision": "55b28da0fb8f9b1a0eae731c6105e03b48468e27",
-			"revisionTime": "2017-04-10T15:59:43Z"
+			"revision": "a64888f73967e479064b4a80cc65ae4c3829ab07",
+			"revisionTime": "2017-05-01T17:44:31Z"
 		},
 		{
 			"path": "github.com/kr/pty",

@@ -37,7 +37,7 @@ func makeFrame(which headerOrFooterMarker, typ MessageType, brand string) string
 		words = append(words, brand)
 		brand += " "
 	}
-	words = append(words, strings.ToUpper(SaltpackFormatName))
+	words = append(words, strings.ToUpper(FormatName))
 	words = append(words, sffx)
 	return strings.Join(words, " ")
 }
@@ -97,7 +97,7 @@ func parseFrame(m string, typ MessageType, hof headerOrFooterMarker) (brand stri
 		return
 	}
 	spfn := pop(&v, 1)
-	if spfn[0] != strings.ToUpper(SaltpackFormatName) {
+	if spfn[0] != strings.ToUpper(FormatName) {
 		err = makeErrBadFrame("bad format name (%s)", spfn[0])
 		return
 	}

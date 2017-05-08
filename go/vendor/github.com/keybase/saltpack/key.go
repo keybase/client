@@ -16,7 +16,7 @@ func rawBoxKeyFromSlice(slice []byte) (*RawBoxKey, error) {
 	if len(slice) != len(result) {
 		return nil, ErrBadBoxKey
 	}
-	copy(result[:], slice)
+	result = sliceToByte32(slice)
 	return &result, nil
 }
 
@@ -29,7 +29,7 @@ func symmetricKeyFromSlice(slice []byte) (*SymmetricKey, error) {
 	if len(slice) != len(result) {
 		return nil, ErrBadSymmetricKey
 	}
-	copy(result[:], slice)
+	result = sliceToByte32(slice)
 	return &result, nil
 }
 
@@ -61,8 +61,8 @@ type BoxPublicKey interface {
 
 // BoxPrecomputedSharedKey results from a Precomputation below.
 type BoxPrecomputedSharedKey interface {
-	Unbox(nonce *Nonce, msg []byte) ([]byte, error)
-	Box(nonce *Nonce, msg []byte) []byte
+	Unbox(nonce Nonce, msg []byte) ([]byte, error)
+	Box(nonce Nonce, msg []byte) []byte
 }
 
 // BoxSecretKey is the secret key corresponding to a BoxPublicKey
@@ -70,17 +70,17 @@ type BoxSecretKey interface {
 
 	// Box boxes up data, sent from this secret key, and to the receiver
 	// specified.
-	Box(receiver BoxPublicKey, nonce *Nonce, msg []byte) []byte
+	Box(receiver BoxPublicKey, nonce Nonce, msg []byte) []byte
 
-	// Unobx opens up the box, using this secret key as the receiver key
+	// Unbox opens up the box, using this secret key as the receiver key
 	// abd the give public key as the sender key.
-	Unbox(sender BoxPublicKey, nonce *Nonce, msg []byte) ([]byte, error)
+	Unbox(sender BoxPublicKey, nonce Nonce, msg []byte) ([]byte, error)
 
 	// GetPublicKey gets the public key associated with this secret key.
 	GetPublicKey() BoxPublicKey
 
 	// Precompute computes a DH with the given key
-	Precompute(sender BoxPublicKey) BoxPrecomputedSharedKey
+	Precompute(peer BoxPublicKey) BoxPrecomputedSharedKey
 }
 
 // SigningSecretKey is a secret NaCl key that can sign messages.
