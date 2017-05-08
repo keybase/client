@@ -2507,3 +2507,126 @@ func TestKBFSOpsLookupSyncRace(t *testing.T) {
 		t.Errorf("Read wrong data.  Expected %v, got %v", data, gotData)
 	}
 }
+
+// Test that a Sync of a multi-block file that fails twice, and then
+// retried later, is successful.  Regression test for KBFS-2157.
+func TestKBFSOpsConcurMultiblockOverwriteWithCanceledSync(t *testing.T) {
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+
+	onPutStalledCh, putUnstallCh, putCtx :=
+		StallMDOp(ctx, config, StallableMDPut, 1)
+
+	// Use the smallest possible block size.
+	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	if err != nil {
+		t.Fatalf("Couldn't create block splitter: %v", err)
+	}
+	config.SetBlockSplitter(bsplitter)
+
+	// create and write to a file
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
+
+	kbfsOps := config.KBFSOps()
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	data := make([]byte, 30)
+	for i := 0; i < 30; i++ {
+		data[i] = 1
+	}
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	// Over write the data to cause the leaf blocks to be unreferenced.
+	data2 := make([]byte, 30)
+	for i := 0; i < 30; i++ {
+		data2[i] = byte(i + 30)
+	}
+	err = kbfsOps.Write(ctx, fileNode, data2, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// start the sync
+	errChan := make(chan error)
+	cancelCtx, cancel := context.WithCancel(putCtx)
+	go func() {
+		errChan <- kbfsOps.SyncAll(cancelCtx, fileNode.GetFolderBranch())
+	}()
+
+	// wait until Sync gets stuck at MDOps.Put()
+	<-onPutStalledCh
+	cancel()
+	close(putUnstallCh)
+
+	// We expect a canceled error
+	err = <-errChan
+	if err != context.Canceled {
+		t.Fatalf("No expected canceled error: %v", err)
+	}
+
+	data3 := make([]byte, 30)
+	for i := 0; i < 30; i++ {
+		data3[i] = byte(i + 60)
+	}
+	err = kbfsOps.Write(ctx, fileNode, data3, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	onPutStalledCh, putUnstallCh, putCtx =
+		StallMDOp(ctx, config, StallableMDPut, 1)
+
+	// Cancel it again.
+	cancelCtx, cancel = context.WithCancel(putCtx)
+	go func() {
+		errChan <- kbfsOps.SyncAll(cancelCtx, fileNode.GetFolderBranch())
+	}()
+
+	// wait until Sync gets stuck at MDOps.Put()
+	<-onPutStalledCh
+	cancel()
+	close(putUnstallCh)
+
+	// We expect a canceled error
+	err = <-errChan
+	if err != context.Canceled {
+		t.Fatalf("No expected canceled error: %v", err)
+	}
+
+	data4 := make([]byte, 30)
+	for i := 0; i < 30; i++ {
+		data4[i] = byte(i + 90)
+	}
+	err = kbfsOps.Write(ctx, fileNode, data4, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// Flush the file again.
+	if err := kbfsOps.SyncAll(ctx, fileNode.GetFolderBranch()); err != nil {
+		t.Fatalf("Couldn't sync: %v", err)
+	}
+
+	gotData := make([]byte, 30)
+	nr, err := kbfsOps.Read(ctx, fileNode, gotData, 0)
+	if err != nil {
+		t.Errorf("Couldn't read data: %v", err)
+	}
+	if nr != int64(len(gotData)) {
+		t.Errorf("Only read %d bytes", nr)
+	}
+	if !bytes.Equal(data4, gotData) {
+		t.Errorf("Read wrong data.  Expected %v, got %v", data4, gotData)
+	}
+}
