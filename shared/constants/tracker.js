@@ -212,7 +212,7 @@ const transformTracker = (state: TrackerOrNonUserState) => {
   if (state.type === 'tracker') {
     const s: TrackerState = state
     return {
-      changed: s.changed,
+      eldestKidChanged: s.eldestKidChanged,
       closed: s.closed,
       currentlyFollowing: s.currentlyFollowing,
       error: s.error,
