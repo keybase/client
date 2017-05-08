@@ -67,10 +67,10 @@ export const stateLogTransformer: StateLogTransformer = (state) => {
   // Never crash us out
   try {
     const transformed = {
-      chat: Chat.actionLoggerTransform(state.chat),
-      config: Config.actionLoggerTransform(state.config),
-      routeTree: RouteTree.actionLoggerTransform(state.routeTree),
-      tracker: Tracker.actionLoggerTransform(state.tracker),
+      chat: Chat.stateLoggerTransform(state.chat),
+      config: Config.stateLoggerTransform(state.config),
+      routeTree: RouteTree.stateLoggerTransform(state.routeTree),
+      tracker: Tracker.stateLoggerTransform(state.tracker),
     }
     return removeEmpty(transformed)
   } catch (err) {

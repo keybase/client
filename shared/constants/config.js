@@ -74,7 +74,7 @@ export type State = {
   deviceName: ?string,
 }
 
-const actionLoggerTransform = (state: State) => ({
+const stateLoggerTransform = (state: State) => ({
   appFocused: state.appFocused,
   bootStatus: state.bootStatus,
   bootstrapTriesRemaining: state.bootstrapTriesRemaining,
@@ -91,7 +91,7 @@ const actionLoggerTransform = (state: State) => ({
 
 export {
   MAX_BOOTSTRAP_TRIES,
-  actionLoggerTransform,
+  stateLoggerTransform,
   bootstrapAttemptFailed,
   bootstrapFailed,
   bootstrapSuccess,

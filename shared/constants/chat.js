@@ -755,7 +755,7 @@ const getSupersedes = (state: TypedState): ?SupersedeInfo => {
   return selectedConversationIDKey ? convSupersedesInfo(selectedConversationIDKey, state.chat) : null
 }
 
-const actionLoggerTransform = (state: State) => ({
+const stateLoggerTransform = (state: State) => ({
   alwaysShow: state.get('alwaysShow').join(','),
   conversationUnreadCounts: state.get('conversationUnreadCounts').toObject(),
   editingMessage: (state.get('editingMessage') || {}).key,
@@ -777,7 +777,7 @@ const actionLoggerTransform = (state: State) => ({
 })
 
 export {
-  actionLoggerTransform,
+  stateLoggerTransform,
   getBrokenUsers,
   getEditingMessage,
   getMessageFromMessageKey,

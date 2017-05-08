@@ -235,7 +235,7 @@ const transformTracker = (state: TrackerOrNonUserState) => {
   }
 }
 
-const actionLoggerTransform = (state: State) => {
+const stateLoggerTransform = (state: State) => {
   const out = {
     ...state,
     trackers: mapValues(state.trackers, transformTracker),
@@ -246,7 +246,7 @@ const actionLoggerTransform = (state: State) => {
 }
 
 export {
-  actionLoggerTransform,
+  stateLoggerTransform,
   cachedIdentifyGoodUntil,
   bufferToNiceHexString,
   isLoading,

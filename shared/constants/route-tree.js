@@ -35,7 +35,7 @@ export const State = I.Record({
   routeState: null,
 })
 
-const actionLoggerTransform = (state: State) => {
+const stateLoggerTransform = (state: State) => {
   const root = state.toJS().routeState
 
   const dump = (node) => {
@@ -58,5 +58,5 @@ const actionLoggerTransform = (state: State) => {
 }
 
 export {
-  actionLoggerTransform,
+  stateLoggerTransform,
 }
