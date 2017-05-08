@@ -2,7 +2,7 @@
 
 import React from 'react'
 import {globalStyles, globalMargins} from '../styles'
-import {Box, Icon, Text, NativeWebView} from '../common-adapters/index.native'
+import {Box, Icon, Text} from '../common-adapters/index.native'
 
 import type {Props} from './about'
 
