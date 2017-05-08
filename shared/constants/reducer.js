@@ -17,7 +17,7 @@ import * as RouteTree from '../constants/route-tree'
 import * as Search from '../constants/search'
 import * as Settings from '../constants/settings'
 import * as Signup from '../constants/signup'
-import * as TotalTracker from '../constants/tracker'
+import * as Tracker from '../constants/tracker'
 import * as UnlockFolders from '../constants/unlock-folders'
 
 export type TypedState = {
@@ -39,7 +39,7 @@ export type TypedState = {
   search: Search.State,
   settings: Settings.State,
   signup: Signup.State,
-  tracker: TotalTracker.State,
+  tracker: Tracker.State,
   unlockFolders: UnlockFolders.State,
 }
 
@@ -50,19 +50,26 @@ export type State = {[key: string]: any}
 export const stateKey = 'reducer:stateKey'
 
 export const stateLogTransformer: StateLogTransformer = (state) => {
-  const {
-    config: {
-      username, uid, loggedIn, error, bootstrapTriesRemaining, bootStatus,
-    },
-    routeTree,
-    tracker,
-  } = state
+  // Never crash us out
+  try {
+    const {
+      config: {
+        username, uid, loggedIn, error, bootstrapTriesRemaining, bootStatus,
+      },
+      routeTree,
+      tracker,
+    } = state
 
-  return {
-    config: {
-      username, uid, loggedIn, error, bootstrapTriesRemaining, bootStatus,
-    },
-    routeTree: RouteTree.actionLoggerTransform(routeTree),
-    tracker,
+    const transformed = {
+      config: {
+        username, uid, loggedIn, error, bootstrapTriesRemaining, bootStatus,
+      },
+      routeTree: RouteTree.actionLoggerTransform(routeTree),
+      tracker: Tracker.actionLoggerTransform(tracker),
+    }
+    return transformed
+  } catch (err) {
+    console.log(`StateLogTransfomer crash: ${err}`)
+    return {}
   }
 }

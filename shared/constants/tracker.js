@@ -1,4 +1,6 @@
 // @flow
+import {mapValues} from 'lodash'
+
 import type {Folder} from '../folders/list'
 import type {FriendshipUserInfo} from '../profile/friendships'
 import type {PlatformsExpandedType} from '../constants/types/more'
@@ -184,12 +186,6 @@ function bufferToNiceHexString (fingerPrint: Buffer): string {
   }
 }
 
-export {
-  cachedIdentifyGoodUntil,
-  bufferToNiceHexString,
-  isLoading,
-}
-
 export type State = {
   cachedIdentifies: {[key: string]: number}, // good until unix timestamp
   pendingIdentifies: {[key: string]: boolean},
@@ -202,4 +198,24 @@ export type State = {
     followsYou: boolean,
     following: boolean,
   }>,
+}
+
+const transformTracker = (state: TrackerOrNonUserState) => {
+  return state
+}
+
+const actionLoggerTransform = (state: State) => {
+  const out = {
+    ...state,
+    trackers: mapValues(state.trackers, transformTracker),
+    tracking: ['Masked'],
+  }
+  return out
+}
+
+export {
+  actionLoggerTransform,
+  cachedIdentifyGoodUntil,
+  bufferToNiceHexString,
+  isLoading,
 }
