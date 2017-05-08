@@ -103,11 +103,7 @@ func (si *syncInfo) removeReplacedBlock(ctx context.Context,
 				si.op.RefBlocks[i+1:]...)
 			for j, unref := range si.unrefs {
 				if unref.BlockPointer == ptr {
-					// Don't completely remove the unref,
-					// since it contains size info that we
-					// need to incorporate into the MD
-					// usage calculations.
-					si.unrefs[j].BlockPointer = zeroPtr
+					si.unrefs = append(si.unrefs[:j], si.unrefs[j+1:]...)
 				}
 			}
 			break
