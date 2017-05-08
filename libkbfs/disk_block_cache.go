@@ -22,6 +22,7 @@ import (
 	"github.com/pkg/errors"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/syndtr/goleveldb/leveldb"
+	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"golang.org/x/net/context"
@@ -122,7 +123,7 @@ type DiskBlockCacheStatus struct {
 // as its underlying storage layer.
 func openLevelDB(stor storage.Storage) (db *leveldb.DB, err error) {
 	db, err = leveldb.Open(stor, leveldbOptions)
-	if _, isErrCorrupted := err.(*storage.ErrCorrupted); isErrCorrupted {
+	if ldberrors.IsCorrupted(err) {
 		// There's a possibility that if the leveldb wasn't closed properly
 		// last time while it was being written, then the manifest is corrupt.
 		// This means leveldb must rebuild its manifest, which takes longer
@@ -143,6 +144,11 @@ func diskBlockCacheRootFromStorageRoot(storageRoot string) string {
 func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 	blockStorage, metadataStorage, tlfStorage storage.Storage) (
 	cache *DiskBlockCacheStandard, err error) {
+	defer func() {
+		if err != nil {
+			err = errors.WithStack(err)
+		}
+	}()
 	log := config.MakeLogger("KBC")
 	blockDb, err := openLevelDB(blockStorage)
 	if err != nil {
