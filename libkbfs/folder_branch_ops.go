@@ -5665,7 +5665,7 @@ func (fbo *folderBranchOps) backgroundFlusher() {
 			if err != nil {
 				// Just log the warning and keep trying to
 				// sync the rest of the dirty files.
-				fbo.log.CWarningf(ctx, "Couldn't sync all", err)
+				fbo.log.CWarningf(ctx, "Couldn't sync all: %+v", err)
 			}
 			return nil
 		})

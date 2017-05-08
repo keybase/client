@@ -515,6 +515,17 @@ func (d *DirtyBlockCacheStandard) signalDecreasedBytes() {
 	}
 }
 
+func (d *DirtyBlockCacheStandard) updateWaitBufLocked(bytes int64) {
+	d.waitBufBytes += bytes
+	if d.waitBufBytes < 0 {
+		// It would be better if we didn't have this check, but it's
+		// hard for folderBlockOps to account correctly when bytes in
+		// a syncing block are overwritten, and then the write is
+		// deferred (see KBFS-2157).
+		d.waitBufBytes = 0
+	}
+}
+
 // UpdateUnsyncedBytes implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) UpdateUnsyncedBytes(_ tlf.ID,
@@ -524,7 +535,7 @@ func (d *DirtyBlockCacheStandard) UpdateUnsyncedBytes(_ tlf.ID,
 	if wasSyncing {
 		d.syncBufBytes += newUnsyncedBytes
 	} else {
-		d.waitBufBytes += newUnsyncedBytes
+		d.updateWaitBufLocked(newUnsyncedBytes)
 	}
 	if newUnsyncedBytes < 0 {
 		d.signalDecreasedBytes()
@@ -537,7 +548,7 @@ func (d *DirtyBlockCacheStandard) UpdateSyncingBytes(_ tlf.ID, size int64) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	d.syncBufBytes += size
-	d.waitBufBytes -= size
+	d.updateWaitBufLocked(-size)
 	d.signalDecreasedBytes()
 }
 
@@ -550,7 +561,7 @@ func (d *DirtyBlockCacheStandard) BlockSyncFinished(_ tlf.ID, size int64) {
 		d.syncBufBytes -= size
 	} else {
 		// The block will be retried, so put it back on the waitBuf
-		d.waitBufBytes -= size
+		d.updateWaitBufLocked(-size)
 	}
 	if size > 0 {
 		d.signalDecreasedBytes()
@@ -638,7 +649,7 @@ func (d *DirtyBlockCacheStandard) Shutdown() error {
 	defer d.lock.Unlock()
 	// Clear out the remaining requests
 	for req := range d.requestsChan {
-		d.waitBufBytes += req.bytes
+		d.updateWaitBufLocked(req.bytes)
 	}
 	if d.syncBufBytes != 0 || d.waitBufBytes != 0 || d.ignoreSyncBytes != 0 {
 		return fmt.Errorf("Unexpected dirty bytes leftover on shutdown: "+

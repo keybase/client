@@ -100,6 +100,9 @@ func (df *dirtyFile) updateNotYetSyncingBytes(newBytes int64) {
 	df.lock.Lock()
 	defer df.lock.Unlock()
 	df.notYetSyncingBytes += newBytes
+	if df.notYetSyncingBytes < 0 {
+		df.notYetSyncingBytes = 0
+	}
 	df.dirtyBcache.UpdateUnsyncedBytes(df.path.Tlf, newBytes, false)
 }
 
