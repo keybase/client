@@ -1,25 +1,21 @@
 // @flow
-
-import React, {Component} from 'react'
-import {TypedConnector} from '../util/typed-connect'
+import * as Constants from '../constants/unlock-folders'
+import * as actions from '../actions/unlock-folders'
 import HiddenString from '../util/hidden-string'
+import React, {Component} from 'react'
+import Render from './render'
+import {TypedConnector} from '../util/typed-connect'
 
-import type {State as UnlockFoldersState} from '../reducers/unlock-folders'
-import type {Device, UnlockFolderActions} from '../constants/unlock-folders'
 import type {TypedState} from '../constants/reducer'
 import type {TypedDispatch} from '../constants/types/flux'
-
-import * as actions from '../actions/unlock-folders'
-
-import Render from './render'
 
 type OwnProps = {
   onCancel: () => void,
 }
 
 export type Props = {
-  devices: ?Array<Device>,
-  phase: $PropertyType<UnlockFoldersState, 'phase'>,
+  devices: ?Array<Constants.Device>,
+  phase: $PropertyType<Constants.State, 'phase'>,
   close: () => void,
   toPaperKeyInput: () => void,
   onBackFromPaperKey: () => void,
@@ -46,7 +42,7 @@ class UnlockFolders extends Component<void, Props, void> {
   }
 }
 
-const connector: TypedConnector<TypedState, TypedDispatch<UnlockFolderActions>, OwnProps, Props> = new TypedConnector()
+const connector: TypedConnector<TypedState, TypedDispatch<Constants.Actions>, OwnProps, Props> = new TypedConnector()
 
 export default connector.connect(
   ({unlockFolders: {devices, phase, paperkeyError, waiting}}, dispatch, ownProps) => ({

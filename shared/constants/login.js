@@ -104,3 +104,32 @@ export const actionRegisteredWithPaperKey = 'login:actionRegisteredWithPaperKey'
 export const actionRegisteredWithExistingDevice = 'login:actionRegisteredWithExistingDevice'
 export const openAccountResetPage = 'login:openAccountResetPage'
 export const navBasedOnLoginState = 'login:navBasedOnLoginState'
+
+// It's the b64 encoded value used to render the image
+type QRCode = HiddenString
+
+export type State = {
+  codePage: {
+    cameraBrokenMode: boolean,
+    codeCountDown: number,
+    enterCodeErrorText: string,
+    mode: ?Mode,
+    myDeviceRole: ?DeviceRole,
+    otherDeviceRole: ?DeviceRole,
+    qrCode: ?QRCode,
+    qrScanned: ?QRCode,
+    textCode: ?HiddenString,
+  },
+  configuredAccounts: ?Array<{hasStoredSecret: bool, username: string}>,
+  forgotPasswordEmailAddress: string | '',
+  forgotPasswordError: ?Error,
+  forgotPasswordSubmitting: boolean,
+  forgotPasswordSuccess: boolean,
+  justDeletedSelf: ?string,
+  justLoginFromRevokedDevice: ?boolean,
+  justRevokedSelf: ?string,
+  loginError: ?string,
+  registerUserPassError: ?string,
+  registerUserPassLoading: boolean,
+  waitingForResponse: boolean,
+}

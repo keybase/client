@@ -1,4 +1,5 @@
 // @flow
+import * as Constants from '../../constants/unlock-folders'
 import HiddenString from '../../util/hidden-string'
 import React, {Component} from 'react'
 import Render from '../../login/register/paper-key/index.render'
@@ -6,7 +7,6 @@ import {checkPaperKey, toPaperKeyInput, onBackFromPaperKey} from '../../actions/
 import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/route-tree'
 
-import type {State as StoreState} from '../../reducers/unlock-folders'
 import type {TypedState} from '../../constants/reducer'
 
 type Props = {
@@ -15,23 +15,13 @@ type Props = {
   onBack: () => void,
   onBackFromPaperKey: () => void,
   toPaperKeyInput: () => void,
-  phase: $PropertyType<StoreState, 'phase'>,
+  phase: $PropertyType<Constants.State, 'phase'>,
   checkPaperKey: (paperKey: HiddenString) => void,
 }
 
-type State = {
-  paperKey: string,
-}
-
-class PaperKey extends Component<void, Props, State> {
-  state: State;
-
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      paperKey: '',
-    }
+class PaperKey extends Component<void, Props, {paperKey: string}> {
+  state = {
+    paperKey: '',
   }
 
   componentWillReceiveProps (nextProps) {

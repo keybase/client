@@ -2,35 +2,16 @@
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/search'
 
-import type {IconType} from '../common-adapters/icon'
-import type {SearchResult, SearchActions, SearchPlatforms} from '../constants/search'
-
-const {equalSearchResult, platformToNiceName} = Constants
-
-export type State = {
-  requestTimestamp: ?Date,
-  results: Array<SearchResult>,
-  searchHintText: string,
-  searchIcon: IconType,
-  searchPlatform: SearchPlatforms,
-  searchText: ?string,
-  searchTextClearTrigger: number,
-  selectedUsers: Array<SearchResult>,
-  showUserGroup: boolean,
-  userForInfoPane: ?SearchResult,
-  waiting: boolean,
-}
-
-const searchHintText = (searchPlatform: SearchPlatforms, selectedUsers: Array<SearchResult>): string => {
-  const name = platformToNiceName(searchPlatform)
+const searchHintText = (searchPlatform: Constants.SearchPlatforms, selectedUsers: Array<Constants.SearchResult>): string => {
+  const name = Constants.platformToNiceName(searchPlatform)
   return `${selectedUsers.length ? `Add a ${name} user` : `Search ${name}`}`
 }
 
-const showUserGroup = (searchText: ?string, selectedUsers: Array<SearchResult>): boolean => (
+const showUserGroup = (searchText: ?string, selectedUsers: Array<Constants.SearchResult>): boolean => (
   !searchText && !!selectedUsers.length
 )
 
-const initialState: State = {
+const initialState: Constants.State = {
   requestTimestamp: null,
   results: [],
   searchHintText: searchHintText('Keybase', []),
@@ -44,7 +25,7 @@ const initialState: State = {
   waiting: false,
 }
 
-export default function (state: State = initialState, action: SearchActions): State {
+export default function (state: Constants.State = initialState, action: Constants.Actions): Constants.State {
   if (action.type === CommonConstants.resetStore) {
     return {...initialState}
   }
@@ -83,7 +64,7 @@ export default function (state: State = initialState, action: SearchActions): St
       if (!action.error) {
         const users = action.payload.users
         const maybeUpgradeUser = user => user.service === 'external' && user.keybaseSearchResult ? user.keybaseSearchResult : user
-        const isNotSelected = user => state.selectedUsers.find(u => equalSearchResult(u, user)) === undefined
+        const isNotSelected = user => state.selectedUsers.find(u => Constants.equalSearchResult(u, user)) === undefined
         const selectedUsers = users.map(maybeUpgradeUser).filter(isNotSelected).concat(state.selectedUsers)
 
         return {
@@ -111,7 +92,7 @@ export default function (state: State = initialState, action: SearchActions): St
         const user = action.payload.user
         const idx = state.selectedUsers.indexOf(user)
         if (idx !== -1) {
-          const selectedUsers: Array<SearchResult> = state.selectedUsers.concat([])
+          const selectedUsers: Array<Constants.SearchResult> = state.selectedUsers.concat([])
           selectedUsers.splice(idx, 1)
           let userForInfoPane = state.userForInfoPane
 

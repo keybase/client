@@ -13,12 +13,7 @@ import {
   checkRouteState,
 } from '../route-tree'
 
-export const State = I.Record({
-  routeDef: null,
-  routeState: null,
-})
-
-const initialState = State()
+const initialState = Constants.State()
 
 function routeDefReducer (routeDef, action) {
   switch (action.type) {
@@ -75,7 +70,7 @@ function routeStateReducer (routeDef, routeState, action) {
   }
 }
 
-export default function routeTreeReducer (state: State = initialState, action: any): State {
+export default function routeTreeReducer (state: Constants.State = initialState, action: any): Constants.State {
   let {routeDef, routeState} = state
 
   let newRouteDef

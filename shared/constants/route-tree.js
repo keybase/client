@@ -1,4 +1,6 @@
 // @flow
+import * as I from 'immutable'
+
 import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
 import type {RouteDefNode, Path, PropsPath} from '../route-tree'
 
@@ -27,3 +29,8 @@ export const resetRoute = 'routeTree:resetRoute'
 export type ResetRoute = NoErrorTypedAction<'routeTree:resetRoute', {path: Path}>
 
 export type NavigateActions = SetRouteDef | SwitchTo | NavigateTo | NavigateAppend | NavigateUp | SetRouteState | ResetRoute
+
+export const State = I.Record({
+  routeDef: null,
+  routeState: null,
+})

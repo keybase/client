@@ -40,7 +40,7 @@ export type RestartSignup = TypedAction<'signup:restartSignup', {}, {}>
 export const signupWaiting = 'signup:waiting'
 export type SignupWaiting = TypedAction<'signup:waiting', boolean, void>
 
-export type SignupActions = CheckInviteCode
+export type Actions = CheckInviteCode
 | CheckUsernameEmail
 | CheckPassphrase
 | SubmitDeviceName
@@ -49,3 +49,21 @@ export type SignupActions = CheckInviteCode
 | ShowSuccess
 | RestartSignup
 | SignupWaiting
+
+export type State = {
+  deviceName: ?string,
+  deviceNameError: ?string,
+  email: ?string,
+  emailError: ?Error,
+  inviteCode: ?string,
+  inviteCodeError: ?string,
+  nameError: ?string,
+  paperkey: ?HiddenString,
+  passphrase: ?HiddenString,
+  passphraseError: ?HiddenString,
+  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'success' | 'signupError' | 'requestInvite' | 'requestInviteSuccess',
+  signupError: ?HiddenString,
+  username: ?string,
+  usernameError: ?Error,
+  waiting: boolean,
+}

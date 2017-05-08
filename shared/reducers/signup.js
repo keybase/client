@@ -1,30 +1,9 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/signup'
-import HiddenString from '../util/hidden-string'
 import {isMobile} from '../constants/platform'
 
-import type {SignupActions} from '../constants/signup'
-
-export type SignupState = {
-  deviceName: ?string,
-  deviceNameError: ?string,
-  email: ?string,
-  emailError: ?Error,
-  inviteCode: ?string,
-  inviteCodeError: ?string,
-  nameError: ?string,
-  paperkey: ?HiddenString,
-  passphrase: ?HiddenString,
-  passphraseError: ?HiddenString,
-  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'success' | 'signupError' | 'requestInvite' | 'requestInviteSuccess',
-  signupError: ?HiddenString,
-  username: ?string,
-  usernameError: ?Error,
-  waiting: boolean,
-}
-
-const initialState: SignupState = {
+const initialState: Constants.State = {
   deviceName: isMobile ? 'Mobile Device' : 'Home Computer',
   deviceNameError: null,
   email: null,
@@ -43,7 +22,7 @@ const initialState: SignupState = {
 }
 
 /* eslint-disable no-fallthrough */
-export default function (state: SignupState = initialState, action: SignupActions): SignupState {
+export default function (state: Constants.State = initialState, action: Constants.Actions): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
     case Constants.resetSignup: // fallthrough

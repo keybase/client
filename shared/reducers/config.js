@@ -3,41 +3,13 @@ import * as Constants from '../constants/config'
 import * as CommonConstants from '../constants/common'
 import {isMobile} from '../constants/platform'
 
-import type {Tab} from '../constants/tabs'
 import type {Action} from '../constants/types/flux'
-import type {BootStatus} from '../constants/config'
-import type {Config, DeviceID, ExtendedStatus} from '../constants/types/flow-types'
-
-export type ConfigState = {
-  appFocused: boolean,
-  hideKeyboard: number,
-  bootStatus: BootStatus,
-  bootstrapTriesRemaining: number,
-  config: ?Config,
-  daemonError: ?Error,
-  error: ?any,
-  extendedConfig: ?ExtendedStatus,
-  followers: {[key: string]: true},
-  following: {[key: string]: true},
-  globalError: ?Error,
-  kbfsPath: string,
-  launchedViaPush: boolean,
-  loggedIn: boolean,
-  registered: boolean,
-  readyForBootstrap: boolean,
-  uid: ?string,
-  username: ?string,
-  initialTab: ?Tab,
-  initialLink: ?string,
-  deviceID: ?DeviceID,
-  deviceName: ?string,
-}
 
 // Mobile is ready for bootstrap automatically, desktop needs to wait for
 // the installer.
 const readyForBootstrap = isMobile
 
-const initialState: ConfigState = {
+const initialState: Constants.State = {
   appFocused: true,
   hideKeyboard: 1,
   bootStatus: 'bootStatusLoading',
@@ -73,7 +45,7 @@ function arrayToObjectSet (arr) {
   }, {})
 }
 
-export default function (state: ConfigState = initialState, action: Action): ConfigState {
+export default function (state: Constants.State = initialState, action: Action): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {

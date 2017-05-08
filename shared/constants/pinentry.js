@@ -1,5 +1,5 @@
 // @flow
-import type {GUIEntryFeatures, PassphraseType} from '../constants/types/flow-types'
+import type {Feature, GUIEntryFeatures, PassphraseType} from '../constants/types/flow-types'
 import type {TypedAction} from '../constants/types/flux'
 
 type sessionIDSpecificPayload = {
@@ -31,4 +31,27 @@ export type OnSubmit = TypedAction<'pinentry:onSubmit', sessionIDSpecificPayload
 export const onCancel = 'pinentry:onCancel'
 export type OnCancel = TypedAction<'pinentry:onCancel', sessionIDSpecificPayload, PinentryError>
 
-export type PinentryActions = NewPinentryAction | RegisterPinentryListenerAction | OnSubmit | OnCancel
+export type Actions = NewPinentryAction | RegisterPinentryListenerAction | OnSubmit | OnCancel
+
+export type EnabledFeatures = {[key: string]: Feature}
+
+export type PinentryState = {
+  closed: boolean,
+  sessionID: number,
+  features: GUIEntryFeatures,
+  type: PassphraseType,
+  prompt: string,
+  windowTitle: string,
+  canceled: boolean,
+  submitted: boolean,
+  submitLabel: ?string,
+  cancelLabel: ?string,
+  retryLabel: ?string,
+}
+
+export type State = {
+  started: boolean,
+  pinentryStates: {
+    [key: string]: PinentryState,
+  },
+}
