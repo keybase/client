@@ -342,3 +342,12 @@ func GetLogsendClient(g *libkb.GlobalContext) (cli keybase1.LogsendClient, err e
 	cli = keybase1.LogsendClient{Cli: rcli}
 	return cli, nil
 }
+
+func GetTeamsClient(g *libkb.GlobalContext) (cli keybase1.TeamsClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.TeamsClient{Cli: rcli}
+	return cli, nil
+}

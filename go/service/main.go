@@ -114,6 +114,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
+		keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, g)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
