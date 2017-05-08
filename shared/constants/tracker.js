@@ -200,15 +200,39 @@ export type State = {
   }>,
 }
 
+const transformProof = (p) => ({
+  id: p.id,
+  isTracked: p.isTracked,
+  meta: p.meta,
+  state: p.state,
+  type: p.type,
+})
+
 const transformTracker = (state: TrackerOrNonUserState) => {
-  return state
+  if (state.type === 'tracker') {
+    return {
+      changed: state.changed,
+      closed: state.closed,
+      currentlyFollowing: state.currentlyFollowing,
+      error: state.error,
+      lastAction: state.lastAction,
+      needTrackTokenDismiss: state.needTrackTokenDismiss,
+      proofs: mapValues(state.proofs, transformProof),
+      reason: state.reason,
+      serverActive: state.serverActive,
+      type: state.type,
+      waiting: state.waiting,
+    }
+  } else {
+    return {}
+  }
 }
 
 const actionLoggerTransform = (state: State) => {
   const out = {
     ...state,
     trackers: mapValues(state.trackers, transformTracker),
-    tracking: ['Masked'],
+    tracking: undefined,
   }
   return out
 }
