@@ -1056,6 +1056,10 @@ func (g *gregorHandler) Shutdown() {
 	if g.conn == nil {
 		return
 	}
+
+	// Alert chat syncer that we are now disconnected
+	g.G().Syncer.Disconnected(context.Background())
+
 	close(g.shutdownCh)
 	g.conn.Shutdown()
 	g.conn = nil
