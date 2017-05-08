@@ -9,7 +9,7 @@ import type {Dispatch} from '../constants/types/flux'
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}) => ({
   onBack: () => dispatch(navigateUp()),
-  onShowPrivacyPolicy: () => dispatch(navigateAppend([{selected: 'privacyPolicy', props: {title: 'Privacy Policy', source: {uri: 'https://keybase.io/_/webview/privacyPolicy'}}}])),
+  onShowPrivacyPolicy: () => dispatch(navigateAppend([{selected: 'privacyPolicy', props: {title: 'Privacy Policy', source: {uri: 'https://keybase.io/_/webview/privacypolicy'}}}])),
   onShowTerms: () => dispatch(navigateAppend([{selected: 'terms', props: {title: 'Terms', source: {uri: 'https://keybase.io/_/webview/terms'}}}])),
   title: 'About',
 })
