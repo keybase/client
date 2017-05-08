@@ -241,6 +241,8 @@ const styleActions = {
 }
 
 const styleProofsAndFolders = {
+  backgroundColor: 'white',
+  height: '100%',
   paddingLeft: globalMargins.large,
   paddingRight: globalMargins.large,
   paddingBottom: globalMargins.medium,
