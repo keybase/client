@@ -223,7 +223,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
   const closer = f.getElementsByClassName("keybase-close")[0];
   closer.addEventListener("click", function(e) {
     if (removeChat(f)) {
-      closeCallback !== undefined && closeCallback();
+      typeof closeCallback === "function" && closeCallback();
     }
   });
 
@@ -301,7 +301,7 @@ function submitChat(successCallback, e) {
 
     // Success!
     nudgeCallback();
-    successCallback !== undefined && successCallback();
+    typeof successCallback === "function" && successCallback();
     installCopypasta(f.getElementsByClassName("keybase-copy"));
   });
 }
@@ -407,7 +407,7 @@ function installCloser(buttons, closeTarget, skipCheck, closeCallback) {
     closer.addEventListener("click", function(e) {
       e.preventDefault();
       if (removeChat(closeTarget, skipCheck)) {
-        closeCallback !== undefined && closeCallback();
+        typeof closeCallback === "function" && closeCallback();
       }
     });
   };
