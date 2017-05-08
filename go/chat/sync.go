@@ -93,6 +93,9 @@ func (s *Syncer) sendNotificationsOnce() {
 		for uid, convIDs := range s.notificationQueue {
 			convIDs = s.dedupConvIDs(convIDs)
 			s.Debug(context.Background(), "flushing notifications: uid: %s len: %d", uid, len(convIDs))
+			for _, convID := range convIDs {
+				s.Debug(context.Background(), "flushing: uid: %s convID: %s", uid, convID)
+			}
 			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), keybase1.UID(uid), convIDs)
 		}
 		s.notificationQueue = make(map[string][]chat1.ConversationID)
@@ -139,7 +142,10 @@ func (s *Syncer) SendChatStaleNotifications(ctx context.Context, uid gregor1.UID
 		s.Debug(ctx, "sending inbox stale message")
 		s.fullReloadCh <- uid
 	} else {
-		s.Debug(ctx, "sending threads stale message: len: %d", len(convIDs))
+		s.Debug(ctx, "sending thread stale messages: len: %d", len(convIDs))
+		for _, convID := range convIDs {
+			s.Debug(ctx, "sending thread stale message: convID: %s", convID)
+		}
 		s.notificationLock.Lock()
 		if !s.fullReload[uid.String()] {
 			s.notificationQueue[uid.String()] = append(s.notificationQueue[uid.String()], convIDs...)
