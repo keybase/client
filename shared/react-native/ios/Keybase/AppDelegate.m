@@ -48,10 +48,10 @@ const BOOL isDebug = NO;
 - (void) createBackgroundReadableDirectory:(NSString*) path
 {
   NSFileManager* fm = [NSFileManager defaultManager];
-  // Setting NSFileProtectionCompleteUnlessOpen makes the directory accessible as long as the user has
-  // opened it once unlocked. The files are still stored on the disk encrypted (note for the chat database, it
+  // Setting NSFileProtectionCompleteUntilFirstUserAuthentication makes the directory accessible as long as the user has
+  // unlocked the phone once. The files are still stored on the disk encrypted (note for the chat database, it
   // means we are encrypting it twice), and are inaccessible otherwise.
-  NSDictionary* noProt = [NSDictionary dictionaryWithObject:NSFileProtectionCompleteUnlessOpen forKey:NSFileProtectionKey];
+  NSDictionary* noProt = [NSDictionary dictionaryWithObject:NSFileProtectionCompleteUntilFirstUserAuthentication forKey:NSFileProtectionKey];
   [fm createDirectoryAtPath:path withIntermediateDirectories:YES
                  attributes:noProt
                       error:nil];
