@@ -578,6 +578,12 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	g.Lock()
 	defer g.Unlock()
 
+	// If we get a random OnConnect on some other connection that is not g.conn, then
+	// just reject it.
+	if conn != g.conn {
+		return fmt.Errorf("connection established that is not the one we track, failing")
+	}
+
 	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, chat.ErrChatServerTimeout)
 	chatCli := chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), cli)}
 

@@ -1,10 +1,9 @@
 // @flow
 import * as Constants from '../../constants/push'
-import * as Types from '../../constants/types/flow-types'
 import * as Creators from './creators'
 import * as Shared from '../chat/shared'
 import {isMobile} from '../../constants/platform'
-import {apiserverDeleteRpcPromise, apiserverPostRpcPromise} from '../../constants/types/flow-types'
+import {apiserverDeleteRpcPromise, apiserverPostRpcPromise, appStateUpdateAppStateRpc, AppStateAppState} from '../../constants/types/flow-types'
 import {call, put, take, select} from 'redux-saga/effects'
 import {chatTab} from '../../constants/tabs'
 import {navigateTo} from '../route-tree'
@@ -45,9 +44,9 @@ function * pushNotificationSaga (notification: Constants.PushNotification): Saga
       const appFocused = yield select(Shared.focusedSelector)
       if (!appFocused) {
         console.info('Push notification: sending state update to service')
-        yield call(Types.appStateUpdateAppStateRpc, {
+        yield call(appStateUpdateAppStateRpc, {
           param: {
-            state: Types.AppStateAppState.backgroundactive,
+            state: AppStateAppState.backgroundactive,
           },
         })
       }
