@@ -142,7 +142,6 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           }
         }
 
-        const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
         if (message.type === 'Text' && message.outboxID && messageFromYou) {
           // If the message has an outboxID and came from our device, then we
           // sent it and have already rendered it in the message list; we just
@@ -161,14 +160,6 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
             yield put(Creators.markSeenMessage(conversationIDKey, Constants.messageKey(conversationIDKey, 'messageIDText', messageID)))
           }
         } else {
-          // How long was it between the previous message and this one?
-          if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
-            const timestamp = Shared.maybeAddTimestamp(conversationIDKey, message, conversationState.messages.toArray(), conversationState.messages.size - 1)
-            if (timestamp !== null) {
-              yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, appFocused, [timestamp]))
-            }
-          }
-
           yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, appFocused, [message]))
         }
       }
@@ -309,20 +300,8 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
   const conversationID = Constants.keyToConversationID(conversationIDKey)
 
   const updateThread = function * (thread: ChatTypes.ThreadView) {
-    const messages = (thread && thread.messages || []).map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey)).reverse()
-    let newMessages = []
-    messages.forEach((message, idx) => {
-      if (idx > 0) {
-        const timestamp = Shared.maybeAddTimestamp(conversationIDKey, messages[idx], messages, idx - 1)
-        if (timestamp !== null) {
-          newMessages.push(timestamp)
-        }
-      }
-      newMessages.push(message)
-    })
-
+    const newMessages = (thread && thread.messages || []).map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey)).reverse()
     const pagination = _threadToPagination(thread)
-
     yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
   }
 

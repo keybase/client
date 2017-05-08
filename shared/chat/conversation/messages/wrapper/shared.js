@@ -4,6 +4,7 @@ import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
 import {marginColor, colorForAuthor} from '../shared'
+import Timestamp from '../timestamp'
 
 import type {Props} from '.'
 
@@ -49,20 +50,23 @@ const Failure = ({failureDescription, onShowEditor, onRetry}) => {
 }
 
 const MessageWrapper = (props: Props) => (
-  <Box style={{..._flexOneRow, ...(props.isFirstNewMessage ? _stylesFirstNewMessage : null), ...(props.isSelected ? _stylesSelected : null)}}>
-    <LeftMarker author={props.author} isYou={props.isYou} isFollowing={props.isFollowing} isBroken={props.isBroken} />
-    <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
-      <UserAvatar author={props.author} showImage={props.includeHeader} />
-      <Box style={_flexOneColumn} className='message-wrapper'>
-        <Username includeHeader={props.includeHeader} author={props.author} isYou={props.isYou} isFollowing={props.isFollowing} isBroken={props.isBroken} />
-        <Box style={_textContainerStyle} className='message' data-message-key={props.messageKey}>
-          <Box style={_flexOneColumn}>
-            <props.innerClass messageKey={props.messageKey} measure={props.measure} onAction={props.onAction} />
-            <EditedMark isEdited={props.isEdited} />
+  <Box style={globalStyles.flexBoxColumn}>
+    {props.timestamp && <Timestamp timestamp={props.timestamp} />}
+    <Box style={{..._flexOneRow, ...(props.isFirstNewMessage ? _stylesFirstNewMessage : null), ...(props.isSelected ? _stylesSelected : null)}}>
+      <LeftMarker author={props.author} isYou={props.isYou} isFollowing={props.isFollowing} isBroken={props.isBroken} />
+      <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
+        <UserAvatar author={props.author} showImage={props.includeHeader} />
+        <Box style={_flexOneColumn} className='message-wrapper'>
+          <Username includeHeader={props.includeHeader} author={props.author} isYou={props.isYou} isFollowing={props.isFollowing} isBroken={props.isBroken} />
+          <Box style={_textContainerStyle} className='message' data-message-key={props.messageKey}>
+            <Box style={_flexOneColumn}>
+              <props.innerClass messageKey={props.messageKey} measure={props.measure} onAction={props.onAction} />
+              <EditedMark isEdited={props.isEdited} />
+            </Box>
+            <ActionButton isRevoked={props.isRevoked} onAction={props.onAction} />
           </Box>
-          <ActionButton isRevoked={props.isRevoked} onAction={props.onAction} />
+          <Failure failureDescription={props.failureDescription} onRetry={props.onRetry} onShowEditor={props.onShowEditor} />
         </Box>
-        <Failure failureDescription={props.failureDescription} onRetry={props.onRetry} onShowEditor={props.onShowEditor} />
       </Box>
     </Box>
   </Box>

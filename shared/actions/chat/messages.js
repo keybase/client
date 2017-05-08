@@ -123,21 +123,10 @@ function * postMessage (action: Constants.PostMessage): SagaGenerator<any, any> 
       you: author,
     }
 
-    // Time to decide: should we add a timestamp before our new message?
-    const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
-    let messages = []
-    if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
-      const timestamp = Shared.maybeAddTimestamp(conversationIDKey, message, conversationState.messages.toArray(), conversationState.messages.size - 1)
-      if (timestamp !== null) {
-        messages.push(timestamp)
-      }
-    }
-
-    messages.push(message)
     const selectedConversation = yield select(Constants.getSelectedConversation)
     const appFocused = yield select(Shared.focusedSelector)
 
-    yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversation, appFocused, messages))
+    yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversation, appFocused, [message]))
     if (hasPendingFailure) {
       yield put(Creators.removePendingFailure(outboxID))
     }

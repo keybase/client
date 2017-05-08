@@ -1,7 +1,6 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
-import {findLast} from 'lodash'
 import {Map} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
@@ -10,12 +9,6 @@ import {pendingToRealConversation, replaceConversation, selectConversation} from
 import {usernameSelector} from '../../constants/selectors'
 
 import type {TypedState} from '../../constants/reducer'
-
-type TimestampableMessage = {
-  timestamp: number,
-  messageID: Constants.MessageID,
-  type: any,
-}
 
 function followingSelector (state: TypedState) { return state.config.following }
 function alwaysShowSelector (state: TypedState) { return state.chat.get('alwaysShow') }
@@ -155,44 +148,6 @@ function * getPostingIdentifyBehavior (conversationIDKey: Constants.Conversation
   return TlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
-function _filterTimestampableMessage (message: Constants.Message): ?TimestampableMessage {
-  if (message.messageID === 1) {
-    // $TemporarilyNotAFlowIssue with casting todo(mm) can we fix this?
-    return message
-  }
-
-  if (!_isTimestampableMessage(message)) return null
-
-  // $TemporarilyNotAFlowIssue with casting todo(mm) can we fix this?
-  return message
-}
-
-function _isTimestampableMessage (message: Constants.Message): boolean {
-  return (!!message && !!message.timestamp && !['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type))
-}
-
-function _previousTimestampableMessage (messages: Array<Constants.Message>, prevIndex: number): ?Constants.Message {
-  return findLast(messages, message => _isTimestampableMessage(message) ? message : null, prevIndex)
-}
-
-function maybeAddTimestamp (conversationIDKey: Constants.ConversationIDKey, message: Constants.Message, messages: Array<Constants.Message>, prevIndex: number): Constants.MaybeTimestamp {
-  const prevMessage = _previousTimestampableMessage(messages, prevIndex)
-  const m = _filterTimestampableMessage(message)
-  if (!m || !prevMessage) return null
-
-  // messageID 1 is an unhandled placeholder. We want to add a timestamp before
-  // the first message, as well as between any two messages with long duration.
-  // $TemporarilyNotAFlowIssue with casting todo(mm) can we fix this?
-  if (prevMessage.messageID === 1 || m.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
-    return {
-      key: Constants.messageKey(conversationIDKey, 'timestamp', m.timestamp),
-      timestamp: m.timestamp,
-      type: 'Timestamp',
-    }
-  }
-  return null
-}
-
 export {
   alwaysShowSelector,
   attachmentPlaceholderPreviewSelector,
@@ -203,7 +158,6 @@ export {
   followingSelector,
   getPostingIdentifyBehavior,
   inboxUntrustedStateSelector,
-  maybeAddTimestamp,
   messageOutboxIDSelector,
   messageSelector,
   metaDataSelector,

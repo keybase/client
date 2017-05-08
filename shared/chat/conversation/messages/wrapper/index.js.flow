@@ -18,6 +18,7 @@ export type Props = {|
   onAction: (event: any) => void,
   onRetry: () => void,
   onShowEditor: (event: any) => void,
+  timestamp: ?string,
 |}
 
 export default class Wrapper extends Component<void, Props, void> {}
