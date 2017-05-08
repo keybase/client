@@ -95,7 +95,7 @@ class ConversationInput extends Component<void, Props, void> {
 
 const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) => (
   text ? (
-    <ClickableBox feedback={false} onClick={onSubmit} style={{}}>
+    <ClickableBox feedback={false} onClick={onSubmit}>
       <Box style={styleActionText}>
         <Text type='BodyBigLink' style={{...(isLoading ? {color: globalColors.grey} : {})}}>{editingMessage ? 'Save' : 'Send'}</Text>
       </Box>
