@@ -1,6 +1,5 @@
 // @flow
 import * as I from 'immutable'
-import {omit, isEmpty} from 'lodash'
 
 import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
 import type {RouteDefNode, Path, PropsPath} from '../route-tree'
@@ -39,21 +38,22 @@ export const State = I.Record({
 const actionLoggerTransform = (state: State) => {
   const root = state.toJS().routeState
 
-  const dump = (node, out) => {
-    out.selected = node.selected
-    out.state = node.state
-    out.props = node.props
-    out.children = {}
+  const dump = (node) => {
+    if (!node) return node
+    let out = {
+      children: {},
+      props: node.props,
+      selected: node.selected,
+      state: node.state,
+    }
     Object.keys(node.children).forEach(c => {
-      out.children[c] = {}
-      dump(node.children[c], out.children[c])
+      out.children[c] = dump(node.children[c])
     })
 
-    out = omit(out, isEmpty)
+    return out
   }
 
-  const out = {}
-  dump(root, out)
+  const out = dump(root, {})
   return out
 }
 

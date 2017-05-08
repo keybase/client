@@ -210,21 +210,28 @@ const transformProof = (p) => ({
 
 const transformTracker = (state: TrackerOrNonUserState) => {
   if (state.type === 'tracker') {
+    const s: TrackerState = state
     return {
-      changed: state.changed,
-      closed: state.closed,
-      currentlyFollowing: state.currentlyFollowing,
-      error: state.error,
-      lastAction: state.lastAction,
-      needTrackTokenDismiss: state.needTrackTokenDismiss,
-      proofs: mapValues(state.proofs, transformProof),
-      reason: state.reason,
-      serverActive: state.serverActive,
-      type: state.type,
-      waiting: state.waiting,
+      changed: s.changed,
+      closed: s.closed,
+      currentlyFollowing: s.currentlyFollowing,
+      error: s.error,
+      lastAction: s.lastAction,
+      needTrackTokenDismiss: s.needTrackTokenDismiss,
+      proofs: mapValues(s.proofs, transformProof),
+      reason: s.reason,
+      serverActive: s.serverActive,
+      type: s.type,
+      waiting: s.waiting,
     }
   } else {
-    return {}
+    const s: NonUserState = state
+    return {
+      type: s.type,
+      error: s.error,
+      closed: s.closed,
+      reason: s.reason,
+    }
   }
 }
 
@@ -234,6 +241,7 @@ const actionLoggerTransform = (state: State) => {
     trackers: mapValues(state.trackers, transformTracker),
     tracking: undefined,
   }
+
   return out
 }
 

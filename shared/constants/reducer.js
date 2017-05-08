@@ -19,6 +19,7 @@ import * as Settings from '../constants/settings'
 import * as Signup from '../constants/signup'
 import * as Tracker from '../constants/tracker'
 import * as UnlockFolders from '../constants/unlock-folders'
+import {isEmpty, omitBy, isObject, isArray} from 'lodash'
 
 export type TypedState = {
   config: Config.State,
@@ -49,26 +50,31 @@ export type StateLogTransformer = (state: TypedState) => Object
 export type State = {[key: string]: any}
 export const stateKey = 'reducer:stateKey'
 
+const removeEmpty = (root: any) => {
+  if (isArray(root)) {
+    return root.map(v => removeEmpty(v))
+  } else if (isObject(root)) {
+    let ret = {}
+    Object.keys(root).forEach(k => {
+      ret[k] = removeEmpty(root[k])
+    })
+    return omitBy(ret, a => !a || isObject(a) && isEmpty(a))
+  }
+  return root
+}
+
 export const stateLogTransformer: StateLogTransformer = (state) => {
   // Never crash us out
   try {
-    const {
-      config: {
-        username, uid, loggedIn, error, bootstrapTriesRemaining, bootStatus,
-      },
-      routeTree,
-      tracker,
-    } = state
-
     const transformed = {
-      config: {
-        username, uid, loggedIn, error, bootstrapTriesRemaining, bootStatus,
-      },
-      routeTree: RouteTree.actionLoggerTransform(routeTree),
-      tracker: Tracker.actionLoggerTransform(tracker),
+      chat: Chat.actionLoggerTransform(state.chat),
+      config: Config.actionLoggerTransform(state.config),
+      routeTree: RouteTree.actionLoggerTransform(state.routeTree),
+      tracker: Tracker.actionLoggerTransform(state.tracker),
     }
-    return transformed
+    return removeEmpty(transformed)
   } catch (err) {
+    debugger
     console.log(`StateLogTransfomer crash: ${err}`)
     return {}
   }
