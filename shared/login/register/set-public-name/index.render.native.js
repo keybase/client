@@ -2,8 +2,8 @@
 import Container from '../../forms/container'
 import React from 'react'
 import type {Props} from './index.render'
-import {Box, Button, Icon, Input, Text} from '../../../common-adapters'
-import {globalMargins, globalStyles} from '../../../styles'
+import {Button, Icon, Input, Text} from '../../../common-adapters'
+import {globalMargins} from '../../../styles'
 
 const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting, submitEnabled}: Props) => {
   submitEnabled = submitEnabled == null ? true : submitEnabled
