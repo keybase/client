@@ -3,6 +3,8 @@ import {Component} from 'react'
 
 export type Props = {
   version: string,
+  onShowTerms: () => {},
+  onShowPrivacyPolicy: () => {},
 }
 
 export default class About extends Component<void, Props, void> { }

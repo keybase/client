@@ -10,6 +10,7 @@ import DumbSheet from '../dev/dumb-sheet'
 import LogSend from '../dev/log-send'
 import Push from '../push/push.native'
 import DevicesRoute from '../devices/routes'
+import WebLinks from './web-links'
 
 import About from './about-container'
 import NotificationsContainer from './notifications/container'
@@ -26,17 +27,14 @@ const routeTree = new RouteDefNode({
   children: {
     [Constants.aboutTab]: {
       component: About,
+      children: {
+        privacyPolicy: {component: WebLinks},
+        terms: {component: WebLinks},
+      },
     },
-    [Constants.feedbackTab]: {
-      component: Feedback,
-    },
-    [Constants.landingTab]: {
-      // TODO
-      component: About,
-    },
-    [Constants.screenprotectorTab]: {
-      component: Screenprotector,
-    },
+    [Constants.feedbackTab]: {component: Feedback},
+    [Constants.landingTab]: {component: About},
+    [Constants.screenprotectorTab]: {component: Screenprotector},
     [Constants.invitationsTab]: {
       component: InvitationsContainer,
       children: {
@@ -46,29 +44,19 @@ const routeTree = new RouteDefNode({
       },
     },
     [Constants.devicesTab]: DevicesRoute,
-    [Constants.notificationsTab]: {
-      component: NotificationsContainer,
-    },
+    [Constants.notificationsTab]: {component: NotificationsContainer},
     [Constants.deleteMeTab]: {
       component: DeleteContainer,
       children: {
-        deleteConfirm: {
-          component: DeleteConfirm,
-        },
-        removeDevice: {
-          component: RemoveDevice,
-        },
+        deleteConfirm: {component: DeleteConfirm},
+        removeDevice: {component: RemoveDevice},
       },
     },
     [Constants.devMenuTab]: {
       component: DevMenu,
       children: {
-        dumbSheet: {
-          component: DumbSheet,
-        },
-        logSend: {
-          component: LogSend,
-        },
+        dumbSheet: {component: DumbSheet},
+        logSend: {component: LogSend},
         push: {
           component: () => <Push prompt={true} />,
         },
