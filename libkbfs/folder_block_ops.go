@@ -2640,7 +2640,7 @@ func (fbo *folderBlockOps) StartSync(ctx context.Context,
 		return nil, nil, nil, syncState, err
 	}
 
-	lbc, err = fbo.makeLocalBcache(ctx, lState, md, file, syncState.savedSi,
+	lbc, err = fbo.makeLocalBcache(ctx, lState, md, file, syncState.si,
 		dirtyDe)
 	if err != nil {
 		return nil, nil, nil, syncState, err
