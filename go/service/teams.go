@@ -32,6 +32,6 @@ func (h *TeamsHandler) TeamCreate(netCtx context.Context, arg keybase1.TeamCreat
 		NetContext: netCtx,
 		SessionID:  arg.SessionID,
 	}
-	eng := engine.NewNewTeamEngine(h.G(), arg.Name)
+	eng := engine.NewTeamCreateEngine(h.G(), arg.Name)
 	return engine.RunEngine(eng, &ctx)
 }

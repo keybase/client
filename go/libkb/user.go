@@ -792,13 +792,15 @@ func (u User) PartialCopy() *User {
 	return ret
 }
 
-func NameWithEldestSeqno(name string, seqno Seqno) (string, error) {
+type NameWithEldestSeqno string
+
+func MakeNameWithEldestSeqno(name string, seqno Seqno) (NameWithEldestSeqno, error) {
 	if seqno < 1 {
 		return "", EldestSeqnoMissingError{}
 	} else if seqno == 1 {
 		// For users that have never reset, we use their name unmodified.
-		return name, nil
+		return NameWithEldestSeqno(name), nil
 	} else {
-		return fmt.Sprintf("%s%%%d", name, seqno), nil
+		return NameWithEldestSeqno(fmt.Sprintf("%s%%%d", name, seqno)), nil
 	}
 }

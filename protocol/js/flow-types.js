@@ -5450,6 +5450,8 @@ export type TLFQuery = {
   identifyBehavior: TLFIdentifyBehavior,
 }
 
+export type TeamID = string
+
 export type Test = {
   reply: string,
 }

@@ -96,6 +96,12 @@
       "typedef": "string"
     },
     {
+      "type": "record",
+      "name": "TeamID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
       "type": "fixed",
       "name": "Bytes32",
       "size": "32"
