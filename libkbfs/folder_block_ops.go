@@ -1769,15 +1769,17 @@ func (fbo *folderBlockOps) newFileDataWithCache(lState *lockState,
 // offset. It returns the number of bytes read and nil, or 0 and the
 // error if there was one.
 func (fbo *folderBlockOps) Read(
-	ctx context.Context, lState *lockState, kmd KeyMetadata, file path,
+	ctx context.Context, lState *lockState, kmd KeyMetadata, file Node,
 	dest []byte, off int64) (int64, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 
-	fbo.log.CDebugf(ctx, "Reading from %v", file.tailPointer())
+	filePath := fbo.nodeCache.PathFromNode(file)
+
+	fbo.log.CDebugf(ctx, "Reading from %v", filePath.tailPointer())
 
 	var uid keybase1.UID // Data reads don't depend on the uid.
-	fd := fbo.newFileData(lState, file, uid, kmd)
+	fd := fbo.newFileData(lState, filePath, uid, kmd)
 	return fd.read(ctx, dest, off)
 }
 

@@ -3280,12 +3280,12 @@ func (fbo *folderBranchOps) Read(
 		return 0, err
 	}
 
-	filePath, err := fbo.pathFromNodeForRead(file)
-	if err != nil {
-		return 0, err
-	}
-
 	{
+		filePath, err := fbo.pathFromNodeForRead(file)
+		if err != nil {
+			return 0, err
+		}
+
 		// It seems git isn't handling EINTR from some of its read calls (likely
 		// fread), which causes it to get corrupted data (which leads to coredumps
 		// later) when a read system call on pack files gets interrupted. This
@@ -3320,8 +3320,10 @@ func (fbo *folderBranchOps) Read(
 			return err
 		}
 
+		// Read using the `file` Node, not `filePath`, since the path
+		// could change until we take `blockLock` for reading.
 		bytesRead, err = fbo.blocks.Read(
-			ctx, lState, md.ReadOnly(), filePath, dest, off)
+			ctx, lState, md.ReadOnly(), file, dest, off)
 		return err
 	})
 	if err != nil {

@@ -2495,7 +2495,9 @@ func TestKBFSOpsLookupSyncRace(t *testing.T) {
 	// Now u2 reads using the node it just looked up, and should see
 	// the right data.
 	gotData := make([]byte, len(data))
-	go func() { <-beforePathsCalled; <-afterPathCalled }() // Read needs a path lookup too.
+	// Read needs a path lookup too, so revert the node cache.
+	ops2.nodeCache = snc.NodeCache
+	ops2.blocks.nodeCache = snc.NodeCache
 	nr, err := kbfsOps2.Read(ctx, fileNodeA2, gotData, 0)
 	if err != nil {
 		t.Errorf("Couldn't read data: %v", err)
