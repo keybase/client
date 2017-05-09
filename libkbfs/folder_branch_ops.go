@@ -3063,6 +3063,24 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 
 	dirCacheUndoFn := fbo.blocks.RemoveDirEntryInCache(
 		lState, dirPath, name, de)
+	if de.Type == Dir {
+		removedNode := fbo.nodeCache.Get(de.BlockPointer.Ref())
+		if removedNode != nil {
+			// If it was a dirty directory, the removed node no longer
+			// counts as dirty (it will never be sync'd). Note that
+			// removed files will still be synced since any data
+			// written to them via a handle stays in memory until the
+			// sync actually happens.
+			removed := fbo.status.rmDirtyNode(removedNode)
+			if removed {
+				oldUndoFn := dirCacheUndoFn
+				dirCacheUndoFn = func(lState *lockState) {
+					oldUndoFn(lState)
+					fbo.status.addDirtyNode(removedNode)
+				}
+			}
+		}
+	}
 	return fbo.notifyAndSyncOrSignal(
 		ctx, lState, dirCacheUndoFn, []Node{dir}, ro, md.ReadOnly())
 }

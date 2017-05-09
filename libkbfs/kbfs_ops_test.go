@@ -3367,3 +3367,63 @@ func TestForceFastForwardOnEmptyTLF(t *testing.T) {
 		t.Fatalf("Couldn't wait for fast forward: %+v", err)
 	}
 }
+
+// Regression test for KBFS-2161.
+func TestDirtyPathsAfterRemoveDir(t *testing.T) {
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
+	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
+	kbfsOps := config.KBFSOps()
+
+	// Create a/b/c.
+	nodeA, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	nodeB, _, err := kbfsOps.CreateDir(ctx, nodeA, "b")
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	nodeC, _, err := kbfsOps.CreateFile(ctx, nodeB, "c", false, NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	// Remove node c from the block cache and the server, to guarantee
+	// it's not needed during the removal.
+	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
+	ptrC := ops.nodeCache.PathFromNode(nodeC).tailPointer()
+	err = config.BlockCache().DeleteTransient(
+		ptrC, rootNode.GetFolderBranch().Tlf)
+	require.NoError(t, err)
+
+	// Remove c.
+	err = kbfsOps.RemoveEntry(ctx, nodeB, "c")
+	require.NoError(t, err)
+
+	// Now a/b should be dirty.
+	status, _, err := kbfsOps.FolderStatus(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	require.Len(t, status.DirtyPaths, 1)
+	require.Equal(t, "test_user/a/b", status.DirtyPaths[0])
+
+	// Now remove b, and make sure a/b is no longer dirty.
+	err = kbfsOps.RemoveEntry(ctx, nodeA, "b")
+	require.NoError(t, err)
+	status, _, err = kbfsOps.FolderStatus(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	require.Len(t, status.DirtyPaths, 1)
+	require.Equal(t, "test_user/a", status.DirtyPaths[0])
+
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	status, _, err = kbfsOps.FolderStatus(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	require.Len(t, status.DirtyPaths, 0)
+
+	// If the block made it back into the cache, we have a problem.
+	// It shouldn't be needed for removal.
+	_, err = config.BlockCache().Get(ptrC)
+	require.NotNil(t, err)
+}
