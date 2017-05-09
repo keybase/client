@@ -305,6 +305,7 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
     yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
   }
 
+  const selectedConversationIDKeyPre = yield select(Constants.getSelectedConversation)
   const loadThreadChanMap = ChatTypes.localGetThreadNonblockRpcChannelMap([
     'chat.1.chatUi.chatThreadCached',
     'chat.1.chatUi.chatThreadFull',
@@ -321,7 +322,7 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
       },
       query: {
         disableResolveSupersedes: false,
-        markAsRead: true,
+        markAsRead: appFocused && selectedConversationIDKeyPre == conversationIDKey,
         messageTypes,
       },
     },
@@ -816,7 +817,7 @@ function * _markThreadsStale (action: Constants.MarkThreadsStale): SagaGenerator
 
   // Selected is stale?
   const selectedConversation = yield select(Constants.getSelectedConversation)
-  if (!selectedConversation) {
+  if (!(selectedConversation && convIDs.includes(selectedConversation))) {
     return
   }
   yield put(Creators.clearMessages(selectedConversation))
