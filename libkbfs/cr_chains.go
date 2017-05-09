@@ -258,6 +258,14 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 
 	parentOriginal, ok := chains.originals[parentDir]
 	if !ok {
+		// If the parent dir was created as part of a squash/batch,
+		// there might not be any update for it, and so it might not
+		// appear in the `originals` map.  In that case, we can use
+		// the original.
+		parentOriginal = parentDir
+		ok = chains.createdOriginals[parentDir]
+	}
+	if !ok {
 		if chains.isDeleted(parentDir) {
 			// If the parent's been deleted, it doesn't matter whether
 			// we find the type or not.

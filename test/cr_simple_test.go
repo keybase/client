@@ -159,6 +159,39 @@ func TestCrUnmergedSetMtime(t *testing.T) {
 	)
 }
 
+// bob sets the mtime on a file while unstaged
+func TestCrUnmergedSetMtimeInNewDir(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			write("a/c", "world"),
+		),
+		as(bob, noSync(),
+			mkdir("d"),
+			mkdir("d/e"),
+			setmtime("d/e", targetMtime),
+			reenableUpdates(),
+			lsdir("a/", m{"b": "FILE", "c": "FILE"}),
+			read("a/c", "world"),
+			lsdir("d/", m{"e": "DIR"}),
+			mtime("d/e", targetMtime),
+		),
+		as(alice,
+			lsdir("a/", m{"b": "FILE", "c": "FILE"}),
+			read("a/c", "world"),
+			lsdir("d/", m{"e": "DIR"}),
+			mtime("d/e", targetMtime),
+		),
+	)
+}
+
 // bob sets the mtime on a moved file while unstaged
 func TestCrUnmergedSetMtimeOnMovedFile(t *testing.T) {
 	targetMtime := time.Now().Add(1 * time.Minute)
