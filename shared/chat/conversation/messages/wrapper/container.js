@@ -6,6 +6,7 @@ import createCachedSelector from 're-reselect'
 import {compose, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {Map} from 'immutable'
+import {formatTimeForMessages} from '../../../../util/timestamp'
 
 import type {Props} from '.'
 import type {TypedState} from '../../../../constants/reducer'
@@ -38,6 +39,17 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
   const isFirstNewMessage = !!(conversationState && message && message.messageID && conversationState.get('firstNewMessageID') === message.messageID)
   const prevMessage = getMessage(state, prevMessageKey)
   const skipMsgHeader = prevMessage && prevMessage.type === 'Text' && prevMessage.author === author
+
+  const firstMessageEver = !prevMessage
+  const firstVisibleMessage = prevMessage && Constants.messageKeyValue(prevMessage.key) === '1'
+  const oldEnough = (
+      prevMessage &&
+      prevMessage.timestamp &&
+      message.timestamp &&
+      message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs
+    )
+
+  const timestamp = (firstMessageEver || firstVisibleMessage || oldEnough) ? formatTimeForMessages(message.timestamp) : null
   const includeHeader = isFirstNewMessage || !skipMsgHeader
   const isEditing = message === Constants.getEditingMessage(state)
 
@@ -56,6 +68,7 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
     isFollowing,
     isRevoked,
     isYou,
+    timestamp,
   }
 }
 
@@ -90,6 +103,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
       dispatchProps._onRetryText(stateProps._selectedConversationIDKey, stateProps._message.outboxID)
     }
   },
+  timestamp: stateProps.timestamp,
 })
 
 export default compose(
@@ -100,11 +114,12 @@ export default compose(
   }),
   lifecycle({
     componentDidUpdate: function (prevProps: Props & {_editedCount: number}) {
-      if (this.props.measure &&
+      if (
         (this.props._editedCount !== prevProps._editedCount) ||
-        (this.props.isFirstNewMessage !== prevProps.isFirstNewMessage)
+        (this.props.isFirstNewMessage !== prevProps.isFirstNewMessage) ||
+        (this.props.timestamp !== prevProps.timestamp)
       ) {
-        this.props.measure()
+        this.props.measure && this.props.measure()
       }
     },
   })

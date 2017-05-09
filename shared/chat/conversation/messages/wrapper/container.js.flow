@@ -26,6 +26,7 @@ export type StateProps = {|
   isFollowing: boolean,
   isRevoked: boolean,
   isYou: boolean,
+  timestamp: ?string,
 |}
 
 export type DispatchProps = {|
