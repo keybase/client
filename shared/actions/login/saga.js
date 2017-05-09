@@ -26,7 +26,7 @@ import * as Saga from '../../util/saga'
 
 import type {DeviceRole} from '../../constants/login'
 import type {DeviceType} from '../../constants/types/more'
-import type {Dispatch, AsyncAction, TypedAction} from '../../constants/types/flux'
+import type {Dispatch, AsyncAction} from '../../constants/types/flux'
 import type {SagaGenerator, AfterSelect} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
@@ -65,6 +65,14 @@ const getAccounts = (): AsyncAction => dispatch => (
     })
   })
 )
+
+function sagaWaitingDecorator (saga) {
+  return function * (...args) {
+    yield put(Creators.waitingForResponse(false))
+    yield call(saga, ...args)
+    yield put(Creators.waitingForResponse(true))
+  }
+}
 
 function * setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) {
   const codePage: AfterSelect<typeof codePageSelector> = yield select(codePageSelector)
@@ -302,7 +310,7 @@ const chooseDeviceSaga = (onBackSaga) => function * ({params: {devices}, respons
         mobile: Constants.codePageDeviceRoleExistingPhone,
       }: {[key: DeviceType]: DeviceRole})[toDeviceType(device.type)]
       yield call(setCodePageOtherDeviceRole, role)
-    yield call(resultWithWaiting, response, deviceID)
+      yield call(resultWithWaiting, response, deviceID)
     }
   }
 }
@@ -405,7 +413,7 @@ function * loginFlowSaga (usernameOrEmail) {
   // Returns an Array<Task>
   // If there are any unexpected errors let's cancel the login. The error will be shown as a global error
   yield Saga.mapSagasToChanMap(
-    (c, saga) => Saga.safeTakeLatestWithCatch(c, catchError, saga),
+    (c, saga) => Saga.safeTakeLatestWithCatch(c, catchError, sagaWaitingDecorator(saga)),
     loginSagas,
     loginChanMap
   )
@@ -510,7 +518,7 @@ function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
 
   // Returns an Array<Task>
   yield Saga.mapSagasToChanMap(
-    (c, saga) => Saga.safeTakeLatestWithCatch(c, finishedSaga, saga),
+    (c, saga) => Saga.safeTakeLatestWithCatch(c, finishedSaga, sagaWaitingDecorator(saga)),
     addDeviceSagas,
     addDeviceChanMap
   )
