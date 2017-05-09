@@ -159,7 +159,8 @@ func TestCrUnmergedSetMtime(t *testing.T) {
 	)
 }
 
-// bob sets the mtime on a file while unstaged
+// bob sets the mtime on a file in a newly-created directory while
+// unstaged.  Regression test for KBFS-2162.
 func TestCrUnmergedSetMtimeInNewDir(t *testing.T) {
 	targetMtime := time.Now().Add(1 * time.Minute)
 	test(t,
