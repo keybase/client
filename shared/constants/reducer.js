@@ -74,7 +74,6 @@ export const stateLogTransformer: StateLogTransformer = (state) => {
     }
     return removeEmpty(transformed)
   } catch (err) {
-    debugger
     console.log(`StateLogTransfomer crash: ${err}`)
     return {}
   }
