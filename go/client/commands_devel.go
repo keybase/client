@@ -30,6 +30,7 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		NewCmdTestFSNotify(cl, g),
 		newCmdTlf(cl, g),
 		NewCmdScanProofs(cl, g),
+		NewCmdTeam(cl, g),
 	}
 }
 

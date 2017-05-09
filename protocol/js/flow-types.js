@@ -3371,6 +3371,21 @@ export function sigsSigListRpcPromise (request: $Exact<requestCommon & {callback
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.sigs.sigList', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamCreateRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamCreateRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamCreate', request)
+}
+
+export function teamsTeamCreateRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamCreateRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreate', request)
+}
+export function teamsTeamCreateRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamCreateRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamCreate', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamCreateRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamCreateRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function testPanicRpc (request: Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>) {
   engineRpcOutgoing('keybase.1.test.panic', request)
 }
@@ -6438,6 +6453,10 @@ export type streamUiWriteRpcParam = Exact<{
   buf: bytes
 }>
 
+export type teamsTeamCreateRpcParam = Exact<{
+  name: string
+}>
+
 export type testPanicRpcParam = Exact<{
   message: string
 }>
@@ -6887,6 +6906,7 @@ export type rpc =
   | signupSignupRpc
   | sigsSigListJSONRpc
   | sigsSigListRpc
+  | teamsTeamCreateRpc
   | testPanicRpc
   | testTestCallbackRpc
   | testTestRpc

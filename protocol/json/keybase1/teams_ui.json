@@ -1,0 +1,21 @@
+{
+  "protocol": "teams",
+  "imports": [],
+  "types": [],
+  "messages": {
+    "teamCreate": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}
