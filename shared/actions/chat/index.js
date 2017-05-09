@@ -240,9 +240,9 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean, forceSelectOnMo
 }
 
 function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator<any, any> {
-  try {
-    const conversationIDKey = action.payload.conversationIDKey
+  const conversationIDKey = action.payload.conversationIDKey
 
+  try {
     if (!conversationIDKey) {
       return
     }
@@ -338,7 +338,6 @@ function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator
         incoming.chatThreadFull.response.result()
         yield call(updateThread, incoming.chatThreadFull.params.thread)
       } else if (incoming.finished) {
-
         if (incoming.finished.params.offline) {
           yield put(Creators.threadLoadedOffline(conversationIDKey))
         }
