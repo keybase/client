@@ -92,16 +92,21 @@ type secretStoreAccountName struct {
 var _ SecretStoreAll = secretStoreAccountName{}
 
 func (s secretStoreAccountName) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) (err error) {
+	defer TraceTimed(s.context.GetLog(), "secret_store_external StoreSecret", func() error { return err })()
+	s.context.GetLog().Debug("+ secret_store_exteral StoreSecret SetupKeyStore")
 	s.externalKeyStore.SetupKeyStore(s.serviceName(), string(username))
+	s.context.GetLog().Debug("- secret_store_exteral StoreSecret SetupKeyStore")
 	return s.externalKeyStore.StoreSecret(s.serviceName(), string(username), secret)
 }
 
-func (s secretStoreAccountName) RetrieveSecret(username NormalizedUsername) (LKSecFullSecret, error) {
+func (s secretStoreAccountName) RetrieveSecret(username NormalizedUsername) (sec LKSecFullSecret, err error) {
+	defer TraceTimed(s.context.GetLog(), "secret_store_external RetrieveSecret", func() error { return err })()
 	s.externalKeyStore.SetupKeyStore(s.serviceName(), string(username))
 	return s.externalKeyStore.RetrieveSecret(s.serviceName(), string(username))
 }
 
 func (s secretStoreAccountName) ClearSecret(username NormalizedUsername) (err error) {
+	defer TraceTimed(s.context.GetLog(), "secret_store_external ClearSecret", func() error { return err })()
 	return s.externalKeyStore.ClearSecret(s.serviceName(), string(username))
 }
 
@@ -110,7 +115,10 @@ func NewSecretStoreAll(g *GlobalContext) SecretStoreAll {
 	if externalKeyStore == nil {
 		return nil
 	}
-	return secretStoreAccountName{externalKeyStore, g}
+	return secretStoreAccountName{
+		externalKeyStore: externalKeyStore,
+		context:          g,
+	}
 }
 
 func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
