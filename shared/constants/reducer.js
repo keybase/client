@@ -17,8 +17,9 @@ import * as RouteTree from '../constants/route-tree'
 import * as Search from '../constants/search'
 import * as Settings from '../constants/settings'
 import * as Signup from '../constants/signup'
-import * as TotalTracker from '../constants/tracker'
+import * as Tracker from '../constants/tracker'
 import * as UnlockFolders from '../constants/unlock-folders'
+import {isEmpty, omitBy, isObject, isArray} from 'lodash'
 
 export type TypedState = {
   config: Config.State,
@@ -39,7 +40,7 @@ export type TypedState = {
   search: Search.State,
   settings: Settings.State,
   signup: Signup.State,
-  tracker: TotalTracker.State,
+  tracker: Tracker.State,
   unlockFolders: UnlockFolders.State,
 }
 
@@ -49,20 +50,31 @@ export type StateLogTransformer = (state: TypedState) => Object
 export type State = {[key: string]: any}
 export const stateKey = 'reducer:stateKey'
 
-export const stateLogTransformer: StateLogTransformer = (state) => {
-  const {
-    config: {
-      username, uid, loggedIn, error, bootstrapTriesRemaining, bootStatus,
-    },
-    routeTree,
-    tracker,
-  } = state
+const removeEmpty = (root: any) => {
+  if (isArray(root)) {
+    return root.map(v => removeEmpty(v))
+  } else if (isObject(root)) {
+    let ret = {}
+    Object.keys(root).forEach(k => {
+      ret[k] = removeEmpty(root[k])
+    })
+    return omitBy(ret, a => !a || isObject(a) && isEmpty(a))
+  }
+  return root
+}
 
-  return {
-    config: {
-      username, uid, loggedIn, error, bootstrapTriesRemaining, bootStatus,
-    },
-    routeTree,
-    tracker,
+export const stateLogTransformer: StateLogTransformer = (state) => {
+  // Never crash us out
+  try {
+    const transformed = {
+      chat: Chat.stateLoggerTransform(state.chat),
+      config: Config.stateLoggerTransform(state.config),
+      routeTree: RouteTree.stateLoggerTransform(state.routeTree),
+      tracker: Tracker.stateLoggerTransform(state.tracker),
+    }
+    return removeEmpty(transformed)
+  } catch (err) {
+    console.log(`StateLogTransfomer crash: ${err}`)
+    return {}
   }
 }

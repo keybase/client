@@ -34,3 +34,29 @@ export const State = I.Record({
   routeDef: null,
   routeState: null,
 })
+
+const stateLoggerTransform = (state: State) => {
+  const root = state.toJS().routeState
+
+  const dump = (node) => {
+    if (!node) return node
+    let out = {
+      children: {},
+      props: node.props,
+      selected: node.selected,
+      state: node.state,
+    }
+    Object.keys(node.children).forEach(c => {
+      out.children[c] = dump(node.children[c])
+    })
+
+    return out
+  }
+
+  const out = dump(root, {})
+  return out
+}
+
+export {
+  stateLoggerTransform,
+}

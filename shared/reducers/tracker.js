@@ -407,7 +407,7 @@ export default function (state: Constants.State = initialState, action: Action):
           ...state,
           pendingIdentifies: {
             ...state.pendingIdentifies,
-            [action.payload.username]: action.payload.pending,
+            [action.payload.username]: action.payload.pending ? true : undefined,
           },
         }
       }
