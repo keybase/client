@@ -240,120 +240,123 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean, forceSelectOnMo
 }
 
 function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator<any, any> {
-  const conversationIDKey = action.payload.conversationIDKey
+  try {
+    const conversationIDKey = action.payload.conversationIDKey
 
-  if (!conversationIDKey) {
-    return
-  }
-
-  if (Constants.isPendingConversationIDKey(conversationIDKey)) {
-    __DEV__ && console.log('Bailing on selected pending conversation no matching inbox')
-    return
-  }
-
-  const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
-
-  if (inboxConvo && inboxConvo.state !== 'unboxed') {
-    __DEV__ && console.log('Bailing on not yet unboxed conversation')
-    return
-  }
-
-  const rekeyInfoSelector = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) => {
-    return state.chat.get('rekeyInfos').get(conversationIDKey)
-  }
-  const rekeyInfo = yield select(rekeyInfoSelector, conversationIDKey)
-
-  if (rekeyInfo) {
-    __DEV__ && console.log('Bailing on chat due to rekey info')
-    return
-  }
-
-  const oldConversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
-
-  let next
-  if (oldConversationState) {
-    if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
-      __DEV__ && console.log('Bailing on chat load more due to already has initial load')
+    if (!conversationIDKey) {
       return
     }
 
-    if (oldConversationState.get('isRequesting')) {
-      __DEV__ && console.log('Bailing on chat load more due to isRequesting already')
+    if (Constants.isPendingConversationIDKey(conversationIDKey)) {
+      console.log('Bailing on selected pending conversation no matching inbox')
       return
     }
 
-    if (!oldConversationState.get('moreToLoad')) {
-      __DEV__ && console.log('Bailing on chat load more due to no more to load')
+    const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
+
+    if (inboxConvo && inboxConvo.state !== 'unboxed') {
+      console.log('Bailing on not yet unboxed conversation')
       return
     }
 
-    next = oldConversationState.get('paginationNext', undefined)
-  }
+    const rekeyInfoSelector = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) => {
+      return state.chat.get('rekeyInfos').get(conversationIDKey)
+    }
+    const rekeyInfo = yield select(rekeyInfoSelector, conversationIDKey)
 
-  yield put(Creators.loadingMessages(conversationIDKey, true))
+    if (rekeyInfo) {
+      console.log('Bailing on chat due to rekey info')
+      return
+    }
 
-  const yourName = yield select(usernameSelector)
-  const yourDeviceName = yield select(Shared.devicenameSelector)
+    const oldConversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
 
-  // We receive the list with edit/delete/etc already applied so lets filter that out
-  const messageTypes = Object.keys(ChatTypes.CommonMessageType).filter(k => !['edit', 'delete', 'headline', 'attachmentuploaded'].includes(k)).map(k => ChatTypes.CommonMessageType[k])
-  const conversationID = Constants.keyToConversationID(conversationIDKey)
-
-  const updateThread = function * (thread: ChatTypes.ThreadView) {
-    const newMessages = (thread && thread.messages || []).map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey)).reverse()
-    const pagination = _threadToPagination(thread)
-    yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
-  }
-
-  const loadThreadChanMap = ChatTypes.localGetThreadNonblockRpcChannelMap([
-    'chat.1.chatUi.chatThreadCached',
-    'chat.1.chatUi.chatThreadFull',
-    'finished',
-  ], {
-    param: {
-      conversationID,
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-      pagination: {
-        last: false,
-        next,
-        num: Constants.maxMessagesToLoadAtATime,
-        previous: null,
-      },
-      query: {
-        disableResolveSupersedes: false,
-        markAsRead: true,
-        messageTypes,
-      },
-    },
-  })
-
-  while (true) {
-    const incoming = yield loadThreadChanMap.race()
-
-    if (incoming.chatThreadCached) {
-      incoming.chatThreadCached.response.result()
-      yield call(updateThread, incoming.chatThreadCached.params.thread)
-    } else if (incoming.chatThreadFull) {
-      incoming.chatThreadFull.response.result()
-      yield call(updateThread, incoming.chatThreadFull.params.thread)
-    } else if (incoming.finished) {
-      yield put(Creators.loadingMessages(conversationIDKey, false))
-
-      if (incoming.finished.params.offline) {
-        yield put(Creators.threadLoadedOffline(conversationIDKey))
+    let next
+    if (oldConversationState) {
+      if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
+        console.log('Bailing on chat load more due to already has initial load')
+        return
       }
-      yield put(Creators.setLoaded(conversationIDKey, !incoming.finished.error)) // reset isLoaded on error
-      break
-    }
-  }
 
-  // Do this here because it's possible loading messages takes a while
-  // If this is the selected conversation and this was a result of user action
-  // We can assume the messages we've loaded have been seen.
-  const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
-  if (selectedConversationIDKey === conversationIDKey && action.payload.fromUser) {
-    yield put(Creators.updateBadging(conversationIDKey))
-    yield put(Creators.updateLatestMessage(conversationIDKey))
+      if (oldConversationState.get('isRequesting')) {
+        console.log('Bailing on chat load more due to isRequesting already')
+        return
+      }
+
+      if (!oldConversationState.get('moreToLoad')) {
+        console.log('Bailing on chat load more due to no more to load')
+        return
+      }
+
+      next = oldConversationState.get('paginationNext', undefined)
+    }
+
+    yield put(Creators.loadingMessages(conversationIDKey, true))
+
+    const yourName = yield select(usernameSelector)
+    const yourDeviceName = yield select(Shared.devicenameSelector)
+
+    // We receive the list with edit/delete/etc already applied so lets filter that out
+    const messageTypes = Object.keys(ChatTypes.CommonMessageType).filter(k => !['edit', 'delete', 'headline', 'attachmentuploaded'].includes(k)).map(k => ChatTypes.CommonMessageType[k])
+    const conversationID = Constants.keyToConversationID(conversationIDKey)
+
+    const updateThread = function * (thread: ChatTypes.ThreadView) {
+      const newMessages = (thread && thread.messages || []).map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey)).reverse()
+      const pagination = _threadToPagination(thread)
+      yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
+    }
+
+    const loadThreadChanMap = ChatTypes.localGetThreadNonblockRpcChannelMap([
+      'chat.1.chatUi.chatThreadCached',
+      'chat.1.chatUi.chatThreadFull',
+      'finished',
+    ], {
+      param: {
+        conversationID,
+        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+        pagination: {
+          last: false,
+          next,
+          num: Constants.maxMessagesToLoadAtATime,
+          previous: null,
+        },
+        query: {
+          disableResolveSupersedes: false,
+          markAsRead: true,
+          messageTypes,
+        },
+      },
+    })
+
+    while (true) {
+      const incoming = yield loadThreadChanMap.race()
+
+      if (incoming.chatThreadCached) {
+        incoming.chatThreadCached.response.result()
+        yield call(updateThread, incoming.chatThreadCached.params.thread)
+      } else if (incoming.chatThreadFull) {
+        incoming.chatThreadFull.response.result()
+        yield call(updateThread, incoming.chatThreadFull.params.thread)
+      } else if (incoming.finished) {
+
+        if (incoming.finished.params.offline) {
+          yield put(Creators.threadLoadedOffline(conversationIDKey))
+        }
+        yield put(Creators.setLoaded(conversationIDKey, !incoming.finished.error)) // reset isLoaded on error
+        break
+      }
+    }
+
+    // Do this here because it's possible loading messages takes a while
+    // If this is the selected conversation and this was a result of user action
+    // We can assume the messages we've loaded have been seen.
+    const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
+    if (selectedConversationIDKey === conversationIDKey && action.payload.fromUser) {
+      yield put(Creators.updateBadging(conversationIDKey))
+      yield put(Creators.updateLatestMessage(conversationIDKey))
+    }
+  } finally {
+    yield put(Creators.loadingMessages(conversationIDKey, false))
   }
 }
 
