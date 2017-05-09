@@ -28,11 +28,15 @@ function set(f, values) {
 
 document.addEventListener('DOMContentLoaded', function() {
   const f = document.forms[0];
+
+  // Populate default initial values
   const initValues = get(f);
-  chrome.storage.local.get(initValues, function(items) {
-    set(f, items);
+  chrome.storage.local.get(initValues, function(options) {
+    // Update form to match our storage values
+    set(f, options);
   });
 
+  // Save changes when our form changes.
   f.addEventListener('change', function(e) {
     const values = get(f);
     chrome.storage.local.set(values);

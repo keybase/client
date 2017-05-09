@@ -8,7 +8,14 @@ function init() {
   // Only do work on reddit.
   if (!location.hostname.endsWith('.reddit.com')) return;
 
-  if (checkThread.test(location.pathname)) injectThread();
+  // Inject thread DOM changes?
+  if (!checkThread.test(location.pathname)) return;
+  chrome.storage.local.get("reddit-thread-reply", function(options) {
+    // Is this feature enabled?
+    if (options["reddit-thread-reply"]) {
+      injectThread();
+    }
+  });
 }
 window.addEventListener('load', init);
 
