@@ -45,12 +45,8 @@ function * generateQRCode () {
 
 // TODO add waiting handlers
 // TODO sagaize
-const waitingForResponse = (waiting: boolean) : TypedAction<'login:waitingForResponse', boolean, void> => (
-  {payload: waiting, type: Constants.waitingForResponse}
-)
-
 const makeWaitingHandler = (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} => (
-  {waitingHandler: (waiting: boolean) => { dispatch(waitingForResponse(waiting)) }}
+  {waitingHandler: (waiting: boolean) => { dispatch(Creators.waitingForResponse(waiting)) }}
 )
 
 const getAccounts = (): AsyncAction => dispatch => (
@@ -155,12 +151,20 @@ function * cancelLogin (response) {
   yield call(navBasedOnLoginState)
   if (response) {
     const engineInst = yield call(engine)
+    yield put(Creators.waitingForResponse(true))
     yield call([engine, engineInst.cancelRPC], response, InputCancelError)
+    yield put(Creators.waitingForResponse(false))
   }
 }
 
 function result (response, ...args) {
   return call([response, response.result], ...args)
+}
+
+function * resultWithWaiting (response, ...args) {
+  yield put(Creators.waitingForResponse(true))
+  yield result(response, ...args)
+  yield put(Creators.waitingForResponse(false))
 }
 
 function respondError (response, ...args) {
@@ -189,7 +193,7 @@ const displayPrimaryPaperKeySaga = (onBackSaga) => function * ({params: {phrase}
   if (onBack) {
     yield call(onBackSaga, response)
   } else if (onFinish) {
-    yield result(response)
+    yield call(resultWithWaiting, response)
   }
 }
 
@@ -211,12 +215,12 @@ const getEmailOrUsernameSaga = (onBackSaga) => function * ({response}) {
     if (!usernameOrEmail) {
       console.error('no email')
     }
-    yield result(response, usernameOrEmail)
+    yield call(resultWithWaiting, response, usernameOrEmail)
   }
 }
 
 function * passthroughResponseSaga ({response}) {
-  yield result(response)
+  yield call(resultWithWaiting, response)
 }
 
 // TODO type this
@@ -240,7 +244,7 @@ const displayAndPromptSecretSaga = (onBackSaga) => function * ({params: {phrase,
     yield call(onBackSaga, response)
   } else if (qrScanned || textEntered) {
     const phrase = qrScanned ? qrScanned.payload.phrase : textEntered.payload.phrase
-    yield result(response, {phrase, secret: null})
+    yield call(resultWithWaiting, response, {phrase, secret: null})
   }
 }
 
@@ -263,12 +267,12 @@ const promptNewDeviceNameSaga = (onBackSaga) => function * ({params: {existingDe
   if (onBack) {
     yield call(onBackSaga, response)
   } else if (onSubmit) {
-    yield result(response, onSubmit.payload.deviceName)
+    yield call(resultWithWaiting, response, onSubmit.payload.deviceName)
   }
 }
 
 function * provisionerSuccessInLoginSaga ({response}) {
-  yield result(response)
+  yield call(resultWithWaiting, response)
   yield call(navBasedOnLoginState)
 }
 
@@ -288,7 +292,7 @@ const chooseDeviceSaga = (onBackSaga) => function * ({params: {devices}, respons
   if (onBack) {
     yield call(onBackSaga, response)
   } else if (onWont) {
-    yield result(response, '')
+    yield call(resultWithWaiting, response, '')
   } else if (onSelect) {
     const deviceID = onSelect.payload.deviceId
     const device = (devices || []).find(d => d.deviceID === deviceID)
@@ -298,7 +302,7 @@ const chooseDeviceSaga = (onBackSaga) => function * ({params: {devices}, respons
         mobile: Constants.codePageDeviceRoleExistingPhone,
       }: {[key: DeviceType]: DeviceRole})[toDeviceType(device.type)]
       yield call(setCodePageOtherDeviceRole, role)
-      yield result(response, deviceID)
+    yield call(resultWithWaiting, response, deviceID)
     }
   }
 }
@@ -315,7 +319,7 @@ const chooseGPGMethodSaga = (onBackSaga) => function * ({response}) {
     yield call(onBackSaga, response)
   } else if (onSubmit) {
     const exportKey = onSubmit.payload.exportKey
-    yield result(response, exportKey ? Types.ProvisionUiGPGMethod.gpgImport : Types.ProvisionUiGPGMethod.gpgSign)
+    yield call(resultWithWaiting, response, exportKey ? Types.ProvisionUiGPGMethod.gpgImport : Types.ProvisionUiGPGMethod.gpgSign)
   }
 }
 
@@ -362,7 +366,7 @@ const getPassphraseSaga = (onBackSaga) => function * ({params: {pinentry: {type,
     const passphrase = onSubmit.payload.passphrase.stringValue()
     // TODO why is store secret always false?
     const storeSecret = onSubmit.payload.storeSecret
-    yield result(response, {passphrase, storeSecret})
+    yield call(resultWithWaiting, response, {passphrase, storeSecret})
   }
 }
 
@@ -493,7 +497,7 @@ function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
     const deviceType = deviceTypeMap[role]
 
     yield call(setCodePageOtherDeviceRole, role)
-    yield result(response, deviceType)
+    yield call(resultWithWaiting, response, deviceType)
   }
 
   const addDeviceSagas = {
