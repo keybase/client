@@ -41,6 +41,10 @@ const _getUserImages = throttle(() => {
     }
   })
 
+  if (!good.length) {
+    return
+  }
+
   apiserverGetRpc({
     callback: (error, response) => {
       if (error) {
