@@ -1787,7 +1787,7 @@ func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
 	ctx context.Context, lState *lockState, file Node,
 	c DirtyPermChan) error {
 	var errListener chan error
-	err := func() error {
+	registerErr := func() error {
 		fbo.blockLock.Lock(lState)
 		defer fbo.blockLock.Unlock(lState)
 		filePath, err := fbo.pathFromNodeForBlockWriteLocked(lState, file)
@@ -1798,7 +1798,8 @@ func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
 		errListener = make(chan error, 1)
 		df.addErrListener(errListener)
 		return nil
-	}()
+	}
+	err := registerErr()
 	if err != nil {
 		return err
 	}
@@ -1824,10 +1825,24 @@ func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
 				"Blocking a write because of a full dirty buffer")
 			doLogUnblocked = true
 		case err := <-errListener:
-			// XXX: should we ignore non-fatal errors (like
-			// context.Canceled), or errors that are specific only to
-			// some other file being sync'd (e.g., "recoverable" block
-			// errors from which we couldn't recover)?
+			// Context errors are safe to ignore, since they are
+			// likely to be specific to a previous sync (e.g., a user
+			// hit ctrl-c during an fsync, or a sync timed out, or a
+			// test was provoking an error specifically [KBFS-2164]).
+			if err == context.Canceled || err == context.DeadlineExceeded {
+				fbo.log.CDebugf(ctx, "Ignoring sync err: %+v", err)
+				err := registerErr()
+				if err != nil {
+					return err
+				}
+				continue
+			}
+			// Treat other errors as fatal to this write -- e.g., the
+			// user's quota is full, the local journal is broken,
+			// etc. XXX: should we ignore errors that are specific
+			// only to some other file being sync'd (e.g.,
+			// "recoverable" block errors from which we couldn't
+			// recover)?
 			return err
 		}
 	}
