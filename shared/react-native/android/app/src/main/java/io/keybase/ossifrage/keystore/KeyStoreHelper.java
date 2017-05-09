@@ -46,7 +46,7 @@ public class KeyStoreHelper {
               .setCertificateSubject(new X500Principal("CN=" + keyAlias))
               .setKeyValidityStart(Calendar.getInstance().getTime())
               .setKeyValidityEnd(endTime.getTime())
-              .setKeySize(4096)
+              .setKeySize(2048)
               .build();
         } else {
             spec = new KeyPairGeneratorSpec.Builder(ctx)
@@ -56,7 +56,7 @@ public class KeyStoreHelper {
               .setSubject(new X500Principal("CN=" + keyAlias))
               .setStartDate(Calendar.getInstance().getTime())
               .setEndDate(endTime.getTime())
-              .setKeySize(4096)
+              .setKeySize(2048)
               .build();
         }
 
