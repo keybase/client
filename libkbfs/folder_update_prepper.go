@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -24,6 +25,9 @@ type folderUpdatePrepper struct {
 	folderBranch FolderBranch
 	blocks       *folderBlockOps
 	log          logger.Logger
+
+	cacheLock   sync.Mutex
+	cachedInfos map[BlockPointer]BlockInfo
 }
 
 func (fup folderUpdatePrepper) id() tlf.ID {
@@ -476,7 +480,7 @@ func (fup folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 // updateResolutionUsage figures out how many bytes are referenced and
 // unreferenced in the merged branch by this resolution.  Only needs
 // to be called for non-squash resolutions.
-func (fup folderUpdatePrepper) updateResolutionUsage(ctx context.Context,
+func (fup folderUpdatePrepper) updateResolutionUsageLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState,
 	unmergedChains, mergedChains *crChains,
 	mostRecentMergedMD ImmutableRootMetadata,
@@ -526,6 +530,7 @@ func (fup folderUpdatePrepper) updateResolutionUsage(ctx context.Context,
 	md.AddDiskUsage(refSum)
 
 	unrefPtrsToFetch := make([]BlockPointer, 0, len(unrefs))
+	var unrefSum uint64
 	for ptr := range unrefs {
 		original, ok := unmergedChains.originals[ptr]
 		if !ok {
@@ -549,7 +554,11 @@ func (fup folderUpdatePrepper) updateResolutionUsage(ctx context.Context,
 			continue
 		}
 
-		unrefPtrsToFetch = append(unrefPtrsToFetch, ptr)
+		if info, ok := fup.cachedInfos[ptr]; ok {
+			unrefSum += uint64(info.EncodedSize)
+		} else {
+			unrefPtrsToFetch = append(unrefPtrsToFetch, ptr)
+		}
 	}
 
 	// Look up the unref blocks in parallel to get their sizes.  Since
@@ -557,12 +566,13 @@ func (fup folderUpdatePrepper) updateResolutionUsage(ctx context.Context,
 	// them up generically.  Ignore any recoverable errors for unrefs.
 	// Note that we can't combine these with the above ref fetches
 	// since they require a different MD.
-	unrefSum, err := fup.blocks.GetCleanEncodedBlocksSizeSum(
+	unrefSumFetched, err := fup.blocks.GetCleanEncodedBlocksSizeSum(
 		ctx, lState, mostRecentMergedMD, unrefPtrsToFetch, unrefs,
 		fup.branch())
 	if err != nil {
 		return err
 	}
+	unrefSum += unrefSumFetched
 
 	// Subtract bytes for every unref'd block that wasn't created in
 	// the unmerged branch.
@@ -602,7 +612,7 @@ func addUnrefToFinalResOp(ops opsList, ptr BlockPointer,
 // final `resolutionOp` as necessary. It should be called before the
 // block changes are unembedded in md.  It returns the list of blocks
 // that can be remove from the flushing queue, if any.
-func (fup folderUpdatePrepper) updateResolutionUsageAndPointers(
+func (fup folderUpdatePrepper) updateResolutionUsageAndPointersLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata,
 	bps *blockPutState, unmergedChains, mergedChains *crChains,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
@@ -684,7 +694,7 @@ func (fup folderUpdatePrepper) updateResolutionUsageAndPointers(
 		md.SetMDDiskUsage(mergedMDUsage)
 		md.SetMDRefBytes(0)
 	} else {
-		err = fup.updateResolutionUsage(
+		err = fup.updateResolutionUsageLocked(
 			ctx, lState, md, bps, unmergedChains, mergedChains,
 			mostRecentMergedMD, refs, unrefs)
 		if err != nil {
@@ -1206,9 +1216,11 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 		}
 	}
 
-	blocksToDelete, err = fup.updateResolutionUsageAndPointers(ctx, lState, md,
-		bps, unmergedChains, mergedChains, mostRecentUnmergedMD,
-		mostRecentMergedMD, isSquash)
+	fup.cacheLock.Lock()
+	defer fup.cacheLock.Unlock()
+	blocksToDelete, err = fup.updateResolutionUsageAndPointersLocked(
+		ctx, lState, md, bps, unmergedChains, mergedChains,
+		mostRecentUnmergedMD, mostRecentMergedMD, isSquash)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -1261,5 +1273,19 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 			return nil, nil, nil, err
 		}
 	}
+	fup.cachedInfos = nil
 	return updates, bps, blocksToDelete, nil
+}
+
+// cacheBlockInfos stores the given block infos temporarily, until the
+// next prepUpdateForPaths completes, as an optimization.
+func (fup *folderUpdatePrepper) cacheBlockInfos(infos []BlockInfo) {
+	fup.cacheLock.Lock()
+	defer fup.cacheLock.Unlock()
+	if fup.cachedInfos == nil {
+		fup.cachedInfos = make(map[BlockPointer]BlockInfo)
+	}
+	for _, info := range infos {
+		fup.cachedInfos[info.BlockPointer] = info
+	}
 }

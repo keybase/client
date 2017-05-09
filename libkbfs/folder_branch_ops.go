@@ -2987,6 +2987,7 @@ func (fbo *folderBranchOps) unrefEntryLocked(ctx context.Context,
 	}
 
 	unrefsToAdd := make(map[BlockPointer]bool)
+	fbo.prepper.cacheBlockInfos([]BlockInfo{de.BlockInfo})
 	unrefsToAdd[de.BlockPointer] = true
 	// construct a path for the child so we can unlink with it.
 	childPath := dir.ChildPath(name, de.BlockPointer)
@@ -3005,6 +3006,7 @@ func (fbo *folderBranchOps) unrefEntryLocked(ctx context.Context,
 		} else if err != nil {
 			return err
 		}
+		fbo.prepper.cacheBlockInfos(blockInfos)
 		for _, blockInfo := range blockInfos {
 			unrefsToAdd[blockInfo.BlockPointer] = true
 		}
