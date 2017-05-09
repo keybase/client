@@ -130,6 +130,7 @@ function * onInboxStale (): SagaGenerator<any, any> {
     if (initialConversation) {
       yield put(Creators.setInitialConversation(null))
       yield put(navigateTo([initialConversation], [chatTab]))
+      yield put(Creators.selectConversation(initialConversation, false))
     }
   } finally {
     if (yield cancelled()) {
