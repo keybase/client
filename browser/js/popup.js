@@ -5,12 +5,17 @@
 
 chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     const location = new URL(tabs[0].url);
-    const el = document.body;
-
-    // Clear children
-    while (el.firstChild) el.removeChild(el.firstChild);
 
     const user = matchService(location);
+    if (!user) {
+        window.close();
+        return;
+    }
+
+    // Clear children
+    const el = document.body;
+    while (el.firstChild) el.removeChild(el.firstChild);
+
     return renderPopup(el, user);
 });
 
