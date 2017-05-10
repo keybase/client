@@ -525,3 +525,24 @@ func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
 
 	return nil
 }
+
+func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, g.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		g.identNotifier)
+	defer g.Trace(ctx, func() error { return err }, "Typing")()
+	if m.Body() == nil {
+		return errors.New("gregor handler for typing: nil message body")
+	}
+
+	var update chat1.UserTypingUpdate
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	err = dec.Decode(&update)
+	if err != nil {
+		return err
+	}
+
+	g.G().NotifyRouter.HandleChatTypingUpdate(ctx, []chat1.UserTypingUpdate{update})
+	return nil
+}
