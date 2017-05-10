@@ -47,7 +47,6 @@ const stylesContainer = {
 }
 const stylesHeader = {
   marginBottom: globalMargins.small,
-  marginTop: globalMargins.tiny,
   textAlign: 'center',
 }
 const stylesDevicesContainer = {

@@ -11,7 +11,7 @@ class PaperKeyRender extends Component<void, Props, void> {
       <Container
         style={stylesContainer}
         onBack={this.props.onBack}>
-        <Text type='Header' style={stylesHeader}>Type in your paper key:</Text>
+        <Text type='Header'>Type in your paper key:</Text>
         <Icon type='icon-paper-key-48' />
         <Input
           multiline={true}
@@ -26,7 +26,6 @@ class PaperKeyRender extends Component<void, Props, void> {
           type='passwordVisible'
           value={this.props.paperKey ? this.props.paperKey : null} />
         <Button
-          style={stylesButton}
           type='Primary'
           enabled={this.props.paperKey}
           label='Continue'
@@ -43,17 +42,8 @@ const stylesContainer = {
   paddingRight: globalMargins.medium,
 }
 
-const stylesButton = {
-  marginTop: globalMargins.tiny,
-}
-
 const stylesInput = {
   alignSelf: 'stretch',
-}
-
-const stylesHeader = {
-  marginBottom: globalMargins.small,
-  marginTop: globalMargins.small,
 }
 
 export default PaperKeyRender
