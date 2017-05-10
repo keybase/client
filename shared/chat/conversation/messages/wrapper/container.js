@@ -50,7 +50,7 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
     )
 
   const timestamp = (firstMessageEver || firstVisibleMessage || oldEnough) ? formatTimeForMessages(message.timestamp) : null
-  const includeHeader = isFirstNewMessage || !skipMsgHeader
+  const includeHeader = isFirstNewMessage || !skipMsgHeader || !!timestamp
   const isEditing = message === Constants.getEditingMessage(state)
 
   return {
