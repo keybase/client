@@ -5,7 +5,7 @@ import * as DeviceConstants from '../../constants/devices'
 import HiddenString from '../../util/hidden-string'
 import {qrGenerate} from './provision-helpers'
 
-import type {Action} from '../../constants/types/flux'
+import type {Action, TypedAction} from '../../constants/types/flux'
 
 function submitUsernameOrEmail (usernameOrEmail: string): Constants.SubmitUsernameOrEmail {
   return {type: Constants.submitUsernameOrEmail, payload: {usernameOrEmail}}
@@ -140,6 +140,10 @@ function navBasedOnLoginState (): Action {
   return {payload: {}, type: Constants.navBasedOnLoginState}
 }
 
+function waitingForResponse (waiting: boolean): TypedAction<'login:waitingForResponse', boolean, void> {
+  return {payload: waiting, type: Constants.waitingForResponse}
+}
+
 export {
   addNewComputer,
   addNewDevice,
@@ -172,4 +176,5 @@ export {
   submitPassphrase,
   submitUsernameOrEmail,
   updateForgotPasswordEmail,
+  waitingForResponse,
 }
