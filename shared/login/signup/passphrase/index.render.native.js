@@ -36,7 +36,7 @@ const stylesOuter = {
 }
 
 const stylesSecond = {
-  marginTop: globalMargins.medium,
+  marginTop: globalMargins.small,
   marginBottom: globalMargins.small,
 }
 
