@@ -279,8 +279,7 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 		if err != nil {
 			return output, err
 		}
-		output.PukBox = &pukBox
-		// TODO if PUK_UPGRADE: may want to add a key here.
+		output.PukBox = pukBox
 	}
 
 	return output, err
@@ -383,26 +382,30 @@ func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
 	return nil
 }
 
-func (e *Kex2Provisioner) makePukBox(receiverKeyGeneric libkb.GenericKey) (res keybase1.PerUserKeyBox, err error) {
+// Returns nil box if there are no per-user-keys.
+func (e *Kex2Provisioner) makePukBox(receiverKeyGeneric libkb.GenericKey) (*keybase1.PerUserKeyBox, error) {
 	if !e.G().Env.GetSupportPerUserKey() {
-		return res, errors.New("per-user-key support disabled")
+		return nil, errors.New("per-user-key support disabled")
 	}
 	receiverKey, ok := receiverKeyGeneric.(libkb.NaclDHKeyPair)
 	if !ok {
-		return res, fmt.Errorf("Unexpected receiver key type")
+		return nil, fmt.Errorf("Unexpected receiver key type")
 	}
 
 	pukring, err := e.G().GetPerUserKeyring()
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 	err = pukring.Sync(e.ctx.NetContext)
 	if err != nil {
-		return res, err
+		return nil, err
+	}
+	if !pukring.HasAnyKeys() {
+		return nil, nil
 	}
 
 	pukBox, err := pukring.PrepareBoxForNewDevice(e.ctx.NetContext,
 		receiverKey,     // receiver key: provisionee enc
 		e.encryptionKey) // sender key: this device enc
-	return pukBox, err
+	return &pukBox, err
 }

@@ -126,12 +126,12 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 	ds := []libkb.Delegator{}
 
 	if e.G().Env.GetSupportPerUserKey() {
-		e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push PUK:%v", e.G().Env.GetSupportPerUserKey())
+		e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push PUK(support:%v, upgrade:%v)",
+			e.G().Env.GetSupportPerUserKey(), e.G().Env.GetUpgradePerUserKey())
 	}
 
 	var pukBoxes = []keybase1.PerUserKeyBox{}
-	if e.G().Env.GetSupportPerUserKey() && e.args.IsEldest {
-		// TODO only do this if PUK_UPGRADE
+	if e.G().Env.GetUpgradePerUserKey() && e.args.IsEldest {
 		if e.perUserKeySeed == nil {
 			return errors.New("missing new per user key")
 		}
@@ -171,10 +171,8 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 	var pukSigProducer libkb.AggSigProducer = nil
 
 	// PerUserKey does not use Delegator.
-	if e.G().Env.GetSupportPerUserKey() && e.args.IsEldest {
+	if e.G().Env.GetUpgradePerUserKey() && e.args.IsEldest {
 		// Sign in the new per-user-key
-		// TODO only do this if PUK_UPGRADE
-
 		if e.perUserKeySeed == nil {
 			return errors.New("missing new per user key")
 		}
@@ -228,7 +226,7 @@ func (e *DeviceKeygen) generate() {
 		return
 	}
 
-	if e.G().Env.GetSupportPerUserKey() && e.args.IsEldest {
+	if e.G().Env.GetUpgradePerUserKey() && e.args.IsEldest {
 		seed, err := libkb.GeneratePerUserKeySeed()
 		if err != nil {
 			e.runErr = err
@@ -368,6 +366,7 @@ func (e *DeviceKeygen) device() *libkb.Device {
 	}
 }
 
+// Can return no boxes if there are no per-user-keys.
 func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(ctx *Context) ([]keybase1.PerUserKeyBox, error) {
 	if !e.G().Env.GetSupportPerUserKey() {
 		return nil, errors.New("per-user-keys disabled")
@@ -404,6 +403,9 @@ func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(ctx *Context) ([]keybase
 	err = pukring.SyncAsPaperKey(ctx.NetContext, ctx.LoginContext, &upak, paperDeviceID, paperEncKey)
 	if err != nil {
 		return nil, err
+	}
+	if !pukring.HasAnyKeys() {
+		return nil, nil
 	}
 	pukBox, err := pukring.PrepareBoxForNewDevice(ctx.NetContext,
 		e.EncryptionKey(), // receiver key: provisionee enc
