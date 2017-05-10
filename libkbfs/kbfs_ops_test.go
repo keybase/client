@@ -3409,12 +3409,17 @@ func TestDirtyPathsAfterRemoveDir(t *testing.T) {
 	require.Equal(t, "test_user/a/b", status.DirtyPaths[0])
 
 	// Now remove b, and make sure a/b is no longer dirty.
-	err = kbfsOps.RemoveEntry(ctx, nodeA, "b")
+	err = kbfsOps.RemoveDir(ctx, nodeA, "b")
 	require.NoError(t, err)
 	status, _, err = kbfsOps.FolderStatus(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
 	require.Len(t, status.DirtyPaths, 1)
 	require.Equal(t, "test_user/a", status.DirtyPaths[0])
+
+	// Also make sure we can no longer create anything in the removed
+	// directory.
+	_, _, err = kbfsOps.CreateDir(ctx, nodeB, "d")
+	require.IsType(t, UnsupportedOpInUnlinkedDirError{}, errors.Cause(err))
 
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)

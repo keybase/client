@@ -194,9 +194,21 @@ type WriteUnsupportedError struct {
 	Filename string
 }
 
-// Error implements the error interface for WriteAccessError
+// Error implements the error interface for WriteUnsupportedError
 func (e WriteUnsupportedError) Error() string {
 	return fmt.Sprintf("Writing to %s is unsupported", e.Filename)
+}
+
+// UnsupportedOpInUnlinkedDirError indicates an error when trying to
+// create a file.
+type UnsupportedOpInUnlinkedDirError struct {
+	Dirpath string
+}
+
+// Error implements the error interface for UnsupportedOpInUnlinkedDirError.
+func (e UnsupportedOpInUnlinkedDirError) Error() string {
+	return fmt.Sprintf(
+		"Operation is unsupported in unlinked directory %s", e.Dirpath)
 }
 
 // NewReadAccessError constructs a ReadAccessError for the given

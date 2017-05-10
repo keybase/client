@@ -2434,6 +2434,17 @@ func (fbo *folderBranchOps) syncDirUpdateOrSignal(
 	return nil
 }
 
+func (fbo *folderBranchOps) checkForUnlinkedDir(dir Node) error {
+	// Disallow directory operations within an unlinked directory.
+	// Shells don't seem to allow it, and it will just pollute the dir
+	// entry cache with unsyncable entries.
+	if fbo.nodeCache.IsUnlinked(dir) {
+		dirPath := fbo.nodeCache.PathFromNode(dir).String()
+		return errors.WithStack(UnsupportedOpInUnlinkedDirError{dirPath})
+	}
+	return nil
+}
+
 // entryType must not by Sym.
 func (fbo *folderBranchOps) createEntryLocked(
 	ctx context.Context, lState *lockState, dir Node, name string,
@@ -2447,6 +2458,10 @@ func (fbo *folderBranchOps) createEntryLocked(
 	if uint32(len(name)) > fbo.config.MaxNameBytes() {
 		return nil, DirEntry{},
 			NameTooLongError{name, fbo.config.MaxNameBytes()}
+	}
+
+	if err := fbo.checkForUnlinkedDir(dir); err != nil {
+		return nil, DirEntry{}, err
 	}
 
 	filename, err := fbo.canonicalPath(ctx, dir, name)
@@ -2880,6 +2895,10 @@ func (fbo *folderBranchOps) createLinkLocked(
 			NameTooLongError{fromName, fbo.config.MaxNameBytes()}
 	}
 
+	if err := fbo.checkForUnlinkedDir(dir); err != nil {
+		return DirEntry{}, err
+	}
+
 	// Verify we have permission to write (but don't make a successor yet).
 	md, err := fbo.getMDForWriteLockedForFilename(ctx, lState, "")
 	if err != nil {
@@ -3036,6 +3055,10 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 	name string) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
+	if err := fbo.checkForUnlinkedDir(dir); err != nil {
+		return err
+	}
+
 	// We're not going to modify this copy of the dirblock, so just
 	// fetch it for reading.
 	pblock, err := fbo.blocks.GetDirtyDir(ctx, lState, md, dirPath, blockRead)
@@ -3181,6 +3204,13 @@ func (fbo *folderBranchOps) renameLocked(
 	ctx context.Context, lState *lockState, oldParent Node, oldName string,
 	newParent Node, newName string) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
+
+	if err := fbo.checkForUnlinkedDir(oldParent); err != nil {
+		return err
+	}
+	if err := fbo.checkForUnlinkedDir(newParent); err != nil {
+		return err
+	}
 
 	oldParentPath, err := fbo.pathFromNodeForMDWriteLocked(lState, oldParent)
 	if err != nil {

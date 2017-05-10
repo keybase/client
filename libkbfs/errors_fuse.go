@@ -60,6 +60,14 @@ func (e WriteUnsupportedError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.ENOENT)
 }
 
+var _ fuse.ErrorNumber = UnsupportedOpInUnlinkedDirError{}
+
+// Errno implements the fuse.ErrorNumber interface for
+// UnsupportedOpInUnlinkedDirError.
+func (e UnsupportedOpInUnlinkedDirError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.ENOENT)
+}
+
 var _ fuse.ErrorNumber = NeedSelfRekeyError{}
 
 // Errno implements the fuse.ErrorNumber interface for
