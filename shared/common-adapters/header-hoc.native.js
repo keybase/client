@@ -9,22 +9,27 @@ import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../sty
 import type {Props} from './header-hoc'
 
 function HeaderHoc<P> (WrappedComponent: ReactClass<P>) {
-  return ({onBack, onCancel, headerStyle, title, ...restProps}: Props & P) => (
+  return ({onBack, onCancel, headerStyle, title, theme = 'light', ...restProps}: Props & P) => (
     <Box style={_containerStyle}>
-      <Box style={{..._headerStyle, ...headerStyle}}>
+      <Box style={{..._headerStyle, ...headerStyle, ..._headerStyleThemed[theme]}}>
         <Box style={_titleStyle}>
           <Text type='Header'>{title}</Text>
         </Box>
         {onCancel && <Text type='BodyBigLink' onClick={onCancel}>Cancel</Text>}
-        {onBack && <BackButton iconStyle={_backButtonIconStyle} onClick={onBack} />}
+        {onBack && <BackButton iconStyle={_backButtonIconStyleThemed[theme]} onClick={onBack} />}
       </Box>
       <WrappedComponent {...restProps} onBack={onBack} onCancel={onCancel} />
     </Box>
   )
 }
 
-const _backButtonIconStyle = {
-  color: globalColors.blue,
+const _backButtonIconStyleThemed = {
+  'dark': {
+    color: globalColors.white,
+  },
+  'light': {
+    color: globalColors.black_40,
+  },
 }
 
 const _containerStyle = {
@@ -43,6 +48,15 @@ const _headerStyle = {
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
   position: 'relative',
+}
+
+const _headerStyleThemed = {
+  'dark': {
+    backgroundColor: globalColors.darkBlue3,
+  },
+  'light': {
+    backgroundColor: globalColors.white,
+  },
 }
 
 const _titleStyle = {

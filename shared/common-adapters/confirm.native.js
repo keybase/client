@@ -9,7 +9,7 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 class Confirm extends Component<void, Props, void> {
   render () {
     return (
-      <StandardScreen styleOuter={backgroundColorThemed[this.props.theme]} styleClose={styleCloseThemed[this.props.theme]} onCancel={this.props.onCancel}>
+      <StandardScreen styleOuter={backgroundColorThemed[this.props.theme]} theme={mapTheme[this.props.theme]} onCancel={this.props.onCancel}>
         <Box style={styleBodyContainer}>
           <Box style={styleIconContainer}>
             {this.props.header}
@@ -23,6 +23,11 @@ class Confirm extends Component<void, Props, void> {
       </StandardScreen>
     )
   }
+}
+
+const mapTheme = {
+  'private': 'dark',
+  'public': 'light',
 }
 
 const styleIconContainer = {
@@ -65,15 +70,6 @@ const cancelButtonThemed = {
 
 const cancelButtonLabelThemed = {
   'public': {},
-  'private': {
-    color: globalColors.white,
-  },
-}
-
-const styleCloseThemed = {
-  'public': {
-    color: globalColors.blue,
-  },
   'private': {
     color: globalColors.white,
   },

@@ -9,7 +9,7 @@ import {globalColors, globalMargins, globalStyles} from '../styles'
 
 const StandardScreen = (props: Props) => {
   return (
-    <Box style={styleContainer}>
+    <Box style={{...styleContainer, ...props.styleOuter}}>
       <NativeScrollView>
         {!!props.notification &&
           <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
