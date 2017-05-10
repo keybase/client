@@ -10,6 +10,8 @@ function init() {
     if (!options["profile-passive-queries"]) return;
 
     const user = matchService(window.location, document);
+    if (!user) return;
+
     chrome.runtime.sendMessage({
       "method": "query",
       "to": user.query(),

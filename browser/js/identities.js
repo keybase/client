@@ -32,8 +32,8 @@ const identityMatchers = [
   {
     service: "reddit",
     getUsername: function(loc) { return loc.pathname.split('/')[2]; },
-    locationMatches: new RegExp('\.reddit.com/user/([\\w-]+)[/?]$'),
-    originAndPathMatches: '\.reddit.com/user/[\\w-]+$',
+    locationMatches: new RegExp('\.reddit.com/user/([\\w-]+)[/]?$'),
+    originAndPathMatches: '\.reddit.com/user/[\\w-]+[/]?$',
   },
   {
     service: "twitter",
