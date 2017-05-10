@@ -1,5 +1,22 @@
 // All of our identity services and matchers are defined here.
 
+function parseLocationQuery(s) {
+    if (s.startsWith("?")) s = s.substr(1);
+    if (s == "") return {};
+    const params = {};
+    const parts = s.split('&');
+    for (let i = 0; i < parts.length; i++)
+    {
+        let p = parts[i].split('=', 2);
+        if (p.length == 1) {
+            params[p[0]] = "";
+        } else {
+            params[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+        }
+    }
+    return params;
+}
+
 // identityMatchers is used to generate our declarative page match rules, but also
 // used to check for matches at runtime. Unfortunately, these mechanisms use different
 // implementations of regular expressions (re2 vs javascript's regexp) so there's
@@ -7,34 +24,59 @@
 const identityMatchers = [
   {
     service: "keybase",
-    locationMatches: new RegExp('\.keybase\.(io|pub)/[\\w]+[/]?'),
+    getUsername: function(loc) { return loc.pathname.split('/')[1]; },
+    locationMatches: new RegExp('\.keybase\.(?:io|pub)/([\\w]+)[/]?'),
     originAndPathMatches: '\.keybase\.(io|pub)/[\\w]+[/]?',
     css: ['a[rel="me"]']
   },
   {
     service: "reddit",
-    locationMatches: new RegExp('\.reddit.com/user/[\\w-]+$'),
+    getUsername: function(loc) { return loc.pathname.split('/')[2]; },
+    locationMatches: new RegExp('\.reddit.com/user/([\\w-]+)[/?]$'),
     originAndPathMatches: '\.reddit.com/user/[\\w-]+$',
   },
   {
     service: "twitter",
-    locationMatches: new RegExp('\.twitter\.com/[\\w]+[/]?$'),
+    getUsername: function(loc) { return loc.pathname.split('/')[1]; },
+    locationMatches: new RegExp('\.twitter\.com/([\\w]+)[/]?$'),
     originAndPathMatches: '\.twitter\.com/[\\w]+[/]?$',
     css: ['body.ProfilePage']
   },
   {
     service: "github",
-    locationMatches: new RegExp('\.github\.com/[\\w]+[/]?$'),
+    getUsername: function(loc) { return loc.pathname.split('/')[1]; },
+    locationMatches: new RegExp('\.github\.com/([\\w]+)[/]?$'),
     originAndPathMatches: '\.github\.com/[\\w]+[/]?$',
     css: ['body.page-profile']
   },
   {
     service: "hackernews",
+    getUsername: function(loc) { return parseLocationQuery(loc.search)["id"]; },
     locationMatches: new RegExp('news\.ycombinator\.com/user'),
     originAndPathMatches: 'news\.ycombinator\.com/user',
     css: ['html[op="user"]']
   }
 ];
+
+// Match a window.location and document against a service profile and return a User instance.
+function matchService(loc, doc) {
+  const hasSubdomain = loc.hostname.indexOf(".") !== loc.hostname.lastIndexOf(".");
+  const url = (!hasSubdomain && ".") + loc.hostname + loc.pathname;
+  for (const m of identityMatchers) {
+    const matched = url.match(m.locationMatches);
+    if (!matched) continue;
+
+    const username = m.getUsername(loc);
+    if (!username) continue;
+
+    if (doc === undefined || m.css === undefined) return new User(username, m.service);
+    for (const css of m.css) {
+      if (doc.querySelector(css) !== null) {
+        return new User(username, m.service);
+      }
+    }
+  }
+}
 
 // User keeps track of the original query and which services we resolved for
 // this user. It also handles formatting strings for each service.
@@ -84,4 +126,3 @@ User.prototype.href = function(service) {
       throw `unknown service: ${this.origin}`;
   }
 }
-
