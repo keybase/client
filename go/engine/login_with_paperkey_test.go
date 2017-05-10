@@ -191,7 +191,7 @@ func AssertLoggedInLPK(tc *libkb.TestContext, shouldBeLoggedIn bool) {
 }
 
 func AssertDeviceKeysLock(tc *libkb.TestContext, shouldBeUnlocked bool) {
-	_, _, sk, ek := tc.G.ActiveDevice.AllFields()
+	_, _, _, sk, ek := tc.G.ActiveDevice.AllFields()
 
 	if shouldBeUnlocked {
 		require.NotNil(tc.T, sk, "device signing key should be available")
