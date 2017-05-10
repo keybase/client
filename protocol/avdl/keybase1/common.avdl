@@ -142,10 +142,11 @@ protocol Common {
   }
 
   @lint("ignore")
-  record SharedDHKey {
+  record PerUserKey {
       int gen;
       int seqno;
-      KID kid;
+      KID sigKID;
+      KID encKID;
   }
 
   record UserPlusKeys {
@@ -169,10 +170,10 @@ protocol Common {
       // (i.e. keys that were used before an account reset)
       array<PublicKey> deletedDeviceKeys;
 
-      // sharedDHKeys is the vector of shared DH public KIDs
-      // for this user, one for every generation.
+      // perUserKeys is the vector of kid-pairs derived from
+      // per-user secrets one for every generation.
       @lint("ignore")
-      array<SharedDHKey> sharedDHKeys;
+      array<PerUserKey> perUserKeys;
   }
 
   record RemoteTrack {
