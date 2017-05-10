@@ -15,8 +15,8 @@ function HeaderHoc<P> (WrappedComponent: ReactClass<P>) {
         <Box style={_titleStyle}>
           <Text type='Header'>{title}</Text>
         </Box>
-        {onCancel && <Text type='BodyBigLink' onClick={onCancel}>Cancel</Text>}
-        {onBack && <BackButton iconStyle={_backButtonIconStyle} onClick={onBack} />}
+        {onCancel && <Text type='BodyBigLink' style={_buttonStyle} onClick={onCancel}>Cancel</Text>}
+        {onBack && <BackButton iconStyle={_backButtonIconStyle} style={_buttonStyle} onClick={onBack} />}
       </Box>
       <WrappedComponent {...restProps} onBack={onBack} onCancel={onCancel} />
     </Box>
@@ -32,6 +32,13 @@ const _containerStyle = {
   flex: 1,
 }
 
+const _buttonStyle = {
+  paddingBottom: 8,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
+  paddingTop: 8,
+}
+
 const _headerStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
@@ -40,7 +47,6 @@ const _headerStyle = {
   justifyContent: 'flex-start',
   marginTop: statusBarHeight,
   minHeight: globalMargins.xlarge - statusBarHeight,
-  paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
   position: 'relative',
 }
