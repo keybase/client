@@ -30,19 +30,19 @@ type folderUpdatePrepper struct {
 	cachedInfos map[BlockPointer]BlockInfo
 }
 
-func (fup folderUpdatePrepper) id() tlf.ID {
+func (fup *folderUpdatePrepper) id() tlf.ID {
 	return fup.folderBranch.Tlf
 }
 
-func (fup folderUpdatePrepper) branch() BranchName {
+func (fup *folderUpdatePrepper) branch() BranchName {
 	return fup.folderBranch.Branch
 }
 
-func (fup folderUpdatePrepper) nowUnixNano() int64 {
+func (fup *folderUpdatePrepper) nowUnixNano() int64 {
 	return fup.config.Clock().Now().UnixNano()
 }
 
-func (fup folderUpdatePrepper) readyBlockMultiple(ctx context.Context,
+func (fup *folderUpdatePrepper) readyBlockMultiple(ctx context.Context,
 	kmd KeyMetadata, currBlock Block, uid keybase1.UID,
 	bps *blockPutState, bType keybase1.BlockType) (
 	info BlockInfo, plainSize int, err error) {
@@ -57,7 +57,7 @@ func (fup folderUpdatePrepper) readyBlockMultiple(ctx context.Context,
 	return
 }
 
-func (fup folderUpdatePrepper) unembedBlockChanges(
+func (fup *folderUpdatePrepper) unembedBlockChanges(
 	ctx context.Context, bps *blockPutState, md *RootMetadata,
 	changes *BlockChanges, uid keybase1.UID) error {
 	buf, err := fup.config.Codec().Encode(changes)
@@ -173,7 +173,7 @@ func (fup folderUpdatePrepper) unembedBlockChanges(
 // entryType must not be Sym.
 //
 // TODO: deal with multiple nodes for indirect blocks
-func (fup folderUpdatePrepper) prepUpdateForPath(
+func (fup *folderUpdatePrepper) prepUpdateForPath(
 	ctx context.Context, lState *lockState, uid keybase1.UID,
 	md *RootMetadata, newBlock Block, dir path, name string,
 	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer,
@@ -354,7 +354,7 @@ const (
 // (with all child changes applied) before readying any parent blocks.
 // prepTree returns the merged blockPutState for itself and all of its
 // children.
-func (fup folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
+func (fup *folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 	unmergedChains *crChains, newMD *RootMetadata, uid keybase1.UID,
 	node *pathTreeNode, stopAt BlockPointer, lbc localBcache,
 	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache,
@@ -477,12 +477,13 @@ func (fup folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 	return bps, nil
 }
 
-// updateResolutionUsage figures out how many bytes are referenced and
-// unreferenced in the merged branch by this resolution.  Only needs
-// to be called for non-squash resolutions.
-func (fup folderUpdatePrepper) updateResolutionUsageLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, bps *blockPutState,
-	unmergedChains, mergedChains *crChains,
+// updateResolutionUsageLockedCache figures out how many bytes are
+// referenced and unreferenced in the merged branch by this
+// resolution.  Only needs to be called for non-squash resolutions.
+// `fup.cacheLock` must be taken before calling.
+func (fup *folderUpdatePrepper) updateResolutionUsageLockedCache(
+	ctx context.Context, lState *lockState, md *RootMetadata,
+	bps *blockPutState, unmergedChains, mergedChains *crChains,
 	mostRecentMergedMD ImmutableRootMetadata,
 	refs, unrefs map[BlockPointer]bool) error {
 	md.SetRefBytes(0)
@@ -606,13 +607,14 @@ func addUnrefToFinalResOp(ops opsList, ptr BlockPointer,
 	return ops
 }
 
-// updateResolutionUsageAndPointers figures out how many bytes are
-// referenced and unreferenced in the merged branch by this resolution
-// (if needed), and adds referenced and unreferenced pointers to a
-// final `resolutionOp` as necessary. It should be called before the
-// block changes are unembedded in md.  It returns the list of blocks
-// that can be remove from the flushing queue, if any.
-func (fup folderUpdatePrepper) updateResolutionUsageAndPointersLocked(
+// updateResolutionUsageAndPointersLockedCache figures out how many
+// bytes are referenced and unreferenced in the merged branch by this
+// resolution (if needed), and adds referenced and unreferenced
+// pointers to a final `resolutionOp` as necessary. It should be
+// called before the block changes are unembedded in md.  It returns
+// the list of blocks that can be remove from the flushing queue, if
+// any.  `fup.cacheLock` must be taken before calling.
+func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 	ctx context.Context, lState *lockState, md *RootMetadata,
 	bps *blockPutState, unmergedChains, mergedChains *crChains,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
@@ -694,7 +696,7 @@ func (fup folderUpdatePrepper) updateResolutionUsageAndPointersLocked(
 		md.SetMDDiskUsage(mergedMDUsage)
 		md.SetMDRefBytes(0)
 	} else {
-		err = fup.updateResolutionUsageLocked(
+		err = fup.updateResolutionUsageLockedCache(
 			ctx, lState, md, bps, unmergedChains, mergedChains,
 			mostRecentMergedMD, refs, unrefs)
 		if err != nil {
@@ -771,7 +773,7 @@ func (fup folderUpdatePrepper) updateResolutionUsageAndPointersLocked(
 	return blocksToDelete, nil
 }
 
-func (fup folderUpdatePrepper) makeSyncTree(ctx context.Context,
+func (fup *folderUpdatePrepper) makeSyncTree(ctx context.Context,
 	resolvedPaths map[BlockPointer]path, lbc localBcache,
 	newFileBlocks fileBlockMap) *pathTreeNode {
 	var root *pathTreeNode
@@ -950,7 +952,7 @@ func fixOpPointersForUpdate(oldOps []op, updates map[BlockPointer]BlockPointer,
 // that need to be put to the server (and cached) to complete this
 // update and a list of blocks that can be removed from the flushing
 // queue.
-func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
+func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 	lState *lockState, md *RootMetadata, unmergedChains, mergedChains *crChains,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
 	resolvedPaths map[BlockPointer]path, lbc localBcache,
@@ -1218,7 +1220,7 @@ func (fup folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 
 	fup.cacheLock.Lock()
 	defer fup.cacheLock.Unlock()
-	blocksToDelete, err = fup.updateResolutionUsageAndPointersLocked(
+	blocksToDelete, err = fup.updateResolutionUsageAndPointersLockedCache(
 		ctx, lState, md, bps, unmergedChains, mergedChains,
 		mostRecentUnmergedMD, mostRecentMergedMD, isSquash)
 	if err != nil {
