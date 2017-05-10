@@ -53,6 +53,7 @@ protocol NotifyChat {
     string username;
     keybase1.DeviceID deviceID;
     string deviceName;
+    string deviceType;
 
     ConversationID convID;
     boolean typing;

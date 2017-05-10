@@ -1689,6 +1689,13 @@ export type ReadMessagePayload = {
   unreadUpdate?: ?UnreadUpdate,
 }
 
+export type RemoteUserTypingUpdate = {
+  uid: gregor1.UID,
+  deviceID: gregor1.DeviceID,
+  convID: ConversationID,
+  typing: boolean,
+}
+
 export type S3Params = {
   bucket: string,
   objectKey: string,
@@ -1839,6 +1846,7 @@ export type UserTypingUpdate = {
   username: string,
   deviceID: keybase1.DeviceID,
   deviceName: string,
+  deviceType: string,
   convID: ConversationID,
   typing: boolean,
 }

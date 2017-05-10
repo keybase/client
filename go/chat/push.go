@@ -535,7 +535,7 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 		return errors.New("gregor handler for typing: nil message body")
 	}
 
-	var update chat1.UserTypingUpdate
+	var update chat1.RemoteUserTypingUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
 	err = dec.Decode(&update)
@@ -543,6 +543,25 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 		return err
 	}
 
-	g.G().NotifyRouter.HandleChatTypingUpdate(ctx, []chat1.UserTypingUpdate{update})
+	// Lookup username and device name
+	kuid := keybase1.UID(update.Uid.String())
+	kdid := keybase1.DeviceID(update.DeviceID.String())
+	user, device, dtype, err := g.G().GetUPAKLoader().LookupUsernameAndDevice(ctx, kuid, kdid)
+	if err != nil {
+		g.Debug(ctx, "Typing: failed to lookup username/device: msg: %s", err.Error())
+		return err
+	}
+
+	// Fire off update with all relevant info
+	nupdate := chat1.UserTypingUpdate{
+		Uid:        kuid,
+		DeviceID:   kdid,
+		Username:   user.String(),
+		DeviceName: device,
+		ConvID:     update.ConvID,
+		Typing:     update.Typing,
+		DeviceType: dtype,
+	}
+	g.G().NotifyRouter.HandleChatTypingUpdate(ctx, []chat1.UserTypingUpdate{nupdate})
 	return nil
 }

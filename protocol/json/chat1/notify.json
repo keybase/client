@@ -179,6 +179,10 @@
           "name": "deviceName"
         },
         {
+          "type": "string",
+          "name": "deviceType"
+        },
+        {
           "type": "ConversationID",
           "name": "convID"
         },

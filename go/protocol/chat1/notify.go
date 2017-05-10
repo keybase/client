@@ -203,6 +203,7 @@ type UserTypingUpdate struct {
 	Username   string            `codec:"username" json:"username"`
 	DeviceID   keybase1.DeviceID `codec:"deviceID" json:"deviceID"`
 	DeviceName string            `codec:"deviceName" json:"deviceName"`
+	DeviceType string            `codec:"deviceType" json:"deviceType"`
 	ConvID     ConversationID    `codec:"convID" json:"convID"`
 	Typing     bool              `codec:"typing" json:"typing"`
 }

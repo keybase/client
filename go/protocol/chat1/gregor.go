@@ -4,6 +4,7 @@
 package chat1
 
 import (
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -58,6 +59,13 @@ type TLFFinalizeUpdate struct {
 type TLFResolveUpdate struct {
 	ConvID    ConversationID `codec:"convID" json:"convID"`
 	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
+}
+
+type RemoteUserTypingUpdate struct {
+	Uid      gregor1.UID      `codec:"uid" json:"uid"`
+	DeviceID gregor1.DeviceID `codec:"deviceID" json:"deviceID"`
+	ConvID   ConversationID   `codec:"convID" json:"convID"`
+	Typing   bool             `codec:"typing" json:"typing"`
 }
 
 type GregorInterface interface {

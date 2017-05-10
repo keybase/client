@@ -1,6 +1,8 @@
 @namespace("chat.1")
 protocol gregor {
 
+    import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+
     record GenericPayload {
         @lint("ignore")
         string Action;
@@ -62,4 +64,10 @@ protocol gregor {
         InboxVers inboxVers;
     }
 
+    record RemoteUserTypingUpdate {
+        gregor1.UID uid;
+        gregor1.DeviceID deviceID;
+        ConversationID convID;
+        boolean typing; 
+    }
 }
