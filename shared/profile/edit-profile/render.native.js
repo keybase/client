@@ -6,7 +6,7 @@ import {globalMargins} from '../../styles'
 import type {Props} from './render'
 
 const EditProfileRender = (props: Props) => (
-  <StandardScreen style={styleContainer} onClose={props.onBack}>
+  <StandardScreen style={styleContainer} onCancel={props.onCancel}>
     <Input
       autoCorrect={true}
       autoFocus={true}

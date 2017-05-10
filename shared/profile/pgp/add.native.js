@@ -17,7 +17,7 @@ class PgpAdd extends Component<void, Props, void> {
       <NativeKeyboardAvoidingView behavior='position'>
         <StandardScreen
           style={styleContainer}
-          onClose={this.props.onCancel}>
+          onCancel={this.props.onCancel}>
           {/* TODO(MM) when we get the pgp icon, put it in here */}
           <PlatformIcon
             platform='pgp'

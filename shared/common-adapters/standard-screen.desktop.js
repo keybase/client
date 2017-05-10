@@ -1,12 +1,11 @@
 // @flow
 import React from 'react'
-import {BackButton, Box, Text, Icon} from '../common-adapters'
+import {Box, Text, HeaderHoc} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props, NotificationType} from './standard-screen'
 
 const StandardScreen = (props: Props) => {
   const topStack = [
-    !!props.onBack && <BackButton key='back' onClick={props.onBack} style={{...styleBack, ...props.styleBack}} />,
     !!props.notification && (<Box key='banner' style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
       {typeof props.notification.message === 'string'
         ? <Text style={styleBannerText} type='BodySemibold'>{props.notification.message}</Text>
@@ -21,7 +20,6 @@ const StandardScreen = (props: Props) => {
         {topStack}
       </Box>
       <Box style={{...styleInnerContainer, paddingBottom: topStackCount * globalMargins.large}}>
-        {!!props.onClose && <Icon style={{...styleClose, ...props.styleClose}} type='iconfont-close' onClick={props.onClose} />}
         <Box style={{...styleContentContainer, ...props.style}}>
           {props.children}
         </Box>
@@ -43,21 +41,6 @@ const styleTopStack = {
   position: 'relative',
   alignItems: 'stretch',
   width: '100%',
-}
-
-const styleClose = {
-  ...globalStyles.clickable,
-  position: 'absolute',
-  top: globalMargins.small,
-  right: globalMargins.small,
-  color: globalColors.black_10,
-}
-
-const styleBack = {
-  ...globalStyles.clickable,
-  height: globalMargins.large,
-  alignSelf: 'flex-start',
-  marginLeft: globalMargins.small,
 }
 
 const styleBanner = (notificationType: NotificationType) => ({
@@ -97,4 +80,4 @@ const styleContentContainer = {
   textAlign: 'center',
 }
 
-export default StandardScreen
+export default HeaderHoc(StandardScreen)

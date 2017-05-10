@@ -24,7 +24,7 @@ const PostProof = (props: Props) => {
   }
 
   return (
-    <StandardScreen {...notification} onClose={onCancel}>
+    <StandardScreen {...notification} onCancel={onCancel}>
       <PlatformIcon style={stylePlatformIcon} platform={platform} overlay='icon-proof-unfinished' overlayColor={globalColors.grey} size={48} />
       <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.tiny})}} type='Header'>{platformUserName}</Text>
       {!!platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}

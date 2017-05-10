@@ -7,7 +7,7 @@ import type {Props} from './prove-pgp-choice'
 class ProvePgpChoice extends Component<void, Props, void> {
   render () {
     return (
-      <StandardScreen onClose={this.props.onCancel} style={{maxWidth: 512}}>
+      <StandardScreen onCancel={this.props.onCancel} style={{maxWidth: 512}}>
         <Text style={styleTitle} type='Header'>Add a PGP key</Text>
         <ChoiceList
           options={[

@@ -9,7 +9,7 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 class Confirm extends Component<void, Props, void> {
   render () {
     return (
-      <StandardScreen styleOuter={backgroundColorThemed[this.props.theme]} styleClose={styleCloseThemed[this.props.theme]} onClose={this.props.onCancel}>
+      <StandardScreen styleOuter={backgroundColorThemed[this.props.theme]} styleClose={styleCloseThemed[this.props.theme]} onCancel={this.props.onCancel}>
         <Box style={styleBodyContainer}>
           <Box style={styleIconContainer}>
             {this.props.header}
