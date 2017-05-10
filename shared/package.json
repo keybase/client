@@ -27,6 +27,7 @@
     "package": "yarn run _helper package --",
     "postinstall": "yarn run _helper postinstall",
     "prettier": "prettier --single-quote --trailing-comma es5 --tab-width 4 --no-bracket-spacing --parser flow --no-semi --write",
+    "prettier-check": "git ls-files \"*.js\" | xargs ./node_modules/.bin/prettier --single-quote --trailing-comma es5 --tab-width 4 --no-bracket-spacing --parser flow --no-semi --debug-check",
     "render-screenshots": "yarn run _helper render-screenshots",
     "setup-debug-main": "yarn run _helper setup-debug-main",
     "start": "yarn run build-main-thread && yarn run build-wpdll && yarn run _helper start",
