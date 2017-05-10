@@ -57,7 +57,6 @@ type DeviceKeygen struct {
 	naclEncGen  *libkb.NaclKeyGen
 
 	// can be nil
-	// naclSharedDHGen *libkb.NaclKeyGen
 	perUserKeySeed *libkb.PerUserKeySeed
 
 	libkb.Contextified
@@ -126,19 +125,19 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 
 	ds := []libkb.Delegator{}
 
-	if e.G().Env.GetEnableSharedDH() {
-		e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push PUK:%v", e.G().Env.GetEnableSharedDH())
+	if e.G().Env.GetSupportPerUserKey() {
+		e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push PUK:%v", e.G().Env.GetSupportPerUserKey())
 	}
 
 	var pukBoxes = []keybase1.PerUserKeyBox{}
-	if e.G().Env.GetEnableSharedDH() && e.args.IsEldest {
+	if e.G().Env.GetSupportPerUserKey() && e.args.IsEldest {
 		// TODO only do this if PUK_UPGRADE
 		if e.perUserKeySeed == nil {
 			return errors.New("missing new per user key")
 		}
 		// Encrypt the new sdh key for this eldest device.
 		pukBox, err := libkb.NewPerUserKeyBox(
-			*e.perUserKeySeed, // inner key to be encrypted (shared dh key)
+			*e.perUserKeySeed, // inner key to be encrypted
 			e.EncryptionKey(), // receiver key (device enc key)
 			e.EncryptionKey(), // sender key   (device enc key)
 			keybase1.PerUserKeyGeneration(1))
@@ -147,7 +146,7 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 		}
 		pukBoxes = append(pukBoxes, pukBox)
 	}
-	if e.G().Env.GetEnableSharedDH() && !e.args.IsEldest {
+	if e.G().Env.GetSupportPerUserKey() && !e.args.IsEldest {
 		boxes, err := e.preparePerUserKeyBoxFromPaperkey(ctx)
 		if err != nil {
 			return err
@@ -172,7 +171,7 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 	var pukSigProducer libkb.AggSigProducer = nil
 
 	// PerUserKey does not use Delegator.
-	if e.G().Env.GetEnableSharedDH() && e.args.IsEldest {
+	if e.G().Env.GetSupportPerUserKey() && e.args.IsEldest {
 		// Sign in the new per-user-key
 		// TODO only do this if PUK_UPGRADE
 
@@ -229,7 +228,7 @@ func (e *DeviceKeygen) generate() {
 		return
 	}
 
-	if e.G().Env.GetEnableSharedDH() && e.args.IsEldest {
+	if e.G().Env.GetSupportPerUserKey() && e.args.IsEldest {
 		seed, err := libkb.GeneratePerUserKeySeed()
 		if err != nil {
 			e.runErr = err
@@ -370,7 +369,7 @@ func (e *DeviceKeygen) device() *libkb.Device {
 }
 
 func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(ctx *Context) ([]keybase1.PerUserKeyBox, error) {
-	if !e.G().Env.GetEnableSharedDH() {
+	if !e.G().Env.GetSupportPerUserKey() {
 		return nil, errors.New("per-user-keys disabled")
 	}
 	// Assuming this is a paperkey provision.

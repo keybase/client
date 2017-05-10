@@ -20,7 +20,7 @@ func TestDeviceAdd(t *testing.T) {
 	testDeviceAdd(t, false)
 }
 
-func TestDeviceAddSDH(t *testing.T) {
+func TestDeviceAddPUK(t *testing.T) {
 	testDeviceAdd(t, true)
 }
 
@@ -61,16 +61,16 @@ func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, 
 	}
 }
 
-func testDeviceAdd(t *testing.T, enableSharedDH bool) {
+func testDeviceAdd(t *testing.T, supportPerUserKey bool) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-	tcX.Tp.EnableSharedDH = enableSharedDH
+	tcX.Tp.SupportPerUserKey = supportPerUserKey
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "template")
 	defer tcY.Cleanup()
-	tcY.Tp.EnableSharedDH = enableSharedDH
+	tcY.Tp.SupportPerUserKey = supportPerUserKey
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")

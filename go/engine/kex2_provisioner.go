@@ -274,7 +274,7 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 	}
 	output.PpsEncrypted, err = key.EncryptToString(ppsPacked, nil)
 
-	if e.G().Env.GetEnableSharedDH() {
+	if e.G().Env.GetSupportPerUserKey() {
 		pukBox, err := e.makePukBox(key)
 		if err != nil {
 			return output, err
@@ -384,8 +384,8 @@ func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
 }
 
 func (e *Kex2Provisioner) makePukBox(receiverKeyGeneric libkb.GenericKey) (res keybase1.PerUserKeyBox, err error) {
-	if !e.G().Env.GetEnableSharedDH() {
-		return res, errors.New("shared dh disabled")
+	if !e.G().Env.GetSupportPerUserKey() {
+		return res, errors.New("per-user-key support disabled")
 	}
 	receiverKey, ok := receiverKeyGeneric.(libkb.NaclDHKeyPair)
 	if !ok {

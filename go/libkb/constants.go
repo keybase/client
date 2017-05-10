@@ -427,7 +427,6 @@ const (
 	DLGSibkey
 	DLGSubkey
 	DLGPerUserKey
-	// DLGSharedDHKey
 )
 
 const (

@@ -71,16 +71,16 @@ func TestRevokeDevice(t *testing.T) {
 	testRevokeDevice(t, false)
 }
 
-func TestRevokeDeviceSDH(t *testing.T) {
+func TestRevokeDevicePUK(t *testing.T) {
 	t.Skip("TODO waiting for CORE-4895 RevokePUK")
 
 	testRevokeDevice(t, true)
 }
 
-func testRevokeDevice(t *testing.T, enableSharedDH bool) {
+func testRevokeDevice(t *testing.T, supportPerUserKey bool) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
-	tc.Tp.EnableSharedDH = enableSharedDH
+	tc.Tp.SupportPerUserKey = supportPerUserKey
 
 	u := CreateAndSignupFakeUserPaper(tc, "rev")
 
@@ -115,16 +115,16 @@ func TestRevokePaperDevice(t *testing.T) {
 	testRevokePaperDevice(t, false)
 }
 
-func TestRevokePaperDeviceSDH(t *testing.T) {
+func TestRevokePaperDevicePUK(t *testing.T) {
 	t.Skip("TODO waiting for CORE-4895 RevokePUK")
 
 	testRevokePaperDevice(t, true)
 }
 
-func testRevokePaperDevice(t *testing.T, enableSharedDH bool) {
+func testRevokePaperDevice(t *testing.T, supportPerUserKey bool) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
-	tc.Tp.EnableSharedDH = enableSharedDH
+	tc.Tp.SupportPerUserKey = supportPerUserKey
 
 	u := CreateAndSignupFakeUserPaper(tc, "rev")
 
@@ -145,7 +145,7 @@ func testRevokePaperDevice(t *testing.T, enableSharedDH bool) {
 
 	assertNumDevicesAndKeys(tc, u, 1, 2)
 
-	if tc.G.Env.GetEnableSharedDH() {
+	if tc.G.Env.GetSupportPerUserKey() {
 		checkPerUserKeyring(t, tc.G, 2)
 	}
 }

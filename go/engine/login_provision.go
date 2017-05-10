@@ -101,7 +101,7 @@ func (e *loginProvision) Run(ctx *Context) error {
 		}
 	}()
 
-	if e.G().Env.GetEnableSharedDH() {
+	if e.G().Env.GetSupportPerUserKey() {
 		e.perUserKeyring, err = libkb.NewPerUserKeyring(e.G(), e.arg.User.GetUID())
 		if err != nil {
 			return err
@@ -956,7 +956,7 @@ func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 	}
 
 	if e.encryptionKey.IsNil() {
-		if e.G().Env.GetEnableSharedDH() {
+		if e.G().Env.GetSupportPerUserKey() {
 			return errors.New("missing encryption key for ensure paper key")
 		}
 		e.G().Log.CWarningf(ctx.NetContext, "missing encryption key for ensure paper key")
@@ -969,7 +969,7 @@ func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 		return err
 	}
 
-	if e.G().Env.GetEnableSharedDH() {
+	if e.G().Env.GetSupportPerUserKey() {
 		if e.encryptionKey.IsNil() {
 			return errors.New("missing encryption key for creating paper key")
 		}

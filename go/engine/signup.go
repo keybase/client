@@ -84,7 +84,7 @@ func (s *SignupEngine) Run(ctx *Context) error {
 			return err
 		}
 
-		if s.G().Env.GetEnableSharedDH() {
+		if s.G().Env.GetSupportPerUserKey() {
 			var err error
 			s.perUserKeyring, err = libkb.NewPerUserKeyring(s.G(), s.uid)
 			if err != nil {

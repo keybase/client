@@ -15,7 +15,7 @@ func TestPostNewTeam(t *testing.T) {
 	defer tc.Cleanup()
 
 	// Magic to make the test user provision shared DH keys.
-	tc.Tp.EnableSharedDH = true
+	tc.Tp.SupportPerUserKey = true
 
 	// Note that the length limit for a team name, with the additional suffix
 	// below, is 16 characters. We have 5 to play with, including the implicit
@@ -40,7 +40,7 @@ func TestPostNewTeamAfterAccountReset(t *testing.T) {
 	defer tc.Cleanup()
 
 	// Magic to make the test user provision shared DH keys.
-	tc.Tp.EnableSharedDH = true
+	tc.Tp.SupportPerUserKey = true
 
 	// Note that the length limit for a team name, with the additional suffix
 	// below, is 16 characters. We have 5 to play with, including the implicit

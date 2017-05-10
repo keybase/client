@@ -21,7 +21,7 @@ func TestPerUserKeySignupAndPullKeys(t *testing.T) {
 	defer tc.Cleanup()
 	var err error
 
-	tc.Tp.EnableSharedDH = true
+	tc.Tp.SupportPerUserKey = true
 
 	fu := CreateAndSignupFakeUser(tc, "se")
 
@@ -59,7 +59,7 @@ func TestPerUserKeySignupPlusPaper(t *testing.T) {
 	defer tc.Cleanup()
 	var err error
 
-	tc.Tp.EnableSharedDH = true
+	tc.Tp.SupportPerUserKey = true
 
 	fu := CreateAndSignupFakeUserPaper(tc, "se")
 

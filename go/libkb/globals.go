@@ -255,7 +255,7 @@ func (g *GlobalContext) Logout() error {
 
 	g.CallLogoutHooks()
 
-	if g.Env.GetEnableSharedDH() {
+	if g.Env.GetSupportPerUserKey() {
 		g.ClearPerUserKeyring()
 	}
 
@@ -762,7 +762,7 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 func (g *GlobalContext) CallLoginHooks() {
 	g.Log.Debug("G#CallLoginHooks")
 
-	if g.Env.GetEnableSharedDH() {
+	if g.Env.GetSupportPerUserKey() {
 		_ = g.BumpPerUserKeyring()
 	}
 
@@ -945,8 +945,8 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 
 func (g *GlobalContext) GetPerUserKeyring() (ret *PerUserKeyring, err error) {
 	defer g.Trace("G#GetPerUserKeyring", func() error { return err })()
-	if !g.Env.GetEnableSharedDH() {
-		return nil, errors.New("shared dh disabled")
+	if !g.Env.GetSupportPerUserKey() {
+		return nil, errors.New("per-user-key support disabled")
 	}
 	g.perUserKeyringMu.Lock()
 	defer g.perUserKeyringMu.Unlock()
@@ -958,7 +958,7 @@ func (g *GlobalContext) GetPerUserKeyring() (ret *PerUserKeyring, err error) {
 
 func (g *GlobalContext) ClearPerUserKeyring() {
 	defer g.Trace("G#ClearPerUserKeyring", func() error { return nil })()
-	if !g.Env.GetEnableSharedDH() {
+	if !g.Env.GetSupportPerUserKey() {
 		return
 	}
 	g.perUserKeyringMu.Lock()
@@ -971,8 +971,8 @@ func (g *GlobalContext) ClearPerUserKeyring() {
 // routes through LoginSession and deadlocks.
 func (g *GlobalContext) BumpPerUserKeyring() error {
 	g.Log.Debug("G#BumpPerUserKeyring")
-	if !g.Env.GetEnableSharedDH() {
-		return errors.New("shared dh disabled")
+	if !g.Env.GetSupportPerUserKey() {
+		return errors.New("per-user-key support disabled")
 	}
 	myUID := g.GetMyUID()
 

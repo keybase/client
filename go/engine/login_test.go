@@ -187,22 +187,22 @@ func TestProvisionDesktop(t *testing.T) {
 	testProvisionDesktop(t, false)
 }
 
-func TestProvisionDesktopSDH(t *testing.T) {
+func TestProvisionDesktopPUK(t *testing.T) {
 	testProvisionDesktop(t, true)
 }
 
-func testProvisionDesktop(t *testing.T, enableSharedDH bool) {
+func testProvisionDesktop(t *testing.T, supportPerUserKey bool) {
 	// device X (provisioner) context:
 	t.Logf("setup X")
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-	tcX.Tp.EnableSharedDH = enableSharedDH
+	tcX.Tp.SupportPerUserKey = supportPerUserKey
 
 	// device Y (provisionee) context:
 	t.Logf("setup Y")
 	tcY := SetupEngineTest(t, "template")
 	defer tcY.Cleanup()
-	tcY.Tp.EnableSharedDH = enableSharedDH
+	tcY.Tp.SupportPerUserKey = supportPerUserKey
 
 	// provisioner needs to be logged in
 	t.Logf("provisioner login")
@@ -417,15 +417,15 @@ func TestProvisionPassphraseNoKeysSolo(t *testing.T) {
 	testProvisionPassphraseNoKeysSolo(t, false)
 }
 
-func TestProvisionPassphraseNoKeysSoloSDH(t *testing.T) {
+func TestProvisionPassphraseNoKeysSoloPUK(t *testing.T) {
 	testProvisionPassphraseNoKeysSolo(t, true)
 }
 
 // If a user has no keys, provision via passphrase should work.
-func testProvisionPassphraseNoKeysSolo(t *testing.T, enableSharedDH bool) {
+func testProvisionPassphraseNoKeysSolo(t *testing.T, supportPerUserKey bool) {
 	tcWeb := SetupEngineTest(t, "web")
 	defer tcWeb.Cleanup()
-	tcWeb.Tp.EnableSharedDH = enableSharedDH
+	tcWeb.Tp.SupportPerUserKey = supportPerUserKey
 
 	username, passphrase := createFakeUserWithNoKeys(tcWeb)
 
@@ -435,7 +435,7 @@ func testProvisionPassphraseNoKeysSolo(t *testing.T, enableSharedDH bool) {
 
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
-	tc.Tp.EnableSharedDH = enableSharedDH
+	tc.Tp.SupportPerUserKey = supportPerUserKey
 
 	ctx := &Context{
 		ProvisionUI: newTestProvisionUIPassphrase(),
@@ -2568,14 +2568,14 @@ func TestProvisionEnsurePaperKey(t *testing.T) {
 	testProvisionEnsurePaperKey(t, false)
 }
 
-func TestProvisionEnsurePaperKeySDH(t *testing.T) {
+func TestProvisionEnsurePaperKeyPUK(t *testing.T) {
 	t.Skip("TODO waiting for CORE-4895 RevokePUK")
 	testProvisionEnsurePaperKey(t, true)
 }
 
 // Provisioning a new device when the user has no paper keys should work
 // and generate a paper key.
-func testProvisionEnsurePaperKey(t *testing.T, enableSharedDH bool) {
+func testProvisionEnsurePaperKey(t *testing.T, supportPerUserKey bool) {
 	// This test is based on TestProvisionDesktop.
 
 	t.Logf("create 2 contexts")
@@ -2583,12 +2583,12 @@ func testProvisionEnsurePaperKey(t *testing.T, enableSharedDH bool) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-	tcX.Tp.EnableSharedDH = enableSharedDH
+	tcX.Tp.SupportPerUserKey = supportPerUserKey
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "template")
 	defer tcY.Cleanup()
-	tcY.Tp.EnableSharedDH = enableSharedDH
+	tcY.Tp.SupportPerUserKey = supportPerUserKey
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUserPaper(tcX, "login")

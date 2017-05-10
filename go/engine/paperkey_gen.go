@@ -79,7 +79,7 @@ func (e *PaperKeyGen) EncKey() libkb.NaclDHKeyPair {
 
 // Run starts the engine.
 func (e *PaperKeyGen) Run(ctx *Context) error {
-	if e.G().Env.GetEnableSharedDH() && !e.arg.SkipPush {
+	if e.G().Env.GetSupportPerUserKey() && !e.arg.SkipPush {
 		err := e.syncSDH(ctx)
 		if err != nil {
 			return err
@@ -300,7 +300,7 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 	}
 
 	var pukBoxes = []keybase1.PerUserKeyBox{}
-	if e.G().Env.GetEnableSharedDH() {
+	if e.G().Env.GetSupportPerUserKey() {
 		boxes, err := e.makePerUserKeyBoxes(ctx)
 		if err != nil {
 			return err
@@ -313,9 +313,9 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 }
 
 func (e *PaperKeyGen) makePerUserKeyBoxes(ctx *Context) ([]keybase1.PerUserKeyBox, error) {
-	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#makePerUserKeyBoxes(enabled:%v)", e.G().Env.GetEnableSharedDH())
+	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#makePerUserKeyBoxes(enabled:%v)", e.G().Env.GetSupportPerUserKey())
 	var pukBoxes []keybase1.PerUserKeyBox
-	if e.G().Env.GetEnableSharedDH() {
+	if e.G().Env.GetSupportPerUserKey() {
 		pukring, err := e.getPerUserKeyring()
 		if err != nil {
 			return nil, err
@@ -340,8 +340,8 @@ func (e *PaperKeyGen) makePerUserKeyBoxes(ctx *Context) ([]keybase1.PerUserKeyBo
 }
 
 func (e *PaperKeyGen) getPerUserKeyring() (ret *libkb.PerUserKeyring, err error) {
-	if !e.G().Env.GetEnableSharedDH() {
-		return nil, errors.New("shared dh disabled")
+	if !e.G().Env.GetSupportPerUserKey() {
+		return nil, errors.New("per-user-key support disabled")
 	}
 	ret = e.arg.PerUserKeyring
 	if ret != nil {
