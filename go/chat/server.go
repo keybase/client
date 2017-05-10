@@ -1972,3 +1972,61 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 	return res, nil
 }
+
+func (h *Server) StartTyping(ctx context.Context, arg chat1.StartTypingArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		&identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("StartTyping(%s)", arg.ConversationID))()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	uid := h.G().Env.GetUID()
+	deviceID := make([]byte, libkb.DeviceIDLen)
+	if err := h.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {
+		return err
+	}
+
+	// Just bail out if we are offline
+	if !h.G().Syncer.IsConnected(ctx) {
+		return nil
+	}
+	if err := h.remoteClient().StartTypingRemote(ctx, chat1.StartTypingRemoteArg{
+		Uid:      uid.ToBytes(),
+		DeviceID: deviceID,
+		ConvID:   arg.ConversationID,
+	}); err != nil {
+		h.Debug(ctx, "StartTyping: failed to hit the server: %s", err.Error())
+	}
+
+	return nil
+}
+
+func (h *Server) StopTyping(ctx context.Context, arg chat1.StopTypingArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		&identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("StopTyping(%s)", arg.ConversationID))()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	uid := h.G().Env.GetUID()
+	deviceID := make([]byte, libkb.DeviceIDLen)
+	if err := h.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {
+		return err
+	}
+
+	// Just bail out if we are offline
+	if !h.G().Syncer.IsConnected(ctx) {
+		return nil
+	}
+	if err := h.remoteClient().StopTypingRemote(ctx, chat1.StopTypingRemoteArg{
+		Uid:      uid.ToBytes(),
+		DeviceID: deviceID,
+		ConvID:   arg.ConversationID,
+	}); err != nil {
+		h.Debug(ctx, "StopTyping: failed to hit the server: %s", err.Error())
+	}
+
+	return nil
+}

@@ -806,6 +806,36 @@ export function remoteSetConversationStatusRpcPromise (request: $Exact<requestCo
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.SetConversationStatus', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function remoteStartTypingRemoteRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteStartTypingRemoteRpcParam}>) {
+  engineRpcOutgoing('chat.1.remote.startTypingRemote', request)
+}
+
+export function remoteStartTypingRemoteRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteStartTypingRemoteRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.startTypingRemote', request)
+}
+export function remoteStartTypingRemoteRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteStartTypingRemoteRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.remote.startTypingRemote', request, callback, incomingCallMap) })
+}
+
+export function remoteStartTypingRemoteRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteStartTypingRemoteRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.startTypingRemote', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function remoteStopTypingRemoteRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteStopTypingRemoteRpcParam}>) {
+  engineRpcOutgoing('chat.1.remote.stopTypingRemote', request)
+}
+
+export function remoteStopTypingRemoteRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteStopTypingRemoteRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.stopTypingRemote', request)
+}
+export function remoteStopTypingRemoteRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteStopTypingRemoteRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.remote.stopTypingRemote', request, callback, incomingCallMap) })
+}
+
+export function remoteStopTypingRemoteRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteStopTypingRemoteRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.stopTypingRemote', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function remoteSyncAllRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncAllResult) => void} & {param: remoteSyncAllRpcParam}>) {
   engineRpcOutgoing('chat.1.remote.syncAll', request)
 }
@@ -2111,6 +2141,18 @@ export type remoteSetConversationStatusRpcParam = Exact<{
   status: ConversationStatus
 }>
 
+export type remoteStartTypingRemoteRpcParam = Exact<{
+  uid: gregor1.UID,
+  deviceID: gregor1.DeviceID,
+  convID: ConversationID
+}>
+
+export type remoteStopTypingRemoteRpcParam = Exact<{
+  uid: gregor1.UID,
+  deviceID: gregor1.DeviceID,
+  convID: ConversationID
+}>
+
 export type remoteSyncAllRpcParam = Exact<{
   uid: gregor1.UID,
   deviceID: gregor1.DeviceID,
@@ -2222,6 +2264,8 @@ export type rpc =
   | remotePublishSetConversationStatusRpc
   | remoteS3SignRpc
   | remoteSetConversationStatusRpc
+  | remoteStartTypingRemoteRpc
+  | remoteStopTypingRemoteRpc
   | remoteSyncAllRpc
   | remoteSyncChatRpc
   | remoteSyncInboxRpc
