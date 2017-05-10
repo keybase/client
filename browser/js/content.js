@@ -5,6 +5,20 @@
 const asset = chrome.runtime.getURL;
 
 function init() {
+  // Passive queries?
+  chrome.storage.local.get("profile-passive-queries", function(options) {
+    if (!options["profile-passive-queries"]) return;
+
+    const user = matchService(window.location, document);
+    chrome.runtime.sendMessage({
+      "method": "query",
+      "to": user.query(),
+    }, function(response) {
+      if (response.status !== "ok") return;
+      user.services["keybase"] = safeHTML(response.result["username"]);
+    });
+  });
+
   // Only do work on reddit.
   if (!location.hostname.endsWith('.reddit.com')) return;
 

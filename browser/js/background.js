@@ -2,10 +2,29 @@
 
 const KBNM_HOST = "io.keybase.kbnm";
 
+// Set the default badge color
+chrome.browserAction.setBadgeBackgroundColor({
+  color: "#3dcc8e"
+});
+
 // Relay extension messages to native messages.
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
+  if (msg["method"] === "query" && sender.tab) {
+    chrome.browserAction.setBadgeText({
+      text: "",
+      tabId: sender.tab.id,
+    });
+  }
+
   chrome.runtime.sendNativeMessage(KBNM_HOST, msg, function(r) {
     if (r) {
+      if (msg["method"] === "query" && sender.tab && r.status === "ok") {
+        // Set badge
+        chrome.browserAction.setBadgeText({
+          text: "✓",
+          tabId: sender.tab.id,
+        });
+      }
       return sendResponse(r);
     }
     const err = chrome.runtime.lastError;
@@ -81,3 +100,4 @@ chrome.runtime.onInstalled.addListener(function() {
     chrome.declarativeContent.onPageChanged.addRules(pageMatchRules);
   });
 });
+
