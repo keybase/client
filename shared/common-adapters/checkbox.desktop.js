@@ -9,7 +9,7 @@ export const CHECKBOX_SIZE = 13
 export const CHECKBOX_MARGIN = 8
 
 class Checkbox extends Component<void, Props, void> {
-  render () {
+  render() {
     let borderColor = globalColors.blue
 
     if (this.props.disabled && !this.props.checked) {
@@ -24,17 +24,36 @@ class Checkbox extends Component<void, Props, void> {
       position: 'relative',
       border: `solid 1px ${borderColor}`,
       backgroundColor: this.props.checked ? globalColors.blue : 'inherit',
-      opacity: (this.props.disabled && this.props.checked) ? 0.4 : 1,
+      opacity: this.props.disabled && this.props.checked ? 0.4 : 1,
     }
 
     const clickableStyle = this.props.disabled ? {} : globalStyles.clickable
 
     return (
-      <div style={{...styleContainer, ...clickableStyle, ...this.props.style}} onClick={this.props.disabled ? undefined : () => this.props.onCheck(!this.props.checked)}>
+      <div
+        style={{
+          ...styleContainer,
+          ...clickableStyle,
+          ...this.props.style,
+        }}
+        onClick={
+          this.props.disabled
+            ? undefined
+            : () => this.props.onCheck(!this.props.checked)
+        }
+      >
         <div style={boxStyle}>
-          <Icon type='iconfont-check' style={{...styleIcon, ...(this.props.checked ? {} : {opacity: 0})}} />
+          <Icon
+            type="iconfont-check"
+            style={{
+              ...styleIcon,
+              ...(this.props.checked ? {} : {opacity: 0}),
+            }}
+          />
         </div>
-        <Text type='Body' small={true} style={{color: globalColors.black_75}}>{this.props.label}</Text>
+        <Text type="Body" small={true} style={{color: globalColors.black_75}}>
+          {this.props.label}
+        </Text>
       </div>
     )
   }

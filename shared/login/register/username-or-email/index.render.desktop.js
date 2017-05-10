@@ -8,42 +8,43 @@ import {globalColors} from '../../../styles'
 type State = {usernameOrEmail: string}
 
 class UsernameOrEmailRender extends Component<void, Props, State> {
-  state: State;
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     this.state = {usernameOrEmail: ''}
   }
 
-  onSubmit () {
+  onSubmit() {
     if (this.state.usernameOrEmail) {
       this.props.onSubmit(this.state.usernameOrEmail)
     }
   }
 
-  onChange (usernameOrEmail: string) {
+  onChange(usernameOrEmail: string) {
     this.setState({usernameOrEmail})
   }
 
-  render () {
+  render() {
     return (
       <Container
         style={stylesContainer}
         outerStyle={{backgroundColor: globalColors.white}}
-        onBack={() => this.props.onBack()}>
+        onBack={() => this.props.onBack()}
+      >
         <UserCard style={stylesCard} outerStyle={stylesOuterCard}>
           <Input
             autoFocus={true}
             style={stylesInput}
-            hintText='Username or email'
+            hintText="Username or email"
             onEnterKeyDown={() => this.onSubmit()}
             onChangeText={text => this.onChange(text)}
             value={this.state.usernameOrEmail}
           />
           <Button
-            label='Continue'
-            type='Primary'
+            label="Continue"
+            type="Primary"
             style={{alignSelf: 'center'}}
             onClick={() => this.onSubmit()}
             enabled={this.state.usernameOrEmail}

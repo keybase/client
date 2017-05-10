@@ -11,10 +11,22 @@ const EditAvatar = ({keybaseUsername, hasAvatar, onAck}: Props) => {
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', padding: globalMargins.small}}>
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          padding: globalMargins.small,
+        }}
+      >
         <Avatar size={176} username={keybaseUsername} />
-        <Text type='Body' style={styleCaption}>{text}</Text>
-        <Button type='Primary' fullWidth={true} onClick={onAck} label='Got it!' style={styleButton} />
+        <Text type="Body" style={styleCaption}>{text}</Text>
+        <Button
+          type="Primary"
+          fullWidth={true}
+          onClick={onAck}
+          label="Got it!"
+          style={styleButton}
+        />
       </Box>
     </Box>
   )

@@ -11,13 +11,16 @@ import storeHelper from './store-helper'
 import urlHelper from './url-helper'
 import windowHelper from './window-helper'
 import {BrowserWindow, app, ipcMain, dialog} from 'electron'
-import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
+import {
+  setupExecuteActionsListener,
+  executeActionsForContext,
+} from '../../util/quit-helper.desktop'
 import {setupTarget} from '../../util/forward-logs'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 
 let mainWindow = null
 
-function start () {
+function start() {
   if (!allowMultipleInstances) {
     // Only one app per app in osx...
     const shouldQuit = app.makeSingleInstance(() => {
@@ -39,7 +42,10 @@ function start () {
     // 14.0.0 == 10.10.0
     // 15.0.0 == 10.11.0
     if (!semver.satisfies(os.release(), '>=14.0.0')) {
-      dialog.showErrorBox('Keybase Error', 'This version of macOS isn\'t currently supported.')
+      dialog.showErrorBox(
+        'Keybase Error',
+        "This version of macOS isn't currently supported."
+      )
       app.quit()
       return
     }
@@ -52,7 +58,8 @@ function start () {
   // MUST do this else we get limited by simultaneous hot reload event streams
   app.commandLine.appendSwitch('ignore-connections-limit', 'localhost')
 
-  if (__DEV__) { // eslint-disable-line no-undef
+  if (__DEV__) {
+    // eslint-disable-line no-undef
     app.commandLine.appendSwitch('enable-logging')
     app.commandLine.appendSwitch('v', 3)
   }

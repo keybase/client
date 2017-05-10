@@ -37,12 +37,21 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       dispatch(Creators.saveAttachment(selectedConversation, messageID))
     }
   },
-  _onEnsurePreviewLoaded: (message: Constants.AttachmentMessage) => dispatch(Creators.loadAttachmentPreview(message)),
-  _onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
-  _onOpenInPopup: (message: Constants.AttachmentMessage, routePath: List<string>) => dispatch(Creators.openAttachmentPopup(message, routePath)),
+  _onEnsurePreviewLoaded: (message: Constants.AttachmentMessage) =>
+    dispatch(Creators.loadAttachmentPreview(message)),
+  _onOpenInFileUI: (path: string) =>
+    dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
+  _onOpenInPopup: (
+    message: Constants.AttachmentMessage,
+    routePath: List<string>
+  ) => dispatch(Creators.openAttachmentPopup(message, routePath)),
 })
 
-const mergeProps = (stateProps, dispatchProps, {measure, onAction}: OwnProps) => ({
+const mergeProps = (
+  stateProps,
+  dispatchProps,
+  {measure, onAction}: OwnProps
+) => ({
   ...stateProps,
   ...dispatchProps,
   measure,
@@ -53,22 +62,35 @@ const mergeProps = (stateProps, dispatchProps, {measure, onAction}: OwnProps) =>
       setImmediate(() => dispatchProps._onEnsurePreviewLoaded(message))
     }
   },
-  onDownloadAttachment: () => { dispatchProps._onDownloadAttachment(stateProps.selectedConversation, stateProps.message.messageID) },
-  onOpenInFileUI: () => { dispatchProps._onOpenInFileUI(stateProps.message.savedPath) },
-  onOpenInPopup: () => { dispatchProps._onOpenInPopup(stateProps.message, stateProps.routePath) },
+  onDownloadAttachment: () => {
+    dispatchProps._onDownloadAttachment(
+      stateProps.selectedConversation,
+      stateProps.message.messageID
+    )
+  },
+  onOpenInFileUI: () => {
+    dispatchProps._onOpenInFileUI(stateProps.message.savedPath)
+  },
+  onOpenInPopup: () => {
+    dispatchProps._onOpenInPopup(stateProps.message, stateProps.routePath)
+  },
 })
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
-    componentDidMount: function () {
+    componentDidMount: function() {
       this.props.onEnsurePreviewLoaded()
     },
 
-    componentDidUpdate: function (prevProps: Props) {
-      if (this.props.measure &&
+    componentDidUpdate: function(prevProps: Props) {
+      if (
+        this.props.measure &&
         this.props.message.previewPath !== prevProps.message.previewPath &&
-        !shallowEqual(this.props.message.previewSize !== prevProps.message.previewSize)) {
+        !shallowEqual(
+          this.props.message.previewSize !== prevProps.message.previewSize
+        )
+      ) {
         this.props.measure()
       }
 

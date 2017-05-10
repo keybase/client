@@ -6,7 +6,7 @@ import {globalColors, globalStyles} from '../styles'
 import type {Props} from './loading-line'
 
 class LoadingLine extends Component<void, Props, void> {
-  render () {
+  render() {
     const realCSS = `
     @keyframes fadeIn {
       from { opacity: 0; }
@@ -19,7 +19,15 @@ class LoadingLine extends Component<void, Props, void> {
     return (
       <Box style={{position: 'relative'}}>
         <style>{realCSS}</style>
-        <Box className='loading-line' style={{...globalStyles.fillAbsolute, backgroundColor: globalColors.blue, height: 1, ...this.props.style}} />
+        <Box
+          className="loading-line"
+          style={{
+            ...globalStyles.fillAbsolute,
+            backgroundColor: globalColors.blue,
+            height: 1,
+            ...this.props.style,
+          }}
+        />
       </Box>
     )
   }

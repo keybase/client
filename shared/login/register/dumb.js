@@ -23,8 +23,8 @@ const setPublicNameMock = {
 const setPublicNameMap: DumbComponentMap<SetPublicName> = {
   component: SetPublicName,
   mocks: {
-    'Normal': setPublicNameMock,
-    'Error': {...setPublicNameMock, deviceNameError: 'Name taken'},
+    Normal: setPublicNameMock,
+    Error: {...setPublicNameMock, deviceNameError: 'Name taken'},
   },
 }
 
@@ -54,7 +54,7 @@ const selectOtherMock = {
 const selectOtherDeviceMap: DumbComponentMap<SelectOtherDevice> = {
   component: SelectOtherDevice,
   mocks: {
-    'Normal': selectOtherMock,
+    Normal: selectOtherMock,
   },
 }
 

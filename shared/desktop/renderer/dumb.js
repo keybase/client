@@ -11,37 +11,43 @@ import materialTheme from '../../styles/material-theme.desktop'
 module.hot && module.hot.accept('../../dev/dumb-sheet/render.desktop', render)
 
 class Wrapper extends React.Component<any, any, any> {
-  constructor () {
+  constructor() {
     super()
     this.state = {dumbFilter: localStorage['dumbFilter'] || ''} // eslint-disable-line
   }
 
-  render () {
+  render() {
     const {dumbFilter} = this.state
     const {DumbSheet} = this.props
-    return <DumbSheet
-      onBack={() => {}}
-      onDebugConfigChange={(c) => { this.setState(c); localStorage['dumbFilter'] = c.dumbFilter }} // eslint-disable-line
-      dumbIndex={0}
-      dumbFilter={dumbFilter || ''}
-      dumbFullscreen={false}
-      autoIncrement={false}
-    />
+    return (
+      <DumbSheet
+        onBack={() => {}}
+        onDebugConfigChange={c => {
+          this.setState(c)
+          localStorage['dumbFilter'] = c.dumbFilter
+        }} // eslint-disable-line
+        dumbIndex={0}
+        dumbFilter={dumbFilter || ''}
+        dumbFullscreen={false}
+        autoIncrement={false}
+      />
+    )
   }
 }
 
-function render () {
+function render() {
   const DumbSheet = require('../../dev/dumb-sheet/render.desktop').default
-  ReactDOM.render((
+  ReactDOM.render(
     <AppContainer>
       <MuiThemeProvider muiTheme={materialTheme}>
         <Wrapper DumbSheet={DumbSheet} />
       </MuiThemeProvider>
-    </AppContainer>
-  ), document.getElementById('root'))
+    </AppContainer>,
+    document.getElementById('root')
+  )
 }
 
-function load () {
+function load() {
   // Used by material-ui widgets.
   if (module.hot) {
     // Don't reload this thing if we're hot reloading

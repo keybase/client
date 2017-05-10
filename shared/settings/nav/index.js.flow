@@ -17,4 +17,4 @@ export type Props = {
   badgeNumbers: {[key: Tab]: number},
 }
 
-export default class SettingsNav extends Component<void, Props, void> { }
+export default class SettingsNav extends Component<void, Props, void> {}

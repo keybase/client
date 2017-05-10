@@ -10,9 +10,9 @@ class RequestInvite extends Component {
   state: {
     email: string,
     name: string,
-  };
+  }
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     this.state = {
@@ -21,7 +21,7 @@ class RequestInvite extends Component {
     }
   }
 
-  render () {
+  render() {
     return (
       <Render
         name={this.state.name}
@@ -31,8 +31,10 @@ class RequestInvite extends Component {
         emailErrorText={this.props.emailErrorText}
         nameErrorText={this.props.nameErrorText}
         onBack={this.props.restartSignup}
-        onSubmit={() => this.props.requestInvite(this.state.email, this.state.name)}
-        waiting={this.props.waiting} />
+        onSubmit={() =>
+          this.props.requestInvite(this.state.email, this.state.name)}
+        waiting={this.props.waiting}
+      />
     )
   }
 }

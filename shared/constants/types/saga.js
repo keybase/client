@@ -27,4 +27,7 @@ export type ChannelMap<T> = {
 }
 
 type _AfterSelect<Out, SelectorFn: (state: TypedState) => Out> = Out // eslint-disable-line
-export type AfterSelect<SelectorFn: (state: TypedState) => *> = _AfterSelect<*, SelectorFn>
+export type AfterSelect<SelectorFn: (state: TypedState) => *> = _AfterSelect<
+  *,
+  SelectorFn
+>

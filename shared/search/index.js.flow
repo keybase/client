@@ -23,6 +23,9 @@ export type RootProps = {
   userPane: React$Element<*>,
 }
 
-export type Props = RootProps & UserSearchProps & UserGroupProps & SearchBarProps
+export type Props = RootProps &
+  UserSearchProps &
+  UserGroupProps &
+  SearchBarProps
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}

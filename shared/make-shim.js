@@ -15,13 +15,19 @@ try {
 } catch (_) {}
 
 try {
-  fs.writeFileSync(path.join(root, 'package.json'), `{
+  fs.writeFileSync(
+    path.join(root, 'package.json'),
+    `{
   "main": "index.js"
 }
-`)
+`
+  )
 } catch (_) {}
 
 try {
-  fs.writeFileSync(path.join(root, 'index.js'), `module.exports = null // Generated shim-module
-`)
+  fs.writeFileSync(
+    path.join(root, 'index.js'),
+    `module.exports = null // Generated shim-module
+`
+  )
 } catch (_) {}

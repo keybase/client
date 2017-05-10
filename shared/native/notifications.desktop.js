@@ -3,9 +3,17 @@
 import {debounce} from 'lodash'
 
 const rateLimit: {[key: string]: () => void} = {}
-const rateLimitPayloads: {[key: string]: {title: string, opts: ?Object, onClick: ?() => void}} = {}
+const rateLimitPayloads: {
+  [key: string]: {title: string, opts: ?Object, onClick: ?() => void},
+} = {}
 
-export function NotifyPopup (title: string, opts: ?Object, rateLimitSeconds: number = -1, rateLimitKey?: string, onClick: ?() => void): void {
+export function NotifyPopup(
+  title: string,
+  opts: ?Object,
+  rateLimitSeconds: number = -1,
+  rateLimitKey?: string,
+  onClick: ?() => void
+): void {
   if (rateLimitSeconds > 0) {
     const key = rateLimitKey || title
 
@@ -20,7 +28,10 @@ export function NotifyPopup (title: string, opts: ?Object, rateLimitSeconds: num
         if (rateLimitPayloads[key]) {
           const {title, opts, onClick} = rateLimitPayloads[key]
           delete rateLimitPayloads[key]
-          const notification: any = new Notification(title, {...opts, silent: true})
+          const notification: any = new Notification(title, {
+            ...opts,
+            silent: true,
+          })
           notification.onclick = onClick
         }
       }, rateLimitSeconds * 1000)

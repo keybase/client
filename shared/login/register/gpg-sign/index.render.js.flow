@@ -2,8 +2,8 @@
 import React, {Component} from 'react'
 
 export type Props = {
-  onSubmit: (exportKey: bool) => void,
-  onBack: () => void
+  onSubmit: (exportKey: boolean) => void,
+  onBack: () => void,
 }
 
-export default class GPGSign extends Component<void, Props, void> { }
+export default class GPGSign extends Component<void, Props, void> {}

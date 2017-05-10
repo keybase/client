@@ -18,4 +18,4 @@ export type Props = {
   }>,
 }
 
-export default class SidePanel extends Component<void, Props, void> { }
+export default class SidePanel extends Component<void, Props, void> {}

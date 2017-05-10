@@ -19,8 +19,12 @@ export default connect(
     waiting: state.signup.waiting,
     ...routeProps,
   }),
-  (dispatch) => ({
-    onFinish: () => { dispatch(sawPaperKey()) },
-    onBack: () => { dispatch(navigateUp()) },
+  dispatch => ({
+    onFinish: () => {
+      dispatch(sawPaperKey())
+    },
+    onBack: () => {
+      dispatch(navigateUp())
+    },
   })
 )(RenderSuccess)

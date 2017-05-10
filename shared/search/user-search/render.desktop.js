@@ -1,50 +1,117 @@
 // @flow
 import React, {Component} from 'react'
 
-import {Avatar, Box, ClickableBox, Icon, Text, ProgressIndicator} from '../../common-adapters'
+import {
+  Avatar,
+  Box,
+  ClickableBox,
+  Icon,
+  Text,
+  ProgressIndicator,
+} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 
 import type {SearchResult} from '../../constants/search'
 import type {Props, SearchResultFn} from './render'
 
-function KeybaseResultBody ({username, searchText, isFollowing}) {
-  return <Text type='BodySemibold'
-    style={{color: isFollowing ? globalColors.green2 : globalColors.blue}}>{username}</Text>
-}
-
-function ExternalResultBody ({username, searchText}) {
-  return <Text type='BodySemibold'
-    style={{color: globalColors.black_75}}>{username}</Text>
-}
-
-function KeybaseExtraInfo ({username, fullName, isFollowing, searchText}) {
+function KeybaseResultBody({username, searchText, isFollowing}) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', justifyContent: 'center'}}>
+    <Text
+      type="BodySemibold"
+      style={{
+        color: isFollowing ? globalColors.green2 : globalColors.blue,
+      }}
+    >
+      {username}
+    </Text>
+  )
+}
+
+function ExternalResultBody({username, searchText}) {
+  return (
+    <Text type="BodySemibold" style={{color: globalColors.black_75}}>
+      {username}
+    </Text>
+  )
+}
+
+function KeybaseExtraInfo({username, fullName, isFollowing, searchText}) {
+  return (
+    <Box
+      style={{
+        ...globalStyles.flexBoxColumn,
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+      }}
+    >
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-        <Avatar size={16} style={{width: 16, marginRight: 4}} username={username} />
-        <Text type='BodySmallSemibold'
-          style={{color: isFollowing ? globalColors.green2 : globalColors.blue}}>{username}</Text>
+        <Avatar
+          size={16}
+          style={{width: 16, marginRight: 4}}
+          username={username}
+        />
+        <Text
+          type="BodySmallSemibold"
+          style={{
+            color: isFollowing ? globalColors.green2 : globalColors.blue,
+          }}
+        >
+          {username}
+        </Text>
       </Box>
-      {!!fullName && <Text type='BodySmall' style={{...fullNameStyle, color: globalColors.black_40}}>{fullName}</Text>}
+      {!!fullName &&
+        <Text
+          type="BodySmall"
+          style={{...fullNameStyle, color: globalColors.black_40}}
+        >
+          {fullName}
+        </Text>}
     </Box>
   )
 }
 
-function ExternalExtraInfo ({fullNameOnService, icon, serviceAvatar, serviceUsername, searchText}) {
+function ExternalExtraInfo({
+  fullNameOnService,
+  icon,
+  serviceAvatar,
+  serviceUsername,
+  searchText,
+}) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', justifyContent: 'center'}}>
+    <Box
+      style={{
+        ...globalStyles.flexBoxColumn,
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+      }}
+    >
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         {!!icon && <Icon type={icon} style={{width: 17, marginRight: 4}} />}
-        {!icon && <Avatar size={16} url={serviceAvatar} style={{marginRight: 4}} />}
-        {!!serviceUsername && <Text type='BodySmallSemibold'>{serviceUsername}</Text>}
+        {!icon &&
+          <Avatar size={16} url={serviceAvatar} style={{marginRight: 4}} />}
+        {!!serviceUsername &&
+          <Text type="BodySmallSemibold">{serviceUsername}</Text>}
       </Box>
-      {!!fullNameOnService && <Text type='BodySmall'
-        style={{...fullNameStyle, color: globalColors.black_40}}>{fullNameOnService}</Text>}
+      {!!fullNameOnService &&
+        <Text
+          type="BodySmall"
+          style={{...fullNameStyle, color: globalColors.black_40}}
+        >
+          {fullNameOnService}
+        </Text>}
     </Box>
   )
 }
 
-export function Result ({result, searchText, onClickResult}: {result: SearchResult, searchText: string, onClickResult: SearchResultFn}) {
+export function Result({
+  result,
+  searchText,
+  onClickResult,
+}: {
+  result: SearchResult,
+  searchText: string,
+  onClickResult: SearchResultFn,
+}) {
   const iconStyle = {height: 32, width: 32, marginRight: 16}
 
   let icon
@@ -52,11 +119,22 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
   switch (result.service) {
     case 'keybase':
       icon = <Avatar size={32} username={result.username} style={iconStyle} />
-      body = <KeybaseResultBody username={result.username} searchText={searchText} isFollowing={result.isFollowing} />
+      body = (
+        <KeybaseResultBody
+          username={result.username}
+          searchText={searchText}
+          isFollowing={result.isFollowing}
+        />
+      )
       break
     case 'external':
       icon = <Icon type={result.icon} style={iconStyle} />
-      body = <ExternalResultBody username={result.username} searchText={searchText} />
+      body = (
+        <ExternalResultBody
+          username={result.username}
+          searchText={searchText}
+        />
+      )
       break
   }
 
@@ -69,17 +147,31 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
       </Box>
     </Box>
   )
-
   let extraInfo = <Box />
   switch (result.extraInfo.service) {
     case 'external':
-      extraInfo = <ExternalExtraInfo {...result.extraInfo} searchText={searchText} />
+      extraInfo = (
+        <ExternalExtraInfo {...result.extraInfo} searchText={searchText} />
+      )
       break
     case 'keybase':
-      extraInfo = <KeybaseExtraInfo {...result.extraInfo} searchText={searchText} />
+      extraInfo = (
+        <KeybaseExtraInfo {...result.extraInfo} searchText={searchText} />
+      )
       break
     case 'none':
-      extraInfo = <Text type='BodySmall' style={{...fullNameStyle, color: globalColors.black_40, alignSelf: 'center'}}>{result.extraInfo.fullName}</Text>
+      extraInfo = (
+        <Text
+          type="BodySmall"
+          style={{
+            ...fullNameStyle,
+            color: globalColors.black_40,
+            alignSelf: 'center',
+          }}
+        >
+          {result.extraInfo.fullName}
+        </Text>
+      )
       break
   }
 
@@ -95,7 +187,11 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
   }
 
   return (
-    <ClickableBox onClick={() => onClickResult(result)} hoverColor={globalColors.blue4} style={rowStyle}>
+    <ClickableBox
+      onClick={() => onClickResult(result)}
+      hoverColor={globalColors.blue4}
+      style={rowStyle}
+    >
       <Box style={{...globalStyles.flexBoxRow}}>
         {icon}
         {alignedBody}
@@ -106,14 +202,30 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
 }
 
 class UserSearchRender extends Component<void, Props, void> {
-  render () {
+  render() {
     return (
       <Box style={{flex: 1, position: 'relative', minHeight: 40}}>
-        {this.props.waiting && <ProgressIndicator white={false}
-          style={{position: 'absolute', width: 20, top: 0, left: 0, right: 0, marginLeft: 'auto', marginRight: 'auto'}} />}
+        {this.props.waiting &&
+          <ProgressIndicator
+            white={false}
+            style={{
+              position: 'absolute',
+              width: 20,
+              top: 0,
+              left: 0,
+              right: 0,
+              marginLeft: 'auto',
+              marginRight: 'auto',
+            }}
+          />}
         {this.props.results.map(r => (
-          <Result key={r.service + (r.icon ? r.icon : '') + r.username} result={r}
-            searchText={this.props.searchText || ''} onClickResult={this.props.onClickResult} />))}
+          <Result
+            key={r.service + (r.icon ? r.icon : '') + r.username}
+            result={r}
+            searchText={this.props.searchText || ''}
+            onClickResult={this.props.onClickResult}
+          />
+        ))}
       </Box>
     )
   }

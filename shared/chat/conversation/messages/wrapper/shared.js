@@ -9,7 +9,12 @@ import Timestamp from '../timestamp'
 import type {Props} from '.'
 
 const LeftMarker = ({author, isYou, isFollowing, isBroken}) => (
-  <Box style={{..._leftMarkerStyle, backgroundColor: marginColor(author, isYou, isFollowing, isBroken)}} />
+  <Box
+    style={{
+      ..._leftMarkerStyle,
+      backgroundColor: marginColor(author, isYou, isFollowing, isBroken),
+    }}
+  />
 )
 
 const UserAvatar = ({author, showImage}) => (
@@ -20,31 +25,50 @@ const UserAvatar = ({author, showImage}) => (
 
 const Username = ({author, isYou, isFollowing, isBroken, includeHeader}) => {
   if (!includeHeader) return null
-  const style = {color: colorForAuthor(author, isYou, isFollowing, isBroken), ...(isYou ? globalStyles.italic : null), marginBottom: 2}
-  return <Text type='BodySmallSemibold' style={style}>{author}</Text>
+  const style = {
+    color: colorForAuthor(author, isYou, isFollowing, isBroken),
+    ...(isYou ? globalStyles.italic : null),
+    marginBottom: 2,
+  }
+  return <Text type="BodySmallSemibold" style={style}>{author}</Text>
 }
 
 const ActionButton = ({isRevoked, onAction}) => (
-  <Box className='action-button'>
-    {isRevoked && <Icon type='iconfont-exclamation' style={_exclamationStyle} />}
-    {!isMobile && <Icon type='iconfont-ellipsis' style={_ellipsisStyle} onClick={onAction} />}
+  <Box className="action-button">
+    {isRevoked &&
+      <Icon type="iconfont-exclamation" style={_exclamationStyle} />}
+    {!isMobile &&
+      <Icon
+        type="iconfont-ellipsis"
+        style={_ellipsisStyle}
+        onClick={onAction}
+      />}
   </Box>
 )
 
-const EditedMark = ({isEdited}) => (
-  isEdited ? <Text type='BodySmall' style={_editedStyle}>EDITED</Text> : null
-)
+const EditedMark = ({isEdited}) =>
+  isEdited ? <Text type="BodySmall" style={_editedStyle}>EDITED</Text> : null
 
 const Failure = ({failureDescription, onShowEditor, onRetry}) => {
   if (!failureDescription) return null
   const error = `Failed to send${failureDescription ? ` -  ${failureDescription}` : ''}. `
   const resolveByEdit = failureDescription === 'message is too long'
   return (
-    <Text type='BodySmall'>
-      <Text type='BodySmall' style={_failStyleFace}>{'┏(>_<)┓'}</Text>
-      <Text type='BodySmall' style={_failStyle}> {error}</Text>
-      {resolveByEdit && <Text type='BodySmall' style={_failStyleUnderline} onClick={onShowEditor}>Edit</Text>}
-      {!resolveByEdit && <Text type='BodySmall' style={_failStyleUnderline} onClick={onRetry}>Retry</Text>}
+    <Text type="BodySmall">
+      <Text type="BodySmall" style={_failStyleFace}>{'┏(>_<)┓'}</Text>
+      <Text type="BodySmall" style={_failStyle}> {error}</Text>
+      {resolveByEdit &&
+        <Text
+          type="BodySmall"
+          style={_failStyleUnderline}
+          onClick={onShowEditor}
+        >
+          Edit
+        </Text>}
+      {!resolveByEdit &&
+        <Text type="BodySmall" style={_failStyleUnderline} onClick={onRetry}>
+          Retry
+        </Text>}
     </Text>
   )
 }
@@ -52,20 +76,58 @@ const Failure = ({failureDescription, onShowEditor, onRetry}) => {
 const MessageWrapper = (props: Props) => (
   <Box style={globalStyles.flexBoxColumn}>
     {props.timestamp && <Timestamp timestamp={props.timestamp} />}
-    <Box style={{..._flexOneRow, ...(props.isFirstNewMessage ? _stylesFirstNewMessage : null), ...(props.isSelected ? _stylesSelected : null)}}>
-      <LeftMarker author={props.author} isYou={props.isYou} isFollowing={props.isFollowing} isBroken={props.isBroken} />
-      <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
+    <Box
+      style={{
+        ..._flexOneRow,
+        ...(props.isFirstNewMessage ? _stylesFirstNewMessage : null),
+        ...(props.isSelected ? _stylesSelected : null),
+      }}
+    >
+      <LeftMarker
+        author={props.author}
+        isYou={props.isYou}
+        isFollowing={props.isFollowing}
+        isBroken={props.isBroken}
+      />
+      <Box
+        style={
+          props.includeHeader
+            ? _rightSideWithHeaderStyle
+            : _rightSideNoHeaderStyle
+        }
+      >
         <UserAvatar author={props.author} showImage={props.includeHeader} />
-        <Box style={_flexOneColumn} className='message-wrapper'>
-          <Username includeHeader={props.includeHeader} author={props.author} isYou={props.isYou} isFollowing={props.isFollowing} isBroken={props.isBroken} />
-          <Box style={_textContainerStyle} className='message' data-message-key={props.messageKey}>
+        <Box style={_flexOneColumn} className="message-wrapper">
+          <Username
+            includeHeader={props.includeHeader}
+            author={props.author}
+            isYou={props.isYou}
+            isFollowing={props.isFollowing}
+            isBroken={props.isBroken}
+          />
+          <Box
+            style={_textContainerStyle}
+            className="message"
+            data-message-key={props.messageKey}
+          >
             <Box style={_flexOneColumn}>
-              <props.innerClass messageKey={props.messageKey} measure={props.measure} onAction={props.onAction} />
+              <props.innerClass
+                messageKey={props.messageKey}
+                measure={props.measure}
+                onAction={props.onAction}
+              />
               <EditedMark isEdited={props.isEdited} />
             </Box>
-            <ActionButton isRevoked={props.isRevoked} onAction={props.onAction} />
+            <ActionButton
+              isRevoked={props.isRevoked}
+              onAction={props.onAction}
+            />
           </Box>
-          <Failure failureDescription={props.failureDescription} onRetry={props.onRetry} onShowEditor={props.onShowEditor} />
+          <Failure
+            failureDescription={props.failureDescription}
+            onRetry={props.onRetry}
+            onShowEditor={props.onShowEditor}
+          />
         </Box>
       </Box>
     </Box>

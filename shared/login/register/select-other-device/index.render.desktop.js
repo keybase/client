@@ -9,9 +9,9 @@ import {globalStyles, globalColors} from '../../../styles'
 
 const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconType = ({
-    'mobile': 'icon-phone-48',
-    'desktop': 'icon-computer-48',
-    'backup': 'icon-paper-key-48',
+    mobile: 'icon-phone-48',
+    desktop: 'icon-computer-48',
+    backup: 'icon-paper-key-48',
   }: {[key: DeviceType]: IconType})[type]
 
   const onClick = e => {
@@ -25,20 +25,23 @@ const Row = ({deviceID, name, type, onSelect}) => {
         <div style={stylesIconContainer}>
           <Icon style={stylesIcon} type={iconType} />
         </div>
-        <Text type='BodySemiboldItalic' onClick={onClick}>{name}</Text>
+        <Text type="BodySemiboldItalic" onClick={onClick}>{name}</Text>
       </div>
-    </div>)
+    </div>
+  )
 }
 
 const Render = ({onBack, devices, onWont, onSelect}: Props) => (
-  <Container
-    style={stylesContainer}
-    onBack={onBack}>
-    <Text type='Header' style={stylesHeader}>Which device would you like to connect with?</Text>
+  <Container style={stylesContainer} onBack={onBack}>
+    <Text type="Header" style={stylesHeader}>
+      Which device would you like to connect with?
+    </Text>
     <div style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
     </div>
-    <Text style={stylesWont} type='BodySmallSecondaryLink' onClick={onWont}>Log in with your passphrase</Text>
+    <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>
+      Log in with your passphrase
+    </Text>
   </Container>
 )
 

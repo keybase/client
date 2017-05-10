@@ -8,7 +8,9 @@ import type {Props} from './follow-notice'
 
 const FollowNotice = ({username}: Props) => (
   <UserNotice username={username} bgColor={globalColors.green}>
-    <Text type='BodySmallSemibold' backgroundMode='Announcements'>You started following {username}.</Text>
+    <Text type="BodySmallSemibold" backgroundMode="Announcements">
+      You started following {username}.
+    </Text>
   </UserNotice>
 )
 

@@ -34,7 +34,7 @@ const initialState: Constants.State = {
   deviceName: null,
 }
 
-function arrayToObjectSet (arr) {
+function arrayToObjectSet(arr) {
   if (!arr) {
     return {}
   }
@@ -45,7 +45,10 @@ function arrayToObjectSet (arr) {
   }, {})
 }
 
-export default function (state: Constants.State = initialState, action: Action): Constants.State {
+export default function(
+  state: Constants.State = initialState,
+  action: Action
+): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {

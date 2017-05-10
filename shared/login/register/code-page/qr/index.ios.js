@@ -11,14 +11,15 @@ class QR extends Component<void, Props, void> {
     this.props.onBarCodeRead(data)
   }, 1000)
 
-  render () {
+  render() {
     if (this.props.scanning) {
       return (
         <Camera
           style={{...cameraStyle, ...this.props.style}}
           captureAudio={false}
-          ref='cam'
-          onBarCodeRead={this._onBarCodeRead}>
+          ref="cam"
+          onBarCodeRead={this._onBarCodeRead}
+        >
           {this.props.children}
         </Camera>
       )
@@ -26,7 +27,10 @@ class QR extends Component<void, Props, void> {
       return (
         <Box style={{...cameraStyle, ...this.props.style}}>
           {this.props.children}
-          <NativeImage style={[{width: 300, height: 300}, this.props.imageStyle]} source={{uri: this.props.qrCode}} />
+          <NativeImage
+            style={[{width: 300, height: 300}, this.props.imageStyle]}
+            source={{uri: this.props.qrCode}}
+          />
         </Box>
       )
     }

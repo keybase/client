@@ -12,7 +12,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser eats multiple empty lines at start 1`] = `
 Object {
@@ -26,14 +26,14 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses a line with just whitespace correctly 1`] = `
 Object {
   "children": Array [],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses a single delimiter correctly 1`] = `
 Object {
@@ -47,14 +47,14 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses an empty line correctly 1`] = `
 Object {
   "children": Array [],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses escaped chars correctly 1`] = `
 Object {
@@ -68,7 +68,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses formatting adjacent to punctuation 1`] = `
 Object {
@@ -117,7 +117,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses incomplete code blocks correctly 1`] = `
 Object {
@@ -131,7 +131,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses incomplete code blocks correctly 2`] = `
 Object {
@@ -145,7 +145,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses incomplete code blocks correctly 3`] = `
 Object {
@@ -159,7 +159,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses incomplete code blocks correctly 4`] = `
 Object {
@@ -173,7 +173,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses incomplete code blocks correctly 5`] = `
 Object {
@@ -187,7 +187,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses incomplete code blocks correctly 6`] = `
 Object {
@@ -201,7 +201,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses incomplete code blocks correctly 7`] = `
 Object {
@@ -215,7 +215,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses invalid bold correctly 1`] = `
 Object {
@@ -229,7 +229,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses invalid emoji fragments correctly 1`] = `
 Object {
@@ -273,7 +273,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses kitchen sink demo correctly 1`] = `
 Object {
@@ -370,7 +370,7 @@ else echo \\"bar\\";",
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses more code blocks correctly 1`] = `
 Object {
@@ -404,7 +404,7 @@ this is a code block with two newline above",
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses multiple adjacent emoji correctly 1`] = `
 Object {
@@ -435,7 +435,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses native emoji correctly 1`] = `
 Object {
@@ -468,7 +468,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses native zwj emoji correctly 1`] = `
 Object {
@@ -495,7 +495,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses numbers and some symbols emoji 1`] = `
 Object {
@@ -521,7 +521,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses quote blocks correctly 1`] = `
 Object {
@@ -597,9 +597,11 @@ code in quote
   ],
   "type": "markup",
 }
-`;
+`
 
-exports[`Markdown parser parses special characters within words correctly 1`] = `
+exports[
+  `Markdown parser parses special characters within words correctly 1`
+] = `
 Object {
   "children": Array [
     Object {
@@ -611,7 +613,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser parses urls correctly 1`] = `
 Object {
@@ -996,7 +998,7 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`
 
 exports[`Markdown parser preserves multiple empty lines 1`] = `
 Object {
@@ -1030,4 +1032,4 @@ Object {
   ],
   "type": "markup",
 }
-`;
+`

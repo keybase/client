@@ -4,11 +4,27 @@ import Friendships from './friendships'
 import React, {PureComponent} from 'react'
 import _ from 'lodash'
 import moment from 'moment'
-import {Box, Icon, PlatformIcon, PopupMenu, Text, UserBio, UserActions, UserProofs, Usernames, BackButton} from '../common-adapters'
+import {
+  Box,
+  Icon,
+  PlatformIcon,
+  PopupMenu,
+  Text,
+  UserBio,
+  UserActions,
+  UserProofs,
+  Usernames,
+  BackButton,
+} from '../common-adapters'
 import {PopupHeaderText} from '../common-adapters/popup-menu'
 import {findDOMNode} from 'react-dom'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-import {normal as proofNormal, checking as proofChecking, metaUnreachable, metaPending} from '../constants/tracker'
+import {
+  normal as proofNormal,
+  checking as proofChecking,
+  metaUnreachable,
+  metaPending,
+} from '../constants/tracker'
 import {stateColors} from '../util/tracker'
 
 import type {Proof} from '../constants/tracker'
@@ -28,11 +44,11 @@ type State = {
 }
 
 class ProfileRender extends PureComponent<void, Props, State> {
-  state: State;
-  _proofList: ?UserProofs;
-  _scrollContainer: ?React$Component<*, *, *>;
+  state: State
+  _proofList: ?UserProofs
+  _scrollContainer: ?React$Component<*, *, *>
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     this._proofList = null
@@ -45,7 +61,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
     }
   }
 
-  _proofMenuContent (proof: Proof) {
+  _proofMenuContent(proof: Proof) {
     if (!proof || !this.props.isYou) {
       return
     }
@@ -54,54 +70,114 @@ class ProfileRender extends PureComponent<void, Props, State> {
       return {
         header: {
           title: 'header',
-          view: <PopupHeaderText color={globalColors.white} backgroundColor={globalColors.red}>Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?</PopupHeaderText>,
+          view: (
+            <PopupHeaderText
+              color={globalColors.white}
+              backgroundColor={globalColors.red}
+            >
+              Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?
+            </PopupHeaderText>
+          ),
         },
         items: [
-          ...(proof.humanUrl ? [{title: 'View proof', onClick: () => this.props.onViewProof(proof)}] : []),
-          {title: 'I fixed it - recheck', onClick: () => this.props.onRecheckProof(proof)},
-          {title: shared.revokeProofLanguage(proof.type), danger: true, onClick: () => this.props.onRevokeProof(proof)},
+          ...(proof.humanUrl
+            ? [
+                {
+                  title: 'View proof',
+                  onClick: () => this.props.onViewProof(proof),
+                },
+              ]
+            : []),
+          {
+            title: 'I fixed it - recheck',
+            onClick: () => this.props.onRecheckProof(proof),
+          },
+          {
+            title: shared.revokeProofLanguage(proof.type),
+            danger: true,
+            onClick: () => this.props.onRevokeProof(proof),
+          },
         ],
       }
     } else if (proof.meta === metaPending) {
       let pendingMessage
       if (proof.type === 'hackernews') {
-        pendingMessage = 'Your proof is pending. Hacker News caches its bios, so it might take a few hours before your proof gets verified.'
+        pendingMessage =
+          'Your proof is pending. Hacker News caches its bios, so it might take a few hours before your proof gets verified.'
       } else if (proof.type === 'dns') {
-        pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
+        pendingMessage =
+          'Your proof is pending. DNS proofs can take a few hours to recognize.'
       }
       return {
         header: pendingMessage && {
           title: 'header',
-          view: <PopupHeaderText color={globalColors.white} backgroundColor={globalColors.blue}>{pendingMessage}</PopupHeaderText>,
+          view: (
+            <PopupHeaderText
+              color={globalColors.white}
+              backgroundColor={globalColors.blue}
+            >
+              {pendingMessage}
+            </PopupHeaderText>
+          ),
         },
         items: [
-          {title: shared.revokeProofLanguage(proof.type), danger: true, onClick: () => this.props.onRevokeProof(proof)},
+          {
+            title: shared.revokeProofLanguage(proof.type),
+            danger: true,
+            onClick: () => this.props.onRevokeProof(proof),
+          },
         ],
       }
     } else {
       return {
         header: {
           title: 'header',
-          view: <Box onClick={() => this.props.onViewProof(proof)}
-            style={{
-              ...globalStyles.flexBoxColumn,
-              padding: globalMargins.small,
-              alignItems: 'center',
-              borderBottom: `1px solid ${globalColors.black_05}`,
-            }}>
-            <PlatformIcon platform={proof.type} overlay='icon-proof-success' overlayColor={globalColors.blue} />
-            {!!proof.mTime && <Text type='BodySmall' style={{textAlign: 'center', color: globalColors.black_40}}>Posted on<br />{moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>}
-          </Box>,
+          view: (
+            <Box
+              onClick={() => this.props.onViewProof(proof)}
+              style={{
+                ...globalStyles.flexBoxColumn,
+                padding: globalMargins.small,
+                alignItems: 'center',
+                borderBottom: `1px solid ${globalColors.black_05}`,
+              }}
+            >
+              <PlatformIcon
+                platform={proof.type}
+                overlay="icon-proof-success"
+                overlayColor={globalColors.blue}
+              />
+              {!!proof.mTime &&
+                <Text
+                  type="BodySmall"
+                  style={{
+                    textAlign: 'center',
+                    color: globalColors.black_40,
+                  }}
+                >
+                  Posted on
+                  <br />
+                  {moment(proof.mTime).format('ddd MMM D, YYYY')}
+                </Text>}
+            </Box>
+          ),
         },
         items: [
-          {title: `View ${proof.type === 'btc' ? 'signature' : 'proof'}`, onClick: () => this.props.onViewProof(proof)},
-          {title: shared.revokeProofLanguage(proof.type), danger: true, onClick: () => this.props.onRevokeProof(proof)},
+          {
+            title: `View ${proof.type === 'btc' ? 'signature' : 'proof'}`,
+            onClick: () => this.props.onViewProof(proof),
+          },
+          {
+            title: shared.revokeProofLanguage(proof.type),
+            danger: true,
+            onClick: () => this.props.onRevokeProof(proof),
+          },
         ],
       }
     }
   }
 
-  handleShowMenu (idx: number) {
+  handleShowMenu(idx: number) {
     if (!this._proofList) {
       return
     }
@@ -124,30 +200,37 @@ class ProfileRender extends PureComponent<void, Props, State> {
     })
   }
 
-  handleHideMenu () {
+  handleHideMenu() {
     this.setState({
       proofMenuIndex: null,
       popupMenuPosition: {},
     })
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this.props && this.props.refresh()
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     const oldUsername = this.props && this.props.username
     if (nextProps && nextProps.username !== oldUsername) {
       nextProps.refresh()
     }
   }
 
-  render () {
+  render() {
     const {loading} = this.props
-    const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
+    const trackerStateColors = stateColors(
+      this.props.currentlyFollowing,
+      this.props.trackerState
+    )
 
     let proofNotice
-    if (this.props.trackerState !== proofNormal && this.props.trackerState !== proofChecking && !loading) {
+    if (
+      this.props.trackerState !== proofNormal &&
+      this.props.trackerState !== proofChecking &&
+      !loading
+    ) {
       if (this.props.isYou) {
         if (this.props.proofs.some(proof => proof.meta === metaUnreachable)) {
           proofNotice = 'Some of your proofs are unreachable.'
@@ -164,12 +247,33 @@ class ProfileRender extends PureComponent<void, Props, State> {
     let folders = _.chain(this.props.tlfs)
       .orderBy('isPublic', 'asc')
       .map(folder => (
-        <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minWidth: 24, minHeight: 24}}>
+        <Box
+          key={folder.path}
+          style={styleFolderLine}
+          onClick={() => this.props.onFolderClick(folder)}
+        >
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              alignItems: 'center',
+              minWidth: 24,
+              minHeight: 24,
+            }}
+          >
             <Icon {...shared.folderIconProps(folder, styleFolderIcon)} />
           </Box>
-          <Text type='Body' className='hover-underline' style={{marginTop: 2}}>
-            <Usernames inline={false} users={folder.users} type='Body' style={{color: 'inherit'}} containerStyle={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}} prefix={folder.isPublic ? 'public/' : 'private/'} />
+          <Text type="Body" className="hover-underline" style={{marginTop: 2}}>
+            <Usernames
+              inline={false}
+              users={folder.users}
+              type="Body"
+              style={{color: 'inherit'}}
+              containerStyle={{
+                ...globalStyles.flexBoxRow,
+                flexWrap: 'wrap',
+              }}
+              prefix={folder.isPublic ? 'public/' : 'private/'}
+            />
           </Text>
         </Box>
       ))
@@ -178,30 +282,81 @@ class ProfileRender extends PureComponent<void, Props, State> {
     if (!this.state.foldersExpanded && folders.length > 4) {
       folders = folders.slice(0, 4)
       folders.push(
-        <Box key='more' style={{...styleFolderLine, alignItems: 'center'}} onClick={() => this.setState({foldersExpanded: true})}>
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', width: 24, height: 24}}>
-            <Icon type='iconfont-ellipsis' style={{...styleFolderIcon}} />
+        <Box
+          key="more"
+          style={{...styleFolderLine, alignItems: 'center'}}
+          onClick={() => this.setState({foldersExpanded: true})}
+        >
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              alignItems: 'center',
+              width: 24,
+              height: 24,
+            }}
+          >
+            <Icon type="iconfont-ellipsis" style={{...styleFolderIcon}} />
           </Box>
-          <Text type='BodySmall' style={{color: globalColors.black_60, marginBottom: 2}}>+ {this.props.tlfs.length - folders.length} more</Text>
+          <Text
+            type="BodySmall"
+            style={{color: globalColors.black_60, marginBottom: 2}}
+          >
+            + {this.props.tlfs.length - folders.length} more
+          </Text>
         </Box>
       )
     }
 
-    const missingProofs = !this.props.isYou ? [] : shared.missingProofs(this.props.proofs, this.props.onMissingProofClick)
-    const proofMenuContent = this.state.proofMenuIndex != null && this._proofMenuContent(this.props.proofs[this.state.proofMenuIndex])
+    const missingProofs = !this.props.isYou
+      ? []
+      : shared.missingProofs(this.props.proofs, this.props.onMissingProofClick)
+    const proofMenuContent =
+      this.state.proofMenuIndex != null &&
+      this._proofMenuContent(this.props.proofs[this.state.proofMenuIndex])
 
     return (
       <Box style={styleOuterContainer}>
-        <Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
-        <Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
-        {this.props.onBack && <BackButton onClick={this.props.onBack} style={{position: 'absolute', left: 14, top: 16, zIndex: 12}}
-          textStyle={{color: globalColors.white}} iconStyle={{color: globalColors.white}} />}
-        <Box ref={c => { this._scrollContainer = c }} className='scroll-container' style={styleContainer}>
-          <Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background}} />
+        <Box
+          style={{
+            ...styleScrollHeaderBg,
+            backgroundColor: trackerStateColors.header.background,
+          }}
+        />
+        <Box
+          style={{
+            ...styleScrollHeaderCover,
+            backgroundColor: trackerStateColors.header.background,
+          }}
+        />
+        {this.props.onBack &&
+          <BackButton
+            onClick={this.props.onBack}
+            style={{
+              position: 'absolute',
+              left: 14,
+              top: 16,
+              zIndex: 12,
+            }}
+            textStyle={{color: globalColors.white}}
+            iconStyle={{color: globalColors.white}}
+          />}
+        <Box
+          ref={c => {
+            this._scrollContainer = c
+          }}
+          className="scroll-container"
+          style={styleContainer}
+        >
+          <Box
+            style={{
+              ...styleHeader,
+              backgroundColor: trackerStateColors.header.background,
+            }}
+          />
           <Box style={{...globalStyles.flexBoxRow, minHeight: 300}}>
             <Box style={styleBioColumn}>
               <UserBio
-                type='Profile'
+                type="Profile"
                 editFns={this.props.bioEditFns}
                 loading={loading}
                 avatarSize={AVATAR_SIZE}
@@ -214,7 +369,8 @@ class ProfileRender extends PureComponent<void, Props, State> {
                 onClickFollowers={this.props.onClickFollowers}
                 onClickFollowing={this.props.onClickFollowing}
               />
-              {!this.props.isYou && !loading &&
+              {!this.props.isYou &&
+                !loading &&
                 <UserActions
                   style={styleActions}
                   trackerState={this.props.trackerState}
@@ -222,24 +378,34 @@ class ProfileRender extends PureComponent<void, Props, State> {
                   onChat={this.props.onChat}
                   onFollow={this.props.onFollow}
                   onUnfollow={this.props.onUnfollow}
-                  onAcceptProofs={this.props.onAcceptProofs} />}
+                  onAcceptProofs={this.props.onAcceptProofs}
+                />}
             </Box>
             <Box style={styleProofColumn}>
               <Box style={styleProofNoticeBox}>
-                {proofNotice && <Text type='BodySemibold' style={{color: globalColors.white}}>{proofNotice}</Text>}
+                {proofNotice &&
+                  <Text type="BodySemibold" style={{color: globalColors.white}}>
+                    {proofNotice}
+                  </Text>}
               </Box>
               <Box style={styleProofs}>
                 {(loading || this.props.proofs.length > 0) &&
                   <UserProofs
                     type={'proofs'}
-                    ref={c => { this._proofList = c }}
+                    ref={c => {
+                      this._proofList = c
+                    }}
                     username={this.props.username}
                     loading={loading}
                     proofs={this.props.proofs}
-                    onClickProofMenu={this.props.isYou ? idx => this.handleShowMenu(idx) : null}
+                    onClickProofMenu={
+                      this.props.isYou ? idx => this.handleShowMenu(idx) : null
+                    }
                     showingMenuIndex={this.state.proofMenuIndex}
                   />}
-                {!loading && !this.props.serverActive && missingProofs.length > 0 &&
+                {!loading &&
+                  !this.props.serverActive &&
+                  missingProofs.length > 0 &&
                   <UserProofs
                     type={'missingProofs'}
                     username={this.props.username}
@@ -249,17 +415,29 @@ class ProfileRender extends PureComponent<void, Props, State> {
               </Box>
             </Box>
           </Box>
-          {!loading && !!this.props.followers && !!this.props.following &&
+          {!loading &&
+            !!this.props.followers &&
+            !!this.props.following &&
             <Friendships
               username={this.props.username}
               isYou={this.props.isYou}
               style={styleFriendships}
               currentTab={this.props.currentFriendshipsTab}
-              onSwitchTab={currentFriendshipsTab => this.props.onChangeFriendshipsTab(currentFriendshipsTab)}
+              onSwitchTab={currentFriendshipsTab =>
+                this.props.onChangeFriendshipsTab(currentFriendshipsTab)}
               onUserClick={this.props.onUserClick}
               followers={this.props.followers}
-              following={this.props.following} />}
-          {proofMenuContent && <PopupMenu style={{...styleProofMenu, ...this.state.popupMenuPosition}} {...proofMenuContent} onHidden={() => this.handleHideMenu()} />}
+              following={this.props.following}
+            />}
+          {proofMenuContent &&
+            <PopupMenu
+              style={{
+                ...styleProofMenu,
+                ...this.state.popupMenuPosition,
+              }}
+              {...proofMenuContent}
+              onHidden={() => this.handleHideMenu()}
+            />}
         </Box>
       </Box>
     )

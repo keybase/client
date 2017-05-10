@@ -27,4 +27,4 @@ export type Props = {
   account: AccountProps,
 }
 
-export default class LandingPage extends Component<void, Props, void> { }
+export default class LandingPage extends Component<void, Props, void> {}

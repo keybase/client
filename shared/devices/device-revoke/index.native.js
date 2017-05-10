@@ -8,43 +8,66 @@ import type {Props} from '.'
 const Header = ({name, icon}) => (
   <Box style={styleIcon}>
     <Icon type={icon} />
-    <Text type='BodyBig' style={styleName}>{name}</Text>
+    <Text type="BodyBig" style={styleName}>{name}</Text>
   </Box>
 )
 
 const Body = ({endangeredTLFs, name, currentDevice}) => (
   <Box>
     <Box style={styleHeader}>
-      <Text type='Header' style={styleText}>Are you sure you want to revoke {currentDevice ? 'your current device' : name}?</Text>
+      <Text type="Header" style={styleText}>
+        Are you sure you want to revoke
+        {' '}
+        {currentDevice ? 'your current device' : name}
+        ?
+      </Text>
     </Box>
 
     {endangeredTLFs.length > 0 &&
       <Box>
         <Box>
-          <Text type='Body' style={styleText}>You may lose access to these folders forever:</Text>
+          <Text type="Body" style={styleText}>
+            You may lose access to these folders forever:
+          </Text>
         </Box>
 
         <Box style={styleDevicesContainer}>
           {endangeredTLFs.map(tlf => (
             <Box key={tlf.name} style={styleTLF}>
-              <Text type='BodySemibold' style={styleText}>• {tlf.name}</Text>
+              <Text type="BodySemibold" style={styleText}>
+                • {tlf.name}
+              </Text>
             </Box>
           ))}
         </Box>
-      </Box>
-    }
+      </Box>}
   </Box>
 )
 
-const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endangeredTLFs, icon}: Props) => (
+const Render = ({
+  name,
+  type,
+  deviceID,
+  currentDevice,
+  onSubmit,
+  onCancel,
+  endangeredTLFs,
+  icon,
+}: Props) => (
   <Confirm
-    body={<Body endangeredTLFs={endangeredTLFs} name={name} currentDevice={currentDevice} />}
+    body={
+      <Body
+        endangeredTLFs={endangeredTLFs}
+        name={name}
+        currentDevice={currentDevice}
+      />
+    }
     danger={true}
     header={<Header name={name} icon={icon} />}
     onCancel={onCancel}
     onSubmit={() => onSubmit({currentDevice, deviceID, name})}
-    submitLabel='Yes, delete it'
-    theme='public'
+    submitLabel="Yes, delete it"
+    theme="public"
   />
 )
 

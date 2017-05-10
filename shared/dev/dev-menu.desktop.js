@@ -8,9 +8,13 @@ import {globalStyles} from '../styles'
 import {logout} from '../actions/login/creators'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 
-function DevMenu (props) {
+function DevMenu(props) {
   const menuItems = [
-    {name: 'Dumb components', hasChildren: true, onClick: props.onDumbSheet},
+    {
+      name: 'Dumb components',
+      hasChildren: true,
+      onClick: props.onDumbSheet,
+    },
     {name: 'Reset engine', onClick: props.onReset},
     {name: 'Sign Out', onClick: props.onSignOut},
   ]
@@ -30,4 +34,5 @@ export default connect(
     onSignOut: () => dispatch(logout()),
     onBack: () => dispatch(navigateUp()),
     onDumbSheet: () => dispatch(navigateAppend(['dumbSheet'])),
-  }))(DevMenu)
+  })
+)(DevMenu)

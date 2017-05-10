@@ -7,7 +7,7 @@ export type Props = $Shape<{
   reason: string,
   isPrivate: boolean,
   inviteLink: ?string,
-  onClose: () => void
+  onClose: () => void,
 }>
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}

@@ -4,7 +4,11 @@ import Icon from './icon'
 import React, {Component} from 'react'
 import Text from './text'
 import type {Props} from './dropdown'
-import {NativeTouchableWithoutFeedback, NativePicker, NativeModal} from './native-wrappers.native'
+import {
+  NativeTouchableWithoutFeedback,
+  NativePicker,
+  NativeModal,
+} from './native-wrappers.native'
 import {globalStyles, globalColors} from '../styles'
 import {isIOS} from '../constants/platform'
 
@@ -25,10 +29,10 @@ type State = {
 }
 
 class Dropdown extends Component<void, Props, State> {
-  state: State;
-  showingPick: boolean;
+  state: State
+  showingPick: boolean
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     this.showingPick = !this.props.value
@@ -39,15 +43,15 @@ class Dropdown extends Component<void, Props, State> {
     }
   }
 
-  _stateValue (value: ?string): string {
+  _stateValue(value: ?string): string {
     return value || pickItemValue
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     this.setState({value: this._stateValue(nextProps.value)})
   }
 
-  _selected () {
+  _selected() {
     // Didn't actually select anything
     if (this.state.value === pickItemValue) {
       this.props.onClick('', -1)
@@ -58,11 +62,14 @@ class Dropdown extends Component<void, Props, State> {
         console.warn('otherValue selected, yet no onOther handler')
       }
     } else if (this.props.onClick) {
-      this.props.onClick(this.state.value || '', (this.props.options || []).indexOf(this.state.value || ''))
+      this.props.onClick(
+        this.state.value || '',
+        (this.props.options || []).indexOf(this.state.value || '')
+      )
     }
   }
 
-  _showModal (show: boolean) {
+  _showModal(show: boolean) {
     this.setState({modalVisible: show})
 
     if (show) {
@@ -72,38 +79,63 @@ class Dropdown extends Component<void, Props, State> {
     }
   }
 
-  _ensureSelected () {
+  _ensureSelected() {
     if (!this.state.value && this.props.options && this.props.options.length) {
       this.setState({value: this.props.options[0]})
     }
   }
 
-  _itemStyle (): Object {
+  _itemStyle(): Object {
     return this.props.type === 'Username' ? {color: globalColors.orange} : {}
   }
 
-  _label (value: ?string): string {
+  _label(value: ?string): string {
     if (!value) {
       return ''
     }
 
-    return {
-      [otherItemValue]: this.props.type === 'Username' ? 'Someone else...' : 'Or something else',
-      [pickItemValue]: 'Pick an option',
-    }[value] || value
+    return (
+      {
+        [otherItemValue]: this.props.type === 'Username'
+          ? 'Someone else...'
+          : 'Or something else',
+        [pickItemValue]: 'Pick an option',
+      }[value] || value
+    )
   }
 
-  _renderLabelAndCaret (): Array<React$Element<*>> {
+  _renderLabelAndCaret(): Array<React$Element<*>> {
     return [
-      <Text key='text' type='Header' style={{...styleText, ...this._itemStyle()}}>{this._label(this.state.value)}</Text>,
-      <Icon key='icon' type='iconfont-caret-down' style={styleIcon} />,
+      <Text
+        key="text"
+        type="Header"
+        style={{...styleText, ...this._itemStyle()}}
+      >
+        {this._label(this.state.value)}
+      </Text>,
+      <Icon key="icon" type="iconfont-caret-down" style={styleIcon} />,
     ]
   }
 
-  _renderPicker (style: Object, selectOnChange: boolean): React$Element<*> {
-    const pickItem = this.showingPick ? [{key: pickItemValue, value: pickItemValue, label: this._label(pickItemValue)}] : []
-    const actualItems = (this.props.options || []).map(o => ({key: o, label: o, value: o}))
-    const otherItem = this.props.onOther ? {key: otherItemValue, label: this._label(otherItemValue), value: otherItemValue} : []
+  _renderPicker(style: Object, selectOnChange: boolean): React$Element<*> {
+    const pickItem = this.showingPick
+      ? [
+          {
+            key: pickItemValue,
+            value: pickItemValue,
+            label: this._label(pickItemValue),
+          },
+        ]
+      : []
+    const actualItems = (this.props.options || [])
+      .map(o => ({key: o, label: o, value: o}))
+    const otherItem = this.props.onOther
+      ? {
+          key: otherItemValue,
+          label: this._label(otherItemValue),
+          value: otherItemValue,
+        }
+      : []
     const items = pickItem.concat(actualItems).concat(otherItem)
 
     const onValueChange = value => {
@@ -119,13 +151,17 @@ class Dropdown extends Component<void, Props, State> {
     }
 
     return (
-      <NativePicker style={style} selectedValue={this.state.value} onValueChange={onValueChange}>
+      <NativePicker
+        style={style}
+        selectedValue={this.state.value}
+        onValueChange={onValueChange}
+      >
         {items.map(i => <NativePicker.Item key={i.label} {...i} />)}
       </NativePicker>
     )
   }
 
-  _renderAndroid (): React$Element<*> {
+  _renderAndroid(): React$Element<*> {
     // MM: This is super tricky. _renderPicker is an invisible box that, when clicked, opens
     // the native picker. We need to make sure it's the last thing drawn so it lies on top of
     // everything else.
@@ -138,13 +174,20 @@ class Dropdown extends Component<void, Props, State> {
     )
   }
 
-  _renderIOS (): React$Element<*> {
+  _renderIOS(): React$Element<*> {
     return (
       <NativeTouchableWithoutFeedback onPress={() => this._showModal(true)}>
         <Box style={{...styleContainer, ...this.props.style}}>
-          <NativeModal animationType={'slide'} transparent={true} visible={this.state.modalVisible} onRequestClose={() => this._showModal(false)}>
+          <NativeModal
+            animationType={'slide'}
+            transparent={true}
+            visible={this.state.modalVisible}
+            onRequestClose={() => this._showModal(false)}
+          >
             <Box style={stylePickerContainer}>
-              <NativeTouchableWithoutFeedback onPress={() => this._showModal(false)}>
+              <NativeTouchableWithoutFeedback
+                onPress={() => this._showModal(false)}
+              >
                 <Box style={{flex: 1}} />
               </NativeTouchableWithoutFeedback>
               {this._renderPicker(stylePickerIOS, false)}
@@ -156,7 +199,7 @@ class Dropdown extends Component<void, Props, State> {
     )
   }
 
-  render (): React$Element<*> {
+  render(): React$Element<*> {
     return isIOS ? this._renderIOS() : this._renderAndroid()
   }
 }

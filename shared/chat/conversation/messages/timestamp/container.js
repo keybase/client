@@ -11,7 +11,8 @@ import type {OwnProps} from './container'
 
 const getTimestampString = createCachedSelector(
   [Constants.getMessageFromMessageKey],
-  (message: Constants.TimestampMessage) => formatTimeForMessages(message.timestamp)
+  (message: Constants.TimestampMessage) =>
+    formatTimeForMessages(message.timestamp)
 )((state, messageKey) => messageKey)
 
 const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
@@ -20,6 +21,4 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
   }
 }
 
-export default compose(
-  connect(mapStateToProps, () => ({})),
-)(Timestamp)
+export default compose(connect(mapStateToProps, () => ({})))(Timestamp)

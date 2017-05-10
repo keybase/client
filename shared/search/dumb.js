@@ -124,7 +124,12 @@ const commonProps = {
   showUserGroup: false,
   userForInfoPane: commonUsers[0],
   // $FlowIssue
-  userPane: <UserPane mode='keybase' userInfoProps={userPaneMocks['Search User Pane'].mocks['Unfollowed']} />,
+  userPane: (
+    <UserPane
+      mode="keybase"
+      userInfoProps={userPaneMocks['Search User Pane'].mocks['Unfollowed']}
+    />
+  ),
   username: 'bob',
   waiting: false,
 }
@@ -137,7 +142,7 @@ const searchMap: DumbComponentMap<Search> = {
       chatEnabled: true,
       showUserGroup: true,
     },
-    'Group': {
+    Group: {
       ...commonProps,
       showUserGroup: true,
     },
@@ -146,33 +151,61 @@ const searchMap: DumbComponentMap<Search> = {
       showUserGroup: true,
       userForInfoPane: commonUsers[2],
       // $FlowIssue
-      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Normal']} />,
+      userPane: (
+        <UserPane
+          mode="external"
+          nonUserInfoProps={
+            userPaneMocks['Search Non-User Pane'].mocks['Normal']
+          }
+        />
+      ),
     },
     'Group non-user Has Invite': {
       ...commonProps,
       showUserGroup: true,
       userForInfoPane: commonUsers[2],
       // $FlowIssue
-      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Has Invite']} />,
+      userPane: (
+        <UserPane
+          mode="external"
+          nonUserInfoProps={
+            userPaneMocks['Search Non-User Pane'].mocks['Has Invite']
+          }
+        />
+      ),
     },
     'Group non-user No Avatar': {
       ...commonProps,
       showUserGroup: true,
       userForInfoPane: commonUsers[2],
       // $FlowIssue
-      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['No Avatar']} />,
+      userPane: (
+        <UserPane
+          mode="external"
+          nonUserInfoProps={
+            userPaneMocks['Search Non-User Pane'].mocks['No Avatar']
+          }
+        />
+      ),
     },
     'Group non-user Out of invites': {
       ...commonProps,
       showUserGroup: true,
       userForInfoPane: commonUsers[2],
       // $FlowIssue
-      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Out of invites']} />,
+      userPane: (
+        <UserPane
+          mode="external"
+          nonUserInfoProps={
+            userPaneMocks['Search Non-User Pane'].mocks['Out of invites']
+          }
+        />
+      ),
     },
-    'Searching': {
+    Searching: {
       ...commonProps,
     },
-    'Waiting': {
+    Waiting: {
       ...commonProps,
       results: [],
       showUserGroup: true,
@@ -182,5 +215,5 @@ const searchMap: DumbComponentMap<Search> = {
 }
 
 export default {
-  'Search': searchMap,
+  Search: searchMap,
 }

@@ -11,16 +11,26 @@ type StateColors = {
   username: string,
 }
 
-export function stateColors (currentlyFollowing: boolean, trackerState: SimpleProofState, defaultColor?: string): StateColors {
+export function stateColors(
+  currentlyFollowing: boolean,
+  trackerState: SimpleProofState,
+  defaultColor?: string
+): StateColors {
   if (currentlyFollowing) {
     if ([warning, error].indexOf(trackerState) !== -1) {
       return {
-        header: {background: globalColors.red, text: globalColors.white},
+        header: {
+          background: globalColors.red,
+          text: globalColors.white,
+        },
         username: globalColors.red,
       }
     } else {
       return {
-        header: {background: globalColors.green, text: globalColors.white},
+        header: {
+          background: globalColors.green,
+          text: globalColors.white,
+        },
         username: globalColors.green2,
       }
     }

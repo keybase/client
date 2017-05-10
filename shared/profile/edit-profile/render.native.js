@@ -11,36 +11,42 @@ const EditProfileRender = (props: Props) => (
       autoCorrect={true}
       autoFocus={true}
       style={styleInput}
-      floatingHintTextOverride='Full name'
-      hintText='Full name'
+      floatingHintTextOverride="Full name"
+      hintText="Full name"
       value={props.fullname}
       onEnterKeyDown={props.onSubmit}
-      onChangeText={fullname => props.onFullnameChange(fullname)} />
+      onChangeText={fullname => props.onFullnameChange(fullname)}
+    />
     <Input
       autoCorrect={true}
       style={styleInput}
-      floatingHintTextOverride='Location'
-      hintText='Location'
+      floatingHintTextOverride="Location"
+      hintText="Location"
       value={props.location}
       onEnterKeyDown={props.onSubmit}
-      onChangeText={location => props.onLocationChange(location)} />
+      onChangeText={location => props.onLocationChange(location)}
+    />
     <Input
       autoCorrect={true}
       style={styleInput}
-      floatingHintTextOverride='Bio'
-      hintText='Bio'
+      floatingHintTextOverride="Bio"
+      hintText="Bio"
       value={props.bio}
       multiline={true}
       rowsMin={1}
       rowsMax={3}
-      errorText={props.bioLengthLeft <= 5 ? props.bioLengthLeft + ' chars left' : ''}
-      onChangeText={bio => props.onBioChange(bio)} />
+      errorText={
+        props.bioLengthLeft <= 5 ? props.bioLengthLeft + ' chars left' : ''
+      }
+      onChangeText={bio => props.onBioChange(bio)}
+    />
     <Button
       style={styleButton}
-      type='Primary'
+      type="Primary"
       fullWidth={true}
       onClick={props.onSubmit}
-      label='Save' />
+      label="Save"
+    />
   </StandardScreen>
 )
 

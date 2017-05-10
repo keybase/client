@@ -6,17 +6,35 @@ import {globalColors, globalMargins, globalStyles} from '../styles'
 
 import type {Props} from './popup-dialog'
 
-function stopBubbling (ev) {
+function stopBubbling(ev) {
   ev.stopPropagation()
 }
 
-export function PopupDialog ({children, onClose, fill, styleCover, styleContainer, styleClose, styleClipContainer, allowClipBubbling}: Props) {
+export function PopupDialog({
+  children,
+  onClose,
+  fill,
+  styleCover,
+  styleContainer,
+  styleClose,
+  styleClipContainer,
+  allowClipBubbling,
+}: Props) {
   return (
     <EscapeHandler onESC={onClose}>
       <Box style={{...coverStyle, ...styleCover}} onClick={onClose}>
-        <Box style={{...containerStyle, ...(fill ? containerFillStyle : null), ...styleContainer}}>
-          <Icon type='iconfont-close' style={{...closeStyle, ...styleClose}} />
-          <Box style={{...clipContainerStyle, ...styleClipContainer}} onClick={allowClipBubbling ? undefined : stopBubbling}>
+        <Box
+          style={{
+            ...containerStyle,
+            ...(fill ? containerFillStyle : null),
+            ...styleContainer,
+          }}
+        >
+          <Icon type="iconfont-close" style={{...closeStyle, ...styleClose}} />
+          <Box
+            style={{...clipContainerStyle, ...styleClipContainer}}
+            onClick={allowClipBubbling ? undefined : stopBubbling}
+          >
             {children}
           </Box>
         </Box>
@@ -65,7 +83,7 @@ const clipContainerStyle = {
 
 const closeStyle = {
   position: 'absolute',
-  right: -16 - globalMargins.tiny + 2,  // FIXME: 2px fudge since icon isn't sized to 16px extents
+  right: -16 - globalMargins.tiny + 2, // FIXME: 2px fudge since icon isn't sized to 16px extents
   color: globalColors.white,
   cursor: 'pointer',
 }

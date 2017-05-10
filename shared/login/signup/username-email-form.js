@@ -12,9 +12,9 @@ type State = {
 }
 
 class UsernameEmailForm extends Component {
-  state: State;
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     this.state = {
@@ -23,18 +23,20 @@ class UsernameEmailForm extends Component {
     }
   }
 
-  render () {
+  render() {
     return (
       <Render
         usernameChange={username => this.setState({username})}
         username={this.state.username}
         emailChange={email => this.setState({email})}
         email={this.state.email}
-        onSubmit={() => this.props.checkUsernameEmail(this.state.username, this.state.email)}
+        onSubmit={() =>
+          this.props.checkUsernameEmail(this.state.username, this.state.email)}
         usernameErrorText={this.props.usernameErrorText}
         emailErrorText={this.props.emailErrorText}
         onBack={this.props.restartSignup}
-        waiting={this.props.waiting} />
+        waiting={this.props.waiting}
+      />
     )
   }
 }
@@ -42,7 +44,8 @@ class UsernameEmailForm extends Component {
 // $FlowIssue type this connector
 export default connect(
   state => ({
-    usernameErrorText: state.signup.usernameError && state.signup.usernameError.message,
+    usernameErrorText: state.signup.usernameError &&
+      state.signup.usernameError.message,
     emailErrorText: state.signup.emailError && state.signup.emailError.message,
     username: state.signup.username,
     email: state.signup.email,
