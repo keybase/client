@@ -4,8 +4,13 @@ import React, {Component} from 'react'
 import type {Props} from './index'
 import {NativeImage, Box} from '../../../../common-adapters/index.native'
 import {globalStyles} from '../../../../styles'
+import {throttle} from 'lodash'
 
 class QR extends Component<void, Props, void> {
+  _onBarCodeRead = throttle(data => {
+    this.props.onBarCodeRead(data)
+  }, 1000)
+
   render () {
     if (this.props.scanning) {
       return (
@@ -13,7 +18,7 @@ class QR extends Component<void, Props, void> {
           style={{...cameraStyle, ...this.props.style}}
           captureAudio={false}
           ref='cam'
-          onBarCodeRead={data => this.props.onBarCodeRead(data)}>
+          onBarCodeRead={this._onBarCodeRead}>
           {this.props.children}
         </Camera>
       )

@@ -5,6 +5,7 @@ import React, {Component} from 'react'
 import type {Props} from './index'
 import {NativeImage, Box, Text} from '../../../../common-adapters/index.native'
 import {globalStyles} from '../../../../styles'
+import {throttle} from 'lodash'
 
 type PermissionStatus = 'granted' | 'denied' | 'never_ask_again'
 
@@ -40,6 +41,10 @@ class QR extends Component<void, Props, State> {
     }
   }
 
+  _onBarCodeRead = throttle(data => {
+    this.props.onBarCodeRead(data)
+  }, 1000)
+
   render () {
     if (this.props.scanning) {
       if (this.state.permissionGranted) {
@@ -48,7 +53,7 @@ class QR extends Component<void, Props, State> {
             style={{...cameraStyle, ...this.props.style}}
             captureAudio={false}
             ref='cam'
-            onBarCodeRead={data => this.props.onBarCodeRead(data)}>
+            onBarCodeRead={this._onBarCodeRead}>
             {this.props.children}
           </Camera>
         )
