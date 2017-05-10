@@ -115,8 +115,6 @@ func TestPaperKeyMulti(t *testing.T) {
 }
 
 func TestPaperKeyMultiSDH(t *testing.T) {
-	t.Skip("TODO waiting for PerUserSecretRewrite")
-
 	testPaperKeyMulti(t, true)
 }
 
@@ -197,7 +195,7 @@ func TestPaperKeyRevoke(t *testing.T) {
 
 // make a paperkey after revoking a previous one
 func TestPaperKeyAfterRevokeSDH(t *testing.T) {
-	t.Skip("TODO waiting for PerUserSecretRewrite")
+	t.Skip("TODO waiting for CORE-4895 RevokePUK")
 
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()

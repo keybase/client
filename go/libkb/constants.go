@@ -146,12 +146,13 @@ const (
 	KeybaseKIDV1     = 1 // Uses SHA-256
 	OneYearInSeconds = 24 * 60 * 60 * 365
 
-	SigExpireIn       = OneYearInSeconds * 16 // 16 years
-	NaclEdDSAExpireIn = OneYearInSeconds * 16 // 16 years
-	NaclDHExpireIn    = OneYearInSeconds * 16 // 16 years
-	KeyExpireIn       = OneYearInSeconds * 16 // 16 years
-	SubkeyExpireIn    = OneYearInSeconds * 16 // 16 years
-	AuthExpireIn      = OneYearInSeconds      // 1 year
+	SigExpireIn            = OneYearInSeconds * 16 // 16 years
+	NaclEdDSAExpireIn      = OneYearInSeconds * 16 // 16 years
+	NaclDHExpireIn         = OneYearInSeconds * 16 // 16 years
+	NaclPerUserKeyExpireIn = OneYearInSeconds * 16 // 16 years
+	KeyExpireIn            = OneYearInSeconds * 16 // 16 years
+	SubkeyExpireIn         = OneYearInSeconds * 16 // 16 years
+	AuthExpireIn           = OneYearInSeconds      // 1 year
 
 	PaperKeyMemoryTimeout = time.Hour
 )
@@ -263,15 +264,15 @@ const (
 	LinkTypeUpdatePassphrase           = "update_passphrase_hash"
 	LinkTypeUpdateSettings             = "update_settings"
 	LinkTypeWebServiceBinding          = "web_service_binding"
+	LinkTypePerUserKey                 = "per_user_key"
 
 	// team links
 	LinkTypeTeamRoot LinkType = "team.root"
 
-	DelegationTypeEldest      DelegationType = "eldest"
-	DelegationTypePGPUpdate                  = "pgp_update"
-	DelegationTypeSibkey                     = "sibkey"
-	DelegationTypeSubkey                     = "subkey"
-	DelegationTypeSharedDHKey                = "shared_dh_key"
+	DelegationTypeEldest    DelegationType = "eldest"
+	DelegationTypePGPUpdate                = "pgp_update"
+	DelegationTypeSibkey                   = "sibkey"
+	DelegationTypeSubkey                   = "subkey"
 )
 
 const (
@@ -425,7 +426,8 @@ const (
 	DLGNone KeyRole = iota
 	DLGSibkey
 	DLGSubkey
-	DLGSharedDHKey
+	DLGPerUserKey
+	// DLGSharedDHKey
 )
 
 const (
@@ -513,6 +515,15 @@ const (
 const (
 	EncryptionReasonChatLocalStorage EncryptionReason = "Keybase-Chat-Local-Storage-1"
 	EncryptionReasonChatMessage      EncryptionReason = "Keybase-Chat-Message-1"
+)
+
+type DeriveReason string
+
+const (
+	DeriveReasonPUKSigning    DeriveReason = "Derived-User-NaCl-EdDSA-1"
+	DeriveReasonPUKEncryption DeriveReason = "Derived-User-NaCl-DH-1"
+	// Context used for chaining generations of PerUserKeys.
+	DeriveReasonPUKPrev DeriveReason = "Derived-User-NaCl-SecretBox-1"
 )
 
 // FirstPRodMerkleSeqnoWithSkips is the first merkle root on production that

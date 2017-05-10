@@ -275,12 +275,12 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 	output.PpsEncrypted, err = key.EncryptToString(ppsPacked, nil)
 
 	if e.G().Env.GetEnableSharedDH() {
-		sdhBoxes, err := e.makeSdhBoxes(key)
+		pukBox, err := e.makePukBox(key)
 		if err != nil {
 			return output, err
 		}
-		output.SdhBoxes = sdhBoxes
-		// TODO if SDH_UPGRADE: may want to add a key here.
+		output.PukBox = &pukBox
+		// TODO if PUK_UPGRADE: may want to add a key here.
 	}
 
 	return output, err
@@ -383,26 +383,26 @@ func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
 	return nil
 }
 
-func (e *Kex2Provisioner) makeSdhBoxes(receiverKeyGeneric libkb.GenericKey) (res []keybase1.SharedDHSecretKeyBox, err error) {
+func (e *Kex2Provisioner) makePukBox(receiverKeyGeneric libkb.GenericKey) (res keybase1.PerUserKeyBox, err error) {
 	if !e.G().Env.GetEnableSharedDH() {
-		return nil, errors.New("shared dh disabled")
+		return res, errors.New("shared dh disabled")
 	}
 	receiverKey, ok := receiverKeyGeneric.(libkb.NaclDHKeyPair)
 	if !ok {
 		return res, fmt.Errorf("Unexpected receiver key type")
 	}
 
-	sdhk, err := e.G().GetSharedDHKeyring()
+	pukring, err := e.G().GetPerUserKeyring()
 	if err != nil {
 		return res, err
 	}
-	err = sdhk.Sync(e.ctx.NetContext)
+	err = pukring.Sync(e.ctx.NetContext)
 	if err != nil {
 		return res, err
 	}
 
-	sdhBoxes, err := sdhk.PrepareBoxesForNewDevice(e.ctx.NetContext,
+	pukBox, err := pukring.PrepareBoxForNewDevice(e.ctx.NetContext,
 		receiverKey,     // receiver key: provisionee enc
 		e.encryptionKey) // sender key: this device enc
-	return sdhBoxes, err
+	return pukBox, err
 }

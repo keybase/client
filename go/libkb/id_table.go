@@ -624,9 +624,6 @@ func (s *SibkeyChainLink) Type() string                  { return DelegationType
 func (s *SibkeyChainLink) ToDisplayString() string       { return s.kid.String() }
 func (s *SibkeyChainLink) GetDevice() *Device            { return s.device }
 func (s *SibkeyChainLink) GetPGPFullHash() string        { return s.extractPGPFullHash("sibkey") }
-func (s *SibkeyChainLink) insertIntoTable(tab *IdentityTable) {
-	tab.insertLink(s)
-}
 
 //-------------------------------------
 
@@ -721,33 +718,44 @@ func (s *SubkeyChainLink) insertIntoTable(tab *IdentityTable) {
 //=========================================================================
 
 //=========================================================================
-// SharedDHKeyChainLink
+// PerUserKeyChainLink
 
-type SharedDHKeyChainLink struct {
+type PerUserKeyChainLink struct {
 	GenericChainLink
-	kid        keybase1.KID
-	generation keybase1.SharedDHKeyGeneration
+	// KID of the signing key derived from the per-user-secret.
+	sigKID keybase1.KID
+	// KID of the encryption key derived from the per-user-secret.
+	encKID     keybase1.KID
+	generation keybase1.PerUserKeyGeneration
 }
 
-func ParseSharedDHKeyChainLink(b GenericChainLink) (ret *SharedDHKeyChainLink, err error) {
-	var kid keybase1.KID
+func ParsePerUserKeyChainLink(b GenericChainLink) (ret *PerUserKeyChainLink, err error) {
+	var sigKID, encKID keybase1.KID
 	var g int
-	section := b.payloadJSON.AtPath("body.shared_dh_key")
-	if kid, err = GetKID(section.AtKey("kid")); err != nil {
-		err = ChainLinkError{fmt.Sprintf("Can't get KID for shared_dh @%s: %s", b.ToDebugString(), err)}
+	section := b.payloadJSON.AtPath("body.per_user_key")
+	if sigKID, err = GetKID(section.AtKey("signing_kid")); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Can't get signing KID for per_user_secret: @%s: %s", b.ToDebugString(), err)}
+	} else if encKID, err = GetKID(section.AtKey("encryption_kid")); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Can't get encryption KID for per_user_secret: @%s: %s", b.ToDebugString(), err)}
 	} else if g, err = section.AtKey("generation").GetInt(); err != nil {
-		err = ChainLinkError{fmt.Sprintf("Can't get generation for shared_dh @%s: %s", b.ToDebugString(), err)}
+		err = ChainLinkError{fmt.Sprintf("Can't get generation for per_user_secret @%s: %s", b.ToDebugString(), err)}
 	} else {
-		ret = &SharedDHKeyChainLink{b, kid, keybase1.SharedDHKeyGeneration(g)}
+		ret = &PerUserKeyChainLink{b, sigKID, encKID, keybase1.PerUserKeyGeneration(g)}
 	}
 	return ret, err
 }
 
-func (s *SharedDHKeyChainLink) Type() string                  { return DelegationTypeSharedDHKey }
-func (s *SharedDHKeyChainLink) ToDisplayString() string       { return s.kid.String() }
-func (s *SharedDHKeyChainLink) GetRole() KeyRole              { return DLGSharedDHKey }
-func (s *SharedDHKeyChainLink) GetDelegatedKid() keybase1.KID { return s.kid }
-func (s *SharedDHKeyChainLink) insertIntoTable(tab *IdentityTable) {
+func (s *PerUserKeyChainLink) Type() string { return LinkTypePerUserKey }
+func (s *PerUserKeyChainLink) ToDisplayString() string {
+	return s.sigKID.String() + " + " + s.encKID.String()
+}
+
+// Don't consider per-user-keys as normal delegations. Because they have
+// multiple kids and initially can't delegate further. They are handled
+// separately by the sigchain loader.
+func (s *PerUserKeyChainLink) GetRole() KeyRole                    { return DLGNone }
+func (s *PerUserKeyChainLink) GetDelegatedKid() (res keybase1.KID) { return }
+func (s *PerUserKeyChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(s)
 }
 
@@ -1112,8 +1120,8 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseSubkeyChainLink(base)
 		case DelegationTypePGPUpdate:
 			ret, err = ParsePGPUpdateChainLink(base)
-		case DelegationTypeSharedDHKey:
-			ret, err = ParseSharedDHKeyChainLink(base)
+		case "per_user_key":
+			ret, err = ParsePerUserKeyChainLink(base)
 		case "device":
 			ret, err = ParseDeviceChainLink(base)
 		default:

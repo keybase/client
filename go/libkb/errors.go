@@ -1876,12 +1876,18 @@ var _ error = (*PseudonymGetError)(nil)
 
 //=============================================================================
 
-type SharedDHImportError struct {
+type PerUserKeyImportError struct {
 	msg string
 }
 
-func (e SharedDHImportError) Error() string {
-	return fmt.Sprintf("shared DH import error: %s", e.msg)
+func (e PerUserKeyImportError) Error() string {
+	return fmt.Sprintf("per-user-key import error: %s", e.msg)
+}
+
+func NewPerUserKeyImportError(format string, args ...interface{}) PerUserKeyImportError {
+	return PerUserKeyImportError{
+		msg: fmt.Sprintf(format, args...),
+	}
 }
 
 //=============================================================================

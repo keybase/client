@@ -188,23 +188,24 @@ func TestProvisionDesktop(t *testing.T) {
 }
 
 func TestProvisionDesktopSDH(t *testing.T) {
-	t.Skip("TODO waiting for PerUserSecretRewrite")
-
 	testProvisionDesktop(t, true)
 }
 
 func testProvisionDesktop(t *testing.T, enableSharedDH bool) {
 	// device X (provisioner) context:
+	t.Logf("setup X")
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
 	tcX.Tp.EnableSharedDH = enableSharedDH
 
 	// device Y (provisionee) context:
+	t.Logf("setup Y")
 	tcY := SetupEngineTest(t, "template")
 	defer tcY.Cleanup()
 	tcY.Tp.EnableSharedDH = enableSharedDH
 
 	// provisioner needs to be logged in
+	t.Logf("provisioner login")
 	userX := CreateAndSignupFakeUserPaper(tcX, "login")
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
@@ -214,6 +215,7 @@ func testProvisionDesktop(t *testing.T, enableSharedDH bool) {
 	secretCh := make(chan kex2.Secret)
 
 	// provisionee calls login:
+	t.Logf("provisionee login")
 	ctx := &Context{
 		ProvisionUI: newTestProvisionUISecretCh(secretCh),
 		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
@@ -226,9 +228,11 @@ func testProvisionDesktop(t *testing.T, enableSharedDH bool) {
 	var wg sync.WaitGroup
 
 	// start provisionee
+	t.Logf("start provisionee")
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
 		if err := RunEngine(eng, ctx); err != nil {
 			t.Errorf("login error: %s", err)
 			return
@@ -236,6 +240,7 @@ func testProvisionDesktop(t *testing.T, enableSharedDH bool) {
 	}()
 
 	// start provisioner
+	t.Logf("start provisioner")
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 	wg.Add(1)
 	go func() {
@@ -250,13 +255,17 @@ func testProvisionDesktop(t *testing.T, enableSharedDH bool) {
 			return
 		}
 	}()
+
 	secretFromY := <-secretCh
+
 	provisioner.AddSecret(secretFromY)
 
+	t.Logf("wait")
 	wg.Wait()
 
 	require.False(t, t.Failed(), "prior failure in a goroutine")
 
+	t.Logf("asserts")
 	if err := AssertProvisioned(tcY); err != nil {
 		t.Fatal(err)
 	}
@@ -291,6 +300,7 @@ func testProvisionDesktop(t *testing.T, enableSharedDH bool) {
 		}
 	}
 
+	t.Logf("test tracks")
 	testTrack("t_alice")
 
 	// Make sure that we can still track without a passphrase
@@ -355,7 +365,9 @@ func TestProvisionMobile(t *testing.T) {
 			return
 		}
 	}()
+
 	secretFromY := <-secretCh
+
 	provisioner.AddSecret(secretFromY)
 
 	wg.Wait()
@@ -406,7 +418,6 @@ func TestProvisionPassphraseNoKeysSolo(t *testing.T) {
 }
 
 func TestProvisionPassphraseNoKeysSoloSDH(t *testing.T) {
-	t.Skip("TODO waiting for PerUserSecretRewrite")
 	testProvisionPassphraseNoKeysSolo(t, true)
 }
 
@@ -2558,8 +2569,7 @@ func TestProvisionEnsurePaperKey(t *testing.T) {
 }
 
 func TestProvisionEnsurePaperKeySDH(t *testing.T) {
-	t.Skip("TODO waiting for PerUserSecretRewrite")
-
+	t.Skip("TODO waiting for CORE-4895 RevokePUK")
 	testProvisionEnsurePaperKey(t, true)
 }
 

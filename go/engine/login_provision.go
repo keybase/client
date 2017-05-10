@@ -19,17 +19,17 @@ import (
 // device.  Only the Login engine should run it.
 type loginProvision struct {
 	libkb.Contextified
-	arg             *loginProvisionArg
-	lks             *libkb.LKSec
-	signingKey      libkb.GenericKey
-	encryptionKey   libkb.NaclDHKeyPair
-	gpgCli          gpgInterface
-	username        string
-	devname         string
-	cleanupOnErr    bool
-	hasPGP          bool
-	hasDevice       bool
-	sharedDHKeyring *libkb.SharedDHKeyring
+	arg            *loginProvisionArg
+	lks            *libkb.LKSec
+	signingKey     libkb.GenericKey
+	encryptionKey  libkb.NaclDHKeyPair
+	gpgCli         gpgInterface
+	username       string
+	devname        string
+	cleanupOnErr   bool
+	hasPGP         bool
+	hasDevice      bool
+	perUserKeyring *libkb.PerUserKeyring
 }
 
 // gpgInterface defines the portions of gpg client that provision
@@ -102,7 +102,7 @@ func (e *loginProvision) Run(ctx *Context) error {
 	}()
 
 	if e.G().Env.GetEnableSharedDH() {
-		e.sharedDHKeyring, err = libkb.NewSharedDHKeyring(e.G(), e.arg.User.GetUID())
+		e.perUserKeyring, err = libkb.NewPerUserKeyring(e.G(), e.arg.User.GetUID())
 		if err != nil {
 			return err
 		}
@@ -414,11 +414,11 @@ func (e *loginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, erro
 	e.devname = devname
 
 	return &DeviceWrapArgs{
-		Me:              e.arg.User,
-		DeviceName:      e.devname,
-		DeviceType:      e.arg.DeviceType,
-		Lks:             e.lks,
-		SharedDHKeyring: e.sharedDHKeyring,
+		Me:             e.arg.User,
+		DeviceName:     e.devname,
+		DeviceType:     e.arg.DeviceType,
+		Lks:            e.lks,
+		PerUserKeyring: e.perUserKeyring,
 	}, nil
 }
 
@@ -977,11 +977,11 @@ func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 
 	// make one
 	args := &PaperKeyPrimaryArgs{
-		Me:              e.arg.User,
-		SigningKey:      e.signingKey,
-		EncryptionKey:   e.encryptionKey,
-		LoginContext:    nil,
-		SharedDHKeyring: e.sharedDHKeyring,
+		Me:             e.arg.User,
+		SigningKey:     e.signingKey,
+		EncryptionKey:  e.encryptionKey,
+		LoginContext:   nil,
+		PerUserKeyring: e.perUserKeyring,
 	}
 	eng := NewPaperKeyPrimary(e.G(), args)
 	return RunEngine(eng, ctx)

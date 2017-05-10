@@ -18,7 +18,6 @@ func TestKex2Provision(t *testing.T) {
 }
 
 func TestKex2ProvisionSDH(t *testing.T) {
-	t.Skip("TODO waiting for PerUserSecretRewrite")
 	subTestKex2Provision(t, true)
 }
 

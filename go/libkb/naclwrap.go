@@ -793,6 +793,25 @@ func DeriveSymmetricKey(inKey NaclSecretBoxKey, reason EncryptionReason) (NaclSe
 	return outKey, nil
 }
 
+func DeriveNonReversed(inKey [32]byte, reason DeriveReason) (outKey [32]byte, err error) {
+	if len(reason) < 8 {
+		return outKey, KeyGenError{Msg: "reason must be at least 8 bytes"}
+	}
+
+	mac := hmac.New(sha256.New, inKey[:])
+	_, err = mac.Write([]byte(reason))
+	if err != nil {
+		return outKey, err
+	}
+	out := mac.Sum(nil)
+
+	if copy(outKey[:], out) != len(outKey) {
+		return outKey, KeyGenError{Msg: "derived key of wrong size"}
+	}
+
+	return outKey, nil
+}
+
 // ToPacket implements the Packetable interface.
 func (k *NaclEncryptionInfo) ToPacket() (ret *KeybasePacket, err error) {
 	return NewKeybasePacket(k, TagEncryption, KeybasePacketV1)
@@ -859,4 +878,14 @@ func (k NaclDHKeyPair) Decrypt(nei *NaclEncryptionInfo) (plaintext []byte, sende
 	}
 	sender = senderDH.GetKID()
 	return
+}
+
+func GeneratePerUserKeySeed() (PerUserKeySeed, error) {
+	var seed [PerUserKeySeedSize]byte
+	if nRead, err := rand.Read(seed[:]); err != nil {
+		return seed, err
+	} else if nRead != len(seed) {
+		return seed, fmt.Errorf("Short random read: %d", nRead)
+	}
+	return seed, nil
 }

@@ -72,7 +72,7 @@ func TestRevokeDevice(t *testing.T) {
 }
 
 func TestRevokeDeviceSDH(t *testing.T) {
-	t.Skip("TODO waiting for PerUserSecretRewrite")
+	t.Skip("TODO waiting for CORE-4895 RevokePUK")
 
 	testRevokeDevice(t, true)
 }
@@ -116,7 +116,7 @@ func TestRevokePaperDevice(t *testing.T) {
 }
 
 func TestRevokePaperDeviceSDH(t *testing.T) {
-	t.Skip("TODO waiting for PerUserSecretRewrite")
+	t.Skip("TODO waiting for CORE-4895 RevokePUK")
 
 	testRevokePaperDevice(t, true)
 }
@@ -146,18 +146,18 @@ func testRevokePaperDevice(t *testing.T, enableSharedDH bool) {
 	assertNumDevicesAndKeys(tc, u, 1, 2)
 
 	if tc.G.Env.GetEnableSharedDH() {
-		checkSharedDHKeyring(t, tc.G, 2)
+		checkPerUserKeyring(t, tc.G, 2)
 	}
 }
 
-func checkSharedDHKeyring(t *testing.T, g *libkb.GlobalContext, expectedCurrentGeneration int) {
+func checkPerUserKeyring(t *testing.T, g *libkb.GlobalContext, expectedCurrentGeneration int) {
 	// double check that the sdh keyring is correct
-	g.ClearSharedDHKeyring()
-	require.NoError(t, g.BumpSharedDHKeyring())
-	sdhk, err := g.GetSharedDHKeyring()
+	g.ClearPerUserKeyring()
+	require.NoError(t, g.BumpPerUserKeyring())
+	pukring, err := g.GetPerUserKeyring()
 	require.NoError(t, err)
-	require.NoError(t, sdhk.Sync(context.TODO()))
-	require.Equal(t, expectedCurrentGeneration, sdhk.CurrentGeneration())
+	require.NoError(t, pukring.Sync(context.TODO()))
+	require.Equal(t, expectedCurrentGeneration, pukring.CurrentGeneration())
 }
 
 func TestRevokeKey(t *testing.T) {

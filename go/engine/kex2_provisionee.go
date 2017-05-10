@@ -224,7 +224,7 @@ func (e *Kex2Provisionee) HandleDidCounterSign2(arg keybase1.DidCounterSign2Arg)
 		e.G().Log.Debug("| Failed to unpack pps: %s", err)
 		return err
 	}
-	return e.handleDidCounterSign(arg.Sig, arg.SdhBoxes)
+	return e.handleDidCounterSign(arg.Sig, arg.PukBox)
 }
 
 // HandleDidCounterSign implements HandleDidCounterSign in
@@ -233,7 +233,7 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 	return e.handleDidCounterSign(sig, nil)
 }
 
-func (e *Kex2Provisionee) handleDidCounterSign(sig []byte, sdhBoxes []keybase1.SharedDHSecretKeyBox) (err error) {
+func (e *Kex2Provisionee) handleDidCounterSign(sig []byte, perUserKeyBox *keybase1.PerUserKeyBox) (err error) {
 	e.G().Log.Debug("+ HandleDidCounterSign()")
 	defer func() { e.G().Log.Debug("- HandleDidCounterSign() -> %s", libkb.ErrToOk(err)) }()
 
@@ -285,7 +285,7 @@ func (e *Kex2Provisionee) handleDidCounterSign(sig []byte, sdhBoxes []keybase1.S
 	}
 
 	// post the key sigs to the api server
-	if err = e.postSigs(eddsaArgs, dhArgs, sdhBoxes); err != nil {
+	if err = e.postSigs(eddsaArgs, dhArgs, perUserKeyBox); err != nil {
 		return err
 	}
 
@@ -459,14 +459,13 @@ func (e *Kex2Provisionee) reverseSig(jw *jsonw.Wrapper) error {
 
 // postSigs takes the HTTP args for the signing key and encrypt
 // key and posts them to the api server.
-func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs, sdhBoxes []keybase1.SharedDHSecretKeyBox) error {
+func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs, perUserKeyBox *keybase1.PerUserKeyBox) error {
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []map[string]string{firstValues(signingArgs.ToValues()), firstValues(encryptArgs.ToValues())}
 
-	// Post the shared dh keys encrypted for the provisionee device by the provisioner.
-	if len(sdhBoxes) > 0 {
-		payload["shared_dh_secret_boxes"] = sdhBoxes
-		payload["shared_dh_generation"] = sdhBoxes[0].Generation
+	// Post the per-user-secret encrypted for the provisionee device by the provisioner.
+	if perUserKeyBox != nil {
+		libkb.AddPerUserKeyServerArg(payload, perUserKeyBox.Generation, []keybase1.PerUserKeyBox{*perUserKeyBox}, nil)
 	}
 
 	arg := libkb.APIArg{
