@@ -9,26 +9,38 @@ import type {Props} from './confirm-or-pending'
 import type {TypedDispatch} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
 
-const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
+const connector: TypedConnector<
+  TypedState,
+  TypedDispatch<{}>,
+  {},
+  Props
+> = new TypedConnector()
 
-export default connector.connect(
-  (state, dispatch, ownProps) => {
-    const profile = state.profile
-    const isGood = profile.proofFound && profile.proofStatus === ProveCommonProofStatus.ok
-    const isPending = !isGood && !profile.proofFound && !!profile.proofStatus && profile.proofStatus <= ProveCommonProofStatus.baseHardError
+export default connector.connect((state, dispatch, ownProps) => {
+  const profile = state.profile
+  const isGood =
+    profile.proofFound && profile.proofStatus === ProveCommonProofStatus.ok
+  const isPending =
+    !isGood &&
+    !profile.proofFound &&
+    !!profile.proofStatus &&
+    profile.proofStatus <= ProveCommonProofStatus.baseHardError
 
-    if (!profile.platform) {
-      throw new Error('No platform passed to confirm or pending container')
-    }
-
-    return {
-      isPending,
-      onCancel: () => { dispatch(cancelAddProof()) },
-      onReloadProfile: () => { dispatch(backToProfile()) },
-      platform: profile.platform,
-      platformIconOverlayColor: isGood ? globalColors.green : globalColors.grey,
-      titleColor: isGood ? globalColors.green : globalColors.blue,
-      username: profile.username,
-    }
+  if (!profile.platform) {
+    throw new Error('No platform passed to confirm or pending container')
   }
-)(ConfirmOrPending)
+
+  return {
+    isPending,
+    onCancel: () => {
+      dispatch(cancelAddProof())
+    },
+    onReloadProfile: () => {
+      dispatch(backToProfile())
+    },
+    platform: profile.platform,
+    platformIconOverlayColor: isGood ? globalColors.green : globalColors.grey,
+    titleColor: isGood ? globalColors.green : globalColors.blue,
+    username: profile.username,
+  }
+})(ConfirmOrPending)

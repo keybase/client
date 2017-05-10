@@ -9,9 +9,13 @@ import {Box} from '../common-adapters'
 import {globalStyles} from '../styles'
 
 class DevMenu extends Component {
-  render () {
+  render() {
     const menuItems = [
-      {name: 'Dumb components', hasChildren: true, onClick: this.props.onDumbSheet},
+      {
+        name: 'Dumb components',
+        hasChildren: true,
+        onClick: this.props.onDumbSheet,
+      },
       {name: 'Reset', onClick: this.props.onReset},
       {name: 'Sign Out', onClick: this.props.logout},
       {name: 'Log Send', onClick: this.props.onLogSend},
@@ -35,4 +39,5 @@ export default connect(
     onPushDebug: () => dispatch(navigateAppend(['push'])),
     onTestPopup: () => dispatch(navigateAppend(['testPopup'])),
     logout: () => dispatch(logout()),
-  }))(DevMenu)
+  })
+)(DevMenu)

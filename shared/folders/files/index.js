@@ -29,16 +29,16 @@ type State = {
 }
 
 class Files extends Component<void, Props, State> {
-  state: State;
+  state: State
 
-  _checkFolderExistence (props) {
+  _checkFolderExistence(props) {
     // TODO (AW): make a more user friendly response for when the folder they were hoping to look at
     // has been removed/defavorited in the time between them clicking it in the Folders view and the
     // loading of this component
     if (!props.folder) props.navigateUp()
   }
 
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {
       visiblePopupMenu: false,
@@ -49,20 +49,26 @@ class Files extends Component<void, Props, State> {
     })
   }
 
-  componentWillReceiveProps (nextProps) {
+  componentWillReceiveProps(nextProps) {
     this._checkFolderExistence(nextProps)
   }
 
-  render () {
+  render() {
     const {folder, username} = this.props
     if (!folder) return null // Protect from state where the folder to be displayed was removed
-    const openCurrentFolder = () => { this.props.openInKBFS(this.props.path) }
+    const openCurrentFolder = () => {
+      this.props.openInKBFS(this.props.path)
+    }
     const openConversationFromFolder = () => {
       const tlf = this.props && this.props.folder && this.props.folder.sortName
       tlf && this.props.openTlfInChat(tlf)
     }
-    const ignoreCurrentFolder = () => { this.props.ignoreFolder(this.props.path) }
-    const unIgnoreCurrentFolder = () => { this.props.favoriteFolder(this.props.path) }
+    const ignoreCurrentFolder = () => {
+      this.props.ignoreFolder(this.props.path)
+    }
+    const unIgnoreCurrentFolder = () => {
+      this.props.favoriteFolder(this.props.path)
+    }
     const allowIgnore = folder.users.some(f => !f.you)
 
     return (
@@ -74,7 +80,10 @@ class Files extends Component<void, Props, State> {
           {onClick: ignoreCurrentFolder, title: 'Ignore'},
         ]}
         visiblePopupMenu={this.state.visiblePopupMenu}
-        onTogglePopupMenu={() => this.setState({visiblePopupMenu: !this.state.visiblePopupMenu})}
+        onTogglePopupMenu={() =>
+          this.setState({
+            visiblePopupMenu: !this.state.visiblePopupMenu,
+          })}
         selfUsername={username}
         allowIgnore={allowIgnore}
         users={folder.users}
@@ -84,7 +93,10 @@ class Files extends Component<void, Props, State> {
         onBack={() => this.props.navigateUp()}
         openCurrentFolder={openCurrentFolder}
         openConversationFromFolder={openConversationFromFolder}
-        onClickPaperkey={device => this.props.navigateAppend([{selected: 'paperkey', name: device.name}])}  // FIXME: does this name route prop get used anywhere?
+        onClickPaperkey={device =>
+          this.props.navigateAppend([
+            {selected: 'paperkey', name: device.name},
+          ])} // FIXME: does this name route prop get used anywhere?
         ignoreCurrentFolder={ignoreCurrentFolder}
         unIgnoreCurrentFolder={unIgnoreCurrentFolder}
         recentFilesSection={folder.recentFiles} // TODO (AW): integrate recent files once the service provides this data
@@ -111,7 +123,18 @@ const ConnectedFiles = connect(
       username: state.config && state.config.username,
     }
   },
-  (dispatch: any) => bindActionCreators({favoriteFolder, ignoreFolder, navigateAppend, navigateUp, openInKBFS, openTlfInChat}, dispatch)
+  (dispatch: any) =>
+    bindActionCreators(
+      {
+        favoriteFolder,
+        ignoreFolder,
+        navigateAppend,
+        navigateUp,
+        openInKBFS,
+        openTlfInChat,
+      },
+      dispatch
+    )
 )(Files)
 
 export default ConnectedFiles

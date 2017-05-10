@@ -30,7 +30,10 @@ export type StateProps = {|
 |}
 
 export type DispatchProps = {|
-  _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => void,
+  _onRetryText: (
+    conversationIDKey: Constants.ConversationIDKey,
+    outboxID: Constants.OutboxIDKey
+  ) => void,
   _onRetryAttachment: (message: Constants.AttachmentMessage) => void,
 |}
 

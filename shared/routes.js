@@ -26,9 +26,11 @@ const routeTree = new RouteDefNode({
     [chatTab]: chatRoutes,
     [loginTab]: loginRoutes,
     [folderTab]: foldersRoutes,
-    ...(isMobile ? {} : {
-      [devicesTab]: devicesRoutes, // not a top level route in mobile
-    }),
+    ...(isMobile
+      ? {}
+      : {
+          [devicesTab]: devicesRoutes, // not a top level route in mobile
+        }),
     [profileTab]: profileRoutes,
     [searchTab]: searchRoutes,
     [settingsTab]: settingsRoutes,

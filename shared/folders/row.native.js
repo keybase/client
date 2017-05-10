@@ -2,7 +2,15 @@
 import React from 'react'
 import type {Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
-import {Box, Text, Icon, Avatar, Meta, NativeImage, ClickableBox} from '../common-adapters/index.native'
+import {
+  Box,
+  Text,
+  Icon,
+  Avatar,
+  Meta,
+  NativeImage,
+  ClickableBox,
+} from '../common-adapters/index.native'
 import {getStyle} from '../common-adapters/text'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from '../common-adapters/icon.constants'
@@ -11,22 +19,33 @@ const Avatars = ({styles, users, isPublic, ignored}) => {
   // TODO (MM) fix type
   const groupIcon: any = styles.groupIcon
   const contents = users.length === 1 || users.length === 2
-    ? <Avatar size={32} username={users[users.length - 1].username} opacity={ignored ? 0.5 : 1.0}
-      backgroundColor={styles.rowContainer.backgroundColor} />
-      : <Icon type={groupIcon} />
+    ? <Avatar
+        size={32}
+        username={users[users.length - 1].username}
+        opacity={ignored ? 0.5 : 1.0}
+        backgroundColor={styles.rowContainer.backgroundColor}
+      />
+    : <Icon type={groupIcon} />
 
   if (isPublic) {
     return <Box style={styles.avatarContainer}>{contents}</Box>
   }
 
-  const source = iconMeta[ignored ? 'icon-damier-pattern-ignored-locked-48-1000' : 'icon-damier-pattern-good-open-48-1000'].require
+  const source =
+    iconMeta[
+      ignored
+        ? 'icon-damier-pattern-ignored-locked-48-1000'
+        : 'icon-damier-pattern-good-open-48-1000'
+    ].require
 
   return (
     <Box style={{width: 48, height: 1}}>
       <NativeImage
         style={stylesAvatarContainerPrivate}
         source={source}
-        resizeMode='contain'>{contents}
+        resizeMode="contain"
+      >
+        {contents}
       </NativeImage>
     </Box>
   )
@@ -39,10 +58,16 @@ const Names = ({styles, users, nameColor, redColor}) => {
         <Text
           key={u.username}
           type={u.you ? 'BodySemiboldItalic' : 'BodySemibold'}
-          style={{color: u.broken ? redColor : nameColor}}>{u.username}
-          {
-            (i !== users.length - 1) && // Injecting the commas here so we never wrap and have newlines starting with a ,
-              <Text type='BodySemibold' style={{color: styles.nameColor, marginRight: 2}}>,</Text>}
+          style={{color: u.broken ? redColor : nameColor}}
+        >
+          {u.username}
+          {i !== users.length - 1 && // Injecting the commas here so we never wrap and have newlines starting with a ,
+            <Text
+              type="BodySemibold"
+              style={{color: styles.nameColor, marginRight: 2}}
+            >
+              ,
+            </Text>}
         </Text>
       ))}
     </Box>
@@ -53,32 +78,64 @@ const Modified = ({styles, modified}) => {
   const iconColor = {color: getStyle('BodySmall', styles.modifiedMode).color}
   return (
     <Box style={stylesModified}>
-      <Icon type='iconfont-thunderbolt' style={{alignSelf: 'center', marginLeft: -2, marginRight: 2, fontSize: 10, ...iconColor}} hint='Modified' />
-      <Text type='BodySmall' backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
-      <Text type='BodySmall' backgroundMode={styles.modifiedMode}>{modified.username}</Text>
+      <Icon
+        type="iconfont-thunderbolt"
+        style={{
+          alignSelf: 'center',
+          marginLeft: -2,
+          marginRight: 2,
+          fontSize: 10,
+          ...iconColor,
+        }}
+        hint="Modified"
+      />
+      <Text type="BodySmall" backgroundMode={styles.modifiedMode}>
+        Modified {modified.when} by&nbsp;
+      </Text>
+      <Text type="BodySmall" backgroundMode={styles.modifiedMode}>
+        {modified.username}
+      </Text>
     </Box>
   )
 }
 
 const RowMeta = ({ignored, meta, styles}) => {
   const metaColors = {
-    'new': globalColors.white,
-    'rekey': globalColors.white,
+    new: globalColors.white,
+    rekey: globalColors.white,
   }
 
   const metaBGColors = {
-    'new': globalColors.blue2,
-    'rekey': globalColors.red,
+    new: globalColors.blue2,
+    rekey: globalColors.red,
   }
 
   const metaProps = meta === 'ignored'
     ? {title: 'ignored', style: {...styles.ignored, marginTop: 3}}
-    : {title: meta || '', style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta], marginTop: 2} : {}}
+    : {
+        title: meta || '',
+        style: meta
+          ? {
+              color: metaColors[meta],
+              backgroundColor: metaBGColors[meta],
+              marginTop: 2,
+            }
+          : {},
+      }
 
   return <Meta {...metaProps} />
 }
 
-const Row = ({users, isPublic, ignored, meta, modified, hasData, path, onClick}: Folder & {onClick: (path: string) => void}) => {
+const Row = ({
+  users,
+  isPublic,
+  ignored,
+  meta,
+  modified,
+  hasData,
+  path,
+  onClick,
+}: Folder & {onClick: (path: string) => void}) => {
   const styles = isPublic ? stylesPublic : stylesPrivate
 
   let backgroundColor = styles.rowContainer.backgroundColor
@@ -103,11 +160,26 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, path, onClick}:
     <ClickableBox onClick={clickHandler}>
       <Box style={containerStyle}>
         <Box style={{...globalStyles.flexBoxRow}}>
-          <Avatars users={users} styles={styles} isPublic={isPublic} ignored={ignored} />
+          <Avatars
+            users={users}
+            styles={styles}
+            isPublic={isPublic}
+            ignored={ignored}
+          />
           <Box style={stylesBodyContainer}>
-            <Names users={users} styles={styles} meta={meta} modified={modified} nameColor={nameColor} redColor={redColor} />
-            {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
-            {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
+            <Names
+              users={users}
+              styles={styles}
+              meta={meta}
+              modified={modified}
+              nameColor={nameColor}
+              redColor={redColor}
+            />
+            {(meta || ignored) &&
+              <RowMeta ignored={ignored} meta={meta} styles={styles} />}
+            {!(meta || ignored) &&
+              modified &&
+              <Modified modified={modified} styles={styles} />}
           </Box>
           <Box style={stylesActionContainer}>
             {hasData && <Icon type={icon} style={{width: 32}} />}

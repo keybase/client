@@ -13,7 +13,10 @@ const initialState: Constants.State = {
   waiting: false,
 }
 
-export default function (state: Constants.State = initialState, action: Constants.Actions): Constants.State {
+export default function(
+  state: Constants.State = initialState,
+  action: Constants.Actions
+): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {
@@ -78,11 +81,13 @@ export default function (state: Constants.State = initialState, action: Constant
       }
     case Constants.newRekeyPopup:
       if (state.started && action.payload) {
-        const devices = action.payload.devices.map(({name, type, deviceID}) => ({
-          deviceID,
-          name,
-          type: toDeviceType(type),
-        }))
+        const devices = action.payload.devices.map(
+          ({name, type, deviceID}) => ({
+            deviceID,
+            name,
+            type: toDeviceType(type),
+          })
+        )
 
         return {
           ...state,

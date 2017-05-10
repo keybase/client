@@ -11,4 +11,4 @@ export type Props = {
   body: React$Element<*>,
 }
 
-declare export default class Confirm extends Component<void, Props, void> { }
+declare export default class Confirm extends Component<void, Props, void> {}

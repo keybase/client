@@ -13,7 +13,14 @@ const nameGen = (seed: number) => seed + ''
 const deviceGen = (seed: number) => seed + ''
 const convIDGen = (seed: number) => seed + ''
 
-const mockTextMessage = (authorSeed: number, seed: number, timestamp, messageID, you: string, messageState) => ({
+const mockTextMessage = (
+  authorSeed: number,
+  seed: number,
+  timestamp,
+  messageID,
+  you: string,
+  messageState
+) => ({
   type: 'Text',
   message: new HiddenString(textGen(seed)),
   author: nameGen(authorSeed),
@@ -31,17 +38,28 @@ const mockTextMessage = (authorSeed: number, seed: number, timestamp, messageID,
 })
 
 const mockMetaData = (authorSeeds: Array<number>) => {
-  return new Immutable.Map(authorSeeds.map(s => [nameGen(s), new ChatConstants.MetaDataRecord({
-    fullname: nameGen(s),
-    brokenTracker: false,
-  })]))
+  return new Immutable.Map(
+    authorSeeds.map(s => [
+      nameGen(s),
+      new ChatConstants.MetaDataRecord({
+        fullname: nameGen(s),
+        brokenTracker: false,
+      }),
+    ])
+  )
 }
 
 const mockFollowingMap = (authorSeeds: Array<number>, seedToBool) => {
   return new Immutable.Map(authorSeeds.map(s => [nameGen(s), seedToBool(s)]))
 }
 
-const mockListProps = (messages, metaDataMap, you, authorSeeds, moreToLoad) => ({
+const mockListProps = (
+  messages,
+  metaDataMap,
+  you,
+  authorSeeds,
+  moreToLoad
+) => ({
   firstNewMessageID: null,
   listScrollDownCounter: 0,
   messages: Immutable.List(messages),
@@ -50,15 +68,21 @@ const mockListProps = (messages, metaDataMap, you, authorSeeds, moreToLoad) => (
   you,
   followingMap: mockFollowingMap(authorSeeds, () => true),
   moreToLoad,
-  onDeleteMessage: (message: ChatConstants.Message) => console.log('on delete message'),
-  onEditMessage: (message: ChatConstants.Message, body: string) => console.log('on edit message'),
+  onDeleteMessage: (message: ChatConstants.Message) =>
+    console.log('on delete message'),
+  onEditMessage: (message: ChatConstants.Message, body: string) =>
+    console.log('on edit message'),
   onFocusInput: () => console.log('on focus input'),
-  onDownloadAttachment: (messageID: ChatConstants.MessageID) => console.log('on load attachment'),
+  onDownloadAttachment: (messageID: ChatConstants.MessageID) =>
+    console.log('on load attachment'),
   onLoadMoreMessages: () => console.log('on load more message'),
-  onOpenConversation: (conversationIDKey: ChatConstants.ConversationIDKey) => console.log('on open conv'),
+  onOpenConversation: (conversationIDKey: ChatConstants.ConversationIDKey) =>
+    console.log('on open conv'),
   onOpenInFileUI: (filename: string) => console.log('on open in file ui'),
-  onOpenInPopup: (message: ChatConstants.AttachmentMessage) => console.log('on open in popup'),
-  onRetryAttachment: (message: ChatConstants.AttachmentMessage) => console.log('on retry attachment'),
+  onOpenInPopup: (message: ChatConstants.AttachmentMessage) =>
+    console.log('on open in popup'),
+  onRetryAttachment: (message: ChatConstants.AttachmentMessage) =>
+    console.log('on retry attachment'),
   onRetryMessage: (outboxID: string) => console.log('on retry message'),
   selectedConversation: null,
   validated: true,
@@ -68,31 +92,53 @@ const mockListProps = (messages, metaDataMap, you, authorSeeds, moreToLoad) => (
 
 const you = nameGen(0)
 class Main extends React.Component {
-  state: any;
-  constructor () {
+  state: any
+  constructor() {
     super()
     this.state = {
-      messages: _.range(0, 100).map(i => mockTextMessage(i % 2, i, Date.now(), i, you, 'sent')),
+      messages: _.range(0, 100).map(i =>
+        mockTextMessage(i % 2, i, Date.now(), i, you, 'sent')
+      ),
     }
   }
 
-  _prepend () {
+  _prepend() {
     console.log('prepending message')
     const i = this.state.messages.length
     this.setState({
-      messages: _.range(i, i + 10).map(i => mockTextMessage(Math.floor(Math.random() * 2), i, Date.now(), i, you, 'sent')).concat(this.state.messages),
+      messages: _.range(i, i + 10)
+        .map(i =>
+          mockTextMessage(
+            Math.floor(Math.random() * 2),
+            i,
+            Date.now(),
+            i,
+            you,
+            'sent'
+          )
+        )
+        .concat(this.state.messages),
     })
   }
 
-  _addMessage () {
+  _addMessage() {
     console.log('adding message')
     const i = this.state.messages.length
     this.setState({
-      messages: this.state.messages.concat([mockTextMessage(Math.floor(Math.random() * 2), i, Date.now(), i, you, 'sent')]),
+      messages: this.state.messages.concat([
+        mockTextMessage(
+          Math.floor(Math.random() * 2),
+          i,
+          Date.now(),
+          i,
+          you,
+          'sent'
+        ),
+      ]),
     })
   }
 
-  render () {
+  render() {
     const props: any = mockListProps(
       this.state.messages,
       mockMetaData([0, 1]),
@@ -105,11 +151,19 @@ class Main extends React.Component {
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginTop: 40}}>
-        <Text type='Body'>hi</Text>
+        <Text type="Body">hi</Text>
         <List {...props} />
-        <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}} >
-          <Button label='Prepend' type='Primary' onClick={() => this._prepend()} />
-          <Button label='Add message' type='Primary' onClick={() => this._addMessage()} />
+        <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
+          <Button
+            label="Prepend"
+            type="Primary"
+            onClick={() => this._prepend()}
+          />
+          <Button
+            label="Add message"
+            type="Primary"
+            onClick={() => this._addMessage()}
+          />
         </Box>
       </Box>
     )

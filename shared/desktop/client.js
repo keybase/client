@@ -7,19 +7,22 @@ const path = require('path')
 
 try {
   fs.mkdirSync(path.join(__dirname, 'dist'))
-} catch (i) {
-}
+} catch (i) {}
 
 const name = path.join(__dirname, 'dist', 'main.bundle.js')
 const params = [name]
 
 // Find extensions
 
-let devToolRoots = !process.env.KEYBASE_PERF && process.env.KEYBASE_DEV_TOOL_ROOTS
+let devToolRoots =
+  !process.env.KEYBASE_PERF && process.env.KEYBASE_DEV_TOOL_ROOTS
 let devToolExtensions
 if (devToolRoots) {
   devToolExtensions = {
-    KEYBASE_DEV_TOOL_EXTENSIONS: devToolRoots.split(',').map(root => path.join(root, fs.readdirSync(root)[0])).join(','),
+    KEYBASE_DEV_TOOL_EXTENSIONS: devToolRoots
+      .split(',')
+      .map(root => path.join(root, fs.readdirSync(root)[0]))
+      .join(','),
   }
 }
 
@@ -30,7 +33,7 @@ const env = {
 
 const handle = () => {
   const e = spawn(electron, params, {stdio: 'inherit', env})
-  e.on('close', function () {})
+  e.on('close', function() {})
 }
 
 const hitServer = () => {

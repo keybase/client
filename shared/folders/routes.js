@@ -7,7 +7,10 @@ import PaperKey from './files/paperkey'
 const filesSubTree = (darkStatusBarContent = false) => ({
   files: {
     component: Files,
-    tags: {showStatusBarDarkContent: darkStatusBarContent, underStatusBar: true},
+    tags: {
+      showStatusBarDarkContent: darkStatusBarContent,
+      underStatusBar: true,
+    },
     children: {
       paperkey: {
         component: PaperKey,

@@ -14,7 +14,14 @@ const AVATAR_SIZE = 24
 
 const UserNotice = ({bgColor, username, children, style}: Props) => (
   <Box style={{...styleBox, ...style, backgroundColor: bgColor}}>
-    <Avatar size={AVATAR_SIZE} username={username} style={{marginTop: -globalMargins.small - AVATAR_SIZE / 2, marginBottom: globalMargins.xtiny}} />
+    <Avatar
+      size={AVATAR_SIZE}
+      username={username}
+      style={{
+        marginTop: -globalMargins.small - AVATAR_SIZE / 2,
+        marginBottom: globalMargins.xtiny,
+      }}
+    />
     {children}
   </Box>
 )

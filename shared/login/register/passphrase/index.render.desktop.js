@@ -6,30 +6,41 @@ import {Text, Input, Button, UserCard} from '../../../common-adapters'
 import {globalColors} from '../../../styles'
 
 class PassphraseRender extends Component<void, Props, void> {
-  render () {
+  render() {
     return (
       <Container
         style={stylesContainer}
         outerStyle={{backgroundColor: globalColors.white}}
-        onBack={() => this.props.onBack()}>
+        onBack={() => this.props.onBack()}
+      >
         <UserCard style={stylesCard} username={this.props.username}>
-          <Text type='HeaderBig' style={{color: globalColors.orange}}>{this.props.username}</Text>
+          <Text type="HeaderBig" style={{color: globalColors.orange}}>
+            {this.props.username}
+          </Text>
           <Input
             autoFocus={true}
             style={stylesInput}
-            type='password'
-            hintText='Passphrase'
+            type="password"
+            hintText="Passphrase"
             onEnterKeyDown={() => this.props.onSubmit()}
             onChangeText={text => this.props.onChange(text)}
             value={this.props.passphrase}
-            errorText={this.props.error} />
+            errorText={this.props.error}
+          />
           <Button
             waiting={this.props.waitingForResponse}
-            label='Continue'
-            type='Primary'
+            label="Continue"
+            type="Primary"
             onClick={() => this.props.onSubmit()}
-            enabled={this.props.passphrase && this.props.passphrase.length} />
-          <Text style={stylesForgot} type='BodySmallSecondaryLink' onClick={this.props.onForgotPassphrase}>Forgot passphrase?</Text>
+            enabled={this.props.passphrase && this.props.passphrase.length}
+          />
+          <Text
+            style={stylesForgot}
+            type="BodySmallSecondaryLink"
+            onClick={this.props.onForgotPassphrase}
+          >
+            Forgot passphrase?
+          </Text>
         </UserCard>
       </Container>
     )

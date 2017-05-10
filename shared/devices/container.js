@@ -10,13 +10,18 @@ import {load, paperKeyMake} from '../actions/devices'
 
 import type {TypedState} from '../constants/reducer'
 
-const getAllDevicesSelector = (state: TypedState) => state.devices.get('deviceIDs')
-const getDeviceEntitiesSelector = (state: TypedState) => state.entities.get('devices')
+const getAllDevicesSelector = (state: TypedState) =>
+  state.devices.get('deviceIDs')
+const getDeviceEntitiesSelector = (state: TypedState) =>
+  state.entities.get('devices')
 
 const getDevicesAndRevokedDevicesSelector = createSelector(
   [getAllDevicesSelector, getDeviceEntitiesSelector],
   (allDevices, deviceEntities) => {
-    const split = allDevices.groupBy(id => deviceEntities.get(id).revokedAt ? 'revokedDeviceIDs' : 'deviceIDs')
+    const split = allDevices.groupBy(
+      id =>
+        deviceEntities.get(id).revokedAt ? 'revokedDeviceIDs' : 'deviceIDs'
+    )
     const deviceIDs = split.get('deviceIDs', List())
     const revokedDeviceIDs = split.get('revokedDeviceIDs', List())
     return {
@@ -28,7 +33,9 @@ const getDevicesAndRevokedDevicesSelector = createSelector(
 
 const mapStateToProps = (state: TypedState, {routeState}) => {
   const {showingRevoked} = routeState
-  const {deviceIDs, revokedDeviceIDs} = getDevicesAndRevokedDevicesSelector(state)
+  const {deviceIDs, revokedDeviceIDs} = getDevicesAndRevokedDevicesSelector(
+    state
+  )
   const waitingForServer = state.devices.get('waitingForServer')
 
   return {
@@ -39,25 +46,32 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: any, {routeState, setRouteState, navigateUp}) => ({
+const mapDispatchToProps = (
+  dispatch: any,
+  {routeState, setRouteState, navigateUp}
+) => ({
   addNewComputer: () => dispatch(addNewComputer()),
   addNewPaperKey: () => dispatch(paperKeyMake()),
   addNewPhone: () => dispatch(addNewPhone()),
   loadDevices: () => dispatch(load()),
-  onToggleShowRevoked: () => { setRouteState({showingRevoked: !routeState.showingRevoked}) },
+  onToggleShowRevoked: () => {
+    setRouteState({showingRevoked: !routeState.showingRevoked})
+  },
   title: 'Devices',
   onBack: () => dispatch(navigateUp()),
 })
 
-const menuItems = props => ([
-  ...flags.mobileAppsExist && [{onClick: props.addNewPhone, title: 'New phone [in beta]'}] || [],
+const menuItems = props => [
+  ...((flags.mobileAppsExist && [
+    {onClick: props.addNewPhone, title: 'New phone [in beta]'},
+  ]) || []),
   {onClick: props.addNewComputer, title: 'New computer'},
   {onClick: props.addNewPaperKey, title: 'New paper key'},
-])
+]
 
 const Devices = compose(
   lifecycle({
-    componentWillMount: function () {
+    componentWillMount: function() {
       this.props.loadDevices()
     },
   }),
@@ -68,7 +82,7 @@ const Devices = compose(
     menuItems: menuItems(props),
     revokedDeviceIDs: props.revokedDeviceIDs.toArray(),
   })),
-  withState('showingMenu', 'setShowingMenu', false),
+  withState('showingMenu', 'setShowingMenu', false)
 )(Render)
 
 export default connect(mapStateToProps, mapDispatchToProps)(Devices)

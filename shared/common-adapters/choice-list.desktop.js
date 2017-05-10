@@ -9,15 +9,22 @@ const ChoiceList = ({options}: Props) => {
     <Box>
       <style>{rawCSS}</style>
       {options.map((op, idx) => (
-        <Box style={styleEntry} key={idx} className='cl-entry' onClick={() => op.onClick()}>
-          <Box style={styleIconContainer} className='cl-icon-container'>
+        <Box
+          style={styleEntry}
+          key={idx}
+          className="cl-entry"
+          onClick={() => op.onClick()}
+        >
+          <Box style={styleIconContainer} className="cl-icon-container">
             {typeof op.icon === 'string'
-              ? <Icon style={styleIcon} type={op.icon} className='cl-icon' />
-              : <Box style={styleIcon} className='cl-icon'>{op.icon}</Box>}
+              ? <Icon style={styleIcon} type={op.icon} className="cl-icon" />
+              : <Box style={styleIcon} className="cl-icon">
+                  {op.icon}
+                </Box>}
           </Box>
           <Box style={styleInfoContainer}>
-            <Text type='BodyBigLink'>{op.title}</Text>
-            <Text type='Body'>{op.description}</Text>
+            <Text type="BodyBigLink">{op.title}</Text>
+            <Text type="Body">{op.description}</Text>
           </Box>
         </Box>
       ))}

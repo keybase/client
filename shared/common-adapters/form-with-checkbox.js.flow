@@ -7,7 +7,8 @@ export type Props = {
   inputProps: InputProps,
   style?: Object,
   checkboxContainerStyle?: Object,
-  checkboxesProps: Array<CheckboxProps>
+  checkboxesProps: Array<CheckboxProps>,
 }
 
-declare export default class FormWithCheckbox extends Component<void, Props, void> { }
+declare export default class FormWithCheckbox
+  extends Component<void, Props, void> {}

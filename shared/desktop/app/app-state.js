@@ -11,11 +11,11 @@ import deepEqual from 'deep-equal'
 import type {State, Options, Config, Managed} from './app-state'
 
 export default class AppState {
-  state: State;
-  config: Config;
-  managed: Managed;
+  state: State
+  config: Config
+  managed: Managed
 
-  constructor (opts: Options) {
+  constructor(opts: Options) {
     this.state = {
       x: null,
       y: null,
@@ -49,18 +49,21 @@ export default class AppState {
     this._loadAppListeners()
   }
 
-  saveState () {
+  saveState() {
     let configPath = this.config.path
     let stateToSave = this.state
-    jsonfile.writeFile(configPath, stateToSave, function (err) {
+    jsonfile.writeFile(configPath, stateToSave, function(err) {
       if (err) {
         console.log('Error saving file:', err)
       }
     })
   }
 
-  checkOpenAtLogin () {
-    if (!this.state.openAtLoginSet && appBundlePath() === '/Applications/Keybase.app') {
+  checkOpenAtLogin() {
+    if (
+      !this.state.openAtLoginSet &&
+      appBundlePath() === '/Applications/Keybase.app'
+    ) {
       console.log('Setting open at login')
       app.setLoginItemSettings({
         openAtLogin: true,
@@ -70,7 +73,7 @@ export default class AppState {
     }
   }
 
-  manageWindow (win: any) {
+  manageWindow(win: any) {
     // TODO: Do we want to maximize or setFullScreen if the state says we were?
     // if (this.config.maximize && this.state.isMaximized) {
     //   win.maximize()
@@ -79,30 +82,40 @@ export default class AppState {
     //   win.setFullScreen(true)
     // }
 
-    let showHandler = () => { this._showHandler() }
+    let showHandler = () => {
+      this._showHandler()
+    }
     this.managed.showHandlers.push(showHandler)
     win.on('show', showHandler)
 
-    let resizeHandler = () => { this._debounceChangeHandler() }
+    let resizeHandler = () => {
+      this._debounceChangeHandler()
+    }
     this.managed.resizeHandlers.push(resizeHandler)
     win.on('resize', resizeHandler)
 
-    let moveHandler = () => { this._debounceChangeHandler() }
+    let moveHandler = () => {
+      this._debounceChangeHandler()
+    }
     this.managed.moveHandlers.push(moveHandler)
     win.on('move', moveHandler)
 
-    let closeHandler = () => { this._closeHandler() }
+    let closeHandler = () => {
+      this._closeHandler()
+    }
     this.managed.closeHandlers.push(closeHandler)
     win.on('close', closeHandler)
 
-    let closedHandler = () => { this._closedHandler() }
+    let closedHandler = () => {
+      this._closedHandler()
+    }
     this.managed.closedHandlers.push(closedHandler)
     win.on('closed', closedHandler)
 
     this.managed.winRef = win
   }
 
-  _clearWindow () {
+  _clearWindow() {
     let winRef = this.managed.winRef
     if (winRef) {
       for (let showHandler of this.managed.showHandlers) {
@@ -130,7 +143,7 @@ export default class AppState {
     clearTimeout(this.managed.debounceChangeTimer)
   }
 
-  _isValidState (state: State): boolean {
+  _isValidState(state: State): boolean {
     // Check if the display where the window was last open is still available
     let rect = {
       x: state.x || 0,
@@ -143,7 +156,7 @@ export default class AppState {
     return deepEqual(state.displayBounds, displayBounds, {strict: true})
   }
 
-  _loadStateSync () {
+  _loadStateSync() {
     let configPath = this.config.path
     try {
       fs.accessSync(configPath, fs.F_OK)
@@ -161,11 +174,11 @@ export default class AppState {
     }
   }
 
-  _isNormal (win: any): boolean {
+  _isNormal(win: any): boolean {
     return !win.isMaximized() && !win.isMinimized() && !win.isFullScreen()
   }
 
-  _updateState () {
+  _updateState() {
     let winRef = this.managed.winRef
     if (winRef) {
       let winBounds = winRef.getBounds()
@@ -183,24 +196,26 @@ export default class AppState {
     this.saveState()
   }
 
-  _showHandler () {
+  _showHandler() {
     this._updateState()
   }
 
-  _closeHandler () {
+  _closeHandler() {
     this._updateState()
   }
 
-  _closedHandler () {
+  _closedHandler() {
     this._clearWindow()
   }
 
-  _debounceChangeHandler () {
+  _debounceChangeHandler() {
     clearTimeout(this.managed.debounceChangeTimer)
-    this.managed.debounceChangeTimer = setTimeout(() => { this._updateState() }, this.config.eventHandlingDelay)
+    this.managed.debounceChangeTimer = setTimeout(() => {
+      this._updateState()
+    }, this.config.eventHandlingDelay)
   }
 
-  _loadAppListeners () {
+  _loadAppListeners() {
     app.on('-keybase-dock-showing', () => {
       this.state.dockHidden = false
       this.saveState()

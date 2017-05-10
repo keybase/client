@@ -15,7 +15,7 @@ type OwnProps = {
 // $FlowIssue
 export default connect(
   (s: TypedState, {routeProps: {devices}}: OwnProps) => ({devices}),
-  (dispatch) => ({
+  dispatch => ({
     onBack: () => dispatch(Creators.onBack()),
     onWont: () => dispatch(Creators.onWont()),
     onSelect: deviceId => dispatch(Creators.selectDeviceId(deviceId)),

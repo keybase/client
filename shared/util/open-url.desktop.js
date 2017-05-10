@@ -1,7 +1,7 @@
 // @flow
 import {shell, ipcRenderer} from 'electron'
 
-export default function openURL (url: ?string) {
+export default function openURL(url: ?string) {
   if (!url) {
     console.warn('openURL received empty url')
     return
@@ -9,6 +9,6 @@ export default function openURL (url: ?string) {
   shell.openExternal(url)
 }
 
-export function openURLWithHelper (type: string, params: ?string) {
+export function openURLWithHelper(type: string, params: ?string) {
   ipcRenderer.send('openURL', type, params)
 }

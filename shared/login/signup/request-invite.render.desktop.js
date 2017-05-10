@@ -6,32 +6,37 @@ import {Box, Text, Icon, Input, Button} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 
 class RequestInviteRender extends Component<void, Props, void> {
-  render () {
+  render() {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
         <Box style={stylesBox}>
-          <Text style={stylesHeader} type='Header'>Request an invite code</Text>
-          <Icon style={stylesIcon} type='icon-invite-code-48' />
+          <Text style={stylesHeader} type="Header">
+            Request an invite code
+          </Text>
+          <Icon style={stylesIcon} type="icon-invite-code-48" />
           <Input
             style={stylesInput}
-            hintText='Your email address'
+            hintText="Your email address"
             value={this.props.email}
             errorText={this.props.emailErrorText}
             onChangeText={email => this.props.emailChange(email)}
-            autoFocus={true} />
+            autoFocus={true}
+          />
           <Input
             style={stylesInput}
-            hintText='Your name'
+            hintText="Your name"
             value={this.props.name}
             errorText={this.props.nameErrorText}
-            onChangeText={name => this.props.nameChange(name)} />
+            onChangeText={name => this.props.nameChange(name)}
+          />
           <Button
             style={stylesButton}
             waiting={this.props.waiting}
-            type='Primary'
-            label='Request'
+            type="Primary"
+            label="Request"
             onClick={this.props.onSubmit}
-            disabled={!this.props.email} />
+            disabled={!this.props.email}
+          />
         </Box>
       </Container>
     )

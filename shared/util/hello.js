@@ -2,9 +2,18 @@
 // Send helloIAm message to service
 
 import engine from '../engine'
-import {CommonClientType, configHelloIAmRpc} from '../constants/types/flow-types'
+import {
+  CommonClientType,
+  configHelloIAmRpc,
+} from '../constants/types/flow-types'
 
-export default function (pid: number, desc: string, argv: Array<string>, version: string, isMain: boolean): Promise<void> {
+export default function(
+  pid: number,
+  desc: string,
+  argv: Array<string>,
+  version: string,
+  isMain: boolean
+): Promise<void> {
   const details = {
     pid,
     desc,

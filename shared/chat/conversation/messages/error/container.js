@@ -19,6 +19,4 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
   }
 }
 
-export default compose(
-  connect(mapStateToProps, () => ({})),
-)(Error)
+export default compose(connect(mapStateToProps, () => ({})))(Error)

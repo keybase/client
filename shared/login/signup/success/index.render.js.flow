@@ -7,7 +7,7 @@ export type Props = {
   waiting: boolean,
   onFinish?: () => void,
   onBack?: () => void,
-  title?: ?string
+  title?: ?string,
 }
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}

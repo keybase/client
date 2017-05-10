@@ -16,7 +16,10 @@ const filterAllowOnlyTypes = (...types) => ({
 const desktopPath = (...args) => path.join(__dirname, ...args)
 
 const copySync = (src, target, options) => {
-  fs.copySync(desktopPath(src), desktopPath(target), {...options, dereference: true})
+  fs.copySync(desktopPath(src), desktopPath(target), {
+    ...options,
+    dereference: true,
+  })
 }
 
 const argv = minimist(process.argv.slice(2))
@@ -48,11 +51,11 @@ const packagerOpts = {
   ],
 }
 
-function main () {
+function main() {
   // Inject app version
   webpackConfig.plugins.push(
     new webpack.DefinePlugin({
-      '__VERSION__': JSON.stringify(appVersion),
+      __VERSION__: JSON.stringify(appVersion),
     })
   )
 
@@ -67,7 +70,10 @@ function main () {
   fs.removeSync(desktopPath('build/images/folders'))
   fs.removeSync(desktopPath('build/images/iconfont'))
   copySync('renderer', 'build/desktop/renderer', filterAllowOnlyTypes('html'))
-  copySync('renderer/renderer-load.js', 'build/desktop/renderer/renderer-load.js')
+  copySync(
+    'renderer/renderer-load.js',
+    'build/desktop/renderer/renderer-load.js'
+  )
   fs.removeSync(desktopPath('build/desktop/renderer/fonts'))
 
   fs.writeJsonSync(desktopPath('build/package.json'), {
@@ -85,7 +91,8 @@ function main () {
 
   // use the same version as the currently-installed electron
   console.log('Finding electron version')
-  exec('yarn list electron',
+  exec(
+    'yarn list electron',
     {cwd: path.join(__dirname, '..')},
     (err, stdout, stderr) => {
       if (!err) {
@@ -107,7 +114,7 @@ function main () {
   )
 }
 
-function startPack () {
+function startPack() {
   console.log('start pack...')
   webpack(webpackConfig, (err, stats) => {
     if (err) {
@@ -116,42 +123,51 @@ function startPack () {
     }
 
     copySync('./dist', 'build/desktop/sourcemaps', filterAllowOnlyTypes('map'))
-    copySync('./dist', 'build/desktop/dist', filterAllowOnlyTypes('js', 'ttf', 'png'))
+    copySync(
+      './dist',
+      'build/desktop/dist',
+      filterAllowOnlyTypes('js', 'ttf', 'png')
+    )
     fs.removeSync(desktopPath('build/desktop/dist/fonts'))
 
     del(desktopPath('release'))
-    .then(() => {
-      if (shouldBuildAll) {
-        // build for all platforms
-        const archs = ['ia32', 'x64']
-        const platforms = ['linux', 'win32', 'darwin']
+      .then(() => {
+        if (shouldBuildAll) {
+          // build for all platforms
+          const archs = ['ia32', 'x64']
+          const platforms = ['linux', 'win32', 'darwin']
 
-        platforms.forEach(plat => {
-          archs.forEach(arch => {
-            pack(plat, arch, log(plat, arch))
+          platforms.forEach(plat => {
+            archs.forEach(arch => {
+              pack(plat, arch, log(plat, arch))
+            })
           })
-        })
-      } else if (shouldBuildAnArch) {
-        // build for a specified arch on current platform only
-        pack(os.platform(), shouldBuildAnArch, log(os.platform(), shouldBuildAnArch))
-      } else {
-        // build for current platform only
-        pack(os.platform(), os.arch(), log(os.platform(), os.arch()))
-      }
-    })
-    .catch(err => {
-      console.error(err)
-      process.exit(1)
-    })
+        } else if (shouldBuildAnArch) {
+          // build for a specified arch on current platform only
+          pack(
+            os.platform(),
+            shouldBuildAnArch,
+            log(os.platform(), shouldBuildAnArch)
+          )
+        } else {
+          // build for current platform only
+          pack(os.platform(), os.arch(), log(os.platform(), os.arch()))
+        }
+      })
+      .catch(err => {
+        console.error(err)
+        process.exit(1)
+      })
   })
 }
 
-function pack (plat, arch, cb) {
+function pack(plat, arch, cb) {
   // there is no darwin ia32 electron
   if (plat === 'darwin' && arch === 'ia32') return
 
   let packageOutDir = outDir
-  if (packageOutDir === '') packageOutDir = desktopPath(`release/${plat}-${arch}`)
+  if (packageOutDir === '')
+    packageOutDir = desktopPath(`release/${plat}-${arch}`)
   console.log('Packaging to', packageOutDir)
 
   let opts = {
@@ -166,9 +182,9 @@ function pack (plat, arch, cb) {
     opts = {
       ...opts,
       'version-string': {
-        'OriginalFilename': appName + '.exe',
-        'FileDescription': appName,
-        'ProductName': appName,
+        OriginalFilename: appName + '.exe',
+        FileDescription: appName,
+        ProductName: appName,
       },
     }
   }
@@ -176,20 +192,26 @@ function pack (plat, arch, cb) {
   packager(opts, cb)
 }
 
-function log (plat, arch) {
+function log(plat, arch) {
   return (err, filepath) => {
     if (err) {
       console.error(err)
       process.exit(1)
     }
-    const subdir = (plat === 'darwin') ? 'Keybase.app/Contents/Resources' : 'resources'
+    const subdir = plat === 'darwin'
+      ? 'Keybase.app/Contents/Resources'
+      : 'resources'
     const dir = path.join(filepath[0], subdir, 'app/desktop/dist')
-    const files = ['index', 'launcher', 'main', 'remote-component-loader'].map(p => p + '.bundle.js')
+    const files = ['index', 'launcher', 'main', 'remote-component-loader'].map(
+      p => p + '.bundle.js'
+    )
     files.forEach(file => {
       try {
         const stats = fs.statSync(path.join(dir, file))
         if (!stats.isFile() && stats.size > 0) {
-          console.error(`Detected a problem with packaging ${file}: ${stats.isFile()} ${stats.size}`)
+          console.error(
+            `Detected a problem with packaging ${file}: ${stats.isFile()} ${stats.size}`
+          )
           process.exit(1)
         }
       } catch (err) {

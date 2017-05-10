@@ -23,7 +23,8 @@ class Conversation extends Component<void, Props, State> {
 
   _onDrop = e => {
     const fileList = e.dataTransfer.files
-    if (!this.props.selectedConversationIDKey) throw new Error('No conversation')
+    if (!this.props.selectedConversationIDKey)
+      throw new Error('No conversation')
     const conversationIDKey = this.props.selectedConversationIDKey
     // FileList, not an array
     const inputs = Array.prototype.map.call(fileList, file => ({
@@ -51,36 +52,61 @@ class Conversation extends Component<void, Props, State> {
       this.setState({showDropOverlay: true})
     }).then(clipboardData => {
       this.setState({showDropOverlay: false})
-      if (!this.props.selectedConversationIDKey) throw new Error('No conversation')
+      if (!this.props.selectedConversationIDKey)
+        throw new Error('No conversation')
       if (clipboardData) {
         const {path, title} = clipboardData
-        this.props.onAttach([{
-          conversationIDKey: this.props.selectedConversationIDKey,
-          filename: path,
-          title,
-          type: 'Image',
-        }])
+        this.props.onAttach([
+          {
+            conversationIDKey: this.props.selectedConversationIDKey,
+            filename: path,
+            title,
+            type: 'Image',
+          },
+        ])
       }
     })
   }
 
-  render () {
-    const dropOverlay = this.state.showDropOverlay && (
-      <Box style={dropOverlayStyle} onDragLeave={this._onDragLeave} onDrop={this._onDrop}>
-        <Icon type='icon-file-dropping-48' />
+  render() {
+    const dropOverlay =
+      this.state.showDropOverlay &&
+      <Box
+        style={dropOverlayStyle}
+        onDragLeave={this._onDragLeave}
+        onDrop={this._onDrop}
+      >
+        <Icon type="icon-file-dropping-48" />
       </Box>
-    )
 
-    const offline = this.props.threadLoadedOffline && (
-      <Box style={{...globalStyles.flexBoxCenter, backgroundColor: globalColors.black_10, flex: 1, maxHeight: globalMargins.medium}}>
-        <Text type='BodySmallSemibold'>Couldn't load all chat messages due to network connectivity. Retrying...</Text>
+    const offline =
+      this.props.threadLoadedOffline &&
+      <Box
+        style={{
+          ...globalStyles.flexBoxCenter,
+          backgroundColor: globalColors.black_10,
+          flex: 1,
+          maxHeight: globalMargins.medium,
+        }}
+      >
+        <Text type="BodySmallSemibold">
+          Couldn't load all chat messages due to network connectivity. Retrying...
+        </Text>
       </Box>
-    )
 
     return (
-      <Box className='conversation' style={containerStyle} onDragEnter={this._onDragEnter} onPaste={this._onPaste}>
+      <Box
+        className="conversation"
+        style={containerStyle}
+        onDragEnter={this._onDragEnter}
+        onPaste={this._onPaste}
+      >
         {offline}
-        <Header sidePanelOpen={this.props.sidePanelOpen} onToggleSidePanel={this.props.onToggleSidePanel} onBack={this.props.onBack} />
+        <Header
+          sidePanelOpen={this.props.sidePanelOpen}
+          onToggleSidePanel={this.props.onToggleSidePanel}
+          onBack={this.props.onBack}
+        />
         <List
           focusInputCounter={this.props.focusInputCounter}
           listScrollDownCounter={this.props.listScrollDownCounter}
@@ -94,13 +120,23 @@ class Conversation extends Component<void, Props, State> {
         {this.props.finalizeInfo
           ? <OldProfileResetNotice />
           : <Input
-            focusInputCounter={this.props.focusInputCounter}
-            onEditLastMessage={this.props.onEditLastMessage}
-            onScrollDown={this.props.onScrollDown}
-          /> }
-        {this.props.sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>
-          <SidePanel onToggleSidePanel={this.props.onToggleSidePanel} />
-        </div>}
+              focusInputCounter={this.props.focusInputCounter}
+              onEditLastMessage={this.props.onEditLastMessage}
+              onScrollDown={this.props.onScrollDown}
+            />}
+        {this.props.sidePanelOpen &&
+          <div
+            style={{
+              ...globalStyles.flexBoxColumn,
+              bottom: 0,
+              position: 'absolute',
+              right: 0,
+              top: 35,
+              width: 320,
+            }}
+          >
+            <SidePanel onToggleSidePanel={this.props.onToggleSidePanel} />
+          </div>}
         {dropOverlay}
       </Box>
     )

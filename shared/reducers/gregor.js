@@ -9,13 +9,18 @@ const initialState: Constants.State = {
   seenMsgs: {},
 }
 
-export default function (state: Constants.State = initialState, action: Constants.GregorActions): Constants.State {
+export default function(
+  state: Constants.State = initialState,
+  action: Constants.GregorActions
+): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}
     case Constants.updateSeenMsgs:
       if (!action.error) {
-        const newMsgs: Constants.MsgMap = keyBy(action.payload.seenMsgs, m => m.md.msgID.toString('base64'))
+        const newMsgs: Constants.MsgMap = keyBy(action.payload.seenMsgs, m =>
+          m.md.msgID.toString('base64')
+        )
         return {
           ...state,
           seenMsgs: {
