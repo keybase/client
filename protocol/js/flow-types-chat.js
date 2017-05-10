@@ -551,6 +551,36 @@ export function localSetConversationStatusLocalRpcPromise (request: $Exact<reque
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.SetConversationStatusLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function localStartTypingRpc (request: Exact<requestCommon & requestErrorCallback & {param: localStartTypingRpcParam}>) {
+  engineRpcOutgoing('chat.1.local.startTyping', request)
+}
+
+export function localStartTypingRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: localStartTypingRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.startTyping', request)
+}
+export function localStartTypingRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: localStartTypingRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.local.startTyping', request, callback, incomingCallMap) })
+}
+
+export function localStartTypingRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: localStartTypingRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.startTyping', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function localStopTypingRpc (request: Exact<requestCommon & requestErrorCallback & {param: localStopTypingRpcParam}>) {
+  engineRpcOutgoing('chat.1.local.stopTyping', request)
+}
+
+export function localStopTypingRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: localStopTypingRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.stopTyping', request)
+}
+export function localStopTypingRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: localStopTypingRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.local.stopTyping', request, callback, incomingCallMap) })
+}
+
+export function localStopTypingRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: localStopTypingRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.stopTyping', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function remoteGetInboxRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>) {
   engineRpcOutgoing('chat.1.remote.getInboxRemote', request)
 }
@@ -1540,6 +1570,10 @@ export type NotifyChatChatThreadsStaleRpcParam = Exact<{
   convIDs?: ?Array<ConversationID>
 }>
 
+export type NotifyChatChatTypingUpdateRpcParam = Exact<{
+  typingUpdates?: ?Array<UserTypingUpdate>
+}>
+
 export type NotifyChatNewChatActivityRpcParam = Exact<{
   uid: keybase1.UID,
   activity: ChatActivity
@@ -1770,6 +1804,15 @@ export type UnreadUpdateFull = {
   updates?: ?Array<UnreadUpdate>,
 }
 
+export type UserTypingUpdate = {
+  uid: keybase1.UID,
+  username: string,
+  deviceID: keybase1.DeviceID,
+  deviceName: string,
+  convID: ConversationID,
+  typing: boolean,
+}
+
 export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{
   bytesComplete: long,
   bytesTotal: long
@@ -1984,6 +2027,14 @@ export type localSetConversationStatusLocalRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localStartTypingRpcParam = Exact<{
+  conversationID: ConversationID
+}>
+
+export type localStopTypingRpcParam = Exact<{
+  conversationID: ConversationID
+}>
+
 export type remoteGetInboxRemoteRpcParam = Exact<{
   vers: InboxVers,
   query?: ?GetInboxQuery,
@@ -2154,6 +2205,8 @@ export type rpc =
   | localPostTextNonblockRpc
   | localRetryPostRpc
   | localSetConversationStatusLocalRpc
+  | localStartTypingRpc
+  | localStopTypingRpc
   | remoteGetInboxRemoteRpc
   | remoteGetInboxVersionRpc
   | remoteGetMessagesRemoteRpc
@@ -2319,6 +2372,13 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       uid: keybase1.UID,
       convIDs?: ?Array<ConversationID>
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatTypingUpdate'?: (
+    params: Exact<{
+      typingUpdates?: ?Array<UserTypingUpdate>
     }> /* ,
     response: {} // Notify call
     */

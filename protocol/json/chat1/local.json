@@ -2362,6 +2362,32 @@
         }
       ],
       "response": "FindConversationsLocalRes"
+    },
+    "startTyping": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
+    },
+    "stopTyping": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

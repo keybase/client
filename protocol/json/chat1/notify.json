@@ -157,6 +157,36 @@
           "body": "FailedMessageInfo"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "UserTypingUpdate",
+      "fields": [
+        {
+          "type": "keybase1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "keybase1.DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "deviceName"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "boolean",
+          "name": "typing"
+        }
+      ]
     }
   ],
   "messages": {
@@ -253,6 +283,20 @@
           "type": {
             "type": "array",
             "items": "ConversationID"
+          }
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatTypingUpdate": {
+      "request": [
+        {
+          "name": "typingUpdates",
+          "type": {
+            "type": "array",
+            "items": "UserTypingUpdate"
           }
         }
       ],
