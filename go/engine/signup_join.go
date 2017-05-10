@@ -88,6 +88,7 @@ func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 			"pwh_version":   libkb.I{Val: int(triplesec.Version)},
 			"skip_mail":     libkb.B{Val: arg.SkipMail},
 			"pdpka5_kid":    libkb.S{Val: arg.PDPKA5KID.String()},
+			"platform":      libkb.S{Val: libkb.GetPlatformString()},
 		}})
 	if err == nil {
 		s.username = libkb.NewNormalizedUsername(arg.Username)
