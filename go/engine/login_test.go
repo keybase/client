@@ -3188,7 +3188,7 @@ func skipOldGPG(tc libkb.TestContext) {
 }
 
 func assertDeviceKeysCached(tc libkb.TestContext) {
-	_, _, sk, ek := tc.G.ActiveDevice.AllFields()
+	_, _, _, sk, ek := tc.G.ActiveDevice.AllFields()
 	if sk == nil {
 		tc.T.Error("cached signing key nil")
 	}

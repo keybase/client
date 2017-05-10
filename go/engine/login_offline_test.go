@@ -43,7 +43,7 @@ func TestLoginOffline(t *testing.T) {
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
-	uid, deviceID, skey, ekey := tc.G.ActiveDevice.AllFields()
+	uid, deviceID, deviceName, skey, ekey := tc.G.ActiveDevice.AllFields()
 	if uid.IsNil() {
 		t.Errorf("uid is nil, expected it to exist")
 	}
@@ -53,6 +53,10 @@ func TestLoginOffline(t *testing.T) {
 
 	if deviceID.IsNil() {
 		t.Errorf("deviceID is nil, expected it to exist")
+	}
+
+	if deviceName != defaultDeviceName {
+		t.Errorf("device name: %q, expected %q", deviceName, defaultDeviceName)
 	}
 
 	if skey == nil {
@@ -108,7 +112,7 @@ func TestLoginOfflineDelay(t *testing.T) {
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
-	uid, deviceID, skey, ekey := tc.G.ActiveDevice.AllFields()
+	uid, deviceID, deviceName, skey, ekey := tc.G.ActiveDevice.AllFields()
 	if uid.IsNil() {
 		t.Errorf("uid is nil, expected it to exist")
 	}
@@ -120,16 +124,16 @@ func TestLoginOfflineDelay(t *testing.T) {
 		t.Errorf("deviceID is nil, expected it to exist")
 	}
 
+	if deviceName != defaultDeviceName {
+		t.Errorf("device name: %q, expected %q", deviceName, defaultDeviceName)
+	}
+
 	if skey == nil {
 		t.Errorf("signing key is nil, expected it to exist")
 	}
 
 	if ekey == nil {
 		t.Errorf("encryption key is nil, expected it to exist")
-	}
-
-	if tc.G.ActiveDevice.Name() != defaultDeviceName {
-		t.Errorf("device name: %q, expected %q", tc.G.ActiveDevice.Name(), defaultDeviceName)
 	}
 }
 

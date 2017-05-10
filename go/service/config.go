@@ -155,7 +155,7 @@ func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (re
 	}
 
 	// cached device key status
-	_, _, sk, ek := h.G().ActiveDevice.AllFields()
+	_, _, _, sk, ek := h.G().ActiveDevice.AllFields()
 	res.DeviceSigKeyCached = sk != nil
 	res.DeviceEncKeyCached = ek != nil
 
