@@ -8,7 +8,7 @@
     "48": "images/icon-keybase-logo-48.png",
     "128": "images/icon-keybase-logo-128.png"
   },
-  "page_action": {
+  "browser_action": {
     "default_icon": "images/icon-keybase-logo-logged-out-64.png",
     "default_title": "Keybase Chat",
     "default_popup": "html/popup.html"
@@ -18,11 +18,7 @@
     "contextMenus",
     "declarativeContent",
     "nativeMessaging",
-    "storage",
-    "http://reddit.com/*",
-    "https://reddit.com/*",
-    "http://*.reddit.com/*",
-    "https://*.reddit.com/*"
+    "storage"
   ],
   "web_accessible_resources": [
     "images/*",
@@ -31,12 +27,16 @@
   "content_scripts": [
     {
       "matches": [
-        "http://reddit.com/*",
         "https://reddit.com/*",
-        "http://*.reddit.com/*",
-        "https://*.reddit.com/*"
+        "https://*.reddit.com/*",
+        "https://twitter.com/*",
+        "https://github.com/*",
+        "https://news.ycombinator.com/user",
+        "https://keybase.io/*",
+        "https://keybase.pub/*"
       ],
       "js": [
+        "js/identities.js",
         "js/content.js"
       ],
       "css": [
@@ -47,7 +47,10 @@
     }
   ],
   "background": {
-    "scripts": ["js/background.js"]
+    "scripts": [
+      "js/identities.js",
+      "js/background.js"
+    ]
   },
   "options_ui": {
     "page": "html/options.html",

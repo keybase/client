@@ -31,55 +31,6 @@ function injectThread() {
   }
 }
 
-// User keeps track of the original query and which services we resolved for
-// this user. It also handles formatting strings for each service.
-function User(username, service) {
-  if (service === undefined) service = "keybase";
-  this.origin = service;
-  this.services = {};
-  this.services[service] = username;
-}
-
-User.prototype.query = function() {
-  const name = this.services[this.origin];
-  if (this.origin === "keybase") {
-    return name;
-  }
-  return `${name}@${this.origin}`;
-}
-
-User.prototype.display = function(service) {
-  if (service === undefined) service = this.origin;
-  const name = this.services[this.origin];
-  switch (this.origin) {
-    case "reddit":
-      return `/u/${name}`;
-    case "twitter":
-      return `@${name}`;
-    default:
-      return name;
-  }
-}
-
-User.prototype.href = function(service) {
-  if (service === undefined) service = this.origin;
-  const name = this.services[this.origin];
-  switch (this.origin) {
-    case "keybase":
-      return `https://keybase.io/${name}`;
-    case "reddit":
-      return `https://www.reddit.com/user/${name}`;
-    case "twitter":
-      return `https://twitter.com/${name}`;
-    case "github":
-      return `https://github.com/${name}`;
-    case "hackernews":
-      return `https://news.ycombinator.com/user?id=${name}`;
-    default:
-      throw `unknown service: ${this.origin}`;
-  }
-}
-
 // Global state of which chat window is currently open.
 let openChat = null;
 

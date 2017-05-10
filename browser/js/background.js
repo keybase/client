@@ -47,41 +47,35 @@ chrome.contextMenus.create({
 });
 
 
+// Convert matchers into the declarative matching format
+function generateConditions(matchers)  {
+  // Generate pageMatchRules conditions
+  const conditions = [];
+  for (const m of matchers) {
+    const cond = {
+      pageUrl: { originAndPathMatches: m.originAndPathMatches },
+    };
+    if (m.css !== undefined) {
+      cond.css = m.css;
+    }
+    conditions.push(new chrome.declarativeContent.PageStateMatcher(cond));
+  }
+  return conditions;
+}
+
 // Register browser_action icon state
 // Via: https://developer.chrome.com/extensions/examples/api/pageAction/pageaction_by_url/background.js
 const pageMatchRules = [
   {
-    conditions: [
-      // Match user pages that Keybase recognizes
-      // Extra css matchers added to avoid matching on non-profile URLs like /about or 404's
-      new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { originAndPathMatches: '\.keybase\.(io|pub)/[\\w]+[/]?' },
-          css: ['a[rel="me"]']
-      }),
-      new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { originAndPathMatches: '\.reddit.com/user/[\\w-]+$' },
-      }),
-      new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { originAndPathMatches: '\.twitter\.com/[\\w]+$' },
-          css: ['body.ProfilePage']
-      }),
-      new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { originAndPathMatches: '\.github\.com/[\\w]+$' },
-          css: ['body.page-profile']
-      }),
-      new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { originAndPathMatches: 'news\.ycombinator\.com/user' },
-          css: ['html[op="user"]']
-      })
-    ],
+    conditions: generateConditions(identityMatchers),
     actions: [
-      new chrome.declarativeContent.ShowPageAction(),
       new chrome.declarativeContent.SetIcon({
         path: "images/icon-keybase-logo-16@2x.png"
       })
     ]
   }
 ];
+
 chrome.runtime.onInstalled.addListener(function() {
   chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
     chrome.declarativeContent.onPageChanged.addRules(pageMatchRules);
