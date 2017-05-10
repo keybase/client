@@ -36,6 +36,22 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
+const mobileOnClickUserInGroup = (dispatch, user) => {
+  if (user.service === 'external') {
+    dispatch(navigateAppend([{
+      props: {
+        avatar: user.serviceAvatar,
+        fullname: user.extraInfo && user.extraInfo.fullNameOnService || null,
+        profileUrl: null,
+        serviceName: user.serviceName,
+        username: user.username,
+      },
+      selected: 'nonProfile'}]))
+  } else {
+    dispatch(navigateAppend([{props: {username: user.username}, selected: 'profile'}]))
+  }
+}
+
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onAddAnotherUserToGroup: () => dispatch(hideUserGroup()),
   onClickResult: user => dispatch(addUsersToGroup([user])),
@@ -44,7 +60,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       dispatch(selectPlatform(platform))
     }
   },
-  onClickUserInGroup: user => dispatch(isMobile ? navigateAppend([{props: {username: user.username}, selected: 'profile'}]) : selectUserForInfo(user)),
+  onClickUserInGroup: user => isMobile ? mobileOnClickUserInGroup(dispatch, user) : dispatch(selectUserForInfo(user)),
   onGroupChat: (username, selectedUsers) => {
     dispatch(reset())
     dispatch(startConversation(selectedUsers.map(searchResultToAssertion).concat(username || '')))

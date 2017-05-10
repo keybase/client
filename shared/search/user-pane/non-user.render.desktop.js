@@ -1,5 +1,4 @@
 // @flow
-
 import React, {Component} from 'react'
 import {Avatar, Box, Icon, Text} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
@@ -60,10 +59,7 @@ export default class NonUserRender extends Component<void, Props, void> {
           />
           <Box style={styleUsernameRow} onClick={() => this._onClickAvatar()}>
             <Icon type={platformToLogo24(this.props.serviceName)} />
-            <Text
-              type='HeaderBig'
-              style={styleUsername}
-            >
+            <Text type='HeaderBig' style={styleUsername}>
               {this.props.username}
             </Text>
           </Box>
