@@ -50,6 +50,13 @@ const identityMatchers = [
     css: ['body.page-profile']
   },
   {
+    service: "facebook",
+    getUsername: function(loc) { return loc.pathname.split('/')[1]; },
+    locationMatches: new RegExp('\.facebook\.com/([\\w]+)[/]?$'),
+    originAndPathMatches: '\.facebook\.com/[\\w]+[/]?$',
+    css: ['body.timelineLayout']
+  },
+  {
     service: "hackernews",
     getUsername: function(loc) { return parseLocationQuery(loc.search)["id"]; },
     locationMatches: new RegExp('news\.ycombinator\.com/user'),
@@ -121,6 +128,8 @@ User.prototype.href = function(service) {
       return `https://www.reddit.com/user/${name}`;
     case "twitter":
       return `https://twitter.com/${name}`;
+    case "facebook":
+      return `https://facebook.com/${name}`;
     case "github":
       return `https://github.com/${name}`;
     case "hackernews":
