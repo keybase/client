@@ -142,7 +142,7 @@ const styleContainer = {
     : {
       minHeight: 48,
     }
-  )
+  ),
 }
 
 const styleInput = {
