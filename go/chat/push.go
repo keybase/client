@@ -180,6 +180,7 @@ type PushHandler struct {
 	badger        *badges.Badger
 	identNotifier *IdentifyNotifier
 	orderer       *gregorMessageOrderer
+	typingMonitor *TypingMonitor
 }
 
 func NewPushHandler(g *globals.Context) *PushHandler {
@@ -188,6 +189,7 @@ func NewPushHandler(g *globals.Context) *PushHandler {
 		DebugLabeler:  utils.NewDebugLabeler(g, "PushHandler", false),
 		identNotifier: NewIdentifyNotifier(g),
 		orderer:       newGregorMessageOrderer(g),
+		typingMonitor: NewTypingMonitor(g),
 	}
 }
 
@@ -553,15 +555,12 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 	}
 
 	// Fire off update with all relevant info
-	nupdate := chat1.UserTypingUpdate{
+	g.typingMonitor.Update(ctx, chat1.TyperInfo{
 		Uid:        kuid,
 		DeviceID:   kdid,
 		Username:   user.String(),
 		DeviceName: device,
-		ConvID:     update.ConvID,
-		Typing:     update.Typing,
 		DeviceType: dtype,
-	}
-	g.G().NotifyRouter.HandleChatTypingUpdate(ctx, []chat1.UserTypingUpdate{nupdate})
+	}, update.ConvID, update.Typing)
 	return nil
 }

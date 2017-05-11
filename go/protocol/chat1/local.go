@@ -1686,14 +1686,9 @@ type FindConversationsLocalArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type StartTypingArg struct {
-	SessionID      int            `codec:"sessionID" json:"sessionID"`
+type UpdateTypingArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
-}
-
-type StopTypingArg struct {
-	SessionID      int            `codec:"sessionID" json:"sessionID"`
-	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	Typing         bool           `codec:"typing" json:"typing"`
 }
 
 type LocalInterface interface {
@@ -1721,8 +1716,7 @@ type LocalInterface interface {
 	RetryPost(context.Context, OutboxID) error
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
 	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
-	StartTyping(context.Context, StartTypingArg) error
-	StopTyping(context.Context, StopTypingArg) error
+	UpdateTyping(context.Context, UpdateTypingArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -2113,34 +2107,18 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"startTyping": {
+			"updateTyping": {
 				MakeArg: func() interface{} {
-					ret := make([]StartTypingArg, 1)
+					ret := make([]UpdateTypingArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]StartTypingArg)
+					typedArgs, ok := args.(*[]UpdateTypingArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]StartTypingArg)(nil), args)
+						err = rpc.NewTypeError((*[]UpdateTypingArg)(nil), args)
 						return
 					}
-					err = i.StartTyping(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"stopTyping": {
-				MakeArg: func() interface{} {
-					ret := make([]StopTypingArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]StopTypingArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]StopTypingArg)(nil), args)
-						return
-					}
-					err = i.StopTyping(ctx, (*typedArgs)[0])
+					err = i.UpdateTyping(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2277,12 +2255,7 @@ func (c LocalClient) FindConversationsLocal(ctx context.Context, __arg FindConve
 	return
 }
 
-func (c LocalClient) StartTyping(ctx context.Context, __arg StartTypingArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.startTyping", []interface{}{__arg}, nil)
-	return
-}
-
-func (c LocalClient) StopTyping(ctx context.Context, __arg StopTypingArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.stopTyping", []interface{}{__arg}, nil)
+func (c LocalClient) UpdateTyping(ctx context.Context, __arg UpdateTypingArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.updateTyping", []interface{}{__arg}, nil)
 	return
 }

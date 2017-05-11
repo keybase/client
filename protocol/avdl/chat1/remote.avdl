@@ -211,6 +211,5 @@ protocol remote {
   void publishSetConversationStatus(gregor1.UID uid, ConversationID convID, ConversationStatus status);
 
   // Typing endpoints
-  void startTypingRemote(gregor1.UID uid, gregor1.DeviceID deviceID, ConversationID convID);
-  void stopTypingRemote(gregor1.UID uid, gregor1.DeviceID deviceID, ConversationID convID);
+  void updateTypingRemote(gregor1.UID uid, gregor1.DeviceID deviceID, ConversationID convID, boolean typing);
 }

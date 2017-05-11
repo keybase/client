@@ -48,7 +48,7 @@ type NotifyListener interface {
 		resolveInfo chat1.ConversationResolveInfo)
 	ChatInboxStale(uid keybase1.UID)
 	ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID)
-	ChatTypingUpdate([]chat1.UserTypingUpdate)
+	ChatTypingUpdate([]chat1.ConvTypingUpdate)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -644,7 +644,7 @@ func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.
 	n.G().Log.CDebugf(ctx, "- Sent ChatThreadsStale notification")
 }
 
-func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []chat1.UserTypingUpdate) {
+func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []chat1.ConvTypingUpdate) {
 	if n == nil {
 		return
 	}

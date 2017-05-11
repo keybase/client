@@ -397,16 +397,11 @@ type PublishSetConversationStatusArg struct {
 	Status ConversationStatus `codec:"status" json:"status"`
 }
 
-type StartTypingRemoteArg struct {
+type UpdateTypingRemoteArg struct {
 	Uid      gregor1.UID      `codec:"uid" json:"uid"`
 	DeviceID gregor1.DeviceID `codec:"deviceID" json:"deviceID"`
 	ConvID   ConversationID   `codec:"convID" json:"convID"`
-}
-
-type StopTypingRemoteArg struct {
-	Uid      gregor1.UID      `codec:"uid" json:"uid"`
-	DeviceID gregor1.DeviceID `codec:"deviceID" json:"deviceID"`
-	ConvID   ConversationID   `codec:"convID" json:"convID"`
+	Typing   bool             `codec:"typing" json:"typing"`
 }
 
 type RemoteInterface interface {
@@ -430,8 +425,7 @@ type RemoteInterface interface {
 	TlfResolve(context.Context, TlfResolveArg) error
 	PublishReadMessage(context.Context, PublishReadMessageArg) error
 	PublishSetConversationStatus(context.Context, PublishSetConversationStatusArg) error
-	StartTypingRemote(context.Context, StartTypingRemoteArg) error
-	StopTypingRemote(context.Context, StopTypingRemoteArg) error
+	UpdateTypingRemote(context.Context, UpdateTypingRemoteArg) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -758,34 +752,18 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"startTypingRemote": {
+			"updateTypingRemote": {
 				MakeArg: func() interface{} {
-					ret := make([]StartTypingRemoteArg, 1)
+					ret := make([]UpdateTypingRemoteArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]StartTypingRemoteArg)
+					typedArgs, ok := args.(*[]UpdateTypingRemoteArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]StartTypingRemoteArg)(nil), args)
+						err = rpc.NewTypeError((*[]UpdateTypingRemoteArg)(nil), args)
 						return
 					}
-					err = i.StartTypingRemote(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"stopTypingRemote": {
-				MakeArg: func() interface{} {
-					ret := make([]StopTypingRemoteArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]StopTypingRemoteArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]StopTypingRemoteArg)(nil), args)
-						return
-					}
-					err = i.StopTypingRemote(ctx, (*typedArgs)[0])
+					err = i.UpdateTypingRemote(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -904,12 +882,7 @@ func (c RemoteClient) PublishSetConversationStatus(ctx context.Context, __arg Pu
 	return
 }
 
-func (c RemoteClient) StartTypingRemote(ctx context.Context, __arg StartTypingRemoteArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.remote.startTypingRemote", []interface{}{__arg}, nil)
-	return
-}
-
-func (c RemoteClient) StopTypingRemote(ctx context.Context, __arg StopTypingRemoteArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.remote.stopTypingRemote", []interface{}{__arg}, nil)
+func (c RemoteClient) UpdateTypingRemote(ctx context.Context, __arg UpdateTypingRemoteArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.updateTypingRemote", []interface{}{__arg}, nil)
 	return
 }

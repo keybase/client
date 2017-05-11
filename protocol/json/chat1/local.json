@@ -2363,28 +2363,15 @@
       ],
       "response": "FindConversationsLocalRes"
     },
-    "startTyping": {
+    "updateTyping": {
       "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
         {
           "name": "conversationID",
           "type": "ConversationID"
-        }
-      ],
-      "response": null
-    },
-    "stopTyping": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
         },
         {
-          "name": "conversationID",
-          "type": "ConversationID"
+          "name": "typing",
+          "type": "boolean"
         }
       ],
       "response": null

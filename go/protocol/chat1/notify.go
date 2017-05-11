@@ -198,14 +198,17 @@ func NewChatActivityWithFailedMessage(v FailedMessageInfo) ChatActivity {
 	}
 }
 
-type UserTypingUpdate struct {
+type TyperInfo struct {
 	Uid        keybase1.UID      `codec:"uid" json:"uid"`
 	Username   string            `codec:"username" json:"username"`
 	DeviceID   keybase1.DeviceID `codec:"deviceID" json:"deviceID"`
 	DeviceName string            `codec:"deviceName" json:"deviceName"`
 	DeviceType string            `codec:"deviceType" json:"deviceType"`
-	ConvID     ConversationID    `codec:"convID" json:"convID"`
-	Typing     bool              `codec:"typing" json:"typing"`
+}
+
+type ConvTypingUpdate struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Typers []TyperInfo    `codec:"typers" json:"typers"`
 }
 
 type NewChatActivityArg struct {
@@ -240,7 +243,7 @@ type ChatThreadsStaleArg struct {
 }
 
 type ChatTypingUpdateArg struct {
-	TypingUpdates []UserTypingUpdate `codec:"typingUpdates" json:"typingUpdates"`
+	TypingUpdates []ConvTypingUpdate `codec:"typingUpdates" json:"typingUpdates"`
 }
 
 type NotifyChatInterface interface {
@@ -250,7 +253,7 @@ type NotifyChatInterface interface {
 	ChatTLFResolve(context.Context, ChatTLFResolveArg) error
 	ChatInboxStale(context.Context, keybase1.UID) error
 	ChatThreadsStale(context.Context, ChatThreadsStaleArg) error
-	ChatTypingUpdate(context.Context, []UserTypingUpdate) error
+	ChatTypingUpdate(context.Context, []ConvTypingUpdate) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -409,7 +412,7 @@ func (c NotifyChatClient) ChatThreadsStale(ctx context.Context, __arg ChatThread
 	return
 }
 
-func (c NotifyChatClient) ChatTypingUpdate(ctx context.Context, typingUpdates []UserTypingUpdate) (err error) {
+func (c NotifyChatClient) ChatTypingUpdate(ctx context.Context, typingUpdates []ConvTypingUpdate) (err error) {
 	__arg := ChatTypingUpdateArg{TypingUpdates: typingUpdates}
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTypingUpdate", []interface{}{__arg})
 	return

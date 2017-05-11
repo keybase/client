@@ -48,15 +48,17 @@ protocol NotifyChat {
     case FAILED_MESSAGE: FailedMessageInfo;
   }
 
-  record UserTypingUpdate {
+  record TyperInfo {
     keybase1.UID uid;
     string username;
     keybase1.DeviceID deviceID;
     string deviceName;
     string deviceType;
+  }
 
+  record ConvTypingUpdate {
     ConversationID convID;
-    boolean typing;
+    array<TyperInfo> typers;
   }
 
   @notify("")
@@ -86,5 +88,5 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
-  void ChatTypingUpdate(array<UserTypingUpdate> typingUpdates);
+  void ChatTypingUpdate(array<ConvTypingUpdate> typingUpdates);
 }

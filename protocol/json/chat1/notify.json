@@ -160,7 +160,7 @@
     },
     {
       "type": "record",
-      "name": "UserTypingUpdate",
+      "name": "TyperInfo",
       "fields": [
         {
           "type": "keybase1.UID",
@@ -181,14 +181,23 @@
         {
           "type": "string",
           "name": "deviceType"
-        },
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConvTypingUpdate",
+      "fields": [
         {
           "type": "ConversationID",
           "name": "convID"
         },
         {
-          "type": "boolean",
-          "name": "typing"
+          "type": {
+            "type": "array",
+            "items": "TyperInfo"
+          },
+          "name": "typers"
         }
       ]
     }
@@ -300,7 +309,7 @@
           "name": "typingUpdates",
           "type": {
             "type": "array",
-            "items": "UserTypingUpdate"
+            "items": "ConvTypingUpdate"
           }
         }
       ],

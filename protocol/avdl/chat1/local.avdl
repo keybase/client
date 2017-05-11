@@ -620,7 +620,6 @@ protocol local {
   FindConversationsLocalRes findConversationsLocal(string tlfName, TLFVisibility visibility, TopicType topicType, string topicName, union { null, bool } oneChatPerTLF, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Typing API
-  void startTyping(int sessionID, ConversationID conversationID);
-  void stopTyping(int sessionID, ConversationID conversationID);
+  void updateTyping(ConversationID conversationID, boolean typing);
 
 }
