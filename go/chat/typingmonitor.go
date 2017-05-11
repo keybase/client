@@ -161,7 +161,6 @@ func (t *TypingMonitor) waitOnTyper(ctx context.Context, chans *typingControlCha
 	go func() {
 		extends := 0
 		for {
-			t.Debug(ctx, "waiting again: %v", deadline)
 			select {
 			case <-t.clock.AfterTime(deadline):
 				// Send notifications and bail
