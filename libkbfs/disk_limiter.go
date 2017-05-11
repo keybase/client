@@ -78,6 +78,10 @@ type DiskLimiter interface {
 	// limiter.
 	getQuotaInfo() (usedQuotaBytes, quotaBytes int64)
 
+	// getDiskLimitInfo returns the usage and limit info for the disk,
+	// as known by the disk limiter.
+	getDiskLimitInfo() (usedBytes, limitBytes, usedFiles, limitFiles int64)
+
 	// getStatus returns an object that's marshallable into JSON
 	// for use in displaying status.
 	getStatus() interface{}

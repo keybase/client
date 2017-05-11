@@ -205,6 +205,10 @@ func (bt *backpressureTracker) beforeDiskBlockCachePut(blockResources int64) (
 	return availableResources
 }
 
+func (bt *backpressureTracker) getInfo() (used int64, limit int64) {
+	return bt.used, bt.limit
+}
+
 type backpressureTrackerStatus struct {
 	// Derived numbers.
 	UsedFrac   float64
@@ -528,6 +532,13 @@ func (jt journalTracker) getStatusLine() string {
 
 func (jt journalTracker) getQuotaInfo() (usedQuotaBytes, quotaBytes int64) {
 	return jt.quota.getQuotaInfo()
+}
+
+func (jt journalTracker) getDiskLimitInfo() (
+	usedBytes, limitBytes, usedFiles, limitFiles int64) {
+	usedBytes, limitBytes = jt.byte.getInfo()
+	usedFiles, limitFiles = jt.file.getInfo()
+	return usedBytes, limitBytes, usedFiles, limitFiles
 }
 
 type journalTrackerStatus struct {
@@ -924,6 +935,13 @@ func (bdl *backpressureDiskLimiter) getQuotaInfo() (
 	bdl.lock.RLock()
 	defer bdl.lock.RUnlock()
 	return bdl.journalTracker.getQuotaInfo()
+}
+
+func (bdl *backpressureDiskLimiter) getDiskLimitInfo() (
+	usedBytes, limitBytes, usedFiles, limitFiles int64) {
+	bdl.lock.RLock()
+	defer bdl.lock.RUnlock()
+	return bdl.journalTracker.getDiskLimitInfo()
 }
 
 type backpressureDiskLimiterStatus struct {
