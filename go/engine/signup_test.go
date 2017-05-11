@@ -21,12 +21,12 @@ func TestSignupEngine(t *testing.T) {
 	subTestSignupEngine(t, false)
 }
 
-func subTestSignupEngine(t *testing.T, supportPerUserKey bool) {
+func subTestSignupEngine(t *testing.T, upgradePerUserKey bool) {
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
 	var err error
 
-	tc.Tp.SupportPerUserKey = supportPerUserKey
+	tc.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	fu := CreateAndSignupFakeUser(tc, "se")
 
