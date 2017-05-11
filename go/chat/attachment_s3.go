@@ -184,11 +184,30 @@ func (a *AttachmentStore) putMultiPipeline(ctx context.Context, r io.Reader, siz
 
 	a.log.Debug("s3 putMulti all parts uploaded, completing request")
 
-	if err := multi.Complete(ctx, parts); err != nil {
-		a.log.Debug("multi.Complete error: %s", err)
-		return "", err
+	// retry this request up to 10 times
+	var lastErr error
+	for i := 0; i < 10; i++ {
+		select {
+		case <-ctx.Done():
+			return "", ctx.Err()
+		case <-time.After(libkb.BackoffDefault.Duration(i)):
+		}
+		a.log.Debug("attempt %d to run multi.Complete", i+1)
+		if err := multi.Complete(ctx, parts); err == nil {
+			a.log.Debug("success in attempt %d to run multi.Complete", i+1)
+			break
+		} else {
+			a.log.Debug("attempt %d multi.Complete error: %s", i+1, err)
+			lastErr = err
+		}
 	}
+	if lastErr != nil {
+		a.log.Debug("all retry attempts for multi.Complete failed")
+		return "", lastErr
+	}
+
 	a.log.Debug("s3 putMulti success, %d parts", len(parts))
+
 	// Just to make sure the UI gets the 100% call
 	progWriter.Finish()
 
