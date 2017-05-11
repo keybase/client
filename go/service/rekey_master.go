@@ -209,11 +209,6 @@ func (r *rekeyMaster) resumeSleep() time.Duration {
 func (r *rekeyMaster) runOnce(ri RekeyInterrupt) (ret time.Duration, err error) {
 	defer r.G().Trace(fmt.Sprintf("rekeyMaster#runOnce(%d) [%p]", ri, r), func() error { return err })()
 
-	if r.G().Env.GetAppType() == libkb.MobileAppType {
-		r.G().Log.Debug("rekeyMaster#runOnce in mobile app: doing nothing")
-		return rekeyTimeoutBackground, nil
-	}
-
 	var problemsAndDevices *keybase1.ProblemSetDevices
 	var event keybase1.RekeyEvent
 

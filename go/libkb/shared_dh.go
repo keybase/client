@@ -151,7 +151,7 @@ func (s *SharedDHKeyring) SyncWithExtras(ctx context.Context, lctx LoginContext,
 
 // `lctx` and `upak` are optional
 func (s *SharedDHKeyring) syncAsConfiguredDevice(ctx context.Context, lctx LoginContext, upak *keybase1.UserPlusAllKeys) (err error) {
-	uid, deviceID, _, activeDecryptionKey := s.G().ActiveDevice.AllFields()
+	uid, deviceID, _, _, activeDecryptionKey := s.G().ActiveDevice.AllFields()
 	if !s.uid.Equal(uid) {
 		return fmt.Errorf("UID changed on SharedDHKeyring")
 	}

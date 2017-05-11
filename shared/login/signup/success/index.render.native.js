@@ -29,7 +29,7 @@ class SuccessRender extends Component<void, Props, State> {
 
   render () {
     return (
-      <Container style={{padding: globalMargins.large, flex: 1}}>
+      <Container style={{flex: 1}}>
         <Text type='Header' style={textCenter}>{this.props.title || "Congratulations, you've just joined Keybase!"}</Text>
         <Text type='Body' style={{...textCenter, marginTop: globalMargins.medium}}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you'll see this so be sure to write it down.</Text>
 
@@ -48,7 +48,7 @@ class SuccessRender extends Component<void, Props, State> {
         </Box>
 
         <Box style={{flex: 2, justifyContent: 'flex-end'}}>
-          <Button style={buttonStyle}
+          <Button
             disabled={!this.state.checked}
             onClick={this.props.onFinish}
             label='Done'
@@ -62,9 +62,7 @@ class SuccessRender extends Component<void, Props, State> {
 const confirmCheckboxStyle = {
   ...globalStyles.flexBoxRow,
   alignSelf: 'center',
-}
-
-const buttonStyle = {
+  paddingBottom: globalMargins.small,
 }
 
 const textCenter = {
@@ -74,7 +72,7 @@ const textCenter = {
 const paperKeyContainerStyle = {
   alignSelf: 'center',
   marginTop: globalMargins.large,
-  marginBottom: globalMargins.large,
+  marginBottom: globalMargins.medium,
   paddingTop: globalMargins.small,
   paddingBottom: globalMargins.small,
   paddingLeft: globalMargins.small,

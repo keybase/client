@@ -108,7 +108,7 @@ const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) => 
 const styleActionText = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  alignSelf: 'flex-end',
+  alignSelf: isIOS ? 'flex-end' : 'center',
   justifyContent: 'center',
   paddingBottom: 5,
   paddingLeft: globalMargins.tiny,
@@ -117,7 +117,7 @@ const styleActionText = {
 }
 
 const styleActionButton = {
-  alignSelf: 'flex-end',
+  alignSelf: isIOS ? 'flex-end' : 'center',
   paddingBottom: 5,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.small,
@@ -134,8 +134,15 @@ const styleContainer = {
   alignItems: 'center',
   borderTopColor: globalColors.black_05,
   borderTopWidth: 1,
-  paddingBottom: globalMargins.tiny,
-  paddingTop: globalMargins.tiny,
+  ...(isIOS
+    ? {
+      paddingBottom: globalMargins.tiny,
+      paddingTop: globalMargins.tiny,
+    }
+    : {
+      minHeight: 48,
+    }
+  ),
 }
 
 const styleInput = {

@@ -6,6 +6,8 @@ package badges
 import (
 	"sync"
 
+	"encoding/json"
+
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -49,6 +51,10 @@ func (b *BadgeState) Export() (keybase1.BadgeState, error) {
 	return b.state, nil
 }
 
+type problemSetBody struct {
+	Count int `json:"count"`
+}
+
 // UpdateWithGregor updates the badge state from a gregor state.
 func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 	b.Lock()
@@ -84,8 +90,13 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				continue
 			}
 			b.state.NewTlfs++
-		case "kbfs_tlf_rekey_needed", "kbfs_tlf_sbs_rekey_needed":
-			b.state.RekeysNeeded++
+		case "kbfs_tlf_problem_set_count", "kbfs_tlf_sbs_problem_set_count":
+			var body problemSetBody
+			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
+				b.log.Warning("BadgeState encountered non-json 'problem set' item: %v", err)
+				continue
+			}
+			b.state.RekeysNeeded += body.Count
 		case "follow":
 			b.state.NewFollowers++
 		}

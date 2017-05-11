@@ -11,7 +11,7 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
     <Container
       style={stylesContainer}
       onBack={onBack}>
-      <Text type='Header' style={stylesHeader}>Set a public name for this device:</Text>
+      <Text type='Header'>Set a public name for this device:</Text>
       <Icon type='icon-phone-32' style={stylesIcon} />
       <Input
         autoFocus={true}
@@ -42,13 +42,8 @@ const stylesContainer = {
   marginRight: globalMargins.small,
 }
 
-const stylesHeader = {
-  marginTop: globalMargins.tiny,
-}
-
 const stylesButton = {
-  marginTop: 20,
-  marginBottom: 20,
+  marginTop: globalMargins.tiny,
 }
 
 const stylesInput = {

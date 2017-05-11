@@ -67,7 +67,7 @@ func (e *LoginOffline) run(ctx *Context) error {
 		e.G().Log.Debug("LoginOffline: current user has a valid session file")
 
 		// check ActiveDevice cache
-		uid, deviceID, sigKey, encKey := e.G().ActiveDevice.AllFields()
+		uid, deviceID, _, sigKey, encKey := e.G().ActiveDevice.AllFields()
 		if sigKey != nil && encKey != nil {
 			if uid.Equal(a.GetUID()) && deviceID.Eq(a.GetDeviceID()) {
 				// since they match, good to go

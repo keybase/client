@@ -198,6 +198,7 @@ func PostDeviceLKS(g *GlobalContext, sr SessionReader, deviceID keybase1.DeviceI
 			"ppgen":           I{Val: int(ppGen)},
 			"lks_client_half": S{Val: clientHalfRecovery},
 			"kid":             S{Val: clientHalfRecoveryKID.String()},
+			"platform":        S{Val: GetPlatformString()},
 		},
 		SessionR: sr,
 	}

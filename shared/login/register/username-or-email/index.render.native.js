@@ -3,7 +3,7 @@ import Container from '../../forms/container'
 import React, {Component} from 'react'
 import type {Props} from './index.render'
 import {Input, Button, UserCard} from '../../../common-adapters'
-import {globalColors} from '../../../styles'
+import {globalColors, globalMargins} from '../../../styles'
 
 type State = {usernameOrEmail: string}
 
@@ -30,7 +30,7 @@ class UsernameOrEmailRender extends Component<void, Props, State> {
     return (
       <Container
         style={stylesContainer}
-        outerStyle={{backgroundColor: globalColors.white, padding: 20}}
+        outerStyle={{backgroundColor: globalColors.white}}
         onBack={this.props.onBack}>
         <UserCard style={stylesCard}>
           <Input
@@ -61,8 +61,7 @@ const stylesContainer = {
 }
 const stylesInput = {
   flexGrow: 1,
-  marginTop: 25,
-  marginBottom: 55,
+  marginBottom: globalMargins.small,
 }
 const stylesCard = {
   alignItems: 'stretch',
