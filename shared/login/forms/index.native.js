@@ -58,9 +58,9 @@ const Intro = (props: Props) => (
       <Icon type='icon-keybase-logo-80' />
       <Text style={stylesHeader} type='HeaderBig'>Join Keybase</Text>
       <Text style={stylesHeaderSub} type='Body'>Folders for anyone in the world.</Text>
-      <Button style={stylesButton} type='Primary' onClick={props.onSignup} label='Create an account' />
+      <Button style={stylesSignupButton} type='Primary' onClick={props.onSignup} label='Create an account' />
       <Text style={stylesLoginHeader} type='Body' onClick={props.onLogin}>Already on Keybase?</Text>
-      <Text type='BodyBigLink' style={{marginTop: globalMargins.tiny}} onClick={props.onLogin}>Log in</Text>
+      <Button style={stylesLoginButton} type='Secondary' onClick={props.onLogin} label='Log in' />
     </Box>
   </Box>
 )
@@ -71,6 +71,7 @@ const stylesLoginForm = {
   flex: 1,
   justifyContent: 'flex-start',
 }
+
 const stylesHeader = {
   color: globalColors.orange,
   marginTop: globalMargins.small,
@@ -79,12 +80,18 @@ const stylesHeader = {
 const stylesHeaderSub = {
   marginTop: globalMargins.tiny,
 }
+
 const stylesLoginHeader = {
   marginTop: 176,
   textAlign: 'center',
 }
-const stylesButton = {
+
+const stylesSignupButton = {
   marginTop: globalMargins.medium,
+}
+
+const stylesLoginButton = {
+  marginTop: globalMargins.small,
 }
 
 const stylesBannerBlue = {
