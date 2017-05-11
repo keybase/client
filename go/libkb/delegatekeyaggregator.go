@@ -52,7 +52,7 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator, extra AggSigProducer
 	if len(pukBoxes) > 0 {
 		AddPerUserKeyServerArg(payload, pukBoxes[0].Generation, pukBoxes, pukPrev)
 	} else if pukPrev != nil {
-		return errors.New("cannot delegator per-user-key with prev but no boxes")
+		return errors.New("cannot delegate per-user-key with prev but no boxes")
 	}
 
 	// Adopt most parameters from the first item
@@ -77,7 +77,7 @@ func AddPerUserKeyServerArg(serverArg JSONPayload, generation keybase1.PerUserKe
 	section["boxes"] = pukBoxes
 	section["generation"] = generation
 	if pukPrev != nil {
-		section["secretbox"] = pukPrev
+		section["prev"] = *pukPrev
 	}
 	serverArg["per_user_key"] = section
 }

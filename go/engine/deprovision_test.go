@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 func assertFileExists(t testing.TB, path string) {
@@ -41,7 +42,7 @@ func getNumKeys(tc libkb.TestContext, fu FakeUser) int {
 	return len(ckf.GetAllActiveSibkeys()) + len(ckf.GetAllActiveSubkeys())
 }
 
-func assertDeprovisionWithSetup(tc libkb.TestContext) {
+func assertDeprovisionWithSetup(tc libkb.TestContext, makeAndRevokePaperKey bool) {
 	// Sign up a new user and have it store its secret in the
 	// secret store (if possible).
 	fu := NewFakeUserOrBust(tc.T, "dpr")
@@ -87,6 +88,32 @@ func assertDeprovisionWithSetup(tc libkb.TestContext) {
 		tc.T.Fatal("Unexpectedly logged out")
 	}
 
+	if makeAndRevokePaperKey {
+		t := tc.T
+		t.Logf("generate a paper key")
+		ctx := &Context{
+			LogUI:    tc.G.UI.GetLogUI(),
+			LoginUI:  &libkb.TestLoginUI{},
+			SecretUI: &libkb.TestSecretUI{},
+		}
+		eng := NewPaperKey(tc.G)
+		err := RunEngine(eng, ctx)
+		require.NoError(t, err)
+		require.NotEqual(t, 0, len(eng.Passphrase()), "empty passphrase")
+
+		t.Logf("revoke a paper key")
+		devices, _ := getActiveDevicesAndKeys(tc, fu)
+		var revokeDevice *libkb.Device
+		for _, device := range devices {
+			if device.Type == libkb.DeviceTypePaper {
+				revokeDevice = device
+			}
+		}
+		t.Logf("revoke %s", revokeDevice.ID)
+		err = doRevokeDevice(tc, fu, revokeDevice.ID, false)
+		require.NoError(t, err)
+	}
+
 	e := NewDeprovisionEngine(tc.G, fu.Username, true /* doRevoke */)
 	ctx = &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -125,16 +152,47 @@ func assertDeprovisionWithSetup(tc libkb.TestContext) {
 }
 
 func TestDeprovision(t *testing.T) {
+	testDeprovision(t, false)
+}
+
+func TestDeprovisionPUK(t *testing.T) {
+	testDeprovision(t, true)
+}
+
+func testDeprovision(t *testing.T, upgradePerUserKey bool) {
 	tc := SetupEngineTest(t, "deprovision")
 	defer tc.Cleanup()
+	tc.Tp.UpgradePerUserKey = upgradePerUserKey
 	if tc.G.SecretStoreAll == nil {
 		t.Fatal("Need a secret store for this test")
 	}
-	assertDeprovisionWithSetup(tc)
+	assertDeprovisionWithSetup(tc, false)
 
 	// Now, test deprovision codepath with no secret store
 	tc.G.SecretStoreAll = nil
-	assertDeprovisionWithSetup(tc)
+	assertDeprovisionWithSetup(tc, false)
+}
+
+func TestDeprovisionAfterRevokePaper(t *testing.T) {
+	testDeprovisionAfterRevokePaper(t, false)
+}
+
+func TestDeprovisionAfterRevokePaperPUK(t *testing.T) {
+	testDeprovisionAfterRevokePaper(t, true)
+}
+
+func testDeprovisionAfterRevokePaper(t *testing.T, upgradePerUserKey bool) {
+	tc := SetupEngineTest(t, "deprovision")
+	defer tc.Cleanup()
+	tc.Tp.UpgradePerUserKey = upgradePerUserKey
+	if tc.G.SecretStoreAll == nil {
+		t.Fatal("Need a secret store for this test")
+	}
+	assertDeprovisionWithSetup(tc, true)
+
+	// Now, test deprovision codepath with no secret store
+	tc.G.SecretStoreAll = nil
+	assertDeprovisionWithSetup(tc, true)
 }
 
 func assertDeprovisionLoggedOut(tc libkb.TestContext) {

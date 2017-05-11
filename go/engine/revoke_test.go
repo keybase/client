@@ -72,8 +72,6 @@ func TestRevokeDevice(t *testing.T) {
 }
 
 func TestRevokeDevicePUK(t *testing.T) {
-	t.Skip("TODO waiting for CORE-4895 RevokePUK")
-
 	testRevokeDevice(t, true)
 }
 
@@ -116,8 +114,6 @@ func TestRevokePaperDevice(t *testing.T) {
 }
 
 func TestRevokePaperDevicePUK(t *testing.T) {
-	t.Skip("TODO waiting for CORE-4895 RevokePUK")
-
 	testRevokePaperDevice(t, true)
 }
 
@@ -150,14 +146,78 @@ func testRevokePaperDevice(t *testing.T, upgradePerUserKey bool) {
 	}
 }
 
+func TestRevokerPaperDeviceTwice(t *testing.T) {
+	testRevokerPaperDeviceTwice(t, false)
+}
+
+func TestRevokerPaperDeviceTwicePUK(t *testing.T) {
+	testRevokerPaperDeviceTwice(t, true)
+}
+
+func testRevokerPaperDeviceTwice(t *testing.T, upgradePerUserKey bool) {
+	tc := SetupEngineTest(t, "rev")
+	defer tc.Cleanup()
+	tc.Tp.UpgradePerUserKey = upgradePerUserKey
+
+	u := CreateAndSignupFakeUserPaper(tc, "rev")
+
+	t.Logf("username: %s", u.Username)
+
+	t.Logf("generate second paper key")
+	{
+		ctx := &Context{
+			LogUI:    tc.G.UI.GetLogUI(),
+			LoginUI:  &libkb.TestLoginUI{},
+			SecretUI: &libkb.TestSecretUI{},
+		}
+		eng := NewPaperKey(tc.G)
+		err := RunEngine(eng, ctx)
+		require.NoError(t, err)
+		require.NotEqual(t, 0, len(eng.Passphrase()), "empty passphrase")
+	}
+
+	t.Logf("check")
+	assertNumDevicesAndKeys(tc, u, 3, 6)
+
+	t.Logf("revoke a paper key")
+	devices, _ := getActiveDevicesAndKeys(tc, u)
+	var revokeDevice1 *libkb.Device
+	for _, device := range devices {
+		if device.Type == libkb.DeviceTypePaper {
+			revokeDevice1 = device
+		}
+	}
+	t.Logf("revoke %s", revokeDevice1.ID)
+	err := doRevokeDevice(tc, u, revokeDevice1.ID, false)
+	require.NoError(t, err)
+
+	t.Logf("revoke another paper key")
+	var revokeDevice2 *libkb.Device
+	for _, device := range devices {
+		if device.Type == libkb.DeviceTypePaper && !device.ID.Eq(revokeDevice1.ID) {
+			revokeDevice2 = device
+		}
+	}
+	t.Logf("revoke %s", revokeDevice2.ID)
+	err = doRevokeDevice(tc, u, revokeDevice2.ID, false)
+	require.NoError(t, err)
+
+	t.Logf("check")
+	assertNumDevicesAndKeys(tc, u, 1, 2)
+
+	if tc.G.Env.GetSupportPerUserKey() {
+		checkPerUserKeyring(t, tc.G, 3)
+	}
+}
+
 func checkPerUserKeyring(t *testing.T, g *libkb.GlobalContext, expectedCurrentGeneration int) {
-	// double check that the sdh keyring is correct
+	// double check that the per-user-keyring is correct
 	g.ClearPerUserKeyring()
 	require.NoError(t, g.BumpPerUserKeyring())
 	pukring, err := g.GetPerUserKeyring()
 	require.NoError(t, err)
 	require.NoError(t, pukring.Sync(context.TODO()))
-	require.Equal(t, expectedCurrentGeneration, pukring.CurrentGeneration())
+	require.Equal(t, keybase1.PerUserKeyGeneration(expectedCurrentGeneration), pukring.CurrentGeneration())
 }
 
 func TestRevokeKey(t *testing.T) {

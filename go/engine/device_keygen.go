@@ -135,7 +135,7 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 		if e.perUserKeySeed == nil {
 			return errors.New("missing new per user key")
 		}
-		// Encrypt the new sdh key for this eldest device.
+		// Encrypt the new per-user-key for this eldest device.
 		pukBox, err := libkb.NewPerUserKeyBox(
 			*e.perUserKeySeed, // inner key to be encrypted
 			e.EncryptionKey(), // receiver key (device enc key)
@@ -178,7 +178,8 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 		}
 
 		pukSigProducer = func() (libkb.JSONPayload, error) {
-			return e.makePerUserKeySig(e.args.Me, *e.perUserKeySeed, encSigner)
+			gen := keybase1.PerUserKeyGeneration(1)
+			return libkb.PerUserKeyProofReverseSigned(e.args.Me, *e.perUserKeySeed, gen, encSigner)
 		}
 	}
 
@@ -412,49 +413,4 @@ func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(ctx *Context) ([]keybase
 		paperEncKey,       // sender key: paper key enc
 	)
 	return []keybase1.PerUserKeyBox{pukBox}, err
-}
-
-func (e *DeviceKeygen) makePerUserKeySig(me *libkb.User, pukSeed libkb.PerUserKeySeed, signer libkb.GenericKey) (libkb.JSONPayload, error) {
-	gen := keybase1.PerUserKeyGeneration(1)
-
-	pukSigKey, err := pukSeed.DeriveSigningKey()
-	if err != nil {
-		return nil, err
-	}
-
-	pukEncKey, err := pukSeed.DeriveDHKey()
-	if err != nil {
-		return nil, err
-	}
-
-	// Make reverse sig
-	jwRev, err := libkb.PerUserKeyProof(me, pukSigKey.GetKID(), pukEncKey.GetKID(), gen, signer, nil)
-	if err != nil {
-		return nil, err
-	}
-	reverseSig, _, _, err := libkb.SignJSON(jwRev, pukSigKey)
-	if err != nil {
-		return nil, err
-	}
-
-	// Make sig
-	jw, err := libkb.PerUserKeyProof(me, pukSigKey.GetKID(), pukEncKey.GetKID(), gen, signer, &reverseSig)
-	if err != nil {
-		return nil, err
-	}
-	sig, _, _, err := libkb.SignJSON(jw, signer)
-	if err != nil {
-		return nil, err
-	}
-
-	publicKeysEntry := make(libkb.JSONPayload)
-	publicKeysEntry["signing"] = pukSigKey.GetKID().String()
-	publicKeysEntry["encryption"] = pukEncKey.GetKID().String()
-
-	res := make(libkb.JSONPayload)
-	res["sig"] = sig
-	res["signing_kid"] = signer.GetKID().String()
-	res["type"] = libkb.LinkTypePerUserKey
-	res["public_keys"] = publicKeysEntry
-	return res, nil
 }
