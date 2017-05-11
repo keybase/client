@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Text, Icon, Button, BackButton} from '../../common-adapters'
+import {StandardScreen, Box, Text, Icon, Button} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from '.'
@@ -51,14 +51,13 @@ const Timeline = ({timeline}) => (
 const Render = ({
   name, type, deviceID, currentDevice, timeline, revokedAt, showRevokeDevicePage, device, onBack, bannerBackgroundColor, bannerColor, bannerDesc, icon, revokeName,
 }: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-    <BackButton style={{alignSelf: 'flex-start', marginLeft: 13, marginTop: 13}} onClick={onBack} />
+  <StandardScreen style={{...globalStyles.flexBoxColumn, alignItems: 'center'}} onBack={onBack}>
     {!!bannerDesc && <Banner color={bannerColor} backgroundColor={bannerBackgroundColor} desc={bannerDesc} />}
     <Icon type={icon} style={{marginTop: 32, opacity: revokedAt ? 0.4 : 1}} />
     <Header name={name} isCurrent={currentDevice} isRevoked={revokedAt} />
     {!!timeline && <Timeline timeline={timeline} />}
     {!revokedAt && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName || ''}`} onClick={showRevokeDevicePage} />}
-  </Box>
+  </StandardScreen>
 )
 
 const stylesBanner = {
