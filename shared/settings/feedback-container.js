@@ -14,6 +14,7 @@ import {serialPromises} from '../util/promise'
 
 import type {Dispatch} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
+import type {TimerProps} from '../common-adapters/hoc-timers'
 
 const FeedbackWrapped = compose(
   withState('sendLogs', 'onChangeSendLogs', true),
@@ -28,7 +29,7 @@ type State = {
   sending: boolean,
 }
 
-class FeedbackContainer extends Component<void, {status: string}, State> {
+class FeedbackContainer extends Component<void, {status: string} & TimerProps, State> {
   mounted = false
 
   state = {
