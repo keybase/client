@@ -616,8 +616,12 @@ type SigMultiItem struct {
 // PerUserKeyProof creates a proof introducing a new per-user-key generation.
 // `signingKey` is the key signing in this new key. Not to be confused with the derived per-user-key signing key.
 // `reverseSig` can be nil. A nil `reverseSig` can be used to produce the inner of the reverse sig.
-func PerUserKeyProof(me *User, pukSigKID keybase1.KID, pukEncKID keybase1.KID, generation keybase1.PerUserKeyGeneration,
-	signingKey GenericKey, reverseSig *string) (*jsonw.Wrapper, error) {
+func PerUserKeyProof(me *User,
+	pukSigKID keybase1.KID,
+	pukEncKID keybase1.KID,
+	generation keybase1.PerUserKeyGeneration,
+	signingKey GenericKey,
+	reverseSig *string) (*jsonw.Wrapper, error) {
 
 	ret, err := ProofMetadata{
 		Me:         me,

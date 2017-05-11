@@ -793,7 +793,11 @@ func DeriveSymmetricKey(inKey NaclSecretBoxKey, reason EncryptionReason) (NaclSe
 	return outKey, nil
 }
 
-func DeriveNonReversed(inKey [32]byte, reason DeriveReason) (outKey [32]byte, err error) {
+// Derive a key from another.
+// Uses HMAC(key=reason, data=key)
+// Not to be confused with DeriveSymmetricKey which has hmac inputs swapped.
+// This one makes sense for derivation from secrets used only to derive from.
+func DeriveFromSecret(inKey [32]byte, reason DeriveReason) (outKey [32]byte, err error) {
 	if len(reason) < 8 {
 		return outKey, KeyGenError{Msg: "reason must be at least 8 bytes"}
 	}
@@ -880,12 +884,11 @@ func (k NaclDHKeyPair) Decrypt(nei *NaclEncryptionInfo) (plaintext []byte, sende
 	return
 }
 
-func GeneratePerUserKeySeed() (PerUserKeySeed, error) {
-	var seed [PerUserKeySeedSize]byte
-	if nRead, err := rand.Read(seed[:]); err != nil {
-		return seed, err
-	} else if nRead != len(seed) {
-		return seed, fmt.Errorf("Short random read: %d", nRead)
+func GeneratePerUserKeySeed() (res PerUserKeySeed, err error) {
+	bs, err := RandBytes(32)
+	if err != nil {
+		return res, err
 	}
+	seed := PerUserKeySeed(MakeByte32(bs))
 	return seed, nil
 }

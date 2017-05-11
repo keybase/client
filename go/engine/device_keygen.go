@@ -420,7 +420,7 @@ func (e *DeviceKeygen) makePerUserKeySig(me *libkb.User, pukSeed libkb.PerUserKe
 		return nil, err
 	}
 
-	pukEncKey, err := pukSeed.DeriveEncryptionKey()
+	pukEncKey, err := pukSeed.DeriveDHKey()
 	if err != nil {
 		return nil, err
 	}

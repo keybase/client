@@ -15,7 +15,7 @@ import (
 type AggSigProducer func() (JSONPayload, error)
 
 // Run posts an array of delegations to the server. Keeping this simple as we don't need any state (yet)
-// `extra` is optinal and adds an extra sig, produced by something other than a Delegator, after the others.
+// `extra` is optional and adds an extra sig, produced by something other than a Delegator, after the others.
 func DelegatorAggregator(lctx LoginContext, ds []Delegator, extra AggSigProducer,
 	pukBoxes []keybase1.PerUserKeyBox, pukPrev *PerUserKeyPrev) (err error) {
 	if len(ds) == 0 {
@@ -68,20 +68,18 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator, extra AggSigProducer
 }
 
 // Make the "per_user_key" section of an API arg.
+// Requires one or more `pukBoxes`
+// `pukPrev` is optional.
 // Modifies `serverArg`.
 func AddPerUserKeyServerArg(serverArg JSONPayload, generation keybase1.PerUserKeyGeneration,
 	pukBoxes []keybase1.PerUserKeyBox, pukPrev *PerUserKeyPrev) {
 	section := make(JSONPayload)
-	if len(pukBoxes) > 0 {
-		section["boxes"] = pukBoxes
-		section["generation"] = pukBoxes[0].Generation
-	}
+	section["boxes"] = pukBoxes
+	section["generation"] = generation
 	if pukPrev != nil {
 		section["secretbox"] = pukPrev
 	}
-	if len(section) > 0 {
-		serverArg["per_user_key"] = section
-	}
+	serverArg["per_user_key"] = section
 }
 
 func convertStringMapToJSONPayload(in map[string]string) JSONPayload {

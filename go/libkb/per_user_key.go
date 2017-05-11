@@ -22,7 +22,7 @@ type PerUserKeyPrev string
 type PerUserKeySeed [PerUserKeySeedSize]byte
 
 func (s *PerUserKeySeed) DeriveSigningKey() (*NaclSigningKeyPair, error) {
-	derived, err := DeriveNonReversed(*s, DeriveReasonPUKSigning)
+	derived, err := DeriveFromSecret(*s, DeriveReasonPUKSigning)
 	if err != nil {
 		return nil, err
 	}
@@ -30,8 +30,8 @@ func (s *PerUserKeySeed) DeriveSigningKey() (*NaclSigningKeyPair, error) {
 	return &res, err
 }
 
-func (s *PerUserKeySeed) DeriveEncryptionKey() (*NaclDHKeyPair, error) {
-	derived, err := DeriveNonReversed(*s, DeriveReasonPUKEncryption)
+func (s *PerUserKeySeed) DeriveDHKey() (*NaclDHKeyPair, error) {
+	derived, err := DeriveFromSecret(*s, DeriveReasonPUKEncryption)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (s *PerUserKeySeed) DeriveEncryptionKey() (*NaclDHKeyPair, error) {
 
 // derivePrevKey derives the symmetric key used to secretbox the previous generation seed.
 func (s *PerUserKeySeed) derivePrevKey() (res NaclSecretBoxKey, err error) {
-	derived, err := DeriveNonReversed(*s, DeriveReasonPUKPrev)
+	derived, err := DeriveFromSecret(*s, DeriveReasonPUKPrev)
 	if err != nil {
 		return res, err
 	}
@@ -91,8 +91,7 @@ func newPerUserKeyPrev(contents PerUserKeySeed, symmetricKey NaclSecretBoxKey) (
 	}
 
 	// secretbox
-	var symmetricKey2 [NaclSecretBoxKeySize]byte = symmetricKey
-	sealed := secretbox.Seal(nil, contents[:], &nonce, &symmetricKey2)
+	sealed := secretbox.Seal(nil, contents[:], &nonce, (*[NaclSecretBoxKeySize]byte)(&symmetricKey))
 
 	parts := []interface{}{version, nonce, sealed}
 
@@ -158,12 +157,7 @@ func openPerUserKeyPrev(sbox string, symmetricKey NaclSecretBoxKey) (PerUserKeyS
 	if len(contents) != PerUserKeySeedSize {
 		return res, fmt.Errorf("per user key seed length %v != %v", len(contents), PerUserKeySeedSize)
 	}
-
-	res, err = MakeByte32Soft(contents)
-	if err != nil {
-		return res, err
-	}
-	return res, nil
+	return MakeByte32(contents), nil
 }
 
 type perUserKeyFull struct {
@@ -581,7 +575,7 @@ func expandPerUserKey(seed PerUserKeySeed) (res importedPerUserKey, err error) {
 	if err != nil {
 		return res, err
 	}
-	encKey, err := seed.DeriveEncryptionKey()
+	encKey, err := seed.DeriveDHKey()
 	if err != nil {
 		return res, err
 	}
