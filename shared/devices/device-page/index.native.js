@@ -12,9 +12,7 @@ const Banner = ({color, backgroundColor, desc}) => (
 
 const Header = ({name, isCurrent, isRevoked}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginBottom: 20, marginTop: 10}}>
-    <Text type='Header' style={isRevoked
-        ? {color: globalColors.black_40, fontStyle: 'italic', textDecorationLine: 'line-through'}
-        : {fontStyle: 'italic'}}>{name}</Text>
+    <Text type='Header' style={isRevoked ? styleTitleRevoked : styleTitle}>{name}</Text>
     {isRevoked && <Text type='Header' style={stylesMeta}>REVOKED</Text>}
     <Box style={{...globalStyles.flexBoxRow}}>
       {isCurrent && <Text type='BodySmall'>Current device</Text>}
@@ -56,7 +54,7 @@ const Render = ({
     <Icon type={icon} style={{marginTop: 32, opacity: revokedAt ? 0.4 : 1}} />
     <Header name={name} isCurrent={currentDevice} isRevoked={revokedAt} />
     {!!timeline && <Timeline timeline={timeline} />}
-    {!revokedAt && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName || ''}`} onClick={showRevokeDevicePage} />}
+    {!revokedAt && <Button type='Danger' style={{marginTop: globalMargins.small}} label={`Revoke this ${revokeName || ''}`} onClick={showRevokeDevicePage} />}
   </StandardScreen>
 )
 
@@ -68,6 +66,17 @@ const stylesBanner = {
   paddingTop: globalMargins.tiny,
   paddingBottom: globalMargins.tiny,
   textAlign: 'center',
+}
+
+const styleTitle = {
+  fontStyle: 'italic',
+  textAlign: 'center',
+}
+
+const styleTitleRevoked = {
+  ...styleTitle,
+  color: globalColors.black_40,
+  textDecorationLine: 'line-through'
 }
 
 const circleSize = 8

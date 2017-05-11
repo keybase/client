@@ -26,7 +26,6 @@ const Render = ({onBack, onSubmit, onChangePaperKey, error, paperKey, waitingFor
       <Button
         label='Continue'
         type='Primary'
-        style={{alignSelf: 'flex-end'}}
         onClick={() => onSubmit()}
         enabled={paperKey}
         waiting={waitingForResponse}

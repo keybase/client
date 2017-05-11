@@ -28,7 +28,7 @@ class PassphraseRender extends Component<void, Props, void> {
 }
 
 const stylesOuter = {
-  backgroundColor: globalColors.black_10,
+  backgroundColor: globalColors.white,
 }
 
 const stylesContainer = {
