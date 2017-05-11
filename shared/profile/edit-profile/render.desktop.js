@@ -1,15 +1,14 @@
 // @flow
 import React, {Component} from 'react'
-import {BackButton, Box, Button, Input} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import {StandardScreen, Box, Button, Input} from '../../common-adapters'
+import {globalStyles, globalColors} from '../../styles'
 
 import type {Props} from './render'
 
 class EditProfileRender extends Component<void, Props, void> {
   render () {
     return (
-      <Box style={styleOuterContainer}>
-        {this.props.onBack && <BackButton onClick={this.props.onBack} style={{position: 'absolute', left: 10, top: 10, zIndex: 12}} />}
+      <StandardScreen onBack={this.props.onBack}>
         <Box style={styleContainer}>
           <Input
             autoFocus={true}
@@ -37,14 +36,9 @@ class EditProfileRender extends Component<void, Props, void> {
             <Button type='Primary' onClick={this.props.onSubmit} label='Save' />
           </Box>
         </Box>
-      </Box>
+      </StandardScreen>
     )
   }
-}
-
-const styleOuterContainer = {
-  position: 'relative',
-  height: '100%',
 }
 
 const styleButtonContainer = {
