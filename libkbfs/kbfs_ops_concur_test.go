@@ -1272,6 +1272,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	b.finishChan = finishChan
 
 	prevNBlocks := b.numBlocks()
+	nowNBlocks := 0
 	ctx2, cancel2 := context.WithCancel(ctx)
 	go func() {
 		// let the first initialBlocks blocks through.
@@ -1299,6 +1300,11 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 			}
 		}
 
+		// Get the number of blocks now, before canceling the context,
+		// because after canceling the context we would be racing with
+		// cleanup code that could delete the put blocks.
+		nowNBlocks = b.numBlocks()
+
 		// Let each parallel block worker block on readyChan.
 		for i := 0; i < maxParallelBlockPuts; i++ {
 			select {
@@ -1325,7 +1331,6 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	if err != ctx2.Err() {
 		t.Errorf("Sync did not get canceled error: %v", err)
 	}
-	nowNBlocks := b.numBlocks()
 	if nowNBlocks != prevNBlocks+2 {
 		t.Errorf("Unexpected number of blocks; prev = %d, now = %d",
 			prevNBlocks, nowNBlocks)
