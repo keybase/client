@@ -1,8 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 
-import {HeaderHoc} from '../common-adapters'
-import {HOCTimers} from '../common-adapters'
+import {HeaderHoc, HOCTimers} from '../common-adapters'
 import Feedback from './feedback'
 import logSend from '../native/log-send'
 import {connect} from 'react-redux'
