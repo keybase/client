@@ -216,7 +216,13 @@ func (j journalMDOps) getRangeFromJournal(
 
 func (j journalMDOps) GetForHandle(
 	ctx context.Context, handle *TlfHandle, mStatus MergeStatus) (
-	tlf.ID, ImmutableRootMetadata, error) {
+	tlfID tlf.ID, rmd ImmutableRootMetadata, err error) {
+	// TODO: Ideally, *TlfHandle would have a nicer String() function.
+	j.jServer.log.LazyTrace(ctx, "jMDOps: GetForHandle %+v %s", handle, mStatus)
+	defer func() {
+		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: GetForHandle %+v %s done (err=%v)", handle, mStatus, err)
+	}()
+
 	// Need to always consult the server to get the tlfID. No need to
 	// optimize this, since all subsequent lookups will be by
 	// TLF. Although if we did want to, we could store a handle -> TLF
@@ -227,7 +233,7 @@ func (j journalMDOps) GetForHandle(
 	if mStatus == Unmerged {
 		remoteMStatus = Merged
 	}
-	tlfID, rmd, err := j.MDOps.GetForHandle(ctx, handle, remoteMStatus)
+	tlfID, rmd, err = j.MDOps.GetForHandle(ctx, handle, remoteMStatus)
 	if err != nil {
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
@@ -275,13 +281,23 @@ func (j journalMDOps) getForTLF(
 }
 
 func (j journalMDOps) GetForTLF(
-	ctx context.Context, id tlf.ID) (ImmutableRootMetadata, error) {
+	ctx context.Context, id tlf.ID) (irmd ImmutableRootMetadata, err error) {
+	j.jServer.log.LazyTrace(ctx, "jMDOps: GetForTLF %s", id)
+	defer func() {
+		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: GetForTLF %s done (err=%v)", id, err)
+	}()
+
 	return j.getForTLF(ctx, id, NullBranchID, Merged, j.MDOps.GetForTLF)
 }
 
 func (j journalMDOps) GetUnmergedForTLF(
 	ctx context.Context, id tlf.ID, bid BranchID) (
-	ImmutableRootMetadata, error) {
+	irmd ImmutableRootMetadata, err error) {
+	j.jServer.log.LazyTrace(ctx, "jMDOps: GetUnmergedForTLF %s %s", id, bid)
+	defer func() {
+		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: GetForTLF %s %s done (err=%v)", id, bid, err)
+	}()
+
 	delegateFn := func(ctx context.Context, id tlf.ID) (
 		ImmutableRootMetadata, error) {
 		return j.MDOps.GetUnmergedForTLF(ctx, id, bid)
@@ -354,14 +370,24 @@ func (j journalMDOps) getRange(
 
 func (j journalMDOps) GetRange(
 	ctx context.Context, id tlf.ID, start, stop MetadataRevision) (
-	[]ImmutableRootMetadata, error) {
+	irmds []ImmutableRootMetadata, err error) {
+	j.jServer.log.LazyTrace(ctx, "jMDOps: GetRange %s %d-%d", id, start, stop)
+	defer func() {
+		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: GetRange %s %d-%d done (err=%v)", id, start, stop, err)
+	}()
+
 	return j.getRange(ctx, id, NullBranchID, Merged, start, stop,
 		j.MDOps.GetRange)
 }
 
 func (j journalMDOps) GetUnmergedRange(
 	ctx context.Context, id tlf.ID, bid BranchID,
-	start, stop MetadataRevision) ([]ImmutableRootMetadata, error) {
+	start, stop MetadataRevision) (irmd []ImmutableRootMetadata, err error) {
+	j.jServer.log.LazyTrace(ctx, "jMDOps: GetUnmergedRange %s %d-%d", id, start, stop)
+	defer func() {
+		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: GetUnmergedRange %s %d-%d done (err=%v)", id, start, stop, err)
+	}()
+
 	delegateFn := func(ctx context.Context, id tlf.ID,
 		start, stop MetadataRevision) (
 		[]ImmutableRootMetadata, error) {
@@ -372,7 +398,12 @@ func (j journalMDOps) GetUnmergedRange(
 }
 
 func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
-	MdID, error) {
+	mdID MdID, err error) {
+	j.jServer.log.LazyTrace(ctx, "jMDOps: Put %s %d", rmd.TlfID(), rmd.Revision())
+	defer func() {
+		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: Put %s %d done (err=%v)", rmd.TlfID(), rmd.Revision(), err)
+	}()
+
 	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
 		// Just route to the journal.
 		mdID, err := tlfJournal.putMD(ctx, rmd)
@@ -390,7 +421,12 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
 }
 
 func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
-	MdID, error) {
+	mdID MdID, err error) {
+	j.jServer.log.LazyTrace(ctx, "jMDOps: PutUnmerged %s %d", rmd.TlfID(), rmd.Revision())
+	defer func() {
+		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: PutUnmerged %s %d done (err=%v)", rmd.TlfID(), rmd.Revision(), err)
+	}()
+
 	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
 		rmd.SetUnmerged()
 		mdID, err := tlfJournal.putMD(ctx, rmd)
@@ -408,7 +444,12 @@ func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 }
 
 func (j journalMDOps) PruneBranch(
-	ctx context.Context, id tlf.ID, bid BranchID) error {
+	ctx context.Context, id tlf.ID, bid BranchID) (err error) {
+	j.jServer.log.LazyTrace(ctx, "jMDOps: PruneBranch %s %s", id, bid)
+	defer func() {
+		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: PruneBranch %s %s (err=%v)", id, bid, err)
+	}()
+
 	if tlfJournal, ok := j.jServer.getTLFJournal(id); ok {
 		// Prune the journal, too.
 		err := tlfJournal.clearMDs(ctx, bid)
@@ -427,7 +468,12 @@ func (j journalMDOps) PruneBranch(
 
 func (j journalMDOps) ResolveBranch(
 	ctx context.Context, id tlf.ID, bid BranchID,
-	blocksToDelete []kbfsblock.ID, rmd *RootMetadata) (MdID, error) {
+	blocksToDelete []kbfsblock.ID, rmd *RootMetadata) (mdID MdID, err error) {
+	j.jServer.log.LazyTrace(ctx, "jMDOps: ResolveBranch %s %s", id, bid)
+	defer func() {
+		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: ResolveBranch %s %s (err=%v)", id, bid, err)
+	}()
+
 	if tlfJournal, ok := j.jServer.getTLFJournal(id); ok {
 		mdID, err := tlfJournal.resolveBranch(
 			ctx, bid, blocksToDelete, rmd)

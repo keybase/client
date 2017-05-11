@@ -61,8 +61,8 @@ type blockJournal struct {
 	codec kbfscodec.Codec
 	dir   string
 
-	log      logger.Logger
-	deferLog logger.Logger
+	log      traceLogger
+	deferLog traceLogger
 
 	// j is the main journal.
 	j *diskJournal
@@ -196,8 +196,8 @@ func makeBlockJournal(
 	journal := &blockJournal{
 		codec:      codec,
 		dir:        dir,
-		log:        log,
-		deferLog:   deferLog,
+		log:        traceLogger{log},
+		deferLog:   traceLogger{deferLog},
 		j:          j,
 		deferredGC: gcj,
 		s:          s,
@@ -764,7 +764,7 @@ func flushNonBPSBlockJournalEntry(
 	return nil
 }
 
-func flushBlockEntries(ctx context.Context, log logger.Logger,
+func flushBlockEntries(ctx context.Context, log, deferLog traceLogger,
 	bserver BlockServer, bcache BlockCache, reporter Reporter, tlfID tlf.ID,
 	tlfName CanonicalTlfName, entries blockEntriesToFlush) error {
 	if !entries.flushNeeded() {
@@ -777,7 +777,7 @@ func flushBlockEntries(ctx context.Context, log logger.Logger,
 	// reference the former.
 	log.CDebugf(ctx, "Putting %d blocks", len(entries.puts.blockStates))
 	blocksToRemove, err := doBlockPuts(ctx, bserver, bcache, reporter,
-		log, tlfID, tlfName, *entries.puts)
+		log, deferLog, tlfID, tlfName, *entries.puts)
 	if err != nil {
 		if isRecoverableBlockError(err) {
 			log.CWarningf(ctx,
@@ -791,7 +791,7 @@ func flushBlockEntries(ctx context.Context, log logger.Logger,
 	log.CDebugf(ctx, "Adding %d block references",
 		len(entries.adds.blockStates))
 	blocksToRemove, err = doBlockPuts(ctx, bserver, bcache, reporter,
-		log, tlfID, tlfName, *entries.adds)
+		log, deferLog, tlfID, tlfName, *entries.adds)
 	if err != nil {
 		if isRecoverableBlockError(err) {
 			log.CWarningf(ctx,

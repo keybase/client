@@ -110,8 +110,8 @@ type mdFlushListener interface {
 type JournalServer struct {
 	config Config
 
-	log      logger.Logger
-	deferLog logger.Logger
+	log      traceLogger
+	deferLog traceLogger
 
 	dir string
 
@@ -146,8 +146,8 @@ func makeJournalServer(
 	}
 	jServer := JournalServer{
 		config:                  config,
-		log:                     log,
-		deferLog:                log.CloneWithAddedDepth(1),
+		log:                     traceLogger{log},
+		deferLog:                traceLogger{log.CloneWithAddedDepth(1)},
 		dir:                     dir,
 		delegateBlockCache:      bcache,
 		delegateDirtyBlockCache: dirtyBcache,

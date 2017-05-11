@@ -12,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfssync"
@@ -55,7 +54,8 @@ type ConflictResolver struct {
 	config           Config
 	fbo              *folderBranchOps
 	prepper          folderUpdatePrepper
-	log              logger.Logger
+	log              traceLogger
+	deferLog         traceLogger
 	maxRevsThreshold int
 
 	inputChanLock sync.RWMutex
@@ -93,7 +93,8 @@ func NewConflictResolver(
 			blocks:       &fbo.blocks,
 			log:          log,
 		},
-		log:              log,
+		log:              traceLogger{log},
+		deferLog:         traceLogger{log.CloneWithAddedDepth(1)},
 		maxRevsThreshold: crMaxRevsThresholdDefault,
 		currInput: conflictInput{
 			unmerged: MetadataRevisionUninitialized,
@@ -2943,7 +2944,7 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 
 	// Put all the blocks.  TODO: deal with recoverable block errors?
 	_, err = doBlockPuts(ctx, cr.config.BlockServer(), cr.config.BlockCache(),
-		cr.config.Reporter(), cr.log, md.TlfID(),
+		cr.config.Reporter(), cr.log, cr.deferLog, md.TlfID(),
 		md.GetTlfHandle().GetCanonicalName(), *bps)
 	if err != nil {
 		return err
@@ -3018,10 +3019,11 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	ctx = cr.config.MaybeStartTrace(ctx, "CR.doResolve",
 		fmt.Sprintf("%s %+v", cr.fbo.folderBranch, ci))
 	defer func() { cr.config.MaybeFinishTrace(ctx, err) }()
+
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %+v", ci)
 	lState := makeFBOLockState()
 	defer func() {
-		cr.log.CDebugf(ctx, "Finished conflict resolution: %+v", err)
+		cr.deferLog.CDebugf(ctx, "Finished conflict resolution: %+v", err)
 		if err != nil {
 			head := cr.fbo.getTrustedHead(lState)
 			if head == (ImmutableRootMetadata{}) {

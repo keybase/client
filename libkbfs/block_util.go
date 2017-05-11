@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -80,8 +79,14 @@ func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
 // Returns a slice of block pointers that resulted in recoverable
 // errors and should be removed by the caller from any saved state.
 func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
-	reporter Reporter, log logger.Logger, tlfID tlf.ID, tlfName CanonicalTlfName,
-	bps blockPutState) ([]BlockPointer, error) {
+	reporter Reporter, log, deferLog traceLogger, tlfID tlf.ID, tlfName CanonicalTlfName,
+	bps blockPutState) (blocksToRemove []BlockPointer, err error) {
+	blockCount := len(bps.blockStates)
+	log.LazyTrace(ctx, "doBlockPuts with %d blocks", blockCount)
+	defer func() {
+		deferLog.LazyTrace(ctx, "doBlockPuts with %d blocks (err=%v)", blockCount, err)
+	}()
+
 	eg, groupCtx := errgroup.WithContext(ctx)
 
 	blocks := make(chan blockState, len(bps.blockStates))
@@ -114,9 +119,8 @@ func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
 	}
 	close(blocks)
 
-	err := eg.Wait()
+	err = eg.Wait()
 	close(blocksToRemoveChan)
-	var blocksToRemove []BlockPointer
 	if isRecoverableBlockError(err) {
 		// Wait for all the outstanding puts to finish, to amortize
 		// the work of re-doing the put.

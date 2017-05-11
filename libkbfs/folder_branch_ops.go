@@ -14,7 +14,6 @@ import (
 
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -294,8 +293,8 @@ type folderBranchOps struct {
 	status *folderBranchStatusKeeper
 
 	// How to log
-	log      logger.Logger
-	deferLog logger.Logger
+	log      traceLogger
+	deferLog traceLogger
 
 	// Closed on shutdown
 	shutdownChan chan struct{}
@@ -396,8 +395,8 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 			nodeCache:  nodeCache,
 		},
 		nodeCache:       nodeCache,
-		log:             log,
-		deferLog:        log.CloneWithAddedDepth(1),
+		log:             traceLogger{log},
+		deferLog:        traceLogger{log.CloneWithAddedDepth(1)},
 		shutdownChan:    make(chan struct{}),
 		updatePauseChan: make(chan (<-chan struct{})),
 		forceSyncChan:   forceSyncChan,
@@ -1307,7 +1306,7 @@ func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 	}()
 
 	ptrsToDelete, err := doBlockPuts(ctx, fbo.config.BlockServer(),
-		fbo.config.BlockCache(), fbo.config.Reporter(), fbo.log, md.TlfID(),
+		fbo.config.BlockCache(), fbo.config.Reporter(), fbo.log, fbo.deferLog, md.TlfID(),
 		md.GetTlfHandle().GetCanonicalName(), *bps)
 	if err != nil {
 		return nil, err
@@ -3744,8 +3743,10 @@ func (fbo *folderBranchOps) syncAllLocked(
 		}
 	}()
 
+	fbo.log.LazyTrace(ctx, "Syncing %d dir(s)", len(dirtyDirs))
+
 	// First prep all the directories.
-	fbo.log.CDebugf(ctx, "Syncing %d dirs(s)", len(dirtyDirs))
+	fbo.log.CDebugf(ctx, "Syncing %d dir(s)", len(dirtyDirs))
 	for _, ref := range dirtyDirs {
 		node := fbo.nodeCache.Get(ref)
 		if node == nil {
@@ -3779,6 +3780,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 			fbo.dirOps = nil
 		}
 	}()
+
+	fbo.log.LazyTrace(ctx, "Processing %d op(s)", len(fbo.dirOps))
 
 	newBlocks := make(map[BlockPointer]bool)
 	fileBlocks := make(fileBlockMap)
@@ -3887,6 +3890,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 		return nil
 	})
 
+	fbo.log.LazyTrace(ctx, "Syncing %d file(s)", len(dirtyFiles))
+
 	fbo.log.CDebugf(ctx, "Syncing %d file(s)", len(dirtyFiles))
 	fileSyncBlocks := newBlockPutState(1)
 	for _, ref := range dirtyFiles {
@@ -3976,6 +3981,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 		lastWriterVerifyingKey: session.VerifyingKey,
 	}
 
+	fbo.log.LazyTrace(ctx, "Prepping update")
+
 	// Create a set of chains for this batch, a succinct summary of
 	// the file and directory blocks that need to change during this
 	// sync.
@@ -4024,7 +4031,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 
 	// Put all the blocks.
 	blocksToRemove, err = doBlockPuts(ctx, fbo.config.BlockServer(),
-		fbo.config.BlockCache(), fbo.config.Reporter(), fbo.log, md.TlfID(),
+		fbo.config.BlockCache(), fbo.config.Reporter(), fbo.log, fbo.deferLog, md.TlfID(),
 		md.GetTlfHandle().GetCanonicalName(), *bps)
 	if err != nil {
 		return err

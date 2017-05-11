@@ -187,8 +187,8 @@ type tlfJournal struct {
 	dir                 string
 	config              tlfJournalConfig
 	delegateBlockServer BlockServer
-	log                 logger.Logger
-	deferLog            logger.Logger
+	log                 traceLogger
+	deferLog            traceLogger
 	onBranchChange      branchChangeListener
 	onMDFlush           mdFlushListener
 	forcedSquashByBytes uint64
@@ -343,8 +343,8 @@ func makeTLFJournal(
 		dir:                  dir,
 		config:               config,
 		delegateBlockServer:  delegateBlockServer,
-		log:                  log,
-		deferLog:             log.CloneWithAddedDepth(1),
+		log:                  traceLogger{log},
+		deferLog:             traceLogger{log.CloneWithAddedDepth(1)},
 		onBranchChange:       onBranchChange,
 		onMDFlush:            onMDFlush,
 		forcedSquashByBytes:  ForcedBranchSquashBytesThresholdDefault,
@@ -912,7 +912,7 @@ func (j *tlfJournal) flushBlockEntries(
 	// end, and we need to make sure `maxMDRevToFlush` is still valid.
 	eg.Go(func() error {
 		defer convertCancel()
-		return flushBlockEntries(groupCtx, j.log, j.delegateBlockServer,
+		return flushBlockEntries(groupCtx, j.log, j.deferLog, j.delegateBlockServer,
 			j.config.BlockCache(), j.config.Reporter(),
 			j.tlfID, tlfName, entries)
 	})

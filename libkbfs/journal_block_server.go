@@ -72,6 +72,11 @@ func (j journalBlockServer) getBlockSizeFromJournal(
 func (j journalBlockServer) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context) (
 	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	j.jServer.log.LazyTrace(ctx, "jBServer: Get %s", id)
+	defer func() {
+		j.jServer.deferLog.LazyTrace(ctx, "jBServer: Get %s done (err=%v)", id, err)
+	}()
+
 	data, serverHalf, found, err := j.getBlockFromJournal(tlfID, id)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
@@ -86,6 +91,10 @@ func (j journalBlockServer) Get(
 func (j journalBlockServer) Put(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	// Don't trace this function, as it gets too verbose and is
+	// called in parallel anyway. Rely on caller (usually
+	// doBlockPuts) to do the tracing.
+
 	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
 		defer func() {
 			err = translateToBlockServerError(err)
@@ -109,6 +118,11 @@ func (j journalBlockServer) Put(
 func (j journalBlockServer) AddBlockReference(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context) (err error) {
+	j.jServer.log.LazyTrace(ctx, "jBServer: AddRef %s", id)
+	defer func() {
+		j.jServer.deferLog.LazyTrace(ctx, "jBServer: AddRef %s done (err=%v)", id, err)
+	}()
+
 	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
 		if !j.enableAddBlockReference {
 			// TODO: Temporarily return an error until KBFS-1149 is
@@ -140,6 +154,11 @@ func (j journalBlockServer) RemoveBlockReferences(
 	ctx context.Context, tlfID tlf.ID,
 	contexts kbfsblock.ContextMap) (
 	liveCounts map[kbfsblock.ID]int, err error) {
+	j.jServer.log.LazyTrace(ctx, "jBServer: RemRef %v", contexts)
+	defer func() {
+		j.jServer.deferLog.LazyTrace(ctx, "jBServer: RemRef %v done (err=%v)", contexts, err)
+	}()
+
 	// Deletes always go straight to the server, since they slow down
 	// the journal and already only happen in the background anyway.
 	// Note that this means delete operations must be issued after the
@@ -151,6 +170,11 @@ func (j journalBlockServer) RemoveBlockReferences(
 func (j journalBlockServer) ArchiveBlockReferences(
 	ctx context.Context, tlfID tlf.ID,
 	contexts kbfsblock.ContextMap) (err error) {
+	j.jServer.log.LazyTrace(ctx, "jBServer: ArchiveRef %v", contexts)
+	defer func() {
+		j.jServer.deferLog.LazyTrace(ctx, "jBServer: ArchiveRef %v done (err=%v)", contexts, err)
+	}()
+
 	// Archives always go straight to the server, since they slow down
 	// the journal and already only happen in the background anyway.
 	// Note that this means delete operations must be issued after the
@@ -161,6 +185,11 @@ func (j journalBlockServer) ArchiveBlockReferences(
 
 func (j journalBlockServer) IsUnflushed(ctx context.Context, tlfID tlf.ID,
 	id kbfsblock.ID) (isLocal bool, err error) {
+	j.jServer.log.LazyTrace(ctx, "jBServer: IsUnflushed %s", id)
+	defer func() {
+		j.jServer.deferLog.LazyTrace(ctx, "jBServer: IsUnflushed %s done (err=%v)", id, err)
+	}()
+
 	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
 		defer func() {
 			err = translateToBlockServerError(err)
