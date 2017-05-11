@@ -38,8 +38,12 @@ type TypingMonitor struct {
 	sync.Mutex
 	utils.DebugLabeler
 
-	clock  clockwork.Clock
-	typers map[string]*typingControlChans
+	timeout time.Duration
+	clock   clockwork.Clock
+	typers  map[string]*typingControlChans
+
+	// Testing
+	extendCh *chan struct{}
 }
 
 func NewTypingMonitor(g *globals.Context) *TypingMonitor {
@@ -48,11 +52,16 @@ func NewTypingMonitor(g *globals.Context) *TypingMonitor {
 		DebugLabeler: utils.NewDebugLabeler(g, "TypingMonitor", false),
 		typers:       make(map[string]*typingControlChans),
 		clock:        clockwork.NewRealClock(),
+		timeout:      typingTimeout,
 	}
 }
 
 func (t *TypingMonitor) SetClock(clock clockwork.Clock) {
 	t.clock = clock
+}
+
+func (t *TypingMonitor) SetTimeout(timeout time.Duration) {
+	t.timeout = timeout
 }
 
 func (t *TypingMonitor) key(typer chat1.TyperInfo, convID chat1.ConversationID) string {
@@ -88,6 +97,14 @@ func (t *TypingMonitor) Update(ctx context.Context, typer chat1.TyperInfo, convI
 	t.Debug(ctx, "Update: %s in convID: %s updated typing to: %v", typer, convID, typing)
 	key := t.key(typer, convID)
 
+	// If this is about ourselves, then don't bother
+	cuid := t.G().Env.GetUID()
+	cdid := t.G().Env.GetDeviceID()
+	if cuid.Equal(typer.Uid) && cdid.Eq(typer.DeviceID) {
+		return
+	}
+
+	// Process the update
 	t.Lock()
 	chans, alreadyTyping := t.typers[key]
 	t.Unlock()
@@ -104,9 +121,7 @@ func (t *TypingMonitor) Update(ctx context.Context, typer chat1.TyperInfo, convI
 		} else {
 			// Not typing yet, just add it in and spawn waiter
 			chans := newTypingControlChans(typer)
-			t.Lock()
-			t.typers[key] = chans
-			t.Unlock()
+			t.insertIntoTypers(ctx, key, chans, convID)
 			t.waitOnTyper(ctx, chans, convID)
 		}
 	} else {
@@ -123,6 +138,14 @@ func (t *TypingMonitor) Update(ctx context.Context, typer chat1.TyperInfo, convI
 	}
 }
 
+func (t *TypingMonitor) insertIntoTypers(ctx context.Context, key string, chans *typingControlChans,
+	convID chat1.ConversationID) {
+	t.Lock()
+	defer t.Unlock()
+	t.typers[key] = chans
+	t.notifyConvUpdateLocked(ctx, convID)
+}
+
 func (t *TypingMonitor) removeFromTypers(ctx context.Context, key string, convID chat1.ConversationID) {
 	t.Lock()
 	defer t.Unlock()
@@ -134,11 +157,13 @@ func (t *TypingMonitor) waitOnTyper(ctx context.Context, chans *typingControlCha
 	convID chat1.ConversationID) {
 	key := t.key(chans.typer, convID)
 	ctx = BackgroundContext(ctx, t.G().GetEnv())
+	deadline := t.clock.Now().Add(t.timeout)
 	go func() {
 		extends := 0
 		for {
+			t.Debug(ctx, "waiting again: %v", deadline)
 			select {
-			case <-t.clock.After(typingTimeout):
+			case <-t.clock.AfterTime(deadline):
 				// Send notifications and bail
 				t.removeFromTypers(ctx, key, convID)
 				return
@@ -149,6 +174,11 @@ func (t *TypingMonitor) waitOnTyper(ctx context.Context, chans *typingControlCha
 					t.Debug(ctx, "waitOnTyper: max extensions reached: uid: %s convID: %s", chans.typer.Uid, convID)
 					t.removeFromTypers(ctx, key, convID)
 					return
+				}
+				deadline = t.clock.Now().Add(t.timeout)
+				if t.extendCh != nil {
+					// Alerts tests we extended time
+					*t.extendCh <- struct{}{}
 				}
 				continue
 			case <-chans.stopCh:

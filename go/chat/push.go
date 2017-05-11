@@ -371,6 +371,12 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: newMessage: outboxID is empty")
 			}
 
+			// Update typing status to stopped
+			g.typingMonitor.Update(ctx, chat1.TyperInfo{
+				Uid:      keybase1.UID(nm.Message.ClientHeader.Sender.String()),
+				DeviceID: keybase1.DeviceID(nm.Message.ClientHeader.SenderDevice.String()),
+			}, convID, false)
+
 			var conv *chat1.ConversationLocal
 			decmsg, appended, pushErr := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 			if pushErr != nil {

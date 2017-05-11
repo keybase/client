@@ -939,6 +939,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.newMessage <- activity.IncomingMessage().Message
 	}
 }
+func (n *serverChatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
+}
 
 func newServerChatListener() *serverChatListener {
 	return &serverChatListener{
