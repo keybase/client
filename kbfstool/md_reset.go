@@ -86,7 +86,7 @@ func mdResetOne(
 
 	fmt.Printf("Putting block %s...\n", info)
 
-	err = libkbfs.PutBlockCheckQuota(
+	err = libkbfs.PutBlockCheckLimitErrs(
 		ctx, config.BlockServer(), config.Reporter(),
 		rmdNext.TlfID(), info.BlockPointer, readyBlockData,
 		irmd.GetTlfHandle().GetCanonicalName())

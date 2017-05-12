@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
@@ -38,17 +39,34 @@ func putBlockToServer(ctx context.Context, bserv BlockServer, tlfID tlf.ID,
 	return err
 }
 
-// PutBlockCheckQuota is a thin wrapper around putBlockToServer (which
+// PutBlockCheckLimitErrs is a thin wrapper around putBlockToServer (which
 // calls either bserver.Put or bserver.AddBlockReference) that reports
-// quota errors.
-func PutBlockCheckQuota(ctx context.Context, bserv BlockServer,
+// quota and disk limit errors.
+func PutBlockCheckLimitErrs(ctx context.Context, bserv BlockServer,
 	reporter Reporter, tlfID tlf.ID, blockPtr BlockPointer,
 	readyBlockData ReadyBlockData, tlfName CanonicalTlfName) error {
 	err := putBlockToServer(ctx, bserv, tlfID, blockPtr, readyBlockData)
-	if qe, ok := err.(kbfsblock.BServerErrorOverQuota); ok && !qe.Throttled {
-		reporter.ReportErr(ctx, tlfName, tlfID.IsPublic(),
-			WriteMode, OverQuotaWarning{qe.Usage, qe.Limit})
-		return nil
+	switch typedErr := errors.Cause(err).(type) {
+	case kbfsblock.BServerErrorOverQuota:
+		if !typedErr.Throttled {
+			// Report the error, but since it's not throttled the Put
+			// actually succeeded, so return nil back to the caller.
+			reporter.ReportErr(ctx, tlfName, tlfID.IsPublic(),
+				WriteMode, OverQuotaWarning{typedErr.Usage, typedErr.Limit})
+			return nil
+		}
+	case ErrDiskLimitTimeout:
+		// Report this here in case the put is happening in a
+		// background goroutine (via `SyncAll` perhaps) and wouldn't
+		// otherwise be reported.  Mark the error as unreportable to
+		// avoid the upper FS layer reporting it twice, if this block
+		// put is the result of a foreground fsync.
+		reporter.ReportErr(ctx, tlfName, tlfID.IsPublic(), WriteMode, err)
+		typedErr.reported = true
+		// Unfortunately this makes a different stack, but I don't
+		// think there's a way to preserve the old one and still
+		// change `reportable` field.
+		err = errors.WithStack(typedErr)
 	}
 	return err
 }
@@ -56,7 +74,7 @@ func PutBlockCheckQuota(ctx context.Context, bserv BlockServer,
 func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
 	tlfID tlf.ID, tlfName CanonicalTlfName, blockState blockState,
 	blocksToRemoveChan chan *FileBlock) error {
-	err := PutBlockCheckQuota(ctx, bserv, reporter, tlfID, blockState.blockPtr,
+	err := PutBlockCheckLimitErrs(ctx, bserv, reporter, tlfID, blockState.blockPtr,
 		blockState.readyBlockData, tlfName)
 	if err == nil && blockState.syncedCb != nil {
 		err = blockState.syncedCb()

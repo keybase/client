@@ -1668,6 +1668,7 @@ type ErrDiskLimitTimeout struct {
 	availableBytes int64
 	availableFiles int64
 	err            error
+	reported       bool
 }
 
 func (e ErrDiskLimitTimeout) Error() string {
@@ -1695,7 +1696,7 @@ func (j *tlfJournal) putBlockData(
 	case context.DeadlineExceeded:
 		return errors.WithStack(ErrDiskLimitTimeout{
 			timeout, bufLen, filesPerBlockMax,
-			availableBytes, availableFiles, err,
+			availableBytes, availableFiles, err, false,
 		})
 	default:
 		return err
