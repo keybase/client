@@ -13,6 +13,7 @@ type BadgeState struct {
 	NewTlfs       int                     `codec:"newTlfs" json:"newTlfs"`
 	RekeysNeeded  int                     `codec:"rekeysNeeded" json:"rekeysNeeded"`
 	NewFollowers  int                     `codec:"newFollowers" json:"newFollowers"`
+	InboxVers     int                     `codec:"inboxVers" json:"inboxVers"`
 	Conversations []BadgeConversationInfo `codec:"conversations" json:"conversations"`
 }
 
