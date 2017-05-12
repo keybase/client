@@ -230,14 +230,14 @@ func TestJournalServerOverDiskLimitError(t *testing.T) {
 			filesPerBlockMax, 0, 0,
 			usageBytes, usageFiles, limitBytes, limitFiles, nil, reportable,
 		}
-		if e, ok := errors.Cause(err).(ErrDiskLimitTimeout); ok {
-			// Steal some fields that are hard to fake here (and aren't
-			// important in our comparisons below).
-			expectedError.availableBytes = e.availableBytes
-			expectedError.availableFiles = e.availableFiles
-			expectedError.err = e.err
-		}
-		require.Equal(t, expectedError, errors.Cause(err))
+		e, ok := errors.Cause(err).(*ErrDiskLimitTimeout)
+		require.True(t, ok)
+		// Steal some fields that are hard to fake here (and aren't
+		// important in our comparisons below).
+		expectedError.availableBytes = e.availableBytes
+		expectedError.availableFiles = e.availableFiles
+		expectedError.err = e.err
+		require.Equal(t, expectedError, *e)
 	}
 	compare(true, err)
 

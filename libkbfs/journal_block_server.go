@@ -107,7 +107,7 @@ func (j journalBlockServer) Put(
 				usedQuotaBytes, quotaBytes)
 		case errTLFJournalDisabled:
 			break
-		case ErrDiskLimitTimeout:
+		case *ErrDiskLimitTimeout:
 			return j.jServer.maybeMakeDiskLimitErrorReportable(e)
 		default:
 			return err

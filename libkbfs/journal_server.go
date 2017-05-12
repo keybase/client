@@ -686,7 +686,7 @@ func (j *JournalServer) maybeReturnOverQuotaError(
 }
 
 func (j *JournalServer) maybeMakeDiskLimitErrorReportable(
-	err ErrDiskLimitTimeout) error {
+	err *ErrDiskLimitTimeout) error {
 	j.lastDiskLimitErrorLock.Lock()
 	defer j.lastDiskLimitErrorLock.Unlock()
 

@@ -704,14 +704,14 @@ func testTLFJournalBlockOpDiskLimitTimeout(t *testing.T, ver MetadataVer) {
 	data := []byte{1, 2, 3, 4}
 	id, bCtx, serverHalf := config.makeBlock(data)
 	err := tlfJournal.putBlockData(ctx, id, bCtx, data, serverHalf)
-	timeoutErr, ok := errors.Cause(err).(ErrDiskLimitTimeout)
+	timeoutErr, ok := errors.Cause(err).(*ErrDiskLimitTimeout)
 	require.True(t, ok)
 	require.Error(t, timeoutErr.err)
 	timeoutErr.err = nil
 	require.Equal(t, ErrDiskLimitTimeout{
 		3 * time.Microsecond, int64(len(data)),
 		filesPerBlockMax, 0, 1, 0, 1, math.MaxInt64, math.MaxInt64, nil, false,
-	}, timeoutErr)
+	}, *timeoutErr)
 }
 
 func testTLFJournalBlockOpDiskLimitPutFailure(t *testing.T, ver MetadataVer) {

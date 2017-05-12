@@ -1675,7 +1675,11 @@ type ErrDiskLimitTimeout struct {
 	reportable     bool
 }
 
-func (e ErrDiskLimitTimeout) Error() string {
+// Error implements the error interface for ErrDiskLimitTimeout.  It
+// has a pointer receiver because `block_util.go` need to
+// modify it in some cases while preserving any stacks attached to it
+// via the `errors` package.
+func (e *ErrDiskLimitTimeout) Error() string {
 	return fmt.Sprintf("Disk limit timeout of %s reached; requested %d bytes and %d files, %d bytes and %d files available: %+v",
 		e.timeout, e.requestedBytes, e.requestedFiles,
 		e.availableBytes, e.availableFiles, e.err)
@@ -1698,9 +1702,14 @@ func (j *tlfJournal) putBlockData(
 	case nil:
 		// Continue.
 	case context.DeadlineExceeded:
+		// NOTE: there is a slight race here, where if a flush
+		// finishes between the `beforeBlockPut` call and here, we
+		// could put out-of-date limit info in the error, and it might
+		// look like there is available space.  It doesn't seem worth
+		// changing the interface of `beforeBlockPut` to fix, though.
 		usageBytes, limitBytes, usageFiles, limitFiles :=
 			j.diskLimiter.getDiskLimitInfo()
-		return errors.WithStack(ErrDiskLimitTimeout{
+		return errors.WithStack(&ErrDiskLimitTimeout{
 			timeout, bufLen, filesPerBlockMax,
 			availableBytes, availableFiles, usageBytes, usageFiles,
 			limitBytes, limitFiles, err, false,

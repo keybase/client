@@ -55,7 +55,7 @@ func PutBlockCheckLimitErrs(ctx context.Context, bserv BlockServer,
 				WriteMode, OverQuotaWarning{typedErr.Usage, typedErr.Limit})
 			return nil
 		}
-	case ErrDiskLimitTimeout:
+	case *ErrDiskLimitTimeout:
 		// Report this here in case the put is happening in a
 		// background goroutine (via `SyncAll` perhaps) and wouldn't
 		// otherwise be reported.  Mark the error as unreportable to
@@ -63,10 +63,7 @@ func PutBlockCheckLimitErrs(ctx context.Context, bserv BlockServer,
 		// put is the result of a foreground fsync.
 		reporter.ReportErr(ctx, tlfName, tlfID.IsPublic(), WriteMode, err)
 		typedErr.reportable = false
-		// Unfortunately this makes a different stack, but I don't
-		// think there's a way to preserve the old one and still
-		// change `reportable` field.
-		err = errors.WithStack(typedErr)
+		return err
 	}
 	return err
 }

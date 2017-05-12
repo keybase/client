@@ -155,7 +155,7 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 		code = keybase1.FSErrorType_OVER_QUOTA
 		params[errorParamUsageBytes] = strconv.FormatInt(e.UsageBytes, 10)
 		params[errorParamLimitBytes] = strconv.FormatInt(e.LimitBytes, 10)
-	case ErrDiskLimitTimeout:
+	case *ErrDiskLimitTimeout:
 		if !e.reportable {
 			return
 		}

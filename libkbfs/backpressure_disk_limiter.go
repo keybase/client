@@ -205,7 +205,7 @@ func (bt *backpressureTracker) beforeDiskBlockCachePut(blockResources int64) (
 	return availableResources
 }
 
-func (bt *backpressureTracker) getInfo() (used int64, limit int64) {
+func (bt *backpressureTracker) getLimitInfo() (used int64, limit int64) {
 	return bt.used, bt.limit
 }
 
@@ -536,8 +536,8 @@ func (jt journalTracker) getQuotaInfo() (usedQuotaBytes, quotaBytes int64) {
 
 func (jt journalTracker) getDiskLimitInfo() (
 	usedBytes, limitBytes, usedFiles, limitFiles int64) {
-	usedBytes, limitBytes = jt.byte.getInfo()
-	usedFiles, limitFiles = jt.file.getInfo()
+	usedBytes, limitBytes = jt.byte.getLimitInfo()
+	usedFiles, limitFiles = jt.file.getLimitInfo()
 	return usedBytes, limitBytes, usedFiles, limitFiles
 }
 
