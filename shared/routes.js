@@ -37,4 +37,6 @@ const routeTree = new RouteDefNode({
   },
 })
 
+console.log('aaa')
+
 export default routeTree
