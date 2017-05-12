@@ -5,7 +5,7 @@ import Box from './box'
 import Text from './text'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
-import type {Props, MenuItem} from './popup-menu'
+import type {Props, MenuItem, HeaderTextProps} from './popup-menu'
 
 // Menu Item
 type MenuItemProps = MenuItem & {
@@ -81,9 +81,21 @@ class PopupMenu extends Component<void, Props, void> {
   }
 }
 
-function PopupHeaderText () {
-  // TODO
-}
+const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextProps) => (
+  <Text
+    type='BodySemibold'
+    style={{
+      textAlign: 'center',
+      paddingLeft: globalMargins.small,
+      paddingRight: globalMargins.small,
+      paddingTop: globalMargins.tiny,
+      paddingBottom: globalMargins.tiny,
+      color,
+      backgroundColor,
+      ...style,
+    }}
+  >{children}</Text>
+)
 
 const styleOverlayContainer = {
   position: 'absolute',
