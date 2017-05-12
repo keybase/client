@@ -613,7 +613,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
-	h.badger = badges.NewBadger(tc.G, nil)
+	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
 
 	t.Logf("server message")
@@ -657,7 +657,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 
 	// Set up client and server
 	h, _, _ := setupSyncTests(t, tc)
-	h.badger = badges.NewBadger(tc.G, nil)
+	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
 
 	t.Logf("sending first chat update")
