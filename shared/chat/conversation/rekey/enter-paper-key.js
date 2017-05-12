@@ -19,9 +19,10 @@ export default compose(
         dispatch(navigateUp())
         dispatch(navigateUp())
       },
-    })),
+    })
+  ),
   withState('paperKey', 'onChangePaperKey'),
   withHandlers({
     onSubmit: ({paperKey, onEnterPaperkey}) => () => onEnterPaperkey(paperKey),
-  }),
+  })
 )(EnterPaperkey)

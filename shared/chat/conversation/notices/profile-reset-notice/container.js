@@ -13,7 +13,10 @@ const mapStateToProps = (state: TypedState) => {
   if (!selectedConversationIDKey) {
     throw new Error('no selected conversation')
   }
-  const supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
+  const supersedes = Constants.convSupersedesInfo(
+    selectedConversationIDKey,
+    state.chat
+  )
   if (!supersedes) {
     throw new Error('Missing supersedes')
   }
@@ -25,11 +28,14 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => dispatch(Creators.openConversation(conversationIDKey)),
+  onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) =>
+    dispatch(Creators.openConversation(conversationIDKey)),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
-  onOpenOlderConversation: () => { dispatchProps.onOpenConversation(stateProps.prevConversationIDKey) },
+  onOpenOlderConversation: () => {
+    dispatchProps.onOpenConversation(stateProps.prevConversationIDKey)
+  },
   username: stateProps.username,
 })
 

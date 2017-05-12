@@ -9,4 +9,4 @@ export type Props = {
   onDeleteForever: () => void,
 }
 
-export default class DeleteConfirm extends Component<void, Props, void> { }
+export default class DeleteConfirm extends Component<void, Props, void> {}

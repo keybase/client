@@ -2,42 +2,42 @@
 import {Component} from 'react'
 
 type Background =
-  'Announcements'
-| 'Documentation'
-| 'HighRisk'
-| 'Information'
-| 'Normal'
-| 'Success'
-| 'Terminal'
+  | 'Announcements'
+  | 'Documentation'
+  | 'HighRisk'
+  | 'Information'
+  | 'Normal'
+  | 'Success'
+  | 'Terminal'
 
 type TextType =
-  'Body'
-| 'BodyBig'
-| 'BodyBigLink'
-| 'BodyError'
-| 'BodyPrimaryLink'
-| 'BodySecondaryLink'
-| 'BodySemibold'
-| 'BodySemiboldLink'
-| 'BodySemiboldItalic'
-| 'BodySmall'
-| 'BodySmallError'
-| 'BodySmallInlineLink'
-| 'BodySmallItalic'
-| 'BodySmallPrimaryLink'
-| 'BodySmallSecondaryLink'
-| 'BodySmallSemibold'
-| 'BodySmallSemiboldItalic'
-| 'BodySmallSemiboldInlineLink'
-| 'BodySmallSuccess'
-| 'BodySuccess'
-| 'Header'
-| 'HeaderBig'
-| 'HeaderLink'
-| 'Terminal'
-| 'TerminalComment'
-| 'TerminalEmpty'
-| 'TerminalInline'
+  | 'Body'
+  | 'BodyBig'
+  | 'BodyBigLink'
+  | 'BodyError'
+  | 'BodyPrimaryLink'
+  | 'BodySecondaryLink'
+  | 'BodySemibold'
+  | 'BodySemiboldLink'
+  | 'BodySemiboldItalic'
+  | 'BodySmall'
+  | 'BodySmallError'
+  | 'BodySmallInlineLink'
+  | 'BodySmallItalic'
+  | 'BodySmallPrimaryLink'
+  | 'BodySmallSecondaryLink'
+  | 'BodySmallSemibold'
+  | 'BodySmallSemiboldItalic'
+  | 'BodySmallSemiboldInlineLink'
+  | 'BodySmallSuccess'
+  | 'BodySuccess'
+  | 'Header'
+  | 'HeaderBig'
+  | 'HeaderLink'
+  | 'Terminal'
+  | 'TerminalComment'
+  | 'TerminalEmpty'
+  | 'TerminalInline'
 
 type Props = {
   backgroundMode?: Background,
@@ -62,17 +62,15 @@ type MetaType = {
 }
 
 declare class Text extends Component<void, Props, void> {}
-declare function getStyle (type: TextType, backgroundMode?: ?Background, lineClamp?: ?number, clickable?: ?boolean): Object
+declare function getStyle(
+  type: TextType,
+  backgroundMode?: ?Background,
+  lineClamp?: ?number,
+  clickable?: ?boolean
+): Object
 
-export {
-  getStyle,
-}
+export {getStyle}
 
-export type {
-  Background,
-  MetaType,
-  Props,
-  TextType,
-}
+export type {Background, MetaType, Props, TextType}
 
 export default Text

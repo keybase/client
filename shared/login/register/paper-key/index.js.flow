@@ -5,13 +5,13 @@ export type Props = {
   onSubmit: (paperKey: string) => void,
   onBack: () => void,
   waitingForResponse?: boolean,
-  error: string
+  error: string,
 }
 
 export type State = {
-    paperKey: string
+  paperKey: string,
 }
 
 export default class PaperKey extends Component<void, Props, State> {
-  state: State;
+  state: State
 }

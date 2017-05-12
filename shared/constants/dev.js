@@ -15,10 +15,18 @@ export type DebugConfig = {
 }
 
 export const updateDebugConfig = 'dev:updateDebugConfig'
-export type UpdateDebugConfig = TypedAction<'dev:updateDebugConfig', Exact<DebugConfig>, void>
+export type UpdateDebugConfig = TypedAction<
+  'dev:updateDebugConfig',
+  Exact<DebugConfig>,
+  void
+>
 
 export const updateReloading = 'dev:updatehmrReloading'
-export type UpdateReloading = TypedAction<'dev:updatehmrReloading', {reloading: boolean}, void>
+export type UpdateReloading = TypedAction<
+  'dev:updatehmrReloading',
+  {reloading: boolean},
+  void
+>
 
 export type Actions = UpdateDebugConfig | UpdateReloading
 

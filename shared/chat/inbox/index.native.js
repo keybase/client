@@ -1,7 +1,21 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, LoadingLine} from '../../common-adapters/index.native'
-import {globalStyles, globalColors, statusBarHeight, globalMargins} from '../../styles'
+import {
+  Text,
+  MultiAvatar,
+  Icon,
+  Usernames,
+  Markdown,
+  Box,
+  ClickableBox,
+  LoadingLine,
+} from '../../common-adapters/index.native'
+import {
+  globalStyles,
+  globalColors,
+  statusBarHeight,
+  globalMargins,
+} from '../../styles'
 import {RowConnector} from './row'
 import {debounce} from 'lodash'
 // $FlowIssue
@@ -9,25 +23,49 @@ import FlatList from '../../fixme/Lists/FlatList'
 
 import type {Props, RowProps} from './'
 
-const AddNewRow = ({onNewChat, isLoading}: {onNewChat: () => void, isLoading: boolean}) => (
+const AddNewRow = ({
+  onNewChat,
+  isLoading,
+}: {
+  onNewChat: () => void,
+  isLoading: boolean,
+}) => (
   <Box
-    style={{...globalStyles.flexBoxColumn, minHeight: 48, position: 'relative'}}>
-    <ClickableBox style={{...globalStyles.flexBoxColumn, flex: 1, flexShrink: 0}} onClick={onNewChat}>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', justifyContent: 'center', flex: 1}}>
-        <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
-        <Text type='BodyBigLink'>New chat</Text>
+    style={{...globalStyles.flexBoxColumn, minHeight: 48, position: 'relative'}}
+  >
+    <ClickableBox
+      style={{...globalStyles.flexBoxColumn, flex: 1, flexShrink: 0}}
+      onClick={onNewChat}
+    >
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          justifyContent: 'center',
+          flex: 1,
+        }}
+      >
+        <Icon
+          type="iconfont-new"
+          style={{color: globalColors.blue, marginRight: 9}}
+        />
+        <Text type="BodyBigLink">New chat</Text>
       </Box>
     </ClickableBox>
-    {isLoading && (
+    {isLoading &&
       <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0}}>
         <LoadingLine />
-      </Box>)}
+      </Box>}
   </Box>
 )
 
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
-function rowBorderColor (idx: number, isLastParticipant: boolean, backgroundColor: string) {
+function rowBorderColor(
+  idx: number,
+  isLastParticipant: boolean,
+  backgroundColor: string
+) {
   // Only color the foreground items
   if (isLastParticipant) {
     return undefined
@@ -37,76 +75,217 @@ function rowBorderColor (idx: number, isLastParticipant: boolean, backgroundColo
   return !idx && isLastParticipant ? undefined : backgroundColor
 }
 
-const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted, hasUnread, isSelected, backgroundColor}) => {
+const Avatars = ({
+  participants,
+  youNeedToRekey,
+  participantNeedToRekey,
+  isMuted,
+  hasUnread,
+  isSelected,
+  backgroundColor,
+}) => {
   const avatarCount = Math.min(2, participants.count())
 
   let icon
   if (isMuted) {
-    icon = <Icon type={isSelected ? 'icon-shh-active-16' : 'icon-shh-16'} style={avatarMutedIconStyle} />
+    icon = (
+      <Icon
+        type={isSelected ? 'icon-shh-active-16' : 'icon-shh-16'}
+        style={avatarMutedIconStyle}
+      />
+    )
   } else if (participantNeedToRekey || youNeedToRekey) {
-    icon = <Icon type={isSelected ? 'icon-chat-addon-lock-active-8' : 'icon-chat-addon-lock-8'} style={avatarLockIconStyle} />
+    icon = (
+      <Icon
+        type={
+          isSelected
+            ? 'icon-chat-addon-lock-active-8'
+            : 'icon-chat-addon-lock-8'
+        }
+        style={avatarLockIconStyle}
+      />
+    )
   }
 
-  const avatarProps = participants.slice(0, 2).map((username, idx) => ({
-    borderColor: rowBorderColor(idx, idx === (avatarCount - 1), backgroundColor),
-    loadingColor: globalColors.blue3_40,
-    size: 32,
-    style: {
-      opacity: youNeedToRekey || participantNeedToRekey ? 0.4 : 1,
-    },
-    username,
-  })).toArray()
+  const avatarProps = participants
+    .slice(0, 2)
+    .map((username, idx) => ({
+      borderColor: rowBorderColor(
+        idx,
+        idx === avatarCount - 1,
+        backgroundColor
+      ),
+      loadingColor: globalColors.blue3_40,
+      size: 32,
+      style: {
+        opacity: youNeedToRekey || participantNeedToRekey ? 0.4 : 1,
+      },
+      username,
+    }))
+    .toArray()
 
   return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', backgroundColor, justifyContent: 'flex-start', maxWidth: 55, minWidth: 55, paddingLeft: 4}}>
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        alignItems: 'flex-end',
+        backgroundColor,
+        justifyContent: 'flex-start',
+        maxWidth: 55,
+        minWidth: 55,
+        paddingLeft: 4,
+      }}
+    >
       <Box style={{position: 'relative'}}>
-        <MultiAvatar singleSize={40} multiSize={32} avatarProps={avatarProps} style={{alignSelf: 'center', backgroundColor}} />
+        <MultiAvatar
+          singleSize={40}
+          multiSize={32}
+          avatarProps={avatarProps}
+          style={{alignSelf: 'center', backgroundColor}}
+        />
         {icon}
       </Box>
     </Box>
   )
 }
 
-const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor}) => {
+const TopLine = ({
+  hasUnread,
+  showBold,
+  participants,
+  subColor,
+  timestamp,
+  usernameColor,
+}) => {
   const boldOverride = showBold ? globalStyles.fontBold : null
   return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 18, minHeight: 18}}>
-      <Box style={{...globalStyles.flexBoxRow, flex: 1, maxHeight: 18, minHeight: 18, position: 'relative'}}>
-        <Box style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        alignItems: 'center',
+        maxHeight: 18,
+        minHeight: 18,
+      }}
+    >
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          flex: 1,
+          maxHeight: 18,
+          minHeight: 18,
+          position: 'relative',
+        }}
+      >
+        <Box
+          style={{
+            ...globalStyles.flexBoxColumn,
+            bottom: 0,
+            justifyContent: 'flex-start',
+            left: 0,
+            position: 'absolute',
+            right: 0,
+            top: 0,
+          }}
+        >
           <Usernames
             inline={true}
             plainText={true}
-            type='BodySemibold'
+            type="BodySemibold"
             style={{...boldOverride, color: usernameColor}}
             containerStyle={{color: usernameColor, paddingRight: 7}}
             users={participants.map(p => ({username: p})).toArray()}
-            title={participants.join(', ')} />
+            title={participants.join(', ')}
+          />
         </Box>
       </Box>
-      <Text type='BodySmall' style={{...boldOverride, color: subColor, lineHeight: 18}}>{timestamp}</Text>
+      <Text
+        type="BodySmall"
+        style={{...boldOverride, color: subColor, lineHeight: 18}}
+      >
+        {timestamp}
+      </Text>
       {hasUnread && <Box style={unreadDotStyle} />}
     </Box>
   )
 }
 
-const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, subColor, snippet, backgroundColor}) => {
+const BottomLine = ({
+  participantNeedToRekey,
+  youNeedToRekey,
+  isMuted,
+  showBold,
+  subColor,
+  snippet,
+  backgroundColor,
+}) => {
   const boldOverride = showBold ? globalStyles.fontBold : null
 
   let content
 
   if (youNeedToRekey) {
-    content = <Text type='BodySmallSemibold' backgroundMode='Terminal' style={{alignSelf: 'flex-start', backgroundColor: globalColors.red, borderRadius: 2, color: globalColors.white, fontSize: 10, paddingLeft: 2, paddingRight: 2}}>REKEY NEEDED</Text>
+    content = (
+      <Text
+        type="BodySmallSemibold"
+        backgroundMode="Terminal"
+        style={{
+          alignSelf: 'flex-start',
+          backgroundColor: globalColors.red,
+          borderRadius: 2,
+          color: globalColors.white,
+          fontSize: 10,
+          paddingLeft: 2,
+          paddingRight: 2,
+        }}
+      >
+        REKEY NEEDED
+      </Text>
+    )
   } else if (participantNeedToRekey) {
-    content = <Text type='BodySmall' backgroundMode='Terminal' style={{color: subColor}}>Waiting for participants to rekey</Text>
+    content = (
+      <Text
+        type="BodySmall"
+        backgroundMode="Terminal"
+        style={{color: subColor}}
+      >
+        Waiting for participants to rekey
+      </Text>
+    )
   } else if (snippet) {
-    content = <Markdown preview={true} style={{...boldOverride, color: subColor, fontSize: 12, lineHeight: 16}}>{snippet}</Markdown>
+    content = (
+      <Markdown
+        preview={true}
+        style={{...boldOverride, color: subColor, fontSize: 12, lineHeight: 16}}
+      >
+        {snippet}
+      </Markdown>
+    )
   } else {
     return null
   }
 
   return (
-    <Box style={{...globalStyles.flexBoxRow, backgroundColor, flexGrow: 1, maxHeight: 16, minHeight: 16, position: 'relative'}}>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start', bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        backgroundColor,
+        flexGrow: 1,
+        maxHeight: 16,
+        minHeight: 16,
+        position: 'relative',
+      }}
+    >
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'flex-start',
+          bottom: 0,
+          justifyContent: 'flex-start',
+          left: 0,
+          position: 'absolute',
+          right: 0,
+          top: 0,
+        }}
+      >
         {content}
       </Box>
     </Box>
@@ -115,9 +294,13 @@ const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, 
 
 const _Row = (props: RowProps) => {
   return (
-    <ClickableBox onClick={() => props.onSelectConversation(props.conversationIDKey)} style={{backgroundColor: props.backgroundColor}}>
+    <ClickableBox
+      onClick={() => props.onSelectConversation(props.conversationIDKey)}
+      style={{backgroundColor: props.backgroundColor}}
+    >
       <Box
-        style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
+        style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}
+      >
         <Avatars
           backgroundColor={props.backgroundColor}
           hasUnread={props.hasUnread}
@@ -127,10 +310,12 @@ const _Row = (props: RowProps) => {
           participants={props.participants}
           youNeedToRekey={props.youNeedToRekey}
         />
-        <Box style={{
-          ...conversationRowStyle,
-          backgroundColor: props.backgroundColor,
-        }}>
+        <Box
+          style={{
+            ...conversationRowStyle,
+            backgroundColor: props.backgroundColor,
+          }}
+        >
           <TopLine
             hasUnread={props.hasUnread}
             participants={props.participants}
@@ -157,15 +342,26 @@ const _Row = (props: RowProps) => {
 const Row = RowConnector(_Row)
 
 const NoChats = () => (
-  <Box style={{
-    ...globalStyles.flexBoxColumn,
-    ...globalStyles.fillAbsolute,
-    alignItems: 'center',
-    justifyContent: 'center',
-    top: 48,
-  }}>
-    <Icon type='icon-fancy-chat-72-x-52' style={{marginBottom: globalMargins.small}} />
-    <Text type='BodySmallSemibold' backgroundMode='Terminal' style={{color: globalColors.blue3_40}}>All conversations are end-to-end encrypted.</Text>
+  <Box
+    style={{
+      ...globalStyles.flexBoxColumn,
+      ...globalStyles.fillAbsolute,
+      alignItems: 'center',
+      justifyContent: 'center',
+      top: 48,
+    }}
+  >
+    <Icon
+      type="icon-fancy-chat-72-x-52"
+      style={{marginBottom: globalMargins.small}}
+    />
+    <Text
+      type="BodySmallSemibold"
+      backgroundMode="Terminal"
+      style={{color: globalColors.blue3_40}}
+    >
+      All conversations are end-to-end encrypted.
+    </Text>
   </Box>
 )
 
@@ -175,16 +371,19 @@ class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
   _renderItem = ({item, index}) => {
     return index
       ? <Row conversationIDKey={item} key={item} />
-      : <AddNewRow onNewChat={this.props.onNewChat} isLoading={this.props.isLoading} />
+      : <AddNewRow
+          onNewChat={this.props.onNewChat}
+          isLoading={this.props.isLoading}
+        />
   }
 
   _keyExtractor = (item, index) => item
 
-  _setupDataSource = (props) => {
+  _setupDataSource = props => {
     this.setState({rows: [{}].concat(props.rows.toArray())})
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (this.props.rows !== nextProps.rows) {
       this._setupDataSource(nextProps)
 
@@ -199,7 +398,7 @@ class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
     this.props.onUntrustedInboxVisible(id, count)
   }
 
-  _onViewChanged = debounce((data) => {
+  _onViewChanged = debounce(data => {
     if (!data) {
       return
     }
@@ -210,7 +409,7 @@ class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
     }
   }, 1000)
 
-  componentWillMount () {
+  componentWillMount() {
     this.props.loadInbox()
     this._setupDataSource(this.props)
     if (this.props.rows.count()) {
@@ -218,16 +417,17 @@ class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
     }
   }
 
-  render () {
+  render() {
     return (
       <Box style={boxStyle}>
         <FlatList
-          loading={this.props.isLoading/* force loading to update */}
+          loading={this.props.isLoading /* force loading to update */}
           data={this.state.rows}
           keyExtractor={this._keyExtractor}
           renderItem={this._renderItem}
           initialNumToRender={30}
-          onViewableItemsChanged={this._onViewChanged} />
+          onViewableItemsChanged={this._onViewChanged}
+        />
         {!this.props.isLoading && !this.props.rows.count() && <NoChats />}
       </Box>
     )

@@ -1,7 +1,15 @@
 // @flow
 import React, {Component} from 'react'
 import _ from 'lodash'
-import {Box, Avatar, Text, ClickableBox, TabBar, NativeListView, NativeDimensions} from '../common-adapters/index.native'
+import {
+  Box,
+  Avatar,
+  Text,
+  ClickableBox,
+  TabBar,
+  NativeListView,
+  NativeDimensions,
+} from '../common-adapters/index.native'
 import {TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
@@ -11,11 +19,30 @@ type UserEntryProps = FriendshipUserInfo & {
   onClick?: (username: string) => void,
 }
 
-const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}: UserEntryProps) => (
-  <ClickableBox onClick={() => { onClick && onClick(username) }} style={userEntryContainerStyle}>
+const UserEntry = ({
+  onClick,
+  username,
+  followsYou,
+  following,
+  thumbnailUrl,
+}: UserEntryProps) => (
+  <ClickableBox
+    onClick={() => {
+      onClick && onClick(username)
+    }}
+    style={userEntryContainerStyle}
+  >
     <Box style={userEntryInnerContainerStyle}>
-      <Avatar style={userEntryAvatarStyle} size={64} url={thumbnailUrl} followsYou={followsYou} following={following} />
-      <Text type='BodySemibold' style={userEntryUsernameStyle(following)}>{username}</Text>
+      <Avatar
+        style={userEntryAvatarStyle}
+        size={64}
+        url={thumbnailUrl}
+        followsYou={followsYou}
+        following={following}
+      />
+      <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>
+        {username}
+      </Text>
     </Box>
   </ClickableBox>
 )
@@ -52,38 +79,61 @@ type State = {
 }
 
 class FriendshipsRender extends Component<void, Props, State> {
-  state: State ={
+  state: State = {
     dataSource: null,
   }
-  _dataSource = new NativeListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+  _dataSource = new NativeListView.DataSource({
+    rowHasChanged: (r1, r2) => r1 !== r2,
+  })
 
-  _setDataSource = (props) => {
-    const data = props.currentTab === 'Followers' ? props.followers : props.following
+  _setDataSource = props => {
+    const data = props.currentTab === 'Followers'
+      ? props.followers
+      : props.following
     const dataSource = this._dataSource.cloneWithRows(_.chunk(data || [], 3))
     this.setState({dataSource})
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this._setDataSource(this.props)
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (this.props.currentTab !== nextProps.currentTab) {
       this._setDataSource(nextProps)
-    } else if (this.props.currentTab === 'Followers' && this.props.followers !== nextProps.followers) {
+    } else if (
+      this.props.currentTab === 'Followers' &&
+      this.props.followers !== nextProps.followers
+    ) {
       this._setDataSource(nextProps)
-    } else if (this.props.currentTab === 'Following' && this.props.following !== nextProps.following) {
+    } else if (
+      this.props.currentTab === 'Following' &&
+      this.props.following !== nextProps.following
+    ) {
       this._setDataSource(nextProps)
     }
   }
 
   _renderRow = users => {
     return (
-      <Box style={{...globalStyles.flexBoxRow, flex: 1, height: 108, justifyContent: 'space-around'}}>
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          flex: 1,
+          height: 108,
+          justifyContent: 'space-around',
+        }}
+      >
         {[0, 1, 2].map(idx => {
           const user = users[idx]
           if (user) {
-            return <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
+            return (
+              <UserEntry
+                key={user.username}
+                {...user}
+                onClick={this.props.onUserClick}
+              />
+            )
           } else {
             return null
           }
@@ -92,7 +142,7 @@ class FriendshipsRender extends Component<void, Props, State> {
     )
   }
 
-  render () {
+  render() {
     const {height, width} = NativeDimensions.get('window')
     const {isYou} = this.props
     const textWhenEmptyYou = {
@@ -110,27 +160,45 @@ class FriendshipsRender extends Component<void, Props, State> {
     return (
       <TabBar>
         {['Followers', 'Following'].map(tab => {
-          return <TabBarItem
-            key={tab}
-            selected={this.props.currentTab === tab}
-            label={`${tab.toUpperCase()} (${counts[tab]})`}
-            styleContainer={{flex: 1}}
-            onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(tab) }}>
-            <Box style={{...tabItemContainerStyle, maxHeight: height - 160, width: width}}>
-              <Box style={tabItemContainerTopBorder} />
-              {counts[tab] === 0 && <Box style={tabItemEmptyStyle}>
-                <Text type='BodySmall' style={{color: globalColors.black_40}}>{isYou ? textWhenEmptyYou[tab] : textWhenEmpty[tab]}</Text>
-              </Box>}
-              <Box style={tabItemContainerUsers}>
-                {this.props.currentTab === tab && !!this.state.dataSource &&
-                <NativeListView
-                  enableEmptySections={true}
-                  dataSource={this.state.dataSource}
-                  renderRow={this._renderRow}
-                />}
+          return (
+            <TabBarItem
+              key={tab}
+              selected={this.props.currentTab === tab}
+              label={`${tab.toUpperCase()} (${counts[tab]})`}
+              styleContainer={{flex: 1}}
+              onClick={() => {
+                this.props.onSwitchTab && this.props.onSwitchTab(tab)
+              }}
+            >
+              <Box
+                style={{
+                  ...tabItemContainerStyle,
+                  maxHeight: height - 160,
+                  width: width,
+                }}
+              >
+                <Box style={tabItemContainerTopBorder} />
+                {counts[tab] === 0 &&
+                  <Box style={tabItemEmptyStyle}>
+                    <Text
+                      type="BodySmall"
+                      style={{color: globalColors.black_40}}
+                    >
+                      {isYou ? textWhenEmptyYou[tab] : textWhenEmpty[tab]}
+                    </Text>
+                  </Box>}
+                <Box style={tabItemContainerUsers}>
+                  {this.props.currentTab === tab &&
+                    !!this.state.dataSource &&
+                    <NativeListView
+                      enableEmptySections={true}
+                      dataSource={this.state.dataSource}
+                      renderRow={this._renderRow}
+                    />}
+                </Box>
               </Box>
-            </Box>
-          </TabBarItem>
+            </TabBarItem>
+          )
         })}
       </TabBar>
     )

@@ -24,7 +24,12 @@ const dumbComponentMap: DumbComponentMap<Render> = {
     'no passphrase': baseMock,
     'error - no passphrase': {...baseMock, error: 'error here!'},
     'Show Typing': {...baseMock, showTyping: true, passphrase: 'hunter2'},
-    'Show Typing - error': {...baseMock, showTyping: true, passphrase: 'hunter2', error: 'too weak'},
+    'Show Typing - error': {
+      ...baseMock,
+      showTyping: true,
+      passphrase: 'hunter2',
+      error: 'too weak',
+    },
   },
 }
 

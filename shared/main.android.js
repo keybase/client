@@ -4,9 +4,10 @@ import {compose, lifecycle, withProps} from 'recompose'
 import {NativeBackAndroid} from './common-adapters/index.native'
 import {getPath} from './route-tree'
 
-module.hot && module.hot.accept(() => {
-  console.log('accepted update in main.android')
-})
+module.hot &&
+  module.hot.accept(() => {
+    console.log('accepted update in main.android')
+  })
 
 export default compose(
   withProps(props => ({
@@ -15,7 +16,7 @@ export default compose(
   })),
   connector,
   lifecycle({
-    componentWillMount: function () {
+    componentWillMount: function() {
       NativeBackAndroid.addEventListener('hardwareBackPress', () => {
         if (getPath(this.props.routeState).size === 1) {
           return false

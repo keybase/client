@@ -8,7 +8,7 @@ import * as Creators from '../../../actions/login/creators'
 import type {TypedState} from '../../../constants/reducer'
 
 class UsernameOrEmail extends Component<void, Props, void> {
-  render () {
+  render() {
     return <Render {...this.props} />
   }
 }
@@ -18,8 +18,9 @@ export default connect(
   (state: TypedState) => ({
     waitingForResponse: state.login.waitingForResponse,
   }),
-  (dispatch) => ({
+  dispatch => ({
     onBack: () => dispatch(Creators.onBack()),
-    onSubmit: (usernameOrEmail: string) => dispatch(Creators.submitUsernameOrEmail(usernameOrEmail)),
+    onSubmit: (usernameOrEmail: string) =>
+      dispatch(Creators.submitUsernameOrEmail(usernameOrEmail)),
   })
 )(UsernameOrEmail)

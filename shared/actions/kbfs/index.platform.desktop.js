@@ -2,7 +2,9 @@
 import * as Constants from '../../constants/config'
 import path from 'path'
 import fs from 'fs'
-import {kbfsMountGetCurrentMountDirRpcPromise} from '../../constants/types/flow-types'
+import {
+  kbfsMountGetCurrentMountDirRpcPromise,
+} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {shell} from 'electron'
 import {isWindows} from '../../constants/platform'
@@ -12,7 +14,7 @@ import type {SagaGenerator} from '../../constants/types/saga'
 
 // pathToURL takes path and converts to (file://) url.
 // See https://github.com/sindresorhus/file-url
-function pathToURL (path: string): string {
+function pathToURL(path: string): string {
   path = path.replace(/\\/g, '/')
 
   // Windows drive letter must be prefixed with a slash
@@ -23,7 +25,7 @@ function pathToURL (path: string): string {
   return encodeURI('file://' + path).replace(/#/g, '%23')
 }
 
-function openInDefaultDirectory (openPath: string): Promise<*> {
+function openInDefaultDirectory(openPath: string): Promise<*> {
   return new Promise((resolve, reject) => {
     // Paths in directories might be symlinks, so resolve using
     // realpath.
@@ -41,7 +43,7 @@ function openInDefaultDirectory (openPath: string): Promise<*> {
       const url = pathToURL(resolvedPath)
       console.log('Open URL (directory):', url)
 
-      shell.openExternal(url, {}, (err) => {
+      shell.openExternal(url, {}, err => {
         if (err) {
           reject(err)
           return
@@ -53,7 +55,7 @@ function openInDefaultDirectory (openPath: string): Promise<*> {
   })
 }
 
-function isDirectory (openPath: string): Promise<boolean> {
+function isDirectory(openPath: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
     fs.stat(openPath, (err, stats) => {
       if (err) {
@@ -71,9 +73,9 @@ function isDirectory (openPath: string): Promise<boolean> {
   })
 }
 
-function _open (openPath: string): Promise<*> {
+function _open(openPath: string): Promise<*> {
   return new Promise((resolve, reject) => {
-    isDirectory(openPath).then((isDir) => {
+    isDirectory(openPath).then(isDir => {
       if (isDir && isWindows) {
         if (!shell.openItem(openPath)) {
           reject(new Error(`Unable to open item: ${openPath}`))
@@ -91,21 +93,25 @@ function _open (openPath: string): Promise<*> {
   })
 }
 
-function openInDefault (openPath: string): Promise<*> {
+function openInDefault(openPath: string): Promise<*> {
   console.log('openInDefault:', openPath)
   // Path resolve removes any ..
   openPath = path.resolve(openPath)
   // Paths MUST start with defaultKBFSPath
   if (!openPath.startsWith(Constants.defaultKBFSPath)) {
-    throw new Error(`openInDefault requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
+    throw new Error(
+      `openInDefault requires ${Constants.defaultKBFSPath} prefix: ${openPath}`
+    )
   }
 
   return _open(openPath)
 }
 
-function * openInWindows (openPath: string): SagaGenerator<any, any> {
+function* openInWindows(openPath: string): SagaGenerator<any, any> {
   if (!openPath.startsWith(Constants.defaultKBFSPath)) {
-    throw new Error(`openInWindows requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
+    throw new Error(
+      `openInWindows requires ${Constants.defaultKBFSPath} prefix: ${openPath}`
+    )
   }
   openPath = openPath.slice(Constants.defaultKBFSPath.length)
 
@@ -137,22 +143,21 @@ function * openInWindows (openPath: string): SagaGenerator<any, any> {
   yield call(_open, openPath)
 }
 
-function * openSaga (action: FSOpen): SagaGenerator<any, any> {
+function* openSaga(action: FSOpen): SagaGenerator<any, any> {
   const openPath = action.payload.path || Constants.defaultKBFSPath
 
   console.log('openInKBFS:', openPath)
   if (isWindows) {
-    yield * openInWindows(openPath)
+    yield* openInWindows(openPath)
   } else {
     yield call(openInDefault, openPath)
   }
 }
 
-function * openInFileUISaga ({payload: {path}}: OpenInFileUI): SagaGenerator<any, any> {
+function* openInFileUISaga({
+  payload: {path},
+}: OpenInFileUI): SagaGenerator<any, any> {
   yield call(_open, path)
 }
 
-export {
-  openInFileUISaga,
-  openSaga,
-}
+export {openInFileUISaga, openSaga}

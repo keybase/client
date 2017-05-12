@@ -27,4 +27,5 @@ export type Props = {
   onOpenInPopup: () => void,
 }
 
-export default class AttachmentMessageComponent extends Component<void, Props, void> { }
+export default class AttachmentMessageComponent
+  extends Component<void, Props, void> {}

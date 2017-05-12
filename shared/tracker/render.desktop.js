@@ -10,20 +10,24 @@ import TrackerError from './error'
 
 import type {RenderProps} from './render'
 
-export default class TrackerRender extends PureComponent<void, RenderProps, void> {
-  componentDidMount () {
+export default class TrackerRender
+  extends PureComponent<void, RenderProps, void> {
+  componentDidMount() {
     autoResize()
   }
 
-  render () {
+  render() {
     if (this.props.nonUser) {
-      return <NonUser
-        onClose={this.props.onClose}
-        name={this.props.name}
-        serviceName={this.props.serviceName}
-        reason={this.props.reason}
-        inviteLink={this.props.inviteLink}
-        isPrivate={this.props.isPrivate} />
+      return (
+        <NonUser
+          onClose={this.props.onClose}
+          name={this.props.name}
+          serviceName={this.props.serviceName}
+          reason={this.props.reason}
+          inviteLink={this.props.inviteLink}
+          isPrivate={this.props.isPrivate}
+        />
+      )
     }
 
     if (this.props.error != null) {
@@ -53,8 +57,12 @@ export default class TrackerRender extends PureComponent<void, RenderProps, void
           currentlyFollowing={this.props.currentlyFollowing}
           loggedIn={this.props.loggedIn}
         />
-        <div style={{...styles.content, paddingBottom: calculatedPadding}} className='hide-scrollbar scroll-container'>
-          <UserBio type='Tracker'
+        <div
+          style={{...styles.content, paddingBottom: calculatedPadding}}
+          className="hide-scrollbar scroll-container"
+        >
+          <UserBio
+            type="Tracker"
             style={{marginTop: 50}}
             avatarSize={80}
             loading={this.props.loading}
@@ -67,13 +75,13 @@ export default class TrackerRender extends PureComponent<void, RenderProps, void
             onClickFollowing={this.props.onClickFollowing}
           />
           <UserProofs
-            type='proofs'
+            type="proofs"
             style={{
               paddingLeft: 24,
               paddingRight: 24,
               paddingTop: 8,
               position: 'relative',
-              width: 325,  // FIXME (mbg): fixed width to line up with existing layout which doesn't take scrollbar into account
+              width: 325, // FIXME (mbg): fixed width to line up with existing layout which doesn't take scrollbar into account
             }}
             loadingStyle={{
               left: 24,
@@ -86,7 +94,8 @@ export default class TrackerRender extends PureComponent<void, RenderProps, void
           />
         </div>
         <div style={styles.footer}>
-          {!this.props.loading && this.props.actionBarReady &&
+          {!this.props.loading &&
+            this.props.actionBarReady &&
             <Action
               loggedIn={this.props.loggedIn}
               waiting={this.props.waiting}
@@ -99,7 +108,8 @@ export default class TrackerRender extends PureComponent<void, RenderProps, void
               onIgnore={this.props.onIgnore}
               onFollow={this.props.onFollow}
               onRefollow={this.props.onRefollow}
-              onUnfollow={this.props.onUnfollow} />}
+              onUnfollow={this.props.onUnfollow}
+            />}
         </div>
       </div>
     )

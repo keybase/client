@@ -33,61 +33,67 @@ class TabBar extends PureComponent<void, Props, void> {
   _onSettings = () => this.props.onTabClick(settingsTab)
   _onProfile = () => this.props.onTabClick(profileTab)
 
-  render () {
+  render() {
     const {selectedTab, username, badgeNumbers} = this.props
 
     return (
       <Box style={stylesTabBar}>
         <TabBarButton
-          label='Search'
+          label="Search"
           selected={selectedTab === searchTab}
           onClick={this._onSearch}
           source={_searchSource}
-          style={stylesTabButton} />
+          style={stylesTabButton}
+        />
         <TabBarButton
-          label='Folders'
+          label="Folders"
           selected={selectedTab === folderTab}
           onClick={this._onFolder}
           badgeNumber={badgeNumbers[folderTab]}
           source={_folderSource}
-          style={stylesTabButton} />
+          style={stylesTabButton}
+        />
         <TabBarButton
-          label='Chat'
+          label="Chat"
           selected={selectedTab === chatTab}
           onClick={this._onChat}
           badgeNumber={badgeNumbers[chatTab]}
           source={_chatSource}
-          style={stylesTabButton} />
+          style={stylesTabButton}
+        />
         {flags.tabPeopleEnabled &&
           <TabBarButton
-            label='People'
+            label="People"
             selected={selectedTab === peopleTab}
             onClick={this._onPeople}
             badgeNumber={badgeNumbers[peopleTab]}
             source={_peopleSource}
-            style={stylesTabButton} />
-        }
+            style={stylesTabButton}
+          />}
         <TabBarButton
-          label='Devices'
+          label="Devices"
           selected={selectedTab === devicesTab}
           onClick={this._onDevice}
           badgeNumber={badgeNumbers[devicesTab]}
           source={_devicesSource}
-          style={stylesTabButton} />
+          style={stylesTabButton}
+        />
         <TabBarButton
-          label='Settings'
+          label="Settings"
           selected={selectedTab === settingsTab}
           onClick={this._onSettings}
           badgeNumber={badgeNumbers[settingsTab]}
           source={_settingsSource}
-          style={stylesTabButton} />
+          style={stylesTabButton}
+        />
         <Box style={{flex: 1}} />
         <TabBarButton
           label={username}
           selected={selectedTab === profileTab}
           onClick={this._onProfile}
           badgeNumber={badgeNumbers[profileTab]}
-          source={{type: 'avatar', username}} />
+          source={{type: 'avatar', username}}
+        />
       </Box>
     )
   }

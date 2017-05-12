@@ -78,8 +78,9 @@ export const {
   showDevTools,
 } = config
 
-export function setup (store: any) {
-  const updateLiveConfig = () => store.dispatch(updateDebugConfig(require('./local-debug-live')))
+export function setup(store: any) {
+  const updateLiveConfig = () =>
+    store.dispatch(updateDebugConfig(require('./local-debug-live')))
 
   if (module.hot) {
     module.hot.accept(() => updateLiveConfig())
@@ -87,6 +88,6 @@ export function setup (store: any) {
   updateLiveConfig()
 }
 
-export function envVarDebugJson () {
+export function envVarDebugJson() {
   return null
 }

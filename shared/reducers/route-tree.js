@@ -15,7 +15,7 @@ import {
 
 const initialState = Constants.State()
 
-function routeDefReducer (routeDef, action) {
+function routeDefReducer(routeDef, action) {
   switch (action.type) {
     case Constants.setRouteDef:
       return action.payload.routeDef
@@ -25,20 +25,34 @@ function routeDefReducer (routeDef, action) {
   }
 }
 
-function routeStateReducer (routeDef, routeState, action) {
+function routeStateReducer(routeDef, routeState, action) {
   switch (action.type) {
     case CommonConstants.resetStore:
       return routeSetProps(routeDef, null, [])
 
     case Constants.setRouteDef: {
-      return routeNavigate(action.payload.routeDef, routeState, getPath(routeState))
+      return routeNavigate(
+        action.payload.routeDef,
+        routeState,
+        getPath(routeState)
+      )
     }
 
     case Constants.switchTo:
-      return routeSetProps(routeDef, routeState, action.payload.path, action.payload.parentPath)
+      return routeSetProps(
+        routeDef,
+        routeState,
+        action.payload.path,
+        action.payload.parentPath
+      )
 
     case Constants.navigateTo:
-      return routeNavigate(routeDef, routeState, action.payload.path, action.payload.parentPath)
+      return routeNavigate(
+        routeDef,
+        routeState,
+        action.payload.path,
+        action.payload.parentPath
+      )
 
     case Constants.navigateAppend: {
       const parentPath = I.List(action.payload.parentPath)
@@ -60,7 +74,12 @@ function routeStateReducer (routeDef, routeState, action) {
     }
 
     case Constants.setRouteState:
-      return routeSetState(routeDef, routeState, action.payload.path, action.payload.partialState)
+      return routeSetState(
+        routeDef,
+        routeState,
+        action.payload.path,
+        action.payload.partialState
+      )
 
     case Constants.resetRoute:
       return routeClear(routeState, action.payload.path)
@@ -70,7 +89,10 @@ function routeStateReducer (routeDef, routeState, action) {
   }
 }
 
-export default function routeTreeReducer (state: Constants.State = initialState, action: any): Constants.State {
+export default function routeTreeReducer(
+  state: Constants.State = initialState,
+  action: any
+): Constants.State {
   let {routeDef, routeState} = state
 
   let newRouteDef
@@ -79,10 +101,17 @@ export default function routeTreeReducer (state: Constants.State = initialState,
     newRouteDef = routeDefReducer(routeDef, action)
     newRouteState = routeStateReducer(routeDef, routeState, action)
   } catch (err) {
-    if (action.type === Constants.setRouteDef && err instanceof InvalidRouteError) {
-      console.warn('New route tree mismatches current state. Not updating (please reload manually if needed).')
+    if (
+      action.type === Constants.setRouteDef &&
+      err instanceof InvalidRouteError
+    ) {
+      console.warn(
+        'New route tree mismatches current state. Not updating (please reload manually if needed).'
+      )
     } else {
-      console.error(`Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} raised exception: ${err}. Aborting.`)
+      console.error(
+        `Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} raised exception: ${err}. Aborting.`
+      )
     }
     return state
   }
@@ -91,7 +120,9 @@ export default function routeTreeReducer (state: Constants.State = initialState,
     // If we changed something, sanity check new state for errors.
     const routeError = checkRouteState(newRouteDef, newRouteState)
     if (routeError) {
-      console.error(`Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} would result in invalid routeTree state: "${routeError}". Aborting.`)
+      console.error(
+        `Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} would result in invalid routeTree state: "${routeError}". Aborting.`
+      )
       return state
     }
   }

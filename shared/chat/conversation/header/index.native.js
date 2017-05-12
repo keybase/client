@@ -5,21 +5,62 @@ import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
 import type {Props} from '.'
 
-const ConversationHeader = ({muted, onBack, onOpenFolder, onShowProfile, onToggleSidePanel, sidePanelOpen, users}: Props) => (
+const ConversationHeader = ({
+  muted,
+  onBack,
+  onOpenFolder,
+  onShowProfile,
+  onToggleSidePanel,
+  sidePanelOpen,
+  users,
+}: Props) => (
   <Box style={containerStyle}>
-    <BackButton title={null} onClick={onBack} iconStyle={{color: globalColors.blue}} textStyle={{color: globalColors.blue}} style={{flexShrink: 0, padding: globalMargins.tiny}} />
-    <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center', flex: 1, marginTop: 2, padding: globalMargins.tiny}}>
+    <BackButton
+      title={null}
+      onClick={onBack}
+      iconStyle={{color: globalColors.blue}}
+      textStyle={{color: globalColors.blue}}
+      style={{flexShrink: 0, padding: globalMargins.tiny}}
+    />
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        justifyContent: 'center',
+        flex: 1,
+        marginTop: 2,
+        padding: globalMargins.tiny,
+      }}
+    >
       <Usernames
         colorFollowing={true}
         inline={false}
         commaColor={globalColors.black_40}
-        type='BodyBig'
+        type="BodyBig"
         users={users}
         containerStyle={styleCenter}
-        onUsernameClicked={onShowProfile} />
-      {muted && <Icon type='iconfont-shh' style={{...styleCenter, ...styleLeft, color: globalColors.black_20, fontSize: 22}} />}
+        onUsernameClicked={onShowProfile}
+      />
+      {muted &&
+        <Icon
+          type="iconfont-shh"
+          style={{
+            ...styleCenter,
+            ...styleLeft,
+            color: globalColors.black_20,
+            fontSize: 22,
+          }}
+        />}
     </Box>
-    <Icon type={sidePanelOpen ? 'iconfont-close' : 'iconfont-info'} style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}} onClick={onToggleSidePanel} />
+    <Icon
+      type={sidePanelOpen ? 'iconfont-close' : 'iconfont-info'}
+      style={{
+        ...styleLeft,
+        flexShrink: 0,
+        padding: globalMargins.tiny,
+        fontSize: 21,
+      }}
+      onClick={onToggleSidePanel}
+    />
   </Box>
 )
 

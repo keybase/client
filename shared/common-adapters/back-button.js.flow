@@ -7,8 +7,7 @@ export type Props = {
   iconStyle?: Object,
   textStyle?: Object,
   style?: ?Object,
-  title?: ?string
+  title?: ?string,
 }
 
 declare export default class BackButton extends Component<void, Props, void> {}
-

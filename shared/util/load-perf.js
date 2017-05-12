@@ -3,12 +3,12 @@ import {reactPerf} from '../local-debug'
 import {keys as fetchKeys} from 'lodash'
 import Perf from './react-perf'
 
-function print (...rest) {
+function print(...rest) {
   // $FlowIssue
   console.log(`%c⏱ React perf: ${rest}`, 'font-size: x-large')
 }
 
-export default function () {
+export default function() {
   let start = false
   const onPerf = showDom => {
     setImmediate(() => {
@@ -46,7 +46,7 @@ export default function () {
 }
 
 // https://raw.githubusercontent.com/dashed/shallowequal/master/src/index.js but with debug statements
-function shallowEqualDebug (objA, objB, compare, compareContext) {
+function shallowEqualDebug(objA, objB, compare, compareContext) {
   const ret = compare ? compare.call(compareContext, objA, objB) : void 0
 
   if (ret !== void 0) {
@@ -57,8 +57,12 @@ function shallowEqualDebug (objA, objB, compare, compareContext) {
     return true
   }
 
-  if (typeof objA !== 'object' || objA === null ||
-      typeof objB !== 'object' || objB === null) {
+  if (
+    typeof objA !== 'object' ||
+    objA === null ||
+    typeof objB !== 'object' ||
+    objB === null
+  ) {
     return false
   }
 
@@ -83,8 +87,10 @@ function shallowEqualDebug (objA, objB, compare, compareContext) {
     const valueA = objA[key]
     const valueB = objB[key]
 
-    const ret = compare ? compare.call(compareContext, valueA, valueB, key) : void 0
-    if (ret === false || ret === void 0 && valueA !== valueB) {
+    const ret = compare
+      ? compare.call(compareContext, valueA, valueB, key)
+      : void 0
+    if (ret === false || (ret === void 0 && valueA !== valueB)) {
       console.log('Different value:', key, ':', valueA, valueB)
       return false
     }

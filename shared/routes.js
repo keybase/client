@@ -1,5 +1,5 @@
 // @flow
-import {RouteDefNode} from './route-tree'
+		import {RouteDefNode} from './route-tree'
 import chatRoutes from './chat/routes'
 import loginRoutes from './login/routes'
 import devicesRoutes from './devices/routes'
@@ -26,9 +26,11 @@ const routeTree = new RouteDefNode({
     [chatTab]: chatRoutes,
     [loginTab]: loginRoutes,
     [folderTab]: foldersRoutes,
-    ...(isMobile ? {} : {
-      [devicesTab]: devicesRoutes, // not a top level route in mobile
-    }),
+    ...(isMobile
+      ? {}
+      : {
+          [devicesTab]: devicesRoutes, // not a top level route in mobile
+        }),
     [profileTab]: profileRoutes,
     [searchTab]: searchRoutes,
     [settingsTab]: settingsRoutes,

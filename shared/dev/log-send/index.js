@@ -8,18 +8,20 @@ type State = {
 }
 
 class LogSend extends Component<void, {}, State> {
-  state: State;
+  state: State
 
-  constructor (props: {}) {
+  constructor(props: {}) {
     super(props)
     this.state = {
       logSendId: null,
     }
   }
 
-  render () {
+  render() {
     const onLogSend = () => {
-      logSend('Sent from DEV MENU', true).then(logSendId => this.setState({logSendId}))
+      logSend('Sent from DEV MENU', true).then(logSendId =>
+        this.setState({logSendId})
+      )
     }
 
     return <Render logSendId={this.state.logSendId} onLogSend={onLogSend} />

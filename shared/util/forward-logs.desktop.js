@@ -7,14 +7,18 @@ import {forwardLogs} from '../local-debug'
 import {ipcMain, ipcRenderer} from 'electron'
 import {logFileName, isWindows} from '../constants/platform.desktop'
 
-function fileDoesNotExist (err) {
-  if (isWindows && err.errno === -4058) { return true }
-  if (err.errno === -2) { return true }
+function fileDoesNotExist(err) {
+  if (isWindows && err.errno === -4058) {
+    return true
+  }
+  if (err.errno === -2) {
+    return true
+  }
 
   return false
 }
 
-function setupFileWritable () {
+function setupFileWritable() {
   const logFile = logFileName()
   const logLimit = 5e6
 
@@ -67,20 +71,26 @@ const localWarn: Log = console._warn || console.warn.bind(console)
 // $FlowIssue
 const localError: Log = console._error || console.error.bind(console)
 
-function tee (...writeFns) {
+function tee(...writeFns) {
   return t => writeFns.forEach(w => w(t))
 }
 
-function setupTarget () {
+function setupTarget() {
   if (!forwardLogs) {
     return
   }
 
   const fileWritable = setupFileWritable()
 
-  const stdOutWriter = t => { !isWindows && process.stdout.write(t) }
-  const stdErrWriter = t => { !isWindows && process.stderr.write(t) }
-  const logFileWriter = t => { fileWritable && fileWritable.write(t) }
+  const stdOutWriter = t => {
+    !isWindows && process.stdout.write(t)
+  }
+  const stdErrWriter = t => {
+    !isWindows && process.stderr.write(t)
+  }
+  const logFileWriter = t => {
+    fileWritable && fileWritable.write(t)
+  }
 
   const output = {
     error: tee(stdErrWriter, logFileWriter),
@@ -92,7 +102,9 @@ function setupTarget () {
   keys.forEach(key => {
     const override = (...args) => {
       if (args.length) {
-        output[key](`${key}: ${Date()} (${Date.now()}): ${util.format('%s', ...args)}\n`)
+        output[key](
+          `${key}: ${Date()} (${Date.now()}): ${util.format('%s', ...args)}\n`
+        )
       }
     }
 
@@ -106,12 +118,12 @@ function setupTarget () {
   })
 }
 
-function setupSource () {
+function setupSource() {
   if (!forwardLogs) {
     return
   }
 
-  ['log', 'warn', 'error'].forEach(key => {
+  ;['log', 'warn', 'error'].forEach(key => {
     if (__DEV__ && typeof window !== 'undefined') {
       window.console[`${key}_original`] = window.console[key]
     }
@@ -134,10 +146,4 @@ function setupSource () {
   })
 }
 
-export {
-  setupSource,
-  setupTarget,
-  localLog,
-  localWarn,
-  localError,
-}
+export {setupSource, setupTarget, localLog, localWarn, localError}

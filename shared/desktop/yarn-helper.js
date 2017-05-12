@@ -5,7 +5,7 @@ import childProcess, {execSync} from 'child_process'
 import fs from 'fs'
 import deepdiff from 'deep-diff'
 
-const [,, command, ...rest] = process.argv
+const [, , command, ...rest] = process.argv
 
 const inject = info => {
   let temp = {
@@ -27,7 +27,7 @@ const inject = info => {
   return temp
 }
 
-function pad (s, num) {
+function pad(s, num) {
   while (s.length < num) {
     s += ' '
   }
@@ -35,7 +35,8 @@ function pad (s, num) {
   return s
 }
 
-const nodeCmd = 'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types'
+const nodeCmd =
+  'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types'
 
 const commands = {
   'apply-new-fonts': {
@@ -81,17 +82,29 @@ const commands = {
     code: generateIcoMoon,
     help: 'Generate the icomoon project file',
   },
-  'help': {
+  help: {
     code: () => {
-      const len = Object.keys(commands).reduce((acc, i) => Math.max(i.length, acc), 1) + 2
-      console.log(Object.keys(commands).map(c => commands[c].help && `yarn run ${pad(c + ': ', len)}${commands[c].help || ''}`).filter(c => !!c).join('\n'))
+      const len =
+        Object.keys(commands).reduce((acc, i) => Math.max(i.length, acc), 1) + 2
+      console.log(
+        Object.keys(commands)
+          .map(
+            c =>
+              commands[c].help &&
+              `yarn run ${pad(c + ': ', len)}${commands[c].help || ''}`
+          )
+          .filter(c => !!c)
+          .join('\n')
+      )
     },
   },
   'hot-server': {
     env: {BABEL_ENV: 'yarn', HOT: 'true', USING_DLL: 'true'},
     help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
     nodeEnv: 'development',
-    shell: process.env['NO_DASHBOARD'] ? `${nodeCmd} desktop/server.js` : `webpack-dashboard -- ${nodeCmd} desktop/server.js`,
+    shell: process.env['NO_DASHBOARD']
+      ? `${nodeCmd} desktop/server.js`
+      : `webpack-dashboard -- ${nodeCmd} desktop/server.js`,
   },
   'inject-code-prod': {
     help: 'Copy current code into currently installed Keybase app',
@@ -101,28 +114,31 @@ const commands = {
     env: {HOT: 'true', USING_DLL: 'true', DUMB: 'true', BABEL_ENV: 'yarn'},
     nodeEnv: 'development',
     nodePathDesktop: true,
-    shell: process.env['NO_DASHBOARD'] ? `${nodeCmd} desktop/server.js` : `webpack-dashboard -- ${nodeCmd} desktop/server.js`,
+    shell: process.env['NO_DASHBOARD']
+      ? `${nodeCmd} desktop/server.js`
+      : `webpack-dashboard -- ${nodeCmd} desktop/server.js`,
     help: 'Start the webpack hot reloading code server (needed by npm run start-hot)',
   },
   'inject-sourcemaps-prod': {
     help: '[Path to sourcemaps]: Copy sourcemaps into currently installed Keybase app',
-    shell: 'a(){ cp \'$1\'/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist; };a',
+    shell: "a(){ cp '$1'/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist; };a",
   },
   'local-visdiff': {
     env: {
-      KEYBASE_JS_VENDOR_DIR: process.env['KEYBASE_JS_VENDOR_DIR'] || path.resolve('../../js-vendor-desktop'),
+      KEYBASE_JS_VENDOR_DIR: process.env['KEYBASE_JS_VENDOR_DIR'] ||
+        path.resolve('../../js-vendor-desktop'),
       VISDIFF_DRY_RUN: 1,
     },
     help: 'Perform a local visdiff',
     shell: 'cd ../visdiff && yarn install --pure-lockfile && cd ../shared && node ../visdiff/dist/index.js',
   },
-  'package': {
+  package: {
     env: {BABEL_ENV: 'yarn', NO_SOURCE_MAPS: 'true'},
     help: 'Package up the production js code',
     nodeEnv: 'production',
     shell: `${nodeCmd} desktop/package.js`,
   },
-  'postinstall': {
+  postinstall: {
     code: postInstall,
     help: 'all: install global eslint. dummy modules',
   },
@@ -139,7 +155,7 @@ const commands = {
     code: setupDebugMain,
     help: 'Setup node-inspector to work with electron (run once per electron prebuilt upgrade)',
   },
-  'start': {
+  start: {
     help: 'Do a simple dev build',
     shell: 'yarn run build-dev && yarn run start-cold',
   },
@@ -174,18 +190,20 @@ const commands = {
   },
 }
 
-function postInstall () {
+function postInstall() {
   // Inject dummy module
   exec('node make-shim net')
   exec('node make-shim tls')
   exec('node make-shim msgpack')
 }
 
-function setupDebugMain () {
+function setupDebugMain() {
   let electronVer = null
   try {
     // $FlowIssue we catch this error
-    electronVer = childProcess.execSync('yarn list --dev electron', {encoding: 'utf8'}).match(/electron@([0-9.]+)/)[1]
+    electronVer = childProcess
+      .execSync('yarn list --dev electron', {encoding: 'utf8'})
+      .match(/electron@([0-9.]+)/)[1]
     console.log(`Found electron version: ${electronVer}`)
   } catch (err) {
     console.log("Couldn't figure out electron")
@@ -193,35 +211,41 @@ function setupDebugMain () {
   }
 
   exec('yarn install node-inspector')
-  exec('yarn install git+https://git@github.com/enlight/node-pre-gyp.git#detect-electron-runtime-in-find')
-  exec(`node_modules/.bin/node-pre-gyp --target=${electronVer || ''} --runtime=electron --fallback-to-build --directory node_modules/v8-debug/ --dist-url=https://atom.io/download/atom-shell reinstall`)
-  exec(`node_modules/.bin/node-pre-gyp --target=${electronVer || ''} --runtime=electron --fallback-to-build --directory node_modules/v8-profiler/ --dist-url=https://atom.io/download/atom-shell reinstall`)
+  exec(
+    'yarn install git+https://git@github.com/enlight/node-pre-gyp.git#detect-electron-runtime-in-find'
+  )
+  exec(
+    `node_modules/.bin/node-pre-gyp --target=${electronVer || ''} --runtime=electron --fallback-to-build --directory node_modules/v8-debug/ --dist-url=https://atom.io/download/atom-shell reinstall`
+  )
+  exec(
+    `node_modules/.bin/node-pre-gyp --target=${electronVer || ''} --runtime=electron --fallback-to-build --directory node_modules/v8-profiler/ --dist-url=https://atom.io/download/atom-shell reinstall`
+  )
 }
 
 // Edit this function to filter down the store in the undiff log
-function storeFilter (store: any) {
+function storeFilter(store: any) {
   // Example
   // try {
-    // return {mike: store.tracker.trackers.mike}
+  // return {mike: store.tracker.trackers.mike}
   // } catch (_) {
-    // return {nullStore: null}
+  // return {nullStore: null}
   // }
 
   return store
 }
 
 // Edit this function to filter down actions, return null to filter out entirely
-function actionFilter (action: any) {
+function actionFilter(action: any) {
   // Example
   // if (action.type.startsWith('gregor')) {
-    // return null
+  // return null
   // }
 
   return action
 }
 
 // Recreate the store from a log that has diffs (from log send)
-function undiff () {
+function undiff() {
   let log
   try {
     console.log('Analyzing ./log.txt')
@@ -232,7 +256,9 @@ function undiff () {
   }
   let store = {}
 
-  const lineFilter = line => line.startsWith('From Keybase: ') && line.match(/ Diff: /) || line.match(/ Dispatching action: /)
+  const lineFilter = line =>
+    (line.startsWith('From Keybase: ') && line.match(/ Diff: /)) ||
+    line.match(/ Dispatching action: /)
   const lineToActionOrDiff = line => {
     const diff = line.match(/ Diff: {2}(.*)/)
     if (diff) {
@@ -254,13 +280,17 @@ function undiff () {
       return part
     }
 
-    part && part.diff && part.diff.forEach(diff => {
-      try {
-        deepdiff.applyChange(store, store, diff)
-      } catch (err) {
-        console.log(`Tried to apply change: ${diff} but failed, trying to continue. ${err}`)
-      }
-    })
+    part &&
+      part.diff &&
+      part.diff.forEach(diff => {
+        try {
+          deepdiff.applyChange(store, store, diff)
+        } catch (err) {
+          console.log(
+            `Tried to apply change: ${diff} but failed, trying to continue. ${err}`
+          )
+        }
+      })
     return store
   }
 
@@ -297,7 +327,7 @@ function undiff () {
   console.log('Success! Wrote ./log.json')
 }
 
-function svgToGridMap () {
+function svgToGridMap() {
   const grids = {}
 
   fs.readdirSync('../shared/images/iconfont').forEach(i => {
@@ -317,10 +347,15 @@ function svgToGridMap () {
 
   return grids
 }
-function generateIcoMoon () {
+function generateIcoMoon() {
   const svgPaths = {}
   // Need to get the svg info from iconmoon. Couldn't figure out how to derive exactly what they need from the files themselves
-  JSON.parse(fs.readFileSync(path.join(__dirname, '../images/iconfont/kb-icomoon-project-app.json'), 'utf8')).icons.forEach(icon => {
+  JSON.parse(
+    fs.readFileSync(
+      path.join(__dirname, '../images/iconfont/kb-icomoon-project-app.json'),
+      'utf8'
+    )
+  ).icons.forEach(icon => {
     svgPaths[icon.tags[0]] = icon.paths
   })
 
@@ -335,7 +370,9 @@ function generateIcoMoon () {
     icons: Object.keys(grids[size]).map((name, idx) => {
       const paths = svgPaths[`kb-iconfont-${name}-${size}`]
       if (!paths) {
-        throw new Error(`Can't find path for ${name}. Did you run the svgs through icomoon and update kb-icomoon-project-app.json?`)
+        throw new Error(
+          `Can't find path for ${name}. Did you run the svgs through icomoon and update kb-icomoon-project-app.json?`
+        )
       }
       return {
         attrs: [],
@@ -411,22 +448,33 @@ function generateIcoMoon () {
     uid: -1,
   }
 
-  fs.writeFileSync(path.join(__dirname, '../images/iconfont/kb-icomoon-project-generated.json'), JSON.stringify(write, null, 4), 'utf8')
+  fs.writeFileSync(
+    path.join(
+      __dirname,
+      '../images/iconfont/kb-icomoon-project-generated.json'
+    ),
+    JSON.stringify(write, null, 4),
+    'utf8'
+  )
   console.log('kb-icomoon-project-generated.json is ready for icomoon')
   updatedFonts()
 }
 
-function applyNewFonts () {
+function applyNewFonts() {
   console.log('Moving font to project')
-  fs.writeFileSync(path.join(__dirname, '../fonts/kb.ttf'), fs.readFileSync(path.join(__dirname, '../images/iconfont/kb/fonts/kb.ttf')))
+  fs.writeFileSync(
+    path.join(__dirname, '../fonts/kb.ttf'),
+    fs.readFileSync(path.join(__dirname, '../images/iconfont/kb/fonts/kb.ttf'))
+  )
 }
 
-function updatedFonts () {
+function updatedFonts() {
   console.log('Updating generated code')
 
   const icons = {}
 
-  fs.readdirSync(path.join(__dirname, '../images/icons'))
+  fs
+    .readdirSync(path.join(__dirname, '../images/icons'))
     .filter(i => i.indexOf('@') === -1 && i.startsWith('icon-'))
     .forEach(i => {
       const shortName = i.slice(0, -4)
@@ -464,46 +512,57 @@ type IconMeta = {
 }
 
 const iconMeta_ = {
-${
-  // eslint really doesn't understand embedded backticks
-/* eslint-disable */
-Object.keys(icons).map(name => {
-    const icon = icons[name]
-    const meta = [`isFont: ${icon.isFont},`]
-    if (icon.gridSize) {
-      meta.push(`gridSize: ${icons[name].gridSize},`)
-    }
-    if (icon.extension) {
-      meta.push(`extension: '${icons[name].extension}',`)
-    }
-    if (icon.charCode) {
-      meta.push(`charCode: 0x${icons[name].charCode.toString(16)},`)
-    }
-    if (icon.require) {
-      meta.push(`require: require(${icons[name].require}),`)
-    }
+${/* eslint really doesn't understand embedded backticks*/
+  /* eslint-disable */
+  Object.keys(icons)
+    .map(name => {
+      const icon = icons[name]
+      const meta = [`isFont: ${icon.isFont},`]
+      if (icon.gridSize) {
+        meta.push(`gridSize: ${icons[name].gridSize},`)
+      }
+      if (icon.extension) {
+        meta.push(`extension: '${icons[name].extension}',`)
+      }
+      if (icon.charCode) {
+        meta.push(`charCode: 0x${icons[name].charCode.toString(16)},`)
+      }
+      if (icon.require) {
+        meta.push(`require: require(${icons[name].require}),`)
+      }
 
-    return `  '${name}': {
+      return `  '${name}': {
     ${meta.join('\n    ')}
   },`
-  }).join('\n')
-/* eslint-enable */
-  }
+    })
+    .join('\n')}/* eslint-enable */
+  
 }
 
 export type IconType = $Keys<typeof iconMeta_>
 export const iconMeta: {[key: IconType]: IconMeta} = iconMeta_
 `
 
-  fs.writeFileSync(path.join(__dirname, '../common-adapters/icon.constants.js'), iconConstants, 'utf8')
+  fs.writeFileSync(
+    path.join(__dirname, '../common-adapters/icon.constants.js'),
+    iconConstants,
+    'utf8'
+  )
 }
 
-function exec (command, env, options) {
+function exec(command, env, options) {
   if (!env) {
     env = process.env
   }
 
-  console.log(execSync(command, {env: env, stdio: 'inherit', encoding: 'utf8', ...options}))
+  console.log(
+    execSync(command, {
+      env: env,
+      stdio: 'inherit',
+      encoding: 'utf8',
+      ...options,
+    })
+  )
 }
 
 let info = commands[command]

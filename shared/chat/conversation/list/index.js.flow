@@ -14,7 +14,9 @@ export type Props = {|
   onLoadMoreMessages: () => void,
   onMessageAction: (message: Constants.Message) => void,
   onOpenInFileUI: (filename: string) => void,
-  getMessageFromMessageKey: (messageKey: Constants.MessageKey) => ?Constants.Message,
+  getMessageFromMessageKey: (
+    messageKey: Constants.MessageKey
+  ) => ?Constants.Message,
   selectedConversation: ?Constants.ConversationIDKey,
   validated: boolean,
   you: string,

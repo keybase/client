@@ -1,14 +1,15 @@
 // @flow
 
-export type FeatureKeys = 'admin'
- | 'chatAdminOnly'
- | 'mobileAppsExist'
- | 'plansEnabled'
- | 'recentFilesEnabled'
- | 'tabChatEnabled'
- | 'tabPeopleEnabled'
- | 'tabProfileEnabled'
- | 'tabSettingsEnabled'
+export type FeatureKeys =
+  | 'admin'
+  | 'chatAdminOnly'
+  | 'mobileAppsExist'
+  | 'plansEnabled'
+  | 'recentFilesEnabled'
+  | 'tabChatEnabled'
+  | 'tabPeopleEnabled'
+  | 'tabProfileEnabled'
+  | 'tabSettingsEnabled'
 
 export type FeatureFlags = {[key: FeatureKeys]: boolean}
 

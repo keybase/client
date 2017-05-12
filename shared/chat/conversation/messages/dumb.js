@@ -17,7 +17,12 @@ import type {DumbComponentMap} from '../../../constants/types/more'
 const convID = 'convID-0'
 
 let mockKey = 1
-function messageMock (messageState: ChatConstants.MessageState, author: string, you: string, extraProps?: Object = {}) {
+function messageMock(
+  messageState: ChatConstants.MessageState,
+  author: string,
+  you: string,
+  extraProps?: Object = {}
+) {
   const {text, ...otherProps} = extraProps
   return {
     author,
@@ -34,7 +39,12 @@ function messageMock (messageState: ChatConstants.MessageState, author: string, 
   }
 }
 
-function textMessageMock (messageState: ChatConstants.MessageState, author: string, you: string, extraProps?: Object): ChatConstants.TextMessage {
+function textMessageMock(
+  messageState: ChatConstants.MessageState,
+  author: string,
+  you: string,
+  extraProps?: Object
+): ChatConstants.TextMessage {
   return {
     type: 'Text',
     editedCount: 0,
@@ -80,23 +90,38 @@ const followingMap = {
   other: true,
 }
 const metaDataMap = Map({
-  cecileb: new ChatConstants.MetaDataRecord({fullname: 'Cecile Bee', brokenTracker: false}),
+  cecileb: new ChatConstants.MetaDataRecord({
+    fullname: 'Cecile Bee',
+    brokenTracker: false,
+  }),
 })
 
-const mocks = followStates.reduce((outerAcc, followState) => (
-  {
+const mocks = followStates.reduce(
+  (outerAcc, followState) => ({
     ...outerAcc,
     ...ChatConstants.messageStates.reduce((acc, messageState) => {
       switch (followState) {
         case 'You':
           return {
             ...acc,
-            [`${messageState} - ${followState}`]: {...baseMock, message: textMessageMock(messageState, 'cecileb', 'cecileb'), you: 'cecileb', followingMap: {}, metaDataMap},
+            [`${messageState} - ${followState}`]: {
+              ...baseMock,
+              message: textMessageMock(messageState, 'cecileb', 'cecileb'),
+              you: 'cecileb',
+              followingMap: {},
+              metaDataMap,
+            },
           }
         case 'Following':
           return {
             ...acc,
-            [`${messageState} - ${followState}`]: {...baseMock, message: textMessageMock(messageState, 'other', 'cecileb'), you: 'cecileb', followingMap, metaDataMap},
+            [`${messageState} - ${followState}`]: {
+              ...baseMock,
+              message: textMessageMock(messageState, 'other', 'cecileb'),
+              you: 'cecileb',
+              followingMap,
+              metaDataMap,
+            },
           }
         case 'Broken':
           return {
@@ -106,23 +131,64 @@ const mocks = followStates.reduce((outerAcc, followState) => (
               message: textMessageMock(messageState, 'other', 'cecileb'),
               you: 'cecileb',
               followingMap,
-              metaDataMap: Map({other: new ChatConstants.MetaDataRecord({fullname: 'other person', brokenTracker: true})}),
+              metaDataMap: Map({
+                other: new ChatConstants.MetaDataRecord({
+                  fullname: 'other person',
+                  brokenTracker: true,
+                }),
+              }),
             },
           }
         case 'NotFollowing':
           return {
             ...acc,
-            [`${messageState} - ${followState}`]: {...baseMock, message: textMessageMock(messageState, 'other', 'cecileb'), you: 'cecileb', followingMap: {}, metaDataMap},
+            [`${messageState} - ${followState}`]: {
+              ...baseMock,
+              message: textMessageMock(messageState, 'other', 'cecileb'),
+              you: 'cecileb',
+              followingMap: {},
+              metaDataMap,
+            },
           }
       }
     }, outerAcc),
-  }
-), {})
+  }),
+  {}
+)
 
-mocks['from revoked device'] = {...baseMock, message: textMessageMock('sent', 'cecileb', 'other', {senderDeviceRevokedAt: 123456}), you: 'other', followingMap: {cecileb: true}, metaDataMap}
-mocks['edited'] = {...baseMock, message: textMessageMock('sent', 'cecileb', 'cecileb', {editedCount: 1}), you: 'cecileb', followingMap: {}, metaDataMap}
-mocks['first new message'] = {...baseMock, message: textMessageMock('sent', 'cecileb', 'cecileb'), you: 'cecileb', isFirstNewMessage: true, followingMap: {}, metaDataMap}
-mocks['failure reason'] = {...baseMock, message: textMessageMock('failed', 'cecileb', 'cecileb', {failureDescription: 'the flurble glurbled'}), you: 'cecileb', followingMap: {}, metaDataMap}
+mocks['from revoked device'] = {
+  ...baseMock,
+  message: textMessageMock('sent', 'cecileb', 'other', {
+    senderDeviceRevokedAt: 123456,
+  }),
+  you: 'other',
+  followingMap: {cecileb: true},
+  metaDataMap,
+}
+mocks['edited'] = {
+  ...baseMock,
+  message: textMessageMock('sent', 'cecileb', 'cecileb', {editedCount: 1}),
+  you: 'cecileb',
+  followingMap: {},
+  metaDataMap,
+}
+mocks['first new message'] = {
+  ...baseMock,
+  message: textMessageMock('sent', 'cecileb', 'cecileb'),
+  you: 'cecileb',
+  isFirstNewMessage: true,
+  followingMap: {},
+  metaDataMap,
+}
+mocks['failure reason'] = {
+  ...baseMock,
+  message: textMessageMock('failed', 'cecileb', 'cecileb', {
+    failureDescription: 'the flurble glurbled',
+  }),
+  you: 'cecileb',
+  followingMap: {},
+  metaDataMap,
+}
 
 const StackedMessages = ({mock1, mock2}: any) => (
   <Box>
@@ -327,16 +393,27 @@ const attachmentMap: DumbComponentMap<AttachmentMessageComponent> = {
 */
 
 let mockState = new ChatConstants.StateRecord()
-const firstMsg = textMessageMock('sent', 'cecileb', 'cecileb', {text: 'Can you bring the lentils tomorrow?'})
-const secondMsg = textMessageMock('sent', 'cecileb', 'cecileb', {text: 'Thanks!'})
-const pendingMessage = textMessageMock('pending', 'cecileb', 'cecileb', {text: 'Sorry, my internet is kinda slow.'})
-const failedMessage = textMessageMock('failed', 'cecileb', 'cecileb', {text: 'Sorry, my internet is kinda slow.'})
-mockState = chatReducer(mockState, ChatCreators.appendMessages(
-  convID, // conv id
-  true, // isSelected
-  true, // isAppFocused
-  [firstMsg, secondMsg, pendingMessage, failedMessage] //  messages: Array<Constants.Message>
-))
+const firstMsg = textMessageMock('sent', 'cecileb', 'cecileb', {
+  text: 'Can you bring the lentils tomorrow?',
+})
+const secondMsg = textMessageMock('sent', 'cecileb', 'cecileb', {
+  text: 'Thanks!',
+})
+const pendingMessage = textMessageMock('pending', 'cecileb', 'cecileb', {
+  text: 'Sorry, my internet is kinda slow.',
+})
+const failedMessage = textMessageMock('failed', 'cecileb', 'cecileb', {
+  text: 'Sorry, my internet is kinda slow.',
+})
+mockState = chatReducer(
+  mockState,
+  ChatCreators.appendMessages(
+    convID, // conv id
+    true, // isSelected
+    true, // isAppFocused
+    [firstMsg, secondMsg, pendingMessage, failedMessage] //  messages: Array<Constants.Message>
+  )
+)
 
 const mockStore = {
   chat: mockState,
@@ -384,17 +461,29 @@ const stackedMessagesMap = {
     'Stacked - two messages, one edited': {
       mockStore,
       mock1: textContainerMock(firstMsg.key, {isYou: true}),
-      mock2: textContainerMock(secondMsg.key, {includeHeader: false, isEdited: true, isYou: true}),
+      mock2: textContainerMock(secondMsg.key, {
+        includeHeader: false,
+        isEdited: true,
+        isYou: true,
+      }),
     },
     'Stacked - one sent, one pending': {
       mockStore,
       mock1: textContainerMock(firstMsg.key, {isYou: true}),
-      mock2: textContainerMock(pendingMessage.key, {includeHeader: false, isEdited: false, isYou: true}),
+      mock2: textContainerMock(pendingMessage.key, {
+        includeHeader: false,
+        isEdited: false,
+        isYou: true,
+      }),
     },
     'Stacked - one sent, one failed': {
       mockStore,
       mock1: textContainerMock(firstMsg.key, {isYou: true}),
-      mock2: textContainerMock(failedMessage.key, {includeHeader: false, isEdited: false, isYou: true}),
+      mock2: textContainerMock(failedMessage.key, {
+        includeHeader: false,
+        isEdited: false,
+        isYou: true,
+      }),
     },
     'Stacked - someone else. two sent': {
       mockStore,
@@ -532,8 +621,8 @@ const attachmentPopupMap: DumbComponentMap<AttachmentPopup> = {
 export default {
   'Text Message': textMap,
   'Stacked Text Message': stackedMessagesMap,
-//   'Popup': textPopupMenuMap,
-//   'Popup - Attachment': attachmentPopupMenuMap,
-//   'Attachment Popup': attachmentPopupMap,
-//   'Attachment Message': attachmentMap,
+  //   'Popup': textPopupMenuMap,
+  //   'Popup - Attachment': attachmentPopupMenuMap,
+  //   'Attachment Popup': attachmentPopupMap,
+  //   'Attachment Message': attachmentMap,
 }

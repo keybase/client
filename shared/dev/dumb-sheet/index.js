@@ -6,15 +6,17 @@ import {navigateUp} from '../../actions/route-tree'
 import {updateDebugConfig} from '../../actions/dev'
 import {isTesting} from '../../local-debug'
 
-function DumbSheet (props) {
-  return <Render
-    onBack={props.onBack}
-    onDebugConfigChange={props.onDebugConfigChange}
-    dumbIndex={props.dumbIndex}
-    dumbFilter={props.dumbFilter}
-    dumbFullscreen={props.dumbFullscreen}
-    autoIncrement={isTesting}
-  />
+function DumbSheet(props) {
+  return (
+    <Render
+      onBack={props.onBack}
+      onDebugConfigChange={props.onDebugConfigChange}
+      dumbIndex={props.dumbIndex}
+      dumbFilter={props.dumbFilter}
+      dumbFullscreen={props.dumbFullscreen}
+      autoIncrement={isTesting}
+    />
+  )
 }
 
 export default connect(

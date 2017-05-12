@@ -9,17 +9,19 @@ import type {FSList, FSListed, FSOpen} from '../../constants/kbfs'
 import type {ListResult} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
 
-function fsList (path: string) : FSList {
+function fsList(path: string): FSList {
   return {payload: {path}, type: Constants.fsList}
 }
 
-function openInKBFS (path: string = ''): FSOpen {
+function openInKBFS(path: string = ''): FSOpen {
   return {payload: {path}, type: Constants.fsOpen}
 }
 
-function * _listSaga (action: FSList): SagaGenerator<any, any> {
+function* _listSaga(action: FSList): SagaGenerator<any, any> {
   try {
-    const result: ?ListResult = yield call(fsListRpcPromise, {param: {path: action.payload.path}})
+    const result: ?ListResult = yield call(fsListRpcPromise, {
+      param: {path: action.payload.path},
+    })
 
     if (result) {
       console.log('fs.List: ', result)
@@ -27,19 +29,20 @@ function * _listSaga (action: FSList): SagaGenerator<any, any> {
       yield put(listAction)
     }
   } catch (error) {
-    const listAction: FSListed = {error: true, payload: error, type: Constants.fsListed}
+    const listAction: FSListed = {
+      error: true,
+      payload: error,
+      type: Constants.fsListed,
+    }
     yield put(listAction)
   }
 }
 
-function * kbfsSaga (): SagaGenerator<any, any> {
+function* kbfsSaga(): SagaGenerator<any, any> {
   yield safeTakeLatest(Constants.fsList, _listSaga)
   yield safeTakeEvery(Constants.fsOpen, openSaga)
   yield safeTakeEvery('fs:openInFileUI', openInFileUISaga)
 }
 
 export default kbfsSaga
-export {
-  fsList,
-  openInKBFS,
-}
+export {fsList, openInKBFS}

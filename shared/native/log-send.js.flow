@@ -1,4 +1,7 @@
 // @flow
-declare function logSend(feedback: string, includeLogs: boolean): Promise<string>
+declare function logSend(
+  feedback: string,
+  includeLogs: boolean
+): Promise<string>
 
 export default logSend

@@ -4,7 +4,8 @@ import {Component} from 'react'
 export type Props = {
   style?: Object,
   white?: boolean,
-  type?: 'Small' | 'Large'
+  type?: 'Small' | 'Large',
 }
 
-declare export default class ProgressIndicator extends Component<void, Props, void> { }
+declare export default class ProgressIndicator
+  extends Component<void, Props, void> {}

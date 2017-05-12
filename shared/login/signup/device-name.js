@@ -8,23 +8,25 @@ import {connect} from 'react-redux'
 class DeviceName extends Component {
   state: {
     deviceName: ?string,
-  };
+  }
 
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {deviceName: props.deviceName}
   }
 
-  render () {
+  render() {
     return (
       <Render
         deviceName={this.state.deviceName}
         deviceNameError={this.props.deviceNameError}
         onChange={deviceName => this.setState({deviceName})}
-        onSubmit={() => this.props.submitDeviceName(this.state.deviceName || '')}
+        onSubmit={() =>
+          this.props.submitDeviceName(this.state.deviceName || '')}
         submitEnabled={!this.props.waiting}
         onBack={this.props.restartSignup}
-        waiting={this.props.waiting} />
+        waiting={this.props.waiting}
+      />
     )
   }
 }

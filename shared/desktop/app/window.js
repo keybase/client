@@ -4,12 +4,12 @@ import menuHelper from './menu-helper'
 import {ipcMain, BrowserWindow} from 'electron'
 
 export default class Window {
-  filename: string;
-  opts: any;
-  window: any;
-  initiallyVisible: boolean;
+  filename: string
+  opts: any
+  window: any
+  initiallyVisible: boolean
 
-  constructor (filename: string, opts: any) {
+  constructor(filename: string, opts: any) {
     this.filename = filename
     this.opts = opts || {}
     this.window = null
@@ -26,22 +26,25 @@ export default class Window {
       BrowserWindow.fromId(remoteWindowId).on('close', () => {
         try {
           event.sender.send('remoteWindowClosed', remoteWindowId)
-        } catch (_) { }
+        } catch (_) {}
       })
     })
 
-    ipcMain.on('registerRemoteUnmount', (remoteComponentLoaderEvent, remoteWindowId) => {
-      const relayRemoteUnmount = (e, otherRemoteWindowId) => {
-        if (remoteWindowId === otherRemoteWindowId) {
-          remoteComponentLoaderEvent.sender.send('remoteUnmount')
-          ipcMain.removeListener('remoteUnmount', relayRemoteUnmount)
+    ipcMain.on(
+      'registerRemoteUnmount',
+      (remoteComponentLoaderEvent, remoteWindowId) => {
+        const relayRemoteUnmount = (e, otherRemoteWindowId) => {
+          if (remoteWindowId === otherRemoteWindowId) {
+            remoteComponentLoaderEvent.sender.send('remoteUnmount')
+            ipcMain.removeListener('remoteUnmount', relayRemoteUnmount)
+          }
         }
+        ipcMain.on('remoteUnmount', relayRemoteUnmount)
       }
-      ipcMain.on('remoteUnmount', relayRemoteUnmount)
-    })
+    )
   }
 
-  bindWindowListeners () {
+  bindWindowListeners() {
     // We don't really want to close the window since it'll keep track of the main app state.
     // So instead we'll hide it
     this.window.on('close', event => {
@@ -55,7 +58,7 @@ export default class Window {
     })
   }
 
-  createWindow () {
+  createWindow() {
     if (this.window) {
       return
     }
@@ -70,11 +73,11 @@ export default class Window {
     this.window.once('show', () => this.onFirstTimeBeingShown())
   }
 
-  onFirstTimeBeingShown () {
+  onFirstTimeBeingShown() {
     menuHelper(this.window)
   }
 
-  show (shouldShowDockIcon: boolean) {
+  show(shouldShowDockIcon: boolean) {
     shouldShowDockIcon && showDockIcon()
 
     if (this.window) {

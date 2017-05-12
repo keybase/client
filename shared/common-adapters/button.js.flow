@@ -9,7 +9,13 @@ export type Props = {
   label: ?string,
   style?: ?Object,
   labelStyle?: ?Object,
-  type: 'Primary' | 'Secondary' | 'Danger' | 'Follow' | 'Following' | 'Unfollow',
+  type:
+    | 'Primary'
+    | 'Secondary'
+    | 'Danger'
+    | 'Follow'
+    | 'Following'
+    | 'Unfollow',
   disabled?: ?boolean,
   waiting?: ?boolean,
   small?: boolean,
@@ -18,4 +24,4 @@ export type Props = {
   className?: string,
 }
 
-declare export default class Button extends Component<void, Props, void> { }
+declare export default class Button extends Component<void, Props, void> {}

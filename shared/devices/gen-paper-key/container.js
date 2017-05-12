@@ -26,5 +26,5 @@ const makeRenderProps = props => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  mapProps(makeRenderProps),
+  mapProps(makeRenderProps)
 )(Render)
