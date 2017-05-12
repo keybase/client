@@ -314,8 +314,8 @@ func (c *ConfigLocal) KBPKI() KBPKI {
 	return c.kbpki
 }
 
-// currentSessionGetter implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) currentSessionGetter() currentSessionGetter {
+// CurrentSessionGetter implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) CurrentSessionGetter() CurrentSessionGetter {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.kbpki

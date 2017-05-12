@@ -286,14 +286,14 @@ func (_m *MockcurrentSessionGetterGetter) EXPECT() *_MockcurrentSessionGetterGet
 	return _m.recorder
 }
 
-func (_m *MockcurrentSessionGetterGetter) currentSessionGetter() currentSessionGetter {
-	ret := _m.ctrl.Call(_m, "currentSessionGetter")
-	ret0, _ := ret[0].(currentSessionGetter)
+func (_m *MockcurrentSessionGetterGetter) CurrentSessionGetter() CurrentSessionGetter {
+	ret := _m.ctrl.Call(_m, "CurrentSessionGetter")
+	ret0, _ := ret[0].(CurrentSessionGetter)
 	return ret0
 }
 
-func (_mr *_MockcurrentSessionGetterGetterRecorder) currentSessionGetter() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "currentSessionGetter")
+func (_mr *_MockcurrentSessionGetterGetterRecorder) CurrentSessionGetter() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CurrentSessionGetter")
 }
 
 // Mock of signerGetter interface
@@ -1305,35 +1305,35 @@ func (_mr *_MocknormalizedUsernameGetterRecorder) GetNormalizedUsername(arg0, ar
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetNormalizedUsername", arg0, arg1)
 }
 
-// Mock of currentSessionGetter interface
-type MockcurrentSessionGetter struct {
+// Mock of CurrentSessionGetter interface
+type MockCurrentSessionGetter struct {
 	ctrl     *gomock.Controller
-	recorder *_MockcurrentSessionGetterRecorder
+	recorder *_MockCurrentSessionGetterRecorder
 }
 
-// Recorder for MockcurrentSessionGetter (not exported)
-type _MockcurrentSessionGetterRecorder struct {
-	mock *MockcurrentSessionGetter
+// Recorder for MockCurrentSessionGetter (not exported)
+type _MockCurrentSessionGetterRecorder struct {
+	mock *MockCurrentSessionGetter
 }
 
-func NewMockcurrentSessionGetter(ctrl *gomock.Controller) *MockcurrentSessionGetter {
-	mock := &MockcurrentSessionGetter{ctrl: ctrl}
-	mock.recorder = &_MockcurrentSessionGetterRecorder{mock}
+func NewMockCurrentSessionGetter(ctrl *gomock.Controller) *MockCurrentSessionGetter {
+	mock := &MockCurrentSessionGetter{ctrl: ctrl}
+	mock.recorder = &_MockCurrentSessionGetterRecorder{mock}
 	return mock
 }
 
-func (_m *MockcurrentSessionGetter) EXPECT() *_MockcurrentSessionGetterRecorder {
+func (_m *MockCurrentSessionGetter) EXPECT() *_MockCurrentSessionGetterRecorder {
 	return _m.recorder
 }
 
-func (_m *MockcurrentSessionGetter) GetCurrentSession(ctx context.Context) (SessionInfo, error) {
+func (_m *MockCurrentSessionGetter) GetCurrentSession(ctx context.Context) (SessionInfo, error) {
 	ret := _m.ctrl.Call(_m, "GetCurrentSession", ctx)
 	ret0, _ := ret[0].(SessionInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockcurrentSessionGetterRecorder) GetCurrentSession(arg0 interface{}) *gomock.Call {
+func (_mr *_MockCurrentSessionGetterRecorder) GetCurrentSession(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentSession", arg0)
 }
 
@@ -4439,14 +4439,14 @@ func (_mr *_MockConfigRecorder) Signer() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Signer")
 }
 
-func (_m *MockConfig) currentSessionGetter() currentSessionGetter {
-	ret := _m.ctrl.Call(_m, "currentSessionGetter")
-	ret0, _ := ret[0].(currentSessionGetter)
+func (_m *MockConfig) CurrentSessionGetter() CurrentSessionGetter {
+	ret := _m.ctrl.Call(_m, "CurrentSessionGetter")
+	ret0, _ := ret[0].(CurrentSessionGetter)
 	return ret0
 }
 
-func (_mr *_MockConfigRecorder) currentSessionGetter() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "currentSessionGetter")
+func (_mr *_MockConfigRecorder) CurrentSessionGetter() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CurrentSessionGetter")
 }
 
 func (_m *MockConfig) DiskBlockCache() DiskBlockCache {

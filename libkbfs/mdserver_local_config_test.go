@@ -24,11 +24,11 @@ type testMDServerLocalConfig struct {
 	logMaker
 	clock  Clock
 	crypto cryptoPure
-	csg    currentSessionGetter
+	csg    CurrentSessionGetter
 }
 
 func newTestMDServerLocalConfig(
-	t *testing.T, csg currentSessionGetter) testMDServerLocalConfig {
+	t *testing.T, csg CurrentSessionGetter) testMDServerLocalConfig {
 	cg := newTestCodecGetter()
 	return testMDServerLocalConfig{
 		codecGetter: cg,
@@ -47,7 +47,7 @@ func (c testMDServerLocalConfig) cryptoPure() cryptoPure {
 	return c.crypto
 }
 
-func (c testMDServerLocalConfig) currentSessionGetter() currentSessionGetter {
+func (c testMDServerLocalConfig) currentSessionGetter() CurrentSessionGetter {
 	return c.csg
 }
 

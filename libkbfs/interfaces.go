@@ -52,7 +52,7 @@ type cryptoGetter interface {
 }
 
 type currentSessionGetterGetter interface {
-	currentSessionGetter() currentSessionGetter
+	CurrentSessionGetter() CurrentSessionGetter
 }
 
 type signerGetter interface {
@@ -475,14 +475,16 @@ type normalizedUsernameGetter interface {
 	GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error)
 }
 
-type currentSessionGetter interface {
+// CurrentSessionGetter is an interface for objects that can return
+// session info.
+type CurrentSessionGetter interface {
 	// GetCurrentSession gets the current session info.
 	GetCurrentSession(ctx context.Context) (SessionInfo, error)
 }
 
 // KBPKI interacts with the Keybase daemon to fetch user info.
 type KBPKI interface {
-	currentSessionGetter
+	CurrentSessionGetter
 	resolver
 	identifier
 	normalizedUsernameGetter
