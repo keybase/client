@@ -128,16 +128,9 @@ func testRevokePaperDevice(t *testing.T, upgradePerUserKey bool) {
 
 	assertNumDevicesAndKeys(tc, u, 2, 4)
 
-	devices, _ := getActiveDevicesAndKeys(tc, u)
-	var thisDevice *libkb.Device
-	for _, device := range devices {
-		if device.Type == libkb.DeviceTypePaper {
-			thisDevice = device
-		}
-	}
+	assertNumDevicesAndKeys(tc, u, 2, 4)
 
-	err := doRevokeDevice(tc, u, thisDevice.ID, false)
-	require.NoError(t, err)
+	revokeAnyPaperKey(tc, u)
 
 	assertNumDevicesAndKeys(tc, u, 1, 2)
 
@@ -179,28 +172,11 @@ func testRevokerPaperDeviceTwice(t *testing.T, upgradePerUserKey bool) {
 	t.Logf("check")
 	assertNumDevicesAndKeys(tc, u, 3, 6)
 
-	t.Logf("revoke a paper key")
-	devices, _ := getActiveDevicesAndKeys(tc, u)
-	var revokeDevice1 *libkb.Device
-	for _, device := range devices {
-		if device.Type == libkb.DeviceTypePaper {
-			revokeDevice1 = device
-		}
-	}
-	t.Logf("revoke %s", revokeDevice1.ID)
-	err := doRevokeDevice(tc, u, revokeDevice1.ID, false)
-	require.NoError(t, err)
+	t.Logf("revoke paper key 1")
+	revokeAnyPaperKey(tc, u)
 
-	t.Logf("revoke another paper key")
-	var revokeDevice2 *libkb.Device
-	for _, device := range devices {
-		if device.Type == libkb.DeviceTypePaper && !device.ID.Eq(revokeDevice1.ID) {
-			revokeDevice2 = device
-		}
-	}
-	t.Logf("revoke %s", revokeDevice2.ID)
-	err = doRevokeDevice(tc, u, revokeDevice2.ID, false)
-	require.NoError(t, err)
+	t.Logf("revoke paper key 2")
+	revokeAnyPaperKey(tc, u)
 
 	t.Logf("check")
 	assertNumDevicesAndKeys(tc, u, 1, 2)
@@ -403,4 +379,21 @@ func TestLogoutIfRevokedNoop(t *testing.T) {
 	if !publicKey.Verify(msg, (*libkb.NaclSignature)(&ret.Sig)) {
 		t.Error(libkb.VerificationError{})
 	}
+}
+
+func revokeAnyPaperKey(tc libkb.TestContext, fu *FakeUser) *libkb.Device {
+	t := tc.T
+	t.Logf("revoke a paper key")
+	devices, _ := getActiveDevicesAndKeys(tc, fu)
+	var revokeDevice *libkb.Device
+	for _, device := range devices {
+		if device.Type == libkb.DeviceTypePaper {
+			revokeDevice = device
+		}
+	}
+	require.NotNil(t, revokeDevice, "no paper key found to revoke")
+	t.Logf("revoke %s", revokeDevice.ID)
+	err := doRevokeDevice(tc, fu, revokeDevice.ID, false)
+	require.NoError(t, err)
+	return revokeDevice
 }
