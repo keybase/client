@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 	"time"
@@ -15,6 +14,7 @@ import (
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
@@ -1829,7 +1829,8 @@ func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
 			// likely to be specific to a previous sync (e.g., a user
 			// hit ctrl-c during an fsync, or a sync timed out, or a
 			// test was provoking an error specifically [KBFS-2164]).
-			if err == context.Canceled || err == context.DeadlineExceeded {
+			cause := errors.Cause(err)
+			if cause == context.Canceled || cause == context.DeadlineExceeded {
 				fbo.log.CDebugf(ctx, "Ignoring sync err: %+v", err)
 				err := registerErr()
 				if err != nil {
