@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"math"
 	"os"
 	"sync"
 	"testing"
@@ -15,6 +16,7 @@ import (
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -161,6 +163,99 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	clock.Add(30 * time.Second)
 	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
+}
+
+type tlfJournalConfigWithDiskLimitTimeout struct {
+	tlfJournalConfig
+	dlTimeout time.Duration
+}
+
+func (c tlfJournalConfigWithDiskLimitTimeout) diskLimitTimeout() time.Duration {
+	return c.dlTimeout
+}
+
+func TestJournalServerOverDiskLimitError(t *testing.T) {
+	tempdir, ctx, cancel, config, quotaUsage, jServer :=
+		setupJournalServerTest(t)
+	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+
+	qbs := &quotaBlockServer{BlockServer: config.BlockServer()}
+	config.SetBlockServer(qbs)
+
+	clock := newTestClockNow()
+	config.SetClock(clock)
+
+	// Set initial quota usage and refresh quotaUsage's cache.
+	qbs.setUserQuotaInfo(1010, 1000)
+	_, _, _, err := quotaUsage.Get(ctx, 0, 0)
+	require.NoError(t, err)
+
+	tlfID1 := tlf.FakeID(1, false)
+	err = jServer.Enable(ctx, tlfID1, TLFJournalBackgroundWorkPaused)
+	require.NoError(t, err)
+
+	// Replace the tlfJournal config with one that has a really small
+	// delay.
+	tj, ok := jServer.getTLFJournal(tlfID1)
+	require.True(t, ok)
+	tj.config = tlfJournalConfigWithDiskLimitTimeout{
+		tlfJournalConfig: tj.config,
+		dlTimeout:        3 * time.Microsecond,
+	}
+	tj.diskLimiter.onJournalEnable(
+		ctx, math.MaxInt64, 0, math.MaxInt64-1)
+
+	blockServer := config.BlockServer()
+
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), "test_user1,test_user2", false)
+	require.NoError(t, err)
+	uid1 := h.ResolvedWriters()[0]
+
+	// Put a block, which should return with a disk limit error.
+
+	bCtx := kbfsblock.MakeFirstContext(uid1, keybase1.BlockType_DATA)
+	data := []byte{1, 2, 3, 4}
+	bID, err := kbfsblock.MakePermanentID(data)
+	require.NoError(t, err)
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
+	require.NoError(t, err)
+	usageBytes, limitBytes, usageFiles, limitFiles :=
+		tj.diskLimiter.getDiskLimitInfo()
+	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+
+	compare := func(reportable bool, err error) {
+		expectedError := ErrDiskLimitTimeout{
+			3 * time.Microsecond, int64(len(data)),
+			filesPerBlockMax, 0, 0,
+			usageBytes, usageFiles, limitBytes, limitFiles, nil, reportable,
+		}
+		if e, ok := errors.Cause(err).(ErrDiskLimitTimeout); ok {
+			// Steal some fields that are hard to fake here (and aren't
+			// important in our comparisons below).
+			expectedError.availableBytes = e.availableBytes
+			expectedError.availableFiles = e.availableFiles
+			expectedError.err = e.err
+		}
+		require.Equal(t, expectedError, errors.Cause(err))
+	}
+	compare(true, err)
+
+	// Putting it again should encounter a regular deadline exceeded
+	// error.
+	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+	compare(false, err)
+
+	// Advancing the time by overDiskLimitDuration should make it
+	// return another quota error.
+	clock.Add(time.Minute)
+	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+	compare(true, err)
+
+	// Putting it again should encounter a deadline error again.
+	clock.Add(30 * time.Second)
+	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+	compare(false, err)
 }
 
 func TestJournalServerRestart(t *testing.T) {

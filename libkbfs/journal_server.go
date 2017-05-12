@@ -126,6 +126,10 @@ type JournalServer struct {
 	lastQuotaErrorLock sync.Mutex
 	lastQuotaError     time.Time
 
+	// Just protects lastDiskLimitError.
+	lastDiskLimitErrorLock sync.Mutex
+	lastDiskLimitError     time.Time
+
 	// Protects all fields below.
 	lock                sync.RWMutex
 	currentUID          keybase1.UID
@@ -679,6 +683,25 @@ func (j *JournalServer) maybeReturnOverQuotaError(
 		Limit:     quotaBytes,
 		Throttled: false,
 	}
+}
+
+func (j *JournalServer) maybeMakeDiskLimitErrorReportable(
+	err ErrDiskLimitTimeout) error {
+	j.lastDiskLimitErrorLock.Lock()
+	defer j.lastDiskLimitErrorLock.Unlock()
+
+	now := j.config.Clock().Now()
+	// Return DiskLimit errors only occasionally, so we don't spam
+	// the keybase daemon with notifications. (See
+	// PutBlockCheckLimitErrs in block_util.go.)
+	const overDiskLimitDuration = time.Minute
+	if now.Sub(j.lastDiskLimitError) < overDiskLimitDuration {
+		return err
+	}
+
+	err.reportable = true
+	j.lastDiskLimitError = now
+	return err
 }
 
 // Status returns a JournalServerStatus object suitable for

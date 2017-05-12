@@ -1703,7 +1703,7 @@ func (j *tlfJournal) putBlockData(
 		return errors.WithStack(ErrDiskLimitTimeout{
 			timeout, bufLen, filesPerBlockMax,
 			availableBytes, availableFiles, usageBytes, usageFiles,
-			limitBytes, limitFiles, err, true,
+			limitBytes, limitFiles, err, false,
 		})
 	default:
 		return err

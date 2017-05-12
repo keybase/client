@@ -100,13 +100,15 @@ func (j journalBlockServer) Put(
 			err = translateToBlockServerError(err)
 		}()
 		err := tlfJournal.putBlockData(ctx, id, context, buf, serverHalf)
-		switch errors.Cause(err).(type) {
+		switch e := errors.Cause(err).(type) {
 		case nil:
 			usedQuotaBytes, quotaBytes := tlfJournal.getQuotaInfo()
 			return j.jServer.maybeReturnOverQuotaError(
 				usedQuotaBytes, quotaBytes)
 		case errTLFJournalDisabled:
 			break
+		case ErrDiskLimitTimeout:
+			return j.jServer.maybeMakeDiskLimitErrorReportable(e)
 		default:
 			return err
 		}
