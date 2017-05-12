@@ -3872,6 +3872,7 @@ export type BadgeState = {
   newTlfs: int,
   rekeysNeeded: int,
   newFollowers: int,
+  inboxVers: int,
   conversations?: ?Array<BadgeConversationInfo>,
 }
 
