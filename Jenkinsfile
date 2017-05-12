@@ -22,6 +22,8 @@ helpers.rootLinuxNode(env, {
                 defaultValue: '',
                 description: 'The private IP of the node running kbweb',
             ),
+            // TODO: deprecated, remove once no client builds are left that
+            // send this variable.
             string(
                 name: 'kbwebNodePublicIP',
                 defaultValue: '',
@@ -52,6 +54,9 @@ helpers.rootLinuxNode(env, {
         def cause = helpers.getCauseString(currentBuild)
         println "Cause: ${cause}"
         def startKbweb = kbwebNodePrivateIP == ''
+        if (startKbweb) {
+            kbwebNodePrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
+        }
 
         stage("Setup") {
             sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
@@ -94,9 +99,6 @@ helpers.rootLinuxNode(env, {
 
         stage("Test") {
             try {
-                if (startKbweb) {
-                    kbwebNodePrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
-                }
 
                 // Trigger downstream builds
                 parallel (
