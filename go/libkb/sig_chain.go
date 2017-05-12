@@ -384,53 +384,85 @@ var hardcodedResets = map[keybase1.SigID]bool{
 
 // GetCurrentSubchain takes the given sigchain and walks backward until it
 // finds the start of the current subchain, returning all the links in the
-// subchain. A new subchain starts in one of three ways (from the perspective
-// of walking from oldest to newest):
-// 1) A link has a new eldest key, usually in the form of reporting no
-//    eldest_kid of its own and being signed by a KID that's not the previous
-//    eldest. Most resets so far take this form.
-// 2) A link of type "eldest", regardless of the KIDs involved. We want this to
-//    be how everything works in the future.
-// 3) One of a set of six hardcoded links that made it in back when we allowed
-//    repeating eldest keys without using the "eldest" link type.
-func (sc *SigChain) GetCurrentSubchain(eldest keybase1.KID) (links []*ChainLink, err error) {
-	if sc.chainLinks == nil {
-		return
+// subchain. See isSubchainStart for the details of the logic here.
+func (sc *SigChain) GetCurrentSubchain(eldest keybase1.KID) ([]*ChainLink, error) {
+	// Check for a totally empty chain (that is, a totally new account).
+	if len(sc.chainLinks) == 0 {
+		return nil, nil
 	}
-	l := len(sc.chainLinks)
-	lastGood := l
-	for i := l - 1; i >= 0; i-- {
-
-		if sc.chainLinks[i].IsStubbed() {
-			lastGood = i
-			if sc.chainLinks[i].IsEldest() {
-				break
-			}
-			continue
-		}
-
-		// Check that the eldest KID hasn't changed.
-		if sc.chainLinks[i].ToEldestKID().Equal(eldest) {
-			lastGood = i
-		} else {
-			break
-		}
-		// Also stop walking if the current link has type "eldest".
-		if sc.chainLinks[i].IsEldest() {
-			break
-		}
-		// Or if the link is one of our hardcoded six that reuse an eldest key ambiguously.
-		if hardcodedResets[sc.chainLinks[i].unpacked.sigID] {
-			break
+	// Confirm that the last link is not stubbed. This would prevent us from
+	// reading the eldest_kid, so the server should never do it.
+	lastLink := sc.chainLinks[len(sc.chainLinks)-1]
+	if lastLink.IsStubbed() {
+		return nil, errors.New("the last chain link is unexpectedly stubbed in GetCurrentSunchain")
+	}
+	// Check whether the eldest KID doesn't match the latest link. That means
+	// the account has just been reset, and so as with a new account, there is
+	// no current subchain.
+	if !sc.chainLinks[len(sc.chainLinks)-1].ToEldestKID().Equal(eldest) {
+		return nil, nil
+	}
+	// The usual case: The eldest kid we're looking for matches the latest
+	// link, and we need to loop backwards through every pair of links we have.
+	// If we find a subchain start, return that subslice of links.
+	for i := len(sc.chainLinks) - 1; i > 0; i-- {
+		curr := sc.chainLinks[i]
+		prev := sc.chainLinks[i-1]
+		if isSubchainStart(curr, prev) {
+			return sc.chainLinks[i:], nil
 		}
 	}
-
-	if lastGood == 0 {
-		links = sc.chainLinks
-	} else {
-		links = sc.chainLinks[lastGood:]
+	// If we didn't find a start anywhere in the middle of the chain, then this
+	// user has no resets, and we'll return the whole chain. Sanity check that
+	// we actually loaded everything back to seqno 1. (Anything else would be
+	// some kind of bug in chain loading.)
+	if sc.chainLinks[0].GetSeqno() != 1 {
+		return nil, errors.New("chain ended unexpectedly before seqno 1 in GetCurrentSubchain")
 	}
-	return
+	return sc.chainLinks, nil
+}
+
+// When we're *in the middle of a subchain* (see the note below), there are
+// four ways we can tell that a link is the start of a new subchain:
+// 1) The link is seqno 1, the very first link the user ever makes.
+// 2) The link has the type "eldest". Modern seqno 1 links and sigchain resets
+//    take this form, but old ones don't.
+// 3) The link has a new eldest kid relative to the one that came before. In
+//    the olden days, all sigchain resets were of this form. Note that oldest
+//    links didn't have the eldest_kid field at all, so the signing kid was
+//    assumed to be the eldest.
+// 4) One of a set of six hardcoded links that made it in back when case 3 was
+//    the norm, but we forgot to prohibit reusing the same eldest key. We figured
+//    out this set from server data, once we noticed the mistake.
+//
+// Note: This excludes cases where a subchain has length zero, either because
+// the account is totally new, or because it just did a reset but has no new
+// links (as reflected in the eldest kid we get from the merkle tree).
+// Different callers handle those cases differently. (Loading the sigchain from
+// local cache happens before we get the merkle leaf, for example, and so it
+// punts reset-after-latest-link detection to the server loading step).
+func isSubchainStart(currentLink *ChainLink, prevLink *ChainLink) bool {
+	// case 1 -- unlikely to be hit in practice, because prevLink would be nil
+	if currentLink.GetSeqno() == 1 {
+		return true
+	}
+	// case 2
+	if currentLink.IsEldest() {
+		return true
+	}
+	// case 2.5: The signatures in cases 3 and 4 are very old, from long before
+	// v2 sigs were introduced. If either the current or previous sig is v2,
+	// short circuit here. This is important because stubbed links (introduced
+	// with v2) break the eldest_kid check for case 3.
+	if currentLink.unpacked.sigVersion > 1 || prevLink.unpacked.sigVersion > 1 {
+		return false
+	}
+	// case 3
+	if !currentLink.ToEldestKID().Equal(prevLink.ToEldestKID()) {
+		return true
+	}
+	// case 4
+	return hardcodedResets[currentLink.unpacked.sigID]
 }
 
 // Dump prints the sigchain to the writer arg.
@@ -584,6 +616,20 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase
 		}
 	}
 
+	// There are 3 cases that we have to think about here for recording the
+	// start of the current subchain (and a fourth where we don't make it here
+	// at all, when the chain is fully cached and fresh):
+	//
+	// 1. The chain is totally empty, because the user is new.
+	// 2. The chain has links, but the user just did a reset, and so the
+	//    current subchain is empty.
+	// 3. The common case: a user with some links in the current subchain.
+	//
+	// In cases 1 and 2 we say the subchain start is zero, an invalid seqno.
+	// Write that out now, to overwrite anything we computed during local
+	// sigchain loading.
+	sc.currentSubchainStart = 0
+
 	if ckf.kf == nil || eldest.IsNil() {
 		sc.G().Log.CDebugf(ctx, "| VerifyWithKey short-circuit, since no Key available")
 		sc.localCki = NewComputedKeyInfos(sc.G())
@@ -595,17 +641,9 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase
 		return
 	}
 
-	// Record the start of the current subchain. If the current subchain is
-	// empty, then either the user is totally new, or they just did a reset.
+	// Update the subchain start if we're in case 3 from above.
 	if len(links) > 0 {
 		sc.currentSubchainStart = links[0].GetSeqno()
-	} else if len(sc.chainLinks) > 0 {
-		// There's been a reset. The next link the user makes will start the
-		// new subchain.
-		sc.currentSubchainStart = last(sc.chainLinks).GetSeqno()
-	} else {
-		// The user is totally new.
-		sc.currentSubchainStart = 1
 	}
 
 	if len(links) == 0 {
@@ -678,15 +716,16 @@ var PublicChain = &ChainType{
 //========================================================================
 
 type SigChainLoader struct {
-	user      *User
-	self      bool
-	allKeys   bool
-	leaf      *MerkleUserLeaf
-	chain     *SigChain
-	chainType *ChainType
-	links     []*ChainLink
-	ckf       ComputedKeyFamily
-	dirtyTail *MerkleTriple
+	user                 *User
+	self                 bool
+	allKeys              bool
+	leaf                 *MerkleUserLeaf
+	chain                *SigChain
+	chainType            *ChainType
+	links                []*ChainLink
+	ckf                  ComputedKeyFamily
+	dirtyTail            *MerkleTriple
+	currentSubchainStart Seqno
 
 	// The preloaded sigchain; maybe we're loading a user that already was
 	// loaded, and here's the existing sigchain.
@@ -726,61 +765,58 @@ func (l *SigChainLoader) AccessPreload() bool {
 }
 
 func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
-	var curr LinkID
-	var links []*ChainLink
 	var mt *MerkleTriple
-	goodKey := true
 
 	uid := l.user.GetUID()
 
 	l.G().Log.CDebugf(l.ctx, "+ SigChainLoader.LoadFromStorage(%s)", uid)
 	defer func() { l.G().Log.CDebugf(l.ctx, "- SigChainLoader.LoadFromStorage(%s) -> %s", uid, ErrToOk(err)) }()
 
-	if mt, err = l.LoadLastLinkIDFromStorage(); err != nil || mt == nil {
+	if mt, err = l.LoadLastLinkIDFromStorage(); err != nil || mt == nil || mt.LinkID == nil {
 		l.G().Log.CDebugf(l.ctx, "| Failed to load last link ID")
 		if err == nil {
 			l.G().Log.CDebugf(l.ctx, "| no error loading last link ID from storage")
-		}
-		if mt == nil {
+		} else if mt == nil {
 			l.G().Log.CDebugf(l.ctx, "| mt (MerkleTriple) nil result from load last link ID from storage")
+		} else if mt.LinkID == nil {
+			l.G().Log.CDebugf(l.ctx, "| mt (MerkleTriple) from storage has a nil link ID")
 		}
-		return err
+		return
 	}
 
-	// Load whatever the last fingerprint was in the chain if we're not loading
-	// allKeys. We have to load something...  Note that we don't use l.fp
-	// here (as we used to) since if the user used to have chainlinks, and then
-	// removed their key, we still want to load their last chainlinks.
-	var loadKID keybase1.KID
+	currentLink, err := ImportLinkFromStorage(mt.LinkID, l.selfUID(), l.G())
+	if err != nil {
+		return err
+	}
+	if currentLink == nil {
+		return fmt.Errorf("tried to load link ID %s, but link not found", mt.LinkID.String())
+	}
+	links := []*ChainLink{currentLink}
 
-	curr = mt.LinkID
-	var link *ChainLink
-
-	suid := l.selfUID()
-
-	for curr != nil && goodKey {
-		l.G().VDL.Log(VLog1, "| loading link; curr=%s", curr)
-		if link, err = ImportLinkFromStorage(curr, suid, l.G()); err != nil {
-			return
+	// Walk the links we have stored locally to load the current subchain and
+	// record the start of it. We might find out later when we check freshness
+	// that a reset has happened, so this result only gets used if the local
+	// chain turns out to be fresh. Note that unless the current subchain goes
+	// all the way back to seqno 1, we will also load one chain link before it.
+	// (That's necessary to detect some resets.)
+	for {
+		if currentLink.GetSeqno() == 1 {
+			l.currentSubchainStart = 1
+			break
 		}
-		if link == nil {
-			l.G().Log.CDebugf(l.ctx, "| ImportLinkFromStorage returned nil")
-			return
+		prevLink, err := ImportLinkFromStorage(currentLink.GetPrev(), l.selfUID(), l.G())
+		if err != nil {
+			return err
 		}
-		kid2 := link.ToEldestKID()
-
-		if loadKID.IsNil() {
-			loadKID = kid2
-			l.G().Log.CDebugf(l.ctx, "| Setting loadKID=%s", kid2)
-		} else if !l.allKeys && loadKID.Exists() && !loadKID.Equal(kid2) {
-			goodKey = false
-			l.G().Log.CDebugf(l.ctx, "| Stop loading at KID=%s (!= KID=%s)", loadKID, kid2)
+		if prevLink == nil {
+			return fmt.Errorf("tried to load previous link ID %s, but link not found", currentLink.GetPrev())
 		}
-
-		if goodKey {
-			links = append(links, link)
-			curr = link.GetPrev()
+		links = append(links, prevLink)
+		if isSubchainStart(currentLink, prevLink) {
+			l.currentSubchainStart = currentLink.GetSeqno()
+			break
 		}
+		currentLink = prevLink
 	}
 
 	reverse(links)
@@ -794,11 +830,12 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 
 func (l *SigChainLoader) MakeSigChain() error {
 	sc := &SigChain{
-		uid:          l.user.GetUID(),
-		username:     l.user.GetNormalizedName(),
-		chainLinks:   l.links,
-		allKeys:      l.allKeys,
-		Contextified: l.Contextified,
+		uid:                  l.user.GetUID(),
+		username:             l.user.GetNormalizedName(),
+		chainLinks:           l.links,
+		allKeys:              l.allKeys,
+		currentSubchainStart: l.currentSubchainStart,
+		Contextified:         l.Contextified,
 	}
 	for _, link := range l.links {
 		link.SetParent(sc)
