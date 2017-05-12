@@ -291,6 +291,7 @@ func (d *Service) createChatModules() {
 	g.ConvLoader = chat.NewBackgroundConvLoader(g)
 
 	// Set up push handler with the badger
+	d.badger.SetInboxVersionSource(storage.NewInboxVersionSource(g))
 	pushHandler := chat.NewPushHandler(g)
 	pushHandler.SetBadger(d.badger)
 	g.PushHandler = pushHandler
