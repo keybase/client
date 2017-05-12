@@ -121,7 +121,7 @@ helpers.rootLinuxNode(env, {
                     //    }}}
                     //},
                     test_osx: {
-                        helpers.nodeWithCleanup('macstadium-test', {}, {}) {
+                        helpers.nodeWithCleanup('macstadium', {}, {}) {
                             def BASEDIR=pwd()
                             def GOPATH="${BASEDIR}/go"
                             def mountDir='/Volumes/untitled/kbfs'
@@ -151,59 +151,59 @@ helpers.rootLinuxNode(env, {
                             }
                         }
                     },
-                    //test_kbfs: {
-                    //    // Install kbfsfuse first so we can start on dockerizing.
-                    //    sh "go install github.com/keybase/kbfs/kbfsfuse"
-                    //    sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
-                    //    withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64', variable: 'KBFS_DOCKER_CERT_B64']]) {
-                    //        println "Building Docker"
-                    //        sh '''
-                    //            set +x
-                    //            docker build -t keybaseprivate/kbfsfuse --build-arg KEYBASE_TEST_ROOT_CERT_PEM_B64=\"$KBFS_DOCKER_CERT_B64\" kbfsfuse
-                    //        '''
-                    //    }
-                    //    sh "docker save keybaseprivate/kbfsfuse | gzip > kbfsfuse.tar.gz"
-                    //    archive("kbfsfuse.tar.gz")
+                    test_kbfs: {
+                        // Install kbfsfuse first so we can start on dockerizing.
+                        sh "go install github.com/keybase/kbfs/kbfsfuse"
+                        sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
+                        withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64', variable: 'KBFS_DOCKER_CERT_B64']]) {
+                            println "Building Docker"
+                            sh '''
+                                set +x
+                                docker build -t keybaseprivate/kbfsfuse --build-arg KEYBASE_TEST_ROOT_CERT_PEM_B64=\"$KBFS_DOCKER_CERT_B64\" kbfsfuse
+                            '''
+                        }
+                        sh "docker save keybaseprivate/kbfsfuse | gzip > kbfsfuse.tar.gz"
+                        archive("kbfsfuse.tar.gz")
 
-                    //    parallel (
-                    //        test_linux: {
-                    //            if (startKbweb) {
-                    //                parallel (
-                    //                    pull_mysql: {
-                    //                        mysqlImage.pull()
-                    //                    },
-                    //                    pull_gregor: {
-                    //                        gregorImage.pull()
-                    //                    },
-                    //                    pull_kbweb: {
-                    //                        kbwebImage.pull()
-                    //                    },
-                    //                )
-                    //                retry(5) {
-                    //                    sh "docker-compose up -d mysql.local"
-                    //                }
-                    //                sh "docker-compose up -d kbweb.local"
+                        parallel (
+                            test_linux: {
+                                if (startKbweb) {
+                                    parallel (
+                                        pull_mysql: {
+                                            mysqlImage.pull()
+                                        },
+                                        pull_gregor: {
+                                            gregorImage.pull()
+                                        },
+                                        pull_kbweb: {
+                                            kbwebImage.pull()
+                                        },
+                                    )
+                                    retry(5) {
+                                        sh "docker-compose up -d mysql.local"
+                                    }
+                                    sh "docker-compose up -d kbweb.local"
 
-                    //                withEnv([
-                    //                    "PATH=${env.PATH}:${env.GOPATH}/bin",
-                    //                ]) {
-                    //                    runNixTest('linux_')
-                    //                }
-                    //            }
-                    //        },
-                    //        integrate: {
-                    //            build([
-                    //                job: "/kbfs-server/master",
-                    //                parameters: [
-                    //                    [$class: 'StringParameterValue',
-                    //                        name: 'kbfsProjectName',
-                    //                        value: env.JOB_NAME,
-                    //                    ],
-                    //                ]
-                    //            ])
-                    //        },
-                    //    )
-                    //},
+                                    withEnv([
+                                        "PATH=${env.PATH}:${env.GOPATH}/bin",
+                                    ]) {
+                                        runNixTest('linux_')
+                                    }
+                                }
+                            },
+                            integrate: {
+                                build([
+                                    job: "/kbfs-server/master",
+                                    parameters: [
+                                        [$class: 'StringParameterValue',
+                                            name: 'kbfsProjectName',
+                                            value: env.JOB_NAME,
+                                        ],
+                                    ]
+                                ])
+                            },
+                        )
+                    },
                 )
 
             } catch (ex) {
