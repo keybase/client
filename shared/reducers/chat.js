@@ -490,13 +490,11 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       return state.update('attachmentPlaceholderPreviews', previews => previews.delete(outboxID))
     }
     case 'gregor:updateReachability': { // reset this when we go online
-      if (action.payload.reachability.reachable === ReachabilityReachable.yes) {
-        const newConversationStates = state.get('conversationStates').map(
-          conversation => conversation.set('loadedOffline', false)
-        )
-        return state.set('conversationStates', newConversationStates)
-      }
-      break
+      const offline = action.payload.reachability.reachable === ReachabilityReachable.no
+      const newConversationStates = state.get('conversationStates').map(
+        conversation => conversation.set('loadedOffline', offline)
+      )
+      return state.set('conversationStates', newConversationStates)
     }
     case 'chat:inboxUntrustedState': {
       return state.set('inboxUntrustedState', action.payload.inboxUntrustedState)
