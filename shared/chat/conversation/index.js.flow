@@ -21,4 +21,4 @@ export type Props = {|
   threadLoadedOffline: boolean,
 |}
 
-export default class Conversation extends Component<void, Props, void> { }
+export default class Conversation extends Component<void, Props, void> {}

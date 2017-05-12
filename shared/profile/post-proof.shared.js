@@ -25,7 +25,7 @@ const styleCentered = {
   },
 }
 
-export function propsForPlatform (props: Props): MoreProps {
+export function propsForPlatform(props: Props): MoreProps {
   const base = {
     platformSubtitle: subtitle(props.platform),
   }
@@ -34,7 +34,15 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'twitter':
       return {
         ...base,
-        descriptionView: <Text type='BodySemibold' {...styleCentered}>Please tweet the text below <Text type='BodySemiboldItalic' style={globalStyles.italic}>exactly as it appears.</Text></Text>,
+        descriptionView: (
+          <Text type="BodySemibold" {...styleCentered}>
+            Please tweet the text below
+            {' '}
+            <Text type="BodySemiboldItalic" style={globalStyles.italic}>
+              exactly as it appears.
+            </Text>
+          </Text>
+        ),
         proofActionText: 'Tweet it now',
         proofText: props.proofText,
         proofActionIcon: 'iconfont-tweet',
@@ -44,8 +52,15 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'reddit':
       return {
         ...base,
-        descriptionView: <Text type='BodySemibold' {...styleCentered}>Click the link below and post the form in the subreddit <Text type='BodySemiboldItalic'>KeybaseProofs</Text>.</Text>,
-        noteText: 'Make sure you\'re signed in to Reddit, and don\'t edit the text or title before submitting.',
+        descriptionView: (
+          <Text type="BodySemibold" {...styleCentered}>
+            Click the link below and post the form in the subreddit
+            {' '}
+            <Text type="BodySemiboldItalic">KeybaseProofs</Text>
+            .
+          </Text>
+        ),
+        noteText: "Make sure you're signed in to Reddit, and don't edit the text or title before submitting.",
         proofText: null,
         proofActionText: 'Reddit form',
         proofActionIcon: 'iconfont-open-browser',
@@ -63,7 +78,17 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'github':
       return {
         ...base,
-        descriptionView: <Text type='BodySemibold' {...styleCentered}>Login to GitHub and paste the text below into a <Text type='BodySemiboldItalic'>public</Text> gist called <Text type='BodySemiboldItalic'>keybase.md.</Text></Text>,
+        descriptionView: (
+          <Text type="BodySemibold" {...styleCentered}>
+            Login to GitHub and paste the text below into a
+            {' '}
+            <Text type="BodySemiboldItalic">public</Text>
+            {' '}
+            gist called
+            {' '}
+            <Text type="BodySemiboldItalic">keybase.md.</Text>
+          </Text>
+        ),
         proofActionText: 'Create gist now',
         proofText: props.proofText,
         proofActionIcon: 'iconfont-open-browser',
@@ -73,7 +98,17 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'coinbase':
       return {
         ...base,
-        descriptionView: <Text type='BodySemibold' {...styleCentered}>Please paste the below text <Text type='BodySemiboldItalic' style={globalStyles.italic}>exactly as it appears</Text> as your "public key" on Coinbase.</Text>,
+        descriptionView: (
+          <Text type="BodySemibold" {...styleCentered}>
+            Please paste the below text
+            {' '}
+            <Text type="BodySemiboldItalic" style={globalStyles.italic}>
+              exactly as it appears
+            </Text>
+            {' '}
+            as your "public key" on Coinbase.
+          </Text>
+        ),
         proofActionText: 'Go to Coinbase to add as "public key"',
         proofText: props.proofText,
         proofActionIcon: 'iconfont-open-browser',
@@ -83,7 +118,17 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'hackernews':
       return {
         ...base,
-        descriptionView: <Text type='BodySemibold' {...styleCentered}>Please add the below text <Text type='BodySemibold' style={globalStyles.italic}>exactly as it appears</Text> to your profile.</Text>,
+        descriptionView: (
+          <Text type="BodySemibold" {...styleCentered}>
+            Please add the below text
+            {' '}
+            <Text type="BodySemibold" style={globalStyles.italic}>
+              exactly as it appears
+            </Text>
+            {' '}
+            to your profile.
+          </Text>
+        ),
         proofActionText: 'Go to Hacker News',
         proofActionIcon: 'iconfont-open-browser',
         proofText: props.proofText,
@@ -93,7 +138,14 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'dns':
       return {
         ...base,
-        descriptionView: <Text type='BodySemibold' {...styleCentered}>Enter the following as a TXT entry in your DNS zone, <Text type='BodySemibold'>exactly as it appears</Text>. If you need a "name" for your entry, give it "@".</Text>,
+        descriptionView: (
+          <Text type="BodySemibold" {...styleCentered}>
+            Enter the following as a TXT entry in your DNS zone,
+            {' '}
+            <Text type="BodySemibold">exactly as it appears</Text>
+            . If you need a "name" for your entry, give it "@".
+          </Text>
+        ),
         onCompleteText: 'OK posted! Check for it!',
         proofText: props.proofText,
         noteText: null,
@@ -102,7 +154,10 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'http':
     case 'https':
       const root = `${props.platform}://${props.platformUserName}`
-      const [urlRoot, urlWellKnown] = ['/keybase.txt', '/.well-known/keybase.txt'].map(file => root + file)
+      const [urlRoot, urlWellKnown] = [
+        '/keybase.txt',
+        '/.well-known/keybase.txt',
+      ].map(file => root + file)
 
       return {
         ...base,
@@ -110,15 +165,37 @@ export function propsForPlatform (props: Props): MoreProps {
         proofActionIcon: null,
         descriptionView: (
           <Box style={{...globalStyles.flexBoxColumn}}>
-            <Text type='BodySemibold' {...styleCentered}>Please serve the text below <Text type='BodySemiboldItalic'>exactly as it appears</Text> at one of these URL's.</Text>
-            <Text type='BodyPrimaryLink' onClick={() => openUrl(urlRoot)} style={{color: globalColors.blue, textAlign: 'center', marginTop: globalMargins.tiny}}>{urlRoot}</Text>
-            <Text type='BodyPrimaryLink' onClick={() => openUrl(urlWellKnown)} style={{color: globalColors.blue, textAlign: 'center'}}>{urlWellKnown}</Text>
+            <Text type="BodySemibold" {...styleCentered}>
+              Please serve the text below
+              {' '}
+              <Text type="BodySemiboldItalic">exactly as it appears</Text>
+              {' '}
+              at one of these URL's.
+            </Text>
+            <Text
+              type="BodyPrimaryLink"
+              onClick={() => openUrl(urlRoot)}
+              style={{
+                color: globalColors.blue,
+                textAlign: 'center',
+                marginTop: globalMargins.tiny,
+              }}
+            >
+              {urlRoot}
+            </Text>
+            <Text
+              type="BodyPrimaryLink"
+              onClick={() => openUrl(urlWellKnown)}
+              style={{color: globalColors.blue, textAlign: 'center'}}
+            >
+              {urlWellKnown}
+            </Text>
           </Box>
         ),
         noteText: 'Note: If someone already verified this domain, just append to the existing keybase.txt file.',
         onCompleteText: 'OK posted! Check for it!',
       }
     default:
-      return { }
+      return {}
   }
 }

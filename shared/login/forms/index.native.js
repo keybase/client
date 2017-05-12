@@ -7,60 +7,124 @@ import type {Props} from '.'
 
 const Splash = (props: Props) => (
   <Box style={{...stylesLoginForm, justifyContent: 'center'}}>
-    <Icon type='icon-keybase-logo-80' />
-    <Text style={stylesHeader} type='HeaderBig'>Keybase</Text>
+    <Icon type="icon-keybase-logo-80" />
+    <Text style={stylesHeader} type="HeaderBig">Keybase</Text>
     <Box style={globalStyles.flexBoxColumn}>
-      <Text style={{marginTop: globalMargins.large}} type='BodySmall'>
+      <Text style={{marginTop: globalMargins.large}} type="BodySmall">
         Keybase not starting up?
       </Text>
       <Button
-        label='Let us know'
+        label="Let us know"
         onClick={props.onFeedback}
         style={{marginTop: globalMargins.small}}
-        type='Primary' />
+        type="Primary"
+      />
     </Box>
   </Box>
 )
 
 const Failure = (props: Props) => (
   <Box style={{...stylesLoginForm, marginTop: 0}}>
-    <Box style={{...stylesBannerRed}}><Text type='BodySemibold' style={stylesTextBanner}>Oops, we had a problem communicating with our services. This might be because you lost connectivity.</Text></Box>
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Icon type='icon-keybase-logo-logged-out-80' />
+    <Box style={{...stylesBannerRed}}>
+      <Text type="BodySemibold" style={stylesTextBanner}>
+        Oops, we had a problem communicating with our services. This might be because you lost connectivity.
+      </Text>
+    </Box>
+    <Box
+      style={{
+        ...globalStyles.flexBoxColumn,
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <Icon type="icon-keybase-logo-logged-out-80" />
       <Box style={globalStyles.flexBoxRow}>
         <Button
-          type='Primary'
-          label='Reload'
+          type="Primary"
+          label="Reload"
           onClick={props.onRetry}
-          style={{marginTop: globalMargins.xlarge}} />
+          style={{marginTop: globalMargins.xlarge}}
+        />
         <Button
-          type='Secondary'
-          label='Send us feedback'
+          type="Secondary"
+          label="Send us feedback"
           onClick={props.onFeedback}
-          style={{marginLeft: globalMargins.small, marginTop: globalMargins.xlarge}} />
+          style={{
+            marginLeft: globalMargins.small,
+            marginTop: globalMargins.xlarge,
+          }}
+        />
       </Box>
     </Box>
   </Box>
 )
 
 const Intro = (props: Props) => (
-  <Box style={{...stylesLoginForm, marginTop: props.justRevokedSelf || props.justDeletedSelf || props.justLoginFromRevokedDevice ? 0 : 55}}>
+  <Box
+    style={{
+      ...stylesLoginForm,
+      marginTop: props.justRevokedSelf ||
+        props.justDeletedSelf ||
+        props.justLoginFromRevokedDevice
+        ? 0
+        : 55,
+    }}
+  >
     {!!props.justRevokedSelf &&
-      <Box style={{...stylesBannerGreen}}><Text type='BodySemibold' style={stylesTextBanner}><Text type='BodySemiboldItalic' style={stylesTextBanner}>{props.justRevokedSelf}</Text>&nbsp;was revoked successfully.</Text></Box>
-    }
+      <Box style={{...stylesBannerGreen}}>
+        <Text type="BodySemibold" style={stylesTextBanner}>
+          <Text type="BodySemiboldItalic" style={stylesTextBanner}>
+            {props.justRevokedSelf}
+          </Text>
+          &nbsp;was revoked successfully.
+        </Text>
+      </Box>}
     {!!props.justDeletedSelf &&
-      <Box style={{...stylesBannerBlue}}><Text type='BodySemibold' style={stylesTextBanner}>Your Keybase account <Text type='BodySemiboldItalic' style={stylesTextBanner}>{props.justDeletedSelf}</Text>&nbsp;has been deleted.</Text></Box>
-    }
+      <Box style={{...stylesBannerBlue}}>
+        <Text type="BodySemibold" style={stylesTextBanner}>
+          Your Keybase account
+          {' '}
+          <Text type="BodySemiboldItalic" style={stylesTextBanner}>
+            {props.justDeletedSelf}
+          </Text>
+          &nbsp;has been deleted.
+        </Text>
+      </Box>}
     {!!props.justLoginFromRevokedDevice &&
-      <Box style={{...stylesBannerBlue}}><Text type='BodySemibold' style={stylesTextBanner}>Your device has been revoked, please log in again.</Text></Box>
-    }
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Icon type='icon-keybase-logo-80' />
-      <Text style={stylesHeader} type='HeaderBig'>Join Keybase</Text>
-      <Text style={stylesHeaderSub} type='Body'>Folders for anyone in the world.</Text>
-      <Button style={stylesSignupButton} type='Primary' onClick={props.onSignup} label='Create an account' />
-      <Text style={stylesLoginHeader} type='Body' onClick={props.onLogin}>Already on Keybase?</Text>
-      <Button style={stylesLoginButton} type='Secondary' onClick={props.onLogin} label='Log in' />
+      <Box style={{...stylesBannerBlue}}>
+        <Text type="BodySemibold" style={stylesTextBanner}>
+          Your device has been revoked, please log in again.
+        </Text>
+      </Box>}
+    <Box
+      style={{
+        ...globalStyles.flexBoxColumn,
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <Icon type="icon-keybase-logo-80" />
+      <Text style={stylesHeader} type="HeaderBig">Join Keybase</Text>
+      <Text style={stylesHeaderSub} type="Body">
+        Folders for anyone in the world.
+      </Text>
+      <Button
+        style={stylesSignupButton}
+        type="Primary"
+        onClick={props.onSignup}
+        label="Create an account"
+      />
+      <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>
+        Already on Keybase?
+      </Text>
+      <Button
+        style={stylesLoginButton}
+        type="Secondary"
+        onClick={props.onLogin}
+        label="Log in"
+      />
     </Box>
   </Box>
 )
@@ -125,8 +189,4 @@ const stylesTextBanner = {
   textAlign: 'center',
 }
 
-export {
-  Intro,
-  Failure,
-  Splash,
-}
+export {Intro, Failure, Splash}

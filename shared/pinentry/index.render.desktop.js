@@ -3,7 +3,14 @@
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {autoResize} from '../desktop/renderer/remote-component-helper'
-import {Button, FormWithCheckbox, Header, Text, Box, Icon} from '../common-adapters'
+import {
+  Button,
+  FormWithCheckbox,
+  Header,
+  Text,
+  Box,
+  Icon,
+} from '../common-adapters'
 import {PassphraseCommonPassphraseType} from '../constants/types/flow-types'
 import type {Props, DefaultProps} from './index.render'
 
@@ -13,11 +20,12 @@ type State = {
   showTyping: boolean,
 }
 
-export default class PinentryRender extends Component<DefaultProps, Props, State> {
-  static defaultProps: DefaultProps;
-  state: State;
+export default class PinentryRender
+  extends Component<DefaultProps, Props, State> {
+  static defaultProps: DefaultProps
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     const state = {
@@ -36,7 +44,7 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
     this.state = state
   }
 
-  onCheck (feature: string, checked: boolean) {
+  onCheck(feature: string, checked: boolean) {
     this.setState({
       features: {
         ...this.state.features,
@@ -49,14 +57,16 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     autoResize()
   }
 
-  render () {
-    const submitPassphrase = () => this.props.onSubmit(this.state.passphrase, this.state.features)
+  render() {
+    const submitPassphrase = () =>
+      this.props.onSubmit(this.state.passphrase, this.state.features)
 
-    const isPaperKey = this.props.type === PassphraseCommonPassphraseType.paperKey
+    const isPaperKey =
+      this.props.type === PassphraseCommonPassphraseType.paperKey
     const typeStyle: $Shape<{
       hintText: string,
       style: Object,
@@ -95,29 +105,55 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
       ...typeStyle,
     }
 
-    const checkboxProps = (Object.keys(this.props.features) || []).map(feature => {
-      return ({
-        label: this.props.features[feature].label,
-        checked: this.state.features[feature],
-        key: feature,
-        name: feature,
-        style: checkboxStyle,
-        onCheck: checked => this.onCheck(feature, checked),
+    const checkboxProps = (Object.keys(this.props.features) || [])
+      .map(feature => {
+        return {
+          label: this.props.features[feature].label,
+          checked: this.state.features[feature],
+          key: feature,
+          name: feature,
+          style: checkboxStyle,
+          onCheck: checked => this.onCheck(feature, checked),
+        }
       })
-    })
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white, paddingBottom: globalMargins.medium}}>
-        <Header icon={true} title='' onClose={() => this.props.onCancel()} />
-        <Box style={{...globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
-          <Text type='Body' style={{textAlign: 'center'}}>{this.props.prompt}</Text>
-          {isPaperKey && <Icon type='icon-paper-key-48' style={{alignSelf: 'center'}} />}
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          backgroundColor: globalColors.white,
+          paddingBottom: globalMargins.medium,
+        }}
+      >
+        <Header icon={true} title="" onClose={() => this.props.onCancel()} />
+        <Box
+          style={{
+            ...globalStyles.flexBoxColumn,
+            paddingLeft: 30,
+            paddingRight: 30,
+          }}
+        >
+          <Text type="Body" style={{textAlign: 'center'}}>
+            {this.props.prompt}
+          </Text>
+          {isPaperKey &&
+            <Icon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}
           <FormWithCheckbox
             inputProps={inputProps}
-            checkboxContainerStyle={{paddingLeft: 60, paddingRight: 60, ...checkboxContainerStyle}}
+            checkboxContainerStyle={{
+              paddingLeft: 60,
+              paddingRight: 60,
+              ...checkboxContainerStyle,
+            }}
             checkboxesProps={checkboxProps}
           />
-          <Button style={{alignSelf: 'center'}} type='Primary' label={this.props.submitLabel} onClick={submitPassphrase} disabled={!this.state.passphrase} />
+          <Button
+            style={{alignSelf: 'center'}}
+            type="Primary"
+            label={this.props.submitLabel}
+            onClick={submitPassphrase}
+            disabled={!this.state.passphrase}
+          />
         </Box>
       </Box>
     )

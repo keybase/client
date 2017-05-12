@@ -5,13 +5,15 @@ import type {Props} from './divider'
 import {globalColors} from '../styles'
 
 class Divider extends Component<void, Props, void> {
-  render () {
+  render() {
     const orientationStyle = this.props.vertical
       ? {maxWidth: 1, minWidth: 1}
       : {maxHeight: 1, minHeight: 1}
 
     return (
-      <Box style={{...styles.divider, ...orientationStyle, ...this.props.style}} />
+      <Box
+        style={{...styles.divider, ...orientationStyle, ...this.props.style}}
+      />
     )
   }
 }

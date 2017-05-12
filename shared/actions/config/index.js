@@ -1,11 +1,22 @@
 // @flow
 import * as Constants from '../../constants/config'
 import engine from '../../engine'
-import {CommonClientType, configGetBootstrapStatusRpc, configGetConfigRpc, configGetExtendedStatusRpc, configWaitForClientRpc} from '../../constants/types/flow-types'
+import {
+  CommonClientType,
+  configGetBootstrapStatusRpc,
+  configGetConfigRpc,
+  configGetExtendedStatusRpc,
+  configWaitForClientRpc,
+} from '../../constants/types/flow-types'
 import {isMobile} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
 import {navBasedOnLoginState} from '../../actions/login/creators'
-import {checkReachabilityOnConnect, registerGregorListeners, registerReachability, listenForNativeReachabilityEvents} from '../../actions/gregor'
+import {
+  checkReachabilityOnConnect,
+  registerGregorListeners,
+  registerReachability,
+  listenForNativeReachabilityEvents,
+} from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
 
 import type {Tab} from '../../constants/tabs'
@@ -14,23 +25,28 @@ import type {AsyncAction} from '../../constants/types/flux'
 
 // TODO convert to sagas
 
-isMobile && module.hot && module.hot.accept(() => {
-  console.log('accepted update in actions/config')
+isMobile &&
+  module.hot &&
+  module.hot.accept(() => {
+    console.log('accepted update in actions/config')
+  })
+
+const setInitialTab = (tab: ?Tab): Constants.SetInitialTab => ({
+  payload: {tab},
+  type: 'config:setInitialTab',
 })
 
-const setInitialTab = (tab: ?Tab): Constants.SetInitialTab => (
-  {payload: {tab}, type: 'config:setInitialTab'}
-)
+const setInitialLink = (url: ?string): Constants.SetInitialLink => ({
+  payload: {url},
+  type: 'config:setInitialLink',
+})
 
-const setInitialLink = (url: ?string): Constants.SetInitialLink => (
-  {payload: {url}, type: 'config:setInitialLink'}
-)
+const setLaunchedViaPush = (pushed: boolean): Constants.SetLaunchedViaPush => ({
+  payload: pushed,
+  type: 'config:setLaunchedViaPush',
+})
 
-const setLaunchedViaPush = (pushed: boolean): Constants.SetLaunchedViaPush => (
-  {payload: pushed, type: 'config:setLaunchedViaPush'}
-)
-
-const getConfig = (): AsyncAction => (dispatch, getState) => (
+const getConfig = (): AsyncAction => (dispatch, getState) =>
   new Promise((resolve, reject) => {
     configGetConfigRpc({
       callback: (error, config) => {
@@ -44,17 +60,16 @@ const getConfig = (): AsyncAction => (dispatch, getState) => (
       },
     })
   })
-)
 
-function isFollower (getState: any, username: string): boolean {
+function isFollower(getState: any, username: string): boolean {
   return !!getState().config.followers[username]
 }
 
-function isFollowing (getState: () => any, username: string) : boolean {
+function isFollowing(getState: () => any, username: string): boolean {
   return !!getState().config.following[username]
 }
 
-const waitForKBFS = (): AsyncAction => dispatch => (
+const waitForKBFS = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
     let timedOut = false
 
@@ -62,7 +77,7 @@ const waitForKBFS = (): AsyncAction => dispatch => (
     // TODO clean this up with sagas!
     let timer = setTimeout(() => {
       timedOut = true
-      reject(new Error('Waited for KBFS client, but it wasn\'t not found'))
+      reject(new Error("Waited for KBFS client, but it wasn't not found"))
     }, 10 * 1000)
 
     configWaitForClientRpc({
@@ -77,7 +92,7 @@ const waitForKBFS = (): AsyncAction => dispatch => (
           return
         }
         if (!found) {
-          reject(new Error('Waited for KBFS client, but it wasn\'t not found'))
+          reject(new Error("Waited for KBFS client, but it wasn't not found"))
           return
         }
         resolve()
@@ -85,9 +100,8 @@ const waitForKBFS = (): AsyncAction => dispatch => (
       param: {clientType: CommonClientType.kbfs, timeout: 10.0},
     })
   })
-)
 
-const getExtendedStatus = (): AsyncAction => dispatch => (
+const getExtendedStatus = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
     configGetExtendedStatusRpc({
       callback: (error, extendedConfig) => {
@@ -96,12 +110,14 @@ const getExtendedStatus = (): AsyncAction => dispatch => (
           return
         }
 
-        dispatch({payload: {extendedConfig}, type: Constants.extendedConfigLoaded})
+        dispatch({
+          payload: {extendedConfig},
+          type: Constants.extendedConfigLoaded,
+        })
         resolve(extendedConfig)
       },
     })
   })
-)
 
 const registerListeners = (): AsyncAction => dispatch => {
   dispatch(listenForNativeReachabilityEvents)
@@ -114,16 +130,20 @@ const retryBootstrap = (): AsyncAction => (dispatch, getState) => {
   dispatch(bootstrap())
 }
 
-const daemonError = (error: ?string): Constants.DaemonError => (
-  {payload: {daemonError: error ? new Error(error) : null}, type: Constants.daemonError}
-)
+const daemonError = (error: ?string): Constants.DaemonError => ({
+  payload: {daemonError: error ? new Error(error) : null},
+  type: Constants.daemonError,
+})
 
 let bootstrapSetup = false
 type BootstrapOptions = {isReconnect?: boolean}
 
 // TODO: We REALLY need to saga-ize this.
 
-const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getState) => {
+const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (
+  dispatch,
+  getState
+) => {
   const readyForBootstrap = getState().config.readyForBootstrap
   if (!readyForBootstrap) {
     console.warn('Not ready for bootstrap/connect')
@@ -142,8 +162,8 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
     dispatch(registerListeners())
   } else {
     console.log('[bootstrap] performing bootstrap...')
-    Promise.all(
-      [dispatch(getBootstrapStatus()), dispatch(waitForKBFS())]).then(() => {
+    Promise.all([dispatch(getBootstrapStatus()), dispatch(waitForKBFS())])
+      .then(() => {
         dispatch({type: 'config:bootstrapSuccess', payload: undefined})
         engine().listenOnDisconnect('daemonError', () => {
           dispatch(daemonError('Disconnected'))
@@ -153,13 +173,16 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
           dispatch(navBasedOnLoginState())
           dispatch(resetSignup())
         }
-      }).catch(error => {
+      })
+      .catch(error => {
         console.warn('[bootstrap] error bootstrapping: ', error)
         const triesRemaining = getState().config.bootstrapTriesRemaining
         dispatch({payload: null, type: Constants.bootstrapAttemptFailed})
         if (triesRemaining > 0) {
           const retryDelay = Constants.bootstrapRetryDelay / triesRemaining
-          console.log(`[bootstrap] resetting engine in ${retryDelay / 1000}s (${triesRemaining} tries left)`)
+          console.log(
+            `[bootstrap] resetting engine in ${retryDelay / 1000}s (${triesRemaining} tries left)`
+          )
           setTimeout(() => engine().reset(), retryDelay)
         } else {
           console.error('[bootstrap] exhausted bootstrap retries')
@@ -169,7 +192,7 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
   }
 }
 
-const getBootstrapStatus = (): AsyncAction => dispatch => (
+const getBootstrapStatus = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
     configGetBootstrapStatusRpc({
       callback: (error, bootstrapStatus) => {
@@ -187,11 +210,14 @@ const getBootstrapStatus = (): AsyncAction => dispatch => (
       },
     })
   })
-)
 
-const updateFollowing = (username: string, isTracking: boolean): UpdateFollowing => (
-  {payload: {username, isTracking}, type: Constants.updateFollowing}
-)
+const updateFollowing = (
+  username: string,
+  isTracking: boolean
+): UpdateFollowing => ({
+  payload: {username, isTracking},
+  type: Constants.updateFollowing,
+})
 
 export {
   bootstrap,

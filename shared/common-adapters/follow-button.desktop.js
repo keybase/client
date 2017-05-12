@@ -6,9 +6,9 @@ import {Button} from './'
 type State = {mouseOver: boolean}
 
 class FollowButton extends Component<void, Props, State> {
-  state: State;
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     this.state = {
@@ -16,27 +16,31 @@ class FollowButton extends Component<void, Props, State> {
     }
   }
 
-  render () {
+  render() {
     const {following, onFollow, onUnfollow, style, ...otherProps} = this.props
 
     if (following) {
-      return <Button
-        type={this.state.mouseOver ? 'Unfollow' : 'Following'}
-        label={this.state.mouseOver ? 'Unfollow' : 'Following'}
-        onClick={onUnfollow}
-        onMouseEnter={() => this.setState({mouseOver: true})}
-        onMouseLeave={() => this.setState({mouseOver: false})}
-        style={{...styleButton, ...style}}
-        {...otherProps}
-      />
+      return (
+        <Button
+          type={this.state.mouseOver ? 'Unfollow' : 'Following'}
+          label={this.state.mouseOver ? 'Unfollow' : 'Following'}
+          onClick={onUnfollow}
+          onMouseEnter={() => this.setState({mouseOver: true})}
+          onMouseLeave={() => this.setState({mouseOver: false})}
+          style={{...styleButton, ...style}}
+          {...otherProps}
+        />
+      )
     } else {
-      return <Button
-        type='Follow'
-        label='Follow'
-        onClick={onFollow}
-        style={{...styleButton, ...style}}
-        {...otherProps}
-      />
+      return (
+        <Button
+          type="Follow"
+          label="Follow"
+          onClick={onFollow}
+          style={{...styleButton, ...style}}
+          {...otherProps}
+        />
+      )
     }
   }
 }

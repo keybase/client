@@ -1,7 +1,15 @@
 // @flow
 import * as shared from './post-proof.shared'
 import React from 'react'
-import {Box, Button, CopyableText, Icon, LinkWithIcon, PlatformIcon, Text} from '../common-adapters'
+import {
+  Box,
+  Button,
+  CopyableText,
+  Icon,
+  LinkWithIcon,
+  PlatformIcon,
+  Text,
+} from '../common-adapters'
 import {clipboard} from 'electron'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
@@ -9,33 +17,97 @@ import type {Props} from './post-proof'
 
 const PostProof = (props: Props) => {
   const {
-    platform, platformUserName, descriptionText, proofAction, onCancel,
-    onCancelText, onComplete, isOnCompleteWaiting, errorMessage,
+    platform,
+    platformUserName,
+    descriptionText,
+    proofAction,
+    onCancel,
+    onCancelText,
+    onComplete,
+    isOnCompleteWaiting,
+    errorMessage,
   } = props
   const {
-    descriptionView, noteText, onCompleteText, proofText, platformSubtitle, proofActionIcon, proofActionText,
+    descriptionView,
+    noteText,
+    onCompleteText,
+    proofText,
+    platformSubtitle,
+    proofActionIcon,
+    proofActionText,
   } = shared.propsForPlatform(props)
 
   return (
-    <Box style={styleContainer} onCopyCapture={(e) => {
-      // disallow copying the whole screen by accident
-      e.preventDefault()
-      clipboard.writeText(proofText)
-    }}>
-      <Icon style={styleClose} type='iconfont-close' onClick={() => onCancel()} />
-      {!!errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySemibold'>{errorMessage}</Text></Box>}
+    <Box
+      style={styleContainer}
+      onCopyCapture={e => {
+        // disallow copying the whole screen by accident
+        e.preventDefault()
+        clipboard.writeText(proofText)
+      }}
+    >
+      <Icon
+        style={styleClose}
+        type="iconfont-close"
+        onClick={() => onCancel()}
+      />
+      {!!errorMessage &&
+        <Box style={styleErrorBanner}>
+          <Text style={styleErrorBannerText} type="BodySemibold">
+            {errorMessage}
+          </Text>
+        </Box>}
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
         <Box style={styleContentContainer}>
-          <PlatformIcon platform={platform} overlay='icon-proof-unfinished' overlayColor={globalColors.grey} />
-          <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
-          {!!platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
-          {descriptionView || (descriptionText && <Text type='Body'>{descriptionText}</Text>)}
-          {!!proofText && <CopyableText style={styleProofText} value={proofText} />}
-          {!!noteText && <Text style={styleNoteText} type='Body'>{noteText}</Text>}
-          {!!proofAction && !!proofActionText && !!proofActionIcon && <LinkWithIcon style={styleProofAction} label={proofActionText} icon={proofActionIcon} color={globalColors.blue} onClick={() => proofAction()} />}
+          <PlatformIcon
+            platform={platform}
+            overlay="icon-proof-unfinished"
+            overlayColor={globalColors.grey}
+          />
+          <Text
+            style={{
+              ...stylePlatformUsername,
+              ...(stylePlatformSubtitle
+                ? {}
+                : {marginBottom: globalMargins.medium}),
+            }}
+            type="Header"
+          >
+            {platformUserName}
+          </Text>
+          {!!platformSubtitle &&
+            <Text style={stylePlatformSubtitle} type="Body">
+              {platformSubtitle}
+            </Text>}
+          {descriptionView ||
+            (descriptionText && <Text type="Body">{descriptionText}</Text>)}
+          {!!proofText &&
+            <CopyableText style={styleProofText} value={proofText} />}
+          {!!noteText &&
+            <Text style={styleNoteText} type="Body">{noteText}</Text>}
+          {!!proofAction &&
+            !!proofActionText &&
+            !!proofActionIcon &&
+            <LinkWithIcon
+              style={styleProofAction}
+              label={proofActionText}
+              icon={proofActionIcon}
+              color={globalColors.blue}
+              onClick={() => proofAction()}
+            />}
           <Box style={styleButtonsContainer}>
-            {!!onCancelText && <Button type='Secondary' onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
-            <Button type='Primary' onClick={() => onComplete()} label={onCompleteText} waiting={isOnCompleteWaiting} />
+            {!!onCancelText &&
+              <Button
+                type="Secondary"
+                onClick={() => onCancel()}
+                label={onCancelText || 'Cancel'}
+              />}
+            <Button
+              type="Primary"
+              onClick={() => onComplete()}
+              label={onCompleteText}
+              waiting={isOnCompleteWaiting}
+            />
           </Box>
         </Box>
       </Box>

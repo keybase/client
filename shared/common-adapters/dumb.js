@@ -3,7 +3,24 @@ import React, {Component} from 'react'
 import _ from 'lodash'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
-import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, Input, ListItem, Markdown, PopupDialog, PopupMenu, StandardScreen, TabBar, Text, Terminal, Dropdown} from './index'
+import {
+  Avatar,
+  Button,
+  Box,
+  Checkbox,
+  ChoiceList,
+  Icon,
+  Input,
+  ListItem,
+  Markdown,
+  PopupDialog,
+  PopupMenu,
+  StandardScreen,
+  TabBar,
+  Text,
+  Terminal,
+  Dropdown,
+} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
@@ -18,7 +35,7 @@ const display = type => (isMobile ? {} : {display: type})
 const dropdownMap: DumbComponentMap<Dropdown> = {
   component: Dropdown,
   mocks: {
-    'Normal': {
+    Normal: {
       type: 'General',
       options: ['one', 'two', 'three'],
       value: 'one',
@@ -31,7 +48,7 @@ const dropdownMap: DumbComponentMap<Dropdown> = {
       onOther: onClick,
       onClick: onClick,
     },
-    'Username': {
+    Username: {
       type: 'Username',
       options: ['marcopolo', 'chris', 'cjb', 'bbbbbbbbbbbbbbbb'],
       value: 'cjb',
@@ -49,7 +66,15 @@ Object.keys(globalColors).sort().forEach(c => {
       width: 230,
     },
     style: {width: 60, height: 60, backgroundColor: globalColors[c]},
-    children: <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 5}} />,
+    children: (
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          justifyContent: 'center',
+          marginLeft: 5,
+        }}
+      />
+    ),
   }
 })
 
@@ -59,17 +84,25 @@ const colorsMap: DumbComponentMap<Box> = {
 }
 
 let textMocks = {}
-const backgroundModes = ['Normal', 'Terminal', 'Announcements', 'Success', 'Information', 'HighRisk', 'Documentation']
+const backgroundModes = [
+  'Normal',
+  'Terminal',
+  'Announcements',
+  'Success',
+  'Information',
+  'HighRisk',
+  'Documentation',
+]
 
 backgroundModes.forEach(backgroundMode => {
   const backgroundColor = {
-    'Normal': globalColors.white,
-    'Terminal': globalColors.darkBlue3,
-    'Announcements': globalColors.blue,
-    'Success': globalColors.green,
-    'Information': globalColors.yellow,
-    'HighRisk': globalColors.red,
-    'Documentation': globalColors.darkBlue,
+    Normal: globalColors.white,
+    Terminal: globalColors.darkBlue3,
+    Announcements: globalColors.blue,
+    Success: globalColors.green,
+    Information: globalColors.yellow,
+    HighRisk: globalColors.red,
+    Documentation: globalColors.darkBlue,
   }[backgroundMode]
 
   const base = {
@@ -141,21 +174,27 @@ const textMap: DumbComponentMap<Text> = {
 const terminalMap: DumbComponentMap<Box> = {
   component: Box,
   mocks: {
-    'Terminal': {
+    Terminal: {
       children: [
-        <Box key='a' style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}>
-          <Text type='Body'>
-            <Text type='Body'>Word word </Text>
-            <Text type='TerminalInline'>inline command line </Text>
-            <Text type='Body'> word word word word word </Text>
-            <Text type='TerminalInline'>inline command line</Text>
+        <Box
+          key="a"
+          style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}
+        >
+          <Text type="Body">
+            <Text type="Body">Word word </Text>
+            <Text type="TerminalInline">inline command line </Text>
+            <Text type="Body"> word word word word word </Text>
+            <Text type="TerminalInline">inline command line</Text>
           </Text>
         </Box>,
-        <Terminal key='b' style={{flex: 1, ...(isMobile ? {} : {overflow: 'scroll'})}}>
-          <Text type='Terminal'>command line thing</Text>
-          <Text type='TerminalComment'># comment</Text>
-          <Text type='Terminal'>command line thing</Text>
-          <Text type='TerminalComment'># comment</Text>
+        <Terminal
+          key="b"
+          style={{flex: 1, ...(isMobile ? {} : {overflow: 'scroll'})}}
+        >
+          <Text type="Terminal">command line thing</Text>
+          <Text type="TerminalComment"># comment</Text>
+          <Text type="Terminal">command line thing</Text>
+          <Text type="TerminalComment"># comment</Text>
         </Terminal>,
       ],
     },
@@ -169,7 +208,7 @@ const commonButton = {
 const buttonsMap: DumbComponentMap<Button> = {
   component: Button,
   mocks: {
-    'Primary': {
+    Primary: {
       ...commonButton,
       label: 'Primary',
       type: 'Primary',
@@ -186,7 +225,7 @@ const buttonsMap: DumbComponentMap<Button> = {
       type: 'Primary',
       waiting: true,
     },
-    'Secondary': {
+    Secondary: {
       ...commonButton,
       label: 'Secondary',
       type: 'Secondary',
@@ -203,7 +242,7 @@ const buttonsMap: DumbComponentMap<Button> = {
       type: 'Secondary',
       waiting: true,
     },
-    'Danger': {
+    Danger: {
       ...commonButton,
       label: 'Danger',
       type: 'Danger',
@@ -220,7 +259,7 @@ const buttonsMap: DumbComponentMap<Button> = {
       type: 'Danger',
       waiting: true,
     },
-    'Follow': {
+    Follow: {
       ...commonButton,
       label: 'Follow',
       type: 'Follow',
@@ -231,12 +270,12 @@ const buttonsMap: DumbComponentMap<Button> = {
       type: 'Follow',
       disabled: true,
     },
-    'Following': {
+    Following: {
       ...commonButton,
       label: 'Following',
       type: 'Following',
     },
-    'Unfollow': {
+    Unfollow: {
       ...commonButton,
       label: 'Unfollow',
       type: 'Unfollow',
@@ -390,13 +429,33 @@ const checkboxMap: DumbComponentMap<Checkbox> = {
 }
 
 class IconHolder extends Component<void, {iconFont: boolean}, void> {
-  render () {
+  render() {
     // $FlowIssue
     const keys: Array<IconType> = Object.keys(iconMeta)
-    const icons: Array<IconType> = keys.filter(name => iconMeta[name].isFont === this.props.iconFont)
+    const icons: Array<IconType> = keys.filter(
+      name => iconMeta[name].isFont === this.props.iconFont
+    )
     return (
-      <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'flex-start'}}>
-        {icons.map(i => <Box key={i}><Text type='BodySmall'>{i}</Text><Icon type={i} style={{margin: 10, ...(isMobile ? {} : {border: 'solid 1px #777777'})}} /></Box>)}
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          flexWrap: 'wrap',
+          alignItems: 'flex-start',
+          justifyContent: 'flex-start',
+        }}
+      >
+        {icons.map(i => (
+          <Box key={i}>
+            <Text type="BodySmall">{i}</Text>
+            <Icon
+              type={i}
+              style={{
+                margin: 10,
+                ...(isMobile ? {} : {border: 'solid 1px #777777'}),
+              }}
+            />
+          </Box>
+        ))}
       </Box>
     )
   }
@@ -489,7 +548,7 @@ const inputMap: DumbComponentMap<Input> = {
     'Auto cap characters': {
       autoCapitalize: 'characters',
     },
-    'Autocorrect': {
+    Autocorrect: {
       autoCorrect: true,
     },
     'Floating Label Filled': {
@@ -636,25 +695,66 @@ const inputMap: DumbComponentMap<Input> = {
 }
 
 const tabBarCustomButtons = selectedIndex => {
-  const IconButton = ({selected, icon, badgeNumber, label}: any) => <TabBarButton label={label} source={{type: 'icon', icon}} selected={selected} badgeNumber={badgeNumber} style={{height: 40}} />
-  const AvatarButton = ({selected, avatar, badgeNumber}: any) => <TabBarButton source={{type: 'avatar', username: 'max'}} selected={selected} badgeNumber={badgeNumber} style={{flex: 1}} styleContainer={{height: 40}} />
+  const IconButton = ({selected, icon, badgeNumber, label}: any) => (
+    <TabBarButton
+      label={label}
+      source={{type: 'icon', icon}}
+      selected={selected}
+      badgeNumber={badgeNumber}
+      style={{height: 40}}
+    />
+  )
+  const AvatarButton = ({selected, avatar, badgeNumber}: any) => (
+    <TabBarButton
+      source={{type: 'avatar', username: 'max'}}
+      selected={selected}
+      badgeNumber={badgeNumber}
+      style={{flex: 1}}
+      styleContainer={{height: 40}}
+    />
+  )
 
   return {
-    style: {flex: 1, ...display('flex'), ...globalStyles.flexBoxRow, height: 580},
-    styleTabBar: {justifyContent: 'flex-start', width: 160, backgroundColor: globalColors.midnightBlue, ...globalStyles.flexBoxColumn},
+    style: {
+      flex: 1,
+      ...display('flex'),
+      ...globalStyles.flexBoxRow,
+      height: 580,
+    },
+    styleTabBar: {
+      justifyContent: 'flex-start',
+      width: 160,
+      backgroundColor: globalColors.midnightBlue,
+      ...globalStyles.flexBoxColumn,
+    },
     children: [
-      {avatar: <Avatar size={32} onClick={null} username='max' />},
+      {avatar: <Avatar size={32} onClick={null} username="max" />},
       {icon: 'iconfont-people', label: 'PEOPLE', badgeNumber: 3},
       {icon: 'iconfont-folder', label: 'FOLDERS'},
       {icon: 'iconfont-device', label: 'DEVICES', badgeNumber: 12},
       {icon: 'iconfont-settings', label: 'SETTINGS'},
     ].map((buttonInfo: any, i) => {
       const button = buttonInfo.avatar
-        ? <AvatarButton badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} avatar={buttonInfo.avatar} />
-        : <IconButton icon={buttonInfo.icon} label={buttonInfo.label} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} />
+        ? <AvatarButton
+            badgeNumber={buttonInfo.badgeNumber}
+            selected={selectedIndex === i}
+            avatar={buttonInfo.avatar}
+          />
+        : <IconButton
+            icon={buttonInfo.icon}
+            label={buttonInfo.label}
+            badgeNumber={buttonInfo.badgeNumber}
+            selected={selectedIndex === i}
+          />
       return (
-        <TabBarItem key={i} tabBarButton={button} styleContainer={{...display('flex')}} selected={selectedIndex === i} onClick={() => console.log('TabBaritem:onClick')}>
-          <Text type='Header' style={{flex: 1}}>Content here at: {i}</Text>
+        <TabBarItem
+          key={i}
+          tabBarButton={button}
+          styleContainer={{...display('flex')}}
+          selected={selectedIndex === i}
+          onClick={() => console.log('TabBaritem:onClick')}
+        >
+          <Text type="Header" style={{flex: 1}}>Content here at: {i}</Text>
         </TabBarItem>
       )
     }),
@@ -674,51 +774,117 @@ const listItemMap: DumbComponentMap<ListItem> = {
   mocks: {
     'Small list item with icon (desktop only)': {
       type: 'Small',
-      icon: <Box style={{height: 24, width: 24, backgroundColor: globalColors.black_20}} />,
+      icon: (
+        <Box
+          style={{
+            height: 24,
+            width: 24,
+            backgroundColor: globalColors.black_20,
+          }}
+        />
+      ),
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
     },
     'Small list item with button action': {
       type: 'Small',
       swipeToAction: true,
-      icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
+      icon: (
+        <Box
+          style={{
+            height: 32,
+            width: 32,
+            backgroundColor: globalColors.black_20,
+          }}
+        />
+      ),
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
     },
     'Small list item with avatar 40 (mobile only)': {
       type: 'Small',
-      icon: <Box style={{height: 40, width: 40, backgroundColor: globalColors.black_20}} />,
+      icon: (
+        <Box
+          style={{
+            height: 40,
+            width: 40,
+            backgroundColor: globalColors.black_20,
+          }}
+        />
+      ),
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       swipeToAction: true,
       action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
     },
     'Small list item with text action': {
       type: 'Small',
-      icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
+      icon: (
+        <Box
+          style={{
+            height: 32,
+            width: 32,
+            backgroundColor: globalColors.black_20,
+          }}
+        />
+      ),
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
-      action: <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>,
+      action: (
+        <Text
+          style={{color: globalColors.red}}
+          type={'BodySmall'}
+          onClick={() => {}}
+        >
+          Action Jack
+        </Text>
+      ),
       swipeToAction: true,
       extraRightMarginAction: true,
     },
     'Large list item with Button': {
       type: 'Large',
-      icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
+      icon: (
+        <Box
+          style={{
+            height: 48,
+            width: 48,
+            backgroundColor: globalColors.black_20,
+          }}
+        />
+      ),
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       swipeToAction: true,
       action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
     },
     'Large list item with text action': {
       type: 'Large',
-      icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
+      icon: (
+        <Box
+          style={{
+            height: 48,
+            width: 48,
+            backgroundColor: globalColors.black_20,
+          }}
+        />
+      ),
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
-      action: <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>,
+      action: (
+        <Text
+          style={{color: globalColors.red}}
+          type={'BodySmall'}
+          onClick={() => {}}
+        >
+          Action Jack
+        </Text>
+      ),
       extraRightMarginAction: true,
     },
   },
 }
 
 const popupCommon = {
-  parentProps: isMobile ? {} : {style: {border: 'solid 1px black', position: 'relative', height: 300}},
+  parentProps: isMobile
+    ? {}
+    : {style: {border: 'solid 1px black', position: 'relative', height: 300}},
   onHidden: () => console.log('popup hidden'),
   style: {marginLeft: 100, maxWidth: 320},
 }
@@ -744,18 +910,29 @@ const popupMenuMap: DumbComponentMap<PopupMenu> = {
         {...popupItemCommon, title: 'Open in Finder'},
         {...popupItemCommon, title: 'Ignore'},
         'Divider',
-        {...popupItemCommon, title: 'Clear history (3.24 MB)', subTitle: 'Deletes old copies of files.', danger: true},
-        {...popupItemCommon, title: 'Delete files and clear history (5.17GB)', subTitle: 'Deletes everything in this folder, including its backup versions', danger: true},
+        {
+          ...popupItemCommon,
+          title: 'Clear history (3.24 MB)',
+          subTitle: 'Deletes old copies of files.',
+          danger: true,
+        },
+        {
+          ...popupItemCommon,
+          title: 'Delete files and clear history (5.17GB)',
+          subTitle: 'Deletes everything in this folder, including its backup versions',
+          danger: true,
+        },
       ],
     },
   },
 }
 
 const avatarSizes = [176, 112, 80, 64, 48, 40, 32, 24, 16]
-const mockAvatarSizes = (title, modifiers) => _.chain(avatarSizes)
-  .map(size => ({size, username: 'awendland', ...modifiers}))
-  .keyBy(props => `${title} x${props.size}`)
-  .value()
+const mockAvatarSizes = (title, modifiers) =>
+  _.chain(avatarSizes)
+    .map(size => ({size, username: 'awendland', ...modifiers}))
+    .keyBy(props => `${title} x${props.size}`)
+    .value()
 
 const avatarMap: DumbComponentMap<Avatar> = {
   component: Avatar,
@@ -799,17 +976,21 @@ const choiceListMap: DumbComponentMap<ChoiceList> = {
 
 const standardScreenProps = {
   onClose: () => console.log('StandardScreen: onClose'),
-  children: <Text type='Header' style={{textAlign: 'center'}}>Whoa, look at this centered thing</Text>,
+  children: (
+    <Text type="Header" style={{textAlign: 'center'}}>
+      Whoa, look at this centered thing
+    </Text>
+  ),
   parentProps: {style: {...display('flex'), height: 578}},
 }
 
 const standardScreenMap: DumbComponentMap<StandardScreen> = {
   component: StandardScreen,
   mocks: {
-    'Normal': {
+    Normal: {
       ...standardScreenProps,
     },
-    'Error': {
+    Error: {
       ...standardScreenProps,
       notification: {
         message: 'Something went horribly wrong! :-(',
@@ -819,7 +1000,17 @@ const standardScreenMap: DumbComponentMap<StandardScreen> = {
     'Success w/ Custom Notification Element': {
       ...standardScreenProps,
       notification: {
-        message: <Text type='BodySemibold' style={{color: globalColors.white}}>You won a unicorn! <Text type='BodySemibold' style={{color: globalColors.white}}>Make sure to feed it</Text> :-)</Text>,
+        message: (
+          <Text type="BodySemibold" style={{color: globalColors.white}}>
+            You won a unicorn!
+            {' '}
+            <Text type="BodySemibold" style={{color: globalColors.white}}>
+              Make sure to feed it
+            </Text>
+            {' '}
+            :-)
+          </Text>
+        ),
         type: 'success',
       },
     },
@@ -843,7 +1034,7 @@ const standardScreenMap: DumbComponentMap<StandardScreen> = {
 const markdownDumbMap: DumbComponentMap<Markdown> = {
   component: Markdown,
   mocks: {
-    'Normal': {
+    Normal: {
       children: `I think we should try to use \`if else\` statements \`\`\`
 if (var == "foo")
   echo "foo";
@@ -851,7 +1042,7 @@ else echo "bar";\`\`\`How about *bold* and _italic?_ nice. :smile:
 Now youre thinking with ~portals~ crypto.
 how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_ bold.*with*.punctuation!`,
     },
-    'emoji': {
+    emoji: {
       children: 'hello there :santa::skin-tone-3: 🌸😎👍🏿!',
     },
     'special chars in code block': {
@@ -866,7 +1057,7 @@ else echo "bar";
     'Escaped chars': {
       children: '\\*foo\\* I should see asterisks',
     },
-    'links': {
+    links: {
       children: `
   Ignore:
     a...b,
@@ -900,7 +1091,7 @@ else echo "bar";
     *http://keybase.io/~_*
 `,
     },
-    'Quotes': {
+    Quotes: {
       children: `> this is quoted
 > this is _italics_ inside of a quote. This is *bold* inside of a quote.
 > outside code: \`This is an inline block of code in a quote\` outside again
@@ -937,22 +1128,23 @@ this is a code block with two newline above\`\`\`
     },
   },
 }
-
 const popupDialogMap: DumbComponentMap<PopupDialog> = {
   component: PopupDialog,
   mocks: {
-    'Normal': {
+    Normal: {
       onClose: () => console.log('PopupDialog: onClose'),
       children: (
-        <Box style={{
-          ...globalStyles.flexBoxColumn,
-          width: 200,
-          height: 200,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: globalColors.white,
-        }}>
-          <Text type='Body'>Hello, world!</Text>
+        <Box
+          style={{
+            ...globalStyles.flexBoxColumn,
+            width: 200,
+            height: 200,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: globalColors.white,
+          }}
+        >
+          <Text type="Body">Hello, world!</Text>
         </Box>
       ),
       parentProps: {
@@ -965,7 +1157,6 @@ const popupDialogMap: DumbComponentMap<PopupDialog> = {
     },
   },
 }
-
 export default {
   Avatar: avatarMap,
   Buttons: buttonsMap,

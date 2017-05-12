@@ -1,4 +1,4 @@
 // @flow
 import {Component} from 'react'
 
-export default class FacebookDescription extends Component<void, {}, void> { }
+export default class FacebookDescription extends Component<void, {}, void> {}

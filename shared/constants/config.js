@@ -3,7 +3,12 @@ import {uniq} from 'lodash'
 import {runMode} from './platform'
 
 import type {Tab} from './tabs'
-import type {BootstrapStatus, Config, DeviceID, ExtendedStatus} from './types/flow-types'
+import type {
+  BootstrapStatus,
+  Config,
+  DeviceID,
+  ExtendedStatus,
+} from './types/flow-types'
 import type {NoErrorTypedAction} from './types/flux'
 
 // TODO remove action type constants. Type actions
@@ -30,22 +35,41 @@ const setLaunchedViaPush = 'config:setLaunchedViaPush'
 const statusLoaded = 'config:statusLoaded'
 const updateFollowing = 'config:updateFollowing'
 
-export type BootstrapStatusLoaded = NoErrorTypedAction<'config:bootstrapStatusLoaded', {bootstrapStatus: BootstrapStatus}>
-export type DaemonError = NoErrorTypedAction<'config:daemonError', {daemonError: ?Error}>
-export type UpdateFollowing = NoErrorTypedAction<'config:updateFollowing', {username: string, isTracking: boolean}>
-export type SetInitialLink = NoErrorTypedAction<'config:setInitialLink', {url: ?string}>
-export type SetInitialTab = NoErrorTypedAction<'config:setInitialTab', {tab: ?Tab}>
-export type SetLaunchedViaPush = NoErrorTypedAction<'config:setLaunchedViaPush', boolean>
+export type BootstrapStatusLoaded = NoErrorTypedAction<
+  'config:bootstrapStatusLoaded',
+  {bootstrapStatus: BootstrapStatus}
+>
+export type DaemonError = NoErrorTypedAction<
+  'config:daemonError',
+  {daemonError: ?Error}
+>
+export type UpdateFollowing = NoErrorTypedAction<
+  'config:updateFollowing',
+  {username: string, isTracking: boolean}
+>
+export type SetInitialLink = NoErrorTypedAction<
+  'config:setInitialLink',
+  {url: ?string}
+>
+export type SetInitialTab = NoErrorTypedAction<
+  'config:setInitialTab',
+  {tab: ?Tab}
+>
+export type SetLaunchedViaPush = NoErrorTypedAction<
+  'config:setLaunchedViaPush',
+  boolean
+>
 
-export type BootStatus = 'bootStatusLoading'
+export type BootStatus =
+  | 'bootStatusLoading'
   | 'bootStatusBootstrapped'
   | 'bootStatusFailure'
 
-export function privateFolderWithUsers (users: Array<string>): string {
+export function privateFolderWithUsers(users: Array<string>): string {
   return `${defaultKBFSPath}${defaultPrivatePrefix}${uniq(users).join(',')}`
 }
 
-export function publicFolderWithUsers (users: Array<string>): string {
+export function publicFolderWithUsers(users: Array<string>): string {
   return `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
 }
 

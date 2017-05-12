@@ -3,4 +3,4 @@ import {Component} from 'react'
 
 import type {Props} from '.'
 
-export default class NoConversation extends Component<void, Props, void> { }
+export default class NoConversation extends Component<void, Props, void> {}

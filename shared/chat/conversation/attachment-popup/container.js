@@ -7,13 +7,21 @@ import * as Constants from '../../../constants/chat'
 
 import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
-import type {ConversationIDKey, SaveAttachment, AttachmentMessage, MessageID} from '../../../constants/chat'
+import type {
+  ConversationIDKey,
+  SaveAttachment,
+  AttachmentMessage,
+  MessageID,
+} from '../../../constants/chat'
 import type {OpenInFileUI} from '../../../constants/kbfs'
 
-type AttachmentPopupRouteProps = RouteProps<{
-  conversationIDKey: ConversationIDKey,
-  messageID: MessageID,
-}, {}>
+type AttachmentPopupRouteProps = RouteProps<
+  {
+    conversationIDKey: ConversationIDKey,
+    messageID: MessageID,
+  },
+  {}
+>
 type OwnProps = AttachmentPopupRouteProps & {
   isZoomed: boolean,
   detailsPopupShowing: boolean,
@@ -34,12 +42,16 @@ export default compose(
     (state: TypedState, {routeProps, ...ownProps}: OwnProps) => {
       const {conversationIDKey, messageID} = routeProps
 
-      const conversationState = state.chat.get('conversationStates').get(conversationIDKey)
+      const conversationState = state.chat
+        .get('conversationStates')
+        .get(conversationIDKey)
       if (!conversationState) {
         throw new Error('Attachment popup unable to get conversation state')
       }
 
-      const message = conversationState.get('messages').find(m => m.messageID === messageID)
+      const message = conversationState
+        .get('messages')
+        .find(m => m.messageID === messageID)
       if (!message) {
         throw new Error('Attachment popup unable to get message data')
       }
@@ -51,26 +63,36 @@ export default compose(
       }
     },
     (dispatch: Dispatch, {navigateUp, navigateAppend}) => ({
-      _onMessageAction: (message: Constants.ServerMessage) => dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
+      _onMessageAction: (message: Constants.ServerMessage) =>
+        dispatch(
+          navigateAppend([{props: {message}, selected: 'messageAction'}])
+        ),
       deleteMessage: message => dispatch(deleteMessage(message)),
       onClose: () => dispatch(navigateUp()),
       onDownloadAttachment: (message: AttachmentMessage) => {
         const messageID = message.messageID
         if (!messageID || !message.filename) {
-          throw new Error('Cannot download attachment with missing messageID or filename')
+          throw new Error(
+            'Cannot download attachment with missing messageID or filename'
+          )
         }
-        dispatch(({
-          type: 'chat:saveAttachment',
-          payload: {
-            conversationIDKey: message.conversationIDKey,
-            messageID,
-          },
-        }: SaveAttachment))
+        dispatch(
+          ({
+            type: 'chat:saveAttachment',
+            payload: {
+              conversationIDKey: message.conversationIDKey,
+              messageID,
+            },
+          }: SaveAttachment)
+        )
       },
-      onOpenInFileUI: (path: string) => dispatch(({
-        type: 'fs:openInFileUI',
-        payload: {path},
-      }: OpenInFileUI)),
+      onOpenInFileUI: (path: string) =>
+        dispatch(
+          ({
+            type: 'fs:openInFileUI',
+            payload: {path},
+          }: OpenInFileUI)
+        ),
     }),
     (stateProps, dispatchProps) => {
       const {message} = stateProps
@@ -85,6 +107,6 @@ export default compose(
         onDownloadAttachment: () => dispatchProps.onDownloadAttachment(message),
         onOpenInFileUI: () => dispatchProps.onOpenInFileUI(message.savedPath),
       }
-    },
-  ),
+    }
+  )
 )(RenderAttachmentPopup)

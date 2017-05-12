@@ -7,7 +7,7 @@ const linkFuncs = {
   user: ({username}) => `${keybaseUrl}/${username || ''}`,
 }
 
-export function urlHelper (type: string, params: any): ?string {
+export function urlHelper(type: string, params: any): ?string {
   const linkFunc = linkFuncs[type]
   if (linkFunc) {
     const link = linkFunc(params)

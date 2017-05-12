@@ -2,28 +2,32 @@
 type payloadType = {
   method: string,
   param: Array<Object>,
-  response: ?Object
-};
+  response: ?Object,
+}
 
-export type invokeType = (method: string, param: ?Object, cb: (err: any, data: any) => void) => void
+export type invokeType = (
+  method: string,
+  param: ?Object,
+  cb: (err: any, data: any) => void
+) => void
 export type createClientType = {
   transport: {
     needsConnect: boolean,
     reset: () => void,
   },
   invoke: invokeType,
-};
+}
 
 export type incomingRPCCallbackType = (payload: payloadType) => void
 export type rpcLogType = 'engineToServer' | 'serverToEngine' | 'engineInternal'
 export type connectDisconnectCB = () => void
 
-declare function createClient (incomingRPCCallback: incomingRPCCallbackType, connectCallback: connectDisconnectCB, disconnectCallback: connectDisconnectCB): createClientType
-declare function resetClient (): void
-declare function rpcLog (type: rpcLogType, ...args: Array<any>): void
+declare function createClient(
+  incomingRPCCallback: incomingRPCCallbackType,
+  connectCallback: connectDisconnectCB,
+  disconnectCallback: connectDisconnectCB
+): createClientType
+declare function resetClient(): void
+declare function rpcLog(type: rpcLogType, ...args: Array<any>): void
 
-export {
-  createClient,
-  resetClient,
-  rpcLog,
-}
+export {createClient, resetClient, rpcLog}

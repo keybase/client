@@ -1,6 +1,13 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Text, Icon, HOCTimers, NativeScrollView, NativeTouchableWithoutFeedback} from '../common-adapters/index.native'
+import {
+  Box,
+  Text,
+  Icon,
+  HOCTimers,
+  NativeScrollView,
+  NativeTouchableWithoutFeedback,
+} from '../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {Props} from './index'
@@ -13,10 +20,10 @@ type State = {
 }
 
 class GlobalError extends Component<void, Props, State> {
-  state: State;
-  timerID: any;
+  state: State
+  timerID: any
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     this.state = {
@@ -26,7 +33,7 @@ class GlobalError extends Component<void, Props, State> {
     }
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this._resetError(!!this.props.error)
   }
 
@@ -35,12 +42,12 @@ class GlobalError extends Component<void, Props, State> {
     this._clearCountdown()
   }
 
-  _clearCountdown () {
+  _clearCountdown() {
     this.props.clearTimeout(this.timerID)
     this.timerID = null
   }
 
-  _resetError (newError: boolean) {
+  _resetError(newError: boolean) {
     this._clearCountdown()
     this.setState({size: newError ? 'Small' : 'Closed'})
 
@@ -51,15 +58,15 @@ class GlobalError extends Component<void, Props, State> {
     }
   }
 
-  _summaryForError (err: ?Error): ?string {
+  _summaryForError(err: ?Error): ?string {
     return err ? err.message && err.message.substring(0, 40) : null
   }
 
-  _detailsForError (err: ?Error): ?string {
+  _detailsForError(err: ?Error): ?string {
     return err ? err.stack : null
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (nextProps.error !== this.props.error) {
       this.props.setTimeout(() => {
         this.setState({
@@ -71,15 +78,15 @@ class GlobalError extends Component<void, Props, State> {
     }
   }
 
-  static maxHeightForSize (size: Size) {
+  static maxHeightForSize(size: Size) {
     return {
-      'Big': 500,
-      'Closed': 0,
-      'Small': 35 + 20,
+      Big: 500,
+      Closed: 0,
+      Small: 35 + 20,
     }[size]
   }
 
-  render () {
+  render() {
     const {onDismiss} = this.props
     const summary = this.state.cachedSummary
     const details = this.state.cachedDetails
@@ -89,13 +96,35 @@ class GlobalError extends Component<void, Props, State> {
       <Box style={{...containerStyle, maxHeight}}>
         <NativeTouchableWithoutFeedback onPress={this._onExpandClick}>
           <Box style={summaryRowStyle}>
-            {summary && <Icon type='iconfont-exclamation' style={{color: globalColors.white, marginRight: globalMargins.tiny}} />}
-            <Text type='BodySmall' style={{color: globalColors.white, flex: 1, textAlign: 'center'}}>{summary}</Text>
-            {summary && <Icon type='iconfont-close' onClick={onDismiss} style={{color: globalColors.white_75, marginLeft: globalMargins.tiny}} />}
+            {summary &&
+              <Icon
+                type="iconfont-exclamation"
+                style={{
+                  color: globalColors.white,
+                  marginRight: globalMargins.tiny,
+                }}
+              />}
+            <Text
+              type="BodySmall"
+              style={{color: globalColors.white, flex: 1, textAlign: 'center'}}
+            >
+              {summary}
+            </Text>
+            {summary &&
+              <Icon
+                type="iconfont-close"
+                onClick={onDismiss}
+                style={{
+                  color: globalColors.white_75,
+                  marginLeft: globalMargins.tiny,
+                }}
+              />}
           </Box>
         </NativeTouchableWithoutFeedback>
         <NativeScrollView>
-          <Text type='BodySmall' style={detailStyle}>{this.props.error && this.props.error.message}{'\n\n'}{details}</Text>
+          <Text type="BodySmall" style={detailStyle}>
+            {this.props.error && this.props.error.message}{'\n\n'}{details}
+          </Text>
         </NativeScrollView>
       </Box>
     )

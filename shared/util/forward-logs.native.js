@@ -8,7 +8,7 @@ const localLog = window.console.log.bind(window.console)
 const localWarn = window.console.warn.bind(window.console)
 const localError = window.console.error.bind(window.console)
 
-function setupSource () {
+function setupSource() {
   if (!forwardLogs) {
     return
   }
@@ -34,9 +34,4 @@ function setupSource () {
   }
 }
 
-export {
-  setupSource,
-  localLog,
-  localWarn,
-  localError,
-}
+export {setupSource, localLog, localWarn, localError}

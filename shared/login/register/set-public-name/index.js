@@ -8,10 +8,10 @@ import * as Creators from '../../../actions/login/creators'
 import type {TypedState} from '../../../constants/reducer'
 
 class SetPublicName extends Component<void, Props, State> {
-  props: Props;
-  state: State;
+  props: Props
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     this.state = {
@@ -19,10 +19,16 @@ class SetPublicName extends Component<void, Props, State> {
     }
   }
 
-  render () {
-    const nameTaken = !!(this.props.existingDevices && this.state.deviceName && this.props.existingDevices.indexOf(this.state.deviceName) !== -1)
-    const submitEnabled = !!(this.state.deviceName && this.state.deviceName.length && !nameTaken)
-    const nameTakenError = nameTaken ? `The device name: '${this.state.deviceName || ''}' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.` : null
+  render() {
+    const nameTaken = !!(this.props.existingDevices &&
+      this.state.deviceName &&
+      this.props.existingDevices.indexOf(this.state.deviceName) !== -1)
+    const submitEnabled = !!(this.state.deviceName &&
+      this.state.deviceName.length &&
+      !nameTaken)
+    const nameTakenError = nameTaken
+      ? `The device name: '${this.state.deviceName || ''}' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.`
+      : null
 
     return (
       <RenderSetPublicName
@@ -48,13 +54,16 @@ type OwnProps = {
 
 // $FlowIssue
 export default connect(
-  (state: TypedState, {routeProps: {existingDevices, deviceNameError}}: OwnProps) => ({
+  (
+    state: TypedState,
+    {routeProps: {existingDevices, deviceNameError}}: OwnProps
+  ) => ({
     existingDevices,
     deviceNameError,
     waiting: state.login.waitingForResponse,
   }),
-  (dispatch) => ({
+  dispatch => ({
     onBack: () => dispatch(Creators.onBack()),
-    onSubmit: (deviceName) => dispatch(Creators.submitDeviceName(deviceName)),
+    onSubmit: deviceName => dispatch(Creators.submitDeviceName(deviceName)),
   })
 )(SetPublicName)

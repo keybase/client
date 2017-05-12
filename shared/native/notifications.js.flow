@@ -1,2 +1,8 @@
 // @flow
-export function NotifyPopup (title: string, opts: ?Object, rateLimitSeconds?: number, rateLimitKey?: string, onClick: ?() => void): void {}
+export function NotifyPopup(
+  title: string,
+  opts: ?Object,
+  rateLimitSeconds?: number,
+  rateLimitKey?: string,
+  onClick: ?() => void
+): void {}

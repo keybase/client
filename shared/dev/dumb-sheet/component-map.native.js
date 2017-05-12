@@ -28,7 +28,12 @@ const map: any = {
   ...DevicePageMap,
   ...FoldersMap,
   ...FoldersConfirmMap,
-  ...pick(MessagesMap, 'Text Message', 'Stacked Text Message', 'Attachment Message'),
+  ...pick(
+    MessagesMap,
+    'Text Message',
+    'Stacked Text Message',
+    'Attachment Message'
+  ),
   ...ProfileMap,
   ...SearchMap,
   ...Settings,

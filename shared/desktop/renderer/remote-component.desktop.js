@@ -25,18 +25,18 @@ if (ipcRenderer) {
 }
 
 class RemoteComponent extends Component {
-  closed: ?boolean;
-  remoteWindow: BrowserWindow;
-  remoteWindowId: string;
+  closed: ?boolean
+  remoteWindow: BrowserWindow
+  remoteWindowId: string
 
-  onClosed () {
+  onClosed() {
     if (!this.closed) {
       this.closed = true
       this.props.onRemoteClose && this.props.onRemoteClose()
     }
   }
 
-  componentWillMount () {
+  componentWillMount() {
     const windowsOpts = {
       width: 500,
       height: 300,
@@ -44,13 +44,18 @@ class RemoteComponent extends Component {
       show: false,
       resizable: false,
       frame: false,
-      ...this.props.windowsOpts}
+      ...this.props.windowsOpts,
+    }
 
     this.remoteWindow = new BrowserWindow(windowsOpts)
 
     if (this.props.positionBottomRight && electron.screen.getPrimaryDisplay()) {
       const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
-      this.remoteWindow.setPosition(width - windowsOpts.width - 100, height - windowsOpts.height - 100, false)
+      this.remoteWindow.setPosition(
+        width - windowsOpts.width - 100,
+        height - windowsOpts.height - 100,
+        false
+      )
     }
 
     // Keep remoteWindowId since remoteWindow properties are not accessible if destroyed
@@ -63,22 +68,31 @@ class RemoteComponent extends Component {
     this.remoteWindow.on('needProps', () => {
       try {
         this.remoteWindow.emit('hasProps', {...this.props})
-      } catch (_) { }
+      } catch (_) {}
     })
 
     ipcRenderer.send('showDockIconForRemoteWindow', this.remoteWindowId)
     ipcRenderer.send('listenForRemoteWindowClosed', this.remoteWindowId)
 
-    this.remoteWindow.loadURL(resolveRootAsURL('renderer', injectReactQueryParams(`renderer.html?${this.props.component || ''}`)))
+    this.remoteWindow.loadURL(
+      resolveRootAsURL(
+        'renderer',
+        injectReactQueryParams(`renderer.html?${this.props.component || ''}`)
+      )
+    )
 
     const webContents = this.remoteWindow.webContents
     webContents.on('did-finish-load', () => {
       webContents.send('load', {
         scripts: [
-          ...(__DEV__ ? [{
-            src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
-            async: false,
-          }] : []),
+          ...(__DEV__
+            ? [
+                {
+                  src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
+                  async: false,
+                },
+              ]
+            : []),
           {
             src: hotPath('remote-component-loader.bundle.js'),
             async: false,
@@ -95,7 +109,7 @@ class RemoteComponent extends Component {
     }
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     if (this.remoteWindowId) {
       remoteIdsToComponents[this.remoteWindowId] = null
     }
@@ -106,11 +120,11 @@ class RemoteComponent extends Component {
     }
   }
 
-  render () {
-    return (<div>{this.props.component}:{this.remoteWindowId}</div>)
+  render() {
+    return <div>{this.props.component}:{this.remoteWindowId}</div>
   }
 
-  shouldComponentUpdate (nextProps: any) {
+  shouldComponentUpdate(nextProps: any) {
     if (!this.remoteWindow) {
       return false
     }
@@ -126,7 +140,7 @@ class RemoteComponent extends Component {
           this.remoteWindow.show()
         }
       }
-    } catch (_) { }
+    } catch (_) {}
 
     // Always return false because this isn't a real component
     return false

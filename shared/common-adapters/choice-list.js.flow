@@ -14,4 +14,4 @@ export type Props = {
   options: Array<Option>,
 }
 
-export default class ChoiceList extends Component<void, Props, void> { }
+export default class ChoiceList extends Component<void, Props, void> {}

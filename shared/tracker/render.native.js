@@ -8,9 +8,9 @@ import {globalColors, globalMargins} from '../styles'
 import type {RenderProps} from './render'
 
 export default class TrackerRender extends Component<void, RenderProps, void> {
-  props: RenderProps;
+  props: RenderProps
 
-  render () {
+  render() {
     return (
       <Box style={stylesContainer}>
         <Header
@@ -22,7 +22,8 @@ export default class TrackerRender extends Component<void, RenderProps, void> {
           loggedIn={this.props.loggedIn}
         />
         <Box style={stylesContent}>
-          <UserBio type='Tracker'
+          <UserBio
+            type="Tracker"
             avatarSize={112}
             loading={this.props.loading}
             username={this.props.username}
@@ -34,7 +35,7 @@ export default class TrackerRender extends Component<void, RenderProps, void> {
             onClickFollowing={this.props.onClickFollowing}
           />
           <UserProofs
-            type='proofs'
+            type="proofs"
             style={stylesProofs}
             username={this.props.username}
             loading={this.props.loading}

@@ -9,16 +9,16 @@
  * @providesModule MetroListView
  * @flow
  */
-'use strict';
+'use strict'
 
-const ListView = require('ListView');
-const React = require('React');
-const RefreshControl = require('RefreshControl');
-const ScrollView = require('ScrollView');
+const ListView = require('ListView')
+const React = require('React')
+const RefreshControl = require('RefreshControl')
+const ScrollView = require('ScrollView')
 
-const invariant = require('fbjs/lib/invariant');
+const invariant = require('fbjs/lib/invariant')
 
-type Item = any;
+type Item = any
 
 type NormalProps = {
   FooterComponent?: ReactClass<*>,
@@ -39,11 +39,11 @@ type NormalProps = {
    * Set this true while waiting for new data from a refresh.
    */
   refreshing?: boolean,
-};
+}
 type DefaultProps = {
   keyExtractor: (item: Item) => string,
-};
-type Props = NormalProps & DefaultProps;
+}
+type Props = NormalProps & DefaultProps
 
 /**
  * This is just a wrapper around the legacy ListView that matches the new API of FlatList, but with
@@ -51,27 +51,35 @@ type Props = NormalProps & DefaultProps;
  * is mostly for debugging and performance comparison.
  */
 class MetroListView extends React.Component {
-  props: Props;
+  props: Props
   scrollToEnd(params?: ?{animated?: ?boolean}) {
-    throw new Error('scrollToEnd not supported in legacy ListView.');
+    throw new Error('scrollToEnd not supported in legacy ListView.')
   }
-  scrollToIndex(params: {animated?: ?boolean, index: number, viewPosition?: number}) {
-    throw new Error('scrollToIndex not supported in legacy ListView.');
+  scrollToIndex(params: {
+    animated?: ?boolean,
+    index: number,
+    viewPosition?: number,
+  }) {
+    throw new Error('scrollToIndex not supported in legacy ListView.')
   }
-  scrollToItem(params: {animated?: ?boolean, item: Item, viewPosition?: number}) {
-    throw new Error('scrollToItem not supported in legacy ListView.');
+  scrollToItem(params: {
+    animated?: ?boolean,
+    item: Item,
+    viewPosition?: number,
+  }) {
+    throw new Error('scrollToItem not supported in legacy ListView.')
   }
   scrollToLocation() {
-    throw new Error('scrollToLocation not supported in legacy ListView.');
+    throw new Error('scrollToLocation not supported in legacy ListView.')
   }
   scrollToOffset(params: {animated?: ?boolean, offset: number}) {
-    const {animated, offset} = params;
+    const {animated, offset} = params
     this._listRef.scrollTo(
       this.props.horizontal ? {x: offset, animated} : {y: offset, animated}
-    );
+    )
   }
   getListRef() {
-    return this._listRef;
+    return this._listRef
   }
   static defaultProps: DefaultProps = {
     keyExtractor: (item, index) => item.key || index,
@@ -87,25 +95,23 @@ class MetroListView extends React.Component {
               />
             }
           />
-        );
+        )
       } else {
-        return <ScrollView {...props} />;
+        return <ScrollView {...props} />
       }
     },
-  };
-  state = this._computeState(
-    this.props,
-    {
-      ds: new ListView.DataSource({
-        rowHasChanged: (itemA, itemB) => true,
-        sectionHeaderHasChanged: () => true,
-        getSectionHeaderData: (dataBlob, sectionID) => this.state.sectionHeaderData[sectionID],
-      }),
-      sectionHeaderData: {},
-    },
-  );
+  }
+  state = this._computeState(this.props, {
+    ds: new ListView.DataSource({
+      rowHasChanged: (itemA, itemB) => true,
+      sectionHeaderHasChanged: () => true,
+      getSectionHeaderData: (dataBlob, sectionID) =>
+        this.state.sectionHeaderData[sectionID],
+    }),
+    sectionHeaderData: {},
+  })
   componentWillReceiveProps(newProps: Props) {
-    this.setState((state) => this._computeState(newProps, state));
+    this.setState(state => this._computeState(newProps, state))
   }
   render() {
     return (
@@ -118,42 +124,49 @@ class MetroListView extends React.Component {
         renderSectionHeader={this.props.sections && this._renderSectionHeader}
         renderSeparator={this.props.SeparatorComponent && this._renderSeparator}
       />
-    );
+    )
   }
-  _listRef: ListView;
-  _captureRef = (ref) => { this._listRef = ref; };
+  _listRef: ListView
+  _captureRef = ref => {
+    this._listRef = ref
+  }
   _computeState(props: Props, state) {
-    const sectionHeaderData = {};
+    const sectionHeaderData = {}
     if (props.sections) {
-      invariant(!props.items, 'Cannot have both sections and items props.');
-      const sections = {};
+      invariant(!props.items, 'Cannot have both sections and items props.')
+      const sections = {}
       props.sections.forEach((sectionIn, ii) => {
-        const sectionID = 's' + ii;
-        sections[sectionID] = sectionIn.data;
-        sectionHeaderData[sectionID] = sectionIn;
-      });
+        const sectionID = 's' + ii
+        sections[sectionID] = sectionIn.data
+        sectionHeaderData[sectionID] = sectionIn
+      })
       return {
         ds: state.ds.cloneWithRowsAndSections(sections),
         sectionHeaderData,
-      };
+      }
     } else {
-      invariant(!props.sections, 'Cannot have both sections and items props.');
+      invariant(!props.sections, 'Cannot have both sections and items props.')
       return {
         ds: state.ds.cloneWithRows(props.items),
         sectionHeaderData,
-      };
+      }
     }
   }
-  _renderFooter = () => <this.props.FooterComponent key="$footer" />;
+  _renderFooter = () => <this.props.FooterComponent key="$footer" />
   _renderRow = (item, sectionID, rowID, highlightRow) => {
-    return this.props.renderItem({item, index: rowID});
-  };
-  _renderSectionHeader = (section, sectionID) => {
-    const {renderSectionHeader} = this.props;
-    invariant(renderSectionHeader, 'Must provide renderSectionHeader with sections prop');
-    return renderSectionHeader({section});
+    return this.props.renderItem({item, index: rowID})
   }
-  _renderSeparator = (sID, rID) => <this.props.SeparatorComponent key={sID + rID} />;
+  _renderSectionHeader = (section, sectionID) => {
+    const {renderSectionHeader} = this.props
+    invariant(
+      renderSectionHeader,
+      'Must provide renderSectionHeader with sections prop'
+    )
+    return renderSectionHeader({section})
+  }
+  _renderSeparator = (sID, rID) => (
+    <this.props.SeparatorComponent key={sID + rID} />
+  )
 }
 
-module.exports = MetroListView;
+module.exports = MetroListView

@@ -5,13 +5,16 @@ import {NativeActivityIndicator} from './native-wrappers.native'
 import {globalColors} from '../styles'
 
 class ProgressIndicator extends Component<void, Props, void> {
-  render () {
-    const size = (this.props.type === 'Large') ? 'large' : 'small'
+  render() {
+    const size = this.props.type === 'Large' ? 'large' : 'small'
 
-    return <NativeActivityIndicator
-      color={this.props.white ? globalColors.white : globalColors.black}
-      size={size}
-      style={{...style, ...this.props.style}} />
+    return (
+      <NativeActivityIndicator
+        color={this.props.white ? globalColors.white : globalColors.black}
+        size={size}
+        style={{...style, ...this.props.style}}
+      />
+    )
   }
 }
 

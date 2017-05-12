@@ -7,7 +7,7 @@ export type Props = {
   qrCode: string,
   children?: any,
   style?: Object,
-  imageStyle?: Object
+  imageStyle?: Object,
 }
 
-declare export default class QR extends Component<void, Props, void> { }
+declare export default class QR extends Component<void, Props, void> {}

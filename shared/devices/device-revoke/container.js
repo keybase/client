@@ -19,11 +19,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
   onSubmit: () => dispatch(revoke(routeProps.deviceID)),
 })
 
-const icon = props => ({
-  'backup': isMobile ? 'icon-paper-key-revoke-64' : 'icon-paper-key-revoke-48',
-  'desktop': isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48',
-  'mobile': isMobile ? 'icon-phone-revoke-64' : 'icon-phone-revoke-48',
-}[props.device.type])
+const icon = props =>
+  ({
+    backup: isMobile ? 'icon-paper-key-revoke-64' : 'icon-paper-key-revoke-48',
+    desktop: isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48',
+    mobile: isMobile ? 'icon-phone-revoke-64' : 'icon-phone-revoke-48',
+  }[props.device.type])
 
 const makeRenderProps = props => ({
   ...props,
@@ -36,5 +37,5 @@ const makeRenderProps = props => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  mapProps(makeRenderProps),
+  mapProps(makeRenderProps)
 )(DeviceRevoke)

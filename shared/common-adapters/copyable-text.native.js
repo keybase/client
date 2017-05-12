@@ -17,17 +17,17 @@ type State = {
 }
 
 class CopyableText extends Component<void, Props & TimerProps, State> {
-  state: State;
+  state: State
   lastCopyTimeoutId: ?number
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
     this.state = {
       hasCopied: false,
     }
   }
 
-  _handleCopy () {
+  _handleCopy() {
     Clipboard.setString(this.props.value)
     this.setState({hasCopied: true})
     this.props.clearTimeout(this.lastCopyTimeoutId)
@@ -36,15 +36,24 @@ class CopyableText extends Component<void, Props & TimerProps, State> {
     }, 5000)
   }
 
-  render () {
+  render() {
     const {value, style, textStyle} = this.props
     return (
-      <TouchableHighlight activeOpacity={0.6} underlayColor={globalColors.white} onPress={() => this._handleCopy()}style={style}>
+      <TouchableHighlight
+        activeOpacity={0.6}
+        underlayColor={globalColors.white}
+        onPress={() => this._handleCopy()}
+        style={style}
+      >
         <Box style={styleBase}>
-          <Text style={{...styleText, ...textStyle}} type='BodySmall'>{value}</Text>
+          <Text style={{...styleText, ...textStyle}} type="BodySmall">
+            {value}
+          </Text>
           <Box style={styleCopyToastContainer}>
             <Box style={styleCopyToast}>
-              <Text style={styleCopyToastText} type='Body'>{this.state.hasCopied ? 'Copied!' : 'Tap to copy'}</Text>
+              <Text style={styleCopyToastText} type="Body">
+                {this.state.hasCopied ? 'Copied!' : 'Tap to copy'}
+              </Text>
             </Box>
           </Box>
         </Box>
@@ -62,7 +71,10 @@ const styleBase = {
   borderWidth: 1,
   borderColor: globalColors.black_10,
   borderRadius: 3,
-  minHeight: globalMargins.medium + globalMargins.tiny + 2 * globalMargins.small + 24, // Guarantee that the first line of text is shown above the 'Tap to Copy' toast
+  minHeight: globalMargins.medium +
+    globalMargins.tiny +
+    2 * globalMargins.small +
+    24, // Guarantee that the first line of text is shown above the 'Tap to Copy' toast
 }
 
 const styleText = {

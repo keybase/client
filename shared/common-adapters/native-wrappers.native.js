@@ -27,6 +27,7 @@ import {
 } from 'react-native'
 import ScrollView from './scroll-view.native'
 
+// We set some useful default here
 export {
   NativeActivityIndicator,
   NativeAnimated,
@@ -44,7 +45,7 @@ export {
   NativeModal,
   NativeNavigator,
   NativePicker,
-  ScrollView as NativeScrollView, // We set some useful default here
+  ScrollView as NativeScrollView,
   NativeStyleSheet,
   NativeSwitch,
   NativeText,

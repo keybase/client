@@ -2,21 +2,23 @@
 import {ipcMain} from 'electron'
 import {selector as menubarSelector} from '../../menubar'
 import {selector as pineentrySelector} from '../../pinentry'
-import {selector as remotePurgeMessageSelector} from '../../pgp/container.desktop'
+import {
+  selector as remotePurgeMessageSelector,
+} from '../../pgp/container.desktop'
 import {selector as trackerSelector} from '../../tracker'
 import {selector as unlockFoldersSelector} from '../../unlock-folders'
 
 import type {Components} from '../renderer/remote-component'
 
-const componentToSelector :{[key: Components]: Function} = {
-  'tracker': trackerSelector,
-  'menubar': menubarSelector,
-  'unlockFolders': unlockFoldersSelector,
-  'pinentry': pineentrySelector,
-  'purgeMessage': remotePurgeMessageSelector,
+const componentToSelector: {[key: Components]: Function} = {
+  tracker: trackerSelector,
+  menubar: menubarSelector,
+  unlockFolders: unlockFoldersSelector,
+  pinentry: pineentrySelector,
+  purgeMessage: remotePurgeMessageSelector,
 }
 
-export default function (mainWindow: any) {
+export default function(mainWindow: any) {
   const subscribeStoreSubscribers = []
   let store = {}
 
@@ -37,7 +39,7 @@ export default function (mainWindow: any) {
       if (newStore) {
         sender.send('stateChange', newStore)
       }
-    } catch (_) { }
+    } catch (_) {}
   })
 
   ipcMain.on('stateChange', (event, incomingStore) => {

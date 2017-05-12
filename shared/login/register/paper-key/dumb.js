@@ -14,7 +14,7 @@ const baseMock = {
 const dumbComponentMap: DumbComponentMap<Render> = {
   component: Render,
   mocks: {
-    'Normal': baseMock,
+    Normal: baseMock,
   },
 }
 
