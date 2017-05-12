@@ -673,8 +673,8 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
 	g.chatLog.Debug(context.Background(), "connect error %s, reconnect throttle duration: %s", err, reconnectThrottleDuration)
 
-	// Call out to reachability module if we have one
-	if g.reachability != nil {
+	// Check reachability here to see the nature of our offline status
+	if g.reachability != nil && !g.isReachable() {
 		g.reachability.setReachability(keybase1.Reachability{
 			Reachable: keybase1.Reachable_NO,
 		})
@@ -685,7 +685,7 @@ func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.Disconnec
 	g.chatLog.Debug(context.Background(), "disconnected: %v", status)
 
 	// Call out to reachability module if we have one (and we are currently connected)
-	if g.reachability != nil && status != rpc.StartingFirstConnection {
+	if g.reachability != nil && status != rpc.StartingFirstConnection && !g.isReachable() {
 		g.reachability.setReachability(keybase1.Reachability{
 			Reachable: keybase1.Reachable_NO,
 		})
@@ -1221,9 +1221,6 @@ func (g *gregorHandler) isReachable() bool {
 func (g *gregorHandler) Reconnect(ctx context.Context) error {
 	if g.IsConnected() {
 		g.chatLog.Debug(ctx, "Reconnect: reconnecting to server")
-		g.reachability.setReachability(keybase1.Reachability{
-			Reachable: keybase1.Reachable_NO,
-		})
 		g.Shutdown()
 		return g.Connect(g.uri)
 	}
