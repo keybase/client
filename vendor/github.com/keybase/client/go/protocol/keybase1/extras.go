@@ -508,6 +508,19 @@ func (k *KID) MarshalJSON() ([]byte, error) {
 	return Quote(k.String()), nil
 }
 
+func (s *SigID) UnmarshalJSON(b []byte) error {
+	sigID, err := SigIDFromString(Unquote(b), true)
+	if err != nil {
+		return err
+	}
+	*s = sigID
+	return nil
+}
+
+func (s *SigID) MarshalJSON() ([]byte, error) {
+	return Quote(s.ToString(true)), nil
+}
+
 func (f Folder) ToString() string {
 	prefix := "public/"
 	if f.Private {
@@ -620,6 +633,22 @@ func (a GetArg) GetAppStatusCodes() []int {
 	return a.AppStatusCode
 }
 
+func (a GetWithSessionArg) GetEndpoint() string {
+	return a.Endpoint
+}
+
+func (a GetWithSessionArg) GetHTTPArgs() []StringKVPair {
+	return a.Args
+}
+
+func (a GetWithSessionArg) GetHttpStatuses() []int {
+	return a.HttpStatus
+}
+
+func (a GetWithSessionArg) GetAppStatusCodes() []int {
+	return a.AppStatusCode
+}
+
 func (a PostArg) GetEndpoint() string {
 	return a.Endpoint
 }
@@ -649,6 +678,22 @@ func (a PostJSONArg) GetHttpStatuses() []int {
 }
 
 func (a PostJSONArg) GetAppStatusCodes() []int {
+	return a.AppStatusCode
+}
+
+func (a DeleteArg) GetEndpoint() string {
+	return a.Endpoint
+}
+
+func (a DeleteArg) GetHTTPArgs() []StringKVPair {
+	return a.Args
+}
+
+func (a DeleteArg) GetHttpStatuses() []int {
+	return a.HttpStatus
+}
+
+func (a DeleteArg) GetAppStatusCodes() []int {
 	return a.AppStatusCode
 }
 
@@ -791,6 +836,18 @@ func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 	}
 }
 
+// SkipExternalChecks indicates we do not want to run any external proof checkers in
+// identify modes that yield true.
+func (b TLFIdentifyBehavior) SkipExternalChecks() bool {
+	switch b {
+	case TLFIdentifyBehavior_KBFS_QR,
+		TLFIdentifyBehavior_KBFS_REKEY:
+		return true
+	default:
+		return false
+	}
+}
+
 func (c CanonicalTLFNameAndIDWithBreaks) Eq(r CanonicalTLFNameAndIDWithBreaks) bool {
 	if c.CanonicalName != r.CanonicalName {
 		return false
@@ -836,6 +893,7 @@ func (u *UserPlusKeys) DeepCopy() UserPlusKeys {
 		PGPKeyCount:       u.PGPKeyCount,
 		Uvv:               u.Uvv,
 		DeletedDeviceKeys: append([]PublicKey{}, u.DeletedDeviceKeys...),
+		PerUserKeys:       append([]PerUserKey{}, u.PerUserKeys...),
 	}
 }
 
@@ -866,6 +924,15 @@ func (u UserPlusAllKeys) GetUID() UID {
 
 func (u UserPlusAllKeys) GetName() string {
 	return u.Base.GetName()
+}
+
+func (u UserPlusAllKeys) GetDeviceID(kid KID) (ret DeviceID, err error) {
+	for _, dk := range u.Base.DeviceKeys {
+		if dk.KID.Equal(kid) {
+			return dk.DeviceID, nil
+		}
+	}
+	return ret, fmt.Errorf("no device key for kid")
 }
 
 func (u UserPlusAllKeys) Export() *User {

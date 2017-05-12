@@ -182,6 +182,7 @@ var ConversationStatusGregorMap = map[ConversationStatus]string{
 	ConversationStatus_IGNORED:  "ignored",
 	ConversationStatus_BLOCKED:  "blocked",
 	ConversationStatus_MUTED:    "muted",
+	ConversationStatus_REPORTED: "reported",
 }
 
 var ConversationStatusGregorRevMap = map[string]ConversationStatus{
@@ -190,6 +191,7 @@ var ConversationStatusGregorRevMap = map[string]ConversationStatus{
 	"ignored":  ConversationStatus_IGNORED,
 	"blocked":  ConversationStatus_BLOCKED,
 	"muted":    ConversationStatus_MUTED,
+	"reported": ConversationStatus_REPORTED,
 }
 
 func (t ConversationIDTriple) Hash() []byte {
@@ -459,7 +461,6 @@ func (d *SignEncryptedData) AsSealed() SealedData {
 func NewConversationErrorLocal(
 	message string,
 	remoteConv Conversation,
-	permanent bool,
 	unverifiedTLFName string,
 	typ ConversationErrorType,
 	rekeyInfo *ConversationErrorRekey,
@@ -468,8 +469,51 @@ func NewConversationErrorLocal(
 		Typ:               typ,
 		Message:           message,
 		RemoteConv:        remoteConv,
-		Permanent:         permanent,
 		UnverifiedTLFName: unverifiedTLFName,
 		RekeyInfo:         rekeyInfo,
 	}
+}
+
+type OfflinableResult interface {
+	SetOffline()
+}
+
+func (r *NonblockFetchRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *MarkAsReadLocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *GetInboxAndUnboxLocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *GetThreadLocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *GetInboxSummaryForCLILocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *GetConversationForCLILocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *GetMessagesLocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *DownloadAttachmentLocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *FindConversationsLocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (t TyperInfo) String() string {
+	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceName)
 }
