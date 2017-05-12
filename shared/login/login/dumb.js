@@ -3,8 +3,8 @@ import Login from './index.render'
 import type {Props as LoginProps} from './index.render'
 import type {DumbComponentMap} from '../../constants/types/more'
 
-function createLogger (event) {
-  return function () {
+function createLogger(event) {
+  return function() {
     console.log(`login/login => ${event}`, arguments)
   }
 }
@@ -32,7 +32,7 @@ const dumbMap: DumbComponentMap<Login> = {
   component: Login,
   mocks: {
     'Single previous user': props,
-    'Error': {
+    Error: {
       ...props,
       error: 'Oh, no! What a mess!',
     },
@@ -47,6 +47,4 @@ export default {
   'Login: Signed Out': dumbMap,
 }
 
-export {
-  dumbMap,
-}
+export {dumbMap}

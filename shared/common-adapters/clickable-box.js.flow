@@ -13,4 +13,5 @@ export type Props = {
   feedback?: boolean,
 }
 
-declare export default class ClickableBox extends Component<void, Props, void> { }
+declare export default class ClickableBox
+  extends Component<void, Props, void> {}

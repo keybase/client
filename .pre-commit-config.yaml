@@ -15,10 +15,10 @@
             '--write']
     -   id: eslint
         name: eslint
-        entry: shared/node_modules/.bin/eslint
+        entry: sh
         language: system
         files: \.js$
-        args: [--quiet]
+        args: [-c, cd shared && node_modules/.bin/eslint --quiet]
     -   id: flow
         name: flow
         entry: sh

@@ -1,7 +1,7 @@
 // @flow
 import type {UserInfo} from '../constants/tracker'
 
-function followLabel (userInfo: UserInfo, currentlyFollowing: boolean): ?string {
+function followLabel(userInfo: UserInfo, currentlyFollowing: boolean): ?string {
   if (userInfo.followsYou && currentlyFollowing) {
     return 'You follow each other'
   } else if (userInfo.followsYou) {
@@ -10,6 +10,4 @@ function followLabel (userInfo: UserInfo, currentlyFollowing: boolean): ?string 
   return null
 }
 
-export {
-  followLabel,
-}
+export {followLabel}

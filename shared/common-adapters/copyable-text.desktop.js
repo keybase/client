@@ -5,7 +5,15 @@ import type {Props} from './copyable-text'
 
 const CopyableText = ({value, style}: Props) => {
   return (
-    <textarea style={{...styleBase, ...style}} readOnly={true} value={value} onClick={(e) => { e.target.focus(); e.target.select() }} />
+    <textarea
+      style={{...styleBase, ...style}}
+      readOnly={true}
+      value={value}
+      onClick={e => {
+        e.target.focus()
+        e.target.select()
+      }}
+    />
   )
 }
 

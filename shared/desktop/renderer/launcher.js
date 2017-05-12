@@ -17,7 +17,8 @@ import {setupSource} from '../../util/forward-logs'
 setupSource()
 disableDragDrop()
 makeEngine()
-hello(process.pid, 'Menubar', process.argv, __VERSION__, false) // eslint-disable-line no-undef
+// eslint-disable-next-line no-undef
+hello(process.pid, 'Menubar', process.argv, __VERSION__, false)
 
 if (module.hot) {
   module.hot.accept()
@@ -25,17 +26,17 @@ if (module.hot) {
 
 let _store
 
-function setupAvatar () {
+function setupAvatar() {
   initAvatarLookup(getUserImageMap)
   initAvatarLoad(loadUserImageMap)
 }
 
 class RemoteMenubar extends Component {
-  constructor () {
+  constructor() {
     super()
     loadPerf()
   }
-  render () {
+  render() {
     return (
       <Root store={_store}>
         <Menubar />
@@ -46,7 +47,7 @@ class RemoteMenubar extends Component {
 
 setupContextMenu(remote.getCurrentWindow())
 
-function load () {
+function load() {
   setupAvatar()
   if (!_store) {
     _store = new RemoteStore({component: 'menubar'})

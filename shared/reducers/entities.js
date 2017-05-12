@@ -6,7 +6,7 @@ import type {Actions, State} from '../constants/entities'
 
 const initialState: State = new StateRecord()
 
-export default function (state: State = initialState, action: Actions): State {
+export default function(state: State = initialState, action: Actions): State {
   switch (action.type) {
     case CommonConstants.resetStore: {
       return new StateRecord()

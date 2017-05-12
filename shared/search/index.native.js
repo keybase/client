@@ -22,7 +22,9 @@ const SearchRender = (props: Props) => {
     <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <SearchBar {...searchBarProps} />
-        {props.showUserGroup ? <UserGroup {...userGroupProps} /> : <UserSearch {...userSearchProps} />}
+        {props.showUserGroup
+          ? <UserGroup {...userGroupProps} />
+          : <UserSearch {...userSearchProps} />}
       </Box>
     </Box>
   )
@@ -38,5 +40,5 @@ export default compose(
       Keyboard.dismiss()
     },
   })),
-  HeaderHoc,
+  HeaderHoc
 )(SearchRender)

@@ -5,15 +5,25 @@ import type {Device} from './types/more'
 import type {DeviceRole} from './login.js'
 import type {NoErrorTypedAction} from './types/flux'
 
-export type AddNewDevice = NoErrorTypedAction<'device:addNewDevice', {role: DeviceRole}>
+export type AddNewDevice = NoErrorTypedAction<
+  'device:addNewDevice',
+  {role: DeviceRole}
+>
 export type Load = NoErrorTypedAction<'devices:load', void>
-export type Loaded = NoErrorTypedAction<'devices:loaded', {deviceIDs: Array<string>}>
+export type Loaded = NoErrorTypedAction<
+  'devices:loaded',
+  {deviceIDs: Array<string>}
+>
 export type PaperKeyMake = NoErrorTypedAction<'devices:paperKeyMake', void>
 export type Revoke = NoErrorTypedAction<'devices:revoke', {deviceID: string}>
-export type ShowRevokePage = NoErrorTypedAction<'devices:showRevokePage', {deviceID: string}>
+export type ShowRevokePage = NoErrorTypedAction<
+  'devices:showRevokePage',
+  {deviceID: string}
+>
 export type Waiting = NoErrorTypedAction<'devices:waiting', {waiting: boolean}>
 
-export type Actions = Load
+export type Actions =
+  | Load
   | Loaded
   | PaperKeyMake
   | Revoke
@@ -58,7 +68,4 @@ export type State = Record<{
   waitingForServer: boolean,
 }>
 
-export {
-  DeviceDetailRecord,
-  StateRecord,
-}
+export {DeviceDetailRecord, StateRecord}

@@ -61,16 +61,34 @@ const dumbComponentMap: DumbComponentMap<Menubar> = {
     'Private: Normal': propsNormal,
     'Private: Truncated': propsTruncated,
     'Private: Menu Showing': propsMenuShowing,
-    'Private: Async Writing': {...propsNormal, kbfsStatus: {isAsyncWriteHappening: true}},
+    'Private: Async Writing': {
+      ...propsNormal,
+      kbfsStatus: {isAsyncWriteHappening: true},
+    },
     'Public: Normal': {...propsNormal, openToPrivate: false},
     'Public: Truncated': {...propsTruncated, openToPrivate: false},
     'Public: Menu Showing': {...propsMenuShowing, openToPrivate: false},
-    'Badge Folder': {...propsNormal, badgeInfo: {...propsNormal.badgeInfo, folderBadge: 2}},
-    'Badge People': {...propsNormal, badgeInfo: {...propsNormal.badgeInfo, peopleBadge: 3}},
-    'Badge Chat': {...propsNormal, badgeInfo: {...propsNormal.badgeInfo, chatBadge: 2000}},
-    'Badge Device': {...propsNormal, badgeInfo: {...propsNormal.badgeInfo, deviceBadge: 3}},
-    'Badge PeopleChat': {...propsNormal, badgeInfo: {...propsNormal.badgeInfo, peopleBadge: 2, chatBadge: 3000}},
-    'LoggedOut': {
+    'Badge Folder': {
+      ...propsNormal,
+      badgeInfo: {...propsNormal.badgeInfo, folderBadge: 2},
+    },
+    'Badge People': {
+      ...propsNormal,
+      badgeInfo: {...propsNormal.badgeInfo, peopleBadge: 3},
+    },
+    'Badge Chat': {
+      ...propsNormal,
+      badgeInfo: {...propsNormal.badgeInfo, chatBadge: 2000},
+    },
+    'Badge Device': {
+      ...propsNormal,
+      badgeInfo: {...propsNormal.badgeInfo, deviceBadge: 3},
+    },
+    'Badge PeopleChat': {
+      ...propsNormal,
+      badgeInfo: {...propsNormal.badgeInfo, peopleBadge: 2, chatBadge: 3000},
+    },
+    LoggedOut: {
       ...propsNormal,
       loggedIn: false,
     },
@@ -82,5 +100,5 @@ const dumbComponentMap: DumbComponentMap<Menubar> = {
 }
 
 export default {
-  'Menubar': dumbComponentMap,
+  Menubar: dumbComponentMap,
 }

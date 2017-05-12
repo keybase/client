@@ -1,6 +1,10 @@
 // @flow
 import type {PlatformsExpandedType} from '../constants/types/more'
-import type {Proof, SimpleProofState, SimpleProofMeta} from '../constants/tracker'
+import type {
+  Proof,
+  SimpleProofState,
+  SimpleProofMeta,
+} from '../constants/tracker'
 import {Component} from 'react'
 
 export type MissingProof = {
@@ -18,14 +22,15 @@ type CommonProps = {
   showingMenuIndex?: ?number,
 }
 
-export type Props = ({
-  type: 'proofs',
-  proofs: Array<Proof>,
-} & CommonProps) | ({
-  type: 'missingProofs',
-  missingProofs: Array<MissingProof>,
-} & CommonProps)
-
+export type Props =
+  | ({
+    type: 'proofs',
+    proofs: Array<Proof>,
+  } & CommonProps)
+  | ({
+    type: 'missingProofs',
+    missingProofs: Array<MissingProof>,
+  } & CommonProps)
 export default class ProofsRender extends Component<void, Props, void> {
-  getRow: (idx: number) => React$Component<*,*,*>;
+  getRow: (idx: number) => React$Component<*, *, *>
 }

@@ -1,7 +1,7 @@
 // @flow
 import type {PlatformsExpandedType} from '../constants/types/more'
 
-function standardText (name: string) {
+function standardText(name: string) {
   return {
     headerText: `Prove your ${name} identity`,
     floatingLabelText: `Your ${name} username`,
@@ -9,32 +9,38 @@ function standardText (name: string) {
   }
 }
 
-export const platformText : {[key: PlatformsExpandedType]: {headerText: string, floatingLabelText?: string, hintText?: string}} = {
-  'twitter': standardText('Twitter'),
-  'reddit': standardText('Reddit'),
-  'facebook': standardText('Facebook'),
-  'github': standardText('GitHub'),
-  'coinbase': standardText('Coinbase'),
-  'hackernews': standardText('Hacker News'),
-  'btc': {
+export const platformText: {
+  [key: PlatformsExpandedType]: {
+    headerText: string,
+    floatingLabelText?: string,
+    hintText?: string,
+  },
+} = {
+  twitter: standardText('Twitter'),
+  reddit: standardText('Reddit'),
+  facebook: standardText('Facebook'),
+  github: standardText('GitHub'),
+  coinbase: standardText('Coinbase'),
+  hackernews: standardText('Hacker News'),
+  btc: {
     headerText: 'Set a Bitcoin address',
     floatingLabelText: 'Your Bitcoin address',
     hintText: 'Your Bitcoin address',
   },
-  'zcash': {
+  zcash: {
     headerText: 'Set a Zcash address',
     floatingLabelText: 'Your Zcash address',
     hintText: 'Your z_address or t_address',
   },
-  'dns': {
+  dns: {
     headerText: 'Prove your domain',
     hintText: 'yourdomain.com',
   },
-  'http': {
+  http: {
     headerText: 'Prove your website',
     hintText: 'whatever.yoursite.com',
   },
-  'https': {
+  https: {
     headerText: 'Prove your website',
     hintText: 'whatever.yoursite.com',
   },

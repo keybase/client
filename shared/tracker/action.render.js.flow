@@ -18,4 +18,4 @@ export type ActionProps = {
   onUnfollow: () => void,
 }
 
-export default class ActionRender extends Component<void, ActionProps, void> { }
+export default class ActionRender extends Component<void, ActionProps, void> {}

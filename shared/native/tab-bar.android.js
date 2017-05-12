@@ -7,15 +7,13 @@ const tabBarProps = {
 }
 
 class TabBarItem extends Component {
-  render () {
+  render() {
     return this.props.children
   }
 }
 
-const NativeTabBar = requireNativeComponent(
-  'TabBar',
-  tabBarProps,
-  {nativeOnly: {
+const NativeTabBar = requireNativeComponent('TabBar', tabBarProps, {
+  nativeOnly: {
     onSelect: true,
     // Silence RN's warnings for missing nativeProps
     // TODO remove this when react stops complaining
@@ -24,11 +22,11 @@ const NativeTabBar = requireNativeComponent(
     scaleY: true,
     translateX: true,
     translateY: true,
-  }}
-)
+  },
+})
 
 export default class TabBar extends Component {
-  shouldComponentUpdate (nextProps: any, nextState: any) {
+  shouldComponentUpdate(nextProps: any, nextState: any) {
     // If the titles are the same, then we aren't going to rerender.
     const oldTabs = this.props.children
     const newTabs = nextProps.children
@@ -46,10 +44,10 @@ export default class TabBar extends Component {
     return false
   }
 
-  render () {
+  render() {
     const tabs = this.props.children
     const titles = tabs.map(t => t.props.title)
-    const selectedStates = tabs.map(t => (t.props.selected || false))
+    const selectedStates = tabs.map(t => t.props.selected || false)
     return (
       <NativeTabBar
         titles={titles}
@@ -60,11 +58,14 @@ export default class TabBar extends Component {
             selectedTab.props.onPress()
           }
         }}
-        style={{position: 'absolute',
+        style={{
+          position: 'absolute',
           top: 0,
           bottom: 0,
           left: 0,
-          right: 0}}>
+          right: 0,
+        }}
+      >
         {this.props.children}
       </NativeTabBar>
     )

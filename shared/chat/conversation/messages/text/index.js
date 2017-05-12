@@ -34,9 +34,11 @@ const editingStyle = {
 const sentStyle = {
   ...globalStyles.selectable,
   flex: 1,
-  ...(isMobile ? {} : {
-    whiteSpace: 'pre-wrap',
-  }),
+  ...(isMobile
+    ? {}
+    : {
+        whiteSpace: 'pre-wrap',
+      }),
 }
 
 const sentEditingStyle = {

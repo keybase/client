@@ -12,4 +12,4 @@ export type Props = {|
   users: UserList,
 |}
 
-export default class Header extends Component<void, Props, void> { }
+export default class Header extends Component<void, Props, void> {}

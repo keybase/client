@@ -7,7 +7,7 @@ import type {DumbComponentMap} from '../../../../constants/types/more'
 const map: DumbComponentMap<QR> = {
   component: QR,
   mocks: {
-    'Normal': {
+    Normal: {
       parentProps: {
         style: {
           ...globalStyles.flexBoxColumn,
@@ -23,5 +23,5 @@ const map: DumbComponentMap<QR> = {
 }
 
 export default {
-  'QR': map,
+  QR: map,
 }

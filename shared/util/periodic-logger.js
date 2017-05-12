@@ -17,10 +17,17 @@ class PeriodicLogger {
   _size: number
   _logIncoming: boolean
   _logToConsole: boolean
-  _logTransform: (Array<any>) => Array<any>
+  _logTransform: Array<any> => Array<any>
   _logAfterXActions: number
 
-  constructor (name: string, size: number, logIncoming: boolean, logTransform: ?(Array<any> => Array<any>), logAfterXActions: number, logToConsole: boolean) {
+  constructor(
+    name: string,
+    size: number,
+    logIncoming: boolean,
+    logTransform: ?(Array<any>) => Array<any>,
+    logAfterXActions: number,
+    logToConsole: boolean
+  ) {
     if (size <= 0) {
       throw new Error(`PeriodLogger size must be positive: ${size}`)
     }
@@ -32,7 +39,7 @@ class PeriodicLogger {
     this._logAfterXActions = logAfterXActions
   }
 
-  _write (args: Array<any>) {
+  _write(args: Array<any>) {
     const argsWithTimestamp = [Date.now(), ...args]
     this._lastWrite++
     this._messages[this._lastWrite % this._size] = argsWithTimestamp
@@ -40,33 +47,39 @@ class PeriodicLogger {
     if (this._logIncoming) {
       this._dump(null, PREFIX_DUMP_CURRENT, argsWithTimestamp)
     } else if (this._logAfterXActions > 0) {
-      if ((this._lastWrite % this._logAfterXActions) === 0) {
+      if (this._lastWrite % this._logAfterXActions === 0) {
         this._dump(null, PREFIX_DUMP_CURRENT, argsWithTimestamp)
       }
     }
   }
 
-  log (...args: Array<any>) {
-    !this._logIncoming && this._logToConsole && console.log(PREFIX_LOG, this._lastWrite + 1) // output current index so we can see the order of things and correlate a full dump
+  log(...args: Array<any>) {
+    !this._logIncoming &&
+      this._logToConsole &&
+      console.log(PREFIX_LOG, this._lastWrite + 1) // output current index so we can see the order of things and correlate a full dump
     this._write(args)
   }
 
-  warn (...args: Array<any>) {
-    !this._logIncoming && this._logToConsole && console.warn(PREFIX_WARN, this._lastWrite + 1)
+  warn(...args: Array<any>) {
+    !this._logIncoming &&
+      this._logToConsole &&
+      console.warn(PREFIX_WARN, this._lastWrite + 1)
     this._write(args)
   }
 
-  error (...args: Array<any>) {
-    !this._logIncoming && this._logToConsole && console.error(PREFIX_ERROR, this._lastWrite + 1)
+  error(...args: Array<any>) {
+    !this._logIncoming &&
+      this._logToConsole &&
+      console.error(PREFIX_ERROR, this._lastWrite + 1)
     this._write(args)
   }
 
-  groupEnd () { }
-  groupCollapsed () { }
-  group () { }
-  info () { }
+  groupEnd() {}
+  groupCollapsed() {}
+  group() {}
+  info() {}
 
-  _dump (consoleLogOverwrite: any, prefix: string, args: Array<any>) {
+  _dump(consoleLogOverwrite: any, prefix: string, args: Array<any>) {
     if (consoleLogOverwrite) {
       consoleLogOverwrite(prefix, ...this._logTransform(args))
     } else {
@@ -74,19 +87,24 @@ class PeriodicLogger {
     }
   }
 
-  dumpCurrent (consoleLogOverwrite: any) {
-    const args = this._lastWrite !== -1 && this._messages[this._lastWrite % this._size]
+  dumpCurrent(consoleLogOverwrite: any) {
+    const args =
+      this._lastWrite !== -1 && this._messages[this._lastWrite % this._size]
     if (args) {
-      this._dump(consoleLogOverwrite, `${PREFIX_DUMP_CURRENT}${this._lastWrite}:`, args)
+      this._dump(
+        consoleLogOverwrite,
+        `${PREFIX_DUMP_CURRENT}${this._lastWrite}:`,
+        args
+      )
     }
   }
 
-  clear () {
+  clear() {
     this._lastWrite = -1
     this._messages = []
   }
 
-  dumpAll (consoleLogOverwrite: any) {
+  dumpAll(consoleLogOverwrite: any) {
     const endIndex = this._lastWrite
     let index = Math.max(0, endIndex - this._size)
     while (index <= endIndex) {
@@ -105,22 +123,36 @@ class PeriodicLogger {
 const _loggers: {[name: string]: PeriodicLogger} = {}
 
 // Provider your own replacemes for console.log for the logger
-function dumpLoggers (consoleLogOverwrite: any) {
+function dumpLoggers(consoleLogOverwrite: any) {
   Object.keys(_loggers).forEach(name => {
     _loggers[name].dumpAll(consoleLogOverwrite)
   })
 }
 
-function setupLogger (name: string, size: number, logIncoming: boolean, logTransform: ?(Array<any>) => Array<any>, logAfterXActions: number, logToConsole: boolean): PeriodicLogger {
+function setupLogger(
+  name: string,
+  size: number,
+  logIncoming: boolean,
+  logTransform: ?(Array<any>) => Array<any>,
+  logAfterXActions: number,
+  logToConsole: boolean
+): PeriodicLogger {
   if (_loggers[name]) {
     throw new Error(`logger already named ${name} exists`)
   }
 
-  _loggers[name] = new PeriodicLogger(name, size, logIncoming, logTransform, logAfterXActions, logToConsole)
+  _loggers[name] = new PeriodicLogger(
+    name,
+    size,
+    logIncoming,
+    logTransform,
+    logAfterXActions,
+    logToConsole
+  )
   return _loggers[name]
 }
 
-function getLogger (name: string) {
+function getLogger(name: string) {
   if (!_loggers[name]) {
     throw new Error(`No logger named ${name}`)
   }
@@ -131,7 +163,7 @@ function getLogger (name: string) {
 type ImmutableToJSType = ?Array<any>
 
 // $FlowIssue this is a generic mechanism where the caller is making sure it'll match. Not clear how to encode that simply
-const immutableToJS = ([prefix, timestamp, state]: ImmutableToJSType) => { // eslint-disable-line
+const immutableToJS = ([prefix, timestamp, state]: ImmutableToJSType) => {
   var newState = {}
 
   Object.keys(state).forEach(i => {
@@ -145,9 +177,4 @@ const immutableToJS = ([prefix, timestamp, state]: ImmutableToJSType) => { // es
   return [prefix, timestamp, newState]
 }
 
-export {
-  dumpLoggers,
-  getLogger,
-  immutableToJS,
-  setupLogger,
-}
+export {dumpLoggers, getLogger, immutableToJS, setupLogger}

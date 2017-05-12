@@ -5,11 +5,12 @@ import {connect} from 'react-redux'
 import {restartSignup} from '../../../actions/signup'
 
 class SignupError extends Component {
-  render () {
+  render() {
     return (
       <Render
         errorText={this.props.errorText}
-        restartSignup={this.props.restartSignup} />
+        restartSignup={this.props.restartSignup}
+      />
     )
   }
 }

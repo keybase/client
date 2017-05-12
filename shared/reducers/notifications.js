@@ -17,7 +17,10 @@ const _updateWidgetBadge = (s: Constants.State): Constants.State => {
   return s.set('widgetBadge', widgetBadge)
 }
 
-export default function (state: Constants.State = initialState, action: Constants.Actions): Constants.State {
+export default function(
+  state: Constants.State = initialState,
+  action: Constants.Actions
+): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return initialState
@@ -25,7 +28,8 @@ export default function (state: Constants.State = initialState, action: Constant
       const {conversations, newTlfs, rekeysNeeded} = action.payload.badgeState
 
       const navBadges = state.get('navBadges').withMutations(n => {
-        const totalMessages = (conversations || []).reduce((total, c) => total + c.UnreadMessages, 0)
+        const totalMessages = (conversations || [])
+          .reduce((total, c) => total + c.UnreadMessages, 0)
         n.set(chatTab, totalMessages)
         n.set(folderTab, newTlfs + rekeysNeeded)
       })
@@ -33,7 +37,10 @@ export default function (state: Constants.State = initialState, action: Constant
       // $FlowIssue withMutations
       let newState = state.withMutations(s => {
         s.set('navBadges', navBadges)
-        s.set('desktopAppBadgeCount', navBadges.reduce((total, val) => total + val, 0))
+        s.set(
+          'desktopAppBadgeCount',
+          navBadges.reduce((total, val) => total + val, 0)
+        )
         s.set('mobileAppBadgeCount', navBadges.get(chatTab, 0))
       })
 
@@ -44,7 +51,9 @@ export default function (state: Constants.State = initialState, action: Constant
       const badgeAction: Constants.BadgeAppAction = action
 
       // $FlowIssue update
-      let newState = state.update('keyState', ks => ks.set(badgeAction.payload.key, badgeAction.payload.on))
+      let newState = state.update('keyState', ks =>
+        ks.set(badgeAction.payload.key, badgeAction.payload.on)
+      )
       newState = _updateWidgetBadge(newState)
       return newState
     default:

@@ -13,7 +13,10 @@ import {debounce} from 'lodash'
 import {getUserImageMap, loadUserImageMap} from './util/pictures'
 import {initAvatarLookup, initAvatarLoad} from './common-adapters'
 import {listenForNotifications} from './actions/notifications'
-import {persistRouteState, loadRouteState} from './actions/platform-specific.native'
+import {
+  persistRouteState,
+  loadRouteState,
+} from './actions/platform-specific.native'
 import {navigateUp, setRouteState} from './actions/route-tree'
 
 import type {TypedState} from './constants/reducer'
@@ -41,7 +44,7 @@ type OwnProps = {
 }
 
 class Main extends Component<void, any, void> {
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     if (!global.mainLoaded) {
@@ -60,14 +63,14 @@ class Main extends Component<void, any, void> {
     this.props.persistRouteState()
   }, 200)
 
-  _setIconBadgeNumber (count: number) {
+  _setIconBadgeNumber(count: number) {
     RNPN.setApplicationIconBadgeNumber(count)
     if (count === 0) {
       RNPN.cancelAllLocalNotifications()
     }
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (this.props.routeState !== nextProps.routeState) {
       this._persistRoute()
     }
@@ -77,11 +80,11 @@ class Main extends Component<void, any, void> {
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._setIconBadgeNumber(this.props.mobileAppBadgeCount)
   }
 
-  render () {
+  render() {
     if (this.props.dumbFullscreen) {
       return <DumbSheet />
     }
@@ -95,8 +98,7 @@ class Main extends Component<void, any, void> {
             routeDef={this.props.routeDef}
             routeState={this.props.routeState}
             setRouteState={this.props.setRouteState}
-          />
-        }
+          />}
         {mountPush && <Push prompt={showPushPrompt} />}
       </Box>
     )
@@ -105,9 +107,11 @@ class Main extends Component<void, any, void> {
 
 const mapStateToProps = (state: TypedState) => ({
   dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
-  folderBadge: state.favorite.folderState.privateBadge + state.favorite.folderState.publicBadge,
+  folderBadge: state.favorite.folderState.privateBadge +
+    state.favorite.folderState.publicBadge,
   mobileAppBadgeCount: state.notifications.get('mobileAppBadgeCount'),
-  mountPush: state.config.loggedIn && state.config.bootStatus === 'bootStatusBootstrapped',
+  mountPush: state.config.loggedIn &&
+    state.config.bootStatus === 'bootStatusBootstrapped',
   routeDef: state.routeTree.routeDef,
   routeState: state.routeTree.routeState,
   showPushPrompt: state.push.permissionsPrompt,
@@ -118,14 +122,15 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   hello: () => hello(0, ownProps.platform, [], ownProps.version, true), // TODO real version
   listenForNotifications: () => dispatch(listenForNotifications()),
   loadRouteState: () => dispatch(loadRouteState()),
-  navigateUp: () => { dispatch(navigateUp()) },
+  navigateUp: () => {
+    dispatch(navigateUp())
+  },
   persistRouteState: () => dispatch(persistRouteState()),
-  setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
+  setRouteState: (path, partialState) => {
+    dispatch(setRouteState(path, partialState))
+  },
 })
 
 const connector = connect(mapStateToProps, mapDispatchToProps)
 
-export {
-  connector,
-  Main,
-}
+export {connector, Main}

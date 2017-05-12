@@ -20,21 +20,27 @@ type Props = {
 
 class Main extends Component<void, Props, void> {
   _updateBadges = () => {
-    ipcRenderer.send('showTray', this.props.widgetBadge, this.props.desktopAppBadgeCount)
+    ipcRenderer.send(
+      'showTray',
+      this.props.widgetBadge,
+      this.props.desktopAppBadgeCount
+    )
   }
 
-  componentDidUpdate (prevProps) {
-    if (this.props.widgetBadge !== prevProps.widgetBadge ||
-      this.props.desktopAppBadgeCount !== prevProps.desktopAppBadgeCount) {
+  componentDidUpdate(prevProps) {
+    if (
+      this.props.widgetBadge !== prevProps.widgetBadge ||
+      this.props.desktopAppBadgeCount !== prevProps.desktopAppBadgeCount
+    ) {
       this._updateBadges()
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._updateBadges()
   }
 
-  render () {
+  render() {
     return (
       <RenderRoute
         routeDef={this.props.routeDef}
@@ -57,7 +63,9 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   navigateUp: () => dispatch(navigateUp()),
-  setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
+  setRouteState: (path, partialState) => {
+    dispatch(setRouteState(path, partialState))
+  },
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(Main)

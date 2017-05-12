@@ -16,7 +16,7 @@ import type {RouteProps} from './route-tree/render-route'
 
 type OwnProps = RouteProps<{}, {}>
 
-function Nav (props: Props) {
+function Nav(props: Props) {
   const visibleScreen = props.routeStack.findLast(r => !r.tags.layerOnTop)
   if (!visibleScreen) {
     throw new Error('no route component to render without layerOnTop tag')
@@ -30,14 +30,17 @@ function Nav (props: Props) {
           selectedTab={props.routeSelected}
           username={props.username}
           badgeNumbers={props.navBadges.toJS()}
-        />
-      }
+        />}
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         {visibleScreen.component}
         {layerScreens.map(r => r.leafComponent)}
       </Box>
-      <div id='popupContainer' />
-      {![chatTab, loginTab].includes(props.routeSelected) && <Offline reachability={props.reachability} appFocused={props.appFocused} />}
+      <div id="popupContainer" />
+      {![chatTab, loginTab].includes(props.routeSelected) &&
+        <Offline
+          reachability={props.reachability}
+          appFocused={props.appFocused}
+        />}
       <GlobalError />
     </Box>
   )

@@ -2,24 +2,24 @@
 import {ipcRenderer} from 'electron'
 
 class RemoteStore {
-  listeners: Array<Function> = [];
-  internalState: any = {};
+  listeners: Array<Function> = []
+  internalState: any = {}
 
   _onStateChange = (event, arg) => {
     this.internalState = arg
     this._publishChange()
   }
 
-  constructor (props: {component: string, selectorParams?: ?string}) {
+  constructor(props: {component: string, selectorParams?: ?string}) {
     ipcRenderer.on('stateChange', this._onStateChange)
     ipcRenderer.send('subscribeStore', props.component, props.selectorParams)
   }
 
-  cleanup () {
+  cleanup() {
     ipcRenderer.removeListener('stateChange', this._onStateChange)
   }
 
-  getState (): any {
+  getState(): any {
     return this.internalState
   }
 
@@ -27,7 +27,7 @@ class RemoteStore {
     this._dispatch(action)
   }
 
-  _dispatch (action: any) {
+  _dispatch(action: any) {
     // TODO use our middlewares
     if (action.constructor === Function) {
       return action(a => this.dispatch(a), () => this.getState())
@@ -36,14 +36,14 @@ class RemoteStore {
     }
   }
 
-  subscribe (listener: Function): () => void {
+  subscribe(listener: Function): () => void {
     this.listeners.push(listener)
     return listener => {
       this.listeners = this.listeners.filter(l => l !== listener)
     }
   }
 
-  _publishChange () {
+  _publishChange() {
     this.listeners.forEach(l => {
       setImmediate(l)
     })

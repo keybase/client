@@ -12,10 +12,10 @@ const NO_SERVER = getenv.boolish('NO_SERVER', false)
 const NO_SOURCE_MAPS = getenv.boolish('NO_SOURCE_MAPS', false)
 const HOT = getenv.boolish('HOT', false)
 const defines = {
-  '__DEV__': true,
-  '__SCREENSHOT__': false,
+  __DEV__: true,
+  __SCREENSHOT__: false,
   'process.env.NODE_ENV': JSON.stringify('development'),
-  '__VERSION__': JSON.stringify('Development'),
+  __VERSION__: JSON.stringify('Development'),
 }
 
 const config = Object.assign({}, baseConfig)
@@ -37,28 +37,30 @@ config.module.loaders.unshift({
   loader: 'file?name=[name].[ext]',
 })
 
-config.plugins.push(new UnusedFilesWebpackPlugin({
-  pattern: './shared/**/*.js',
-  globOptions: {
-    ignore: [
-      // Mobile stuff
-      '../**/*.native.js',
-      '../**/*.ios.js',
-      '../**/*.android.js',
-      // Flow stuff
-      '../constants/folders.js',
-      '../constants/types/flux.js',
-      '../constants/types/saga.js',
-      '../constants/reducer.js',
-      '../flow-typed/*.js',
-      // Tests
-      '../test/**',
-      // Misc
-      '../packager/wipe-cache.js',
-      '../dev/log-send/index.js',
-    ],
-  },
-}))
+config.plugins.push(
+  new UnusedFilesWebpackPlugin({
+    pattern: './shared/**/*.js',
+    globOptions: {
+      ignore: [
+        // Mobile stuff
+        '../**/*.native.js',
+        '../**/*.ios.js',
+        '../**/*.android.js',
+        // Flow stuff
+        '../constants/folders.js',
+        '../constants/types/flux.js',
+        '../constants/types/saga.js',
+        '../constants/reducer.js',
+        '../flow-typed/*.js',
+        // Tests
+        '../test/**',
+        // Misc
+        '../packager/wipe-cache.js',
+        '../dev/log-send/index.js',
+      ],
+    },
+  })
+)
 
 if (!NO_SERVER) {
   config.plugins.push(new DashboardPlugin())
@@ -87,10 +89,12 @@ if (USING_DLL) {
 if (getenv.boolish('HOT', false)) {
   config.entry.index = ['react-hot-loader/patch'].concat(config.entry.index)
 
-  const HMR = 'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr'
+  const HMR =
+    'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr'
 
   Object.keys(config.entry).forEach(k => {
-    if (k !== 'main') { // node-only thread can't be hot loaded...
+    if (k !== 'main') {
+      // node-only thread can't be hot loaded...
       config.entry[k] = [HMR].concat(config.entry[k]) // Note: all entry points need `if (module.hot) {module.hot.accept()}` to allow hot auto loads to work
     }
   })

@@ -23,21 +23,22 @@ setupSource()
 disableDragDrop()
 makeEngine()
 
-function setupAvatar () {
+function setupAvatar() {
   initAvatarLookup(getUserImageMap)
   initAvatarLoad(loadUserImageMap)
 }
 
 module.hot && module.hot.accept()
-module.hot && module.hot.dispose(() => {
-  engine().reset()
-})
+module.hot &&
+  module.hot.dispose(() => {
+    engine().reset()
+  })
 
 // Defer this since it's a sync call
-const getCurrentWindow = (function () {
+const getCurrentWindow = (function() {
   let currentWindow = null
 
-  return function () {
+  return function() {
     if (!currentWindow) {
       currentWindow = remote.getCurrentWindow()
     }
@@ -64,11 +65,11 @@ type State = {
 }
 
 class RemoteComponentLoader extends Component<void, any, State> {
-  state: State;
-  store: any;
-  ComponentClass: any;
+  state: State
+  store: any
+  ComponentClass: any
 
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {
       loaded: false,
@@ -78,10 +79,17 @@ class RemoteComponentLoader extends Component<void, any, State> {
     loadPerf()
 
     const title = this.props.title
-    hello(process.pid, 'Remote Component: ' + (title || ''), process.argv, __VERSION__, false) // eslint-disable-line no-undef
+    hello(
+      process.pid,
+      'Remote Component: ' + (title || ''),
+      process.argv,
+      // eslint-disable-next-line no-undef
+      __VERSION__,
+      false
+    )
   }
 
-  componentWillMount () {
+  componentWillMount() {
     const component = this.props.component
     const selectorParams = this.props.selectorParams
     const components = {tracker, pinentry, unlockFolders, purgeMessage}
@@ -98,11 +106,13 @@ class RemoteComponentLoader extends Component<void, any, State> {
 
     currentWindow.on('hasProps', props => {
       // Maybe we need to wait for the state to arrive at the beginning
-      if (props.waitForState &&
-          // Make sure we only do this if we haven't loaded the state yet
-          !this.state.loaded &&
-          // Only do this if the store hasn't been filled yet
-          Object.keys(this.store.getState()).length === 0) {
+      if (
+        props.waitForState &&
+        // Make sure we only do this if we haven't loaded the state yet
+        !this.state.loaded &&
+        // Only do this if the store hasn't been filled yet
+        Object.keys(this.store.getState()).length === 0
+      ) {
         const unsub = this.store.subscribe(() => {
           unsub()
           showOnLoad(getCurrentWindow())
@@ -123,7 +133,7 @@ class RemoteComponentLoader extends Component<void, any, State> {
       // Hide the window since we've effectively told it to close
       try {
         getCurrentWindow().hide()
-      } catch (_) { }
+      } catch (_) {}
 
       ipcRenderer.removeListener('remoteUnmount', onRemoteUnmount)
     }
@@ -132,22 +142,22 @@ class RemoteComponentLoader extends Component<void, any, State> {
 
     try {
       ipcRenderer.send('registerRemoteUnmount', currentWindow.id)
-    } catch (_) { }
+    } catch (_) {}
 
     currentWindow.emit('needProps')
   }
 
-  componentDidUpdate (prevProps, prevState) {
+  componentDidUpdate(prevProps, prevState) {
     if (!prevState.unmounted && this.state.unmounted) {
       // Close the window now that the remote-component's unmount
       // lifecycle method has finished
       try {
         getCurrentWindow().close()
-      } catch (_) { }
+      } catch (_) {}
     }
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     if (this.store) {
       this.store.cleanup()
       this.store = null
@@ -155,10 +165,10 @@ class RemoteComponentLoader extends Component<void, any, State> {
 
     try {
       getCurrentWindow().removeAllListeners('hasProps')
-    } catch (_) { }
+    } catch (_) {}
   }
 
-  render () {
+  render() {
     if (!this.state.loaded) {
       return <div style={styles.loading} />
     }
@@ -166,7 +176,7 @@ class RemoteComponentLoader extends Component<void, any, State> {
       return <div />
     }
     return (
-      <div id='RemoteComponentRoot' style={styles.container}>
+      <div id="RemoteComponentRoot" style={styles.container}>
         <Root store={this.store}>
           <this.ComponentClass {...this.state.props} />
         </Root>
@@ -186,13 +196,16 @@ const styles = {
   },
 }
 
-function load (options) {
+function load(options) {
   setupAvatar()
-  ReactDOM.render(<RemoteComponentLoader
-    title={options.title}
-    component={options.component}
-    selectorParams={options.selectorParams}
-    />, document.getElementById('root'))
+  ReactDOM.render(
+    <RemoteComponentLoader
+      title={options.title}
+      component={options.component}
+      selectorParams={options.selectorParams}
+    />,
+    document.getElementById('root')
+  )
 }
 
 window.load = load
