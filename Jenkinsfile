@@ -22,6 +22,8 @@ helpers.rootLinuxNode(env, {
                 defaultValue: '',
                 description: 'The private IP of the node running kbweb',
             ),
+            // TODO: deprecated, remove once no client builds are left that
+            // send this variable.
             string(
                 name: 'kbwebNodePublicIP',
                 defaultValue: '',
@@ -35,7 +37,6 @@ helpers.rootLinuxNode(env, {
         ]),
     ])
     def kbwebNodePrivateIP = params.kbwebNodePrivateIP
-    def kbwebNodePublicIP = params.kbwebNodePublicIP
     def clientProjectName = params.clientProjectName
 
     env.BASEDIR=pwd()
@@ -52,7 +53,10 @@ helpers.rootLinuxNode(env, {
         println "Setting up build: ${env.BUILD_TAG}"
         def cause = helpers.getCauseString(currentBuild)
         println "Cause: ${cause}"
-        def startKbweb = kbwebNodePrivateIP == '' || kbwebNodePublicIP == ''
+        def startKbweb = kbwebNodePrivateIP == ''
+        if (startKbweb) {
+            kbwebNodePrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
+        }
 
         stage("Setup") {
             sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
@@ -94,112 +98,114 @@ helpers.rootLinuxNode(env, {
         }
 
         stage("Test") {
-            def kbweb = null
             try {
-                // Install kbfsfuse first so we can start on dockerizing.
-                sh "go install github.com/keybase/kbfs/kbfsfuse"
-                sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
-                withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64', variable: 'KBFS_DOCKER_CERT_B64']]) {
-                    println "Building Docker"
-                    sh '''
-                        set +x
-                        docker build -t keybaseprivate/kbfsfuse --build-arg KEYBASE_TEST_ROOT_CERT_PEM_B64=\"$KBFS_DOCKER_CERT_B64\" kbfsfuse
-                    '''
-                }
-                sh "docker save keybaseprivate/kbfsfuse | gzip > kbfsfuse.tar.gz"
-                archive("kbfsfuse.tar.gz")
 
+                // Trigger downstream builds
                 parallel (
-                    test_kbfs: {
-                        parallel (
-                            pull_mysql: {
-                                if (startKbweb) {
-                                    mysqlImage.pull()
-                                }
-                            },
-                            pull_gregor: {
-                                if (startKbweb) {
-                                    gregorImage.pull()
-                                }
-                            },
-                            pull_kbweb: {
-                                if (startKbweb) {
-                                    kbwebImage.pull()
-                                }
-                            },
-                        )
-                        if (startKbweb) {
-                            retry(5) {
-                                sh "docker-compose up -d mysql.local"
+                    //test_windows: {
+                    //    helpers.nodeWithCleanup('windows', {}, {}) {
+                    //    withEnv([
+                    //        'GOROOT=C:\\tools\\go',
+                    //        "GOPATH=\"${pwd()}\\go\"",
+                    //        'PATH+TOOLS="C:\\tools\\go\\bin";"C:\\Program Files (x86)\\GNU\\GnuPG";',
+                    //        "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                    //        "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                    //    ]) {
+                    //    deleteDir()
+                    //    ws("${pwd()}/src/github.com/keybase/client") {
+                    //        println "Checkout Windows"
+                    //        checkout scm
+
+                    //        println "Test Windows"
+                    //        // TODO Implement Windows test
+                    //    }}}
+                    //},
+                    test_osx: {
+                        helpers.nodeWithCleanup('macstadium', {}, {}) {
+                            def BASEDIR=pwd()
+                            def GOPATH="${BASEDIR}/go"
+                            def mountDir='/Volumes/untitled/kbfs'
+                            dir(mountDir) {
+                                sh "touch test.txt"
                             }
-                            sh "docker-compose up -d kbweb.local"
-                            sh "curl -s http://169.254.169.254/latest/meta-data/public-ipv4 > public.txt"
-                            sh "curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > private.txt"
-                            kbwebNodePublicIP = readFile('public.txt')
-                            kbwebNodePrivateIP = readFile('private.txt')
-                            sh "rm public.txt"
-                            sh "rm private.txt"
+                            try {
+                                withEnv([
+                                    "PATH=${env.PATH}:${GOPATH}/bin",
+                                    "GOPATH=${GOPATH}",
+                                    "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                                    "TMPDIR=${mountDir}",
+                                ]) {
+                                    ws("${GOPATH}/src/github.com/keybase/kbfs") {
+                                        println "Checkout OS X"
+                                        checkout scm
+
+                                        println "Test OS X"
+                                        runNixTest('osx_')
+                                    }
+                                }
+                            } finally {
+                                dir(mountDir) {
+                                    deleteDir()
+                                }
+                            }
                         }
+                    },
+                    test_kbfs: {
+                        // Install kbfsfuse first so we can start on dockerizing.
+                        sh "go install github.com/keybase/kbfs/kbfsfuse"
+                        sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
+                        withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64', variable: 'KBFS_DOCKER_CERT_B64']]) {
+                            println "Building Docker"
+                            sh '''
+                                set +x
+                                docker build -t keybaseprivate/kbfsfuse --build-arg KEYBASE_TEST_ROOT_CERT_PEM_B64=\"$KBFS_DOCKER_CERT_B64\" kbfsfuse
+                            '''
+                        }
+                        sh "docker save keybaseprivate/kbfsfuse | gzip > kbfsfuse.tar.gz"
+                        archive("kbfsfuse.tar.gz")
+
                         parallel (
                             test_linux: {
-                                withEnv([
-                                    "PATH=${env.PATH}:${env.GOPATH}/bin",
-                                ]) {
-                                    runNixTest('linux_')
-                                }
-                            },
-                            //test_windows: {
-                            //    helpers.nodeWithCleanup('windows', {}, {}) {
-                            //    withEnv([
-                            //        'GOROOT=C:\\tools\\go',
-                            //        "GOPATH=\"${pwd()}\\go\"",
-                            //        'PATH+TOOLS="C:\\tools\\go\\bin";"C:\\Program Files (x86)\\GNU\\GnuPG";',
-                            //        "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                            //        "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
-                            //    ]) {
-                            //    deleteDir()
-                            //    ws("${pwd()}/src/github.com/keybase/client") {
-                            //        println "Checkout Windows"
-                            //        checkout scm
+                                if (startKbweb) {
+                                    parallel (
+                                        pull_mysql: {
+                                            mysqlImage.pull()
+                                        },
+                                        pull_gregor: {
+                                            gregorImage.pull()
+                                        },
+                                        pull_kbweb: {
+                                            kbwebImage.pull()
+                                        },
+                                    )
+                                    retry(5) {
+                                        sh "docker-compose up -d mysql.local"
+                                    }
+                                    sh "docker-compose up -d kbweb.local"
 
-                            //        println "Test Windows"
-                            //        // TODO Implement Windows test
-                            //    }}}
-                            //},
-                            test_osx: {
-                                helpers.nodeWithCleanup('osx', {}, {}) {
-                                    def BASEDIR=pwd()
-                                    def GOPATH="${BASEDIR}/go"
                                     withEnv([
-                                        "PATH=${env.PATH}:${GOPATH}/bin",
-                                        "GOPATH=${GOPATH}",
-                                        "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
-                                        "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
+                                        "PATH=${env.PATH}:${env.GOPATH}/bin",
                                     ]) {
-                                        ws("${GOPATH}/src/github.com/keybase/kbfs") {
-                                            println "Checkout OS X"
-                                            checkout scm
-
-                                            println "Test OS X"
-                                            runNixTest('osx_')
-                                        }
+                                        runNixTest('linux_')
                                     }
                                 }
                             },
+                            integrate: {
+                                build([
+                                    job: "/kbfs-server/master",
+                                    parameters: [
+                                        [$class: 'StringParameterValue',
+                                            name: 'kbfsProjectName',
+                                            value: env.JOB_NAME,
+                                        ],
+                                    ]
+                                ])
+                            },
                         )
                     },
-                    integrate: {
-                        build([
-                            job: "/kbfs-server/master",
-                            parameters: [
-                                [$class: 'StringParameterValue',
-                                    name: 'kbfsProjectName',
-                                    value: env.JOB_NAME,
-                                ],
-                            ]
-                        ])
-                    },
                 )
+
             } catch (ex) {
                 println "Gregor logs:"
                 sh "docker-compose logs gregor.local"
@@ -227,6 +233,10 @@ helpers.rootLinuxNode(env, {
 }
 
 def runNixTest(prefix) {
+    // Dependencies
+    dir('test') {
+        sh 'go test -i -tags fuse'
+    }
     tests = [:]
     // Run libkbfs tests with an in-memory bserver and mdserver, and run
     // all other tests with the tempdir bserver and mdserver.
@@ -309,15 +319,18 @@ def runNixTest(prefix) {
             sh './simplefs.test -test.timeout 2m'
         }
     }
-    tests[prefix+'test'] = {
+    tests[prefix+'test_race'] = {
         dir('test') {
-            sh 'go test -i -tags fuse'
-            println "Test Dir with Race but no Fuse"
-            sh 'go test -race -c'
-            sh './test.test -test.timeout 7m'
-            println "Test Dir with Fuse but no Race"
-            sh 'go test -c -tags fuse'
-            sh './test.test -test.timeout 7m'
+            println "Test with Race but no Fuse"
+            sh 'go test -race -c -o test.race'
+            sh './test.race -test.timeout 12m'
+        }
+    }
+    tests[prefix+'test_fuse'] = {
+        dir('test') {
+            println "Test with Fuse but no Race"
+            sh 'go test -c -tags fuse -o test.fuse'
+            sh './test.fuse -test.timeout 12m'
         }
     }
     parallel (tests)
