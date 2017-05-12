@@ -674,25 +674,29 @@ func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time
 	g.chatLog.Debug(context.Background(), "connect error %s, reconnect throttle duration: %s", err, reconnectThrottleDuration)
 
 	// Check reachability here to see the nature of our offline status
-	if g.reachability != nil && !g.isReachable() {
-		g.reachability.setReachability(keybase1.Reachability{
-			Reachable: keybase1.Reachable_NO,
-		})
-	}
+	go func() {
+		if g.reachability != nil && !g.isReachable() {
+			g.reachability.setReachability(keybase1.Reachability{
+				Reachable: keybase1.Reachable_NO,
+			})
+		}
+	}()
 }
 
 func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
 	g.chatLog.Debug(context.Background(), "disconnected: %v", status)
 
-	// Call out to reachability module if we have one (and we are currently connected)
-	if g.reachability != nil && status != rpc.StartingFirstConnection && !g.isReachable() {
-		g.reachability.setReachability(keybase1.Reachability{
-			Reachable: keybase1.Reachable_NO,
-		})
-	}
-
 	// Alert chat syncer that we are now disconnected
 	g.G().Syncer.Disconnected(ctx)
+
+	// Call out to reachability module if we have one (and we are currently connected)
+	go func() {
+		if g.reachability != nil && status != rpc.StartingFirstConnection && !g.isReachable() {
+			g.reachability.setReachability(keybase1.Reachability{
+				Reachable: keybase1.Reachable_NO,
+			})
+		}
+	}()
 }
 
 func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
