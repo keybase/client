@@ -71,16 +71,16 @@ func TestRevokeDevice(t *testing.T) {
 	testRevokeDevice(t, false)
 }
 
-func TestRevokeDeviceSDH(t *testing.T) {
-	t.Skip("TODO waiting for PerUserSecretRewrite")
+func TestRevokeDevicePUK(t *testing.T) {
+	t.Skip("TODO waiting for CORE-4895 RevokePUK")
 
 	testRevokeDevice(t, true)
 }
 
-func testRevokeDevice(t *testing.T, enableSharedDH bool) {
+func testRevokeDevice(t *testing.T, supportPerUserKey bool) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
-	tc.Tp.EnableSharedDH = enableSharedDH
+	tc.Tp.SupportPerUserKey = supportPerUserKey
 
 	u := CreateAndSignupFakeUserPaper(tc, "rev")
 
@@ -115,16 +115,16 @@ func TestRevokePaperDevice(t *testing.T) {
 	testRevokePaperDevice(t, false)
 }
 
-func TestRevokePaperDeviceSDH(t *testing.T) {
-	t.Skip("TODO waiting for PerUserSecretRewrite")
+func TestRevokePaperDevicePUK(t *testing.T) {
+	t.Skip("TODO waiting for CORE-4895 RevokePUK")
 
 	testRevokePaperDevice(t, true)
 }
 
-func testRevokePaperDevice(t *testing.T, enableSharedDH bool) {
+func testRevokePaperDevice(t *testing.T, supportPerUserKey bool) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
-	tc.Tp.EnableSharedDH = enableSharedDH
+	tc.Tp.SupportPerUserKey = supportPerUserKey
 
 	u := CreateAndSignupFakeUserPaper(tc, "rev")
 
@@ -145,19 +145,19 @@ func testRevokePaperDevice(t *testing.T, enableSharedDH bool) {
 
 	assertNumDevicesAndKeys(tc, u, 1, 2)
 
-	if tc.G.Env.GetEnableSharedDH() {
-		checkSharedDHKeyring(t, tc.G, 2)
+	if tc.G.Env.GetSupportPerUserKey() {
+		checkPerUserKeyring(t, tc.G, 2)
 	}
 }
 
-func checkSharedDHKeyring(t *testing.T, g *libkb.GlobalContext, expectedCurrentGeneration int) {
+func checkPerUserKeyring(t *testing.T, g *libkb.GlobalContext, expectedCurrentGeneration int) {
 	// double check that the sdh keyring is correct
-	g.ClearSharedDHKeyring()
-	require.NoError(t, g.BumpSharedDHKeyring())
-	sdhk, err := g.GetSharedDHKeyring()
+	g.ClearPerUserKeyring()
+	require.NoError(t, g.BumpPerUserKeyring())
+	pukring, err := g.GetPerUserKeyring()
 	require.NoError(t, err)
-	require.NoError(t, sdhk.Sync(context.TODO()))
-	require.Equal(t, expectedCurrentGeneration, sdhk.CurrentGeneration())
+	require.NoError(t, pukring.Sync(context.TODO()))
+	require.Equal(t, expectedCurrentGeneration, pukring.CurrentGeneration())
 }
 
 func TestRevokeKey(t *testing.T) {

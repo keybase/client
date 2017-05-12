@@ -9,16 +9,15 @@ import (
 )
 
 type Hello2Res struct {
-	EncryptionKey KID                    `codec:"encryptionKey" json:"encryptionKey"`
-	SigPayload    HelloRes               `codec:"sigPayload" json:"sigPayload"`
-	SdhBoxes      []SharedDHSecretKeyBox `codec:"sdhBoxes" json:"sdhBoxes"`
+	EncryptionKey KID      `codec:"encryptionKey" json:"encryptionKey"`
+	SigPayload    HelloRes `codec:"sigPayload" json:"sigPayload"`
 }
 
-type SharedDHKeyGeneration int
-type SharedDHSecretKeyBox struct {
-	Generation  SharedDHKeyGeneration `codec:"generation" json:"generation"`
-	Box         string                `codec:"box" json:"box"`
-	ReceiverKID KID                   `codec:"receiverKID" json:"receiver_kid"`
+type PerUserKeyGeneration int
+type PerUserKeyBox struct {
+	Generation  PerUserKeyGeneration `codec:"generation" json:"generation"`
+	Box         string               `codec:"box" json:"box"`
+	ReceiverKID KID                  `codec:"receiverKID" json:"receiver_kid"`
 }
 
 type Hello2Arg struct {
@@ -29,9 +28,9 @@ type Hello2Arg struct {
 }
 
 type DidCounterSign2Arg struct {
-	Sig          []byte                 `codec:"sig" json:"sig"`
-	PpsEncrypted string                 `codec:"ppsEncrypted" json:"ppsEncrypted"`
-	SdhBoxes     []SharedDHSecretKeyBox `codec:"sdhBoxes" json:"sdhBoxes"`
+	Sig          []byte         `codec:"sig" json:"sig"`
+	PpsEncrypted string         `codec:"ppsEncrypted" json:"ppsEncrypted"`
+	PukBox       *PerUserKeyBox `codec:"pukBox,omitempty" json:"pukBox,omitempty"`
 }
 
 type Kex2Provisionee2Interface interface {

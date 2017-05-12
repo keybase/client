@@ -12,13 +12,13 @@ import (
 )
 
 type DeviceKeygenArgs struct {
-	Me              *libkb.User
-	DeviceID        keybase1.DeviceID
-	DeviceName      string
-	DeviceType      string
-	Lks             *libkb.LKSec
-	IsEldest        bool
-	SharedDHKeyring *libkb.SharedDHKeyring // optional in some cases
+	Me             *libkb.User
+	DeviceID       keybase1.DeviceID
+	DeviceName     string
+	DeviceType     string
+	Lks            *libkb.LKSec
+	IsEldest       bool
+	PerUserKeyring *libkb.PerUserKeyring // optional in some cases
 }
 
 // DeviceKeygenPushArgs determines how the push will run.  There are
@@ -57,7 +57,7 @@ type DeviceKeygen struct {
 	naclEncGen  *libkb.NaclKeyGen
 
 	// can be nil
-	naclSharedDHGen *libkb.NaclKeyGen
+	perUserKeySeed *libkb.PerUserKeySeed
 
 	libkb.Contextified
 }
@@ -117,10 +117,6 @@ func (e *DeviceKeygen) EncryptionKey() libkb.NaclDHKeyPair {
 	return e.naclEncGen.GetKeyPair().(libkb.NaclDHKeyPair)
 }
 
-func (e *DeviceKeygen) sharedDHKey() libkb.NaclDHKeyPair {
-	return e.naclSharedDHGen.GetKeyPair().(libkb.NaclDHKeyPair)
-}
-
 // Push pushes the generated keys to the api server and stores the
 // local key security server half on the api server as well.
 func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
@@ -129,29 +125,33 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 
 	ds := []libkb.Delegator{}
 
-	if e.G().Env.GetEnableSharedDH() {
-		e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push SDH:%v", e.G().Env.GetEnableSharedDH())
+	if e.G().Env.GetSupportPerUserKey() {
+		e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push PUK:%v", e.G().Env.GetSupportPerUserKey())
 	}
 
-	var sdhBoxes = []keybase1.SharedDHSecretKeyBox{}
-	if e.G().Env.GetEnableSharedDH() && e.args.IsEldest {
+	var pukBoxes = []keybase1.PerUserKeyBox{}
+	if e.G().Env.GetSupportPerUserKey() && e.args.IsEldest {
+		// TODO only do this if PUK_UPGRADE
+		if e.perUserKeySeed == nil {
+			return errors.New("missing new per user key")
+		}
 		// Encrypt the new sdh key for this eldest device.
-		sdh1, err := libkb.NewSharedDHSecretKeyBox(
-			e.sharedDHKey(),   // inner key to be encrypted (shared dh key)
+		pukBox, err := libkb.NewPerUserKeyBox(
+			*e.perUserKeySeed, // inner key to be encrypted
 			e.EncryptionKey(), // receiver key (device enc key)
 			e.EncryptionKey(), // sender key   (device enc key)
-			keybase1.SharedDHKeyGeneration(1))
+			keybase1.PerUserKeyGeneration(1))
 		if err != nil {
 			return err
 		}
-		sdhBoxes = append(sdhBoxes, sdh1)
+		pukBoxes = append(pukBoxes, pukBox)
 	}
-	if e.G().Env.GetEnableSharedDH() && !e.args.IsEldest {
-		boxes, err := e.prepareSDHBoxesFromPaperkey(ctx)
+	if e.G().Env.GetSupportPerUserKey() && !e.args.IsEldest {
+		boxes, err := e.preparePerUserKeyBoxFromPaperkey(ctx)
 		if err != nil {
 			return err
 		}
-		sdhBoxes = append(sdhBoxes, boxes...)
+		pukBoxes = append(pukBoxes, boxes...)
 	}
 
 	// append the signing key
@@ -168,11 +168,23 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 
 	ds = e.appendEncKey(ds, ctx, encSigner, eldestKID, pargs.User)
 
-	if e.G().Env.GetEnableSharedDH() && e.args.IsEldest {
-		ds = e.appendSharedDHKey(ds, ctx, encSigner, eldestKID, pargs.User)
+	var pukSigProducer libkb.AggSigProducer = nil
+
+	// PerUserKey does not use Delegator.
+	if e.G().Env.GetSupportPerUserKey() && e.args.IsEldest {
+		// Sign in the new per-user-key
+		// TODO only do this if PUK_UPGRADE
+
+		if e.perUserKeySeed == nil {
+			return errors.New("missing new per user key")
+		}
+
+		pukSigProducer = func() (libkb.JSONPayload, error) {
+			return e.makePerUserKeySig(e.args.Me, *e.perUserKeySeed, encSigner)
+		}
 	}
 
-	e.pushErr = libkb.DelegatorAggregator(ctx.LoginContext, ds, sdhBoxes)
+	e.pushErr = libkb.DelegatorAggregator(ctx.LoginContext, ds, pukSigProducer, pukBoxes, nil)
 
 	// push the LKS server half
 	e.pushLKS(ctx)
@@ -201,15 +213,6 @@ func (e *DeviceKeygen) setup(ctx *Context) {
 		return kp, nil
 	}, e.device(), libkb.NaclDHExpireIn)
 
-	if e.G().Env.GetEnableSharedDH() && e.args.IsEldest {
-		e.naclSharedDHGen = e.newNaclKeyGen(ctx, func() (libkb.NaclKeyPair, error) {
-			kp, err := libkb.GenerateNaclDHKeyPair()
-			if err != nil {
-				return nil, err
-			}
-			return kp, nil
-		}, nil, libkb.NaclDHExpireIn)
-	}
 }
 
 func (e *DeviceKeygen) generate() {
@@ -225,11 +228,15 @@ func (e *DeviceKeygen) generate() {
 		return
 	}
 
-	if e.naclSharedDHGen != nil {
-		if e.runErr = e.naclSharedDHGen.Generate(); e.runErr != nil {
+	if e.G().Env.GetSupportPerUserKey() && e.args.IsEldest {
+		seed, err := libkb.GeneratePerUserKeySeed()
+		if err != nil {
+			e.runErr = err
 			return
 		}
+		e.perUserKeySeed = &seed
 	}
+
 }
 
 func (e *DeviceKeygen) localSave(ctx *Context) {
@@ -286,24 +293,6 @@ func (e *DeviceKeygen) appendEncKey(ds []libkb.Delegator, ctx *Context, signer l
 
 	var d libkb.Delegator
 	d, e.pushErr = e.naclEncGen.Push(ctx.LoginContext, true)
-	if e.pushErr == nil {
-		d.SetGlobalContext(e.G())
-		return append(ds, d)
-	}
-
-	return ds
-}
-
-func (e *DeviceKeygen) appendSharedDHKey(ds []libkb.Delegator, ctx *Context, signer libkb.GenericKey, eldestKID keybase1.KID, user *libkb.User) []libkb.Delegator {
-	if e.pushErr != nil {
-		return ds
-	}
-
-	e.naclSharedDHGen.UpdateArg(signer, eldestKID, libkb.DelegationTypeSharedDHKey, user)
-
-	var d libkb.Delegator
-	d, e.pushErr = e.naclSharedDHGen.Push(ctx.LoginContext, true)
-	d.SharedDHKeyGeneration = keybase1.SharedDHKeyGeneration(1)
 	if e.pushErr == nil {
 		d.SetGlobalContext(e.G())
 		return append(ds, d)
@@ -379,15 +368,15 @@ func (e *DeviceKeygen) device() *libkb.Device {
 	}
 }
 
-func (e *DeviceKeygen) prepareSDHBoxesFromPaperkey(ctx *Context) ([]keybase1.SharedDHSecretKeyBox, error) {
-	if !e.G().Env.GetEnableSharedDH() {
-		return nil, errors.New("shared dh disabled")
+func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(ctx *Context) ([]keybase1.PerUserKeyBox, error) {
+	if !e.G().Env.GetSupportPerUserKey() {
+		return nil, errors.New("per-user-keys disabled")
 	}
 	// Assuming this is a paperkey provision.
 
-	sdhk := e.args.SharedDHKeyring
-	if sdhk == nil {
-		return nil, errors.New("missing SharedDHKeyring")
+	pukring := e.args.PerUserKeyring
+	if pukring == nil {
+		return nil, errors.New("missing PerUserKeyring")
 	}
 
 	if ctx.LoginContext == nil {
@@ -412,13 +401,58 @@ func (e *DeviceKeygen) prepareSDHBoxesFromPaperkey(ctx *Context) ([]keybase1.Sha
 	if err != nil {
 		return nil, err
 	}
-	err = sdhk.SyncAsPaperKey(ctx.NetContext, ctx.LoginContext, &upak, paperDeviceID, paperEncKey)
+	err = pukring.SyncAsPaperKey(ctx.NetContext, ctx.LoginContext, &upak, paperDeviceID, paperEncKey)
 	if err != nil {
 		return nil, err
 	}
-	sdhBoxes, err := sdhk.PrepareBoxesForNewDevice(ctx.NetContext,
+	pukBox, err := pukring.PrepareBoxForNewDevice(ctx.NetContext,
 		e.EncryptionKey(), // receiver key: provisionee enc
 		paperEncKey,       // sender key: paper key enc
 	)
-	return sdhBoxes, err
+	return []keybase1.PerUserKeyBox{pukBox}, err
+}
+
+func (e *DeviceKeygen) makePerUserKeySig(me *libkb.User, pukSeed libkb.PerUserKeySeed, signer libkb.GenericKey) (libkb.JSONPayload, error) {
+	gen := keybase1.PerUserKeyGeneration(1)
+
+	pukSigKey, err := pukSeed.DeriveSigningKey()
+	if err != nil {
+		return nil, err
+	}
+
+	pukEncKey, err := pukSeed.DeriveDHKey()
+	if err != nil {
+		return nil, err
+	}
+
+	// Make reverse sig
+	jwRev, err := libkb.PerUserKeyProof(me, pukSigKey.GetKID(), pukEncKey.GetKID(), gen, signer, nil)
+	if err != nil {
+		return nil, err
+	}
+	reverseSig, _, _, err := libkb.SignJSON(jwRev, pukSigKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make sig
+	jw, err := libkb.PerUserKeyProof(me, pukSigKey.GetKID(), pukEncKey.GetKID(), gen, signer, &reverseSig)
+	if err != nil {
+		return nil, err
+	}
+	sig, _, _, err := libkb.SignJSON(jw, signer)
+	if err != nil {
+		return nil, err
+	}
+
+	publicKeysEntry := make(libkb.JSONPayload)
+	publicKeysEntry["signing"] = pukSigKey.GetKID().String()
+	publicKeysEntry["encryption"] = pukEncKey.GetKID().String()
+
+	res := make(libkb.JSONPayload)
+	res["sig"] = sig
+	res["signing_kid"] = signer.GetKID().String()
+	res["type"] = libkb.LinkTypePerUserKey
+	res["public_keys"] = publicKeysEntry
+	return res, nil
 }

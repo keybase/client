@@ -34,14 +34,14 @@ func merkleRootInfo(g *GlobalContext) (ret *jsonw.Wrapper) {
 }
 
 type KeySection struct {
-	Key                   GenericKey
-	EldestKID             keybase1.KID
-	ParentKID             keybase1.KID
-	HasRevSig             bool
-	RevSig                string
-	SigningUser           UserBasic
-	IncludePGPHash        bool
-	SharedDHKeyGeneration keybase1.SharedDHKeyGeneration
+	Key                  GenericKey
+	EldestKID            keybase1.KID
+	ParentKID            keybase1.KID
+	HasRevSig            bool
+	RevSig               string
+	SigningUser          UserBasic
+	IncludePGPHash       bool
+	PerUserKeyGeneration keybase1.PerUserKeyGeneration
 }
 
 func (arg KeySection) ToJSON() (*jsonw.Wrapper, error) {
@@ -73,8 +73,8 @@ func (arg KeySection) ToJSON() (*jsonw.Wrapper, error) {
 		ret.SetKey("username", jsonw.NewString(arg.SigningUser.GetName()))
 	}
 
-	if arg.SharedDHKeyGeneration != 0 {
-		ret.SetKey("generation", jsonw.NewInt(int(arg.SharedDHKeyGeneration)))
+	if arg.PerUserKeyGeneration != 0 {
+		ret.SetKey("generation", jsonw.NewInt(int(arg.PerUserKeyGeneration)))
 	}
 
 	if pgp, ok := arg.Key.(*PGPKeyBundle); ok {
@@ -384,8 +384,6 @@ func KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 			keySection.HasRevSig = true
 			keySection.RevSig = arg.RevSig
 			keySection.IncludePGPHash = true
-		case DelegationTypeSharedDHKey:
-			keySection.SharedDHKeyGeneration = arg.SharedDHKeyGeneration
 		default:
 			keySection.ParentKID = arg.ExistingKey.GetKID()
 		}
@@ -613,4 +611,40 @@ type SigMultiItem struct {
 	Type       string `json:"type"`
 	SigInner   string `json:"sig_inner"`
 	TeamID     string `json:"team_id"`
+}
+
+// PerUserKeyProof creates a proof introducing a new per-user-key generation.
+// `signingKey` is the key signing in this new key. Not to be confused with the derived per-user-key signing key.
+// `reverseSig` can be nil. A nil `reverseSig` can be used to produce the inner of the reverse sig.
+func PerUserKeyProof(me *User,
+	pukSigKID keybase1.KID,
+	pukEncKID keybase1.KID,
+	generation keybase1.PerUserKeyGeneration,
+	signingKey GenericKey,
+	reverseSig *string) (*jsonw.Wrapper, error) {
+
+	ret, err := ProofMetadata{
+		Me:         me,
+		LinkType:   LinkTypePerUserKey,
+		SigningKey: signingKey,
+	}.ToJSON(me.G())
+	if err != nil {
+		return nil, err
+	}
+
+	pukSection := jsonw.NewDictionary()
+	pukSection.SetKey("signing_kid", jsonw.NewString(pukSigKID.String()))
+	pukSection.SetKey("encryption_kid", jsonw.NewString(pukEncKID.String()))
+	pukSection.SetKey("generation", jsonw.NewInt(int(generation)))
+
+	if reverseSig != nil {
+		pukSection.SetKey("reverse_sig", jsonw.NewString(*reverseSig))
+	} else {
+		pukSection.SetKey("reverse_sig", jsonw.NewNil())
+	}
+
+	body := ret.AtKey("body")
+	body.SetKey("per_user_key", pukSection)
+
+	return ret, nil
 }
