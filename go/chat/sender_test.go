@@ -29,6 +29,7 @@ type chatListener struct {
 	inboxStale     chan struct{}
 	threadsStale   chan []chat1.ConversationID
 	bgConvLoads    chan chat1.ConversationID
+	typingUpdate   chan []chat1.ConvTypingUpdate
 }
 
 var _ libkb.NotifyListener = (*chatListener)(nil)
@@ -69,6 +70,14 @@ func (n *chatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.Conversat
 	case n.threadsStale <- cids:
 	case <-time.After(5 * time.Second):
 		panic("timeout on the threads stale channel")
+	}
+}
+
+func (n *chatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
+	select {
+	case n.typingUpdate <- updates:
+	case <-time.After(5 * time.Second):
+		panic("timeout on typing update")
 	}
 }
 
@@ -143,6 +152,7 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 		inboxStale:     make(chan struct{}, 1),
 		threadsStale:   make(chan []chat1.ConversationID, 1),
 		bgConvLoads:    make(chan chat1.ConversationID, 10),
+		typingUpdate:   make(chan []chat1.ConvTypingUpdate, 10),
 	}
 	g.ConvSource = NewHybridConversationSource(g, boxer, storage.New(g), getRI)
 	g.InboxSource = NewHybridInboxSource(g, getRI, tlf)

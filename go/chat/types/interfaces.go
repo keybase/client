@@ -122,6 +122,7 @@ type PushHandler interface {
 	TlfFinalize(context.Context, gregor.OutOfBandMessage) error
 	TlfResolve(context.Context, gregor.OutOfBandMessage) error
 	Activity(context.Context, gregor.OutOfBandMessage) error
+	Typing(context.Context, gregor.OutOfBandMessage) error
 }
 
 type AppState interface {

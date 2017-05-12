@@ -119,6 +119,8 @@ func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.Conversation
 		require.Fail(n.t, "thread send timeout")
 	}
 }
+func (n *nlistener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
+}
 func (n *nlistener) BadgeState(badgeState keybase1.BadgeState) {
 	select {
 	case n.badgeState <- badgeState:

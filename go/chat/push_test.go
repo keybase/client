@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -171,4 +172,101 @@ func TestPushAppState(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no message received")
 	}
+}
+
+func makeTypingNotification(t *testing.T, uid gregor1.UID, convID chat1.ConversationID, typing bool) gregor.OutOfBandMessage {
+
+	nm := chat1.RemoteUserTypingUpdate{
+		Uid:    uid,
+		ConvID: convID,
+		Typing: typing,
+	}
+	var data []byte
+	enc := codec.NewEncoderBytes(&data, &codec.MsgpackHandle{WriteExt: true})
+	require.NoError(t, enc.Encode(nm))
+	m := gregor1.OutOfBandMessage{
+		Uid_:    uid,
+		System_: "chat.typing",
+		Body_:   data,
+	}
+	return m
+}
+
+func TestPushTyping(t *testing.T) {
+	world, ri2, _, sender, list, tlf := setupTest(t, 1)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	handler := NewPushHandler(tc.Context())
+	handler.SetClock(world.Fc)
+	handler.typingMonitor.SetClock(world.Fc)
+	handler.typingMonitor.SetTimeout(time.Minute)
+
+	conv := newBlankConv(t, uid, ri, sender, tlf, u.Username)
+
+	confirmTyping := func(list *chatListener) {
+		select {
+		case updates := <-list.typingUpdate:
+			require.Equal(t, 1, len(updates))
+			require.Equal(t, conv.GetConvID(), updates[0].ConvID)
+			require.Equal(t, 1, len(updates[0].Typers))
+			require.Equal(t, uid, updates[0].Typers[0].Uid.ToBytes())
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no typing notification")
+		}
+	}
+
+	confirmNotTyping := func(list *chatListener) {
+		select {
+		case updates := <-list.typingUpdate:
+			require.Equal(t, 1, len(updates))
+			require.Equal(t, conv.GetConvID(), updates[0].ConvID)
+			require.Zero(t, len(updates[0].Typers))
+		case <-time.After(2 * time.Second):
+			require.Fail(t, "no typing notification")
+		}
+	}
+
+	t.Logf("test basic")
+	handler.Typing(context.TODO(), makeTypingNotification(t, uid, conv.GetConvID(), true))
+	confirmTyping(list)
+	handler.Typing(context.TODO(), makeTypingNotification(t, uid, conv.GetConvID(), false))
+	confirmNotTyping(list)
+
+	t.Logf("test expiration")
+	handler.Typing(context.TODO(), makeTypingNotification(t, uid, conv.GetConvID(), true))
+	confirmTyping(list)
+	world.Fc.Advance(time.Hour)
+	confirmNotTyping(list)
+
+	t.Logf("test extend")
+	extendCh := make(chan struct{})
+	handler.typingMonitor.extendCh = &extendCh
+	handler.Typing(context.TODO(), makeTypingNotification(t, uid, conv.GetConvID(), true))
+	confirmTyping(list)
+	world.Fc.Advance(30 * time.Second)
+	handler.Typing(context.TODO(), makeTypingNotification(t, uid, conv.GetConvID(), true))
+	select {
+	case <-list.typingUpdate:
+		require.Fail(t, "should have extended")
+	default:
+	}
+	select {
+	case <-extendCh:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no extend callback")
+	}
+	world.Fc.Advance(40 * time.Second)
+	select {
+	case <-list.typingUpdate:
+		require.Fail(t, "not far enough")
+	default:
+	}
+	world.Fc.Advance(40 * time.Second)
+	confirmNotTyping(list)
+
+	require.Zero(t, len(handler.typingMonitor.typers))
 }

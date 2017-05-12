@@ -1055,6 +1055,8 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		return g.G().PushHandler.TlfFinalize(ctx, obm)
 	case "chat.tlfresolve":
 		return g.G().PushHandler.TlfResolve(ctx, obm)
+	case "chat.typing":
+		return g.G().PushHandler.Typing(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
 		return nil
