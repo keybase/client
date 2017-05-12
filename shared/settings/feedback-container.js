@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 
-import {HeaderHoc} from '../common-adapters'
+import {HeaderHoc, HOCTimers} from '../common-adapters'
 import Feedback from './feedback'
 import logSend from '../native/log-send'
 import {connect} from 'react-redux'
@@ -13,6 +13,7 @@ import {serialPromises} from '../util/promise'
 
 import type {Dispatch} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
+import type {TimerProps} from '../common-adapters/hoc-timers'
 
 const FeedbackWrapped = compose(
   withState('sendLogs', 'onChangeSendLogs', true),
@@ -27,7 +28,7 @@ type State = {
   sending: boolean,
 }
 
-class FeedbackContainer extends Component<void, {status: string}, State> {
+class FeedbackContainer extends Component<void, {status: string} & TimerProps, State> {
   mounted = false
 
   state = {
@@ -106,22 +107,24 @@ class FeedbackContainer extends Component<void, {status: string}, State> {
   _onSendFeedback = (feedback, sendLogs) => {
     this.setState({sending: true, sentFeedback: false})
 
-    const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve()
+    this.props.setTimeout(() => {
+      const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve()
 
-    maybeDump.then(() => {
-      console.log(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
-      return logSend(this.props.status, feedback, sendLogs)
-    })
-    .then(logSendId => {
-      console.warn('logSendId is', logSendId)
-      if (this.mounted) {
-        this.setState({
-          sentFeedback: true,
-          feedback: null,
-          sending: false,
-        })
-      }
-    })
+      maybeDump.then(() => {
+        console.log(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
+        return logSend(this.props.status, feedback, sendLogs)
+      })
+      .then(logSendId => {
+        console.warn('logSendId is', logSendId)
+        if (this.mounted) {
+          this.setState({
+            sentFeedback: true,
+            feedback: null,
+            sending: false,
+          })
+        }
+      })
+    }, 0)
   }
 
   render () {
@@ -149,5 +152,6 @@ export default compose(
     onBack: () => dispatch(navigateUp()),
   })
   ),
-  HeaderHoc
+  HeaderHoc,
+  HOCTimers,
 )(FeedbackContainer)

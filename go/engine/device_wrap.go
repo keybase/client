@@ -4,8 +4,6 @@
 package engine
 
 import (
-	"fmt"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -19,18 +17,17 @@ type DeviceWrap struct {
 
 	signingKey    libkb.GenericKey
 	encryptionKey libkb.NaclDHKeyPair
-	sharedDHKey   libkb.GenericKey // can be nil
 }
 
 type DeviceWrapArgs struct {
-	Me              *libkb.User
-	DeviceName      string
-	DeviceType      string
-	Lks             *libkb.LKSec
-	IsEldest        bool
-	Signer          libkb.GenericKey
-	EldestKID       keybase1.KID
-	SharedDHKeyring *libkb.SharedDHKeyring // optional in some cases
+	Me             *libkb.User
+	DeviceName     string
+	DeviceType     string
+	Lks            *libkb.LKSec
+	IsEldest       bool
+	Signer         libkb.GenericKey
+	EldestKID      keybase1.KID
+	PerUserKeyring *libkb.PerUserKeyring // optional in some cases
 }
 
 // NewDeviceWrap creates a DeviceWrap engine.
@@ -79,13 +76,13 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 	deviceID := regEng.DeviceID()
 
 	kgArgs := &DeviceKeygenArgs{
-		Me:              e.args.Me,
-		DeviceID:        deviceID,
-		DeviceName:      e.args.DeviceName,
-		DeviceType:      e.args.DeviceType,
-		Lks:             e.args.Lks,
-		IsEldest:        e.args.IsEldest,
-		SharedDHKeyring: e.args.SharedDHKeyring,
+		Me:             e.args.Me,
+		DeviceID:       deviceID,
+		DeviceName:     e.args.DeviceName,
+		DeviceType:     e.args.DeviceType,
+		Lks:            e.args.Lks,
+		IsEldest:       e.args.IsEldest,
+		PerUserKeyring: e.args.PerUserKeyring,
 	}
 	kgEng := NewDeviceKeygen(kgArgs, e.G())
 	if err := RunEngine(kgEng, ctx); err != nil {
@@ -102,7 +99,7 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 
 	e.signingKey = kgEng.SigningKey()
 	e.encryptionKey = kgEng.EncryptionKey()
-	// TODO get the shared dh key and save it if it was generated
+	// TODO get the per-user-key and save it if it was generated
 
 	if ctx.LoginContext != nil {
 
@@ -129,11 +126,4 @@ func (e *DeviceWrap) SigningKey() libkb.GenericKey {
 
 func (e *DeviceWrap) EncryptionKey() libkb.NaclDHKeyPair {
 	return e.encryptionKey
-}
-
-func (e *DeviceWrap) SharedDHKey() (libkb.GenericKey, error) {
-	if e.sharedDHKey == nil {
-		return nil, fmt.Errorf("DeviceWrap: no shared DH key")
-	}
-	return e.sharedDHKey, nil
 }

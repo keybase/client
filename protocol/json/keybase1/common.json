@@ -352,7 +352,7 @@
     },
     {
       "type": "record",
-      "name": "SharedDHKey",
+      "name": "PerUserKey",
       "fields": [
         {
           "type": "int",
@@ -364,7 +364,11 @@
         },
         {
           "type": "KID",
-          "name": "kid"
+          "name": "sigKID"
+        },
+        {
+          "type": "KID",
+          "name": "encKID"
         }
       ],
       "lint": "ignore"
@@ -417,9 +421,9 @@
         {
           "type": {
             "type": "array",
-            "items": "SharedDHKey"
+            "items": "PerUserKey"
           },
-          "name": "sharedDHKeys",
+          "name": "perUserKeys",
           "lint": "ignore"
         }
       ]

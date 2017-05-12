@@ -514,6 +514,13 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links []*C
 			}
 		}
 
+		if pukl, ok := tcl.(*PerUserKeyChainLink); ok {
+			err := ckf.cki.DelegatePerUserKey(pukl)
+			if err != nil {
+				return cached, cki, err
+			}
+		}
+
 		if err = tcl.VerifyReverseSig(ckf); err != nil {
 			sc.G().Log.CDebugf(ctx, "| Failure in VerifyReverseSig: %s", err)
 			return cached, cki, err

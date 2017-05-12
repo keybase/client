@@ -74,6 +74,13 @@ function sagaWaitingDecorator (saga) {
   }
 }
 
+function clearWaitingDecorator (saga) {
+  return function * (...args) {
+    yield call(saga, ...args)
+    yield put(Creators.waitingForResponse(false))
+  }
+}
+
 function * setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) {
   const codePage: AfterSelect<typeof codePageSelector> = yield select(codePageSelector)
   if (codePage.myDeviceRole == null) {
@@ -140,20 +147,23 @@ function * navBasedOnLoginState () {
   }
 }
 
-const kex2Sagas = (onBackSaga, provisionerSuccessSaga, finishedSaga) => ({
-  'keybase.1.gpgUi.selectKey': selectKeySaga,
-  'keybase.1.loginUi.displayPrimaryPaperKey': displayPrimaryPaperKeySaga(onBackSaga),
-  'keybase.1.loginUi.getEmailOrUsername': getEmailOrUsernameSaga(onBackSaga),
-  'keybase.1.provisionUi.DisplayAndPromptSecret': displayAndPromptSecretSaga(onBackSaga),
-  'keybase.1.provisionUi.DisplaySecretExchanged': passthroughResponseSaga,
-  'keybase.1.provisionUi.PromptNewDeviceName': promptNewDeviceNameSaga(onBackSaga),
-  'keybase.1.provisionUi.ProvisioneeSuccess': passthroughResponseSaga,
-  'keybase.1.provisionUi.ProvisionerSuccess': provisionerSuccessSaga,
-  'keybase.1.provisionUi.chooseDevice': chooseDeviceSaga(onBackSaga),
-  'keybase.1.provisionUi.chooseGPGMethod': chooseGPGMethodSaga(onBackSaga),
-  'keybase.1.secretUi.getPassphrase': getPassphraseSaga(onBackSaga),
-  'finished': finishedSaga,
-})
+const kex2Sagas = (onBackSaga, provisionerSuccessSaga, finishedSaga) => {
+  const onBackSagaDecorated = clearWaitingDecorator(onBackSaga)
+  return {
+    'keybase.1.gpgUi.selectKey': sagaWaitingDecorator(selectKeySaga),
+    'keybase.1.loginUi.displayPrimaryPaperKey': sagaWaitingDecorator(displayPrimaryPaperKeySaga(onBackSagaDecorated)),
+    'keybase.1.loginUi.getEmailOrUsername': sagaWaitingDecorator(getEmailOrUsernameSaga(onBackSagaDecorated)),
+    'keybase.1.provisionUi.DisplayAndPromptSecret': sagaWaitingDecorator(displayAndPromptSecretSaga(onBackSagaDecorated)),
+    'keybase.1.provisionUi.DisplaySecretExchanged': sagaWaitingDecorator(passthroughResponseSaga),
+    'keybase.1.provisionUi.PromptNewDeviceName': sagaWaitingDecorator(promptNewDeviceNameSaga(onBackSagaDecorated)),
+    'keybase.1.provisionUi.ProvisioneeSuccess': sagaWaitingDecorator(passthroughResponseSaga),
+    'keybase.1.provisionUi.ProvisionerSuccess': sagaWaitingDecorator(provisionerSuccessSaga),
+    'keybase.1.provisionUi.chooseDevice': sagaWaitingDecorator(chooseDeviceSaga(onBackSagaDecorated)),
+    'keybase.1.provisionUi.chooseGPGMethod': sagaWaitingDecorator(chooseGPGMethodSaga(onBackSagaDecorated)),
+    'keybase.1.secretUi.getPassphrase': sagaWaitingDecorator(getPassphraseSaga(onBackSagaDecorated)),
+    'finished': clearWaitingDecorator(finishedSaga),
+  }
+}
 
 function * cancelLogin (response) {
   yield call(navBasedOnLoginState)
@@ -413,7 +423,7 @@ function * loginFlowSaga (usernameOrEmail) {
   // Returns an Array<Task>
   // If there are any unexpected errors let's cancel the login. The error will be shown as a global error
   yield Saga.mapSagasToChanMap(
-    (c, saga) => Saga.safeTakeLatestWithCatch(c, catchError, sagaWaitingDecorator(saga)),
+    (c, saga) => Saga.safeTakeLatestWithCatch(c, catchError, saga),
     loginSagas,
     loginChanMap
   )
@@ -518,7 +528,7 @@ function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
 
   // Returns an Array<Task>
   yield Saga.mapSagasToChanMap(
-    (c, saga) => Saga.safeTakeLatestWithCatch(c, finishedSaga, sagaWaitingDecorator(saga)),
+    (c, saga) => Saga.safeTakeLatestWithCatch(c, finishedSaga, saga),
     addDeviceSagas,
     addDeviceChanMap
   )

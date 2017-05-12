@@ -4349,7 +4349,6 @@ export type HasServerKeysRes = {
 export type Hello2Res = {
   encryptionKey: KID,
   sigPayload: HelloRes,
-  sdhBoxes?: ?Array<SharedDHSecretKeyBox>,
 }
 
 export type HelloRes = string
@@ -4456,7 +4455,7 @@ export type KID = string
 export type Kex2Provisionee2DidCounterSign2RpcParam = Exact<{
   sig: bytes,
   ppsEncrypted: string,
-  sdhBoxes?: ?Array<SharedDHSecretKeyBox>
+  pukBox?: ?PerUserKeyBox
 }>
 
 export type Kex2Provisionee2Hello2RpcParam = Exact<{
@@ -4762,6 +4761,21 @@ export type Path =
 export type PathType =
     0 // LOCAL_0
   | 1 // KBFS_1
+
+export type PerUserKey = {
+  gen: int,
+  seqno: int,
+  sigKID: KID,
+  encKID: KID,
+}
+
+export type PerUserKeyBox = {
+  generation: PerUserKeyGeneration,
+  box: string,
+  receiverKID: KID,
+}
+
+export type PerUserKeyGeneration = int
 
 export type PingResponse = {
   timestamp: Time,
@@ -5129,20 +5143,6 @@ export type SessionStatus = {
 }
 
 export type SessionToken = string
-
-export type SharedDHKey = {
-  gen: int,
-  seqno: int,
-  kid: KID,
-}
-
-export type SharedDHKeyGeneration = int
-
-export type SharedDHSecretKeyBox = {
-  generation: SharedDHKeyGeneration,
-  box: string,
-  receiverKID: KID,
-}
 
 export type Sig = {
   seqno: int,
@@ -5544,7 +5544,7 @@ export type UserPlusKeys = {
   pgpKeyCount: int,
   uvv: UserVersionVector,
   deletedDeviceKeys?: ?Array<PublicKey>,
-  sharedDHKeys?: ?Array<SharedDHKey>,
+  perUserKeys?: ?Array<PerUserKey>,
 }
 
 export type UserResolution = {

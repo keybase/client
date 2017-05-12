@@ -21,6 +21,7 @@ declare module 'react-native-android-permissions' { declare var exports: any; }
 declare module 'react-native-camera' { declare var exports: any; }
 declare module 'react-native/Libraries/CustomComponents/Navigator/NavigatorNavigationBarStylesIOS' { declare var exports: any; }
 declare module 'react-navigation' { declare var exports: any; }
+declare module 'react-navigation/lib/views/CardStackTransitioner' { declare var exports: any; }
 declare module 'react-redux' { declare var exports: any; }
 declare module 'react-tap-event-plugin' { declare var exports: any; }
 declare module 'redux' { declare var exports: any; }
