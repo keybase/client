@@ -37,6 +37,6 @@ const routeTree = new RouteDefNode({
   },
 })
 
-console.log('aaa')
+const NOT_USED = 1
 
 export default routeTree
