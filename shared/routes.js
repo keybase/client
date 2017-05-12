@@ -37,6 +37,4 @@ const routeTree = new RouteDefNode({
   },
 })
 
-const NOT_USED = 1
-
 export default routeTree
