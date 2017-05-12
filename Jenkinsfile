@@ -118,6 +118,9 @@ helpers.rootLinuxNode(env, {
                         }
                         parallel (
                             test_linux: {
+                                dir("protocol") {
+                                    sh "./diff_test.sh"
+                                }
                                 parallel (
                                     test_linux_go: { withEnv([
                                         "PATH=${env.PATH}:${env.GOPATH}/bin",
@@ -136,9 +139,6 @@ helpers.rootLinuxNode(env, {
                                             }
                                         }
 
-                                        dir("protocol") {
-                                            sh "./diff_test.sh"
-                                        }
                                         // Only run visdiff for PRs
                                         if (env.CHANGE_ID) {
                                             wrap([$class: 'Xvfb', screen: '1280x1024x16']) {
