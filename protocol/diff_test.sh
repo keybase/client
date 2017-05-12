@@ -15,6 +15,7 @@ make
 cd ../shared
 yarn add --pure-lockfile prettier
 yarn run prettier -- --write ../protocol/js/*.js shared/constants/types/*.js
+cd "$here"
 
 # Protocol changes could create diffs in the following directories:
 #   protocol/
