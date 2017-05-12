@@ -6,7 +6,6 @@ package badges
 import (
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -32,17 +31,15 @@ func (n nullInboxVersionSource) GetInboxVersion(ctx context.Context, uid gregor1
 // - Logout
 type Badger struct {
 	libkb.Contextified
-	globals.ChatContextified
 	badgeState     *BadgeState
 	iboxVersSource InboxVersionSource
 }
 
-func NewBadger(g *libkb.GlobalContext, cg *globals.ChatContext) *Badger {
+func NewBadger(g *libkb.GlobalContext) *Badger {
 	return &Badger{
-		Contextified:     libkb.NewContextified(g),
-		ChatContextified: globals.NewChatContextified(cg),
-		badgeState:       NewBadgeState(g.Log),
-		iboxVersSource:   nullInboxVersionSource{},
+		Contextified:   libkb.NewContextified(g),
+		badgeState:     NewBadgeState(g.Log),
+		iboxVersSource: nullInboxVersionSource{},
 	}
 }
 
