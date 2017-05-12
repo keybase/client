@@ -118,9 +118,6 @@ helpers.rootLinuxNode(env, {
                         }
                         parallel (
                             test_linux: {
-                                dir("protocol") {
-                                    sh "./diff_test.sh"
-                                }
                                 parallel (
                                     test_linux_go: { withEnv([
                                         "PATH=${env.PATH}:${env.GOPATH}/bin",
@@ -137,6 +134,10 @@ helpers.rootLinuxNode(env, {
                                             stage("JS tests") {
                                                 sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                             }
+                                        }
+
+                                        dir("protocol") {
+                                            sh "./diff_test.sh"
                                         }
                                         // Only run visdiff for PRs
                                         if (env.CHANGE_ID) {
