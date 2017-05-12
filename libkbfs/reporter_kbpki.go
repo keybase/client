@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -25,6 +26,8 @@ const (
 	errorParamRekeySelf           = "rekeyself"
 	errorParamUsageBytes          = "usageBytes"
 	errorParamLimitBytes          = "limitBytes"
+	errorParamUsageFiles          = "usageFiles"
+	errorParamLimitFiles          = "limitFiles"
 	errorParamRenameOldFilename   = "oldFilename"
 	errorParamFoldersCreated      = "foldersCreated"
 	errorParamFolderLimit         = "folderLimit"
@@ -99,7 +102,7 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	params := make(map[string]string)
 	filename := ""
 	var code keybase1.FSErrorType = -1
-	switch e := err.(type) {
+	switch e := errors.Cause(err).(type) {
 	case ReadAccessError:
 		code = keybase1.FSErrorType_ACCESS_DENIED
 		params[errorParamMode] = errorModeRead
@@ -152,6 +155,15 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 		code = keybase1.FSErrorType_OVER_QUOTA
 		params[errorParamUsageBytes] = strconv.FormatInt(e.UsageBytes, 10)
 		params[errorParamLimitBytes] = strconv.FormatInt(e.LimitBytes, 10)
+	case ErrDiskLimitTimeout:
+		if !e.reportable {
+			return
+		}
+		code = keybase1.FSErrorType_DISK_LIMIT_REACHED
+		params[errorParamUsageBytes] = strconv.FormatInt(e.usageBytes, 10)
+		params[errorParamLimitBytes] = strconv.FormatInt(e.limitBytes, 10)
+		params[errorParamUsageFiles] = strconv.FormatInt(e.usageFiles, 10)
+		params[errorParamLimitFiles] = strconv.FormatInt(e.limitFiles, 10)
 	case NoSigChainError:
 		code = keybase1.FSErrorType_NO_SIG_CHAIN
 		params[errorParamUsername] = e.User.String()

@@ -62,7 +62,7 @@ func PutBlockCheckLimitErrs(ctx context.Context, bserv BlockServer,
 		// avoid the upper FS layer reporting it twice, if this block
 		// put is the result of a foreground fsync.
 		reporter.ReportErr(ctx, tlfName, tlfID.IsPublic(), WriteMode, err)
-		typedErr.reported = true
+		typedErr.reportable = false
 		// Unfortunately this makes a different stack, but I don't
 		// think there's a way to preserve the old one and still
 		// change `reportable` field.

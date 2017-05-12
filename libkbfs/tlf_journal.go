@@ -1667,8 +1667,12 @@ type ErrDiskLimitTimeout struct {
 	requestedFiles int64
 	availableBytes int64
 	availableFiles int64
+	usageBytes     int64
+	usageFiles     int64
+	limitBytes     int64
+	limitFiles     int64
 	err            error
-	reported       bool
+	reportable     bool
 }
 
 func (e ErrDiskLimitTimeout) Error() string {
@@ -1694,9 +1698,12 @@ func (j *tlfJournal) putBlockData(
 	case nil:
 		// Continue.
 	case context.DeadlineExceeded:
+		usageBytes, limitBytes, usageFiles, limitFiles :=
+			j.diskLimiter.getDiskLimitInfo()
 		return errors.WithStack(ErrDiskLimitTimeout{
 			timeout, bufLen, filesPerBlockMax,
-			availableBytes, availableFiles, err, false,
+			availableBytes, availableFiles, usageBytes, usageFiles,
+			limitBytes, limitFiles, err, true,
 		})
 	default:
 		return err

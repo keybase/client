@@ -710,7 +710,7 @@ func testTLFJournalBlockOpDiskLimitTimeout(t *testing.T, ver MetadataVer) {
 	timeoutErr.err = nil
 	require.Equal(t, ErrDiskLimitTimeout{
 		3 * time.Microsecond, int64(len(data)),
-		filesPerBlockMax, 0, 1, nil, false,
+		filesPerBlockMax, 0, 1, 0, 1, math.MaxInt64, math.MaxInt64, nil, true,
 	}, timeoutErr)
 }
 
