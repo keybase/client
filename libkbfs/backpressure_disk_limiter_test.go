@@ -420,7 +420,7 @@ func TestDefaultDoDelayCancel(t *testing.T) {
 	cancel()
 
 	err := defaultDoDelay(ctx, individualTestTimeout)
-	require.Equal(t, ctx.Err(), errors.Cause(err))
+	require.Equal(t, context.Canceled, errors.Cause(err))
 }
 
 func makeTestBackpressureDiskLimiterParams() backpressureDiskLimiterParams {
@@ -494,7 +494,7 @@ func TestBackpressureDiskLimiterBeforeBlockPutByteError(t *testing.T) {
 	cancel()
 
 	availBytes, availFiles, err := bdl.beforeBlockPut(ctx, 11, 1)
-	require.Equal(t, ctx.Err(), errors.Cause(err))
+	require.Equal(t, context.Canceled, errors.Cause(err))
 	require.Equal(t, int64(10), availBytes)
 	require.Equal(t, int64(1), availFiles)
 
@@ -521,7 +521,7 @@ func TestBackpressureDiskLimiterBeforeBlockPutFileError(t *testing.T) {
 	cancel()
 
 	availBytes, availFiles, err := bdl.beforeBlockPut(ctx, 10, 2)
-	require.Equal(t, ctx.Err(), errors.Cause(err))
+	require.Equal(t, context.Canceled, errors.Cause(err))
 	require.Equal(t, int64(10), availBytes)
 	require.Equal(t, int64(1), availFiles)
 
@@ -798,7 +798,7 @@ func testBackpressureDiskLimiterLargeDiskDelay(
 	cancel2()
 	availBytes, availFiles, err := bdl.beforeBlockPut(
 		ctx2, blockBytes, blockFiles)
-	require.Equal(t, ctx2.Err(), errors.Cause(err))
+	require.Equal(t, context.Canceled, errors.Cause(err))
 	require.Equal(t, 8*time.Second, lastDelay)
 
 	// This does the same thing as checkCountersAfterBlockPut(),
@@ -961,7 +961,7 @@ func TestBackpressureDiskLimiterJournalAndDiskCache(t *testing.T) {
 	cancel2()
 	availBytes, _, err := bdl.beforeBlockPut(
 		ctx2, blockBytes, 1)
-	require.Equal(t, ctx2.Err(), errors.Cause(err))
+	require.Equal(t, context.Canceled, errors.Cause(err))
 	require.Equal(t, 8*time.Second, lastDelay)
 
 	// This does the same thing as checkCountersAfterBlockPut(),
@@ -1147,7 +1147,7 @@ func testBackpressureDiskLimiterSmallDiskDelay(
 	cancel2()
 	availBytes, availFiles, err :=
 		bdl.beforeBlockPut(ctx2, blockBytes, blockFiles)
-	require.Equal(t, ctx2.Err(), errors.Cause(err))
+	require.Equal(t, context.Canceled, errors.Cause(err))
 	require.Equal(t, 8*time.Second, lastDelay)
 
 	expectedByteCount := diskBytes/4 - bytesPut

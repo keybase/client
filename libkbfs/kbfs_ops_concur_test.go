@@ -1328,7 +1328,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	}()
 
 	err = kbfsOps.SyncAll(ctx2, fileNode.GetFolderBranch())
-	if err != ctx2.Err() {
+	if err != context.Canceled {
 		t.Errorf("Sync did not get canceled error: %v", err)
 	}
 	if nowNBlocks != prevNBlocks+2 {

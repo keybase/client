@@ -16,12 +16,10 @@ import (
 func TestSemaphoreDiskLimiterBlockBasic(t *testing.T) {
 	sdl := newSemaphoreDiskLimiter(10, 2, 12)
 
-	ctx, cancel := context.WithTimeout(
-		context.Background(), 3*time.Millisecond)
-	defer cancel()
+	ctx := context.Background()
 
 	availBytes, availFiles, err := sdl.beforeBlockPut(ctx, 9, 1)
-	require.Equal(t, ctx.Err(), errors.Cause(err))
+	require.NoError(t, err)
 	require.Equal(t, int64(1), availBytes)
 	require.Equal(t, int64(1), availFiles)
 
@@ -72,7 +70,7 @@ func TestSemaphoreDiskLimiterBeforeBlockPutError(t *testing.T) {
 	defer cancel()
 
 	availBytes, availFiles, err := sdl.beforeBlockPut(ctx, 10, 2)
-	require.Equal(t, ctx.Err(), errors.Cause(err))
+	require.Equal(t, context.DeadlineExceeded, errors.Cause(err))
 	require.Equal(t, int64(10), availBytes)
 	require.Equal(t, int64(1), availFiles)
 

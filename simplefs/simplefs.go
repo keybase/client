@@ -239,8 +239,10 @@ func (k *SimpleFS) doCopy(ctx context.Context, srcPath, destPath keybase1.Path) 
 
 func copyWithCancellation(ctx context.Context, dst io.Writer, src io.Reader) error {
 	for {
-		if err := ctx.Err(); err != nil {
-			return err
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
 		}
 		_, err := io.CopyN(dst, src, 64*1024)
 		if err == io.EOF {
@@ -265,8 +267,10 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 
 			var paths = []pathPair{{src: arg.Src, dest: arg.Dest}}
 			for len(paths) > 0 {
-				if err := ctx.Err(); err != nil {
-					return err
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				default:
 				}
 				// wrap in a function for defers.
 				err = func() error {

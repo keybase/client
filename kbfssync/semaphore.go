@@ -55,10 +55,10 @@ func (s *Semaphore) tryAcquire(n int64) (<-chan struct{}, int64) {
 // Acquire blocks until it is possible to atomically subtract n (which
 // must be positive) from the resource count without causing it to go
 // negative, and then returns the updated resource count and nil. If
-// the given context is canceled first, it instead does not change the
-// resource count, and returns the resource count at the time it
-// blocked (which is necessarily less than n), and a wrapped
-// ctx.Err().
+// the given context is canceled or times out first, it instead does
+// not change the resource count, and returns the resource count at
+// the time it blocked (which is necessarily less than n), and a
+// wrapped ctx.Err().
 func (s *Semaphore) Acquire(ctx context.Context, n int64) (int64, error) {
 	if n <= 0 {
 		panic(fmt.Sprintf("n=%d must be positive", n))

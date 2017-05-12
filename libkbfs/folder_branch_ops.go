@@ -5496,7 +5496,7 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 					// No need to lock here, since `cancelUpdates` is
 					// only set within this same goroutine.
 					fbo.cancelUpdates()
-					return ctx.Err()
+					return context.Canceled
 				case MDServerErrorCannotReadFinalizedTLF:
 					fbo.log.CDebugf(ctx, "Abandoning updates since we can't "+
 						"read the finalized metadata for this TLF: %+v", err)
@@ -5510,7 +5510,7 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 					// No need to lock here, since `cancelUpdates` is
 					// only set within this same goroutine.
 					fbo.cancelUpdates()
-					return ctx.Err()
+					return context.Canceled
 				}
 				select {
 				case <-ctx.Done():
