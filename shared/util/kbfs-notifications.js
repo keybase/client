@@ -75,11 +75,6 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
         body: `Action needed! You are using ${usedGB}GB (${usedPercent}%) of your quota. Please delete some data.`,
       }
 
-    case KbfsCommonFSErrorType.exdevNotSupported:
-      // Ignored for now.
-      // TODO: implement the special popup window (DESKTOP-3637)
-      return
-
     default:
       return {
         title: 'Keybase: KBFS error',
@@ -145,6 +140,12 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
   const isError = notification.statusCode === KbfsCommonFSStatusCode.error
   // Don't show starting or finished, but do show error.
   if (isError) {
+    if (notification.errorType == KbfsCommonFSErrorType.exdevNotSupported) {
+      // Ignored for now.
+      // TODO: implement the special popup window (DESKTOP-3637)
+      return
+    }
+
     ({title, body} = decodeKBFSError(user, notification))
     rateLimitKey = body // show unique errors
   } else {
