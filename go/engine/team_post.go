@@ -174,11 +174,11 @@ func makeRootTeamSection(teamName string, owner *libkb.User) (TeamSection, error
 
 	// Note that the key boxes use usernames directly, without the %Seqno
 	// annotation from the roles section.
-	ownerSharedDHKey := owner.GetComputedKeyFamily().GetLatestSharedDHKey()
-	if ownerSharedDHKey == nil {
+	ownerPerUserKey := owner.GetComputedKeyFamily().GetLatestPerUserKey()
+	if ownerPerUserKey == nil {
 		return teamSection, fmt.Errorf("can't create new team without a shared DH key")
 	}
-	ownerSharedKeyBox, err := makeSharedTeamKeyBox(ephemeralPair, *ownerSharedDHKey, owner.GetName(), sharedSecretKey, teamID)
+	ownerSharedKeyBox, err := makeSharedTeamKeyBox(ephemeralPair, *ownerPerUserKey, owner.GetName(), sharedSecretKey, teamID)
 	if err != nil {
 		return teamSection, err
 	}
@@ -194,13 +194,13 @@ type sharedTeamKeyBox struct {
 	Box     []byte
 }
 
-func makeSharedTeamKeyBox(ephemeralPair libkb.NaclDHKeyPair, recipientKey keybase1.SharedDHKey, recipientName string, sharedSecretKey []byte, teamID string) (string, error) {
+func makeSharedTeamKeyBox(ephemeralPair libkb.NaclDHKeyPair, recipientKey keybase1.PerUserKey, recipientName string, sharedSecretKey []byte, teamID string) (string, error) {
 	nonceHmacKey := fmt.Sprintf("TEAM %s SHARED KEY BOX", teamID)
 	nonceDigest := hmac.New(sha256.New, []byte(nonceHmacKey))
 	nonceDigest.Write([]byte(recipientName))
 	nonce := libkb.MakeByte24(nonceDigest.Sum(nil)[0:24])
 
-	recipientKeypair, err := libkb.ImportKeypairFromKID(recipientKey.Kid)
+	recipientKeypair, err := libkb.ImportKeypairFromKID(recipientKey.EncKID)
 	if err != nil {
 		return "", err
 	}

@@ -927,22 +927,23 @@ func (ckf ComputedKeyFamily) ExportDeviceKeys() (exportedKeys []keybase1.PublicK
 	return exportedKeys, pgpKeyCount
 }
 
-type sharedDHKeyList []keybase1.SharedDHKey
+type perUserKeyList []keybase1.PerUserKey
 
-func (l sharedDHKeyList) Len() int { return len(l) }
-func (l sharedDHKeyList) Less(i, j int) bool {
+func (l perUserKeyList) Len() int { return len(l) }
+func (l perUserKeyList) Less(i, j int) bool {
 	return l[i].Gen < l[j].Gen
 }
-func (l sharedDHKeyList) Swap(i, j int) {
+func (l perUserKeyList) Swap(i, j int) {
 	l[i], l[j] = l[j], l[i]
 }
 
-// ExportSharedDHKeys exports the Shared DH public KIDs.
-func (ckf ComputedKeyFamily) ExportSharedDHKeys() (ret []keybase1.SharedDHKey) {
-	for _, key := range ckf.cki.SharedDHKeys {
-		ret = append(ret, key)
+// ExportPerUserKeys exports the per-user public KIDs.
+func (ckf ComputedKeyFamily) ExportPerUserKeys() (ret []keybase1.PerUserKey) {
+
+	for _, k := range ckf.cki.PerUserKeys {
+		ret = append(ret, k)
 	}
-	sort.Sort(sharedDHKeyList(ret))
+	sort.Sort(perUserKeyList(ret))
 	return ret
 }
 
@@ -1024,7 +1025,7 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 		ret.DeviceKeys, ret.PGPKeyCount = ckf.ExportDeviceKeys()
 		ret.RevokedDeviceKeys = ckf.ExportRevokedDeviceKeys()
 		ret.DeletedDeviceKeys = ckf.ExportDeletedDeviceKeys()
-		ret.SharedDHKeys = ckf.ExportSharedDHKeys()
+		ret.PerUserKeys = ckf.ExportPerUserKeys()
 	}
 
 	ret.Uvv = u.ExportToVersionVector(idTime)

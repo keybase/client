@@ -47,6 +47,7 @@ func (b *BadgeState) Export() (keybase1.BadgeState, error) {
 	for _, info := range b.chatUnreadMap {
 		b.state.Conversations = append(b.state.Conversations, info)
 	}
+	b.state.InboxVers = int(b.inboxVers)
 
 	return b.state, nil
 }

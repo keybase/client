@@ -62,7 +62,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		logForwarder:     newLogFwd(),
 		rekeyMaster:      newRekeyMaster(g),
 		attachmentstore:  chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
-		badger:           badges.NewBadger(g, chatG.ChatG()),
+		badger:           badges.NewBadger(g),
 		gregor:           newGregorHandler(globals.NewContext(g, chatG.ChatG())),
 	}
 }
@@ -291,6 +291,7 @@ func (d *Service) createChatModules() {
 	g.ConvLoader = chat.NewBackgroundConvLoader(g)
 
 	// Set up push handler with the badger
+	d.badger.SetInboxVersionSource(storage.NewInboxVersionSource(g))
 	pushHandler := chat.NewPushHandler(g)
 	pushHandler.SetBadger(d.badger)
 	g.PushHandler = pushHandler

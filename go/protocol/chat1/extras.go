@@ -513,3 +513,7 @@ func (r *DownloadAttachmentLocalRes) SetOffline() {
 func (r *FindConversationsLocalRes) SetOffline() {
 	r.Offline = true
 }
+
+func (t TyperInfo) String() string {
+	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceName)
+}

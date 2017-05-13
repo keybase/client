@@ -286,6 +286,7 @@ export const KbfsCommonFSErrorType = {
   noSigChain: 10,
   tooManyFolders: 11,
   exdevNotSupported: 12,
+  diskLimitReached: 13,
 }
 
 export const KbfsCommonFSNotificationType = {
@@ -3872,6 +3873,7 @@ export type BadgeState = {
   newTlfs: int,
   rekeysNeeded: int,
   newFollowers: int,
+  inboxVers: int,
   conversations?: ?Array<BadgeConversationInfo>,
 }
 
@@ -4175,6 +4177,7 @@ export type FSErrorType =
   | 10 // NO_SIG_CHAIN_10
   | 11 // TOO_MANY_FOLDERS_11
   | 12 // EXDEV_NOT_SUPPORTED_12
+  | 13 // DISK_LIMIT_REACHED_13
 
 export type FSNotification = {
   publicTopLevelFolder: boolean,
@@ -4349,7 +4352,6 @@ export type HasServerKeysRes = {
 export type Hello2Res = {
   encryptionKey: KID,
   sigPayload: HelloRes,
-  sdhBoxes?: ?Array<SharedDHSecretKeyBox>,
 }
 
 export type HelloRes = string
@@ -4456,7 +4458,7 @@ export type KID = string
 export type Kex2Provisionee2DidCounterSign2RpcParam = Exact<{
   sig: bytes,
   ppsEncrypted: string,
-  sdhBoxes?: ?Array<SharedDHSecretKeyBox>
+  pukBox?: ?PerUserKeyBox
 }>
 
 export type Kex2Provisionee2Hello2RpcParam = Exact<{
@@ -4762,6 +4764,21 @@ export type Path =
 export type PathType =
     0 // LOCAL_0
   | 1 // KBFS_1
+
+export type PerUserKey = {
+  gen: int,
+  seqno: int,
+  sigKID: KID,
+  encKID: KID,
+}
+
+export type PerUserKeyBox = {
+  generation: PerUserKeyGeneration,
+  box: string,
+  receiverKID: KID,
+}
+
+export type PerUserKeyGeneration = int
 
 export type PingResponse = {
   timestamp: Time,
@@ -5129,20 +5146,6 @@ export type SessionStatus = {
 }
 
 export type SessionToken = string
-
-export type SharedDHKey = {
-  gen: int,
-  seqno: int,
-  kid: KID,
-}
-
-export type SharedDHKeyGeneration = int
-
-export type SharedDHSecretKeyBox = {
-  generation: SharedDHKeyGeneration,
-  box: string,
-  receiverKID: KID,
-}
 
 export type Sig = {
   seqno: int,
@@ -5544,7 +5547,7 @@ export type UserPlusKeys = {
   pgpKeyCount: int,
   uvv: UserVersionVector,
   deletedDeviceKeys?: ?Array<PublicKey>,
-  sharedDHKeys?: ?Array<SharedDHKey>,
+  perUserKeys?: ?Array<PerUserKey>,
 }
 
 export type UserResolution = {

@@ -9,7 +9,7 @@ import {folderFromPath} from '../constants/favorite.js'
 import {bootstrap} from '../actions/config'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {clearErrors} from '../util/pictures'
-import {usernameSelector} from '../constants/selectors'
+import {usernameSelector, loggedInSelector} from '../constants/selectors'
 import {nativeReachabilityEvents} from '../util/reachability'
 
 import type {CheckReachability, PushState, PushOOBM, UpdateReachability, UpdateSeenMsgs, MsgMap, NonNullGregorItem} from '../constants/gregor'
@@ -61,16 +61,20 @@ function toNonNullGregorItems (state: GregorState): Array<NonNullGregorItem> {
 }
 
 function registerReachability () {
-  return (dispatch: Dispatch) => {
+  return (dispatch: Dispatch, getState: () => TypedState) => {
     engine().setIncomingHandler('keybase.1.reachability.reachabilityChanged', ({reachability}, response) => {
-      dispatch(updateReachability(reachability))
+      // Gregor reachability is only valid if we're logged in
+      // TODO remove this when core stops sending us these when we're logged out
+      if (loggedInSelector(getState())) {
+        dispatch(updateReachability(reachability))
 
-      if (reachability.reachable === ReachabilityReachable.yes) {
-        // TODO: We should be able to recover from connection problems
-        // without re-bootstrapping. Originally we used to do this on HTML5
-        // 'online' event, but reachability is more precise.
-        dispatch(bootstrap({isReconnect: true}))
-        clearErrors()
+        if (reachability.reachable === ReachabilityReachable.yes) {
+          // TODO: We should be able to recover from connection problems
+          // without re-bootstrapping. Originally we used to do this on HTML5
+          // 'online' event, but reachability is more precise.
+          dispatch(bootstrap({isReconnect: true}))
+          clearErrors()
+        }
       }
     })
 

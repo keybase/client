@@ -2362,6 +2362,19 @@
         }
       ],
       "response": "FindConversationsLocalRes"
+    },
+    "updateTyping": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "typing",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

@@ -6,22 +6,26 @@ protocol Kex2Provisionee2 {
   record Hello2Res {
     KID encryptionKey;
     HelloRes sigPayload;
-    array<SharedDHSecretKeyBox> sdhBoxes;
   }
 
   Hello2Res hello2(UID uid, SessionToken token, CsrfToken csrf, string sigBody);
-  void didCounterSign2(bytes sig, string ppsEncrypted, array<SharedDHSecretKeyBox> sdhBoxes);
+  void didCounterSign2(
+    bytes sig,
+    string ppsEncrypted,
+    // Current generation per-user-secret boxed for the new device
+    union { null, PerUserKeyBox } pukBox
+  );
 
-  // SharedDHKeyGeneration describes which generation of DH key we're talking about.
-  // The sequence starts at 1, and should increment every time the shared DH key
+  // PerUserKeyGeneration describes which generation of secret we're talking about.
+  // The sequence starts at 1, and should increment every time the per-user-secret
   // rotates, which is everytime a device is revoked.
   @typedef("int")
   @lint("ignore")
-  record SharedDHKeyGeneration {}
+  record PerUserKeyGeneration {}
 
   @lint("ignore")
-  record SharedDHSecretKeyBox {
-    SharedDHKeyGeneration generation;
+  record PerUserKeyBox {
+    PerUserKeyGeneration generation;
     string box;
     @jsonkey("receiver_kid")
     KID receiverKID;

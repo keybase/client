@@ -23,7 +23,6 @@ const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}: Use
 const userEntryContainerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  height: 96,
   justifyContent: 'flex-start',
   paddingBottom: globalMargins.small,
   paddingTop: globalMargins.small,

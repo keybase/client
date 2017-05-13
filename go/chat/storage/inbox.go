@@ -1,18 +1,12 @@
 package storage
 
 import (
-	"context"
-	"fmt"
-
-	"time"
-
 	"bytes"
-
-	"sort"
-
 	"crypto/sha1"
-
 	"encoding/hex"
+	"fmt"
+	"sort"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
@@ -20,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"golang.org/x/net/context"
 )
 
 const inboxVersion = 11
@@ -954,4 +949,18 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	}
 
 	return nil
+}
+
+type InboxVersionSource struct {
+	globals.Contextified
+}
+
+func NewInboxVersionSource(g *globals.Context) *InboxVersionSource {
+	return &InboxVersionSource{
+		Contextified: globals.NewContextified(g),
+	}
+}
+
+func (i *InboxVersionSource) GetInboxVersion(ctx context.Context, uid gregor1.UID) (chat1.InboxVers, error) {
+	return NewInbox(i.G(), uid).Version(ctx)
 }

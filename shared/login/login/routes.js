@@ -50,9 +50,6 @@ const recursiveLazyRoutes = I.Seq({
   }))
   .toMap()
 
-const routeTree = new RouteDefNode({
-  defaultSelected: 'login',
-  children: recursiveLazyRoutes,
-})
+const routeTree = recursiveLazyRoutes.get('login')
 
 export default routeTree

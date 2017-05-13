@@ -16,7 +16,9 @@ type progressWriter struct {
 }
 
 func newProgressWriter(p ProgressReporter, size int64) *progressWriter {
-	return &progressWriter{progress: p, total: size}
+	pw := &progressWriter{progress: p, total: size}
+	pw.initialReport()
+	return pw
 }
 
 func (p *progressWriter) Write(data []byte) (n int, err error) {
@@ -47,6 +49,15 @@ func (p *progressWriter) report() {
 
 	p.lastReport = percent
 	p.lastReportTime = now
+}
+
+// send 0% progress
+func (p *progressWriter) initialReport() {
+	if p.progress == nil {
+		return
+	}
+
+	p.progress(0, p.total)
 }
 
 func (p *progressWriter) Finish() {
