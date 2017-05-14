@@ -4,8 +4,6 @@
 package externals
 
 import (
-	"fmt"
-	"net/url"
 	"regexp"
 	"strings"
 
@@ -91,31 +89,11 @@ func (t FacebookServiceType) RecheckProofPosting(tryNumber int, status keybase1.
 func (t FacebookServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
 func (t FacebookServiceType) CheckProofText(text string, id keybase1.SigID, sig string) error {
-	// In this case the "proof" is a link to a Facebook post dialog, with the
-	// actual (short, Twitter-style) proof text in the "name" query parameter.
-	parsedURL, err := url.Parse(text)
-	if err != nil {
-		return err
-	}
-	nameParams := parsedURL.Query()["name"]
-	if len(nameParams) != 1 {
-		return libkb.BadSigError{E: fmt.Sprintf("Expected 1 'name' param, found %d", len(nameParams))}
-	}
-	name := nameParams[0]
-	err = t.BaseCheckProofTextShort(name, id, true /* med */)
-	if err != nil {
-		return err
-	}
-	// Sanity check other parts of the URL.
-	if parsedURL.Scheme != "https" {
-		return libkb.BadSigError{E: fmt.Sprintf("Expected HTTPS, found %s", parsedURL.Scheme)}
-	}
-	if parsedURL.Host != "facebook.com" {
-		return libkb.BadSigError{E: fmt.Sprintf("Expected facebook.com, found %s", parsedURL.Host)}
-	}
-	if parsedURL.Path != "/dialog/feed" {
-		return libkb.BadSigError{E: fmt.Sprintf("Unexpected path: %s", parsedURL.Path)}
-	}
+	// The "proof" here is a Facebook link that the user clicks on to go
+	// through a post flow. The exact nature of the link tends to change (e.g.
+	// it used to not point to a login interstitial, but now it does), and
+	// users are going to need to eyeball the final post in their browsers
+	// anyway, so we don't check anything here.
 	return nil
 }
 
