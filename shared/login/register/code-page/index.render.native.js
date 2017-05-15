@@ -5,7 +5,7 @@
  */
 
 import Container from '../../forms/container'
-import {isIOS} from '../../../constants/platform'
+import {isLargeScreen, isIOS} from '../../../constants/platform'
 import Qr from './qr'
 import React, {Component} from 'react'
 import {Box, Button, ClickableBox, Icon, Input, NativeActivityIndicator, NativeStyleSheet, TabBar, Text} from '../../../common-adapters/index.native'
@@ -31,7 +31,7 @@ class CodePageRender extends Component<void, Props, void> {
   renderScanCode () {
     if (this.props.qrCodeScanned) {
       return (
-        <Box style={{flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 200}}>
+        <Box style={{...stylesQRScan, flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
           <NativeActivityIndicator size='large' />
         </Box>
       )
@@ -270,7 +270,7 @@ const stylesTextCode = {
 }
 
 const stylesQRScan = {
-  height: 200,
+  minHeight: isLargeScreen ? 300 : 200,
 }
 
 const stylesScan = NativeStyleSheet.create({

@@ -5,6 +5,7 @@ import getenv from 'getenv'
 const isMobile = false
 const isAndroid = false
 const isIOS = false
+const isLargeScreen = true
 
 const isElectron = true
 const isDarwin = process.platform === 'darwin'
@@ -143,6 +144,7 @@ export {
   isDarwin,
   isElectron,
   isIOS,
+  isLargeScreen,
   isLinux,
   isMobile,
   isWindows,
