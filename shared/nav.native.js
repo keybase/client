@@ -42,16 +42,18 @@ class CardStackShim extends Component {
     }
   }
 
-  render () {
+  render() {
     const stack = this.props.stack
 
     const navigation = {
       state: {
         index: stack.size - 1,
-        routes: stack.map(route => {
-          const routeName = route.path.join('/')
-          return {key: routeName, routeName, params: route}
-        }).toArray(),
+        routes: stack
+          .map(route => {
+            const routeName = route.path.join('/')
+            return {key: routeName, routeName, params: route}
+          })
+          .toArray(),
       },
       dispatch: this._dispatchShim,
       navigate: () => {},
@@ -63,7 +65,7 @@ class CardStackShim extends Component {
       <CardStackTransitioner
         navigation={navigation}
         router={this}
-        headerMode='none'
+        headerMode="none"
         mode={this.props.mode}
       />
     )
@@ -90,14 +92,14 @@ const barStyle = ({showStatusBarDarkContent, underStatusBar}) => {
   return 'dark-content'
 }
 
-function renderStackRoute (route) {
+function renderStackRoute(route) {
   const {underStatusBar, hideStatusBar, showStatusBarDarkContent} = route.tags
   return (
     <Box style={route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
       <StatusBar
         hidden={hideStatusBar}
         translucent={true}
-        backgroundColor='rgba(0, 26, 51, 0.25)'
+        backgroundColor="rgba(0, 26, 51, 0.25)"
         barStyle={barStyle({showStatusBarDarkContent, underStatusBar})}
       />
       {route.component}
@@ -126,7 +128,7 @@ const forAndroid = ({hideNav, shim, tabBar}) => (
   </Box>
 )
 
-function MainNavStack (props: Props) {
+function MainNavStack(props: Props) {
   const screens = props.routeStack
   const shim = (
     <Box style={flexOne}>
@@ -136,23 +138,24 @@ function MainNavStack (props: Props) {
         renderRoute={renderStackRoute}
         onNavigateBack={props.navigateUp}
       />
-      {![chatTab].includes(props.routeSelected) && <Offline reachability={props.reachability} appFocused={true} />}
+      {![chatTab].includes(props.routeSelected) &&
+        <Offline reachability={props.reachability} appFocused={true} />}
       <GlobalError />
     </Box>
   )
-
-  const tabBar = <TabBar
-    onTabClick={props.switchTab}
-    selectedTab={props.routeSelected}
-    username={props.username}
-    badgeNumbers={props.navBadges.toJS()}
-  />
-
+  const tabBar = (
+    <TabBar
+      onTabClick={props.switchTab}
+      selectedTab={props.routeSelected}
+      username={props.username}
+      badgeNumbers={props.navBadges.toJS()}
+    />
+  )
   const Container = isAndroid ? forAndroid : forIOS
   return <Container hideNav={props.hideNav} shim={shim} tabBar={tabBar} />
 }
 
-function Nav (props: Props) {
+function Nav(props: Props) {
   const baseScreens = props.routeStack.filter(r => !r.tags.layerOnTop)
   if (!baseScreens.size) {
     throw new Error('no route component to render without layerOnTop tag')
@@ -160,12 +163,11 @@ function Nav (props: Props) {
 
   const fullscreenPred = r => r.tags.fullscreen
   const mainScreens = baseScreens.takeUntil(fullscreenPred)
-  const fullScreens = baseScreens.skipUntil(fullscreenPred)
-    .unshift({
-      path: ['main'],
-      component: <MainNavStack {...props} routeStack={mainScreens} />,
-      tags: {underStatusBar: true},  // don't pad nav stack (child screens have own padding)
-    })
+  const fullScreens = baseScreens.skipUntil(fullscreenPred).unshift({
+    path: ['main'],
+    component: <MainNavStack {...props} routeStack={mainScreens} />,
+    tags: {underStatusBar: true}, // don't pad nav stack (child screens have own padding)
+  })
 
   const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
 
@@ -175,7 +177,7 @@ function Nav (props: Props) {
         stack={fullScreens}
         renderRoute={renderStackRoute}
         onNavigateBack={props.navigateUp}
-        mode='modal'
+        mode="modal"
       />
       {layerScreens.map(r => r.leafComponent)}
     </Box>
@@ -232,7 +234,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillReceiveProps (nextProps) {
+    componentWillReceiveProps(nextProps) {
       const nextPath = nextProps.routeStack.last().path
       const curPath = this.props.routeStack.last().path
       const curTags = this.props.routeStack.last().tags

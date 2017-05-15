@@ -16,7 +16,7 @@ class CodePage extends Component<void, Props, {enterText: string}> {
     enterText: '',
   }
 
-  render () {
+  render() {
     return (
       <RenderCodePage
         enterText={this.state.enterText}
@@ -61,11 +61,11 @@ export default connect(
     qrCode: qrCode ? qrCode.stringValue() : '',
     textCode: textCode ? textCode.stringValue() : '',
   }),
-  (dispatch) => ({
+  dispatch => ({
     onBack: () => dispatch(Creators.onBack()),
-    setCodePageMode: (requestedMode) => dispatch(Creators.setCodePageMode(requestedMode)),
+    setCodePageMode: requestedMode => dispatch(Creators.setCodePageMode(requestedMode)),
     setCameraBrokenMode: (broken: boolean) => dispatch(Creators.setCameraBrokenMode(broken)),
     qrScanned: ({data}) => dispatch(Creators.qrScanned(data)),
-    textEntered: (text) => dispatch(Creators.provisionTextCodeEntered(text)),
+    textEntered: text => dispatch(Creators.provisionTextCodeEntered(text)),
   })
 )(CodePage)

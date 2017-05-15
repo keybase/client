@@ -13,12 +13,16 @@ type State = {
   username: string,
 }
 
-function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
+function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
   if (platform === 'hackernews') {
     return (
       <Box style={styleInfoBanner}>
-        <Text backgroundMode='Information' type='BodySemibold'>&bull; You must have karma &ge; 2</Text>
-        <Text backgroundMode='Information' type='BodySemibold'>&bull; You must enter your uSeRName with exact case</Text>
+        <Text backgroundMode="Information" type="BodySemibold">
+          &bull; You must have karma &ge; 2
+        </Text>
+        <Text backgroundMode="Information" type="BodySemibold">
+          &bull; You must enter your uSeRName with exact case
+        </Text>
       </Box>
     )
   }
@@ -26,45 +30,79 @@ function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
   return null
 }
 
-function customError (error: string, code: ?number) {
+function customError(error: string, code: ?number) {
   if (code === ConstantsStatusCode.scprofilenotpublic) {
-    return <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center'}}>
-      <Text style={{...styleErrorBannerText, marginLeft: globalMargins.small, marginRight: globalMargins.small}} type='BodySemibold'>You haven't set a public "Coinbase URL". You need to do that now.</Text>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}} onClick={() => openURL('https://www.coinbase.com/settings#payment_page')}>
-        <Text style={styleErrorBannerText} type='BodySmallSemibold'>Go to Coinbase</Text>
+    return (
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Text
+          style={{
+            ...styleErrorBannerText,
+            marginLeft: globalMargins.small,
+            marginRight: globalMargins.small,
+          }}
+          type="BodySemibold"
+        >
+          You haven't set a public "Coinbase URL". You need to do that now.
+        </Text>
+        <Box
+          style={{...globalStyles.flexBoxRow, alignItems: 'center'}}
+          onClick={() => openURL('https://www.coinbase.com/settings#payment_page')}
+        >
+          <Text style={styleErrorBannerText} type="BodySmallSemibold">
+            Go to Coinbase
+          </Text>
+        </Box>
       </Box>
-    </Box>
+    )
   }
-  return <Text style={styleErrorBannerText} type='BodySemibold'>{error}</Text>
+  return <Text style={styleErrorBannerText} type="BodySemibold">{error}</Text>
 }
 
 class PrivateEnterUsernameRender extends Component<void, Props, State> {
-  state: State;
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
     this.state = {
       username: '',
     }
   }
 
-  handleUsernameChange (username: string) {
+  handleUsernameChange(username: string) {
     if (this.props.onUsernameChange) {
       this.props.onUsernameChange(username)
     }
     this.setState({username})
   }
 
-  handleContinue () {
+  handleContinue() {
     this.props.onContinue(this.state.username)
   }
 
-  render () {
+  render() {
     const {floatingLabelText, hintText} = platformText[this.props.platform]
-    const notification = this.props.errorText ? {notification: {type: 'error', message: customError(this.props.errorText, this.props.errorCode)}} : {}
+    const notification = this.props.errorText
+      ? {
+          notification: {
+            type: 'error',
+            message: customError(this.props.errorText, this.props.errorCode),
+          },
+        }
+      : {}
     return (
       <StandardScreen {...notification}>
-        <PlatformIcon style={styleIcon} platform={this.props.platform} overlay={'icon-proof-pending'} overlayColor={globalColors.grey} />
+        <PlatformIcon
+          style={styleIcon}
+          platform={this.props.platform}
+          overlay={'icon-proof-pending'}
+          overlayColor={globalColors.grey}
+        />
         <Input
           style={styleInput}
           autoFocus={true}
@@ -72,15 +110,17 @@ class PrivateEnterUsernameRender extends Component<void, Props, State> {
           hintText={hintText}
           value={this.state.username}
           onChangeText={username => this.handleUsernameChange(username)}
-          onEnterKeyDown={() => this.handleContinue()} />
+          onEnterKeyDown={() => this.handleContinue()}
+        />
         <UsernameTips platform={this.props.platform} />
         <Button
           style={styleButton}
-          type='Primary'
+          type="Primary"
           fullWidth={true}
           disabled={!this.props.canContinue}
           onClick={() => this.handleContinue()}
-          label='Continue' />
+          label="Continue"
+        />
       </StandardScreen>
     )
   }

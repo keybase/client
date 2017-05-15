@@ -14,11 +14,13 @@ const Progress = () => (
 )
 
 class Button extends Component<void, Props, void> {
-  render () {
-    const backgroundModeName = this.props.backgroundMode ? {
-      Terminal: 'OnTerminal',
-      Normal: '',
-    }[this.props.backgroundMode] : ''
+  render() {
+    const backgroundModeName = this.props.backgroundMode
+      ? {
+          Terminal: 'OnTerminal',
+          Normal: '',
+        }[this.props.backgroundMode]
+      : ''
 
     let containerStyle = {
       Primary,
@@ -61,7 +63,12 @@ class Button extends Component<void, Props, void> {
     return (
       <ClickableBox style={containerStyle} onClick={onPress}>
         <Box>
-          <Text type={this.props.small ? 'BodySemibold' : 'BodyBig'} style={{...labelStyle, ...this.props.labelStyle}}>{this.props.label}</Text>
+          <Text
+            type={this.props.small ? 'BodySemibold' : 'BodyBig'}
+            style={{...labelStyle, ...this.props.labelStyle}}
+          >
+            {this.props.label}
+          </Text>
           {this.props.waiting && <Progress />}
         </Box>
       </ClickableBox>

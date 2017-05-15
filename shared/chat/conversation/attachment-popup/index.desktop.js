@@ -2,23 +2,50 @@
 import React from 'react'
 import {Box, Icon, Text, PopupDialog, ProgressIndicator} from '../../../common-adapters/index'
 import {AttachmentPopupMenu} from '../messages/popup'
-import {ProgressBar as AttachmentProgressBar, ImageIcon as AttachmentStatusIcon} from '../messages/attachment'
+import {
+  ProgressBar as AttachmentProgressBar,
+  ImageIcon as AttachmentStatusIcon,
+} from '../messages/attachment'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {fileUIName} from '../../../constants/platform'
 
 import type {Props} from './'
 import type {AttachmentMessage} from '../../../constants/chat'
 
-const AttachmentStatusFooter = ({message, onDownloadAttachment, onOpenInFileUI}: {message: AttachmentMessage, onDownloadAttachment: () => void, onOpenInFileUI: () => void}) => {
+const AttachmentStatusFooter = ({
+  message,
+  onDownloadAttachment,
+  onOpenInFileUI,
+}: {
+  message: AttachmentMessage,
+  onDownloadAttachment: () => void,
+  onOpenInFileUI: () => void,
+}) => {
   const {downloadProgress, savedPath} = message
 
   let contents
   if (savedPath === false && downloadProgress !== null) {
-    contents = <AttachmentProgressBar text='Downloading' progress={downloadProgress} />
+    contents = <AttachmentProgressBar text="Downloading" progress={downloadProgress} />
   } else if (savedPath) {
-    contents = <Text type='BodySmall' style={{color: globalColors.black_60, cursor: 'pointer'}} onClick={onOpenInFileUI}>Show in {fileUIName}</Text>
+    contents = (
+      <Text
+        type="BodySmall"
+        style={{color: globalColors.black_60, cursor: 'pointer'}}
+        onClick={onOpenInFileUI}
+      >
+        Show in {fileUIName}
+      </Text>
+    )
   } else {
-    contents = <Text type='BodySmall' style={{color: globalColors.black_60, cursor: 'pointer'}} onClick={onDownloadAttachment}>Download</Text>
+    contents = (
+      <Text
+        type="BodySmall"
+        style={{color: globalColors.black_60, cursor: 'pointer'}}
+        onClick={onDownloadAttachment}
+      >
+        Download
+      </Text>
+    )
   }
 
   return (
@@ -28,7 +55,16 @@ const AttachmentStatusFooter = ({message, onDownloadAttachment, onOpenInFileUI}:
   )
 }
 
-const AttachmentView = ({isZoomed, onToggleZoom, messageState, path}: {isZoomed: boolean, onToggleZoom: () => void, path: ?string}) => {
+const AttachmentView = ({
+  isZoomed,
+  onToggleZoom,
+  messageState,
+  path,
+}: {
+  isZoomed: boolean,
+  onToggleZoom: () => void,
+  path: ?string,
+}) => {
   if (path) {
     return (
       <Box style={isZoomed ? styleContentsZoom : styleContentsFit} onClick={onToggleZoom}>
@@ -44,33 +80,58 @@ const AttachmentView = ({isZoomed, onToggleZoom, messageState, path}: {isZoomed:
   }
 }
 
-const AttachmentPopup = ({message, detailsPopupShowing, isZoomed, onCloseDetailsPopup, onClose, onDownloadAttachment, onDeleteMessage, onOpenDetailsPopup, onToggleZoom, onOpenInFileUI, you}: Props) => {
+const AttachmentPopup = ({
+  message,
+  detailsPopupShowing,
+  isZoomed,
+  onCloseDetailsPopup,
+  onClose,
+  onDownloadAttachment,
+  onDeleteMessage,
+  onOpenDetailsPopup,
+  onToggleZoom,
+  onOpenInFileUI,
+  you,
+}: Props) => {
   const {savedPath, downloadProgress, downloadedPath} = message
   let statusIcon
   if (savedPath || (savedPath === false && downloadProgress !== null)) {
-    statusIcon = <AttachmentStatusIcon
-      style={{position: 'absolute', bottom: -3, right: -3}}
-      type={savedPath ? 'Downloaded' : 'Downloading'}
-    />
+    statusIcon = (
+      <AttachmentStatusIcon
+        style={{position: 'absolute', bottom: -3, right: -3}}
+        type={savedPath ? 'Downloaded' : 'Downloading'}
+      />
+    )
   }
 
   return (
     <PopupDialog onClose={onClose} fill={true}>
-      {detailsPopupShowing && <AttachmentPopupMenu
-        you={you}
-        message={message}
-        onDeleteMessage={onDeleteMessage}
-        onDownloadAttachment={onDownloadAttachment}
-        onOpenInFileUI={onOpenInFileUI}
-        onHidden={onCloseDetailsPopup}
-        style={{position: 'absolute', top: 28, right: globalMargins.xtiny}}
-      />}
+      {detailsPopupShowing &&
+        <AttachmentPopupMenu
+          you={you}
+          message={message}
+          onDeleteMessage={onDeleteMessage}
+          onDownloadAttachment={onDownloadAttachment}
+          onOpenInFileUI={onOpenInFileUI}
+          onHidden={onCloseDetailsPopup}
+          style={{position: 'absolute', top: 28, right: globalMargins.xtiny}}
+        />}
       <Box style={styleHeaderFooter}>
-        <Text type='BodySemibold' style={{color: globalColors.black_75, flex: 1}}>{message.title}</Text>
-        <Icon type='iconfont-ellipsis' style={{color: globalColors.black_40, cursor: 'pointer'}} onClick={detailsPopupShowing ? onCloseDetailsPopup : onOpenDetailsPopup} />
+        <Text type="BodySemibold" style={{color: globalColors.black_75, flex: 1}}>
+          {message.title}
+        </Text>
+        <Icon
+          type="iconfont-ellipsis"
+          style={{color: globalColors.black_40, cursor: 'pointer'}}
+          onClick={detailsPopupShowing ? onCloseDetailsPopup : onOpenDetailsPopup}
+        />
       </Box>
       <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={downloadedPath} />
-      <AttachmentStatusFooter message={message} onDownloadAttachment={onDownloadAttachment} onOpenInFileUI={onOpenInFileUI} />
+      <AttachmentStatusFooter
+        message={message}
+        onDownloadAttachment={onDownloadAttachment}
+        onOpenInFileUI={onOpenInFileUI}
+      />
       {statusIcon}
     </PopupDialog>
   )

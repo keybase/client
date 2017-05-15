@@ -1,7 +1,18 @@
 // @flow
 import Tracker from './render'
 import {trackerPropsToRenderProps} from './index'
-import {normal, checking, revoked, error, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
+import {
+  normal,
+  checking,
+  revoked,
+  error,
+  metaUpgraded,
+  metaUnreachable,
+  metaPending,
+  metaDeleted,
+  metaNone,
+  metaIgnored,
+} from '../constants/tracker'
 import {globalStyles} from '../styles'
 import type {TrackerProps} from '../tracker'
 import type {Proof} from '../constants/tracker'
@@ -19,28 +30,34 @@ const proofMaker = (type, id = 'id-') => ({
   mTime: 1469665223000,
 })
 
-const proofWeb: Proof = {...proofMaker('http'),
+const proofWeb: Proof = {
+  ...proofMaker('http'),
   name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
   humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
 }
-const proofWeb1: Proof = {...proofMaker('http', '1'),
+const proofWeb1: Proof = {
+  ...proofMaker('http', '1'),
   name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmor.com',
   meta: metaNone,
   humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
 }
-const proofWeb2: Proof = {...proofMaker('http', '2'),
+const proofWeb2: Proof = {
+  ...proofMaker('http', '2'),
   name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmo.com',
   humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
 }
-const proofWeb3: Proof = {...proofMaker('http', '3'),
+const proofWeb3: Proof = {
+  ...proofMaker('http', '3'),
   name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandm.com',
   humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
 }
-const proofWeb4: Proof = {...proofMaker('http', '4'),
+const proofWeb4: Proof = {
+  ...proofMaker('http', '4'),
   name: 'thelongestdomainnameintheworldandthensomeandthensomemoreand.com',
   humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
 }
-const proofWeb5: Proof = {...proofMaker('http', '5'),
+const proofWeb5: Proof = {
+  ...proofMaker('http', '5'),
   name: 'thelongestdomainnameintheworldandthensomeandthensomemorean.com',
   humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
 }
@@ -75,11 +92,61 @@ const proofsDefault: Array<Proof> = [
 ]
 
 const proofsChanged: Array<Proof> = [
-  {name: 'deleted', type: 'github', id: 'warningId', state: revoked, meta: metaDeleted, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469665223000},
-  {name: 'unreachable', type: 'twitter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469565223000},
-  {name: 'checking', type: 'twitter', id: 'checkingId', state: checking, meta: metaNone, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469465223000},
-  {name: 'pending', type: 'https', id: 'pendingId', state: checking, meta: metaPending, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469365223000},
-  {name: 'upgraded', type: 'rooter', id: 'upgradedId', state: normal, meta: metaUpgraded, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469265223000},
+  {
+    name: 'deleted',
+    type: 'github',
+    id: 'warningId',
+    state: revoked,
+    meta: metaDeleted,
+    humanUrl: '',
+    profileUrl: '',
+    isTracked: false,
+    mTime: 1469665223000,
+  },
+  {
+    name: 'unreachable',
+    type: 'twitter',
+    id: 'unreachableId',
+    state: error,
+    meta: metaUnreachable,
+    humanUrl: '',
+    profileUrl: '',
+    isTracked: false,
+    mTime: 1469565223000,
+  },
+  {
+    name: 'checking',
+    type: 'twitter',
+    id: 'checkingId',
+    state: checking,
+    meta: metaNone,
+    humanUrl: '',
+    profileUrl: '',
+    isTracked: false,
+    mTime: 1469465223000,
+  },
+  {
+    name: 'pending',
+    type: 'https',
+    id: 'pendingId',
+    state: checking,
+    meta: metaPending,
+    humanUrl: '',
+    profileUrl: '',
+    isTracked: false,
+    mTime: 1469365223000,
+  },
+  {
+    name: 'upgraded',
+    type: 'rooter',
+    id: 'upgradedId',
+    state: normal,
+    meta: metaUpgraded,
+    humanUrl: '',
+    profileUrl: '',
+    isTracked: false,
+    mTime: 1469265223000,
+  },
 ]
 
 const propsBase = {
@@ -163,40 +230,48 @@ const propsNewUserFollowsYou: TrackerProps = {
   },
 }
 
-type setFollowFilter = (p: Proof) => bool
-function setFollow (source: TrackerProps, filter: setFollowFilter): TrackerProps {
-  source.proofs = source.proofs.map(p => filter(p) ? {
-    ...p,
-    isTracked: true,
-  } : p)
+type setFollowFilter = (p: Proof) => boolean
+function setFollow(source: TrackerProps, filter: setFollowFilter): TrackerProps {
+  source.proofs = source.proofs.map(
+    p =>
+      filter(p)
+        ? {
+            ...p,
+            isTracked: true,
+          }
+        : p
+  )
   return source
 }
 
-const propsFollowing: TrackerProps = setFollow({
-  ...propsNewUser,
-  currentlyFollowing: true,
-  reason: 'You have followed gabrielh.',
-  userInfo: {
-    ...propsNewUser.userInfo,
-    followsYou: true,
+const propsFollowing: TrackerProps = setFollow(
+  {
+    ...propsNewUser,
+    currentlyFollowing: true,
+    reason: 'You have followed gabrielh.',
+    userInfo: {
+      ...propsNewUser.userInfo,
+      followsYou: true,
+    },
+    proofs: proofsDefault,
+    lastAction: 'followed',
   },
-  proofs: proofsDefault,
-  lastAction: 'followed',
-}, () => true)
+  () => true
+)
 
-const propsWhatevz: TrackerProps = setFollow({
-  ...propsFollowing,
-  reason: 'You have followed gabrielh',
-  proofs: [
-    proofGithub,
-    {...proofTwitter, meta: metaIgnored},
-  ],
-}, () => true)
+const propsWhatevz: TrackerProps = setFollow(
+  {
+    ...propsFollowing,
+    reason: 'You have followed gabrielh',
+    proofs: [proofGithub, {...proofTwitter, meta: metaIgnored}],
+  },
+  () => true
+)
 
 const propsChangedProofs: TrackerProps = {
   ...propsDefault,
   currentlyFollowing: true,
-  reason: 'Some of gabrielh\'s proofs have changed since you last followed them.',
+  reason: "Some of gabrielh's proofs have changed since you last followed them.",
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true,
@@ -219,7 +294,7 @@ const propsLessData: TrackerProps = {
   ...propsBase,
   nonUser: false,
   username: '00',
-  reason: 'I\'m a user with not much data.',
+  reason: "I'm a user with not much data.",
   userInfo: {
     fullname: 'Hi',
     uid: '0',
@@ -232,13 +307,18 @@ const propsLessData: TrackerProps = {
   },
   currentlyFollowing: false,
   trackerState: normal,
-  proofs: [
-    proofGithub,
-  ],
+  proofs: [proofGithub],
 }
 
-const propsLoggedOut: TrackerProps = {...propsDefault, loggedIn: false, reason: 'You accessed a public folder with gabrielh.'}
-const propsOneProof: TrackerProps = {...propsDefault, proofs: [proofsDefault[0]]}
+const propsLoggedOut: TrackerProps = {
+  ...propsDefault,
+  loggedIn: false,
+  reason: 'You accessed a public folder with gabrielh.',
+}
+const propsOneProof: TrackerProps = {
+  ...propsDefault,
+  proofs: [proofsDefault[0]],
+}
 const propsFiveProof: TrackerProps = {
   ...propsDefault,
   userInfo: {
@@ -252,30 +332,55 @@ const propsFiveProof: TrackerProps = {
 const dumbMap: DumbComponentMap<Tracker> = {
   component: Tracker,
   mocks: {
-    'NonuserNoLinkPrivate': trackerPropsToRenderProps({...propsNonUser, inviteLink: null, isPrivate: true}),
-    'NonuserLink': trackerPropsToRenderProps(propsNonUser),
-    'NonuserNoLinkPublic': trackerPropsToRenderProps({...propsNonUser, inviteLink: null}),
+    NonuserNoLinkPrivate: trackerPropsToRenderProps({
+      ...propsNonUser,
+      inviteLink: null,
+      isPrivate: true,
+    }),
+    NonuserLink: trackerPropsToRenderProps(propsNonUser),
+    NonuserNoLinkPublic: trackerPropsToRenderProps({
+      ...propsNonUser,
+      inviteLink: null,
+    }),
     'Logged out': trackerPropsToRenderProps(propsLoggedOut),
-    'Only one proof, action bar not ready': trackerPropsToRenderProps({...propsOneProof, actionBarReady: false}),
+    'Only one proof, action bar not ready': trackerPropsToRenderProps({
+      ...propsOneProof,
+      actionBarReady: false,
+    }),
     'Only one proof': trackerPropsToRenderProps(propsOneProof),
     '5 proofs': trackerPropsToRenderProps(propsFiveProof),
     'New user': trackerPropsToRenderProps(propsNewUser),
-    'New user Scroll1': {...trackerPropsToRenderProps(propsNewUser),
-      afterMount: (c, node) => { node.querySelector('.scroll-container').scrollTop = 380 },
+    'New user Scroll1': {
+      ...trackerPropsToRenderProps(propsNewUser),
+      afterMount: (c, node) => {
+        node.querySelector('.scroll-container').scrollTop = 380
+      },
     },
-    'New user Scroll2': {...trackerPropsToRenderProps(propsNewUser),
-      afterMount: (c, node) => { node.querySelector('.scroll-container').scrollTop = 620 },
+    'New user Scroll2': {
+      ...trackerPropsToRenderProps(propsNewUser),
+      afterMount: (c, node) => {
+        node.querySelector('.scroll-container').scrollTop = 620
+      },
     },
     'New user, follows me': trackerPropsToRenderProps(propsNewUserFollowsYou),
-    'Followed': trackerPropsToRenderProps(propsFollowing),
-    'Changed/Broken proofs user you don\'t follow': trackerPropsToRenderProps({...propsNewUserFollowsYou, proofs: proofsChanged}),
+    Followed: trackerPropsToRenderProps(propsFollowing),
+    "Changed/Broken proofs user you don't follow": trackerPropsToRenderProps({
+      ...propsNewUserFollowsYou,
+      proofs: proofsChanged,
+    }),
     'Changed/Broken proofs': trackerPropsToRenderProps(propsChangedProofs),
-    'You follow them': trackerPropsToRenderProps({...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}}),
-    'Unfollowed': trackerPropsToRenderProps(propsUnfollowed),
+    'You follow them': trackerPropsToRenderProps({
+      ...propsFollowing,
+      userInfo: {...propsNewUser.userInfo, followsYou: false},
+    }),
+    Unfollowed: trackerPropsToRenderProps(propsUnfollowed),
     'Barely there': trackerPropsToRenderProps(propsLessData),
-    'Tracker - Loading': trackerPropsToRenderProps({...propsLessData, loading: true}),
-    'Whatevz': trackerPropsToRenderProps(propsWhatevz),
-    'Platforms': trackerPropsToRenderProps(propsWhatevz),
+    'Tracker - Loading': trackerPropsToRenderProps({
+      ...propsLessData,
+      loading: true,
+    }),
+    Whatevz: trackerPropsToRenderProps(propsWhatevz),
+    Platforms: trackerPropsToRenderProps(propsWhatevz),
     'Tracker Error': {
       ...trackerPropsToRenderProps(propsWhatevz),
       error: {
@@ -287,5 +392,5 @@ const dumbMap: DumbComponentMap<Tracker> = {
 }
 
 export default {
-  'Tracker': dumbMap,
+  Tracker: dumbMap,
 }

@@ -87,10 +87,12 @@ const util = {
   noSelect: {
     WebkitUserSelect: 'none',
   },
-  windowDragging: { // allow frameless window dragging
+  windowDragging: {
+    // allow frameless window dragging
     WebkitAppRegion: 'drag',
   },
-  windowDraggingClickable: { // allow things in frameless regions to be clicked and not dragged
+  windowDraggingClickable: {
+    // allow things in frameless regions to be clicked and not dragged
     WebkitAppRegion: 'no-drag',
   },
   rounded: {
@@ -124,19 +126,19 @@ const globalStyles = {
   },
 }
 
-function transition (...properties: Array<string>) : Object {
+function transition(...properties: Array<string>): Object {
   return {
     transition: properties.map(p => `${p} 0.1s ease-out`).join(', '),
   }
 }
 
-function transitionColor () : Object {
+function transitionColor(): Object {
   return {
     transition: 'background 0.2s linear',
   }
 }
 
-function backgroundURL (...to: Array<string>): string {
+function backgroundURL(...to: Array<string>): string {
   const goodPath = [...to]
 
   if (goodPath && goodPath.length) {
@@ -144,7 +146,10 @@ function backgroundURL (...to: Array<string>): string {
     const ext = path.extname(last)
     goodPath[goodPath.length - 1] = path.basename(last, ext)
 
-    const images = [1, 2, 3].map(mult => `url('${resolveImageAsURL(...goodPath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`)
+    const images = [1, 2, 3].map(
+      mult =>
+        `url('${resolveImageAsURL(...goodPath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
+    )
 
     return `-webkit-image-set(${images.join(', ')})`
   }

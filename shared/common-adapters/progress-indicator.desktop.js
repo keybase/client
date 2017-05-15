@@ -6,7 +6,8 @@ import type {Props} from './progress-indicator'
 const ProgressIndicator = ({white, style}: Props) => (
   <Icon
     style={style}
-    type={white ? 'icon-progress-white-animated' : 'icon-progress-grey-animated'} />
+    type={white ? 'icon-progress-white-animated' : 'icon-progress-grey-animated'}
+  />
 )
 
 export default ProgressIndicator

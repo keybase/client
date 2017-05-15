@@ -32,7 +32,7 @@ const updateEmailBase = {
 const updateEmailMap: DumbComponentMap<UpdateEmail> = {
   component: UpdateEmail,
   mocks: {
-    'Normal': updateEmailBase,
+    Normal: updateEmailBase,
     'Normal - No Email': {
       ...updateEmailBase,
       isVerified: false,
@@ -51,7 +51,8 @@ const updateEmailMap: DumbComponentMap<UpdateEmail> = {
 
 const updatePassphraseBase = {
   onChangeNewPassphrase: newPassphrase => console.log('onChangeNewPassphrase', newPassphrase),
-  onChangeNewPassphraseConfirm: newPassphraseConfirm => console.log('onChangeNewPassphraseConfirm', newPassphraseConfirm),
+  onChangeNewPassphraseConfirm: newPassphraseConfirm =>
+    console.log('onChangeNewPassphraseConfirm', newPassphraseConfirm),
   onChangeShowPassphrase: showPassphrase => console.log('onChangeShowPassphrase', showPassphrase),
   newPassphrase: 'open sesame',
   newPassphraseConfirm: 'open sesame',
@@ -83,7 +84,7 @@ const updatePassphraseMap: DumbComponentMap<UpdatePassphrase> = {
       hasPGPKeyOnServer: true,
       canSave: false,
     },
-    'Normal': updatePassphraseBase,
+    Normal: updatePassphraseBase,
     'Normal - Show Typing': {
       ...updatePassphraseBase,
       showTyping: true,
@@ -129,7 +130,7 @@ const paymentFormMap: DumbComponentMap<PaymentForm> = {
       expiration: '',
       securityCode: '',
     },
-    'Normal': paymentBase,
+    Normal: paymentBase,
     'Normal - Error': {
       ...paymentBase,
       errorMessage: 'Please check your payment details.',
@@ -180,11 +181,7 @@ const planBase = {
 const landingBase = {
   plan: planBase,
   account: accountBase,
-  plans: [
-    planInfoBasic,
-    planInfoGold,
-    planInfoFriend,
-  ],
+  plans: [planInfoBasic, planInfoGold, planInfoFriend],
 }
 
 const goldBase = {
@@ -205,8 +202,11 @@ const goldBase = {
 const landingMap: DumbComponentMap<Landing> = {
   component: Landing,
   mocks: {
-    'Normal': landingBase,
-    'Normal - Not Verified email': {...landingBase, account: {...landingBase.account, isVerified: false}},
+    Normal: landingBase,
+    'Normal - Not Verified email': {
+      ...landingBase,
+      account: {...landingBase.account, isVerified: false},
+    },
     'Gold Plan': goldBase,
     'Gold Plan - Broken Payment': {
       ...goldBase,
@@ -229,7 +229,9 @@ const settingsNavBase = {
   },
   children: fillerContent,
   selectedTab: landingTab,
-  onTabChange: tab => { console.log('onTabChange', tab) },
+  onTabChange: tab => {
+    console.log('onTabChange', tab)
+  },
   onLogout: () => {},
   showComingSoon: false,
 }
@@ -237,14 +239,14 @@ const settingsNavBase = {
 const settingsContainerMap: DumbComponentMap<SettingsContainer> = {
   component: SettingsContainer,
   mocks: {
-    'Normal': settingsNavBase,
+    Normal: settingsNavBase,
   },
 }
 
 const deleteMeMap: DumbComponentMap<DeleteMe> = {
   component: DeleteMe,
   mocks: {
-    'Normal': {
+    Normal: {
       onDelete: () => console.log('onDelete clicked'),
       onRevokeCurrentDevice: () => console.log('onRevokeCurrentDevice clicked'),
       parentProps: {
@@ -260,7 +262,7 @@ const deleteMeMap: DumbComponentMap<DeleteMe> = {
 const deleteConfirmMap: DumbComponentMap<DeleteConfirm> = {
   component: DeleteConfirm,
   mocks: {
-    'Normal': {
+    Normal: {
       onDeleteForever: () => console.log('onDeleteForever clicked'),
       onCancel: () => console.log('onCancel clicked'),
       username: 'chris',
@@ -312,10 +314,10 @@ const commonSettings = {
 const notificationsMap: DumbComponentMap<Notifications> = {
   component: Notifications,
   mocks: {
-    'Normal': {
+    Normal: {
       ...commonSettings,
     },
-    'UnsubAll': {
+    UnsubAll: {
       ...commonSettings,
       unsubscribedFromAll: true,
     },
@@ -337,7 +339,7 @@ const commonInvite = {
 const inviteGeneratedMap: DumbComponentMap<InviteGeneratedRender> = {
   component: InviteGeneratedRender,
   mocks: {
-    'Normal': {
+    Normal: {
       ...commonInvite,
       email: 'user@gmail.com',
     },
@@ -349,19 +351,27 @@ const inviteGeneratedMap: DumbComponentMap<InviteGeneratedRender> = {
 
 const creditCardNoPast = {
   type: 'credit-card-no-past',
-  onAddCreditCard: () => { console.log('onAddCreditCard') },
+  onAddCreditCard: () => {
+    console.log('onAddCreditCard')
+  },
 }
 
 const creditCardWithPast = {
   type: 'credit-card-with-past',
   cardInfo: 'Visa **** 4242',
-  onPayWithSavedCard: () => { console.log('onPayWithSavedCard') },
-  onUpdateCard: () => { console.log('onPayWithSavedCard') },
+  onPayWithSavedCard: () => {
+    console.log('onPayWithSavedCard')
+  },
+  onUpdateCard: () => {
+    console.log('onPayWithSavedCard')
+  },
 }
 
 const applePay = {
   type: 'apple-pay',
-  onPayWithCardInstead: () => { console.log('onPayWithCardInstead') },
+  onPayWithCardInstead: () => {
+    console.log('onPayWithCardInstead')
+  },
 }
 
 const planDetailsMap: DumbComponentMap<PlanDetails> = {
@@ -471,7 +481,7 @@ const invitesMap: DumbComponentMap<Invites> = {
       ...invitesBase,
       inviteMessage: '',
     },
-    'Normal': invitesBase,
+    Normal: invitesBase,
     'Normal - Email Error': {
       ...invitesBase,
       error: new Error('Oops, you entered an invalid email address'),

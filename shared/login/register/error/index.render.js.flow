@@ -4,7 +4,7 @@ import type {RPCError} from '../../../util/errors'
 
 export type Props = {
   error: RPCError,
-  onBack: () => void
+  onBack: () => void,
 }
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}

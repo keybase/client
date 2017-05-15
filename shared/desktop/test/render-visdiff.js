@@ -39,7 +39,7 @@ app.on('ready', () => {
   const total = toRender.length
   let count = 0
 
-  function renderNext (target) {
+  function renderNext(target) {
     console.log('Rendering next. Remaining:', toRender.length, 'Currently rendering:', rendering)
     if (!toRender.length) {
       if (rendering === 0) {
@@ -54,7 +54,9 @@ app.on('ready', () => {
   ipcMain.on('display-done', (ev, msg) => {
     const sender = ev.sender
     sender.getOwnerBrowserWindow().capturePage(msg.rect, img => {
-      const filenameParts = [msg.key, msg.mockKey].map(s => _.words(s).join('_').replace(/[^\w_]/g, ''))
+      const filenameParts = [msg.key, msg.mockKey].map(s =>
+        _.words(s).join('_').replace(/[^\w_]/g, '')
+      )
       if (msg.isError) {
         filenameParts.push('ERROR')
       }
@@ -85,7 +87,11 @@ app.on('ready', () => {
       const firstDisplay = toRender.pop()
 
       console.log('Creating new worker window', i)
-      const workerWin = new BrowserWindow({show: DEBUG_WINDOWS, width: CANVAS_SIZE, height: CANVAS_SIZE})
+      const workerWin = new BrowserWindow({
+        show: DEBUG_WINDOWS,
+        width: CANVAS_SIZE,
+        height: CANVAS_SIZE,
+      })
       console.log('Created new worker window', i)
 
       workerWin.on('ready-to-show', () => console.log('Worker window ready-to-show:', i))
@@ -101,7 +107,9 @@ app.on('ready', () => {
         })
         rendering++
       })
-      workerWin.webContents.on('did-fail-load', () => console.log('Worker window did-fail-load:', i))
+      workerWin.webContents.on('did-fail-load', () =>
+        console.log('Worker window did-fail-load:', i)
+      )
       workerWin.on('unresponsive', () => console.log('Worker window unresponsive:', i))
       workerWin.on('responsive', () => console.log('Worker window responsive:', i))
       workerWin.on('closed', () => console.log('Worker window closed:', i))

@@ -8,7 +8,8 @@ import type {Props, Folder} from './list'
 import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
 
-const rowKey = users => users && users.map(u => `${u.username}-${u.readOnly ? 'reader' : ''}`).join('-')
+const rowKey = users =>
+  users && users.map(u => `${u.username}-${u.readOnly ? 'reader' : ''}`).join('-')
 
 const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
   const caretIcon: IconType = showIgnored ? 'iconfont-caret-down' : 'iconfont-caret-right'
@@ -20,51 +21,74 @@ const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
   return (
     <Box style={stylesIgnoreContainer}>
       <Box style={styles.topBox} onClick={onToggle}>
-        <Text type='BodySmallSemibold' style={stylesDividerText}>Ignored folders</Text>
-        <Icon type={caretIcon} style={{color: isPublic ? globalColors.black_40 : globalColors.white_40}} />
+        <Text type="BodySmallSemibold" style={stylesDividerText}>
+          Ignored folders
+        </Text>
+        <Icon
+          type={caretIcon}
+          style={{
+            color: isPublic ? globalColors.black_40 : globalColors.white_40,
+          }}
+        />
       </Box>
-      {showIgnored && <Box style={styles.bottomBox}>
-        <Text type='BodySmall' style={stylesDividerBodyText}>Ignored folders won't show up on your computer and you won't receive alerts about them.</Text>
-      </Box>}
+      {showIgnored &&
+        <Box style={styles.bottomBox}>
+          <Text type="BodySmall" style={stylesDividerBodyText}>
+            Ignored folders won't show up on your computer and you won't receive alerts about them.
+          </Text>
+        </Box>}
       {showIgnored && rows}
     </Box>
   )
 }
 
-const Rows = ({tlfs = [], isIgnored, isPublic, onOpen, onChat, onClick, onRekey, smallMode}: Props & {isIgnored: boolean, smallMode?: boolean, tlfs?: Array<Folder>}) => (
+const Rows = ({
+  tlfs = [],
+  isIgnored,
+  isPublic,
+  onOpen,
+  onChat,
+  onClick,
+  onRekey,
+  smallMode,
+}: Props & {isIgnored: boolean, smallMode?: boolean, tlfs?: Array<Folder>}) => (
   <Box>
-    {!!tlfs && tlfs.map((tlf) => (
-      <Row
-        {...tlf}
-        key={rowKey(tlf.users)}
-        isPublic={isPublic}
-        hasReadOnlyUsers={tlf.users && _.some(tlf.users, 'readOnly')}
-        ignored={isIgnored}
-        onChat={onChat}
-        onClick={onClick}
-        onRekey={onRekey}
-        onOpen={onOpen}
-        smallMode={smallMode} />
-    ))}
+    {!!tlfs &&
+      tlfs.map(tlf => (
+        <Row
+          {...tlf}
+          key={rowKey(tlf.users)}
+          isPublic={isPublic}
+          hasReadOnlyUsers={tlf.users && _.some(tlf.users, 'readOnly')}
+          ignored={isIgnored}
+          onChat={onChat}
+          onClick={onClick}
+          onRekey={onRekey}
+          onOpen={onOpen}
+          smallMode={smallMode}
+        />
+      ))}
   </Box>
 )
 
 class ListRender extends Component<void, Props, void> {
   _scrollContainer = null
 
-  componentDidUpdate (prevProps: Props) {
-    if (prevProps.showIgnored !== this.props.showIgnored &&
+  componentDidUpdate(prevProps: Props) {
+    if (
+      prevProps.showIgnored !== this.props.showIgnored &&
       this._scrollContainer &&
-      this.props.showIgnored) {
+      this.props.showIgnored
+    ) {
       ReactDOM.findDOMNode(this._scrollContainer).scrollTop += 100
     }
   }
 
-  _setRef = (r) => {
+  _setRef = r => {
     this._scrollContainer = r
   }
 
-  render () {
+  render() {
     const realCSS = `
       .folder-row .folder-row-hover-action { visibility: hidden; }
       .folder-row:hover .folder-row-hover-action { visibility: visible; }
@@ -73,23 +97,19 @@ class ListRender extends Component<void, Props, void> {
 
     const styles = this.props.isPublic ? stylesPublic : stylesPrivate
     const ignoredRows = <Rows {...this.props} isIgnored={true} tlfs={this.props.ignored || []} />
-
     return (
       <Box style={{...stylesContainer, ...this.props.style}} ref={this._setRef}>
         <style>{realCSS}</style>
         {this.props.extraRows}
-        <Rows
-          {...this.props}
-          isIgnored={false}
-          tlfs={this.props.tlfs || []} />
+        <Rows {...this.props} isIgnored={false} tlfs={this.props.tlfs || []} />
         {!this.props.smallMode &&
           <Ignored
             isPublic={this.props.isPublic}
             showIgnored={this.props.showIgnored}
             styles={styles}
             onToggle={this.props.onToggleShowIgnored}
-            rows={ignoredRows} />
-        }
+            rows={ignoredRows}
+          />}
       </Box>
     )
   }

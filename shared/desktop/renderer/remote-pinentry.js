@@ -16,15 +16,15 @@ type Props = {
 }
 
 class RemotePinentry extends Component<void, Props, void> {
-  componentWillMount () {
+  componentWillMount() {
     this.props.registerPinentryListener()
   }
 
-  shouldComponentUpdate (nextProps, nextState) {
+  shouldComponentUpdate(nextProps, nextState) {
     return nextProps.pinentryStates !== this.props.pinentryStates
   }
 
-  render () {
+  render() {
     const {pinentryStates} = this.props
 
     if (!pinentryStates) {
@@ -37,15 +37,16 @@ class RemotePinentry extends Component<void, Props, void> {
           const sid = parseInt(pSessionID, 10)
           return (
             <RemoteComponent
-              title='Pinentry'
+              title="Pinentry"
               windowsOpts={{width: 440, height: 210}}
               waitForState={true}
               onRemoteClose={() => this.props.onCancel(sid)}
-              component='pinentry'
+              component="pinentry"
               key={'pinentry:' + pSessionID}
               onSubmit={(passphrase, features) => this.props.onSubmit(sid, passphrase, features)}
               onCancel={() => this.props.onCancel(sid)}
-              sessionID={sid} />
+              sessionID={sid}
+            />
           )
         })}
       </div>
@@ -60,6 +61,7 @@ export default connect(
   (dispatch: any, ownProps: {}) => ({
     registerPinentryListener: () => dispatch(registerPinentryListener()),
     onCancel: (sid: number) => dispatch(onCancel(sid)),
-    onSubmit: (sid: number, passphrase: string, features: GUIEntryFeatures) => dispatch(onSubmit(sid, passphrase, features)),
+    onSubmit: (sid: number, passphrase: string, features: GUIEntryFeatures) =>
+      dispatch(onSubmit(sid, passphrase, features)),
   })
 )(RemotePinentry)

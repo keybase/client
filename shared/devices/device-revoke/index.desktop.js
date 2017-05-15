@@ -8,49 +8,58 @@ import type {Props} from '.'
 const Header = ({name, icon}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
     <Icon type={icon} />
-    <Text type='BodySemibold' style={styleName}>{name}</Text>
+    <Text type="BodySemibold" style={styleName}>{name}</Text>
   </Box>
 )
 
 const Body = ({endangeredTLFs, name, currentDevice}) => (
   <Box>
     <Box style={styleHeader}>
-      <Text type='BodySemibold'>Are you sure you want to revoke </Text>
+      <Text type="BodySemibold">Are you sure you want to revoke </Text>
       {currentDevice
-          ? <Text type='BodySemibold'>your current device</Text>
-          : <Text type='BodySemiboldItalic'>{name}</Text>
-      }
-      <Text type='BodySemibold'>?</Text>
+        ? <Text type="BodySemibold">your current device</Text>
+        : <Text type="BodySemiboldItalic">{name}</Text>}
+      <Text type="BodySemibold">?</Text>
     </Box>
 
     {endangeredTLFs.length > 0 &&
       <Box>
         <Box>
-          <Text type='Body'>You may lose access to these folders forever:</Text>
+          <Text type="Body">You may lose access to these folders forever:</Text>
         </Box>
 
         <Box style={styleDevicesContainer}>
           {endangeredTLFs.map(tlf => (
             <Box key={tlf.name} style={styleTLF}>
-              <Text type='BodySemibold' style={{marginRight: globalMargins.tiny}}>•</Text>
-              <Text type='BodySemibold'>{tlf.name}</Text>
+              <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>
+                •
+              </Text>
+              <Text type="BodySemibold">{tlf.name}</Text>
             </Box>
           ))}
         </Box>
-      </Box>
-    }
+      </Box>}
   </Box>
 )
 
-const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endangeredTLFs, icon}: Props) => (
+const Render = ({
+  name,
+  type,
+  deviceID,
+  currentDevice,
+  onSubmit,
+  onCancel,
+  endangeredTLFs,
+  icon,
+}: Props) => (
   <Confirm
     body={<Body endangeredTLFs={endangeredTLFs} name={name} currentDevice={currentDevice} />}
     danger={true}
     header={<Header name={name} icon={icon} />}
     onCancel={onCancel}
     onSubmit={() => onSubmit({currentDevice, deviceID, name})}
-    submitLabel='Yes, delete it'
-    theme='public'
+    submitLabel="Yes, delete it"
+    theme="public"
   />
 )
 

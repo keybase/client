@@ -10,7 +10,7 @@ import {injectReactQueryParams} from '../../util/dev'
 import {resolveRootAsURL} from '../resolve-root'
 import {windowStyle} from '../../styles'
 
-export default function () {
+export default function() {
   let appState = new AppState({
     defaultWidth: windowStyle.width,
     defaultHeight: windowStyle.height,
@@ -18,7 +18,8 @@ export default function () {
   appState.checkOpenAtLogin()
 
   const mainWindow = new Window(
-    resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?mainWindow')), {
+    resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?mainWindow')),
+    {
       x: appState.state.x,
       y: appState.state.y,
       width: appState.state.width,
@@ -33,10 +34,14 @@ export default function () {
   webContents.on('did-finish-load', () => {
     webContents.send('load', {
       scripts: [
-        ...(__DEV__ ? [{
-          src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
-          async: false,
-        }] : []),
+        ...(__DEV__
+          ? [
+              {
+                src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
+                async: false,
+              },
+            ]
+          : []),
         {
           src: hotPath('index.bundle.js'),
           async: false,
@@ -56,7 +61,8 @@ export default function () {
   }
 
   const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
-  const isRestore = getenv.boolish('KEYBASE_RESTORE_UI', false) || app.getLoginItemSettings().restoreState
+  const isRestore =
+    getenv.boolish('KEYBASE_RESTORE_UI', false) || app.getLoginItemSettings().restoreState
   const hideWindowOnStart = getenv.string('KEYBASE_START_UI', '') === 'hideWindow'
   const openHidden = app.getLoginItemSettings().wasOpenedAsHidden
   console.log('Opened at login:', openedAtLogin)
@@ -68,7 +74,11 @@ export default function () {
   // - or, if we hide window on start,
   // - or, if we are restoring and window was hidden
   // - or, if we were opened from login (but not restoring)
-  const hideMainWindow = openHidden || hideWindowOnStart || (isRestore && appState.state.windowHidden) || (openedAtLogin && !isRestore)
+  const hideMainWindow =
+    openHidden ||
+    hideWindowOnStart ||
+    (isRestore && appState.state.windowHidden) ||
+    (openedAtLogin && !isRestore)
 
   console.log('Hide main window:', hideMainWindow)
   if (!hideMainWindow) {
@@ -86,7 +96,8 @@ export default function () {
   // - If we are set to open hidden,
   // - or, if we are restoring and dock was hidden
   // - or, if we were opened from login (but not restoring)
-  const shouldHideDockIcon = openHidden || (isRestore && appState.state.dockHidden) || (openedAtLogin && !isRestore)
+  const shouldHideDockIcon =
+    openHidden || (isRestore && appState.state.dockHidden) || (openedAtLogin && !isRestore)
   console.log('Hide dock icon:', shouldHideDockIcon)
   if (shouldHideDockIcon) {
     hideDockIcon()

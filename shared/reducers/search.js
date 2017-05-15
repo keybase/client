@@ -2,14 +2,18 @@
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/search'
 
-const searchHintText = (searchPlatform: Constants.SearchPlatforms, selectedUsers: Array<Constants.SearchResult>): string => {
+const searchHintText = (
+  searchPlatform: Constants.SearchPlatforms,
+  selectedUsers: Array<Constants.SearchResult>
+): string => {
   const name = Constants.platformToNiceName(searchPlatform)
   return `${selectedUsers.length ? `Add a ${name} user` : `Search ${name}`}`
 }
 
-const showUserGroup = (searchText: ?string, selectedUsers: Array<Constants.SearchResult>): boolean => (
-  !searchText && !!selectedUsers.length
-)
+const showUserGroup = (
+  searchText: ?string,
+  selectedUsers: Array<Constants.SearchResult>
+): boolean => !searchText && !!selectedUsers.length
 
 const initialState: Constants.State = {
   requestTimestamp: null,
@@ -25,7 +29,10 @@ const initialState: Constants.State = {
   waiting: false,
 }
 
-export default function (state: Constants.State = initialState, action: Constants.Actions): Constants.State {
+export default function(
+  state: Constants.State = initialState,
+  action: Constants.Actions
+): Constants.State {
   if (action.type === CommonConstants.resetStore) {
     return {...initialState}
   }
@@ -63,9 +70,14 @@ export default function (state: Constants.State = initialState, action: Constant
     case Constants.addUsersToGroup:
       if (!action.error) {
         const users = action.payload.users
-        const maybeUpgradeUser = user => user.service === 'external' && user.keybaseSearchResult ? user.keybaseSearchResult : user
-        const isNotSelected = user => state.selectedUsers.find(u => Constants.equalSearchResult(u, user)) === undefined
-        const selectedUsers = users.map(maybeUpgradeUser).filter(isNotSelected).concat(state.selectedUsers)
+        const maybeUpgradeUser = user =>
+          user.service === 'external' && user.keybaseSearchResult ? user.keybaseSearchResult : user
+        const isNotSelected = user =>
+          state.selectedUsers.find(u => Constants.equalSearchResult(u, user)) === undefined
+        const selectedUsers = users
+          .map(maybeUpgradeUser)
+          .filter(isNotSelected)
+          .concat(state.selectedUsers)
 
         return {
           ...state,
@@ -75,7 +87,9 @@ export default function (state: Constants.State = initialState, action: Constant
           searchTextClearTrigger: state.searchTextClearTrigger + 1,
           selectedUsers,
           showUserGroup: showUserGroup(null, selectedUsers),
-          userForInfoPane: action.payload.users.length ? maybeUpgradeUser(action.payload.users[0]) : null,
+          userForInfoPane: action.payload.users.length
+            ? maybeUpgradeUser(action.payload.users[0])
+            : null,
         }
       }
       break

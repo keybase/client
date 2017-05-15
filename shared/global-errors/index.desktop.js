@@ -14,10 +14,10 @@ type State = {
 }
 
 class GlobalError extends Component<void, Props, State> {
-  state: State;
-  timerID: any;
+  state: State
+  timerID: any
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     this.state = {
@@ -27,7 +27,7 @@ class GlobalError extends Component<void, Props, State> {
     }
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this._resetError(!!this.props.error)
   }
 
@@ -36,12 +36,12 @@ class GlobalError extends Component<void, Props, State> {
     this._clearCountdown()
   }
 
-  _clearCountdown () {
+  _clearCountdown() {
     this.props.clearTimeout(this.timerID)
     this.timerID = null
   }
 
-  _resetError (newError: boolean) {
+  _resetError(newError: boolean) {
     this._clearCountdown()
     this.setState({size: newError ? 'Small' : 'Closed'})
 
@@ -52,15 +52,15 @@ class GlobalError extends Component<void, Props, State> {
     }
   }
 
-  _summaryForError (err: ?Error): ?string {
+  _summaryForError(err: ?Error): ?string {
     return err ? err.message : null
   }
 
-  _detailsForError (err: ?Error): ?string {
+  _detailsForError(err: ?Error): ?string {
     return err ? err.stack : null
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (nextProps.error !== this.props.error) {
       this.props.setTimeout(() => {
         this.setState({
@@ -72,52 +72,70 @@ class GlobalError extends Component<void, Props, State> {
     }
   }
 
-  static maxHeightForSize (size: Size) {
+  static maxHeightForSize(size: Size) {
     return {
-      'Big': 900,
-      'Closed': 0,
-      'Small': 35,
+      Big: 900,
+      Closed: 0,
+      Small: 35,
     }[size]
   }
 
-  renderDeamonError () {
+  renderDeamonError() {
     if (ignoreDisconnectOverlay) {
       console.warn('Ignoring disconnect overlay')
       return null
     }
 
-    const message = this.props.daemonError && this.props.daemonError.message || 'Keybase is currently unreachable. Trying to reconnect you…'
+    const message =
+      (this.props.daemonError && this.props.daemonError.message) ||
+      'Keybase is currently unreachable. Trying to reconnect you…'
     return (
       <Box style={containerOverlayStyle}>
         <Box style={overlayRowStyle}>
-          <Text type='BodySemibold' style={{color: globalColors.white, textAlign: 'center'}}>{message}</Text>
+          <Text type="BodySemibold" style={{color: globalColors.white, textAlign: 'center'}}>
+            {message}
+          </Text>
         </Box>
         <Box style={overlayFillStyle}>
-          <Icon type='icon-loader-connecting-266' />
+          <Icon type="icon-loader-connecting-266" />
         </Box>
       </Box>
     )
   }
 
-  renderError () {
+  renderError() {
     const {onDismiss} = this.props
     const summary = this.state.cachedSummary
     const details = this.state.cachedDetails
     const maxHeight = GlobalError.maxHeightForSize(this.state.size)
 
     return (
-      <Box style={{...containerStyle, ...containerErrorStyle, maxHeight}} onClick={this._onExpandClick}>
+      <Box
+        style={{...containerStyle, ...containerErrorStyle, maxHeight}}
+        onClick={this._onExpandClick}
+      >
         <Box style={{...summaryRowStyle, ...summaryRowErrorStyle}}>
-          {summary && <Icon type='iconfont-exclamation' style={{color: globalColors.white, marginRight: 8}} />}
-          <Text type='BodyBig' style={{color: globalColors.white, textAlign: 'center', flex: 1}}>{summary}</Text>
-          {summary && <Icon type='iconfont-close' onClick={onDismiss} style={{color: globalColors.white_75}} />}
+          {summary &&
+            <Icon
+              type="iconfont-exclamation"
+              style={{color: globalColors.white, marginRight: 8}}
+            />}
+          <Text type="BodyBig" style={{color: globalColors.white, textAlign: 'center', flex: 1}}>
+            {summary}
+          </Text>
+          {summary &&
+            <Icon
+              type="iconfont-close"
+              onClick={onDismiss}
+              style={{color: globalColors.white_75}}
+            />}
         </Box>
-        <Text type='BodyBig' style={detailStyle}>{details}</Text>
+        <Text type="BodyBig" style={detailStyle}>{details}</Text>
       </Box>
     )
   }
 
-  render () {
+  render() {
     if (this.props.daemonError) {
       return this.renderDeamonError()
     }

@@ -12,12 +12,21 @@ import type {Props} from './render'
 import type {TypedState} from '../../constants/reducer'
 import type {TypedDispatch} from '../../constants/types/flux'
 
-type OwnProps = { }
+type OwnProps = {}
 
-const connector: TypedConnector<TypedState, TypedDispatch<Constants.Actions>, OwnProps, Props> = new TypedConnector()
+const connector: TypedConnector<
+  TypedState,
+  TypedDispatch<Constants.Actions>,
+  OwnProps,
+  Props
+> = new TypedConnector()
 
 export default connector.connect(
-  ({search: {userForInfoPane}, tracker: {trackers}, config: {username: myUsername}}, dispatch, ownProps) => {
+  (
+    {search: {userForInfoPane}, tracker: {trackers}, config: {username: myUsername}},
+    dispatch,
+    ownProps
+  ) => {
     if (userForInfoPane && userForInfoPane.service === 'keybase') {
       const username = userForInfoPane.username
       const trackerState = trackers[username]
@@ -28,7 +37,10 @@ export default connector.connect(
         }
       }
       if (username && trackerState && trackerState.type === 'tracker') {
-        const currentlyFollowing = trackerState.lastAction === 'followed' || trackerState.lastAction === 'refollowed' || trackerState.currentlyFollowing
+        const currentlyFollowing =
+          trackerState.lastAction === 'followed' ||
+          trackerState.lastAction === 'refollowed' ||
+          trackerState.currentlyFollowing
         const loading = trackerState.serverActive
         return {
           mode: 'keybase',
@@ -36,13 +48,27 @@ export default connector.connect(
             currentlyFollowing: currentlyFollowing,
             isYou: username === myUsername,
             loading: loading,
-            onAcceptProofs: () => { dispatch(onFollow(username, false)) },
-            onChat: () => { username && myUsername && dispatch(startConversation([username, myUsername])) },
-            onClickAvatar: () => { dispatch(onClickAvatar(username)) },
-            onClickFollowers: () => { dispatch(onClickFollowers(username)) },
-            onClickFollowing: () => { dispatch(onClickFollowing(username)) },
-            onFollow: () => { dispatch(onFollow(username, false)) },
-            onUnfollow: () => { dispatch(onUnfollow(username)) },
+            onAcceptProofs: () => {
+              dispatch(onFollow(username, false))
+            },
+            onChat: () => {
+              username && myUsername && dispatch(startConversation([username, myUsername]))
+            },
+            onClickAvatar: () => {
+              dispatch(onClickAvatar(username))
+            },
+            onClickFollowers: () => {
+              dispatch(onClickFollowers(username))
+            },
+            onClickFollowing: () => {
+              dispatch(onClickFollowing(username))
+            },
+            onFollow: () => {
+              dispatch(onFollow(username, false))
+            },
+            onUnfollow: () => {
+              dispatch(onUnfollow(username))
+            },
             proofs: trackerState.proofs,
             trackerState: trackerState.trackerState,
             userInfo: trackerState.userInfo,
@@ -68,7 +94,9 @@ export default connector.connect(
           avatar: userForInfoPane.serviceAvatar || '',
           fullName: Constants.fullName(userForInfoPane.extraInfo),
           inviteLink: null,
-          onSendInvite: () => { openURL(`${keybaseUrl}/account/invitations`) },
+          onSendInvite: () => {
+            openURL(`${keybaseUrl}/account/invitations`)
+          },
           outOfInvites: null,
           profileUrl: userForInfoPane.profileUrl,
           serviceName: userForInfoPane.serviceName,
@@ -80,4 +108,5 @@ export default connector.connect(
         mode: 'nothingSelected',
       }
     }
-  })(Render)
+  }
+)(Render)

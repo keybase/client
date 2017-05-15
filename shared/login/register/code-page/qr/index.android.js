@@ -14,9 +14,9 @@ type State = {
 }
 
 class QR extends Component<void, Props, State> {
-  state: State;
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
     this.state = {
       permissionGranted: null,
@@ -25,12 +25,13 @@ class QR extends Component<void, Props, State> {
     this.requestCameraPermission()
   }
 
-  async requestCameraPermission () {
+  async requestCameraPermission() {
     try {
       const status: PermissionStatus = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.CAMERA, {
-          'title': 'Keybase Camera Permission',
-          'message': 'Keybase needs access to your camera so we can scan your codes',
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Keybase Camera Permission',
+          message: 'Keybase needs access to your camera so we can scan your codes',
         }
       )
 
@@ -45,34 +46,46 @@ class QR extends Component<void, Props, State> {
     this.props.onBarCodeRead(data)
   }, 1000)
 
-  render () {
+  render() {
     if (this.props.scanning) {
       if (this.state.permissionGranted) {
         return (
           <Camera
             style={{...cameraStyle, ...this.props.style}}
             captureAudio={false}
-            ref='cam'
-            onBarCodeRead={this._onBarCodeRead}>
+            ref="cam"
+            onBarCodeRead={this._onBarCodeRead}
+          >
             {this.props.children}
           </Camera>
         )
       } else {
         if (this.state.permissionGranted === false) {
           return (
-            <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center'}}>
-              <Text type='BodyError' style={{textAlign: 'center'}}>Couldn't get camera permissions.</Text>
+            <Box
+              style={{
+                ...globalStyles.flexBoxColumn,
+                flex: 1,
+                justifyContent: 'center',
+              }}
+            >
+              <Text type="BodyError" style={{textAlign: 'center'}}>
+                Couldn't get camera permissions.
+              </Text>
             </Box>
           )
         } else {
-          return <Text type='Body'>Waiting for permissions</Text>
+          return <Text type="Body">Waiting for permissions</Text>
         }
       }
     } else {
       return (
         <Box style={{flex: 1, ...globalStyles.flexBoxColumn, ...this.props.style}}>
           {this.props.children}
-          <NativeImage style={[{width: 300, height: 300}, this.props.imageStyle]} source={{uri: this.props.qrCode}} />
+          <NativeImage
+            style={[{width: 300, height: 300}, this.props.imageStyle]}
+            source={{uri: this.props.qrCode}}
+          />
         </Box>
       )
     }

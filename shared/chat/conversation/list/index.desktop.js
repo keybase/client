@@ -40,14 +40,21 @@ class BaseList extends Component<void, Props, State> {
     selectedMessageKey: null,
   }
 
-  _onAction = (message: Constants.ServerMessage, event: any) => { throw new Error('_onAction Implemented in PopupEnabledList') }
-  _onShowEditor = (message: Constants.Message, event: any) => { throw new Error('_onShowEditor Implemented in PopupEnabledList') }
-  _onEditLastMessage = () => { throw new Error('_onEditLastMessage Implemented in PopupEnabledList') }
+  _onAction = (message: Constants.ServerMessage, event: any) => {
+    throw new Error('_onAction Implemented in PopupEnabledList')
+  }
+  _onShowEditor = (message: Constants.Message, event: any) => {
+    throw new Error('_onShowEditor Implemented in PopupEnabledList')
+  }
+  _onEditLastMessage = () => {
+    throw new Error('_onEditLastMessage Implemented in PopupEnabledList')
+  }
 
-  componentDidUpdate (prevProps: Props, prevState: State) {
+  componentDidUpdate(prevProps: Props, prevState: State) {
     // Force a rerender if we passed a row to scroll to. If it's kept around the virutal list gets confused so we only want it to render once basically
     if (this._keepIdxVisible !== -1) {
-      this.setState({listRerender: this.state.listRerender + 1}) // eslint-disable-line react/no-did-update-set-state
+      // eslint-disable-next-line react/no-did-update-set-state
+      this.setState({listRerender: this.state.listRerender + 1})
       this._keepIdxVisible = -1
     }
     this._lastRowIdx = -1 // always reset this to be safe
@@ -57,9 +64,11 @@ class BaseList extends Component<void, Props, State> {
     }
   }
 
-  componentWillReceiveProps (nextProps: Props) {
-    if (this.props.selectedConversation !== nextProps.selectedConversation ||
-      this.props.listScrollDownCounter !== nextProps.listScrollDownCounter) {
+  componentWillReceiveProps(nextProps: Props) {
+    if (
+      this.props.selectedConversation !== nextProps.selectedConversation ||
+      this.props.listScrollDownCounter !== nextProps.listScrollDownCounter
+    ) {
       this._cellCache.clearAll()
       this.setState({isLockedToBottom: true})
     }
@@ -114,9 +123,17 @@ class BaseList extends Component<void, Props, State> {
         columnIndex={0}
         key={key}
         parent={parent}
-        rowIndex={index}>
+        rowIndex={index}
+      >
         {({measure}) => {
-          const message = messageFactory(messageKey, prevMessageKey, this._onAction, this._onShowEditor, isSelected, measure)
+          const message = messageFactory(
+            messageKey,
+            prevMessageKey,
+            this._onAction,
+            this._onShowEditor,
+            isSelected,
+            measure
+          )
           return (
             <div style={style}>
               {message}
@@ -127,7 +144,7 @@ class BaseList extends Component<void, Props, State> {
     )
   }
 
-  _onCopyCapture (e) {
+  _onCopyCapture(e) {
     // Copy text only, not HTML/styling.
     e.preventDefault()
     clipboard.writeText(window.getSelection().toString())
@@ -147,11 +164,18 @@ class BaseList extends Component<void, Props, State> {
     this._list = r
   }
 
-  render () {
+  render() {
     if (!this.props.validated) {
       return (
-        <div style={{alignItems: 'center', display: 'flex', flex: 1, justifyContent: 'center'}}>
-          <Icon type='icon-securing-266' style={{alignSelf: 'flex-start'}} />
+        <div
+          style={{
+            alignItems: 'center',
+            display: 'flex',
+            flex: 1,
+            justifyContent: 'center',
+          }}
+        >
+          <Icon type="icon-securing-266" style={{alignSelf: 'flex-start'}} />
         </div>
       )
     }
@@ -161,7 +185,11 @@ class BaseList extends Component<void, Props, State> {
 
     // We pass additional props (listRerender, selectedMessageKey) to Virtualized.List so we can force re-rendering automatically
     return (
-      <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
+      <div
+        style={containerStyle}
+        onClick={this._handleListClick}
+        onCopyCapture={this._onCopyCapture}
+      >
         <style>{realCSS}</style>
         <Virtualized.AutoSizer onResize={this._onResize}>
           {({height, width}) => (
@@ -178,7 +206,7 @@ class BaseList extends Component<void, Props, State> {
               rowCount={rowCount}
               rowHeight={this._cellCache.rowHeight}
               rowRenderer={this._rowRenderer}
-              scrollToAlignment='end'
+              scrollToAlignment="end"
               scrollToIndex={scrollToIndex}
               style={listStyle}
               width={width}
@@ -223,7 +251,7 @@ class PopupEnabledList extends BaseList {
     ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
     this.setState({selectedMessageKey: null})
   }
-  _domNodeToRect (element) {
+  _domNodeToRect(element) {
     if (!document.body) {
       throw new Error('Body not ready')
     }
@@ -267,14 +295,15 @@ class PopupEnabledList extends BaseList {
     }
   }
 
-  _renderPopup (message: Constants.Message, style: Object, messageRect: any): ?React$Element<any> {
+  _renderPopup(message: Constants.Message, style: Object, messageRect: any): ?React$Element<any> {
     switch (message.type) {
       case 'Text':
         return (
           <TextPopupMenu
             you={this.props.you}
             message={message}
-            onShowEditor={(message: Constants.TextMessage) => this._showEditor(message, messageRect)}
+            onShowEditor={(message: Constants.TextMessage) =>
+              this._showEditor(message, messageRect)}
             onDeleteMessage={this.props.onDeleteMessage}
             onDownloadAttachment={this.props.onDownloadAttachment}
             onOpenInFileUI={this.props.onOpenInFileUI}
@@ -289,8 +318,12 @@ class PopupEnabledList extends BaseList {
             you={this.props.you}
             message={message}
             onDeleteMessage={this.props.onDeleteMessage}
-            onDownloadAttachment={() => { messageID && this.props.onDownloadAttachment(messageID) }}
-            onOpenInFileUI={() => { savedPath && this.props.onOpenInFileUI(savedPath) }}
+            onDownloadAttachment={() => {
+              messageID && this.props.onDownloadAttachment(messageID)
+            }}
+            onOpenInFileUI={() => {
+              savedPath && this.props.onOpenInFileUI(savedPath)
+            }}
             onHidden={this._hidePopup}
             style={style}
           />
@@ -304,10 +337,11 @@ class PopupEnabledList extends BaseList {
         messageRect={messageRect}
         onClose={this._hidePopup}
         message={message.message.stringValue()}
-        onSubmit={text => { this.props.onEditMessage(message, text) }}
+        onSubmit={text => {
+          this.props.onEditMessage(message, text)
+        }}
       />
     )
-
     // Have to do this cause it's triggered from a popup that we're reusing else we'll get unmounted
     setImmediate(() => {
       const container = document.getElementById('popupContainer')
@@ -316,7 +350,7 @@ class PopupEnabledList extends BaseList {
     })
   }
 
-  _findMessageFromDOMNode (start: any) : any {
+  _findMessageFromDOMNode(start: any): any {
     const node = findDOMNode(start, '.message')
     if (node) return node
 
@@ -330,7 +364,7 @@ class PopupEnabledList extends BaseList {
     return null
   }
 
-  _showPopup (message: Constants.TextMessage | Constants.AttachmentMessage, event: any) {
+  _showPopup(message: Constants.TextMessage | Constants.AttachmentMessage, event: any) {
     const clientRect = event.target.getBoundingClientRect()
 
     const messageNode = this._findMessageFromDOMNode(event.target)
@@ -341,7 +375,11 @@ class PopupEnabledList extends BaseList {
     let y = clientRect.top - (message.author === this.props.you ? 200 : 116)
     if (y < 10) y = 10
 
-    const popupComponent = this._renderPopup(message, {left: x, position: 'absolute', top: y}, messageRect)
+    const popupComponent = this._renderPopup(
+      message,
+      {left: x, position: 'absolute', top: y},
+      messageRect
+    )
     if (!popupComponent) return
 
     this.setState({selectedMessageKey: message.key})

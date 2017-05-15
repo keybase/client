@@ -9,13 +9,13 @@ const propsNormal: Props = {
   onSubmit: (passphrase, features) => console.log('Pinentry', {passphrase, features}),
   onCancel: () => {},
   features: {
-    'saveInKeychain': {
+    saveInKeychain: {
       allow: true,
       defaultValue: false,
       readonly: false,
       label: 'Save in keychain',
     },
-    'showTyping': {
+    showTyping: {
       allow: true,
       defaultValue: false,
       readonly: false,
@@ -36,7 +36,7 @@ const paperkeyNormal: Props = {
   type: PassphraseCommonPassphraseType.paperKey,
   prompt: 'Enter your paper key to continue.',
   features: {
-    'showTyping': {
+    showTyping: {
       allow: true,
       defaultValue: true,
       readonly: false,
@@ -57,7 +57,7 @@ const dumbComponentMap: DumbComponentMap<Pinentry> = {
       ...propsNormal,
       features: {
         ...propsNormal.features,
-        'saveInKeychain': {
+        saveInKeychain: {
           allow: true,
           defaultValue: true,
           readonly: false,
@@ -76,5 +76,5 @@ const dumbComponentMap: DumbComponentMap<Pinentry> = {
 }
 
 export default {
-  'Pinentry': dumbComponentMap,
+  Pinentry: dumbComponentMap,
 }

@@ -14,17 +14,41 @@ const Revoke = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isW
 
   return (
     <Box style={styleContainer}>
-      {!isWaiting && <Icon style={styleClose} type='iconfont-close' onClick={() => onCancel()} />}
-      {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySemibold'>{errorMessage}</Text></Box>}
+      {!isWaiting && <Icon style={styleClose} type="iconfont-close" onClick={() => onCancel()} />}
+      {errorMessage &&
+        <Box style={styleErrorBanner}>
+          <Text style={styleErrorBannerText} type="BodySemibold">
+            {errorMessage}
+          </Text>
+        </Box>}
       <Box style={styleContentContainer}>
-        <PlatformIcon platform={platform} overlay={'icon-proof-broken'} overlayColor={globalColors.red} />
-        <Text style={stylePlatformUsername} type='Header'>{platformHandle}</Text>
-        {!!platformHandleSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformHandleSubtitle}</Text>}
-        <Text style={styleDescriptionText} type='Header'>{formatMessage(platform)}</Text>
-        <Text style={styleReminderText} type='Body'>You can add it again later, if you change your mind.</Text>
+        <PlatformIcon
+          platform={platform}
+          overlay={'icon-proof-broken'}
+          overlayColor={globalColors.red}
+        />
+        <Text style={stylePlatformUsername} type="Header">
+          {platformHandle}
+        </Text>
+        {!!platformHandleSubtitle &&
+          <Text style={stylePlatformSubtitle} type="Body">
+            {platformHandleSubtitle}
+          </Text>}
+        <Text style={styleDescriptionText} type="Header">
+          {formatMessage(platform)}
+        </Text>
+        <Text style={styleReminderText} type="Body">
+          You can add it again later, if you change your mind.
+        </Text>
         <Box style={styleButtonsContainer}>
-          <Button type='Secondary' onClick={onCancel} label='Cancel' disabled={isWaiting} />
-          <Button type='Danger' onClick={onRevoke} style={{marginLeft: globalMargins.tiny}} label={formatConfirmButton(platform)} waiting={isWaiting} />
+          <Button type="Secondary" onClick={onCancel} label="Cancel" disabled={isWaiting} />
+          <Button
+            type="Danger"
+            onClick={onRevoke}
+            style={{marginLeft: globalMargins.tiny}}
+            label={formatConfirmButton(platform)}
+            waiting={isWaiting}
+          />
         </Box>
       </Box>
     </Box>

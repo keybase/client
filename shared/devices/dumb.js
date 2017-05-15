@@ -87,7 +87,11 @@ export default {
   'Devices: Devices List': {
     component: Devices,
     mocks: {
-      'Devices': {mockStore, routeState: {showingRevoked: true}, setRouteState: () => {}},
+      Devices: {
+        mockStore,
+        routeState: {showingRevoked: true},
+        setRouteState: () => {},
+      },
     },
   },
 }

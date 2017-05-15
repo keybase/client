@@ -41,12 +41,14 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onClick: (username: string) => { isMobile ? dispatch(onUserClick(username, '')) : dispatch(getProfile(username, true, true)) },
+  onClick: (username: string) => {
+    isMobile ? dispatch(onUserClick(username, '')) : dispatch(getProfile(username, true, true))
+  },
 })
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  branch((props) => !props, renderNothing),
+  branch(props => !props, renderNothing),
   branch(({type}) => type === 'Invite', renderComponent(InviteBanner)),
   branch(({type}) => type === 'BrokenTracker', renderComponent(BrokenTrackerBanner), renderNothing)
 )(Box)

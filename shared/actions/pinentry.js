@@ -8,7 +8,7 @@ import {ConstantsStatusCode, delegateUiCtlRegisterSecretUIRpc} from '../constant
 
 const uglySessionIDResponseMapper: {[key: number]: any} = {}
 
-export function registerPinentryListener (): AsyncAction {
+export function registerPinentryListener(): AsyncAction {
   return dispatch => {
     engine().listenOnConnect('registerSecretUI', () => {
       delegateUiCtlRegisterSecretUIRpc({
@@ -22,37 +22,53 @@ export function registerPinentryListener (): AsyncAction {
       })
     })
 
-    dispatch(({
-      type: Constants.registerPinentryListener,
-      payload: {started: true},
-    }: RegisterPinentryListenerAction))
+    dispatch(
+      ({
+        type: Constants.registerPinentryListener,
+        payload: {started: true},
+      }: RegisterPinentryListenerAction)
+    )
 
     engine().setIncomingHandler('keybase.1.secretUi.getPassphrase', (payload, response) => {
       console.log('Asked for passphrase')
 
-      const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = payload.pinentry
+      const {
+        prompt,
+        submitLabel,
+        cancelLabel,
+        windowTitle,
+        retryLabel,
+        features,
+        type,
+      } = payload.pinentry
       const sessionID = payload.sessionID
 
-      dispatch(({
-        type: Constants.newPinentry,
-        payload: {
-          type,
-          sessionID,
-          features,
-          prompt,
-          submitLabel,
-          cancelLabel,
-          windowTitle,
-          retryLabel,
-        },
-      }: NewPinentryAction))
+      dispatch(
+        ({
+          type: Constants.newPinentry,
+          payload: {
+            type,
+            sessionID,
+            features,
+            prompt,
+            submitLabel,
+            cancelLabel,
+            windowTitle,
+            retryLabel,
+          },
+        }: NewPinentryAction)
+      )
 
       uglySessionIDResponseMapper[sessionID] = response
     })
   }
 }
 
-export function onSubmit (sessionID: number, passphrase: string, features: GUIEntryFeatures): AsyncAction {
+export function onSubmit(
+  sessionID: number,
+  passphrase: string,
+  features: GUIEntryFeatures
+): AsyncAction {
   let result = {passphrase: passphrase}
   for (const feature in features) {
     result[feature] = features[feature]
@@ -63,7 +79,7 @@ export function onSubmit (sessionID: number, passphrase: string, features: GUIEn
   }
 }
 
-export function onCancel (sessionID: number): AsyncAction {
+export function onCancel(sessionID: number): AsyncAction {
   return dispatch => {
     dispatch({type: Constants.onCancel, payload: {sessionID}})
     uglyResponse(sessionID, null, {
@@ -73,7 +89,7 @@ export function onCancel (sessionID: number): AsyncAction {
   }
 }
 
-function uglyResponse (sessionID: number, result: any, err: ?any): void {
+function uglyResponse(sessionID: number, result: any, err: ?any): void {
   const response = uglySessionIDResponseMapper[sessionID]
   if (response == null) {
     console.log('lost response reference')

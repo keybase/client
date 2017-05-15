@@ -21,10 +21,18 @@ type newPinentryPayload = {
 type PinentryError = void
 
 export const registerPinentryListener = 'pinentry:registerPinentryListener'
-export type RegisterPinentryListenerAction = TypedAction<'pinentry:registerPinentryListener', any, any>
+export type RegisterPinentryListenerAction = TypedAction<
+  'pinentry:registerPinentryListener',
+  any,
+  any
+>
 
 export const newPinentry = 'pinentry:newPinentry'
-export type NewPinentryAction = TypedAction<'pinentry:newPinentry', newPinentryPayload, PinentryError>
+export type NewPinentryAction = TypedAction<
+  'pinentry:newPinentry',
+  newPinentryPayload,
+  PinentryError
+>
 
 export const onSubmit = 'pinentry:onSubmit'
 export type OnSubmit = TypedAction<'pinentry:onSubmit', sessionIDSpecificPayload, PinentryError>

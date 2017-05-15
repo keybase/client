@@ -12,9 +12,9 @@ type State = {
 }
 
 class PassphraseForm extends Component {
-  state: State;
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     this.state = {
@@ -23,7 +23,7 @@ class PassphraseForm extends Component {
     }
   }
 
-  render () {
+  render() {
     return (
       <Render
         passphraseError={this.props.passphraseError}
@@ -33,7 +33,7 @@ class PassphraseForm extends Component {
         pass2Update={pass2 => this.setState({pass2})}
         onSubmit={() => this.props.checkPassphrase(this.state.pass1, this.state.pass2)}
         onBack={this.props.restartSignup}
-        />
+      />
     )
   }
 }

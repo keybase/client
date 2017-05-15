@@ -21,7 +21,7 @@ type Props = {
   followIconType: ?IconType,
   followIconSize: number,
   loadingColor: ?string,
-  onClick?: ?(() => void),
+  onClick?: ?() => void,
   opacity: ?number,
   size: AvatarSize,
   style?: ?Object,
@@ -44,11 +44,12 @@ const Background = ({loaded, loadingColor, size}) => (
       position: 'absolute',
       right: backgroundOffset,
       top: backgroundOffset,
-    }} />
+    }}
+  />
 )
 
 class UserImage extends PureComponent<void, ImageProps, void> {
-  render () {
+  render() {
     const {url, size, onLoadEnd, opacity = 1} = this.props
 
     return (
@@ -103,40 +104,58 @@ class AvatarRender extends PureComponent<void, Props, State> {
     }
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (this.props.url !== nextProps.url) {
       this.setState({loaded: false})
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._mounted = true
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this._mounted = false
   }
 
-  render () {
-    const {url, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle, followIconSize, children} = this.props
+  render() {
+    const {
+      url,
+      onClick,
+      style,
+      size,
+      loadingColor,
+      borderColor,
+      opacity,
+      followIconType,
+      followIconStyle,
+      followIconSize,
+      children,
+    } = this.props
 
     return (
       <ClickableBox onClick={onClick} feedback={false}>
-        <Box style={{
-          height: size,
-          position: 'relative',
-          width: size,
-          ...style,
-        }}>
+        <Box
+          style={{
+            height: size,
+            position: 'relative',
+            width: size,
+            ...style,
+          }}
+        >
           <Background loaded={this.state.loaded} loadingColor={loadingColor} size={size} />
-          {!!url && <UserImage
-            opacity={opacity}
-            onLoadEnd={this._onLoadOrError}
-            size={size}
-            url={url}
-          /> }
+          {!!url &&
+            <UserImage opacity={opacity} onLoadEnd={this._onLoadOrError} size={size} url={url} />}
           {!!borderColor && <Border borderColor={borderColor} size={size} />}
-          {followIconType && <Icon type={followIconType} style={{...followIconStyle, width: followIconSize, height: followIconSize}} />}
+          {followIconType &&
+            <Icon
+              type={followIconType}
+              style={{
+                ...followIconStyle,
+                width: followIconSize,
+                height: followIconSize,
+              }}
+            />}
           {children}
         </Box>
       </ClickableBox>

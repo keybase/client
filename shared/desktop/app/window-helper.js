@@ -1,5 +1,5 @@
 // @flow
-export default function (app: any) {
+export default function(app: any) {
   app.on('browser-window-created', (e, win) => {
     if (!win) {
       return

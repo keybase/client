@@ -8,15 +8,20 @@ import {stateColors} from '../../util/tracker'
 import type {Props} from './user.render'
 
 export default class UserRender extends Component<void, Props, void> {
-  render () {
+  render() {
     const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 
     return (
       <Box style={styleContainer}>
-        <Box style={styleScroller} className='hide-scrollbar'>
-          <Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background}} />
+        <Box style={styleScroller} className="hide-scrollbar">
+          <Box
+            style={{
+              ...styleHeader,
+              backgroundColor: trackerStateColors.header.background,
+            }}
+          />
           <UserBio
-            type='Tracker'
+            type="Tracker"
             avatarSize={AVATAR_SIZE}
             style={{marginTop: HEADER_TOP_SPACE, minHeight: 200}}
             loading={this.props.loading}
@@ -30,14 +35,19 @@ export default class UserRender extends Component<void, Props, void> {
           />
           <UserProofs
             type={'proofs'}
-            style={{marginTop: globalMargins.small, marginLeft: globalMargins.medium, marginRight: globalMargins.medium}}
+            style={{
+              marginTop: globalMargins.small,
+              marginLeft: globalMargins.medium,
+              marginRight: globalMargins.medium,
+            }}
             username={this.props.username}
             loading={this.props.loading}
             proofs={this.props.proofs}
             currentlyFollowing={this.props.currentlyFollowing}
           />
         </Box>
-        {!this.props.loading && !this.props.isYou &&
+        {!this.props.loading &&
+          !this.props.isYou &&
           <UserActions
             style={styleActionBox}
             trackerState={this.props.trackerState}
@@ -45,7 +55,8 @@ export default class UserRender extends Component<void, Props, void> {
             onChat={this.props.onChat}
             onFollow={this.props.onFollow}
             onUnfollow={this.props.onUnfollow}
-            onAcceptProofs={this.props.onAcceptProofs} />}
+            onAcceptProofs={this.props.onAcceptProofs}
+          />}
       </Box>
     )
   }

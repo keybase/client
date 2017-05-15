@@ -20,7 +20,7 @@ import type {
 
 const pathActionTransformer = (action, oldState) => {
   const prevPath = getPath(oldState.routeTree.routeState)
-  const path = Array.from(action.payload.path.map(p => typeof p === 'string' ? p : p.selected))
+  const path = Array.from(action.payload.path.map(p => (typeof p === 'string' ? p : p.selected)))
   const parentPath = action.payload.parentPath && Array.from(action.payload.parentPath)
   return {
     payload: {
@@ -32,13 +32,13 @@ const pathActionTransformer = (action, oldState) => {
   }
 }
 
-export function pathSelector (state: TypedState): I.List<string> {
+export function pathSelector(state: TypedState): I.List<string> {
   return getPath(state.routeTree.routeState)
 }
 
 // Set (or update) the tree of route definitions. Dispatched at initialization
 // time and when route definitions update through HMR.
-export function setRouteDef (routeDef: RouteDefNode): SetRouteDef {
+export function setRouteDef(routeDef: RouteDefNode): SetRouteDef {
   return {
     type: Constants.setRouteDef,
     payload: {routeDef},
@@ -55,7 +55,7 @@ export function setRouteDef (routeDef: RouteDefNode): SetRouteDef {
 //
 // If parentPath is provided, the path will be switched to relative to
 // parentPath without navigating to it.
-export function switchTo (path: Path, parentPath?: Path): SwitchTo {
+export function switchTo(path: Path, parentPath?: Path): SwitchTo {
   return {
     type: Constants.switchTo,
     payload: {path, parentPath},
@@ -77,7 +77,7 @@ export function switchTo (path: Path, parentPath?: Path): SwitchTo {
 //
 // If parentPath is provided, the path will be navigated to relative to
 // parentPath without navigating to it.
-export function navigateTo (path: PropsPath<*>, parentPath?: ?Path): NavigateTo {
+export function navigateTo(path: PropsPath<*>, parentPath?: ?Path): NavigateTo {
   return {
     type: Constants.navigateTo,
     payload: {path, parentPath},
@@ -88,7 +88,7 @@ export function navigateTo (path: PropsPath<*>, parentPath?: ?Path): NavigateTo 
 // Navigate to a path relative to the current path.
 // If parentPath is provided, the path will be appended relative to parentPath
 // without navigating to it.
-export function navigateAppend (path: PropsPath<*>, parentPath?: Path): NavigateAppend {
+export function navigateAppend(path: PropsPath<*>, parentPath?: Path): NavigateAppend {
   return {
     type: Constants.navigateAppend,
     payload: {path, parentPath},
@@ -97,7 +97,7 @@ export function navigateAppend (path: PropsPath<*>, parentPath?: Path): Navigate
 }
 
 // Navigate one step up from the current path.
-export function navigateUp (): NavigateUp {
+export function navigateUp(): NavigateUp {
   return {
     type: Constants.navigateUp,
     payload: null,
@@ -105,7 +105,10 @@ export function navigateUp (): NavigateUp {
 }
 
 // Do a navigate action if the path is still what is expected
-export function putActionIfOnPath<T: TypedAction<*, *, *>> (expectedPath: Path, otherAction: T): Constants.PutActionIfOnPath<T> {
+export function putActionIfOnPath<T: TypedAction<*, *, *>>(
+  expectedPath: Path,
+  otherAction: T
+): Constants.PutActionIfOnPath<T> {
   return {
     type: Constants.putActionIfOnPath,
     payload: {expectedPath, otherAction},
@@ -113,7 +116,7 @@ export function putActionIfOnPath<T: TypedAction<*, *, *>> (expectedPath: Path, 
 }
 
 // Update the state object of a route at a specified path.
-export function setRouteState (path: Path, partialState: {}): SetRouteState {
+export function setRouteState(path: Path, partialState: {}): SetRouteState {
   return {
     type: Constants.setRouteState,
     payload: {path, partialState},
@@ -122,7 +125,7 @@ export function setRouteState (path: Path, partialState: {}): SetRouteState {
 }
 
 // Reset the props and state for a subtree.
-export function resetRoute (path: Path): ResetRoute {
+export function resetRoute(path: Path): ResetRoute {
   return {
     type: Constants.resetRoute,
     payload: {path},
@@ -130,14 +133,16 @@ export function resetRoute (path: Path): ResetRoute {
   }
 }
 
-function * _putActionIfOnPath ({payload: {otherAction, expectedPath}}: Constants.PutActionIfOnPath<*>) {
+function* _putActionIfOnPath({
+  payload: {otherAction, expectedPath},
+}: Constants.PutActionIfOnPath<*>) {
   const currentPath = yield select(pathSelector)
   if (I.is(expectedPath, currentPath)) {
     yield put(otherAction)
   }
 }
 
-function * routeSaga (): any {
+function* routeSaga(): any {
   yield safeTakeEvery('routeTree:putActionIfOnPath', _putActionIfOnPath)
 }
 

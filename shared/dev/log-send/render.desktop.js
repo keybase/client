@@ -3,12 +3,14 @@ import React, {Component} from 'react'
 import {Box, Text} from '../../common-adapters'
 
 class LogSendRender extends Component {
-  render () {
+  render() {
     return (
       <Box>
-        <Text type='Header'>How to Log Send:</Text>
-        <Text type='Body'>Run this in a terminal, and follow instructions.</Text>
-        <Text type='Terminal'>keybase log send</Text>
+        <Text type="Header">How to Log Send:</Text>
+        <Text type="Body">
+          Run this in a terminal, and follow instructions.
+        </Text>
+        <Text type="Terminal">keybase log send</Text>
       </Box>
     )
   }

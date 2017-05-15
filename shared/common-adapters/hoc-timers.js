@@ -10,20 +10,22 @@ export type TimerProps = {
   clearInterval: ClearTimerFunc,
 }
 
-function clearId (clearFunc: (id?: number) => void, array: Array<number>, id?: ?number): void {
+function clearId(clearFunc: (id?: number) => void, array: Array<number>, id?: ?number): void {
   if ((id || id === 0) && array.includes(id)) {
     array.splice(array.indexOf(id), 1)
     clearFunc(id)
   }
 }
 
-export default function HOCTimers<P: Object> (ComposedComponent: ReactClass<P & TimerProps>): ReactClass<P> {
+export default function HOCTimers<P: Object>(
+  ComposedComponent: ReactClass<P & TimerProps>
+): ReactClass<P> {
   class TimersComponent extends Component<void, P, void> {
     _timeoutIds: Array<number>
     _intervalIds: Array<number>
     _timerFuncs: TimerProps
 
-    constructor (props: any) {
+    constructor(props: any) {
       super(props)
       this._timeoutIds = []
       this._intervalIds = []
@@ -33,22 +35,26 @@ export default function HOCTimers<P: Object> (ComposedComponent: ReactClass<P & 
           this._timeoutIds.push(id)
           return id
         },
-        clearTimeout: (id) => { clearId(clearTimeout, this._timeoutIds, id) },
+        clearTimeout: id => {
+          clearId(clearTimeout, this._timeoutIds, id)
+        },
         setInterval: (f, n) => {
           const id = setInterval(f, n)
           this._intervalIds.push(id)
           return id
         },
-        clearInterval: (id) => { clearId(clearInterval, this._intervalIds, id) },
+        clearInterval: id => {
+          clearId(clearInterval, this._intervalIds, id)
+        },
       }
     }
 
-    componentWillUnmount () {
+    componentWillUnmount() {
       this._timeoutIds.forEach(clearTimeout)
       this._intervalIds.forEach(clearInterval)
     }
 
-    render () {
+    render() {
       return <ComposedComponent {...this.props} {...this._timerFuncs} />
     }
   }

@@ -12,15 +12,15 @@ type Props = {
 }
 
 class RemoteUnlockFolders extends Component<void, Props, void> {
-  componentWillMount () {
+  componentWillMount() {
     this.props.registerRekeyListener()
   }
 
-  shouldComponentUpdate (nextProps, nextState) {
+  shouldComponentUpdate(nextProps, nextState) {
     return nextProps !== this.props
   }
 
-  render () {
+  render() {
     const {closed} = this.props
     if (closed) {
       return null
@@ -30,14 +30,15 @@ class RemoteUnlockFolders extends Component<void, Props, void> {
     return (
       <div>
         <RemoteComponent
-          title='UnlockFolders'
+          title="UnlockFolders"
           windowsOpts={windowsOpts}
           waitForState={true}
           onRemoteClose={() => this.props.close()}
-          component='unlockFolders'
+          component="unlockFolders"
           onSubmit={() => {}}
           onCancel={() => this.props.close()}
-          sessionID={0} />
+          sessionID={0}
+        />
       </div>
     )
   }
@@ -45,8 +46,12 @@ class RemoteUnlockFolders extends Component<void, Props, void> {
 
 export default connect(
   (state: any) => state.unlockFolders,
-  (dispatch: any) => bindActionCreators({
-    registerRekeyListener,
-    close,
-  }, dispatch)
+  (dispatch: any) =>
+    bindActionCreators(
+      {
+        registerRekeyListener,
+        close,
+      },
+      dispatch
+    )
 )(RemoteUnlockFolders)

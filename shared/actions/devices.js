@@ -3,7 +3,13 @@ import * as I from 'immutable'
 import HiddenString from '../util/hidden-string'
 import {DeviceDetailRecord} from '../constants/devices'
 import {call, put, select} from 'redux-saga/effects'
-import {deviceDeviceHistoryListRpcPromise, loginDeprovisionRpcPromise, loginPaperKeyRpcChannelMap, revokeRevokeDeviceRpcPromise, rekeyGetRevokeWarningRpcPromise} from '../constants/types/flow-types'
+import {
+  deviceDeviceHistoryListRpcPromise,
+  loginDeprovisionRpcPromise,
+  loginPaperKeyRpcChannelMap,
+  revokeRevokeDeviceRpcPromise,
+  rekeyGetRevokeWarningRpcPromise,
+} from '../constants/types/flow-types'
 import {devicesTab, loginTab, settingsTab} from '../constants/tabs'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
 import {isMobile} from '../constants/platform'
@@ -14,46 +20,75 @@ import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {setRevokedSelf} from './login/creators'
 
 import type {DeviceDetail} from '../constants/types/flow-types'
-import type {Load, Loaded, Revoke, ShowRevokePage, PaperKeyMake, Waiting} from '../constants/devices'
+import type {
+  Load,
+  Loaded,
+  Revoke,
+  ShowRevokePage,
+  PaperKeyMake,
+  Waiting,
+} from '../constants/devices'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
-isMobile && module.hot && module.hot.accept(() => {
-  console.log('accepted update in actions/devices')
-})
+isMobile &&
+  module.hot &&
+  module.hot.accept(() => {
+    console.log('accepted update in actions/devices')
+  })
 
 const load: () => Load = () => ({payload: undefined, type: 'devices:load'})
-const loaded: (deviceIDs: Array<string>) => Loaded = deviceIDs => ({payload: {deviceIDs}, type: 'devices:loaded'})
-const paperKeyMake: () => PaperKeyMake = () => ({payload: undefined, type: 'devices:paperKeyMake'})
-const revoke: (deviceID: string) => Revoke = deviceID => ({payload: {deviceID}, type: 'devices:revoke'})
-const setWaiting: (waiting: boolean) => Waiting = waiting => ({payload: {waiting}, type: 'devices:waiting'})
-const showRevokePage: (deviceID: string) => ShowRevokePage = deviceID => ({payload: {deviceID}, type: 'devices:showRevokePage'})
+const loaded: (deviceIDs: Array<string>) => Loaded = deviceIDs => ({
+  payload: {deviceIDs},
+  type: 'devices:loaded',
+})
+const paperKeyMake: () => PaperKeyMake = () => ({
+  payload: undefined,
+  type: 'devices:paperKeyMake',
+})
+const revoke: (deviceID: string) => Revoke = deviceID => ({
+  payload: {deviceID},
+  type: 'devices:revoke',
+})
+const setWaiting: (waiting: boolean) => Waiting = waiting => ({
+  payload: {waiting},
+  type: 'devices:waiting',
+})
+const showRevokePage: (deviceID: string) => ShowRevokePage = deviceID => ({
+  payload: {deviceID},
+  type: 'devices:showRevokePage',
+})
 
 const _loggedInSelector = (state: TypedState) => state.config.loggedIn
 
 const devicesTabLocation = isMobile ? [settingsTab, settingsDevicesTab] : [devicesTab]
 
-function * _deviceShowRevokePageSaga (action: ShowRevokePage): SagaGenerator<any, any> {
+function* _deviceShowRevokePageSaga(action: ShowRevokePage): SagaGenerator<any, any> {
   const {deviceID} = action.payload
   let endangeredTLFs = {endangeredTLFs: []}
   try {
-    endangeredTLFs = yield call(rekeyGetRevokeWarningRpcPromise, {param: {targetDevice: deviceID}})
+    endangeredTLFs = yield call(rekeyGetRevokeWarningRpcPromise, {
+      param: {targetDevice: deviceID},
+    })
   } catch (e) {
     console.warn('Error getting endangered TLFs:', e)
   }
-  yield put(navigateTo([...devicesTabLocation,
-    {props: {deviceID, endangeredTLFs}, selected: 'devicePage'},
-    {props: {deviceID, endangeredTLFs}, selected: 'revokeDevice'},
-  ]))
+  yield put(
+    navigateTo([
+      ...devicesTabLocation,
+      {props: {deviceID, endangeredTLFs}, selected: 'devicePage'},
+      {props: {deviceID, endangeredTLFs}, selected: 'revokeDevice'},
+    ])
+  )
 }
 
-function _sortRecords (a: DeviceDetailRecord, b: DeviceDetailRecord) {
+function _sortRecords(a: DeviceDetailRecord, b: DeviceDetailRecord) {
   if (a.currentDevice) return -1
   if (b.currentDevice) return 1
   return a.name.localeCompare(b.name)
 }
 
-function * _deviceListSaga (): SagaGenerator<any, any> {
+function* _deviceListSaga(): SagaGenerator<any, any> {
   const loggedIn = yield select(_loggedInSelector)
   if (!loggedIn) {
     return
@@ -63,19 +98,20 @@ function * _deviceListSaga (): SagaGenerator<any, any> {
 
   try {
     const result = yield call(deviceDeviceHistoryListRpcPromise)
-    const records = result.map((r: DeviceDetail) => (
-      new DeviceDetailRecord({
-        created: r.device.cTime,
-        currentDevice: r.currentDevice,
-        deviceID: r.device.deviceID,
-        lastUsed: r.device.lastUsedTime,
-        name: r.device.name,
-        provisionedAt: r.provisionedAt,
-        revokedAt: r.revokedAt,
-        revokedBy: r.revokedByDevice,
-        type: r.device.type,
-      })
-    ))
+    const records = result.map(
+      (r: DeviceDetail) =>
+        new DeviceDetailRecord({
+          created: r.device.cTime,
+          currentDevice: r.currentDevice,
+          deviceID: r.device.deviceID,
+          lastUsed: r.device.lastUsedTime,
+          name: r.device.name,
+          provisionedAt: r.provisionedAt,
+          revokedAt: r.revokedAt,
+          revokedBy: r.revokedByDevice,
+          type: r.device.type,
+        })
+    )
 
     const deviceIDs = records.sort(_sortRecords).map(r => r.deviceID)
     const entities = keyBy(records, 'deviceID')
@@ -89,7 +125,7 @@ function * _deviceListSaga (): SagaGenerator<any, any> {
   }
 }
 
-function * _deviceRevokedSaga (action: Revoke): SagaGenerator<any, any> {
+function* _deviceRevokedSaga(action: Revoke): SagaGenerator<any, any> {
   // Record our current route, only navigate away later if it's unchanged.
   const beforeRouteState = yield select(state => state.routeTree.routeState)
 
@@ -112,7 +148,9 @@ function * _deviceRevokedSaga (action: Revoke): SagaGenerator<any, any> {
         throw new Error('No username in device remove')
       }
       yield put(setWaiting(true))
-      yield call(loginDeprovisionRpcPromise, {param: {doRevoke: true, username}})
+      yield call(loginDeprovisionRpcPromise, {
+        param: {doRevoke: true, username},
+      })
       yield put(navigateTo([loginTab]))
       yield put(setRevokedSelf(name))
     } catch (e) {
@@ -124,7 +162,9 @@ function * _deviceRevokedSaga (action: Revoke): SagaGenerator<any, any> {
     // Not the current device.
     try {
       yield put(setWaiting(true))
-      yield call(revokeRevokeDeviceRpcPromise, {param: {deviceID, force: false}})
+      yield call(revokeRevokeDeviceRpcPromise, {
+        param: {deviceID, force: false},
+      })
     } catch (e) {
       throw new Error("Can't remove device")
     } finally {
@@ -140,11 +180,14 @@ function * _deviceRevokedSaga (action: Revoke): SagaGenerator<any, any> {
   }
 }
 
-function * _devicePaperKeySaga (): SagaGenerator<any, any> {
+function* _devicePaperKeySaga(): SagaGenerator<any, any> {
   let channelMap
   try {
     yield put(setWaiting(true))
-    channelMap = loginPaperKeyRpcChannelMap(['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'], {})
+    channelMap = loginPaperKeyRpcChannelMap(
+      ['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'],
+      {}
+    )
 
     while (true) {
       const incoming = yield channelMap.race()
@@ -167,7 +210,7 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
   }
 }
 
-function * deviceSaga (): SagaGenerator<any, any> {
+function* deviceSaga(): SagaGenerator<any, any> {
   yield safeTakeLatest('devices:load', _deviceListSaga)
   yield safeTakeEvery('devices:revoke', _deviceRevokedSaga)
   yield safeTakeEvery('devices:paperKeyMake', _devicePaperKeySaga)
@@ -176,11 +219,4 @@ function * deviceSaga (): SagaGenerator<any, any> {
 
 export default deviceSaga
 
-export {
-  load,
-  paperKeyMake,
-  revoke,
-  setWaiting,
-  showRevokePage,
-  devicesTabLocation,
-}
+export {load, paperKeyMake, revoke, setWaiting, showRevokePage, devicesTabLocation}

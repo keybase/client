@@ -3,7 +3,7 @@ import {globalColors} from '../styles'
 import type {IconType} from './icon'
 import {iconMeta} from './icon.constants'
 
-export function defaultColor (type: IconType): ?string {
+export function defaultColor(type: IconType): ?string {
   switch (type) {
     case 'iconfont-proof-broken':
       return globalColors.red
@@ -20,7 +20,7 @@ export function defaultColor (type: IconType): ?string {
   }
 }
 
-export function defaultHoverColor (type: IconType): ?string {
+export function defaultHoverColor(type: IconType): ?string {
   switch (type) {
     case 'iconfont-proof-new':
     case 'iconfont-proof-followed':
@@ -35,7 +35,7 @@ export function defaultHoverColor (type: IconType): ?string {
 }
 
 // Some types are the same underlying icon.
-export function typeToIconMapper (type: IconType): IconType {
+export function typeToIconMapper(type: IconType): IconType {
   switch (type) {
     case 'icon-progress-white-animated':
       return __SCREENSHOT__ ? 'icon-progress-white-static' : 'icon-progress-white-animated'
@@ -60,11 +60,11 @@ export function typeToIconMapper (type: IconType): IconType {
   }
 }
 
-export function typeExtension (type: IconType): string {
+export function typeExtension(type: IconType): string {
   return iconMeta[type].extension || 'png'
 }
 
-export function fontSize (type: IconType): ?Object {
+export function fontSize(type: IconType): ?Object {
   const fontSize: ?number = iconMeta[type].gridSize
 
   if (fontSize) {

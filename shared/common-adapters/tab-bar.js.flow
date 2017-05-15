@@ -25,11 +25,14 @@ export type Props = Exact<{
   underlined?: boolean,
 }>
 
-export default class TabBar extends Component<void, Props, void> { }
+export default class TabBar extends Component<void, Props, void> {}
 
-export class TabBarItem extends Component<void, ItemProps, void> { }
+export class TabBarItem extends Component<void, ItemProps, void> {}
 
-export type TabBarButtonSource = {type: 'icon', icon: IconType} | {type: 'avatar', username: ?string} | {type: 'nav', icon: IconType}
+export type TabBarButtonSource =
+  | {type: 'icon', icon: IconType}
+  | {type: 'avatar', username: ?string}
+  | {type: 'nav', icon: IconType}
 
 export type TabBadgePosition = 'top-right'
 
@@ -48,4 +51,4 @@ export type TabBarButtonProps = Exact<{
   styleLabel?: Object,
 }>
 
-export class TabBarButton extends Component<void, TabBarButtonProps, void> { }
+export class TabBarButton extends Component<void, TabBarButtonProps, void> {}

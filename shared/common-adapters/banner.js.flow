@@ -5,4 +5,4 @@ export type Props = {
   error: ?Error,
 }
 
-declare export default class Banner extends Component<void, Props, void> { }
+declare export default class Banner extends Component<void, Props, void> {}

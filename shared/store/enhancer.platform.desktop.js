@@ -7,9 +7,13 @@ import {throttle} from 'lodash'
 
 const throttleNotify = throttle(notify => notify(), 200)
 
-export default function storeEnhancer (middleware: Array<any>): Function {
+export default function storeEnhancer(middleware: Array<any>): Function {
   if (enableStoreLogging) {
-    return compose(applyMiddleware(...middleware), DevTools.instrument(), batchedSubscribe(throttleNotify))
+    return compose(
+      applyMiddleware(...middleware),
+      DevTools.instrument(),
+      batchedSubscribe(throttleNotify)
+    )
   }
 
   return compose(applyMiddleware(...middleware), batchedSubscribe(throttleNotify))

@@ -13,7 +13,10 @@ const initialState: Constants.State = {
   waiting: false,
 }
 
-export default function (state: Constants.State = initialState, action: Constants.Actions): Constants.State {
+export default function(
+  state: Constants.State = initialState,
+  action: Constants.Actions
+): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {

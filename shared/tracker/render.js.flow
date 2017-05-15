@@ -39,4 +39,4 @@ export type RenderPropsUnshaped = {
 
 export type RenderProps = Exact<RenderPropsUnshaped>
 
-export default class Render extends Component<void, RenderProps, void> { }
+export default class Render extends Component<void, RenderProps, void> {}

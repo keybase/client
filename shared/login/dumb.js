@@ -5,8 +5,8 @@ import LoginError from './error.render'
 import {Map} from 'immutable'
 
 const loginErrorMocks = {
-  'Error': {currentPath: Map({a: 1, b: 2, c: 3})},
-  'Error2': {currentPath: Map({a: 3, b: 2, c: 1})},
+  Error: {currentPath: Map({a: 1, b: 2, c: 3})},
+  Error2: {currentPath: Map({a: 3, b: 2, c: 1})},
 }
 
 export default {

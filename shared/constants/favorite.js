@@ -59,10 +59,18 @@ export const favoriteIgnored = 'favorite:favoriteIgnored'
 export type FavoriteIgnored = TypedAction<'favorite:favoriteIgnored', void, {errorText: string}>
 
 export const favoriteSwitchTab = 'favorite:favoriteSwitchTab'
-export type FavoriteSwitchTab = TypedAction<'favorite:favoriteSwitchTab', {showingPrivate: boolean}, void>
+export type FavoriteSwitchTab = TypedAction<
+  'favorite:favoriteSwitchTab',
+  {showingPrivate: boolean},
+  void
+>
 
 export const favoriteToggleIgnored = 'favorite:favoriteToggleIgnored'
-export type FavoriteToggleIgnored = TypedAction<'favorite:favoriteToggleIgnored', {isPrivate: boolean}, void>
+export type FavoriteToggleIgnored = TypedAction<
+  'favorite:favoriteToggleIgnored',
+  {isPrivate: boolean},
+  void
+>
 
 export const kbfsStatusUpdated = 'favorite:kbfsStatusUpdated'
 export type KbfsStatusUpdated = TypedAction<'favorite:kbfsStatusUpdated', KBFSStatus, void>
@@ -73,17 +81,32 @@ export type MarkTLFCreated = TypedAction<'favorite:markTLFCreated', {folder: Fol
 export const setupKBFSChangedHandler = 'favorite:setupKBFSChangedHandler'
 export type SetupKBFSChangedHandler = NoErrorTypedAction<'favorite:setupKBFSChangedHandler', void>
 
-export type FavoriteAction = FavoriteAdd | FavoriteAdded | FavoriteList | FavoriteListed | FavoriteIgnore | FavoriteIgnored | FavoriteSwitchTab | FavoriteToggleIgnored | KbfsStatusUpdated
+export type FavoriteAction =
+  | FavoriteAdd
+  | FavoriteAdded
+  | FavoriteList
+  | FavoriteListed
+  | FavoriteIgnore
+  | FavoriteIgnored
+  | FavoriteSwitchTab
+  | FavoriteToggleIgnored
+  | KbfsStatusUpdated
 
 // Sometimes we have paths that are just private/foo instead of /keybase/private/foo
-function canonicalizeTLF (tlf: string): string {
+function canonicalizeTLF(tlf: string): string {
   if (tlf.indexOf(defaultKBFSPath) !== 0) {
     return `${defaultKBFSPath}/${tlf}`
   }
   return tlf
 }
 
-function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}): {sortName: string, path: string} {
+function pathFromFolder({
+  isPublic,
+  users,
+}: {
+  isPublic: boolean,
+  users: UserList,
+}): {sortName: string, path: string} {
   const rwers = users.filter(u => !u.readOnly).map(u => u.username)
   const readers = users.filter(u => !!u.readOnly).map(u => u.username)
   const sortName = rwers.join(',') + (readers.length ? `#${readers.join(',')}` : '')
@@ -91,7 +114,7 @@ function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}
   return {sortName, path}
 }
 
-function folderRPCFromPath (path: string): ?FolderRPC {
+function folderRPCFromPath(path: string): ?FolderRPC {
   if (path.startsWith(`${defaultKBFSPath}/private/`)) {
     return {
       name: path.replace(`${defaultKBFSPath}/private/`, ''),
@@ -111,11 +134,11 @@ function folderRPCFromPath (path: string): ?FolderRPC {
   }
 }
 
-function folderFromFolderRPCWithMeta (username: string, f: FolderRPCWithMeta): Folder {
+function folderFromFolderRPCWithMeta(username: string, f: FolderRPCWithMeta): Folder {
   const users = sortUserList(parseFolderNameToUsers(username, f.name))
 
   const {sortName, path} = pathFromFolder({users, isPublic: !f.private})
-  const groupAvatar = f.private ? (users.length > 2) : (users.length > 1)
+  const groupAvatar = f.private ? users.length > 2 : users.length > 1
   const userAvatar = groupAvatar ? null : users[users.length - 1].username
   const meta: MetaType = f.meta
   const ignored = f.meta === 'ignored'
@@ -136,11 +159,16 @@ function folderFromFolderRPCWithMeta (username: string, f: FolderRPCWithMeta): F
   }
 }
 
-function folderFromFolderRPC (username: string, f: FolderRPC): Folder {
-  return folderFromFolderRPCWithMeta(username, {...f, waitingForParticipantUnlock: [], youCanUnlock: [], meta: null})
+function folderFromFolderRPC(username: string, f: FolderRPC): Folder {
+  return folderFromFolderRPCWithMeta(username, {
+    ...f,
+    waitingForParticipantUnlock: [],
+    youCanUnlock: [],
+    meta: null,
+  })
 }
 
-function folderFromPath (username: string, path: string): ?Folder {
+function folderFromPath(username: string, path: string): ?Folder {
   const folderRPC = folderRPCFromPath(canonicalizeTLF(path))
   if (folderRPC == null) {
     return null

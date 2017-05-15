@@ -1,7 +1,7 @@
 // @flow
 import type {Props} from './index'
 
-function PlanDetails (props: Props) {
+function PlanDetails(props: Props) {
   return null
 }
 

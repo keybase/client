@@ -25,7 +25,11 @@ import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {listenForNotifications} from '../../actions/notifications'
 import {changedFocus} from '../../actions/app'
 import {merge, throttle} from 'lodash'
-import {reduxDevToolsEnable, devStoreChangingFunctions, resetEngineOnHMR} from '../../local-debug.desktop'
+import {
+  reduxDevToolsEnable,
+  devStoreChangingFunctions,
+  resetEngineOnHMR,
+} from '../../local-debug.desktop'
 import {selector as menubarSelector} from '../../menubar'
 import {selector as pineentrySelector} from '../../pinentry'
 import {selector as remotePurgeMessageSelector} from '../../pgp/container.desktop'
@@ -38,7 +42,7 @@ import {updateDebugConfig} from '../../actions/dev'
 import {updateReloading} from '../../constants/dev'
 
 let _store
-function setupStore () {
+function setupStore() {
   if (!_store) {
     _store = configureStore()
 
@@ -50,12 +54,12 @@ function setupStore () {
   return _store
 }
 
-function setupAvatar () {
+function setupAvatar() {
   initAvatarLookup(getUserImageMap)
   initAvatarLoad(loadUserImageMap)
 }
 
-function setupApp (store) {
+function setupApp(store) {
   setupSource()
   disableDragDrop()
   makeEngine()
@@ -89,8 +93,7 @@ function setupApp (store) {
     setImmediate(() => {
       try {
         store.dispatch(merge({}, action))
-      } catch (_) {
-      }
+      } catch (_) {}
     })
   })
 
@@ -101,15 +104,19 @@ function setupApp (store) {
   })
   ipcRenderer.send('install-check')
 
-  window.addEventListener('focus', () => { store.dispatch(changedFocus(true)) })
-  window.addEventListener('blur', () => { store.dispatch(changedFocus(false)) })
+  window.addEventListener('focus', () => {
+    store.dispatch(changedFocus(true))
+  })
+  window.addEventListener('blur', () => {
+    store.dispatch(changedFocus(false))
+  })
 
   const _menubarSelector = menubarSelector()
   const _unlockFoldersSelector = unlockFoldersSelector()
   const _pineentrySelector = pineentrySelector()
   const _remotePurgeMessageSelector = remotePurgeMessageSelector()
 
-  const subsetsRemotesCareAbout = (store) => {
+  const subsetsRemotesCareAbout = store => {
     return {
       tracker: store.tracker,
       menubar: _menubarSelector(store),
@@ -120,25 +127,28 @@ function setupApp (store) {
   }
 
   let _currentStore
-  store.subscribe(throttle(() => {
-    let previousStore = _currentStore
-    _currentStore = subsetsRemotesCareAbout(store.getState())
+  store.subscribe(
+    throttle(() => {
+      let previousStore = _currentStore
+      _currentStore = subsetsRemotesCareAbout(store.getState())
 
-    if (JSON.stringify(previousStore) !== JSON.stringify(_currentStore)) {
-      ipcRenderer.send('stateChange', {
-        ...store.getState(),
-        // this is a HACK workaround where we can't send immutable over the wire to the main thread (and out again).
-        // I have a much better way to handle this we can prioritize post-mobile launch (CN)
-        notifications: _currentStore.menubar.notifications,
-      })
-    }
-  }, 1000))
+      if (JSON.stringify(previousStore) !== JSON.stringify(_currentStore)) {
+        ipcRenderer.send('stateChange', {
+          ...store.getState(),
+          // this is a HACK workaround where we can't send immutable over the wire to the main thread (and out again).
+          // I have a much better way to handle this we can prioritize post-mobile launch (CN)
+          notifications: _currentStore.menubar.notifications,
+        })
+      }
+    }, 1000)
+  )
 
   // Handle notifications from the service
   store.dispatch(listenForNotifications())
 
   // Introduce ourselves to the service
-  hello(process.pid, 'Main Renderer', process.argv, __VERSION__, true) // eslint-disable-line no-undef
+  // eslint-disable-next-line no-undef
+  hello(process.pid, 'Main Renderer', process.argv, __VERSION__, true)
 
   store.dispatch(updateDebugConfig(require('../../local-debug-live')))
 }
@@ -146,24 +156,33 @@ function setupApp (store) {
 const FontLoader = () => (
   <div style={{height: 0, overflow: 'hidden', width: 0}}>
     <p style={{fontFamily: 'kb'}}>kb</p>
-    <p style={{fontFamily: 'Source Code Pro', fontWeight: 400}}>source code pro 400</p>
-    <p style={{fontFamily: 'Source Code Pro', fontWeight: 600}}>source code pro 600</p>
+    <p style={{fontFamily: 'Source Code Pro', fontWeight: 400}}>
+      source code pro 400
+    </p>
+    <p style={{fontFamily: 'Source Code Pro', fontWeight: 600}}>
+      source code pro 600
+    </p>
     <p style={{fontFamily: 'OpenSans', fontWeight: 400}}>open sans 400</p>
-    <p style={{fontFamily: 'OpenSans', fontStyle: 'italic', fontWeight: 400}}>open sans 400 i</p>
+    <p style={{fontFamily: 'OpenSans', fontStyle: 'italic', fontWeight: 400}}>
+      open sans 400 i
+    </p>
     <p style={{fontFamily: 'OpenSans', fontWeight: 600}}>open sans 600</p>
-    <p style={{fontFamily: 'OpenSans', fontStyle: 'italic', fontWeight: 600}}>open sans 600 i</p>
+    <p style={{fontFamily: 'OpenSans', fontStyle: 'italic', fontWeight: 600}}>
+      open sans 600 i
+    </p>
     <p style={{fontFamily: 'OpenSans', fontWeight: 700}}>open sans 700</p>
   </div>
 )
 
-function render (store, MainComponent) {
+function render(store, MainComponent) {
   let dt
-  if (__DEV__ && reduxDevToolsEnable) { // eslint-disable-line no-undef
+  // eslint-disable-next-line no-undef
+  if (__DEV__ && reduxDevToolsEnable) {
     const DevTools = require('./redux-dev-tools').default
     dt = <DevTools />
   }
 
-  ReactDOM.render((
+  ReactDOM.render(
     <AppContainer>
       <Root store={store}>
         <GlobalEscapeHandler>
@@ -175,38 +194,49 @@ function render (store, MainComponent) {
           </div>
         </GlobalEscapeHandler>
       </Root>
-    </AppContainer>), document.getElementById('root'))
+    </AppContainer>,
+    document.getElementById('root')
+  )
 }
 
-function setupRoutes (store) {
+function setupRoutes(store) {
   store.dispatch(setRouteDef(routeDefs))
 }
 
-function setupHMR (store) {
+function setupHMR(store) {
   if (!module || !module.hot || typeof module.hot.accept !== 'function') {
     return
   }
 
-  module.hot && module.hot.accept(['../../main.desktop', '../../routes'], () => {
-    store.dispatch(setRouteDef(require('../../routes').default))
-    try {
-      store.dispatch({type: updateReloading, payload: {reloading: true}})
-      const NewMain = require('../../main.desktop').default
-      render(store, NewMain)
-      if (resetEngineOnHMR) {
-        engine().reset()
+  module.hot &&
+    module.hot.accept(['../../main.desktop', '../../routes'], () => {
+      store.dispatch(setRouteDef(require('../../routes').default))
+      try {
+        store.dispatch({type: updateReloading, payload: {reloading: true}})
+        const NewMain = require('../../main.desktop').default
+        render(store, NewMain)
+        if (resetEngineOnHMR) {
+          engine().reset()
+        }
+      } finally {
+        setTimeout(
+          () =>
+            store.dispatch({
+              type: updateReloading,
+              payload: {reloading: false},
+            }),
+          10e3
+        )
       }
-    } finally {
-      setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
-    }
-  })
+    })
 
-  module.hot && module.hot.accept('../../local-debug-live', () => {
-    store.dispatch(updateDebugConfig(require('../../local-debug-live')))
-  })
+  module.hot &&
+    module.hot.accept('../../local-debug-live', () => {
+      store.dispatch(updateDebugConfig(require('../../local-debug-live')))
+    })
 }
 
-function load () {
+function load() {
   const store = setupStore()
   setupRoutes(store)
   setupApp(store)

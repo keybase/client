@@ -17,13 +17,17 @@ const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 const filteredInbox = createImmutableEqualSelector(
   [getInbox, getSupersededByState, getAlwaysShow],
   (inbox, supersededByState, alwaysShow) => {
-    return inbox.filter(i => (!i.isEmpty || alwaysShow.has(i.conversationIDKey)) &&
-        !supersededByState.get(i.conversationIDKey)).map(i => i.conversationIDKey)
+    return inbox
+      .filter(
+        i =>
+          (!i.isEmpty || alwaysShow.has(i.conversationIDKey)) &&
+          !supersededByState.get(i.conversationIDKey)
+      )
+      .map(i => i.conversationIDKey)
   }
 )
-const getRows = createImmutableEqualSelector(
-  [filteredInbox, getPending],
-  (inbox, pending) => I.List(pending.keys()).concat(inbox)
+const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox, pending) =>
+  I.List(pending.keys()).concat(inbox)
 )
 
 export default connect(
@@ -34,6 +38,7 @@ export default connect(
   (dispatch: Dispatch) => ({
     loadInbox: () => dispatch(loadInbox()),
     onNewChat: () => dispatch(newChat([])),
-    onUntrustedInboxVisible: (converationIDKey, rowsVisible) => dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
+    onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
+      dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
   })
 )(ConversationList)

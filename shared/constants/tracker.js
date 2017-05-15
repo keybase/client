@@ -12,7 +12,14 @@ const cachedIdentifyGoodUntil = 1000 * 60 * 60
 
 // Simple state of the overall proof result
 export type SimpleProofState = 'normal' | 'warning' | 'error' | 'checking' | 'revoked'
-export type SimpleProofMeta = 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored'
+export type SimpleProofMeta =
+  | 'upgraded'
+  | 'new'
+  | 'unreachable'
+  | 'pending'
+  | 'deleted'
+  | 'none'
+  | 'ignored'
 
 // Constants
 export const normal: SimpleProofState = 'normal'
@@ -72,20 +79,40 @@ export const rpcUpdateTimerSeconds = 60 * 1000
 export const showNonUser = 'tracker:showNonUser'
 
 export const updateFolders = 'tracker:updateFolders'
-export type UpdateFolders = TypedAction<'tracker:updateFolders', {username: string, tlfs: Array<Folder>}, void>
+export type UpdateFolders = TypedAction<
+  'tracker:updateFolders',
+  {username: string, tlfs: Array<Folder>},
+  void
+>
 
-export type ShowNonUser = TypedAction<'tracker:showNonUser', identifyUiDisplayTLFCreateWithInviteRpcParam, void>
+export type ShowNonUser = TypedAction<
+  'tracker:showNonUser',
+  identifyUiDisplayTLFCreateWithInviteRpcParam,
+  void
+>
 
 export const pendingIdentify = 'tracker:pendingIdentify'
-export type PendingIdentify = TypedAction<'tracker:pendingIdentify', {username: string, pending: boolean}, void>
+export type PendingIdentify = TypedAction<
+  'tracker:pendingIdentify',
+  {username: string, pending: boolean},
+  void
+>
 export const cacheIdentify = 'tracker:cacheIdentify'
-export type CacheIdentify = TypedAction<'tracker:cacheIdentify', {username: string, goodTill: number}, void>
+export type CacheIdentify = TypedAction<
+  'tracker:cacheIdentify',
+  {username: string, goodTill: number},
+  void
+>
 
 export const identifyStarted = 'tracker:identifyStarted'
 export type IdentifyStarted = TypedAction<'tracker:identifyStarted', void, {error: string}>
 
 export const identifyFinished = 'tracker:identifyFinished'
-export type IdentifyFinished = TypedAction<'tracker:identifyFinished', {username: string}, {username: string, error: string}>
+export type IdentifyFinished = TypedAction<
+  'tracker:identifyFinished',
+  {username: string},
+  {username: string, error: string}
+>
 
 export type NonUserActions = ShowNonUser | OnClose | PendingIdentify | UpdateFolders
 
@@ -98,7 +125,7 @@ export type Proof = {
   profileUrl: ?string,
   name: string,
   state: SimpleProofState,
-  isTracked: bool,
+  isTracked: boolean,
 }
 
 export type OverviewProofState = {
@@ -160,7 +187,7 @@ export type NonUserState = {
 
 export type TrackerOrNonUserState = TrackerState | NonUserState
 
-function isLoading (state: ?TrackerOrNonUserState): boolean {
+function isLoading(state: ?TrackerOrNonUserState): boolean {
   // TODO (mm) ideally userInfo should be null until we get a response from the server
   // Same with proofs (instead of empty array). So we know the difference between
   // not having data and having empty data.
@@ -177,10 +204,16 @@ function isLoading (state: ?TrackerOrNonUserState): boolean {
   return !state.userInfo || state.userInfo.followersCount === -1
 }
 
-function bufferToNiceHexString (fingerPrint: Buffer): string {
+function bufferToNiceHexString(fingerPrint: Buffer): string {
   try {
     // $FlowIssue
-    return fingerPrint.toString('hex').slice(-16).toUpperCase().match(/(.{4})(.{4})(.{4})(.{4})/).slice(1).join(' ')
+    return fingerPrint
+      .toString('hex')
+      .slice(-16)
+      .toUpperCase()
+      .match(/(.{4})(.{4})(.{4})(.{4})/)
+      .slice(1)
+      .join(' ')
   } catch (_) {
     return ''
   }
@@ -200,7 +233,7 @@ export type State = {
   }>,
 }
 
-const transformProof = (p) => ({
+const transformProof = p => ({
   id: p.id,
   isTracked: p.isTracked,
   meta: p.meta,
@@ -245,9 +278,4 @@ const stateLoggerTransform = (state: State) => {
   return out
 }
 
-export {
-  stateLoggerTransform,
-  cachedIdentifyGoodUntil,
-  bufferToNiceHexString,
-  isLoading,
-}
+export {stateLoggerTransform, cachedIdentifyGoodUntil, bufferToNiceHexString, isLoading}

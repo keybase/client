@@ -2,85 +2,105 @@
 import * as Constants from '../../constants/profile'
 import engine, {Engine} from '../../engine'
 import {call, put, select, take} from 'redux-saga/effects'
-import {cryptocurrencyRegisterAddressRpcPromise, proveStartProofRpcChannelMap, ConstantsStatusCode, ProveCommonProofStatus, proveCheckProofRpcPromise} from '../../constants/types/flow-types'
+import {
+  cryptocurrencyRegisterAddressRpcPromise,
+  proveStartProofRpcChannelMap,
+  ConstantsStatusCode,
+  ProveCommonProofStatus,
+  proveCheckProofRpcPromise,
+} from '../../constants/types/flow-types'
 import {navigateTo, navigateAppend} from '../route-tree'
 import {profileTab} from '../../constants/tabs'
 import {safeTakeEvery} from '../../util/saga'
 
-import type {AddProof, CancelAddProof, CheckProof, CleanupUsername, SubmitBTCAddress, SubmitUsername, UpdateErrorText, UpdatePlatform, UpdateProofStatus, UpdateProofText, UpdateSigID, Waiting, SubmitZcashAddress} from '../../constants/profile'
+import type {
+  AddProof,
+  CancelAddProof,
+  CheckProof,
+  CleanupUsername,
+  SubmitBTCAddress,
+  SubmitUsername,
+  UpdateErrorText,
+  UpdatePlatform,
+  UpdateProofStatus,
+  UpdateProofText,
+  UpdateSigID,
+  Waiting,
+  SubmitZcashAddress,
+} from '../../constants/profile'
 import type {NavigateTo} from '../../constants/route-tree'
 import type {PlatformsExpandedType, ProvablePlatformsType} from '../../constants/types/more'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {SigID} from '../../constants/types/flow-types'
 import type {TypedState} from '../../constants/reducer'
 
-function _updatePlatform (platform: PlatformsExpandedType): UpdatePlatform {
+function _updatePlatform(platform: PlatformsExpandedType): UpdatePlatform {
   return {payload: {platform}, type: Constants.updatePlatform}
 }
 
-function _askTextOrDNS (): NavigateTo {
+function _askTextOrDNS(): NavigateTo {
   return navigateTo(['proveWebsiteChoice'], [profileTab])
 }
 
-function _registerBTC (): NavigateTo {
+function _registerBTC(): NavigateTo {
   return navigateTo(['proveEnterUsername'], [profileTab])
 }
 
-function _registerZcash (): NavigateTo {
+function _registerZcash(): NavigateTo {
   return navigateTo(['proveEnterUsername'], [profileTab])
 }
 
-function addProof (platform: PlatformsExpandedType): AddProof {
+function addProof(platform: PlatformsExpandedType): AddProof {
   return {payload: {platform}, type: Constants.addProof}
 }
 
-function _cleanupUsername (): CleanupUsername {
+function _cleanupUsername(): CleanupUsername {
   return {payload: undefined, type: Constants.cleanupUsername}
 }
 
-function submitUsername (): SubmitUsername {
+function submitUsername(): SubmitUsername {
   return {payload: undefined, type: Constants.submitUsername}
 }
 
-function cancelAddProof (): CancelAddProof {
+function cancelAddProof(): CancelAddProof {
   return {payload: undefined, type: Constants.cancelAddProof}
 }
 
-function submitBTCAddress (): SubmitBTCAddress {
+function submitBTCAddress(): SubmitBTCAddress {
   return {payload: undefined, type: Constants.submitBTCAddress}
 }
 
-function submitZcashAddress (): SubmitZcashAddress {
+function submitZcashAddress(): SubmitZcashAddress {
   return {payload: undefined, type: Constants.submitZcashAddress}
 }
 
-function _updateProofText (proof: string): UpdateProofText {
+function _updateProofText(proof: string): UpdateProofText {
   return {payload: {proof}, type: Constants.updateProofText}
 }
 
-function _updateProofStatus (found, status): UpdateProofStatus {
+function _updateProofStatus(found, status): UpdateProofStatus {
   return {payload: {found, status}, type: Constants.updateProofStatus}
 }
 
-function _waitingForResponse (waiting: boolean): Waiting {
+function _waitingForResponse(waiting: boolean): Waiting {
   return {payload: {waiting}, type: Constants.waiting}
 }
 
-function _updateErrorText (errorText: ?string, errorCode: ?number): UpdateErrorText {
+function _updateErrorText(errorText: ?string, errorCode: ?number): UpdateErrorText {
   return {payload: {errorText, errorCode}, type: Constants.updateErrorText}
 }
 
-function _updateSigID (sigID: ?SigID): UpdateSigID {
+function _updateSigID(sigID: ?SigID): UpdateSigID {
   return {payload: {sigID}, type: Constants.updateSigID}
 }
 
-function checkProof (): CheckProof {
+function checkProof(): CheckProof {
   return {payload: undefined, type: Constants.checkProof}
 }
 
-function * _checkProof (action: CheckProof): SagaGenerator<any, any> {
+function* _checkProof(action: CheckProof): SagaGenerator<any, any> {
   const getSigID = (state: TypedState) => state.profile.sigID
-  const sigID = ((yield select(getSigID)): any)
+  const sigID = (yield select(getSigID): any)
   if (!sigID) {
     return
   }
@@ -89,7 +109,9 @@ function * _checkProof (action: CheckProof): SagaGenerator<any, any> {
 
   try {
     yield put(_waitingForResponse(true))
-    const {found, status} = yield call(proveCheckProofRpcPromise, {param: {sigID}})
+    const {found, status} = yield call(proveCheckProofRpcPromise, {
+      param: {sigID},
+    })
     yield put(_waitingForResponse(false))
 
     // Values higher than baseHardError are hard errors, below are soft errors (could eventually be resolved by doing nothing)
@@ -106,7 +128,7 @@ function * _checkProof (action: CheckProof): SagaGenerator<any, any> {
   }
 }
 
-function * _addProof (action: AddProof): SagaGenerator<any, any> {
+function* _addProof(action: AddProof): SagaGenerator<any, any> {
   yield put(_updatePlatform(action.payload.platform))
   yield put(_updateErrorText())
 
@@ -138,30 +160,33 @@ function * _addProof (action: AddProof): SagaGenerator<any, any> {
   }
 }
 
-function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any, any> {
+function* _addServiceProof(service: ProvablePlatformsType): SagaGenerator<any, any> {
   let _promptUsernameResponse: ?Object = null
   let _outputInstructionsResponse: ?Object = null
 
   yield put(_updateSigID(null))
 
-  const proveStartProofChanMap = proveStartProofRpcChannelMap([
-    'keybase.1.proveUi.promptUsername',
-    'keybase.1.proveUi.outputInstructions',
-    'keybase.1.proveUi.promptOverwrite',
-    'keybase.1.proveUi.outputPrechecks',
-    'keybase.1.proveUi.preProofWarning',
-    'keybase.1.proveUi.okToCheck',
-    'keybase.1.proveUi.displayRecheckWarning',
-    'finished',
-  ], {
-    param: {
-      auto: false,
-      force: true,
-      promptPosted: false,
-      service,
-      username: '',
-    },
-  })
+  const proveStartProofChanMap = proveStartProofRpcChannelMap(
+    [
+      'keybase.1.proveUi.promptUsername',
+      'keybase.1.proveUi.outputInstructions',
+      'keybase.1.proveUi.promptOverwrite',
+      'keybase.1.proveUi.outputPrechecks',
+      'keybase.1.proveUi.preProofWarning',
+      'keybase.1.proveUi.okToCheck',
+      'keybase.1.proveUi.displayRecheckWarning',
+      'finished',
+    ],
+    {
+      param: {
+        auto: false,
+        force: true,
+        promptPosted: false,
+        service,
+        username: '',
+      },
+    }
+  )
 
   while (true) {
     const incoming = yield proveStartProofChanMap.race({
@@ -179,14 +204,21 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
 
       const engineInst: Engine = yield call(engine)
 
-      const InputCancelError = {code: ConstantsStatusCode.scinputcanceled, desc: 'Cancel Add Proof'}
+      const InputCancelError = {
+        code: ConstantsStatusCode.scinputcanceled,
+        desc: 'Cancel Add Proof',
+      }
       if (_promptUsernameResponse) {
         yield call([engineInst, engineInst.cancelRPC], _promptUsernameResponse, InputCancelError)
         _promptUsernameResponse = null
       }
 
       if (_outputInstructionsResponse) {
-        yield call([engineInst, engineInst.cancelRPC], _outputInstructionsResponse, InputCancelError)
+        yield call(
+          [engineInst, engineInst.cancelRPC],
+          _outputInstructionsResponse,
+          InputCancelError
+        )
         _outputInstructionsResponse = null
       }
       yield put(_waitingForResponse(false))
@@ -208,13 +240,21 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
     } else if (incoming.promptUsername) {
       _promptUsernameResponse = incoming.promptUsername.response
       if (incoming.promptUsername.params.prevError) {
-        yield put(_updateErrorText(incoming.promptUsername.params.prevError.desc, incoming.promptUsername.params.prevError.code))
+        yield put(
+          _updateErrorText(
+            incoming.promptUsername.params.prevError.desc,
+            incoming.promptUsername.params.prevError.code
+          )
+        )
       }
       yield put(navigateTo(['proveEnterUsername'], [profileTab]))
     } else if (incoming.outputInstructions) {
-      if (service === 'dnsOrGenericWebSite') { // We don't get this directly (yet) so we parse this out
+      if (service === 'dnsOrGenericWebSite') {
+        // We don't get this directly (yet) so we parse this out
         try {
-          const match = incoming.outputInstructions.params.instructions.data.match(/<url>(http[s]+):\/\//)
+          const match = incoming.outputInstructions.params.instructions.data.match(
+            /<url>(http[s]+):\/\//
+          )
           const protocol = match && match[1]
           yield put(_updatePlatform(protocol === 'https' ? 'https' : 'http'))
         } catch (_) {
@@ -254,12 +294,14 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
   }
 }
 
-function * _cancelAddProof (): SagaGenerator<any, any> {
+function* _cancelAddProof(): SagaGenerator<any, any> {
   yield put(_updateErrorText())
   yield put(navigateTo([], [profileTab]))
 }
 
-function * _submitCryptoAddress (action: SubmitBTCAddress | SubmitZcashAddress): SagaGenerator<any, any> {
+function* _submitCryptoAddress(
+  action: SubmitBTCAddress | SubmitZcashAddress
+): SagaGenerator<any, any> {
   yield put(_cleanupUsername())
   const address = yield select(state => state.profile.username)
   const wantedFamily = {
@@ -268,7 +310,9 @@ function * _submitCryptoAddress (action: SubmitBTCAddress | SubmitZcashAddress):
   }[action.type]
   try {
     yield put(_waitingForResponse(true))
-    yield call(cryptocurrencyRegisterAddressRpcPromise, {param: {address, force: true, wantedFamily}})
+    yield call(cryptocurrencyRegisterAddressRpcPromise, {
+      param: {address, force: true, wantedFamily},
+    })
     yield put(_waitingForResponse(false))
     yield put(_updateProofStatus(true, ProveCommonProofStatus.ok))
     yield put(navigateAppend(['confirmOrPending'], [profileTab]))
@@ -279,7 +323,7 @@ function * _submitCryptoAddress (action: SubmitBTCAddress | SubmitZcashAddress):
   }
 }
 
-function * proofsSaga (): SagaGenerator<any, any> {
+function* proofsSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.submitBTCAddress, _submitCryptoAddress)
   yield safeTakeEvery(Constants.submitZcashAddress, _submitCryptoAddress)
   yield safeTakeEvery(Constants.cancelAddProof, _cancelAddProof)

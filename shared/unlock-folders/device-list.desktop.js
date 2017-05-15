@@ -12,11 +12,11 @@ export type Props = {
 }
 
 class DeviceRow extends Component<void, {device: Device}, void> {
-  render () {
+  render() {
     const icon = {
-      'desktop': 'icon-computer-32',
-      'backup': 'icon-paper-key-32',
-      'mobile': 'icon-phone-32',
+      desktop: 'icon-computer-32',
+      backup: 'icon-paper-key-32',
+      mobile: 'icon-phone-32',
     }[this.props.device.type]
 
     return (
@@ -24,24 +24,32 @@ class DeviceRow extends Component<void, {device: Device}, void> {
         <div style={deviceRowStyles.iconWrapper}>
           <Icon type={icon} style={{height: 22}} />
         </div>
-        <Text type='BodySemiboldItalic' style={{marginLeft: 16}}>{this.props.device.name}</Text>
+        <Text type="BodySemiboldItalic" style={{marginLeft: 16}}>
+          {this.props.device.name}
+        </Text>
       </div>
     )
   }
 }
 
 export default class DeviceList extends Component<void, Props, void> {
-  render () {
+  render() {
     return (
       <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-        <Text type='Body' style={styles.infoText}>This computer and possibly others are unable to read some of your folders. To avoid losing data forever, please turn on one of the devices below:</Text>
+        <Text type="Body" style={styles.infoText}>
+          This computer and possibly others are unable to read some of your folders. To avoid losing data forever, please turn on one of the devices below:
+        </Text>
         <div style={styles.devicesContainer}>
           {this.props.devices &&
             this.props.devices.map(d => <DeviceRow key={d.deviceID} device={d} />)}
         </div>
         <div style={styles.buttonsContainer}>
-          <Button type='Secondary' label='Enter a paper key instead' style={styles.enterPaperKey}
-            onClick={this.props.toPaperKeyInput} />
+          <Button
+            type="Secondary"
+            label="Enter a paper key instead"
+            style={styles.enterPaperKey}
+            onClick={this.props.toPaperKeyInput}
+          />
         </div>
       </div>
     )

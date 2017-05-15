@@ -3,7 +3,12 @@ import * as Constants from '../../constants/push'
 import * as Creators from './creators'
 import * as Shared from '../chat/shared'
 import {isMobile} from '../../constants/platform'
-import {apiserverDeleteRpcPromise, apiserverPostRpcPromise, appStateUpdateAppStateRpc, AppStateAppState} from '../../constants/types/flow-types'
+import {
+  apiserverDeleteRpcPromise,
+  apiserverPostRpcPromise,
+  appStateUpdateAppStateRpc,
+  AppStateAppState,
+} from '../../constants/types/flow-types'
 import {call, put, take, select} from 'redux-saga/effects'
 import {chatTab} from '../../constants/tabs'
 import {navigateTo} from '../route-tree'
@@ -15,11 +20,14 @@ import type {TypedState} from '../../constants/reducer'
 
 import {requestPushPermissions, configurePush} from '../platform-specific'
 
-const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
+const pushSelector = ({push: {token, tokenType}}: TypedState) => ({
+  token,
+  tokenType,
+})
 
 const deviceIDSelector = ({config: {deviceID}}: TypedState) => deviceID
 
-function * permissionsRequestSaga (): SagaGenerator<any, any> {
+function* permissionsRequestSaga(): SagaGenerator<any, any> {
   try {
     yield put({type: Constants.permissionsRequesting, payload: true})
 
@@ -33,7 +41,7 @@ function * permissionsRequestSaga (): SagaGenerator<any, any> {
   }
 }
 
-function * pushNotificationSaga (notification: Constants.PushNotification): SagaGenerator<any, any> {
+function* pushNotificationSaga(notification: Constants.PushNotification): SagaGenerator<any, any> {
   console.warn('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
@@ -67,16 +75,16 @@ function * pushNotificationSaga (notification: Constants.PushNotification): Saga
   }
 }
 
-function * pushTokenSaga (action: Constants.PushToken): SagaGenerator<any, any> {
+function* pushTokenSaga(action: Constants.PushToken): SagaGenerator<any, any> {
   const {token, tokenType} = action.payload
   yield put(Creators.updatePushToken(token, tokenType))
   yield put(Creators.savePushToken())
 }
 
-function * savePushTokenSaga (): SagaGenerator<any, any> {
+function* savePushTokenSaga(): SagaGenerator<any, any> {
   try {
-    const {token, tokenType} = ((yield select(pushSelector)): any)
-    const deviceID = ((yield select(deviceIDSelector)): any)
+    const {token, tokenType} = (yield select(pushSelector): any)
+    const deviceID = (yield select(deviceIDSelector): any)
     if (!deviceID) {
       throw new Error('No device available for saving push token')
     }
@@ -101,7 +109,7 @@ function * savePushTokenSaga (): SagaGenerator<any, any> {
   }
 }
 
-function * configurePushSaga (): SagaGenerator<any, any> {
+function* configurePushSaga(): SagaGenerator<any, any> {
   if (isMobile) {
     const chan = yield call(configurePush)
 
@@ -112,24 +120,21 @@ function * configurePushSaga (): SagaGenerator<any, any> {
   }
 }
 
-export function * deletePushTokenSaga (): SagaGenerator<any, any> {
+export function* deletePushTokenSaga(): SagaGenerator<any, any> {
   try {
-    const {tokenType} = ((yield select(pushSelector)): any)
+    const {tokenType} = (yield select(pushSelector): any)
     if (!tokenType) {
       // No push token to remove.
       console.log('Not deleting push token -- none to remove')
       return
     }
 
-    const deviceID = ((yield select(deviceIDSelector)): any)
+    const deviceID = (yield select(deviceIDSelector): any)
     if (!deviceID) {
       throw new Error('No device id available for saving push token')
     }
 
-    const args = [
-      {key: 'device_id', value: deviceID},
-      {key: 'token_type', value: tokenType},
-    ]
+    const args = [{key: 'device_id', value: deviceID}, {key: 'token_type', value: tokenType}]
 
     yield call(apiserverDeleteRpcPromise, {
       param: {
@@ -142,7 +147,7 @@ export function * deletePushTokenSaga (): SagaGenerator<any, any> {
   }
 }
 
-function * pushSaga (): SagaGenerator<any, any> {
+function* pushSaga(): SagaGenerator<any, any> {
   yield safeTakeLatest(Constants.permissionsRequest, permissionsRequestSaga)
   yield safeTakeLatest(Constants.pushToken, pushTokenSaga)
   yield safeTakeLatest(Constants.savePushToken, savePushTokenSaga)

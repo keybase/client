@@ -6,11 +6,13 @@ import {FlatButton} from 'material-ui'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 class Button extends Component<void, Props, void> {
-  _styles (type: $PropertyType<Props, 'type'>): Object {
+  _styles(type: $PropertyType<Props, 'type'>): Object {
     let backgroundStyle = {}
     let labelStyle = {}
     let progressColor = globalColors.white
-    let rippleStyle: {rippleColor?: string} = {rippleColor: 'rgba(0, 0, 0, 0.3)'}
+    let rippleStyle: {rippleColor?: string} = {
+      rippleColor: 'rgba(0, 0, 0, 0.3)',
+    }
 
     const disabled = this.props.disabled || this.props.waiting
 
@@ -56,18 +58,22 @@ class Button extends Component<void, Props, void> {
       default:
         backgroundStyle = {
           ...stylesButtonSecondary,
-          backgroundColor: this.props.backgroundMode === 'Terminal' ? globalColors.blue_30 : stylesButtonSecondary.backgroundColor,
+          backgroundColor: this.props.backgroundMode === 'Terminal'
+            ? globalColors.blue_30
+            : stylesButtonSecondary.backgroundColor,
           opacity: disabled ? stylesButtonSecondary.disabledOpacity : 1,
         }
         labelStyle = {
-          color: this.props.backgroundMode === 'Terminal' ? globalColors.white : globalColors.black_75,
+          color: this.props.backgroundMode === 'Terminal'
+            ? globalColors.white
+            : globalColors.black_75,
         }
         progressColor = globalColors.black_75
     }
     return {backgroundStyle, labelStyle, progressColor, rippleStyle}
   }
 
-  render () {
+  render() {
     // First apply styles for the main button types.
     let {backgroundStyle, labelStyle, progressColor, rippleStyle} = this._styles(this.props.type)
     let smallStyle = {}
@@ -110,17 +116,22 @@ class Button extends Component<void, Props, void> {
           onMouseEnter={this.props.onMouseEnter}
           onMouseLeave={this.props.onMouseLeave}
           style={{...backgroundStyle, ...smallStyle, ...this.props.style}}
-          labelStyle={{...stylesButtonLabel, ...labelStyle, ...this.props.labelStyle}}
+          labelStyle={{
+            ...stylesButtonLabel,
+            ...labelStyle,
+            ...this.props.labelStyle,
+          }}
           {...rippleStyle}
           label={this.props.label}
           primary={this.props.type === 'Primary'}
           secondary={this.props.type === 'Secondary'}
-          disabled={this.props.disabled || this.props.waiting}>
-          {this.props.waiting && (
+          disabled={this.props.disabled || this.props.waiting}
+        >
+          {this.props.waiting &&
             <ProgressIndicator
               white={progressColor === globalColors.white}
               style={{...stylesProgress}}
-            />)}
+            />}
         </FlatButton>
       </div>
     )

@@ -9,10 +9,22 @@ export type NotificationKeys = 'kbfsUploading'
 export type BadgeType = 'regular' | 'update' | 'badged' | 'uploading'
 
 export type LogAction = TypedAction<'notifications:log', {level: LogLevel, text: string}, void>
-export type BadgeAppAction = NoErrorTypedAction<'notifications:badgeApp', {key: NotificationKeys, on: boolean, count?: number}>
-export type ReceivedBadgeState = NoErrorTypedAction<'notifications:receivedBadgeState', {badgeState: BadgeState}>
-export type ListenForNotifications = NoErrorTypedAction<'notifications:listenForNotifications', void>
-export type ListenForKBFSNotifications = NoErrorTypedAction<'notifications:listenForKBFSNotifications', void>
+export type BadgeAppAction = NoErrorTypedAction<
+  'notifications:badgeApp',
+  {key: NotificationKeys, on: boolean, count?: number}
+>
+export type ReceivedBadgeState = NoErrorTypedAction<
+  'notifications:receivedBadgeState',
+  {badgeState: BadgeState}
+>
+export type ListenForNotifications = NoErrorTypedAction<
+  'notifications:listenForNotifications',
+  void
+>
+export type ListenForKBFSNotifications = NoErrorTypedAction<
+  'notifications:listenForKBFSNotifications',
+  void
+>
 
 export type Actions = LogAction | BadgeAppAction | ListenForNotifications | ReceivedBadgeState
 
