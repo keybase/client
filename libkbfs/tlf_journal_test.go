@@ -827,9 +827,10 @@ type rmdsWithExtra struct {
 
 type shimMDServer struct {
 	MDServer
-	rmdses       []rmdsWithExtra
-	nextGetRange []*RootMetadataSigned
-	nextErr      error
+	rmdses          []rmdsWithExtra
+	nextGetRange    []*RootMetadataSigned
+	nextErr         error
+	getForTLFCalled bool
 }
 
 func (s *shimMDServer) GetRange(
@@ -856,6 +857,20 @@ func (s *shimMDServer) Put(ctx context.Context, rmds *RootMetadataSigned,
 	default:
 	}
 	return nil
+}
+
+func (s *shimMDServer) GetForTLF(
+	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus) (
+	*RootMetadataSigned, error) {
+	s.getForTLFCalled = true
+	if len(s.rmdses) == 0 {
+		return nil, nil
+	}
+	return s.rmdses[len(s.rmdses)-1].rmds, nil
+}
+
+func (s *shimMDServer) IsConnected() bool {
+	return true
 }
 
 func (s *shimMDServer) Shutdown() {
@@ -1282,9 +1297,11 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver MetadataVer) {
 	tlfJournal.delegateBlockServer.Shutdown(ctx)
 	tlfJournal.delegateBlockServer = &bserver
 
+	var mdserverShim shimMDServer
 	mdserver := orderedMDServer{
-		lock: &lock,
-		puts: &puts,
+		MDServer: &mdserverShim,
+		lock:     &lock,
+		puts:     &puts,
 	}
 
 	config.mdserver = &mdserver
@@ -1319,6 +1336,10 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver MetadataVer) {
 	err = tlfJournal.flush(ctx)
 	require.NoError(t, err)
 	testTLFJournalGCd(t, tlfJournal)
+
+	// Make sure the flusher checks in between block flushes for
+	// conflicting MDs on the server.
+	require.True(t, mdserverShim.getForTLFCalled)
 
 	// Make sure that: before revision 1, all the rev1 blocks were
 	// put; rev2 comes last; some blocks are put between the two.

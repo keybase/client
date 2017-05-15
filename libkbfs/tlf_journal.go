@@ -89,6 +89,8 @@ const (
 	// Maximum number of blocks to delete from the local saved block
 	// journal at a time while holding the lock.
 	maxSavedBlockRemovalsAtATime = uint64(500)
+	// How often to check the server for conflicts while flushing.
+	tlfJournalServerMDCheckInterval = 1 * time.Minute
 )
 
 // TLFJournalStatus represents the status of a TLF's journal for
@@ -219,7 +221,8 @@ type tlfJournal struct {
 	backgroundShutdownCh chan struct{}
 
 	// Serializes all flushes.
-	flushLock sync.Mutex
+	flushLock         sync.Mutex
+	lastServerMDCheck time.Time // protected by `flushLock`
 
 	// Tracks background work.
 	wg kbfssync.RepeatedWaitGroup
@@ -779,6 +782,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 
 		// TODO: Flush MDs in batch.
 
+		flushedOneMD := false
 		for {
 			flushed, err := j.flushOneMDOp(ctx, maxMDRevToFlush)
 			if err != nil {
@@ -787,7 +791,16 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			if !flushed {
 				break
 			}
+			flushedOneMD = true
+			j.lastServerMDCheck = j.config.Clock().Now()
 			flushedMDEntries++
+		}
+
+		if !flushedOneMD {
+			err = j.checkServerForConflicts(ctx)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -812,6 +825,56 @@ type errTLFJournalNotEmpty struct{}
 
 func (e errTLFJournalNotEmpty) Error() string {
 	return "tlfJournal is not empty"
+}
+
+func (j *tlfJournal) checkServerForConflicts(ctx context.Context) error {
+	if time.Since(j.lastServerMDCheck) < tlfJournalServerMDCheckInterval ||
+		!j.config.MDServer().IsConnected() {
+		return nil
+	}
+
+	isConflict, err := j.isOnConflictBranch()
+	if err != nil {
+		return err
+	}
+	if isConflict {
+		return nil
+	}
+
+	nextMDToFlush, err := func() (kbfsmd.Revision, error) {
+		j.journalLock.RLock()
+		defer j.journalLock.RUnlock()
+		return j.mdJournal.readEarliestRevision()
+	}()
+	if err != nil {
+		return err
+	}
+	if nextMDToFlush == kbfsmd.RevisionUninitialized {
+		return nil
+	}
+
+	j.log.CDebugf(ctx, "Checking the MD server for the latest revision; "+
+		"next MD revision in the journal is %d", nextMDToFlush)
+	// TODO: implement a lighterweight server RPC that just returns
+	// the latest revision number, so we don't have to fetch the
+	// entire MD?
+	currHead, err := j.config.MDServer().GetForTLF(
+		ctx, j.tlfID, NullBranchID, Merged)
+	if err != nil {
+		return err
+	}
+	j.lastServerMDCheck = j.config.Clock().Now()
+	if currHead == nil {
+		return nil
+	}
+	if currHead.MD.RevisionNumber()+1 == nextMDToFlush {
+		// We're still up-to-date with the server.  Nothing left to do.
+		return nil
+	}
+
+	j.log.CDebugf(ctx, "Server is ahead of local journal (rev=%d), "+
+		"indicating a conflict", currHead.MD.RevisionNumber())
+	return j.convertMDsToBranch(ctx)
 }
 
 func (j *tlfJournal) getNextBlockEntriesToFlush(
