@@ -165,8 +165,9 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
         messages: origConversationState.get('messages').filter(m => m.messageState === 'pending'),
       })
       // $FlowIssue
-      return state.update('conversationStates', conversationStates =>
-        conversationStates.set(conversationIDKey, clearedConversationState)
+      return state.update(
+        'conversationStates',
+        conversationStates => conversationStates.set(conversationIDKey, clearedConversationState)
       )
     }
     case 'chat:setLoaded': {

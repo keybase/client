@@ -11,8 +11,10 @@ type OwnProps = {
   deviceID: string,
 }
 
-// $FlowIssue no getIn
-const makeGetDeviceSelector = (deviceID: string) => (state: TypedState) => state.entities.getIn(['devices', deviceID])
+const makeGetDeviceSelector = (deviceID: string) => (state: TypedState) => (
+  // $FlowIssue no getIn
+  state.entities.getIn(['devices', deviceID])
+)
 
 const mapStateToProps = (state: TypedState, {deviceID}: OwnProps) => {
   const selector = createSelector(

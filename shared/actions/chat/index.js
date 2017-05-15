@@ -48,7 +48,8 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           const conversationIDKey = Constants.conversationIDToKey(outboxRecord.convID)
           const outboxID = Constants.outboxIDToKey(outboxRecord.outboxID)
           // $FlowIssue
-          const failureDescription = _decodeFailureDescription(outboxRecord.state.error.typ)
+          const errTyp = outboxRecord.state.error.typ
+          const failureDescription = _decodeFailureDescription(errTyp)
           // There's an RPC race condition here.  Two possibilities:
           //
           // Either we've already finished in _postMessage() and have recorded
