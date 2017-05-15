@@ -1686,6 +1686,11 @@ type FindConversationsLocalArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type UpdateTypingArg struct {
+	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	Typing         bool           `codec:"typing" json:"typing"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -1711,6 +1716,7 @@ type LocalInterface interface {
 	RetryPost(context.Context, OutboxID) error
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
 	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
+	UpdateTyping(context.Context, UpdateTypingArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -2101,6 +2107,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"updateTyping": {
+				MakeArg: func() interface{} {
+					ret := make([]UpdateTypingArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UpdateTypingArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UpdateTypingArg)(nil), args)
+						return
+					}
+					err = i.UpdateTyping(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -2230,5 +2252,10 @@ func (c LocalClient) MarkAsReadLocal(ctx context.Context, __arg MarkAsReadLocalA
 
 func (c LocalClient) FindConversationsLocal(ctx context.Context, __arg FindConversationsLocalArg) (res FindConversationsLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.findConversationsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) UpdateTyping(ctx context.Context, __arg UpdateTypingArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.updateTyping", []interface{}{__arg}, nil)
 	return
 }

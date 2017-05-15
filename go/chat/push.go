@@ -180,6 +180,7 @@ type PushHandler struct {
 	badger        *badges.Badger
 	identNotifier *IdentifyNotifier
 	orderer       *gregorMessageOrderer
+	typingMonitor *TypingMonitor
 }
 
 func NewPushHandler(g *globals.Context) *PushHandler {
@@ -188,6 +189,7 @@ func NewPushHandler(g *globals.Context) *PushHandler {
 		DebugLabeler:  utils.NewDebugLabeler(g, "PushHandler", false),
 		identNotifier: NewIdentifyNotifier(g),
 		orderer:       newGregorMessageOrderer(g),
+		typingMonitor: NewTypingMonitor(g),
 	}
 }
 
@@ -369,6 +371,12 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: newMessage: outboxID is empty")
 			}
 
+			// Update typing status to stopped
+			g.typingMonitor.Update(ctx, chat1.TyperInfo{
+				Uid:      keybase1.UID(nm.Message.ClientHeader.Sender.String()),
+				DeviceID: keybase1.DeviceID(nm.Message.ClientHeader.SenderDevice.String()),
+			}, convID, false)
+
 			var conv *chat1.ConversationLocal
 			decmsg, appended, pushErr := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 			if pushErr != nil {
@@ -523,5 +531,42 @@ func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
 			[]chat1.ConversationID{convID}, false)
 	}
 
+	return nil
+}
+
+func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, g.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		g.identNotifier)
+	defer g.Trace(ctx, func() error { return err }, "Typing")()
+	if m.Body() == nil {
+		return errors.New("gregor handler for typing: nil message body")
+	}
+
+	var update chat1.RemoteUserTypingUpdate
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	err = dec.Decode(&update)
+	if err != nil {
+		return err
+	}
+
+	// Lookup username and device name
+	kuid := keybase1.UID(update.Uid.String())
+	kdid := keybase1.DeviceID(update.DeviceID.String())
+	user, device, dtype, err := g.G().GetUPAKLoader().LookupUsernameAndDevice(ctx, kuid, kdid)
+	if err != nil {
+		g.Debug(ctx, "Typing: failed to lookup username/device: msg: %s", err.Error())
+		return err
+	}
+
+	// Fire off update with all relevant info
+	g.typingMonitor.Update(ctx, chat1.TyperInfo{
+		Uid:        kuid,
+		DeviceID:   kdid,
+		Username:   user.String(),
+		DeviceName: device,
+		DeviceType: dtype,
+	}, update.ConvID, update.Typing)
 	return nil
 }

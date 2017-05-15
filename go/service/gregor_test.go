@@ -119,6 +119,8 @@ func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.Conversation
 		require.Fail(n.t, "thread send timeout")
 	}
 }
+func (n *nlistener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
+}
 func (n *nlistener) BadgeState(badgeState keybase1.BadgeState) {
 	select {
 	case n.badgeState <- badgeState:
@@ -611,7 +613,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
-	h.badger = badges.NewBadger(tc.G, nil)
+	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
 
 	t.Logf("server message")
@@ -655,7 +657,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 
 	// Set up client and server
 	h, _, _ := setupSyncTests(t, tc)
-	h.badger = badges.NewBadger(tc.G, nil)
+	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
 
 	t.Logf("sending first chat update")

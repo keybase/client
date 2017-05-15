@@ -31,6 +31,10 @@
           "name": "newFollowers"
         },
         {
+          "type": "int",
+          "name": "inboxVers"
+        },
+        {
           "type": {
             "type": "array",
             "items": "BadgeConversationInfo"
