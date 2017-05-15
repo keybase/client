@@ -646,20 +646,13 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 		log.Debug("Disk cache enabled")
 	}
 
-	session, err := config.KBPKI().GetCurrentSession(context.Background())
-	if err == nil && adminFeatureList[session.UID] {
-		log.Debug("Enabling a dir op batch size of %d",
-			params.BGFlushDirOpBatchSize)
-		if params.BGFlushDirOpBatchSize < 1 {
-			return nil, fmt.Errorf(
-				"Illegal sync batch size: %d", params.BGFlushDirOpBatchSize)
-		}
-		config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
-	} else {
-		// TODO: let non-admins have a non-1 batch size once admins
-		// test it enough.
-		config.SetBGFlushDirOpBatchSize(1)
+	if params.BGFlushDirOpBatchSize < 1 {
+		return nil, fmt.Errorf(
+			"Illegal sync batch size: %d", params.BGFlushDirOpBatchSize)
 	}
+	log.Debug("Enabling a dir op batch size of %d",
+		params.BGFlushDirOpBatchSize)
+	config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
 
 	return config, nil
 }
