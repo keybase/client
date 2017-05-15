@@ -13,7 +13,10 @@ module.hot && module.hot.accept('../../dev/dumb-sheet/render.desktop', render)
 class Wrapper extends React.Component<any, any, any> {
   constructor () {
     super()
-    this.state = {dumbFilter: localStorage['dumbFilter'] || ''} // eslint-disable-line
+    this.state = {
+      // eslint-disable-next-line
+      dumbFilter: localStorage['dumbFilter'] || '',
+    }
   }
 
   render () {
