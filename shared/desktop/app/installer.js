@@ -30,7 +30,7 @@ export default (callback: (err: any) => void): void => {
   }
   const args = ['--debug', '--app-path=' + bundlePath, '--run-mode=' + runMode, '--timeout=' + timeout]
 
-  exec(installerPath, args, 'darwin', 'prod', true, function (err) {
+  exec(installerPath, args, 'darwin', 'prod', true, function(err) {
     if (err && err.code === 1) {
       // The installer app returns exit status 1, if there was an error and
       // the user chooses to quit the app.

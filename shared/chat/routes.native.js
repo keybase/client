@@ -38,7 +38,6 @@ const conversationRoute = new RouteDefNode({
       tags: {layerOnTop: true},
       children: {},
     },
-
   },
 })
 

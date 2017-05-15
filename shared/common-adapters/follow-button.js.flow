@@ -7,7 +7,7 @@ export type Props = {
   waiting?: boolean,
   style?: Object,
   onFollow?: () => void,
-  onUnfollow?: () => void
+  onUnfollow?: () => void,
 }
 
 declare export default class FollowButton extends Component<void, Props, void> {}

@@ -11,7 +11,11 @@ const dismissKeyboard = () => {
 }
 
 const NativeWrapper = (props: Props) => (
-  <NativeTouchableHighlight onLongPress={props.onAction} underlayColor={globalColors.black_10} onPress={dismissKeyboard}>
+  <NativeTouchableHighlight
+    onLongPress={props.onAction}
+    underlayColor={globalColors.black_10}
+    onPress={dismissKeyboard}
+  >
     <Box>
       <Wrapper {...props} />
     </Box>

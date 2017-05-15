@@ -22,4 +22,4 @@ export type Props = {
   text: string,
 }
 
-export default class Input extends Component<void, Props, void> { }
+export default class Input extends Component<void, Props, void> {}

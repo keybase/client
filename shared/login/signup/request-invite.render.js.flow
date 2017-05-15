@@ -10,7 +10,7 @@ export type Props = {
   emailErrorText: ?string,
   onSubmit: () => void,
   onBack: () => void,
-  waiting: boolean
+  waiting: boolean,
 }
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}

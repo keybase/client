@@ -5,16 +5,31 @@ import {Box, Button, StandardScreen} from './'
 import {globalStyles, globalColors} from '../styles'
 
 class Confirm extends Component<void, Props, void> {
-  render () {
+  render() {
     return (
-      <StandardScreen style={styleContainer} styleOuter={{...backgroundColorThemed[this.props.theme]}} styleClose={styleCloseThemed[this.props.theme]} onClose={this.props.onCancel}>
+      <StandardScreen
+        style={styleContainer}
+        styleOuter={{...backgroundColorThemed[this.props.theme]}}
+        styleClose={styleCloseThemed[this.props.theme]}
+        onClose={this.props.onCancel}
+      >
         <Box style={styleIconContainer}>
           {this.props.header}
         </Box>
         {this.props.body}
         <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
-          <Button type='Secondary' style={cancelButtonThemed[this.props.theme]} labelStyle={cancelButtonLabelThemed[this.props.theme]} onClick={this.props.onCancel} label='Cancel' />
-          <Button type={this.props.danger ? 'Danger' : 'Primary'} onClick={this.props.onSubmit} label={this.props.submitLabel} />
+          <Button
+            type="Secondary"
+            style={cancelButtonThemed[this.props.theme]}
+            labelStyle={cancelButtonLabelThemed[this.props.theme]}
+            onClick={this.props.onCancel}
+            label="Cancel"
+          />
+          <Button
+            type={this.props.danger ? 'Danger' : 'Primary'}
+            onClick={this.props.onSubmit}
+            label={this.props.submitLabel}
+          />
         </Box>
       </StandardScreen>
     )
@@ -34,33 +49,33 @@ const styleIconContainer = {
 }
 
 const backgroundColorThemed = {
-  'public': {
+  public: {
     backgroundColor: globalColors.white,
   },
-  'private': {
+  private: {
     backgroundColor: globalColors.darkBlue3,
   },
 }
 
 const cancelButtonThemed = {
-  'public': {},
-  'private': {
+  public: {},
+  private: {
     backgroundColor: globalColors.blue_30,
   },
 }
 
 const cancelButtonLabelThemed = {
-  'public': {},
-  'private': {
+  public: {},
+  private: {
     color: globalColors.white,
   },
 }
 
 const styleCloseThemed = {
-  'public': {
+  public: {
     color: globalColors.black_20,
   },
-  'private': {
+  private: {
     color: globalColors.white_40,
   },
 }

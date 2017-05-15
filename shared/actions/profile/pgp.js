@@ -10,7 +10,15 @@ import {profileTab} from '../../constants/tabs'
 import type {KID} from '../../constants/types/flow-types'
 import type {TypedState} from '../../constants/reducer'
 import type {SagaGenerator} from '../../constants/types/saga'
-import type {WaitingRevokeProof, FinishRevokeProof, UpdatePgpInfo, PgpInfo, GeneratePgp, FinishedWithKeyGen, DropPgp} from '../../constants/profile'
+import type {
+  WaitingRevokeProof,
+  FinishRevokeProof,
+  UpdatePgpInfo,
+  PgpInfo,
+  GeneratePgp,
+  FinishedWithKeyGen,
+  DropPgp,
+} from '../../constants/profile'
 
 type PgpInfoError = {
   errorText: ?string,
@@ -19,14 +27,14 @@ type PgpInfoError = {
   errorEmail3: boolean,
 }
 
-function dropPgp (kid: KID): DropPgp {
+function dropPgp(kid: KID): DropPgp {
   return {
     payload: {kid},
     type: Constants.dropPgp,
   }
 }
 
-function _revokedErrorResponse (error: string): FinishRevokeProof {
+function _revokedErrorResponse(error: string): FinishRevokeProof {
   return {
     error: true,
     payload: {error},
@@ -34,21 +42,21 @@ function _revokedErrorResponse (error: string): FinishRevokeProof {
   }
 }
 
-function _revokedWaitingForResponse (waiting: boolean): WaitingRevokeProof {
+function _revokedWaitingForResponse(waiting: boolean): WaitingRevokeProof {
   return {
     payload: {waiting},
     type: Constants.waitingRevokeProof,
   }
 }
 
-function updatePgpInfo (pgpInfo: $Shape<PgpInfo>): UpdatePgpInfo {
+function updatePgpInfo(pgpInfo: $Shape<PgpInfo>): UpdatePgpInfo {
   return {
     payload: pgpInfo,
     type: Constants.updatePgpInfo,
   }
 }
 
-function generatePgp (): GeneratePgp {
+function generatePgp(): GeneratePgp {
   return {
     payload: undefined,
     type: Constants.generatePgp,
@@ -56,10 +64,10 @@ function generatePgp (): GeneratePgp {
 }
 
 // This can be replaced with something that makes a call to service to validate
-function _checkPgpInfoForErrors (pgpInfo: PgpInfo): PgpInfoError {
-  const errorEmail1 = (pgpInfo.email1 && isValidEmail(pgpInfo.email1))
-  const errorEmail2 = (pgpInfo.email2 && isValidEmail(pgpInfo.email2))
-  const errorEmail3 = (pgpInfo.email3 && isValidEmail(pgpInfo.email3))
+function _checkPgpInfoForErrors(pgpInfo: PgpInfo): PgpInfoError {
+  const errorEmail1 = pgpInfo.email1 && isValidEmail(pgpInfo.email1)
+  const errorEmail2 = pgpInfo.email2 && isValidEmail(pgpInfo.email2)
+  const errorEmail3 = pgpInfo.email3 && isValidEmail(pgpInfo.email3)
   const errorEmail1Message = errorEmail1 ? errorEmail1.message : null
   const errorEmail2Message = errorEmail2 ? errorEmail2.message : null
   const errorEmail3Message = errorEmail3 ? errorEmail3.message : null
@@ -74,8 +82,10 @@ function _checkPgpInfoForErrors (pgpInfo: PgpInfo): PgpInfoError {
   }
 }
 
-function * _checkPgpInfo (action: UpdatePgpInfo): SagaGenerator<any, any> {
-  if (action.error) { return }
+function* _checkPgpInfo(action: UpdatePgpInfo): SagaGenerator<any, any> {
+  if (action.error) {
+    return
+  }
 
   const pgpInfo: PgpInfo = yield select(({profile: {pgpInfo}}: TypedState) => pgpInfo)
 
@@ -87,8 +97,10 @@ function * _checkPgpInfo (action: UpdatePgpInfo): SagaGenerator<any, any> {
 
   yield put(errorUpdateAction)
 }
-function * _dropPgpSaga (action: DropPgp): SagaGenerator<any, any> {
-  if (action.error) { return }
+function* _dropPgpSaga(action: DropPgp): SagaGenerator<any, any> {
+  if (action.error) {
+    return
+  }
 
   const kid = action.payload.kid
 
@@ -105,7 +117,7 @@ function * _dropPgpSaga (action: DropPgp): SagaGenerator<any, any> {
 }
 
 // TODO(mm) handle error better
-function * _generatePgpSaga (): SagaGenerator<any, any> {
+function* _generatePgpSaga(): SagaGenerator<any, any> {
   yield put(navigateAppend(['generate'], [profileTab, 'pgp']))
 
   const pgpInfo: PgpInfo = yield select(({profile: {pgpInfo}}: TypedState) => pgpInfo)
@@ -115,24 +127,29 @@ function * _generatePgpSaga (): SagaGenerator<any, any> {
     username: pgpInfo.fullName || '',
   }))
 
-  const generatePgpKeyChanMap = pgpPgpKeyGenDefaultRpcChannelMap([
-    'keybase.1.pgpUi.keyGenerated',
-    'keybase.1.pgpUi.shouldPushPrivate',
-    'keybase.1.pgpUi.finished',
-    'finished',
-  ], {
-    param: {
-      createUids: {
-        ids: identities,
-        useDefault: false,
+  const generatePgpKeyChanMap = pgpPgpKeyGenDefaultRpcChannelMap(
+    [
+      'keybase.1.pgpUi.keyGenerated',
+      'keybase.1.pgpUi.shouldPushPrivate',
+      'keybase.1.pgpUi.finished',
+      'finished',
+    ],
+    {
+      param: {
+        createUids: {
+          ids: identities,
+          useDefault: false,
+        },
       },
-    },
-  })
+    }
+  )
 
   try {
-    const incoming = yield generatePgpKeyChanMap.race({racers: {
-      cancel: take(Constants.cancelPgpGen),
-    }})
+    const incoming = yield generatePgpKeyChanMap.race({
+      racers: {
+        cancel: take(Constants.cancelPgpGen),
+      },
+    })
 
     if (incoming.cancel) {
       generatePgpKeyChanMap.close()
@@ -162,15 +179,10 @@ function * _generatePgpSaga (): SagaGenerator<any, any> {
   }
 }
 
-function * pgpSaga (): SagaGenerator<any, any> {
-  yield safeTakeLatest(a => (a && a.type === Constants.updatePgpInfo && !a.error), _checkPgpInfo)
+function* pgpSaga(): SagaGenerator<any, any> {
+  yield safeTakeLatest(a => a && a.type === Constants.updatePgpInfo && !a.error, _checkPgpInfo)
   yield safeTakeLatest(Constants.generatePgp, _generatePgpSaga)
   yield safeTakeEvery(Constants.dropPgp, _dropPgpSaga)
 }
 
-export {
-  pgpSaga,
-  dropPgp,
-  generatePgp,
-  updatePgpInfo,
-}
+export {pgpSaga, dropPgp, generatePgp, updatePgpInfo}

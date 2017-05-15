@@ -9,14 +9,14 @@ export type Props = {
   type: PassphraseType,
   prompt: string,
   retryLabel?: string,
-  submitLabel?: string
+  submitLabel?: string,
 }
 
 export type DefaultProps = {
   retryLabel: ?string,
-  submitLabel: string
+  submitLabel: string,
 }
 
 export default class Pinentry extends Component<DefaultProps, Props, void> {
-  static defaultProps: DefaultProps;
+  static defaultProps: DefaultProps
 }

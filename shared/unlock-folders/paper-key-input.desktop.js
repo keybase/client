@@ -17,32 +17,37 @@ type State = {
 }
 
 class PaperKeyInput extends Component<void, Props, State> {
-  state: State;
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
     this.state = {paperkey: ''}
   }
 
-  render () {
+  render() {
     const errorText = this.props.paperkeyError
 
     return (
       <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
         <BackButton onClick={this.props.onBack} style={backStyle} />
-        <Text style={headerTextStyle} type='Body'>Type in your paper key:</Text>
-        <Icon style={paperKeyIconStyle} type='icon-paper-key-48' />
+        <Text style={headerTextStyle} type="Body">Type in your paper key:</Text>
+        <Icon style={paperKeyIconStyle} type="icon-paper-key-48" />
         <Input
           multiline={true}
           rowsMax={3}
           style={paperKeyInputStyle}
           onChangeText={paperkey => this.setState({paperkey})}
           errorText={errorText}
-          floatingHintTextOverride='Paper key'
-          hintText='elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose' />
-        <Button type='Primary' label='Continue' style={continueStyle}
+          floatingHintTextOverride="Paper key"
+          hintText="elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose"
+        />
+        <Button
+          type="Primary"
+          label="Continue"
+          style={continueStyle}
           waiting={this.props.waiting}
-          onClick={() => this.props.onContinue(new HiddenString(this.state.paperkey))} />
+          onClick={() => this.props.onContinue(new HiddenString(this.state.paperkey))}
+        />
       </div>
     )
   }

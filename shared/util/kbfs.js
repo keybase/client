@@ -2,7 +2,7 @@
 import type {UserList} from '../common-adapters/usernames'
 
 // Parses the folder name and returns an array of usernames
-export function parseFolderNameToUsers (yourUsername: ?string, folderName: string): UserList {
+export function parseFolderNameToUsers(yourUsername: ?string, folderName: string): UserList {
   const [rwers, readers = ''] = folderName.split('#')
 
   const rwersParsed = rwers.split(',').map(u => ({
@@ -19,7 +19,7 @@ export function parseFolderNameToUsers (yourUsername: ?string, folderName: strin
   return rwersParsed.concat(readersParsed).filter(u => !!u.username)
 }
 
-export function sortUserList (users: UserList): UserList {
+export function sortUserList(users: UserList): UserList {
   const youAsRwer = users.filter(u => u.you && !u.readOnly)
   const rwers = users.filter(u => !u.you && !u.readOnly)
   const youAsReader = users.filter(u => u.you && !!u.readOnly)

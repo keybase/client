@@ -2,7 +2,7 @@
 import * as Constants from '../../constants/config'
 import {NativeModules} from 'react-native'
 
-function readAppVersion () {
+function readAppVersion() {
   const nativeBridge = NativeModules.KeybaseEngine
   const version = nativeBridge.version
   return {
@@ -11,6 +11,4 @@ function readAppVersion () {
   }
 }
 
-export {
-  readAppVersion,
-}
+export {readAppVersion}

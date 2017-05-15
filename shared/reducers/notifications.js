@@ -17,7 +17,7 @@ const _updateWidgetBadge = (s: Constants.State): Constants.State => {
   return s.set('widgetBadge', widgetBadge)
 }
 
-export default function (state: Constants.State = initialState, action: Constants.Actions): Constants.State {
+export default function(state: Constants.State = initialState, action: Constants.Actions): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return initialState

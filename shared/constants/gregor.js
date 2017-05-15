@@ -1,6 +1,11 @@
 // @flow
 
-import type {State as GregorState, Item, Metadata, OutOfBandMessage} from '../constants/types/flow-types-gregor'
+import type {
+  State as GregorState,
+  Item,
+  Metadata,
+  OutOfBandMessage,
+} from '../constants/types/flow-types-gregor'
 import type {PushReason, Reachability} from '../constants/types/flow-types'
 import type {TypedAction} from '../constants/types/flux'
 

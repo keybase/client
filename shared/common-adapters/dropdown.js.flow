@@ -9,10 +9,10 @@ export type Props = {
   onPress?: void,
   onOther?: () => void,
   value?: ?string,
-  style?: Object
+  style?: Object,
 }
 
-declare export default class Dropdown extends Component<void, Props, void> { }
+declare export default class Dropdown extends Component<void, Props, void> {}
 
 export type MenuItemProps = {
   value?: any, // The value of the menu item.
@@ -21,7 +21,7 @@ export type MenuItemProps = {
   onPress?: void,
   style?: Object,
   textStyle?: Object,
-  children?: any
+  children?: any,
 }
 
-export class MenuItem extends Component<void, MenuItemProps, void> { }
+export class MenuItem extends Component<void, MenuItemProps, void> {}

@@ -26,7 +26,7 @@ export type Props = {
 }
 
 class UnlockFolders extends Component<void, Props, void> {
-  render () {
+  render() {
     return (
       <Render
         phase={this.props.phase}
@@ -37,26 +37,43 @@ class UnlockFolders extends Component<void, Props, void> {
         onContinueFromPaperKey={this.props.onContinueFromPaperKey}
         paperkeyError={this.props.paperkeyError}
         waiting={this.props.waiting}
-        onFinish={this.props.onFinish} />
+        onFinish={this.props.onFinish}
+      />
     )
   }
 }
 
-const connector: TypedConnector<TypedState, TypedDispatch<Constants.Actions>, OwnProps, Props> = new TypedConnector()
+const connector: TypedConnector<
+  TypedState,
+  TypedDispatch<Constants.Actions>,
+  OwnProps,
+  Props
+> = new TypedConnector()
 
 export default connector.connect(
   ({unlockFolders: {devices, phase, paperkeyError, waiting}}, dispatch, ownProps) => ({
-    close: () => { ownProps.onCancel() },
-    toPaperKeyInput: () => { dispatch(actions.toPaperKeyInput()) },
-    onBackFromPaperKey: () => { dispatch(actions.onBackFromPaperKey()) },
-    onContinueFromPaperKey: pk => { dispatch(actions.checkPaperKey(pk)) },
-    onFinish: () => { dispatch(actions.finish()) },
+    close: () => {
+      ownProps.onCancel()
+    },
+    toPaperKeyInput: () => {
+      dispatch(actions.toPaperKeyInput())
+    },
+    onBackFromPaperKey: () => {
+      dispatch(actions.onBackFromPaperKey())
+    },
+    onContinueFromPaperKey: pk => {
+      dispatch(actions.checkPaperKey(pk))
+    },
+    onFinish: () => {
+      dispatch(actions.finish())
+    },
     paperkeyError,
     waiting,
     devices,
     phase,
-  }))(UnlockFolders)
+  })
+)(UnlockFolders)
 
-export function selector (): (store: Object) => ?Object {
+export function selector(): (store: Object) => ?Object {
   return store => ({unlockFolders: store.unlockFolders})
 }

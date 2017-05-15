@@ -18,4 +18,4 @@ export type Props = {
   className?: string,
 }
 
-declare export default class Button extends Component<void, Props, void> { }
+declare export default class Button extends Component<void, Props, void> {}

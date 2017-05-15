@@ -10,4 +10,4 @@ export type Props = ErrorProps & {
   onClose: () => void,
 }
 
-export default class TrackerError extends Component<void, Props, void> { }
+export default class TrackerError extends Component<void, Props, void> {}

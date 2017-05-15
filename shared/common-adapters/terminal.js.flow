@@ -2,12 +2,12 @@
 import React, {Component} from 'react'
 
 export type Context = {
-  inTerminal?: bool
+  inTerminal?: boolean,
 }
 
 export type Props = {
   style?: Object,
-  children?: React$Element<*>
+  children?: React$Element<*>,
 }
 
-declare export default class Terminal extends Component<void, Props, void> { }
+declare export default class Terminal extends Component<void, Props, void> {}
