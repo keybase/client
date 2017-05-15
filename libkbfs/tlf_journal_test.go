@@ -895,11 +895,11 @@ func testTLFJournalFlushMDBasic(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 
 	for i := 0; i < mdCount; i++ {
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
+		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
 		require.NoError(t, err)
 		require.True(t, flushed)
 	}
-	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
+	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
 	require.NoError(t, err)
 	require.False(t, flushed)
 	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), 0)
@@ -941,7 +941,7 @@ func testTLFJournalFlushMDConflict(t *testing.T, ver MetadataVer) {
 
 	// Simulate a flush with a conflict error halfway through.
 	{
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
+		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
 		require.NoError(t, err)
 		require.False(t, flushed)
 
@@ -1570,7 +1570,7 @@ func testTLFJournalResolveBranch(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 
 	// This will convert to a branch.
-	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
+	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
 	require.NoError(t, err)
 	require.False(t, flushed)
 

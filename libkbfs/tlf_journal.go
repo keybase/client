@@ -764,26 +764,24 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		}
 		flushedBlockEntries += numFlushed
 
-		// If we ever switched branches while flushing block entries,
-		// we need to make sure `mdEnd` still reflects reality, since
-		// the number of md entries could have shrunk.
-		if converted {
-			_, mdEnd, err = j.getJournalEnds(ctx)
-			if err != nil {
-				return err
-			}
-		}
-
 		if numFlushed == 0 {
-			// There were no blocks to flush, so we can flush all of
-			// the remaining MDs.
+			// If converted is true, the journal may have
+			// shrunk, and so mdEnd would be obsolete. But
+			// converted is always false when numFlushed
+			// is 0.
+			if converted {
+				panic("numFlushed == 0 and converted is true")
+			}
+
+			// There were no blocks to flush, so we can
+			// flush all of the remaining MDs.
 			maxMDRevToFlush = mdEnd
 		}
 
 		// TODO: Flush MDs in batch.
 
 		for {
-			flushed, err := j.flushOneMDOp(ctx, mdEnd, maxMDRevToFlush)
+			flushed, err := j.flushOneMDOp(ctx, maxMDRevToFlush)
 			if err != nil {
 				return err
 			}
@@ -1201,11 +1199,11 @@ func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,
 }
 
 func (j *tlfJournal) flushOneMDOp(
-	ctx context.Context, end MetadataRevision,
-	maxMDRevToFlush MetadataRevision) (flushed bool, err error) {
+	ctx context.Context, maxMDRevToFlush MetadataRevision) (
+	flushed bool, err error) {
 	if maxMDRevToFlush == MetadataRevisionUninitialized {
-		// Short-cut `getNextMDEntryToFlush`, which would otherwise read
-		// an MD from disk and sign it unnecessarily.
+		// Avoid a call to `getNextMDEntryToFlush`, which
+		// would otherwise unnecessarily read an MD from disk.
 		return false, nil
 	}
 
@@ -1218,23 +1216,11 @@ func (j *tlfJournal) flushOneMDOp(
 
 	mdServer := j.config.MDServer()
 
-	// TODO: Do we need `end` at all, or can we just pass
-	// `maxMDRevToFlush+1` here?  The only argument for `end` is that
-	// it might help if the block and MD journals are out of sync.
-	mdID, rmds, extra, err := j.getNextMDEntryToFlush(ctx, end)
+	mdID, rmds, extra, err := j.getNextMDEntryToFlush(ctx, maxMDRevToFlush+1)
 	if err != nil {
 		return false, err
 	}
 	if mdID == (MdID{}) {
-		return false, nil
-	}
-
-	// Only flush MDs for which the blocks have been fully flushed.
-	if rmds.MD.RevisionNumber() > maxMDRevToFlush {
-		j.log.CDebugf(ctx, "Haven't flushed all the blocks for TLF=%s "+
-			"with id=%s, rev=%s, bid=%s yet (maxMDRevToFlush=%d)",
-			rmds.MD.TlfID(), mdID, rmds.MD.RevisionNumber(), rmds.MD.BID(),
-			maxMDRevToFlush)
 		return false, nil
 	}
 
