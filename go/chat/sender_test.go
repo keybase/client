@@ -453,12 +453,15 @@ func TestFailingSender(t *testing.T) {
 	}
 
 	var recvd []chat1.OutboxRecord
-	for i := 0; i < 5; i++ {
+	for {
 		select {
 		case fid := <-listener.failing:
 			recvd = append(recvd, fid...)
 		case <-time.After(20 * time.Second):
-			require.Fail(t, "event not received")
+			require.Fail(t, "event not received", "len(recvd): %d", len(recvd))
+		}
+		if len(recvd) >= len(obids) {
+			break
 		}
 	}
 

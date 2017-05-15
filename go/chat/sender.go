@@ -633,7 +633,7 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 	}
 
 	// Check attempts otherwise
-	if obr.State.Sending() > deliverMaxAttempts {
+	if obr.State.Sending() >= deliverMaxAttempts {
 		return chat1.OutboxErrorType_MISC, true
 	}
 
@@ -702,14 +702,14 @@ func (s *Deliverer) deliverLoop() {
 				_, _, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0)
 			}
 			if err != nil {
-				s.Debug(bgctx, "failed to send msg: uid: %s convID: %s err: %s attempts: %d",
-					s.outbox.GetUID(), obr.ConvID, err.Error(), obr.State.Sending())
+				s.Debug(bgctx, "failed to send msg: uid: %s convID: %s obid: %s err: %s attempts: %d",
+					s.outbox.GetUID(), obr.ConvID, obr.OutboxID, err.Error(), obr.State.Sending())
 
 				// Process failure. If we determine that the message is unrecoverable, then bail out.
 				if errTyp, ok := s.doNotRetryFailure(bgctx, obr, err); ok {
 					// Record failure if we hit this case, and put the rest of this loop in a
 					// mode where all other entries also fail.
-					s.Debug(bgctx, "failure condition reached, marking all as errors and notifying: errTyp: %v attempts: %d", errTyp, obr.State.Sending())
+					s.Debug(bgctx, "failure condition reached, marking as error and notifying: obid: %s errTyp: %v attempts: %d", obr.OutboxID, errTyp, obr.State.Sending())
 
 					if err := s.failMessage(bgctx, obr, chat1.OutboxStateError{
 						Message: err.Error(),
