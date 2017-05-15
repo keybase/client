@@ -12,7 +12,7 @@
             '--no-bracket-spacing',
             '--parser', 'flow',
             '--no-semi',
-            '--print-width', '100',
+            '--print-width', '110',
             '--write']
     -   id: eslint
         name: eslint
