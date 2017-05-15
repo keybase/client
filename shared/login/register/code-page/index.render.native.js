@@ -51,8 +51,7 @@ class CodePageRender extends Component<void, Props, void> {
             <Box style={[stylesScan.box, stylesScan.boxCorner, {left: 0, top: 0}]} />
             <Box style={[stylesScan.box, stylesScan.boxCorner, {right: 0, bottom: 0}]} />
             <Box style={[stylesScan.box, stylesScan.boxCorner, {left: 0, bottom: 0}]} />
-          </Box>
-          }
+          </Box>}
       </Qr>
     )
   }

@@ -11,12 +11,6 @@ class QR extends Component<void, Props, void> {
     this.props.onBarCodeRead(data)
   }, 1000)
 
-  componentDidMount () {
-    setTimeout(() => {
-      this._onBarCodeRead({})
-    }, 3000)
-  }
-
   render () {
     if (this.props.scanning) {
       return (
