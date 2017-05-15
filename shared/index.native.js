@@ -86,6 +86,7 @@ class Keybase extends Component {
 
 function load () {
   // Native String.startswith() sometimes incorrectly returns false on Android!
+  // see: https://github.com/facebook/react-native/issues/11370
   // $FlowIssue redefining startsWith
   String.prototype.startsWith = function (searchString, position) { // eslint-disable-line no-extend-native
     position = position || 0
