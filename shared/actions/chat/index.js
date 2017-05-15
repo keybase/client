@@ -393,8 +393,11 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
     const payload: ChatTypes.OutboxRecord = message.outbox
     const messageState: Constants.MessageState = (payload && payload.state && payload.state.state === ChatTypes.LocalOutboxStateType.error) ? 'failed' : 'pending'
     const messageBody: ChatTypes.MessageBody = payload.Msg.messageBody
-    // $FlowIssue
-    const failureDescription = messageState === 'failed' ? _decodeFailureDescription(payload.state.error.typ) : null
+    const failureDescription = messageState === 'failed'
+      // prettier-ignore
+      // $FlowIssue
+      ? _decodeFailureDescription(payload.state.error.typ)
+      : null
     // $FlowIssue
     const messageText: ChatTypes.MessageText = messageBody.text
 
