@@ -46,6 +46,9 @@ js_tests() {
     node --version
     has_js_files
 
+    echo 'yarn DEBUG'
+    yarn info prettier
+
     echo 'yarn install'
     yarn install --pure-lockfile --prefer-offline --no-emoji --no-progress
     check_rc $? 'yarn install fail' 1
