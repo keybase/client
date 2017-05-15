@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {StandardScreen, Box, Button, Input} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles'
+import {globalStyles} from '../../styles'
 
 import type {Props} from './render'
 

@@ -7,9 +7,9 @@ import Text from './text'
 import HeaderHoc from './header-hoc'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
-const StandardScreen = (props: Props) => {
+const StandardScreen = ({theme = 'light', ...props}: Props) => {
   return (
-    <Box style={{...styleContainer, ...props.styleOuter}}>
+    <Box style={{...styleContainer, ...backgroundColorThemed[theme]}}>
       <NativeScrollView>
         {!!props.notification &&
           <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
@@ -30,13 +30,21 @@ const styleContainer = {
 
 const MIN_BANNER_HEIGHT = 40
 
+const backgroundColorThemed = {
+  'light': {
+    backgroundColor: globalColors.white,
+  },
+  'dark': {
+    backgroundColor: globalColors.darkBlue3,
+  },
+}
+
 const styleBanner = (type) => ({
   ...globalStyles.flexBoxColumn,
   minHeight: MIN_BANNER_HEIGHT,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
   marginBottom: globalMargins.tiny,
-  marginTop: globalMargins.tiny,
   alignItems: 'center',
   justifyContent: 'center',
   backgroundColor: type === 'error' ? globalColors.red : globalColors.green,

@@ -76,7 +76,7 @@ const styleTitle = {
 const styleTitleRevoked = {
   ...styleTitle,
   color: globalColors.black_40,
-  textDecorationLine: 'line-through'
+  textDecorationLine: 'line-through',
 }
 
 const circleSize = 8

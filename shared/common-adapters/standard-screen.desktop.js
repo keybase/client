@@ -4,7 +4,7 @@ import {Box, Text, HeaderHoc} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props, NotificationType} from './standard-screen'
 
-const StandardScreen = (props: Props) => {
+const StandardScreen = ({theme = 'light', ...props}: Props) => {
   const topStack = [
     !!props.notification && (<Box key='banner' style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
       {typeof props.notification.message === 'string'
@@ -15,7 +15,7 @@ const StandardScreen = (props: Props) => {
   ]
   const topStackCount = topStack.reduce((acc, x) => acc + !!x, 0)
   return (
-    <Box style={{...styleContainer, ...props.styleOuter}}>
+    <Box style={{...styleContainer, ...backgroundColorThemed[theme]}}>
       <Box style={styleTopStack}>
         {topStack}
       </Box>
@@ -41,6 +41,15 @@ const styleTopStack = {
   position: 'relative',
   alignItems: 'stretch',
   width: '100%',
+}
+
+const backgroundColorThemed = {
+  'light': {
+    backgroundColor: globalColors.white,
+  },
+  'dark': {
+    backgroundColor: globalColors.darkBlue3,
+  },
 }
 
 const styleBanner = (notificationType: NotificationType) => ({

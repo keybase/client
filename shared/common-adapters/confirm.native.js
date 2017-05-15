@@ -9,13 +9,13 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 class Confirm extends Component<void, Props, void> {
   render () {
     return (
-      <StandardScreen styleOuter={backgroundColorThemed[this.props.theme]} theme={mapTheme[this.props.theme]} onCancel={this.props.onCancel}>
+      <StandardScreen theme={mapTheme[this.props.theme]} onCancel={this.props.onCancel}>
         <Box style={styleBodyContainer}>
           <Box style={styleIconContainer}>
             {this.props.header}
           </Box>
           {this.props.body}
-          <Box style={{alignSelf: 'stretch', ...globalStyles.flexBoxColumn, justifyContent: 'flex-end', flex: 1, marginBottom: globalMargins.medium}}>
+          <Box style={{alignSelf: 'stretch', ...globalStyles.flexBoxColumn, justifyContent: 'flex-end', flex: 1, marginBottom: globalMargins.medium, marginTop: globalMargins.medium}}>
             <Button fullWidth={true} type={this.props.danger ? 'Danger' : 'Primary'} onClick={this.props.onSubmit} label={this.props.submitLabel} style={{...styleButton, marginBottom: globalMargins.small}} />
             <Button fullWidth={true} type='Secondary' onClick={this.props.onCancel} label='Cancel' style={{...styleButton, ...cancelButtonThemed[this.props.theme]}} labelStyle={cancelButtonLabelThemed[this.props.theme]} />
           </Box>
@@ -46,15 +46,6 @@ const styleBodyContainer = {
   marginLeft: globalMargins.small,
   marginRight: globalMargins.small,
   marginBottom: globalMargins.small,
-}
-
-const backgroundColorThemed = {
-  'public': {
-    backgroundColor: globalColors.white,
-  },
-  'private': {
-    backgroundColor: globalColors.darkBlue3,
-  },
 }
 
 const styleButton = {

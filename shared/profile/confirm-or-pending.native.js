@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Box, Text, Button, PlatformIcon, StandardScreen} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {propsForPlatform} from './confirm-or-pending.shared'
 
 import type {Props} from './confirm-or-pending'
@@ -30,7 +30,7 @@ const Render = (props: Props) => {
 
 const Wrapped = (props: Props) => {
   const {title} = propsForPlatform(props)
-  const {titleColor} = props
+  const {titleColor, onReloadProfile} = props
 
   const notification = (
     <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', backgroundColor: titleColor, height: globalMargins.large}}>
@@ -39,7 +39,7 @@ const Wrapped = (props: Props) => {
   )
 
   return (
-    <StandardScreen styleOuter={{padding: 0, paddingTop: 0}} styleBanner={{marginTop: statusBarHeight, backgroundColor: titleColor}} notification={{message: notification, type: 'success'}}>
+    <StandardScreen onBack={onReloadProfile} styleBanner={{backgroundColor: titleColor}} notification={{message: notification, type: 'success'}}>
       <Render {...props} />
     </StandardScreen>
   )

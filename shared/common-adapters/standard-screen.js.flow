@@ -13,7 +13,6 @@ export type Props = {
     type: NotificationType,
   },
   style?: ?Object,
-  styleOuter?: ?Object,
   theme?: 'light' | 'dark', // defaults to light
   styleBanner?: ?Object,
 }
