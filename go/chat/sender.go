@@ -478,7 +478,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 }
 
 const deliverMaxAttempts = 5
-const deliverDisconnectLimitMinutes = 1
+const deliverDisconnectLimitMinutes = 10 // need to be offline for at least 10 minutes before auto failing a send
 
 type DelivererInfoError interface {
 	IsImmediateFail() (chat1.OutboxErrorType, bool)
