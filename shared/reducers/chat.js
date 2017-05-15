@@ -454,16 +454,19 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       break
     }
     case 'chat:updateFinalizedState': {
+      const fs = action.payload.finalizedState
       // $FlowIssue doesn't recognize updates
-      return state.update('finalizedState', finalizedState => finalizedState.merge(action.payload.finalizedState))
+      return state.update('finalizedState', finalizedState => finalizedState.merge(fs))
     }
     case 'chat:updateSupersedesState': {
+      const ss = action.payload.supersedesState
       // $FlowIssue doesn't recognize updates
-      return state.update('supersedesState', supersedesState => supersedesState.merge(action.payload.supersedesState))
+      return state.update('supersedesState', supersedesState => supersedesState.merge(ss))
     }
     case 'chat:updateSupersededByState': {
+      const sbs = action.payload.supersededByState
       // $FlowIssue doesn't recognize updates
-      return state.update('supersededByState', supersededByState => supersededByState.merge(action.payload.supersededByState))
+      return state.update('supersededByState', supersededByState => supersededByState.merge(sbs))
     }
     case 'chat:showEditor': {
       return state.set('editingMessage', action.payload.message)
