@@ -284,6 +284,7 @@ func TestJournalCrConflictUnmergedWriteMultiblockFile(t *testing.T) {
 // bob creates a conflicting file while running the journal, but then
 // its resolution also conflicts.
 func testJournalCrResolutionHitsConflict(t *testing.T, options []optionOp) {
+	t.Skip("Skipping while debugging, KBFS-2182")
 	test(t, append(options,
 		journal(),
 		users("alice", "bob"),
