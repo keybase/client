@@ -24,7 +24,11 @@ class Wrapper extends React.Component<any, any, any> {
     const {DumbSheet} = this.props
     return <DumbSheet
       onBack={() => {}}
-      onDebugConfigChange={(c) => { this.setState(c); localStorage['dumbFilter'] = c.dumbFilter }} // eslint-disable-line
+      onDebugConfigChange={(c) => {
+        this.setState(c)
+        // eslint-disable-next-line
+        localStorage['dumbFilter'] = c.dumbFilter
+      }}
       dumbIndex={0}
       dumbFilter={dumbFilter || ''}
       dumbFullscreen={false}
