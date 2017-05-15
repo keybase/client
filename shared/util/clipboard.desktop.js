@@ -8,7 +8,7 @@ export type ClipboardData = {
   title: string,
 }
 
-function readImage (): Promise<?ClipboardData> {
+function readImage(): Promise<?ClipboardData> {
   return new Promise((resolve, reject) => {
     tmpRandFile('.png').then(path => {
       const image = clipboard.readImage()
@@ -31,7 +31,7 @@ function readImage (): Promise<?ClipboardData> {
   })
 }
 
-export function readImageFromClipboard (event: any, willReadData: () => void): Promise<?ClipboardData> {
+export function readImageFromClipboard(event: any, willReadData: () => void): Promise<?ClipboardData> {
   const formats = clipboard.availableFormats()
   console.log('Read clipboard, formats:', formats)
   const imageFormats = formats.filter(f => f.startsWith('image/'))
@@ -46,7 +46,9 @@ export function readImageFromClipboard (event: any, willReadData: () => void): P
     return readImage()
   } else {
     // Nothing to read
-    return new Promise((resolve, reject) => { resolve(null) })
+    return new Promise((resolve, reject) => {
+      resolve(null)
+    })
   }
 }
 
@@ -54,7 +56,7 @@ export function readImageFromClipboard (event: any, willReadData: () => void): P
 //   let items = event.clipboardData.items
 //   let blob = items[1].getAsFile()
 // eslint-disable-next-line
-function readBlob (name: string, format: string, blob: any): Promise<?ClipboardData> {
+function readBlob(name: string, format: string, blob: any): Promise<?ClipboardData> {
   return new Promise((resolve, reject) => {
     // We get the data from the HTML5 File object, read it into a
     // buffer and then save it to disk.

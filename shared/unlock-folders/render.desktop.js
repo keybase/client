@@ -10,13 +10,15 @@ import {Header} from '../common-adapters'
 import type {Props} from './render'
 
 export default class UnlockFoldersRender extends Component<void, Props, void> {
-  render () {
+  render() {
     let innerComponent
 
     switch (this.props.phase) {
       case 'dead':
       case 'promptOtherDevice':
-        innerComponent = <DeviceList devices={this.props.devices} toPaperKeyInput={this.props.toPaperKeyInput} />
+        innerComponent = (
+          <DeviceList devices={this.props.devices} toPaperKeyInput={this.props.toPaperKeyInput} />
+        )
         break
       case 'paperKeyInput':
         innerComponent = (
@@ -25,19 +27,20 @@ export default class UnlockFoldersRender extends Component<void, Props, void> {
             onBack={this.props.onBackFromPaperKey}
             onContinue={this.props.onContinueFromPaperKey}
             paperkeyError={this.props.paperkeyError}
-            waiting={this.props.waiting} />
+            waiting={this.props.waiting}
+          />
         )
         break
       case 'success':
-        innerComponent = (
-          <Success onClose={this.props.onClose} />
-        )
+        innerComponent = <Success onClose={this.props.onClose} />
         break
     }
 
     return (
       <div style={styles.container}>
-        <div style={styles.header}><Header icon={true} type='Default' title='' onClose={this.props.onClose} /></div>
+        <div style={styles.header}>
+          <Header icon={true} type="Default" title="" onClose={this.props.onClose} />
+        </div>
         {innerComponent}
       </div>
     )

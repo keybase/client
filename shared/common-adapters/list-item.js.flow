@@ -16,8 +16,7 @@ export type Props = {
   onPress?: void,
   containerStyle?: Object,
   bodyContainerStyle?: Object,
-  swipeToAction?: boolean // Do you have to swipe the list item to reveal an action?
+  swipeToAction?: boolean, // Do you have to swipe the list item to reveal an action?
 }
 
-export default class ListItem extends Component<void, Props, void> { }
-
+export default class ListItem extends Component<void, Props, void> {}

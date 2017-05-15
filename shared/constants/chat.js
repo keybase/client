@@ -11,26 +11,37 @@ import {createSelector} from 'reselect'
 import type {UserListItem} from '../common-adapters/usernames'
 import type {Path} from '../route-tree'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
-import type {Asset, AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFinalizeInfo, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
+import type {
+  Asset,
+  AssetMetadata,
+  ChatActivity,
+  ConversationInfoLocal,
+  ConversationFinalizeInfo,
+  MessageBody,
+  MessageID as RPCMessageID,
+  OutboxID as RPCOutboxID,
+  ConversationID as RPCConversationID,
+} from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
 import type {TypedState} from './reducer'
 
 export type MessageKey = string
-type MessageKeyKind = 'chatSecured'
-| 'error'
-| 'errorInvisible'
-| 'header'
-| 'messageIDAttachment'
-| 'messageIDDeleted'
-| 'messageIDEdit'
-| 'messageIDAttachmentUpdate'
-| 'messageIDError'
-| 'messageIDText'
-| 'messageIDUnhandled'
-| 'outboxIDText'
-| 'tempAttachment'
-| 'timestamp'
-| 'supersedes'
+type MessageKeyKind =
+  | 'chatSecured'
+  | 'error'
+  | 'errorInvisible'
+  | 'header'
+  | 'messageIDAttachment'
+  | 'messageIDDeleted'
+  | 'messageIDEdit'
+  | 'messageIDAttachmentUpdate'
+  | 'messageIDError'
+  | 'messageIDText'
+  | 'messageIDUnhandled'
+  | 'outboxIDText'
+  | 'tempAttachment'
+  | 'timestamp'
+  | 'supersedes'
 
 export type MessageType = 'Text'
 export type FollowingMap = {[key: string]: boolean}
@@ -124,9 +135,9 @@ export type AttachmentMessage = {
   downloadedPath: ?string,
   savedPath: string | null | false,
   outboxID?: ?OutboxIDKey,
-  previewProgress: number | null, /* between 0 - 1 */
-  downloadProgress: number | null, /* between 0 - 1 */
-  uploadProgress: number | null, /* between 0 - 1 */
+  previewProgress: number | null /* between 0 - 1 */,
+  downloadProgress: number | null /* between 0 - 1 */,
+  uploadProgress: number | null /* between 0 - 1 */,
   messageState: AttachmentMessageState,
   senderDeviceRevokedAt: ?number,
   key: MessageKey,
@@ -192,8 +203,20 @@ export type UpdatingAttachment = {
   },
 }
 
-export type ClientMessage = TimestampMessage | SupersedesMessage | LoadingMoreMessage | ChatSecuredHeaderMessage
-export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage | UpdatingAttachment | InvisibleErrorMessage
+export type ClientMessage =
+  | TimestampMessage
+  | SupersedesMessage
+  | LoadingMoreMessage
+  | ChatSecuredHeaderMessage
+export type ServerMessage =
+  | TextMessage
+  | ErrorMessage
+  | AttachmentMessage
+  | DeletedMessage
+  | UnhandledMessage
+  | EditingMessage
+  | UpdatingAttachment
+  | InvisibleErrorMessage
 
 // TODO (mm) fix this
 export type Message = any // ClientMessage | ServerMessage
@@ -355,127 +378,286 @@ export const maxMessagesToLoadAtATime = 50
 
 export const nothingSelected = 'chat:noneSelected'
 
-export type AddPendingConversation = NoErrorTypedAction<'chat:addPendingConversation', {participants: Array<string>}>
-export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isAppFocused: boolean, isSelected: boolean, messages: Array<Message>}>
+export type AddPendingConversation = NoErrorTypedAction<
+  'chat:addPendingConversation',
+  {participants: Array<string>}
+>
+export type AppendMessages = NoErrorTypedAction<
+  'chat:appendMessages',
+  {conversationIDKey: ConversationIDKey, isAppFocused: boolean, isSelected: boolean, messages: Array<Message>}
+>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeState>>
-export type BlockConversation = NoErrorTypedAction<'chat:blockConversation', {blocked: boolean, conversationIDKey: ConversationIDKey, reportUser: boolean}>
+export type BlockConversation = NoErrorTypedAction<
+  'chat:blockConversation',
+  {blocked: boolean, conversationIDKey: ConversationIDKey, reportUser: boolean}
+>
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
-export type ClearAttachmentPlaceholderPreview = NoErrorTypedAction<'chat:clearAttachmentPlaceholderPreview', {outboxID: OutboxIDKey}>
-export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {failureDescription: string, outboxID: OutboxIDKey}>
+export type ClearAttachmentPlaceholderPreview = NoErrorTypedAction<
+  'chat:clearAttachmentPlaceholderPreview',
+  {outboxID: OutboxIDKey}
+>
+export type CreatePendingFailure = NoErrorTypedAction<
+  'chat:createPendingFailure',
+  {failureDescription: string, outboxID: OutboxIDKey}
+>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
-export type GetInboxAndUnbox = NoErrorTypedAction<'chat:getInboxAndUnbox', {conversationIDKeys: Array<ConversationIDKey>}>
+export type GetInboxAndUnbox = NoErrorTypedAction<
+  'chat:getInboxAndUnbox',
+  {conversationIDKeys: Array<ConversationIDKey>}
+>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
-export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}>
+export type LoadMoreMessages = NoErrorTypedAction<
+  'chat:loadMoreMessages',
+  {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}
+>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
-export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey, isRequesting: boolean}>
-export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
-export type MuteConversation = NoErrorTypedAction<'chat:muteConversation', {conversationIDKey: ConversationIDKey, muted: boolean}>
+export type LoadingMessages = NoErrorTypedAction<
+  'chat:loadingMessages',
+  {conversationIDKey: ConversationIDKey, isRequesting: boolean}
+>
+export type MarkThreadsStale = NoErrorTypedAction<
+  'chat:markThreadsStale',
+  {convIDs: Array<ConversationIDKey>}
+>
+export type MuteConversation = NoErrorTypedAction<
+  'chat:muteConversation',
+  {conversationIDKey: ConversationIDKey, muted: boolean}
+>
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
-export type OpenAttachmentPopup = NoErrorTypedAction<'chat:openAttachmentPopup', {message: AttachmentMessage, currentPath: Path}>
-export type OpenConversation = NoErrorTypedAction<'chat:openConversation', {conversationIDKey: ConversationIDKey}>
+export type OpenAttachmentPopup = NoErrorTypedAction<
+  'chat:openAttachmentPopup',
+  {message: AttachmentMessage, currentPath: Path}
+>
+export type OpenConversation = NoErrorTypedAction<
+  'chat:openConversation',
+  {conversationIDKey: ConversationIDKey}
+>
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
 export type OpenTlfInChat = NoErrorTypedAction<'chat:openTlfInChat', string>
-export type PendingToRealConversation = NoErrorTypedAction<'chat:pendingToRealConversation', {oldKey: ConversationIDKey, newKey: ConversationIDKey}>
-export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
-export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>, moreToLoad: boolean, paginationNext: ?Buffer}>
-export type RemoveOutboxMessage = NoErrorTypedAction<'chat:removeOutboxMessage', {conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey}>
+export type PendingToRealConversation = NoErrorTypedAction<
+  'chat:pendingToRealConversation',
+  {oldKey: ConversationIDKey, newKey: ConversationIDKey}
+>
+export type PostMessage = NoErrorTypedAction<
+  'chat:postMessage',
+  {conversationIDKey: ConversationIDKey, text: HiddenString}
+>
+export type PrependMessages = NoErrorTypedAction<
+  'chat:prependMessages',
+  {
+    conversationIDKey: ConversationIDKey,
+    messages: Array<Message>,
+    moreToLoad: boolean,
+    paginationNext: ?Buffer,
+  }
+>
+export type RemoveOutboxMessage = NoErrorTypedAction<
+  'chat:removeOutboxMessage',
+  {conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey}
+>
 export type RemovePendingFailure = NoErrorTypedAction<'chat:removePendingFailure', {outboxID: OutboxIDKey}>
-export type ReplaceConversation = NoErrorTypedAction<'chat:replaceConversation', {oldKey: ConversationIDKey, newKey: ConversationIDKey}>
-export type RetryMessage = NoErrorTypedAction<'chat:retryMessage', {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}>
-export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ?ConversationIDKey, fromUser: boolean}>
-export type SetAttachmentPlaceholderPreview = NoErrorTypedAction<'chat:setAttachmentPlaceholderPreview', {previewPath: string, outboxID: OutboxIDKey}>
-export type SetInboxUntrustedState = NoErrorTypedAction<'chat:inboxUntrustedState', {inboxUntrustedState: UntrustedState}>
-export type SetInitialConversation = NoErrorTypedAction<'chat:setInitialConversation', {conversationIDKey: ?ConversationIDKey}>
-export type SetLoaded = NoErrorTypedAction<'chat:setLoaded', {conversationIDKey: ConversationIDKey, isLoaded: boolean}>
-export type SetUnboxing = TypedAction<'chat:setUnboxing', {conversationIDKeys: Array<ConversationIDKey>}, {conversationIDKeys: Array<ConversationIDKey>}>
+export type ReplaceConversation = NoErrorTypedAction<
+  'chat:replaceConversation',
+  {oldKey: ConversationIDKey, newKey: ConversationIDKey}
+>
+export type RetryMessage = NoErrorTypedAction<
+  'chat:retryMessage',
+  {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}
+>
+export type SelectConversation = NoErrorTypedAction<
+  'chat:selectConversation',
+  {conversationIDKey: ?ConversationIDKey, fromUser: boolean}
+>
+export type SetAttachmentPlaceholderPreview = NoErrorTypedAction<
+  'chat:setAttachmentPlaceholderPreview',
+  {previewPath: string, outboxID: OutboxIDKey}
+>
+export type SetInboxUntrustedState = NoErrorTypedAction<
+  'chat:inboxUntrustedState',
+  {inboxUntrustedState: UntrustedState}
+>
+export type SetInitialConversation = NoErrorTypedAction<
+  'chat:setInitialConversation',
+  {conversationIDKey: ?ConversationIDKey}
+>
+export type SetLoaded = NoErrorTypedAction<
+  'chat:setLoaded',
+  {conversationIDKey: ConversationIDKey, isLoaded: boolean}
+>
+export type SetUnboxing = TypedAction<
+  'chat:setUnboxing',
+  {conversationIDKeys: Array<ConversationIDKey>},
+  {conversationIDKeys: Array<ConversationIDKey>}
+>
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
 export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: ?Message}>
-export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>, forceImmediate: boolean}>
-export type UnboxInbox = NoErrorTypedAction<'chat:updateSupersededByState', {conversationIDKeys: Array<ConversationIDKey>}>
-export type UntrustedInboxVisible = NoErrorTypedAction<'chat:untrustedInboxVisible', {conversationIDKey: ConversationIDKey, rowsVisible: number}>
+export type StartConversation = NoErrorTypedAction<
+  'chat:startConversation',
+  {users: Array<string>, forceImmediate: boolean}
+>
+export type UnboxInbox = NoErrorTypedAction<
+  'chat:updateSupersededByState',
+  {conversationIDKeys: Array<ConversationIDKey>}
+>
+export type UntrustedInboxVisible = NoErrorTypedAction<
+  'chat:untrustedInboxVisible',
+  {conversationIDKey: ConversationIDKey, rowsVisible: number}
+>
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
-export type UpdateConversationUnreadCounts = NoErrorTypedAction<'chat:updateConversationUnreadCounts', {conversationUnreadCounts: Map<ConversationIDKey, number>}>
-export type UpdateFinalizedState = NoErrorTypedAction<'chat:updateFinalizedState', {finalizedState: FinalizedState}>
+export type UpdateConversationUnreadCounts = NoErrorTypedAction<
+  'chat:updateConversationUnreadCounts',
+  {conversationUnreadCounts: Map<ConversationIDKey, number>}
+>
+export type UpdateFinalizedState = NoErrorTypedAction<
+  'chat:updateFinalizedState',
+  {finalizedState: FinalizedState}
+>
 export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: InboxState}>
 export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>
-export type UpdateInboxRekeyOthers = NoErrorTypedAction<'chat:updateInboxRekeyOthers', {conversationIDKey: ConversationIDKey, rekeyers: Array<string>}>
-export type UpdateInboxRekeySelf = NoErrorTypedAction<'chat:updateInboxRekeySelf', {conversationIDKey: ConversationIDKey}>
-export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>
-export type UpdateMessage = NoErrorTypedAction<'chat:updateMessage', {conversationIDKey: ConversationIDKey, message: $Shape<AttachmentMessage> | $Shape<TextMessage>, messageID: MessageID}>
+export type UpdateInboxRekeyOthers = NoErrorTypedAction<
+  'chat:updateInboxRekeyOthers',
+  {conversationIDKey: ConversationIDKey, rekeyers: Array<string>}
+>
+export type UpdateInboxRekeySelf = NoErrorTypedAction<
+  'chat:updateInboxRekeySelf',
+  {conversationIDKey: ConversationIDKey}
+>
+export type UpdateLatestMessage = NoErrorTypedAction<
+  'chat:updateLatestMessage',
+  {conversationIDKey: ConversationIDKey}
+>
+export type UpdateMessage = NoErrorTypedAction<
+  'chat:updateMessage',
+  {
+    conversationIDKey: ConversationIDKey,
+    message: $Shape<AttachmentMessage> | $Shape<TextMessage>,
+    messageID: MessageID,
+  }
+>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
-export type UpdatePaginationNext = NoErrorTypedAction<'chat:updatePaginationNext', {conversationIDKey: ConversationIDKey, paginationNext: Buffer}>
-export type UpdateSupersededByState = NoErrorTypedAction<'chat:updateSupersededByState', {supersededByState: SupersededByState}>
-export type UpdateSupersedesState = NoErrorTypedAction<'chat:updateSupersedesState', {supersedesState: SupersedesState}>
+export type UpdatePaginationNext = NoErrorTypedAction<
+  'chat:updatePaginationNext',
+  {conversationIDKey: ConversationIDKey, paginationNext: Buffer}
+>
+export type UpdateSupersededByState = NoErrorTypedAction<
+  'chat:updateSupersededByState',
+  {supersededByState: SupersededByState}
+>
+export type UpdateSupersedesState = NoErrorTypedAction<
+  'chat:updateSupersedesState',
+  {supersedesState: SupersedesState}
+>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {updated: {[key: string]: MetaData}}>
 
-export type ThreadLoadedOffline = NoErrorTypedAction<'chat:threadLoadedOffline', {conversationIDKey: ConversationIDKey}>
+export type ThreadLoadedOffline = NoErrorTypedAction<
+  'chat:threadLoadedOffline',
+  {conversationIDKey: ConversationIDKey}
+>
 
 export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {input: AttachmentInput}>
-export type UpdateBrokenTracker = NoErrorTypedAction<'chat:updateBrokenTracker', {userToBroken: {[username: string]: boolean}}>
-export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
-  messageID: MessageID,
-  bytesComplete: number,
-  bytesTotal: number,
-  conversationIDKey: ConversationIDKey,
-}>
-export type DownloadProgress = NoErrorTypedAction<'chat:downloadProgress', {
-  bytesComplete?: number,
-  bytesTotal?: number,
-  conversationIDKey: ConversationIDKey,
-  isPreview: boolean,
-  messageID: MessageID,
-}>
-export type LoadAttachment = NoErrorTypedAction<'chat:loadAttachment', {
-  messageID: MessageID,
-  conversationIDKey: ConversationIDKey,
-  loadPreview: boolean,
-}>
-export type SaveAttachment = NoErrorTypedAction<'chat:saveAttachment', {
-  messageID: MessageID,
-  conversationIDKey: ConversationIDKey,
-}>
-export type LoadAttachmentPreview = NoErrorTypedAction<'chat:loadAttachmentPreview', {
-  message: AttachmentMessage,
-}>
-export type AttachmentLoaded = NoErrorTypedAction<'chat:attachmentLoaded', {
-  messageID: MessageID,
-  conversationIDKey: ConversationIDKey,
-  isPreview: boolean,
-  path: ?string,
-}>
-export type AttachmentSaved = NoErrorTypedAction<'chat:attachmentSaved', {
-  messageID: MessageID,
-  conversationIDKey: ConversationIDKey,
-  path: ?string,
-}>
-export type UpdateTempMessage = TypedAction<'chat:updateTempMessage', {
-  conversationIDKey: ConversationIDKey,
-  outboxID: OutboxIDKey,
-  message: $Shape<AttachmentMessage> | $Shape<TextMessage>,
-}, {
-  conversationIDKey: ConversationIDKey,
-  outboxID: OutboxIDKey,
-  error: Error,
-}>
+export type UpdateBrokenTracker = NoErrorTypedAction<
+  'chat:updateBrokenTracker',
+  {userToBroken: {[username: string]: boolean}}
+>
+export type UploadProgress = NoErrorTypedAction<
+  'chat:uploadProgress',
+  {
+    messageID: MessageID,
+    bytesComplete: number,
+    bytesTotal: number,
+    conversationIDKey: ConversationIDKey,
+  }
+>
+export type DownloadProgress = NoErrorTypedAction<
+  'chat:downloadProgress',
+  {
+    bytesComplete?: number,
+    bytesTotal?: number,
+    conversationIDKey: ConversationIDKey,
+    isPreview: boolean,
+    messageID: MessageID,
+  }
+>
+export type LoadAttachment = NoErrorTypedAction<
+  'chat:loadAttachment',
+  {
+    messageID: MessageID,
+    conversationIDKey: ConversationIDKey,
+    loadPreview: boolean,
+  }
+>
+export type SaveAttachment = NoErrorTypedAction<
+  'chat:saveAttachment',
+  {
+    messageID: MessageID,
+    conversationIDKey: ConversationIDKey,
+  }
+>
+export type LoadAttachmentPreview = NoErrorTypedAction<
+  'chat:loadAttachmentPreview',
+  {
+    message: AttachmentMessage,
+  }
+>
+export type AttachmentLoaded = NoErrorTypedAction<
+  'chat:attachmentLoaded',
+  {
+    messageID: MessageID,
+    conversationIDKey: ConversationIDKey,
+    isPreview: boolean,
+    path: ?string,
+  }
+>
+export type AttachmentSaved = NoErrorTypedAction<
+  'chat:attachmentSaved',
+  {
+    messageID: MessageID,
+    conversationIDKey: ConversationIDKey,
+    path: ?string,
+  }
+>
+export type UpdateTempMessage = TypedAction<
+  'chat:updateTempMessage',
+  {
+    conversationIDKey: ConversationIDKey,
+    outboxID: OutboxIDKey,
+    message: $Shape<AttachmentMessage> | $Shape<TextMessage>,
+  },
+  {
+    conversationIDKey: ConversationIDKey,
+    outboxID: OutboxIDKey,
+    error: Error,
+  }
+>
 
-export type MarkSeenMessage = NoErrorTypedAction<'chat:markSeenMessage', {
-  conversationIDKey: ConversationIDKey,
-  messageKey: MessageKey,
-}>
+export type MarkSeenMessage = NoErrorTypedAction<
+  'chat:markSeenMessage',
+  {
+    conversationIDKey: ConversationIDKey,
+    messageKey: MessageKey,
+  }
+>
 
-export type SaveAttachmentNative = NoErrorTypedAction<'chat:saveAttachmentNative', {
-  message: AttachmentMessage,
-}>
+export type SaveAttachmentNative = NoErrorTypedAction<
+  'chat:saveAttachmentNative',
+  {
+    message: AttachmentMessage,
+  }
+>
 
-export type ShareAttachment = NoErrorTypedAction<'chat:shareAttachment', {
-  message: AttachmentMessage,
-}>
+export type ShareAttachment = NoErrorTypedAction<
+  'chat:shareAttachment',
+  {
+    message: AttachmentMessage,
+  }
+>
 
-export type Actions = AddPendingConversation
+export type Actions =
+  | AddPendingConversation
   | AppendMessages
   | ClearRekey
   | DeleteMessage
@@ -504,23 +686,23 @@ export type Actions = AddPendingConversation
   | UpdateSupersedesState
   | UpdateSupersededByState
 
-function conversationIDToKey (conversationID: ConversationID): ConversationIDKey {
+function conversationIDToKey(conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('hex')
 }
 
-function keyToConversationID (key: ConversationIDKey): ConversationID {
+function keyToConversationID(key: ConversationIDKey): ConversationID {
   return Buffer.from(key, 'hex')
 }
 
-function outboxIDToKey (outboxID: OutboxID): OutboxIDKey {
+function outboxIDToKey(outboxID: OutboxID): OutboxIDKey {
   return outboxID.toString('hex')
 }
 
-function keyToOutboxID (key: OutboxIDKey): OutboxID {
+function keyToOutboxID(key: OutboxIDKey): OutboxID {
   return Buffer.from(key, 'hex')
 }
 
-function makeSnippet (messageBody: ?MessageBody): ?string {
+function makeSnippet(messageBody: ?MessageBody): ?string {
   if (!messageBody) {
     return null
   }
@@ -535,13 +717,13 @@ function makeSnippet (messageBody: ?MessageBody): ?string {
 }
 
 // This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
-function textSnippet (message: ?string = '', max: number) {
+function textSnippet(message: ?string = '', max: number) {
   // $FlowIssue flow doesn't understand spread + strings
-  return [...(message.substring(0, max * 4).replace(/\s+/g, ' '))].slice(0, max).join('')
+  return [...message.substring(0, max * 4).replace(/\s+/g, ' ')].slice(0, max).join('')
 }
 
 // Filters out myself from most of our views of the list, unless the list is just me
-function participantFilter (participants: List<string>, you: string): List<string> {
+function participantFilter(participants: List<string>, you: string): List<string> {
   const withoutYou = participants.filter(p => p !== you)
   if (withoutYou.count() === 0) {
     return participants
@@ -549,7 +731,7 @@ function participantFilter (participants: List<string>, you: string): List<strin
   return withoutYou
 }
 
-function serverMessageToMessageBody (message: ServerMessage): ?MessageBody {
+function serverMessageToMessageBody(message: ServerMessage): ?MessageBody {
   switch (message.type) {
     case 'Text':
       return {
@@ -563,7 +745,12 @@ function serverMessageToMessageBody (message: ServerMessage): ?MessageBody {
   }
 }
 
-function usernamesToUserListItem (usernames: Array<string>, you: string, metaDataMap: MetaDataMap, followingMap: FollowingMap): Array<UserListItem> {
+function usernamesToUserListItem(
+  usernames: Array<string>,
+  you: string,
+  metaDataMap: MetaDataMap,
+  followingMap: FollowingMap
+): Array<UserListItem> {
   return usernames.map(username => ({
     username,
     broken: metaDataMap.get(username, Map()).get('brokenTracker', false),
@@ -572,11 +759,11 @@ function usernamesToUserListItem (usernames: Array<string>, you: string, metaDat
   }))
 }
 
-function getBrokenUsers (participants: Array<string>, you: string, metaDataMap: MetaDataMap): Array<string> {
+function getBrokenUsers(participants: Array<string>, you: string, metaDataMap: MetaDataMap): Array<string> {
   return participants.filter(user => user !== you && metaDataMap.get(user, Map()).get('brokenTracker', false))
 }
 
-function clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
+function clampAttachmentPreviewSize({width, height}: AttachmentSize) {
   if (height > width) {
     return {
       height: clamp(height, maxAttachmentPreviewSize),
@@ -590,7 +777,7 @@ function clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
   }
 }
 
-function parseMetadataPreviewSize (metadata: AssetMetadata): ?AttachmentSize {
+function parseMetadataPreviewSize(metadata: AssetMetadata): ?AttachmentSize {
   if (metadata.assetType === ChatTypes.LocalAssetMetadataType.image && metadata.image) {
     return clampAttachmentPreviewSize(metadata.image)
   } else if (metadata.assetType === ChatTypes.LocalAssetMetadataType.video && metadata.video) {
@@ -598,16 +785,19 @@ function parseMetadataPreviewSize (metadata: AssetMetadata): ?AttachmentSize {
   }
 }
 
-function getAssetDuration (assetMetadata: ?AssetMetadata): ?number {
+function getAssetDuration(assetMetadata: ?AssetMetadata): ?number {
   const assetIsVideo = assetMetadata && assetMetadata.assetType === ChatTypes.LocalAssetMetadataType.video
   if (assetIsVideo) {
-    const assetVideoMetadata = assetMetadata && assetMetadata.assetType === ChatTypes.LocalAssetMetadataType.video && assetMetadata.video
+    const assetVideoMetadata =
+      assetMetadata &&
+      assetMetadata.assetType === ChatTypes.LocalAssetMetadataType.video &&
+      assetMetadata.video
     return assetVideoMetadata ? assetVideoMetadata.durationMs : null
   }
   return null
 }
 
-function getAttachmentInfo (preview: ?Asset, object: ?Asset) {
+function getAttachmentInfo(preview: ?Asset, object: ?Asset) {
   const filename = object && object.filename
   const title = object && object.title
 
@@ -631,15 +821,15 @@ function getAttachmentInfo (preview: ?Asset, object: ?Asset) {
   }
 }
 
-function pendingConversationIDKey (tlfName: string) {
+function pendingConversationIDKey(tlfName: string) {
   return `__PendingConversation__${tlfName}`
 }
 
-function isPendingConversationIDKey (conversationIDKey: string) {
+function isPendingConversationIDKey(conversationIDKey: string) {
   return conversationIDKey.startsWith('__PendingConversation__')
 }
 
-function pendingConversationIDKeyToTlfName (conversationIDKey: string) {
+function pendingConversationIDKeyToTlfName(conversationIDKey: string) {
   if (isPendingConversationIDKey(conversationIDKey)) {
     return conversationIDKey.substring('__PendingConversation__'.length)
   }
@@ -647,15 +837,15 @@ function pendingConversationIDKeyToTlfName (conversationIDKey: string) {
   return null
 }
 
-function convSupersedesInfo (conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
+function convSupersedesInfo(conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
   return chat.get('supersedesState').get(conversationID)
 }
 
-function convSupersededByInfo (conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
+function convSupersededByInfo(conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
   return chat.get('supersededByState').get(conversationID)
 }
 
-function newestConversationIDKey (conversationIDKey: ?ConversationIDKey, chat: State): ?ConversationIDKey {
+function newestConversationIDKey(conversationIDKey: ?ConversationIDKey, chat: State): ?ConversationIDKey {
   const supersededBy = chat.get('supersededByState').get(conversationIDKey)
   if (!supersededBy) {
     return conversationIDKey
@@ -682,35 +872,53 @@ const getSelectedRouteState = (state: TypedState) => {
   return getPathState(state.routeTree.routeState, [chatTab, selected])
 }
 
-function messageKey (conversationIDKey: ConversationIDKey, kind: MessageKeyKind, value: string | number): MessageKey {
+function messageKey(
+  conversationIDKey: ConversationIDKey,
+  kind: MessageKeyKind,
+  value: string | number
+): MessageKey {
   return `${conversationIDKey}:${kind}:${value}`
 }
 
-function messageKeyValue (key: MessageKey): string {
+function messageKeyValue(key: MessageKey): string {
   return key.split(':')[2]
 }
 
-function messageKeyConversationIDKey (key: MessageKey): ConversationIDKey {
+function messageKeyConversationIDKey(key: MessageKey): ConversationIDKey {
   return key.split(':')[0]
 }
 
-function messageKeyKind (key: MessageKey): MessageKeyKind {
+function messageKeyKind(key: MessageKey): MessageKeyKind {
   const [, kind] = key.split(':')
   switch (kind) {
-    case 'error': return 'error'
-    case 'errorInvisible': return 'errorInvisible'
-    case 'header': return 'header'
-    case 'messageIDAttachment': return 'messageIDAttachment'
-    case 'messageIDAttachmentUpdate': return 'messageIDAttachmentUpdate'
-    case 'messageIDDeleted': return 'messageIDDeleted'
-    case 'messageIDEdit': return 'messageIDEdit'
-    case 'messageIDError': return 'messageIDError'
-    case 'messageIDText': return 'messageIDText'
-    case 'messageIDUnhandled': return 'messageIDUnhandled'
-    case 'outboxIDText': return 'outboxIDText'
-    case 'tempAttachment': return 'tempAttachment'
-    case 'timestamp': return 'timestamp'
-    case 'supersedes': return 'supersedes'
+    case 'error':
+      return 'error'
+    case 'errorInvisible':
+      return 'errorInvisible'
+    case 'header':
+      return 'header'
+    case 'messageIDAttachment':
+      return 'messageIDAttachment'
+    case 'messageIDAttachmentUpdate':
+      return 'messageIDAttachmentUpdate'
+    case 'messageIDDeleted':
+      return 'messageIDDeleted'
+    case 'messageIDEdit':
+      return 'messageIDEdit'
+    case 'messageIDError':
+      return 'messageIDError'
+    case 'messageIDText':
+      return 'messageIDText'
+    case 'messageIDUnhandled':
+      return 'messageIDUnhandled'
+    case 'outboxIDText':
+      return 'outboxIDText'
+    case 'tempAttachment':
+      return 'tempAttachment'
+    case 'timestamp':
+      return 'timestamp'
+    case 'supersedes':
+      return 'supersedes'
   }
   throw new Error(`Invalid messageKeyKind passed key: ${key}`)
 }
@@ -724,31 +932,27 @@ const getSelectedInbox = (state: TypedState) => {
 }
 const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
 
-const getTLF = createSelector(
-  [getSelectedInbox, getSelectedConversation],
-  (selectedInbox, selected) => {
-    if (selected && isPendingConversationIDKey(selected)) {
-      return pendingConversationIDKeyToTlfName(selected) || ''
-    } else if (selected !== nothingSelected && selectedInbox) {
-      return selectedInbox.participants.join(',')
-    }
-    return ''
+const getTLF = createSelector([getSelectedInbox, getSelectedConversation], (selectedInbox, selected) => {
+  if (selected && isPendingConversationIDKey(selected)) {
+    return pendingConversationIDKeyToTlfName(selected) || ''
+  } else if (selected !== nothingSelected && selectedInbox) {
+    return selectedInbox.participants.join(',')
   }
-)
+  return ''
+})
 
 const getMuted = createSelector(
   [getSelectedInbox],
-  (selectedInbox) => selectedInbox && selectedInbox.get('status') === 'muted',
+  selectedInbox => selectedInbox && selectedInbox.get('status') === 'muted'
 )
 
-const getMessageFromMessageKey = (state: TypedState, messageKey: MessageKey): ?Message => (
+const getMessageFromMessageKey = (state: TypedState, messageKey: MessageKey): ?Message =>
   // $FlowIssue getIn
   state.chat.getIn(['messageMap', messageKey])
-)
 
 const getSelectedConversationStates = (state: TypedState): ?ConversationState => {
   const selectedConversationIDKey = getSelectedConversation(state)
-// $FlowIssue getIn
+  // $FlowIssue getIn
   return state.chat.getIn(['conversationStates', selectedConversationIDKey])
 }
 
@@ -761,21 +965,29 @@ const stateLoggerTransform = (state: State) => ({
   alwaysShow: state.get('alwaysShow').join(','),
   conversationUnreadCounts: state.get('conversationUnreadCounts').toObject(),
   editingMessage: (state.get('editingMessage') || {}).key,
-  inbox: state.get('inbox').take(10).map(i => ({
-    conversationIDKey: i.get('conversationIDKey'),
-    isEmpty: i.get('isEmpty'),
-    participants: i.get('participants').count(),
-    state: i.get('state'),
-    status: i.get('status'),
-    time: i.get('time'),
-  })).toArray(),
+  inbox: state
+    .get('inbox')
+    .take(10)
+    .map(i => ({
+      conversationIDKey: i.get('conversationIDKey'),
+      isEmpty: i.get('isEmpty'),
+      participants: i.get('participants').count(),
+      state: i.get('state'),
+      status: i.get('status'),
+      time: i.get('time'),
+    }))
+    .toArray(),
   inboxUntrustedState: state.get('inboxUntrustedState'),
-  messageMap: state.get('messageMap').takeLast(30).map(v => ({
-    messageState: v.messageState,
-    outboxID: v.outboxID,
-    timestampe: v.timestamp,
-    type: v.type,
-  })).toObject(),
+  messageMap: state
+    .get('messageMap')
+    .takeLast(30)
+    .map(v => ({
+      messageState: v.messageState,
+      outboxID: v.outboxID,
+      timestampe: v.timestamp,
+      type: v.type,
+    }))
+    .toObject(),
 })
 
 export {

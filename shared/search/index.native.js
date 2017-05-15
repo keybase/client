@@ -38,5 +38,5 @@ export default compose(
       Keyboard.dismiss()
     },
   })),
-  HeaderHoc,
+  HeaderHoc
 )(SearchRender)

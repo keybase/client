@@ -6,7 +6,7 @@ import emojiData from 'emoji-datasource'
 import {invert} from 'lodash'
 
 // from https://github.com/twitter/twemoji/blob/gh-pages/twemoji-generator.js
-function UTF162JSON (text) {
+function UTF162JSON(text) {
   let r = []
   for (let i = 0; i < text.length; i++) {
     r.push('\\u' + ('000' + text.charCodeAt(i).toString(16)).slice(-4))
@@ -14,11 +14,11 @@ function UTF162JSON (text) {
   return r.join('')
 }
 
-function genEmojiData () {
+function genEmojiData() {
   const emojiIndexByChar = {}
   const emojiLiterals = []
   const emojiCharacters = new Set()
-  function addEmojiLiteral (unified, name, skinTone) {
+  function addEmojiLiteral(unified, name, skinTone) {
     const chars = unified.split('-').map(c => String.fromCodePoint(parseInt(c, 16)))
     const literals = chars.map(c => UTF162JSON(c)).join('')
 
@@ -40,7 +40,7 @@ function genEmojiData () {
   return {emojiIndexByChar, emojiLiterals, emojiCharacters}
 }
 
-function buildParser () {
+function buildParser() {
   const {emojiIndexByChar, emojiLiterals, emojiCharacters} = genEmojiData()
   const emojiRegex = `/${emojiLiterals.join('|')}/g`
   const emojiCharacterClass = `${Array.from(emojiCharacters).join('')}`
@@ -50,7 +50,10 @@ function buildParser () {
 
   const generatedSource = source
     .replace('__EMOJI_CHARACTERS__', emojiCharacterClass)
-    .replace(/__INLINE_MACRO__<([^>]*)>/g, '($1 InlineDelimiter* InlineStart ((InlineDelimiter+ $1 InlineStart) / ($1 InlineCont))*)')
+    .replace(
+      /__INLINE_MACRO__<([^>]*)>/g,
+      '($1 InlineDelimiter* InlineStart ((InlineDelimiter+ $1 InlineStart) / ($1 InlineCont))*)'
+    )
 
   // the regexes here get recompiled on every parse if we put it in the initializer, so we force it to run at import time.
   // $FlowIssue flow doesn't accept this tagged template literal

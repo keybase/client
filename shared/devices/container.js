@@ -16,7 +16,9 @@ const getDeviceEntitiesSelector = (state: TypedState) => state.entities.get('dev
 const getDevicesAndRevokedDevicesSelector = createSelector(
   [getAllDevicesSelector, getDeviceEntitiesSelector],
   (allDevices, deviceEntities) => {
-    const split = allDevices.groupBy(id => deviceEntities.get(id).revokedAt ? 'revokedDeviceIDs' : 'deviceIDs')
+    const split = allDevices.groupBy(
+      id => (deviceEntities.get(id).revokedAt ? 'revokedDeviceIDs' : 'deviceIDs')
+    )
     const deviceIDs = split.get('deviceIDs', List())
     const revokedDeviceIDs = split.get('revokedDeviceIDs', List())
     return {
@@ -44,20 +46,22 @@ const mapDispatchToProps = (dispatch: any, {routeState, setRouteState, navigateU
   addNewPaperKey: () => dispatch(paperKeyMake()),
   addNewPhone: () => dispatch(addNewPhone()),
   loadDevices: () => dispatch(load()),
-  onToggleShowRevoked: () => { setRouteState({showingRevoked: !routeState.showingRevoked}) },
+  onToggleShowRevoked: () => {
+    setRouteState({showingRevoked: !routeState.showingRevoked})
+  },
   title: 'Devices',
   onBack: () => dispatch(navigateUp()),
 })
 
-const menuItems = props => ([
-  ...flags.mobileAppsExist && [{onClick: props.addNewPhone, title: 'New phone'}] || [],
+const menuItems = props => [
+  ...((flags.mobileAppsExist && [{onClick: props.addNewPhone, title: 'New phone'}]) || []),
   {onClick: props.addNewComputer, title: 'New computer'},
   {onClick: props.addNewPaperKey, title: 'New paper key'},
-])
+]
 
 const Devices = compose(
   lifecycle({
-    componentWillMount: function () {
+    componentWillMount: function() {
       this.props.loadDevices()
     },
   }),
@@ -68,7 +72,7 @@ const Devices = compose(
     menuItems: menuItems(props),
     revokedDeviceIDs: props.revokedDeviceIDs.toArray(),
   })),
-  withState('showingMenu', 'setShowingMenu', false),
+  withState('showingMenu', 'setShowingMenu', false)
 )(Render)
 
 export default connect(mapStateToProps, mapDispatchToProps)(Devices)

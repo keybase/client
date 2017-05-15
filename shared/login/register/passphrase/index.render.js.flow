@@ -15,4 +15,4 @@ export type Props = {
   toggleShowTyping: () => void,
 }
 
-export default class Passphrase extends Component<void, Props, void> { }
+export default class Passphrase extends Component<void, Props, void> {}

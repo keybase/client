@@ -138,7 +138,7 @@ const searchMap: DumbComponentMap<Search> = {
       chatEnabled: true,
       showUserGroup: true,
     },
-    'Group': {
+    Group: {
       ...commonProps,
       showUserGroup: true,
     },
@@ -174,10 +174,10 @@ const searchMap: DumbComponentMap<Search> = {
       // $FlowIssue
       userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Out of invites']} />,
     },
-    'Searching': {
+    Searching: {
       ...commonProps,
     },
-    'Waiting': {
+    Waiting: {
       ...commonProps,
       results: [],
       showUserGroup: true,
@@ -187,5 +187,5 @@ const searchMap: DumbComponentMap<Search> = {
 }
 
 export default {
-  'Search': searchMap,
+  Search: searchMap,
 }

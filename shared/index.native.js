@@ -1,5 +1,5 @@
 // @flow
-import 'core-js/es6/reflect'  // required for babel-plugin-transform-builtin-extend in RN iOS and Android
+import 'core-js/es6/reflect' // required for babel-plugin-transform-builtin-extend in RN iOS and Android
 import './globals.native'
 
 import DumbSheet from './dev/dumb-sheet'
@@ -17,20 +17,21 @@ import {setRouteDef} from './actions/route-tree'
 import {appLink, mobileAppStateChanged} from './actions/app'
 import {setupSource} from './util/forward-logs'
 
-module.hot && module.hot.accept(() => {
-  console.log('accepted update in shared/index.native')
-  if (global.store) {
-    // We use global.devStore because module scope variables seem to be cleared
-    // out after a hot reload. Wacky.
-    console.log('updating route defs due to hot reload')
-    global.store.dispatch(setRouteDef(require('./routes').default))
-  }
-})
+module.hot &&
+  module.hot.accept(() => {
+    console.log('accepted update in shared/index.native')
+    if (global.store) {
+      // We use global.devStore because module scope variables seem to be cleared
+      // out after a hot reload. Wacky.
+      console.log('updating route defs due to hot reload')
+      global.store.dispatch(setRouteDef(require('./routes').default))
+    }
+  })
 
 class Keybase extends Component {
-  store: any;
+  store: any
 
-  constructor (props: any) {
+  constructor(props: any) {
     super(props)
 
     if (!global.keybaseLoaded) {
@@ -48,16 +49,16 @@ class Keybase extends Component {
     AppState.addEventListener('change', this._handleAppStateChange)
   }
 
-  componentDidMount () {
+  componentDidMount() {
     Linking.addEventListener('url', this._handleOpenURL)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     AppState.removeEventListener('change', this._handleAppStateChange)
     Linking.removeEventListener('url', this._handleOpenURL)
   }
 
-  _handleOpenURL (event: {url: string}) {
+  _handleOpenURL(event: {url: string}) {
     this.store.dispatch(appLink(event.url))
   }
 
@@ -65,7 +66,7 @@ class Keybase extends Component {
     this.store.dispatch(mobileAppStateChanged(nextAppState))
   }
 
-  render () {
+  render() {
     let child
 
     if (dumbSheetOnly) {
@@ -84,11 +85,11 @@ class Keybase extends Component {
   }
 }
 
-function load () {
+function load() {
   // Native String.startswith() sometimes incorrectly returns false on Android!
   /* eslint-disable no-extend-native */
   // $FlowIssue redefining startsWith
-  String.prototype.startsWith = function (searchString, position) {
+  String.prototype.startsWith = function(searchString, position) {
     position = position || 0
     return this.substr(position, searchString.length) === searchString
   }
@@ -96,6 +97,4 @@ function load () {
   AppRegistry.registerComponent('Keybase', () => Keybase)
 }
 
-export {
-  load,
-}
+export {load}

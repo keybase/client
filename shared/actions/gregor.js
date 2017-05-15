@@ -3,7 +3,12 @@
 import * as Constants from '../constants/gregor'
 import engine from '../engine'
 import {call, put, select} from 'redux-saga/effects'
-import {delegateUiCtlRegisterGregorFirehoseRpc, reachabilityCheckReachabilityRpcPromise, reachabilityStartReachabilityRpc, ReachabilityReachable} from '../constants/types/flow-types'
+import {
+  delegateUiCtlRegisterGregorFirehoseRpc,
+  reachabilityCheckReachabilityRpcPromise,
+  reachabilityStartReachabilityRpc,
+  ReachabilityReachable,
+} from '../constants/types/flow-types'
 import {favoriteList, markTLFCreated} from './favorite'
 import {folderFromPath} from '../constants/favorite.js'
 import {bootstrap} from '../actions/config'
@@ -12,38 +17,50 @@ import {clearErrors} from '../util/pictures'
 import {usernameSelector, loggedInSelector} from '../constants/selectors'
 import {nativeReachabilityEvents} from '../util/reachability'
 
-import type {CheckReachability, PushState, PushOOBM, UpdateReachability, UpdateSeenMsgs, MsgMap, NonNullGregorItem} from '../constants/gregor'
+import type {
+  CheckReachability,
+  PushState,
+  PushOOBM,
+  UpdateReachability,
+  UpdateSeenMsgs,
+  MsgMap,
+  NonNullGregorItem,
+} from '../constants/gregor'
 import type {Dispatch} from '../constants/types/flux'
 import type {PushReason, Reachability} from '../constants/types/flow-types'
-import type {State as GregorState, ItemAndMetadata as GregorItem, OutOfBandMessage} from '../constants/types/flow-types-gregor'
+import type {
+  State as GregorState,
+  ItemAndMetadata as GregorItem,
+  OutOfBandMessage,
+} from '../constants/types/flow-types-gregor'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
-function pushState (state: GregorState, reason: PushReason): PushState {
+function pushState(state: GregorState, reason: PushReason): PushState {
   return {type: Constants.pushState, payload: {state, reason}}
 }
 
-function pushOOBM (messages: Array<OutOfBandMessage>): PushOOBM {
+function pushOOBM(messages: Array<OutOfBandMessage>): PushOOBM {
   return {type: Constants.pushOOBM, payload: {messages}}
 }
 
-function updateReachability (reachability: Reachability): UpdateReachability {
+function updateReachability(reachability: Reachability): UpdateReachability {
   return {type: Constants.updateReachability, payload: {reachability}}
 }
 
-function checkReachability (): CheckReachability {
+function checkReachability(): CheckReachability {
   return {type: Constants.checkReachability, payload: undefined}
 }
 
-function updateSeenMsgs (seenMsgs: Array<NonNullGregorItem>): UpdateSeenMsgs {
+function updateSeenMsgs(seenMsgs: Array<NonNullGregorItem>): UpdateSeenMsgs {
   return {type: Constants.updateSeenMsgs, payload: {seenMsgs}}
 }
 
-function isTlfItem (gItem: GregorItem): boolean {
+function isTlfItem(gItem: GregorItem): boolean {
   return !!(gItem && gItem.item && gItem.item.category && gItem.item.category === 'tlf')
 }
 
-function toNonNullGregorItems (state: GregorState): Array<NonNullGregorItem> {
+function toNonNullGregorItems(state: GregorState): Array<NonNullGregorItem> {
   if (!state.items) {
     return []
   }
@@ -60,7 +77,7 @@ function toNonNullGregorItems (state: GregorState): Array<NonNullGregorItem> {
     .filter(Boolean)
 }
 
-function registerReachability () {
+function registerReachability() {
   return (dispatch: Dispatch, getState: () => TypedState) => {
     engine().setIncomingHandler('keybase.1.reachability.reachabilityChanged', ({reachability}, response) => {
       // Gregor reachability is only valid if we're logged in
@@ -82,11 +99,11 @@ function registerReachability () {
   }
 }
 
-function listenForNativeReachabilityEvents (dispatch: Dispatch) {
+function listenForNativeReachabilityEvents(dispatch: Dispatch) {
   return dispatch(nativeReachabilityEvents)
 }
 
-function checkReachabilityOnConnect () {
+function checkReachabilityOnConnect() {
   return (dispatch: Dispatch) => {
     // The startReachibility RPC call both starts and returns the current
     // reachability state. Then we'll get updates of changes from this state
@@ -105,7 +122,7 @@ function checkReachabilityOnConnect () {
   }
 }
 
-function registerGregorListeners () {
+function registerGregorListeners() {
   return (dispatch: Dispatch) => {
     delegateUiCtlRegisterGregorFirehoseRpc({
       callback: (error, response) => {
@@ -135,7 +152,7 @@ function registerGregorListeners () {
   }
 }
 
-function * handleTLFUpdate (items: Array<NonNullGregorItem>): SagaGenerator<any, any> {
+function* handleTLFUpdate(items: Array<NonNullGregorItem>): SagaGenerator<any, any> {
   const seenMsgs: MsgMap = yield select((state: TypedState) => state.gregor.seenMsgs)
 
   // Check if any are a tlf items
@@ -148,7 +165,7 @@ function * handleTLFUpdate (items: Array<NonNullGregorItem>): SagaGenerator<any,
   }
 }
 
-function * handlePushState (pushAction: PushState): SagaGenerator<any, any> {
+function* handlePushState(pushAction: PushState): SagaGenerator<any, any> {
   if (!pushAction.error) {
     const {payload: {state}} = pushAction
     const nonNullItems = toNonNullGregorItems(state)
@@ -162,21 +179,23 @@ function * handlePushState (pushAction: PushState): SagaGenerator<any, any> {
   }
 }
 
-function * handleKbfsFavoritesOOBM (kbfsFavoriteMessages: Array<OutOfBandMessage>) {
+function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>) {
   const msgsWithParsedBodies = kbfsFavoriteMessages.map(m => ({...m, body: JSON.parse(m.body.toString())}))
   const createdTLFs = msgsWithParsedBodies.filter(m => m.body.action === 'create')
 
-  const username: string = ((yield select(usernameSelector)): any)
-  yield createdTLFs.map(m => {
-    const folder = m.body.tlf ? markTLFCreated(folderFromPath(username, m.body.tlf)) : null
-    if (folder != null) {
-      return put(folder)
-    }
-    console.warn('Failed to parse tlf for oobm:', m)
-  }).filter(i => !!i)
+  const username: string = (yield select(usernameSelector): any)
+  yield createdTLFs
+    .map(m => {
+      const folder = m.body.tlf ? markTLFCreated(folderFromPath(username, m.body.tlf)) : null
+      if (folder != null) {
+        return put(folder)
+      }
+      console.warn('Failed to parse tlf for oobm:', m)
+    })
+    .filter(i => !!i)
 }
 
-function * handlePushOOBM (pushOOBM: pushOOBM) {
+function* handlePushOOBM(pushOOBM: pushOOBM) {
   if (!pushOOBM.error) {
     const {payload: {messages}} = pushOOBM
     yield call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites'))
@@ -185,12 +204,12 @@ function * handlePushOOBM (pushOOBM: pushOOBM) {
   }
 }
 
-function * handleCheckReachability (): SagaGenerator<any, any> {
+function* handleCheckReachability(): SagaGenerator<any, any> {
   const reachability = yield call(reachabilityCheckReachabilityRpcPromise)
   yield put({type: Constants.updateReachability, payload: {reachability}})
 }
 
-function * gregorSaga (): SagaGenerator<any, any> {
+function* gregorSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.pushState, handlePushState)
   yield safeTakeEvery(Constants.pushOOBM, handlePushOOBM)
   yield safeTakeLatest(Constants.checkReachability, handleCheckReachability)

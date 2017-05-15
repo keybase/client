@@ -16,15 +16,29 @@ type MenuItemProps = MenuItem & {
 }
 
 const MenuRow = (props: MenuItemProps) => (
-  <TouchableOpacity disabled={!props.onClick} onPress={() => {
-    props.onClick && props.onClick()
-    props.onHidden() // auto hide after a selection
-  }} style={{...styleRow(props), ...props.style}}>
+  <TouchableOpacity
+    disabled={!props.onClick}
+    onPress={() => {
+      props.onClick && props.onClick()
+      props.onHidden() // auto hide after a selection
+    }}
+    style={{...styleRow(props), ...props.style}}
+  >
     {props.view || <Text type={'BodyBig'} style={styleRowText(props)}>{props.title}</Text>}
   </TouchableOpacity>
 )
 
-const styleRow = ({isHeader, danger, index, numItems}: {isHeader?: boolean, danger?: boolean, index: number, numItems: number}) => {
+const styleRow = ({
+  isHeader,
+  danger,
+  index,
+  numItems,
+}: {
+  isHeader?: boolean,
+  danger?: boolean,
+  index: number,
+  numItems: number,
+}) => {
   const sharedStyle = {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -45,7 +59,15 @@ const styleRow = ({isHeader, danger, index, numItems}: {isHeader?: boolean, dang
   }
 }
 
-const styleRowText = ({isHeader, danger, disabled}: {isHeader?: boolean, danger?: boolean, disabled?: boolean}) => {
+const styleRowText = ({
+  isHeader,
+  danger,
+  disabled,
+}: {
+  isHeader?: boolean,
+  danger?: boolean,
+  disabled?: boolean,
+}) => {
   const dangerColor = danger ? globalColors.red : globalColors.blue
   const color = isHeader ? globalColors.white : dangerColor
   return {
@@ -57,9 +79,9 @@ const styleRowText = ({isHeader, danger, disabled}: {isHeader?: boolean, danger?
 
 // Popup Menu
 class PopupMenu extends Component<void, Props, void> {
-  render () {
+  render() {
     // $ForceType
-    const menuItemsNoDividers: Array<MenuItem> = this.props.items.filter((mi) => mi !== 'Divider')
+    const menuItemsNoDividers: Array<MenuItem> = this.props.items.filter(mi => mi !== 'Divider')
     const menuItemsWithHeader: Array<MenuItem> = [].concat(menuItemsNoDividers)
     if (this.props.header) {
       menuItemsWithHeader.unshift({...this.props.header, isHeader: true})
@@ -69,10 +91,18 @@ class PopupMenu extends Component<void, Props, void> {
         <Box style={styleOverlay}>
           <Box style={{...styleMenu, ...this.props.style}}>
             <Box style={styleMenuGroup}>
-              {menuItemsWithHeader.map((mi, idx) => <MenuRow key={mi.title} {...mi} index={idx} numItems={menuItemsWithHeader.length} onHidden={this.props.onHidden} />)}
+              {menuItemsWithHeader.map((mi, idx) => (
+                <MenuRow
+                  key={mi.title}
+                  {...mi}
+                  index={idx}
+                  numItems={menuItemsWithHeader.length}
+                  onHidden={this.props.onHidden}
+                />
+              ))}
             </Box>
             <Box style={{...styleMenuGroup, borderColor: '#d7d7d7', borderTopWidth: 1}}>
-              <MenuRow title='Cancel' index={0} numItems={1} onHidden={this.props.onHidden} />
+              <MenuRow title="Cancel" index={0} numItems={1} onHidden={this.props.onHidden} />
             </Box>
           </Box>
         </Box>
@@ -83,7 +113,7 @@ class PopupMenu extends Component<void, Props, void> {
 
 const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextProps) => (
   <Text
-    type='BodySemibold'
+    type="BodySemibold"
     style={{
       textAlign: 'center',
       paddingLeft: globalMargins.small,
@@ -94,7 +124,9 @@ const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextPr
       backgroundColor,
       ...style,
     }}
-  >{children}</Text>
+  >
+    {children}
+  </Text>
 )
 
 const styleOverlayContainer = {

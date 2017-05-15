@@ -6,7 +6,7 @@ import RemoteUnlockFolders from './remote-unlock-folders'
 import RemotePurgeMessage from './remote-purge-message'
 
 class RemoteManager extends Component<void, {}, void> {
-  render () {
+  render() {
     return (
       <div style={{display: 'none'}}>
         <RemoteTracker />

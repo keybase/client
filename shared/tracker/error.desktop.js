@@ -6,7 +6,7 @@ import {Box, Button, Text} from '../common-adapters'
 import {globalStyles, globalMargins} from '../styles'
 import type {Props} from './error'
 
-function TrackerError ({errorMessage, onRetry, onClose}: Props) {
+function TrackerError({errorMessage, onRetry, onClose}: Props) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Header
@@ -17,11 +17,11 @@ function TrackerError ({errorMessage, onRetry, onClose}: Props) {
         headerStyle={{position: undefined}}
         loggedIn={false}
       />
-      <Text style={errorTextStyle} type='BodyError'>
+      <Text style={errorTextStyle} type="BodyError">
         {errorMessage}
       </Text>
       <Box style={retryStyle}>
-        <Button onClick={() => onRetry()} type='Primary' label='Retry fetching identity' />
+        <Button onClick={() => onRetry()} type="Primary" label="Retry fetching identity" />
       </Box>
     </Box>
   )

@@ -1,7 +1,7 @@
 // @flow
 import type {Props} from './index'
 
-function Notifications (props: Props) {
+function Notifications(props: Props) {
   return null
 }
 

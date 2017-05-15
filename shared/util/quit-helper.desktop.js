@@ -7,7 +7,7 @@ export type Context = 'uiWindow' | 'mainThread' | 'quitButton' | 'beforeQuit'
 export type Action = 'closePopups' | 'quitMainWindow' | 'quitApp'
 
 // Logic to figure out what to do given your context
-function quitOnContext (context: Context): Array<Action> {
+function quitOnContext(context: Context): Array<Action> {
   switch (context) {
     case 'uiWindow':
       return ['closePopups', 'quitMainWindow']
@@ -20,13 +20,13 @@ function quitOnContext (context: Context): Array<Action> {
   return []
 }
 
-function isMainThread () {
+function isMainThread() {
   // the main thread's process.type is browser: https://github.com/electron/electron/blob/master/docs/api/process.md
   // $FlowIssue
   return process.type === 'browser'
 }
 
-function _executeActions (actions: Array<Action>) {
+function _executeActions(actions: Array<Action>) {
   actions.forEach(a => {
     switch (a) {
       case 'quitMainWindow':
@@ -43,11 +43,11 @@ function _executeActions (actions: Array<Action>) {
 }
 
 // Takes an array of actions, but makes an ipc call to have the main thread execute the actions
-function _executeActionsFromRenderer (actions: Array<Action>) {
+function _executeActionsFromRenderer(actions: Array<Action>) {
   ipcRenderer.send('executeActions', actions)
 }
 
-export function executeActionsForContext (context: Context) {
+export function executeActionsForContext(context: Context) {
   const actions = quitOnContext(context)
   if (isMainThread()) {
     _executeActions(actions)
@@ -56,7 +56,7 @@ export function executeActionsForContext (context: Context) {
   }
 }
 
-export function setupExecuteActionsListener () {
+export function setupExecuteActionsListener() {
   ipcMain.on('executeActions', (event, actions) => {
     console.log('executeActionsRecieved', actions)
     _executeActions(actions)
