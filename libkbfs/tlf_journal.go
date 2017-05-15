@@ -909,8 +909,8 @@ func (j *tlfJournal) flushBlockEntries(
 	// end, and we need to make sure `maxMDRevToFlush` is still valid.
 	eg.Go(func() error {
 		defer convertCancel()
-		return flushBlockEntries(groupCtx, j.log, j.deferLog, j.delegateBlockServer,
-			j.config.BlockCache(), j.config.Reporter(),
+		return flushBlockEntries(groupCtx, j.log, j.deferLog,
+			j.delegateBlockServer, j.config.BlockCache(), j.config.Reporter(),
 			j.tlfID, tlfName, entries)
 	})
 	converted = false
