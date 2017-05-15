@@ -286,6 +286,7 @@ export const KbfsCommonFSErrorType = {
   noSigChain: 10,
   tooManyFolders: 11,
   exdevNotSupported: 12,
+  diskLimitReached: 13,
 }
 
 export const KbfsCommonFSNotificationType = {
@@ -4176,6 +4177,7 @@ export type FSErrorType =
   | 10 // NO_SIG_CHAIN_10
   | 11 // TOO_MANY_FOLDERS_11
   | 12 // EXDEV_NOT_SUPPORTED_12
+  | 13 // DISK_LIMIT_REACHED_13
 
 export type FSNotification = {
   publicTopLevelFolder: boolean,
