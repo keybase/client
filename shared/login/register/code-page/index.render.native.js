@@ -8,7 +8,7 @@ import Container from '../../forms/container'
 import {isIOS} from '../../../constants/platform'
 import Qr from './qr'
 import React, {Component} from 'react'
-import {Box, Button, ClickableBox, Icon, Input, NativeStyleSheet, TabBar, Text} from '../../../common-adapters/index.native'
+import {Box, Button, ClickableBox, Icon, Input, NativeActivityIndicator, NativeStyleSheet, TabBar, Text} from '../../../common-adapters/index.native'
 import {TabBarItem} from '../../../common-adapters/tab-bar'
 import {codePageDeviceRoleExistingPhone, codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
@@ -29,6 +29,13 @@ class CodePageRender extends Component<void, Props, void> {
   }
 
   renderScanCode () {
+    if (this.props.qrCodeScanned) {
+      return (
+        <Box style={{flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 200}}>
+          <NativeActivityIndicator size='large' />
+        </Box>
+      )
+    }
     return (
       <Qr
         scanning={true}
@@ -44,7 +51,8 @@ class CodePageRender extends Component<void, Props, void> {
             <Box style={[stylesScan.box, stylesScan.boxCorner, {left: 0, top: 0}]} />
             <Box style={[stylesScan.box, stylesScan.boxCorner, {right: 0, bottom: 0}]} />
             <Box style={[stylesScan.box, stylesScan.boxCorner, {left: 0, bottom: 0}]} />
-          </Box>}
+          </Box>
+          }
       </Qr>
     )
   }

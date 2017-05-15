@@ -25,6 +25,7 @@ class CodePage extends Component<void, Props, {enterText: string}> {
         mode={this.props.mode}
         textCode={this.props.textCode}
         qrCode={this.props.qrCode}
+        qrCodeScanned={this.props.qrCodeScanned}
         myDeviceRole={this.props.myDeviceRole}
         otherDeviceRole={this.props.otherDeviceRole}
         cameraBrokenMode={this.props.cameraBrokenMode}
@@ -49,6 +50,7 @@ export default connect(
         myDeviceRole,
         otherDeviceRole,
         qrCode,
+        qrCodeScanned,
         textCode,
       },
     },
@@ -59,6 +61,7 @@ export default connect(
     myDeviceRole,
     otherDeviceRole,
     qrCode: qrCode ? qrCode.stringValue() : '',
+    qrCodeScanned,
     textCode: textCode ? textCode.stringValue() : '',
   }),
   (dispatch) => ({
