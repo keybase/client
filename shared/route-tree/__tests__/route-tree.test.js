@@ -185,11 +185,7 @@ describe('routeSetProps', () => {
   })
 
   it('traverses to parentPath before changing the tree', () => {
-    const startRouteState = routeSetProps(
-      demoRouteDef,
-      null,
-      (['etc']: Array<string>)
-    )
+    const startRouteState = routeSetProps(demoRouteDef, null, (['etc']: Array<string>))
     expect(startRouteState).toEqual(
       new RouteStateNode({
         selected: 'etc',
@@ -252,11 +248,7 @@ describe('routeNavigate', () => {
       })
     )
 
-    const newRouteState = routeNavigate(
-      demoRouteDef,
-      startRouteState,
-      (['foo']: Array<string>)
-    )
+    const newRouteState = routeNavigate(demoRouteDef, startRouteState, (['foo']: Array<string>))
     expect(newRouteState).toEqual(
       new RouteStateNode({
         selected: 'foo',
@@ -291,11 +283,7 @@ describe('routeNavigate', () => {
       })
     )
 
-    const newRouteState = routeNavigate(
-      demoRouteDef,
-      startRouteState,
-      (['persist']: Array<string>)
-    )
+    const newRouteState = routeNavigate(demoRouteDef, startRouteState, (['persist']: Array<string>))
     expect(newRouteState).toEqual(
       new RouteStateNode({
         selected: 'persist',
@@ -317,18 +305,9 @@ describe('routeNavigate', () => {
 
 describe('routeSetState', () => {
   it('merges with the state of a route node at a path', () => {
-    const startRouteState = routeNavigate(
-      demoRouteDef,
-      null,
-      (['foo']: Array<string>)
-    )
+    const startRouteState = routeNavigate(demoRouteDef, null, (['foo']: Array<string>))
 
-    const newRouteState = routeSetState(
-      demoRouteDef,
-      startRouteState,
-      ['foo'],
-      {state: 'value'}
-    )
+    const newRouteState = routeSetState(demoRouteDef, startRouteState, ['foo'], {state: 'value'})
     expect(newRouteState).toEqual(
       new RouteStateNode({
         selected: 'foo',
@@ -358,11 +337,7 @@ describe('routeSetState', () => {
   })
 
   it("throws when given a path that doesn't exist", () => {
-    const startRouteState = routeNavigate(
-      demoRouteDef,
-      null,
-      (['foo']: Array<string>)
-    )
+    const startRouteState = routeNavigate(demoRouteDef, null, (['foo']: Array<string>))
     expect(() => {
       routeSetState(demoRouteDef, startRouteState, ['foo', 'nonexistent'], {
         state: 'value',
@@ -425,71 +400,44 @@ describe('routeClear', () => {
 
 describe('checkRouteState', () => {
   it('returns nothing for a valid state', () => {
-    const routeState = routeNavigate(
-      demoRouteDef,
-      null,
-      (['foo', 'bar']: PropsPath<*>)
-    )
+    const routeState = routeNavigate(demoRouteDef, null, (['foo', 'bar']: PropsPath<*>))
     expect(checkRouteState(demoRouteDef, routeState)).toBeUndefined()
   })
 
   it('returns an error for a selected route missing a definition', () => {
-    const routeState = routeNavigate(
-      demoRouteDef,
-      null,
-      (['foo']: Array<string>)
-    ).updateChild('foo', n => n && n.set('selected', 'nonexistent'))
-    expect(checkRouteState(demoRouteDef, routeState)).toEqual(
-      'Route missing def: /foo/nonexistent'
+    const routeState = routeNavigate(demoRouteDef, null, (['foo']: Array<string>)).updateChild(
+      'foo',
+      n => n && n.set('selected', 'nonexistent')
     )
+    expect(checkRouteState(demoRouteDef, routeState)).toEqual('Route missing def: /foo/nonexistent')
   })
 
   it('returns an error for a selected route with null state', () => {
     const routeState = new RouteStateNode({selected: 'foo'})
-    expect(checkRouteState(demoRouteDef, routeState)).toEqual(
-      'Route missing state: /foo'
-    )
+    expect(checkRouteState(demoRouteDef, routeState)).toEqual('Route missing state: /foo')
   })
 
   it('returns an error for a selected route missing a component', () => {
     const routeState = new RouteStateNode({selected: null})
-    expect(checkRouteState(demoRouteDef, routeState)).toEqual(
-      'Route missing component: /'
-    )
+    expect(checkRouteState(demoRouteDef, routeState)).toEqual('Route missing component: /')
   })
 })
 
 describe('getPath', () => {
   it('returns the path of a route state', () => {
-    const routeState = routeNavigate(
-      demoRouteDef,
-      null,
-      (['foo', 'bar']: PropsPath<*>)
-    )
+    const routeState = routeNavigate(demoRouteDef, null, (['foo', 'bar']: PropsPath<*>))
     expect(getPath(routeState)).toEqual(I.List(['foo', 'bar']))
   })
 
   it('starts with parentPath, if specified', () => {
-    const routeState = routeNavigate(
-      demoRouteDef,
-      null,
-      (['foo', 'bar']: PropsPath<*>)
-    )
-    const routeState2 = routeNavigate(
-      demoRouteDef,
-      routeState,
-      (['etc']: Array<string>)
-    )
+    const routeState = routeNavigate(demoRouteDef, null, (['foo', 'bar']: PropsPath<*>))
+    const routeState2 = routeNavigate(demoRouteDef, routeState, (['etc']: Array<string>))
     expect(getPath(routeState2)).toEqual(I.List(['etc']))
     expect(getPath(routeState2, ['foo'])).toEqual(I.List(['foo', 'bar']))
   })
 
   it('bails out early if parentPath could not be traversed fully', () => {
-    const routeState = routeNavigate(
-      demoRouteDef,
-      null,
-      (['foo']: Array<string>)
-    )
+    const routeState = routeNavigate(demoRouteDef, null, (['foo']: Array<string>))
     expect(getPath(routeState, ['foo', 'bar'])).toEqual(I.List(['foo']))
   })
 })

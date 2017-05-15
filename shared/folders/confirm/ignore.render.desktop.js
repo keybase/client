@@ -1,14 +1,7 @@
 // @flow
 import React from 'react'
 import type {Props} from './ignore.render'
-import {
-  Confirm,
-  Box,
-  Text,
-  Icon,
-  Avatar,
-  Usernames,
-} from '../../common-adapters'
+import {Confirm, Box, Text, Icon, Avatar, Usernames} from '../../common-adapters'
 import {globalColors} from '../../styles'
 
 const Render = ({isPrivate, users, avatar, onSubmit, onCancel}: Props) => {
@@ -16,10 +9,7 @@ const Render = ({isPrivate, users, avatar, onSubmit, onCancel}: Props) => {
 
   const header = (
     <Box style={{width: 63, height: 63, position: 'relative', opacity: 0.6}}>
-      <Icon
-        type={iconThemed[theme]}
-        style={{position: 'absolute', left: 0, top: 0}}
-      />
+      <Icon type={iconThemed[theme]} style={{position: 'absolute', left: 0, top: 0}} />
       <Avatar
         size={32}
         username={avatar}
@@ -33,12 +23,7 @@ const Render = ({isPrivate, users, avatar, onSubmit, onCancel}: Props) => {
         <Text type="Header" style={textColorThemed[theme]}>
           Ignore {isPrivate ? 'private/' : 'public/'}
         </Text>
-        <Usernames
-          type="Header"
-          inline={true}
-          style={textColorThemed[theme]}
-          users={users}
-        />
+        <Usernames type="Header" inline={true} style={textColorThemed[theme]} users={users} />
         <Text type="Header" style={textColorThemed[theme]}>?</Text>
       </Box>
       <Text type="Body" style={textColorThemed[theme]}>

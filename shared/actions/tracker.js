@@ -16,10 +16,7 @@ import type {PendingIdentify, Proof} from '../constants/tracker'
 import type {TypedState} from '../constants/reducer'
 
 const {bufferToNiceHexString, cachedIdentifyGoodUntil} = Constants
-type TrackerActionCreator = (
-  dispatch: Dispatch,
-  getState: () => TypedState
-) => ?Promise<*>
+type TrackerActionCreator = (dispatch: Dispatch, getState: () => TypedState) => ?Promise<*>
 
 function startTimer(): TrackerActionCreator {
   return (dispatch, getState) => {
@@ -57,16 +54,13 @@ function _clearIdentifyCache(uid: string): Action {
 
 function setupUserChangedHandler(): TrackerActionCreator {
   return (dispatch, getState) => {
-    engine().setIncomingHandler(
-      'keybase.1.NotifyUsers.userChanged',
-      ({uid}) => {
-        dispatch(_clearIdentifyCache(uid))
-        const username = _getUsername(uid, getState())
-        if (username) {
-          dispatch(getProfile(username))
-        }
+    engine().setIncomingHandler('keybase.1.NotifyUsers.userChanged', ({uid}) => {
+      dispatch(_clearIdentifyCache(uid))
+      const username = _getUsername(uid, getState())
+      if (username) {
+        dispatch(getProfile(username))
       }
-    )
+    })
   }
 }
 
@@ -84,9 +78,7 @@ function getProfile(
       return
     }
 
-    const trackerState = tracker && tracker.trackers
-      ? tracker.trackers[username]
-      : null
+    const trackerState = tracker && tracker.trackers ? tracker.trackers[username] : null
     const uid = trackerState && trackerState.type === 'tracker'
       ? trackerState.userInfo && trackerState.userInfo.uid
       : null
@@ -97,14 +89,7 @@ function getProfile(
     }
 
     dispatch({type: Constants.updateUsername, payload: {username}})
-    dispatch(
-      triggerIdentify(
-        '',
-        username,
-        _serverCallMap(dispatch, getState, true),
-        forceDisplay
-      )
-    )
+    dispatch(triggerIdentify('', username, _serverCallMap(dispatch, getState, true), forceDisplay))
     dispatch(_fillFolders(username))
   }
 }
@@ -286,10 +271,7 @@ function onUnfollow(username: string): TrackerActionCreator {
   }
 }
 
-function _trackUser(
-  trackToken: ?string,
-  localIgnore: boolean
-): Promise<boolean> {
+function _trackUser(trackToken: ?string, localIgnore: boolean): Promise<boolean> {
   const options = {
     localOnly: localIgnore,
     expiringLocal: localIgnore,
@@ -318,10 +300,7 @@ function _trackUser(
   })
 }
 
-function _onWaiting(
-  username: string,
-  waiting: boolean
-): (dispatch: Dispatch) => void {
+function _onWaiting(username: string, waiting: boolean): (dispatch: Dispatch) => void {
   return dispatch => {
     dispatch({type: Constants.onWaiting, payload: {username, waiting}})
   }
@@ -336,9 +315,7 @@ function onIgnore(username: string): (dispatch: Dispatch) => void {
 
 function _getTrackToken(state, username) {
   const trackerState = state.tracker.trackers[username]
-  return trackerState && trackerState.type === 'tracker'
-    ? trackerState.trackToken
-    : null
+  return trackerState && trackerState.type === 'tracker' ? trackerState.trackToken : null
 }
 
 function _getUsername(uid: string, state: {tracker: Constants.State}): ?string {
@@ -371,12 +348,10 @@ function onFollow(
     }
 
     dispatch(_onWaiting(username, true))
-    _trackUser(trackToken, localIgnore || false)
-      .then(dispatchFollowedAction)
-      .catch(err => {
-        console.warn("Couldn't track user: ", err)
-        dispatchErrorAction(err.desc)
-      })
+    _trackUser(trackToken, localIgnore || false).then(dispatchFollowedAction).catch(err => {
+      console.warn("Couldn't track user: ", err)
+      dispatchErrorAction(err.desc)
+    })
   }
 }
 
@@ -442,11 +417,7 @@ function _updateBTC(username: string, address: string, sigID: string): Action {
   }
 }
 
-function _updateZcash(
-  username: string,
-  address: string,
-  sigID: string
-): Action {
+function _updateZcash(username: string, address: string, sigID: string): Action {
   return {
     type: Constants.updateZcash,
     payload: {
@@ -457,11 +428,7 @@ function _updateZcash(
   }
 }
 
-function _updatePGPKey(
-  username: string,
-  pgpFingerprint: Buffer,
-  kid: string
-): Action {
+function _updatePGPKey(username: string, pgpFingerprint: Buffer, kid: string): Action {
   return {
     type: Constants.updatePGPKey,
     payload: {

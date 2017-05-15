@@ -38,13 +38,7 @@ const textStyle = isRevoked =>
         fontStyle: 'italic',
       }
 
-const _DeviceRow = ({
-  isCurrentDevice,
-  name,
-  isRevoked,
-  icon,
-  showExistingDevicePage,
-}) => (
+const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => (
   <Box
     className="existing-device-container"
     key={name}
@@ -89,15 +83,10 @@ const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
     onClick={addNewDevice}
   >
     <Icon type="iconfont-new" style={{color: globalColors.blue}} />
-    <Text
-      type="BodyBigLink"
-      onClick={addNewDevice}
-      style={{marginLeft: globalMargins.tiny}}
-    >
+    <Text type="BodyBigLink" onClick={addNewDevice} style={{marginLeft: globalMargins.tiny}}>
       Add new...
     </Text>
-    {showingMenu &&
-      <PopupMenu style={stylesPopup} items={menuItems} onHidden={onHidden} />}
+    {showingMenu && <PopupMenu style={stylesPopup} items={menuItems} onHidden={onHidden} />}
   </Box>
 )
 
@@ -119,10 +108,7 @@ const DevicesRender = ({
     />
     {deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
     {!!revokedDeviceIDs.length &&
-      <RevokedHeader
-        expanded={showingRevoked}
-        onToggleExpanded={onToggleShowRevoked}
-      >
+      <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
         <RevokedDescription />
         {revokedDeviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
       </RevokedHeader>}

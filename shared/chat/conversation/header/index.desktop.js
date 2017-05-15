@@ -33,11 +33,7 @@ const ConversationHeader = ({
       />
       {muted && <Icon type="iconfont-shh" style={styleLeft} />}
     </Box>
-    <Icon
-      type="iconfont-folder-private"
-      style={styleLeft}
-      onClick={onOpenFolder}
-    />
+    <Icon type="iconfont-folder-private" style={styleLeft} onClick={onOpenFolder} />
     <Icon
       type={sidePanelOpen ? 'iconfont-close' : 'iconfont-info'}
       style={styleLeft}

@@ -1,23 +1,11 @@
 // @flow
 import React from 'react'
-import {
-  Box,
-  Button,
-  PopupDialog,
-  Text,
-  HeaderHoc,
-} from '../../../common-adapters/index'
+import {Box, Button, PopupDialog, Text, HeaderHoc} from '../../../common-adapters/index'
 import {globalMargins, globalStyles} from '../../../styles'
 
 import type {Props} from './'
 
-const _Contents = ({
-  conversationIDKey,
-  onBack,
-  participants,
-  onBlock,
-  onBlockAndReport,
-}: Props) => (
+const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAndReport}: Props) => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
@@ -48,9 +36,7 @@ const _Contents = ({
     <Text type="Body" style={{marginTop: globalMargins.small}}>
       in the terminal on a desktop computer.
     </Text>
-    <Box
-      style={{...globalStyles.flexBoxColum, marginTop: globalMargins.xlarge}}
-    >
+    <Box style={{...globalStyles.flexBoxColum, marginTop: globalMargins.xlarge}}>
       <Button type="Secondary" onClick={onBack} label="No, don't block them" />
       <Button
         type="Danger"

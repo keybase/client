@@ -3,14 +3,8 @@ import * as Constants from '../constants/pinentry'
 import engine from '../engine'
 import type {AsyncAction} from '../constants/types/flux'
 import type {GUIEntryFeatures} from '../constants/types/flow-types'
-import type {
-  NewPinentryAction,
-  RegisterPinentryListenerAction,
-} from '../constants/pinentry'
-import {
-  ConstantsStatusCode,
-  delegateUiCtlRegisterSecretUIRpc,
-} from '../constants/types/flow-types'
+import type {NewPinentryAction, RegisterPinentryListenerAction} from '../constants/pinentry'
+import {ConstantsStatusCode, delegateUiCtlRegisterSecretUIRpc} from '../constants/types/flow-types'
 
 const uglySessionIDResponseMapper: {[key: number]: any} = {}
 
@@ -35,41 +29,38 @@ export function registerPinentryListener(): AsyncAction {
       }: RegisterPinentryListenerAction)
     )
 
-    engine().setIncomingHandler(
-      'keybase.1.secretUi.getPassphrase',
-      (payload, response) => {
-        console.log('Asked for passphrase')
+    engine().setIncomingHandler('keybase.1.secretUi.getPassphrase', (payload, response) => {
+      console.log('Asked for passphrase')
 
-        const {
-          prompt,
-          submitLabel,
-          cancelLabel,
-          windowTitle,
-          retryLabel,
-          features,
-          type,
-        } = payload.pinentry
-        const sessionID = payload.sessionID
+      const {
+        prompt,
+        submitLabel,
+        cancelLabel,
+        windowTitle,
+        retryLabel,
+        features,
+        type,
+      } = payload.pinentry
+      const sessionID = payload.sessionID
 
-        dispatch(
-          ({
-            type: Constants.newPinentry,
-            payload: {
-              type,
-              sessionID,
-              features,
-              prompt,
-              submitLabel,
-              cancelLabel,
-              windowTitle,
-              retryLabel,
-            },
-          }: NewPinentryAction)
-        )
+      dispatch(
+        ({
+          type: Constants.newPinentry,
+          payload: {
+            type,
+            sessionID,
+            features,
+            prompt,
+            submitLabel,
+            cancelLabel,
+            windowTitle,
+            retryLabel,
+          },
+        }: NewPinentryAction)
+      )
 
-        uglySessionIDResponseMapper[sessionID] = response
-      }
-    )
+      uglySessionIDResponseMapper[sessionID] = response
+    })
   }
 }
 

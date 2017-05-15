@@ -2,13 +2,7 @@
 import React, {Component} from 'react'
 import debounce from 'lodash/debounce'
 import dumbComponentMap from './component-map.native'
-import {
-  Box,
-  Button,
-  Icon,
-  Input,
-  Text,
-} from '../../common-adapters/index.native'
+import {Box, Button, Icon, Input, Text} from '../../common-adapters/index.native'
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import {globalStyles, globalColors} from '../../styles'
@@ -71,9 +65,7 @@ class DumbSheetRender extends Component<void, Props, any> {
   }
 
   render() {
-    return this.props.autoIncrement
-      ? this.renderIncrement()
-      : this.renderSingle()
+    return this.props.autoIncrement ? this.renderIncrement() : this.renderSingle()
   }
 
   _getTotal(filter: ?string) {
@@ -161,18 +153,13 @@ class DumbSheetRender extends Component<void, Props, any> {
   }
 
   _makeStoreWrapper(component) {
-    return this._mockStore
-      ? <Provider store={this._mockStore}>{component}</Provider>
-      : component
+    return this._mockStore ? <Provider store={this._mockStore}>{component}</Provider> : component
   }
 
   renderSingle() {
     const filter = this.props.dumbFilter.toLowerCase()
     const total = this._getTotal(filter)
-    const {component, mock, key, mockKey} = this._getComponent(
-      filter,
-      this.props.dumbIndex % total
-    )
+    const {component, mock, key, mockKey} = this._getComponent(filter, this.props.dumbIndex % total)
 
     this._updateMockStore(mock.mockStore)
 
@@ -203,8 +190,7 @@ class DumbSheetRender extends Component<void, Props, any> {
             <Input
               small={true}
               smallLabel="Filter:"
-              onChangeText={filter =>
-                this._onFilterChange(filter.toLowerCase())}
+              onChangeText={filter => this._onFilterChange(filter.toLowerCase())}
               autoCapitalize="none"
               value={this.state.localFilter}
             />

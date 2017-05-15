@@ -231,10 +231,7 @@ const propsNewUserFollowsYou: TrackerProps = {
 }
 
 type setFollowFilter = (p: Proof) => boolean
-function setFollow(
-  source: TrackerProps,
-  filter: setFollowFilter
-): TrackerProps {
+function setFollow(source: TrackerProps, filter: setFollowFilter): TrackerProps {
   source.proofs = source.proofs.map(
     p =>
       filter(p)

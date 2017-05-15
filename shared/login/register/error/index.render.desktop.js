@@ -9,9 +9,7 @@ import {Box, Text, Markdown} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
 
 const renderError = (error: RPCError) => {
-  const fields = (Array.isArray(error.fields)
-    ? error.fields
-    : []).reduce((acc, f) => {
+  const fields = (Array.isArray(error.fields) ? error.fields : []).reduce((acc, f) => {
     const k = f && typeof f.key === 'string' ? f.key : ''
     acc[k] = f.value || ''
     return acc

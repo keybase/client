@@ -45,10 +45,7 @@ function arrayToObjectSet(arr) {
   }, {})
 }
 
-export default function(
-  state: Constants.State = initialState,
-  action: Action
-): Constants.State {
+export default function(state: Constants.State = initialState, action: Action): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {

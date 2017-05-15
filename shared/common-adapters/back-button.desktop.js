@@ -15,20 +15,10 @@ class BackButton extends Component<void, Props, void> {
 
   render() {
     return (
-      <div
-        style={{...styles.container, ...this.props.style}}
-        onClick={e => this.onClick(e)}
-      >
-        <Icon
-          type="iconfont-back"
-          style={{...styles.icon, ...this.props.iconStyle}}
-        />
+      <div style={{...styles.container, ...this.props.style}} onClick={e => this.onClick(e)}>
+        <Icon type="iconfont-back" style={{...styles.icon, ...this.props.iconStyle}} />
         {this.props.title !== null &&
-          <Text
-            type="BodyPrimaryLink"
-            style={this.props.textStyle}
-            onClick={e => this.onClick(e)}
-          >
+          <Text type="BodyPrimaryLink" style={this.props.textStyle} onClick={e => this.onClick(e)}>
             {this.props.title || 'Back'}
           </Text>}
       </div>

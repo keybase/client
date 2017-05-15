@@ -12,8 +12,7 @@ import {formatTimeForPopup} from '../../../util/timestamp'
 
 import type {Props} from './'
 
-class AutoMaxSizeImage
-  extends Component<void, any, {width: number, height: number}> {
+class AutoMaxSizeImage extends Component<void, any, {width: number, height: number}> {
   state = {height: 0, width: 0}
 
   componentDidMount() {
@@ -149,11 +148,7 @@ const AttachmentPopup = ({
       >
         Close
       </Text>
-      <AttachmentView
-        isZoomed={isZoomed}
-        onToggleZoom={onToggleZoom}
-        path={downloadedPath}
-      />
+      <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={downloadedPath} />
       <Box style={styleHeaderFooter}>
         <Icon
           type="iconfont-ellipsis"

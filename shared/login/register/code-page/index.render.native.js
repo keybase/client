@@ -61,26 +61,10 @@ class CodePageRender extends Component<void, Props, void> {
           <Box style={{alignSelf: 'center', width: 200, height: 200}}>
             <Box style={[stylesScan.box, stylesScan.boxEdge, {left: 0}]} />
             <Box style={[stylesScan.box, stylesScan.boxEdge, {right: 0}]} />
-            <Box
-              style={[stylesScan.box, stylesScan.boxCorner, {right: 0, top: 0}]}
-            />
-            <Box
-              style={[stylesScan.box, stylesScan.boxCorner, {left: 0, top: 0}]}
-            />
-            <Box
-              style={[
-                stylesScan.box,
-                stylesScan.boxCorner,
-                {right: 0, bottom: 0},
-              ]}
-            />
-            <Box
-              style={[
-                stylesScan.box,
-                stylesScan.boxCorner,
-                {left: 0, bottom: 0},
-              ]}
-            />
+            <Box style={[stylesScan.box, stylesScan.boxCorner, {right: 0, top: 0}]} />
+            <Box style={[stylesScan.box, stylesScan.boxCorner, {left: 0, top: 0}]} />
+            <Box style={[stylesScan.box, stylesScan.boxCorner, {right: 0, bottom: 0}]} />
+            <Box style={[stylesScan.box, stylesScan.boxCorner, {left: 0, bottom: 0}]} />
           </Box>}
       </Qr>
     )
@@ -293,8 +277,7 @@ class CodePageRender extends Component<void, Props, void> {
   }
 
   render() {
-    let otherDeviceIsMobile =
-      this.props.otherDeviceRole === codePageDeviceRoleExistingPhone
+    let otherDeviceIsMobile = this.props.otherDeviceRole === codePageDeviceRoleExistingPhone
     switch (this.props.mode) {
       case codePageModeShowCode:
         if (otherDeviceIsMobile) {

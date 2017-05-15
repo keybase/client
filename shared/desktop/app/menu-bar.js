@@ -2,12 +2,7 @@
 import hotPath from '../hot-path'
 import menubar from 'menubar'
 import {injectReactQueryParams} from '../../util/dev'
-import {
-  screen as electronScreen,
-  ipcMain,
-  systemPreferences,
-  app,
-} from 'electron'
+import {screen as electronScreen, ipcMain, systemPreferences, app} from 'electron'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {resolveImage, resolveRootAsURL} from '../resolve-root'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
@@ -16,8 +11,7 @@ import type {BadgeType} from '../../constants/notifications'
 
 let iconType: BadgeType = 'regular'
 
-const isDarkMode = () =>
-  isDarwin && systemPreferences && systemPreferences.isDarkMode()
+const isDarkMode = () => isDarwin && systemPreferences && systemPreferences.isDarkMode()
 
 const getIcon = invertColors => {
   const devMode = __DEV__ ? '-dev' : ''
@@ -43,10 +37,7 @@ const getIcon = invertColors => {
 
 export default function() {
   const mb = menubar({
-    index: resolveRootAsURL(
-      'renderer',
-      injectReactQueryParams('renderer.html?menubar')
-    ),
+    index: resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?menubar')),
     width: 320,
     height: 350,
     resizable: false,
@@ -64,17 +55,10 @@ export default function() {
     mb.tray.setImage(getIcon(invertColors))
   }
 
-  if (
-    isDarwin &&
-    systemPreferences &&
-    systemPreferences.subscribeNotification
-  ) {
-    systemPreferences.subscribeNotification(
-      'AppleInterfaceThemeChangedNotification',
-      () => {
-        updateIcon(false)
-      }
-    )
+  if (isDarwin && systemPreferences && systemPreferences.subscribeNotification) {
+    systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
+      updateIcon(false)
+    })
   }
 
   ipcMain.on('showTray', (event, type, count) => {
@@ -152,8 +136,7 @@ export default function() {
       // Account for different taskbar positions on Windows
       if (isWindows) {
         const cursorPoint = electronScreen.getCursorScreenPoint()
-        const screenSize = electronScreen.getDisplayNearestPoint(cursorPoint)
-          .workArea
+        const screenSize = electronScreen.getDisplayNearestPoint(cursorPoint).workArea
         if (screenSize.x > 0) {
           // start menu on left
           mb.setOption('windowPosition', 'trayBottomLeft')

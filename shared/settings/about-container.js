@@ -7,10 +7,7 @@ import {defaultProps, compose} from 'recompose'
 
 import type {Dispatch} from '../constants/types/flux'
 
-const mapDispatchToProps = (
-  dispatch: Dispatch,
-  {navigateUp, navigateAppend}
-) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}) => ({
   onBack: () => dispatch(navigateUp()),
   onShowPrivacyPolicy: () =>
     dispatch(

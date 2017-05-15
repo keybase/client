@@ -52,14 +52,8 @@ const CodePageText = ({onBack, textCode, otherDeviceRole, setCodePageMode}) => (
         style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}
         onClick={() => setCodePageMode(codePageModeShowCode)}
       >
-        <Icon
-          style={{marginRight: globalMargins.xtiny}}
-          type="icon-phone-qr-code-32"
-        />
-        <Text
-          type="BodyPrimaryLink"
-          onClick={() => setCodePageMode(codePageModeShowCode)}
-        >
+        <Icon style={{marginRight: globalMargins.xtiny}} type="icon-phone-qr-code-32" />
+        <Text type="BodyPrimaryLink" onClick={() => setCodePageMode(codePageModeShowCode)}>
           Scan QR code instead
         </Text>
       </p>}
@@ -67,10 +61,7 @@ const CodePageText = ({onBack, textCode, otherDeviceRole, setCodePageMode}) => (
 )
 
 const CodePageCode = ({onBack, otherDeviceRole, setCodePageMode, qrCode}) => (
-  <Container
-    style={{...stylesContainer, alignItems: 'stretch'}}
-    onBack={onBack}
-  >
+  <Container style={{...stylesContainer, alignItems: 'stretch'}} onBack={onBack}>
     <div
       style={{
         ...globalStyles.flexBoxColumn,
@@ -90,10 +81,7 @@ const CodePageCode = ({onBack, otherDeviceRole, setCodePageMode, qrCode}) => (
         style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}
         onClick={() => setCodePageMode(codePageModeShowText)}
       >
-        <Icon
-          style={{marginRight: globalMargins.xtiny}}
-          type="icon-phone-text-code-32"
-        />
+        <Icon style={{marginRight: globalMargins.xtiny}} type="icon-phone-text-code-32" />
         <Text type="BodyPrimaryLink">Show text code instead</Text>
       </p>
     </div>
@@ -114,10 +102,7 @@ const CodePageEnterText = ({
       Type in text code
     </Text>
     <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
-    <Icon
-      style={{marginBottom: 40, marginTop: 30}}
-      type="icon-phone-text-code-32"
-    />
+    <Icon style={{marginBottom: 40, marginTop: 30}} type="icon-phone-text-code-32" />
     <Input
       errorText={enterCodeErrorText}
       hintText="opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas"
@@ -141,14 +126,8 @@ const CodePageEnterText = ({
         style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}
         onClick={() => setCodePageMode(codePageModeShowCode)}
       >
-        <Icon
-          style={{marginRight: globalMargins.xtiny}}
-          type="icon-phone-qr-code-32"
-        />
-        <Text
-          type="BodyPrimaryLink"
-          onClick={() => setCodePageMode(codePageModeShowCode)}
-        >
+        <Icon style={{marginRight: globalMargins.xtiny}} type="icon-phone-qr-code-32" />
+        <Text type="BodyPrimaryLink" onClick={() => setCodePageMode(codePageModeShowCode)}>
           Scan QR code instead
         </Text>
       </p>}
@@ -157,9 +136,7 @@ const CodePageEnterText = ({
 
 function _otherIsPhone(otherDeviceRole) {
   return (
-    [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone].indexOf(
-      otherDeviceRole
-    ) !== -1
+    [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone].indexOf(otherDeviceRole) !== -1
   )
 }
 

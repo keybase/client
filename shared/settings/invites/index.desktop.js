@@ -3,16 +3,7 @@ import React, {Component} from 'react'
 import moment from 'moment'
 
 import {intersperseFn} from '../../util/arrays'
-import {
-  Avatar,
-  Banner,
-  Box,
-  Button,
-  Divider,
-  Icon,
-  Input,
-  Text,
-} from '../../common-adapters'
+import {Avatar, Banner, Box, Button, Divider, Icon, Input, Text} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 import {stateColors} from '../../util/tracker'
 import SubHeading from '../subheading'
@@ -41,8 +32,7 @@ class Invites extends Component<void, Props, State> {
   }
 
   _handleChangeEmail(inviteEmail: string) {
-    const showMessageField =
-      this.state.showMessageField || inviteEmail.length > 0
+    const showMessageField = this.state.showMessageField || inviteEmail.length > 0
     this.setState({
       inviteEmail,
       showMessageField,
@@ -51,10 +41,7 @@ class Invites extends Component<void, Props, State> {
   }
 
   _invite() {
-    this.props.onGenerateInvitation(
-      this.state.inviteEmail,
-      this.state.inviteMessage
-    )
+    this.props.onGenerateInvitation(this.state.inviteEmail, this.state.inviteMessage)
   }
 
   render() {
@@ -116,8 +103,7 @@ class Invites extends Component<void, Props, State> {
                     invite={invite}
                     key={invite.id}
                     onReclaimInvitation={id => props.onReclaimInvitation(id)}
-                    onSelectPendingInvite={invite =>
-                      props.onSelectPendingInvite(invite)}
+                    onSelectPendingInvite={invite => props.onSelectPendingInvite(invite)}
                   />
                 ))
               )}
@@ -161,10 +147,7 @@ function PendingInviteItem({
   return (
     <Box style={styleInviteItem}>
       {invite.email
-        ? <PendingEmailContent
-            invite={invite}
-            onSelectPendingInvite={onSelectPendingInvite}
-          />
+        ? <PendingEmailContent invite={invite} onSelectPendingInvite={onSelectPendingInvite} />
         : <PendingURLContent invite={invite} />}
       <Box style={{flex: 1}} />
       <Text
@@ -188,9 +171,7 @@ function PendingEmailContent({
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Avatar url={null} size={32} />
-      <Box
-        style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}
-      >
+      <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
         <Text type="BodySemibold" onClick={() => onSelectPendingInvite(invite)}>
           {invite.email}
         </Text>
@@ -214,10 +195,7 @@ function PendingURLContent({invite}: {invite: PendingInvite}) {
           marginTop: 3,
         }}
       />
-      <Text
-        type="Body"
-        style={{...globalStyles.selectable, color: globalColors.blue}}
-      >
+      <Text type="Body" style={{...globalStyles.selectable, color: globalColors.blue}}>
         {invite.url}
       </Text>
     </Box>
@@ -231,20 +209,12 @@ function AcceptedInviteItem({
   invite: AcceptedInvite,
   onClick: (username: string) => void,
 }) {
-  const nameColor = stateColors(
-    invite.currentlyFollowing,
-    invite.trackerState,
-    globalColors.blue
-  ).username
+  const nameColor = stateColors(invite.currentlyFollowing, invite.trackerState, globalColors.blue)
+    .username
   return (
-    <Box
-      style={{...styleInviteItem, ...globalStyles.clickable, flexShrink: 0}}
-      onClick={onClick}
-    >
+    <Box style={{...styleInviteItem, ...globalStyles.clickable, flexShrink: 0}} onClick={onClick}>
       <Avatar username={invite.username} size={32} />
-      <Box
-        style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}
-      >
+      <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
         <Text type="BodySemibold" style={{color: nameColor}}>
           {invite.username}
         </Text>

@@ -24,10 +24,7 @@ config.module.loaders.unshift({
   loader: 'null',
 })
 
-config.plugins.push(
-  new webpack.DefinePlugin(defines),
-  new webpack.optimize.OccurenceOrderPlugin()
-)
+config.plugins.push(new webpack.DefinePlugin(defines), new webpack.optimize.OccurenceOrderPlugin())
 
 if (!SKIP_OPTIMIZE) {
   const babelLoader = config.module.loaders.find(l => l.loader === 'babel')

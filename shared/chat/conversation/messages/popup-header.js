@@ -8,15 +8,10 @@ import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
 import type {TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {IconType} from '../../../common-adapters/icon'
 
-function iconNameForDeviceType(
-  deviceType: string,
-  isRevoked: boolean
-): IconType {
+function iconNameForDeviceType(deviceType: string, isRevoked: boolean): IconType {
   switch (deviceType) {
     case 'mobile':
-      return isRevoked
-        ? 'icon-fancy-revoked-phone-122-x-64'
-        : 'icon-fancy-encrypted-phone-122-x-64'
+      return isRevoked ? 'icon-fancy-revoked-phone-122-x-64' : 'icon-fancy-encrypted-phone-122-x-64'
     default:
       return isRevoked
         ? 'icon-fancy-revoked-computer-150-x-64'
@@ -25,14 +20,7 @@ function iconNameForDeviceType(
 }
 
 const MessagePopupHeader = ({
-  message: {
-    author,
-    deviceName,
-    deviceType,
-    timestamp,
-    senderDeviceRevokedAt,
-    you,
-  },
+  message: {author, deviceName, deviceType, timestamp, senderDeviceRevokedAt, you},
   isLast,
 }: {
   message: TextMessage | AttachmentMessage,
@@ -50,9 +38,7 @@ const MessagePopupHeader = ({
         <Text
           type="BodySmall"
           style={{
-            color: senderDeviceRevokedAt
-              ? globalColors.black_40
-              : globalColors.green2,
+            color: senderDeviceRevokedAt ? globalColors.black_40 : globalColors.green2,
           }}
         >
           &nbsp;& SIGNED

@@ -12,12 +12,7 @@ import type {TypedState} from '../../../constants/reducer'
 import type {OwnProps} from './container'
 
 const getUsers = createSelector(
-  [
-    Constants.getYou,
-    Constants.getTLF,
-    Constants.getFollowingMap,
-    Constants.getMetaDataMap,
-  ],
+  [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],
   (you, tlf, followingMap, metaDataMap) =>
     Constants.usernamesToUserListItem(
       Constants.participantFilter(List(tlf.split(',')), you).toArray(),
@@ -33,10 +28,7 @@ const mapStateToProps = (state: TypedState, {sidePanelOpen}: OwnProps) => ({
   users: getUsers(state),
 })
 
-const mapDispatchToProps = (
-  dispatch: Dispatch,
-  {onBack, onToggleSidePanel}: OwnProps
-) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleSidePanel}: OwnProps) => ({
   onBack,
   onOpenFolder: () => dispatch(Creators.openFolder()),
   onShowProfile: (username: string) => dispatch(onUserClick(username, '')),

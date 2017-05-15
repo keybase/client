@@ -20,10 +20,7 @@ const isFirstRun: Promise<boolean> = new Promise((resolve, reject) => {
   }
 
   try {
-    fs.writeFileSync(
-      touchPath,
-      'This file gets created on first run of the app'
-    )
+    fs.writeFileSync(touchPath, 'This file gets created on first run of the app')
   } catch (err) {
     console.error(`Couldn't touch file:`, err)
     // If we cant' write this file, let's not assume this is the first run

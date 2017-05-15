@@ -24,8 +24,7 @@ const MenuRow = (props: MenuItemProps) => (
     }}
     style={{...styleRow(props), ...props.style}}
   >
-    {props.view ||
-      <Text type={'BodyBig'} style={styleRowText(props)}>{props.title}</Text>}
+    {props.view || <Text type={'BodyBig'} style={styleRowText(props)}>{props.title}</Text>}
   </TouchableOpacity>
 )
 
@@ -82,18 +81,13 @@ const styleRowText = ({
 class PopupMenu extends Component<void, Props, void> {
   render() {
     // $ForceType
-    const menuItemsNoDividers: Array<MenuItem> = this.props.items.filter(
-      mi => mi !== 'Divider'
-    )
+    const menuItemsNoDividers: Array<MenuItem> = this.props.items.filter(mi => mi !== 'Divider')
     const menuItemsWithHeader: Array<MenuItem> = [].concat(menuItemsNoDividers)
     if (this.props.header) {
       menuItemsWithHeader.unshift({...this.props.header, isHeader: true})
     }
     return (
-      <TouchableWithoutFeedback
-        style={styleOverlayContainer}
-        onPress={this.props.onHidden}
-      >
+      <TouchableWithoutFeedback style={styleOverlayContainer} onPress={this.props.onHidden}>
         <Box style={styleOverlay}>
           <Box style={{...styleMenu, ...this.props.style}}>
             <Box style={styleMenuGroup}>
@@ -114,12 +108,7 @@ class PopupMenu extends Component<void, Props, void> {
                 borderTopWidth: 1,
               }}
             >
-              <MenuRow
-                title="Cancel"
-                index={0}
-                numItems={1}
-                onHidden={this.props.onHidden}
-              />
+              <MenuRow title="Cancel" index={0} numItems={1} onHidden={this.props.onHidden} />
             </Box>
           </Box>
         </Box>
@@ -128,12 +117,7 @@ class PopupMenu extends Component<void, Props, void> {
   }
 }
 
-const PopupHeaderText = ({
-  color,
-  backgroundColor,
-  style,
-  children,
-}: HeaderTextProps) => (
+const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextProps) => (
   <Text
     type="BodySemibold"
     style={{

@@ -8,8 +8,7 @@ type TypedMergeProps<State, Dispatch, OwnProps, Props> = (
   ownProps: OwnProps
 ) => Props
 
-export class ConnectedComponent<OwnProps>
-  extends Component<void, OwnProps, void> {}
+export class ConnectedComponent<OwnProps> extends Component<void, OwnProps, void> {}
 
 export class TypedConnector<State, Dispatch, OwnProps, Props> {
   connect(

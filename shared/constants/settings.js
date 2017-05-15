@@ -56,25 +56,15 @@ export type State = {
 }
 
 export const invitesReclaim = 'settings:invitesReclaim'
-export type InvitesReclaim = NoErrorTypedAction<
-  'settings:invitesReclaim',
-  {inviteId: string}
->
+export type InvitesReclaim = NoErrorTypedAction<'settings:invitesReclaim', {inviteId: string}>
 
 export const invitesReclaimed = 'settings:invitesReclaimed'
-export type InvitesReclaimed = TypedAction<
-  'settings:invitesReclaimed',
-  void,
-  {errorText: string}
->
+export type InvitesReclaimed = TypedAction<'settings:invitesReclaimed', void, {errorText: string}>
 
 export const invitesRefresh = 'settings:invitesRefresh'
 export type InvitesRefresh = NoErrorTypedAction<'settings:invitesRefresh', void>
 export const invitesRefreshed = 'settings:invitesRefreshed'
-export type InvitesRefreshed = NoErrorTypedAction<
-  'settings:invitesRefreshed',
-  InvitesState
->
+export type InvitesRefreshed = NoErrorTypedAction<'settings:invitesRefreshed', InvitesState>
 
 export const invitesSend = 'settings:invitesSend'
 export type InvitesSend = NoErrorTypedAction<
@@ -86,17 +76,10 @@ export type InvitesSend = NoErrorTypedAction<
 >
 
 export const invitesSent = 'settings:invitesSent'
-export type InvitesSent = TypedAction<
-  'settings:invitesSent',
-  {email: string},
-  {error: Error}
->
+export type InvitesSent = TypedAction<'settings:invitesSent', {email: string}, {error: Error}>
 
 export const notificationsRefresh = 'settings:notificationsRefresh'
-export type NotificationsRefresh = NoErrorTypedAction<
-  'settings:notificationsRefresh',
-  void
->
+export type NotificationsRefresh = NoErrorTypedAction<'settings:notificationsRefresh', void>
 export const notificationsRefreshed = 'settings:notificationsRefreshed'
 export type NotificationsRefreshed = NoErrorTypedAction<
   'settings:notificationsRefreshed',
@@ -104,15 +87,9 @@ export type NotificationsRefreshed = NoErrorTypedAction<
 >
 
 export const notificationsSave = 'settings:notificationsSave'
-export type NotificationsSave = NoErrorTypedAction<
-  'settings:notificationsSave',
-  void
->
+export type NotificationsSave = NoErrorTypedAction<'settings:notificationsSave', void>
 export const notificationsSaved = 'settings:notificationsSaved'
-export type NotificationsSaved = NoErrorTypedAction<
-  'settings:notificationsSaved',
-  void
->
+export type NotificationsSaved = NoErrorTypedAction<'settings:notificationsSaved', void>
 
 export const notificationsToggle = 'settings:notificationsToggle'
 export type NotificationsToggle = NoErrorTypedAction<
@@ -121,16 +98,10 @@ export type NotificationsToggle = NoErrorTypedAction<
 >
 
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
-export type SetAllowDeleteAccount = NoErrorTypedAction<
-  'settings:setAllowDeleteAccount',
-  boolean
->
+export type SetAllowDeleteAccount = NoErrorTypedAction<'settings:setAllowDeleteAccount', boolean>
 
 export const deleteAccountForever = 'settings:deleteAccountForever'
-export type DeleteAccountForever = NoErrorTypedAction<
-  'settings:deleteAccountForever',
-  void
->
+export type DeleteAccountForever = NoErrorTypedAction<'settings:deleteAccountForever', void>
 
 export const onChangeNewPassphrase = 'settings:onChangeNewPassphrase'
 export type OnChangeNewPassphrase = NoErrorTypedAction<
@@ -138,24 +109,17 @@ export type OnChangeNewPassphrase = NoErrorTypedAction<
   {passphrase: HiddenString}
 >
 
-export const onChangeNewPassphraseConfirm =
-  'settings:onChangeNewPassphraseConfirm'
+export const onChangeNewPassphraseConfirm = 'settings:onChangeNewPassphraseConfirm'
 export type OnChangeNewPassphraseConfirm = NoErrorTypedAction<
   'settings:onChangeNewPassphraseConfirm',
   {passphrase: HiddenString}
 >
 
 export const onChangeShowPassphrase = 'settings:onChangeShowPassphrase'
-export type OnChangeShowPassphrase = NoErrorTypedAction<
-  'settings:onChangeShowPassphrase',
-  void
->
+export type OnChangeShowPassphrase = NoErrorTypedAction<'settings:onChangeShowPassphrase', void>
 
 export const onSubmitNewPassphrase = 'settings:onSubmitNewPassphrase'
-export type OnSubmitNewPassphrase = NoErrorTypedAction<
-  'settings:onSubmitNewPassphrase',
-  void
->
+export type OnSubmitNewPassphrase = NoErrorTypedAction<'settings:onSubmitNewPassphrase', void>
 
 export const onUpdatePassphraseError = 'settings:onUpdatePassphraseError'
 export type OnUpdatePassphraseError = NoErrorTypedAction<
@@ -164,28 +128,16 @@ export type OnUpdatePassphraseError = NoErrorTypedAction<
 >
 
 export const onChangeNewEmail = 'settings:onChangeNewEmail'
-export type OnChangeNewEmail = NoErrorTypedAction<
-  'settings:onChangeNewEmail',
-  {email: string}
->
+export type OnChangeNewEmail = NoErrorTypedAction<'settings:onChangeNewEmail', {email: string}>
 
 export const onSubmitNewEmail = 'settings:onSubmitNewEmail'
-export type OnSubmitNewEmail = NoErrorTypedAction<
-  'settings:onSubmitNewEmail',
-  void
->
+export type OnSubmitNewEmail = NoErrorTypedAction<'settings:onSubmitNewEmail', void>
 
 export const onUpdateEmailError = 'settings:onUpdateEmailError'
-export type OnUpdateEmailError = NoErrorTypedAction<
-  'settings:onUpdateEmailError',
-  {error: string}
->
+export type OnUpdateEmailError = NoErrorTypedAction<'settings:onUpdateEmailError', {error: string}>
 
 export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
-export type OnUpdatePGPSettings = NoErrorTypedAction<
-  'settings:onUpdatePGPSettings',
-  void
->
+export type OnUpdatePGPSettings = NoErrorTypedAction<'settings:onUpdatePGPSettings', void>
 
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export type OnUpdatedPGPSettings = NoErrorTypedAction<

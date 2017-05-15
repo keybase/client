@@ -96,18 +96,10 @@ export type Results = TypedAction<
 >
 
 export const selectPlatform = 'search:selectPlatform'
-export type SelectPlatform = TypedAction<
-  'search:selectPlatform',
-  {platform: SearchPlatforms},
-  void
->
+export type SelectPlatform = TypedAction<'search:selectPlatform', {platform: SearchPlatforms}, void>
 
 export const selectUserForInfo = 'search:selectUserForInfo'
-export type SelectUserForInfo = TypedAction<
-  'search:selectUserForInfo',
-  {user: SearchResult},
-  void
->
+export type SelectUserForInfo = TypedAction<'search:selectUserForInfo', {user: SearchResult}, void>
 
 export const addUsersToGroup = 'search:addUsersToGroup'
 export type AddUsersToGroup = TypedAction<
@@ -124,11 +116,7 @@ export type RemoveUserFromGroup = TypedAction<
 >
 
 export const toggleUserGroup = 'search:toggleUserGroup'
-export type ToggleUserGroup = TypedAction<
-  'search:toggleUserGroup',
-  {show: boolean},
-  void
->
+export type ToggleUserGroup = TypedAction<'search:toggleUserGroup', {show: boolean}, void>
 
 export const reset = 'search:reset'
 export type Reset = TypedAction<'search:reset', {}, void>

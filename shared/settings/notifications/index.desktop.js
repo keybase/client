@@ -1,12 +1,6 @@
 // @flow
 import React from 'react'
-import {
-  Box,
-  Button,
-  Text,
-  Checkbox,
-  ProgressIndicator,
-} from '../../common-adapters'
+import {Box, Button, Text, Checkbox, ProgressIndicator} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from './index'

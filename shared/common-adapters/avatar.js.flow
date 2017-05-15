@@ -11,13 +11,8 @@ export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16
 export type UserPictureSize = 360 | 200 | 40
 export type AvatarLookupCallback = (username: string, urlMap: ?URLMap) => void
 export type AvatarLookup = (username: string) => ?URLMap
-export type AvatarLoad = (
-  username: string,
-  callback: AvatarLookupCallback
-) => void
-export type URLType = ?(
-  | string
-  | Array<{height: number, width: number, uri: string}>)
+export type AvatarLoad = (username: string, callback: AvatarLookupCallback) => void
+export type URLType = ?(string | Array<{height: number, width: number, uri: string}>)
 export type Props = {
   borderColor?: string,
   children?: any,

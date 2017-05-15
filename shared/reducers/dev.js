@@ -11,10 +11,7 @@ const initialState: Constants.State = {
   hmrReloading: false,
 }
 
-export default function(
-  state: Constants.State = initialState,
-  action: Constants.Actions
-) {
+export default function(state: Constants.State = initialState, action: Constants.Actions) {
   if (action.type === CommonConstants.resetStore) {
     return {...initialState}
   }

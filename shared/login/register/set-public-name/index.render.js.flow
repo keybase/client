@@ -17,5 +17,4 @@ export type State = {
   deviceName: ?string,
 }
 
-declare export default class SetPublicName
-  extends Component<void, Props, void> {}
+declare export default class SetPublicName extends Component<void, Props, void> {}

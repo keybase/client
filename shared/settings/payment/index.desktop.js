@@ -9,9 +9,7 @@ function PaymentForm(props: Props) {
   return (
     <StandardScreen
       onBack={props.onBack}
-      notification={
-        props.errorMessage ? {message: props.errorMessage, type: 'error'} : null
-      }
+      notification={props.errorMessage ? {message: props.errorMessage, type: 'error'} : null}
     >
       <Input
         hintText="Card number"

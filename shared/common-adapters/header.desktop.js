@@ -9,9 +9,7 @@ class Header extends Component<DefaultProps, Props, void> {
   static defaultProps: DefaultProps
 
   renderDefault() {
-    const maybeWindowDraggingStyle = this.props.windowDragging
-      ? globalStyles.windowDragging
-      : {}
+    const maybeWindowDraggingStyle = this.props.windowDragging ? globalStyles.windowDragging : {}
     return (
       <div
         style={{
@@ -27,19 +25,13 @@ class Header extends Component<DefaultProps, Props, void> {
           {this.props.title}
         </Text>
         {this.props.onClose &&
-          <Icon
-            style={styles.closeIcon}
-            type="iconfont-close"
-            onClick={this.props.onClose}
-          />}
+          <Icon style={styles.closeIcon} type="iconfont-close" onClick={this.props.onClose} />}
       </div>
     )
   }
 
   renderStrong() {
-    const maybeWindowDraggingStyle = this.props.windowDragging
-      ? globalStyles.windowDragging
-      : {}
+    const maybeWindowDraggingStyle = this.props.windowDragging ? globalStyles.windowDragging : {}
     return (
       <div
         style={{
@@ -64,11 +56,7 @@ class Header extends Component<DefaultProps, Props, void> {
           </Text>}
         {this.props.children}
         {this.props.onClose &&
-          <Icon
-            style={styles.closeIcon}
-            type="iconfont-close"
-            onClick={this.props.onClose}
-          />}
+          <Icon style={styles.closeIcon} type="iconfont-close" onClick={this.props.onClose} />}
       </div>
     )
   }

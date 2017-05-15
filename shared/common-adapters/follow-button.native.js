@@ -19,13 +19,7 @@ class FollowButton extends Component<void, Props, void> {
       )
     } else {
       return (
-        <Button
-          type="Follow"
-          label="Follow"
-          onClick={onFollow}
-          style={style}
-          {...otherProps}
-        />
+        <Button type="Follow" label="Follow" onClick={onFollow} style={style} {...otherProps} />
       )
     }
   }

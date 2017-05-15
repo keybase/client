@@ -20,9 +20,7 @@ export default connect(
   (state: TypedState, ownProps: OwnProps) => {
     const selectedLevel = ownProps.routeProps.selectedLevel
     const availablePlan: ?AvailablePlan = state.planBilling.availablePlans
-      ? state.planBilling.availablePlans.find(
-          plan => plan.planLevel === selectedLevel
-        )
+      ? state.planBilling.availablePlans.find(plan => plan.planLevel === selectedLevel)
       : null
     if (!availablePlan) {
       throw new Error(`Error loading plan, can't find ${selectedLevel}`)

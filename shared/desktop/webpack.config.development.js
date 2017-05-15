@@ -72,10 +72,7 @@ if (getenv.boolish('HOT', false)) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin())
 }
 
-config.plugins.push(
-  new webpack.NoErrorsPlugin(),
-  new webpack.DefinePlugin(defines)
-)
+config.plugins.push(new webpack.NoErrorsPlugin(), new webpack.DefinePlugin(defines))
 
 if (USING_DLL) {
   config.plugins.push(
@@ -89,8 +86,7 @@ if (USING_DLL) {
 if (getenv.boolish('HOT', false)) {
   config.entry.index = ['react-hot-loader/patch'].concat(config.entry.index)
 
-  const HMR =
-    'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr'
+  const HMR = 'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr'
 
   Object.keys(config.entry).forEach(k => {
     if (k !== 'main') {

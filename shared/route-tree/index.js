@@ -2,9 +2,7 @@
 import * as I from 'immutable'
 import type {Component} from 'react'
 import type {ConnectedComponent} from 'react-redux'
-import type {
-  ConnectedComponent as TypedConnectedComponent,
-} from '../util/typed-connect'
+import type {ConnectedComponent as TypedConnectedComponent} from '../util/typed-connect'
 
 type LeafTagsParams = {
   persistChildren: boolean, // Whether to persist children state when navigating to this route.
@@ -121,10 +119,7 @@ export class RouteStateNode extends _RouteStateNode {
     return this.children.get(name)
   }
 
-  updateChild(
-    name: string,
-    op: (node: ?RouteStateNode) => ?RouteStateNode
-  ): RouteStateNode {
+  updateChild(name: string, op: (node: ?RouteStateNode) => ?RouteStateNode): RouteStateNode {
     return this.updateIn(['children', name], op)
   }
 }
@@ -136,9 +131,7 @@ export class InvalidRouteError extends Error {}
 // make.
 type PathIterable<X> = I.IndexedSeq<X> | I.List<X> | Array<X>
 export type Path = PathIterable<string>
-export type PropsPath<P> = PathIterable<
-  string | {selected: string | null, props: P}
->
+export type PropsPath<P> = PathIterable<string | {selected: string | null, props: P}>
 type PathParam<P> = [] | Path | PropsPath<P> // Flow doesn't accept Path as a subtype of PropsPath, so be explicit here.
 type PathSetSpec<P> = I.IndexedIterable<{
   type: 'traverse' | 'navigate',
@@ -158,13 +151,9 @@ function _routeSet(
 ): RouteStateNode {
   const pathHead = pathSpec && pathSpec.first()
 
-  let newRouteState =
-    routeState || new RouteStateNode({selected: routeDef.defaultSelected})
+  let newRouteState = routeState || new RouteStateNode({selected: routeDef.defaultSelected})
   if (pathHead && pathHead.type === 'navigate') {
-    newRouteState = newRouteState.set(
-      'selected',
-      pathHead.next || routeDef.defaultSelected
-    )
+    newRouteState = newRouteState.set('selected', pathHead.next || routeDef.defaultSelected)
     if (pathHead.next === null && !routeDef.tags.persistChildren) {
       // Navigating to a route clears out the state of any children that may
       // have previously been displayed.
@@ -244,10 +233,7 @@ export function routeSetState(
   })
 }
 
-export function routeClear(
-  routeState: ?RouteStateNode,
-  path: Path
-): ?RouteStateNode {
+export function routeClear(routeState: ?RouteStateNode, path: Path): ?RouteStateNode {
   if (!routeState) {
     return null
   }
@@ -261,10 +247,7 @@ export function routeClear(
 }
 
 // Traverse a routeState, making sure it matches the routeDef and ends on a leaf component.
-export function checkRouteState(
-  routeDef: RouteDefNode,
-  routeState: ?RouteStateNode
-): ?string {
+export function checkRouteState(routeDef: RouteDefNode, routeState: ?RouteStateNode): ?string {
   let path = []
   let curDef = routeDef
   let curState = routeState
@@ -284,10 +267,7 @@ export function checkRouteState(
   }
 }
 
-export function getPath(
-  routeState: RouteStateNode,
-  parentPath?: Path
-): I.List<string> {
+export function getPath(routeState: RouteStateNode, parentPath?: Path): I.List<string> {
   const path = []
   let curState = routeState
 
@@ -308,10 +288,7 @@ export function getPath(
   return I.List(path)
 }
 
-export function getPathState(
-  routeState: RouteStateNode,
-  parentPath?: Path
-): ?I.Map<string, any> {
+export function getPathState(routeState: RouteStateNode, parentPath?: Path): ?I.Map<string, any> {
   const path = []
   let curState = routeState
 
@@ -331,8 +308,6 @@ export function getPathState(
   return curState ? curState.state : null
 }
 
-export function pathToString(
-  path: Array<string> | I.IndexedIterable<string>
-): string {
+export function pathToString(path: Array<string> | I.IndexedIterable<string>): string {
   return '/' + path.join('/')
 }

@@ -23,8 +23,7 @@ class Conversation extends Component<void, Props, State> {
 
   _onDrop = e => {
     const fileList = e.dataTransfer.files
-    if (!this.props.selectedConversationIDKey)
-      throw new Error('No conversation')
+    if (!this.props.selectedConversationIDKey) throw new Error('No conversation')
     const conversationIDKey = this.props.selectedConversationIDKey
     // FileList, not an array
     const inputs = Array.prototype.map.call(fileList, file => ({
@@ -52,8 +51,7 @@ class Conversation extends Component<void, Props, State> {
       this.setState({showDropOverlay: true})
     }).then(clipboardData => {
       this.setState({showDropOverlay: false})
-      if (!this.props.selectedConversationIDKey)
-        throw new Error('No conversation')
+      if (!this.props.selectedConversationIDKey) throw new Error('No conversation')
       if (clipboardData) {
         const {path, title} = clipboardData
         this.props.onAttach([
@@ -71,11 +69,7 @@ class Conversation extends Component<void, Props, State> {
   render() {
     const dropOverlay =
       this.state.showDropOverlay &&
-      <Box
-        style={dropOverlayStyle}
-        onDragLeave={this._onDragLeave}
-        onDrop={this._onDrop}
-      >
+      <Box style={dropOverlayStyle} onDragLeave={this._onDragLeave} onDrop={this._onDrop}>
         <Icon type="icon-file-dropping-48" />
       </Box>
 

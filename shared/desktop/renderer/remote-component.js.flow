@@ -1,12 +1,7 @@
 // @flow
 import {Component} from 'react'
 
-export type Components =
-  | 'tracker'
-  | 'menubar'
-  | 'unlockFolders'
-  | 'pinentry'
-  | 'purgeMessage'
+export type Components = 'tracker' | 'menubar' | 'unlockFolders' | 'pinentry' | 'purgeMessage'
 
 export type Props = {
   component: Components,

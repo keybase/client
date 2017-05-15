@@ -10,11 +10,7 @@ import type {AvatarSize} from './avatar'
 import type {Props} from './user-bio'
 
 class BioLoading
-  extends Component<
-    void,
-    {style: Object, avatarSize: AvatarSize, loading: boolean},
-    void
-  > {
+  extends Component<void, {style: Object, avatarSize: AvatarSize, loading: boolean}, void> {
   render() {
     return (
       <Box style={{position: 'absolute'}}>
@@ -78,14 +74,7 @@ class BioLoading
 
 class BioRender extends Component<void, Props, void> {
   render() {
-    const {
-      avatarSize,
-      username,
-      userInfo,
-      currentlyFollowing,
-      editFns,
-      loading,
-    } = this.props
+    const {avatarSize, username, userInfo, currentlyFollowing, editFns, loading} = this.props
     if (!userInfo) {
       return null
     }
@@ -93,10 +82,7 @@ class BioRender extends Component<void, Props, void> {
     const {followsYou} = userInfo
     const followLabel = shared.followLabel(userInfo, currentlyFollowing)
 
-    const trackerStateColors = stateColors(
-      this.props.currentlyFollowing,
-      this.props.trackerState
-    )
+    const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 
     let [bioLineClamp, locationLineClamp] = [{}, {}]
     if (this.props.type === 'Tracker') {
@@ -185,10 +171,7 @@ class BioRender extends Component<void, Props, void> {
               </Text>}
             {!editFns &&
               followLabel &&
-              <Text
-                type="BodySmall"
-                style={{...stylesFollowLabel, marginTop: 4}}
-              >
+              <Text type="BodySmall" style={{...stylesFollowLabel, marginTop: 4}}>
                 {followLabel}
               </Text>}
             {userInfo.followersCount !== -1 &&
@@ -209,10 +192,7 @@ class BioRender extends Component<void, Props, void> {
                   onClick={() => this.props.onClickFollowing(username)}
                 >
                   Following&nbsp;
-                  <Text
-                    type="BodySmallSecondaryLink"
-                    style={{...globalStyles.fontBold}}
-                  >
+                  <Text type="BodySmallSecondaryLink" style={{...globalStyles.fontBold}}>
                     {userInfo.followingCount}
                   </Text>
                 </Text>

@@ -7,5 +7,4 @@ export type Props = {
   type?: 'Small' | 'Large',
 }
 
-declare export default class ProgressIndicator
-  extends Component<void, Props, void> {}
+declare export default class ProgressIndicator extends Component<void, Props, void> {}

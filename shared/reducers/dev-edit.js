@@ -3,11 +3,7 @@ import {Iterable} from 'immutable'
 import type {State} from '../constants/reducer'
 import type {Action} from '../constants/types/flux'
 
-function updateInKeypath(
-  map: any,
-  keyPath: Array<String | number>,
-  v: any
-): any {
+function updateInKeypath(map: any, keyPath: Array<String | number>, v: any): any {
   const frontKey = keyPath[0]
   var copy: any
   if (keyPath.length === 1) {

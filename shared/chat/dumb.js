@@ -1,10 +1,5 @@
 // @flow
-import {
-  BrokenTrackerBanner,
-  ErrorBanner,
-  InviteBanner,
-  InfoBanner,
-} from './conversation/banner'
+import {BrokenTrackerBanner, ErrorBanner, InviteBanner, InfoBanner} from './conversation/banner'
 import ConversationHeader from './conversation/header'
 import ConversationInput from './conversation/input'
 import ConversationList from './conversation/list'
@@ -13,12 +8,7 @@ import HiddenString from '../util/hidden-string'
 import Inbox from './inbox/container'
 import ParticipantRekey from './conversation/rekey/participant-rekey'
 import YouRekey from './conversation/rekey/you-rekey'
-import {
-  InboxStateRecord,
-  MetaDataRecord,
-  RekeyInfoRecord,
-  StateRecord,
-} from '../constants/chat'
+import {InboxStateRecord, MetaDataRecord, RekeyInfoRecord, StateRecord} from '../constants/chat'
 import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 import {RouteStateNode} from '../route-tree'
@@ -188,11 +178,7 @@ const conversationUnreadCounts = {
   convo7: 1,
 }
 
-const commonConversationsProps = ({
-  selected,
-  inbox: _inbox,
-  rekeyInfos,
-}: any) => ({
+const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) => ({
   mockStore: {
     chat: new StateRecord({
       conversationUnreadCounts: Map(conversationUnreadCounts),
@@ -221,8 +207,7 @@ const commonConversationsProps = ({
   },
   loadInbox: () => {},
   onNewChat: () => console.log('new chat'),
-  onSelectConversation: (key: ConversationIDKey) =>
-    console.log('selected', key),
+  onSelectConversation: (key: ConversationIDKey) => console.log('selected', key),
 })
 
 const emptyConversationsProps = {
@@ -309,9 +294,7 @@ const participantRekey = {
         console.log(user, 'clicked')
       },
       parentProps: listParentProps,
-      rekeyInfo: rekeyConvo(null, false).mockStore.chat.rekeyInfos.get(
-        'convo3'
-      ),
+      rekeyInfo: rekeyConvo(null, false).mockStore.chat.rekeyInfos.get('convo3'),
     },
   },
 }
@@ -325,9 +308,7 @@ const youRekey = {
         console.log('Reykey clicked')
       },
       parentProps: listParentProps,
-      rekeyInfo: rekeyConvo(null, false).mockStore.chat.rekeyInfos.get(
-        'convo3'
-      ),
+      rekeyInfo: rekeyConvo(null, false).mockStore.chat.rekeyInfos.get('convo3'),
     },
   },
 }

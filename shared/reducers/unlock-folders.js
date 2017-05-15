@@ -81,13 +81,11 @@ export default function(
       }
     case Constants.newRekeyPopup:
       if (state.started && action.payload) {
-        const devices = action.payload.devices.map(
-          ({name, type, deviceID}) => ({
-            deviceID,
-            name,
-            type: toDeviceType(type),
-          })
-        )
+        const devices = action.payload.devices.map(({name, type, deviceID}) => ({
+          deviceID,
+          name,
+          type: toDeviceType(type),
+        }))
 
         return {
           ...state,

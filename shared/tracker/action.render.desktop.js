@@ -6,8 +6,7 @@ import {normal} from '../constants/tracker'
 
 import type {ActionProps} from './action.render'
 
-export default class ActionRender
-  extends PureComponent<void, ActionProps, void> {
+export default class ActionRender extends PureComponent<void, ActionProps, void> {
   render() {
     const {loggedIn} = this.props
 
@@ -35,10 +34,7 @@ export default class ActionRender
   renderLoggedOut() {
     return (
       <div style={styleLoggedOutContainer}>
-        <Icon
-          type="icon-terminal-32"
-          style={{marginBottom: -5, marginTop: -5}}
-        />
+        <Icon type="icon-terminal-32" style={{marginBottom: -5, marginTop: -5}} />
         <div style={{textAlign: 'center'}}>
           <Text type="TerminalInline">keybase login</Text>
           <Text type="Body"> or </Text>

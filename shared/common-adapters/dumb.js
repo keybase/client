@@ -176,10 +176,7 @@ const terminalMap: DumbComponentMap<Box> = {
   mocks: {
     Terminal: {
       children: [
-        <Box
-          key="a"
-          style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}
-        >
+        <Box key="a" style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}>
           <Text type="Body">
             <Text type="Body">Word word </Text>
             <Text type="TerminalInline">inline command line </Text>
@@ -187,10 +184,7 @@ const terminalMap: DumbComponentMap<Box> = {
             <Text type="TerminalInline">inline command line</Text>
           </Text>
         </Box>,
-        <Terminal
-          key="b"
-          style={{flex: 1, ...(isMobile ? {} : {overflow: 'scroll'})}}
-        >
+        <Terminal key="b" style={{flex: 1, ...(isMobile ? {} : {overflow: 'scroll'})}}>
           <Text type="Terminal">command line thing</Text>
           <Text type="TerminalComment"># comment</Text>
           <Text type="Terminal">command line thing</Text>
@@ -829,11 +823,7 @@ const listItemMap: DumbComponentMap<ListItem> = {
       ),
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       action: (
-        <Text
-          style={{color: globalColors.red}}
-          type={'BodySmall'}
-          onClick={() => {}}
-        >
+        <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>
           Action Jack
         </Text>
       ),
@@ -868,11 +858,7 @@ const listItemMap: DumbComponentMap<ListItem> = {
       ),
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       action: (
-        <Text
-          style={{color: globalColors.red}}
-          type={'BodySmall'}
-          onClick={() => {}}
-        >
+        <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>
           Action Jack
         </Text>
       ),

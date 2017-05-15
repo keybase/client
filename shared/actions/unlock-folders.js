@@ -11,11 +11,7 @@ import type {
   RegisterRekeyListenerAction,
   NewRekeyPopupAction,
 } from '../constants/unlock-folders'
-import type {
-  TypedAsyncAction,
-  AsyncAction,
-  Dispatch,
-} from '../constants/types/flux'
+import type {TypedAsyncAction, AsyncAction, Dispatch} from '../constants/types/flux'
 import {
   delegateUiCtlRegisterRekeyUIRpc,
   loginPaperKeySubmitRpc,
@@ -35,9 +31,7 @@ function waiting(currentlyWaiting: boolean): Waiting {
   return {type: Constants.waiting, payload: currentlyWaiting}
 }
 
-export function checkPaperKey(
-  paperKey: HiddenString
-): TypedAsyncAction<CheckPaperKey | Waiting> {
+export function checkPaperKey(paperKey: HiddenString): TypedAsyncAction<CheckPaperKey | Waiting> {
   return dispatch => {
     loginPaperKeySubmitRpc({
       param: {paperPhrase: paperKey.stringValue()},
@@ -93,9 +87,8 @@ export function registerRekeyListener(): (dispatch: Dispatch) => void {
     })
 
     // we get this with sessionID == 0 if we call openDialog
-    engine().setIncomingHandler(
-      'keybase.1.rekeyUI.refresh',
-      (params, response) => refreshHandler(params, response, dispatch)
+    engine().setIncomingHandler('keybase.1.rekeyUI.refresh', (params, response) =>
+      refreshHandler(params, response, dispatch)
     )
 
     // else we get this also as part of delegateRekeyUI

@@ -4,12 +4,7 @@ import Text from './text'
 import {StyleSheet} from 'react-native'
 import BackButton from './back-button'
 import Box from './box'
-import {
-  globalStyles,
-  globalColors,
-  globalMargins,
-  statusBarHeight,
-} from '../styles'
+import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
 
 import type {Props} from './header-hoc'
 
@@ -25,11 +20,7 @@ function HeaderHoc<P>(WrappedComponent: ReactClass<P>) {
             Cancel
           </Text>}
         {onBack &&
-          <BackButton
-            iconStyle={_backButtonIconStyle}
-            style={_buttonStyle}
-            onClick={onBack}
-          />}
+          <BackButton iconStyle={_backButtonIconStyle} style={_buttonStyle} onClick={onBack} />}
       </Box>
       <WrappedComponent {...restProps} onBack={onBack} onCancel={onCancel} />
     </Box>

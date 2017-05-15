@@ -101,13 +101,7 @@ class Icon extends Component<void, Exact<Props>, void> {
   }
 }
 
-const imgName = (
-  type: IconType,
-  ext: string,
-  mult: number,
-  prefix: ?string,
-  postfix: ?string
-) =>
+const imgName = (type: IconType, ext: string, mult: number, prefix: ?string, postfix: ?string) =>
   `${prefix || ''}${resolveImageAsURL('icons', type)}${mult > 1 ? `@${mult}x` : ''}.${ext}${postfix || ''} ${mult}x`
 
 function iconTypeToSrcSet(type: IconType) {
@@ -117,16 +111,11 @@ function iconTypeToSrcSet(type: IconType) {
 
 export function iconTypeToImgSet(type: IconType) {
   const ext = shared.typeExtension(type)
-  const imgs = [1, 2]
-    .map(mult => `url${imgName(type, ext, mult, "('", "')")}`)
-    .join(', ')
+  const imgs = [1, 2].map(mult => `url${imgName(type, ext, mult, "('", "')")}`).join(', ')
   return `-webkit-image-set(${imgs})`
 }
 
-export function urlsToImgSet(
-  imgMap: {[size: string]: string},
-  targetSize: number
-): any {
+export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
   const sizes = Object.keys(imgMap)
 
   if (!sizes.length) {

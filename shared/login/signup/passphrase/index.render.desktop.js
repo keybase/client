@@ -7,16 +7,11 @@ import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
 class PassphraseRender extends Component<void, Props, void> {
   render() {
-    const passphraseError =
-      this.props.passphraseError && this.props.passphraseError.stringValue()
+    const passphraseError = this.props.passphraseError && this.props.passphraseError.stringValue()
 
     let confirmInput
     return (
-      <Container
-        onBack={this.props.onBack}
-        style={stylesContainer}
-        outerStyle={stylesOuter}
-      >
+      <Container onBack={this.props.onBack} style={stylesContainer} outerStyle={stylesOuter}>
         <UserCard style={stylesCard}>
           <Input
             autoFocus={true}

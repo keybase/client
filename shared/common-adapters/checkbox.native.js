@@ -51,9 +51,7 @@ class Checkbox extends Component<void, Props, State> {
       ...(this.props.disabled ? {} : globalStyles.clickable),
       opacity: this.props.disabled ? 0.4 : 1,
     }
-    const onClick = this.props.disabled
-      ? undefined
-      : () => this.props.onCheck(!this.props.checked)
+    const onClick = this.props.disabled ? undefined : () => this.props.onCheck(!this.props.checked)
 
     const animatedColor = this.state.left.interpolate({
       inputRange: [0, checkedOffset],
@@ -61,27 +59,19 @@ class Checkbox extends Component<void, Props, State> {
     })
 
     const outerOverride = {
-      ...(!this.props.checked && this.props.disabled
-        ? {borderColor: globalColors.black_10}
-        : {}),
+      ...(!this.props.checked && this.props.disabled ? {borderColor: globalColors.black_10} : {}),
       backgroundColor: animatedColor,
     }
 
     const innerOverride = {
-      ...(!this.props.checked && this.props.disabled
-        ? {borderColor: globalColors.black_10}
-        : {}),
+      ...(!this.props.checked && this.props.disabled ? {borderColor: globalColors.black_10} : {}),
     }
 
     return (
       <NativeTouchableWithoutFeedback onPressIn={onClick} delayPressIn={0}>
-        <Box
-          style={{...styleContainer, ...containerStyle, ...this.props.style}}
-        >
+        <Box style={{...styleContainer, ...containerStyle, ...this.props.style}}>
           <NativeAnimated.View style={{...styleOuter, ...outerOverride}}>
-            <NativeAnimated.View
-              style={{...styleInner, ...innerOverride, left: this.state.left}}
-            />
+            <NativeAnimated.View style={{...styleInner, ...innerOverride, left: this.state.left}} />
           </NativeAnimated.View>
           <Text type="Body" small={true} style={styleText}>
             {this.props.label}

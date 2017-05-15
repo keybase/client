@@ -27,7 +27,7 @@
     "local-visdiff": "yarn run _helper local-visdiff",
     "package": "yarn run _helper package --",
     "postinstall": "yarn run _helper postinstall",
-    "prettier": "prettier --single-quote --trailing-comma es5 --tab-width 2 --no-bracket-spacing --parser flow --no-semi",
+    "prettier": "prettier --single-quote --trailing-comma es5 --tab-width 2 --no-bracket-spacing --parser flow --no-semi --print-width 100",
     "prettier-check": "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier -- --debug-check",
     "prettier-write-all": "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier -- --write",
     "render-screenshots": "yarn run _helper render-screenshots",

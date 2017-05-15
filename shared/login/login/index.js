@@ -53,8 +53,7 @@ export default connect(
   (state: TypedState) => {
     const users = (state.login.configuredAccounts &&
       state.login.configuredAccounts.map(c => c.username)) || []
-    let lastUser =
-      state.config.extendedConfig && state.config.extendedConfig.defaultUsername
+    let lastUser = state.config.extendedConfig && state.config.extendedConfig.defaultUsername
 
     if (users.indexOf(lastUser) === -1 && users.length) {
       lastUser = users[0]

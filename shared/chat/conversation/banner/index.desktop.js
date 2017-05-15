@@ -44,19 +44,13 @@ const Header = ({children, title, style}) => (
   </CommonHeader>
 )
 
-const BannerText = props => (
-  <Text type="BodySemibold" backgroundMode="Announcements" {...props} />
-)
+const BannerText = props => <Text type="BodySemibold" backgroundMode="Announcements" {...props} />
 
 const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
   users.length === 1
     ? <Header style={globalStyles.flexBoxRow}>
         <BannerText style={brokenStyle}>Some of&nbsp;</BannerText>
-        <BannerText
-          type="BodySemiboldLink"
-          style={brokenStyle}
-          onClick={() => onClick(users[0])}
-        >
+        <BannerText type="BodySemiboldLink" style={brokenStyle} onClick={() => onClick(users[0])}>
           {users[0]}
         </BannerText>
         <BannerText style={brokenStyle}>
@@ -87,11 +81,7 @@ const ErrorBanner = ({text, textLink, textLinkOnClick}: ErrorProps) => (
     <BannerText style={{flex: 1, ...globalStyles.flexBoxCenter}}>
       {text}
     </BannerText>
-    <BannerText
-      type="BodySemiboldLink"
-      onClick={textLinkOnClick}
-      style={{textAlign: 'center'}}
-    >
+    <BannerText type="BodySemiboldLink" onClick={textLinkOnClick} style={{textAlign: 'center'}}>
       {textLink}
     </BannerText>
   </Header>

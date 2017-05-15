@@ -18,9 +18,7 @@ import type {Props} from '.'
 const _Contents = (props: Props) => (
   <NativeScrollView style={{flex: 1, width: '100%'}}>
     <Divider style={{marginTop: 20}} />
-    <Box
-      style={{...globalStyles.flexBoxRow, width: '100%', alignItems: 'stretch'}}
-    >
+    <Box style={{...globalStyles.flexBoxRow, width: '100%', alignItems: 'stretch'}}>
       <Participants
         participants={props.participants}
         onAddParticipant={props.onAddParticipant}
@@ -39,10 +37,7 @@ const _Contents = (props: Props) => (
         onCheck={checked => props.onMuteConversation(checked)}
         label="Mute notifications"
       />
-      <Icon
-        type="icon-shh-active-16"
-        style={{marginLeft: globalMargins.tiny}}
-      />
+      <Icon type="icon-shh-active-16" style={{marginLeft: globalMargins.tiny}} />
     </Box>
 
     <Box style={{...globalStyles.flexBoxRow}}>

@@ -32,13 +32,8 @@ export default function(
       // App quiting will call ctl stop, which will stop the service
       // remote.app.quit()
     },
-    'keybase.1.NotifySession.clientOutOfDate': ({
-      upgradeTo,
-      upgradeURI,
-      upgradeMsg,
-    }) => {
-      const body =
-        upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
+    'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => {
+      const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
       notify('Client out of date!', {body}, 60 * 60)
     },
     'keybase.1.logsend.prepareLogsend': (_, response) => {

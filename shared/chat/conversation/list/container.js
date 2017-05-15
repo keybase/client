@@ -17,16 +17,11 @@ import type {TypedState} from '../../../constants/reducer'
 // TODO change this. This is a temporary store for the messages so we can have a function to map from
 // messageKey to Message to support the 'edit last message' functionality. We should change how this works
 let _messages: List<Constants.Message> = List()
-const _getMessageFromMessageKey = (
-  messageKey: Constants.MessageKey
-): ?Constants.Message => _messages.find(m => m.key === messageKey)
+const _getMessageFromMessageKey = (messageKey: Constants.MessageKey): ?Constants.Message =>
+  _messages.find(m => m.key === messageKey)
 
 const getPropsFromConversationState = createSelector(
-  [
-    Constants.getSelectedConversationStates,
-    Constants.getSelectedInbox,
-    Constants.getSupersedes,
-  ],
+  [Constants.getSelectedConversationStates, Constants.getSelectedInbox, Constants.getSupersedes],
   (conversationState, inbox, _supersedes) => {
     let supersedes = null
     let messageKeys = List()
@@ -68,16 +63,11 @@ const mapStateToProps = (
     selectedConversationIDKey &&
     Constants.isPendingConversationIDKey(selectedConversationIDKey)
   ) {
-    const tlfName = Constants.pendingConversationIDKeyToTlfName(
-      selectedConversationIDKey
-    )
+    const tlfName = Constants.pendingConversationIDKeyToTlfName(selectedConversationIDKey)
     if (tlfName) {
       validated = true
     }
-  } else if (
-    selectedConversationIDKey &&
-    selectedConversationIDKey !== Constants.nothingSelected
-  ) {
+  } else if (selectedConversationIDKey && selectedConversationIDKey !== Constants.nothingSelected) {
     const temp = getPropsFromConversationState(state)
     supersedes = temp.supersedes
     if (temp.messageKeys.equals(_lastMessageKeys)) {
@@ -121,10 +111,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
     dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
 })
 
-const mergeProps = (
-  stateProps: StateProps,
-  dispatchProps: DispatchProps
-): Props => {
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => {
   let messageKeysWithHeaders = stateProps.messageKeys
   const selected = stateProps.selectedConversation
   if (selected) {
@@ -146,10 +133,7 @@ const mergeProps = (
     onFocusInput: stateProps.onFocusInput,
     onDownloadAttachment: messageID => {
       stateProps.selectedConversation &&
-        dispatchProps._onDownloadAttachment(
-          stateProps.selectedConversation,
-          messageID
-        )
+        dispatchProps._onDownloadAttachment(stateProps.selectedConversation, messageID)
     },
     onLoadMoreMessages: () => {
       stateProps.selectedConversation &&
@@ -163,6 +147,4 @@ const mergeProps = (
   }
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps)
-)(ListComponent)
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(ListComponent)

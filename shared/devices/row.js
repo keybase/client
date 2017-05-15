@@ -41,8 +41,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
   ...ownProps,
-  showExistingDevicePage: () =>
-    dispatchProps.showExistingDevicePage(ownProps.deviceID),
+  showExistingDevicePage: () => dispatchProps.showExistingDevicePage(ownProps.deviceID),
 })
 
 const RowConnector = connect(mapStateToProps, mapDispatchToProps, mergeProps)

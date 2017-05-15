@@ -35,8 +35,7 @@ function pad(s, num) {
   return s
 }
 
-const nodeCmd =
-  'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types'
+const nodeCmd = 'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types'
 
 const commands = {
   'apply-new-fonts': {
@@ -84,15 +83,10 @@ const commands = {
   },
   help: {
     code: () => {
-      const len =
-        Object.keys(commands).reduce((acc, i) => Math.max(i.length, acc), 1) + 2
+      const len = Object.keys(commands).reduce((acc, i) => Math.max(i.length, acc), 1) + 2
       console.log(
         Object.keys(commands)
-          .map(
-            c =>
-              commands[c].help &&
-              `yarn run ${pad(c + ': ', len)}${commands[c].help || ''}`
-          )
+          .map(c => commands[c].help && `yarn run ${pad(c + ': ', len)}${commands[c].help || ''}`)
           .filter(c => !!c)
           .join('\n')
       )
@@ -286,9 +280,7 @@ function undiff() {
         try {
           deepdiff.applyChange(store, store, diff)
         } catch (err) {
-          console.log(
-            `Tried to apply change: ${diff} but failed, trying to continue. ${err}`
-          )
+          console.log(`Tried to apply change: ${diff} but failed, trying to continue. ${err}`)
         }
       })
     return store
@@ -351,10 +343,7 @@ function generateIcoMoon() {
   const svgPaths = {}
   // Need to get the svg info from iconmoon. Couldn't figure out how to derive exactly what they need from the files themselves
   JSON.parse(
-    fs.readFileSync(
-      path.join(__dirname, '../images/iconfont/kb-icomoon-project-app.json'),
-      'utf8'
-    )
+    fs.readFileSync(path.join(__dirname, '../images/iconfont/kb-icomoon-project-app.json'), 'utf8')
   ).icons.forEach(icon => {
     svgPaths[icon.tags[0]] = icon.paths
   })
@@ -449,10 +438,7 @@ function generateIcoMoon() {
   }
 
   fs.writeFileSync(
-    path.join(
-      __dirname,
-      '../images/iconfont/kb-icomoon-project-generated.json'
-    ),
+    path.join(__dirname, '../images/iconfont/kb-icomoon-project-generated.json'),
     JSON.stringify(write, null, 4),
     'utf8'
   )

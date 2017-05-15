@@ -31,13 +31,7 @@ class ServiceIcon extends Component<void, ServiceIconProps, ServiceIconState> {
   }
 
   render() {
-    const {
-      serviceName,
-      tooltip,
-      iconType,
-      selected,
-      onClickService,
-    } = this.props
+    const {serviceName, tooltip, iconType, selected, onClickService} = this.props
     return (
       <Box
         style={{
@@ -80,9 +74,7 @@ class SearchBar extends Component<void, Props, State> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (
-      this.props.searchTextClearTrigger !== nextProps.searchTextClearTrigger
-    ) {
+    if (this.props.searchTextClearTrigger !== nextProps.searchTextClearTrigger) {
       this._clear()
     }
   }
@@ -117,14 +109,7 @@ class SearchBar extends Component<void, Props, State> {
   }
 
   render() {
-    const services = [
-      'Keybase',
-      'Twitter',
-      'Facebook',
-      'Github',
-      'Reddit',
-      'Hackernews',
-    ]
+    const services = ['Keybase', 'Twitter', 'Facebook', 'Github', 'Reddit', 'Hackernews']
     const tooltips: {[key: string]: ?string} = {Hackernews: 'Hacker News'}
 
     return (

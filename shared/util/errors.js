@@ -28,10 +28,6 @@ export function convertToError(err: Object): Error {
   return new Error(`Unknown error: ${JSON.stringify(err)}`)
 }
 
-export function convertToRPCError(err: {
-  code: number,
-  desc: string,
-  fields?: any,
-}): RPCError {
+export function convertToRPCError(err: {code: number, desc: string, fields?: any}): RPCError {
   return new RPCError(err.desc, err.code, err.fields)
 }

@@ -42,15 +42,11 @@ import type {
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
-function onChangeNewPassphrase(
-  passphrase: HiddenString
-): OnChangeNewPassphrase {
+function onChangeNewPassphrase(passphrase: HiddenString): OnChangeNewPassphrase {
   return {type: Constants.onChangeNewPassphrase, payload: {passphrase}}
 }
 
-function onChangeNewPassphraseConfirm(
-  passphrase: HiddenString
-): OnChangeNewPassphraseConfirm {
+function onChangeNewPassphraseConfirm(passphrase: HiddenString): OnChangeNewPassphraseConfirm {
   return {type: Constants.onChangeNewPassphraseConfirm, payload: {passphrase}}
 }
 
@@ -127,8 +123,7 @@ function* _onSubmitNewEmail(): SagaGenerator<any, any> {
   try {
     yield put(Constants.waiting(true))
 
-    const newEmailSelector = ({settings: {email: {newEmail}}}: TypedState) =>
-      newEmail
+    const newEmailSelector = ({settings: {email: {newEmail}}}: TypedState) => newEmail
     const newEmail: string = (yield select(newEmailSelector): any)
     yield call(accountEmailChangeRpcPromise, {
       param: {
@@ -212,9 +207,7 @@ function* saveNotificationsSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* reclaimInviteSaga(
-  invitesReclaimAction: InvitesReclaim
-): SagaGenerator<any, any> {
+function* reclaimInviteSaga(invitesReclaimAction: InvitesReclaim): SagaGenerator<any, any> {
   const {inviteId} = invitesReclaimAction.payload
   try {
     yield call(apiserverPostRpcPromise, {
@@ -299,9 +292,7 @@ function* refreshInvitesSaga(): SagaGenerator<any, any> {
   })
 }
 
-function* sendInviteSaga(
-  invitesSendAction: InvitesSend
-): SagaGenerator<any, any> {
+function* sendInviteSaga(invitesSendAction: InvitesSend): SagaGenerator<any, any> {
   try {
     yield put(Constants.waiting(true))
 
@@ -409,18 +400,14 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
 
 function* deleteAccountForeverSaga(): SagaGenerator<any, any> {
   const username = yield select(state => state.config.username)
-  const allowDeleteAccount = yield select(
-    state => state.settings.allowDeleteAccount
-  )
+  const allowDeleteAccount = yield select(state => state.settings.allowDeleteAccount)
 
   if (!username) {
     throw new Error('Unable to delete account: no username set')
   }
 
   if (!allowDeleteAccount) {
-    throw new Error(
-      'Account deletion failsafe was not disengaged. This is a bug!'
-    )
+    throw new Error('Account deletion failsafe was not disengaged. This is a bug!')
   }
 
   yield call(loginAccountDeleteRpcPromise)

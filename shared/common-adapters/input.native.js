@@ -55,10 +55,8 @@ class Input extends Component<void, Props, State> {
       event.nativeEvent.contentSize.height
     ) {
       let height = event.nativeEvent.contentSize.height
-      const minHeight =
-        this.props.rowsMin && this._rowsToHeight(this.props.rowsMin)
-      const maxHeight =
-        this.props.rowsMax && this._rowsToHeight(this.props.rowsMax)
+      const minHeight = this.props.rowsMin && this._rowsToHeight(this.props.rowsMin)
+      const maxHeight = this.props.rowsMax && this._rowsToHeight(this.props.rowsMax)
       if (minHeight && height < minHeight) {
         height = minHeight
       } else if (maxHeight && height > maxHeight) {
@@ -192,9 +190,7 @@ class Input extends Component<void, Props, State> {
       paddingTop: 0,
       paddingBottom: 0,
       minHeight: this._rowsToHeight(this.props.rowsMin || defaultRowsToShow),
-      ...(this.props.rowsMax
-        ? {maxHeight: this._rowsToHeight(this.props.rowsMax)}
-        : null),
+      ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : null),
     }
 
     // Override height if we received an onContentSizeChange() earlier.
@@ -209,8 +205,7 @@ class Input extends Component<void, Props, State> {
         : this.props.hintText || ' ')
 
     const commonProps = {
-      autoCorrect: this.props.hasOwnProperty('autoCorrect') &&
-        this.props.autoCorrect,
+      autoCorrect: this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect,
       autoCapitalize: this.props.autoCapitalize || 'none',
       keyboardType: this.props.keyboardType,
       autoFocus: this.props.autoFocus,
@@ -270,20 +265,13 @@ class Input extends Component<void, Props, State> {
           </Text>}
         <Box
           style={
-            this.props.small
-              ? {flex: 1}
-              : {borderBottomWidth: 1, borderBottomColor: underlineColor}
+            this.props.small ? {flex: 1} : {borderBottomWidth: 1, borderBottomColor: underlineColor}
           }
         >
-          <NativeTextInput
-            {...(this.props.multiline ? multilineProps : singlelineProps)}
-          />
+          <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
         </Box>
         {!this.props.small &&
-          <Text
-            type="BodyError"
-            style={{..._errorStyle, ...this.props.errorStyle}}
-          >
+          <Text type="BodyError" style={{..._errorStyle, ...this.props.errorStyle}}>
             {this.props.errorText || ''}
           </Text>}
       </Box>

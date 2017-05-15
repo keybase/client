@@ -1,24 +1,11 @@
 // @flow
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {
-  Box,
-  Button,
-  Icon,
-  Input,
-  StandardScreen,
-  Text,
-} from '../../common-adapters'
+import {Box, Button, Icon, Input, StandardScreen, Text} from '../../common-adapters'
 
 import type {Props} from './index'
 
-function VerifiedText({
-  isVerified,
-  style,
-}: {
-  isVerified: boolean,
-  style?: Object,
-}) {
+function VerifiedText({isVerified, style}: {isVerified: boolean, style?: Object}) {
   const color = isVerified ? globalColors.green2 : globalColors.red
   return (
     <Box
@@ -67,9 +54,7 @@ class UpdateEmail extends Component<void, Props, State> {
   }
 
   render() {
-    const error = this.props.error
-      ? {message: this.props.error.message, type: 'error'}
-      : null
+    const error = this.props.error ? {message: this.props.error.message, type: 'error'} : null
     return (
       <StandardScreen onBack={this.props.onBack} notification={error}>
         <Input

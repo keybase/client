@@ -2,6 +2,5 @@
 import {Component} from 'react'
 import type {DumbComponentMap} from '../constants/types/more'
 
-export default class ErrorRender
-  extends Component<void, {currentPath: any}, void> {}
+export default class ErrorRender extends Component<void, {currentPath: any}, void> {}
 declare export var Mocks: DumbComponentMap<*>

@@ -41,17 +41,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Creators.loadAttachmentPreview(message)),
   _onOpenInFileUI: (path: string) =>
     dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
-  _onOpenInPopup: (
-    message: Constants.AttachmentMessage,
-    routePath: List<string>
-  ) => dispatch(Creators.openAttachmentPopup(message, routePath)),
+  _onOpenInPopup: (message: Constants.AttachmentMessage, routePath: List<string>) =>
+    dispatch(Creators.openAttachmentPopup(message, routePath)),
 })
 
-const mergeProps = (
-  stateProps,
-  dispatchProps,
-  {measure, onAction}: OwnProps
-) => ({
+const mergeProps = (stateProps, dispatchProps, {measure, onAction}: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
   measure,
@@ -87,9 +81,7 @@ export default compose(
       if (
         this.props.measure &&
         this.props.message.previewPath !== prevProps.message.previewPath &&
-        !shallowEqual(
-          this.props.message.previewSize !== prevProps.message.previewSize
-        )
+        !shallowEqual(this.props.message.previewSize !== prevProps.message.previewSize)
       ) {
         this.props.measure()
       }

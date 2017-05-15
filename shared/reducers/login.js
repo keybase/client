@@ -35,10 +35,7 @@ const initialState: Constants.State = {
   waitingForResponse: false,
 }
 
-export default function(
-  state: Constants.State = initialState,
-  action: any
-): Constants.State {
+export default function(state: Constants.State = initialState, action: any): Constants.State {
   let toMerge = null
 
   switch (action.type) {

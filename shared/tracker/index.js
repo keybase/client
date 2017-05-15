@@ -6,11 +6,7 @@ import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 import {isLoading} from '../constants/tracker'
 import {startConversation} from '../actions/chat'
-import {
-  onClickAvatar,
-  onClickFollowers,
-  onClickFollowing,
-} from '../actions/profile'
+import {onClickAvatar, onClickFollowers, onClickFollowing} from '../actions/profile'
 
 import type {ErrorProps} from './error'
 import type {Proof, SimpleProofState, UserInfo} from '../constants/tracker'
@@ -51,9 +47,7 @@ export type TrackerProps = {
   error: ?ErrorProps,
 }
 
-export function trackerPropsToRenderProps(
-  tprops: TrackerProps
-): RenderPropsUnshaped {
+export function trackerPropsToRenderProps(tprops: TrackerProps): RenderPropsUnshaped {
   return {...tprops}
 }
 
@@ -103,9 +97,7 @@ export default connect(
           actions.getProfile(ownProps.username, true)
         }),
       onChat: (username, myUsername) => {
-        username &&
-          myUsername &&
-          dispatch(startConversation([username, myUsername]))
+        username && myUsername && dispatch(startConversation([username, myUsername]))
       },
       onClickAvatar: username => {
         dispatch(onClickAvatar(username, true))

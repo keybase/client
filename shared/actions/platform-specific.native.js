@@ -1,12 +1,6 @@
 // @flow
 import * as PushNotifications from 'react-native-push-notification'
-import {
-  PushNotificationIOS,
-  CameraRoll,
-  ActionSheetIOS,
-  AsyncStorage,
-  Linking,
-} from 'react-native'
+import {PushNotificationIOS, CameraRoll, ActionSheetIOS, AsyncStorage, Linking} from 'react-native'
 import * as PushConstants from '../constants/push'
 import {eventChannel} from 'redux-saga'
 import {isIOS} from '../constants/platform'
@@ -201,9 +195,7 @@ function loadRouteState(): AsyncAction {
                 }
 
                 if (item.selectedConversationIDKey) {
-                  dispatch(
-                    setInitialConversation(item.selectedConversationIDKey)
-                  )
+                  dispatch(setInitialConversation(item.selectedConversationIDKey))
                 }
               } catch (_) {}
             }

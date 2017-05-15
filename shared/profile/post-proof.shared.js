@@ -154,10 +154,9 @@ export function propsForPlatform(props: Props): MoreProps {
     case 'http':
     case 'https':
       const root = `${props.platform}://${props.platformUserName}`
-      const [urlRoot, urlWellKnown] = [
-        '/keybase.txt',
-        '/.well-known/keybase.txt',
-      ].map(file => root + file)
+      const [urlRoot, urlWellKnown] = ['/keybase.txt', '/.well-known/keybase.txt'].map(
+        file => root + file
+      )
 
       return {
         ...base,

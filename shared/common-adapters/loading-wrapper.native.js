@@ -33,9 +33,7 @@ class LoadingWrapper extends Component<void, Props, State> {
 
     this.state.opacity.setValue(1)
     Animated.parallel(
-      [[this.state.opacity, 0]].map(([a, toValue]) =>
-        Animated.timing(a, {duration, toValue})
-      )
+      [[this.state.opacity, 0]].map(([a, toValue]) => Animated.timing(a, {duration, toValue}))
     ).start(({finished}) => finished && this.setState({loadingActive: false}))
   }
 

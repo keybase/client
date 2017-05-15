@@ -1,12 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {
-  Button,
-  Terminal,
-  Text,
-  StandardScreen,
-  Icon,
-} from '../../common-adapters'
+import {Button, Terminal, Text, StandardScreen, Icon} from '../../common-adapters'
 import {globalMargins} from '../../styles'
 import type {Props} from './prove-pgp-import'
 

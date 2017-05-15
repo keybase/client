@@ -12,11 +12,7 @@ export type CheckInviteCode = TypedAction<
 >
 
 export const startRequestInvite = 'signup:startRequestInvite'
-export type StartRequestInvite = TypedAction<
-  'signup:startRequestInvite',
-  {},
-  {}
->
+export type StartRequestInvite = TypedAction<'signup:startRequestInvite', {}, {}>
 
 export const requestInvite = 'signup:requestInvite'
 export type RequestInvite = TypedAction<
@@ -47,18 +43,10 @@ export type SubmitDeviceName = TypedAction<
 >
 
 export const signup = 'signup:signup'
-export type Signup = TypedAction<
-  'signup:signup',
-  {},
-  {signupError: HiddenString}
->
+export type Signup = TypedAction<'signup:signup', {}, {signupError: HiddenString}>
 
 export const showPaperKey = 'signup:showPaperKey'
-export type ShowPaperKey = TypedAction<
-  'signup:showPaperKey',
-  {paperkey: HiddenString},
-  {}
->
+export type ShowPaperKey = TypedAction<'signup:showPaperKey', {paperkey: HiddenString}, {}>
 
 export const showSuccess = 'signup:showSuccess'
 export type ShowSuccess = TypedAction<'signup:showSuccess', {}, {}>

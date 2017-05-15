@@ -11,9 +11,7 @@ import {usernameSelector} from '../../constants/selectors'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 
-function* deleteMessage(
-  action: Constants.DeleteMessage
-): SagaGenerator<any, any> {
+function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any> {
   const {message} = action.payload
   let messageID: ?Constants.MessageID
   let conversationIDKey: Constants.ConversationIDKey
@@ -37,10 +35,7 @@ function* deleteMessage(
       ChatTypes.CommonMessageType.delete,
       conversationIDKey
     )
-    const conversationState = yield select(
-      Shared.conversationStateSelector,
-      conversationIDKey
-    )
+    const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
     let lastMessageID
     if (conversationState) {
       const message = conversationState.messages.findLast(m => !!m.messageID)
@@ -62,8 +57,7 @@ function* deleteMessage(
     })
   } else {
     // Deleting a local outbox message.
-    if (message.messageState !== 'failed')
-      throw new Error('Tried to delete a non-failed message')
+    if (message.messageState !== 'failed') throw new Error('Tried to delete a non-failed message')
     const outboxID = message.outboxID
     if (!outboxID) throw new Error('No outboxID for pending message delete')
 
@@ -81,10 +75,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
 
   if (Constants.isPendingConversationIDKey(conversationIDKey)) {
     // Get a real conversationIDKey
-    conversationIDKey = yield call(
-      Shared.startNewConversation,
-      conversationIDKey
-    )
+    conversationIDKey = yield call(Shared.startNewConversation, conversationIDKey)
     if (!conversationIDKey) {
       return
     }
@@ -95,10 +86,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
     ChatTypes.CommonMessageType.text,
     conversationIDKey
   )
-  const conversationState = yield select(
-    Shared.conversationStateSelector,
-    conversationIDKey
-  )
+  const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
   let lastMessageID
   if (conversationState) {
     const message = conversationState.messages.findLast(m => !!m.messageID)
@@ -110,10 +98,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   const sent = yield call(ChatTypes.localPostLocalNonblockRpcPromise, {
     param: {
       conversationID: Constants.keyToConversationID(conversationIDKey),
-      identifyBehavior: yield call(
-        Shared.getPostingIdentifyBehavior,
-        conversationIDKey
-      ),
+      identifyBehavior: yield call(Shared.getPostingIdentifyBehavior, conversationIDKey),
       clientPrev: lastMessageID,
       msg: {
         clientHeader,
@@ -130,10 +115,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   const author = yield select(usernameSelector)
   if (sent && author) {
     const outboxID = Constants.outboxIDToKey(sent.outboxID)
-    const hasPendingFailure = yield select(
-      Shared.pendingFailureSelector,
-      outboxID
-    )
+    const hasPendingFailure = yield select(Shared.pendingFailureSelector, outboxID)
     const message: Constants.Message = {
       author,
       conversationIDKey: action.payload.conversationIDKey,
@@ -141,11 +123,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
       deviceType: isMobile ? 'mobile' : 'desktop',
       editedCount: 0,
       failureDescription: hasPendingFailure,
-      key: Constants.messageKey(
-        action.payload.conversationIDKey,
-        'outboxIDText',
-        outboxID
-      ),
+      key: Constants.messageKey(action.payload.conversationIDKey, 'outboxIDText', outboxID),
       message: new HiddenString(action.payload.text.stringValue()),
       messageState: hasPendingFailure ? 'failed' : 'pending',
       outboxID,
@@ -194,10 +172,7 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
     ChatTypes.CommonMessageType.edit,
     conversationIDKey
   )
-  const conversationState = yield select(
-    Shared.conversationStateSelector,
-    conversationIDKey
-  )
+  const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
   let lastMessageID
   if (conversationState) {
     const message = conversationState.messages.findLast(m => !!m.messageID)
@@ -223,17 +198,9 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   })
 }
 
-function* retryMessage(
-  action: Constants.RetryMessage
-): SagaGenerator<any, any> {
+function* retryMessage(action: Constants.RetryMessage): SagaGenerator<any, any> {
   const {conversationIDKey, outboxIDKey} = action.payload
-  yield put(
-    Creators.updateTempMessage(
-      conversationIDKey,
-      {messageState: 'pending'},
-      outboxIDKey
-    )
-  )
+  yield put(Creators.updateTempMessage(conversationIDKey, {messageState: 'pending'}, outboxIDKey))
   yield call(ChatTypes.localRetryPostRpcPromise, {
     param: {outboxID: Constants.keyToOutboxID(outboxIDKey)},
   })

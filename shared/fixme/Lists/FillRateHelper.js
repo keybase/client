@@ -60,9 +60,7 @@ class FillRateHelper {
   _fractionBlankSum = 0
   _samplesStartTime = 0
 
-  static addFillRateExceededListener(
-    callback: FillRateExceededInfo => void
-  ): {remove: () => void} {
+  static addFillRateExceededListener(callback: FillRateExceededInfo => void): {remove: () => void} {
     warning(
       _sampleRate !== null,
       'Call `FillRateHelper.setSampleRate` before `addFillRateExceededListener`.'
@@ -123,10 +121,7 @@ class FillRateHelper {
       first++
     }
     if (firstFrame) {
-      blankTop = Math.min(
-        visibleLength,
-        Math.max(0, firstFrame.offset - offset)
-      )
+      blankTop = Math.min(visibleLength, Math.max(0, firstFrame.offset - offset))
     }
     let blankBottom = 0
     let last = state.last
@@ -137,10 +132,7 @@ class FillRateHelper {
     }
     if (lastFrame) {
       const bottomEdge = lastFrame.offset + lastFrame.length
-      blankBottom = Math.min(
-        visibleLength,
-        Math.max(0, offset + visibleLength - bottomEdge)
-      )
+      blankBottom = Math.min(visibleLength, Math.max(0, offset + visibleLength - bottomEdge))
     }
     this._sampleCounts.all = (this._sampleCounts.all || 0) + 1
     this._sampleCounts[sampleType] = (this._sampleCounts[sampleType] || 0) + 1
@@ -168,11 +160,9 @@ class FillRateHelper {
         avg_blankness: this._fractionBlankSum / this._sampleCounts.all,
         min_speed_when_blank: this._anyBlankMinSpeed,
         avg_speed_when_blank: this._anyBlankSpeedSum / this._anyBlankCount,
-        avg_blankness_when_any_blank: this._fractionBlankSum /
-          this._anyBlankCount,
+        avg_blankness_when_any_blank: this._fractionBlankSum / this._anyBlankCount,
         fraction_any_blank: this._anyBlankCount / this._sampleCounts.all,
-        all_samples_timespan_sec: (performanceNow() - this._samplesStartTime) /
-          1000.0,
+        all_samples_timespan_sec: (performanceNow() - this._samplesStartTime) / 1000.0,
         fill_rate_sample_counts: {...this._sampleCounts},
         compute_time: performanceNow() - start,
       }

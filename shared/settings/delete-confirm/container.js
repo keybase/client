@@ -4,10 +4,7 @@ import {TypedConnector} from '../../util/typed-connect'
 import {navigateUp} from '../../actions/route-tree'
 import {HOCTimers} from '../../common-adapters'
 import DeleteConfirm from './index'
-import {
-  setAllowDeleteAccount,
-  deleteAccountForever,
-} from '../../actions/settings'
+import {setAllowDeleteAccount, deleteAccountForever} from '../../actions/settings'
 
 import type {TypedDispatch} from '../../constants/types/flux'
 import type {TypedState} from '../../constants/reducer'
@@ -34,12 +31,7 @@ class DeleteConfirmContainer extends Component<void, Props & TimerProps, void> {
   }
 }
 
-const connector: TypedConnector<
-  TypedState,
-  TypedDispatch<{}>,
-  {},
-  Props
-> = new TypedConnector()
+const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
 
 export default connector.connect((state, dispatch, ownProps) => {
   if (!state.config.username) {

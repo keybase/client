@@ -7,8 +7,7 @@ export function autoResize() {
   // This only works when I delay a frame, unclear what the solution is but this seems fine for now
   setTimeout(() => {
     try {
-      const element = window.document.getElementById('RemoteComponentRoot')
-        .firstChild
+      const element = window.document.getElementById('RemoteComponentRoot').firstChild
       const browserWindow = remote.getCurrentWindow()
       if (
         element &&
@@ -44,10 +43,7 @@ export function autoResize() {
         if (left < 0) {
           done() // meh, just do it
         } else {
-          setTimeout(
-            () => getStableHeight(element, left - 1, delay, done),
-            delay
-          )
+          setTimeout(() => getStableHeight(element, left - 1, delay, done), delay)
         }
       }
     }

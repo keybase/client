@@ -1,13 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {globalMargins} from '../../styles'
-import {
-  Button,
-  Checkbox,
-  Input,
-  StandardScreen,
-  Text,
-} from '../../common-adapters'
+import {Button, Checkbox, Input, StandardScreen, Text} from '../../common-adapters'
 import HiddenString from '../../util/hidden-string'
 
 import type {Props} from './index'
@@ -86,14 +80,12 @@ class UpdatePassphrase extends Component<void, Props, State> {
           value={this.state.passphraseConfirm.stringValue()}
           type={inputType}
           errorText={this.props.newPassphraseConfirmError}
-          onChangeText={passphrase =>
-            this._handlePassphraseConfirmChange(passphrase)}
+          onChangeText={passphrase => this._handlePassphraseConfirmChange(passphrase)}
           style={styleInput}
         />
         <Checkbox
           label="Show typing"
-          onCheck={showTyping =>
-            this.setState({showTyping: !this.state.showTyping})}
+          onCheck={showTyping => this.setState({showTyping: !this.state.showTyping})}
           checked={this.state.showTyping}
           style={{marginBottom: globalMargins.medium}}
         />
@@ -101,11 +93,7 @@ class UpdatePassphrase extends Component<void, Props, State> {
           type="Primary"
           label="Save"
           disabled={!this.state.canSave}
-          onClick={() =>
-            this.props.onSave(
-              this.state.passphrase,
-              this.state.passphraseConfirm
-            )}
+          onClick={() => this.props.onSave(this.state.passphrase, this.state.passphraseConfirm)}
           waiting={this.props.waitingForResponse}
         />
       </StandardScreen>

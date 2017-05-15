@@ -12,11 +12,7 @@ import type {AvatarSize} from './avatar'
 import type {Props} from './user-bio'
 
 class BioLoading
-  extends Component<
-    void,
-    {style: Object, avatarSize: AvatarSize, loading: boolean},
-    void
-  > {
+  extends Component<void, {style: Object, avatarSize: AvatarSize, loading: boolean}, void> {
   render() {
     const {avatarSize, loading} = this.props
 
@@ -77,22 +73,11 @@ class BioLoading
 
 class BioRender extends Component<void, Props, void> {
   render() {
-    const {
-      avatarSize,
-      currentlyFollowing,
-      editFns,
-      loading,
-      userInfo,
-      username,
-    } = this.props
+    const {avatarSize, currentlyFollowing, editFns, loading, userInfo, username} = this.props
     if (loading) {
       return (
         <Box style={{...stylesContainer, ...this.props.style}}>
-          <BioLoading
-            loading={loading}
-            style={this.props.style}
-            avatarSize={avatarSize}
-          />
+          <BioLoading loading={loading} style={this.props.style} avatarSize={avatarSize} />
         </Box>
       )
     }
@@ -103,10 +88,7 @@ class BioRender extends Component<void, Props, void> {
 
     const {followsYou} = userInfo
     const followLabel = shared.followLabel(userInfo, currentlyFollowing)
-    const trackerStateColors = stateColors(
-      this.props.currentlyFollowing,
-      this.props.trackerState
-    )
+    const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 
     let [bioLineClamp, locationLineClamp] = [{}, {}]
     if (this.props.type === 'Tracker') {
@@ -116,19 +98,12 @@ class BioRender extends Component<void, Props, void> {
 
     return (
       <Box style={{...stylesContainer, ...this.props.style}}>
-        <Box
-          style={stylesHeaderBar(
-            avatarSize,
-            trackerStateColors.header.background
-          )}
-        />
+        <Box style={stylesHeaderBar(avatarSize, trackerStateColors.header.background)} />
         <Box style={stylesAvatarWrapper(avatarSize)}>
           <Avatar
             style={stylesAvatar}
             onClick={() =>
-              editFns
-                ? editFns.onEditAvatarClick()
-                : this.props.onClickAvatar(username)}
+              editFns ? editFns.onEditAvatarClick() : this.props.onClickAvatar(username)}
             username={username}
             size={avatarSize}
             following={currentlyFollowing}
@@ -187,11 +162,7 @@ class BioRender extends Component<void, Props, void> {
               {userInfo.bio}
             </Text>}
           {!!userInfo.location &&
-            <Text
-              type="BodySmall"
-              style={stylesLocation}
-              {...locationLineClamp}
-            >
+            <Text type="BodySmall" style={stylesLocation} {...locationLineClamp}>
               {userInfo.location}
             </Text>}
           {editFns &&

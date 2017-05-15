@@ -53,13 +53,7 @@ const mockFollowingMap = (authorSeeds: Array<number>, seedToBool) => {
   return new Immutable.Map(authorSeeds.map(s => [nameGen(s), seedToBool(s)]))
 }
 
-const mockListProps = (
-  messages,
-  metaDataMap,
-  you,
-  authorSeeds,
-  moreToLoad
-) => ({
+const mockListProps = (messages, metaDataMap, you, authorSeeds, moreToLoad) => ({
   firstNewMessageID: null,
   listScrollDownCounter: 0,
   messages: Immutable.List(messages),
@@ -68,19 +62,15 @@ const mockListProps = (
   you,
   followingMap: mockFollowingMap(authorSeeds, () => true),
   moreToLoad,
-  onDeleteMessage: (message: ChatConstants.Message) =>
-    console.log('on delete message'),
-  onEditMessage: (message: ChatConstants.Message, body: string) =>
-    console.log('on edit message'),
+  onDeleteMessage: (message: ChatConstants.Message) => console.log('on delete message'),
+  onEditMessage: (message: ChatConstants.Message, body: string) => console.log('on edit message'),
   onFocusInput: () => console.log('on focus input'),
-  onDownloadAttachment: (messageID: ChatConstants.MessageID) =>
-    console.log('on load attachment'),
+  onDownloadAttachment: (messageID: ChatConstants.MessageID) => console.log('on load attachment'),
   onLoadMoreMessages: () => console.log('on load more message'),
   onOpenConversation: (conversationIDKey: ChatConstants.ConversationIDKey) =>
     console.log('on open conv'),
   onOpenInFileUI: (filename: string) => console.log('on open in file ui'),
-  onOpenInPopup: (message: ChatConstants.AttachmentMessage) =>
-    console.log('on open in popup'),
+  onOpenInPopup: (message: ChatConstants.AttachmentMessage) => console.log('on open in popup'),
   onRetryAttachment: (message: ChatConstants.AttachmentMessage) =>
     console.log('on retry attachment'),
   onRetryMessage: (outboxID: string) => console.log('on retry message'),
@@ -96,9 +86,7 @@ class Main extends React.Component {
   constructor() {
     super()
     this.state = {
-      messages: _.range(0, 100).map(i =>
-        mockTextMessage(i % 2, i, Date.now(), i, you, 'sent')
-      ),
+      messages: _.range(0, 100).map(i => mockTextMessage(i % 2, i, Date.now(), i, you, 'sent')),
     }
   }
 
@@ -107,16 +95,7 @@ class Main extends React.Component {
     const i = this.state.messages.length
     this.setState({
       messages: _.range(i, i + 10)
-        .map(i =>
-          mockTextMessage(
-            Math.floor(Math.random() * 2),
-            i,
-            Date.now(),
-            i,
-            you,
-            'sent'
-          )
-        )
+        .map(i => mockTextMessage(Math.floor(Math.random() * 2), i, Date.now(), i, you, 'sent'))
         .concat(this.state.messages),
     })
   }
@@ -126,26 +105,13 @@ class Main extends React.Component {
     const i = this.state.messages.length
     this.setState({
       messages: this.state.messages.concat([
-        mockTextMessage(
-          Math.floor(Math.random() * 2),
-          i,
-          Date.now(),
-          i,
-          you,
-          'sent'
-        ),
+        mockTextMessage(Math.floor(Math.random() * 2), i, Date.now(), i, you, 'sent'),
       ]),
     })
   }
 
   render() {
-    const props: any = mockListProps(
-      this.state.messages,
-      mockMetaData([0, 1]),
-      you,
-      [0, 1],
-      false
-    )
+    const props: any = mockListProps(this.state.messages, mockMetaData([0, 1]), you, [0, 1], false)
 
     console.log('rendering chat-only', this.state.messages.length)
 
@@ -154,16 +120,8 @@ class Main extends React.Component {
         <Text type="Body">hi</Text>
         <List {...props} />
         <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
-          <Button
-            label="Prepend"
-            type="Primary"
-            onClick={() => this._prepend()}
-          />
-          <Button
-            label="Add message"
-            type="Primary"
-            onClick={() => this._addMessage()}
-          />
+          <Button label="Prepend" type="Primary" onClick={() => this._prepend()} />
+          <Button label="Add message" type="Primary" onClick={() => this._addMessage()} />
         </Box>
       </Box>
     )

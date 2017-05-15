@@ -19,9 +19,7 @@ class LogSend extends Component<void, {}, State> {
 
   render() {
     const onLogSend = () => {
-      logSend('Sent from DEV MENU', true).then(logSendId =>
-        this.setState({logSendId})
-      )
+      logSend('Sent from DEV MENU', true).then(logSendId => this.setState({logSendId}))
     }
 
     return <Render logSendId={this.state.logSendId} onLogSend={onLogSend} />

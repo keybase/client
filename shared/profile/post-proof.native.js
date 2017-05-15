@@ -2,13 +2,7 @@
 import * as shared from './post-proof.shared'
 import CopyableText from '../common-adapters/copyable-text.native'
 import React from 'react'
-import {
-  Button,
-  LinkWithIcon,
-  PlatformIcon,
-  StandardScreen,
-  Text,
-} from '../common-adapters'
+import {Button, LinkWithIcon, PlatformIcon, StandardScreen, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {Props} from './post-proof'
@@ -71,13 +65,8 @@ const PostProof = (props: Props) => {
             {descriptionText}
           </Text>)}
       {!!proofText &&
-        <CopyableText
-          style={styleProofContainer}
-          value={proofText}
-          textStyle={styleProofText}
-        />}
-      {!!noteText &&
-        <Text style={styleNoteText} type="BodySmall">{noteText}</Text>}
+        <CopyableText style={styleProofContainer} value={proofText} textStyle={styleProofText} />}
+      {!!noteText && <Text style={styleNoteText} type="BodySmall">{noteText}</Text>}
       {!!proofAction &&
         !!proofActionText &&
         !!proofActionIcon &&

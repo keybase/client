@@ -37,9 +37,7 @@ const backgroundOffset = 1
 const Background = ({loaded, loadingColor, size}) => (
   <Box
     style={{
-      backgroundColor: loaded
-        ? globalColors.white
-        : loadingColor || globalColors.lightGrey,
+      backgroundColor: loaded ? globalColors.white : loadingColor || globalColors.lightGrey,
       borderRadius: size / 2,
       bottom: backgroundOffset,
       left: backgroundOffset,
@@ -145,18 +143,9 @@ class AvatarRender extends PureComponent<void, Props, State> {
             ...style,
           }}
         >
-          <Background
-            loaded={this.state.loaded}
-            loadingColor={loadingColor}
-            size={size}
-          />
+          <Background loaded={this.state.loaded} loadingColor={loadingColor} size={size} />
           {!!url &&
-            <UserImage
-              opacity={opacity}
-              onLoadEnd={this._onLoadOrError}
-              size={size}
-              url={url}
-            />}
+            <UserImage opacity={opacity} onLoadEnd={this._onLoadOrError} size={size} url={url} />}
           {!!borderColor && <Border borderColor={borderColor} size={size} />}
           {followIconType &&
             <Icon

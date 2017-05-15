@@ -3,17 +3,12 @@ import * as I from 'immutable'
 import ConversationList from './index'
 import {connect} from 'react-redux'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
-import {
-  loadInbox,
-  newChat,
-  untrustedInboxVisible,
-} from '../../actions/chat/creators'
+import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat/creators'
 
 import type {TypedState} from '../../constants/reducer'
 
 const getInbox = (state: TypedState) => state.chat.get('inbox')
-const getSupersededByState = (state: TypedState) =>
-  state.chat.get('supersededByState')
+const getSupersededByState = (state: TypedState) => state.chat.get('supersededByState')
 const getAlwaysShow = (state: TypedState) => state.chat.get('alwaysShow')
 const getPending = (state: TypedState) => state.chat.get('pendingConversations')
 
@@ -31,9 +26,8 @@ const filteredInbox = createImmutableEqualSelector(
       .map(i => i.conversationIDKey)
   }
 )
-const getRows = createImmutableEqualSelector(
-  [filteredInbox, getPending],
-  (inbox, pending) => I.List(pending.keys()).concat(inbox)
+const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox, pending) =>
+  I.List(pending.keys()).concat(inbox)
 )
 
 export default connect(

@@ -50,12 +50,10 @@ const updateEmailMap: DumbComponentMap<UpdateEmail> = {
 }
 
 const updatePassphraseBase = {
-  onChangeNewPassphrase: newPassphrase =>
-    console.log('onChangeNewPassphrase', newPassphrase),
+  onChangeNewPassphrase: newPassphrase => console.log('onChangeNewPassphrase', newPassphrase),
   onChangeNewPassphraseConfirm: newPassphraseConfirm =>
     console.log('onChangeNewPassphraseConfirm', newPassphraseConfirm),
-  onChangeShowPassphrase: showPassphrase =>
-    console.log('onChangeShowPassphrase', showPassphrase),
+  onChangeShowPassphrase: showPassphrase => console.log('onChangeShowPassphrase', showPassphrase),
   newPassphrase: 'open sesame',
   newPassphraseConfirm: 'open sesame',
   hasPGPKeyOnServer: false,
@@ -269,8 +267,7 @@ const deleteConfirmMap: DumbComponentMap<DeleteConfirm> = {
       onCancel: () => console.log('onCancel clicked'),
       username: 'chris',
       allowDeleteForever: true,
-      setAllowDeleteAccount: allow =>
-        console.log('setAllowDeleteAccount', allow),
+      setAllowDeleteAccount: allow => console.log('setAllowDeleteAccount', allow),
       parentProps: {
         style: {
           height: 500,
@@ -455,11 +452,9 @@ const invitesBase = {
     },
   ],
   onSelectUser: username => console.log('onSelectUser', username),
-  onReclaimInvitation: invitationId =>
-    console.log('onReclaimInvitation', invitationId),
+  onReclaimInvitation: invitationId => console.log('onReclaimInvitation', invitationId),
   onGenerateInvitation: () => console.log('onGenerateInvitation'),
-  onSelectPendingInvite: (invite: PendingInvite) =>
-    console.log('onSelectPendingInvite'),
+  onSelectPendingInvite: (invite: PendingInvite) => console.log('onSelectPendingInvite'),
   onClearError: () => {},
   waitingForResponse: false,
   parentProps: {

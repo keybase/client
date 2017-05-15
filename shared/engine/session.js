@@ -1,10 +1,5 @@
 // @flow
-import type {
-  SessionID,
-  WaitingHandlerType,
-  EndHandlerType,
-  MethodKey,
-} from './index'
+import type {SessionID, WaitingHandlerType, EndHandlerType, MethodKey} from './index'
 import type {incomingCallMapType} from '../constants/types/flow-types'
 import type {invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
@@ -84,9 +79,7 @@ class Session {
 
       // Request is finished, do cleanup
       if (!waiting) {
-        const requests = isOutgoing
-          ? this._outgoingRequests
-          : this._incomingRequests
+        const requests = isOutgoing ? this._outgoingRequests : this._incomingRequests
         const idx = requests.findIndex(r => r.method === method)
         if (idx !== -1) {
           // Mark us as responded
@@ -105,10 +98,7 @@ class Session {
       this._cancelHandler(this)
     } else if (this._startCallback) {
       this._startCallback(
-        new RPCError(
-          'Received RPC cancel for session',
-          ConstantsStatusCode.sccanceled
-        )
+        new RPCError('Received RPC cancel for session', ConstantsStatusCode.sccanceled)
       )
     }
 
@@ -171,18 +161,8 @@ class Session {
       this._seqIDResponded[String(response.seqid)] = false
     }
 
-    const waitingHandler = this._makeWaitingHandler(
-      false,
-      method,
-      response && response.seqid
-    )
-    const incomingRequest = new IncomingRequest(
-      method,
-      param,
-      response,
-      waitingHandler,
-      handler
-    )
+    const waitingHandler = this._makeWaitingHandler(false, method, response && response.seqid)
+    const incomingRequest = new IncomingRequest(method, param, response, waitingHandler, handler)
     this._incomingRequests.push(incomingRequest)
     incomingRequest.handle()
 

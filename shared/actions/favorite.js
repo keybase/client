@@ -97,9 +97,7 @@ const _jsonToFolders = (json: Object, myKID: any): Array<FolderRPCWithMeta> => {
         return {...device, deviceID: kid}
       })
     } else {
-      folder.waitingForParticipantUnlock = Object.keys(
-        solutions
-      ).map(userID => {
+      folder.waitingForParticipantUnlock = Object.keys(solutions).map(userID => {
         const devices = solutions[userID].map(kid => json.devices[kid].name)
         const numDevices = devices.length
         const last = numDevices > 1 ? devices.pop() : null
@@ -130,30 +128,16 @@ function _folderSort(username, a, b) {
   return a.sortName.localeCompare(b.sortName)
 }
 
-function _folderToState(
-  txt: string = '',
-  username: string,
-  loggedIn: boolean
-): FolderState {
-  const folders: Array<FolderRPCWithMeta> = _getFavoritesRPCToFolders(
-    txt,
-    username,
-    loggedIn
-  )
+function _folderToState(txt: string = '', username: string, loggedIn: boolean): FolderState {
+  const folders: Array<FolderRPCWithMeta> = _getFavoritesRPCToFolders(txt, username, loggedIn)
 
   const converted = folders
     .map(f => folderFromFolderRPCWithMeta(username, f))
     .sort((a, b) => _folderSort(username, a, b))
 
   const newFolders = converted.filter(f => f.meta === 'new')
-  const privateBadge = newFolders.reduce(
-    (acc, f) => (!f.isPublic ? acc + 1 : acc),
-    0
-  )
-  const publicBadge = newFolders.reduce(
-    (acc, f) => (f.isPublic ? acc + 1 : acc),
-    0
-  )
+  const privateBadge = newFolders.reduce((acc, f) => (!f.isPublic ? acc + 1 : acc), 0)
+  const publicBadge = newFolders.reduce((acc, f) => (f.isPublic ? acc + 1 : acc), 0)
 
   const [priFolders, pubFolders] = _.partition(converted, {isPublic: false})
   const [privIgnored, priv] = _.partition(priFolders, {ignored: true})
@@ -200,9 +184,7 @@ function _getFavoritesRPCToFolders(
   // Ensure private/public folders exist for us
   if (username && loggedIn) {
     ;[true, false].forEach(isPrivate => {
-      const idx = folders.findIndex(
-        f => f.name === username && f.private === isPrivate
-      )
+      const idx = folders.findIndex(f => f.name === username && f.private === isPrivate)
       let toAdd = {
         meta: null,
         name: username,
@@ -288,12 +270,8 @@ function* _listSaga(): SagaGenerator<any, any> {
         args: [{key: 'problems', value: '1'}],
       },
     })
-    const username = yield select(
-      state => state.config && state.config.username
-    )
-    const loggedIn = yield select(
-      state => state.config && state.config.loggedIn
-    )
+    const username = yield select(state => state.config && state.config.username)
+    const loggedIn = yield select(state => state.config && state.config.loggedIn)
     const state: FolderState = _folderToState(
       results && results.body,
       username || '',
@@ -358,24 +336,21 @@ function* _setupKBFSChangedHandler(): SagaGenerator<any, any> {
     }, 2000)
 
     if (!isMobile) {
-      engine().setIncomingHandler(
-        'keybase.1.NotifyFS.FSSyncActivity',
-        ({status}) => {
-          // This has a lot of missing data from the KBFS side so for now we just have a timeout that sets this to off
-          // ie. we don't get the syncingBytes or ops correctly (always zero)
-          if (_kbfsUploadingState === false) {
-            _kbfsUploadingState = true
-            const badgeAction: Action = badgeApp('kbfsUploading', true)
-            dispatch(badgeAction)
-            dispatch({
-              type: Constants.kbfsStatusUpdated,
-              payload: {isAsyncWriteHappening: true},
-            })
-          }
-          // We have to debounce while the events are still happening no matter what
-          debouncedKBFSStopped()
+      engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncActivity', ({status}) => {
+        // This has a lot of missing data from the KBFS side so for now we just have a timeout that sets this to off
+        // ie. we don't get the syncingBytes or ops correctly (always zero)
+        if (_kbfsUploadingState === false) {
+          _kbfsUploadingState = true
+          const badgeAction: Action = badgeApp('kbfsUploading', true)
+          dispatch(badgeAction)
+          dispatch({
+            type: Constants.kbfsStatusUpdated,
+            payload: {isAsyncWriteHappening: true},
+          })
         }
-      )
+        // We have to debounce while the events are still happening no matter what
+        debouncedKBFSStopped()
+      })
     }
   })
 
@@ -388,10 +363,7 @@ function* favoriteSaga(): SagaGenerator<any, any> {
   yield safeTakeLatest(Constants.favoriteList, _listSaga)
   yield safeTakeEvery(Constants.favoriteAdd, _addSaga)
   yield safeTakeEvery(Constants.favoriteIgnore, _ignoreSaga)
-  yield safeTakeEvery(
-    Constants.setupKBFSChangedHandler,
-    _setupKBFSChangedHandler
-  )
+  yield safeTakeEvery(Constants.setupKBFSChangedHandler, _setupKBFSChangedHandler)
 }
 
 export {

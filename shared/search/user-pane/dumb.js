@@ -4,12 +4,7 @@ import NonUserPane from './non-user.render'
 import Help from './help'
 import Loading from './loading'
 import {normal, error} from '../../constants/tracker'
-import {
-  proofsDefault,
-  proofsTracked,
-  proofsChanged,
-  mockUserInfo,
-} from '../../profile/dumb'
+import {proofsDefault, proofsTracked, proofsChanged, mockUserInfo} from '../../profile/dumb'
 import type {Props as UserRenderProps} from './user.render'
 import type {DumbComponentMap} from '../../constants/types/more'
 

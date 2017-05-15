@@ -34,8 +34,7 @@ class GlobalEscapeHandler extends Component<void, GlobalProps, void> {
   }
 
   componentWillUnmount() {
-    document.body &&
-      document.body.removeEventListener('keydown', this._handleESC)
+    document.body && document.body.removeEventListener('keydown', this._handleESC)
   }
 
   static childContextTypes = {

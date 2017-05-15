@@ -90,7 +90,6 @@ const makeRenderProps = props => ({
   type: props.device.type,
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  mapProps(makeRenderProps)
-)(DevicePage)
+export default compose(connect(mapStateToProps, mapDispatchToProps), mapProps(makeRenderProps))(
+  DevicePage
+)

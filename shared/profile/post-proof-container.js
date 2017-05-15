@@ -1,23 +1,14 @@
 // @flow
 import PostProof from './post-proof'
 import {TypedConnector} from '../util/typed-connect'
-import {
-  cancelAddProof,
-  checkProof,
-  outputInstructionsActionLink,
-} from '../actions/profile'
+import {cancelAddProof, checkProof, outputInstructionsActionLink} from '../actions/profile'
 
 import type {Props} from './post-proof'
 import type {ProvablePlatformsType} from '../constants/types/more'
 import type {TypedDispatch} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
 
-const connector: TypedConnector<
-  TypedState,
-  TypedDispatch<{}>,
-  {},
-  Props
-> = new TypedConnector()
+const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
 
 export default connector.connect((state, dispatch, ownProps) => {
   const profile = state.profile
@@ -30,9 +21,7 @@ export default connector.connect((state, dispatch, ownProps) => {
     profile.platform === 'pgp' ||
     profile.platform === 'pgpg'
   ) {
-    throw new Error(
-      `Invalid profile platform in PostProofContainer: ${profile.platform || ''}`
-    )
+    throw new Error(`Invalid profile platform in PostProofContainer: ${profile.platform || ''}`)
   }
 
   const platform: ProvablePlatformsType = profile.platform

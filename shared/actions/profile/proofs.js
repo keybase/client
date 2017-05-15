@@ -29,10 +29,7 @@ import type {
   SubmitZcashAddress,
 } from '../../constants/profile'
 import type {NavigateTo} from '../../constants/route-tree'
-import type {
-  PlatformsExpandedType,
-  ProvablePlatformsType,
-} from '../../constants/types/more'
+import type {PlatformsExpandedType, ProvablePlatformsType} from '../../constants/types/more'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {SigID} from '../../constants/types/flow-types'
 import type {TypedState} from '../../constants/reducer'
@@ -89,10 +86,7 @@ function _waitingForResponse(waiting: boolean): Waiting {
   return {payload: {waiting}, type: Constants.waiting}
 }
 
-function _updateErrorText(
-  errorText: ?string,
-  errorCode: ?number
-): UpdateErrorText {
+function _updateErrorText(errorText: ?string, errorCode: ?number): UpdateErrorText {
   return {payload: {errorText, errorCode}, type: Constants.updateErrorText}
 }
 
@@ -166,9 +160,7 @@ function* _addProof(action: AddProof): SagaGenerator<any, any> {
   }
 }
 
-function* _addServiceProof(
-  service: ProvablePlatformsType
-): SagaGenerator<any, any> {
+function* _addServiceProof(service: ProvablePlatformsType): SagaGenerator<any, any> {
   let _promptUsernameResponse: ?Object = null
   let _outputInstructionsResponse: ?Object = null
 
@@ -217,11 +209,7 @@ function* _addServiceProof(
         desc: 'Cancel Add Proof',
       }
       if (_promptUsernameResponse) {
-        yield call(
-          [engineInst, engineInst.cancelRPC],
-          _promptUsernameResponse,
-          InputCancelError
-        )
+        yield call([engineInst, engineInst.cancelRPC], _promptUsernameResponse, InputCancelError)
         _promptUsernameResponse = null
       }
 
@@ -281,12 +269,7 @@ function* _addServiceProof(
       yield put(_updateSigID(incoming.finished.params.sigID))
       if (incoming.finished.error) {
         console.warn('Error making proof')
-        yield put(
-          _updateErrorText(
-            incoming.finished.error.desc,
-            incoming.finished.error.code
-          )
-        )
+        yield put(_updateErrorText(incoming.finished.error.desc, incoming.finished.error.code))
       } else {
         console.log('Start Proof done: ', incoming.finished.params.sigID)
         yield put(checkProof())

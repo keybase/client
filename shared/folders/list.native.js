@@ -26,10 +26,7 @@ class ListRender extends Component<void, Props, State> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (
-      this.props.tlfs !== nextProps.tlfs ||
-      this.props.ignored !== nextProps.ignored
-    ) {
+    if (this.props.tlfs !== nextProps.tlfs || this.props.ignored !== nextProps.ignored) {
       this.setState({
         dataSource: this._dataSourceForProps(nextProps, false),
       })
@@ -66,9 +63,7 @@ class ListRender extends Component<void, Props, State> {
 
   _renderIgnoredToggleRow = (row: any) => {
     const styles = this.props.isPublic ? stylesPublic : stylesPrivate
-    const caretIcon: IconType = row.enabled
-      ? 'iconfont-caret-down'
-      : 'iconfont-caret-right'
+    const caretIcon: IconType = row.enabled ? 'iconfont-caret-down' : 'iconfont-caret-right'
     return (
       <Box style={stylesIgnoreContainer}>
         <ClickableBox onClick={this._onIgnoredToggle}>
@@ -80,9 +75,7 @@ class ListRender extends Component<void, Props, State> {
               type={caretIcon}
               style={{
                 ...stylesIgnoreCaret,
-                color: this.props.isPublic
-                  ? globalColors.black_40
-                  : globalColors.white_40,
+                color: this.props.isPublic ? globalColors.black_40 : globalColors.white_40,
               }}
             />
           </Box>

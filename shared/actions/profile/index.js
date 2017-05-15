@@ -13,12 +13,7 @@ import {
 } from './proofs'
 import {call, put, select, fork} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
-import {
-  navigateAppend,
-  navigateTo,
-  navigateUp,
-  switchTo,
-} from '../../actions/route-tree'
+import {navigateAppend, navigateTo, navigateUp, switchTo} from '../../actions/route-tree'
 import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
 import {profileTab} from '../../constants/tabs'
 import {
@@ -31,11 +26,7 @@ import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 import type {AppLink} from '../../constants/app'
 
-function editProfile(
-  bio: string,
-  fullName: string,
-  location: string
-): Constants.EditProfile {
+function editProfile(bio: string, fullName: string, location: string): Constants.EditProfile {
   return {payload: {bio, fullName, location}, type: Constants.editProfile}
 }
 
@@ -51,9 +42,7 @@ function updateUsername(username: string): Constants.UpdateUsername {
   return {payload: {username}, type: Constants.updateUsername}
 }
 
-function _revokedWaitingForResponse(
-  waiting: boolean
-): Constants.WaitingRevokeProof {
+function _revokedWaitingForResponse(waiting: boolean): Constants.WaitingRevokeProof {
   return {payload: {waiting}, type: Constants.waitingRevokeProof}
 }
 
@@ -82,15 +71,10 @@ function onUserClick(username: string): Constants.OnUserClick {
 function* _onUserClick(action: Constants.OnUserClick): SagaGenerator<any, any> {
   const {username} = action.payload
   yield put(switchTo([profileTab]))
-  yield put(
-    navigateAppend([{props: {username}, selected: 'profile'}], [profileTab])
-  )
+  yield put(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))
 }
 
-function onClickAvatar(
-  username: string,
-  openWebsite?: boolean
-): Constants.OnClickAvatar {
+function onClickAvatar(username: string, openWebsite?: boolean): Constants.OnClickAvatar {
   return {
     payload: {
       openWebsite,
@@ -100,9 +84,7 @@ function onClickAvatar(
   }
 }
 
-function* _onClickAvatar(
-  action: Constants.OnClickFollowers
-): SagaGenerator<any, any> {
+function* _onClickAvatar(action: Constants.OnClickFollowers): SagaGenerator<any, any> {
   if (!action.payload.username) {
     return
   }
@@ -115,10 +97,7 @@ function* _onClickAvatar(
   }
 }
 
-function onClickFollowers(
-  username: string,
-  openWebsite?: boolean
-): Constants.OnClickFollowers {
+function onClickFollowers(username: string, openWebsite?: boolean): Constants.OnClickFollowers {
   return {
     payload: {
       openWebsite,
@@ -128,9 +107,7 @@ function onClickFollowers(
   }
 }
 
-function* _onClickFollowers(
-  action: Constants.OnClickFollowers
-): SagaGenerator<any, any> {
+function* _onClickFollowers(action: Constants.OnClickFollowers): SagaGenerator<any, any> {
   if (!action.payload.username) {
     return
   }
@@ -139,17 +116,11 @@ function* _onClickFollowers(
     // TODO(mm) hint followings
     yield put(onUserClick(action.payload.username))
   } else {
-    yield call(
-      openURL,
-      `${keybaseUrl}/${action.payload.username}#profile-tracking-section`
-    )
+    yield call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
   }
 }
 
-function onClickFollowing(
-  username: string,
-  openWebsite?: boolean
-): Constants.OnClickFollowing {
+function onClickFollowing(username: string, openWebsite?: boolean): Constants.OnClickFollowing {
   return {
     payload: {
       openWebsite,
@@ -159,9 +130,7 @@ function onClickFollowing(
   }
 }
 
-function* _onClickFollowing(
-  action: Constants.OnClickFollowing
-): SagaGenerator<any, any> {
+function* _onClickFollowing(action: Constants.OnClickFollowing): SagaGenerator<any, any> {
   if (!action.payload.username) {
     return
   }
@@ -170,10 +139,7 @@ function* _onClickFollowing(
     // TODO(mm) hint followings
     yield put(onUserClick(action.payload.username))
   } else {
-    yield call(
-      openURL,
-      `${keybaseUrl}/${action.payload.username}#profile-tracking-section`
-    )
+    yield call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
   }
 }
 
@@ -181,9 +147,7 @@ function submitRevokeProof(proofId: string): Constants.SubmitRevokeProof {
   return {payload: {proofId}, type: Constants.submitRevokeProof}
 }
 
-function* _submitRevokeProof(
-  action: Constants.SubmitRevokeProof
-): SagaGenerator<any, any> {
+function* _submitRevokeProof(action: Constants.SubmitRevokeProof): SagaGenerator<any, any> {
   try {
     yield put(_revokedWaitingForResponse(true))
     yield call(revokeRevokeSigsRpcPromise, {
@@ -242,26 +206,13 @@ function* _outputInstructionsActionLink(): SagaGenerator<any, any> {
       yield call(openURL, 'https://gist.github.com/')
       break
     case 'reddit':
-      yield call(
-        _openURLIfNotNull,
-        profile.proofText,
-        profile.proofText,
-        'reddit url'
-      )
+      yield call(_openURLIfNotNull, profile.proofText, profile.proofText, 'reddit url')
       break
     case 'facebook':
-      yield call(
-        _openURLIfNotNull,
-        profile.proofText,
-        profile.proofText,
-        'facebook url'
-      )
+      yield call(_openURLIfNotNull, profile.proofText, profile.proofText, 'facebook url')
       break
     case 'hackernews':
-      yield call(
-        openURL,
-        `https://news.ycombinator.com/user?id=${profile.username}`
-      )
+      yield call(openURL, `https://news.ycombinator.com/user?id=${profile.username}`)
       break
     default:
       break
@@ -285,10 +236,7 @@ function* _profileSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.onClickFollowers, _onClickFollowers)
   yield safeTakeEvery(Constants.onClickFollowing, _onClickFollowing)
   yield safeTakeEvery(Constants.onUserClick, _onUserClick)
-  yield safeTakeEvery(
-    Constants.outputInstructionsActionLink,
-    _outputInstructionsActionLink
-  )
+  yield safeTakeEvery(Constants.outputInstructionsActionLink, _outputInstructionsActionLink)
   yield safeTakeEvery(Constants.submitRevokeProof, _submitRevokeProof)
   yield safeTakeEvery('app:link', _onAppLink)
 }

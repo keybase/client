@@ -11,11 +11,7 @@ import configureStore from './store/configure-store'
 import {AppRegistry, AppState, Linking} from 'react-native'
 import {Provider} from 'react-redux'
 import {makeEngine} from './engine'
-import {
-  setup as setupLocalDebug,
-  dumbSheetOnly,
-  dumbChatOnly,
-} from './local-debug'
+import {setup as setupLocalDebug, dumbSheetOnly, dumbChatOnly} from './local-debug'
 import routeDefs from './routes'
 import {setRouteDef} from './actions/route-tree'
 import {appLink, mobileAppStateChanged} from './actions/app'

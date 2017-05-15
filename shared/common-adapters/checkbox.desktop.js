@@ -32,11 +32,7 @@ class Checkbox extends Component<void, Props, void> {
     return (
       <div
         style={{...styleContainer, ...clickableStyle, ...this.props.style}}
-        onClick={
-          this.props.disabled
-            ? undefined
-            : () => this.props.onCheck(!this.props.checked)
-        }
+        onClick={this.props.disabled ? undefined : () => this.props.onCheck(!this.props.checked)}
       >
         <div style={boxStyle}>
           <Icon

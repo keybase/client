@@ -10,8 +10,7 @@ type State = {
   showCloseWarning: boolean,
 }
 
-export default class HeaderRender
-  extends PureComponent<void, HeaderProps, State> {
+export default class HeaderRender extends PureComponent<void, HeaderProps, State> {
   state: State
 
   constructor(props: HeaderProps) {
@@ -21,17 +20,12 @@ export default class HeaderRender
 
   render() {
     const isWarningAboutTrackerShowingUpLater =
-      this.props.loggedIn &&
-      !this.props.currentlyFollowing &&
-      this.state.showCloseWarning
+      this.props.loggedIn && !this.props.currentlyFollowing && this.state.showCloseWarning
     const headerText = isWarningAboutTrackerShowingUpLater
       ? 'You will see this window every time you access this folder.'
       : this.props.reason
 
-    const trackerStateColors = stateColors(
-      this.props.currentlyFollowing,
-      this.props.trackerState
-    )
+    const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
     const headerBackgroundColor = isWarningAboutTrackerShowingUpLater
       ? globalColors.yellow
       : trackerStateColors.header.background

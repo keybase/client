@@ -27,9 +27,7 @@ function User({
     avatarProps = {username: user.username}
   } else if (user.service === 'external') {
     avatarProps = {
-      url: user.extraInfo.service === 'external'
-        ? user.extraInfo.serviceAvatar
-        : null,
+      url: user.extraInfo.service === 'external' ? user.extraInfo.serviceAvatar : null,
     }
   }
 
@@ -53,10 +51,7 @@ function User({
     name = (
       <Box style={{...globalStyles.flexBoxColumn}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Icon
-            style={{marginRight: 5}}
-            type={platformToLogo16(user.serviceName)}
-          />
+          <Icon style={{marginRight: 5}} type={platformToLogo16(user.serviceName)} />
           <Text type={'Body'}>{user.username}</Text>
         </Box>
         <Text type={'BodySmall'}>{fullName(user.extraInfo)}</Text>
@@ -136,9 +131,7 @@ export default function UserGroup({
       {selectedUsers.map(u => (
         <User
           key={u.service + u.username}
-          selected={
-            !!userForInfoPane && u.username === userForInfoPane.username
-          }
+          selected={!!userForInfoPane && u.username === userForInfoPane.username}
           user={u}
           onRemove={onRemoveUserFromGroup}
           onClickUser={onClickUserInGroup}

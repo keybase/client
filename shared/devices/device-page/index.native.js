@@ -51,9 +51,7 @@ const TimelineMarker = ({idx, max, type}) => (
     }}
   >
     <Box style={{...stylesLine, height: 8, opacity: idx ? 1 : 0}} />
-    {type === 'Revoked'
-      ? <Box style={stylesCircleClosed} />
-      : <Box style={stylesCircleOpen} />}
+    {type === 'Revoked' ? <Box style={stylesCircleClosed} /> : <Box style={stylesCircleOpen} />}
     <Box style={{...stylesLine, flex: 1, opacity: idx < max ? 1 : 0}} />
   </Box>
 )
@@ -69,10 +67,7 @@ const Timeline = ({timeline}) => (
             ? <Text type="BodySmall">
                 by
                 {' '}
-                <Text
-                  type="BodySmall"
-                  style={{color: globalColors.black_75, fontStyle: 'italic'}}
-                >
+                <Text type="BodySmall" style={{color: globalColors.black_75, fontStyle: 'italic'}}>
                   {subDesc}
                 </Text>
               </Text>
@@ -101,16 +96,9 @@ const Render = ({
   revokeName,
 }: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-    <BackButton
-      style={{alignSelf: 'flex-start', marginLeft: 13, marginTop: 13}}
-      onClick={onBack}
-    />
+    <BackButton style={{alignSelf: 'flex-start', marginLeft: 13, marginTop: 13}} onClick={onBack} />
     {!!bannerDesc &&
-      <Banner
-        color={bannerColor}
-        backgroundColor={bannerBackgroundColor}
-        desc={bannerDesc}
-      />}
+      <Banner color={bannerColor} backgroundColor={bannerBackgroundColor} desc={bannerDesc} />}
     <Icon type={icon} style={{marginTop: 32, opacity: revokedAt ? 0.4 : 1}} />
     <Header name={name} isCurrent={currentDevice} isRevoked={revokedAt} />
     {!!timeline && <Timeline timeline={timeline} />}

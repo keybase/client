@@ -42,10 +42,7 @@ function* onLoadAttachmentPreview({
 }: Constants.LoadAttachmentPreview): SagaGenerator<any, any> {
   const {filename, messageID, conversationIDKey} = message
   if (filename && messageID) {
-    yield call(
-      onLoadAttachment,
-      Creators.loadAttachment(conversationIDKey, messageID, true)
-    )
+    yield call(onLoadAttachment, Creators.loadAttachment(conversationIDKey, messageID, true))
   }
 }
 
@@ -59,17 +56,9 @@ function* _saveAttachment(
   conversationIDKey: Constants.ConversationIDKey,
   messageID: Constants.MessageID
 ) {
-  const existingMessage = yield select(
-    Shared.messageSelector,
-    conversationIDKey,
-    messageID
-  )
+  const existingMessage = yield select(Shared.messageSelector, conversationIDKey, messageID)
   if (!existingMessage) {
-    console.log(
-      '_saveAttachment: message does not exist',
-      conversationIDKey,
-      messageID
-    )
+    console.log('_saveAttachment: message does not exist', conversationIDKey, messageID)
     return
   }
 
@@ -83,18 +72,12 @@ function* _saveAttachment(
     return existingMessage.savedPath
   }
 
-  yield put(
-    Creators.updateMessage(conversationIDKey, {savedPath: false}, messageID)
-  )
+  yield put(Creators.updateMessage(conversationIDKey, {savedPath: false}, messageID))
 
   const startTime = Date.now()
   if (!existingMessage.downloadedPath) {
     yield put(Creators.loadAttachment(conversationIDKey, messageID, false))
-    console.log(
-      '_saveAttachment: waiting for attachment to load',
-      conversationIDKey,
-      messageID
-    )
+    console.log('_saveAttachment: waiting for attachment to load', conversationIDKey, messageID)
     yield take(
       action =>
         action.type === 'chat:attachmentLoaded' &&
@@ -113,25 +96,13 @@ function* _saveAttachment(
   // download.
   if (endTime - startTime < 500) {
     for (let i = 0; i < 5; i++) {
-      yield put(
-        Creators.downloadProgress(conversationIDKey, messageID, false, i + 1, 5)
-      )
+      yield put(Creators.downloadProgress(conversationIDKey, messageID, false, i + 1, 5))
       yield delay(150)
     }
-    yield put(
-      Creators.updateMessage(
-        conversationIDKey,
-        {downloadProgress: null},
-        messageID
-      )
-    )
+    yield put(Creators.updateMessage(conversationIDKey, {downloadProgress: null}, messageID))
   }
 
-  const downloadedMessage = yield select(
-    Shared.messageSelector,
-    conversationIDKey,
-    messageID
-  )
+  const downloadedMessage = yield select(Shared.messageSelector, conversationIDKey, messageID)
   if (!downloadedMessage.downloadedPath) {
     console.log('_saveAttachment: message failed to download!')
     return
@@ -143,9 +114,7 @@ function* _saveAttachment(
     yield copy(downloadedMessage.downloadedPath, destPath)
   } catch (err) {
     console.warn('_saveAttachment: copy failed:', err)
-    yield put(
-      Creators.updateMessage(conversationIDKey, {savedPath: null}, messageID)
-    )
+    yield put(Creators.updateMessage(conversationIDKey, {savedPath: null}, messageID))
     return
   }
 
@@ -156,25 +125,14 @@ function* _saveAttachment(
 function* onLoadAttachment({
   payload: {conversationIDKey, messageID, loadPreview},
 }: Constants.LoadAttachment): SagaGenerator<any, any> {
-  const existingMessage = yield select(
-    Shared.messageSelector,
-    conversationIDKey,
-    messageID
-  )
+  const existingMessage = yield select(Shared.messageSelector, conversationIDKey, messageID)
   if (!existingMessage) {
-    console.log(
-      'onLoadAttachment: message does not exist',
-      conversationIDKey,
-      messageID
-    )
+    console.log('onLoadAttachment: message does not exist', conversationIDKey, messageID)
     return
   }
 
   if (loadPreview) {
-    if (
-      existingMessage.previewPath ||
-      existingMessage.previewProgress !== null
-    ) {
+    if (existingMessage.previewPath || existingMessage.previewProgress !== null) {
       // Already downloaded / downloading preview
       console.log(
         'onLoadAttachment: preview already downloaded/downloading. bailing.',
@@ -186,10 +144,7 @@ function* onLoadAttachment({
       return
     }
   } else {
-    if (
-      existingMessage.downloadedPath ||
-      existingMessage.downloadProgress !== null
-    ) {
+    if (existingMessage.downloadedPath || existingMessage.downloadProgress !== null) {
       // Already downloaded / downloading attachment
       console.log(
         'onLoadAttachment: attachment already downloaded/downloading. bailing.',
@@ -202,26 +157,15 @@ function* onLoadAttachment({
     }
   }
 
-  const destPath = tmpFile(
-    Shared.tmpFileName(loadPreview, conversationIDKey, messageID)
-  )
+  const destPath = tmpFile(Shared.tmpFileName(loadPreview, conversationIDKey, messageID))
   const imageCached = yield call(exists, destPath)
   if (imageCached) {
-    yield put(
-      Creators.attachmentLoaded(
-        conversationIDKey,
-        messageID,
-        destPath,
-        loadPreview
-      )
-    )
+    yield put(Creators.attachmentLoaded(conversationIDKey, messageID, destPath, loadPreview))
     return
   }
 
   // set initial progress value
-  yield put(
-    Creators.downloadProgress(conversationIDKey, messageID, loadPreview)
-  )
+  yield put(Creators.downloadProgress(conversationIDKey, messageID, loadPreview))
 
   const param = {
     conversationID: Constants.keyToConversationID(conversationIDKey),
@@ -277,18 +221,9 @@ function* onLoadAttachment({
     yield cancel(progressTask)
     Saga.closeChannelMap(channelMap)
 
-    yield put(
-      Creators.attachmentLoaded(
-        conversationIDKey,
-        messageID,
-        destPath,
-        loadPreview
-      )
-    )
+    yield put(Creators.attachmentLoaded(conversationIDKey, messageID, destPath, loadPreview))
   } catch (err) {
-    yield put(
-      Creators.attachmentLoaded(conversationIDKey, messageID, null, loadPreview)
-    )
+    yield put(Creators.attachmentLoaded(conversationIDKey, messageID, null, loadPreview))
   }
 }
 
@@ -300,10 +235,7 @@ function* onSelectAttachment({
 
   if (Constants.isPendingConversationIDKey(conversationIDKey)) {
     // Get a real conversationIDKey
-    conversationIDKey = yield call(
-      Shared.startNewConversation,
-      conversationIDKey
-    )
+    conversationIDKey = yield call(Shared.startNewConversation, conversationIDKey)
     if (!conversationIDKey) {
       return
     }
@@ -328,10 +260,7 @@ function* onSelectAttachment({
     preview,
     title,
     metadata: null,
-    identifyBehavior: yield call(
-      Shared.getPostingIdentifyBehavior,
-      conversationIDKey
-    ),
+    identifyBehavior: yield call(Shared.getPostingIdentifyBehavior, conversationIDKey),
   }
 
   const channelConfig = Saga.singleFixedChannelConfig([
@@ -355,10 +284,7 @@ function* onSelectAttachment({
   )
   const {outboxID} = outboxIDResp.params
   yield put(
-    Creators.setAttachmentPlaceholderPreview(
-      Constants.outboxIDToKey(outboxID),
-      preview.filename
-    )
+    Creators.setAttachmentPlaceholderPreview(Constants.outboxIDToKey(outboxID), preview.filename)
   )
   outboxIDResp.response.result()
 
@@ -372,13 +298,7 @@ function* onSelectAttachment({
   const finishedTask = yield fork(function*() {
     const finished = yield Saga.takeFromChannelMap(channelMap, 'finished')
     if (finished.error) {
-      yield put(
-        Creators.updateMessage(
-          conversationIDKey,
-          {messageState: 'failed'},
-          messageID
-        )
-      )
+      yield put(Creators.updateMessage(conversationIDKey, {messageState: 'failed'}, messageID))
     }
     return finished
   })
@@ -387,14 +307,7 @@ function* onSelectAttachment({
     c =>
       Saga.safeTakeEvery(c, function*({response}) {
         const {bytesComplete, bytesTotal} = response.param
-        yield put(
-          Creators.uploadProgress(
-            conversationIDKey,
-            messageID,
-            bytesComplete,
-            bytesTotal
-          )
-        )
+        yield put(Creators.uploadProgress(conversationIDKey, messageID, bytesComplete, bytesTotal))
         response.result()
       }),
     channelMap,
@@ -426,9 +339,7 @@ function* onSelectAttachment({
   return messageID
 }
 
-function* onOpenAttachmentPopup(
-  action: Constants.OpenAttachmentPopup
-): SagaGenerator<any, any> {
+function* onOpenAttachmentPopup(action: Constants.OpenAttachmentPopup): SagaGenerator<any, any> {
   const {message, currentPath} = action.payload
   const messageID = message.messageID
   if (!messageID) {
@@ -447,9 +358,7 @@ function* onOpenAttachmentPopup(
     )
   )
   if (!message.hdPreviewPath && message.filename && message.messageID) {
-    yield put(
-      Creators.loadAttachment(message.conversationIDKey, messageID, false)
-    )
+    yield put(Creators.loadAttachment(message.conversationIDKey, messageID, false))
   }
 }
 

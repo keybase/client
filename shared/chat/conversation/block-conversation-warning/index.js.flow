@@ -11,5 +11,4 @@ export type Props = {
   participants: string,
 }
 
-export default class RenderBlockConversationWarning
-  extends Component<void, Props, void> {}
+export default class RenderBlockConversationWarning extends Component<void, Props, void> {}

@@ -59,11 +59,7 @@ export function readImageFromClipboard(
 //   let items = event.clipboardData.items
 //   let blob = items[1].getAsFile()
 // eslint-disable-next-line
-function readBlob(
-  name: string,
-  format: string,
-  blob: any
-): Promise<?ClipboardData> {
+function readBlob(name: string, format: string, blob: any): Promise<?ClipboardData> {
   return new Promise((resolve, reject) => {
     // We get the data from the HTML5 File object, read it into a
     // buffer and then save it to disk.

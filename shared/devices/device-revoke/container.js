@@ -35,7 +35,6 @@ const makeRenderProps = props => ({
   type: props.device.type,
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  mapProps(makeRenderProps)
-)(DeviceRevoke)
+export default compose(connect(mapStateToProps, mapDispatchToProps), mapProps(makeRenderProps))(
+  DeviceRevoke
+)

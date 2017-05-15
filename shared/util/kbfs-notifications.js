@@ -28,10 +28,7 @@ function tlfForNotification(notification: FSNotification): string {
   return notification.filename.split(path.sep).slice(0, 4).join(path.sep)
 }
 
-export function decodeKBFSError(
-  user: string,
-  notification: FSNotification
-): DecodedKBFSError {
+export function decodeKBFSError(user: string, notification: FSNotification): DecodedKBFSError {
   console.log('Notification (kbfs error):', notification)
   const tlf = tlfForNotification(notification)
   switch (notification.errorType) {
@@ -120,11 +117,7 @@ export function decodeKBFSError(
   // }
 }
 
-export function kbfsNotification(
-  notification: FSNotification,
-  notify: any,
-  getState: any
-) {
+export function kbfsNotification(notification: FSNotification, notify: any, getState: any) {
   const action = {
     [KbfsCommonFSNotificationType.encrypting]: 'Encrypting and uploading',
     [KbfsCommonFSNotificationType.decrypting]: 'Decrypting',
@@ -140,9 +133,7 @@ export function kbfsNotification(
 
   // KBFS fires a notification when it changes state between connected
   // and disconnected (to the mdserver).  For now we just log it.
-  if (
-    notification.notificationType === KbfsCommonFSNotificationType.connection
-  ) {
+  if (notification.notificationType === KbfsCommonFSNotificationType.connection) {
     const state = notification.statusCode === KbfsCommonFSStatusCode.start
       ? 'connected'
       : 'disconnected'

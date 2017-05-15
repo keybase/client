@@ -51,13 +51,10 @@ class PaymentStateHolder extends Component<void, Props, State> {
   render() {
     return (
       <Payment
-        onChangeCardNumber={cardNumber =>
-          this._clearErrorAndSetState({cardNumber})}
+        onChangeCardNumber={cardNumber => this._clearErrorAndSetState({cardNumber})}
         onChangeName={name => this._clearErrorAndSetState({name})}
-        onChangeExpiration={expiration =>
-          this._clearErrorAndSetState({expiration})}
-        onChangeSecurityCode={securityCode =>
-          this._clearErrorAndSetState({securityCode})}
+        onChangeExpiration={expiration => this._clearErrorAndSetState({expiration})}
+        onChangeSecurityCode={securityCode => this._clearErrorAndSetState({securityCode})}
         cardNumber={this.state.cardNumber}
         name={this.state.name}
         expiration={this.state.expiration}

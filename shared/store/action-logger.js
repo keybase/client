@@ -1,9 +1,5 @@
 // @flow
-import {
-  forwardLogs,
-  enableActionLogging,
-  immediateStateLogging,
-} from '../local-debug'
+import {forwardLogs, enableActionLogging, immediateStateLogging} from '../local-debug'
 import {noPayloadTransformer} from '../constants/types/flux'
 import {stateLogTransformer} from '../constants/reducer'
 import {setupLogger, immutableToJS} from '../util/periodic-logger'

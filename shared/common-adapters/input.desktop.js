@@ -116,12 +116,7 @@ class Input extends Component<void, Props, State> {
       this.props.onKeyDown(e)
     }
 
-    if (
-      this.props.onEnterKeyDown &&
-      e.key === 'Enter' &&
-      !e.shiftKey &&
-      !this._isComposingIME
-    ) {
+    if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
       this.props.onEnterKeyDown(e)
     }
   }
@@ -282,15 +277,10 @@ class Input extends Component<void, Props, State> {
           <Text type="BodySmall" style={smallLabelStyle}>
             {this.props.smallLabel}
           </Text>}
-        {this.props.multiline
-          ? <textarea {...multilineProps} />
-          : <input {...singlelineProps} />}
+        {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
         {!!this.props.errorText &&
           !this.props.small &&
-          <Text
-            type="BodyError"
-            style={{..._errorStyle, ...this.props.errorStyle}}
-          >
+          <Text type="BodyError" style={{..._errorStyle, ...this.props.errorStyle}}>
             {this.props.errorText}
           </Text>}
       </Box>

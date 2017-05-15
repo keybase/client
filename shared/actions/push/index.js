@@ -41,9 +41,7 @@ function* permissionsRequestSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* pushNotificationSaga(
-  notification: Constants.PushNotification
-): SagaGenerator<any, any> {
+function* pushNotificationSaga(notification: Constants.PushNotification): SagaGenerator<any, any> {
   console.warn('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
@@ -136,10 +134,7 @@ export function* deletePushTokenSaga(): SagaGenerator<any, any> {
       throw new Error('No device id available for saving push token')
     }
 
-    const args = [
-      {key: 'device_id', value: deviceID},
-      {key: 'token_type', value: tokenType},
-    ]
+    const args = [{key: 'device_id', value: deviceID}, {key: 'token_type', value: tokenType}]
 
     yield call(apiserverDeleteRpcPromise, {
       param: {

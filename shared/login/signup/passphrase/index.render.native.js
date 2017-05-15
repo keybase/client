@@ -7,8 +7,7 @@ import {globalColors, globalMargins} from '../../../styles'
 
 class PassphraseRender extends Component<void, Props, void> {
   render() {
-    const passphraseError =
-      this.props.passphraseError && this.props.passphraseError.stringValue()
+    const passphraseError = this.props.passphraseError && this.props.passphraseError.stringValue()
 
     return (
       <Container onBack={this.props.onBack} outerStyle={stylesOuter}>
@@ -29,12 +28,7 @@ class PassphraseRender extends Component<void, Props, void> {
             onEnterKeyDown={this.props.onSubmit}
             onChangeText={pass2 => this.props.pass2Update(pass2)}
           />
-          <Button
-            fullWidth={true}
-            type="Primary"
-            label="Continue"
-            onClick={this.props.onSubmit}
-          />
+          <Button fullWidth={true} type="Primary" label="Continue" onClick={this.props.onSubmit} />
         </UserCard>
       </Container>
     )

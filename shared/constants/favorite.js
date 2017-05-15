@@ -44,37 +44,19 @@ export type State = Exact<{
 }>
 
 export const favoriteAdd = 'favorite:favoriteAdd'
-export type FavoriteAdd = NoErrorTypedAction<
-  'favorite:favoriteAdd',
-  {path: string}
->
+export type FavoriteAdd = NoErrorTypedAction<'favorite:favoriteAdd', {path: string}>
 export const favoriteAdded = 'favorite:favoriteAdded'
-export type FavoriteAdded = TypedAction<
-  'favorite:favoriteAdded',
-  void,
-  {errorText: string}
->
+export type FavoriteAdded = TypedAction<'favorite:favoriteAdded', void, {errorText: string}>
 
 export const favoriteList = 'favorite:favoriteList'
 export type FavoriteList = NoErrorTypedAction<'favorite:favoriteList', void>
 export const favoriteListed = 'favorite:favoriteListed'
-export type FavoriteListed = TypedAction<
-  'favorite:favoriteListed',
-  {folders: FolderState},
-  void
->
+export type FavoriteListed = TypedAction<'favorite:favoriteListed', {folders: FolderState}, void>
 
 export const favoriteIgnore = 'favorite:favoriteIgnore'
-export type FavoriteIgnore = NoErrorTypedAction<
-  'favorite:favoriteIgnore',
-  {path: string}
->
+export type FavoriteIgnore = NoErrorTypedAction<'favorite:favoriteIgnore', {path: string}>
 export const favoriteIgnored = 'favorite:favoriteIgnored'
-export type FavoriteIgnored = TypedAction<
-  'favorite:favoriteIgnored',
-  void,
-  {errorText: string}
->
+export type FavoriteIgnored = TypedAction<'favorite:favoriteIgnored', void, {errorText: string}>
 
 export const favoriteSwitchTab = 'favorite:favoriteSwitchTab'
 export type FavoriteSwitchTab = TypedAction<
@@ -91,24 +73,13 @@ export type FavoriteToggleIgnored = TypedAction<
 >
 
 export const kbfsStatusUpdated = 'favorite:kbfsStatusUpdated'
-export type KbfsStatusUpdated = TypedAction<
-  'favorite:kbfsStatusUpdated',
-  KBFSStatus,
-  void
->
+export type KbfsStatusUpdated = TypedAction<'favorite:kbfsStatusUpdated', KBFSStatus, void>
 
 export const markTLFCreated = 'favorite:markTLFCreated'
-export type MarkTLFCreated = TypedAction<
-  'favorite:markTLFCreated',
-  {folder: Folder},
-  void
->
+export type MarkTLFCreated = TypedAction<'favorite:markTLFCreated', {folder: Folder}, void>
 
 export const setupKBFSChangedHandler = 'favorite:setupKBFSChangedHandler'
-export type SetupKBFSChangedHandler = NoErrorTypedAction<
-  'favorite:setupKBFSChangedHandler',
-  void
->
+export type SetupKBFSChangedHandler = NoErrorTypedAction<'favorite:setupKBFSChangedHandler', void>
 
 export type FavoriteAction =
   | FavoriteAdd
@@ -138,8 +109,7 @@ function pathFromFolder({
 }): {sortName: string, path: string} {
   const rwers = users.filter(u => !u.readOnly).map(u => u.username)
   const readers = users.filter(u => !!u.readOnly).map(u => u.username)
-  const sortName =
-    rwers.join(',') + (readers.length ? `#${readers.join(',')}` : '')
+  const sortName = rwers.join(',') + (readers.length ? `#${readers.join(',')}` : '')
   const path = `${defaultKBFSPath}/${isPublic ? 'public' : 'private'}/${sortName}`
   return {sortName, path}
 }
@@ -164,10 +134,7 @@ function folderRPCFromPath(path: string): ?FolderRPC {
   }
 }
 
-function folderFromFolderRPCWithMeta(
-  username: string,
-  f: FolderRPCWithMeta
-): Folder {
+function folderFromFolderRPCWithMeta(username: string, f: FolderRPCWithMeta): Folder {
   const users = sortUserList(parseFolderNameToUsers(username, f.name))
 
   const {sortName, path} = pathFromFolder({users, isPublic: !f.private})

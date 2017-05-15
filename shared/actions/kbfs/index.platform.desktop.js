@@ -2,9 +2,7 @@
 import * as Constants from '../../constants/config'
 import path from 'path'
 import fs from 'fs'
-import {
-  kbfsMountGetCurrentMountDirRpcPromise,
-} from '../../constants/types/flow-types'
+import {kbfsMountGetCurrentMountDirRpcPromise} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {shell} from 'electron'
 import {isWindows} from '../../constants/platform'
@@ -99,9 +97,7 @@ function openInDefault(openPath: string): Promise<*> {
   openPath = path.resolve(openPath)
   // Paths MUST start with defaultKBFSPath
   if (!openPath.startsWith(Constants.defaultKBFSPath)) {
-    throw new Error(
-      `openInDefault requires ${Constants.defaultKBFSPath} prefix: ${openPath}`
-    )
+    throw new Error(`openInDefault requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
   }
 
   return _open(openPath)
@@ -109,9 +105,7 @@ function openInDefault(openPath: string): Promise<*> {
 
 function* openInWindows(openPath: string): SagaGenerator<any, any> {
   if (!openPath.startsWith(Constants.defaultKBFSPath)) {
-    throw new Error(
-      `openInWindows requires ${Constants.defaultKBFSPath} prefix: ${openPath}`
-    )
+    throw new Error(`openInWindows requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
   }
   openPath = openPath.slice(Constants.defaultKBFSPath.length)
 
@@ -154,9 +148,7 @@ function* openSaga(action: FSOpen): SagaGenerator<any, any> {
   }
 }
 
-function* openInFileUISaga({
-  payload: {path},
-}: OpenInFileUI): SagaGenerator<any, any> {
+function* openInFileUISaga({payload: {path}}: OpenInFileUI): SagaGenerator<any, any> {
   yield call(_open, path)
 }
 

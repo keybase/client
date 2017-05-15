@@ -1,12 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import openURL from '../util/open-url'
-import {
-  defaultColor,
-  fontSizeToSizeStyle,
-  lineClamp,
-  metaData,
-} from './text.meta.desktop'
+import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import {findDOMNode} from 'react-dom'
 import {globalStyles} from '../styles'
 import shallowEqual from 'shallowequal'
@@ -34,11 +29,7 @@ class Text extends Component<void, Props, void> {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (key === 'style') {
         return shallowEqual(obj, oth)
-      } else if (
-        key === 'children' &&
-        this.props.plainText &&
-        nextProps.plainText
-      ) {
+      } else if (key === 'children' && this.props.plainText && nextProps.plainText) {
         // child will be plain text
         return shallowEqual(obj, oth)
       }
@@ -48,12 +39,7 @@ class Text extends Component<void, Props, void> {
 
   _style(props) {
     return {
-      ...getStyle(
-        props.type,
-        props.backgroundMode,
-        props.lineClamp,
-        !!props.onClick
-      ),
+      ...getStyle(props.type, props.backgroundMode, props.lineClamp, !!props.onClick),
       ...props.style,
     }
   }
@@ -81,9 +67,7 @@ class Text extends Component<void, Props, void> {
         ref={this.props.allowHighlightText ? this._setRef : undefined}
         className={className}
         style={style}
-        onClick={
-          this.props.onClick || (this.props.onClickURL && this._urlClick)
-        }
+        onClick={this.props.onClick || (this.props.onClickURL && this._urlClick)}
       >
         {this.props.children}
       </span>
@@ -100,8 +84,7 @@ function getStyle(
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   const colorStyle = {
-    color: meta.colorForBackgroundMode[backgroundMode] ||
-      defaultColor(backgroundMode),
+    color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode),
   }
   const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null

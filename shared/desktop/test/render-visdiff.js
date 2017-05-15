@@ -40,12 +40,7 @@ app.on('ready', () => {
   let count = 0
 
   function renderNext(target) {
-    console.log(
-      'Rendering next. Remaining:',
-      toRender.length,
-      'Currently rendering:',
-      rendering
-    )
+    console.log('Rendering next. Remaining:', toRender.length, 'Currently rendering:', rendering)
     if (!toRender.length) {
       if (rendering === 0) {
         app.quit()
@@ -73,9 +68,7 @@ app.on('ready', () => {
         }
         count++
         if (msg.isError) {
-          console.log(
-            `[${count} / ${total}] error rendering: ${msg.key} - ${msg.mockKey}`
-          )
+          console.log(`[${count} / ${total}] error rendering: ${msg.key} - ${msg.mockKey}`)
         } else {
           console.log(`[${count} / ${total}] wrote ${filename}`)
         }
@@ -101,9 +94,7 @@ app.on('ready', () => {
       })
       console.log('Created new worker window', i)
 
-      workerWin.on('ready-to-show', () =>
-        console.log('Worker window ready-to-show:', i)
-      )
+      workerWin.on('ready-to-show', () => console.log('Worker window ready-to-show:', i))
       workerWin.webContents.on('did-finish-load', () => {
         if (DEBUG_WINDOWS) {
           workerWin.webContents.openDevTools('right')
@@ -119,12 +110,8 @@ app.on('ready', () => {
       workerWin.webContents.on('did-fail-load', () =>
         console.log('Worker window did-fail-load:', i)
       )
-      workerWin.on('unresponsive', () =>
-        console.log('Worker window unresponsive:', i)
-      )
-      workerWin.on('responsive', () =>
-        console.log('Worker window responsive:', i)
-      )
+      workerWin.on('unresponsive', () => console.log('Worker window unresponsive:', i))
+      workerWin.on('responsive', () => console.log('Worker window responsive:', i))
       workerWin.on('closed', () => console.log('Worker window closed:', i))
 
       const workerURL = resolveRootAsURL('renderer', `renderer.html?visDiff`)

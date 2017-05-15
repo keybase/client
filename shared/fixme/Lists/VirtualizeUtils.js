@@ -33,8 +33,7 @@ function elementsThatOverlapOffsets(
         if (kk === offsets.length - 1) {
           invariant(
             out.length === offsets.length,
-            'bad offsets input, should be in increasing order ' +
-              JSON.stringify(offsets)
+            'bad offsets input, should be in increasing order ' + JSON.stringify(offsets)
           )
           return out
         }
@@ -58,10 +57,7 @@ function newRangeCount(
     next.last -
     next.first +
     1 -
-    Math.max(
-      0,
-      1 + Math.min(next.last, prev.last) - Math.max(next.first, prev.first)
-    )
+    Math.max(0, 1 + Math.min(next.last, prev.last) - Math.max(next.first, prev.first))
   )
 }
 
@@ -101,10 +97,7 @@ function computeWindowedRenderLimits(
   const visibleEnd = visibleBegin + visibleLength
   const overscanLength = (windowSize - 1) * visibleLength
   const leadFactor = Math.max(0, Math.min(1, velocity / 5 + 0.5))
-  const overscanBegin = Math.max(
-    0,
-    visibleBegin - (1 - leadFactor) * overscanLength
-  )
+  const overscanBegin = Math.max(0, visibleBegin - (1 - leadFactor) * overscanLength)
   const overscanEnd = Math.max(0, visibleEnd + leadFactor * overscanLength)
 
   // Find the indices that correspond to the items at the render boundaries we're targetting.
@@ -116,9 +109,7 @@ function computeWindowedRenderLimits(
   overscanFirst = overscanFirst == null ? 0 : overscanFirst
   first = first == null ? Math.max(0, overscanFirst) : first
   overscanLast = overscanLast == null ? itemCount - 1 : overscanLast
-  last = last == null
-    ? Math.min(overscanLast, first + maxToRenderPerBatch - 1)
-    : last
+  last = last == null ? Math.min(overscanLast, first + maxToRenderPerBatch - 1) : last
   const visible = {first, last}
 
   // We want to limit the number of new cells we're rendering per batch so that we can fill the
@@ -134,11 +125,9 @@ function computeWindowedRenderLimits(
     }
     const maxNewCells = newCellCount >= maxToRenderPerBatch
     const firstWillAddMore = first <= prev.first || first > prev.last
-    const firstShouldIncrement =
-      first > overscanFirst && (!maxNewCells || !firstWillAddMore)
+    const firstShouldIncrement = first > overscanFirst && (!maxNewCells || !firstWillAddMore)
     const lastWillAddMore = last >= prev.last || last < prev.first
-    const lastShouldIncrement =
-      last < overscanLast && (!maxNewCells || !lastWillAddMore)
+    const lastShouldIncrement = last < overscanLast && (!maxNewCells || !lastWillAddMore)
     if (maxNewCells && !firstShouldIncrement && !lastShouldIncrement) {
       // We only want to stop if we've hit maxNewCells AND we cannot increment first or last
       // without rendering new items. This let's us preserve as many already rendered items as

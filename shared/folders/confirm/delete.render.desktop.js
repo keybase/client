@@ -7,9 +7,7 @@ import {globalColors} from '../../styles'
 
 const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
   const theme = isPrivate ? 'private' : 'public'
-  const icon: IconType = isPrivate
-    ? 'icon-files-private-delete-48'
-    : 'icon-files-public-delete-48'
+  const icon: IconType = isPrivate ? 'icon-files-private-delete-48' : 'icon-files-public-delete-48'
   const header = <Icon type={icon} />
 
   const body = (
@@ -20,17 +18,9 @@ const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
           {' '}
           {isPrivate ? 'private/' : 'public/'}
         </Text>
-        <Usernames
-          type="Header"
-          inline={true}
-          style={textColorThemed[theme]}
-          users={users}
-        />
+        <Usernames type="Header" inline={true} style={textColorThemed[theme]} users={users} />
         <Text type="Header" style={textColorThemed[theme]}>?</Text>
-        <Text
-          type="Header"
-          style={{...textColorThemed[theme], whiteSpace: 'pre'}}
-        >
+        <Text type="Header" style={{...textColorThemed[theme], whiteSpace: 'pre'}}>
           {' '}({folderSize})
         </Text>
       </Box>

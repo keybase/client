@@ -19,13 +19,10 @@ function genEmojiData() {
   const emojiLiterals = []
   const emojiCharacters = new Set()
   function addEmojiLiteral(unified, name, skinTone) {
-    const chars = unified
-      .split('-')
-      .map(c => String.fromCodePoint(parseInt(c, 16)))
+    const chars = unified.split('-').map(c => String.fromCodePoint(parseInt(c, 16)))
     const literals = chars.map(c => UTF162JSON(c)).join('')
 
-    emojiIndexByChar[chars.join('')] =
-      `:${name}:` + (skinTone ? `:skin-tone-${skinTone}:` : '')
+    emojiIndexByChar[chars.join('')] = `:${name}:` + (skinTone ? `:skin-tone-${skinTone}:` : '')
     emojiLiterals.push(literals)
     chars.forEach(c => emojiCharacters.add(c))
   }

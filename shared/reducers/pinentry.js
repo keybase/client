@@ -66,10 +66,7 @@ export default function(
           ...state,
           pinentryStates: {
             ...state.pinentryStates,
-            [sessionID]: updatePinentryState(
-              state.pinentryStates[sessionID + ''] || {},
-              action
-            ),
+            [sessionID]: updatePinentryState(state.pinentryStates[sessionID + ''] || {}, action),
           },
         }
       }

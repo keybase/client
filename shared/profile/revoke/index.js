@@ -9,24 +9,12 @@ import {isMobile} from '../../constants/platform'
 
 import type {Props} from './index'
 
-const Revoke = ({
-  platform,
-  platformHandle,
-  errorMessage,
-  onCancel,
-  onRevoke,
-  isWaiting,
-}: Props) => {
+const Revoke = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isWaiting}: Props) => {
   const platformHandleSubtitle = platformSubtitle(platform)
 
   return (
     <Box style={styleContainer}>
-      {!isWaiting &&
-        <Icon
-          style={styleClose}
-          type="iconfont-close"
-          onClick={() => onCancel()}
-        />}
+      {!isWaiting && <Icon style={styleClose} type="iconfont-close" onClick={() => onCancel()} />}
       {errorMessage &&
         <Box style={styleErrorBanner}>
           <Text style={styleErrorBannerText} type="BodySemibold">
@@ -53,12 +41,7 @@ const Revoke = ({
           You can add it again later, if you change your mind.
         </Text>
         <Box style={styleButtonsContainer}>
-          <Button
-            type="Secondary"
-            onClick={onCancel}
-            label="Cancel"
-            disabled={isWaiting}
-          />
+          <Button type="Secondary" onClick={onCancel} label="Cancel" disabled={isWaiting} />
           <Button
             type="Danger"
             onClick={onRevoke}

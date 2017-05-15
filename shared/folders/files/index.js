@@ -80,8 +80,7 @@ class Files extends Component<void, Props, State> {
           {onClick: ignoreCurrentFolder, title: 'Ignore'},
         ]}
         visiblePopupMenu={this.state.visiblePopupMenu}
-        onTogglePopupMenu={() =>
-          this.setState({visiblePopupMenu: !this.state.visiblePopupMenu})}
+        onTogglePopupMenu={() => this.setState({visiblePopupMenu: !this.state.visiblePopupMenu})}
         selfUsername={username}
         allowIgnore={allowIgnore}
         users={folder.users}
@@ -92,9 +91,7 @@ class Files extends Component<void, Props, State> {
         openCurrentFolder={openCurrentFolder}
         openConversationFromFolder={openConversationFromFolder}
         onClickPaperkey={device =>
-          this.props.navigateAppend([
-            {selected: 'paperkey', name: device.name},
-          ])} // FIXME: does this name route prop get used anywhere?
+          this.props.navigateAppend([{selected: 'paperkey', name: device.name}])} // FIXME: does this name route prop get used anywhere?
         ignoreCurrentFolder={ignoreCurrentFolder}
         unIgnoreCurrentFolder={unIgnoreCurrentFolder}
         recentFilesSection={folder.recentFiles} // TODO (AW): integrate recent files once the service provides this data

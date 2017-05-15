@@ -11,13 +11,7 @@ type State = {
   text: string,
 }
 
-const UserButton = ({
-  isPublic,
-  onClick,
-}: {
-  isPublic: boolean,
-  onClick: () => void,
-}) => (
+const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void}) => (
   <Box
     style={{
       ...stylesButtonContainer,
@@ -30,34 +24,21 @@ const UserButton = ({
       onClick={onClick}
       labelStyle={{color: globalColors.white}}
       style={{
-        backgroundColor: isPublic
-          ? globalColors.yellowGreen
-          : globalColors.darkBlue2,
+        backgroundColor: isPublic ? globalColors.yellowGreen : globalColors.darkBlue2,
       }}
       label={isPublic ? 'Open public folder' : 'New private folder'}
     />
   </Box>
 )
 
-const UserInput = ({
-  isPublic,
-  onSubmit,
-  onCancel,
-  onUpdateText,
-  username,
-  text,
-}) => {
-  const icon: IconType = isPublic
-    ? 'icon-folder-public-open-32'
-    : 'icon-folder-private-open-32'
+const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}) => {
+  const icon: IconType = isPublic ? 'icon-folder-public-open-32' : 'icon-folder-private-open-32'
 
   return (
     <Box
       style={{
         ...stylesInputContainer,
-        backgroundColor: isPublic
-          ? globalColors.lightGrey
-          : globalColors.darkBlue3,
+        backgroundColor: isPublic ? globalColors.lightGrey : globalColors.darkBlue3,
       }}
     >
       <Input
@@ -69,9 +50,7 @@ const UserInput = ({
         }}
         hideUnderline={true}
         autoFocus={true}
-        hintText={
-          isPublic ? 'user or user1,user2,user3' : 'user1,user2,user3,...'
-        }
+        hintText={isPublic ? 'user or user1,user2,user3' : 'user1,user2,user3,...'}
         style={{flex: 1}}
         inputStyle={{
           color: isPublic ? globalColors.black_75 : globalColors.white,
@@ -86,11 +65,7 @@ const UserInput = ({
           }
         }}
       />
-      <Icon
-        type={icon}
-        onClick={onSubmit}
-        style={{...globalStyles.clickable}}
-      />
+      <Icon type={icon} onClick={onSubmit} style={{...globalStyles.clickable}} />
     </Box>
   )
 }

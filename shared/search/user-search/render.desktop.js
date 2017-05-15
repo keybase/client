@@ -1,14 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 
-import {
-  Avatar,
-  Box,
-  ClickableBox,
-  Icon,
-  Text,
-  ProgressIndicator,
-} from '../../common-adapters'
+import {Avatar, Box, ClickableBox, Icon, Text, ProgressIndicator} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 
 import type {SearchResult} from '../../constants/search'
@@ -43,11 +36,7 @@ function KeybaseExtraInfo({username, fullName, isFollowing, searchText}) {
       }}
     >
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-        <Avatar
-          size={16}
-          style={{width: 16, marginRight: 4}}
-          username={username}
-        />
+        <Avatar size={16} style={{width: 16, marginRight: 4}} username={username} />
         <Text
           type="BodySmallSemibold"
           style={{color: isFollowing ? globalColors.green2 : globalColors.blue}}
@@ -56,23 +45,14 @@ function KeybaseExtraInfo({username, fullName, isFollowing, searchText}) {
         </Text>
       </Box>
       {!!fullName &&
-        <Text
-          type="BodySmall"
-          style={{...fullNameStyle, color: globalColors.black_40}}
-        >
+        <Text type="BodySmall" style={{...fullNameStyle, color: globalColors.black_40}}>
           {fullName}
         </Text>}
     </Box>
   )
 }
 
-function ExternalExtraInfo({
-  fullNameOnService,
-  icon,
-  serviceAvatar,
-  serviceUsername,
-  searchText,
-}) {
+function ExternalExtraInfo({fullNameOnService, icon, serviceAvatar, serviceUsername, searchText}) {
   return (
     <Box
       style={{
@@ -83,16 +63,11 @@ function ExternalExtraInfo({
     >
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         {!!icon && <Icon type={icon} style={{width: 17, marginRight: 4}} />}
-        {!icon &&
-          <Avatar size={16} url={serviceAvatar} style={{marginRight: 4}} />}
-        {!!serviceUsername &&
-          <Text type="BodySmallSemibold">{serviceUsername}</Text>}
+        {!icon && <Avatar size={16} url={serviceAvatar} style={{marginRight: 4}} />}
+        {!!serviceUsername && <Text type="BodySmallSemibold">{serviceUsername}</Text>}
       </Box>
       {!!fullNameOnService &&
-        <Text
-          type="BodySmall"
-          style={{...fullNameStyle, color: globalColors.black_40}}
-        >
+        <Text type="BodySmall" style={{...fullNameStyle, color: globalColors.black_40}}>
           {fullNameOnService}
         </Text>}
     </Box>
@@ -125,12 +100,7 @@ export function Result({
       break
     case 'external':
       icon = <Icon type={result.icon} style={iconStyle} />
-      body = (
-        <ExternalResultBody
-          username={result.username}
-          searchText={searchText}
-        />
-      )
+      body = <ExternalResultBody username={result.username} searchText={searchText} />
       break
   }
 
@@ -146,14 +116,10 @@ export function Result({
   let extraInfo = <Box />
   switch (result.extraInfo.service) {
     case 'external':
-      extraInfo = (
-        <ExternalExtraInfo {...result.extraInfo} searchText={searchText} />
-      )
+      extraInfo = <ExternalExtraInfo {...result.extraInfo} searchText={searchText} />
       break
     case 'keybase':
-      extraInfo = (
-        <KeybaseExtraInfo {...result.extraInfo} searchText={searchText} />
-      )
+      extraInfo = <KeybaseExtraInfo {...result.extraInfo} searchText={searchText} />
       break
     case 'none':
       extraInfo = (

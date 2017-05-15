@@ -26,5 +26,4 @@ export type AttachmentProps = {
   onSaveAttachment?: () => void,
 } & BaseProps
 
-export class AttachmentPopupMenu
-  extends Component<void, AttachmentProps, void> {}
+export class AttachmentPopupMenu extends Component<void, AttachmentProps, void> {}

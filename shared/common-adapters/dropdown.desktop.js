@@ -168,11 +168,7 @@ type OptionsListProps = {
 
 const optionsList = ({options, onClick, username}: OptionsListProps) => {
   return options.map((o, i) => (
-    <MenuItem
-      onClick={() => onClick(i)}
-      key={o}
-      type={username ? 'Username' : 'Normal'}
-    >
+    <MenuItem onClick={() => onClick(i)} key={o} type={username ? 'Username' : 'Normal'}>
       {o}
     </MenuItem>
   ))
@@ -182,8 +178,7 @@ const UsernameList = ({options, onClick, onOther}: OptionsListProps) => {
   return (
     <div style={styles.popover}>
       {optionsList({onClick, options, username: true})}
-      {onOther &&
-        <MenuItem onClick={onOther} type="Other">Someone else...</MenuItem>}
+      {onOther && <MenuItem onClick={onOther} type="Other">Someone else...</MenuItem>}
     </div>
   )
 }
@@ -193,8 +188,7 @@ const GeneralList = ({options, onClick, onOther}: OptionsListProps) => {
     <div style={styles.popover}>
       <MenuItem onClick={() => onClick()} type="Pick">Pick an option</MenuItem>
       {optionsList({onClick, options})}
-      {onOther &&
-        <MenuItem onClick={onOther} type="Other">Or something else</MenuItem>}
+      {onOther && <MenuItem onClick={onOther} type="Other">Or something else</MenuItem>}
     </div>
   )
 }

@@ -33,10 +33,7 @@ class SuccessRender extends Component<void, Props, State> {
         <Text type="Header" style={textCenter}>
           {this.props.title || "Congratulations, you've just joined Keybase!"}
         </Text>
-        <Text
-          type="Body"
-          style={{...textCenter, marginTop: globalMargins.medium}}
-        >
+        <Text type="Body" style={{...textCenter, marginTop: globalMargins.medium}}>
           Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you'll see this so be sure to write it down.
         </Text>
 

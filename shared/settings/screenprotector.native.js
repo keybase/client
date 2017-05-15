@@ -3,10 +3,7 @@
 import React, {Component} from 'react'
 import {globalStyles, globalMargins} from '../styles'
 import {Box, Text, Checkbox, HeaderHoc} from '../common-adapters'
-import {
-  getSecureFlagSetting,
-  setSecureFlagSetting,
-} from '../native/screenprotector'
+import {getSecureFlagSetting, setSecureFlagSetting} from '../native/screenprotector'
 import {isAndroid} from '../constants/platform'
 
 type State = {
@@ -41,9 +38,7 @@ class Screenprotector extends Component {
 
   render() {
     if (!isAndroid) {
-      return (
-        <Text type="Body">Screenprotector is only supported on android</Text>
-      )
+      return <Text type="Body">Screenprotector is only supported on android</Text>
     }
 
     return (

@@ -60,8 +60,7 @@ const Icon = (props: Exact<Props>) => {
       </NativeText>
     )
   } else {
-    const height = props.style &&
-    props.style.height && {height: props.style.height}
+    const height = props.style && props.style.height && {height: props.style.height}
     icon = (
       <NativeImage
         source={iconMeta[iconType].require}
@@ -87,10 +86,7 @@ export function iconTypeToImgSet(type: IconType) {
   return iconMeta[type].require
 }
 
-export function urlsToImgSet(
-  imgMap: {[size: string]: string},
-  size: number
-): any {
+export function urlsToImgSet(imgMap: {[size: string]: string}, size: number): any {
   return Object.keys(imgMap).map(size => ({
     height: parseInt(size, 10),
     uri: imgMap[size],

@@ -12,7 +12,6 @@ class RequestInviteSuccess extends Component {
 }
 
 // $FlowIssue type this connector
-export default connect(
-  state => ({}),
-  dispatch => bindActionCreators(signupActions, dispatch)
-)(RequestInviteSuccess)
+export default connect(state => ({}), dispatch => bindActionCreators(signupActions, dispatch))(
+  RequestInviteSuccess
+)

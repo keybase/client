@@ -1,12 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {
-  Button,
-  PlatformIcon,
-  Input,
-  StandardScreen,
-  Text,
-} from '../../common-adapters'
+import {Button, PlatformIcon, Input, StandardScreen, Text} from '../../common-adapters'
 import {NativeKeyboardAvoidingView} from '../../common-adapters/index.native'
 import {globalMargins, globalColors} from '../../styles'
 import type {Props} from './add'
@@ -23,11 +17,7 @@ class PgpAdd extends Component<void, Props, void> {
       <NativeKeyboardAvoidingView behavior="position">
         <StandardScreen style={styleContainer} onClose={this.props.onCancel}>
           {/* TODO(MM) when we get the pgp icon, put it in here */}
-          <PlatformIcon
-            platform="pgp"
-            overlay="icon-proof-unfinished"
-            style={styleIcon}
-          />
+          <PlatformIcon platform="pgp" overlay="icon-proof-unfinished" style={styleIcon} />
           <Text style={styleHeader} type="Body">
             Fill in your public info:
           </Text>

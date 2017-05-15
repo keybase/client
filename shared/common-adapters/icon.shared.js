@@ -38,37 +38,23 @@ export function defaultHoverColor(type: IconType): ?string {
 export function typeToIconMapper(type: IconType): IconType {
   switch (type) {
     case 'icon-progress-white-animated':
-      return __SCREENSHOT__
-        ? 'icon-progress-white-static'
-        : 'icon-progress-white-animated'
+      return __SCREENSHOT__ ? 'icon-progress-white-static' : 'icon-progress-white-animated'
     case 'icon-progress-grey-animated':
-      return __SCREENSHOT__
-        ? 'icon-progress-grey-static'
-        : 'icon-progress-grey-animated'
+      return __SCREENSHOT__ ? 'icon-progress-grey-static' : 'icon-progress-grey-animated'
     case 'icon-loader-infinity-64':
-      return __SCREENSHOT__
-        ? 'icon-loader-infinity-static-64'
-        : 'icon-loader-infinity-64'
+      return __SCREENSHOT__ ? 'icon-loader-infinity-static-64' : 'icon-loader-infinity-64'
     case 'icon-loader-infinity-80':
-      return __SCREENSHOT__
-        ? 'icon-loader-infinity-static-80'
-        : 'icon-loader-infinity-80'
+      return __SCREENSHOT__ ? 'icon-loader-infinity-static-80' : 'icon-loader-infinity-80'
     case 'icon-facebook-visibility':
-      return __SCREENSHOT__
-        ? 'icon-facebook-visibility-static'
-        : 'icon-facebook-visibility'
+      return __SCREENSHOT__ ? 'icon-facebook-visibility-static' : 'icon-facebook-visibility'
     case 'icon-secure-266':
       return __SCREENSHOT__ ? 'icon-secure-static-266' : 'icon-secure-266'
     case 'icon-securing-266':
       return __SCREENSHOT__ ? 'icon-securing-static-266' : 'icon-securing-266'
     case 'icon-connecting-266':
-      return __SCREENSHOT__
-        ? 'icon-loader-connecting-266-static'
-        : 'icon-loader-connecting-266'
+      return __SCREENSHOT__ ? 'icon-loader-connecting-266-static' : 'icon-loader-connecting-266'
     case 'icon-loader-uploading-16':
-      return __SCREENSHOT__
-        ? 'icon-loader-uploading-16-static'
-        : 'icon-loader-uploading-16'
+      return __SCREENSHOT__ ? 'icon-loader-uploading-16-static' : 'icon-loader-uploading-16'
     default:
       return type
   }

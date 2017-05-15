@@ -3,20 +3,13 @@
 import React, {Component} from 'react'
 import {Box, UserProofs, UserBio, UserActions} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
-import {
-  AVATAR_SIZE,
-  HEADER_TOP_SPACE,
-  HEADER_SIZE,
-} from '../../profile/index.desktop'
+import {AVATAR_SIZE, HEADER_TOP_SPACE, HEADER_SIZE} from '../../profile/index.desktop'
 import {stateColors} from '../../util/tracker'
 import type {Props} from './user.render'
 
 export default class UserRender extends Component<void, Props, void> {
   render() {
-    const trackerStateColors = stateColors(
-      this.props.currentlyFollowing,
-      this.props.trackerState
-    )
+    const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 
     return (
       <Box style={styleContainer}>

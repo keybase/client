@@ -27,12 +27,7 @@ class InvitationsContainer extends Component<void, Props, void> {
   }
 }
 
-const connector: TypedConnector<
-  TypedState,
-  TypedDispatch<{}>,
-  {},
-  Props
-> = new TypedConnector()
+const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
 
 export default connector.connect((state, dispatch, ownProps) => {
   return {

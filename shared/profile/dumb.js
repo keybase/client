@@ -147,11 +147,7 @@ const folders = [
     hasData: false,
   }),
   createFolder({
-    users: [
-      {username: 'chris', you: true},
-      {username: 'cecileb'},
-      {username: 'max'},
-    ],
+    users: [{username: 'chris', you: true}, {username: 'cecileb'}, {username: 'max'}],
     ...baseFolder,
   }),
   createFolder({
@@ -175,11 +171,7 @@ const folders = [
     isPublic: false,
   }),
   createFolder({
-    users: [
-      {username: 'chris', you: true},
-      {username: 'chrisnojima'},
-      {username: 'marcopolo'},
-    ],
+    users: [{username: 'chris', you: true}, {username: 'chrisnojima'}, {username: 'marcopolo'}],
     ...baseFolder,
   }),
 ]
@@ -559,9 +551,7 @@ const proveEnterUsernameBase = {
   onCancel: () => {
     console.log('cancel clicked')
   },
-  parentProps: isMobile
-    ? {}
-    : {style: {display: 'flex', minWidth: 640, height: 580}},
+  parentProps: isMobile ? {} : {style: {display: 'flex', minWidth: 640, height: 580}},
 }
 
 const dumbProveEnterUsername: DumbComponentMap<ProveEnterUsername> = {
@@ -676,9 +666,7 @@ const postProofBase = {
   onComplete: () => {
     console.log('PostProof: onComplete clicked')
   },
-  parentProps: isMobile
-    ? {}
-    : {style: {display: 'flex', minWidth: 640, height: 580}},
+  parentProps: isMobile ? {} : {style: {display: 'flex', minWidth: 640, height: 580}},
 }
 
 const postProofTwitter = {
@@ -751,8 +739,7 @@ const dumbProveWebsiteChoice: DumbComponentMap<ProveWebsiteChoice> = {
   mocks: {
     'DNS or File': {
       onCancel: () => console.log('ProveWebsiteChoice: onCancel'),
-      onOptionClick: op =>
-        console.log(`ProveWebsiteChoice: onOptionClick = ${op}`),
+      onOptionClick: op => console.log(`ProveWebsiteChoice: onOptionClick = ${op}`),
     },
   },
 }

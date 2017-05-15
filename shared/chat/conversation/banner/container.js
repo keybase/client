@@ -13,19 +13,10 @@ import {Box} from '../../../common-adapters'
 import type {TypedState} from '../../../constants/reducer'
 
 const getBannerMessage = createSelector(
-  [
-    Constants.getYou,
-    Constants.getTLF,
-    Constants.getFollowingMap,
-    Constants.getMetaDataMap,
-  ],
+  [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],
   (you, tlf, followingMap, metaDataMap) => {
     const participants = List(tlf.split(','))
-    const brokenUsers = Constants.getBrokenUsers(
-      participants.toArray(),
-      you,
-      metaDataMap
-    )
+    const brokenUsers = Constants.getBrokenUsers(participants.toArray(), you, metaDataMap)
     if (brokenUsers.length) {
       return {
         type: 'BrokenTracker',
@@ -51,9 +42,7 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onClick: (username: string) => {
-    isMobile
-      ? dispatch(onUserClick(username, ''))
-      : dispatch(getProfile(username, true, true))
+    isMobile ? dispatch(onUserClick(username, '')) : dispatch(getProfile(username, true, true))
   },
 })
 
@@ -61,9 +50,5 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   branch(props => !props, renderNothing),
   branch(({type}) => type === 'Invite', renderComponent(InviteBanner)),
-  branch(
-    ({type}) => type === 'BrokenTracker',
-    renderComponent(BrokenTrackerBanner),
-    renderNothing
-  )
+  branch(({type}) => type === 'BrokenTracker', renderComponent(BrokenTrackerBanner), renderNothing)
 )(Box)

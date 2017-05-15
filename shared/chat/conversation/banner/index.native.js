@@ -65,11 +65,7 @@ const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
           {intersperseFn(
             brokenSeparator,
             users.map((user, idx) => (
-              <BannerText
-                type="BodySemiboldLink"
-                key={user}
-                onClick={() => onClick(user)}
-              >
+              <BannerText type="BodySemiboldLink" key={user} onClick={() => onClick(user)}>
                 {user}
               </BannerText>
             ))

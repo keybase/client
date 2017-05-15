@@ -9,9 +9,7 @@ function permissionsRequest(): Constants.PushPermissionsRequest {
   return {type: Constants.permissionsRequest, payload: undefined}
 }
 
-function permissionsRequesting(
-  enabled: boolean
-): Constants.PushPermissionsRequesting {
+function permissionsRequesting(enabled: boolean): Constants.PushPermissionsRequesting {
   return {type: Constants.permissionsRequesting, payload: enabled}
 }
 
@@ -25,10 +23,7 @@ function pushNotification(
   return {type: Constants.pushNotification, payload: notification}
 }
 
-function pushToken(
-  token: string,
-  tokenType: Constants.TokenType
-): Constants.PushToken {
+function pushToken(token: string, tokenType: Constants.TokenType): Constants.PushToken {
   return {type: Constants.pushToken, payload: {token, tokenType}}
 }
 
@@ -36,10 +31,7 @@ function savePushToken(): Constants.SavePushToken {
   return {type: Constants.savePushToken, payload: undefined}
 }
 
-function updatePushToken(
-  token: string,
-  tokenType: Constants.TokenType
-): Constants.UpdatePushToken {
+function updatePushToken(token: string, tokenType: Constants.TokenType): Constants.UpdatePushToken {
   return {type: Constants.updatePushToken, payload: {token, tokenType}}
 }
 

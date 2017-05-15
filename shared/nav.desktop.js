@@ -37,10 +37,7 @@ function Nav(props: Props) {
       </Box>
       <div id="popupContainer" />
       {![chatTab, loginTab].includes(props.routeSelected) &&
-        <Offline
-          reachability={props.reachability}
-          appFocused={props.appFocused}
-        />}
+        <Offline reachability={props.reachability} appFocused={props.appFocused} />}
       <GlobalError />
     </Box>
   )

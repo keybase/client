@@ -31,16 +31,13 @@ type State = {
 
 // The background is a separate layer due to a chrome bug where if you keep it as a background of an img (for example) it'll bleed the edges
 const backgroundOffset = 1
-class Background
-  extends PureComponent<void, {loaded: boolean, loadingColor: ?string}, void> {
+class Background extends PureComponent<void, {loaded: boolean, loadingColor: ?string}, void> {
   render() {
     const {loaded, loadingColor} = this.props
     return (
       <div
         style={{
-          backgroundColor: loaded
-            ? globalColors.white
-            : loadingColor || globalColors.lightGrey,
+          backgroundColor: loaded ? globalColors.white : loadingColor || globalColors.lightGrey,
           borderRadius: '50%',
           bottom: backgroundOffset,
           left: backgroundOffset,
@@ -191,8 +188,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
         <Background loaded={this.state.loaded} loadingColor={loadingColor} />
         {url && <UserImage opacity={opacity} size={size} url={url} />}
         {!!borderColor && <Border borderColor={borderColor} />}
-        {followIconType &&
-          <Icon type={followIconType} style={followIconStyle} />}
+        {followIconType && <Icon type={followIconType} style={followIconStyle} />}
         {children}
       </div>
     )

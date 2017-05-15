@@ -53,12 +53,9 @@ function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isSelected) {
 const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 const getYou = state => state.config.username || ''
 const makeGetConversation = conversationIDKey => state =>
-  state.chat
-    .get('inbox')
-    .find(i => i.get('conversationIDKey') === conversationIDKey)
+  state.chat.get('inbox').find(i => i.get('conversationIDKey') === conversationIDKey)
 const makeGetIsSelected = conversationIDKey => state =>
-  newestConversationIDKey(getSelectedConversation(state), state.chat) ===
-  conversationIDKey
+  newestConversationIDKey(getSelectedConversation(state), state.chat) === conversationIDKey
 const makeGetRekeyInfo = conversationIDKey => state =>
   state.chat.get('rekeyInfos').get(conversationIDKey)
 const makeGetUnreadCounts = conversationIDKey => state =>
@@ -104,25 +101,14 @@ const makeSelector = conversationIDKey => {
         getNowOverride,
         makeGetFinalizedInfo(conversationIDKey),
       ],
-      (
-        conversation,
-        isSelected,
-        unreadCount,
-        you,
-        rekeyInfo,
-        nowOverride,
-        finalizeInfo
-      ) => ({
+      (conversation, isSelected, unreadCount, you, rekeyInfo, nowOverride, finalizeInfo) => ({
         conversationIDKey,
         isMuted: conversation.get('status') === 'muted',
         isSelected,
         participants: participantFilter(conversation.get('participants'), you),
         rekeyInfo,
         snippet: conversation.get('snippet'),
-        timestamp: formatTimeForConversationList(
-          conversation.get('time'),
-          nowOverride
-        ),
+        timestamp: formatTimeForConversationList(conversation.get('time'), nowOverride),
         unreadCount: unreadCount || 0,
         ..._rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isSelected),
       })
@@ -137,8 +123,7 @@ const RowConnector = connect(
     return (state: TypedState) => selector(state)
   },
   dispatch => ({
-    onSelectConversation: (key: ConversationIDKey) =>
-      dispatch(selectConversation(key, true)),
+    onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
   })
 )
 

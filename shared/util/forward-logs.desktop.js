@@ -102,9 +102,7 @@ function setupTarget() {
   keys.forEach(key => {
     const override = (...args) => {
       if (args.length) {
-        output[key](
-          `${key}: ${Date()} (${Date.now()}): ${util.format('%s', ...args)}\n`
-        )
+        output[key](`${key}: ${Date()} (${Date.now()}): ${util.format('%s', ...args)}\n`)
       }
     }
 

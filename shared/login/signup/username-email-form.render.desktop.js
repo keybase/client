@@ -10,11 +10,7 @@ class UsernameEmailFormRender extends Component {
 
   render() {
     return (
-      <Container
-        onBack={this.props.onBack}
-        style={stylesContainer}
-        outerStyle={stylesOuter}
-      >
+      <Container onBack={this.props.onBack} style={stylesContainer} outerStyle={stylesOuter}>
         <UserCard style={stylesCard}>
           <Input
             autoFocus={true}

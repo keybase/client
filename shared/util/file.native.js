@@ -22,21 +22,13 @@ function exists(filepath: string): Promise<boolean> {
   return RNFetchBlob.fs.exists(filepath)
 }
 
-function writeFile(
-  filepath: string,
-  contents: string,
-  encoding?: string
-): Promise<void> {
+function writeFile(filepath: string, contents: string, encoding?: string): Promise<void> {
   return RNFetchBlob.fs
     .createFile(filepath, '', encoding)
     .then(() => RNFetchBlob.fs.writeFile(filepath, contents, encoding))
 }
 
-function writeStream(
-  filepath: string,
-  encoding: string,
-  append?: boolean
-): Promise<*> {
+function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
   return RNFetchBlob.fs
     .createFile(filepath, '', encoding)
     .then(() => RNFetchBlob.fs.writeStream(filepath, encoding, append))

@@ -60,9 +60,7 @@ function parseExtraInfo(
   if (platform === 'Keybase') {
     if (rr.service) {
       return {
-        fullNameOnService: rr.service.full_name ||
-          (rr.keybase && rr.keybase.full_name) ||
-          '',
+        fullNameOnService: rr.service.full_name || (rr.keybase && rr.keybase.full_name) || '',
         icon: serviceName && platformToLogo16(serviceName),
         service: 'external',
         serviceAvatar: '',
@@ -107,8 +105,7 @@ function parseRawResult(
   added: Object
 ): ?SearchResult {
   const extraInfo = parseExtraInfo(platform, rr, isFollowing)
-  const serviceName =
-    rr.service && rr.service.service_name && capitalize(rr.service.service_name)
+  const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
 
   let searchResult = null
   if (platform === 'Keybase' && rr.keybase) {
@@ -204,8 +201,7 @@ function search(
         } else {
           try {
             const json = JSON.parse(results.body)
-            const isFollowing = (username: string) =>
-              isFollowing_(getState, username)
+            const isFollowing = (username: string) => isFollowing_(getState, username)
             // map of service+username
             const added = getState().search.selectedUsers.reduce((m, cur) => {
               searchResultKeys(cur).forEach(key => {
@@ -214,14 +210,7 @@ function search(
               return m
             }, {})
             dispatch(
-              rawResults(
-                term,
-                platform,
-                json.list || [],
-                requestTimestamp,
-                isFollowing,
-                added
-              )
+              rawResults(term, platform, json.list || [], requestTimestamp, isFollowing, added)
             )
           } catch (_) {
             console.log('Error searching (json). Not handling this error')

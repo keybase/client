@@ -31,28 +31,14 @@ function routeStateReducer(routeDef, routeState, action) {
       return routeSetProps(routeDef, null, [])
 
     case Constants.setRouteDef: {
-      return routeNavigate(
-        action.payload.routeDef,
-        routeState,
-        getPath(routeState)
-      )
+      return routeNavigate(action.payload.routeDef, routeState, getPath(routeState))
     }
 
     case Constants.switchTo:
-      return routeSetProps(
-        routeDef,
-        routeState,
-        action.payload.path,
-        action.payload.parentPath
-      )
+      return routeSetProps(routeDef, routeState, action.payload.path, action.payload.parentPath)
 
     case Constants.navigateTo:
-      return routeNavigate(
-        routeDef,
-        routeState,
-        action.payload.path,
-        action.payload.parentPath
-      )
+      return routeNavigate(routeDef, routeState, action.payload.path, action.payload.parentPath)
 
     case Constants.navigateAppend: {
       const parentPath = I.List(action.payload.parentPath)
@@ -74,12 +60,7 @@ function routeStateReducer(routeDef, routeState, action) {
     }
 
     case Constants.setRouteState:
-      return routeSetState(
-        routeDef,
-        routeState,
-        action.payload.path,
-        action.payload.partialState
-      )
+      return routeSetState(routeDef, routeState, action.payload.path, action.payload.partialState)
 
     case Constants.resetRoute:
       return routeClear(routeState, action.payload.path)
@@ -101,10 +82,7 @@ export default function routeTreeReducer(
     newRouteDef = routeDefReducer(routeDef, action)
     newRouteState = routeStateReducer(routeDef, routeState, action)
   } catch (err) {
-    if (
-      action.type === Constants.setRouteDef &&
-      err instanceof InvalidRouteError
-    ) {
+    if (action.type === Constants.setRouteDef && err instanceof InvalidRouteError) {
       console.warn(
         'New route tree mismatches current state. Not updating (please reload manually if needed).'
       )

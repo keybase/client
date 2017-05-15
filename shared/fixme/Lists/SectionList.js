@@ -17,9 +17,7 @@ const React = require('React')
 const VirtualizedSectionList = require('./VirtualizedSectionList')
 
 import type {ViewToken} from './ViewabilityHelper'
-import type {
-  Props as VirtualizedSectionListProps,
-} from './VirtualizedSectionList'
+import type {Props as VirtualizedSectionListProps} from './VirtualizedSectionList'
 
 type Item = any
 
@@ -279,9 +277,7 @@ class SectionList<SectionT: SectionBase<any>>
   }
 
   render() {
-    const List = this.props.legacyImplementation
-      ? MetroListView
-      : VirtualizedSectionList
+    const List = this.props.legacyImplementation ? MetroListView : VirtualizedSectionList
     return <List {...this.props} ref={this._captureRef} />
   }
 

@@ -1,20 +1,10 @@
 // @flow
 import React, {Component} from 'react'
-import {
-  Box,
-  Button,
-  Checkbox,
-  PlatformIcon,
-  StandardScreen,
-  Text,
-} from '../../common-adapters'
+import {Box, Button, Checkbox, PlatformIcon, StandardScreen, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import type {Props} from './finished-generating-pgp'
 
-import {
-  CHECKBOX_SIZE,
-  CHECKBOX_MARGIN,
-} from '../../common-adapters/checkbox.desktop'
+import {CHECKBOX_SIZE, CHECKBOX_MARGIN} from '../../common-adapters/checkbox.desktop'
 
 type State = {
   shouldStoreKeyOnServer: boolean,
@@ -40,11 +30,7 @@ class FinishedGeneratedPgp extends Component<void, Props, State> {
         notification={{type: 'success', message: 'Your PGP key was generated!'}}
         style={{alignSelf: 'stretch'}}
       >
-        <PlatformIcon
-          style={styleIcon}
-          platform="pgp"
-          overlay="icon-proof-success"
-        />
+        <PlatformIcon style={styleIcon} platform="pgp" overlay="icon-proof-success" />
         <Text style={styleTitle} type="Header">
           Here is your unique public key!
         </Text>
@@ -67,9 +53,7 @@ class FinishedGeneratedPgp extends Component<void, Props, State> {
           style={styleDoneButton}
           type="Primary"
           onClick={() => this.props.onDone(this.state.shouldStoreKeyOnServer)}
-          label={
-            this.state.shouldStoreKeyOnServer ? 'Done, post to Keybase' : 'Done'
-          }
+          label={this.state.shouldStoreKeyOnServer ? 'Done, post to Keybase' : 'Done'}
         />
       </StandardScreen>
     )

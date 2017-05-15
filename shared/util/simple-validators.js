@@ -49,8 +49,7 @@ function isValidEmail(email: ?string): ?Error {
 
 // Returns an error string if not valid
 function isValidName(name: ?string): ?Error {
-  if (isEmptyOrBlank(name))
-    return new ValidationError('Please provide your name.')
+  if (isEmptyOrBlank(name)) return new ValidationError('Please provide your name.')
 }
 
 export {isValidUsername, isValidEmail, isValidName}

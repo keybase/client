@@ -18,12 +18,7 @@ import {
   UserProofs,
   NativeScrollView,
 } from '../common-adapters/index.native'
-import {
-  globalStyles,
-  globalColors,
-  globalMargins,
-  statusBarHeight,
-} from '../styles'
+import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
 import {
   normal as proofNormal,
   checking as proofChecking,
@@ -94,9 +89,7 @@ class Profile extends Component<void, Props, State> {
         loading={loading}
         proofs={this.props.loading ? [] : this.props.proofs}
         onClickProofMenu={
-          this.props.isYou && !this.props.loading
-            ? idx => this._handleToggleMenu(idx)
-            : null
+          this.props.isYou && !this.props.loading ? idx => this._handleToggleMenu(idx) : null
         }
         currentlyFollowing={this.props.currentlyFollowing}
       />
@@ -137,8 +130,7 @@ class Profile extends Component<void, Props, State> {
         pendingMessage =
           'Your proof is pending. Hacker News caches its bios, so it might take a few hours before your proof gets verified.'
       } else if (proof.type === 'dns') {
-        pendingMessage =
-          'Your proof is pending. DNS proofs can take a few hours to recognize.'
+        pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
       }
       return {
         header: pendingMessage && {title: pendingMessage},
@@ -200,15 +192,10 @@ class Profile extends Component<void, Props, State> {
 
   render() {
     if (this.props.error) {
-      return (
-        <ErrorComponent error={this.props.error} onBack={this.props.onBack} />
-      )
+      return <ErrorComponent error={this.props.error} onBack={this.props.onBack} />
     }
 
-    const trackerStateColors = stateColors(
-      this.props.currentlyFollowing,
-      this.props.trackerState
-    )
+    const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 
     let proofNotice
     if (
@@ -284,10 +271,7 @@ class Profile extends Component<void, Props, State> {
                 backgroundColor: trackerStateColors.header.background,
               }}
             >
-              <Text
-                type="BodySemibold"
-                style={{color: globalColors.white, textAlign: 'center'}}
-              >
+              <Text type="BodySemibold" style={{color: globalColors.white, textAlign: 'center'}}>
                 {proofNotice}
               </Text>
             </Box>}
@@ -343,8 +327,7 @@ class Profile extends Component<void, Props, State> {
               username={this.props.username}
               isYou={this.props.isYou}
               currentTab={this.state.currentFriendshipsTab}
-              onSwitchTab={currentFriendshipsTab =>
-                this.setState({currentFriendshipsTab})}
+              onSwitchTab={currentFriendshipsTab => this.setState({currentFriendshipsTab})}
               onUserClick={this.props.onUserClick}
               followers={this.props.followers}
               following={this.props.following}
@@ -353,10 +336,7 @@ class Profile extends Component<void, Props, State> {
         {!!activeMenuProof &&
           <PopupMenu
             {...this._proofMenuContent(activeMenuProof)}
-            onHidden={() =>
-              this._handleToggleMenu(
-                this.props.proofs.indexOf(activeMenuProof)
-              )}
+            onHidden={() => this._handleToggleMenu(this.props.proofs.indexOf(activeMenuProof))}
           />}
       </Box>
     )

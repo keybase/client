@@ -1,13 +1,7 @@
 // @flow
 import RNFetchBlob from 'react-native-fetch-blob'
 import React, {Component} from 'react'
-import {
-  Box,
-  Text,
-  Button,
-  NativeLinking,
-  NativeClipboard,
-} from '../../common-adapters/index.native'
+import {Box, Text, Button, NativeLinking, NativeClipboard} from '../../common-adapters/index.native'
 import {dumpLoggers} from '../../util/periodic-logger'
 import {tmpFile} from '../../util/file'
 import {globalStyles} from '../../styles'
@@ -15,8 +9,7 @@ import {isIOS} from '../../constants/platform'
 
 import type {Props} from './render'
 
-class LogSendRender
-  extends Component<void, Props, {copiedToClipboard: boolean}> {
+class LogSendRender extends Component<void, Props, {copiedToClipboard: boolean}> {
   state = {
     copiedToClipboard: false,
   }
@@ -86,11 +79,7 @@ class LogSendRender
           <Text type="Body">
             Send us the log id along with a description of what's going on in this Github issue:
           </Text>
-          <Button
-            type="Primary"
-            label="File a Github issue:"
-            onClick={onSubmitIssue}
-          />
+          <Button type="Primary" label="File a Github issue:" onClick={onSubmitIssue} />
         </Box>
       )
     }

@@ -43,8 +43,7 @@ function customError(error: string, code: ?number) {
         </Text>
         <Box
           style={{...globalStyles.flexBoxRow, alignItems: 'center'}}
-          onClick={() =>
-            openURL('https://www.coinbase.com/settings#payment_page')}
+          onClick={() => openURL('https://www.coinbase.com/settings#payment_page')}
         >
           <Text style={styleErrorBannerText} type="BodySemibold">
             Go to Coinbase
@@ -82,17 +81,11 @@ class PrivateEnterUsernameRender extends Component<void, Props, State> {
   }
 
   render() {
-    const {headerText, floatingLabelText, hintText} = platformText[
-      this.props.platform
-    ]
+    const {headerText, floatingLabelText, hintText} = platformText[this.props.platform]
 
     return (
       <Box style={styleContainer}>
-        <Icon
-          style={styleClose}
-          type="iconfont-close"
-          onClick={this.props.onCancel}
-        />
+        <Icon style={styleClose} type="iconfont-close" onClick={this.props.onCancel} />
         {this.props.errorText &&
           <Box style={styleErrorBanner}>
             {customError(this.props.errorText, this.props.errorCode)}
@@ -116,11 +109,7 @@ class PrivateEnterUsernameRender extends Component<void, Props, State> {
         />
         <UsernameTips platform={this.props.platform} />
         <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
-          <Button
-            type="Secondary"
-            onClick={this.props.onCancel}
-            label="Cancel"
-          />
+          <Button type="Secondary" onClick={this.props.onCancel} label="Cancel" />
           <Button
             type="Primary"
             disabled={!this.props.canContinue}

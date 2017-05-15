@@ -11,8 +11,7 @@ import type {OwnProps} from './container'
 
 const getTimestampString = createCachedSelector(
   [Constants.getMessageFromMessageKey],
-  (message: Constants.TimestampMessage) =>
-    formatTimeForMessages(message.timestamp)
+  (message: Constants.TimestampMessage) => formatTimeForMessages(message.timestamp)
 )((state, messageKey) => messageKey)
 
 const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {

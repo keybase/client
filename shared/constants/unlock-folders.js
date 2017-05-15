@@ -1,9 +1,5 @@
 // @flow
-import type {
-  DeviceID,
-  Device as ServiceDevice,
-  ProblemSet,
-} from '../constants/types/flow-types'
+import type {DeviceID, Device as ServiceDevice, ProblemSet} from '../constants/types/flow-types'
 import type {DeviceType} from '../constants/types/more'
 import type {TypedAction} from '../constants/types/flux'
 
@@ -15,18 +11,10 @@ export type Device = {
 
 // transistions to the next paper key phase
 export const toPaperKeyInput = 'unlockFolders:toPaperKeyInput'
-export type ToPaperKeyInput = TypedAction<
-  'unlockFolders:toPaperKeyInput',
-  {},
-  {}
->
+export type ToPaperKeyInput = TypedAction<'unlockFolders:toPaperKeyInput', {}, {}>
 
 export const onBackFromPaperKey = 'unlockFolders:onBackFromPaperKey'
-export type OnBackFromPaperKey = TypedAction<
-  'unlockFolders:onBackFromPaperKey',
-  {},
-  {}
->
+export type OnBackFromPaperKey = TypedAction<'unlockFolders:onBackFromPaperKey', {}, {}>
 
 export const checkPaperKey = 'unlockFolders:checkPaperKey'
 export type CheckPaperKey = TypedAction<

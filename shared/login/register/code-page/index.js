@@ -63,10 +63,8 @@ export default connect(
   }),
   dispatch => ({
     onBack: () => dispatch(Creators.onBack()),
-    setCodePageMode: requestedMode =>
-      dispatch(Creators.setCodePageMode(requestedMode)),
-    setCameraBrokenMode: (broken: boolean) =>
-      dispatch(Creators.setCameraBrokenMode(broken)),
+    setCodePageMode: requestedMode => dispatch(Creators.setCodePageMode(requestedMode)),
+    setCameraBrokenMode: (broken: boolean) => dispatch(Creators.setCameraBrokenMode(broken)),
     qrScanned: ({data}) => dispatch(Creators.qrScanned(data)),
     textEntered: text => dispatch(Creators.provisionTextCodeEntered(text)),
   })

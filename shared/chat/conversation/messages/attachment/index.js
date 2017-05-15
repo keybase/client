@@ -2,13 +2,7 @@
 import * as Constants from '../../../../constants/chat'
 import moment from 'moment'
 import React from 'react'
-import {
-  Box,
-  Icon,
-  ProgressIndicator,
-  Text,
-  ClickableBox,
-} from '../../../../common-adapters'
+import {Box, Icon, ProgressIndicator, Text, ClickableBox} from '../../../../common-adapters'
 import {isMobile, fileUIName} from '../../../../constants/platform'
 import {globalStyles, globalMargins, globalColors} from '../../../../styles'
 import {ImageRender} from './image'
@@ -87,11 +81,7 @@ function PreviewImage({
     }
 
     return (
-      <ClickableBox
-        style={style}
-        onClick={onOpenInPopup}
-        onLongPress={onMessageAction}
-      >
+      <ClickableBox style={style} onClick={onOpenInPopup} onLongPress={onMessageAction}>
         <Box
           style={{
             ...globalStyles.flexBoxRow,
@@ -262,9 +252,7 @@ function PreviewImageWithInfo({
         {savedPath === false &&
           downloadProgress !== null &&
           <ProgressBar text="Downloading" progress={downloadProgress} />}
-        {!isMobile &&
-          savedPath &&
-          <ShowInFileUi onOpenInFileUI={onOpenInFileUI} />}
+        {!isMobile && savedPath && <ShowInFileUi onOpenInFileUI={onOpenInFileUI} />}
       </Box>
     </Box>
   )
@@ -329,16 +317,12 @@ function AttachmentMessageGeneric({
           marginLeft: globalMargins.xtiny,
         }}
       >
-        <AttachmentTitle
-          {...message}
-          onOpenInPopup={canOpen ? onOpenInPopup : null}
-        />
+        <AttachmentTitle {...message} onOpenInPopup={canOpen ? onOpenInPopup : null} />
 
         {!isMobile &&
           (uploadProgress !== null || downloadProgress !== null || savedPath) &&
           <Box style={{height: 14}}>
-            {uploadProgress !== null &&
-              <ProgressBar text="Encrypting" progress={uploadProgress} />}
+            {uploadProgress !== null && <ProgressBar text="Encrypting" progress={uploadProgress} />}
             {savedPath === false &&
               downloadProgress !== null &&
               <ProgressBar text="Downloading" progress={downloadProgress} />}
@@ -369,10 +353,7 @@ function AttachmentMessagePreviewImage({
         flex: 1,
       }}
     >
-      <AttachmentTitle
-        {...message}
-        onOpenInPopup={canOpen ? onOpenInPopup : null}
-      />
+      <AttachmentTitle {...message} onOpenInPopup={canOpen ? onOpenInPopup : null} />
       <PreviewImageWithInfo
         message={message}
         onMessageAction={onMessageAction}

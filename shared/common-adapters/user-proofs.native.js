@@ -88,16 +88,11 @@ function ProofRow({
       </Box>
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
-          <Text
-            type="Body"
-            onClick={() => onClickProfile(proof)}
-            style={styleProofName}
-          >
+          <Text type="Body" onClick={() => onClickProfile(proof)} style={styleProofName}>
             <Text type="Body" style={shared.proofNameStyle(proof)}>
               {proof.name}
             </Text>
-            {!!proof.id &&
-              <Text type="Body" style={styleProofType}>@{proof.type}</Text>}
+            {!!proof.id && <Text type="Body" style={styleProofType}>@{proof.type}</Text>}
           </Text>
           {proof.meta &&
             proof.meta !== metaNone &&
@@ -113,10 +108,7 @@ function ProofRow({
         underlayColor={globalColors.white}
         onClick={() => onClickStatus(proof)}
       >
-        <Box
-          style={styleStatusIconContainer}
-          onClick={() => onClickStatus(proof)}
-        >
+        <Box style={styleStatusIconContainer} onClick={() => onClickStatus(proof)}>
           {proofStatusIconType &&
             (proof.state === proofChecking
               ? <ProgressIndicator style={styleSpinner} />
@@ -159,9 +151,7 @@ function LoadingProofRow({width}: {width: number}): React$Element<*> {
 function LoadingProofs() {
   return (
     <Box>
-      {[117, 147, 97].map((width, idx) => (
-        <LoadingProofRow key={idx} width={width} />
-      ))}
+      {[117, 147, 97].map((width, idx) => <LoadingProofRow key={idx} width={width} />)}
     </Box>
   )
 }
@@ -201,9 +191,7 @@ class ProofsRender extends Component<void, Props, void> {
               key={`${p.id || ''}${p.type}`}
               proof={p}
               onClickStatus={
-                onClickProofMenu
-                  ? () => onClickProofMenu(idx)
-                  : p => this._onClickProof(p)
+                onClickProofMenu ? () => onClickProofMenu(idx) : p => this._onClickProof(p)
               }
               onClickProfile={p => this._onClickProfile(p)}
               hasMenu={!!onClickProofMenu}
@@ -212,11 +200,7 @@ class ProofsRender extends Component<void, Props, void> {
           ))}
         {this.props.type === 'missingProofs' &&
           this.props.missingProofs.map((mp, idx) => (
-            <MissingProofRow
-              key={mp.type}
-              missingProof={mp}
-              style={{minHeight: 32}}
-            />
+            <MissingProofRow key={mp.type} missingProof={mp} style={{minHeight: 32}} />
           ))}
       </Box>
     )

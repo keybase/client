@@ -37,10 +37,7 @@ export default function(
       // $FlowIssue withMutations
       let newState = state.withMutations(s => {
         s.set('navBadges', navBadges)
-        s.set(
-          'desktopAppBadgeCount',
-          navBadges.reduce((total, val) => total + val, 0)
-        )
+        s.set('desktopAppBadgeCount', navBadges.reduce((total, val) => total + val, 0))
         s.set('mobileAppBadgeCount', navBadges.get(chatTab, 0))
       })
 

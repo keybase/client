@@ -76,9 +76,7 @@ const ConnectedFolders = connect(
       dispatch(openTlfInChat(tlf))
     },
     switchTab: showingPrivate => {
-      dispatch(
-        switchTo(routePath.pop().push(showingPrivate ? 'private' : 'public'))
-      )
+      dispatch(switchTo(routePath.pop().push(showingPrivate ? 'private' : 'public')))
     },
     onToggleShowIgnored: () => {
       setRouteState({showingIgnored: !routeState.showingIgnored})

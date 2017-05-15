@@ -1,12 +1,7 @@
 // @flow
 import Container from '../../forms/container'
 import React, {Component} from 'react'
-import {
-  Button,
-  UserCard,
-  Text,
-  FormWithCheckbox,
-} from '../../../common-adapters'
+import {Button, UserCard, Text, FormWithCheckbox} from '../../../common-adapters'
 import {globalColors, globalMargins} from '../../../styles'
 
 import type {Props} from './index.render'
@@ -22,10 +17,7 @@ class PassphraseRender extends Component<void, Props, void> {
         onBack={this.props.onBack}
       >
         <UserCard style={stylesCard} username={this.props.username}>
-          <Text
-            type="Header"
-            style={{color: globalColors.orange, ...usernameStyle}}
-          >
+          <Text type="Header" style={{color: globalColors.orange, ...usernameStyle}}>
             {this.props.username}
           </Text>
           <FormWithCheckbox

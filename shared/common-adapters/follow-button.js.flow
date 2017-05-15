@@ -10,5 +10,4 @@ export type Props = {
   onUnfollow?: () => void,
 }
 
-declare export default class FollowButton
-  extends Component<void, Props, void> {}
+declare export default class FollowButton extends Component<void, Props, void> {}

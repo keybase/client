@@ -1,13 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
-import {
-  Text,
-  MultiAvatar,
-  Icon,
-  Usernames,
-  Markdown,
-} from '../../common-adapters'
+import {Text, MultiAvatar, Icon, Usernames, Markdown} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {RowConnector} from './row'
 import {debounce} from 'lodash'
@@ -35,10 +29,7 @@ class AddNewRow extends PureComponent<void, {onNewChat: () => void}, void> {
           }}
           onClick={this.props.onNewChat}
         >
-          <Icon
-            type="iconfont-new"
-            style={{color: globalColors.blue, marginRight: 9}}
-          />
+          <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: 9}} />
           <Text type="BodyBigLink">New chat</Text>
         </div>
       </div>
@@ -48,11 +39,7 @@ class AddNewRow extends PureComponent<void, {onNewChat: () => void}, void> {
 
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
-function rowBorderColor(
-  idx: number,
-  isLastParticipant: boolean,
-  backgroundColor: string
-) {
+function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor: string) {
   // Only color the foreground items
   if (isLastParticipant) {
     return undefined
@@ -76,19 +63,12 @@ const Avatars = ({
   let icon
   if (isMuted) {
     icon = (
-      <Icon
-        type={isSelected ? 'icon-shh-active-16' : 'icon-shh-16'}
-        style={avatarMutedIconStyle}
-      />
+      <Icon type={isSelected ? 'icon-shh-active-16' : 'icon-shh-16'} style={avatarMutedIconStyle} />
     )
   } else if (participantNeedToRekey || youNeedToRekey) {
     icon = (
       <Icon
-        type={
-          isSelected
-            ? 'icon-chat-addon-lock-active-8'
-            : 'icon-chat-addon-lock-8'
-        }
+        type={isSelected ? 'icon-chat-addon-lock-active-8' : 'icon-chat-addon-lock-8'}
         style={avatarLockIconStyle}
       />
     )
@@ -98,11 +78,7 @@ const Avatars = ({
     .slice(0, 2)
     .map((username, idx) => ({
       loadingColor: globalColors.blue3_40,
-      borderColor: rowBorderColor(
-        idx,
-        idx === avatarCount - 1,
-        backgroundColor
-      ),
+      borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
       size: 24,
       opacity: youNeedToRekey || participantNeedToRekey ? 0.4 : 1,
       username,
@@ -126,14 +102,7 @@ const Avatars = ({
   )
 }
 
-const TopLine = ({
-  hasUnread,
-  showBold,
-  participants,
-  subColor,
-  timestamp,
-  usernameColor,
-}) => {
+const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor}) => {
   const boldOverride = showBold ? globalStyles.fontBold : null
   return (
     <div
@@ -178,10 +147,7 @@ const TopLine = ({
           />
         </div>
       </div>
-      <Text
-        type="BodySmall"
-        style={{...boldOverride, color: subColor, lineHeight: '17px'}}
-      >
+      <Text type="BodySmall" style={{...boldOverride, color: subColor, lineHeight: '17px'}}>
         {timestamp}
       </Text>
       {hasUnread && <div style={unreadDotStyle} />}
@@ -189,13 +155,7 @@ const TopLine = ({
   )
 }
 
-const BottomLine = ({
-  participantNeedToRekey,
-  youNeedToRekey,
-  showBold,
-  subColor,
-  snippet,
-}) => {
+const BottomLine = ({participantNeedToRekey, youNeedToRekey, showBold, subColor, snippet}) => {
   const boldOverride = showBold ? globalStyles.fontBold : null
 
   let content
@@ -220,11 +180,7 @@ const BottomLine = ({
     )
   } else if (participantNeedToRekey) {
     content = (
-      <Text
-        type="BodySmall"
-        backgroundMode="Terminal"
-        style={{color: subColor}}
-      >
+      <Text type="BodySmall" backgroundMode="Terminal" style={{color: subColor}}>
         Waiting for participants to rekey
       </Text>
     )

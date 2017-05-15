@@ -10,5 +10,4 @@ export type Props = {
   onSubmit: () => void,
 }
 
-declare export default class ConfirmClearHistory
-  extends Component<void, Props, void> {}
+declare export default class ConfirmClearHistory extends Component<void, Props, void> {}

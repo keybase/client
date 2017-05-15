@@ -30,18 +30,15 @@ export default class Window {
       })
     })
 
-    ipcMain.on(
-      'registerRemoteUnmount',
-      (remoteComponentLoaderEvent, remoteWindowId) => {
-        const relayRemoteUnmount = (e, otherRemoteWindowId) => {
-          if (remoteWindowId === otherRemoteWindowId) {
-            remoteComponentLoaderEvent.sender.send('remoteUnmount')
-            ipcMain.removeListener('remoteUnmount', relayRemoteUnmount)
-          }
+    ipcMain.on('registerRemoteUnmount', (remoteComponentLoaderEvent, remoteWindowId) => {
+      const relayRemoteUnmount = (e, otherRemoteWindowId) => {
+        if (remoteWindowId === otherRemoteWindowId) {
+          remoteComponentLoaderEvent.sender.send('remoteUnmount')
+          ipcMain.removeListener('remoteUnmount', relayRemoteUnmount)
         }
-        ipcMain.on('remoteUnmount', relayRemoteUnmount)
       }
-    )
+      ipcMain.on('remoteUnmount', relayRemoteUnmount)
+    })
   }
 
   bindWindowListeners() {

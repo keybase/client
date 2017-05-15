@@ -42,13 +42,7 @@ function User({
   if (user.service === 'keybase') {
     avatar = <Avatar style={avatarStyle} size={48} username={user.username} />
   } else if (user.extraInfo === 'external') {
-    avatar = (
-      <Avatar
-        style={avatarStyle}
-        size={48}
-        url={user.extraInfo.serviceAvatar}
-      />
-    )
+    avatar = <Avatar style={avatarStyle} size={48} url={user.extraInfo.serviceAvatar} />
   } else {
     avatar = <Avatar style={avatarStyle} size={48} url={null} />
   }
@@ -102,11 +96,7 @@ function User({
               marginRight: 16,
             }}
           >
-            <Icon
-              onClick={() => onRemove(user)}
-              type={'iconfont-remove'}
-              style={{fontSize: 24}}
-            />
+            <Icon onClick={() => onRemove(user)} type={'iconfont-remove'} style={{fontSize: 24}} />
           </Box>
         </Box>
         {insertSpacing && <Box style={{height: 1}} />}
@@ -156,9 +146,7 @@ export default function UserGroup({
       {selectedUsers.map(u => (
         <User
           key={u.service + u.username}
-          selected={
-            !!userForInfoPane && u.username === userForInfoPane.username
-          }
+          selected={!!userForInfoPane && u.username === userForInfoPane.username}
           user={u}
           onRemove={onRemoveUserFromGroup}
           onClickUser={onClickUserInGroup}

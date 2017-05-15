@@ -2,5 +2,4 @@
 import {Component} from 'react'
 import type {Folder} from './list'
 
-export default class Row
-  extends Component<void, {smallMode?: boolean} & Folder, void> {}
+export default class Row extends Component<void, {smallMode?: boolean} & Folder, void> {}

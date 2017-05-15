@@ -188,10 +188,7 @@ function updateUserState(
         changed: proofsGeneralState.anyChanged,
         reason,
         shouldFollow: deriveShouldFollow(proofsGeneralState),
-        trackerState: deriveSimpleProofState(
-          state.eldestKidChanged,
-          proofsGeneralState
-        ),
+        trackerState: deriveSimpleProofState(state.eldestKidChanged, proofsGeneralState),
       }
 
     case Constants.resetProofs:
@@ -216,9 +213,7 @@ function updateUserState(
           ...state.proofs,
           ...(identity.revokedDetails || []).map(rv => revokedProofToProof(rv)),
           ...(identity.proofs || [])
-            .map(rp =>
-              remoteProofToProof(username, Constants.checking, rp.proof)
-            ),
+            .map(rp => remoteProofToProof(username, Constants.checking, rp.proof)),
         ]),
       }
 
@@ -328,10 +323,7 @@ function updateUserState(
     case Constants.reportLastTrack:
       const currentlyFollowing = !!(action.payload && action.payload.track)
       const proofs = state.proofs.map(
-        p =>
-          ['btc', 'pgp'].includes(p.type)
-            ? {...p, isTracked: currentlyFollowing}
-            : p
+        p => (['btc', 'pgp'].includes(p.type) ? {...p, isTracked: currentlyFollowing} : p)
       )
 
       return {
@@ -387,10 +379,7 @@ function updateUserState(
   }
 }
 
-export default function(
-  state: Constants.State = initialState,
-  action: Action
-): Constants.State {
+export default function(state: Constants.State = initialState, action: Action): Constants.State {
   const username: ?string = action.payload && action.payload.username
   const assertion: ?string = action.payload && action.payload.assertion
   const userKey = username || assertion
@@ -430,25 +419,15 @@ export default function(
           ...state,
           pendingIdentifies: {
             ...state.pendingIdentifies,
-            [action.payload.username]: action.payload.pending
-              ? true
-              : undefined,
+            [action.payload.username]: action.payload.pending ? true : undefined,
           },
         }
       }
       break
   }
 
-  if (
-    userKey &&
-    trackerOrNonUserState &&
-    trackerOrNonUserState.type === 'tracker'
-  ) {
-    const newTrackerState = updateUserState(
-      userKey,
-      trackerOrNonUserState,
-      action
-    )
+  if (userKey && trackerOrNonUserState && trackerOrNonUserState.type === 'tracker') {
+    const newTrackerState = updateUserState(userKey, trackerOrNonUserState, action)
     if (newTrackerState === trackerOrNonUserState) {
       return state
     }
@@ -460,11 +439,7 @@ export default function(
         [userKey]: newTrackerState,
       },
     }
-  } else if (
-    userKey &&
-    trackerOrNonUserState &&
-    trackerOrNonUserState.type === 'nonUser'
-  ) {
+  } else if (userKey && trackerOrNonUserState && trackerOrNonUserState.type === 'nonUser') {
     const newNonUserState = updateNonUserState(trackerOrNonUserState, action)
     if (newNonUserState === trackerOrNonUserState) {
       return state
@@ -480,8 +455,7 @@ export default function(
   } else {
     switch (action.type) {
       case Constants.registerIdentifyUi:
-        const serverStarted =
-          (action.payload && !!action.payload.started) || false
+        const serverStarted = (action.payload && !!action.payload.started) || false
         return {
           ...state,
           serverStarted,
@@ -550,10 +524,7 @@ function proofStateToSimpleProofState(
     return Constants.normal
   }
 
-  const statusName: ?string = mapValueToKey(
-    RPCTypes.ProveCommonProofState,
-    proofState
-  )
+  const statusName: ?string = mapValueToKey(RPCTypes.ProveCommonProofState, proofState)
   switch (statusName) {
     case 'ok':
       return Constants.normal
@@ -594,9 +565,7 @@ function diffAndStatusMeta(
     statusMeta: proofStatusToSimpleProofMeta(status, state),
   }
 
-  function trackDiffToSimpleProofMeta(
-    diff: ?RPCTypes.TrackDiffType
-  ): ?Constants.SimpleProofMeta {
+  function trackDiffToSimpleProofMeta(diff: ?RPCTypes.TrackDiffType): ?Constants.SimpleProofMeta {
     if (!diff) {
       return null
     }
@@ -637,30 +606,23 @@ function diffAndStatusMeta(
       [RPCTypes.ProveCommonProofStatus.local]: null,
       [RPCTypes.ProveCommonProofStatus.found]: null,
       [RPCTypes.ProveCommonProofStatus.baseError]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus
-        .hostUnreachable]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus
-        .permissionDenied]: Constants.metaUnreachable,
+      [RPCTypes.ProveCommonProofStatus.hostUnreachable]: Constants.metaUnreachable,
+      [RPCTypes.ProveCommonProofStatus.permissionDenied]: Constants.metaUnreachable,
       [RPCTypes.ProveCommonProofStatus.failedParse]: Constants.metaUnreachable,
       [RPCTypes.ProveCommonProofStatus.dnsError]: Constants.metaUnreachable,
       [RPCTypes.ProveCommonProofStatus.authFailed]: Constants.metaUnreachable,
       [RPCTypes.ProveCommonProofStatus.http500]: Constants.metaUnreachable,
       [RPCTypes.ProveCommonProofStatus.timeout]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus
-        .internalError]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus
-        .baseHardError]: Constants.metaUnreachable,
+      [RPCTypes.ProveCommonProofStatus.internalError]: Constants.metaUnreachable,
+      [RPCTypes.ProveCommonProofStatus.baseHardError]: Constants.metaUnreachable,
       [RPCTypes.ProveCommonProofStatus.notFound]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus
-        .contentFailure]: Constants.metaUnreachable,
+      [RPCTypes.ProveCommonProofStatus.contentFailure]: Constants.metaUnreachable,
       [RPCTypes.ProveCommonProofStatus.badUsername]: Constants.metaUnreachable,
       [RPCTypes.ProveCommonProofStatus.badRemoteId]: Constants.metaUnreachable,
       [RPCTypes.ProveCommonProofStatus.textNotFound]: Constants.metaUnreachable,
       [RPCTypes.ProveCommonProofStatus.badArgs]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus
-        .contentMissing]: Constants.metaUnreachable,
-      [RPCTypes.ProveCommonProofStatus
-        .titleNotFound]: Constants.metaUnreachable,
+      [RPCTypes.ProveCommonProofStatus.contentMissing]: Constants.metaUnreachable,
+      [RPCTypes.ProveCommonProofStatus.titleNotFound]: Constants.metaUnreachable,
       [RPCTypes.ProveCommonProofStatus.serviceError]: Constants.metaUnreachable,
       [RPCTypes.ProveCommonProofStatus.torSkipped]: null,
       [RPCTypes.ProveCommonProofStatus.torIncompatible]: null,
@@ -710,9 +672,7 @@ function proofUrlToProfileUrl(
   }
 }
 
-function remoteProofToProofType(
-  rp: RPCTypes.RemoteProof
-): PlatformsExpandedType {
+function remoteProofToProofType(rp: RPCTypes.RemoteProof): PlatformsExpandedType {
   if (rp.proofType === RPCTypes.ProveCommonProofType.genericWebSite) {
     return rp.key === 'http' ? 'http' : 'https'
   } else {
@@ -823,9 +783,7 @@ export function overviewStateOfProofs(
     Constants.metaNew,
     Constants.metaPending,
   ].map(m => proofs.some(p => p.meta === m))
-  const anyChanged = proofs.some(
-    proof => proof.meta && proof.meta !== Constants.metaNone
-  )
+  const anyChanged = proofs.some(proof => proof.meta && proof.meta !== Constants.metaNone)
   return {
     allOk,
     anyChanged,

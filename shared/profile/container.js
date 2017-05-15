@@ -11,13 +11,7 @@ import {
   checkProof,
 } from '../actions/profile'
 import {connect} from 'react-redux'
-import {
-  getProfile,
-  updateTrackers,
-  onFollow,
-  onUnfollow,
-  openProofUrl,
-} from '../actions/tracker'
+import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
 import {isLoading} from '../constants/tracker'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
@@ -51,23 +45,12 @@ type EitherProps<P> =
 class ProfileContainer extends PureComponent<void, EitherProps<Props>, void> {
   render() {
     if (this.props.type === 'error') {
-      return (
-        <ErrorComponent
-          error={this.props.propError}
-          onBack={this.props.onBack}
-        />
-      )
+      return <ErrorComponent error={this.props.propError} onBack={this.props.onBack} />
     }
 
     const props = this.props.okProps
 
-    return (
-      <Profile
-        {...props}
-        followers={props.followers}
-        following={props.following}
-      />
-    )
+    return <Profile {...props} followers={props.followers} following={props.following} />
   }
 }
 
@@ -171,8 +154,7 @@ export default connect(
       : null
 
     if (stateProps.trackerState && stateProps.trackerState.type !== 'tracker') {
-      const propError =
-        'Expected a tracker type, trying to show profile for non user'
+      const propError = 'Expected a tracker type, trying to show profile for non user'
       console.warn(propError)
       return {
         propError,
@@ -186,12 +168,8 @@ export default connect(
       ...dispatchProps,
       bioEditFns,
       currentFriendshipsTab: stateProps.currentFriendshipsTab,
-      followers: stateProps.trackerState
-        ? stateProps.trackerState.trackers
-        : [],
-      following: stateProps.trackerState
-        ? stateProps.trackerState.tracking
-        : [],
+      followers: stateProps.trackerState ? stateProps.trackerState.trackers : [],
+      following: stateProps.trackerState ? stateProps.trackerState.tracking : [],
       isYou,
       loading: isLoading(stateProps.trackerState) && !isTesting,
       onAcceptProofs: () => dispatchProps.onFollow(username),

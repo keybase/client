@@ -65,9 +65,7 @@ function previewCreateComponent(style) {
           </Text>
         )
       case 'emoji':
-        return (
-          <EmojiIfExists emojiName={String(children)} size={12} key={key} />
-        )
+        return <EmojiIfExists emojiName={String(children)} size={12} key={key} />
       case 'native-emoji':
         return <Emoji emojiName={String(children)} size={12} key={key} />
       default:
@@ -86,9 +84,7 @@ function messageCreateComponent(style) {
       case 'markup':
         return <Box key={key}>{children}</Box>
       case 'inline-code':
-        return (
-          <Text type="Body" key={key} style={codeSnippetStyle}>{children}</Text>
-        )
+        return <Text type="Body" key={key} style={codeSnippetStyle}>{children}</Text>
       case 'code-block':
         return (
           <Box key={key} style={codeSnippetBlockStyle}>
@@ -99,12 +95,7 @@ function messageCreateComponent(style) {
         )
       case 'link':
         return (
-          <Text
-            type="BodyPrimaryLink"
-            key={key}
-            style={linkStyle}
-            onClickURL={options.href}
-          >
+          <Text type="BodyPrimaryLink" key={key} style={linkStyle} onClickURL={options.href}>
             {children}
           </Text>
         )

@@ -49,15 +49,9 @@ declare module 'chai' {
     string: (string: string) => ExpectChain<T>,
 
     key: (key: string) => ExpectChain<T>,
-    keys: (
-      key: string | Array<string>,
-      ...keys: Array<string>
-    ) => ExpectChain<T>,
+    keys: (key: string | Array<string>, ...keys: Array<string>) => ExpectChain<T>,
 
-    throw: <E>(
-      err: Class<E> | Error | RegExp | string,
-      msg?: RegExp | string
-    ) => ExpectChain<T>,
+    throw: <E>(err: Class<E> | Error | RegExp | string, msg?: RegExp | string) => ExpectChain<T>,
 
     respondTo: (method: string) => ExpectChain<T>,
     itself: ExpectChain<T>,

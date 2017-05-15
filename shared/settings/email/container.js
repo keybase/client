@@ -8,12 +8,7 @@ import type {Props} from './index'
 import type {TypedDispatch} from '../../constants/types/flux'
 import type {TypedState} from '../../constants/reducer'
 
-const connector: TypedConnector<
-  TypedState,
-  TypedDispatch<{}>,
-  {},
-  Props
-> = new TypedConnector()
+const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
 
 export default connector.connect((state, dispatch, ownProps) => {
   const {waitingForResponse} = state.settings

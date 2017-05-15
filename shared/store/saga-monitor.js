@@ -117,8 +117,7 @@ const ERROR_STYLE = 'color: red'
 const CANCEL_STYLE = 'color: #ccc'
 
 const IS_BROWSER = typeof window !== 'undefined' && window.document
-const globalScope = typeof window.document === 'undefined' &&
-  navigator.product === 'ReactNative'
+const globalScope = typeof window.document === 'undefined' && navigator.product === 'ReactNative'
   ? global
   : IS_BROWSER ? window : null
 // `VERBOSE` can be made a setting configured from the outside.
@@ -140,10 +139,7 @@ function effectTriggered(desc) {
     // console.log('Saga monitor: effectTriggered:', desc)
     // KB START
     if (reduxSagaLoggerMasked) {
-      console.log(
-        'Saga monitor masked: effectTriggered:',
-        effectTriggeredTransform(desc)
-      )
+      console.log('Saga monitor masked: effectTriggered:', effectTriggeredTransform(desc))
     } else {
       console.log('Saga monitor: effectTriggered:', desc)
     }
@@ -396,9 +392,7 @@ function getLogPrefix(type, effect) {
 }
 
 function argToString(arg) {
-  return typeof arg === 'function'
-    ? `${arg.name}`
-    : typeof arg === 'string' ? `'${arg}'` : arg
+  return typeof arg === 'function' ? `${arg.name}` : typeof arg === 'string' ? `'${arg}'` : arg
 }
 
 function logResult({status, result, error, duration}, formatter, ignoreResult) {

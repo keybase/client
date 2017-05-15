@@ -39,9 +39,7 @@ export default function(
       }
       const folderCreated = action.payload.folder
       const stripMetaForCreatedFolder = f =>
-        f.sortName === folderCreated.sortName && f.meta === 'new'
-          ? {...f, meta: null}
-          : f
+        f.sortName === folderCreated.sortName && f.meta === 'new' ? {...f, meta: null} : f
       // TODO(mm) this is ugly. Would be cleaner with immutable
       if (folderCreated.isPublic) {
         return {
@@ -50,9 +48,7 @@ export default function(
             ...state.folderState,
             public: {
               ...state.folderState.public,
-              tlfs: state.folderState.public.tlfs.map(
-                stripMetaForCreatedFolder
-              ),
+              tlfs: state.folderState.public.tlfs.map(stripMetaForCreatedFolder),
             },
           },
         }
@@ -63,9 +59,7 @@ export default function(
             ...state.folderState,
             private: {
               ...state.folderState.private,
-              tlfs: state.folderState.private.tlfs.map(
-                stripMetaForCreatedFolder
-              ),
+              tlfs: state.folderState.private.tlfs.map(stripMetaForCreatedFolder),
             },
           },
         }

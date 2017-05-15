@@ -18,10 +18,7 @@ export default function() {
   appState.checkOpenAtLogin()
 
   const mainWindow = new Window(
-    resolveRootAsURL(
-      'renderer',
-      injectReactQueryParams('renderer.html?mainWindow')
-    ),
+    resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?mainWindow')),
     {
       x: appState.state.x,
       y: appState.state.y,
@@ -60,18 +57,13 @@ export default function() {
   appState.manageWindow(mainWindow.window)
 
   if (__DEV__ && forceMainWindowPosition) {
-    mainWindow.window.setPosition(
-      forceMainWindowPosition.x,
-      forceMainWindowPosition.y
-    )
+    mainWindow.window.setPosition(forceMainWindowPosition.x, forceMainWindowPosition.y)
   }
 
   const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
   const isRestore =
-    getenv.boolish('KEYBASE_RESTORE_UI', false) ||
-    app.getLoginItemSettings().restoreState
-  const hideWindowOnStart =
-    getenv.string('KEYBASE_START_UI', '') === 'hideWindow'
+    getenv.boolish('KEYBASE_RESTORE_UI', false) || app.getLoginItemSettings().restoreState
+  const hideWindowOnStart = getenv.string('KEYBASE_START_UI', '') === 'hideWindow'
   const openHidden = app.getLoginItemSettings().wasOpenedAsHidden
   console.log('Opened at login:', openedAtLogin)
   console.log('Is restore:', isRestore)
@@ -105,9 +97,7 @@ export default function() {
   // - or, if we are restoring and dock was hidden
   // - or, if we were opened from login (but not restoring)
   const shouldHideDockIcon =
-    openHidden ||
-    (isRestore && appState.state.dockHidden) ||
-    (openedAtLogin && !isRestore)
+    openHidden || (isRestore && appState.state.dockHidden) || (openedAtLogin && !isRestore)
   console.log('Hide dock icon:', shouldHideDockIcon)
   if (shouldHideDockIcon) {
     hideDockIcon()

@@ -38,10 +38,7 @@ class Feedback extends Component<void, Props, void> {
       sending,
     } = this.props
     return (
-      <NativeScrollView
-        style={{...globalStyles.flexBoxColumn, flex: 1}}
-        ref={this._setScrollRef}
-      >
+      <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}} ref={this._setScrollRef}>
         {showSuccessBanner &&
           <Box
             style={{
@@ -103,9 +100,7 @@ class Feedback extends Component<void, Props, void> {
               onChangeText={onChangeFeedback}
             />
           </Box>
-          <Box
-            style={{...globalStyles.flexBoxRow, marginTop: globalMargins.small}}
-          >
+          <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.small}}>
             <Checkbox
               label=""
               style={{alignItems: 'flex-start'}}
@@ -120,12 +115,7 @@ class Feedback extends Component<void, Props, void> {
             </Box>
           </Box>
           <Box style={{alignSelf: 'center', marginTop: globalMargins.small}}>
-            <Button
-              label="Send"
-              type="Primary"
-              onClick={this._onSubmit}
-              waiting={sending}
-            />
+            <Button label="Send" type="Primary" onClick={this._onSubmit} waiting={sending} />
           </Box>
         </Box>
       </NativeScrollView>

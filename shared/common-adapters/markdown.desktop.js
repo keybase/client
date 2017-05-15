@@ -92,9 +92,7 @@ function messageCreateComponent(type, key, children, options) {
     case 'markup':
       return <Box key={key}>{children}</Box>
     case 'inline-code':
-      return (
-        <Text type="Body" key={key} style={codeSnippetStyle}>{children}</Text>
-      )
+      return <Text type="Body" key={key} style={codeSnippetStyle}>{children}</Text>
     case 'code-block':
       return (
         <Text type="Body" key={key} style={codeSnippetBlockStyle}>
@@ -103,12 +101,7 @@ function messageCreateComponent(type, key, children, options) {
       )
     case 'link':
       return (
-        <Text
-          type="BodyPrimaryLink"
-          key={key}
-          style={linkStyle}
-          onClickURL={options.href}
-        >
+        <Text type="BodyPrimaryLink" key={key} style={linkStyle} onClickURL={options.href}>
           {children}
         </Text>
       )
@@ -119,9 +112,7 @@ function messageCreateComponent(type, key, children, options) {
         </Text>
       )
     case 'bold':
-      return (
-        <Text type="BodySemibold" key={key} style={boldStyle}>{children}</Text>
-      )
+      return <Text type="BodySemibold" key={key} style={boldStyle}>{children}</Text>
     case 'italic':
       return <Text type="Body" key={key} style={italicStyle}>{children}</Text>
     case 'strike':

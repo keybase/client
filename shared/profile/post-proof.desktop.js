@@ -1,15 +1,7 @@
 // @flow
 import * as shared from './post-proof.shared'
 import React from 'react'
-import {
-  Box,
-  Button,
-  CopyableText,
-  Icon,
-  LinkWithIcon,
-  PlatformIcon,
-  Text,
-} from '../common-adapters'
+import {Box, Button, CopyableText, Icon, LinkWithIcon, PlatformIcon, Text} from '../common-adapters'
 import {clipboard} from 'electron'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
@@ -46,11 +38,7 @@ const PostProof = (props: Props) => {
         clipboard.writeText(proofText)
       }}
     >
-      <Icon
-        style={styleClose}
-        type="iconfont-close"
-        onClick={() => onCancel()}
-      />
+      <Icon style={styleClose} type="iconfont-close" onClick={() => onCancel()} />
       {!!errorMessage &&
         <Box style={styleErrorBanner}>
           <Text style={styleErrorBannerText} type="BodySemibold">
@@ -67,9 +55,7 @@ const PostProof = (props: Props) => {
           <Text
             style={{
               ...stylePlatformUsername,
-              ...(stylePlatformSubtitle
-                ? {}
-                : {marginBottom: globalMargins.medium}),
+              ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium}),
             }}
             type="Header"
           >
@@ -79,12 +65,9 @@ const PostProof = (props: Props) => {
             <Text style={stylePlatformSubtitle} type="Body">
               {platformSubtitle}
             </Text>}
-          {descriptionView ||
-            (descriptionText && <Text type="Body">{descriptionText}</Text>)}
-          {!!proofText &&
-            <CopyableText style={styleProofText} value={proofText} />}
-          {!!noteText &&
-            <Text style={styleNoteText} type="Body">{noteText}</Text>}
+          {descriptionView || (descriptionText && <Text type="Body">{descriptionText}</Text>)}
+          {!!proofText && <CopyableText style={styleProofText} value={proofText} />}
+          {!!noteText && <Text style={styleNoteText} type="Body">{noteText}</Text>}
           {!!proofAction &&
             !!proofActionText &&
             !!proofActionIcon &&

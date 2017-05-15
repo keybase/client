@@ -7,16 +7,9 @@ import type {Props, NotificationType} from './standard-screen'
 const StandardScreen = (props: Props) => {
   const topStack = [
     !!props.onBack &&
-      <BackButton
-        key="back"
-        onClick={props.onBack}
-        style={{...styleBack, ...props.styleBack}}
-      />,
+      <BackButton key="back" onClick={props.onBack} style={{...styleBack, ...props.styleBack}} />,
     !!props.notification &&
-      <Box
-        key="banner"
-        style={{...styleBanner(props.notification.type), ...props.styleBanner}}
-      >
+      <Box key="banner" style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
         {typeof props.notification.message === 'string'
           ? <Text style={styleBannerText} type="BodySemibold">
               {props.notification.message}
@@ -92,9 +85,7 @@ const styleBanner = (notificationType: NotificationType) => ({
   textAlign: 'center',
   zIndex: 1,
   minHeight: globalMargins.large,
-  backgroundColor: notificationType === 'error'
-    ? globalColors.red
-    : globalColors.green,
+  backgroundColor: notificationType === 'error' ? globalColors.red : globalColors.green,
 })
 
 const styleBannerText = {

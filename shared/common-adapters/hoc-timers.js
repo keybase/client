@@ -10,11 +10,7 @@ export type TimerProps = {
   clearInterval: ClearTimerFunc,
 }
 
-function clearId(
-  clearFunc: (id?: number) => void,
-  array: Array<number>,
-  id?: ?number
-): void {
+function clearId(clearFunc: (id?: number) => void, array: Array<number>, id?: ?number): void {
   if ((id || id === 0) && array.includes(id)) {
     array.splice(array.indexOf(id), 1)
     clearFunc(id)

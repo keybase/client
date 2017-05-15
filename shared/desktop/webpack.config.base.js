@@ -90,8 +90,6 @@ module.exports = {
     index: ['./desktop/renderer/index.js'],
     main: ['./desktop/app/index.js'],
     launcher: ['./desktop/renderer/launcher.js'],
-    'remote-component-loader': [
-      './desktop/renderer/remote-component-loader.js',
-    ],
+    'remote-component-loader': ['./desktop/renderer/remote-component-loader.js'],
   },
 }

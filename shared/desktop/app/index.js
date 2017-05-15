@@ -11,10 +11,7 @@ import storeHelper from './store-helper'
 import urlHelper from './url-helper'
 import windowHelper from './window-helper'
 import {BrowserWindow, app, ipcMain, dialog} from 'electron'
-import {
-  setupExecuteActionsListener,
-  executeActionsForContext,
-} from '../../util/quit-helper.desktop'
+import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {setupTarget} from '../../util/forward-logs'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 
@@ -42,10 +39,7 @@ function start() {
     // 14.0.0 == 10.10.0
     // 15.0.0 == 10.11.0
     if (!semver.satisfies(os.release(), '>=14.0.0')) {
-      dialog.showErrorBox(
-        'Keybase Error',
-        "This version of macOS isn't currently supported."
-      )
+      dialog.showErrorBox('Keybase Error', "This version of macOS isn't currently supported.")
       app.quit()
       return
     }

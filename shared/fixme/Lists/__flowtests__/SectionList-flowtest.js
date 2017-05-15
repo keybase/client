@@ -18,9 +18,7 @@ function renderMyListItem(info: {item: {title: string}, index: number}) {
   return <span />
 }
 
-const renderMyHeader = ({section}: {section: {fooNumber: number} & Object}) => (
-  <span />
-)
+const renderMyHeader = ({section}: {section: {fooNumber: number} & Object}) => <span />
 
 module.exports = {
   testGoodDataWithGoodItem() {
@@ -52,33 +50,18 @@ module.exports = {
     ]
     return [
       // $FlowExpectedError - title should be inside `item`
-      <SectionList
-        renderItem={(info: {title: string}) => <span />}
-        sections={sections}
-      />,
+      <SectionList renderItem={(info: {title: string}) => <span />} sections={sections} />,
       // $FlowExpectedError - bad index type string, should be number
-      <SectionList
-        renderItem={(info: {index: string}) => <span />}
-        sections={sections}
-      />,
+      <SectionList renderItem={(info: {index: string}) => <span />} sections={sections} />,
       // EverythingIsFine
-      <SectionList
-        renderItem={(info: {item: {title: string}}) => <span />}
-        sections={sections}
-      />,
+      <SectionList renderItem={(info: {item: {title: string}}) => <span />} sections={sections} />,
     ]
   },
 
   testBadInheritedDefaultProp(): React.Element<*> {
     const sections = []
     // $FlowExpectedError - bad windowSize type "big"
-    return (
-      <SectionList
-        renderItem={renderMyListItem}
-        sections={sections}
-        windowSize="big"
-      />
-    )
+    return <SectionList renderItem={renderMyListItem} sections={sections} windowSize="big" />
   },
 
   testMissingData(): React.Element<*> {

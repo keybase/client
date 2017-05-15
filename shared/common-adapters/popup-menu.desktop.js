@@ -98,12 +98,7 @@ const Divider = () => (
   />
 )
 
-const PopupHeaderText = ({
-  color,
-  backgroundColor,
-  style,
-  children,
-}: HeaderTextProps) => (
+const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextProps) => (
   <Text
     type="BodySemibold"
     style={{

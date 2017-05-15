@@ -3,10 +3,7 @@ import {Buffer} from 'buffer'
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 
-import type {
-  incomingRPCCallbackType,
-  connectDisconnectCB,
-} from './index.platform'
+import type {incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
 const nativeBridge = NativeModules.KeybaseEngine
 const RNEmitter = new NativeEventEmitter(nativeBridge)
@@ -51,10 +48,7 @@ class NativeTransport extends TransportShared {
     if (this.rawWriteLength === null) {
       this.rawWriteLength = Buffer.from(bufStr, enc)
     } else {
-      const buffer = Buffer.concat([
-        this.rawWriteLength,
-        Buffer.from(bufStr, enc),
-      ])
+      const buffer = Buffer.concat([this.rawWriteLength, Buffer.from(bufStr, enc)])
       this.rawWriteLength = null
       // We have to write b64 encoded data over the RN bridge
       this.writeCallback(buffer.toString('base64'))
@@ -68,11 +62,7 @@ function createClient(
   disconnectCallback: connectDisconnectCB
 ) {
   const client = sharedCreateClient(
-    new NativeTransport(
-      incomingRPCCallback,
-      connectCallback,
-      disconnectCallback
-    )
+    new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   )
 
   nativeBridge.start()

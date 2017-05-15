@@ -4,7 +4,7 @@
         name: prettier
         entry: shared/node_modules/.bin/prettier
         language: node
-        files: \.js$
+        files: shared/.*\.js$
         args: [
             '--single-quote',
             '--trailing-comma', 'es5',
@@ -12,6 +12,7 @@
             '--no-bracket-spacing',
             '--parser', 'flow',
             '--no-semi',
+            '--print-width', '100',
             '--write']
     -   id: eslint
         name: eslint

@@ -21,11 +21,7 @@ function TrackerError({errorMessage, onRetry, onClose}: Props) {
         {errorMessage}
       </Text>
       <Box style={retryStyle}>
-        <Button
-          onClick={() => onRetry()}
-          type="Primary"
-          label="Retry fetching identity"
-        />
+        <Button onClick={() => onRetry()} type="Primary" label="Retry fetching identity" />
       </Box>
     </Box>
   )

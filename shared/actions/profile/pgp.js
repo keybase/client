@@ -81,10 +81,7 @@ function _checkPgpInfoForErrors(pgpInfo: PgpInfo): PgpInfoError {
     errorEmail1: !!errorEmail1,
     errorEmail2: !!errorEmail2,
     errorEmail3: !!errorEmail3,
-    errorText: errorNameMessage ||
-      errorEmail1Message ||
-      errorEmail2Message ||
-      errorEmail3Message,
+    errorText: errorNameMessage || errorEmail1Message || errorEmail2Message || errorEmail3Message,
   }
 }
 
@@ -93,9 +90,7 @@ function* _checkPgpInfo(action: UpdatePgpInfo): SagaGenerator<any, any> {
     return
   }
 
-  const pgpInfo: PgpInfo = yield select(
-    ({profile: {pgpInfo}}: TypedState) => pgpInfo
-  )
+  const pgpInfo: PgpInfo = yield select(({profile: {pgpInfo}}: TypedState) => pgpInfo)
 
   const errorUpdateAction: UpdatePgpInfo = {
     error: true,
@@ -128,9 +123,7 @@ function* _dropPgpSaga(action: DropPgp): SagaGenerator<any, any> {
 function* _generatePgpSaga(): SagaGenerator<any, any> {
   yield put(navigateAppend(['generate'], [profileTab, 'pgp']))
 
-  const pgpInfo: PgpInfo = yield select(
-    ({profile: {pgpInfo}}: TypedState) => pgpInfo
-  )
+  const pgpInfo: PgpInfo = yield select(({profile: {pgpInfo}}: TypedState) => pgpInfo)
   const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3]
     .filter(email => !!email)
     .map(email => ({
@@ -169,23 +162,16 @@ function* _generatePgpSaga(): SagaGenerator<any, any> {
       return
     }
 
-    yield call([
-      incoming.keyGenerated.response,
-      incoming.keyGenerated.response.result,
-    ])
+    yield call([incoming.keyGenerated.response, incoming.keyGenerated.response.result])
     const publicKey = incoming.keyGenerated.params.key.key
 
     yield put({payload: {publicKey}, type: Constants.updatePgpPublicKey})
     yield put(navigateAppend(['finished'], [profileTab, 'pgp']))
 
-    const finishedAction: FinishedWithKeyGen = yield take(
-      Constants.finishedWithKeyGen
-    )
+    const finishedAction: FinishedWithKeyGen = yield take(Constants.finishedWithKeyGen)
     const {shouldStoreKeyOnServer} = finishedAction.payload
 
-    const {response} = yield generatePgpKeyChanMap.take(
-      'keybase.1.pgpUi.shouldPushPrivate'
-    )
+    const {response} = yield generatePgpKeyChanMap.take('keybase.1.pgpUi.shouldPushPrivate')
     yield call([response, response.result], shouldStoreKeyOnServer)
 
     const {response: finishedResponse} = yield generatePgpKeyChanMap.take(
@@ -201,10 +187,7 @@ function* _generatePgpSaga(): SagaGenerator<any, any> {
 }
 
 function* pgpSaga(): SagaGenerator<any, any> {
-  yield safeTakeLatest(
-    a => a && a.type === Constants.updatePgpInfo && !a.error,
-    _checkPgpInfo
-  )
+  yield safeTakeLatest(a => a && a.type === Constants.updatePgpInfo && !a.error, _checkPgpInfo)
   yield safeTakeLatest(Constants.generatePgp, _generatePgpSaga)
   yield safeTakeEvery(Constants.dropPgp, _dropPgpSaga)
 }

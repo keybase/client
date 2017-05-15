@@ -9,9 +9,7 @@ import {usernameText} from '../../common-adapters/usernames'
 const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
   const theme = isPrivate ? 'private' : 'public'
 
-  const icon: IconType = isPrivate
-    ? 'icon-files-private-delete-64'
-    : 'icon-files-public-delete-64'
+  const icon: IconType = isPrivate ? 'icon-files-private-delete-64' : 'icon-files-public-delete-64'
   const header = <Icon type={icon} />
 
   const body = (
@@ -27,10 +25,7 @@ const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
           ? ({folderSize})
         </Text>
       </Text>
-      <Text
-        type="Body"
-        style={{...textColorThemed[theme], textAlign: 'center'}}
-      >
+      <Text type="Body" style={{...textColorThemed[theme], textAlign: 'center'}}>
         Deletes everything in this folder, including the backup versions.
       </Text>
     </Box>

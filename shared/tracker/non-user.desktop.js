@@ -21,10 +21,7 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
       <Text type="BodySemibold" style={stylesMessage}>{reason}</Text>
       <Icon type={icon} />
       <Box style={globalStyles.flexBoxColumn}>
-        <Text
-          type="Body"
-          style={{...stylesMessage, ...(inviteLink ? {} : {marginBottom: 16})}}
-        >
+        <Text type="Body" style={{...stylesMessage, ...(inviteLink ? {} : {marginBottom: 16})}}>
           {message}
         </Text>
         {inviteLink &&
@@ -74,23 +71,11 @@ const Bottom = ({onClose, name, serviceName}) => (
       </Text>
     </Box>
     <Box style={{flex: 1, alignItems: 'center'}} />
-    <Button
-      style={{width: 122}}
-      type="Secondary"
-      label="Close"
-      onClick={onClose}
-    />
+    <Button style={{width: 122}} type="Secondary" label="Close" onClick={onClose} />
   </Box>
 )
 
-const Render = ({
-  name,
-  reason,
-  inviteLink,
-  onClose,
-  isPrivate,
-  serviceName,
-}: Props) => (
+const Render = ({name, reason, inviteLink, onClose, isPrivate, serviceName}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
     <Top
       onClose={onClose}

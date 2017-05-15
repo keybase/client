@@ -7,9 +7,7 @@ import {qrGenerate} from './provision-helpers'
 
 import type {Action, TypedAction} from '../../constants/types/flux'
 
-function submitUsernameOrEmail(
-  usernameOrEmail: string
-): Constants.SubmitUsernameOrEmail {
+function submitUsernameOrEmail(usernameOrEmail: string): Constants.SubmitUsernameOrEmail {
   return {type: Constants.submitUsernameOrEmail, payload: {usernameOrEmail}}
 }
 
@@ -21,10 +19,7 @@ function logout(): Constants.Logout {
   return {type: Constants.logout, payload: null}
 }
 
-function setTextCode(
-  phrase: string,
-  previousErr: string
-): Constants.SetTextCode {
+function setTextCode(phrase: string, previousErr: string): Constants.SetTextCode {
   return {
     type: Constants.setTextCode,
     payload: {
@@ -34,10 +29,7 @@ function setTextCode(
   }
 }
 
-function relogin(
-  usernameOrEmail: string,
-  passphrase: string
-): Constants.Relogin {
+function relogin(usernameOrEmail: string, passphrase: string): Constants.Relogin {
   return {
     type: Constants.relogin,
     payload: {usernameOrEmail, passphrase: new HiddenString(passphrase)},
@@ -93,9 +85,7 @@ function qrScanned(phrase: string): Constants.QrScanned {
   return {type: Constants.qrScanned, payload: {phrase}}
 }
 
-function provisionTextCodeEntered(
-  phrase: string
-): Constants.ProvisionTextCodeEntered {
+function provisionTextCodeEntered(phrase: string): Constants.ProvisionTextCodeEntered {
   return {type: Constants.provisionTextCodeEntered, payload: {phrase}}
 }
 
@@ -143,9 +133,7 @@ function setCameraBrokenMode(broken: boolean) {
   return {payload: broken, type: Constants.cameraBrokenMode}
 }
 
-function addNewDevice(
-  role: Constants.DeviceRole
-): DeviceConstants.AddNewDevice {
+function addNewDevice(role: Constants.DeviceRole): DeviceConstants.AddNewDevice {
   return {type: 'device:addNewDevice', payload: {role}}
 }
 
@@ -157,9 +145,7 @@ function addNewComputer() {
   return addNewDevice(Constants.codePageDeviceRoleNewComputer)
 }
 
-function updateForgotPasswordEmail(
-  email: string
-): Constants.UpdateForgotPasswordEmail {
+function updateForgotPasswordEmail(email: string): Constants.UpdateForgotPasswordEmail {
   return {
     payload: email,
     type: Constants.actionUpdateForgotPasswordEmailAddress,

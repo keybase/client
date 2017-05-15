@@ -218,9 +218,7 @@ class VirtualizedSectionList<SectionT: SectionBase>
   }) => {
     if (this.props.onViewableItemsChanged) {
       this.props.onViewableItemsChanged({
-        viewableItems: viewableItems
-          .map(this._convertViewable, this)
-          .filter(Boolean),
+        viewableItems: viewableItems.map(this._convertViewable, this).filter(Boolean),
         changed: changed.map(this._convertViewable, this).filter(Boolean),
       })
     }
@@ -234,9 +232,7 @@ class VirtualizedSectionList<SectionT: SectionBase>
     const infoIndex = info.index
     if (infoIndex == null) {
       const {renderSectionHeader} = this.props
-      return renderSectionHeader
-        ? renderSectionHeader({section: info.section})
-        : null
+      return renderSectionHeader ? renderSectionHeader({section: info.section}) : null
     } else {
       const renderItem = info.section.renderItem || this.props.renderItem
       const SeparatorComponent = this._getSeparatorComponent(index, info)
@@ -305,9 +301,7 @@ class VirtualizedSectionList<SectionT: SectionBase>
         onViewableItemsChanged: props.onViewableItemsChanged
           ? this._onViewableItemsChanged
           : undefined,
-        stickyHeaderIndices: props.stickySectionHeadersEnabled
-          ? stickyHeaderIndices
-          : undefined,
+        stickyHeaderIndices: props.stickySectionHeadersEnabled ? stickyHeaderIndices : undefined,
       },
     }
   }
@@ -358,14 +352,10 @@ class ItemWithSeparator extends React.Component {
 
   _separators = {
     highlight: () => {
-      ;['leading', 'trailing'].forEach(s =>
-        this._separators.updateProps(s, {highlighted: true})
-      )
+      ;['leading', 'trailing'].forEach(s => this._separators.updateProps(s, {highlighted: true}))
     },
     unhighlight: () => {
-      ;['leading', 'trailing'].forEach(s =>
-        this._separators.updateProps(s, {highlighted: false})
-      )
+      ;['leading', 'trailing'].forEach(s => this._separators.updateProps(s, {highlighted: false}))
     },
     updateProps: (select: 'leading' | 'trailing', newProps: Object) => {
       const {LeadingSeparatorComponent, cellKey, prevCellKey} = this.props
@@ -374,10 +364,7 @@ class ItemWithSeparator extends React.Component {
           leadingSeparatorProps: {...state.leadingSeparatorProps, ...newProps},
         }))
       } else {
-        this.props.onUpdateSeparator(
-          (select === 'leading' && prevCellKey) || cellKey,
-          newProps
-        )
+        this.props.onUpdateSeparator((select === 'leading' && prevCellKey) || cellKey, newProps)
       }
     },
   }
@@ -389,13 +376,7 @@ class ItemWithSeparator extends React.Component {
   }
 
   render() {
-    const {
-      LeadingSeparatorComponent,
-      SeparatorComponent,
-      renderItem,
-      item,
-      index,
-    } = this.props
+    const {LeadingSeparatorComponent, SeparatorComponent, renderItem, item, index} = this.props
     const element = renderItem({
       item,
       index,
@@ -404,12 +385,8 @@ class ItemWithSeparator extends React.Component {
     const leadingSeparator =
       LeadingSeparatorComponent &&
       <LeadingSeparatorComponent {...this.state.leadingSeparatorProps} />
-    const separator =
-      SeparatorComponent &&
-      <SeparatorComponent {...this.state.separatorProps} />
-    return separator
-      ? <View>{leadingSeparator}{element}{separator}</View>
-      : element
+    const separator = SeparatorComponent && <SeparatorComponent {...this.state.separatorProps} />
+    return separator ? <View>{leadingSeparator}{element}{separator}</View> : element
   }
 }
 

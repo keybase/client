@@ -15,10 +15,7 @@ import {
 } from '../local-debug'
 import {globalError} from '../constants/config'
 import {isMobile} from '../constants/platform'
-import {
-  run as runSagas,
-  create as createSagaMiddleware,
-} from './configure-sagas'
+import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
 import {setupLogger, immutableToJS} from '../util/periodic-logger'
 
 let theStore: Store
@@ -40,14 +37,7 @@ const crashHandler = error => {
 let loggerMiddleware: any
 
 if (enableStoreLogging) {
-  const logger = setupLogger(
-    'storeLogger',
-    100,
-    immediateStateLogging,
-    immutableToJS,
-    50,
-    true
-  )
+  const logger = setupLogger('storeLogger', 100, immediateStateLogging, immutableToJS, 50, true)
   loggerMiddleware = createLogger({
     actionTransformer: (...args) => {
       console.log('Action:', ...args)
@@ -91,11 +81,7 @@ const errorCatching = store => next => action => {
   }
 }
 
-let middlewares = [
-  errorCatching,
-  createSagaMiddleware(crashHandler),
-  thunkMiddleware,
-]
+let middlewares = [errorCatching, createSagaMiddleware(crashHandler), thunkMiddleware]
 
 if (enableStoreLogging) {
   middlewares.push(loggerMiddleware)
@@ -108,11 +94,7 @@ if (closureStoreCheck) {
 }
 
 export default function configureStore(initialState: any) {
-  const store = createStore(
-    rootReducer,
-    initialState,
-    storeEnhancer(middlewares)
-  )
+  const store = createStore(rootReducer, initialState, storeEnhancer(middlewares))
   theStore = store
 
   if (module.hot && !isMobile) {

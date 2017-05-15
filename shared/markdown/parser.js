@@ -3411,9 +3411,7 @@ peg$SyntaxError.buildMessage = function(expected, found) {
       var escapedParts = '', i
       for (i = 0; i < expectation.parts.length; i++) {
         escapedParts += expectation.parts[i] instanceof Array
-          ? classEscape(expectation.parts[i][0]) +
-              '-' +
-              classEscape(expectation.parts[i][1])
+          ? classEscape(expectation.parts[i][0]) + '-' + classEscape(expectation.parts[i][1])
           : classEscape(expectation.parts[i])
       }
       return '[' + (expectation.inverted ? '^' : '') + escapedParts + ']'
@@ -3488,22 +3486,14 @@ peg$SyntaxError.buildMessage = function(expected, found) {
         return descriptions[0] + ' or ' + descriptions[1]
       default:
         return (
-          descriptions.slice(0, -1).join(', ') +
-          ', or ' +
-          descriptions[descriptions.length - 1]
+          descriptions.slice(0, -1).join(', ') + ', or ' + descriptions[descriptions.length - 1]
         )
     }
   }
   function describeFound(found) {
     return found ? '"' + literalEscape(found) + '"' : 'end of input'
   }
-  return (
-    'Expected ' +
-    describeExpected(expected) +
-    ' but ' +
-    describeFound(found) +
-    ' found.'
-  )
+  return 'Expected ' + describeExpected(expected) + ' but ' + describeFound(found) + ' found.'
 }
 function peg$parse(input, options) {
   options = options !== void 0 ? options : {}
@@ -3546,11 +3536,7 @@ function peg$parse(input, options) {
     peg$c18 = '>',
     peg$c19 = peg$literalExpectation('>', false),
     peg$c20 = /^[()[\].,!?]/,
-    peg$c21 = peg$classExpectation(
-      ['(', ')', '[', ']', '.', ',', '!', '?'],
-      false,
-      false
-    ),
+    peg$c21 = peg$classExpectation(['(', ')', '[', ']', '.', ',', '!', '?'], false, false),
     peg$c22 = function() {
       return text()
     },
@@ -5593,11 +5579,7 @@ function peg$parse(input, options) {
       ]
     },
     peg$c47 = /^[\t\x0B\f \xA0\uFEFF]/,
-    peg$c48 = peg$classExpectation(
-      ['\t', '\x0B', '\f', ' ', '\xA0', '\uFEFF'],
-      false,
-      false
-    ),
+    peg$c48 = peg$classExpectation(['\t', '\x0B', '\f', ' ', '\xA0', '\uFEFF'], false, false),
     peg$c49 = peg$otherExpectation('end of line'),
     peg$c50 = '\n',
     peg$c51 = peg$literalExpectation('\n', false),
@@ -5651,9 +5633,7 @@ function peg$parse(input, options) {
     peg$result
   if ('startRule' in options) {
     if (!(options.startRule in peg$startRuleFunctions)) {
-      throw new Error(
-        'Can\'t start parsing from rule "' + options.startRule + '".'
-      )
+      throw new Error('Can\'t start parsing from rule "' + options.startRule + '".')
     }
     peg$startRuleFunction = peg$startRuleFunctions[options.startRule]
   }
@@ -5664,9 +5644,7 @@ function peg$parse(input, options) {
     return peg$computeLocation(peg$savedPos, peg$currPos)
   }
   function expected(description, location) {
-    location = location !== void 0
-      ? location
-      : peg$computeLocation(peg$savedPos, peg$currPos)
+    location = location !== void 0 ? location : peg$computeLocation(peg$savedPos, peg$currPos)
     throw peg$buildStructuredError(
       [peg$otherExpectation(description)],
       input.substring(peg$savedPos, peg$currPos),
@@ -5674,9 +5652,7 @@ function peg$parse(input, options) {
     )
   }
   function error(message, location) {
-    location = location !== void 0
-      ? location
-      : peg$computeLocation(peg$savedPos, peg$currPos)
+    location = location !== void 0 ? location : peg$computeLocation(peg$savedPos, peg$currPos)
     throw peg$buildSimpleError(message, location)
   }
   function peg$literalExpectation(text, ignoreCase) {
@@ -5700,9 +5676,7 @@ function peg$parse(input, options) {
     }
   }
   function peg$endExpectation() {
-    return {
-      type: 'end',
-    }
+    return {type: 'end'}
   }
   function peg$otherExpectation(description) {
     return {

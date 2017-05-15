@@ -7,20 +7,10 @@ import {propsForPlatform} from './confirm-or-pending.shared'
 import type {Props} from './confirm-or-pending'
 
 const Render = (props: Props) => {
-  const {
-    platform,
-    onReloadProfile,
-    titleColor,
-    username,
-    platformIconOverlayColor,
-  } = props
-  const {
-    title,
-    platformIconOverlay,
-    usernameSubtitle,
-    message,
-    messageSubtitle,
-  } = propsForPlatform(props)
+  const {platform, onReloadProfile, titleColor, username, platformIconOverlayColor} = props
+  const {title, platformIconOverlay, usernameSubtitle, message, messageSubtitle} = propsForPlatform(
+    props
+  )
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>

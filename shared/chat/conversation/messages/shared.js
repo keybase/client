@@ -1,12 +1,7 @@
 // @flow
 import {globalColors} from '../../../styles'
 
-const marginColor = (
-  user: string,
-  isYou: boolean,
-  isFollowing: boolean,
-  isBroken: boolean
-) => {
+const marginColor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
   if (isYou) {
     return globalColors.white
   } else if (isBroken) {
@@ -15,14 +10,7 @@ const marginColor = (
   return isFollowing ? globalColors.green2 : globalColors.blue
 }
 
-const colorForAuthor = (
-  user: string,
-  isYou: boolean,
-  isFollowing: boolean,
-  isBroken: boolean
-) =>
-  isYou
-    ? globalColors.black_75
-    : marginColor(user, isYou, isFollowing, isBroken)
+const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) =>
+  isYou ? globalColors.black_75 : marginColor(user, isYou, isFollowing, isBroken)
 
 export {marginColor, colorForAuthor}

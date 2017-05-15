@@ -12,8 +12,7 @@ function HeaderHoc<P>(WrappedComponent: ReactClass<P>) {
     <Box style={_containerStyle}>
       <Box style={{..._headerStyle, ...headerStyle}}>
         {onCancel && <Text type="BodyBigLink" onClick={onCancel}>Cancel</Text>}
-        {onBack &&
-          <BackButton iconStyle={_backButtonIconStyle} onClick={onBack} />}
+        {onBack && <BackButton iconStyle={_backButtonIconStyle} onClick={onBack} />}
         <Box style={_titleStyle}>
           <Text type="Header">{title}</Text>
         </Box>

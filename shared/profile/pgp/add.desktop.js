@@ -1,28 +1,16 @@
 // @flow
 import React, {Component} from 'react'
-import {
-  Box,
-  Button,
-  Input,
-  PlatformIcon,
-  StandardScreen,
-  Text,
-} from '../../common-adapters'
+import {Box, Button, Input, PlatformIcon, StandardScreen, Text} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 import type {Props} from './add'
 
 class PgpAdd extends Component<void, Props, void> {
   render() {
-    const nextDisabled =
-      !this.props.email1 || !this.props.fullName || !!this.props.errorText
+    const nextDisabled = !this.props.email1 || !this.props.fullName || !!this.props.errorText
     return (
       <StandardScreen style={styleContainer} onClose={this.props.onCancel}>
         {/* TODO(MM) when we get the pgp icon, put it in here */}
-        <PlatformIcon
-          platform="pgp"
-          overlay="icon-proof-unfinished"
-          style={styleIcon}
-        />
+        <PlatformIcon platform="pgp" overlay="icon-proof-unfinished" style={styleIcon} />
         <Text style={styleHeader} type="BodySemibold">
           {' '}Fill in your public info.
         </Text>
@@ -59,15 +47,10 @@ class PgpAdd extends Component<void, Props, void> {
           style={styleInfoMessage(!!this.props.errorText)}
           type={this.props.errorText ? 'BodyError' : 'Body'}
         >
-          {this.props.errorText ||
-            'Include any addresses you plan to use for PGP encrypted email.'}
+          {this.props.errorText || 'Include any addresses you plan to use for PGP encrypted email.'}
         </Text>
         <Box style={styleActions}>
-          <Button
-            type="Secondary"
-            label="Cancel"
-            onClick={this.props.onCancel}
-          />
+          <Button type="Secondary" label="Cancel" onClick={this.props.onCancel} />
           <Button
             type="Primary"
             label="Let the math begin"

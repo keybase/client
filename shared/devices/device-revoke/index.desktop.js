@@ -31,10 +31,7 @@ const Body = ({endangeredTLFs, name, currentDevice}) => (
         <Box style={styleDevicesContainer}>
           {endangeredTLFs.map(tlf => (
             <Box key={tlf.name} style={styleTLF}>
-              <Text
-                type="BodySemibold"
-                style={{marginRight: globalMargins.tiny}}
-              >
+              <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>
                 •
               </Text>
               <Text type="BodySemibold">{tlf.name}</Text>
@@ -56,13 +53,7 @@ const Render = ({
   icon,
 }: Props) => (
   <Confirm
-    body={
-      <Body
-        endangeredTLFs={endangeredTLFs}
-        name={name}
-        currentDevice={currentDevice}
-      />
-    }
+    body={<Body endangeredTLFs={endangeredTLFs} name={name} currentDevice={currentDevice} />}
     danger={true}
     header={<Header name={name} icon={icon} />}
     onCancel={onCancel}

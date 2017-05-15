@@ -31,18 +31,9 @@ export type Tab =
 
 function isValidInitialTab(tab: ?Tab) {
   if (isMobile) {
-    return [chatTab, folderTab, profileTab, searchTab, settingsTab].includes(
-      tab
-    )
+    return [chatTab, folderTab, profileTab, searchTab, settingsTab].includes(tab)
   } else {
-    return [
-      chatTab,
-      folderTab,
-      profileTab,
-      devicesTab,
-      searchTab,
-      settingsTab,
-    ].includes(tab)
+    return [chatTab, folderTab, profileTab, devicesTab, searchTab, settingsTab].includes(tab)
   }
 }
 

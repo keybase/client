@@ -37,10 +37,7 @@ class FormWithCheckbox extends Component<void, Props, void> {
           })}
         </Box>
         {!!errorText &&
-          <Text
-            type="BodyError"
-            style={{textAlign: 'center', marginTop: globalMargins.tiny}}
-          >
+          <Text type="BodyError" style={{textAlign: 'center', marginTop: globalMargins.tiny}}>
             {errorText}
           </Text>}
       </Box>

@@ -10,8 +10,7 @@ import TrackerError from './error'
 
 import type {RenderProps} from './render'
 
-export default class TrackerRender
-  extends PureComponent<void, RenderProps, void> {
+export default class TrackerRender extends PureComponent<void, RenderProps, void> {
   componentDidMount() {
     autoResize()
   }

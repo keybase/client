@@ -10,5 +10,4 @@ export type Props = {
   checkboxesProps: Array<CheckboxProps>,
 }
 
-declare export default class FormWithCheckbox
-  extends Component<void, Props, void> {}
+declare export default class FormWithCheckbox extends Component<void, Props, void> {}

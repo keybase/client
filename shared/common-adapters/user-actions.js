@@ -23,12 +23,7 @@ function UserActions({
             onUnfollow={onUnfollow}
             style={{marginRight: globalMargins.xtiny}}
           />
-          <Button
-            type="Primary"
-            label="Start a Chat"
-            onClick={onChat}
-            style={{marginRight: 0}}
-          />
+          <Button type="Primary" label="Start a Chat" onClick={onChat} style={{marginRight: 0}} />
         </Box>
       )
     } else {
@@ -40,12 +35,7 @@ function UserActions({
             onClick={onUnfollow}
             style={{marginRight: globalMargins.xtiny}}
           />
-          <Button
-            type="Follow"
-            label="Accept"
-            onClick={onAcceptProofs}
-            style={{marginRight: 0}}
-          />
+          <Button type="Follow" label="Accept" onClick={onAcceptProofs} style={{marginRight: 0}} />
         </Box>
       )
     }
@@ -57,12 +47,7 @@ function UserActions({
           onFollow={onFollow}
           style={{marginRight: globalMargins.xtiny}}
         />
-        <Button
-          type="Primary"
-          label="Start a Chat"
-          onClick={onChat}
-          style={{marginRight: 0}}
-        />
+        <Button type="Primary" label="Start a Chat" onClick={onChat} style={{marginRight: 0}} />
       </Box>
     )
   }

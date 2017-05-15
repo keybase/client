@@ -62,9 +62,7 @@ const appendMessageActionTransformer = (action: Constants.AppendMessages) => ({
   type: action.type,
 })
 
-const prependMessagesActionTransformer = (
-  action: Constants.PrependMessages
-) => ({
+const prependMessagesActionTransformer = (action: Constants.PrependMessages) => ({
   payload: {
     conversationIDKey: action.payload.conversationIDKey,
     hasPaginationNext: !!action.payload.paginationNext,
@@ -87,9 +85,7 @@ const retryMessageActionTransformer = action => ({
   type: action.type,
 })
 
-function loadedInbox(
-  conversations: List<Constants.InboxState>
-): Constants.LoadedInbox {
+function loadedInbox(conversations: List<Constants.InboxState>): Constants.LoadedInbox {
   return {
     logTransformer: loadedInboxActionTransformer,
     payload: {inbox: conversations},
@@ -111,9 +107,7 @@ function replaceConversation(
   return {payload: {newKey, oldKey}, type: 'chat:replaceConversation'}
 }
 
-function updateBadging(
-  conversationIDKey: Constants.ConversationIDKey
-): Constants.UpdateBadging {
+function updateBadging(conversationIDKey: Constants.ConversationIDKey): Constants.UpdateBadging {
   return {payload: {conversationIDKey}, type: 'chat:updateBadging'}
 }
 
@@ -127,8 +121,7 @@ function badgeAppForChat(
   conversations: ?Array<RPCTypes.BadgeConversationInfo>
 ): Constants.BadgeAppForChat {
   const convos = List(
-    (conversations || [])
-      .map(conversation => Constants.ConversationBadgeStateRecord(conversation))
+    (conversations || []).map(conversation => Constants.ConversationBadgeStateRecord(conversation))
   )
   return {payload: convos, type: 'chat:badgeAppForChat'}
 }
@@ -200,10 +193,7 @@ function showEditor(message: ?Constants.Message): Constants.ShowEditor {
   return {payload: {message}, type: 'chat:showEditor'}
 }
 
-function editMessage(
-  message: Constants.Message,
-  text: HiddenString
-): Constants.EditMessage {
+function editMessage(message: Constants.Message, text: HiddenString): Constants.EditMessage {
   return {payload: {message, text}, type: 'chat:editMessage'}
 }
 
@@ -229,9 +219,7 @@ function deleteMessage(message: Constants.Message): Constants.DeleteMessage {
   return {payload: {message}, type: 'chat:deleteMessage'}
 }
 
-function addPending(
-  participants: Array<string>
-): Constants.AddPendingConversation {
+function addPending(participants: Array<string>): Constants.AddPendingConversation {
   return {payload: {participants}, type: 'chat:addPendingConversation'}
 }
 
@@ -253,9 +241,7 @@ function updateSupersededByState(
   return {payload: {supersededByState}, type: 'chat:updateSupersededByState'}
 }
 
-function updateInbox(
-  conversation: Constants.InboxState
-): Constants.UpdateInbox {
+function updateInbox(conversation: Constants.InboxState): Constants.UpdateInbox {
   return {payload: {conversation}, type: 'chat:updateInbox'}
 }
 
@@ -308,9 +294,7 @@ function getInboxAndUnbox(
   return {payload: {conversationIDKeys}, type: 'chat:getInboxAndUnbox'}
 }
 
-function clearMessages(
-  conversationIDKey: Constants.ConversationIDKey
-): Constants.ClearMessages {
+function clearMessages(conversationIDKey: Constants.ConversationIDKey): Constants.ClearMessages {
   return {payload: {conversationIDKey}, type: 'chat:clearMessages'}
 }
 
@@ -327,9 +311,7 @@ function updateMetadata(users: Array<string>): Constants.UpdateMetadata {
   return {payload: {users}, type: 'chat:updateMetadata'}
 }
 
-function updatedMetadata(updated: {
-  [key: string]: Constants.MetaData,
-}): Constants.UpdatedMetadata {
+function updatedMetadata(updated: {[key: string]: Constants.MetaData}): Constants.UpdatedMetadata {
   return {payload: {updated}, type: 'chat:updatedMetadata'}
 }
 
@@ -353,9 +335,7 @@ function prependMessages(
   }
 }
 
-function incomingMessage(
-  activity: ChatTypes.ChatActivity
-): Constants.IncomingMessage {
+function incomingMessage(activity: ChatTypes.ChatActivity): Constants.IncomingMessage {
   return {payload: {activity}, type: 'chat:incomingMessage'}
 }
 
@@ -369,9 +349,7 @@ function inboxStale(): Constants.InboxStale {
   return {payload: undefined, type: 'chat:inboxStale'}
 }
 
-function markThreadsStale(
-  convIDs: Array<Constants.ConversationIDKey>
-): Constants.MarkThreadsStale {
+function markThreadsStale(convIDs: Array<Constants.ConversationIDKey>): Constants.MarkThreadsStale {
   return {payload: {convIDs}, type: 'chat:markThreadsStale'}
 }
 
@@ -385,9 +363,7 @@ function loadingMessages(
   }
 }
 
-function retryAttachment(
-  message: Constants.AttachmentMessage
-): Constants.SelectAttachment {
+function retryAttachment(message: Constants.AttachmentMessage): Constants.SelectAttachment {
   const {conversationIDKey, filename, title, previewType, outboxID} = message
   if (!filename || !title || !previewType) {
     throw new Error('attempted to retry attachment without filename')
@@ -402,9 +378,7 @@ function retryAttachment(
   return {payload: {input}, type: 'chat:selectAttachment'}
 }
 
-function selectAttachment(
-  input: Constants.AttachmentInput
-): Constants.SelectAttachment {
+function selectAttachment(input: Constants.AttachmentInput): Constants.SelectAttachment {
   return {payload: {input}, type: 'chat:selectAttachment'}
 }
 
@@ -534,9 +508,7 @@ function setUnboxing(
   return {payload: {conversationIDKeys}, type: 'chat:setUnboxing'}
 }
 
-function clearRekey(
-  conversationIDKey: Constants.ConversationIDKey
-): Constants.ClearRekey {
+function clearRekey(conversationIDKey: Constants.ConversationIDKey): Constants.ClearRekey {
   return {payload: {conversationIDKey}, type: 'chat:clearRekey'}
 }
 
@@ -570,9 +542,7 @@ function removeOutboxMessage(
   }
 }
 
-function removePendingFailure(
-  outboxID: Constants.OutboxIDKey
-): Constants.RemovePendingFailure {
+function removePendingFailure(outboxID: Constants.OutboxIDKey): Constants.RemovePendingFailure {
   return {payload: {outboxID}, type: 'chat:removePendingFailure'}
 }
 

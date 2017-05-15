@@ -2,11 +2,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Notifications from './index'
-import {
-  notificationsRefresh,
-  notificationsSave,
-  notificationsToggle,
-} from '../../actions/settings'
+import {notificationsRefresh, notificationsSave, notificationsToggle} from '../../actions/settings'
 
 import type {TypedState} from '../../constants/reducer'
 

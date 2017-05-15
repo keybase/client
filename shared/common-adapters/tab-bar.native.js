@@ -2,10 +2,7 @@
 import React, {Component} from 'react'
 import _ from 'lodash'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
-import {
-  NativeTouchableWithoutFeedback,
-  NativeStyleSheet,
-} from './native-wrappers.native'
+import {NativeTouchableWithoutFeedback, NativeStyleSheet} from './native-wrappers.native'
 import Badge from './badge'
 import Avatar from './avatar'
 import Box from './box'
@@ -28,19 +25,13 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
           type="BodySmallSemibold"
           style={{
             ...stylesLabel,
-            color: this.props.selected
-              ? globalColors.black_75
-              : globalColors.black_60,
+            color: this.props.selected ? globalColors.black_75 : globalColors.black_60,
           }}
         >
           {!!this.props.label && this.props.label.toUpperCase()}
         </Text>
         <Box
-          style={
-            this.props.selected
-              ? stylesSelectedUnderline(selectedColor)
-              : stylesUnselected
-          }
+          style={this.props.selected ? stylesSelectedUnderline(selectedColor) : stylesUnselected}
         />
       </Box>
     )
@@ -49,9 +40,7 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
 
 class TabBarButton extends Component<void, TabBarButtonProps, void> {
   render() {
-    const iconColor = this.props.selected
-      ? globalColors.white
-      : globalColors.blue3_40
+    const iconColor = this.props.selected ? globalColors.white : globalColors.blue3_40
     const badgeNumber = this.props.badgeNumber || 0
 
     let badgeComponent
@@ -77,15 +66,11 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
         </Box>
       )
     } else {
-      badgeComponent = (
-        <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 5}} />
-      )
+      badgeComponent = <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 5}} />
     }
 
     const content = (
-      <Box
-        style={{...stylesTabBarButtonIcon, ...this.props.style, flexGrow: 1}}
-      >
+      <Box style={{...stylesTabBarButtonIcon, ...this.props.style, flexGrow: 1}}>
         {this.props.source.type === 'icon'
           ? <Icon
               type={this.props.source.icon}
@@ -97,16 +82,9 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
                 ...this.props.styleIcon,
               }}
             />
-          : <Avatar
-              size={24}
-              username={this.props.source.username}
-              borderColor={iconColor}
-            />}
+          : <Avatar size={24} username={this.props.source.username} borderColor={iconColor} />}
         {!!this.props.label &&
-          <Text
-            type="BodySemibold"
-            style={{textAlign: 'center', ...this.props.styleLabel}}
-          >
+          <Text type="BodySemibold" style={{textAlign: 'center', ...this.props.styleLabel}}>
             {this.props.label}
           </Text>}
         {badgeNumber > 0 && badgeComponent}
@@ -127,17 +105,12 @@ class TabBar extends Component<void, Props, void> {
   _labels(): Array<React$Element<*>> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
     return (this.props.children || []).map((item: {props: ItemProps}, i) => {
-      const key =
-        item.props.label || _.get(item, 'props.tabBarButton.props.label') || i
+      const key = item.props.label || _.get(item, 'props.tabBarButton.props.label') || i
       return (
-        <NativeTouchableWithoutFeedback
-          key={key}
-          onPress={item.props.onClick || (() => {})}
-        >
+        <NativeTouchableWithoutFeedback key={key} onPress={item.props.onClick || (() => {})}>
           <Box style={{flex: 1}}>
             <Box style={{...item.props.styleContainer}}>
-              {item.props.tabBarButton ||
-                <SimpleTabBarButton {...item.props} />}
+              {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
             </Box>
           </Box>
         </NativeTouchableWithoutFeedback>

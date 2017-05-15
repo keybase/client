@@ -7,9 +7,7 @@ import {globalStyles, globalColors} from '../../../styles'
 class FileRender extends Component<void, Props, void> {
   _renderIconPart() {
     const size = this.props.size === 'Small' ? 24 : 32
-    return (
-      <Icon type={this.props.fileIcon} style={{height: size, width: size}} />
-    )
+    return <Icon type={this.props.fileIcon} style={{height: size, width: size}} />
   }
 
   _renderBody() {
@@ -43,16 +41,10 @@ class FileRender extends Component<void, Props, void> {
                     color: pathStyleThemed[this.props.theme].color,
                   }}
                 />}
-              <Text
-                type="BodySmall"
-                style={modifiedByStyleThemed[this.props.theme]}
-              >
+              <Text type="BodySmall" style={modifiedByStyleThemed[this.props.theme]}>
                 {this.props.lastModifiedMeta}
               </Text>
-              <Text
-                type="BodySmall"
-                style={modifiedByStyleThemed[this.props.theme]}
-              >
+              <Text type="BodySmall" style={modifiedByStyleThemed[this.props.theme]}>
                 {' '}by{' '}
               </Text>
               <Text

@@ -46,8 +46,7 @@ class PaperKeyInput extends Component<void, Props, State> {
           label="Continue"
           style={continueStyle}
           waiting={this.props.waiting}
-          onClick={() =>
-            this.props.onContinue(new HiddenString(this.state.paperkey))}
+          onClick={() => this.props.onContinue(new HiddenString(this.state.paperkey))}
         />
       </div>
     )

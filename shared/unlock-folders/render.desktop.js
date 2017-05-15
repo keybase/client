@@ -17,10 +17,7 @@ export default class UnlockFoldersRender extends Component<void, Props, void> {
       case 'dead':
       case 'promptOtherDevice':
         innerComponent = (
-          <DeviceList
-            devices={this.props.devices}
-            toPaperKeyInput={this.props.toPaperKeyInput}
-          />
+          <DeviceList devices={this.props.devices} toPaperKeyInput={this.props.toPaperKeyInput} />
         )
         break
       case 'paperKeyInput':
@@ -42,12 +39,7 @@ export default class UnlockFoldersRender extends Component<void, Props, void> {
     return (
       <div style={styles.container}>
         <div style={styles.header}>
-          <Header
-            icon={true}
-            type="Default"
-            title=""
-            onClose={this.props.onClose}
-          />
+          <Header icon={true} type="Default" title="" onClose={this.props.onClose} />
         </div>
         {innerComponent}
       </div>

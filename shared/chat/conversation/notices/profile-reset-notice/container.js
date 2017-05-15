@@ -13,10 +13,7 @@ const mapStateToProps = (state: TypedState) => {
   if (!selectedConversationIDKey) {
     throw new Error('no selected conversation')
   }
-  const supersedes = Constants.convSupersedesInfo(
-    selectedConversationIDKey,
-    state.chat
-  )
+  const supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
   if (!supersedes) {
     throw new Error('Missing supersedes')
   }
@@ -39,6 +36,4 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
   username: stateProps.username,
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps)
-)(ProfileResetNotice)
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(ProfileResetNotice)

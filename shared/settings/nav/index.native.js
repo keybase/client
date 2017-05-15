@@ -38,12 +38,7 @@ export function SettingsItem({
   )
 }
 
-function SettingsNav({
-  badgeNumbers,
-  selectedTab,
-  onTabChange,
-  onLogout,
-}: Props) {
+function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) {
   return (
     <Box style={styleNavBox}>
       <SettingsItem
@@ -100,6 +95,4 @@ const badgeStyle = {
   marginLeft: 4,
   marginTop: 2,
 }
-export default compose(defaultProps({title: 'SETTINGS'}), HeaderHoc)(
-  SettingsNav
-)
+export default compose(defaultProps({title: 'SETTINGS'}), HeaderHoc)(SettingsNav)

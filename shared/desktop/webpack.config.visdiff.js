@@ -21,10 +21,7 @@ config.module.loaders.unshift({
   include: path.resolve(__dirname, '../images/mock'),
   loader: 'file?name=[name].[ext]',
 })
-config.plugins.push(
-  new webpack.optimize.OccurenceOrderPlugin(),
-  new webpack.DefinePlugin(defines)
-)
+config.plugins.push(new webpack.optimize.OccurenceOrderPlugin(), new webpack.DefinePlugin(defines))
 
 config.output.publicPath = '../dist/'
 

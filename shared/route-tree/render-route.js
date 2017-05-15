@@ -2,11 +2,7 @@
 import * as I from 'immutable'
 import React, {PureComponent} from 'react'
 import {LeafTags, pathToString} from './'
-import {
-  putActionIfOnPath,
-  navigateUp,
-  navigateAppend,
-} from '../actions/route-tree'
+import {putActionIfOnPath, navigateUp, navigateAppend} from '../actions/route-tree'
 
 import type {RouteDefNode, RouteStateNode} from './'
 
@@ -59,17 +55,14 @@ class RenderRouteNode extends PureComponent<*, RenderRouteNodeProps<*>, *> {
       stack,
       children,
     } = this.props
-    const RouteComponent = isContainer
-      ? routeDef.containerComponent
-      : routeDef.component
+    const RouteComponent = isContainer ? routeDef.containerComponent : routeDef.component
     return (
       <RouteComponent
         routeProps={routeState.props.toObject()}
         routeState={routeDef.initialState.merge(routeState.state).toObject()}
         routeSelected={routeState.selected}
         navigateUp={() => putActionIfOnPath(path, navigateUp())}
-        navigateAppend={(...args) =>
-          putActionIfOnPath(path, navigateAppend(...args))}
+        navigateAppend={(...args) => putActionIfOnPath(path, navigateAppend(...args))}
         routePath={path}
         routeLeafTags={leafTags || LeafTags()}
         routeStack={stack || I.Stack()}
@@ -126,9 +119,7 @@ function _RenderRoute({
     // If this is the current selected (bottom) view, initialize an empty
     // stack. We'll add our view component to it as the first entry below.
     if (!routeDef.component) {
-      throw new Error(
-        `Attempt to render route without component: ${pathToString(path)}`
-      )
+      throw new Error(`Attempt to render route without component: ${pathToString(path)}`)
     }
     stack = I.Stack()
   } else {
@@ -194,8 +185,7 @@ type RenderRouteProps<S> = {
   setRouteState: (partialState: $Shape<S>) => void,
 }
 
-export default class RenderRoute
-  extends PureComponent<*, RenderRouteProps<*>, *> {
+export default class RenderRoute extends PureComponent<*, RenderRouteProps<*>, *> {
   render() {
     // _RenderRoute gives us a stack of all views down the current route path.
     // This component renders the bottom (currently visible) one.

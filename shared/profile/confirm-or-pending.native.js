@@ -1,30 +1,14 @@
 // @flow
 import React from 'react'
-import {
-  Box,
-  Text,
-  Button,
-  PlatformIcon,
-  StandardScreen,
-} from '../common-adapters'
-import {
-  globalStyles,
-  globalColors,
-  globalMargins,
-  statusBarHeight,
-} from '../styles'
+import {Box, Text, Button, PlatformIcon, StandardScreen} from '../common-adapters'
+import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
 import {propsForPlatform} from './confirm-or-pending.shared'
 
 import type {Props} from './confirm-or-pending'
 
 const Render = (props: Props) => {
   const {platform, onReloadProfile, username, platformIconOverlayColor} = props
-  const {
-    platformIconOverlay,
-    usernameSubtitle,
-    message,
-    messageSubtitle,
-  } = propsForPlatform(props)
+  const {platformIconOverlay, usernameSubtitle, message, messageSubtitle} = propsForPlatform(props)
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
@@ -79,11 +63,7 @@ const Render = (props: Props) => {
           paddingBottom: globalMargins.small,
         }}
       >
-        <Button
-          type="Primary"
-          onClick={onReloadProfile}
-          label="Reload profile"
-        />
+        <Button type="Primary" onClick={onReloadProfile} label="Reload profile" />
       </Box>
     </Box>
   )

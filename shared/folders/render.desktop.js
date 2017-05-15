@@ -9,9 +9,7 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 class FoldersRender extends Component<void, Props, void> {
   _makeItem(isPublic: boolean, isSelected: boolean) {
     const icon = isPublic ? 'iconfont-folder-public' : 'iconfont-folder-private'
-    const selectedColor = isPublic
-      ? globalColors.yellowGreen
-      : globalColors.darkBlue2
+    const selectedColor = isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
     const iconStyle = isPublic
       ? {
           color: globalColors.yellowGreen,
@@ -40,9 +38,7 @@ class FoldersRender extends Component<void, Props, void> {
         }}
         selected={isSelected}
         label={isPublic ? 'public/' : 'private/'}
-        badgeNumber={
-          isPublic ? this.props.publicBadge : this.props.privateBadge
-        }
+        badgeNumber={isPublic ? this.props.publicBadge : this.props.privateBadge}
       />
     )
   }
@@ -71,9 +67,7 @@ class FoldersRender extends Component<void, Props, void> {
         <TabBar
           styleTabBar={{
             ...tabBarStyle,
-            backgroundColor: this.props.showingPrivate
-              ? globalColors.darkBlue
-              : globalColors.white,
+            backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white,
             minHeight: this.props.smallMode ? 32 : 48,
             paddingTop: this.props.smallMode ? 0 : 8,
           }}
@@ -83,10 +77,7 @@ class FoldersRender extends Component<void, Props, void> {
               key={isPublic ? 'public' : 'private'}
               selected={this.props.showingPrivate !== isPublic}
               styleContainer={itemContainerStyle}
-              tabBarButton={this._makeItem(
-                isPublic,
-                this.props.showingPrivate !== isPublic
-              )}
+              tabBarButton={this._makeItem(isPublic, this.props.showingPrivate !== isPublic)}
               onClick={() => {
                 this.props.onSwitchTab && this.props.onSwitchTab(!isPublic)
               }}

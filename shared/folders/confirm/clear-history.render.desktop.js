@@ -19,10 +19,7 @@ const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
           suffix="?"
           containerStyle={{display: 'inline-flex', justifyContent: 'center'}}
         />
-        <Text
-          type="Header"
-          style={{...textColorThemed[theme], whiteSpace: 'pre'}}
-        >
+        <Text type="Header" style={{...textColorThemed[theme], whiteSpace: 'pre'}}>
           {' '}({folderSize})
         </Text>
       </Box>

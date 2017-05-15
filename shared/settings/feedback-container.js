@@ -36,8 +36,7 @@ type State = {
   sending: boolean,
 }
 
-class FeedbackContainer
-  extends Component<void, {status: string} & TimerProps, State> {
+class FeedbackContainer extends Component<void, {status: string} & TimerProps, State> {
   mounted = false
 
   state = {

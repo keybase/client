@@ -100,10 +100,7 @@ function getUserImageMap(username: string): ?URLMap {
   return info ? info.urlMap : null
 }
 
-function loadUserImageMap(
-  username: string,
-  callback: (username: string, urlMap: ?URLMap) => void
-) {
+function loadUserImageMap(username: string, callback: (username: string, urlMap: ?URLMap) => void) {
   const info = _usernameToURL[username] || _pendingUsernameToURL[username]
   if (info) {
     if (!info.done) {

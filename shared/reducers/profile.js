@@ -79,10 +79,7 @@ export default function(state: State = initialState, action: Actions) {
       if (action.error) {
         break
       }
-      const usernameValid = checkUsernameValid(
-        action.payload.platform,
-        state.username
-      )
+      const usernameValid = checkUsernameValid(action.payload.platform, state.username)
       return {
         ...state,
         platform: action.payload.platform,
@@ -94,10 +91,7 @@ export default function(state: State = initialState, action: Actions) {
       if (action.error) {
         break
       }
-      const usernameValid = checkUsernameValid(
-        state.platform,
-        action.payload.username
-      )
+      const usernameValid = checkUsernameValid(state.platform, action.payload.username)
       return {
         ...state,
         username: action.payload.username,

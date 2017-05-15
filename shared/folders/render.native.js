@@ -29,9 +29,7 @@ class FoldersRender extends Component<void, Props, void> {
         styleBadgeNumber={styleBadgeNumber}
         selected={isSelected}
         label={isPublic ? 'public/' : 'private/'}
-        badgeNumber={
-          isPublic ? this.props.publicBadge : this.props.privateBadge
-        }
+        badgeNumber={isPublic ? this.props.publicBadge : this.props.privateBadge}
       />
     )
   }
@@ -48,18 +46,14 @@ class FoldersRender extends Component<void, Props, void> {
       >
         <Box
           style={{
-            backgroundColor: this.props.showingPrivate
-              ? globalColors.darkBlue
-              : globalColors.white,
+            backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white,
             height: statusBarHeight,
           }}
         />
         <TabBar
           styleTabBar={{
             ...tabBarStyle,
-            backgroundColor: this.props.showingPrivate
-              ? globalColors.darkBlue
-              : globalColors.white,
+            backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white,
           }}
         >
           {[false, true].map(isPublic => (
@@ -67,10 +61,7 @@ class FoldersRender extends Component<void, Props, void> {
               key={isPublic ? 'public' : 'private'}
               selected={this.props.showingPrivate !== isPublic}
               styleContainer={itemContainerStyle}
-              tabBarButton={this._makeItem(
-                isPublic,
-                this.props.showingPrivate !== isPublic
-              )}
+              tabBarButton={this._makeItem(isPublic, this.props.showingPrivate !== isPublic)}
               onClick={() => {
                 this.props.onSwitchTab && this.props.onSwitchTab(!isPublic)
               }}
@@ -81,8 +72,7 @@ class FoldersRender extends Component<void, Props, void> {
                 onClick={this.props.onClick}
                 isPublic={isPublic}
                 showIgnored={this.props.showingIgnored}
-                onToggleShowIgnored={() =>
-                  this.props.onToggleShowIgnored(!isPublic)}
+                onToggleShowIgnored={() => this.props.onToggleShowIgnored(!isPublic)}
               />
             </TabBarItem>
           ))}

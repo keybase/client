@@ -78,20 +78,11 @@ module.exports = {
       // $FlowExpectedError - title should be inside `item`
       <FlatList renderItem={(info: {title: string}) => <span />} data={data} />,
       // $FlowExpectedError - bad index type string, should be number
-      <FlatList
-        renderItem={(info: {item: any, index: string}) => <span />}
-        data={data}
-      />,
+      <FlatList renderItem={(info: {item: any, index: string}) => <span />} data={data} />,
       // $FlowExpectedError - bad title type number, should be string
-      <FlatList
-        renderItem={(info: {item: {title: number}}) => <span />}
-        data={data}
-      />,
+      <FlatList renderItem={(info: {item: {title: number}}) => <span />} data={data} />,
       // EverythingIsFine
-      <FlatList
-        renderItem={(info: {item: {title: string}}) => <span />}
-        data={data}
-      />,
+      <FlatList renderItem={(info: {item: {title: string}}) => <span />} data={data} />,
     ]
   },
 

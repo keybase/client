@@ -4,11 +4,7 @@ import Icon from './icon'
 import React, {Component} from 'react'
 import Text from './text'
 import type {Props} from './dropdown'
-import {
-  NativeTouchableWithoutFeedback,
-  NativePicker,
-  NativeModal,
-} from './native-wrappers.native'
+import {NativeTouchableWithoutFeedback, NativePicker, NativeModal} from './native-wrappers.native'
 import {globalStyles, globalColors} from '../styles'
 import {isIOS} from '../constants/platform'
 
@@ -96,9 +92,7 @@ class Dropdown extends Component<void, Props, State> {
 
     return (
       {
-        [otherItemValue]: this.props.type === 'Username'
-          ? 'Someone else...'
-          : 'Or something else',
+        [otherItemValue]: this.props.type === 'Username' ? 'Someone else...' : 'Or something else',
         [pickItemValue]: 'Pick an option',
       }[value] || value
     )
@@ -106,11 +100,7 @@ class Dropdown extends Component<void, Props, State> {
 
   _renderLabelAndCaret(): Array<React$Element<*>> {
     return [
-      <Text
-        key="text"
-        type="Header"
-        style={{...styleText, ...this._itemStyle()}}
-      >
+      <Text key="text" type="Header" style={{...styleText, ...this._itemStyle()}}>
         {this._label(this.state.value)}
       </Text>,
       <Icon key="icon" type="iconfont-caret-down" style={styleIcon} />,
@@ -127,8 +117,7 @@ class Dropdown extends Component<void, Props, State> {
           },
         ]
       : []
-    const actualItems = (this.props.options || [])
-      .map(o => ({key: o, label: o, value: o}))
+    const actualItems = (this.props.options || []).map(o => ({key: o, label: o, value: o}))
     const otherItem = this.props.onOther
       ? {
           key: otherItemValue,
@@ -151,11 +140,7 @@ class Dropdown extends Component<void, Props, State> {
     }
 
     return (
-      <NativePicker
-        style={style}
-        selectedValue={this.state.value}
-        onValueChange={onValueChange}
-      >
+      <NativePicker style={style} selectedValue={this.state.value} onValueChange={onValueChange}>
         {items.map(i => <NativePicker.Item key={i.label} {...i} />)}
       </NativePicker>
     )
@@ -185,9 +170,7 @@ class Dropdown extends Component<void, Props, State> {
             onRequestClose={() => this._showModal(false)}
           >
             <Box style={stylePickerContainer}>
-              <NativeTouchableWithoutFeedback
-                onPress={() => this._showModal(false)}
-              >
+              <NativeTouchableWithoutFeedback onPress={() => this._showModal(false)}>
                 <Box style={{flex: 1}} />
               </NativeTouchableWithoutFeedback>
               {this._renderPicker(stylePickerIOS, false)}

@@ -18,9 +18,7 @@ const propsBase: RenderProps = {
   onFullnameChange: () => console.log('onFullnameChange'),
   onLocationChange: () => console.log('onLocationChange'),
   onEditProfile: () => console.log('onEditProfile clicked'),
-  parentProps: isMobile
-    ? {}
-    : {style: {display: 'flex', minWidth: 640, height: 580}},
+  parentProps: isMobile ? {} : {style: {display: 'flex', minWidth: 640, height: 580}},
 }
 
 const dumbMap: DumbComponentMap<EditProfile> = {

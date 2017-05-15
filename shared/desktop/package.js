@@ -42,13 +42,7 @@ const packagerOpts = {
   dir: desktopPath('./build'),
   name: appName,
   asar: shouldUseAsar,
-  ignore: [
-    '.map',
-    '/test($|/)',
-    '/tools($|/)',
-    '/release($|/)',
-    '/node_modules($|/)',
-  ],
+  ignore: ['.map', '/test($|/)', '/tools($|/)', '/release($|/)', '/node_modules($|/)'],
 }
 
 function main() {
@@ -70,10 +64,7 @@ function main() {
   fs.removeSync(desktopPath('build/images/folders'))
   fs.removeSync(desktopPath('build/images/iconfont'))
   copySync('renderer', 'build/desktop/renderer', filterAllowOnlyTypes('html'))
-  copySync(
-    'renderer/renderer-load.js',
-    'build/desktop/renderer/renderer-load.js'
-  )
+  copySync('renderer/renderer-load.js', 'build/desktop/renderer/renderer-load.js')
   fs.removeSync(desktopPath('build/desktop/renderer/fonts'))
 
   fs.writeJsonSync(desktopPath('build/package.json'), {
@@ -91,27 +82,23 @@ function main() {
 
   // use the same version as the currently-installed electron
   console.log('Finding electron version')
-  exec(
-    'yarn list electron',
-    {cwd: path.join(__dirname, '..')},
-    (err, stdout, stderr) => {
-      if (!err) {
-        try {
-          // $FlowIssue
-          packagerOpts.version = stdout.match(/electron@([0-9.]+)/)[1]
-          console.log('Found electron version:', packagerOpts.version)
-        } catch (err) {
-          console.log("Couldn't parse yarn list to find electron:", err)
-          process.exit(1)
-        }
-      } else {
-        console.log("Couldn't list yarn to find electron:", err)
+  exec('yarn list electron', {cwd: path.join(__dirname, '..')}, (err, stdout, stderr) => {
+    if (!err) {
+      try {
+        // $FlowIssue
+        packagerOpts.version = stdout.match(/electron@([0-9.]+)/)[1]
+        console.log('Found electron version:', packagerOpts.version)
+      } catch (err) {
+        console.log("Couldn't parse yarn list to find electron:", err)
         process.exit(1)
       }
-
-      startPack()
+    } else {
+      console.log("Couldn't list yarn to find electron:", err)
+      process.exit(1)
     }
-  )
+
+    startPack()
+  })
 }
 
 function startPack() {
@@ -123,11 +110,7 @@ function startPack() {
     }
 
     copySync('./dist', 'build/desktop/sourcemaps', filterAllowOnlyTypes('map'))
-    copySync(
-      './dist',
-      'build/desktop/dist',
-      filterAllowOnlyTypes('js', 'ttf', 'png')
-    )
+    copySync('./dist', 'build/desktop/dist', filterAllowOnlyTypes('js', 'ttf', 'png'))
     fs.removeSync(desktopPath('build/desktop/dist/fonts'))
 
     del(desktopPath('release'))
@@ -144,11 +127,7 @@ function startPack() {
           })
         } else if (shouldBuildAnArch) {
           // build for a specified arch on current platform only
-          pack(
-            os.platform(),
-            shouldBuildAnArch,
-            log(os.platform(), shouldBuildAnArch)
-          )
+          pack(os.platform(), shouldBuildAnArch, log(os.platform(), shouldBuildAnArch))
         } else {
           // build for current platform only
           pack(os.platform(), os.arch(), log(os.platform(), os.arch()))
@@ -166,8 +145,7 @@ function pack(plat, arch, cb) {
   if (plat === 'darwin' && arch === 'ia32') return
 
   let packageOutDir = outDir
-  if (packageOutDir === '')
-    packageOutDir = desktopPath(`release/${plat}-${arch}`)
+  if (packageOutDir === '') packageOutDir = desktopPath(`release/${plat}-${arch}`)
   console.log('Packaging to', packageOutDir)
 
   let opts = {
@@ -198,9 +176,7 @@ function log(plat, arch) {
       console.error(err)
       process.exit(1)
     }
-    const subdir = plat === 'darwin'
-      ? 'Keybase.app/Contents/Resources'
-      : 'resources'
+    const subdir = plat === 'darwin' ? 'Keybase.app/Contents/Resources' : 'resources'
     const dir = path.join(filepath[0], subdir, 'app/desktop/dist')
     const files = ['index', 'launcher', 'main', 'remote-component-loader'].map(
       p => p + '.bundle.js'

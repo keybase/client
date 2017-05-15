@@ -23,11 +23,7 @@ export type PushState = TypedAction<
 >
 
 export const pushOOBM = 'gregor:pushOOBM'
-export type PushOOBM = TypedAction<
-  'gregor:pushOOBM',
-  {messages: Array<OutOfBandMessage>},
-  void
->
+export type PushOOBM = TypedAction<'gregor:pushOOBM', {messages: Array<OutOfBandMessage>}, void>
 
 export const updateReachability = 'gregor:updateReachability'
 export type UpdateReachability = TypedAction<
@@ -37,11 +33,7 @@ export type UpdateReachability = TypedAction<
 >
 
 export const checkReachability = 'gregor:checkReachability'
-export type CheckReachability = TypedAction<
-  'gregor:checkReachability',
-  void,
-  void
->
+export type CheckReachability = TypedAction<'gregor:checkReachability', void, void>
 
 export const updateSeenMsgs = 'gregor:updateSeenMsgs'
 export type UpdateSeenMsgs = TypedAction<

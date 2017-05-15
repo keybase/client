@@ -54,23 +54,17 @@ class PeriodicLogger {
   }
 
   log(...args: Array<any>) {
-    !this._logIncoming &&
-      this._logToConsole &&
-      console.log(PREFIX_LOG, this._lastWrite + 1) // output current index so we can see the order of things and correlate a full dump
+    !this._logIncoming && this._logToConsole && console.log(PREFIX_LOG, this._lastWrite + 1) // output current index so we can see the order of things and correlate a full dump
     this._write(args)
   }
 
   warn(...args: Array<any>) {
-    !this._logIncoming &&
-      this._logToConsole &&
-      console.warn(PREFIX_WARN, this._lastWrite + 1)
+    !this._logIncoming && this._logToConsole && console.warn(PREFIX_WARN, this._lastWrite + 1)
     this._write(args)
   }
 
   error(...args: Array<any>) {
-    !this._logIncoming &&
-      this._logToConsole &&
-      console.error(PREFIX_ERROR, this._lastWrite + 1)
+    !this._logIncoming && this._logToConsole && console.error(PREFIX_ERROR, this._lastWrite + 1)
     this._write(args)
   }
 
@@ -88,14 +82,9 @@ class PeriodicLogger {
   }
 
   dumpCurrent(consoleLogOverwrite: any) {
-    const args =
-      this._lastWrite !== -1 && this._messages[this._lastWrite % this._size]
+    const args = this._lastWrite !== -1 && this._messages[this._lastWrite % this._size]
     if (args) {
-      this._dump(
-        consoleLogOverwrite,
-        `${PREFIX_DUMP_CURRENT}${this._lastWrite}:`,
-        args
-      )
+      this._dump(consoleLogOverwrite, `${PREFIX_DUMP_CURRENT}${this._lastWrite}:`, args)
     }
   }
 

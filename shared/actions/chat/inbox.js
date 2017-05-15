@@ -109,8 +109,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
       throw new Error("Can't load inbox")
     }
 
-    const inbox: ChatTypes.GetInboxLocalRes =
-      incoming.chatInboxUnverified.params.inbox
+    const inbox: ChatTypes.GetInboxLocalRes = incoming.chatInboxUnverified.params.inbox
     yield call(_updateFinalized, inbox)
 
     const author = yield select(usernameSelector)
@@ -122,24 +121,17 @@ function* onInboxStale(): SagaGenerator<any, any> {
             return null
           }
 
-          const msgMax =
-            c.maxMsgSummaries &&
-            c.maxMsgSummaries.length &&
-            c.maxMsgSummaries[0]
+          const msgMax = c.maxMsgSummaries && c.maxMsgSummaries.length && c.maxMsgSummaries[0]
           if (!msgMax || msgMax.tlfName.includes('#')) {
             // We don't support mixed reader/writers
             return null
           }
 
           return new Constants.InboxStateRecord({
-            conversationIDKey: Constants.conversationIDToKey(
-              c.metadata.conversationID
-            ),
+            conversationIDKey: Constants.conversationIDToKey(c.metadata.conversationID),
             info: null,
             participants: List(
-              parseFolderNameToUsers(author, msgMax.tlfName).map(
-                ul => ul.username
-              )
+              parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username)
             ),
             snippet: ' ',
             state: 'untrusted',
@@ -153,9 +145,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
     yield put(Creators.setInboxUntrustedState('loaded'))
     yield put(Creators.loadedInbox(conversations))
 
-    const initialConversation = yield select(state =>
-      state.chat.get('initialConversation')
-    )
+    const initialConversation = yield select(state => state.chat.get('initialConversation'))
     if (initialConversation) {
       yield put(Creators.setInitialConversation(null))
       yield put(navigateTo([initialConversation], [chatTab]))
@@ -179,11 +169,7 @@ function _toSupersedeInfo(
   supersedeData: Array<ChatTypes.ConversationMetadata>
 ): ?Constants.SupersedeInfo {
   const parsed = supersedeData
-    .filter(
-      md =>
-        md.idTriple.topicType === ChatTypes.CommonTopicType.chat &&
-        md.finalizeInfo
-    )
+    .filter(md => md.idTriple.topicType === ChatTypes.CommonTopicType.chat && md.finalizeInfo)
     .map(md => ({
       conversationIDKey: Constants.conversationIDToKey(md.conversationID),
       finalizeInfo: unsafeUnwrap(md && md.finalizeInfo),
@@ -192,31 +178,21 @@ function _toSupersedeInfo(
 }
 
 // Update an inbox item
-function* processConversation(
-  c: ChatTypes.ConversationLocal
-): SagaGenerator<any, any> {
+function* processConversation(c: ChatTypes.ConversationLocal): SagaGenerator<any, any> {
   const conversationIDKey = Constants.conversationIDToKey(c.info.id)
 
   const supersedes = _toSupersedeInfo(conversationIDKey, c.supersedes || [])
   if (supersedes) {
-    yield put(
-      Creators.updateSupersedesState(Map({[conversationIDKey]: supersedes}))
-    )
+    yield put(Creators.updateSupersedesState(Map({[conversationIDKey]: supersedes})))
   }
 
   const supersededBy = _toSupersedeInfo(conversationIDKey, c.supersededBy || [])
   if (supersededBy) {
-    yield put(
-      Creators.updateSupersededByState(Map({[conversationIDKey]: supersededBy}))
-    )
+    yield put(Creators.updateSupersededByState(Map({[conversationIDKey]: supersededBy})))
   }
 
   if (c.info.finalizeInfo) {
-    yield put(
-      Creators.updateFinalizedState(
-        Map({[conversationIDKey]: c.info.finalizeInfo})
-      )
-    )
+    yield put(Creators.updateFinalizedState(Map({[conversationIDKey]: c.info.finalizeInfo})))
   }
 
   const inboxState = _conversationLocalToInboxState(c)
@@ -237,15 +213,11 @@ function* processConversation(
 }
 
 // Gui is showing boxed content, find some rows to unbox
-function* untrustedInboxVisible(
-  action: Constants.UntrustedInboxVisible
-): SagaGenerator<any, any> {
+function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGenerator<any, any> {
   const {conversationIDKey, rowsVisible} = action.payload
   const inboxes = yield select(state => state.chat.get('inbox'))
 
-  const idx = inboxes.findIndex(
-    inbox => inbox.conversationIDKey === conversationIDKey
-  )
+  const idx = inboxes.findIndex(inbox => inbox.conversationIDKey === conversationIDKey)
   if (idx === -1) {
     return
   }
@@ -267,9 +239,7 @@ function* untrustedInboxVisible(
 function* unboxConversations(
   conversationIDKeys: Array<Constants.ConversationIDKey>
 ): Generator<any, any, any> {
-  conversationIDKeys = conversationIDKeys.filter(
-    c => !Constants.isPendingConversationIDKey(c)
-  )
+  conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
   yield put(Creators.setUnboxing(conversationIDKeys, false))
 
   const loadInboxChanMap = ChatTypes.localGetInboxNonblockLocalRpcChannelMap(
@@ -304,10 +274,7 @@ function* unboxConversations(
         {timeout: 100}
       )
       yield call(delay, 1)
-      yield call(
-        processConversation,
-        incoming.chatInboxConversation.params.conv
-      )
+      yield call(processConversation, incoming.chatInboxConversation.params.conv)
       // find it
     } else if (incoming.chatInboxFailed) {
       console.log('chatInboxFailed', incoming.chatInboxFailed)
@@ -328,12 +295,7 @@ function* unboxConversations(
         conversationIDKey,
         participants: error.rekeyInfo
           ? List(
-              []
-                .concat(
-                  error.rekeyInfo.writerNames,
-                  error.rekeyInfo.readerNames
-                )
-                .filter(Boolean)
+              [].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean)
             )
           : List(error.unverifiedTLFName.split(',')),
         state: 'error',
@@ -349,9 +311,7 @@ function* unboxConversations(
         }
         case ChatTypes.LocalConversationErrorType.otherrekeyneeded: {
           const rekeyers = error.rekeyInfo.rekeyers
-          yield put(
-            Creators.updateInboxRekeyOthers(conversationIDKey, rekeyers)
-          )
+          yield put(Creators.updateInboxRekeyOthers(conversationIDKey, rekeyers))
           break
         }
         case ChatTypes.LocalConversationErrorType.transient: {
@@ -375,9 +335,7 @@ function* unboxConversations(
 }
 
 // Convert server to our data type. Make timestamps and snippets
-function _conversationLocalToInboxState(
-  c: ?ChatTypes.ConversationLocal
-): ?Constants.InboxState {
+function _conversationLocalToInboxState(c: ?ChatTypes.ConversationLocal): ?Constants.InboxState {
   if (
     !c ||
     c.info.visibility !== ChatTypes.CommonTLFVisibility.private || // private chats only
@@ -389,18 +347,15 @@ function _conversationLocalToInboxState(
   const conversationIDKey = Constants.conversationIDToKey(c.info.id)
 
   const toShow = List(c.maxMessages || [])
-    .filter(
-      m => m.valid && m.state === ChatTypes.LocalMessageUnboxedState.valid
-    )
+    .filter(m => m.valid && m.state === ChatTypes.LocalMessageUnboxedState.valid)
     .map((m: any) => ({
       body: m.valid.messageBody,
       time: m.valid.serverHeader.ctime,
     }))
     .filter(m =>
-      [
-        ChatTypes.CommonMessageType.attachment,
-        ChatTypes.CommonMessageType.text,
-      ].includes(m.body.messageType)
+      [ChatTypes.CommonMessageType.attachment, ChatTypes.CommonMessageType.text].includes(
+        m.body.messageType
+      )
     )
     .sort((a, b) => b.time - a.time)
     .map((message: {time: number, body: ?ChatTypes.MessageBody}) => ({

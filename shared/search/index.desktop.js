@@ -22,8 +22,7 @@ const ClearSearch = ({onReset, showUserGroup}) => (
       flexShrink: 0,
     }}
   >
-    {showUserGroup &&
-      <Text type="BodySmallSecondaryLink" onClick={onReset}>Clear search</Text>}
+    {showUserGroup && <Text type="BodySmallSecondaryLink" onClick={onReset}>Clear search</Text>}
   </Box>
 )
 

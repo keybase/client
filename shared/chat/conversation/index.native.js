@@ -49,8 +49,7 @@ const Conversation = (props: Props) => (
           onScrollDown={props.onScrollDown}
         />}
 
-    {props.sidePanelOpen &&
-      <SidePanel onToggleSidePanel={props.onToggleSidePanel} />}
+    {props.sidePanelOpen && <SidePanel onToggleSidePanel={props.onToggleSidePanel} />}
   </Box>
 )
 

@@ -9,17 +9,11 @@ import type {Props} from './confirm-or-pending'
 import type {TypedDispatch} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
 
-const connector: TypedConnector<
-  TypedState,
-  TypedDispatch<{}>,
-  {},
-  Props
-> = new TypedConnector()
+const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
 
 export default connector.connect((state, dispatch, ownProps) => {
   const profile = state.profile
-  const isGood =
-    profile.proofFound && profile.proofStatus === ProveCommonProofStatus.ok
+  const isGood = profile.proofFound && profile.proofStatus === ProveCommonProofStatus.ok
   const isPending =
     !isGood &&
     !profile.proofFound &&

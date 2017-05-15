@@ -12,21 +12,10 @@ import {
 
 import type {Props, SettingsItem as SettingsItemType} from './index'
 
-export function SettingsItem({
-  text,
-  selected,
-  onClick,
-  badgeNumber,
-}: SettingsItemType) {
+export function SettingsItem({text, selected, onClick, badgeNumber}: SettingsItemType) {
   return (
-    <ClickableBox
-      onClick={onClick}
-      style={selected ? selectedStyle : itemStyle}
-    >
-      <Text
-        type={'BodySmallSemibold'}
-        style={selected ? selectedTextStyle : itemTextStyle}
-      >
+    <ClickableBox onClick={onClick} style={selected ? selectedStyle : itemStyle}>
+      <Text type={'BodySmallSemibold'} style={selected ? selectedTextStyle : itemTextStyle}>
         {text}
       </Text>
       {!!badgeNumber &&

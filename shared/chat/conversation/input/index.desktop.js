@@ -40,10 +40,7 @@ class ConversationInput extends Component<void, InputProps, void> {
 
   _globalKeyDownHandler = (ev: KeyboardEvent) => {
     const target = ev.target
-    if (
-      target instanceof HTMLInputElement ||
-      target instanceof HTMLTextAreaElement
-    ) {
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
       return
     }
 
@@ -157,22 +154,10 @@ class ConversationInput extends Component<void, InputProps, void> {
               emojiPickerToggle={this.props.emojiPickerToggle}
               onClick={this._pickerOnClick}
             />}
-          <Icon
-            onClick={this.props.emojiPickerToggle}
-            style={styleIcon}
-            type="iconfont-emoji"
-          />
-          <Icon
-            onClick={this.props.filePickerOpen}
-            style={styleIcon}
-            type="iconfont-attachment"
-          />
+          <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
+          <Icon onClick={this.props.filePickerOpen} style={styleIcon} type="iconfont-attachment" />
         </Box>
-        <Text
-          type="BodySmall"
-          style={styleFooter}
-          onClick={this.props.inputFocus}
-        >
+        <Text type="BodySmall" style={styleFooter} onClick={this.props.inputFocus}>
           *bold*, _italics_, `code`, >quote
         </Text>
       </Box>

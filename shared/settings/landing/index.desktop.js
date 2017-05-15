@@ -4,11 +4,7 @@ import SubHeading from '../subheading'
 import {Box, Button, Divider, Icon, Text, Meta} from '../../common-adapters'
 import {Stars} from '../common.desktop.js'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {
-  priceToString,
-  planToStars,
-  comparePlans,
-} from '../../constants/plan-billing'
+import {priceToString, planToStars, comparePlans} from '../../constants/plan-billing'
 import flags from '../../util/feature-flags'
 
 import type {Props, AccountProps, PlanProps} from './index'
@@ -91,9 +87,7 @@ function SpaceInfo({
         <Box
           style={{
             ...freeSpaceBarStyle,
-            backgroundColor: lowSpaceWarning
-              ? globalColors.red
-              : globalColors.blue,
+            backgroundColor: lowSpaceWarning ? globalColors.red : globalColors.blue,
             width: Math.round(64 * freeSpacePercentage),
           }}
         />
@@ -102,13 +96,7 @@ function SpaceInfo({
   )
 }
 
-const UpgradeButton = ({
-  onClick,
-  type,
-}: {
-  onClick: () => void,
-  type: 'upgrade' | 'change',
-}) => (
+const UpgradeButton = ({onClick, type}: {onClick: () => void, type: 'upgrade' | 'change'}) => (
   <Button
     style={{marginRight: 0}}
     type="Follow"
@@ -151,14 +139,7 @@ function PlanActionVariants({
   }
 }
 
-function PlanLevelRow({
-  level,
-  price,
-  onInfo,
-  variants,
-  style,
-  gigabytes,
-}: PlanLevelProps) {
+function PlanLevelRow({level, price, onInfo, variants, style, gigabytes}: PlanLevelProps) {
   const selected = variants.type === 'spaceInfo'
   return (
     <Box
@@ -182,11 +163,7 @@ function PlanLevelRow({
           </Text>
           <Text type={'BodySmall'}>({price})</Text>
         </Box>
-        {selected &&
-          <Meta
-            title="Your Plan"
-            style={{backgroundColor: globalColors.blue2}}
-          />}
+        {selected && <Meta title="Your Plan" style={{backgroundColor: globalColors.blue2}} />}
       </Box>
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
         <Text
@@ -220,9 +197,7 @@ function PaymentInfo({
   onChangePaymentInfo,
 }: PaymentInfoType & {onChangePaymentInfo: () => void}) {
   return (
-    <Box
-      style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.medium}}
-    >
+    <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.medium}}>
       <SubHeading>Your payment method</SubHeading>
       <Box
         style={{
@@ -267,9 +242,7 @@ function Plan({
   lowSpaceWarning,
   plans,
 }: PlanProps & {plans: Array<AvailablePlan>}) {
-  const from: ?AvailablePlan = plans.find(
-    (plan: AvailablePlan) => plan.planLevel === selectedLevel
-  )
+  const from: ?AvailablePlan = plans.find((plan: AvailablePlan) => plan.planLevel === selectedLevel)
   if (!from) {
     throw new Error("Can't find existing plan")
   }
@@ -296,11 +269,7 @@ function Plan({
           )}
         />
       ))}
-      {!!paymentInfo &&
-        <PaymentInfo
-          {...paymentInfo}
-          onChangePaymentInfo={onChangePaymentInfo}
-        />}
+      {!!paymentInfo && <PaymentInfo {...paymentInfo} onChangePaymentInfo={onChangePaymentInfo} />}
       {!!paymentInfo &&
         <Text style={{marginTop: globalMargins.small}} type="BodySmall">
           * You only pay for data you write on Keybase. When you share a file, the recipient does not pay.
@@ -348,23 +317,14 @@ function AccountEmail({
           </Text>
         </Box>
       </Box>
-      <Text
-        type="Body"
-        style={{color: globalColors.blue}}
-        link={true}
-        onClick={onChangeEmail}
-      >
+      <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangeEmail}>
         Edit
       </Text>
     </Box>
   )
 }
 
-function AccountPassphrase({
-  onChangePassphrase,
-}: {
-  onChangePassphrase: () => void,
-}) {
+function AccountPassphrase({onChangePassphrase}: {onChangePassphrase: () => void}) {
   return (
     <Box
       style={{
@@ -377,24 +337,14 @@ function AccountPassphrase({
         Passphrase:
       </Text>
       <Text type="Body" style={{flex: 1}}>•••••••••</Text>
-      <Text
-        type="Body"
-        style={{color: globalColors.blue}}
-        link={true}
-        onClick={onChangePassphrase}
-      >
+      <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangePassphrase}>
         Edit
       </Text>
     </Box>
   )
 }
 
-function Account({
-  email,
-  isVerified,
-  onChangeEmail,
-  onChangePassphrase,
-}: AccountProps) {
+function Account({email, isVerified, onChangeEmail, onChangePassphrase}: AccountProps) {
   return (
     <Box
       style={{
@@ -402,11 +352,7 @@ function Account({
         marginBottom: globalMargins.medium,
       }}
     >
-      <AccountEmail
-        email={email}
-        isVerified={isVerified}
-        onChangeEmail={onChangeEmail}
-      />
+      <AccountEmail email={email} isVerified={isVerified} onChangeEmail={onChangeEmail} />
       <Divider style={{backgroundColor: globalColors.black_05}} />
       <AccountPassphrase onChangePassphrase={onChangePassphrase} />
     </Box>

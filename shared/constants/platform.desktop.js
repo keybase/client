@@ -11,9 +11,7 @@ const isDarwin = process.platform === 'darwin'
 const isWindows = process.platform === 'win32'
 const isLinux = process.platform === 'linux'
 
-const fileUIName = isDarwin
-  ? 'Finder'
-  : isWindows ? 'Explorer' : 'File Explorer'
+const fileUIName = isDarwin ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer'
 
 const runMode = getenv('KEYBASE_RUN_MODE', 'prod')
 

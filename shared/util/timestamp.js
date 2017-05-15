@@ -2,10 +2,7 @@
 
 import moment from 'moment'
 
-export function formatTimeForConversationList(
-  time: number,
-  nowOverride?: number
-): string {
+export function formatTimeForConversationList(time: number, nowOverride?: number): string {
   const m = moment(time)
   const now = nowOverride ? moment(nowOverride) : moment()
   const today = now.clone().startOf('day')
@@ -20,10 +17,7 @@ export function formatTimeForConversationList(
   return m.format('MMM D')
 }
 
-export function formatTimeForMessages(
-  time: number,
-  nowOverride?: number
-): string {
+export function formatTimeForMessages(time: number, nowOverride?: number): string {
   const m = moment(time)
   const now = nowOverride ? moment(nowOverride) : moment()
 

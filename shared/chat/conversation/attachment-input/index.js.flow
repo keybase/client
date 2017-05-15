@@ -9,5 +9,4 @@ export type Props = {
   onSelect: (input: AttachmentInput, title: string, close: boolean) => void,
 }
 
-export default class RenderAttachmentInput
-  extends Component<void, Props, void> {}
+export default class RenderAttachmentInput extends Component<void, Props, void> {}

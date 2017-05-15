@@ -2,14 +2,7 @@
 import Folders from '../folders/render'
 import React, {Component} from 'react'
 import UserAdd from './user-add'
-import {
-  Box,
-  Icon,
-  Text,
-  Button,
-  PopupMenu,
-  Badge,
-} from '../common-adapters/index'
+import {Box, Icon, Text, Button, PopupMenu, Badge} from '../common-adapters/index'
 import {folderTab, profileTab, chatTab, devicesTab} from '../constants/tabs'
 import {globalStyles, globalColors} from '../styles'
 import {isWindows, isDarwin} from '../constants/platform'
@@ -47,9 +40,7 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
   _renderLoggedOut() {
     const styles = stylesPublic
 
-    const menuColor = this.state.showingMenu
-      ? globalColors.black_60
-      : globalColors.black_40
+    const menuColor = this.state.showingMenu ? globalColors.black_60 : globalColors.black_40
     const menuStyle = {
       ...globalStyles.clickable,
       color: menuColor,
@@ -65,8 +56,7 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
           <Icon
             style={menuStyle}
             type="iconfont-hamburger"
-            onClick={() =>
-              this.setState({showingMenu: !this.state.showingMenu})}
+            onClick={() => this.setState({showingMenu: !this.state.showingMenu})}
           />
         </Box>
         <Box
@@ -78,11 +68,7 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
           }}
         >
           <Icon type="icon-keybase-logo-logged-out-64" style={stylesLogo} />
-          <Text
-            type="Body"
-            small={true}
-            style={{alignSelf: 'center', marginTop: 6}}
-          >
+          <Text type="Body" small={true} style={{alignSelf: 'center', marginTop: 6}}>
             You're logged out of Keybase!
           </Text>
           <Button
@@ -108,9 +94,7 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
         ? [{title: 'Open Keybase', onClick: () => this.props.openApp()}]
         : []),
       {title: 'Open folders', onClick: this.props.showKBFS},
-      ...(isWindows
-        ? [{title: 'Keybase Shell', onClick: this.props.openShell}]
-        : []),
+      ...(isWindows ? [{title: 'Keybase Shell', onClick: this.props.openShell}] : []),
       {title: 'Keybase.io', onClick: this.props.showUser},
       {title: 'Report a bug', onClick: this.props.showBug},
       {title: 'Help/Doc', onClick: this.props.showHelp},
@@ -203,8 +187,7 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
               marginLeft: 8,
             }}
             type="iconfont-hamburger"
-            onClick={() =>
-              this.setState({showingMenu: !this.state.showingMenu})}
+            onClick={() => this.setState({showingMenu: !this.state.showingMenu})}
           />
         </Box>
         <Folders {...mergedProps} />
@@ -292,10 +275,7 @@ const BadgeIcon = ({
       }}
       onClick={() => openApp(tab)}
     >
-      <Icon
-        style={{color: count ? globalColors.blue : globalColors.lightGrey2}}
-        type={iconType}
-      />
+      <Icon style={{color: count ? globalColors.blue : globalColors.lightGrey2}} type={iconType} />
       {!!count &&
         <Badge
           badgeNumber={count}

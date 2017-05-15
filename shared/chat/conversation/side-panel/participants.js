@@ -1,15 +1,7 @@
 // @flow
 import React from 'react'
 import {List} from 'immutable'
-import {
-  Box,
-  ClickableBox,
-  Avatar,
-  Text,
-  Usernames,
-  Divider,
-  Icon,
-} from '../../../common-adapters'
+import {Box, ClickableBox, Avatar, Text, Usernames, Divider, Icon} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 
 type Props = {
@@ -25,12 +17,7 @@ type Props = {
   style?: ?Object,
 }
 
-const Participants = ({
-  participants,
-  onShowProfile,
-  onAddParticipant,
-  style,
-}: Props) => (
+const Participants = ({participants, onShowProfile, onAddParticipant, style}: Props) => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
@@ -75,9 +62,7 @@ const Participants = ({
       )
     })}
     <ClickableBox onClick={() => onAddParticipant()}>
-      <Box
-        style={{...rowStyle, ...globalStyles.flexBoxRow, alignItems: 'center'}}
-      >
+      <Box style={{...rowStyle, ...globalStyles.flexBoxRow, alignItems: 'center'}}>
         <Icon type="icon-user-add-32" style={{marginRight: 12}} />
         <Text type="BodyPrimaryLink" onClick={() => onAddParticipant()}>
           Add another participant

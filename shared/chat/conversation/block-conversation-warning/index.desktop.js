@@ -5,13 +5,7 @@ import {globalMargins, globalStyles} from '../../../styles'
 
 import type {Props} from './'
 
-const Contents = ({
-  conversationIDKey,
-  onBack,
-  participants,
-  onBlock,
-  onBlockAndReport,
-}: Props) => (
+const Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAndReport}: Props) => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,

@@ -68,9 +68,7 @@ class DumbSheetRender extends Component<void, Props, any> {
     const exatchMatch = filter.match(/^'(.*)'$/)
     if (exatchMatch && exatchMatch[1]) {
       const toFind = exatchMatch[1]
-      keys = Object.keys(dumbComponentMap).filter(
-        key => key.toLowerCase() === toFind
-      )
+      keys = Object.keys(dumbComponentMap).filter(key => key.toLowerCase() === toFind)
       isExact = true
     } else {
       keys = Object.keys(dumbComponentMap).sort()
@@ -86,19 +84,11 @@ class DumbSheetRender extends Component<void, Props, any> {
   }
 
   render() {
-    const {
-      filter,
-      numItemsLeftWeCanShowMax,
-      keys,
-      isExact,
-    } = this._filterToParams()
+    const {filter, numItemsLeftWeCanShowMax, keys, isExact} = this._filterToParams()
     let numItemsLeftWeCanShow = numItemsLeftWeCanShowMax
 
     return (
-      <Box
-        style={{...globalStyles.scrollable, flex: 1, padding: 20}}
-        ref="scrollBox"
-      >
+      <Box style={{...globalStyles.scrollable, flex: 1, padding: 20}} ref="scrollBox">
         <BackButton onClick={this.props.onBack} />
         <Box style={{...globalStyles.flexBoxRow}}>
           <Input
@@ -111,15 +101,13 @@ class DumbSheetRender extends Component<void, Props, any> {
         </Box>
         {keys.map(key => {
           const map = dumbComponentMap[key]
-          const includeAllChildren =
-            isExact || !filter || key.toLowerCase().indexOf(filter) !== -1
+          const includeAllChildren = isExact || !filter || key.toLowerCase().indexOf(filter) !== -1
           const items = Object.keys(map.mocks)
             .filter(
               mockKey =>
                 !filter ||
                 includeAllChildren ||
-                (key.toLowerCase() + mockKey.toLowerCase()).indexOf(filter) !==
-                  -1
+                (key.toLowerCase() + mockKey.toLowerCase()).indexOf(filter) !== -1
             )
             .map((mockKey, idx) => {
               --numItemsLeftWeCanShow
@@ -152,10 +140,7 @@ class DumbSheetRender extends Component<void, Props, any> {
                 <Text type="Header" onClick={() => this._onNext(key, -1)}>
                   &lt;&nbsp;
                 </Text>
-                <Text
-                  type="Header"
-                  onClick={() => this._onFilterChange(`'${key}'`)}
-                >
+                <Text type="Header" onClick={() => this._onFilterChange(`'${key}'`)}>
                   {key}
                 </Text>
                 <Text type="Header" onClick={() => this._onNext(key, 1)}>

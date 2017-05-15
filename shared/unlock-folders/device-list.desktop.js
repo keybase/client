@@ -41,9 +41,7 @@ export default class DeviceList extends Component<void, Props, void> {
         </Text>
         <div style={styles.devicesContainer}>
           {this.props.devices &&
-            this.props.devices.map(d => (
-              <DeviceRow key={d.deviceID} device={d} />
-            ))}
+            this.props.devices.map(d => <DeviceRow key={d.deviceID} device={d} />)}
         </div>
         <div style={styles.buttonsContainer}>
           <Button

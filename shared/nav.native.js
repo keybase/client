@@ -4,22 +4,13 @@ import Offline from './offline'
 import React, {Component} from 'react'
 import {compose, lifecycle} from 'recompose'
 import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
-import {
-  Box,
-  NativeKeyboard,
-  NativeKeyboardAvoidingView,
-} from './common-adapters/index.native'
+import {Box, NativeKeyboard, NativeKeyboardAvoidingView} from './common-adapters/index.native'
 import {Dimensions, StatusBar} from 'react-native'
 import {NavigationActions} from 'react-navigation'
-import CardStackTransitioner
-  from 'react-navigation/lib/views/CardStackTransitioner'
+import CardStackTransitioner from 'react-navigation/lib/views/CardStackTransitioner'
 import {chatTab, loginTab} from './constants/tabs'
 import {connect} from 'react-redux'
-import {
-  globalColors,
-  globalStyles,
-  statusBarHeight,
-} from './styles/index.native'
+import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
 import {isAndroid, isIOS} from './constants/platform'
 import {navigateTo, navigateUp, switchTo} from './actions/route-tree'
 
@@ -104,11 +95,7 @@ const barStyle = ({showStatusBarDarkContent, underStatusBar}) => {
 function renderStackRoute(route) {
   const {underStatusBar, hideStatusBar, showStatusBarDarkContent} = route.tags
   return (
-    <Box
-      style={
-        route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver
-      }
-    >
+    <Box style={route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
       <StatusBar
         hidden={hideStatusBar}
         translucent={true}
@@ -122,10 +109,7 @@ function renderStackRoute(route) {
 
 const forIOS = ({hideNav, shim, tabBar}) => (
   <Box style={flexOne}>
-    <NativeKeyboardAvoidingView
-      behavior={'padding'}
-      style={sceneWrapStyleUnder}
-    >
+    <NativeKeyboardAvoidingView behavior={'padding'} style={sceneWrapStyleUnder}>
       {shim}
     </NativeKeyboardAvoidingView>
     {!hideNav && tabBar}

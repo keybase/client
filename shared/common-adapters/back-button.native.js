@@ -22,10 +22,7 @@ export default class BackButton extends Component {
     return (
       <NativeTouchableWithoutFeedback onPress={e => this.onClick(e)}>
         <Box style={{...styles.container, ...this.props.style}}>
-          <Icon
-            type="iconfont-back"
-            style={{...styles.icon, ...this.props.iconStyle}}
-          />
+          <Icon type="iconfont-back" style={{...styles.icon, ...this.props.iconStyle}} />
         </Box>
       </NativeTouchableWithoutFeedback>
     )

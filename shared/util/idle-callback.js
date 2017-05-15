@@ -28,13 +28,10 @@ function cancelIdleCallbackFallback(id: number) {
 }
 
 // TODO: Re-enable requestIdleCallback for Android once https://github.com/facebook/react-native/issues/9579 is fixed
-const useFallback =
-  typeof window === 'undefined' || isAndroid || !window.requestIdleCallback
+const useFallback = typeof window === 'undefined' || isAndroid || !window.requestIdleCallback
 const requestIdleCallback = forceImmediateLogging
   ? immediateCallback
   : useFallback ? timeoutFallback : window.requestIdleCallback
-const cancelIdleCallback = useFallback
-  ? cancelIdleCallbackFallback
-  : window.cancelIdleCallback
+const cancelIdleCallback = useFallback ? cancelIdleCallbackFallback : window.cancelIdleCallback
 
 export {requestIdleCallback, cancelIdleCallback}

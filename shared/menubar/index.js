@@ -99,10 +99,7 @@ class Menubar extends Component<void, Props, void> {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    if (
-      this.props.username !== nextProps.username ||
-      this.props.loggedIn !== nextProps.loggedIn
-    ) {
+    if (this.props.username !== nextProps.username || this.props.loggedIn !== nextProps.loggedIn) {
       this._lastRequest = 0 // reset delay since user/loggedin changed
       this._checkForFolders()
       return true
@@ -110,8 +107,7 @@ class Menubar extends Component<void, Props, void> {
 
     if (
       this.props.folderProps !== nextProps.folderProps ||
-      JSON.stringify(this.props.badgeInfo) !==
-        JSON.stringify(nextProps.badgeInfo)
+      JSON.stringify(this.props.badgeInfo) !== JSON.stringify(nextProps.badgeInfo)
     ) {
       return true
     }
@@ -214,10 +210,7 @@ export default connect(
     badgeInfo: (state.notifications && state.notifications.navBadges) || {},
   }),
   dispatch => ({
-    ...bindActionCreators(
-      {...favoriteAction, openInKBFS, openRekeyDialog},
-      dispatch
-    ),
+    ...bindActionCreators({...favoriteAction, openInKBFS, openRekeyDialog}, dispatch),
     onShowLoginTab: () => {
       dispatch(navigateTo([loginTab]))
     },

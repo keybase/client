@@ -104,11 +104,7 @@ export function parseAvailablePlan({
   }
 }
 
-export function parsePaymentInfo({
-  last4,
-  name,
-  cvc_check,
-}: PaymentInfoAPI): PaymentInfo {
+export function parsePaymentInfo({last4, name, cvc_check}: PaymentInfoAPI): PaymentInfo {
   return {
     name,
     // eslint-disable-next-line
@@ -152,35 +148,19 @@ export function billingAndQuotaAPIToOurBillingAndQuota({
 }
 
 export const updateBilling = 'plan-billing:updateBilling'
-export type UpdateBilling = NoErrorTypedAction<
-  'plan-billing:updateBilling',
-  UpdateBillingArgs
->
+export type UpdateBilling = NoErrorTypedAction<'plan-billing:updateBilling', UpdateBillingArgs>
 
 export const billingError = 'plan-billing:billingError'
-export type BillingError = TypedAction<
-  'plan-billing:billingError',
-  void,
-  {errorText: string}
->
+export type BillingError = TypedAction<'plan-billing:billingError', void, {errorText: string}>
 
 export const fetchBillingAndQuota = 'plan-billing:fetchBillingAndQuota'
-export type FetchBillingAndQuota = NoErrorTypedAction<
-  'plan-billing:fetchBillingAndQuota',
-  void
->
+export type FetchBillingAndQuota = NoErrorTypedAction<'plan-billing:fetchBillingAndQuota', void>
 
 export const bootstrapData = 'plan-billing:bootstrapData'
-export type BootstrapData = NoErrorTypedAction<
-  'plan-billing:bootstrapData',
-  void
->
+export type BootstrapData = NoErrorTypedAction<'plan-billing:bootstrapData', void>
 
 export const fetchBillingOverview = 'plan-billing:fetchBillingOverview'
-export type FetchBillingOverview = NoErrorTypedAction<
-  'plan-billing:fetchBillingOverview',
-  void
->
+export type FetchBillingOverview = NoErrorTypedAction<'plan-billing:fetchBillingOverview', void>
 
 export const updateAvailablePlans = 'plan-billing:updateAvailablePlans'
 export type UpdateAvailablePlans = NoErrorTypedAction<
@@ -221,10 +201,7 @@ export function planToStars(plan: string): number {
 
 export type ChangeType = 'change' | 'upgrade' | 'downgrade'
 
-export function comparePlans(
-  from: AvailablePlan,
-  to: AvailablePlan
-): ChangeType {
+export function comparePlans(from: AvailablePlan, to: AvailablePlan): ChangeType {
   if (!from.price_pennies && to.price_pennies) {
     return 'upgrade'
   }

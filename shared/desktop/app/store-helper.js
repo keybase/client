@@ -2,9 +2,7 @@
 import {ipcMain} from 'electron'
 import {selector as menubarSelector} from '../../menubar'
 import {selector as pineentrySelector} from '../../pinentry'
-import {
-  selector as remotePurgeMessageSelector,
-} from '../../pgp/container.desktop'
+import {selector as remotePurgeMessageSelector} from '../../pgp/container.desktop'
 import {selector as trackerSelector} from '../../tracker'
 import {selector as unlockFoldersSelector} from '../../unlock-folders'
 

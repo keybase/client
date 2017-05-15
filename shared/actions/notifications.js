@@ -38,9 +38,7 @@ function badgeApp(
   return {payload: {count, key, on}, type: 'notifications:badgeApp'}
 }
 
-function receivedBadgeState(
-  badgeState: RPCTypes.BadgeState
-): Constants.ReceivedBadgeState {
+function receivedBadgeState(badgeState: RPCTypes.BadgeState): Constants.ReceivedBadgeState {
   return {payload: {badgeState}, type: 'notifications:receivedBadgeState'}
 }
 
@@ -63,20 +61,16 @@ function* _listenSaga(): SagaGenerator<any, any> {
   }
 
   const engineInst: Engine = yield call(engine)
-  yield call(
-    [engineInst, engineInst.listenOnConnect],
-    'setNotifications',
-    () => {
-      RPCTypes.notifyCtlSetNotificationsRpc({
-        param: {channels},
-        callback: (error, response) => {
-          if (error != null) {
-            console.warn('error in toggling notifications: ', error)
-          }
-        },
-      })
-    }
-  )
+  yield call([engineInst, engineInst.listenOnConnect], 'setNotifications', () => {
+    RPCTypes.notifyCtlSetNotificationsRpc({
+      param: {channels},
+      callback: (error, response) => {
+        if (error != null) {
+          console.warn('error in toggling notifications: ', error)
+        }
+      },
+    })
+  })
 
   yield put((dispatch, getState) => {
     const listeners = ListenerCreator(dispatch, getState, NotifyPopup)
@@ -94,9 +88,7 @@ function* _listenKBFSSaga(): SagaGenerator<any, any> {
   yield put(setupChatHandlers())
 }
 
-function* _onRecievedBadgeState(
-  action: Constants.ReceivedBadgeState
-): SagaGenerator<any, any> {
+function* _onRecievedBadgeState(action: Constants.ReceivedBadgeState): SagaGenerator<any, any> {
   const {conversations} = action.payload.badgeState
   yield put(badgeAppForChat(conversations))
 }
@@ -114,18 +106,9 @@ function* _listenForKBFSNotifications(): SagaGenerator<any, any> {
 function* notificationsSaga(): SagaGenerator<any, any> {
   yield fork(_listenNotifications)
   yield fork(_listenForKBFSNotifications)
-  yield Saga.safeTakeLatest(
-    'notifications:receivedBadgeState',
-    _onRecievedBadgeState
-  )
+  yield Saga.safeTakeLatest('notifications:receivedBadgeState', _onRecievedBadgeState)
 }
 
-export {
-  badgeApp,
-  listenForNotifications,
-  listenForKBFSNotifications,
-  logUiLog,
-  receivedBadgeState,
-}
+export {badgeApp, listenForNotifications, listenForKBFSNotifications, logUiLog, receivedBadgeState}
 
 export default notificationsSaga

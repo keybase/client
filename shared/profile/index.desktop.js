@@ -71,10 +71,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
         header: {
           title: 'header',
           view: (
-            <PopupHeaderText
-              color={globalColors.white}
-              backgroundColor={globalColors.red}
-            >
+            <PopupHeaderText color={globalColors.white} backgroundColor={globalColors.red}>
               Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?
             </PopupHeaderText>
           ),
@@ -105,17 +102,13 @@ class ProfileRender extends PureComponent<void, Props, State> {
         pendingMessage =
           'Your proof is pending. Hacker News caches its bios, so it might take a few hours before your proof gets verified.'
       } else if (proof.type === 'dns') {
-        pendingMessage =
-          'Your proof is pending. DNS proofs can take a few hours to recognize.'
+        pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
       }
       return {
         header: pendingMessage && {
           title: 'header',
           view: (
-            <PopupHeaderText
-              color={globalColors.white}
-              backgroundColor={globalColors.blue}
-            >
+            <PopupHeaderText color={globalColors.white} backgroundColor={globalColors.blue}>
               {pendingMessage}
             </PopupHeaderText>
           ),
@@ -148,10 +141,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
                 overlayColor={globalColors.blue}
               />
               {!!proof.mTime &&
-                <Text
-                  type="BodySmall"
-                  style={{textAlign: 'center', color: globalColors.black_40}}
-                >
+                <Text type="BodySmall" style={{textAlign: 'center', color: globalColors.black_40}}>
                   Posted on<br />{moment(proof.mTime).format('ddd MMM D, YYYY')}
                 </Text>}
             </Box>
@@ -215,10 +205,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
 
   render() {
     const {loading} = this.props
-    const trackerStateColors = stateColors(
-      this.props.currentlyFollowing,
-      this.props.trackerState
-    )
+    const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 
     let proofNotice
     if (
@@ -289,10 +276,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
           >
             <Icon type="iconfont-ellipsis" style={{...styleFolderIcon}} />
           </Box>
-          <Text
-            type="BodySmall"
-            style={{color: globalColors.black_60, marginBottom: 2}}
-          >
+          <Text type="BodySmall" style={{color: globalColors.black_60, marginBottom: 2}}>
             + {this.props.tlfs.length - folders.length} more
           </Text>
         </Box>
@@ -385,9 +369,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
                     username={this.props.username}
                     loading={loading}
                     proofs={this.props.proofs}
-                    onClickProofMenu={
-                      this.props.isYou ? idx => this.handleShowMenu(idx) : null
-                    }
+                    onClickProofMenu={this.props.isYou ? idx => this.handleShowMenu(idx) : null}
                     showingMenuIndex={this.state.proofMenuIndex}
                   />}
                 {!loading &&

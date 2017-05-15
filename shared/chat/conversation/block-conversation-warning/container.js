@@ -5,10 +5,7 @@ import {navigateUp} from '../../../actions/route-tree'
 
 import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
-import type {
-  BlockConversation,
-  ConversationIDKey,
-} from '../../../constants/chat'
+import type {BlockConversation, ConversationIDKey} from '../../../constants/chat'
 
 type RenderBlockConversationWarningRouteProps = RouteProps<
   {

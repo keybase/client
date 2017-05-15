@@ -3,14 +3,7 @@
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {autoResize} from '../desktop/renderer/remote-component-helper'
-import {
-  Button,
-  FormWithCheckbox,
-  Header,
-  Text,
-  Box,
-  Icon,
-} from '../common-adapters'
+import {Button, FormWithCheckbox, Header, Text, Box, Icon} from '../common-adapters'
 import {PassphraseCommonPassphraseType} from '../constants/types/flow-types'
 import type {Props, DefaultProps} from './index.render'
 
@@ -20,8 +13,7 @@ type State = {
   showTyping: boolean,
 }
 
-export default class PinentryRender
-  extends Component<DefaultProps, Props, State> {
+export default class PinentryRender extends Component<DefaultProps, Props, State> {
   static defaultProps: DefaultProps
   state: State
 
@@ -62,11 +54,9 @@ export default class PinentryRender
   }
 
   render() {
-    const submitPassphrase = () =>
-      this.props.onSubmit(this.state.passphrase, this.state.features)
+    const submitPassphrase = () => this.props.onSubmit(this.state.passphrase, this.state.features)
 
-    const isPaperKey =
-      this.props.type === PassphraseCommonPassphraseType.paperKey
+    const isPaperKey = this.props.type === PassphraseCommonPassphraseType.paperKey
     const typeStyle: $Shape<{
       hintText: string,
       style: Object,
@@ -105,17 +95,16 @@ export default class PinentryRender
       ...typeStyle,
     }
 
-    const checkboxProps = (Object.keys(this.props.features) || [])
-      .map(feature => {
-        return {
-          label: this.props.features[feature].label,
-          checked: this.state.features[feature],
-          key: feature,
-          name: feature,
-          style: checkboxStyle,
-          onCheck: checked => this.onCheck(feature, checked),
-        }
-      })
+    const checkboxProps = (Object.keys(this.props.features) || []).map(feature => {
+      return {
+        label: this.props.features[feature].label,
+        checked: this.state.features[feature],
+        key: feature,
+        name: feature,
+        style: checkboxStyle,
+        onCheck: checked => this.onCheck(feature, checked),
+      }
+    })
 
     return (
       <Box
@@ -136,8 +125,7 @@ export default class PinentryRender
           <Text type="Body" style={{textAlign: 'center'}}>
             {this.props.prompt}
           </Text>
-          {isPaperKey &&
-            <Icon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}
+          {isPaperKey && <Icon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}
           <FormWithCheckbox
             inputProps={inputProps}
             checkboxContainerStyle={{

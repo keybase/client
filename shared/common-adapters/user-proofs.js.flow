@@ -1,10 +1,6 @@
 // @flow
 import type {PlatformsExpandedType} from '../constants/types/more'
-import type {
-  Proof,
-  SimpleProofState,
-  SimpleProofMeta,
-} from '../constants/tracker'
+import type {Proof, SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 import {Component} from 'react'
 
 export type MissingProof = {

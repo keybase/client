@@ -3,11 +3,7 @@ import * as Constants from '../../constants/unlock-folders'
 import HiddenString from '../../util/hidden-string'
 import React, {Component} from 'react'
 import Render from '../../login/register/paper-key/index.render'
-import {
-  checkPaperKey,
-  toPaperKeyInput,
-  onBackFromPaperKey,
-} from '../../actions/unlock-folders'
+import {checkPaperKey, toPaperKeyInput, onBackFromPaperKey} from '../../actions/unlock-folders'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/route-tree'
 

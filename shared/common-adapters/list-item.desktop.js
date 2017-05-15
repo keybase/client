@@ -17,9 +17,7 @@ class ListItem extends Component<void, Props, void> {
           ...this.props.containerStyle,
         }}
       >
-        <Box
-          style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start'}}
-        >
+        <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start'}}>
           <Box
             style={{
               ...globalStyles.flexBoxColumn,

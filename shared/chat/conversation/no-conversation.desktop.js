@@ -5,15 +5,8 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 const NoConversation = () => (
   <Box style={containerStyle}>
-    <Icon
-      type="icon-fancy-chat-72-x-52"
-      style={{marginBottom: globalMargins.small}}
-    />
-    <Text
-      type="BodySmallSemibold"
-      backgroundMode="Terminal"
-      style={{color: globalColors.blue3_40}}
-    >
+    <Icon type="icon-fancy-chat-72-x-52" style={{marginBottom: globalMargins.small}} />
+    <Text type="BodySmallSemibold" backgroundMode="Terminal" style={{color: globalColors.blue3_40}}>
       All conversations are end-to-end encrypted.
     </Text>
   </Box>

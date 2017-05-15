@@ -2,32 +2,11 @@
 import React from 'react'
 import type {Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
-import {
-  Box,
-  Button,
-  Text,
-  Icon,
-  Avatar,
-  Meta,
-  Usernames,
-} from '../common-adapters'
+import {Box, Button, Text, Icon, Avatar, Meta, Usernames} from '../common-adapters'
 import {getStyle} from '../common-adapters/text'
-import {
-  globalStyles,
-  globalColors,
-  backgroundURL,
-  globalMargins,
-} from '../styles'
+import {globalStyles, globalColors, backgroundURL, globalMargins} from '../styles'
 
-const Avatars = ({
-  styles,
-  users,
-  smallMode,
-  groupAvatar,
-  userAvatar,
-  ignored,
-  isPublic,
-}) => {
+const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, isPublic}) => {
   let boxStyle: Object = {
     width: smallMode ? globalMargins.large : 48,
     minHeight: smallMode ? globalMargins.large : 48,
@@ -40,9 +19,7 @@ const Avatars = ({
     boxStyle.background = `${backgroundURL('icons', `icon-damier-pattern-${ignored ? 'ignored-locked' : 'good-open'}.png`)} ${globalColors.darkBlue3} repeat`
   }
 
-  const groupIcon: IconType = smallMode
-    ? styles.groupIcon.small
-    : styles.groupIcon.normal
+  const groupIcon: IconType = smallMode ? styles.groupIcon.small : styles.groupIcon.normal
   return (
     <Box style={boxStyle}>
       {groupAvatar
@@ -62,9 +39,7 @@ const Modified = ({smallMode, styles, modified}) => {
   const boltStyle = {
     fontSize: smallMode ? 10 : 10,
     alignSelf: 'center',
-    ...(smallMode
-      ? {marginTop: 2}
-      : {marginLeft: -2, marginRight: 1, marginTop: 2}),
+    ...(smallMode ? {marginTop: 2} : {marginLeft: -2, marginRight: 1, marginTop: 2}),
     ...iconColor,
   }
 
@@ -96,9 +71,7 @@ const RowMeta = ({ignored, meta, styles}) => {
     ? {title: 'ignored', style: styles.ignored}
     : {
         title: meta || '',
-        style: meta
-          ? {color: metaColors[meta], backgroundColor: metaBGColors[meta]}
-          : {},
+        style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta]} : {},
       }
 
   return <Meta {...metaProps} />
@@ -164,16 +137,10 @@ const Row = ({
     backgroundColor,
   }
 
-  const icon: IconType = smallMode
-    ? styles.hasStuffIcon.small
-    : styles.hasStuffIcon.normal
+  const icon: IconType = smallMode ? styles.hasStuffIcon.small : styles.hasStuffIcon.normal
 
   return (
-    <Box
-      style={containerStyle}
-      className="folder-row"
-      onClick={() => onClick && onClick(path)}
-    >
+    <Box style={containerStyle} className="folder-row" onClick={() => onClick && onClick(path)}>
       <Box style={{...globalStyles.flexBoxRow}}>
         <Avatars
           users={users}
@@ -191,15 +158,10 @@ const Row = ({
             style={{color: nameColor}}
             redColor={redColor}
           />
-          {(meta || ignored) &&
-            <RowMeta ignored={ignored} meta={meta} styles={styles} />}
+          {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
           {!(meta || ignored) &&
             modified &&
-            <Modified
-              modified={modified}
-              styles={styles}
-              smallMode={smallMode}
-            />}
+            <Modified modified={modified} styles={styles} smallMode={smallMode} />}
         </Box>
         {!smallMode &&
           !isPublic &&
@@ -220,9 +182,7 @@ const Row = ({
               Chat
             </Text>
           </Box>}
-        <Box
-          style={{...stylesActionContainer, width: smallMode ? undefined : 112}}
-        >
+        <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
           {!smallMode &&
             meta !== 'rekey' &&
             <Text

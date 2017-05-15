@@ -17,12 +17,7 @@ function processAST(ast, createComponent) {
       const childrenComponents = top.children.map(
         child => (typeof child === 'string' ? child : child.component)
       )
-      top.component = createComponent(
-        top.type,
-        String(index++),
-        childrenComponents,
-        top
-      )
+      top.component = createComponent(top.type, String(index++), childrenComponents, top)
       stack.shift()
     } else if (top.type && !top.seen) {
       top.seen = true
@@ -47,8 +42,7 @@ export function parseMarkdown(
   }
 }
 
-export class EmojiIfExists
-  extends PureComponent<void, EmojiProps & {style?: Object}, void> {
+export class EmojiIfExists extends PureComponent<void, EmojiProps & {style?: Object}, void> {
   render() {
     const emojiNameLower = this.props.emojiName.toLowerCase()
     const exists = !!emojiIndexByName[emojiNameLower]

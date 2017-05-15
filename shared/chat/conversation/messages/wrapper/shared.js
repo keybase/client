@@ -35,14 +35,8 @@ const Username = ({author, isYou, isFollowing, isBroken, includeHeader}) => {
 
 const ActionButton = ({isRevoked, onAction}) => (
   <Box className="action-button">
-    {isRevoked &&
-      <Icon type="iconfont-exclamation" style={_exclamationStyle} />}
-    {!isMobile &&
-      <Icon
-        type="iconfont-ellipsis"
-        style={_ellipsisStyle}
-        onClick={onAction}
-      />}
+    {isRevoked && <Icon type="iconfont-exclamation" style={_exclamationStyle} />}
+    {!isMobile && <Icon type="iconfont-ellipsis" style={_ellipsisStyle} onClick={onAction} />}
   </Box>
 )
 
@@ -58,11 +52,7 @@ const Failure = ({failureDescription, onShowEditor, onRetry}) => {
       <Text type="BodySmall" style={_failStyleFace}>{'┏(>_<)┓'}</Text>
       <Text type="BodySmall" style={_failStyle}> {error}</Text>
       {resolveByEdit &&
-        <Text
-          type="BodySmall"
-          style={_failStyleUnderline}
-          onClick={onShowEditor}
-        >
+        <Text type="BodySmall" style={_failStyleUnderline} onClick={onShowEditor}>
           Edit
         </Text>}
       {!resolveByEdit &&
@@ -89,13 +79,7 @@ const MessageWrapper = (props: Props) => (
         isFollowing={props.isFollowing}
         isBroken={props.isBroken}
       />
-      <Box
-        style={
-          props.includeHeader
-            ? _rightSideWithHeaderStyle
-            : _rightSideNoHeaderStyle
-        }
-      >
+      <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
         <UserAvatar author={props.author} showImage={props.includeHeader} />
         <Box style={_flexOneColumn} className="message-wrapper">
           <Username
@@ -105,11 +89,7 @@ const MessageWrapper = (props: Props) => (
             isFollowing={props.isFollowing}
             isBroken={props.isBroken}
           />
-          <Box
-            style={_textContainerStyle}
-            className="message"
-            data-message-key={props.messageKey}
-          >
+          <Box style={_textContainerStyle} className="message" data-message-key={props.messageKey}>
             <Box style={_flexOneColumn}>
               <props.innerClass
                 messageKey={props.messageKey}
@@ -118,10 +98,7 @@ const MessageWrapper = (props: Props) => (
               />
               <EditedMark isEdited={props.isEdited} />
             </Box>
-            <ActionButton
-              isRevoked={props.isRevoked}
-              onAction={props.onAction}
-            />
+            <ActionButton isRevoked={props.isRevoked} onAction={props.onAction} />
           </Box>
           <Failure
             failureDescription={props.failureDescription}

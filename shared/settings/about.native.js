@@ -26,11 +26,7 @@ const About = ({version, onShowTerms, onShowPrivacyPolicy}: Props) => (
     >
       You are running version <Text type="BodySemibold">{version}</Text>
     </Text>
-    <Text
-      style={{marginBottom: globalMargins.tiny}}
-      type="BodyPrimaryLink"
-      onClick={onShowTerms}
-    >
+    <Text style={{marginBottom: globalMargins.tiny}} type="BodyPrimaryLink" onClick={onShowTerms}>
       Terms and Conditions
     </Text>
     <Text type="BodyPrimaryLink" onClick={onShowPrivacyPolicy}>

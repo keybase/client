@@ -33,13 +33,7 @@ export function appInstallerPath() {
   if (os.platform() !== 'darwin') return null
   const resourcesPath = appResourcesPath()
   if (resourcesPath === null) return null
-  return path.resolve(
-    resourcesPath,
-    'KeybaseInstaller.app',
-    'Contents',
-    'MacOS',
-    'Keybase'
-  )
+  return path.resolve(resourcesPath, 'KeybaseInstaller.app', 'Contents', 'MacOS', 'Keybase')
 }
 
 // Path to keybase executable (darwin only), null if not available

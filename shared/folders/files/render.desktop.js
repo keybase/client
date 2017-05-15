@@ -14,12 +14,7 @@ import {
   ListItem,
   Button,
 } from '../../common-adapters'
-import {
-  globalStyles,
-  globalColors,
-  globalMargins,
-  backgroundURL,
-} from '../../styles'
+import {globalStyles, globalColors, globalMargins, backgroundURL} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
 const Divider = ({theme, backgroundColor, color}) => (
@@ -42,10 +37,7 @@ const Section = ({section, theme}) => (
         height: globalMargins.medium,
       }}
     >
-      <Box
-        key={section.name}
-        style={{display: 'inline', marginLeft: globalMargins.tiny}}
-      >
+      <Box key={section.name} style={{display: 'inline', marginLeft: globalMargins.tiny}}>
         {section.modifiedMarker &&
           <Icon
             type="iconfont-thunderbolt"
@@ -56,10 +48,7 @@ const Section = ({section, theme}) => (
               ...styleSectionTextThemed[theme],
             }}
           />}
-        <Text
-          type="BodySmallSemibold"
-          style={{...styleSectionTextThemed[theme]}}
-        >
+        <Text type="BodySmallSemibold" style={{...styleSectionTextThemed[theme]}}>
           {section.name}
         </Text>
       </Box>
@@ -77,12 +66,7 @@ const Section = ({section, theme}) => (
   </Box>
 )
 
-const ParticipantUnlock = ({
-  waitingForParticipantUnlock,
-  isPrivate,
-  backgroundMode,
-  theme,
-}) => {
+const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMode, theme}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
       <Text type="BodySemibold" style={styleWarningBanner}>
@@ -101,9 +85,7 @@ const ParticipantUnlock = ({
             <Divider
               key={i}
               color={isPrivate ? globalColors.black_10 : globalColors.black_05}
-              backgroundColor={
-                isPrivate ? globalColors.darkBlue3 : globalColors.lightGrey
-              }
+              backgroundColor={isPrivate ? globalColors.darkBlue3 : globalColors.lightGrey}
             />
           ),
           waitingForParticipantUnlock.map(p => (
@@ -130,10 +112,7 @@ const ParticipantUnlock = ({
   )
 }
 
-const deviceIcon: (isPrivate: boolean, type: string) => IconType = (
-  isPrivate,
-  type
-) =>
+const deviceIcon: (isPrivate: boolean, type: string) => IconType = (isPrivate, type) =>
   ({
     private: {
       backup: 'icon-paper-key-dark-blue-32',
@@ -147,13 +126,7 @@ const deviceIcon: (isPrivate: boolean, type: string) => IconType = (
     },
   }[isPrivate ? 'private' : 'public'][type])
 
-const YouCanUnlock = ({
-  youCanUnlock,
-  isPrivate,
-  backgroundMode,
-  onClickPaperkey,
-  theme,
-}) => {
+const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey, theme}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
       <Text type="BodySemibold" style={styleWarningBanner}>
@@ -302,10 +275,7 @@ class FilesRender extends Component<void, Props, void> {
 
   render() {
     const isPrivate = this.props.theme === 'private'
-    const menuColor = styleMenuColorThemed(
-      this.props.theme,
-      this.props.visiblePopupMenu
-    )
+    const menuColor = styleMenuColorThemed(this.props.theme, this.props.visiblePopupMenu)
     const backButtonColor = backButtonColorThemed[this.props.theme]
     const tlfTextStyle = styleTLFTextThemed[this.props.theme]
 
@@ -371,11 +341,7 @@ class FilesRender extends Component<void, Props, void> {
             <Text type="BodySemibold" style={tlfTextStyle}>
               {isPrivate ? 'private/' : 'public/'}
             </Text>
-            <Usernames
-              users={this.props.users}
-              type="Header"
-              style={tlfTextStyle}
-            />
+            <Usernames users={this.props.users} type="Header" style={tlfTextStyle} />
           </Box>
         </Box>
         {this.props.visiblePopupMenu &&

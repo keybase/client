@@ -79,8 +79,7 @@ export const {
 } = config
 
 export function setup(store: any) {
-  const updateLiveConfig = () =>
-    store.dispatch(updateDebugConfig(require('./local-debug-live')))
+  const updateLiveConfig = () => store.dispatch(updateDebugConfig(require('./local-debug-live')))
 
   if (module.hot) {
     module.hot.accept(() => updateLiveConfig())

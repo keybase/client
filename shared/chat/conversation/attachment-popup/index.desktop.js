@@ -1,12 +1,6 @@
 // @flow
 import React from 'react'
-import {
-  Box,
-  Icon,
-  Text,
-  PopupDialog,
-  ProgressIndicator,
-} from '../../../common-adapters/index'
+import {Box, Icon, Text, PopupDialog, ProgressIndicator} from '../../../common-adapters/index'
 import {AttachmentPopupMenu} from '../messages/popup'
 import {
   ProgressBar as AttachmentProgressBar,
@@ -31,9 +25,7 @@ const AttachmentStatusFooter = ({
 
   let contents
   if (savedPath === false && downloadProgress !== null) {
-    contents = (
-      <AttachmentProgressBar text="Downloading" progress={downloadProgress} />
-    )
+    contents = <AttachmentProgressBar text="Downloading" progress={downloadProgress} />
   } else if (savedPath) {
     contents = (
       <Text
@@ -75,10 +67,7 @@ const AttachmentView = ({
 }) => {
   if (path) {
     return (
-      <Box
-        style={isZoomed ? styleContentsZoom : styleContentsFit}
-        onClick={onToggleZoom}
-      >
+      <Box style={isZoomed ? styleContentsZoom : styleContentsFit} onClick={onToggleZoom}>
         <img src={path} style={isZoomed ? styleImageZoom : styleImageFit} />
       </Box>
     )
@@ -128,25 +117,16 @@ const AttachmentPopup = ({
           style={{position: 'absolute', top: 28, right: globalMargins.xtiny}}
         />}
       <Box style={styleHeaderFooter}>
-        <Text
-          type="BodySemibold"
-          style={{color: globalColors.black_75, flex: 1}}
-        >
+        <Text type="BodySemibold" style={{color: globalColors.black_75, flex: 1}}>
           {message.title}
         </Text>
         <Icon
           type="iconfont-ellipsis"
           style={{color: globalColors.black_40, cursor: 'pointer'}}
-          onClick={
-            detailsPopupShowing ? onCloseDetailsPopup : onOpenDetailsPopup
-          }
+          onClick={detailsPopupShowing ? onCloseDetailsPopup : onOpenDetailsPopup}
         />
       </Box>
-      <AttachmentView
-        isZoomed={isZoomed}
-        onToggleZoom={onToggleZoom}
-        path={downloadedPath}
-      />
+      <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={downloadedPath} />
       <AttachmentStatusFooter
         message={message}
         onDownloadAttachment={onDownloadAttachment}

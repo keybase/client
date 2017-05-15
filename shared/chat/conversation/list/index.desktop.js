@@ -59,9 +59,7 @@ class BaseList extends Component<void, Props, State> {
     }
     this._lastRowIdx = -1 // always reset this to be safe
 
-    if (
-      this.props.editLastMessageCounter !== prevProps.editLastMessageCounter
-    ) {
+    if (this.props.editLastMessageCounter !== prevProps.editLastMessageCounter) {
       this._onEditLastMessage()
     }
   }
@@ -88,29 +86,21 @@ class BaseList extends Component<void, Props, State> {
     }
   }
 
-  _updateBottomLock = (
-    clientHeight: number,
-    scrollHeight: number,
-    scrollTop: number
-  ) => {
+  _updateBottomLock = (clientHeight: number, scrollHeight: number, scrollTop: number) => {
     // meaningless otherwise
     if (clientHeight) {
-      const isLockedToBottom =
-        scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
+      const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
       if (this.state.isLockedToBottom !== isLockedToBottom) {
         this.setState({isLockedToBottom})
       }
     }
   }
 
-  _maybeLoadMoreMessages = debounce(
-    (clientHeight: number, scrollTop: number) => {
-      if (clientHeight && scrollTop === 0) {
-        this.props.onLoadMoreMessages()
-      }
-    },
-    500
-  )
+  _maybeLoadMoreMessages = debounce((clientHeight: number, scrollTop: number) => {
+    if (clientHeight && scrollTop === 0) {
+      this.props.onLoadMoreMessages()
+    }
+  }, 500)
 
   _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
     this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
@@ -191,9 +181,7 @@ class BaseList extends Component<void, Props, State> {
     }
 
     const rowCount = this.props.messageKeys.count()
-    const scrollToIndex = this.state.isLockedToBottom
-      ? rowCount - 1
-      : this._keepIdxVisible
+    const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : this._keepIdxVisible
 
     // We pass additional props (listRerender, selectedMessageKey) to Virtualized.List so we can force re-rendering automatically
     return (
@@ -289,18 +277,14 @@ class PopupEnabledList extends BaseList {
       const idx: number = entry[0]
       const messageKey: Constants.MessageKey = entry[1]
       // $ForceType
-      const message: Constants.TextMessage = this.props.getMessageFromMessageKey(
-        messageKey
-      )
+      const message: Constants.TextMessage = this.props.getMessageFromMessageKey(messageKey)
 
       this._keepIdxVisible = idx
       this.setState({listRerender: this.state.listRerender + 1})
 
       const listNode = ReactDOM.findDOMNode(this._list)
       if (listNode) {
-        const messageNodes = listNode.querySelectorAll(
-          `[data-message-key="${messageKey}"]`
-        )
+        const messageNodes = listNode.querySelectorAll(`[data-message-key="${messageKey}"]`)
         if (messageNodes) {
           const messageNode = messageNodes[0]
           if (messageNode) {
@@ -311,11 +295,7 @@ class PopupEnabledList extends BaseList {
     }
   }
 
-  _renderPopup(
-    message: Constants.Message,
-    style: Object,
-    messageRect: any
-  ): ?React$Element<any> {
+  _renderPopup(message: Constants.Message, style: Object, messageRect: any): ?React$Element<any> {
     switch (message.type) {
       case 'Text':
         return (
@@ -366,11 +346,7 @@ class PopupEnabledList extends BaseList {
     setImmediate(() => {
       const container = document.getElementById('popupContainer')
       // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
-      ReactDOM.unstable_renderSubtreeIntoContainer(
-        this,
-        popupComponent,
-        container
-      )
+      ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
     })
   }
 
@@ -388,10 +364,7 @@ class PopupEnabledList extends BaseList {
     return null
   }
 
-  _showPopup(
-    message: Constants.TextMessage | Constants.AttachmentMessage,
-    event: any
-  ) {
+  _showPopup(message: Constants.TextMessage | Constants.AttachmentMessage, event: any) {
     const clientRect = event.target.getBoundingClientRect()
 
     const messageNode = this._findMessageFromDOMNode(event.target)
@@ -413,11 +386,7 @@ class PopupEnabledList extends BaseList {
 
     const container = document.getElementById('popupContainer')
     // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
-    ReactDOM.unstable_renderSubtreeIntoContainer(
-      this,
-      popupComponent,
-      container
-    )
+    ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
   }
 
   _onAction = (message: Constants.ServerMessage, event: any) => {

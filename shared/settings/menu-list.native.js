@@ -1,11 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {
-  ClickableBox,
-  NativeListView,
-  Box,
-  Text,
-} from '../common-adapters/index.native'
+import {ClickableBox, NativeListView, Box, Text} from '../common-adapters/index.native'
 import {globalStyles} from '../styles'
 
 import type {Props, MenuListItem} from './menu-list'

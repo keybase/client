@@ -3,21 +3,12 @@ import net from 'net'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
 
-import type {
-  createClientType,
-  incomingRPCCallbackType,
-  connectDisconnectCB,
-} from './index.platform'
+import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
 class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
     console.log('Transport using', socketPath)
-    super(
-      {path: socketPath},
-      connectCallback,
-      disconnectCallback,
-      incomingRPCCallback
-    )
+    super({path: socketPath}, connectCallback, disconnectCallback, incomingRPCCallback)
     this.needsConnect = true
   }
 
@@ -52,11 +43,7 @@ function createClient(
   disconnectCallback: connectDisconnectCB
 ) {
   return sharedCreateClient(
-    new NativeTransport(
-      incomingRPCCallback,
-      connectCallback,
-      disconnectCallback
-    )
+    new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   )
 }
 

@@ -56,8 +56,7 @@ const proofHN: Proof = {
   isTracked: false,
   mTime: 1469565223000,
 }
-const longDomainName =
-  'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com'
+const longDomainName = 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com'
 const proofWeb1: Proof = {
   name: longDomainName,
   type: 'http',
@@ -233,10 +232,7 @@ const propsNewUserFollowsYou: TrackerProps = {
 }
 
 type setFollowFilter = (p: Proof) => boolean
-function setFollow(
-  source: TrackerProps,
-  filter: setFollowFilter
-): TrackerProps {
+function setFollow(source: TrackerProps, filter: setFollowFilter): TrackerProps {
   source.proofs = source.proofs.map(
     p =>
       filter(p)

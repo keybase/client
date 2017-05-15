@@ -22,12 +22,7 @@ export default function(
 ): void {
   const platform = os.platform()
   if (platformOnly && platform !== platformOnly) {
-    console.log(
-      'Exec (%s) not available for platform: %s != %s',
-      path,
-      platformOnly,
-      platform
-    )
+    console.log('Exec (%s) not available for platform: %s != %s', path, platformOnly, platform)
     if (callback) callback(null, false)
     return
   }
@@ -37,11 +32,7 @@ export default function(
     return
   }
   if (runModeOnly && runMode !== runModeOnly) {
-    console.log(
-      'Exec path not available for this run mode: %s != %s',
-      runModeOnly,
-      runMode
-    )
+    console.log('Exec path not available for this run mode: %s != %s', runModeOnly, runMode)
     if (callback) callback(null, false)
     return
   }

@@ -19,11 +19,7 @@ const RowCSS = () => <style>{realCSS}</style>
 
 const Row = ({onClick, icon, title, subTitle, children, style}: Props) => {
   return (
-    <div
-      className="register-row"
-      style={{...stylesRowContainer, ...style}}
-      onClick={onClick}
-    >
+    <div className="register-row" style={{...stylesRowContainer, ...style}} onClick={onClick}>
       <div style={stylesIconContainer}>
         <div className="register-background" style={stylesIconBackground} />
         <Icon className="register-icon" type={icon} style={stylesIcon} />

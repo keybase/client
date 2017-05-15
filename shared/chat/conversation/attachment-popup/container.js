@@ -42,16 +42,12 @@ export default compose(
     (state: TypedState, {routeProps, ...ownProps}: OwnProps) => {
       const {conversationIDKey, messageID} = routeProps
 
-      const conversationState = state.chat
-        .get('conversationStates')
-        .get(conversationIDKey)
+      const conversationState = state.chat.get('conversationStates').get(conversationIDKey)
       if (!conversationState) {
         throw new Error('Attachment popup unable to get conversation state')
       }
 
-      const message = conversationState
-        .get('messages')
-        .find(m => m.messageID === messageID)
+      const message = conversationState.get('messages').find(m => m.messageID === messageID)
       if (!message) {
         throw new Error('Attachment popup unable to get message data')
       }
@@ -64,17 +60,13 @@ export default compose(
     },
     (dispatch: Dispatch, {navigateUp, navigateAppend}) => ({
       _onMessageAction: (message: Constants.ServerMessage) =>
-        dispatch(
-          navigateAppend([{props: {message}, selected: 'messageAction'}])
-        ),
+        dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
       deleteMessage: message => dispatch(deleteMessage(message)),
       onClose: () => dispatch(navigateUp()),
       onDownloadAttachment: (message: AttachmentMessage) => {
         const messageID = message.messageID
         if (!messageID || !message.filename) {
-          throw new Error(
-            'Cannot download attachment with missing messageID or filename'
-          )
+          throw new Error('Cannot download attachment with missing messageID or filename')
         }
         dispatch(
           ({

@@ -25,12 +25,7 @@ class UpdatePassphraseContainer extends Component<void, Props, void> {
   }
 }
 
-const connector: TypedConnector<
-  TypedState,
-  TypedDispatch<{}>,
-  {},
-  Props
-> = new TypedConnector()
+const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
 
 export default connector.connect((state, dispatch, ownProps) => {
   return {
@@ -38,8 +33,7 @@ export default connector.connect((state, dispatch, ownProps) => {
     newPassphraseError: state.settings.passphrase.newPassphraseError
       ? state.settings.passphrase.newPassphraseError.stringValue()
       : null,
-    newPassphraseConfirmError: state.settings.passphrase
-      .newPassphraseConfirmError
+    newPassphraseConfirmError: state.settings.passphrase.newPassphraseConfirmError
       ? state.settings.passphrase.newPassphraseConfirmError.stringValue()
       : null,
     hasPGPKeyOnServer: !!state.settings.passphrase.hasPGPKeyOnServer,

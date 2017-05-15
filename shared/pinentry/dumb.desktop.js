@@ -6,8 +6,7 @@ import type {DumbComponentMap} from '../constants/types/more'
 import type {Props} from './index.render'
 
 const propsNormal: Props = {
-  onSubmit: (passphrase, features) =>
-    console.log('Pinentry', {passphrase, features}),
+  onSubmit: (passphrase, features) => console.log('Pinentry', {passphrase, features}),
   onCancel: () => {},
   features: {
     saveInKeychain: {

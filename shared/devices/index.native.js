@@ -49,25 +49,10 @@ const textStyle = isRevoked =>
     : {
         flex: 0,
       }
-const _DeviceRow = ({
-  isCurrentDevice,
-  name,
-  isRevoked,
-  icon,
-  showExistingDevicePage,
-}) => (
-  <ClickableBox
-    onClick={showExistingDevicePage}
-    style={{...stylesCommonRow, alignItems: 'center'}}
-  >
-    <Box
-      key={name}
-      style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}
-    >
-      <Icon
-        type={icon}
-        style={isRevoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}}
-      />
+const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => (
+  <ClickableBox onClick={showExistingDevicePage} style={{...stylesCommonRow, alignItems: 'center'}}>
+    <Box key={name} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
+      <Icon type={icon} style={isRevoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
       <Box
         style={{
           ...globalStyles.flexBoxColumn,
@@ -96,13 +81,8 @@ const DeviceHeader = ({onAddNew, waitingForServer}) => {
   }
   return (
     <ClickableBox onClick={onAddNew}>
-      <Box
-        style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}
-      >
-        <Icon
-          type="iconfont-new"
-          style={{color: globalColors.blue, marginRight: 5}}
-        />
+      <Box style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
+        <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: 5}} />
         <Text type="HeaderLink" style={{padding: 5}}>Add new...</Text>
       </Box>
     </ClickableBox>
@@ -136,23 +116,16 @@ const DevicesRender = ({
   waitingForServer,
 }: Props) => (
   <Box style={stylesContainer}>
-    <DeviceHeader
-      onAddNew={() => setShowingMenu(true)}
-      waitingForServer={waitingForServer}
-    />
+    <DeviceHeader onAddNew={() => setShowingMenu(true)} waitingForServer={waitingForServer} />
     <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
       {deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
       {!!revokedDeviceIDs.length &&
-        <RevokedHeader
-          expanded={showingRevoked}
-          onToggleExpanded={onToggleShowRevoked}
-        >
+        <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
           <RevokedDescription />
           {revokedDeviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
         </RevokedHeader>}
     </NativeScrollView>
-    {showingMenu &&
-      <PopupMenu items={menuItems} onHidden={() => setShowingMenu(false)} />}
+    {showingMenu && <PopupMenu items={menuItems} onHidden={() => setShowingMenu(false)} />}
   </Box>
 )
 

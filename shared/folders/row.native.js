@@ -40,11 +40,7 @@ const Avatars = ({styles, users, isPublic, ignored}) => {
 
   return (
     <Box style={{width: 48, height: 1}}>
-      <NativeImage
-        style={stylesAvatarContainerPrivate}
-        source={source}
-        resizeMode="contain"
-      >
+      <NativeImage style={stylesAvatarContainerPrivate} source={source} resizeMode="contain">
         {contents}
       </NativeImage>
     </Box>
@@ -62,10 +58,7 @@ const Names = ({styles, users, nameColor, redColor}) => {
         >
           {u.username}
           {i !== users.length - 1 && // Injecting the commas here so we never wrap and have newlines starting with a ,
-            <Text
-              type="BodySemibold"
-              style={{color: styles.nameColor, marginRight: 2}}
-            >
+            <Text type="BodySemibold" style={{color: styles.nameColor, marginRight: 2}}>
               ,
             </Text>}
         </Text>
@@ -160,12 +153,7 @@ const Row = ({
     <ClickableBox onClick={clickHandler}>
       <Box style={containerStyle}>
         <Box style={{...globalStyles.flexBoxRow}}>
-          <Avatars
-            users={users}
-            styles={styles}
-            isPublic={isPublic}
-            ignored={ignored}
-          />
+          <Avatars users={users} styles={styles} isPublic={isPublic} ignored={ignored} />
           <Box style={stylesBodyContainer}>
             <Names
               users={users}
@@ -175,11 +163,8 @@ const Row = ({
               nameColor={nameColor}
               redColor={redColor}
             />
-            {(meta || ignored) &&
-              <RowMeta ignored={ignored} meta={meta} styles={styles} />}
-            {!(meta || ignored) &&
-              modified &&
-              <Modified modified={modified} styles={styles} />}
+            {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
+            {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
           </Box>
           <Box style={stylesActionContainer}>
             {hasData && <Icon type={icon} style={{width: 32}} />}

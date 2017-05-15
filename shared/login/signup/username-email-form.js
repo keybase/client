@@ -30,8 +30,7 @@ class UsernameEmailForm extends Component {
         username={this.state.username}
         emailChange={email => this.setState({email})}
         email={this.state.email}
-        onSubmit={() =>
-          this.props.checkUsernameEmail(this.state.username, this.state.email)}
+        onSubmit={() => this.props.checkUsernameEmail(this.state.username, this.state.email)}
         usernameErrorText={this.props.usernameErrorText}
         emailErrorText={this.props.emailErrorText}
         onBack={this.props.restartSignup}
@@ -44,8 +43,7 @@ class UsernameEmailForm extends Component {
 // $FlowIssue type this connector
 export default connect(
   state => ({
-    usernameErrorText: state.signup.usernameError &&
-      state.signup.usernameError.message,
+    usernameErrorText: state.signup.usernameError && state.signup.usernameError.message,
     emailErrorText: state.signup.emailError && state.signup.emailError.message,
     username: state.signup.username,
     email: state.signup.email,

@@ -13,10 +13,7 @@ import {debounce} from 'lodash'
 import {getUserImageMap, loadUserImageMap} from './util/pictures'
 import {initAvatarLookup, initAvatarLoad} from './common-adapters'
 import {listenForNotifications} from './actions/notifications'
-import {
-  persistRouteState,
-  loadRouteState,
-} from './actions/platform-specific.native'
+import {persistRouteState, loadRouteState} from './actions/platform-specific.native'
 import {navigateUp, setRouteState} from './actions/route-tree'
 
 import type {TypedState} from './constants/reducer'
@@ -107,11 +104,9 @@ class Main extends Component<void, any, void> {
 
 const mapStateToProps = (state: TypedState) => ({
   dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
-  folderBadge: state.favorite.folderState.privateBadge +
-    state.favorite.folderState.publicBadge,
+  folderBadge: state.favorite.folderState.privateBadge + state.favorite.folderState.publicBadge,
   mobileAppBadgeCount: state.notifications.get('mobileAppBadgeCount'),
-  mountPush: state.config.loggedIn &&
-    state.config.bootStatus === 'bootStatusBootstrapped',
+  mountPush: state.config.loggedIn && state.config.bootStatus === 'bootStatusBootstrapped',
   routeDef: state.routeTree.routeDef,
   routeState: state.routeTree.routeState,
   showPushPrompt: state.push.permissionsPrompt,

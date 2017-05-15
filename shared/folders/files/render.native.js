@@ -13,30 +13,16 @@ import {
   ListItem,
   NativeStyleSheet,
 } from '../../common-adapters/index.native'
-import {
-  globalStyles,
-  globalColors,
-  globalMargins,
-  statusBarHeight,
-} from '../../styles'
+import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
 import type {IconType} from '../../common-adapters/icon'
 import type {FileSection} from '../../constants/folders'
 import type {Props} from './render'
 
-const RenderIgnore = ({
-  isPrivate,
-  ignored,
-  unIgnoreCurrentFolder,
-  ignoreCurrentFolder,
-}) =>
+const RenderIgnore = ({isPrivate, ignored, unIgnoreCurrentFolder, ignoreCurrentFolder}) =>
   ignored
-    ? <Button
-        type="Secondary"
-        onClick={unIgnoreCurrentFolder}
-        label="Unignore folder"
-      />
+    ? <Button type="Secondary" onClick={unIgnoreCurrentFolder} label="Unignore folder" />
     : <Button
         backgroundMode={isPrivate ? 'Terminal' : 'Normal'}
         type="Secondary"
@@ -53,9 +39,7 @@ const RenderNotImplemented = ({
 }) => {
   const privateStyle = isPrivate ? {color: globalColors.blue3_40} : {}
   return (
-    <Box
-      style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center'}}
-    >
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center'}}>
       <Text style={{...privateStyle, textAlign: 'center'}} type="BodySmall">
         Mobile files coming soon!
       </Text>
@@ -86,12 +70,7 @@ const Divider = ({theme, backgroundColor, color}) => (
   </Box>
 )
 
-const ParticipantUnlock = ({
-  waitingForParticipantUnlock,
-  isPrivate,
-  backgroundMode,
-  theme,
-}) => {
+const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMode, theme}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Text type="BodySemibold" style={styleWarningBanner}>
@@ -109,12 +88,8 @@ const ParticipantUnlock = ({
             i => (
               <Divider
                 key={i}
-                color={
-                  isPrivate ? globalColors.black_10 : globalColors.black_05
-                }
-                backgroundColor={
-                  isPrivate ? globalColors.darkBlue3 : globalColors.lightGrey
-                }
+                color={isPrivate ? globalColors.black_10 : globalColors.black_05}
+                backgroundColor={isPrivate ? globalColors.darkBlue3 : globalColors.lightGrey}
               />
             ),
             waitingForParticipantUnlock.map(p => (
@@ -141,10 +116,7 @@ const ParticipantUnlock = ({
     </Box>
   )
 }
-const deviceIcon: (isPrivate: boolean, type: string) => IconType = (
-  isPrivate,
-  type
-) =>
+const deviceIcon: (isPrivate: boolean, type: string) => IconType = (isPrivate, type) =>
   ({
     private: {
       backup: 'icon-paper-key-dark-blue-32',
@@ -158,13 +130,7 @@ const deviceIcon: (isPrivate: boolean, type: string) => IconType = (
     },
   }[isPrivate ? 'private' : 'public'][type])
 
-const YouCanUnlock = ({
-  youCanUnlock,
-  isPrivate,
-  backgroundMode,
-  onClickPaperkey,
-  theme,
-}) => {
+const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey, theme}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Text type="BodySemibold" style={styleWarningBanner}>
@@ -225,9 +191,7 @@ class FilesRender extends Component<void, Props, void> {
           backgroundColor: backgroundColorThemed[this.props.theme],
         }}
       >
-        <Box
-          style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 32}}
-        >
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 32}}>
           <Box
             key={section.name}
             style={{...globalStyles.flexBoxRow, marginLeft: globalMargins.tiny}}
@@ -242,21 +206,13 @@ class FilesRender extends Component<void, Props, void> {
                   ...styleSectionTextThemed[this.props.theme],
                 }}
               />}
-            <Text
-              type="BodySmallSemibold"
-              style={{...styleSectionTextThemed[this.props.theme]}}
-            >
+            <Text type="BodySmallSemibold" style={{...styleSectionTextThemed[this.props.theme]}}>
               {section.name}
             </Text>
           </Box>
         </Box>
         {intersperseFn(
-          i => (
-            <Box
-              key={i}
-              style={{height: 0.5, backgroundColor: globalColors.black_10}}
-            />
-          ),
+          i => <Box key={i} style={{height: 0.5, backgroundColor: globalColors.black_10}} />,
           section.files.map(f => <File key={f.name} {...f} />)
         )}
       </Box>
@@ -359,9 +315,7 @@ class FilesRender extends Component<void, Props, void> {
         }}
       >
         {this._renderHeader()}
-        <Box
-          style={{...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}
-        >
+        <Box style={{...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}>
           <Usernames
             prefix={isPrivate ? 'private/' : 'public/'}
             users={this.props.users}
@@ -370,11 +324,7 @@ class FilesRender extends Component<void, Props, void> {
             containerStyle={{textAlign: 'center'}}
           />
         </Box>
-        {this._renderContents(
-          isPrivate,
-          this.props.ignored,
-          this.props.allowIgnore
-        )}
+        {this._renderContents(isPrivate, this.props.ignored, this.props.allowIgnore)}
       </Box>
     )
   }

@@ -73,16 +73,8 @@ const userEntryUsernameStyle = following => ({
 
 class FriendshipsRender extends Component<void, Props, void> {
   _itemRenderer(followers: boolean, index: number) {
-    const user = followers
-      ? this.props.followers[index]
-      : this.props.following[index]
-    return (
-      <UserEntry
-        key={user.username}
-        {...user}
-        onClick={this.props.onUserClick}
-      />
-    )
+    const user = followers ? this.props.followers[index] : this.props.following[index]
+    return <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
   }
 
   render() {

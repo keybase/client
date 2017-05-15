@@ -47,11 +47,7 @@ class MultiAvatar extends Component<void, Props, void> {
 
     return (
       <Box style={{...containerStyle, ...style}}>
-        <Avatar
-          {...leftProps}
-          style={{...leftAvatar, ...leftProps.style}}
-          size={multiSize}
-        />
+        <Avatar {...leftProps} style={{...leftAvatar, ...leftProps.style}} size={multiSize} />
         <Box style={rightAvatarContainer}>
           <Avatar {...rightProps} style={rightProps.style} size={multiSize} />
         </Box>

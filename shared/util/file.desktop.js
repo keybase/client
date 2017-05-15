@@ -47,19 +47,11 @@ function copy(from: string, to: string) {
 }
 
 // TODO implemented for mobile, not here
-function writeFile(
-  filepath: string,
-  contents: string,
-  encoding?: string
-): Promise<void> {
+function writeFile(filepath: string, contents: string, encoding?: string): Promise<void> {
   return Promise.reject(new Error('not implemented'))
 }
 
-function writeStream(
-  filepath: string,
-  encoding: string,
-  append?: boolean
-): Promise<*> {
+function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
   return Promise.reject(new Error('not implemented'))
 }
 

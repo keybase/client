@@ -6,12 +6,7 @@ import {restartSignup} from '../../../actions/signup'
 
 class SignupError extends Component {
   render() {
-    return (
-      <Render
-        errorText={this.props.errorText}
-        restartSignup={this.props.restartSignup}
-      />
-    )
+    return <Render errorText={this.props.errorText} restartSignup={this.props.restartSignup} />
   }
 }
 

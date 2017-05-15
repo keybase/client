@@ -75,12 +75,7 @@ class Button extends Component<void, Props, void> {
 
   render() {
     // First apply styles for the main button types.
-    let {
-      backgroundStyle,
-      labelStyle,
-      progressColor,
-      rippleStyle,
-    } = this._styles(this.props.type)
+    let {backgroundStyle, labelStyle, progressColor, rippleStyle} = this._styles(this.props.type)
     let smallStyle = {}
 
     // Then some overrides that apply to all button types.

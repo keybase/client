@@ -9,22 +9,13 @@ import * as Creators from './creators'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import {RPCError} from '../../util/errors'
-import {
-  bootstrap,
-  setInitialTab,
-  getExtendedStatus,
-  setInitialLink,
-} from '../config'
+import {bootstrap, setInitialTab, getExtendedStatus, setInitialLink} from '../config'
 import {appLink} from '../app'
 import {defaultModeForDeviceRoles} from './provision-helpers'
 import openURL from '../../util/open-url'
 import {loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
-import {
-  load as loadDevices,
-  setWaiting as setDevicesWaiting,
-  devicesTabLocation,
-} from '../devices'
+import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from '../devices'
 import {deletePushTokenSaga} from '../push'
 import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
@@ -48,9 +39,7 @@ const InputCancelError = {
 const codePageSelector = ({login: {codePage}}: TypedState) => codePage
 
 function* generateQRCode() {
-  const codePage: AfterSelect<typeof codePageSelector> = yield select(
-    codePageSelector
-  )
+  const codePage: AfterSelect<typeof codePageSelector> = yield select(codePageSelector)
 
   if (codePage.textCode) {
     yield put(Creators.setQRCode(codePage.textCode.stringValue()))
@@ -59,9 +48,7 @@ function* generateQRCode() {
 
 // TODO add waiting handlers
 // TODO sagaize
-const makeWaitingHandler = (
-  dispatch: Dispatch
-): {waitingHandler: (waiting: boolean) => void} => ({
+const makeWaitingHandler = (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} => ({
   waitingHandler: (waiting: boolean) => {
     dispatch(Creators.waitingForResponse(waiting))
   },
@@ -103,21 +90,13 @@ function clearWaitingDecorator(saga) {
 }
 
 function* setCodePageOtherDeviceRole(otherDeviceRole: DeviceRole) {
-  const codePage: AfterSelect<typeof codePageSelector> = yield select(
-    codePageSelector
-  )
+  const codePage: AfterSelect<typeof codePageSelector> = yield select(codePageSelector)
   if (codePage.myDeviceRole == null) {
-    console.warn(
-      "my device role is null, can't setCodePageOtherDeviceRole. Bailing"
-    )
+    console.warn("my device role is null, can't setCodePageOtherDeviceRole. Bailing")
     return
   }
 
-  const mode = defaultModeForDeviceRoles(
-    codePage.myDeviceRole,
-    otherDeviceRole,
-    false
-  )
+  const mode = defaultModeForDeviceRoles(codePage.myDeviceRole, otherDeviceRole, false)
   if (!mode) {
     console.warn("mode is null!, can't setCodePageMode. Bailing")
     return
@@ -195,18 +174,12 @@ const kex2Sagas = (onBackSaga, provisionerSuccessSaga, finishedSaga) => {
     'keybase.1.provisionUi.DisplayAndPromptSecret': sagaWaitingDecorator(
       displayAndPromptSecretSaga(onBackSagaDecorated)
     ),
-    'keybase.1.provisionUi.DisplaySecretExchanged': sagaWaitingDecorator(
-      passthroughResponseSaga
-    ),
+    'keybase.1.provisionUi.DisplaySecretExchanged': sagaWaitingDecorator(passthroughResponseSaga),
     'keybase.1.provisionUi.PromptNewDeviceName': sagaWaitingDecorator(
       promptNewDeviceNameSaga(onBackSagaDecorated)
     ),
-    'keybase.1.provisionUi.ProvisioneeSuccess': sagaWaitingDecorator(
-      passthroughResponseSaga
-    ),
-    'keybase.1.provisionUi.ProvisionerSuccess': sagaWaitingDecorator(
-      provisionerSuccessSaga
-    ),
+    'keybase.1.provisionUi.ProvisioneeSuccess': sagaWaitingDecorator(passthroughResponseSaga),
+    'keybase.1.provisionUi.ProvisionerSuccess': sagaWaitingDecorator(provisionerSuccessSaga),
     'keybase.1.provisionUi.chooseDevice': sagaWaitingDecorator(
       chooseDeviceSaga(onBackSagaDecorated)
     ),
@@ -247,10 +220,7 @@ function respondError(response, ...args) {
 function* selectKeySaga({response}) {
   yield respondError(
     response,
-    new RPCError(
-      'Not supported in GUI',
-      Types.ConstantsStatusCode.sckeynotfound
-    )
+    new RPCError('Not supported in GUI', Types.ConstantsStatusCode.sckeynotfound)
   )
 }
 
@@ -321,10 +291,7 @@ function* passthroughResponseSaga({response}) {
 // TODO type this
 type DisplayAndPromptSecretArgs = any
 const displayAndPromptSecretSaga = onBackSaga =>
-  function*({
-    params: {phrase, previousErr},
-    response,
-  }: DisplayAndPromptSecretArgs) {
+  function*({params: {phrase, previousErr}, response}: DisplayAndPromptSecretArgs) {
     yield put(Creators.setTextCode(phrase, previousErr))
     yield call(generateQRCode)
 
@@ -342,9 +309,7 @@ const displayAndPromptSecretSaga = onBackSaga =>
     if (onBack) {
       yield call(onBackSaga, response)
     } else if (qrScanned || textEntered) {
-      const phrase = qrScanned
-        ? qrScanned.payload.phrase
-        : textEntered.payload.phrase
+      const phrase = qrScanned ? qrScanned.payload.phrase : textEntered.payload.phrase
       yield call(resultWithWaiting, response, {phrase, secret: null})
     }
   }
@@ -448,18 +413,13 @@ const chooseGPGMethodSaga = onBackSaga =>
       yield call(
         resultWithWaiting,
         response,
-        exportKey
-          ? Types.ProvisionUiGPGMethod.gpgImport
-          : Types.ProvisionUiGPGMethod.gpgSign
+        exportKey ? Types.ProvisionUiGPGMethod.gpgImport : Types.ProvisionUiGPGMethod.gpgSign
       )
     }
   }
 
 const getPassphraseSaga = onBackSaga =>
-  function*({
-    params: {pinentry: {type, prompt, username, retryLabel}},
-    response,
-  }) {
+  function*({params: {pinentry: {type, prompt, username, retryLabel}}, response}) {
     switch (type) {
       case Types.PassphraseCommonPassphraseType.paperKey:
         const destination = {
@@ -495,10 +455,7 @@ const getPassphraseSaga = onBackSaga =>
         break
       default:
         response.error(
-          new RPCError(
-            'Unknown getPassphrase type',
-            Types.ConstantsStatusCode.scnotfound
-          )
+          new RPCError('Unknown getPassphrase type', Types.ConstantsStatusCode.scnotfound)
         )
         return
     }
@@ -543,11 +500,7 @@ function* finishLoginSaga({error, params}) {
 }
 
 function* loginFlowSaga(usernameOrEmail) {
-  const loginSagas = kex2Sagas(
-    cancelLogin,
-    provisionerSuccessInLoginSaga,
-    finishLoginSaga
-  )
+  const loginSagas = kex2Sagas(cancelLogin, provisionerSuccessInLoginSaga, finishLoginSaga)
   const catchError = function*() {
     yield call(cancelLogin)
   }
@@ -569,9 +522,7 @@ function* initalizeMyCodeStateForLogin() {
   // flow, let's set ourselves to be a newDevice
   yield put(
     Creators.setMyDeviceCodeState(
-      isMobile
-        ? Constants.codePageDeviceRoleNewPhone
-        : Constants.codePageDeviceRoleNewComputer
+      isMobile ? Constants.codePageDeviceRoleNewPhone : Constants.codePageDeviceRoleNewComputer
     )
   )
 }
@@ -607,26 +558,18 @@ function* startLoginSaga() {
 }
 
 function* cameraBrokenModeSaga({payload: {broken}}) {
-  const codePage: AfterSelect<typeof codePageSelector> = yield select(
-    codePageSelector
-  )
+  const codePage: AfterSelect<typeof codePageSelector> = yield select(codePageSelector)
   if (codePage.myDeviceRole == null) {
     console.warn("my device role is null, can't setCameraBrokenMode. Bailing")
     return
   }
 
   if (codePage.otherDeviceRole == null) {
-    console.warn(
-      "other device role is null, can't setCameraBrokenMode. Bailing"
-    )
+    console.warn("other device role is null, can't setCameraBrokenMode. Bailing")
     return
   }
 
-  const mode = defaultModeForDeviceRoles(
-    codePage.myDeviceRole,
-    codePage.otherDeviceRole,
-    broken
-  )
+  const mode = defaultModeForDeviceRoles(codePage.myDeviceRole, codePage.otherDeviceRole, broken)
   if (!mode) {
     console.warn("mode is null!, can't setCodePageMode. Bailing")
     return
@@ -674,9 +617,7 @@ function* addNewDeviceSaga({payload: {role}}: DeviceConstants.AddNewDevice) {
     'keybase.1.provisionUi.chooseDeviceType': chooseDeviceTypeSaga,
   }
 
-  const channelConfig = Saga.singleFixedChannelConfig(
-    Object.keys(addDeviceSagas)
-  )
+  const channelConfig = Saga.singleFixedChannelConfig(Object.keys(addDeviceSagas))
   const addDeviceChanMap = yield call(addDeviceRpc, channelConfig)
 
   // Returns an Array<Task>
@@ -689,9 +630,7 @@ function* addNewDeviceSaga({payload: {role}}: DeviceConstants.AddNewDevice) {
   yield put(setDevicesWaiting(false))
 }
 
-function* reloginSaga({
-  payload: {usernameOrEmail, passphrase},
-}: Constants.Relogin) {
+function* reloginSaga({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
   const chanMap = Types.loginLoginProvisionedDeviceRpcChannelMap(
     ['keybase.1.secretUi.getPassphrase', 'finished'],
     {param: {noPassphrasePrompt: false, username: usernameOrEmail}}
@@ -748,14 +687,8 @@ function* loginSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(Constants.cameraBrokenMode, cameraBrokenModeSaga)
   yield Saga.safeTakeLatest(Constants.setCodeMode, generateQRCode)
   yield Saga.safeTakeLatest(Constants.relogin, reloginSaga)
-  yield Saga.safeTakeLatest(
-    Constants.openAccountResetPage,
-    openAccountResetPageSaga
-  )
-  yield Saga.safeTakeLatest(
-    Constants.navBasedOnLoginState,
-    navBasedOnLoginState
-  )
+  yield Saga.safeTakeLatest(Constants.openAccountResetPage, openAccountResetPageSaga)
+  yield Saga.safeTakeLatest(Constants.navBasedOnLoginState, navBasedOnLoginState)
   yield Saga.safeTakeLatest(Constants.logoutDone, logoutDoneSaga)
   yield Saga.safeTakeLatest(Constants.logout, logoutSaga)
   yield Saga.safeTakeLatest('device:addNewDevice', addNewDeviceSaga)

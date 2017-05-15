@@ -16,11 +16,7 @@ class Request {
   // If we're waiting for a response
   _waiting: boolean = false
 
-  constructor(
-    method: MethodKey,
-    param: ?Object,
-    waitingHandler: SimpleWaiting
-  ) {
+  constructor(method: MethodKey, param: ?Object, waitingHandler: SimpleWaiting) {
     this._method = method
     this._param = param || {}
     this._waitingHandler = waitingHandler
@@ -105,9 +101,7 @@ class OutgoingRequest extends Request {
   send(): void {
     this.updateWaiting(true)
     this._invoke &&
-      this._invoke(this.method, this.param, (err, data) =>
-        this._sendCallback(err, data)
-      )
+      this._invoke(this.method, this.param, (err, data) => this._sendCallback(err, data))
   }
 
   _sendCallback(err: any, data: any): void {

@@ -49,7 +49,6 @@ export default connect(
   }),
   dispatch => ({
     onBack: () => dispatch(Creators.onBack()),
-    onSubmit: paperkey =>
-      dispatch(Creators.submitPassphrase(new HiddenString(paperkey), false)),
+    onSubmit: paperkey => dispatch(Creators.submitPassphrase(new HiddenString(paperkey), false)),
   })
 )(PaperKey)

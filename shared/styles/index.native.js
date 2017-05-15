@@ -105,10 +105,4 @@ function backgroundURL(...path: Array<string>): Object {
   return {}
 }
 
-export {
-  globalColors,
-  backgroundURL,
-  statusBarHeight,
-  globalStyles,
-  globalMargins,
-}
+export {globalColors, backgroundURL, statusBarHeight, globalStyles, globalMargins}

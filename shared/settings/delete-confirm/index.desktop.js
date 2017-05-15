@@ -39,9 +39,7 @@ function DeleteConfirm(props: Props) {
       >
         Are you sure you want to permanently delete your account?
       </Text>
-      <Box
-        style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}
-      >
+      <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
         <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
         <Button
           style={{margin: 0}}

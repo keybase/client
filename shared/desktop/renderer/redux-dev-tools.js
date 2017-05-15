@@ -6,11 +6,7 @@ import {createDevTools} from 'redux-devtools'
 import {reduxDevToolsSelect} from '../../local-debug.desktop.js'
 
 export default createDevTools(
-  <DockMonitor
-    toggleVisibilityKey="ctrl-h"
-    changePositionKey="ctrl-q"
-    defaultIsVisible={false}
-  >
+  <DockMonitor toggleVisibilityKey="ctrl-h" changePositionKey="ctrl-q" defaultIsVisible={false}>
     <LogMonitor
       theme="tomorrow"
       select={reduxDevToolsSelect}

@@ -3,11 +3,7 @@ import * as Constants from '../../../constants/chat'
 import React, {Component} from 'react'
 import {withPropsOnChange} from 'recompose'
 import messageFactory from '../messages'
-import {
-  Box,
-  NativeScrollView,
-  NativeKeyboard,
-} from '../../../common-adapters/index.native'
+import {Box, NativeScrollView, NativeKeyboard} from '../../../common-adapters/index.native'
 // $FlowIssue
 import FlatList from '../../../fixme/Lists/FlatList'
 
@@ -55,10 +51,7 @@ class ConversationList extends Component<void, Props, void> {
 
   componentDidUpdate(prevProps: Props) {
     // TODO do we need this? I think the list may work how we want w/o this
-    if (
-      this.props.listScrollDownCounter !== prevProps.listScrollDownCounter &&
-      this._scrollRef
-    ) {
+    if (this.props.listScrollDownCounter !== prevProps.listScrollDownCounter && this._scrollRef) {
       this._scrollRef.scrollTo({animated: false, y: 0})
     }
   }
@@ -98,9 +91,9 @@ const verticallyInvertedStyle = {
 }
 
 // Reverse the order of messageKeys to compensate for vertically reversed display
-const withReversedMessageKeys = withPropsOnChange(
-  ['messageKeys'],
-  ({messageKeys, ...rest}) => ({messageKeys: messageKeys.reverse(), ...rest})
-)
+const withReversedMessageKeys = withPropsOnChange(['messageKeys'], ({messageKeys, ...rest}) => ({
+  messageKeys: messageKeys.reverse(),
+  ...rest,
+}))
 
 export default withReversedMessageKeys(ConversationList)

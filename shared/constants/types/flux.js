@@ -33,10 +33,7 @@ export type AsyncAction = (
 // eslint-disable-next-line no-use-before-define
 export type Dispatch = (action: AsyncAction | Action) => ?Promise<*>
 
-export type TypedAsyncAction<A> = (
-  dispatch: TypedDispatch<A>,
-  getState: GetState
-) => ?Promise<*>
+export type TypedAsyncAction<A> = (dispatch: TypedDispatch<A>, getState: GetState) => ?Promise<*>
 export type TypedDispatch<-A> = (action: TypedAsyncAction<A> | A) => ?Promise<*>
 
 export const noPayloadTransformer: LogTransformer = action => {

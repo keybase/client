@@ -19,13 +19,7 @@ type UserEntryProps = FriendshipUserInfo & {
   onClick?: (username: string) => void,
 }
 
-const UserEntry = ({
-  onClick,
-  username,
-  followsYou,
-  following,
-  thumbnailUrl,
-}: UserEntryProps) => (
+const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}: UserEntryProps) => (
   <ClickableBox
     onClick={() => {
       onClick && onClick(username)
@@ -86,9 +80,7 @@ class FriendshipsRender extends Component<void, Props, State> {
   })
 
   _setDataSource = props => {
-    const data = props.currentTab === 'Followers'
-      ? props.followers
-      : props.following
+    const data = props.currentTab === 'Followers' ? props.followers : props.following
     const dataSource = this._dataSource.cloneWithRows(_.chunk(data || [], 3))
     this.setState({dataSource})
   }
@@ -126,13 +118,7 @@ class FriendshipsRender extends Component<void, Props, State> {
         {[0, 1, 2].map(idx => {
           const user = users[idx]
           if (user) {
-            return (
-              <UserEntry
-                key={user.username}
-                {...user}
-                onClick={this.props.onUserClick}
-              />
-            )
+            return <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
           } else {
             return null
           }
@@ -179,10 +165,7 @@ class FriendshipsRender extends Component<void, Props, State> {
                 <Box style={tabItemContainerTopBorder} />
                 {counts[tab] === 0 &&
                   <Box style={tabItemEmptyStyle}>
-                    <Text
-                      type="BodySmall"
-                      style={{color: globalColors.black_40}}
-                    >
+                    <Text type="BodySmall" style={{color: globalColors.black_40}}>
                       {isYou ? textWhenEmptyYou[tab] : textWhenEmpty[tab]}
                     </Text>
                   </Box>}

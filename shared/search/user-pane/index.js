@@ -3,11 +3,7 @@ import * as Constants from '../../constants/search'
 import keybaseUrl from '../../constants/urls'
 import {TypedConnector} from '../../util/typed-connect'
 import {getProfile, onFollow, onUnfollow} from '../../actions/tracker'
-import {
-  onClickAvatar,
-  onClickFollowers,
-  onClickFollowing,
-} from '../../actions/profile'
+import {onClickAvatar, onClickFollowers, onClickFollowing} from '../../actions/profile'
 import {startConversation} from '../../actions/chat'
 import openURL from '../../util/open-url'
 import Render from './render'
@@ -27,23 +23,14 @@ const connector: TypedConnector<
 
 export default connector.connect(
   (
-    {
-      search: {userForInfoPane},
-      tracker: {trackers},
-      config: {username: myUsername},
-    },
+    {search: {userForInfoPane}, tracker: {trackers}, config: {username: myUsername}},
     dispatch,
     ownProps
   ) => {
     if (userForInfoPane && userForInfoPane.service === 'keybase') {
       const username = userForInfoPane.username
       const trackerState = trackers[username]
-      if (
-        username &&
-        trackerState &&
-        trackerState.type === 'tracker' &&
-        !!trackerState.error
-      ) {
+      if (username && trackerState && trackerState.type === 'tracker' && !!trackerState.error) {
         return {
           error: trackerState.error,
           mode: 'error',
@@ -65,9 +52,7 @@ export default connector.connect(
               dispatch(onFollow(username, false))
             },
             onChat: () => {
-              username &&
-                myUsername &&
-                dispatch(startConversation([username, myUsername]))
+              username && myUsername && dispatch(startConversation([username, myUsername]))
             },
             onClickAvatar: () => {
               dispatch(onClickAvatar(username))

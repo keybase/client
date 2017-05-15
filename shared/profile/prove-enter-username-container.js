@@ -36,12 +36,7 @@ class ProveEnterUsernameContainer extends Component<void, any, State> {
   }
 }
 
-const connector: TypedConnector<
-  TypedState,
-  TypedDispatch<{}>,
-  {},
-  Props
-> = new TypedConnector()
+const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
 
 export default connector.connect((state, dispatch, ownProps) => {
   const profile = state.profile

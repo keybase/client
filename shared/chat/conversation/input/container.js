@@ -17,12 +17,8 @@ const mapStateToProps = (state: TypedState, {focusInputCounter}: OwnProps) => {
   let isLoading = true
 
   if (selectedConversationIDKey !== Constants.nothingSelected) {
-    if (
-      !Constants.isPendingConversationIDKey(selectedConversationIDKey || '')
-    ) {
-      const conversationState = state.chat
-        .get('conversationStates')
-        .get(selectedConversationIDKey)
+    if (!Constants.isPendingConversationIDKey(selectedConversationIDKey || '')) {
+      const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
       if (conversationState) {
         isLoading = !conversationState.isLoaded
       }
@@ -35,9 +31,7 @@ const mapStateToProps = (state: TypedState, {focusInputCounter}: OwnProps) => {
 
   const routeState = Constants.getSelectedRouteState(state)
   const defaultText =
-    (routeState &&
-      routeState.get('inputText', new HiddenString('')).stringValue()) ||
-    ''
+    (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || ''
   return {
     defaultText,
     editingMessage: state.chat.get('editingMessage'),
@@ -49,10 +43,7 @@ const mapStateToProps = (state: TypedState, {focusInputCounter}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onAttach: (
-    selectedConversation,
-    inputs: Array<Constants.AttachmentInput>
-  ) => {
+  onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => {
     dispatch(
       navigateAppend([
         {
@@ -66,16 +57,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Creators.editMessage(message, new HiddenString(body)))
   },
   onPostMessage: (selectedConversation, text) =>
-    dispatch(
-      Creators.postMessage(selectedConversation, new HiddenString(text))
-    ),
+    dispatch(Creators.postMessage(selectedConversation, new HiddenString(text))),
   onShowEditor: (message: Constants.Message) => {
     dispatch(Creators.showEditor(message))
   },
-  onStoreInputText: (
-    selectedConversation: Constants.ConversationIDKey,
-    inputText: string
-  ) =>
+  onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) =>
     dispatch(
       Creators.setSelectedRouteState(selectedConversation, {
         inputText: new HiddenString(inputText),
@@ -96,10 +82,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   onStoreInputText: (inputText: string) => {
     if (stateProps.selectedConversationIDKey) {
       // only write if we're in a convo
-      dispatchProps.onStoreInputText(
-        stateProps.selectedConversationIDKey,
-        inputText
-      )
+      dispatchProps.onStoreInputText(stateProps.selectedConversationIDKey, inputText)
     }
   },
 })
@@ -133,8 +116,7 @@ export default compose(
     componentWillReceiveProps: function(nextProps) {
       if (
         this.props.selectedConversationIDKey &&
-        this.props.selectedConversationIDKey !==
-          nextProps.selectedConversationIDKey
+        this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey
       ) {
         this.props.onStoreInputText(this.props.inputValue())
         // withState won't get called again if props changes!

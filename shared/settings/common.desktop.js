@@ -8,11 +8,7 @@ function Stars({count}: {count: number}) {
   return (
     <Box style={globalStyles.flexBoxRow}>
       {range(count).map(i => (
-        <Icon
-          key={i}
-          style={{color: globalColors.green}}
-          type="iconfont-star"
-        />
+        <Icon key={i} style={{color: globalColors.green}} type="iconfont-star" />
       ))}
     </Box>
   )

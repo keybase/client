@@ -1,11 +1,6 @@
 // @flow
 import React from 'react'
-import {
-  Box,
-  Text,
-  Button,
-  BackButton,
-} from '../../../common-adapters/index.native'
+import {Box, Text, Button, BackButton} from '../../../common-adapters/index.native'
 import {globalColors, globalStyles, globalMargins} from '../../../styles'
 
 import type {Props} from './you-rekey'

@@ -1,12 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {
-  PlatformIcon,
-  Button,
-  Text,
-  StandardScreen,
-  Icon,
-} from '../../common-adapters'
+import {PlatformIcon, Button, Text, StandardScreen, Icon} from '../../common-adapters'
 import {globalMargins} from '../../styles'
 import type {Props} from './generating-pgp'
 

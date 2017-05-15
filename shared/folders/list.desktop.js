@@ -9,13 +9,10 @@ import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
 
 const rowKey = users =>
-  users &&
-  users.map(u => `${u.username}-${u.readOnly ? 'reader' : ''}`).join('-')
+  users && users.map(u => `${u.username}-${u.readOnly ? 'reader' : ''}`).join('-')
 
 const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
-  const caretIcon: IconType = showIgnored
-    ? 'iconfont-caret-down'
-    : 'iconfont-caret-right'
+  const caretIcon: IconType = showIgnored ? 'iconfont-caret-down' : 'iconfont-caret-right'
 
   if (!rows) {
     return null
@@ -99,9 +96,7 @@ class ListRender extends Component<void, Props, void> {
     `
 
     const styles = this.props.isPublic ? stylesPublic : stylesPrivate
-    const ignoredRows = (
-      <Rows {...this.props} isIgnored={true} tlfs={this.props.ignored || []} />
-    )
+    const ignoredRows = <Rows {...this.props} isIgnored={true} tlfs={this.props.ignored || []} />
     return (
       <Box style={{...stylesContainer, ...this.props.style}} ref={this._setRef}>
         <style>{realCSS}</style>

@@ -2,10 +2,7 @@
 // Send helloIAm message to service
 
 import engine from '../engine'
-import {
-  CommonClientType,
-  configHelloIAmRpc,
-} from '../constants/types/flow-types'
+import {CommonClientType, configHelloIAmRpc} from '../constants/types/flow-types'
 
 export default function(
   pid: number,

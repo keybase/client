@@ -169,9 +169,7 @@ type OptionalProps<ItemT> = {
    */
   viewabilityConfig?: ViewabilityConfig,
 }
-type Props<ItemT> = RequiredProps<ItemT> &
-  OptionalProps<ItemT> &
-  VirtualizedListProps
+type Props<ItemT> = RequiredProps<ItemT> & OptionalProps<ItemT> & VirtualizedListProps
 
 const defaultProps = {
   ...VirtualizedList.defaultProps,
@@ -284,8 +282,7 @@ type DefaultProps = typeof defaultProps
  *   Alternatively, you can provide a custom `keyExtractor` prop.
  *
  */
-class FlatList<ItemT>
-  extends React.PureComponent<DefaultProps, Props<ItemT>, void> {
+class FlatList<ItemT> extends React.PureComponent<DefaultProps, Props<ItemT>, void> {
   static defaultProps: DefaultProps = defaultProps
   props: Props<ItemT>
   /**
@@ -318,11 +315,7 @@ class FlatList<ItemT>
    * Note: cannot scroll to locations outside the render window without specifying the
    * `getItemLayout` prop.
    */
-  scrollToItem(params: {
-    animated?: ?boolean,
-    item: ItemT,
-    viewPosition?: number,
-  }) {
+  scrollToItem(params: {animated?: ?boolean, item: ItemT, viewPosition?: number}) {
     this._listRef.scrollToItem(params)
   }
 
@@ -386,23 +379,14 @@ class FlatList<ItemT>
       numColumns,
       columnWrapperStyle,
     } = props
-    invariant(
-      !getItem && !getItemCount,
-      'FlatList does not support custom data formats.'
-    )
+    invariant(!getItem && !getItemCount, 'FlatList does not support custom data formats.')
     if (numColumns > 1) {
       invariant(!horizontal, 'numColumns does not support horizontal.')
     } else {
-      invariant(
-        !columnWrapperStyle,
-        'columnWrapperStyle not supported for single column lists'
-      )
+      invariant(!columnWrapperStyle, 'columnWrapperStyle not supported for single column lists')
     }
     if (legacyImplementation) {
-      invariant(
-        numColumns === 1,
-        'Legacy list does not support multiple columns.'
-      )
+      invariant(numColumns === 1, 'Legacy list does not support multiple columns.')
       // Warning: may not have full feature parity and is meant more for debugging and performance
       // comparison.
       if (!this._hasWarnedLegacy) {
@@ -442,9 +426,7 @@ class FlatList<ItemT>
           'array with 1-%s columns; instead, received a single item.',
         numColumns
       )
-      return items
-        .map((it, kk) => keyExtractor(it, index * numColumns + kk))
-        .join(':')
+      return items.map((it, kk) => keyExtractor(it, index * numColumns + kk)).join(':')
     } else {
       return keyExtractor(items, index)
     }
@@ -467,9 +449,7 @@ class FlatList<ItemT>
     if (numColumns > 1) {
       const changed = []
       const viewableItems = []
-      info.viewableItems.forEach(v =>
-        this._pushMultiColumnViewable(viewableItems, v)
-      )
+      info.viewableItems.forEach(v => this._pushMultiColumnViewable(viewableItems, v))
       info.changed.forEach(v => this._pushMultiColumnViewable(changed, v))
       onViewableItemsChanged({viewableItems, changed})
     } else {
@@ -481,10 +461,7 @@ class FlatList<ItemT>
     const {renderItem, numColumns, columnWrapperStyle} = this.props
     if (numColumns > 1) {
       const {item, index} = info
-      invariant(
-        Array.isArray(item),
-        'Expected array of items with numColumns > 1'
-      )
+      invariant(Array.isArray(item), 'Expected array of items with numColumns > 1')
       return (
         <View style={[{flexDirection: 'row'}, columnWrapperStyle]}>
           {item.map((it, kk) => {
@@ -504,13 +481,7 @@ class FlatList<ItemT>
 
   render() {
     if (this.props.legacyImplementation) {
-      return (
-        <MetroListView
-          {...this.props}
-          items={this.props.data}
-          ref={this._captureRef}
-        />
-      )
+      return <MetroListView {...this.props} items={this.props.data} ref={this._captureRef} />
     } else {
       return (
         <VirtualizedList
@@ -520,9 +491,7 @@ class FlatList<ItemT>
           getItemCount={this._getItemCount}
           keyExtractor={this._keyExtractor}
           ref={this._captureRef}
-          onViewableItemsChanged={
-            this.props.onViewableItemsChanged && this._onViewableItemsChanged
-          }
+          onViewableItemsChanged={this.props.onViewableItemsChanged && this._onViewableItemsChanged}
         />
       )
     }

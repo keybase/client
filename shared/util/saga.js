@@ -1,25 +1,12 @@
 // @flow
 import _ from 'lodash'
 import {buffers, channel} from 'redux-saga'
-import {
-  take,
-  call,
-  put,
-  race,
-  takeEvery,
-  takeLatest,
-  cancelled,
-} from 'redux-saga/effects'
+import {take, call, put, race, takeEvery, takeLatest, cancelled} from 'redux-saga/effects'
 import {globalError} from '../constants/config'
 import {convertToError} from '../util/errors'
 
 import type {Action} from '../constants/types/flux'
-import type {
-  ChannelConfig,
-  ChannelMap,
-  SagaGenerator,
-  Channel,
-} from '../constants/types/saga'
+import type {ChannelConfig, ChannelMap, SagaGenerator, Channel} from '../constants/types/saga'
 
 type SagaMap = {[key: string]: any}
 type Effect = any
@@ -40,11 +27,7 @@ function putOnChannelMap<T>(channelMap: ChannelMap<T>, k: string, v: T): void {
 }
 
 // TODO type this properly
-function effectOnChannelMap<T>(
-  effectFn: any,
-  channelMap: ChannelMap<T>,
-  k: string
-): any {
+function effectOnChannelMap<T>(effectFn: any, channelMap: ChannelMap<T>, k: string): any {
   const c = channelMap[k]
   if (c) {
     return effectFn(c)

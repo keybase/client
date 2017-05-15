@@ -51,11 +51,7 @@ const connector: TypedConnector<
 > = new TypedConnector()
 
 export default connector.connect(
-  (
-    {unlockFolders: {devices, phase, paperkeyError, waiting}},
-    dispatch,
-    ownProps
-  ) => ({
+  ({unlockFolders: {devices, phase, paperkeyError, waiting}}, dispatch, ownProps) => ({
     close: () => {
       ownProps.onCancel()
     },

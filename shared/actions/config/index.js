@@ -140,10 +140,7 @@ type BootstrapOptions = {isReconnect?: boolean}
 
 // TODO: We REALLY need to saga-ize this.
 
-const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (
-  dispatch,
-  getState
-) => {
+const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getState) => {
   const readyForBootstrap = getState().config.readyForBootstrap
   if (!readyForBootstrap) {
     console.warn('Not ready for bootstrap/connect')
@@ -211,10 +208,7 @@ const getBootstrapStatus = (): AsyncAction => dispatch =>
     })
   })
 
-const updateFollowing = (
-  username: string,
-  isTracking: boolean
-): UpdateFollowing => ({
+const updateFollowing = (username: string, isTracking: boolean): UpdateFollowing => ({
   payload: {username, isTracking},
   type: Constants.updateFollowing,
 })

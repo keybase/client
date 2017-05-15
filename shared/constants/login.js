@@ -59,37 +59,22 @@ export type ProvisionTextCodeEntered = NoErrorTypedAction<
 >
 
 export const selectDeviceId = 'login:selectDeviceId'
-export type SelectDeviceId = NoErrorTypedAction<
-  'login:selectDeviceId',
-  {deviceId: string}
->
+export type SelectDeviceId = NoErrorTypedAction<'login:selectDeviceId', {deviceId: string}>
 
 export const chooseGPGMethod = 'login:chooseGPGMethod'
-export type ChooseGPGMethod = NoErrorTypedAction<
-  'login:chooseGPGMethod',
-  {exportKey: boolean}
->
+export type ChooseGPGMethod = NoErrorTypedAction<'login:chooseGPGMethod', {exportKey: boolean}>
 
 export const submitDeviceName = 'login:submitDeviceName'
-export type SubmitDeviceName = NoErrorTypedAction<
-  'login:submitDeviceName',
-  {deviceName: string}
->
+export type SubmitDeviceName = NoErrorTypedAction<'login:submitDeviceName', {deviceName: string}>
 
 export const setCodeMode = 'login:setCodeMode'
 export type SetCodeMode = NoErrorTypedAction<'login:setCodeMode', Mode>
 
 export const setTextCode = 'login:setTextCode'
-export type SetTextCode = NoErrorTypedAction<
-  'login:setTextCode',
-  {textCode: HiddenString}
->
+export type SetTextCode = NoErrorTypedAction<'login:setTextCode', {textCode: HiddenString}>
 
 export const setQRCode = 'login:setQRCode'
-export type SetQRCode = NoErrorTypedAction<
-  'login:setQRCode',
-  {qrCode: HiddenString}
->
+export type SetQRCode = NoErrorTypedAction<'login:setQRCode', {qrCode: HiddenString}>
 
 export const setOtherDeviceCodeState = 'login:setOtherDeviceCodeState'
 export type SetOtherDeviceCodeState = NoErrorTypedAction<
@@ -100,8 +85,7 @@ export type SetOtherDeviceCodeState = NoErrorTypedAction<
 export const loginDone = 'login:loginDone'
 export type LoginDone = TypedAction<'login:relogin', {}, Error>
 
-export const actionUpdateForgotPasswordEmailAddress =
-  'login:actionUpdateForgotPasswordEmailAddress'
+export const actionUpdateForgotPasswordEmailAddress = 'login:actionUpdateForgotPasswordEmailAddress'
 export type UpdateForgotPasswordEmail = NoErrorTypedAction<
   'login:actionUpdateForgotPasswordEmailAddress',
   string
@@ -109,8 +93,7 @@ export type UpdateForgotPasswordEmail = NoErrorTypedAction<
 
 export const codePageDeviceRoleExistingPhone = 'codePageDeviceRoleExistingPhone'
 export const codePageDeviceRoleNewPhone = 'codePageDeviceRoleNewPhone'
-export const codePageDeviceRoleExistingComputer =
-  'codePageDeviceRoleExistingComputer'
+export const codePageDeviceRoleExistingComputer = 'codePageDeviceRoleExistingComputer'
 export const codePageDeviceRoleNewComputer = 'codePageDeviceRoleNewComputer'
 
 export const codePageModeScanCode = 'codePageModeScanCode'
@@ -133,14 +116,12 @@ export const setRevokedSelf = 'login:setRevokedSelf'
 export const setDeletedSelf = 'login:setDeletedSelf'
 export const setLoginFromRevokedDevice = 'login:setLoginFromRevokedDevice'
 
-export const actionSetForgotPasswordSubmitting =
-  'login:actionSetForgotPasswordSubmitting'
+export const actionSetForgotPasswordSubmitting = 'login:actionSetForgotPasswordSubmitting'
 export const actionForgotPasswordDone = 'login:actionForgotPasswordDone'
 
 export const actionRegisteredWithUserPass = 'login:actionRegisteredWithUserPass'
 export const actionRegisteredWithPaperKey = 'login:actionRegisteredWithPaperKey'
-export const actionRegisteredWithExistingDevice =
-  'login:actionRegisteredWithExistingDevice'
+export const actionRegisteredWithExistingDevice = 'login:actionRegisteredWithExistingDevice'
 export const openAccountResetPage = 'login:openAccountResetPage'
 export const navBasedOnLoginState = 'login:navBasedOnLoginState'
 

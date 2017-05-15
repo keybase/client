@@ -20,11 +20,8 @@ import type {
 
 const pathActionTransformer = (action, oldState) => {
   const prevPath = getPath(oldState.routeTree.routeState)
-  const path = Array.from(
-    action.payload.path.map(p => (typeof p === 'string' ? p : p.selected))
-  )
-  const parentPath =
-    action.payload.parentPath && Array.from(action.payload.parentPath)
+  const path = Array.from(action.payload.path.map(p => (typeof p === 'string' ? p : p.selected)))
+  const parentPath = action.payload.parentPath && Array.from(action.payload.parentPath)
   return {
     payload: {
       prevPath,
@@ -91,10 +88,7 @@ export function navigateTo(path: PropsPath<*>, parentPath?: ?Path): NavigateTo {
 // Navigate to a path relative to the current path.
 // If parentPath is provided, the path will be appended relative to parentPath
 // without navigating to it.
-export function navigateAppend(
-  path: PropsPath<*>,
-  parentPath?: Path
-): NavigateAppend {
+export function navigateAppend(path: PropsPath<*>, parentPath?: Path): NavigateAppend {
   return {
     type: Constants.navigateAppend,
     payload: {path, parentPath},

@@ -3,10 +3,7 @@
 import Session from './session'
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
-import type {
-  incomingCallMapType,
-  logUiLogRpcParam,
-} from '../constants/types/flow-types'
+import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flow-types'
 import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {isMobile} from '../constants/platform'
 import {localLog} from '../util/forward-logs'
@@ -25,11 +22,7 @@ class EngineChannel {
   _sessionID: SessionID
   _configKeys: Array<string>
 
-  constructor(
-    map: ChannelMap<*>,
-    sessionID: SessionID,
-    configKeys: Array<string>
-  ) {
+  constructor(map: ChannelMap<*>, sessionID: SessionID, configKeys: Array<string>) {
     this._map = map
     this._sessionID = sessionID
     this._configKeys = configKeys
@@ -48,9 +41,7 @@ class EngineChannel {
     return yield Saga.takeFromChannelMap(this._map, key)
   }
 
-  *race(
-    options: ?{timeout?: number, racers?: Object}
-  ): Generator<any, any, any> {
+  *race(options: ?{timeout?: number, racers?: Object}): Generator<any, any, any> {
     const timeout = options && options.timeout
     const otherRacers = (options && options.racers) || {}
     const initMap = {
@@ -129,11 +120,7 @@ class Engine {
     // Print out any alive sessions periodically
     if (printOutstandingRPCs) {
       setInterval(() => {
-        if (
-          Object.keys(this._sessionsMap).filter(
-            k => !this._sessionsMap[k].dangling
-          ).length
-        ) {
+        if (Object.keys(this._sessionsMap).filter(k => !this._sessionsMap[k].dangling).length) {
           localLog('outstandingSessionDebugger: ', this._sessionsMap)
         }
       }, 10 * 1000)
@@ -236,11 +223,7 @@ class Engine {
   }
 
   // An incoming rpc call
-  _rpcIncoming(payload: {
-    method: MethodKey,
-    param: Array<Object>,
-    response: ?Object,
-  }) {
+  _rpcIncoming(payload: {method: MethodKey, param: Array<Object>, response: ?Object}) {
     const {method, param: incomingParam, response} = payload
     const param = incomingParam && incomingParam.length ? incomingParam[0] : {}
     const {seqid, cancelled} = response || {seqid: 0, cancelled: false}
@@ -265,11 +248,7 @@ class Engine {
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
-  _channelMapRpcHelper(
-    configKeys: Array<string>,
-    method: string,
-    params: any
-  ): EngineChannel {
+  _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel {
     const channelConfig = Saga.singleFixedChannelConfig(configKeys)
     const channelMap = Saga.createChannelMap(channelConfig)
     const incomingCallMap = Object.keys(channelMap).reduce((acc, k) => {
@@ -279,8 +258,7 @@ class Engine {
       return acc
     }, {})
     const callback = (error, params) => {
-      channelMap['finished'] &&
-        Saga.putOnChannelMap(channelMap, 'finished', {error, params})
+      channelMap['finished'] && Saga.putOnChannelMap(channelMap, 'finished', {error, params})
       Saga.closeChannelMap(channelMap)
     }
     const sid = this._rpcOutgoing(method, params, callback, incomingCallMap)
@@ -406,16 +384,9 @@ class Engine {
   }
 
   // Setup a handler for a rpc w/o a session (id = 0)
-  setIncomingHandler(
-    method: MethodKey,
-    handler: (param: Object, response: ?Object) => void
-  ) {
+  setIncomingHandler(method: MethodKey, handler: (param: Object, response: ?Object) => void) {
     if (this._incomingHandler[method]) {
-      rpcLog(
-        'engineInternal',
-        "duplicate incoming handler!!! this isn't allowed",
-        {method}
-      )
+      rpcLog('engineInternal', "duplicate incoming handler!!! this isn't allowed", {method})
       return
     }
     rpcLog('engineInternal', 'registering incoming handler:', {method})
@@ -430,9 +401,7 @@ class Engine {
   // Register a named callback when we disconnect from the server. Call if we're already disconnected
   listenOnDisconnect(key: string, f: () => void) {
     if (!this._onDisconnectHandlers) {
-      throw new Error(
-        'Calling listenOnDisconnect while in the middle of _onDisconnect'
-      )
+      throw new Error('Calling listenOnDisconnect while in the middle of _onDisconnect')
     }
 
     if (!f) {
@@ -452,9 +421,7 @@ class Engine {
   // Register a named callback when we reconnect to the server. Call if we're already connected
   listenOnConnect(key: string, f: () => void) {
     if (!this._onConnectHandlers) {
-      throw new Error(
-        'Calling listenOnConnect while in the middle of _onConnected'
-      )
+      throw new Error('Calling listenOnConnect while in the middle of _onConnected')
     }
 
     if (!f) {
@@ -491,11 +458,7 @@ class FakeEngine {
   createSession() {
     return new Session(0, {}, null, () => {}, () => {})
   }
-  _channelMapRpcHelper(
-    configKeys: Array<string>,
-    method: string,
-    params: any
-  ): EngineChannel {
+  _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel {
     return new EngineChannel({}, 0, [])
   }
   _rpcOutgoing(
@@ -515,11 +478,7 @@ export type EndHandlerType = (session: Object) => void
 export type MethodKey = string
 export type SessionID = number
 export type SessionIDKey = string // used in our maps, really converted to a string key
-export type WaitingHandlerType = (
-  waiting: boolean,
-  method: string,
-  sessionID: SessionID
-) => void
+export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: SessionID) => void
 export type ResponseType = {
   cancel(...args: Array<any>): void,
   result(...args: Array<any>): void,
@@ -533,9 +492,7 @@ const makeEngine = () => {
   }
 
   if (!engine) {
-    engine = process.env.KEYBASE_NO_ENGINE || isTesting
-      ? new FakeEngine()
-      : new Engine()
+    engine = process.env.KEYBASE_NO_ENGINE || isTesting ? new FakeEngine() : new Engine()
   }
   return engine
 }

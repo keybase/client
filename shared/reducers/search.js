@@ -45,10 +45,7 @@ export default function(
           results: [],
           searchPlatform: state.searchPlatform || initialState.searchPlatform,
           searchText: action.payload.term,
-          showUserGroup: showUserGroup(
-            action.payload.term,
-            state.selectedUsers
-          ),
+          showUserGroup: showUserGroup(action.payload.term, state.selectedUsers),
         }
       }
       break
@@ -74,13 +71,9 @@ export default function(
       if (!action.error) {
         const users = action.payload.users
         const maybeUpgradeUser = user =>
-          user.service === 'external' && user.keybaseSearchResult
-            ? user.keybaseSearchResult
-            : user
+          user.service === 'external' && user.keybaseSearchResult ? user.keybaseSearchResult : user
         const isNotSelected = user =>
-          state.selectedUsers.find(u =>
-            Constants.equalSearchResult(u, user)
-          ) === undefined
+          state.selectedUsers.find(u => Constants.equalSearchResult(u, user)) === undefined
         const selectedUsers = users
           .map(maybeUpgradeUser)
           .filter(isNotSelected)
@@ -113,17 +106,13 @@ export default function(
         const user = action.payload.user
         const idx = state.selectedUsers.indexOf(user)
         if (idx !== -1) {
-          const selectedUsers: Array<
-            Constants.SearchResult
-          > = state.selectedUsers.concat([])
+          const selectedUsers: Array<Constants.SearchResult> = state.selectedUsers.concat([])
           selectedUsers.splice(idx, 1)
           let userForInfoPane = state.userForInfoPane
 
           // find a new selection if we just removed the selected user
           if (user === userForInfoPane) {
-            userForInfoPane = selectedUsers.length > idx
-              ? selectedUsers[idx]
-              : null
+            userForInfoPane = selectedUsers.length > idx ? selectedUsers[idx] : null
           }
 
           return {
@@ -141,10 +130,7 @@ export default function(
           return state
         }
 
-        if (
-          state.requestTimestamp &&
-          action.payload.requestTimestamp < state.requestTimestamp
-        ) {
+        if (state.requestTimestamp && action.payload.requestTimestamp < state.requestTimestamp) {
           return state
         }
 

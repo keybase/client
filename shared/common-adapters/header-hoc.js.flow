@@ -8,6 +8,4 @@ export type Props = {
   headerStyle?: ?Object,
 }
 
-declare export default function HeaderHoc<P>(
-  WrappedComponent: ReactClass<P>
-): ReactClass<P & Props>
+declare export default function HeaderHoc<P>(WrappedComponent: ReactClass<P>): ReactClass<P & Props>

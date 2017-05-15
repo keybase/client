@@ -84,9 +84,7 @@ function reducer(state: State = initialState, action: Actions): State {
           ...state.notifications,
           allowSave: true,
           settings: state.notifications.settings.map(updateSubscribe),
-          unsubscribedFromAll: name
-            ? false
-            : !state.notifications.unsubscribedFromAll,
+          unsubscribedFromAll: name ? false : !state.notifications.unsubscribedFromAll,
         },
       }
     case Constants.notificationsSave:

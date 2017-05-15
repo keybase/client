@@ -6,19 +6,12 @@ import type {FriendshipUserInfo} from '../profile/friendships'
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Time} from '../constants/types/flow-types'
 import type {TypedAction} from './types/flux'
-import type {
-  identifyUiDisplayTLFCreateWithInviteRpcParam,
-} from './types/flow-types'
+import type {identifyUiDisplayTLFCreateWithInviteRpcParam} from './types/flow-types'
 
 const cachedIdentifyGoodUntil = 1000 * 60 * 60
 
 // Simple state of the overall proof result
-export type SimpleProofState =
-  | 'normal'
-  | 'warning'
-  | 'error'
-  | 'checking'
-  | 'revoked'
+export type SimpleProofState = 'normal' | 'warning' | 'error' | 'checking' | 'revoked'
 export type SimpleProofMeta =
   | 'upgraded'
   | 'new'
@@ -112,11 +105,7 @@ export type CacheIdentify = TypedAction<
 >
 
 export const identifyStarted = 'tracker:identifyStarted'
-export type IdentifyStarted = TypedAction<
-  'tracker:identifyStarted',
-  void,
-  {error: string}
->
+export type IdentifyStarted = TypedAction<'tracker:identifyStarted', void, {error: string}>
 
 export const identifyFinished = 'tracker:identifyFinished'
 export type IdentifyFinished = TypedAction<
@@ -125,11 +114,7 @@ export type IdentifyFinished = TypedAction<
   {username: string, error: string}
 >
 
-export type NonUserActions =
-  | ShowNonUser
-  | OnClose
-  | PendingIdentify
-  | UpdateFolders
+export type NonUserActions = ShowNonUser | OnClose | PendingIdentify | UpdateFolders
 
 export type Proof = {
   id: string,
@@ -293,9 +278,4 @@ const stateLoggerTransform = (state: State) => {
   return out
 }
 
-export {
-  stateLoggerTransform,
-  cachedIdentifyGoodUntil,
-  bufferToNiceHexString,
-  isLoading,
-}
+export {stateLoggerTransform, cachedIdentifyGoodUntil, bufferToNiceHexString, isLoading}

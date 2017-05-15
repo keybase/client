@@ -45,8 +45,7 @@ export default connect(
       onBioChange: bio => {
         setRouteState({bio})
       },
-      onEditProfile: (bio, fullname, location) =>
-        dispatch(editProfile(bio, fullname, location)),
+      onEditProfile: (bio, fullname, location) => dispatch(editProfile(bio, fullname, location)),
       onFullnameChange: fullname => {
         setRouteState({fullname})
       },
@@ -60,11 +59,7 @@ export default connect(
     ...dispatchProps,
     ...ownProps,
     onEditProfile: () => {
-      dispatchProps.onEditProfile(
-        stateProps.bio,
-        stateProps.fullname,
-        stateProps.location
-      )
+      dispatchProps.onEditProfile(stateProps.bio, stateProps.fullname, stateProps.location)
     },
   })
 )(EditProfile)

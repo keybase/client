@@ -8,11 +8,7 @@ import type {TypedAction, NoErrorTypedAction} from '../constants/types/flux'
 export type NotificationKeys = 'kbfsUploading'
 export type BadgeType = 'regular' | 'update' | 'badged' | 'uploading'
 
-export type LogAction = TypedAction<
-  'notifications:log',
-  {level: LogLevel, text: string},
-  void
->
+export type LogAction = TypedAction<'notifications:log', {level: LogLevel, text: string}, void>
 export type BadgeAppAction = NoErrorTypedAction<
   'notifications:badgeApp',
   {key: NotificationKeys, on: boolean, count?: number}
@@ -30,11 +26,7 @@ export type ListenForKBFSNotifications = NoErrorTypedAction<
   void
 >
 
-export type Actions =
-  | LogAction
-  | BadgeAppAction
-  | ListenForNotifications
-  | ReceivedBadgeState
+export type Actions = LogAction | BadgeAppAction | ListenForNotifications | ReceivedBadgeState
 
 export type State = Record<{
   desktopAppBadgeCount: number,

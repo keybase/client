@@ -32,9 +32,7 @@ import {
 } from '../../local-debug.desktop'
 import {selector as menubarSelector} from '../../menubar'
 import {selector as pineentrySelector} from '../../pinentry'
-import {
-  selector as remotePurgeMessageSelector,
-} from '../../pgp/container.desktop'
+import {selector as remotePurgeMessageSelector} from '../../pgp/container.desktop'
 import {selector as unlockFoldersSelector} from '../../unlock-folders'
 import {setRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'

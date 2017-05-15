@@ -51,10 +51,7 @@ class InviteCodeRender extends Component<void, Props, State> {
           disabled={!this.state.inviteCode}
         />
         <Text type="BodySmall">Not invited?</Text>
-        <Text
-          type="BodySmallSecondaryLink"
-          onClick={this.props.onRequestInvite}
-        >
+        <Text type="BodySmallSecondaryLink" onClick={this.props.onRequestInvite}>
           Request an invite
         </Text>
         <Box style={{flex: 1}} />

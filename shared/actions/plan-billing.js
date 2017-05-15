@@ -12,9 +12,7 @@ import {
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
-function updateBilling(
-  updateBillingArgs: Constants.UpdateBillingArgs
-): Constants.UpdateBilling {
+function updateBilling(updateBillingArgs: Constants.UpdateBillingArgs): Constants.UpdateBilling {
   return {
     type: Constants.updateBilling,
     payload: updateBillingArgs,
@@ -73,13 +71,10 @@ function updateBillingArgsToApiArgs({
   }
 }
 
-function* updateBillingSaga({
-  payload,
-}: Constants.UpdateBilling): SagaGenerator<any, any> {
+function* updateBillingSaga({payload}: Constants.UpdateBilling): SagaGenerator<any, any> {
   let planId = payload.planId
   if (planId == null) {
-    const currentPlanIdSelector = ({planBilling: {plan}}: TypedState) =>
-      plan && plan.planId
+    const currentPlanIdSelector = ({planBilling: {plan}}: TypedState) => plan && plan.planId
     planId = (yield select(currentPlanIdSelector): any)
   }
 
@@ -88,9 +83,7 @@ function* updateBillingSaga({
     yield call(apiserverPostRpcPromise, {
       param: {
         endpoint: 'account/billing_update',
-        args: apiArgsFormatter(
-          updateBillingArgsToApiArgs({...payload, planId})
-        ),
+        args: apiArgsFormatter(updateBillingArgsToApiArgs({...payload, planId})),
       },
     })
 
@@ -122,12 +115,10 @@ function* fetchBillingOverviewSaga(): SagaGenerator<any, any> {
     const action: Constants.UpdateAvailablePlans = {
       type: Constants.updateAvailablePlans,
       payload: {
-        availablePlans: parsed.available_plans
-          .map(Constants.parseAvailablePlan)
-          .sort((a, b) => {
-            if (a.price_pennies === b.price_pennies) return 0
-            return a.price_pennies < b.price_pennies ? -1 : 1
-          }),
+        availablePlans: parsed.available_plans.map(Constants.parseAvailablePlan).sort((a, b) => {
+          if (a.price_pennies === b.price_pennies) return 0
+          return a.price_pennies < b.price_pennies ? -1 : 1
+        }),
       },
     }
 
@@ -142,9 +133,7 @@ function* fetchBillingOverviewSaga(): SagaGenerator<any, any> {
       const paymentInfoAction: Constants.UpdatePaymentInfo = {
         type: Constants.updatePaymentInfo,
         payload: {
-          paymentInfo: Constants.parsePaymentInfo(
-            parsed.payment.stripe_card_info
-          ),
+          paymentInfo: Constants.parsePaymentInfo(parsed.payment.stripe_card_info),
         },
       }
 
@@ -173,9 +162,7 @@ function* fetchBillingAndQuotaSaga(): SagaGenerator<any, any> {
 
     const action: Constants.UpdateBillingAndQuota = {
       type: Constants.updateBillingAndQuota,
-      payload: Constants.billingAndQuotaAPIToOurBillingAndQuota(
-        parsed.them.billing_and_quotas
-      ),
+      payload: Constants.billingAndQuotaAPIToOurBillingAndQuota(parsed.them.billing_and_quotas),
     }
 
     yield put(action)
@@ -188,11 +175,7 @@ function* bootstrapDataSaga(): SagaGenerator<any, any> {
   const billingStateSelector = ({planBilling}: TypedState) => planBilling
 
   const planBilling: Constants.State = (yield select(billingStateSelector): any)
-  if (
-    planBilling.availablePlans == null ||
-    planBilling.usage == null ||
-    planBilling.plan == null
-  ) {
+  if (planBilling.availablePlans == null || planBilling.usage == null || planBilling.plan == null) {
     yield put(fetchBillingOverview())
   }
 }
@@ -204,12 +187,6 @@ function* billingSaga(): SagaGenerator<any, any> {
   yield safeTakeLatest(Constants.bootstrapData, bootstrapDataSaga)
 }
 
-export {
-  bootstrapData,
-  clearBillingError,
-  fetchBillingAndQuota,
-  fetchBillingOverview,
-  updateBilling,
-}
+export {bootstrapData, clearBillingError, fetchBillingAndQuota, fetchBillingOverview, updateBilling}
 
 export default billingSaga

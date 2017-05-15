@@ -33,27 +33,20 @@ export function printTimingStats(
   if (statSink.totalTime > 0 && statSink.totalActions > 0 && shouldRun) {
     const mean = statSink.totalTime / statSink.totalActions
     const variance =
-      statSink.timings
-        .map(t => Math.pow(t - mean, 2))
-        .reduce((acc, t) => t + acc, 0) /
+      statSink.timings.map(t => Math.pow(t - mean, 2)).reduce((acc, t) => t + acc, 0) /
       (statSink.totalActions - 1)
     const stdDev = Math.sqrt(variance)
     const lastTiming = statSink.timings[statSink.timings.length - 1]
 
     requestIdleCallback(() => {
-      console.groupCollapsed &&
-        console.groupCollapsed(`Stats on ${statSink.label}`)
+      console.groupCollapsed && console.groupCollapsed(`Stats on ${statSink.label}`)
       console.log('Total Time:', statSink.totalTime)
       console.log('Total Actions:', statSink.totalActions)
       console.log('Average Time/Actions:', mean)
       console.log('Std Dev:', stdDev)
       console.groupEnd && console.groupEnd()
 
-      if (
-        warnOnSlowPokes &&
-        stdDevThreshold &&
-        lastTiming - mean > stdDevThreshold * stdDev
-      ) {
+      if (warnOnSlowPokes && stdDevThreshold && lastTiming - mean > stdDevThreshold * stdDev) {
         console.log('Last timing was super slow!!')
       }
     })

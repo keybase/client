@@ -29,9 +29,7 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
   render() {
     const selectedColor = this.props.selectedColor || globalColors.blue
     const borderLocation = this.props.onBottom ? 'borderTop' : 'borderBottom'
-    const underlineStyle = this.props.underlined
-      ? {textDecoration: 'underlined'}
-      : {}
+    const underlineStyle = this.props.underlined ? {textDecoration: 'underlined'} : {}
     return (
       <Box
         style={{
@@ -45,9 +43,7 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
           type="BodySmallSemibold"
           style={{
             ...globalStyles.clickable,
-            color: this.props.selected
-              ? globalColors.black_75
-              : globalColors.black_60,
+            color: this.props.selected ? globalColors.black_75 : globalColors.black_60,
             fontSize: 11,
             ...underlineStyle,
           }}
@@ -104,13 +100,9 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
             size={32}
             onClick={this.props.onClick}
             username={this.props.source.username}
-            borderColor={
-              this.props.selected ? globalColors.white : globalColors.blue3_40
-            }
+            borderColor={this.props.selected ? globalColors.white : globalColors.blue3_40}
             loadingColor={globalColors.blue3_40}
-            backgroundColor={
-              this.props.selected ? globalColors.white : globalColors.blue3_40
-            }
+            backgroundColor={this.props.selected ? globalColors.white : globalColors.blue3_40}
           />
           {badgeNumber > 0 &&
             <Box style={{width: 0, display: 'flex'}}>
@@ -143,20 +135,12 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
 
   _renderNav(badgeNumber: number) {
     if (this.props.source.type !== 'nav') return // needed to make flow happy
-    const navIconStyle = this.props.selected
-      ? stylesNavIconSelected
-      : stylesNavIcon
+    const navIconStyle = this.props.selected ? stylesNavIconSelected : stylesNavIcon
     return (
       <Box onClick={this.props.onClick}>
         <style>{navRealCSS}</style>
-        <Box
-          style={{...stylesTabBarNavIcon, ...this.props.style}}
-          className="nav-item"
-        >
-          <Icon
-            type={this.props.source.icon}
-            style={{...navIconStyle, ...this.props.styleIcon}}
-          />
+        <Box style={{...stylesTabBarNavIcon, ...this.props.style}} className="nav-item">
+          <Icon type={this.props.source.icon} style={{...navIconStyle, ...this.props.styleIcon}} />
           {badgeNumber > 0 &&
             <Box style={{...styleBadgeNav}}>
               <Badge
@@ -166,13 +150,8 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
               />
             </Box>}
           {!!this.props.label &&
-            <Text
-              type="BodySmall"
-              style={{...stylesNavText, ...this.props.styleLabel}}
-            >
-              <span
-                className={'title' + (this.props.selected ? ' selected' : '')}
-              >
+            <Text type="BodySmall" style={{...stylesNavText, ...this.props.styleLabel}}>
+              <span className={'title' + (this.props.selected ? ' selected' : '')}>
                 {this.props.label}
               </span>
             </Text>}
@@ -183,9 +162,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
 
   _renderIcon(color: string, badgeNumber: number) {
     if (this.props.source.type !== 'icon') return // needed to make flow happy
-    const backgroundColor = this.props.selected
-      ? globalColors.darkBlue4
-      : globalColors.midnightBlue
+    const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
     return (
       <Box
         style={{
@@ -224,9 +201,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
   }
 
   render() {
-    const color = this.props.selected
-      ? globalColors.white
-      : globalColors.blue3_40
+    const color = this.props.selected ? globalColors.white : globalColors.blue3_40
     const badgeNumber = this.props.badgeNumber || 0
 
     switch (this.props.source.type) {
@@ -254,14 +229,9 @@ class TabBar extends Component<void, Props, void> {
   _labels(): Array<React$Element<*>> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
     return (this.props.children || []).map((item: {props: ItemProps}, i) => {
-      const key =
-        item.props.label || _.get(item, 'props.tabBarButton.props.label') || i
+      const key = item.props.label || _.get(item, 'props.tabBarButton.props.label') || i
       return (
-        <Box
-          key={key}
-          style={item.props.styleContainer}
-          onClick={item.props.onClick}
-        >
+        <Box key={key} style={item.props.styleContainer} onClick={item.props.onClick}>
           {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
         </Box>
       )

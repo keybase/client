@@ -2,12 +2,7 @@
 import React, {Component} from 'react'
 import openURL from '../util/open-url'
 import {NativeText} from './native-wrappers.native'
-import {
-  defaultColor,
-  fontSizeToSizeStyle,
-  lineClamp,
-  metaData,
-} from './text.meta.native'
+import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 
 import type {Props, TextType, Background} from './text'
 
@@ -42,10 +37,7 @@ class Text extends Component<void, Props, void> {
         }}
         style={style}
         {...lineClamp(this.props.lineClamp)}
-        onPress={
-          this.props.onClick ||
-            (this.props.onClickURL ? this._urlClick : undefined)
-        }
+        onPress={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined)}
       >
         {this.props.children}
       </NativeText>
@@ -62,8 +54,7 @@ function getStyle(
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   const colorStyle = {
-    color: meta.colorForBackgroundMode[backgroundMode] ||
-      defaultColor(backgroundMode),
+    color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode),
   }
   const textDecoration = meta.isLink && backgroundMode !== 'Normal'
     ? {textDecorationLine: 'underline'}

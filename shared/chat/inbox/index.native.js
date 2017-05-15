@@ -10,12 +10,7 @@ import {
   ClickableBox,
   LoadingLine,
 } from '../../common-adapters/index.native'
-import {
-  globalStyles,
-  globalColors,
-  statusBarHeight,
-  globalMargins,
-} from '../../styles'
+import {globalStyles, globalColors, statusBarHeight, globalMargins} from '../../styles'
 import {RowConnector} from './row'
 import {debounce} from 'lodash'
 // $FlowIssue
@@ -23,16 +18,8 @@ import FlatList from '../../fixme/Lists/FlatList'
 
 import type {Props, RowProps} from './'
 
-const AddNewRow = ({
-  onNewChat,
-  isLoading,
-}: {
-  onNewChat: () => void,
-  isLoading: boolean,
-}) => (
-  <Box
-    style={{...globalStyles.flexBoxColumn, minHeight: 48, position: 'relative'}}
-  >
+const AddNewRow = ({onNewChat, isLoading}: {onNewChat: () => void, isLoading: boolean}) => (
+  <Box style={{...globalStyles.flexBoxColumn, minHeight: 48, position: 'relative'}}>
     <ClickableBox
       style={{...globalStyles.flexBoxColumn, flex: 1, flexShrink: 0}}
       onClick={onNewChat}
@@ -45,10 +32,7 @@ const AddNewRow = ({
           flex: 1,
         }}
       >
-        <Icon
-          type="iconfont-new"
-          style={{color: globalColors.blue, marginRight: 9}}
-        />
+        <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: 9}} />
         <Text type="BodyBigLink">New chat</Text>
       </Box>
     </ClickableBox>
@@ -61,11 +45,7 @@ const AddNewRow = ({
 
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
-function rowBorderColor(
-  idx: number,
-  isLastParticipant: boolean,
-  backgroundColor: string
-) {
+function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor: string) {
   // Only color the foreground items
   if (isLastParticipant) {
     return undefined
@@ -89,19 +69,12 @@ const Avatars = ({
   let icon
   if (isMuted) {
     icon = (
-      <Icon
-        type={isSelected ? 'icon-shh-active-16' : 'icon-shh-16'}
-        style={avatarMutedIconStyle}
-      />
+      <Icon type={isSelected ? 'icon-shh-active-16' : 'icon-shh-16'} style={avatarMutedIconStyle} />
     )
   } else if (participantNeedToRekey || youNeedToRekey) {
     icon = (
       <Icon
-        type={
-          isSelected
-            ? 'icon-chat-addon-lock-active-8'
-            : 'icon-chat-addon-lock-8'
-        }
+        type={isSelected ? 'icon-chat-addon-lock-active-8' : 'icon-chat-addon-lock-8'}
         style={avatarLockIconStyle}
       />
     )
@@ -110,11 +83,7 @@ const Avatars = ({
   const avatarProps = participants
     .slice(0, 2)
     .map((username, idx) => ({
-      borderColor: rowBorderColor(
-        idx,
-        idx === avatarCount - 1,
-        backgroundColor
-      ),
+      borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
       loadingColor: globalColors.blue3_40,
       size: 32,
       style: {
@@ -149,14 +118,7 @@ const Avatars = ({
   )
 }
 
-const TopLine = ({
-  hasUnread,
-  showBold,
-  participants,
-  subColor,
-  timestamp,
-  usernameColor,
-}) => {
+const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor}) => {
   const boldOverride = showBold ? globalStyles.fontBold : null
   return (
     <Box
@@ -198,10 +160,7 @@ const TopLine = ({
           />
         </Box>
       </Box>
-      <Text
-        type="BodySmall"
-        style={{...boldOverride, color: subColor, lineHeight: 18}}
-      >
+      <Text type="BodySmall" style={{...boldOverride, color: subColor, lineHeight: 18}}>
         {timestamp}
       </Text>
       {hasUnread && <Box style={unreadDotStyle} />}
@@ -242,11 +201,7 @@ const BottomLine = ({
     )
   } else if (participantNeedToRekey) {
     content = (
-      <Text
-        type="BodySmall"
-        backgroundMode="Terminal"
-        style={{color: subColor}}
-      >
+      <Text type="BodySmall" backgroundMode="Terminal" style={{color: subColor}}>
         Waiting for participants to rekey
       </Text>
     )
@@ -298,9 +253,7 @@ const _Row = (props: RowProps) => {
       onClick={() => props.onSelectConversation(props.conversationIDKey)}
       style={{backgroundColor: props.backgroundColor}}
     >
-      <Box
-        style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}
-      >
+      <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
         <Avatars
           backgroundColor={props.backgroundColor}
           hasUnread={props.hasUnread}
@@ -351,15 +304,8 @@ const NoChats = () => (
       top: 48,
     }}
   >
-    <Icon
-      type="icon-fancy-chat-72-x-52"
-      style={{marginBottom: globalMargins.small}}
-    />
-    <Text
-      type="BodySmallSemibold"
-      backgroundMode="Terminal"
-      style={{color: globalColors.blue3_40}}
-    >
+    <Icon type="icon-fancy-chat-72-x-52" style={{marginBottom: globalMargins.small}} />
+    <Text type="BodySmallSemibold" backgroundMode="Terminal" style={{color: globalColors.blue3_40}}>
       All conversations are end-to-end encrypted.
     </Text>
   </Box>
@@ -371,10 +317,7 @@ class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
   _renderItem = ({item, index}) => {
     return index
       ? <Row conversationIDKey={item} key={item} />
-      : <AddNewRow
-          onNewChat={this.props.onNewChat}
-          isLoading={this.props.isLoading}
-        />
+      : <AddNewRow onNewChat={this.props.onNewChat} isLoading={this.props.isLoading} />
   }
 
   _keyExtractor = (item, index) => item

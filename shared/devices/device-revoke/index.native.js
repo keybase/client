@@ -53,13 +53,7 @@ const Render = ({
   icon,
 }: Props) => (
   <Confirm
-    body={
-      <Body
-        endangeredTLFs={endangeredTLFs}
-        name={name}
-        currentDevice={currentDevice}
-      />
-    }
+    body={<Body endangeredTLFs={endangeredTLFs} name={name} currentDevice={currentDevice} />}
     danger={true}
     header={<Header name={name} icon={icon} />}
     onCancel={onCancel}

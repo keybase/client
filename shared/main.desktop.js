@@ -20,11 +20,7 @@ type Props = {
 
 class Main extends Component<void, Props, void> {
   _updateBadges = () => {
-    ipcRenderer.send(
-      'showTray',
-      this.props.widgetBadge,
-      this.props.desktopAppBadgeCount
-    )
+    ipcRenderer.send('showTray', this.props.widgetBadge, this.props.desktopAppBadgeCount)
   }
 
   componentDidUpdate(prevProps) {

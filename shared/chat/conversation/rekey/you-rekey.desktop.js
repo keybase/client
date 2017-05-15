@@ -36,12 +36,7 @@ const YouRekey = ({onRekey}: Props) => {
           justifyContent: 'center',
         }}
       >
-        <Button
-          type="Secondary"
-          backgroundMode="Terminal"
-          onClick={onRekey}
-          label="Rekey"
-        />
+        <Button type="Secondary" backgroundMode="Terminal" onClick={onRekey} label="Rekey" />
       </Box>
     </Box>
   )

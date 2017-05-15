@@ -34,15 +34,12 @@ export default function makeMenu(window: any) {
             {
               label: 'Reload',
               accelerator: 'CmdOrCtrl+R',
-              click: (item, focusedWindow) =>
-                focusedWindow && focusedWindow.reload(),
+              click: (item, focusedWindow) => focusedWindow && focusedWindow.reload(),
             },
             {
               label: 'Toggle Developer Tools',
-              accelerator: (() =>
-                isDarwin ? 'Alt+Command+I' : 'Ctrl+Shift+I')(),
-              click: (item, focusedWindow) =>
-                focusedWindow && focusedWindow.toggleDevTools(),
+              accelerator: (() => (isDarwin ? 'Alt+Command+I' : 'Ctrl+Shift+I'))(),
+              click: (item, focusedWindow) => focusedWindow && focusedWindow.toggleDevTools(),
             },
           ]
         : []

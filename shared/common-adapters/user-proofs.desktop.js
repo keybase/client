@@ -10,11 +10,7 @@ import {defaultColor} from '../common-adapters/icon.shared'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
-function MissingProofRow({
-  missingProof,
-}: {
-  missingProof: MissingProof,
-}): React$Element<*> {
+function MissingProofRow({missingProof}: {missingProof: MissingProof}): React$Element<*> {
   const missingColor = globalColors.black_20
   return (
     <Box
@@ -33,11 +29,7 @@ function MissingProofRow({
       </Box>
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
-          <Text
-            className="user-proof-row__name"
-            type="Body"
-            style={styleProofName}
-          >
+          <Text className="user-proof-row__name" type="Body" style={styleProofName}>
             {missingProof.message}
           </Text>
         </Box>
@@ -81,22 +73,12 @@ class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
   }
 
   render() {
-    const {
-      proof,
-      hasMenu,
-      showingMenu,
-      onClickProfile,
-      onClickStatus,
-    } = this.props
+    const {proof, hasMenu, showingMenu, onClickProfile, onClickStatus} = this.props
     const proofStatusIconType = shared.proofStatusIcon(proof)
     const menuButtonVisible = this.state.hovering || showingMenu
 
     return (
-      <Box
-        style={styleRow}
-        onMouseEnter={this._onMouseEnter}
-        onMouseLeave={this._onMouseLeave}
-      >
+      <Box style={styleRow} onMouseEnter={this._onMouseEnter} onMouseLeave={this._onMouseLeave}>
         <Box style={iconContainer}>
           <Icon
             style={styleService}
@@ -126,11 +108,7 @@ class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
                 {proof.name}
               </Text>
               {proof.id &&
-                <Text
-                  className="no-underline"
-                  type="Body"
-                  style={styleProofType}
-                >
+                <Text className="no-underline" type="Body" style={styleProofType}>
                   <wbr />@{proof.type}<wbr />
                 </Text>}
             </Text>
@@ -211,13 +189,7 @@ class ProofsRender extends Component<void, Props, void> {
   }
 
   render() {
-    const {
-      loading,
-      onClickProofMenu,
-      showingMenuIndex,
-      style,
-      loadingStyle,
-    } = this.props
+    const {loading, onClickProofMenu, showingMenuIndex, style, loadingStyle} = this.props
     const missingProofsRealCSS = `
       .user-proof-row .user-proof-row__name {
         text-underline: none;
@@ -241,9 +213,7 @@ class ProofsRender extends Component<void, Props, void> {
         >
           {loading
             ? <Box key="loading" style={{...styleLoading, ...loadingStyle}}>
-                {[147, 77, 117].map((w, idx) => (
-                  <LoadingProofRow key={idx} textBlockWidth={w} />
-                ))}
+                {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} />)}
               </Box>
             : <Box key="non-loading">
                 {this.props.type === 'proofs' &&
@@ -255,9 +225,7 @@ class ProofsRender extends Component<void, Props, void> {
                       }}
                       proof={p}
                       onClickStatus={
-                        onClickProofMenu
-                          ? () => onClickProofMenu(idx)
-                          : this._onClickProof
+                        onClickProofMenu ? () => onClickProofMenu(idx) : this._onClickProof
                       }
                       onClickProfile={this._onClickProfile}
                       hasMenu={!!onClickProofMenu}
@@ -268,8 +236,7 @@ class ProofsRender extends Component<void, Props, void> {
                   this.props.missingProofs.map((mp, idx) => (
                     <MissingProofRow key={mp.type} missingProof={mp} />
                   ))}
-                {this.props.type === 'missingProofs' &&
-                  <style>{missingProofsRealCSS}</style>}
+                {this.props.type === 'missingProofs' && <style>{missingProofsRealCSS}</style>}
               </Box>}
         </ReactCSSTransitionGroup>
       </Box>

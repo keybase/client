@@ -57,12 +57,7 @@ function shallowEqualDebug(objA, objB, compare, compareContext) {
     return true
   }
 
-  if (
-    typeof objA !== 'object' ||
-    objA === null ||
-    typeof objB !== 'object' ||
-    objB === null
-  ) {
+  if (typeof objA !== 'object' || objA === null || typeof objB !== 'object' || objB === null) {
     return false
   }
 
@@ -87,9 +82,7 @@ function shallowEqualDebug(objA, objB, compare, compareContext) {
     const valueA = objA[key]
     const valueB = objB[key]
 
-    const ret = compare
-      ? compare.call(compareContext, valueA, valueB, key)
-      : void 0
+    const ret = compare ? compare.call(compareContext, valueA, valueB, key) : void 0
     if (ret === false || (ret === void 0 && valueA !== valueB)) {
       console.log('Different value:', key, ':', valueA, valueB)
       return false

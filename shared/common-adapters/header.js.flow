@@ -15,7 +15,6 @@ export type DefaultProps = {
   type: $PropertyType<Props, 'type'>,
 }
 
-declare export default class Header
-  extends Component<DefaultProps, Props, void> {
+declare export default class Header extends Component<DefaultProps, Props, void> {
   static defaultProps: DefaultProps,
 }

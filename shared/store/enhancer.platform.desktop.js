@@ -16,8 +16,5 @@ export default function storeEnhancer(middleware: Array<any>): Function {
     )
   }
 
-  return compose(
-    applyMiddleware(...middleware),
-    batchedSubscribe(throttleNotify)
-  )
+  return compose(applyMiddleware(...middleware), batchedSubscribe(throttleNotify))
 }

@@ -68,9 +68,7 @@ export const AttachmentPopupMenu = ({
 
   const items = [
     'Divider',
-    message.savedPath
-      ? {onClick: onOpenInFileUI, title: `Show in ${fileUIName}`}
-      : null,
+    message.savedPath ? {onClick: onOpenInFileUI, title: `Show in ${fileUIName}`} : null,
     downloadItem,
   ]
   if (message.author === you) {

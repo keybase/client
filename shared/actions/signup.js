@@ -12,11 +12,7 @@ import {
   deviceCheckDeviceNameFormatRpc,
 } from '../constants/types/flow-types'
 import {isMobile} from '../constants/platform'
-import {
-  isValidEmail,
-  isValidName,
-  isValidUsername,
-} from '../util/simple-validators'
+import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 import {loginTab} from '../constants/tabs'
 import {navBasedOnLoginState} from './login/creators'
 import {navigateAppend, navigateTo} from '../actions/route-tree'
@@ -46,9 +42,7 @@ function nextPhase(): TypedAsyncAction<NavigateAppend> {
   }
 }
 
-function startRequestInvite(): TypedAsyncAction<
-  StartRequestInvite | NavigateAppend
-> {
+function startRequestInvite(): TypedAsyncAction<StartRequestInvite | NavigateAppend> {
   return dispatch =>
     new Promise((resolve, reject) => {
       dispatch({payload: {}, type: Constants.startRequestInvite})
@@ -268,9 +262,7 @@ function checkPassphrase(
       } else if (passphrase1 !== passphrase2) {
         passphraseError = new HiddenString('Passphrases must match')
       } else if (passphrase1.length < 12) {
-        passphraseError = new HiddenString(
-          'Passphrase must be at least 12 Characters'
-        )
+        passphraseError = new HiddenString('Passphrase must be at least 12 Characters')
       }
 
       if (passphraseError) {
@@ -297,9 +289,7 @@ function submitDeviceName(
   deviceName: string,
   skipMail?: boolean,
   onDisplayPaperKey?: () => void
-): TypedAsyncAction<
-  SubmitDeviceName | NavigateAppend | Signup | ShowPaperKey | SignupWaiting
-> {
+): TypedAsyncAction<SubmitDeviceName | NavigateAppend | Signup | ShowPaperKey | SignupWaiting> {
   return dispatch =>
     new Promise((resolve, reject) => {
       // TODO do some checking on the device name - ideally this is done on the service side
@@ -344,9 +334,7 @@ function submitDeviceName(
                   }: SubmitDeviceName)
                 )
 
-                const signupPromise = dispatch(
-                  signup(skipMail || false, onDisplayPaperKey)
-                )
+                const signupPromise = dispatch(signup(skipMail || false, onDisplayPaperKey))
                 if (signupPromise) {
                   signupPromise.then(resolve, reject)
                 } else {
@@ -380,17 +368,9 @@ function signup(
 ): TypedAsyncAction<Signup | ShowPaperKey | NavigateAppend | SignupWaiting> {
   return (dispatch, getState) =>
     new Promise((resolve, reject) => {
-      const {
-        email,
-        username,
-        inviteCode,
-        passphrase,
-        deviceName,
-      } = getState().signup
+      const {email, username, inviteCode, passphrase, deviceName} = getState().signup
       paperKeyResponse = null
-      const deviceType = isMobile
-        ? CommonDeviceType.mobile
-        : CommonDeviceType.desktop
+      const deviceType = isMobile ? CommonDeviceType.mobile : CommonDeviceType.desktop
 
       if (email && username && inviteCode && passphrase && deviceName) {
         signupSignupRpc({
@@ -417,10 +397,7 @@ function signup(
               // Do not add a gpg key for now
               response.result(false)
             },
-            'keybase.1.loginUi.displayPrimaryPaperKey': (
-              {sessionID, phrase},
-              response
-            ) => {
+            'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
               paperKeyResponse = response
               dispatch(
                 ({

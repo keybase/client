@@ -16,12 +16,7 @@ type OwnProps = {
 }
 
 const getParticipants = createSelector(
-  [
-    Constants.getYou,
-    Constants.getTLF,
-    Constants.getFollowingMap,
-    Constants.getMetaDataMap,
-  ],
+  [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],
   (you, tlf, followingMap, metaDataMap) => {
     const users = tlf.split(',')
 
@@ -47,16 +42,9 @@ const mapStateToProps = (state: TypedState) => ({
   selectedConversationIDKey: Constants.getSelectedConversation(state),
 })
 
-const mapDispatchToProps = (
-  dispatch: Dispatch,
-  {onToggleSidePanel}: OwnProps
-) => ({
-  onAddParticipant: (participants: Array<string>) =>
-    dispatch(Creators.newChat(participants)),
-  onMuteConversation: (
-    conversationIDKey: Constants.ConversationIDKey,
-    muted: boolean
-  ) => {
+const mapDispatchToProps = (dispatch: Dispatch, {onToggleSidePanel}: OwnProps) => ({
+  onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
+  onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
     dispatch(Creators.muteConversation(conversationIDKey, muted))
   },
   onShowBlockConversationDialog: (selectedConversation, participants) => {
@@ -81,10 +69,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
       stateProps.participants.filter(p => !p.isYou).map(p => p.username)
     ),
   onMuteConversation: (muted: boolean) =>
-    dispatchProps.onMuteConversation(
-      stateProps.selectedConversationIDKey,
-      muted
-    ),
+    dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted),
   onShowBlockConversationDialog: () =>
     dispatchProps.onShowBlockConversationDialog(
       stateProps.selectedConversationIDKey,
@@ -92,6 +77,4 @@ const mergeProps = (stateProps, dispatchProps) => ({
     ),
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps)
-)(SidePanel)
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(SidePanel)

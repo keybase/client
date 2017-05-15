@@ -5,11 +5,7 @@ import {Map} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {unboxConversations} from './inbox'
-import {
-  pendingToRealConversation,
-  replaceConversation,
-  selectConversation,
-} from './creators'
+import {pendingToRealConversation, replaceConversation, selectConversation} from './creators'
 import {usernameSelector} from '../../constants/selectors'
 
 import type {TypedState} from '../../constants/reducer'
@@ -29,10 +25,7 @@ function routeSelector(state: TypedState) {
 function focusedSelector(state: TypedState) {
   return state.config.appFocused
 }
-function pendingFailureSelector(
-  state: TypedState,
-  outboxID: Constants.OutboxIDKey
-) {
+function pendingFailureSelector(state: TypedState, outboxID: Constants.OutboxIDKey) {
   return state.chat.get('pendingFailures').get(outboxID)
 }
 
@@ -67,19 +60,11 @@ function devicenameSelector(state: TypedState) {
   return state.config && state.config.deviceName
 }
 
-function selectedInboxSelector(
-  state: TypedState,
-  conversationIDKey: Constants.ConversationIDKey
-) {
-  return state.chat
-    .get('inbox')
-    .find(convo => convo.get('conversationIDKey') === conversationIDKey)
+function selectedInboxSelector(state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
+  return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
 }
 
-function attachmentPlaceholderPreviewSelector(
-  state: TypedState,
-  outboxID: Constants.OutboxIDKey
-) {
+function attachmentPlaceholderPreviewSelector(state: TypedState, outboxID: Constants.OutboxIDKey) {
   return state.chat.get('attachmentPlaceholderPreviews', Map()).get(outboxID)
 }
 
@@ -136,9 +121,7 @@ function* startNewConversation(
   oldConversationIDKey: Constants.ConversationIDKey
 ): Generator<any, ?Constants.ConversationIDKey, any> {
   // Find the participants
-  const pendingTlfName = Constants.pendingConversationIDKeyToTlfName(
-    oldConversationIDKey
-  )
+  const pendingTlfName = Constants.pendingConversationIDKeyToTlfName(oldConversationIDKey)
   let tlfName
   if (pendingTlfName) {
     tlfName = pendingTlfName
@@ -163,9 +146,7 @@ function* startNewConversation(
     },
   })
 
-  const newConversationIDKey = result
-    ? Constants.conversationIDToKey(result.conv.info.id)
-    : null
+  const newConversationIDKey = result ? Constants.conversationIDToKey(result.conv.info.id) : null
   if (!newConversationIDKey) {
     console.warn('No convoid from newConvoRPC')
     return null
@@ -173,9 +154,7 @@ function* startNewConversation(
 
   // Replace any existing convo
   if (pendingTlfName) {
-    yield put(
-      pendingToRealConversation(oldConversationIDKey, newConversationIDKey)
-    )
+    yield put(pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
   } else if (oldConversationIDKey !== newConversationIDKey) {
     yield put(replaceConversation(oldConversationIDKey, newConversationIDKey))
   }
@@ -199,11 +178,7 @@ function* getPostingIdentifyBehavior(
   const you = yield select(usernameSelector)
 
   if (inbox && you) {
-    const brokenUsers = Constants.getBrokenUsers(
-      inbox.get('participants').toArray(),
-      you,
-      metaData
-    )
+    const brokenUsers = Constants.getBrokenUsers(inbox.get('participants').toArray(), you, metaData)
     return brokenUsers.length
       ? TlfKeysTLFIdentifyBehavior.chatGui
       : TlfKeysTLFIdentifyBehavior.chatGuiStrict

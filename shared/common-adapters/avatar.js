@@ -135,10 +135,7 @@ class Avatar extends Component<void, Props, State> {
   }
 
   _noAvatar() {
-    return iconTypeToImgSet(
-      placeHolders[String(this.props.size)],
-      this.props.size
-    )
+    return iconTypeToImgSet(placeHolders[String(this.props.size)], this.props.size)
   }
 
   _urlMapsToUrl(urlMap: ?URLMap) {

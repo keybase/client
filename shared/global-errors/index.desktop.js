@@ -92,10 +92,7 @@ class GlobalError extends Component<void, Props, State> {
     return (
       <Box style={containerOverlayStyle}>
         <Box style={overlayRowStyle}>
-          <Text
-            type="BodySemibold"
-            style={{color: globalColors.white, textAlign: 'center'}}
-          >
+          <Text type="BodySemibold" style={{color: globalColors.white, textAlign: 'center'}}>
             {message}
           </Text>
         </Box>
@@ -123,10 +120,7 @@ class GlobalError extends Component<void, Props, State> {
               type="iconfont-exclamation"
               style={{color: globalColors.white, marginRight: 8}}
             />}
-          <Text
-            type="BodyBig"
-            style={{color: globalColors.white, textAlign: 'center', flex: 1}}
-          >
+          <Text type="BodyBig" style={{color: globalColors.white, textAlign: 'center', flex: 1}}>
             {summary}
           </Text>
           {summary &&

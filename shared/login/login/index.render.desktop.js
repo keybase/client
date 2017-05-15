@@ -1,14 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './index.render'
-import {
-  Box,
-  UserCard,
-  Text,
-  Button,
-  FormWithCheckbox,
-  Dropdown,
-} from '../../common-adapters'
+import {Box, UserCard, Text, Button, FormWithCheckbox, Dropdown} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 
 class LoginRender extends Component<void, Props, void> {
@@ -41,8 +34,7 @@ class LoginRender extends Component<void, Props, void> {
           <Dropdown
             type="Username"
             value={this.props.selectedUser}
-            onClick={selectedUser =>
-              this.props.selectedUserChange(selectedUser)}
+            onClick={selectedUser => this.props.selectedUserChange(selectedUser)}
             onOther={() => this.props.onSomeoneElse()}
             options={this.props.users}
           />
@@ -67,11 +59,7 @@ class LoginRender extends Component<void, Props, void> {
             Forgot passphrase?
           </Text>
         </UserCard>
-        <Text
-          style={{marginTop: 30}}
-          type="BodyPrimaryLink"
-          onClick={this.props.onSignup}
-        >
+        <Text style={{marginTop: 30}} type="BodyPrimaryLink" onClick={this.props.onSignup}>
           Create an account
         </Text>
       </Box>

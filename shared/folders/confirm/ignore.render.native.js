@@ -22,10 +22,7 @@ const Render = ({isPrivate, users, avatar, onSubmit, onCancel}: Props) => {
         {usernameText({type: 'Header', style: textColorThemed[theme], users})}
         <Text type="Header" style={textColorThemed[theme]}>?</Text>
       </Text>
-      <Text
-        type="Body"
-        style={{...textColorThemed[theme], textAlign: 'center'}}
-      >
+      <Text type="Body" style={{...textColorThemed[theme], textAlign: 'center'}}>
         This folder will no longer show up on your computer and you won't receive alerts about it.
       </Text>
     </Box>

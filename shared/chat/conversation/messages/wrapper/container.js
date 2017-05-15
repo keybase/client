@@ -19,10 +19,7 @@ const getMessage = createCachedSelector(
 
 // TODO more reselect?
 
-const mapStateToProps = (
-  state: TypedState,
-  {messageKey, prevMessageKey}: OwnProps
-): StateProps => {
+const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnProps): StateProps => {
   const conversationState = Constants.getSelectedConversationStates(state)
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
 
@@ -34,32 +31,25 @@ const mapStateToProps = (
   const _editedCount = message.editedCount || 0
   const isEdited = message.type === 'Text' && _editedCount > 0
   const isRevoked = !!message.senderDeviceRevokedAt
-  const failureDescription = message.messageState === 'failed'
-    ? message.failureDescription
-    : null
+  const failureDescription = message.messageState === 'failed' ? message.failureDescription : null
   const isYou = Constants.getYou(state) === author
   const isFollowing = !!Constants.getFollowingMap(state)[author]
-  const isBroken = Constants.getMetaDataMap(state)
-    .get(author, Map())
-    .get('brokenTracker', false)
+  const isBroken = Constants.getMetaDataMap(state).get(author, Map()).get('brokenTracker', false)
 
   const isFirstNewMessage = !!(conversationState &&
     message &&
     message.messageID &&
     conversationState.get('firstNewMessageID') === message.messageID)
   const prevMessage = getMessage(state, prevMessageKey)
-  const skipMsgHeader =
-    prevMessage && prevMessage.type === 'Text' && prevMessage.author === author
+  const skipMsgHeader = prevMessage && prevMessage.type === 'Text' && prevMessage.author === author
 
   const firstMessageEver = !prevMessage
-  const firstVisibleMessage =
-    prevMessage && Constants.messageKeyValue(prevMessage.key) === '1'
+  const firstVisibleMessage = prevMessage && Constants.messageKeyValue(prevMessage.key) === '1'
   const oldEnough =
     prevMessage &&
     prevMessage.timestamp &&
     message.timestamp &&
-    message.timestamp - prevMessage.timestamp >
-      Constants.howLongBetweenTimestampsMs
+    message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs
   const timestamp = firstMessageEver || firstVisibleMessage || oldEnough
     ? formatTimeForMessages(message.timestamp)
     : null
@@ -88,17 +78,11 @@ const mapStateToProps = (
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onRetryAttachment: (message: Constants.AttachmentMessage) =>
     dispatch(Creators.retryAttachment(message)),
-  _onRetryText: (
-    conversationIDKey: Constants.ConversationIDKey,
-    outboxID: Constants.OutboxIDKey
-  ) => dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
+  _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) =>
+    dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
 })
 
-const mergeProps = (
-  stateProps: StateProps,
-  dispatchProps: DispatchProps,
-  ownProps: OwnProps
-) => ({
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => ({
   _editedCount: stateProps._editedCount,
   _message: stateProps._message,
   _onAction: ownProps.onAction,
@@ -120,10 +104,7 @@ const mergeProps = (
   onRetry: () => {
     if (stateProps._message.type === 'Attachment') {
       dispatchProps._onRetryAttachment(stateProps._message)
-    } else if (
-      stateProps._selectedConversationIDKey &&
-      stateProps._message.outboxID
-    ) {
+    } else if (stateProps._selectedConversationIDKey && stateProps._message.outboxID) {
       dispatchProps._onRetryText(
         stateProps._selectedConversationIDKey,
         stateProps._message.outboxID

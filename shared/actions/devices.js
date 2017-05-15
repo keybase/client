@@ -61,13 +61,9 @@ const showRevokePage: (deviceID: string) => ShowRevokePage = deviceID => ({
 
 const _loggedInSelector = (state: TypedState) => state.config.loggedIn
 
-const devicesTabLocation = isMobile
-  ? [settingsTab, settingsDevicesTab]
-  : [devicesTab]
+const devicesTabLocation = isMobile ? [settingsTab, settingsDevicesTab] : [devicesTab]
 
-function* _deviceShowRevokePageSaga(
-  action: ShowRevokePage
-): SagaGenerator<any, any> {
+function* _deviceShowRevokePageSaga(action: ShowRevokePage): SagaGenerator<any, any> {
   const {deviceID} = action.payload
   let endangeredTLFs = {endangeredTLFs: []}
   try {
@@ -136,9 +132,7 @@ function* _deviceRevokedSaga(action: Revoke): SagaGenerator<any, any> {
   // Revoking the current device uses the "deprovision" RPC instead.
   const {deviceID} = action.payload
 
-  const device = yield select(state =>
-    state.entities.getIn(['devices', deviceID])
-  )
+  const device = yield select(state => state.entities.getIn(['devices', deviceID]))
 
   if (!device) {
     throw new Error("Can't find device to remove")
@@ -149,9 +143,7 @@ function* _deviceRevokedSaga(action: Revoke): SagaGenerator<any, any> {
 
   if (currentDevice) {
     try {
-      const username = yield select(
-        state => state.config && state.config.username
-      )
+      const username = yield select(state => state.config && state.config.username)
       if (!username) {
         throw new Error('No username in device remove')
       }
@@ -193,10 +185,7 @@ function* _devicePaperKeySaga(): SagaGenerator<any, any> {
   try {
     yield put(setWaiting(true))
     channelMap = loginPaperKeyRpcChannelMap(
-      [
-        'keybase.1.loginUi.promptRevokePaperKeys',
-        'keybase.1.loginUi.displayPaperKeyPhrase',
-      ],
+      ['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'],
       {}
     )
 
@@ -208,15 +197,8 @@ function* _devicePaperKeySaga(): SagaGenerator<any, any> {
       } else if (incoming.displayPaperKeyPhrase) {
         incoming.displayPaperKeyPhrase.response.result()
         yield put(setWaiting(false))
-        const paperKey = new HiddenString(
-          incoming.displayPaperKeyPhrase.params.phrase
-        )
-        yield put(
-          navigateTo([
-            ...devicesTabLocation,
-            {props: {paperKey}, selected: 'genPaperKey'},
-          ])
-        )
+        const paperKey = new HiddenString(incoming.displayPaperKeyPhrase.params.phrase)
+        yield put(navigateTo([...devicesTabLocation, {props: {paperKey}, selected: 'genPaperKey'}]))
         break
       }
     }
@@ -237,11 +219,4 @@ function* deviceSaga(): SagaGenerator<any, any> {
 
 export default deviceSaga
 
-export {
-  load,
-  paperKeyMake,
-  revoke,
-  setWaiting,
-  showRevokePage,
-  devicesTabLocation,
-}
+export {load, paperKeyMake, revoke, setWaiting, showRevokePage, devicesTabLocation}

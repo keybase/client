@@ -142,10 +142,7 @@ const i1: Folder = createFolder({
 })
 
 const i2: Folder = createFolder({
-  users: [
-    {username: 'cecileb', you: true},
-    {username: 'jeresig', broken: true},
-  ],
+  users: [{username: 'cecileb', you: true}, {username: 'jeresig', broken: true}],
   ignored: true,
   isPublic: false,
   hasData: false,

@@ -80,9 +80,7 @@ class QR extends Component<void, Props, State> {
       }
     } else {
       return (
-        <Box
-          style={{flex: 1, ...globalStyles.flexBoxColumn, ...this.props.style}}
-        >
+        <Box style={{flex: 1, ...globalStyles.flexBoxColumn, ...this.props.style}}>
           {this.props.children}
           <NativeImage
             style={[{width: 300, height: 300}, this.props.imageStyle]}

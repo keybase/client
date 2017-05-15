@@ -58,9 +58,7 @@ class Button extends Component<void, Props, void> {
 
     containerStyle = {...containerStyle, ...this.props.style}
 
-    const onPress =
-      (!this.props.disabled && !this.props.waiting && this.props.onClick) ||
-      null
+    const onPress = (!this.props.disabled && !this.props.waiting && this.props.onClick) || null
 
     return (
       <ClickableBox style={containerStyle} onClick={onPress}>

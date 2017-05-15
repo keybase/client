@@ -31,9 +31,7 @@ const Intro = (props: Props) => (
   <Box
     style={{
       ...stylesLoginForm,
-      marginTop: props.justRevokedSelf ||
-        props.justDeletedSelf ||
-        props.justLoginFromRevokedDevice
+      marginTop: props.justRevokedSelf || props.justDeletedSelf || props.justLoginFromRevokedDevice
         ? 0
         : 45,
     }}

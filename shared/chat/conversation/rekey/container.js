@@ -30,10 +30,7 @@ type DispatchProps = {
   onShowProfile: (username: string) => void,
 }
 
-const mapStateToProps = (
-  state: TypedState,
-  {selectedConversationIDKey}: OwnProps
-): StateProps => {
+const mapStateToProps = (state: TypedState, {selectedConversationIDKey}: OwnProps): StateProps => {
   let rekeyInfo = null
 
   if (selectedConversationIDKey !== Constants.nothingSelected) {
@@ -53,10 +50,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
 })
 
-const mergeProps = (
-  stateProps: StateProps,
-  dispatchProps: DispatchProps
-): Props => ({
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => ({
   onBack: dispatchProps.onBack,
   onEnterPaperkey: dispatchProps.onEnterPaperkey,
   onRekey: dispatchProps.onRekey,
@@ -70,13 +64,11 @@ const Impossible = () => null
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   branch(
-    (props: StateProps) =>
-      props.rekeyInfo && props.rekeyInfo.get('youCanRekey'),
+    (props: StateProps) => props.rekeyInfo && props.rekeyInfo.get('youCanRekey'),
     renderComponent(YouRekey)
   ),
   branch(
-    (props: StateProps) =>
-      props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
+    (props: StateProps) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
     renderComponent(ParticipantRekey)
   ),
   renderNothing

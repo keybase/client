@@ -223,9 +223,7 @@ export type Message = any // ClientMessage | ServerMessage
 
 export type MaybeTimestamp = TimestampMessage | null
 
-export const ConversationStatusByEnum = invert(
-  ChatTypes.CommonConversationStatus
-)
+export const ConversationStatusByEnum = invert(ChatTypes.CommonConversationStatus)
 
 export const ConversationStateRecord = Record({
   // Is this used?
@@ -268,9 +266,7 @@ export const ConversationBadgeStateRecord = Record({
   UnreadMessages: 0,
 })
 
-export type ConversationStateEnum = $Keys<
-  typeof ChatTypes.CommonConversationStatus
->
+export type ConversationStateEnum = $Keys<typeof ChatTypes.CommonConversationStatus>
 
 export const InboxStateRecord = Record({
   conversationIDKey: '',
@@ -419,10 +415,7 @@ export type CreatePendingFailure = NoErrorTypedAction<
   'chat:createPendingFailure',
   {failureDescription: string, outboxID: OutboxIDKey}
 >
-export type DeleteMessage = NoErrorTypedAction<
-  'chat:deleteMessage',
-  {message: Message}
->
+export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<
   'chat:editMessage',
   {message: Message, text: HiddenString}
@@ -432,19 +425,13 @@ export type GetInboxAndUnbox = NoErrorTypedAction<
   {conversationIDKeys: Array<ConversationIDKey>}
 >
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
-export type IncomingMessage = NoErrorTypedAction<
-  'chat:incomingMessage',
-  {activity: ChatActivity}
->
+export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadMoreMessages = NoErrorTypedAction<
   'chat:loadMoreMessages',
   {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}
 >
-export type LoadedInbox = NoErrorTypedAction<
-  'chat:loadedInbox',
-  {inbox: List<InboxState>}
->
+export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type LoadingMessages = NoErrorTypedAction<
   'chat:loadingMessages',
   {conversationIDKey: ConversationIDKey, isRequesting: boolean}
@@ -457,10 +444,7 @@ export type MuteConversation = NoErrorTypedAction<
   'chat:muteConversation',
   {conversationIDKey: ConversationIDKey, muted: boolean}
 >
-export type NewChat = NoErrorTypedAction<
-  'chat:newChat',
-  {existingParticipants: Array<string>}
->
+export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
 export type OpenAttachmentPopup = NoErrorTypedAction<
   'chat:openAttachmentPopup',
   {message: AttachmentMessage, currentPath: Path}
@@ -529,14 +513,8 @@ export type SetUnboxing = TypedAction<
   {conversationIDKeys: Array<ConversationIDKey>},
   {conversationIDKeys: Array<ConversationIDKey>}
 >
-export type SetupChatHandlers = NoErrorTypedAction<
-  'chat:setupChatHandlers',
-  void
->
-export type ShowEditor = NoErrorTypedAction<
-  'chat:showEditor',
-  {message: ?Message}
->
+export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
+export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: ?Message}>
 export type StartConversation = NoErrorTypedAction<
   'chat:startConversation',
   {users: Array<string>, forceImmediate: boolean}
@@ -561,14 +539,8 @@ export type UpdateFinalizedState = NoErrorTypedAction<
   'chat:updateFinalizedState',
   {finalizedState: FinalizedState}
 >
-export type UpdateInbox = NoErrorTypedAction<
-  'chat:updateInbox',
-  {conversation: InboxState}
->
-export type UpdateInboxComplete = NoErrorTypedAction<
-  'chat:updateInboxComplete',
-  void
->
+export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: InboxState}>
+export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>
 export type UpdateInboxRekeyOthers = NoErrorTypedAction<
   'chat:updateInboxRekeyOthers',
   {conversationIDKey: ConversationIDKey, rekeyers: Array<string>}
@@ -589,10 +561,7 @@ export type UpdateMessage = NoErrorTypedAction<
     messageID: MessageID,
   }
 >
-export type UpdateMetadata = NoErrorTypedAction<
-  'chat:updateMetadata',
-  {users: Array<string>}
->
+export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatePaginationNext = NoErrorTypedAction<
   'chat:updatePaginationNext',
   {conversationIDKey: ConversationIDKey, paginationNext: Buffer}
@@ -615,10 +584,7 @@ export type ThreadLoadedOffline = NoErrorTypedAction<
   {conversationIDKey: ConversationIDKey}
 >
 
-export type SelectAttachment = NoErrorTypedAction<
-  'chat:selectAttachment',
-  {input: AttachmentInput}
->
+export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {input: AttachmentInput}>
 export type UpdateBrokenTracker = NoErrorTypedAction<
   'chat:updateBrokenTracker',
   {userToBroken: {[username: string]: boolean}}
@@ -746,9 +712,7 @@ export type Actions =
   | UpdateSupersedesState
   | UpdateSupersededByState
 
-function conversationIDToKey(
-  conversationID: ConversationID
-): ConversationIDKey {
+function conversationIDToKey(conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('hex')
 }
 
@@ -783,16 +747,11 @@ function makeSnippet(messageBody: ?MessageBody): ?string {
 // This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
 function textSnippet(message: ?string = '', max: number) {
   // $FlowIssue flow doesn't understand spread + strings
-  return [...message.substring(0, max * 4).replace(/\s+/g, ' ')]
-    .slice(0, max)
-    .join('')
+  return [...message.substring(0, max * 4).replace(/\s+/g, ' ')].slice(0, max).join('')
 }
 
 // Filters out myself from most of our views of the list, unless the list is just me
-function participantFilter(
-  participants: List<string>,
-  you: string
-): List<string> {
+function participantFilter(participants: List<string>, you: string): List<string> {
   const withoutYou = participants.filter(p => p !== you)
   if (withoutYou.count() === 0) {
     return participants
@@ -834,8 +793,7 @@ function getBrokenUsers(
   metaDataMap: MetaDataMap
 ): Array<string> {
   return participants.filter(
-    user =>
-      user !== you && metaDataMap.get(user, Map()).get('brokenTracker', false)
+    user => user !== you && metaDataMap.get(user, Map()).get('brokenTracker', false)
   )
 }
 
@@ -854,23 +812,16 @@ function clampAttachmentPreviewSize({width, height}: AttachmentSize) {
 }
 
 function parseMetadataPreviewSize(metadata: AssetMetadata): ?AttachmentSize {
-  if (
-    metadata.assetType === ChatTypes.LocalAssetMetadataType.image &&
-    metadata.image
-  ) {
+  if (metadata.assetType === ChatTypes.LocalAssetMetadataType.image && metadata.image) {
     return clampAttachmentPreviewSize(metadata.image)
-  } else if (
-    metadata.assetType === ChatTypes.LocalAssetMetadataType.video &&
-    metadata.video
-  ) {
+  } else if (metadata.assetType === ChatTypes.LocalAssetMetadataType.video && metadata.video) {
     return clampAttachmentPreviewSize(metadata.video)
   }
 }
 
 function getAssetDuration(assetMetadata: ?AssetMetadata): ?number {
   const assetIsVideo =
-    assetMetadata &&
-    assetMetadata.assetType === ChatTypes.LocalAssetMetadataType.video
+    assetMetadata && assetMetadata.assetType === ChatTypes.LocalAssetMetadataType.video
   if (assetIsVideo) {
     const assetVideoMetadata =
       assetMetadata &&
@@ -886,13 +837,10 @@ function getAttachmentInfo(preview: ?Asset, object: ?Asset) {
   const title = object && object.title
 
   const mimeType = preview && preview.mimeType
-  const previewType = mimeType && mimeType.indexOf('image') === 0
-    ? 'Image'
-    : 'Other'
+  const previewType = mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other'
 
   const previewMetadata = preview && preview.metadata
-  const previewSize =
-    previewMetadata && parseMetadataPreviewSize(previewMetadata)
+  const previewSize = previewMetadata && parseMetadataPreviewSize(previewMetadata)
   const previewDurationMs = getAssetDuration(previewMetadata)
 
   const objectMetadata = object && object.metadata
@@ -924,17 +872,11 @@ function pendingConversationIDKeyToTlfName(conversationIDKey: string) {
   return null
 }
 
-function convSupersedesInfo(
-  conversationID: ConversationIDKey,
-  chat: State
-): ?SupersedeInfo {
+function convSupersedesInfo(conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
   return chat.get('supersedesState').get(conversationID)
 }
 
-function convSupersededByInfo(
-  conversationID: ConversationIDKey,
-  chat: State
-): ?SupersedeInfo {
+function convSupersededByInfo(conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
   return chat.get('supersededByState').get(conversationID)
 }
 
@@ -1024,12 +966,9 @@ const getFollowingMap = (state: TypedState) => state.config.following
 const getMetaDataMap = (state: TypedState) => state.chat.get('metaData')
 const getSelectedInbox = (state: TypedState) => {
   const selected = getSelectedConversation(state)
-  return state.chat
-    .get('inbox')
-    .find(inbox => inbox.get('conversationIDKey') === selected)
+  return state.chat.get('inbox').find(inbox => inbox.get('conversationIDKey') === selected)
 }
-const getEditingMessage = (state: TypedState) =>
-  state.chat.get('editingMessage')
+const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
 
 const getTLF = createSelector(
   [getSelectedInbox, getSelectedConversation],
@@ -1054,9 +993,7 @@ const getMessageFromMessageKey = (
   // $FlowIssue getIn
 ): ?Message => state.chat.getIn(['messageMap', messageKey])
 
-const getSelectedConversationStates = (
-  state: TypedState
-): ?ConversationState => {
+const getSelectedConversationStates = (state: TypedState): ?ConversationState => {
   const selectedConversationIDKey = getSelectedConversation(state)
   // $FlowIssue getIn
   return state.chat.getIn(['conversationStates', selectedConversationIDKey])

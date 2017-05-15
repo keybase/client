@@ -64,9 +64,7 @@ const Intro = (props: Props) => (
   <Box
     style={{
       ...stylesLoginForm,
-      marginTop: props.justRevokedSelf ||
-        props.justDeletedSelf ||
-        props.justLoginFromRevokedDevice
+      marginTop: props.justRevokedSelf || props.justDeletedSelf || props.justLoginFromRevokedDevice
         ? 0
         : 55,
     }}
@@ -119,12 +117,7 @@ const Intro = (props: Props) => (
       <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>
         Already on Keybase?
       </Text>
-      <Button
-        style={stylesLoginButton}
-        type="Secondary"
-        onClick={props.onLogin}
-        label="Log in"
-      />
+      <Button style={stylesLoginButton} type="Secondary" onClick={props.onLogin} label="Log in" />
     </Box>
   </Box>
 )

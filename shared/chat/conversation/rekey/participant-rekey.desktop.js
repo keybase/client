@@ -7,18 +7,9 @@ import type {Props} from './participant-rekey'
 
 const Row = ({username, onUsernameClicked}) => (
   <Box style={rowStyle} onClick={() => onUsernameClicked(username)}>
-    <Avatar
-      username={username}
-      size={40}
-      style={{marginRight: 12, padding: 4}}
-    />
+    <Avatar username={username} size={40} style={{marginRight: 12, padding: 4}} />
     <Box style={innerRowStyle}>
-      <Usernames
-        inline={true}
-        backgroundMode="Terminal"
-        type="BodySemibold"
-        users={[{username}]}
-      />
+      <Usernames inline={true} backgroundMode="Terminal" type="BodySemibold" users={[{username}]} />
       <Text
         type="BodySmall"
         backgroundMode="Terminal"
@@ -30,10 +21,7 @@ const Row = ({username, onUsernameClicked}) => (
   </Box>
 )
 
-const ParticipantRekey = ({
-  rekeyInfo,
-  onShowProfile: onUsernameClicked,
-}: Props) => {
+const ParticipantRekey = ({rekeyInfo, onShowProfile: onUsernameClicked}: Props) => {
   return (
     <Box style={containerStyle}>
       <Box
@@ -70,11 +58,7 @@ const ParticipantRekey = ({
             rekeyInfo
               .get('rekeyParticipants')
               .map(username => (
-                <Row
-                  key={username}
-                  username={username}
-                  onUsernameClicked={onUsernameClicked}
-                />
+                <Row key={username} username={username} onUsernameClicked={onUsernameClicked} />
               ))}
         </Box>
       </Box>

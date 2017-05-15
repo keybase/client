@@ -21,9 +21,7 @@ function setupOpenDevtools() {
       devToolsState = !devToolsState
       BrowserWindow.getAllWindows().map(
         bw =>
-          devToolsState
-            ? bw.webContents.openDevTools('detach')
-            : bw.webContents.closeDevTools()
+          devToolsState ? bw.webContents.openDevTools('detach') : bw.webContents.closeDevTools()
       )
     })
   }

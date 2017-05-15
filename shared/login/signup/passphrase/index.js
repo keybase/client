@@ -31,8 +31,7 @@ class PassphraseForm extends Component {
         pass1Update={pass1 => this.setState({pass1})}
         pass2={this.state.pass2}
         pass2Update={pass2 => this.setState({pass2})}
-        onSubmit={() =>
-          this.props.checkPassphrase(this.state.pass1, this.state.pass2)}
+        onSubmit={() => this.props.checkPassphrase(this.state.pass1, this.state.pass2)}
         onBack={this.props.restartSignup}
       />
     )

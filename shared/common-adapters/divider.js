@@ -10,11 +10,7 @@ class Divider extends Component<void, Props, void> {
       ? {maxWidth: 1, minWidth: 1}
       : {maxHeight: 1, minHeight: 1}
 
-    return (
-      <Box
-        style={{...styles.divider, ...orientationStyle, ...this.props.style}}
-      />
-    )
+    return <Box style={{...styles.divider, ...orientationStyle, ...this.props.style}} />
   }
 }
 

@@ -26,16 +26,14 @@ const choiceConnector: TypedConnector<
   {},
   ProvePgpChoiceProps
 > = new TypedConnector()
-export const ConnectedChoice = choiceConnector.connect(
-  (state, dispatch, ownProps) => ({
-    onCancel: () => {
-      dispatch(navigateUp())
-    },
-    onOptionClick: (type: ProvePgpChoiceOptions) => {
-      dispatch(navigateAppend([type]))
-    },
-  })
-)(ProvePgpChoice)
+export const ConnectedChoice = choiceConnector.connect((state, dispatch, ownProps) => ({
+  onCancel: () => {
+    dispatch(navigateUp())
+  },
+  onOptionClick: (type: ProvePgpChoiceOptions) => {
+    dispatch(navigateAppend([type]))
+  },
+}))(ProvePgpChoice)
 
 const importConnector: TypedConnector<
   TypedState,
@@ -43,13 +41,11 @@ const importConnector: TypedConnector<
   {},
   ImportProps
 > = new TypedConnector()
-export const ConnectedImport = importConnector.connect(
-  (state, dispatch, ownProps) => ({
-    onCancel: () => {
-      dispatch(navigateUp())
-    },
-  })
-)(ImportPgp)
+export const ConnectedImport = importConnector.connect((state, dispatch, ownProps) => ({
+  onCancel: () => {
+    dispatch(navigateUp())
+  },
+}))(ImportPgp)
 
 const pgpInfoConnector: TypedConnector<
   TypedState,
@@ -57,32 +53,30 @@ const pgpInfoConnector: TypedConnector<
   {},
   InfoProps
 > = new TypedConnector()
-export const ConnectedPgpInfo = pgpInfoConnector.connect(
-  (state, dispatch, ownProps) => {
-    const {profile: {pgpInfo}} = state
-    return {
-      ...pgpInfo,
-      onChangeFullName: next => {
-        dispatch(updatePgpInfo({fullName: next}))
-      },
-      onChangeEmail1: next => {
-        dispatch(updatePgpInfo({email1: next}))
-      },
-      onChangeEmail2: next => {
-        dispatch(updatePgpInfo({email2: next}))
-      },
-      onChangeEmail3: next => {
-        dispatch(updatePgpInfo({email3: next}))
-      },
-      onCancel: () => {
-        dispatch(navigateUp())
-      },
-      onNext: () => {
-        dispatch(generatePgp())
-      },
-    }
+export const ConnectedPgpInfo = pgpInfoConnector.connect((state, dispatch, ownProps) => {
+  const {profile: {pgpInfo}} = state
+  return {
+    ...pgpInfo,
+    onChangeFullName: next => {
+      dispatch(updatePgpInfo({fullName: next}))
+    },
+    onChangeEmail1: next => {
+      dispatch(updatePgpInfo({email1: next}))
+    },
+    onChangeEmail2: next => {
+      dispatch(updatePgpInfo({email2: next}))
+    },
+    onChangeEmail3: next => {
+      dispatch(updatePgpInfo({email3: next}))
+    },
+    onCancel: () => {
+      dispatch(navigateUp())
+    },
+    onNext: () => {
+      dispatch(generatePgp())
+    },
   }
-)(PgpInfo)
+})(PgpInfo)
 
 const generatePgpConnector: TypedConnector<
   TypedState,
@@ -90,13 +84,11 @@ const generatePgpConnector: TypedConnector<
   {},
   GenerateProps
 > = new TypedConnector()
-export const ConnectedGeneratePgp = generatePgpConnector.connect(
-  (state, dispatch, ownProps) => ({
-    onCancel: () => {
-      dispatch({type: Constants.cancelPgpGen, payload: {}})
-    },
-  })
-)(GeneratePgp)
+export const ConnectedGeneratePgp = generatePgpConnector.connect((state, dispatch, ownProps) => ({
+  onCancel: () => {
+    dispatch({type: Constants.cancelPgpGen, payload: {}})
+  },
+}))(GeneratePgp)
 
 const finishedConnector: TypedConnector<
   TypedState,
@@ -104,17 +96,15 @@ const finishedConnector: TypedConnector<
   {},
   FinishedProps
 > = new TypedConnector()
-export const ConnectedFinished = finishedConnector.connect(
-  (state, dispatch, ownProps) => {
-    const {profile: {pgpPublicKey}} = state
-    return {
-      pgpKeyString: pgpPublicKey || 'Error getting public key...',
-      onDone: shouldStoreKeyOnServer => {
-        dispatch({
-          type: Constants.finishedWithKeyGen,
-          payload: {shouldStoreKeyOnServer},
-        })
-      },
-    }
+export const ConnectedFinished = finishedConnector.connect((state, dispatch, ownProps) => {
+  const {profile: {pgpPublicKey}} = state
+  return {
+    pgpKeyString: pgpPublicKey || 'Error getting public key...',
+    onDone: shouldStoreKeyOnServer => {
+      dispatch({
+        type: Constants.finishedWithKeyGen,
+        payload: {shouldStoreKeyOnServer},
+      })
+    },
   }
-)(Finished)
+})(Finished)
