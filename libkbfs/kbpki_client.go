@@ -83,19 +83,24 @@ func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
 		if !verifyingKey.KID().Equal(key.KID()) {
 			continue
 		}
+		// We add some slack to the revoke time, because the MD server
+		// won't instanteneously find out about the revoke -- it might
+		// keep accepting writes from the revoked device for a short
+		// period of time until it learns about the revoke.
+		const revokeSlack = 1 * time.Minute
 		revokedTime := keybase1.FromTime(t.Unix)
 		// Trust the server times -- if the key was valid at the given
 		// time, we are good to go.  TODO: use Merkle data to check
 		// the server timestamps, to prove the server isn't lying.
-		if atServerTime.Before(revokedTime) {
+		if atServerTime.Before(revokedTime.Add(revokeSlack)) {
 			k.log.CDebugf(ctx, "Trusting revoked verifying key %s for user %s "+
-				"(revoked time: %v vs. server time %v)", verifyingKey.KID(), uid,
-				revokedTime, atServerTime)
+				"(revoked time: %v vs. server time %v, slack=%s)",
+				verifyingKey.KID(), uid, revokedTime, atServerTime, revokeSlack)
 			return true, nil
 		}
 		k.log.CDebugf(ctx, "Not trusting revoked verifying key %s for "+
-			"user %s (revoked time: %v vs. server time %v)",
-			verifyingKey.KID(), uid, revokedTime, atServerTime)
+			"user %s (revoked time: %v vs. server time %v, slack=%s)",
+			verifyingKey.KID(), uid, revokedTime, atServerTime, revokeSlack)
 		return false, nil
 	}
 

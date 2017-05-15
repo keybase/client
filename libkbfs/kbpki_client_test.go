@@ -116,7 +116,7 @@ func TestKBPKIClientHasRevokedVerifyingKey(t *testing.T) {
 
 	// Something verified after the key was revoked
 	err = c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		revokedKey, revokeTime.Add(10*time.Second))
+		revokedKey, revokeTime.Add(70*time.Second))
 	if err == nil {
 		t.Error("HasVerifyingKey unexpectedly succeeded")
 	}
