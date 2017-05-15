@@ -121,32 +121,28 @@ helpers.rootLinuxNode(env, {
                     //    }}}
                     //},
                     test_osx: {
-                        helpers.nodeWithCleanup('macstadium', {}, {}) {
+                        def mountDir='/Volumes/untitled/kbfs'
+                        helpers.nodeWithCleanup('macstadium', {}, {
+                                sh "rm -rf ${mountDir}"
+                            }) {
                             def BASEDIR=pwd()
                             def GOPATH="${BASEDIR}/go"
-                            def mountDir='/Volumes/untitled/kbfs'
                             dir(mountDir) {
                                 sh "touch test.txt"
                             }
-                            try {
-                                withEnv([
-                                    "PATH=${env.PATH}:${GOPATH}/bin",
-                                    "GOPATH=${GOPATH}",
-                                    "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                                    "TMPDIR=${mountDir}",
-                                ]) {
-                                    ws("${GOPATH}/src/github.com/keybase/kbfs") {
-                                        println "Checkout OS X"
-                                        checkout scm
+                            withEnv([
+                                "PATH=${env.PATH}:${GOPATH}/bin",
+                                "GOPATH=${GOPATH}",
+                                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                                "TMPDIR=${mountDir}",
+                            ]) {
+                                ws("${GOPATH}/src/github.com/keybase/kbfs") {
+                                    println "Checkout OS X"
+                                    checkout scm
 
-                                        println "Test OS X"
-                                        runNixTest('osx_')
-                                    }
-                                }
-                            } finally {
-                                dir(mountDir) {
-                                    deleteDir()
+                                    println "Test OS X"
+                                    runNixTest('osx_')
                                 }
                             }
                         }
