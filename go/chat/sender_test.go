@@ -481,12 +481,42 @@ func TestDisconnectedFailure(t *testing.T) {
 	res := startConv(t, u, trip, baseSender, ri, tc)
 
 	tc.ChatG.MessageDeliverer.Disconnected(context.TODO())
+	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(baseSender)
+
+	// If not offline for long enough, we should be able to get a send by just reconnecting
+	obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:      trip,
+			Sender:    u.User.GetUID().ToBytes(),
+			TlfName:   u.Username,
+			TlfPublic: false,
+		},
+	}, 0)
+	require.NoError(t, err)
+	cl.Advance(time.Millisecond)
+	select {
+	case <-listener.failing:
+		require.Fail(t, "no failed message")
+	default:
+	}
+	tc.ChatG.MessageDeliverer.Connected(context.TODO())
+	select {
+	case inc := <-listener.incoming:
+		require.Equal(t, 1, inc)
+		require.Equal(t, obid, listener.obids[0])
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no incoming message")
+	}
+	listener.obids = nil
+
+	tc.ChatG.MessageDeliverer.Disconnected(context.TODO())
 	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
+	cl.Advance(time.Hour)
 
 	// Send nonblock
 	obids := []chat1.OutboxID{}
 	for i := 0; i < 3; i++ {
-		obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		obid, _, _, err = sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:      trip,
 				Sender:    u.User.GetUID().ToBytes(),
