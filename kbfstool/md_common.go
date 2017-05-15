@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/fsrpc"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -80,12 +81,12 @@ func getBranchID(ctx context.Context, config libkbfs.Config,
 
 func getRevision(ctx context.Context, config libkbfs.Config,
 	tlfID tlf.ID, branchID libkbfs.BranchID,
-	revisionStr string) (libkbfs.MetadataRevision, error) {
+	revisionStr string) (kbfsmd.Revision, error) {
 	if len(revisionStr) == 0 || revisionStr == "latest" {
 		if branchID == libkbfs.NullBranchID {
 			irmd, err := config.MDOps().GetForTLF(ctx, tlfID)
 			if err != nil {
-				return libkbfs.MetadataRevisionUninitialized,
+				return kbfsmd.RevisionUninitialized,
 					err
 			}
 			return irmd.Revision(), nil
@@ -94,7 +95,7 @@ func getRevision(ctx context.Context, config libkbfs.Config,
 		irmd, err := config.MDOps().GetUnmergedForTLF(
 			ctx, tlfID, branchID)
 		if err != nil {
-			return libkbfs.MetadataRevisionUninitialized, err
+			return kbfsmd.RevisionUninitialized, err
 		}
 		return irmd.Revision(), nil
 	}
@@ -106,13 +107,13 @@ func getRevision(ctx context.Context, config libkbfs.Config,
 	}
 	u, err := strconv.ParseUint(revisionStr, base, 64)
 	if err != nil {
-		return libkbfs.MetadataRevisionUninitialized, err
+		return kbfsmd.RevisionUninitialized, err
 	}
-	return libkbfs.MetadataRevision(u), nil
+	return kbfsmd.Revision(u), nil
 }
 
 func mdGet(ctx context.Context, config libkbfs.Config, tlfID tlf.ID,
-	branchID libkbfs.BranchID, rev libkbfs.MetadataRevision) (
+	branchID libkbfs.BranchID, rev kbfsmd.Revision) (
 	libkbfs.ImmutableRootMetadata, error) {
 	var irmds []libkbfs.ImmutableRootMetadata
 	var err error

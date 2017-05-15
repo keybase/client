@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -560,7 +561,7 @@ func TestBasicCRNoConflictWithUnembeddedBlockChanges(t *testing.T) {
 
 type registerForUpdateRecord struct {
 	id       tlf.ID
-	currHead MetadataRevision
+	currHead kbfsmd.Revision
 }
 
 type mdServerLocalRecordingRegisterForUpdate struct {
@@ -580,7 +581,7 @@ func newMDServerLocalRecordingRegisterForUpdate(mdServerRaw mdServerLocal) (
 
 func (md mdServerLocalRecordingRegisterForUpdate) RegisterForUpdate(
 	ctx context.Context,
-	id tlf.ID, currHead MetadataRevision) (<-chan error, error) {
+	id tlf.ID, currHead kbfsmd.Revision) (<-chan error, error) {
 	md.ch <- registerForUpdateRecord{id: id, currHead: currHead}
 	return md.mdServerLocal.RegisterForUpdate(ctx, id, currHead)
 }

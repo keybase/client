@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 )
@@ -44,7 +45,7 @@ import (
 // dir/rkbv3/0100...ff
 //
 // Each branch has its own subdirectory with a journal; the journal
-// ordinals are just MetadataRevisions, and the journal entries are
+// ordinals are just Revisions, and the journal entries are
 // just MdIDs. (Branches are usually temporary, so no need to splay
 // them.)
 //
@@ -256,7 +257,7 @@ func (s *mdServerTlfStorage) checkGetParamsReadLocked(
 }
 
 func (s *mdServerTlfStorage) getRangeReadLocked(
-	currentUID keybase1.UID, bid BranchID, start, stop MetadataRevision) (
+	currentUID keybase1.UID, bid BranchID, start, stop kbfsmd.Revision) (
 	[]*RootMetadataSigned, error) {
 	err := s.checkGetParamsReadLocked(currentUID, bid)
 	if err != nil {
@@ -274,7 +275,7 @@ func (s *mdServerTlfStorage) getRangeReadLocked(
 	}
 	var rmdses []*RootMetadataSigned
 	for i, entry := range entries {
-		expectedRevision := realStart + MetadataRevision(i)
+		expectedRevision := realStart + kbfsmd.Revision(i)
 		rmds, err := s.getMDReadLocked(entry.ID)
 		if err != nil {
 			return nil, MDServerError{err}
@@ -379,7 +380,7 @@ func (s *mdServerTlfStorage) getForTLF(
 }
 
 func (s *mdServerTlfStorage) getRange(
-	currentUID keybase1.UID, bid BranchID, start, stop MetadataRevision) (
+	currentUID keybase1.UID, bid BranchID, start, stop kbfsmd.Revision) (
 	[]*RootMetadataSigned, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()

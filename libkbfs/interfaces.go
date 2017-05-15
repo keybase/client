@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
@@ -661,11 +662,11 @@ type Reporter interface {
 type MDCache interface {
 	// Get gets the metadata object associated with the given TLF ID,
 	// revision number, and branch ID (NullBranchID for merged MD).
-	Get(tlf tlf.ID, rev MetadataRevision, bid BranchID) (ImmutableRootMetadata, error)
+	Get(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID) (ImmutableRootMetadata, error)
 	// Put stores the metadata object.
 	Put(md ImmutableRootMetadata) error
 	// Delete removes the given metadata object from the cache if it exists.
-	Delete(tlf tlf.ID, rev MetadataRevision, bid BranchID)
+	Delete(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID)
 	// Replace replaces the entry matching the md under the old branch
 	// ID with the new one.  If the old entry doesn't exist, this is
 	// equivalent to a Put.
@@ -1037,13 +1038,13 @@ type MDOps interface {
 
 	// GetRange returns a range of metadata objects corresponding to
 	// the passed revision numbers (inclusive).
-	GetRange(ctx context.Context, id tlf.ID, start, stop MetadataRevision) (
+	GetRange(ctx context.Context, id tlf.ID, start, stop kbfsmd.Revision) (
 		[]ImmutableRootMetadata, error)
 
 	// GetUnmergedRange is the same as the above but for unmerged
 	// metadata history (inclusive).
 	GetUnmergedRange(ctx context.Context, id tlf.ID, bid BranchID,
-		start, stop MetadataRevision) ([]ImmutableRootMetadata, error)
+		start, stop kbfsmd.Revision) ([]ImmutableRootMetadata, error)
 
 	// Put stores the metadata object for the given
 	// top-level folder.
@@ -1203,7 +1204,7 @@ type MDServer interface {
 	// GetRange returns a range of (signed/encrypted) metadata objects
 	// corresponding to the passed revision numbers (inclusive).
 	GetRange(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus,
-		start, stop MetadataRevision) ([]*RootMetadataSigned, error)
+		start, stop kbfsmd.Revision) ([]*RootMetadataSigned, error)
 
 	// Put stores the (signed/encrypted) metadata object for the given
 	// top-level folder. Note: If the unmerged bit is set in the metadata
@@ -1226,7 +1227,7 @@ type MDServer interface {
 	// re-register to get a new chan that can receive future update
 	// notifications.
 	RegisterForUpdate(ctx context.Context, id tlf.ID,
-		currHead MetadataRevision) (<-chan error, error)
+		currHead kbfsmd.Revision) (<-chan error, error)
 
 	// CancelRegistration lets the local MDServer instance know that
 	// we are no longer interested in updates for the specified
@@ -1292,7 +1293,7 @@ type mdServerLocal interface {
 	addNewAssertionForTest(
 		uid keybase1.UID, newAssertion keybase1.SocialAssertion) error
 	getCurrentMergedHeadRevision(ctx context.Context, id tlf.ID) (
-		rev MetadataRevision, err error)
+		rev kbfsmd.Revision, err error)
 	isShutdown() bool
 	copy(config mdServerLocalConfig) mdServerLocal
 }
@@ -1877,7 +1878,7 @@ type BareRootMetadata interface {
 	// MDDiskUsage returns the estimated MD disk usage for the folder as of this revision of metadata.
 	MDDiskUsage() uint64
 	// RevisionNumber returns the revision number associated with this metadata structure.
-	RevisionNumber() MetadataRevision
+	RevisionNumber() kbfsmd.Revision
 	// BID returns the per-device branch ID associated with this metadata revision.
 	BID() BranchID
 	// GetPrevRoot returns the hash of the previous metadata revision.
@@ -1966,7 +1967,7 @@ type MutableBareRootMetadata interface {
 	// SetWriterMetadataCopiedBit set the writer metadata copied bit.
 	SetWriterMetadataCopiedBit()
 	// SetRevision sets the revision number of the underlying metadata.
-	SetRevision(revision MetadataRevision)
+	SetRevision(revision kbfsmd.Revision)
 	// SetUnresolvedReaders sets the list of unresolved readers associated with this folder.
 	SetUnresolvedReaders(readers []keybase1.SocialAssertion)
 	// SetUnresolvedWriters sets the list of unresolved writers associated with this folder.

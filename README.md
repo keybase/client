@@ -34,6 +34,7 @@ The code is organized as follows:
 * [kbfsfuse](kbfsfuse/): The main executable for running KBFS on Linux
   and OS X.
 * [kbfshash](kbfshash/): An implementation of the KBFS hash spec.
+* [kbfsmd](kbfsmd/): Types and functions to work with KBFS TLF metadata.
 * [kbfssync](kbfssync/): KBFS-specific synchronization primitives.
 * [kbfstool](kbfstool/): A thin command line utility for interacting with KBFS
   without using a filesystem mountpoint.

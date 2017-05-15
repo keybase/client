@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 )
@@ -136,7 +137,7 @@ func (m *mdServerLocalUpdateManager) setHead(id tlf.ID, server mdServerLocal) {
 }
 
 func (m *mdServerLocalUpdateManager) registerForUpdate(
-	id tlf.ID, currHead, currMergedHeadRev MetadataRevision,
+	id tlf.ID, currHead, currMergedHeadRev kbfsmd.Revision,
 	server mdServerLocal) <-chan error {
 	m.lock.Lock()
 	defer m.lock.Unlock()

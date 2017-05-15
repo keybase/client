@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -119,7 +120,7 @@ type blockJournalEntry struct {
 	// addRefOp.  Used for all ops except for mdRevMarkerOp.
 	Contexts kbfsblock.ContextMap `codec:",omitempty"`
 	// Only used for mdRevMarkerOps.
-	Revision MetadataRevision `codec:",omitempty"`
+	Revision kbfsmd.Revision `codec:",omitempty"`
 	// Ignore this entry while flushing if this is true.
 	Ignore bool `codec:",omitempty"`
 	// This is an MD rev marker that represents a local squash.  TODO:
@@ -556,7 +557,7 @@ func (j *blockJournal) removeReferences(
 }
 
 func (j *blockJournal) markMDRevision(ctx context.Context,
-	rev MetadataRevision, isPendingLocalSquash bool) (err error) {
+	rev kbfsmd.Revision, isPendingLocalSquash bool) (err error) {
 	j.log.CDebugf(ctx, "Marking MD revision %d in the block journal", rev)
 	defer func() {
 		if err != nil {
@@ -598,7 +599,7 @@ func (be blockEntriesToFlush) flushNeeded() bool {
 	return be.length() > 0
 }
 
-func (be blockEntriesToFlush) revIsLocalSquash(rev MetadataRevision) bool {
+func (be blockEntriesToFlush) revIsLocalSquash(rev kbfsmd.Revision) bool {
 	for _, entry := range be.other {
 		if !entry.Ignore && entry.Op == mdRevMarkerOp && entry.Revision == rev {
 			return entry.IsLocalSquash || entry.Unignorable
@@ -624,41 +625,41 @@ func (be blockEntriesToFlush) clearFlushingBlockIDs(ids map[kbfsblock.ID]bool) {
 // MD revision that can be merged after the returned entries are
 // successfully flushed; if no entries are returned (i.e., the block
 // journal is empty) then any MD revision may be flushed even when
-// MetadataRevisionUninitialized is returned.
+// kbfsmd.RevisionUninitialized is returned.
 func (j *blockJournal) getNextEntriesToFlush(
 	ctx context.Context, end journalOrdinal, maxToFlush int) (
-	entries blockEntriesToFlush, maxMDRevToFlush MetadataRevision, err error) {
+	entries blockEntriesToFlush, maxMDRevToFlush kbfsmd.Revision, err error) {
 	first, err := j.j.readEarliestOrdinal()
 	if ioutil.IsNotExist(err) {
-		return blockEntriesToFlush{}, MetadataRevisionUninitialized, nil
+		return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized, nil
 	} else if err != nil {
-		return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
+		return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized, err
 	}
 
 	if first >= end {
-		return blockEntriesToFlush{}, MetadataRevisionUninitialized,
+		return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized,
 			errors.Errorf("Trying to flush past the "+
 				"start of the journal (first=%d, end=%d)", first, end)
 	}
 
 	realEnd, err := j.end()
 	if realEnd == 0 {
-		return blockEntriesToFlush{}, MetadataRevisionUninitialized,
+		return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized,
 			errors.Errorf("There was an earliest "+
 				"ordinal %d, but no latest ordinal", first)
 	} else if err != nil {
-		return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
+		return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized, err
 	}
 
 	if end > realEnd {
-		return blockEntriesToFlush{}, MetadataRevisionUninitialized,
+		return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized,
 			errors.Errorf("Trying to flush past the "+
 				"end of the journal (realEnd=%d, end=%d)", realEnd, end)
 	}
 
 	entries.puts = newBlockPutState(int(end - first))
 	entries.adds = newBlockPutState(int(end - first))
-	maxMDRevToFlush = MetadataRevisionUninitialized
+	maxMDRevToFlush = kbfsmd.RevisionUninitialized
 
 	loopEnd := end
 	if first+journalOrdinal(maxToFlush) < end {
@@ -668,7 +669,7 @@ func (j *blockJournal) getNextEntriesToFlush(
 	for ordinal := first; ordinal < loopEnd; ordinal++ {
 		entry, err := j.readJournalEntry(ordinal)
 		if err != nil {
-			return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
+			return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized, err
 		}
 
 		if entry.Ignore {
@@ -687,12 +688,12 @@ func (j *blockJournal) getNextEntriesToFlush(
 		case blockPutOp:
 			id, bctx, err := entry.getSingleContext()
 			if err != nil {
-				return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
+				return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized, err
 			}
 
 			data, serverHalf, err = j.s.getData(id)
 			if err != nil {
-				return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
+				return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized, err
 			}
 
 			entries.puts.addNewBlock(
@@ -703,7 +704,7 @@ func (j *blockJournal) getNextEntriesToFlush(
 		case addRefOp:
 			id, bctx, err := entry.getSingleContext()
 			if err != nil {
-				return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
+				return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized, err
 			}
 
 			entries.adds.addNewBlock(
@@ -713,7 +714,7 @@ func (j *blockJournal) getNextEntriesToFlush(
 
 		case mdRevMarkerOp:
 			if entry.Revision < maxMDRevToFlush {
-				return blockEntriesToFlush{}, MetadataRevisionUninitialized,
+				return blockEntriesToFlush{}, kbfsmd.RevisionUninitialized,
 					errors.Errorf("Max MD revision decreased in block journal "+
 						"from %d to %d", entry.Revision, maxMDRevToFlush)
 			}
@@ -910,7 +911,7 @@ func (j *blockJournal) removeFlushedEntries(ctx context.Context,
 }
 
 func (j *blockJournal) ignoreBlocksAndMDRevMarkersInJournal(ctx context.Context,
-	idsToIgnore map[kbfsblock.ID]bool, rev MetadataRevision,
+	idsToIgnore map[kbfsblock.ID]bool, rev kbfsmd.Revision,
 	dj *diskJournal) (totalIgnoredBytes int64, err error) {
 	first, err := dj.readEarliestOrdinal()
 	if ioutil.IsNotExist(err) {
@@ -1005,7 +1006,7 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkersInJournal(ctx context.Context,
 }
 
 func (j *blockJournal) ignoreBlocksAndMDRevMarkers(ctx context.Context,
-	blocksToIgnore []kbfsblock.ID, rev MetadataRevision) (
+	blocksToIgnore []kbfsblock.ID, rev kbfsmd.Revision) (
 	totalIgnoredBytes int64, err error) {
 	idsToIgnore := make(map[kbfsblock.ID]bool)
 	for _, id := range blocksToIgnore {

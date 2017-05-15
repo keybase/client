@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -89,7 +90,7 @@ type branchChangeListener interface {
 // accessing the journal, it must do so from another goroutine to
 // avoid deadlocks.
 type mdFlushListener interface {
-	onMDFlush(tlf.ID, BranchID, MetadataRevision)
+	onMDFlush(tlf.ID, BranchID, kbfsmd.Revision)
 }
 
 // TODO: JournalServer isn't really a server, although it can create

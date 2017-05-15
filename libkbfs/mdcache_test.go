@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 )
@@ -33,7 +34,7 @@ func testMdcacheMakeHandle(t *testing.T, n uint32) *TlfHandle {
 	return h
 }
 
-func testMdcachePut(t *testing.T, tlf tlf.ID, rev MetadataRevision,
+func testMdcachePut(t *testing.T, tlf tlf.ID, rev kbfsmd.Revision,
 	bid BranchID, h *TlfHandle, mdcache *MDCacheStandard) {
 	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlf, h)
 	require.NoError(t, err)

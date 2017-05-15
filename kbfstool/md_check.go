@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -110,7 +111,7 @@ func checkFileBlock(ctx context.Context, config libkbfs.Config,
 // the most recent one is returned.
 func mdCheckChain(ctx context.Context, config libkbfs.Config,
 	irmd libkbfs.ImmutableRootMetadata,
-	minRevision libkbfs.MetadataRevision, verbose bool) (
+	minRevision kbfsmd.Revision, verbose bool) (
 	irmdsWithRoots []libkbfs.ImmutableRootMetadata, err error) {
 	fmt.Printf("Checking chain from rev %d to %d...\n",
 		minRevision, irmd.Revision())
@@ -197,13 +198,13 @@ func mdCheckOne(ctx context.Context, config libkbfs.Config,
 	if mdLimit < 0 {
 		mdLimit = 0
 	}
-	var minRevision libkbfs.MetadataRevision
-	if irmd.Revision() >= libkbfs.MetadataRevisionInitial+
-		libkbfs.MetadataRevision(mdLimit) {
+	var minRevision kbfsmd.Revision
+	if irmd.Revision() >= kbfsmd.RevisionInitial+
+		kbfsmd.Revision(mdLimit) {
 		minRevision = irmd.Revision() -
-			libkbfs.MetadataRevision(mdLimit)
+			kbfsmd.Revision(mdLimit)
 	} else {
-		minRevision = libkbfs.MetadataRevisionInitial
+		minRevision = kbfsmd.RevisionInitial
 	}
 	irmdsWithRoots, _ := mdCheckChain(
 		ctx, config, irmd, minRevision, verbose)

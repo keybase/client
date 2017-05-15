@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -528,7 +529,7 @@ func TestCRChainsRemove(t *testing.T) {
 
 	for i := range chainMDs {
 		chainMDs[i].(rootMetadataWithKeyAndTimestamp).RootMetadata.SetRevision(
-			MetadataRevision(i))
+			kbfsmd.Revision(i))
 	}
 
 	ccs, err := newCRChains(

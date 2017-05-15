@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 )
@@ -61,7 +62,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 
 	prevRoot := MdID{}
 	middleRoot := MdID{}
-	for i := MetadataRevision(1); i <= 10; i++ {
+	for i := kbfsmd.Revision(1); i <= 10; i++ {
 		brmd := makeBRMDForTest(t, codec, crypto, tlfID, h, i, uid, prevRoot)
 		rmds := signRMDSForTest(t, codec, signer, brmd)
 		// MDv3 TODO: pass extra metadata
@@ -92,7 +93,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 
 	prevRoot = middleRoot
 	bid := FakeBranchID(1)
-	for i := MetadataRevision(6); i < 41; i++ {
+	for i := kbfsmd.Revision(6); i < 41; i++ {
 		brmd := makeBRMDForTest(t, codec, crypto, tlfID, h, i, uid, prevRoot)
 		brmd.SetUnmerged()
 		brmd.SetBranchID(bid)
@@ -100,7 +101,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		// MDv3 TODO: pass extra metadata
 		recordBranchID, err := s.put(uid, verifyingKey, rmds, nil)
 		require.NoError(t, err)
-		require.Equal(t, i == MetadataRevision(6), recordBranchID)
+		require.Equal(t, i == kbfsmd.Revision(6), recordBranchID)
 		prevRoot, err = crypto.MakeMdID(rmds.MD)
 		require.NoError(t, err)
 	}
@@ -113,7 +114,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	head, err = s.getForTLF(uid, bid)
 	require.NoError(t, err)
 	require.NotNil(t, head)
-	require.Equal(t, MetadataRevision(40), head.MD.RevisionNumber())
+	require.Equal(t, kbfsmd.Revision(40), head.MD.RevisionNumber())
 
 	require.Equal(t, 10, getMDStorageLength(t, s, NullBranchID))
 	require.Equal(t, 35, getMDStorageLength(t, s, bid))
@@ -123,7 +124,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	rmdses, err := s.getRange(uid, bid, 1, 100)
 	require.NoError(t, err)
 	require.Equal(t, 35, len(rmdses))
-	for i := MetadataRevision(6); i < 16; i++ {
+	for i := kbfsmd.Revision(6); i < 16; i++ {
 		require.Equal(t, i, rmdses[i-6].MD.RevisionNumber())
 	}
 
@@ -134,14 +135,14 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	head, err = s.getForTLF(uid, NullBranchID)
 	require.NoError(t, err)
 	require.NotNil(t, head)
-	require.Equal(t, MetadataRevision(10), head.MD.RevisionNumber())
+	require.Equal(t, kbfsmd.Revision(10), head.MD.RevisionNumber())
 
 	// (11) Try to get merged range.
 
 	rmdses, err = s.getRange(uid, NullBranchID, 1, 100)
 	require.NoError(t, err)
 	require.Equal(t, 10, len(rmdses))
-	for i := MetadataRevision(1); i <= 10; i++ {
+	for i := kbfsmd.Revision(1); i <= 10; i++ {
 		require.Equal(t, i, rmdses[i-1].MD.RevisionNumber())
 	}
 

@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/kbfssync"
 	"golang.org/x/net/context"
 )
@@ -394,7 +395,7 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 
 	for (currEdits == nil || !currEdits.isComplete()) &&
 		len(rmds) < maxMDsToInspect &&
-		rmds[0].Revision() > MetadataRevisionInitial {
+		rmds[0].Revision() > kbfsmd.RevisionInitial {
 		teh.log.CDebugf(ctx, "Edits not complete after %d revisions", len(rmds))
 		if estimates.isComplete() {
 			// Once the estimate hits the threshold for each writer,
@@ -414,18 +415,18 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 		}
 
 		for !estimates.isComplete() && len(rmds) < maxMDsToInspect &&
-			rmds[0].Revision() > MetadataRevisionInitial {
+			rmds[0].Revision() > kbfsmd.RevisionInitial {
 			// Starting from the head/branchpoint, work backwards
 			// mdMax revisions at a time.
 			endRev := rmds[0].Revision() - 1
 			startRev := endRev - maxMDsAtATime + 1
-			if startRev < MetadataRevisionInitial {
-				startRev = MetadataRevisionInitial
+			if startRev < kbfsmd.RevisionInitial {
+				startRev = kbfsmd.RevisionInitial
 			}
 			// Don't fetch more MDs than we want to include in our
 			// estimates.
 			if int64(len(rmds))+int64(endRev-startRev)+1 > maxMDsToInspect {
-				startRev = MetadataRevision(
+				startRev = kbfsmd.Revision(
 					int64(len(rmds)) + (int64(endRev) - maxMDsToInspect) + 1)
 			}
 

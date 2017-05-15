@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -81,7 +82,7 @@ func teardownJournalMDOpsTest(t *testing.T, tempdir string, ctx context.Context,
 
 func makeMDForJournalMDOpsTest(
 	t *testing.T, config Config, tlfID tlf.ID, h *TlfHandle,
-	revision MetadataRevision) *RootMetadata {
+	revision kbfsmd.Revision) *RootMetadata {
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
 	rmd.SetRevision(revision)
@@ -118,15 +119,15 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	err = jServer.Enable(ctx, id, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
-	rmd := makeMDForJournalMDOpsTest(t, config, id, h, MetadataRevision(1))
+	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(1))
 
 	mdID, err := mdOps.Put(ctx, rmd)
 	require.NoError(t, err)
 	prevRoot := mdID
 
 	// (2) push some new metadata blocks
-	for i := MetadataRevision(2); i < 8; i++ {
-		rmd.SetRevision(MetadataRevision(i))
+	for i := kbfsmd.Revision(2); i < 8; i++ {
+		rmd.SetRevision(kbfsmd.Revision(i))
 		rmd.SetPrevRoot(prevRoot)
 		mdID, err := mdOps.Put(ctx, rmd)
 		require.NoError(t, err, "i=%d", i)
@@ -137,12 +138,12 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, tlf.NullID, id)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
-	require.Equal(t, MetadataRevision(7), head.Revision())
+	require.Equal(t, kbfsmd.Revision(7), head.Revision())
 
 	head, err = mdOps.GetForTLF(ctx, id)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
-	require.Equal(t, MetadataRevision(7), head.Revision())
+	require.Equal(t, kbfsmd.Revision(7), head.Revision())
 
 	head, err = oldMDOps.GetForTLF(ctx, id)
 	require.NoError(t, err)
@@ -154,23 +155,23 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	head, err = mdOps.GetForTLF(ctx, id)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
-	require.Equal(t, MetadataRevision(7), head.Revision())
+	require.Equal(t, kbfsmd.Revision(7), head.Revision())
 
 	head, err = oldMDOps.GetForTLF(ctx, id)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
-	require.Equal(t, MetadataRevision(7), head.Revision())
+	require.Equal(t, kbfsmd.Revision(7), head.Revision())
 
 	// (3) trigger a conflict
-	rmd.SetRevision(MetadataRevision(8))
+	rmd.SetRevision(kbfsmd.Revision(8))
 	rmd.SetPrevRoot(prevRoot)
 	resolveMD, err := rmd.deepCopy(config.Codec())
 	require.NoError(t, err)
 	_, err = oldMDOps.Put(ctx, rmd)
 	require.NoError(t, err)
 
-	for i := MetadataRevision(8); i <= 10; i++ {
-		rmd.SetRevision(MetadataRevision(i))
+	for i := kbfsmd.Revision(8); i <= 10; i++ {
+		rmd.SetRevision(kbfsmd.Revision(i))
 		rmd.SetPrevRoot(prevRoot)
 		mdID, err := mdOps.Put(ctx, rmd)
 		require.NoError(t, err, "i=%d", i)
@@ -183,12 +184,12 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	head, err = mdOps.GetForTLF(ctx, id)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
-	require.Equal(t, MetadataRevision(8), head.Revision())
+	require.Equal(t, kbfsmd.Revision(8), head.Revision())
 
 	head, err = oldMDOps.GetForTLF(ctx, id)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
-	require.Equal(t, MetadataRevision(8), head.Revision())
+	require.Equal(t, kbfsmd.Revision(8), head.Revision())
 
 	// Find the branch ID.
 	tlfJournal, ok := jServer.getTLFJournal(id)
@@ -198,18 +199,18 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	head, err = mdOps.GetUnmergedForTLF(ctx, id, bid)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
-	require.Equal(t, MetadataRevision(10), head.Revision())
+	require.Equal(t, kbfsmd.Revision(10), head.Revision())
 
 	_, head, err = mdOps.GetForHandle(ctx, h, Unmerged)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
-	require.Equal(t, MetadataRevision(10), head.Revision())
+	require.Equal(t, kbfsmd.Revision(10), head.Revision())
 	require.Equal(t, bid, head.BID())
 
 	// (4) push some new unmerged metadata blocks linking to the
 	//     middle merged block.
-	for i := MetadataRevision(11); i < 41; i++ {
-		rmd.SetRevision(MetadataRevision(i))
+	for i := kbfsmd.Revision(11); i < 41; i++ {
+		rmd.SetRevision(kbfsmd.Revision(i))
 		rmd.SetPrevRoot(prevRoot)
 		mdID, err := mdOps.PutUnmerged(ctx, rmd)
 		require.NoError(t, err, "i=%d", i)
@@ -223,13 +224,13 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	head, err = mdOps.GetUnmergedForTLF(ctx, id, bid)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
-	require.Equal(t, MetadataRevision(40), head.Revision())
+	require.Equal(t, kbfsmd.Revision(40), head.Revision())
 
 	// (6a) try to get unmerged range
 	rmdses, err := mdOps.GetUnmergedRange(ctx, id, bid, 1, 100)
 	require.NoError(t, err)
 	require.Equal(t, 33, len(rmdses))
-	for i := MetadataRevision(8); i < 41; i++ {
+	for i := kbfsmd.Revision(8); i < 41; i++ {
 		require.Equal(t, i, rmdses[i-8].Revision())
 	}
 
@@ -237,7 +238,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	rmdses, err = mdOps.GetUnmergedRange(ctx, id, bid, 7, 14)
 	require.NoError(t, err)
 	require.Equal(t, 7, len(rmdses))
-	for i := MetadataRevision(8); i <= 14; i++ {
+	for i := kbfsmd.Revision(8); i <= 14; i++ {
 		require.Equal(t, i, rmdses[i-8].Revision())
 	}
 
@@ -259,13 +260,13 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	head, err = mdOps.GetForTLF(ctx, id)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
-	require.Equal(t, MetadataRevision(8), head.Revision())
+	require.Equal(t, kbfsmd.Revision(8), head.Revision())
 
 	// (11) try to get merged range
 	rmdses, err = mdOps.GetRange(ctx, id, 1, 100)
 	require.NoError(t, err)
 	require.Equal(t, 8, len(rmdses))
-	for i := MetadataRevision(1); i <= 8; i++ {
+	for i := kbfsmd.Revision(1); i <= 8; i++ {
 		require.Equal(t, i, rmdses[i-1].Revision())
 	}
 }
@@ -296,7 +297,7 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 	err = jServer.Enable(ctx, id, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
-	rmd := makeMDForJournalMDOpsTest(t, config, id, h, MetadataRevision(2))
+	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(2))
 	rmd.SetPrevRoot(fakeMdID(1))
 	rmd.SetBranchID(FakeBranchID(1))
 
@@ -327,7 +328,7 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 	err = jServer.Enable(ctx, id, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
-	rmd := makeMDForJournalMDOpsTest(t, config, id, h, MetadataRevision(1))
+	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(1))
 
 	_, err = mdOps.PutUnmerged(ctx, rmd)
 	require.Error(t, err, "Unmerged put with rmd.BID() == j.branchID == NullBranchID")
@@ -357,7 +358,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	require.True(t, ok)
 
 	// Prepare the md journal to have a leading local squash revision.
-	firstRevision := MetadataRevision(1)
+	firstRevision := kbfsmd.Revision(1)
 	initialRmd := makeMDForJournalMDOpsTest(t, config, id, h, firstRevision)
 	j := tlfJournal.mdJournal
 	initialMdID, err := j.put(ctx, config.Crypto(), config.KeyManager(),
@@ -399,7 +400,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	require.Equal(t, PendingLocalSquashBranchID, irmd.BID())
 
 	// The merged range should just be the initial MD.
-	stopRevision := firstRevision + MetadataRevision(mdCount*2)
+	stopRevision := firstRevision + kbfsmd.Revision(mdCount*2)
 	irmds, err := mdOps.GetRange(ctx, id, firstRevision, stopRevision)
 	require.NoError(t, err)
 	require.Len(t, irmds, 1)
@@ -410,5 +411,5 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 		firstRevision, stopRevision)
 	require.NoError(t, err)
 	require.Len(t, irmds, mdCount)
-	require.Equal(t, firstRevision+MetadataRevision(1), irmds[0].Revision())
+	require.Equal(t, firstRevision+kbfsmd.Revision(1), irmds[0].Revision())
 }

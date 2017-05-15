@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
@@ -791,7 +792,7 @@ func (fs *KBFSOpsStandard) onTLFBranchChange(tlfID tlf.ID, newBID BranchID) {
 }
 
 func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid BranchID,
-	rev MetadataRevision) {
+	rev kbfsmd.Revision) {
 	ops := fs.getOps(context.Background(),
 		FolderBranch{Tlf: tlfID, Branch: MasterBranch}, FavoritesOpNoChange)
 	ops.onMDFlush(bid, rev) // folderBranchOps makes a goroutine

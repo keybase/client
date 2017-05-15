@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -532,7 +533,7 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
 
 // GetRange implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
-	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
+	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision) (
 	rmdses []*RootMetadataSigned, err error) {
 	md.log.LazyTrace(ctx, "MDServer: GetRange %s %s %s %d-%d", id, bid, mStatus, start, stop)
 	defer func() {
@@ -698,7 +699,7 @@ func (md *MDServerRemote) getConn() *rpc.Connection {
 
 // RegisterForUpdate implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id tlf.ID,
-	currHead MetadataRevision) (<-chan error, error) {
+	currHead kbfsmd.Revision) (<-chan error, error) {
 	arg := keybase1.RegisterForUpdatesArg{
 		FolderID:     id.String(),
 		CurrRevision: currHead.Number(),

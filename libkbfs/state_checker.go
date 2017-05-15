@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
@@ -84,17 +85,17 @@ func (sc *StateChecker) findAllBlocksInPath(ctx context.Context,
 }
 
 func (sc *StateChecker) getLastGCData(ctx context.Context,
-	tlf tlf.ID) (time.Time, MetadataRevision) {
+	tlfID tlf.ID) (time.Time, kbfsmd.Revision) {
 	config, ok := sc.config.(*ConfigLocal)
 	if !ok {
-		return time.Time{}, MetadataRevisionUninitialized
+		return time.Time{}, kbfsmd.RevisionUninitialized
 	}
 
 	var latestTime time.Time
-	var latestRev MetadataRevision
+	var latestRev kbfsmd.Revision
 	for _, c := range *config.allKnownConfigsForTesting {
 		ops := c.KBFSOps().(*KBFSOpsStandard).getOps(context.Background(),
-			FolderBranch{tlf, MasterBranch}, FavoritesOpNoChange)
+			FolderBranch{tlfID, MasterBranch}, FavoritesOpNoChange)
 		rt, rev := ops.fbm.getLastQRData()
 		if rt.After(latestTime) && rev > latestRev {
 			latestTime = rt
@@ -106,26 +107,26 @@ func (sc *StateChecker) getLastGCData(ctx context.Context,
 	}
 
 	sc.log.CDebugf(ctx, "Last qr data for TLF %s: revTime=%s, rev=%d",
-		tlf, latestTime, latestRev)
+		tlfID, latestTime, latestRev)
 	return latestTime.Add(-sc.config.QuotaReclamationMinUnrefAge()), latestRev
 }
 
 // CheckMergedState verifies that the state for the given tlf is
 // consistent.
-func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error {
+func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) error {
 	// Blow away MD cache so we don't have any lingering re-embedded
 	// block changes (otherwise we won't be able to learn their sizes).
 	sc.config.SetMDCache(NewMDCacheStandard(defaultMDCacheCapacity))
 
 	// Fetch all the MD updates for this folder, and use the block
 	// change lists to build up the set of currently referenced blocks.
-	rmds, err := getMergedMDUpdates(ctx, sc.config, tlf,
-		MetadataRevisionInitial)
+	rmds, err := getMergedMDUpdates(ctx, sc.config, tlfID,
+		kbfsmd.RevisionInitial)
 	if err != nil {
 		return err
 	}
 	if len(rmds) == 0 {
-		sc.log.CDebugf(ctx, "No state to check for folder %s", tlf)
+		sc.log.CDebugf(ctx, "No state to check for folder %s", tlfID)
 		return nil
 	}
 
@@ -137,9 +138,9 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 		return errors.New("Unexpected KBFSOps type")
 	}
 
-	fb := FolderBranch{tlf, MasterBranch}
+	fb := FolderBranch{tlfID, MasterBranch}
 	ops := kbfsOps.getOps(context.Background(), fb, FavoritesOpNoChange)
-	lastGCRevisionTime, lastGCRev := sc.getLastGCData(ctx, tlf)
+	lastGCRevisionTime, lastGCRev := sc.getLastGCData(ctx, tlfID)
 
 	// Build the expected block list.
 	expectedLiveBlocks := make(map[BlockPointer]bool)
@@ -151,7 +152,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 	// See what the last GC op revision is.  All unref'd pointers from
 	// that revision or earlier should be deleted from the block
 	// server.
-	gcRevision := MetadataRevisionUninitialized
+	gcRevision := kbfsmd.RevisionUninitialized
 	for _, rmd := range rmds {
 		// Don't process copies.
 		if rmd.IsWriterMetadataCopiedSet() {
@@ -179,7 +180,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 			actualLiveBlocks[info.BlockPointer] = info.EncodedSize
 
 			// Any child block change pointers?
-			file := path{FolderBranch{tlf, MasterBranch},
+			file := path{FolderBranch{tlfID, MasterBranch},
 				[]pathNode{{
 					info.BlockPointer,
 					fmt.Sprintf("<MD with revision %d>", rmd.Revision())}}}
@@ -257,7 +258,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 		}
 	}
 	sc.log.CDebugf(ctx, "Folder %v has %d expected live blocks, "+
-		"total %d bytes (%d MD bytes)", tlf, len(expectedLiveBlocks),
+		"total %d bytes (%d MD bytes)", tlfID, len(expectedLiveBlocks),
 		expectedRef, expectedMDRef)
 
 	currMD := rmds[len(rmds)-1]
@@ -290,7 +291,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 		return err
 	}
 	sc.log.CDebugf(ctx, "Folder %v has %d actual live blocks",
-		tlf, len(actualLiveBlocks))
+		tlfID, len(actualLiveBlocks))
 
 	// Compare the two and see if there are any differences. Don't use
 	// reflect.DeepEqual so we can print out exactly what's wrong.
@@ -309,8 +310,8 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 	}
 	if len(extraBlocks) != 0 {
 		sc.log.CWarningf(ctx, "%v: Extra live blocks found: %v",
-			tlf, extraBlocks)
-		return fmt.Errorf("Folder %v has inconsistent state", tlf)
+			tlfID, extraBlocks)
+		return fmt.Errorf("Folder %v has inconsistent state", tlfID)
 	}
 	var missingBlocks []BlockPointer
 	for ptr := range expectedLiveBlocks {
@@ -320,8 +321,8 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 	}
 	if len(missingBlocks) != 0 {
 		sc.log.CWarningf(ctx, "%v: Expected live blocks not found: %v",
-			tlf, missingBlocks)
-		return fmt.Errorf("Folder %v has inconsistent state", tlf)
+			tlfID, missingBlocks)
+		return fmt.Errorf("Folder %v has inconsistent state", tlfID)
 	}
 
 	if actualSize != expectedRef {
@@ -348,7 +349,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 		return errors.New("StateChecker only works against " +
 			"BlockServerLocal")
 	}
-	bserverKnownBlocks, err := bserverLocal.getAllRefsForTest(ctx, tlf)
+	bserverKnownBlocks, err := bserverLocal.getAllRefsForTest(ctx, tlfID)
 	if err != nil {
 		return err
 	}
@@ -381,7 +382,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 			}
 		}
 
-		return fmt.Errorf("Folder %v has inconsistent state", tlf)
+		return fmt.Errorf("Folder %v has inconsistent state", tlfID)
 	}
 
 	// TODO: Check the archived and deleted blocks as well.

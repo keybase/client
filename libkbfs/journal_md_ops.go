@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/pkg/errors"
 
 	"github.com/keybase/kbfs/tlf"
@@ -156,7 +157,7 @@ func (j journalMDOps) getHeadFromJournal(
 
 func (j journalMDOps) getRangeFromJournal(
 	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus,
-	start, stop MetadataRevision) (
+	start, stop kbfsmd.Revision) (
 	[]ImmutableRootMetadata, error) {
 	tlfJournal, ok := j.jServer.getTLFJournal(id)
 	if !ok {
@@ -309,9 +310,9 @@ func (j journalMDOps) GetUnmergedForTLF(
 // for this helper function.
 func (j journalMDOps) getRange(
 	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus,
-	start, stop MetadataRevision,
+	start, stop kbfsmd.Revision,
 	delegateFn func(ctx context.Context, id tlf.ID,
-		start, stop MetadataRevision) (
+		start, stop kbfsmd.Revision) (
 		[]ImmutableRootMetadata, error)) (
 	[]ImmutableRootMetadata, error) {
 	// Grab the range from the journal first.
@@ -369,7 +370,7 @@ func (j journalMDOps) getRange(
 }
 
 func (j journalMDOps) GetRange(
-	ctx context.Context, id tlf.ID, start, stop MetadataRevision) (
+	ctx context.Context, id tlf.ID, start, stop kbfsmd.Revision) (
 	irmds []ImmutableRootMetadata, err error) {
 	j.jServer.log.LazyTrace(ctx, "jMDOps: GetRange %s %d-%d", id, start, stop)
 	defer func() {
@@ -382,14 +383,14 @@ func (j journalMDOps) GetRange(
 
 func (j journalMDOps) GetUnmergedRange(
 	ctx context.Context, id tlf.ID, bid BranchID,
-	start, stop MetadataRevision) (irmd []ImmutableRootMetadata, err error) {
+	start, stop kbfsmd.Revision) (irmd []ImmutableRootMetadata, err error) {
 	j.jServer.log.LazyTrace(ctx, "jMDOps: GetUnmergedRange %s %d-%d", id, start, stop)
 	defer func() {
 		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: GetUnmergedRange %s %d-%d done (err=%v)", id, start, stop, err)
 	}()
 
 	delegateFn := func(ctx context.Context, id tlf.ID,
-		start, stop MetadataRevision) (
+		start, stop kbfsmd.Revision) (
 		[]ImmutableRootMetadata, error) {
 		return j.MDOps.GetUnmergedRange(ctx, id, bid, start, stop)
 	}

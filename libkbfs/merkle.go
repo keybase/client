@@ -11,6 +11,7 @@ import (
 	merkle "github.com/keybase/go-merkle-tree"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
+	"github.com/keybase/kbfs/kbfsmd"
 )
 
 // MerkleRootVersion is the current Merkle root version.
@@ -31,7 +32,7 @@ type MerkleRoot struct {
 // MerkleLeaf is the value of a Merkle leaf node.
 type MerkleLeaf struct {
 	_struct   bool `codec:",toarray"`
-	Revision  MetadataRevision
+	Revision  kbfsmd.Revision
 	Hash      MerkleHash // hash of the signed metadata object
 	Timestamp int64
 }

@@ -11,6 +11,7 @@ import (
 	kbfsblock "github.com/keybase/kbfs/kbfsblock"
 	kbfscodec "github.com/keybase/kbfs/kbfscodec"
 	kbfscrypto "github.com/keybase/kbfs/kbfscrypto"
+	kbfsmd "github.com/keybase/kbfs/kbfsmd"
 	tlf "github.com/keybase/kbfs/tlf"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
@@ -1872,7 +1873,7 @@ func (_m *MockMDCache) EXPECT() *_MockMDCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockMDCache) Get(tlf tlf.ID, rev MetadataRevision, bid BranchID) (ImmutableRootMetadata, error) {
+func (_m *MockMDCache) Get(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID) (ImmutableRootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "Get", tlf, rev, bid)
 	ret0, _ := ret[0].(ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
@@ -1893,7 +1894,7 @@ func (_mr *_MockMDCacheRecorder) Put(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0)
 }
 
-func (_m *MockMDCache) Delete(tlf tlf.ID, rev MetadataRevision, bid BranchID) {
+func (_m *MockMDCache) Delete(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID) {
 	_m.ctrl.Call(_m, "Delete", tlf, rev, bid)
 }
 
@@ -3019,7 +3020,7 @@ func (_mr *_MockMDOpsRecorder) GetUnmergedForTLF(arg0, arg1, arg2 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedForTLF", arg0, arg1, arg2)
 }
 
-func (_m *MockMDOps) GetRange(ctx context.Context, id tlf.ID, start MetadataRevision, stop MetadataRevision) ([]ImmutableRootMetadata, error) {
+func (_m *MockMDOps) GetRange(ctx context.Context, id tlf.ID, start kbfsmd.Revision, stop kbfsmd.Revision) ([]ImmutableRootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "GetRange", ctx, id, start, stop)
 	ret0, _ := ret[0].([]ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
@@ -3030,7 +3031,7 @@ func (_mr *_MockMDOpsRecorder) GetRange(arg0, arg1, arg2, arg3 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRange", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockMDOps) GetUnmergedRange(ctx context.Context, id tlf.ID, bid BranchID, start MetadataRevision, stop MetadataRevision) ([]ImmutableRootMetadata, error) {
+func (_m *MockMDOps) GetUnmergedRange(ctx context.Context, id tlf.ID, bid BranchID, start kbfsmd.Revision, stop kbfsmd.Revision) ([]ImmutableRootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "GetUnmergedRange", ctx, id, bid, start, stop)
 	ret0, _ := ret[0].([]ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
@@ -3391,7 +3392,7 @@ func (_mr *_MockMDServerRecorder) GetForTLF(arg0, arg1, arg2, arg3 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForTLF", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockMDServer) GetRange(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, start MetadataRevision, stop MetadataRevision) ([]*RootMetadataSigned, error) {
+func (_m *MockMDServer) GetRange(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, start kbfsmd.Revision, stop kbfsmd.Revision) ([]*RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetRange", ctx, id, bid, mStatus, start, stop)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -3422,7 +3423,7 @@ func (_mr *_MockMDServerRecorder) PruneBranch(arg0, arg1, arg2 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PruneBranch", arg0, arg1, arg2)
 }
 
-func (_m *MockMDServer) RegisterForUpdate(ctx context.Context, id tlf.ID, currHead MetadataRevision) (<-chan error, error) {
+func (_m *MockMDServer) RegisterForUpdate(ctx context.Context, id tlf.ID, currHead kbfsmd.Revision) (<-chan error, error) {
 	ret := _m.ctrl.Call(_m, "RegisterForUpdate", ctx, id, currHead)
 	ret0, _ := ret[0].(<-chan error)
 	ret1, _ := ret[1].(error)
@@ -3593,7 +3594,7 @@ func (_mr *_MockmdServerLocalRecorder) GetForTLF(arg0, arg1, arg2, arg3 interfac
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForTLF", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockmdServerLocal) GetRange(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, start MetadataRevision, stop MetadataRevision) ([]*RootMetadataSigned, error) {
+func (_m *MockmdServerLocal) GetRange(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, start kbfsmd.Revision, stop kbfsmd.Revision) ([]*RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetRange", ctx, id, bid, mStatus, start, stop)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -3624,7 +3625,7 @@ func (_mr *_MockmdServerLocalRecorder) PruneBranch(arg0, arg1, arg2 interface{})
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PruneBranch", arg0, arg1, arg2)
 }
 
-func (_m *MockmdServerLocal) RegisterForUpdate(ctx context.Context, id tlf.ID, currHead MetadataRevision) (<-chan error, error) {
+func (_m *MockmdServerLocal) RegisterForUpdate(ctx context.Context, id tlf.ID, currHead kbfsmd.Revision) (<-chan error, error) {
 	ret := _m.ctrl.Call(_m, "RegisterForUpdate", ctx, id, currHead)
 	ret0, _ := ret[0].(<-chan error)
 	ret1, _ := ret[1].(error)
@@ -3753,9 +3754,9 @@ func (_mr *_MockmdServerLocalRecorder) addNewAssertionForTest(arg0, arg1 interfa
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "addNewAssertionForTest", arg0, arg1)
 }
 
-func (_m *MockmdServerLocal) getCurrentMergedHeadRevision(ctx context.Context, id tlf.ID) (MetadataRevision, error) {
+func (_m *MockmdServerLocal) getCurrentMergedHeadRevision(ctx context.Context, id tlf.ID) (kbfsmd.Revision, error) {
 	ret := _m.ctrl.Call(_m, "getCurrentMergedHeadRevision", ctx, id)
-	ret0, _ := ret[0].(MetadataRevision)
+	ret0, _ := ret[0].(kbfsmd.Revision)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -5655,9 +5656,9 @@ func (_mr *_MockBareRootMetadataRecorder) MDDiskUsage() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MDDiskUsage")
 }
 
-func (_m *MockBareRootMetadata) RevisionNumber() MetadataRevision {
+func (_m *MockBareRootMetadata) RevisionNumber() kbfsmd.Revision {
 	ret := _m.ctrl.Call(_m, "RevisionNumber")
-	ret0, _ := ret[0].(MetadataRevision)
+	ret0, _ := ret[0].(kbfsmd.Revision)
 	return ret0
 }
 
@@ -6091,9 +6092,9 @@ func (_mr *_MockMutableBareRootMetadataRecorder) MDDiskUsage() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MDDiskUsage")
 }
 
-func (_m *MockMutableBareRootMetadata) RevisionNumber() MetadataRevision {
+func (_m *MockMutableBareRootMetadata) RevisionNumber() kbfsmd.Revision {
 	ret := _m.ctrl.Call(_m, "RevisionNumber")
-	ret0, _ := ret[0].(MetadataRevision)
+	ret0, _ := ret[0].(kbfsmd.Revision)
 	return ret0
 }
 
@@ -6410,7 +6411,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetWriterMetadataCopiedBit() *g
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetWriterMetadataCopiedBit")
 }
 
-func (_m *MockMutableBareRootMetadata) SetRevision(revision MetadataRevision) {
+func (_m *MockMutableBareRootMetadata) SetRevision(revision kbfsmd.Revision) {
 	_m.ctrl.Call(_m, "SetRevision", revision)
 }
 

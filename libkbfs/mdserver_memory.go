@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -49,7 +50,7 @@ type mdBlockMem struct {
 }
 
 type mdBlockMemList struct {
-	initialRevision MetadataRevision
+	initialRevision kbfsmd.Revision
 	blocks          []mdBlockMem
 }
 
@@ -312,7 +313,7 @@ func (md *MDServerMemory) getCurrentDeviceKey(ctx context.Context) (
 
 // GetRange implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
-	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
+	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision) (
 	[]*RootMetadataSigned, error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
@@ -366,7 +367,7 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
 		if err != nil {
 			return nil, MDServerError{err}
 		}
-		expectedRevision := blockList.initialRevision + MetadataRevision(i)
+		expectedRevision := blockList.initialRevision + kbfsmd.Revision(i)
 		if expectedRevision != rmds.MD.RevisionNumber() {
 			panic(errors.Errorf("expected revision %v, got %v",
 				expectedRevision, rmds.MD.RevisionNumber()))
@@ -589,7 +590,7 @@ func (md *MDServerMemory) getBranchID(ctx context.Context, id tlf.ID) (BranchID,
 
 // RegisterForUpdate implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) RegisterForUpdate(ctx context.Context, id tlf.ID,
-	currHead MetadataRevision) (<-chan error, error) {
+	currHead kbfsmd.Revision) (<-chan error, error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
@@ -750,7 +751,7 @@ func (md *MDServerMemory) addNewAssertionForTest(uid keybase1.UID,
 }
 
 func (md *MDServerMemory) getCurrentMergedHeadRevision(
-	ctx context.Context, id tlf.ID) (rev MetadataRevision, err error) {
+	ctx context.Context, id tlf.ID) (rev kbfsmd.Revision, err error) {
 	head, err := md.GetForTLF(ctx, id, NullBranchID, Merged)
 	if err != nil {
 		return 0, err

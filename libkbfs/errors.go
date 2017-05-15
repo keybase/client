@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 )
 
@@ -433,7 +434,7 @@ func (e MDMissingDataError) Error() string {
 // MDMismatchError indicates an inconsistent or unverifiable MD object
 // for the given top-level folder.
 type MDMismatchError struct {
-	Revision MetadataRevision
+	Revision kbfsmd.Revision
 	Dir      string
 	TlfID    tlf.ID
 	Err      error
@@ -449,7 +450,7 @@ func (e MDMismatchError) Error() string {
 // folder, revision, and merged status.
 type NoSuchMDError struct {
 	Tlf tlf.ID
-	Rev MetadataRevision
+	Rev kbfsmd.Revision
 	BID BranchID
 }
 
@@ -809,8 +810,8 @@ func (e MDServerDisconnected) Error() string {
 // MDRevisionMismatch indicates that we tried to apply a revision that
 // was not the next in line.
 type MDRevisionMismatch struct {
-	rev  MetadataRevision
-	curr MetadataRevision
+	rev  kbfsmd.Revision
+	curr kbfsmd.Revision
 }
 
 // Error implements the error interface for MDRevisionMismatch.
@@ -858,8 +859,8 @@ func (e MDDiskUsageMismatch) Error() string {
 // MDUpdateInvertError indicates that we tried to apply a revision that
 // was not the next in line.
 type MDUpdateInvertError struct {
-	rev  MetadataRevision
-	curr MetadataRevision
+	rev  kbfsmd.Revision
+	curr kbfsmd.Revision
 }
 
 // Error implements the error interface for MDUpdateInvertError.

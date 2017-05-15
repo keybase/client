@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"golang.org/x/net/context"
 )
 
@@ -68,7 +69,7 @@ func splitExtension(path string) (string, string) {
 }
 
 func newWriterInfo(uid keybase1.UID, key kbfscrypto.VerifyingKey,
-	revision MetadataRevision) writerInfo {
+	revision kbfsmd.Revision) writerInfo {
 	return writerInfo{
 		uid:      uid,
 		key:      key,

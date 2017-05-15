@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"golang.org/x/net/context"
 )
 
@@ -327,7 +328,7 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 }
 
 func (cc *crChain) remove(ctx context.Context, log logger.Logger,
-	revision MetadataRevision) bool {
+	revision kbfsmd.Revision) bool {
 	anyRemoved := false
 	var newOps []op
 	for i, currOp := range cc.ops {
@@ -826,7 +827,7 @@ type chainMetadata interface {
 	IsWriterMetadataCopiedSet() bool
 	LastModifyingWriter() keybase1.UID
 	LastModifyingWriterVerifyingKey() kbfscrypto.VerifyingKey
-	Revision() MetadataRevision
+	Revision() kbfsmd.Revision
 	Data() *PrivateMetadata
 	LocalTimestamp() time.Time
 }
@@ -1119,7 +1120,7 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 // though, even when removing operations from the head of the chain.
 // It returns the set of chains with at least one operation removed.
 func (ccs *crChains) remove(ctx context.Context, log logger.Logger,
-	revision MetadataRevision) []*crChain {
+	revision kbfsmd.Revision) []*crChain {
 	var chainsWithRemovals []*crChain
 	for _, chain := range ccs.byOriginal {
 		if chain.remove(ctx, log, revision) {

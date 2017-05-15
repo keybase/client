@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 
 	"golang.org/x/net/context"
@@ -452,7 +453,7 @@ func (m *stallingMDOps) GetUnmergedForTLF(ctx context.Context, id tlf.ID,
 }
 
 func (m *stallingMDOps) GetRange(ctx context.Context, id tlf.ID,
-	start, stop MetadataRevision) (
+	start, stop kbfsmd.Revision) (
 	mds []ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetRange)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
@@ -464,7 +465,7 @@ func (m *stallingMDOps) GetRange(ctx context.Context, id tlf.ID,
 }
 
 func (m *stallingMDOps) GetUnmergedRange(ctx context.Context, id tlf.ID,
-	bid BranchID, start, stop MetadataRevision) (mds []ImmutableRootMetadata, err error) {
+	bid BranchID, start, stop kbfsmd.Revision) (mds []ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetUnmergedRange)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetUnmergedRange error

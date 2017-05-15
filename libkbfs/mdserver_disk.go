@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -352,7 +353,7 @@ func (md *MDServerDisk) GetForTLF(ctx context.Context, id tlf.ID,
 
 // GetRange implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) GetRange(ctx context.Context, id tlf.ID,
-	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
+	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision) (
 	[]*RootMetadataSigned, error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
@@ -452,7 +453,7 @@ func (md *MDServerDisk) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID
 }
 
 func (md *MDServerDisk) getCurrentMergedHeadRevision(
-	ctx context.Context, id tlf.ID) (rev MetadataRevision, err error) {
+	ctx context.Context, id tlf.ID) (rev kbfsmd.Revision, err error) {
 	head, err := md.GetForTLF(ctx, id, NullBranchID, Merged)
 	if err != nil {
 		return 0, err
@@ -465,7 +466,7 @@ func (md *MDServerDisk) getCurrentMergedHeadRevision(
 
 // RegisterForUpdate implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) RegisterForUpdate(ctx context.Context, id tlf.ID,
-	currHead MetadataRevision) (<-chan error, error) {
+	currHead kbfsmd.Revision) (<-chan error, error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}

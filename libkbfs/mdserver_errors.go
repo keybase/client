@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 )
 
@@ -92,8 +93,8 @@ func (e MDServerErrorBadRequest) Error() string {
 // MDServerErrorConflictRevision is returned when the passed MD block is inconsistent with current history.
 type MDServerErrorConflictRevision struct {
 	Desc     string
-	Expected MetadataRevision
-	Actual   MetadataRevision
+	Expected kbfsmd.Revision
+	Actual   kbfsmd.Revision
 }
 
 // Error implements the Error interface for MDServerErrorConflictRevision.

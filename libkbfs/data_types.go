@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 )
 
@@ -625,7 +626,7 @@ type OpSummary struct {
 
 // UpdateSummary describes the operations done by a single MD revision.
 type UpdateSummary struct {
-	Revision  MetadataRevision
+	Revision  kbfsmd.Revision
 	Date      time.Time
 	Writer    string
 	LiveBytes uint64 // the "DiskUsage" for the TLF as of this revision
@@ -645,7 +646,7 @@ type TLFUpdateHistory struct {
 type writerInfo struct {
 	uid      keybase1.UID
 	key      kbfscrypto.VerifyingKey
-	revision MetadataRevision
+	revision kbfsmd.Revision
 }
 
 // ErrorModeType indicates what type of operation was being attempted

@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -70,7 +71,7 @@ type BareRootMetadataV3 struct {
 	// Flags
 	Flags MetadataFlags
 	// The revision number
-	Revision MetadataRevision
+	Revision kbfsmd.Revision
 	// Pointer to the previous root block ID
 	PrevRoot MdID
 
@@ -178,7 +179,7 @@ func (extra ExtraMetadataV3) GetReaderKeyBundle() TLFReaderKeyBundleV3 {
 }
 
 // MakeInitialBareRootMetadataV3 creates a new BareRootMetadataV3
-// object with revision MetadataRevisionInitial, and the given TLF ID
+// object with revision kbfsmd.RevisionInitial, and the given TLF ID
 // and handle. Note that if the given ID/handle are private, rekeying
 // must be done separately.
 func MakeInitialBareRootMetadataV3(tlfID tlf.ID, h tlf.Handle) (
@@ -213,7 +214,7 @@ func MakeInitialBareRootMetadataV3(tlfID tlf.ID, h tlf.Handle) (
 			ID:                tlfID,
 			UnresolvedWriters: unresolvedWriters,
 		},
-		Revision:          MetadataRevisionInitial,
+		Revision:          kbfsmd.RevisionInitial,
 		UnresolvedReaders: unresolvedReaders,
 	}, nil
 }
@@ -783,11 +784,11 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 	}
 
 	if md.IsFinal() {
-		if md.Revision < MetadataRevisionInitial+1 {
+		if md.Revision < kbfsmd.RevisionInitial+1 {
 			return errors.Errorf("Invalid final revision %d", md.Revision)
 		}
 
-		if md.Revision == (MetadataRevisionInitial + 1) {
+		if md.Revision == (kbfsmd.RevisionInitial + 1) {
 			if md.PrevRoot != (MdID{}) {
 				return errors.Errorf("Invalid PrevRoot %s for initial final revision", md.PrevRoot)
 			}
@@ -797,11 +798,11 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 			}
 		}
 	} else {
-		if md.Revision < MetadataRevisionInitial {
+		if md.Revision < kbfsmd.RevisionInitial {
 			return errors.Errorf("Invalid revision %d", md.Revision)
 		}
 
-		if md.Revision == MetadataRevisionInitial {
+		if md.Revision == kbfsmd.RevisionInitial {
 			if md.PrevRoot != (MdID{}) {
 				return errors.Errorf("Invalid PrevRoot %s for initial revision", md.PrevRoot)
 			}
@@ -948,7 +949,7 @@ func (md *BareRootMetadataV3) AddMDDiskUsage(mdDiskUsage uint64) {
 }
 
 // RevisionNumber implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) RevisionNumber() MetadataRevision {
+func (md *BareRootMetadataV3) RevisionNumber() kbfsmd.Revision {
 	return md.Revision
 }
 
@@ -1045,7 +1046,7 @@ func (md *BareRootMetadataV3) SetWriterMetadataCopiedBit() {
 }
 
 // SetRevision implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetRevision(revision MetadataRevision) {
+func (md *BareRootMetadataV3) SetRevision(revision kbfsmd.Revision) {
 	md.Revision = revision
 }
 

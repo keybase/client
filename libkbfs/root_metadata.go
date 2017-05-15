@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strconv"
 	"time"
 
 	"github.com/keybase/client/go/logger"
@@ -16,6 +15,7 @@ import (
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
@@ -38,29 +38,6 @@ const (
 	MetadataFlagUnmerged WriterFlags = 1 << iota
 )
 
-// MetadataRevision is the type for the revision number.
-// This is currently int64 since that's the type of Avro's long.
-type MetadataRevision int64
-
-// String converts a MetadataRevision to its string form.
-func (mr MetadataRevision) String() string {
-	return strconv.FormatInt(mr.Number(), 10)
-}
-
-// Number casts a MetadataRevision to it's primitive type.
-func (mr MetadataRevision) Number() int64 {
-	return int64(mr)
-}
-
-const (
-	// MetadataRevisionUninitialized indicates that a top-level folder has
-	// not yet been initialized.
-	MetadataRevisionUninitialized = MetadataRevision(0)
-	// MetadataRevisionInitial is always the first revision for an
-	// initialized top-level folder.
-	MetadataRevisionInitial = MetadataRevision(1)
-)
-
 // PrivateMetadata contains the portion of metadata that's secret for private
 // directories
 type PrivateMetadata struct {
@@ -74,7 +51,7 @@ type PrivateMetadata struct {
 
 	// The last revision up to and including which garbage collection
 	// was performed on this TLF.
-	LastGCRevision MetadataRevision `codec:"lgc"`
+	LastGCRevision kbfsmd.Revision `codec:"lgc"`
 
 	codec.UnknownFieldSetHandler
 
@@ -188,7 +165,7 @@ func makeRootMetadata(bareMd MutableBareRootMetadata,
 }
 
 // makeInitialRootMetadata creates a new RootMetadata with the given
-// MetadataVer, revision MetadataRevisionInitial, and the given TLF ID
+// MetadataVer, revision RevisionInitial, and the given TLF ID
 // and handle. Note that if the given ID/handle are private, rekeying
 // must be done separately.
 func makeInitialRootMetadata(
@@ -305,7 +282,7 @@ func (md *RootMetadata) MakeSuccessor(
 
 	newMd.SetPrevRoot(mdID)
 	// bump revision
-	if md.Revision() < MetadataRevisionInitial {
+	if md.Revision() < kbfsmd.RevisionInitial {
 		return nil, errors.New("MD with invalid revision")
 	}
 	newMd.SetRevision(md.Revision() + 1)
@@ -386,7 +363,7 @@ func (md *RootMetadata) ClearBlockChanges() {
 
 // SetLastGCRevision sets the last revision up to and including which
 // garbage collection was performed on this TLF.
-func (md *RootMetadata) SetLastGCRevision(rev MetadataRevision) {
+func (md *RootMetadata) SetLastGCRevision(rev kbfsmd.Revision) {
 	md.data.LastGCRevision = rev
 }
 
@@ -629,7 +606,7 @@ func (md *RootMetadata) IsUnmergedSet() bool {
 }
 
 // Revision wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) Revision() MetadataRevision {
+func (md *RootMetadata) Revision() kbfsmd.Revision {
 	return md.bareMd.RevisionNumber()
 }
 
@@ -713,7 +690,7 @@ func (md *RootMetadata) SetWriterMetadataCopiedBit() {
 }
 
 // SetRevision wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) SetRevision(revision MetadataRevision) {
+func (md *RootMetadata) SetRevision(revision kbfsmd.Revision) {
 	md.bareMd.SetRevision(revision)
 }
 

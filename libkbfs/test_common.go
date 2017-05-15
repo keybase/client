@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -483,7 +484,7 @@ func RestartCRForTesting(baseCtx context.Context, config Config,
 	lState := makeFBOLockState()
 	if !ops.isMasterBranch(lState) {
 		ops.cr.Resolve(baseCtx, ops.getCurrMDRevision(lState),
-			MetadataRevisionUninitialized)
+			kbfsmd.RevisionUninitialized)
 	}
 	return nil
 }
