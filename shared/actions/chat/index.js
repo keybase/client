@@ -846,6 +846,13 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
   }
 }
 
+function * _updateTyping ({payload: {conversationIDKey, typing}}: Constants.UpdateTyping): SagaGenerator<any, any> {
+  const conversationID = Constants.keyToConversationID(conversationIDKey)
+  yield call(ChatTypes.localUpdateTypingRpcPromise, {
+    param: {conversationID, typing},
+  })
+}
+
 function * chatSaga (): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
@@ -877,6 +884,7 @@ function * chatSaga (): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:updateBadging', _updateBadging)
   yield Saga.safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false)
   yield Saga.safeTakeEvery('chat:updateMetadata', _updateMetadata)
+  yield Saga.safeTakeEvery('chat:updateTyping', _updateTyping)
   yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
   yield Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale)
   yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInitialInboxLoad)

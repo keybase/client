@@ -17,6 +17,7 @@ export type Props = {
   onPostMessage: (text: string) => void,
   onShowEditor: (message: ?Constants.Message) => void,
   onStoreInputText: (text: string) => void,
+  onUpdateTyping: (typing: boolean) => void,
   selectedConversationIDKey: ?Constants.ConversationIDKey,
   setText: (text: string) => void,
   text: string,

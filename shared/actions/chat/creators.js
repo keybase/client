@@ -380,6 +380,10 @@ function setInboxUntrustedState (inboxUntrustedState: Constants.UntrustedState):
   return {payload: {inboxUntrustedState}, type: 'chat:inboxUntrustedState'}
 }
 
+function updateTyping (conversationIDKey: Constants.ConversationIDKey, typing: boolean): Constants.UpdateTyping {
+  return {payload: {conversationIDKey, typing}, type: 'chat:updateTyping'}
+}
+
 export {
   addPending,
   appendMessages,
@@ -448,6 +452,7 @@ export {
   updateSupersededByState,
   updateSupersedesState,
   updateTempMessage,
+  updateTyping,
   updatedMetadata,
   uploadProgress,
 }

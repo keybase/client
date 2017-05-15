@@ -47,6 +47,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onPostMessage: (selectedConversation, text) => dispatch(Creators.postMessage(selectedConversation, new HiddenString(text))),
   onShowEditor: (message: Constants.Message) => { dispatch(Creators.showEditor(message)) },
   onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) => dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
+  onUpdateTyping: (selectedConversation: Constants.ConversationIDKey, typing: boolean) => { dispatch(Creators.updateTyping(selectedConversation, typing)) },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
@@ -61,6 +62,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   onStoreInputText: (inputText: string) => {
     if (stateProps.selectedConversationIDKey) { // only write if we're in a convo
       dispatchProps.onStoreInputText(stateProps.selectedConversationIDKey, inputText)
+    }
+  },
+  onUpdateTyping: (typing: boolean) => {
+    if (stateProps.selectedConversationIDKey) {
+      dispatchProps.onUpdateTyping(stateProps.selectedConversationIDKey, typing)
     }
   },
 })

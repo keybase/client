@@ -88,8 +88,12 @@ class ConversationInput extends Component<void, InputProps, void> {
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent) => {
+    console.warn('in _onKeyDown')
     if (e.key === 'ArrowUp' && !this.props.text) {
       this.props.onEditLastMessage()
+    } else {
+      console.warn('calling onUpdateTyping')
+      this.props.onUpdateTyping(!!this.props.text)
     }
   }
 
