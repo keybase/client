@@ -126,9 +126,11 @@ func (e *loginProvision) Run(ctx *Context) error {
 	// exit.
 	tx = nil
 
-	if err := e.ensurePaperKey(ctx); err != nil {
-		return err
-	}
+	/*
+		if err := e.ensurePaperKey(ctx); err != nil {
+			return err
+		}
+	*/
 
 	if err := e.displaySuccess(ctx); err != nil {
 		return err
@@ -939,6 +941,7 @@ func (e *loginProvision) makeEldestDevice(ctx *Context) error {
 
 // ensurePaperKey checks to see if e.user has any paper keys.  If
 // not, it makes one.
+/*
 func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 	e.G().Log.CDebugf(ctx.NetContext, "loginProvision#ensurePaperKey")
 	// see if they have a paper key already
@@ -986,6 +989,7 @@ func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 	eng := NewPaperKeyPrimary(e.G(), args)
 	return RunEngine(eng, ctx)
 }
+*/
 
 // This is used by SaltpackDecrypt as well.
 func getPaperKey(g *libkb.GlobalContext, ctx *Context, lastErr error) (pair *keypair, prefix string, err error) {
