@@ -127,7 +127,7 @@ helpers.rootLinuxNode(env, {
                                         "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                         "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                     ]) {
-                                        testNixGo("Linux")
+                                        // testNixGo("Linux")
                                     }},
                                     test_linux_js: { withEnv([
                                         "PATH=${env.HOME}/.node/bin:${env.PATH}",
@@ -156,13 +156,13 @@ helpers.rootLinuxNode(env, {
                                                 "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                             ]) {
                                                 dir("shared") {
-                                                    sh "./jenkins_test.sh visdiff-install ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                                                    // sh "./jenkins_test.sh visdiff-install ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                                 }
                                                 try {
                                                     timeout(time: 10, unit: 'MINUTES') {
                                                         dir("shared") {
                                                             stage("js visdiff") {
-                                                                sh "./jenkins_test.sh visdiff ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                                                                // sh "./jenkins_test.sh visdiff ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                                             }
                                                         }
                                                     }
