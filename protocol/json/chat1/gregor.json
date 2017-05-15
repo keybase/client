@@ -1,6 +1,12 @@
 {
   "protocol": "gregor",
-  "imports": [],
+  "imports": [
+    {
+      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
+    }
+  ],
   "types": [
     {
       "type": "record",
@@ -184,6 +190,28 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RemoteUserTypingUpdate",
+      "fields": [
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "gregor1.DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "boolean",
+          "name": "typing"
         }
       ]
     }

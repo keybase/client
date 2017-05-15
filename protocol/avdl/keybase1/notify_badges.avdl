@@ -9,6 +9,7 @@ protocol NotifyBadges {
     int newTlfs;
     int rekeysNeeded;
     int newFollowers;
+    int inboxVers;
 
     array<BadgeConversationInfo> conversations;
   }

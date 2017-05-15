@@ -752,6 +752,27 @@
         }
       ],
       "response": null
+    },
+    "updateTypingRemote": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        },
+        {
+          "name": "deviceID",
+          "type": "gregor1.DeviceID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "typing",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

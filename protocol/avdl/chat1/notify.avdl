@@ -47,7 +47,19 @@ protocol NotifyChat {
     case SET_STATUS: SetStatusInfo;
     case FAILED_MESSAGE: FailedMessageInfo;
   }
-  
+
+  record TyperInfo {
+    keybase1.UID uid;
+    string username;
+    keybase1.DeviceID deviceID;
+    string deviceName;
+    string deviceType;
+  }
+
+  record ConvTypingUpdate {
+    ConversationID convID;
+    array<TyperInfo> typers;
+  }
 
   @notify("")
   @lint("ignore")
@@ -73,4 +85,8 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatThreadsStale(keybase1.UID uid, array<ConversationID> convIDs);
+
+  @notify("")
+  @lint("ignore")
+  void ChatTypingUpdate(array<ConvTypingUpdate> typingUpdates);
 }

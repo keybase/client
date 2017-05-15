@@ -112,3 +112,4 @@ func (n *nlistener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID
 }
 func (n *nlistener) ChatInboxStale(uid keybase1.UID)                                {}
 func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {}
+func (n *nlistener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate)              {}

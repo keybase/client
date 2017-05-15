@@ -1709,6 +1709,56 @@ export function localSetConversationStatusLocalRpcPromise(
   )
 }
 
+export function localUpdateTypingRpc(
+  request: Exact<
+    requestCommon & requestErrorCallback & {param: localUpdateTypingRpcParam}
+  >
+) {
+  engineRpcOutgoing('chat.1.local.updateTyping', request)
+}
+
+export function localUpdateTypingRpcChannelMap(
+  configKeys: Array<string>,
+  request: $Exact<
+    requestCommon & requestErrorCallback & {param: localUpdateTypingRpcParam}
+  >
+): EngineChannel {
+  return engine()._channelMapRpcHelper(
+    configKeys,
+    'chat.1.local.updateTyping',
+    request
+  )
+}
+export function localUpdateTypingRpcChannelMapOld(
+  channelConfig: ChannelConfig<*>,
+  request: $Exact<
+    requestCommon & requestErrorCallback & {param: localUpdateTypingRpcParam}
+  >
+): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => {
+    engineRpcOutgoing(
+      'chat.1.local.updateTyping',
+      request,
+      callback,
+      incomingCallMap
+    )
+  })
+}
+
+export function localUpdateTypingRpcPromise(
+  request: $Exact<
+    requestCommon & requestErrorCallback & {param: localUpdateTypingRpcParam}
+  >
+): Promise<void> {
+  return new Promise((resolve, reject) =>
+    engineRpcOutgoing(
+      'chat.1.local.updateTyping',
+      request,
+      (error, result) => (error ? reject(error) : resolve(result))
+    )
+  )
+}
+
 export function remoteGetInboxRemoteRpc(
   request: Exact<
     requestCommon & {
@@ -2905,6 +2955,60 @@ export function remoteTlfResolveRpcPromise(
   )
 }
 
+export function remoteUpdateTypingRemoteRpc(
+  request: Exact<
+    requestCommon &
+      requestErrorCallback & {param: remoteUpdateTypingRemoteRpcParam}
+  >
+) {
+  engineRpcOutgoing('chat.1.remote.updateTypingRemote', request)
+}
+
+export function remoteUpdateTypingRemoteRpcChannelMap(
+  configKeys: Array<string>,
+  request: $Exact<
+    requestCommon &
+      requestErrorCallback & {param: remoteUpdateTypingRemoteRpcParam}
+  >
+): EngineChannel {
+  return engine()._channelMapRpcHelper(
+    configKeys,
+    'chat.1.remote.updateTypingRemote',
+    request
+  )
+}
+export function remoteUpdateTypingRemoteRpcChannelMapOld(
+  channelConfig: ChannelConfig<*>,
+  request: $Exact<
+    requestCommon &
+      requestErrorCallback & {param: remoteUpdateTypingRemoteRpcParam}
+  >
+): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => {
+    engineRpcOutgoing(
+      'chat.1.remote.updateTypingRemote',
+      request,
+      callback,
+      incomingCallMap
+    )
+  })
+}
+
+export function remoteUpdateTypingRemoteRpcPromise(
+  request: $Exact<
+    requestCommon &
+      requestErrorCallback & {param: remoteUpdateTypingRemoteRpcParam}
+  >
+): Promise<void> {
+  return new Promise((resolve, reject) =>
+    engineRpcOutgoing(
+      'chat.1.remote.updateTypingRemote',
+      request,
+      (error, result) => (error ? reject(error) : resolve(result))
+    )
+  )
+}
+
 export type Asset = {
   filename: string,
   region: string,
@@ -3000,6 +3104,11 @@ export type ChatActivityType =
   | 3 // NEW_CONVERSATION_3
   | 4 // SET_STATUS_4
   | 5 // FAILED_MESSAGE_5
+
+export type ConvTypingUpdate = {
+  convID: ConversationID,
+  typers?: ?Array<TyperInfo>,
+}
 
 export type Conversation = {
   metadata: ConversationMetadata,
@@ -3591,6 +3700,10 @@ export type NotifyChatChatThreadsStaleRpcParam = Exact<{
   convIDs?: ?Array<ConversationID>,
 }>
 
+export type NotifyChatChatTypingUpdateRpcParam = Exact<{
+  typingUpdates?: ?Array<ConvTypingUpdate>,
+}>
+
 export type NotifyChatNewChatActivityRpcParam = Exact<{
   uid: keybase1.UID,
   activity: ChatActivity,
@@ -3674,6 +3787,13 @@ export type ReadMessagePayload = {
   msgID: MessageID,
   inboxVers: InboxVers,
   unreadUpdate?: ?UnreadUpdate,
+}
+
+export type RemoteUserTypingUpdate = {
+  uid: gregor1.UID,
+  deviceID: gregor1.DeviceID,
+  convID: ConversationID,
+  typing: boolean,
 }
 
 export type S3Params = {
@@ -3803,6 +3923,14 @@ export type TopicType =
   | 0 // NONE_0
   | 1 // CHAT_1
   | 2 // DEV_2
+
+export type TyperInfo = {
+  uid: keybase1.UID,
+  username: string,
+  deviceID: keybase1.DeviceID,
+  deviceName: string,
+  deviceType: string,
+}
 
 export type UnreadFirstNumLimit = {
   NumRead: int,
@@ -4035,6 +4163,11 @@ export type localSetConversationStatusLocalRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior,
 }>
 
+export type localUpdateTypingRpcParam = Exact<{
+  conversationID: ConversationID,
+  typing: boolean,
+}>
+
 export type remoteGetInboxRemoteRpcParam = Exact<{
   vers: InboxVers,
   query?: ?GetInboxQuery,
@@ -4141,6 +4274,13 @@ export type remoteTlfResolveRpcParam = Exact<{
   resolvedWriters?: ?Array<gregor1.UID>,
   resolvedReaders?: ?Array<gregor1.UID>,
 }>
+
+export type remoteUpdateTypingRemoteRpcParam = Exact<{
+  uid: gregor1.UID,
+  deviceID: gregor1.DeviceID,
+  convID: ConversationID,
+  typing: boolean,
+}>
 type localDownloadAttachmentLocalResult = DownloadAttachmentLocalRes
 type localDownloadFileAttachmentLocalResult = DownloadAttachmentLocalRes
 type localFindConversationsLocalResult = FindConversationsLocalRes
@@ -4205,6 +4345,7 @@ export type rpc =
   | localPostTextNonblockRpc
   | localRetryPostRpc
   | localSetConversationStatusLocalRpc
+  | localUpdateTypingRpc
   | remoteGetInboxRemoteRpc
   | remoteGetInboxVersionRpc
   | remoteGetMessagesRemoteRpc
@@ -4225,6 +4366,7 @@ export type rpc =
   | remoteSyncInboxRpc
   | remoteTlfFinalizeRpc
   | remoteTlfResolveRpc
+  | remoteUpdateTypingRemoteRpc
 
 export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatAttachmentUploadOutboxID'?: (
@@ -4370,6 +4512,13 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       uid: keybase1.UID,
       convIDs?: ?Array<ConversationID>,
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatTypingUpdate'?: (
+    params: Exact<{
+      typingUpdates?: ?Array<ConvTypingUpdate>,
     }> /* ,
     response: {} // Notify call
     */
