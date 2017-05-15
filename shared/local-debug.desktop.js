@@ -26,7 +26,7 @@ let config: {[key: string]: any} = {
   logStatFrequency: 0,
   overrideLoggedInTab: null,
   printOutstandingRPCs: false,
-  printRPC: false,
+  printRPC: true,
   printRoutes: false,
   reactPerf: false,
   redirectOnLogout: true,

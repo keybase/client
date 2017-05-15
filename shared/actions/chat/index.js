@@ -33,6 +33,8 @@ import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
 function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<any, any> {
+  console.warn('in _incomingMessage')
+  console.warn(action.payload)
   switch (action.payload.activity.activityType) {
     case ChatTypes.NotifyChatChatActivityType.setStatus:
       const setStatus: ?ChatTypes.SetStatusInfo = action.payload.activity.setStatus
@@ -173,6 +175,10 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
   yield put((dispatch: Dispatch) => {
     engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({activity}) => {
       dispatch(Creators.incomingMessage(activity))
+    })
+
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatTypingUpdate', ({typingUpdates}) => {
+      dispatch(Creators.incomingTyping(typingUpdates))
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
@@ -861,6 +867,7 @@ function * chatSaga (): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:editMessage', Messages.editMessage)
   yield Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox)
   yield Saga.safeTakeEvery('chat:incomingMessage', _incomingMessage)
+  yield Saga.safeTakeEvery('chat:incomingTyping', _incomingTyping)
   yield Saga.safeTakeEvery('chat:loadAttachment', Attachment.onLoadAttachment)
   yield Saga.safeTakeEvery('chat:loadAttachmentPreview', Attachment.onLoadAttachmentPreview)
   yield Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))

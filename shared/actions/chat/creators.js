@@ -228,6 +228,10 @@ function incomingMessage (activity: ChatTypes.ChatActivity): Constants.IncomingM
   return {payload: {activity}, type: 'chat:incomingMessage'}
 }
 
+function incomingTyping (activity: ChatTypes.TyperInfo): Constants.IncomingTyping {
+  return {payload: {activity}, type: 'chat:incomingTyping'}
+}
+
 function updateBrokenTracker (userToBroken: {[username: string]: boolean}): Constants.UpdateBrokenTracker {
   return {payload: {userToBroken}, type: 'chat:updateBrokenTracker'}
 }
@@ -401,6 +405,7 @@ export {
   getInboxAndUnbox,
   inboxStale,
   incomingMessage,
+  incomingTyping,
   loadAttachment,
   loadAttachmentPreview,
   loadInbox,

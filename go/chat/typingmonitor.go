@@ -97,13 +97,6 @@ func (t *TypingMonitor) Update(ctx context.Context, typer chat1.TyperInfo, convI
 	t.Debug(ctx, "Update: %s in convID: %s updated typing to: %v", typer, convID, typing)
 	key := t.key(typer, convID)
 
-	// If this is about ourselves, then don't bother
-	cuid := t.G().Env.GetUID()
-	cdid := t.G().Env.GetDeviceID()
-	if cuid.Equal(typer.Uid) && cdid.Eq(typer.DeviceID) {
-		return
-	}
-
 	// Process the update
 	t.Lock()
 	chans, alreadyTyping := t.typers[key]
