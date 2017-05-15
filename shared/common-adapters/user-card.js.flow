@@ -7,7 +7,7 @@ export type Props = {
   outerStyle?: ?Object,
   style?: ?Object,
   username?: ?string,
-  children?: Array<any>
+  children?: Array<any>,
 }
 
-declare export default class UserCard extends Component<void, Props, void> { }
+declare export default class UserCard extends Component<void, Props, void> {}

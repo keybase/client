@@ -2,24 +2,44 @@
 import * as Constants from '../../constants/profile'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
-import {addProof, checkProof, cancelAddProof, submitUsername, submitBTCAddress, proofsSaga, submitZcashAddress} from './proofs'
+import {
+  addProof,
+  checkProof,
+  cancelAddProof,
+  submitUsername,
+  submitBTCAddress,
+  proofsSaga,
+  submitZcashAddress,
+} from './proofs'
 import {call, put, select, fork} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
-import {navigateAppend, navigateTo, navigateUp, switchTo} from '../../actions/route-tree'
+import {
+  navigateAppend,
+  navigateTo,
+  navigateUp,
+  switchTo,
+} from '../../actions/route-tree'
 import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
 import {profileTab} from '../../constants/tabs'
-import {revokeRevokeSigsRpcPromise, userProfileEditRpcPromise} from '../../constants/types/flow-types'
+import {
+  revokeRevokeSigsRpcPromise,
+  userProfileEditRpcPromise,
+} from '../../constants/types/flow-types'
 import {safeTakeEvery} from '../../util/saga'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 import type {AppLink} from '../../constants/app'
 
-function editProfile (bio: string, fullName: string, location: string): Constants.EditProfile {
+function editProfile(
+  bio: string,
+  fullName: string,
+  location: string
+): Constants.EditProfile {
   return {payload: {bio, fullName, location}, type: Constants.editProfile}
 }
 
-function * _editProfile (action: Constants.EditProfile): SagaGenerator<any, any> {
+function* _editProfile(action: Constants.EditProfile): SagaGenerator<any, any> {
   const {bio, fullName, location} = action.payload
   yield call(userProfileEditRpcPromise, {
     param: {bio, fullName, location},
@@ -27,43 +47,50 @@ function * _editProfile (action: Constants.EditProfile): SagaGenerator<any, any>
   yield put(navigateUp())
 }
 
-function updateUsername (username: string): Constants.UpdateUsername {
+function updateUsername(username: string): Constants.UpdateUsername {
   return {payload: {username}, type: Constants.updateUsername}
 }
 
-function _revokedWaitingForResponse (waiting: boolean): Constants.WaitingRevokeProof {
+function _revokedWaitingForResponse(
+  waiting: boolean
+): Constants.WaitingRevokeProof {
   return {payload: {waiting}, type: Constants.waitingRevokeProof}
 }
 
-function _revokedErrorResponse (error: string): Constants.FinishRevokeProof {
+function _revokedErrorResponse(error: string): Constants.FinishRevokeProof {
   return {error: true, payload: {error}, type: Constants.finishRevokeProof}
 }
 
-function _revokedFinishResponse (): Constants.FinishRevokeProof {
+function _revokedFinishResponse(): Constants.FinishRevokeProof {
   return {payload: undefined, type: Constants.finishRevokeProof}
 }
 
-function finishRevoking (): Constants.FinishRevoking {
+function finishRevoking(): Constants.FinishRevoking {
   return {payload: undefined, type: Constants.finishRevoking}
 }
 
-function * _finishRevoking (): SagaGenerator<any, any> {
+function* _finishRevoking(): SagaGenerator<any, any> {
   yield put(getMyProfile(true))
   yield put(_revokedFinishResponse())
   yield put(navigateUp())
 }
 
-function onUserClick (username: string): Constants.OnUserClick {
+function onUserClick(username: string): Constants.OnUserClick {
   return {payload: {username}, type: Constants.onUserClick}
 }
 
-function * _onUserClick (action: Constants.OnUserClick): SagaGenerator<any, any> {
+function* _onUserClick(action: Constants.OnUserClick): SagaGenerator<any, any> {
   const {username} = action.payload
   yield put(switchTo([profileTab]))
-  yield put(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))
+  yield put(
+    navigateAppend([{props: {username}, selected: 'profile'}], [profileTab])
+  )
 }
 
-function onClickAvatar (username: string, openWebsite?: boolean): Constants.OnClickAvatar {
+function onClickAvatar(
+  username: string,
+  openWebsite?: boolean
+): Constants.OnClickAvatar {
   return {
     payload: {
       openWebsite,
@@ -73,7 +100,9 @@ function onClickAvatar (username: string, openWebsite?: boolean): Constants.OnCl
   }
 }
 
-function * _onClickAvatar (action: Constants.OnClickFollowers): SagaGenerator<any, any> {
+function* _onClickAvatar(
+  action: Constants.OnClickFollowers
+): SagaGenerator<any, any> {
   if (!action.payload.username) {
     return
   }
@@ -86,7 +115,10 @@ function * _onClickAvatar (action: Constants.OnClickFollowers): SagaGenerator<an
   }
 }
 
-function onClickFollowers (username: string, openWebsite?: boolean): Constants.OnClickFollowers {
+function onClickFollowers(
+  username: string,
+  openWebsite?: boolean
+): Constants.OnClickFollowers {
   return {
     payload: {
       openWebsite,
@@ -96,7 +128,9 @@ function onClickFollowers (username: string, openWebsite?: boolean): Constants.O
   }
 }
 
-function * _onClickFollowers (action: Constants.OnClickFollowers): SagaGenerator<any, any> {
+function* _onClickFollowers(
+  action: Constants.OnClickFollowers
+): SagaGenerator<any, any> {
   if (!action.payload.username) {
     return
   }
@@ -105,11 +139,17 @@ function * _onClickFollowers (action: Constants.OnClickFollowers): SagaGenerator
     // TODO(mm) hint followings
     yield put(onUserClick(action.payload.username))
   } else {
-    yield call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
+    yield call(
+      openURL,
+      `${keybaseUrl}/${action.payload.username}#profile-tracking-section`
+    )
   }
 }
 
-function onClickFollowing (username: string, openWebsite?: boolean): Constants.OnClickFollowing {
+function onClickFollowing(
+  username: string,
+  openWebsite?: boolean
+): Constants.OnClickFollowing {
   return {
     payload: {
       openWebsite,
@@ -119,7 +159,9 @@ function onClickFollowing (username: string, openWebsite?: boolean): Constants.O
   }
 }
 
-function * _onClickFollowing (action: Constants.OnClickFollowing): SagaGenerator<any, any> {
+function* _onClickFollowing(
+  action: Constants.OnClickFollowing
+): SagaGenerator<any, any> {
   if (!action.payload.username) {
     return
   }
@@ -128,29 +170,40 @@ function * _onClickFollowing (action: Constants.OnClickFollowing): SagaGenerator
     // TODO(mm) hint followings
     yield put(onUserClick(action.payload.username))
   } else {
-    yield call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
+    yield call(
+      openURL,
+      `${keybaseUrl}/${action.payload.username}#profile-tracking-section`
+    )
   }
 }
 
-function submitRevokeProof (proofId: string): Constants.SubmitRevokeProof {
+function submitRevokeProof(proofId: string): Constants.SubmitRevokeProof {
   return {payload: {proofId}, type: Constants.submitRevokeProof}
 }
 
-function * _submitRevokeProof (action: Constants.SubmitRevokeProof): SagaGenerator<any, any> {
+function* _submitRevokeProof(
+  action: Constants.SubmitRevokeProof
+): SagaGenerator<any, any> {
   try {
     yield put(_revokedWaitingForResponse(true))
-    yield call(revokeRevokeSigsRpcPromise, {param: {sigIDQueries: [action.payload.proofId]}})
+    yield call(revokeRevokeSigsRpcPromise, {
+      param: {sigIDQueries: [action.payload.proofId]},
+    })
     yield put(_revokedWaitingForResponse(false))
 
     yield put(finishRevoking())
   } catch (error) {
     console.warn(`Error when revoking proof ${action.payload.proofId}`, error)
     yield put(_revokedWaitingForResponse(false))
-    yield put(_revokedErrorResponse('There was an error revoking your proof. You can click the button to try again.'))
+    yield put(
+      _revokedErrorResponse(
+        'There was an error revoking your proof. You can click the button to try again.'
+      )
+    )
   }
 }
 
-function _openURLIfNotNull (nullableThing, url, metaText) {
+function _openURLIfNotNull(nullableThing, url, metaText) {
   if (nullableThing == null) {
     console.warn("Can't openURL because we have a null", metaText)
     return
@@ -158,11 +211,11 @@ function _openURLIfNotNull (nullableThing, url, metaText) {
   openURL(url)
 }
 
-function outputInstructionsActionLink (): Constants.OutputInstructionsActionLink {
+function outputInstructionsActionLink(): Constants.OutputInstructionsActionLink {
   return {payload: undefined, type: Constants.outputInstructionsActionLink}
 }
 
-function * _onAppLink (action: AppLink): SagaGenerator<any, any> {
+function* _onAppLink(action: AppLink): SagaGenerator<any, any> {
   const match = action.payload.link.match(/^https:\/\/keybase\.io\/(\w+)$/)
   const username = match && match[1]
   if (username) {
@@ -170,44 +223,61 @@ function * _onAppLink (action: AppLink): SagaGenerator<any, any> {
   }
 }
 
-function * _outputInstructionsActionLink (): SagaGenerator<any, any> {
+function* _outputInstructionsActionLink(): SagaGenerator<any, any> {
   const getProfile = (state: TypedState) => state.profile
-  const profile: Constants.State = ((yield select(getProfile)): any)
-
+  const profile: Constants.State = (yield select(getProfile): any)
   switch (profile.platform) {
     case 'coinbase':
       yield call(openURL, `https://coinbase.com/${profile.username}#settings`)
       break
     case 'twitter':
-      yield call(_openURLIfNotNull, profile.proofText, `https://twitter.com/home?status=${profile.proofText || ''}`, 'twitter url')
+      yield call(
+        _openURLIfNotNull,
+        profile.proofText,
+        `https://twitter.com/home?status=${profile.proofText || ''}`,
+        'twitter url'
+      )
       break
     case 'github':
       yield call(openURL, 'https://gist.github.com/')
       break
     case 'reddit':
-      yield call(_openURLIfNotNull, profile.proofText, profile.proofText, 'reddit url')
+      yield call(
+        _openURLIfNotNull,
+        profile.proofText,
+        profile.proofText,
+        'reddit url'
+      )
       break
     case 'facebook':
-      yield call(_openURLIfNotNull, profile.proofText, profile.proofText, 'facebook url')
+      yield call(
+        _openURLIfNotNull,
+        profile.proofText,
+        profile.proofText,
+        'facebook url'
+      )
       break
     case 'hackernews':
-      yield call(openURL, `https://news.ycombinator.com/user?id=${profile.username}`)
+      yield call(
+        openURL,
+        `https://news.ycombinator.com/user?id=${profile.username}`
+      )
       break
     default:
       break
   }
 }
 
-function backToProfile (): Constants.BackToProfile {
+function backToProfile(): Constants.BackToProfile {
   return {payload: undefined, type: Constants.backToProfile}
 }
 
-function * _backToProfile (): SagaGenerator<any, any> {
+function* _backToProfile(): SagaGenerator<any, any> {
   yield put(getMyProfile())
   yield put(navigateTo([], [profileTab]))
 }
 
-function * _profileSaga (): SagaGenerator<any, any> {
+function* _profileSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.backToProfile, _backToProfile)
   yield safeTakeEvery(Constants.editProfile, _editProfile)
   yield safeTakeEvery(Constants.finishRevoking, _finishRevoking)
@@ -215,12 +285,15 @@ function * _profileSaga (): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.onClickFollowers, _onClickFollowers)
   yield safeTakeEvery(Constants.onClickFollowing, _onClickFollowing)
   yield safeTakeEvery(Constants.onUserClick, _onUserClick)
-  yield safeTakeEvery(Constants.outputInstructionsActionLink, _outputInstructionsActionLink)
+  yield safeTakeEvery(
+    Constants.outputInstructionsActionLink,
+    _outputInstructionsActionLink
+  )
   yield safeTakeEvery(Constants.submitRevokeProof, _submitRevokeProof)
   yield safeTakeEvery('app:link', _onAppLink)
 }
 
-function * profileSaga (): SagaGenerator<any, any> {
+function* profileSaga(): SagaGenerator<any, any> {
   yield fork(_profileSaga)
   yield fork(pgpSaga)
   yield fork(proofsSaga)

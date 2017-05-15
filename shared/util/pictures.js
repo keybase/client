@@ -87,7 +87,7 @@ const _getUserImages = throttle(() => {
   })
 }, 200)
 
-function validUsername (name: ?string) {
+function validUsername(name: ?string) {
   if (!name) {
     return false
   }
@@ -95,12 +95,15 @@ function validUsername (name: ?string) {
   return !!name.match(/^([a-z0-9][a-z0-9_]{1,15})$/i)
 }
 
-function getUserImageMap (username: string): ?URLMap {
+function getUserImageMap(username: string): ?URLMap {
   const info = _usernameToURL[username]
   return info ? info.urlMap : null
 }
 
-function loadUserImageMap (username: string, callback: (username: string, urlMap: ?URLMap) => void) {
+function loadUserImageMap(
+  username: string,
+  callback: (username: string, urlMap: ?URLMap) => void
+) {
   const info = _usernameToURL[username] || _pendingUsernameToURL[username]
   if (info) {
     if (!info.done) {
@@ -122,7 +125,7 @@ function loadUserImageMap (username: string, callback: (username: string, urlMap
   }
 }
 
-function clearErrors () {
+function clearErrors() {
   Object.keys(_usernameToURL).forEach(k => {
     if (_usernameToURL[k] && _usernameToURL[k].error) {
       delete _usernameToURL[k]
@@ -130,8 +133,4 @@ function clearErrors () {
   })
 }
 
-export {
-  getUserImageMap,
-  loadUserImageMap,
-  clearErrors,
-}
+export {getUserImageMap, loadUserImageMap, clearErrors}

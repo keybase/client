@@ -14,12 +14,15 @@ import type {OwnProps, StateProps, DispatchProps} from './container'
 
 const getMessage = createCachedSelector(
   [Constants.getMessageFromMessageKey],
-  (message: Constants.TextMessage) => message,
+  (message: Constants.TextMessage) => message
 )((state, messageKey) => messageKey)
 
 // TODO more reselect?
 
-const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnProps): StateProps => {
+const mapStateToProps = (
+  state: TypedState,
+  {messageKey, prevMessageKey}: OwnProps
+): StateProps => {
   const conversationState = Constants.getSelectedConversationStates(state)
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
 
@@ -31,25 +34,35 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
   const _editedCount = message.editedCount || 0
   const isEdited = message.type === 'Text' && _editedCount > 0
   const isRevoked = !!message.senderDeviceRevokedAt
-  const failureDescription = message.messageState === 'failed' ? message.failureDescription : null
+  const failureDescription = message.messageState === 'failed'
+    ? message.failureDescription
+    : null
   const isYou = Constants.getYou(state) === author
   const isFollowing = !!Constants.getFollowingMap(state)[author]
-  const isBroken = Constants.getMetaDataMap(state).get(author, Map()).get('brokenTracker', false)
+  const isBroken = Constants.getMetaDataMap(state)
+    .get(author, Map())
+    .get('brokenTracker', false)
 
-  const isFirstNewMessage = !!(conversationState && message && message.messageID && conversationState.get('firstNewMessageID') === message.messageID)
+  const isFirstNewMessage = !!(conversationState &&
+    message &&
+    message.messageID &&
+    conversationState.get('firstNewMessageID') === message.messageID)
   const prevMessage = getMessage(state, prevMessageKey)
-  const skipMsgHeader = prevMessage && prevMessage.type === 'Text' && prevMessage.author === author
+  const skipMsgHeader =
+    prevMessage && prevMessage.type === 'Text' && prevMessage.author === author
 
   const firstMessageEver = !prevMessage
-  const firstVisibleMessage = prevMessage && Constants.messageKeyValue(prevMessage.key) === '1'
-  const oldEnough = (
-      prevMessage &&
-      prevMessage.timestamp &&
-      message.timestamp &&
-      message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs
-    )
-
-  const timestamp = (firstMessageEver || firstVisibleMessage || oldEnough) ? formatTimeForMessages(message.timestamp) : null
+  const firstVisibleMessage =
+    prevMessage && Constants.messageKeyValue(prevMessage.key) === '1'
+  const oldEnough =
+    prevMessage &&
+    prevMessage.timestamp &&
+    message.timestamp &&
+    message.timestamp - prevMessage.timestamp >
+      Constants.howLongBetweenTimestampsMs
+  const timestamp = firstMessageEver || firstVisibleMessage || oldEnough
+    ? formatTimeForMessages(message.timestamp)
+    : null
   const includeHeader = isFirstNewMessage || !skipMsgHeader || !!timestamp
   const isEditing = message === Constants.getEditingMessage(state)
 
@@ -73,11 +86,19 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
-  _onRetryAttachment: (message: Constants.AttachmentMessage) => dispatch(Creators.retryAttachment(message)),
-  _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
+  _onRetryAttachment: (message: Constants.AttachmentMessage) =>
+    dispatch(Creators.retryAttachment(message)),
+  _onRetryText: (
+    conversationIDKey: Constants.ConversationIDKey,
+    outboxID: Constants.OutboxIDKey
+  ) => dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (
+  stateProps: StateProps,
+  dispatchProps: DispatchProps,
+  ownProps: OwnProps
+) => ({
   _editedCount: stateProps._editedCount,
   _message: stateProps._message,
   _onAction: ownProps.onAction,
@@ -99,8 +120,14 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   onRetry: () => {
     if (stateProps._message.type === 'Attachment') {
       dispatchProps._onRetryAttachment(stateProps._message)
-    } else if (stateProps._selectedConversationIDKey && stateProps._message.outboxID) {
-      dispatchProps._onRetryText(stateProps._selectedConversationIDKey, stateProps._message.outboxID)
+    } else if (
+      stateProps._selectedConversationIDKey &&
+      stateProps._message.outboxID
+    ) {
+      dispatchProps._onRetryText(
+        stateProps._selectedConversationIDKey,
+        stateProps._message.outboxID
+      )
     }
   },
   timestamp: stateProps.timestamp,
@@ -113,11 +140,11 @@ export default compose(
     onShowEditor: props => event => props._onShowEditor(props._message, event),
   }),
   lifecycle({
-    componentDidUpdate: function (prevProps: Props & {_editedCount: number}) {
+    componentDidUpdate: function(prevProps: Props & {_editedCount: number}) {
       if (
-        (this.props._editedCount !== prevProps._editedCount) ||
-        (this.props.isFirstNewMessage !== prevProps.isFirstNewMessage) ||
-        (this.props.timestamp !== prevProps.timestamp)
+        this.props._editedCount !== prevProps._editedCount ||
+        this.props.isFirstNewMessage !== prevProps.isFirstNewMessage ||
+        this.props.timestamp !== prevProps.timestamp
       ) {
         this.props.measure && this.props.measure()
       }

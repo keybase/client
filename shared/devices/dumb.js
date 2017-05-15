@@ -1,7 +1,10 @@
 // @flow
 import Devices from './container'
 import {List, Map} from 'immutable'
-import {StateRecord as DeviceState, DeviceDetailRecord} from '../constants/devices'
+import {
+  StateRecord as DeviceState,
+  DeviceDetailRecord,
+} from '../constants/devices'
 import {StateRecord as EntityState} from '../constants/entities'
 
 const dev1 = new DeviceDetailRecord({
@@ -87,7 +90,11 @@ export default {
   'Devices: Devices List': {
     component: Devices,
     mocks: {
-      'Devices': {mockStore, routeState: {showingRevoked: true}, setRouteState: () => {}},
+      Devices: {
+        mockStore,
+        routeState: {showingRevoked: true},
+        setRouteState: () => {},
+      },
     },
   },
 }

@@ -16,12 +16,12 @@ export type State = {
 
 export type Config = {
   path: string,
-  eventHandlingDelay: number
+  eventHandlingDelay: number,
 }
 
 export type Options = {
   defaultWidth: number,
-  defaultHeight: number
+  defaultHeight: number,
 }
 
 export type Managed = {

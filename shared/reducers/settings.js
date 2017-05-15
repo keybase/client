@@ -40,7 +40,7 @@ const initialState: State = {
   waitingForResponse: false,
 }
 
-function reducer (state: State = initialState, action: Actions): State {
+function reducer(state: State = initialState, action: Actions): State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}
@@ -64,9 +64,11 @@ function reducer (state: State = initialState, action: Actions): State {
       const updateSubscribe = setting => {
         let subscribed = setting.subscribed
 
-        if (!name) { // clicked unsub all
+        if (!name) {
+          // clicked unsub all
           subscribed = false
-        } else if (name === setting.name) { // flip if its the one we're looking for
+        } else if (name === setting.name) {
+          // flip if its the one we're looking for
           subscribed = !subscribed
         }
 
@@ -82,7 +84,9 @@ function reducer (state: State = initialState, action: Actions): State {
           ...state.notifications,
           allowSave: true,
           settings: state.notifications.settings.map(updateSubscribe),
-          unsubscribedFromAll: name ? false : !state.notifications.unsubscribedFromAll,
+          unsubscribedFromAll: name
+            ? false
+            : !state.notifications.unsubscribedFromAll,
         },
       }
     case Constants.notificationsSave:

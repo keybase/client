@@ -1,9 +1,6 @@
 // @flow
 
-declare function setSecureFlagSetting (): Promise<boolean>;
-declare function getSecureFlagSetting (): Promise<boolean>;
+declare function setSecureFlagSetting(): Promise<boolean>
+declare function getSecureFlagSetting(): Promise<boolean>
 
-export {
-  setSecureFlagSetting,
-  getSecureFlagSetting,
-}
+export {setSecureFlagSetting, getSecureFlagSetting}

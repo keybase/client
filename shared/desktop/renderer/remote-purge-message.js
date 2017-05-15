@@ -12,11 +12,11 @@ type Props = {
 }
 
 class RemotePurgeMessage extends Component<void, Props, void> {
-  shouldComponentUpdate (nextProps, nextState) {
+  shouldComponentUpdate(nextProps, nextState) {
     return nextProps !== this.props
   }
 
-  render () {
+  render() {
     const {open} = this.props
     if (!open) {
       return null
@@ -26,14 +26,15 @@ class RemotePurgeMessage extends Component<void, Props, void> {
     return (
       <div>
         <RemoteComponent
-          title='PgpPurgeMessage'
+          title="PgpPurgeMessage"
           windowsOpts={windowsOpts}
           waitForState={false}
           onRemoteClose={() => this.props.onClose()}
-          component='purgeMessage'
+          component="purgeMessage"
           onSubmit={() => {}}
           onCancel={() => this.props.onClose()}
-          sessionID={0} />
+          sessionID={0}
+        />
       </div>
     )
   }
@@ -44,6 +45,8 @@ export default connect(
     open: state.pgp.open,
   }),
   (dispatch: any) => ({
-    onClose: () => { dispatch({type: Constants.pgpAckedMessage, payload: {hitOk: false}}) },
+    onClose: () => {
+      dispatch({type: Constants.pgpAckedMessage, payload: {hitOk: false}})
+    },
   })
 )(RemotePurgeMessage)

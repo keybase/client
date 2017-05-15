@@ -15,12 +15,12 @@ make
 # Protocol changes could create diffs in the following directories:
 #   protocol/
 #   go/
-#   shared/
+        #   shared/ Shared is no longer included as we transform this file automatically.
 # This build process is idempotent. We expect there to be no changes after
 # re-running the protocol generation, because any changes should have been
 # checked in.
-if ! git diff --quiet --exit-code HEAD -- ./ ../go/ ../shared/; then
-  git diff HEAD -- ./ ../go/ ../shared/;
+if ! git diff --quiet --exit-code HEAD -- ./ ../go/; then
+  git diff HEAD -- ./ ../go/;
   echo 'ERROR: `git diff` detected changes. The generated protocol files are stale.'
   exit 1
 fi

@@ -1,6 +1,10 @@
 // @flow
 import {Component} from 'react'
-import type {FileSection, ParticipantUnlock, Folder as ConstantsFolder} from '../constants/folders'
+import type {
+  FileSection,
+  ParticipantUnlock,
+  Folder as ConstantsFolder,
+} from '../constants/folders'
 
 export type Folder = ConstantsFolder
 
@@ -19,4 +23,4 @@ export type Props = {
   showIgnored: boolean,
 }
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}

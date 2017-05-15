@@ -8,87 +8,163 @@ import Container from '../../forms/container.desktop'
 import React, {Component} from 'react'
 import type {Props} from './index.render'
 import {Text, Icon, Input, Button} from '../../../common-adapters'
-import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
-  codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
+import {
+  codePageDeviceRoleExistingPhone,
+  codePageDeviceRoleNewPhone,
+  codePageModeShowCode,
+  codePageModeEnterText,
+  codePageModeShowText,
+} from '../../../constants/login'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {getStyle} from '../../../common-adapters/text'
 
 const SubTitle = ({usePhone}) => (
   <p>
-    <Text type='Body'>In the Keybase app on your {usePhone ? 'phone' : 'computer'}, go to</Text>
-    <Icon type='iconfont-identity-devices' style={{color: globalColors.black_75, paddingLeft: globalMargins.xtiny, paddingRight: globalMargins.xtiny}} />
-    <Text type='Body'>Devices > Add a new device.</Text>
+    <Text type="Body">
+      In the Keybase app on your {usePhone ? 'phone' : 'computer'}, go to
+    </Text>
+    <Icon
+      type="iconfont-identity-devices"
+      style={{
+        color: globalColors.black_75,
+        paddingLeft: globalMargins.xtiny,
+        paddingRight: globalMargins.xtiny,
+      }}
+    />
+    <Text type="Body">Devices > Add a new device.</Text>
   </p>
 )
 
 const CodePageText = ({onBack, textCode, otherDeviceRole, setCodePageMode}) => (
   <Container style={stylesContainer} onBack={onBack}>
-    <Text type='Header' style={{marginTop: 60}}>Type in text code</Text>
+    <Text type="Header" style={{marginTop: 60}}>Type in text code</Text>
     <p style={{marginTop: 10}}>
-      <Text type='Body'>Run&nbsp;</Text><Text type='TerminalInline'>keybase device add</Text><Text type='Body'>&nbsp;on your other device and type this code there: </Text>
+      <Text type="Body">Run&nbsp;</Text>
+      <Text type="TerminalInline">keybase device add</Text>
+      <Text type="Body">
+        &nbsp;on your other device and type this code there:{' '}
+      </Text>
     </p>
-    <Icon type='icon-computer-text-code-48' style={{marginTop: 28}} />
-    <Text type='Body' style={stylesPaperkey}>{textCode}</Text>
-    {_otherIsPhone(otherDeviceRole) && <p style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}} onClick={() => setCodePageMode(codePageModeShowCode)}>
-      <Icon style={{marginRight: globalMargins.xtiny}} type='icon-phone-qr-code-32' />
-      <Text type='BodyPrimaryLink' onClick={() => setCodePageMode(codePageModeShowCode)}>Scan QR code instead</Text>
-    </p>
-    }
+    <Icon type="icon-computer-text-code-48" style={{marginTop: 28}} />
+    <Text type="Body" style={stylesPaperkey}>{textCode}</Text>
+    {_otherIsPhone(otherDeviceRole) &&
+      <p
+        style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}
+        onClick={() => setCodePageMode(codePageModeShowCode)}
+      >
+        <Icon
+          style={{marginRight: globalMargins.xtiny}}
+          type="icon-phone-qr-code-32"
+        />
+        <Text
+          type="BodyPrimaryLink"
+          onClick={() => setCodePageMode(codePageModeShowCode)}
+        >
+          Scan QR code instead
+        </Text>
+      </p>}
   </Container>
 )
 
 const CodePageCode = ({onBack, otherDeviceRole, setCodePageMode, qrCode}) => (
   <Container
     style={{...stylesContainer, alignItems: 'stretch'}}
-    onBack={onBack}>
-    <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, overflowY: 'auto'}}>
-      <Text style={{marginBottom: 11, marginTop: 38}} type='Header'>Scan this QR code</Text>
+    onBack={onBack}
+  >
+    <div
+      style={{
+        ...globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        flex: 1,
+        overflowY: 'auto',
+      }}
+    >
+      <Text style={{marginBottom: 11, marginTop: 38}} type="Header">
+        Scan this QR code
+      </Text>
       <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
       <div style={stylesQrContainer}>
         <div style={{background: `url("${qrCode}")`, ...stylesQr}} />
       </div>
-      <p style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}} onClick={() => setCodePageMode(codePageModeShowText)}>
-        <Icon style={{marginRight: globalMargins.xtiny}} type='icon-phone-text-code-32' />
-        <Text type='BodyPrimaryLink'>Show text code instead</Text>
+      <p
+        style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}
+        onClick={() => setCodePageMode(codePageModeShowText)}
+      >
+        <Icon
+          style={{marginRight: globalMargins.xtiny}}
+          type="icon-phone-text-code-32"
+        />
+        <Text type="BodyPrimaryLink">Show text code instead</Text>
       </p>
     </div>
   </Container>
 )
 
-const CodePageEnterText = ({enterCodeErrorText, onBack, otherDeviceRole, enterText, onChangeText, textEntered, setCodePageMode}) => (
-  <Container
-    style={stylesContainer}
-    onBack={onBack}>
-    <Text style={{marginBottom: 11, marginTop: 38}} type='Header'>Type in text code</Text>
+const CodePageEnterText = ({
+  enterCodeErrorText,
+  onBack,
+  otherDeviceRole,
+  enterText,
+  onChangeText,
+  textEntered,
+  setCodePageMode,
+}) => (
+  <Container style={stylesContainer} onBack={onBack}>
+    <Text style={{marginBottom: 11, marginTop: 38}} type="Header">
+      Type in text code
+    </Text>
     <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
-    <Icon style={{marginBottom: 40, marginTop: 30}} type='icon-phone-text-code-32' />
+    <Icon
+      style={{marginBottom: 40, marginTop: 30}}
+      type="icon-phone-text-code-32"
+    />
     <Input
       errorText={enterCodeErrorText}
-      hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
-      floatingHintTextOverride='Text code'
+      hintText="opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas"
+      floatingHintTextOverride="Text code"
       multiline={true}
       value={enterText}
       onChangeText={onChangeText}
     />
     <Button
-      type='Primary'
-      style={{alignSelf: 'center', marginBottom: globalMargins.large, marginTop: globalMargins.large}}
-      label='Continue'
-      onClick={() => textEntered(codePageModeEnterText)} />
-    {_otherIsPhone(otherDeviceRole) && <p style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}} onClick={() => setCodePageMode(codePageModeShowCode)}>
-      <Icon style={{marginRight: globalMargins.xtiny}} type='icon-phone-qr-code-32' />
-      <Text type='BodyPrimaryLink' onClick={() => setCodePageMode(codePageModeShowCode)}>Scan QR code instead</Text>
-    </p>
-    }
+      type="Primary"
+      style={{
+        alignSelf: 'center',
+        marginBottom: globalMargins.large,
+        marginTop: globalMargins.large,
+      }}
+      label="Continue"
+      onClick={() => textEntered(codePageModeEnterText)}
+    />
+    {_otherIsPhone(otherDeviceRole) &&
+      <p
+        style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}
+        onClick={() => setCodePageMode(codePageModeShowCode)}
+      >
+        <Icon
+          style={{marginRight: globalMargins.xtiny}}
+          type="icon-phone-qr-code-32"
+        />
+        <Text
+          type="BodyPrimaryLink"
+          onClick={() => setCodePageMode(codePageModeShowCode)}
+        >
+          Scan QR code instead
+        </Text>
+      </p>}
   </Container>
 )
 
-function _otherIsPhone (otherDeviceRole) {
-  return [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone].indexOf(otherDeviceRole) !== -1
+function _otherIsPhone(otherDeviceRole) {
+  return (
+    [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone].indexOf(
+      otherDeviceRole
+    ) !== -1
+  )
 }
 
 class CodePageRender extends Component<void, Props, void> {
-  render () {
+  render() {
     switch (this.props.mode) {
       case codePageModeShowCode:
         return <CodePageCode {...this.props} />
@@ -98,7 +174,7 @@ class CodePageRender extends Component<void, Props, void> {
         return <CodePageText {...this.props} />
     }
     console.warn(`No mode prop passed! Mode: ${this.props.mode}`)
-    return (<div />)
+    return <div />
   }
 }
 

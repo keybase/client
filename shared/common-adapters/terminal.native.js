@@ -5,13 +5,13 @@ import type {Props, Context} from './terminal'
 import {globalStyles, globalColors} from '../styles'
 
 class Terminal extends Component<void, Props, void> {
-  getChildContext (): Context {
+  getChildContext(): Context {
     return {
       inTerminal: true,
     }
   }
 
-  render () {
+  render() {
     return (
       <Box style={{...styleContainer, ...this.props.style}}>
         {this.props.children}

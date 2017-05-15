@@ -19,20 +19,30 @@ type ProfileTab = 'tabs:profileTab'
 type SearchTab = 'tabs:searchTab'
 type SettingsTab = 'tabs:settingsTab'
 
-export type Tab = ChatTab
-| DevicesTab
-| FolderTab
-| LoginTab
-| PeopleTab
-| ProfileTab
-| SettingsTab
-| SearchTab
+export type Tab =
+  | ChatTab
+  | DevicesTab
+  | FolderTab
+  | LoginTab
+  | PeopleTab
+  | ProfileTab
+  | SettingsTab
+  | SearchTab
 
-function isValidInitialTab (tab: ?Tab) {
+function isValidInitialTab(tab: ?Tab) {
   if (isMobile) {
-    return [chatTab, folderTab, profileTab, searchTab, settingsTab].includes(tab)
+    return [chatTab, folderTab, profileTab, searchTab, settingsTab].includes(
+      tab
+    )
   } else {
-    return [chatTab, folderTab, profileTab, devicesTab, searchTab, settingsTab].includes(tab)
+    return [
+      chatTab,
+      folderTab,
+      profileTab,
+      devicesTab,
+      searchTab,
+      settingsTab,
+    ].includes(tab)
   }
 }
 

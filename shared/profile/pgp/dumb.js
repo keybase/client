@@ -25,10 +25,10 @@ const addBase = {
   errorEmail1: false,
   errorEmail2: false,
   errorEmail3: false,
-  onChangeFullName: (next) => console.log('clicked:', 'onChangeFullName'),
-  onChangeEmail1: (next) => console.log('clicked: onChangeEmail1'),
-  onChangeEmail2: (next) => console.log('clicked: onChangeEmail2'),
-  onChangeEmail3: (next) => console.log('clicked: onChangeEmail3'),
+  onChangeFullName: next => console.log('clicked:', 'onChangeFullName'),
+  onChangeEmail1: next => console.log('clicked: onChangeEmail1'),
+  onChangeEmail2: next => console.log('clicked: onChangeEmail2'),
+  onChangeEmail3: next => console.log('clicked: onChangeEmail3'),
   onCancel: () => console.log('clicked: onCancel'),
   onNext: () => console.log('clicked: onNext'),
 }
@@ -36,8 +36,8 @@ const addBase = {
 const addMap: DumbComponentMap<PgpAdd> = {
   component: PgpAdd,
   mocks: {
-    'Normal': addBase,
-    'Empty': {
+    Normal: addBase,
+    Empty: {
       ...addBase,
       email1: null,
       fullName: null,
@@ -63,7 +63,10 @@ const dumbFinishedGeneratingPgp: DumbComponentMap<FinishedGeneratedPgp> = {
   component: FinishedGeneratedPgp,
   mocks: {
     ' ': {
-      onDone: shouldStoreKeyOnServer => console.log(`FinishedGeneratedPgp: onDone [shouldStoreKeyOnServer: ${String(shouldStoreKeyOnServer)}]`),
+      onDone: shouldStoreKeyOnServer =>
+        console.log(
+          `FinishedGeneratedPgp: onDone [shouldStoreKeyOnServer: ${String(shouldStoreKeyOnServer)}]`
+        ),
       pgpKeyString: '-----BEGIN PGP PUBLIC KEY BLOCK-----\nComment: GPGTools - https://gpgtools.org\n\nmQINBFWtLwEBEADLvrTe/bzrKVL0Z4bofdrLACmwC8PGXk3iD6t+1uTBKVMpfqkH\nQxGVECp598wS8XI6ZC+sMUM+AGTROi+HUsfn2cFk6y6pYl/z9A7lgctoX5xKXYTt\nE4xAZBeN1mn+x2YTjHW2lga/SZmh5qpSn5AMeNe42R0EtZ9FrCwD+IiOlw/LqGoh\n7DHKVDHmqK//mfK/lFTJck+HPkgmLyC4iYjpGuqXKqODUtMFT4+bHYfowG8WkvVX\ncf59Z6Fc7PA+rSFy9QXt7TP1po5Mnxxr9jcqQzzy3BSrAhHxAPj3F9rWBLUG0yGJ\nmAy6c1yTsbSgviiA0n4gjqPVj3iD3aiOx/KGxCdN/vru37Gp5q4KiBz7yHIqvg3B\nSeCBEOremB3gZG24OIVncpr0U6qITaFIe6iHmx53sID9JAKwfxAIwcktXe+aGtWp\n',
     },
   },

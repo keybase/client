@@ -12,18 +12,18 @@ type State = {
 }
 
 class Dropdown extends Component<void, Props, State> {
-  state: State;
+  state: State
 
-  _dropdownRef: any;
+  _dropdownRef: any
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
     this.state = {
       popoverOpen: false,
     }
   }
 
-  _clickItemFromList (index: ?number) {
+  _clickItemFromList(index: ?number) {
     // Use != null because 0 is false
     if (index != null) {
       this.props.onClick(this.props.options[index], index)
@@ -32,7 +32,7 @@ class Dropdown extends Component<void, Props, State> {
     this.setState({popoverOpen: false})
   }
 
-  render () {
+  render() {
     const realCSS = `
       .kbdropdown { color: ${globalColors.black_10}; }
       .kbdropdown:hover { color: ${globalColors.blue}; }
@@ -47,16 +47,51 @@ class Dropdown extends Component<void, Props, State> {
     let list
     let selectedValue
 
-    const onOther = this.props.onOther && (() => { this.setState({popoverOpen: false}); this.props.onOther && this.props.onOther() })
+    const onOther =
+      this.props.onOther &&
+      (() => {
+        this.setState({popoverOpen: false})
+        this.props.onOther && this.props.onOther()
+      })
 
     switch (this.props.type) {
       case 'Username':
-        list = <UsernameList options={this.props.options} onClick={i => this._clickItemFromList(i)} onOther={onOther} />
-        selectedValue = <MenuItem onClick={() => {}} type='Username' style={{height: 'initial'}} textStyle={{...styles.labelStyle}}>{this.props.value || this.props.options[0]}</MenuItem>
+        list = (
+          <UsernameList
+            options={this.props.options}
+            onClick={i => this._clickItemFromList(i)}
+            onOther={onOther}
+          />
+        )
+        selectedValue = (
+          <MenuItem
+            onClick={() => {}}
+            type="Username"
+            style={{height: 'initial'}}
+            textStyle={{...styles.labelStyle}}
+          >
+            {this.props.value || this.props.options[0]}
+          </MenuItem>
+        )
         break
       case 'General':
-        list = <GeneralList options={this.props.options} onClick={i => this._clickItemFromList(i)} onOther={onOther} />
-        selectedValue = <MenuItem type='Pick' onClick={() => {}} style={{height: 'initial'}} textStyle={{...styles.labelStyle}}>{this.props.value || 'Pick an option'}</MenuItem>
+        list = (
+          <GeneralList
+            options={this.props.options}
+            onClick={i => this._clickItemFromList(i)}
+            onOther={onOther}
+          />
+        )
+        selectedValue = (
+          <MenuItem
+            type="Pick"
+            onClick={() => {}}
+            style={{height: 'initial'}}
+            textStyle={{...styles.labelStyle}}
+          >
+            {this.props.value || 'Pick an option'}
+          </MenuItem>
+        )
         break
     }
 
@@ -67,7 +102,8 @@ class Dropdown extends Component<void, Props, State> {
           ref={r => (this._dropdownRef = r)}
           style={{...styles.dropdown, ...this.props.style}}
           onClick={() => this.setState({popoverOpen: true})}
-          className={'kbdropdown'}>
+          className={'kbdropdown'}
+        >
           <Popover
             className={'popover'}
             anchorOrigin={{horizontal: 'middle', vertical: 'top'}}
@@ -76,7 +112,8 @@ class Dropdown extends Component<void, Props, State> {
             style={styles.menuStyle}
             animation={PopoverAnimationVertical}
             open={this.state.popoverOpen}
-            onRequestClose={() => this.setState({popoverOpen: false})}>
+            onRequestClose={() => this.setState({popoverOpen: false})}
+          >
             {list}
           </Popover>
           {selectedValue}
@@ -88,10 +125,10 @@ class Dropdown extends Component<void, Props, State> {
 }
 
 class MenuItem extends Component<void, MenuItemProps, void> {
-  props: MenuItemProps;
+  props: MenuItemProps
 
-  render () {
-    let textStyle : Object = {}
+  render() {
+    let textStyle: Object = {}
     let textType: $PropertyType<TextProps, 'type'> = 'HeaderBig'
 
     switch (this.props.type || 'Normal') {
@@ -109,8 +146,14 @@ class MenuItem extends Component<void, MenuItemProps, void> {
     }
 
     return (
-      <div className='kbmenuitem' style={{...styles.menuItem, ...this.props.style}} onClick={this.props.onClick}>
-        <Text style={{...textStyle, ...this.props.textStyle}} type={textType}>{this.props.children}</Text>
+      <div
+        className="kbmenuitem"
+        style={{...styles.menuItem, ...this.props.style}}
+        onClick={this.props.onClick}
+      >
+        <Text style={{...textStyle, ...this.props.textStyle}} type={textType}>
+          {this.props.children}
+        </Text>
       </div>
     )
   }
@@ -124,14 +167,23 @@ type OptionsListProps = {
 }
 
 const optionsList = ({options, onClick, username}: OptionsListProps) => {
-  return options.map((o, i) => <MenuItem onClick={() => onClick(i)} key={o} type={username ? 'Username' : 'Normal'}>{o}</MenuItem>)
+  return options.map((o, i) => (
+    <MenuItem
+      onClick={() => onClick(i)}
+      key={o}
+      type={username ? 'Username' : 'Normal'}
+    >
+      {o}
+    </MenuItem>
+  ))
 }
 
 const UsernameList = ({options, onClick, onOther}: OptionsListProps) => {
   return (
     <div style={styles.popover}>
       {optionsList({onClick, options, username: true})}
-      {onOther && <MenuItem onClick={onOther} type='Other'>Someone else...</MenuItem>}
+      {onOther &&
+        <MenuItem onClick={onOther} type="Other">Someone else...</MenuItem>}
     </div>
   )
 }
@@ -139,9 +191,10 @@ const UsernameList = ({options, onClick, onOther}: OptionsListProps) => {
 const GeneralList = ({options, onClick, onOther}: OptionsListProps) => {
   return (
     <div style={styles.popover}>
-      <MenuItem onClick={() => onClick()} type='Pick'>Pick an option</MenuItem>
+      <MenuItem onClick={() => onClick()} type="Pick">Pick an option</MenuItem>
       {optionsList({onClick, options})}
-      {onOther && <MenuItem onClick={onOther} type='Other'>Or something else</MenuItem>}
+      {onOther &&
+        <MenuItem onClick={onOther} type="Other">Or something else</MenuItem>}
     </div>
   )
 }

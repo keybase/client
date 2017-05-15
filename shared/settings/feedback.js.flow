@@ -12,4 +12,4 @@ export type Props = {
   onChangeFeedback: (nextValue: ?string) => void,
 }
 
-export default class Feedback extends Component<void, Props, void> { }
+export default class Feedback extends Component<void, Props, void> {}

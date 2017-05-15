@@ -20,7 +20,7 @@ export type Props = {
   onSwitchTab?: (selected: Tab) => void,
   onUserClick?: (username: string) => void,
   followers: Array<FriendshipUserInfo>,
-  following: Array<FriendshipUserInfo>
+  following: Array<FriendshipUserInfo>,
 }
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}

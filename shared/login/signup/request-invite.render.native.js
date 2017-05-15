@@ -6,34 +6,37 @@ import {Text, Icon, Input, Button, Box} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 
 class RequestInviteRender extends Component {
-  props: Props;
+  props: Props
 
-  render () {
+  render() {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
-        <Text style={stylesHeader} type='Header'>Request an invite code</Text>
-        <Icon style={stylesIcon} type='icon-invite-code-48' />
+        <Text style={stylesHeader} type="Header">Request an invite code</Text>
+        <Icon style={stylesIcon} type="icon-invite-code-48" />
         <Input
-          hintText='Your email address'
-          floatingHintTextOverride='Your email address'
+          hintText="Your email address"
+          floatingHintTextOverride="Your email address"
           value={this.props.email}
           errorText={this.props.emailErrorText}
           onChangeText={email => this.props.emailChange(email)}
-          autoFocus={true} />
+          autoFocus={true}
+        />
         <Input
-          hintText='Your name'
-          floatingHintTextOverride='Your name'
+          hintText="Your name"
+          floatingHintTextOverride="Your name"
           value={this.props.name}
           errorText={this.props.nameErrorText}
-          onChangeText={name => this.props.nameChange(name)} />
+          onChangeText={name => this.props.nameChange(name)}
+        />
         <Button
           fullWidth={true}
           style={stylesButton}
           waiting={this.props.waiting}
-          type='Primary'
-          label='Request'
+          type="Primary"
+          label="Request"
           onClick={this.props.onSubmit}
-          disabled={!this.props.email} />
+          disabled={!this.props.email}
+        />
         <Box style={{flex: 1}} />
       </Container>
     )

@@ -21,7 +21,7 @@ export default connect(
     title,
     waiting,
   }),
-  (dispatch) => ({
+  dispatch => ({
     onFinish: () => dispatch(Creators.onFinish()),
     onBack: () => dispatch(Creators.onBack()),
   })

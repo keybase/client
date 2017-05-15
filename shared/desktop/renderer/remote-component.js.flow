@@ -1,11 +1,12 @@
 // @flow
 import {Component} from 'react'
 
-export type Components = 'tracker'
-| 'menubar'
-| 'unlockFolders'
-| 'pinentry'
-| 'purgeMessage'
+export type Components =
+  | 'tracker'
+  | 'menubar'
+  | 'unlockFolders'
+  | 'pinentry'
+  | 'purgeMessage'
 
 export type Props = {
   component: Components,
@@ -17,5 +18,4 @@ export type Props = {
   ignoreNewProps?: boolean,
 }
 
-export default class RemoteComponent extends Component<void, Props, void> { }
-
+export default class RemoteComponent extends Component<void, Props, void> {}

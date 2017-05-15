@@ -8,7 +8,13 @@ import type {Props} from './user-card'
 
 const avatarSize = 80
 
-const UserCard = ({outerStyle, onAvatarClicked, username, style, children}: Props) => (
+const UserCard = ({
+  outerStyle,
+  onAvatarClicked,
+  username,
+  style,
+  children,
+}: Props) => (
   <Box style={{...styleContainer, ...outerStyle}}>
     <Box style={styleAvatar}>
       <Box style={styleAvatarBackground} />

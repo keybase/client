@@ -7,12 +7,12 @@ const commonConfirm = ({platform, isPending}) => ({
   platformIconOverlay: isPending ? 'icon-proof-pending' : 'icon-proof-success',
   usernameSubtitle: `@${platform}`,
   message: isPending
-  ? 'Some proofs can take a few hours to recognize. Check back later.'
-  : 'Leave your proof up so other users can identify you!',
+    ? 'Some proofs can take a few hours to recognize. Check back later.'
+    : 'Leave your proof up so other users can identify you!',
   messageSubtitle: null,
 })
 
-export function propsForPlatform (props: Props): Object {
+export function propsForPlatform(props: Props): Object {
   switch (props.platform) {
     case 'twitter':
       return {
@@ -38,15 +38,15 @@ export function propsForPlatform (props: Props): Object {
       return {
         ...commonConfirm(props),
         message: props.isPending
-        ? 'Hacker News caches its bios, so it might be a few hours before you can verify your proof. Check back later.'
-        : 'Leave your proof up so other users can identify you!',
+          ? 'Hacker News caches its bios, so it might be a few hours before you can verify your proof. Check back later.'
+          : 'Leave your proof up so other users can identify you!',
       }
     case 'dns':
       return {
         ...commonConfirm(props),
         message: props.isPending
-        ? 'DNS proofs can take a few hours to recognize. Check back later.'
-        : 'Leave your proof up so other users can identify you!',
+          ? 'DNS proofs can take a few hours to recognize. Check back later.'
+          : 'Leave your proof up so other users can identify you!',
       }
     case 'zcash':
       return {

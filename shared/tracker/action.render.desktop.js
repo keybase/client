@@ -6,8 +6,9 @@ import {normal} from '../constants/tracker'
 
 import type {ActionProps} from './action.render'
 
-export default class ActionRender extends PureComponent<void, ActionProps, void> {
-  render () {
+export default class ActionRender
+  extends PureComponent<void, ActionProps, void> {
+  render() {
     const {loggedIn} = this.props
 
     if (!loggedIn) {
@@ -31,52 +32,92 @@ export default class ActionRender extends PureComponent<void, ActionProps, void>
     return this.renderNormal()
   }
 
-  renderLoggedOut () {
+  renderLoggedOut() {
     return (
       <div style={styleLoggedOutContainer}>
-        <Icon type='icon-terminal-32' style={{marginBottom: -5, marginTop: -5}} />
+        <Icon
+          type="icon-terminal-32"
+          style={{marginBottom: -5, marginTop: -5}}
+        />
         <div style={{textAlign: 'center'}}>
-          <Text type='TerminalInline'>keybase login</Text>
-          <Text type='Body'> or </Text>
-          <Text type='TerminalInline'>keybase signup</Text>
-          <Text type='Body'> from the terminal for more options.</Text>
+          <Text type="TerminalInline">keybase login</Text>
+          <Text type="Body"> or </Text>
+          <Text type="TerminalInline">keybase signup</Text>
+          <Text type="Body"> from the terminal for more options.</Text>
         </div>
-        <Button style={styleActionButton} type='Secondary' label='Close' onClick={() => this.props.onClose()} />
+        <Button
+          style={styleActionButton}
+          type="Secondary"
+          label="Close"
+          onClick={() => this.props.onClose()}
+        />
       </div>
     )
   }
 
-  renderClose () {
+  renderClose() {
     return (
       <div style={styleContainer}>
-        <Button style={styleActionButton} type='Secondary' label='Close' onClick={() => this.props.onClose()} />
+        <Button
+          style={styleActionButton}
+          type="Secondary"
+          label="Close"
+          onClick={() => this.props.onClose()}
+        />
       </div>
     )
   }
 
-  renderNormal () {
+  renderNormal() {
     return (
       <div style={styleContainer}>
         {!this.props.currentlyFollowing &&
-          <Button waiting={this.props.waiting} style={styleActionButton} type='Follow' label='Follow' onClick={() => this.props.onFollow()} />}
+          <Button
+            waiting={this.props.waiting}
+            style={styleActionButton}
+            type="Follow"
+            label="Follow"
+            onClick={() => this.props.onFollow()}
+          />}
         {this.props.currentlyFollowing &&
-          <Button style={styleActionButton} type='Secondary' label='Close' onClick={() => this.props.onClose()} />}
-        <Button style={styleChatButton} type='Primary' label='Start a Chat' onClick={() => this.props.onChat()} />
+          <Button
+            style={styleActionButton}
+            type="Secondary"
+            label="Close"
+            onClick={() => this.props.onClose()}
+          />}
+        <Button
+          style={styleChatButton}
+          type="Primary"
+          label="Start a Chat"
+          onClick={() => this.props.onChat()}
+        />
       </div>
     )
   }
 
-  renderChanged () {
+  renderChanged() {
     return (
       <div style={styleContainer}>
-        <Button waiting={this.props.waiting} type='Unfollow' label='Ignore for 24 hrs' onClick={() => this.props.onIgnore()} />
-        <Button waiting={this.props.waiting} style={styleActionButton} type='Follow' label='Accept' onClick={() => this.props.onRefollow()} />
+        <Button
+          waiting={this.props.waiting}
+          type="Unfollow"
+          label="Ignore for 24 hrs"
+          onClick={() => this.props.onIgnore()}
+        />
+        <Button
+          waiting={this.props.waiting}
+          style={styleActionButton}
+          type="Follow"
+          label="Accept"
+          onClick={() => this.props.onRefollow()}
+        />
       </div>
     )
   }
 }
 
-export function calcFooterHeight (loggedIn: boolean): number {
+export function calcFooterHeight(loggedIn: boolean): number {
   return loggedIn ? 62 : 151
 }
 

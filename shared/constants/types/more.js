@@ -1,38 +1,39 @@
 // @flow
 
-import {Component} from 'react' // eslint-disable-line
+// eslint-disable-next-line
+import {Component} from 'react'
 import pickBy from 'lodash/pickBy'
 import type {Device as _Device, DeviceID, Time} from './flow-types'
 
 const ProvablePlatformsMap = {
-  'twitter': true,
-  'reddit': true,
-  'facebook': true,
-  'github': true,
-  'coinbase': false, // Coinbase is no longer supported
-  'hackernews': true,
-  'dns': true,
-  'http': true,
-  'https': true,
-  'rooter': __DEV__,
+  twitter: true,
+  reddit: true,
+  facebook: true,
+  github: true,
+  coinbase: false, // Coinbase is no longer supported
+  hackernews: true,
+  dns: true,
+  http: true,
+  https: true,
+  rooter: __DEV__,
 }
 
 const PlatformsExpandedMap = {
   // Flow needs this to be duplicated
-  'twitter': true,
-  'reddit': true,
-  'facebook': true,
-  'github': true,
-  'coinbase': false, // Coinbase is no longer supported
-  'hackernews': true,
-  'dns': true,
-  'http': true,
-  'https': true,
-  'rooter': __DEV__,
-  'btc': true,
-  'zcash': true,
-  'dnsOrGenericWebSite': true,
-  'pgp': true,
+  twitter: true,
+  reddit: true,
+  facebook: true,
+  github: true,
+  coinbase: false, // Coinbase is no longer supported
+  hackernews: true,
+  dns: true,
+  http: true,
+  https: true,
+  rooter: __DEV__,
+  btc: true,
+  zcash: true,
+  dnsOrGenericWebSite: true,
+  pgp: true,
 }
 
 export const ProvablePlatforms = Object.keys(pickBy(ProvablePlatformsMap))
@@ -57,7 +58,7 @@ export type Device = {
 }
 
 // Converts a string to the DeviceType enum, logging an error if it doesn't match
-export function toDeviceType (s: string): DeviceType {
+export function toDeviceType(s: string): DeviceType {
   switch (s) {
     case 'mobile':
     case 'desktop':
@@ -71,14 +72,15 @@ export function toDeviceType (s: string): DeviceType {
 
 // Try to unwrap the maybe, print error if fails
 // $FlowIssue
-export function unsafeUnwrap<T> (t: ?T): T {
+export function unsafeUnwrap<T>(t: ?T): T {
   if (t == null) {
     console.error('Got null, expected non null')
   }
   return t
 }
 
-export type _PropsOf<Props, C: Component<*, Props, *>> = Props // eslint-disable-line
+// eslint-disable-next-line
+export type _PropsOf<Props, C: Component<*, Props, *>> = Props
 export type PropsOf<C> = _PropsOf<*, C>
 
 export type DumbComponentMap<C: Component<*, *, *>> = {

@@ -9,4 +9,4 @@ export type Props = {
   onBack: () => void,
 }
 
-export default class ParticipantRekey extends Component<void, Props, void> { }
+export default class ParticipantRekey extends Component<void, Props, void> {}

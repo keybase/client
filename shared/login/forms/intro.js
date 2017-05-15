@@ -19,7 +19,8 @@ export default compose(
       justDeletedSelf: state.login.justDeletedSelf,
       justLoginFromRevokedDevice: state.login.justLoginFromRevokedDevice,
       justRevokedSelf: state.login.justRevokedSelf,
-      retrying: state.config.bootstrapTriesRemaining !== Constants.MAX_BOOTSTRAP_TRIES,
+      retrying: state.config.bootstrapTriesRemaining !==
+        Constants.MAX_BOOTSTRAP_TRIES,
     }),
     (dispatch: Dispatch) => ({
       onFeedback: () => {
@@ -50,5 +51,5 @@ export default compose(
   branch(
     props => props.bootStatus === 'bootStatusFailure',
     renderComponent(Failure)
-  ),
+  )
 )(Intro)

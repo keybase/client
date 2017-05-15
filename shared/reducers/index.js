@@ -32,18 +32,18 @@ import {resetStore} from '../constants/common.js'
 // let index = 0
 
 // function timeTravel (state: State, action: any): State {
-  // if (action.type !== Constants.timeTravel) {
-    // history = history.slice(0, index + 1).push(state)
-    // index = history.size - 1
-    // return state
-  // } else {
-    // const {direction} = action.payload
+// if (action.type !== Constants.timeTravel) {
+// history = history.slice(0, index + 1).push(state)
+// index = history.size - 1
+// return state
+// } else {
+// const {direction} = action.payload
 
-    // if (direction === Constants.timeTravelBack) {
-      // return history.get(--index, state)
-    // }
-    // return history.get(++index, state)
-  // }
+// if (direction === Constants.timeTravelBack) {
+// return history.get(--index, state)
+// }
+// return history.get(++index, state)
+// }
 // }
 
 const combinedReducer = combineReducers({
@@ -71,26 +71,30 @@ const combinedReducer = combineReducers({
 
 let reducer
 if (__DEV__) {
-  reducer = function (state: State, action: any): State {
-    return (
-      devEdit(
-        serialize(
-          // timeTravel(
-            combinedReducer(state, action),
-            // action),
-          action),
-        action)
+  reducer = function(state: State, action: any): State {
+    return devEdit(
+      serialize(
+        // timeTravel(
+        combinedReducer(state, action),
+        // action),
+        action
+      ),
+      action
     )
   }
 } else {
   reducer = combinedReducer
 }
 
-export default function (state: State, action: any): State {
+export default function(state: State, action: any): State {
   // Warn if any keys did not change after a resetStore action
   if (__DEV__ && action.type === resetStore) {
     const nextState = reducer(state, action)
-    Object.keys(nextState).forEach(k => nextState[k] === state[k] && console.warn('Key %s did not change after resetStore action', k))
+    Object.keys(nextState).forEach(
+      k =>
+        nextState[k] === state[k] &&
+        console.warn('Key %s did not change after resetStore action', k)
+    )
     return nextState
   }
   return reducer(state, action)

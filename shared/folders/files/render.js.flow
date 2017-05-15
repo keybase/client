@@ -1,6 +1,13 @@
 // @flow
-import type {FileSection, Device, ParticipantUnlock} from '../../constants/folders'
-import type {MenuItem, Props as MenuProps} from '../../common-adapters/popup-menu'
+import type {
+  FileSection,
+  Device,
+  ParticipantUnlock,
+} from '../../constants/folders'
+import type {
+  MenuItem,
+  Props as MenuProps,
+} from '../../common-adapters/popup-menu'
 import type {Props as FileProps} from './file/render'
 import type {UserList} from '../../common-adapters/usernames'
 import {Component} from 'react'
@@ -28,4 +35,4 @@ export type Props = {
   hasReadOnlyUsers: boolean,
 }
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}
