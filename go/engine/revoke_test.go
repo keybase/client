@@ -187,10 +187,17 @@ func testRevokerPaperDeviceTwice(t *testing.T, upgradePerUserKey bool) {
 }
 
 func checkPerUserKeyring(t *testing.T, g *libkb.GlobalContext, expectedCurrentGeneration int) {
+	// if there is an existing keyring, it should be up to date
+	pukring, err := g.GetPerUserKeyring()
+	if err == nil {
+		require.Equal(t, keybase1.PerUserKeyGeneration(expectedCurrentGeneration), pukring.CurrentGeneration())
+	}
+	pukring = nil
+
 	// double check that the per-user-keyring is correct
 	g.ClearPerUserKeyring()
 	require.NoError(t, g.BumpPerUserKeyring())
-	pukring, err := g.GetPerUserKeyring()
+	pukring, err = g.GetPerUserKeyring()
 	require.NoError(t, err)
 	require.NoError(t, pukring.Sync(context.TODO()))
 	require.Equal(t, keybase1.PerUserKeyGeneration(expectedCurrentGeneration), pukring.CurrentGeneration())
