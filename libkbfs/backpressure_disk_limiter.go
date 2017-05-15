@@ -641,8 +641,8 @@ func makeDefaultBackpressureDiskLimiterParams(
 		quotaMinThreshold: 1.0,
 		// ...and max it out at 120% of quota.
 		quotaMaxThreshold: 1.2,
-		// Cap journal usage to 15% of free bytes and files...
-		journalFrac: 0.15,
+		// Cap journal usage to 85% of free bytes and files...
+		journalFrac: 0.85,
 		// ...and cap disk cache usage to 10% of free
 		// bytes. The disk cache doesn't store individual
 		// files.
