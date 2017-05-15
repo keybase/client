@@ -11,7 +11,7 @@ import type {Props} from './header-hoc'
 function HeaderHoc<P> (WrappedComponent: ReactClass<P>) {
   return ({onBack, onCancel, headerStyle, title, theme = 'light', ...restProps}: Props & P) => (
     <Box style={_containerStyle}>
-      <Box style={{..._headerStyle, ...headerStyle, ..._headerStyleThemed[theme]}}>
+      <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
         <Box style={_titleStyle}>
           <Text type='Header'>{title}</Text>
         </Box>
