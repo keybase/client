@@ -15,7 +15,7 @@ function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
       <Box style={styleInfoBanner}>
         <Text backgroundMode='Information' type='BodySemibold'>
           &bull; You must have karma &ge; 2<br />
-          &bull; You must enter your uSeRName with exact case
+          &bull; You must enter your username with exact case
         </Text>
       </Box>
     )

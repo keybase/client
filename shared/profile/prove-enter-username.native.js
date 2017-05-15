@@ -18,7 +18,7 @@ function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
     return (
       <Box style={styleInfoBanner}>
         <Text backgroundMode='Information' type='BodySemibold'>&bull; You must have karma &ge; 2</Text>
-        <Text backgroundMode='Information' type='BodySemibold'>&bull; You must enter your uSeRName with exact case</Text>
+        <Text backgroundMode='Information' type='BodySemibold'>&bull; You must enter your username with exact case</Text>
       </Box>
     )
   }
