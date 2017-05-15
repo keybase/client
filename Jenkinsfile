@@ -262,49 +262,45 @@ helpers.rootLinuxNode(env, {
                         }
                     },
                     test_osx: {
-                        helpers.nodeWithCleanup('macstadium', {}, {}) {
+                        def mountDir='/Volumes/untitled/client'
+                        helpers.nodeWithCleanup('macstadium', {}, {
+                                sh "rm -rf ${mountDir}"
+                            }) {
                             def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
                             def GOPATH="${BASEDIR}/go"
-                            def mountDir='/Volumes/untitled/client'
                             dir(mountDir) {
                                 sh "touch test.txt"
                             }
-                            try {
-                                withEnv([
-                                    "GOPATH=${GOPATH}",
-                                    "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                                    "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
-                                    "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                                    "TMPDIR=${mountDir}",
-                                ]) {
-                                ws("$GOPATH/src/github.com/keybase/client") {
-                                    println "Checkout OS X"
-                                    retry(3) {
-                                        checkout scm
-                                    }
-
-                                    parallel (
-                                        //test_react_native: {
-                                        //    println "Test React Native"
-                                        //    dir("react-native") {
-                                        //        sh "npm i"
-                                        //        lock("iossimulator_${env.NODE_NAME}") {
-                                        //            sh "npm run test-ios"
-                                        //        }
-                                        //    }
-                                        //},
-                                        test_osx: {
-                                            println "Test OS X"
-                                            testNixGo("OS X")
-                                        }
-                                    )
-                                }}
-                            } finally {
-                                dir(mountDir) {
-                                    deleteDir()
+                            withEnv([
+                                "GOPATH=${GOPATH}",
+                                "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
+                                "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
+                                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                                "TMPDIR=${mountDir}",
+                            ]) {
+                            ws("$GOPATH/src/github.com/keybase/client") {
+                                println "Checkout OS X"
+                                retry(3) {
+                                    checkout scm
                                 }
-                            }
+
+                                parallel (
+                                    //test_react_native: {
+                                    //    println "Test React Native"
+                                    //    dir("react-native") {
+                                    //        sh "npm i"
+                                    //        lock("iossimulator_${env.NODE_NAME}") {
+                                    //            sh "npm run test-ios"
+                                    //        }
+                                    //    }
+                                    //},
+                                    test_osx: {
+                                        println "Test OS X"
+                                        testNixGo("OS X")
+                                    }
+                                )
+                            }}
                         }
                     },
                 )
