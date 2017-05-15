@@ -110,11 +110,16 @@ func SignupFakeUserWithArg(tc libkb.TestContext, fu *FakeUser, arg SignupEngineR
 }
 
 func CreateAndSignupFakeUser(tc libkb.TestContext, prefix string) *FakeUser {
+	fu, _ := CreateAndSignupFakeUser2(tc, prefix)
+	return fu
+}
+
+func CreateAndSignupFakeUser2(tc libkb.TestContext, prefix string) (*FakeUser, *SignupEngine) {
 	fu := NewFakeUserOrBust(tc.T, prefix)
 	tc.G.Log.Debug("New test user: %s / %s", fu.Username, fu.Email)
 	arg := MakeTestSignupEngineRunArg(fu)
-	_ = SignupFakeUserWithArg(tc, fu, arg)
-	return fu
+	eng := SignupFakeUserWithArg(tc, fu, arg)
+	return fu, eng
 }
 
 func CreateAndSignupFakeUserPaper(tc libkb.TestContext, prefix string) *FakeUser {

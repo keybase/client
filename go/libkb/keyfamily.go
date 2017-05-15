@@ -552,8 +552,8 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 	return
 }
 
-func (ckf *ComputedKeyFamily) DelegatePerUserKey(tcl *PerUserKeyChainLink) (err error) {
-	return ckf.cki.DelegatePerUserKey(tcl)
+func (ckf *ComputedKeyFamily) DelegatePerUserKey(perUserKey keybase1.PerUserKey) (err error) {
+	return ckf.cki.DelegatePerUserKey(perUserKey)
 }
 
 // Delegate marks the given ComputedKeyInfos object that the given kid is now
@@ -587,23 +587,17 @@ func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid k
 }
 
 // DelegatePerUserKey inserts the new per-user key into the list of known per-user keys.
-func (cki *ComputedKeyInfos) DelegatePerUserKey(s *PerUserKeyChainLink) (err error) {
-	entry := keybase1.PerUserKey{
-		Gen:    int(s.generation),
-		Seqno:  int(s.GetSeqno()),
-		SigKID: s.sigKID,
-		EncKID: s.encKID,
+func (cki *ComputedKeyInfos) DelegatePerUserKey(perUserKey keybase1.PerUserKey) (err error) {
+	if perUserKey.Gen <= 0 {
+		return fmt.Errorf("invalid per-user-key generation %v", perUserKey.Gen)
 	}
-	if entry.Gen <= 0 {
-		return fmt.Errorf("invalid per-user-key generation %v", entry.Gen)
-	}
-	if entry.SigKID.IsNil() {
+	if perUserKey.SigKID.IsNil() {
 		return errors.New("nil per-user-key sig kid")
 	}
-	if entry.EncKID.IsNil() {
+	if perUserKey.EncKID.IsNil() {
 		return errors.New("nil per-user-key enc kid")
 	}
-	cki.PerUserKeys[s.generation] = entry
+	cki.PerUserKeys[keybase1.PerUserKeyGeneration(perUserKey.Gen)] = perUserKey
 	return nil
 }
 

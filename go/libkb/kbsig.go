@@ -687,9 +687,12 @@ func PerUserKeyProofReverseSigned(me *User, perUserKeySeed PerUserKeySeed, gener
 
 	// Update the user locally
 	me.SigChainBump(linkID, sigID)
-
-	// TODO the user is now inconsistent. The sigchain has been bumped but the semantics of the link
-	// have not been added to the user.
+	me.localDelegatePerUserKey(keybase1.PerUserKey{
+		Gen:    int(generation),
+		Seqno:  int(me.GetSigChainLastKnownSeqno()),
+		SigKID: pukSigKey.GetKID(),
+		EncKID: pukEncKey.GetKID(),
+	})
 
 	publicKeysEntry := make(JSONPayload)
 	publicKeysEntry["signing"] = pukSigKey.GetKID().String()
