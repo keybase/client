@@ -465,7 +465,6 @@ type IconMeta = {
 
 const iconMeta_ = {
 ${
-  // eslint really doesn't understand embedded backticks
 /* eslint-disable */
 Object.keys(icons).map(name => {
     const icon = icons[name]
