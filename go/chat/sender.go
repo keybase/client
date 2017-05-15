@@ -478,6 +478,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 }
 
 const deliverMaxAttempts = 5
+const deliverDisconnectLimitMinutes = 1
 
 type DelivererInfoError interface {
 	IsImmediateFail() (chat1.OutboxErrorType, bool)
@@ -496,6 +497,7 @@ type Deliverer struct {
 	reconnectCh   chan struct{}
 	delivering    bool
 	connected     bool
+	disconnTime   time.Time
 	clock         clockwork.Clock
 }
 
@@ -577,6 +579,14 @@ func (s *Deliverer) Connected(ctx context.Context) {
 func (s *Deliverer) Disconnected(ctx context.Context) {
 	s.Debug(ctx, "disconnected: all errors from now on will be permanent")
 	s.connected = false
+	s.disconnTime = s.clock.Now()
+}
+
+func (s *Deliverer) disconnectedTime() time.Duration {
+	if s.connected {
+		return 0
+	}
+	return s.clock.Now().Sub(s.disconnTime)
 }
 
 func (s *Deliverer) IsOffline() bool {
@@ -601,10 +611,18 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 	return obr, nil
 }
 
-func (s *Deliverer) doNotRetryFailure(obr chat1.OutboxRecord, err error) (chat1.OutboxErrorType, bool) {
+func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecord, err error) (chat1.OutboxErrorType, bool) {
 
 	if !s.connected {
-		return chat1.OutboxErrorType_OFFLINE, true
+		// Check to see how long we have been disconnected to see if this should be retried
+		disconnTime := s.disconnectedTime()
+		noretry := false
+		if disconnTime.Minutes() > deliverDisconnectLimitMinutes {
+			noretry = true
+			s.Debug(ctx, "doNotRetryFailure: not retrying offline failure, disconnected for: %v",
+				disconnTime)
+		}
+		return chat1.OutboxErrorType_OFFLINE, noretry
 	}
 
 	// Check for an identify error
@@ -688,7 +706,7 @@ func (s *Deliverer) deliverLoop() {
 					s.outbox.GetUID(), obr.ConvID, err.Error(), obr.State.Sending())
 
 				// Process failure. If we determine that the message is unrecoverable, then bail out.
-				if errTyp, ok := s.doNotRetryFailure(obr, err); ok {
+				if errTyp, ok := s.doNotRetryFailure(bgctx, obr, err); ok {
 					// Record failure if we hit this case, and put the rest of this loop in a
 					// mode where all other entries also fail.
 					s.Debug(bgctx, "failure condition reached, marking all as errors and notifying: errTyp: %v attempts: %d", errTyp, obr.State.Sending())
