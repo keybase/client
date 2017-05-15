@@ -148,8 +148,9 @@ function reducer (state: Constants.State = initialState, action: Constants.Actio
       return state.update('conversationStates', conversationStates => updateConversation(
         conversationStates,
         conversationIDKey,
-        // $FlowIssue
-        conversation => conversation.update('messages', messages => messages.filter(m => m.outboxID !== outboxID)
+        conversation =>
+          // $FlowIssue
+          conversation.update('messages', messages => messages.filter(m => m.outboxID !== outboxID)
       ))).set('messageMap', state.get('messageMap').filter((v, k) => k !== messageKey))
     }
     case 'chat:clearMessages': {
