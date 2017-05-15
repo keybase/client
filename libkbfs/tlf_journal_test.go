@@ -500,7 +500,8 @@ func testTLFJournalBlockOpDiskByteLimit(t *testing.T, ver MetadataVer) {
 
 	// Fake an MD flush.
 	md := config.makeMD(MetadataRevisionInitial, MdID{})
-	err = tlfJournal.doOnMDFlush(ctx, &RootMetadataSigned{MD: md.bareMd})
+	err = tlfJournal.doOnMDFlushAndRemoveFlushedMDEntry(
+		ctx, MdID{}, &RootMetadataSigned{MD: md.bareMd})
 
 	select {
 	case err := <-errCh:
@@ -538,7 +539,8 @@ func testTLFJournalBlockOpDiskFileLimit(t *testing.T, ver MetadataVer) {
 
 	// Fake an MD flush.
 	md := config.makeMD(MetadataRevisionInitial, MdID{})
-	err = tlfJournal.doOnMDFlush(ctx, &RootMetadataSigned{MD: md.bareMd})
+	err = tlfJournal.doOnMDFlushAndRemoveFlushedMDEntry(
+		ctx, MdID{}, &RootMetadataSigned{MD: md.bareMd})
 
 	select {
 	case err := <-errCh:
@@ -1018,6 +1020,27 @@ func (s *orderedMDServer) Put(
 
 func (s *orderedMDServer) Shutdown() {}
 
+func testTLFJournalGCd(t *testing.T, tlfJournal *tlfJournal) {
+	// The root dir shouldn't exist.
+	_, err := ioutil.Stat(tlfJournal.dir)
+	require.True(t, ioutil.IsNotExist(err))
+
+	func() {
+		tlfJournal.journalLock.Lock()
+		defer tlfJournal.journalLock.Unlock()
+		unflushedPaths := tlfJournal.unflushedPaths.getUnflushedPaths()
+		require.Nil(t, unflushedPaths)
+		require.Equal(t, uint64(0), tlfJournal.unsquashedBytes)
+		require.Equal(t, 0, len(tlfJournal.flushingBlocks))
+	}()
+
+	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+
+	// Check child journals.
+	testBlockJournalGCd(t, tlfJournal.blockJournal)
+	testMDJournalGCd(t, tlfJournal.mdJournal)
+}
+
 // testTLFJournalFlushOrdering tests that we respect the relative
 // orderings of blocks and MD ops when flushing, i.e. if a block op
 // was added to the block journal before an MD op was added to the MD
@@ -1082,8 +1105,7 @@ func testTLFJournalFlushOrdering(t *testing.T, ver MetadataVer) {
 
 	err = tlfJournal.flush(ctx)
 	require.NoError(t, err)
-	requireJournalEntryCounts(t, tlfJournal, 0, 0)
-	testMDJournalGCd(t, tlfJournal.mdJournal)
+	testTLFJournalGCd(t, tlfJournal)
 
 	// These two orderings depend on the exact flushing process,
 	// but there are other possible orderings which respect the
@@ -1234,8 +1256,7 @@ func testTLFJournalFlushOrderingAfterSquashAndCR(
 	// `resolveMD`.
 	err = tlfJournal.flush(ctx)
 	require.NoError(t, err)
-	requireJournalEntryCounts(t, tlfJournal, 0, 0)
-	testMDJournalGCd(t, tlfJournal.mdJournal)
+	testTLFJournalGCd(t, tlfJournal)
 
 	require.Equal(t, resolveMD.Revision(), puts[len(puts)-1])
 }
@@ -1296,8 +1317,7 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver MetadataVer) {
 
 	err = tlfJournal.flush(ctx)
 	require.NoError(t, err)
-	requireJournalEntryCounts(t, tlfJournal, 0, 0)
-	testMDJournalGCd(t, tlfJournal.mdJournal)
+	testTLFJournalGCd(t, tlfJournal)
 
 	// Make sure that: before revision 1, all the rev1 blocks were
 	// put; rev2 comes last; some blocks are put between the two.
@@ -1464,8 +1484,7 @@ func testTLFJournalSquashWhileFlushing(t *testing.T, ver MetadataVer) {
 
 	// Since flush() never saw the branch in conflict, it will finish
 	// flushing everything.
-	requireJournalEntryCounts(t, tlfJournal, 0, 0)
-	testMDJournalGCd(t, tlfJournal.mdJournal)
+	testTLFJournalGCd(t, tlfJournal)
 	require.Equal(t, NullBranchID, tlfJournal.mdJournal.getBranchID())
 }
 
@@ -1530,8 +1549,7 @@ func testTLFJournalFlushRetry(t *testing.T, ver MetadataVer) {
 	<-resetCh
 
 	require.Equal(t, b.numBackOffs, 1)
-	requireJournalEntryCounts(t, tlfJournal, 0, 0)
-	testMDJournalGCd(t, tlfJournal.mdJournal)
+	testTLFJournalGCd(t, tlfJournal)
 }
 
 func testTLFJournalResolveBranch(t *testing.T, ver MetadataVer) {

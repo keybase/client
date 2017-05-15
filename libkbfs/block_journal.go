@@ -375,6 +375,10 @@ func (j *blockJournal) remove(ctx context.Context, id kbfsblock.ID) (
 
 // All functions below are public functions.
 
+func (j *blockJournal) empty() bool {
+	return j.j.empty() && j.deferredGC.empty()
+}
+
 func (j *blockJournal) getDataWithContext(id kbfsblock.ID, context kbfsblock.Context) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	return j.s.getDataWithContext(id, context)
@@ -1114,7 +1118,7 @@ func (j *blockJournal) clearDeferredGCRange(
 
 	aggregateInfo = j.aggregateInfo
 
-	if j.j.empty() && j.deferredGC.empty() {
+	if j.empty() {
 		j.log.CDebugf(ctx, "Block journal is now empty")
 
 		j.aggregateInfo = blockAggregateInfo{}

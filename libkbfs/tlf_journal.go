@@ -595,8 +595,6 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 
 // doBackgroundWork currently only does auto-flushing. It assumes that
 // ctx is canceled when the background processing should stop.
-//
-// TODO: Handle garbage collection too.
 func (j *tlfJournal) doBackgroundWork(ctx context.Context) <-chan error {
 	errCh := make(chan error, 1)
 	// TODO: Handle panics.
@@ -956,9 +954,6 @@ func (j *tlfJournal) flushBlockEntries(
 		return 0, MetadataRevisionUninitialized, false, err
 	}
 
-	// TODO: If both the block and MD journals are empty, nuke the
-	// entire TLF journal directory.
-
 	// If a conversion happened, the original `maxMDRevToFlush` only
 	// applies for sure if its mdRevMarker entry was already for a
 	// local squash.  TODO: conversion might not have actually
@@ -1105,9 +1100,12 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 	return true, nil
 }
 
-func (j *tlfJournal) getMDFlushRange() (
-	blockJournal *blockJournal, length int, earliest, latest journalOrdinal,
-	err error) {
+// getBlockDeferredGCRange wraps blockJournal.getDeferredGCRange. The
+// returned blockJournal should be used instead of j.blockJournal, as
+// we want to call blockJournal.doGC outside of journalLock.
+func (j *tlfJournal) getBlockDeferredGCRange() (
+	blockJournal *blockJournal, length int,
+	earliest, latest journalOrdinal, err error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -1120,31 +1118,33 @@ func (j *tlfJournal) getMDFlushRange() (
 	return j.blockJournal, length, earliest, latest, nil
 }
 
-func (j *tlfJournal) doOnMDFlush(ctx context.Context,
-	rmds *RootMetadataSigned) error {
+func (j *tlfJournal) doOnMDFlushAndRemoveFlushedMDEntry(ctx context.Context,
+	mdID MdID, rmds *RootMetadataSigned) error {
 	if j.onMDFlush != nil {
 		j.onMDFlush.onMDFlush(rmds.MD.TlfID(), rmds.MD.BID(),
 			rmds.MD.RevisionNumber())
 	}
 
-	blockJournal, length, earliest, latest, err := j.getMDFlushRange()
-	if err != nil {
-		return err
-	}
-	if length == 0 {
-		return nil
-	}
-
-	// onMDFlush() only needs to be called under the flushLock, not
-	// the journalLock, as it doesn't touch the actual journal, only
-	// the deferred GC journal.
-	removedBytes, removedFiles, err := blockJournal.doGC(
-		ctx, earliest, latest)
+	blockJournal, length, earliest, latest, err :=
+		j.getBlockDeferredGCRange()
 	if err != nil {
 		return err
 	}
 
-	j.diskLimiter.onBlocksDelete(ctx, removedBytes, removedFiles)
+	var removedBytes, removedFiles int64
+	if length != 0 {
+		// doGC() only needs to be called under the flushLock, not the
+		// journalLock, as it doesn't touch the actual journal, only
+		// the deferred GC journal.
+		var err error
+		removedBytes, removedFiles, err = blockJournal.doGC(
+			ctx, earliest, latest)
+		if err != nil {
+			return err
+		}
+
+		j.diskLimiter.onBlocksDelete(ctx, removedBytes, removedFiles)
+	}
 
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
@@ -1152,50 +1152,73 @@ func (j *tlfJournal) doOnMDFlush(ctx context.Context,
 		return err
 	}
 
-	clearedJournal, aggregateInfo, err :=
-		j.blockJournal.clearDeferredGCRange(
-			ctx, removedBytes, removedFiles, earliest, latest)
+	if length != 0 {
+		clearedBlockJournal, aggregateInfo, err :=
+			j.blockJournal.clearDeferredGCRange(
+				ctx, removedBytes, removedFiles, earliest, latest)
+		if err != nil {
+			return err
+		}
+
+		if clearedBlockJournal {
+			equal, err := kbfscodec.Equal(
+				j.config.Codec(), aggregateInfo, blockAggregateInfo{})
+			if err != nil {
+				return err
+			}
+			if !equal {
+				j.log.CWarningf(ctx,
+					"Cleared block journal for %s, but still has aggregate info %+v",
+					j.tlfID, aggregateInfo)
+				// TODO: Consider trying to adjust the disk
+				// limiter state to compensate for the
+				// leftover bytes/files here. Ideally, the
+				// disk limiter would keep track of per-TLF
+				// state, so we could just call
+				// j.diskLimiter.onJournalClear(tlfID) to have
+				// it clear its state for this TLF.
+			}
+		}
+	}
+
+	clearedMDJournal, err := j.removeFlushedMDEntryLocked(ctx, mdID, rmds)
 	if err != nil {
 		return err
 	}
 
-	if clearedJournal {
-		equal, err := kbfscodec.Equal(
-			j.config.Codec(), aggregateInfo, blockAggregateInfo{})
+	// If we check just clearedBlockJournal here, we'll miss the
+	// chance to clear the TLF journal if the block journal
+	// empties out before the MD journal does.
+	if j.blockJournal.empty() && clearedMDJournal {
+		j.log.CDebugf(ctx,
+			"TLF journal is now empty; removing all files in %s", j.dir)
+
+		// If we ever need to upgrade the journal version,
+		// this would be the place to do it.
+
+		// Reset to initial state.
+		j.unflushedPaths = unflushedPathCache{}
+		j.unsquashedBytes = 0
+		j.flushingBlocks = make(map[kbfsblock.ID]bool)
+
+		err := ioutil.RemoveAll(j.dir)
 		if err != nil {
 			return err
-		}
-		if !equal {
-			j.log.CWarningf(ctx,
-				"Cleared block journal for %s, but still has aggregate info %+v",
-				j.tlfID, aggregateInfo)
-			// TODO: Consider trying to adjust the disk
-			// limiter state to compensate for the
-			// leftover bytes/files here. Ideally, the
-			// disk limiter would keep track of per-TLF
-			// state, so we could just call
-			// j.diskLimiter.onJournalClear(tlfID) to have
-			// it clear its state for this TLF.
 		}
 	}
 
 	return nil
 }
 
-func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,
-	mdID MdID, rmds *RootMetadataSigned) error {
-	j.journalLock.Lock()
-	defer j.journalLock.Unlock()
-	if err := j.checkEnabledLocked(); err != nil {
-		return err
-	}
-
-	if err := j.mdJournal.removeFlushedEntry(ctx, mdID, rmds); err != nil {
-		return err
+func (j *tlfJournal) removeFlushedMDEntryLocked(ctx context.Context,
+	mdID MdID, rmds *RootMetadataSigned) (clearedMDJournal bool, err error) {
+	clearedMDJournal, err = j.mdJournal.removeFlushedEntry(ctx, mdID, rmds)
+	if err != nil {
+		return false, err
 	}
 
 	j.unflushedPaths.removeFromCache(rmds.MD.RevisionNumber())
-	return nil
+	return clearedMDJournal, nil
 }
 
 func (j *tlfJournal) flushOneMDOp(
@@ -1256,12 +1279,7 @@ func (j *tlfJournal) flushOneMDOp(
 		return false, pushErr
 	}
 
-	err = j.doOnMDFlush(ctx, rmds)
-	if err != nil {
-		return false, err
-	}
-
-	err = j.removeFlushedMDEntry(ctx, mdID, rmds)
+	err = j.doOnMDFlushAndRemoveFlushedMDEntry(ctx, mdID, rmds)
 	if err != nil {
 		return false, err
 	}

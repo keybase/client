@@ -831,31 +831,32 @@ func (j mdJournal) getNextEntryToFlush(
 }
 
 func (j *mdJournal) removeFlushedEntry(
-	ctx context.Context, mdID MdID, rmds *RootMetadataSigned) error {
+	ctx context.Context, mdID MdID, rmds *RootMetadataSigned) (
+	clearedMDJournal bool, err error) {
 	rmdID, rmd, _, _, err := j.getEarliestWithExtra(true)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if rmd == nil {
-		return errors.New("mdJournal unexpectedly empty")
+		return false, errors.New("mdJournal unexpectedly empty")
 	}
 
 	if mdID != rmdID {
-		return errors.Errorf("Expected mdID %s, got %s", mdID, rmdID)
+		return false, errors.Errorf("Expected mdID %s, got %s", mdID, rmdID)
 	}
 
 	eq, err := kbfscodec.Equal(j.codec, rmd, rmds.MD)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if !eq {
-		return errors.New(
+		return false, errors.New(
 			"Given RootMetadataSigned doesn't match earliest")
 	}
 
 	empty, err := j.j.removeEarliest()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// Since the journal is now empty, set lastMdID and nuke all
@@ -874,20 +875,22 @@ func (j *mdJournal) removeFlushedEntry(
 			j.log.CDebugf(ctx, "Removing all files in %s", dir)
 			err := ioutil.RemoveAll(dir)
 			if err != nil {
-				return err
+				return false, err
 			}
 		}
-	} else {
-		// Garbage-collect the old entry. If we crash here and
-		// leave behind an entry, it'll be cleaned up the next
-		// time the journal is completely drained.
-		err := j.removeMD(mdID)
-		if err != nil {
-			return err
-		}
+
+		return true, nil
 	}
 
-	return nil
+	// Garbage-collect the old entry. If we crash here and
+	// leave behind an entry, it'll be cleaned up the next
+	// time the journal is completely drained.
+	err = j.removeMD(mdID)
+	if err != nil {
+		return false, err
+	}
+
+	return false, nil
 }
 
 func getMdID(ctx context.Context, mdserver MDServer, crypto cryptoPure,

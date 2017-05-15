@@ -387,6 +387,9 @@ func testBlockJournalGCd(t *testing.T, j *blockJournal) {
 		_, err := ioutil.Stat(file)
 		require.True(t, ioutil.IsNotExist(err))
 	}
+
+	require.True(t, j.empty())
+	require.Equal(t, blockAggregateInfo{}, j.aggregateInfo)
 }
 
 func goGCForTest(t *testing.T, ctx context.Context, j *blockJournal) (
