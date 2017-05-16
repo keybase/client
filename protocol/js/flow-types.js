@@ -6427,7 +6427,8 @@ export type signupSignupRpcParam = Exact<{
   deviceType: DeviceType,
   storeSecret: boolean,
   skipMail: boolean,
-  genPGPBatch: boolean
+  genPGPBatch: boolean,
+  genPaper: boolean
 }>
 
 export type sigsSigListJSONRpcParam = Exact<{

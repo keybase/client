@@ -45,6 +45,7 @@ func (h *SignupHandler) Signup(_ context.Context, arg keybase1.SignupArg) (res k
 		DeviceType:  arg.DeviceType,
 		SkipMail:    arg.SkipMail,
 		GenPGPBatch: arg.GenPGPBatch,
+		SkipPaper:   !arg.GenPaper,
 	}
 	eng := engine.NewSignupEngine(&runarg, h.G())
 	err = engine.RunEngine(eng, ctx)

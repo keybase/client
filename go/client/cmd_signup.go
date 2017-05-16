@@ -76,6 +76,7 @@ type CmdSignup struct {
 	doPrompt          bool
 	skipMail          bool
 	genPGP            bool
+	genPaper          bool
 }
 
 func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
@@ -118,6 +119,7 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 
 		s.passphrase = s.defaultPassphrase
 		s.genPGP = ctx.Bool("pgp")
+		s.genPaper = true
 		s.doPrompt = false
 	} else {
 		s.doPrompt = true
@@ -255,6 +257,7 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 		DeviceType:  keybase1.DeviceType_DESKTOP,
 		SkipMail:    s.skipMail,
 		GenPGPBatch: s.genPGP,
+		GenPaper:    s.genPaper,
 	}
 	res, err := s.scli.Signup(context.TODO(), rarg)
 	if err == nil {
