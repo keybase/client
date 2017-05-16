@@ -34,14 +34,6 @@ function init() {
   });
 }
 window.addEventListener('load', init);
-window.addEventListener('popstate', function() {
-  // Skip initial popstate
-  const isInitial = 'state' in window.history && window.history.state !== null;
-  if (isInitial) return;
-
-  // Forward the event to init
-  init(arguments);
-});
 
 const checkThread = /^\/r\/\w+\/comments\/\w+\//;
 function injectThread() {
