@@ -147,19 +147,18 @@ class ConversationInput extends Component<void, InputProps, void> {
 }
 
 const isTyping = typing => {
-  console.warn('in isTyping, typing is', typing)
-  if (!typing || !typing.size) {
+  if (!typing || !typing.length) {
     return ''
   }
-  switch (typing.size) {
+  switch (typing.length) {
     case 0:
       return ''
     case 1:
-      return `${typing.get(0)} is typing`
+      return `${typing[0]} is typing`
     case 2:
-      return `${typing.get(0)} and ${typing.get(1)} are typing`
+      return `${typing[0]} and ${typing[1]} are typing`
     default:
-      return `${typing.join(',')} are typing`
+      return `${typing.join(', ')} are typing`
   }
 }
 

@@ -861,11 +861,12 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
 }
 
 function * _updateTyping ({payload: {conversationIDKey, typing}}: Constants.UpdateTyping): SagaGenerator<any, any> {
-  const conversationID = Constants.keyToConversationID(conversationIDKey)
-  console.warn('typing is', typing)
-  yield call(ChatTypes.localUpdateTypingRpcPromise, {
-    param: {conversationID, typing},
-  })
+  if (!Constants.isPendingConversationIDKey(conversationIDKey)) {
+    const conversationID = Constants.keyToConversationID(conversationIDKey)
+    yield call(ChatTypes.localUpdateTypingRpcPromise, {
+      param: {conversationID, typing},
+    })
+  }
 }
 
 function * chatSaga (): SagaGenerator<any, any> {
