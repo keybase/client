@@ -4,6 +4,7 @@ import type {Props} from './clickable-box'
 import Box from './box'
 import {TouchableHighlight, TouchableWithoutFeedback} from 'react-native'
 import {globalColors} from '../styles'
+import {clickableVisible} from '../local-debug'
 
 const ClickableBox = ({
   onClick,
@@ -24,7 +25,7 @@ const ClickableBox = ({
           onPressIn={onPressIn}
           onPressOut={onPressOut}
           onLongPress={onLongPress}
-          style={{...boxStyle, ...style}}
+          style={{...boxStyle, ...(clickableVisible ? visibleStyle : {}), ...style}}
           underlayColor={underlayColor || globalColors.black_10}
         >
           {children}
@@ -35,7 +36,7 @@ const ClickableBox = ({
         <TouchableWithoutFeedback
           onPressIn={onPressIn}
           onPressOut={onPressOut}
-          style={{...boxStyle, ...style}}
+          style={{...boxStyle, ...(clickableVisible ? visibleStyle : {}), ...style}}
           onPress={onClick}
           onLongPress={onLongPress}
         >
@@ -54,6 +55,10 @@ const ClickableBox = ({
 
 const boxStyle = {
   borderRadius: 3,
+}
+
+const visibleStyle = {
+  backgroundColor: 'rgba(0, 255, 0, 0.1)',
 }
 
 export default ClickableBox

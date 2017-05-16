@@ -6,6 +6,7 @@ import Box from './box'
 import Icon from './icon'
 import {globalStyles} from '../styles'
 import type {Props} from './back-button'
+import {clickableVisible} from '../local-debug'
 
 export default class BackButton extends Component {
   props: Props
@@ -21,7 +22,7 @@ export default class BackButton extends Component {
   render() {
     return (
       <NativeTouchableWithoutFeedback onPress={e => this.onClick(e)}>
-        <Box style={{...styles.container, ...this.props.style}}>
+        <Box style={{...styles.container, ...(clickableVisible ? visibleStyle : {}), ...this.props.style}}>
           <Icon type="iconfont-back" style={{...styles.icon, ...this.props.iconStyle}} />
         </Box>
       </NativeTouchableWithoutFeedback>
@@ -32,6 +33,10 @@ export default class BackButton extends Component {
 BackButton.propTypes = {
   onClick: React.PropTypes.func.isRequired,
   style: React.PropTypes.object,
+}
+
+const visibleStyle = {
+  backgroundColor: 'rgba(0, 255, 0, 0.1)',
 }
 
 export const styles = {

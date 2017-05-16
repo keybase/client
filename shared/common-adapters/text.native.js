@@ -3,6 +3,7 @@ import React, {Component} from 'react'
 import openURL from '../util/open-url'
 import {NativeText} from './native-wrappers.native'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
+import {clickableVisible} from '../local-debug'
 
 import type {Props, TextType, Background} from './text'
 
@@ -22,6 +23,7 @@ class Text extends Component<void, Props, void> {
   render() {
     const style = {
       ...getStyle(this.props.type, this.props.backgroundMode, this.props.lineClamp, !!this.props.onClick),
+      ...(clickableVisible && this.props.onClick ? visibleStyle : {}),
       ...this.props.style,
     }
 
@@ -38,6 +40,10 @@ class Text extends Component<void, Props, void> {
       </NativeText>
     )
   }
+}
+
+const visibleStyle = {
+  backgroundColor: 'rgba(0, 255, 0, 0.1)',
 }
 
 function getStyle(
