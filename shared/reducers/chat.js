@@ -356,7 +356,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
           conversationStates,
           conversationIDKey,
           // $FlowIssue
-          conversation => conversation.update('typing', _ => List(typing))
+          conversation => conversation.update('typing', _ => Set(typing))
         )
       )
     }

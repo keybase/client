@@ -173,8 +173,6 @@ const isTyping = typing => {
     return ''
   }
   switch (typing.length) {
-    case 0:
-      return ''
     case 1:
       return `${typing[0]} is typing`
     case 2:

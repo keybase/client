@@ -241,7 +241,7 @@ export const ConversationStateRecord = Record({
   paginationPrevious: undefined,
   firstNewMessageID: undefined,
   deletedIDs: Set(),
-  typing: List(),
+  typing: Set(),
 })
 
 export type ConversationState = Record<{
@@ -257,7 +257,7 @@ export type ConversationState = Record<{
   paginationPrevious: ?Buffer,
   firstNewMessageID: ?MessageID,
   deletedIDs: Set<MessageID>,
-  typing: List<Username>,
+  typing: Set<Username>,
 }>
 
 export type ConversationBadgeState = Record<{
