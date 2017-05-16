@@ -90,7 +90,7 @@ class ConversationInput extends Component<void, Props, void> {
           value={this.props.text}
           {...multilineOpts}
         />
-        {this.props.typing && this.props.typing.size > 0 && <Typing typing={this.props.typing} />}
+        {this.props.typing && this.props.typing.length > 0 && <Typing typing={this.props.typing} />}
         <Action text={this.props.text} onSubmit={this._onSubmit} editingMessage={this.props.editingMessage} openFilePicker={this._openFilePicker} isLoading={this.props.isLoading} />
       </Box>
     )

@@ -22,7 +22,7 @@ export type Props = {
   selectedConversationIDKey: ?Constants.ConversationIDKey,
   setText: (text: string) => void,
   text: string,
-  typing: List<Constants.Username>,
+  typing: Array<Constants.Username>,
 }
 
 export default class Input extends Component<void, Props, void> { }
