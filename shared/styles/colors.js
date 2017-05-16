@@ -1,5 +1,7 @@
 // @flow
-export default {
+import {isAndroid} from '../constants/platform'
+
+const colors = {
   beige: '#f7f1eb',
   black: '#000000',
   black_05: 'rgba(0, 0, 0, 0.05)',
@@ -7,7 +9,7 @@ export default {
   black_20: 'rgba(0, 0, 0, 0.20)',
   black_40: 'rgba(0, 0, 0, 0.40)',
   black_60: 'rgba(0, 0, 0, 0.60)',
-  black_75: 'rgba(0, 0, 0, 0.75)',
+  black_75: isAndroid ? '#000000' : 'rgba(0, 0, 0, 0.75)',
   blue2: '#66b8ff',
   blue3: '#a8d7ff',
   blue3_60: 'rgba(168, 215, 255, 0.6)',
@@ -43,3 +45,5 @@ export default {
   yellowGreen3: '#d2e697',
   yellowGreen: '#a8cf36',
 }
+
+export default colors
