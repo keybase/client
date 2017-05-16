@@ -99,6 +99,8 @@ func (h *Server) isOfflineError(err error) bool {
 		fallthrough
 	case ErrChatServerTimeout:
 		return true
+	case ErrDuplicateConnection:
+		return true
 	}
 
 	return false
