@@ -157,7 +157,7 @@ const isTyping = typing => {
     case 1:
       return `${typing.get(0)} is typing`
     case 2:
-      return `{${typing.get(0)} and ${typing.get(1)} are typing`
+      return `${typing.get(0)} and ${typing.get(1)} are typing`
     default:
       return `${typing.join(',')} are typing`
   }
