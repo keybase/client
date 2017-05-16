@@ -2,12 +2,12 @@
 
 import pathParse from 'path-parse'
 
-function findAvailableFilename (checkExists: string => Promise<boolean>, filepath: string): Promise<string> {
+function findAvailableFilename(checkExists: string => Promise<boolean>, filepath: string): Promise<string> {
   const {name, ext, dir} = pathParse(filepath)
 
   return new Promise((resolve, reject) => {
     let i = 1
-    function tryNextFilepath () {
+    function tryNextFilepath() {
       if (i > 1000) {
         throw new Error('unable to find available filename')
       }
@@ -18,10 +18,7 @@ function findAvailableFilename (checkExists: string => Promise<boolean>, filepat
             return
           }
 
-          filepath = [
-            dir,
-            `${name} (${i})${ext}`,
-          ].join('/')
+          filepath = [dir, `${name} (${i})${ext}`].join('/')
           i++
           tryNextFilepath()
         })
@@ -32,6 +29,4 @@ function findAvailableFilename (checkExists: string => Promise<boolean>, filepat
   })
 }
 
-export {
-  findAvailableFilename,
-}
+export {findAvailableFilename}

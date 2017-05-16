@@ -24,8 +24,12 @@ const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, is
     <Box style={boxStyle}>
       {groupAvatar
         ? <Icon type={groupIcon} style={ignored ? {opacity: 0.5} : {}} />
-        : <Avatar size={smallMode ? 24 : 32} username={userAvatar} opacity={ignored ? 0.5 : 1.0}
-          backgroundColor={styles.rowContainer.backgroundColor} />}
+        : <Avatar
+            size={smallMode ? 24 : 32}
+            username={userAvatar}
+            opacity={ignored ? 0.5 : 1.0}
+            backgroundColor={styles.rowContainer.backgroundColor}
+          />}
     </Box>
   )
 }
@@ -41,22 +45,22 @@ const Modified = ({smallMode, styles, modified}) => {
 
   return (
     <Box style={stylesModified}>
-      <Icon type='iconfont-thunderbolt' style={boltStyle} hint='Modified' />
-      <Text type='BodySmall' backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
-      <Text type='BodySmallInlineLink' backgroundMode={styles.modifiedMode}>{modified.username}</Text>
+      <Icon type="iconfont-thunderbolt" style={boltStyle} hint="Modified" />
+      <Text type="BodySmall" backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
+      <Text type="BodySmallInlineLink" backgroundMode={styles.modifiedMode}>{modified.username}</Text>
     </Box>
   )
 }
 
 const RowMeta = ({ignored, meta, styles}) => {
   const metaColors = {
-    'new': globalColors.white,
-    'rekey': globalColors.white,
+    new: globalColors.white,
+    rekey: globalColors.white,
   }
 
   const metaBGColors = {
-    'new': globalColors.orange,
-    'rekey': globalColors.red,
+    new: globalColors.orange,
+    rekey: globalColors.red,
   }
 
   const metaProps = meta === 'ignored'
@@ -66,10 +70,34 @@ const RowMeta = ({ignored, meta, styles}) => {
   return <Meta {...metaProps} />
 }
 
-type RowType = {hasReadOnlyUsers: boolean, smallMode: boolean, sortName: string, onOpen: (path: string) => void, onChat: (tlf: string) => void, onClick: (path: string) => void, onRekey: (path: string) => void}
+type RowType = {
+  hasReadOnlyUsers: boolean,
+  smallMode: boolean,
+  sortName: string,
+  onOpen: (path: string) => void,
+  onChat: (tlf: string) => void,
+  onClick: (path: string) => void,
+  onRekey: (path: string) => void,
+}
 
-const Row = ({users, isPublic, hasReadOnlyUsers, ignored, meta, modified, hasData, smallMode,
-  onChat, onOpen, onClick, groupAvatar, userAvatar, onRekey, path, sortName}: RowType & Folder) => {
+const Row = ({
+  users,
+  isPublic,
+  hasReadOnlyUsers,
+  ignored,
+  meta,
+  modified,
+  hasData,
+  smallMode,
+  onChat,
+  onOpen,
+  onClick,
+  groupAvatar,
+  userAvatar,
+  onRekey,
+  path,
+  sortName,
+}: RowType & Folder) => {
   const onOpenClick = event => {
     event.preventDefault()
     event.stopPropagation()
@@ -105,33 +133,87 @@ const Row = ({users, isPublic, hasReadOnlyUsers, ignored, meta, modified, hasDat
   const icon: IconType = smallMode ? styles.hasStuffIcon.small : styles.hasStuffIcon.normal
 
   return (
-    <Box style={containerStyle} className='folder-row' onClick={() => onClick && onClick(path)}>
+    <Box style={containerStyle} className="folder-row" onClick={() => onClick && onClick(path)}>
       <Box style={{...globalStyles.flexBoxRow}}>
-        <Avatars users={users} styles={styles} smallMode={smallMode} groupAvatar={groupAvatar} userAvatar={userAvatar} ignored={ignored} isPublic={isPublic} />
+        <Avatars
+          users={users}
+          styles={styles}
+          smallMode={smallMode}
+          groupAvatar={groupAvatar}
+          userAvatar={userAvatar}
+          ignored={ignored}
+          isPublic={isPublic}
+        />
         <Box style={stylesBodyContainer}>
-          <Usernames users={users} type={smallMode ? 'BodySmallSemibold' : 'BodySemibold'} style={{color: nameColor}} redColor={redColor} />
+          <Usernames
+            users={users}
+            type={smallMode ? 'BodySmallSemibold' : 'BodySemibold'}
+            style={{color: nameColor}}
+            redColor={redColor}
+          />
           {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
-          {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} smallMode={smallMode} />}
+          {!(meta || ignored) &&
+            modified &&
+            <Modified modified={modified} styles={styles} smallMode={smallMode} />}
         </Box>
-        {!smallMode && !isPublic && !hasReadOnlyUsers && meta !== 'rekey' && <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
-          <Text type='BodySmall' className='folder-row-hover-action' onClick={onChatClick} style={styles.action}>Chat</Text>
-        </Box>
-        }
+        {!smallMode &&
+          !isPublic &&
+          !hasReadOnlyUsers &&
+          meta !== 'rekey' &&
+          <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
+            <Text
+              type="BodySmall"
+              className="folder-row-hover-action"
+              onClick={onChatClick}
+              style={styles.action}
+            >
+              Chat
+            </Text>
+          </Box>}
         <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
-          {!smallMode && meta !== 'rekey' && <Text
-            type='BodySmall' className='folder-row-hover-action' onClick={onOpenClick} style={styles.action}>Open</Text>}
-          {meta === 'rekey' && <Button
-            backgroundMode={styles.modifiedMode} small={true} type='Secondary'
-            onClick={e => {
-              if (onRekey) {
-                e.stopPropagation()
-                onRekey(path)
-              }
-            }} label='Rekey' style={styles.action} />}
-          <Icon type={icon} style={{visibility: hasData ? 'visible' : 'hidden', ...(smallMode && !hasData ? {display: 'none'} : {})}} />
+          {!smallMode &&
+            meta !== 'rekey' &&
+            <Text
+              type="BodySmall"
+              className="folder-row-hover-action"
+              onClick={onOpenClick}
+              style={styles.action}
+            >
+              Open
+            </Text>}
+          {meta === 'rekey' &&
+            <Button
+              backgroundMode={styles.modifiedMode}
+              small={true}
+              type="Secondary"
+              onClick={e => {
+                if (onRekey) {
+                  e.stopPropagation()
+                  onRekey(path)
+                }
+              }}
+              label="Rekey"
+              style={styles.action}
+            />}
+          <Icon
+            type={icon}
+            style={{
+              visibility: hasData ? 'visible' : 'hidden',
+              ...(smallMode && !hasData ? {display: 'none'} : {}),
+            }}
+          />
         </Box>
       </Box>
-      <Box style={{height: 1, backgroundColor: globalColors.black_05, position: 'absolute', bottom: 0, left: 0, right: 0}} />
+      <Box
+        style={{
+          height: 1,
+          backgroundColor: globalColors.black_05,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+        }}
+      />
     </Box>
   )
 }

@@ -10,9 +10,9 @@ import type {Props, State} from './index'
 import type {TypedState} from '../../../constants/reducer'
 
 class PaperKey extends Component<void, Props, State> {
-  state: State;
+  state: State
 
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -20,7 +20,7 @@ class PaperKey extends Component<void, Props, State> {
     }
   }
 
-  render () {
+  render() {
     return (
       <RenderPaperKey
         onSubmit={() => this.props.onSubmit(this.state.paperKey)}
@@ -34,9 +34,12 @@ class PaperKey extends Component<void, Props, State> {
   }
 }
 
-type OwnProps = RouteProps<{
-  error: string,
-}, {}>
+type OwnProps = RouteProps<
+  {
+    error: string,
+  },
+  {}
+>
 
 // $FlowIssue
 export default connect(
@@ -44,8 +47,8 @@ export default connect(
     waitingForResponse: state.login.waitingForResponse,
     error,
   }),
-  (dispatch) => ({
+  dispatch => ({
     onBack: () => dispatch(Creators.onBack()),
-    onSubmit: (paperkey) => dispatch(Creators.submitPassphrase(new HiddenString(paperkey), false)),
+    onSubmit: paperkey => dispatch(Creators.submitPassphrase(new HiddenString(paperkey), false)),
   })
 )(PaperKey)

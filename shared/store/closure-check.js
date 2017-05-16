@@ -1,5 +1,5 @@
 // @flow
-function check (path, obj) {
+function check(path, obj) {
   if (!obj) return
   if (typeof obj !== 'object') return
   Object.keys(obj).forEach(k => {

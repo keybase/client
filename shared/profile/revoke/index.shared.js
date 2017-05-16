@@ -2,7 +2,7 @@
 import {capitalize} from 'lodash'
 import type {PlatformsExpandedType} from '../../constants/types/more'
 
-function formatMessage (platform: PlatformsExpandedType) {
+function formatMessage(platform: PlatformsExpandedType) {
   let prefix
   switch (platform) {
     case 'pgp':
@@ -31,7 +31,7 @@ function formatMessage (platform: PlatformsExpandedType) {
   return `${prefix} ${body}?`
 }
 
-function formatConfirmButton (platform: PlatformsExpandedType) {
+function formatConfirmButton(platform: PlatformsExpandedType) {
   let msg
   switch (platform) {
     case 'pgp':
@@ -43,7 +43,4 @@ function formatConfirmButton (platform: PlatformsExpandedType) {
   return msg
 }
 
-export {
-  formatMessage,
-  formatConfirmButton,
-}
+export {formatMessage, formatConfirmButton}

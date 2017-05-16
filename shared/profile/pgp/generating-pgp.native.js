@@ -5,13 +5,15 @@ import {globalMargins} from '../../styles'
 import type {Props} from './generating-pgp'
 
 class GeneratingPgp extends Component<void, Props, void> {
-  render () {
+  render() {
     return (
       <StandardScreen onClose={this.props.onCancel} style={styleContainer}>
-        <PlatformIcon style={styleHeaderIcon} platform='pgp' overlay='icon-proof-unfinished' />
-        <Text style={styleHeader} type='Header'>Generating your unique key...</Text>
-        <Text style={styleBody} type='Body'>Math time! You are about to discover a 4096-bit key pair. This could take as long as a couple minutes.</Text>
-        <Icon style={styleLoadingIcon} type='icon-loader-infinity-64' />
+        <PlatformIcon style={styleHeaderIcon} platform="pgp" overlay="icon-proof-unfinished" />
+        <Text style={styleHeader} type="Header">Generating your unique key...</Text>
+        <Text style={styleBody} type="Body">
+          Math time! You are about to discover a 4096-bit key pair. This could take as long as a couple minutes.
+        </Text>
+        <Icon style={styleLoadingIcon} type="icon-loader-infinity-64" />
       </StandardScreen>
     )
   }

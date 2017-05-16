@@ -14,7 +14,7 @@ export type Props = Exact<{
 }>
 
 export type State = {
-  deviceName: ?string
+  deviceName: ?string,
 }
 
-declare export default class SetPublicName extends Component<void, Props, void> { }
+declare export default class SetPublicName extends Component<void, Props, void> {}

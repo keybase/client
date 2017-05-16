@@ -5,4 +5,4 @@ export type Props = {
   onDelete: () => void,
 }
 
-export default class DeleteMe extends Component<void, Props, void> { }
+export default class DeleteMe extends Component<void, Props, void> {}

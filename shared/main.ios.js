@@ -2,9 +2,10 @@
 import {connector, Main} from './main-shared.native'
 import {compose, withProps} from 'recompose'
 
-module.hot && module.hot.accept(() => {
-  console.log('accepted update in main.ios')
-})
+module.hot &&
+  module.hot.accept(() => {
+    console.log('accepted update in main.ios')
+  })
 
 export default compose(
   withProps(props => ({

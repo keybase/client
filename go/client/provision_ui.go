@@ -201,15 +201,12 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 	if p.role == libkb.KexRoleProvisioner {
 		// This is the provisioner device (device X)
 
-		// In development mode, show the QR code.  This is just to
-		// make frontend development easier.
-		if (arg.OtherDeviceType == keybase1.DeviceType_MOBILE) &&
-			(p.parent.G().Env.GetRunMode() == libkb.DevelRunMode) {
-
+		// For mobile, show the QR code and the phrase, do not prompt:
+		if arg.OtherDeviceType == keybase1.DeviceType_MOBILE {
 			encodings, err := qrcode.Encode([]byte(arg.Phrase))
 			// ignoring any of these errors...phrase above will suffice.
 			if err == nil {
-				p.parent.Output("[DEVEL ONLY] Scan this QR Code with the keybase app on your mobile phone:\n\n")
+				p.parent.Output("Scan this QR Code with the keybase app on your mobile phone:\n\n")
 				p.parent.Output(encodings.Terminal)
 				fname := filepath.Join(os.TempDir(), "keybase_qr.png")
 				f, ferr := os.Create(fname)
@@ -219,22 +216,23 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 					p.parent.Printf("\nThere's also a PNG version in %s that might work better.\n\n", fname)
 				}
 			}
-		}
 
-		// For command line app, all secrets are entered on the provisioner only:
-		p.parent.Output("\nEnter the verification code from your other device here.  To get\n")
-		p.parent.Output("a verification code, run 'keybase login' on your other device.\n\n")
+			p.parent.Output("\n\nOr, you can type this verification code into your other device:\n\n")
+			p.parent.Output("\t" + arg.Phrase + "\n\n")
+		} else {
+			// For command line app desktop provision, all secrets are entered on the
+			// provisioner only:
+			p.parent.Output("\nEnter the verification code from your other device here.  To get\n")
+			p.parent.Output("a verification code, run 'keybase login' on your other device.\n\n")
 
-		ret, err := PromptWithChecker(PromptDescriptorProvisionPhrase, p.parent, "Verification code", false, libkb.CheckKex2SecretPhrase)
-		if err != nil {
-			return resp, err
+			ret, err := PromptWithChecker(PromptDescriptorProvisionPhrase, p.parent, "Verification code", false, libkb.CheckKex2SecretPhrase)
+			if err != nil {
+				return resp, err
+			}
+			resp.Phrase = ret
 		}
-		resp.Phrase = ret
 		return resp, nil
-
-	}
-
-	if p.role == libkb.KexRoleProvisionee {
+	} else if p.role == libkb.KexRoleProvisionee {
 		// this is the provisionee device (device Y)
 		// For command line app, the provisionee displays secrets only
 
@@ -266,6 +264,12 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 }
 
 func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
+	p.parent.Output("\n\n\n")
+	p.parent.Printf(ColorString("magenta", "************************************************************\n"))
+	p.parent.Printf(ColorString("magenta", "* Final step: name your new device!                        *\n"))
+	p.parent.Printf(ColorString("magenta", "************************************************************\n"))
+	p.parent.Output("\n\n\n")
+
 	for i := 0; i < 10; i++ {
 
 		name, err := PromptWithChecker(PromptDescriptorProvisionDeviceName, p.parent, "Enter a public name for this device", false, libkb.CheckDeviceName)
@@ -292,8 +296,13 @@ func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.Promp
 }
 
 func (p ProvisionUI) DisplaySecretExchanged(ctx context.Context, sessionID int) error {
-	p.parent.Output("\n\nVerification code received.  On your new device, choose and save a public name for it.\n\n")
-	p.parent.Output("Note: if you do not see a prompt on your new device for a device name\n")
+	p.parent.Printf("\n\n" + CHECK + " " + ColorString("bold", "Verification code received") + ".\n\n")
+	p.parent.Printf(ColorString("magenta", "************************************************************\n"))
+	p.parent.Printf(ColorString("magenta", "* On your new device, choose and save a public name for it *\n"))
+	p.parent.Printf(ColorString("magenta", "************************************************************\n"))
+	p.parent.Output("\n\nAfter you enter a device name on your new device, this command will finish\n")
+	p.parent.Output("provisioning your new device and you'll be all set.\n")
+	p.parent.Output("\n\nNote: if you do not see a prompt on your new device for a device name\n")
 	p.parent.Output("in a few seconds then the verification code entered above does not match the\n")
 	p.parent.Output("verification code provided on your new device. If that happens, quit\n")
 	p.parent.Output("this (ctrl-c) and try again.\n")
@@ -301,6 +310,7 @@ func (p ProvisionUI) DisplaySecretExchanged(ctx context.Context, sessionID int) 
 }
 
 func (p ProvisionUI) ProvisioneeSuccess(ctx context.Context, arg keybase1.ProvisioneeSuccessArg) error {
+	p.parent.Output("\n\n\n")
 	p.parent.Printf(CHECK + " Success! You provisioned your device " + ColorString("bold", arg.DeviceName) + ".\n\n")
 	p.parent.Printf("You are logged in as " + ColorString("bold", arg.Username) + "\n")
 	// turn on when kbfs active:

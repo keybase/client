@@ -115,6 +115,7 @@ func (b *BadgeState) UpdateWithChat(update chat1.UnreadUpdate, inboxVers chat1.I
 		return
 	}
 
+	b.inboxVers = inboxVers
 	b.updateWithChat(update)
 }
 

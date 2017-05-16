@@ -13,7 +13,7 @@ let iconType: BadgeType = 'regular'
 
 const isDarkMode = () => isDarwin && systemPreferences && systemPreferences.isDarkMode()
 
-const getIcon = (invertColors) => {
+const getIcon = invertColors => {
   const devMode = __DEV__ ? '-dev' : ''
   let color = 'white'
   let platform = ''
@@ -27,12 +27,15 @@ const getIcon = (invertColors) => {
 
   const size = isWindows ? 16 : 22
 
-  color = invertColors ? ({black: 'white', white: 'black'})[color] : color
+  color = invertColors ? {black: 'white', white: 'black'}[color] : color
 
-  return resolveImage('menubarIcon', `icon-${platform}keybase-menubar-${iconType}-${color}-${size}${devMode}@2x.png`)
+  return resolveImage(
+    'menubarIcon',
+    `icon-${platform}keybase-menubar-${iconType}-${color}-${size}${devMode}@2x.png`
+  )
 }
 
-export default function () {
+export default function() {
   const mb = menubar({
     index: resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?menubar')),
     width: 320,
@@ -48,7 +51,7 @@ export default function () {
     showDockIcon: true,
   })
 
-  const updateIcon = (invertColors) => {
+  const updateIcon = invertColors => {
     mb.tray.setImage(getIcon(invertColors))
   }
 
@@ -96,10 +99,14 @@ export default function () {
     webContents.on('did-finish-load', () => {
       webContents.send('load', {
         scripts: [
-          ...(__DEV__ ? [{
-            src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
-            async: false,
-          }] : []),
+          ...(__DEV__
+            ? [
+                {
+                  src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
+                  async: false,
+                },
+              ]
+            : []),
           {
             src: hotPath('launcher.bundle.js'),
             async: false,

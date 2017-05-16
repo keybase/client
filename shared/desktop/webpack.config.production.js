@@ -8,8 +8,8 @@ const config = Object.assign({}, baseConfig)
 const SKIP_OPTIMIZE = false
 // __VERSION__ is injected by package.js
 const defines = {
-  '__DEV__': false,
-  '__SCREENSHOT__': false,
+  __DEV__: false,
+  __SCREENSHOT__: false,
   'process.env.NODE_ENV': JSON.stringify('production'),
 }
 
@@ -24,10 +24,7 @@ config.module.loaders.unshift({
   loader: 'null',
 })
 
-config.plugins.push(
-  new webpack.DefinePlugin(defines),
-  new webpack.optimize.OccurenceOrderPlugin()
-)
+config.plugins.push(new webpack.DefinePlugin(defines), new webpack.optimize.OccurenceOrderPlugin())
 
 if (!SKIP_OPTIMIZE) {
   const babelLoader = config.module.loaders.find(l => l.loader === 'babel')

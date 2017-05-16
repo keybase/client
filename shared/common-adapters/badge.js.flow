@@ -8,4 +8,4 @@ export type Props = {
   outlineColor?: string,
 }
 
-declare export default class Badge extends Component<void, Props, void> { }
+declare export default class Badge extends Component<void, Props, void> {}
