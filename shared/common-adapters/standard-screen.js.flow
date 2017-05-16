@@ -18,4 +18,4 @@ export type Props = {
   styleBanner?: ?Object,
 }
 
-export default class StandardScreen extends Component<void, Props, void> { }
+export default class StandardScreen extends Component<void, Props, void> {}

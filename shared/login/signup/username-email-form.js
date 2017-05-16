@@ -12,9 +12,9 @@ type State = {
 }
 
 class UsernameEmailForm extends Component {
-  state: State;
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     this.state = {
@@ -23,7 +23,7 @@ class UsernameEmailForm extends Component {
     }
   }
 
-  render () {
+  render() {
     return (
       <Render
         usernameChange={username => this.setState({username})}
@@ -34,7 +34,8 @@ class UsernameEmailForm extends Component {
         usernameErrorText={this.props.usernameErrorText}
         emailErrorText={this.props.emailErrorText}
         onBack={this.props.restartSignup}
-        waiting={this.props.waiting} />
+        waiting={this.props.waiting}
+      />
     )
   }
 }

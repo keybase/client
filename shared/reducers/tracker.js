@@ -18,7 +18,7 @@ const initialState: Constants.State = {
   tracking: [],
 }
 
-function initialTrackerState (username: string): Constants.TrackerState {
+function initialTrackerState(username: string): Constants.TrackerState {
   return {
     closed: true,
     currentlyFollowing: false,
@@ -52,7 +52,7 @@ function initialTrackerState (username: string): Constants.TrackerState {
   }
 }
 
-function initialNonUserState (assertion: string): Constants.NonUserState {
+function initialNonUserState(assertion: string): Constants.NonUserState {
   return {
     closed: true,
     error: null,
@@ -65,7 +65,10 @@ function initialNonUserState (assertion: string): Constants.NonUserState {
   }
 }
 
-function updateNonUserState (state: Constants.NonUserState, action: Constants.NonUserActions): Constants.NonUserState {
+function updateNonUserState(
+  state: Constants.NonUserState,
+  action: Constants.NonUserActions
+): Constants.NonUserState {
   switch (action.type) {
     case Constants.showNonUser:
       if (action.error) {
@@ -93,11 +96,15 @@ function updateNonUserState (state: Constants.NonUserState, action: Constants.No
   }
 }
 
-function dedupeProofs (proofs: Array<Constants.Proof>): Array<Constants.Proof> {
+function dedupeProofs(proofs: Array<Constants.Proof>): Array<Constants.Proof> {
   return _.uniqBy(proofs, 'id')
 }
 
-function updateUserState (username: string, state: Constants.TrackerState, action: Action): Constants.TrackerState {
+function updateUserState(
+  username: string,
+  state: Constants.TrackerState,
+  action: Action
+): Constants.TrackerState {
   switch (action.type) {
     case Constants.identifyStarted:
       return {...state, error: null}
@@ -105,7 +112,7 @@ function updateUserState (username: string, state: Constants.TrackerState, actio
       // In case the reason is null, let's use our existing reason
       return {
         ...state,
-        reason: action.payload && action.payload.reason || state.reason,
+        reason: (action.payload && action.payload.reason) || state.reason,
       }
     case Constants.updateTrackToken:
       return {
@@ -169,7 +176,11 @@ function updateUserState (username: string, state: Constants.TrackerState, actio
     }
     case Constants.updateProofState:
       const proofsGeneralState = overviewStateOfProofs(state.proofs)
-      const trackerMessage = deriveTrackerMessage(state.username, state.currentlyFollowing, proofsGeneralState)
+      const trackerMessage = deriveTrackerMessage(
+        state.username,
+        state.currentlyFollowing,
+        proofsGeneralState
+      )
       const reason = trackerMessage || state.reason
 
       return {
@@ -302,7 +313,7 @@ function updateUserState (username: string, state: Constants.TrackerState, actio
       }
 
     case Constants.markActiveIdentifyUi:
-      const serverActive = action.payload && !!action.payload.active || false
+      const serverActive = (action.payload && !!action.payload.active) || false
       return {
         ...state,
         serverActive,
@@ -310,9 +321,9 @@ function updateUserState (username: string, state: Constants.TrackerState, actio
 
     case Constants.reportLastTrack:
       const currentlyFollowing = !!(action.payload && action.payload.track)
-      const proofs = state.proofs.map(p => ['btc', 'pgp'].includes(p.type)
-        ? {...p, isTracked: currentlyFollowing}
-        : p)
+      const proofs = state.proofs.map(
+        p => (['btc', 'pgp'].includes(p.type) ? {...p, isTracked: currentlyFollowing} : p)
+      )
 
       return {
         ...state,
@@ -367,7 +378,7 @@ function updateUserState (username: string, state: Constants.TrackerState, actio
   }
 }
 
-export default function (state: Constants.State = initialState, action: Action): Constants.State {
+export default function(state: Constants.State = initialState, action: Action): Constants.State {
   const username: ?string = action.payload && action.payload.username
   const assertion: ?string = action.payload && action.payload.assertion
   const userKey = username || assertion
@@ -443,7 +454,7 @@ export default function (state: Constants.State = initialState, action: Action):
   } else {
     switch (action.type) {
       case Constants.registerIdentifyUi:
-        const serverStarted = action.payload && !!action.payload.started || false
+        const serverStarted = (action.payload && !!action.payload.started) || false
         return {
           ...state,
           serverStarted,
@@ -476,12 +487,12 @@ export default function (state: Constants.State = initialState, action: Action):
   }
 }
 
-function mapValueToKey<K: string, V> (obj: {[key: K]: V}, tag: V): ?K {
+function mapValueToKey<K: string, V>(obj: {[key: K]: V}, tag: V): ?K {
   // $FlowIssue the problem is that Object.keys returns an array of strings
   return Object.keys(obj).find(key => obj[key] === tag)
 }
 
-function stateToColor (state: Constants.SimpleProofState): string {
+function stateToColor(state: Constants.SimpleProofState): string {
   if (state === Constants.normal) {
     return 'green'
   } else if (state === Constants.warning) {
@@ -493,12 +504,22 @@ function stateToColor (state: Constants.SimpleProofState): string {
   return 'gray'
 }
 
-function proofStateToSimpleProofState (proofState: RPCTypes.ProofState, diff: ?RPCTypes.TrackDiff, remoteDiff: ?RPCTypes.TrackDiff, breaksTracking: boolean): ?Constants.SimpleProofState {
+function proofStateToSimpleProofState(
+  proofState: RPCTypes.ProofState,
+  diff: ?RPCTypes.TrackDiff,
+  remoteDiff: ?RPCTypes.TrackDiff,
+  breaksTracking: boolean
+): ?Constants.SimpleProofState {
   if (breaksTracking) {
     return Constants.error
   }
   // If there is no difference in what we've tracked from the server or remote resource it's good.
-  if (diff && remoteDiff && diff.type === RPCTypes.IdentifyCommonTrackDiffType.none && remoteDiff.type === RPCTypes.IdentifyCommonTrackDiffType.none) {
+  if (
+    diff &&
+    remoteDiff &&
+    diff.type === RPCTypes.IdentifyCommonTrackDiffType.none &&
+    remoteDiff.type === RPCTypes.IdentifyCommonTrackDiffType.none
+  ) {
     return Constants.normal
   }
 
@@ -521,7 +542,11 @@ function proofStateToSimpleProofState (proofState: RPCTypes.ProofState, diff: ?R
   }
 }
 
-function diffAndStatusMeta (diff: ?RPCTypes.TrackDiffType, proofResult: ?RPCTypes.ProofResult, isTracked: bool) : {diffMeta: ?Constants.SimpleProofMeta, statusMeta: ?Constants.SimpleProofMeta} {
+function diffAndStatusMeta(
+  diff: ?RPCTypes.TrackDiffType,
+  proofResult: ?RPCTypes.ProofResult,
+  isTracked: boolean
+): {diffMeta: ?Constants.SimpleProofMeta, statusMeta: ?Constants.SimpleProofMeta} {
   const {status, state} = proofResult || {}
 
   if (status && status !== RPCTypes.ProveCommonProofStatus.ok && isTracked) {
@@ -536,7 +561,7 @@ function diffAndStatusMeta (diff: ?RPCTypes.TrackDiffType, proofResult: ?RPCType
     statusMeta: proofStatusToSimpleProofMeta(status, state),
   }
 
-  function trackDiffToSimpleProofMeta (diff: ?RPCTypes.TrackDiffType): ?Constants.SimpleProofMeta {
+  function trackDiffToSimpleProofMeta(diff: ?RPCTypes.TrackDiffType): ?Constants.SimpleProofMeta {
     if (!diff) {
       return null
     }
@@ -555,7 +580,10 @@ function diffAndStatusMeta (diff: ?RPCTypes.TrackDiffType, proofResult: ?RPCType
     }[diff]
   }
 
-  function proofStatusToSimpleProofMeta (status: ?RPCTypes.ProofStatus, state: ?RPCTypes.ProofState): ?Constants.SimpleProofMeta {
+  function proofStatusToSimpleProofMeta(
+    status: ?RPCTypes.ProofStatus,
+    state: ?RPCTypes.ProofState
+  ): ?Constants.SimpleProofMeta {
     if (!status) {
       return null
     }
@@ -611,22 +639,31 @@ function diffAndStatusMeta (diff: ?RPCTypes.TrackDiffType, proofResult: ?RPCType
 
 // TODO Have the service give this information.
 // Currently this is copied from the website: https://github.com/keybase/keybase/blob/658aa97a9ad63733444298353a528e7f8499d8b9/lib/mod/user_lol.iced#L971
-function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, humanUrl: ?string): string {
+function proofUrlToProfileUrl(proofType: number, name: string, key: ?string, humanUrl: ?string): string {
   key = key || ''
   switch (proofType) {
-    case RPCTypes.ProveCommonProofType.dns: return `http://${name}`
-    case RPCTypes.ProveCommonProofType.genericWebSite: return `${key}://${name}`
-    case RPCTypes.ProveCommonProofType.twitter: return `https://twitter.com/${name}`
-    case RPCTypes.ProveCommonProofType.facebook: return `https://facebook.com/${name}`
-    case RPCTypes.ProveCommonProofType.github: return `https://github.com/${name}`
-    case RPCTypes.ProveCommonProofType.reddit: return `https://reddit.com/user/${name}`
-    case RPCTypes.ProveCommonProofType.coinbase: return `https://coinbase.com/${name}`
-    case RPCTypes.ProveCommonProofType.hackernews: return `https://news.ycombinator.com/user?id=${name}`
-    default: return humanUrl || ''
+    case RPCTypes.ProveCommonProofType.dns:
+      return `http://${name}`
+    case RPCTypes.ProveCommonProofType.genericWebSite:
+      return `${key}://${name}`
+    case RPCTypes.ProveCommonProofType.twitter:
+      return `https://twitter.com/${name}`
+    case RPCTypes.ProveCommonProofType.facebook:
+      return `https://facebook.com/${name}`
+    case RPCTypes.ProveCommonProofType.github:
+      return `https://github.com/${name}`
+    case RPCTypes.ProveCommonProofType.reddit:
+      return `https://reddit.com/user/${name}`
+    case RPCTypes.ProveCommonProofType.coinbase:
+      return `https://coinbase.com/${name}`
+    case RPCTypes.ProveCommonProofType.hackernews:
+      return `https://news.ycombinator.com/user?id=${name}`
+    default:
+      return humanUrl || ''
   }
 }
 
-function remoteProofToProofType (rp: RPCTypes.RemoteProof): PlatformsExpandedType {
+function remoteProofToProofType(rp: RPCTypes.RemoteProof): PlatformsExpandedType {
   if (rp.proofType === RPCTypes.ProveCommonProofType.genericWebSite) {
     return rp.key === 'http' ? 'http' : 'https'
   } else {
@@ -635,7 +672,7 @@ function remoteProofToProofType (rp: RPCTypes.RemoteProof): PlatformsExpandedTyp
   }
 }
 
-function revokedProofToProof (rv: RPCTypes.RevokedProof): Constants.Proof {
+function revokedProofToProof(rv: RPCTypes.RevokedProof): Constants.Proof {
   return {
     color: stateToColor(Constants.error),
     humanUrl: '',
@@ -650,11 +687,28 @@ function revokedProofToProof (rv: RPCTypes.RevokedProof): Constants.Proof {
   }
 }
 
-function remoteProofToProof (username: string, oldProofState: Constants.SimpleProofState, rp: RPCTypes.RemoteProof, lcr: ?RPCTypes.LinkCheckResult): Constants.Proof {
-  const proofState: Constants.SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff, lcr.breaksTracking) || oldProofState
-  const isTracked = !!(lcr && lcr.diff && lcr.diff.type === RPCTypes.IdentifyCommonTrackDiffType.none && !lcr.breaksTracking)
-  const {diffMeta, statusMeta} = diffAndStatusMeta(lcr && lcr.diff && lcr.diff.type, lcr && lcr.proofResult, isTracked)
-  const humanUrl = ((rp.key !== 'dns') && lcr && lcr.hint && lcr.hint.humanUrl) || `https://keybase.io/${username}/sigchain#${rp.sigID}`
+function remoteProofToProof(
+  username: string,
+  oldProofState: Constants.SimpleProofState,
+  rp: RPCTypes.RemoteProof,
+  lcr: ?RPCTypes.LinkCheckResult
+): Constants.Proof {
+  const proofState: Constants.SimpleProofState =
+    (lcr &&
+      proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff, lcr.breaksTracking)) ||
+    oldProofState
+  const isTracked = !!(lcr &&
+    lcr.diff &&
+    lcr.diff.type === RPCTypes.IdentifyCommonTrackDiffType.none &&
+    !lcr.breaksTracking)
+  const {diffMeta, statusMeta} = diffAndStatusMeta(
+    lcr && lcr.diff && lcr.diff.type,
+    lcr && lcr.proofResult,
+    isTracked
+  )
+  const humanUrl =
+    (rp.key !== 'dns' && lcr && lcr.hint && lcr.hint.humanUrl) ||
+    `https://keybase.io/${username}/sigchain#${rp.sigID}`
 
   return {
     color: stateToColor(proofState),
@@ -670,7 +724,12 @@ function remoteProofToProof (username: string, oldProofState: Constants.SimplePr
   }
 }
 
-function updateProof (username: string, proofs: Array<Constants.Proof>, rp: RPCTypes.RemoteProof, lcr: RPCTypes.LinkCheckResult): Array<Constants.Proof> {
+function updateProof(
+  username: string,
+  proofs: Array<Constants.Proof>,
+  rp: RPCTypes.RemoteProof,
+  lcr: RPCTypes.LinkCheckResult
+): Array<Constants.Proof> {
   let found = false
   let updated = proofs.map(proof => {
     if (proof.id === rp.sigID) {
@@ -687,17 +746,52 @@ function updateProof (username: string, proofs: Array<Constants.Proof>, rp: RPCT
   return updated
 }
 
-export function overviewStateOfProofs (proofs: Array<Constants.Proof>): Constants.OverviewProofState {
+export function overviewStateOfProofs(proofs: Array<Constants.Proof>): Constants.OverviewProofState {
   const allOk = proofs.every(p => p.state === Constants.normal)
-  const [anyWarnings, anyError, anyPending] = [Constants.warning, Constants.error, Constants.checking].map(s => proofs.some(p => p.state === s))
-  const [anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs, anyPendingProofs] = [Constants.metaDeleted, Constants.metaUnreachable, Constants.metaUpgraded, Constants.metaNew, Constants.metaPending].map(m => proofs.some(p => p.meta === m))
+  const [anyWarnings, anyError, anyPending] = [
+    Constants.warning,
+    Constants.error,
+    Constants.checking,
+  ].map(s => proofs.some(p => p.state === s))
+  const [anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs, anyPendingProofs] = [
+    Constants.metaDeleted,
+    Constants.metaUnreachable,
+    Constants.metaUpgraded,
+    Constants.metaNew,
+    Constants.metaPending,
+  ].map(m => proofs.some(p => p.meta === m))
   const anyChanged = proofs.some(proof => proof.meta && proof.meta !== Constants.metaNone)
-  return {allOk, anyChanged, anyDeletedProofs, anyError, anyNewProofs, anyPending, anyPendingProofs, anyUnreachableProofs, anyUpgradedProofs, anyWarnings}
+  return {
+    allOk,
+    anyChanged,
+    anyDeletedProofs,
+    anyError,
+    anyNewProofs,
+    anyPending,
+    anyPendingProofs,
+    anyUnreachableProofs,
+    anyUpgradedProofs,
+    anyWarnings,
+  }
 }
 
-export function deriveSimpleProofState (
+export function deriveSimpleProofState(
   eldestKidChanged: boolean,
-  {allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs}: {allOk: boolean, anyWarnings: boolean, anyError: boolean, anyPending: boolean, anyDeletedProofs : boolean, anyUnreachableProofs : boolean}
+  {
+    allOk,
+    anyWarnings,
+    anyError,
+    anyPending,
+    anyDeletedProofs,
+    anyUnreachableProofs,
+  }: {
+    allOk: boolean,
+    anyWarnings: boolean,
+    anyError: boolean,
+    anyPending: boolean,
+    anyDeletedProofs: boolean,
+    anyUnreachableProofs: boolean,
+  }
 ): Constants.SimpleProofState {
   if (eldestKidChanged) {
     return Constants.error
@@ -716,10 +810,22 @@ export function deriveSimpleProofState (
   return Constants.error
 }
 
-function deriveTrackerMessage (
+function deriveTrackerMessage(
   username: string,
   currentlyFollowing: boolean,
-  {allOk, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs}: {allOk: boolean, anyDeletedProofs: boolean, anyUnreachableProofs: boolean, anyUpgradedProofs: boolean, anyNewProofs: boolean}
+  {
+    allOk,
+    anyDeletedProofs,
+    anyUnreachableProofs,
+    anyUpgradedProofs,
+    anyNewProofs,
+  }: {
+    allOk: boolean,
+    anyDeletedProofs: boolean,
+    anyUnreachableProofs: boolean,
+    anyUpgradedProofs: boolean,
+    anyNewProofs: boolean,
+  }
 ): ?string {
   if (allOk || !currentlyFollowing) {
     return null
@@ -730,6 +836,6 @@ function deriveTrackerMessage (
   }
 }
 
-function deriveShouldFollow ({allOk}: {allOk: boolean}): boolean {
+function deriveShouldFollow({allOk}: {allOk: boolean}): boolean {
   return allOk
 }

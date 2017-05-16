@@ -9,19 +9,19 @@ class EscapeHandler extends Component<void, Props, void> {
     removeESCHandler: React.PropTypes.func,
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this.context.addESCHandler(this)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this.context.removeESCHandler(this)
   }
 
-  onESC () {
+  onESC() {
     this.props.onESC()
   }
 
-  render () {
+  render() {
     return this.props.children
   }
 }
@@ -29,11 +29,11 @@ class EscapeHandler extends Component<void, Props, void> {
 class GlobalEscapeHandler extends Component<void, GlobalProps, void> {
   _stack: Array<EscapeHandler> = []
 
-  componentDidMount () {
+  componentDidMount() {
     document.body && document.body.addEventListener('keydown', this._handleESC)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     document.body && document.body.removeEventListener('keydown', this._handleESC)
   }
 
@@ -42,7 +42,7 @@ class GlobalEscapeHandler extends Component<void, GlobalProps, void> {
     removeESCHandler: React.PropTypes.func,
   }
 
-  getChildContext () {
+  getChildContext() {
     return {
       addESCHandler: this.add,
       removeESCHandler: this.remove,
@@ -71,7 +71,7 @@ class GlobalEscapeHandler extends Component<void, GlobalProps, void> {
     }
   }
 
-  render () {
+  render() {
     return this.props.children
   }
 }

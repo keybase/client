@@ -10,10 +10,13 @@ import type {TypedState} from '../../../constants/reducer'
 import type {ConversationIDKey, SaveAttachment, AttachmentMessage, MessageID} from '../../../constants/chat'
 import type {OpenInFileUI} from '../../../constants/kbfs'
 
-type AttachmentPopupRouteProps = RouteProps<{
-  conversationIDKey: ConversationIDKey,
-  messageID: MessageID,
-}, {}>
+type AttachmentPopupRouteProps = RouteProps<
+  {
+    conversationIDKey: ConversationIDKey,
+    messageID: MessageID,
+  },
+  {}
+>
 type OwnProps = AttachmentPopupRouteProps & {
   isZoomed: boolean,
   detailsPopupShowing: boolean,
@@ -51,7 +54,8 @@ export default compose(
       }
     },
     (dispatch: Dispatch, {navigateUp, navigateAppend}) => ({
-      _onMessageAction: (message: Constants.ServerMessage) => dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
+      _onMessageAction: (message: Constants.ServerMessage) =>
+        dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
       deleteMessage: message => dispatch(deleteMessage(message)),
       onClose: () => dispatch(navigateUp()),
       onDownloadAttachment: (message: AttachmentMessage) => {
@@ -59,18 +63,23 @@ export default compose(
         if (!messageID || !message.filename) {
           throw new Error('Cannot download attachment with missing messageID or filename')
         }
-        dispatch(({
-          type: 'chat:saveAttachment',
-          payload: {
-            conversationIDKey: message.conversationIDKey,
-            messageID,
-          },
-        }: SaveAttachment))
+        dispatch(
+          ({
+            type: 'chat:saveAttachment',
+            payload: {
+              conversationIDKey: message.conversationIDKey,
+              messageID,
+            },
+          }: SaveAttachment)
+        )
       },
-      onOpenInFileUI: (path: string) => dispatch(({
-        type: 'fs:openInFileUI',
-        payload: {path},
-      }: OpenInFileUI)),
+      onOpenInFileUI: (path: string) =>
+        dispatch(
+          ({
+            type: 'fs:openInFileUI',
+            payload: {path},
+          }: OpenInFileUI)
+        ),
     }),
     (stateProps, dispatchProps) => {
       const {message} = stateProps
@@ -85,6 +94,6 @@ export default compose(
         onDownloadAttachment: () => dispatchProps.onDownloadAttachment(message),
         onOpenInFileUI: () => dispatchProps.onOpenInFileUI(message.savedPath),
       }
-    },
-  ),
+    }
+  )
 )(RenderAttachmentPopup)

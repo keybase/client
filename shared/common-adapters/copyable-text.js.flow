@@ -6,4 +6,4 @@ export type Props = {
   style?: Object,
 }
 
-export default class CopyableText extends Component<void, Props, void> { }
+export default class CopyableText extends Component<void, Props, void> {}

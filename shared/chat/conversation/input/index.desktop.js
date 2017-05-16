@@ -20,15 +20,15 @@ type InputProps = {
 } & Props
 
 class ConversationInput extends Component<void, InputProps, void> {
-  componentDidMount () {
+  componentDidMount() {
     this._registerBodyEvents(true)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this._registerBodyEvents(false)
   }
 
-  _registerBodyEvents (add: boolean) {
+  _registerBodyEvents(add: boolean) {
     const body = document.body
     if (!body) {
       return
@@ -45,15 +45,27 @@ class ConversationInput extends Component<void, InputProps, void> {
     }
 
     const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
-    const isValidSpecialKey = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter'].includes(ev.key)
+    const isValidSpecialKey = [
+      'Backspace',
+      'Delete',
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown',
+      'Enter',
+    ].includes(ev.key)
     if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
       this.props.inputFocus()
     }
   }
 
-  _insertEmoji (emojiColons: string) {
+  _insertEmoji(emojiColons: string) {
     const {selectionStart = 0, selectionEnd = 0} = this.props.inputSelections()
-    const nextText = [this.props.text.substring(0, selectionStart), emojiColons, this.props.text.substring(selectionEnd)].join('')
+    const nextText = [
+      this.props.text.substring(0, selectionStart),
+      emojiColons,
+      this.props.text.substring(selectionEnd),
+    ].join('')
     this.props.setText(nextText)
     this.props.inputFocus()
   }
@@ -82,7 +94,7 @@ class ConversationInput extends Component<void, InputProps, void> {
     this.props.filePickerSetValue(null)
   }
 
-  _pickerOnClick = (emoji) => {
+  _pickerOnClick = emoji => {
     this._insertEmoji(emoji.colons)
     this.props.emojiPickerToggle()
   }
@@ -106,17 +118,23 @@ class ConversationInput extends Component<void, InputProps, void> {
     }
   }
 
-  render () {
+  render() {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
-          <input type='file' style={{display: 'none'}} ref={this.props.filePickerSetRef} onChange={this._pickFile} multiple={true} />
+          <input
+            type="file"
+            style={{display: 'none'}}
+            ref={this.props.filePickerSetRef}
+            onChange={this._pickFile}
+            multiple={true}
+          />
           <Input
             autoFocus={true}
             small={true}
             style={styleInput}
             ref={this.props.inputSetRef}
-            hintText='Write a message'
+            hintText="Write a message"
             hideUnderline={true}
             onChangeText={this.props.setText}
             value={this.props.text}
@@ -126,11 +144,14 @@ class ConversationInput extends Component<void, InputProps, void> {
             onKeyDown={this._onKeyDown}
             onEnterKeyDown={this._onEnterKeyDown}
           />
-          {this.props.emojiPickerOpen && <EmojiPicker emojiPickerToggle={this.props.emojiPickerToggle} onClick={this._pickerOnClick} />}
-          <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type='iconfont-emoji' />
-          <Icon onClick={this.props.filePickerOpen} style={styleIcon} type='iconfont-attachment' />
+          {this.props.emojiPickerOpen &&
+            <EmojiPicker emojiPickerToggle={this.props.emojiPickerToggle} onClick={this._pickerOnClick} />}
+          <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
+          <Icon onClick={this.props.filePickerOpen} style={styleIcon} type="iconfont-attachment" />
         </Box>
-        <Text type='BodySmall' style={styleFooter} onClick={this.props.inputFocus}>*bold*, _italics_, `code`, >quote</Text>
+        <Text type="BodySmall" style={styleFooter} onClick={this.props.inputFocus}>
+          *bold*, _italics_, `code`, >quote
+        </Text>
       </Box>
     )
   }
@@ -175,11 +196,18 @@ export default compose(
   withHandlers(props => {
     let fileInput
     return {
-      emojiPickerToggle: ({emojiPickerOpen, setEmojiPickerOpen}) => () => setEmojiPickerOpen(!emojiPickerOpen),
-      filePickerFiles: props => () => fileInput && fileInput.files || [],
-      filePickerOpen: props => () => { fileInput && fileInput.click() },
-      filePickerSetRef: props => (r: any) => { fileInput = r },
-      filePickerSetValue: props => (value: any) => { if (fileInput) fileInput.value = value },
+      emojiPickerToggle: ({emojiPickerOpen, setEmojiPickerOpen}) => () =>
+        setEmojiPickerOpen(!emojiPickerOpen),
+      filePickerFiles: props => () => (fileInput && fileInput.files) || [],
+      filePickerOpen: props => () => {
+        fileInput && fileInput.click()
+      },
+      filePickerSetRef: props => (r: any) => {
+        fileInput = r
+      },
+      filePickerSetValue: props => (value: any) => {
+        if (fileInput) fileInput.value = value
+      },
     }
-  }),
+  })
 )(ConversationInput)

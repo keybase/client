@@ -24,7 +24,4 @@ const makeRenderProps = props => ({
   waiting: false,
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  mapProps(makeRenderProps),
-)(Render)
+export default compose(connect(mapStateToProps, mapDispatchToProps), mapProps(makeRenderProps))(Render)

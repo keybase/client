@@ -7,5 +7,5 @@ export type Props = {
   onClose: () => void,
 }
 
-export default class InviteGenerated extends Component<void, Props, void> { }
-export class InviteGeneratedRender extends Component<void, Props, void> { }
+export default class InviteGenerated extends Component<void, Props, void> {}
+export class InviteGeneratedRender extends Component<void, Props, void> {}

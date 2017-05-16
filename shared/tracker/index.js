@@ -47,20 +47,20 @@ export type TrackerProps = {
   error: ?ErrorProps,
 }
 
-export function trackerPropsToRenderProps (tprops: TrackerProps): RenderPropsUnshaped {
+export function trackerPropsToRenderProps(tprops: TrackerProps): RenderPropsUnshaped {
   return {...tprops}
 }
 
 class Tracker extends Component<void, TrackerProps, void> {
-  componentWillMount () {
+  componentWillMount() {
     this.props.startTimer()
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this.props.stopTimer()
   }
 
-  render () {
+  render() {
     if (this.props.closed) {
       return <div />
     }
@@ -92,17 +92,40 @@ export default connect(
   (dispatch: any, ownProps: OwnProps) => {
     const actions = bindActionCreators(trackerActions, dispatch)
     return {
-      errorRetry: ownProps.errorRetry || (() => { actions.getProfile(ownProps.username, true) }),
-      onChat: (username, myUsername) => { username && myUsername && dispatch(startConversation([username, myUsername])) },
-      onClickAvatar: (username) => { dispatch(onClickAvatar(username, true)) },
-      onClickFollowers: (username) => { dispatch(onClickFollowers(username, true)) },
-      onClickFollowing: (username) => { dispatch(onClickFollowing(username, true)) },
-      onClose: () => { actions.onClose(ownProps.username) },
-      onFollow: () => { actions.onFollow(ownProps.username) },
-      onIgnore: () => { actions.onIgnore(ownProps.username) },
-      onRefollow: () => { actions.onRefollow(ownProps.username) },
-      onUnfollow: () => { actions.onUnfollow(ownProps.username) },
-      startTimer: () => { actions.startTimer() },
+      errorRetry: ownProps.errorRetry ||
+        (() => {
+          actions.getProfile(ownProps.username, true)
+        }),
+      onChat: (username, myUsername) => {
+        username && myUsername && dispatch(startConversation([username, myUsername]))
+      },
+      onClickAvatar: username => {
+        dispatch(onClickAvatar(username, true))
+      },
+      onClickFollowers: username => {
+        dispatch(onClickFollowers(username, true))
+      },
+      onClickFollowing: username => {
+        dispatch(onClickFollowing(username, true))
+      },
+      onClose: () => {
+        actions.onClose(ownProps.username)
+      },
+      onFollow: () => {
+        actions.onFollow(ownProps.username)
+      },
+      onIgnore: () => {
+        actions.onIgnore(ownProps.username)
+      },
+      onRefollow: () => {
+        actions.onRefollow(ownProps.username)
+      },
+      onUnfollow: () => {
+        actions.onUnfollow(ownProps.username)
+      },
+      startTimer: () => {
+        actions.startTimer()
+      },
     }
   },
   (stateProps, dispatchProps, ownProps) => {
@@ -112,11 +135,11 @@ export default connect(
       ...stateProps,
       ...dispatchProps,
       error: stateProps.errorMessage
-      ? {
-        errorMessage: stateProps.errorMessage,
-        onRetry: dispatchProps.errorRetry,
-      }
-      : null,
+        ? {
+            errorMessage: stateProps.errorMessage,
+            onRetry: dispatchProps.errorRetry,
+          }
+        : null,
       onChat: () => dispatchProps.onChat(username, myUsername),
       onClickAvatar: () => dispatchProps.onClickAvatar(username),
       onClickFollowers: () => dispatchProps.onClickFollowers(username),
@@ -125,7 +148,7 @@ export default connect(
   }
 )(Tracker)
 
-export function selector (username: string): (store: Object) => ?Object {
+export function selector(username: string): (store: Object) => ?Object {
   return store => {
     if (store.tracker.trackers[username]) {
       return {

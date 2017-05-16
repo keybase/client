@@ -1,5 +1,5 @@
 // @flow
 import {Component} from 'react'
 
-export type Props = { }
-export default class Help extends Component<void, Props, void> { }
+export type Props = {}
+export default class Help extends Component<void, Props, void> {}

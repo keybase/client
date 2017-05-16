@@ -7,4 +7,4 @@ export type Props = {
   onShowPrivacyPolicy: () => void,
 }
 
-export default class About extends Component<void, Props, void> { }
+export default class About extends Component<void, Props, void> {}

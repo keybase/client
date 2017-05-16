@@ -1,12 +1,6 @@
 // @flow
 import {RouteDefNode} from '../../route-tree'
-import {
-  ConnectedChoice,
-  ConnectedImport,
-  ConnectedPgpInfo,
-  ConnectedGeneratePgp,
-  ConnectedFinished,
-} from './'
+import {ConnectedChoice, ConnectedImport, ConnectedPgpInfo, ConnectedGeneratePgp, ConnectedFinished} from './'
 
 const routeTree = new RouteDefNode({
   component: ConnectedChoice,

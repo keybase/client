@@ -58,12 +58,12 @@ const removeEmpty = (root: any) => {
     Object.keys(root).forEach(k => {
       ret[k] = removeEmpty(root[k])
     })
-    return omitBy(ret, a => !a || isObject(a) && isEmpty(a))
+    return omitBy(ret, a => !a || (isObject(a) && isEmpty(a)))
   }
   return root
 }
 
-export const stateLogTransformer: StateLogTransformer = (state) => {
+export const stateLogTransformer: StateLogTransformer = state => {
   // Never crash us out
   try {
     const transformed = {

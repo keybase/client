@@ -12,7 +12,7 @@ export type Props = {
   lastModifiedBy?: ?string,
   modifiedMarker: boolean,
   fileIcon: IconType,
-  onClick: () => void
+  onClick: () => void,
 }
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}
