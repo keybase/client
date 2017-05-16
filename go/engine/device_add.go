@@ -114,6 +114,10 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 					provisioner.AddSecret(ks.Secret())
 				}
 				break
+			} else if provisioneeType == keybase1.DeviceType_MOBILE {
+				// for mobile provisionee, only displaying the secret so it's
+				// ok/expected that nothing came back
+				break
 			}
 		}
 	}()
