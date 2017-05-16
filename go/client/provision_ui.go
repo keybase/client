@@ -264,6 +264,12 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 }
 
 func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
+	p.parent.Output("\n\n\n")
+	p.parent.Printf(ColorString("magenta", "************************************************************\n"))
+	p.parent.Printf(ColorString("magenta", "* Final step: name your new device!                        *\n"))
+	p.parent.Printf(ColorString("magenta", "************************************************************\n"))
+	p.parent.Output("\n\n\n")
+
 	for i := 0; i < 10; i++ {
 
 		name, err := PromptWithChecker(PromptDescriptorProvisionDeviceName, p.parent, "Enter a public name for this device", false, libkb.CheckDeviceName)
@@ -304,6 +310,7 @@ func (p ProvisionUI) DisplaySecretExchanged(ctx context.Context, sessionID int) 
 }
 
 func (p ProvisionUI) ProvisioneeSuccess(ctx context.Context, arg keybase1.ProvisioneeSuccessArg) error {
+	p.parent.Output("\n\n\n")
 	p.parent.Printf(CHECK + " Success! You provisioned your device " + ColorString("bold", arg.DeviceName) + ".\n\n")
 	p.parent.Printf("You are logged in as " + ColorString("bold", arg.Username) + "\n")
 	// turn on when kbfs active:

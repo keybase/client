@@ -117,6 +117,7 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 			} else if provisioneeType == keybase1.DeviceType_MOBILE {
 				// for mobile provisionee, only displaying the secret so it's
 				// ok/expected that nothing came back
+				e.G().Log.Debug("device add DisplayAndPromptSecret returned empty secret, stopping retry loop")
 				break
 			}
 		}
