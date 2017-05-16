@@ -88,6 +88,7 @@ func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
 
 func (s *CmdSignup) SetTest() {
 	s.skipMail = true
+	s.genPaper = true
 }
 
 func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
