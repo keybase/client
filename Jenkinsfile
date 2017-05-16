@@ -44,17 +44,9 @@ helpers.rootLinuxNode(env, {
     def glibcImage = docker.image("keybaseprivate/glibc")
     def clientImage = null
 
-    sh "curl -s http://169.254.169.254/latest/meta-data/public-ipv4 > public.txt"
-    sh "curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > private.txt"
-    def kbwebNodePublicIP = readFile('public.txt')
-    def kbwebNodePrivateIP = readFile('private.txt')
-    sh "rm public.txt"
-    sh "rm private.txt"
-    def httpRequestPublicIP = httpRequest("http://169.254.169.254/latest/meta-data/public-ipv4").content
-    def httpRequestPrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
+    def kbwebNodePrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
 
-    println "Running on host $kbwebNodePublicIP ($kbwebNodePrivateIP)"
-    println "httpRequest says host $httpRequestPublicIP ($httpRequestPrivateIP)"
+    println "Running on host $kbwebNodePrivateIP ($kbwebNodePrivateIP)"
     println "Setting up build: ${env.BUILD_TAG}"
 
     def cause = helpers.getCauseString(currentBuild)
@@ -177,18 +169,14 @@ helpers.rootLinuxNode(env, {
                                 build([
                                     job: "/kbfs/master",
                                     parameters: [
-                                        [$class: 'StringParameterValue',
+                                        string(
                                             name: 'clientProjectName',
                                             value: env.JOB_NAME,
-                                        ],
-                                        [$class: 'StringParameterValue',
+                                        ),
+                                        string(
                                             name: 'kbwebNodePrivateIP',
                                             value: kbwebNodePrivateIP,
-                                        ],
-                                        [$class: 'StringParameterValue',
-                                            name: 'kbwebNodePublicIP',
-                                            value: kbwebNodePublicIP,
-                                        ],
+                                        ),
                                     ]
                                 ])
                             },
