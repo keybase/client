@@ -77,10 +77,10 @@ func TestRevokeDevicePUK(t *testing.T) {
 	testRevokeDevice(t, true)
 }
 
-func testRevokeDevice(t *testing.T, supportPerUserKey bool) {
+func testRevokeDevice(t *testing.T, upgradePerUserKey bool) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
-	tc.Tp.SupportPerUserKey = supportPerUserKey
+	tc.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	u := CreateAndSignupFakeUserPaper(tc, "rev")
 
@@ -121,10 +121,10 @@ func TestRevokePaperDevicePUK(t *testing.T) {
 	testRevokePaperDevice(t, true)
 }
 
-func testRevokePaperDevice(t *testing.T, supportPerUserKey bool) {
+func testRevokePaperDevice(t *testing.T, upgradePerUserKey bool) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
-	tc.Tp.SupportPerUserKey = supportPerUserKey
+	tc.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	u := CreateAndSignupFakeUserPaper(tc, "rev")
 

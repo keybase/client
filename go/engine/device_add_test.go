@@ -61,16 +61,16 @@ func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, 
 	}
 }
 
-func testDeviceAdd(t *testing.T, supportPerUserKey bool) {
+func testDeviceAdd(t *testing.T, upgradePerUserKey bool) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-	tcX.Tp.SupportPerUserKey = supportPerUserKey
+	tcX.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "template")
 	defer tcY.Cleanup()
-	tcY.Tp.SupportPerUserKey = supportPerUserKey
+	tcY.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")

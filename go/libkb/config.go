@@ -117,6 +117,10 @@ func (f JSONConfigFile) GetSupportPerUserKey() (bool, bool) {
 	return false, false
 }
 
+func (f JSONConfigFile) GetUpgradePerUserKey() (bool, bool) {
+	return false, false
+}
+
 func (f JSONConfigFile) GetTopLevelString(s string) (ret string) {
 	var e error
 	f.jw.AtKey(s).GetStringVoid(&ret, &e)

@@ -102,6 +102,9 @@ func (p CommandLine) GetVDebugSetting() string {
 func (p CommandLine) GetSupportPerUserKey() (bool, bool) {
 	return p.GetBool("support-per-user-key", true)
 }
+func (p CommandLine) GetUpgradePerUserKey() (bool, bool) {
+	return p.GetBool("upgrade-per-user-key", true)
+}
 func (p CommandLine) GetPGPFingerprint() *libkb.PGPFingerprint {
 	return libkb.PGPFingerprintFromHexNoError(p.GetGString("fingerprint"))
 }
@@ -393,7 +396,11 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		},
 		cli.BoolFlag{
 			Name:  "support-per-user-key",
-			Usage: "Use a shared per-user. Experimental, will break sigchain!",
+			Usage: "Support per-user keys. Experimental, may break sigchain!",
+		},
+		cli.BoolFlag{
+			Name:  "upgrade-per-user-key",
+			Usage: "Create new per-user-keys. Experimental, will break sigchain!",
 		},
 		cli.StringFlag{
 			Name:  "features",
