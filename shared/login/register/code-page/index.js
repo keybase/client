@@ -43,7 +43,16 @@ class CodePage extends Component<void, Props, {enterText: string}> {
 export default connect(
   ({
     login: {
-      codePage: {cameraBrokenMode, enterCodeErrorText, mode, myDeviceRole, otherDeviceRole, qrCode, qrCodeScanned, textCode},
+      codePage: {
+        cameraBrokenMode,
+        enterCodeErrorText,
+        mode,
+        myDeviceRole,
+        otherDeviceRole,
+        qrCode,
+        qrCodeScanned,
+        textCode,
+      },
     },
   }: TypedState) => ({
     cameraBrokenMode,

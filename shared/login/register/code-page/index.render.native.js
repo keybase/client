@@ -48,8 +48,16 @@ class CodePageRender extends Component<void, Props, void> {
   renderScanCode() {
     if (this.props.qrCodeScanned) {
       return (
-        <Box style={{...stylesQRScan, flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
-          <NativeActivityIndicator size='large' />
+        <Box
+          style={{
+            ...stylesQRScan,
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <NativeActivityIndicator size="large" />
         </Box>
       )
     }
