@@ -335,6 +335,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
           deviceType,
           email,
           genPGPBatch: false,
+          genPaper: false,
           inviteCode,
           passphrase: passphrase.stringValue(),
           skipMail,
