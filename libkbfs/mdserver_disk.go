@@ -160,7 +160,7 @@ func (md *MDServerDisk) getHandleID(ctx context.Context, handle tlf.Handle,
 	mStatus MergeStatus) (tlfID tlf.ID, created bool, err error) {
 	handleBytes, err := md.config.Codec().Encode(handle)
 	if err != nil {
-		return tlf.NullID, false, MDServerError{err}
+		return tlf.NullID, false, kbfsmd.ServerError{Err: err}
 	}
 
 	md.lock.Lock()
@@ -172,13 +172,13 @@ func (md *MDServerDisk) getHandleID(ctx context.Context, handle tlf.Handle,
 
 	buf, err := md.handleDb.Get(handleBytes, nil)
 	if err != nil && err != leveldb.ErrNotFound {
-		return tlf.NullID, false, MDServerError{err}
+		return tlf.NullID, false, kbfsmd.ServerError{Err: err}
 	}
 	if err == nil {
 		var id tlf.ID
 		err := id.UnmarshalBinary(buf)
 		if err != nil {
-			return tlf.NullID, false, MDServerError{err}
+			return tlf.NullID, false, kbfsmd.ServerError{Err: err}
 		}
 		return id, false, nil
 	}
@@ -186,21 +186,21 @@ func (md *MDServerDisk) getHandleID(ctx context.Context, handle tlf.Handle,
 	// Non-readers shouldn't be able to create the dir.
 	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
-		return tlf.NullID, false, MDServerError{err}
+		return tlf.NullID, false, kbfsmd.ServerError{Err: err}
 	}
 	if !handle.IsReader(session.UID) {
-		return tlf.NullID, false, MDServerErrorUnauthorized{}
+		return tlf.NullID, false, kbfsmd.ServerErrorUnauthorized{}
 	}
 
 	// Allocate a new random ID.
 	id, err := md.config.cryptoPure().MakeRandomTlfID(handle.IsPublic())
 	if err != nil {
-		return tlf.NullID, false, MDServerError{err}
+		return tlf.NullID, false, kbfsmd.ServerError{Err: err}
 	}
 
 	err = md.handleDb.Put(handleBytes, id.Bytes(), nil)
 	if err != nil {
-		return tlf.NullID, false, MDServerError{err}
+		return tlf.NullID, false, kbfsmd.ServerError{Err: err}
 	}
 	return id, true, nil
 }
@@ -250,7 +250,7 @@ func (md *MDServerDisk) getBranchKey(ctx context.Context, id tlf.ID) ([]byte, er
 func (md *MDServerDisk) getBranchID(ctx context.Context, id tlf.ID) (BranchID, error) {
 	branchKey, err := md.getBranchKey(ctx, id)
 	if err != nil {
-		return NullBranchID, MDServerError{err}
+		return NullBranchID, kbfsmd.ServerError{Err: err}
 	}
 
 	md.lock.RLock()
@@ -265,12 +265,12 @@ func (md *MDServerDisk) getBranchID(ctx context.Context, id tlf.ID) (BranchID, e
 		return NullBranchID, nil
 	}
 	if err != nil {
-		return NullBranchID, MDServerErrorBadRequest{Reason: "Invalid branch ID"}
+		return NullBranchID, kbfsmd.ServerErrorBadRequest{Reason: "Invalid branch ID"}
 	}
 	var bid BranchID
 	err = md.config.Codec().Decode(buf, &bid)
 	if err != nil {
-		return NullBranchID, MDServerErrorBadRequest{Reason: "Invalid branch ID"}
+		return NullBranchID, kbfsmd.ServerErrorBadRequest{Reason: "Invalid branch ID"}
 	}
 	return bid, nil
 }
@@ -286,15 +286,15 @@ func (md *MDServerDisk) putBranchID(
 
 	branchKey, err := md.getBranchKey(ctx, id)
 	if err != nil {
-		return MDServerError{err}
+		return kbfsmd.ServerError{Err: err}
 	}
 	buf, err := md.config.Codec().Encode(bid)
 	if err != nil {
-		return MDServerError{err}
+		return kbfsmd.ServerError{Err: err}
 	}
 	err = md.branchDb.Put(branchKey, buf, nil)
 	if err != nil {
-		return MDServerError{err}
+		return kbfsmd.ServerError{Err: err}
 	}
 
 	return nil
@@ -310,11 +310,11 @@ func (md *MDServerDisk) deleteBranchID(ctx context.Context, id tlf.ID) error {
 
 	branchKey, err := md.getBranchKey(ctx, id)
 	if err != nil {
-		return MDServerError{err}
+		return kbfsmd.ServerError{Err: err}
 	}
 	err = md.branchDb.Delete(branchKey, nil)
 	if err != nil {
-		return MDServerError{err}
+		return kbfsmd.ServerError{Err: err}
 	}
 	return nil
 }
@@ -340,7 +340,7 @@ func (md *MDServerDisk) GetForTLF(ctx context.Context, id tlf.ID,
 
 	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
-		return nil, MDServerError{err}
+		return nil, kbfsmd.ServerError{Err: err}
 	}
 
 	tlfStorage, err := md.getStorage(id)
@@ -375,7 +375,7 @@ func (md *MDServerDisk) GetRange(ctx context.Context, id tlf.ID,
 
 	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
-		return nil, MDServerError{err}
+		return nil, kbfsmd.ServerError{Err: err}
 	}
 
 	tlfStorage, err := md.getStorage(id)
@@ -395,7 +395,7 @@ func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned,
 
 	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
-		return MDServerError{err}
+		return kbfsmd.ServerError{Err: err}
 	}
 
 	tlfStorage, err := md.getStorage(rmds.MD.TlfID())
@@ -413,7 +413,7 @@ func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned,
 	if recordBranchID {
 		err = md.putBranchID(ctx, rmds.MD.TlfID(), rmds.MD.BID())
 		if err != nil {
-			return MDServerError{err}
+			return kbfsmd.ServerError{Err: err}
 		}
 	}
 
@@ -435,7 +435,7 @@ func (md *MDServerDisk) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID
 	}
 
 	if bid == NullBranchID {
-		return MDServerErrorBadRequest{Reason: "Invalid branch ID"}
+		return kbfsmd.ServerErrorBadRequest{Reason: "Invalid branch ID"}
 	}
 
 	currBID, err := md.getBranchID(ctx, id)
@@ -443,7 +443,7 @@ func (md *MDServerDisk) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID
 		return err
 	}
 	if currBID == NullBranchID || bid != currBID {
-		return MDServerErrorBadRequest{Reason: "Invalid branch ID"}
+		return kbfsmd.ServerErrorBadRequest{Reason: "Invalid branch ID"}
 	}
 
 	// Don't actually delete unmerged history. This is intentional
@@ -496,7 +496,7 @@ func (md *MDServerDisk) TruncateLock(ctx context.Context, id tlf.ID) (
 
 	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
-		return false, MDServerError{err}
+		return false, kbfsmd.ServerError{Err: err}
 	}
 
 	md.lock.Lock()
@@ -518,7 +518,7 @@ func (md *MDServerDisk) TruncateUnlock(ctx context.Context, id tlf.ID) (
 
 	session, err := md.config.currentSessionGetter().GetCurrentSession(ctx)
 	if err != nil {
-		return false, MDServerError{err}
+		return false, kbfsmd.ServerError{Err: err}
 	}
 
 	md.lock.Lock()

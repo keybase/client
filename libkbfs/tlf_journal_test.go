@@ -936,7 +936,7 @@ func testTLFJournalFlushMDConflict(t *testing.T, ver MetadataVer) {
 	}
 
 	var mdserver shimMDServer
-	mdserver.nextErr = MDServerErrorConflictRevision{}
+	mdserver.nextErr = kbfsmd.ServerErrorConflictRevision{}
 	config.mdserver = &mdserver
 
 	_, mdEnd, err := tlfJournal.getJournalEnds(ctx)
@@ -1215,7 +1215,7 @@ func testTLFJournalFlushOrderingAfterSquashAndCR(
 	// flush a full batch of blocks before hitting the conflict, as
 	// well as the marker for rev 10.
 	mdserver.onceOnPut = func() error {
-		return MDServerErrorConflictRevision{}
+		return kbfsmd.ServerErrorConflictRevision{}
 	}
 	mergedBare := config.makeMD(md2.Revision(), firstPrevRoot).bareMd
 	mergedBare.SetSerializedPrivateMetadata([]byte{1})
@@ -1582,7 +1582,7 @@ func testTLFJournalResolveBranch(t *testing.T, ver MetadataVer) {
 	}
 
 	var mdserver shimMDServer
-	mdserver.nextErr = MDServerErrorConflictRevision{}
+	mdserver.nextErr = kbfsmd.ServerErrorConflictRevision{}
 	config.mdserver = &mdserver
 
 	_, mdEnd, err := tlfJournal.getJournalEnds(ctx)

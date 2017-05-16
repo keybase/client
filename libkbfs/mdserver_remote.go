@@ -136,7 +136,7 @@ func (md *MDServerRemote) initNewConnection() {
 
 	md.conn = rpc.NewTLSConnection(
 		md.mdSrvAddr, kbfscrypto.GetRootCerts(md.mdSrvAddr),
-		MDServerErrorUnwrapper{}, md, md.rpcLogFactory,
+		kbfsmd.ServerErrorUnwrapper{}, md, md.rpcLogFactory,
 		md.config.MakeLogger(""), md.connOpts)
 	md.client = keybase1.MetadataClient{Cli: md.conn.GetClient()}
 }
@@ -382,7 +382,7 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 
 // ShouldRetry implements the ConnectionHandler interface.
 func (md *MDServerRemote) ShouldRetry(name string, err error) bool {
-	_, shouldThrottle := err.(MDServerErrorThrottle)
+	_, shouldThrottle := err.(kbfsmd.ServerErrorThrottle)
 	return shouldThrottle
 }
 

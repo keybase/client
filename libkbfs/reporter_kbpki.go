@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -167,7 +168,7 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	case NoSigChainError:
 		code = keybase1.FSErrorType_NO_SIG_CHAIN
 		params[errorParamUsername] = e.User.String()
-	case MDServerErrorTooManyFoldersCreated:
+	case kbfsmd.ServerErrorTooManyFoldersCreated:
 		code = keybase1.FSErrorType_TOO_MANY_FOLDERS
 		params[errorParamFolderLimit] = strconv.FormatUint(e.Limit, 10)
 		params[errorParamFoldersCreated] = strconv.FormatUint(e.Created, 10)

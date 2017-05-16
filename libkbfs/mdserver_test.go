@@ -91,7 +91,7 @@ func TestMDServerBasics(t *testing.T) {
 	rmds = signRMDSForTest(t, config.Codec(), config.Crypto(), brmd)
 	// MDv3 TODO: pass actual key bundles
 	err = mdServer.Put(ctx, rmds, nil)
-	require.IsType(t, MDServerErrorConflictRevision{}, err)
+	require.IsType(t, kbfsmd.ServerErrorConflictRevision{}, err)
 
 	// (4) push some new unmerged metadata blocks linking to the
 	//     middle merged block.

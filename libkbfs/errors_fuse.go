@@ -92,13 +92,6 @@ func (e DisallowedPrefixError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EINVAL)
 }
 
-var _ fuse.ErrorNumber = MDServerErrorUnauthorized{}
-
-// Errno implements the fuse.ErrorNumber interface for MDServerErrorUnauthorized.
-func (e MDServerErrorUnauthorized) Errno() fuse.Errno {
-	return fuse.Errno(syscall.EACCES)
-}
-
 var _ fuse.ErrorNumber = FileTooBigError{}
 
 // Errno implements the fuse.ErrorNumber interface for FileTooBigError.
@@ -124,13 +117,6 @@ var _ fuse.ErrorNumber = NoCurrentSessionError{}
 
 // Errno implements the fuse.ErrorNumber interface for NoCurrentSessionError.
 func (e NoCurrentSessionError) Errno() fuse.Errno {
-	return fuse.Errno(syscall.EACCES)
-}
-
-var _ fuse.ErrorNumber = MDServerErrorWriteAccess{}
-
-// Errno implements the fuse.ErrorNumber interface for MDServerErrorWriteAccess.
-func (e MDServerErrorWriteAccess) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EACCES)
 }
 

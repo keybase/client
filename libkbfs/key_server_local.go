@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/net/context"
@@ -116,7 +117,7 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 		serverHalfID, session.UID, key, serverHalf)
 	if err != nil {
 		ks.log.CDebugf(ctx, "error verifying server half ID: %+v", err)
-		return kbfscrypto.TLFCryptKeyServerHalf{}, MDServerErrorUnauthorized{
+		return kbfscrypto.TLFCryptKeyServerHalf{}, kbfsmd.ServerErrorUnauthorized{
 			Err: err}
 	}
 	return serverHalf, nil

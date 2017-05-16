@@ -80,7 +80,7 @@ func (m mdServerLocalTruncateLockManager) truncateLock(
 	}
 
 	// Locked by someone else.
-	return false, MDServerErrorLocked{}
+	return false, kbfsmd.ServerErrorLocked{}
 }
 
 func (m mdServerLocalTruncateLockManager) truncateUnlock(
@@ -97,7 +97,7 @@ func (m mdServerLocalTruncateLockManager) truncateUnlock(
 	}
 
 	// Locked by someone else.
-	return false, MDServerErrorLocked{}
+	return false, kbfsmd.ServerErrorLocked{}
 }
 
 // mdServerLocalUpdateManager manages the observers for a set of TLFs

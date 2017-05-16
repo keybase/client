@@ -1996,11 +1996,11 @@ func isRevisionConflict(err error) bool {
 	if err == nil {
 		return false
 	}
-	_, isConflictRevision := err.(MDServerErrorConflictRevision)
-	_, isConflictPrevRoot := err.(MDServerErrorConflictPrevRoot)
-	_, isConflictDiskUsage := err.(MDServerErrorConflictDiskUsage)
-	_, isConditionFailed := err.(MDServerErrorConditionFailed)
-	_, isConflictFolderMapping := err.(MDServerErrorConflictFolderMapping)
+	_, isConflictRevision := err.(kbfsmd.ServerErrorConflictRevision)
+	_, isConflictPrevRoot := err.(kbfsmd.ServerErrorConflictPrevRoot)
+	_, isConflictDiskUsage := err.(kbfsmd.ServerErrorConflictDiskUsage)
+	_, isConditionFailed := err.(kbfsmd.ServerErrorConditionFailed)
+	_, isConflictFolderMapping := err.(kbfsmd.ServerErrorConflictFolderMapping)
 	_, isJournal := err.(MDJournalConflictError)
 	return isConflictRevision || isConflictPrevRoot ||
 		isConflictDiskUsage || isConditionFailed ||
@@ -5498,7 +5498,7 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 					// only set within this same goroutine.
 					fbo.cancelUpdates()
 					return context.Canceled
-				case MDServerErrorCannotReadFinalizedTLF:
+				case kbfsmd.ServerErrorCannotReadFinalizedTLF:
 					fbo.log.CDebugf(ctx, "Abandoning updates since we can't "+
 						"read the finalized metadata for this TLF: %+v", err)
 					fbo.status.setPermErr(err)

@@ -84,7 +84,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	rmds := signRMDSForTest(t, codec, signer, brmd)
 	// MDv3 TODO: pass extra metadata
 	_, err = s.put(uid, verifyingKey, rmds, nil)
-	require.IsType(t, MDServerErrorConflictRevision{}, err)
+	require.IsType(t, kbfsmd.ServerErrorConflictRevision{}, err)
 
 	require.Equal(t, 10, getMDStorageLength(t, s, NullBranchID))
 

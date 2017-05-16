@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keybase/kbfs/dokan"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -67,7 +68,7 @@ func errToDokan(err error) error {
 		return dokan.ErrObjectNameNotFound
 	case libkbfs.NoSuchUserError:
 		return dokan.ErrObjectNameNotFound
-	case libkbfs.MDServerErrorUnauthorized:
+	case kbfsmd.ServerErrorUnauthorized:
 		return dokan.ErrAccessDenied
 	case nil:
 		return nil
