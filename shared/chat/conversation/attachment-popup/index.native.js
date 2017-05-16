@@ -71,8 +71,7 @@ const AttachmentPopup = ({
           onClick={onClose}
           style={{
             color: globalColors.blue,
-            marginLeft: globalMargins.small,
-            marginTop: globalMargins.small,
+            padding: globalMargins.small,
             borderBottomWidth: 1,
             borderBottomColor: globalColors.black_40,
           }}
@@ -93,9 +92,7 @@ const AttachmentPopup = ({
             Your device can not preview this file.
           </Text>
         </Box>
-        <Box style={styleHeaderFooter}>
-          <Icon type="iconfont-ellipsis" onClick={onMessageAction} />
-        </Box>
+        <Icon type="iconfont-ellipsis" onClick={onMessageAction} style={styleHeaderFooter} />
       </Box>
     )
   }
@@ -108,17 +105,15 @@ const AttachmentPopup = ({
         backgroundColor: globalColors.black,
       }}
     >
-      <Text
-        type="Body"
-        onClick={onClose}
-        style={{color: globalColors.white, marginLeft: globalMargins.small, marginTop: globalMargins.small}}
-      >
+      <Text type="Body" onClick={onClose} style={{color: globalColors.white, padding: globalMargins.small}}>
         Close
       </Text>
       <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={downloadedPath} />
-      <Box style={styleHeaderFooter}>
-        <Icon type="iconfont-ellipsis" style={{color: globalColors.white}} onClick={onMessageAction} />
-      </Box>
+      <Icon
+        type="iconfont-ellipsis"
+        style={{...styleHeaderFooter, color: globalColors.white}}
+        onClick={onMessageAction}
+      />
     </Box>
   )
 }
@@ -127,9 +122,8 @@ const styleHeaderFooter = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   flexShrink: 0,
-  height: 32,
-  marginLeft: globalMargins.small,
-  marginBottom: globalMargins.small,
+  height: 44,
+  paddingLeft: globalMargins.small,
 }
 
 export default AttachmentPopup
