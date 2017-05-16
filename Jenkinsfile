@@ -44,17 +44,9 @@ helpers.rootLinuxNode(env, {
     def glibcImage = docker.image("keybaseprivate/glibc")
     def clientImage = null
 
-    sh "curl -s http://169.254.169.254/latest/meta-data/public-ipv4 > public.txt"
-    sh "curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > private.txt"
-    def kbwebNodePublicIP = readFile('public.txt')
-    def kbwebNodePrivateIP = readFile('private.txt')
-    sh "rm public.txt"
-    sh "rm private.txt"
-    def httpRequestPublicIP = httpRequest("http://169.254.169.254/latest/meta-data/public-ipv4").content
-    def httpRequestPrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
+    def kbwebNodePrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
 
-    println "Running on host $kbwebNodePublicIP ($kbwebNodePrivateIP)"
-    println "httpRequest says host $httpRequestPublicIP ($httpRequestPrivateIP)"
+    println "Running on host $kbwebNodePrivateIP"
     println "Setting up build: ${env.BUILD_TAG}"
 
     def cause = helpers.getCauseString(currentBuild)
@@ -177,18 +169,14 @@ helpers.rootLinuxNode(env, {
                                 build([
                                     job: "/kbfs/master",
                                     parameters: [
-                                        [$class: 'StringParameterValue',
+                                        string(
                                             name: 'clientProjectName',
                                             value: env.JOB_NAME,
-                                        ],
-                                        [$class: 'StringParameterValue',
+                                        ),
+                                        string(
                                             name: 'kbwebNodePrivateIP',
                                             value: kbwebNodePrivateIP,
-                                        ],
-                                        [$class: 'StringParameterValue',
-                                            name: 'kbwebNodePublicIP',
-                                            value: kbwebNodePublicIP,
-                                        ],
+                                        ),
                                     ]
                                 ])
                             },
@@ -262,15 +250,23 @@ helpers.rootLinuxNode(env, {
                         }
                     },
                     test_osx: {
-                        helpers.nodeWithCleanup('macstadium', {}, {}) {
+                        def mountDir='/Volumes/untitled/client'
+                        helpers.nodeWithCleanup('macstadium', {}, {
+                                sh "rm -rf ${mountDir}"
+                            }) {
                             def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
                             def GOPATH="${BASEDIR}/go"
+                            dir(mountDir) {
+                                // Ensure that the mountDir exists
+                                sh "touch test.txt"
+                            }
                             withEnv([
                                 "GOPATH=${GOPATH}",
                                 "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
                                 "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
                                 "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                 "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                                "TMPDIR=${mountDir}",
                             ]) {
                             ws("$GOPATH/src/github.com/keybase/client") {
                                 println "Checkout OS X"
