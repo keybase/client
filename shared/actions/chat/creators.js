@@ -307,6 +307,21 @@ function incomingMessage(activity: ChatTypes.ChatActivity): Constants.IncomingMe
   return {payload: {activity}, type: 'chat:incomingMessage'}
 }
 
+function incomingTyping(activity: ChatTypes.TyperInfo): Constants.IncomingTyping {
+  return {payload: {activity}, type: 'chat:incomingTyping'}
+}
+
+function updateTyping(
+  conversationIDKey: Constants.ConversationIDKey,
+  typing: boolean
+): Constants.UpdateTyping {
+  return {payload: {conversationIDKey, typing}, type: 'chat:updateTyping'}
+}
+
+function setTypers(conversationIDKey: Constants.ConversationIDKey, typing: Array<string>) {
+  return {payload: {conversationIDKey, typing}, type: 'chat:setTypers'}
+}
+
 function updateBrokenTracker(userToBroken: {[username: string]: boolean}): Constants.UpdateBrokenTracker {
   return {payload: {userToBroken}, type: 'chat:updateBrokenTracker'}
 }
@@ -549,6 +564,7 @@ export {
   getInboxAndUnbox,
   inboxStale,
   incomingMessage,
+  incomingTyping,
   loadAttachment,
   loadAttachmentPreview,
   loadInbox,
@@ -579,6 +595,7 @@ export {
   setInitialConversation,
   setLoaded,
   setSelectedRouteState,
+  setTypers,
   setUnboxing,
   setupChatHandlers,
   showEditor,
@@ -600,6 +617,7 @@ export {
   updateSupersededByState,
   updateSupersedesState,
   updateTempMessage,
+  updateTyping,
   updatedMetadata,
   uploadProgress,
 }
