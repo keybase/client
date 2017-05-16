@@ -28,7 +28,7 @@ func (n NullConfiguration) GetChatDbFilename() string                           
 func (n NullConfiguration) GetPvlKitFilename() string                                      { return "" }
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
-func (n NullConfiguration) GetEnableSharedDH() (bool, bool)                                { return false, false }
+func (n NullConfiguration) GetSupportPerUserKey() (bool, bool)                             { return false, false }
 func (n NullConfiguration) GetProxy() string                                               { return "" }
 func (n NullConfiguration) GetGpgHome() string                                             { return "" }
 func (n NullConfiguration) GetBundledCA(h string) string                                   { return "" }
@@ -148,9 +148,9 @@ type TestParameters struct {
 	Devel bool
 	// If we're in dev mode, the name for this test, with a random
 	// suffix.
-	DevelName      string
-	RuntimeDir     string
-	EnableSharedDH bool
+	DevelName         string
+	RuntimeDir        string
+	SupportPerUserKey bool
 
 	// set to true to use production run mode in tests
 	UseProductionRunMode bool
@@ -652,16 +652,16 @@ func (e *Env) GetEmail() string {
 	)
 }
 
-func (e *Env) GetEnableSharedDH() bool {
+func (e *Env) GetSupportPerUserKey() bool {
 	if e.GetRunMode() != DevelRunMode {
 		return false
 	}
 
 	return e.GetBool(false,
-		func() (bool, bool) { return e.Test.EnableSharedDH, e.Test.EnableSharedDH },
-		func() (bool, bool) { return e.getEnvBool("KEYBASE_ENABLE_SHARED_DH") },
-		func() (bool, bool) { return e.config.GetEnableSharedDH() },
-		func() (bool, bool) { return e.cmd.GetEnableSharedDH() },
+		func() (bool, bool) { return e.Test.SupportPerUserKey, e.Test.SupportPerUserKey },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_SUPPORT_PER_USER_KEY") },
+		func() (bool, bool) { return e.config.GetSupportPerUserKey() },
+		func() (bool, bool) { return e.cmd.GetSupportPerUserKey() },
 	)
 }
 

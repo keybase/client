@@ -2,6 +2,6 @@
 
 import React, {Component} from 'react'
 
-export type Props = { }
+export type Props = {}
 
-declare export default class Help extends Component<void, Props, void> { }
+declare export default class Help extends Component<void, Props, void> {}

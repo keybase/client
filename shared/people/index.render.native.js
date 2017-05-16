@@ -2,7 +2,7 @@
 import {Component} from 'react'
 
 export default class PeopleRender extends Component {
-  render () {
+  render() {
     return null
   }
 }

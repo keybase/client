@@ -11,7 +11,7 @@ const LinkWithIcon = ({label, icon, color, onClick, style}: Props) => (
   <ClickableBox style={style} onClick={onClick}>
     <Box style={styleContainer}>
       <Icon style={{...styleIcon, color}} type={icon} />
-      <Text style={{...styleLabel, color}} type='BodyPrimaryLink'>{label}</Text>
+      <Text style={{...styleLabel, color}} type="BodyPrimaryLink">{label}</Text>
     </Box>
   </ClickableBox>
 )

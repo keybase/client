@@ -3,7 +3,7 @@ import {Iterable} from 'immutable'
 import type {State} from '../constants/reducer'
 import type {Action} from '../constants/types/flux'
 
-function updateInKeypath (map: any, keyPath: Array<String | number>, v: any): any {
+function updateInKeypath(map: any, keyPath: Array<String | number>, v: any): any {
   const frontKey = keyPath[0]
   var copy: any
   if (keyPath.length === 1) {
@@ -37,7 +37,7 @@ function updateInKeypath (map: any, keyPath: Array<String | number>, v: any): an
   return {...map, [frontKey]: updateInKeypath(map[frontKey], keyPath.slice(1), v)}
 }
 
-export default function (state: State, action: any): State {
+export default function(state: State, action: any): State {
   if (action.type === 'dev:devEdit') {
     const keyPath = [].concat(action.payload.keyPath)
     const newValue = action.payload.newValue
@@ -48,7 +48,7 @@ export default function (state: State, action: any): State {
   return state
 }
 
-export function devEditAction (keyPath: Array<String>, newValue: any): Action {
+export function devEditAction(keyPath: Array<String>, newValue: any): Action {
   return {
     payload: {keyPath, newValue},
     type: 'dev:devEdit',

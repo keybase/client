@@ -24,7 +24,7 @@ const propsBase: RenderProps = {
 const dumbMap: DumbComponentMap<EditProfile> = {
   component: EditProfile,
   mocks: {
-    'Normal': {
+    Normal: {
       ...propsBase,
     },
     'Too long': {

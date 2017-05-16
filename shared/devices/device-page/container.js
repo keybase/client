@@ -11,18 +11,22 @@ import type {DeviceDetail} from '../../constants/devices'
 import type {TypedState} from '../../constants/reducer'
 
 const buildTimeline = (device: DeviceDetail) => {
-  const revoked = device.get('revokedAt') && [{
-    desc: `Revoked ${moment(device.get('revokedAt')).format('MMM D, YYYY')}`,
-    // $FlowIssue getIn
-    subDesc: device.getIn(['revokedBy', 'name'], ''),
-    type: 'Revoked',
-  }]
+  const revoked = device.get('revokedAt') && [
+    {
+      desc: `Revoked ${moment(device.get('revokedAt')).format('MMM D, YYYY')}`,
+      // $FlowIssue getIn
+      subDesc: device.getIn(['revokedBy', 'name'], ''),
+      type: 'Revoked',
+    },
+  ]
 
-  const lastUsed = device.lastUsed && [{
-    desc: `Last used ${moment(device.get('lastUsed')).format('MMM D, YYYY')}`,
-    subDesc: moment(device.get('lastUsed')).fromNow(),
-    type: 'LastUsed',
-  }]
+  const lastUsed = device.lastUsed && [
+    {
+      desc: `Last used ${moment(device.get('lastUsed')).format('MMM D, YYYY')}`,
+      subDesc: moment(device.get('lastUsed')).fromNow(),
+      type: 'LastUsed',
+    },
+  ]
 
   const added = {
     desc: `Added ${moment(device.get('created')).format('MMM D, YYYY')}`,
@@ -31,11 +35,7 @@ const buildTimeline = (device: DeviceDetail) => {
     type: 'Added',
   }
 
-  return [
-    ...revoked || [],
-    ...lastUsed || [],
-    added,
-  ]
+  return [...(revoked || []), ...(lastUsed || []), added]
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
@@ -48,27 +48,31 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
   showRevokeDevicePage: () => dispatch(showRevokePage(routeProps.deviceID)),
 })
 
-const bannerColor = props => ({
-  'OutOfDate': globalColors.brown_60,
-  'WillUnlock': globalColors.white,
-}[props.device.type])
+const bannerColor = props =>
+  ({
+    OutOfDate: globalColors.brown_60,
+    WillUnlock: globalColors.white,
+  }[props.device.type])
 
-const bannerBackgroundColor = props => ({
-  'OutOfDate': globalColors.yellow,
-  'WillUnlock': globalColors.blue,
-}[props.device.type])
+const bannerBackgroundColor = props =>
+  ({
+    OutOfDate: globalColors.yellow,
+    WillUnlock: globalColors.blue,
+  }[props.device.type])
 
-const icon = props => ({
-  'backup': 'icon-paper-key-64',
-  'desktop': 'icon-computer-64',
-  'mobile': 'icon-phone-64',
-}[props.device.type])
+const icon = props =>
+  ({
+    backup: 'icon-paper-key-64',
+    desktop: 'icon-computer-64',
+    mobile: 'icon-phone-64',
+  }[props.device.type])
 
-const revokeName = props => ({
-  'backup': 'paper key',
-  'desktop': 'device',
-  'mobile': 'device',
-}[props.device.type])
+const revokeName = props =>
+  ({
+    backup: 'paper key',
+    desktop: 'device',
+    mobile: 'device',
+  }[props.device.type])
 
 const makeRenderProps = props => ({
   ...props,
@@ -86,7 +90,4 @@ const makeRenderProps = props => ({
   type: props.device.type,
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  mapProps(makeRenderProps),
-)(DevicePage)
+export default compose(connect(mapStateToProps, mapDispatchToProps), mapProps(makeRenderProps))(DevicePage)

@@ -6,17 +6,12 @@ import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 
 class RequestInviteSuccess extends Component {
-  render () {
-    return (
-      <Render
-        onBack={this.props.restartSignup}
-      />
-    )
+  render() {
+    return <Render onBack={this.props.restartSignup} />
   }
 }
 
 // $FlowIssue type this connector
-export default connect(
-  state => ({}),
-  dispatch => bindActionCreators(signupActions, dispatch)
-)(RequestInviteSuccess)
+export default connect(state => ({}), dispatch => bindActionCreators(signupActions, dispatch))(
+  RequestInviteSuccess
+)

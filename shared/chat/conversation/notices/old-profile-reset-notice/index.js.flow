@@ -6,4 +6,4 @@ export type Props = {
   onOpenNewerConversation: () => void,
 }
 
-export default class OldProfileResetNotice extends Component<void, Props, void> { }
+export default class OldProfileResetNotice extends Component<void, Props, void> {}

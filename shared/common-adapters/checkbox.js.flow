@@ -7,7 +7,7 @@ export type Props = {
   onCheck: (newCheckedValue: boolean) => void,
   checked: boolean,
   style?: Object,
-  disabled?: boolean
+  disabled?: boolean,
 }
 
-declare export default class Checkbox extends Component<void, Props, void> { }
+declare export default class Checkbox extends Component<void, Props, void> {}

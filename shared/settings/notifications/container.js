@@ -7,11 +7,11 @@ import {notificationsRefresh, notificationsSave, notificationsToggle} from '../.
 import type {TypedState} from '../../constants/reducer'
 
 class NotificationsContainer extends Component {
-  componentWillMount () {
+  componentWillMount() {
     this.props.onRefresh()
   }
 
-  render () {
+  render() {
     return <Notifications {...this.props} />
   }
 }
@@ -26,5 +26,5 @@ export default connect(
     onToggle: (name: string) => dispatch(notificationsToggle(name)),
     onToggleUnsubscribeAll: () => dispatch(notificationsToggle()),
     onRefresh: () => dispatch(notificationsRefresh()),
-  }),
+  })
 )(NotificationsContainer)

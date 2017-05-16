@@ -42,22 +42,22 @@ type LogoutHook interface {
 }
 
 type GlobalContext struct {
-	Log               logger.Logger // Handles all logging
-	VDL               *VDebugLog    // verbose debug log
-	Env               *Env          // Env variables, cmdline args & config
-	SKBKeyringMu      *sync.Mutex   // Protects all attempts to mutate the SKBKeyringFile
-	Keyrings          *Keyrings     // Gpg Keychains holding keys
-	sharedDHKeyringMu *sync.Mutex
-	sharedDHKeyring   *SharedDHKeyring     // Keyring holding shared DH keypairs
-	API               API                  // How to make a REST call to the server
-	Resolver          *Resolver            // cache of resolve results
-	LocalDb           *JSONLocalDb         // Local DB for cache
-	LocalChatDb       *JSONLocalDb         // Local DB for cache
-	MerkleClient      *MerkleClient        // client for querying server's merkle sig tree
-	XAPI              ExternalAPI          // for contacting Twitter, Github, etc.
-	Output            io.Writer            // where 'Stdout'-style output goes
-	DNSNSFetcher      DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
-	AppState          *AppState            // The state of focus for the currently running instance of the app
+	Log              logger.Logger // Handles all logging
+	VDL              *VDebugLog    // verbose debug log
+	Env              *Env          // Env variables, cmdline args & config
+	SKBKeyringMu     *sync.Mutex   // Protects all attempts to mutate the SKBKeyringFile
+	Keyrings         *Keyrings     // Gpg Keychains holding keys
+	perUserKeyringMu *sync.Mutex
+	perUserKeyring   *PerUserKeyring      // Keyring holding per user keys
+	API              API                  // How to make a REST call to the server
+	Resolver         *Resolver            // cache of resolve results
+	LocalDb          *JSONLocalDb         // Local DB for cache
+	LocalChatDb      *JSONLocalDb         // Local DB for cache
+	MerkleClient     *MerkleClient        // client for querying server's merkle sig tree
+	XAPI             ExternalAPI          // for contacting Twitter, Github, etc.
+	Output           io.Writer            // where 'Stdout'-style output goes
+	DNSNSFetcher     DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
+	AppState         *AppState            // The state of focus for the currently running instance of the app
 
 	cacheMu        *sync.RWMutex   // protects all caches
 	ProofCache     *ProofCache     // where to cache proof results
@@ -142,7 +142,7 @@ func NewGlobalContext() *GlobalContext {
 		Log:                log,
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
-		sharedDHKeyringMu:  new(sync.Mutex),
+		perUserKeyringMu:   new(sync.Mutex),
 		cacheMu:            new(sync.RWMutex),
 		socketWrapperMu:    new(sync.RWMutex),
 		shutdownOnce:       new(sync.Once),
@@ -255,8 +255,8 @@ func (g *GlobalContext) Logout() error {
 
 	g.CallLogoutHooks()
 
-	if g.Env.GetEnableSharedDH() {
-		g.ClearSharedDHKeyring()
+	if g.Env.GetSupportPerUserKey() {
+		g.ClearPerUserKeyring()
 	}
 
 	if g.TrackCache != nil {
@@ -762,8 +762,8 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 func (g *GlobalContext) CallLoginHooks() {
 	g.Log.Debug("G#CallLoginHooks")
 
-	if g.Env.GetEnableSharedDH() {
-		_ = g.BumpSharedDHKeyring()
+	if g.Env.GetSupportPerUserKey() {
+		_ = g.BumpPerUserKeyring()
 	}
 
 	// Do so outside the lock below
@@ -917,13 +917,14 @@ func (g *GlobalContext) KeyfamilyChanged(u keybase1.UID) {
 		// TODO: remove this when KBFS handles KeyfamilyChanged
 		g.NotifyRouter.HandleUserChanged(u)
 	}
+
 }
 
 func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.Log.Debug("+ UserChanged(%s)", u)
 	defer g.Log.Debug("- UserChanged(%s)", u)
 
-	g.BumpSharedDHKeyring()
+	g.BumpPerUserKeyring()
 
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
@@ -942,63 +943,63 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.uchMu.Unlock()
 }
 
-func (g *GlobalContext) GetSharedDHKeyring() (ret *SharedDHKeyring, err error) {
-	defer g.Trace("G#GetSharedDHKeyring", func() error { return err })()
-	if !g.Env.GetEnableSharedDH() {
-		return nil, errors.New("shared dh disabled")
+func (g *GlobalContext) GetPerUserKeyring() (ret *PerUserKeyring, err error) {
+	defer g.Trace("G#GetPerUserKeyring", func() error { return err })()
+	if !g.Env.GetSupportPerUserKey() {
+		return nil, errors.New("per-user-key support disabled")
 	}
-	g.sharedDHKeyringMu.Lock()
-	defer g.sharedDHKeyringMu.Unlock()
-	if g.sharedDHKeyring == nil {
-		return nil, fmt.Errorf("SharedDHKeyring not present")
+	g.perUserKeyringMu.Lock()
+	defer g.perUserKeyringMu.Unlock()
+	if g.perUserKeyring == nil {
+		return nil, fmt.Errorf("PerUserKeyring not present")
 	}
-	return g.sharedDHKeyring, nil
+	return g.perUserKeyring, nil
 }
 
-func (g *GlobalContext) ClearSharedDHKeyring() {
-	defer g.Trace("G#ClearSharedDHKeyring", func() error { return nil })()
-	if !g.Env.GetEnableSharedDH() {
+func (g *GlobalContext) ClearPerUserKeyring() {
+	defer g.Trace("G#ClearPerUserKeyring", func() error { return nil })()
+	if !g.Env.GetSupportPerUserKey() {
 		return
 	}
-	g.sharedDHKeyringMu.Lock()
-	defer g.sharedDHKeyringMu.Unlock()
-	g.sharedDHKeyring = nil
+	g.perUserKeyringMu.Lock()
+	defer g.perUserKeyringMu.Unlock()
+	g.perUserKeyring = nil
 }
 
-// BumpSharedDHKeyring recreates SharedDHKeyring if the uid changes.
+// BumpPerUserKeyring recreates PerUserKeyring if the uid changes.
 // Using this during provisioning is nigh impossible because GetMyUID
 // routes through LoginSession and deadlocks.
-func (g *GlobalContext) BumpSharedDHKeyring() error {
-	g.Log.Debug("G#BumpSharedDHKeyring")
-	if !g.Env.GetEnableSharedDH() {
-		return errors.New("shared dh disabled")
+func (g *GlobalContext) BumpPerUserKeyring() error {
+	g.Log.Debug("G#BumpPerUserKeyring")
+	if !g.Env.GetSupportPerUserKey() {
+		return errors.New("per-user-key support disabled")
 	}
 	myUID := g.GetMyUID()
 
 	// Don't do any operations under these locks that could come back and hit them again.
 	// That's why GetMyUID up above is not under this lock.
-	g.sharedDHKeyringMu.Lock()
-	defer g.sharedDHKeyringMu.Unlock()
+	g.perUserKeyringMu.Lock()
+	defer g.perUserKeyringMu.Unlock()
 
 	makeNew := func() error {
-		sdhk, err := NewSharedDHKeyring(g, myUID)
+		pukring, err := NewPerUserKeyring(g, myUID)
 		if err != nil {
-			g.Log.Warning("G#BumpSharedDHKeyring -> failed: %s", err)
-			g.sharedDHKeyring = nil
+			g.Log.Warning("G#BumpPerUserKeyring -> failed: %s", err)
+			g.perUserKeyring = nil
 			return err
 		}
-		g.Log.Debug("G#BumpSharedDHKeyring -> new")
-		g.sharedDHKeyring = sdhk
+		g.Log.Debug("G#BumpPerUserKeyring -> new")
+		g.perUserKeyring = pukring
 		return nil
 	}
 
-	if g.sharedDHKeyring == nil {
+	if g.perUserKeyring == nil {
 		return makeNew()
 	}
-	sdhUID := g.sharedDHKeyring.GetUID()
+	sdhUID := g.perUserKeyring.GetUID()
 	if sdhUID.Equal(myUID) {
 		// Leave the existing keyring in place for the same user
-		g.Log.Debug("G#BumpSharedDHKeyring -> ignore")
+		g.Log.Debug("G#BumpPerUserKeyring -> ignore")
 		return nil
 	}
 	return makeNew()

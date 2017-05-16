@@ -18,7 +18,7 @@ export type Props = {
   style?: Object,
   commaColor?: string,
   containerStyle?: Object,
-  inline?: bool,
+  inline?: boolean,
   users: UserList,
   redColor?: string,
   title?: string,
@@ -33,4 +33,4 @@ export type Props = {
 
 declare export function usernameText(props: Props): void
 
-declare export default class Usernames extends Component<void, Props, void> { }
+declare export default class Usernames extends Component<void, Props, void> {}

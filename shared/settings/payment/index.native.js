@@ -1,7 +1,7 @@
 // @flow
 import type {Props} from './index'
 
-function PaymentForm (props: Props) {
+function PaymentForm(props: Props) {
   return null
 }
 

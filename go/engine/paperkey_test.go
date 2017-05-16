@@ -114,17 +114,15 @@ func TestPaperKeyMulti(t *testing.T) {
 	testPaperKeyMulti(t, false)
 }
 
-func TestPaperKeyMultiSDH(t *testing.T) {
-	t.Skip("TODO waiting for PerUserSecretRewrite")
-
+func TestPaperKeyMultiPUK(t *testing.T) {
 	testPaperKeyMulti(t, true)
 }
 
 // Generate multiple paper keys
-func testPaperKeyMulti(t *testing.T, enableSharedDH bool) {
+func testPaperKeyMulti(t *testing.T, supportPerUserKey bool) {
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
-	tc.Tp.EnableSharedDH = enableSharedDH
+	tc.Tp.SupportPerUserKey = supportPerUserKey
 
 	f := func(arg *SignupEngineRunArg) {
 		arg.SkipPaper = true
@@ -196,12 +194,12 @@ func TestPaperKeyRevoke(t *testing.T) {
 }
 
 // make a paperkey after revoking a previous one
-func TestPaperKeyAfterRevokeSDH(t *testing.T) {
-	t.Skip("TODO waiting for PerUserSecretRewrite")
+func TestPaperKeyAfterRevokePUK(t *testing.T) {
+	t.Skip("TODO waiting for CORE-4895 RevokePUK")
 
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
-	tc.Tp.EnableSharedDH = true
+	tc.Tp.SupportPerUserKey = true
 
 	fu := CreateAndSignupFakeUser(tc, "login")
 

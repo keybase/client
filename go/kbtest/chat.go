@@ -588,6 +588,10 @@ func (m *ChatRemoteMock) SyncAll(ctx context.Context, arg chat1.SyncAllArg) (res
 	}, nil
 }
 
+func (m *ChatRemoteMock) UpdateTypingRemote(ctx context.Context, arg chat1.UpdateTypingRemoteArg) error {
+	return nil
+}
+
 type convByNewlyUpdated struct {
 	mock *ChatRemoteMock
 }

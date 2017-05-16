@@ -6,13 +6,22 @@ package badges
 import (
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
+
+type InboxVersionSource interface {
+	GetInboxVersion(context.Context, gregor1.UID) (chat1.InboxVers, error)
+}
+
+type nullInboxVersionSource struct {
+}
+
+func (n nullInboxVersionSource) GetInboxVersion(ctx context.Context, uid gregor1.UID) (chat1.InboxVers, error) {
+	return chat1.InboxVers(0), nil
+}
 
 // Badger keeps a BadgeState up to date and broadcasts it to electron.
 // This is the client-specific glue.
@@ -22,16 +31,20 @@ import (
 // - Logout
 type Badger struct {
 	libkb.Contextified
-	globals.ChatContextified
-	badgeState *BadgeState
+	badgeState     *BadgeState
+	iboxVersSource InboxVersionSource
 }
 
-func NewBadger(g *libkb.GlobalContext, cg *globals.ChatContext) *Badger {
+func NewBadger(g *libkb.GlobalContext) *Badger {
 	return &Badger{
-		Contextified:     libkb.NewContextified(g),
-		ChatContextified: globals.NewChatContextified(cg),
-		badgeState:       NewBadgeState(g.Log),
+		Contextified:   libkb.NewContextified(g),
+		badgeState:     NewBadgeState(g.Log),
+		iboxVersSource: nullInboxVersionSource{},
 	}
+}
+
+func (b *Badger) SetInboxVersionSource(s InboxVersionSource) {
+	b.iboxVersSource = s
 }
 
 func (b *Badger) PushState(state gregor1.State) {
@@ -54,7 +67,7 @@ func (b *Badger) PushChatUpdate(update chat1.UnreadUpdate, inboxVers chat1.Inbox
 
 func (b *Badger) inboxVersion(ctx context.Context) chat1.InboxVers {
 	uid := b.G().Env.GetUID()
-	vers, err := storage.NewInbox(globals.NewContext(b.G(), b.ChatG()), uid.ToBytes()).Version(ctx)
+	vers, err := b.iboxVersSource.GetInboxVersion(ctx, uid.ToBytes())
 	if err != nil {
 		b.G().Log.Debug("Badger: inboxVersion error: %s", err.Error())
 		return chat1.InboxVers(0)

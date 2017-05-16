@@ -600,3 +600,13 @@ func MakeByte32(a []byte) [32]byte {
 	copy(b[:], a)
 	return b
 }
+
+func MakeByte32Soft(a []byte) ([32]byte, error) {
+	const n = 32
+	var b [n]byte
+	if len(a) != n {
+		return b, fmt.Errorf("MakeByte expected len %v but got %v slice", n, len(a))
+	}
+	copy(b[:], a)
+	return b, nil
+}

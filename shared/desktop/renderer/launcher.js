@@ -25,17 +25,17 @@ if (module.hot) {
 
 let _store
 
-function setupAvatar () {
+function setupAvatar() {
   initAvatarLookup(getUserImageMap)
   initAvatarLoad(loadUserImageMap)
 }
 
 class RemoteMenubar extends Component {
-  constructor () {
+  constructor() {
     super()
     loadPerf()
   }
-  render () {
+  render() {
     return (
       <Root store={_store}>
         <Menubar />
@@ -46,7 +46,7 @@ class RemoteMenubar extends Component {
 
 setupContextMenu(remote.getCurrentWindow())
 
-function load () {
+function load() {
   setupAvatar()
   if (!_store) {
     _store = new RemoteStore({component: 'menubar'})

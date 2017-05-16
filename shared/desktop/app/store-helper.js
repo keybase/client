@@ -8,15 +8,15 @@ import {selector as unlockFoldersSelector} from '../../unlock-folders'
 
 import type {Components} from '../renderer/remote-component'
 
-const componentToSelector :{[key: Components]: Function} = {
-  'tracker': trackerSelector,
-  'menubar': menubarSelector,
-  'unlockFolders': unlockFoldersSelector,
-  'pinentry': pineentrySelector,
-  'purgeMessage': remotePurgeMessageSelector,
+const componentToSelector: {[key: Components]: Function} = {
+  tracker: trackerSelector,
+  menubar: menubarSelector,
+  unlockFolders: unlockFoldersSelector,
+  pinentry: pineentrySelector,
+  purgeMessage: remotePurgeMessageSelector,
 }
 
-export default function (mainWindow: any) {
+export default function(mainWindow: any) {
   const subscribeStoreSubscribers = []
   let store = {}
 
@@ -37,7 +37,7 @@ export default function (mainWindow: any) {
       if (newStore) {
         sender.send('stateChange', newStore)
       }
-    } catch (_) { }
+    } catch (_) {}
   })
 
   ipcMain.on('stateChange', (event, incomingStore) => {

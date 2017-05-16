@@ -13,6 +13,6 @@ export type Props = {
   retrying: boolean,
 }
 
-export class Intro extends Component<void, Props, void> { }
-export class Splash extends Component<void, Props, void> { }
-export class Failure extends Component<void, Props, void> { }
+export class Intro extends Component<void, Props, void> {}
+export class Splash extends Component<void, Props, void> {}
+export class Failure extends Component<void, Props, void> {}

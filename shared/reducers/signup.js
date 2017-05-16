@@ -22,7 +22,7 @@ const initialState: Constants.State = {
 }
 
 /* eslint-disable no-fallthrough */
-export default function (state: Constants.State = initialState, action: Constants.Actions): Constants.State {
+export default function(state: Constants.State = initialState, action: Constants.Actions): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
     case Constants.resetSignup: // fallthrough

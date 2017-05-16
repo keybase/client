@@ -9,7 +9,10 @@ const initialState: Constants.State = {
   seenMsgs: {},
 }
 
-export default function (state: Constants.State = initialState, action: Constants.GregorActions): Constants.State {
+export default function(
+  state: Constants.State = initialState,
+  action: Constants.GregorActions
+): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}

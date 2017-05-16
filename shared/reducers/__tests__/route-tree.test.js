@@ -4,10 +4,7 @@
 import routeTreeReducer from '../route-tree'
 import {State} from '../../constants/route-tree'
 import {RouteDefNode, routeSetProps, routeNavigate} from '../../route-tree'
-import {
-  navigateAppend,
-  navigateUp,
-} from '../../actions/route-tree'
+import {navigateAppend, navigateUp} from '../../actions/route-tree'
 
 import type {PropsPath} from '../../route-tree'
 
@@ -97,7 +94,9 @@ describe('routeTree reducer', () => {
       const action = navigateAppend(['baz'], ['foo', 'bar'])
       const newState = routeTreeReducer(new State({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
-      expect(newState.routeState).toEqual(routeSetProps(routeDef, null, (['baz']: Array<string>), ['foo', 'bar']))
+      expect(newState.routeState).toEqual(
+        routeSetProps(routeDef, null, (['baz']: Array<string>), ['foo', 'bar'])
+      )
     })
   })
 })

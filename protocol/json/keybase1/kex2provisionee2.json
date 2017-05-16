@@ -18,29 +18,22 @@
         {
           "type": "HelloRes",
           "name": "sigPayload"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "SharedDHSecretKeyBox"
-          },
-          "name": "sdhBoxes"
         }
       ]
     },
     {
       "type": "record",
-      "name": "SharedDHKeyGeneration",
+      "name": "PerUserKeyGeneration",
       "fields": [],
       "typedef": "int",
       "lint": "ignore"
     },
     {
       "type": "record",
-      "name": "SharedDHSecretKeyBox",
+      "name": "PerUserKeyBox",
       "fields": [
         {
-          "type": "SharedDHKeyGeneration",
+          "type": "PerUserKeyGeneration",
           "name": "generation"
         },
         {
@@ -89,11 +82,11 @@
           "type": "string"
         },
         {
-          "name": "sdhBoxes",
-          "type": {
-            "type": "array",
-            "items": "SharedDHSecretKeyBox"
-          }
+          "name": "pukBox",
+          "type": [
+            null,
+            "PerUserKeyBox"
+          ]
         }
       ],
       "response": null
