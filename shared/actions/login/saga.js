@@ -186,7 +186,7 @@ const kex2Sagas = (onBackSaga, provisionerSuccessSaga, finishedSaga) => {
 }
 
 function* cancelLogin(response) {
-  yield call(navBasedOnLoginState)
+  yield put(navigateTo(['login'], [loginTab]))
   if (response) {
     const engineInst = yield call(engine)
     yield put(Creators.waitingForResponse(true))
