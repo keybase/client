@@ -11,9 +11,7 @@ import {isMobile} from '../../../constants/platform'
 import type {Props} from './index.render'
 
 const renderError = (error: RPCError) => {
-  const fields = (Array.isArray(error.fields)
-    ? error.fields
-    : []).reduce((acc, f) => {
+  const fields = (Array.isArray(error.fields) ? error.fields : []).reduce((acc, f) => {
     const k = f && typeof f.key === 'string' ? f.key : ''
     acc[k] = f.value || ''
     return acc
@@ -26,10 +24,7 @@ const renderError = (error: RPCError) => {
             <Text type="Body">
               You can't authorize by passphrase, since you have established device or paper keys. You can go back and pick a device or paper key, or
               {' '}
-              <Text
-                type="BodyPrimaryLink"
-                onClick={() => openURL('https://keybase.io/#account-reset')}
-              >
+              <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
                 reset your account entirely
               </Text>
               .
@@ -71,10 +66,7 @@ const renderError = (error: RPCError) => {
                 {' '}
                 - or,
                 {' '}
-                <Text
-                  type="BodyPrimaryLink"
-                  onClick={() => openURL('https://keybase.io/#account-reset')}
-                >
+                <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
                   reset your account entirely
                 </Text>
                 .
@@ -119,10 +111,7 @@ const renderError = (error: RPCError) => {
                 {' '}
                 - Or,
                 {' '}
-                <Text
-                  type="BodyPrimaryLink"
-                  onClick={() => openURL('https://keybase.io/#account-reset')}
-                >
+                <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
                   reset your account entirely
                 </Text>
                 .
@@ -162,10 +151,7 @@ const renderError = (error: RPCError) => {
         <Box style={styleContent}>
           <Box style={{...globalStyles.flexBoxColumn, ...styleText}}>
             <Text type="Body">Looks like thats a bad passphrase.</Text>
-            <Text
-              type="BodyPrimaryLink"
-              onClick={() => openURL('https://keybase.io/#password-reset')}
-            >
+            <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#password-reset')}>
               Reset your passphrase?
             </Text>
           </Box>
@@ -205,10 +191,7 @@ const renderError = (error: RPCError) => {
               {' '}
               - Or,
               {' '}
-              <Text
-                type="BodyPrimaryLink"
-                onClick={() => openURL('https://keybase.io/#account-reset')}
-              >
+              <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
                 reset your account and start fresh
               </Text>
             </Text>
