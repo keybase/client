@@ -128,8 +128,18 @@ func (e NoSuchFolderListError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.ENOENT)
 }
 
+var _ fuse.ErrorNumber = RenameAcrossDirsError{}
+
 // Errno implements the fuse.ErrorNumber interface for
 // RenameAcrossDirsError.
 func (e RenameAcrossDirsError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EXDEV)
+}
+
+var _ fuse.ErrorNumber = &ErrDiskLimitTimeout{}
+
+// Errno implements the fuse.ErrorNumber interface for
+// ErrDiskLimitTimeout.
+func (e *ErrDiskLimitTimeout) Errno() fuse.Errno {
+	return fuse.Errno(syscall.ENOSPC)
 }
