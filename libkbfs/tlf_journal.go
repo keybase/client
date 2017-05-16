@@ -828,8 +828,8 @@ func (e errTLFJournalNotEmpty) Error() string {
 }
 
 func (j *tlfJournal) checkServerForConflicts(ctx context.Context) error {
-	if time.Since(j.lastServerMDCheck) < tlfJournalServerMDCheckInterval ||
-		!j.config.MDServer().IsConnected() {
+	durSinceCheck := j.config.Clock().Now().Sub(j.lastServerMDCheck)
+	if durSinceCheck < tlfJournalServerMDCheckInterval {
 		return nil
 	}
 
@@ -855,9 +855,9 @@ func (j *tlfJournal) checkServerForConflicts(ctx context.Context) error {
 
 	j.log.CDebugf(ctx, "Checking the MD server for the latest revision; "+
 		"next MD revision in the journal is %d", nextMDToFlush)
-	// TODO: implement a lighterweight server RPC that just returns
-	// the latest revision number, so we don't have to fetch the
-	// entire MD?
+	// TODO(KBFS-2186): implement a lighterweight server RPC that just
+	// returns the latest revision number, so we don't have to fetch
+	// the entire MD?
 	currHead, err := j.config.MDServer().GetForTLF(
 		ctx, j.tlfID, NullBranchID, Merged)
 	if err != nil {
