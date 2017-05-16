@@ -42,15 +42,21 @@ func TestUpak1(t *testing.T) {
 		resetUserTC.T.Fatal(err)
 	}
 
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
+	tc.G.SetClock(fakeClock)
+
 	loadUpak := func() {
 		t.Logf("loadUpak: using username:%+v", fu.Username)
 		loadArg := libkb.NewLoadUserArg(tc.G)
 		loadArg.UID = fu.UID()
 		loadArg.PublicKeyOptional = false
 		loadArg.NetContext = context.TODO()
+		loadArg.StaleOK = false
 
 		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
 		if _, ok := err.(libkb.NoKeyError); ok {
+			// TODO: This is the error we are expecting to see on
+			// second load (after reset)
 			tc.T.Fatal(err)
 		} else if err != nil {
 			tc.T.Fatal(err)
@@ -62,6 +68,9 @@ func TestUpak1(t *testing.T) {
 	loadUpak()
 
 	ResetAccount(resetUserTC, fu)
+
+	// advance the clock past the cache timeout
+	fakeClock.Advance(libkb.CachedUserTimeout * 10)
 
 	loadUpak()
 }
