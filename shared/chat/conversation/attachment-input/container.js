@@ -7,9 +7,12 @@ import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
 import type {AttachmentInput, SelectAttachment} from '../../../constants/chat'
 
-type AttachmentInputRouteProps = RouteProps<{
-  inputs: Array<AttachmentInput>,
-}, {}>
+type AttachmentInputRouteProps = RouteProps<
+  {
+    inputs: Array<AttachmentInput>,
+  },
+  {}
+>
 type OwnProps = AttachmentInputRouteProps & {}
 
 export default connect(

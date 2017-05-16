@@ -35,8 +35,6 @@ import (
 const GregorRequestTimeout time.Duration = 30 * time.Second
 const GregorConnectionRetryInterval time.Duration = 2 * time.Second
 
-var errDuplicateConnection = errors.New("OnConnect called from duplicate connection, failing")
-
 type IdentifyUIHandler struct {
 	libkb.Contextified
 	connID      libkb.ConnectionID
@@ -227,7 +225,7 @@ func (g *gregorHandler) monitorAppState() {
 			if err := g.Connect(g.uri); err != nil {
 				g.chatLog.Debug(context.Background(), "error reconnecting")
 			}
-		case keybase1.AppState_INACTIVE:
+		case keybase1.AppState_INACTIVE, keybase1.AppState_BACKGROUND:
 			g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
 			g.Shutdown()
 		}
@@ -583,7 +581,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	// If we get a random OnConnect on some other connection that is not g.conn, then
 	// just reject it.
 	if conn != g.conn {
-		return errDuplicateConnection
+		return chat.ErrDuplicateConnection
 	}
 
 	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, chat.ErrChatServerTimeout)
@@ -715,7 +713,7 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 
 	ctx := context.Background()
 	g.chatLog.Debug(ctx, "should retry on connect, err %v", err)
-	if err == errDuplicateConnection {
+	if err == chat.ErrDuplicateConnection {
 		g.chatLog.Debug(ctx, "duplicate connection error, not retrying")
 		return false
 	}

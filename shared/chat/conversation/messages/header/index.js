@@ -12,8 +12,8 @@ const MessageLoadingMore = ({moreToLoad}: Props) => (
       {!moreToLoad && <Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />}
     </Box>
     <Box style={moreToLoad ? moreStyle : noneStyle}>
-      <Text type='BodySmallSemibold'>ヽ(ಠ益ಠ)ノ</Text>
-      <Text type='BodySmallSemibold'>Digging ancient messages...</Text>
+      <Text type="BodySmallSemibold">ヽ(ಠ益ಠ)ノ</Text>
+      <Text type="BodySmallSemibold">Digging ancient messages...</Text>
     </Box>
   </Box>
 )

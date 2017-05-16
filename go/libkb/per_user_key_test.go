@@ -22,7 +22,7 @@ func TestNewPerUserKeySecretBox(t *testing.T) {
 	t.Logf("sb  : %v", secretbox)
 
 	// open
-	seedOut, err := openPerUserKeyPrev(string(secretbox), key)
+	seedOut, err := openPerUserKeyPrev(secretbox, key)
 	require.NoError(t, err)
 	t.Logf("seed expected: %T %v", seed, seed)
 	t.Logf("seed   result: %T %v", seedOut, seedOut)
@@ -40,7 +40,7 @@ func TestNewPerUserKeySecretBox2(t *testing.T) {
 
 	sb := "kwG4BAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAA2gAwWiGRZRwucAYHVQ4xJAX9Zn7F5WfnjOmjBd3n\nxkpS8xUFQhjmQRXAfUadTNqY5TU7\n"
 
-	seed, err := openPerUserKeyPrev(sb, key)
+	seed, err := openPerUserKeyPrev(PerUserKeyPrev(sb), key)
 	require.NoError(t, err)
 	require.Equal(t, PerUserKeySeed(MakeByte32(expectedSeed)), seed)
 }

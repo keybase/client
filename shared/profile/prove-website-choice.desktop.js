@@ -6,10 +6,10 @@ import {globalMargins} from '../styles'
 import type {Props} from './prove-website-choice'
 
 class ProveWebsiteChoice extends Component<void, Props, void> {
-  render () {
+  render() {
     return (
       <StandardScreen onClose={this.props.onCancel} style={{maxWidth: 512}}>
-        <Text style={styleTitle} type='Header'>Prove your website in two ways:</Text>
+        <Text style={styleTitle} type="Header">Prove your website in two ways:</Text>
         <ChoiceList
           options={[
             {
@@ -26,7 +26,12 @@ class ProveWebsiteChoice extends Component<void, Props, void> {
             },
           ]}
         />
-        <Button style={styleCancelButton} type='Secondary' onClick={() => this.props.onCancel()} label={'Cancel'} />
+        <Button
+          style={styleCancelButton}
+          type="Secondary"
+          onClick={() => this.props.onCancel()}
+          label={'Cancel'}
+        />
       </StandardScreen>
     )
   }

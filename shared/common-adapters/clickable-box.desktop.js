@@ -15,7 +15,12 @@ const ClickableBox = (props: Props & {children: any}) => {
   }
 
   return (
-    <FlatButton {...otherProps} rippleColor={'transparent'} hoverColor={'transparent'} style={styleFlatButton}>
+    <FlatButton
+      {...otherProps}
+      rippleColor={'transparent'}
+      hoverColor={'transparent'}
+      style={styleFlatButton}
+    >
       <Box style={style}>{children}</Box>
     </FlatButton>
   )

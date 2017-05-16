@@ -44,8 +44,19 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, {onToggleSidePanel}: OwnProps) => ({
   onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
-  onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => { dispatch(Creators.muteConversation(conversationIDKey, muted)) },
-  onShowBlockConversationDialog: (selectedConversation, participants) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, participants}, selected: 'showBlockConversationDialog'}])) },
+  onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
+    dispatch(Creators.muteConversation(conversationIDKey, muted))
+  },
+  onShowBlockConversationDialog: (selectedConversation, participants) => {
+    dispatch(
+      navigateAppend([
+        {
+          props: {conversationIDKey: selectedConversation, participants},
+          selected: 'showBlockConversationDialog',
+        },
+      ])
+    )
+  },
   onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
   onToggleSidePanel,
 })
@@ -53,11 +64,15 @@ const mapDispatchToProps = (dispatch: Dispatch, {onToggleSidePanel}: OwnProps) =
 const mergeProps = (stateProps, dispatchProps) => ({
   ...stateProps,
   ...dispatchProps,
-  onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.isYou).map(p => p.username)),
-  onMuteConversation: (muted: boolean) => dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted),
-  onShowBlockConversationDialog: () => dispatchProps.onShowBlockConversationDialog(stateProps.selectedConversationIDKey, stateProps.participants.map(p => p.username).join(',')),
+  onAddParticipant: () =>
+    dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.isYou).map(p => p.username)),
+  onMuteConversation: (muted: boolean) =>
+    dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted),
+  onShowBlockConversationDialog: () =>
+    dispatchProps.onShowBlockConversationDialog(
+      stateProps.selectedConversationIDKey,
+      stateProps.participants.map(p => p.username).join(',')
+    ),
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-)(SidePanel)
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(SidePanel)

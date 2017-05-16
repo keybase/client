@@ -16,4 +16,4 @@ export type PropsLoose = {
 
 export type Props = Exact<PropsLoose>
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}

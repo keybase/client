@@ -10,14 +10,25 @@ import {globalColors, globalMargins, globalStyles} from '../styles'
 const StandardScreen = (props: Props) => {
   return (
     <Box style={{...styleContainer, ...props.styleOuter}}>
-      {(!!props.onClose || !!props.onBack) && <Box style={styleCloseContainer}>
-        {!!props.onClose && <Text type='BodyBig' style={{...styleClose, ...props.styleClose}} onClick={props.onClose}>Cancel</Text>}
-        {!!props.onBack && <Icon type='iconfont-back' style={{...styleClose, ...backArrowStyle, ...props.styleBack}} onClick={props.onBack} />}
-      </Box>}
+      {(!!props.onClose || !!props.onBack) &&
+        <Box style={styleCloseContainer}>
+          {!!props.onClose &&
+            <Text type="BodyBig" style={{...styleClose, ...props.styleClose}} onClick={props.onClose}>
+              Cancel
+            </Text>}
+          {!!props.onBack &&
+            <Icon
+              type="iconfont-back"
+              style={{...styleClose, ...backArrowStyle, ...props.styleBack}}
+              onClick={props.onBack}
+            />}
+        </Box>}
       <NativeScrollView>
         {!!props.notification &&
           <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
-            {typeof props.notification.message === 'string' ? <Text style={styleBannerText} type='BodySemibold'>{props.notification.message}</Text> : props.notification.message}
+            {typeof props.notification.message === 'string'
+              ? <Text style={styleBannerText} type="BodySemibold">{props.notification.message}</Text>
+              : props.notification.message}
           </Box>}
         <Box style={{...styleContentContainer(!!props.notification), ...props.style}}>
           {props.children}
@@ -49,7 +60,7 @@ const styleClose = {
 
 const MIN_BANNER_HEIGHT = 40
 
-const styleBanner = (type) => ({
+const styleBanner = type => ({
   ...globalStyles.flexBoxColumn,
   minHeight: MIN_BANNER_HEIGHT,
   paddingLeft: globalMargins.tiny,

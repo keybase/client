@@ -13,16 +13,16 @@ type State = {
 }
 
 class ChoiceList extends Component<void, Props, State> {
-  state: State;
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
     this.state = {
       activeIndex: null,
     }
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (nextProps !== this.props) {
       this.setState({
         activeIndex: null,
@@ -30,7 +30,7 @@ class ChoiceList extends Component<void, Props, State> {
     }
   }
 
-  render () {
+  render() {
     const {options} = this.props
     return (
       <Box>
@@ -40,7 +40,8 @@ class ChoiceList extends Component<void, Props, State> {
             underlayColor={globalColors.blue4}
             onClick={op.onClick}
             onPressIn={() => this.setState({activeIndex: idx})}
-            onPressOut={() => this.setState({activeIndex: null})}>
+            onPressOut={() => this.setState({activeIndex: null})}
+          >
             <Box style={styleEntry}>
               <Box style={styleIconContainer(this.state.activeIndex === idx)}>
                 {typeof op.icon === 'string'
@@ -48,8 +49,8 @@ class ChoiceList extends Component<void, Props, State> {
                   : <Box style={styleIcon}>{op.icon}</Box>}
               </Box>
               <Box style={styleInfoContainer}>
-                <Text style={styleInfoTitle} type='Header'>{op.title}</Text>
-                <Text type='Body'>{op.description}</Text>
+                <Text style={styleInfoTitle} type="Header">{op.title}</Text>
+                <Text type="Body">{op.description}</Text>
               </Box>
             </Box>
           </ClickableBox>
@@ -68,7 +69,7 @@ const styleEntry = {
   paddingRight: globalMargins.small,
 }
 
-const styleIconContainer = (active) => ({
+const styleIconContainer = active => ({
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'center',

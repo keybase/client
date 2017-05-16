@@ -39,7 +39,7 @@ app.on('ready', () => {
   const total = toRender.length
   let count = 0
 
-  function renderNext (target) {
+  function renderNext(target) {
     console.log('Rendering next. Remaining:', toRender.length, 'Currently rendering:', rendering)
     if (!toRender.length) {
       if (rendering === 0) {

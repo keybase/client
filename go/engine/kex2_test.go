@@ -21,11 +21,11 @@ func TestKex2ProvisionPUK(t *testing.T) {
 	subTestKex2Provision(t, true)
 }
 
-func subTestKex2Provision(t *testing.T, supportPerUserKey bool) {
+func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-	tcX.Tp.SupportPerUserKey = supportPerUserKey
+	tcX.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")
@@ -33,7 +33,7 @@ func subTestKex2Provision(t *testing.T, supportPerUserKey bool) {
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "kex2provision")
 	defer tcY.Cleanup()
-	tcY.Tp.SupportPerUserKey = supportPerUserKey
+	tcY.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {

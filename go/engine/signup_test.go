@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 func AssertDeviceID(g *libkb.GlobalContext) (err error) {
@@ -21,12 +22,12 @@ func TestSignupEngine(t *testing.T) {
 	subTestSignupEngine(t, false)
 }
 
-func subTestSignupEngine(t *testing.T, supportPerUserKey bool) {
+func subTestSignupEngine(t *testing.T, upgradePerUserKey bool) {
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
 	var err error
 
-	tc.Tp.SupportPerUserKey = supportPerUserKey
+	tc.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	fu := CreateAndSignupFakeUser(tc, "se")
 
@@ -105,6 +106,23 @@ func subTestSignupEngine(t *testing.T, supportPerUserKey bool) {
 	if err = AssertLoggedOut(tc); err != nil {
 		t.Fatal(err)
 	}
+}
+
+// Test that after signing up the used User object has their first per-user-key
+// locall delegated.
+func TestSignupLocalDelegatePerUserKey(t *testing.T) {
+	tc := SetupEngineTest(t, "signup")
+	defer tc.Cleanup()
+
+	tc.Tp.UpgradePerUserKey = true
+
+	_, signupEngine := CreateAndSignupFakeUser2(tc, "se")
+
+	u := signupEngine.GetMe()
+	require.NotNil(t, u, "no user from signup engine")
+	puk := u.GetComputedKeyFamily().GetLatestPerUserKey()
+	require.NotNil(t, puk, "no local per-user-key")
+	require.Equal(t, 1, puk.Gen)
 }
 
 func TestSignupWithGPG(t *testing.T) {

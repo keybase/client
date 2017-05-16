@@ -27,11 +27,11 @@ export type Props = {
 }
 
 class Folders extends Component<void, Props, void> {
-  componentDidMount () {
+  componentDidMount() {
     this.props.favoriteList()
   }
 
-  render () {
+  render() {
     return (
       <Render
         {...this.props.folderState}
@@ -60,20 +60,34 @@ const ConnectedFolders = connect(
     showingIgnored: !!state.favorite && routeState.showingIgnored,
   }),
   (dispatch: any, {routePath, routeState, setRouteState}: OwnProps) => ({
-    favoriteList: () => { dispatch(favoriteList()) },
-    onOpenFolder: path => { dispatch(navigateAppend([{selected: 'files', props: {path}}])) },
-    onRekeyFolder: path => { dispatch(navigateAppend([{selected: 'files', props: {path}}])) },
-    openInKBFS: path => { dispatch(openInKBFS(path)) },
-    openTlfInChat: tlf => { dispatch(openTlfInChat(tlf)) },
-    switchTab: showingPrivate => { dispatch(switchTo(routePath.pop().push(showingPrivate ? 'private' : 'public'))) },
-    onToggleShowIgnored: () => { setRouteState({showingIgnored: !routeState.showingIgnored}) },
+    favoriteList: () => {
+      dispatch(favoriteList())
+    },
+    onOpenFolder: path => {
+      dispatch(navigateAppend([{selected: 'files', props: {path}}]))
+    },
+    onRekeyFolder: path => {
+      dispatch(navigateAppend([{selected: 'files', props: {path}}]))
+    },
+    openInKBFS: path => {
+      dispatch(openInKBFS(path))
+    },
+    openTlfInChat: tlf => {
+      dispatch(openTlfInChat(tlf))
+    },
+    switchTab: showingPrivate => {
+      dispatch(switchTo(routePath.pop().push(showingPrivate ? 'private' : 'public')))
+    },
+    onToggleShowIgnored: () => {
+      setRouteState({showingIgnored: !routeState.showingIgnored})
+    },
   })
 )(Folders)
 
-export function PrivateFolders (props: FoldersRouteProps) {
+export function PrivateFolders(props: FoldersRouteProps) {
   return <ConnectedFolders showingPrivate={true} {...props} />
 }
 
-export function PublicFolders (props: FoldersRouteProps) {
+export function PublicFolders(props: FoldersRouteProps) {
   return <ConnectedFolders showingPrivate={false} {...props} />
 }

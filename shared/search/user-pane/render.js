@@ -9,24 +9,29 @@ import UserInfo from './user.render'
 import type {Props as NonUserInfoProps} from './non-user.render'
 import type {Props as UserInfoPaneProps} from './user.render'
 
-export type Props = {
-  mode: 'keybase',
-  userInfoProps: UserInfoPaneProps,
-} | {
-  mode: 'external',
-  nonUserInfoProps: NonUserInfoProps,
-} | {
-  mode: 'loading',
-  username: string,
-} | {
-  mode: 'error',
-  error: string,
-} | {
-  mode: 'nothingSelected',
-}
+export type Props =
+  | {
+      mode: 'keybase',
+      userInfoProps: UserInfoPaneProps,
+    }
+  | {
+      mode: 'external',
+      nonUserInfoProps: NonUserInfoProps,
+    }
+  | {
+      mode: 'loading',
+      username: string,
+    }
+  | {
+      mode: 'error',
+      error: string,
+    }
+  | {
+      mode: 'nothingSelected',
+    }
 
 class UserPaneRender extends Component<void, Props, void> {
-  render () {
+  render() {
     if (this.props.mode === 'keybase') {
       return <UserInfo {...this.props.userInfoProps} />
     } else if (this.props.mode === 'external') {
@@ -37,9 +42,7 @@ class UserPaneRender extends Component<void, Props, void> {
       return <ErrorComponent error={this.props.error} />
     }
 
-    return (
-      <Help />
-    )
+    return <Help />
   }
 }
 

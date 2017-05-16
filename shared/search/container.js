@@ -7,7 +7,15 @@ import {isMobile} from '../constants/platform'
 import {navigateAppend} from '../actions/route-tree'
 import {openInKBFS} from '../actions/kbfs'
 import {privateFolderWithUsers, publicFolderWithUsers} from '../constants/config'
-import {search, selectPlatform, addUsersToGroup, removeUserFromGroup, selectUserForInfo, hideUserGroup, reset} from '../actions/search'
+import {
+  search,
+  selectPlatform,
+  addUsersToGroup,
+  removeUserFromGroup,
+  selectUserForInfo,
+  hideUserGroup,
+  reset,
+} from '../actions/search'
 import {searchResultToAssertion} from '../constants/search'
 import {startConversation} from '../actions/chat'
 
@@ -17,7 +25,18 @@ import type {Props} from '.'
 type OwnProps = {}
 
 const mapStateToProps = (state: TypedState) => {
-  const {waiting, searchHintText, searchPlatform: selectedService, searchText, searchIcon, results, userForInfoPane, showUserGroup, selectedUsers, searchTextClearTrigger} = state.search
+  const {
+    waiting,
+    searchHintText,
+    searchPlatform: selectedService,
+    searchText,
+    searchIcon,
+    results,
+    userForInfoPane,
+    showUserGroup,
+    selectedUsers,
+    searchTextClearTrigger,
+  } = state.search
   const {username} = state.config
 
   return {
@@ -36,6 +55,27 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
+const mobileOnClickUserInGroup = (dispatch, user) => {
+  if (user.service === 'external') {
+    dispatch(
+      navigateAppend([
+        {
+          props: {
+            avatar: user.serviceAvatar,
+            fullname: (user.extraInfo && user.extraInfo.fullNameOnService) || null,
+            profileUrl: null,
+            serviceName: user.serviceName,
+            username: user.username,
+          },
+          selected: 'nonProfile',
+        },
+      ])
+    )
+  } else {
+    dispatch(navigateAppend([{props: {username: user.username}, selected: 'profile'}]))
+  }
+}
+
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onAddAnotherUserToGroup: () => dispatch(hideUserGroup()),
   onClickResult: user => dispatch(addUsersToGroup([user])),
@@ -44,7 +84,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       dispatch(selectPlatform(platform))
     }
   },
-  onClickUserInGroup: user => dispatch(isMobile ? navigateAppend([{props: {username: user.username}, selected: 'profile'}]) : selectUserForInfo(user)),
+  onClickUserInGroup: user =>
+    isMobile ? mobileOnClickUserInGroup(dispatch, user) : dispatch(selectUserForInfo(user)),
   onGroupChat: (username, selectedUsers) => {
     dispatch(reset())
     dispatch(startConversation(selectedUsers.map(searchResultToAssertion).concat(username || '')))
@@ -52,7 +93,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onOpenPrivateGroupFolder: (username, selectedUsers) => {
     if (username) {
       dispatch(reset())
-      dispatch(openInKBFS(privateFolderWithUsers(selectedUsers.map(searchResultToAssertion).concat(username))))
+      dispatch(
+        openInKBFS(privateFolderWithUsers(selectedUsers.map(searchResultToAssertion).concat(username)))
+      )
     }
   },
   onOpenPublicGroupFolder: (username, selectedUsers) => {
@@ -63,7 +106,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
   onRemoveUserFromGroup: user => dispatch(removeUserFromGroup(user)),
   onReset: () => dispatch(reset()),
-  onSearch: (term, selectedPlatform, searchPlatform) => dispatch(search(term, selectedPlatform || searchPlatform)),
+  onSearch: (term, selectedPlatform, searchPlatform) =>
+    dispatch(search(term, selectedPlatform || searchPlatform)),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
@@ -72,9 +116,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   ...ownProps,
   onClickService: platform => dispatchProps.onClickService(platform, stateProps.selectedService),
   onGroupChat: () => dispatchProps.onGroupChat(stateProps.username, stateProps.selectedUsers),
-  onOpenPrivateGroupFolder: () => dispatchProps.onOpenPrivateGroupFolder(stateProps.username, stateProps.selectedUsers),
-  onOpenPublicGroupFolder: () => dispatchProps.onOpenPublicGroupFolder(stateProps.username, stateProps.selectedUsers),
-  onSearch: (term, selectedPlatform) => dispatchProps.onSearch(term, selectedPlatform, stateProps.searchPlatform),
+  onOpenPrivateGroupFolder: () =>
+    dispatchProps.onOpenPrivateGroupFolder(stateProps.username, stateProps.selectedUsers),
+  onOpenPublicGroupFolder: () =>
+    dispatchProps.onOpenPublicGroupFolder(stateProps.username, stateProps.selectedUsers),
+  onSearch: (term, selectedPlatform) =>
+    dispatchProps.onSearch(term, selectedPlatform, stateProps.searchPlatform),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Search)

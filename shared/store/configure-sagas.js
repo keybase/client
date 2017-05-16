@@ -20,7 +20,7 @@ import appStateSaga from '../actions/app'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
-function * mainSaga (): SagaGenerator<any, any> {
+function* mainSaga(): SagaGenerator<any, any> {
   yield fork(chatSaga)
   yield fork(deviceSaga)
   yield fork(favoriteSaga)
@@ -38,7 +38,7 @@ function * mainSaga (): SagaGenerator<any, any> {
 }
 
 let middleWare
-function create (crashHandler: (err: any) => void) {
+function create(crashHandler: (err: any) => void) {
   if (middleWare) {
     throw new Error('Only create one saga middleware!')
   }
@@ -49,11 +49,8 @@ function create (crashHandler: (err: any) => void) {
   return middleWare
 }
 
-function run () {
+function run() {
   middleWare.run(mainSaga)
 }
 
-export {
-  create,
-  run,
-}
+export {create, run}

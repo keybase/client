@@ -4,11 +4,11 @@ import {Component} from 'react'
 export type MenuListItem = $Shape<{
   name: string,
   hasChildren?: boolean,
-  onClick: () => void
+  onClick: () => void,
 }>
 
 export type Props = {
-  items: ?Array<MenuListItem>
+  items: ?Array<MenuListItem>,
 }
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}

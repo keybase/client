@@ -14,7 +14,7 @@ import type {Props as YouRekeyProps} from './you-rekey'
 
 type Props = ParticipantRekeyProps & YouRekeyProps
 
-type OwnProps= {
+type OwnProps = {
   selectedConversationIDKey: ?Constants.ConversationIDKey,
 }
 
@@ -63,7 +63,13 @@ const Impossible = () => null
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch((props: StateProps) => props.rekeyInfo && props.rekeyInfo.get('youCanRekey'), renderComponent(YouRekey)),
-  branch((props: StateProps) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(), renderComponent(ParticipantRekey)),
-  renderNothing,
+  branch(
+    (props: StateProps) => props.rekeyInfo && props.rekeyInfo.get('youCanRekey'),
+    renderComponent(YouRekey)
+  ),
+  branch(
+    (props: StateProps) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
+    renderComponent(ParticipantRekey)
+  ),
+  renderNothing
 )(Impossible)

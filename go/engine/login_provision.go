@@ -126,10 +126,6 @@ func (e *loginProvision) Run(ctx *Context) error {
 	// exit.
 	tx = nil
 
-	if err := e.ensurePaperKey(ctx); err != nil {
-		return err
-	}
-
 	if err := e.displaySuccess(ctx); err != nil {
 		return err
 	}
@@ -215,6 +211,11 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 				} else {
 					provisionee.AddSecret(ks.Secret())
 				}
+				break
+			} else {
+				// empty secret, so must have been a display-only case.
+				// ok to stop the loop
+				e.G().Log.Debug("login provision DisplayAndPromptSecret returned empty secret, stopping retry loop")
 				break
 			}
 		}
@@ -935,56 +936,6 @@ func (e *loginProvision) makeEldestDevice(ctx *Context) error {
 		return aerr
 	}
 	return nil
-}
-
-// ensurePaperKey checks to see if e.user has any paper keys.  If
-// not, it makes one.
-func (e *loginProvision) ensurePaperKey(ctx *Context) error {
-	e.G().Log.CDebugf(ctx.NetContext, "loginProvision#ensurePaperKey")
-	// see if they have a paper key already
-	cki := e.arg.User.GetComputedKeyInfos()
-	if cki != nil {
-		if len(cki.PaperDevices()) > 0 {
-			return nil
-		}
-	}
-
-	// Check that there is a signing key present.
-	// If it were nil, PaperKeyGen would try to make an eldest sigchain link.
-	if e.signingKey == nil {
-		return errors.New("missing signing key for ensure paper key")
-	}
-
-	if e.encryptionKey.IsNil() {
-		if e.G().Env.GetSupportPerUserKey() {
-			return errors.New("missing encryption key for ensure paper key")
-		}
-		e.G().Log.CWarningf(ctx.NetContext, "missing encryption key for ensure paper key")
-	}
-
-	// Load me so that keys will be up to date.
-	var err error
-	e.arg.User, err = libkb.LoadUser(libkb.LoadUserArg{Self: true, UID: e.arg.User.GetUID(), PublicKeyOptional: true, Contextified: libkb.NewContextified(e.G())})
-	if err != nil {
-		return err
-	}
-
-	if e.G().Env.GetSupportPerUserKey() {
-		if e.encryptionKey.IsNil() {
-			return errors.New("missing encryption key for creating paper key")
-		}
-	}
-
-	// make one
-	args := &PaperKeyPrimaryArgs{
-		Me:             e.arg.User,
-		SigningKey:     e.signingKey,
-		EncryptionKey:  e.encryptionKey,
-		LoginContext:   nil,
-		PerUserKeyring: e.perUserKeyring,
-	}
-	eng := NewPaperKeyPrimary(e.G(), args)
-	return RunEngine(eng, ctx)
 }
 
 // This is used by SaltpackDecrypt as well.

@@ -648,3 +648,60 @@ func PerUserKeyProof(me *User,
 
 	return ret, nil
 }
+
+// Make a per-user key proof with a reverse sig.
+// Modifies the User `me` with a sigchain bump and key delegation.
+// Returns a JSONPayload ready for use in "sigs" in sig/multi.
+func PerUserKeyProofReverseSigned(me *User, perUserKeySeed PerUserKeySeed, generation keybase1.PerUserKeyGeneration,
+	signer GenericKey) (JSONPayload, error) {
+
+	pukSigKey, err := perUserKeySeed.DeriveSigningKey()
+	if err != nil {
+		return nil, err
+	}
+
+	pukEncKey, err := perUserKeySeed.DeriveDHKey()
+	if err != nil {
+		return nil, err
+	}
+
+	// Make reverse sig
+	jwRev, err := PerUserKeyProof(me, pukSigKey.GetKID(), pukEncKey.GetKID(), generation, signer, nil)
+	if err != nil {
+		return nil, err
+	}
+	reverseSig, _, _, err := SignJSON(jwRev, pukSigKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make sig
+	jw, err := PerUserKeyProof(me, pukSigKey.GetKID(), pukEncKey.GetKID(), generation, signer, &reverseSig)
+	if err != nil {
+		return nil, err
+	}
+	sig, sigID, linkID, err := SignJSON(jw, signer)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update the user locally
+	me.SigChainBump(linkID, sigID)
+	me.localDelegatePerUserKey(keybase1.PerUserKey{
+		Gen:    int(generation),
+		Seqno:  int(me.GetSigChainLastKnownSeqno()),
+		SigKID: pukSigKey.GetKID(),
+		EncKID: pukEncKey.GetKID(),
+	})
+
+	publicKeysEntry := make(JSONPayload)
+	publicKeysEntry["signing"] = pukSigKey.GetKID().String()
+	publicKeysEntry["encryption"] = pukEncKey.GetKID().String()
+
+	res := make(JSONPayload)
+	res["sig"] = sig
+	res["signing_kid"] = signer.GetKID().String()
+	res["type"] = LinkTypePerUserKey
+	res["public_keys"] = publicKeysEntry
+	return res, nil
+}

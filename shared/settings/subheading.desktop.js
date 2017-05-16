@@ -5,12 +5,12 @@ import {Box, Text} from '../common-adapters'
 
 import type {Props} from './subheading'
 
-function SubHeading ({children}: Props) {
+function SubHeading({children}: Props) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginBottom: 2}}>
       <Text
         style={{color: globalColors.black_40, marginBottom: globalMargins.xtiny}}
-        type='BodySmallSemibold'
+        type="BodySmallSemibold"
       >
         {children}
       </Text>

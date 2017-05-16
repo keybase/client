@@ -5,7 +5,13 @@ import {debounce} from 'lodash'
 const rateLimit: {[key: string]: () => void} = {}
 const rateLimitPayloads: {[key: string]: {title: string, opts: ?Object, onClick: ?() => void}} = {}
 
-export function NotifyPopup (title: string, opts: ?Object, rateLimitSeconds: number = -1, rateLimitKey?: string, onClick: ?() => void): void {
+export function NotifyPopup(
+  title: string,
+  opts: ?Object,
+  rateLimitSeconds: number = -1,
+  rateLimitKey?: string,
+  onClick: ?() => void
+): void {
   if (rateLimitSeconds > 0) {
     const key = rateLimitKey || title
 

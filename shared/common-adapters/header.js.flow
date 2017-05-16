@@ -8,13 +8,13 @@ export type Props = {
   style?: Object,
   children?: ?Object,
   windowDragging?: boolean,
-  type: 'Default' | 'Strong'
+  type: 'Default' | 'Strong',
 }
 
 export type DefaultProps = {
-  type: $PropertyType<Props, 'type'>
+  type: $PropertyType<Props, 'type'>,
 }
 
 declare export default class Header extends Component<DefaultProps, Props, void> {
-  static defaultProps: DefaultProps;
+  static defaultProps: DefaultProps,
 }

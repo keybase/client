@@ -13,12 +13,7 @@ export type Revoke = NoErrorTypedAction<'devices:revoke', {deviceID: string}>
 export type ShowRevokePage = NoErrorTypedAction<'devices:showRevokePage', {deviceID: string}>
 export type Waiting = NoErrorTypedAction<'devices:waiting', {waiting: boolean}>
 
-export type Actions = Load
-  | Loaded
-  | PaperKeyMake
-  | Revoke
-  | ShowRevokePage
-  | Waiting
+export type Actions = Load | Loaded | PaperKeyMake | Revoke | ShowRevokePage | Waiting
 
 // TODO could potentially use entities for devices provisioned by other devices but we still have
 // to support pgp
@@ -58,7 +53,4 @@ export type State = Record<{
   waitingForServer: boolean,
 }>
 
-export {
-  DeviceDetailRecord,
-  StateRecord,
-}
+export {DeviceDetailRecord, StateRecord}

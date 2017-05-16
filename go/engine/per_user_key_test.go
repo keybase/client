@@ -21,7 +21,7 @@ func TestPerUserKeySignupAndPullKeys(t *testing.T) {
 	defer tc.Cleanup()
 	var err error
 
-	tc.Tp.SupportPerUserKey = true
+	tc.Tp.UpgradePerUserKey = true
 
 	fu := CreateAndSignupFakeUser(tc, "se")
 
@@ -59,7 +59,7 @@ func TestPerUserKeySignupPlusPaper(t *testing.T) {
 	defer tc.Cleanup()
 	var err error
 
-	tc.Tp.SupportPerUserKey = true
+	tc.Tp.UpgradePerUserKey = true
 
 	fu := CreateAndSignupFakeUserPaper(tc, "se")
 

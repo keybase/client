@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 
-declare function factory (
+declare function factory(
   messageKey: Constants.MessageKey,
   prevMessageKey: ?Constants.MessageKey,
   onAction: (message: Constants.ServerMessage, event: any) => void,
