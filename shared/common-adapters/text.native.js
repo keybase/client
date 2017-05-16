@@ -10,7 +10,7 @@ import type {Props, TextType, Background} from './text'
 class Text extends Component<void, Props, void> {
   _nativeText: any
 
-  focus () {
+  focus() {
     if (this._nativeText) {
       this._nativeText.focus()
     }
@@ -20,18 +20,25 @@ class Text extends Component<void, Props, void> {
     openURL(this.props.onClickURL)
   }
 
-  render () {
+  render() {
     const style = {
       ...getStyle(this.props.type, this.props.backgroundMode, this.props.lineClamp, !!this.props.onClick),
-      ...((clickableVisible && this.props.onClick) ? visibleStyle : {}),
+      ...(clickableVisible && this.props.onClick ? visibleStyle : {}),
       ...this.props.style,
     }
 
-    return <NativeText
-      ref={ref => { this._nativeText = ref }}
-      style={style}
-      {...lineClamp(this.props.lineClamp)}
-      onPress={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined)}>{this.props.children}</NativeText>
+    return (
+      <NativeText
+        ref={ref => {
+          this._nativeText = ref
+        }}
+        style={style}
+        {...lineClamp(this.props.lineClamp)}
+        onPress={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined)}
+      >
+        {this.props.children}
+      </NativeText>
+    )
   }
 }
 
@@ -39,7 +46,12 @@ const visibleStyle = {
   backgroundColor: 'rgba(0, 255, 0, 0.1)',
 }
 
-function getStyle (type: TextType, backgroundMode?: Background = 'Normal', lineClampNum?: ?number, clickable?: ?boolean) {
+function getStyle(
+  type: TextType,
+  backgroundMode?: Background = 'Normal',
+  lineClampNum?: ?number,
+  clickable?: ?boolean
+) {
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
@@ -53,8 +65,6 @@ function getStyle (type: TextType, backgroundMode?: Background = 'Normal', lineC
   }
 }
 
-export {
-  getStyle,
-}
+export {getStyle}
 
 export default Text

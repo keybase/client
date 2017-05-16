@@ -9,9 +9,9 @@ import type {Props} from './back-button'
 import {clickableVisible} from '../local-debug'
 
 export default class BackButton extends Component {
-  props: Props;
+  props: Props
 
-  onClick (event: SyntheticEvent) {
+  onClick(event: SyntheticEvent) {
     event && event.preventDefault && event.preventDefault()
     event && event.stopPropagation && event.stopPropagation()
     if (this.props.onClick) {
@@ -19,11 +19,11 @@ export default class BackButton extends Component {
     }
   }
 
-  render () {
+  render() {
     return (
       <NativeTouchableWithoutFeedback onPress={e => this.onClick(e)}>
         <Box style={{...styles.container, ...(clickableVisible ? visibleStyle : {}), ...this.props.style}}>
-          <Icon type='iconfont-back' style={{...styles.icon, ...this.props.iconStyle}} />
+          <Icon type="iconfont-back" style={{...styles.icon, ...this.props.iconStyle}} />
         </Box>
       </NativeTouchableWithoutFeedback>
     )
