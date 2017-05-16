@@ -914,7 +914,7 @@ func TestProvisionGPGImportOK(t *testing.T) {
 
 	testUserHasDeviceKey(tc2)
 
-	// highly possible they didn't have a paper key, so make sure they have one now:
+	// highly possible they didn't have a paper key, so make sure they still don't have one:
 	hasZeroPaperDev(tc2, u1)
 
 	if err := AssertProvisioned(tc2); err != nil {
@@ -968,7 +968,7 @@ func TestProvisionGPGImportMultiple(t *testing.T) {
 
 	testUserHasDeviceKey(tc2)
 
-	// highly possible they didn't have a paper key, so make sure they have one now:
+	// highly possible they didn't have a paper key, so make sure they still don't have one:
 	hasZeroPaperDev(tc2, u1)
 
 	if err := AssertProvisioned(tc2); err != nil {
@@ -1033,7 +1033,7 @@ func TestProvisionGPGSign(t *testing.T) {
 
 		testUserHasDeviceKey(tc2)
 
-		// highly possible they didn't have a paper key, so make sure they have one now:
+		// highly possible they didn't have a paper key, so make sure they still don't have one:
 		hasZeroPaperDev(tc2, u1)
 
 		if err := AssertProvisioned(tc2); err != nil {
@@ -1151,7 +1151,7 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 
 		testUserHasDeviceKey(tc2)
 
-		// highly possible they didn't have a paper key, so make sure they have one now:
+		// highly possible they didn't have a paper key, so make sure they still don't have one:
 		hasZeroPaperDev(tc2, u1)
 
 		if err := AssertProvisioned(tc2); err != nil {
@@ -1232,7 +1232,7 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 
 		testUserHasDeviceKey(tc2)
 
-		// highly possible they didn't have a paper key, so make sure they have one now:
+		// highly possible they didn't have a paper key, so make sure they still don't have one:
 		hasZeroPaperDev(tc2, u1)
 
 		if err := AssertProvisioned(tc2); err != nil {
@@ -1536,7 +1536,7 @@ func TestProvisionPassphraseNoKeysMultipleAccounts(t *testing.T) {
 	// since this user didn't have any keys, login should have fixed that:
 	testUserHasDeviceKey(tc)
 
-	// and they should have a paper backup key
+	// and they should not have a paper backup key by default
 	hasZeroPaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
 
 	if err := AssertProvisioned(tc); err != nil {
@@ -2907,7 +2907,7 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 
 		testUserHasDeviceKey(tc2)
 
-		// highly possible they didn't have a paper key, so make sure they have one now:
+		// highly possible they didn't have a paper key, so make sure they still don't have one:
 		hasZeroPaperDev(tc2, u1)
 
 		if err := AssertProvisioned(tc2); err != nil {
