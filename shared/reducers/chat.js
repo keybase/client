@@ -352,11 +352,8 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       const {conversationIDKey, typing} = action.payload
       // $FlowIssue
       return state.update('conversationStates', conversationStates =>
-        updateConversation(
-          conversationStates,
-          conversationIDKey,
-          // $FlowIssue
-          conversation => conversation.update('typing', _ => Set(typing))
+        updateConversation(conversationStates, conversationIDKey, conversation =>
+          conversation.set('typing', Set(typing))
         )
       )
     }
