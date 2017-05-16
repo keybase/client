@@ -180,31 +180,7 @@ func TestDeviceHistoryPGP(t *testing.T) {
 		t.Fatal(err)
 	}
 	devs := heng.Devices()
-	if len(devs) != 2 {
-		t.Errorf("num devices: %d, expected 2", len(devs))
-	}
-
-	var desktop keybase1.DeviceDetail
-	var paper keybase1.DeviceDetail
-
-	for _, d := range devs {
-		switch d.Device.Type {
-		case libkb.DeviceTypePaper:
-			paper = d
-		case libkb.DeviceTypeDesktop:
-			desktop = d
-		default:
-			t.Fatalf("unexpected device type %s", d.Device.Type)
-		}
-	}
-
-	// paper's provisioner should be desktop
-	if paper.Provisioner == nil {
-		t.Fatal("paper device has no provisioner")
-	}
-	if paper.Provisioner.DeviceID != desktop.Device.DeviceID {
-		t.Errorf("paper provisioned id: %s, expected %s", paper.Provisioner.DeviceID, desktop.Device.DeviceID)
-		t.Logf("desktop: %+v", desktop)
-		t.Logf("paper:   %+v", paper)
+	if len(devs) != 1 {
+		t.Errorf("num devices: %d, expected 1", len(devs))
 	}
 }
