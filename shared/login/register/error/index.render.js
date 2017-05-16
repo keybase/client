@@ -6,6 +6,7 @@ import {RPCError} from '../../../util/errors'
 import {ConstantsStatusCode} from '../../../constants/types/flow-types'
 import {Box, Text, Markdown} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
+import {isMobile} from '../../../constants/platform'
 
 import type {Props} from './index.render'
 
@@ -101,10 +102,11 @@ const renderError = (error: RPCError) => {
                 {' '}
                 on the command line to log in
               </Text>
-              <Text type="Body">
-                {' '}
-                - Install GPG on this machine and import your PGP private key into it
-              </Text>
+              {!isMobile &&
+                <Text type="Body">
+                  {' '}
+                  - Install GPG on this machine and import your PGP private key into it
+                </Text>}
               <Text type="Body">
                 {' '}
                 - Install Keybase on a different machine that has your PGP key
@@ -191,10 +193,11 @@ const renderError = (error: RPCError) => {
               {' '}
               on the command line to log in
             </Text>
-            <Text type="Body">
-              {' '}
-              - Install GPG, put your PGP private key on this machine and try again
-            </Text>
+            {!isMobile &&
+              <Text type="Body">
+                {' '}
+                - Install GPG, put your PGP private key on this machine and try again
+              </Text>}
             <Text type="Body">
               {' '}- Go back and provision with another device or paper key
             </Text>
