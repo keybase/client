@@ -17,7 +17,7 @@ import {
   ConstantsStatusCode,
 } from '../../constants/types/flow-types'
 import {call, put, take, select, race} from 'redux-saga/effects'
-import {delay, throttle} from 'redux-saga'
+import {delay} from 'redux-saga'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, switchTo} from '../route-tree'
 import {openInKBFS} from '../kbfs'
@@ -941,8 +941,7 @@ function* _openConversation({
 function* _updateTyping({
   payload: {conversationIDKey, typing},
 }: Constants.UpdateTyping): SagaGenerator<any, any> {
-  // Send we-are-typing info up to Gregor.  This is throttled in the saga to
-  // avoid spamming Gregor on every keypress.
+  // Send we-are-typing info up to Gregor.
   if (!Constants.isPendingConversationIDKey(conversationIDKey)) {
     const conversationID = Constants.keyToConversationID(conversationIDKey)
     yield call(ChatTypes.localUpdateTypingRpcPromise, {
@@ -983,7 +982,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:updateBadging', _updateBadging)
   yield Saga.safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false)
   yield Saga.safeTakeEvery('chat:updateMetadata', _updateMetadata)
-  yield throttle(5000, 'chat:updateTyping', _updateTyping)
+  yield Saga.safeTakeEvery('chat:updateTyping', _updateTyping)
   yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
   yield Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale)
   yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInitialInboxLoad)

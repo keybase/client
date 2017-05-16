@@ -6,6 +6,7 @@ import Input from '.'
 import {compose, withState, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../../actions/route-tree'
+import {throttle} from 'lodash'
 
 import type {TypedState} from '../../../constants/reducer'
 import type {Props} from '.'
@@ -67,28 +68,41 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
-  ...stateProps,
-  ...dispatchProps,
-  onAttach: (inputs: Array<Constants.AttachmentInput>) =>
-    dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
-  onEditLastMessage: ownProps.onEditLastMessage,
-  onPostMessage: text => {
-    dispatchProps.onPostMessage(stateProps.selectedConversationIDKey, text)
-    ownProps.onScrollDown()
-  },
-  onStoreInputText: (inputText: string) => {
-    if (stateProps.selectedConversationIDKey) {
-      // only write if we're in a convo
-      dispatchProps.onStoreInputText(stateProps.selectedConversationIDKey, inputText)
-    }
-  },
-  onUpdateTyping: (typing: boolean) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
+  const updateTyping = (typing: boolean) => {
     if (stateProps.selectedConversationIDKey) {
       dispatchProps.onUpdateTyping(stateProps.selectedConversationIDKey, typing)
     }
-  },
-})
+  }
+  const wrappedTyping = throttle(updateTyping, 2000)
+
+  return {
+    ...stateProps,
+    ...dispatchProps,
+    onAttach: (inputs: Array<Constants.AttachmentInput>) =>
+      dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
+    onEditLastMessage: ownProps.onEditLastMessage,
+    onPostMessage: text => {
+      dispatchProps.onPostMessage(stateProps.selectedConversationIDKey, text)
+      ownProps.onScrollDown()
+    },
+    onStoreInputText: (inputText: string) => {
+      if (stateProps.selectedConversationIDKey) {
+        // only write if we're in a convo
+        dispatchProps.onStoreInputText(stateProps.selectedConversationIDKey, inputText)
+      }
+    },
+    onUpdateTyping: (typing: boolean) => {
+      if (!typing) {
+        // Update the not-typing status immediately, even if we're throttled.
+        wrappedTyping.cancel()
+        updateTyping(typing)
+      } else {
+        wrappedTyping(typing)
+      }
+    },
+  }
+}
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
