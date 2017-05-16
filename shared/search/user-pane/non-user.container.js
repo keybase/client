@@ -17,10 +17,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps): any => ({
-  ...stateProps,
-  ...dispatchProps,
-  ...ownProps,
-})
-
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(NonUser)
+export default connect(mapStateToProps, mapDispatchToProps)(NonUser)
