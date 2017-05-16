@@ -12,4 +12,4 @@ export type HeaderProps = {
   headerStyle?: ?Object,
 }
 
-export default class HeaderRender extends Component<void, HeaderProps, void> { }
+export default class HeaderRender extends Component<void, HeaderProps, void> {}

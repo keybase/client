@@ -10,7 +10,7 @@ import type {AttachmentInput} from '../../../constants/chat'
 import type {Props} from '.'
 
 class ConversationInput extends Component<void, Props, void> {
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (this.props.editingMessage !== nextProps.editingMessage) {
       if (nextProps.editingMessage && nextProps.editingMessage.type === 'Text') {
         this.props.setText(nextProps.editingMessage.message.stringValue())
@@ -65,7 +65,7 @@ class ConversationInput extends Component<void, Props, void> {
     })
   }
 
-  render () {
+  render() {
     // Auto-growing multiline doesn't work smoothly on Android yet.
     const multilineOpts = isIOS ? {rowsMax: 3, rowsMin: 1} : {rowsMax: 2, rowsMin: 2}
 
@@ -73,10 +73,10 @@ class ConversationInput extends Component<void, Props, void> {
       <Box style={styleContainer}>
         <Input
           autoCorrect={true}
-          autoCapitalize='sentences'
+          autoCapitalize="sentences"
           autoFocus={false}
           hideUnderline={true}
-          hintText='Write a message'
+          hintText="Write a message"
           inputStyle={styleInputText}
           multiline={true}
           onBlur={this._onBlur}
@@ -87,28 +87,33 @@ class ConversationInput extends Component<void, Props, void> {
           value={this.props.text}
           {...multilineOpts}
         />
-        <Action text={this.props.text} onSubmit={this._onSubmit} editingMessage={this.props.editingMessage} openFilePicker={this._openFilePicker} isLoading={this.props.isLoading} />
+        <Action
+          text={this.props.text}
+          onSubmit={this._onSubmit}
+          editingMessage={this.props.editingMessage}
+          openFilePicker={this._openFilePicker}
+          isLoading={this.props.isLoading}
+        />
       </Box>
     )
   }
 }
 
-const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) => (
-  text ? (
-    <ClickableBox feedback={false} onClick={onSubmit}>
-      <Box style={styleActionText}>
-        <Text type='BodyBigLink' style={{...(isLoading ? {color: globalColors.grey} : {})}}>{editingMessage ? 'Save' : 'Send'}</Text>
-      </Box>
-    </ClickableBox>
-  ) : (
-    <Icon onClick={openFilePicker} type='iconfont-camera' style={styleActionButton} />
-  )
-)
+const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) =>
+  text
+    ? <ClickableBox feedback={false} onClick={onSubmit}>
+        <Box style={styleActionText}>
+          <Text type="BodyBigLink" style={{...(isLoading ? {color: globalColors.grey} : {})}}>
+            {editingMessage ? 'Save' : 'Send'}
+          </Text>
+        </Box>
+      </ClickableBox>
+    : <Icon onClick={openFilePicker} type="iconfont-camera" style={styleActionButton} />
 
 const styleActionText = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  alignSelf: 'flex-end',
+  alignSelf: isIOS ? 'flex-end' : 'center',
   justifyContent: 'center',
   paddingBottom: 5,
   paddingLeft: globalMargins.tiny,
@@ -117,7 +122,7 @@ const styleActionText = {
 }
 
 const styleActionButton = {
-  alignSelf: 'flex-end',
+  alignSelf: isIOS ? 'flex-end' : 'center',
   paddingBottom: 5,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.small,
@@ -134,8 +139,14 @@ const styleContainer = {
   alignItems: 'center',
   borderTopColor: globalColors.black_05,
   borderTopWidth: 1,
-  paddingBottom: globalMargins.tiny,
-  paddingTop: globalMargins.tiny,
+  ...(isIOS
+    ? {
+        paddingBottom: globalMargins.tiny,
+        paddingTop: globalMargins.tiny,
+      }
+    : {
+        minHeight: 48,
+      }),
 }
 
 const styleInput = {

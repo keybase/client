@@ -18,33 +18,36 @@ type Props = {
 }
 
 class RemoteTracker extends Component<void, Props, void> {
-  shouldComponentUpdate (nextProps, nextState) {
+  shouldComponentUpdate(nextProps, nextState) {
     return nextProps.trackers !== this.props.trackers
   }
 
-  render () {
+  render() {
     const {trackers} = this.props
     const windowsOpts = {height: 470, width: 320}
 
     return (
       <div>
-        {Object.keys(trackers).filter(username => !trackers[username].closed).map(username => (
-          <RemoteComponent
-            positionBottomRight={true}
-            windowsOpts={windowsOpts}
-            title={`tracker - ${username}`}
-            waitForState={true}
-            ignoreNewProps={true}
-            hidden={trackers[username].hidden}
-            onRemoteClose={() => this.props.onClose(username)}
-            component='tracker'
-            username={username}
-            startTimer={this.props.startTimer}
-            errorRetry={() => this.props.errorRetry(username)}
-            stopTimer={this.props.stopTimer}
-            selectorParams={username}
-            key={username} />
-        ))}
+        {Object.keys(trackers)
+          .filter(username => !trackers[username].closed)
+          .map(username => (
+            <RemoteComponent
+              positionBottomRight={true}
+              windowsOpts={windowsOpts}
+              title={`tracker - ${username}`}
+              waitForState={true}
+              ignoreNewProps={true}
+              hidden={trackers[username].hidden}
+              onRemoteClose={() => this.props.onClose(username)}
+              component="tracker"
+              username={username}
+              startTimer={this.props.startTimer}
+              errorRetry={() => this.props.errorRetry(username)}
+              stopTimer={this.props.stopTimer}
+              selectorParams={username}
+              key={username}
+            />
+          ))}
       </div>
     )
   }
@@ -60,7 +63,11 @@ export default connect(
   (dispatch: any, op: OwnProps) => ({
     startTimer: () => dispatch(startTimer()),
     stopTimer: () => dispatch(stopTimer()),
-    errorRetry: (username: string) => { dispatch(getProfile(username, true)) },
-    onClose: (username: string) => { dispatch(onClose(username)) },
+    errorRetry: (username: string) => {
+      dispatch(getProfile(username, true))
+    },
+    onClose: (username: string) => {
+      dispatch(onClose(username))
+    },
   })
 )(RemoteTracker)

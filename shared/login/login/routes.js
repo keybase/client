@@ -44,15 +44,15 @@ const recursiveLazyRoutes = I.Seq({
     component: Success,
   },
 })
-  .map(routeData => new RouteDefNode({
-    ...routeData,
-    children: name => recursiveLazyRoutes.get(name),
-  }))
+  .map(
+    routeData =>
+      new RouteDefNode({
+        ...routeData,
+        children: name => recursiveLazyRoutes.get(name),
+      })
+  )
   .toMap()
 
-const routeTree = new RouteDefNode({
-  defaultSelected: 'login',
-  children: recursiveLazyRoutes,
-})
+const routeTree = recursiveLazyRoutes.get('login')
 
 export default routeTree

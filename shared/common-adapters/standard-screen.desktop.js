@@ -6,13 +6,14 @@ import type {Props, NotificationType} from './standard-screen'
 
 const StandardScreen = (props: Props) => {
   const topStack = [
-    !!props.onBack && <BackButton key='back' onClick={props.onBack} style={{...styleBack, ...props.styleBack}} />,
-    !!props.notification && (<Box key='banner' style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
-      {typeof props.notification.message === 'string'
-        ? <Text style={styleBannerText} type='BodySemibold'>{props.notification.message}</Text>
-        : props.notification.message
-      }
-    </Box>),
+    !!props.onBack &&
+      <BackButton key="back" onClick={props.onBack} style={{...styleBack, ...props.styleBack}} />,
+    !!props.notification &&
+      <Box key="banner" style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
+        {typeof props.notification.message === 'string'
+          ? <Text style={styleBannerText} type="BodySemibold">{props.notification.message}</Text>
+          : props.notification.message}
+      </Box>,
   ]
   const topStackCount = topStack.reduce((acc, x) => acc + !!x, 0)
   return (
@@ -21,7 +22,8 @@ const StandardScreen = (props: Props) => {
         {topStack}
       </Box>
       <Box style={{...styleInnerContainer, paddingBottom: topStackCount * globalMargins.large}}>
-        {!!props.onClose && <Icon style={{...styleClose, ...props.styleClose}} type='iconfont-close' onClick={props.onClose} />}
+        {!!props.onClose &&
+          <Icon style={{...styleClose, ...props.styleClose}} type="iconfont-close" onClick={props.onClose} />}
         <Box style={{...styleContentContainer, ...props.style}}>
           {props.children}
         </Box>
@@ -72,9 +74,7 @@ const styleBanner = (notificationType: NotificationType) => ({
   textAlign: 'center',
   zIndex: 1,
   minHeight: globalMargins.large,
-  backgroundColor: notificationType === 'error'
-    ? globalColors.red
-    : globalColors.green,
+  backgroundColor: notificationType === 'error' ? globalColors.red : globalColors.green,
 })
 
 const styleBannerText = {

@@ -233,6 +233,11 @@ func (f failingRemote) SyncAll(ctx context.Context, arg chat1.SyncAllArg) (chat1
 	return chat1.SyncAllResult{}, nil
 }
 
+func (f failingRemote) UpdateTypingRemote(ctx context.Context, arg chat1.UpdateTypingRemoteArg) error {
+	require.Fail(f.t, "UpdateTypingRemote")
+	return nil
+}
+
 type failingTlf struct {
 	t *testing.T
 }

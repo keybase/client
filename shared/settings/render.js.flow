@@ -12,4 +12,4 @@ export type Props = {
   onLogout: () => void,
 }
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}

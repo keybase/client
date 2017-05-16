@@ -7,7 +7,12 @@ import {actionLogger} from './action-logger'
 import {closureCheck} from './closure-check'
 import {convertToError} from '../util/errors'
 import {createStore} from 'redux'
-import {enableStoreLogging, enableActionLogging, closureStoreCheck, immediateStateLogging} from '../local-debug'
+import {
+  enableStoreLogging,
+  enableActionLogging,
+  closureStoreCheck,
+  immediateStateLogging,
+} from '../local-debug'
 import {globalError} from '../constants/config'
 import {isMobile} from '../constants/platform'
 import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
@@ -15,7 +20,7 @@ import {setupLogger, immutableToJS} from '../util/periodic-logger'
 
 let theStore: Store
 
-const crashHandler = (error) => {
+const crashHandler = error => {
   if (__DEV__) {
     throw error
   }
@@ -72,8 +77,7 @@ const errorCatching = store => next => action => {
 
     try {
       crashHandler(error) // don't let this thing crash us forever
-    } catch (_) {
-    }
+    } catch (_) {}
   }
 }
 
@@ -89,7 +93,7 @@ if (closureStoreCheck) {
   middlewares.push(closureCheck)
 }
 
-export default function configureStore (initialState: any) {
+export default function configureStore(initialState: any) {
   const store = createStore(rootReducer, initialState, storeEnhancer(middlewares))
   theStore = store
 

@@ -6,7 +6,7 @@ import type {State, Actions} from '../constants/devices'
 
 const initialState: State = new StateRecord()
 
-export default function (state: State = initialState, action: Actions) {
+export default function(state: State = initialState, action: Actions) {
   switch (action.type) {
     case 'common:resetStore':
       return new StateRecord()

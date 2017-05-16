@@ -18,41 +18,42 @@ type State = {
 }
 
 class SuccessRender extends Component<void, Props, State> {
-  state: State;
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
     this.state = {
       checked: false,
     }
   }
 
-  render () {
+  render() {
     return (
-      <Container style={{padding: globalMargins.large, flex: 1}}>
-        <Text type='Header' style={textCenter}>{this.props.title || "Congratulations, you've just joined Keybase!"}</Text>
-        <Text type='Body' style={{...textCenter, marginTop: globalMargins.medium}}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you'll see this so be sure to write it down.</Text>
+      <Container style={{flex: 1}}>
+        <Text type="Header" style={textCenter}>
+          {this.props.title || "Congratulations, you've just joined Keybase!"}
+        </Text>
+        <Text type="Body" style={{...textCenter, marginTop: globalMargins.medium}}>
+          Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you'll see this so be sure to write it down.
+        </Text>
 
         <Box style={paperKeyContainerStyle}>
-          <Text type='Header' style={paperkeyStyle}>{this.props.paperkey.stringValue()}</Text>
+          <Text type="Header" style={paperkeyStyle}>{this.props.paperkey.stringValue()}</Text>
           <Box style={paperCornerStyle}>
-            <Icon type='icon-paper-key-corner' />
+            <Icon type="icon-paper-key-corner" />
           </Box>
         </Box>
 
         <Box style={confirmCheckboxStyle}>
           <Checkbox
-            label='Yes, I wrote this down.'
+            label="Yes, I wrote this down."
             checked={this.state.checked}
-            onCheck={checked => this.setState({checked})} />
+            onCheck={checked => this.setState({checked})}
+          />
         </Box>
 
         <Box style={{flex: 2, justifyContent: 'flex-end'}}>
-          <Button style={buttonStyle}
-            disabled={!this.state.checked}
-            onClick={this.props.onFinish}
-            label='Done'
-            type='Primary' />
+          <Button disabled={!this.state.checked} onClick={this.props.onFinish} label="Done" type="Primary" />
         </Box>
       </Container>
     )
@@ -62,9 +63,7 @@ class SuccessRender extends Component<void, Props, State> {
 const confirmCheckboxStyle = {
   ...globalStyles.flexBoxRow,
   alignSelf: 'center',
-}
-
-const buttonStyle = {
+  paddingBottom: globalMargins.small,
 }
 
 const textCenter = {
@@ -74,7 +73,7 @@ const textCenter = {
 const paperKeyContainerStyle = {
   alignSelf: 'center',
   marginTop: globalMargins.large,
-  marginBottom: globalMargins.large,
+  marginBottom: globalMargins.medium,
   paddingTop: globalMargins.small,
   paddingBottom: globalMargins.small,
   paddingLeft: globalMargins.small,

@@ -48,40 +48,22 @@ func (e *Bootstrap) SubConsumers() []libkb.UIConsumer {
 func (e *Bootstrap) Run(ctx *Context) error {
 	e.status.Registered = e.signedUp()
 
-	var gerr error
-	e.G().LoginState().Account(func(a *libkb.Account) {
-		var sessionOk bool
-		sessionOk, gerr = a.LoggedInProvisioned()
-		if gerr != nil {
-			e.G().Log.Debug("Bootstrap: LoggedInProvisioned error: %s", gerr)
-			return
-		}
+	// if any Login engine worked previously, then ActiveDevice will
+	// be valid:
+	validActiveDevice := e.G().ActiveDevice.Valid()
 
-		// if any Login engine  worked, then ActiveDevice will be valid:
-		validActiveDevice := e.G().ActiveDevice.Valid()
-
-		e.status.LoggedIn = sessionOk && validActiveDevice
-		if !e.status.LoggedIn {
-			e.G().Log.Debug("Bootstrap: not logged in")
-			return
-		}
-
-		e.status.Uid = e.G().ActiveDevice.UID()
-		e.G().Log.Debug("Bootstrap: uid = %s", e.status.Uid)
-		e.status.Username = e.G().Env.GetUsername().String()
-		e.G().Log.Debug("Bootstrap: username = %s", e.status.Username)
-
-		e.status.DeviceID = a.GetDeviceID()
-		e.status.DeviceName = e.G().ActiveDevice.Name()
-	}, "Bootstrap")
-	if gerr != nil {
-		return gerr
-	}
-
+	// the only way for ActiveDevice to be valid is to be logged in
+	// (and provisioned)
+	e.status.LoggedIn = validActiveDevice
 	if !e.status.LoggedIn {
-		e.G().Log.Debug("not logged in, not running syncer")
+		e.G().Log.Debug("Bootstrap: not logged in")
 		return nil
 	}
+	e.G().Log.Debug("Bootstrap: logged in (valid active device)")
+
+	e.status.Uid, e.status.DeviceID, e.status.DeviceName, _, _ = e.G().ActiveDevice.AllFields()
+	e.status.Username = e.G().Env.GetUsername().String()
+	e.G().Log.Debug("Bootstrap status: uid=%s, username=%s, deviceID=%s, deviceName=%s", e.status.Uid, e.status.Username, e.status.DeviceID, e.status.DeviceName)
 
 	// get user summaries
 	ts := libkb.NewTracker2Syncer(e.G(), e.status.Uid, true)

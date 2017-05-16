@@ -14,16 +14,16 @@ import (
 type SignupEngine struct {
 	libkb.Contextified
 
-	pwsalt          []byte
-	ppStream        *libkb.PassphraseStream
-	tsec            libkb.Triplesec
-	uid             keybase1.UID
-	me              *libkb.User
-	signingKey      libkb.GenericKey
-	encryptionKey   libkb.NaclDHKeyPair
-	arg             *SignupEngineRunArg
-	lks             *libkb.LKSec
-	sharedDHKeyring *libkb.SharedDHKeyring // Created after provisioning. Sent to paperkey gen.
+	pwsalt         []byte
+	ppStream       *libkb.PassphraseStream
+	tsec           libkb.Triplesec
+	uid            keybase1.UID
+	me             *libkb.User
+	signingKey     libkb.GenericKey
+	encryptionKey  libkb.NaclDHKeyPair
+	arg            *SignupEngineRunArg
+	lks            *libkb.LKSec
+	perUserKeyring *libkb.PerUserKeyring // Created after provisioning. Sent to paperkey gen.
 }
 
 type SignupEngineRunArg struct {
@@ -84,9 +84,9 @@ func (s *SignupEngine) Run(ctx *Context) error {
 			return err
 		}
 
-		if s.G().Env.GetEnableSharedDH() {
+		if s.G().Env.GetSupportPerUserKey() {
 			var err error
-			s.sharedDHKeyring, err = libkb.NewSharedDHKeyring(s.G(), s.uid)
+			s.perUserKeyring, err = libkb.NewPerUserKeyring(s.G(), s.uid)
 			if err != nil {
 				return err
 			}
@@ -264,11 +264,11 @@ func (s *SignupEngine) genPaperKeys(ctx *Context, lctx libkb.LoginContext) error
 	}
 
 	args := &PaperKeyPrimaryArgs{
-		Me:              s.me,
-		SigningKey:      s.signingKey,
-		EncryptionKey:   s.encryptionKey,
-		LoginContext:    lctx,
-		SharedDHKeyring: s.sharedDHKeyring,
+		Me:             s.me,
+		SigningKey:     s.signingKey,
+		EncryptionKey:  s.encryptionKey,
+		LoginContext:   lctx,
+		PerUserKeyring: s.perUserKeyring,
 	}
 
 	eng := NewPaperKeyPrimary(s.G(), args)

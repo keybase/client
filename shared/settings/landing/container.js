@@ -52,7 +52,9 @@ export default connect(
     }
   },
   (dispatch: (a: any) => void, ownProps: {}) => ({
-    onBootstrap: () => { dispatch(actions.loadSettings()) },
+    onBootstrap: () => {
+      dispatch(actions.loadSettings())
+    },
     onChangePassphrase: () => dispatch(navigateAppend(['changePassphrase'])),
     onChangeEmail: () => dispatch(navigateAppend(['changeEmail'])),
     onInfo: selectedLevel => dispatch(navigateAppend([{selected: 'changePlan', props: {selectedLevel}}])),
@@ -76,7 +78,7 @@ export default connect(
         },
         plan: {
           ...stateProps.originalProps.plan,
-          onInfo: (selectedLevel) => {
+          onInfo: selectedLevel => {
             dispatchProps.onInfo(selectedLevel)
           },
         },

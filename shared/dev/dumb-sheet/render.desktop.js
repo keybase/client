@@ -9,11 +9,11 @@ import {Box, Text, Input, BackButton} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 
 class DumbSheetRender extends Component<void, Props, any> {
-  _onFilterChange: (a: any) => void;
-  _onNext: (a: any, offset: 1 | -1) => void;
-  _box: any;
+  _onFilterChange: (a: any) => void
+  _onNext: (a: any, offset: 1 | -1) => void
+  _box: any
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     this._onFilterChange = debounce(filter => {
@@ -45,13 +45,13 @@ class DumbSheetRender extends Component<void, Props, any> {
     })
   }
 
-  componentDidMount () {
+  componentDidMount() {
     // After all child components have loaded (and their autoFocuses, if present, have been triggered)
     // return focus back to the main filter field of the dumb sheet.
     this.refs.filterInput.focus()
   }
 
-  _filterToParams () {
+  _filterToParams() {
     let filter = this.props.dumbFilter.toLowerCase()
     let numItemsLeftWeCanShowMax = 10
 
@@ -83,26 +83,32 @@ class DumbSheetRender extends Component<void, Props, any> {
     }
   }
 
-  render () {
+  render() {
     const {filter, numItemsLeftWeCanShowMax, keys, isExact} = this._filterToParams()
     let numItemsLeftWeCanShow = numItemsLeftWeCanShowMax
 
     return (
-      <Box style={{...globalStyles.scrollable, flex: 1, padding: 20}} ref='scrollBox'>
+      <Box style={{...globalStyles.scrollable, flex: 1, padding: 20}} ref="scrollBox">
         <BackButton onClick={this.props.onBack} />
         <Box style={{...globalStyles.flexBoxRow}}>
           <Input
-            ref='filterInput'
+            ref="filterInput"
             small={true}
-            smallLabel='Filter:'
+            smallLabel="Filter:"
             value={this.props.dumbFilter}
-            onChangeText={text => this._onFilterChange(text.toLowerCase())} />
+            onChangeText={text => this._onFilterChange(text.toLowerCase())}
+          />
         </Box>
         {keys.map(key => {
           const map = dumbComponentMap[key]
           const includeAllChildren = isExact || !filter || key.toLowerCase().indexOf(filter) !== -1
           const items = Object.keys(map.mocks)
-            .filter(mockKey => !filter || includeAllChildren || (key.toLowerCase() + mockKey.toLowerCase()).indexOf(filter) !== -1)
+            .filter(
+              mockKey =>
+                !filter ||
+                includeAllChildren ||
+                (key.toLowerCase() + mockKey.toLowerCase()).indexOf(filter) !== -1
+            )
             .map((mockKey, idx) => {
               --numItemsLeftWeCanShow
 
@@ -125,14 +131,14 @@ class DumbSheetRender extends Component<void, Props, any> {
           return (
             <Box key={key} style={styleBox}>
               <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', marginBottom: 5}}>
-                <Text type='Header' onClick={() => this._onNext(key, -1)}>&lt;&nbsp;</Text>
-                <Text type='Header' onClick={() => this._onFilterChange(`'${key}'`)}>{key}</Text>
-                <Text type='Header' onClick={() => this._onNext(key, 1)}>&nbsp;&gt;</Text>
+                <Text type="Header" onClick={() => this._onNext(key, -1)}>&lt;&nbsp;</Text>
+                <Text type="Header" onClick={() => this._onFilterChange(`'${key}'`)}>{key}</Text>
+                <Text type="Header" onClick={() => this._onNext(key, 1)}>&nbsp;&gt;</Text>
               </Box>
               {items}
               <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', marginTop: 5}}>
-                <Text type='Header' onClick={() => this._onNext(key, -1)}>&lt;&nbsp;</Text>
-                <Text type='Header' onClick={() => this._onNext(key, 1)}>&nbsp;&gt;</Text>
+                <Text type="Header" onClick={() => this._onNext(key, -1)}>&lt;&nbsp;</Text>
+                <Text type="Header" onClick={() => this._onNext(key, 1)}>&nbsp;&gt;</Text>
               </Box>
             </Box>
           )

@@ -17,9 +17,9 @@ type State = {
 }
 
 class LoadingWrapper extends Component<void, Props, State> {
-  state: State;
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
     this.state = {
       opacity: new Animated.Value(1),
@@ -27,19 +27,17 @@ class LoadingWrapper extends Component<void, Props, State> {
     }
   }
 
-  _doAnimation () {
+  _doAnimation() {
     const {duration} = this.props
     this.setState({loadingActive: true})
 
     this.state.opacity.setValue(1)
     Animated.parallel(
-      [[this.state.opacity, 0]].map(
-        ([a, toValue]) => Animated.timing(a, {duration, toValue})
-      )
+      [[this.state.opacity, 0]].map(([a, toValue]) => Animated.timing(a, {duration, toValue}))
     ).start(({finished}) => finished && this.setState({loadingActive: false}))
   }
 
-  render () {
+  render() {
     return (
       <Box style={{position: 'relative', ...this.props.style}}>
         {!this.props.loading && this.props.doneLoadingComponent}
@@ -51,20 +49,21 @@ class LoadingWrapper extends Component<void, Props, State> {
               left: 0,
               top: 0,
               right: 0,
-            }}>
+            }}
+          >
             {this.props.loadingComponent}
-          </ Animated.View>}
+          </Animated.View>}
       </Box>
     )
   }
 
-  componentDidMount () {
+  componentDidMount() {
     if (!this.props.loading) {
       this._doAnimation()
     }
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (this.props.loading && !nextProps.loading) {
       this._doAnimation()
     }

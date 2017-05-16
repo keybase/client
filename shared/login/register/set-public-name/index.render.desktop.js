@@ -5,26 +5,36 @@ import type {Props} from './index.render'
 import {Text, Button, Input, Icon} from '../../../common-adapters'
 import {globalMargins} from '../../../styles'
 
-const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting, submitEnabled = true}: Props) => {
+const SetPublicName = ({
+  onBack,
+  onSubmit,
+  onChange,
+  deviceNameError,
+  deviceName,
+  waiting,
+  submitEnabled = true,
+}: Props) => {
   return (
     <Container style={stylesContainer} onBack={onBack}>
-      <Text type='Header' style={stylesHeader}>Set a public name for this device:</Text>
-      <Icon type='icon-computer-64' style={stylesIcon} />
+      <Text type="Header" style={stylesHeader}>Set a public name for this device:</Text>
+      <Icon type="icon-computer-64" style={stylesIcon} />
       <Input
         autoFocus={true}
         errorText={deviceNameError}
         style={stylesInput}
-        hintText='Device name'
+        hintText="Device name"
         onEnterKeyDown={() => onSubmit()}
         onChangeText={text => onChange(text)}
-        value={deviceName} />
+        value={deviceName}
+      />
       <Button
-        type='Primary'
+        type="Primary"
         style={stylesButton}
         disabled={!submitEnabled}
         waiting={waiting}
-        label='Continue'
-        onClick={() => onSubmit()} />
+        label="Continue"
+        onClick={() => onSubmit()}
+      />
     </Container>
   )
 }

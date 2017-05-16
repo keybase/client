@@ -5,14 +5,15 @@ import {Box, Button, Icon, Input, StandardScreen, Text} from '../../common-adapt
 
 import type {Props} from './index'
 
-function VerifiedText ({isVerified, style}: {isVerified: boolean, style?: Object}) {
+function VerifiedText({isVerified, style}: {isVerified: boolean, style?: Object}) {
   const color = isVerified ? globalColors.green2 : globalColors.red
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', alignSelf: 'center', ...style}}>
       <Icon
         type={isVerified ? 'iconfont-check' : 'iconfont-close'}
-        style={{color, marginRight: 3, marginTop: 2, fontSize: 11}} />
-      <Text type='Body' style={{color}}>
+        style={{color, marginRight: 3, marginTop: 2, fontSize: 11}}
+      />
+      <Text type="Body" style={{color}}>
         {isVerified ? 'Verified' : 'Not verified'}
       </Text>
     </Box>
@@ -26,9 +27,9 @@ type State = {
 }
 
 class UpdateEmail extends Component<void, Props, State> {
-  state: State;
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
     this.state = {
       originalEmail: props.email || '',
@@ -37,7 +38,7 @@ class UpdateEmail extends Component<void, Props, State> {
     }
   }
 
-  handleEmailChange (email: string) {
+  handleEmailChange(email: string) {
     const edited = email !== this.state.originalEmail
     this.setState({
       email,
@@ -45,33 +46,38 @@ class UpdateEmail extends Component<void, Props, State> {
     })
   }
 
-  render () {
+  render() {
     const error = this.props.error ? {message: this.props.error.message, type: 'error'} : null
     return (
-      <StandardScreen
-        onBack={this.props.onBack}
-        notification={error}>
+      <StandardScreen onBack={this.props.onBack} notification={error}>
         <Input
-          hintText='Email'
+          hintText="Email"
           value={this.state.email}
           onChangeText={email => this.handleEmailChange(email)}
-          style={{width: 400}} />
+          style={{width: 400}}
+        />
         {!this.state.edited &&
-          <VerifiedText isVerified={this.props.isVerified} style={{marginTop: 2, justifyContent: 'center'}} />
-        }
+          <VerifiedText
+            isVerified={this.props.isVerified}
+            style={{marginTop: 2, justifyContent: 'center'}}
+          />}
         <Button
           style={{alignSelf: 'center', marginTop: globalMargins.medium}}
-          type='Primary'
-          label='Save'
-          onClick={() => { this.props.onSave(this.state.email) }}
-          waiting={this.props.waitingForResponse} />
+          type="Primary"
+          label="Save"
+          onClick={() => {
+            this.props.onSave(this.state.email)
+          }}
+          waiting={this.props.waitingForResponse}
+        />
 
         {!!this.props.onResendConfirmationCode &&
           <Text
             style={{marginTop: globalMargins.large, textAlign: 'center'}}
             onClick={this.props.onResendConfirmationCode}
             link={true}
-            type='BodyPrimaryLink'>
+            type="BodyPrimaryLink"
+          >
             Resend confirmation code
           </Text>}
       </StandardScreen>

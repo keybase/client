@@ -25,4 +25,4 @@ export type RootProps = {
 
 export type Props = RootProps & UserSearchProps & UserGroupProps & SearchBarProps
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}

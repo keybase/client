@@ -100,7 +100,6 @@ func (a *ActiveDevice) internalUpdateUIDDeviceID(acct *Account, uid keybase1.UID
 	if a.uid.IsNil() && a.deviceID.IsNil() {
 		a.uid = uid
 		a.deviceID = deviceID
-
 	} else if a.uid.NotEqual(uid) {
 		return errors.New("ActiveDevice.set uid mismatch")
 	} else if !a.deviceID.Eq(deviceID) {
@@ -182,11 +181,11 @@ func (a *ActiveDevice) KeyByType(t SecretKeyType) (GenericKey, error) {
 
 // AllFields returns all the ActiveDevice fields via one lock for consistency.
 // Safe for use by concurrent goroutines.
-func (a *ActiveDevice) AllFields() (uid keybase1.UID, deviceID keybase1.DeviceID, sigKey GenericKey, encKey GenericKey) {
+func (a *ActiveDevice) AllFields() (uid keybase1.UID, deviceID keybase1.DeviceID, deviceName string, sigKey GenericKey, encKey GenericKey) {
 	a.RLock()
 	defer a.RUnlock()
 
-	return a.uid, a.deviceID, a.signingKey, a.encryptionKey
+	return a.uid, a.deviceID, a.deviceName, a.signingKey, a.encryptionKey
 }
 
 func (a *ActiveDevice) Name() string {

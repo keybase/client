@@ -43,44 +43,50 @@ const boldStyle = {color: undefined}
 const italicStyle = {color: undefined, fontStyle: 'italic', fontWeight: undefined}
 const strikeStyle = {color: undefined, fontWeight: undefined, textDecorationLine: 'line-through'}
 
-function previewCreateComponent (style) {
-  return function (type, key, children, options) {
+function previewCreateComponent(style) {
+  return function(type, key, children, options) {
     switch (type) {
       case 'markup':
-        return <Text type='Body' key={key} lineClamp={1} style={style}>{children}</Text>
+        return <Text type="Body" key={key} lineClamp={1} style={style}>{children}</Text>
       case 'emoji':
         return <EmojiIfExists emojiName={String(children)} size={12} key={key} />
       case 'native-emoji':
         return <Emoji emojiName={String(children)} size={12} key={key} />
       default:
-        return <Text type='Body' key={key} style={{...neutralStyle, ...style}}>{children}</Text>
+        return <Text type="Body" key={key} style={{...neutralStyle, ...style}}>{children}</Text>
     }
   }
 }
 
-function messageCreateComponent (style) {
-  return function (type, key, children, options) {
+function messageCreateComponent(style) {
+  return function(type, key, children, options) {
     switch (type) {
       case 'markup':
         return <Box key={key}>{children}</Box>
       case 'inline-code':
-        return <Text type='Body' key={key} style={codeSnippetStyle}>{children}</Text>
+        return <Text type="Body" key={key} style={codeSnippetStyle}>{children}</Text>
       case 'code-block':
         return (
           <Box key={key} style={codeSnippetBlockStyle}>
-            <Text type='Body' style={codeSnippetBlockTextStyle}>{children}</Text>
+            <Text type="Body" style={codeSnippetBlockTextStyle}>{children}</Text>
           </Box>
         )
       case 'link':
-        return <Text type='BodyPrimaryLink' key={key} style={linkStyle} onClickURL={options.href}>{children}</Text>
+        return (
+          <Text type="BodyPrimaryLink" key={key} style={linkStyle} onClickURL={options.href}>{children}</Text>
+        )
       case 'text-block':
-        return <Text type='Body' key={key} style={{...neutralStyle, ...style}}>{children.length ? children : '\u200b'}</Text>
+        return (
+          <Text type="Body" key={key} style={{...neutralStyle, ...style}}>
+            {children.length ? children : '\u200b'}
+          </Text>
+        )
       case 'bold':
-        return <Text type='BodySemibold' key={key} style={boldStyle}>{children}</Text>
+        return <Text type="BodySemibold" key={key} style={boldStyle}>{children}</Text>
       case 'italic':
-        return <Text type='Body' key={key} style={italicStyle}>{children}</Text>
+        return <Text type="Body" key={key} style={italicStyle}>{children}</Text>
       case 'strike':
-        return <Text type='Body' key={key} style={strikeStyle}>{children}</Text>
+        return <Text type="Body" key={key} style={strikeStyle}>{children}</Text>
       case 'emoji':
         return <EmojiIfExists emojiName={String(children)} key={key} />
       case 'native-emoji':
@@ -92,11 +98,13 @@ function messageCreateComponent (style) {
 }
 
 class Markdown extends PureComponent<void, Props, void> {
-  render () {
-    const createComponent = this.props.preview ? previewCreateComponent(this.props.style) : messageCreateComponent(this.props.style)
+  render() {
+    const createComponent = this.props.preview
+      ? previewCreateComponent(this.props.style)
+      : messageCreateComponent(this.props.style)
     const content = parseMarkdown(this.props.children, createComponent)
     if (typeof content === 'string') {
-      return <Text type='Body' style={this.props.style}>{content}</Text>
+      return <Text type="Body" style={this.props.style}>{content}</Text>
     }
     return content
   }

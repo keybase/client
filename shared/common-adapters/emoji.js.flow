@@ -6,8 +6,8 @@ export type Props = {
   emojiName: string,
 }
 
-declare function backgroundImageFn (set: string, sheetSize: string): string
+declare function backgroundImageFn(set: string, sheetSize: string): string
 
 export {backgroundImageFn}
 
-export default class Emoji extends Component<void, Props, void> { }
+export default class Emoji extends Component<void, Props, void> {}

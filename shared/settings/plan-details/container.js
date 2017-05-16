@@ -9,9 +9,12 @@ import type {PlanLevel} from '../../constants/settings'
 import type {RouteProps} from '../../route-tree/render-route'
 import type {TypedState} from '../../constants/reducer'
 
-type OwnProps = RouteProps<{
-  selectedLevel: PlanLevel,
-}, {}>
+type OwnProps = RouteProps<
+  {
+    selectedLevel: PlanLevel,
+  },
+  {}
+>
 
 export default connect(
   (state: TypedState, ownProps: OwnProps) => {
@@ -44,5 +47,5 @@ export default connect(
       ...stateProps.paymentOption,
       onAddCreditCard: () => console.log('onadd credit'), // TODO
     },
-  }),
+  })
 )(PlanDetails)

@@ -6,18 +6,20 @@ const deleteEntity: (keyPath: Array<string>, ids: Array<string>) => Delete = (ke
   type: 'entity:delete',
 })
 
-const mergeEntity: (keyPath: Array<string>, entities: {[id: string]: EntityType}) => Merge = (keyPath, entities) => ({
+const mergeEntity: (keyPath: Array<string>, entities: {[id: string]: EntityType}) => Merge = (
+  keyPath,
+  entities
+) => ({
   payload: {entities, keyPath},
   type: 'entity:merge',
 })
 
-const replaceEntity: (keyPath: Array<string>, entities: {[id: string]: EntityType}) => Replace = (keyPath, entities) => ({
+const replaceEntity: (keyPath: Array<string>, entities: {[id: string]: EntityType}) => Replace = (
+  keyPath,
+  entities
+) => ({
   payload: {entities, keyPath},
   type: 'entity:replace',
 })
 
-export {
-  deleteEntity,
-  mergeEntity,
-  replaceEntity,
-}
+export {deleteEntity, mergeEntity, replaceEntity}

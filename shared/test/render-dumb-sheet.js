@@ -12,13 +12,13 @@ import '../desktop/renderer/style.css'
 
 const PADDING = 25
 
-function Mock ({map, mockKey}) {
+function Mock({map, mockKey}) {
   return (
     <MuiThemeProvider muiTheme={materialTheme}>
       <GlobalEscapeHandler>
         <DumbSheetItem
           key={mockKey}
-          id='rendered'
+          id="rendered"
           style={{alignSelf: 'flex-start', margin: PADDING}}
           component={map.component}
           mockKey={mockKey}
@@ -29,10 +29,10 @@ function Mock ({map, mockKey}) {
   )
 }
 
-function ErrorMessage ({error}) {
+function ErrorMessage({error}) {
   return (
     <div
-      id='rendered'
+      id="rendered"
       data-error={true}
       style={{alignSelf: 'flex-start', border: '5px solid red', font: '12px/16px sans-serif', padding: 14}}
     >
@@ -42,7 +42,7 @@ function ErrorMessage ({error}) {
   )
 }
 
-function onDisplay (ev, msg) {
+function onDisplay(ev, msg) {
   const appEl = document.getElementById('root')
   if (!appEl) {
     throw new Error('Page missing #root container')
@@ -82,8 +82,10 @@ function onDisplay (ev, msg) {
   try {
     ReactDOM.render(<Mock map={map} mockKey={mockKey} />, appEl, () => {
       // Remove pesky blinking cursors
-      if (document.activeElement && (document.activeElement.tagName === 'INPUT' ||
-          document.activeElement.tagName === 'TEXTAREA')) {
+      if (
+        document.activeElement &&
+        (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')
+      ) {
         document.activeElement && document.activeElement.blur()
       }
 
@@ -96,7 +98,7 @@ function onDisplay (ev, msg) {
   }
 }
 
-function run (options) {
+function run(options) {
   ipcRenderer.on('display', onDisplay)
   onDisplay(null, options.firstDisplay)
 }
@@ -108,6 +110,6 @@ declare class ExtendedDocument extends Document {
 }
 declare var document: ExtendedDocument
 
-window.load = (options) => {
+window.load = options => {
   document.fonts.ready.then(() => run(options))
 }

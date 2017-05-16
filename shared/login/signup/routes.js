@@ -15,39 +15,34 @@ const signupError = new RouteDefNode({
 })
 
 const routeTree = new RouteDefNode({
-  defaultSelected: 'signup',
+  component: InviteCode,
   children: {
-    signup: {
-      component: InviteCode,
+    signupError,
+    requestInvite: {
+      component: RequestInvite,
       children: {
         signupError,
-        requestInvite: {
-          component: RequestInvite,
-          children: {
-            signupError,
-            requestInviteSuccess: {
-              component: RequestInviteSuccess,
-            },
-          },
+        requestInviteSuccess: {
+          component: RequestInviteSuccess,
         },
-        usernameAndEmail: {
-          component: UsernameEmailForm,
+      },
+    },
+    usernameAndEmail: {
+      component: UsernameEmailForm,
+      children: {
+        signupError,
+        passphraseSignup: {
+          component: PassphraseSignup,
           children: {
             signupError,
-            passphraseSignup: {
-              component: PassphraseSignup,
+            deviceName: {
+              component: DeviceName,
               children: {
                 signupError,
-                deviceName: {
-                  component: DeviceName,
+                success: {
+                  component: Success,
                   children: {
                     signupError,
-                    success: {
-                      component: Success,
-                      children: {
-                        signupError,
-                      },
-                    },
                   },
                 },
               },

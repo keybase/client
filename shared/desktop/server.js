@@ -4,7 +4,9 @@ const express = require('express')
 const webpack = require('webpack')
 const getenv = require('getenv')
 
-const config = getenv.boolish('DUMB', false) ? Object.assign({}, require('./webpack.config.dumb')) : Object.assign({}, require('./webpack.config.development'))
+const config = getenv.boolish('DUMB', false)
+  ? Object.assign({}, require('./webpack.config.dumb'))
+  : Object.assign({}, require('./webpack.config.development'))
 const PORT = 4000
 const compiler = webpack(config)
 
@@ -14,7 +16,7 @@ const KEYBASE_VERBOSE_WEBPACK = getenv.boolish('KEYBASE_VERBOSE_WEBPACK', false)
 
 if (NO_SERVER) {
   console.log('Starting local file build')
-  compiler.run(function (err, stats) {
+  compiler.run(function(err, stats) {
     if (err) {
       throw err
     }
@@ -32,16 +34,18 @@ if (NO_SERVER) {
 } else {
   const app = express()
 
-  app.use(require('webpack-dev-middleware')(compiler, {
-    publicPath: config.output.publicPath,
-    hot: true,
-    lazy: false,
-    headers: {'Access-Control-Allow-Origin': '*'},
-    stats: {
-      colors: true,
-      chunkModules: KEYBASE_VERBOSE_WEBPACK,
-    },
-  }))
+  app.use(
+    require('webpack-dev-middleware')(compiler, {
+      publicPath: config.output.publicPath,
+      hot: true,
+      lazy: false,
+      headers: {'Access-Control-Allow-Origin': '*'},
+      stats: {
+        colors: true,
+        chunkModules: KEYBASE_VERBOSE_WEBPACK,
+      },
+    })
+  )
 
   app.use(require('webpack-hot-middleware')(compiler))
 

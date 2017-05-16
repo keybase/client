@@ -673,26 +673,30 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
 	g.chatLog.Debug(context.Background(), "connect error %s, reconnect throttle duration: %s", err, reconnectThrottleDuration)
 
-	// Call out to reachability module if we have one
-	if g.reachability != nil {
-		g.reachability.setReachability(keybase1.Reachability{
-			Reachable: keybase1.Reachable_NO,
-		})
-	}
+	// Check reachability here to see the nature of our offline status
+	go func() {
+		if g.reachability != nil && !g.isReachable() {
+			g.reachability.setReachability(keybase1.Reachability{
+				Reachable: keybase1.Reachable_NO,
+			})
+		}
+	}()
 }
 
 func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
 	g.chatLog.Debug(context.Background(), "disconnected: %v", status)
 
-	// Call out to reachability module if we have one (and we are currently connected)
-	if g.reachability != nil && status != rpc.StartingFirstConnection {
-		g.reachability.setReachability(keybase1.Reachability{
-			Reachable: keybase1.Reachable_NO,
-		})
-	}
-
 	// Alert chat syncer that we are now disconnected
 	g.G().Syncer.Disconnected(ctx)
+
+	// Call out to reachability module if we have one (and we are currently connected)
+	go func() {
+		if g.reachability != nil && status != rpc.StartingFirstConnection && !g.isReachable() {
+			g.reachability.setReachability(keybase1.Reachability{
+				Reachable: keybase1.Reachable_NO,
+			})
+		}
+	}()
 }
 
 func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
@@ -1051,6 +1055,8 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		return g.G().PushHandler.TlfFinalize(ctx, obm)
 	case "chat.tlfresolve":
 		return g.G().PushHandler.TlfResolve(ctx, obm)
+	case "chat.typing":
+		return g.G().PushHandler.Typing(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
 		return nil
@@ -1221,9 +1227,6 @@ func (g *gregorHandler) isReachable() bool {
 func (g *gregorHandler) Reconnect(ctx context.Context) error {
 	if g.IsConnected() {
 		g.chatLog.Debug(ctx, "Reconnect: reconnecting to server")
-		g.reachability.setReachability(keybase1.Reachability{
-			Reachable: keybase1.Reachable_NO,
-		})
 		g.Shutdown()
 		return g.Connect(g.uri)
 	}

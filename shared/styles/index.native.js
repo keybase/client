@@ -101,14 +101,8 @@ const globalStyles = {
 // FIXME: StatusBar.currentHeight returns undefined on iOS in RN 0.34
 const statusBarHeight = isAndroid ? StatusBar.currentHeight : 20
 
-function backgroundURL (...path: Array<string>): Object {
+function backgroundURL(...path: Array<string>): Object {
   return {}
 }
 
-export {
-  globalColors,
-  backgroundURL,
-  statusBarHeight,
-  globalStyles,
-  globalMargins,
-}
+export {globalColors, backgroundURL, statusBarHeight, globalStyles, globalMargins}

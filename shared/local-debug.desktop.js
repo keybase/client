@@ -116,7 +116,7 @@ export const {
   skipSecondaryDevtools,
 } = config
 
-export function envVarDebugJson () {
+export function envVarDebugJson() {
   if (process.env.KEYBASE_LOCAL_DEBUG_JSON) {
     try {
       return JSON.parse(process.env.KEYBASE_LOCAL_DEBUG_JSON)

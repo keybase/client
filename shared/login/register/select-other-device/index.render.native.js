@@ -9,9 +9,9 @@ import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconType = ({
-    'mobile': 'icon-phone-48',
-    'desktop': 'icon-computer-48',
-    'backup': 'icon-paper-key-48',
+    mobile: 'icon-phone-48',
+    desktop: 'icon-computer-48',
+    backup: 'icon-paper-key-48',
   }: {[key: DeviceType]: IconType})[type]
 
   const onPress = e => {
@@ -25,20 +25,19 @@ const Row = ({deviceID, name, type, onSelect}) => {
         <Box style={stylesIconContainer}>
           <Icon style={stylesIcon} type={iconType} />
         </Box>
-        <Text type='BodySemiboldItalic' onClick={onPress}>{name}</Text>
+        <Text type="BodySemiboldItalic" onClick={onPress}>{name}</Text>
       </Box>
-    </ClickableBox>)
+    </ClickableBox>
+  )
 }
 
 const Render = ({onBack, devices, onWont, onSelect}: Props) => (
-  <Container
-    style={stylesContainer}
-    onBack={onBack}>
-    <Text type='Header' style={stylesHeader}>Which device would you like to connect with?</Text>
+  <Container style={stylesContainer} onBack={onBack}>
+    <Text type="Header" style={stylesHeader}>Which device would you like to connect with?</Text>
     <NativeScrollView style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
     </NativeScrollView>
-    <Text style={stylesWont} type='BodySmallSecondaryLink' onClick={onWont}>Log in with your passphrase</Text>
+    <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>Log in with your passphrase</Text>
   </Container>
 )
 
@@ -47,7 +46,6 @@ const stylesContainer = {
 }
 const stylesHeader = {
   marginBottom: globalMargins.small,
-  marginTop: globalMargins.tiny,
   textAlign: 'center',
 }
 const stylesDevicesContainer = {

@@ -13,13 +13,15 @@ import {isMobile} from '../../constants/platform'
 const nullFunc = () => {}
 
 const signupShared = {
-  parentProps: isMobile ? {} : {
-    style: {
-      position: 'relative',
-      width: 800,
-      height: 580,
-    },
-  },
+  parentProps: isMobile
+    ? {}
+    : {
+        style: {
+          position: 'relative',
+          width: 800,
+          height: 580,
+        },
+      },
   onBack: nullFunc,
 }
 
@@ -80,19 +82,19 @@ export default {
   'Signup: Invite Code': {
     component: InviteCode,
     mocks: {
-      'Start': {
+      Start: {
         ...inviteShared,
       },
-      'Code': {
+      Code: {
         ...inviteShared,
         inviteCode: 'Code Entered',
       },
-      'Waiting': {
+      Waiting: {
         ...inviteShared,
         inviteCode: 'Code Entered',
         waiting: true,
       },
-      'Error': {
+      Error: {
         ...inviteShared,
         inviteCode: 'Code Entered',
         inviteCodeErrorText: 'This is an error',
@@ -102,7 +104,7 @@ export default {
   'Signup: RequestInviteSuccess': {
     component: RequestInviteSuccess,
     mocks: {
-      'Start': {
+      Start: {
         ...signupShared,
       },
     },
@@ -110,14 +112,14 @@ export default {
   'Signup: RequestInvite': {
     component: RequesteInvite,
     mocks: {
-      'Start': {
+      Start: {
         ...requestShared,
       },
-      'Name': {
+      Name: {
         ...requestShared,
         name: 'Name',
       },
-      'Email': {
+      Email: {
         ...requestShared,
         email: 'Email@email.com',
       },
@@ -136,7 +138,7 @@ export default {
         email: 'Email@email.com',
         emailErrorText: 'Email bad, booo',
       },
-      'Waiting': {
+      Waiting: {
         ...requestShared,
         name: 'Name',
         email: 'Email@email.com',
@@ -147,14 +149,14 @@ export default {
   'Signup: UsernameEmail (Login)': {
     component: UsernameEmail,
     mocks: {
-      'Start': {
+      Start: {
         ...userEmailShared,
       },
-      'Name': {
+      Name: {
         ...userEmailShared,
         username: 'Name',
       },
-      'Email': {
+      Email: {
         ...userEmailShared,
         email: 'Email@email.com',
       },
@@ -173,7 +175,7 @@ export default {
         email: 'Email@email.com',
         emailErrorText: 'Email bad, booo',
       },
-      'Waiting': {
+      Waiting: {
         ...userEmailShared,
         username: 'Name',
         email: 'Email@email.com',
@@ -184,7 +186,7 @@ export default {
   'Signup: Error': {
     component: Error,
     mocks: {
-      'Start': {
+      Start: {
         ...signupShared,
         errorText: new HiddenString('This is an error'),
         restartSignup: nullFunc,
@@ -194,10 +196,10 @@ export default {
   'Signup: Passphrase': {
     component: Passphrase,
     mocks: {
-      'Start': {
+      Start: {
         ...passphraseShared,
       },
-      'Error': {
+      Error: {
         ...passphraseShared,
         passphraseError: new HiddenString('This is an error'),
       },
@@ -206,7 +208,7 @@ export default {
   'Signup: Success': {
     component: Success,
     mocks: {
-      'Start': {
+      Start: {
         ...signupShared,
         paperkey: new HiddenString('This is a paper key phase blah blah blah'),
         onFinish: nullFunc,
@@ -218,18 +220,18 @@ export default {
   'Signup: Device Name': {
     component: DeviceName,
     mocks: {
-      'Start': {
+      Start: {
         ...deviceNameShared,
       },
-      'Waiting': {
+      Waiting: {
         ...deviceNameShared,
         waiting: true,
       },
-      'Name': {
+      Name: {
         ...deviceNameShared,
         deviceName: 'A name',
       },
-      'Error': {
+      Error: {
         ...deviceNameShared,
         deviceNameError: 'Some naming errors',
       },

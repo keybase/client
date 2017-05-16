@@ -14,28 +14,31 @@ import {setupKBFSChangedHandler} from './favorite'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
-function logUiLog ({text, level}: {text: RPCTypes.Text, level: RPCTypes.LogLevel}, response: any): Constants.LogAction {
+function logUiLog(
+  {text, level}: {text: RPCTypes.Text, level: RPCTypes.LogLevel},
+  response: any
+): Constants.LogAction {
   log({level, text}, response)
   return {payload: {level, text: text.data}, type: 'notifications:log'}
 }
 
-function listenForNotifications (): Constants.ListenForNotifications {
+function listenForNotifications(): Constants.ListenForNotifications {
   return {payload: undefined, type: 'notifications:listenForNotifications'}
 }
 
-function listenForKBFSNotifications (): Constants.ListenForKBFSNotifications {
+function listenForKBFSNotifications(): Constants.ListenForKBFSNotifications {
   return {payload: undefined, type: 'notifications:listenForKBFSNotifications'}
 }
 
-function badgeApp (key: Constants.NotificationKeys, on: boolean, count: number = 0): Constants.BadgeAppAction {
+function badgeApp(key: Constants.NotificationKeys, on: boolean, count: number = 0): Constants.BadgeAppAction {
   return {payload: {count, key, on}, type: 'notifications:badgeApp'}
 }
 
-function receivedBadgeState (badgeState: RPCTypes.BadgeState): Constants.ReceivedBadgeState {
+function receivedBadgeState(badgeState: RPCTypes.BadgeState): Constants.ReceivedBadgeState {
   return {payload: {badgeState}, type: 'notifications:receivedBadgeState'}
 }
 
-function * _listenSaga (): SagaGenerator<any, any> {
+function* _listenSaga(): SagaGenerator<any, any> {
   const channels = {
     app: true,
     badges: true,
@@ -76,38 +79,32 @@ function * _listenSaga (): SagaGenerator<any, any> {
   yield put(setupUserChangedHandler())
 }
 
-function * _listenKBFSSaga (): SagaGenerator<any, any> {
+function* _listenKBFSSaga(): SagaGenerator<any, any> {
   yield put(setupKBFSChangedHandler())
   yield put(setupChatHandlers())
 }
 
-function * _onRecievedBadgeState (action: Constants.ReceivedBadgeState): SagaGenerator<any, any> {
+function* _onRecievedBadgeState(action: Constants.ReceivedBadgeState): SagaGenerator<any, any> {
   const {conversations} = action.payload.badgeState
   yield put(badgeAppForChat(conversations))
 }
 
-function * _listenNotifications (): SagaGenerator<any, any> {
+function* _listenNotifications(): SagaGenerator<any, any> {
   yield take('notifications:listenForNotifications')
   yield call(_listenSaga)
 }
 
-function * _listenForKBFSNotifications (): SagaGenerator<any, any> {
+function* _listenForKBFSNotifications(): SagaGenerator<any, any> {
   yield take('notifications:listenForKBFSNotifications')
   yield call(_listenKBFSSaga)
 }
 
-function * notificationsSaga (): SagaGenerator<any, any> {
+function* notificationsSaga(): SagaGenerator<any, any> {
   yield fork(_listenNotifications)
   yield fork(_listenForKBFSNotifications)
   yield Saga.safeTakeLatest('notifications:receivedBadgeState', _onRecievedBadgeState)
 }
 
-export {
-  badgeApp,
-  listenForNotifications,
-  listenForKBFSNotifications,
-  logUiLog,
-  receivedBadgeState,
-}
+export {badgeApp, listenForNotifications, listenForKBFSNotifications, logUiLog, receivedBadgeState}
 
 export default notificationsSaga

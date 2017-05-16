@@ -29,6 +29,7 @@ type chatListener struct {
 	inboxStale     chan struct{}
 	threadsStale   chan []chat1.ConversationID
 	bgConvLoads    chan chat1.ConversationID
+	typingUpdate   chan []chat1.ConvTypingUpdate
 }
 
 var _ libkb.NotifyListener = (*chatListener)(nil)
@@ -69,6 +70,14 @@ func (n *chatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.Conversat
 	case n.threadsStale <- cids:
 	case <-time.After(5 * time.Second):
 		panic("timeout on the threads stale channel")
+	}
+}
+
+func (n *chatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
+	select {
+	case n.typingUpdate <- updates:
+	case <-time.After(5 * time.Second):
+		panic("timeout on typing update")
 	}
 }
 
@@ -143,6 +152,7 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 		inboxStale:     make(chan struct{}, 1),
 		threadsStale:   make(chan []chat1.ConversationID, 1),
 		bgConvLoads:    make(chan chat1.ConversationID, 10),
+		typingUpdate:   make(chan []chat1.ConvTypingUpdate, 10),
 	}
 	g.ConvSource = NewHybridConversationSource(g, boxer, storage.New(g), getRI)
 	g.InboxSource = NewHybridInboxSource(g, getRI, tlf)
@@ -443,12 +453,15 @@ func TestFailingSender(t *testing.T) {
 	}
 
 	var recvd []chat1.OutboxRecord
-	for i := 0; i < 5; i++ {
+	for {
 		select {
 		case fid := <-listener.failing:
 			recvd = append(recvd, fid...)
 		case <-time.After(20 * time.Second):
-			require.Fail(t, "event not received")
+			require.Fail(t, "event not received", "len(recvd): %d", len(recvd))
+		}
+		if len(recvd) >= len(obids) {
+			break
 		}
 	}
 
@@ -471,12 +484,42 @@ func TestDisconnectedFailure(t *testing.T) {
 	res := startConv(t, u, trip, baseSender, ri, tc)
 
 	tc.ChatG.MessageDeliverer.Disconnected(context.TODO())
+	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(baseSender)
+
+	// If not offline for long enough, we should be able to get a send by just reconnecting
+	obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:      trip,
+			Sender:    u.User.GetUID().ToBytes(),
+			TlfName:   u.Username,
+			TlfPublic: false,
+		},
+	}, 0)
+	require.NoError(t, err)
+	cl.Advance(time.Millisecond)
+	select {
+	case <-listener.failing:
+		require.Fail(t, "no failed message")
+	default:
+	}
+	tc.ChatG.MessageDeliverer.Connected(context.TODO())
+	select {
+	case inc := <-listener.incoming:
+		require.Equal(t, 1, inc)
+		require.Equal(t, obid, listener.obids[0])
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no incoming message")
+	}
+	listener.obids = nil
+
+	tc.ChatG.MessageDeliverer.Disconnected(context.TODO())
 	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
+	cl.Advance(time.Hour)
 
 	// Send nonblock
 	obids := []chat1.OutboxID{}
 	for i := 0; i < 3; i++ {
-		obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		obid, _, _, err = sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:      trip,
 				Sender:    u.User.GetUID().ToBytes(),

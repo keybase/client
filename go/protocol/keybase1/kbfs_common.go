@@ -101,6 +101,7 @@ const (
 	FSErrorType_NO_SIG_CHAIN          FSErrorType = 10
 	FSErrorType_TOO_MANY_FOLDERS      FSErrorType = 11
 	FSErrorType_EXDEV_NOT_SUPPORTED   FSErrorType = 12
+	FSErrorType_DISK_LIMIT_REACHED    FSErrorType = 13
 )
 
 var FSErrorTypeMap = map[string]FSErrorType{
@@ -117,6 +118,7 @@ var FSErrorTypeMap = map[string]FSErrorType{
 	"NO_SIG_CHAIN":          10,
 	"TOO_MANY_FOLDERS":      11,
 	"EXDEV_NOT_SUPPORTED":   12,
+	"DISK_LIMIT_REACHED":    13,
 }
 
 var FSErrorTypeRevMap = map[FSErrorType]string{
@@ -133,6 +135,7 @@ var FSErrorTypeRevMap = map[FSErrorType]string{
 	10: "NO_SIG_CHAIN",
 	11: "TOO_MANY_FOLDERS",
 	12: "EXDEV_NOT_SUPPORTED",
+	13: "DISK_LIMIT_REACHED",
 }
 
 func (e FSErrorType) String() string {

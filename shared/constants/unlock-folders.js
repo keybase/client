@@ -31,20 +31,26 @@ export type Waiting = TypedAction<'unlockFolders:waiting', boolean, {}>
 export type RegisterRekeyListenerAction = TypedAction<'notifications:registerRekeyListener', any, any>
 export const registerRekeyListener = 'notifications:registerRekeyListener'
 
-export type NewRekeyPopupAction = TypedAction<'notifications:newRekeyPopup', {
-  sessionID: number,
-  devices: Array<ServiceDevice>,
-  problemSet: ProblemSet}, void>
+export type NewRekeyPopupAction = TypedAction<
+  'notifications:newRekeyPopup',
+  {
+    sessionID: number,
+    devices: Array<ServiceDevice>,
+    problemSet: ProblemSet,
+  },
+  void
+>
 export const newRekeyPopup = 'notifications:newRekeyPopup'
 
-export type Actions = ToPaperKeyInput
-| OnBackFromPaperKey
-| CheckPaperKey
-| Finish
-| Close
-| Waiting
-| RegisterRekeyListenerAction
-| NewRekeyPopupAction
+export type Actions =
+  | ToPaperKeyInput
+  | OnBackFromPaperKey
+  | CheckPaperKey
+  | Finish
+  | Close
+  | Waiting
+  | RegisterRekeyListenerAction
+  | NewRekeyPopupAction
 
 export type State = {
   closed: boolean,

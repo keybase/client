@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 
 export type Props = {
-  onBack: () => void
+  onBack: () => void,
 }
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}

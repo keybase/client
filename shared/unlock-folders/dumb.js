@@ -11,32 +11,42 @@ const devices = [
   {type: 'backup', name: 'my paperkey', deviceID: 'deadbee0'},
 ]
 
-  // phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
+// phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
 const common = {
   parentProps: {style: {marginTop: 20, flex: 1, width: 500, height: 300}},
   paperKeysHidden: false,
   phase: 'promptOtherDevice',
   devices: devices,
-  onClose: () => { console.log('onClose') },
-  toPaperKeyInput: () => { console.log('toPaperKeyInput') },
-  onBackFromPaperKey: () => { console.log('onBackFromPaperKey') },
-  onContinueFromPaperKey: (paperkey: HiddenString) => { console.log('onContinueFromPaperKey') },
+  onClose: () => {
+    console.log('onClose')
+  },
+  toPaperKeyInput: () => {
+    console.log('toPaperKeyInput')
+  },
+  onBackFromPaperKey: () => {
+    console.log('onBackFromPaperKey')
+  },
+  onContinueFromPaperKey: (paperkey: HiddenString) => {
+    console.log('onContinueFromPaperKey')
+  },
   paperkeyError: null,
   waiting: false,
-  onFinish: () => { console.log('onFinish') },
+  onFinish: () => {
+    console.log('onFinish')
+  },
 }
 
 const unlockFolderMap: DumbComponentMap<UnlockFolders> = {
   component: UnlockFolders,
   mocks: {
-    'Normal': {
+    Normal: {
       ...common,
     },
     'No paperkeys': {
       ...common,
       paperKeysHidden: true,
     },
-    'Single': {
+    Single: {
       ...common,
       devices: [devices[0]],
     },
@@ -55,7 +65,7 @@ const unlockFolderMap: DumbComponentMap<UnlockFolders> = {
       paperkeyError: 'Invalid paperkey',
       waiting: true,
     },
-    'Success': {
+    Success: {
       ...common,
       phase: 'success',
       waiting: false,

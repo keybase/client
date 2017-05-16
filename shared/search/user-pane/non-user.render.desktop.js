@@ -10,13 +10,31 @@ import type {Props} from './non-user.render'
 import electron from 'electron'
 const shell = electron.shell || electron.remote.shell
 
-function InviteSection ({inviteLink, outOfInvites, onSendInvite, username, serviceName}: {inviteLink: ?string, outOfInvites: ?boolean, onSendInvite: () => void, username: string, serviceName: string}) {
+function InviteSection({
+  inviteLink,
+  outOfInvites,
+  onSendInvite,
+  username,
+  serviceName,
+}: {
+  inviteLink: ?string,
+  outOfInvites: ?boolean,
+  onSendInvite: () => void,
+  username: string,
+  serviceName: string,
+}) {
   let textRef
 
   if (outOfInvites) {
     return (
       <Box style={stylesLinkContainer}>
-        <Text type='Body' style={{textAlign: 'center'}}>Since you're out of invites, {`${username}@${serviceName}`} will need to request a signup on Keybase.io. Encourage them to join.</Text>
+        <Text type="Body" style={{textAlign: 'center'}}>
+          Since you're out of invites,
+          {' '}
+          {`${username}@${serviceName}`}
+          {' '}
+          will need to request a signup on Keybase.io. Encourage them to join.
+        </Text>
       </Box>
     )
   }
@@ -24,10 +42,25 @@ function InviteSection ({inviteLink, outOfInvites, onSendInvite, username, servi
   if (inviteLink) {
     return (
       <Box style={stylesLinkContainer}>
-        <Text type='Body' style={{textAlign: 'center'}}>You can send {`${username}@${serviceName}`} this link to skip the invitation queue:</Text>
+        <Text type="Body" style={{textAlign: 'center'}}>
+          You can send {`${username}@${serviceName}`} this link to skip the invitation queue:
+        </Text>
         <Box style={stylesLinkBox}>
-          <Icon style={{color: globalColors.black_10}} type='iconfont-link' onClick={() => textRef && textRef.highlightText()} />
-          <Text allowHighlightText={true} ref={r => { textRef = r }} style={stylesLink} type='BodyPrimaryLink'>{inviteLink}</Text>
+          <Icon
+            style={{color: globalColors.black_10}}
+            type="iconfont-link"
+            onClick={() => textRef && textRef.highlightText()}
+          />
+          <Text
+            allowHighlightText={true}
+            ref={r => {
+              textRef = r
+            }}
+            style={stylesLink}
+            type="BodyPrimaryLink"
+          >
+            {inviteLink}
+          </Text>
         </Box>
       </Box>
     )
@@ -35,18 +68,18 @@ function InviteSection ({inviteLink, outOfInvites, onSendInvite, username, servi
 
   return (
     <Box style={styleInviteLink} onClick={onSendInvite}>
-      <Icon type='icon-invite-link-16' />
-      <Text type='BodyPrimaryLink' style={styleInviteLinkText}>Send invite link</Text>
+      <Icon type="icon-invite-link-16" />
+      <Text type="BodyPrimaryLink" style={styleInviteLinkText}>Send invite link</Text>
     </Box>
   )
 }
 
 export default class NonUserRender extends Component<void, Props, void> {
-  _onClickAvatar () {
+  _onClickAvatar() {
     shell.openExternal(this.props.profileUrl)
   }
 
-  render () {
+  render() {
     return (
       <Box style={styleContainer}>
         <Box style={{...styleHeader, backgroundColor: globalColors.blue}} />
@@ -59,14 +92,25 @@ export default class NonUserRender extends Component<void, Props, void> {
           />
           <Box style={styleUsernameRow} onClick={() => this._onClickAvatar()}>
             <Icon type={platformToLogo24(this.props.serviceName)} />
-            <Text type='HeaderBig' style={styleUsername}>
+            <Text type="HeaderBig" style={styleUsername}>
               {this.props.username}
             </Text>
           </Box>
-          {this.props.fullname && <Text type='BodySemibold' style={styleFullname}>{this.props.fullname}</Text>}
-          <Text type='BodySmall' style={styleServiceLabel}>{this.props.serviceName} user</Text>
+          {this.props.fullname &&
+            <Text type="BodySemibold" style={styleFullname}>{this.props.fullname}</Text>}
+          <Text type="BodySmall" style={styleServiceLabel}>{this.props.serviceName} user</Text>
         </Box>
-        <Text type='BodySmall' style={styleDetails}>When {this.props.username} connects Keybase and their {capitalize(this.props.serviceName)} account, your computer will verify them and rekey the folder or conversation.</Text>
+        <Text type="BodySmall" style={styleDetails}>
+          When
+          {' '}
+          {this.props.username}
+          {' '}
+          connects Keybase and their
+          {' '}
+          {capitalize(this.props.serviceName)}
+          {' '}
+          account, your computer will verify them and rekey the folder or conversation.
+        </Text>
         <InviteSection {...this.props} />
       </Box>
     )

@@ -415,6 +415,12 @@ func Trace(log logger.Logger, msg string, f func() error) func() {
 	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }
 }
 
+func TraceTimed(log logger.Logger, msg string, f func() error) func() {
+	log.Debug("+ %s", msg)
+	start := time.Now()
+	return func() { log.Debug("- %s -> %s [time=%s]", msg, ErrToOk(f()), time.Since(start)) }
+}
+
 func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) func() {
 	log.CDebugf(ctx, "+ %s", msg)
 	return func() { log.CDebugf(ctx, "- %s -> %s", msg, ErrToOk(f())) }
@@ -593,4 +599,14 @@ func MakeByte32(a []byte) [32]byte {
 	var b [n]byte
 	copy(b[:], a)
 	return b
+}
+
+func MakeByte32Soft(a []byte) ([32]byte, error) {
+	const n = 32
+	var b [n]byte
+	if len(a) != n {
+		return b, fmt.Errorf("MakeByte expected len %v but got %v slice", n, len(a))
+	}
+	copy(b[:], a)
+	return b, nil
 }

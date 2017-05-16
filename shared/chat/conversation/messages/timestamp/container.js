@@ -20,6 +20,4 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
   }
 }
 
-export default compose(
-  connect(mapStateToProps, () => ({})),
-)(Timestamp)
+export default compose(connect(mapStateToProps, () => ({})))(Timestamp)

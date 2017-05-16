@@ -43,12 +43,6 @@ export default compose(
       },
     })
   ),
-  branch(
-    props => props.bootStatus === 'bootStatusLoading',
-    renderComponent(Splash)
-  ),
-  branch(
-    props => props.bootStatus === 'bootStatusFailure',
-    renderComponent(Failure)
-  ),
+  branch(props => props.bootStatus === 'bootStatusLoading', renderComponent(Splash)),
+  branch(props => props.bootStatus === 'bootStatusFailure', renderComponent(Failure))
 )(Intro)
