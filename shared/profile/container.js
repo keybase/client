@@ -60,6 +60,7 @@ export default connect(
     const username = routeProps.username ? routeProps.username : myUsername
 
     return {
+      currentlyFollowing: !!state.config.following[username],
       currentFriendshipsTab: routeState.currentFriendshipsTab,
       myUsername,
       profileIsRoot: routePath.size === 1 && routePath.first() === profileTab,

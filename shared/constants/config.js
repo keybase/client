@@ -29,12 +29,14 @@ const setFollowing = 'config:setFollowing'
 const setLaunchedViaPush = 'config:setLaunchedViaPush'
 const statusLoaded = 'config:statusLoaded'
 const updateFollowing = 'config:updateFollowing'
+const updateFollowings = 'config:updateFollowings'
 
 export type BootstrapStatusLoaded = NoErrorTypedAction<
   'config:bootstrapStatusLoaded',
   {bootstrapStatus: BootstrapStatus}
 >
 export type DaemonError = NoErrorTypedAction<'config:daemonError', {daemonError: ?Error}>
+export type UpdateFollowings = NoErrorTypedAction<'config:updateFollowings', {usernames: Array<string>}>
 export type UpdateFollowing = NoErrorTypedAction<
   'config:updateFollowing',
   {username: string, isTracking: boolean}
@@ -117,4 +119,5 @@ export {
   setLaunchedViaPush,
   statusLoaded,
   updateFollowing,
+  updateFollowings,
 }
