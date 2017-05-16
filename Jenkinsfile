@@ -257,6 +257,7 @@ helpers.rootLinuxNode(env, {
                             def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
                             def GOPATH="${BASEDIR}/go"
                             dir(mountDir) {
+                                // Ensure that the mountDir exists
                                 sh "touch test.txt"
                             }
                             withEnv([
