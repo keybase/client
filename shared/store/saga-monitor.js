@@ -136,9 +136,9 @@ function effectTriggered(desc) {
     // console.log('Saga monitor: effectTriggered:', desc)
     // KB START
     if (reduxSagaLoggerMasked) {
-      console.log('Saga monitor masked: effectTriggered:', effectTriggeredTransform(desc))
+      //console.log('Saga monitor masked: effectTriggered:', effectTriggeredTransform(desc))
     } else {
-      console.log('Saga monitor: effectTriggered:', desc)
+      //console.log('Saga monitor: effectTriggered:', desc)
     }
     // KB END
   }
@@ -159,9 +159,9 @@ function effectResolved(effectId, result) {
     // console.log('Saga monitor: effectResolved:', effectId, result)
     // KB START
     if (reduxSagaLoggerMasked) {
-      console.log('Saga monitor masked: effectResolved:', effectId, 'masked')
+      //console.log('Saga monitor masked: effectResolved:', effectId, 'masked')
     } else {
-      console.log('Saga monitor: effectResolved:', effectId, result)
+      //console.log('Saga monitor: effectResolved:', effectId, result)
     }
     // KB END
   }
@@ -173,9 +173,9 @@ function effectRejected(effectId, error) {
     // console.log('Saga monitor: effectRejected:', effectId, error)
     // KB START
     if (reduxSagaLoggerMasked) {
-      console.log('Saga monitor masked: effectRejected:', effectId, 'masked')
+      //console.log('Saga monitor masked: effectRejected:', effectId, 'masked')
     } else {
-      console.log('Saga monitor: effectRejected:', effectId, error)
+      //console.log('Saga monitor: effectRejected:', effectId, error)
     }
     // KB END
   }
@@ -184,7 +184,7 @@ function effectRejected(effectId, error) {
 
 function effectCancelled(effectId) {
   if (VERBOSE) {
-    console.log('Saga monitor: effectCancelled:', effectId)
+    //console.log('Saga monitor: effectCancelled:', effectId)
   }
   cancelEffect(effectId)
 }
@@ -517,10 +517,10 @@ const logSaga = (...topEffects) => {
     topEffects = rootEffects
   }
   if(!rootEffects.length) {
-    console.log(groupPrefix, 'Saga monitor: No effects to log')
+    //console.log(groupPrefix, 'Saga monitor: No effects to log')
   }
-  console.log('')
-  console.log('Saga monitor:', Date.now(), (new Date()).toISOString())
+  //console.log('')
+  //console.log('Saga monitor:', Date.now(), (new Date()).toISOString())
   logEffects(topEffects)
   console.log('')
 }

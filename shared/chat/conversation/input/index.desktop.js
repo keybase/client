@@ -91,9 +91,6 @@ class ConversationInput extends Component<void, InputProps, void> {
     console.warn('in _onKeyDown')
     if (e.key === 'ArrowUp' && !this.props.text) {
       this.props.onEditLastMessage()
-    } else {
-      console.warn('calling onUpdateTyping')
-      this.props.onUpdateTyping(!!this.props.text)
     }
   }
 
@@ -107,6 +104,12 @@ class ConversationInput extends Component<void, InputProps, void> {
     if (this.props.text) {
       this.props.onPostMessage(this.props.text)
       this.props.setText('')
+    }
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    if (this.props.text !== nextProps.text) {
+      this.props.onUpdateTyping(!!nextProps.text)
     }
   }
 
@@ -134,9 +137,29 @@ class ConversationInput extends Component<void, InputProps, void> {
           <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type='iconfont-emoji' />
           <Icon onClick={this.props.filePickerOpen} style={styleIcon} type='iconfont-attachment' />
         </Box>
-        <Text type='BodySmall' style={styleFooter} onClick={this.props.inputFocus}>*bold*, _italics_, `code`, >quote</Text>
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
+          <Text type='BodySmall' style={{...styleFooter, flexGrow: 1, textAlign: 'left'}}>{isTyping(this.props.typing)}</Text>
+          <Text type='BodySmall' style={{...styleFooter, textAlign: 'right'}} onClick={this.props.inputFocus}>*bold*, _italics_, `code`, >quote</Text>
+        </Box>
       </Box>
     )
+  }
+}
+
+const isTyping = typing => {
+  console.warn('in isTyping, typing is', typing)
+  if (!typing || !typing.size) {
+    return ''
+  }
+  switch (typing.size) {
+    case 0:
+      return ''
+    case 1:
+      return `${typing.get(0)} is typing`
+    case 2:
+      return `{${typing.get(0)} and ${typing.get(1)} are typing`
+    default:
+      return `${typing.join(',')} are typing`
   }
 }
 
@@ -153,7 +176,7 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
 
 const styleInput = {
   flex: 1,
-  marginLeft: globalMargins.tiny,
+  marginLeft: globalMargins.xtiny,
   marginRight: globalMargins.tiny,
   marginTop: globalMargins.tiny,
   textAlign: 'left',
@@ -167,11 +190,10 @@ const styleIcon = {
 const styleFooter = {
   color: globalColors.black_20,
   cursor: 'text',
-  flex: 1,
   marginBottom: globalMargins.xtiny,
+  marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
   marginTop: 0,
-  textAlign: 'right',
 }
 
 export default compose(

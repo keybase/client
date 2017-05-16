@@ -33,8 +33,6 @@ import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
 function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<any, any> {
-  console.warn('in _incomingMessage')
-  console.warn(action.payload)
   switch (action.payload.activity.activityType) {
     case ChatTypes.NotifyChatChatActivityType.setStatus:
       const setStatus: ?ChatTypes.SetStatusInfo = action.payload.activity.setStatus
@@ -168,6 +166,16 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
       break
     default:
       console.warn('Unsupported incoming message type for Chat of type:', action.payload.activity.activityType)
+  }
+}
+
+function * _incomingTyping (action: Constants.IncomingTyping): SagaGenerator<any, any> {
+  // $FlowIssue
+  for (const activity of action.payload.activity) {
+    const conversationIDKey = Constants.conversationIDToKey(activity.convID)
+    const typers = activity.typers || []
+    const typing = typers.map(typer => typer.username)
+    yield put(Creators.setTypers(conversationIDKey, typing))
   }
 }
 
@@ -854,6 +862,7 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
 
 function * _updateTyping ({payload: {conversationIDKey, typing}}: Constants.UpdateTyping): SagaGenerator<any, any> {
   const conversationID = Constants.keyToConversationID(conversationIDKey)
+  console.warn('typing is', typing)
   yield call(ChatTypes.localUpdateTypingRpcPromise, {
     param: {conversationID, typing},
   })

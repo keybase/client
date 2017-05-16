@@ -388,6 +388,10 @@ function updateTyping (conversationIDKey: Constants.ConversationIDKey, typing: b
   return {payload: {conversationIDKey, typing}, type: 'chat:updateTyping'}
 }
 
+function setTypers (conversationIDKey: Constants.ConversationIDKey, typing: Array<string>) {
+  return {payload: {conversationIDKey, typing}, type: 'chat:setTypers'}
+}
+
 export {
   addPending,
   appendMessages,
@@ -436,6 +440,7 @@ export {
   setInitialConversation,
   setLoaded,
   setSelectedRouteState,
+  setTypers,
   setUnboxing,
   setupChatHandlers,
   showEditor,

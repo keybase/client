@@ -1,6 +1,7 @@
 // @flow
 import {Component} from 'react'
 import * as Constants from '../../../constants/chat'
+import {List} from 'immutable'
 
 export type Props = {
   defaultText: string,
@@ -21,6 +22,7 @@ export type Props = {
   selectedConversationIDKey: ?Constants.ConversationIDKey,
   setText: (text: string) => void,
   text: string,
+  typing: List<Constants.Username>,
 }
 
 export default class Input extends Component<void, Props, void> { }

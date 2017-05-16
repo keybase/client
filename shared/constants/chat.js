@@ -11,11 +11,13 @@ import {createSelector} from 'reselect'
 import type {UserListItem} from '../common-adapters/usernames'
 import type {Path} from '../route-tree'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
-import type {Asset, AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFinalizeInfo, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
+import type {Asset, AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFinalizeInfo, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID, TyperInfo} from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
 import type {TypedState} from './reducer'
 
 export type MessageKey = string
+export type Username = string
+
 type MessageKeyKind = 'chatSecured'
 | 'error'
 | 'errorInvisible'
@@ -216,6 +218,7 @@ export const ConversationStateRecord = Record({
   paginationPrevious: undefined,
   firstNewMessageID: undefined,
   deletedIDs: Set(),
+  typing: List(),
 })
 
 export type ConversationState = Record<{
@@ -231,6 +234,7 @@ export type ConversationState = Record<{
   paginationPrevious: ?Buffer,
   firstNewMessageID: ?MessageID,
   deletedIDs: Set<MessageID>,
+  typing: List<Username>,
 }>
 
 export type ConversationBadgeState = Record<{
