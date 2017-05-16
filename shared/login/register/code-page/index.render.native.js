@@ -14,7 +14,6 @@ import {
   ClickableBox,
   Icon,
   Input,
-  NativeActivityIndicator,
   NativeStyleSheet,
   TabBar,
   Text,
@@ -47,17 +46,23 @@ class CodePageRender extends Component<void, Props, void> {
 
   renderScanCode() {
     if (this.props.qrCodeScanned) {
+      // If we are provisioning from existing phone, after scanning we should continue on other device
+      const continueOnOtherDevice = this.props.myDeviceRole === codePageDeviceRoleExistingPhone
+      const scanMessage = continueOnOtherDevice
+        ? 'You should follow the instructions on the other device to continue.'
+        : null
       return (
         <Box
           style={{
             ...stylesQRScan,
             flex: 1,
-            flexDirection: 'row',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <NativeActivityIndicator size="large" />
+          <Text type="BodySemibold">Code Scanned</Text>
+          {scanMessage && <Text type="Body" style={{textAlign: 'center'}}>{scanMessage}</Text>}
         </Box>
       )
     }
