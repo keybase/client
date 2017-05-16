@@ -2,6 +2,7 @@
 // Look at this doc: https://goo.gl/7B6p4H
 
 import * as CommonConstants from '../../constants/common'
+import * as RouteConstants from '../../constants/route-tree'
 import * as Constants from '../../constants/login'
 import * as DeviceConstants from '../../constants/devices'
 import * as Types from '../../constants/types/flow-types'
@@ -84,8 +85,8 @@ function sagaWaitingDecorator(saga) {
 
 function clearWaitingDecorator(saga) {
   return function*(...args) {
-    yield call(saga, ...args)
     yield put(Creators.waitingForResponse(false))
+    yield call(saga, ...args)
   }
 }
 
@@ -231,12 +232,13 @@ const displayPrimaryPaperKeySaga = onBackSaga =>
       )
     )
 
-    const {onBack, onFinish} = yield race({
+    const {onBack, navUp, onFinish} = yield race({
       onBack: take(Constants.onBack),
+      navUp: take(RouteConstants.navigateUp),
       onFinish: take(Constants.onFinish),
     })
 
-    if (onBack) {
+    if (onBack || navUp) {
       yield call(onBackSaga, response)
     } else if (onFinish) {
       yield call(resultWithWaiting, response)
@@ -257,12 +259,13 @@ const getEmailOrUsernameSaga = onBackSaga =>
       )
     )
 
-    const {onBack, onSubmit} = yield race({
+    const {onBack, navUp, onSubmit} = yield race({
       onBack: take(Constants.onBack),
+      navUp: take(RouteConstants.navigateUp),
       onSubmit: take(Constants.submitUsernameOrEmail),
     })
 
-    if (onBack) {
+    if (onBack || navUp) {
       yield call(onBackSaga, response)
     } else if (onSubmit) {
       const usernameOrEmail = onSubmit.payload.usernameOrEmail
@@ -289,13 +292,14 @@ const displayAndPromptSecretSaga = onBackSaga =>
       yield put(navigateAppend(['codePage']))
     }
 
-    const {textEntered, qrScanned, onBack} = yield race({
+    const {textEntered, qrScanned, onBack, navUp} = yield race({
       onBack: take(Constants.onBack),
+      navUp: take(RouteConstants.navigateUp),
       qrScanned: take(Constants.qrScanned),
       textEntered: take(Constants.provisionTextCodeEntered),
     })
 
-    if (onBack) {
+    if (onBack || navUp) {
       yield call(onBackSaga, response)
     } else if (qrScanned || textEntered) {
       const phrase = qrScanned ? qrScanned.payload.phrase : textEntered.payload.phrase
@@ -324,12 +328,13 @@ const promptNewDeviceNameSaga = onBackSaga =>
       )
     )
 
-    const {onBack, onSubmit} = yield race({
+    const {onBack, navUp, onSubmit} = yield race({
       onBack: take(Constants.onBack),
+      navUp: take(RouteConstants.navigateUp),
       onSubmit: take(Constants.submitDeviceName),
     })
 
-    if (onBack) {
+    if (onBack || navUp) {
       yield call(onBackSaga, response)
     } else if (onSubmit) {
       yield call(resultWithWaiting, response, onSubmit.payload.deviceName)
@@ -356,13 +361,14 @@ const chooseDeviceSaga = onBackSaga =>
       )
     )
 
-    const {onBack, onWont, onSelect} = yield race({
+    const {onBack, navUp, onWont, onSelect} = yield race({
       onBack: take(Constants.onBack),
+      navUp: take(RouteConstants.navigateUp),
       onWont: take(Constants.onWont),
       onSelect: take(Constants.selectDeviceId),
     })
 
-    if (onBack) {
+    if (onBack || navUp) {
       yield call(onBackSaga, response)
     } else if (onWont) {
       yield call(resultWithWaiting, response, '')
@@ -384,12 +390,13 @@ const chooseGPGMethodSaga = onBackSaga =>
   function*({response}) {
     yield put(navigateAppend(['gpgSign'], [loginTab, 'login']))
 
-    const {onBack, onSubmit} = yield race({
+    const {onBack, navUp, onSubmit} = yield race({
       onBack: take(Constants.onBack),
+      navUp: take(RouteConstants.navigateUp),
       onSubmit: take(Constants.chooseGPGMethod),
     })
 
-    if (onBack) {
+    if (onBack || navUp) {
       yield call(onBackSaga, response)
     } else if (onSubmit) {
       const exportKey = onSubmit.payload.exportKey
@@ -441,12 +448,13 @@ const getPassphraseSaga = onBackSaga =>
         return
     }
 
-    const {onBack, onSubmit} = yield race({
+    const {onBack, navUp, onSubmit} = yield race({
       onBack: take(Constants.onBack),
+      navUp: take(RouteConstants.navigateUp),
       onSubmit: take(Constants.submitPassphrase),
     })
 
-    if (onBack) {
+    if (onBack || navUp) {
       yield call(onBackSaga, response)
     } else if (onSubmit) {
       const passphrase = onSubmit.payload.passphrase.stringValue()
@@ -484,7 +492,7 @@ function* handleProvisioningError(error) {
       [loginTab, 'login']
     )
   )
-  yield take(Constants.onBack)
+  yield race({onBack: take(Constants.onBack), navUp: take(RouteConstants.navigateUp)})
   yield call(navBasedOnLoginState)
 }
 
@@ -500,9 +508,9 @@ function* finishLoginSaga({error, params}) {
 
 function* loginFlowSaga(usernameOrEmail) {
   const loginSagas = kex2Sagas(cancelLogin, provisionerSuccessInLoginSaga, finishLoginSaga)
-  const catchError = function*() {
+  const catchError = clearWaitingDecorator(function*() {
     yield call(cancelLogin)
-  }
+  })
 
   const channelConfig = Saga.singleFixedChannelConfig(Object.keys(loginSagas))
   const loginChanMap = yield call(loginRpc, channelConfig, usernameOrEmail)
@@ -541,12 +549,13 @@ function* startLoginSaga() {
 
   yield call(initalizeMyCodeStateForLogin)
 
-  const {onBack, onSubmit} = yield race({
+  const {onBack, navUp, onSubmit} = yield race({
     onBack: take(Constants.onBack),
+    navUp: take(RouteConstants.navigateUp),
     onSubmit: take(Constants.submitUsernameOrEmail),
   })
 
-  if (onBack) {
+  if (onBack || navUp) {
     yield call(cancelLogin)
   } else if (onSubmit) {
     const usernameOrEmail = onSubmit.payload.usernameOrEmail
