@@ -597,6 +597,21 @@ func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid keybas
 	return
 }
 
+func (u *User) localDelegatePerUserKey(perUserKey keybase1.PerUserKey) error {
+
+	// Don't update the u.keyFamily. It doesn't manage per-user-keys.
+
+	// Update sigchain which will update ckf/cki
+	err := u.sigChain().LocalDelegatePerUserKey(perUserKey)
+	if err != nil {
+		return err
+	}
+
+	u.G().Log.Debug("User LocalDelegatePerUserKey gen:%v seqno:%v sig:%v enc:%v",
+		perUserKey.Gen, perUserKey.Seqno, perUserKey.SigKID.String(), perUserKey.EncKID.String())
+	return nil
+}
+
 func (u *User) SigChainBump(linkID LinkID, sigID keybase1.SigID) {
 	u.SigChainBumpMT(MerkleTriple{LinkID: linkID, SigID: sigID})
 }

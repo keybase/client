@@ -10,10 +10,22 @@ import type {incomingCallMapType} from '../constants/types/flow-types'
 // Keep track of the last time we notified and ignore if its the same
 let lastLoggedInNotifyUsername = null
 
+// We get a counter for badge state, if we get one that's less than what we've seen we toss it
+let lastBadgeStateVersion = -1
+
 export default function(dispatch: Dispatch, getState: () => Object, notify: any): incomingCallMapType {
   const throttledDispatch = throttle(action => dispatch(action), 1000, {leading: false, trailing: true})
   return {
     'keybase.1.NotifyBadges.badgeState': ({badgeState}) => {
+      if (badgeState.inboxVers <= lastBadgeStateVersion) {
+        console.log(
+          `Ignoring older badgeState, got ${badgeState.inboxVers} but have seen ${lastBadgeStateVersion}`
+        )
+        return
+      }
+
+      lastBadgeStateVersion = badgeState.inboxVers
+
       const totalChats = (badgeState.conversations || []).reduce((total, c) => total + c.UnreadMessages, 0)
 
       const action = receivedBadgeState(badgeState)

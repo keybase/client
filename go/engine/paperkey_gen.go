@@ -80,7 +80,7 @@ func (e *PaperKeyGen) EncKey() libkb.NaclDHKeyPair {
 // Run starts the engine.
 func (e *PaperKeyGen) Run(ctx *Context) error {
 	if e.G().Env.GetSupportPerUserKey() && !e.arg.SkipPush {
-		err := e.syncSDH(ctx)
+		err := e.syncPUK(ctx)
 		if err != nil {
 			return err
 		}
@@ -119,8 +119,8 @@ func (e *PaperKeyGen) Run(ctx *Context) error {
 	return nil
 }
 
-func (e *PaperKeyGen) syncSDH(ctx *Context) error {
-	// Sync the sdh keyring before updating other things.
+func (e *PaperKeyGen) syncPUK(ctx *Context) error {
+	// Sync the per-user-key keyring before updating other things.
 	pukring, err := e.getPerUserKeyring()
 	if err != nil {
 		return err
@@ -134,7 +134,6 @@ func (e *PaperKeyGen) syncSDH(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	// TODO if PUK_UPGRADE: may want to add a key here.
 	return nil
 }
 
@@ -320,9 +319,7 @@ func (e *PaperKeyGen) makePerUserKeyBoxes(ctx *Context) ([]keybase1.PerUserKeyBo
 		if err != nil {
 			return nil, err
 		}
-		if !pukring.HasAnyKeys() {
-			// TODO if PUK_UPGRADE: may want to add a key here.
-		} else {
+		if pukring.HasAnyKeys() {
 			if e.arg.EncryptionKey.IsNil() {
 				return nil, errors.New("missing encryption key for creating paper key")
 			}

@@ -191,18 +191,18 @@ func TestProvisionDesktopPUK(t *testing.T) {
 	testProvisionDesktop(t, true)
 }
 
-func testProvisionDesktop(t *testing.T, supportPerUserKey bool) {
+func testProvisionDesktop(t *testing.T, upgradePerUserKey bool) {
 	// device X (provisioner) context:
 	t.Logf("setup X")
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-	tcX.Tp.SupportPerUserKey = supportPerUserKey
+	tcX.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	// device Y (provisionee) context:
 	t.Logf("setup Y")
 	tcY := SetupEngineTest(t, "template")
 	defer tcY.Cleanup()
-	tcY.Tp.SupportPerUserKey = supportPerUserKey
+	tcY.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	// provisioner needs to be logged in
 	t.Logf("provisioner login")
@@ -422,10 +422,10 @@ func TestProvisionPassphraseNoKeysSoloPUK(t *testing.T) {
 }
 
 // If a user has no keys, provision via passphrase should work.
-func testProvisionPassphraseNoKeysSolo(t *testing.T, supportPerUserKey bool) {
+func testProvisionPassphraseNoKeysSolo(t *testing.T, upgradePerUserKey bool) {
 	tcWeb := SetupEngineTest(t, "web")
 	defer tcWeb.Cleanup()
-	tcWeb.Tp.SupportPerUserKey = supportPerUserKey
+	tcWeb.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	username, passphrase := createFakeUserWithNoKeys(tcWeb)
 
@@ -435,7 +435,7 @@ func testProvisionPassphraseNoKeysSolo(t *testing.T, supportPerUserKey bool) {
 
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
-	tc.Tp.SupportPerUserKey = supportPerUserKey
+	tc.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	ctx := &Context{
 		ProvisionUI: newTestProvisionUIPassphrase(),
@@ -2583,13 +2583,12 @@ func TestProvisionEnsureNoPaperKey(t *testing.T) {
 }
 
 func TestProvisionEnsureNoPaperKeyPUK(t *testing.T) {
-	t.Skip("TODO waiting for CORE-4895 RevokePUK")
 	testProvisionEnsureNoPaperKey(t, true)
 }
 
 // Provisioning a new device when the user has no paper keys should work
 // and not generate a paper key.
-func testProvisionEnsureNoPaperKey(t *testing.T, supportPerUserKey bool) {
+func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 	// This test is based on TestProvisionDesktop.
 
 	t.Logf("create 2 contexts")
@@ -2597,12 +2596,12 @@ func testProvisionEnsureNoPaperKey(t *testing.T, supportPerUserKey bool) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-	tcX.Tp.SupportPerUserKey = supportPerUserKey
+	tcX.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "template")
 	defer tcY.Cleanup()
-	tcY.Tp.SupportPerUserKey = supportPerUserKey
+	tcY.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUserPaper(tcX, "login")

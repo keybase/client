@@ -348,6 +348,15 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         )
       )
     }
+    case 'chat:setTypers': {
+      const {conversationIDKey, typing} = action.payload
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates =>
+        updateConversation(conversationStates, conversationIDKey, conversation =>
+          conversation.set('typing', Set(typing))
+        )
+      )
+    }
     case 'chat:createPendingFailure': {
       const {failureDescription, outboxID} = action.payload
       return state.set('pendingFailures', state.get('pendingFailures').set(outboxID, failureDescription))

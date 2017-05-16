@@ -119,10 +119,10 @@ func TestPaperKeyMultiPUK(t *testing.T) {
 }
 
 // Generate multiple paper keys
-func testPaperKeyMulti(t *testing.T, supportPerUserKey bool) {
+func testPaperKeyMulti(t *testing.T, upgradePerUserKey bool) {
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
-	tc.Tp.SupportPerUserKey = supportPerUserKey
+	tc.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	f := func(arg *SignupEngineRunArg) {
 		arg.SkipPaper = true
@@ -195,11 +195,9 @@ func TestPaperKeyRevoke(t *testing.T) {
 
 // make a paperkey after revoking a previous one
 func TestPaperKeyAfterRevokePUK(t *testing.T) {
-	t.Skip("TODO waiting for CORE-4895 RevokePUK")
-
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
-	tc.Tp.SupportPerUserKey = true
+	tc.Tp.UpgradePerUserKey = true
 
 	fu := CreateAndSignupFakeUser(tc, "login")
 

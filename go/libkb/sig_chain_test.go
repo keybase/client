@@ -252,6 +252,9 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 	if unrevokedCount != testCase.Len {
 		fatalStr += fmt.Sprintf("Expected %d unrevoked links, but found %d.\n", testCase.Len, unrevokedCount)
 	}
+	if testCase.Len > 0 && sigchain.currentSubchainStart == 0 {
+		fatalStr += fmt.Sprintf("Expected nonzero currentSubchainStart, but found %d.\n", sigchain.currentSubchainStart)
+	}
 	// Don't use the current time to get keys, because that will cause test
 	// failures 5 years from now :-D
 	testTime := getCurrentTimeForTest(sigchain, keyFamily)
@@ -273,7 +276,6 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 }
 
 func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
-	nLinks := chain.Len()
 	err := chain.Store(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -306,8 +308,38 @@ func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if nLinks != sc2.Len() {
-		t.Fatalf("lost some links: %d != %d", nLinks, sc2.Len())
+
+	// Loading a chain from cache won't load all the links, if there's a
+	// sigchain reset in the middle. So we don't want to check the entire
+	// loaded chain for equality with what we saved. But we can make sure it's
+	// loaded all the links of the *current subchain*. HOWEVER: Loading
+	// sigchains from cache doesn't benefit from knowing the current eldest KID
+	// from the Merkle tree. That means if the account just reset, for example,
+	// loading from cache will still fetch the old chain. Avoid failing on this
+	// case by skipping the comparison when `currentSubchainStart` is 0
+	// (invalid) in the original chain.
+	if chain.currentSubchainStart == 0 {
+		// As described above, short circuit when we know loading from cache
+		// would give us a different answer.
+		return
+	}
+	if chain.currentSubchainStart != sc2.currentSubchainStart {
+		t.Fatalf("disagreement about currentSubchainStart: %d != %d", chain.currentSubchainStart, sc2.currentSubchainStart)
+	}
+	subchainSeqnos1 := enumerateCurrentSubchain(chain)
+	subchainSeqnos2 := enumerateCurrentSubchain(sc2)
+	if len(subchainSeqnos1) != len(subchainSeqnos2) {
+		t.Fatalf("subchains don't have the same length: %d != %d", len(subchainSeqnos1), len(subchainSeqnos2))
+	}
+	equal := true
+	for i := 0; i < len(subchainSeqnos1); i++ {
+		if subchainSeqnos1[i] != subchainSeqnos2[i] {
+			equal = false
+			break
+		}
+	}
+	if !equal {
+		t.Fatalf("subchains don't match: %#v != %#v", subchainSeqnos1, subchainSeqnos2)
 	}
 }
 
@@ -340,4 +372,14 @@ func getCurrentTimeForTest(sigChain SigChain, keyFamily *KeyFamily) time.Time {
 		}
 	}
 	return t
+}
+
+func enumerateCurrentSubchain(chain *SigChain) (seqnoList []Seqno) {
+	for _, link := range chain.chainLinks {
+		if link.GetSeqno() < chain.currentSubchainStart {
+			continue
+		}
+		seqnoList = append(seqnoList, link.GetSeqno())
+	}
+	return
 }
