@@ -46,7 +46,7 @@ helpers.rootLinuxNode(env, {
 
     def kbwebNodePrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
 
-    println "Running on host $kbwebNodePrivateIP ($kbwebNodePrivateIP)"
+    println "Running on host $kbwebNodePrivateIP"
     println "Setting up build: ${env.BUILD_TAG}"
 
     def cause = helpers.getCauseString(currentBuild)
