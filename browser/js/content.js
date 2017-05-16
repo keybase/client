@@ -458,7 +458,7 @@ function findParentByClass(el, className) {
 
 // Convert a user input into a string that is safe for inlining into HTML.
 function safeHTML(s) {
-  if (s===undefined) return "";
+  if (!s) return "";
   return s.replace(/[&'"<>\/]/g, function (c) {
     // Per https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content
     return {
