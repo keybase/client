@@ -118,6 +118,12 @@ class ConversationInput extends Component<void, InputProps, void> {
     }
   }
 
+  componentWillReceiveProps(nextProps: Props) {
+    if (this.props.text !== nextProps.text) {
+      this.props.onUpdateTyping(!!nextProps.text)
+    }
+  }
+
   render() {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
@@ -149,11 +155,32 @@ class ConversationInput extends Component<void, InputProps, void> {
           <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
           <Icon onClick={this.props.filePickerOpen} style={styleIcon} type="iconfont-attachment" />
         </Box>
-        <Text type="BodySmall" style={styleFooter} onClick={this.props.inputFocus}>
-          *bold*, _italics_, `code`, >quote
-        </Text>
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
+          <Text type="BodySmall" style={{...styleFooter, flexGrow: 1, textAlign: 'left'}}>
+            {isTyping(this.props.typing)}
+          </Text>
+          <Text type="BodySmall" style={{...styleFooter, textAlign: 'right'}} onClick={this.props.inputFocus}>
+            *bold*, _italics_, `code`, >quote
+          </Text>
+        </Box>
       </Box>
     )
+  }
+}
+
+const isTyping = typing => {
+  if (!typing || !typing.length) {
+    return ''
+  }
+  switch (typing.length) {
+    case 0:
+      return ''
+    case 1:
+      return `${typing[0]} is typing`
+    case 2:
+      return `${typing[0]} and ${typing[1]} are typing`
+    default:
+      return `${typing.join(', ')} are typing`
   }
 }
 
@@ -184,8 +211,8 @@ const styleIcon = {
 const styleFooter = {
   color: globalColors.black_20,
   cursor: 'text',
-  flex: 1,
   marginBottom: globalMargins.xtiny,
+  marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
   marginTop: 0,
   textAlign: 'right',

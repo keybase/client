@@ -17,7 +17,7 @@ import {
   ConstantsStatusCode,
 } from '../../constants/types/flow-types'
 import {call, put, take, select, race} from 'redux-saga/effects'
-import {delay} from 'redux-saga'
+import {delay, throttle} from 'redux-saga'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, switchTo} from '../route-tree'
 import {openInKBFS} from '../kbfs'
@@ -200,10 +200,24 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
   }
 }
 
+function* _incomingTyping(action: Constants.IncomingTyping): SagaGenerator<any, any> {
+  // $FlowIssue
+  for (const activity of action.payload.activity) {
+    const conversationIDKey = Constants.conversationIDToKey(activity.convID)
+    const typers = activity.typers || []
+    const typing = typers.map(typer => typer.username)
+    yield put(Creators.setTypers(conversationIDKey, typing))
+  }
+}
+
 function* _setupChatHandlers(): SagaGenerator<any, any> {
   yield put((dispatch: Dispatch) => {
     engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({activity}) => {
       dispatch(Creators.incomingMessage(activity))
+    })
+
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatTypingUpdate', ({typingUpdates}) => {
+      dispatch(Creators.incomingTyping(typingUpdates))
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
@@ -924,6 +938,19 @@ function* _openConversation({
   }
 }
 
+function* _updateTyping({
+  payload: {conversationIDKey, typing},
+}: Constants.UpdateTyping): SagaGenerator<any, any> {
+  // Send we-are-typing info up to Gregor.  This is throttled in the saga to
+  // avoid spamming Gregor on every keypress.
+  if (!Constants.isPendingConversationIDKey(conversationIDKey)) {
+    const conversationID = Constants.keyToConversationID(conversationIDKey)
+    yield call(ChatTypes.localUpdateTypingRpcPromise, {
+      param: {conversationID, typing},
+    })
+  }
+}
+
 function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
@@ -932,6 +959,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:editMessage', Messages.editMessage)
   yield Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox)
   yield Saga.safeTakeEvery('chat:incomingMessage', _incomingMessage)
+  yield Saga.safeTakeEvery('chat:incomingTyping', _incomingTyping)
   yield Saga.safeTakeEvery('chat:loadAttachment', Attachment.onLoadAttachment)
   yield Saga.safeTakeEvery('chat:loadAttachmentPreview', Attachment.onLoadAttachmentPreview)
   yield Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
@@ -955,6 +983,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:updateBadging', _updateBadging)
   yield Saga.safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false)
   yield Saga.safeTakeEvery('chat:updateMetadata', _updateMetadata)
+  yield throttle(5000, 'chat:updateTyping', _updateTyping)
   yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
   yield Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale)
   yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInitialInboxLoad)

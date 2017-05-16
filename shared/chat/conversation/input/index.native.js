@@ -17,6 +17,9 @@ class ConversationInput extends Component<void, Props, void> {
         this.props.inputFocus()
       }
     }
+    if (this.props.text !== nextProps.text) {
+      this.props.onUpdateTyping(!!nextProps.text)
+    }
   }
 
   _onBlur = () => {
@@ -87,6 +90,7 @@ class ConversationInput extends Component<void, Props, void> {
           value={this.props.text}
           {...multilineOpts}
         />
+        {this.props.typing && this.props.typing.length > 0 && <Typing typing={this.props.typing} />}
         <Action
           text={this.props.text}
           onSubmit={this._onSubmit}
@@ -98,6 +102,8 @@ class ConversationInput extends Component<void, Props, void> {
     )
   }
 }
+
+const Typing = ({typing}) => <Text type="BodySmall" style={{color: globalColors.grey}}>....</Text>
 
 const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) =>
   text

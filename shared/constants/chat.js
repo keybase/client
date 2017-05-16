@@ -21,10 +21,12 @@ import type {
   MessageID as RPCMessageID,
   OutboxID as RPCOutboxID,
   ConversationID as RPCConversationID,
+  TyperInfo,
 } from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
 import type {TypedState} from './reducer'
 
+export type Username = string
 export type MessageKey = string
 type MessageKeyKind =
   | 'chatSecured'
@@ -239,6 +241,7 @@ export const ConversationStateRecord = Record({
   paginationPrevious: undefined,
   firstNewMessageID: undefined,
   deletedIDs: Set(),
+  typing: List(),
 })
 
 export type ConversationState = Record<{
@@ -254,6 +257,7 @@ export type ConversationState = Record<{
   paginationPrevious: ?Buffer,
   firstNewMessageID: ?MessageID,
   deletedIDs: Set<MessageID>,
+  typing: List<Username>,
 }>
 
 export type ConversationBadgeState = Record<{
@@ -409,6 +413,7 @@ export type GetInboxAndUnbox = NoErrorTypedAction<
 >
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
+export type IncomingTyping = NoErrorTypedAction<'chat:incomingTyping', {activity: TyperInfo}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadMoreMessages = NoErrorTypedAction<
   'chat:loadMoreMessages',
@@ -552,6 +557,10 @@ export type UpdateSupersedesState = NoErrorTypedAction<
   {supersedesState: SupersedesState}
 >
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {updated: {[key: string]: MetaData}}>
+export type UpdateTyping = NoErrorTypedAction<
+  'chat:updateTyping',
+  {conversationIDKey: ConversationIDKey, typing: boolean}
+>
 
 export type ThreadLoadedOffline = NoErrorTypedAction<
   'chat:threadLoadedOffline',
