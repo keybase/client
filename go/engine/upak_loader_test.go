@@ -16,6 +16,56 @@ import (
 	"golang.org/x/net/context"
 )
 
+func TestUpak1(t *testing.T) {
+	// One context for user that will be doing LoadUser, and another
+	// for user that will sign up and reset itself.
+	tc := SetupEngineTest(t, "clu")
+	defer tc.Cleanup()
+
+	resetUserTC := SetupEngineTest(t, "clu2")
+	defer resetUserTC.Cleanup()
+
+	t.Logf("create new user")
+	fu := NewFakeUserOrBust(t, "res")
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipPaper = false
+	loginUI := &paperLoginUI{Username: fu.Username}
+	ctx := &Context{
+		LogUI:    resetUserTC.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  loginUI,
+	}
+	s := NewSignupEngine(&arg, resetUserTC.G)
+	err := RunEngine(s, ctx)
+	if err != nil {
+		resetUserTC.T.Fatal(err)
+	}
+
+	loadUpak := func() {
+		t.Logf("loadUpak: using username:%+v", fu.Username)
+		loadArg := libkb.NewLoadUserArg(tc.G)
+		loadArg.UID = fu.UID()
+		loadArg.PublicKeyOptional = false
+		loadArg.NetContext = context.TODO()
+
+		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
+		if _, ok := err.(libkb.NoKeyError); ok {
+			tc.T.Fatal(err)
+		} else if err != nil {
+			tc.T.Fatal(err)
+		}
+
+		t.Logf("loadUpak done: using username:%+v uid: %+v keys: %d", upak.Base.Username, upak.Base.Uid, len(upak.Base.DeviceKeys))
+	}
+
+	loadUpak()
+
+	ResetAccount(resetUserTC, fu)
+
+	loadUpak()
+}
+
 func TestLoadDeviceKeyNew(t *testing.T) {
 	tc := SetupEngineTest(t, "clu")
 	defer tc.Cleanup()
