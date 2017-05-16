@@ -11690,6 +11690,7 @@ export type signupSignupRpcParam = Exact<{
   storeSecret: boolean,
   skipMail: boolean,
   genPGPBatch: boolean,
+  genPaper: boolean,
 }>
 
 export type sigsSigListJSONRpcParam = Exact<{

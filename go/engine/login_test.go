@@ -452,8 +452,8 @@ func testProvisionPassphraseNoKeysSolo(t *testing.T, supportPerUserKey bool) {
 	// since this user didn't have any keys, login should have fixed that:
 	testUserHasDeviceKey(tc)
 
-	// and they should have a paper backup key
-	hasOnePaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
+	// and they should not have a paper backup key
+	hasZeroPaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
 
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
@@ -520,8 +520,8 @@ func TestProvisionPassphraseSyncedPGP(t *testing.T) {
 	// since this user didn't have any device keys, login should have fixed that:
 	testUserHasDeviceKey(tc)
 
-	// and they should have a paper backup key
-	hasOnePaperDev(tc, u1)
+	// and they should not have a paper backup key
+	hasZeroPaperDev(tc, u1)
 
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
@@ -563,8 +563,8 @@ func TestProvisionPassphraseSyncedPGPEmail(t *testing.T) {
 	// since this user didn't have any device keys, login should have fixed that:
 	testUserHasDeviceKey(tc)
 
-	// and they should have a paper backup key
-	hasOnePaperDev(tc, u1)
+	// and they should not have a paper backup key
+	hasZeroPaperDev(tc, u1)
 
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
@@ -635,8 +635,8 @@ func TestProvisionPassphraseNoKeysSwitchUser(t *testing.T) {
 
 	t.Logf("user has device key")
 
-	// and they should have a paper backup key
-	hasOnePaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
+	// and they should not have a paper backup key
+	hasZeroPaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
 
 	t.Logf("user has paper device")
 
@@ -914,8 +914,8 @@ func TestProvisionGPGImportOK(t *testing.T) {
 
 	testUserHasDeviceKey(tc2)
 
-	// highly possible they didn't have a paper key, so make sure they have one now:
-	hasOnePaperDev(tc2, u1)
+	// highly possible they didn't have a paper key, so make sure they still don't have one:
+	hasZeroPaperDev(tc2, u1)
 
 	if err := AssertProvisioned(tc2); err != nil {
 		t.Fatal(err)
@@ -968,8 +968,8 @@ func TestProvisionGPGImportMultiple(t *testing.T) {
 
 	testUserHasDeviceKey(tc2)
 
-	// highly possible they didn't have a paper key, so make sure they have one now:
-	hasOnePaperDev(tc2, u1)
+	// highly possible they didn't have a paper key, so make sure they still don't have one:
+	hasZeroPaperDev(tc2, u1)
 
 	if err := AssertProvisioned(tc2); err != nil {
 		t.Fatal(err)
@@ -1033,8 +1033,8 @@ func TestProvisionGPGSign(t *testing.T) {
 
 		testUserHasDeviceKey(tc2)
 
-		// highly possible they didn't have a paper key, so make sure they have one now:
-		hasOnePaperDev(tc2, u1)
+		// highly possible they didn't have a paper key, so make sure they still don't have one:
+		hasZeroPaperDev(tc2, u1)
 
 		if err := AssertProvisioned(tc2); err != nil {
 			t.Fatal(err)
@@ -1151,8 +1151,8 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 
 		testUserHasDeviceKey(tc2)
 
-		// highly possible they didn't have a paper key, so make sure they have one now:
-		hasOnePaperDev(tc2, u1)
+		// highly possible they didn't have a paper key, so make sure they still don't have one:
+		hasZeroPaperDev(tc2, u1)
 
 		if err := AssertProvisioned(tc2); err != nil {
 			t.Fatal(err)
@@ -1232,8 +1232,8 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 
 		testUserHasDeviceKey(tc2)
 
-		// highly possible they didn't have a paper key, so make sure they have one now:
-		hasOnePaperDev(tc2, u1)
+		// highly possible they didn't have a paper key, so make sure they still don't have one:
+		hasZeroPaperDev(tc2, u1)
 
 		if err := AssertProvisioned(tc2); err != nil {
 			t.Fatal(err)
@@ -1536,8 +1536,8 @@ func TestProvisionPassphraseNoKeysMultipleAccounts(t *testing.T) {
 	// since this user didn't have any keys, login should have fixed that:
 	testUserHasDeviceKey(tc)
 
-	// and they should have a paper backup key
-	hasOnePaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
+	// and they should not have a paper backup key by default
+	hasZeroPaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
 
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
@@ -1884,7 +1884,7 @@ func TestProvisionMultipleUsers(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(tc)
-	hasOnePaperDev(tc, users[0])
+	hasZeroPaperDev(tc, users[0])
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
@@ -1903,7 +1903,7 @@ func TestProvisionMultipleUsers(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(tc)
-	hasOnePaperDev(tc, users[1])
+	hasZeroPaperDev(tc, users[1])
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
@@ -1922,7 +1922,7 @@ func TestProvisionMultipleUsers(t *testing.T) {
 	}
 
 	testUserHasDeviceKey(tc)
-	hasOnePaperDev(tc, users[2])
+	hasZeroPaperDev(tc, users[2])
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
@@ -2017,10 +2017,24 @@ func TestResetAccountPaper(t *testing.T) {
 		t.Fatal(err)
 	}
 	paper := loginUI.PaperPhrase
-	if len(paper) == 0 {
-		t.Fatal("no paper phrase in login ui")
+	if len(paper) != 0 {
+		t.Fatal("paper phrase exists in login ui")
 	}
 	testUserHasDeviceKey(tc)
+
+	pctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  &libkb.TestLoginUI{},
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	peng := NewPaperKey(tc.G)
+	if err := RunEngine(peng, pctx); err != nil {
+		t.Fatal(err)
+	}
+	if len(peng.Passphrase()) == 0 {
+		t.Fatal("empty paper phrase")
+	}
+	paper = peng.Passphrase()
 
 	// provision on new device with paper key
 	tcp := SetupEngineTest(t, "login")
@@ -2564,18 +2578,18 @@ func TestProvisionGPGMobile(t *testing.T) {
 	}
 }
 
-func TestProvisionEnsurePaperKey(t *testing.T) {
-	testProvisionEnsurePaperKey(t, false)
+func TestProvisionEnsureNoPaperKey(t *testing.T) {
+	testProvisionEnsureNoPaperKey(t, false)
 }
 
-func TestProvisionEnsurePaperKeyPUK(t *testing.T) {
+func TestProvisionEnsureNoPaperKeyPUK(t *testing.T) {
 	t.Skip("TODO waiting for CORE-4895 RevokePUK")
-	testProvisionEnsurePaperKey(t, true)
+	testProvisionEnsureNoPaperKey(t, true)
 }
 
 // Provisioning a new device when the user has no paper keys should work
-// and generate a paper key.
-func testProvisionEnsurePaperKey(t *testing.T, supportPerUserKey bool) {
+// and not generate a paper key.
+func testProvisionEnsureNoPaperKey(t *testing.T, supportPerUserKey bool) {
 	// This test is based on TestProvisionDesktop.
 
 	t.Logf("create 2 contexts")
@@ -2705,9 +2719,9 @@ func testProvisionEnsurePaperKey(t *testing.T, supportPerUserKey bool) {
 	simulateServiceRestart(t, tcY, userX)
 	testTrack("t_bob")
 
-	t.Logf("check for paper key")
-	hasOnePaperDev(tcY, userX)
-	hasOnePaperDev(tcX, userX)
+	t.Logf("check for no paper key")
+	hasZeroPaperDev(tcY, userX)
+	hasZeroPaperDev(tcX, userX)
 }
 
 // Device X provisions device Y, then device Y revokes X.
@@ -2893,8 +2907,8 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 
 		testUserHasDeviceKey(tc2)
 
-		// highly possible they didn't have a paper key, so make sure they have one now:
-		hasOnePaperDev(tc2, u1)
+		// highly possible they didn't have a paper key, so make sure they still don't have one:
+		hasZeroPaperDev(tc2, u1)
 
 		if err := AssertProvisioned(tc2); err != nil {
 			t.Fatal(err)
