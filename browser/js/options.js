@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Populate default initial values
   const initValues = get(f);
-  chrome.storage.local.get(initValues, function(options) {
+  chrome.storage.sync.get(initValues, function(options) {
     // Update form to match our storage values
     set(f, options);
   });
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Save changes when our form changes.
   f.addEventListener('change', function(e) {
     const values = get(f);
-    chrome.storage.local.set(values);
+    chrome.storage.sync.set(values);
   });
 });
 

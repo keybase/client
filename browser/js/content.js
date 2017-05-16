@@ -6,14 +6,14 @@ const asset = chrome.runtime.getURL;
 
 function init() {
   // Passive queries?
-  chrome.storage.local.get("profile-passive-queries", function(options) {
-    if (!options["profile-passive-queries"]) return;
+  chrome.storage.sync.get("profile-passive-queries", function(options) {
+    if (options["profile-passive-queries"] !== true) return; // Default false
 
     const user = matchService(window.location, document);
     if (!user) return;
 
     chrome.runtime.sendMessage({
-      "method": "query",
+      "method": "passivequery",
       "to": user.query(),
     }, function(response) {
       if (response.status !== "ok") return;
@@ -26,14 +26,22 @@ function init() {
 
   // Inject thread DOM changes?
   if (!checkThread.test(location.pathname)) return;
-  chrome.storage.local.get("reddit-thread-reply", function(options) {
-    // Is this feature enabled?
-    if (options["reddit-thread-reply"]) {
-      injectThread();
-    }
+  chrome.storage.sync.get("reddit-thread-reply", function(options) {
+    // Is thread replies enabled?
+    if (options["reddit-thread-reply"] === false) return; // Default true
+
+    injectThread();
   });
 }
 window.addEventListener('load', init);
+window.addEventListener('popstate', function() {
+  // Skip initial popstate
+  const isInitial = 'state' in window.history && window.history.state !== null;
+  if (isInitial) return;
+
+  // Forward the event to init
+  init(arguments);
+});
 
 const checkThread = /^\/r\/\w+\/comments\/\w+\//;
 function injectThread() {

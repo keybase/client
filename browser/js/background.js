@@ -9,16 +9,24 @@ chrome.browserAction.setBadgeBackgroundColor({
 
 // Relay extension messages to native messages.
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
-  if (msg["method"] === "query" && sender.tab) {
+  if (sender.tab) {
+    // Reset the tab state with each query
     chrome.browserAction.setBadgeText({
       text: "",
       tabId: sender.tab.id,
     });
   }
 
+  const isPassive = msg["method"] === "passivequery";
+  if (isPassive) {
+    // TODO: This will be a special method at some point, but for now we're
+    // prototyping this feature with the normal query method.
+    msg["method"] = "query";
+  }
+
   chrome.runtime.sendNativeMessage(KBNM_HOST, msg, function(r) {
     if (r) {
-      if (msg["method"] === "query" && sender.tab && r.status === "ok") {
+      if (isPassive && r.status === "ok") {
         // Set badge
         chrome.browserAction.setBadgeText({
           text: "✓",
