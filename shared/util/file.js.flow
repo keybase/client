@@ -9,5 +9,6 @@ declare function writeFile(filepath: string, contents: string, encoding?: string
 declare function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*>
 
 declare var cachesDirectoryPath: string
+declare var filesDirectoryPath: string
 
-export {cachesDirectoryPath, copy, exists, downloadFilePath, tmpDir, tmpFile, writeFile, writeStream}
+export {cachesDirectoryPath, copy, exists, downloadFilePath, tmpDir, tmpFile, writeFile, writeStream, filesDirectoryPath}

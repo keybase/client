@@ -35,5 +35,16 @@ function writeStream(filepath: string, encoding: string, append?: boolean): Prom
 }
 
 const cachesDirectoryPath = tmpDir()
+const filesDirectoryPath = RNFetchBlob.fs.dirs.DocumentDir
 
-export {cachesDirectoryPath, copy, exists, downloadFilePath, tmpDir, tmpFile, writeFile, writeStream}
+export {
+  cachesDirectoryPath,
+  copy,
+  exists,
+  downloadFilePath,
+  tmpDir,
+  tmpFile,
+  writeFile,
+  writeStream,
+  filesDirectoryPath,
+}
