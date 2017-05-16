@@ -659,12 +659,12 @@ func (e *Env) GetEmail() string {
 // Does not add per-user-keys to sigchains unless they are already there.
 // It is unwise to have this off and interact with sigchains that have per-user-keys.
 func (e *Env) GetSupportPerUserKey() bool {
-	if e.GetRunMode() != DevelRunMode {
-		return false
-	}
-
 	if e.GetUpgradePerUserKey() {
 		return true
+	}
+
+	if e.GetRunMode() != DevelRunMode {
+		return false
 	}
 
 	return e.GetBool(false,
