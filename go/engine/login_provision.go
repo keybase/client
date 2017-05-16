@@ -212,6 +212,11 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 					provisionee.AddSecret(ks.Secret())
 				}
 				break
+			} else {
+				// empty secret, so must have been a display-only case.
+				// ok to stop the loop
+				e.G().Log.Debug("login provision DisplayAndPromptSecret returned empty secret, stopping retry loop")
+				break
 			}
 		}
 	}()
