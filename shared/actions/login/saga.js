@@ -403,14 +403,25 @@ function addDeviceRpc (channelConfig) {
   return Types.deviceDeviceAddRpcChannelMapOld(channelConfig, {})
 }
 
+function * handleProvisioningError (error) {
+  yield put(navigateAppend([{
+    props: {
+      error,
+    },
+    selected: 'error',
+  }], [loginTab, 'login']))
+  yield take(Constants.onBack)
+  yield call(navBasedOnLoginState)
+}
+
 function * finishLoginSaga ({error, params}) {
   if (error) {
     console.log(error)
-    yield put(Creators.loginDone(error))
+    yield call(handleProvisioningError, error)
   } else {
     yield put(Creators.loginDone())
+    yield call(navBasedOnLoginState)
   }
-  yield call(navBasedOnLoginState)
 }
 
 function * loginFlowSaga (usernameOrEmail) {
