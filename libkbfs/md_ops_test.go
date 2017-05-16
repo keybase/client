@@ -73,6 +73,7 @@ func mdOpsInit(t *testing.T, ver MetadataVer) (mockCtrl *gomock.Controller,
 	config.SetKeyBundleCache(NewKeyBundleCacheStandard(1))
 	config.mockMdserv.EXPECT().OffsetFromServerTime().
 		Return(time.Duration(0), true).AnyTimes()
+	config.mockClock.EXPECT().Now().Return(time.Now()).AnyTimes()
 	injectShimCrypto(config)
 	interposeDaemonKBPKI(config, "alice", "bob", "charlie")
 	ctx = context.Background()
@@ -126,6 +127,9 @@ func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	hasVerifyingKeyErr error) {
 	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).AnyTimes().Return(hasVerifyingKeyErr)
+	if hasVerifyingKeyErr == nil {
+		config.mockMdcache.EXPECT().Put(gomock.Any())
+	}
 }
 
 // kmdMatcher implements the gomock.Matcher interface to compare
@@ -188,6 +192,7 @@ func verifyMDForPrivateHelper(
 		config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
 			gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 	}
+	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes()
 }
 
 func verifyMDForPrivate(
@@ -203,6 +208,7 @@ func putMDForPrivate(config *ConfigMock, rmd *RootMetadata) {
 	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
 		Return(true)
 	config.mockMdserv.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+	config.mockMdcache.EXPECT().Put(gomock.Any())
 }
 
 func testMDOpsGetForHandlePublicSuccess(t *testing.T, ver MetadataVer) {
@@ -758,7 +764,9 @@ func testMDOpsPutPublicSuccess(t *testing.T, ver MetadataVer) {
 	rmd.data = makeFakePrivateMetadataFuture(t).toCurrent()
 	rmd.tlfHandle = h
 
-	_, err = config.MDOps().Put(ctx, rmd)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+	_, err = config.MDOps().Put(ctx, rmd, session.VerifyingKey)
 
 	rmds := mdServer.getLastRmds()
 	validatePutPublicRMDS(ctx, t, ver, config, rmd.bareMd, rmds)
@@ -778,7 +786,8 @@ func testMDOpsPutPrivateSuccess(t *testing.T, ver MetadataVer) {
 
 	putMDForPrivate(config, rmd)
 
-	if _, err := config.MDOps().Put(ctx, rmd); err != nil {
+	key := kbfscrypto.MakeFakeVerifyingKeyOrBust("test key")
+	if _, err := config.MDOps().Put(ctx, rmd, key); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -808,10 +817,14 @@ func testMDOpsPutFailEncode(t *testing.T, ver MetadataVer) {
 	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
 		Return(true)
 
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+
 	err = errors.New("Fake fail")
 	config.SetCodec(failEncodeCodec{config.Codec(), err})
 
-	if _, err2 := config.MDOps().Put(ctx, rmd); err2 != err {
+	if _, err2 := config.MDOps().Put(
+		ctx, rmd, session.VerifyingKey); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }

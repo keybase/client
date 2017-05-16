@@ -46,12 +46,17 @@ func mdForceQROne(
 
 	fmt.Printf("Putting revision %d...\n", rmdNext.Revision())
 
-	mdID, err := config.MDOps().Put(ctx, rmdNext)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("New MD has id %s\n", mdID)
+	newIrmd, err := config.MDOps().Put(ctx, rmdNext, session.VerifyingKey)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("New MD has revision %v\n", newIrmd.Revision())
 
 	return nil
 }

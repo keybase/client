@@ -692,10 +692,6 @@ func (fbo *folderBranchOps) setHeadLocked(
 	}
 
 	fbo.log.CDebugf(ctx, "Setting head revision to %d", md.Revision())
-	err := fbo.config.MDCache().Put(md)
-	if err != nil {
-		return err
-	}
 
 	// If this is the first time the MD is being set, and we are
 	// operating on unmerged data, initialize the state properly and
@@ -1435,7 +1431,7 @@ func (fbo *folderBranchOps) initMDLocked(
 	// about delayed conflicts (since this is essentially a rekey, and
 	// we always bypass the journal for rekeys).  The caller will have
 	// to intelligently deal with a conflict.
-	mdID, err := fbo.config.MDOps().Put(ctx, md)
+	irmd, err := fbo.config.MDOps().Put(ctx, md, session.VerifyingKey)
 	if err != nil {
 		return err
 	}
@@ -1450,8 +1446,7 @@ func (fbo *folderBranchOps) initMDLocked(
 			md.TlfID(), fbo.head.mdID)
 	}
 
-	fbo.setNewInitialHeadLocked(ctx, lState, MakeImmutableRootMetadata(
-		md, session.VerifyingKey, mdID, fbo.config.Clock().Now()))
+	fbo.setNewInitialHeadLocked(ctx, lState, irmd)
 	if err != nil {
 		return err
 	}
@@ -2026,7 +2021,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 
 	oldPrevRoot := md.PrevRoot()
 
-	var mdID kbfsmd.ID
+	var irmd ImmutableRootMetadata
 
 	// This puts on a delay on any cancellations arriving to ctx. It is intended
 	// to work sort of like a critical section, except that there isn't an
@@ -2071,7 +2066,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 
 	if fbo.isMasterBranchLocked(lState) {
 		// only do a normal Put if we're not already staged.
-		mdID, err = mdops.Put(ctx, md)
+		irmd, err = mdops.Put(ctx, md, session.VerifyingKey)
 		if doUnmergedPut = isRevisionConflict(err); doUnmergedPut {
 			fbo.log.CDebugf(ctx, "Conflict: %v", err)
 			mergedRev = md.Revision()
@@ -2098,7 +2093,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	if doUnmergedPut {
 		// We're out of date, and this is not an exclusive write, so put it as an
 		// unmerged MD.
-		mdID, err = mdops.PutUnmerged(ctx, md)
+		irmd, err = mdops.PutUnmerged(ctx, md, session.VerifyingKey)
 		if isRevisionConflict(err) {
 			// Self-conflicts are retried in `doMDWriteWithRetry`.
 			return UnmergedSelfConflictError{err}
@@ -2127,7 +2122,13 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 			if err != nil {
 				return err
 			}
-			mdID, err = kbfsmd.MakeID(fbo.config.Codec(), md.bareMd)
+			mdID, err := kbfsmd.MakeID(fbo.config.Codec(), md.bareMd)
+			if err != nil {
+				return err
+			}
+			irmd = MakeImmutableRootMetadata(
+				md, session.VerifyingKey, mdID, fbo.config.Clock().Now())
+			err = fbo.config.MDCache().Put(irmd)
 			if err != nil {
 				return err
 			}
@@ -2163,8 +2164,6 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	irmd := MakeImmutableRootMetadata(
-		md, session.VerifyingKey, mdID, fbo.config.Clock().Now())
 	err = fbo.setHeadSuccessorLocked(ctx, lState, irmd, rebased)
 	if err != nil {
 		return err
@@ -2244,7 +2243,20 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 		}
 		mdOps = jServer.delegateMDOps
 	}
-	mdID, err := mdOps.Put(ctx, md)
+
+	var key kbfscrypto.VerifyingKey
+	if md.IsWriterMetadataCopiedSet() {
+		key = lastWriterVerifyingKey
+	} else {
+		var err error
+		session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
+		if err != nil {
+			return err
+		}
+		key = session.VerifyingKey
+	}
+
+	irmd, err := mdOps.Put(ctx, md, key)
 	isConflict := isRevisionConflict(err)
 	if err != nil && !isConflict {
 		return err
@@ -2271,23 +2283,9 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 
 	md.loadCachedBlockChanges(ctx, nil, fbo.log)
 
-	var key kbfscrypto.VerifyingKey
-	if md.IsWriterMetadataCopiedSet() {
-		key = lastWriterVerifyingKey
-	} else {
-		var err error
-		session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
-		if err != nil {
-			return err
-		}
-		key = session.VerifyingKey
-	}
-
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	err = fbo.setHeadSuccessorLocked(ctx, lState,
-		MakeImmutableRootMetadata(md, key, mdID, fbo.config.Clock().Now()),
-		rebased)
+	err = fbo.setHeadSuccessorLocked(ctx, lState, irmd, rebased)
 	if err != nil {
 		return err
 	}
@@ -2339,7 +2337,7 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 	}
 
 	// finally, write out the new metadata
-	mdID, err := fbo.config.MDOps().Put(ctx, md)
+	irmd, err := fbo.config.MDOps().Put(ctx, md, session.VerifyingKey)
 	if err != nil {
 		// Don't allow garbage collection to put us into a conflicting
 		// state; just wait for the next period.
@@ -2358,8 +2356,6 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	irmd := MakeImmutableRootMetadata(
-		md, session.VerifyingKey, mdID, fbo.config.Clock().Now())
 	err = fbo.setHeadSuccessorLocked(ctx, lState, irmd, rebased)
 	if err != nil {
 		return err
@@ -5764,8 +5760,12 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	default:
 	}
 
-	mdID, err := fbo.config.MDOps().ResolveBranch(ctx, fbo.id(), fbo.bid,
-		blocksToDelete, md)
+	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return err
+	}
+	irmd, err := fbo.config.MDOps().ResolveBranch(ctx, fbo.id(), fbo.bid,
+		blocksToDelete, md, session.VerifyingKey)
 	doUnmergedPut := isRevisionConflict(err)
 	if doUnmergedPut {
 		fbo.log.CDebugf(ctx, "Got a conflict after resolution; aborting CR")
@@ -5785,12 +5785,6 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	// Set the head to the new MD.
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		return err
-	}
-	irmd := MakeImmutableRootMetadata(
-		md, session.VerifyingKey, mdID, fbo.config.Clock().Now())
 	err = fbo.setHeadConflictResolvedLocked(ctx, lState, irmd)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't set local MD head after a "+

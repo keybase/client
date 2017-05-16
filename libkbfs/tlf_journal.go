@@ -1965,19 +1965,19 @@ func (j *tlfJournal) getMDRange(
 }
 
 func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
-	mdInfo unflushedPathMDInfo,
-	perRevMap unflushedPathsPerRevMap) (
-	mdID kbfsmd.ID, retryPut bool, err error) {
+	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap,
+	verifyingKey kbfscrypto.VerifyingKey) (
+	irmd ImmutableRootMetadata, retryPut bool, err error) {
 	// Now take the lock and put the MD, merging in the unflushed
 	// paths while under the lock.
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
-		return kbfsmd.ID{}, false, err
+		return ImmutableRootMetadata{}, false, err
 	}
 
 	if !j.unflushedPaths.appendToCache(mdInfo, perRevMap) {
-		return kbfsmd.ID{}, true, nil
+		return ImmutableRootMetadata{}, true, nil
 	}
 
 	// Treat the first revision as a squash, so that it doesn't end up
@@ -1987,16 +1987,27 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	// TODO: remove the revision from the cache on any errors below?
 	// Tricky when the append is only queued.
 
-	mdID, err = j.mdJournal.put(ctx, j.config.Crypto(),
+	mdID, err := j.mdJournal.put(ctx, j.config.Crypto(),
 		j.config.encryptionKeyGetter(), j.config.BlockSplitter(),
 		rmd, isFirstRev)
 	if err != nil {
-		return kbfsmd.ID{}, false, err
+		return ImmutableRootMetadata{}, false, err
 	}
 
 	err = j.blockJournal.markMDRevision(ctx, rmd.Revision(), isFirstRev)
 	if err != nil {
-		return kbfsmd.ID{}, false, err
+		return ImmutableRootMetadata{}, false, err
+	}
+
+	// Put the MD into the cache under the same lock as it is put in
+	// the journal, to guarantee it will be replaced if the journal is
+	// converted into a branch before any of the upper layer have a
+	// chance to cache it.
+	irmd = MakeImmutableRootMetadata(
+		rmd, verifyingKey, mdID, j.config.Clock().Now())
+	err = j.config.MDCache().Put(irmd)
+	if err != nil {
+		return ImmutableRootMetadata{}, false, err
 	}
 
 	j.signalWork()
@@ -2006,7 +2017,7 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	default:
 	}
 
-	return mdID, false, nil
+	return irmd, false, nil
 }
 
 // prepAndAddRMDWithRetry prepare the paths without holding the lock,
@@ -2058,19 +2069,19 @@ func (j *tlfJournal) prepAndAddRMDWithRetry(ctx context.Context,
 	return nil
 }
 
-func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata) (
-	kbfsmd.ID, error) {
-	var mdID kbfsmd.ID
-	err := j.prepAndAddRMDWithRetry(ctx, rmd,
+func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata,
+	verifyingKey kbfscrypto.VerifyingKey) (irmd ImmutableRootMetadata, err error) {
+	err = j.prepAndAddRMDWithRetry(ctx, rmd,
 		func(mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
 			retry bool, err error) {
-			mdID, retry, err = j.doPutMD(ctx, rmd, mdInfo, perRevMap)
+			irmd, retry, err = j.doPutMD(
+				ctx, rmd, mdInfo, perRevMap, verifyingKey)
 			return retry, err
 		})
 	if err != nil {
-		return kbfsmd.ID{}, err
+		return ImmutableRootMetadata{}, err
 	}
-	return mdID, nil
+	return irmd, nil
 }
 
 func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
@@ -2095,12 +2106,13 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 
 func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	bid BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
-	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
-	mdID kbfsmd.ID, retry bool, err error) {
+	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap,
+	verifyingKey kbfscrypto.VerifyingKey) (
+	irmd ImmutableRootMetadata, retry bool, err error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
-		return kbfsmd.ID{}, false, err
+		return ImmutableRootMetadata{}, false, err
 	}
 
 	// The set of unflushed paths could change as part of the
@@ -2108,23 +2120,23 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	isPendingLocalSquash := bid == PendingLocalSquashBranchID
 	if !j.unflushedPaths.reinitializeWithResolution(
 		mdInfo, perRevMap, isPendingLocalSquash) {
-		return kbfsmd.ID{}, true, nil
+		return ImmutableRootMetadata{}, true, nil
 	}
 
 	// First write the resolution to a new branch, and swap it with
 	// the existing branch, then clear the existing branch.
-	mdID, err = j.mdJournal.resolveAndClear(
+	mdID, err := j.mdJournal.resolveAndClear(
 		ctx, j.config.Crypto(), j.config.encryptionKeyGetter(),
 		j.config.BlockSplitter(), j.config.MDCache(), bid, rmd)
 	if err != nil {
-		return kbfsmd.ID{}, false, err
+		return ImmutableRootMetadata{}, false, err
 	}
 
 	// Then go through and mark blocks and md rev markers for ignoring.
 	totalIgnoredBytes, err := j.blockJournal.ignoreBlocksAndMDRevMarkers(
 		ctx, blocksToDelete, rmd.Revision())
 	if err != nil {
-		return kbfsmd.ID{}, false, err
+		return ImmutableRootMetadata{}, false, err
 	}
 
 	// Treat ignored blocks as flushed for the purposes of
@@ -2135,7 +2147,18 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	err = j.blockJournal.markMDRevision(
 		ctx, rmd.Revision(), isPendingLocalSquash)
 	if err != nil {
-		return kbfsmd.ID{}, false, err
+		return ImmutableRootMetadata{}, false, err
+	}
+
+	// Put the MD into the cache under the same lock as it is put in
+	// the journal, to guarantee it will be replaced if the journal is
+	// converted into a branch before any of the upper layer have a
+	// chance to cache it.
+	irmd = MakeImmutableRootMetadata(
+		rmd, verifyingKey, mdID, j.config.Clock().Now())
+	err = j.config.MDCache().Put(irmd)
+	if err != nil {
+		return ImmutableRootMetadata{}, false, err
 	}
 
 	j.resume(journalPauseConflict)
@@ -2144,24 +2167,24 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	// TODO: kick off a background goroutine that deletes ignored
 	// block data files before the flush gets to them.
 
-	return mdID, false, nil
+	return irmd, false, nil
 }
 
 func (j *tlfJournal) resolveBranch(ctx context.Context,
-	bid BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata) (
-	kbfsmd.ID, error) {
-	var mdID kbfsmd.ID
-	err := j.prepAndAddRMDWithRetry(ctx, rmd,
+	bid BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
+	verifyingKey kbfscrypto.VerifyingKey) (
+	irmd ImmutableRootMetadata, err error) {
+	err = j.prepAndAddRMDWithRetry(ctx, rmd,
 		func(mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
 			retry bool, err error) {
-			mdID, retry, err = j.doResolveBranch(
-				ctx, bid, blocksToDelete, rmd, mdInfo, perRevMap)
+			irmd, retry, err = j.doResolveBranch(
+				ctx, bid, blocksToDelete, rmd, mdInfo, perRevMap, verifyingKey)
 			return retry, err
 		})
 	if err != nil {
-		return kbfsmd.ID{}, err
+		return ImmutableRootMetadata{}, err
 	}
-	return mdID, nil
+	return irmd, nil
 }
 
 func (j *tlfJournal) wait(ctx context.Context) error {

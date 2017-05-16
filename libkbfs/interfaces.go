@@ -1040,13 +1040,14 @@ type MDOps interface {
 	GetUnmergedRange(ctx context.Context, id tlf.ID, bid BranchID,
 		start, stop kbfsmd.Revision) ([]ImmutableRootMetadata, error)
 
-	// Put stores the metadata object for the given
-	// top-level folder.
-	Put(ctx context.Context, rmd *RootMetadata) (kbfsmd.ID, error)
+	// Put stores the metadata object for the given top-level folder.
+	Put(ctx context.Context, rmd *RootMetadata,
+		verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error)
 
 	// PutUnmerged is the same as the above but for unmerged
 	// metadata history.
-	PutUnmerged(ctx context.Context, rmd *RootMetadata) (kbfsmd.ID, error)
+	PutUnmerged(ctx context.Context, rmd *RootMetadata,
+		verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error)
 
 	// PruneBranch prunes all unmerged history for the given TLF
 	// branch.
@@ -1057,7 +1058,8 @@ type MDOps interface {
 	// are still in the local journal.  It also appends the given MD
 	// to the journal.
 	ResolveBranch(ctx context.Context, id tlf.ID, bid BranchID,
-		blocksToDelete []kbfsblock.ID, rmd *RootMetadata) (kbfsmd.ID, error)
+		blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
+		verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error)
 
 	// GetLatestHandleForTLF returns the server's idea of the latest handle for the TLF,
 	// which may not yet be reflected in the MD if the TLF hasn't been rekeyed since it

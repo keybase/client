@@ -538,7 +538,6 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 		gomock.Any(), id, gomock.Any()).Return(ImmutableRootMetadata{}, nil)
 	irmd := makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1))
 	config.mockMdops.EXPECT().GetForTLF(gomock.Any(), id).Return(irmd, nil)
-	config.mockMdcache.EXPECT().Put(irmd).Return(nil)
 
 	ops := getOps(config, id)
 	assert.False(t, fboIdentityDone(ops))

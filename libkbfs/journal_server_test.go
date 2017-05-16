@@ -296,7 +296,10 @@ func TestJournalServerRestart(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, rekeyDone)
 
-	_, err = mdOps.Put(ctx, rmd)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+
+	_, err = mdOps.Put(ctx, rmd, session.VerifyingKey)
 	require.NoError(t, err)
 
 	// Simulate a restart.
@@ -305,8 +308,6 @@ func TestJournalServerRestart(t *testing.T) {
 		config, jServer.log, tempdir, jServer.delegateBlockCache,
 		jServer.delegateDirtyBlockCache,
 		jServer.delegateBlockServer, jServer.delegateMDOps, nil, nil)
-	session, err := config.KBPKI().GetCurrentSession(ctx)
-	require.NoError(t, err)
 	err = jServer.EnableExistingJournals(
 		ctx, session.UID, session.VerifyingKey, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
@@ -366,7 +367,10 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, rekeyDone)
 
-	_, err = mdOps.Put(ctx, rmd)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+
+	_, err = mdOps.Put(ctx, rmd, session.VerifyingKey)
 	require.NoError(t, err)
 
 	// Simulate a log out.
@@ -471,7 +475,10 @@ func TestJournalServerMultiUser(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, rekeyDone)
 
-	_, err = mdOps.Put(ctx, rmd1)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+
+	_, err = mdOps.Put(ctx, rmd1, session.VerifyingKey)
 	require.NoError(t, err)
 
 	// Log in user 2.
@@ -486,6 +493,9 @@ func TestJournalServerMultiUser(t *testing.T) {
 		ctx, config, "test_user2", TLFJournalBackgroundWorkPaused)
 
 	err = jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
+	require.NoError(t, err)
+
+	session, err = config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 
 	// None of user 1's changes should be visible.
@@ -517,7 +527,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, rekeyDone)
 
-	_, err = mdOps.Put(ctx, rmd2)
+	_, err = mdOps.Put(ctx, rmd2, session.VerifyingKey)
 	require.NoError(t, err)
 
 	// Log out.

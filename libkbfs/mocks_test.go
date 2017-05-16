@@ -3020,26 +3020,26 @@ func (_mr *_MockMDOpsRecorder) GetUnmergedRange(arg0, arg1, arg2, arg3, arg4 int
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedRange", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockMDOps) Put(ctx context.Context, rmd *RootMetadata) (kbfsmd.ID, error) {
-	ret := _m.ctrl.Call(_m, "Put", ctx, rmd)
-	ret0, _ := ret[0].(kbfsmd.ID)
+func (_m *MockMDOps) Put(ctx context.Context, rmd *RootMetadata, verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "Put", ctx, rmd, verifyingKey)
+	ret0, _ := ret[0].(ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDOpsRecorder) Put(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1)
+func (_mr *_MockMDOpsRecorder) Put(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2)
 }
 
-func (_m *MockMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (kbfsmd.ID, error) {
-	ret := _m.ctrl.Call(_m, "PutUnmerged", ctx, rmd)
-	ret0, _ := ret[0].(kbfsmd.ID)
+func (_m *MockMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata, verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "PutUnmerged", ctx, rmd, verifyingKey)
+	ret0, _ := ret[0].(ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDOpsRecorder) PutUnmerged(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutUnmerged", arg0, arg1)
+func (_mr *_MockMDOpsRecorder) PutUnmerged(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutUnmerged", arg0, arg1, arg2)
 }
 
 func (_m *MockMDOps) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) error {
@@ -3052,15 +3052,15 @@ func (_mr *_MockMDOpsRecorder) PruneBranch(arg0, arg1, arg2 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PruneBranch", arg0, arg1, arg2)
 }
 
-func (_m *MockMDOps) ResolveBranch(ctx context.Context, id tlf.ID, bid BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata) (kbfsmd.ID, error) {
-	ret := _m.ctrl.Call(_m, "ResolveBranch", ctx, id, bid, blocksToDelete, rmd)
-	ret0, _ := ret[0].(kbfsmd.ID)
+func (_m *MockMDOps) ResolveBranch(ctx context.Context, id tlf.ID, bid BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata, verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "ResolveBranch", ctx, id, bid, blocksToDelete, rmd, verifyingKey)
+	ret0, _ := ret[0].(ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDOpsRecorder) ResolveBranch(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResolveBranch", arg0, arg1, arg2, arg3, arg4)
+func (_mr *_MockMDOpsRecorder) ResolveBranch(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResolveBranch", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 func (_m *MockMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.Handle, error) {
