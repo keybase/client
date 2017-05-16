@@ -109,7 +109,7 @@ func (s *mdServerTlfStorage) readerKeyBundleV3Path(
 	return filepath.Join(s.dir, "rkbv3", id.String())
 }
 
-func (s *mdServerTlfStorage) mdPath(id MdID) string {
+func (s *mdServerTlfStorage) mdPath(id kbfsmd.ID) string {
 	idStr := id.String()
 	return filepath.Join(s.mdsPath(), idStr[:4], idStr[4:])
 }
@@ -125,7 +125,7 @@ type serializedRMDS struct {
 // the given ID and returns it.
 //
 // TODO: Verify signature?
-func (s *mdServerTlfStorage) getMDReadLocked(id MdID) (
+func (s *mdServerTlfStorage) getMDReadLocked(id kbfsmd.ID) (
 	*RootMetadataSigned, error) {
 	// Read file.
 
@@ -144,7 +144,7 @@ func (s *mdServerTlfStorage) getMDReadLocked(id MdID) (
 
 	// Check integrity.
 
-	mdID, err := s.crypto.MakeMdID(rmds.MD)
+	mdID, err := kbfsmd.MakeID(s.codec, rmds.MD)
 	if err != nil {
 		return nil, err
 	}
@@ -159,17 +159,17 @@ func (s *mdServerTlfStorage) getMDReadLocked(id MdID) (
 }
 
 func (s *mdServerTlfStorage) putMDLocked(
-	rmds *RootMetadataSigned) (MdID, error) {
-	id, err := s.crypto.MakeMdID(rmds.MD)
+	rmds *RootMetadataSigned) (kbfsmd.ID, error) {
+	id, err := kbfsmd.MakeID(s.codec, rmds.MD)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	_, err = s.getMDReadLocked(id)
 	if ioutil.IsNotExist(err) {
 		// Continue on.
 	} else if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	} else {
 		// Entry exists, so nothing else to do.
 		return id, nil
@@ -177,7 +177,7 @@ func (s *mdServerTlfStorage) putMDLocked(
 
 	encodedRMDS, err := EncodeRootMetadataSigned(s.codec, rmds)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	srmds := serializedRMDS{
@@ -188,7 +188,7 @@ func (s *mdServerTlfStorage) putMDLocked(
 
 	err = kbfscodec.SerializeToFileIfNotExist(s.codec, srmds, s.mdPath(id))
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	return id, nil
@@ -466,7 +466,7 @@ func (s *mdServerTlfStorage) put(
 
 	// Consistency checks
 	if head != nil {
-		headID, err := s.crypto.MakeMdID(head.MD)
+		headID, err := kbfsmd.MakeID(s.codec, head.MD)
 		if err != nil {
 			return false, MDServerError{err}
 		}

@@ -73,7 +73,7 @@ type BareRootMetadataV3 struct {
 	// The revision number
 	Revision kbfsmd.Revision
 	// Pointer to the previous root block ID
-	PrevRoot MdID
+	PrevRoot kbfsmd.ID
 
 	// For private TLFs. Any unresolved social assertions for readers.
 	UnresolvedReaders []keybase1.SocialAssertion `codec:"ur,omitempty"`
@@ -438,7 +438,7 @@ func (md *BareRootMetadataV3) MakeSuccessorCopy(
 
 // CheckValidSuccessor implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) CheckValidSuccessor(
-	currID MdID, nextMd BareRootMetadata) error {
+	currID kbfsmd.ID, nextMd BareRootMetadata) error {
 	// (1) Verify current metadata is non-final.
 	if md.IsFinal() {
 		return MetadataIsFinalError{}
@@ -514,7 +514,7 @@ func (md *BareRootMetadataV3) CheckValidSuccessor(
 
 // CheckValidSuccessorForServer implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) CheckValidSuccessorForServer(
-	currID MdID, nextMd BareRootMetadata) error {
+	currID kbfsmd.ID, nextMd BareRootMetadata) error {
 	err := md.CheckValidSuccessor(currID, nextMd)
 	switch err := err.(type) {
 	case nil:
@@ -789,11 +789,11 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 		}
 
 		if md.Revision == (kbfsmd.RevisionInitial + 1) {
-			if md.PrevRoot != (MdID{}) {
+			if md.PrevRoot != (kbfsmd.ID{}) {
 				return errors.Errorf("Invalid PrevRoot %s for initial final revision", md.PrevRoot)
 			}
 		} else {
-			if md.PrevRoot == (MdID{}) {
+			if md.PrevRoot == (kbfsmd.ID{}) {
 				return errors.New("No PrevRoot for non-initial final revision")
 			}
 		}
@@ -803,11 +803,11 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 		}
 
 		if md.Revision == kbfsmd.RevisionInitial {
-			if md.PrevRoot != (MdID{}) {
+			if md.PrevRoot != (kbfsmd.ID{}) {
 				return errors.Errorf("Invalid PrevRoot %s for initial revision", md.PrevRoot)
 			}
 		} else {
-			if md.PrevRoot == (MdID{}) {
+			if md.PrevRoot == (kbfsmd.ID{}) {
 				return errors.New("No PrevRoot for non-initial revision")
 			}
 		}
@@ -959,7 +959,7 @@ func (md *BareRootMetadataV3) BID() BranchID {
 }
 
 // GetPrevRoot implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) GetPrevRoot() MdID {
+func (md *BareRootMetadataV3) GetPrevRoot() kbfsmd.ID {
 	return md.PrevRoot
 }
 
@@ -989,7 +989,7 @@ func (md *BareRootMetadataV3) SetBranchID(bid BranchID) {
 }
 
 // SetPrevRoot implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetPrevRoot(mdID MdID) {
+func (md *BareRootMetadataV3) SetPrevRoot(mdID kbfsmd.ID) {
 	md.PrevRoot = mdID
 }
 

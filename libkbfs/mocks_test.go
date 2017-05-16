@@ -2392,17 +2392,6 @@ func (_mr *_MockcryptoPureRecorder) MakeRandomBranchID() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomBranchID")
 }
 
-func (_m *MockcryptoPure) MakeMdID(md BareRootMetadata) (MdID, error) {
-	ret := _m.ctrl.Call(_m, "MakeMdID", md)
-	ret0, _ := ret[0].(MdID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockcryptoPureRecorder) MakeMdID(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeMdID", arg0)
-}
-
 func (_m *MockcryptoPure) MakeMerkleHash(md *RootMetadataSigned) (MerkleHash, error) {
 	ret := _m.ctrl.Call(_m, "MakeMerkleHash", md)
 	ret0, _ := ret[0].(MerkleHash)
@@ -2666,17 +2655,6 @@ func (_m *MockCrypto) MakeRandomBranchID() (BranchID, error) {
 
 func (_mr *_MockCryptoRecorder) MakeRandomBranchID() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomBranchID")
-}
-
-func (_m *MockCrypto) MakeMdID(md BareRootMetadata) (MdID, error) {
-	ret := _m.ctrl.Call(_m, "MakeMdID", md)
-	ret0, _ := ret[0].(MdID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockCryptoRecorder) MakeMdID(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeMdID", arg0)
 }
 
 func (_m *MockCrypto) MakeMerkleHash(md *RootMetadataSigned) (MerkleHash, error) {
@@ -3042,9 +3020,9 @@ func (_mr *_MockMDOpsRecorder) GetUnmergedRange(arg0, arg1, arg2, arg3, arg4 int
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedRange", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockMDOps) Put(ctx context.Context, rmd *RootMetadata) (MdID, error) {
+func (_m *MockMDOps) Put(ctx context.Context, rmd *RootMetadata) (kbfsmd.ID, error) {
 	ret := _m.ctrl.Call(_m, "Put", ctx, rmd)
-	ret0, _ := ret[0].(MdID)
+	ret0, _ := ret[0].(kbfsmd.ID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3053,9 +3031,9 @@ func (_mr *_MockMDOpsRecorder) Put(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1)
 }
 
-func (_m *MockMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (MdID, error) {
+func (_m *MockMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (kbfsmd.ID, error) {
 	ret := _m.ctrl.Call(_m, "PutUnmerged", ctx, rmd)
-	ret0, _ := ret[0].(MdID)
+	ret0, _ := ret[0].(kbfsmd.ID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3074,9 +3052,9 @@ func (_mr *_MockMDOpsRecorder) PruneBranch(arg0, arg1, arg2 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PruneBranch", arg0, arg1, arg2)
 }
 
-func (_m *MockMDOps) ResolveBranch(ctx context.Context, id tlf.ID, bid BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata) (MdID, error) {
+func (_m *MockMDOps) ResolveBranch(ctx context.Context, id tlf.ID, bid BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata) (kbfsmd.ID, error) {
 	ret := _m.ctrl.Call(_m, "ResolveBranch", ctx, id, bid, blocksToDelete, rmd)
-	ret0, _ := ret[0].(MdID)
+	ret0, _ := ret[0].(kbfsmd.ID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -5499,7 +5477,7 @@ func (_mr *_MockBareRootMetadataRecorder) MakeSuccessorCopy(arg0, arg1, arg2, ar
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeSuccessorCopy", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
-func (_m *MockBareRootMetadata) CheckValidSuccessor(currID MdID, nextMd BareRootMetadata) error {
+func (_m *MockBareRootMetadata) CheckValidSuccessor(currID kbfsmd.ID, nextMd BareRootMetadata) error {
 	ret := _m.ctrl.Call(_m, "CheckValidSuccessor", currID, nextMd)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -5509,7 +5487,7 @@ func (_mr *_MockBareRootMetadataRecorder) CheckValidSuccessor(arg0, arg1 interfa
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckValidSuccessor", arg0, arg1)
 }
 
-func (_m *MockBareRootMetadata) CheckValidSuccessorForServer(currID MdID, nextMd BareRootMetadata) error {
+func (_m *MockBareRootMetadata) CheckValidSuccessorForServer(currID kbfsmd.ID, nextMd BareRootMetadata) error {
 	ret := _m.ctrl.Call(_m, "CheckValidSuccessorForServer", currID, nextMd)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -5676,9 +5654,9 @@ func (_mr *_MockBareRootMetadataRecorder) BID() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "BID")
 }
 
-func (_m *MockBareRootMetadata) GetPrevRoot() MdID {
+func (_m *MockBareRootMetadata) GetPrevRoot() kbfsmd.ID {
 	ret := _m.ctrl.Call(_m, "GetPrevRoot")
-	ret0, _ := ret[0].(MdID)
+	ret0, _ := ret[0].(kbfsmd.ID)
 	return ret0
 }
 
@@ -5935,7 +5913,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) MakeSuccessorCopy(arg0, arg1, a
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeSuccessorCopy", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
-func (_m *MockMutableBareRootMetadata) CheckValidSuccessor(currID MdID, nextMd BareRootMetadata) error {
+func (_m *MockMutableBareRootMetadata) CheckValidSuccessor(currID kbfsmd.ID, nextMd BareRootMetadata) error {
 	ret := _m.ctrl.Call(_m, "CheckValidSuccessor", currID, nextMd)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -5945,7 +5923,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) CheckValidSuccessor(arg0, arg1 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckValidSuccessor", arg0, arg1)
 }
 
-func (_m *MockMutableBareRootMetadata) CheckValidSuccessorForServer(currID MdID, nextMd BareRootMetadata) error {
+func (_m *MockMutableBareRootMetadata) CheckValidSuccessorForServer(currID kbfsmd.ID, nextMd BareRootMetadata) error {
 	ret := _m.ctrl.Call(_m, "CheckValidSuccessorForServer", currID, nextMd)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -6112,9 +6090,9 @@ func (_mr *_MockMutableBareRootMetadataRecorder) BID() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "BID")
 }
 
-func (_m *MockMutableBareRootMetadata) GetPrevRoot() MdID {
+func (_m *MockMutableBareRootMetadata) GetPrevRoot() kbfsmd.ID {
 	ret := _m.ctrl.Call(_m, "GetPrevRoot")
-	ret0, _ := ret[0].(MdID)
+	ret0, _ := ret[0].(kbfsmd.ID)
 	return ret0
 }
 
@@ -6345,7 +6323,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetBranchID(arg0 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetBranchID", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) SetPrevRoot(mdID MdID) {
+func (_m *MockMutableBareRootMetadata) SetPrevRoot(mdID kbfsmd.ID) {
 	_m.ctrl.Call(_m, "SetPrevRoot", mdID)
 }
 

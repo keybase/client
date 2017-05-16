@@ -34,9 +34,9 @@ func testMdcacheMakeHandle(t *testing.T, n uint32) *TlfHandle {
 	return h
 }
 
-func testMdcachePut(t *testing.T, tlf tlf.ID, rev kbfsmd.Revision,
+func testMdcachePut(t *testing.T, tlfID tlf.ID, rev kbfsmd.Revision,
 	bid BranchID, h *TlfHandle, mdcache *MDCacheStandard) {
-	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlf, h)
+	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
 	require.NoError(t, err)
 	rmd.SetRevision(rev)
 	if bid != NullBranchID {
@@ -52,13 +52,13 @@ func testMdcachePut(t *testing.T, tlf tlf.ID, rev kbfsmd.Revision,
 
 	// put the md
 	irmd := MakeImmutableRootMetadata(
-		rmd, signingKey.GetVerifyingKey(), fakeMdID(1), time.Now())
+		rmd, signingKey.GetVerifyingKey(), kbfsmd.FakeID(1), time.Now())
 	if err := mdcache.Put(irmd); err != nil {
-		t.Errorf("Got error on put on md %v: %v", tlf, err)
+		t.Errorf("Got error on put on md %v: %v", tlfID, err)
 	}
 
 	// make sure we can get it successfully
-	irmd2, err := mdcache.Get(tlf, rev, bid)
+	irmd2, err := mdcache.Get(tlfID, rev, bid)
 	require.NoError(t, err)
 	require.Equal(t, irmd, irmd2)
 }
@@ -109,7 +109,7 @@ func TestMdcacheReplace(t *testing.T) {
 
 	newRmd.SetBranchID(bid)
 	err = mdcache.Replace(MakeImmutableRootMetadata(newRmd,
-		irmd.LastModifyingWriterVerifyingKey(), fakeMdID(2), time.Now()), NullBranchID)
+		irmd.LastModifyingWriterVerifyingKey(), kbfsmd.FakeID(2), time.Now()), NullBranchID)
 	require.NoError(t, err)
 
 	_, err = mdcache.Get(id, 1, NullBranchID)

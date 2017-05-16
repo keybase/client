@@ -578,10 +578,6 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 		return nil, fmt.Errorf("problem creating crypto: %s", err)
 	}
 
-	if registry := config.MetricsRegistry(); registry != nil {
-		crypto = NewCryptoMeasured(crypto, registry)
-	}
-
 	config.SetCrypto(crypto)
 
 	mdServer, err := makeMDServer(

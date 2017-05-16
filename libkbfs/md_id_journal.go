@@ -36,7 +36,7 @@ type mdIDJournal struct {
 // of the id journal; once there is one entry with `isLocalSquash =
 // false`, it will be the same in all the remaining entries.
 type mdIDJournalEntry struct {
-	ID MdID
+	ID kbfsmd.ID
 	// IsLocalSquash is true when this MD is the result of
 	// squashing some other local MDs.
 	IsLocalSquash bool `codec:",omitempty"`

@@ -26,10 +26,6 @@ type shimCrypto struct {
 	key  kbfscrypto.SigningKey
 }
 
-func (c shimCrypto) MakeMdID(md BareRootMetadata) (MdID, error) {
-	return c.pure.MakeMdID(md)
-}
-
 func (c shimCrypto) Sign(
 	ctx context.Context, data []byte) (kbfscrypto.SignatureInfo, error) {
 	return c.key.Sign(data), nil
@@ -513,7 +509,7 @@ func testMDOpsGetFailIDCheck(t *testing.T, ver MetadataVer) {
 }
 
 func makeRMDSRange(t *testing.T, config Config,
-	start kbfsmd.Revision, count int, prevID MdID) (
+	start kbfsmd.Revision, count int, prevID kbfsmd.ID) (
 	rmdses []*RootMetadataSigned, extras []ExtraMetadata) {
 	id := tlf.FakeID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice,bob", false)
@@ -537,7 +533,7 @@ func makeRMDSRange(t *testing.T, config Config,
 			ctx, config.Codec(), config.Crypto(), config.Crypto(),
 			rmd.bareMd, time.Now())
 		require.NoError(t, err)
-		currID, err := config.Crypto().MakeMdID(rmds.MD)
+		currID, err := kbfsmd.MakeID(config.Codec(), rmds.MD)
 		require.NoError(t, err)
 		prevID = currID
 		rmdses = append(rmdses, rmds)
@@ -608,7 +604,7 @@ func testMDOpsGetRangeSuccessHelper(
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmdses, extras := makeRMDSRange(t, config, 100, 5, fakeMdID(1))
+	rmdses, extras := makeRMDSRange(t, config, 100, 5, kbfsmd.FakeID(1))
 
 	start := kbfsmd.Revision(100)
 	stop := start + kbfsmd.Revision(len(rmdses))
@@ -653,9 +649,9 @@ func testMDOpsGetRangeFailBadPrevRoot(t *testing.T, ver MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmdses, extras := makeRMDSRange(t, config, 100, 5, fakeMdID(1))
+	rmdses, extras := makeRMDSRange(t, config, 100, 5, kbfsmd.FakeID(1))
 
-	rmdses[2].MD.(MutableBareRootMetadata).SetPrevRoot(fakeMdID(1))
+	rmdses[2].MD.(MutableBareRootMetadata).SetPrevRoot(kbfsmd.FakeID(1))
 
 	start := kbfsmd.Revision(100)
 	stop := start + kbfsmd.Revision(len(rmdses))
@@ -824,7 +820,7 @@ func testMDOpsGetRangeFailFinal(t *testing.T, ver MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmdses, extras := makeRMDSRange(t, config, 100, 5, fakeMdID(1))
+	rmdses, extras := makeRMDSRange(t, config, 100, 5, kbfsmd.FakeID(1))
 	rmdses[2].MD.(MutableBareRootMetadata).SetFinalBit()
 	rmdses[2].MD.(MutableBareRootMetadata).SetPrevRoot(rmdses[1].MD.GetPrevRoot())
 

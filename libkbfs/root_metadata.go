@@ -241,10 +241,10 @@ func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
 // with the revision incremented and a correct backpointer.
 func (md *RootMetadata) MakeSuccessor(
 	ctx context.Context, latestMDVer MetadataVer, codec kbfscodec.Codec,
-	crypto cryptoPure, keyManager KeyManager, mdID MdID, isWriter bool) (
+	crypto cryptoPure, keyManager KeyManager, mdID kbfsmd.ID, isWriter bool) (
 	*RootMetadata, error) {
 
-	if mdID == (MdID{}) {
+	if mdID == (kbfsmd.ID{}) {
 		return nil, errors.New("Empty MdID in MakeSuccessor")
 	}
 	if md.IsFinal() {
@@ -621,7 +621,7 @@ func (md *RootMetadata) BID() BranchID {
 }
 
 // PrevRoot wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) PrevRoot() MdID {
+func (md *RootMetadata) PrevRoot() kbfsmd.ID {
 	return md.bareMd.GetPrevRoot()
 }
 
@@ -649,7 +649,7 @@ func (md *RootMetadata) SetBranchID(bid BranchID) {
 }
 
 // SetPrevRoot wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) SetPrevRoot(mdID MdID) {
+func (md *RootMetadata) SetPrevRoot(mdID kbfsmd.ID) {
 	md.bareMd.SetPrevRoot(mdID)
 }
 
@@ -854,7 +854,7 @@ type ReadOnlyRootMetadata struct {
 // CheckValidSuccessor makes sure the given ReadOnlyRootMetadata is a
 // valid successor to the current one, and returns an error otherwise.
 func (md ReadOnlyRootMetadata) CheckValidSuccessor(
-	currID MdID, nextMd ReadOnlyRootMetadata) error {
+	currID kbfsmd.ID, nextMd ReadOnlyRootMetadata) error {
 	return md.bareMd.CheckValidSuccessor(currID, nextMd.bareMd)
 }
 
@@ -871,7 +871,7 @@ func (md *RootMetadata) ReadOnly() ReadOnlyRootMetadata {
 // can be assumed to never alias a (modifiable) *RootMetadata.
 type ImmutableRootMetadata struct {
 	ReadOnlyRootMetadata
-	mdID                   MdID
+	mdID                   kbfsmd.ID
 	lastWriterVerifyingKey kbfscrypto.VerifyingKey
 	// localTimestamp represents the time at which the MD update was
 	// applied at the server, adjusted for the local clock.  So for
@@ -889,11 +889,11 @@ type ImmutableRootMetadata struct {
 // the given RMD and its corresponding MdID.
 func MakeImmutableRootMetadata(
 	rmd *RootMetadata, writerVerifyingKey kbfscrypto.VerifyingKey,
-	mdID MdID, localTimestamp time.Time) ImmutableRootMetadata {
+	mdID kbfsmd.ID, localTimestamp time.Time) ImmutableRootMetadata {
 	if writerVerifyingKey == (kbfscrypto.VerifyingKey{}) {
 		panic("zero writerVerifyingKey passed to MakeImmutableRootMetadata")
 	}
-	if mdID == (MdID{}) {
+	if mdID == (kbfsmd.ID{}) {
 		panic("zero mdID passed to MakeImmutableRootMetadata")
 	}
 	if localTimestamp.IsZero() {
@@ -915,7 +915,7 @@ func MakeImmutableRootMetadata(
 
 // MdID returns the pre-computed MdID of the contained RootMetadata
 // object.
-func (irmd ImmutableRootMetadata) MdID() MdID {
+func (irmd ImmutableRootMetadata) MdID() kbfsmd.ID {
 	return irmd.mdID
 }
 

@@ -14,6 +14,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -129,7 +130,7 @@ func TestFBStatusAllFields(t *testing.T) {
 
 	fbsk.setRootMetadata(
 		MakeImmutableRootMetadata(rmd, signingKey.GetVerifyingKey(),
-			fakeMdID(1), time.Now()))
+			kbfsmd.FakeID(1), time.Now()))
 	fbsk.addDirtyNode(n1)
 	fbsk.addDirtyNode(n2)
 

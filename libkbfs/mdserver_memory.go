@@ -457,7 +457,7 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 
 	// Consistency checks
 	if head != nil {
-		id, err := md.config.cryptoPure().MakeMdID(head.MD)
+		id, err := kbfsmd.MakeID(md.config.Codec(), head.MD)
 		if err != nil {
 			return err
 		}

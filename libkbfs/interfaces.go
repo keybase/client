@@ -870,12 +870,6 @@ type cryptoPure interface {
 	// NullBranchID.
 	MakeRandomBranchID() (BranchID, error)
 
-	// MakeMdID computes the MD ID of a RootMetadata object.
-	// TODO: This should move to BareRootMetadata. Note though, that some mock tests
-	// rely on it being part of the config and crypto_measured.go uses it to keep
-	// statistics on time spent hashing.
-	MakeMdID(md BareRootMetadata) (MdID, error)
-
 	// MakeMerkleHash computes the hash of a RootMetadataSigned object
 	// for inclusion into the KBFS Merkle tree.
 	MakeMerkleHash(md *RootMetadataSigned) (MerkleHash, error)
@@ -1048,11 +1042,11 @@ type MDOps interface {
 
 	// Put stores the metadata object for the given
 	// top-level folder.
-	Put(ctx context.Context, rmd *RootMetadata) (MdID, error)
+	Put(ctx context.Context, rmd *RootMetadata) (kbfsmd.ID, error)
 
 	// PutUnmerged is the same as the above but for unmerged
 	// metadata history.
-	PutUnmerged(ctx context.Context, rmd *RootMetadata) (MdID, error)
+	PutUnmerged(ctx context.Context, rmd *RootMetadata) (kbfsmd.ID, error)
 
 	// PruneBranch prunes all unmerged history for the given TLF
 	// branch.
@@ -1063,7 +1057,7 @@ type MDOps interface {
 	// are still in the local journal.  It also appends the given MD
 	// to the journal.
 	ResolveBranch(ctx context.Context, id tlf.ID, bid BranchID,
-		blocksToDelete []kbfsblock.ID, rmd *RootMetadata) (MdID, error)
+		blocksToDelete []kbfsblock.ID, rmd *RootMetadata) (kbfsmd.ID, error)
 
 	// GetLatestHandleForTLF returns the server's idea of the latest handle for the TLF,
 	// which may not yet be reflected in the MD if the TLF hasn't been rekeyed since it
@@ -1827,10 +1821,10 @@ type BareRootMetadata interface {
 		extraCopy ExtraMetadata, err error)
 	// CheckValidSuccessor makes sure the given BareRootMetadata is a valid
 	// successor to the current one, and returns an error otherwise.
-	CheckValidSuccessor(currID MdID, nextMd BareRootMetadata) error
+	CheckValidSuccessor(currID kbfsmd.ID, nextMd BareRootMetadata) error
 	// CheckValidSuccessorForServer is like CheckValidSuccessor but with
 	// server-specific error messages.
-	CheckValidSuccessorForServer(currID MdID, nextMd BareRootMetadata) error
+	CheckValidSuccessorForServer(currID kbfsmd.ID, nextMd BareRootMetadata) error
 	// MakeBareTlfHandle makes a tlf.Handle for this
 	// BareRootMetadata. Should be used only by servers and MDOps.
 	MakeBareTlfHandle(extra ExtraMetadata) (tlf.Handle, error)
@@ -1882,7 +1876,7 @@ type BareRootMetadata interface {
 	// BID returns the per-device branch ID associated with this metadata revision.
 	BID() BranchID
 	// GetPrevRoot returns the hash of the previous metadata revision.
-	GetPrevRoot() MdID
+	GetPrevRoot() kbfsmd.ID
 	// IsUnmergedSet returns true if the unmerged bit is set.
 	IsUnmergedSet() bool
 	// GetSerializedPrivateMetadata returns the serialized private metadata as a byte slice.
@@ -1949,7 +1943,7 @@ type MutableBareRootMetadata interface {
 	// SetBranchID sets the branch ID for this metadata revision.
 	SetBranchID(bid BranchID)
 	// SetPrevRoot sets the hash of the previous metadata revision.
-	SetPrevRoot(mdID MdID)
+	SetPrevRoot(mdID kbfsmd.ID)
 	// SetSerializedPrivateMetadata sets the serialized private metadata.
 	SetSerializedPrivateMetadata(spmd []byte)
 	// SignWriterMetadataInternally signs the writer metadata, for

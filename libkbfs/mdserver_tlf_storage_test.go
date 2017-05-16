@@ -60,8 +60,8 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 
 	// (2) Push some new metadata blocks.
 
-	prevRoot := MdID{}
-	middleRoot := MdID{}
+	prevRoot := kbfsmd.ID{}
+	middleRoot := kbfsmd.ID{}
 	for i := kbfsmd.Revision(1); i <= 10; i++ {
 		brmd := makeBRMDForTest(t, codec, crypto, tlfID, h, i, uid, prevRoot)
 		rmds := signRMDSForTest(t, codec, signer, brmd)
@@ -69,7 +69,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		recordBranchID, err := s.put(uid, verifyingKey, rmds, nil)
 		require.NoError(t, err)
 		require.False(t, recordBranchID)
-		prevRoot, err = crypto.MakeMdID(rmds.MD)
+		prevRoot, err = kbfsmd.MakeID(codec, rmds.MD)
 		require.NoError(t, err)
 		if i == 5 {
 			middleRoot = prevRoot
@@ -102,7 +102,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		recordBranchID, err := s.put(uid, verifyingKey, rmds, nil)
 		require.NoError(t, err)
 		require.Equal(t, i == kbfsmd.Revision(6), recordBranchID)
-		prevRoot, err = crypto.MakeMdID(rmds.MD)
+		prevRoot, err = kbfsmd.MakeID(codec, rmds.MD)
 		require.NoError(t, err)
 	}
 

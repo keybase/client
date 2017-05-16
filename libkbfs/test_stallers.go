@@ -476,7 +476,7 @@ func (m *stallingMDOps) GetUnmergedRange(ctx context.Context, id tlf.ID,
 }
 
 func (m *stallingMDOps) Put(ctx context.Context, md *RootMetadata) (
-	mdID MdID, err error) {
+	mdID kbfsmd.ID, err error) {
 	m.maybeStall(ctx, StallableMDPut)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		mdID, err = m.delegate.Put(ctx, md)
@@ -487,7 +487,7 @@ func (m *stallingMDOps) Put(ctx context.Context, md *RootMetadata) (
 }
 
 func (m *stallingMDOps) PutUnmerged(ctx context.Context, md *RootMetadata) (
-	mdID MdID, err error) {
+	mdID kbfsmd.ID, err error) {
 	m.maybeStall(ctx, StallableMDPutUnmerged)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		mdID, err = m.delegate.PutUnmerged(ctx, md)
@@ -507,7 +507,7 @@ func (m *stallingMDOps) PruneBranch(
 
 func (m *stallingMDOps) ResolveBranch(
 	ctx context.Context, id tlf.ID, bid BranchID, blocksToDelete []kbfsblock.ID,
-	rmd *RootMetadata) (mdID MdID, err error) {
+	rmd *RootMetadata) (mdID kbfsmd.ID, err error) {
 	m.maybeStall(ctx, StallableMDResolveBranch)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		mdID, err = m.delegate.ResolveBranch(ctx, id, bid, blocksToDelete, rmd)

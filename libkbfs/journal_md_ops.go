@@ -399,7 +399,7 @@ func (j journalMDOps) GetUnmergedRange(
 }
 
 func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
-	mdID MdID, err error) {
+	mdID kbfsmd.ID, err error) {
 	j.jServer.log.LazyTrace(ctx, "jMDOps: Put %s %d", rmd.TlfID(), rmd.Revision())
 	defer func() {
 		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: Put %s %d done (err=%v)", rmd.TlfID(), rmd.Revision(), err)
@@ -414,7 +414,7 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
 		case errTLFJournalDisabled:
 			break
 		default:
-			return MdID{}, err
+			return kbfsmd.ID{}, err
 		}
 	}
 
@@ -422,7 +422,7 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
 }
 
 func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
-	mdID MdID, err error) {
+	mdID kbfsmd.ID, err error) {
 	j.jServer.log.LazyTrace(ctx, "jMDOps: PutUnmerged %s %d", rmd.TlfID(), rmd.Revision())
 	defer func() {
 		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: PutUnmerged %s %d done (err=%v)", rmd.TlfID(), rmd.Revision(), err)
@@ -437,7 +437,7 @@ func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 		case errTLFJournalDisabled:
 			break
 		default:
-			return MdID{}, err
+			return kbfsmd.ID{}, err
 		}
 	}
 
@@ -469,7 +469,7 @@ func (j journalMDOps) PruneBranch(
 
 func (j journalMDOps) ResolveBranch(
 	ctx context.Context, id tlf.ID, bid BranchID,
-	blocksToDelete []kbfsblock.ID, rmd *RootMetadata) (mdID MdID, err error) {
+	blocksToDelete []kbfsblock.ID, rmd *RootMetadata) (mdID kbfsmd.ID, err error) {
 	j.jServer.log.LazyTrace(ctx, "jMDOps: ResolveBranch %s %s", id, bid)
 	defer func() {
 		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: ResolveBranch %s %s (err=%v)", id, bid, err)
@@ -484,7 +484,7 @@ func (j journalMDOps) ResolveBranch(
 		case errTLFJournalDisabled:
 			break
 		default:
-			return MdID{}, err
+			return kbfsmd.ID{}, err
 		}
 	}
 

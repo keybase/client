@@ -87,7 +87,7 @@ func teardownMDJournalTest(t testing.TB, tempdir string) {
 
 func makeMDForTest(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 	revision kbfsmd.Revision, uid keybase1.UID,
-	signer kbfscrypto.Signer, prevRoot MdID) *RootMetadata {
+	signer kbfscrypto.Signer, prevRoot kbfsmd.ID) *RootMetadata {
 	nug := testNormalizedUsernameGetter{
 		uid: "fake_username",
 	}
@@ -106,9 +106,9 @@ func makeMDForTest(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 
 func putMDRangeHelper(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 	signer kbfscrypto.Signer, firstRevision kbfsmd.Revision,
-	firstPrevRoot MdID, mdCount int, uid keybase1.UID,
-	putMD func(context.Context, *RootMetadata) (MdID, error)) (
-	[]*RootMetadata, MdID) {
+	firstPrevRoot kbfsmd.ID, mdCount int, uid keybase1.UID,
+	putMD func(context.Context, *RootMetadata) (kbfsmd.ID, error)) (
+	[]*RootMetadata, kbfsmd.ID) {
 	require.True(t, mdCount > 0)
 	ctx := context.Background()
 	var mds []*RootMetadata
@@ -135,10 +135,10 @@ func putMDRangeHelper(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 func putMDRange(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 	signer kbfscrypto.Signer, ekg encryptionKeyGetter,
 	bsplit BlockSplitter, firstRevision kbfsmd.Revision,
-	firstPrevRoot MdID, mdCount int, j *mdJournal) ([]*RootMetadata, MdID) {
+	firstPrevRoot kbfsmd.ID, mdCount int, j *mdJournal) ([]*RootMetadata, kbfsmd.ID) {
 	return putMDRangeHelper(t, ver, tlfID, signer, firstRevision,
 		firstPrevRoot, mdCount, j.uid,
-		func(ctx context.Context, md *RootMetadata) (MdID, error) {
+		func(ctx context.Context, md *RootMetadata) (kbfsmd.ID, error) {
 			return j.put(ctx, signer, ekg, bsplit, md, false)
 		})
 }
@@ -146,7 +146,7 @@ func putMDRange(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 func checkBRMD(t *testing.T, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 	codec kbfscodec.Codec, crypto cryptoPure, brmd BareRootMetadata,
 	extra ExtraMetadata, expectedRevision kbfsmd.Revision,
-	expectedPrevRoot MdID, expectedMergeStatus MergeStatus,
+	expectedPrevRoot kbfsmd.ID, expectedMergeStatus MergeStatus,
 	expectedBranchID BranchID) {
 	require.Equal(t, expectedRevision, brmd.RevisionNumber())
 	require.Equal(t, expectedPrevRoot, brmd.GetPrevRoot())
@@ -164,7 +164,7 @@ func checkBRMD(t *testing.T, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 func checkIBRMDRange(t *testing.T, uid keybase1.UID,
 	key kbfscrypto.VerifyingKey, codec kbfscodec.Codec, crypto cryptoPure,
 	ibrmds []ImmutableBareRootMetadata, firstRevision kbfsmd.Revision,
-	firstPrevRoot MdID, mStatus MergeStatus, bid BranchID) {
+	firstPrevRoot kbfsmd.ID, mStatus MergeStatus, bid BranchID) {
 	checkBRMD(t, uid, key, codec, crypto, ibrmds[0], ibrmds[0].extra,
 		firstRevision, firstPrevRoot, mStatus, bid)
 
@@ -200,8 +200,8 @@ func benchmarkMDJournalBasicBody(b *testing.B, ver MetadataVer, mdCount int) {
 	defer teardownMDJournalTest(b, tempdir)
 
 	putMDRangeHelper(b, ver, id, signer, kbfsmd.Revision(10),
-		fakeMdID(1), mdCount, j.uid,
-		func(ctx context.Context, md *RootMetadata) (MdID, error) {
+		kbfsmd.FakeID(1), mdCount, j.uid,
+		func(ctx context.Context, md *RootMetadata) (kbfsmd.ID, error) {
 			b.StartTimer()
 			defer b.StopTimer()
 			return j.put(ctx, signer, ekg, bsplit, md, false)
@@ -237,7 +237,7 @@ func testMDJournalBasic(t *testing.T, ver MetadataVer) {
 	// Push some new metadata blocks.
 
 	firstRevision := kbfsmd.Revision(10)
-	firstPrevRoot := fakeMdID(1)
+	firstPrevRoot := kbfsmd.FakeID(1)
 	mdCount := 10
 	mds, _ := putMDRange(t, ver, id, signer, ekg, bsplit,
 		firstRevision, firstPrevRoot, mdCount, j)
@@ -269,24 +269,24 @@ func testMDJournalGetNextEntry(t *testing.T, ver MetadataVer) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	ctx := context.Background()
-	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, fakeMdID(1))
+	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, kbfsmd.FakeID(1))
 	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
 	mdID, rmds, _, err := j.getNextEntryToFlush(ctx, md.Revision(), signer)
 	require.NoError(t, err)
-	require.Equal(t, MdID{}, mdID)
+	require.Equal(t, kbfsmd.ID{}, mdID)
 	require.Nil(t, rmds)
 
 	mdID, rmds, _, err = j.getNextEntryToFlush(ctx, md.Revision()+1, signer)
 	require.NoError(t, err)
-	require.NotEqual(t, MdID{}, mdID)
+	require.NotEqual(t, kbfsmd.ID{}, mdID)
 	require.Equal(t, md.bareMd, rmds.MD)
 
 	mdID, rmds, _, err = j.getNextEntryToFlush(
 		ctx, md.Revision()+100, signer)
 	require.NoError(t, err)
-	require.NotEqual(t, MdID{}, mdID)
+	require.NotEqual(t, kbfsmd.ID{}, mdID)
 	require.Equal(t, md.bareMd, rmds.MD)
 }
 
@@ -298,7 +298,7 @@ func testMDJournalPutEntryTwice(t *testing.T, ver MetadataVer) {
 
 	ctx := context.Background()
 	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer,
-		fakeMdID(1))
+		kbfsmd.FakeID(1))
 	id1, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
@@ -313,7 +313,7 @@ func testMDJournalPutCase1Empty(t *testing.T, ver MetadataVer) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	ctx := context.Background()
-	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, fakeMdID(1))
+	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, kbfsmd.FakeID(1))
 	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
@@ -328,7 +328,7 @@ func testMDJournalPutCase1Conflict(t *testing.T, ver MetadataVer) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	ctx := context.Background()
-	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, fakeMdID(1))
+	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, kbfsmd.FakeID(1))
 	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
@@ -350,7 +350,7 @@ func testMDJournalPutCase1ReplaceHead(t *testing.T, ver MetadataVer) {
 	// Push some new metadata blocks.
 
 	firstRevision := kbfsmd.Revision(10)
-	firstPrevRoot := fakeMdID(1)
+	firstPrevRoot := kbfsmd.FakeID(1)
 	mdCount := 3
 	_, prevRoot := putMDRange(t, ver, id, signer, ekg, bsplit,
 		firstRevision, firstPrevRoot, mdCount, j)
@@ -377,7 +377,7 @@ func testMDJournalPutCase2NonEmptyReplace(t *testing.T, ver MetadataVer) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	ctx := context.Background()
-	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, fakeMdID(1))
+	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, kbfsmd.FakeID(1))
 	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
@@ -396,7 +396,7 @@ func testMDJournalPutCase2NonEmptyAppend(t *testing.T, ver MetadataVer) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	ctx := context.Background()
-	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, fakeMdID(1))
+	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, kbfsmd.FakeID(1))
 	mdID, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
@@ -416,7 +416,7 @@ func testMDJournalPutCase2Empty(t *testing.T, ver MetadataVer) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	ctx := context.Background()
-	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, fakeMdID(1))
+	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, kbfsmd.FakeID(1))
 	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
@@ -442,7 +442,7 @@ func testMDJournalPutCase3NonEmptyAppend(t *testing.T, ver MetadataVer) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	ctx := context.Background()
-	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, fakeMdID(1))
+	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, kbfsmd.FakeID(1))
 	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
@@ -468,7 +468,7 @@ func testMDJournalPutCase3NonEmptyReplace(t *testing.T, ver MetadataVer) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	ctx := context.Background()
-	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, fakeMdID(1))
+	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, kbfsmd.FakeID(1))
 	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
@@ -493,7 +493,7 @@ func testMDJournalPutCase3EmptyAppend(t *testing.T, ver MetadataVer) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	ctx := context.Background()
-	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, fakeMdID(1))
+	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, kbfsmd.FakeID(1))
 	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
@@ -520,7 +520,7 @@ func testMDJournalPutCase4(t *testing.T, ver MetadataVer) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	ctx := context.Background()
-	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, fakeMdID(1))
+	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, kbfsmd.FakeID(1))
 	md.SetUnmerged()
 	md.SetBranchID(FakeBranchID(1))
 	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
@@ -542,7 +542,7 @@ func flushAllMDs(
 	for {
 		mdID, rmds, _, err := j.getNextEntryToFlush(ctx, end, signer)
 		require.NoError(t, err)
-		if mdID == (MdID{}) {
+		if mdID == (kbfsmd.ID{}) {
 			break
 		}
 		j.removeFlushedEntry(ctx, mdID, rmds)
@@ -577,7 +577,7 @@ func testMDJournalFlushAll(t *testing.T, ver MetadataVer) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	firstRevision := kbfsmd.Revision(10)
-	firstPrevRoot := fakeMdID(1)
+	firstPrevRoot := kbfsmd.FakeID(1)
 	mdCount := 10
 	putMDRange(t, ver, id, signer, ekg, bsplit,
 		firstRevision, firstPrevRoot, mdCount, j)
@@ -603,7 +603,7 @@ func testMDJournalBranchConversion(t *testing.T, ver MetadataVer) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	firstRevision := kbfsmd.Revision(10)
-	firstPrevRoot := fakeMdID(1)
+	firstPrevRoot := kbfsmd.FakeID(1)
 	mdCount := 10
 	putMDRange(t, ver, id, signer, ekg, bsplit,
 		firstRevision, firstPrevRoot, mdCount, j)
@@ -662,7 +662,7 @@ func testMDJournalResolveAndClear(t *testing.T, ver MetadataVer, bid BranchID) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	firstRevision := kbfsmd.Revision(10)
-	firstPrevRoot := fakeMdID(1)
+	firstPrevRoot := kbfsmd.FakeID(1)
 	mdCount := 10
 	putMDRange(t, ver, id, signer, ekg, bsplit,
 		firstRevision, firstPrevRoot, mdCount, j)
@@ -747,7 +747,7 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	firstRevision := kbfsmd.Revision(10)
-	firstPrevRoot := fakeMdID(1)
+	firstPrevRoot := kbfsmd.FakeID(1)
 	mdCount := 10
 	putMDRange(t, ver, id, signer, ekg, bsplit,
 		firstRevision, firstPrevRoot, mdCount, j)
@@ -795,7 +795,7 @@ func testMDJournalBranchConversionPreservesUnknownFields(t *testing.T, ver Metad
 
 	firstRevision := kbfsmd.Revision(5)
 	mdCount := 5
-	prevRoot := fakeMdID(1)
+	prevRoot := kbfsmd.FakeID(1)
 	ctx := context.Background()
 	for i := 0; i < mdCount; i++ {
 		revision := firstRevision + kbfsmd.Revision(i)
@@ -819,7 +819,7 @@ func testMDJournalBranchConversionPreservesUnknownFields(t *testing.T, ver Metad
 
 		// Zero out the MdID, since branch conversion changes
 		// it.
-		entry.ID = MdID{}
+		entry.ID = kbfsmd.ID{}
 		expectedEntries = append(expectedEntries, entry)
 
 		prevRoot = mdID
@@ -836,7 +836,7 @@ func testMDJournalBranchConversionPreservesUnknownFields(t *testing.T, ver Metad
 	require.NoError(t, err)
 	// Zero out MdIDs for comparison.
 	for i, entry := range entries {
-		entry.ID = MdID{}
+		entry.ID = kbfsmd.ID{}
 		entries[i] = entry
 	}
 	require.Equal(t, expectedEntries, entries)
@@ -849,7 +849,7 @@ func testMDJournalClear(t *testing.T, ver MetadataVer) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	firstRevision := kbfsmd.Revision(10)
-	firstPrevRoot := fakeMdID(1)
+	firstPrevRoot := kbfsmd.FakeID(1)
 	mdCount := 10
 	putMDRange(t, ver, id, signer, ekg, bsplit,
 		firstRevision, firstPrevRoot, mdCount, j)
@@ -925,12 +925,12 @@ func testMDJournalClearPendingWithMaster(t *testing.T, ver MetadataVer) {
 	defer teardownMDJournalTest(t, tempdir)
 
 	firstRevision := kbfsmd.Revision(10)
-	firstPrevRoot := fakeMdID(1)
+	firstPrevRoot := kbfsmd.FakeID(1)
 	mdCount := 10
 
 	_, prevRoot := putMDRangeHelper(t, ver, id, signer, firstRevision,
 		firstPrevRoot, mdCount, j.uid,
-		func(ctx context.Context, md *RootMetadata) (MdID, error) {
+		func(ctx context.Context, md *RootMetadata) (kbfsmd.ID, error) {
 			return j.put(ctx, signer, ekg, bsplit, md, true)
 		})
 
@@ -975,7 +975,7 @@ func testMDJournalRestart(t *testing.T, ver MetadataVer) {
 	// Push some new metadata blocks.
 
 	firstRevision := kbfsmd.Revision(10)
-	firstPrevRoot := fakeMdID(1)
+	firstPrevRoot := kbfsmd.FakeID(1)
 	mdCount := 10
 	putMDRange(t, ver, id, signer, ekg, bsplit,
 		firstRevision, firstPrevRoot, mdCount, j)
@@ -1007,7 +1007,7 @@ func testMDJournalRestartAfterBranchConversion(t *testing.T, ver MetadataVer) {
 	// Push some new metadata blocks.
 
 	firstRevision := kbfsmd.Revision(10)
-	firstPrevRoot := fakeMdID(1)
+	firstPrevRoot := kbfsmd.FakeID(1)
 	mdCount := 10
 	putMDRange(t, ver, id, signer, ekg, bsplit,
 		firstRevision, firstPrevRoot, mdCount, j)

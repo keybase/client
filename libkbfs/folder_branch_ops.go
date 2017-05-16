@@ -2021,7 +2021,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 
 	oldPrevRoot := md.PrevRoot()
 
-	var mdID MdID
+	var mdID kbfsmd.ID
 
 	// This puts on a delay on any cancellations arriving to ctx. It is intended
 	// to work sort of like a critical section, except that there isn't an
@@ -2122,7 +2122,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 			if err != nil {
 				return err
 			}
-			mdID, err = fbo.config.cryptoPure().MakeMdID(md.bareMd)
+			mdID, err = kbfsmd.MakeID(fbo.config.Codec(), md.bareMd)
 			if err != nil {
 				return err
 			}
@@ -5408,7 +5408,7 @@ func (fbo *folderBranchOps) locallyFinalizeTLF(ctx context.Context) {
 	}
 
 	// Construct the data needed to fake a new head.
-	mdID, err := fbo.config.Crypto().MakeMdID(finalRmd.MD)
+	mdID, err := kbfsmd.MakeID(fbo.config.Codec(), finalRmd.MD)
 	if err != nil {
 		fbo.log.CErrorf(ctx, "Couldn't get finalized MD ID: %+v", err)
 		return

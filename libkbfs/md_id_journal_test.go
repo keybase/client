@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfsmd"
 )
 
 type mdIDJournalEntryFuture struct {
@@ -27,7 +28,7 @@ func (ef mdIDJournalEntryFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 func makeFakeMDIDJournalEntryFuture(t *testing.T) mdIDJournalEntryFuture {
 	ef := mdIDJournalEntryFuture{
 		mdIDJournalEntry{
-			fakeMdID(1),
+			kbfsmd.FakeID(1),
 			false, false, false,
 			codec.UnknownFieldSetHandler{},
 		},

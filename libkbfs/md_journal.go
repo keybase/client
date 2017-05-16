@@ -26,26 +26,26 @@ import (
 // objects can be assumed to never alias a (modifiable)
 // BareRootMetadata.
 //
-// Note that crypto.MakeMdID() on an ImmutableBareRootMetadata will
+// Note that kbfsmd.MakeID() on an ImmutableBareRootMetadata will
 // compute the wrong result, since anonymous fields of interface type
 // are not encoded inline by the codec. Use
-// crypto.MakeMDID(ibrmd.BareRootMetadata) instead.
+// kbfsmd.MakeID(ibrmd.BareRootMetadata) instead.
 //
 // TODO: Move this to bare_root_metadata.go if it's used in more
 // places.
 type ImmutableBareRootMetadata struct {
 	BareRootMetadata
 	extra          ExtraMetadata
-	mdID           MdID
+	mdID           kbfsmd.ID
 	localTimestamp time.Time
 }
 
 // MakeImmutableBareRootMetadata makes a new ImmutableBareRootMetadata
 // from the given BareRootMetadata and its corresponding MdID.
 func MakeImmutableBareRootMetadata(
-	rmd BareRootMetadata, extra ExtraMetadata, mdID MdID,
+	rmd BareRootMetadata, extra ExtraMetadata, mdID kbfsmd.ID,
 	localTimestamp time.Time) ImmutableBareRootMetadata {
-	if mdID == (MdID{}) {
+	if mdID == (kbfsmd.ID{}) {
 		panic("zero mdID passed to MakeImmutableBareRootMetadata")
 	}
 	return ImmutableBareRootMetadata{rmd, extra, mdID, localTimestamp}
@@ -153,7 +153,7 @@ type mdJournal struct {
 	// Set only when the journal becomes empty due to
 	// flushing. This doesn't need to be persisted for the same
 	// reason as branchID.
-	lastMdID MdID
+	lastMdID kbfsmd.ID
 }
 
 func makeMDJournalWithIDJournal(
@@ -273,16 +273,16 @@ func (j mdJournal) mdJournalDirs() []string {
 	}
 }
 
-func (j mdJournal) mdPath(id MdID) string {
+func (j mdJournal) mdPath(id kbfsmd.ID) string {
 	idStr := id.String()
 	return filepath.Join(j.mdsPath(), idStr[:4], idStr[4:34])
 }
 
-func (j mdJournal) mdDataPath(id MdID) string {
+func (j mdJournal) mdDataPath(id kbfsmd.ID) string {
 	return filepath.Join(j.mdPath(id), "data")
 }
 
-func (j mdJournal) mdInfoPath(id MdID) string {
+func (j mdJournal) mdInfoPath(id kbfsmd.ID) string {
 	return filepath.Join(j.mdPath(id), "info.json")
 }
 
@@ -295,7 +295,7 @@ type mdInfo struct {
 	Version   MetadataVer
 }
 
-func (j mdJournal) getMDInfo(id MdID) (time.Time, MetadataVer, error) {
+func (j mdJournal) getMDInfo(id kbfsmd.ID) (time.Time, MetadataVer, error) {
 	var info mdInfo
 	err := ioutil.DeserializeFromJSONFile(j.mdInfoPath(id), &info)
 	if err != nil {
@@ -308,7 +308,7 @@ func (j mdJournal) getMDInfo(id MdID) (time.Time, MetadataVer, error) {
 // putMDInfo assumes that the parent directory of j.mdInfoPath(id)
 // (which is j.mdPath(id)) has already been created.
 func (j mdJournal) putMDInfo(
-	id MdID, timestamp time.Time, version MetadataVer) error {
+	id kbfsmd.ID, timestamp time.Time, version MetadataVer) error {
 	info := mdInfo{timestamp, version}
 	return ioutil.SerializeToJSONFile(info, j.mdInfoPath(id))
 }
@@ -446,7 +446,7 @@ func (j mdJournal) getMDAndExtra(entry mdIDJournalEntry, verifyBranchID bool) (
 
 	// Check integrity.
 
-	mdID, err := j.crypto.MakeMdID(rmd)
+	mdID, err := kbfsmd.MakeID(j.codec, rmd)
 	if err != nil {
 		return nil, nil, time.Time{}, err
 	}
@@ -487,24 +487,24 @@ func (j mdJournal) getMDAndExtra(entry mdIDJournalEntry, verifyBranchID bool) (
 // putMD stores the given metadata under its ID, if it's not already
 // stored. The extra metadata is put separately, since sometimes,
 // (e.g., when converting to a branch) we don't need to put it.
-func (j mdJournal) putMD(rmd BareRootMetadata) (MdID, error) {
+func (j mdJournal) putMD(rmd BareRootMetadata) (kbfsmd.ID, error) {
 	// TODO: Make crypto and RMD wrap errors.
 
 	err := rmd.IsLastModifiedBy(j.uid, j.key)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
-	id, err := j.crypto.MakeMdID(rmd)
+	id, err := kbfsmd.MakeID(j.codec, rmd)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	_, err = ioutil.Stat(j.mdDataPath(id))
 	if ioutil.IsNotExist(err) {
 		// Continue on.
 	} else if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	} else {
 		// Entry exists, so nothing else to do.
 		return id, nil
@@ -513,19 +513,19 @@ func (j mdJournal) putMD(rmd BareRootMetadata) (MdID, error) {
 	err = kbfscodec.SerializeToFileIfNotExist(
 		j.codec, rmd, j.mdDataPath(id))
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	err = j.putMDInfo(id, j.clock.Now(), rmd.Version())
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	return id, nil
 }
 
 // removeMD removes the metadata (which must exist) with the given ID.
-func (j *mdJournal) removeMD(id MdID) error {
+func (j *mdJournal) removeMD(id kbfsmd.ID) error {
 	path := j.mdPath(id)
 	err := ioutil.RemoveAll(path)
 	if err != nil {
@@ -544,18 +544,18 @@ func (j *mdJournal) removeMD(id MdID) error {
 // getEarliestWithExtra returns a MutableBareRootMetadata so that it
 // can be put in a RootMetadataSigned object.
 func (j mdJournal) getEarliestWithExtra(verifyBranchID bool) (
-	MdID, MutableBareRootMetadata, ExtraMetadata, time.Time, error) {
+	kbfsmd.ID, MutableBareRootMetadata, ExtraMetadata, time.Time, error) {
 	entry, exists, err := j.j.getEarliestEntry()
 	if err != nil {
-		return MdID{}, nil, nil, time.Time{}, err
+		return kbfsmd.ID{}, nil, nil, time.Time{}, err
 	}
 	if !exists {
-		return MdID{}, nil, nil, time.Time{}, nil
+		return kbfsmd.ID{}, nil, nil, time.Time{}, nil
 	}
 	earliest, extra, timestamp, err :=
 		j.getMDAndExtra(entry, verifyBranchID)
 	if err != nil {
-		return MdID{}, nil, nil, time.Time{}, err
+		return kbfsmd.ID{}, nil, nil, time.Time{}, err
 	}
 	return entry.ID, earliest, extra, timestamp, nil
 }
@@ -639,7 +639,7 @@ func (j *mdJournal) convertToBranch(
 	}
 	j.log.CDebugf(ctx, "Using temp dir %s for rewriting", journalTempDir)
 
-	mdsToRemove := make([]MdID, 0, len(allEntries))
+	mdsToRemove := make([]kbfsmd.ID, 0, len(allEntries))
 	defer func() {
 		// If we crash here and leave behind the tempdir, it
 		// won't be cleaned up automatically when the journal
@@ -671,7 +671,7 @@ func (j *mdJournal) convertToBranch(
 		return err
 	}
 
-	var prevID MdID
+	var prevID kbfsmd.ID
 
 	isPendingLocalSquash := bid == PendingLocalSquashBranchID
 	for _, entry := range allEntries {
@@ -793,7 +793,7 @@ func (j *mdJournal) convertToBranch(
 	// Make the defer block above remove oldJournalTempDir.
 	journalTempDir = oldJournalTempDir
 
-	mdsToRemove = make([]MdID, 0, len(allEntries))
+	mdsToRemove = make([]kbfsmd.ID, 0, len(allEntries))
 	for _, entry := range allEntries {
 		if entry.IsLocalSquash && isPendingLocalSquash {
 			continue
@@ -813,26 +813,26 @@ func (j *mdJournal) convertToBranch(
 // the returned *RootMetadataSigned will be nil.
 func (j mdJournal) getNextEntryToFlush(
 	ctx context.Context, end kbfsmd.Revision, signer kbfscrypto.Signer) (
-	MdID, *RootMetadataSigned, ExtraMetadata, error) {
+	kbfsmd.ID, *RootMetadataSigned, ExtraMetadata, error) {
 	mdID, rmd, extra, timestamp, err := j.getEarliestWithExtra(true)
 	if err != nil {
-		return MdID{}, nil, nil, err
+		return kbfsmd.ID{}, nil, nil, err
 	}
 	if rmd == nil || rmd.RevisionNumber() >= end {
-		return MdID{}, nil, nil, nil
+		return kbfsmd.ID{}, nil, nil, nil
 	}
 
 	rmds, err := SignBareRootMetadata(
 		ctx, j.codec, signer, signer, rmd, timestamp)
 	if err != nil {
-		return MdID{}, nil, nil, err
+		return kbfsmd.ID{}, nil, nil, err
 	}
 
 	return mdID, rmds, extra, nil
 }
 
 func (j *mdJournal) removeFlushedEntry(
-	ctx context.Context, mdID MdID, rmds *RootMetadataSigned) (
+	ctx context.Context, mdID kbfsmd.ID, rmds *RootMetadataSigned) (
 	clearedMDJournal bool, err error) {
 	rmdID, rmd, _, _, err := j.getEarliestWithExtra(true)
 	if err != nil {
@@ -894,22 +894,22 @@ func (j *mdJournal) removeFlushedEntry(
 	return false, nil
 }
 
-func getMdID(ctx context.Context, mdserver MDServer, crypto cryptoPure,
+func getMdID(ctx context.Context, mdserver MDServer, codec kbfscodec.Codec,
 	tlfID tlf.ID, bid BranchID, mStatus MergeStatus,
-	revision kbfsmd.Revision) (MdID, error) {
+	revision kbfsmd.Revision) (kbfsmd.ID, error) {
 	rmdses, err := mdserver.GetRange(
 		ctx, tlfID, bid, mStatus, revision, revision)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	} else if len(rmdses) == 0 {
-		return MdID{}, nil
+		return kbfsmd.ID{}, nil
 	} else if len(rmdses) > 1 {
-		return MdID{}, errors.Errorf(
+		return kbfsmd.ID{}, errors.Errorf(
 			"Got more than one object when trying to get rev=%d for branch %s of TLF %s",
 			revision, bid, tlfID)
 	}
 
-	return crypto.MakeMdID(rmdses[0].MD)
+	return kbfsmd.MakeID(codec, rmdses[0].MD)
 }
 
 // clearHelper removes all the journal entries starting from
@@ -1189,7 +1189,7 @@ func (j *mdJournal) put(
 	ctx context.Context, signer kbfscrypto.Signer,
 	ekg encryptionKeyGetter, bsplit BlockSplitter, rmd *RootMetadata,
 	isLocalSquash bool) (
-	mdID MdID, err error) {
+	mdID kbfsmd.ID, err error) {
 	j.log.CDebugf(ctx, "Putting MD for TLF=%s with rev=%s bid=%s",
 		rmd.TlfID(), rmd.Revision(), rmd.BID())
 	defer func() {
@@ -1202,14 +1202,14 @@ func (j *mdJournal) put(
 
 	head, err := j.getLatest(true)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	mStatus := rmd.MergedStatus()
 
 	// Make modifications for the Unmerged cases.
 	if mStatus == Unmerged {
-		var lastMdID MdID
+		var lastMdID kbfsmd.ID
 		if head == (ImmutableBareRootMetadata{}) {
 			lastMdID = j.lastMdID
 		} else {
@@ -1217,7 +1217,7 @@ func (j *mdJournal) put(
 		}
 
 		if rmd.BID() == NullBranchID && j.branchID == NullBranchID {
-			return MdID{}, errors.New(
+			return kbfsmd.ID{}, errors.New(
 				"Unmerged put with rmd.BID() == j.branchID == NullBranchID")
 		}
 
@@ -1255,24 +1255,24 @@ func (j *mdJournal) put(
 	// The below is code common to all the cases.
 
 	if (mStatus == Merged) != (rmd.BID() == NullBranchID) {
-		return MdID{}, errors.Errorf(
+		return kbfsmd.ID{}, errors.Errorf(
 			"mStatus=%s doesn't match bid=%s", mStatus, rmd.BID())
 	}
 
 	// If we're trying to push a merged MD onto a branch, return a
 	// conflict error so the caller can retry with an unmerged MD.
 	if mStatus == Merged && j.branchID != NullBranchID {
-		return MdID{}, MDJournalConflictError{}
+		return kbfsmd.ID{}, MDJournalConflictError{}
 	}
 
 	if rmd.BID() != j.branchID {
-		return MdID{}, errors.Errorf(
+		return kbfsmd.ID{}, errors.Errorf(
 			"Branch ID mismatch: expected %s, got %s",
 			j.branchID, rmd.BID())
 	}
 
 	if isLocalSquash && rmd.BID() != NullBranchID {
-		return MdID{}, errors.Errorf("A local squash must have a null branch ID,"+
+		return kbfsmd.ID{}, errors.Errorf("A local squash must have a null branch ID,"+
 			" but this one has bid=%s", rmd.BID())
 	}
 
@@ -1282,11 +1282,11 @@ func (j *mdJournal) put(
 			j.codec, j.uid, head.BareRootMetadata, rmd.bareMd,
 			head.extra, rmd.extra)
 		if err != nil {
-			return MdID{}, err
+			return kbfsmd.ID{}, err
 		}
 		if !ok {
 			// TODO: Use a non-server error.
-			return MdID{}, MDServerErrorUnauthorized{}
+			return kbfsmd.ID{}, MDServerErrorUnauthorized{}
 		}
 
 		// Consistency checks
@@ -1294,7 +1294,7 @@ func (j *mdJournal) put(
 			err = head.CheckValidSuccessorForServer(
 				head.mdID, rmd.bareMd)
 			if err != nil {
-				return MdID{}, err
+				return kbfsmd.ID{}, err
 			}
 		}
 
@@ -1303,10 +1303,10 @@ func (j *mdJournal) put(
 		if isLocalSquash {
 			entry, exists, err := j.j.getLatestEntry()
 			if err != nil {
-				return MdID{}, err
+				return kbfsmd.ID{}, err
 			}
 			if exists && !entry.IsLocalSquash {
-				return MdID{}, errors.Errorf("Local squash is not preceded "+
+				return kbfsmd.ID{}, errors.Errorf("Local squash is not preceded "+
 					"by a local squash (head=%s)", entry.ID)
 			}
 		}
@@ -1315,29 +1315,29 @@ func (j *mdJournal) put(
 	// Ensure that the block changes are properly unembedded.
 	if rmd.data.Changes.Info.BlockPointer == zeroPtr &&
 		!bsplit.ShouldEmbedBlockChanges(&rmd.data.Changes) {
-		return MdID{},
+		return kbfsmd.ID{},
 			errors.New("MD has embedded block changes, but shouldn't")
 	}
 
 	err = encryptMDPrivateData(
 		ctx, j.codec, j.crypto, signer, ekg, j.uid, rmd)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	err = rmd.bareMd.IsValidAndSigned(j.codec, j.crypto, rmd.extra)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	id, err := j.putMD(rmd.bareMd)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	wkbNew, rkbNew, err := j.putExtraMetadata(rmd.bareMd, rmd.extra)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	newEntry := mdIDJournalEntry{
@@ -1358,17 +1358,17 @@ func (j *mdJournal) put(
 		// make sense.
 		err = j.j.replaceHead(newEntry)
 		if err != nil {
-			return MdID{}, err
+			return kbfsmd.ID{}, err
 		}
 	} else {
 		err = j.j.append(rmd.Revision(), newEntry)
 		if err != nil {
-			return MdID{}, err
+			return kbfsmd.ID{}, err
 		}
 	}
 
 	// Since the journal is now non-empty, clear lastMdID.
-	j.lastMdID = MdID{}
+	j.lastMdID = kbfsmd.ID{}
 
 	return id, nil
 }
@@ -1408,7 +1408,7 @@ func (j *mdJournal) clear(ctx context.Context, bid BranchID) error {
 func (j *mdJournal) resolveAndClear(
 	ctx context.Context, signer kbfscrypto.Signer, ekg encryptionKeyGetter,
 	bsplit BlockSplitter, mdcache MDCache, bid BranchID, rmd *RootMetadata) (
-	mdID MdID, err error) {
+	mdID kbfsmd.ID, err error) {
 	j.log.CDebugf(ctx, "Resolve and clear, branch %s, resolve rev %d",
 		bid, rmd.Revision())
 	defer func() {
@@ -1421,26 +1421,26 @@ func (j *mdJournal) resolveAndClear(
 
 	// The resolution must not have a branch ID.
 	if rmd.BID() != NullBranchID {
-		return MdID{}, errors.Errorf("Resolution MD has branch ID: %s", rmd.BID())
+		return kbfsmd.ID{}, errors.Errorf("Resolution MD has branch ID: %s", rmd.BID())
 	}
 
 	// The branch ID must match our current state.
 	if bid == NullBranchID {
-		return MdID{}, errors.New("Cannot resolve master branch")
+		return kbfsmd.ID{}, errors.New("Cannot resolve master branch")
 	}
 	if j.branchID != bid {
-		return MdID{}, errors.Errorf("Resolve and clear for branch %s "+
+		return kbfsmd.ID{}, errors.Errorf("Resolve and clear for branch %s "+
 			"while on branch %s", bid, j.branchID)
 	}
 
 	earliestBranchRevision, err := j.j.readEarliestRevision()
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	latestRevision, err := j.j.readLatestRevision()
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	// First make a new journal to hold the block.
@@ -1448,7 +1448,7 @@ func (j *mdJournal) resolveAndClear(
 	// Give this new journal a new ID journal.
 	idJournalTempDir, err := ioutil.TempDir(j.dir, "md_journal")
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	// TODO: If we crash without removing the temp dir, it should
@@ -1457,7 +1457,7 @@ func (j *mdJournal) resolveAndClear(
 	j.log.CDebugf(ctx, "Using temp dir %s for new IDs", idJournalTempDir)
 	otherIDJournal, err := makeMdIDJournal(j.codec, idJournalTempDir)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 	defer func() {
 		j.log.CDebugf(ctx, "Removing temp dir %s", idJournalTempDir)
@@ -1473,7 +1473,7 @@ func (j *mdJournal) resolveAndClear(
 		ctx, j.uid, j.key, j.codec, j.crypto, j.clock, j.tlfID, j.mdVer, j.dir,
 		otherIDJournal, j.log)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	// Put the local squashes back into the new journal, since they
@@ -1482,7 +1482,7 @@ func (j *mdJournal) resolveAndClear(
 		for ; earliestBranchRevision <= latestRevision; earliestBranchRevision++ {
 			entry, err := j.j.readJournalEntry(earliestBranchRevision)
 			if err != nil {
-				return MdID{}, err
+				return kbfsmd.ID{}, err
 			}
 			if !entry.IsLocalSquash {
 				break
@@ -1494,7 +1494,7 @@ func (j *mdJournal) resolveAndClear(
 
 	mdID, err = otherJournal.put(ctx, signer, ekg, bsplit, rmd, true)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	// Transform this journal into the new one.
@@ -1507,7 +1507,7 @@ func (j *mdJournal) resolveAndClear(
 	oldIDJournalTempDir := idJournalTempDir + ".old"
 	dir, err := j.j.move(oldIDJournalTempDir)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	j.log.CDebugf(ctx, "Moved old journal from %s to %s",
@@ -1515,7 +1515,7 @@ func (j *mdJournal) resolveAndClear(
 
 	otherIDJournalOldDir, err := otherJournal.j.move(dir)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	// Set new journal to one with the new revision.
@@ -1527,7 +1527,7 @@ func (j *mdJournal) resolveAndClear(
 	*j, *otherJournal = *otherJournal, *j
 	err = otherJournal.clearHelper(ctx, bid, earliestBranchRevision)
 	if err != nil {
-		return MdID{}, err
+		return kbfsmd.ID{}, err
 	}
 
 	// Make the defer above remove the old temp dir.
