@@ -996,8 +996,8 @@ func (g *GlobalContext) BumpPerUserKeyring() error {
 	if g.perUserKeyring == nil {
 		return makeNew()
 	}
-	sdhUID := g.perUserKeyring.GetUID()
-	if sdhUID.Equal(myUID) {
+	pukUID := g.perUserKeyring.GetUID()
+	if pukUID.Equal(myUID) {
 		// Leave the existing keyring in place for the same user
 		g.Log.Debug("G#BumpPerUserKeyring -> ignore")
 		return nil

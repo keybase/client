@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -93,6 +94,26 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 	}
 
 	return
+}
+
+func (sc *SigChain) LocalDelegatePerUserKey(perUserKey keybase1.PerUserKey) error {
+
+	cki := sc.localCki
+	l := sc.GetLastLink()
+	if cki == nil && l != nil && l.cki != nil {
+		// TODO: Figure out whether this needs to be a deep copy. See
+		// https://github.com/keybase/client/issues/414 .
+		cki = l.cki.ShallowCopy()
+	}
+	if cki == nil {
+		return errors.New("LocalDelegatePerUserKey: no computed key info")
+	}
+
+	// Update the current state
+	sc.localCki = cki
+
+	err := cki.DelegatePerUserKey(perUserKey)
+	return err
 }
 
 func (sc SigChain) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
@@ -515,7 +536,7 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links []*C
 		}
 
 		if pukl, ok := tcl.(*PerUserKeyChainLink); ok {
-			err := ckf.cki.DelegatePerUserKey(pukl)
+			err := ckf.cki.DelegatePerUserKey(pukl.ToPerUserKey())
 			if err != nil {
 				return cached, cki, err
 			}

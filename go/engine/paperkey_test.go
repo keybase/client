@@ -195,8 +195,6 @@ func TestPaperKeyRevoke(t *testing.T) {
 
 // make a paperkey after revoking a previous one
 func TestPaperKeyAfterRevokePUK(t *testing.T) {
-	t.Skip("TODO waiting for CORE-4895 RevokePUK")
-
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
 	tc.Tp.UpgradePerUserKey = true

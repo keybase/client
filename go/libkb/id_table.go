@@ -759,6 +759,15 @@ func (s *PerUserKeyChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(s)
 }
 
+func (s *PerUserKeyChainLink) ToPerUserKey() keybase1.PerUserKey {
+	return keybase1.PerUserKey{
+		Gen:    int(s.generation),
+		Seqno:  int(s.GetSeqno()),
+		SigKID: s.sigKID,
+		EncKID: s.encKID,
+	}
+}
+
 //
 //=========================================================================
 // PGPUpdateChainLink
