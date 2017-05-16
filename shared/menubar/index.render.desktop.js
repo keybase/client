@@ -21,10 +21,10 @@ type DefaultProps = {
 }
 
 class MenubarRender extends Component<DefaultProps, Props, State> {
-  static defaultProps: DefaultProps;
-  state: State;
+  static defaultProps: DefaultProps
+  state: State
 
-  constructor (props: Props & DefaultProps) {
+  constructor(props: Props & DefaultProps) {
     super(props)
 
     this.state = {
@@ -33,11 +33,11 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
     }
   }
 
-  render () {
+  render() {
     return this.props.loggedIn ? this._renderFolders() : this._renderLoggedOut()
   }
 
-  _renderLoggedOut () {
+  _renderLoggedOut() {
     const styles = stylesPublic
 
     const menuColor = this.state.showingMenu ? globalColors.black_60 : globalColors.black_40
@@ -50,20 +50,33 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
         <Box style={{...stylesTopRow, justifyContent: 'flex-end'}}>
           <Icon
             style={menuStyle}
-            type='iconfont-hamburger'
-            onClick={() => this.setState({showingMenu: !this.state.showingMenu})} />
+            type="iconfont-hamburger"
+            onClick={() => this.setState({showingMenu: !this.state.showingMenu})}
+          />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <Icon type='icon-keybase-logo-logged-out-64' style={stylesLogo} />
-          <Text type='Body' small={true} style={{alignSelf: 'center', marginTop: 6}}>You're logged out of Keybase!</Text>
-          <Button type='Primary' label='Log In' onClick={this.props.logIn} style={{alignSelf: 'center', marginTop: 12}} />
+          <Icon type="icon-keybase-logo-logged-out-64" style={stylesLogo} />
+          <Text type="Body" small={true} style={{alignSelf: 'center', marginTop: 6}}>
+            You're logged out of Keybase!
+          </Text>
+          <Button
+            type="Primary"
+            label="Log In"
+            onClick={this.props.logIn}
+            style={{alignSelf: 'center', marginTop: 12}}
+          />
         </Box>
-        {this.state.showingMenu && <PopupMenu style={styleMenu} items={this._menuItems()} onHidden={() => this.setState({showingMenu: false})} />}
+        {this.state.showingMenu &&
+          <PopupMenu
+            style={styleMenu}
+            items={this._menuItems()}
+            onHidden={() => this.setState({showingMenu: false})}
+          />}
       </Box>
     )
   }
 
-  _menuItems () {
+  _menuItems() {
     return [
       ...(this.props.loggedIn ? [{title: 'Open Keybase', onClick: () => this.props.openApp()}] : []),
       {title: 'Open folders', onClick: this.props.showKBFS},
@@ -75,30 +88,36 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
     ]
   }
 
-  _onAdd (path: string) {
+  _onAdd(path: string) {
     this.props.onFolderClick(path)
     this.props.refresh()
   }
 
-  _renderFolders () {
+  _renderFolders() {
     const newPrivate = {
       ...(this.props.folderProps && this.props.folderProps.private),
       ignored: [],
-      extraRows: [<UserAdd
-        key='useraddPriv'
-        isPublic={false}
-        onAdded={path => this._onAdd(path)}
-        username={this.props.username} />],
+      extraRows: [
+        <UserAdd
+          key="useraddPriv"
+          isPublic={false}
+          onAdded={path => this._onAdd(path)}
+          username={this.props.username}
+        />,
+      ],
     }
 
     const newPublic = {
       ...(this.props.folderProps && this.props.folderProps.public),
       ignored: [],
-      extraRows: [<UserAdd
-        key='useraddPub'
-        isPublic={true}
-        onAdded={path => this._onAdd(path)}
-        username={this.props.username} />],
+      extraRows: [
+        <UserAdd
+          key="useraddPub"
+          isPublic={true}
+          onAdded={path => this._onAdd(path)}
+          username={this.props.username}
+        />,
+      ],
     }
 
     const styles = this.state.showingPrivate ? stylesPrivate : stylesPublic
@@ -115,34 +134,60 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
       onRekey: this.props.onRekey,
     }
 
-    const badgeTypes: Array<Tab> = [
-      folderTab,
-      profileTab,
-      chatTab,
-      devicesTab,
-    ]
+    const badgeTypes: Array<Tab> = [folderTab, profileTab, chatTab, devicesTab]
 
     return (
       <Box style={styles.container}>
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
         <Box style={{...stylesTopRow, borderBottom: `1px solid ${globalColors.black_05}`}}>
-          <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'center', alignItems: 'center', marginLeft: 24 + 8}}>
-            {badgeTypes.map(tab => <BadgeIcon key={tab} tab={tab} countMap={this.props.badgeInfo} openApp={this.props.openApp} />)}
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginLeft: 24 + 8,
+            }}
+          >
+            {badgeTypes.map(tab => (
+              <BadgeIcon key={tab} tab={tab} countMap={this.props.badgeInfo} openApp={this.props.openApp} />
+            ))}
           </Box>
           <Icon
-            style={{...globalStyles.clickable, color: globalColors.black_40, hoverColor: globalColors.black, width: 24, marginLeft: 8}}
-            type='iconfont-hamburger'
-            onClick={() => this.setState({showingMenu: !this.state.showingMenu})} />
+            style={{
+              ...globalStyles.clickable,
+              color: globalColors.black_40,
+              hoverColor: globalColors.black,
+              width: 24,
+              marginLeft: 8,
+            }}
+            type="iconfont-hamburger"
+            onClick={() => this.setState({showingMenu: !this.state.showingMenu})}
+          />
         </Box>
         <Folders {...mergedProps} />
-        {this.props.kbfsStatus && this.props.kbfsStatus.isAsyncWriteHappening &&
-          <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', minHeight: 32, backgroundColor: globalColors.white, padding: 8}}>
-            <Icon type='icon-loader-uploading-16' />
-            <Text type='BodySmall'>UPLOADING CHANGES...</Text>
-          </Box>
-        }
-        {this.state.showingMenu && <PopupMenu style={styleMenu} items={this._menuItems()} onHidden={() => this.setState({showingMenu: false})} />}
+        {this.props.kbfsStatus &&
+          this.props.kbfsStatus.isAsyncWriteHappening &&
+          <Box
+            style={{
+              ...globalStyles.flexBoxColumn,
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: 32,
+              backgroundColor: globalColors.white,
+              padding: 8,
+            }}
+          >
+            <Icon type="icon-loader-uploading-16" />
+            <Text type="BodySmall">UPLOADING CHANGES...</Text>
+          </Box>}
+        {this.state.showingMenu &&
+          <PopupMenu
+            style={styleMenu}
+            items={this._menuItems()}
+            onHidden={() => this.setState({showingMenu: false})}
+          />}
       </Box>
     )
   }
@@ -154,24 +199,34 @@ body {
 }
 `
 
-const ArrowTick = () => (
-  // Css triangle!
-  <Box style={{
-    height: 0,
-    width: 0,
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    top: -6,
-    borderLeft: '6px solid transparent',
-    borderRight: '6px solid transparent',
-    borderBottom: `6px solid ${globalColors.white}`,
-  }} />
+const ArrowTick = () => // Css triangle!
+(
+  <Box
+    style={{
+      height: 0,
+      width: 0,
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      marginLeft: 'auto',
+      marginRight: 'auto',
+      top: -6,
+      borderLeft: '6px solid transparent',
+      borderRight: '6px solid transparent',
+      borderBottom: `6px solid ${globalColors.white}`,
+    }}
+  />
 )
 
-const BadgeIcon = ({tab, countMap, openApp}: {tab: Tab, countMap: Object, openApp: (tab: ?string) => void}) => {
+const BadgeIcon = ({
+  tab,
+  countMap,
+  openApp,
+}: {
+  tab: Tab,
+  countMap: Object,
+  openApp: (tab: ?string) => void,
+}) => {
   const count = countMap[tab]
 
   if (tab === devicesTab && !count) {
@@ -187,9 +242,17 @@ const BadgeIcon = ({tab, countMap, openApp}: {tab: Tab, countMap: Object, openAp
   }[tab]
 
   return (
-    <Box style={{...globalStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}} onClick={() => openApp(tab)}>
+    <Box
+      style={{...globalStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
+      onClick={() => openApp(tab)}
+    >
       <Icon style={{color: count ? globalColors.blue : globalColors.lightGrey2}} type={iconType} />
-      {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 14, bottom: -3}} outlineColor={globalColors.white} />}
+      {!!count &&
+        <Badge
+          badgeNumber={count}
+          badgeStyle={{position: 'absolute', left: 14, bottom: -3}}
+          outlineColor={globalColors.white}
+        />}
     </Box>
   )
 }

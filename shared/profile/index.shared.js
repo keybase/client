@@ -9,14 +9,12 @@ import type {Proof} from '../constants/tracker'
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Folder} from '../constants/folders'
 
-export function folderIconProps (folder: Folder, style: ?Object = {}) {
+export function folderIconProps(folder: Folder, style: ?Object = {}) {
   const type = folder.isPublic
-    ? (folder.hasData ? 'iconfont-folder-public-has-files' : 'iconfont-folder-public')
-    : (folder.hasData ? 'iconfont-folder-private-has-files' : 'iconfont-folder-private')
+    ? folder.hasData ? 'iconfont-folder-public-has-files' : 'iconfont-folder-public'
+    : folder.hasData ? 'iconfont-folder-private-has-files' : 'iconfont-folder-private'
 
-  const color = folder.isPublic
-    ? globalColors.yellowGreen
-    : globalColors.darkBlue2
+  const color = folder.isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
 
   return {
     type,
@@ -24,22 +22,28 @@ export function folderIconProps (folder: Folder, style: ?Object = {}) {
   }
 }
 
-export function missingProofs (userProofs: Array<Proof>, onClick: (missingProof: MissingProof) => void): Array<MissingProof> {
+export function missingProofs(
+  userProofs: Array<Proof>,
+  onClick: (missingProof: MissingProof) => void
+): Array<MissingProof> {
   let availableProofTypes = _.without(PlatformsExpanded, 'http', 'https', 'dnsOrGenericWebSite', 'dns')
-  const userProofTypes = _.chain(userProofs)
-    .map(p => p.type)
-    .uniq()
-    .value()
+  const userProofTypes = _.chain(userProofs).map(p => p.type).uniq().value()
 
-  const missingRegular = _
-    .difference(availableProofTypes, userProofTypes)
-    .map(type => ({type, message: proveMessage(type), onClick}))
+  const missingRegular = _.difference(availableProofTypes, userProofTypes).map(type => ({
+    type,
+    message: proveMessage(type),
+    onClick,
+  }))
 
   // always ensure you can add a web site
-  return missingRegular.concat({type: 'dnsOrGenericWebSite', message: proveMessage('dnsOrGenericWebSite'), onClick})
+  return missingRegular.concat({
+    type: 'dnsOrGenericWebSite',
+    message: proveMessage('dnsOrGenericWebSite'),
+    onClick,
+  })
 }
 
-export function revokeProofLanguage (platform: PlatformsExpandedType) {
+export function revokeProofLanguage(platform: PlatformsExpandedType) {
   let msg
   switch (platform) {
     case 'pgp':

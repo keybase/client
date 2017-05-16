@@ -6,10 +6,10 @@ import type {Props} from './coming-soon'
 import {globalStyles} from '../styles'
 
 class ComingSoon extends Component<void, Props, void> {
-  render () {
+  render() {
     return (
       <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', flex: 1}}>
-        <Text type='Header'>Coming soon!</Text>
+        <Text type="Header">Coming soon!</Text>
       </Box>
     )
   }

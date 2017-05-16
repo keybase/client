@@ -13,7 +13,6 @@ export type AvatarLookupCallback = (username: string, urlMap: ?URLMap) => void
 export type AvatarLookup = (username: string) => ?URLMap
 export type AvatarLoad = (username: string, callback: AvatarLookupCallback) => void
 export type URLType = ?(string | Array<{height: number, width: number, uri: string}>)
-
 export type Props = {
   borderColor?: string,
   children?: any,
@@ -21,7 +20,7 @@ export type Props = {
   followsYou?: ?boolean,
   loadingColor?: string,
   onAvatarLoaded?: () => void,
-  onClick?: ?(() => void),
+  onClick?: ?() => void,
   opacity?: number,
   size: AvatarSize,
   style?: ?Object,
@@ -30,7 +29,7 @@ export type Props = {
   username?: ?string,
 }
 
-export default class Avatar extends Component<void, Props, void> { }
+export default class Avatar extends Component<void, Props, void> {}
 
-export function initLookup (lookup: AvatarLookup) { }
-export function initLoad (load: AvatarLoad) { }
+export function initLookup(lookup: AvatarLookup) {}
+export function initLoad(load: AvatarLoad) {}

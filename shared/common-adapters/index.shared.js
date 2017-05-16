@@ -10,7 +10,4 @@ const initAvatarLoad = (load: AvatarLoad) => {
   initLoad(load)
 }
 
-export {
-  initAvatarLookup,
-  initAvatarLoad,
-}
+export {initAvatarLookup, initAvatarLoad}

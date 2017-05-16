@@ -3,17 +3,17 @@
 // HiddenString tries to wrap a string value to prevent it from being easily
 // output as a string to log, file or console
 class HiddenString {
-  _value: () => string;
+  _value: () => string
 
-  constructor (stringValue: string) {
+  constructor(stringValue: string) {
     this._value = () => stringValue
   }
 
-  toString (): string {
+  toString(): string {
     return '[HiddenString]'
   }
 
-  stringValue (): string {
+  stringValue(): string {
     return this._value()
   }
 }

@@ -12,7 +12,7 @@ type State = {
 class InviteCodeRender extends Component<void, Props, State> {
   state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
     this.state = {
       inviteCode: this.props.inviteCode || '',
@@ -27,25 +27,32 @@ class InviteCodeRender extends Component<void, Props, State> {
     this.setState({inviteCode})
   }
 
-  render () {
+  render() {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
         <Box style={stylesBox}>
-          <Text style={stylesHeader} type='Header'>Type in your invite code:</Text>
-          <Icon style={stylesIcon} type='icon-invite-code-48' />
+          <Text style={stylesHeader} type="Header">Type in your invite code:</Text>
+          <Icon style={stylesIcon} type="icon-invite-code-48" />
           <Input
             autoFocus={true}
             style={stylesInput}
-            hintText='goddess brown result reject'
-            floatingHintTextOverride='Invite code'
+            hintText="goddess brown result reject"
+            floatingHintTextOverride="Invite code"
             value={this.state.inviteCode}
             errorText={this.props.inviteCodeErrorText}
             onEnterKeyDown={this._onSubmit}
             onChangeText={this._updateInviteCode}
           />
-          <Button style={stylesButton} waiting={this.props.waiting} type='Primary' label='Continue' onClick={this._onSubmit} disabled={!this.state.inviteCode} />
-          <Text style={stylesText} type='Body'>Not invited?</Text>
-          <Text type='BodyPrimaryLink' onClick={this.props.onRequestInvite}>Request an invite code</Text>
+          <Button
+            style={stylesButton}
+            waiting={this.props.waiting}
+            type="Primary"
+            label="Continue"
+            onClick={this._onSubmit}
+            disabled={!this.state.inviteCode}
+          />
+          <Text style={stylesText} type="Body">Not invited?</Text>
+          <Text type="BodyPrimaryLink" onClick={this.props.onRequestInvite}>Request an invite code</Text>
         </Box>
       </Container>
     )

@@ -8,9 +8,9 @@ import {globalStyles} from '../styles'
 import type {Props} from './back-button'
 
 export default class BackButton extends Component {
-  props: Props;
+  props: Props
 
-  onClick (event: SyntheticEvent) {
+  onClick(event: SyntheticEvent) {
     event && event.preventDefault && event.preventDefault()
     event && event.stopPropagation && event.stopPropagation()
     if (this.props.onClick) {
@@ -18,11 +18,11 @@ export default class BackButton extends Component {
     }
   }
 
-  render () {
+  render() {
     return (
       <NativeTouchableWithoutFeedback onPress={e => this.onClick(e)}>
-        <Box style={{...styles.container, ...this.props.style}} >
-          <Icon type='iconfont-back' style={{...styles.icon, ...this.props.iconStyle}} />
+        <Box style={{...styles.container, ...this.props.style}}>
+          <Icon type="iconfont-back" style={{...styles.icon, ...this.props.iconStyle}} />
         </Box>
       </NativeTouchableWithoutFeedback>
     )

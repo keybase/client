@@ -12,8 +12,9 @@ export const tokenTypeAndroidPlay: TokenType = 'androidplay'
 export type PushNotification = {
   payload?: {
     userInteraction: boolean,
-    convID?: string,  // Android variant
-    data?: {  // iOS variant
+    convID?: string, // Android variant
+    data?: {
+      // iOS variant
       convID?: string,
     },
   },
@@ -43,10 +44,13 @@ export const pushError = 'push:error'
 export type PushError = NoErrorTypedAction<'push:error', {error: Error}>
 
 export const updatePushToken = 'push:updatePushToken'
-export type UpdatePushToken = NoErrorTypedAction<'push:updatePushToken', {token: string, tokenType: TokenType}>
+export type UpdatePushToken = NoErrorTypedAction<
+  'push:updatePushToken',
+  {token: string, tokenType: TokenType}
+>
 
 export const savePushToken = 'push:savePushToken'
-export type SavePushToken= NoErrorTypedAction<'push:savePushToken', void>
+export type SavePushToken = NoErrorTypedAction<'push:savePushToken', void>
 
 export const pushNotification = 'push:notification'
 export type PushNotificationAction = NoErrorTypedAction<'push:notification', PushNotification>

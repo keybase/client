@@ -18,7 +18,7 @@ type Props = {
   followIconStyle: ?Object,
   followIconType: ?IconType,
   loadingColor: ?string,
-  onClick?: ?(() => void),
+  onClick?: ?() => void,
   opacity: ?number,
   size: AvatarSize,
   style?: ?Object,
@@ -32,24 +32,27 @@ type State = {
 // The background is a separate layer due to a chrome bug where if you keep it as a background of an img (for example) it'll bleed the edges
 const backgroundOffset = 1
 class Background extends PureComponent<void, {loaded: boolean, loadingColor: ?string}, void> {
-  render () {
+  render() {
     const {loaded, loadingColor} = this.props
-    return <div
-      style={{
-        backgroundColor: loaded ? globalColors.white : loadingColor || globalColors.lightGrey,
-        borderRadius: '50%',
-        bottom: backgroundOffset,
-        left: backgroundOffset,
-        position: 'absolute',
-        right: backgroundOffset,
-        top: backgroundOffset,
-      }} />
+    return (
+      <div
+        style={{
+          backgroundColor: loaded ? globalColors.white : loadingColor || globalColors.lightGrey,
+          borderRadius: '50%',
+          bottom: backgroundOffset,
+          left: backgroundOffset,
+          position: 'absolute',
+          right: backgroundOffset,
+          top: backgroundOffset,
+        }}
+      />
+    )
   }
 }
 
 // The actual image
 class UserImage extends PureComponent<void, ImageProps, void> {
-  render () {
+  render() {
     const {url, size, opacity = 1} = this.props
 
     return (
@@ -100,7 +103,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
   _mounted: boolean = false
   _image: any
 
-  _onLoadOrError = (event) => {
+  _onLoadOrError = event => {
     if (this.props.url) {
       _alreadyLoaded[this.props.url] = true
     }
@@ -110,7 +113,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
     this._image = null
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (this.props.url !== nextProps.url) {
       if (nextProps.url && !_alreadyLoaded[nextProps.url]) {
         this.setState({loaded: false})
@@ -121,7 +124,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
     }
   }
 
-  _internalLoad (url: ?string) {
+  _internalLoad(url: ?string) {
     if (url) {
       const match = url.match(/url\('([^']*)/)
       if (match) {
@@ -138,13 +141,13 @@ class AvatarRender extends PureComponent<void, Props, State> {
     }
   }
 
-  componentWillMount () {
+  componentWillMount() {
     if (this.props.url && _alreadyLoaded[this.props.url]) {
       this.setState({loaded: true})
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._mounted = true
 
     if (this.props.url && !_alreadyLoaded[this.props.url]) {
@@ -152,12 +155,23 @@ class AvatarRender extends PureComponent<void, Props, State> {
     }
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this._mounted = false
   }
 
-  render () {
-    const {url, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle, children} = this.props
+  render() {
+    const {
+      url,
+      onClick,
+      style,
+      size,
+      loadingColor,
+      borderColor,
+      opacity,
+      followIconType,
+      followIconStyle,
+      children,
+    } = this.props
 
     return (
       <div
@@ -168,13 +182,10 @@ class AvatarRender extends PureComponent<void, Props, State> {
           position: 'relative',
           width: size,
           ...style,
-        }}>
+        }}
+      >
         <Background loaded={this.state.loaded} loadingColor={loadingColor} />
-        {url && <UserImage
-          opacity={opacity}
-          size={size}
-          url={url}
-        /> }
+        {url && <UserImage opacity={opacity} size={size} url={url} />}
         {!!borderColor && <Border borderColor={borderColor} />}
         {followIconType && <Icon type={followIconType} style={followIconStyle} />}
         {children}

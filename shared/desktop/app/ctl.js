@@ -3,13 +3,13 @@ import {app} from 'electron'
 import {keybaseBinPath} from './paths'
 import exec from './exec'
 
-export function ctlStop (callback: any) {
+export function ctlStop(callback: any) {
   const binPath = keybaseBinPath()
   const args = ['ctl', 'stop', '--exclude=app']
   exec(binPath, args, 'darwin', 'prod', false, callback)
 }
 
-function exitApp () {
+function exitApp() {
   // For some reason the first app.exit kills only popups (remote components and pinentry)
   // The main window survives. This makes sure to keep exiting until we are actually out.
   // It seems to work even when we have a broken reference to a browser window.
@@ -19,12 +19,12 @@ function exitApp () {
   setTimeout(() => exitProcess(), 500)
 }
 
-function exitProcess () {
+function exitProcess() {
   console.log('Forcing process exit')
   process.exit(0)
 }
 
-export function quit () {
+export function quit() {
   // Only quit the app in dev mode
   if (__DEV__) {
     console.log('Only quiting gui in dev mode')
@@ -33,7 +33,7 @@ export function quit () {
   }
 
   console.log('Quit the app')
-  ctlStop(function (stopErr) {
+  ctlStop(function(stopErr) {
     console.log('Done with ctlstop')
     if (stopErr) {
       console.log('Error in ctl stop, when quiting:', stopErr)

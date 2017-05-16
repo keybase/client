@@ -15,13 +15,22 @@ const baseMock = {
 const dumbComponentMap: DumbComponentMap<Render> = {
   component: Render,
   mocks: {
-    'Normal': baseMock,
-    'DeviceNoProvision': {...baseMock, error: convertToRPCError({code: ConstantsStatusCode.scdevicenoprovision, desc: ''})},
-    'KeyNoMatchingGPG': {...baseMock, error: convertToRPCError({code: ConstantsStatusCode.sckeynomatchinggpg, desc: ''})},
-    'KeyNotFound': {...baseMock, error: convertToRPCError({code: ConstantsStatusCode.sckeynotfound, desc: ''})},
-    'UserNotFound': {...baseMock, error: convertToRPCError({code: ConstantsStatusCode.scnotfound, desc: ''})},
-    'BadLoginPassword': {...baseMock, error: convertToRPCError({code: ConstantsStatusCode.scbadloginpassword, desc: ''})},
-    'KeyNoSecret': {...baseMock, error: convertToRPCError({code: ConstantsStatusCode.sckeynosecret, desc: ''})},
+    Normal: baseMock,
+    DeviceNoProvision: {
+      ...baseMock,
+      error: convertToRPCError({code: ConstantsStatusCode.scdevicenoprovision, desc: ''}),
+    },
+    KeyNoMatchingGPG: {
+      ...baseMock,
+      error: convertToRPCError({code: ConstantsStatusCode.sckeynomatchinggpg, desc: ''}),
+    },
+    KeyNotFound: {...baseMock, error: convertToRPCError({code: ConstantsStatusCode.sckeynotfound, desc: ''})},
+    UserNotFound: {...baseMock, error: convertToRPCError({code: ConstantsStatusCode.scnotfound, desc: ''})},
+    BadLoginPassword: {
+      ...baseMock,
+      error: convertToRPCError({code: ConstantsStatusCode.scbadloginpassword, desc: ''}),
+    },
+    KeyNoSecret: {...baseMock, error: convertToRPCError({code: ConstantsStatusCode.sckeynosecret, desc: ''})},
   },
 }
 

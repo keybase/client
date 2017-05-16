@@ -18,14 +18,15 @@ type CommonProps = {
   showingMenuIndex?: ?number,
 }
 
-export type Props = ({
-  type: 'proofs',
-  proofs: Array<Proof>,
-} & CommonProps) | ({
-  type: 'missingProofs',
-  missingProofs: Array<MissingProof>,
-} & CommonProps)
-
+export type Props =
+  | ({
+    type: 'proofs',
+    proofs: Array<Proof>,
+  } & CommonProps)
+  | ({
+    type: 'missingProofs',
+    missingProofs: Array<MissingProof>,
+  } & CommonProps)
 export default class ProofsRender extends Component<void, Props, void> {
-  getRow: (idx: number) => React$Component<*,*,*>;
+  getRow: (idx: number) => React$Component<*, *, *>
 }

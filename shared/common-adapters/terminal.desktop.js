@@ -6,13 +6,13 @@ import Box from './box'
 import type {Props, Context} from './terminal'
 
 export default class Terminal extends Component<void, Props, void> {
-  getChildContext (): Context {
+  getChildContext(): Context {
     return {
       inTerminal: true,
     }
   }
 
-  render () {
+  render() {
     return (
       <Box style={{...styleContainer, ...this.props.style}}>
         {this.props.children}

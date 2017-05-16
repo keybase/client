@@ -6,19 +6,20 @@ import {isWindows, socketPath} from '../constants/platform.desktop'
 import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
 class NativeTransport extends TransportShared {
-  constructor (incomingRPCCallback, connectCallback, disconnectCallback) {
+  constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
     console.log('Transport using', socketPath)
     super({path: socketPath}, connectCallback, disconnectCallback, incomingRPCCallback)
     this.needsConnect = true
   }
 
-  _connect_critical_section (cb: any) { // eslint-disable-line camelcase
+  _connect_critical_section(cb: any) {
+    // eslint-disable-line camelcase
     super._connect_critical_section(cb)
     windowsHack()
   }
 }
 
-function windowsHack () {
+function windowsHack() {
   // This net.connect() is a heinous hack.
   //
   // On Windows, but *only* in the renderer thread, our RPC connection
@@ -32,19 +33,19 @@ function windowsHack () {
   var fake = net.connect({})
   // net.connect({}) throws; we don't need to see the error, but we
   // do need it not to raise up to the main thread.
-  fake.on('error', function () {})
+  fake.on('error', function() {})
 }
 
-function createClient (incomingRPCCallback: incomingRPCCallbackType, connectCallback: connectDisconnectCB, disconnectCallback: connectDisconnectCB) {
+function createClient(
+  incomingRPCCallback: incomingRPCCallbackType,
+  connectCallback: connectDisconnectCB,
+  disconnectCallback: connectDisconnectCB
+) {
   return sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback))
 }
 
-function resetClient (client: createClientType) {
+function resetClient(client: createClientType) {
   client.transport.reset()
 }
 
-export {
-  resetClient,
-  createClient,
-  rpcLog,
-}
+export {resetClient, createClient, rpcLog}

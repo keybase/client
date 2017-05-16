@@ -6,7 +6,7 @@ import transit from 'transit-immutable-js'
 
 import {serializeRestore, serializeSave} from '../constants/dev'
 
-export default function (state: State, action: any): State {
+export default function(state: State, action: any): State {
   if (action.type === serializeRestore) {
     console.log('restoring state')
     return transit.fromJSON(action.payload)

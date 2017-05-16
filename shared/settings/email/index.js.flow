@@ -11,4 +11,4 @@ export type Props = {
   onResendConfirmationCode?: () => void,
 }
 
-export default class UpdateEmail extends Component<void, Props, void> { }
+export default class UpdateEmail extends Component<void, Props, void> {}

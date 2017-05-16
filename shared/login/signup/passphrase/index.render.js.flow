@@ -9,7 +9,7 @@ export type Props = {
   pass2Update: (pass2: string) => void,
   passphraseError: ?HiddenString,
   onSubmit: () => void,
-  onBack: () => void
+  onBack: () => void,
 }
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}
