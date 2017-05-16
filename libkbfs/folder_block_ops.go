@@ -1807,6 +1807,7 @@ func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
 	logTimer := time.After(100 * time.Millisecond)
 	doLogUnblocked := false
 	for {
+		var err error
 		select {
 		case <-c:
 			if doLogUnblocked {
@@ -1814,8 +1815,9 @@ func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
 			}
 			// Make sure there aren't any queued errors.
 			select {
-			case err := <-errListener:
-				return err
+			case err = <-errListener:
+				// Break the select to check the cause of the error below.
+				break
 			default:
 			}
 			return nil
@@ -1824,20 +1826,22 @@ func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
 			fbo.log.CDebugf(ctx,
 				"Blocking a write because of a full dirty buffer")
 			doLogUnblocked = true
-		case err := <-errListener:
-			// Context errors are safe to ignore, since they are
-			// likely to be specific to a previous sync (e.g., a user
-			// hit ctrl-c during an fsync, or a sync timed out, or a
-			// test was provoking an error specifically [KBFS-2164]).
-			cause := errors.Cause(err)
-			if cause == context.Canceled || cause == context.DeadlineExceeded {
-				fbo.log.CDebugf(ctx, "Ignoring sync err: %+v", err)
-				err := registerErr()
-				if err != nil {
-					return err
-				}
-				continue
+		case err = <-errListener:
+			// Fall through to check the cause of the error below.
+		}
+		// Context errors are safe to ignore, since they are likely to
+		// be specific to a previous sync (e.g., a user hit ctrl-c
+		// during an fsync, or a sync timed out, or a test was
+		// provoking an error specifically [KBFS-2164]).
+		cause := errors.Cause(err)
+		if cause == context.Canceled || cause == context.DeadlineExceeded {
+			fbo.log.CDebugf(ctx, "Ignoring sync err: %+v", err)
+			err := registerErr()
+			if err != nil {
+				return err
 			}
+			continue
+		} else if err != nil {
 			// Treat other errors as fatal to this write -- e.g., the
 			// user's quota is full, the local journal is broken,
 			// etc. XXX: should we ignore errors that are specific
