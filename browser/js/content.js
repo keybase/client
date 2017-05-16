@@ -9,6 +9,26 @@ function init() {
   chrome.storage.sync.get("profile-passive-queries", function(options) {
     if (options["profile-passive-queries"] !== true) return; // Default false
 
+    if (location.hostname.endsWith('twitter.com')) {
+      // Twitter hack: Monitor location for changes and re-init. Twitter does
+      // weird single-page-app stuff that makes it difficult to hook into.
+      // FIXME: This is sad. An alternative would be very desireable.
+      // Subscribing to `popstate` does not work.
+      let loc = window.location.pathname;
+      function twitterMonitor() {
+        if (window.location.pathname == loc) {
+          requestAnimationFrame(function() {
+            // We use RAF to avoid spamming checks when the tab is not active.
+            setTimeout(twitterMonitor, 1000);
+          });
+          return;
+        }
+        // Path changed, force fresh init
+        init();
+      }
+      setTimeout(twitterMonitor, 1000);
+    }
+
     const user = matchService(window.location, document);
     if (!user) return;
 
@@ -21,17 +41,15 @@ function init() {
     });
   });
 
-  // Only do work on reddit.
-  if (!location.hostname.endsWith('.reddit.com')) return;
+  // Inject Reddit thread DOM changes?
+  if (location.hostname.endsWith('.reddit.com') && checkThread.test(location.pathname)) {
+    chrome.storage.sync.get("reddit-thread-reply", function(options) {
+      // Is thread replies enabled?
+      if (options["reddit-thread-reply"] === false) return; // Default true
 
-  // Inject thread DOM changes?
-  if (!checkThread.test(location.pathname)) return;
-  chrome.storage.sync.get("reddit-thread-reply", function(options) {
-    // Is thread replies enabled?
-    if (options["reddit-thread-reply"] === false) return; // Default true
-
-    injectThread();
-  });
+      injectThread();
+    });
+  }
 }
 window.addEventListener('load', init);
 
