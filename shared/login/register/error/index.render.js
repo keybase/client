@@ -198,6 +198,12 @@ const renderError = (error: RPCError) => {
           </Box>
         </Box>
       )
+    case ConstantsStatusCode.scinputcanceled:
+      return (
+        <Box style={styleContent}>
+          <Text type="Body">Login Cancelled</Text>
+        </Box>
+      )
     default:
       return (
         <Box style={styleContent}>
