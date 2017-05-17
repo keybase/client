@@ -7,7 +7,7 @@ const asset = chrome.runtime.getURL;
 function init() {
   // Passive queries?
   chrome.storage.sync.get("profile-passive-queries", function(options) {
-    if (options["profile-passive-queries"] !== true) return; // Default false
+    if (options["profile-passive-queries"] !== true) return; // undefined defaults to false
 
     if (location.hostname.endsWith('twitter.com')) {
       // Twitter hack: Monitor location for changes and re-init. Twitter does
@@ -41,35 +41,52 @@ function init() {
     });
   });
 
-  // Inject Reddit thread DOM changes?
-  if (location.hostname.endsWith('.reddit.com') && checkThread.test(location.pathname)) {
-    chrome.storage.sync.get("reddit-thread-reply", function(options) {
-      // Is thread replies enabled?
-      if (options["reddit-thread-reply"] === false) return; // Default true
+  // Inject site DOM changes?
+  chrome.storage.sync.get("reddit-thread-reply", function(options) {
+    if (options["reddit-thread-reply"] === false) return; // undefined defaults to true
 
-      injectThread();
-    });
-  }
+    // TODO: Replace this with a declarative matcher/injector thing
+    if (location.hostname.endsWith('.reddit.com') && redditCheckThread.test(location.pathname)) {
+      redditInjectThread(document);
+    } else if (location.hostname === "news.ycombinator.com" && location.pathname === "/user") {
+      const user = matchService(window.location, document, "hackernews");
+      if (!user) return;
+      hackernewsInjectProfile(document, user);
+    }
+  });
 }
 window.addEventListener('load', init);
-
-const checkThread = /^\/r\/\w+\/comments\/\w+\//;
-function injectThread() {
-  // /r/<subreddit>/comments/<id>/<slug>
-  for (let c of document.getElementsByClassName("comment")) {
-    const author = safeHTML(c.getAttribute("data-author"));
-    if (author == "") continue; // Empty
-    const buttons = c.getElementsByClassName("buttons")[0];
-
-    renderRedditChatButton(buttons, author);
-  }
-}
 
 // Global state of which chat window is currently open.
 let openChat = null;
 
+// Site-specific DOM injectors:
+
+function hackernewsInjectProfile(parent, user) {
+  const tables = parent.getElementsByTagName("tbody");
+  const profileTable = tables[tables.length-1];
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td></td>
+    <td><a href="keybase://${user.query()}/"><u>keybase chat</u></a></td>
+  `
+  profileTable.appendChild(tr);
+}
+
+const redditCheckThread = /^\/r\/\w+\/comments\/\w+\//;
+function redditInjectThread(parent) {
+  // /r/<subreddit>/comments/<id>/<slug>
+  for (let c of parent.getElementsByClassName("comment")) {
+    const author = safeHTML(c.getAttribute("data-author"));
+    if (author == "") continue; // Empty
+    const buttons = c.getElementsByClassName("buttons")[0];
+
+    redditRenderChatButton(buttons, author);
+  }
+}
+
 // Render the "keybase chat reply" button with handlers.
-function renderRedditChatButton(parent, toUsername) {
+function redditRenderChatButton(parent, toUsername) {
   const isLoggedIn = document.getElementsByClassName("logout").length > 0;
   const user = new User(toUsername, "reddit");
   const li = document.createElement("li");
@@ -99,6 +116,8 @@ function renderRedditChatButton(parent, toUsername) {
 
   parent.appendChild(li);
 }
+
+// General renderers:
 
 // Render the "Encrypt to..." contact header for the chat widget.
 function renderChatContact(el, user) {

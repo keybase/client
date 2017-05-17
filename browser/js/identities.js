@@ -67,12 +67,14 @@ const identityMatchers = [
 
 // Match a window.location and document against a service profile and return
 // a User instance. Will skip matching CSS if no document is provided.
-function matchService(loc, doc) {
+function matchService(loc, doc, forceService) {
   // Prefix the url with a period if there is no subdomain.
   const hasSubdomain = loc.hostname.indexOf(".") !== loc.hostname.lastIndexOf(".");
   const url = (!hasSubdomain && ".") + loc.hostname + loc.pathname;
 
   for (const m of identityMatchers) {
+    if (forceService !== undefined && forceService !== m.service) continue;
+
     const matched = url.match(m.locationMatches);
     if (!matched) continue;
 
@@ -121,7 +123,7 @@ User.prototype.display = function(service) {
 User.prototype.href = function(service) {
   if (service === undefined) service = this.origin;
   const name = this.services[this.origin];
-  switch (this.origin) {
+  switch (service) {
     case "keybase":
       return `https://keybase.io/${name}`;
     case "reddit":
