@@ -5,10 +5,7 @@
 const asset = chrome.runtime.getURL;
 
 function init() {
-  // Passive queries?
-  chrome.storage.sync.get("profile-passive-queries", function(options) {
-    if (options["profile-passive-queries"] !== true) return; // undefined defaults to false
-
+  chrome.storage.sync.get(function(options) {
     if (location.hostname.endsWith('twitter.com')) {
       // Twitter hack: Monitor location for changes and re-init. Twitter does
       // weird single-page-app stuff that makes it difficult to hook into.
@@ -30,32 +27,38 @@ function init() {
     }
 
     const user = matchService(window.location, document);
-    if (!user) return;
 
-    chrome.runtime.sendMessage({
-      "method": "passivequery",
-      "to": user.query(),
-    }, function(response) {
-      if (response.status !== "ok") return;
-      user.services["keybase"] = safeHTML(response.result["username"]);
-    });
-  });
+    // Passive queries?
+    if (options["profile-passive-queries"] === true && user) { // undefined defaults to false
+      chrome.runtime.sendMessage({
+        "method": "passivequery",
+        "to": user.query(),
+      }, function(response) {
+        if (response.status !== "ok") return;
+        user.services["keybase"] = safeHTML(response.result["username"]);
+      });
+    }
 
-  // Inject site DOM changes?
-  chrome.storage.sync.get("reddit-thread-reply", function(options) {
-    if (options["reddit-thread-reply"] === false) return; // undefined defaults to true
+    // Inject Reddit replies?
+    if (options["reddit-thread-reply"] !== false) { // undefined defaults to true
+      if (location.hostname.endsWith('.reddit.com') && redditCheckThread.test(location.pathname)) {
+        redditInjectThread(document);
+      }
+    }
 
-    // TODO: Replace this with a declarative matcher/injector thing
-    if (location.hostname.endsWith('.reddit.com') && redditCheckThread.test(location.pathname)) {
-      redditInjectThread(document);
-    } else if (location.hostname === "news.ycombinator.com" && location.pathname === "/user") {
-      const user = matchService(window.location, document, "hackernews");
-      if (!user) return;
-      hackernewsInjectProfile(document, user);
-    } else if (location.hostname === "github.com") {
-      const user = matchService(window.location, document, "github");
-      if (!user) return;
-      githubInjectProfile(document, user);
+    // Inject profile chat buttons?
+    if (options["profile-chat-buttons"] !== false && user) { // undefined defaults to true
+      switch (user.origin) {
+        case "hackernews":
+          hackernewsInjectProfile(document, user);
+          break;
+        case "github":
+          githubInjectProfile(document, user);
+          break;
+        case "twitter":
+          twitterInjectProfile(document, user);
+          break;
+      }
     }
   });
 }
@@ -65,6 +68,19 @@ window.addEventListener('load', init);
 let openChat = null;
 
 // Site-specific DOM injectors:
+
+function twitterInjectProfile(parent, user) {
+  const container = document.querySelector(".ProfileHeaderCard-screenname");
+  if (!container) return;
+
+  const button = document.createElement("a");
+  button.className = "keybase-chat";
+  button.href = `keybase://${user.query()}/`;
+  button.innerText = "keybase chat";
+  installChatButton([button], user, false /* nudgeSupported */);
+
+  container.appendChild(button);
+}
 
 function githubInjectProfile(parent, user) {
   const button = document.createElement("a");

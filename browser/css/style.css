@@ -103,7 +103,7 @@ img.keybase-icon {
   font-weight: 600;
 }
 
-.keybase-reply textarea {
+.keybase-reply textarea, .keybase-reply textarea:focus {
   width: 97%;
   font-size: 13px;
   color: rgba(0, 0, 0, 0.75);
@@ -111,6 +111,7 @@ img.keybase-icon {
   border-radius: 4px;
   border: solid 1px #33a0ff;
   margin: 8px 0 8px 0;
+  box-shadow: inherit;
 }
 
 .keybase-reply input {
