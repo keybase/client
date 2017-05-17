@@ -216,6 +216,7 @@ a.keybase-chat {
   -moz-osx-font-smoothing: grayscale;
   white-space: normal !important;
   font-family: 'Open Sans', sans-serif !important;
+  font-size: 13px;
   font-weight: 600;
   border-radius: 4px;
   line-height: 1;
@@ -226,5 +227,9 @@ a.keybase-chat {
   background-position: 4px;
   background-repeat: no-repeat;
   padding: 2px 8px 2px 24px;
-  margin-left: 0.5em;
+}
+
+a.keybase-chat:hover {
+  text-decoration: none;
+  background-color: #52afff;
 }

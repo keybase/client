@@ -52,6 +52,10 @@ function init() {
       const user = matchService(window.location, document, "hackernews");
       if (!user) return;
       hackernewsInjectProfile(document, user);
+    } else if (location.hostname === "github.com") {
+      const user = matchService(window.location, document, "github");
+      if (!user) return;
+      githubInjectProfile(document, user);
     }
   });
 }
@@ -62,6 +66,18 @@ let openChat = null;
 
 // Site-specific DOM injectors:
 
+function githubInjectProfile(parent, user) {
+  const button = document.createElement("a");
+  button.className = "keybase-chat";
+  button.href = `keybase://${user.query()}/`;
+  button.innerText = "keybase chat";
+  installChatButton([button], user, false /* nudgeSupported */);
+
+  const vcard = parent.getElementsByClassName("vcard-names")[0];
+  vcard.appendChild(button);
+}
+
+
 function hackernewsInjectProfile(parent, user) {
   const tables = parent.getElementsByTagName("tbody");
   const profileTable = tables[tables.length-1];
@@ -69,7 +85,7 @@ function hackernewsInjectProfile(parent, user) {
   // Add a "chat" button next to username
   const userLink = profileTable.children[0].children[1];
   userLink.innerHTML += `
-    <a href="keybase://${user.query()}/" class="keybase-chat">chat</a>
+    &nbsp;<a href="keybase://${user.query()}/" class="keybase-chat">keybase chat</a>
   `;
 
   installChatButton(userLink.getElementsByClassName("keybase-chat"), user, false /* nudgeSupported */);
@@ -240,7 +256,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
 
 // Remove the chat widget from the DOM
 function removeChat(chatForm, skipCheck) {
-  if (!chatForm.parentNode) {
+  if (!chatForm || !chatForm.parentNode) {
     // Already removed, skip.
     return true;
   }
