@@ -16,78 +16,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-func TestUpak1(t *testing.T) {
-	// One context for user that will be doing LoadUser, and another
-	// for user that will sign up and reset itself.
-	tc := SetupEngineTest(t, "clu")
-	defer tc.Cleanup()
-
-	resetUserTC := SetupEngineTest(t, "clu2")
-	defer resetUserTC.Cleanup()
-
-	t.Logf("create new user")
-	fu := NewFakeUserOrBust(t, "res")
-	arg := MakeTestSignupEngineRunArg(fu)
-	arg.SkipPaper = false
-	loginUI := &paperLoginUI{Username: fu.Username}
-	ctx := &Context{
-		LogUI:    resetUserTC.G.UI.GetLogUI(),
-		GPGUI:    &gpgtestui{},
-		SecretUI: fu.NewSecretUI(),
-		LoginUI:  loginUI,
-	}
-	s := NewSignupEngine(&arg, resetUserTC.G)
-	err := RunEngine(s, ctx)
-	if err != nil {
-		resetUserTC.T.Fatal(err)
-	}
-
-	fakeClock := clockwork.NewFakeClockAt(time.Now())
-	tc.G.SetClock(fakeClock)
-
-	loadUpak := func() error {
-		t.Logf("loadUpak: using username:%+v", fu.Username)
-		loadArg := libkb.NewLoadUserArg(tc.G)
-		loadArg.UID = fu.UID()
-		loadArg.PublicKeyOptional = false
-		loadArg.NetContext = context.TODO()
-		loadArg.StaleOK = false
-
-		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
-		if err != nil {
-			return err
-		}
-
-		t.Logf("loadUpak done: using username:%+v uid: %+v keys: %d", upak.Base.Username, upak.Base.Uid, len(upak.Base.DeviceKeys))
-		return nil
-	}
-
-	err = loadUpak()
-	if err != nil {
-		t.Fatalf("Failed to load user: %+v", err)
-	}
-
-	ResetAccount(resetUserTC, fu)
-
-	loadUpakExpectFailure := func() {
-		err := loadUpak()
-		if err == nil {
-			t.Fatalf("Expected UPAKLoader.Load to fail on nuked account.")
-		} else if _, ok := err.(libkb.NoKeyError); !ok {
-			t.Fatalf("Expected UPAKLoader.Load to fail with NoKeyError, instead failed with: %+v", err)
-		}
-	}
-
-	// advance the clock past the cache timeout
-	fakeClock.Advance(libkb.CachedUserTimeout * 10)
-	loadUpakExpectFailure()
-
-	// Try again, see if still errors out (this time user should not
-	// be in cache at all).
-	fakeClock.Advance(libkb.CachedUserTimeout * 10)
-	loadUpakExpectFailure()
-}
-
 func TestLoadDeviceKeyNew(t *testing.T) {
 	tc := SetupEngineTest(t, "clu")
 	defer tc.Cleanup()
@@ -401,4 +329,76 @@ func TestUPAKDeadlock(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		t.Fatal("deadlocked!")
 	}
+}
+
+func TestLoadAfterAcctReset(t *testing.T) {
+	// One context for user that will be doing LoadUser, and another
+	// for user that will sign up and reset itself.
+	tc := SetupEngineTest(t, "clu")
+	defer tc.Cleanup()
+
+	resetUserTC := SetupEngineTest(t, "clu2")
+	defer resetUserTC.Cleanup()
+
+	t.Logf("create new user")
+	fu := NewFakeUserOrBust(t, "res")
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipPaper = false
+	loginUI := &paperLoginUI{Username: fu.Username}
+	ctx := &Context{
+		LogUI:    resetUserTC.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  loginUI,
+	}
+	s := NewSignupEngine(&arg, resetUserTC.G)
+	err := RunEngine(s, ctx)
+	if err != nil {
+		resetUserTC.T.Fatal(err)
+	}
+
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
+	tc.G.SetClock(fakeClock)
+
+	loadUpak := func() error {
+		t.Logf("loadUpak: using username:%+v", fu.Username)
+		loadArg := libkb.NewLoadUserArg(tc.G)
+		loadArg.UID = fu.UID()
+		loadArg.PublicKeyOptional = false
+		loadArg.NetContext = context.TODO()
+		loadArg.StaleOK = false
+
+		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
+		if err != nil {
+			return err
+		}
+
+		t.Logf("loadUpak done: using username:%+v uid: %+v keys: %d", upak.Base.Username, upak.Base.Uid, len(upak.Base.DeviceKeys))
+		return nil
+	}
+
+	err = loadUpak()
+	if err != nil {
+		t.Fatalf("Failed to load user: %+v", err)
+	}
+
+	ResetAccount(resetUserTC, fu)
+
+	loadUpakExpectFailure := func() {
+		err := loadUpak()
+		if err == nil {
+			t.Fatalf("Expected UPAKLoader.Load to fail on nuked account.")
+		} else if _, ok := err.(libkb.NoKeyError); !ok {
+			t.Fatalf("Expected UPAKLoader.Load to fail with NoKeyError, instead failed with: %+v", err)
+		}
+	}
+
+	// advance the clock past the cache timeout
+	fakeClock.Advance(libkb.CachedUserTimeout * 10)
+	loadUpakExpectFailure()
+
+	// Try again, see if still errors out (this time user should not
+	// be in cache at all).
+	fakeClock.Advance(libkb.CachedUserTimeout * 10)
+	loadUpakExpectFailure()
 }
