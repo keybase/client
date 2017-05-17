@@ -45,7 +45,7 @@ func TestUpak1(t *testing.T) {
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
 
-	loadUpak := func() {
+	loadUpak := func() error {
 		t.Logf("loadUpak: using username:%+v", fu.Username)
 		loadArg := libkb.NewLoadUserArg(tc.G)
 		loadArg.UID = fu.UID()
@@ -54,25 +54,38 @@ func TestUpak1(t *testing.T) {
 		loadArg.StaleOK = false
 
 		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
-		if _, ok := err.(libkb.NoKeyError); ok {
-			// TODO: This is the error we are expecting to see on
-			// second load (after reset)
-			tc.T.Fatal(err)
-		} else if err != nil {
-			tc.T.Fatal(err)
+		if err != nil {
+			return err
 		}
 
 		t.Logf("loadUpak done: using username:%+v uid: %+v keys: %d", upak.Base.Username, upak.Base.Uid, len(upak.Base.DeviceKeys))
+		return nil
 	}
 
-	loadUpak()
+	err = loadUpak()
+	if err != nil {
+		t.Fatalf("Failed to load user: %+v", err)
+	}
 
 	ResetAccount(resetUserTC, fu)
 
+	loadUpakExpectFailure := func() {
+		err := loadUpak()
+		if err == nil {
+			t.Fatalf("Expected UPAKLoader.Load to fail on nuked account.")
+		} else if _, ok := err.(libkb.NoKeyError); !ok {
+			t.Fatalf("Expected UPAKLoader.Load to fail with NoKeyError, instead failed with: %+v", err)
+		}
+	}
+
 	// advance the clock past the cache timeout
 	fakeClock.Advance(libkb.CachedUserTimeout * 10)
+	loadUpakExpectFailure()
 
-	loadUpak()
+	// Try again, see if still errors out (this time user should not
+	// be in cache at all).
+	fakeClock.Advance(libkb.CachedUserTimeout * 10)
+	loadUpakExpectFailure()
 }
 
 func TestLoadDeviceKeyNew(t *testing.T) {
