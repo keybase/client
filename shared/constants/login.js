@@ -1,5 +1,4 @@
 // @flow
-// constants
 
 import type {TypedAction, NoErrorTypedAction} from './types/flux'
 import HiddenString from '../util/hidden-string'
@@ -128,6 +127,7 @@ export type State = {
     myDeviceRole: ?DeviceRole,
     otherDeviceRole: ?DeviceRole,
     qrCode: ?QRCode,
+    qrCodeScanned: boolean,
     qrScanned: ?QRCode,
     textCode: ?HiddenString,
   },

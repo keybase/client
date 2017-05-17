@@ -5,7 +5,7 @@
  */
 
 import Container from '../../forms/container'
-import {isIOS} from '../../../constants/platform'
+import {isLargeScreen, isIOS} from '../../../constants/platform'
 import Qr from './qr'
 import React, {Component} from 'react'
 import {
@@ -45,6 +45,27 @@ class CodePageRender extends Component<void, Props, void> {
   }
 
   renderScanCode() {
+    if (this.props.qrCodeScanned) {
+      // If we are provisioning from existing phone, after scanning we should continue on other device
+      const continueOnOtherDevice = this.props.myDeviceRole === codePageDeviceRoleExistingPhone
+      const scanMessage = continueOnOtherDevice
+        ? 'You should follow the instructions on the other device to continue.'
+        : null
+      return (
+        <Box
+          style={{
+            ...stylesQRScan,
+            flex: 1,
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Text type="BodySemibold">Code Scanned</Text>
+          {scanMessage && <Text type="Body" style={{textAlign: 'center'}}>{scanMessage}</Text>}
+        </Box>
+      )
+    }
     return (
       <Qr
         scanning={true}
@@ -307,7 +328,7 @@ const stylesTextCode = {
 }
 
 const stylesQRScan = {
-  height: 200,
+  minHeight: isLargeScreen ? 300 : 200,
 }
 
 const stylesScan = NativeStyleSheet.create({
