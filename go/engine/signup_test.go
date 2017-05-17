@@ -267,3 +267,34 @@ func TestSignupGeneratesPaperKey(t *testing.T) {
 	fu := CreateAndSignupFakeUserPaper(tc, "se")
 	hasOnePaperDev(tc, fu)
 }
+
+func TestSignupPassphrases(t *testing.T) {
+	tc := SetupEngineTest(t, "signup")
+	defer tc.Cleanup()
+	CreateAndSignupFakeUserWithPassphrase(tc, "pass", "123456789012")
+	CreateAndSignupFakeUserWithPassphrase(tc, "pass", "123456")
+}
+
+func TestSignupShortPassphrase(t *testing.T) {
+	tc := SetupEngineTest(t, "signup")
+	defer tc.Cleanup()
+
+	fu := NewFakeUserOrBust(t, "sup")
+	fu.Passphrase = "1234"
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
+	}
+	arg := MakeTestSignupEngineRunArg(fu)
+	t.Logf("signup arg: %+v", arg)
+	s := NewSignupEngine(&arg, tc.G)
+	err := RunEngine(s, ctx)
+	if err == nil {
+		t.Fatal("signup worked with short passphrase")
+	}
+	if _, ok := err.(libkb.PassphraseError); !ok {
+		t.Fatalf("error type: %T, expected libkb.PassphraseError", err)
+	}
+}

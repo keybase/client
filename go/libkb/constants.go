@@ -463,7 +463,7 @@ const (
 
 const UserSummaryLimit = 500 // max number of user summaries in one request
 
-const MinPassphraseLength = 12
+const MinPassphraseLength = 6
 
 const TrackingRateLimitSeconds = 50
 
