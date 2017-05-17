@@ -262,12 +262,14 @@ func (d *Service) startChatModules() {
 		g := globals.NewContext(d.G(), d.ChatG())
 		g.MessageDeliverer.Start(context.Background(), uid)
 		g.ConvLoader.Start(context.Background(), uid)
+		g.FetchRetrier.Start(context.Background(), uid)
 	}
 }
 
 func (d *Service) stopChatModules() {
 	<-d.ChatG().MessageDeliverer.Stop(context.Background())
 	<-d.ChatG().ConvLoader.Stop(context.Background())
+	<-d.ChatG().FetchRetrier.Stop(context.Background())
 }
 
 func (d *Service) createChatModules() {

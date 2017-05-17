@@ -15,145 +15,38 @@ import (
 	context "golang.org/x/net/context"
 )
 
-const fetchInitialInterval = 5 * time.Second
+const fetchInitialInterval = 3 * time.Second
 const fetchMultiplier = 1.5
 const fetchMaxTime = 24 * time.Hour
 const fetchMaxAttempts = 100
 
-type retrierAction struct {
-	globals.Contextified
-	utils.DebugLabeler
-
-	clock      clockwork.Clock
-	uid        gregor1.UID
-	convID     chat1.ConversationID
-	kind       types.FetchType
+type retrierControl struct {
 	forceCh    chan struct{}
 	shutdownCh chan chan struct{}
 }
 
-func newRetrierAction(g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
-	kind types.FetchType, clock clockwork.Clock) *retrierAction {
-	return &retrierAction{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, fmt.Sprintf("retrierAction(%s,%v)", convID, kind), false),
-		clock:        clock,
-		convID:       convID,
-		kind:         kind,
-		uid:          uid,
-		forceCh:      make(chan struct{}, 1),
-		shutdownCh:   make(chan chan struct{}, 1),
+func newRetrierControl() *retrierControl {
+	return &retrierControl{
+		forceCh:    make(chan struct{}, 5),
+		shutdownCh: make(chan chan struct{}, 5),
 	}
 }
 
-// nextAttemptTime calculates the next try for a given retry item. It uses an exponential
-// decay calculation.
-func (r *retrierAction) nextAttemptTime(attempts int, lastAttempt time.Time) time.Time {
-	wait := time.Duration(float64(attempts) * fetchMultiplier * float64(fetchInitialInterval))
-	return lastAttempt.Add(time.Duration(wait))
-}
-
-func (r *retrierAction) Start(ctx context.Context) {
-	r.Debug(ctx, "Start: convID: %s kind: %v", r.convID, r.kind)
-	var fixFn func(context.Context, gregor1.UID, chat1.ConversationID) error
-	switch r.kind {
-	case types.InboxLoad:
-		fixFn = r.fixInboxFetch
-	case types.ThreadLoad:
-		fixFn = r.fixThreadFetch
-	}
-
-	attempts := 1
-	nextTime := r.nextAttemptTime(attempts, r.clock.Now())
-	ctx = BackgroundContext(ctx, r.G().Env)
-	go func() {
-		for {
-			select {
-			case <-r.clock.AfterTime(nextTime):
-				if err := fixFn(ctx, r.uid, r.convID); err == nil {
-					return
-				}
-			case <-r.forceCh:
-				if err := fixFn(ctx, r.uid, r.convID); err == nil {
-					return
-				}
-			case ch := <-r.shutdownCh:
-				defer close(ch)
-				r.Debug(ctx, "Start: shutdown received, going down")
-				return
-			}
-
-			// Only increment attempts if we are online
-			if r.G().Syncer.IsConnected(ctx) {
-				attempts++
-			}
-
-			if attempts > fetchMaxAttempts {
-				r.Debug(ctx, "Start: max attempts reached, bailing")
-			}
-			nextTime = r.nextAttemptTime(attempts, nextTime)
-			r.Debug(ctx, "Start: next retry at: %v", nextTime)
-		}
-	}()
-}
-
-func (r *retrierAction) Stop(ctx context.Context) chan struct{} {
-	r.Debug(ctx, "Stop: received")
+func (c *retrierControl) Shutdown() chan struct{} {
 	ch := make(chan struct{})
-	r.shutdownCh <- ch
+	select {
+	case c.shutdownCh <- ch:
+	default:
+		close(ch)
+	}
 	return ch
 }
 
-func (r *retrierAction) Force(ctx context.Context) {
-	r.Debug(ctx, "Force: received")
-	r.forceCh <- struct{}{}
-}
-
-func (r *retrierAction) fixInboxFetch(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID) error {
-	r.Debug(ctx, "fixInboxFetch: retrying conversation: %s", convID)
-
-	// Reload this conversation and hope it works
-	inbox, _, err := r.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-		ConvIDs: []chat1.ConversationID{convID},
-	}, nil)
-	if err != nil {
-		r.Debug(ctx, "fixInboxFetch: failed to read inbox: convID: %s msg: %s",
-			convID, err.Error())
-		return err
+func (c *retrierControl) Force() {
+	select {
+	case c.forceCh <- struct{}{}:
+	default:
 	}
-	if len(inbox.Convs) != 1 {
-		r.Debug(ctx, "fixInboxFetch: unusual number of results for Read call: convID: %s len: %d",
-			convID, len(inbox.Convs))
-		return errors.New("inbox fetch failed: unusual number of conversation returned")
-	}
-	conv := inbox.Convs[0]
-
-	if conv.Error == nil {
-		r.Debug(ctx, "fixInboxFetch: fixed convID: %s", conv.GetConvID())
-		return nil
-	}
-	r.Debug(ctx, "fixInboxFetches: convID failed again: convID: %s msg: %s typ: %v", convID,
-		conv.Error.Message, conv.Error.Typ)
-
-	return fmt.Errorf("inbox fetch failed: %s", conv.Error.Message)
-}
-
-func (r *retrierAction) fixThreadFetch(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID) error {
-	r.Debug(ctx, "fixThreadFetch: retrying conversation: %s", convID)
-	// Attempt a pull of 50 messages to simulate whatever request got the
-	// conversation in this queue.
-	_, _, err := r.G().ConvSource.Pull(ctx, convID, uid, nil, &chat1.Pagination{
-		Num: 50,
-	})
-	if err == nil {
-		r.Debug(ctx, "fixThreadFetch: fixed convID: %s", convID)
-		return nil
-	}
-
-	r.Debug(ctx, "fixThreadFetches: convID failed again: msg: %s", err.Error())
-	return err
 }
 
 // FetchRetrier is responsible for tracking any nonblock fetch failures, and retrying
@@ -163,7 +56,7 @@ type FetchRetrier struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	actions          map[string]*retrierAction
+	retriers         map[string]*retrierControl
 	shutdownCh       chan chan struct{}
 	clock            clockwork.Clock
 	offline, running bool
@@ -177,7 +70,7 @@ func NewFetchRetrier(g *globals.Context) *FetchRetrier {
 		DebugLabeler: utils.NewDebugLabeler(g, "FetchRetrier", false),
 		clock:        clockwork.NewRealClock(),
 		shutdownCh:   make(chan chan struct{}, 1),
-		actions:      make(map[string]*retrierAction),
+		retriers:     make(map[string]*retrierControl),
 	}
 	return f
 }
@@ -187,17 +80,142 @@ func (f *FetchRetrier) SetClock(clock clockwork.Clock) {
 	f.clock = clock
 }
 
+func (f *FetchRetrier) key(uid gregor1.UID, convID chat1.ConversationID) string {
+	return fmt.Sprintf("%s:%s", uid, convID)
+}
+
+// nextAttemptTime calculates the next try for a given retry item. It uses an exponential
+// decay calculation.
+func (f *FetchRetrier) nextAttemptTime(attempts int, lastAttempt time.Time) time.Time {
+	wait := time.Duration(float64(attempts) * fetchMultiplier * float64(fetchInitialInterval))
+	return lastAttempt.Add(time.Duration(wait))
+}
+
+func (f *FetchRetrier) sendStale(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
+	f.G().Syncer.SendChatStaleNotifications(ctx, uid, []chat1.ConversationID{convID}, false)
+}
+
+func (f *FetchRetrier) spawnRetrier(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, kind types.FetchType, control *retrierControl) {
+	var fixFn func(context.Context, gregor1.UID, chat1.ConversationID) error
+	switch kind {
+	case types.InboxLoad:
+		fixFn = f.fixInboxFetch
+	case types.ThreadLoad:
+		fixFn = f.fixThreadFetch
+	}
+
+	attempts := 1
+	nextTime := f.nextAttemptTime(attempts, f.clock.Now())
+	ctx = BackgroundContext(ctx, f.G().Env)
+	go func() {
+		for {
+			select {
+			case <-f.clock.AfterTime(nextTime):
+				// Only attempts if we are online. Otherwise just retry
+				// at the same interval that we used last time.
+				if !f.offline {
+					f.Debug(ctx, "spawnRetrier: retrying conversation after time: convID: %s", convID)
+					if err := fixFn(ctx, uid, convID); err == nil {
+						f.Lock()
+						delete(f.retriers, f.key(uid, convID))
+						f.Unlock()
+						f.sendStale(ctx, uid, convID)
+						return
+					}
+					attempts++
+				}
+			case <-control.forceCh:
+				f.Debug(ctx, "spawnRetrier: retrying conversation (forced): convID: %s", convID)
+				if err := fixFn(ctx, uid, convID); err == nil {
+					f.Lock()
+					delete(f.retriers, f.key(uid, convID))
+					f.Unlock()
+					f.sendStale(ctx, uid, convID)
+					return
+				}
+				attempts++
+			case ch := <-control.shutdownCh:
+				f.Lock()
+				defer f.Unlock()
+				defer close(ch)
+				f.Debug(ctx, "spawnRetrier: shutdown received, going down: convID: %s", convID)
+				delete(f.retriers, f.key(uid, convID))
+				return
+			}
+
+			if attempts > fetchMaxAttempts {
+				f.Debug(ctx, "spawnRetrier: max attempts reached, bailing: convID: %s", convID)
+				control.Shutdown()
+			}
+			nextTime = f.nextAttemptTime(attempts, f.clock.Now())
+			f.Debug(ctx, "spawnRetrier: convID: %s next retry at: %v", convID, nextTime)
+		}
+	}()
+}
+
+func (f *FetchRetrier) fixInboxFetch(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) error {
+	f.Debug(ctx, "fixInboxFetch: retrying conversation: %s", convID)
+
+	// Reload this conversation and hope it works
+	inbox, _, err := f.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+		ConvIDs: []chat1.ConversationID{convID},
+	}, nil)
+	if err != nil {
+		f.Debug(ctx, "fixInboxFetch: failed to read inbox: convID: %s msg: %s",
+			convID, err.Error())
+		return err
+	}
+	if len(inbox.Convs) != 1 {
+		f.Debug(ctx, "fixInboxFetch: unusual number of results for Read call: convID: %s len: %d",
+			convID, len(inbox.Convs))
+		return errors.New("inbox fetch failed: unusual number of conversation returned")
+	}
+	conv := inbox.Convs[0]
+
+	if conv.Error == nil {
+		f.Debug(ctx, "fixInboxFetch: fixed convID: %s", conv.GetConvID())
+		return nil
+	}
+	f.Debug(ctx, "fixInboxFetches: convID failed again: convID: %s msg: %s typ: %v", convID,
+		conv.Error.Message, conv.Error.Typ)
+
+	return fmt.Errorf("inbox fetch failed: %s", conv.Error.Message)
+}
+
+func (f *FetchRetrier) fixThreadFetch(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) error {
+	f.Debug(ctx, "fixThreadFetch: retrying conversation: %s", convID)
+	// Attempt a pull of 50 messages to simulate whatever request got the
+	// conversation in this queue.
+	_, _, err := f.G().ConvSource.Pull(ctx, convID, uid, nil, &chat1.Pagination{
+		Num: 50,
+	})
+	if err == nil {
+		f.Debug(ctx, "fixThreadFetch: fixed convID: %s", convID)
+		return nil
+	}
+
+	f.Debug(ctx, "fixThreadFetches: convID failed again: msg: %s", err.Error())
+	return err
+}
+
 // Failure indicates a failure of type kind has happened when loading a conversation.
 func (f *FetchRetrier) Failure(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	kind types.FetchType) (err error) {
 	f.Lock()
 	defer f.Unlock()
 	defer f.Trace(ctx, func() error { return err }, fmt.Sprintf("Failure(%s)", convID))()
-
-	if _, ok := f.actions[convID.String()]; !ok {
-		action := newRetrierAction(f.G(), uid, convID, kind, f.clock)
-		action.Start(ctx)
-		f.actions[convID.String()] = action
+	if !f.running {
+		f.Debug(ctx, "Failure: not starting new retrier, not running")
+		return nil
+	}
+	key := f.key(uid, convID)
+	if _, ok := f.retriers[key]; !ok {
+		control := newRetrierControl()
+		f.retriers[key] = control
+		f.spawnRetrier(ctx, convID, uid, kind, control)
 	}
 
 	return nil
@@ -211,8 +229,9 @@ func (f *FetchRetrier) Success(ctx context.Context, convID chat1.ConversationID,
 	defer f.Unlock()
 	defer f.Trace(ctx, func() error { return err }, fmt.Sprintf("Success(%s)", convID))()
 
-	if action, ok := f.actions[convID.String()]; ok {
-		<-action.Stop(ctx)
+	key := f.key(uid, convID)
+	if control, ok := f.retriers[key]; ok {
+		control.Shutdown()
 	}
 
 	return nil
@@ -225,8 +244,8 @@ func (f *FetchRetrier) Connected(ctx context.Context) {
 	defer f.Unlock()
 	defer f.Trace(ctx, func() error { return nil }, "Connected")()
 	f.offline = false
-	for _, action := range f.actions {
-		action.Force(ctx)
+	for _, control := range f.retriers {
+		control.Force()
 	}
 }
 
@@ -250,7 +269,34 @@ func (f *FetchRetrier) Force(ctx context.Context) {
 	f.Lock()
 	defer f.Unlock()
 	defer f.Trace(ctx, func() error { return nil }, "Force")()
-	for _, action := range f.actions {
-		action.Force(ctx)
+	for _, control := range f.retriers {
+		control.Force()
 	}
+}
+
+func (f *FetchRetrier) Stop(ctx context.Context) chan struct{} {
+	f.Lock()
+	defer f.Unlock()
+	defer f.Trace(ctx, func() error { return nil }, "Shutdown")()
+	f.running = false
+	var wg sync.WaitGroup
+	wg.Add(len(f.retriers))
+	for _, control := range f.retriers {
+		go func(control *retrierControl) {
+			<-control.Shutdown()
+			wg.Done()
+		}(control)
+	}
+	ch := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+	return ch
+}
+
+func (f *FetchRetrier) Start(ctx context.Context, uid gregor1.UID) {
+	f.Lock()
+	defer f.Unlock()
+	f.running = true
 }

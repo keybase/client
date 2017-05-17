@@ -105,6 +105,7 @@ type Syncer interface {
 
 type FetchRetrier interface {
 	Offlinable
+	Resumable
 
 	Failure(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, kind FetchType) error
 	Success(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, kind FetchType) error
