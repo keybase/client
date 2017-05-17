@@ -65,12 +65,14 @@ let openChat = null;
 function hackernewsInjectProfile(parent, user) {
   const tables = parent.getElementsByTagName("tbody");
   const profileTable = tables[tables.length-1];
-  const tr = document.createElement("tr");
-  tr.innerHTML = `
-    <td></td>
-    <td><a href="keybase://${user.query()}/"><u>keybase chat</u></a></td>
-  `
-  profileTable.appendChild(tr);
+
+  // Add a "chat" button next to username
+  const userLink = profileTable.children[0].children[1];
+  userLink.innerHTML += `
+    <a href="keybase://${user.query()}/" class="keybase-chat">chat</a>
+  `;
+
+  installChatButton(userLink.getElementsByClassName("keybase-chat"), user, false /* nudgeSupported */);
 }
 
 const redditCheckThread = /^\/r\/\w+\/comments\/\w+\//;
@@ -93,27 +95,7 @@ function redditRenderChatButton(parent, toUsername) {
   li.className = "keybase-reply";
   li.innerHTML = `<a href="keybase://${user.query()}/">keybase chat reply</a>`;
 
-  li.getElementsByTagName("a")[0].addEventListener('click', function(e) {
-    e.preventDefault();
-    const chatParent = e.currentTarget.parentNode;
-
-    if (chatParent.getElementsByTagName("form").length > 0) {
-      // Current chat widget is already open, toggle it and exit
-      if (removeChat(openChat)) {
-        openChat = null;
-      }
-      return
-    } else if (openChat) {
-      // A different chat widget is open, close it and open the new one
-      if (!removeChat(openChat)) {
-        // Aborted
-        return
-      }
-    }
-
-    openChat = renderChat(chatParent, user, isLoggedIn /* nudgeSupported */);
-  });
-
+  installChatButton(li.getElementsByTagName("a"), user, isLoggedIn);
   parent.appendChild(li);
 }
 
@@ -167,6 +149,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
 
   // The chat widget is enclosed in the form element.
   const f = document.createElement("form");
+  f.className = "keybase-reply";
   f.action = "#"; // Avoid submitting even if we fail to preventDefault
   f.innerHTML = `
     <h3>
@@ -341,7 +324,7 @@ function renderSuccess(el, closeCallback, extraHTML) {
       </p>
     </div>
   `;
-  el.className = "keybase-success";
+  el.classList.add("keybase-success");
 
   installCloser(el.getElementsByClassName("keybase-close"), el, true /* skipCheck */, closeCallback);
 }
@@ -355,7 +338,7 @@ function renderErrorFull(el, bodyHTML) {
     </p>
     ${bodyHTML}
   `;
-  el.className = "keybase-error";
+  el.classList.add("keybase-error");
 
   installCloser(el.getElementsByClassName("keybase-close"), el, true /* skipCheck */);
 }
@@ -410,6 +393,32 @@ function postRedditReply(commentNode, text) {
   // Note: Calling replyForm.submit() bypasses the onsubmit handler, so we
   // need to dispatch an event or click a submit button.
   replyForm.dispatchEvent(new Event("submit"));
+}
+
+// Install chat button opening
+function installChatButton(buttons, user, nudgeSupported) {
+  for (let b of buttons) {
+    b.addEventListener('click', function(e) {
+      e.preventDefault();
+      const chatParent = e.currentTarget.parentNode;
+
+      if (chatParent.getElementsByTagName("form").length > 0) {
+        // Current chat widget is already open, toggle it and exit
+        if (removeChat(openChat)) {
+          openChat = null;
+        }
+        return
+      } else if (openChat) {
+        // A different chat widget is open, close it and open the new one
+        if (!removeChat(openChat)) {
+          // Aborted
+          return
+        }
+      }
+
+      openChat = renderChat(chatParent, user, nudgeSupported);
+    });
+  }
 }
 
 // Install closing button (usually the little "x" in the corner)

@@ -1,4 +1,4 @@
-li.keybase-reply form {
+li.keybase-reply form, form.keybase-reply {
   overflow: hidden;
   z-index: 9999;
   position: absolute;
@@ -6,7 +6,7 @@ li.keybase-reply form {
   border-radius: 4px;
 }
 
-.keybase-reply form {
+.keybase-reply form, form.keybase-reply {
   display: block !important;
   background: #fff;
   margin-top: 2em;
@@ -140,6 +140,7 @@ a.keybase-button {
   font-weight: 600;
   font-size: 13px;
   margin-bottom: 16px;
+  margin-top: 0;
 }
 
 .keybase-reply .keybase-error h3 {
@@ -206,4 +207,24 @@ span.keybase-close::before {
   position: absolute;
   margin: 3px 0 0 2px;
   content: "\1f4cb"; /* clipboard */
+}
+
+a.keybase-chat {
+  /* Stand-alone chat button that gets injected */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  white-space: normal !important;
+  font-family: 'Open Sans', sans-serif !important;
+  font-weight: 600;
+  border-radius: 4px;
+  line-height: 1;
+  color: #fff !important;
+  background-color: #33a0ff;
+  background-image: url("chrome-extension://__MSG_@@extension_id__/images/icon-keybase-logo-16@2x.png");
+  background-size: 16px 16px;
+  background-position: 4px;
+  background-repeat: no-repeat;
+  padding: 2px 8px 2px 24px;
+  margin-left: 0.5em;
 }
