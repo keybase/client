@@ -103,34 +103,20 @@ class ConversationInput extends Component<void, Props, void> {
   }
 }
 
-const Dot = () => (
-  <Box
-    style={{
-      backgroundColor: globalColors.black_40,
-      borderRadius: 5,
-      height: 5,
-      marginLeft: 2,
-      marginRight: 2,
-      width: 5,
-    }}
-  />
-)
 const Typing = ({typing}) => (
   <Box
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
       backgroundColor: globalColors.black_05,
-      borderRadius: 20,
+      borderRadius: 10,
       height: 20,
       justifyContent: 'center',
-      paddingLeft: globalMargins.xtiny,
-      paddingRight: globalMargins.xtiny,
+      paddingLeft: globalMargins.tiny,
+      paddingRight: globalMargins.tiny,
     }}
   >
-    <Dot />
-    <Dot />
-    <Dot />
+    <Icon type="icon-chat-loading" style={{width: 20}} />
   </Box>
 )
 

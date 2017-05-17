@@ -50,6 +50,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-chat-addon-lock-active-8.png'),
   },
+  'icon-chat-loading': {
+    isFont: false,
+    extension: 'gif',
+    require: require('../images/icons/icon-chat-loading.gif'),
+  },
   'icon-coinbase-logo-16': {
     isFont: false,
     extension: 'png',
