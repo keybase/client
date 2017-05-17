@@ -18,6 +18,7 @@ if (typeof __SCREENSHOT__ === 'undefined') {
 window.Buffer = require('buffer').Buffer
 
 // Native String.startswith() sometimes incorrectly returns false on Android!
+// See https://github.com/facebook/react-native/issues/11370 for a report.
 // $FlowIssue redefining startsWith
 String.prototype.startsWith = function(searchString, position) {
   position = position || 0
