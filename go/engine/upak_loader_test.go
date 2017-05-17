@@ -15,8 +15,6 @@ import (
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 func TestLoadDeviceKeyNew(t *testing.T) {
@@ -419,8 +417,6 @@ func TestLoadAfterAcctReset2(t *testing.T) {
 		if err != nil {
 			return nil, err
 		}
-
-		_ = spew.Dump
 
 		t.Logf("loadUpak done: using username:%+v uid: %+v keys: %d", upak.Base.Username, upak.Base.Uid, len(upak.Base.DeviceKeys))
 		return upak, nil
