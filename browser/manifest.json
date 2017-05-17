@@ -2,13 +2,13 @@
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsc0yU3MTDhx+JC23YHwvWo/TD1Pynkdc9QekQ7S3jpl0isgro3I5K0ywANwBsZicIYhVq3OQTzV4jq53YoJSP9OFApMb3yzqzJ/QmcwpGvHjztD6I2zPoglMLnWj12VNqFqJtqVj5tT+/TQJ2MdY4eCQpuPweEwDLsR9mP2mxlpV1iCNzF2T61DAqnLmV8zeyjrwJ1QRZq/qd0lJR5JRI8+xBTTStOy2eQvnf8ngEXq2R+NXNq10MELtTpfAT0NPPS1lUbJwR9AYbm9f4wQWLxpeyl63WlmbBUsInM9jsfccDo0hULa59IWpgTdFVQFMBFlIEIN7St8QpF09OygMNQIDAQAB",
   "name": "Keybase for Reddit",
   "short_name": "Keybase",
-  "version": "1.6.5",
+  "version": "1.7.5",
   "description": "End-to-end encrypted replies on Reddit over Keybase Chat.",
   "icons": {
     "48": "images/icon-keybase-logo-48.png",
     "128": "images/icon-keybase-logo-128.png"
   },
-  "page_action": {
+  "browser_action": {
     "default_icon": "images/icon-keybase-logo-logged-out-64.png",
     "default_title": "Keybase Chat",
     "default_popup": "html/popup.html"
@@ -18,10 +18,7 @@
     "contextMenus",
     "declarativeContent",
     "nativeMessaging",
-    "http://reddit.com/*",
-    "https://reddit.com/*",
-    "http://*.reddit.com/*",
-    "https://*.reddit.com/*"
+    "storage"
   ],
   "web_accessible_resources": [
     "images/*",
@@ -30,12 +27,17 @@
   "content_scripts": [
     {
       "matches": [
-        "http://reddit.com/*",
         "https://reddit.com/*",
-        "http://*.reddit.com/*",
-        "https://*.reddit.com/*"
+        "https://*.reddit.com/*",
+        "https://twitter.com/*",
+        "https://facebook.com/*",
+        "https://github.com/*",
+        "https://news.ycombinator.com/user",
+        "https://keybase.io/*",
+        "https://keybase.pub/*"
       ],
       "js": [
+        "js/identities.js",
         "js/content.js"
       ],
       "css": [
@@ -46,7 +48,14 @@
     }
   ],
   "background": {
-    "scripts": ["js/background.js"]
+    "scripts": [
+      "js/identities.js",
+      "js/background.js"
+    ]
+  },
+  "options_ui": {
+    "page": "html/options.html",
+    "chrome_style": true
   },
   "manifest_version": 2
 }
