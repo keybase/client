@@ -39,6 +39,7 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
       }
     },
     'keybase.1.NotifySession.loggedIn': ({username}, response) => {
+      lastBadgeStateVersion = -1
       if (lastLoggedInNotifyUsername !== username) {
         lastLoggedInNotifyUsername = username
         notify('Logged in to Keybase as: ' + username)
@@ -48,6 +49,7 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
       response.result()
     },
     'keybase.1.NotifySession.loggedOut': params => {
+      lastBadgeStateVersion = -1
       lastLoggedInNotifyUsername = null
 
       // Do we actually think we're logged in?
