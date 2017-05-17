@@ -103,11 +103,10 @@ function* onInboxStale(): SagaGenerator<any, any> {
     )
 
     const incoming = yield loadInboxChanMap.race()
-    incoming.chatInboxUnverified.response.result()
-
-    if (!incoming.chatInboxUnverified) {
+    if (!incoming.chatInboxUnverified || !incoming.chatInboxUnverified.response) {
       throw new Error("Can't load inbox")
     }
+    incoming.chatInboxUnverified.response.result()
 
     const inbox: ChatTypes.GetInboxLocalRes = incoming.chatInboxUnverified.params.inbox
     yield call(_updateFinalized, inbox)
