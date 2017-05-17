@@ -11,9 +11,12 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 func TestLoadDeviceKeyNew(t *testing.T) {
@@ -331,7 +334,7 @@ func TestUPAKDeadlock(t *testing.T) {
 	}
 }
 
-func TestLoadAfterAcctReset(t *testing.T) {
+func TestLoadAfterAcctReset1(t *testing.T) {
 	// One context for user that will be doing LoadUser, and another
 	// for user that will sign up and reset itself.
 	tc := SetupEngineTest(t, "clu")
@@ -341,21 +344,7 @@ func TestLoadAfterAcctReset(t *testing.T) {
 	defer resetUserTC.Cleanup()
 
 	t.Logf("create new user")
-	fu := NewFakeUserOrBust(t, "res")
-	arg := MakeTestSignupEngineRunArg(fu)
-	arg.SkipPaper = false
-	loginUI := &paperLoginUI{Username: fu.Username}
-	ctx := &Context{
-		LogUI:    resetUserTC.G.UI.GetLogUI(),
-		GPGUI:    &gpgtestui{},
-		SecretUI: fu.NewSecretUI(),
-		LoginUI:  loginUI,
-	}
-	s := NewSignupEngine(&arg, resetUserTC.G)
-	err := RunEngine(s, ctx)
-	if err != nil {
-		resetUserTC.T.Fatal(err)
-	}
+	fu := CreateAndSignupFakeUser(resetUserTC, "res")
 
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
@@ -377,7 +366,7 @@ func TestLoadAfterAcctReset(t *testing.T) {
 		return nil
 	}
 
-	err = loadUpak()
+	err := loadUpak()
 	if err != nil {
 		t.Fatalf("Failed to load user: %+v", err)
 	}
@@ -401,4 +390,63 @@ func TestLoadAfterAcctReset(t *testing.T) {
 	// be in cache at all).
 	fakeClock.Advance(libkb.CachedUserTimeout * 10)
 	loadUpakExpectFailure()
+}
+
+func TestLoadAfterAcctReset2(t *testing.T) {
+	// One context for user that will be doing LoadUser, and another
+	// for user that will sign up and reset itself.
+	tc := SetupEngineTest(t, "clu")
+	defer tc.Cleanup()
+
+	resetUserTC := SetupEngineTest(t, "clu2")
+	defer resetUserTC.Cleanup()
+
+	t.Logf("create new user")
+	fu := CreateAndSignupFakeUser(resetUserTC, "res")
+
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
+	tc.G.SetClock(fakeClock)
+
+	loadUpak := func() (*keybase1.UserPlusAllKeys, error) {
+		t.Logf("loadUpak: using username:%+v", fu.Username)
+		loadArg := libkb.NewLoadUserArg(tc.G)
+		loadArg.UID = fu.UID()
+		loadArg.PublicKeyOptional = false
+		loadArg.NetContext = context.TODO()
+		loadArg.StaleOK = false
+
+		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
+		if err != nil {
+			return nil, err
+		}
+
+		_ = spew.Dump
+
+		t.Logf("loadUpak done: using username:%+v uid: %+v keys: %d", upak.Base.Username, upak.Base.Uid, len(upak.Base.DeviceKeys))
+		return upak, nil
+	}
+
+	upak1, err := loadUpak()
+	if err != nil {
+		t.Fatalf("Failed to load user: %+v", err)
+	}
+
+	// Reset account and then login again to establish new eldest and
+	// add new device keys.
+	ResetAccount(resetUserTC, fu)
+	tcp := SetupEngineTest(t, "login")
+	fu.LoginOrBust(tcp)
+	if err := AssertProvisioned(tcp); err != nil {
+		t.Fatal(err)
+	}
+
+	fakeClock.Advance(libkb.CachedUserTimeout * 10)
+	upak2, err := loadUpak()
+	if err != nil {
+		t.Fatalf("Failed to load user after reset+login with: %+v", err)
+	}
+
+	if upak1.Base.DeviceKeys[0].KID == upak2.Base.DeviceKeys[0].KID {
+		t.Fatal("Found old device key after LoadUser.")
+	}
 }
