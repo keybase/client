@@ -90,7 +90,7 @@ class ConversationInput extends Component<void, Props, void> {
           value={this.props.text}
           {...multilineOpts}
         />
-        {this.props.typing.length > 0 && <Typing typing={this.props.typing} />}
+        {this.props.typing.length > -1 && <Typing typing={this.props.typing} />}
         <Action
           text={this.props.text}
           onSubmit={this._onSubmit}
@@ -103,7 +103,36 @@ class ConversationInput extends Component<void, Props, void> {
   }
 }
 
-const Typing = ({typing}) => <Text type="BodySmall" style={{color: globalColors.grey}}>....</Text>
+const Dot = () => (
+  <Box
+    style={{
+      backgroundColor: globalColors.black_40,
+      borderRadius: 5,
+      height: 5,
+      marginLeft: 2,
+      marginRight: 2,
+      width: 5,
+    }}
+  />
+)
+const Typing = ({typing}) => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      backgroundColor: globalColors.black_05,
+      borderRadius: 20,
+      height: 20,
+      justifyContent: 'center',
+      paddingLeft: globalMargins.xtiny,
+      paddingRight: globalMargins.xtiny,
+    }}
+  >
+    <Dot />
+    <Dot />
+    <Dot />
+  </Box>
+)
 
 const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) =>
   text
