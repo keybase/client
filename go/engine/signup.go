@@ -149,6 +149,9 @@ func (s *SignupEngine) Run(ctx *Context) error {
 }
 
 func (s *SignupEngine) genPassphraseStream(a libkb.LoginContext, passphrase string) error {
+	if len(passphrase) < libkb.MinPassphraseLength {
+		return libkb.PassphraseError{Msg: fmt.Sprintf("Passphrase must be at least %d characters", libkb.MinPassphraseLength)}
+	}
 	salt, err := libkb.RandBytes(triplesec.SaltLen)
 	if err != nil {
 		return err

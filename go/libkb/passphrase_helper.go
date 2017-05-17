@@ -13,7 +13,7 @@ func GetKeybasePassphrase(g *GlobalContext, ui SecretUI, username, retryMsg stri
 	arg.WindowTitle = "Keybase passphrase"
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Username = username
-	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", username)
+	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (%d+ characters)", username, MinPassphraseLength)
 	arg.RetryLabel = retryMsg
 	res, err := GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
 	if err != nil {
