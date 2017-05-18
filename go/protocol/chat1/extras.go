@@ -133,6 +133,9 @@ func (m MessageUnboxed) GetMessageID() MessageID {
 		if state == MessageUnboxedState_ERROR {
 			return m.Error().MessageID
 		}
+		if state == MessageUnboxedState_PLACEHOLDER {
+			return m.Placeholder().MessageID
+		}
 	}
 	return 0
 }

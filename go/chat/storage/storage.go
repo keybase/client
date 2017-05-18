@@ -18,7 +18,7 @@ var maxFetchNum = 10000
 
 type ResultCollector interface {
 	Push(msg chat1.MessageUnboxed)
-	PushEmpty(msg chat1.MessageUnboxed) bool
+	PushEmpty(msgID chat1.MessageID) bool
 	Done() bool
 	Result() []chat1.MessageUnboxed
 	Error(err Error) Error
@@ -122,7 +122,7 @@ func (s *SimpleResultCollector) Error(err Error) Error {
 	return err
 }
 
-func (s *SimpleResultCollector) PushEmpty(chat1.MessageUnboxed) bool {
+func (s *SimpleResultCollector) PushEmpty(chat1.MessageID) bool {
 	return false
 }
 
@@ -186,7 +186,7 @@ func (t *TypedResultCollector) Error(err Error) Error {
 	return err
 }
 
-func (t *TypedResultCollector) PushEmpty(msg chat1.MessageUnboxed) bool {
+func (t *TypedResultCollector) PushEmpty(msgID chat1.MessageID) bool {
 	return false
 }
 
@@ -203,14 +203,20 @@ func NewHoleyResultCollector(maxHoles int, rc ResultCollector) *HoleyResultColle
 	}
 }
 
-func (h *HoleyResultCollector) PushEmpty(msg chat1.MessageUnboxed) bool {
+func (h *HoleyResultCollector) PushEmpty(msgID chat1.MessageID) bool {
 	if h.holes >= h.maxHoles {
 		return false
 	}
 
-	h.ResultCollector.Push(msg)
+	h.ResultCollector.Push(chat1.NewMessageUnboxedWithPlaceholder(chat1.MessageUnboxedPlaceholder{
+		MessageID: msgID,
+	}))
 	h.holes++
 	return true
+}
+
+func (h *HoleyResultCollector) Holes() int {
+	return h.holes
 }
 
 func (s *Storage) MaybeNuke(force bool, err Error, convID chat1.ConversationID, uid gregor1.UID) Error {

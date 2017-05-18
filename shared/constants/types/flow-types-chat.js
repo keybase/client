@@ -151,6 +151,7 @@ export const LocalMessageUnboxedState = {
   valid: 1,
   error: 2,
   outbox: 3,
+  placeholder: 4,
 }
 
 export const LocalOutboxErrorType = {
@@ -1476,9 +1477,16 @@ export type MessageType =
   | 8 // ATTACHMENTUPLOADED_8
 
 export type MessageUnboxed =
+<<<<<<< HEAD
     { state: 1, valid: ?MessageUnboxedValid }
   | { state: 2, error: ?MessageUnboxedError }
   | { state: 3, outbox: ?OutboxRecord }
+=======
+  | {state: 1, valid: ?MessageUnboxedValid}
+  | {state: 2, error: ?MessageUnboxedError}
+  | {state: 3, outbox: ?OutboxRecord}
+  | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
+>>>>>>> working
 
 export type MessageUnboxedError = {
   errType: MessageUnboxedErrorType,
@@ -1494,10 +1502,15 @@ export type MessageUnboxedErrorType =
   | 2 // BADVERSION_2
   | 3 // IDENTIFY_3
 
+export type MessageUnboxedPlaceholder = {
+  messageID: MessageID,
+}
+
 export type MessageUnboxedState =
     1 // VALID_1
   | 2 // ERROR_2
   | 3 // OUTBOX_3
+  | 4 // PLACEHOLDER_4
 
 export type MessageUnboxedValid = {
   clientHeader: MessageClientHeaderVerified,
