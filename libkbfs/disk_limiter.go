@@ -80,7 +80,8 @@ type DiskLimiter interface {
 
 	// getDiskLimitInfo returns the usage and limit info for the disk,
 	// as known by the disk limiter.
-	getDiskLimitInfo() (usedBytes, limitBytes, usedFiles, limitFiles int64)
+	getDiskLimitInfo() (usedBytes int64, limitBytes float64,
+		usedFiles int64, limitFiles float64)
 
 	// getStatus returns an object that's marshallable into JSON
 	// for use in displaying status.

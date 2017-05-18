@@ -207,9 +207,9 @@ func (sdl semaphoreDiskLimiter) getQuotaInfo() (
 }
 
 func (sdl semaphoreDiskLimiter) getDiskLimitInfo() (
-	usedBytes, limitBytes, usedFiles, limitFiles int64) {
-	return sdl.byteSemaphore.Count(), sdl.byteLimit,
-		sdl.fileSemaphore.Count(), sdl.fileLimit
+	usedBytes int64, limitBytes float64, usedFiles int64, limitFiles float64) {
+	return sdl.byteSemaphore.Count(), float64(sdl.byteLimit),
+		sdl.fileSemaphore.Count(), float64(sdl.fileLimit)
 }
 
 type semaphoreDiskLimiterStatus struct {

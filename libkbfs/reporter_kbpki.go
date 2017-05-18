@@ -162,9 +162,11 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 		}
 		code = keybase1.FSErrorType_DISK_LIMIT_REACHED
 		params[errorParamUsageBytes] = strconv.FormatInt(e.usageBytes, 10)
-		params[errorParamLimitBytes] = strconv.FormatInt(e.limitBytes, 10)
+		params[errorParamLimitBytes] =
+			strconv.FormatFloat(e.limitBytes, 'f', 0, 64)
 		params[errorParamUsageFiles] = strconv.FormatInt(e.usageFiles, 10)
-		params[errorParamLimitFiles] = strconv.FormatInt(e.limitFiles, 10)
+		params[errorParamLimitFiles] =
+			strconv.FormatFloat(e.limitFiles, 'f', 0, 64)
 	case NoSigChainError:
 		code = keybase1.FSErrorType_NO_SIG_CHAIN
 		params[errorParamUsername] = e.User.String()

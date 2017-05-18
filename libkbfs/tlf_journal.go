@@ -1737,8 +1737,8 @@ type ErrDiskLimitTimeout struct {
 	availableFiles int64
 	usageBytes     int64
 	usageFiles     int64
-	limitBytes     int64
-	limitFiles     int64
+	limitBytes     float64
+	limitFiles     float64
 	err            error
 	reportable     bool
 }
