@@ -149,7 +149,7 @@ func (f *FetchRetrier) spawnRetrier(ctx context.Context, convID chat1.Conversati
 				control.Shutdown()
 			}
 			nextTime = f.nextAttemptTime(attempts, f.clock.Now())
-			f.Debug(ctx, "spawnRetrier: convID: %s next retry at: %v", convID, nextTime)
+			f.Debug(ctx, "spawnRetrier: convID: %s attempts: %d next: %v", convID, attempts, nextTime)
 		}
 	}()
 }
@@ -178,7 +178,7 @@ func (f *FetchRetrier) fixInboxFetch(ctx context.Context, uid gregor1.UID,
 		f.Debug(ctx, "fixInboxFetch: fixed convID: %s", conv.GetConvID())
 		return nil
 	}
-	f.Debug(ctx, "fixInboxFetches: convID failed again: convID: %s msg: %s typ: %v", convID,
+	f.Debug(ctx, "fixInboxFetch: convID failed again: convID: %s msg: %s typ: %v", convID,
 		conv.Error.Message, conv.Error.Typ)
 
 	return fmt.Errorf("inbox fetch failed: %s", conv.Error.Message)
@@ -197,7 +197,7 @@ func (f *FetchRetrier) fixThreadFetch(ctx context.Context, uid gregor1.UID,
 		return nil
 	}
 
-	f.Debug(ctx, "fixThreadFetches: convID failed again: msg: %s", err.Error())
+	f.Debug(ctx, "fixThreadFetch: convID failed again: msg: %s", err.Error())
 	return err
 }
 
@@ -213,6 +213,7 @@ func (f *FetchRetrier) Failure(ctx context.Context, convID chat1.ConversationID,
 	}
 	key := f.key(uid, convID)
 	if _, ok := f.retriers[key]; !ok {
+		f.Debug(ctx, "Failure: spawning new retrier: convID: %s", convID)
 		control := newRetrierControl()
 		f.retriers[key] = control
 		f.spawnRetrier(ctx, convID, uid, kind, control)
