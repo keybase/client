@@ -36,7 +36,6 @@ import {setupSource} from '../../util/forward-logs'
 import flags from '../../util/feature-flags'
 import {updateDebugConfig} from '../../actions/dev'
 import {updateReloading} from '../../constants/dev'
-import os from 'os'
 
 let _store
 function setupStore() {
@@ -100,7 +99,6 @@ function setupApp(store) {
       ipcRenderer.send('kb-service-check')
     })
   }, 3 * 1000)
-
 
   // Run installer
   ipcRenderer.on('installed', (event, message) => {
