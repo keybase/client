@@ -25,21 +25,21 @@ const bubbleColors = {
 const servicesOrder = ['Keybase', 'Twitter', 'Facebook', 'GitHub', 'Reddit', 'Hacker News']
 
 const selectedIconMap: {[service: Constants.Service]: IconType} = {
-  Facebook: isMobile ? 'icon-search-facebook-active-24' : 'icon-search-facebook-active-16',
-  GitHub: isMobile ? 'icon-search-github-active-24' : 'icon-search-github-active-16',
-  'Hacker News': isMobile ? 'icon-search-hacker-news-active-24' : 'icon-search-hacker-news-active-16',
-  Keybase: isMobile ? 'icon-search-keybase-active-24' : 'icon-search-keybase-active-16',
-  Reddit: isMobile ? 'icon-search-reddit-active-24' : 'icon-search-reddit-active-16',
-  Twitter: isMobile ? 'icon-search-twitter-active-24' : 'icon-search-twitter-active-16',
+  Facebook: isMobile ? 'icon-search-facebook-active-40' : 'icon-search-facebook-active-32',
+  GitHub: isMobile ? 'icon-search-github-active-40' : 'icon-search-github-active-32',
+  'Hacker News': isMobile ? 'icon-search-hacker-news-active-40' : 'icon-search-hacker-news-active-32',
+  Keybase: isMobile ? 'icon-search-keybase-active-40' : 'icon-search-keybase-active-32',
+  Reddit: isMobile ? 'icon-search-reddit-active-40' : 'icon-search-reddit-active-32',
+  Twitter: isMobile ? 'icon-search-twitter-active-40' : 'icon-search-twitter-active-32',
 }
 
 const unselectedIconMap: {[service: Constants.Service]: IconType} = {
-  Facebook: isMobile ? 'icon-search-facebook-inactive-24' : 'icon-search-facebook-inactive-16',
-  GitHub: isMobile ? 'icon-search-github-inactive-24' : 'icon-search-github-inactive-16',
-  'Hacker News': isMobile ? 'icon-search-hacker-news-inactive-24' : 'icon-search-hacker-news-inactive-16',
-  Keybase: isMobile ? 'icon-search-keybase-inactive-24' : 'icon-search-keybase-inactive-16',
-  Reddit: isMobile ? 'icon-search-reddit-inactive-24' : 'icon-search-reddit-inactive-16',
-  Twitter: isMobile ? 'icon-search-twitter-inactive-24' : 'icon-search-twitter-inactive-16',
+  Facebook: isMobile ? 'icon-search-facebook-inactive-40' : 'icon-search-facebook-inactive-32',
+  GitHub: isMobile ? 'icon-search-github-inactive-40' : 'icon-search-github-inactive-32',
+  'Hacker News': isMobile ? 'icon-search-hacker-news-inactive-40' : 'icon-search-hacker-news-inactive-32',
+  Keybase: isMobile ? 'icon-search-keybase-inactive-40' : 'icon-search-keybase-inactive-32',
+  Reddit: isMobile ? 'icon-search-reddit-inactive-40' : 'icon-search-reddit-inactive-32',
+  Twitter: isMobile ? 'icon-search-twitter-inactive-40' : 'icon-search-twitter-inactive-32',
 }
 
 const Service = ({service, selected, hovering, onHover, onSelect}) => {
