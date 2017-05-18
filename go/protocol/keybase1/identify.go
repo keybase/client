@@ -23,6 +23,11 @@ type Identify2Res struct {
 	TrackBreaks *IdentifyTrackBreaks `codec:"trackBreaks,omitempty" json:"trackBreaks,omitempty"`
 }
 
+type IdentifyLiteRes struct {
+	Ul          UserOrTeamLite       `codec:"ul" json:"ul"`
+	TrackBreaks *IdentifyTrackBreaks `codec:"trackBreaks,omitempty" json:"trackBreaks,omitempty"`
+}
+
 type ResolveArg struct {
 	Assertion string `codec:"assertion" json:"assertion"`
 }
@@ -57,6 +62,23 @@ type Identify2Arg struct {
 	ForceDisplay          bool                `codec:"forceDisplay" json:"forceDisplay"`
 }
 
+type IdentifyLiteArg struct {
+	SessionID             int                 `codec:"sessionID" json:"sessionID"`
+	Id                    UserOrTeamID        `codec:"id" json:"id"`
+	Assertion             string              `codec:"assertion" json:"assertion"`
+	Reason                IdentifyReason      `codec:"reason" json:"reason"`
+	UseDelegateUI         bool                `codec:"useDelegateUI" json:"useDelegateUI"`
+	AlwaysBlock           bool                `codec:"alwaysBlock" json:"alwaysBlock"`
+	NoErrorOnTrackFailure bool                `codec:"noErrorOnTrackFailure" json:"noErrorOnTrackFailure"`
+	ForceRemoteCheck      bool                `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+	NeedProofSet          bool                `codec:"needProofSet" json:"needProofSet"`
+	AllowEmptySelfID      bool                `codec:"allowEmptySelfID" json:"allowEmptySelfID"`
+	NoSkipSelf            bool                `codec:"noSkipSelf" json:"noSkipSelf"`
+	CanSuppressUI         bool                `codec:"canSuppressUI" json:"canSuppressUI"`
+	IdentifyBehavior      TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	ForceDisplay          bool                `codec:"forceDisplay" json:"forceDisplay"`
+}
+
 type IdentifyInterface interface {
 	// Resolve an assertion to a UID. On failure, resolves to an empty UID and returns
 	// an error.
@@ -69,6 +91,7 @@ type IdentifyInterface interface {
 	// If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used).
 	Identify(context.Context, IdentifyArg) (IdentifyRes, error)
 	Identify2(context.Context, Identify2Arg) (Identify2Res, error)
+	IdentifyLite(context.Context, IdentifyLiteArg) (IdentifyLiteRes, error)
 }
 
 func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
@@ -139,6 +162,22 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"identifyLite": {
+				MakeArg: func() interface{} {
+					ret := make([]IdentifyLiteArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]IdentifyLiteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]IdentifyLiteArg)(nil), args)
+						return
+					}
+					ret, err = i.IdentifyLite(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -173,5 +212,10 @@ func (c IdentifyClient) Identify(ctx context.Context, __arg IdentifyArg) (res Id
 
 func (c IdentifyClient) Identify2(ctx context.Context, __arg Identify2Arg) (res Identify2Res, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.identify.identify2", []interface{}{__arg}, &res)
+	return
+}
+
+func (c IdentifyClient) IdentifyLite(ctx context.Context, __arg IdentifyLiteArg) (res IdentifyLiteRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identify.identifyLite", []interface{}{__arg}, &res)
 	return
 }

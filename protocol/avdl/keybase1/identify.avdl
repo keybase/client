@@ -46,5 +46,15 @@ protocol identify {
    */
   Identify2Res identify2(int sessionID, UID uid, string userAssertion, IdentifyReason reason, boolean useDelegateUI=false, boolean alwaysBlock=false, boolean noErrorOnTrackFailure=false, boolean forceRemoteCheck=false, boolean needProofSet=false, boolean allowEmptySelfID=false, boolean noSkipSelf=true, boolean canSuppressUI=false, TLFIdentifyBehavior identifyBehavior=0, boolean forceDisplay=false);
 
+  record IdentifyLiteRes {
+    UserOrTeamLite ul;
+    union { null, IdentifyTrackBreaks } trackBreaks;
+  }
+
+  /*
+   * Note that UID can be empty, in which case a resolution is also forced.
+   */
+  IdentifyLiteRes identifyLite(int sessionID, UserOrTeamID id, string assertion, IdentifyReason reason, boolean useDelegateUI=false, boolean alwaysBlock=false, boolean noErrorOnTrackFailure=false, boolean forceRemoteCheck=false, boolean needProofSet=false, boolean allowEmptySelfID=false, boolean noSkipSelf=true, boolean canSuppressUI=false, TLFIdentifyBehavior identifyBehavior=0, boolean forceDisplay=false);
+
 
 }
