@@ -1763,8 +1763,13 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 
 	var de DirEntry
 	err = runUnlessCanceled(ctx, func() error {
-		lState := makeFBOLockState()
+		if fbo.nodeCache.IsUnlinked(dir) {
+			fbo.log.CDebugf(ctx, "Refusing a lookup for unlinked directory %v",
+				fbo.nodeCache.PathFromNode(dir).tailPointer())
+			return NoSuchNameError{name}
+		}
 
+		lState := makeFBOLockState()
 		md, err := fbo.getMDForReadNeedIdentify(ctx, lState)
 		if err != nil {
 			return err
