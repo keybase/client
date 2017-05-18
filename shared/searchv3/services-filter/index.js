@@ -6,6 +6,8 @@ import {Box, Icon, ClickableBox} from '../../common-adapters'
 import {globalColors, globalStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
+import type {IconType} from '../../common-adapters/icon'
+
 type Props = {|
   selectedService: Constants.Service,
   onSelectService: (service: Constants.Service) => void,
@@ -21,8 +23,24 @@ const bubbleColors = {
 }
 
 const servicesOrder = ['Keybase', 'Twitter', 'Facebook', 'GitHub', 'Reddit', 'Hacker News']
-const selectedIconMap = isMobile ? Constants.serviceToIcon24 : Constants.serviceToIcon16
-const unselectedIconMap = isMobile ? Constants.serviceToIcon24BW : Constants.serviceToIcon16BW
+
+const selectedIconMap: {[service: Constants.Service]: IconType} = {
+  Facebook: isMobile ? 'icon-search-facebook-active-24' : 'icon-search-facebook-active-16',
+  GitHub: isMobile ? 'icon-search-github-active-24' : 'icon-search-github-active-16',
+  'Hacker News': isMobile ? 'icon-search-hacker-news-active-24' : 'icon-search-hacker-news-active-16',
+  Keybase: isMobile ? 'icon-search-keybase-active-24' : 'icon-search-keybase-active-16',
+  Reddit: isMobile ? 'icon-search-reddit-active-24' : 'icon-search-reddit-active-16',
+  Twitter: isMobile ? 'icon-search-twitter-active-24' : 'icon-search-twitter-active-16',
+}
+
+const unselectedIconMap: {[service: Constants.Service]: IconType} = {
+  Facebook: isMobile ? 'icon-search-facebook-inactive-24' : 'icon-search-facebook-inactive-16',
+  GitHub: isMobile ? 'icon-search-github-inactive-24' : 'icon-search-github-inactive-16',
+  'Hacker News': isMobile ? 'icon-search-hacker-news-inactive-24' : 'icon-search-hacker-news-inactive-16',
+  Keybase: isMobile ? 'icon-search-keybase-inactive-24' : 'icon-search-keybase-inactive-16',
+  Reddit: isMobile ? 'icon-search-reddit-inactive-24' : 'icon-search-reddit-inactive-16',
+  Twitter: isMobile ? 'icon-search-twitter-inactive-24' : 'icon-search-twitter-inactive-16',
+}
 
 const Service = ({service, selected, hovering, onHover, onSelect}) => {
   let backgroundColor

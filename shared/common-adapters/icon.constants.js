@@ -165,6 +165,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-dns-64.png'),
   },
+  'icon-facebook-logo-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-facebook-logo-16.png'),
+  },
   'icon-facebook-logo-24': {
     isFont: false,
     extension: 'png',
@@ -595,6 +600,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-following-32.png'),
   },
+  'icon-github-logo-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-github-logo-16.png'),
+  },
   'icon-github-logo-24': {
     isFont: false,
     extension: 'png',
@@ -614,6 +624,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-github-logo-64.png'),
+  },
+  'icon-hacker-news-logo-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-hacker-news-logo-16.png'),
   },
   'icon-hacker-news-logo-24': {
     isFont: false,
@@ -1090,6 +1105,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-proof-unfinished.png'),
   },
+  'icon-reddit-logo-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-reddit-logo-16.png'),
+  },
   'icon-reddit-logo-24': {
     isFont: false,
     extension: 'png',
@@ -1289,6 +1309,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-terminal-48.png'),
+  },
+  'icon-twitter-logo-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-twitter-logo-16.png'),
   },
   'icon-twitter-logo-24': {
     isFont: false,
@@ -1654,8 +1679,7 @@ const iconMeta_ = {
     isFont: true,
     gridSize: 24,
     charCode: 0xe937,
-  },/* eslint-enable */
-  
+  } /* eslint-enable */,
 }
 
 export type IconType = $Keys<typeof iconMeta_>
