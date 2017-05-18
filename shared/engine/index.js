@@ -451,7 +451,7 @@ class FakeEngine {
   setFailOnError() {}
   listenOnConnect() {}
   listenOnDisconnect() {}
-  listenOnNotconnected() {}
+  listenOnNotConnected() {}
   setIncomingHandler() {}
   createSession() {
     return new Session(0, {}, null, () => {}, () => {})
