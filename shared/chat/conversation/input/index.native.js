@@ -108,7 +108,6 @@ const Typing = ({typing}) => (
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
-      backgroundColor: globalColors.black_05,
       borderRadius: 10,
       height: 20,
       justifyContent: 'center',
