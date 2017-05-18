@@ -99,10 +99,13 @@ function redditInjectProfile(parent, user) {
   button.className = "keybase-chat";
   button.href = `keybase://${user.query()}/`;
   button.innerText = "keybase chat";
-  button.style = "line-height: 2em;";
   installChatButton([button], user);
 
-  profileHeader.parentNode.insertBefore(button, profileHeader.nextSibling);
+  const container = document.createElement("p");
+  container.style = "line-height: 2em;";
+  container.appendChild(button);
+
+  profileHeader.parentNode.insertBefore(container, profileHeader.nextSibling);
 }
 
 function keybaseInjectProfile(parent, user) {
