@@ -59,7 +59,7 @@ function setupAvatar() {
 function setupApp(store) {
   setupSource()
   disableDragDrop()
-  var eng = makeEngine()
+  const eng = makeEngine()
   loadPerf()
   setupAvatar()
 
@@ -94,14 +94,13 @@ function setupApp(store) {
     })
   })
 
-  if (os.platform() === 'win32') {
-    // After a delay, see if we're connected, and try starting keybase if not
-    setTimeout(() => {
-      eng.listenOnNotConnected('win-service-check', () => {
-        ipcRenderer.send('win-service-check')
-      })
-    }, 3 * 1000)
-  }
+  // After a delay, see if we're connected, and try starting keybase if not
+  setTimeout(() => {
+    eng.listenOnNotConnected('kb-service-check', () => {
+      ipcRenderer.send('kb-service-check')
+    })
+  }, 3 * 1000)
+
 
   // Run installer
   ipcRenderer.on('installed', (event, message) => {
