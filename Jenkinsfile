@@ -298,14 +298,14 @@ def runNixTest(prefix) {
         dir('libkbfs') {
             sh 'go test -i'
             sh 'go test -race -c'
-            sh './libkbfs.test -test.timeout 3m'
+            sh './libkbfs.test -test.timeout 5m'
         }
     }
     tests[prefix+'libfuse'] = {
         dir('libfuse') {
             sh 'go test -i'
             sh 'go test -c'
-            sh './libfuse.test -test.timeout 2m'
+            sh './libfuse.test -test.timeout 3m'
         }
     }
     tests[prefix+'simplefs'] = {
