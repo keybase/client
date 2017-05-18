@@ -16,11 +16,9 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
 
       const count = (badgeState.conversations || []).reduce((total, c) => total + c.UnreadMessages, 0)
 
-      if (count !== -1) {
-        RNPN.setApplicationIconBadgeNumber(count)
-        if (count === 0) {
-          RNPN.cancelAllLocalNotifications()
-        }
+      RNPN.setApplicationIconBadgeNumber(count)
+      if (count === 0) {
+        RNPN.cancelAllLocalNotifications()
       }
     },
   }
