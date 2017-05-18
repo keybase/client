@@ -48,6 +48,9 @@ protocol Common {
   @typedef("string")
   record TeamID {}
 
+  @typedef("string")
+  record UserOrTeamID {}
+
   fixed Bytes32(32);
 
   record Text {
@@ -185,6 +188,11 @@ protocol Common {
       // per-user secrets one for every generation.
       @lint("ignore")
       array<PerUserKey> perUserKeys;
+  }
+
+  record UserOrTeamLite {
+      UserOrTeamID id;
+      string username;
   }
 
   record RemoteTrack {

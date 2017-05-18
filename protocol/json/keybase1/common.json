@@ -102,6 +102,12 @@
       "typedef": "string"
     },
     {
+      "type": "record",
+      "name": "UserOrTeamID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
       "type": "fixed",
       "name": "Bytes32",
       "size": "32"
@@ -454,6 +460,20 @@
           },
           "name": "perUserKeys",
           "lint": "ignore"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserOrTeamLite",
+      "fields": [
+        {
+          "type": "UserOrTeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "username"
         }
       ]
     },

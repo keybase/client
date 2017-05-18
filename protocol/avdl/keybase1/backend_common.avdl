@@ -11,7 +11,7 @@ protocol backendCommon {
   @lint("ignore")
   record BlockIdCombo{
     string blockHash;
-    UID chargedTo;
+    UserOrTeamID chargedTo;
     BlockType blockType;
   }
 
