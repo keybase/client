@@ -1107,6 +1107,21 @@ export function appStateUpdateAppStateRpcPromise (request: $Exact<requestCommon 
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.appState.updateAppState', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function badgerGetBadgeStateRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: badgerGetBadgeStateResult) => void}>) {
+  engineRpcOutgoing('keybase.1.badger.getBadgeState', request)
+}
+
+export function badgerGetBadgeStateRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: badgerGetBadgeStateResult) => void}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.badger.getBadgeState', request)
+}
+export function badgerGetBadgeStateRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: badgerGetBadgeStateResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.badger.getBadgeState', request, callback, incomingCallMap) })
+}
+
+export function badgerGetBadgeStateRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: badgerGetBadgeStateResult) => void}>): Promise<badgerGetBadgeStateResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.badger.getBadgeState', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function blockAddReferenceRpc (request: Exact<requestCommon & requestErrorCallback & {param: blockAddReferenceRpcParam}>) {
   engineRpcOutgoing('keybase.1.block.addReference', request)
 }
@@ -6596,6 +6611,7 @@ type apiserverGetResult = APIRes
 type apiserverGetWithSessionResult = APIRes
 type apiserverPostJSONResult = APIRes
 type apiserverPostResult = APIRes
+type badgerGetBadgeStateResult = BadgeState
 type blockArchiveReferenceResult = ?Array<BlockReference>
 type blockArchiveReferenceWithCountResult = DowngradeReferenceRes
 type blockBlockPingResult = BlockPingResponse
@@ -6759,6 +6775,7 @@ export type rpc =
   | apiserverPostJSONRpc
   | apiserverPostRpc
   | appStateUpdateAppStateRpc
+  | badgerGetBadgeStateRpc
   | blockAddReferenceRpc
   | blockArchiveReferenceRpc
   | blockArchiveReferenceWithCountRpc
