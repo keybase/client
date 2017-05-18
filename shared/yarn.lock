@@ -5856,9 +5856,9 @@ react-list@0.8.0:
   version "0.8.0"
   resolved "https://registry.yarnpkg.com/react-list/-/react-list-0.8.0.tgz#1e99fd48ada5864fdb9f462eda69f8f193483c09"
 
-react-native-camera@0.6.0:
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/react-native-camera/-/react-native-camera-0.6.0.tgz#dd2760b7857d660761c78f2da575b494fdc8dcb5"
+react-native-camera@0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/react-native-camera/-/react-native-camera-0.8.0.tgz#ba5932df9df5a4a3af0b1bc3fc96559ed9699314"
 
 react-native-dismiss-keyboard@1.0.0:
   version "1.0.0"
@@ -5883,9 +5883,9 @@ react-native-fetch-blob@0.10.4:
     base-64 "0.1.0"
     glob "^7.0.6"
 
-react-native-image-picker@0.25.7:
-  version "0.25.7"
-  resolved "https://registry.yarnpkg.com/react-native-image-picker/-/react-native-image-picker-0.25.7.tgz#1475fd72111a74f434598f2c99453998ac21b599"
+react-native-image-picker@0.26.3:
+  version "0.26.3"
+  resolved "https://registry.yarnpkg.com/react-native-image-picker/-/react-native-image-picker-0.26.3.tgz#0ad2eede49501a7046d8046a73813696539c3dcd"
 
 "react-native-push-notification@git://github.com/keybase/react-native-push-notification#eedae53f4346223b5aee60ef2702ecc47a01fcd2":
   version "2.2.1"
