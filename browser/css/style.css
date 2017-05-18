@@ -231,6 +231,6 @@ a.keybase-chat {
 }
 
 a.keybase-chat:hover {
-  text-decoration: none;
+  text-decoration: none !important;
   background-color: #52afff;
 }

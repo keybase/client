@@ -58,6 +58,9 @@ function init() {
         case "twitter":
           twitterInjectProfile(document, user);
           break;
+        case "keybase":
+          keybaseInjectProfile(document, user);
+          break;
       }
     }
   });
@@ -68,6 +71,19 @@ window.addEventListener('load', init);
 let openChat = null;
 
 // Site-specific DOM injectors:
+
+function keybaseInjectProfile(parent, user) {
+  const bio = document.getElementsByClassName("bio")[0];
+
+  const container = document.createElement("div");
+  container.style = "margin: 6px;";
+  container.innerHTML = `
+    <a href="keybase://${user.query()}/" class="keybase-chat">keybase chat</a>
+  `;
+  installChatButton(container.getElementsByClassName("keybase-chat"), user, false /* nudgeSupported */);
+
+  bio.parentNode.insertBefore(container, bio);
+}
 
 function twitterInjectProfile(parent, user) {
   const container = document.querySelector(".ProfileHeaderCard-screenname");
