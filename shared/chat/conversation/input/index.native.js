@@ -103,7 +103,22 @@ class ConversationInput extends Component<void, Props, void> {
   }
 }
 
-const Typing = ({typing}) => <Text type="BodySmall" style={{color: globalColors.grey}}>....</Text>
+const Typing = ({typing}) => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      backgroundColor: globalColors.black_05,
+      borderRadius: 10,
+      height: 20,
+      justifyContent: 'center',
+      paddingLeft: globalMargins.tiny,
+      paddingRight: globalMargins.tiny,
+    }}
+  >
+    <Icon type="icon-typing-24" style={{width: 20}} />
+  </Box>
+)
 
 const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) =>
   text

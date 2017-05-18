@@ -1210,6 +1210,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-twitter-logo-64.png'),
   },
+  'icon-typing-24': {
+    isFont: false,
+    extension: 'gif',
+    require: require('../images/icons/icon-typing-24.gif'),
+  },
   'icon-update-64': {
     isFont: false,
     extension: 'png',
@@ -1549,7 +1554,7 @@ const iconMeta_ = {
     isFont: true,
     gridSize: 24,
     charCode: 0xe937,
-  },
+  } /* eslint-enable */,
 }
 
 export type IconType = $Keys<typeof iconMeta_>
