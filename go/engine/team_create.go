@@ -209,7 +209,6 @@ func boxTeamSharedSecret(secret []byte, senderKey libkb.GenericKey, recipients m
 		binary.BigEndian.PutUint32(counterBytes[:], counter)
 		copy(nonce[:20], noncePrefix)
 		copy(nonce[20:24], counterBytes[:])
-		// TODO: pack [ 1, <per-user-seqno>, <nonce-bottom-4-bytes>, <box of current shared team secret> ]
 		ctext := box.Seal(nil, secret, &nonce, ((*[32]byte)(&recipientPerUserNaclKeypair.Public)), ((*[32]byte)(senderNaclDHKey.Private)))
 		boxArray := []interface{}{libkb.SharedTeamKeyBoxVersion1, recipientPerUserKey.Seqno, counterBytes[:], ctext}
 		encodedArray, err := libkb.MsgpackEncode(boxArray)
