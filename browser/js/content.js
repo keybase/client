@@ -48,25 +48,9 @@ function init() {
 
     // Inject profile chat buttons?
     if (options["profile-chat-buttons"] !== false && user) { // undefined defaults to true
-      switch (user.origin) {
-        case "hackernews":
-          hackernewsInjectProfile(document, user);
-          break;
-        case "github":
-          githubInjectProfile(document, user);
-          break;
-        case "twitter":
-          twitterInjectProfile(document, user);
-          break;
-        case "keybase":
-          keybaseInjectProfile(document, user);
-          break;
-        case "reddit":
-          redditInjectProfile(document, user);
-          break;
-        case "facebook":
-          facebookInjectProfile(document, user);
-          break;
+      const injectFn = profileInject[user.origin];
+      if (injectFn !== undefined) {
+        injectFn(user);
       }
     }
   });
@@ -75,121 +59,6 @@ window.addEventListener('load', init);
 
 // Global state of which chat window is currently open.
 let openChat = null;
-
-// Site-specific DOM injectors:
-
-function facebookInjectProfile(parent, user) {
-  const actions = document.querySelector(".actions");
-  if (!actions) return;
-
-  const button = document.createElement("a");
-  button.className = "keybase-chat";
-  button.href = `keybase://${user.query()}/`;
-  button.innerText = "keybase chat";
-  installChatButton([button], user);
-
-  actions.insertBefore(button, actions.firstChild);
-}
-
-function redditInjectProfile(parent, user) {
-  const profileHeader = document.querySelector("h1");
-  if (!profileHeader) return;
-
-  const button = document.createElement("a");
-  button.className = "keybase-chat";
-  button.href = `keybase://${user.query()}/`;
-  button.innerText = "keybase chat";
-  installChatButton([button], user);
-
-  const container = document.createElement("p");
-  container.style = "line-height: 2em;";
-  container.appendChild(button);
-
-  profileHeader.parentNode.insertBefore(container, profileHeader.nextSibling);
-}
-
-function keybaseInjectProfile(parent, user) {
-  const preinstalled = document.getElementsByClassName("keybase-chat-open");
-  if (preinstalled.length > 0) {
-    installChatButton([button], user);
-    return;
-  }
-
-  // Keybase button is special to fit our UI until we get a placeholder to
-  // install into.
-  for (const wrapper of document.querySelectorAll(".track-action-wrapper")) {
-    const button = document.createElement("a");
-    button.className = "btn btn-md btn-default keybase-profile-chat";
-    button.href = `keybase://${user.query()}/`;
-    button.innerText = "Keybase Chat";
-    installChatButton([button], user);
-
-    const lastButton = wrapper.children[wrapper.children.length-1];
-    wrapper.insertBefore(button, lastButton);
-  }
-}
-
-function twitterInjectProfile(parent, user) {
-  const container = document.querySelector(".ProfileHeaderCard-screenname");
-  if (!container) return;
-
-  const button = document.createElement("a");
-  button.className = "keybase-chat";
-  button.href = `keybase://${user.query()}/`;
-  button.innerText = "keybase chat";
-  installChatButton([button], user);
-
-  container.appendChild(button);
-}
-
-function githubInjectProfile(parent, user) {
-  const button = document.createElement("a");
-  button.className = "keybase-chat";
-  button.href = `keybase://${user.query()}/`;
-  button.innerText = "keybase chat";
-  installChatButton([button], user);
-
-  const vcard = parent.getElementsByClassName("vcard-names")[0];
-  vcard.appendChild(button);
-}
-
-
-function hackernewsInjectProfile(parent, user) {
-  const tables = parent.getElementsByTagName("tbody");
-  const profileTable = tables[tables.length-1];
-
-  // Add a "chat" button next to username
-  const userLink = profileTable.children[0].children[1];
-  userLink.innerHTML += `
-    &nbsp;<a href="keybase://${user.query()}/" class="keybase-chat">keybase chat</a>
-  `;
-
-  installChatButton(userLink.getElementsByClassName("keybase-chat"), user, false /* nudgeSupported */);
-}
-
-const redditCheckThread = /^\/r\/\w+\/comments\/\w+\//;
-function redditInjectThread(parent) {
-  // /r/<subreddit>/comments/<id>/<slug>
-  for (let c of parent.getElementsByClassName("comment")) {
-    const author = safeHTML(c.getAttribute("data-author"));
-    if (author == "") continue; // Empty
-    const buttons = c.getElementsByClassName("buttons")[0];
-
-    redditRenderChatButton(buttons, author);
-  }
-}
-
-// Render the "keybase chat reply" button with handlers.
-function redditRenderChatButton(parent, toUsername) {
-  const isLoggedIn = document.getElementsByClassName("logout").length > 0;
-  const user = new User(toUsername, "reddit");
-  const li = document.createElement("li");
-  li.className = "keybase-reply";
-  li.innerHTML = `<a href="keybase://${user.query()}/">keybase chat reply</a>`;
-
-  installChatButton(li.getElementsByTagName("a"), user, isLoggedIn);
-  parent.appendChild(li);
-}
 
 // General renderers:
 
@@ -485,37 +354,6 @@ function postRedditReply(commentNode, text) {
   // Note: Calling replyForm.submit() bypasses the onsubmit handler, so we
   // need to dispatch an event or click a submit button.
   replyForm.dispatchEvent(new Event("submit"));
-}
-
-// Install chat button opening
-function installChatButton(buttons, user, nudgeSupported) {
-  for (let b of buttons) {
-    b.addEventListener('click', function(e) {
-      e.preventDefault();
-      const chatParent = e.currentTarget.parentNode;
-
-      if (chatParent.getElementsByTagName("form").length > 0) {
-        // Current chat widget is already open, toggle it and exit
-        if (removeChat(openChat)) {
-          openChat = null;
-        }
-        return
-      } else if (openChat) {
-        // A different chat widget is open, close it and open the new one
-        if (!removeChat(openChat)) {
-          // Aborted
-          return
-        }
-      }
-
-      openChat = renderChat(chatParent, user, nudgeSupported);
-
-      // Is the widget exceeding our window width?
-      if (openChat.offsetLeft + openChat.clientWidth > window.innerWidth) {
-        openChat.style = `margin-left: -${openChat.clientWidth + 10}px`;
-      }
-    });
-  }
 }
 
 // Install closing button (usually the little "x" in the corner)
