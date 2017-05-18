@@ -63,25 +63,27 @@ function User({
         onClick={() => onClickUser(user)}
         style={userRowStyle}
       >
-        <Avatar style={avatarStyle} size={32} {...avatarProps} />
-        {name}
-        <Box
-          style={{
-            ...globalStyles.flexBoxColumn,
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'flex-end',
-            marginRight: 16,
-          }}
-        >
-          <Icon
-            onClick={e => {
-              e && e.stopPropagation()
-              onRemove(user)
+        <Box style={{...globalStyles.flexBoxRow, width: '100%'}}>
+          <Avatar style={avatarStyle} size={32} {...avatarProps} />
+          {name}
+          <Box
+            style={{
+              ...globalStyles.flexBoxColumn,
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'flex-end',
+              marginRight: 16,
             }}
-            type={'iconfont-remove'}
-            style={{color: globalColors.black_20, hoverColor: globalColors.black_60}}
-          />
+          >
+            <Icon
+              onClick={e => {
+                e && e.stopPropagation()
+                onRemove(user)
+              }}
+              type={'iconfont-remove'}
+              style={{color: globalColors.black_20, hoverColor: globalColors.black_60}}
+            />
+          </Box>
         </Box>
       </ClickableBox>
       {insertSpacing && <Box style={{height: 1}} />}

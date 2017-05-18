@@ -16,6 +16,7 @@ const ClickableBox = (props: Props & {children: any}) => {
   return (
     <FlatButton
       {...otherProps}
+      disableTouchRipple={true}
       rippleColor={'transparent'}
       hoverColor={'transparent'}
       style={{...styleFlatButton, ...style}}
