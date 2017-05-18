@@ -69,8 +69,11 @@ const dumbComponentMap: DumbComponentMap<Menubar> = {
     'Badge People': {...propsNormal, badgeInfo: {...propsNormal.badgeInfo, peopleBadge: 3}},
     'Badge Chat': {...propsNormal, badgeInfo: {...propsNormal.badgeInfo, chatBadge: 2000}},
     'Badge Device': {...propsNormal, badgeInfo: {...propsNormal.badgeInfo, deviceBadge: 3}},
-    'Badge PeopleChat': {...propsNormal, badgeInfo: {...propsNormal.badgeInfo, peopleBadge: 2, chatBadge: 3000}},
-    'LoggedOut': {
+    'Badge PeopleChat': {
+      ...propsNormal,
+      badgeInfo: {...propsNormal.badgeInfo, peopleBadge: 2, chatBadge: 3000},
+    },
+    LoggedOut: {
       ...propsNormal,
       loggedIn: false,
     },
@@ -82,5 +85,5 @@ const dumbComponentMap: DumbComponentMap<Menubar> = {
 }
 
 export default {
-  'Menubar': dumbComponentMap,
+  Menubar: dumbComponentMap,
 }

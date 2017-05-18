@@ -12,7 +12,14 @@ import {runMode} from '../../constants/platform.desktop'
 // parent process is killed.
 // Callback is optional and accepts (error, boolean), where boolean is if we
 // attempted to execute.
-export default function (path: ?string, args: any, platformOnly: any, runModeOnly: ?string, killOnExit: boolean, callback: (err: any, attempted: boolean) => void): void {
+export default function(
+  path: ?string,
+  args: any,
+  platformOnly: any,
+  runModeOnly: ?string,
+  killOnExit: boolean,
+  callback: (err: any, attempted: boolean) => void
+): void {
   const platform = os.platform()
   if (platformOnly && platform !== platformOnly) {
     console.log('Exec (%s) not available for platform: %s != %s', path, platformOnly, platform)
@@ -30,7 +37,7 @@ export default function (path: ?string, args: any, platformOnly: any, runModeOnl
     return
   }
 
-  fs.access(path, fs.X_OK, function (err) {
+  fs.access(path, fs.X_OK, function(err) {
     if (err) {
       console.log('Exec path not found (or accessible as executable):', path)
       if (callback) callback(null, false)
@@ -40,7 +47,7 @@ export default function (path: ?string, args: any, platformOnly: any, runModeOnl
     args.unshift(path)
     var cmd = args.join(' ')
     console.log('Executing:', cmd)
-    var procExec = exec(cmd, function (execErr, stdout, stderr) {
+    var procExec = exec(cmd, function(execErr, stdout, stderr) {
       if (stdout) {
         console.log('Exec (stdout):', stdout)
       }
@@ -55,7 +62,7 @@ export default function (path: ?string, args: any, platformOnly: any, runModeOnl
 
     if (killOnExit && procExec) {
       // Kill the process if parent process exits
-      process.on('exit', function () {
+      process.on('exit', function() {
         procExec.kill()
       })
     }

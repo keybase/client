@@ -6,10 +6,10 @@ import {pgpPgpStorageDismissRpc} from '../constants/types/flow-types'
 
 import type {PgpAckedMessage} from '../constants/pgp'
 
-function pgpStorageDismiss () {
+function pgpStorageDismiss() {
   // make rpc call to pgpStorageDismiss
   pgpPgpStorageDismissRpc({
-    callback: (err) => {
+    callback: err => {
       if (err) {
         console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
       }
@@ -17,11 +17,11 @@ function pgpStorageDismiss () {
   })
 }
 
-function * pgpSecurityModelChangeMessageSaga ({payload: {hitOk}}: PgpAckedMessage): any {
+function* pgpSecurityModelChangeMessageSaga({payload: {hitOk}}: PgpAckedMessage): any {
   pgpStorageDismiss()
 }
 
-function * pgpSaga (): any {
+function* pgpSaga(): any {
   yield safeTakeEvery(Constants.pgpAckedMessage, pgpSecurityModelChangeMessageSaga)
 }
 

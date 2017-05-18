@@ -8,16 +8,26 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {Props} from './header-hoc'
 
-function HeaderHoc<P> (WrappedComponent: ReactClass<P>) {
+function HeaderHoc<P>(WrappedComponent: ReactClass<P>) {
   return ({onBack, onCancel, headerStyle, title, theme = 'light', ...restProps}: Props & P) => (
     <Box style={_containerStyle}>
       <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
-        {onBack && <BackButton key='back' onClick={onBack} style={{..._backButtonIconStyle, ..._backButtonIconStyleThemed[theme]}} />}
-        {onCancel && <Icon style={{..._styleClose, ..._styleCloseThemed[theme]}} type='iconfont-close' onClick={onCancel} />}
+        {onBack &&
+          <BackButton
+            key="back"
+            onClick={onBack}
+            style={{..._backButtonIconStyle, ..._backButtonIconStyleThemed[theme]}}
+          />}
+        {onCancel &&
+          <Icon
+            style={{..._styleClose, ..._styleCloseThemed[theme]}}
+            type="iconfont-close"
+            onClick={onCancel}
+          />}
         {title &&
-        <Box style={_titleStyle}>
-          <Text type='Header'>{title}</Text>
-        </Box>}
+          <Box style={_titleStyle}>
+            <Text type="Header">{title}</Text>
+          </Box>}
       </Box>
       <WrappedComponent {...restProps} theme={theme} onBack={onBack} onCancel={onCancel} />
     </Box>
@@ -40,10 +50,10 @@ const _headerStyle = {
 }
 
 const _headerStyleThemed = {
-  'dark': {
+  dark: {
     backgroundColor: globalColors.darkBlue3,
   },
-  'light': {
+  light: {
     backgroundColor: globalColors.white,
   },
 }
@@ -53,10 +63,10 @@ const _backButtonIconStyle = {
 }
 
 const _backButtonIconStyleThemed = {
-  'dark': {
+  dark: {
     color: globalColors.white,
   },
-  'light': {
+  light: {
     color: globalColors.black_40,
   },
 }
@@ -69,10 +79,10 @@ const _styleClose = {
 }
 
 const _styleCloseThemed = {
-  'dark': {
+  dark: {
     color: globalColors.white_40,
   },
-  'light': {
+  light: {
     color: globalColors.black_20,
   },
 }

@@ -110,11 +110,16 @@ func SignupFakeUserWithArg(tc libkb.TestContext, fu *FakeUser, arg SignupEngineR
 }
 
 func CreateAndSignupFakeUser(tc libkb.TestContext, prefix string) *FakeUser {
+	fu, _ := CreateAndSignupFakeUser2(tc, prefix)
+	return fu
+}
+
+func CreateAndSignupFakeUser2(tc libkb.TestContext, prefix string) (*FakeUser, *SignupEngine) {
 	fu := NewFakeUserOrBust(tc.T, prefix)
 	tc.G.Log.Debug("New test user: %s / %s", fu.Username, fu.Email)
 	arg := MakeTestSignupEngineRunArg(fu)
-	_ = SignupFakeUserWithArg(tc, fu, arg)
-	return fu
+	eng := SignupFakeUserWithArg(tc, fu, arg)
+	return fu, eng
 }
 
 func CreateAndSignupFakeUserPaper(tc libkb.TestContext, prefix string) *FakeUser {
@@ -194,6 +199,15 @@ func CreateAndSignupFakeUserCustomArg(tc libkb.TestContext, prefix string, fmod 
 		tc.T.Fatal(err)
 	}
 	return fu, s.signingKey, s.encryptionKey
+}
+
+func CreateAndSignupFakeUserWithPassphrase(tc libkb.TestContext, prefix, passphrase string) *FakeUser {
+	fu := NewFakeUserOrBust(tc.T, prefix)
+	fu.Passphrase = passphrase
+	tc.G.Log.Debug("New test user: %s / %s", fu.Username, fu.Email)
+	arg := MakeTestSignupEngineRunArg(fu)
+	SignupFakeUserWithArg(tc, fu, arg)
+	return fu
 }
 
 func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI, g *libkb.GlobalContext) error {

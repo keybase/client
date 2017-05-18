@@ -583,7 +583,24 @@ func (u *User) UpdateEmailProof(key GenericKey, newEmail string) (*jsonw.Wrapper
 	return ret, nil
 }
 
-func (u *User) TeamRootSig(key GenericKey, teamSection *jsonw.Wrapper) (*jsonw.Wrapper, error) {
+type TeamSection struct {
+	Name    string          `json:"name"`
+	ID      keybase1.TeamID `json:"id"`
+	Members struct {
+		Owner  []NameWithEldestSeqno `json:"owner"`
+		Admin  []NameWithEldestSeqno `json:"admin"`
+		Writer []NameWithEldestSeqno `json:"writer"`
+		Reader []NameWithEldestSeqno `json:"reader"`
+	} `json:"members"`
+	PerTeamKey struct {
+		Generation    int          `json:"generation"`
+		EncryptionKID keybase1.KID `json:"encryption_kid"`
+		SigningKID    keybase1.KID `json:"signing_kid"`
+		ReverseSig    *string      `json:"reverse_sig"`
+	} `json:"per_team_key"`
+}
+
+func (u *User) TeamRootSig(key GenericKey, teamSection TeamSection) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
 		LinkType:   LinkTypeTeamRoot,
@@ -594,23 +611,37 @@ func (u *User) TeamRootSig(key GenericKey, teamSection *jsonw.Wrapper) (*jsonw.W
 	if err != nil {
 		return nil, err
 	}
+
+	teamSectionJSON, err := jsonw.WrapperFromObject(teamSection)
+	if err != nil {
+		return nil, err
+	}
+
 	body := ret.AtKey("body")
-	body.SetKey("team", teamSection)
+	body.SetKey("team", teamSectionJSON)
+
+	// Non-public links need to explicitly specify a seq_type.
+	ret.SetKey("seq_type", jsonw.NewInt(SeqTypeSemiprivate))
+
 	return ret, nil
 }
 
 // the first 15 bytes of the sha256 of the lowercase team name, followed by the byte 0x24, encoded as hex
-func RootTeamIDFromName(name string) string {
+func RootTeamIDFromName(name string) keybase1.TeamID {
 	sum := sha256.Sum256([]byte(strings.ToLower(name)))
-	return hex.EncodeToString(sum[0:15]) + "24"
+	return keybase1.TeamID(hex.EncodeToString(sum[0:15]) + "24")
 }
 
 type SigMultiItem struct {
-	Sig        string `json:"sig"`
-	SigningKID string `json:"signing_kid"`
-	Type       string `json:"type"`
-	SigInner   string `json:"sig_inner"`
-	TeamID     string `json:"team_id"`
+	Sig        string          `json:"sig"`
+	SigningKID keybase1.KID    `json:"signing_kid"`
+	Type       string          `json:"type"`
+	SigInner   string          `json:"sig_inner"`
+	TeamID     keybase1.TeamID `json:"team_id"`
+	PublicKeys struct {
+		Encryption keybase1.KID `json:"encryption"`
+		Signing    keybase1.KID `json:"signing"`
+	} `json:"public_keys"`
 }
 
 // PerUserKeyProof creates a proof introducing a new per-user-key generation.
@@ -647,4 +678,61 @@ func PerUserKeyProof(me *User,
 	body.SetKey("per_user_key", pukSection)
 
 	return ret, nil
+}
+
+// Make a per-user key proof with a reverse sig.
+// Modifies the User `me` with a sigchain bump and key delegation.
+// Returns a JSONPayload ready for use in "sigs" in sig/multi.
+func PerUserKeyProofReverseSigned(me *User, perUserKeySeed PerUserKeySeed, generation keybase1.PerUserKeyGeneration,
+	signer GenericKey) (JSONPayload, error) {
+
+	pukSigKey, err := perUserKeySeed.DeriveSigningKey()
+	if err != nil {
+		return nil, err
+	}
+
+	pukEncKey, err := perUserKeySeed.DeriveDHKey()
+	if err != nil {
+		return nil, err
+	}
+
+	// Make reverse sig
+	jwRev, err := PerUserKeyProof(me, pukSigKey.GetKID(), pukEncKey.GetKID(), generation, signer, nil)
+	if err != nil {
+		return nil, err
+	}
+	reverseSig, _, _, err := SignJSON(jwRev, pukSigKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make sig
+	jw, err := PerUserKeyProof(me, pukSigKey.GetKID(), pukEncKey.GetKID(), generation, signer, &reverseSig)
+	if err != nil {
+		return nil, err
+	}
+	sig, sigID, linkID, err := SignJSON(jw, signer)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update the user locally
+	me.SigChainBump(linkID, sigID)
+	me.localDelegatePerUserKey(keybase1.PerUserKey{
+		Gen:    int(generation),
+		Seqno:  int(me.GetSigChainLastKnownSeqno()),
+		SigKID: pukSigKey.GetKID(),
+		EncKID: pukEncKey.GetKID(),
+	})
+
+	publicKeysEntry := make(JSONPayload)
+	publicKeysEntry["signing"] = pukSigKey.GetKID().String()
+	publicKeysEntry["encryption"] = pukEncKey.GetKID().String()
+
+	res := make(JSONPayload)
+	res["sig"] = sig
+	res["signing_kid"] = signer.GetKID().String()
+	res["type"] = LinkTypePerUserKey
+	res["public_keys"] = publicKeysEntry
+	return res, nil
 }

@@ -10,11 +10,7 @@ const marginColor = (user: string, isYou: boolean, isFollowing: boolean, isBroke
   return isFollowing ? globalColors.green2 : globalColors.blue
 }
 
-const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => (
+const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) =>
   isYou ? globalColors.black_75 : marginColor(user, isYou, isFollowing, isBroken)
-)
 
-export {
-  marginColor,
-  colorForAuthor,
-}
+export {marginColor, colorForAuthor}

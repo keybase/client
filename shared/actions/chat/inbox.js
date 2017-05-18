@@ -21,7 +21,9 @@ import type {SagaGenerator} from '../../constants/types/saga'
 const _getInboxQuery = {
   computeActiveList: true,
   readOnly: false,
-  status: Object.keys(ChatTypes.CommonConversationStatus).filter(k => !['ignored', 'blocked', 'reported'].includes(k)).map(k => ChatTypes.CommonConversationStatus[k]),
+  status: Object.keys(ChatTypes.CommonConversationStatus)
+    .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
+    .map(k => ChatTypes.CommonConversationStatus[k]),
   tlfVisibility: ChatTypes.CommonTLFVisibility.private,
   topicType: ChatTypes.CommonTopicType.chat,
   unreadOnly: false,
@@ -30,7 +32,7 @@ const _getInboxQuery = {
 let _backgroundLoopTask
 
 // Load the inbox if we haven't yet, mostly done by the UI
-function * onInitialInboxLoad (): SagaGenerator<any, any> {
+function* onInitialInboxLoad(): SagaGenerator<any, any> {
   try {
     yield put(Creators.inboxStale())
     if (!isMobile) {
@@ -46,12 +48,16 @@ function * onInitialInboxLoad (): SagaGenerator<any, any> {
 }
 
 // On desktop we passively unbox inbox items
-function * _backgroundUnboxLoop () {
+function* _backgroundUnboxLoop() {
   try {
     while (true) {
       yield call(delay, 10 * 1000)
       const inboxes = yield select(state => state.chat.get('inbox'))
-      const conversationIDKeys = inboxes.filter(i => i.state === 'untrusted').take(10).map(i => i.conversationIDKey).toArray()
+      const conversationIDKeys = inboxes
+        .filter(i => i.state === 'untrusted')
+        .take(10)
+        .map(i => i.conversationIDKey)
+        .toArray()
 
       if (conversationIDKeys.length) {
         yield call(unboxConversations, conversationIDKeys)
@@ -65,10 +71,15 @@ function * _backgroundUnboxLoop () {
 }
 
 // Update inboxes that have been reset
-function * _updateFinalized (inbox: ChatTypes.GetInboxLocalRes) {
-  const finalizedState: Constants.FinalizedState = Map((inbox.conversationsUnverified || []).reduce((map, convoUnverified) => {
-    return map.set(Constants.conversationIDToKey(convoUnverified.metadata.conversationID), convoUnverified.metadata.finalizeInfo)
-  }, Map()))
+function* _updateFinalized(inbox: ChatTypes.GetInboxLocalRes) {
+  const finalizedState: Constants.FinalizedState = Map(
+    (inbox.conversationsUnverified || []).reduce((map, convoUnverified) => {
+      return map.set(
+        Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
+        convoUnverified.metadata.finalizeInfo
+      )
+    }, Map())
+  )
 
   if (finalizedState.count()) {
     yield put(Creators.updateFinalizedState(finalizedState))
@@ -76,52 +87,57 @@ function * _updateFinalized (inbox: ChatTypes.GetInboxLocalRes) {
 }
 
 // Loads the untrusted inbox only
-function * onInboxStale (): SagaGenerator<any, any> {
+function* onInboxStale(): SagaGenerator<any, any> {
   try {
     yield put(Creators.setInboxUntrustedState('loading'))
 
-    const loadInboxChanMap = ChatTypes.localGetInboxNonblockLocalRpcChannelMap([
-      'chat.1.chatUi.chatInboxUnverified',
-      'finished',
-    ], {
-      param: {
-        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-        maxUnbox: 0,
-        query: _getInboxQuery,
-      },
-    })
+    const loadInboxChanMap = ChatTypes.localGetInboxNonblockLocalRpcChannelMap(
+      ['chat.1.chatUi.chatInboxUnverified', 'finished'],
+      {
+        param: {
+          identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+          maxUnbox: 0,
+          query: _getInboxQuery,
+        },
+      }
+    )
 
     const incoming = yield loadInboxChanMap.race()
-    incoming.chatInboxUnverified.response.result()
-
-    if (!incoming.chatInboxUnverified) {
+    if (!incoming.chatInboxUnverified || !incoming.chatInboxUnverified.response) {
       throw new Error("Can't load inbox")
     }
+    incoming.chatInboxUnverified.response.result()
 
     const inbox: ChatTypes.GetInboxLocalRes = incoming.chatInboxUnverified.params.inbox
     yield call(_updateFinalized, inbox)
 
     const author = yield select(usernameSelector)
-    const conversations: List<Constants.InboxState> = List((inbox.conversationsUnverified || []).map(c => {
-      if (c.metadata.visibility !== ChatTypes.CommonTLFVisibility.private) { // private chats only
-        return null
-      }
+    const conversations: List<Constants.InboxState> = List(
+      (inbox.conversationsUnverified || [])
+        .map(c => {
+          if (c.metadata.visibility !== ChatTypes.CommonTLFVisibility.private) {
+            // private chats only
+            return null
+          }
 
-      const msgMax = c.maxMsgSummaries && c.maxMsgSummaries.length && c.maxMsgSummaries[0]
-      if (!msgMax || msgMax.tlfName.includes('#')) { // We don't support mixed reader/writers
-        return null
-      }
+          const msgMax = c.maxMsgSummaries && c.maxMsgSummaries.length && c.maxMsgSummaries[0]
+          if (!msgMax || msgMax.tlfName.includes('#')) {
+            // We don't support mixed reader/writers
+            return null
+          }
 
-      return new Constants.InboxStateRecord({
-        conversationIDKey: Constants.conversationIDToKey(c.metadata.conversationID),
-        info: null,
-        participants: List(parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username)),
-        snippet: ' ',
-        state: 'untrusted',
-        status: Constants.ConversationStatusByEnum[c.metadata.status || 0],
-        time: c.readerInfo && c.readerInfo.mtime,
-      })
-    }).filter(Boolean))
+          return new Constants.InboxStateRecord({
+            conversationIDKey: Constants.conversationIDToKey(c.metadata.conversationID),
+            info: null,
+            participants: List(parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username)),
+            snippet: ' ',
+            state: 'untrusted',
+            status: Constants.ConversationStatusByEnum[c.metadata.status || 0],
+            time: c.readerInfo && c.readerInfo.mtime,
+          })
+        })
+        .filter(Boolean)
+    )
 
     yield put(Creators.setInboxUntrustedState('loaded'))
     yield put(Creators.loadedInbox(conversations))
@@ -139,11 +155,16 @@ function * onInboxStale (): SagaGenerator<any, any> {
   }
 }
 
-function * onGetInboxAndUnbox ({payload: {conversationIDKeys}}: Constants.GetInboxAndUnbox): SagaGenerator<any, any> {
+function* onGetInboxAndUnbox({
+  payload: {conversationIDKeys},
+}: Constants.GetInboxAndUnbox): SagaGenerator<any, any> {
   yield call(unboxConversations, conversationIDKeys)
 }
 
-function _toSupersedeInfo (conversationIDKey: Constants.ConversationIDKey, supersedeData: Array<ChatTypes.ConversationMetadata>): ?Constants.SupersedeInfo {
+function _toSupersedeInfo(
+  conversationIDKey: Constants.ConversationIDKey,
+  supersedeData: Array<ChatTypes.ConversationMetadata>
+): ?Constants.SupersedeInfo {
   const parsed = supersedeData
     .filter(md => md.idTriple.topicType === ChatTypes.CommonTopicType.chat && md.finalizeInfo)
     .map(md => ({
@@ -154,7 +175,7 @@ function _toSupersedeInfo (conversationIDKey: Constants.ConversationIDKey, super
 }
 
 // Update an inbox item
-function * processConversation (c: ChatTypes.ConversationLocal): SagaGenerator<any, any> {
+function* processConversation(c: ChatTypes.ConversationLocal): SagaGenerator<any, any> {
   const conversationIDKey = Constants.conversationIDToKey(c.info.id)
 
   const supersedes = _toSupersedeInfo(conversationIDKey, c.supersedes || [])
@@ -189,7 +210,7 @@ function * processConversation (c: ChatTypes.ConversationLocal): SagaGenerator<a
 }
 
 // Gui is showing boxed content, find some rows to unbox
-function * untrustedInboxVisible (action: Constants.UntrustedInboxVisible): SagaGenerator<any, any> {
+function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGenerator<any, any> {
   const {conversationIDKey, rowsVisible} = action.payload
   const inboxes = yield select(state => state.chat.get('inbox'))
 
@@ -200,7 +221,11 @@ function * untrustedInboxVisible (action: Constants.UntrustedInboxVisible): Saga
 
   // Collect items to unbox
   const total = rowsVisible * 2
-  const conversationIDKeys = inboxes.slice(idx, idx + total).map(i => i.state === 'untrusted' ? i.conversationIDKey : null).filter(Boolean).toArray()
+  const conversationIDKeys = inboxes
+    .slice(idx, idx + total)
+    .map(i => (i.state === 'untrusted' ? i.conversationIDKey : null))
+    .filter(Boolean)
+    .toArray()
 
   if (conversationIDKeys.length) {
     yield call(unboxConversations, conversationIDKeys)
@@ -208,24 +233,29 @@ function * untrustedInboxVisible (action: Constants.UntrustedInboxVisible): Saga
 }
 
 // Loads the trusted inbox segments
-function * unboxConversations (conversationIDKeys: Array<Constants.ConversationIDKey>): Generator<any, any, any> {
+function* unboxConversations(
+  conversationIDKeys: Array<Constants.ConversationIDKey>
+): Generator<any, any, any> {
   conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
   yield put(Creators.setUnboxing(conversationIDKeys, false))
 
-  const loadInboxChanMap = ChatTypes.localGetInboxNonblockLocalRpcChannelMap([
-    'chat.1.chatUi.chatInboxUnverified',
-    'chat.1.chatUi.chatInboxConversation',
-    'chat.1.chatUi.chatInboxFailed',
-    'finished',
-  ], {
-    param: {
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-      query: {
-        ..._getInboxQuery,
-        convIDs: conversationIDKeys.map(Constants.keyToConversationID),
+  const loadInboxChanMap = ChatTypes.localGetInboxNonblockLocalRpcChannelMap(
+    [
+      'chat.1.chatUi.chatInboxUnverified',
+      'chat.1.chatUi.chatInboxConversation',
+      'chat.1.chatUi.chatInboxFailed',
+      'finished',
+    ],
+    {
+      param: {
+        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+        query: {
+          ..._getInboxQuery,
+          convIDs: conversationIDKeys.map(Constants.keyToConversationID),
+        },
       },
-    },
-  })
+    }
+  )
 
   while (true) {
     const incoming = yield loadInboxChanMap.race({timeout: 30 * 1000})
@@ -234,13 +264,23 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
     if (incoming.chatInboxUnverified) {
       incoming.chatInboxUnverified.response.result()
     } else if (incoming.chatInboxConversation) {
-      requestIdleCallback(() => { incoming.chatInboxConversation.response.result() }, {timeout: 100})
+      requestIdleCallback(
+        () => {
+          incoming.chatInboxConversation.response.result()
+        },
+        {timeout: 100}
+      )
       yield call(delay, 1)
       yield call(processConversation, incoming.chatInboxConversation.params.conv)
       // find it
     } else if (incoming.chatInboxFailed) {
       console.log('chatInboxFailed', incoming.chatInboxFailed)
-      requestIdleCallback(() => { incoming.chatInboxFailed.response.result() }, {timeout: 100})
+      requestIdleCallback(
+        () => {
+          incoming.chatInboxFailed.response.result()
+        },
+        {timeout: 100}
+      )
       yield call(delay, 1)
       const error = incoming.chatInboxFailed.params.error
       const conversationIDKey = Constants.conversationIDToKey(incoming.chatInboxFailed.params.convID)
@@ -248,7 +288,9 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
       // Valid inbox item for rekey errors only
       const conversation = new Constants.InboxStateRecord({
         conversationIDKey,
-        participants: error.rekeyInfo ? List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean)) : List(error.unverifiedTLFName.split(',')),
+        participants: error.rekeyInfo
+          ? List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
+          : List(error.unverifiedTLFName.split(',')),
         state: 'error',
         status: 'unfiled',
         time: error.remoteConv.readerInfo.mtime,
@@ -286,11 +328,12 @@ function * unboxConversations (conversationIDKeys: Array<Constants.ConversationI
 }
 
 // Convert server to our data type. Make timestamps and snippets
-function _conversationLocalToInboxState (c: ?ChatTypes.ConversationLocal): ?Constants.InboxState {
-  if (!c ||
-      c.info.visibility !== ChatTypes.CommonTLFVisibility.private || // private chats only
-      c.info.tlfName.includes('#') // We don't support mixed reader/writers
-      ) {
+function _conversationLocalToInboxState(c: ?ChatTypes.ConversationLocal): ?Constants.InboxState {
+  if (
+    !c ||
+    c.info.visibility !== ChatTypes.CommonTLFVisibility.private || // private chats only
+    c.info.tlfName.includes('#') // We don't support mixed reader/writers
+  ) {
     return null
   }
 
@@ -299,15 +342,15 @@ function _conversationLocalToInboxState (c: ?ChatTypes.ConversationLocal): ?Cons
   const toShow = List(c.maxMessages || [])
     .filter(m => m.valid && m.state === ChatTypes.LocalMessageUnboxedState.valid)
     .map((m: any) => ({body: m.valid.messageBody, time: m.valid.serverHeader.ctime}))
-    .filter(m => [
-      ChatTypes.CommonMessageType.attachment,
-      ChatTypes.CommonMessageType.text,
-    ].includes(m.body.messageType))
+    .filter(m =>
+      [ChatTypes.CommonMessageType.attachment, ChatTypes.CommonMessageType.text].includes(m.body.messageType)
+    )
     .sort((a, b) => b.time - a.time)
     .map((message: {time: number, body: ?ChatTypes.MessageBody}) => ({
       snippet: Constants.makeSnippet(message.body),
       time: message.time,
-    })).first() || {}
+    }))
+    .first() || {}
 
   return new Constants.InboxStateRecord({
     conversationIDKey,

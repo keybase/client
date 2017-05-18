@@ -463,7 +463,7 @@ const (
 
 const UserSummaryLimit = 500 // max number of user summaries in one request
 
-const MinPassphraseLength = 12
+const MinPassphraseLength = 6
 
 const TrackingRateLimitSeconds = 50
 
@@ -567,6 +567,15 @@ type PvlUnparsed struct {
 
 const SharedTeamKeyBoxVersion1 = 1
 
+const TeamDHDerivationString = "Keybase-Derived-Team-NaCl-DH-1"
+const TeamEdDSADerivationString = "Keybase-Derived-Team-NaCl-EdDSA-1"
+
 func CurrentSaltpackVersion() saltpack.Version {
 	return saltpack.Version1()
 }
+
+const (
+	SeqTypePublic      int = 1
+	SeqTypePrivate         = 2
+	SeqTypeSemiprivate     = 3
+)

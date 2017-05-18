@@ -6,12 +6,12 @@ import type {Props, NotificationType} from './standard-screen'
 
 const StandardScreen = ({theme = 'light', ...props}: Props) => {
   const topStack = [
-    !!props.notification && (<Box key='banner' style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
-      {typeof props.notification.message === 'string'
-        ? <Text style={styleBannerText} type='BodySemibold'>{props.notification.message}</Text>
-        : props.notification.message
-      }
-    </Box>),
+    !!props.notification &&
+      <Box key="banner" style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
+        {typeof props.notification.message === 'string'
+          ? <Text style={styleBannerText} type="BodySemibold">{props.notification.message}</Text>
+          : props.notification.message}
+      </Box>,
   ]
   const topStackCount = topStack.reduce((acc, x) => acc + !!x, 0)
   return (
@@ -44,10 +44,10 @@ const styleTopStack = {
 }
 
 const backgroundColorThemed = {
-  'light': {
+  light: {
     backgroundColor: globalColors.white,
   },
-  'dark': {
+  dark: {
     backgroundColor: globalColors.darkBlue3,
   },
 }
@@ -64,9 +64,7 @@ const styleBanner = (notificationType: NotificationType) => ({
   textAlign: 'center',
   zIndex: 1,
   minHeight: globalMargins.large,
-  backgroundColor: notificationType === 'error'
-    ? globalColors.red
-    : globalColors.green,
+  backgroundColor: notificationType === 'error' ? globalColors.red : globalColors.green,
 })
 
 const styleBannerText = {

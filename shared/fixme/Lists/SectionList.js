@@ -9,17 +9,17 @@
  * @providesModule SectionList
  * @flow
  */
-'use strict';
+'use strict'
 
-const MetroListView = require('./MetroListView');
-const Platform = require('Platform');
-const React = require('React');
-const VirtualizedSectionList = require('./VirtualizedSectionList');
+const MetroListView = require('./MetroListView')
+const Platform = require('Platform')
+const React = require('React')
+const VirtualizedSectionList = require('./VirtualizedSectionList')
 
-import type {ViewToken} from './ViewabilityHelper';
-import type {Props as VirtualizedSectionListProps} from './VirtualizedSectionList';
+import type {ViewToken} from './ViewabilityHelper'
+import type {Props as VirtualizedSectionListProps} from './VirtualizedSectionList'
 
-type Item = any;
+type Item = any
 
 type SectionBase<SectionItemT> = {
   // Must be provided directly on each section.
@@ -41,7 +41,7 @@ type SectionBase<SectionItemT> = {
 
   // TODO: support more optional/override props
   // onViewableItemsChanged?: ...
-};
+}
 
 type RequiredProps<SectionT: SectionBase<any>> = {
   /**
@@ -57,7 +57,7 @@ type RequiredProps<SectionT: SectionBase<any>> = {
    *     }>
    */
   sections: Array<SectionT>,
-};
+}
 
 type OptionalProps<SectionT: SectionBase<any>> = {
   /**
@@ -156,18 +156,18 @@ type OptionalProps<SectionT: SectionBase<any>> = {
    * enabled by default on iOS because that is the platform standard there.
    */
   stickySectionHeadersEnabled?: boolean,
-};
+}
 
-type Props<SectionT> = RequiredProps<SectionT>
-  & OptionalProps<SectionT>
-  & VirtualizedSectionListProps<SectionT>;
+type Props<SectionT> = RequiredProps<SectionT> &
+  OptionalProps<SectionT> &
+  VirtualizedSectionListProps<SectionT>
 
 const defaultProps = {
   ...VirtualizedSectionList.defaultProps,
   stickySectionHeadersEnabled: Platform.OS === 'ios',
-};
+}
 
-type DefaultProps = typeof defaultProps;
+type DefaultProps = typeof defaultProps
 
 /**
  * A performant interface for rendering sectioned lists, supporting the most handy features:
@@ -225,10 +225,9 @@ type DefaultProps = typeof defaultProps;
  *
  */
 class SectionList<SectionT: SectionBase<any>>
-  extends React.PureComponent<DefaultProps, Props<SectionT>, void>
-{
-  props: Props<SectionT>;
-  static defaultProps: DefaultProps = defaultProps;
+  extends React.PureComponent<DefaultProps, Props<SectionT>, void> {
+  props: Props<SectionT>
+  static defaultProps: DefaultProps = defaultProps
 
   /**
    * Scrolls to the item at the specified `sectionIndex` and `itemIndex` (within the section)
@@ -247,7 +246,7 @@ class SectionList<SectionT: SectionBase<any>>
     viewOffset?: number,
     viewPosition?: number,
   }) {
-    this._wrapperListRef.scrollToLocation(params);
+    this._wrapperListRef.scrollToLocation(params)
   }
 
   /**
@@ -256,34 +255,36 @@ class SectionList<SectionT: SectionBase<any>>
    * taps on items or by navigation actions.
    */
   recordInteraction() {
-    const listRef = this._wrapperListRef && this._wrapperListRef.getListRef();
-    listRef && listRef.recordInteraction();
+    const listRef = this._wrapperListRef && this._wrapperListRef.getListRef()
+    listRef && listRef.recordInteraction()
   }
 
   /**
    * Provides a handle to the underlying scroll responder.
    */
   getScrollResponder() {
-    const listRef = this._wrapperListRef && this._wrapperListRef.getListRef();
+    const listRef = this._wrapperListRef && this._wrapperListRef.getListRef()
     if (listRef) {
-      return listRef.getScrollResponder();
+      return listRef.getScrollResponder()
     }
   }
 
   getScrollableNode() {
-    const listRef = this._wrapperListRef && this._wrapperListRef.getListRef();
+    const listRef = this._wrapperListRef && this._wrapperListRef.getListRef()
     if (listRef) {
-      return listRef.getScrollableNode();
+      return listRef.getScrollableNode()
     }
   }
 
   render() {
-    const List = this.props.legacyImplementation ? MetroListView : VirtualizedSectionList;
-    return <List {...this.props} ref={this._captureRef} />;
+    const List = this.props.legacyImplementation ? MetroListView : VirtualizedSectionList
+    return <List {...this.props} ref={this._captureRef} />
   }
 
-  _wrapperListRef: MetroListView | VirtualizedSectionList<any>;
-  _captureRef = (ref) => { this._wrapperListRef = ref; };
+  _wrapperListRef: MetroListView | VirtualizedSectionList<any>
+  _captureRef = ref => {
+    this._wrapperListRef = ref
+  }
 }
 
-module.exports = SectionList;
+module.exports = SectionList

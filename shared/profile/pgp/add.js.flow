@@ -19,4 +19,4 @@ export type Props = {
   onNext: () => void,
 }
 
-export default class PgpAdd extends Component<void, Props, void> { }
+export default class PgpAdd extends Component<void, Props, void> {}

@@ -7,15 +7,15 @@ import type {Props} from '.'
 
 // TODO remove this for a common banner
 const Banner = ({color, backgroundColor, desc}) => (
-  <Text type='BodySemibold' style={{...stylesBanner, backgroundColor, color}}>{desc}</Text>
+  <Text type="BodySemibold" style={{...stylesBanner, backgroundColor, color}}>{desc}</Text>
 )
 
 const Header = ({name, isCurrent, isRevoked}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginBottom: 20, marginTop: 10}}>
-    <Text type='Header' style={isRevoked ? styleTitleRevoked : styleTitle}>{name}</Text>
-    {isRevoked && <Text type='Header' style={stylesMeta}>REVOKED</Text>}
+    <Text type="Header" style={isRevoked ? styleTitleRevoked : styleTitle}>{name}</Text>
+    {isRevoked && <Text type="Header" style={stylesMeta}>REVOKED</Text>}
     <Box style={{...globalStyles.flexBoxRow}}>
-      {isCurrent && <Text type='BodySmall'>Current device</Text>}
+      {isCurrent && <Text type="BodySmall">Current device</Text>}
     </Box>
   </Box>
 )
@@ -34,11 +34,16 @@ const Timeline = ({timeline}) => (
       <Box key={desc} style={{...globalStyles.flexBoxRow}}>
         <TimelineMarker idx={idx} max={timeline.length - 1} type={type} />
         <Box style={{...globalStyles.flexBoxColumn}}>
-          <Text type='Body'>{desc}</Text>
-          {(subDesc && (type === 'Added' || type === 'Revoked'))
-            ? <Text type='BodySmall'>by <Text type='BodySmall' style={{color: globalColors.black_75, fontStyle: 'italic'}}>{subDesc}</Text></Text>
-            : <Text type='BodySmall'>{subDesc}</Text>
-          }
+          <Text type="Body">{desc}</Text>
+          {subDesc && (type === 'Added' || type === 'Revoked')
+            ? <Text type="BodySmall">
+                by
+                {' '}
+                <Text type="BodySmall" style={{color: globalColors.black_75, fontStyle: 'italic'}}>
+                  {subDesc}
+                </Text>
+              </Text>
+            : <Text type="BodySmall">{subDesc}</Text>}
           <Box style={{height: 15}} />
         </Box>
       </Box>
@@ -47,14 +52,33 @@ const Timeline = ({timeline}) => (
 )
 
 const Render = ({
-  name, type, deviceID, currentDevice, timeline, revokedAt, showRevokeDevicePage, device, onBack, bannerBackgroundColor, bannerColor, bannerDesc, icon, revokeName,
+  name,
+  type,
+  deviceID,
+  currentDevice,
+  timeline,
+  revokedAt,
+  showRevokeDevicePage,
+  device,
+  onBack,
+  bannerBackgroundColor,
+  bannerColor,
+  bannerDesc,
+  icon,
+  revokeName,
 }: Props) => (
   <StandardScreen style={{...globalStyles.flexBoxColumn, alignItems: 'center'}} onBack={onBack}>
     {!!bannerDesc && <Banner color={bannerColor} backgroundColor={bannerBackgroundColor} desc={bannerDesc} />}
     <Icon type={icon} style={{marginTop: 32, opacity: revokedAt ? 0.4 : 1}} />
     <Header name={name} isCurrent={currentDevice} isRevoked={revokedAt} />
     {!!timeline && <Timeline timeline={timeline} />}
-    {!revokedAt && <Button type='Danger' style={{marginTop: globalMargins.small}} label={`Revoke this ${revokeName || ''}`} onClick={showRevokeDevicePage} />}
+    {!revokedAt &&
+      <Button
+        type="Danger"
+        style={{marginTop: globalMargins.small}}
+        label={`Revoke this ${revokeName || ''}`}
+        onClick={showRevokeDevicePage}
+      />}
   </StandardScreen>
 )
 

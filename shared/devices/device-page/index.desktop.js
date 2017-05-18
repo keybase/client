@@ -6,17 +6,26 @@ import {globalStyles, globalColors} from '../../styles'
 import type {Props} from '.'
 
 const Banner = ({color, backgroundColor, desc}) => (
-  <Box style={{...stylesBanner, backgroundColor}}><Text type='BodySemibold' style={{color}}>{desc}</Text></Box>
+  <Box style={{...stylesBanner, backgroundColor}}>
+    <Text type="BodySemibold" style={{color}}>{desc}</Text>
+  </Box>
 )
 
 const Header = ({name, currentDevice, revokedAt}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start'}}>
-    <Text type='Header' style={revokedAt
-        ? {color: globalColors.black_40, fontStyle: 'italic', textDecoration: 'line-through'}
-        : {fontStyle: 'italic'}}>{name}</Text>
-    {revokedAt && <Text type='Header' style={stylesMeta}>REVOKED</Text>}
+    <Text
+      type="Header"
+      style={
+        revokedAt
+          ? {color: globalColors.black_40, fontStyle: 'italic', textDecoration: 'line-through'}
+          : {fontStyle: 'italic'}
+      }
+    >
+      {name}
+    </Text>
+    {revokedAt && <Text type="Header" style={stylesMeta}>REVOKED</Text>}
     <Box style={{...globalStyles.flexBoxRow}}>
-      {currentDevice && <Text type='BodySmall'>Current device</Text>}
+      {currentDevice && <Text type="BodySmall">Current device</Text>}
     </Box>
   </Box>
 )
@@ -35,11 +44,17 @@ const Timeline = ({timeline}) => (
       <Box key={desc} style={{...globalStyles.flexBoxRow}}>
         <TimelineMarker idx={idx} max={timeline.length - 1} type={type} />
         <Box style={{...globalStyles.flexBoxColumn}}>
-          <Text type='Body'>{desc}</Text>
-          {subDesc && (type === 'Added' || type === 'Revoked'
-            ? <Text type='BodySmall'>by <Text style={{color: globalColors.black_75, fontStyle: 'italic'}} type='BodySmall'>{subDesc}</Text></Text>
-            : <Text type='BodySmall'>{subDesc}</Text>
-          )}
+          <Text type="Body">{desc}</Text>
+          {subDesc &&
+            (type === 'Added' || type === 'Revoked'
+              ? <Text type="BodySmall">
+                  by
+                  {' '}
+                  <Text style={{color: globalColors.black_75, fontStyle: 'italic'}} type="BodySmall">
+                    {subDesc}
+                  </Text>
+                </Text>
+              : <Text type="BodySmall">{subDesc}</Text>)}
           <Box style={{height: 15}} />
         </Box>
       </Box>
@@ -48,7 +63,20 @@ const Timeline = ({timeline}) => (
 )
 
 const Render = ({
-  name, type, deviceID, currentDevice, timeline, revokedAt, showRevokeDevicePage, device, onBack, bannerBackgroundColor, bannerColor, bannerDesc, icon, revokeName,
+  name,
+  type,
+  deviceID,
+  currentDevice,
+  timeline,
+  revokedAt,
+  showRevokeDevicePage,
+  device,
+  onBack,
+  bannerBackgroundColor,
+  bannerColor,
+  bannerDesc,
+  icon,
+  revokeName,
 }: Props) => (
   <Box style={{...globalStyles.flexBoxColumn}}>
     <Box style={{...globalStyles.flexBoxColumn, height: 48, justifyContent: 'center', paddingLeft: 16}}>
@@ -56,13 +84,21 @@ const Render = ({
     </Box>
     {!!bannerDesc && <Banner color={bannerColor} backgroundColor={bannerBackgroundColor} desc={bannerDesc} />}
     <Box style={{...globalStyles.flexBoxRow, padding: 30}}>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start', justifyContent: 'center', width: 240}}>
+      <Box
+        style={{...globalStyles.flexBoxRow, alignItems: 'flex-start', justifyContent: 'center', width: 240}}
+      >
         <Icon type={icon} style={{opacity: revokedAt ? 0.4 : 1}} />
       </Box>
       <Box style={{...globalStyles.flexBoxColumn}}>
         <Header name={name} currentDevice={currentDevice} revokedAt={revokedAt} />
         {!!timeline && <Timeline timeline={timeline} />}
-        {!revokedAt && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName || ''}`} onClick={showRevokeDevicePage} />}
+        {!revokedAt &&
+          <Button
+            type="Danger"
+            style={{marginTop: 15}}
+            label={`Revoke this ${revokeName || ''}`}
+            onClick={showRevokeDevicePage}
+          />}
       </Box>
     </Box>
   </Box>

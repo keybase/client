@@ -597,6 +597,21 @@ func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid keybas
 	return
 }
 
+func (u *User) localDelegatePerUserKey(perUserKey keybase1.PerUserKey) error {
+
+	// Don't update the u.keyFamily. It doesn't manage per-user-keys.
+
+	// Update sigchain which will update ckf/cki
+	err := u.sigChain().LocalDelegatePerUserKey(perUserKey)
+	if err != nil {
+		return err
+	}
+
+	u.G().Log.Debug("User LocalDelegatePerUserKey gen:%v seqno:%v sig:%v enc:%v",
+		perUserKey.Gen, perUserKey.Seqno, perUserKey.SigKID.String(), perUserKey.EncKID.String())
+	return nil
+}
+
 func (u *User) SigChainBump(linkID LinkID, sigID keybase1.SigID) {
 	u.SigChainBumpMT(MerkleTriple{LinkID: linkID, SigID: sigID})
 }
@@ -777,13 +792,15 @@ func (u User) PartialCopy() *User {
 	return ret
 }
 
-func NameWithEldestSeqno(name string, seqno Seqno) (string, error) {
+type NameWithEldestSeqno string
+
+func MakeNameWithEldestSeqno(name string, seqno Seqno) (NameWithEldestSeqno, error) {
 	if seqno < 1 {
 		return "", EldestSeqnoMissingError{}
 	} else if seqno == 1 {
 		// For users that have never reset, we use their name unmodified.
-		return name, nil
+		return NameWithEldestSeqno(name), nil
 	} else {
-		return fmt.Sprintf("%s%%%d", name, seqno), nil
+		return NameWithEldestSeqno(fmt.Sprintf("%s%%%d", name, seqno)), nil
 	}
 }

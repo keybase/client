@@ -16,7 +16,7 @@ class CodePage extends Component<void, Props, {enterText: string}> {
     enterText: '',
   }
 
-  render () {
+  render() {
     return (
       <RenderCodePage
         enterText={this.state.enterText}
@@ -25,6 +25,7 @@ class CodePage extends Component<void, Props, {enterText: string}> {
         mode={this.props.mode}
         textCode={this.props.textCode}
         qrCode={this.props.qrCode}
+        qrCodeScanned={this.props.qrCodeScanned}
         myDeviceRole={this.props.myDeviceRole}
         otherDeviceRole={this.props.otherDeviceRole}
         cameraBrokenMode={this.props.cameraBrokenMode}
@@ -49,6 +50,7 @@ export default connect(
         myDeviceRole,
         otherDeviceRole,
         qrCode,
+        qrCodeScanned,
         textCode,
       },
     },
@@ -59,13 +61,14 @@ export default connect(
     myDeviceRole,
     otherDeviceRole,
     qrCode: qrCode ? qrCode.stringValue() : '',
+    qrCodeScanned,
     textCode: textCode ? textCode.stringValue() : '',
   }),
-  (dispatch) => ({
+  dispatch => ({
     onBack: () => dispatch(Creators.onBack()),
-    setCodePageMode: (requestedMode) => dispatch(Creators.setCodePageMode(requestedMode)),
+    setCodePageMode: requestedMode => dispatch(Creators.setCodePageMode(requestedMode)),
     setCameraBrokenMode: (broken: boolean) => dispatch(Creators.setCameraBrokenMode(broken)),
     qrScanned: ({data}) => dispatch(Creators.qrScanned(data)),
-    textEntered: (text) => dispatch(Creators.provisionTextCodeEntered(text)),
+    textEntered: text => dispatch(Creators.provisionTextCodeEntered(text)),
   })
 )(CodePage)

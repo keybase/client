@@ -13,6 +13,7 @@ const initialState: Constants.State = {
     myDeviceRole: null,
     otherDeviceRole: null,
     qrCode: null,
+    qrCodeScanned: false,
     qrScanned: null,
     textCode: null,
   },
@@ -35,7 +36,7 @@ const initialState: Constants.State = {
   waitingForResponse: false,
 }
 
-export default function (state: Constants.State = initialState, action: any): Constants.State {
+export default function(state: Constants.State = initialState, action: any): Constants.State {
   let toMerge = null
 
   switch (action.type) {
@@ -57,13 +58,15 @@ export default function (state: Constants.State = initialState, action: any): Co
       toMerge = {codePage: {mode: action.payload}}
       break
     case Constants.setTextCode:
-      toMerge = {codePage: {enterCodeErrorText: action.payload.enterCodeErrorText, textCode: action.payload.textCode}}
+      toMerge = {
+        codePage: {enterCodeErrorText: action.payload.enterCodeErrorText, textCode: action.payload.textCode},
+      }
       break
     case Constants.setQRCode:
       toMerge = {codePage: {qrCode: action.payload.qrCode}}
       break
     case Constants.qrScanned:
-      toMerge = {codePage: {qrScanned: action.payload}}
+      toMerge = {codePage: {qrCodeScanned: true, qrScanned: action.payload}}
       break
     case Constants.actionUpdateForgotPasswordEmailAddress:
       toMerge = {

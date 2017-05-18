@@ -15,9 +15,9 @@ type State = {
 }
 
 class Login extends Component {
-  state: State;
+  state: State
 
-  constructor (props: Props & {lastUser: ?string}) {
+  constructor(props: Props & {lastUser: ?string}) {
     super(props)
 
     this.state = {
@@ -27,28 +27,32 @@ class Login extends Component {
     }
   }
 
-  _onSubmit () {
+  _onSubmit() {
     if (this.state.selectedUser) {
       this.props.onLogin(this.state.selectedUser, this.state.passphrase)
     }
   }
 
-  render () {
-    return <Render {...this.props}
-      onSubmit={() => this._onSubmit()}
-      passphrase={this.state.passphrase}
-      showTyping={this.state.showTyping}
-      selectedUser={this.state.selectedUser}
-      passphraseChange={passphrase => this.setState({passphrase})}
-      showTypingChange={showTyping => this.setState({showTyping})}
-      selectedUserChange={selectedUser => this.setState({selectedUser})}
-    />
+  render() {
+    return (
+      <Render
+        {...this.props}
+        onSubmit={() => this._onSubmit()}
+        passphrase={this.state.passphrase}
+        showTyping={this.state.showTyping}
+        selectedUser={this.state.selectedUser}
+        passphraseChange={passphrase => this.setState({passphrase})}
+        showTypingChange={showTyping => this.setState({showTyping})}
+        selectedUserChange={selectedUser => this.setState({selectedUser})}
+      />
+    )
   }
 }
 
 export default connect(
   (state: TypedState) => {
-    const users = state.login.configuredAccounts && state.login.configuredAccounts.map(c => c.username) || []
+    const users = (state.login.configuredAccounts &&
+      state.login.configuredAccounts.map(c => c.username)) || []
     let lastUser = state.config.extendedConfig && state.config.extendedConfig.defaultUsername
 
     if (users.indexOf(lastUser) === -1 && users.length) {
@@ -67,6 +71,8 @@ export default connect(
     onForgotPassphrase: () => dispatch(Creators.openAccountResetPage()),
     onLogin: (user, passphrase) => dispatch(Creators.relogin(user, passphrase)),
     onSignup: () => dispatch(requestAutoInvite()),
-    onSomeoneElse: () => { dispatch(Creators.startLogin()) },
+    onSomeoneElse: () => {
+      dispatch(Creators.startLogin())
+    },
   })
 )(Login)

@@ -27,8 +27,8 @@ type Props = {
 }
 
 class PaymentStateHolder extends Component<void, Props, State> {
-  state: State;
-  constructor () {
+  state: State
+  constructor() {
     super()
     this.state = {
       cardNumber: null,
@@ -38,25 +38,31 @@ class PaymentStateHolder extends Component<void, Props, State> {
     }
   }
 
-  _clearErrorAndSetState (nextState) {
+  _clearErrorAndSetState(nextState) {
     this.props.errorMessage && this.props.clearBillingError()
     this.setState(nextState)
   }
 
-  render () {
+  render() {
     return (
       <Payment
-        onChangeCardNumber={(cardNumber) => this._clearErrorAndSetState({cardNumber})}
-        onChangeName={(name) => this._clearErrorAndSetState({name})}
-        onChangeExpiration={(expiration) => this._clearErrorAndSetState({expiration})}
-        onChangeSecurityCode={(securityCode) => this._clearErrorAndSetState({securityCode})}
+        onChangeCardNumber={cardNumber => this._clearErrorAndSetState({cardNumber})}
+        onChangeName={name => this._clearErrorAndSetState({name})}
+        onChangeExpiration={expiration => this._clearErrorAndSetState({expiration})}
+        onChangeSecurityCode={securityCode => this._clearErrorAndSetState({securityCode})}
         cardNumber={this.state.cardNumber}
         name={this.state.name}
         expiration={this.state.expiration}
         securityCode={this.state.securityCode}
         errorMessage={this.props.errorMessage}
         onBack={this.props.onBack}
-        onSubmit={() => this.props.onSubmit(this.state.cardNumber, this.state.name, this.state.securityCode, this.state.expiration)}
+        onSubmit={() =>
+          this.props.onSubmit(
+            this.state.cardNumber,
+            this.state.name,
+            this.state.securityCode,
+            this.state.expiration
+          )}
       />
     )
   }
@@ -80,9 +86,15 @@ export default connect(
     }
   },
   (dispatch: (a: any) => void, ownProps: OwnProps) => ({
-    onBootstrap: () => { dispatch(actions.bootstrapData()) },
-    onSubmit: (args) => { dispatch(actions.updateBilling(args)) },
-    clearBillingError: () => { dispatch(actions.clearBillingError()) },
+    onBootstrap: () => {
+      dispatch(actions.bootstrapData())
+    },
+    onSubmit: args => {
+      dispatch(actions.updateBilling(args))
+    },
+    clearBillingError: () => {
+      dispatch(actions.clearBillingError())
+    },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     if (stateProps.bootstrapDone === false) {

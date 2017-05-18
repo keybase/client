@@ -5,10 +5,51 @@
 const asset = chrome.runtime.getURL;
 
 function init() {
-  // Only do work on reddit.
-  if (!location.hostname.endsWith('.reddit.com')) return;
+  // Passive queries?
+  chrome.storage.sync.get("profile-passive-queries", function(options) {
+    if (options["profile-passive-queries"] !== true) return; // Default false
 
-  if (checkThread.test(location.pathname)) injectThread();
+    if (location.hostname.endsWith('twitter.com')) {
+      // Twitter hack: Monitor location for changes and re-init. Twitter does
+      // weird single-page-app stuff that makes it difficult to hook into.
+      // FIXME: This is sad. An alternative would be very desireable.
+      // Subscribing to `popstate` does not work.
+      let loc = window.location.pathname;
+      function twitterMonitor() {
+        if (window.location.pathname == loc) {
+          requestAnimationFrame(function() {
+            // We use RAF to avoid spamming checks when the tab is not active.
+            setTimeout(twitterMonitor, 1000);
+          });
+          return;
+        }
+        // Path changed, force fresh init
+        init();
+      }
+      setTimeout(twitterMonitor, 1000);
+    }
+
+    const user = matchService(window.location, document);
+    if (!user) return;
+
+    chrome.runtime.sendMessage({
+      "method": "passivequery",
+      "to": user.query(),
+    }, function(response) {
+      if (response.status !== "ok") return;
+      user.services["keybase"] = safeHTML(response.result["username"]);
+    });
+  });
+
+  // Inject Reddit thread DOM changes?
+  if (location.hostname.endsWith('.reddit.com') && checkThread.test(location.pathname)) {
+    chrome.storage.sync.get("reddit-thread-reply", function(options) {
+      // Is thread replies enabled?
+      if (options["reddit-thread-reply"] === false) return; // Default true
+
+      injectThread();
+    });
+  }
 }
 window.addEventListener('load', init);
 
@@ -21,55 +62,6 @@ function injectThread() {
     const buttons = c.getElementsByClassName("buttons")[0];
 
     renderRedditChatButton(buttons, author);
-  }
-}
-
-// User keeps track of the original query and which services we resolved for
-// this user. It also handles formatting strings for each service.
-function User(username, service) {
-  if (service === undefined) service = "keybase";
-  this.origin = service;
-  this.services = {};
-  this.services[service] = username;
-}
-
-User.prototype.query = function() {
-  const name = this.services[this.origin];
-  if (this.origin === "keybase") {
-    return name;
-  }
-  return `${name}@${this.origin}`;
-}
-
-User.prototype.display = function(service) {
-  if (service === undefined) service = this.origin;
-  const name = this.services[this.origin];
-  switch (this.origin) {
-    case "reddit":
-      return `/u/${name}`;
-    case "twitter":
-      return `@${name}`;
-    default:
-      return name;
-  }
-}
-
-User.prototype.href = function(service) {
-  if (service === undefined) service = this.origin;
-  const name = this.services[this.origin];
-  switch (this.origin) {
-    case "keybase":
-      return `https://keybase.io/${name}`;
-    case "reddit":
-      return `https://www.reddit.com/user/${name}`;
-    case "twitter":
-      return `https://twitter.com/${name}`;
-    case "github":
-      return `https://github.com/${name}`;
-    case "hackernews":
-      return `https://news.ycombinator.com/user?id=${name}`;
-    default:
-      throw `unknown service: ${this.origin}`;
   }
 }
 
@@ -458,7 +450,7 @@ function findParentByClass(el, className) {
 
 // Convert a user input into a string that is safe for inlining into HTML.
 function safeHTML(s) {
-  if (s===undefined) return "";
+  if (!s) return "";
   return s.replace(/[&'"<>\/]/g, function (c) {
     // Per https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content
     return {

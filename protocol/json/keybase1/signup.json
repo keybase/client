@@ -84,6 +84,10 @@
         {
           "name": "genPGPBatch",
           "type": "boolean"
+        },
+        {
+          "name": "genPaper",
+          "type": "boolean"
         }
       ],
       "response": "SignupRes"

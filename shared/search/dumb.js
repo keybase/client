@@ -123,6 +123,7 @@ const commonProps = {
   selectedUsers: commonUsers,
   showUserGroup: false,
   userForInfoPane: commonUsers[0],
+  // prettier-ignore
   // $FlowIssue
   userPane: <UserPane mode='keybase' userInfoProps={userPaneMocks['Search User Pane'].mocks['Unfollowed']} />,
   username: 'bob',
@@ -137,7 +138,7 @@ const searchMap: DumbComponentMap<Search> = {
       chatEnabled: true,
       showUserGroup: true,
     },
-    'Group': {
+    Group: {
       ...commonProps,
       showUserGroup: true,
     },
@@ -145,6 +146,7 @@ const searchMap: DumbComponentMap<Search> = {
       ...commonProps,
       showUserGroup: true,
       userForInfoPane: commonUsers[2],
+      // prettier-ignore
       // $FlowIssue
       userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Normal']} />,
     },
@@ -152,6 +154,7 @@ const searchMap: DumbComponentMap<Search> = {
       ...commonProps,
       showUserGroup: true,
       userForInfoPane: commonUsers[2],
+      // prettier-ignore
       // $FlowIssue
       userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Has Invite']} />,
     },
@@ -159,6 +162,7 @@ const searchMap: DumbComponentMap<Search> = {
       ...commonProps,
       showUserGroup: true,
       userForInfoPane: commonUsers[2],
+      // prettier-ignore
       // $FlowIssue
       userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['No Avatar']} />,
     },
@@ -166,13 +170,14 @@ const searchMap: DumbComponentMap<Search> = {
       ...commonProps,
       showUserGroup: true,
       userForInfoPane: commonUsers[2],
+      // prettier-ignore
       // $FlowIssue
       userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Out of invites']} />,
     },
-    'Searching': {
+    Searching: {
       ...commonProps,
     },
-    'Waiting': {
+    Waiting: {
       ...commonProps,
       results: [],
       showUserGroup: true,
@@ -182,5 +187,5 @@ const searchMap: DumbComponentMap<Search> = {
 }
 
 export default {
-  'Search': searchMap,
+  Search: searchMap,
 }

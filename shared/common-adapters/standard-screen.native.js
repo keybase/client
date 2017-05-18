@@ -13,7 +13,9 @@ const StandardScreen = ({theme = 'light', ...props}: Props) => {
       <NativeScrollView>
         {!!props.notification &&
           <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
-            {typeof props.notification.message === 'string' ? <Text style={styleBannerText} type='BodySemibold'>{props.notification.message}</Text> : props.notification.message}
+            {typeof props.notification.message === 'string'
+              ? <Text style={styleBannerText} type="BodySemibold">{props.notification.message}</Text>
+              : props.notification.message}
           </Box>}
         <Box style={{...styleContentContainer(!!props.notification), ...props.style}}>
           {props.children}
@@ -31,15 +33,15 @@ const styleContainer = {
 const MIN_BANNER_HEIGHT = 40
 
 const backgroundColorThemed = {
-  'light': {
+  light: {
     backgroundColor: globalColors.white,
   },
-  'dark': {
+  dark: {
     backgroundColor: globalColors.darkBlue3,
   },
 }
 
-const styleBanner = (type) => ({
+const styleBanner = type => ({
   ...globalStyles.flexBoxColumn,
   minHeight: MIN_BANNER_HEIGHT,
   paddingLeft: globalMargins.tiny,

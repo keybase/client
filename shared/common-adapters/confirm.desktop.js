@@ -5,16 +5,30 @@ import {Box, Button, StandardScreen} from './'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 class Confirm extends Component<void, Props, void> {
-  render () {
+  render() {
     return (
-      <StandardScreen style={styleContainer} theme={mapTheme[this.props.theme]} onCancel={this.props.onCancel}>
+      <StandardScreen
+        style={styleContainer}
+        theme={mapTheme[this.props.theme]}
+        onCancel={this.props.onCancel}
+      >
         <Box style={styleIconContainer}>
           {this.props.header}
         </Box>
         {this.props.body}
         <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
-          <Button type='Secondary' style={cancelButtonThemed[this.props.theme]} labelStyle={cancelButtonLabelThemed[this.props.theme]} onClick={this.props.onCancel} label='Cancel' />
-          <Button type={this.props.danger ? 'Danger' : 'Primary'} onClick={this.props.onSubmit} label={this.props.submitLabel} />
+          <Button
+            type="Secondary"
+            style={cancelButtonThemed[this.props.theme]}
+            labelStyle={cancelButtonLabelThemed[this.props.theme]}
+            onClick={this.props.onCancel}
+            label="Cancel"
+          />
+          <Button
+            type={this.props.danger ? 'Danger' : 'Primary'}
+            onClick={this.props.onSubmit}
+            label={this.props.submitLabel}
+          />
         </Box>
       </StandardScreen>
     )
@@ -22,8 +36,8 @@ class Confirm extends Component<void, Props, void> {
 }
 
 const mapTheme = {
-  'private': 'dark',
-  'public': 'light',
+  private: 'dark',
+  public: 'light',
 }
 
 const styleContainer = {
@@ -39,15 +53,15 @@ const styleIconContainer = {
 }
 
 const cancelButtonThemed = {
-  'public': {},
-  'private': {
+  public: {},
+  private: {
     backgroundColor: globalColors.blue_30,
   },
 }
 
 const cancelButtonLabelThemed = {
-  'public': {},
-  'private': {
+  public: {},
+  private: {
     color: globalColors.white,
   },
 }

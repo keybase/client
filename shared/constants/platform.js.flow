@@ -4,6 +4,7 @@ export const runMode: string = ''
 export const isMobile: boolean = false
 export const isAndroid: boolean = false
 export const isIOS: boolean = false
+export const isLargeScreen: boolean = false
 
 export const isElectron: boolean = false
 export const isDarwin: boolean = false

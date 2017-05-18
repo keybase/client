@@ -6,10 +6,10 @@ import {globalMargins} from '../styles'
 import type {Props} from './prove-website-choice'
 
 class ProveWebsiteChoice extends Component<void, Props, void> {
-  render () {
+  render() {
     return (
       <StandardScreen style={styleContainer} onCancel={this.props.onCancel}>
-        <Text style={styleTitle} type='Header'>Prove your website in two ways:</Text>
+        <Text style={styleTitle} type="Header">Prove your website in two ways:</Text>
         <ChoiceList
           options={[
             {

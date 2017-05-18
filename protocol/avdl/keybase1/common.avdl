@@ -45,6 +45,9 @@ protocol Common {
   @typedef("string")
   record TLFID {}
 
+  @typedef("string")
+  record TeamID {}
+
   fixed Bytes32(32);
 
   record Text {

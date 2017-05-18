@@ -20,7 +20,7 @@ const WebLinks = compose(
   defaultProps({
     dataDetectorTypes: 'none',
   }),
-  HeaderHoc,
+  HeaderHoc
 )(NativeWebView)
 
 export default WebLinks

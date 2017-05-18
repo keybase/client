@@ -17,10 +17,10 @@ type State = {
 }
 
 class Input extends Component<void, Props, State> {
-  state: State;
-  _input: any;
+  state: State
+  _input: any
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     this.state = {
@@ -30,30 +30,36 @@ class Input extends Component<void, Props, State> {
     }
   }
 
-  setNativeProps (props: Object) {
+  setNativeProps(props: Object) {
     this._input && this._input.setNativeProps(props)
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (nextProps.hasOwnProperty('value')) {
       this.setState({value: nextProps.value || ''})
     }
   }
 
-  componentWillUpdate (nextProps: Props) {
+  componentWillUpdate(nextProps: Props) {
     if (nextProps.type !== this.props.type) {
       this._setPasswordVisible(nextProps.type === 'passwordVisible')
     }
   }
 
-  _onContentSizeChange = (event) => {
-    if (this.props.multiline && event && event.nativeEvent && event.nativeEvent.contentSize && event.nativeEvent.contentSize.height) {
+  _onContentSizeChange = event => {
+    if (
+      this.props.multiline &&
+      event &&
+      event.nativeEvent &&
+      event.nativeEvent.contentSize &&
+      event.nativeEvent.contentSize.height
+    ) {
       let height = event.nativeEvent.contentSize.height
       const minHeight = this.props.rowsMin && this._rowsToHeight(this.props.rowsMin)
       const maxHeight = this.props.rowsMax && this._rowsToHeight(this.props.rowsMax)
-      if (minHeight && (height < minHeight)) {
+      if (minHeight && height < minHeight) {
         height = minHeight
-      } else if (maxHeight && (height > maxHeight)) {
+      } else if (maxHeight && height > maxHeight) {
         height = maxHeight
       }
 
@@ -63,20 +69,20 @@ class Input extends Component<void, Props, State> {
     }
   }
 
-  _setPasswordVisible (passwordVisible: boolean) {
+  _setPasswordVisible(passwordVisible: boolean) {
     // $FlowIssue
     this._textInput && this._textInput.setNativeProps({passwordVisible})
   }
 
-  getValue (): string {
+  getValue(): string {
     return this.state.value || ''
   }
 
-  setValue (value: string) {
+  setValue(value: string) {
     this.setState({value: value || ''})
   }
 
-  clearValue () {
+  clearValue() {
     this._onChangeText('')
   }
 
@@ -86,19 +92,19 @@ class Input extends Component<void, Props, State> {
     this.props.onChangeText && this.props.onChangeText(text || '')
   }
 
-  _inputNode () {
+  _inputNode() {
     return this._input
   }
 
-  focus () {
+  focus() {
     this._input && this._inputNode().focus()
   }
 
-  select () {
+  select() {
     this._input && this._inputNode().select()
   }
 
-  blur () {
+  blur() {
     this._input && this._inputNode().blur()
   }
 
@@ -121,7 +127,7 @@ class Input extends Component<void, Props, State> {
     this.props.onBlur && this.props.onBlur()
   }
 
-  _underlineColor () {
+  _underlineColor() {
     if (this.props.hideUnderline) {
       return globalColors.transparent
     }
@@ -133,27 +139,26 @@ class Input extends Component<void, Props, State> {
     return this.state.focused ? globalColors.blue : globalColors.black_10
   }
 
-  _rowsToHeight (rows) {
-    return rows * _lineHeight +
-      1 // border
+  _rowsToHeight(rows) {
+    return rows * _lineHeight + 1 // border
   }
 
-  _containerStyle (underlineColor) {
+  _containerStyle(underlineColor) {
     return this.props.small
-    ? {
-      ...globalStyles.flexBoxRow,
-      borderBottomWidth: 1,
-      borderBottomColor: underlineColor,
-      flex: 1,
-    }
-    : {
-      ...globalStyles.flexBoxColumn,
-      justifyContent: 'flex-start',
-      maxWidth: 400,
-    }
+      ? {
+          ...globalStyles.flexBoxRow,
+          borderBottomWidth: 1,
+          borderBottomColor: underlineColor,
+          flex: 1,
+        }
+      : {
+          ...globalStyles.flexBoxColumn,
+          justifyContent: 'flex-start',
+          maxWidth: 400,
+        }
   }
 
-  render () {
+  render() {
     const underlineColor = this._underlineColor()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const containerStyle = this._containerStyle(underlineColor)
@@ -166,11 +171,11 @@ class Input extends Component<void, Props, State> {
       flexGrow: 1,
       borderWidth: 0,
       ...(this.props.small
-      ? {textAlign: 'left'}
-      : {
-        textAlign: 'center',
-        minWidth: 200,
-      }),
+        ? {textAlign: 'left'}
+        : {
+            textAlign: 'center',
+            minWidth: 200,
+          }),
     }
 
     const singlelineStyle = {
@@ -193,10 +198,11 @@ class Input extends Component<void, Props, State> {
       multilineStyle.height = this.state.height
     }
 
-    const floatingHintText = !!this.state.value.length &&
+    const floatingHintText =
+      !!this.state.value.length &&
       (this.props.hasOwnProperty('floatingHintTextOverride')
-       ? this.props.floatingHintTextOverride
-       : this.props.hintText || ' ')
+        ? this.props.floatingHintTextOverride
+        : this.props.hintText || ' ')
 
     const commonProps = {
       autoCorrect: this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect,
@@ -209,7 +215,9 @@ class Input extends Component<void, Props, State> {
       onKeyDown: this._onKeyDown,
       onSubmitEditing: this.props.onEnterKeyDown,
       placeholder: this.props.hintText,
-      ref: r => { this._input = r },
+      ref: r => {
+        this._input = r
+      },
       returnKeyType: this.props.returnKeyType,
       value: this.state.value,
       secureTextEntry: this.props.type === 'password',
@@ -246,12 +254,17 @@ class Input extends Component<void, Props, State> {
 
     return (
       <Box style={{...containerStyle, ...this.props.style}}>
-        {!this.props.small && <Text type='BodySmall' style={_floatingStyle}>{floatingHintText}</Text>}
-        {!!this.props.small && !!this.props.smallLabel && <Text type='BodySmall' style={smallLabelStyle}>{this.props.smallLabel}</Text>}
+        {!this.props.small && <Text type="BodySmall" style={_floatingStyle}>{floatingHintText}</Text>}
+        {!!this.props.small &&
+          !!this.props.smallLabel &&
+          <Text type="BodySmall" style={smallLabelStyle}>{this.props.smallLabel}</Text>}
         <Box style={this.props.small ? {flex: 1} : {borderBottomWidth: 1, borderBottomColor: underlineColor}}>
           <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
         </Box>
-        {!this.props.small && <Text type='BodyError' style={{..._errorStyle, ...this.props.errorStyle}}>{this.props.errorText || ''}</Text>}
+        {!this.props.small &&
+          <Text type="BodyError" style={{..._errorStyle, ...this.props.errorStyle}}>
+            {this.props.errorText || ''}
+          </Text>}
       </Box>
     )
   }

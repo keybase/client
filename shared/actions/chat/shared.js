@@ -10,42 +10,70 @@ import {usernameSelector} from '../../constants/selectors'
 
 import type {TypedState} from '../../constants/reducer'
 
-function followingSelector (state: TypedState) { return state.config.following }
-function alwaysShowSelector (state: TypedState) { return state.chat.get('alwaysShow') }
-function metaDataSelector (state: TypedState) { return state.chat.get('metaData') }
-function routeSelector (state: TypedState) { return state.routeTree.get('routeState').get('selected') }
-function focusedSelector (state: TypedState) { return state.config.appFocused }
-function pendingFailureSelector (state: TypedState, outboxID: Constants.OutboxIDKey) { return state.chat.get('pendingFailures').get(outboxID) }
+function followingSelector(state: TypedState) {
+  return state.config.following
+}
+function alwaysShowSelector(state: TypedState) {
+  return state.chat.get('alwaysShow')
+}
+function metaDataSelector(state: TypedState) {
+  return state.chat.get('metaData')
+}
+function routeSelector(state: TypedState) {
+  return state.routeTree.get('routeState').get('selected')
+}
+function focusedSelector(state: TypedState) {
+  return state.config.appFocused
+}
+function pendingFailureSelector(state: TypedState, outboxID: Constants.OutboxIDKey) {
+  return state.chat.get('pendingFailures').get(outboxID)
+}
 
-function conversationStateSelector (state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
+function conversationStateSelector(state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
   return state.chat.get('conversationStates', Map()).get(conversationIDKey)
 }
 
-function messageSelector (state: TypedState, conversationIDKey: Constants.ConversationIDKey, messageID: Constants.MessageID) {
-  return conversationStateSelector(state, conversationIDKey).get('messages').find(m => m.messageID === messageID)
+function messageSelector(
+  state: TypedState,
+  conversationIDKey: Constants.ConversationIDKey,
+  messageID: Constants.MessageID
+) {
+  return conversationStateSelector(state, conversationIDKey)
+    .get('messages')
+    .find(m => m.messageID === messageID)
 }
 
-function messageOutboxIDSelector (state: TypedState, conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) {
-  return conversationStateSelector(state, conversationIDKey).get('messages').find(m => m.outboxID === outboxID)
+function messageOutboxIDSelector(
+  state: TypedState,
+  conversationIDKey: Constants.ConversationIDKey,
+  outboxID: Constants.OutboxIDKey
+) {
+  return conversationStateSelector(state, conversationIDKey)
+    .get('messages')
+    .find(m => m.outboxID === outboxID)
 }
 
-function devicenameSelector (state: TypedState) {
+function devicenameSelector(state: TypedState) {
   return state.config && state.config.deviceName
 }
 
-function selectedInboxSelector (state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
+function selectedInboxSelector(state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
   return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
 }
 
-function attachmentPlaceholderPreviewSelector (state: TypedState, outboxID: Constants.OutboxIDKey) {
+function attachmentPlaceholderPreviewSelector(state: TypedState, outboxID: Constants.OutboxIDKey) {
   return state.chat.get('attachmentPlaceholderPreviews', Map()).get(outboxID)
 }
 
-function inboxUntrustedStateSelector (state: TypedState) {
+function inboxUntrustedStateSelector(state: TypedState) {
   return state.chat.get('inboxUntrustedState')
 }
 
-function tmpFileName (isPreview: boolean, conversationID: Constants.ConversationIDKey, messageID: Constants.MessageID) {
+function tmpFileName(
+  isPreview: boolean,
+  conversationID: Constants.ConversationIDKey,
+  messageID: Constants.MessageID
+) {
   if (!messageID) {
     throw new Error('tmpFileName called without messageID!')
   }
@@ -53,7 +81,10 @@ function tmpFileName (isPreview: boolean, conversationID: Constants.Conversation
   return `kbchat-${conversationID}-${messageID}.${isPreview ? 'preview' : 'download'}`
 }
 
-function * clientHeader (messageType: ChatTypes.MessageType, conversationIDKey: Constants.ConversationIDKey): Generator<any, ?ChatTypes.MessageClientHeader, any> {
+function* clientHeader(
+  messageType: ChatTypes.MessageType,
+  conversationIDKey: Constants.ConversationIDKey
+): Generator<any, ?ChatTypes.MessageClientHeader, any> {
   const infoSelector = (state: TypedState) => {
     const convo = state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
     if (convo) {
@@ -81,7 +112,9 @@ function * clientHeader (messageType: ChatTypes.MessageType, conversationIDKey: 
 }
 
 // Actually start a new conversation. conversationIDKey can be a pending one or a replacement
-function * startNewConversation (oldConversationIDKey: Constants.ConversationIDKey): Generator<any, ?Constants.ConversationIDKey, any> {
+function* startNewConversation(
+  oldConversationIDKey: Constants.ConversationIDKey
+): Generator<any, ?Constants.ConversationIDKey, any> {
   // Find the participants
   const pendingTlfName = Constants.pendingConversationIDKeyToTlfName(oldConversationIDKey)
   let tlfName
@@ -105,7 +138,8 @@ function * startNewConversation (oldConversationIDKey: Constants.ConversationIDK
       tlfName,
       tlfVisibility: ChatTypes.CommonTLFVisibility.private,
       topicType: ChatTypes.CommonTopicType.chat,
-    }})
+    },
+  })
 
   const newConversationIDKey = result ? Constants.conversationIDToKey(result.conv.info.id) : null
   if (!newConversationIDKey) {
@@ -131,8 +165,10 @@ function * startNewConversation (oldConversationIDKey: Constants.ConversationIDK
 }
 
 // If we're showing a banner we send chatGui, if we're not we send chatGuiStrict
-function * getPostingIdentifyBehavior (conversationIDKey: Constants.ConversationIDKey): Generator<any, any, any> {
-  const metaData = ((yield select(metaDataSelector)): any)
+function* getPostingIdentifyBehavior(
+  conversationIDKey: Constants.ConversationIDKey
+): Generator<any, any, any> {
+  const metaData = (yield select(metaDataSelector): any)
   const inbox = yield select(selectedInboxSelector, conversationIDKey)
   const you = yield select(usernameSelector)
 

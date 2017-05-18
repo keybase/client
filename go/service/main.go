@@ -115,6 +115,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
 		keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, g)),
+		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
@@ -261,15 +262,15 @@ func (d *Service) startChatModules() {
 		uid := d.G().Env.GetUID().ToBytes()
 		g := globals.NewContext(d.G(), d.ChatG())
 		g.MessageDeliverer.Start(context.Background(), uid)
-		g.FetchRetrier.Start(context.Background(), uid)
 		g.ConvLoader.Start(context.Background(), uid)
+		g.FetchRetrier.Start(context.Background(), uid)
 	}
 }
 
 func (d *Service) stopChatModules() {
 	<-d.ChatG().MessageDeliverer.Stop(context.Background())
-	<-d.ChatG().FetchRetrier.Stop(context.Background())
 	<-d.ChatG().ConvLoader.Stop(context.Background())
+	<-d.ChatG().FetchRetrier.Stop(context.Background())
 }
 
 func (d *Service) createChatModules() {
