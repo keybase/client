@@ -72,9 +72,7 @@ class Main extends Component<void, any, void> {
       this._persistRoute()
     }
 
-    if (this.props.mobileAppBadgeCount !== nextProps.mobileAppBadgeCount) {
-      this._setIconBadgeNumber(nextProps.mobileAppBadgeCount)
-    }
+    this._setIconBadgeNumber(nextProps.mobileAppBadgeCount)
   }
 
   componentDidMount() {

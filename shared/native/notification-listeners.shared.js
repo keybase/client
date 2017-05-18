@@ -17,7 +17,7 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
   const throttledDispatch = throttle(action => dispatch(action), 1000, {leading: false, trailing: true})
   return {
     'keybase.1.NotifyBadges.badgeState': ({badgeState}) => {
-      if (badgeState.inboxVers <= lastBadgeStateVersion) {
+      if (badgeState.inboxVers < lastBadgeStateVersion) {
         console.log(
           `Ignoring older badgeState, got ${badgeState.inboxVers} but have seen ${lastBadgeStateVersion}`
         )
