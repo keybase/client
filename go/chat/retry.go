@@ -22,24 +22,21 @@ const fetchMaxAttempts = 100
 
 type retrierControl struct {
 	forceCh    chan struct{}
-	shutdownCh chan chan struct{}
+	shutdownCh chan struct{}
 }
 
 func newRetrierControl() *retrierControl {
 	return &retrierControl{
-		forceCh:    make(chan struct{}, 5),
-		shutdownCh: make(chan chan struct{}, 5),
+		forceCh:    make(chan struct{}, 1),
+		shutdownCh: make(chan struct{}, 1),
 	}
 }
 
-func (c *retrierControl) Shutdown() chan struct{} {
-	ch := make(chan struct{})
+func (c *retrierControl) Shutdown() {
 	select {
-	case c.shutdownCh <- ch:
+	case c.shutdownCh <- struct{}{}:
 	default:
-		close(ch)
 	}
-	return ch
 }
 
 func (c *retrierControl) Force() {
@@ -57,7 +54,6 @@ type FetchRetrier struct {
 	sync.Mutex
 
 	retriers         map[string]*retrierControl
-	shutdownCh       chan chan struct{}
 	clock            clockwork.Clock
 	offline, running bool
 }
@@ -69,7 +65,6 @@ func NewFetchRetrier(g *globals.Context) *FetchRetrier {
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "FetchRetrier", false),
 		clock:        clockwork.NewRealClock(),
-		shutdownCh:   make(chan chan struct{}, 1),
 		retriers:     make(map[string]*retrierControl),
 	}
 	return f
@@ -133,10 +128,9 @@ func (f *FetchRetrier) spawnRetrier(ctx context.Context, convID chat1.Conversati
 					f.sendStale(ctx, uid, convID)
 					return
 				}
-			case ch := <-control.shutdownCh:
+			case <-control.shutdownCh:
 				f.Lock()
 				defer f.Unlock()
-				defer close(ch)
 				f.Debug(ctx, "spawnRetrier: shutdown received, going down: convID: %s", convID)
 				delete(f.retriers, f.key(uid, convID))
 				return
@@ -279,19 +273,11 @@ func (f *FetchRetrier) Stop(ctx context.Context) chan struct{} {
 	defer f.Unlock()
 	defer f.Trace(ctx, func() error { return nil }, "Shutdown")()
 	f.running = false
-	var wg sync.WaitGroup
-	wg.Add(len(f.retriers))
 	for _, control := range f.retriers {
-		go func(control *retrierControl) {
-			<-control.Shutdown()
-			wg.Done()
-		}(control)
+		control.Shutdown()
 	}
 	ch := make(chan struct{})
-	go func() {
-		wg.Wait()
-		close(ch)
-	}()
+	close(ch)
 	return ch
 }
 
