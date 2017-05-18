@@ -165,11 +165,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-dns-64.png'),
   },
-  'icon-facebook-logo-16': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-facebook-logo-16.png'),
-  },
   'icon-facebook-logo-24': {
     isFont: false,
     extension: 'png',
@@ -600,11 +595,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-following-32.png'),
   },
-  'icon-github-logo-16': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-github-logo-16.png'),
-  },
   'icon-github-logo-24': {
     isFont: false,
     extension: 'png',
@@ -624,11 +614,6 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-github-logo-64.png'),
-  },
-  'icon-hacker-news-logo-16': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-hacker-news-logo-16.png'),
   },
   'icon-hacker-news-logo-24': {
     isFont: false,
@@ -1105,11 +1090,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-proof-unfinished.png'),
   },
-  'icon-reddit-logo-16': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-reddit-logo-16.png'),
-  },
   'icon-reddit-logo-24': {
     isFont: false,
     extension: 'png',
@@ -1129,6 +1109,126 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-reddit-logo-64.png'),
+  },
+  'icon-search-facebook-active-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-facebook-active-16.png'),
+  },
+  'icon-search-facebook-active-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-facebook-active-24.png'),
+  },
+  'icon-search-facebook-inactive-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-facebook-inactive-16.png'),
+  },
+  'icon-search-facebook-inactive-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-facebook-inactive-24.png'),
+  },
+  'icon-search-github-active-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-github-active-16.png'),
+  },
+  'icon-search-github-active-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-github-active-24.png'),
+  },
+  'icon-search-github-inactive-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-github-inactive-16.png'),
+  },
+  'icon-search-github-inactive-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-github-inactive-24.png'),
+  },
+  'icon-search-hacker-news-active-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-hacker-news-active-16.png'),
+  },
+  'icon-search-hacker-news-active-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-hacker-news-active-24.png'),
+  },
+  'icon-search-hacker-news-inactive-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-hacker-news-inactive-16.png'),
+  },
+  'icon-search-hacker-news-inactive-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-hacker-news-inactive-24.png'),
+  },
+  'icon-search-keybase-active-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-keybase-active-16.png'),
+  },
+  'icon-search-keybase-active-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-keybase-active-24.png'),
+  },
+  'icon-search-keybase-inactive-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-keybase-inactive-16.png'),
+  },
+  'icon-search-keybase-inactive-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-keybase-inactive-24.png'),
+  },
+  'icon-search-reddit-active-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-reddit-active-16.png'),
+  },
+  'icon-search-reddit-active-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-reddit-active-24.png'),
+  },
+  'icon-search-reddit-inactive-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-reddit-inactive-16.png'),
+  },
+  'icon-search-reddit-inactive-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-reddit-inactive-24.png'),
+  },
+  'icon-search-twitter-active-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-twitter-active-16.png'),
+  },
+  'icon-search-twitter-active-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-twitter-active-24.png'),
+  },
+  'icon-search-twitter-inactive-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-twitter-inactive-16.png'),
+  },
+  'icon-search-twitter-inactive-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-search-twitter-inactive-24.png'),
   },
   'icon-secure-266': {
     isFont: false,
@@ -1189,11 +1289,6 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-terminal-48.png'),
-  },
-  'icon-twitter-logo-16': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-twitter-logo-16.png'),
   },
   'icon-twitter-logo-24': {
     isFont: false,

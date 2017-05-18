@@ -1,5 +1,4 @@
 // @flow
-import Box from './box'
 import React from 'react'
 import {FlatButton} from 'material-ui'
 
@@ -36,6 +35,7 @@ const styleFlatButton = {
   flexDirection: 'column',
   alignItems: 'stretch',
   borderRadius: 0,
+  lineHeight: 0,
 }
 
 export default ClickableBox
