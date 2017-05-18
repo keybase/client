@@ -73,16 +73,24 @@ let openChat = null;
 // Site-specific DOM injectors:
 
 function keybaseInjectProfile(parent, user) {
-  const bio = document.getElementsByClassName("bio")[0];
+  const preinstalled = document.getElementsByClassName("keybase-chat-open");
+  if (preinstalled.length > 0) {
+    installChatButton([button], user);
+    return;
+  }
 
-  const container = document.createElement("div");
-  container.style = "margin: 6px;";
-  container.innerHTML = `
-    <a href="keybase://${user.query()}/" class="keybase-chat">keybase chat</a>
-  `;
-  installChatButton(container.getElementsByClassName("keybase-chat"), user, false /* nudgeSupported */);
+  // Keybase button is special to fit our UI until we get a placeholder to
+  // install into.
+  for (const wrapper of document.querySelectorAll(".track-action-wrapper")) {
+    const button = document.createElement("a");
+    button.className = "btn btn-md btn-default keybase-profile-chat";
+    button.href = `keybase://${user.query()}/`;
+    button.innerText = "Keybase Chat";
+    installChatButton([button], user);
 
-  bio.parentNode.insertBefore(container, bio);
+    const lastButton = wrapper.children[wrapper.children.length-1];
+    wrapper.insertBefore(button, lastButton);
+  }
 }
 
 function twitterInjectProfile(parent, user) {
@@ -93,7 +101,7 @@ function twitterInjectProfile(parent, user) {
   button.className = "keybase-chat";
   button.href = `keybase://${user.query()}/`;
   button.innerText = "keybase chat";
-  installChatButton([button], user, false /* nudgeSupported */);
+  installChatButton([button], user);
 
   container.appendChild(button);
 }
@@ -103,7 +111,7 @@ function githubInjectProfile(parent, user) {
   button.className = "keybase-chat";
   button.href = `keybase://${user.query()}/`;
   button.innerText = "keybase chat";
-  installChatButton([button], user, false /* nudgeSupported */);
+  installChatButton([button], user);
 
   const vcard = parent.getElementsByClassName("vcard-names")[0];
   vcard.appendChild(button);
