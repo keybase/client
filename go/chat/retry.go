@@ -123,7 +123,6 @@ func (f *FetchRetrier) spawnRetrier(ctx context.Context, convID chat1.Conversati
 						f.sendStale(ctx, uid, convID)
 						return
 					}
-					attempts++
 				}
 			case <-control.forceCh:
 				f.Debug(ctx, "spawnRetrier: retrying conversation (forced): convID: %s", convID)
@@ -134,7 +133,6 @@ func (f *FetchRetrier) spawnRetrier(ctx context.Context, convID chat1.Conversati
 					f.sendStale(ctx, uid, convID)
 					return
 				}
-				attempts++
 			case ch := <-control.shutdownCh:
 				f.Lock()
 				defer f.Unlock()
@@ -144,6 +142,7 @@ func (f *FetchRetrier) spawnRetrier(ctx context.Context, convID chat1.Conversati
 				return
 			}
 
+			attempts++
 			if attempts > fetchMaxAttempts {
 				f.Debug(ctx, "spawnRetrier: max attempts reached, bailing: convID: %s", convID)
 				control.Shutdown()
