@@ -111,8 +111,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	retrier := NewFetchRetrier(g)
 	retrier.SetClock(c.world.Fc)
 	g.FetchRetrier = retrier
-	g.FetchRetrier.Start(context.TODO(), user.User.GetUID().ToBytes())
 	g.FetchRetrier.Connected(context.TODO())
+	g.FetchRetrier.Start(context.TODO(), user.User.GetUID().ToBytes())
 
 	tuc := &chatTestUserContext{
 		h: h,
