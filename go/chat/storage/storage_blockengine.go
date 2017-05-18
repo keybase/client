@@ -403,7 +403,7 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 
 		msg := b.Msgs[index]
 		if msg.GetMessageID() == 0 {
-			if res.PushEmpty(be.getMsgID(b.BlockID, index)) {
+			if res.PushPlaceholder(be.getMsgID(b.BlockID, index)) {
 				// If the result collector is happy to receive this blank entry, then don't complain
 				// and proceed as if this was a hit
 				lastAdded = be.getMsgID(b.BlockID, index)

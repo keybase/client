@@ -208,6 +208,8 @@ func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	return s.boxer.UnboxMessages(ctx, msgs, convID, finalizeInfo)
 }
 
+var maxHolesForPull = 50
+
 type HybridConversationSource struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -392,7 +394,8 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 
 	if err == nil {
 		// Try locally first
-		rc := storage.NewHoleyResultCollector(20, s.storage.ResultCollectorFromQuery(ctx, query, pagination))
+		rc := storage.NewHoleyResultCollector(maxHolesForPull,
+			s.storage.ResultCollectorFromQuery(ctx, query, pagination))
 		thread, err = s.storage.Fetch(ctx, conv, uid, rc, query, pagination)
 		if err == nil {
 			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s holes: %d", convID, uid, rc.Holes())

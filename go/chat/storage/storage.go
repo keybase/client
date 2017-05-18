@@ -18,7 +18,7 @@ var maxFetchNum = 10000
 
 type ResultCollector interface {
 	Push(msg chat1.MessageUnboxed)
-	PushEmpty(msgID chat1.MessageID) bool
+	PushPlaceholder(msgID chat1.MessageID) bool
 	Done() bool
 	Result() []chat1.MessageUnboxed
 	Error(err Error) Error
@@ -89,6 +89,8 @@ type SimpleResultCollector struct {
 	target int
 }
 
+var _ ResultCollector = (*SimpleResultCollector)(nil)
+
 func (s *SimpleResultCollector) Push(msg chat1.MessageUnboxed) {
 	s.res = append(s.res, msg)
 }
@@ -122,7 +124,7 @@ func (s *SimpleResultCollector) Error(err Error) Error {
 	return err
 }
 
-func (s *SimpleResultCollector) PushEmpty(chat1.MessageID) bool {
+func (s *SimpleResultCollector) PushPlaceholder(chat1.MessageID) bool {
 	return false
 }
 
@@ -138,6 +140,8 @@ type TypedResultCollector struct {
 	target, cur int
 	typmap      map[chat1.MessageType]bool
 }
+
+var _ ResultCollector = (*TypedResultCollector)(nil)
 
 func NewTypedResultCollector(num int, typs []chat1.MessageType) *TypedResultCollector {
 	c := TypedResultCollector{
@@ -186,7 +190,7 @@ func (t *TypedResultCollector) Error(err Error) Error {
 	return err
 }
 
-func (t *TypedResultCollector) PushEmpty(msgID chat1.MessageID) bool {
+func (t *TypedResultCollector) PushPlaceholder(msgID chat1.MessageID) bool {
 	return false
 }
 
@@ -196,6 +200,8 @@ type HoleyResultCollector struct {
 	maxHoles, holes int
 }
 
+var _ ResultCollector = (*HoleyResultCollector)(nil)
+
 func NewHoleyResultCollector(maxHoles int, rc ResultCollector) *HoleyResultCollector {
 	return &HoleyResultCollector{
 		ResultCollector: rc,
@@ -203,7 +209,7 @@ func NewHoleyResultCollector(maxHoles int, rc ResultCollector) *HoleyResultColle
 	}
 }
 
-func (h *HoleyResultCollector) PushEmpty(msgID chat1.MessageID) bool {
+func (h *HoleyResultCollector) PushPlaceholder(msgID chat1.MessageID) bool {
 	if h.holes >= h.maxHoles {
 		return false
 	}
