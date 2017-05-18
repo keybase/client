@@ -58,7 +58,11 @@ func (e *TeamCreateEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	deviceSigningKey, deviceEncryptionKey, err := e.getDeviceKeys(ctx, me)
+	deviceSigningKey, err := e.G().ActiveDevice.SigningKey()
+	if err != nil {
+		return err
+	}
+	deviceEncryptionKey, err := e.G().ActiveDevice.EncryptionKey()
 	if err != nil {
 		return err
 	}
@@ -150,44 +154,6 @@ func (e *TeamCreateEngine) Run(ctx *Context) (err error) {
 	return nil
 }
 
-func (e *TeamCreateEngine) getDeviceKeys(ctx *Context, me *libkb.User) (sigKey libkb.NaclSigningKeyPair, encKey libkb.NaclDHKeyPair, err error) {
-	sigSKA := libkb.SecretKeyArg{
-		Me:      me,
-		KeyType: libkb.DeviceSigningKeyType,
-	}
-	sigGenericKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(sigSKA, "to create a new team"))
-	if err != nil {
-		return
-	}
-	if err = sigGenericKey.CheckSecretKey(); err != nil {
-		return
-	}
-	sigKey, ok := sigGenericKey.(libkb.NaclSigningKeyPair)
-	if !ok {
-		err = fmt.Errorf("got an unexpected key type for device signing key: %T", sigGenericKey)
-		return
-	}
-
-	encSKA := libkb.SecretKeyArg{
-		Me:      me,
-		KeyType: libkb.DeviceEncryptionKeyType,
-	}
-	encGenericKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(encSKA, "to create a new team"))
-	if err != nil {
-		return
-	}
-	if err = encGenericKey.CheckSecretKey(); err != nil {
-		return
-	}
-	encKey, ok = encGenericKey.(libkb.NaclDHKeyPair)
-	if !ok {
-		err = fmt.Errorf("got an unexpected key type for device encryption key: %T", encGenericKey)
-		return
-	}
-
-	return
-}
-
 func generatePerTeamKeys() (sharedSecret []byte, signingKey libkb.NaclSigningKeyPair, encryptionKey libkb.NaclDHKeyPair, err error) {
 	// This is the magical secret key, from which we derive a DH keypair and a
 	// signing keypair.
@@ -216,7 +182,11 @@ type PerTeamSharedSecretBoxes struct {
 	Boxes         map[string]string       `json:"boxes"`
 }
 
-func boxTeamSharedSecret(secret []byte, senderKey libkb.NaclDHKeyPair, recipients map[string]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
+func boxTeamSharedSecret(secret []byte, senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
+	senderNaclDHKey, ok := senderKey.(libkb.NaclDHKeyPair)
+	if !ok {
+		return nil, fmt.Errorf("got an unexpected key type for device encryption key: %T", senderKey)
+	}
 	noncePrefix, err := libkb.RandBytes(20)
 	if err != nil {
 		return nil, err
@@ -240,7 +210,7 @@ func boxTeamSharedSecret(secret []byte, senderKey libkb.NaclDHKeyPair, recipient
 		copy(nonce[:20], noncePrefix)
 		copy(nonce[20:24], counterBytes[:])
 		// TODO: pack [ 1, <per-user-seqno>, <nonce-bottom-4-bytes>, <box of current shared team secret> ]
-		ctext := box.Seal(nil, secret, &nonce, ((*[32]byte)(&recipientPerUserNaclKeypair.Public)), ((*[32]byte)(senderKey.Private)))
+		ctext := box.Seal(nil, secret, &nonce, ((*[32]byte)(&recipientPerUserNaclKeypair.Public)), ((*[32]byte)(senderNaclDHKey.Private)))
 		boxArray := []interface{}{libkb.SharedTeamKeyBoxVersion1, recipientPerUserKey.Seqno, counterBytes[:], ctext}
 		encodedArray, err := libkb.MsgpackEncode(boxArray)
 		if err != nil {
@@ -252,7 +222,7 @@ func boxTeamSharedSecret(secret []byte, senderKey libkb.NaclDHKeyPair, recipient
 
 	return &PerTeamSharedSecretBoxes{
 		Generation:    1,
-		EncryptingKid: senderKey.GetKID(),
+		EncryptingKid: senderNaclDHKey.GetKID(),
 		Nonce:         base64.StdEncoding.EncodeToString(noncePrefix),
 		Prev:          "", // no prev for the first team link
 		Boxes:         boxes,
