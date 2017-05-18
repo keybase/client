@@ -354,6 +354,13 @@ func (f *FS) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.Sta
 		Namelen: ^uint32(0),
 		Frsize:  fuseBlockSize,
 	}
+
+	if f.remoteStatus.ExtraFileName() != "" {
+		f.log.CDebugf(
+			ctx, "Skipping quota usage check while errors are present")
+		return nil
+	}
+
 	if session, err := libkbfs.GetCurrentSessionIfPossible(
 		ctx, f.config.KBPKI(), true); err != nil {
 		return err
