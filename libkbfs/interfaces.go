@@ -1041,11 +1041,21 @@ type MDOps interface {
 		start, stop kbfsmd.Revision) ([]ImmutableRootMetadata, error)
 
 	// Put stores the metadata object for the given top-level folder.
+	// This also adds the resulting ImmutableRootMetadata object to
+	// the mdcache, if the Put is successful.  Note that constructing
+	// the ImmutableRootMetadata requires knowing the verifying key,
+	// which might not be the same as the local user's verifying key
+	// if the MD has been copied from a previous update.
 	Put(ctx context.Context, rmd *RootMetadata,
 		verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error)
 
-	// PutUnmerged is the same as the above but for unmerged
-	// metadata history.
+	// PutUnmerged is the same as the above but for unmerged metadata
+	// history.  This also adds the resulting ImmutableRootMetadata
+	// object to the mdcache, if the PutUnmerged is successful.  Note
+	// that constructing the ImmutableRootMetadata requires knowing
+	// the verifying key, which might not be the same as the local
+	// user's verifying key if the MD has been copied from a previous
+	// update.
 	PutUnmerged(ctx context.Context, rmd *RootMetadata,
 		verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error)
 
@@ -1055,8 +1065,13 @@ type MDOps interface {
 
 	// ResolveBranch prunes all unmerged history for the given TLF
 	// branch, and also deletes any blocks in `blocksToDelete` that
-	// are still in the local journal.  It also appends the given MD
-	// to the journal.
+	// are still in the local journal.  In addition, it appends the
+	// given MD to the journal.  This also adds the resulting
+	// ImmutableRootMetadata object to the mdcache, if the
+	// ResolveBranch is successful.  Note that constructing the
+	// ImmutableRootMetadata requires knowing the verifying key, which
+	// might not be the same as the local user's verifying key if the
+	// MD has been copied from a previous update.
 	ResolveBranch(ctx context.Context, id tlf.ID, bid BranchID,
 		blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
 		verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error)
