@@ -87,7 +87,7 @@ function start() {
 
   ipcMain.on('kb-service-check', (event, arg) => {
     if (isWindows) {
-      console.log('kb-service-check')
+      console.log('kb-service-check: starting keybase.exe')
       startWinService()
     }
   })

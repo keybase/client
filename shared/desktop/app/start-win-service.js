@@ -6,7 +6,6 @@ export default function () {
   console.log('Not connected - starting keybase')
   const binPath = keybaseBinPath()
   if (!binPath) {
-    console.log('No keybaseBinPath')
     return
   }
   const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')

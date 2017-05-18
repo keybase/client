@@ -41,7 +41,10 @@ export function keybaseBinPath() {
   if (os.platform() === 'win32') {
       var kbPath = app.getPath('appData').replace('Roaming', 'Local')
       if (kbPath === null) kbPath = process.env.LOCALAPPDATA
-      if (kbPath === null) return null
+      if (kbPath === null) {
+        console.log('No keybaseBinPath')
+        return null
+      }
       return path.resolve(String(kbPath), 'Keybase', 'keybase.exe')
   }
   if (os.platform() !== 'darwin') return null
