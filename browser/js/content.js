@@ -64,6 +64,9 @@ function init() {
         case "reddit":
           redditInjectProfile(document, user);
           break;
+        case "facebook":
+          facebookInjectProfile(document, user);
+          break;
       }
     }
   });
@@ -74,6 +77,19 @@ window.addEventListener('load', init);
 let openChat = null;
 
 // Site-specific DOM injectors:
+
+function facebookInjectProfile(parent, user) {
+  const actions = document.querySelector(".actions");
+  if (!actions) return;
+
+  const button = document.createElement("a");
+  button.className = "keybase-chat";
+  button.href = `keybase://${user.query()}/`;
+  button.innerText = "keybase chat";
+  installChatButton([button], user);
+
+  actions.insertBefore(button, actions.firstChild);
+}
 
 function redditInjectProfile(parent, user) {
   const profileHeader = document.querySelector("h1");

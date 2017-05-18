@@ -1,3 +1,7 @@
+.keybase-reply {
+  text-align: left;
+}
+
 li.keybase-reply form, form.keybase-reply {
   overflow: hidden;
   z-index: 9999;
@@ -228,6 +232,7 @@ a.keybase-chat {
   background-position: 4px;
   background-repeat: no-repeat;
   padding: 2px 8px 2px 24px;
+  white-space: nowrap !important;
 }
 
 a.keybase-chat:hover {
