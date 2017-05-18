@@ -705,6 +705,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-keybase-logo-128.png'),
   },
+  'icon-keybase-logo-16 2': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-keybase-logo-16 2.png'),
+  },
   'icon-keybase-logo-16': {
     isFont: false,
     extension: 'png',
@@ -1554,7 +1559,8 @@ const iconMeta_ = {
     isFont: true,
     gridSize: 24,
     charCode: 0xe937,
-  } /* eslint-enable */,
+  },/* eslint-enable */
+  
 }
 
 export type IconType = $Keys<typeof iconMeta_>

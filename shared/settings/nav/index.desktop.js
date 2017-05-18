@@ -60,6 +60,7 @@ const styleNavBox = {
 const itemStyle = {
   ...globalStyles.flexBoxRow,
   height: 32,
+  width: '100%',
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
   alignItems: 'center',
