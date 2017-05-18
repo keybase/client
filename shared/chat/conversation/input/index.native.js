@@ -116,7 +116,7 @@ const Typing = ({typing}) => (
       paddingRight: globalMargins.tiny,
     }}
   >
-    <Icon type="icon-chat-loading" style={{width: 20}} />
+    <Icon type="icon-typing-24" style={{width: 20}} />
   </Box>
 )
 
