@@ -1,9 +1,12 @@
 package chat
 
 import (
+	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -397,4 +400,88 @@ func TestGetThreadCaching(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(thread.Messages), "wrong length")
 	require.Equal(t, msgID, thread.Messages[0].GetMessageID(), "wrong msgID")
+}
+
+type noGetThreadRemote struct {
+	*kbtest.ChatRemoteMock
+}
+
+func newNoGetThreadRemote(mock *kbtest.ChatRemoteMock) *noGetThreadRemote {
+	return &noGetThreadRemote{
+		ChatRemoteMock: mock,
+	}
+}
+
+func (n *noGetThreadRemote) GetThreadRemote(ctx context.Context, arg chat1.GetThreadRemoteArg) (chat1.GetThreadRemoteRes, error) {
+	return chat1.GetThreadRemoteRes{}, errors.New("GetThreadRemote banned")
+}
+
+func TestGetThreadHoleResolution(t *testing.T) {
+	world, ri2, _, sender, _, tlf := setupTest(t, 1)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	syncer := NewSyncer(tc.Context())
+	syncer.isConnected = true
+
+	conv := newConv(t, uid, ri, sender, tlf, u.Username)
+	convID := conv.GetConvID()
+	pt := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        conv.Metadata.IdTriple,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "HIHI",
+		}),
+	}
+
+	var msg *chat1.MessageBoxed
+	var err error
+	holes := 3
+	for i := 0; i < holes; i++ {
+		pt.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: fmt.Sprintf("MIKE: %d", i),
+		})
+		msg, _, err = sender.Prepare(context.TODO(), pt, &convID)
+		require.NoError(t, err)
+		require.NotNil(t, msg)
+
+		res, err := ri.PostRemote(context.TODO(), chat1.PostRemoteArg{
+			ConversationID: conv.GetConvID(),
+			MessageBoxed:   *msg,
+		})
+		require.NoError(t, err)
+		msg.ServerHeader = &res.MsgHeader
+	}
+
+	conv.MaxMsgs = []chat1.MessageBoxed{*msg}
+	conv.MaxMsgSummaries = []chat1.MessageSummary{msg.Summary()}
+	conv.ReaderInfo.MaxMsgid = msg.GetMessageID()
+	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
+		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
+			Vers:  vers + 1,
+			Convs: []chat1.Conversation{conv},
+		}), nil
+	}
+	doSync(t, syncer, ri, uid)
+
+	localThread, err := tc.Context().ConvSource.PullLocalOnly(context.TODO(), convID, uid, nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(localThread.Messages))
+
+	tc.Context().ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+		return newNoGetThreadRemote(ri)
+	})
+	thread, _, err := tc.Context().ConvSource.Pull(context.TODO(), convID, uid, nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, holes+2, len(thread.Messages))
+	require.Equal(t, msg.GetMessageID(), thread.Messages[0].GetMessageID())
+	require.Equal(t, "MIKE: 2", thread.Messages[0].Valid().MessageBody.Text().Body)
 }
