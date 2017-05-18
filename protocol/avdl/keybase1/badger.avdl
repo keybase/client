@@ -1,0 +1,4 @@
+@namespace("keybase.1")
+protocol badger {
+    BadgeState getBadgeState();
+}

@@ -1,0 +1,12 @@
+{
+  "protocol": "badger",
+  "imports": [],
+  "types": [],
+  "messages": {
+    "getBadgeState": {
+      "request": [],
+      "response": "BadgeState"
+    }
+  },
+  "namespace": "keybase.1"
+}
