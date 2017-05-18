@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -96,8 +97,8 @@ func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 
 // ReportErr implements the Reporter interface for ReporterKBPKI.
 func (r *ReporterKBPKI) ReportErr(ctx context.Context,
-	tlfName CanonicalTlfName, public bool, mode ErrorModeType, err error) {
-	r.ReporterSimple.ReportErr(ctx, tlfName, public, mode, err)
+	tlfName CanonicalTlfName, t tlf.Type, mode ErrorModeType, err error) {
+	r.ReporterSimple.ReportErr(ctx, tlfName, t, mode, err)
 
 	// Fire off error popups
 	params := make(map[string]string)
@@ -188,7 +189,7 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	}
 
 	if code >= 0 {
-		n := errorNotification(err, code, tlfName, public, mode, filename, params)
+		n := errorNotification(err, code, tlfName, t, mode, filename, params)
 		r.Notify(ctx, n)
 	}
 }
@@ -260,7 +261,7 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 // write events.
 func writeNotification(file path, finish bool) *keybase1.FSNotification {
 	n := baseNotification(file, finish)
-	if file.Tlf.IsPublic() {
+	if file.Tlf.Type() == tlf.Public {
 		n.NotificationType = keybase1.FSNotificationType_SIGNING
 	} else {
 		n.NotificationType = keybase1.FSNotificationType_ENCRYPTING
@@ -272,7 +273,7 @@ func writeNotification(file path, finish bool) *keybase1.FSNotification {
 // read events.
 func readNotification(file path, finish bool) *keybase1.FSNotification {
 	n := baseNotification(file, finish)
-	if file.Tlf.IsPublic() {
+	if file.Tlf.Type() == tlf.Public {
 		n.NotificationType = keybase1.FSNotificationType_VERIFYING
 	} else {
 		n.NotificationType = keybase1.FSNotificationType_DECRYPTING
@@ -289,7 +290,7 @@ func rekeyNotification(ctx context.Context, config Config, handle *TlfHandle, fi
 	}
 
 	return &keybase1.FSNotification{
-		PublicTopLevelFolder: handle.IsPublic(),
+		PublicTopLevelFolder: handle.Type() == tlf.Public,
 		Filename:             string(handle.GetCanonicalPath()),
 		StatusCode:           code,
 		NotificationType:     keybase1.FSNotificationType_REKEYING,
@@ -360,7 +361,7 @@ func baseNotification(file path, finish bool) *keybase1.FSNotification {
 	}
 
 	return &keybase1.FSNotification{
-		PublicTopLevelFolder: file.Tlf.IsPublic(),
+		PublicTopLevelFolder: file.Tlf.Type() == tlf.Public,
 		Filename:             file.CanonicalPathString(),
 		StatusCode:           code,
 	}
@@ -368,7 +369,7 @@ func baseNotification(file path, finish bool) *keybase1.FSNotification {
 
 // errorNotification creates FSNotifications for errors.
 func errorNotification(err error, errType keybase1.FSErrorType,
-	tlfName CanonicalTlfName, public bool, mode ErrorModeType,
+	tlfName CanonicalTlfName, t tlf.Type, mode ErrorModeType,
 	filename string, params map[string]string) *keybase1.FSNotification {
 	if tlfName != "" {
 		params[errorParamTlf] = string(tlfName)
@@ -377,14 +378,14 @@ func errorNotification(err error, errType keybase1.FSErrorType,
 	switch mode {
 	case ReadMode:
 		params[errorParamMode] = errorModeRead
-		if public {
+		if t == tlf.Public {
 			nType = keybase1.FSNotificationType_VERIFYING
 		} else {
 			nType = keybase1.FSNotificationType_DECRYPTING
 		}
 	case WriteMode:
 		params[errorParamMode] = errorModeWrite
-		if public {
+		if t == tlf.Public {
 			nType = keybase1.FSNotificationType_SIGNING
 		} else {
 			nType = keybase1.FSNotificationType_ENCRYPTING
@@ -399,7 +400,7 @@ func errorNotification(err error, errType keybase1.FSErrorType,
 		ErrorType:            errType,
 		Params:               params,
 		NotificationType:     nType,
-		PublicTopLevelFolder: public, // Deprecated
+		PublicTopLevelFolder: t == tlf.Public, // Deprecated
 	}
 }
 

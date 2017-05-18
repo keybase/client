@@ -23,23 +23,23 @@ import (
 	"golang.org/x/net/context"
 )
 
-type nameUIDPair struct {
+type nameIDPair struct {
 	name libkb.NormalizedUsername
-	uid  keybase1.UID
+	id   keybase1.UserOrTeamID
 }
 
 type resolvableUser interface {
 	// resolve must do exactly one of the following:
 	//
-	//   - return a non-zero nameUIDPair;
+	//   - return a non-zero nameIDPair;
 	//   - return a non-zero keybase1.SocialAssertion;
 	//   - return a non-nil error.
-	resolve(context.Context) (nameUIDPair, keybase1.SocialAssertion, error)
+	resolve(context.Context) (nameIDPair, keybase1.SocialAssertion, error)
 }
 
 func resolveOneUser(
 	ctx context.Context, user resolvableUser,
-	errCh chan<- error, userInfoResults chan<- nameUIDPair,
+	errCh chan<- error, userInfoResults chan<- nameIDPair,
 	socialAssertionResults chan<- keybase1.SocialAssertion) {
 	userInfo, socialAssertion, err := user.resolve(ctx)
 	if err != nil {
@@ -51,7 +51,7 @@ func resolveOneUser(
 		}
 		return
 	}
-	if userInfo != (nameUIDPair{}) {
+	if userInfo != (nameIDPair{}) {
 		userInfoResults <- userInfo
 		return
 	}
@@ -65,10 +65,10 @@ func resolveOneUser(
 }
 
 func makeTlfHandleHelper(
-	ctx context.Context, public bool, writers, readers []resolvableUser,
+	ctx context.Context, t tlf.Type, writers, readers []resolvableUser,
 	extensions []tlf.HandleExtension) (*TlfHandle, error) {
-	if public && len(readers) > 0 {
-		return nil, errors.New("public folder cannot have readers")
+	if t != tlf.Private && len(readers) > 0 {
+		return nil, errors.New("public or team folder cannot have readers")
 	}
 
 	// parallelize the resolutions for each user
@@ -77,20 +77,22 @@ func makeTlfHandleHelper(
 
 	errCh := make(chan error, 1)
 
-	wc := make(chan nameUIDPair, len(writers))
+	wc := make(chan nameIDPair, len(writers))
 	uwc := make(chan keybase1.SocialAssertion, len(writers))
 	for _, writer := range writers {
 		go resolveOneUser(ctx, writer, errCh, wc, uwc)
 	}
 
-	rc := make(chan nameUIDPair, len(readers))
+	rc := make(chan nameIDPair, len(readers))
 	urc := make(chan keybase1.SocialAssertion, len(readers))
 	for _, reader := range readers {
 		go resolveOneUser(ctx, reader, errCh, rc, urc)
 	}
 
-	usedWNames := make(map[keybase1.UID]libkb.NormalizedUsername, len(writers))
-	usedRNames := make(map[keybase1.UID]libkb.NormalizedUsername, len(readers))
+	usedWNames :=
+		make(map[keybase1.UserOrTeamID]libkb.NormalizedUsername, len(writers))
+	usedRNames :=
+		make(map[keybase1.UserOrTeamID]libkb.NormalizedUsername, len(readers))
 	usedUnresolvedWriters := make(map[keybase1.SocialAssertion]bool)
 	usedUnresolvedReaders := make(map[keybase1.SocialAssertion]bool)
 	for i := 0; i < len(writers)+len(readers); i++ {
@@ -98,9 +100,9 @@ func makeTlfHandleHelper(
 		case err := <-errCh:
 			return nil, err
 		case userInfo := <-wc:
-			usedWNames[userInfo.uid] = userInfo.name
+			usedWNames[userInfo.id] = userInfo.name
 		case userInfo := <-rc:
-			usedRNames[userInfo.uid] = userInfo.name
+			usedRNames[userInfo.id] = userInfo.name
 		case socialAssertion := <-uwc:
 			usedUnresolvedWriters[socialAssertion] = true
 		case socialAssertion := <-urc:
@@ -121,13 +123,13 @@ func makeTlfHandleHelper(
 	unresolvedWriters := getSortedUnresolved(usedUnresolvedWriters)
 
 	var unresolvedReaders []keybase1.SocialAssertion
-	if !public {
+	if t == tlf.Private {
 		unresolvedReaders = getSortedUnresolved(usedUnresolvedReaders)
 	}
 
 	writerNames := getSortedNames(usedWNames, unresolvedWriters)
 	canonicalName := strings.Join(writerNames, ",")
-	if !public && len(usedRNames)+len(unresolvedReaders) > 0 {
+	if t == tlf.Private && len(usedRNames)+len(unresolvedReaders) > 0 {
 		readerNames := getSortedNames(usedRNames, unresolvedReaders)
 		canonicalName += ReaderSep + strings.Join(readerNames, ",")
 	}
@@ -138,7 +140,7 @@ func makeTlfHandleHelper(
 	conflictInfo, finalizedInfo := extensionList.Splat()
 
 	h := &TlfHandle{
-		public:            public,
+		tlfType:           t,
 		resolvedWriters:   usedWNames,
 		resolvedReaders:   usedRNames,
 		unresolvedWriters: unresolvedWriters,
@@ -151,26 +153,26 @@ func makeTlfHandleHelper(
 	return h, nil
 }
 
-type resolvableUID struct {
+type resolvableID struct {
 	nug normalizedUsernameGetter
-	uid keybase1.UID
+	id  keybase1.UserOrTeamID
 }
 
-func (ruid resolvableUID) resolve(ctx context.Context) (nameUIDPair, keybase1.SocialAssertion, error) {
-	name, err := ruid.nug.GetNormalizedUsername(ctx, ruid.uid.AsUserOrTeam())
+func (ruid resolvableID) resolve(ctx context.Context) (nameIDPair, keybase1.SocialAssertion, error) {
+	name, err := ruid.nug.GetNormalizedUsername(ctx, ruid.id)
 	if err != nil {
-		return nameUIDPair{}, keybase1.SocialAssertion{}, err
+		return nameIDPair{}, keybase1.SocialAssertion{}, err
 	}
-	return nameUIDPair{
+	return nameIDPair{
 		name: name,
-		uid:  ruid.uid,
+		id:   ruid.id,
 	}, keybase1.SocialAssertion{}, nil
 }
 
 type resolvableSocialAssertion keybase1.SocialAssertion
 
-func (rsa resolvableSocialAssertion) resolve(ctx context.Context) (nameUIDPair, keybase1.SocialAssertion, error) {
-	return nameUIDPair{}, keybase1.SocialAssertion(rsa), nil
+func (rsa resolvableSocialAssertion) resolve(ctx context.Context) (nameIDPair, keybase1.SocialAssertion, error) {
+	return nameIDPair{}, keybase1.SocialAssertion(rsa), nil
 }
 
 // MakeTlfHandle creates a TlfHandle from the given tlf.Handle and the
@@ -180,24 +182,25 @@ func MakeTlfHandle(
 	nug normalizedUsernameGetter) (*TlfHandle, error) {
 	writers := make([]resolvableUser, 0, len(bareHandle.Writers)+len(bareHandle.UnresolvedWriters))
 	for _, w := range bareHandle.Writers {
-		writers = append(writers, resolvableUID{nug, w})
+		writers = append(writers, resolvableID{nug, w})
 	}
 	for _, uw := range bareHandle.UnresolvedWriters {
 		writers = append(writers, resolvableSocialAssertion(uw))
 	}
 
 	var readers []resolvableUser
-	if !bareHandle.IsPublic() {
+	if bareHandle.Type() == tlf.Private {
 		readers = make([]resolvableUser, 0, len(bareHandle.Readers)+len(bareHandle.UnresolvedReaders))
 		for _, r := range bareHandle.Readers {
-			readers = append(readers, resolvableUID{nug, r})
+			readers = append(readers, resolvableID{nug, r})
 		}
 		for _, ur := range bareHandle.UnresolvedReaders {
 			readers = append(readers, resolvableSocialAssertion(ur))
 		}
 	}
 
-	h, err := makeTlfHandleHelper(ctx, bareHandle.IsPublic(), writers, readers, bareHandle.Extensions())
+	h, err := makeTlfHandleHelper(
+		ctx, bareHandle.Type(), writers, readers, bareHandle.Extensions())
 	if err != nil {
 		return nil, err
 	}
@@ -213,10 +216,10 @@ func MakeTlfHandle(
 	return h, nil
 }
 
-type resolvableNameUIDPair nameUIDPair
+type resolvableNameUIDPair nameIDPair
 
-func (rp resolvableNameUIDPair) resolve(ctx context.Context) (nameUIDPair, keybase1.SocialAssertion, error) {
-	return nameUIDPair(rp), keybase1.SocialAssertion{}, nil
+func (rp resolvableNameUIDPair) resolve(ctx context.Context) (nameIDPair, keybase1.SocialAssertion, error) {
+	return nameIDPair(rp), keybase1.SocialAssertion{}, nil
 }
 
 // ResolveAgainForUser tries to resolve any unresolved assertions in
@@ -240,7 +243,7 @@ func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 	}
 
 	var readers []resolvableUser
-	if !h.IsPublic() {
+	if h.Type() == tlf.Private {
 		readers = make([]resolvableUser, 0, len(h.resolvedReaders)+len(h.unresolvedReaders))
 		for uid, r := range h.resolvedReaders {
 			readers = append(readers, resolvableNameUIDPair{r, uid})
@@ -251,7 +254,8 @@ func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 		}
 	}
 
-	newH, err := makeTlfHandleHelper(ctx, h.IsPublic(), writers, readers, h.Extensions())
+	newH, err := makeTlfHandleHelper(
+		ctx, h.Type(), writers, readers, h.Extensions())
 	if err != nil {
 		return nil, err
 	}
@@ -391,10 +395,10 @@ type resolvableAssertionWithChangeReport struct {
 }
 
 func (ra resolvableAssertionWithChangeReport) resolve(ctx context.Context) (
-	nameUIDPair, keybase1.SocialAssertion, error) {
+	nameIDPair, keybase1.SocialAssertion, error) {
 	nuid, sa, err := ra.resolvableAssertion.resolve(ctx)
 	if err != nil {
-		return nameUIDPair{}, keybase1.SocialAssertion{}, err
+		return nameIDPair{}, keybase1.SocialAssertion{}, err
 	}
 	sendIfPossible := func() {
 		select {
@@ -422,9 +426,9 @@ type resolvableAssertion struct {
 }
 
 func (ra resolvableAssertion) resolve(ctx context.Context) (
-	nameUIDPair, keybase1.SocialAssertion, error) {
+	nameIDPair, keybase1.SocialAssertion, error) {
 	if ra.assertion == PublicUIDName {
-		return nameUIDPair{}, keybase1.SocialAssertion{}, fmt.Errorf("Invalid name %s", ra.assertion)
+		return nameIDPair{}, keybase1.SocialAssertion{}, fmt.Errorf("Invalid name %s", ra.assertion)
 	}
 	name, id, err := ra.resolver.Resolve(ctx, ra.assertion)
 	if err == nil && ra.mustBeUser != keybase1.UID("") &&
@@ -443,43 +447,39 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 	// originator wants.
 	if strings.Contains(ra.assertion, "+") {
 		if ra.identifier == nil {
-			return nameUIDPair{}, keybase1.SocialAssertion{}, errors.New(
+			return nameIDPair{}, keybase1.SocialAssertion{}, errors.New(
 				"Can't resolve an AND assertion without an identifier")
 		}
 		reason := fmt.Sprintf("You accessed a folder with %s.", ra.assertion)
 		var resName libkb.NormalizedUsername
 		resName, _, err = ra.identifier.Identify(ctx, ra.assertion, reason)
 		if err == nil && resName != name {
-			return nameUIDPair{}, keybase1.SocialAssertion{}, fmt.Errorf(
+			return nameIDPair{}, keybase1.SocialAssertion{}, fmt.Errorf(
 				"Resolved name %s doesn't match identified name %s for "+
 					"assertion %s", name, resName, ra.assertion)
 		}
 	}
 	switch err := err.(type) {
 	default:
-		return nameUIDPair{}, keybase1.SocialAssertion{}, err
+		return nameIDPair{}, keybase1.SocialAssertion{}, err
 	case nil:
-		idAsUser, err := id.AsUser()
-		if err != nil {
-			return nameUIDPair{}, keybase1.SocialAssertion{}, err
-		}
-		return nameUIDPair{
+		return nameIDPair{
 			name: name,
-			uid:  idAsUser,
+			id:   id,
 		}, keybase1.SocialAssertion{}, nil
 	case NoSuchUserError:
 		socialAssertion, ok := externals.NormalizeSocialAssertion(ra.assertion)
 		if !ok {
-			return nameUIDPair{}, keybase1.SocialAssertion{}, err
+			return nameIDPair{}, keybase1.SocialAssertion{}, err
 		}
-		return nameUIDPair{}, socialAssertion, nil
+		return nameIDPair{}, socialAssertion, nil
 	}
 }
 
 // parseTlfHandleLoose parses a TLF handle but leaves some of the canonicality
 // checking to public routines like ParseTlfHandle and ParseTlfHandlePreferred.
 func parseTlfHandleLoose(
-	ctx context.Context, kbpki KBPKI, name string, public bool) (
+	ctx context.Context, kbpki KBPKI, name string, t tlf.Type) (
 	*TlfHandle, error) {
 	// Before parsing the tlf handle (which results in identify
 	// calls that cause tracker popups), first see if there's any
@@ -492,7 +492,7 @@ func parseTlfHandleLoose(
 	// This also contains an offline check for canonicality and
 	// whether a public folder has readers.
 	writerNames, readerNames, extensionSuffix, err :=
-		splitAndNormalizeTLFName(name, public)
+		splitAndNormalizeTLFName(name, t)
 	if err != nil {
 		return nil, err
 	}
@@ -517,12 +517,12 @@ func parseTlfHandleLoose(
 		}
 	}
 
-	h, err := makeTlfHandleHelper(ctx, public, writers, readers, extensions)
+	h, err := makeTlfHandleHelper(ctx, t, writers, readers, extensions)
 	if err != nil {
 		return nil, err
 	}
 
-	if !public {
+	if t == tlf.Private {
 		session, err := kbpki.GetCurrentSession(ctx)
 		if err != nil {
 			return nil, err
@@ -577,9 +577,9 @@ func parseTlfHandleLoose(
 // TODO In future perhaps all code should switch over to preferred handles,
 // and rename TlfNameNotCanonical to TlfNameNotPreferred.
 func ParseTlfHandle(
-	ctx context.Context, kbpki KBPKI, name string, public bool) (
+	ctx context.Context, kbpki KBPKI, name string, t tlf.Type) (
 	*TlfHandle, error) {
-	h, err := parseTlfHandleLoose(ctx, kbpki, name, public)
+	h, err := parseTlfHandleLoose(ctx, kbpki, name, t)
 	if err != nil {
 		return nil, err
 	}
@@ -601,9 +601,9 @@ func ParseTlfHandle(
 // TlfNameNotCanonical is returned from this function when the name is
 // not the *preferred* name.
 func ParseTlfHandlePreferred(
-	ctx context.Context, kbpki KBPKI, name string, public bool) (
+	ctx context.Context, kbpki KBPKI, name string, t tlf.Type) (
 	*TlfHandle, error) {
-	h, err := parseTlfHandleLoose(ctx, kbpki, name, public)
+	h, err := parseTlfHandleLoose(ctx, kbpki, name, t)
 	// Return an early if there is an error, except in the case
 	// where both h is not nil and it is a TlfNameNotCanonicalError.
 	// In that case continue and return TlfNameNotCanonical later
@@ -611,7 +611,8 @@ func ParseTlfHandlePreferred(
 	if err != nil && (h == nil || !isTlfNameNotCanonical(err)) {
 		return nil, err
 	}
-	session, err := GetCurrentSessionIfPossible(ctx, kbpki, h.IsPublic())
+	session, err := GetCurrentSessionIfPossible(
+		ctx, kbpki, h.Type() == tlf.Public)
 	if err != nil {
 		return nil, err
 	}

@@ -132,7 +132,7 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	cache, config := initDiskBlockCacheTest(t)
 	defer shutdownDiskBlockCacheTest(cache)
 
-	tlf1 := tlf.FakeID(0, false)
+	tlf1 := tlf.FakeID(0, tlf.Private)
 	block1Ptr, _, block1Encoded, block1ServerHalf := setupBlockForDiskCache(
 		t, config)
 
@@ -179,13 +179,13 @@ func TestDiskBlockCacheDelete(t *testing.T) {
 	t.Log("Seed the cache with some other TLFs")
 	fakeTlfs := []byte{0, 1, 2, 4, 5}
 	for _, f := range fakeTlfs {
-		tlf := tlf.FakeID(f, false)
+		tlf := tlf.FakeID(f, tlf.Private)
 		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 			t, config)
 		err := cache.Put(ctx, tlf, blockPtr.ID, blockEncoded, serverHalf)
 		require.NoError(t, err)
 	}
-	tlf1 := tlf.FakeID(3, false)
+	tlf1 := tlf.FakeID(3, tlf.Private)
 	block1Ptr, _, block1Encoded, block1ServerHalf := setupBlockForDiskCache(t,
 		config)
 	block2Ptr, _, block2Encoded, block2ServerHalf := setupBlockForDiskCache(t,
@@ -226,14 +226,14 @@ func TestDiskBlockCacheEvictFromTLF(t *testing.T) {
 	cache, config := initDiskBlockCacheTest(t)
 	defer shutdownDiskBlockCacheTest(cache)
 
-	tlf1 := tlf.FakeID(3, false)
+	tlf1 := tlf.FakeID(3, tlf.Private)
 	ctx := context.Background()
 	clock := config.TestClock()
 	initialTime := clock.Now()
 	t.Log("Seed the cache with some other TLFs.")
 	fakeTlfs := []byte{0, 1, 2, 4, 5}
 	for _, f := range fakeTlfs {
-		tlf := tlf.FakeID(f, false)
+		tlf := tlf.FakeID(f, tlf.Private)
 		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 			t, config)
 		err := cache.Put(ctx, tlf, blockPtr.ID, blockEncoded, serverHalf)
@@ -318,7 +318,7 @@ func TestDiskBlockCacheEvictOverall(t *testing.T) {
 
 	t.Log("Seed the cache with some other TLFs.")
 	for i := byte(0); int(i) < numTlfs; i++ {
-		currTlf := tlf.FakeID(i, false)
+		currTlf := tlf.FakeID(i, tlf.Private)
 		for j := 0; j < numBlocksPerTlf; j++ {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 				t, config)
@@ -393,7 +393,7 @@ func TestDiskBlockCacheStaticLimit(t *testing.T) {
 
 	t.Log("Seed the cache with some blocks.")
 	for i := byte(0); int(i) < numTlfs; i++ {
-		currTlf := tlf.FakeID(i, false)
+		currTlf := tlf.FakeID(i, tlf.Private)
 		for j := 0; j < numBlocksPerTlf; j++ {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 				t, config)
@@ -411,7 +411,8 @@ func TestDiskBlockCacheStaticLimit(t *testing.T) {
 	t.Log("Add a block to the cache. Verify that blocks were evicted.")
 	blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 		t, config)
-	err := cache.Put(ctx, tlf.FakeID(10, false), blockPtr.ID, blockEncoded, serverHalf)
+	err := cache.Put(
+		ctx, tlf.FakeID(10, tlf.Private), blockPtr.ID, blockEncoded, serverHalf)
 	require.NoError(t, err)
 
 	require.True(t, int64(cache.currBytes) < currBytes)
@@ -433,7 +434,7 @@ func TestDiskBlockCacheDynamicLimit(t *testing.T) {
 
 	t.Log("Seed the cache with some blocks.")
 	for i := byte(0); int(i) < numTlfs; i++ {
-		currTlf := tlf.FakeID(i, false)
+		currTlf := tlf.FakeID(i, tlf.Private)
 		for j := 0; j < numBlocksPerTlf; j++ {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 				t, config)
@@ -463,7 +464,9 @@ func TestDiskBlockCacheDynamicLimit(t *testing.T) {
 	for i := 1; i <= numBlocks; i++ {
 		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 			t, config)
-		err := cache.Put(ctx, tlf.FakeID(10, false), blockPtr.ID, blockEncoded, serverHalf)
+		err := cache.Put(
+			ctx, tlf.FakeID(10, tlf.Private), blockPtr.ID, blockEncoded,
+			serverHalf)
 		require.NoError(t, err)
 		require.Equal(t, start+(i%int(defaultNumBlocksToEvict)), cache.numBlocks)
 	}

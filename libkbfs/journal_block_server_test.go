@@ -89,7 +89,7 @@ func TestJournalBlockServerPutGetAddReference(t *testing.T) {
 	// journal tries to access it.
 	jServer.delegateBlockServer = shutdownOnlyBlockServer{}
 
-	tlfID := tlf.FakeID(2, false)
+	tlfID := tlf.FakeID(2, tlf.Private)
 	err := jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 

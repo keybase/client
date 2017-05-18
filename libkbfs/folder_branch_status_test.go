@@ -106,13 +106,13 @@ func TestFBStatusAllFields(t *testing.T) {
 	ctx := context.Background()
 
 	// make a new root metadata
-	id := tlf.FakeID(1, false)
-	h := parseTlfHandleOrBust(t, config, "alice", false)
+	id := tlf.FakeID(1, tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private)
 	u := h.FirstResolvedWriter()
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 	rmd.SetUnmerged()
-	rmd.SetLastModifyingWriter(u)
+	rmd.SetLastModifyingWriter(u.AsUserOrBust())
 
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("fake seed")
 	signer := kbfscrypto.SigningKeySigner{Key: signingKey}

@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -30,7 +31,7 @@ func (f fs) favorites(ctx context.Context, path Path) (keybase1.ListResult, erro
 	}
 	files := []keybase1.File{}
 	for _, fav := range favs {
-		if fav.Public == path.Public {
+		if fav.Public == (path.TLFType == tlf.Public) {
 			favPath, err := path.Join(fav.Name)
 			if err != nil {
 				return keybase1.ListResult{}, err

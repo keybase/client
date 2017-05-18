@@ -15,12 +15,13 @@ import (
 )
 
 func TestBareRootMetadataVersionV3(t *testing.T) {
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	// All V3 objects should have SegregatedKeyBundlesVer.
 
 	uid := keybase1.MakeTestUID(1)
-	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	rmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
@@ -30,10 +31,11 @@ func TestBareRootMetadataVersionV3(t *testing.T) {
 }
 
 func TestRootMetadataV3ExtraNew(t *testing.T) {
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	uid := keybase1.MakeTestUID(1)
-	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	rmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
@@ -63,10 +65,11 @@ func TestRootMetadataV3ExtraNew(t *testing.T) {
 }
 
 func TestIsValidRekeyRequestBasicV3(t *testing.T) {
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	uid := keybase1.MakeTestUID(1)
-	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	codec := kbfscodec.NewMsgpack()
@@ -99,10 +102,13 @@ func TestIsValidRekeyRequestBasicV3(t *testing.T) {
 }
 
 func TestBareRootMetadataPublicVersionV3(t *testing.T) {
-	tlfID := tlf.FakeID(1, true)
+	tlfID := tlf.FakeID(1, tlf.Public)
 
 	uid := keybase1.MakeTestUID(1)
-	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, []keybase1.UID{keybase1.PublicUID}, nil, nil, nil)
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()},
+		[]keybase1.UserOrTeamID{keybase1.UserOrTeamID(keybase1.PublicUID)},
+		nil, nil, nil)
 	require.NoError(t, err)
 
 	rmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
@@ -135,10 +141,11 @@ func TestRevokeRemovedDevicesV3(t *testing.T) {
 	id3a, err := crypto.GetTLFCryptKeyServerHalfID(uid3, key3, half3a)
 	require.NoError(t, err)
 
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	bh, err := tlf.MakeHandle(
-		[]keybase1.UID{uid1, uid2}, []keybase1.UID{uid3}, nil, nil, nil)
+		[]keybase1.UserOrTeamID{uid1.AsUserOrTeam(), uid2.AsUserOrTeam()},
+		[]keybase1.UserOrTeamID{uid3.AsUserOrTeam()}, nil, nil, nil)
 	require.NoError(t, err)
 
 	brmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
@@ -243,10 +250,12 @@ func TestRevokeLastDeviceV3(t *testing.T) {
 	id2, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2, half2)
 	require.NoError(t, err)
 
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	bh, err := tlf.MakeHandle(
-		[]keybase1.UID{uid1, uid2}, []keybase1.UID{uid3, uid4}, nil, nil, nil)
+		[]keybase1.UserOrTeamID{uid1.AsUserOrTeam(), uid2.AsUserOrTeam()},
+		[]keybase1.UserOrTeamID{uid3.AsUserOrTeam(), uid4.AsUserOrTeam()},
+		nil, nil, nil)
 	require.NoError(t, err)
 
 	brmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
@@ -467,10 +476,11 @@ func TestBareRootMetadataV3UpdateKeyBundles(t *testing.T) {
 		uid3: {privKey3.GetPublicKey(): true},
 	}
 
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	bh, err := tlf.MakeHandle(
-		[]keybase1.UID{uid1, uid2}, []keybase1.UID{uid3},
+		[]keybase1.UserOrTeamID{uid1.AsUserOrTeam(), uid2.AsUserOrTeam()},
+		[]keybase1.UserOrTeamID{uid3.AsUserOrTeam()},
 		[]keybase1.SocialAssertion{{}},
 		nil, nil)
 	require.NoError(t, err)
@@ -708,10 +718,11 @@ func TestBareRootMetadataV3AddKeyGenerationKeylessUsers(t *testing.T) {
 		uid3: {},
 	}
 
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	bh, err := tlf.MakeHandle(
-		[]keybase1.UID{uid1, uid2}, []keybase1.UID{uid3},
+		[]keybase1.UserOrTeamID{uid1.AsUserOrTeam(), uid2.AsUserOrTeam()},
+		[]keybase1.UserOrTeamID{uid3.AsUserOrTeam()},
 		[]keybase1.SocialAssertion{{}},
 		nil, nil)
 	require.NoError(t, err)

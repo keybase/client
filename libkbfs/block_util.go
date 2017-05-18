@@ -51,7 +51,7 @@ func PutBlockCheckLimitErrs(ctx context.Context, bserv BlockServer,
 		if !typedErr.Throttled {
 			// Report the error, but since it's not throttled the Put
 			// actually succeeded, so return nil back to the caller.
-			reporter.ReportErr(ctx, tlfName, tlfID.IsPublic(),
+			reporter.ReportErr(ctx, tlfName, tlfID.Type(),
 				WriteMode, OverQuotaWarning{typedErr.Usage, typedErr.Limit})
 			return nil
 		}
@@ -61,7 +61,8 @@ func PutBlockCheckLimitErrs(ctx context.Context, bserv BlockServer,
 		// otherwise be reported.  Mark the error as unreportable to
 		// avoid the upper FS layer reporting it twice, if this block
 		// put is the result of a foreground fsync.
-		reporter.ReportErr(ctx, tlfName, tlfID.IsPublic(), WriteMode, err)
+		reporter.ReportErr(
+			ctx, tlfName, tlfID.Type(), WriteMode, err)
 		typedErr.reportable = false
 		return err
 	}

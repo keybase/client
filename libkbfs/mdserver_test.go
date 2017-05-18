@@ -63,7 +63,8 @@ func TestMDServerBasics(t *testing.T) {
 	uid := session.UID
 
 	// (1) get metadata -- allocates an ID
-	h, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	h, err := tlf.MakeHandle(
+		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	id, rmds, err := mdServer.GetForHandle(ctx, h, Merged)
@@ -173,10 +174,10 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
-	uid := session.UID
+	id := session.UID.AsUserOrTeam()
 
 	// Create first TLF.
-	h1, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	h1, err := tlf.MakeHandle([]keybase1.UserOrTeamID{id}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	id1, _, err := mdServer.GetForHandle(ctx, h1, Merged)
@@ -184,7 +185,9 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 
 	// Create second TLF, which should end up being different from
 	// the first one.
-	h2, err := tlf.MakeHandle([]keybase1.UID{uid}, []keybase1.UID{keybase1.PUBLIC_UID}, nil, nil, nil)
+	h2, err := tlf.MakeHandle([]keybase1.UserOrTeamID{id},
+		[]keybase1.UserOrTeamID{keybase1.UserOrTeamID(keybase1.PUBLIC_UID)},
+		nil, nil, nil)
 	require.NoError(t, err)
 
 	id2, _, err := mdServer.GetForHandle(ctx, h2, Merged)

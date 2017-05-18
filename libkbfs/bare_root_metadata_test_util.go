@@ -26,7 +26,7 @@ func FakeInitialRekey(md MutableBareRootMetadata,
 	wKeys := make(UserDevicePublicKeys)
 	for _, w := range h.Writers {
 		k := kbfscrypto.MakeFakeCryptPublicKeyOrBust(string(w))
-		wKeys[w] = DevicePublicKeys{
+		wKeys[w.AsUserOrBust()] = DevicePublicKeys{
 			k: true,
 		}
 	}
@@ -34,7 +34,7 @@ func FakeInitialRekey(md MutableBareRootMetadata,
 	rKeys := make(UserDevicePublicKeys)
 	for _, r := range h.Readers {
 		k := kbfscrypto.MakeFakeCryptPublicKeyOrBust(string(r))
-		rKeys[r] = DevicePublicKeys{
+		rKeys[r.AsUserOrBust()] = DevicePublicKeys{
 			k: true,
 		}
 	}

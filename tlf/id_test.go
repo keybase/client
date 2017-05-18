@@ -13,7 +13,7 @@ import (
 
 func TestIDEncodeDecode(t *testing.T) {
 	codec := kbfscodec.NewMsgpack()
-	id := FakeID(1, true)
+	id := FakeID(1, Public)
 
 	encodedID, err := codec.Encode(id)
 	require.NoError(t, err)

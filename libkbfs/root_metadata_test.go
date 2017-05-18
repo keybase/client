@@ -92,13 +92,13 @@ func TestPrivateMetadataUnknownFields(t *testing.T) {
 
 // makeFakeTlfHandle should only be used in this file.
 func makeFakeTlfHandle(
-	t *testing.T, x uint32, public bool,
+	t *testing.T, x uint32, ty tlf.Type,
 	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion) *TlfHandle {
-	uid := keybase1.MakeTestUID(x)
+	id := keybase1.MakeTestUID(x).AsUserOrTeam()
 	return &TlfHandle{
-		public: public,
-		resolvedWriters: map[keybase1.UID]libkb.NormalizedUsername{
-			uid: "test_user",
+		tlfType: ty,
+		resolvedWriters: map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+			id: "test_user",
 		},
 		unresolvedWriters: unresolvedWriters,
 		unresolvedReaders: unresolvedReaders,
@@ -118,8 +118,8 @@ func testRootMetadataGetTlfHandlePublic(t *testing.T, ver MetadataVer) {
 			Service: "service1",
 		},
 	}
-	h := makeFakeTlfHandle(t, 14, true, uw, nil)
-	tlfID := tlf.FakeID(0, true)
+	h := makeFakeTlfHandle(t, 14, tlf.Public, uw, nil)
+	tlfID := tlf.FakeID(0, tlf.Public)
 	rmd, err := makeInitialRootMetadata(ver, tlfID, h)
 	require.NoError(t, err)
 
@@ -155,8 +155,8 @@ func testRootMetadataGetTlfHandlePrivate(t *testing.T, ver MetadataVer) {
 			Service: "service2",
 		},
 	}
-	h := makeFakeTlfHandle(t, 14, false, uw, ur)
-	tlfID := tlf.FakeID(0, false)
+	h := makeFakeTlfHandle(t, 14, tlf.Private, uw, ur)
+	tlfID := tlf.FakeID(0, tlf.Private)
 	rmd, err := makeInitialRootMetadata(ver, tlfID, h)
 	require.NoError(t, err)
 
@@ -173,8 +173,8 @@ func testRootMetadataGetTlfHandlePrivate(t *testing.T, ver MetadataVer) {
 
 // Test that key generations work as expected for private TLFs.
 func testRootMetadataLatestKeyGenerationPrivate(t *testing.T, ver MetadataVer) {
-	tlfID := tlf.FakeID(0, false)
-	h := makeFakeTlfHandle(t, 14, false, nil, nil)
+	tlfID := tlf.FakeID(0, tlf.Private)
+	h := makeFakeTlfHandle(t, 14, tlf.Private, nil, nil)
 	rmd, err := makeInitialRootMetadata(ver, tlfID, h)
 	require.NoError(t, err)
 
@@ -189,8 +189,8 @@ func testRootMetadataLatestKeyGenerationPrivate(t *testing.T, ver MetadataVer) {
 
 // Test that key generations work as expected for public TLFs.
 func testRootMetadataLatestKeyGenerationPublic(t *testing.T, ver MetadataVer) {
-	tlfID := tlf.FakeID(0, true)
-	h := makeFakeTlfHandle(t, 14, true, nil, nil)
+	tlfID := tlf.FakeID(0, tlf.Public)
+	h := makeFakeTlfHandle(t, 14, tlf.Public, nil, nil)
 	rmd, err := makeInitialRootMetadata(ver, tlfID, h)
 	require.NoError(t, err)
 
@@ -205,8 +205,8 @@ func testMakeRekeyReadError(t *testing.T, ver MetadataVer) {
 	config.SetMetadataVersion(ver)
 	defer config.Shutdown(ctx)
 
-	tlfID := tlf.FakeID(1, false)
-	h := parseTlfHandleOrBust(t, config, "alice", false)
+	tlfID := tlf.FakeID(1, tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
 
@@ -222,7 +222,7 @@ func testMakeRekeyReadError(t *testing.T, ver MetadataVer) {
 	require.Equal(t, NewReadAccessError(h, u, "/keybase/private/alice"), err)
 
 	err = makeRekeyReadErrorHelper(dummyErr,
-		rmd.ReadOnly(), h, h.FirstResolvedWriter(), "alice")
+		rmd.ReadOnly(), h, h.FirstResolvedWriter().AsUserOrBust(), "alice")
 	require.Equal(t, NeedSelfRekeyError{"alice", dummyErr}, err)
 }
 
@@ -231,9 +231,9 @@ func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver MetadataVer) {
 	config := MakeTestConfigOrBust(t, "alice", "bob")
 	defer config.Shutdown(ctx)
 
-	tlfID := tlf.FakeID(1, false)
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), "alice,bob@twitter",
-		false)
+	tlfID := tlf.FakeID(1, tlf.Private)
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), "alice,bob@twitter", tlf.Private)
 	require.NoError(t, err)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
@@ -264,8 +264,8 @@ func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver MetadataVer) {
 // Test that MakeSuccessor fails when the final bit is set.
 
 func testRootMetadataFinalIsFinal(t *testing.T, ver MetadataVer) {
-	tlfID := tlf.FakeID(0, true)
-	h := makeFakeTlfHandle(t, 14, true, nil, nil)
+	tlfID := tlf.FakeID(0, tlf.Public)
+	h := makeFakeTlfHandle(t, 14, tlf.Public, nil, nil)
 	rmd, err := makeInitialRootMetadata(ver, tlfID, h)
 	require.NoError(t, err)
 
@@ -307,8 +307,8 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	ctx := context.Background()
 	defer config.Shutdown(ctx)
 
-	tlfID := tlf.FakeID(1, false)
-	h := parseTlfHandleOrBust(t, config, "alice,alice@twitter#bob,charlie@twitter,eve@reddit", false)
+	tlfID := tlf.FakeID(1, tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "alice,alice@twitter#bob,charlie@twitter,eve@reddit", tlf.Private)
 	rmd, err := makeInitialRootMetadata(InitialExtraMetadataVer, tlfID, h)
 	require.NoError(t, err)
 	require.Equal(t, KeyGen(0), rmd.LatestKeyGeneration())
@@ -463,8 +463,9 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice", "bob")
 	defer config.Shutdown(ctx)
 
-	tlfID := tlf.FakeID(1, true)
-	h := parseTlfHandleOrBust(t, config, "alice,bob,charlie@twitter", true)
+	tlfID := tlf.FakeID(1, tlf.Public)
+	h := parseTlfHandleOrBust(
+		t, config, "alice,bob,charlie@twitter", tlf.Public)
 	rmd, err := makeInitialRootMetadata(InitialExtraMetadataVer, tlfID, h)
 	require.NoError(t, err)
 	require.Equal(t, PublicKeyGen, rmd.LatestKeyGeneration())
@@ -521,8 +522,8 @@ func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 	uid, err := id.AsUser()
 	require.NoError(t, err)
 
-	tlfID := tlf.FakeID(0, false)
-	h := makeFakeTlfHandle(t, 14, false, nil, nil)
+	tlfID := tlf.FakeID(0, tlf.Private)
+	h := makeFakeTlfHandle(t, 14, tlf.Private, nil, nil)
 	rmd, err := makeInitialRootMetadata(SegregatedKeyBundlesVer, tlfID, h)
 	require.NoError(t, err)
 	rmd.fakeInitialRekey()
@@ -553,8 +554,8 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	configWriter.SetKeyCache(&dummyNoKeyCache{})
 	defer configWriter.Shutdown(ctx)
 
-	tlfID := tlf.FakeID(1, false)
-	h := parseTlfHandleOrBust(t, configWriter, "alice#bob", false)
+	tlfID := tlf.FakeID(1, tlf.Private)
+	h := parseTlfHandleOrBust(t, configWriter, "alice#bob", tlf.Private)
 	rmd, err := makeInitialRootMetadata(InitialExtraMetadataVer, tlfID, h)
 	require.NoError(t, err)
 	require.Equal(t, KeyGen(0), rmd.LatestKeyGeneration())

@@ -109,10 +109,11 @@ func TestRootMetadataFinalVerify(t *testing.T) {
 }
 
 func testRootMetadataFinalVerify(t *testing.T, ver MetadataVer) {
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	uid := keybase1.MakeTestUID(1)
-	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	brmd, err := MakeInitialBareRootMetadata(ver, tlfID, bh)

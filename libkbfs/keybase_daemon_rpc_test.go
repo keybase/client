@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -387,8 +388,8 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 
 	name := userName1.String() + "," + userName2.String()
 
-	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
-	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	// user 1 creates a file
 	kbfsOps1 := config1.KBFSOps()

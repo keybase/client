@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 
 	"golang.org/x/net/context"
 )
@@ -40,7 +41,7 @@ const (
 // Path defines a file path in KBFS such as /keybase/public or /keybase/private/gabrielh
 type Path struct {
 	PathType      PathType
-	Public        bool
+	TLFType       tlf.Type
 	TLFName       string
 	TLFComponents []string
 }
@@ -64,6 +65,18 @@ func split(pathStr string) ([]string, error) {
 		return nil, fmt.Errorf("split: %s is not an absolute path", pathStr)
 	}
 	return splitHelper(cleanPath), nil
+}
+
+func listTypeToTLFType(c string) tlf.Type {
+	switch c {
+	case privateName:
+		return tlf.Private
+	case publicName:
+		return tlf.Public
+	default:
+		// TODO: support team TLFs.
+		panic(fmt.Sprintf("Unknown folder list type: %s", c))
+	}
 }
 
 // NewPath constructs a Path from a string
@@ -93,19 +106,17 @@ func NewPath(pathStr string) (Path, error) {
 		return p, nil
 	}
 
-	public := (components[1] == publicName)
-
 	if len == 2 {
 		p := Path{
 			PathType: KeybaseChildPathType,
-			Public:   public,
+			TLFType:  listTypeToTLFType(components[1]),
 		}
 		return p, nil
 	}
 
 	p := Path{
 		PathType:      TLFPathType,
-		Public:        public,
+		TLFType:       listTypeToTLFType(components[1]),
 		TLFName:       components[2],
 		TLFComponents: components[3:],
 	}
@@ -122,10 +133,14 @@ func (p Path) String() string {
 		components = append(components, topName)
 	}
 	if p.PathType >= KeybaseChildPathType && p.PathType <= TLFPathType {
-		if p.Public {
+		switch p.TLFType {
+		case tlf.Public:
 			components = append(components, publicName)
-		} else {
+		case tlf.Private:
 			components = append(components, privateName)
+		default:
+			// TODO: add support for team TLFs.
+			panic(fmt.Sprintf("Unknown TLF type: %s", p.TLFType))
 		}
 	}
 	if p.PathType == TLFPathType {
@@ -149,10 +164,13 @@ func (p Path) DirAndBasename() (dir Path, basename string, err error) {
 			PathType: KeybasePathType,
 		}
 
-		if p.Public {
+		switch p.TLFType {
+		case tlf.Public:
 			basename = publicName
-		} else {
+		case tlf.Private:
 			basename = privateName
+		default:
+			panic(fmt.Sprintf("Unknown TLF type: %s", p.TLFType))
 		}
 		return
 
@@ -161,13 +179,13 @@ func (p Path) DirAndBasename() (dir Path, basename string, err error) {
 		if len == 0 {
 			dir = Path{
 				PathType: KeybaseChildPathType,
-				Public:   p.Public,
+				TLFType:  p.TLFType,
 			}
 			basename = p.TLFName
 		} else {
 			dir = Path{
 				PathType:      TLFPathType,
-				Public:        p.Public,
+				TLFType:       p.TLFType,
 				TLFName:       p.TLFName,
 				TLFComponents: p.TLFComponents[:len-1],
 			}
@@ -199,17 +217,16 @@ func (p Path) Join(childName string) (childPath Path, err error) {
 			err = CannotJoinPathErr{p, childName}
 		}
 
-		public := (childName == publicName)
 		childPath = Path{
 			PathType: KeybaseChildPathType,
-			Public:   public,
+			TLFType:  listTypeToTLFType(childName),
 		}
 		return
 
 	case KeybaseChildPathType:
 		childPath = Path{
 			PathType: TLFPathType,
-			Public:   p.Public,
+			TLFType:  p.TLFType,
 			TLFName:  childName,
 		}
 		return
@@ -217,7 +234,7 @@ func (p Path) Join(childName string) (childPath Path, err error) {
 	case TLFPathType:
 		childPath = Path{
 			PathType:      TLFPathType,
-			Public:        p.Public,
+			TLFType:       p.TLFType,
 			TLFName:       p.TLFName,
 			TLFComponents: append(p.TLFComponents, childName),
 		}
@@ -231,14 +248,13 @@ func (p Path) Join(childName string) (childPath Path, err error) {
 // ParseTlfHandle is a wrapper around libkbfs.ParseTlfHandle that
 // automatically resolves non-canonical names.
 func ParseTlfHandle(
-	ctx context.Context, kbpki libkbfs.KBPKI, name string, public bool) (
+	ctx context.Context, kbpki libkbfs.KBPKI, name string, t tlf.Type) (
 	*libkbfs.TlfHandle, error) {
 	var tlfHandle *libkbfs.TlfHandle
 outer:
 	for {
 		var parseErr error
-		tlfHandle, parseErr = libkbfs.ParseTlfHandle(
-			ctx, kbpki, name, public)
+		tlfHandle, parseErr = libkbfs.ParseTlfHandle(ctx, kbpki, name, t)
 		switch parseErr := parseErr.(type) {
 		case nil:
 			// No error.
@@ -266,8 +282,7 @@ func (p Path) GetNode(ctx context.Context, config libkbfs.Config) (libkbfs.Node,
 		return nil, entryInfo, nil
 	}
 
-	tlfHandle, err := ParseTlfHandle(
-		ctx, config.KBPKI(), p.TLFName, p.Public)
+	tlfHandle, err := ParseTlfHandle(ctx, config.KBPKI(), p.TLFName, p.TLFType)
 	if err != nil {
 		return nil, libkbfs.EntryInfo{}, err
 	}

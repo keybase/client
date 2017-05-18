@@ -24,6 +24,7 @@ import (
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -72,25 +73,28 @@ func (e *fsEngine) GetUID(user User) keybase1.UID {
 	return session.UID
 }
 
-func buildRootPath(u *fsUser, isPublic bool) string {
+func buildRootPath(u *fsUser, t tlf.Type) string {
 	var path string
-	if isPublic {
+	switch t {
+	case tlf.Public:
 		// TODO: Consolidate all "public" and "private"
 		// constants in libkbfs.
 		path = filepath.Join(u.mntDir, "public")
-	} else {
+	case tlf.Private:
 		path = filepath.Join(u.mntDir, "private")
+	default:
+		panic(fmt.Sprintf("Unknown TLF type: %s", t))
 	}
 	return path
 }
 
-func buildTlfPath(u *fsUser, tlfName string, isPublic bool) string {
-	return filepath.Join(buildRootPath(u, isPublic), tlfName)
+func buildTlfPath(u *fsUser, tlfName string, t tlf.Type) string {
+	return filepath.Join(buildRootPath(u, t), tlfName)
 }
 
-func (e *fsEngine) GetFavorites(user User, public bool) (map[string]bool, error) {
+func (e *fsEngine) GetFavorites(user User, t tlf.Type) (map[string]bool, error) {
 	u := user.(*fsUser)
-	path := buildRootPath(u, public)
+	path := buildRootPath(u, t)
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -108,7 +112,7 @@ func (e *fsEngine) GetFavorites(user User, public bool) (map[string]bool, error)
 }
 
 // GetRootDir implements the Engine interface.
-func (e *fsEngine) GetRootDir(user User, tlfName string, isPublic bool, expectedCanonicalTlfName string) (dir Node, err error) {
+func (e *fsEngine) GetRootDir(user User, tlfName string, t tlf.Type, expectedCanonicalTlfName string) (dir Node, err error) {
 	u := user.(*fsUser)
 	preferredName, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(u.username,
 		libkbfs.CanonicalTlfName(tlfName))
@@ -120,7 +124,7 @@ func (e *fsEngine) GetRootDir(user User, tlfName string, isPublic bool, expected
 	if err != nil {
 		return nil, err
 	}
-	path := buildTlfPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, t)
 	var realPath string
 	// TODO currently we pretend that Dokan has no symbolic links
 	// here and end up deferencing them. This works but is not
@@ -272,9 +276,9 @@ func (*fsEngine) GetDirChildrenTypes(u User, parentDir Node) (children map[strin
 	return children, nil
 }
 
-func (*fsEngine) DisableUpdatesForTesting(user User, tlfName string, isPublic bool) (err error) {
+func (*fsEngine) DisableUpdatesForTesting(user User, tlfName string, t tlf.Type) (err error) {
 	u := user.(*fsUser)
-	path := buildTlfPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.DisableUpdatesFileName),
 		[]byte("off"), 0644)
@@ -287,9 +291,9 @@ func (*fsEngine) MakeNaïveStaller(u User) *libkbfs.NaïveStaller {
 
 // ReenableUpdatesForTesting is called by the test harness as the given user to resume updates
 // if previously disabled for testing.
-func (*fsEngine) ReenableUpdates(user User, tlfName string, isPublic bool) (err error) {
+func (*fsEngine) ReenableUpdates(user User, tlfName string, t tlf.Type) (err error) {
 	u := user.(*fsUser)
-	path := buildTlfPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.EnableUpdatesFileName),
 		[]byte("on"), 0644)
@@ -297,18 +301,18 @@ func (*fsEngine) ReenableUpdates(user User, tlfName string, isPublic bool) (err 
 
 // SyncFromServerForTesting is called by the test harness as the given
 // user to actively retrieve new metadata for a folder.
-func (e *fsEngine) SyncFromServerForTesting(user User, tlfName string, isPublic bool) (err error) {
+func (e *fsEngine) SyncFromServerForTesting(user User, tlfName string, t tlf.Type) (err error) {
 	u := user.(*fsUser)
-	path := buildTlfPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.SyncFromServerFileName),
 		[]byte("x"), 0644)
 }
 
 // ForceQuotaReclamation implements the Engine interface.
-func (*fsEngine) ForceQuotaReclamation(user User, tlfName string, isPublic bool) (err error) {
+func (*fsEngine) ForceQuotaReclamation(user User, tlfName string, t tlf.Type) (err error) {
 	u := user.(*fsUser)
-	path := buildTlfPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.ReclaimQuotaFileName),
 		[]byte("x"), 0644)
@@ -321,9 +325,9 @@ func (e *fsEngine) AddNewAssertion(user User, oldAssertion, newAssertion string)
 }
 
 // Rekey implements the Engine interface.
-func (*fsEngine) Rekey(user User, tlfName string, isPublic bool) error {
+func (*fsEngine) Rekey(user User, tlfName string, t tlf.Type) error {
 	u := user.(*fsUser)
-	path := buildTlfPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.RekeyFileName),
 		[]byte("x"), 0644)
@@ -332,9 +336,9 @@ func (*fsEngine) Rekey(user User, tlfName string, isPublic bool) error {
 // EnableJournal is called by the test harness as the given user to
 // enable journaling.
 func (*fsEngine) EnableJournal(user User, tlfName string,
-	isPublic bool) (err error) {
+	t tlf.Type) (err error) {
 	u := user.(*fsUser)
-	path := buildTlfPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.EnableJournalFileName),
 		[]byte("on"), 0644)
@@ -343,9 +347,9 @@ func (*fsEngine) EnableJournal(user User, tlfName string,
 // PauseJournal is called by the test harness as the given user to
 // pause journaling.
 func (*fsEngine) PauseJournal(user User, tlfName string,
-	isPublic bool) (err error) {
+	t tlf.Type) (err error) {
 	u := user.(*fsUser)
-	path := buildTlfPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.PauseJournalBackgroundWorkFileName),
 		[]byte("on"), 0644)
@@ -354,9 +358,9 @@ func (*fsEngine) PauseJournal(user User, tlfName string,
 // ResumeJournal is called by the test harness as the given user to
 // resume journaling.
 func (*fsEngine) ResumeJournal(user User, tlfName string,
-	isPublic bool) (err error) {
+	t tlf.Type) (err error) {
 	u := user.(*fsUser)
-	path := buildTlfPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.ResumeJournalBackgroundWorkFileName),
 		[]byte("on"), 0644)
@@ -365,19 +369,19 @@ func (*fsEngine) ResumeJournal(user User, tlfName string,
 // FlushJournal is called by the test harness as the given user to
 // wait for the journal to flush, if enabled.
 func (*fsEngine) FlushJournal(user User, tlfName string,
-	isPublic bool) (err error) {
+	t tlf.Type) (err error) {
 	u := user.(*fsUser)
-	path := buildTlfPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, t)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.FlushJournalFileName),
 		[]byte("on"), 0644)
 }
 
 // UnflushedPaths implements the Engine interface.
-func (*fsEngine) UnflushedPaths(user User, tlfName string, isPublic bool) (
+func (*fsEngine) UnflushedPaths(user User, tlfName string, t tlf.Type) (
 	[]string, error) {
 	u := user.(*fsUser)
-	path := buildTlfPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, t)
 	buf, err := ioutil.ReadFile(filepath.Join(path, libfs.StatusFileName))
 	if err != nil {
 		return nil, err
@@ -503,7 +507,7 @@ func (*fsEngine) GetMtime(u User, file Node) (mtime time.Time, err error) {
 
 // SyncAll implements the Engine interface.
 func (e *fsEngine) SyncAll(
-	user User, tlfName string, isPublic bool) (err error) {
+	user User, tlfName string, t tlf.Type) (err error) {
 	u := user.(*fsUser)
 	ctx := context.Background()
 	ctx, err = libkbfs.NewContextWithCancellationDelayer(
@@ -512,7 +516,7 @@ func (e *fsEngine) SyncAll(
 	if err != nil {
 		return err
 	}
-	dir, err := getRootNode(ctx, u.config, tlfName, isPublic)
+	dir, err := getRootNode(ctx, u.config, tlfName, t)
 	if err != nil {
 		return err
 	}

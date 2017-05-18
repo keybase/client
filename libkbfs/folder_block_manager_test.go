@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -31,7 +32,8 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 	clock, now := newTestClockAndTimeNow()
 	config.SetClock(clock)
 
-	rootNode := GetRootNodeOrBust(ctx, t, config, userName.String(), false)
+	rootNode := GetRootNodeOrBust(
+		ctx, t, config, userName.String(), tlf.Private)
 	kbfsOps := config.KBFSOps()
 	_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
 	if err != nil {
@@ -142,7 +144,8 @@ func TestQuotaReclamationUnembedded(t *testing.T) {
 	testQuotaReclamation(t, ctx, config, userName)
 
 	// Make sure the MD has an unembedded change block.
-	rootNode := GetRootNodeOrBust(ctx, t, config, userName.String(), false)
+	rootNode := GetRootNodeOrBust(
+		ctx, t, config, userName.String(), tlf.Private)
 	md, err := config.MDOps().GetForTLF(ctx, rootNode.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't get MD: %+v", err)
@@ -168,7 +171,8 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	// block-checking logic.
 	config.bsplit.(*BlockSplitterSimple).blockChangeEmbedMaxSize = 16 << 20
 
-	rootNode := GetRootNodeOrBust(ctx, t, config, userName.String(), false)
+	rootNode := GetRootNodeOrBust(
+		ctx, t, config, userName.String(), tlf.Private)
 	// Do a bunch of operations.
 	kbfsOps := config.KBFSOps()
 	testPointersPerGCThreshold := 10
@@ -256,7 +260,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	config2.SetClock(clock)
 
 	name := u1.String() + "," + u2.String()
-	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 	data := []byte{1, 2, 3, 4, 5}
 	kbfsOps1 := config1.KBFSOps()
 	aNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
@@ -291,7 +295,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	}
 
 	// u2 reads the file
-	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 	kbfsOps2 := config2.KBFSOps()
 	aNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
 	if err != nil {
@@ -504,7 +508,7 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 
 	// Create a shared folder.
 	name := u1.String() + "," + u2.String()
-	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
 	config2Dev2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
@@ -518,7 +522,7 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 
 	// user 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, tlf.Private)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
 	}
@@ -583,7 +587,7 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	name := u1.String() + "," + u2.String()
 
 	// u1 does the writes, and u2 tries to do the QR.
-	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 	kbfsOps1 := config1.KBFSOps()
 	_, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
 	if err != nil {
@@ -609,7 +613,7 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	}
 
 	kbfsOps2 := config2.KBFSOps()
-	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	// Make sure no blocks are deleted before there's a new-enough update.
 	bserverLocal, ok := config2.BlockServer().(blockServerLocal)
@@ -716,7 +720,8 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 	clock := newTestClockNow()
 	config.SetClock(clock)
 
-	rootNode := GetRootNodeOrBust(ctx, t, config, userName.String(), false)
+	rootNode := GetRootNodeOrBust(
+		ctx, t, config, userName.String(), tlf.Private)
 	kbfsOps := config.KBFSOps()
 	ops := kbfsOps.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode)
 	// This threshold isn't exact; in this case it works out to 3

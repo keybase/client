@@ -12,8 +12,8 @@ import (
 //
 // TODO: Have separate types for writers vs. readers.
 type Handle struct {
-	Writers           []keybase1.UID             `codec:"w,omitempty"`
-	Readers           []keybase1.UID             `codec:"r,omitempty"`
+	Writers           []keybase1.UserOrTeamID    `codec:"w,omitempty"`
+	Readers           []keybase1.UserOrTeamID    `codec:"r,omitempty"`
 	UnresolvedWriters []keybase1.SocialAssertion `codec:"uw,omitempty"`
 	UnresolvedReaders []keybase1.SocialAssertion `codec:"ur,omitempty"`
 	ConflictInfo      *HandleExtension           `codec:"ci,omitempty"`
@@ -32,8 +32,8 @@ var errInvalidWriter = errors.New("Cannot make TLF handle with invalid writer")
 // is passed an invalid reader.
 var errInvalidReader = errors.New("Cannot make TLF handle with invalid reader")
 
-// UIDList can be used to lexicographically sort UIDs.
-type UIDList []keybase1.UID
+// UIDList can be used to lexicographically sort UserOrTeamIDs.
+type UIDList []keybase1.UserOrTeamID
 
 func (u UIDList) Len() int {
 	return len(u)
@@ -70,11 +70,20 @@ func (u SocialAssertionList) Swap(i, j int) {
 // folder. Otherwise, it will be private. PUBLIC_UID shouldn't be in
 // any list in any other case.
 func MakeHandle(
-	writers, readers []keybase1.UID,
+	writers, readers []keybase1.UserOrTeamID,
 	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion,
 	extensions []HandleExtension) (Handle, error) {
 	if len(writers) == 0 {
 		return Handle{}, errNoWriters
+	}
+
+	if writers[0].IsTeamOrSubteam() {
+		// Right now we only support single-team private TLFs.
+		if len(writers) > 1 || len(unresolvedWriters) != 0 {
+			return Handle{}, errInvalidWriter
+		} else if len(readers) != 0 || len(unresolvedReaders) != 0 {
+			return Handle{}, errInvalidReader
+		}
 	}
 
 	for _, w := range writers {
@@ -96,13 +105,13 @@ func MakeHandle(
 	// TODO: Check for overlap between readers and writers, and
 	// for duplicates.
 
-	writersCopy := make([]keybase1.UID, len(writers))
+	writersCopy := make([]keybase1.UserOrTeamID, len(writers))
 	copy(writersCopy, writers)
 	sort.Sort(UIDList(writersCopy))
 
-	var readersCopy []keybase1.UID
+	var readersCopy []keybase1.UserOrTeamID
 	if len(readers) > 0 {
-		readersCopy = make([]keybase1.UID, len(readers))
+		readersCopy = make([]keybase1.UserOrTeamID, len(readers))
 		copy(readersCopy, readers)
 		sort.Sort(UIDList(readersCopy))
 	}
@@ -133,14 +142,19 @@ func MakeHandle(
 	}, nil
 }
 
-// IsPublic returns whether or not this Handle represents a
-// public top-level folder.
-func (h Handle) IsPublic() bool {
-	return len(h.Readers) == 1 && h.Readers[0].Equal(keybase1.PublicUID)
+// Type returns the type of TLF this Handle represents.
+func (h Handle) Type() Type {
+	if len(h.Readers) == 1 &&
+		h.Readers[0].Equal(keybase1.PublicUID.AsUserOrTeam()) {
+		return Public
+	} else if len(h.Writers) == 1 && h.Writers[0].IsTeamOrSubteam() {
+		return SingleTeam
+	}
+	return Private
 }
 
-func (h Handle) findUserInList(user keybase1.UID,
-	users []keybase1.UID) bool {
+func (h Handle) findUserInList(user keybase1.UserOrTeamID,
+	users []keybase1.UserOrTeamID) bool {
 	for _, u := range users {
 		if u == user {
 			return true
@@ -151,23 +165,30 @@ func (h Handle) findUserInList(user keybase1.UID,
 
 // IsWriter returns whether or not the given user is a writer for the
 // top-level folder represented by this Handle.
-func (h Handle) IsWriter(user keybase1.UID) bool {
+func (h Handle) IsWriter(user keybase1.UserOrTeamID) bool {
+	if h.Type() == SingleTeam {
+		panic("Can't call Handle.IsWriter() for a single team TLF")
+	}
 	return h.findUserInList(user, h.Writers)
 }
 
 // IsReader returns whether or not the given user is a reader for the
 // top-level folder represented by this Handle.
-func (h Handle) IsReader(user keybase1.UID) bool {
-	return h.IsPublic() || h.findUserInList(user, h.Readers) || h.IsWriter(user)
+func (h Handle) IsReader(user keybase1.UserOrTeamID) bool {
+	if h.Type() == SingleTeam {
+		panic("Can't call Handle.IsReader() for a single team TLF")
+	}
+	return h.Type() == Public || h.findUserInList(user, h.Readers) ||
+		h.IsWriter(user)
 }
 
 // ResolvedUsers returns the concatenation of h.Writers and h.Readers,
 // except if the handle is public, the returned list won't contain
 // PUBLIC_UID.
-func (h Handle) ResolvedUsers() []keybase1.UID {
-	var resolvedUsers []keybase1.UID
+func (h Handle) ResolvedUsers() []keybase1.UserOrTeamID {
+	var resolvedUsers []keybase1.UserOrTeamID
 	resolvedUsers = append(resolvedUsers, h.Writers...)
-	if !h.IsPublic() {
+	if h.Type() == Private {
 		resolvedUsers = append(resolvedUsers, h.Readers...)
 	}
 	return resolvedUsers
@@ -188,8 +209,8 @@ func (h Handle) UnresolvedUsers() []keybase1.SocialAssertion {
 	return unresolvedUsers
 }
 
-func uidSliceToSet(s []keybase1.UID) map[keybase1.UID]bool {
-	m := make(map[keybase1.UID]bool, len(s))
+func uidSliceToSet(s []keybase1.UserOrTeamID) map[keybase1.UserOrTeamID]bool {
+	m := make(map[keybase1.UserOrTeamID]bool, len(s))
 	for _, u := range s {
 		m[u] = true
 	}
@@ -204,21 +225,23 @@ func assertionSliceToSet(s []keybase1.SocialAssertion) map[keybase1.SocialAssert
 	return m
 }
 
-func resolveAssertions(assertions map[keybase1.SocialAssertion]keybase1.UID,
-	unresolved []keybase1.SocialAssertion, resolved []keybase1.UID) (
-	map[keybase1.UID]bool, []keybase1.SocialAssertion) {
+func resolveAssertions(
+	assertions map[keybase1.SocialAssertion]keybase1.UID,
+	unresolved []keybase1.SocialAssertion, resolved []keybase1.UserOrTeamID) (
+	map[keybase1.UserOrTeamID]bool, []keybase1.SocialAssertion) {
 	resolvedMap := uidSliceToSet(resolved)
 	unresolvedMap := assertionSliceToSet(unresolved)
 	for a, u := range assertions {
 		if unresolvedMap[a] {
-			resolvedMap[u] = true
+			resolvedMap[u.AsUserOrTeam()] = true
 			delete(unresolvedMap, a)
 		}
 	}
 	return resolvedMap, assertionSetToSlice(unresolvedMap)
 }
 
-func uidSetToSlice(m map[keybase1.UID]bool) (s []keybase1.UID) {
+func uidSetToSlice(m map[keybase1.UserOrTeamID]bool) (
+	s []keybase1.UserOrTeamID) {
 	for u := range m {
 		s = append(s, u)
 	}
@@ -239,7 +262,7 @@ func (h Handle) ResolveAssertions(
 	if len(assertions) == 0 || (len(h.UnresolvedWriters) == 0 && len(h.UnresolvedReaders) == 0) || h.IsFinal() {
 		return h
 	}
-	var resolvedWriters, resolvedReaders map[keybase1.UID]bool
+	var resolvedWriters, resolvedReaders map[keybase1.UserOrTeamID]bool
 	resolvedWriters, h.UnresolvedWriters = resolveAssertions(assertions, h.UnresolvedWriters, h.Writers)
 	resolvedReaders, h.UnresolvedReaders = resolveAssertions(assertions, h.UnresolvedReaders, h.Readers)
 	h.Writers = uidSetToSlice(resolvedWriters)

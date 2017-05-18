@@ -223,9 +223,11 @@ func setupTLFJournalTest(
 	require.NoError(t, err)
 
 	config = &testTLFJournalConfig{
-		newTestCodecGetter(), newTestLogMaker(t), t, tlf.FakeID(1, false), bsplitter, crypto,
+		newTestCodecGetter(), newTestLogMaker(t), t,
+		tlf.FakeID(1, tlf.Private), bsplitter, crypto,
 		nil, nil, NewMDCacheStandard(10), ver,
-		NewReporterSimple(newTestClockNow(), 10), uid, verifyingKey, ekg, nil, mdserver, defaultDiskLimitMaxDelay + time.Second,
+		NewReporterSimple(newTestClockNow(), 10), uid, verifyingKey, ekg, nil,
+		mdserver, defaultDiskLimitMaxDelay + time.Second,
 	}
 
 	ctx, cancel = context.WithTimeout(

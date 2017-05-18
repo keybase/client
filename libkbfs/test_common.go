@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -542,8 +543,8 @@ func CheckConfigAndShutdown(
 // must be canonical, creating it if necessary.
 func GetRootNodeForTest(
 	ctx context.Context, config Config, name string,
-	public bool) (Node, error) {
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), name, public)
+	t tlf.Type) (Node, error) {
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), name, t)
 	if err != nil {
 		return nil, err
 	}
@@ -561,11 +562,11 @@ func GetRootNodeForTest(
 // an error.
 func GetRootNodeOrBust(
 	ctx context.Context, t logger.TestLogBackend,
-	config Config, name string, public bool) Node {
-	n, err := GetRootNodeForTest(ctx, config, name, public)
+	config Config, name string, ty tlf.Type) Node {
+	n, err := GetRootNodeForTest(ctx, config, name, ty)
 	if err != nil {
-		t.Fatalf("Couldn't get root node for %s (public=%t): %+v",
-			name, public, err)
+		t.Fatalf("Couldn't get root node for %s (type=%s): %+v",
+			name, ty, err)
 	}
 	return n
 }

@@ -21,6 +21,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"golang.org/x/net/trace"
@@ -118,11 +119,12 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool, platformParams Pl
 	}
 	fs.root.private = &FolderList{
 		fs:      fs,
+		tlfType: tlf.Private,
 		folders: make(map[string]*TLF),
 	}
 	fs.root.public = &FolderList{
 		fs:      fs,
-		public:  true,
+		tlfType: tlf.Public,
 		folders: make(map[string]*TLF),
 	}
 	fs.execAfterDelay = func(d time.Duration, f func()) {
@@ -328,7 +330,7 @@ func (f *FS) reportErr(ctx context.Context,
 		return
 	}
 
-	f.config.Reporter().ReportErr(ctx, "", false, mode, err)
+	f.config.Reporter().ReportErr(ctx, "", tlf.Private, mode, err)
 	// We just log the error as debug, rather than error, because it
 	// might just indicate an expected error such as an ENOENT.
 	//

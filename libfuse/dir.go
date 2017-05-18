@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/sysutils"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -79,7 +80,7 @@ func (f *Folder) reportErr(ctx context.Context,
 		return
 	}
 
-	f.fs.config.Reporter().ReportErr(ctx, f.name(), f.list.public, mode, err)
+	f.fs.config.Reporter().ReportErr(ctx, f.name(), f.list.tlfType, mode, err)
 	// We just log the error as debug, rather than error, because it
 	// might just indicate an expected error such as an ENOENT.
 	//
@@ -312,7 +313,8 @@ func canonicalNameIfNotNil(h *libkbfs.TlfHandle) string {
 
 func (f *Folder) tlfHandleChangeInvalidate(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
-	session, err := libkbfs.GetCurrentSessionIfPossible(ctx, f.fs.config.KBPKI(), f.list.public)
+	session, err := libkbfs.GetCurrentSessionIfPossible(
+		ctx, f.fs.config.KBPKI(), f.list.tlfType == tlf.Public)
 	// Here we get an error, but there is little that can be done.
 	// session will be empty in the error case in which case we will default to the
 	// canonical format.
@@ -338,7 +340,7 @@ func (f *Folder) tlfHandleChangeInvalidate(ctx context.Context,
 
 func (f *Folder) isWriter(ctx context.Context) (bool, error) {
 	session, err := libkbfs.GetCurrentSessionIfPossible(
-		ctx, f.fs.config.KBPKI(), f.list.public)
+		ctx, f.fs.config.KBPKI(), f.list.tlfType == tlf.Public)
 	// We are using GetCurrentUserInfoIfPossible here so err is only non-nil if
 	// a real problem happened. If the user is logged out, we will get an empty
 	// username and uid, with a nil error.

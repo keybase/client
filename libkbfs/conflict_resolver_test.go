@@ -28,7 +28,7 @@ func crTestInit(t *testing.T) (ctx context.Context, cancel context.CancelFunc,
 	config = NewConfigMock(mockCtrl, ctr)
 	config.SetCodec(kbfscodec.NewMsgpack())
 	config.SetClock(wallClock{})
-	id := tlf.FakeID(1, false)
+	id := tlf.FakeID(1, tlf.Private)
 	fbo := newFolderBranchOps(config, FolderBranch{id, MasterBranch}, standard)
 	// usernames don't matter for these tests
 	config.mockKbpki.EXPECT().GetNormalizedUsername(gomock.Any(), gomock.Any()).
@@ -86,7 +86,7 @@ func crMakeFakeRMD(rev kbfsmd.Revision, bid BranchID) ImmutableRootMetadata {
 	return MakeImmutableRootMetadata(&RootMetadata{
 		bareMd: &BareRootMetadataV2{
 			WriterMetadataV2: WriterMetadataV2{
-				ID:     tlf.FakeID(0x1, false),
+				ID:     tlf.FakeID(0x1, tlf.Private),
 				WFlags: writerFlags,
 				BID:    bid,
 			},
@@ -243,7 +243,7 @@ func testCRSharedFolderForUsers(
 
 	// create by the first user
 	kbfsOps := configs[createAs].KBFSOps()
-	rootNode := GetRootNodeOrBust(ctx, t, configs[createAs], name, false)
+	rootNode := GetRootNodeOrBust(ctx, t, configs[createAs], name, tlf.Private)
 	dir := rootNode
 	for _, d := range dirs {
 		dirNext, _, err := kbfsOps.CreateDir(ctx, dir, d)
@@ -270,7 +270,7 @@ func testCRSharedFolderForUsers(
 
 		kbfsOps := config.KBFSOps()
 		kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
-		rootNode := GetRootNodeOrBust(ctx, t, config, name, false)
+		rootNode := GetRootNodeOrBust(ctx, t, config, name, tlf.Private)
 		dir := rootNode
 		for _, d := range dirs {
 			var err error

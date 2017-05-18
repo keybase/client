@@ -125,7 +125,7 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
-	tlfID := tlf.FakeID(0, false)
+	tlfID := tlf.FakeID(0, tlf.Private)
 	var latestKeyGen KeyGen = 5
 	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
 
@@ -168,7 +168,7 @@ func TestBlockOpsReadyFailKeyGet(t *testing.T) {
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
-	tlfID := tlf.FakeID(0, false)
+	tlfID := tlf.FakeID(0, tlf.Private)
 	kmd := makeFakeKeyMetadata(tlfID, 0)
 
 	ctx := context.Background()
@@ -194,7 +194,7 @@ func TestBlockOpsReadyFailServerHalfGet(t *testing.T) {
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
-	tlfID := tlf.FakeID(0, false)
+	tlfID := tlf.FakeID(0, tlf.Private)
 	kmd := makeFakeKeyMetadata(tlfID, FirstValidKeyGen)
 
 	ctx := context.Background()
@@ -220,7 +220,7 @@ func TestBlockOpsReadyFailEncryption(t *testing.T) {
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
-	tlfID := tlf.FakeID(0, false)
+	tlfID := tlf.FakeID(0, tlf.Private)
 	kmd := makeFakeKeyMetadata(tlfID, FirstValidKeyGen)
 
 	ctx := context.Background()
@@ -259,7 +259,7 @@ func TestBlockOpsReadyFailEncode(t *testing.T) {
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
-	tlfID := tlf.FakeID(0, false)
+	tlfID := tlf.FakeID(0, tlf.Private)
 	kmd := makeFakeKeyMetadata(tlfID, FirstValidKeyGen)
 
 	ctx := context.Background()
@@ -284,7 +284,7 @@ func TestBlockOpsReadyTooSmallEncode(t *testing.T) {
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
-	tlfID := tlf.FakeID(0, false)
+	tlfID := tlf.FakeID(0, tlf.Private)
 	kmd := makeFakeKeyMetadata(tlfID, FirstValidKeyGen)
 
 	ctx := context.Background()
@@ -300,7 +300,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
-	tlfID := tlf.FakeID(0, false)
+	tlfID := tlf.FakeID(0, tlf.Private)
 	var keyGen KeyGen = 3
 	kmd1 := makeFakeKeyMetadata(tlfID, keyGen)
 
@@ -334,7 +334,7 @@ func TestBlockOpsGetFailServerGet(t *testing.T) {
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
-	tlfID := tlf.FakeID(0, false)
+	tlfID := tlf.FakeID(0, tlf.Private)
 	var latestKeyGen KeyGen = 5
 	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
 
@@ -375,7 +375,7 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
-	tlfID := tlf.FakeID(0, false)
+	tlfID := tlf.FakeID(0, tlf.Private)
 	var latestKeyGen KeyGen = 5
 	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
 
@@ -403,7 +403,7 @@ func TestBlockOpsGetFailKeyGet(t *testing.T) {
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
-	tlfID := tlf.FakeID(0, false)
+	tlfID := tlf.FakeID(0, tlf.Private)
 	var latestKeyGen KeyGen = 5
 	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
 
@@ -469,7 +469,7 @@ func TestBlockOpsGetFailDecode(t *testing.T) {
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
-	tlfID := tlf.FakeID(0, false)
+	tlfID := tlf.FakeID(0, tlf.Private)
 	var latestKeyGen KeyGen = 5
 	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
 
@@ -510,7 +510,7 @@ func TestBlockOpsGetFailDecrypt(t *testing.T) {
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
-	tlfID := tlf.FakeID(0, false)
+	tlfID := tlf.FakeID(0, tlf.Private)
 	var latestKeyGen KeyGen = 5
 	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
 
@@ -558,7 +558,7 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 	bserver.EXPECT().RemoveBlockReferences(ctx, tlfID, contexts).
 		Return(expectedLiveCounts, nil)
 
@@ -589,7 +589,7 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	// Fail the delete call.
 
 	ctx := context.Background()
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 	expectedErr := errors.New("Fake fail")
 	bserver.EXPECT().RemoveBlockReferences(ctx, tlfID, contexts).
 		Return(nil, expectedErr)
@@ -623,7 +623,7 @@ func TestBlockOpsArchiveSuccess(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 	bserver.EXPECT().ArchiveBlockReferences(ctx, tlfID, contexts).
 		Return(nil)
 
@@ -656,7 +656,7 @@ func TestBlockOpsArchiveFail(t *testing.T) {
 	// Fail the archive call.
 
 	ctx := context.Background()
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 	expectedErr := errors.New("Fake fail")
 	bserver.EXPECT().ArchiveBlockReferences(ctx, tlfID, contexts).
 		Return(expectedErr)

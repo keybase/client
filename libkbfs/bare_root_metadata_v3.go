@@ -29,8 +29,9 @@ type WriterMetadataV3 struct {
 	// who modified this WriterMetadata
 	LastModifyingWriter keybase1.UID `codec:"lmw"`
 
-	// For public TLFs (since those don't have any keys at all).
-	Writers []keybase1.UID `codec:",omitempty"`
+	// For public and single-team TLFs (since those don't have any
+	// keys at all).
+	Writers []keybase1.UserOrTeamID `codec:",omitempty"`
 	// Writers identified by unresolved social assertions.
 	UnresolvedWriters []keybase1.SocialAssertion `codec:"uw,omitempty"`
 	// Pointer to the writer key bundle for private TLFs.
@@ -184,14 +185,13 @@ func (extra ExtraMetadataV3) GetReaderKeyBundle() TLFReaderKeyBundleV3 {
 // must be done separately.
 func MakeInitialBareRootMetadataV3(tlfID tlf.ID, h tlf.Handle) (
 	*BareRootMetadataV3, error) {
-	if tlfID.IsPublic() != h.IsPublic() {
-		return nil, errors.New(
-			"TlfID and TlfHandle disagree on public status")
+	if tlfID.Type() != h.Type() {
+		return nil, errors.New("TlfID and TlfHandle disagree on TLF type")
 	}
 
-	var writers []keybase1.UID
-	if tlfID.IsPublic() {
-		writers = make([]keybase1.UID, len(h.Writers))
+	var writers []keybase1.UserOrTeamID
+	if tlfID.Type() != tlf.Private {
+		writers = make([]keybase1.UserOrTeamID, len(h.Writers))
 		copy(writers, h.Writers)
 	}
 
@@ -238,7 +238,7 @@ func (md *BareRootMetadataV3) KeyGenerationsToUpdate() (KeyGen, KeyGen) {
 // LatestKeyGeneration implements the BareRootMetadata interface for
 // BareRootMetadataV3.
 func (md *BareRootMetadataV3) LatestKeyGeneration() KeyGen {
-	if md.TlfID().IsPublic() {
+	if md.TlfID().Type() == tlf.Public {
 		return PublicKeyGen
 	}
 	return md.WriterMetadata.LatestKeyGen
@@ -331,9 +331,9 @@ func (md *BareRootMetadataV3) IsFinal() bool {
 	return md.Flags&MetadataFlagFinal != 0
 }
 
-func (md *BareRootMetadataV3) checkPublicExtra(extra ExtraMetadata) error {
-	if !md.TlfID().IsPublic() {
-		return errors.New("checkPublicExtra called on non-public TLF")
+func (md *BareRootMetadataV3) checkNonPrivateExtra(extra ExtraMetadata) error {
+	if md.TlfID().Type() == tlf.Private {
+		return errors.New("checkNonPrivateExtra called on private TLF")
 	}
 
 	if extra != nil {
@@ -345,8 +345,8 @@ func (md *BareRootMetadataV3) checkPublicExtra(extra ExtraMetadata) error {
 
 func (md *BareRootMetadataV3) getTLFKeyBundles(extra ExtraMetadata) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
-	if md.TlfID().IsPublic() {
-		return nil, nil, InvalidPublicTLFOperation{
+	if md.TlfID().Type() != tlf.Private {
+		return nil, nil, InvalidNonPrivateTLFOperation{
 			md.TlfID(), "getTLFKeyBundles", md.Version(),
 		}
 	}
@@ -367,14 +367,16 @@ func (md *BareRootMetadataV3) getTLFKeyBundles(extra ExtraMetadata) (
 // IsWriter implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) IsWriter(
 	user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool {
-	if md.TlfID().IsPublic() {
-		err := md.checkPublicExtra(extra)
+	if md.TlfID().Type() != tlf.Private {
+		err := md.checkNonPrivateExtra(extra)
 		if err != nil {
 			panic(err)
 		}
 
 		for _, w := range md.WriterMetadata.Writers {
-			if w == user {
+			// TODO(KBFS-2185): If a team TLF, check that the user is
+			// a writer in that team.
+			if w == user.AsUserOrTeam() {
 				return true
 			}
 		}
@@ -390,18 +392,28 @@ func (md *BareRootMetadataV3) IsWriter(
 // IsReader implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) IsReader(
 	user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool {
-	if md.TlfID().IsPublic() {
-		err := md.checkPublicExtra(extra)
+	switch md.TlfID().Type() {
+	case tlf.Public:
+		err := md.checkNonPrivateExtra(extra)
 		if err != nil {
 			panic(err)
 		}
 		return true
+	case tlf.Private:
+		_, rkb, err := md.getTLFKeyBundles(extra)
+		if err != nil {
+			panic(err)
+		}
+		return rkb.IsReader(user, deviceKey)
+	case tlf.SingleTeam:
+		err := md.checkNonPrivateExtra(extra)
+		if err != nil {
+			panic(err)
+		}
+		return false
+	default:
+		panic(fmt.Sprintf("Unknown TLF type: %s", md.TlfID().Type()))
 	}
-	_, rkb, err := md.getTLFKeyBundles(extra)
-	if err != nil {
-		panic(err)
-	}
-	return rkb.IsReader(user, deviceKey)
 }
 
 // DeepCopy implements the BareRootMetadata interface for BareRootMetadataV3.
@@ -548,24 +560,16 @@ func (md *BareRootMetadataV3) CheckValidSuccessorForServer(
 // MakeBareTlfHandle implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) MakeBareTlfHandle(extra ExtraMetadata) (
 	tlf.Handle, error) {
-	var writers, readers []keybase1.UID
-	if md.TlfID().IsPublic() {
-		err := md.checkPublicExtra(extra)
-		if err != nil {
-			return tlf.Handle{}, err
-		}
-
-		writers = md.WriterMetadata.Writers
-		readers = []keybase1.UID{keybase1.PublicUID}
-	} else {
+	var writers, readers []keybase1.UserOrTeamID
+	if md.TlfID().Type() == tlf.Private {
 		wkb, rkb, err := md.getTLFKeyBundles(extra)
 		if err != nil {
 			return tlf.Handle{}, err
 		}
-		writers = make([]keybase1.UID, 0, len(wkb.Keys))
-		readers = make([]keybase1.UID, 0, len(rkb.Keys))
+		writers = make([]keybase1.UserOrTeamID, 0, len(wkb.Keys))
+		readers = make([]keybase1.UserOrTeamID, 0, len(rkb.Keys))
 		for w := range wkb.Keys {
-			writers = append(writers, w)
+			writers = append(writers, w.AsUserOrTeam())
 		}
 		for r := range rkb.Keys {
 			// TODO: Return an error instead if r is
@@ -574,8 +578,18 @@ func (md *BareRootMetadataV3) MakeBareTlfHandle(extra ExtraMetadata) (
 			// MakeBareTlfHandle.
 			if _, ok := wkb.Keys[r]; !ok &&
 				r != keybase1.PublicUID {
-				readers = append(readers, r)
+				readers = append(readers, r.AsUserOrTeam())
 			}
+		}
+	} else {
+		err := md.checkNonPrivateExtra(extra)
+		if err != nil {
+			return tlf.Handle{}, err
+		}
+
+		writers = md.WriterMetadata.Writers
+		if md.TlfID().Type() == tlf.Public {
+			readers = []keybase1.UserOrTeamID{keybase1.PublicUID.AsUserOrTeam()}
 		}
 	}
 
@@ -601,8 +615,8 @@ func (md *BareRootMetadataV3) TlfHandleExtensions() (
 // BareRootMetadataV3.
 func (md *BareRootMetadataV3) PromoteReaders(
 	readersToPromote map[keybase1.UID]bool, extra ExtraMetadata) error {
-	if md.TlfID().IsPublic() {
-		return InvalidPublicTLFOperation{md.TlfID(), "PromoteReaders", md.Version()}
+	if md.TlfID().Type() != tlf.Private {
+		return InvalidNonPrivateTLFOperation{md.TlfID(), "PromoteReaders", md.Version()}
 	}
 
 	if len(readersToPromote) == 0 {
@@ -639,8 +653,8 @@ func (md *BareRootMetadataV3) PromoteReaders(
 func (md *BareRootMetadataV3) RevokeRemovedDevices(
 	updatedWriterKeys, updatedReaderKeys UserDevicePublicKeys,
 	extra ExtraMetadata) (ServerHalfRemovalInfo, error) {
-	if md.TlfID().IsPublic() {
-		return nil, InvalidPublicTLFOperation{
+	if md.TlfID().Type() != tlf.Private {
+		return nil, InvalidNonPrivateTLFOperation{
 			md.TlfID(), "RevokeRemovedDevices", md.Version()}
 	}
 
@@ -658,8 +672,8 @@ func (md *BareRootMetadataV3) RevokeRemovedDevices(
 // for BareRootMetadataV3.
 func (md *BareRootMetadataV3) GetUserDevicePublicKeys(extra ExtraMetadata) (
 	writerDeviceKeys, readerDeviceKeys UserDevicePublicKeys, err error) {
-	if md.TlfID().IsPublic() {
-		return nil, nil, InvalidPublicTLFOperation{
+	if md.TlfID().Type() != tlf.Private {
+		return nil, nil, InvalidNonPrivateTLFOperation{
 			md.TlfID(), "GetUserDevicePublicKeys", md.Version()}
 	}
 
@@ -761,8 +775,8 @@ func checkRKBID(crypto cryptoPure,
 // IsValidAndSigned implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) IsValidAndSigned(
 	codec kbfscodec.Codec, crypto cryptoPure, extra ExtraMetadata) error {
-	if md.TlfID().IsPublic() {
-		err := md.checkPublicExtra(extra)
+	if md.TlfID().Type() == tlf.Public {
+		err := md.checkNonPrivateExtra(extra)
 		if err != nil {
 			return err
 		}
@@ -827,15 +841,16 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 		return err
 	}
 
-	// Make sure the last writer is valid.
+	// Make sure the last writer is valid.  TODO(KBFS-2185): for a
+	// team TLF, check that the writer is part of the team.
 	writer := md.LastModifyingWriter()
-	if !handle.IsWriter(writer) {
+	if !handle.IsWriter(writer.AsUserOrTeam()) {
 		return errors.Errorf("Invalid modifying writer %s", writer)
 	}
 
 	// Make sure the last modifier is valid.
 	user := md.LastModifyingUser
-	if !handle.IsReader(user) {
+	if !handle.IsReader(user.AsUserOrTeam()) {
 		return errors.Errorf("Invalid modifying user %s", user)
 	}
 
@@ -1056,8 +1071,8 @@ func (md *BareRootMetadataV3) updateKeyBundles(crypto cryptoPure,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKey kbfscrypto.TLFCryptKey) (UserDeviceKeyServerHalves, error) {
-	if md.TlfID().IsPublic() {
-		return nil, InvalidPublicTLFOperation{
+	if md.TlfID().Type() != tlf.Private {
+		return nil, InvalidNonPrivateTLFOperation{
 			md.TlfID(), "updateKeyBundles", md.Version()}
 	}
 
@@ -1116,8 +1131,8 @@ func (md *BareRootMetadataV3) AddKeyGeneration(codec kbfscodec.Codec,
 	currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey) (
 	nextExtra ExtraMetadata,
 	serverHalves UserDeviceKeyServerHalves, err error) {
-	if md.TlfID().IsPublic() {
-		return nil, nil, InvalidPublicTLFOperation{
+	if md.TlfID().Type() != tlf.Private {
+		return nil, nil, InvalidNonPrivateTLFOperation{
 			md.TlfID(), "AddKeyGeneration", md.Version()}
 	}
 
@@ -1231,7 +1246,7 @@ func (md *BareRootMetadataV3) SetFinalizedInfo(fi *tlf.HandleExtension) {
 }
 
 // SetWriters implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetWriters(writers []keybase1.UID) {
+func (md *BareRootMetadataV3) SetWriters(writers []keybase1.UserOrTeamID) {
 	md.WriterMetadata.Writers = writers
 }
 

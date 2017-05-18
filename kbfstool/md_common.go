@@ -29,7 +29,7 @@ func parseTLFPath(ctx context.Context, kbpki libkbfs.KBPKI, tlfStr string) (
 		return nil, fmt.Errorf(
 			"%q is not the root path of a TLF", tlfStr)
 	}
-	return fsrpc.ParseTlfHandle(ctx, kbpki, p.TLFName, p.Public)
+	return fsrpc.ParseTlfHandle(ctx, kbpki, p.TLFName, p.TLFType)
 }
 
 func getTlfID(

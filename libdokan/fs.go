@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/kbfs/dokan/winacl"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -61,12 +62,13 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 	f.root = &Root{
 		private: &FolderList{
 			fs:         f,
+			tlfType:    tlf.Private,
 			folders:    make(map[string]fileOpener),
 			aliasCache: map[string]string{},
 		},
 		public: &FolderList{
 			fs:         f,
-			public:     true,
+			tlfType:    tlf.Public,
 			folders:    make(map[string]fileOpener),
 			aliasCache: map[string]string{},
 		}}
@@ -524,7 +526,7 @@ func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openConte
 	dstName := dstPath[len(dstPath)-1]
 	// Yes, this is slow, but that is ok here.
 	if _, err := libkbfs.ParseTlfHandlePreferred(
-		ctx, f.config.KBPKI(), dstName, fl.public); err != nil {
+		ctx, f.config.KBPKI(), dstName, fl.tlfType); err != nil {
 		return dokan.ErrObjectNameNotFound
 	}
 	fl.mu.Lock()
@@ -561,7 +563,7 @@ func (f *FS) reportErr(ctx context.Context, mode libkbfs.ErrorModeType, err erro
 		return
 	}
 
-	f.config.Reporter().ReportErr(ctx, "", false, mode, err)
+	f.config.Reporter().ReportErr(ctx, "", tlf.Private, mode, err)
 	// We just log the error as debug, rather than error, because it
 	// might just indicate an expected error such as an ENOENT.
 	//

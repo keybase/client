@@ -93,7 +93,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	kbfscrypto.TLFCryptKey, error) {
 	tlfID := kmd.TlfID()
 
-	if tlfID.IsPublic() {
+	if tlfID.Type() == tlf.Public {
 		return kbfscrypto.PublicTLFCryptKey, nil
 	}
 
@@ -399,12 +399,13 @@ func (km *KeyManagerStandard) usersWithRemovedDevices(ctx context.Context,
 func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
 	tlfID tlf.ID, writersToIdentify map[keybase1.UID]bool,
 	readersToIdentify map[keybase1.UID]bool) error {
-	uids := make([]keybase1.UID, 0, len(writersToIdentify)+len(readersToIdentify))
+	ids := make([]keybase1.UserOrTeamID, 0,
+		len(writersToIdentify)+len(readersToIdentify))
 	for u := range writersToIdentify {
-		uids = append(uids, u)
+		ids = append(ids, u.AsUserOrTeam())
 	}
 	for u := range readersToIdentify {
-		uids = append(uids, u)
+		ids = append(ids, u.AsUserOrTeam())
 	}
 	kbpki := km.config.KBPKI()
 
@@ -416,28 +417,29 @@ func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
 		return err
 	}
 
-	return identifyUserList(ctx, kbpki, kbpki, uids, tlfID.IsPublic())
+	return identifyUserList(ctx, kbpki, kbpki, ids, tlfID.Type())
 }
 
 // generateKeyMapForUsers returns a UserDevicePublicKeys object for
 // the given list of users. Note that keyless users are retained in
 // the returned UserDevicePublicKeys object.
 func (km *KeyManagerStandard) generateKeyMapForUsers(
-	ctx context.Context, users []keybase1.UID) (
+	ctx context.Context, users []keybase1.UserOrTeamID) (
 	UserDevicePublicKeys, error) {
 	keyMap := make(UserDevicePublicKeys)
 
 	// TODO: parallelize
 	for _, w := range users {
+		uid := w.AsUserOrBust() // only private TLFs should call this
 		// HACK: clear cache
-		km.config.KeybaseService().FlushUserFromLocalCache(ctx, w)
-		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, w)
+		km.config.KeybaseService().FlushUserFromLocalCache(ctx, uid)
+		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, uid)
 		if err != nil {
 			return nil, err
 		}
-		keyMap[w] = make(DevicePublicKeys)
+		keyMap[uid] = make(DevicePublicKeys)
 		for _, key := range publicKeys {
-			keyMap[w][key] = true
+			keyMap[uid][key] = true
 		}
 	}
 
@@ -454,14 +456,16 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	defer func() { km.deferLog.CDebugf(ctx, "Rekey %s done: %+v", md.TlfID(), err) }()
 
 	currKeyGen := md.LatestKeyGeneration()
-	if md.TlfID().IsPublic() != (currKeyGen == PublicKeyGen) {
+	if (md.TlfID().Type() == tlf.Public) != (currKeyGen == PublicKeyGen) {
 		return false, nil, errors.Errorf(
-			"ID %v has isPublic=%t but currKeyGen is %d (isPublic=%t)",
-			md.TlfID(), md.TlfID().IsPublic(), currKeyGen, currKeyGen == PublicKeyGen)
+			"ID %v has type=%s but currKeyGen is %d (isPublic=%t)",
+			md.TlfID(), md.TlfID().Type(), currKeyGen,
+			currKeyGen == PublicKeyGen)
 	}
 
-	if promptPaper && md.TlfID().IsPublic() {
-		return false, nil, errors.Errorf("promptPaper set for public TLF %v", md.TlfID())
+	if promptPaper && md.TlfID().Type() != tlf.Private {
+		return false, nil, errors.Errorf(
+			"promptPaper set for non-private TLF %v", md.TlfID())
 	}
 
 	handle := md.GetTlfHandle()
@@ -477,7 +481,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	}
 
 	isWriter := resolvedHandle.IsWriter(session.UID)
-	if !md.TlfID().IsPublic() && !isWriter {
+	if md.TlfID().Type() == tlf.Private && !isWriter {
 		// If I was already a reader, there's nothing more to do
 		if handle.IsReader(session.UID) {
 			resolvedHandle = handle
@@ -516,13 +520,13 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		}
 	}
 
-	// For a public TLF there's no rekeying to be done, but we
+	// For a public or team TLF there's no rekeying to be done, but we
 	// should still update the writer list.
-	if md.TlfID().IsPublic() {
+	if md.TlfID().Type() != tlf.Private {
 		if !handleChanged {
 			km.log.CDebugf(ctx,
-				"Skipping rekeying %s (public): handle hasn't changed",
-				md.TlfID())
+				"Skipping rekeying %s (%s): handle hasn't changed",
+				md.TlfID(), md.TlfID().Type())
 			return false, nil, nil
 		}
 		return true, nil, md.updateFromTlfHandle(resolvedHandle)

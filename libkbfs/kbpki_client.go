@@ -217,17 +217,19 @@ func (k *KBPKIClient) loadUnverifiedKeys(ctx context.Context, uid keybase1.UID) 
 	return k.serviceOwner.KeybaseService().LoadUnverifiedKeys(ctx, uid)
 }
 
-// GetCurrentSessionIfPossible returns the current username and UID from
-// kbpki.GetCurrentSession.
-// If isPublic is true NoCurrentSessionError is ignored and empty username
-// and uid will be returned. If it is false all errors are returned.
-func GetCurrentSessionIfPossible(ctx context.Context, kbpki KBPKI, isPublic bool) (SessionInfo, error) {
+// GetCurrentSessionIfPossible returns the current username and UID
+// from kbpki.GetCurrentSession.  If sessionNotRequired is true
+// NoCurrentSessionError is ignored and empty username and uid will be
+// returned. If it is false all errors are returned.
+func GetCurrentSessionIfPossible(
+	ctx context.Context, kbpki KBPKI, sessionNotRequired bool) (
+	SessionInfo, error) {
 	session, err := kbpki.GetCurrentSession(ctx)
 	if err == nil {
 		return session, nil
 	}
-	// Return all error for private folders.
-	if !isPublic {
+	// Return all errors if a session is required.
+	if !sessionNotRequired {
 		return SessionInfo{}, err
 	}
 

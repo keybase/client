@@ -122,21 +122,20 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	_, _, _, err := quotaUsage.Get(ctx, 0, 0)
 	require.NoError(t, err)
 
-	tlfID1 := tlf.FakeID(1, false)
+	tlfID1 := tlf.FakeID(1, tlf.Private)
 	err = jServer.Enable(ctx, tlfID1, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	blockServer := config.BlockServer()
 
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), "test_user1,test_user2", false)
+		ctx, config.KBPKI(), "test_user1,test_user2", tlf.Private)
 	require.NoError(t, err)
-	uid1 := h.ResolvedWriters()[0]
+	id1 := h.ResolvedWriters()[0]
 
 	// Put a block, which should return with a quota error.
 
-	bCtx := kbfsblock.MakeFirstContext(
-		uid1.AsUserOrTeam(), keybase1.BlockType_DATA)
+	bCtx := kbfsblock.MakeFirstContext(id1, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
 	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
@@ -191,7 +190,7 @@ func TestJournalServerOverDiskLimitError(t *testing.T) {
 	_, _, _, err := quotaUsage.Get(ctx, 0, 0)
 	require.NoError(t, err)
 
-	tlfID1 := tlf.FakeID(1, false)
+	tlfID1 := tlf.FakeID(1, tlf.Private)
 	err = jServer.Enable(ctx, tlfID1, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
@@ -209,14 +208,13 @@ func TestJournalServerOverDiskLimitError(t *testing.T) {
 	blockServer := config.BlockServer()
 
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), "test_user1,test_user2", false)
+		ctx, config.KBPKI(), "test_user1,test_user2", tlf.Private)
 	require.NoError(t, err)
-	uid1 := h.ResolvedWriters()[0]
+	id1 := h.ResolvedWriters()[0]
 
 	// Put a block, which should return with a disk limit error.
 
-	bCtx := kbfsblock.MakeFirstContext(
-		uid1.AsUserOrTeam(), keybase1.BlockType_DATA)
+	bCtx := kbfsblock.MakeFirstContext(id1, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
 	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
@@ -268,21 +266,20 @@ func TestJournalServerRestart(t *testing.T) {
 	// journal tries to access it.
 	jServer.delegateBlockServer = shutdownOnlyBlockServer{}
 
-	tlfID := tlf.FakeID(2, false)
+	tlfID := tlf.FakeID(2, tlf.Private)
 	err := jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	blockServer := config.BlockServer()
 	mdOps := config.MDOps()
 
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), "test_user1", false)
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), "test_user1", tlf.Private)
 	require.NoError(t, err)
-	uid := h.ResolvedWriters()[0]
+	id := h.ResolvedWriters()[0]
 
 	// Put a block.
 
-	bCtx := kbfsblock.MakeFirstContext(
-		uid.AsUserOrTeam(), keybase1.BlockType_DATA)
+	bCtx := kbfsblock.MakeFirstContext(id, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
 	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
@@ -340,21 +337,20 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 	// journal tries to access it.
 	jServer.delegateBlockServer = shutdownOnlyBlockServer{}
 
-	tlfID := tlf.FakeID(2, false)
+	tlfID := tlf.FakeID(2, tlf.Private)
 	err := jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	blockServer := config.BlockServer()
 	mdOps := config.MDOps()
 
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), "test_user1", false)
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), "test_user1", tlf.Private)
 	require.NoError(t, err)
-	uid := h.ResolvedWriters()[0]
+	id := h.ResolvedWriters()[0]
 
 	// Put a block.
 
-	bCtx := kbfsblock.MakeFirstContext(
-		uid.AsUserOrTeam(), keybase1.BlockType_DATA)
+	bCtx := kbfsblock.MakeFirstContext(id, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
 	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
@@ -413,7 +409,7 @@ func TestJournalServerLogOutDirtyOp(t *testing.T) {
 	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
 	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
 
-	tlfID := tlf.FakeID(2, false)
+	tlfID := tlf.FakeID(2, tlf.Private)
 	err := jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
@@ -446,7 +442,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	// journal tries to access it.
 	jServer.delegateBlockServer = shutdownOnlyBlockServer{}
 
-	tlfID := tlf.FakeID(2, false)
+	tlfID := tlf.FakeID(2, tlf.Private)
 	err := jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
@@ -454,15 +450,14 @@ func TestJournalServerMultiUser(t *testing.T) {
 	mdOps := config.MDOps()
 
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), "test_user1,test_user2", false)
+		ctx, config.KBPKI(), "test_user1,test_user2", tlf.Private)
 	require.NoError(t, err)
-	uid1 := h.ResolvedWriters()[0]
-	uid2 := h.ResolvedWriters()[1]
+	id1 := h.ResolvedWriters()[0]
+	id2 := h.ResolvedWriters()[1]
 
 	// Put a block under user 1.
 
-	bCtx1 := kbfsblock.MakeFirstContext(
-		uid1.AsUserOrTeam(), keybase1.BlockType_DATA)
+	bCtx1 := kbfsblock.MakeFirstContext(id1, keybase1.BlockType_DATA)
 	data1 := []byte{1, 2, 3, 4}
 	bID1, err := kbfsblock.MakePermanentID(data1)
 	require.NoError(t, err)
@@ -475,7 +470,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	rmd1, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
-	rmd1.SetLastModifyingWriter(uid1)
+	rmd1.SetLastModifyingWriter(id1.AsUserOrBust())
 	rekeyDone, _, err := config.KeyManager().Rekey(ctx, rmd1, false)
 	require.NoError(t, err)
 	require.True(t, rekeyDone)
@@ -491,7 +486,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	serviceLoggedOut(ctx, config)
 
 	service := config.KeybaseService().(*KeybaseDaemonLocal)
-	service.setCurrentUID(uid2)
+	service.setCurrentUID(id2.AsUserOrBust())
 	SwitchDeviceForLocalUserOrBust(t, config, 0)
 
 	serviceLoggedIn(
@@ -514,8 +509,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	// Put a block under user 2.
 
-	bCtx2 := kbfsblock.MakeFirstContext(
-		uid2.AsUserOrTeam(), keybase1.BlockType_DATA)
+	bCtx2 := kbfsblock.MakeFirstContext(id2, keybase1.BlockType_DATA)
 	data2 := []byte{1, 2, 3, 4, 5}
 	bID2, err := kbfsblock.MakePermanentID(data2)
 	require.NoError(t, err)
@@ -528,7 +522,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	rmd2, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
-	rmd2.SetLastModifyingWriter(uid2)
+	rmd2.SetLastModifyingWriter(id2.AsUserOrBust())
 	rekeyDone, _, err = config.KeyManager().Rekey(ctx, rmd2, false)
 	require.NoError(t, err)
 	require.True(t, rekeyDone)
@@ -554,7 +548,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	// Log in user 1.
 
-	service.setCurrentUID(uid1)
+	service.setCurrentUID(id1.AsUserOrBust())
 	SwitchDeviceForLocalUserOrBust(t, config, 0)
 
 	serviceLoggedIn(
@@ -572,13 +566,13 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	head, err = mdOps.GetForTLF(ctx, tlfID)
 	require.NoError(t, err)
-	require.Equal(t, uid1, head.LastModifyingWriter())
+	require.Equal(t, id1.AsUserOrBust(), head.LastModifyingWriter())
 
 	// Log in user 2.
 
 	serviceLoggedOut(ctx, config)
 
-	service.setCurrentUID(uid2)
+	service.setCurrentUID(id2.AsUserOrBust())
 	SwitchDeviceForLocalUserOrBust(t, config, 0)
 
 	serviceLoggedIn(
@@ -596,14 +590,14 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	head, err = mdOps.GetForTLF(ctx, tlfID)
 	require.NoError(t, err)
-	require.Equal(t, uid2, head.LastModifyingWriter())
+	require.Equal(t, id2.AsUserOrBust(), head.LastModifyingWriter())
 }
 
 func TestJournalServerEnableAuto(t *testing.T) {
 	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
 	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
 
-	tlfID := tlf.FakeID(2, false)
+	tlfID := tlf.FakeID(2, tlf.Private)
 	err := jServer.EnableAuto(ctx)
 	require.NoError(t, err)
 
@@ -613,13 +607,12 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	require.Len(t, tlfIDs, 0)
 
 	blockServer := config.BlockServer()
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), "test_user1", false)
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), "test_user1", tlf.Private)
 	require.NoError(t, err)
-	uid := h.ResolvedWriters()[0]
+	id := h.ResolvedWriters()[0]
 
 	// Access a TLF, which should create a journal automatically.
-	bCtx := kbfsblock.MakeFirstContext(
-		uid.AsUserOrTeam(), keybase1.BlockType_DATA)
+	bCtx := kbfsblock.MakeFirstContext(id, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
 	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)

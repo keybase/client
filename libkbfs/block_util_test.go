@@ -34,7 +34,7 @@ func TestBlockUtilPutNewBlockSuccess(t *testing.T) {
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
 
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	readyBlockData := ReadyBlockData{
 		buf: encData,
@@ -62,7 +62,7 @@ func TestBlockUtilPutIncRefSuccess(t *testing.T) {
 		},
 	}
 
-	tlfID := tlf.FakeID(0, false)
+	tlfID := tlf.FakeID(0, tlf.Private)
 
 	readyBlockData := ReadyBlockData{
 		buf: encData,
@@ -86,7 +86,7 @@ func TestBlockUtilPutFail(t *testing.T) {
 
 	expectedErr := errors.New("Fake fail")
 
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	readyBlockData := ReadyBlockData{
 		buf: encData,

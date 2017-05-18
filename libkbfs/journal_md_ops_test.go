@@ -103,7 +103,8 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NoError(t, err)
 
 	// (1) get metadata -- allocates an ID
-	bh, err := tlf.MakeHandle([]keybase1.UID{session.UID}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	h, err := MakeTlfHandle(ctx, bh, config.KBPKI())
@@ -282,7 +283,8 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 
-	bh, err := tlf.MakeHandle([]keybase1.UID{session.UID}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	h, err := MakeTlfHandle(ctx, bh, config.KBPKI())
@@ -313,7 +315,8 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 
-	bh, err := tlf.MakeHandle([]keybase1.UID{session.UID}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	h, err := MakeTlfHandle(ctx, bh, config.KBPKI())
@@ -342,7 +345,8 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 
-	bh, err := tlf.MakeHandle([]keybase1.UID{session.UID}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UserOrTeamID{session.UID.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	h, err := MakeTlfHandle(ctx, bh, config.KBPKI())

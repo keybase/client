@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 )
 
 type m map[string]string
@@ -35,7 +36,7 @@ type opt struct {
 	usernames                []libkb.NormalizedUsername
 	tlfName                  string
 	expectedCanonicalTlfName string
-	tlfIsPublic              bool
+	tlfType                  tlf.Type
 	users                    map[libkb.NormalizedUsername]User
 	stallers                 map[libkb.NormalizedUsername]*libkbfs.NaïveStaller
 	tb                       testing.TB
@@ -256,7 +257,7 @@ func inPrivateTlf(name string) optionOp {
 	return func(o *opt) {
 		o.tlfName = name
 		o.expectedCanonicalTlfName = name
-		o.tlfIsPublic = false
+		o.tlfType = tlf.Private
 	}
 }
 
@@ -264,7 +265,7 @@ func inPrivateTlfNonCanonical(name, expectedCanonicalName string) optionOp {
 	return func(o *opt) {
 		o.tlfName = name
 		o.expectedCanonicalTlfName = expectedCanonicalName
-		o.tlfIsPublic = false
+		o.tlfType = tlf.Private
 	}
 }
 
@@ -272,7 +273,7 @@ func inPublicTlf(name string) optionOp {
 	return func(o *opt) {
 		o.tlfName = name
 		o.expectedCanonicalTlfName = name
-		o.tlfIsPublic = true
+		o.tlfType = tlf.Public
 	}
 }
 
@@ -280,7 +281,7 @@ func inPublicTlfNonCanonical(name, expectedCanonicalName string) optionOp {
 	return func(o *opt) {
 		o.tlfName = name
 		o.expectedCanonicalTlfName = expectedCanonicalName
-		o.tlfIsPublic = true
+		o.tlfType = tlf.Public
 	}
 }
 
@@ -400,7 +401,7 @@ func as(user username, fops ...fileOp) optionOp {
 
 		// Sync everything to disk after this round of operations.
 		if !ctx.noSyncInit {
-			err := ctx.engine.SyncAll(ctx.user, ctx.tlfName, ctx.tlfIsPublic)
+			err := ctx.engine.SyncAll(ctx.user, ctx.tlfName, ctx.tlfType)
 			ctx.expectSuccess("SyncAll", err)
 		}
 	}
@@ -413,12 +414,12 @@ func initRoot() fileOp {
 		if !c.noSyncInit {
 			// Do this before GetRootDir so that we pick
 			// up any TLF name changes.
-			err := c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfIsPublic)
+			err := c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfType)
 			if err != nil {
 				return err
 			}
 		}
-		root, err := c.engine.GetRootDir(c.user, c.tlfName, c.tlfIsPublic, c.expectedCanonicalTlfName)
+		root, err := c.engine.GetRootDir(c.user, c.tlfName, c.tlfType, c.expectedCanonicalTlfName)
 		if err != nil {
 			return err
 		}
@@ -626,11 +627,11 @@ func rename(src, dst string) fileOp {
 
 func disableUpdates() fileOp {
 	return fileOp{func(c *ctx) error {
-		err := c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfIsPublic)
+		err := c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfType)
 		if err != nil {
 			return err
 		}
-		return c.engine.DisableUpdatesForTesting(c.user, c.tlfName, c.tlfIsPublic)
+		return c.engine.DisableUpdatesForTesting(c.user, c.tlfName, c.tlfType)
 	}, IsInit, "disableUpdates()"}
 }
 
@@ -784,64 +785,64 @@ func undoStallOnMDResolveBranch() fileOp {
 
 func reenableUpdates() fileOp {
 	return fileOp{func(c *ctx) error {
-		err := c.engine.ReenableUpdates(c.user, c.tlfName, c.tlfIsPublic)
+		err := c.engine.ReenableUpdates(c.user, c.tlfName, c.tlfType)
 		if err != nil {
 			return err
 		}
-		return c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfIsPublic)
+		return c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfType)
 	}, IsInit, "reenableUpdates()"}
 }
 
 func reenableUpdatesNoSync() fileOp {
 	return fileOp{func(c *ctx) error {
-		return c.engine.ReenableUpdates(c.user, c.tlfName, c.tlfIsPublic)
+		return c.engine.ReenableUpdates(c.user, c.tlfName, c.tlfType)
 	}, IsInit, "reenableUpdatesNoSync()"}
 }
 
 func forceQuotaReclamation() fileOp {
 	return fileOp{func(c *ctx) error {
-		err := c.engine.ForceQuotaReclamation(c.user, c.tlfName, c.tlfIsPublic)
+		err := c.engine.ForceQuotaReclamation(c.user, c.tlfName, c.tlfType)
 		if err != nil {
 			return err
 		}
 		// Wait for QR to finish.
-		return c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfIsPublic)
+		return c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfType)
 	}, IsInit, "forceQuotaReclamation()"}
 }
 
 func rekey() fileOp {
 	return fileOp{func(c *ctx) error {
-		return c.engine.Rekey(c.user, c.tlfName, c.tlfIsPublic)
+		return c.engine.Rekey(c.user, c.tlfName, c.tlfType)
 	}, IsInit, "rekey()"}
 }
 
 func enableJournal() fileOp {
 	return fileOp{func(c *ctx) error {
-		return c.engine.EnableJournal(c.user, c.tlfName, c.tlfIsPublic)
+		return c.engine.EnableJournal(c.user, c.tlfName, c.tlfType)
 	}, IsInit, "enableJournal()"}
 }
 
 func pauseJournal() fileOp {
 	return fileOp{func(c *ctx) error {
-		return c.engine.PauseJournal(c.user, c.tlfName, c.tlfIsPublic)
+		return c.engine.PauseJournal(c.user, c.tlfName, c.tlfType)
 	}, IsInit, "pauseJournal()"}
 }
 
 func resumeJournal() fileOp {
 	return fileOp{func(c *ctx) error {
-		return c.engine.ResumeJournal(c.user, c.tlfName, c.tlfIsPublic)
+		return c.engine.ResumeJournal(c.user, c.tlfName, c.tlfType)
 	}, IsInit, "resumeJournal()"}
 }
 
 func flushJournal() fileOp {
 	return fileOp{func(c *ctx) error {
-		return c.engine.FlushJournal(c.user, c.tlfName, c.tlfIsPublic)
+		return c.engine.FlushJournal(c.user, c.tlfName, c.tlfType)
 	}, IsInit, "flushJournal()"}
 }
 
 func checkUnflushedPaths(expectedPaths []string) fileOp {
 	return fileOp{func(c *ctx) error {
-		paths, err := c.engine.UnflushedPaths(c.user, c.tlfName, c.tlfIsPublic)
+		paths, err := c.engine.UnflushedPaths(c.user, c.tlfName, c.tlfType)
 		if err != nil {
 			return err
 		}
@@ -862,12 +863,12 @@ func disablePrefetch() fileOp {
 	}, IsInit, "disablePrefetch()"}
 }
 
-func lsfavoritesOp(c *ctx, expected []string, public bool) error {
-	favorites, err := c.engine.GetFavorites(c.user, public)
+func lsfavoritesOp(c *ctx, expected []string, t tlf.Type) error {
+	favorites, err := c.engine.GetFavorites(c.user, t)
 	if err != nil {
 		return err
 	}
-	c.tb.Log("lsfavorites", public, "=>", favorites)
+	c.tb.Log("lsfavorites", t, "=>", favorites)
 	expectedMap := make(map[string]bool)
 	for _, f := range expected {
 		if !favorites[f] {
@@ -886,13 +887,13 @@ func lsfavoritesOp(c *ctx, expected []string, public bool) error {
 
 func lspublicfavorites(contents []string) fileOp {
 	return fileOp{func(c *ctx) error {
-		return lsfavoritesOp(c, contents, true)
+		return lsfavoritesOp(c, contents, tlf.Public)
 	}, Defaults, fmt.Sprintf("lspublicfavorites(%s)", contents)}
 }
 
 func lsprivatefavorites(contents []string) fileOp {
 	return fileOp{func(c *ctx) error {
-		return lsfavoritesOp(c, contents, false)
+		return lsfavoritesOp(c, contents, tlf.Private)
 	}, Defaults, fmt.Sprintf("lsprivatefavorites(%s)", contents)}
 }
 

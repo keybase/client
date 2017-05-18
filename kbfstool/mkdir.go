@@ -42,7 +42,7 @@ func mkdirOne(ctx context.Context, config libkbfs.Config, dirPathStr string, cre
 
 		tlfRoot := fsrpc.Path{
 			PathType: fsrpc.TLFPathType,
-			Public:   p.Public,
+			TLFType:  p.TLFType,
 			TLFName:  p.TLFName,
 		}
 		tlfNode, err := tlfRoot.GetDirNode(ctx, config)

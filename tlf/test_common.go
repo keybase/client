@@ -6,12 +6,15 @@ package tlf
 
 // FakeID creates a fake public or private TLF ID from the given
 // byte.
-func FakeID(b byte, public bool) ID {
+func FakeID(b byte, t Type) ID {
 	bytes := [idByteLen]byte{b}
-	if public {
+	switch t {
+	case Public:
 		bytes[idByteLen-1] = pubIDSuffix
-	} else {
+	case Private:
 		bytes[idByteLen-1] = idSuffix
+	case SingleTeam:
+		bytes[idByteLen-1] = singleTeamIDSuffix
 	}
 	return ID{bytes}
 }

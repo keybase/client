@@ -28,11 +28,11 @@ type CanonicalTlfName string
 // additional info. This doesn't embed tlf.Handle to avoid having to
 // keep track of data in multiple places.
 type TlfHandle struct {
-	// If this is true, resolvedReaders and unresolvedReaders
+	// If this is not Private, resolvedReaders and unresolvedReaders
 	// should both be nil.
-	public          bool
-	resolvedWriters map[keybase1.UID]libkb.NormalizedUsername
-	resolvedReaders map[keybase1.UID]libkb.NormalizedUsername
+	tlfType         tlf.Type
+	resolvedWriters map[keybase1.UserOrTeamID]libkb.NormalizedUsername
+	resolvedReaders map[keybase1.UserOrTeamID]libkb.NormalizedUsername
 	// Both unresolvedWriters and unresolvedReaders are stored in
 	// sorted order.
 	unresolvedWriters []keybase1.SocialAssertion
@@ -44,32 +44,39 @@ type TlfHandle struct {
 	name CanonicalTlfName
 }
 
-// IsPublic returns whether or not this TlfHandle represents a public
-// top-level folder.
-func (h TlfHandle) IsPublic() bool {
-	return h.public
+// Type returns the type of the TLF this TlfHandle represents.
+func (h TlfHandle) Type() tlf.Type {
+	return h.tlfType
 }
 
 // IsWriter returns whether or not the given user is a writer for the
 // top-level folder represented by this TlfHandle.
 func (h TlfHandle) IsWriter(user keybase1.UID) bool {
-	_, ok := h.resolvedWriters[user]
+	// TODO(KBFS-2185) relax this?
+	if h.tlfType == tlf.SingleTeam {
+		panic("Can't check whether a user is a writer on a team TLF")
+	}
+	_, ok := h.resolvedWriters[user.AsUserOrTeam()]
 	return ok
 }
 
 // IsReader returns whether or not the given user is a reader for the
 // top-level folder represented by this TlfHandle.
 func (h TlfHandle) IsReader(user keybase1.UID) bool {
-	if h.public || h.IsWriter(user) {
+	// TODO(KBFS-2185) relax this?
+	if h.tlfType == tlf.SingleTeam {
+		panic("Can't check whether a user is a reader on a team TLF")
+	}
+	if h.tlfType == tlf.Public || h.IsWriter(user) {
 		return true
 	}
-	_, ok := h.resolvedReaders[user]
+	_, ok := h.resolvedReaders[user.AsUserOrTeam()]
 	return ok
 }
 
 // ResolvedUsersMap returns a map of resolved users from uid to usernames.
-func (h TlfHandle) ResolvedUsersMap() map[keybase1.UID]libkb.NormalizedUsername {
-	m := make(map[keybase1.UID]libkb.NormalizedUsername,
+func (h TlfHandle) ResolvedUsersMap() map[keybase1.UserOrTeamID]libkb.NormalizedUsername {
+	m := make(map[keybase1.UserOrTeamID]libkb.NormalizedUsername,
 		len(h.resolvedReaders)+len(h.resolvedWriters))
 	for k, v := range h.resolvedReaders {
 		m[k] = v
@@ -80,45 +87,45 @@ func (h TlfHandle) ResolvedUsersMap() map[keybase1.UID]libkb.NormalizedUsername 
 	return m
 }
 
-func (h TlfHandle) unsortedResolvedWriters() []keybase1.UID {
+func (h TlfHandle) unsortedResolvedWriters() []keybase1.UserOrTeamID {
 	if len(h.resolvedWriters) == 0 {
 		return nil
 	}
-	writers := make([]keybase1.UID, 0, len(h.resolvedWriters))
+	writers := make([]keybase1.UserOrTeamID, 0, len(h.resolvedWriters))
 	for r := range h.resolvedWriters {
 		writers = append(writers, r)
 	}
 	return writers
 }
 
-// ResolvedWriters returns the handle's resolved writer UIDs in sorted
+// ResolvedWriters returns the handle's resolved writer IDs in sorted
 // order.
-func (h TlfHandle) ResolvedWriters() []keybase1.UID {
+func (h TlfHandle) ResolvedWriters() []keybase1.UserOrTeamID {
 	writers := h.unsortedResolvedWriters()
 	sort.Sort(tlf.UIDList(writers))
 	return writers
 }
 
-// FirstResolvedWriter returns the handle's first resolved writer UID
+// FirstResolvedWriter returns the handle's first resolved writer ID
 // (when sorted). This is used mostly for tests.
-func (h TlfHandle) FirstResolvedWriter() keybase1.UID {
+func (h TlfHandle) FirstResolvedWriter() keybase1.UserOrTeamID {
 	return h.ResolvedWriters()[0]
 }
 
-func (h TlfHandle) unsortedResolvedReaders() []keybase1.UID {
+func (h TlfHandle) unsortedResolvedReaders() []keybase1.UserOrTeamID {
 	if len(h.resolvedReaders) == 0 {
 		return nil
 	}
-	readers := make([]keybase1.UID, 0, len(h.resolvedReaders))
+	readers := make([]keybase1.UserOrTeamID, 0, len(h.resolvedReaders))
 	for r := range h.resolvedReaders {
 		readers = append(readers, r)
 	}
 	return readers
 }
 
-// ResolvedReaders returns the handle's resolved reader UIDs in sorted
+// ResolvedReaders returns the handle's resolved reader IDs in sorted
 // order. If the handle is public, nil will be returned.
-func (h TlfHandle) ResolvedReaders() []keybase1.UID {
+func (h TlfHandle) ResolvedReaders() []keybase1.UserOrTeamID {
 	readers := h.unsortedResolvedReaders()
 	sort.Sort(tlf.UIDList(readers))
 	return readers
@@ -241,7 +248,7 @@ func init() {
 // EqualsIgnoreName returns whether h and other contain the same info ignoring the name.
 func (h TlfHandle) EqualsIgnoreName(
 	codec kbfscodec.Codec, other TlfHandle) (bool, error) {
-	if h.public != other.public {
+	if h.tlfType != other.tlfType {
 		return false, nil
 	}
 
@@ -294,10 +301,14 @@ func (h TlfHandle) Equals(
 
 // ToBareHandle returns a tlf.Handle corresponding to this handle.
 func (h TlfHandle) ToBareHandle() (tlf.Handle, error) {
-	var readers []keybase1.UID
-	if h.public {
-		readers = []keybase1.UID{keybase1.PUBLIC_UID}
-	} else {
+	var readers []keybase1.UserOrTeamID
+	switch h.tlfType {
+	case tlf.Public:
+		readers = []keybase1.UserOrTeamID{
+			keybase1.UserOrTeamID(keybase1.PUBLIC_UID)}
+	case tlf.SingleTeam:
+		// Leave readers blank.
+	default:
 		readers = h.unsortedResolvedReaders()
 	}
 	return tlf.MakeHandle(
@@ -318,7 +329,7 @@ func (h TlfHandle) ToBareHandleOrBust() tlf.Handle {
 
 func (h TlfHandle) deepCopy() *TlfHandle {
 	hCopy := TlfHandle{
-		public:            h.public,
+		tlfType:           h.tlfType,
 		name:              h.name,
 		unresolvedWriters: h.UnresolvedWriters(),
 		unresolvedReaders: h.UnresolvedReaders(),
@@ -326,12 +337,12 @@ func (h TlfHandle) deepCopy() *TlfHandle {
 		finalizedInfo:     h.FinalizedInfo(),
 	}
 
-	hCopy.resolvedWriters = make(map[keybase1.UID]libkb.NormalizedUsername, len(h.resolvedWriters))
+	hCopy.resolvedWriters = make(map[keybase1.UserOrTeamID]libkb.NormalizedUsername, len(h.resolvedWriters))
 	for k, v := range h.resolvedWriters {
 		hCopy.resolvedWriters[k] = v
 	}
 
-	hCopy.resolvedReaders = make(map[keybase1.UID]libkb.NormalizedUsername, len(h.resolvedReaders))
+	hCopy.resolvedReaders = make(map[keybase1.UserOrTeamID]libkb.NormalizedUsername, len(h.resolvedReaders))
 	for k, v := range h.resolvedReaders {
 		hCopy.resolvedReaders[k] = v
 	}
@@ -340,10 +351,10 @@ func (h TlfHandle) deepCopy() *TlfHandle {
 }
 
 func getSortedNames(
-	uidToName map[keybase1.UID]libkb.NormalizedUsername,
+	idToName map[keybase1.UserOrTeamID]libkb.NormalizedUsername,
 	unresolved []keybase1.SocialAssertion) []string {
 	var names []string
-	for _, name := range uidToName {
+	for _, name := range idToName {
 		names = append(names, name.String())
 	}
 	for _, sa := range unresolved {
@@ -364,7 +375,7 @@ func (h *TlfHandle) GetCanonicalName() CanonicalTlfName {
 
 // GetCanonicalPath returns the full canonical path of this TLF.
 func (h *TlfHandle) GetCanonicalPath() string {
-	return buildCanonicalPathForTlfName(h.IsPublic(), h.GetCanonicalName())
+	return buildCanonicalPathForTlfName(h.Type(), h.GetCanonicalName())
 }
 
 // ToFavorite converts a TlfHandle into a Favorite, suitable for
@@ -372,7 +383,7 @@ func (h *TlfHandle) GetCanonicalPath() string {
 func (h *TlfHandle) ToFavorite() Favorite {
 	return Favorite{
 		Name:   string(h.GetCanonicalName()),
-		Public: h.IsPublic(),
+		Public: h.Type() == tlf.Public,
 	}
 }
 
@@ -424,7 +435,7 @@ func splitTLFName(name string) (writerNames, readerNames []string,
 // look canonical.
 // Note that ordering differences do not result in TlfNameNotCanonical
 // being returned.
-func splitAndNormalizeTLFName(name string, public bool) (
+func splitAndNormalizeTLFName(name string, t tlf.Type) (
 	writerNames, readerNames []string,
 	extensionSuffix string, err error) {
 	writerNames, readerNames, extensionSuffix, err = splitTLFName(name)
@@ -432,10 +443,9 @@ func splitAndNormalizeTLFName(name string, public bool) (
 		return nil, nil, "", err
 	}
 
-	hasPublic := len(readerNames) == 0
-
-	if public && !hasPublic {
-		// No public folder exists for this folder.
+	hasReaders := len(readerNames) != 0
+	if t != tlf.Private && hasReaders {
+		// No public/team folder can have readers.
 		return nil, nil, "", NoSuchNameError{Name: name}
 	}
 
@@ -539,8 +549,8 @@ func normalizeNamesInTLF(writerNames, readerNames []string,
 // CheckTlfHandleOffline does light checks whether a TLF handle looks ok,
 // it avoids all network calls.
 func CheckTlfHandleOffline(
-	ctx context.Context, name string, public bool) error {
-	_, _, _, err := splitAndNormalizeTLFName(name, public)
+	ctx context.Context, name string, t tlf.Type) error {
+	_, _, _, err := splitAndNormalizeTLFName(name, t)
 	return err
 }
 

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -32,7 +33,7 @@ func GetEncodedStatus(ctx context.Context, config libkbfs.Config) (
 	data []byte, t time.Time, err error) {
 	status, _, err := config.KBFSOps().Status(ctx)
 	if err != nil {
-		config.Reporter().ReportErr(ctx, "", false, libkbfs.ReadMode, err)
+		config.Reporter().ReportErr(ctx, "", tlf.Private, libkbfs.ReadMode, err)
 	}
 	data, err = PrettyJSON(status)
 	return

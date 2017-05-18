@@ -47,7 +47,7 @@ func setupMDJournalTest(t testing.TB, ver MetadataVer) (
 	crypto = MakeCryptoCommon(codec)
 
 	uid := keybase1.MakeTestUID(1)
-	tlfID = tlf.FakeID(1, false)
+	tlfID = tlf.FakeID(1, tlf.Private)
 
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("fake seed")
 	signer = kbfscrypto.SigningKeySigner{Key: signingKey}
@@ -89,9 +89,10 @@ func makeMDForTest(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 	revision kbfsmd.Revision, uid keybase1.UID,
 	signer kbfscrypto.Signer, prevRoot kbfsmd.ID) *RootMetadata {
 	nug := testNormalizedUsernameGetter{
-		uid: "fake_username",
+		uid.AsUserOrTeam(): "fake_username",
 	}
-	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 	h, err := MakeTlfHandle(context.Background(), bh, nug)
 	require.NoError(t, err)

@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 )
 
 // SimpleFS is the simple filesystem rpc layer implementation.
@@ -644,13 +645,13 @@ func (k *SimpleFS) SimpleFSWait(ctx context.Context, opid keybase1.OpID) error {
 }
 
 // remotePath decodes a remote path for us.
-func remotePath(path keybase1.Path) (ps []string, public bool, err error) {
+func remotePath(path keybase1.Path) (ps []string, t tlf.Type, err error) {
 	pt, err := path.PathType()
 	if err != nil {
-		return nil, false, err
+		return nil, tlf.Private, err
 	}
 	if pt != keybase1.PathType_KBFS {
-		return nil, false, errOnlyRemotePathSupported
+		return nil, tlf.Private, errOnlyRemotePathSupported
 	}
 	raw := path.Kbfs()
 	if raw != `` && raw[0] == '/' {
@@ -659,15 +660,17 @@ func remotePath(path keybase1.Path) (ps []string, public bool, err error) {
 	ps = strings.Split(raw, `/`)
 	switch {
 	case len(ps) < 2:
-		return nil, false, errInvalidRemotePath
+		return nil, tlf.Private, errInvalidRemotePath
 	case ps[0] == `private`:
+		t = tlf.Private
 	case ps[0] == `public`:
-		public = true
+		t = tlf.Public
 	default:
-		return nil, false, errInvalidRemotePath
+		// TODO: support single-team TLFs
+		return nil, tlf.Private, errInvalidRemotePath
 
 	}
-	return ps[1:], public, nil
+	return ps[1:], t, nil
 }
 
 func (k *SimpleFS) open(ctx context.Context, dest keybase1.Path, f keybase1.OpenFlags) (
@@ -706,12 +709,12 @@ func (k *SimpleFS) open(ctx context.Context, dest keybase1.Path, f keybase1.Open
 // getRemoteRootNode
 func (k *SimpleFS) getRemoteRootNode(ctx context.Context, path keybase1.Path) (
 	libkbfs.Node, libkbfs.EntryInfo, []string, error) {
-	ps, public, err := remotePath(path)
+	ps, t, err := remotePath(path)
 	if err != nil {
 		return nil, libkbfs.EntryInfo{}, nil, err
 	}
 	tlf, err := libkbfs.ParseTlfHandlePreferred(
-		ctx, k.config.KBPKI(), ps[0], public)
+		ctx, k.config.KBPKI(), ps[0], t)
 	if err != nil {
 		return nil, libkbfs.EntryInfo{}, nil, err
 	}

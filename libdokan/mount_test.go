@@ -25,6 +25,7 @@ import (
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -304,8 +305,8 @@ func TestReaddirPrivate(t *testing.T) {
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", false)
-		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", true)
+		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", tlf.Private)
+		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", tlf.Public)
 	}
 
 	checkDir(t, filepath.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
@@ -329,8 +330,8 @@ func TestReaddirPublic(t *testing.T) {
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", false)
-		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", true)
+		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", tlf.Private)
+		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", tlf.Public)
 	}
 
 	checkDir(t, filepath.Join(mnt.Dir, PublicName), map[string]fileInfoCheck{
@@ -351,12 +352,12 @@ func TestReaddirMyFolderEmpty(t *testing.T) {
 	checkDir(t, filepath.Join(mnt.Dir, PrivateName, "jdoe"), map[string]fileInfoCheck{})
 }
 
-func syncAll(t *testing.T, tlf string, public bool, fs *FS) {
+func syncAll(t *testing.T, tlf string, ty tlf.Type, fs *FS) {
 	// golang doesn't let us sync on a directory handle, so if we need
 	// to sync all without a file, go through libkbfs directly.
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	defer libkbfs.CleanupCancellationDelayer(ctx)
-	root := libkbfs.GetRootNodeOrBust(ctx, t, fs.config, tlf, public)
+	root := libkbfs.GetRootNodeOrBust(ctx, t, fs.config, tlf, ty)
 	err := fs.config.KBFSOps().SyncAll(ctx, root.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync all: %v", err)
@@ -1157,7 +1158,7 @@ func TestRemoveFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	if err := ioutil.Remove(p2); err != nil {
 		t.Fatalf("cannot delete file: %v", err)
 	}
-	syncAll(t, "user1,user2", false, fs2)
+	syncAll(t, "user1,user2", tlf.Private, fs2)
 
 	syncFolderToServer(t, "user1,user2", fs1)
 
@@ -1222,7 +1223,7 @@ func TestRenameOverFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	if err := ioutil.Rename(p2Other, p2); err != nil {
 		t.Fatalf("cannot rename file: %v", err)
 	}
-	syncAll(t, "user1,user2", false, fs2)
+	syncAll(t, "user1,user2", tlf.Private, fs2)
 
 	syncFolderToServer(t, "user1,user2", fs1)
 
@@ -1535,8 +1536,8 @@ func TestReaddirPrivateDeleteAndReaddFavorite(t *testing.T) {
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", false)
-		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", true)
+		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", tlf.Private)
+		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", tlf.Public)
 	}
 
 	err := ioutil.Remove(filepath.Join(mnt.Dir, PrivateName, "jdoe,janedoe"))
@@ -1803,22 +1804,22 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 
 }
 
-func syncFolderToServerHelper(t *testing.T, tlf string, public bool, fs *FS) {
+func syncFolderToServerHelper(t *testing.T, tlf string, ty tlf.Type, fs *FS) {
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	defer libkbfs.CleanupCancellationDelayer(ctx)
-	root := libkbfs.GetRootNodeOrBust(ctx, t, fs.config, tlf, public)
+	root := libkbfs.GetRootNodeOrBust(ctx, t, fs.config, tlf, ty)
 	err := fs.config.KBFSOps().SyncFromServerForTesting(ctx, root.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 }
 
-func syncFolderToServer(t *testing.T, tlf string, fs *FS) {
-	syncFolderToServerHelper(t, tlf, false, fs)
+func syncFolderToServer(t *testing.T, name string, fs *FS) {
+	syncFolderToServerHelper(t, name, tlf.Private, fs)
 }
 
-func syncPublicFolderToServer(t *testing.T, tlf string, fs *FS) {
-	syncFolderToServerHelper(t, tlf, true, fs)
+func syncPublicFolderToServer(t *testing.T, name string, fs *FS) {
+	syncFolderToServerHelper(t, name, tlf.Public, fs)
 }
 
 func TestInvalidateDataOnWrite(t *testing.T) {
@@ -2031,7 +2032,7 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 		ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 		defer libkbfs.CleanupCancellationDelayer(ctx)
 
-		jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config, "jdoe", false)
+		jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config, "jdoe", tlf.Private)
 
 		ops := config.KBFSOps()
 		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
@@ -2236,7 +2237,7 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 	if err := ioutil.Rename(mydira1, mydirb1); err != nil {
 		t.Fatal(err)
 	}
-	syncAll(t, "user1,user2", false, fs1)
+	syncAll(t, "user1,user2", tlf.Private, fs1)
 
 	syncFolderToServer(t, "user1,user2", fs2)
 
@@ -2303,7 +2304,7 @@ func TestInvalidateAppendAcrossMounts(t *testing.T) {
 		ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 		defer libkbfs.CleanupCancellationDelayer(ctx)
 
-		jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config1, "user1,user2", false)
+		jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config1, "user1,user2", tlf.Private)
 
 		ops := config1.KBFSOps()
 		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
@@ -2383,7 +2384,7 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 	if err := ioutil.Rename(myfile1, mydirfile1); err != nil {
 		t.Fatal(err)
 	}
-	syncAll(t, "user1,user2", false, fs1)
+	syncAll(t, "user1,user2", tlf.Private, fs1)
 
 	syncFolderToServer(t, "user1,user2", fs2)
 
@@ -2420,7 +2421,7 @@ func TestStatusFile(t *testing.T) {
 	defer mnt.Close()
 	defer cancelFn()
 
-	jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config, "jdoe", true)
+	jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config, "jdoe", tlf.Public)
 
 	ops := config.KBFSOps()
 	status, _, err := ops.FolderStatus(ctx, jdoe.GetFolderBranch())
@@ -2472,7 +2473,7 @@ func TestUnstageFile(t *testing.T) {
 	checkDir(t, myroot2, map[string]fileInfoCheck{})
 
 	// turn updates off for user 2
-	rootNode2 := libkbfs.GetRootNodeOrBust(ctx, t, config2, "user1,user2", false)
+	rootNode2 := libkbfs.GetRootNodeOrBust(ctx, t, config2, "user1,user2", tlf.Private)
 	_, err := libkbfs.DisableUpdatesForTesting(config2,
 		rootNode2.GetFolderBranch())
 	if err != nil {
@@ -2499,7 +2500,7 @@ func TestUnstageFile(t *testing.T) {
 	if err := ioutil.Mkdir(mysubdir1, 0755); err != nil {
 		t.Fatal(err)
 	}
-	syncAll(t, "user1,user2", false, fs1)
+	syncAll(t, "user1,user2", tlf.Private, fs1)
 
 	// user2 does similar
 	const input2 = "input round two"
@@ -2517,7 +2518,7 @@ func TestUnstageFile(t *testing.T) {
 	if err := ioutil.Mkdir(myothersubdir2, 0755); err != nil {
 		t.Fatal(err)
 	}
-	syncAll(t, "user1,user2", false, fs2)
+	syncAll(t, "user1,user2", tlf.Private, fs2)
 
 	// verify that they don't see each other's files
 	checkDir(t, mydir1, map[string]fileInfoCheck{
@@ -2602,7 +2603,7 @@ func TestSimpleCRNoConflict(t *testing.T) {
 	if err := ioutil.Mkdir(subdir1, 0755); err != nil {
 		t.Fatal(err)
 	}
-	syncAll(t, "user1,user2", false, fs1)
+	syncAll(t, "user1,user2", tlf.Private, fs1)
 
 	// user2 does similar
 	const input2 = "input round two two two"
@@ -2619,7 +2620,7 @@ func TestSimpleCRNoConflict(t *testing.T) {
 	if err := ioutil.Mkdir(subdir2, 0755); err != nil {
 		t.Fatal(err)
 	}
-	syncAll(t, "user1,user2", false, fs2)
+	syncAll(t, "user1,user2", tlf.Private, fs2)
 
 	// verify that they don't see each other's files
 	checkDir(t, root1, map[string]fileInfoCheck{

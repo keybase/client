@@ -26,7 +26,7 @@ func isReader(currentUID keybase1.UID, mergedMasterHead BareRootMetadata,
 	if err != nil {
 		return false, err
 	}
-	return h.IsReader(currentUID), nil
+	return h.IsReader(currentUID.AsUserOrTeam()), nil
 }
 
 // Helper to aid in enforcement that only specified public keys can
@@ -39,11 +39,11 @@ func isWriterOrValidRekey(codec kbfscodec.Codec, currentUID keybase1.UID,
 	if err != nil {
 		return false, err
 	}
-	if h.IsWriter(currentUID) {
+	if h.IsWriter(currentUID.AsUserOrTeam()) {
 		return true, nil
 	}
 
-	if h.IsReader(currentUID) {
+	if h.IsReader(currentUID.AsUserOrTeam()) {
 		// if this is a reader, are they acting within their
 		// restrictions?
 		return newMd.IsValidRekeyRequest(

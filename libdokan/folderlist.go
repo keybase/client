@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -23,9 +24,8 @@ type fileOpener interface {
 // favorite top-level folders, on either a public or private basis.
 type FolderList struct {
 	emptyFile
-	fs *FS
-	// only accept public folders
-	public bool
+	fs      *FS
+	tlfType tlf.Type
 
 	mu         sync.Mutex
 	folders    map[string]fileOpener
@@ -47,7 +47,7 @@ func (fl *FolderList) reportErr(ctx context.Context,
 		return
 	}
 
-	fl.fs.config.Reporter().ReportErr(ctx, tlfName, fl.public, mode, err)
+	fl.fs.config.Reporter().ReportErr(ctx, tlfName, fl.tlfType, mode, err)
 	// We just log the error as debug, rather than error, because it
 	// might just indicate an expected error such as an ENOENT.
 	//
@@ -67,8 +67,8 @@ func (fl *FolderList) addToFavorite(ctx context.Context, h *libkbfs.TlfHandle) (
 // open tries to open the correct thing. Following aliases and deferring to
 // Dir.open as necessary.
 func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) (f dokan.File, isDir bool, err error) {
-	fl.fs.log.CDebugf(ctx, "FL Lookup %#v public=%v upper=%v",
-		path, fl.public, oc.isUppercasePath)
+	fl.fs.log.CDebugf(ctx, "FL Lookup %#v type=%s upper=%v",
+		path, fl.tlfType, oc.isUppercasePath)
 	if len(path) == 0 {
 		return oc.returnDirNoCleanup(fl)
 	}
@@ -127,7 +127,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		h, err := libkbfs.ParseTlfHandlePreferred(
-			ctx, fl.fs.config.KBPKI(), name, fl.public)
+			ctx, fl.fs.config.KBPKI(), name, fl.tlfType)
 		fl.fs.log.CDebugf(ctx, "FL Lookup continuing -> %v,%v", h, err)
 		switch err := err.(type) {
 		case nil:
@@ -162,7 +162,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		fl.fs.log.CDebugf(ctx, "FL Lookup adding new child")
-		session, err := libkbfs.GetCurrentSessionIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
+		session, err := libkbfs.GetCurrentSessionIfPossible(ctx, fl.fs.config.KBPKI(), h.Type() == tlf.Public)
 		if err != nil {
 			return nil, false, err
 		}
@@ -198,7 +198,9 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 	ns.FileAttributes = dokan.FileAttributeDirectory
 	empty := true
 	for _, fav := range favs {
-		if fav.Public != fl.public {
+		// TODO: add general types to the favorite records (or infer
+		// teams somehow from the name of the favorite).
+		if fav.Public != (fl.tlfType == tlf.Public) {
 			continue
 		}
 		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(session.Name,
@@ -221,7 +223,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 }
 
 func (fl *FolderList) isValidAliasTarget(ctx context.Context, nameToTry string) bool {
-	return libkbfs.CheckTlfHandleOffline(ctx, nameToTry, fl.public) == nil
+	return libkbfs.CheckTlfHandleOffline(ctx, nameToTry, fl.tlfType) == nil
 }
 
 func (fl *FolderList) lockedAddChild(name string, val fileOpener) {

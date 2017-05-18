@@ -27,7 +27,7 @@ func setupFileDataTest(t *testing.T, maxBlockSize int64,
 		ID:         kbfsblock.FakeID(42),
 		DirectType: DirectBlock,
 	}
-	id := tlf.FakeID(1, false)
+	id := tlf.FakeID(1, tlf.Private)
 	file := path{FolderBranch{Tlf: id}, []pathNode{{ptr, "file"}}}
 	uid := keybase1.MakeTestUID(1)
 	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack())

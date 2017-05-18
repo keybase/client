@@ -2999,9 +2999,8 @@ outer:
 		panic("maybeUnstageAfterFailure: head is nil (should be impossible)")
 	}
 	handle := head.GetTlfHandle()
-	cr.config.Reporter().ReportErr(ctx,
-		handle.GetCanonicalName(), handle.IsPublic(),
-		WriteMode, reportedError)
+	cr.config.Reporter().ReportErr(
+		ctx, handle.GetCanonicalName(), handle.Type(), WriteMode, reportedError)
 	return nil
 }
 
@@ -3031,8 +3030,8 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 				panic("doResolve: head is nil (should be impossible)")
 			}
 			handle := head.GetTlfHandle()
-			cr.config.Reporter().ReportErr(ctx,
-				handle.GetCanonicalName(), handle.IsPublic(),
+			cr.config.Reporter().ReportErr(
+				ctx, handle.GetCanonicalName(), handle.Type(),
 				WriteMode, CRWrapError{err})
 			if err == context.Canceled {
 				cr.inputLock.Lock()

@@ -5,6 +5,7 @@
 package libfuse
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -14,6 +15,7 @@ import (
 	"bazil.org/fuse/fs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -22,7 +24,7 @@ import (
 type FolderList struct {
 	fs *FS
 	// only accept public folders
-	public bool
+	tlfType tlf.Type
 
 	mu      sync.Mutex
 	folders map[string]*TLF
@@ -70,7 +72,7 @@ func (fl *FolderList) reportErr(ctx context.Context,
 		return
 	}
 
-	fl.fs.config.Reporter().ReportErr(ctx, tlfName, fl.public, mode, err)
+	fl.fs.config.Reporter().ReportErr(ctx, tlfName, fl.tlfType, mode, err)
 	// We just log the error as debug, rather than error, because it
 	// might just indicate an expected error such as an ENOENT.
 	//
@@ -120,10 +122,15 @@ func (fl *FolderList) addToFavorite(ctx context.Context, h *libkbfs.TlfHandle) (
 
 // PathType returns PathType for this folder
 func (fl *FolderList) PathType() libkbfs.PathType {
-	if fl.public {
+	switch fl.tlfType {
+	case tlf.Private:
+		return libkbfs.PrivatePathType
+	case tlf.Public:
 		return libkbfs.PublicPathType
+	default:
+		// TODO: support the team path.
+		panic(fmt.Sprintf("Unsupported tlf type: %s", fl.tlfType))
 	}
-	return libkbfs.PrivatePathType
 }
 
 // Create implements the fs.NodeCreater interface for FolderList.
@@ -168,7 +175,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 	}
 
 	h, err := libkbfs.ParseTlfHandlePreferred(
-		ctx, fl.fs.config.KBPKI(), req.Name, fl.public)
+		ctx, fl.fs.config.KBPKI(), req.Name, fl.tlfType)
 	switch err := err.(type) {
 	case nil:
 		// no error
@@ -195,7 +202,8 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, err
 	}
 
-	session, err := libkbfs.GetCurrentSessionIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
+	session, err := libkbfs.GetCurrentSessionIfPossible(
+		ctx, fl.fs.config.KBPKI(), h.Type() == tlf.Public)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +213,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 }
 
 func (fl *FolderList) isValidAliasTarget(ctx context.Context, nameToTry string) bool {
-	return libkbfs.CheckTlfHandleOffline(ctx, nameToTry, fl.public) == nil
+	return libkbfs.CheckTlfHandleOffline(ctx, nameToTry, fl.tlfType) == nil
 }
 
 func (fl *FolderList) forgetFolder(folderName string) {
@@ -237,7 +245,9 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 
 	res = make([]fuse.Dirent, 0, len(favs))
 	for _, fav := range favs {
-		if fav.Public != fl.public {
+		// TODO: add general types to the favorite records (or infer
+		// teams somehow from the name of the favorite).
+		if fav.Public != (fl.tlfType == tlf.Public) {
 			continue
 		}
 		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(
@@ -262,7 +272,7 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 	defer func() { fl.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	h, err := libkbfs.ParseTlfHandlePreferred(
-		ctx, fl.fs.config.KBPKI(), req.Name, fl.public)
+		ctx, fl.fs.config.KBPKI(), req.Name, fl.tlfType)
 
 	switch err := err.(type) {
 	case nil:

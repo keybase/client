@@ -169,8 +169,12 @@ type ReadAccessError struct {
 
 // Error implements the error interface for ReadAccessError
 func (e ReadAccessError) Error() string {
+	t := tlf.Private
+	if e.Public {
+		t = tlf.Public
+	}
 	return fmt.Sprintf("%s does not have read access to directory %s",
-		e.User, buildCanonicalPathForTlfName(e.Public, e.Tlf))
+		e.User, buildCanonicalPathForTlfName(t, e.Tlf))
 }
 
 // WriteAccessError indicates an error when trying to write a file
@@ -184,8 +188,12 @@ type WriteAccessError struct {
 // Error implements the error interface for WriteAccessError
 func (e WriteAccessError) Error() string {
 	if e.Tlf != "" {
+		t := tlf.Private
+		if e.Public {
+			t = tlf.Public
+		}
 		return fmt.Sprintf("%s does not have write access to directory %s",
-			e.User, buildCanonicalPathForTlfName(e.Public, e.Tlf))
+			e.User, buildCanonicalPathForTlfName(t, e.Tlf))
 	}
 	return fmt.Sprintf("%s does not have write access to %s", e.User, e.Filename)
 }
@@ -220,22 +228,22 @@ func NewReadAccessError(h *TlfHandle, username libkb.NormalizedUsername, filenam
 		User:     username,
 		Filename: filename,
 		Tlf:      tlfname,
-		Public:   h.IsPublic(),
+		Public:   h.Type() == tlf.Public,
 	}
 }
 
 // NewWriteAccessError is an access error trying to write a file
 func NewWriteAccessError(h *TlfHandle, username libkb.NormalizedUsername, filename string) error {
-	tlf := CanonicalTlfName("")
+	tlfName := CanonicalTlfName("")
 	public := false
 	if h != nil {
-		tlf = h.GetCanonicalName()
-		public = h.IsPublic()
+		tlfName = h.GetCanonicalName()
+		public = h.Type() == tlf.Public
 	}
 	return WriteAccessError{
 		User:     username,
 		Filename: filename,
-		Tlf:      tlf,
+		Tlf:      tlfName,
 		Public:   public,
 	}
 }
@@ -259,7 +267,7 @@ type NeedSelfRekeyError struct {
 func (e NeedSelfRekeyError) Error() string {
 	return fmt.Sprintf("This device does not yet have read access to "+
 		"directory %s, log into Keybase from one of your other "+
-		"devices to grant access: %+v", buildCanonicalPathForTlfName(false, e.Tlf), e.Err)
+		"devices to grant access: %+v", buildCanonicalPathForTlfName(tlf.Private, e.Tlf), e.Err)
 }
 
 // ToStatus exports error to status
@@ -289,7 +297,7 @@ func (e NeedOtherRekeyError) Error() string {
 	return fmt.Sprintf("This device does not yet have read access to "+
 		"directory %s, ask one of the other directory participants to "+
 		"log into Keybase to grant you access automatically: %+v",
-		buildCanonicalPathForTlfName(false, e.Tlf), e.Err)
+		buildCanonicalPathForTlfName(tlf.Private, e.Tlf), e.Err)
 }
 
 // ToStatus exports error to status
@@ -680,17 +688,18 @@ func (e NoKeysError) Error() string {
 	return "No keys provided"
 }
 
-// InvalidPublicTLFOperation indicates that an invalid operation was
-// attempted on a public TLF.
-type InvalidPublicTLFOperation struct {
+// InvalidNonPrivateTLFOperation indicates that an invalid operation was
+// attempted on a public or team TLF.
+type InvalidNonPrivateTLFOperation struct {
 	id     tlf.ID
 	opName string
 	ver    MetadataVer
 }
 
-// Error implements the error interface for InvalidPublicTLFOperation.
-func (e InvalidPublicTLFOperation) Error() string {
-	return fmt.Sprintf("Tried to do invalid operation %s on public TLF %v (ver=%v)",
+// Error implements the error interface for InvalidNonPrivateTLFOperation.
+func (e InvalidNonPrivateTLFOperation) Error() string {
+	return fmt.Sprintf(
+		"Tried to do invalid operation %s on non-private TLF %v (ver=%v)",
 		e.opName, e.id, e.ver)
 }
 

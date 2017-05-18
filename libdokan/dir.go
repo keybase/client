@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -125,7 +126,7 @@ func (f *Folder) reportErr(ctx context.Context,
 		return
 	}
 
-	f.fs.config.Reporter().ReportErr(ctx, f.name(), f.list.public, mode, err)
+	f.fs.config.Reporter().ReportErr(ctx, f.name(), f.list.tlfType, mode, err)
 	// We just log the error as debug, rather than error, because it
 	// might just indicate an expected error such as an ENOENT.
 	//
@@ -162,7 +163,7 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 	// Handle in the background because we shouldn't lock during
 	// the notification
 	f.fs.queueNotification(func() {
-		session, err := libkbfs.GetCurrentSessionIfPossible(ctx, f.fs.config.KBPKI(), f.list.public)
+		session, err := libkbfs.GetCurrentSessionIfPossible(ctx, f.fs.config.KBPKI(), f.list.tlfType == tlf.Public)
 		// Here we get an error, but there is little that can be done.
 		// session will be empty in the error case in which case we will default to the
 		// canonical format.

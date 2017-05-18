@@ -97,7 +97,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 		newTestLogMaker(t), nil, nil, nil}
 	b := newBlockServerRemoteWithClient(config, &fc)
 
-	tlfID := tlf.FakeID(2, false)
+	tlfID := tlf.FakeID(2, tlf.Private)
 	bCtx := kbfsblock.MakeFirstContext(
 		currentUID.AsUserOrTeam(), keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
@@ -143,7 +143,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 
 	f := func(ctx context.Context) error {
 		bID := kbfsblock.FakeID(1)
-		tlfID := tlf.FakeID(2, false)
+		tlfID := tlf.FakeID(2, tlf.Private)
 		bCtx := kbfsblock.MakeFirstContext(
 			currentUID.AsUserOrTeam(), keybase1.BlockType_DATA)
 		data := []byte{1, 2, 3, 4}

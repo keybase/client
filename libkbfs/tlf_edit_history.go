@@ -252,7 +252,9 @@ func (teh *TlfEditHistory) calculateEditCounts(ctx context.Context,
 
 	edits := make(TlfWriterEdits)
 	for _, writer := range rmds[len(rmds)-1].GetTlfHandle().ResolvedWriters() {
-		edits[writer] = nil
+		// TODO: if this is a single-team TLF, we'll need to look up
+		// the set of users from the team ID.
+		edits[writer.AsUserOrBust()] = nil
 	}
 
 outer:
@@ -377,7 +379,9 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 
 	estimates := make(writerEditEstimates)
 	for _, writer := range head.GetTlfHandle().ResolvedWriters() {
-		estimates[writer] = 0
+		// TODO: if this is a single-team TLF, we'll need to look up
+		// the set of users from the team ID.
+		estimates[writer.AsUserOrBust()] = 0
 	}
 	rmds := []ImmutableRootMetadata{head}
 	estimates.update(rmds)

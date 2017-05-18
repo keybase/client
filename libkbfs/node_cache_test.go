@@ -131,7 +131,7 @@ func simulateGC(ncs *nodeCacheStandard, liveList []Node) {
 // Tests for simple GetOrCreate successes (with and without a parent)
 func TestNodeCacheGetOrCreateSuccess(t *testing.T) {
 	ncs, parentNode, childNode1A, _, path1, path2 :=
-		setupNodeCache(t, tlf.FakeID(0, false), MasterBranch, true)
+		setupNodeCache(t, tlf.FakeID(0, tlf.Private), MasterBranch, true)
 	parentPtr := path1[0].BlockPointer
 	childPtr1 := path1[1].BlockPointer
 	childPtr2 := path2[1].BlockPointer
@@ -159,7 +159,7 @@ func TestNodeCacheGetOrCreateSuccess(t *testing.T) {
 
 // Tests that a child can't be created with an unknown parent.
 func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
-	ncs := newNodeCacheStandard(FolderBranch{tlf.FakeID(0, false), ""})
+	ncs := newNodeCacheStandard(FolderBranch{tlf.FakeID(0, tlf.Private), ""})
 
 	parentPtr := BlockPointer{ID: kbfsblock.FakeID(0)}
 	parentNode, err := ncs.GetOrCreate(parentPtr, "parent", nil)
@@ -180,7 +180,7 @@ func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 
 // Tests that UpdatePointer works
 func TestNodeCacheUpdatePointer(t *testing.T) {
-	ncs := newNodeCacheStandard(FolderBranch{tlf.FakeID(0, false), ""})
+	ncs := newNodeCacheStandard(FolderBranch{tlf.FakeID(0, tlf.Private), ""})
 
 	parentPtr := BlockPointer{ID: kbfsblock.FakeID(0)}
 	parentNode, err := ncs.GetOrCreate(parentPtr, "parent", nil)
@@ -199,7 +199,7 @@ func TestNodeCacheUpdatePointer(t *testing.T) {
 // Tests that Move works as expected
 func TestNodeCacheMoveSuccess(t *testing.T) {
 	ncs, parentNode, childNode1, childNode2, path1, path2 :=
-		setupNodeCache(t, tlf.FakeID(0, false), MasterBranch, true)
+		setupNodeCache(t, tlf.FakeID(0, tlf.Private), MasterBranch, true)
 	parentPtr := path1[0].BlockPointer
 	childPtr1 := path1[1].BlockPointer
 	childPtr2 := path2[1].BlockPointer
@@ -244,7 +244,7 @@ func TestNodeCacheMoveSuccess(t *testing.T) {
 // Tests that a child can't be updated with an unknown parent
 func TestNodeCacheMoveNoParent(t *testing.T) {
 	ncs, _, childNode1, childNode2, path1, path2 :=
-		setupNodeCache(t, tlf.FakeID(0, false), MasterBranch, true)
+		setupNodeCache(t, tlf.FakeID(0, tlf.Private), MasterBranch, true)
 	childPtr1 := path1[1].BlockPointer
 	childPtr2 := path2[1].BlockPointer
 
@@ -281,7 +281,7 @@ func checkNodeCachePath(t *testing.T, id tlf.ID, branch BranchName,
 // Tests that a child can be unlinked completely from the parent, and
 // still have a path, but not a basename.
 func TestNodeCacheUnlink(t *testing.T) {
-	id := tlf.FakeID(42, false)
+	id := tlf.FakeID(42, tlf.Private)
 	branch := BranchName("testBranch")
 	ncs, _, _, childNode2, _, path2 :=
 		setupNodeCache(t, id, branch, false)
@@ -312,7 +312,7 @@ func TestNodeCacheUnlink(t *testing.T) {
 // Tests that a child's ancestor can be unlinked completely from its
 // parent, and the child still has a path and a basename.
 func TestNodeCacheUnlinkParent(t *testing.T) {
-	id := tlf.FakeID(42, false)
+	id := tlf.FakeID(42, tlf.Private)
 	branch := BranchName("testBranch")
 	ncs, _, childNode1, childNode2, _, path2 :=
 		setupNodeCache(t, id, branch, false)
@@ -337,7 +337,7 @@ func TestNodeCacheUnlinkParent(t *testing.T) {
 // then re-added with a new pointer and still work, but with a new
 // node core.
 func TestNodeCacheUnlinkThenRelink(t *testing.T) {
-	id := tlf.FakeID(42, false)
+	id := tlf.FakeID(42, tlf.Private)
 	branch := BranchName("testBranch")
 	ncs, _, childNode1, childNode2, _, path2 :=
 		setupNodeCache(t, id, branch, false)
@@ -381,7 +381,7 @@ func TestNodeCacheUnlinkThenRelink(t *testing.T) {
 
 // Tests that PathFromNode works correctly
 func TestNodeCachePathFromNode(t *testing.T) {
-	id := tlf.FakeID(42, false)
+	id := tlf.FakeID(42, tlf.Private)
 	branch := BranchName("testBranch")
 	ncs, _, _, childNode2, _, path2 :=
 		setupNodeCache(t, id, branch, false)
@@ -392,7 +392,7 @@ func TestNodeCachePathFromNode(t *testing.T) {
 // Make sure that (simulated) GC works as expected.
 func TestNodeCacheGCBasic(t *testing.T) {
 	ncs, parentNode, _, childNode2, _, _ :=
-		setupNodeCache(t, tlf.FakeID(0, false), MasterBranch, true)
+		setupNodeCache(t, tlf.FakeID(0, tlf.Private), MasterBranch, true)
 
 	if len(ncs.nodes) != 3 {
 		t.Errorf("Expected %d nodes, got %d", 3, len(ncs.nodes))
@@ -421,7 +421,7 @@ func TestNodeCacheGCBasic(t *testing.T) {
 // last reference to a parent.
 func TestNodeCacheGCParent(t *testing.T) {
 	ncs, _, _, childNode2, _, _ :=
-		setupNodeCache(t, tlf.FakeID(0, false), MasterBranch, true)
+		setupNodeCache(t, tlf.FakeID(0, tlf.Private), MasterBranch, true)
 
 	if len(ncs.nodes) != 3 {
 		t.Errorf("Expected %d nodes, got %d", 3, len(ncs.nodes))
@@ -452,7 +452,7 @@ func testNodeStandardFinalizer(n *nodeStandard) {
 // Make sure that that making a node unreachable runs the finalizer on GC.
 func TestNodeCacheGCReal(t *testing.T) {
 	ncs, _, childNode1, childNode2, _, _ :=
-		setupNodeCache(t, tlf.FakeID(0, false), MasterBranch, true)
+		setupNodeCache(t, tlf.FakeID(0, tlf.Private), MasterBranch, true)
 
 	if len(ncs.nodes) != 3 {
 		t.Errorf("Expected %d nodes, got %d", 3, len(ncs.nodes))

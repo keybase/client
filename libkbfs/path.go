@@ -17,10 +17,13 @@ type PathType string
 const (
 	// KeybasePathType is the keybase root (like /keybase)
 	KeybasePathType PathType = "keybase"
-	// PublicPathType is the keybase public (like /keybase/public)
+	// PublicPathType is the keybase public folder list (like /keybase/public)
 	PublicPathType PathType = "public"
-	// PrivatePathType is the keybase private (like /keybase/private)
+	// PrivatePathType is the keybase private folder list (like
+	// /keybase/private)
 	PrivatePathType PathType = "private"
+	// SingleTeamPathType is the keybase team folder list (like /keybase/teams)
+	SingleTeamPathType PathType = "teams"
 )
 
 // BuildCanonicalPath returns a canonical path for a path components.
@@ -46,21 +49,29 @@ func BuildCanonicalPath(pathType PathType, paths ...string) string {
 	return strings.Join(pathElements, "/")
 }
 
-// buildCanonicalPathForTlfName returns a canonical path for a tlf.
-func buildCanonicalPathForTlfName(public bool, tlfName CanonicalTlfName) string {
-	pathType := PrivatePathType
-	if public {
+func buildCanonicalPathForTlfType(t tlf.Type, paths ...string) string {
+	var pathType PathType
+	switch t {
+	case tlf.Private:
+		pathType = PrivatePathType
+	case tlf.Public:
 		pathType = PublicPathType
+	case tlf.SingleTeam:
+		pathType = SingleTeamPathType
+	default:
+		panic(fmt.Sprintf("Unknown tlf path type: %d", t))
 	}
-	return BuildCanonicalPath(pathType, string(tlfName))
+
+	return BuildCanonicalPath(pathType, paths...)
+}
+
+// buildCanonicalPathForTlfName returns a canonical path for a tlf.
+func buildCanonicalPathForTlfName(t tlf.Type, tlfName CanonicalTlfName) string {
+	return buildCanonicalPathForTlfType(t, string(tlfName))
 }
 
 func buildCanonicalPathForTlf(tlf tlf.ID, paths ...string) string {
-	pathType := PrivatePathType
-	if tlf.IsPublic() {
-		pathType = PublicPathType
-	}
-	return BuildCanonicalPath(pathType, paths...)
+	return buildCanonicalPathForTlfType(tlf.Type(), paths...)
 }
 
 // path represents the full KBFS path to a particular location, so
@@ -173,17 +184,6 @@ func (p path) ChildPath(name string, ptr BlockPointer) path {
 // with the given name.  That final PathNode will have no BlockPointer.
 func (p path) ChildPathNoPtr(name string) path {
 	return p.ChildPath(name, BlockPointer{})
-}
-
-// hasPublic returns whether or not this is a top-level folder that
-// should have a "public" subdirectory.
-func (p path) hasPublic() bool {
-	// This directory has a corresponding public subdirectory if the
-	// path has only one node and the top-level directory is not
-	// already public TODO: Ideally, we'd also check if there are no
-	// explicit readers, but for now we expect the caller to check
-	// that.
-	return len(p.path) == 1 && !p.Tlf.IsPublic()
 }
 
 // PathNode is a single node along an KBFS path, pointing to the top

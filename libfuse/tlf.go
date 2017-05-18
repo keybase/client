@@ -37,10 +37,6 @@ func newTLF(fl *FolderList, h *libkbfs.TlfHandle,
 
 var _ DirInterface = (*TLF)(nil)
 
-func (tlf *TLF) isPublic() bool {
-	return tlf.folder.list.public
-}
-
 func (tlf *TLF) getStoredDir() *Dir {
 	tlf.dirLock.RLock()
 	defer tlf.dirLock.RUnlock()
@@ -73,8 +69,8 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, mode libkbfs.ErrorModeType,
 	}
 
 	tlf.log().CDebugf(ctx, "Loading root directory for folder %s "+
-		"(public: %t, filter error: %t)", tlf.folder.name(),
-		tlf.isPublic(), filterErr)
+		"(type: %s, filter error: %t)", tlf.folder.name(),
+		tlf.folder.list.tlfType, filterErr)
 	defer func() {
 		if filterErr {
 			exitEarly, err = libfs.FilterTLFEarlyExitError(ctx, err, tlf.log(), tlf.folder.name())

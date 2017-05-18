@@ -21,14 +21,14 @@ import (
 )
 
 func TestBareRootMetadataVersionV2(t *testing.T) {
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	// Metadata objects with unresolved assertions should have
 	// InitialExtraMetadataVer.
 
 	uid := keybase1.MakeTestUID(1)
 	bh, err := tlf.MakeHandle(
-		[]keybase1.UID{uid}, nil, []keybase1.SocialAssertion{{}},
+		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, []keybase1.SocialAssertion{{}},
 		nil, nil)
 	require.NoError(t, err)
 
@@ -38,7 +38,7 @@ func TestBareRootMetadataVersionV2(t *testing.T) {
 	require.Equal(t, InitialExtraMetadataVer, rmd.Version())
 
 	// All other folders should use PreExtraMetadataVer.
-	bh2, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh2, err := tlf.MakeHandle([]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	rmd2, err := MakeInitialBareRootMetadata(
@@ -81,8 +81,8 @@ func testWriterMetadataV2UnchangedEncoding(t *testing.T, ver MetadataVer) {
 	expectedWm := WriterMetadataV2{
 		SerializedPrivateMetadata: []byte{0xa, 0xb},
 		LastModifyingWriter:       "uid1",
-		Writers:                   []keybase1.UID{"uid1", "uid2"},
-		ID:                        tlf.FakeID(1, false),
+		Writers:                   []keybase1.UserOrTeamID{"uid1", "uid2"},
+		ID:                        tlf.FakeID(1, tlf.Private),
 		BID:                       NullBranchID,
 		WFlags:                    0xa,
 		DiskUsage:                 100,
@@ -114,8 +114,8 @@ func TestWriterMetadataV2EncodedFields(t *testing.T) {
 	// Usually exactly one of Writers/WKeys is filled in, but we
 	// fill in both here for testing.
 	wm := WriterMetadataV2{
-		ID:      tlf.FakeID(0xa, false),
-		Writers: []keybase1.UID{"uid1", "uid2"},
+		ID:      tlf.FakeID(0xa, tlf.Private),
+		Writers: []keybase1.UserOrTeamID{"uid1", "uid2"},
 		WKeys:   TLFWriterKeyGenerationsV2{{}},
 		Extra: WriterMetadataExtraV2{
 			UnresolvedWriters: []keybase1.SocialAssertion{sa1, sa2},
@@ -199,9 +199,9 @@ func makeFakeWriterMetadataV2Future(t *testing.T) writerMetadataV2Future {
 		// have been added
 		[]byte{0xa, 0xb},
 		"uid1",
-		[]keybase1.UID{"uid1", "uid2"},
+		[]keybase1.UserOrTeamID{"uid1", "uid2"},
 		nil,
-		tlf.FakeID(1, false),
+		tlf.FakeID(1, tlf.Private),
 		NullBranchID,
 		0xa,
 		100,
@@ -316,10 +316,11 @@ func TestBareRootMetadataV2UnknownFields(t *testing.T) {
 }
 
 func TestIsValidRekeyRequestBasicV2(t *testing.T) {
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	uid := keybase1.MakeTestUID(1)
-	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	brmd, err := MakeInitialBareRootMetadataV2(tlfID, bh)
@@ -398,10 +399,11 @@ func TestRevokeRemovedDevicesV2(t *testing.T) {
 	id3b, err := crypto.GetTLFCryptKeyServerHalfID(uid3, key3, half3b)
 	require.NoError(t, err)
 
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	bh, err := tlf.MakeHandle(
-		[]keybase1.UID{uid1, uid2}, []keybase1.UID{uid3}, nil, nil, nil)
+		[]keybase1.UserOrTeamID{uid1.AsUserOrTeam(), uid2.AsUserOrTeam()},
+		[]keybase1.UserOrTeamID{uid3.AsUserOrTeam()}, nil, nil, nil)
 	require.NoError(t, err)
 
 	brmd, err := MakeInitialBareRootMetadataV2(tlfID, bh)
@@ -555,10 +557,12 @@ func TestRevokeLastDeviceV2(t *testing.T) {
 	id2, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2, half2)
 	require.NoError(t, err)
 
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	bh, err := tlf.MakeHandle(
-		[]keybase1.UID{uid1, uid2}, []keybase1.UID{uid3, uid4}, nil, nil, nil)
+		[]keybase1.UserOrTeamID{uid1.AsUserOrTeam(), uid2.AsUserOrTeam()},
+		[]keybase1.UserOrTeamID{uid3.AsUserOrTeam(), uid4.AsUserOrTeam()},
+		nil, nil, nil)
 	require.NoError(t, err)
 
 	brmd, err := MakeInitialBareRootMetadataV2(tlfID, bh)
@@ -932,10 +936,11 @@ func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
 		uid3: {privKey3.GetPublicKey(): true},
 	}
 
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	bh, err := tlf.MakeHandle(
-		[]keybase1.UID{uid1, uid2}, []keybase1.UID{uid3},
+		[]keybase1.UserOrTeamID{uid1.AsUserOrTeam(), uid2.AsUserOrTeam()},
+		[]keybase1.UserOrTeamID{uid3.AsUserOrTeam()},
 		[]keybase1.SocialAssertion{{}},
 		nil, nil)
 	require.NoError(t, err)
@@ -1154,10 +1159,11 @@ func TestBareRootMetadataV2AddKeyGenerationKeylessUsers(t *testing.T) {
 		uid3: {},
 	}
 
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	bh, err := tlf.MakeHandle(
-		[]keybase1.UID{uid1, uid2}, []keybase1.UID{uid3},
+		[]keybase1.UserOrTeamID{uid1.AsUserOrTeam(), uid2.AsUserOrTeam()},
+		[]keybase1.UserOrTeamID{uid3.AsUserOrTeam()},
 		[]keybase1.SocialAssertion{{}},
 		nil, nil)
 	require.NoError(t, err)

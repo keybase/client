@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/tlf"
 )
 
 // ReporterSimple remembers the last maxErrors errors, or all errors
@@ -42,7 +43,7 @@ func NewReporterSimple(clock Clock, maxErrors int) *ReporterSimple {
 
 // ReportErr implements the Reporter interface for ReporterSimple.
 func (r *ReporterSimple) ReportErr(ctx context.Context,
-	_ CanonicalTlfName, _ bool, _ ErrorModeType, err error) {
+	_ CanonicalTlfName, _ tlf.Type, _ ErrorModeType, err error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 

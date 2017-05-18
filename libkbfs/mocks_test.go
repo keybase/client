@@ -1813,8 +1813,8 @@ func (_m *MockReporter) EXPECT() *_MockReporterRecorder {
 	return _m.recorder
 }
 
-func (_m *MockReporter) ReportErr(ctx context.Context, tlfName CanonicalTlfName, public bool, mode ErrorModeType, err error) {
-	_m.ctrl.Call(_m, "ReportErr", ctx, tlfName, public, mode, err)
+func (_m *MockReporter) ReportErr(ctx context.Context, tlfName CanonicalTlfName, t tlf.Type, mode ErrorModeType, err error) {
+	_m.ctrl.Call(_m, "ReportErr", ctx, tlfName, t, mode, err)
 }
 
 func (_mr *_MockReporterRecorder) ReportErr(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
@@ -2373,8 +2373,8 @@ func (_m *MockcryptoPure) EXPECT() *_MockcryptoPureRecorder {
 	return _m.recorder
 }
 
-func (_m *MockcryptoPure) MakeRandomTlfID(isPublic bool) (tlf.ID, error) {
-	ret := _m.ctrl.Call(_m, "MakeRandomTlfID", isPublic)
+func (_m *MockcryptoPure) MakeRandomTlfID(t tlf.Type) (tlf.ID, error) {
+	ret := _m.ctrl.Call(_m, "MakeRandomTlfID", t)
 	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -2638,8 +2638,8 @@ func (_m *MockCrypto) EXPECT() *_MockCryptoRecorder {
 	return _m.recorder
 }
 
-func (_m *MockCrypto) MakeRandomTlfID(isPublic bool) (tlf.ID, error) {
-	ret := _m.ctrl.Call(_m, "MakeRandomTlfID", isPublic)
+func (_m *MockCrypto) MakeRandomTlfID(t tlf.Type) (tlf.ID, error) {
+	ret := _m.ctrl.Call(_m, "MakeRandomTlfID", t)
 	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -6448,7 +6448,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetFinalizedInfo(arg0 interface
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetFinalizedInfo", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) SetWriters(writers []keybase1.UID) {
+func (_m *MockMutableBareRootMetadata) SetWriters(writers []keybase1.UserOrTeamID) {
 	_m.ctrl.Call(_m, "SetWriters", writers)
 }
 

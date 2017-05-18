@@ -7,6 +7,7 @@ package tlf
 import (
 	"encoding"
 	"encoding/hex"
+	"fmt"
 
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/pkg/errors"
@@ -22,7 +23,37 @@ const (
 	idSuffix = 0x16
 	// pubIDSuffix is the last byte of a public top-level folder ID
 	pubIDSuffix = 0x17
+	// singleTeamIDSuffix is the last byte of a single-team top-level
+	// folder ID
+	singleTeamIDSuffix = 0x26
 )
+
+// Type is the type of TLF represented by a particular ID (e.g.,
+// public, private, etc.)
+type Type int
+
+const (
+	_ Type = iota
+	// Private represents a private TLF between one or more individual users.
+	Private
+	// Public represents a public TLF for one or more individual users.
+	Public
+	// SingleTeam represents a private TLF for a single Keybase team.
+	SingleTeam
+)
+
+func (t Type) String() string {
+	switch t {
+	case Private:
+		return "private"
+	case Public:
+		return "public"
+	case SingleTeam:
+		return "singleTeam"
+	default:
+		return fmt.Sprintf("Unknown TLF type: %d", t)
+	}
+}
 
 // ID is a top-level folder ID
 type ID struct {
@@ -93,9 +124,18 @@ func (id *ID) UnmarshalText(buf []byte) error {
 	return id.UnmarshalBinary(bytes)
 }
 
-// IsPublic returns true if this ID is for a public top-level folder
-func (id ID) IsPublic() bool {
-	return id.id[idByteLen-1] == pubIDSuffix
+// Type returns the type of TLF represented by this ID.
+func (id ID) Type() Type {
+	switch id.id[idByteLen-1] {
+	case idSuffix:
+		return Private
+	case pubIDSuffix:
+		return Public
+	case singleTeamIDSuffix:
+		return SingleTeam
+	default:
+		panic(fmt.Sprintf("Unknown ID suffix  %x", id.id[idByteLen-1]))
+	}
 }
 
 // ParseID parses a hex encoded ID. Returns NullID and an
@@ -111,16 +151,21 @@ func ParseID(s string) (ID, error) {
 
 // MakeRandomID makes a random ID using a cryptographically secure
 // RNG. Returns NullID on failure.
-func MakeRandomID(isPublic bool) (ID, error) {
+func MakeRandomID(t Type) (ID, error) {
 	var idBytes [idByteLen]byte
 	err := kbfscrypto.RandRead(idBytes[:])
 	if err != nil {
 		return NullID, err
 	}
-	if isPublic {
-		idBytes[idByteLen-1] = pubIDSuffix
-	} else {
+	switch t {
+	case Private:
 		idBytes[idByteLen-1] = idSuffix
+	case Public:
+		idBytes[idByteLen-1] = pubIDSuffix
+	case SingleTeam:
+		idBytes[idByteLen-1] = singleTeamIDSuffix
+	default:
+		panic(fmt.Sprintf("Unknown TLF type %d", t))
 	}
 	var id ID
 	err = id.UnmarshalBinary(idBytes[:])

@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 )
 
 // User is an implementation-defined object which acts as a handle to a particular user.
@@ -44,10 +45,10 @@ type Engine interface {
 	GetUID(u User) keybase1.UID
 	// GetFavorites returns the set of all public or private
 	// favorites, based on the given bool.
-	GetFavorites(u User, public bool) (map[string]bool, error)
+	GetFavorites(u User, t tlf.Type) (map[string]bool, error)
 	// GetRootDir is called by the test harness to get a handle to a TLF from the given user's
 	// perspective
-	GetRootDir(u User, tlfName string, isPublic bool, expectedCanonicalTlfName string) (dir Node, err error)
+	GetRootDir(u User, tlfName string, t tlf.Type, expectedCanonicalTlfName string) (dir Node, err error)
 	// CreateDir is called by the test harness to create a directory relative to the passed
 	// parent directory for the given user.
 	CreateDir(u User, parentDir Node, name string) (dir Node, err error)
@@ -89,7 +90,7 @@ type Engine interface {
 	GetMtime(u User, file Node) (mtime time.Time, err error)
 	// SyncAll is called by the test harness as the given user to
 	// flush all writes buffered in memory to disk.
-	SyncAll(u User, tlfName string, isPublic bool) (err error)
+	SyncAll(u User, tlfName string, t tlf.Type) (err error)
 
 	// All functions below don't take nodes so that they can be
 	// run before any real FS operations.
@@ -97,20 +98,20 @@ type Engine interface {
 	// DisableUpdatesForTesting is called by the test harness as
 	// the given user to disable updates to trigger conflict
 	// conditions.
-	DisableUpdatesForTesting(u User, tlfName string, isPublic bool) (err error)
+	DisableUpdatesForTesting(u User, tlfName string, t tlf.Type) (err error)
 	//MakeNaïveStaller returns a NaïveStaller associated with user u for
 	//stalling BlockOps or MDOps.
 	MakeNaïveStaller(u User) *libkbfs.NaïveStaller
 	// ReenableUpdates is called by the test harness as the given
 	// user to resume updates if previously disabled for testing.
-	ReenableUpdates(u User, tlfName string, isPublic bool) (err error)
+	ReenableUpdates(u User, tlfName string, t tlf.Type) (err error)
 	// SyncFromServerForTesting is called by the test harness as
 	// the given user to actively retrieve new metadata for a
 	// folder.
-	SyncFromServerForTesting(u User, tlfName string, isPublic bool) (err error)
+	SyncFromServerForTesting(u User, tlfName string, t tlf.Type) (err error)
 	// ForceQuotaReclamation starts quota reclamation by the given
 	// user in the TLF corresponding to the given node.
-	ForceQuotaReclamation(u User, tlfName string, isPublic bool) (err error)
+	ForceQuotaReclamation(u User, tlfName string, t tlf.Type) (err error)
 	// AddNewAssertion makes newAssertion, which should be a
 	// single assertion that doesn't already resolve to anything,
 	// resolve to the same UID as oldAssertion, which should be an
@@ -118,22 +119,22 @@ type Engine interface {
 	// It only applies to the given user.
 	AddNewAssertion(u User, oldAssertion, newAssertion string) (err error)
 	// Rekey rekeys the given TLF under the given user.
-	Rekey(u User, tlfName string, isPublic bool) (err error)
+	Rekey(u User, tlfName string, t tlf.Type) (err error)
 	// EnableJournal is called by the test harness as the given
 	// user to enable journaling.
-	EnableJournal(u User, tlfName string, isPublic bool) (err error)
+	EnableJournal(u User, tlfName string, t tlf.Type) (err error)
 	// PauseJournal is called by the test harness as the given
 	// user to pause journaling.
-	PauseJournal(u User, tlfName string, isPublic bool) (err error)
+	PauseJournal(u User, tlfName string, t tlf.Type) (err error)
 	// ResumeJournal is called by the test harness as the given
 	// user to resume journaling.
-	ResumeJournal(u User, tlfName string, isPublic bool) (err error)
+	ResumeJournal(u User, tlfName string, t tlf.Type) (err error)
 	// FlushJournal is called by the test harness as the given
 	// user to wait for the journal to flush, if enabled.
-	FlushJournal(u User, tlfName string, isPublic bool) (err error)
+	FlushJournal(u User, tlfName string, t tlf.Type) (err error)
 	// UnflushedPaths called by the test harness to find out which
 	// paths haven't yet been flushed from the journal.
-	UnflushedPaths(u User, tlfName string, isPublic bool) (
+	UnflushedPaths(u User, tlfName string, t tlf.Type) (
 		paths []string, err error)
 	// TogglePrefetch is called by the test harness as the given user to toggle
 	// whether prefetching should be enabled

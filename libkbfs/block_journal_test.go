@@ -437,7 +437,7 @@ func TestBlockJournalFlush(t *testing.T) {
 
 	blockServer := NewBlockServerMemory(log)
 
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	bcache := NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
@@ -576,7 +576,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 
 	blockServer := NewBlockServerMemory(log)
 
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 
 	bcache := NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
@@ -707,7 +707,7 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 	require.NoError(t, err)
 
 	blockServer := NewBlockServerMemory(log)
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 	bcache := NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
@@ -767,7 +767,7 @@ func TestBlockJournalFlushMDRevMarkerForPendingLocalSquash(t *testing.T) {
 	require.Equal(t, int64(len(data2)+len(data3)), ignoredBytes)
 
 	blockServer := NewBlockServerMemory(log)
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 	bcache := NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
@@ -843,7 +843,7 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	require.Equal(t, int64(len(data2)+len(data3)), ignoredBytes)
 
 	blockServer := NewBlockServerMemory(log)
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 	bcache := NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
@@ -908,7 +908,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	savedBlocks := []kbfsblock.ID{bID1, bID2, bID3, bID4}
 
 	blockServer := NewBlockServerMemory(log)
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 	bcache := NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
@@ -1063,7 +1063,7 @@ func TestBlockJournalByteCounters(t *testing.T) {
 	requireCounts(expectedSize, 2*filesPerBlockMax)
 
 	blockServer := NewBlockServerMemory(log)
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 	bcache := NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 	flushOne := func() (int64, int64, int64) {

@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -190,12 +191,12 @@ func (k *LibKBFS) GetUID(u User) (uid keybase1.UID) {
 }
 
 func parseTlfHandle(
-	ctx context.Context, kbpki libkbfs.KBPKI, tlfName string, isPublic bool) (
+	ctx context.Context, kbpki libkbfs.KBPKI, tlfName string, t tlf.Type) (
 	h *libkbfs.TlfHandle, err error) {
 	// Limit to one non-canonical name for now.
 outer:
 	for i := 0; i < 2; i++ {
-		h, err = libkbfs.ParseTlfHandle(ctx, kbpki, tlfName, isPublic)
+		h, err = libkbfs.ParseTlfHandle(ctx, kbpki, tlfName, t)
 		switch err := err.(type) {
 		case nil:
 			break outer
@@ -212,7 +213,7 @@ outer:
 }
 
 // GetFavorites implements the Engine interface.
-func (k *LibKBFS) GetFavorites(u User, public bool) (map[string]bool, error) {
+func (k *LibKBFS) GetFavorites(u User, t tlf.Type) (map[string]bool, error) {
 	config := u.(*libkbfs.ConfigLocal)
 	ctx, cancel := k.newContext(u)
 	defer cancel()
@@ -222,7 +223,8 @@ func (k *LibKBFS) GetFavorites(u User, public bool) (map[string]bool, error) {
 	}
 	favoritesMap := make(map[string]bool)
 	for _, f := range favorites {
-		if f.Public != public {
+		if f.Public != (t == tlf.Public) {
+			// TODO: support team TLFs in favorites list.
 			continue
 		}
 		favoritesMap[f.Name] = true
@@ -231,13 +233,13 @@ func (k *LibKBFS) GetFavorites(u User, public bool) (map[string]bool, error) {
 }
 
 // GetRootDir implements the Engine interface.
-func (k *LibKBFS) GetRootDir(u User, tlfName string, isPublic bool, expectedCanonicalTlfName string) (
+func (k *LibKBFS) GetRootDir(u User, tlfName string, t tlf.Type, expectedCanonicalTlfName string) (
 	dir Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	h, err := parseTlfHandle(ctx, config.KBPKI(), tlfName, isPublic)
+	h, err := parseTlfHandle(ctx, config.KBPKI(), tlfName, t)
 	if err != nil {
 		return nil, err
 	}
@@ -447,12 +449,12 @@ func (k *LibKBFS) SetMtime(u User, file Node, mtime time.Time) (err error) {
 
 // SyncAll implements the Engine interface.
 func (k *LibKBFS) SyncAll(
-	u User, tlfName string, isPublic bool) (err error) {
+	u User, tlfName string, t tlf.Type) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	dir, err := getRootNode(ctx, config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -483,8 +485,8 @@ func (k *LibKBFS) GetMtime(u User, file Node) (mtime time.Time, err error) {
 // getRootNode is like GetRootDir, but doesn't check the canonical TLF
 // name.
 func getRootNode(ctx context.Context, config libkbfs.Config, tlfName string,
-	isPublic bool) (libkbfs.Node, error) {
-	h, err := parseTlfHandle(ctx, config.KBPKI(), tlfName, isPublic)
+	t tlf.Type) (libkbfs.Node, error) {
+	h, err := parseTlfHandle(ctx, config.KBPKI(), tlfName, t)
 	if err != nil {
 		return nil, err
 	}
@@ -500,12 +502,12 @@ func getRootNode(ctx context.Context, config libkbfs.Config, tlfName string,
 }
 
 // DisableUpdatesForTesting implements the Engine interface.
-func (k *LibKBFS) DisableUpdatesForTesting(u User, tlfName string, isPublic bool) (err error) {
+func (k *LibKBFS) DisableUpdatesForTesting(u User, tlfName string, t tlf.Type) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	dir, err := getRootNode(ctx, config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -535,19 +537,20 @@ func (*LibKBFS) MakeNaïveStaller(u User) *libkbfs.NaïveStaller {
 }
 
 // ReenableUpdates implements the Engine interface.
-func (k *LibKBFS) ReenableUpdates(u User, tlfName string, isPublic bool) error {
+func (k *LibKBFS) ReenableUpdates(u User, tlfName string, t tlf.Type) error {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	dir, err := getRootNode(ctx, config, tlfName, t)
 	if err != nil {
 		return err
 	}
 
 	c, ok := k.updateChannels[config][dir.GetFolderBranch()]
 	if !ok {
-		return fmt.Errorf("Couldn't re-enable updates for %s (public=%t)", tlfName, isPublic)
+		return fmt.Errorf(
+			"Couldn't re-enable updates for %s (type=%s)", tlfName, t)
 	}
 
 	// Restart CR using a clean context, since we will cancel ctx when
@@ -566,12 +569,12 @@ func (k *LibKBFS) ReenableUpdates(u User, tlfName string, isPublic bool) error {
 }
 
 // SyncFromServerForTesting implements the Engine interface.
-func (k *LibKBFS) SyncFromServerForTesting(u User, tlfName string, isPublic bool) (err error) {
+func (k *LibKBFS) SyncFromServerForTesting(u User, tlfName string, t tlf.Type) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	dir, err := getRootNode(ctx, config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -580,12 +583,12 @@ func (k *LibKBFS) SyncFromServerForTesting(u User, tlfName string, isPublic bool
 }
 
 // ForceQuotaReclamation implements the Engine interface.
-func (k *LibKBFS) ForceQuotaReclamation(u User, tlfName string, isPublic bool) (err error) {
+func (k *LibKBFS) ForceQuotaReclamation(u User, tlfName string, t tlf.Type) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	dir, err := getRootNode(ctx, config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -601,12 +604,12 @@ func (k *LibKBFS) AddNewAssertion(u User, oldAssertion, newAssertion string) err
 }
 
 // Rekey implements the Engine interface.
-func (k *LibKBFS) Rekey(u User, tlfName string, isPublic bool) error {
+func (k *LibKBFS) Rekey(u User, tlfName string, t tlf.Type) error {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	dir, err := getRootNode(ctx, config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -617,12 +620,12 @@ func (k *LibKBFS) Rekey(u User, tlfName string, isPublic bool) error {
 }
 
 // EnableJournal implements the Engine interface.
-func (k *LibKBFS) EnableJournal(u User, tlfName string, isPublic bool) error {
+func (k *LibKBFS) EnableJournal(u User, tlfName string, t tlf.Type) error {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	dir, err := getRootNode(ctx, config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -637,12 +640,12 @@ func (k *LibKBFS) EnableJournal(u User, tlfName string, isPublic bool) error {
 }
 
 // PauseJournal implements the Engine interface.
-func (k *LibKBFS) PauseJournal(u User, tlfName string, isPublic bool) error {
+func (k *LibKBFS) PauseJournal(u User, tlfName string, t tlf.Type) error {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	dir, err := getRootNode(ctx, config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -657,12 +660,12 @@ func (k *LibKBFS) PauseJournal(u User, tlfName string, isPublic bool) error {
 }
 
 // ResumeJournal implements the Engine interface.
-func (k *LibKBFS) ResumeJournal(u User, tlfName string, isPublic bool) error {
+func (k *LibKBFS) ResumeJournal(u User, tlfName string, t tlf.Type) error {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	dir, err := getRootNode(ctx, config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -677,12 +680,12 @@ func (k *LibKBFS) ResumeJournal(u User, tlfName string, isPublic bool) error {
 }
 
 // FlushJournal implements the Engine interface.
-func (k *LibKBFS) FlushJournal(u User, tlfName string, isPublic bool) error {
+func (k *LibKBFS) FlushJournal(u User, tlfName string, t tlf.Type) error {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	dir, err := getRootNode(ctx, config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -696,13 +699,13 @@ func (k *LibKBFS) FlushJournal(u User, tlfName string, isPublic bool) error {
 }
 
 // UnflushedPaths implements the Engine interface.
-func (k *LibKBFS) UnflushedPaths(u User, tlfName string, isPublic bool) (
+func (k *LibKBFS) UnflushedPaths(u User, tlfName string, t tlf.Type) (
 	[]string, error) {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	dir, err := getRootNode(ctx, config, tlfName, t)
 	if err != nil {
 		return nil, err
 	}

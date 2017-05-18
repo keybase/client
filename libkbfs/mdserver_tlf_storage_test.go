@@ -39,7 +39,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 	s := makeMDServerTlfStorage(tlfID, codec, crypto, wallClock{},
 		defaultClientMetadataVer, tempdir)
 	defer s.shutdown()
@@ -47,7 +47,8 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	require.Equal(t, 0, getMDStorageLength(t, s, NullBranchID))
 
 	uid := keybase1.MakeTestUID(1)
-	h, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	h, err := tlf.MakeHandle(
+		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	// (1) Validate merged branch is empty.

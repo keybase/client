@@ -250,8 +250,8 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice", "bob")
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
-	handle1 := parseTlfHandleOrBust(t, config, "alice", false)
-	handle2 := parseTlfHandleOrBust(t, config, "alice,bob", false)
+	handle1 := parseTlfHandleOrBust(t, config, "alice", tlf.Private)
+	handle2 := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
 
 	// dup for testing
 	handles := []*TlfHandle{handle1, handle2, handle2}
@@ -263,7 +263,7 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	// The favorites list contains our own public dir by default, even
 	// if KBPKI doesn't return it.
 
-	handle3 := parseTlfHandleOrBust(t, config, "alice", true)
+	handle3 := parseTlfHandleOrBust(t, config, "alice", tlf.Public)
 	handles = append(handles, handle3)
 
 	handles2, err := config.KBFSOps().GetFavorites(ctx)
@@ -300,10 +300,10 @@ func getOps(config Config, id tlf.ID) *folderBranchOps {
 
 // createNewRMD creates a new RMD for the given name. Returns its ID
 // and handle also.
-func createNewRMD(t *testing.T, config Config, name string, public bool) (
+func createNewRMD(t *testing.T, config Config, name string, ty tlf.Type) (
 	tlf.ID, *TlfHandle, *RootMetadata) {
-	id := tlf.FakeID(1, public)
-	h := parseTlfHandleOrBust(t, config, name, public)
+	id := tlf.FakeID(1, ty)
+	h := parseTlfHandleOrBust(t, config, name, ty)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 	return id, h, rmd
@@ -332,10 +332,10 @@ func makeImmutableRMDForTest(t *testing.T, config Config, rmd *RootMetadata,
 // injectNewRMD creates a new RMD and makes sure the existing ops for
 // its ID has as its head that RMD.
 func injectNewRMD(t *testing.T, config *ConfigMock) (
-	keybase1.UID, tlf.ID, *RootMetadata) {
-	id, h, rmd := createNewRMD(t, config, "alice", false)
+	keybase1.UserOrTeamID, tlf.ID, *RootMetadata) {
+	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 	var keyGen KeyGen
-	if id.IsPublic() {
+	if id.Type() == tlf.Public {
 		keyGen = PublicKeyGen
 	} else {
 		keyGen = 1
@@ -358,9 +358,9 @@ func injectNewRMD(t *testing.T, config *ConfigMock) (
 	rmd.SetSerializedPrivateMetadata(make([]byte, 1))
 	config.Notifier().RegisterForChanges(
 		[]FolderBranch{{id, MasterBranch}}, config.observer)
-	uid := h.FirstResolvedWriter()
-	rmd.data.Dir.Creator = uid.AsUserOrTeam()
-	return uid, id, rmd
+	wid := h.FirstResolvedWriter()
+	rmd.data.Dir.Creator = wid
+	return wid, id, rmd
 }
 
 func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
@@ -507,7 +507,7 @@ func (p ptrMatcher) String() string {
 }
 
 func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) {
-	if !rmd.TlfID().IsPublic() {
+	if rmd.TlfID().Type() != tlf.Public {
 		rmd.fakeInitialRekey()
 	}
 	rootPtr := BlockPointer{
@@ -529,11 +529,11 @@ func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) {
 	return
 }
 
-func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
+func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, ty tlf.Type) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
 
-	id, h, rmd := createNewRMD(t, config, "alice", public)
+	id, h, rmd := createNewRMD(t, config, "alice", ty)
 	fillInNewMD(t, config, rmd)
 
 	// create a new MD
@@ -557,18 +557,18 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 }
 
 func TestKBFSOpsGetRootNodeCreateNewSuccessPublic(t *testing.T) {
-	testKBFSOpsGetRootNodeCreateNewSuccess(t, true)
+	testKBFSOpsGetRootNodeCreateNewSuccess(t, tlf.Public)
 }
 
 func TestKBFSOpsGetRootNodeCreateNewSuccessPrivate(t *testing.T) {
-	testKBFSOpsGetRootNodeCreateNewSuccess(t, false)
+	testKBFSOpsGetRootNodeCreateNewSuccess(t, tlf.Private)
 }
 
 func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
 
-	id, h, rmd := createNewRMD(t, config, "alice", false)
+	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 	rmd.data.Dir = DirEntry{
 		BlockInfo: BlockInfo{
 			BlockPointer: BlockPointer{
@@ -621,13 +621,13 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 // md.ReadOnly(), which doesn't buy us much in tests.
 
 func makeBP(id kbfsblock.ID, kmd KeyMetadata, config Config,
-	u keybase1.UID) BlockPointer {
+	u keybase1.UserOrTeamID) BlockPointer {
 	return BlockPointer{
 		ID:      id,
 		KeyGen:  kmd.LatestKeyGeneration(),
 		DataVer: DefaultNewBlockDataVersion(false),
 		Context: kbfsblock.Context{
-			Creator: u.AsUserOrTeam(),
+			Creator: u,
 			// Refnonces not needed; explicit refnonce
 			// testing happens elsewhere.
 		},
@@ -635,7 +635,7 @@ func makeBP(id kbfsblock.ID, kmd KeyMetadata, config Config,
 }
 
 func makeBI(id kbfsblock.ID, kmd KeyMetadata, config Config,
-	u keybase1.UID, encodedSize uint32) BlockInfo {
+	u keybase1.UserOrTeamID, encodedSize uint32) BlockInfo {
 	return BlockInfo{
 		BlockPointer: makeBP(id, kmd, config, u),
 		EncodedSize:  encodedSize,
@@ -643,7 +643,7 @@ func makeBI(id kbfsblock.ID, kmd KeyMetadata, config Config,
 }
 
 func makeIFP(id kbfsblock.ID, kmd KeyMetadata, config Config,
-	u keybase1.UID, encodedSize uint32, off int64) IndirectFilePtr {
+	u keybase1.UserOrTeamID, encodedSize uint32, off int64) IndirectFilePtr {
 	return IndirectFilePtr{
 		BlockInfo{
 			BlockPointer: makeBP(id, kmd, config, u),
@@ -751,9 +751,9 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
 
-	id := tlf.FakeID(1, false)
+	id := tlf.FakeID(1, tlf.Private)
 
-	h := parseTlfHandleOrBust(t, config, "bob#alice", false)
+	h := parseTlfHandleOrBust(t, config, "bob#alice", tlf.Private)
 	// Hack around access check in ParseTlfHandle.
 	h.resolvedReaders = nil
 
@@ -766,7 +766,8 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	}
 
 	rootID := kbfsblock.FakeID(42)
-	node := pathNode{makeBP(rootID, rmd, config, session.UID), "p"}
+	node := pathNode{
+		makeBP(rootID, rmd, config, session.UID.AsUserOrTeam()), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 
 	// won't even try getting the block if the user isn't a reader
@@ -815,7 +816,7 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
 
-	id, h, rmd := createNewRMD(t, config, "alice", false)
+	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1))
@@ -859,7 +860,7 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
 
-	id, h, rmd := createNewRMD(t, config, "alice", false)
+	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1))
@@ -872,7 +873,7 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	bID := kbfsblock.FakeID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
-		BlockInfo: makeBIFromID(bID, u.AsUserOrTeam()),
+		BlockInfo: makeBIFromID(bID, u),
 		EntryInfo: EntryInfo{
 			Type: Dir,
 		},
@@ -904,7 +905,7 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
 
-	id, h, rmd := createNewRMD(t, config, "alice", false)
+	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1))
@@ -916,7 +917,7 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	bID := kbfsblock.FakeID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
-		BlockInfo: makeBIFromID(bID, u.AsUserOrTeam()),
+		BlockInfo: makeBIFromID(bID, u),
 		EntryInfo: EntryInfo{
 			Type: Sym,
 		},
@@ -944,7 +945,7 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
 
-	id, h, rmd := createNewRMD(t, config, "alice", false)
+	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1))
@@ -956,7 +957,7 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	bID := kbfsblock.FakeID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
-		BlockInfo: makeBIFromID(bID, u.AsUserOrTeam()),
+		BlockInfo: makeBIFromID(bID, u),
 		EntryInfo: EntryInfo{
 			Type: Dir,
 		},
@@ -981,7 +982,7 @@ func TestKBFSOpsLookupNewDataVersionFail(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
 
-	id, h, rmd := createNewRMD(t, config, "alice", false)
+	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1))
@@ -992,7 +993,7 @@ func TestKBFSOpsLookupNewDataVersionFail(t *testing.T) {
 	aID := kbfsblock.FakeID(43)
 	bID := kbfsblock.FakeID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
-	bInfo := makeBIFromID(bID, u.AsUserOrTeam())
+	bInfo := makeBIFromID(bID, u)
 	bInfo.DataVer = 10
 	dirBlock.Children["b"] = DirEntry{
 		BlockInfo: bInfo,
@@ -1024,7 +1025,7 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
 
-	id, h, rmd := createNewRMD(t, config, "alice", false)
+	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1))
@@ -1036,7 +1037,7 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	bID := kbfsblock.FakeID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
-		BlockInfo: makeBIFromID(bID, u.AsUserOrTeam()),
+		BlockInfo: makeBIFromID(bID, u),
 		EntryInfo: EntryInfo{
 			Type: Dir,
 		},
@@ -1103,7 +1104,7 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	aID := kbfsblock.FakeID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, u.AsUserOrTeam()),
+		BlockInfo: makeBIFromID(aID, u),
 		EntryInfo: EntryInfo{
 			Type: Dir,
 		},
@@ -1231,7 +1232,7 @@ func testCreateEntryFailKBFSPrefix(t *testing.T, et EntryType) {
 	aID := kbfsblock.FakeID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, u.AsUserOrTeam()),
+		BlockInfo: makeBIFromID(aID, u),
 		EntryInfo: EntryInfo{
 			Type: Dir,
 		},
@@ -1384,7 +1385,7 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 	uid, id, rmd := injectNewRMD(t, config)
 
 	rootEntry, p, blocks := makeDirTree(
-		id, uid.AsUserOrTeam(), "a", "b", "c", "d", "e")
+		id, uid, "a", "b", "c", "d", "e")
 	rmd.data.Dir = rootEntry
 
 	// Prime cache with all blocks.
@@ -1409,7 +1410,7 @@ func testKBFSOpsRemoveFileMissingBlockSuccess(t *testing.T, et EntryType) {
 	config.noBGFlush = true
 
 	// create a file.
-	rootNode := GetRootNodeOrBust(ctx, t, config, "alice", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "alice", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
 	var nodeA Node
@@ -1470,7 +1471,7 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 	uid, id, rmd := injectNewRMD(t, config)
 
 	rootEntry, p, blocks := makeDirTree(
-		id, uid.AsUserOrTeam(), "a", "b", "c", "d", "e")
+		id, uid, "a", "b", "c", "d", "e")
 	rmd.data.Dir = rootEntry
 
 	// Prime cache with all blocks.
@@ -1491,13 +1492,13 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
 
-	id1 := tlf.FakeID(1, false)
-	h1 := parseTlfHandleOrBust(t, config, "alice,bob", false)
+	id1 := tlf.FakeID(1, tlf.Private)
+	h1 := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
 	rmd1, err := makeInitialRootMetadata(config.MetadataVersion(), id1, h1)
 	require.NoError(t, err)
 
-	id2 := tlf.FakeID(2, false)
-	h2 := parseTlfHandleOrBust(t, config, "alice,bob,charlie", false)
+	id2 := tlf.FakeID(2, tlf.Private)
+	h2 := parseTlfHandleOrBust(t, config, "alice,bob,charlie", tlf.Private)
 	rmd2, err := makeInitialRootMetadata(config.MetadataVersion(), id2, h2)
 	require.NoError(t, err)
 
@@ -1533,8 +1534,8 @@ func TestRenameFailAcrossBranches(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
 
-	id1 := tlf.FakeID(1, false)
-	h1 := parseTlfHandleOrBust(t, config, "alice,bob", false)
+	id1 := tlf.FakeID(1, tlf.Private)
+	h1 := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
 	rmd1, err := makeInitialRootMetadata(config.MetadataVersion(), id1, h1)
 	require.NoError(t, err)
 
@@ -1906,7 +1907,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 			config.observer.ctx.Value(tCtxID))
 	} else if !bytes.Equal(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
-	} else if newRootBlock.Children["f"].GetWriter() != uid.AsUserOrTeam() {
+	} else if newRootBlock.Children["f"].GetWriter() != uid {
 		t.Errorf("Wrong last writer: %v",
 			newRootBlock.Children["f"].GetWriter())
 	} else if newRootBlock.Children["f"].Size != uint64(len(data)) {
@@ -2177,7 +2178,7 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	filePtr := BlockPointer{
 		ID: fileID, KeyGen: 1, DataVer: 1,
 		Context: kbfsblock.Context{
-			Creator: uid.AsUserOrTeam(),
+			Creator: uid,
 		},
 	}
 	rootBlock.Children["f"] = DirEntry{
@@ -2321,7 +2322,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 			config.observer.ctx.Value(tCtxID))
 	} else if !bytes.Equal(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", newFileBlock.Contents)
-	} else if newRootBlock.Children["f"].GetWriter() != uid.AsUserOrTeam() {
+	} else if newRootBlock.Children["f"].GetWriter() != uid {
 		t.Errorf("Wrong last writer: %v",
 			newRootBlock.Children["f"].GetWriter())
 	} else if newRootBlock.Children["f"].Size != 0 {
@@ -2346,7 +2347,7 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	fileID := kbfsblock.FakeID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
-		BlockInfo: makeBIFromID(fileID, u.AsUserOrTeam()),
+		BlockInfo: makeBIFromID(fileID, u),
 		EntryInfo: EntryInfo{
 			Type: File,
 		},
@@ -2440,7 +2441,7 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	id1 := kbfsblock.FakeID(44)
 	id2 := kbfsblock.FakeID(45)
 	rootBlock := NewDirBlock().(*DirBlock)
-	fileInfo := makeBIFromID(fileID, uid.AsUserOrTeam())
+	fileInfo := makeBIFromID(fileID, uid)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: fileInfo,
 		EntryInfo: EntryInfo{
@@ -2526,7 +2527,7 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	id1 := kbfsblock.FakeID(44)
 	id2 := kbfsblock.FakeID(45)
 	rootBlock := NewDirBlock().(*DirBlock)
-	fileInfo := makeBIFromID(fileID, uid.AsUserOrTeam())
+	fileInfo := makeBIFromID(fileID, uid)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: fileInfo,
 		EntryInfo: EntryInfo{
@@ -2699,7 +2700,7 @@ func TestSetMtimeNull(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	oldMtime := time.Now().UnixNano()
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, u.AsUserOrTeam()),
+		BlockInfo: makeBIFromID(aID, u),
 		EntryInfo: EntryInfo{
 			Type:  File,
 			Mtime: oldMtime,
@@ -2862,7 +2863,7 @@ func TestKBFSOpsStatRootSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
 
-	id, h, rmd := createNewRMD(t, config, "alice", false)
+	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1))
@@ -2884,7 +2885,7 @@ func TestKBFSOpsFailingRootOps(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
 
-	id, h, rmd := createNewRMD(t, config, "alice", false)
+	id, h, rmd := createNewRMD(t, config, "alice", tlf.Private)
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1))
@@ -2940,7 +2941,7 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 	config.noBGFlush = true
 
 	// create a file.
-	rootNode := GetRootNodeOrBust(ctx, t, config, "alice,bob", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "alice,bob", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
 	nodeA, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -2981,7 +2982,7 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 	defer kbfsTestShutdownNoMocksNoCheck(t, config, ctx, cancel)
 
 	// create a file.
-	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -3029,7 +3030,7 @@ func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 	defer kbfsTestShutdownNoMocksNoCheck(t, config, ctx, cancel)
 
 	// create a file.
-	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -3077,7 +3078,7 @@ func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
 	// create a file.
-	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
 	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -3118,7 +3119,7 @@ func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
 	config.SetBlockSplitter(bsplit)
 
 	// create a file.
-	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -3191,7 +3192,7 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	})
 
 	// create a file.
-	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
 	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -3205,7 +3206,7 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	// Shutdown the mdserver explicitly before the state checker tries to run
 	defer config2.MDServer().Shutdown()
 
-	rootNode2 := GetRootNodeOrBust(ctx, t, config2, "test_user", false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, "test_user", tlf.Private)
 	// Lookup the file, which should fail on block ID verification
 	kbfsOps2 := config2.KBFSOps()
 	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
@@ -3221,7 +3222,7 @@ func TestKBFSOpsEmptyTlfSize(t *testing.T) {
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
 	// Create a TLF.
-	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 	status, _, err := config.KBFSOps().FolderStatus(ctx,
 		rootNode.GetFolderBranch())
 	if err != nil {
@@ -3238,7 +3239,7 @@ type cryptoFixedTlf struct {
 	tlf tlf.ID
 }
 
-func (c cryptoFixedTlf) MakeRandomTlfID(isPublic bool) (tlf.ID, error) {
+func (c cryptoFixedTlf) MakeRandomTlfID(t tlf.Type) (tlf.ID, error) {
 	return c.tlf, nil
 }
 
@@ -3250,7 +3251,7 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	defer kbfsTestShutdownNoMocksNoCheck(t, config1, ctx, cancel)
 
 	// Create alice's TLF.
-	rootNode1 := GetRootNodeOrBust(ctx, t, config1, "alice", false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, "alice", tlf.Private)
 	fb1 := rootNode1.GetFolderBranch()
 
 	kbfsOps1 := config1.KBFSOps()
@@ -3270,7 +3271,8 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	config2.SetMDServer(mdserver2)
 	config2.SetMDCache(NewMDCacheStandard(1))
 
-	rootNode2 := GetRootNodeOrBust(ctx, t, config2, "alice,mallory", false)
+	rootNode2 := GetRootNodeOrBust(
+		ctx, t, config2, "alice,mallory", tlf.Private)
 	require.Equal(t, fb1.Tlf, rootNode2.GetFolderBranch().Tlf)
 
 	kbfsOps2 := config2.KBFSOps()
@@ -3317,7 +3319,7 @@ func TestGetTLFCryptKeysAfterFirstError(t *testing.T) {
 	}
 	config.SetMDServer(mdserver)
 
-	h := parseTlfHandleOrBust(t, config, "alice", false)
+	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private)
 
 	_, _, err := config.KBFSOps().GetTLFCryptKeys(ctx, h)
 	if err != createErr {
@@ -3339,7 +3341,7 @@ func TestForceFastForwardOnEmptyTLF(t *testing.T) {
 	defer kbfsTestShutdownNoMocksNoCheck(t, config, ctx, cancel)
 
 	// Look up bob's public folder.
-	h := parseTlfHandleOrBust(t, config, "bob", true)
+	h := parseTlfHandleOrBust(t, config, "bob", tlf.Public)
 	_, _, err := config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
 	if _, ok := err.(WriteAccessError); !ok {
 		t.Fatalf("Unexpected err reading a public TLF: %+v", err)
@@ -3369,7 +3371,7 @@ func TestDirtyPathsAfterRemoveDir(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
-	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 	kbfsOps := config.KBFSOps()
 
 	// Create a/b/c.

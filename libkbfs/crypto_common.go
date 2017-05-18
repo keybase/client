@@ -35,8 +35,8 @@ func MakeCryptoCommon(codec kbfscodec.Codec) CryptoCommon {
 }
 
 // MakeRandomTlfID implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) MakeRandomTlfID(isPublic bool) (tlf.ID, error) {
-	return tlf.MakeRandomID(isPublic)
+func (c CryptoCommon) MakeRandomTlfID(t tlf.Type) (tlf.ID, error) {
+	return tlf.MakeRandomID(t)
 }
 
 // MakeRandomBranchID implements the Crypto interface for CryptoCommon.

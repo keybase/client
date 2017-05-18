@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -568,7 +569,13 @@ const CtxKeybaseServiceOpID = "KSID"
 func (k *KeybaseServiceBase) getHandleFromFolderName(ctx context.Context,
 	tlfName string, public bool) (*TlfHandle, error) {
 	for {
-		tlfHandle, err := ParseTlfHandle(ctx, k.config.KBPKI(), tlfName, public)
+		// TODO(KBFS-2185): update the protocol to support requests
+		// for single-team TLFs.
+		t := tlf.Private
+		if public {
+			t = tlf.Public
+		}
+		tlfHandle, err := ParseTlfHandle(ctx, k.config.KBPKI(), tlfName, t)
 		switch e := err.(type) {
 		case TlfNameNotCanonical:
 			tlfName = e.NameToTry

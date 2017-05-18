@@ -20,12 +20,12 @@ import (
 )
 
 func testMdcacheMakeHandle(t *testing.T, n uint32) *TlfHandle {
-	uid := keybase1.MakeTestUID(n)
-	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	id := keybase1.MakeTestUID(n).AsUserOrTeam()
+	bh, err := tlf.MakeHandle([]keybase1.UserOrTeamID{id}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	nug := testNormalizedUsernameGetter{
-		uid: libkb.NormalizedUsername(fmt.Sprintf("fake_user_%d", n)),
+		id: libkb.NormalizedUsername(fmt.Sprintf("fake_user_%d", n)),
 	}
 
 	ctx := context.Background()
@@ -64,7 +64,7 @@ func testMdcachePut(t *testing.T, tlfID tlf.ID, rev kbfsmd.Revision,
 }
 
 func TestMdcachePut(t *testing.T) {
-	tlfID := tlf.FakeID(1, false)
+	tlfID := tlf.FakeID(1, tlf.Private)
 	h := testMdcacheMakeHandle(t, 1)
 
 	mdcache := NewMDCacheStandard(100)
@@ -72,13 +72,13 @@ func TestMdcachePut(t *testing.T) {
 }
 
 func TestMdcachePutPastCapacity(t *testing.T) {
-	id0 := tlf.FakeID(1, false)
+	id0 := tlf.FakeID(1, tlf.Private)
 	h0 := testMdcacheMakeHandle(t, 0)
 
-	id1 := tlf.FakeID(2, false)
+	id1 := tlf.FakeID(2, tlf.Private)
 	h1 := testMdcacheMakeHandle(t, 1)
 
-	id2 := tlf.FakeID(3, false)
+	id2 := tlf.FakeID(3, tlf.Private)
 	h2 := testMdcacheMakeHandle(t, 2)
 
 	mdcache := NewMDCacheStandard(2)
@@ -93,7 +93,7 @@ func TestMdcachePutPastCapacity(t *testing.T) {
 }
 
 func TestMdcacheReplace(t *testing.T) {
-	id := tlf.FakeID(1, false)
+	id := tlf.FakeID(1, tlf.Private)
 	h := testMdcacheMakeHandle(t, 1)
 
 	mdcache := NewMDCacheStandard(100)

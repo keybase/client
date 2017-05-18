@@ -64,7 +64,7 @@ func makeRandomBlockPointer(t *testing.T) BlockPointer {
 }
 
 func makeKMD() KeyMetadata {
-	return emptyKeyMetadata{tlf.FakeID(0, false), 1}
+	return emptyKeyMetadata{tlf.FakeID(0, tlf.Private), 1}
 }
 
 func TestBlockRetrievalQueueBasic(t *testing.T) {

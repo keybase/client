@@ -27,7 +27,7 @@ type mdRange struct {
 func makeRekeyReadErrorHelper(
 	err error, kmd KeyMetadata, resolvedHandle *TlfHandle,
 	uid keybase1.UID, username libkb.NormalizedUsername) error {
-	if resolvedHandle.IsPublic() {
+	if resolvedHandle.Type() == tlf.Public {
 		panic("makeRekeyReadError called on public folder")
 	}
 	// If the user is not a legitimate reader of the folder, this is a
@@ -342,11 +342,11 @@ func encryptMDPrivateData(
 	brmd := rmd.bareMd
 	privateData := rmd.data
 
-	if brmd.TlfID().IsPublic() || !brmd.IsWriterMetadataCopiedSet() {
+	if brmd.TlfID().Type() == tlf.Public || !brmd.IsWriterMetadataCopiedSet() {
 		// Record the last writer to modify this writer metadata
 		brmd.SetLastModifyingWriter(me)
 
-		if brmd.TlfID().IsPublic() {
+		if brmd.TlfID().Type() == tlf.Public {
 			// Encode the private metadata
 			encodedPrivateMetadata, err := codec.Encode(privateData)
 			if err != nil {
@@ -481,7 +481,7 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 	handle := rmdToDecrypt.GetTlfHandle()
 
 	var pmd PrivateMetadata
-	if handle.IsPublic() {
+	if handle.Type() == tlf.Public {
 		if err := codec.Decode(serializedPrivateMetadata,
 			&pmd); err != nil {
 			return PrivateMetadata{}, err

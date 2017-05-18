@@ -653,7 +653,7 @@ type KeyManager interface {
 // Reporter exports events (asynchronously) to any number of sinks
 type Reporter interface {
 	// ReportErr records that a given error happened.
-	ReportErr(ctx context.Context, tlfName CanonicalTlfName, public bool,
+	ReportErr(ctx context.Context, tlfName CanonicalTlfName, t tlf.Type,
 		mode ErrorModeType, err error)
 	// AllKnownErrors returns all errors known to this Reporter.
 	AllKnownErrors() []ReportedError
@@ -870,7 +870,7 @@ type DiskBlockCache interface {
 // implicit state, i.e. they're pure functions of the input.
 type cryptoPure interface {
 	// MakeRandomTlfID generates a dir ID using a CSPRNG.
-	MakeRandomTlfID(isPublic bool) (tlf.ID, error)
+	MakeRandomTlfID(t tlf.Type) (tlf.ID, error)
 
 	// MakeRandomBranchID generates a per-device branch ID using a
 	// CSPRNG.  It will not return LocalSquashBranchID or
@@ -2000,7 +2000,7 @@ type MutableBareRootMetadata interface {
 	// SetFinalizedInfo sets any finalized info associated with this metadata revision.
 	SetFinalizedInfo(fi *tlf.HandleExtension)
 	// SetWriters sets the list of writers associated with this folder.
-	SetWriters(writers []keybase1.UID)
+	SetWriters(writers []keybase1.UserOrTeamID)
 	// SetTlfID sets the ID of the underlying folder in the metadata structure.
 	SetTlfID(tlf tlf.ID)
 

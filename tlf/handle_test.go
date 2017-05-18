@@ -9,14 +9,14 @@ import (
 )
 
 func TestMakeHandle(t *testing.T) {
-	w := []keybase1.UID{
-		keybase1.MakeTestUID(4),
-		keybase1.MakeTestUID(3),
+	w := []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(4).AsUserOrTeam(),
+		keybase1.MakeTestUID(3).AsUserOrTeam(),
 	}
 
-	r := []keybase1.UID{
-		keybase1.MakeTestUID(5),
-		keybase1.MakeTestUID(1),
+	r := []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(5).AsUserOrTeam(),
+		keybase1.MakeTestUID(1).AsUserOrTeam(),
 	}
 
 	uw := []keybase1.SocialAssertion{
@@ -43,13 +43,13 @@ func TestMakeHandle(t *testing.T) {
 
 	h, err := MakeHandle(w, r, uw, ur, nil)
 	require.NoError(t, err)
-	require.Equal(t, []keybase1.UID{
-		keybase1.MakeTestUID(3),
-		keybase1.MakeTestUID(4),
+	require.Equal(t, []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(3).AsUserOrTeam(),
+		keybase1.MakeTestUID(4).AsUserOrTeam(),
 	}, h.Writers)
-	require.Equal(t, []keybase1.UID{
-		keybase1.MakeTestUID(1),
-		keybase1.MakeTestUID(5),
+	require.Equal(t, []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(1).AsUserOrTeam(),
+		keybase1.MakeTestUID(5).AsUserOrTeam(),
 	}, h.Readers)
 	require.Equal(t, []keybase1.SocialAssertion{
 		{
@@ -77,14 +77,14 @@ func TestMakeHandleFailures(t *testing.T) {
 	_, err := MakeHandle(nil, nil, nil, nil, nil)
 	assert.Equal(t, errNoWriters, err)
 
-	w := []keybase1.UID{
-		keybase1.MakeTestUID(4),
-		keybase1.MakeTestUID(3),
+	w := []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(4).AsUserOrTeam(),
+		keybase1.MakeTestUID(3).AsUserOrTeam(),
 	}
 
-	r := []keybase1.UID{
-		keybase1.PUBLIC_UID,
-		keybase1.MakeTestUID(2),
+	r := []keybase1.UserOrTeamID{
+		keybase1.UserOrTeamID(keybase1.PUBLIC_UID),
+		keybase1.MakeTestUID(2).AsUserOrTeam(),
 	}
 
 	_, err = MakeHandle(r, nil, nil, nil, nil)
@@ -105,14 +105,14 @@ func TestMakeHandleFailures(t *testing.T) {
 }
 
 func TestHandleAccessorsPrivate(t *testing.T) {
-	w := []keybase1.UID{
-		keybase1.MakeTestUID(4),
-		keybase1.MakeTestUID(3),
+	w := []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(4).AsUserOrTeam(),
+		keybase1.MakeTestUID(3).AsUserOrTeam(),
 	}
 
-	r := []keybase1.UID{
-		keybase1.MakeTestUID(5),
-		keybase1.MakeTestUID(1),
+	r := []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(5).AsUserOrTeam(),
+		keybase1.MakeTestUID(1).AsUserOrTeam(),
 	}
 
 	uw := []keybase1.SocialAssertion{
@@ -140,7 +140,7 @@ func TestHandleAccessorsPrivate(t *testing.T) {
 	h, err := MakeHandle(w, r, uw, ur, nil)
 	require.NoError(t, err)
 
-	require.False(t, h.IsPublic())
+	require.Equal(t, Private, h.Type())
 
 	for _, u := range w {
 		require.True(t, h.IsWriter(u))
@@ -153,17 +153,17 @@ func TestHandleAccessorsPrivate(t *testing.T) {
 	}
 
 	for i := 6; i < 10; i++ {
-		u := keybase1.MakeTestUID(uint32(i))
+		u := keybase1.MakeTestUID(uint32(i)).AsUserOrTeam()
 		require.False(t, h.IsWriter(u))
 		require.False(t, h.IsReader(u))
 	}
 
 	require.Equal(t, h.ResolvedUsers(),
-		[]keybase1.UID{
-			keybase1.MakeTestUID(3),
-			keybase1.MakeTestUID(4),
-			keybase1.MakeTestUID(1),
-			keybase1.MakeTestUID(5),
+		[]keybase1.UserOrTeamID{
+			keybase1.MakeTestUID(3).AsUserOrTeam(),
+			keybase1.MakeTestUID(4).AsUserOrTeam(),
+			keybase1.MakeTestUID(1).AsUserOrTeam(),
+			keybase1.MakeTestUID(5).AsUserOrTeam(),
 		})
 	require.True(t, h.HasUnresolvedUsers())
 	require.Equal(t, h.UnresolvedUsers(),
@@ -188,9 +188,9 @@ func TestHandleAccessorsPrivate(t *testing.T) {
 }
 
 func TestHandleAccessorsPublic(t *testing.T) {
-	w := []keybase1.UID{
-		keybase1.MakeTestUID(4),
-		keybase1.MakeTestUID(3),
+	w := []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(4).AsUserOrTeam(),
+		keybase1.MakeTestUID(3).AsUserOrTeam(),
 	}
 
 	uw := []keybase1.SocialAssertion{
@@ -205,10 +205,11 @@ func TestHandleAccessorsPublic(t *testing.T) {
 	}
 
 	h, err := MakeHandle(
-		w, []keybase1.UID{keybase1.PUBLIC_UID}, uw, nil, nil)
+		w, []keybase1.UserOrTeamID{keybase1.UserOrTeamID(keybase1.PUBLIC_UID)},
+		uw, nil, nil)
 	require.NoError(t, err)
 
-	require.True(t, h.IsPublic())
+	require.Equal(t, Public, h.Type())
 
 	for _, u := range w {
 		require.True(t, h.IsWriter(u))
@@ -216,15 +217,15 @@ func TestHandleAccessorsPublic(t *testing.T) {
 	}
 
 	for i := 6; i < 10; i++ {
-		u := keybase1.MakeTestUID(uint32(i))
+		u := keybase1.MakeTestUID(uint32(i)).AsUserOrTeam()
 		require.False(t, h.IsWriter(u))
 		require.True(t, h.IsReader(u))
 	}
 
 	require.Equal(t, h.ResolvedUsers(),
-		[]keybase1.UID{
-			keybase1.MakeTestUID(3),
-			keybase1.MakeTestUID(4),
+		[]keybase1.UserOrTeamID{
+			keybase1.MakeTestUID(3).AsUserOrTeam(),
+			keybase1.MakeTestUID(4).AsUserOrTeam(),
 		})
 	require.True(t, h.HasUnresolvedUsers())
 	require.Equal(t, h.UnresolvedUsers(),
@@ -241,9 +242,9 @@ func TestHandleAccessorsPublic(t *testing.T) {
 }
 
 func TestHandleHasUnresolvedUsers(t *testing.T) {
-	w := []keybase1.UID{
-		keybase1.MakeTestUID(4),
-		keybase1.MakeTestUID(3),
+	w := []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(4).AsUserOrTeam(),
+		keybase1.MakeTestUID(3).AsUserOrTeam(),
 	}
 
 	uw := []keybase1.SocialAssertion{
@@ -284,14 +285,14 @@ func TestHandleHasUnresolvedUsers(t *testing.T) {
 }
 
 func TestHandleResolveAssertions(t *testing.T) {
-	w := []keybase1.UID{
-		keybase1.MakeTestUID(4),
-		keybase1.MakeTestUID(3),
+	w := []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(4).AsUserOrTeam(),
+		keybase1.MakeTestUID(3).AsUserOrTeam(),
 	}
 
-	r := []keybase1.UID{
-		keybase1.MakeTestUID(5),
-		keybase1.MakeTestUID(1),
+	r := []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(5).AsUserOrTeam(),
+		keybase1.MakeTestUID(1).AsUserOrTeam(),
 	}
 
 	uw := []keybase1.SocialAssertion{
@@ -350,16 +351,16 @@ func TestHandleResolveAssertions(t *testing.T) {
 
 	h = h.ResolveAssertions(assertions)
 
-	require.Equal(t, []keybase1.UID{
-		keybase1.MakeTestUID(1),
-		keybase1.MakeTestUID(2),
-		keybase1.MakeTestUID(3),
-		keybase1.MakeTestUID(4),
+	require.Equal(t, []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(1).AsUserOrTeam(),
+		keybase1.MakeTestUID(2).AsUserOrTeam(),
+		keybase1.MakeTestUID(3).AsUserOrTeam(),
+		keybase1.MakeTestUID(4).AsUserOrTeam(),
 	}, h.Writers)
-	require.Equal(t, []keybase1.UID{
-		keybase1.MakeTestUID(5),
-		keybase1.MakeTestUID(6),
-		keybase1.MakeTestUID(9),
+	require.Equal(t, []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(5).AsUserOrTeam(),
+		keybase1.MakeTestUID(6).AsUserOrTeam(),
+		keybase1.MakeTestUID(9).AsUserOrTeam(),
 	}, h.Readers)
 	require.Equal(t, []keybase1.SocialAssertion{
 		{
