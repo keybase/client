@@ -403,9 +403,16 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 
 		msg := b.Msgs[index]
 		if msg.GetMessageID() == 0 {
-			be.Debug(ctx, "readMessages: cache entry empty: index: %d block: %d msgID: %d", index,
-				b.BlockID, be.getMsgID(b.BlockID, index))
-			return MissError{}
+			if res.PushEmpty(msg) {
+				// If the result collector is happy to receive this blank entry, then don't complain
+				// and proceed as if this was a hit
+				lastAdded = be.getMsgID(b.BlockID, index)
+				continue
+			} else {
+				be.Debug(ctx, "readMessages: cache entry empty: index: %d block: %d msgID: %d", index,
+					b.BlockID, be.getMsgID(b.BlockID, index))
+				return MissError{}
+			}
 		}
 		bMsgID := msg.GetMessageID()
 
