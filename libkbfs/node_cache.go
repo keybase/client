@@ -168,8 +168,8 @@ func (ncs *nodeCacheStandard) UpdatePointer(
 		return false
 	}
 
-	// Cannot update the pointer for an unlinked node
-	if len(entry.core.cachedPath.path) > 0 {
+	// Cannot update the pointer for an unlinked node.
+	if entry.core.cachedPath.isValid() {
 		return false
 	}
 
