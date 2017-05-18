@@ -1,9 +1,11 @@
 // @flow
 import {app} from 'electron'
 import exec from './exec'
+
 import {appInstallerPath, appBundlePath} from './paths'
 import {quit} from './ctl'
 import {runMode} from '../../constants/platform.desktop'
+import os from 'os'
 
 // Runs the installer (on MacOS).
 // For other platforms, this immediately returns that there is no installer.
@@ -12,6 +14,11 @@ import {runMode} from '../../constants/platform.desktop'
 // to a place where the installer is bundled, for example:
 //   KEYBASE_GET_APP_PATH=/Applications/Keybase.app/Contents/Resources/app/ yarn run start-hot
 export default (callback: (err: any) => void): void => {
+  if (os.platform() === 'win32') {
+    console.log('skipping installer on win32')
+    callback(null)
+    return
+  }
   const installerPath = appInstallerPath()
   if (!installerPath) {
     callback(new Error('No installer path'))

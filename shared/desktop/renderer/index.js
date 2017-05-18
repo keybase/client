@@ -36,6 +36,7 @@ import {setupSource} from '../../util/forward-logs'
 import flags from '../../util/feature-flags'
 import {updateDebugConfig} from '../../actions/dev'
 import {updateReloading} from '../../constants/dev'
+import os from 'os'
 
 let _store
 function setupStore() {
@@ -58,7 +59,7 @@ function setupAvatar() {
 function setupApp(store) {
   setupSource()
   disableDragDrop()
-  makeEngine()
+  var eng = makeEngine()
   loadPerf()
   setupAvatar()
 
@@ -92,6 +93,15 @@ function setupApp(store) {
       } catch (_) {}
     })
   })
+
+  if (os.platform() === 'win32') {
+    // After a delay, see if we're connected, and try starting keybase if not
+    setTimeout(() => {
+      eng.listenOnNotConnected('win-service-check', () => {
+        ipcRenderer.send('win-service-check')
+      })
+    }, 3 * 1000)
+  }
 
   // Run installer
   ipcRenderer.on('installed', (event, message) => {

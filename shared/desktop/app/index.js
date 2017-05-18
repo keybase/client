@@ -14,6 +14,7 @@ import {BrowserWindow, app, ipcMain, dialog} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {setupTarget} from '../../util/forward-logs'
 import {allowMultipleInstances} from '../../local-debug.desktop'
+import startWinService from './start-win-service'
 
 let mainWindow = null
 
@@ -81,6 +82,11 @@ function start() {
       splash()
       event.sender.send('installed')
     })
+  })
+
+  ipcMain.on('win-service-check', (event, arg) => {
+    console.log('win-service-check')
+    startWinService()
   })
 
   // Called when the user clicks the dock icon

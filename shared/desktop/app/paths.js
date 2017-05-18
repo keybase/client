@@ -4,7 +4,7 @@ import getenv from 'getenv'
 import path from 'path'
 import os from 'os'
 
-function appPath() {
+function appPath () {
   // For testing when running manually via npm start
   // return '/Applications/Keybase.app/Contents/Resources/app/'
   // For testing running from DMG
