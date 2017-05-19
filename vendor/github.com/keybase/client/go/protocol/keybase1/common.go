@@ -28,6 +28,7 @@ type KID string
 type LinkID string
 type BinaryKID []byte
 type TLFID string
+type TeamID string
 type Bytes32 [32]byte
 type Text struct {
 	Data   string `codec:"data" json:"data"`
