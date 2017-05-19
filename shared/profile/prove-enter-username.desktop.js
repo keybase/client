@@ -94,7 +94,12 @@ class PrivateEnterUsernameRender extends Component<void, Props, State> {
         />
         <UsernameTips platform={this.props.platform} />
         <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
-          <Button type="Secondary" onClick={this.props.onCancel} label="Cancel" style={{marginRight: 10}} />
+          <Button
+            type="Secondary"
+            onClick={this.props.onCancel}
+            label="Cancel"
+            style={{marginRight: globalMargins.tiny}}
+          />
           <Button
             type="Primary"
             disabled={!this.props.canContinue}

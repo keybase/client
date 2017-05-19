@@ -77,7 +77,7 @@ class EditPopup extends Component<void, Props, void> {
             <Button
               type="Secondary"
               label="Cancel"
-              style={{marginRight: 10}}
+              style={{marginRight: globalMargins.tiny}}
               onClick={e => {
                 e.preventDefault()
                 setImmediate(onClose)

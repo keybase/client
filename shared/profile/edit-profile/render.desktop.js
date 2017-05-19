@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {BackButton, Box, Button, Input} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import {globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from './render'
 
@@ -40,7 +40,12 @@ class EditProfileRender extends Component<void, Props, void> {
             onChangeText={bio => this.props.onBioChange(bio)}
           />
           <Box style={styleButtonContainer}>
-            <Button type="Secondary" onClick={this.props.onCancel} label="Cancel" style={{marginRight: 10}} />
+            <Button
+              type="Secondary"
+              onClick={this.props.onCancel}
+              label="Cancel"
+              style={{marginRight: globalMargins.tiny}}
+            />
             <Button type="Primary" onClick={this.props.onSubmit} label="Save" />
           </Box>
         </Box>

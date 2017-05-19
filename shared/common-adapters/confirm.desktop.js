@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {Props} from './confirm'
 import {Box, Button, StandardScreen} from './'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 class Confirm extends Component<void, Props, void> {
   render() {
@@ -26,7 +26,7 @@ class Confirm extends Component<void, Props, void> {
             label="Cancel"
           />
           <Button
-            style={{marginLeft: 10}}
+            style={{marginLeft: globalMargins.tiny}}
             type={this.props.danger ? 'Danger' : 'Primary'}
             onClick={this.props.onSubmit}
             label={this.props.submitLabel}

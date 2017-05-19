@@ -79,7 +79,7 @@ const PostProof = (props: Props) => {
                 type="Secondary"
                 onClick={() => onCancel()}
                 label={onCancelText || 'Cancel'}
-                style={{marginRight: 10}}
+                style={{marginRight: globalMargins.tiny}}
               />}
             <Button
               type="Primary"
