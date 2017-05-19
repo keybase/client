@@ -84,7 +84,7 @@ class Button extends Component<void, Props, void> {
 
 const smallHeight = isMobile ? 32 : 28
 const regularHeight = isMobile ? 40 : 32
-const fullWidthHeight = isMobile ? 48 : 40
+const fullWidthHeight = isMobile ? 48 : 32
 const borderRadius = 50
 const smallBorderRadius = isMobile ? 50 : 28
 
