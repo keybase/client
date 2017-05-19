@@ -88,7 +88,7 @@ class Button extends Component<void, Props, void> {
       }
     }
 
-    let outerStyle = {position: 'relative'}
+    let outerStyle = {}
     if (this.props.style) {
       outerStyle = {...outerStyle, alignSelf: this.props.style.alignSelf}
     }
@@ -109,7 +109,7 @@ class Button extends Component<void, Props, void> {
           onClick={this.props.onClick}
           onMouseEnter={this.props.onMouseEnter}
           onMouseLeave={this.props.onMouseLeave}
-          style={{...backgroundStyle, ...smallStyle, ...this.props.style}}
+          style={{...innerStyle, ...backgroundStyle, ...smallStyle, ...this.props.style}}
         >
           <span style={{...stylesButtonLabel, ...labelStyle, ...this.props.labelStyle}}>
             {this.props.label}
@@ -120,6 +120,11 @@ class Button extends Component<void, Props, void> {
       </div>
     )
   }
+}
+
+const innerStyle = {
+  display: 'inline-block',
+  position: 'relative',
 }
 
 const buttonCommon = {
@@ -192,7 +197,7 @@ const stylesButtonSmallLabel = {
   fontSize: 13,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
-  lineHeight: 0,
+  // lineHeight: 0,
 }
 const stylesProgress = {
   position: 'absolute',
