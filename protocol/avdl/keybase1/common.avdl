@@ -192,7 +192,7 @@ protocol Common {
 
   record UserOrTeamLite {
       UserOrTeamID id;
-      string username;
+      string name;
   }
 
   record RemoteTrack {

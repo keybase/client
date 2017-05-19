@@ -216,8 +216,8 @@ type UserPlusKeys struct {
 }
 
 type UserOrTeamLite struct {
-	Id       UserOrTeamID `codec:"id" json:"id"`
-	Username string       `codec:"username" json:"username"`
+	Id   UserOrTeamID `codec:"id" json:"id"`
+	Name string       `codec:"name" json:"name"`
 }
 
 type RemoteTrack struct {

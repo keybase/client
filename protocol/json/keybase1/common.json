@@ -473,7 +473,7 @@
         },
         {
           "type": "string",
-          "name": "username"
+          "name": "name"
         }
       ]
     },
