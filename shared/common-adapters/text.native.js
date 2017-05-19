@@ -1,9 +1,11 @@
 // @flow
 import React, {Component} from 'react'
 import openURL from '../util/open-url'
-import {NativeText} from './native-wrappers.native'
+import {NativeClipboard, NativeText} from './native-wrappers.native'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 import {clickableVisible} from '../local-debug'
+
+import {Alert} from 'react-native'
 
 import type {Props, TextType, Background} from './text'
 
@@ -18,6 +20,18 @@ class Text extends Component<void, Props, void> {
 
   _urlClick = () => {
     openURL(this.props.onClickURL)
+  }
+
+  _urlCopy = () => {
+    NativeClipboard.setString(this.props.onClickURL)
+  }
+
+  _urlChooseOption = () => {
+    Alert.alert('', this.props.onClickURL, [
+      {onPress: () => {}, text: 'Cancel', style: 'cancel'},
+      {onPress: this._urlClick, text: 'Open Link'},
+      {onPress: this._urlCopy, text: 'Copy Link'},
+    ])
   }
 
   render() {
@@ -35,6 +49,7 @@ class Text extends Component<void, Props, void> {
         style={style}
         {...lineClamp(this.props.lineClamp)}
         onPress={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined)}
+        onLongPress={this._urlChooseOption}
       >
         {this.props.children}
       </NativeText>
