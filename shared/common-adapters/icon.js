@@ -6,26 +6,9 @@ import {globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 import {omit} from 'lodash'
 
-import type {Exact} from '../constants/types/more'
-import type {IconType as _IconType} from './icon.constants'
+import type {Props, IconType} from './icon'
 
-export type {_IconType as IconType}
-
-export type Props = {
-  type: _IconType,
-  hint?: string,
-  onClick?: (event: SyntheticEvent) => void,
-  onPress?: void,
-  onMouseEnter?: () => void,
-  onMouseLeave?: () => void,
-  style?: ?Object,
-  opacity?: boolean,
-  inheritColor?: boolean,
-  underlayColor?: string,
-  className?: string,
-}
-
-function _fontSize(type: _IconType): ?Object {
+function _fontSize(type: IconType): ?Object {
   const fontSize: ?number = iconMeta[type].gridSize
 
   if (fontSize) {
@@ -35,7 +18,7 @@ function _fontSize(type: _IconType): ?Object {
   }
 }
 
-const Icon = (props: Exact<Props>) => {
+const Icon = (props: Props) => {
   let iconType = typeToIconMapper(props.type)
 
   if (!iconType) {
@@ -47,12 +30,9 @@ const Icon = (props: Exact<Props>) => {
     return null
   }
 
-  const color =
-    (props.style && props.style.color) ||
-    defaultColor(props.type) ||
-    (props.opacity ? globalColors.lightGrey : globalColors.black_40)
+  const color = (props.style && props.style.color) || defaultColor(props.type) || globalColors.black_40
   const styleWidth = props.style && props.style.width
-  const width = styleWidth && {width: props.style.width}
+  const width = styleWidth && {width: styleWidth}
   const backgroundColor = (props.style && {backgroundColor: props.style.backgroundColor}) || {}
 
   let icon
@@ -67,18 +47,17 @@ const Icon = (props: Exact<Props>) => {
     const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
 
     icon = (
-      <Font style={{color, textAlign, fontFamily: 'kb', ...fontSize, ...width, ...backgroundColor}}>
+      <Font
+        hasOnClick={!!props.onClick}
+        inheritColor={props.inheritColor}
+        style={{color, fontFamily: 'kb', textAlign, ...fontSize, ...width, ...backgroundColor}}
+        type={props.type}
+      >
         {code}
       </Font>
     )
   } else {
-    const height = props.style && props.style.height && {height: props.style.height}
-    icon = (
-      <Image
-        source={iconMeta[iconType].require}
-        style={{resizeMode: 'contain', ...width, ...height, ...backgroundColor}}
-      />
-    )
+    icon = <Image type={iconType} style={props.style} />
   }
 
   const boxStyle = omit(props.style || {}, ['color', 'fontSize', 'textAlign'])
@@ -94,7 +73,7 @@ const Icon = (props: Exact<Props>) => {
   )
 }
 
-function defaultColor(type: _IconType): ?string {
+function defaultColor(type: IconType): ?string {
   switch (type) {
     case 'iconfont-proof-broken':
       return globalColors.red
@@ -111,22 +90,8 @@ function defaultColor(type: _IconType): ?string {
   }
 }
 
-// function defaultHoverColor(type: IconType): ?string {
-// switch (type) {
-// case 'iconfont-proof-new':
-// case 'iconfont-proof-followed':
-// case 'iconfont-proof-broken':
-// case 'iconfont-proof-pending':
-// return defaultColor(type)
-// case 'iconfont-close':
-// return globalColors.black_60
-// default:
-// return null
-// }
-// }
-
 // Some types are the same underlying icon.
-function typeToIconMapper(type: _IconType): _IconType {
+function typeToIconMapper(type: IconType): IconType {
   switch (type) {
     case 'icon-progress-white-animated':
       return __SCREENSHOT__ ? 'icon-progress-white-static' : 'icon-progress-white-animated'
@@ -151,20 +116,6 @@ function typeToIconMapper(type: _IconType): _IconType {
   }
 }
 
-const imgName = (type: IconType, ext: string, mult: number, prefix: ?string, postfix: ?string) =>
-  `${prefix || ''}${resolveImageAsURL('icons', type)}${mult > 1 ? `@${mult}x` : ''}.${ext}${postfix || ''} ${mult}x`
-
-function iconTypeToSrcSet(type: IconType) {
-  const ext = shared.typeExtension(type)
-  return [1, 2].map(mult => imgName(type, ext, mult)).join(', ')
-}
-
-function iconTypeToImgSet(type: IconType) {
-  const ext = shared.typeExtension(type)
-  const imgs = [1, 2].map(mult => `url${imgName(type, ext, mult, "('", "')")}`).join(', ')
-  return `-webkit-image-set(${imgs})`
-}
-
 export default Icon
 
-export {defaultColor, iconTypeToImgSet}
+export {defaultColor}

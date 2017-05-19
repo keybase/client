@@ -1,5 +1,10 @@
 // @flow
 import {Component} from 'react'
 
+import type {IconType} from './icon'
+
 declare export class Font extends Component<void, any, void> {}
 declare export class Image extends Component<void, any, void> {}
+
+declare export function iconTypeToImgSet(type: IconType): string
+declare export function urlsToImgSet(imgMap: {[size: string]: string}, size: number): any

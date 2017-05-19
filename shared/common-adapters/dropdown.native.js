@@ -3,10 +3,11 @@ import Box from './box'
 import Icon from './icon'
 import React, {Component} from 'react'
 import Text from './text'
-import type {Props} from './dropdown'
 import {NativeTouchableWithoutFeedback, NativePicker, NativeModal} from './native-wrappers.native'
 import {globalStyles, globalColors} from '../styles'
 import {isIOS} from '../constants/platform'
+
+import type {Props} from './dropdown'
 
 /*
  * A dropdown on ios and android.

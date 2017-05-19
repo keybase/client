@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 
-type Background =
+export type Background =
   | 'Announcements'
   | 'Documentation'
   | 'HighRisk'
@@ -10,7 +10,7 @@ type Background =
   | 'Success'
   | 'Terminal'
 
-type TextType =
+export type TextType =
   | 'Body'
   | 'BodyBig'
   | 'BodyBigLink'
@@ -39,7 +39,7 @@ type TextType =
   | 'TerminalEmpty'
   | 'TerminalInline'
 
-type Props = {
+export type Props = {
   backgroundMode?: Background,
   children?: React$Element<*>,
   className?: string,
@@ -53,7 +53,7 @@ type Props = {
   allowHighlightText?: boolean, // if true, highlighttext through refs works
 }
 
-type MetaType = {
+export type MetaType = {
   fontSize: number,
   colorForBackgroundMode: {[key: Background]: ?string},
   isLink?: true,
@@ -70,7 +70,4 @@ declare function getStyle(
 ): Object
 
 export {getStyle}
-
-export type {Background, MetaType, Props, TextType}
-
 export default Text
