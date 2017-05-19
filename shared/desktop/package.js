@@ -29,6 +29,7 @@ const appVersion = argv.appVersion || '0.0.0'
 const comment = argv.comment || ''
 const outDir = argv.outDir || ''
 const appCopyright = 'Copyright (c) 2015, Keybase'
+const companyName = 'Keybase, Inc.'
 
 const packagerOpts = {
   'app-bundle-id': 'keybase.Electron',
@@ -36,6 +37,7 @@ const packagerOpts = {
   'app-version': appVersion,
   'build-version': appVersion + comment,
   'app-copyright': appCopyright,
+
   dir: desktopPath('./build'),
   name: appName,
   asar: shouldUseAsar,
@@ -160,6 +162,7 @@ function pack(plat, arch, cb) {
         OriginalFilename: appName + '.exe',
         FileDescription: appName,
         ProductName: appName,
+        CompanyName: companyName,
       },
     }
   }
