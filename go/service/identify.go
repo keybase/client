@@ -104,7 +104,7 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 	resp := eng.Result()
 	if resp != nil {
 		res.Ul.Id = keybase1.UserOrTeamID(resp.Upk.Uid)
-		res.Ul.Username = resp.Upk.Username
+		res.Ul.Name = resp.Upk.Username
 	}
 	res.TrackBreaks = resp.TrackBreaks
 	return res, err

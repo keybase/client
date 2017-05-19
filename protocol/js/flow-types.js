@@ -5599,7 +5599,7 @@ export type UserOrTeamID = string
 
 export type UserOrTeamLite = {
   id: UserOrTeamID,
-  username: string,
+  name: string,
 }
 
 export type UserPlusAllKeys = {
