@@ -55,7 +55,6 @@ else
   cp -R "$kbfs_dir"/* "$go_kbfs_dir"
 fi
 if [ "$check_ci" = "1" ]; then
-  "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
   "$GOPATH/bin/release" wait-ci --repo="kbfs" --commit="$(git -C $kbfs_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch"
 fi
 
