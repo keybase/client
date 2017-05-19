@@ -82,6 +82,7 @@ const smallHeight = isMobile ? 32 : 28
 const regularHeight = isMobile ? 40 : 32
 const fullWidthHeight = isMobile ? 48 : 40
 const borderRadius = 50
+const smallBorderRadius = isMobile ? 50 : 28
 
 const common = {
   ...globalStyles.flexBoxColumn,
@@ -118,6 +119,7 @@ const smallStyle = {
   height: smallHeight,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
+  borderRadius: smallBorderRadius,
 }
 
 const disabled = {
