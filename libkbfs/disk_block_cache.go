@@ -236,8 +236,8 @@ func versionPathFromVersion(dirPath string, version uint64) string {
 	return filepath.Join(dirPath, fmt.Sprintf("v%d", version))
 }
 
-func getVersionedPathForDiskCache(dirPath string) (versionedDirPath string,
-	err error) {
+func getVersionedPathForDiskCache(log logger.Logger, dirPath string) (
+	versionedDirPath string, err error) {
 	// Read the version file
 	versionFilepath := filepath.Join(dirPath, versionFilename)
 	versionBytes, err := ioutil.ReadFile(versionFilepath)
@@ -246,10 +246,11 @@ func getVersionedPathForDiskCache(dirPath string) (versionedDirPath string,
 	version := currentDiskCacheVersion
 	if ioutil.IsNotExist(err) {
 		// Do nothing, meaning that we will create the version file below.
+		log.Debug("Creating new version file for the disk block cache.")
 	} else if err != nil {
-		// An error occurred while loading the version file. Use the
-		// currentDiskCacheVersion and fall through to create the disk cache at
-		// the current version.
+		log.Debug("An error occurred while reading the disk block cache "+
+			"version file. Using %d as the version and creating a new file "+
+			"to record it.", version)
 		// TODO: when we increase the version of the disk cache, we'll have
 		// to make sure we wipe all previous versions of the disk cache.
 	} else {
@@ -262,23 +263,29 @@ func getVersionedPathForDiskCache(dirPath string) (versionedDirPath string,
 			strconv.IntSize)
 		if err == nil && version == currentDiskCacheVersion {
 			// Success case, no need to write the version file again.
+			log.Debug("Loaded the disk block cache version file successfully."+
+				" Version: %d", version)
 			return versionPathFromVersion(dirPath, version), nil
 		}
 		if err != nil {
-			// An error occurred while parsing the version file. Use the
-			// currentDiskCacheVersion.
+			log.Debug("An error occurred while parsing the disk block cache "+
+				"version file. Using %d as the version.",
+				currentDiskCacheVersion)
 			// TODO: when we increase the version of the disk cache, we'll have
 			// to make sure we wipe all previous versions of the disk cache.
 			version = currentDiskCacheVersion
 		} else if version < currentDiskCacheVersion {
-			// Old version of the disk cache. Use the currentDiskCacheVersion.
+			log.Debug("The disk block cache version file contained an old "+
+				"version: %d. Updating to the new version: %d.", version,
+				currentDiskCacheVersion)
 			// TODO: when we increase the version of the disk cache, we'll have
 			// to make sure we wipe all previous versions of the disk cache.
 			version = currentDiskCacheVersion
 		} else if version > currentDiskCacheVersion {
-			// Existing disk cache version is newer than we expect for this client.
-			// This is an error since our client won't understand its format.
-			// Use the currentDiskCacheVersion.
+			log.Debug("The disk block cache version file contained a newer "+
+				"version (%d) than this client knows how to read. Switching "+
+				"to this client's newest known version: %d.", version,
+				currentDiskCacheVersion)
 			version = currentDiskCacheVersion
 		}
 	}
@@ -301,7 +308,13 @@ func getVersionedPathForDiskCache(dirPath string) (versionedDirPath string,
 // specified directory on the filesystem as storage.
 func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string) (
 	cache *DiskBlockCacheStandard, err error) {
-	versionPath, err := getVersionedPathForDiskCache(dirPath)
+	log := config.MakeLogger("DBC")
+	defer func() {
+		if err != nil {
+			log.Error("Error initializing disk cache: %+v", err)
+		}
+	}()
+	versionPath, err := getVersionedPathForDiskCache(log, dirPath)
 	if err != nil {
 		return nil, err
 	}

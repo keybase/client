@@ -616,13 +616,13 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 		log.Warning("Could not enable disk limiter: %+v", err)
 		return nil, err
 	}
-	goctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx10s, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	// TODO: Don't turn on journaling if either -bserver or
 	// -mdserver point to local implementations.
 	if params.EnableJournal && config.Mode() != InitMinimal {
 		journalRoot := filepath.Join(params.StorageRoot, "kbfs_journal")
-		err = config.EnableJournaling(goctx, journalRoot,
+		err = config.EnableJournaling(ctx10s, journalRoot,
 			params.TLFJournalBackgroundWorkStatus)
 		if err != nil {
 			log.Warning("Could not initialize journal server: %+v", err)
@@ -639,7 +639,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 				NotificationType: keybase1.FSNotificationType_INITIALIZED,
 				ErrorType:        keybase1.FSErrorType_DISK_CACHE_ERROR_LOG_SEND,
 			}
-			defer config.Reporter().Notify(goctx, notification)
+			defer config.Reporter().Notify(ctx10s, notification)
 		} else {
 			config.SetDiskBlockCache(dbc)
 			log.Debug("Disk cache enabled")
