@@ -37,7 +37,6 @@ const packagerOpts = {
   'app-version': appVersion,
   'build-version': appVersion + comment,
   'app-copyright': appCopyright,
-
   dir: desktopPath('./build'),
   name: appName,
   asar: shouldUseAsar,
