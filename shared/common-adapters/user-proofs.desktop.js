@@ -6,7 +6,7 @@ import openUrl from '../util/open-url'
 import type {Props, MissingProof} from './user-proofs'
 import type {Proof} from '../constants/tracker'
 import {Box, Icon, Text, Meta} from '../common-adapters/index'
-import {defaultColor} from '../common-adapters/icon.shared'
+import {defaultColor} from '../common-adapters/icon'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
