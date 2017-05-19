@@ -11,9 +11,11 @@ local_client=${LOCAL_CLIENT:-"1"}
 local_kbfs=${LOCAL_KBFS:-}
 skip_gomobile_init=${SKIP_GOMOBILE_INIT:-}
 tmp_gopath=${TMP_GOPATH:-"/tmp/go-${arg}"}
+check_ci=${CHECK_CI:-}
 
 # Original sources
-client_go_dir="$GOPATH/src/github.com/keybase/client/go"
+client_dir="$GOPATH/src/github.com/keybase/client"
+client_go_dir="$client_dir/go"
 kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
 
 # Our custom gopath for iOS build
@@ -31,12 +33,14 @@ go_client_dir="$GOPATH/src/github.com/keybase/client/go"
 if [ ! "$local_client" = "1" ]; then
   echo "Getting client (via git clone)... To use local copy, set LOCAL_CLIENT=1"
   (cd "$GOPATH/src/github.com/keybase"; git clone https://github.com/keybase/client)
-  # echo "Getting client (via go get)..."
-  # go get -u github.com/keybase/client/go/...
 else
   echo "Getting client (using local GOPATH)... To use git master, set LOCAL_CLIENT=0"
   mkdir -p "$go_client_dir"
   cp -R "$client_go_dir"/* "$go_client_dir"
+fi
+if [ "$check_ci" = "1" ]; then
+  "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+  "$GOPATH/bin/release" wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
 fi
 
 go_kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
@@ -44,13 +48,15 @@ go_kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
 if [ ! "$local_kbfs" = "1" ]; then
   echo "Getting KBFS (via git clone)... To use local copy, set LOCAL_KBFS=1"
   (cd "$GOPATH/src/github.com/keybase"; git clone https://github.com/keybase/kbfs)
-  # echo "Getting KBFS (via go get)..."
-  # go get -u github.com/keybase/kbfs/...
 else
   # For testing local KBFS changes
   echo "Getting KBFS (using local GOPATH)... To use git master, set LOCAL_KBFS=0"
   mkdir -p "$go_kbfs_dir"
   cp -R "$kbfs_dir"/* "$go_kbfs_dir"
+fi
+if [ "$check_ci" = "1" ]; then
+  "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+  "$GOPATH/bin/release" wait-ci --repo="kbfs" --commit="$(git -C $kbfs_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch"
 fi
 
 # Move all vendoring up a directory to github.com/keybase/vendor
