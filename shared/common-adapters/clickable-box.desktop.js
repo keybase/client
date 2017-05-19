@@ -14,6 +14,10 @@ const ClickableBox = (props: Props & {children: any}) => {
     delete otherProps.onLongPress
   }
 
+  if (!otherProps.onClick) {
+    delete otherProps.onClick
+  }
+
   return (
     <FlatButton
       {...otherProps}
