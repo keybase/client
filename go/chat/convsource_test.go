@@ -484,4 +484,9 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	require.Equal(t, holes+2, len(thread.Messages))
 	require.Equal(t, msg.GetMessageID(), thread.Messages[0].GetMessageID())
 	require.Equal(t, "MIKE: 2", thread.Messages[0].Valid().MessageBody.Text().Body)
+
+	// Make sure we don't consider it a hit if we end the fetch with a hole
+	require.NoError(t, tc.Context().ConvSource.Clear(convID, uid))
+	_, _, err = tc.Context().ConvSource.Pull(context.TODO(), convID, uid, nil, nil)
+	require.Error(t, err)
 }

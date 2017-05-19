@@ -208,8 +208,6 @@ func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	return s.boxer.UnboxMessages(ctx, msgs, convID, finalizeInfo)
 }
 
-var maxHolesForPull = 50
-
 type HybridConversationSource struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -322,12 +320,17 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 	defer s.Trace(ctx, func() error { return err }, "resolveHoles")()
 	var msgIDs []chat1.MessageID
 	// Gather all placeholder messages so we can go fetch them
-	for _, msg := range thread.Messages {
+	for index, msg := range thread.Messages {
 		state, err := msg.State()
 		if err != nil {
 			continue
 		}
 		if state == chat1.MessageUnboxedState_PLACEHOLDER {
+			if index == len(thread.Messages)-1 {
+				// If the last message is a hole, we might not have fetched everything,
+				// so fail this case like a normal miss
+				return storage.MissError{}
+			}
 			msgIDs = append(msgIDs, msg.GetMessageID())
 		}
 	}
@@ -369,6 +372,11 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 	return nil
 }
 
+// maxHolesForPull is the number of misses in the body storage cache we will tolerate missing. A good
+// way to think about this number is the number of extra reads from the cache we need to do before
+// formally declaring the request a failure.
+var maxHolesForPull = 10
+
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, rl []*chat1.RateLimit, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Pull")()
@@ -398,6 +406,8 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			s.storage.ResultCollectorFromQuery(ctx, query, pagination))
 		thread, err = s.storage.Fetch(ctx, conv, uid, rc, query, pagination)
 		if err == nil {
+			// Since we are using the "holey" collector, we need to resolve any placeholder
+			// messages that may have been fetched.
 			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s holes: %d", convID, uid, rc.Holes())
 			err = s.resolveHoles(ctx, uid, &thread, conv)
 		}

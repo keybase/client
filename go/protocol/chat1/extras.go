@@ -151,6 +151,11 @@ func (m MessageUnboxed) GetMessageType() MessageType {
 		if state == MessageUnboxedState_OUTBOX {
 			return m.Outbox().Msg.ClientHeader.MessageType
 		}
+		if state == MessageUnboxedState_PLACEHOLDER {
+			// All we know about a place holder is the ID, so just
+			// call it type NONE
+			return MessageType_NONE
+		}
 	}
 	return MessageType_NONE
 }
