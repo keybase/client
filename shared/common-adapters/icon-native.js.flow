@@ -1,0 +1,5 @@
+// @flow
+import {Component} from 'react'
+
+declare export class Font extends Component<void, any, void> {}
+declare export class Image extends Component<void, any, void> {}
