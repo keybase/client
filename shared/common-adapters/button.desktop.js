@@ -1,10 +1,68 @@
 // @flow
 import ProgressIndicator from './progress-indicator'
 import React, {Component} from 'react'
-import type {Props} from './button'
+import Text from './text'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-class Button extends Component<void, Props, void> {
+import type {Props} from './button'
+
+const Button = ({
+  backgroundMode,
+  className,
+  onClick,
+  onMouseEnter,
+  onMouseLeave,
+  style,
+  labelStyle,
+  label,
+  waiting,
+  type,
+}: Props) => {
+  const progressIsWhite = true
+  const height = small
+  const bgColor = {
+    Primary: globalColors.blue,
+    Secondary: backgroundMode === 'Terminal' ? globalColors.blue_30 : globalColors.lightGrey2,
+    Danger: globalColors.red,
+    Follow: globalColors.green,
+    Following: globalColors.white,
+    Unfollow: globalColors.lightGrey2,
+  }[type]
+
+  return (
+    <div style={_containerStyle} className={className}>
+      <div
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        style={{..._buttonStyle, backgroundColor: bgColor, ...style}}
+      >
+        <span style={{..._labelStyle, ...labelStyle}}>
+          {label}
+        </span>
+        {waiting && <ProgressIndicator white={progressIsWhite} style={_progressStyle} />}
+      </div>
+    </div>
+  )
+}
+
+const _containerStyle = {}
+
+const _buttonStyle = {}
+
+const _labelStyle = {}
+
+const _progressStyle = {
+  ...globalStyles.fillAbsolute,
+  height: 20,
+  left: 0,
+  right: 0,
+  top: 0,
+  bottom: 0,
+  margin: 'auto',
+}
+
+class OLDButton extends Component<void, Props, void> {
   _styles(type: $PropertyType<Props, 'type'>): Object {
     let backgroundStyle = {}
     let labelStyle = {}
@@ -137,7 +195,6 @@ const buttonCommon = {
 
 const stylesButtonPrimary = {
   ...buttonCommon,
-  backgroundColor: globalColors.blue,
   disabledOpacity: 0.2,
 }
 const stylesButtonSecondary = {
@@ -148,20 +205,20 @@ const stylesButtonSecondary = {
 }
 const stylesButtonDanger = {
   ...buttonCommon,
-  backgroundColor: globalColors.red,
+  backgroundColor: 0,
   disabledOpacity: 0.2,
   marginRight: 10,
 }
 const stylesButtonFollow = {
   ...buttonCommon,
-  backgroundColor: globalColors.green,
+  backgroundColor: 0,
   disabledOpacity: 0.3,
   marginRight: 10,
   minWidth: 125,
 }
 const stylesButtonFollowing = {
   ...buttonCommon,
-  backgroundColor: globalColors.white,
+  backgroundColor: 0,
   border: `solid 2px ${globalColors.green}`,
   lineHeight: '28px',
   marginRight: 10,
@@ -197,7 +254,6 @@ const stylesButtonSmallLabel = {
   fontSize: 13,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
-  // lineHeight: 0,
 }
 const stylesProgress = {
   position: 'absolute',
