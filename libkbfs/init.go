@@ -632,11 +632,11 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 			diskBlockCacheRootFromStorageRoot(params.StorageRoot))
 		if err != nil {
 			log.Warning("Could not initialize disk cache: %+v", err)
-			// TODO: Make this error less fatal later.
-			return nil, err
+			// TODO: send a notification for the user to submit a log send.
+		} else {
+			config.SetDiskBlockCache(dbc)
+			log.Debug("Disk cache enabled")
 		}
-		config.SetDiskBlockCache(dbc)
-		log.Debug("Disk cache enabled")
 	}
 
 	if params.BGFlushDirOpBatchSize < 1 {

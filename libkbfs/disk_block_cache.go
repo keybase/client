@@ -156,7 +156,7 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 	}
 	defer func() {
 		if err != nil {
-			cache.blockDb.Close()
+			blockDb.Close()
 		}
 	}()
 
@@ -247,7 +247,11 @@ func getVersionedPathForDiskCache(dirPath string) (versionedDirPath string,
 	if ioutil.IsNotExist(err) {
 		// Do nothing, meaning that we will create the version file below.
 	} else if err != nil {
-		return "", err
+		// An error occurred while loading the version file. Use the
+		// currentDiskCacheVersion and fall through to create the disk cache at
+		// the current version.
+		// TODO: when we increase the version of the disk cache, we'll have
+		// to make sure we wipe all previous versions of the disk cache.
 	} else {
 		// We expect a successfully opened version file to parse a single
 		// unsigned integer representing the version. Anything else is a
@@ -256,27 +260,38 @@ func getVersionedPathForDiskCache(dirPath string) (versionedDirPath string,
 		// cache if we have an out of date version.
 		version, err = strconv.ParseUint(string(versionBytes), 10,
 			strconv.IntSize)
+		if err == nil && version == currentDiskCacheVersion {
+			// Success case, no need to write the version file again.
+			return versionPathFromVersion(dirPath, version), nil
+		}
 		if err != nil {
-			return "", err
-		}
-		if version < currentDiskCacheVersion {
-			return "", errors.WithStack(
-				InvalidVersionError{fmt.Sprintf("New disk cache version."+
-					" Delete the existing disk cache at path: %s", dirPath)})
-		}
-		// Existing disk cache version is newer than we expect for this client.
-		// This is an error since our client won't understand its format.
-		if version > currentDiskCacheVersion {
-			return "", errors.WithStack(OutdatedVersionError{})
+			// An error occurred while parsing the version file. Use the
+			// currentDiskCacheVersion.
+			// TODO: when we increase the version of the disk cache, we'll have
+			// to make sure we wipe all previous versions of the disk cache.
+			version = currentDiskCacheVersion
+		} else if version < currentDiskCacheVersion {
+			// Old version of the disk cache. Use the currentDiskCacheVersion.
+			// TODO: when we increase the version of the disk cache, we'll have
+			// to make sure we wipe all previous versions of the disk cache.
+			version = currentDiskCacheVersion
+		} else if version > currentDiskCacheVersion {
+			// Existing disk cache version is newer than we expect for this client.
+			// This is an error since our client won't understand its format.
+			// Use the currentDiskCacheVersion.
+			version = currentDiskCacheVersion
 		}
 	}
+	// Ensure the disk cache directory exists.
 	err = os.MkdirAll(dirPath, 0700)
 	if err != nil {
+		// This does actually need to be fatal.
 		return "", err
 	}
 	versionString := strconv.FormatUint(version, 10)
 	err = ioutil.WriteFile(versionFilepath, []byte(versionString), 0600)
 	if err != nil {
+		// This also needs to be fatal.
 		return "", err
 	}
 	return versionPathFromVersion(dirPath, version), nil
