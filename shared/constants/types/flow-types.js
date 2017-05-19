@@ -287,6 +287,7 @@ export const KbfsCommonFSErrorType = {
   tooManyFolders: 11,
   exdevNotSupported: 12,
   diskLimitReached: 13,
+  diskCacheErrorLogSend: 14,
 }
 
 export const KbfsCommonFSNotificationType = {
@@ -301,6 +302,7 @@ export const KbfsCommonFSNotificationType = {
   fileModified: 8,
   fileDeleted: 9,
   fileRenamed: 10,
+  initialized: 11,
 }
 
 export const KbfsCommonFSStatusCode = {
@@ -4193,6 +4195,7 @@ export type FSErrorType =
   | 11 // TOO_MANY_FOLDERS_11
   | 12 // EXDEV_NOT_SUPPORTED_12
   | 13 // DISK_LIMIT_REACHED_13
+  | 14 // DISK_CACHE_ERROR_LOG_SEND_14
 
 export type FSNotification = {
   publicTopLevelFolder: boolean,
@@ -4218,6 +4221,7 @@ export type FSNotificationType =
   | 8 // FILE_MODIFIED_8
   | 9 // FILE_DELETED_9
   | 10 // FILE_RENAMED_10
+  | 11 // INITIALIZED_11
 
 export type FSPathSyncStatus = {
   publicTopLevelFolder: boolean,
