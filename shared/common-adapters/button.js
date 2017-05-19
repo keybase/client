@@ -35,7 +35,7 @@ class Button extends Component<void, Props, void> {
       Unfollow,
     }[this.props.type + backgroundModeName]
 
-    const labelStyle = {
+    let labelStyle = {
       CustomLabel,
       DangerLabel,
       FollowLabel,
@@ -56,6 +56,10 @@ class Button extends Component<void, Props, void> {
 
     if (this.props.disabled || this.props.waiting) {
       containerStyle = {...containerStyle, ...disabled[this.props.type]}
+    }
+
+    if (!isMobile && this.props.waiting) {
+      labelStyle = {...labelStyle, opacity: 0}
     }
 
     containerStyle = {...containerStyle, ...this.props.style}
