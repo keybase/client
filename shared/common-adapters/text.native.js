@@ -28,7 +28,7 @@ class Text extends Component<void, Props, void> {
 
   _urlChooseOption = () => {
     Alert.alert('', this.props.onClickURL, [
-      {onPress: () => {}, text: 'Cancel', style: 'cancel'},
+      {style: 'cancel', text: 'Cancel'},
       {onPress: this._urlClick, text: 'Open Link'},
       {onPress: this._urlCopy, text: 'Copy Link'},
     ])
