@@ -61,10 +61,6 @@ function selectedInboxSelector(state: TypedState, conversationIDKey: Constants.C
   return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
 }
 
-function attachmentPlaceholderPreviewSelector(state: TypedState, outboxID: Constants.OutboxIDKey) {
-  return state.chat.get('attachmentPlaceholderPreviews', Map()).get(outboxID)
-}
-
 function inboxUntrustedStateSelector(state: TypedState) {
   return state.chat.get('inboxUntrustedState')
 }
@@ -186,7 +182,6 @@ function* getPostingIdentifyBehavior(
 
 export {
   alwaysShowSelector,
-  attachmentPlaceholderPreviewSelector,
   clientHeader,
   conversationStateSelector,
   devicenameSelector,

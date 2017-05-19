@@ -53,7 +53,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.printRPC = true
   config.printRoutes = true
   config.redirectOnLogout = false
-  config.reduxSagaLogger = true
+  config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
 
   const envJson = envVarDebugJson()

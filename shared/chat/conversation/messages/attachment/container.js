@@ -76,8 +76,9 @@ export default compose(
     componentDidUpdate: function(prevProps: Props) {
       if (
         this.props.measure &&
-        this.props.message.previewPath !== prevProps.message.previewPath &&
-        !shallowEqual(this.props.message.previewSize !== prevProps.message.previewSize)
+        (this.props.message.failureDescription !== prevProps.message.failureDescription ||
+          this.props.message.previewPath !== prevProps.message.previewPath ||
+          !shallowEqual(this.props.message.previewSize !== prevProps.message.previewSize))
       ) {
         this.props.measure()
       }
