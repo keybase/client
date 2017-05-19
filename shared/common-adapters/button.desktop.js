@@ -176,14 +176,16 @@ const stylesButtonSmall = {
 }
 const stylesButtonLabel = {
   ...globalStyles.fontSemibold,
-  display: 'block',
   color: globalColors.white,
+  display: 'block',
   fontSize: 14,
   height: '100%',
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
+  textAlign: 'center',
   textTransform: 'none',
   whiteSpace: 'nowrap',
+  width: '100%',
 }
 const stylesButtonSmallLabel = {
   ...globalStyles.fontSemibold,
