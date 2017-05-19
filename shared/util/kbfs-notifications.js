@@ -132,9 +132,11 @@ export function kbfsNotification(notification: FSNotification, notify: any, getS
 
   // KBFS fires a notification when it initializes. We prompt the user to log
   // send if there is an error.
-  if (notification.notificationType === KbfsCommonFSNotificationType.initialized &&
-      notification.statusCode === KbfsCommonFSStatusCode.error &&
-      notification.errorType === KbfsCommonFSErrorType.diskCacheErrorLogSend) {
+  if (
+    notification.notificationType === KbfsCommonFSNotificationType.initialized &&
+    notification.statusCode === KbfsCommonFSStatusCode.error &&
+    notification.errorType === KbfsCommonFSErrorType.diskCacheErrorLogSend
+  ) {
     console.log(`KBFS failed to initialize its disk cache. Please send logs.`)
     let title = `KBFS: Disk cache not initialized`
     let body = `Please Send Feedback to Keybase`
