@@ -1,0 +1,21 @@
+// @flow
+import {Component} from 'react'
+import type {IconType as _IconType} from './icon.constants'
+import type {Exact} from '../constants/types/more'
+
+export type IconType = _IconType
+
+export type Props = {
+  type: _IconType,
+  hint?: string,
+  onClick?: (event: SyntheticEvent) => void,
+  onPress?: void,
+  onMouseEnter?: () => void,
+  onMouseLeave?: () => void,
+  style?: ?Object,
+  inheritColor?: boolean,
+  className?: string,
+}
+
+declare export default class Icon extends Component<void, Exact<Props>, void> {}
+declare export function defaultColor(type: IconType): ?string
