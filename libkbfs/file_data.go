@@ -698,7 +698,8 @@ func (fd *fileData) createIndirectBlock(
 						KeyGen:  fd.kmd.LatestKeyGeneration(),
 						DataVer: dver,
 						Context: kbfsblock.MakeFirstContext(
-							fd.uid, fd.rootBlockPointer().GetBlockType()),
+							fd.uid.AsUserOrTeam(),
+							fd.rootBlockPointer().GetBlockType()),
 						DirectType: fd.rootBlockPointer().DirectType,
 					},
 					EncodedSize: 0,
@@ -802,7 +803,7 @@ func (fd *fileData) newRightBlock(
 			KeyGen:  fd.kmd.LatestKeyGeneration(),
 			DataVer: dver,
 			Context: kbfsblock.MakeFirstContext(
-				fd.uid, fd.rootBlockPointer().GetBlockType()),
+				fd.uid.AsUserOrTeam(), fd.rootBlockPointer().GetBlockType()),
 			DirectType: IndirectBlock,
 		}
 
@@ -1865,7 +1866,7 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 		if err != nil {
 			return zeroPtr, nil, err
 		}
-		newTopPtr.SetWriter(fd.uid)
+		newTopPtr.SetWriter(fd.uid.AsUserOrTeam())
 
 		if err = fd.cacher(newTopPtr, newTopBlock); err != nil {
 			return zeroPtr, nil, err
@@ -1918,7 +1919,7 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 					if err != nil {
 						return zeroPtr, nil, err
 					}
-					iptr.SetWriter(fd.uid)
+					iptr.SetWriter(fd.uid.AsUserOrTeam())
 					pblock.IPtrs[i] = iptr
 					allChildPtrs = append(allChildPtrs, iptr.BlockPointer)
 				} else {
@@ -1937,7 +1938,8 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 						KeyGen:  fd.kmd.LatestKeyGeneration(),
 						DataVer: dataVer,
 						Context: kbfsblock.MakeFirstContext(
-							fd.uid, fd.rootBlockPointer().GetBlockType()),
+							fd.uid.AsUserOrTeam(),
+							fd.rootBlockPointer().GetBlockType()),
 						DirectType: IndirectBlock,
 					}
 					pblock.IPtrs[i].BlockPointer = newPtr
@@ -1967,7 +1969,7 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 		KeyGen:  fd.kmd.LatestKeyGeneration(),
 		DataVer: dataVer,
 		Context: kbfsblock.MakeFirstContext(
-			fd.uid, fd.rootBlockPointer().GetBlockType()),
+			fd.uid.AsUserOrTeam(), fd.rootBlockPointer().GetBlockType()),
 		DirectType: IndirectBlock,
 	}
 	fd.log.CDebugf(ctx, "Deep copied indirect file %s: %v -> %v",

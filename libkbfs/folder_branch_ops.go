@@ -1873,11 +1873,15 @@ func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
 	}
 	res.BlockInfo = de.BlockInfo
 	uid := de.Writer
-	if uid == keybase1.UID("") {
+	if uid == keybase1.UserOrTeamID("") {
 		uid = de.Creator
 	}
+	asUser, err := uid.AsUser()
+	if err != nil {
+		return NodeMetadata{}, err
+	}
 	res.LastWriterUnverified, err =
-		fbo.config.KBPKI().GetNormalizedUsername(ctx, uid)
+		fbo.config.KBPKI().GetNormalizedUsername(ctx, asUser)
 	if err != nil {
 		return res, err
 	}
@@ -2532,7 +2536,7 @@ func (fbo *folderBranchOps) createEntryLocked(
 		DataVer:    fbo.config.DataVersion(),
 		DirectType: DirectBlock,
 		Context: kbfsblock.MakeFirstContext(
-			session.UID, keybase1.BlockType_DATA),
+			session.UID.AsUserOrTeam(), keybase1.BlockType_DATA),
 	}
 	co.AddRefBlock(newPtr)
 	co.AddSelfUpdate(parentPtr)

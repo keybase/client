@@ -313,7 +313,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	require.NoError(t, err)
 
 	bCtx := kbfsblock.MakeFirstContext(
-		keybase1.MakeTestUID(1), keybase1.BlockType_DATA)
+		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
 	err = config.bserver.Put(ctx, tlfID, id, bCtx,
 		readyBlockData.buf, readyBlockData.serverHalf)
 	require.NoError(t, err)
@@ -343,7 +343,7 @@ func TestBlockOpsGetFailServerGet(t *testing.T) {
 	require.NoError(t, err)
 
 	bCtx := kbfsblock.MakeFirstContext(
-		keybase1.MakeTestUID(1), keybase1.BlockType_DATA)
+		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
 	var decryptedBlock FileBlock
 	err = bops.Get(ctx, kmd,
 		BlockPointer{ID: id, KeyGen: latestKeyGen, Context: bCtx},
@@ -384,7 +384,7 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 	require.NoError(t, err)
 
 	bCtx := kbfsblock.MakeFirstContext(
-		keybase1.MakeTestUID(1), keybase1.BlockType_DATA)
+		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
 	err = config.bserver.Put(ctx, tlfID, id, bCtx,
 		readyBlockData.buf, readyBlockData.serverHalf)
 	require.NoError(t, err)
@@ -412,7 +412,7 @@ func TestBlockOpsGetFailKeyGet(t *testing.T) {
 	require.NoError(t, err)
 
 	bCtx := kbfsblock.MakeFirstContext(
-		keybase1.MakeTestUID(1), keybase1.BlockType_DATA)
+		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
 	err = config.bserver.Put(ctx, tlfID, id, bCtx,
 		readyBlockData.buf, readyBlockData.serverHalf)
 	require.NoError(t, err)
@@ -481,7 +481,7 @@ func TestBlockOpsGetFailDecode(t *testing.T) {
 	badDecoder.putError(readyBlockData.buf, decodeErr)
 
 	bCtx := kbfsblock.MakeFirstContext(
-		keybase1.MakeTestUID(1), keybase1.BlockType_DATA)
+		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
 	err = config.bserver.Put(ctx, tlfID, id, bCtx,
 		readyBlockData.buf, readyBlockData.serverHalf)
 	require.NoError(t, err)
@@ -519,7 +519,7 @@ func TestBlockOpsGetFailDecrypt(t *testing.T) {
 	require.NoError(t, err)
 
 	bCtx := kbfsblock.MakeFirstContext(
-		keybase1.MakeTestUID(1), keybase1.BlockType_DATA)
+		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
 	err = config.bserver.Put(ctx, tlfID, id, bCtx,
 		readyBlockData.buf, readyBlockData.serverHalf)
 	require.NoError(t, err)

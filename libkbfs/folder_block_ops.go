@@ -2391,7 +2391,7 @@ func ReadyBlock(ctx context.Context, bcache BlockCache, bops BlockOps,
 		if err != nil {
 			return
 		}
-		ptr.SetWriter(uid)
+		ptr.SetWriter(uid.AsUserOrTeam())
 		// In case we're deduping an old pointer with an unknown block type.
 		ptr.DirectType = directType
 	} else {
@@ -2400,7 +2400,7 @@ func ReadyBlock(ctx context.Context, bcache BlockCache, bops BlockOps,
 			KeyGen:     kmd.LatestKeyGeneration(),
 			DataVer:    block.DataVersion(),
 			DirectType: directType,
-			Context:    kbfsblock.MakeFirstContext(uid, bType),
+			Context:    kbfsblock.MakeFirstContext(uid.AsUserOrTeam(), bType),
 		}
 	}
 

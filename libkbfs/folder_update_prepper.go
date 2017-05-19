@@ -77,7 +77,8 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 		KeyGen:     md.LatestKeyGeneration(),
 		DataVer:    fup.config.DataVersion(),
 		DirectType: DirectBlock,
-		Context:    kbfsblock.MakeFirstContext(uid, keybase1.BlockType_MD),
+		Context: kbfsblock.MakeFirstContext(
+			uid.AsUserOrTeam(), keybase1.BlockType_MD),
 	}
 	file := path{fup.folderBranch,
 		[]pathNode{{ptr, fmt.Sprintf("<MD rev %d>", md.Revision())}}}

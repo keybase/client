@@ -47,10 +47,10 @@ func MakeRefNonce() (RefNonce, error) {
 type Context struct {
 	// Creator is the UID that was first charged for the initial
 	// reference to this block.
-	Creator keybase1.UID `codec:"c"`
+	Creator keybase1.UserOrTeamID `codec:"c"`
 	// Writer is the UID that should be charged for this reference to
 	// the block.  If empty, it defaults to Creator.
-	Writer keybase1.UID `codec:"w,omitempty"`
+	Writer keybase1.UserOrTeamID `codec:"w,omitempty"`
 	// When RefNonce is all 0s, this is the initial reference to a
 	// particular block.  Using a constant refnonce for the initial
 	// reference allows the server to identify and optimize for the
@@ -70,14 +70,16 @@ type Context struct {
 
 // MakeFirstContext makes the initial context for a block with the
 // given creator.
-func MakeFirstContext(creator keybase1.UID, bType keybase1.BlockType) Context {
+func MakeFirstContext(
+	creator keybase1.UserOrTeamID, bType keybase1.BlockType) Context {
 	return Context{Creator: creator, BlockType: bType}
 }
 
 // MakeContext makes a context with the given creator, writer, and
 // nonce, where the writer is not necessarily equal to the creator,
 // and the nonce is usually non-zero.
-func MakeContext(creator, writer keybase1.UID, nonce RefNonce,
+func MakeContext(
+	creator keybase1.UserOrTeamID, writer keybase1.UserOrTeamID, nonce RefNonce,
 	bType keybase1.BlockType) Context {
 	return Context{
 		Creator:   creator,
@@ -88,12 +90,12 @@ func MakeContext(creator, writer keybase1.UID, nonce RefNonce,
 }
 
 // GetCreator returns the creator of the associated block.
-func (c Context) GetCreator() keybase1.UID {
+func (c Context) GetCreator() keybase1.UserOrTeamID {
 	return c.Creator
 }
 
 // GetWriter returns the writer of the associated block.
-func (c Context) GetWriter() keybase1.UID {
+func (c Context) GetWriter() keybase1.UserOrTeamID {
 	if !c.Writer.IsNil() {
 		return c.Writer
 	}
@@ -101,7 +103,7 @@ func (c Context) GetWriter() keybase1.UID {
 }
 
 // SetWriter sets the Writer field, if necessary.
-func (c *Context) SetWriter(newWriter keybase1.UID) {
+func (c *Context) SetWriter(newWriter keybase1.UserOrTeamID) {
 	if c.Creator != newWriter {
 		c.Writer = newWriter
 	} else {

@@ -359,7 +359,7 @@ func injectNewRMD(t *testing.T, config *ConfigMock) (
 	config.Notifier().RegisterForChanges(
 		[]FolderBranch{{id, MasterBranch}}, config.observer)
 	uid := h.FirstResolvedWriter()
-	rmd.data.Dir.Creator = uid
+	rmd.data.Dir.Creator = uid.AsUserOrTeam()
 	return uid, id, rmd
 }
 
@@ -624,7 +624,7 @@ func makeBP(id kbfsblock.ID, kmd KeyMetadata, config Config,
 		KeyGen:  kmd.LatestKeyGeneration(),
 		DataVer: DefaultNewBlockDataVersion(false),
 		Context: kbfsblock.Context{
-			Creator: u,
+			Creator: u.AsUserOrTeam(),
 			// Refnonces not needed; explicit refnonce
 			// testing happens elsewhere.
 		},
@@ -652,7 +652,7 @@ func makeIFP(id kbfsblock.ID, kmd KeyMetadata, config Config,
 	}
 }
 
-func makeBIFromID(id kbfsblock.ID, user keybase1.UID) BlockInfo {
+func makeBIFromID(id kbfsblock.ID, user keybase1.UserOrTeamID) BlockInfo {
 	return BlockInfo{
 		BlockPointer: BlockPointer{
 			ID: id, KeyGen: 1, DataVer: 1,
@@ -868,7 +868,7 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	bID := kbfsblock.FakeID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
-		BlockInfo: makeBIFromID(bID, u),
+		BlockInfo: makeBIFromID(bID, u.AsUserOrTeam()),
 		EntryInfo: EntryInfo{
 			Type: Dir,
 		},
@@ -912,7 +912,7 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	bID := kbfsblock.FakeID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
-		BlockInfo: makeBIFromID(bID, u),
+		BlockInfo: makeBIFromID(bID, u.AsUserOrTeam()),
 		EntryInfo: EntryInfo{
 			Type: Sym,
 		},
@@ -952,7 +952,7 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	bID := kbfsblock.FakeID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
-		BlockInfo: makeBIFromID(bID, u),
+		BlockInfo: makeBIFromID(bID, u.AsUserOrTeam()),
 		EntryInfo: EntryInfo{
 			Type: Dir,
 		},
@@ -988,7 +988,7 @@ func TestKBFSOpsLookupNewDataVersionFail(t *testing.T) {
 	aID := kbfsblock.FakeID(43)
 	bID := kbfsblock.FakeID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
-	bInfo := makeBIFromID(bID, u)
+	bInfo := makeBIFromID(bID, u.AsUserOrTeam())
 	bInfo.DataVer = 10
 	dirBlock.Children["b"] = DirEntry{
 		BlockInfo: bInfo,
@@ -1032,7 +1032,7 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	bID := kbfsblock.FakeID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
-		BlockInfo: makeBIFromID(bID, u),
+		BlockInfo: makeBIFromID(bID, u.AsUserOrTeam()),
 		EntryInfo: EntryInfo{
 			Type: Dir,
 		},
@@ -1099,7 +1099,7 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	aID := kbfsblock.FakeID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, u),
+		BlockInfo: makeBIFromID(aID, u.AsUserOrTeam()),
 		EntryInfo: EntryInfo{
 			Type: Dir,
 		},
@@ -1227,7 +1227,7 @@ func testCreateEntryFailKBFSPrefix(t *testing.T, et EntryType) {
 	aID := kbfsblock.FakeID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, u),
+		BlockInfo: makeBIFromID(aID, u.AsUserOrTeam()),
 		EntryInfo: EntryInfo{
 			Type: Dir,
 		},
@@ -1283,7 +1283,7 @@ func TestCreateLinkFailKBFSPrefix(t *testing.T) {
 // corresponding list of blocks. If n components are given, then the
 // path will have n+1 nodes (one extra for the root node), and there
 // will be n+1 corresponding blocks.
-func makeDirTree(id tlf.ID, uid keybase1.UID, components ...string) (
+func makeDirTree(id tlf.ID, uid keybase1.UserOrTeamID, components ...string) (
 	DirEntry, path, []*DirBlock) {
 	var idCounter byte = 0x10
 	makeBlockID := func() kbfsblock.ID {
@@ -1379,7 +1379,8 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 
 	uid, id, rmd := injectNewRMD(t, config)
 
-	rootEntry, p, blocks := makeDirTree(id, uid, "a", "b", "c", "d", "e")
+	rootEntry, p, blocks := makeDirTree(
+		id, uid.AsUserOrTeam(), "a", "b", "c", "d", "e")
 	rmd.data.Dir = rootEntry
 
 	// Prime cache with all blocks.
@@ -1464,7 +1465,8 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 
 	uid, id, rmd := injectNewRMD(t, config)
 
-	rootEntry, p, blocks := makeDirTree(id, uid, "a", "b", "c", "d", "e")
+	rootEntry, p, blocks := makeDirTree(
+		id, uid.AsUserOrTeam(), "a", "b", "c", "d", "e")
 	rmd.data.Dir = rootEntry
 
 	// Prime cache with all blocks.
@@ -1900,7 +1902,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 			config.observer.ctx.Value(tCtxID))
 	} else if !bytes.Equal(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", data)
-	} else if newRootBlock.Children["f"].GetWriter() != uid {
+	} else if newRootBlock.Children["f"].GetWriter() != uid.AsUserOrTeam() {
 		t.Errorf("Wrong last writer: %v",
 			newRootBlock.Children["f"].GetWriter())
 	} else if newRootBlock.Children["f"].Size != uint64(len(data)) {
@@ -2171,7 +2173,7 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	filePtr := BlockPointer{
 		ID: fileID, KeyGen: 1, DataVer: 1,
 		Context: kbfsblock.Context{
-			Creator: uid,
+			Creator: uid.AsUserOrTeam(),
 		},
 	}
 	rootBlock.Children["f"] = DirEntry{
@@ -2315,7 +2317,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 			config.observer.ctx.Value(tCtxID))
 	} else if !bytes.Equal(data, newFileBlock.Contents) {
 		t.Errorf("Wrote bad contents: %v", newFileBlock.Contents)
-	} else if newRootBlock.Children["f"].GetWriter() != uid {
+	} else if newRootBlock.Children["f"].GetWriter() != uid.AsUserOrTeam() {
 		t.Errorf("Wrong last writer: %v",
 			newRootBlock.Children["f"].GetWriter())
 	} else if newRootBlock.Children["f"].Size != 0 {
@@ -2340,7 +2342,7 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	fileID := kbfsblock.FakeID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
-		BlockInfo: makeBIFromID(fileID, u),
+		BlockInfo: makeBIFromID(fileID, u.AsUserOrTeam()),
 		EntryInfo: EntryInfo{
 			Type: File,
 		},
@@ -2434,7 +2436,7 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	id1 := kbfsblock.FakeID(44)
 	id2 := kbfsblock.FakeID(45)
 	rootBlock := NewDirBlock().(*DirBlock)
-	fileInfo := makeBIFromID(fileID, uid)
+	fileInfo := makeBIFromID(fileID, uid.AsUserOrTeam())
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: fileInfo,
 		EntryInfo: EntryInfo{
@@ -2520,7 +2522,7 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	id1 := kbfsblock.FakeID(44)
 	id2 := kbfsblock.FakeID(45)
 	rootBlock := NewDirBlock().(*DirBlock)
-	fileInfo := makeBIFromID(fileID, uid)
+	fileInfo := makeBIFromID(fileID, uid.AsUserOrTeam())
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: fileInfo,
 		EntryInfo: EntryInfo{
@@ -2693,7 +2695,7 @@ func TestSetMtimeNull(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	oldMtime := time.Now().UnixNano()
 	rootBlock.Children["a"] = DirEntry{
-		BlockInfo: makeBIFromID(aID, u),
+		BlockInfo: makeBIFromID(aID, u.AsUserOrTeam()),
 		EntryInfo: EntryInfo{
 			Type:  File,
 			Mtime: oldMtime,

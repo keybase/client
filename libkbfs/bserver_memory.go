@@ -94,12 +94,12 @@ func (b *BlockServerMemory) Get(ctx context.Context, tlfID tlf.ID,
 
 func validateBlockPut(
 	id kbfsblock.ID, context kbfsblock.Context, buf []byte) error {
-	var emptyUID keybase1.UID
-	if context.GetCreator() == emptyUID {
+	var emptyID keybase1.UserOrTeamID
+	if context.GetCreator() == emptyID {
 		return fmt.Errorf("Can't Put() a block %v with an empty UID", id)
 	}
 
-	if context.GetCreator() != context.GetWriter() {
+	if context.GetCreator() != keybase1.UserOrTeamID(context.GetWriter()) {
 		return fmt.Errorf("Can't Put() a block with creator=%s != writer=%s",
 			context.GetCreator(), context.GetWriter())
 	}
