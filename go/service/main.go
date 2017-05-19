@@ -381,6 +381,10 @@ func (d *Service) StartLoopbackServer() error {
 		return err
 	}
 
+	// Make sure we have the same keys in memory in standalone mode as we do in
+	// regular service mode.
+	d.tryLogin()
+
 	go d.ListenLoop(l)
 
 	return nil

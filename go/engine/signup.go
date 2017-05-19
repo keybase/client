@@ -31,13 +31,15 @@ type SignupEngineRunArg struct {
 	Email       string
 	InviteCode  string
 	Passphrase  string
-	StoreSecret bool
 	DeviceName  string
 	DeviceType  keybase1.DeviceType
 	SkipGPG     bool
 	SkipMail    bool
 	SkipPaper   bool
 	GenPGPBatch bool // if true, generate and push a pgp key to the server (no interaction)
+
+	// StoreSecret is passed around but currently ignored
+	StoreSecret bool
 }
 
 func NewSignupEngine(arg *SignupEngineRunArg, g *libkb.GlobalContext) *SignupEngine {
@@ -234,21 +236,19 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 		s.G().Log.Warning("error saving session file: %s", err)
 	}
 
-	if s.arg.StoreSecret {
-		// Create the secret store as late as possible here
-		// (instead of when we first get the value of
-		// StoreSecret) as the username may change during the
-		// signup process.
-		secretStore := libkb.NewSecretStore(s.G(), s.me.GetNormalizedName())
-		secret, err := s.lks.GetSecret(a)
-		if err != nil {
-			return err
-		}
-		// Ignore any errors storing the secret.
-		storeSecretErr := secretStore.StoreSecret(secret)
-		if storeSecretErr != nil {
-			s.G().Log.Warning("StoreSecret error: %s", storeSecretErr)
-		}
+	// Create the secret store as late as possible here, as the username may
+	// change during the signup process.
+	// NOTE: We used to respect the StoreSecret flag here, but now we store
+	// unconditionally.
+	secretStore := libkb.NewSecretStore(s.G(), s.me.GetNormalizedName())
+	secret, err := s.lks.GetSecret(a)
+	if err != nil {
+		return err
+	}
+	// Ignore any errors storing the secret.
+	storeSecretErr := secretStore.StoreSecret(secret)
+	if storeSecretErr != nil {
+		s.G().Log.Warning("StoreSecret error: %s", storeSecretErr)
 	}
 
 	s.G().Log.Debug("registered new device: %s", s.G().Env.GetDeviceID())

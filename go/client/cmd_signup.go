@@ -68,7 +68,6 @@ type CmdSignup struct {
 	fullname          string
 	notes             string
 	passphrase        string
-	storeSecret       bool
 	defaultEmail      string
 	defaultUsername   string
 	defaultPassphrase string
@@ -77,6 +76,9 @@ type CmdSignup struct {
 	skipMail          bool
 	genPGP            bool
 	genPaper          bool
+
+	// storeSecret is passed around but currently ignored
+	storeSecret bool
 }
 
 func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
@@ -229,6 +231,8 @@ func (s *CmdSignup) prompt() (err error) {
 			return
 		}
 		s.passphrase = res.Passphrase
+
+		// storeSecret is passed around but currently ignored
 		s.storeSecret = res.StoreSecret
 	}
 
@@ -253,12 +257,14 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 		Email:       s.fields.email.GetValue(),
 		InviteCode:  s.fields.code.GetValue(),
 		Passphrase:  s.passphrase,
-		StoreSecret: s.storeSecret,
 		DeviceName:  s.fields.deviceName.GetValue(),
 		DeviceType:  keybase1.DeviceType_DESKTOP,
 		SkipMail:    s.skipMail,
 		GenPGPBatch: s.genPGP,
 		GenPaper:    s.genPaper,
+
+		// storeSecret is passed around but currently ignored
+		StoreSecret: s.storeSecret,
 	}
 	res, err := s.scli.Signup(context.TODO(), rarg)
 	if err == nil {

@@ -797,6 +797,7 @@ func (ui *UI) Shutdown() error {
 }
 
 func (ui SecretUI) GetPassphrase(pin keybase1.GUIEntryArg, term *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
+	// StoreSecret is passed around but currently ignored
 	res.Passphrase, res.StoreSecret, err = ui.passphrasePrompt(libkb.PromptArg{
 		TerminalPrompt: pin.Prompt,
 		PinentryPrompt: pin.WindowTitle,
@@ -846,6 +847,7 @@ func (ui SecretUI) passphrasePrompt(arg libkb.PromptArg) (text string, storeSecr
 		}
 		if arg.Checker == nil || arg.Checker.F(res.Text) {
 			text = res.Text
+			// storeSecret is passed around but currently ignored
 			storeSecret = res.StoreSecret
 			break
 		}
