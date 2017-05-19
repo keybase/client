@@ -31,7 +31,7 @@ function DeleteConfirm(props: Props) {
       <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
         <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
         <Button
-          style={{margin: 0}}
+          style={{margin: 0, marginLeft: 10}}
           disabled={!props.allowDeleteForever}
           type="Danger"
           label="Yes, permanently delete it"

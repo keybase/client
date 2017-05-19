@@ -102,6 +102,11 @@ const common = {
 const commonLabel = {
   color: globalColors.white,
   textAlign: 'center',
+  ...(isMobile
+    ? {}
+    : {
+        whiteSpace: 'pre',
+      }),
 }
 const fullWidth = {
   alignSelf: undefined,

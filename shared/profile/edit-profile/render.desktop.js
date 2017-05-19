@@ -40,7 +40,7 @@ class EditProfileRender extends Component<void, Props, void> {
             onChangeText={bio => this.props.onBioChange(bio)}
           />
           <Box style={styleButtonContainer}>
-            <Button type="Secondary" onClick={this.props.onCancel} label="Cancel" />
+            <Button type="Secondary" onClick={this.props.onCancel} label="Cancel" style={{marginRight: 10}} />
             <Button type="Primary" onClick={this.props.onSubmit} label="Save" />
           </Box>
         </Box>

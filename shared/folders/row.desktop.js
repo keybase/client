@@ -248,6 +248,7 @@ const stylesPrivate = {
     ...globalStyles.clickable,
     alignSelf: 'center',
     color: globalColors.white,
+    marginRight: 10,
   },
 }
 
@@ -275,6 +276,7 @@ const stylesPublic = {
     ...globalStyles.clickable,
     alignSelf: 'center',
     color: globalColors.black_60,
+    marginRight: 10,
   },
 }
 
