@@ -27,16 +27,23 @@ func (d *daemonKBPKI) GetCurrentSession(ctx context.Context) (
 }
 
 func (d *daemonKBPKI) Resolve(ctx context.Context, assertion string) (
-	libkb.NormalizedUsername, keybase1.UID, error) {
+	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	return d.daemon.Resolve(ctx, assertion)
 }
 
-func (d *daemonKBPKI) Identify(ctx context.Context, assertion, reason string) (UserInfo, error) {
+func (d *daemonKBPKI) Identify(ctx context.Context, assertion, reason string) (
+	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	return d.daemon.Identify(ctx, assertion, reason)
 }
 
-func (d *daemonKBPKI) GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
-	userInfo, err := d.daemon.LoadUserPlusKeys(ctx, uid, "")
+func (d *daemonKBPKI) GetNormalizedUsername(
+	ctx context.Context, id keybase1.UserOrTeamID) (
+	libkb.NormalizedUsername, error) {
+	asUser, err := id.AsUser()
+	if err != nil {
+		return libkb.NormalizedUsername(""), err
+	}
+	userInfo, err := d.daemon.LoadUserPlusKeys(ctx, asUser, "")
 	if err != nil {
 		return libkb.NormalizedUsername(""), err
 	}
@@ -84,7 +91,9 @@ func (ik *identifyCountingKBPKI) getIdentifyCalls() int {
 	return ik.identifyCalls
 }
 
-func (ik *identifyCountingKBPKI) Identify(ctx context.Context, assertion, reason string) (UserInfo, error) {
+func (ik *identifyCountingKBPKI) Identify(
+	ctx context.Context, assertion, reason string) (
+	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	ik.addIdentifyCall()
 	return ik.KBPKI.Identify(ctx, assertion, reason)
 }

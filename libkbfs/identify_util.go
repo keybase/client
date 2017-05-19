@@ -145,7 +145,7 @@ func getExtendedIdentify(ctx context.Context) (ei *extendedIdentify) {
 // used only if the username is not known - as e.g. when rekeying.
 func identifyUID(ctx context.Context, nug normalizedUsernameGetter,
 	identifier identifier, uid keybase1.UID, isPublic bool) error {
-	username, err := nug.GetNormalizedUsername(ctx, uid)
+	username, err := nug.GetNormalizedUsername(ctx, uid.AsUserOrTeam())
 	if err != nil {
 		return err
 	}
@@ -168,7 +168,7 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 	} else {
 		reason = fmt.Sprintf("You accessed a private folder with %s.", username.String())
 	}
-	userInfo, err := identifier.Identify(ctx, username.String(), reason)
+	resName, resID, err := identifier.Identify(ctx, username.String(), reason)
 	if err != nil {
 		// Convert libkb.NoSigChainError into one we can report.  (See
 		// KBFS-1252).
@@ -177,11 +177,13 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 		}
 		return err
 	}
-	if userInfo.Name != username {
-		return fmt.Errorf("Identify returned name=%s, expected %s", userInfo.Name, username)
+	if resName != username {
+		return fmt.Errorf("Identify returned name=%s, expected %s",
+			resName, username)
 	}
-	if userInfo.UID != uid {
-		return fmt.Errorf("Identify returned uid=%s, expected %s", userInfo.UID, uid)
+	if resID != uid.AsUserOrTeam() {
+		return fmt.Errorf("Identify returned uid=%s, expected %s",
+			resID, uid)
 	}
 	return nil
 }

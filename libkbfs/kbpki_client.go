@@ -45,21 +45,22 @@ func (k *KBPKIClient) GetCurrentSession(ctx context.Context) (
 
 // Resolve implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) Resolve(ctx context.Context, assertion string) (
-	libkb.NormalizedUsername, keybase1.UID, error) {
+	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	return k.serviceOwner.KeybaseService().Resolve(ctx, assertion)
 }
 
 // Identify implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) Identify(ctx context.Context, assertion, reason string) (
-	UserInfo, error) {
+	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	return k.serviceOwner.KeybaseService().Identify(ctx, assertion, reason)
 }
 
 // GetNormalizedUsername implements the KBPKI interface for
 // KBPKIClient.
-func (k *KBPKIClient) GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (
+func (k *KBPKIClient) GetNormalizedUsername(
+	ctx context.Context, id keybase1.UserOrTeamID) (
 	libkb.NormalizedUsername, error) {
-	username, _, err := k.Resolve(ctx, fmt.Sprintf("uid:%s", uid))
+	username, _, err := k.Resolve(ctx, fmt.Sprintf("uid:%s", id))
 	if err != nil {
 		return libkb.NormalizedUsername(""), err
 	}

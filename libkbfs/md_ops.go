@@ -44,7 +44,7 @@ func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 
 	tlf := handle.GetCanonicalPath()
 	writer, nameErr := md.config.KBPKI().GetNormalizedUsername(ctx,
-		rmds.MD.LastModifyingWriter())
+		rmds.MD.LastModifyingWriter().AsUserOrTeam())
 	if nameErr != nil {
 		writer = libkb.NormalizedUsername("uid: " +
 			rmds.MD.LastModifyingWriter().String())

@@ -447,8 +447,11 @@ type failIdentifyKBPKI struct {
 	identifyErr error
 }
 
-func (kbpki failIdentifyKBPKI) Identify(ctx context.Context, assertion, reason string) (UserInfo, error) {
-	return UserInfo{}, kbpki.identifyErr
+func (kbpki failIdentifyKBPKI) Identify(
+	ctx context.Context, assertion, reason string) (
+	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
+		kbpki.identifyErr
 }
 
 func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {

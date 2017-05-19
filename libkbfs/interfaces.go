@@ -370,13 +370,14 @@ type KeybaseService interface {
 	// assertion before the assertion -> (username, UID) mapping
 	// can be trusted.
 	Resolve(ctx context.Context, assertion string) (
-		libkb.NormalizedUsername, keybase1.UID, error)
+		libkb.NormalizedUsername, keybase1.UserOrTeamID, error)
 
 	// Identify, given an assertion, returns a UserInfo struct
 	// with the user that matches that assertion, or an error
 	// otherwise. The reason string is displayed on any tracker
 	// popups spawned.
-	Identify(ctx context.Context, assertion, reason string) (UserInfo, error)
+	Identify(ctx context.Context, assertion, reason string) (
+		libkb.NormalizedUsername, keybase1.UserOrTeamID, error)
 
 	// LoadUserPlusKeys returns a UserInfo struct for a
 	// user with the specified UID.
@@ -456,10 +457,14 @@ type resolver interface {
 	// also be trusted. If the returned pair is equal to that of
 	// the current session, then it can also be
 	// trusted. Otherwise, Identify() needs to be called on the
-	// assertion before the assertion -> (username, UID) mapping
+	// assertion before the assertion -> (username, UserOrTeamID) mapping
 	// can be trusted.
+	//
+	// TODO: some of the above assumptions on cacheability aren't
+	// right for subteams, which can change their name, so this may
+	// need updating.
 	Resolve(ctx context.Context, assertion string) (
-		libkb.NormalizedUsername, keybase1.UID, error)
+		libkb.NormalizedUsername, keybase1.UserOrTeamID, error)
 }
 
 type identifier interface {
@@ -467,13 +472,15 @@ type identifier interface {
 	// username) to a UserInfo struct, spawning tracker popups if
 	// necessary.  The reason string is displayed on any tracker
 	// popups spawned.
-	Identify(ctx context.Context, assertion, reason string) (UserInfo, error)
+	Identify(ctx context.Context, assertion, reason string) (
+		libkb.NormalizedUsername, keybase1.UserOrTeamID, error)
 }
 
 type normalizedUsernameGetter interface {
 	// GetNormalizedUsername returns the normalized username
 	// corresponding to the given UID.
-	GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error)
+	GetNormalizedUsername(ctx context.Context, id keybase1.UserOrTeamID) (
+		libkb.NormalizedUsername, error)
 }
 
 // CurrentSessionGetter is an interface for objects that can return

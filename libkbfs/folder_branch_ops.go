@@ -1872,16 +1872,12 @@ func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
 		return res, err
 	}
 	res.BlockInfo = de.BlockInfo
-	uid := de.Writer
-	if uid == keybase1.UserOrTeamID("") {
-		uid = de.Creator
-	}
-	asUser, err := uid.AsUser()
-	if err != nil {
-		return NodeMetadata{}, err
+	id := de.Writer
+	if id == keybase1.UserOrTeamID("") {
+		id = de.Creator
 	}
 	res.LastWriterUnverified, err =
-		fbo.config.KBPKI().GetNormalizedUsername(ctx, asUser)
+		fbo.config.KBPKI().GetNormalizedUsername(ctx, id)
 	if err != nil {
 		return res, err
 	}
@@ -5998,8 +5994,8 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 	for _, rmd := range rmds {
 		writer, ok := writerNames[rmd.LastModifyingWriter()]
 		if !ok {
-			name, err := fbo.config.KBPKI().
-				GetNormalizedUsername(ctx, rmd.LastModifyingWriter())
+			name, err := fbo.config.KBPKI().GetNormalizedUsername(
+				ctx, rmd.LastModifyingWriter().AsUserOrTeam())
 			if err != nil {
 				return TLFUpdateHistory{}, err
 			}

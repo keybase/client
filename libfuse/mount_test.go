@@ -23,6 +23,7 @@ import (
 	"bazil.org/fuse/fs/fstestutil"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
@@ -456,8 +457,9 @@ type kbserviceBrokenIdentify struct {
 }
 
 func (k kbserviceBrokenIdentify) Identify(ctx context.Context, assertion,
-	reason string) (libkbfs.UserInfo, error) {
-	return libkbfs.UserInfo{}, errors.New("Fake identify error")
+	reason string) (libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
+		errors.New("Fake identify error")
 }
 
 // Regression test for KBFS-772 on OSX.  (There's a bug where ls only

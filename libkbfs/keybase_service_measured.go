@@ -56,7 +56,7 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 
 // Resolve implements the KeybaseService interface for KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) Resolve(ctx context.Context, assertion string) (
-	name libkb.NormalizedUsername, uid keybase1.UID, err error) {
+	name libkb.NormalizedUsername, uid keybase1.UserOrTeamID, err error) {
 	k.resolveTimer.Time(func() {
 		name, uid, err = k.delegate.Resolve(ctx, assertion)
 	})
@@ -65,11 +65,11 @@ func (k KeybaseServiceMeasured) Resolve(ctx context.Context, assertion string) (
 
 // Identify implements the KeybaseService interface for KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) Identify(ctx context.Context, assertion, reason string) (
-	userInfo UserInfo, err error) {
+	name libkb.NormalizedUsername, id keybase1.UserOrTeamID, err error) {
 	k.identifyTimer.Time(func() {
-		userInfo, err = k.delegate.Identify(ctx, assertion, reason)
+		name, id, err = k.delegate.Identify(ctx, assertion, reason)
 	})
-	return userInfo, err
+	return name, id, err
 }
 
 // LoadUserPlusKeys implements the KeybaseService interface for KeybaseServiceMeasured.

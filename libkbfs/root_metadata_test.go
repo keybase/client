@@ -212,7 +212,9 @@ func testMakeRekeyReadError(t *testing.T, ver MetadataVer) {
 
 	rmd.fakeInitialRekey()
 
-	u, uid, err := config.KBPKI().Resolve(ctx, "bob")
+	u, id, err := config.KBPKI().Resolve(ctx, "bob")
+	require.NoError(t, err)
+	uid, err := id.AsUser()
 	require.NoError(t, err)
 
 	dummyErr := errors.New("dummy")
@@ -238,7 +240,9 @@ func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver MetadataVer) {
 
 	rmd.fakeInitialRekey()
 
-	u, uid, err := config.KBPKI().Resolve(ctx, "bob")
+	u, id, err := config.KBPKI().Resolve(ctx, "bob")
+	require.NoError(t, err)
+	uid, err := id.AsUser()
 	require.NoError(t, err)
 
 	err = makeRekeyReadErrorHelper(errors.New("dummy"),
@@ -330,8 +334,11 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, 1, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
 
 	// revoke bob's device
-	_, bobUID, err := config.KBPKI().Resolve(context.Background(), "bob")
+	_, bobID, err := config.KBPKI().Resolve(context.Background(), "bob")
 	require.NoError(t, err)
+	bobUID, err := bobID.AsUser()
+	require.NoError(t, err)
+
 	RevokeDeviceForLocalUserOrBust(t, config, bobUID, 0)
 
 	// rekey it
@@ -359,7 +366,11 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, 0, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
 
 	// add a device for charlie and rekey as charlie
-	_, charlieUID, err := config.KBPKI().Resolve(context.Background(), "charlie")
+	_, charlieID, err := config.KBPKI().Resolve(context.Background(), "charlie")
+	require.NoError(t, err)
+	charlieUID, err := charlieID.AsUser()
+	require.NoError(t, err)
+
 	config2 := ConfigAsUser(config, "charlie")
 	config2.SetKeyCache(&dummyNoKeyCache{})
 	defer config2.Shutdown(ctx)
@@ -505,7 +516,11 @@ func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice", "bob")
 	defer config.Shutdown(ctx)
 
-	_, uid, err := config.KBPKI().Resolve(context.Background(), "alice")
+	_, id, err := config.KBPKI().Resolve(context.Background(), "alice")
+	require.NoError(t, err)
+	uid, err := id.AsUser()
+	require.NoError(t, err)
+
 	tlfID := tlf.FakeID(0, false)
 	h := makeFakeTlfHandle(t, 14, false, nil, nil)
 	rmd, err := makeInitialRootMetadata(SegregatedKeyBundlesVer, tlfID, h)
@@ -565,17 +580,23 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 
 	// Set the private MD, to make sure it gets copied properly during
 	// upconversion.
-	_, aliceUID, err := configWriter.KBPKI().Resolve(
+	_, aliceID, err := configWriter.KBPKI().Resolve(
 		context.Background(), "alice")
 	require.NoError(t, err)
+	aliceUID, err := aliceID.AsUser()
+	require.NoError(t, err)
+
 	err = encryptMDPrivateData(context.Background(), configWriter.Codec(),
 		configWriter.Crypto(), configWriter.Crypto(),
 		configWriter.KeyManager(), aliceUID, rmd)
 	require.NoError(t, err)
 
 	// add a device for bob and rekey as bob
-	_, bobUID, err := configWriter.KBPKI().Resolve(context.Background(), "bob")
+	_, bobID, err := configWriter.KBPKI().Resolve(context.Background(), "bob")
 	require.NoError(t, err)
+	bobUID, err := bobID.AsUser()
+	require.NoError(t, err)
+
 	configReader := ConfigAsUser(configWriter, "bob")
 	configReader.SetKeyCache(&dummyNoKeyCache{})
 	defer configReader.Shutdown(ctx)

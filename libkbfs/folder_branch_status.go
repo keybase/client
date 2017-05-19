@@ -187,7 +187,8 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 	if fbsk.md != (ImmutableRootMetadata{}) {
 		fbs.Staged = fbsk.md.IsUnmergedSet()
 		fbs.BranchID = fbsk.md.BID().String()
-		name, err := fbsk.config.KBPKI().GetNormalizedUsername(ctx, fbsk.md.LastModifyingWriter())
+		name, err := fbsk.config.KBPKI().GetNormalizedUsername(
+			ctx, fbsk.md.LastModifyingWriter().AsUserOrTeam())
 		if err != nil {
 			return FolderBranchStatus{}, nil, err
 		}

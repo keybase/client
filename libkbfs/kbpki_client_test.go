@@ -60,11 +60,11 @@ func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
 func TestKBPKIClientIdentify(t *testing.T) {
 	c, _, _ := makeTestKBPKIClient(t)
 
-	u, err := c.Identify(context.Background(), "test_name1", "")
+	_, id, err := c.Identify(context.Background(), "test_name1", "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if u.UID == keybase1.UID("") {
+	if id == keybase1.UserOrTeamID("") {
 		t.Fatal("empty user")
 	}
 }
@@ -72,7 +72,8 @@ func TestKBPKIClientIdentify(t *testing.T) {
 func TestKBPKIClientGetNormalizedUsername(t *testing.T) {
 	c, _, _ := makeTestKBPKIClient(t)
 
-	name, err := c.GetNormalizedUsername(context.Background(), keybase1.MakeTestUID(1))
+	name, err := c.GetNormalizedUsername(
+		context.Background(), keybase1.MakeTestUID(1).AsUserOrTeam())
 	if err != nil {
 		t.Fatal(err)
 	}

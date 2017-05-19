@@ -184,9 +184,9 @@ func (k *KeybaseDaemonLocal) assertionToUIDLocked(ctx context.Context,
 
 // Resolve implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
-	libkb.NormalizedUsername, keybase1.UID, error) {
+	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	if err := checkContext(ctx); err != nil {
-		return libkb.NormalizedUsername(""), keybase1.UID(""), err
+		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
 	}
 
 	k.lock.Lock()
@@ -194,36 +194,33 @@ func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
 
 	uid, err := k.assertionToUIDLocked(ctx, assertion)
 	if err != nil {
-		return libkb.NormalizedUsername(""), keybase1.UID(""), err
+		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
 	}
 
-	return k.localUsers[uid].Name, uid, nil
+	return k.localUsers[uid].Name, uid.AsUserOrTeam(), nil
 }
 
 // Identify implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k *KeybaseDaemonLocal) Identify(ctx context.Context, assertion, reason string) (
-	UserInfo, error) {
+func (k *KeybaseDaemonLocal) Identify(
+	ctx context.Context, assertion, reason string) (
+	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	if err := checkContext(ctx); err != nil {
-		return UserInfo{}, err
+		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
 	}
 
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	uid, err := k.assertionToUIDLocked(ctx, assertion)
 	if err != nil {
-		return UserInfo{}, err
+		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
 	}
 
 	u, err := k.localUsers.getLocalUser(uid)
 	if err != nil {
-		return UserInfo{}, err
+		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
 	}
 
-	var infoCopy UserInfo
-	if err := kbfscodec.Update(k.codec, &infoCopy, u.UserInfo); err != nil {
-		return UserInfo{}, err
-	}
-	return infoCopy, nil
+	return u.Name, u.UID.AsUserOrTeam(), nil
 }
 
 // LoadUserPlusKeys implements KeybaseDaemon for KeybaseDaemonLocal.

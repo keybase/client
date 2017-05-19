@@ -19,12 +19,16 @@ import (
 type testNormalizedUsernameGetter map[keybase1.UID]libkb.NormalizedUsername
 
 func (g testNormalizedUsernameGetter) GetNormalizedUsername(
-	ctx context.Context, uid keybase1.UID) (
+	ctx context.Context, uid keybase1.UserOrTeamID) (
 	libkb.NormalizedUsername, error) {
-	name, ok := g[uid]
+	asUser, err := uid.AsUser()
+	if err != nil {
+		return libkb.NormalizedUsername(""), err
+	}
+	name, ok := g[asUser]
 	if !ok {
 		return libkb.NormalizedUsername(""),
-			NoSuchUserError{fmt.Sprintf("uid:%s", uid)}
+			NoSuchUserError{fmt.Sprintf("uid:%s", asUser)}
 	}
 	return name, nil
 }
@@ -37,23 +41,26 @@ type testIdentifier struct {
 }
 
 func (ti *testIdentifier) Identify(
-	ctx context.Context, assertion, reason string) (UserInfo, error) {
+	ctx context.Context, assertion, reason string) (
+	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	ei := getExtendedIdentify(ctx)
 	userInfo, ok := ti.assertionsBrokenTracks[assertion]
 	if ok {
 		if !ei.behavior.WarningInsteadOfErrorOnBrokenTracks() {
-			return UserInfo{}, libkb.UnmetAssertionError{
-				User:   "imtotalllymakingthisup",
-				Remote: true,
-			}
+			return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
+				libkb.UnmetAssertionError{
+					User:   "imtotalllymakingthisup",
+					Remote: true,
+				}
 		}
 		ei.userBreak(userInfo.Name, userInfo.UID, &keybase1.IdentifyTrackBreaks{})
-		return userInfo, nil
+		return userInfo.Name, userInfo.UID.AsUserOrTeam(), nil
 	}
 
 	userInfo, ok = ti.assertions[assertion]
 	if !ok {
-		return UserInfo{}, NoSuchUserError{assertion}
+		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
+			NoSuchUserError{assertion}
 	}
 
 	func() {
@@ -66,7 +73,7 @@ func (ti *testIdentifier) Identify(
 	}()
 
 	ei.userBreak(userInfo.Name, userInfo.UID, nil)
-	return userInfo, nil
+	return userInfo.Name, userInfo.UID.AsUserOrTeam(), nil
 }
 
 func makeNugAndTIForTest() (testNormalizedUsernameGetter, *testIdentifier) {

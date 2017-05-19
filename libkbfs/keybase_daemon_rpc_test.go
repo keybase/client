@@ -30,7 +30,7 @@ func TestKeybaseDaemonRPCIdentifyCanceled(t *testing.T) {
 		logger.NewTestLogger(t))
 
 	f := func(ctx context.Context) error {
-		_, err := daemon.Identify(ctx, "", "")
+		_, _, err := daemon.Identify(ctx, "", "")
 		return err
 	}
 	testRPCWithCanceledContext(t, serverConn, f)
@@ -79,11 +79,11 @@ func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}
 		c.currentSessionCalled = true
 		return nil
 
-	case "keybase.1.identify.identify2":
-		arg := args.([]interface{})[0].(keybase1.Identify2Arg)
-		uidStr := strings.TrimPrefix(arg.UserAssertion, "uid:")
-		if len(uidStr) == len(arg.UserAssertion) {
-			return fmt.Errorf("Non-uid assertion %s", arg.UserAssertion)
+	case "keybase.1.identify.identifyLite":
+		arg := args.([]interface{})[0].(keybase1.IdentifyLiteArg)
+		uidStr := strings.TrimPrefix(arg.Assertion, "uid:")
+		if len(uidStr) == len(arg.Assertion) {
+			return fmt.Errorf("Non-uid assertion %s", arg.Assertion)
 		}
 
 		uid := keybase1.UID(uidStr)
@@ -92,10 +92,10 @@ func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}
 			return fmt.Errorf("Could not find user info for UID %s", uid)
 		}
 
-		*res.(*keybase1.Identify2Res) = keybase1.Identify2Res{
-			Upk: keybase1.UserPlusKeys{
-				Uid:      uid,
-				Username: string(userInfo.Name),
+		*res.(*keybase1.IdentifyLiteRes) = keybase1.IdentifyLiteRes{
+			Ul: keybase1.UserOrTeamLite{
+				Id:   uid.AsUserOrTeam(),
+				Name: string(userInfo.Name),
 			},
 		}
 
@@ -232,10 +232,10 @@ func testIdentify(
 	client.identifyCalled = false
 
 	ctx := context.Background()
-	info, err := c.Identify(ctx, "uid:"+string(uid), "")
+	name, _, err := c.Identify(ctx, "uid:"+string(uid), "")
 	require.NoError(t, err)
 
-	assert.Equal(t, expectedName, info.Name)
+	assert.Equal(t, expectedName, name)
 	assert.Equal(t, expectedCalled, client.identifyCalled)
 }
 
@@ -259,8 +259,11 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	// Should be cached.
 	testLoadUserPlusKeys(t, client, c, uid1, name1, expectCached)
 
-	// Should fill cache.
+	// IdentifyLite doesn't fill the cache.
 	testIdentify(t, client, c, uid2, name2, expectCall)
+
+	// Shouldn't be cached yet after just an identify.
+	testLoadUserPlusKeys(t, client, c, uid2, name2, expectCall)
 
 	// Should be cached.
 	testLoadUserPlusKeys(t, client, c, uid2, name2, expectCached)

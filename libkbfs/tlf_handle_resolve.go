@@ -157,7 +157,7 @@ type resolvableUID struct {
 }
 
 func (ruid resolvableUID) resolve(ctx context.Context) (nameUIDPair, keybase1.SocialAssertion, error) {
-	name, err := ruid.nug.GetNormalizedUsername(ctx, ruid.uid)
+	name, err := ruid.nug.GetNormalizedUsername(ctx, ruid.uid.AsUserOrTeam())
 	if err != nil {
 		return nameUIDPair{}, keybase1.SocialAssertion{}, err
 	}
@@ -278,11 +278,11 @@ type partialResolver struct {
 }
 
 func (pr partialResolver) Resolve(ctx context.Context, assertion string) (
-	libkb.NormalizedUsername, keybase1.UID, error) {
+	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	if pr.unresolvedAssertions[assertion] {
 		// Force an unresolved assertion.
 		return libkb.NormalizedUsername(""),
-			keybase1.UID(""), NoSuchUserError{assertion}
+			keybase1.UserOrTeamID(""), NoSuchUserError{assertion}
 	}
 	return pr.delegate.Resolve(ctx, assertion)
 }
@@ -426,8 +426,9 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 	if ra.assertion == PublicUIDName {
 		return nameUIDPair{}, keybase1.SocialAssertion{}, fmt.Errorf("Invalid name %s", ra.assertion)
 	}
-	name, uid, err := ra.resolver.Resolve(ctx, ra.assertion)
-	if err == nil && ra.mustBeUser != keybase1.UID("") && ra.mustBeUser != uid {
+	name, id, err := ra.resolver.Resolve(ctx, ra.assertion)
+	if err == nil && ra.mustBeUser != keybase1.UID("") &&
+		ra.mustBeUser.AsUserOrTeam() != id {
 		// Force an unresolved assertion sinced the forced user doesn't match
 		err = NoSuchUserError{ra.assertion}
 	}
@@ -446,21 +447,25 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 				"Can't resolve an AND assertion without an identifier")
 		}
 		reason := fmt.Sprintf("You accessed a folder with %s.", ra.assertion)
-		var ui UserInfo
-		ui, err = ra.identifier.Identify(ctx, ra.assertion, reason)
-		if err == nil && ui.Name != name {
+		var resName libkb.NormalizedUsername
+		resName, _, err = ra.identifier.Identify(ctx, ra.assertion, reason)
+		if err == nil && resName != name {
 			return nameUIDPair{}, keybase1.SocialAssertion{}, fmt.Errorf(
 				"Resolved name %s doesn't match identified name %s for "+
-					"assertion %s", name, ui.Name, ra.assertion)
+					"assertion %s", name, resName, ra.assertion)
 		}
 	}
 	switch err := err.(type) {
 	default:
 		return nameUIDPair{}, keybase1.SocialAssertion{}, err
 	case nil:
+		idAsUser, err := id.AsUser()
+		if err != nil {
+			return nameUIDPair{}, keybase1.SocialAssertion{}, err
+		}
 		return nameUIDPair{
 			name: name,
-			uid:  uid,
+			uid:  idAsUser,
 		}, keybase1.SocialAssertion{}, nil
 	case NoSuchUserError:
 		socialAssertion, ok := externals.NormalizeSocialAssertion(ra.assertion)

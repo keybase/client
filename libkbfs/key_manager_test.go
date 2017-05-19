@@ -776,7 +776,10 @@ func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver Metad
 	daemon.addNewAssertionForTestOrBust("charlie", "charlie@twitter")
 	daemon.addNewAssertionForTestOrBust("dave", "dave@twitter")
 
-	_, bobUID, err := daemon.Resolve(ctx, "bob")
+	_, bobID, err := daemon.Resolve(ctx, "bob")
+	require.NoError(t, err)
+	bobUID, err := bobID.AsUser()
+	require.NoError(t, err)
 	daemon.setCurrentUID(bobUID)
 
 	// Now resolve using only a device addition, which won't bump the
@@ -1136,10 +1139,13 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver MetadataVer) 
 	config1.SetMetadataVersion(ver)
 
 	// Revoke user 3's device for now, to test the "other" rekey error.
-	_, uid3, err := config1.KBPKI().Resolve(ctx, u3.String())
+	_, id3, err := config1.KBPKI().Resolve(ctx, u3.String())
 	if err != nil {
 		t.Fatalf("Couldn't resolve u3: %+v", err)
 	}
+	uid3, err := id3.AsUser()
+	require.NoError(t, err)
+
 	RevokeDeviceForLocalUserOrBust(t, config1, uid3, 0)
 
 	config2 := ConfigAsUser(config1, u2)

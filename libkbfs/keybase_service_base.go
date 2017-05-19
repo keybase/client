@@ -325,23 +325,24 @@ func ConvertIdentifyError(assertion string, err error) error {
 
 // Resolve implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) Resolve(ctx context.Context, assertion string) (
-	libkb.NormalizedUsername, keybase1.UID, error) {
+	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	user, err := k.identifyClient.Resolve2(ctx, assertion)
 	if err != nil {
-		return libkb.NormalizedUsername(""), keybase1.UID(""),
+		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 			ConvertIdentifyError(assertion, err)
 	}
-	return libkb.NewNormalizedUsername(user.Username), user.Uid, nil
+	return libkb.NewNormalizedUsername(user.Username),
+		user.Uid.AsUserOrTeam(), nil
 }
 
 // Identify implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason string) (
-	UserInfo, error) {
+	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	// setting UseDelegateUI to true here will cause daemon to use
 	// registered identify ui providers instead of terminal if any
 	// are available.  If not, then it will use the terminal UI.
-	arg := keybase1.Identify2Arg{
-		UserAssertion: assertion,
+	arg := keybase1.IdentifyLiteArg{
+		Assertion:     assertion,
 		UseDelegateUI: true,
 		Reason:        keybase1.IdentifyReason{Reason: reason},
 		// No need to go back and forth with the UI until the service
@@ -352,7 +353,7 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 	ei := getExtendedIdentify(ctx)
 	arg.IdentifyBehavior = ei.behavior
 
-	res, err := k.identifyClient.Identify2(ctx, arg)
+	res, err := k.identifyClient.IdentifyLite(ctx, arg)
 	// Identify2 still returns keybase1.UserPlusKeys data (sans keys),
 	// even if it gives a NoSigChainError, and in KBFS it's fine if
 	// the user doesn't have a full sigchain yet (e.g., it's just like
@@ -360,21 +361,25 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 	// UID).
 	if _, ok := err.(libkb.NoSigChainError); ok {
 		k.log.CDebugf(ctx, "Ignoring error (%s) for user %s with no sigchain",
-			err, res.Upk.Username)
+			err, res.Ul.Name)
 	} else if err != nil {
-		return UserInfo{}, ConvertIdentifyError(assertion, err)
+		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
+			ConvertIdentifyError(assertion, err)
 	}
 
-	userInfo, err := k.processUserPlusKeys(res.Upk)
-	if err != nil {
-		return UserInfo{}, err
+	// This is required for every identify call. The userBreak
+	// function will take care of checking if res.TrackBreaks is nil
+	// or not.
+	name := libkb.NormalizedUsername(res.Ul.Name)
+	if res.Ul.Id.IsUser() {
+		asUser, err := res.Ul.Id.AsUser()
+		if err != nil {
+			return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
+		}
+		ei.userBreak(name, asUser, res.TrackBreaks)
 	}
 
-	// This is required for every identify call. The userBreak function will take
-	// care of checking if res.TrackBreaks is nil or not.
-	ei.userBreak(userInfo.Name, userInfo.UID, res.TrackBreaks)
-
-	return userInfo, nil
+	return name, res.Ul.Id, nil
 }
 
 // LoadUserPlusKeys implements the KeybaseService interface for KeybaseServiceBase.
