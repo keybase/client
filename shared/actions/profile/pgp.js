@@ -146,6 +146,7 @@ function* _generatePgpSaga(): SagaGenerator<any, any> {
 
   try {
     const incoming = yield generatePgpKeyChanMap.race({
+      removeNs: true,
       racers: {
         cancel: take(Constants.cancelPgpGen),
       },

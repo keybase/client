@@ -102,7 +102,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
       }
     )
 
-    const incoming = yield loadInboxChanMap.race()
+    const incoming = yield loadInboxChanMap.race({removeNs: true})
     if (!incoming.chatInboxUnverified || !incoming.chatInboxUnverified.response) {
       throw new Error("Can't load inbox")
     }
@@ -258,7 +258,7 @@ function* unboxConversations(
   )
 
   while (true) {
-    const incoming = yield loadInboxChanMap.race({timeout: 30 * 1000})
+    const incoming = yield loadInboxChanMap.race({timeout: 30 * 1000, removeNs: true})
 
     // Ignore untrusted version
     if (incoming.chatInboxUnverified) {

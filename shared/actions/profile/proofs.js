@@ -188,6 +188,7 @@ function* _addServiceProof(service: ProvablePlatformsType): SagaGenerator<any, a
 
   while (true) {
     const incoming = yield proveStartProofChanMap.race({
+      removeNs: true,
       racers: {
         cancel: take(Constants.cancelAddProof),
         checkProof: take(Constants.checkProof),

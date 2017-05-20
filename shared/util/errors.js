@@ -13,6 +13,17 @@ export class RPCError extends Error {
   }
 }
 
+export class RPCTimeoutError extends Error {
+  ttl: number
+  rpcName: string
+
+  constructor(rpcName: string, ttl: number) {
+    super(`RPC timeout error on ${rpcName}. Had a ttl of: ${ttl}`)
+    this.ttl = ttl
+    this.rpcName = rpcName
+  }
+}
+
 export class ValidationError extends Error {}
 
 // convertToError converts an RPC error object (or any object) into an Error

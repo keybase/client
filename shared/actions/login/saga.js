@@ -7,6 +7,7 @@ import * as Constants from '../../constants/login'
 import * as DeviceConstants from '../../constants/devices'
 import * as Types from '../../constants/types/flow-types'
 import * as Creators from './creators'
+import {EngineRpcCall, isFinished, BailedEarly} from '../engine/helper'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import {RPCError} from '../../util/errors'
@@ -162,7 +163,7 @@ function* navBasedOnLoginState() {
   }
 }
 
-const kex2Sagas = (onBackSaga, provisionerSuccessSaga, finishedSaga) => {
+const kex2Sagas = (onBackSaga, provisionerSuccessSaga) => {
   const onBackSagaDecorated = clearWaitingDecorator(onBackSaga)
   return {
     'keybase.1.gpgUi.selectKey': sagaWaitingDecorator(selectKeySaga),
@@ -182,7 +183,6 @@ const kex2Sagas = (onBackSaga, provisionerSuccessSaga, finishedSaga) => {
     'keybase.1.provisionUi.chooseDevice': sagaWaitingDecorator(chooseDeviceSaga(onBackSagaDecorated)),
     'keybase.1.provisionUi.chooseGPGMethod': sagaWaitingDecorator(chooseGPGMethodSaga(onBackSagaDecorated)),
     'keybase.1.secretUi.getPassphrase': sagaWaitingDecorator(getPassphraseSaga(onBackSagaDecorated)),
-    finished: clearWaitingDecorator(finishedSaga),
   }
 }
 
@@ -507,21 +507,40 @@ function* finishLoginSaga({error, params}) {
 }
 
 function* loginFlowSaga(usernameOrEmail) {
-  const loginSagas = kex2Sagas(cancelLogin, provisionerSuccessInLoginSaga, finishLoginSaga)
-  const catchError = clearWaitingDecorator(function*() {
-    yield call(cancelLogin)
-  })
+  const loginSagas = kex2Sagas(cancelLogin, provisionerSuccessInLoginSaga)
 
-  const channelConfig = Saga.singleFixedChannelConfig(Object.keys(loginSagas))
-  const loginChanMap = yield call(loginRpc, channelConfig, usernameOrEmail)
+  // const channelConfig = Saga.singleFixedChannelConfig(Object.keys(loginSagas))
+  const loginRpcCall = new EngineRpcCall(loginSagas, Types.loginLoginRpcChannelMap, 'loginRpc')
 
-  // Returns an Array<Task>
-  // If there are any unexpected errors let's cancel the login. The error will be shown as a global error
-  yield Saga.mapSagasToChanMap(
-    (c, saga) => Saga.safeTakeLatestWithCatch(c, catchError, saga),
-    loginSagas,
-    loginChanMap
-  )
+  try {
+    const result = yield call([loginRpcCall, loginRpcCall.run], {
+      param: {
+        deviceType,
+        usernameOrEmail,
+        clientType: Types.CommonClientType.guiMain,
+      },
+    })
+
+    if (isFinished(result)) {
+      const {error} = result.payload
+
+      if (error) {
+        console.log(error)
+        yield call(handleProvisioningError, error)
+      } else {
+        yield put(Creators.loginDone())
+        yield call(navBasedOnLoginState)
+      }
+    } else if (result === BailedEarly) {
+      console.log('Bailed early')
+      yield put(navigateTo(['login'], [loginTab]))
+    } else {
+      yield put(navigateTo(['login'], [loginTab]))
+    }
+  } catch (error) {
+    yield call(handleProvisioningError, error)
+    console.log('DEBUG: error in loginRPC:', error)
+  }
 }
 
 function* initalizeMyCodeStateForLogin() {
@@ -619,7 +638,7 @@ function* addNewDeviceSaga({payload: {role}}: DeviceConstants.AddNewDevice) {
   }
 
   const addDeviceSagas = {
-    ...kex2Sagas(onBackSaga, onBackSaga, finishedSaga),
+    ...kex2Sagas(onBackSaga, onBackSaga),
     'keybase.1.provisionUi.chooseDeviceType': chooseDeviceTypeSaga,
   }
 
@@ -643,7 +662,7 @@ function* reloginSaga({payload: {usernameOrEmail, passphrase}}: Constants.Relogi
   )
 
   while (true) {
-    const incoming = yield chanMap.race()
+    const incoming = yield chanMap.race({removeNs: true})
     if (incoming.getPassphrase) {
       const {response} = (incoming.getPassphrase: any)
       response.result({passphrase: passphrase.stringValue(), storeSecret: true})

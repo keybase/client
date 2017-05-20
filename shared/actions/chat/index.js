@@ -377,7 +377,7 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
     )
 
     while (true) {
-      const incoming = yield loadThreadChanMap.race()
+      const incoming = yield loadThreadChanMap.race({removeNs: true})
 
       if (incoming.chatThreadCached) {
         incoming.chatThreadCached.response.result()

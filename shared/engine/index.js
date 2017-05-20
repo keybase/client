@@ -15,7 +15,7 @@ import * as Saga from '../util/saga'
 import {delay} from 'redux-saga'
 import {call, race} from 'redux-saga/effects'
 
-import type {ChannelMap} from '../constants/types/saga'
+import type {ChannelMap, ChannelConfig, SagaMap} from '../constants/types/saga'
 
 class EngineChannel {
   _map: ChannelMap<*>
@@ -41,8 +41,9 @@ class EngineChannel {
     return yield Saga.takeFromChannelMap(this._map, key)
   }
 
-  *race(options: ?{timeout?: number, racers?: Object}): Generator<any, any, any> {
+  *race(options: ?{timeout?: number, removeNs: boolean, racers?: Object}): Generator<any, any, any> {
     const timeout = options && options.timeout
+    const removeNs = (options && options.removeNs) || false
     const otherRacers = (options && options.racers) || {}
     const initMap = {
       ...(timeout
@@ -55,7 +56,7 @@ class EngineChannel {
 
     const raceMap = this._configKeys.reduce((map, key) => {
       const parts = key.split('.')
-      const name = parts[parts.length - 1]
+      const name = removeNs ? parts[parts.length - 1] : key
       map[name] = Saga.takeFromChannelMap(this._map, key)
       return map
     }, initMap)

@@ -168,7 +168,7 @@ function* _devicePaperKeySaga(): SagaGenerator<any, any> {
     )
 
     while (true) {
-      const incoming = yield channelMap.race()
+      const incoming = yield channelMap.race({removeNs: true})
 
       if (incoming.promptRevokePaperKeys) {
         incoming.promptRevokePaperKeys.response.result(false)
