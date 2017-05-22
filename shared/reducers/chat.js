@@ -190,15 +190,10 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         console.warn("Attempted to clear conversation state that doesn't exist")
         return state
       }
-
-      const newMessages = origConversationState.get('messages').filter(m => m.messageState === 'pending')
-      const newSeenMessages = Set(newMessages.map(m => m.key))
-
       // $FlowIssue
       const clearedConversationState = initialConversation.merge({
         firstNewMessageID: origConversationState.get('firstNewMessageID'),
-        messages: newMessages,
-        seenMessages: newSeenMessages,
+        messages: origConversationState.get('messages').filter(m => m.messageState === 'pending'),
       })
       // $FlowIssue
       return state.update('conversationStates', conversationStates =>
