@@ -2,4 +2,5 @@
 
 protocol teams {
   void teamCreate(int sessionID, string name);
+  void teamGet(int sessionID, string name);
 }
