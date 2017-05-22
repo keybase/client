@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/auth"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -47,8 +48,11 @@ func (t *KBFSTLFInfoSource) Lookup(ctx context.Context, tlfName string,
 		time.Sleep(libkb.BackoffDefault.Duration(i))
 		res, err := CtxKeyFinder(ctx).Find(ctx, t, tlfName, visibility == chat1.TLFVisibility_PUBLIC)
 		if err != nil {
-			lastErr = err
-			continue
+			if _, ok := err.(auth.BadKeyError); ok {
+				lastErr = err
+				continue
+			}
+			return nil, err
 		}
 		info := &types.TLFInfo{
 			ID:               chat1.TLFID(res.NameIDBreaks.TlfID.ToBytes()),
