@@ -27,7 +27,7 @@ const (
 	// MdServerTokenExpireIn is the TTL to use when constructing an authentication token.
 	MdServerTokenExpireIn = 2 * 60 * 60 // 2 hours
 	// MdServerBackgroundRekeyPeriod is how long the rekey checker
-	// waits between runs in average. The timer gets reset after
+	// waits between runs on average. The timer gets reset after
 	// every incoming FolderNeedsRekey RPC.
 	// The amount of wait is calculated in nextRekeyTime.
 	MdServerBackgroundRekeyPeriod = 1 * time.Hour
