@@ -1,27 +1,45 @@
 // @flow
-import React from 'react'
+import React, {Component} from 'react'
 import {Box, Button, Icon, Text} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from '.'
 
-const Splash = (props: Props) => (
-  <Box style={{...stylesLoginForm, justifyContent: 'center'}}>
-    <Icon type="icon-keybase-logo-80" />
-    <Text style={stylesHeader} type="HeaderBig">Keybase</Text>
-    <Box style={globalStyles.flexBoxColumn}>
-      <Text style={{marginTop: globalMargins.large}} type="BodySmall">
-        Keybase not starting up?
-      </Text>
-      <Button
-        label="Let us know"
-        onClick={props.onFeedback}
-        style={{marginTop: globalMargins.small}}
-        type="Primary"
-      />
-    </Box>
-  </Box>
-)
+class Splash extends Component<void, Props, {showFeedback: boolean}> {
+  state = {
+    showFeedback: false,
+  }
+  componentWillMount() {
+    if (!this.state.showFeedback) {
+      setTimeout(() => {
+        this.setState({
+          showFeedback: true,
+        })
+      }, 4000)
+    }
+  }
+
+  render() {
+    return (
+      <Box style={{...stylesLoginForm, justifyContent: 'center'}}>
+        <Icon type="icon-keybase-logo-80" />
+        <Text style={stylesHeader} type="HeaderBig">Keybase</Text>
+        {this.state.showFeedback &&
+          <Box style={globalStyles.flexBoxColumn}>
+            <Text style={{marginTop: globalMargins.large}} type="BodySmall">
+              Keybase not starting up?
+            </Text>
+            <Button
+              label="Let us know"
+              onClick={this.props.onFeedback}
+              style={{marginTop: globalMargins.small}}
+              type="Primary"
+            />
+          </Box>}
+      </Box>
+    )
+  }
+}
 
 const Failure = (props: Props) => (
   <Box style={{...stylesLoginForm, marginTop: 0}}>
