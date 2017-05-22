@@ -49,7 +49,15 @@ const followingStateToStyle = (followingState: FollowingState) => {
 
 const Left = ({leftService, leftIcon, leftUsername, leftFollowingState}) => {
   return (
-    <Box style={_leftContainerStyle}>
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        alignItems: 'center',
+        height: '100%',
+        paddingLeft: globalMargins.tiny,
+        width: 215,
+      }}
+    >
       <Box style={{...globalStyles.flexBoxCenter, width: 32}}>
         <IconOrAvatar service={leftService} username={leftUsername} icon={leftIcon} avatarSize={32} />
       </Box>
@@ -66,17 +74,16 @@ const Left = ({leftService, leftIcon, leftUsername, leftFollowingState}) => {
   )
 }
 
-const _leftContainerStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  height: '100%',
-  paddingLeft: globalMargins.tiny,
-  width: 215,
-}
-
 const Middle = ({rightService, rightIcon, rightUsername, rightFullname, rightFollowingState}) => {
   return (
-    <Box style={_middleContainerStyle}>
+    <Box
+      style={{
+        ...globalStyles.flexBoxColumn,
+        flex: 1,
+        height: '100%',
+        justifyContent: 'center',
+      }}
+    >
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         <IconOrAvatar
           service={rightService}
@@ -109,15 +116,14 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFullname, rightFol
   )
 }
 
-const _middleContainerStyle = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
-  height: '100%',
-  justifyContent: 'center',
-}
-
 const Right = ({showTrackerButton, onShowTracker}) => {
-  return showTrackerButton ? <Icon type="iconfont-usercard" onClick={onShowTracker} /> : null
+  return showTrackerButton
+    ? <Icon
+        type="iconfont-usercard"
+        onClick={onShowTracker}
+        style={{marginLeft: globalMargins.small, marginRight: globalMargins.small}}
+      />
+    : null
 }
 
 const Line = () => (
@@ -166,12 +172,9 @@ const _clickableBoxStyle = {
 }
 
 const _rowStyle = {
-  ...globalStyles.flexBoxRow,
+  ..._clickableBoxStyle,
   alignItems: 'center',
-  flex: 1,
   justifyContent: 'flex-start',
-  maxHeight: globalMargins.large,
-  minHeight: globalMargins.large,
   position: 'relative',
 }
 

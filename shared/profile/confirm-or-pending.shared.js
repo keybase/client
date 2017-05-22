@@ -30,10 +30,6 @@ export function propsForPlatform(props: Props): Object {
       return {
         ...commonConfirm(props),
       }
-    case 'coinbase':
-      return {
-        ...commonConfirm(props),
-      }
     case 'hackernews':
       return {
         ...commonConfirm(props),

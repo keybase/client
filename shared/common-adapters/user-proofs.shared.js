@@ -67,7 +67,6 @@ function iconNameForProof({type}: {type: PlatformsExpandedType}): IconType {
     github: 'iconfont-identity-github',
     reddit: 'iconfont-identity-reddit',
     pgp: 'iconfont-identity-pgp',
-    coinbase: 'iconfont-identity-coinbase',
     hackernews: 'iconfont-identity-hn',
     rooter: 'iconfont-thunderbolt',
     btc: 'iconfont-identity-bitcoin',
@@ -88,7 +87,7 @@ function proofStatusIcon(proof: Proof): ?IconType {
       return 'iconfont-proof-pending'
 
     case proofNormal:
-      return proof.isTracked ? 'iconfont-proof-followed' : 'iconfont-proof-new'
+      return 'iconfont-proof-good'
 
     case proofWarning:
     case proofError:

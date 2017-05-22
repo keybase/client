@@ -6,7 +6,7 @@
 /packaging
 /protocol
 /pvl-tools
-/visdiff
+/shared/common-adapters/icon.constants.js
 /shared/constants/types/flow-types-chat.js
 /shared/constants/types/flow-types-gregor.js
 /shared/constants/types/flow-types.js
@@ -16,9 +16,10 @@
 /shared/desktop/dist/**
 /shared/desktop/release/**
 /shared/desktop/renderer/renderer-load.js
-/shared/flow-typed/**
 /shared/fixme/**
+/shared/flow-typed/**
 /shared/libs/flow-interface.js
 /shared/libs/immutable-interface.js
-/shared/node_modules
 /shared/markdown/parser.js
+/shared/node_modules
+/visdiff
