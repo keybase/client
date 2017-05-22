@@ -45,11 +45,13 @@ func (t *KBFSTLFInfoSource) Lookup(ctx context.Context, tlfName string,
 	visibility chat1.TLFVisibility) (*types.TLFInfo, error) {
 	var lastErr error
 	for i := 0; i < 5; i++ {
-		time.Sleep(libkb.BackoffDefault.Duration(i))
 		res, err := CtxKeyFinder(ctx).Find(ctx, t, tlfName, visibility == chat1.TLFVisibility_PUBLIC)
 		if err != nil {
 			if _, ok := err.(auth.BadKeyError); ok {
+				// BadKeyError could be returned if there is a rekey race, so
+				// we are retrying a few times when that happens
 				lastErr = err
+				time.Sleep(200 * time.Millisecond)
 				continue
 			}
 			return nil, err
