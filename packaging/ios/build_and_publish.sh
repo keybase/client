@@ -43,7 +43,7 @@ fi
 
 if [ ! "$cache_go_lib" = "1" ]; then
   echo "Building Go library"
-  yarn run rn-gobuild-ios
+  CHECK_CI=1 yarn run rn-gobuild-ios
 fi
 
 "$client_dir/packaging/manage_react_native_packager.sh" &

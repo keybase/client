@@ -24,7 +24,7 @@
           "name": "blockHash"
         },
         {
-          "type": "UID",
+          "type": "UserOrTeamID",
           "name": "chargedTo"
         },
         {

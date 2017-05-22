@@ -133,6 +133,9 @@ func (m MessageUnboxed) GetMessageID() MessageID {
 		if state == MessageUnboxedState_ERROR {
 			return m.Error().MessageID
 		}
+		if state == MessageUnboxedState_PLACEHOLDER {
+			return m.Placeholder().MessageID
+		}
 	}
 	return 0
 }
@@ -147,6 +150,11 @@ func (m MessageUnboxed) GetMessageType() MessageType {
 		}
 		if state == MessageUnboxedState_OUTBOX {
 			return m.Outbox().Msg.ClientHeader.MessageType
+		}
+		if state == MessageUnboxedState_PLACEHOLDER {
+			// All we know about a place holder is the ID, so just
+			// call it type NONE
+			return MessageType_NONE
 		}
 	}
 	return MessageType_NONE

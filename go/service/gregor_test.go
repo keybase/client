@@ -604,6 +604,14 @@ func TestSyncDismissal(t *testing.T) {
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
 }
 
+type dummyRemoteClient struct {
+	chat1.RemoteClient
+}
+
+func (d dummyRemoteClient) GetUnreadUpdateFull(ctx context.Context, vers chat1.InboxVers) (chat1.UnreadUpdateFull, error) {
+	return chat1.UnreadUpdateFull{}, nil
+}
+
 func TestGregorBadgesIBM(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
@@ -630,6 +638,11 @@ func TestGregorBadgesIBM(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("client sync complete")
 
+	ri := func() chat1.RemoteInterface {
+		return dummyRemoteClient{RemoteClient: chat1.RemoteClient{Cli: h.cli}}
+	}
+	require.NoError(t, h.badger.Resync(context.TODO(), ri, h.gregorCli, nil))
+
 	bs := listener.getBadgeState(t)
 	require.Equal(t, 1, bs.NewTlfs, "one new tlf")
 
@@ -641,6 +654,8 @@ func TestGregorBadgesIBM(t *testing.T) {
 	_, _, err = h.serverSync(context.TODO(), server, h.gregorCli, nil)
 	require.NoError(t, err)
 	t.Logf("client sync complete")
+
+	require.NoError(t, h.badger.Resync(context.TODO(), ri, h.gregorCli, nil))
 
 	bs = listener.getBadgeState(t)
 	require.Equal(t, 1, bs.NewTlfs, "no more badges")

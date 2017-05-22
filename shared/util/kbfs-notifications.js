@@ -130,6 +130,20 @@ export function kbfsNotification(notification: FSNotification, notify: any, getS
     return
   }
 
+  // KBFS fires a notification when it initializes. We prompt the user to log
+  // send if there is an error.
+  if (
+    notification.notificationType === KbfsCommonFSNotificationType.initialized &&
+    notification.statusCode === KbfsCommonFSStatusCode.error &&
+    notification.errorType === KbfsCommonFSErrorType.diskCacheErrorLogSend
+  ) {
+    console.log(`KBFS failed to initialize its disk cache. Please send logs.`)
+    let title = `KBFS: Disk cache not initialized`
+    let body = `Please Send Feedback to Keybase`
+    let rateLimitKey = body
+    notify(title, {body}, 10, rateLimitKey)
+  }
+
   // KBFS fires a notification when it changes state between connected
   // and disconnected (to the mdserver).  For now we just log it.
   if (notification.notificationType === KbfsCommonFSNotificationType.connection) {

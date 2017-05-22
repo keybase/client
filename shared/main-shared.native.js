@@ -1,7 +1,6 @@
 // @flow
 import DumbSheet from './dev/dumb-sheet'
 import Push from './push/push.native'
-import RNPN from 'react-native-push-notification'
 import React, {Component} from 'react'
 import RenderRoute from './route-tree/render-route'
 import loadPerf from './util/load-perf'
@@ -11,7 +10,7 @@ import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {debounce} from 'lodash'
 import {getUserImageMap, loadUserImageMap} from './util/pictures'
-import {initAvatarLookup, initAvatarLoad} from './common-adapters'
+import {initAvatarLookup, initAvatarLoad} from './common-adapters/index.native'
 import {listenForNotifications} from './actions/notifications'
 import {persistRouteState, loadRouteState} from './actions/platform-specific.native'
 import {navigateUp, setRouteState} from './actions/route-tree'
@@ -21,7 +20,6 @@ import type {TypedState} from './constants/reducer'
 type Props = {
   dumbFullscreen: boolean,
   folderBadge: number,
-  mobileAppBadgeCount: number,
   mountPush: boolean,
   routeDef: any,
   routeState: any,
@@ -48,6 +46,7 @@ class Main extends Component<void, any, void> {
       global.mainLoaded = true
       initAvatarLookup(getUserImageMap)
       initAvatarLoad(loadUserImageMap)
+
       this.props.loadRouteState()
       this.props.bootstrap()
       this.props.listenForNotifications()
@@ -60,23 +59,10 @@ class Main extends Component<void, any, void> {
     this.props.persistRouteState()
   }, 200)
 
-  _setIconBadgeNumber(count: number) {
-    RNPN.setApplicationIconBadgeNumber(count)
-    if (count === 0) {
-      RNPN.cancelAllLocalNotifications()
-    }
-  }
-
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.routeState !== nextProps.routeState) {
       this._persistRoute()
     }
-
-    this._setIconBadgeNumber(nextProps.mobileAppBadgeCount)
-  }
-
-  componentDidMount() {
-    this._setIconBadgeNumber(this.props.mobileAppBadgeCount)
   }
 
   render() {
@@ -103,7 +89,6 @@ class Main extends Component<void, any, void> {
 const mapStateToProps = (state: TypedState) => ({
   dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   folderBadge: state.favorite.folderState.privateBadge + state.favorite.folderState.publicBadge,
-  mobileAppBadgeCount: state.notifications.get('mobileAppBadgeCount'),
   mountPush: state.config.loggedIn && state.config.bootStatus === 'bootStatusBootstrapped',
   routeDef: state.routeTree.routeDef,
   routeState: state.routeTree.routeState,

@@ -283,14 +283,6 @@ const propsBase: RenderProps = {
   onViewProof: proof => console.log('onViewProof', proof),
   onRecheckProof: proof => console.log('onRecheckProof', proof),
   onRevokeProof: proof => console.log('onRevokeProof', proof),
-  parentProps: isMobile
-    ? {}
-    : {
-        style: {
-          width: 720,
-          height: 578,
-        },
-      },
   onClickAvatar: () => console.log('on click avatar'),
   onClickFollowers: () => console.log('on click followers'),
   onClickFollowing: () => console.log('on click following'),

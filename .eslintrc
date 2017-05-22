@@ -16,7 +16,7 @@
         "__SCREENSHOT__": false
     },
     "plugins": [
-        "mocha", "filenames", "babel", "import", "flowtype"
+        "mocha", "filenames", "babel", "import", "flowtype", "prettier"
     ],
     "settings": {
         "import/core-modules": [ electron, react-native ],
@@ -55,6 +55,15 @@
         "jsx-quotes": "off",
         "no-duplicate-imports": "off",
         "no-mixed-operators": "off",
+        "prettier/prettier": ["error", {
+          "singleQuote": true,
+          "trailingComma": "es5",
+          "tabWidth": 2,
+          "bracketSpacing": false,
+          "parser": "flow",
+          "semi": false,
+          "printWidth": 110,
+        }],
         "react/jsx-boolean-value": ["error", "always"],
         "react/jsx-curly-spacing": "off",
         "react/jsx-equals-spacing": "error",

@@ -1,19 +1,5 @@
 -   repo: local
     hooks:
-    -   id: prettier
-        name: prettier
-        entry: shared/node_modules/.bin/prettier
-        language: node
-        files: shared/.*\.js$
-        args: [
-            '--single-quote',
-            '--trailing-comma', 'es5',
-            '--tab-width', '2',
-            '--no-bracket-spacing',
-            '--parser', 'flow',
-            '--no-semi',
-            '--print-width', '110',
-            '--write']
     -   id: eslint
         name: eslint
         entry: shared/node_modules/.bin/eslint

@@ -168,7 +168,7 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 
 	ds = e.appendEncKey(ds, ctx, encSigner, eldestKID, pargs.User)
 
-	var pukSigProducer libkb.AggSigProducer = nil
+	var pukSigProducer libkb.AggSigProducer // = nil
 
 	// PerUserKey does not use Delegator.
 	if e.G().Env.GetUpgradePerUserKey() && e.args.IsEldest {
@@ -177,9 +177,10 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 			return errors.New("missing new per user key")
 		}
 
+		creationTime := e.G().Clock().Now().Unix()
 		pukSigProducer = func() (libkb.JSONPayload, error) {
 			gen := keybase1.PerUserKeyGeneration(1)
-			return libkb.PerUserKeyProofReverseSigned(e.args.Me, *e.perUserKeySeed, gen, encSigner)
+			return libkb.PerUserKeyProofReverseSigned(e.args.Me, *e.perUserKeySeed, gen, encSigner, creationTime)
 		}
 	}
 

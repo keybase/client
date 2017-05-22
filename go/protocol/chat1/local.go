@@ -1115,21 +1115,24 @@ type MessagePlaintext struct {
 type MessageUnboxedState int
 
 const (
-	MessageUnboxedState_VALID  MessageUnboxedState = 1
-	MessageUnboxedState_ERROR  MessageUnboxedState = 2
-	MessageUnboxedState_OUTBOX MessageUnboxedState = 3
+	MessageUnboxedState_VALID       MessageUnboxedState = 1
+	MessageUnboxedState_ERROR       MessageUnboxedState = 2
+	MessageUnboxedState_OUTBOX      MessageUnboxedState = 3
+	MessageUnboxedState_PLACEHOLDER MessageUnboxedState = 4
 )
 
 var MessageUnboxedStateMap = map[string]MessageUnboxedState{
-	"VALID":  1,
-	"ERROR":  2,
-	"OUTBOX": 3,
+	"VALID":       1,
+	"ERROR":       2,
+	"OUTBOX":      3,
+	"PLACEHOLDER": 4,
 }
 
 var MessageUnboxedStateRevMap = map[MessageUnboxedState]string{
 	1: "VALID",
 	2: "ERROR",
 	3: "OUTBOX",
+	4: "PLACEHOLDER",
 }
 
 func (e MessageUnboxedState) String() string {
@@ -1191,11 +1194,16 @@ type MessageUnboxedError struct {
 	Ctime       gregor1.Time            `codec:"ctime" json:"ctime"`
 }
 
+type MessageUnboxedPlaceholder struct {
+	MessageID MessageID `codec:"messageID" json:"messageID"`
+}
+
 type MessageUnboxed struct {
-	State__  MessageUnboxedState  `codec:"state" json:"state"`
-	Valid__  *MessageUnboxedValid `codec:"valid,omitempty" json:"valid,omitempty"`
-	Error__  *MessageUnboxedError `codec:"error,omitempty" json:"error,omitempty"`
-	Outbox__ *OutboxRecord        `codec:"outbox,omitempty" json:"outbox,omitempty"`
+	State__       MessageUnboxedState        `codec:"state" json:"state"`
+	Valid__       *MessageUnboxedValid       `codec:"valid,omitempty" json:"valid,omitempty"`
+	Error__       *MessageUnboxedError       `codec:"error,omitempty" json:"error,omitempty"`
+	Outbox__      *OutboxRecord              `codec:"outbox,omitempty" json:"outbox,omitempty"`
+	Placeholder__ *MessageUnboxedPlaceholder `codec:"placeholder,omitempty" json:"placeholder,omitempty"`
 }
 
 func (o *MessageUnboxed) State() (ret MessageUnboxedState, err error) {
@@ -1213,6 +1221,11 @@ func (o *MessageUnboxed) State() (ret MessageUnboxedState, err error) {
 	case MessageUnboxedState_OUTBOX:
 		if o.Outbox__ == nil {
 			err = errors.New("unexpected nil value for Outbox__")
+			return ret, err
+		}
+	case MessageUnboxedState_PLACEHOLDER:
+		if o.Placeholder__ == nil {
+			err = errors.New("unexpected nil value for Placeholder__")
 			return ret, err
 		}
 	}
@@ -1249,6 +1262,16 @@ func (o MessageUnboxed) Outbox() (res OutboxRecord) {
 	return *o.Outbox__
 }
 
+func (o MessageUnboxed) Placeholder() (res MessageUnboxedPlaceholder) {
+	if o.State__ != MessageUnboxedState_PLACEHOLDER {
+		panic("wrong case accessed")
+	}
+	if o.Placeholder__ == nil {
+		return
+	}
+	return *o.Placeholder__
+}
+
 func NewMessageUnboxedWithValid(v MessageUnboxedValid) MessageUnboxed {
 	return MessageUnboxed{
 		State__: MessageUnboxedState_VALID,
@@ -1267,6 +1290,13 @@ func NewMessageUnboxedWithOutbox(v OutboxRecord) MessageUnboxed {
 	return MessageUnboxed{
 		State__:  MessageUnboxedState_OUTBOX,
 		Outbox__: &v,
+	}
+}
+
+func NewMessageUnboxedWithPlaceholder(v MessageUnboxedPlaceholder) MessageUnboxed {
+	return MessageUnboxed{
+		State__:       MessageUnboxedState_PLACEHOLDER,
+		Placeholder__: &v,
 	}
 }
 
