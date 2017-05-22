@@ -39,7 +39,7 @@
           "name": "nonce"
         },
         {
-          "type": "UID",
+          "type": "UserOrTeamID",
           "name": "chargedTo"
         }
       ]

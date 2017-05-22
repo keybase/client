@@ -308,6 +308,10 @@ func (u UID) GetShard(shardCount int) (int, error) {
 	return int(n % uint32(shardCount)), nil
 }
 
+func (u UID) AsUserOrTeam() UserOrTeamID {
+	return UserOrTeamID(u)
+}
+
 func TeamIDFromString(s string) (TeamID, error) {
 	if len(s) != hex.EncodedLen(TEAMID_LEN) {
 		return "", fmt.Errorf("Bad TeamID '%s'; must be %d bytes long", s, TEAMID_LEN)
@@ -355,6 +359,10 @@ func (t TeamID) NotEqual(v TeamID) bool {
 
 func (t TeamID) Less(v TeamID) bool {
 	return t < v
+}
+
+func (t TeamID) AsUserOrTeam() UserOrTeamID {
+	return UserOrTeamID(t)
 }
 
 func (s SigID) IsNil() bool {
@@ -1041,4 +1049,86 @@ func (u UserPlusAllKeys) IsOlderThan(v UserPlusAllKeys) bool {
 		return true
 	}
 	return false
+}
+
+func (ut UserOrTeamID) String() string {
+	return string(ut)
+}
+
+func (ut UserOrTeamID) ToBytes() []byte {
+	b, err := hex.DecodeString(string(ut))
+	if err != nil {
+		return nil
+	}
+	return b
+}
+
+func (ut UserOrTeamID) IsNil() bool {
+	return len(ut) == 0
+}
+
+func (ut UserOrTeamID) Exists() bool {
+	return !ut.IsNil()
+}
+
+func (ut UserOrTeamID) Equal(v UserOrTeamID) bool {
+	return ut == v
+}
+
+func (ut UserOrTeamID) NotEqual(v UserOrTeamID) bool {
+	return !ut.Equal(v)
+}
+
+func (ut UserOrTeamID) Less(v UserOrTeamID) bool {
+	return ut < v
+}
+
+func (ut UserOrTeamID) AsUser() (UID, error) {
+	if !ut.IsUser() {
+		return UID(""), errors.New("ID is not a UID")
+	}
+	return UID(ut), nil
+}
+
+func (ut UserOrTeamID) AsUserOrBust() UID {
+	uid, err := ut.AsUser()
+	if err != nil {
+		panic(err)
+	}
+	return uid
+}
+
+func (ut UserOrTeamID) AsTeam() (TeamID, error) {
+	if !ut.IsTeamOrSubteam() {
+		return TeamID(""), errors.New("ID is not a team ID")
+	}
+	return TeamID(ut), nil
+}
+
+func (ut UserOrTeamID) AsTeamOrBust() TeamID {
+	tid, err := ut.AsTeam()
+	if err != nil {
+		panic(err)
+	}
+	return tid
+}
+
+func (ut UserOrTeamID) IsUser() bool {
+	suffix := ut[len(ut)-2:]
+	return suffix == UID_SUFFIX_HEX || suffix == UID_SUFFIX_2_HEX
+}
+
+func (ut UserOrTeamID) IsTeam() bool {
+	suffix := ut[len(ut)-2:]
+	return suffix == TEAMID_SUFFIX_HEX
+}
+
+func (ut UserOrTeamID) IsSubteam() bool {
+	suffix := ut[len(ut)-2:]
+	return suffix == SUB_TEAMID_SUFFIX_HEX
+}
+
+func (ut UserOrTeamID) IsTeamOrSubteam() bool {
+	suffix := ut[len(ut)-2:]
+	return suffix == TEAMID_SUFFIX_HEX || suffix == SUB_TEAMID_SUFFIX_HEX
 }

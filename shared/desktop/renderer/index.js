@@ -58,7 +58,7 @@ function setupAvatar() {
 function setupApp(store) {
   setupSource()
   disableDragDrop()
-  const eng = makeEngine()
+  makeEngine()
   loadPerf()
   setupAvatar()
 
@@ -92,13 +92,6 @@ function setupApp(store) {
       } catch (_) {}
     })
   })
-
-  // After a delay, see if we're connected, and try starting keybase if not
-  setTimeout(() => {
-    eng.listenOnNotConnected('kb-service-check', () => {
-      ipcRenderer.send('kb-service-check')
-    })
-  }, 3 * 1000)
 
   // Run installer
   ipcRenderer.on('installed', (event, message) => {

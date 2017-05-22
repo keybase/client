@@ -1,6 +1,7 @@
-package libkb
+package team
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -10,25 +11,26 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // There are a lot of TODOs in this file. Many of them are critical before team sigchains can be used safely.
 
-// TODO merkle existence
-// TODO accept links from now-revoked keys if the sigs were made before their revocation.
+// TODO CORE-5295 merkle existence
+// TODO CORE-5296 accept links from now-revoked keys if the sigs were made before their revocation.
 //      To check this, grab the merkle root previous to the revoke and make sure the link is in that tree.
 
 type TeamName string
 
 type UserVersion struct {
-	Username    NormalizedUsername
-	EldestSeqno Seqno
+	Username    libkb.NormalizedUsername
+	EldestSeqno libkb.Seqno
 }
 
-func NewUserVersion(username string, eldestSeqno Seqno) UserVersion {
+func NewUserVersion(username string, eldestSeqno libkb.Seqno) UserVersion {
 	return UserVersion{
-		Username:    NewNormalizedUsername(username),
+		Username:    libkb.NewNormalizedUsername(username),
 		EldestSeqno: eldestSeqno,
 	}
 }
@@ -42,7 +44,7 @@ func ParseUserVersion(s string) (res UserVersion, err error) {
 	if len(parts) != 2 {
 		return res, fmt.Errorf("invalid user version: %s", s)
 	}
-	username, err := ValidateNormalizedUsername(parts[0])
+	username, err := libkb.ValidateNormalizedUsername(parts[0])
 	if err != nil {
 		return res, err
 	}
@@ -52,7 +54,7 @@ func ParseUserVersion(s string) (res UserVersion, err error) {
 	}
 	return UserVersion{
 		Username:    username,
-		EldestSeqno: Seqno(eldestSeqno),
+		EldestSeqno: libkb.Seqno(eldestSeqno),
 	}, nil
 }
 
@@ -102,7 +104,7 @@ type UserTeamRoleCheckpoint struct {
 	// The new role. Including NONE if the user left the team.
 	Role keybase1.TeamRole
 	// The seqno at which the user became this role.
-	Seqno Seqno
+	Seqno libkb.Seqno
 }
 
 type UserLog map[UserVersion][]UserTeamRoleCheckpoint
@@ -119,9 +121,10 @@ func (ul *UserLog) getUserRole(u UserVersion) keybase1.TeamRole {
 // Inform the UserLog of a user's role.
 // Doesn't check anything, don't screw up.
 // Idempotent if called correctly.
-func (ul *UserLog) inform(u UserVersion, role keybase1.TeamRole, seqno Seqno) {
+func (ul *UserLog) inform(u UserVersion, role keybase1.TeamRole, seqno libkb.Seqno) {
 	currentRole := ul.getUserRole(u)
 	if currentRole == role {
+		// no change in role, now new checkpoint needed
 		return
 	}
 	(*ul)[u] = append((*ul)[u], UserTeamRoleCheckpoint{
@@ -141,8 +144,8 @@ type TeamSigChainState struct {
 	// Latest name of the team
 	Name TeamName
 	// The last link procesed
-	LastSeqno  Seqno
-	LastLinkID LinkID
+	LastSeqno  libkb.Seqno
+	LastLinkID libkb.LinkID
 
 	// Present if a subteam
 	ParentID *keybase1.TeamID
@@ -156,12 +159,12 @@ type TeamSigChainState struct {
 	PerTeamKeys map[int]keybase1.PerTeamKey
 
 	// Set of types that were loaded stubbed-out and whose contents are missing.
-	StubbedTypes map[SigchainV2Type]bool
+	StubbedTypes map[libkb.SigchainV2Type]bool
 }
 
 func (t TeamSigChainState) DeepCopy() TeamSigChainState {
 
-	stubbedTypes := make(map[SigchainV2Type]bool)
+	stubbedTypes := make(map[libkb.SigchainV2Type]bool)
 	for k, v := range t.StubbedTypes {
 		stubbedTypes[k] = v
 	}
@@ -197,7 +200,7 @@ func (t *TeamSigChainState) IsSubteam() bool {
 	return t.ParentID != nil
 }
 
-func (t *TeamSigChainState) GetLatestSeqno() Seqno {
+func (t *TeamSigChainState) GetLatestSeqno() libkb.Seqno {
 	return t.LastSeqno
 }
 
@@ -214,15 +217,15 @@ func (t *TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 	return res, nil
 }
 
-// Implementations for TeamSigChainPlayer that can be mocked out for tests.
-type TeamSigChainPlayerHelper struct {
-	UsernameForUID func(keybase1.UID) (string, error)
+// UsernameFinder is an interface for TeamSigChainPlayer that can be mocked out for tests.
+type UsernameFinder interface {
+	UsernameForUID(context.Context, keybase1.UID) (string, error)
 }
 
 type TeamSigChainPlayer struct {
 	sync.Mutex
 
-	helper *TeamSigChainPlayerHelper
+	helper UsernameFinder
 
 	// information about the reading user
 	reader UserVersion
@@ -233,7 +236,7 @@ type TeamSigChainPlayer struct {
 }
 
 // Load a team chain from the perspective of uid.
-func NewTeamSigChainPlayer(helper *TeamSigChainPlayerHelper, reader UserVersion, isSubTeam bool) *TeamSigChainPlayer {
+func NewTeamSigChainPlayer(helper UsernameFinder, reader UserVersion, isSubTeam bool) *TeamSigChainPlayer {
 	return &TeamSigChainPlayer{
 		helper:      helper,
 		reader:      reader,
@@ -252,26 +255,26 @@ func (t *TeamSigChainPlayer) GetState() (res TeamSigChainState, err error) {
 	return res, fmt.Errorf("no links loaded")
 }
 
-func (t *TeamSigChainPlayer) AddChainLinks(links []SCChainLink) error {
+func (t *TeamSigChainPlayer) AddChainLinks(ctx context.Context, links []SCChainLink) error {
 	t.Lock()
 	defer t.Unlock()
 
-	return t.addChainLinksCommon(links, false)
+	return t.addChainLinksCommon(ctx, links, false)
 }
 
 // Add chain links from local storage. Skip verification checks that should have already been done.
-func (t *TeamSigChainPlayer) AddChainLinksVerified(links []SCChainLink) error {
+func (t *TeamSigChainPlayer) AddChainLinksVerified(ctx context.Context, links []SCChainLink) error {
 	t.Lock()
 	defer t.Unlock()
 
-	return t.addChainLinksCommon(links, true)
+	return t.addChainLinksCommon(ctx, links, true)
 }
 
 // Add links.
 // Links must be added in batches because the check for what links are allowed to be stubbed
 // depends on the user's _eventual_ role in the team.
 // If this returns an error, the TeamSigChainPlayer was not modified.
-func (t *TeamSigChainPlayer) addChainLinksCommon(links []SCChainLink, alreadyVerified bool) error {
+func (t *TeamSigChainPlayer) addChainLinksCommon(ctx context.Context, links []SCChainLink, alreadyVerified bool) error {
 	var err error
 	if len(links) == 0 {
 		return errors.New("no chainlinks to add")
@@ -284,9 +287,12 @@ func (t *TeamSigChainPlayer) addChainLinksCommon(links []SCChainLink, alreadyVer
 	}
 
 	for _, link := range links {
-		newState, err := t.addChainLinkCommon(state, link, alreadyVerified)
+		newState, err := t.addChainLinkCommon(ctx, state, link, alreadyVerified)
 		if err != nil {
-			return err
+			if state == nil {
+				return fmt.Errorf("seqno:1 %s", err)
+			}
+			return fmt.Errorf("seqno:%v %s", state.GetLatestSeqno(), err)
 		}
 		state = &newState
 	}
@@ -304,8 +310,8 @@ func (t *TeamSigChainPlayer) addChainLinksCommon(links []SCChainLink, alreadyVer
 // Verify and add a chain link.
 // Does not modify self or any arguments.
 // The `prevState` argument is nil if this is the first chain link.
-func (t *TeamSigChainPlayer) addChainLinkCommon(prevState *TeamSigChainState, link SCChainLink, alreadyVerified bool) (res TeamSigChainState, err error) {
-	oRes, err := t.checkOuterLink(prevState, link, alreadyVerified)
+func (t *TeamSigChainPlayer) addChainLinkCommon(ctx context.Context, prevState *TeamSigChainState, link SCChainLink, alreadyVerified bool) (res TeamSigChainState, err error) {
+	oRes, err := t.checkOuterLink(ctx, prevState, link, alreadyVerified)
 	if err != nil {
 		return res, fmt.Errorf("team sigchain outer link: %s", err)
 	}
@@ -338,7 +344,7 @@ func (t *TeamSigChainPlayer) addChainLinkCommon(prevState *TeamSigChainState, li
 }
 
 type checkOuterLinkResult struct {
-	outerLink   OuterLinkV2WithMetadata
+	outerLink   libkb.OuterLinkV2WithMetadata
 	signingUser UserVersion
 
 	// optional inner link info
@@ -350,7 +356,7 @@ type checkInnerLinkResult struct {
 	newState TeamSigChainState
 }
 
-func (t *TeamSigChainPlayer) checkOuterLink(prevState *TeamSigChainState, link SCChainLink, alreadyVerified bool) (res checkOuterLinkResult, err error) {
+func (t *TeamSigChainPlayer) checkOuterLink(ctx context.Context, prevState *TeamSigChainState, link SCChainLink, alreadyVerified bool) (res checkOuterLinkResult, err error) {
 	if prevState == nil {
 		if link.Seqno != 1 {
 			return res, fmt.Errorf("expected seqno:1 but got:%v", link.Seqno)
@@ -368,27 +374,27 @@ func (t *TeamSigChainPlayer) checkOuterLink(prevState *TeamSigChainState, link S
 	if len(link.Sig) == 0 {
 		return res, errors.New("link has empty sig")
 	}
-	outerLink, err := DecodeOuterLinkV2(link.Sig)
+	outerLink, err := libkb.DecodeOuterLinkV2(link.Sig)
 	if err != nil {
 		return res, err
 	}
 	res.outerLink = *outerLink
 
-	// TODO verify the sig. Without this this is all crazy.
+	// TODO CORE-5297 verify the sig. Without this this is all crazy.
 
-	// TODO verify the signers identity and authorization. Without this this is all crazy.
+	// TODO CORE-5297 verify the signers identity and authorization. Without this this is all crazy.
 
-	// TODO support validating signatures even after account reset.
-	// we need the specified eldest seqno from the server for this.
+	// TODO CORE-5298 support validating signatures even after account reset.
+	//                we need the specified eldest seqno from the server for this.
 	signerUID, err := keybase1.UIDFromString(string(link.UID))
 	if err != nil {
-		return res, err
+		return res, fmt.Errorf("outer link signer uid: %s", err)
 	}
-	username, err := t.helper.UsernameForUID(signerUID)
+	username, err := t.helper.UsernameForUID(ctx, signerUID)
 	if err != nil {
 		return res, err
 	}
-	// TODO for now just assume seqno=1. Need to do something else to support links made by since-reset users.
+	// TODO CORE-5298 for now just assume seqno=1. Need to do something else to support links made by since-reset users.
 	res.signingUser = NewUserVersion(username, 1)
 
 	// check that the outer link matches the server info
@@ -446,7 +452,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 	}
 	team := payload.Body.Team
 
-	// TODO check that the signer has enough role permissions to do each of the actions.
+	// TODO CORE-5299 check that the signer has enough role permissions to do each of the actions.
 
 	switch payload.Body.Type {
 	case "team.root":
@@ -486,29 +492,16 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			return res, fmt.Errorf("team id:%s does not match team name:%s", teamID, teamName)
 		}
 
-		err = t.sanityCheckMembers(*team.Members)
+		roleUpdates, err := t.sanityCheckMembers(*team.Members, true)
 		if err != nil {
 			return res, err
 		}
 
-		ownerFound := false
-		for _, u := range team.Members.Owners {
-			uv, err := ParseUserVersion(string(u))
-			if err != nil {
-				return res, err
-			}
-			if uv == oRes.signingUser {
-				ownerFound = true
-			}
-		}
-		if !ownerFound {
+		userLog := t.makeInitialUserLog(roleUpdates)
+
+		// check that the signer is an owner
+		if userLog.getUserRole(oRes.signingUser) != keybase1.TeamRole_OWNER {
 			return res, fmt.Errorf("signer is not an owner: %v (%v)", oRes.signingUser, team.Members.Owners)
-			// return res, fmt.Errorf("signer is not an owner: %v", oRes.signingUser)
-		}
-
-		userLog, err := t.makeInitialUserLog(*team.Members)
-		if err != nil {
-			return res, err
 		}
 
 		perTeamKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, 1)
@@ -528,12 +521,78 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			ParentID:     nil,
 			UserLog:      userLog,
 			PerTeamKeys:  perTeamKeys,
-			StubbedTypes: make(map[SigchainV2Type]bool),
+			StubbedTypes: make(map[libkb.SigchainV2Type]bool),
 		}
 
 		return res, nil
 	case "team.change_membership":
-		return res, fmt.Errorf("todo implement parsing of: %s", payload.Body.Type)
+		if prevState == nil {
+			return res, fmt.Errorf("link type '%s' unexpected at seqno:%v", payload.Body.Type, prevState.LastSeqno+1)
+		}
+		if team.ID == nil {
+			return res, errors.New("missing team id")
+		}
+		if team.Name != nil {
+			return res, errors.New("unexpected name")
+		}
+		if team.Members == nil {
+			return res, errors.New("missing members")
+		}
+		if team.Parent != nil {
+			return res, errors.New("unexpected parent")
+		}
+		if team.Subteam != nil {
+			return res, errors.New("unexpected subteam")
+		}
+		if team.PerTeamKey != nil {
+			return res, errors.New("unexpected missing")
+		}
+
+		teamID, err := keybase1.TeamIDFromString(string(*team.ID))
+		if err != nil {
+			return res, err
+		}
+
+		if !prevState.ID.Equal(teamID) {
+			return res, fmt.Errorf("wrong team id: %s != %s", teamID.String(), prevState.ID.String())
+		}
+
+		// Check that the signer is an admin or owner to have permission to make this link.
+		signerRole, err := prevState.GetUserRole(oRes.signingUser)
+		if err != nil {
+			return res, err
+		}
+		switch signerRole {
+		case keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+			// ok
+		default:
+			return res, fmt.Errorf("link signer does not have permission to change membership: %v is a %v", oRes.signingUser, signerRole)
+		}
+
+		roleUpdates, err := t.sanityCheckMembers(*team.Members, false)
+		if err != nil {
+			return res, err
+		}
+
+		res.newState = prevState.DeepCopy()
+
+		t.updateMembership(&res.newState.UserLog, roleUpdates, oRes.outerLink.Seqno)
+
+		// Note: If someone was removed, the per-team-key should be rotated. This is not checked though.
+
+		if team.PerTeamKey != nil {
+			lastKey, err := prevState.GetLatestPerTeamKey()
+			if err != nil {
+				return res, fmt.Errorf("getting previous per-team-key: %s", err)
+			}
+			newKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, lastKey.Gen+1)
+			if err != nil {
+				return res, err
+			}
+			res.newState.PerTeamKeys[newKey.Gen] = newKey
+		}
+
+		return res, nil
 	case "team.rotate_key":
 		if prevState == nil {
 			return res, fmt.Errorf("link type 'team.rotate_key' unexpected at beginning of chain")
@@ -571,7 +630,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 
 		return res, nil
 	case "team.leave":
-		return res, fmt.Errorf("todo implement parsing of: %s", payload.Body.Type)
+		return res, fmt.Errorf("todo implement parsing of: %s", payload.Body.Type) // TODO CORE-5305
 	case "team.subteam_head":
 		return res, fmt.Errorf("subteams not supported: %s", payload.Body.Type)
 	case "team.new_subteam":
@@ -586,16 +645,16 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 }
 
 // check that the inner link matches the outer link
-func (t *TeamSigChainPlayer) checkInnerOuterMatch(outerLink OuterLinkV2WithMetadata, innerLink SCChainLinkPayload, innerLinkHash LinkID) (err error) {
-	var innerPrev LinkID
+func (t *TeamSigChainPlayer) checkInnerOuterMatch(outerLink libkb.OuterLinkV2WithMetadata, innerLink SCChainLinkPayload, innerLinkHash libkb.LinkID) (err error) {
+	var innerPrev libkb.LinkID
 	if innerLink.Prev != nil {
-		innerPrev, err = LinkIDFromHex(*innerLink.Prev)
+		innerPrev, err = libkb.LinkIDFromHex(*innerLink.Prev)
 		if err != nil {
 			return err
 		}
 	}
 
-	innerLinkType, err := SigchainV2TypeFromV1TypeTeams(innerLink.Body.Type)
+	innerLinkType, err := libkb.SigchainV2TypeFromV1TypeTeams(innerLink.Body.Type)
 	if err != nil {
 		return err
 	}
@@ -605,13 +664,13 @@ func (t *TeamSigChainPlayer) checkInnerOuterMatch(outerLink OuterLinkV2WithMetad
 		return err
 	}
 
-	// TODO check that the key section refers to the same kid that really signed.
+	// TODO CORE-5300 check that the key section refers to the same kid that really signed.
 
 	return nil
 }
 
 func (t *TeamSigChainPlayer) checkStubbed(state TeamSigChainState) error {
-	// TODO if you get kicked out of a team, that's special. The chain can't load.
+	// TODO CORE-5301 if you get kicked out of a team, that's special. The chain can't load.
 	// But you should get to know why without erroring out.
 
 	// Check that the server didn't stub out links it's not allowed to.
@@ -635,42 +694,74 @@ func (t *TeamSigChainPlayer) checkStubbed(state TeamSigChainState) error {
 	return nil
 }
 
-// Check that there are no duplicate members
-func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers) error {
-	var all []SCTeamMember
+// Check that all the users are formatted correctly.
+// Check that there are no duplicate members.
+// `firstLink` is whether this is seqno=1. In which case owners must exist.
+// Rotates to a map which has entries for the roles that actually appeared in the input, even if they are empty lists.
+// In other words, if the input has only `admin -> []` then the output will have only `admin` in the map.
+func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, firstLink bool) (map[keybase1.TeamRole][]UserVersion, error) {
+	type assignment struct {
+		m    SCTeamMember
+		role keybase1.TeamRole
+	}
+	var all []assignment
 
-	if len(members.Owners) < 1 {
-		return errors.New("team has no owners")
+	if firstLink {
+		if members.Owners == nil {
+			return nil, fmt.Errorf("team has no owner list: %+v", members)
+		}
+		if len(*members.Owners) < 1 {
+			return nil, fmt.Errorf("team has no owners: %+v", members)
+		}
 	}
 
-	for _, m := range members.Owners {
-		all = append(all, m)
+	// Map from roles to users.
+	res := make(map[keybase1.TeamRole][]UserVersion)
+
+	if members.Owners != nil {
+		res[keybase1.TeamRole_OWNER] = nil
+		for _, m := range *members.Owners {
+			all = append(all, assignment{m, keybase1.TeamRole_OWNER})
+		}
 	}
-	for _, m := range members.Admins {
-		all = append(all, m)
+	if members.Admins != nil {
+		res[keybase1.TeamRole_ADMIN] = nil
+		for _, m := range *members.Admins {
+			all = append(all, assignment{m, keybase1.TeamRole_ADMIN})
+		}
 	}
-	for _, m := range members.Writers {
-		all = append(all, m)
+	if members.Writers != nil {
+		res[keybase1.TeamRole_WRITER] = nil
+		for _, m := range *members.Writers {
+			all = append(all, assignment{m, keybase1.TeamRole_WRITER})
+		}
 	}
-	for _, m := range members.Readers {
-		all = append(all, m)
+	if members.Readers != nil {
+		res[keybase1.TeamRole_READER] = nil
+		for _, m := range *members.Readers {
+			all = append(all, assignment{m, keybase1.TeamRole_READER})
+		}
 	}
 
-	seen := make(map[NormalizedUsername]bool)
+	// Set of users who have already been seen.
+	seen := make(map[UserVersion]bool)
 
-	for _, m := range all {
-		uv, err := ParseUserVersion(string(m))
+	for _, pair := range all {
+		uv, err := ParseUserVersion(string(pair.m))
 		if err != nil {
-			return err
+			return nil, err
 		}
-		_, ok := seen[uv.Username]
-		if ok {
-			return fmt.Errorf("duplicate username in members: %s", uv.Username)
+
+		if seen[uv] {
+			return nil, fmt.Errorf("duplicate username in members: %s", uv.Username)
 		}
-		seen[uv.Username] = true
+
+		res[pair.role] = append(res[pair.role], uv)
+
+		seen[uv] = true
 	}
 
-	return nil
+	return res, nil
 }
 
 func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerTeamKey, expectedGeneration int) (res keybase1.PerTeamKey, err error) {
@@ -678,8 +769,8 @@ func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerT
 	if perTeamKey.Generation != expectedGeneration {
 		return res, fmt.Errorf("per-team-key generation must start at 1 but got:%d", perTeamKey.Generation)
 	}
-	// TODO validate KIDs
-	// TODO validate the reverse sig
+	// TODO CORE-5302 validate KIDs
+	// TODO CORE-5302 validate the reverse sig
 
 	return keybase1.PerTeamKey{
 		Gen:    perTeamKey.Generation,
@@ -689,42 +780,44 @@ func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerT
 	}, nil
 }
 
-func (t *TeamSigChainPlayer) makeInitialUserLog(members SCTeamMembers) (UserLog, error) {
+func (t *TeamSigChainPlayer) makeInitialUserLog(roleUpdates map[keybase1.TeamRole][]UserVersion) UserLog {
 	userLog := make(UserLog)
 
-	add := func(member SCTeamMember, role keybase1.TeamRole) error {
-		uv, err := ParseUserVersion(string(member))
-		if err != nil {
-			return err
-		}
-		userLog.inform(uv, role, 1)
-		return nil
-	}
-
-	for _, m := range members.Readers {
-		err := add(m, keybase1.TeamRole_READER)
-		if err != nil {
-			return userLog, err
-		}
-	}
-	for _, m := range members.Writers {
-		err := add(m, keybase1.TeamRole_WRITER)
-		if err != nil {
-			return userLog, err
-		}
-	}
-	for _, m := range members.Admins {
-		err := add(m, keybase1.TeamRole_ADMIN)
-		if err != nil {
-			return userLog, err
-		}
-	}
-	for _, m := range members.Owners {
-		err := add(m, keybase1.TeamRole_OWNER)
-		if err != nil {
-			return userLog, err
+	for role, uvs := range roleUpdates {
+		for _, uv := range uvs {
+			userLog.inform(uv, role, 1)
 		}
 	}
 
-	return userLog, nil
+	return userLog
+}
+
+// Update `userLog` with the membership in roleUpdates.
+// Users already in `userLog` who do not appear in `roleUpdates` and whose role does not appear in `roleUpdates` are unaffected.
+// Users already in `userLog` who do not appear in `roleUpdates` but whose role does appear in `roleUpdates` are kicked out the team.
+// Users already in `userLog` who appear with a different role than before are updated to that new role.
+func (t *TeamSigChainPlayer) updateMembership(userLog *UserLog, roleUpdates map[keybase1.TeamRole][]UserVersion, seqno libkb.Seqno) {
+	// Set of users that were already processed
+	processed := make(map[UserVersion]bool)
+
+	for role, uvs := range roleUpdates {
+		for _, uv := range uvs {
+			userLog.inform(uv, role, seqno)
+			processed[uv] = true
+		}
+	}
+
+	// Kick users who were not processed and whose role is mentioned in roleUpdates.
+	for uv := range *userLog {
+		if !processed[uv] {
+			role := (*userLog).getUserRole(uv)
+			if role != keybase1.TeamRole_NONE {
+				_, mentioned := roleUpdates[role]
+				if mentioned {
+					userLog.inform(uv, keybase1.TeamRole_NONE, seqno)
+				}
+			}
+		}
+	}
+
 }

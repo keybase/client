@@ -1972,6 +1972,21 @@ export function identifyIdentify2RpcPromise (request: $Exact<requestCommon & {ca
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.identify2', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function identifyIdentifyLiteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyLiteResult) => void} & {param: identifyIdentifyLiteRpcParam}>) {
+  engineRpcOutgoing('keybase.1.identify.identifyLite', request)
+}
+
+export function identifyIdentifyLiteRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyLiteResult) => void} & {param: identifyIdentifyLiteRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.identifyLite', request)
+}
+export function identifyIdentifyLiteRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyLiteResult) => void} & {param: identifyIdentifyLiteRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.identify.identifyLite', request, callback, incomingCallMap) })
+}
+
+export function identifyIdentifyLiteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyLiteResult) => void} & {param: identifyIdentifyLiteRpcParam}>): Promise<identifyIdentifyLiteResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.identifyLite', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function identifyIdentifyRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam}>) {
   engineRpcOutgoing('keybase.1.identify.identify', request)
 }
@@ -3412,6 +3427,21 @@ export function teamsTeamCreateRpcPromise (request: $Exact<requestCommon & reque
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamGetRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamGet', request)
+}
+
+export function teamsTeamGetRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamGet', request)
+}
+export function teamsTeamGetRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamGet', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamGetRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamGet', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function testPanicRpc (request: Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>) {
   engineRpcOutgoing('keybase.1.test.panic', request)
 }
@@ -3906,7 +3936,7 @@ export type BinaryKID = bytes
 
 export type BlockIdCombo = {
   blockHash: string,
-  chargedTo: UID,
+  chargedTo: UserOrTeamID,
   blockType: BlockType,
 }
 
@@ -3917,7 +3947,7 @@ export type BlockRefNonce = any
 export type BlockReference = {
   bid: BlockIdCombo,
   nonce: BlockRefNonce,
-  chargedTo: UID,
+  chargedTo: UserOrTeamID,
 }
 
 export type BlockReferenceCount = {
@@ -4393,6 +4423,11 @@ export type IdentifyKey = {
   KID: KID,
   trackDiff?: ?TrackDiff,
   breaksTracking: boolean,
+}
+
+export type IdentifyLiteRes = {
+  ul: UserOrTeamLite,
+  trackBreaks?: ?IdentifyTrackBreaks,
 }
 
 export type IdentifyOutcome = {
@@ -5575,6 +5610,13 @@ export type UserCard = {
   theyFollowYou: boolean,
 }
 
+export type UserOrTeamID = string
+
+export type UserOrTeamLite = {
+  id: UserOrTeamID,
+  name: string,
+}
+
 export type UserPlusAllKeys = {
   base: UserPlusKeys,
   pgpKeys?: ?Array<PublicKey>,
@@ -5891,6 +5933,22 @@ export type gregorUIPushStateRpcParam = Exact<{
 export type identifyIdentify2RpcParam = Exact<{
   uid: UID,
   userAssertion: string,
+  reason: IdentifyReason,
+  useDelegateUI?: boolean,
+  alwaysBlock?: boolean,
+  noErrorOnTrackFailure?: boolean,
+  forceRemoteCheck?: boolean,
+  needProofSet?: boolean,
+  allowEmptySelfID?: boolean,
+  noSkipSelf?: boolean,
+  canSuppressUI?: boolean,
+  identifyBehavior?: TLFIdentifyBehavior,
+  forceDisplay?: boolean
+}>
+
+export type identifyIdentifyLiteRpcParam = Exact<{
+  id: UserOrTeamID,
+  assertion: string,
   reason: IdentifyReason,
   useDelegateUI?: boolean,
   alwaysBlock?: boolean,
@@ -6504,6 +6562,10 @@ export type teamsTeamCreateRpcParam = Exact<{
   name: string
 }>
 
+export type teamsTeamGetRpcParam = Exact<{
+  name: string
+}>
+
 export type testPanicRpcParam = Exact<{
   message: string
 }>
@@ -6677,6 +6739,7 @@ type gpgUiSignResult = string
 type gpgUiWantToAddGPGKeyResult = boolean
 type gregorGetStateResult = gregor1.State
 type identifyIdentify2Result = Identify2Res
+type identifyIdentifyLiteResult = IdentifyLiteRes
 type identifyIdentifyResult = IdentifyRes
 type identifyResolve2Result = User
 type identifyResolveResult = UID
@@ -6860,6 +6923,7 @@ export type rpc =
   | fsListRpc
   | gregorGetStateRpc
   | identifyIdentify2Rpc
+  | identifyIdentifyLiteRpc
   | identifyIdentifyRpc
   | identifyResolve2Rpc
   | identifyResolveRpc
@@ -6956,6 +7020,7 @@ export type rpc =
   | sigsSigListJSONRpc
   | sigsSigListRpc
   | teamsTeamCreateRpc
+  | teamsTeamGetRpc
   | testPanicRpc
   | testTestCallbackRpc
   | testTestRpc

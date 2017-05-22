@@ -1,10 +1,11 @@
-package libkb
+package team
 
 import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -26,15 +27,15 @@ type SCTeamSection struct {
 }
 
 type SCTeamMembers struct {
-	Owners  []SCTeamMember `json:"owner,omitempty"`
-	Admins  []SCTeamMember `json:"admin,omitempty"`
-	Writers []SCTeamMember `json:"writer,omitempty"`
-	Readers []SCTeamMember `json:"reader,omitempty"`
+	Owners  *[]SCTeamMember `json:"owner,omitempty"`
+	Admins  *[]SCTeamMember `json:"admin,omitempty"`
+	Writers *[]SCTeamMember `json:"writer,omitempty"`
+	Readers *[]SCTeamMember `json:"reader,omitempty"`
 }
 
 type SCTeamParent struct {
 	ID    SCTeamID `json:"id"`
-	Seqno int      `json:"id"`
+	Seqno int      `json:"seqno"`
 }
 
 type SCSubteam struct {
@@ -53,8 +54,8 @@ type SCPerTeamKey struct {
 // -------------------------
 
 type SCChainLink struct {
-	Seqno Seqno  `json:"seqno"`
-	Sig   string `json:"sig"`
+	Seqno libkb.Seqno `json:"seqno"`
+	Sig   string      `json:"sig"`
 	// string containing json of a SCChainLinkPayload.
 	Payload string `json:"payload_json"`
 	// uid of the signer
@@ -62,7 +63,7 @@ type SCChainLink struct {
 	Version int          `json:"version"`
 }
 
-func (link *SCChainLink) PayloadHash() LinkID {
+func (link *SCChainLink) PayloadHash() libkb.LinkID {
 	if link.Payload == "" {
 		return nil
 	}
@@ -84,7 +85,7 @@ type SCChainLinkPayload struct {
 	ExpireIn int           `json:"expire_in,omitempty"`
 	Prev     *string       `json:"prev,omitempty"`
 	SeqType  int           `json:"seq_type,omitempty"`
-	Seqno    Seqno         `json:"seqno,omitempty"`
+	Seqno    libkb.Seqno   `json:"seqno,omitempty"`
 	Tag      string        `json:"tag,omitempty"`
 }
 
