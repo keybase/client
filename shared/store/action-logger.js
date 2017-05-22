@@ -31,7 +31,7 @@ export const actionLogger = (store: any) => (next: any) => (action: any) => {
     `Dispatching action: ${action.type}: `,
     forwardLogs ? JSON.stringify(actionToLog) : actionToLog,
   ]
-  console.log(log1)
+  // console.log(log1)
   logger.log('Action:', log1)
 
   const result = next(action)

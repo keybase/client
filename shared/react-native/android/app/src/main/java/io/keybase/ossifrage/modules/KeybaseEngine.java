@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 import go.keybase.Keybase;
 import io.keybase.ossifrage.BuildConfig;
+import javassist.convert.TransformWriteField;
 
 import static go.keybase.Keybase.readB64;
 import static go.keybase.Keybase.writeB64;
@@ -25,9 +26,27 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     private static final String NAME = "KeybaseEngine";
     private static final String RPC_EVENT_NAME = "RPC";
-    private ExecutorService executor;
+    private ExecutorService readExecutor;
+    private ExecutorService writeExecutor;
     private Boolean started = false;
     private ReactApplicationContext reactContext;
+
+    private class WriteToKBLib implements Runnable {
+        private final String data;
+
+        public WriteToKBLib(String data) {
+            this.data = data;
+        }
+
+        @Override
+        public void run() {
+            try {
+                writeB64(this.data);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     private class ReadFromKBLib implements Runnable {
         private final ReactApplicationContext reactContext;
@@ -38,6 +57,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
         @Override
         public void run() {
+            Thread.currentThread().setName("ReadFromKBLib.ReadThread");
           do {
               try {
                   final String data = readB64();
@@ -52,7 +72,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
               } catch (Exception e) {
                       e.printStackTrace();
               }
-          } while (!Thread.currentThread().isInterrupted() && reactContext.hasActiveCatalystInstance());
+          } while (!Thread.interrupted() && reactContext.hasActiveCatalystInstance());
         }
     }
 
@@ -64,9 +84,9 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         reactContext.addLifecycleEventListener(new LifecycleEventListener() {
             @Override
             public void onHostResume() {
-                if (started && executor == null) {
-                    executor = Executors.newSingleThreadExecutor();
-                    executor.execute(new ReadFromKBLib(reactContext));
+                if (started && readExecutor == null) {
+                    readExecutor = Executors.newSingleThreadExecutor();
+                    readExecutor.execute(new ReadFromKBLib(reactContext));
                 }
             }
 
@@ -83,10 +103,10 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     public void destroy(){
         try {
-            executor.shutdownNow();
+            readExecutor.shutdownNow();
             reset();
-            executor.awaitTermination(30, TimeUnit.SECONDS);
-            executor = null;
+            readExecutor.awaitTermination(30, TimeUnit.SECONDS);
+            readExecutor = null;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -111,11 +131,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     @ReactMethod
     public void runWithData(String data) {
-      try {
-          writeB64(data);
-      } catch (Exception e) {
-          e.printStackTrace();
-      }
+        writeExecutor.execute(new WriteToKBLib(data));
     }
 
     @ReactMethod
@@ -131,9 +147,13 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     public void start() {
         try {
             started = true;
-            if (executor == null) {
-                executor = Executors.newSingleThreadExecutor();
-                executor.execute(new ReadFromKBLib(this.reactContext));
+            if (writeExecutor == null) {
+                writeExecutor = Executors.newSingleThreadExecutor();
+            }
+
+            if (readExecutor == null) {
+                readExecutor = Executors.newSingleThreadExecutor();
+                readExecutor.execute(new ReadFromKBLib(this.reactContext));
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -58,6 +58,8 @@ function writeStream(filepath: string, encoding: string, append?: boolean): Prom
 // TODO implemented for mobile, not here
 const cachesDirectoryPath = ''
 
+const filesDirectoryPath = ''
+
 export {
   cachesDirectoryPath,
   copy,
@@ -68,4 +70,5 @@ export {
   tmpRandFile,
   writeFile,
   writeStream,
+  filesDirectoryPath,
 }

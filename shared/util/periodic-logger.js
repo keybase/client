@@ -45,7 +45,7 @@ class PeriodicLogger {
     this._messages[this._lastWrite % this._size] = argsWithTimestamp
 
     if (this._logIncoming) {
-      this._dump(null, PREFIX_DUMP_CURRENT, argsWithTimestamp)
+      // this._dump(null, PREFIX_DUMP_CURRENT, argsWithTimestamp)
     } else if (this._logAfterXActions > 0) {
       if (this._lastWrite % this._logAfterXActions === 0) {
         this._dump(null, PREFIX_DUMP_CURRENT, argsWithTimestamp)
@@ -54,7 +54,7 @@ class PeriodicLogger {
   }
 
   log(...args: Array<any>) {
-    !this._logIncoming && this._logToConsole && console.log(PREFIX_LOG, this._lastWrite + 1) // output current index so we can see the order of things and correlate a full dump
+    // !this._logIncoming && this._logToConsole && console.log(PREFIX_LOG, this._lastWrite + 1) // output current index so we can see the order of things and correlate a full dump
     this._write(args)
   }
 

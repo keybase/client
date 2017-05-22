@@ -7,8 +7,8 @@ import logSend from '../native/log-send'
 import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
 import {isElectron, isIOS, isAndroid, appVersionName, appVersionCode, version} from '../constants/platform'
-import {dumpLoggers, getLogger} from '../util/periodic-logger'
-import {writeStream, cachesDirectoryPath} from '../util/file'
+import {getLogger} from '../util/periodic-logger'
+import {writeStream, cachesDirectoryPath, filesDirectoryPath} from '../util/file'
 import {serialPromises} from '../util/promise'
 
 import type {Dispatch} from '../constants/types/flux'
@@ -49,57 +49,51 @@ class FeedbackContainer extends Component<void, {status: string} & TimerProps, S
         reject(new Error('Not implemented on Desktop!'))
       }
 
-      if (isIOS) {
-        // We don't get the notification from the daemon so we have to do this ourselves
-        const logs = []
-        console.log('Starting log dump')
+      const logs = []
+      console.log('Starting log dump')
 
-        const logNames = ['actionLogger', 'storeLogger']
+      const logNames = ['actionLogger', 'storeLogger']
 
-        logNames.forEach(name => {
-          try {
-            const logger = getLogger(name)
-            logger &&
-              logger.dumpAll((...args) => {
-                logs.push(args)
-              })
-          } catch (_) {}
-        })
-
-        logs.push(['=============CONSOLE.LOG START============='])
-        const logger = getLogger('iosConsoleLog')
-        logger &&
-          logger.dumpAll((...args) => {
-            // Skip the extra prefixes that period-logger uses.
-            logs.push([args[1], ...args.slice(2)])
-          })
-        logs.push(['=============CONSOLE.LOG END============='])
-
-        const path = `${cachesDirectoryPath}/Keybase/rn.log`
-        console.log('Starting log write')
-
-        writeStream(path, 'utf8')
-          .then(stream => {
-            const writeLogsPromises = logs.map((log, idx) => {
-              return () => {
-                return stream.write(JSON.stringify(log, null, 2))
-              }
+      logNames.forEach(name => {
+        try {
+          const logger = getLogger(name)
+          logger &&
+            logger.dumpAll((...args) => {
+              logs.push(args)
             })
+        } catch (_) {}
+      })
 
-            return serialPromises(writeLogsPromises).then(() => stream.close())
+      logs.push(['=============CONSOLE.LOG START============='])
+      const logger = getLogger('consoleLog')
+      logger &&
+        logger.dumpAll((...args) => {
+          // Skip the extra prefixes that period-logger uses.
+          logs.push([args[1], ...args.slice(2)])
+        })
+      logs.push(['=============CONSOLE.LOG END============='])
+
+      const path = isIOS ? `${cachesDirectoryPath}/Keybase/rn.log` : `${filesDirectoryPath}/rn.log`
+      console.log('Starting log write')
+
+      writeStream(path, 'utf8')
+        .then(stream => {
+          const writeLogsPromises = logs.map((log, idx) => {
+            return () => {
+              return stream.write(JSON.stringify(log, null, 2))
+            }
           })
-          .then(success => {
-            console.log('Log write done')
-            resolve(true)
-          })
-          .catch(err => {
-            resolve(false)
-            console.warn(`Couldn't log send! ${err}`)
-          })
-      } else {
-        dumpLoggers()
-        resolve(true)
-      }
+
+          return serialPromises(writeLogsPromises).then(() => stream.close())
+        })
+        .then(success => {
+          console.log('Log write done')
+          resolve(true)
+        })
+        .catch(err => {
+          resolve(false)
+          console.warn(`Couldn't log send! ${err}`)
+        })
     })
 
   componentWillUnmount() {

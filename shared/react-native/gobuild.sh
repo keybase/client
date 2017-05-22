@@ -96,7 +96,7 @@ if [ "$arg" = "ios" ]; then
 elif [ "$arg" = "android" ]; then
   android_dest="$dir/android/keybaselib/keybaselib.aar"
   echo "Building for Android ($android_dest)..."
-  "$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
+  "$GOPATH/bin/gomobile" bind -target="android/arm,android/arm64" -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
 else
   echo "Nothing to build, you need to specify 'ios' or 'android'"
 fi
