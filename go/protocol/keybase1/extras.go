@@ -1090,11 +1090,27 @@ func (ut UserOrTeamID) AsUser() (UID, error) {
 	return UID(ut), nil
 }
 
+func (ut UserOrTeamID) AsUserOrBust() UID {
+	uid, err := ut.AsUser()
+	if err != nil {
+		panic(err)
+	}
+	return uid
+}
+
 func (ut UserOrTeamID) AsTeam() (TeamID, error) {
 	if !ut.IsTeamOrSubteam() {
 		return TeamID(""), errors.New("ID is not a team ID")
 	}
 	return TeamID(ut), nil
+}
+
+func (ut UserOrTeamID) AsTeamOrBust() TeamID {
+	tid, err := ut.AsTeam()
+	if err != nil {
+		panic(err)
+	}
+	return tid
 }
 
 func (ut UserOrTeamID) IsUser() bool {
