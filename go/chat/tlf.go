@@ -3,6 +3,7 @@ package chat
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
@@ -41,16 +42,23 @@ func (t *KBFSTLFInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 
 func (t *KBFSTLFInfoSource) Lookup(ctx context.Context, tlfName string,
 	visibility chat1.TLFVisibility) (*types.TLFInfo, error) {
-	res, err := CtxKeyFinder(ctx).Find(ctx, t, tlfName, visibility == chat1.TLFVisibility_PUBLIC)
-	if err != nil {
-		return nil, err
+	var lastErr error
+	for i := 0; i < 5; i++ {
+		time.Sleep(libkb.BackoffDefault.Duration(i))
+		res, err := CtxKeyFinder(ctx).Find(ctx, t, tlfName, visibility == chat1.TLFVisibility_PUBLIC)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		info := &types.TLFInfo{
+			ID:               chat1.TLFID(res.NameIDBreaks.TlfID.ToBytes()),
+			CanonicalName:    res.NameIDBreaks.CanonicalName.String(),
+			IdentifyFailures: res.NameIDBreaks.Breaks.Breaks,
+		}
+		return info, nil
 	}
-	info := &types.TLFInfo{
-		ID:               chat1.TLFID(res.NameIDBreaks.TlfID.ToBytes()),
-		CanonicalName:    res.NameIDBreaks.CanonicalName.String(),
-		IdentifyFailures: res.NameIDBreaks.Breaks.Breaks,
-	}
-	return info, nil
+
+	return nil, lastErr
 }
 
 func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, ferr error) {
