@@ -147,7 +147,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	_, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
 	if err != nil {
 		// If this is a convID based query, let's go ahead and drop those onto the retrier
-		if arg.Query != nil {
+		if arg.Query != nil && len(arg.Query.ConvIDs) > 0 {
 			h.Debug(ctx, "GetInboxNonblockLocal: failed to get unverified inbox, marking convIDs as failed")
 			for _, convID := range arg.Query.ConvIDs {
 				h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
