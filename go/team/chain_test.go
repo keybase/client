@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -25,7 +26,7 @@ type DeconstructJig struct {
 }
 
 func TestTeamSigChainParse(t *testing.T) {
-	tc := SetupTest(t, "test_team_chains", 1)
+	tc := libkb.SetupTest(t, "test_team_chains", 1)
 	defer tc.Cleanup()
 
 	var jig DeconstructJig
@@ -52,7 +53,7 @@ func TestTeamSigChainParse(t *testing.T) {
 }
 
 func TestTeamSigChainPlay1(t *testing.T) {
-	tc := SetupTest(t, "test_team_chains", 1)
+	tc := libkb.SetupTest(t, "test_team_chains", 1)
 	defer tc.Cleanup()
 
 	var jig DeconstructJig
@@ -96,7 +97,7 @@ func TestTeamSigChainPlay1(t *testing.T) {
 	require.Equal(t, 3, ptk.Seqno)
 	require.Equal(t, "0120f1483c8515d08ac9ecb8a92eecba17cc35e3132b2da5481ab5da634da27e8d0e0a", string(ptk.SigKID))
 	require.Equal(t, "0121015351e68bc98d256c190fbca5608c2b04a36d15f5e95896385f1b5b0c6dc1260a", string(ptk.EncKID))
-	require.Equal(t, Seqno(3), state.GetLatestSeqno())
+	require.Equal(t, libkb.Seqno(3), state.GetLatestSeqno())
 
 	checkRole := func(username string, role keybase1.TeamRole) {
 		uv := NewUserVersion(username, 1)
@@ -113,7 +114,7 @@ func TestTeamSigChainPlay1(t *testing.T) {
 }
 
 func TestTeamSigChainPlay2(t *testing.T) {
-	tc := SetupTest(t, "test_team_chains", 1)
+	tc := libkb.SetupTest(t, "test_team_chains", 1)
 	defer tc.Cleanup()
 
 	var jig DeconstructJig
@@ -157,7 +158,7 @@ func TestTeamSigChainPlay2(t *testing.T) {
 	require.Equal(t, 1, ptk.Seqno)
 	require.Equal(t, "01208c7432e8d65a4aa59e666e55ee856a8fa41a20bdc3edb5bb07ab7cac4a230a170a", string(ptk.SigKID))
 	require.Equal(t, "01212337961af637143545aa512b63393cd92c588d3e153fbd8c4c5c923c76cc410d0a", string(ptk.EncKID))
-	require.Equal(t, Seqno(2), state.GetLatestSeqno())
+	require.Equal(t, libkb.Seqno(2), state.GetLatestSeqno())
 
 	checkRole := func(username string, role keybase1.TeamRole) {
 		uv := NewUserVersion(username, 1)

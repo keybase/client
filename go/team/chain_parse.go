@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -53,8 +54,8 @@ type SCPerTeamKey struct {
 // -------------------------
 
 type SCChainLink struct {
-	Seqno Seqno  `json:"seqno"`
-	Sig   string `json:"sig"`
+	Seqno libkb.Seqno `json:"seqno"`
+	Sig   string      `json:"sig"`
 	// string containing json of a SCChainLinkPayload.
 	Payload string `json:"payload_json"`
 	// uid of the signer
@@ -62,7 +63,7 @@ type SCChainLink struct {
 	Version int          `json:"version"`
 }
 
-func (link *SCChainLink) PayloadHash() LinkID {
+func (link *SCChainLink) PayloadHash() libkb.LinkID {
 	if link.Payload == "" {
 		return nil
 	}
@@ -84,7 +85,7 @@ type SCChainLinkPayload struct {
 	ExpireIn int           `json:"expire_in,omitempty"`
 	Prev     *string       `json:"prev,omitempty"`
 	SeqType  int           `json:"seq_type,omitempty"`
-	Seqno    Seqno         `json:"seqno,omitempty"`
+	Seqno    libkb.Seqno   `json:"seqno,omitempty"`
 	Tag      string        `json:"tag,omitempty"`
 }
 
