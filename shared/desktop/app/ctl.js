@@ -6,8 +6,6 @@ import exec from './exec'
 export function ctlStop(callback: any) {
   const binPath = keybaseBinPath()
   const args = ['ctl', 'stop', '--exclude=app']
-  // TODO: on Win32, we would need: args = ['ctl', 'stop', '--kill-kbfs']
-  // but for now we leave services running
   exec(binPath, args, 'darwin', 'prod', false, callback)
 }
 
