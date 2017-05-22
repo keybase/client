@@ -27,8 +27,9 @@ const (
 	// MdServerTokenExpireIn is the TTL to use when constructing an authentication token.
 	MdServerTokenExpireIn = 2 * 60 * 60 // 2 hours
 	// MdServerBackgroundRekeyPeriod is how long the rekey checker
-	// waits between runs.  The timer gets reset to this period after
+	// waits between runs on average. The timer gets reset after
 	// every incoming FolderNeedsRekey RPC.
+	// The amount of wait is calculated in nextRekeyTime.
 	MdServerBackgroundRekeyPeriod = 1 * time.Hour
 	// MdServerDefaultPingIntervalSeconds is the default interval on which the
 	// client should contact the MD Server
@@ -97,7 +98,7 @@ func NewMDServerRemote(config Config, srvAddr string,
 		deferLog:      traceLogger{deferLog},
 		mdSrvAddr:     srvAddr,
 		rpcLogFactory: rpcLogFactory,
-		rekeyTimer:    time.NewTimer(MdServerBackgroundRekeyPeriod),
+		rekeyTimer:    time.NewTimer(nextRekeyTime()),
 	}
 
 	mdServer.pinger = pinger{
@@ -373,7 +374,7 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 	md.config.SetRekeyQueue(NewRekeyQueueStandard(md.config))
 	// Reset the timer since we will get folders for rekey again on
 	// the re-connect.
-	md.rekeyTimer.Reset(MdServerBackgroundRekeyPeriod)
+	md.resetRekeyTimer()
 
 	if status == rpc.StartingNonFirstConnection {
 		md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, errDisconnected{})
@@ -667,7 +668,7 @@ func (md *MDServerRemote) FoldersNeedRekey(ctx context.Context,
 	}
 	// Reset the timer in case there are a lot of rekey folders
 	// dribbling in from the server still.
-	md.rekeyTimer.Reset(MdServerBackgroundRekeyPeriod)
+	md.resetRekeyTimer()
 	return nil
 }
 
@@ -687,7 +688,7 @@ func (md *MDServerRemote) FolderNeedsRekey(ctx context.Context,
 	md.config.RekeyQueue().Enqueue(id)
 	// Reset the timer in case there are a lot of rekey folders
 	// dribbling in from the server still.
-	md.rekeyTimer.Reset(MdServerBackgroundRekeyPeriod)
+	md.resetRekeyTimer()
 	return nil
 }
 
@@ -835,7 +836,7 @@ func (md *MDServerRemote) CheckForRekeys(ctx context.Context) <-chan error {
 				"CheckForRekeys: %v", err)
 			c <- err
 		}
-		md.rekeyTimer.Reset(MdServerBackgroundRekeyPeriod)
+		md.resetRekeyTimer()
 		c <- nil
 	})
 	return c
@@ -1007,7 +1008,7 @@ func (md *MDServerRemote) backgroundRekeyChecker(ctx context.Context) {
 		select {
 		case <-md.rekeyTimer.C:
 			if !md.getConn().IsConnected() {
-				md.rekeyTimer.Reset(MdServerBackgroundRekeyPeriod)
+				md.resetRekeyTimer()
 				continue
 			}
 
@@ -1019,7 +1020,7 @@ func (md *MDServerRemote) backgroundRekeyChecker(ctx context.Context) {
 				md.log.CWarningf(newCtx, "MDServerRemote: getFoldersForRekey "+
 					"failed with %v", err)
 			}
-			md.rekeyTimer.Reset(MdServerBackgroundRekeyPeriod)
+			md.resetRekeyTimer()
 		case <-ctx.Done():
 			return
 		}
@@ -1093,4 +1094,25 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 	}
 
 	return wkb, rkb, nil
+}
+
+func (md *MDServerRemote) resetRekeyTimer() {
+	md.rekeyTimer.Reset(nextRekeyTime())
+}
+
+// nextRekeyTime returns the time remaining to the next rekey.
+// The time returned is random with the formula:
+// MdServerBackgroundRekeyPeriod/2 + (k * (MdServerBackgroundRekeyPeriod/n))
+// average: MdServerBackgroundRekeyPeriod
+// minimum: MdServerBackgroundRekeyPeriod/2
+// maximum: MdServerBackgroundRekeyPeriod*1.5
+// k=0..n, random uniformly distributed.
+func nextRekeyTime() time.Duration {
+	var buf [1]byte
+	err := kbfscrypto.RandRead(buf[:])
+	if err != nil {
+		panic("nextRekeyTime: Random source broken!")
+	}
+	return (MdServerBackgroundRekeyPeriod / 2) +
+		(time.Duration(buf[0]) * (MdServerBackgroundRekeyPeriod / 0xFF))
 }
