@@ -71,19 +71,8 @@ func TestTeamSigChainPlay1(t *testing.T) {
 		chainLinks = append(chainLinks, chainLink)
 	}
 
-	helper := TeamSigChainPlayerHelper{
-		UsernameForUID: func(uid keybase1.UID) (string, error) {
-			switch uid {
-			case "e552cbc9f6951c2ea414cf098adbfa19":
-				return "d_08827f78", nil
-			case "130ea880070624ba5e0f0a6032cf0f19":
-				return "b_4a45388c", nil
-			default:
-				return "", errors.New("testing hit unknown uid")
-			}
-		},
-	}
-	player := NewTeamSigChainPlayer(&helper, NewUserVersion("a_1585f13b", 1), true)
+	helper := &chainHelper{}
+	player := NewTeamSigChainPlayer(helper, NewUserVersion("a_1585f13b", 1), true)
 	err = player.AddChainLinks(chainLinks)
 	require.NoError(t, err)
 
@@ -171,4 +160,17 @@ func TestTeamSigChainPlay2(t *testing.T) {
 	checkRole("c_ac088470", keybase1.TeamRole_ADMIN)
 	checkRole("b_ee111192", keybase1.TeamRole_NONE)   // removed
 	checkRole("a_f0259e08", keybase1.TeamRole_WRITER) // changed role
+}
+
+type chainHelper struct{}
+
+func (c *chainHelper) UsernameForUID(uid keybase1.UID) (string, error) {
+	switch uid {
+	case "e552cbc9f6951c2ea414cf098adbfa19":
+		return "d_08827f78", nil
+	case "130ea880070624ba5e0f0a6032cf0f19":
+		return "b_4a45388c", nil
+	default:
+		return "", errors.New("testing hit unknown uid")
+	}
 }

@@ -216,15 +216,15 @@ func (t *TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 	return res, nil
 }
 
-// Implementations for TeamSigChainPlayer that can be mocked out for tests.
-type TeamSigChainPlayerHelper struct {
-	UsernameForUID func(keybase1.UID) (string, error)
+// UsernameFinder is an interface for TeamSigChainPlayer that can be mocked out for tests.
+type UsernameFinder interface {
+	UsernameForUID(keybase1.UID) (string, error)
 }
 
 type TeamSigChainPlayer struct {
 	sync.Mutex
 
-	helper *TeamSigChainPlayerHelper
+	helper UsernameFinder
 
 	// information about the reading user
 	reader UserVersion
@@ -235,7 +235,7 @@ type TeamSigChainPlayer struct {
 }
 
 // Load a team chain from the perspective of uid.
-func NewTeamSigChainPlayer(helper *TeamSigChainPlayerHelper, reader UserVersion, isSubTeam bool) *TeamSigChainPlayer {
+func NewTeamSigChainPlayer(helper UsernameFinder, reader UserVersion, isSubTeam bool) *TeamSigChainPlayer {
 	return &TeamSigChainPlayer{
 		helper:      helper,
 		reader:      reader,

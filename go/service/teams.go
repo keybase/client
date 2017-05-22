@@ -35,3 +35,13 @@ func (h *TeamsHandler) TeamCreate(netCtx context.Context, arg keybase1.TeamCreat
 	eng := engine.NewTeamCreateEngine(h.G(), arg.Name)
 	return engine.RunEngine(eng, &ctx)
 }
+
+func (h *TeamsHandler) TeamGet(netCtx context.Context, arg keybase1.TeamGetArg) (err error) {
+	ctx := engine.Context{
+		LogUI:      h.getLogUI(arg.SessionID),
+		NetContext: netCtx,
+		SessionID:  arg.SessionID,
+	}
+	eng := engine.NewTeamGet(h.G(), arg)
+	return engine.RunEngine(eng, &ctx)
+}
