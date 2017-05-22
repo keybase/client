@@ -36,7 +36,7 @@ let config: {[key: string]: any} = {
 
 if (__DEV__ && true) {
   config.isDevApplePushToken = true
-  config.clickableVisible = true
+  config.clickableVisible = false
   config.devStoreChangingFunctions = true
   config.dumbChatOnly = false
   config.dumbSheetOnly = false

@@ -94,7 +94,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
                 icon={<Avatar size={40} username={p.name} />}
                 body={
                   <Box style={{...globalStyles.flexBoxColumn}}>
-                    <Text type="Body" backgroundMode={backgroundMode}>{p.name}</Text>
+                    <Text type="BodySemibold" backgroundMode={backgroundMode}>{p.name}</Text>
                     <Text type="BodySmall" backgroundMode={backgroundMode}>{p.devices}</Text>
                   </Box>
                 }
@@ -341,7 +341,7 @@ const styleTLFTextThemed = {
   },
 
   public: {
-    color: globalColors.yellowGreen,
+    color: globalColors.yellowGreen2,
   },
 }
 
@@ -367,10 +367,11 @@ const backButtonColorThemed = {
 const styleWarningBanner = {
   backgroundColor: globalColors.red,
   color: globalColors.white,
-  paddingTop: 13,
-  paddingBottom: 13,
-  paddingLeft: globalMargins.xlarge,
-  paddingRight: globalMargins.xlarge,
+  minHeight: 40,
+  paddingBottom: globalMargins.tiny,
+  paddingTop: globalMargins.tiny,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
   textAlign: 'center',
 }
 

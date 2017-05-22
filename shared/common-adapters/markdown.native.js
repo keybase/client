@@ -11,7 +11,7 @@ import type {Props} from './markdown'
 const codeSnippetStyle = {
   ...globalStyles.fontTerminal,
   color: globalColors.blue,
-  fontSize: 12,
+  fontSize: 13,
   backgroundColor: globalColors.beige,
   // FIXME not yet supported for nested <Text>:
   //...globalStyles.rounded,

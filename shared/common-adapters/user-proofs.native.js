@@ -202,7 +202,7 @@ const styleService = {
   color: globalColors.black_75,
   fontSize: 20,
   marginRight: globalMargins.xtiny,
-  marginTop: globalMargins.tiny - 2,
+  marginTop: globalMargins.tiny - 1,
   textAlign: 'center',
 }
 const styleStatusIconTouchable = {

@@ -150,8 +150,8 @@ const styleActionButton = {
 
 const styleInputText = {
   ...globalStyles.fontRegular,
-  fontSize: 14,
-  lineHeight: 18,
+  fontSize: 15,
+  lineHeight: 19,
 }
 
 const styleContainer = {
