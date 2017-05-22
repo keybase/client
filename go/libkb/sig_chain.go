@@ -809,7 +809,8 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 			return err
 		}
 		if prevLink == nil {
-			return fmt.Errorf("tried to load previous link ID %s, but link not found", currentLink.GetPrev())
+			l.G().Log.CDebugf(ctx, "tried to load previous link ID %s, but link not found", currentLink.GetPrev())
+			return nil
 		}
 		links = append(links, prevLink)
 		if isSubchainStart(currentLink, prevLink) {
