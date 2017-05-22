@@ -297,17 +297,6 @@ func (u UID) Less(v UID) bool {
 	return u < v
 }
 
-// Returns a number in [0, shardCount) which can be treated as roughly
-// uniformly distributed. Used for things that need to shard by user.
-func (u UID) GetShard(shardCount int) (int, error) {
-	bytes, err := hex.DecodeString(string(u))
-	if err != nil {
-		return 0, err
-	}
-	n := binary.LittleEndian.Uint32(bytes)
-	return int(n % uint32(shardCount)), nil
-}
-
 func (u UID) AsUserOrTeam() UserOrTeamID {
 	return UserOrTeamID(u)
 }
@@ -1131,4 +1120,15 @@ func (ut UserOrTeamID) IsSubteam() bool {
 func (ut UserOrTeamID) IsTeamOrSubteam() bool {
 	suffix := ut[len(ut)-2:]
 	return suffix == TEAMID_SUFFIX_HEX || suffix == SUB_TEAMID_SUFFIX_HEX
+}
+
+// Returns a number in [0, shardCount) which can be treated as roughly
+// uniformly distributed. Used for things that need to shard by user.
+func (ut UserOrTeamID) GetShard(shardCount int) (int, error) {
+	bytes, err := hex.DecodeString(string(ut))
+	if err != nil {
+		return 0, err
+	}
+	n := binary.LittleEndian.Uint32(bytes)
+	return int(n % uint32(shardCount)), nil
 }
