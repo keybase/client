@@ -3,20 +3,21 @@ import {Component} from 'react'
 
 export type Settings = {
   name: string,
-  subscribed: boolean,
   description: string,
+  subscribed: boolean,
 }
 
 export type Props = {
-  settings: ?Array<Settings>,
-  unsubscribedFromAll: ?boolean,
-  allowSave: boolean,
   allowEdit: boolean,
+  allowSave: boolean,
+  emailSettings: ?Array<Settings>,
+  onRefresh: () => void,
+  onSave: () => void,
   onToggle: (name: string) => void,
   onToggleUnsubscribeAll: () => void,
-  onSave: () => void,
+  pushSettings: ?Array<Settings>,
+  unsubscribedFromAll: ?boolean,
   waitingForResponse: boolean,
-  onRefresh: () => void,
 }
 
 export default class Notifications extends Component<void, Props, void> {}

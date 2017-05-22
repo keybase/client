@@ -94,8 +94,8 @@ function notificationsSave(): NotificationsSave {
   return {type: Constants.notificationsSave, payload: undefined}
 }
 
-function notificationsToggle(name?: string): NotificationsToggle {
-  return {type: Constants.notificationsToggle, payload: {name}}
+function notificationsToggle(group?: string, name?: string): NotificationsToggle {
+  return {type: Constants.notificationsToggle, payload: {group, name}}
 }
 
 function setAllowDeleteAccount(allow: boolean): SetAllowDeleteAccount {
@@ -169,20 +169,24 @@ function* saveNotificationsSaga(): SagaGenerator<any, any> {
     yield put(Constants.waiting(true))
     const current = yield select(state => state.settings.notifications)
 
-    if (!current || !current.settings) {
+    if (!current || !current.emailSettings) {
       throw new Error('No notifications loaded yet')
     }
 
-    const JSONPayload = current.settings
-      .map(s => ({
-        key: `${s.name}|email`,
-        value: s.subscribed ? '1' : '0',
-      }))
-      .concat({
-        key: `unsub|email`,
-        value: current.unsubscribedFromAll ? '1' : '0',
-      })
-
+    const emailSettings = current.emailSettings.map(s => ({
+      key: `${s.name}|email`,
+      value: s.subscribed ? '1' : '0',
+    }))
+    const pushSettings = current.pushSettings.map(s => ({
+      key: `${s.name}|app_push`,
+      value: s.subscribed ? '1' : '0',
+    }))
+    const unsub = {
+      key: `unsub|email`,
+      value: current.unsubscribedFromAll ? '1' : '0',
+    }
+    const JSONPayload = emailSettings.concat(pushSettings).concat(unsub)
+    console.warn('JSONPayload', JSONPayload)
     const result = yield call(apiserverPostJSONRpcPromise, {
       param: {
         endpoint: 'account/subscribe',
@@ -350,7 +354,8 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
     yield put({
       type: Constants.notificationsRefreshed,
       payload: {
-        settings: null,
+        emailSettings: null,
+        pushSettings: null,
         unsubscribedFromAll: null,
       },
     })
@@ -380,17 +385,25 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
 
   const unsubscribedFromAll = results.notifications.email.unsub
 
-  const settings = results.notifications.email.settings.map(s => ({
-    name: s.name,
-    subscribed: s.subscribed,
-    description: s.description,
-  })) || []
+  const settingsToPayload = s =>
+    ({
+      name: s.name,
+      subscribed: s.subscribed,
+      description: s.description,
+    } || [])
+
+  console.warn('foo')
+  console.warn(results.notifications)
+  const {app_push, email} = results.notifications
+  const emailSettings = email.settings.map(settingsToPayload)
+  const pushSettings = app_push.settings.map(settingsToPayload)
 
   yield put({
     type: Constants.notificationsRefreshed,
     payload: {
+      emailSettings,
+      pushSettings,
       unsubscribedFromAll,
-      settings,
     },
   })
 }

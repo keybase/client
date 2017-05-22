@@ -89,7 +89,10 @@ export const notificationsSaved = 'settings:notificationsSaved'
 export type NotificationsSaved = NoErrorTypedAction<'settings:notificationsSaved', void>
 
 export const notificationsToggle = 'settings:notificationsToggle'
-export type NotificationsToggle = NoErrorTypedAction<'settings:notificationsToggle', {name: ?string}>
+export type NotificationsToggle = NoErrorTypedAction<
+  'settings:notificationsToggle',
+  {group: ?string, name: ?string}
+>
 
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
 export type SetAllowDeleteAccount = NoErrorTypedAction<'settings:setAllowDeleteAccount', boolean>

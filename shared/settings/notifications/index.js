@@ -6,36 +6,42 @@ import {globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from './index'
 
+const makeCheckbox = (group: string, s: Foo, props: Props) => (
+  <Checkbox
+    style={{marginTop: globalMargins.small}}
+    key={s.name}
+    disabled={!props.allowEdit}
+    onCheck={() => props.onToggle(group, s.name)}
+    checked={s.subscribed}
+    label={s.description}
+  />
+)
+
 const Notifications = (props: Props) =>
-  !props.settings
+  !props.emailSettings
     ? <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <ProgressIndicator type="Small" style={{width: globalMargins.medium}} />
       </Box>
     : <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.small, flex: 1}}>
         <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>Email me:</Text>
         <Box style={globalStyles.flexBoxColumn}>
-          {!!props.settings &&
-            props.settings.map(s => (
-              <Checkbox
-                style={{marginTop: globalMargins.small}}
-                key={s.name}
-                disabled={!props.allowEdit}
-                onCheck={() => props.onToggle(s.name)}
-                checked={s.subscribed}
-                label={s.description}
-              />
-            ))}
+          {!!props.emailSettings && props.emailSettings.map(s => makeCheckbox('email', s, props))}
         </Box>
         <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>Or:</Text>
         <Checkbox
-          style={{marginTop: globalMargins.small, marginBottom: globalMargins.medium}}
+          style={{marginTop: globalMargins.small}}
           onCheck={() => props.onToggleUnsubscribeAll()}
           disabled={!props.allowEdit}
           checked={!!props.unsubscribedFromAll}
           label="Unsubscribe me from all mail"
         />
+        {!!props.pushSettings &&
+          <Box style={globalStyles.flexBoxColumn}>
+            <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>Push notifications:</Text>
+            {props.pushSettings.map(s => makeCheckbox('app_push', s, props))}
+          </Box>}
         <Button
-          style={{alignSelf: 'center'}}
+          style={{alignSelf: 'center', marginTop: globalMargins.small}}
           type="Primary"
           label="Save"
           disabled={!props.allowSave || !props.allowEdit}

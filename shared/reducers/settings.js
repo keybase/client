@@ -20,7 +20,8 @@ const initialState: State = {
   notifications: {
     allowEdit: false,
     allowSave: false,
-    settings: null,
+    emailSettings: null,
+    pushSettings: null,
     unsubscribedFromAll: null,
   },
   passphrase: {
@@ -50,7 +51,7 @@ function reducer(state: State = initialState, action: Actions): State {
         allowDeleteAccount: action.payload,
       }
     case Constants.notificationsToggle:
-      if (!state.notifications.settings) {
+      if (!state.notifications.emailSettings) {
         console.log('Warning: trying to toggle while not loaded')
         return state
       } else if (!state.notifications.allowEdit) {
@@ -59,15 +60,15 @@ function reducer(state: State = initialState, action: Actions): State {
       }
 
       // No name means the unsubscribe option
-      const name = action.payload.name
+      const {group, name} = action.payload
 
-      const updateSubscribe = setting => {
+      const updateSubscribe = (setting, storeGroup) => {
         let subscribed = setting.subscribed
 
         if (!name) {
           // clicked unsub all
           subscribed = false
-        } else if (name === setting.name) {
+        } else if (name === setting.name && group === storeGroup) {
           // flip if its the one we're looking for
           subscribed = !subscribed
         }
@@ -83,7 +84,8 @@ function reducer(state: State = initialState, action: Actions): State {
         notifications: {
           ...state.notifications,
           allowSave: true,
-          settings: state.notifications.settings.map(updateSubscribe),
+          emailSettings: state.notifications.emailSettings.map(s => updateSubscribe(s, 'email')),
+          pushSettings: state.notifications.pushSettings.map(s => updateSubscribe(s, 'app_push')),
           unsubscribedFromAll: name ? false : !state.notifications.unsubscribedFromAll,
         },
       }
