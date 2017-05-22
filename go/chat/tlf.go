@@ -51,7 +51,7 @@ func (t *KBFSTLFInfoSource) Lookup(ctx context.Context, tlfName string,
 				// BadKeyError could be returned if there is a rekey race, so
 				// we are retrying a few times when that happens
 				lastErr = err
-				time.Sleep(200 * time.Millisecond)
+				time.Sleep(500 * time.Millisecond)
 				continue
 			}
 			return nil, err
