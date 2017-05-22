@@ -33,7 +33,7 @@ function User({
 
   if (user.service === 'keybase') {
     name = (
-      <Box style={{...globalStyles.flexBoxColumn}}>
+      <Box style={{...globalStyles.flexBoxColumn, width: '100%'}}>
         <Text
           type={'BodySemibold'}
           style={{color: user.isFollowing ? globalColors.green2 : globalColors.blue}}
@@ -45,7 +45,7 @@ function User({
     )
   } else if (user.service === 'external') {
     name = (
-      <Box style={{...globalStyles.flexBoxColumn}}>
+      <Box style={{...globalStyles.flexBoxColumn, width: '100%'}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
           <Icon style={{marginRight: 5}} type={platformToLogo16(user.serviceName)} />
           <Text type={'Body'}>{user.username}</Text>
@@ -59,29 +59,30 @@ function User({
     <Box style={{...globalStyles.flexBoxColumn}}>
       <ClickableBox
         hoverColor={globalColors.blue4}
-        backgroundColor={selected ? globalColors.blue4 : null}
         onClick={() => onClickUser(user)}
-        style={userRowStyle}
+        style={{...userRowStyle, backgroundColor: selected ? globalColors.blue4 : null}}
       >
-        <Avatar style={avatarStyle} size={32} {...avatarProps} />
-        {name}
-        <Box
-          style={{
-            ...globalStyles.flexBoxColumn,
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'flex-end',
-            marginRight: 16,
-          }}
-        >
-          <Icon
-            onClick={e => {
-              e && e.stopPropagation()
-              onRemove(user)
+        <Box style={{...globalStyles.flexBoxRow, width: '100%', position: 'relative'}}>
+          <Avatar style={avatarStyle} size={32} {...avatarProps} />
+          {name}
+          <Box
+            style={{
+              ...globalStyles.flexBoxColumn,
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'flex-end',
+              marginRight: 16,
             }}
-            type={'iconfont-remove'}
-            style={{color: globalColors.black_20, hoverColor: globalColors.black_60}}
-          />
+          >
+            <Icon
+              onClick={e => {
+                e && e.stopPropagation()
+                onRemove(user)
+              }}
+              type={'iconfont-remove'}
+              style={{color: globalColors.black_20, hoverColor: globalColors.black_60}}
+            />
+          </Box>
         </Box>
       </ClickableBox>
       {insertSpacing && <Box style={{height: 1}} />}

@@ -1,7 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 
-export type Props = {
+export type Props = {|
+  hoverColor?: any,
   children?: any,
   style?: Object,
   onClick?: ?(event: SyntheticEvent) => void,
@@ -11,6 +12,6 @@ export type Props = {
   onPressIn?: ?() => void,
   onPressOut?: ?() => void,
   feedback?: boolean,
-}
+|}
 
 declare export default class ClickableBox extends Component<void, Props, void> {}

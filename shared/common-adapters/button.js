@@ -64,11 +64,17 @@ class Button extends Component<void, Props, void> {
 
     containerStyle = {...containerStyle, ...this.props.style}
 
-    const onPress = (!this.props.disabled && !this.props.waiting && this.props.onClick) || null
+    const onClick = (!this.props.disabled && !this.props.waiting && this.props.onClick) || null
 
     return (
-      <ClickableBox style={containerStyle} onClick={onPress}>
-        <Box style={{...globalStyles.flexBoxCenter, position: 'relative', height: '100%'}}>
+      <ClickableBox style={containerStyle} onClick={onClick}>
+        <Box
+          style={{
+            ...globalStyles.flexBoxCenter,
+            position: 'relative',
+            height: '100%',
+          }}
+        >
           <Text
             type={this.props.small ? 'BodySemibold' : 'BodyBig'}
             style={{...labelStyle, ...this.props.labelStyle}}
