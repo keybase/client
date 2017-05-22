@@ -75,7 +75,7 @@ func (b *Badger) inboxVersion(ctx context.Context) chat1.InboxVers {
 	return vers
 }
 
-func (b *Badger) Resync(ctx context.Context, remoteClient *chat1.RemoteClient,
+func (b *Badger) Resync(ctx context.Context, remoteClient *chat1.RemoteClient, state gregor1.State,
 	update *chat1.UnreadUpdateFull) error {
 	b.G().Log.Debug("Badger resync req")
 
@@ -94,6 +94,7 @@ func (b *Badger) Resync(ctx context.Context, remoteClient *chat1.RemoteClient,
 	}
 
 	b.badgeState.UpdateWithChatFull(*update)
+	b.badgeState.UpdateWithGregor(state)
 	err = b.Send()
 	if err != nil {
 		b.G().Log.Warning("Badger send (resync) failed: %v", err)
