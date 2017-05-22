@@ -26,10 +26,10 @@ type SCTeamSection struct {
 }
 
 type SCTeamMembers struct {
-	Owners  []SCTeamMember `json:"owner,omitempty"`
-	Admins  []SCTeamMember `json:"admin,omitempty"`
-	Writers []SCTeamMember `json:"writer,omitempty"`
-	Readers []SCTeamMember `json:"reader,omitempty"`
+	Owners  *[]SCTeamMember `json:"owner,omitempty"`
+	Admins  *[]SCTeamMember `json:"admin,omitempty"`
+	Writers *[]SCTeamMember `json:"writer,omitempty"`
+	Readers *[]SCTeamMember `json:"reader,omitempty"`
 }
 
 type SCTeamParent struct {
