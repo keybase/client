@@ -159,6 +159,10 @@ func (c *chainHelper) UsernameForUID(ctx context.Context, uid keybase1.UID) (str
 		return "d_08827f78", nil
 	case "130ea880070624ba5e0f0a6032cf0f19":
 		return "b_4a45388c", nil
+	case "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa19":
+		return "d_b2809af7", nil
+	case "bbbbbbbbbbbabbbbbbabbbbbbbabbb19":
+		return "c_ac088470", nil
 	default:
 		return "", errors.New("testing hit unknown uid")
 	}
