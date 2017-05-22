@@ -7,7 +7,6 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/stretchr/testify/require"
@@ -59,7 +58,7 @@ func TestFetchRetry(t *testing.T) {
 	require.NotNil(t, inbox.Convs[2].Error)
 	require.Nil(t, inbox.Convs[0].Error)
 	tc.ChatG.FetchRetrier.Failure(context.TODO(), uid,
-		NewConversationRetry(tc.Context(), inbox.Convs[2].GetConvID(), types.ThreadLoad))
+		NewConversationRetry(tc.Context(), inbox.Convs[2].GetConvID(), ThreadLoad))
 
 	// Advance clock and check for errors on all conversations
 	t.Logf("advancing clock and checking for stale")
@@ -80,7 +79,7 @@ func TestFetchRetry(t *testing.T) {
 
 	t.Logf("trying to use Force")
 	tc.ChatG.FetchRetrier.Failure(context.TODO(), uid,
-		NewConversationRetry(tc.Context(), inbox.Convs[2].GetConvID(), types.ThreadLoad))
+		NewConversationRetry(tc.Context(), inbox.Convs[2].GetConvID(), ThreadLoad))
 	tc.ChatG.FetchRetrier.Force(context.TODO())
 	select {
 	case cids := <-list.threadsStale:

@@ -109,7 +109,6 @@ type Syncer interface {
 type RetryDescription interface {
 	Fix(ctx context.Context, uid gregor1.UID) error
 	SendStale(ctx context.Context, uid gregor1.UID)
-	GetKind() FetchType
 	String() string
 }
 

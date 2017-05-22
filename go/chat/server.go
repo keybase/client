@@ -151,7 +151,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 			h.Debug(ctx, "GetInboxNonblockLocal: failed to get unverified inbox, marking convIDs as failed")
 			for _, convID := range arg.Query.ConvIDs {
 				h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
-					NewConversationRetry(h.G(), convID, types.InboxLoad))
+					NewConversationRetry(h.G(), convID, InboxLoad))
 			}
 		} else {
 			h.Debug(ctx, "GetInboxNonblockLocal: failed to load untrusted inbox, general query")
@@ -202,7 +202,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 				// If we get a transient failure, add this to the retrier queue
 				if convRes.Err.Typ == chat1.ConversationErrorType_TRANSIENT {
 					h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
-						NewConversationRetry(h.G(), convRes.ConvID, types.InboxLoad))
+						NewConversationRetry(h.G(), convRes.ConvID, InboxLoad))
 				}
 			} else if convRes.ConvRes != nil {
 				h.Debug(ctx, "GetInboxNonblockLocal: verified conv: id: %s tlf: %s",
@@ -214,7 +214,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 
 				// Send a note to the retrier that we actually loaded this guy successfully
 				h.G().FetchRetrier.Success(ctx, uid.ToBytes(),
-					NewConversationRetry(h.G(), convRes.ConvID, types.InboxLoad))
+					NewConversationRetry(h.G(), convRes.ConvID, InboxLoad))
 			}
 			wg.Done()
 		}(convRes)
@@ -347,10 +347,10 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		// Otherwise, send notice that we successfully loaded the conversation.
 		if res.Offline || fullErr != nil {
 			h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
-				NewConversationRetry(h.G(), arg.ConversationID, types.ThreadLoad))
+				NewConversationRetry(h.G(), arg.ConversationID, ThreadLoad))
 		} else {
 			h.G().FetchRetrier.Success(ctx, uid.ToBytes(),
-				NewConversationRetry(h.G(), arg.ConversationID, types.ThreadLoad))
+				NewConversationRetry(h.G(), arg.ConversationID, ThreadLoad))
 		}
 	}()
 	if err := h.assertLoggedIn(ctx); err != nil {

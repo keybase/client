@@ -17,6 +17,14 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type FetchType int
+
+const (
+	InboxLoad FetchType = iota
+	ThreadLoad
+	FullInboxLoad
+)
+
 const fetchInitialInterval = 3 * time.Second
 const fetchMultiplier = 1.5
 const fetchMaxTime = 24 * time.Hour
@@ -27,12 +35,12 @@ type ConversationRetry struct {
 	utils.DebugLabeler
 
 	convID chat1.ConversationID
-	kind   types.FetchType
+	kind   FetchType
 }
 
 var _ types.RetryDescription = (*ConversationRetry)(nil)
 
-func NewConversationRetry(g *globals.Context, convID chat1.ConversationID, kind types.FetchType) *ConversationRetry {
+func NewConversationRetry(g *globals.Context, convID chat1.ConversationID, kind FetchType) *ConversationRetry {
 	dstr := fmt.Sprintf("ConversationRetry(%s,%v)", convID, kind)
 	return &ConversationRetry{
 		Contextified: globals.NewContextified(g),
@@ -46,16 +54,12 @@ func (c *ConversationRetry) String() string {
 	return fmt.Sprintf("%s:%v", c.convID, c.kind)
 }
 
-func (c *ConversationRetry) GetKind() types.FetchType {
-	return c.kind
-}
-
 func (c *ConversationRetry) SendStale(ctx context.Context, uid gregor1.UID) {
 	c.G().Syncer.SendChatStaleNotifications(ctx, uid, []chat1.ConversationID{c.convID}, false)
 }
 
 func (c *ConversationRetry) Fix(ctx context.Context, uid gregor1.UID) error {
-	if c.kind == types.ThreadLoad {
+	if c.kind == ThreadLoad {
 		return c.fixThreadFetch(ctx, uid)
 	}
 	return c.fixInboxFetch(ctx, uid)
@@ -137,10 +141,6 @@ func (f FullInboxRetry) String() string {
 		pstr = fmt.Sprintf("%d:%x:%x", f.pagination.Num, f.pagination.Previous, f.pagination.Next)
 	}
 	return qstr + pstr
-}
-
-func (f FullInboxRetry) GetKind() types.FetchType {
-	return types.FullInboxLoad
 }
 
 func (f FullInboxRetry) SendStale(ctx context.Context, uid gregor1.UID) {
