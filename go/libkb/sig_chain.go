@@ -789,7 +789,8 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		return err
 	}
 	if currentLink == nil {
-		return fmt.Errorf("tried to load link ID %s, but link not found", mt.LinkID.String())
+		l.G().Log.CDebugf(l.ctx, "tried to load previous link ID %s, but link not found", mt.LinkID.String())
+		return nil
 	}
 	links := []*ChainLink{currentLink}
 
