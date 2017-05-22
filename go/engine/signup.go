@@ -241,6 +241,10 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 	// NOTE: We used to respect the StoreSecret flag here, but now we store
 	// unconditionally.
 	secretStore := libkb.NewSecretStore(s.G(), s.me.GetNormalizedName())
+	if secretStore == nil {
+		s.G().Log.Info("aborting StoreSecret: secretStore is nil")
+		return nil
+	}
 	secret, err := s.lks.GetSecret(a)
 	if err != nil {
 		return err
