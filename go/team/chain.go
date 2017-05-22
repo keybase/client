@@ -1,6 +1,7 @@
 package team
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -216,15 +217,15 @@ func (t *TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 	return res, nil
 }
 
-// Implementations for TeamSigChainPlayer that can be mocked out for tests.
-type TeamSigChainPlayerHelper struct {
-	UsernameForUID func(keybase1.UID) (string, error)
+// UsernameFinder is an interface for TeamSigChainPlayer that can be mocked out for tests.
+type UsernameFinder interface {
+	UsernameForUID(context.Context, keybase1.UID) (string, error)
 }
 
 type TeamSigChainPlayer struct {
 	sync.Mutex
 
-	helper *TeamSigChainPlayerHelper
+	helper UsernameFinder
 
 	// information about the reading user
 	reader UserVersion
@@ -235,7 +236,7 @@ type TeamSigChainPlayer struct {
 }
 
 // Load a team chain from the perspective of uid.
-func NewTeamSigChainPlayer(helper *TeamSigChainPlayerHelper, reader UserVersion, isSubTeam bool) *TeamSigChainPlayer {
+func NewTeamSigChainPlayer(helper UsernameFinder, reader UserVersion, isSubTeam bool) *TeamSigChainPlayer {
 	return &TeamSigChainPlayer{
 		helper:      helper,
 		reader:      reader,
@@ -254,26 +255,26 @@ func (t *TeamSigChainPlayer) GetState() (res TeamSigChainState, err error) {
 	return res, fmt.Errorf("no links loaded")
 }
 
-func (t *TeamSigChainPlayer) AddChainLinks(links []SCChainLink) error {
+func (t *TeamSigChainPlayer) AddChainLinks(ctx context.Context, links []SCChainLink) error {
 	t.Lock()
 	defer t.Unlock()
 
-	return t.addChainLinksCommon(links, false)
+	return t.addChainLinksCommon(ctx, links, false)
 }
 
 // Add chain links from local storage. Skip verification checks that should have already been done.
-func (t *TeamSigChainPlayer) AddChainLinksVerified(links []SCChainLink) error {
+func (t *TeamSigChainPlayer) AddChainLinksVerified(ctx context.Context, links []SCChainLink) error {
 	t.Lock()
 	defer t.Unlock()
 
-	return t.addChainLinksCommon(links, true)
+	return t.addChainLinksCommon(ctx, links, true)
 }
 
 // Add links.
 // Links must be added in batches because the check for what links are allowed to be stubbed
 // depends on the user's _eventual_ role in the team.
 // If this returns an error, the TeamSigChainPlayer was not modified.
-func (t *TeamSigChainPlayer) addChainLinksCommon(links []SCChainLink, alreadyVerified bool) error {
+func (t *TeamSigChainPlayer) addChainLinksCommon(ctx context.Context, links []SCChainLink, alreadyVerified bool) error {
 	var err error
 	if len(links) == 0 {
 		return errors.New("no chainlinks to add")
@@ -286,7 +287,7 @@ func (t *TeamSigChainPlayer) addChainLinksCommon(links []SCChainLink, alreadyVer
 	}
 
 	for _, link := range links {
-		newState, err := t.addChainLinkCommon(state, link, alreadyVerified)
+		newState, err := t.addChainLinkCommon(ctx, state, link, alreadyVerified)
 		if err != nil {
 			if state == nil {
 				return fmt.Errorf("seqno:1 %s", err)
@@ -309,8 +310,8 @@ func (t *TeamSigChainPlayer) addChainLinksCommon(links []SCChainLink, alreadyVer
 // Verify and add a chain link.
 // Does not modify self or any arguments.
 // The `prevState` argument is nil if this is the first chain link.
-func (t *TeamSigChainPlayer) addChainLinkCommon(prevState *TeamSigChainState, link SCChainLink, alreadyVerified bool) (res TeamSigChainState, err error) {
-	oRes, err := t.checkOuterLink(prevState, link, alreadyVerified)
+func (t *TeamSigChainPlayer) addChainLinkCommon(ctx context.Context, prevState *TeamSigChainState, link SCChainLink, alreadyVerified bool) (res TeamSigChainState, err error) {
+	oRes, err := t.checkOuterLink(ctx, prevState, link, alreadyVerified)
 	if err != nil {
 		return res, fmt.Errorf("team sigchain outer link: %s", err)
 	}
@@ -355,7 +356,7 @@ type checkInnerLinkResult struct {
 	newState TeamSigChainState
 }
 
-func (t *TeamSigChainPlayer) checkOuterLink(prevState *TeamSigChainState, link SCChainLink, alreadyVerified bool) (res checkOuterLinkResult, err error) {
+func (t *TeamSigChainPlayer) checkOuterLink(ctx context.Context, prevState *TeamSigChainState, link SCChainLink, alreadyVerified bool) (res checkOuterLinkResult, err error) {
 	if prevState == nil {
 		if link.Seqno != 1 {
 			return res, fmt.Errorf("expected seqno:1 but got:%v", link.Seqno)
@@ -389,7 +390,7 @@ func (t *TeamSigChainPlayer) checkOuterLink(prevState *TeamSigChainState, link S
 	if err != nil {
 		return res, fmt.Errorf("outer link signer uid: %s", err)
 	}
-	username, err := t.helper.UsernameForUID(signerUID)
+	username, err := t.helper.UsernameForUID(ctx, signerUID)
 	if err != nil {
 		return res, err
 	}
