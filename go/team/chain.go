@@ -207,6 +207,18 @@ func (t *TeamSigChainState) GetUserRole(user UserVersion) (keybase1.TeamRole, er
 	return t.UserLog.getUserRole(user), nil
 }
 
+func (t *TeamSigChainState) GetUsersWithRole(role keybase1.TeamRole) (res []UserVersion, err error) {
+	if role == keybase1.TeamRole_NONE {
+		return nil, errors.New("cannot get users with NONE role")
+	}
+	for uv := range t.UserLog {
+		if t.UserLog.getUserRole(uv) == role {
+			res = append(res, uv)
+		}
+	}
+	return res, nil
+}
+
 func (t *TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 	res, ok := t.PerTeamKeys[len(t.PerTeamKeys)]
 	if !ok {
@@ -451,8 +463,6 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 	}
 	team := payload.Body.Team
 
-	// TODO CORE-5299 check that the signer has enough role permissions to do each of the actions.
-
 	switch payload.Body.Type {
 	case "team.root":
 		if prevState != nil {
@@ -613,6 +623,18 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		}
 		if team.PerTeamKey == nil {
 			return res, errors.New("missing per-team-key")
+		}
+
+		// Check that the signer is at least a writer to have permission to make this link.
+		signerRole, err := prevState.GetUserRole(oRes.signingUser)
+		if err != nil {
+			return res, err
+		}
+		switch signerRole {
+		case keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+			// ok
+		default:
+			return res, fmt.Errorf("link signer does not have permission to rotate key: %v is a %v", oRes.signingUser, signerRole)
 		}
 
 		lastKey, err := prevState.GetLatestPerTeamKey()
