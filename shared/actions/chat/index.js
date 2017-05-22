@@ -454,6 +454,7 @@ function _unboxedToMessage(
       : null
     // $FlowIssue
     const messageText: ChatTypes.MessageText = messageBody.text
+    const outboxIDKey = Constants.outboxIDToKey(payload.outboxID)
 
     return {
       author: yourName,
@@ -462,10 +463,10 @@ function _unboxedToMessage(
       deviceType: isMobile ? 'mobile' : 'desktop',
       editedCount: 0,
       failureDescription,
-      key: Constants.messageKey(conversationIDKey, 'outboxIDText', payload.outboxID),
+      key: Constants.messageKey(conversationIDKey, 'outboxIDText', outboxIDKey),
       message: new HiddenString((messageText && messageText.body) || ''),
       messageState,
-      outboxID: Constants.outboxIDToKey(payload.outboxID),
+      outboxID: outboxIDKey,
       senderDeviceRevokedAt: null,
       timestamp: payload.ctime,
       type: 'Text',
