@@ -44,5 +44,4 @@ const Notifications = (props: Props) =>
         />
       </Box>
 
-const PlatformNotifications = isMobile ? HeaderHoc(Notifications) : Notifications
-export default PlatformNotifications
+export default (isMobile ? HeaderHoc(Notifications) : Notifications)
