@@ -235,14 +235,16 @@ func (c *conversationLockTab) key(uid gregor1.UID, convID chat1.ConversationID) 
 	return fmt.Sprintf("%s:%s", uid, convID)
 }
 
-func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
+func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) chan struct{} {
 	c.Lock()
 	defer c.Unlock()
 
+	cb := make(chan struct{})
+	defer close(cb)
 	trace, ok := CtxTrace(ctx)
 	if !ok {
 		c.Debug(ctx, "Acquire: failed to find trace value, not using a lock: convID: %s", convID)
-		return
+		return cb
 	}
 
 	key := c.key(uid, convID)
@@ -250,11 +252,10 @@ func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 		if lock.trace == trace {
 			// Our request holds the lock on this conversation ID already, do just plow through it
 			lock.count++
-			return
+			return cb
 		}
 		c.Debug(ctx, "Acquire: blocked by trace: %s on convID: %s", lock.trace, convID)
-		<-lock.cb
-		return
+		return lock.cb
 	}
 
 	// Add a lock conversation lock with our trace
@@ -263,6 +264,7 @@ func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 		cb:    make(chan struct{}),
 		count: 1,
 	}
+	return cb
 }
 
 func (c *conversationLockTab) Release(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
@@ -313,7 +315,7 @@ func NewHybridConversationSource(g *globals.Context, b *Boxer, storage *storage.
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Pull")()
-	s.lockTab.Acquire(ctx, uid, convID)
+	<-s.lockTab.Acquire(ctx, uid, convID)
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Check to see if we are "appending" this message to the current record.
@@ -465,7 +467,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	if convID.IsNil() {
 		return chat1.ThreadView{}, rl, errors.New("HybridConversationSource.Pull called with empty convID")
 	}
-	s.lockTab.Acquire(ctx, uid, convID)
+	<-s.lockTab.Acquire(ctx, uid, convID)
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Get conversation metadata
@@ -716,7 +718,7 @@ func (m ByMsgID) Less(i, j int) bool { return m[i].GetMessageID() > m[j].GetMess
 
 func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
-	s.lockTab.Acquire(ctx, uid, convID)
+	<-s.lockTab.Acquire(ctx, uid, convID)
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	rmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
@@ -791,7 +793,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
 	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
-	s.lockTab.Acquire(ctx, uid, convID)
+	<-s.lockTab.Acquire(ctx, uid, convID)
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	var res []chat1.MessageUnboxed
