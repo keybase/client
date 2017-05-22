@@ -6,6 +6,7 @@ package badges
 import (
 	"golang.org/x/net/context"
 
+	grclient "github.com/keybase/client/go/gregor/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -75,8 +76,8 @@ func (b *Badger) inboxVersion(ctx context.Context) chat1.InboxVers {
 	return vers
 }
 
-func (b *Badger) Resync(ctx context.Context, remoteClient *chat1.RemoteClient,
-	update *chat1.UnreadUpdateFull) error {
+func (b *Badger) Resync(ctx context.Context, chatRemote func() chat1.RemoteInterface,
+	gcli *grclient.Client, update *chat1.UnreadUpdateFull) error {
 	b.G().Log.Debug("Badger resync req")
 
 	var err error
@@ -84,7 +85,7 @@ func (b *Badger) Resync(ctx context.Context, remoteClient *chat1.RemoteClient,
 		iboxVersion := b.inboxVersion(ctx)
 		b.G().Log.Debug("Badger: Resync(): using inbox version: %v", iboxVersion)
 		update = new(chat1.UnreadUpdateFull)
-		*update, err = remoteClient.GetUnreadUpdateFull(ctx, iboxVersion)
+		*update, err = chatRemote().GetUnreadUpdateFull(ctx, iboxVersion)
 		if err != nil {
 			b.G().Log.Warning("Badger resync failed: %v", err)
 			return err
@@ -93,7 +94,13 @@ func (b *Badger) Resync(ctx context.Context, remoteClient *chat1.RemoteClient,
 		b.G().Log.Debug("Badger: Resync(): skipping remote call, data previously obtained")
 	}
 
+	state, err := gcli.StateMachineState(nil)
+	if err != nil {
+		b.G().Log.Debug("Badger: Resync(): unable to get state: %s", err.Error())
+		state = gregor1.State{}
+	}
 	b.badgeState.UpdateWithChatFull(*update)
+	b.badgeState.UpdateWithGregor(state)
 	err = b.Send()
 	if err != nil {
 		b.G().Log.Warning("Badger send (resync) failed: %v", err)
