@@ -4,7 +4,14 @@ import {StyleSheet} from 'react-native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Badge, ClickableBox, Text, HeaderHoc} from '../../common-adapters'
 import {isAndroid} from '../../constants/platform'
-import {devMenuTab, feedbackTab, aboutTab, devicesTab, screenprotectorTab} from '../../constants/settings'
+import {
+  devMenuTab,
+  feedbackTab,
+  aboutTab,
+  devicesTab,
+  notificationsTab,
+  screenprotectorTab,
+} from '../../constants/settings'
 import {compose, defaultProps} from 'recompose'
 
 import type {Props} from './index'
@@ -35,6 +42,11 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) 
         text="Devices"
         badgeNumber={badgeNumbers[devicesTab]}
         onClick={() => onTabChange(devicesTab)}
+      />
+      <SettingsItem
+        text="Notifications"
+        badgeNumber={badgeNumbers[notificationsTab]}
+        onClick={() => onTabChange(notificationsTab)}
       />
       <SettingsItem text="About" badgeNumber={badgeNumbers[aboutTab]} onClick={() => onTabChange(aboutTab)} />
       <SettingsItem
