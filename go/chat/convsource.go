@@ -234,26 +234,25 @@ func (c *conversationLockTab) key(uid gregor1.UID, convID chat1.ConversationID) 
 	return fmt.Sprintf("%s:%s", uid, convID)
 }
 
-func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) chan struct{} {
+func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
 	c.Lock()
 	defer c.Unlock()
 
-	cb := make(chan struct{})
-	defer close(cb)
 	trace, ok := CtxTrace(ctx)
 	if !ok {
 		c.Debug(ctx, "Acquire: failed to find trace value, not using a lock: convID: %s", convID)
-		return cb
+		return
 	}
 
 	key := c.key(uid, convID)
 	if lock, ok := c.convLocks[key]; ok {
 		if lock.trace == trace {
 			// Our request holds the lock on this conversation ID already, do just plow through it
-			return cb
+			return
 		}
 		c.Debug(ctx, "Acquire: blocked by trace: %s on convID: %s", lock.trace, convID)
-		return lock.cb
+		<-lock.cb
+		return
 	}
 
 	// Add a lock conversation lock with our trace
@@ -261,7 +260,6 @@ func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 		trace: trace,
 		cb:    make(chan struct{}),
 	}
-	return cb
 }
 
 func (c *conversationLockTab) Release(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
