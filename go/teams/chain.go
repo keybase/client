@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 // There are a lot of TODOs in this file. Many of them are critical before team sigchains can be used safely.
@@ -233,7 +234,9 @@ type UsernameFinder interface {
 	UsernameForUID(context.Context, keybase1.UID) (string, error)
 }
 
+// Threadsafe handle to a local model of a team sigchain.
 type TeamSigChainPlayer struct {
+	libkb.Contextified
 	sync.Mutex
 
 	helper UsernameFinder
@@ -247,8 +250,10 @@ type TeamSigChainPlayer struct {
 }
 
 // Load a team chain from the perspective of uid.
-func NewTeamSigChainPlayer(helper UsernameFinder, reader UserVersion, isSubTeam bool) *TeamSigChainPlayer {
+func NewTeamSigChainPlayer(g *libkb.GlobalContext, helper UsernameFinder, reader UserVersion, isSubTeam bool) *TeamSigChainPlayer {
 	return &TeamSigChainPlayer{
+		Contextified: libkb.NewContextified(g),
+
 		helper:      helper,
 		reader:      reader,
 		isSubTeam:   isSubTeam,
@@ -792,7 +797,7 @@ func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerT
 	}
 
 	// validate signing kid
-	_, err = libkb.ImportNaclSigningKeyPairFromHex(perTeamKey.SigKID.String())
+	sigKey, err := libkb.ImportNaclSigningKeyPairFromHex(perTeamKey.SigKID.String())
 	if err != nil {
 		return res, fmt.Errorf("invalid per-team-key signing KID: %s", perTeamKey.SigKID)
 	}
@@ -803,7 +808,34 @@ func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerT
 		return res, fmt.Errorf("invalid per-team-key encryption KID: %s", perTeamKey.EncKID)
 	}
 
-	// TODO CORE-5302 validate the reverse sig
+	// verify the reverse sig
+	// m1 is the signed reverse sig
+	m1, _, err := sigKey.VerifyStringAndExtract(t.G().Log, perTeamKey.ReverseSig)
+	if err != nil {
+		return res, fmt.Errorf("failed to verify/extract per-team-key reverse sig: %s", err)
+	}
+	m1, err = jsonw.Canonicalize(m1)
+	if err != nil {
+		return res, fmt.Errorf("failed to canonicalize json: %s", err)
+	}
+
+	// m2 is the expected reverse sig contents
+	jw, err := jsonw.Unmarshal([]byte(link.Payload))
+	if err != nil {
+		return res, fmt.Errorf("failed to parse payload: %s", err)
+	}
+	err = jw.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewNil())
+	if err != nil {
+		return res, fmt.Errorf("checking reverse sig: %s", err)
+	}
+	m2, err := jw.Marshal()
+	if err != nil {
+		return res, fmt.Errorf("error marshaling reverse sig: %s", err)
+	}
+
+	if !libkb.FastByteArrayEq(m1, m2) {
+		return res, fmt.Errorf("reverse sig JSON mismatch: %s != %s", string(m1), string(m2))
+	}
 
 	return keybase1.PerTeamKey{
 		Gen:    perTeamKey.Generation,
