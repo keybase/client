@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/team"
 )
 
 // TeamGet is an engine.
@@ -15,7 +16,7 @@ type TeamGet struct {
 	libkb.Contextified
 	ctx   *Context
 	arg   keybase1.TeamGetArg
-	state libkb.TeamSigChainState
+	state team.TeamSigChainState
 }
 
 // NewTeamGet creates a TeamGet engine.
