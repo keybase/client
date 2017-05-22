@@ -228,6 +228,7 @@ func newConversationLockTab(g *globals.Context) *conversationLockTab {
 	return &conversationLockTab{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "conversationLockTab", false),
+		convLocks:    make(map[string]*conversationLock),
 	}
 }
 
@@ -661,6 +662,9 @@ func newPullLocalResultCollector(num int) *pullLocalResultCollector {
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (tv chat1.ThreadView, err error) {
 	defer s.Trace(ctx, func() error { return err }, "PullLocalOnly")()
+	<-s.lockTab.Acquire(ctx, uid, convID)
+	defer s.lockTab.Release(ctx, uid, convID)
+
 	// Post process thread before returning
 	defer func() {
 		if err == nil {
