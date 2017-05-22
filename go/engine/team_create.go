@@ -40,10 +40,7 @@ func (e *TeamCreateEngine) Prereqs() Prereqs {
 }
 
 func (e *TeamCreateEngine) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{
-		libkb.LogUIKind,
-		libkb.SecretUIKind,
-	}
+	return []libkb.UIKind{}
 }
 
 func (e *TeamCreateEngine) SubConsumers() []libkb.UIConsumer {
