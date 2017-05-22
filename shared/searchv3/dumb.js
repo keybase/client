@@ -50,24 +50,26 @@ const commonServicesReultMapProps = {
 
 const commonServicesReultMapPropsKB = {
   ...commonServicesReultMapProps,
-  leftService: 'Keybase',
+  leftFollowingState: 'NoState',
   leftIcon: 'jzila',
+  leftService: 'Keybase',
   leftUsername: 'jzila',
-  leftFollowing: true,
-  rightService: null,
-  rightUsername: null,
+  rightFollowingState: 'NoState',
   rightFullname: 'John Zila',
   rightIcon: null,
+  rightService: null,
+  rightUsername: null,
 }
 
 const commonServicesReultMapPropsService = {
   ...commonServicesReultMapProps,
+  leftFollowingState: 'NoState',
   leftUsername: 'jzila',
-  leftFollowing: true,
-  rightService: null,
-  rightUsername: null,
+  rightFollowingState: 'NoState',
   rightFullname: 'John Zila',
   rightIcon: null,
+  rightService: null,
+  rightUsername: null,
 }
 
 const servicesResultMap: DumbComponentMap<ResultRow> = {
@@ -75,6 +77,18 @@ const servicesResultMap: DumbComponentMap<ResultRow> = {
   mocks: {
     KeybaseNoService: {
       ...commonServicesReultMapPropsKB,
+    },
+    KeybaseNoServiceFollowing: {
+      ...commonServicesReultMapPropsKB,
+      leftFollowingState: 'Following',
+    },
+    KeybaseNoServiceNotFollowing: {
+      ...commonServicesReultMapPropsKB,
+      leftFollowingState: 'NotFollowing',
+    },
+    KeybaseNoServiceYou: {
+      ...commonServicesReultMapPropsKB,
+      leftFollowingState: 'You',
     },
     KeybaseNoServiceNoFollow: {
       ...commonServicesReultMapPropsKB,
@@ -106,6 +120,30 @@ const servicesResultMap: DumbComponentMap<ResultRow> = {
       ...commonServicesReultMapPropsService,
       leftIcon: 'icon-twitter-logo-32',
       leftService: 'Twitter',
+      rightService: 'Keybase',
+      rightUsername: 'jzila',
+    },
+    TwitterKeybaseFollowing: {
+      ...commonServicesReultMapPropsService,
+      leftIcon: 'icon-twitter-logo-32',
+      leftService: 'Twitter',
+      rightFollowingState: 'Following',
+      rightService: 'Keybase',
+      rightUsername: 'jzila',
+    },
+    TwitterKeybaseNotFollowing: {
+      ...commonServicesReultMapPropsService,
+      leftIcon: 'icon-twitter-logo-32',
+      leftService: 'Twitter',
+      rightFollowingState: 'NotFollowing',
+      rightService: 'Keybase',
+      rightUsername: 'jzila',
+    },
+    TwitterKeybaseYou: {
+      ...commonServicesReultMapPropsService,
+      leftIcon: 'icon-twitter-logo-32',
+      leftService: 'Twitter',
+      rightFollowingState: 'You',
       rightService: 'Keybase',
       rightUsername: 'jzila',
     },

@@ -8,15 +8,17 @@ import type {IconType} from '../../common-adapters/icon'
 
 type KeybaseUsername = string
 type SearchIcon = IconType | KeybaseUsername // if service is Keybase its a username
+type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
 export type Props = {|
   id: string,
 
-  leftFollowing: boolean,
+  leftFollowingState: FollowingState,
   leftIcon: SearchIcon,
   leftService: Constants.Service,
   leftUsername: string,
 
+  rightFollowingState: FollowingState,
   rightFullname: ?string,
   rightIcon: ?SearchIcon,
   rightService: ?Constants.Service,
@@ -32,11 +34,34 @@ const IconOrAvatar = ({service, username, icon, size, style}) =>
     ? <Avatar username={username} size={size} style={style} />
     : icon ? <Icon type={icon} style={style} /> : null
 
-const Left = ({leftService, leftIcon, leftUsername, leftFollowing}) => {
+const followingStateToStyle = (followingState: FollowingState) => {
+  return {
+    Following: {
+      color: globalColors.green2,
+    },
+    NoState: {},
+    NotFollowing: {
+      color: globalColors.blue,
+    },
+    You: {
+      fontStyle: 'italic',
+    },
+  }[followingState]
+}
+
+const Left = ({leftService, leftIcon, leftUsername, leftFollowingState}) => {
   return (
     <Box style={_leftContainerStyle}>
       <IconOrAvatar service={leftService} username={leftUsername} icon={leftIcon} size={32} />
-      <Text type="BodySemibold" style={{marginLeft: globalMargins.small}}>{leftUsername}</Text>
+      <Text
+        type="BodySemibold"
+        style={{
+          ...followingStateToStyle(leftFollowingState),
+          marginLeft: globalMargins.small,
+        }}
+      >
+        {leftUsername}
+      </Text>
     </Box>
   )
 }
@@ -49,7 +74,7 @@ const _leftContainerStyle = {
   width: 215,
 }
 
-const Middle = ({rightService, rightIcon, rightUsername, rightFullname}) => {
+const Middle = ({rightService, rightIcon, rightUsername, rightFullname, rightFollowingState}) => {
   return (
     <Box style={_middleContainerStyle}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
@@ -65,7 +90,7 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFullname}) => {
             width: 12,
           }}
         />
-        <Text type="BodySmall">{rightUsername}</Text>
+        <Text type="BodySmall" style={followingStateToStyle(rightFollowingState)}>{rightUsername}</Text>
       </Box>
       {!!rightFullname &&
         <Box style={{...globalStyles.flexBoxRow}}>
@@ -109,12 +134,13 @@ const SearchResultRow = (props: Props) => {
   return (
     <Box style={_rowStyle}>
       <Left
-        leftFollowing={props.leftFollowing}
+        leftFollowingState={props.leftFollowingState}
         leftIcon={props.leftIcon}
         leftService={props.leftService}
         leftUsername={props.leftUsername}
       />
       <Middle
+        rightFollowingState={props.rightFollowingState}
         rightFullname={props.rightFullname}
         rightIcon={props.rightIcon}
         rightService={props.rightService}
