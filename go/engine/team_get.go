@@ -72,11 +72,11 @@ func (e *TeamGet) Run(ctx *Context) error {
 	return nil
 }
 
-func (e *TeamGet) ChainState() libkb.TeamSigChainState {
+func (e *TeamGet) ChainState() team.TeamSigChainState {
 	return e.state
 }
 
-func (e *TeamGet) teamChainLinks() ([]libkb.SCChainLink, error) {
+func (e *TeamGet) teamChainLinks() ([]team.SCChainLink, error) {
 	arg := libkb.NewRetryAPIArg("team/get")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
@@ -86,9 +86,9 @@ func (e *TeamGet) teamChainLinks() ([]libkb.SCChainLink, error) {
 	if err := e.G().API.GetDecode(arg, &chain); err != nil {
 		return nil, err
 	}
-	var links []libkb.SCChainLink
+	var links []team.SCChainLink
 	for _, raw := range chain.Chain {
-		link, err := libkb.ParseTeamChainLink(string(raw))
+		link, err := team.ParseTeamChainLink(string(raw))
 		if err != nil {
 			return nil, err
 		}
@@ -97,8 +97,8 @@ func (e *TeamGet) teamChainLinks() ([]libkb.SCChainLink, error) {
 	return links, nil
 }
 
-func (e *TeamGet) newPlayer(links []libkb.SCChainLink) (*libkb.TeamSigChainPlayer, error) {
-	player := libkb.NewTeamSigChainPlayer(e, libkb.NewUserVersion(e.G().Env.GetUsername().String(), 1), false)
+func (e *TeamGet) newPlayer(links []team.SCChainLink) (*team.TeamSigChainPlayer, error) {
+	player := team.NewTeamSigChainPlayer(e, team.NewUserVersion(e.G().Env.GetUsername().String(), 1), false)
 	if err := player.AddChainLinks(links); err != nil {
 		return nil, err
 	}
