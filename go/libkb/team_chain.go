@@ -15,8 +15,8 @@ import (
 
 // There are a lot of TODOs in this file. Many of them are critical before team sigchains can be used safely.
 
-// TODO merkle existence
-// TODO accept links from now-revoked keys if the sigs were made before their revocation.
+// TODO CORE-5295 merkle existence
+// TODO CORE-5296 accept links from now-revoked keys if the sigs were made before their revocation.
 //      To check this, grab the merkle root previous to the revoke and make sure the link is in that tree.
 
 type TeamName string
@@ -378,12 +378,12 @@ func (t *TeamSigChainPlayer) checkOuterLink(prevState *TeamSigChainState, link S
 	}
 	res.outerLink = *outerLink
 
-	// TODO verify the sig. Without this this is all crazy.
+	// TODO CORE-5297 verify the sig. Without this this is all crazy.
 
-	// TODO verify the signers identity and authorization. Without this this is all crazy.
+	// TODO CORE-5297 verify the signers identity and authorization. Without this this is all crazy.
 
-	// TODO support validating signatures even after account reset.
-	// we need the specified eldest seqno from the server for this.
+	// TODO CORE-5298 support validating signatures even after account reset.
+	//                we need the specified eldest seqno from the server for this.
 	signerUID, err := keybase1.UIDFromString(string(link.UID))
 	if err != nil {
 		return res, fmt.Errorf("outer link signer uid: %s", err)
@@ -392,7 +392,7 @@ func (t *TeamSigChainPlayer) checkOuterLink(prevState *TeamSigChainState, link S
 	if err != nil {
 		return res, err
 	}
-	// TODO for now just assume seqno=1. Need to do something else to support links made by since-reset users.
+	// TODO CORE-5298 for now just assume seqno=1. Need to do something else to support links made by since-reset users.
 	res.signingUser = NewUserVersion(username, 1)
 
 	// check that the outer link matches the server info
@@ -450,7 +450,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 	}
 	team := payload.Body.Team
 
-	// TODO check that the signer has enough role permissions to do each of the actions.
+	// TODO CORE-5299 check that the signer has enough role permissions to do each of the actions.
 
 	switch payload.Body.Type {
 	case "team.root":
@@ -628,7 +628,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 
 		return res, nil
 	case "team.leave":
-		return res, fmt.Errorf("todo implement parsing of: %s", payload.Body.Type)
+		return res, fmt.Errorf("todo implement parsing of: %s", payload.Body.Type) // TODO CORE-5305
 	case "team.subteam_head":
 		return res, fmt.Errorf("subteams not supported: %s", payload.Body.Type)
 	case "team.new_subteam":
@@ -662,13 +662,13 @@ func (t *TeamSigChainPlayer) checkInnerOuterMatch(outerLink OuterLinkV2WithMetad
 		return err
 	}
 
-	// TODO check that the key section refers to the same kid that really signed.
+	// TODO CORE-5300 check that the key section refers to the same kid that really signed.
 
 	return nil
 }
 
 func (t *TeamSigChainPlayer) checkStubbed(state TeamSigChainState) error {
-	// TODO if you get kicked out of a team, that's special. The chain can't load.
+	// TODO CORE-5301 if you get kicked out of a team, that's special. The chain can't load.
 	// But you should get to know why without erroring out.
 
 	// Check that the server didn't stub out links it's not allowed to.
@@ -767,8 +767,8 @@ func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerT
 	if perTeamKey.Generation != expectedGeneration {
 		return res, fmt.Errorf("per-team-key generation must start at 1 but got:%d", perTeamKey.Generation)
 	}
-	// TODO validate KIDs
-	// TODO validate the reverse sig
+	// TODO CORE-5302 validate KIDs
+	// TODO CORE-5302 validate the reverse sig
 
 	return keybase1.PerTeamKey{
 		Gen:    perTeamKey.Generation,
