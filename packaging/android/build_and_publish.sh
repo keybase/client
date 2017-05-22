@@ -42,7 +42,7 @@ fi
 
 if [ ! "$cache_go_lib" = "1" ]; then
   echo "Building Go library"
-  yarn run rn-gobuild-android
+  CHECK_CI=1 yarn run rn-gobuild-android
 fi
 
 # We can't currently automate this :(, we used to be able to `echo y | android update ...` but that no longer works

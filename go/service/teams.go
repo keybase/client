@@ -27,7 +27,7 @@ func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb.GlobalC
 
 func (h *TeamsHandler) TeamCreate(netCtx context.Context, arg keybase1.TeamCreateArg) (err error) {
 	ctx := engine.Context{
-		LogUI:      h.G().UI.GetLogUI(),
+		LogUI:      h.getLogUI(arg.SessionID),
 		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
 		NetContext: netCtx,
 		SessionID:  arg.SessionID,

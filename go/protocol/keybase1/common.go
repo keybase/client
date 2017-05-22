@@ -29,6 +29,7 @@ type LinkID string
 type BinaryKID []byte
 type TLFID string
 type TeamID string
+type UserOrTeamID string
 type Bytes32 [32]byte
 type Text struct {
 	Data   string `codec:"data" json:"data"`
@@ -212,6 +213,11 @@ type UserPlusKeys struct {
 	Uvv               UserVersionVector `codec:"uvv" json:"uvv"`
 	DeletedDeviceKeys []PublicKey       `codec:"deletedDeviceKeys" json:"deletedDeviceKeys"`
 	PerUserKeys       []PerUserKey      `codec:"perUserKeys" json:"perUserKeys"`
+}
+
+type UserOrTeamLite struct {
+	Id   UserOrTeamID `codec:"id" json:"id"`
+	Name string       `codec:"name" json:"name"`
 }
 
 type RemoteTrack struct {
