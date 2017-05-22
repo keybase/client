@@ -1,4 +1,4 @@
-package libkb
+package team
 
 import (
 	"encoding/json"

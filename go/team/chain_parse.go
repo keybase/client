@@ -1,4 +1,4 @@
-package libkb
+package team
 
 import (
 	"crypto/sha256"
@@ -35,7 +35,7 @@ type SCTeamMembers struct {
 
 type SCTeamParent struct {
 	ID    SCTeamID `json:"id"`
-	Seqno int      `json:"id"`
+	Seqno int      `json:"seqno"`
 }
 
 type SCSubteam struct {
