@@ -150,8 +150,13 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 		if arg.Query != nil {
 			h.Debug(ctx, "GetInboxNonblockLocal: failed to get unverified inbox, marking convIDs as failed")
 			for _, convID := range arg.Query.ConvIDs {
-				h.G().FetchRetrier.Failure(ctx, convID, uid.ToBytes(), types.InboxLoad)
+				h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
+					NewConversationRetry(h.G(), convID, types.InboxLoad))
 			}
+		} else {
+			h.Debug(ctx, "GetInboxNonblockLocal: failed to load untrusted inbox, general query")
+			h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
+				NewFullInboxRetry(h.G(), arg.Query, arg.Pagination))
 		}
 		return res, err
 	}
@@ -196,7 +201,8 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 
 				// If we get a transient failure, add this to the retrier queue
 				if convRes.Err.Typ == chat1.ConversationErrorType_TRANSIENT {
-					h.G().FetchRetrier.Failure(ctx, convRes.ConvID, uid.ToBytes(), types.InboxLoad)
+					h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
+						NewConversationRetry(h.G(), convRes.ConvID, types.InboxLoad))
 				}
 			} else if convRes.ConvRes != nil {
 				h.Debug(ctx, "GetInboxNonblockLocal: verified conv: id: %s tlf: %s",
@@ -207,7 +213,8 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 				})
 
 				// Send a note to the retrier that we actually loaded this guy successfully
-				h.G().FetchRetrier.Success(ctx, convRes.ConvID, uid.ToBytes(), types.InboxLoad)
+				h.G().FetchRetrier.Success(ctx, uid.ToBytes(),
+					NewConversationRetry(h.G(), convRes.ConvID, types.InboxLoad))
 			}
 			wg.Done()
 		}(convRes)
@@ -339,9 +346,11 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		// Detect any problem loading the thread, and queue it up in the retrier if there is a problem.
 		// Otherwise, send notice that we successfully loaded the conversation.
 		if res.Offline || fullErr != nil {
-			h.G().FetchRetrier.Failure(ctx, arg.ConversationID, uid.ToBytes(), types.ThreadLoad)
+			h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
+				NewConversationRetry(h.G(), arg.ConversationID, types.ThreadLoad))
 		} else {
-			h.G().FetchRetrier.Success(ctx, arg.ConversationID, uid.ToBytes(), types.ThreadLoad)
+			h.G().FetchRetrier.Success(ctx, uid.ToBytes(),
+				NewConversationRetry(h.G(), arg.ConversationID, types.ThreadLoad))
 		}
 	}()
 	if err := h.assertLoggedIn(ctx); err != nil {

@@ -10,6 +10,7 @@ type FetchType int
 const (
 	InboxLoad FetchType = iota
 	ThreadLoad
+	FullInboxLoad
 )
 
 type TLFInfo struct {
