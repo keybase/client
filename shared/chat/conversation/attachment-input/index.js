@@ -40,7 +40,7 @@ class RenderAttachmentInput extends Component<void, Props, State> {
 
   render() {
     const count = this.props.inputs.length
-    const currentTitle = count > 0 ? this.props.inputs[this.state.index].title : ''
+    const currentTitle = this.state.index < count ? this.props.inputs[this.state.index].title : ''
 
     return (
       <PopupDialog onClose={this.props.onClose}>
