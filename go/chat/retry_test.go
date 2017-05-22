@@ -89,4 +89,17 @@ func TestFetchRetry(t *testing.T) {
 		require.Fail(t, "timeout on inbox stale")
 	}
 
+	t.Logf("testing full inbox retry")
+	ttype := chat1.TopicType_CHAT
+	tc.Context().FetchRetrier.Failure(context.TODO(), uid,
+		NewFullInboxRetry(tc.Context(), &chat1.GetInboxLocalQuery{
+			TopicType: &ttype,
+		}, &chat1.Pagination{Num: 10}))
+	tc.Context().FetchRetrier.Force(context.TODO())
+	select {
+	case <-list.inboxStale:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no inbox full stale received")
+	}
+
 }
