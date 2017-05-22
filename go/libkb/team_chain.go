@@ -122,6 +122,7 @@ func (ul *UserLog) getUserRole(u UserVersion) keybase1.TeamRole {
 func (ul *UserLog) inform(u UserVersion, role keybase1.TeamRole, seqno Seqno) {
 	currentRole := ul.getUserRole(u)
 	if currentRole == role {
+		// no change in role, now new checkpoint needed
 		return
 	}
 	(*ul)[u] = append((*ul)[u], UserTeamRoleCheckpoint{
@@ -286,7 +287,10 @@ func (t *TeamSigChainPlayer) addChainLinksCommon(links []SCChainLink, alreadyVer
 	for _, link := range links {
 		newState, err := t.addChainLinkCommon(state, link, alreadyVerified)
 		if err != nil {
-			return err
+			if state == nil {
+				return fmt.Errorf("seqno:1 %s", err)
+			}
+			return fmt.Errorf("seqno:%v %s", state.GetLatestSeqno(), err)
 		}
 		state = &newState
 	}
@@ -382,7 +386,7 @@ func (t *TeamSigChainPlayer) checkOuterLink(prevState *TeamSigChainState, link S
 	// we need the specified eldest seqno from the server for this.
 	signerUID, err := keybase1.UIDFromString(string(link.UID))
 	if err != nil {
-		return res, err
+		return res, fmt.Errorf("outer link signer uid: %s", err)
 	}
 	username, err := t.helper.UsernameForUID(signerUID)
 	if err != nil {
@@ -486,29 +490,16 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			return res, fmt.Errorf("team id:%s does not match team name:%s", teamID, teamName)
 		}
 
-		err = t.sanityCheckMembers(*team.Members)
+		roleUpdates, err := t.sanityCheckMembers(*team.Members, true)
 		if err != nil {
 			return res, err
 		}
 
-		ownerFound := false
-		for _, u := range team.Members.Owners {
-			uv, err := ParseUserVersion(string(u))
-			if err != nil {
-				return res, err
-			}
-			if uv == oRes.signingUser {
-				ownerFound = true
-			}
-		}
-		if !ownerFound {
+		userLog := t.makeInitialUserLog(roleUpdates)
+
+		// check that the signer is an owner
+		if userLog.getUserRole(oRes.signingUser) != keybase1.TeamRole_OWNER {
 			return res, fmt.Errorf("signer is not an owner: %v (%v)", oRes.signingUser, team.Members.Owners)
-			// return res, fmt.Errorf("signer is not an owner: %v", oRes.signingUser)
-		}
-
-		userLog, err := t.makeInitialUserLog(*team.Members)
-		if err != nil {
-			return res, err
 		}
 
 		perTeamKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, 1)
@@ -533,7 +524,73 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 
 		return res, nil
 	case "team.change_membership":
-		return res, fmt.Errorf("todo implement parsing of: %s", payload.Body.Type)
+		if prevState == nil {
+			return res, fmt.Errorf("link type '%s' unexpected at seqno:%v", payload.Body.Type, prevState.LastSeqno+1)
+		}
+		if team.ID == nil {
+			return res, errors.New("missing team id")
+		}
+		if team.Name != nil {
+			return res, errors.New("unexpected name")
+		}
+		if team.Members == nil {
+			return res, errors.New("missing members")
+		}
+		if team.Parent != nil {
+			return res, errors.New("unexpected parent")
+		}
+		if team.Subteam != nil {
+			return res, errors.New("unexpected subteam")
+		}
+		if team.PerTeamKey != nil {
+			return res, errors.New("unexpected missing")
+		}
+
+		teamID, err := keybase1.TeamIDFromString(string(*team.ID))
+		if err != nil {
+			return res, err
+		}
+
+		if !prevState.ID.Equal(teamID) {
+			return res, fmt.Errorf("wrong team id: %s != %s", teamID.String(), prevState.ID.String())
+		}
+
+		// Check that the signer is an admin or owner to have permission to make this link.
+		signerRole, err := prevState.GetUserRole(oRes.signingUser)
+		if err != nil {
+			return res, err
+		}
+		switch signerRole {
+		case keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+			// ok
+		default:
+			return res, fmt.Errorf("link signer does not have permission to change membership: %v is a %v", oRes.signingUser, signerRole)
+		}
+
+		roleUpdates, err := t.sanityCheckMembers(*team.Members, false)
+		if err != nil {
+			return res, err
+		}
+
+		res.newState = prevState.DeepCopy()
+
+		t.updateMembership(&res.newState.UserLog, roleUpdates, oRes.outerLink.Seqno)
+
+		// Note: If someone was removed, the per-team-key should be rotated. This is not checked though.
+
+		if team.PerTeamKey != nil {
+			lastKey, err := prevState.GetLatestPerTeamKey()
+			if err != nil {
+				return res, fmt.Errorf("getting previous per-team-key: %s", err)
+			}
+			newKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, lastKey.Gen+1)
+			if err != nil {
+				return res, err
+			}
+			res.newState.PerTeamKeys[newKey.Gen] = newKey
+		}
+
+		return res, nil
 	case "team.rotate_key":
 		if prevState == nil {
 			return res, fmt.Errorf("link type 'team.rotate_key' unexpected at beginning of chain")
@@ -635,42 +692,74 @@ func (t *TeamSigChainPlayer) checkStubbed(state TeamSigChainState) error {
 	return nil
 }
 
-// Check that there are no duplicate members
-func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers) error {
-	var all []SCTeamMember
+// Check that all the users are formatted correctly.
+// Check that there are no duplicate members.
+// `firstLink` is whether this is seqno=1. In which case owners must exist.
+// Rotates to a map which has entries for the roles that actually appeared in the input, even if they are empty lists.
+// In other words, if the input has only `admin -> []` then the output will have only `admin` in the map.
+func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, firstLink bool) (map[keybase1.TeamRole][]UserVersion, error) {
+	type assignment struct {
+		m    SCTeamMember
+		role keybase1.TeamRole
+	}
+	var all []assignment
 
-	if len(members.Owners) < 1 {
-		return errors.New("team has no owners")
+	if firstLink {
+		if members.Owners == nil {
+			return nil, fmt.Errorf("team has no owner list: %+v", members)
+		}
+		if len(*members.Owners) < 1 {
+			return nil, fmt.Errorf("team has no owners: %+v", members)
+		}
 	}
 
-	for _, m := range members.Owners {
-		all = append(all, m)
+	// Map from roles to users.
+	res := make(map[keybase1.TeamRole][]UserVersion)
+
+	if members.Owners != nil {
+		res[keybase1.TeamRole_OWNER] = nil
+		for _, m := range *members.Owners {
+			all = append(all, assignment{m, keybase1.TeamRole_OWNER})
+		}
 	}
-	for _, m := range members.Admins {
-		all = append(all, m)
+	if members.Admins != nil {
+		res[keybase1.TeamRole_ADMIN] = nil
+		for _, m := range *members.Admins {
+			all = append(all, assignment{m, keybase1.TeamRole_ADMIN})
+		}
 	}
-	for _, m := range members.Writers {
-		all = append(all, m)
+	if members.Writers != nil {
+		res[keybase1.TeamRole_WRITER] = nil
+		for _, m := range *members.Writers {
+			all = append(all, assignment{m, keybase1.TeamRole_WRITER})
+		}
 	}
-	for _, m := range members.Readers {
-		all = append(all, m)
+	if members.Readers != nil {
+		res[keybase1.TeamRole_READER] = nil
+		for _, m := range *members.Readers {
+			all = append(all, assignment{m, keybase1.TeamRole_READER})
+		}
 	}
 
-	seen := make(map[NormalizedUsername]bool)
+	// Set of users who have already been seen.
+	seen := make(map[UserVersion]bool)
 
-	for _, m := range all {
-		uv, err := ParseUserVersion(string(m))
+	for _, pair := range all {
+		uv, err := ParseUserVersion(string(pair.m))
 		if err != nil {
-			return err
+			return nil, err
 		}
-		_, ok := seen[uv.Username]
-		if ok {
-			return fmt.Errorf("duplicate username in members: %s", uv.Username)
+
+		if seen[uv] {
+			return nil, fmt.Errorf("duplicate username in members: %s", uv.Username)
 		}
-		seen[uv.Username] = true
+
+		res[pair.role] = append(res[pair.role], uv)
+
+		seen[uv] = true
 	}
 
-	return nil
+	return res, nil
 }
 
 func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerTeamKey, expectedGeneration int) (res keybase1.PerTeamKey, err error) {
@@ -689,42 +778,44 @@ func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerT
 	}, nil
 }
 
-func (t *TeamSigChainPlayer) makeInitialUserLog(members SCTeamMembers) (UserLog, error) {
+func (t *TeamSigChainPlayer) makeInitialUserLog(roleUpdates map[keybase1.TeamRole][]UserVersion) UserLog {
 	userLog := make(UserLog)
 
-	add := func(member SCTeamMember, role keybase1.TeamRole) error {
-		uv, err := ParseUserVersion(string(member))
-		if err != nil {
-			return err
-		}
-		userLog.inform(uv, role, 1)
-		return nil
-	}
-
-	for _, m := range members.Readers {
-		err := add(m, keybase1.TeamRole_READER)
-		if err != nil {
-			return userLog, err
-		}
-	}
-	for _, m := range members.Writers {
-		err := add(m, keybase1.TeamRole_WRITER)
-		if err != nil {
-			return userLog, err
-		}
-	}
-	for _, m := range members.Admins {
-		err := add(m, keybase1.TeamRole_ADMIN)
-		if err != nil {
-			return userLog, err
-		}
-	}
-	for _, m := range members.Owners {
-		err := add(m, keybase1.TeamRole_OWNER)
-		if err != nil {
-			return userLog, err
+	for role, uvs := range roleUpdates {
+		for _, uv := range uvs {
+			userLog.inform(uv, role, 1)
 		}
 	}
 
-	return userLog, nil
+	return userLog
+}
+
+// Update `userLog` with the membership in roleUpdates.
+// Users already in `userLog` who do not appear in `roleUpdates` and whose role does not appear in `roleUpdates` are unaffected.
+// Users already in `userLog` who do not appear in `roleUpdates` but whose role does appear in `roleUpdates` are kicked out the team.
+// Users already in `userLog` who appear with a different role than before are updated to that new role.
+func (t *TeamSigChainPlayer) updateMembership(userLog *UserLog, roleUpdates map[keybase1.TeamRole][]UserVersion, seqno Seqno) {
+	// Set of users that were already processed
+	processed := make(map[UserVersion]bool)
+
+	for role, uvs := range roleUpdates {
+		for _, uv := range uvs {
+			userLog.inform(uv, role, seqno)
+			processed[uv] = true
+		}
+	}
+
+	// Kick users who were not processed and whose role is mentioned in roleUpdates.
+	for uv := range *userLog {
+		if !processed[uv] {
+			role := (*userLog).getUserRole(uv)
+			if role != keybase1.TeamRole_NONE {
+				_, mentioned := roleUpdates[role]
+				if mentioned {
+					userLog.inform(uv, keybase1.TeamRole_NONE, seqno)
+				}
+			}
+		}
+	}
+
 }
