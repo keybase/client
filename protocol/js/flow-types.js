@@ -97,6 +97,14 @@ export const CommonMerkleTreeID = {
   kbfsPrivate: 2,
 }
 
+export const CommonTeamRole = {
+  none: 0,
+  owner: 1,
+  admin: 2,
+  writer: 3,
+  reader: 4,
+}
+
 export const ConfigForkType = {
   none: 0,
   auto: 1,
@@ -287,6 +295,7 @@ export const KbfsCommonFSErrorType = {
   tooManyFolders: 11,
   exdevNotSupported: 12,
   diskLimitReached: 13,
+  diskCacheErrorLogSend: 14,
 }
 
 export const KbfsCommonFSNotificationType = {
@@ -301,6 +310,7 @@ export const KbfsCommonFSNotificationType = {
   fileModified: 8,
   fileDeleted: 9,
   fileRenamed: 10,
+  initialized: 11,
 }
 
 export const KbfsCommonFSStatusCode = {
@@ -4193,6 +4203,7 @@ export type FSErrorType =
   | 11 // TOO_MANY_FOLDERS_11
   | 12 // EXDEV_NOT_SUPPORTED_12
   | 13 // DISK_LIMIT_REACHED_13
+  | 14 // DISK_CACHE_ERROR_LOG_SEND_14
 
 export type FSNotification = {
   publicTopLevelFolder: boolean,
@@ -4218,6 +4229,7 @@ export type FSNotificationType =
   | 8 // FILE_MODIFIED_8
   | 9 // FILE_DELETED_9
   | 10 // FILE_RENAMED_10
+  | 11 // INITIALIZED_11
 
 export type FSPathSyncStatus = {
   publicTopLevelFolder: boolean,
@@ -4779,6 +4791,13 @@ export type Path =
 export type PathType =
     0 // LOCAL_0
   | 1 // KBFS_1
+
+export type PerTeamKey = {
+  gen: int,
+  seqno: int,
+  sigKID: KID,
+  encKID: KID,
+}
 
 export type PerUserKey = {
   gen: int,
@@ -5451,6 +5470,13 @@ export type TLFQuery = {
 }
 
 export type TeamID = string
+
+export type TeamRole =
+    0 // NONE_0
+  | 1 // OWNER_1
+  | 2 // ADMIN_2
+  | 3 // WRITER_3
+  | 4 // READER_4
 
 export type Test = {
   reply: string,

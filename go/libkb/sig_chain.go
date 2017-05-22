@@ -23,7 +23,7 @@ import (
 //    "inner" link. It persists in some cases and is elided for bandwidth
 //    savings in others.
 //
-//   V2 AKA Outer/Inner Split: In V2, the signer computers a signature over
+//   V2 AKA Outer/Inner Split: In V2, the signer computes a signature over
 //    a much smaller outer link (see OuterLinkV2 in chain_link_v2.go). The
 //    "curr" field in the outer link points to a V1 inner link by content hash.
 //    Essential fields from the V1 inner link are hoisted up into the V2 outer
@@ -789,7 +789,8 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		return err
 	}
 	if currentLink == nil {
-		return fmt.Errorf("tried to load link ID %s, but link not found", mt.LinkID.String())
+		l.G().Log.CDebugf(l.ctx, "tried to load previous link ID %s, but link not found", mt.LinkID.String())
+		return nil
 	}
 	links := []*ChainLink{currentLink}
 
@@ -809,7 +810,8 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 			return err
 		}
 		if prevLink == nil {
-			return fmt.Errorf("tried to load previous link ID %s, but link not found", currentLink.GetPrev())
+			l.G().Log.CDebugf(l.ctx, "tried to load previous link ID %s, but link not found", currentLink.GetPrev())
+			return nil
 		}
 		links = append(links, prevLink)
 		if isSubchainStart(currentLink, prevLink) {

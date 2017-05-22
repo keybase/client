@@ -152,6 +152,14 @@ protocol Common {
       KID encKID;
   }
 
+  @lint("ignore")
+  record PerTeamKey {
+      int gen;
+      int seqno;
+      KID sigKID;
+      KID encKID;
+  }
+
   record UserPlusKeys {
       UID uid;
       string username;
@@ -222,6 +230,14 @@ protocol Common {
   record UserResolution {
       SocialAssertion assertion;
       UID userID;
+  }
+
+  enum TeamRole {
+    NONE_0,
+    OWNER_1,
+    ADMIN_2,
+    WRITER_3,
+    READER_4
   }
 
 }

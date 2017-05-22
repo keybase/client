@@ -381,6 +381,29 @@
     },
     {
       "type": "record",
+      "name": "PerTeamKey",
+      "fields": [
+        {
+          "type": "int",
+          "name": "gen"
+        },
+        {
+          "type": "int",
+          "name": "seqno"
+        },
+        {
+          "type": "KID",
+          "name": "sigKID"
+        },
+        {
+          "type": "KID",
+          "name": "encKID"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "UserPlusKeys",
       "fields": [
         {
@@ -522,6 +545,17 @@
         }
       ],
       "doc": "UserResolution maps how an unresolved user assertion has been resolved."
+    },
+    {
+      "type": "enum",
+      "name": "TeamRole",
+      "symbols": [
+        "NONE_0",
+        "OWNER_1",
+        "ADMIN_2",
+        "WRITER_3",
+        "READER_4"
+      ]
     }
   ],
   "messages": {},

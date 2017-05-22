@@ -9,11 +9,7 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 class Confirm extends Component<void, Props, void> {
   render() {
     return (
-      <StandardScreen
-        styleOuter={backgroundColorThemed[this.props.theme]}
-        styleClose={styleCloseThemed[this.props.theme]}
-        onClose={this.props.onCancel}
-      >
+      <StandardScreen theme={mapTheme[this.props.theme]} onCancel={this.props.onCancel}>
         <Box style={styleBodyContainer}>
           <Box style={styleIconContainer}>
             {this.props.header}
@@ -26,6 +22,7 @@ class Confirm extends Component<void, Props, void> {
               justifyContent: 'flex-end',
               flex: 1,
               marginBottom: globalMargins.medium,
+              marginTop: globalMargins.medium,
             }}
           >
             <Button
@@ -50,6 +47,11 @@ class Confirm extends Component<void, Props, void> {
   }
 }
 
+const mapTheme = {
+  private: 'dark',
+  public: 'light',
+}
+
 const styleIconContainer = {
   ...globalStyles.flexBoxColumn,
   height: 112,
@@ -68,15 +70,6 @@ const styleBodyContainer = {
   marginBottom: globalMargins.small,
 }
 
-const backgroundColorThemed = {
-  public: {
-    backgroundColor: globalColors.white,
-  },
-  private: {
-    backgroundColor: globalColors.darkBlue3,
-  },
-}
-
 const styleButton = {
   alignSelf: 'stretch',
 }
@@ -90,15 +83,6 @@ const cancelButtonThemed = {
 
 const cancelButtonLabelThemed = {
   public: {},
-  private: {
-    color: globalColors.white,
-  },
-}
-
-const styleCloseThemed = {
-  public: {
-    color: globalColors.blue,
-  },
   private: {
     color: globalColors.white,
   },

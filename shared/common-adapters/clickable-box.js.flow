@@ -12,6 +12,8 @@ export type Props = {|
   onPressIn?: ?() => void,
   onPressOut?: ?() => void,
   feedback?: boolean,
+  // mobile only
+  activeOpacity?: number,
 |}
 
 declare export default class ClickableBox extends Component<void, Props, void> {}
