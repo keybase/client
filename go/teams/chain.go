@@ -790,7 +790,19 @@ func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerT
 	if perTeamKey.Generation != expectedGeneration {
 		return res, fmt.Errorf("per-team-key generation must start at 1 but got:%d", perTeamKey.Generation)
 	}
-	// TODO CORE-5302 validate KIDs
+
+	// validate signing kid
+	_, err = libkb.ImportNaclSigningKeyPairFromHex(perTeamKey.SigKID.String())
+	if err != nil {
+		return res, fmt.Errorf("invalid per-team-key signing KID: %s", perTeamKey.SigKID)
+	}
+
+	// validate encryption kid
+	_, err = libkb.ImportNaclDHKeyPairFromHex(perTeamKey.EncKID.String())
+	if err != nil {
+		return res, fmt.Errorf("invalid per-team-key encryption KID: %s", perTeamKey.EncKID)
+	}
+
 	// TODO CORE-5302 validate the reverse sig
 
 	return keybase1.PerTeamKey{
