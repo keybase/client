@@ -1,26 +1,24 @@
 // @flow
 import * as Constants from '../../constants/searchv3'
-import React, {Component} from 'react'
+import React from 'react'
 import {Avatar, Box, Icon, ClickableBox, Text} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 
 import type {IconType} from '../../common-adapters/icon'
 
-type KeybaseUsername = string
-type SearchIcon = IconType | KeybaseUsername // if service is Keybase its a username
 type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
 export type Props = {|
   id: string,
 
   leftFollowingState: FollowingState,
-  leftIcon: SearchIcon,
+  leftIcon: IconType,
   leftService: Constants.Service,
   leftUsername: string,
 
   rightFollowingState: FollowingState,
   rightFullname: ?string,
-  rightIcon: ?SearchIcon,
+  rightIcon: ?IconType,
   rightService: ?Constants.Service,
   rightUsername: ?string,
 
@@ -29,9 +27,9 @@ export type Props = {|
   onShowTracker: () => void,
 |}
 
-const IconOrAvatar = ({service, username, icon, size, style}) =>
+const IconOrAvatar = ({service, username, icon, avatarSize, style}) =>
   service === 'Keybase'
-    ? <Avatar username={username} size={size} style={style} />
+    ? <Avatar username={username} size={avatarSize} style={style} />
     : icon ? <Icon type={icon} style={style} /> : null
 
 const followingStateToStyle = (followingState: FollowingState) => {
@@ -52,7 +50,9 @@ const followingStateToStyle = (followingState: FollowingState) => {
 const Left = ({leftService, leftIcon, leftUsername, leftFollowingState}) => {
   return (
     <Box style={_leftContainerStyle}>
-      <IconOrAvatar service={leftService} username={leftUsername} icon={leftIcon} size={32} />
+      <Box style={{...globalStyles.flexBoxCenter, width: 32}}>
+        <IconOrAvatar service={leftService} username={leftUsername} icon={leftIcon} avatarSize={32} />
+      </Box>
       <Text
         type="BodySemibold"
         style={{
@@ -82,7 +82,7 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFullname, rightFol
           service={rightService}
           username={rightUsername}
           icon={rightIcon}
-          size={12}
+          avatarSize={12}
           style={{
             fontSize: 12,
             height: 12,
@@ -90,7 +90,9 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFullname, rightFol
             width: 12,
           }}
         />
-        <Text type="BodySmall" style={followingStateToStyle(rightFollowingState)}>{rightUsername}</Text>
+        <Text type="BodySmallSemibold" style={followingStateToStyle(rightFollowingState)}>
+          {rightUsername}
+        </Text>
       </Box>
       {!!rightFullname &&
         <Box style={{...globalStyles.flexBoxRow}}>
@@ -123,7 +125,7 @@ const Line = () => (
     style={{
       ...globalStyles.fillAbsolute,
       backgroundColor: globalColors.black_05,
-      left: 56,
+      left: 54,
       maxHeight: 1,
       minHeight: 1,
       top: undefined,

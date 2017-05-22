@@ -72,6 +72,7 @@ const commonServicesReultMapPropsService = {
   rightUsername: null,
 }
 
+// $FlowIssue doesn't like stateless components
 const servicesResultMap: DumbComponentMap<ResultRow> = {
   component: ResultRow,
   mocks: {
@@ -113,19 +114,19 @@ const servicesResultMap: DumbComponentMap<ResultRow> = {
     },
     Twitter: {
       ...commonServicesReultMapPropsService,
-      leftIcon: 'icon-twitter-logo-32',
+      leftIcon: 'icon-twitter-logo-24',
       leftService: 'Twitter',
     },
     TwitterKeybase: {
       ...commonServicesReultMapPropsService,
-      leftIcon: 'icon-twitter-logo-32',
+      leftIcon: 'icon-twitter-logo-24',
       leftService: 'Twitter',
       rightService: 'Keybase',
       rightUsername: 'jzila',
     },
     TwitterKeybaseFollowing: {
       ...commonServicesReultMapPropsService,
-      leftIcon: 'icon-twitter-logo-32',
+      leftIcon: 'icon-twitter-logo-24',
       leftService: 'Twitter',
       rightFollowingState: 'Following',
       rightService: 'Keybase',
@@ -133,7 +134,7 @@ const servicesResultMap: DumbComponentMap<ResultRow> = {
     },
     TwitterKeybaseNotFollowing: {
       ...commonServicesReultMapPropsService,
-      leftIcon: 'icon-twitter-logo-32',
+      leftIcon: 'icon-twitter-logo-24',
       leftService: 'Twitter',
       rightFollowingState: 'NotFollowing',
       rightService: 'Keybase',
@@ -141,7 +142,7 @@ const servicesResultMap: DumbComponentMap<ResultRow> = {
     },
     TwitterKeybaseYou: {
       ...commonServicesReultMapPropsService,
-      leftIcon: 'icon-twitter-logo-32',
+      leftIcon: 'icon-twitter-logo-24',
       leftService: 'Twitter',
       rightFollowingState: 'You',
       rightService: 'Keybase',
@@ -149,22 +150,22 @@ const servicesResultMap: DumbComponentMap<ResultRow> = {
     },
     Facebook: {
       ...commonServicesReultMapPropsService,
-      leftIcon: 'icon-facebook-logo-32',
+      leftIcon: 'icon-facebook-logo-24',
       leftService: 'Facebook',
     },
     GitHub: {
       ...commonServicesReultMapPropsService,
-      leftIcon: 'icon-github-logo-32',
+      leftIcon: 'icon-github-logo-24',
       leftService: 'GitHub',
     },
     Reddit: {
       ...commonServicesReultMapPropsService,
-      leftIcon: 'icon-reddit-logo-32',
+      leftIcon: 'icon-reddit-logo-24',
       leftService: 'Reddit',
     },
     'Hacker News': {
       ...commonServicesReultMapPropsService,
-      leftIcon: 'icon-hacker-news-logo-32',
+      leftIcon: 'icon-hacker-news-logo-24',
       leftService: 'Hacker News',
     },
   },
