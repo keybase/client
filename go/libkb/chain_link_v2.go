@@ -178,8 +178,13 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations bool) (ret 
 	case "pgp_update":
 		ret = SigchainV2TypePGPUpdate
 	default:
-		ret = SigchainV2TypeNone
-		err = ChainLinkError{fmt.Sprintf("Unknown sig v1 type: %s", s)}
+		teamRes, teamErr := SigchainV2TypeFromV1TypeTeams(s)
+		if teamErr == nil {
+			ret = teamRes
+		} else {
+			ret = SigchainV2TypeNone
+			err = ChainLinkError{fmt.Sprintf("Unknown sig v1 type: %s", s)}
+		}
 	}
 
 	if !ret.NeedsSignature() && hasRevocations {
