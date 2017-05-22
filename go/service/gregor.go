@@ -646,13 +646,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 
 	// Sync badge state in the background
 	if g.badger != nil {
-		state, err := gcli.StateMachineState(nil)
-		if err != nil {
-			g.chatLog.Debug(ctx, "badger failed: unable to get state: %s", err.Error())
-			state = gregor1.State{}
-		}
-		if err := g.badger.Resync(ctx, &chat1.RemoteClient{Cli: g.cli}, state.(gregor1.State),
-			&syncAllRes.Badge); err != nil {
+		if err := g.badger.Resync(ctx, g.GetClient, gcli, &syncAllRes.Badge); err != nil {
 			g.chatLog.Debug(ctx, "badger failure: %s", err.Error())
 		}
 	}
